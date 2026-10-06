@@ -397,3 +397,15 @@ It would use the same grammar with paths of the engine's own `settings` names (f
 5. **The default age per species in the harness**, and the spruce at 80 in the browser (3.4).
 6. **The size ceilings:** the owner's decision once the modules are built with the engine.
 7. **The authored envelope** on the engine's path: the twist's height and the plan's envelope (2.8, item 2).
+
+## Host decisions (2026-10-06, overnight; owner: "be bold")
+
+1. **Value format: (A)**, indexed rows in each preset's own `.values` file; presets stay value tables, one per preset. Unbounded shedding delays are the grammar's named token `never` (a typed value, not a magic number); the trunk ages, the oak's growing light (extinction and sky) and the default age are preset values; `Family.age` is read by the build.
+2. **Stage 2: door (i) now.** The private `pipeline::skeleton` becomes the engine (today's whole-tree CPU grower with F2b's levers); no entry signature changes; door (ii), fine roots in the expansion, follows when fn-209's executor and the oak's light path land. Not (iii).
+3. **Conversion** is a private module of core's pipeline; telperion-core depends on telperion-space; each of the five conversion constants gets a named owner and a doc line where it is defined.
+4. **The beech ships** on this branch (passed by the owner; `IN_WORK` lifted).
+5. **Harness:** default age 40 for every engine species, the age slider to 80. In the browser, a species and age whose CPU preparation cannot fit the 4 GB Wasm ceiling is refused with a named error, never a trap (the spruce at 80 measured 3.9 GB); fn-209's fine path lifts the ceiling.
+6. **Size ceilings:** raised on this branch to the measured sizes and flagged for the owner (an owner decision; nothing merges).
+7. **The envelope:** the pipeline derives it from the grown structure for every tree; the presets' hand-set envelope rows are removed.
+8. **The browser clock:** `Instant::now()` leaves every code path the Wasm build runs (timing stays in examples and probes).
+9. **Presets without an engine species** (silver birch, laurelin, telperion, ordinary) are refused by name at stage 2; tests that build them become expected-refusal tests on this branch, listed for the owner.
