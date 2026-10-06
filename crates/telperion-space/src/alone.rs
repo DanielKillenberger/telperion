@@ -142,7 +142,7 @@ pub fn grow_alone_with<'s>(
     if structure.phytomer_count() == 0 {
         return Err(Error::Collapsed);
     }
-    scale(&mut structure, species);
+    scale(&mut structure, species, 1);
     thicken(&mut structure, species, &Girth::default(), 1);
     let bounded = Bounded::settled(species, structure, records, (rows, None));
     Ok(Alone { bounded, costs })

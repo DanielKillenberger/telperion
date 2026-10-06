@@ -13,6 +13,7 @@ mod lay;
 mod place;
 mod single;
 
+use crate::cores::{fill, map};
 use crate::lineage::{Key, DOMINANCE, ROLL};
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
@@ -27,40 +28,72 @@ use std::f64::consts::TAU;
 const UPRIGHT: f64 = 0.2;
 
 /// Sizes every phytomer by its axis's vigour, its parent's scale and its
-/// unit's own size, and sets each relay's node.
-pub(crate) fn scale(structure: &mut Structure, species: &Species) {
-    // Each axis's scale at its base, from its already scaled parent.
-    let mut base_scale = vec![1.0; structure.axes.len()];
-    for i in 0..structure.axes.len() {
-        let inherited = match structure.axes[i].origin {
+/// unit's own size, and sets each relay's node, on up to `threads`
+/// cores: each axis's scale at its base is taken in turn, from its
+/// parent's, and the phytomers are scaled by it each on their own.
+pub(crate) fn scale(structure: &mut Structure, species: &Species, threads: usize) {
+    let axes = &mut structure.axes;
+    let n = axes.len();
+    // Each axis's own share of its parent's scale: its vigour, its
+    // dominance among its siblings and, for a lateral, its node's scale
+    // as drawn.
+    let mut own = vec![(1.0, 1.0, 1.0); n];
+    {
+        let axes = &*axes;
+        fill(&mut own, 1 << 12, threads, &|i| {
+            let axis = &axes[i];
+            match axis.origin {
+                Origin::Lateral { parent, node, .. } => (
+                    axes[parent].phytomers[node].scale,
+                    axis.vigour,
+                    dominance(species.states[axis.pa].form.dominance, axis.lineage),
+                ),
+                _ => (1.0, axis.vigour, 1.0),
+            }
+        });
+    }
+    // Each axis's scale at its base, from its parent's: its node's scale
+    // once its parent is scaled.
+    let mut base_scale = vec![1.0; n];
+    for i in 0..n {
+        let (drawn, vigour, share) = own[i];
+        let inherited = match axes[i].origin {
             Origin::Seed => 1.0,
-            Origin::Lateral { parent, node, .. } => structure.axes[parent].phytomers[node].scale,
+            Origin::Lateral { parent, .. } => drawn * base_scale[parent],
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => base_scale[parent],
         };
-        let axis = &mut structure.axes[i];
-        let share = match axis.origin {
-            Origin::Lateral { .. } => {
-                dominance(species.states[axis.pa].form.dominance, axis.lineage)
-            }
-            _ => 1.0,
-        };
-        base_scale[i] = inherited * axis.vigour * share;
-        for phytomer in &mut axis.phytomers {
-            phytomer.scale *= base_scale[i];
+        base_scale[i] = inherited * vigour * share;
+    }
+    let pieces: Vec<(usize, &mut [Axis])> = axes.chunks_mut(1 << 8).enumerate().collect();
+    map(pieces, 1, threads, &|_, (k, piece)| {
+        for (j, axis) in piece.iter_mut().enumerate() {
+            let base = base_scale[k * (1 << 8) + j];
+            axis.phytomers.iter_mut().for_each(|p| p.scale *= base);
         }
-        // A relay's node: where along its parent's last growth unit it
-        // stands, which girth and placement both read.
-        if let Origin::Relay { parent, .. } = structure.axes[i].origin {
-            let share = species.states[structure.axes[parent].pa].relay_at;
-            let node = relay_point(&structure.axes[parent], share).node;
-            structure.axes[i].origin = Origin::Relay { parent, node };
-        }
+    });
+    // A relay's node: where along its parent's last growth unit it
+    // stands, which girth and placement both read.
+    let relays: Vec<(usize, usize)> = (0..n)
+        .filter_map(|i| match axes[i].origin {
+            Origin::Relay { parent, .. } => Some((i, parent)),
+            _ => None,
+        })
+        .collect();
+    let nodes = map(relays, 1 << 6, threads, &|_, (i, parent)| {
+        let share = species.states[axes[parent].pa].relay_at;
+        (i, parent, relay_point(&axes[parent], share).node)
+    });
+    for (i, parent, node) in nodes {
+        axes[i].origin = Origin::Relay { parent, node };
     }
     // A unit's size is its own: applied once every axis has inherited its
     // bearer's scale without it.
-    for phytomer in structure.axes.iter_mut().flat_map(|a| &mut a.phytomers) {
-        phytomer.scale *= phytomer.size;
-    }
+    let pieces: Vec<&mut [Axis]> = axes.chunks_mut(1 << 8).collect();
+    map(pieces, 1, threads, &|_, piece| {
+        for phytomer in piece.iter_mut().flat_map(|a| &mut a.phytomers) {
+            phytomer.scale *= phytomer.size;
+        }
+    });
 }
 
 /// How far an axis `years` old is pulled towards the vertical at its

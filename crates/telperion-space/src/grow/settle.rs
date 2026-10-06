@@ -56,7 +56,7 @@ impl Grower<'_> {
         if structure.phytomer_count() == 0 {
             return Err(Error::Collapsed);
         }
-        scale(&mut structure, species);
+        scale(&mut structure, species, threads);
         stage(Stage::Pass(Pass::Scale));
         // Girth needs no geometry; placing reads it where wood meets the
         // ground.

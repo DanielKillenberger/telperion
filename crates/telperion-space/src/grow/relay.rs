@@ -82,7 +82,7 @@ impl Grower<'_> {
             pas: self.species.states.len(),
             axes: shed.axes,
         };
-        scale(&mut tree, self.species);
+        scale(&mut tree, self.species, self.threads);
         thicken(&mut tree, self.species, &Girth::default(), self.threads);
         report(Stage::Pass(Pass::RelaySettle));
         let mut layers = place(&mut tree, self.species, None, self.threads)?;
