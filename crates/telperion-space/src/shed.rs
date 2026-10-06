@@ -93,8 +93,34 @@ pub(crate) struct Shed {
     pub fade: Vec<f64>,
 }
 
-pub(crate) fn shed(mut axes: Vec<Axis>, species: &Species, age: u32) -> Shed {
-    let fade = fades(&axes, species, age);
+pub(crate) fn shed(axes: Vec<Axis>, species: &Species, age: u32) -> Shed {
+    shed_given(axes, species, age, &|_| None, None).0
+}
+
+/// A subtree's living as its bearer's fade reads it (fn-209 F1, realized
+/// mechanics): the last time anything in it lived, from its birth, in
+/// presence-weighted cycles, and the presence of its most present living
+/// apex.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub(crate) struct Living {
+    pub lived: f64,
+    pub alive: f64,
+}
+
+/// What stands in for an axis whose subtree is grown elsewhere: its
+/// subtree's living, by index (none: the axis's own).
+pub(crate) type Given<'g, T> = &'g (dyn Fn(usize) -> Option<T> + Sync);
+
+/// `shed`, each axis `given` names standing for a subtree grown elsewhere
+/// whose living it gives; and the living of axis `report`'s subtree.
+pub(crate) fn shed_given(
+    mut axes: Vec<Axis>,
+    species: &Species,
+    age: u32,
+    given: Given<Living>,
+    report: Option<usize>,
+) -> (Shed, Living) {
+    let (fade, reported) = fades(&axes, species, age, given, report);
     let mut index = vec![usize::MAX; axes.len()];
     let mut kept = Vec::with_capacity(axes.len());
     for (i, mut axis) in axes.drain(..).enumerate() {
@@ -121,26 +147,33 @@ pub(crate) fn shed(mut axes: Vec<Axis>, species: &Species, age: u32) -> Shed {
         index[i] = kept.len();
         kept.push(axis);
     }
-    Shed {
+    let shed = Shed {
         axes: kept,
         index,
         fade,
-    }
+    };
+    (shed, reported)
 }
 
 /// Each axis's size factor from shedding: 1 for a living subtree, falling
 /// to 0 as its idle time, measured in presence-weighted cycles, passes the
 /// delay, but never below its most present living apex. Where every
 /// presence is whole it is 1 for every kept axis.
-fn fades(axes: &[Axis], species: &Species, age: u32) -> Vec<f64> {
+fn fades(
+    axes: &[Axis],
+    species: &Species,
+    age: u32,
+    given: Given<Living>,
+    report: Option<usize>,
+) -> (Vec<f64>, Living) {
     let delay = |a: &Axis| match a.origin {
         Origin::Lateral { .. } | Origin::Relay { .. } => {
             Some(species.states[a.pa].shedding).filter(|d| d.is_finite())
         }
         _ => None,
     };
-    if !axes.iter().any(|a| delay(a).is_some()) {
-        return vec![1.0; axes.len()];
+    if report.is_none() && !axes.iter().any(|a| delay(a).is_some()) {
+        return (vec![1.0; axes.len()], Living::default());
     }
     // grown[at[a] + k]: the presence of axis a's first k growth units.
     let mut at = Vec::with_capacity(axes.len());
@@ -172,6 +205,11 @@ fn fades(axes: &[Axis], species: &Species, age: u32) -> Vec<f64> {
         .map(|(i, a)| a.sleep + grown[at[i] + a.units.len()])
         .collect();
     let mut alive: Vec<f64> = axes.iter().map(|a| 0.0f64.max(a.alive)).collect();
+    for (i, (lived, alive)) in lived.iter_mut().zip(&mut alive).enumerate() {
+        if let Some(g) = given(i) {
+            (*lived, *alive) = (g.lived, g.alive);
+        }
+    }
     for (i, link) in axes.iter().enumerate().rev() {
         let Some(parent) = link.origin.parent() else {
             continue;
@@ -197,6 +235,10 @@ fn fades(axes: &[Axis], species: &Species, age: u32) -> Vec<f64> {
         lived[parent] = lived[parent].max(before + weight * (gap + lived[i]));
         alive[parent] = alive[parent].max(alive[i] * weight);
     }
+    let reported = report.map_or_else(Living::default, |r| Living {
+        lived: lived[r],
+        alive: alive[r],
+    });
     let living: Vec<f64> = axes
         .iter()
         .zip(&lived)
@@ -204,11 +246,13 @@ fn fades(axes: &[Axis], species: &Species, age: u32) -> Vec<f64> {
         .collect();
     // A living subtree is never drawn smaller than its living apex; an apex
     // that light grew past whole (`allocation.rs`) keeps it whole.
-    axes.iter()
+    let fade = axes
+        .iter()
         .zip(living.iter().zip(&alive))
         .map(|(axis, (&until, &apex))| match delay(axis) {
             Some(d) => (d + 1.0 - (f64::from(age) - until)).clamp(apex.min(1.0), 1.0),
             None => 1.0,
         })
-        .collect()
+        .collect();
+    (fade, reported)
 }

@@ -7,7 +7,7 @@ use super::tables::Units;
 use crate::alone::{chains, seed_item, Seen};
 use crate::bounded::Expected;
 use crate::error::Result;
-use crate::fine::{grow_fine, Fine, Plan};
+use crate::fine::{grow_committed as grow_fine, CommittedFine as Fine, Plan};
 use crate::fixed::{neg_log2, q32, q62, ticks, INF};
 use crate::grow::alone::{rules, Bud, Chain};
 use crate::grow::Request;

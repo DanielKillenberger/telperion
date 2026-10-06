@@ -4,7 +4,7 @@
 //! shown to be present among the fine roots. Threshold-adjacent draws
 //! are `draws.rs`'s.
 use super::{request, same_at_cuts};
-use crate::fine::Fine;
+use crate::fine::CommittedFine;
 use crate::species::Species;
 use crate::structure::{Origin, Structure};
 use crate::{oak, spruce};
@@ -25,7 +25,7 @@ fn unlit_oak() -> Species {
 
 /// Each root's axes in the tree: its first axis's index and the indices
 /// of every axis that stands on it.
-fn root_axes(fine: &Fine) -> Vec<Vec<usize>> {
+fn root_axes(fine: &CommittedFine) -> Vec<Vec<usize>> {
     let axes = &fine.structure.axes;
     let mut root = vec![usize::MAX; axes.len()];
     let mut out: Vec<Vec<usize>> = Vec::new();

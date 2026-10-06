@@ -10,6 +10,21 @@ use crate::shed::shed;
 use crate::structure::{Origin, Structure};
 
 impl Grower<'_> {
+    /// Marks every apex living at the tree's age with how much it lives
+    /// on, and sizes every bud that woke by what its bearer kept of it.
+    pub(super) fn mark(&mut self) {
+        let age = self.rules.age;
+        for apex in &self.live {
+            let living = self.living(*apex);
+            let draws = &mut self.draws[apex.axis];
+            (draws.alive, draws.living) = (true, living);
+        }
+        for woken in &self.woken {
+            let kept = woken.kept(&self.axes, &self.draws, &self.successor, age);
+            self.draws[woken.axis].birth[1] *= kept;
+        }
+    }
+
     /// Settles and, with `lay`, lays the grown tree; `keeps` where any PA
     /// reads the tree as grown (its shed pipes or its leaves' girth).
     pub(super) fn settle(
@@ -19,15 +34,7 @@ impl Grower<'_> {
         stage: &mut dyn FnMut(Stage),
     ) -> Result<Grown> {
         let (species, threads) = (self.species, self.threads);
-        for apex in &self.live {
-            let living = self.living(*apex);
-            let draws = &mut self.draws[apex.axis];
-            (draws.alive, draws.living) = (true, living);
-        }
-        for woken in &self.woken {
-            let kept = woken.kept(&self.axes, &self.draws, &self.successor, request.age);
-            self.draws[woken.axis].birth[1] *= kept;
-        }
+        self.mark();
         stage(Stage::Pass(Pass::Mark));
         assign(&mut self.axes, &self.draws, species, threads);
         stage(Stage::Pass(Pass::Assign));

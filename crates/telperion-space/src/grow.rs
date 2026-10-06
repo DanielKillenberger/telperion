@@ -11,6 +11,7 @@ pub(crate) mod alone;
 mod balance;
 mod draw;
 mod parallel;
+pub(crate) mod realized;
 mod relay;
 mod settle;
 mod shoot;
@@ -165,10 +166,6 @@ pub(crate) fn run(
     if request.age == 0 {
         return refuse("age", "a tree grows at least one cycle");
     }
-    let root = Key::root(request.seed);
-    // The seed grows in the first age it does not pass through, as far as
-    // it reaches it.
-    let (seed, reach) = species.lived(0).ok_or(Error::Collapsed)?;
     let laterals: Vec<_> = species.states.iter().map(PaState::laterals).collect();
     // The rough layout is grown only where light shades and a bud
     // reads it, or where `sketch` asks for it: without a reader the
@@ -177,51 +174,26 @@ pub(crate) fn run(
     let sketch = (request.light.shades() && read).then(|| Sketch::new(request.light));
     // What shedding will drop is grown only where something reads it
     // while it lives: the light, or the girth of what bore it.
-    let keeps = species
-        .states
-        .iter()
-        .any(|s| s.retained > 0.0 || s.leaf_girth > 0.0);
+    let keeps = keeps(species);
     let lasting = if options.certain != Certain::Grow && sketch.is_none() && !keeps {
         lasting(species, &laterals)
     } else {
         vec![None; species.states.len()]
     };
     let threads = options.threads.unwrap_or_else(crate::cores::available);
-    let mut grower = Grower {
-        rules: Rules {
-            species,
-            laterals,
-            lasting,
-            certain: options.certain,
-            windows: Windows::new(species, request.age),
-            age: request.age,
-            budget: request.budget,
-            grown: 0,
-            alone: false,
-        },
+    let rules = Rules {
         species,
-        threads,
-        share: options.share,
-        horizon: vec![f64::NEG_INFINITY],
-        marked: Vec::new(),
-        axes: vec![bud(root.onto(seed), seed, 0, Origin::Seed)],
-        draws: vec![Draws {
-            birth: [reach, 1.0],
-            ..Draws::default()
-        }],
-        live: vec![Apex {
-            axis: 0,
-            spent: 0.0,
-        }],
-        units: vec![0.0],
-        successor: vec![Vec::new()],
-        roots: vec![root.0],
-        asleep: vec![Vec::new(); request.age as usize + 2],
-        woken: Vec::new(),
-        sketch,
-        leaves: Vec::new(),
-        wakes: Vec::new(),
+        laterals,
+        lasting,
+        certain: options.certain,
+        windows: Windows::new(species, request.age),
+        age: request.age,
+        budget: request.budget,
+        grown: 0,
+        alone: false,
+        hands: None,
     };
+    let mut grower = Grower::seeded(rules, (threads, options.share), sketch, request.seed)?;
     stage(Stage::Pass(Pass::Windows));
     let mut advanced = Vec::new();
     for cycle in 1..=request.age {
@@ -318,6 +290,61 @@ struct Grower<'a> {
     leaves: Vec<(Vec3, f64)>,
     /// Where a chain grows alone, the sleeping buds that woke on it.
     wakes: Vec<alone::Pending>,
+    /// Above a cut, each sleeping bud handed on as it woke: its
+    /// stand-in's index and its waking (`realized.rs`).
+    handed: Vec<(usize, alone::Pending)>,
+}
+
+/// Whether any PA reads the tree as grown: its shed pipes or its leaves'
+/// girth.
+pub(crate) fn keeps(species: &Species) -> bool {
+    species
+        .states
+        .iter()
+        .any(|s| s.retained > 0.0 || s.leaf_girth > 0.0)
+}
+
+impl<'a> Grower<'a> {
+    /// A grower holding the seed's bud of the youngest PA, about to grow
+    /// its first cycle on `threads` cores in shares of `share` apexes.
+    fn seeded(
+        rules: Rules<'a>,
+        (threads, share): (usize, usize),
+        sketch: Option<Sketch>,
+        seed: u64,
+    ) -> Result<Self> {
+        let (species, age) = (rules.species, rules.age);
+        let root = Key::root(seed);
+        // The seed grows in the first age it does not pass through, as
+        // far as it reaches it.
+        let (pa, reach) = species.lived(0).ok_or(Error::Collapsed)?;
+        Ok(Self {
+            rules,
+            species,
+            threads,
+            share,
+            horizon: vec![f64::NEG_INFINITY],
+            marked: Vec::new(),
+            axes: vec![bud(root.onto(pa), pa, 0, Origin::Seed)],
+            draws: vec![Draws {
+                birth: [reach, 1.0],
+                ..Draws::default()
+            }],
+            live: vec![Apex {
+                axis: 0,
+                spent: 0.0,
+            }],
+            units: vec![0.0],
+            successor: vec![Vec::new()],
+            roots: vec![root.0],
+            asleep: vec![Vec::new(); age as usize + 2],
+            woken: Vec::new(),
+            sketch,
+            leaves: Vec::new(),
+            wakes: Vec::new(),
+            handed: Vec::new(),
+        })
+    }
 }
 
 impl Grower<'_> {

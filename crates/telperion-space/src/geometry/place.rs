@@ -34,6 +34,21 @@ pub(crate) fn place(
     levers: Option<&[Vec<Lever>]>,
     threads: usize,
 ) -> Result<Vec<Layer>> {
+    let layers = place_from(structure, species, levers, 0, threads)?;
+    Ok(layers.into_iter().map(|l| l.expect("laid")).collect())
+}
+
+/// `place`, the first `fixed` axes left as they stand, laid already
+/// (fn-209 F1, realized mechanics: a fine root's bearer, whose laterals
+/// are framed from its phytomers alone). Where each laid axis's walk
+/// ended, by index; none for the fixed.
+pub(crate) fn place_from(
+    structure: &mut Structure,
+    species: &Species,
+    levers: Option<&[Vec<Lever>]>,
+    fixed: usize,
+    threads: usize,
+) -> Result<Vec<Option<Layer>>> {
     let n = structure.axes.len();
     let mut laid = Laid {
         layers: vec![None; n],
@@ -46,6 +61,7 @@ pub(crate) fn place(
     for depth in depths(structure) {
         let todo: Vec<usize> = depth
             .into_iter()
+            .filter(|&i| i >= fixed)
             .take_while(|&i| !failed.as_ref().is_some_and(|(f, _)| *f < i))
             .collect();
         let mut pieces: Vec<Vec<usize>> = todo.chunks(PIECE).map(<[usize]>::to_vec).collect();
@@ -86,7 +102,7 @@ pub(crate) fn place(
     if let Some((_, error)) = failed {
         return Err(error);
     }
-    Ok(laid.layers.into_iter().map(|l| l.expect("laid")).collect())
+    Ok(laid.layers)
 }
 
 /// Axis `i`'s start, from its parent's frame and walk.

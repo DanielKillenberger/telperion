@@ -86,12 +86,8 @@ fn expand(label: &str, species: &Species, request: Request, expected: &Expected,
     };
     let fine = grow_fine(species, request, expected, plan).expect("grows");
     let wall = t.elapsed().as_secs_f64();
-    let sizes: Vec<(f64, usize)> = fine
-        .roots
-        .iter()
-        .map(|(r, k, _)| (r.predicted, *k))
-        .collect();
-    let work: Vec<Work> = fine.roots.iter().map(|r| r.2).collect();
+    let sizes: Vec<(f64, usize)> = fine.roots.iter().map(|r| (r.predicted, r.kept)).collect();
+    let work: Vec<Work> = fine.roots.iter().map(|r| r.work).collect();
     let above: usize = fine.structure.axes[..fine.above]
         .iter()
         .map(|a| a.phytomers.len())
@@ -148,12 +144,14 @@ fn row(label: &str, sizes: &[(f64, usize)], above: usize, work: &[Work], cut: f6
 }
 
 /// The oak with its light switched off: every term that reads light
-/// dormant, so its fine roots can be expanded.
+/// dormant, and no shed pipe retained, so its fine roots can be
+/// expanded.
 fn unlit(species: &Species) -> Species {
     let mut s = species.clone();
     for state in &mut s.states {
         (state.shade_hazard, state.shade_size) = (0.0, 0.0);
         (state.balance_hazard, state.leaf_girth) = (0.0, 0.0);
+        state.retained = 0.0;
     }
     s
 }

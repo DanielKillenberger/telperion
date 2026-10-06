@@ -18,12 +18,12 @@ use crate::structure::{Axis, Origin};
 /// grown: what `woke` needs, and the axis that carried it.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Pending {
-    sleeper: Sleeper,
-    aged: (usize, f64, f64),
-    carried: f64,
-    cycle: u32,
-    bearer: usize,
-    next: usize,
+    pub sleeper: Sleeper,
+    pub aged: (usize, f64, f64),
+    pub carried: f64,
+    pub cycle: u32,
+    pub bearer: usize,
+    pub next: usize,
 }
 
 /// A bud a chain bears, as its bearer made it: all its own chain grows
@@ -33,10 +33,10 @@ pub(crate) struct Pending {
 #[derive(Debug, Clone)]
 pub(crate) struct Bud {
     pub axis: Axis,
-    draws: Draws,
-    root: u64,
-    horizon: f64,
-    wake: Option<(Pending, f64)>,
+    pub draws: Draws,
+    pub root: u64,
+    pub horizon: f64,
+    pub wake: Option<(Pending, f64)>,
 }
 
 impl Bud {
@@ -106,15 +106,37 @@ pub(crate) fn rules<'a>(species: &'a Species, age: u32, budget: u32) -> Result<R
         budget,
         grown: 0,
         alone: true,
+        hands: None,
     })
 }
 
 /// Grows the chain of `bud`, or the seed's (none), alone.
 pub(crate) fn grow(rules: &Rules, seed: u64, bud: Option<&Bud>) -> Result<Chain> {
+    let age = rules.age;
+    let (mut g, from, root) = start(rules.clone(), seed, bud)?;
+    let mut cycles = 0;
+    for cycle in from..=age {
+        if g.idle(cycle) {
+            break;
+        }
+        g.step(cycle, &mut |_| {})?;
+        cycles += 1;
+    }
+    finish(g, root, cycles)
+}
+
+/// The grower of the chain of `bud`, or the seed's (none), under `rules`:
+/// the bud's bearer as a stub (axis 0) and the bud on it (axis 1), or the
+/// seed; the first cycle it grows in, and its first axis.
+pub(super) fn start<'a>(
+    rules: Rules<'a>,
+    seed: u64,
+    bud: Option<&Bud>,
+) -> Result<(Grower<'a>, u32, usize)> {
     let species = rules.species;
     let age = rules.age;
     let mut g = Grower {
-        rules: rules.clone(),
+        rules,
         species,
         threads: 1,
         share: parallel::SHARE,
@@ -131,6 +153,7 @@ pub(crate) fn grow(rules: &Rules, seed: u64, bud: Option<&Bud>) -> Result<Chain>
         sketch: None,
         leaves: Vec::new(),
         wakes: Vec::new(),
+        handed: Vec::new(),
     };
     let (from, root) = match bud {
         None => {
@@ -187,14 +210,13 @@ pub(crate) fn grow(rules: &Rules, seed: u64, bud: Option<&Bud>) -> Result<Chain>
             }
         }
     };
-    let mut cycles = 0;
-    for cycle in from..=age {
-        if g.live.is_empty() && g.asleep[cycle as usize..].iter().all(Vec::is_empty) {
-            break;
-        }
-        g.step(cycle, &mut |_| {})?;
-        cycles += 1;
-    }
+    Ok((g, from, root))
+}
+
+/// The chain grown: its living apexes marked, its presences assigned, and
+/// the buds it bears.
+fn finish(mut g: Grower, root: usize, cycles: u32) -> Result<Chain> {
+    let age = g.rules.age;
     for apex in &g.live {
         let living = g.living(*apex);
         let draws = &mut g.draws[apex.axis];
@@ -231,26 +253,7 @@ pub(crate) fn grow(rules: &Rules, seed: u64, bud: Option<&Bud>) -> Result<Chain>
         }
     }
     for (p, kept) in wakes.into_iter().zip(woken) {
-        let s = p.sleeper;
-        let (first, _) = species.lived(s.pa).expect("aged");
-        let origin = Origin::Lateral {
-            parent: s.parent,
-            node: s.node,
-            slot: s.slot,
-            whorl: s.whorl,
-            woken: true,
-        };
-        let mut axis = bud_axis(Key(s.key).onto(first), first, p.cycle - 1, origin);
-        let lead = rules.windows.presence(s.lead, s.wood) * s.placed;
-        axis.vigour = lead * p.carried * p.aged.2 * kept;
-        let horizon = g.horizon[s.parent];
-        buds.push(Bud {
-            axis,
-            draws: Draws::default(),
-            root: s.key,
-            horizon,
-            wake: Some((p, kept)),
-        });
+        buds.push(woken_bud(&g.rules, g.horizon[p.sleeper.parent], p, kept));
     }
     let grown = g.rules.grown;
     Ok(Chain {
@@ -260,6 +263,30 @@ pub(crate) fn grow(rules: &Rules, seed: u64, bud: Option<&Bud>) -> Result<Chain>
         grown,
         cycles,
     })
+}
+
+/// The bud a sleeping bud makes as it wakes (`p`) on an axis of
+/// `horizon`, keeping `kept` of its size.
+pub(super) fn woken_bud(rules: &Rules, horizon: f64, p: Pending, kept: f64) -> Bud {
+    let s = p.sleeper;
+    let (first, _) = rules.species.lived(s.pa).expect("aged");
+    let origin = Origin::Lateral {
+        parent: s.parent,
+        node: s.node,
+        slot: s.slot,
+        whorl: s.whorl,
+        woken: true,
+    };
+    let mut axis = bud_axis(Key(s.key).onto(first), first, p.cycle - 1, origin);
+    let lead = rules.windows.presence(s.lead, s.wood) * s.placed;
+    axis.vigour = lead * p.carried * p.aged.2 * kept;
+    Bud {
+        axis,
+        draws: Draws::default(),
+        root: s.key,
+        horizon,
+        wake: Some((p, kept)),
+    }
 }
 
 fn bud_axis(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
@@ -276,6 +303,12 @@ fn set_parent(origin: &mut Origin, to: usize) {
 }
 
 impl Grower<'_> {
+    /// Whether nothing grows from `cycle` on: no living apex, and no
+    /// sleeping bud left to wake.
+    pub(super) fn idle(&self, cycle: u32) -> bool {
+        self.live.is_empty() && self.asleep[cycle as usize..].iter().all(Vec::is_empty)
+    }
+
     fn adopt(&mut self, axis: Axis, draws: Draws, root: u64, horizon: f64) {
         self.axes.push(axis);
         self.draws.push(draws);

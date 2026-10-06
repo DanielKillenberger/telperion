@@ -11,8 +11,8 @@ use super::steps::Steps;
 use crate::Gpu;
 use std::time::Instant;
 use telperion_space::{
-    fine_cases, grow_fine, roots_geometry, ChainAxis, ChainBud, ChainTables, Expected, Fine,
-    GeometryTables, Light, Plan, Request, RootGeometry, Species,
+    fine_cases, grow_committed, roots_geometry, ChainAxis, ChainBud, ChainTables, CommittedFine,
+    Expected, GeometryTables, Light, Plan, Request, RootGeometry, Species,
 };
 
 /// FNV-1a's prime, for the geometry's digest.
@@ -34,7 +34,7 @@ fn request(age: u32, seed: u64) -> Request {
 /// A tree as the CPU reference executor expands it: the tree, each root's
 /// bud and kept axes, and its attachment.
 struct Reference {
-    fine: Fine,
+    fine: CommittedFine,
     cases: Vec<(ChainBud, Vec<ChainAxis>)>,
     attached: Vec<RootGeometry>,
 }
@@ -279,7 +279,7 @@ fn fine_geometry_at_40_and_80() {
                         threads,
                         ..Plan::default()
                     };
-                    grow_fine(&species, request(age, seed), &expected, plan).expect("grows")
+                    grow_committed(&species, request(age, seed), &expected, plan).expect("grows")
                 };
                 let single = cpu(1);
                 let one: f64 = single.roots.iter().map(|x| x.2.micros).sum::<f64>() / 1e3;

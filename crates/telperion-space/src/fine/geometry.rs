@@ -5,7 +5,7 @@
 //! it from without cancellation (logs and log-odds taken here in f64), and
 //! each fine root's attachment as its record holds it. Geometry decides no
 //! topology, so it is held to fn-125's screen, never to the bit.
-use super::Fine;
+use super::CommittedFine as Fine;
 use crate::bounded::Expected;
 use crate::error::Result;
 use crate::grow::alone::rules;

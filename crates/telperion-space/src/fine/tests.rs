@@ -2,7 +2,7 @@
 //! same tree, to the bit, at every cut, in every item order and chunking
 //! (fn-209 F1, task 1's acceptance), and on the adversarial cases
 //! (`adversarial.rs`); the decision contract's draws (`draws.rs`).
-use super::{digest, grow_fine, Fine, Order, Plan};
+use super::{digest, grow_committed, CommittedFine, Order, Plan};
 use crate::alone::grow_alone;
 use crate::bounded::Expected;
 use crate::grow::Request;
@@ -13,6 +13,7 @@ use crate::{beech, spruce};
 mod adversarial;
 mod draws;
 mod ground;
+mod realized;
 mod ticks;
 
 pub(super) fn request(age: u32, seed: u64) -> Request {
@@ -31,20 +32,29 @@ pub(super) fn whole(species: &Species, request: Request, expected: &Expected) ->
     digest(tree.bounded.structure())
 }
 
-pub(super) fn at(species: &Species, request: Request, expected: &Expected, cut: f64) -> Fine {
+pub(super) fn at(
+    species: &Species,
+    request: Request,
+    expected: &Expected,
+    cut: f64,
+) -> CommittedFine {
     let plan = Plan {
         cut,
         ..Plan::default()
     };
-    grow_fine(species, request, expected, plan).expect("grows")
+    grow_committed(species, request, expected, plan).expect("grows")
 }
 
 /// The tree at each of `cuts` is the tree grown whole, the cuts moving
 /// work across them; the fine trees, by cut.
-pub(super) fn same_at_cuts(species: &Species, request: Request, cuts: &[f64]) -> Vec<Fine> {
+pub(super) fn same_at_cuts(
+    species: &Species,
+    request: Request,
+    cuts: &[f64],
+) -> Vec<CommittedFine> {
     let expected = Expected::new(species, request.age, 0);
     let reference = whole(species, request, &expected);
-    let trees: Vec<Fine> = cuts
+    let trees: Vec<CommittedFine> = cuts
         .iter()
         .map(|&cut| at(species, request, &expected, cut))
         .collect();
@@ -87,7 +97,7 @@ fn a_tree_is_the_same_in_every_order_and_chunking() {
                     chunk,
                     threads,
                 };
-                let fine = grow_fine(&species, request, &expected, plan).expect("grows");
+                let fine = grow_committed(&species, request, &expected, plan).expect("grows");
                 assert!(fine.roots.len() > 100, "{} roots", fine.roots.len());
                 assert_eq!(
                     digest(&fine.structure),
@@ -105,7 +115,7 @@ fn a_tree_is_the_same_in_every_order_and_chunking() {
 fn a_species_that_reads_light_is_refused() {
     let species = crate::oak();
     let expected = Expected::new(&species, 5, 1);
-    let refused = grow_fine(&species, request(5, 1), &expected, Plan::default());
+    let refused = grow_committed(&species, request(5, 1), &expected, Plan::default());
     assert!(
         matches!(refused, Err(crate::Error::Refused { .. })),
         "{:?}",

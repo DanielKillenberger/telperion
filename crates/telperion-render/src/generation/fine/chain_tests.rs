@@ -9,7 +9,7 @@ use super::hostrun::Grown;
 use crate::Gpu;
 use std::time::Instant;
 use telperion_space::{
-    chain_cases, grow_fine, ChainAxis, ChainBud, ChainTables, Expected, GeometryTables, Light,
+    chain_cases, grow_committed, ChainAxis, ChainBud, ChainTables, Expected, GeometryTables, Light,
     Plan, Request, Species,
 };
 
@@ -186,7 +186,7 @@ fn chains_at_40_and_80() {
                     cut: f64::INFINITY,
                     ..Plan::default()
                 };
-                grow_fine(&species, request(age, seed), &expected, plan).expect("grows");
+                grow_committed(&species, request(age, seed), &expected, plan).expect("grows");
                 let fine = t.elapsed().as_secs_f64() * 1e3;
                 let t = Instant::now();
                 let tables = ChainTables::new(&species, age, &expected).expect("tables");

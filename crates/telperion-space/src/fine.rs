@@ -1,23 +1,32 @@
 //! Fine orders grown in the expansion stage (fn-209 F1; DESIGN-FINE.md,
-//! accepted with Astra's changes, ASTRA-REVIEW-FINE.md).
+//! accepted with Astra's changes, ASTRA-REVIEW-FINE.md), under realized
+//! mechanics (task 6; fn-211's DESIGN-INTERLEAVE.md, "After Astra's
+//! review", host decision 3).
 //!
-//! The CPU grows the structure above a cut and records each bud below it
-//! as a fine root (`record.rs`); the expansion grows every fine root from
-//! its record alone (`executor.rs`). The cut is chosen before growth, by
-//! the closed form's expected kept phytomers of the bud (its committed
-//! row's `count`, light-neutral), so which buds are fine never depends on
-//! what they grow into.
+//! The CPU grows the structure above a cut by the engine's own grower; a
+//! bud below the cut is made where it stands and handed on, its stand-in
+//! keeping its place among its bearer's children. The cut is chosen
+//! before growth, by the closed form's expected kept phytomers of the bud
+//! (its row's `count`, light-neutral), so which buds are fine never
+//! depends on what they grow into. The expansion grows every fine root
+//! whole from its bud alone (`realized.rs`), and the two settle together
+//! in four phases: each root reports its realized totals up (its
+//! subtree's living, its base radius, its load), the structure above the
+//! cut settles on them exactly as the whole tree does, and hands each
+//! root its bearer's scale and laid frames down.
 //!
 //! The cut decides where the work runs, never what is computed (Astra's
-//! change 2): a chain is grown from its bud alone and shed by its own axes
-//! and its borne buds' committed extinction, and resolved by option 4
-//! against its bearer's laid frame and its own committed boundary, on
-//! either side of the cut. So a tree is the same, to the bit, at every
-//! cut, in every order of its items and in any chunking of them, and it
-//! is the tree P2's chain grower grows whole (`tests.rs`).
+//! change 2): every pass is the whole tree's own, and every sum a root's
+//! subtree enters is taken in the whole tree's order, so the tree is
+//! today's whole-tree engine's to the bit, at every cut, in every order
+//! of its items and in any chunking of them (`tests/realized.rs`).
+//! Where no bud reads light only; a species that reads light follows
+//! fn-211's stepped executor.
 mod canonical;
+mod committed;
 mod executor;
 mod geometry;
+mod realized;
 mod record;
 mod surface;
 mod survey;
@@ -25,22 +34,26 @@ mod tables;
 #[cfg(test)]
 mod tests;
 
-use crate::alone::{chains, seed_item, Chains, Item};
-use crate::bounded::{Bounded, Expected};
-use crate::error::{Error, Result};
-use crate::geometry::scale;
+use crate::bounded::Expected;
+use crate::error::{refuse, Error, Result};
+use crate::geometry::{place, scale};
+use crate::girth::{thicken_given, Girth};
 use crate::grow::alone::rules;
-use crate::grow::Request;
+use crate::grow::realized::{above, Hands};
+use crate::grow::{keeps, Request};
+use crate::sag::{any, levers_given};
+use crate::shed::shed_given;
 use crate::species::Species;
-use crate::structure::{Axis, Origin, Structure};
+use crate::structure::Structure;
 pub use canonical::{canonical, digest, identities};
+pub use committed::{grow_committed, CommittedFine};
 pub use executor::Work;
-use executor::{expand, Context, Expanded, BEARER};
 pub use geometry::{
     roots_geometry, BearerFrame, GeometryTables, PaGeometry, RootGeometry, ZoneGeometry,
 };
+use realized::Root;
 pub use record::FineRoot;
-use record::{Attachment, Committed, Frame};
+use std::time::Instant;
 pub use surface::{chain_cases, fine_cases, ChainAxis, ChainBud, ChainTables, PaRow, Woke};
 pub use survey::{survey_lit, Surveyed};
 pub use tables::{UnitZone, Units};
@@ -77,179 +90,259 @@ impl Default for Plan {
     }
 }
 
+/// A fine root as the expansion reports it: where its first axis stands
+/// in the tree (none: shed), its expected and kept phytomers, whether it
+/// woke, and its work.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Expanded {
+    pub at: Option<usize>,
+    pub predicted: f64,
+    pub kept: usize,
+    pub woken: bool,
+    pub work: Work,
+}
+
 /// A tree grown above the cut and expanded below it: the tree (the
-/// structure above the cut first, then each fine root's axes in the
-/// order the roots were recorded), its axes above the cut, each root's
-/// record, kept phytomers and work, and where each root's axes start.
+/// structure above the cut, each fine root's first axis where its
+/// stand-in stood, then each root's other axes in the roots' order), its
+/// axes above the cut, each root, where each root's other axes start,
+/// the seconds each phase of the expansion took on the plan's cores, and
+/// the round trips between the structure above the cut and the items.
 pub struct Fine {
     pub structure: Structure,
     pub above: usize,
-    pub roots: Vec<(FineRoot, usize, Work)>,
+    pub roots: Vec<Expanded>,
     pub starts: Vec<usize>,
-    /// The seconds the expansion took, every item on the plan's cores.
-    pub expand_seconds: f64,
+    pub phases: Vec<f64>,
+    pub trips: usize,
 }
 
-/// Grows `species` above `plan`'s cut on the CPU, then expands every fine
-/// root from its record alone on the CPU reference executor. Refuses a
-/// species any bud of which reads light (F2b).
+impl Fine {
+    /// The seconds the expansion took, its phases summed.
+    pub fn expand_seconds(&self) -> f64 {
+        self.phases.iter().sum()
+    }
+}
+
+/// Grows `species` above `plan`'s cut on the CPU, expands every fine root
+/// from its bud alone on the CPU reference executor, and settles the two
+/// together: today's whole-tree engine's tree. Refuses a species any bud
+/// of which reads light (fn-211), or whose girth reads the tree as grown.
 pub fn grow_fine(
     species: &Species,
     request: Request,
     expected: &Expected,
     plan: Plan,
 ) -> Result<Fine> {
-    let rules = rules(species, request.age, request.budget)?;
-    let rows = expected.rows();
+    if keeps(species) {
+        return refuse(
+            "retained",
+            "a fine root's shed pipes and leaf girth are fn-211's stepped executor's",
+        );
+    }
+    let (rules, rows) = (
+        rules(species, request.age, request.budget)?,
+        expected.rows(),
+    );
     let threads = match plan.threads {
         0 => crate::cores::available(),
         n => n,
     };
-    let fine =
-        |bud: &crate::grow::alone::Bud| rows.lateral(bud.axis.pa, bud.axis.birth).count <= plan.cut;
-    let start = (Vec::new(), Vec::new(), seed_item());
-    let Chains {
-        axes,
-        records,
-        handed,
-        ..
-    } = chains(
-        &rules,
-        &rows,
-        request.seed,
-        start,
-        (&fine, &mut |_| {}),
-        true,
-    )?;
-    let mut above = Structure {
-        age: request.age,
-        pas: species.states.len(),
-        axes,
-    };
-    if above.phytomer_count() == 0 && handed.is_empty() {
-        return Err(Error::Collapsed);
+    let pas = species.states.len();
+    let hands = Hands::new(pas, request.age, |pa, birth| {
+        rows.lateral(pa, birth).count <= plan.cut
+    });
+    let (grown, handed) = above(&rules, hands, request.seed, threads)?;
+    let mut clock = Clock::default();
+    let roots = clock.time(|| {
+        let mut slots: Vec<_> = handed.iter().collect();
+        each(&mut slots, plan, threads, &|_, h| {
+            Root::grow(species, &rules, h)
+        })
+    });
+    let mut roots = roots.into_iter().collect::<Result<Vec<Root>>>()?;
+    let total = grown.grown + roots.iter().map(|r| r.work.grown).sum::<u64>();
+    if total > u64::from(request.budget) {
+        return Err(Error::Budget {
+            limit: request.budget,
+        });
     }
-    scale(&mut above, species, 1);
-    let mut bounded = Bounded::settled(species, above, records, (rows.clone(), None));
-    bounded.resolve_all(threads)?;
-    let roots: Vec<FineRoot> = handed
-        .into_iter()
-        .map(|item| record(&bounded, species, item))
+    // Shed on what each root realized.
+    let mut stood = vec![None; grown.axes.len()];
+    for (k, r) in roots.iter().enumerate() {
+        stood[r.at] = Some(k);
+    }
+    let living = |i: usize| stood[i].map(|k: usize| roots[k].living);
+    let (shed, _) = shed_given(grown.axes, species, request.age, &living, None);
+    let at: Vec<Option<usize>> = roots
+        .iter()
+        .map(|r| Some(shed.index[r.at]).filter(|&i| i != usize::MAX))
         .collect();
-    let cx = Context {
-        species,
-        rules: &rules,
-        rows: &rows,
-        seed: request.seed,
+    let mut tree = Structure {
         age: request.age,
+        pas,
+        axes: shed.axes,
     };
-    let started = std::time::Instant::now();
-    let expanded = execute(&cx, &roots, plan, threads)?;
-    let expand_seconds = started.elapsed().as_secs_f64();
-    let mut structure = bounded.into_structure();
-    let above = structure.axes.len();
-    let mut out = Vec::with_capacity(roots.len());
-    let mut starts = Vec::with_capacity(roots.len() + 1);
-    for (root, done) in roots.into_iter().zip(expanded) {
-        let offset = structure.axes.len();
-        starts.push(offset);
-        let kept = done.axes.iter().map(|a| a.phytomers.len()).sum();
-        let bearer = root.attachment.bearer;
-        structure
-            .axes
-            .extend(done.axes.into_iter().map(|a| placed(a, offset, bearer)));
-        out.push((root, kept, done.work));
-    }
-    if structure.phytomer_count() == 0 {
+    let kept: usize = at
+        .iter()
+        .zip(&roots)
+        .filter(|(a, _)| a.is_some())
+        .map(|(_, r)| r.phytomers())
+        .sum();
+    if tree.phytomer_count() + kept == 0 {
         return Err(Error::Collapsed);
     }
-    starts.push(structure.axes.len());
+    let mut by_axis = vec![None; tree.axes.len()];
+    for (k, a) in at.iter().enumerate() {
+        if let Some(i) = a {
+            by_axis[*i] = Some(k);
+        }
+    }
+    let bearer = |k: usize| {
+        tree.axes[at[k].expect("kept")]
+            .origin
+            .parent()
+            .expect("borne")
+    };
+    let live: Vec<usize> = (0..roots.len()).filter(|&k| at[k].is_some()).collect();
+    // Scale and girth on each root's realized wood.
+    let drawn: Vec<(usize, f64)> = live
+        .iter()
+        .map(|&k| {
+            let b = bearer(k);
+            (b, tree.axes[b].phytomers[roots[k].node].scale)
+        })
+        .collect();
+    let base = scale(&mut tree, species, threads);
+    let mut alive: Vec<&mut Root> = pick(&mut roots, &live);
+    clock.time(|| {
+        each(&mut alive, plan, threads, &|j, r| {
+            let (b, d) = drawn[j];
+            r.girth(species, (base[b], d));
+        })
+    });
+    let radius = |i: usize| by_axis[i].map(|k: usize| roots[k].radius);
+    thicken_given(&mut tree, species, &Girth::default(), &radius, threads);
+    place(&mut tree, species, None, threads)?;
+    // Lay on each bearer's frame, and load the tree by each root's wood.
+    let bearers: Vec<usize> = drawn.iter().map(|&(b, _)| b).collect();
+    let mut alive: Vec<&mut Root> = pick(&mut roots, &live);
+    let laid = clock.time(|| {
+        each(&mut alive, plan, threads, &|j, r| {
+            r.lay(species, &tree.axes[bearers[j]])
+        })
+    });
+    laid.into_iter().collect::<Result<()>>()?;
+    if any(species) {
+        let load = |i: usize| by_axis[i].map(|k: usize| roots[k].load);
+        let (levers, _) = levers_given(&tree, species, &load, threads);
+        place(&mut tree, species, Some(&levers), threads)?;
+        let mut alive: Vec<&mut Root> = pick(&mut roots, &live);
+        let bent = clock.time(|| {
+            each(&mut alive, plan, threads, &|j, r| {
+                r.bend(species, &tree.axes[bearers[j]])
+            })
+        });
+        bent.into_iter().collect::<Result<()>>()?;
+    }
+    assemble(tree, roots, (&at, &bearers, &live), &rows, clock)
+}
+
+/// The tree whole: each kept root's first axis where its stand-in stood,
+/// its others after the structure above the cut, in the roots' order.
+fn assemble(
+    mut tree: Structure,
+    roots: Vec<Root>,
+    (at, bearers, live): (&[Option<usize>], &[usize], &[usize]),
+    rows: &crate::closed_form::boundary::Rows,
+    clock: Clock,
+) -> Result<Fine> {
+    let above = tree.axes.len();
+    let mut bearer = vec![usize::MAX; roots.len()];
+    for (j, &k) in live.iter().enumerate() {
+        bearer[k] = bearers[j];
+    }
+    let (mut out, mut starts) = (Vec::with_capacity(roots.len()), Vec::new());
+    for (k, root) in roots.into_iter().enumerate() {
+        let report = |kept| Expanded {
+            at: at[k],
+            predicted: rows.lateral(root.pa, root.birth).count,
+            kept,
+            woken: root.woken,
+            work: root.work,
+        };
+        let Some(i) = at[k] else {
+            out.push(report(0));
+            continue;
+        };
+        let (kept, offset) = (root.phytomers(), tree.axes.len());
+        out.push(report(kept));
+        starts.push(offset);
+        let mut axes = root.into_axes(bearer[k], (i, offset)).into_iter();
+        tree.axes[i] = axes.next().expect("a kept root's first axis");
+        tree.axes.extend(axes);
+    }
+    starts.push(tree.axes.len());
+    // Wood that stands exactly at its draw has no size.
+    if tree
+        .axes
+        .iter()
+        .flat_map(|a| &a.phytomers)
+        .all(|p| p.scale == 0.0)
+    {
+        return Err(Error::Collapsed);
+    }
     Ok(Fine {
-        structure,
+        structure: tree,
         above,
         roots: out,
         starts,
-        expand_seconds,
+        trips: clock.phases.len(),
+        phases: clock.phases,
     })
 }
 
-/// The record of the bud `item` hands on, from the laid tree above the cut.
-fn record(bounded: &Bounded, species: &Species, item: Item) -> FineRoot {
-    let r = item.record.expect("a handed bud is recorded");
-    let record = bounded.records()[r];
-    let Origin::Lateral { parent, node, .. } = record.origin else {
-        unreachable!("a fine root is a lateral bud")
-    };
-    let (unbent, bent) = (
-        &bounded.unbent().axes[parent],
-        &bounded.structure().axes[parent],
-    );
-    let attachment = Attachment {
-        bearer: parent,
-        pa: bent.pa,
-        lineage: bent.lineage,
-        birth: bent.birth,
-        node,
-        unbent: Frame::of(unbent, node),
-        bent: Frame::of(bent, node),
-    };
-    debug_assert_eq!(
-        attachment.bent.at.size, 1.0,
-        "no unit is sized where no bud reads light"
-    );
-    let rows = bounded.rows_of();
-    let row = rows.lateral(record.pa, record.birth);
-    let s = bounded.base_scale(&record);
-    let committed = Committed {
-        section: bounded.handed(&record, species.states[bent.pa].form.exponent),
-        mass: row.mass * s.powi(3),
-        moment: row.moment * s.powi(4),
-        radius: bounded.base_radius(row, s, record.pa),
-    };
-    let grounded = grounded(species, &attachment, (row.reach * s, s, committed.radius));
-    FineRoot {
-        bud: item.bud.expect("a handed bud"),
-        context: item.context,
-        record,
-        attachment,
-        committed,
-        predicted: row.count,
-        grounded,
+/// The seconds each phase of the expansion took.
+#[derive(Default)]
+struct Clock {
+    phases: Vec<f64>,
+}
+
+impl Clock {
+    fn time<T>(&mut self, work: impl FnOnce() -> T) -> T {
+        let started = Instant::now();
+        let out = work();
+        self.phases.push(started.elapsed().as_secs_f64());
+        out
     }
 }
 
-/// Host decision 3: whether a root standing at `attachment` can reach the
-/// ground's landing zone. Its wood lies within `reach` (the closed form's
-/// extent bound times its base scale `s`) of its node, or of the point
-/// below it where a woken bud stands; no phytomer of it is longer than the
-/// longest internode at scale `s`, and its radii are taken at twice its
-/// committed base radius.
-fn grounded(species: &Species, a: &Attachment, (reach, s, radius): (f64, f64, f64)) -> bool {
-    let internode = species
-        .states
-        .iter()
-        .map(|p| p.internode)
-        .fold(0.0, f64::max);
-    let zone = crate::geometry::ground_zone(2.0 * radius, internode * s);
-    let low = [a.unbent, a.bent]
-        .iter()
-        .flat_map(|f| [f.below.z, f.at.tip.z])
-        .fold(f64::INFINITY, f64::min);
-    low - reach <= zone
+/// The roots at `live`, in that order.
+fn pick<'r>(roots: &'r mut [Root], live: &[usize]) -> Vec<&'r mut Root> {
+    let mut slots: Vec<Option<&mut Root>> = roots.iter_mut().map(Some).collect();
+    live.iter()
+        .map(|&k| slots[k].take().expect("each root once"))
+        .collect()
 }
 
-/// Every root expanded, by its place among `roots`, taken in the plan's
-/// order, `chunk` at a time on `threads` cores.
-fn execute(cx: &Context, roots: &[FineRoot], plan: Plan, threads: usize) -> Result<Vec<Expanded>> {
+/// `work(k, &mut items[k])` for every item, taken in the plan's order,
+/// `chunk` at a time on `threads` cores: what each gave, by its place.
+pub(crate) fn each<T: Send, R: Send>(
+    items: &mut [T],
+    plan: Plan,
+    threads: usize,
+    work: &(dyn Fn(usize, &mut T) -> R + Sync),
+) -> Vec<R> {
     use std::sync::Mutex;
-    let order = ordered(roots.len(), plan.order);
+    let order = ordered(items.len(), plan.order);
     let chunk = plan.chunk.max(1);
     let pieces = order.len().div_ceil(chunk);
-    let done: Vec<Mutex<Option<Result<Expanded>>>> =
-        (0..roots.len()).map(|_| Mutex::new(None)).collect();
-    crate::cores::spread(pieces, threads, &|k| {
-        for &i in &order[k * chunk..((k + 1) * chunk).min(order.len())] {
-            *done[i].lock().unwrap() = Some(expand(cx, &roots[i]));
+    let slots: Vec<Mutex<&mut T>> = items.iter_mut().map(Mutex::new).collect();
+    let done: Vec<Mutex<Option<R>>> = (0..slots.len()).map(|_| Mutex::new(None)).collect();
+    crate::cores::spread(pieces, threads, &|p| {
+        for &k in &order[p * chunk..((p + 1) * chunk).min(order.len())] {
+            let mut item = slots[k].lock().unwrap();
+            *done[k].lock().unwrap() = Some(work(k, &mut item));
         }
     });
     done.into_iter()
@@ -269,22 +362,4 @@ fn ordered(n: usize, order: Order) -> Vec<usize> {
         }
     }
     items
-}
-
-/// An expanded axis placed in the whole tree: its root on its bearer, the
-/// rest after `offset`.
-fn placed(mut axis: Axis, offset: usize, bearer: usize) -> Axis {
-    match &mut axis.origin {
-        Origin::Seed => unreachable!("a fine root is a lateral bud"),
-        Origin::Lateral { parent, .. }
-        | Origin::Continuation { parent }
-        | Origin::Relay { parent, .. } => {
-            *parent = if *parent == BEARER {
-                bearer
-            } else {
-                *parent + offset
-            };
-        }
-    }
-    axis
 }
