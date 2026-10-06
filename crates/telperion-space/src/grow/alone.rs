@@ -131,6 +131,7 @@ pub(crate) fn grow(rules: &Rules, seed: u64, bud: Option<&Bud>) -> Result<Chain>
         sketch: None,
         leaves: Vec::new(),
         wakes: Vec::new(),
+        oracle: None,
     };
     let (from, root) = match bud {
         None => {

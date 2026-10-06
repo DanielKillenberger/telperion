@@ -10,6 +10,7 @@ mod advance;
 pub(crate) mod alone;
 mod balance;
 mod draw;
+pub(crate) mod oracle;
 mod parallel;
 mod relay;
 mod settle;
@@ -164,6 +165,27 @@ pub(crate) fn run(
     lay: bool,
     options: Options,
 ) -> Result<Grown> {
+    run_staged(species, request, stage, lay, options, None).map(|g| g.0)
+}
+
+/// `run` laid, under fn-211.4's light oracle where one is given.
+fn run_with(
+    species: &Species,
+    request: Request,
+    options: Options,
+    oracle: Option<oracle::Oracle>,
+) -> Result<(Grown, Option<Box<oracle::Oracle>>)> {
+    run_staged(species, request, &mut |_| {}, true, options, oracle)
+}
+
+fn run_staged(
+    species: &Species,
+    request: Request,
+    stage: &mut dyn FnMut(Stage),
+    lay: bool,
+    options: Options,
+    oracle: Option<oracle::Oracle>,
+) -> Result<(Grown, Option<Box<oracle::Oracle>>)> {
     species.validate()?;
     request.light.validate()?;
     if request.age == 0 {
@@ -225,6 +247,7 @@ pub(crate) fn run(
         sketch,
         leaves: Vec::new(),
         wakes: Vec::new(),
+        oracle: oracle.map(Box::new),
     };
     stage(Stage::Pass(Pass::Windows));
     let mut advanced = Vec::new();
@@ -248,7 +271,9 @@ pub(crate) fn run(
             stage(Stage::Lit);
         }
     }
-    grower.settle((request, options), (lay, keeps), stage)
+    let oracle = grower.oracle.take();
+    let grown = grower.settle((request, options), (lay, keeps), stage)?;
+    Ok((grown, oracle))
 }
 
 /// The share of an apex's expected wood a stop decides: a stop with no
@@ -322,6 +347,8 @@ struct Grower<'a> {
     leaves: Vec<(Vec3, f64)>,
     /// Where a chain grows alone, the sleeping buds that woke on it.
     wakes: Vec<alone::Pending>,
+    /// fn-211.4's light oracle, where the tree is grown under one.
+    oracle: Option<Box<oracle::Oracle>>,
 }
 
 impl Grower<'_> {

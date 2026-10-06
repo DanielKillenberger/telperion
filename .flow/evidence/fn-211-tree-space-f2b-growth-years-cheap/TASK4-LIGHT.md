@@ -92,3 +92,41 @@ Steps 2 and 3 (the oak above the cut grown year by year, the comparison against 
 - **Commands:**
   - `probe 80 1 0.5,2`, `probe 80 7 0.5`, `probe 40 1 0.5`, with and without the switches;
   - `cutlight 40,80 1,7 64,256,512,1024`.
+
+## The oracle, after the host's decision (2026-10-06): C and B both hold on today's oak
+
+The host's question: does it matter for growth and look what a fine root's buds read? The oak was grown exactly as today, under today's exact light field. Only the light read by buds below the cut changed: N = 1,024, the predictor's classification, made per axis as the tree grows.
+- **C:** each bud reads its fine root's mean light that cycle.
+- **B:** each bud reads that mean plus the root's three least-squares slopes in its buds' tip positions, fitted that cycle.
+
+How it was run:
+- `grow_oracle` (`src/grow/oracle.rs`) is its own entry point. `grow` never builds an oracle, and the oracle's exact read is today's tree to the bit (a digest check on all four trees).
+- The measures come from `examples/oracle.rs` (`raw/task4/oracle.txt`).
+- The stills come from `space_oak --oracle exact|mean|slopes --light 0.5,0.5 --shots bare,whole`.
+- Side by side (today | C | B; bare above, in leaf below): `raw/task4/stills/pair-oak-{40,80}-{1,7}.png`. Each was viewed.
+
+| Oak | Read | Kept, all orders | Kept by order, worst | Per-PA growth, whole life (worst PA) | Worst cycle (PA) | Trunk base | Order-1 base radius over today's, p5 / p50 / p95 | Height | Leaf reach p95 |
+|---|---|--:|--:|--:|--:|--:|--:|--:|--:|
+| 40 s1 | C | −1.2 % | −1.5 % (4+) | −0.80 % | 2.1 % | −2.6 % | 0.95 / 1.01 / 1.08 | +0.0 % | −2.3 % |
+| 40 s1 | B | −0.1 % | +0.6 % (2) | −0.11 % | 0.6 % | −1.0 % | 0.99 / 1.00 / 1.01 | +0.0 % | −0.4 % |
+| 40 s7 | C | −0.3 % | −0.4 % | −0.67 % | 2.4 % | −2.5 % | 0.96 / 1.01 / 1.05 | +0.1 % | +0.9 % |
+| 40 s7 | B | +0.0 % | +0.3 % | −0.06 % | 0.6 % | −0.2 % | 0.99 / 1.00 / 1.01 | +0.0 % | +0.1 % |
+| 80 s1 | C | −0.5 % | −0.6 % | −0.90 % | 2.7 % | −4.7 % | 0.96 / 1.01 / 1.10 | −0.2 % | +0.7 % |
+| 80 s1 | B | +0.0 % | −0.8 % | −0.46 % | 3.5 % | −1.2 % | 0.99 / 1.01 / 1.02 | +0.0 % | +0.3 % |
+| 80 s7 | C | −0.6 % | −1.3 % | −0.95 % | 2.3 % | −6.7 % | 0.93 / **1.27** / 1.41 | −0.1 % | −0.1 % |
+| 80 s7 | B | −0.5 % | −0.9 % | −0.33 % | 1.6 % | −1.1 % | 0.99 / 1.06 / 1.10 | −0.1 % | −0.0 % |
+
+The worst-cycle column counts only cycles that hold at least 1 % of that PA's growth.
+
+What it shows:
+- **Neither read fails the growth bars.**
+  - Kept phytomers stay within 1.5 % per order (bar 10 %).
+  - Whole-life growth per PA stays within 1 % (bar 2 %).
+  - Single cycles move by up to 2.7 % under C and up to 3.5 % under B.
+- **The girth moves most, and more under C.** The trunk base is 2.5 to 6.7 % thinner under C and 0.2 to 1.2 % under B. At 80 s7, the order-1 base radius has a median of 1.27 times today's under C, against 1.06 under B.
+  - This is likely the oak's `leaf_girth` (χ = 1). It thickens wood by the light it grew in, set against the tree's mean, so a root that reads its mean redistributes pipe. Not isolated.
+- **The stills:** bare and in leaf, C and B cannot be told from today at the hero view.
+  - Branch for branch they are the same tree, with small differences in the outer twigs.
+  - The camera is fitted to each mesh's bounds, so the frame shifts slightly.
+  - Pixels differing from today's in-leaf still: 1.7 to 1.9 % under C and 1.1 to 1.2 % under B (40 s1, 80 s1).
+- Neither clearly fails, so the task carries on into the three pass repairs.

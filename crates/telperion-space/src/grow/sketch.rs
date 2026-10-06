@@ -75,6 +75,9 @@ impl Grower<'_> {
         report(Stage::Pass(Pass::ShadeField));
         let mut read = vec![0.0; tips.len()];
         crate::cores::fill(&mut read, 1 << 10, self.threads, &|k| field.at(tips[k]));
+        if let Some(oracle) = self.oracle.as_mut() {
+            oracle.reread(&self.axes, &self.live, &tips, &mut read);
+        }
         for (apex, light) in self.live.iter().zip(read) {
             sketch.pencils[apex.axis].light = light;
         }
@@ -143,6 +146,10 @@ impl Grower<'_> {
         let sized = sizes(&got, &presence, &psi, &rows.pa);
         for apex in self.live.iter().filter(|a| a.axis < n) {
             sketch.pencils[apex.axis].size = sized[apex.axis];
+        }
+        if let Some(oracle) = self.oracle.as_mut() {
+            let live = self.live.iter().filter(|a| a.axis < n);
+            oracle.tally(live.map(|a| (rows.pa[a.axis], presence[a.axis], sized[a.axis])));
         }
     }
 

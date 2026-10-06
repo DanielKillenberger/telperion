@@ -52,6 +52,7 @@ pub use fine::{
     ChainBud, ChainTables, Fine, FineRoot, Order, PaRow, Plan, Surveyed, UnitZone, Units, Woke,
     Work,
 };
+pub use grow::oracle::{grow_oracle, Oracled, Read};
 pub use grow::{grow, grow_staged, sketch, Pass, Request, Stage};
 pub use light::{bud_light, Light};
 pub use oak::oak;

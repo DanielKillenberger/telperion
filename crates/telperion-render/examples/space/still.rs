@@ -57,6 +57,9 @@ pub fn run(
     let mut today = false;
     let mut bounded = false;
     let mut alone = false;
+    // fn-211.4's light oracle: buds below N = 1,024 read their fine
+    // root's mean (`mean`) or its mean and slopes (`slopes`).
+    let mut oracle: Option<telperion_space::Read> = None;
     let mut tuning = Tuning::default();
     let mut words = rest.iter();
     while let Some(word) = words.next() {
@@ -74,6 +77,13 @@ pub fn run(
             // fn-209 option 4: chains resolved against committed
             // boundaries.
             bounded = true;
+        } else if word == "--oracle" {
+            oracle = Some(match words.next().map(String::as_str) {
+                Some("exact") => telperion_space::Read::Exact,
+                Some("mean") => telperion_space::Read::Mean,
+                Some("slopes") => telperion_space::Read::Slopes,
+                _ => return Err("--oracle exact|mean|slopes".into()),
+            });
         } else if word == "--alone" {
             // fn-209 probe P2: chains grown and shed alone, then resolved
             // as option 4 resolves them.
@@ -197,7 +207,11 @@ pub fn run(
                     budget: BUDGET,
                     light: tuning.light(),
                 };
-                let structure = if alone {
+                let structure = if let Some(read) = oracle {
+                    let expected = Expected::new(species, age, 0);
+                    telperion_space::grow_oracle(species, request, &expected, 1024.0, read)
+                        .map(|o| o.structure)
+                } else if alone {
                     let expected = Expected::new(species, age, 0);
                     grow_alone(species, request, &expected).and_then(|mut t| {
                         t.bounded.resolve_all(0)?;
