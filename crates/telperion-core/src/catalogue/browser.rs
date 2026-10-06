@@ -14,6 +14,7 @@ pub fn browser() -> String {
     out.push_str("export interface Family ");
     group(&mut out, &rows, &defaults, "", 0);
     out.push_str("\n\n");
+    out.push_str(SPACE);
     out.push_str(PARAMETER);
     out.push_str("export const PARAMETERS: readonly Parameter[] = [\n");
     for entry in rows {
@@ -27,6 +28,17 @@ const HEADER: &str =
     "// Generated from the parameter catalogue (crates/telperion-core/src/catalogue.rs)
 // by `the_browser_reads_the_catalogue` in crates/telperion-core/tests/parameter_reference.rs;
 // run it with TELPERION_WRITE_REFERENCE=1 to rewrite this file. Do not edit.
+";
+
+/// The engine species' indexed rows, which the catalogue's rows do not hold
+/// and the engine judges (fn-198, `presets/space.rs`).
+const SPACE: &str = "/** The engine species: the indexed `/space` rows (fn-198); absent on a family with none. */
+export interface Family {
+  space?: SpaceRows;
+}
+/** An age's or a zone's rows by name or index; `never` is an unbounded delay. */
+export type SpaceRows = { [key: string]: SpaceRows | number | boolean | \"never\" };
+
 ";
 
 const PARAMETER: &str = "/** One catalogue row, as a control reads it. */

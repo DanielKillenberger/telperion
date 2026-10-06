@@ -13,8 +13,8 @@ const source = readFileSync("src/field/telperion-field.wasm");
 describe("the slim field entry point", () => {
   it("grows a species at a seed and answers a grid, byte for byte the full binding's", async () => {
     const module = await compileField(source);
-    const tree = await growField("ordinary", 5, { limbOrder: 1, source: module });
-    expect(tree.species).toBe("ordinary");
+    const tree = await growField("european-beech", 5, { limbOrder: 1, source: module });
+    expect(tree.species).toBe("european-beech");
     expect(tree.seed).toBe(5);
     expect(tree.bounds.max[1]).toBeGreaterThan(tree.bounds.min[1]);
     const g = grid(tree.bounds, 12);
@@ -25,7 +25,7 @@ describe("the slim field entry point", () => {
     expect(slim.limbs.some(l => l !== NO_LIMB)).toBe(true);
 
     const engine = await TreeEngine.create(readFileSync("src/browser/telperion.wasm"));
-    const family = presetById("ordinary");
+    const family = presetById("european-beech");
     family.skeleton.seed = 5;
     const full = engine.build(family, { field: { limbOrder: 1 } }).field!.query(g.cells);
     expect(full.flags).toEqual(slim.flags);
@@ -34,7 +34,7 @@ describe("the slim field entry point", () => {
     expect(full.limbs).toEqual(slim.limbs);
     engine.dispose();
 
-    const again = await growField("ordinary", 5, { limbOrder: 1, source: module });
+    const again = await growField("european-beech", 5, { limbOrder: 1, source: module });
     expect(again.query(g.cells)).toEqual(slim);
     tree.release();
     again.release();
@@ -42,11 +42,11 @@ describe("the slim field entry point", () => {
   });
 
   it("loads its Wasm from beside itself in Node when no source is given, as the main entry does", async () => {
-    const tree = await growField("ordinary", 5, { limbOrder: 1 });
+    const tree = await growField("european-beech", 5, { limbOrder: 1 });
     expect(tree.bounds.max[1]).toBeGreaterThan(tree.bounds.min[1]);
     tree.release();
     const engine = await TreeEngine.create();
-    expect(engine.build(presetById("ordinary"), { structure: true }).diagnostics.nodes).toBeGreaterThan(0);
+    expect(engine.build(presetById("european-beech"), { structure: true }).diagnostics.nodes).toBeGreaterThan(0);
     engine.dispose();
   });
 
@@ -54,6 +54,11 @@ describe("the slim field entry point", () => {
     const module = await compileField(source);
     const engine = await TreeEngine.create(readFileSync("src/browser/telperion.wasm"));
     for (const preset of PRESETS) {
+      // A preset with no engine species is refused by name (fn-198).
+      if (presetById(preset.id).space === undefined) {
+        await expect(growField(preset.id, 1, { source: module })).rejects.toThrow("no engine species");
+        continue;
+      }
       for (const seed of [1, 4242]) {
         const tree = await growField(preset.id, seed, { source: module });
         const family = presetById(preset.id);
@@ -86,11 +91,11 @@ describe("the slim field entry point", () => {
 
   it("refuses what the core refuses, whole", async () => {
     await expect(growField("no-such-tree", 1, { source })).rejects.toThrow("preset identity");
-    await expect(growField("european-beech", 1, { source })).rejects.toThrow("preset identity");
-    await expect(growField("ordinary", 1.5, { source })).rejects.toThrow("seed");
-    await expect(growField("ordinary", 2 ** 32, { source })).rejects.toThrow("seed");
-    await expect(growField("ordinary", 1, { limbOrder: -1, source })).rejects.toThrow("limbOrder");
-    const tree = await growField("ordinary", 1, { source });
+    await expect(growField("ordinary", 1, { source })).rejects.toThrow("no engine species");
+    await expect(growField("european-beech", 1.5, { source })).rejects.toThrow("seed");
+    await expect(growField("european-beech", 2 ** 32, { source })).rejects.toThrow("seed");
+    await expect(growField("european-beech", 1, { limbOrder: -1, source })).rejects.toThrow("limbOrder");
+    const tree = await growField("european-beech", 1, { source });
     expect(() => tree.query(new Float64Array(5))).toThrow("packed");
     expect(() => tree.query(new Float64Array([0, 1, 0, 0.5, 0, 2, 0, -0.1]))).toThrow("field query");
     expect(() => tree.query(new Float64Array([0, 1, 0, 0.5, Number.NaN, 2, 0, 0.1]))).toThrow("field query");

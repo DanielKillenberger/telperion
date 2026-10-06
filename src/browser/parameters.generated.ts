@@ -532,6 +532,13 @@ export interface Family {
   };
 }
 
+/** The engine species: the indexed `/space` rows (fn-198); absent on a family with none. */
+export interface Family {
+  space?: SpaceRows;
+}
+/** An age's or a zone's rows by name or index; `never` is an unbounded delay. */
+export type SpaceRows = { [key: string]: SpaceRows | number | boolean | "never" };
+
 /** One catalogue row, as a control reads it. */
 export interface Parameter {
   /** The row's JSON pointer on the wire. */

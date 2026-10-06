@@ -24,6 +24,9 @@ describe("the generated metadata", () => {
     (_id, preset) => {
       const { id: _ignored, name: _name, note: _note, ...family } = preset;
       const wire = leaves(family, "", new Map());
+      // An engine species' /space rows are judged by the engine, not the
+      // catalogue's metadata; the harness reaches them in fn-198 task 3.
+      for (const path of [...wire.keys()]) if (path.startsWith("/space/")) wire.delete(path);
       const paths = new Set(PARAMETERS.map(p => p.path));
       for (const path of wire.keys()) expect(paths, path).toContain(path);
       for (const p of PARAMETERS) {
@@ -39,7 +42,8 @@ describe("shownRows", () => {
   it("draws only the rows the mature build reads", () => {
     const shown = shownRows().map(p => p.path);
     expect(shown).toContain("/shellDepth");
-    expect(shown).not.toContain("/age");
+    // The engine grows the tree to its age (fn-198).
+    expect(shown).toContain("/age");
     expect(shown).not.toContain("/canopy/spacing");
   });
 });
