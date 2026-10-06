@@ -116,3 +116,46 @@ What the table shows:
 | Committed-boundary path out of production, kept only where named | **met**: `grow_committed`, kept for the GPU tests |
 | Timing warm and cold against the CPU on 1 and all cores; round trips counted | **met for the CPU executor** (`Fine::phases`, `Fine::trips`); the GPU's waits on its mirror |
 | Workspace gate green | **met**: `cargo test --profile ci --workspace --no-fail-fast` at `13f22e09`'s code, 1,148 passed, 0 failed, 10 m 49 s at load 6 to 32 (GPU lock held) |
+
+## Host decision 7 built: `grow` through the partition (2026-10-07)
+
+`telperion_space::grow` builds every species that neither reads light nor keeps shed pipes or leaf girth through `grow_fine` at N = 1,024 (today: the beech, spruce and palm). The oak stays on today's path, `grow_whole`, until fn-211's stepped executor lands. Every `grow`, `grow_whole`, `grow_staged` and `sketch` returns its tree in the canonical lineage order (`lineage_order`, FINE-CONTRACT.md, "Host decision on the order").
+
+**Proof** (`examples/digests.rs`, run on this commit and on a temporary worktree at the task's base `7782a081`, since removed; `raw/realized/digests-*.txt`):
+- The scope: all four species, ages 40 and 80, seeds 1 and 7, neutral light and extinction 0.5 under sky 0.5.
+- The result: the lineage digest of all 32 trees is unchanged.
+
+**`measures hash 80` is re-pinned** to the canonical order once (`raw/realized/measures-hash-80-*.txt`). It folds axes in index order, so every tree whose order moved changes hash.
+
+| Tree (age 80) | Before | Canonical |
+|---|---|---|
+| beech 1 (neutral and lit) | fffe057daff5b9d5 | 59f2d4aab6c991e6 |
+| beech 7 (neutral and lit) | 8f8b82bec23c1625 | 95bc336fb5f832e5 |
+| spruce 1 (neutral and lit) | 710f721384661baf | 2876033b4c21be8f |
+| spruce 7 (neutral and lit) | beec95c7ff4d1ba5 | f2f08bb7647f4f60 |
+| oak 1 neutral / lit | a889ad4d2258ce45 / 5ffe7f9abd37c979 | e38168aff2c5680e / 37078cc15195ab33 |
+| oak 7 neutral / lit | 4f5750b0a146672c / e83e5f6d4ac3d61b | 01ebe57888079896 / f0422c94e2a80ceb |
+| palm 1 / 7 | d2cd16377eece1a5 / c3dee32807ab1c0a | unchanged (already in that order) |
+
+**Timing** (`examples/timegrow.rs`, seed 1, neutral light; `grow` alone, cold and then the best of three warm; load 6 to 7):
+
+| Tree | Before, all cores, cold / warm ms | After, all cores | Before, 1 core | After, 1 core |
+|---|--:|--:|--:|--:|
+| beech 40 | 49 / 33 | 36 / 26 | 78 / 56 | 205 / 192 |
+| beech 80 | 533 / 445 | 257 / 221 | 1,192 / 1,033 | 1,599 / 1,480 |
+| spruce 40 | 637 / 563 | 288 / 283 | 1,552 / 1,599 | 1,926 / 2,131 |
+| spruce 80 | 2,170 / 2,060 | 1,288 / 1,066 | 6,824 / 6,382 | 9,724 / 7,894 |
+| oak 40 / 80 (today's path) | 216 / 155, 1,624 / 1,558 | 171 / 157, 1,610 / 1,709 | 338 / 335, 4,909 / 4,418 | 342 / 343, 5,129 / 4,869 |
+
+What the table shows:
+- **On all cores,** `grow` is about twice as fast for the beech and spruce.
+- **On one core it is slower** (spruce 80: 6.4 s up to 7.9 s; beech 80: 1.0 s up to 1.5 s).
+- **Where the time goes** (`timeorder`, a probe not kept):
+  - the closed-form table the cut reads: 0.70 s (beech 80) and 1.20 s (spruce 80) on one core, against 77 and 154 ms on all cores;
+  - `lineage_order`: 20 ms (beech 80, 179k axes) and 107 ms (spruce 80, 956k axes), serial.
+- The partition itself is 10 to 35 % faster than today's engine on one core (the timing table above).
+
+**Proposals (host):**
+- (a) Leave out the table where it costs more than it saves. Cut ∞ needs none: the spruce was fastest there on every core count, and the beech on one core.
+- (b) A count-only predictor. The cut reads only the rows' `count`; reach bounds, sections, mass and the seed row are the committed path's.
+- (c) Cache the table per species and age across `grow` calls. A retune that changes the species still pays for it.
