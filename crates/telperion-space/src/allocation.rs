@@ -26,7 +26,19 @@ pub(crate) const TIP: usize = usize::MAX;
 /// tree's light, α = 1: a bud's size reads its vigour per presence against
 /// the tree's mean (`sizes`), in which any α cancels, so α is no setting
 /// (host decision 15).
+#[cfg(test)]
 pub(crate) fn vigours(links: &[Link], own: &[f64], lambda: &[f64]) -> Vec<f64> {
+    vigours_from(links, own, lambda, None)
+}
+
+/// `vigours`, the base's vigour `base` where given (fn-211.4: a fine
+/// subtree's root's recorded share), its light where not.
+pub(crate) fn vigours_from(
+    links: &[Link],
+    own: &[f64],
+    lambda: &[f64],
+    base: Option<f64>,
+) -> Vec<f64> {
     let n = links.len();
     let mut sub = own.to_vec();
     for i in (0..n).rev() {
@@ -51,7 +63,7 @@ pub(crate) fn vigours(links: &[Link], own: &[f64], lambda: &[f64]) -> Vec<f64> {
     let mut bud = vec![0.0; n];
     for i in 0..n {
         if links[i].parent.is_none() {
-            incoming[i] = sub[i];
+            incoming[i] = base.unwrap_or(sub[i]);
         }
         let (mut v, mut above) = (incoming[i], sub[i]);
         if v <= 0.0 || above <= 0.0 {

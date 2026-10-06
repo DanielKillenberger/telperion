@@ -22,6 +22,12 @@ impl Grower<'_> {
     /// reads wood already laid.
     pub(super) fn sketch(&mut self, cycle: u32, advanced: &[usize]) -> Result<()> {
         let mut sketch = self.sketch.take().expect("sketching");
+        if self.fine.is_some() {
+            // A fine subtree grown alone: its units tallied, never laid.
+            self.tally_units(&mut sketch, advanced);
+            self.sketch = Some(sketch);
+            return Ok(());
+        }
         let (species, threads) = (self.species, self.threads);
         let first_new = sketch.pencils.len();
         let grew: Vec<usize> = advanced
@@ -102,6 +108,14 @@ impl Grower<'_> {
                 (axis.base, axis.heading, axis.side) = framed;
                 fresh[i - first_new] = Some(pencil);
             }
+            // A lateral the coupling pass takes as a fine root is not laid.
+            let todo: Vec<usize> = todo
+                .into_iter()
+                .filter(|&i| {
+                    let scale = fresh[i - first_new].as_ref().map_or(0.0, |p| p.base_scale);
+                    !self.classify(i, scale, cycle)
+                })
+                .collect();
             let jobs: Vec<_> = todo
                 .iter()
                 .zip(

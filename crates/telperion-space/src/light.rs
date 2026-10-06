@@ -98,6 +98,13 @@ impl Light {
 /// index, from the leaves its last cycle grew, each node's PA's leaf area
 /// sized by its phytomer's scale: what a bud there would read before the
 /// next cycle. The measure of a rough layout against the final one.
+/// The field of `leaves` at cell `cell`, read at `reads` (fn-211.4's
+/// light tool).
+pub fn field_reads(light: &Light, leaves: &[(Vec3, f64)], reads: &[Vec3], cell: f64) -> Vec<f64> {
+    let field = Field::sized(light, leaves, reads, cell);
+    reads.iter().map(|&r| field.at(r)).collect()
+}
+
 pub fn bud_light(structure: &Structure, species: &Species, light: &Light) -> Vec<(usize, f64)> {
     let leaves: Vec<(Vec3, f64)> = structure
         .axes

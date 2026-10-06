@@ -56,3 +56,10 @@
 - **What slowed it:** dcg blocks a truncating redirect to a shell-expanded path; `git diff --output=<literal path>` works.
 - **Cost:** about 1 minute.
 - **What would remove it:** nothing in the repository; a local setup note (reported, not specced).
+
+## 2026-10-06, task 4 worker: the desk ran at load 60 to 87 during the coupling measurements
+
+- **Doing:** timing today's oak against the coupled oak and running the per-repair matrix.
+- **What slowed it:** another session's work took the load from 5 to 87 for several minutes. Today's oak at 80 s1 took 12.9 s, against 3.3 s at load 6, so those timings are unusable and the cost table had to be rerun.
+- **Cost:** about 5 minutes and one rerun.
+- **What would remove it:** a lock or a quiet window for timing runs on the shared desk, as `gpu.lock` gives the GPU; a local setup matter, reported.

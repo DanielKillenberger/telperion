@@ -9,6 +9,7 @@
 mod advance;
 pub(crate) mod alone;
 mod balance;
+pub(crate) mod couple;
 mod draw;
 pub(crate) mod oracle;
 mod parallel;
@@ -18,6 +19,7 @@ mod shoot;
 mod sketch;
 mod stage;
 mod stop;
+pub(crate) mod subtree;
 #[cfg(test)]
 mod tests;
 mod unit;
@@ -131,6 +133,8 @@ pub(crate) struct Grown {
     pub records: Vec<Record>,
     /// The leaf term's mean over the tree as grown, where any PA sets it.
     pub leaf_mean: Option<f64>,
+    /// Each grown axis's index in the shed tree (`usize::MAX`: shed).
+    pub index: Vec<usize>,
 }
 
 /// A lateral bud as its bearer made it, before shedding: where it stands,
@@ -165,27 +169,30 @@ pub(crate) fn run(
     lay: bool,
     options: Options,
 ) -> Result<Grown> {
-    run_staged(species, request, stage, lay, options, None).map(|g| g.0)
+    run_beside(species, request, (stage, lay), options, Beside::default()).map(|g| g.0)
 }
 
-/// `run` laid, under fn-211.4's light oracle where one is given.
-fn run_with(
-    species: &Species,
-    request: Request,
-    options: Options,
-    oracle: Option<oracle::Oracle>,
-) -> Result<(Grown, Option<Box<oracle::Oracle>>)> {
-    run_staged(species, request, &mut |_| {}, true, options, oracle)
+/// What fn-211.4 adds to a run: the light oracle, or the coupling pass.
+#[derive(Default)]
+pub(crate) struct Beside {
+    pub oracle: Option<oracle::Oracle>,
+    pub couple: Option<couple::Pass>,
 }
 
-fn run_staged(
+/// What they hand back.
+pub(crate) struct Besides {
+    pub oracle: Option<Box<oracle::Oracle>>,
+    pub measured: Option<subtree::Measured>,
+}
+
+fn run_beside(
     species: &Species,
     request: Request,
-    stage: &mut dyn FnMut(Stage),
-    lay: bool,
+    (stage, lay): (&mut dyn FnMut(Stage), bool),
     options: Options,
-    oracle: Option<oracle::Oracle>,
-) -> Result<(Grown, Option<Box<oracle::Oracle>>)> {
+    beside: Beside,
+) -> Result<(Grown, Besides)> {
+    let started = std::time::Instant::now();
     species.validate()?;
     request.light.validate()?;
     if request.age == 0 {
@@ -247,7 +254,9 @@ fn run_staged(
         sketch,
         leaves: Vec::new(),
         wakes: Vec::new(),
-        oracle: oracle.map(Box::new),
+        oracle: beside.oracle.map(Box::new),
+        couple: beside.couple.map(Box::new),
+        fine: None,
     };
     stage(Stage::Pass(Pass::Windows));
     let mut advanced = Vec::new();
@@ -267,13 +276,17 @@ fn run_staged(
                 grower.relay(cycle, stage)?;
                 stage(Stage::Relaid);
             }
-            grower.shade(stage);
+            grower.shade(cycle, stage);
             stage(Stage::Lit);
         }
     }
+    let measured = match grower.couple.is_some() {
+        true => Some(grower.grow_fine_all(started)?),
+        false => None,
+    };
     let oracle = grower.oracle.take();
     let grown = grower.settle((request, options), (lay, keeps), stage)?;
-    Ok((grown, oracle))
+    Ok((grown, Besides { oracle, measured }))
 }
 
 /// The share of an apex's expected wood a stop decides: a stop with no
@@ -347,8 +360,12 @@ struct Grower<'a> {
     leaves: Vec<(Vec3, f64)>,
     /// Where a chain grows alone, the sleeping buds that woke on it.
     wakes: Vec<alone::Pending>,
-    /// fn-211.4's light oracle, where the tree is grown under one.
+    /// fn-211.4's light oracle, where the tree is grown under one; the
+    /// coupling pass, where it is one; a fine subtree's records, where
+    /// it is one.
     oracle: Option<Box<oracle::Oracle>>,
+    couple: Option<Box<couple::Pass>>,
+    fine: Option<Box<subtree::Reads>>,
 }
 
 impl Grower<'_> {
@@ -359,8 +376,9 @@ impl Grower<'_> {
         let rows = self.rows();
         self.balance(cycle, rows.as_ref());
         report(Stage::Pass(Pass::Balance));
-        self.allot(rows.as_ref());
+        self.allot(rows.as_ref(), cycle);
         drop(rows);
+        self.advance_fine(cycle);
         report(Stage::Pass(Pass::Allot));
         let live = std::mem::take(&mut self.live);
         self.grow_live(live, cycle, report)?;

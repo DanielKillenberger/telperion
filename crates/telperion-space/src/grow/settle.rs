@@ -48,6 +48,7 @@ impl Grower<'_> {
         let records = kept_records(made, &shed.index);
         let girth = grown.map_or_else(Girth::default, |g| disused(&g, &shed, species));
         stage(Stage::Pass(Pass::Disused));
+        let index = shed.index;
         let mut structure = Structure {
             age: request.age,
             pas: species.states.len(),
@@ -73,6 +74,7 @@ impl Grower<'_> {
             marked,
             records,
             leaf_mean,
+            index,
         };
         if !lay || options.settle {
             return Ok(done(structure));

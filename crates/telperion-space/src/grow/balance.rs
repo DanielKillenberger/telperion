@@ -28,9 +28,13 @@ impl Grower<'_> {
         if species.states.iter().all(|s| s.balance_hazard == 0.0) {
             return;
         }
-        let (Some(sketch), Some(Rows { links, pa })) = (self.sketch.as_mut(), rows) else {
+        let Some(Rows { links, pa }) = rows else {
             return;
         };
+        let Some(mut held) = self.sketch.take() else {
+            return;
+        };
+        let sketch = &mut held;
         let n = sketch.pencils.len();
         let (mut light, mut cost, mut living) = (vec![0.0; n], vec![0.0; n], vec![false; n]);
         let pencils = &sketch.pencils;
@@ -42,6 +46,15 @@ impl Grower<'_> {
             light[apex.axis] = p.base_scale * p.running * p.light;
             living[apex.axis] = true;
         }
+        // A fine root's subtree as its aggregate holds it (fn-211.4).
+        for (i, q, c, alive) in self.fine_balance(sketch) {
+            (light[i], cost[i], living[i]) = (q, c, alive);
+        }
+        // A fine subtree's root: its own shedding is the pass's record.
+        let root = self
+            .fine
+            .as_ref()
+            .map(|r| (r.records.shed == Some(cycle), r.records.kept(cycle)));
         for i in (1..n).rev() {
             if let Some(parent) = links[i].parent {
                 light[parent] += light[i];
@@ -58,6 +71,10 @@ impl Grower<'_> {
                 None => (false, 1.0),
             };
             (shed[i], kept[i]) = (dead, keep);
+            if let (1, Some((when, k))) = (i, root) {
+                (shed[i], kept[i]) = (when, k);
+                continue;
+            }
             let lateral = links[i].parent.is_some() && links[i].node != TIP;
             if dead || !living[i] || !lateral {
                 continue;
@@ -89,6 +106,9 @@ impl Grower<'_> {
                 kept[i] = keep * windows.decided(above(u, p), wood, 1.0);
             }
         }
+        self.sketch = Some(held);
+        self.fine_kept(cycle, &shed, &kept);
+        let sketch = self.sketch.as_mut().expect("sketching");
         let live = std::mem::take(&mut self.live);
         for apex in live {
             if apex.axis < n && shed[apex.axis] {

@@ -13,7 +13,7 @@
 //!   their tips' positions, fitted that cycle (option B's best).
 //!
 //! An experiment behind its own entry point: `grow` never builds one.
-use super::{run_with, Apex, Options};
+use super::{run_beside, Apex, Beside, Options};
 use crate::bounded::Expected;
 use crate::closed_form::boundary::Rows;
 use crate::error::Result;
@@ -62,10 +62,15 @@ pub fn grow_oracle(
         root_of: Vec::new(),
         growth: Vec::new(),
     };
-    let (grown, oracle) = run_with(species, request, Options::default(), Some(oracle))?;
+    let beside = Beside {
+        oracle: Some(oracle),
+        ..Beside::default()
+    };
+    let quiet = &mut |_| {};
+    let (grown, besides) = run_beside(species, request, (quiet, true), Options::default(), beside)?;
     Ok(Oracled {
         structure: grown.structure,
-        growth: oracle.map_or_else(Vec::new, |o| o.growth),
+        growth: besides.oracle.map_or_else(Vec::new, |o| o.growth),
     })
 }
 
@@ -105,17 +110,11 @@ impl Oracle {
         }
     }
 
-    /// Adds a cycle's growing buds: each one's PA, presence and size.
-    pub(super) fn tally(&mut self, buds: impl Iterator<Item = (usize, f64, f64)>) {
-        let mut row: Vec<[f64; 2]> = Vec::new();
+    /// Adds `cycle`'s growing buds: each one's PA, presence and size.
+    pub(super) fn tally(&mut self, cycle: u32, buds: impl Iterator<Item = (usize, f64, f64)>) {
         for (pa, p, size) in buds.filter(|b| b.1 > 0.0) {
-            if row.len() <= pa {
-                row.resize(pa + 1, [0.0; 2]);
-            }
-            row[pa][0] += p;
-            row[pa][1] += p * size;
+            super::subtree::tally(&mut self.growth, cycle, pa, p, size);
         }
-        self.growth.push(row);
     }
 }
 
