@@ -77,8 +77,42 @@ pub(super) fn scaled(a: Along, l: f64) -> Along {
 pub(super) fn steps(
     species: &Species,
     living: &mut Living,
+    bud: (usize, usize, Carried),
+    first: Option<First>,
+) -> Vec<Step> {
+    steps_to(species, living, bud, first, usize::MAX)
+}
+
+/// A bud's first growth unit, if it grows any; the rest of its axis is
+/// the same PA's bud one cycle younger carrying `rest` (fn-209, P1).
+pub(super) fn first_step(
+    species: &Species,
+    living: &mut Living,
+    bud: (usize, usize, Carried),
+    first: Option<First>,
+) -> Option<Step> {
+    steps_to(species, living, bud, first, 1).pop()
+}
+
+/// What the rest of an axis carries from its second unit on: the time
+/// its first unit spent, no part of a cycle gone, no relay's whole unit.
+pub(super) fn rest(carried: Carried, lifespan: f64) -> Carried {
+    let unit = carried.unit(lifespan, 1);
+    let spent = unit.before + unit.share;
+    Carried {
+        spent,
+        aged: carried.aged + spent - carried.spent,
+        gone: 0.0,
+        relay: false,
+    }
+}
+
+fn steps_to(
+    species: &Species,
+    living: &mut Living,
     (k, m, carried): (usize, usize, Carried),
     first: Option<First>,
+    units: usize,
 ) -> Vec<Step> {
     let state = &species.states[k];
     let counts: Vec<Count> = state.zones.iter().map(|z| Count::of(z.nodes)).collect();
@@ -102,7 +136,7 @@ pub(super) fn steps(
     let mut out = Vec::new();
     let mut path = Along::default();
     let mut survival = 1.0;
-    for i in 1..=m {
+    for i in 1..=m.min(units) {
         let unit = carried.unit(state.lifespan, i);
         let spent = unit.before + unit.share;
         // A woken bud's partial first unit runs its share of the year's

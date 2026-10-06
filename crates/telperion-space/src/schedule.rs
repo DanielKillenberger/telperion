@@ -76,6 +76,27 @@ impl Carried {
         this.min(self.unit(lifespan, i + 1).share)
     }
 
+    /// The same, as far as it changes what grows in the `m` cycles left
+    /// (fn-209, P1): an age that cannot end within them grows alike at any
+    /// time spent; a hazard that does not rise counts no aged time; a
+    /// relay's whole first unit is the unit any bud grows when the age
+    /// leaves it the room. So buds that grow alike share their tables.
+    pub fn canonical(self, lifespan: f64, rises: bool, m: usize) -> Self {
+        let mut out = self;
+        let far = m as f64 + 3.0;
+        if lifespan - self.spent > far {
+            out.spent = (lifespan - far).max(0.0);
+            out.aged = self.aged + out.spent - self.spent;
+        }
+        if !rises {
+            out.aged = out.spent;
+        }
+        if lifespan - out.spent >= 1.0 - out.gone {
+            out.relay = false;
+        }
+        out
+    }
+
     /// Past its lifespan an age's time changes nothing (every bud grows
     /// one unit and ends), so a key may hold it there.
     pub fn key(self, lifespan: f64) -> (u64, u64, u64, bool) {

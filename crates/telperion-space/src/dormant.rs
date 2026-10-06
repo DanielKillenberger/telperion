@@ -10,11 +10,11 @@
 //! It wakes only while the axis that bears it lives, through that axis's
 //! continuations and relays, and its size carries every draw on the way.
 use crate::lineage::{self, Key, DORMANT};
+use crate::memo::Memo;
 use crate::presence::{Draws, Windows};
 use crate::schedule::Carried;
 use crate::species::{Species, Zone};
 use crate::structure::Axis;
-use std::collections::HashMap;
 use std::rc::Rc;
 
 /// The years after its node grew that a sleeping bud wakes, for the draw
@@ -370,11 +370,11 @@ pub(crate) struct Living<'a> {
     /// but stopped moving on is carried on by its relay as well (host
     /// decision 13). None for the expected lengths that make them.
     windows: Option<&'a Windows>,
-    memo: HashMap<Asked, f64>,
+    memo: Memo<Asked, f64>,
     /// The stages a sleeping bud of a zone may wake in over a year, each
     /// with its first unit's law (`stages`, `First::of`), by the zone's PA
     /// and place, the bud's PA and the year: the same for every bearer.
-    woken: HashMap<(usize, usize, usize, u32), Wakes>,
+    woken: Memo<(usize, usize, usize, u32), Wakes>,
 }
 
 /// The stages a sleeping bud may wake in over a year, each with the law
@@ -398,8 +398,8 @@ impl<'a> Living<'a> {
         Self {
             species,
             windows,
-            memo: HashMap::new(),
-            woken: HashMap::new(),
+            memo: Memo::default(),
+            woken: Memo::default(),
         }
     }
 
@@ -537,6 +537,19 @@ impl<'a> Living<'a> {
             return 1.0;
         }
         let state = &self.species.states[k];
+        if u > 1 {
+            // From its unit u on, an axis is the same PA's bud u − 1
+            // cycles younger, carrying the time spent (fn-209, P1).
+            let before = carried.unit(state.lifespan, u).before;
+            let rest = Carried {
+                spent: before,
+                aged: carried.aged + before - carried.spent,
+                gone: 0.0,
+                relay: false,
+            };
+            return self.from((k, rest, m.saturating_sub(u - 1)), 1, y - (u - 1));
+        }
+        let carried = carried.canonical(state.lifespan, state.rises(), y);
         let left = if self.windows.is_some() { m } else { 0 };
         let key = (k, carried.key(state.lifespan), left, u, y, None);
         if let Some(&p) = self.memo.get(&key) {

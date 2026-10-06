@@ -12,7 +12,7 @@
 //! path is the farthest wood can stand from its base, whatever bends it.
 use super::{sub, Kept};
 use crate::closed_form::along::Count;
-use crate::closed_form::steps::steps;
+use crate::closed_form::steps::{first_step, rest};
 use crate::dormant::First;
 use crate::schedule::Carried;
 
@@ -36,6 +36,10 @@ impl Kept<'_> {
         if m == 0 {
             return 0.0;
         }
+        let carried = {
+            let state = &self.species.states[k];
+            carried.canonical(state.lifespan, state.rises(), m)
+        };
         let key = sub(self.species, k, m, carried, first);
         if let Some(&b) = self.bounds.get(&key) {
             return reach * b;
@@ -50,7 +54,18 @@ impl Kept<'_> {
             .collect();
         let mut path = 0.0f64;
         let mut best = 0.0f64;
-        for step in steps(species, &mut self.living, (k, m, carried), first) {
+        let step = first_step(species, &mut self.living, (k, m, carried), first);
+        // The rest of its axis stands on the first unit's tip: the bud one
+        // cycle younger (fn-209, P1).
+        if let Some(s) = step
+            .as_ref()
+            .filter(|s| s.end.is_none() && s.after > 0.0 && m > 1)
+        {
+            let length = most.iter().sum::<f64>() * state.internode * s.size;
+            let rest = self.reach_bound(k, m - 1, rest(carried, state.lifespan), None);
+            best = best.max(length + rest);
+        }
+        if let Some(step) = step {
             // A failed unit's relay stands on the unit before it.
             if let Some(r) = step.failed {
                 best = best.max(path + self.reach_bound(k, m - r.at, r.carried, None));
@@ -59,7 +74,8 @@ impl Kept<'_> {
             best = best.max(path);
             // Laterals stand at most at the unit's tip, no larger than its
             // size (a place's share and a dominance share are at most 1).
-            for lateral in &self.laterals[k].clone() {
+            let laterals = self.laterals.clone();
+            for lateral in &laterals[k] {
                 for (j, _) in lateral.iter().enumerate().filter(|(_, &p)| p > 0.0) {
                     let child = self.reach_bound(j, m - step.i, Carried::default(), None);
                     best = best.max(path + step.size * child);

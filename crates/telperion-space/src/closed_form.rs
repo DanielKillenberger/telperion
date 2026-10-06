@@ -24,12 +24,12 @@ mod steps;
 
 use crate::dormant::{First, Living};
 use crate::error::{refuse, Result};
+use crate::memo::Memo;
 use crate::presence::Windows;
 use crate::schedule::Carried;
 use crate::species::Species;
 use crate::structure::CountTable;
-use events::{events, Event};
-use std::collections::HashMap;
+use events::{events, first_events, Event};
 
 /// The expected phytomers per PA and cycle of a tree grown `age` cycles.
 pub fn expected_counts(species: &Species, age: u32) -> Result<CountTable> {
@@ -41,7 +41,7 @@ pub fn expected_counts(species: &Species, age: u32) -> Result<CountTable> {
     // The tree's windows: an apex that all but stopped moving on grows its
     // continuation and its relay, which count whole (host decision 13).
     let windows = Windows::new(species, age);
-    let mut memo = HashMap::new();
+    let mut memo = Memo::default();
     let mut walk = Walk {
         species,
         laterals: &laterals,
@@ -67,7 +67,7 @@ fn sub(species: &Species, k: usize, m: usize, carried: Carried, first: Option<Fi
 struct Walk<'a, T> {
     species: &'a Species,
     laterals: &'a [Vec<Vec<f64>>],
-    memo: &'a mut HashMap<Sub, T>,
+    memo: &'a mut Memo<Sub, T>,
     living: Living<'a>,
 }
 
@@ -141,19 +141,28 @@ impl Walk<'_, f64> {
         if m == 0 {
             return f64::NEG_INFINITY;
         }
+        let state = &self.species.states[k];
+        let carried = carried.canonical(state.lifespan, state.rises(), m);
         let key = sub(self.species, k, m, carried, first);
         if let Some(&log) = self.memo.get(&key) {
             return log;
         }
-        let internode = self.species.states[k].internode;
+        let state = &self.species.states[k];
+        let internode = state.internode;
         let mut length = LogSum::default();
-        for event in events(
+        let (first, on) = first_events(
             self.species,
             &self.laterals[k],
             &mut self.living,
             (k, m, carried),
             first,
-        ) {
+        );
+        // The rest of its axis: the bud one cycle younger (fn-209, P1).
+        if on > 0.0 {
+            let rest = steps::rest(carried, state.lifespan);
+            length.add(on, self.lived_log_length(k, m - 1, rest, None));
+        }
+        for event in first {
             match event {
                 Event::Nodes { count, size, .. } => length.add(count * size * internode, 0.0),
                 Event::Bud {
@@ -182,7 +191,7 @@ impl Walk<'_, f64> {
 /// infinity. The species is valid.
 pub(crate) fn expected_log_lengths(species: &Species, age: u32) -> Vec<Vec<f64>> {
     let laterals: Vec<Vec<Vec<f64>>> = species.states.iter().map(|s| s.laterals()).collect();
-    let mut memo = HashMap::new();
+    let mut memo = Memo::default();
     let mut walk = Walk {
         species,
         laterals: &laterals,

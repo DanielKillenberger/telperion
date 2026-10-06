@@ -68,7 +68,13 @@ impl Kept<'_> {
 
     /// A whole child's factor and its quantities at the axis's exponent
     /// `e`, placed at `at` turned by `turn`.
-    fn whole(&self, table: &super::Table, t: i64, (at, turn): (Along, f64), e: f64) -> Ended {
+    pub(super) fn whole(
+        &self,
+        table: &super::Table,
+        t: i64,
+        (at, turn): (Along, f64),
+        e: f64,
+    ) -> Ended {
         let row = table.at(t);
         let mut out = [0.0; WIDTH];
         if let (_, _, Some(b)) = row {

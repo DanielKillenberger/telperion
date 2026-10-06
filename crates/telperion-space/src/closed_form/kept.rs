@@ -17,19 +17,26 @@
 //! mean and mean square among the subtrees kept (`kept/section.rs`); the
 //! mass's radius likewise, at the axis's own exponent (host decision 15).
 //!
+//! A bud's table is its first unit's with the rest of its axis, the same
+//! PA's bud one cycle younger carrying the time spent, set at the unit's
+//! tip (fn-209, P1): each table one unit's work, and buds that grow alike
+//! one table (`Carried::canonical`).
+//!
 //! Approximations, each measured (`tests.rs`): presences whole, as the
 //! counts have them; times whole cycles; axes straight, azimuths even;
 //! the delta method's second order; a unit's own phytomers bearing, for
-//! sag, the section beyond its middle; a relay's section entering at its
-//! axis's tip; sleeping buds independent of the axis that bears them.
+//! sag, the section beyond its middle, and the section beyond a unit
+//! the rest of its axis's as one mixture over how it ends; a relay's
+//! section entering at its axis's tip, a failed unit's relay at the
+//! rest's base; sleeping buds independent of the axis that bears them.
 use super::along::Along;
-use super::steps::steps;
+use super::steps::{first_step, rest};
 use super::{sub, Sub};
 use crate::dormant::{First, Living};
+use crate::memo::Memo;
 use crate::presence::Windows;
 use crate::schedule::Carried;
 use crate::species::Species;
-use std::collections::HashMap;
 use std::rc::Rc;
 
 mod bound;
@@ -154,10 +161,11 @@ impl Placing {
 pub(crate) struct Kept<'a> {
     species: &'a Species,
     living: Living<'a>,
-    laterals: Vec<Vec<Vec<f64>>>,
-    memo: HashMap<Sub, Rc<Table>>,
-    faded: HashMap<(Sub, u64), Rc<Table>>,
-    bounds: HashMap<Sub, f64>,
+    laterals: Rc<[Vec<Vec<f64>>]>,
+    axes: Rc<[path::Axis]>,
+    memo: Memo<Sub, Rc<Table>>,
+    faded: Memo<(Sub, u64), Rc<Table>>,
+    bounds: Memo<Sub, f64>,
     /// The cycles before a bud's last that its table holds (`window`).
     lags: usize,
 }
@@ -178,9 +186,12 @@ impl<'a> Kept<'a> {
             species,
             living: Living::new(species, Some(windows)),
             laterals: species.states.iter().map(|s| s.laterals()).collect(),
-            memo: HashMap::new(),
-            faded: HashMap::new(),
-            bounds: HashMap::new(),
+            axes: (0..species.states.len())
+                .map(|k| path::Axis::of(species, k))
+                .collect(),
+            memo: Memo::default(),
+            faded: Memo::default(),
+            bounds: Memo::default(),
             lags: window(species),
         }
     }
@@ -274,19 +285,31 @@ impl<'a> Kept<'a> {
     }
 
     fn lived(&mut self, k: usize, m: usize, carried: Carried, first: Option<First>) -> Rc<Table> {
+        let state = &self.species.states[k];
+        let carried = carried.canonical(state.lifespan, state.rises(), m);
         let key = sub(self.species, k, m, carried, first);
         if let Some(t) = self.memo.get(&key) {
             return t.clone();
         }
-        let steps = steps(self.species, &mut self.living, (k, m, carried), first);
-        let axis = path::Axis::of(self.species, k);
+        let step = first_step(self.species, &mut self.living, (k, m, carried), first);
+        // The rest of its axis: the bud one cycle younger (fn-209, P1).
+        let rest = match &step {
+            Some(s) if s.end.is_none() && s.after > 0.0 && m > 1 => {
+                let lifespan = self.species.states[k].lifespan;
+                Some(self.lived(k, m - 1, rest(carried, lifespan), None))
+            }
+            _ => None,
+        };
+        let steps: Vec<_> = step.into_iter().collect();
+        let axes = self.axes.clone();
+        let axis = &axes[k];
         let lo = m.saturating_sub(self.lags);
         let (mut a, mut b) = (
             Vec::with_capacity(m + 1 - lo),
             Vec::with_capacity(m + 1 - lo),
         );
         for t in lo..=m {
-            let (at, bt) = self.threshold((k, m), &axis, &steps, t as i64);
+            let (at, bt) = self.threshold((k, m), axis, (&steps, rest.as_deref()), t as i64);
             a.push(at);
             b.push(bt);
         }

@@ -1,52 +1,53 @@
-//! The rows against the values the kept tables read before each table
-//! was cut to the cycles its readers reach (fn-209, probe P1): every field
-//! of every row, bit for bit, for the four species at ages spread to 80.
+//! The rows pinned bit for bit, four species at ages spread to 80; and
+//! against the values the kept tables read on 9f063433, before each bud's
+//! table came from its first unit and the rest of its axis (fn-209, P1).
 use super::{Row, Rows};
 use crate::{beech, oak, palm, spruce, Species};
 
-/// Each species and age, and the hash of its rows' bits as the kept tables
-/// read them on 9f063433, every table over every cycle.
+/// Each species and age, and the hash of its rows' bits as each bud's
+/// table is read from its first unit and the rest of its axis (fn-209,
+/// P1 round 2).
 const PINNED: [(&str, u32, u64); 40] = [
     ("beech", 1, 0x6c6d014abadb96ac),
-    ("beech", 2, 0x39d52260151f6314),
-    ("beech", 3, 0xdc728319648c796b),
-    ("beech", 5, 0x78ad08cc4d5f2873),
-    ("beech", 8, 0x53cc52dff0b8bdd3),
-    ("beech", 13, 0x7926e2d9ecd41154),
-    ("beech", 21, 0x9e22b50c6b81e4e4),
-    ("beech", 34, 0x8adb52ba3088d894),
-    ("beech", 55, 0x514dbee5a2c94a34),
-    ("beech", 80, 0x570d8dabe93aa3c5),
+    ("beech", 2, 0x3e13297b503060e0),
+    ("beech", 3, 0x5e1b7e53e0921178),
+    ("beech", 5, 0xb1a3789f67ee4b5a),
+    ("beech", 8, 0x84e4d7bbbce190c4),
+    ("beech", 13, 0xd259c2cb57e84431),
+    ("beech", 21, 0x8c80cb094d91cc3f),
+    ("beech", 34, 0x214579d5d3dd5d82),
+    ("beech", 55, 0x1d066e037079968d),
+    ("beech", 80, 0xa98dc8cc8cbd9c27),
     ("spruce", 1, 0x0a0b4289900822d9),
-    ("spruce", 2, 0x7f33d3ea05952863),
-    ("spruce", 3, 0xff36787434c8b78b),
-    ("spruce", 5, 0x83a47ea06d5dbc9d),
-    ("spruce", 8, 0x950b50f62a6fd7ff),
-    ("spruce", 13, 0x1fa7557f9810752a),
-    ("spruce", 21, 0xca5b9dcfd48c8d28),
-    ("spruce", 34, 0xf94fafd7320730c6),
-    ("spruce", 55, 0x4070a2a082d4643f),
-    ("spruce", 80, 0xb833128b42eef75a),
+    ("spruce", 2, 0x5289e752724f26a7),
+    ("spruce", 3, 0xcf94d4731d5dd17b),
+    ("spruce", 5, 0x752f51e07e87e61a),
+    ("spruce", 8, 0xe9dc8f81af417c31),
+    ("spruce", 13, 0xb9cb3a5a9a9176cf),
+    ("spruce", 21, 0xeccbeaea16912870),
+    ("spruce", 34, 0xc9ae9569ff738158),
+    ("spruce", 55, 0xb171fcc1e07e8501),
+    ("spruce", 80, 0x2c685ece967d2594),
     ("oak", 1, 0x06db4fdc944ba9a4),
-    ("oak", 2, 0x859b9f58e38002e2),
-    ("oak", 3, 0x91fbc8359826c982),
-    ("oak", 5, 0x0a27df9f5ea0f8d9),
-    ("oak", 8, 0x1359f6a6d7075a34),
-    ("oak", 13, 0xd1a49359ad47ac27),
-    ("oak", 21, 0x6d2c89804fa91931),
-    ("oak", 34, 0x00c6b2b080b6c5d7),
-    ("oak", 55, 0x12402a8f0a45e608),
-    ("oak", 80, 0xd9c80fc3c1bde792),
+    ("oak", 2, 0x01c6bf115e5f9035),
+    ("oak", 3, 0x45dfbcd84a19a148),
+    ("oak", 5, 0x5dbee4d7a8b7be82),
+    ("oak", 8, 0xe93861a49c45481b),
+    ("oak", 13, 0x92a88c6a7c572b0d),
+    ("oak", 21, 0x839c44a3afe865c6),
+    ("oak", 34, 0x062b95803d31b9e4),
+    ("oak", 55, 0x377e1b3e2eba989c),
+    ("oak", 80, 0x9b935ce8e1ebcb09),
     ("palm", 1, 0xda237154468f69ae),
     ("palm", 2, 0xf30b6b627d772f9e),
-    ("palm", 3, 0x306e87bf6255eac4),
+    ("palm", 3, 0xa76f80968375a52b),
     ("palm", 5, 0x61037bbb2251841a),
-    ("palm", 8, 0xe3f2162b79340d98),
+    ("palm", 8, 0xaf0699f75d0e1787),
     ("palm", 13, 0x9dc19dc3331b5f83),
-    ("palm", 21, 0xac31146daffc2c2c),
-    ("palm", 34, 0x5ec581e2a90b17af),
-    ("palm", 55, 0xdd8abb84177c7f98),
-    ("palm", 80, 0xc6b1ddd546261318),
+    ("palm", 21, 0x06a4b228ae4c227f),
+    ("palm", 34, 0x5390f7d1673f40c9),
+    ("palm", 55, 0x1ac5e4768edbdbd6),
+    ("palm", 80, 0x6f5bf58ab70abd20),
 ];
 
 /// Each row's fields as their bits, the seed's last.
@@ -82,12 +83,11 @@ fn species(name: &str) -> Species {
     }
 }
 
-/// The pinned species and ages up to `most`, each read on one core and
-/// on four; the ones whose rows changed.
-fn changed(most: u32) -> Vec<String> {
-    let pinned = PINNED.iter().filter(|p| p.1 <= most);
+/// The pinned species and ages, each read on one core and on four; the
+/// ones whose rows changed.
+fn changed() -> Vec<String> {
     let mut out = Vec::new();
-    for &(name, age, pin) in pinned {
+    for &(name, age, pin) in &PINNED {
         let species = species(name);
         for threads in [1, 4] {
             let got = hash(&bits(&Rows::new(&species, age, threads)));
@@ -101,23 +101,78 @@ fn changed(most: u32) -> Vec<String> {
     out
 }
 
-/// The rows hold their values to the bit at ages to 34 (about a second).
 #[test]
 fn the_rows_hold_their_values() {
-    let changed = changed(34);
+    let changed = changed();
     assert!(changed.is_empty(), "rows changed: {changed:#?}");
 }
 
-/// And at 55 and 80, the ages that cost (about a minute, on one core and on four).
+/// The rows of 9f063433 at 40 and 80, each borne PA's at each age: species,
+/// age, row, and the bits of kept, E[S; kept], E[S²; kept], mass, moment
+/// and reach.
+const OLD: &str = include_str!("rows-9f063433.txt");
+
+/// Each field's largest relative difference from the old rows that this
+/// reading may make. The chance kept, the section and the reach are the
+/// same recursion summed in another order. Mass and moment take each
+/// unit's section beyond it from the rest of the axis as one mixture,
+/// where 9f063433 took it end by end, and a failed relay's section at the
+/// rest's base rather than at its node: the radius's power of a mixture,
+/// measured at most 5.5e-3 (beech's moment at 80).
+const TOLERANCE: [(&str, f64); 6] = [
+    ("kept", 1e-9),
+    ("s1", 1e-9),
+    ("s2", 1e-9),
+    ("mass", 1e-2),
+    ("moment", 1e-2),
+    ("reach", 1e-9),
+];
+
+/// The rows stay within the tolerance of 9f063433's, field by field;
+/// prints the largest and the 95th percentile of each.
 #[test]
-#[ignore = "about a minute; run when the kept tables change"]
-fn the_rows_hold_their_values_to_80() {
-    let changed = changed(80);
-    assert!(changed.is_empty(), "rows changed: {changed:#?}");
+fn the_rows_stay_near_the_old_reading() {
+    let mut worst = Vec::new();
+    for (name, age) in ["beech", "spruce", "oak", "palm"]
+        .iter()
+        .flat_map(|n| [(n, 40), (n, 80)])
+    {
+        let new = bits(&Rows::new(&species(name), age, 1));
+        let mut d = vec![Vec::new(); TOLERANCE.len()];
+        let prefix = format!("{name} {age} ");
+        for line in OLD.lines().filter(|l| l.starts_with(&prefix)) {
+            let w: Vec<&str> = line.split(' ').collect();
+            let row = &new[w[2].parse::<usize>().unwrap()];
+            for (q, field) in [0, 1, 2, 5, 6, 7].into_iter().enumerate() {
+                let o = f64::from_bits(u64::from_str_radix(w[3 + q], 16).unwrap());
+                let n = f64::from_bits(row[field]);
+                let scale = o.abs().max(n.abs());
+                d[q].push(if scale > 0.0 {
+                    (n - o).abs() / scale
+                } else {
+                    0.0
+                });
+            }
+        }
+        assert!(!d[0].is_empty(), "{name} {age}: no old rows");
+        let mut line = format!("{name} {age}:");
+        for (q, d) in d.iter_mut().enumerate() {
+            d.sort_by(f64::total_cmp);
+            let (max, p95) = (d[d.len() - 1], d[(d.len() * 95 / 100).min(d.len() - 1)]);
+            let (field, tolerance) = TOLERANCE[q];
+            line += &format!(" {field} {max:.1e}/{p95:.1e}");
+            if max > tolerance {
+                worst.push(format!("{name} {age} {field} {max:.2e}"));
+            }
+        }
+        println!("{line}");
+    }
+    assert!(worst.is_empty(), "past the tolerance: {worst:#?}");
 }
 
 /// Writes every row's bits to `TELPERION_ROWS_DUMP` (a directory), one
-/// file per species and age, to find which row a change moved.
+/// file per species and age, to find which row a change moved; prints
+/// each one's pin.
 #[test]
 #[ignore = "writes the rows for a comparison by hand"]
 fn dump_rows() {
@@ -130,5 +185,6 @@ fn dump_rows() {
             .collect();
         let path = format!("{dir}/{name}-{age}.txt");
         std::fs::write(&path, text.join("\n")).expect("written");
+        println!("    (\"{name}\", {age}, 0x{:016x}),", hash(&bits(&rows)));
     }
 }
