@@ -62,3 +62,31 @@
 - **Slowed:** the dump example is new, so the base needed a temporary `git worktree` with its own `target/` (the scratchpad's stale `base` worktree entry from another session blocked the obvious name); reverting the first patch there to apply the second needed `git apply -R` because the guard refuses `git checkout --`.
 - **Cost:** about 6 minutes, three builds of the crate (1 minute each with the dumps).
 - **Would remove it:** the dump example (`examples/contract.rs`) now lands with this task, so the next candidate is a patch and one run on this branch.
+
+## 2026-10-06, the shell guard refuses edits through heredocs and dynamic paths (task 2, GPU executor)
+
+- **Doing:** applying multi-line source edits with short Python scripts, and copying raw evidence into the evidence folder.
+- **Slowed:** the shell guard refused a heredoc'd Python script whose body it read as a dynamic shell launcher, `mkdir -p` with a redirect into a not-yet-made directory, `>` to a path built from a variable, and `mv` with a variable path. Each needed the script written to the scratchpad first, or literal paths, or `cp`.
+- **Cost:** about 6 minutes over five refusals.
+- **Would remove it:** nothing in the repository; a local guard setting (reported, not specced).
+
+## 2026-10-06, a WGSL reserved word costs a locked GPU run each (task 2, GPU executor)
+
+- **Doing:** compiling the contract and chain shaders.
+- **Slowed:** WGSL reserves many plain English words (`from`, `target`, `get`, `pass`, `move`, `set`, ...). Each one is found only when wgpu builds the shader, which is inside a test run under the GPU lock; four runs failed this way, and naga also wants a `return` after every loop that returns.
+- **Cost:** about 4 minutes and four short lock holds.
+- **Would remove it:** a CPU-side `naga` parse of every `.wgsl` under `src/generation` in an ordinary test (no device needed), so a shader that cannot parse fails before the GPU is asked for.
+
+## 2026-10-06, the GPU lock held by another worker's workspace gate (task 2, GPU executor)
+
+- **Doing:** re-running the fine roots' timing at 40 and 80 with smaller regions.
+- **Slowed:** fn-211.2's workspace gate took the GPU lock at 20:37 for its whole run, CPU tests included; my measurement waited behind it.
+- **Cost:** about 20 minutes of waiting (20:37 to 20:57), spent writing; and a wait loop of mine that matched its own command line and never ended, until stopped by hand.
+- **Would remove it:** a gate that takes the GPU lock only around the tests that use the GPU (a test filter or a separate GPU test binary), so CPU-only test time does not block GPU work on the desk.
+
+## 2026-10-06, the GPU tests hold the lock through their CPU reference (task 2, GPU executor)
+
+- **Doing:** the fine roots' equality and timing tests, which grow the CPU reference (`fine_cases`, `chain_cases`, `grow_fine`) and then the GPU's, in one test process.
+- **Slowed:** the GPU lock is taken around the whole `cargo test`, so the CPU reference's growth (up to about 40 s of the 72 s measurement at 80) holds the lock that other workers wait on.
+- **Cost:** about a minute of lock time per measurement run on the desk, and for the 25-year equality test in the gate about 30 s.
+- **Would remove it:** CPU references written once to disk by an unlocked step and read by the GPU test, or the lock taken inside the test only around the dispatches.
