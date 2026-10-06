@@ -127,3 +127,5 @@ Ryzen 9 5950X; "1 core" is `taskset -c 0`. The desk's load was 10 to 12 from the
 
 1. **The axis order of an assembled tree.** Its renders differ from today's by the order alone. Either every build is put in canonical order before conversion (today's stills move once, by 0.5 to 1.3 % of pixels), or the executor reproduces today's creation order (a global rank per living apex and sleeping bud each cycle), or the converter is made order-free. A design choice; not taken.
 2. **The task's acceptance** predates DESIGN-INTERLEAVE.md. Its third bullet (the aggregate against fine subtrees grown under recorded histories) has no subject once the aggregate is deleted, and the description's last step (lift the oak's refusal in fn-209's executors) waits on the GPU executor's stepping (probe (b)). Neither is done here.
+
+**Workspace gate** at `5324211b` (`cargo test --profile ci --workspace --no-fail-fast`, under `gpu.lock`): 1,148 passed, 0 failed, 24 ignored; 12 min 15 s at the desk's load.
