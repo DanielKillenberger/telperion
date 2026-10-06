@@ -59,7 +59,7 @@ fn sub(species: &Species, k: usize, m: usize, carried: Carried, first: Option<Fi
     (
         m,
         k,
-        carried.key(species.states[k].lifespan),
+        carried.key(species.states[k].life()),
         first.map(|f| (f.survive.to_bits(), f.persist.to_bits())),
     )
 }
@@ -142,7 +142,7 @@ impl Walk<'_, f64> {
             return f64::NEG_INFINITY;
         }
         let state = &self.species.states[k];
-        let carried = carried.canonical(state.lifespan, state.rises(), m);
+        let carried = carried.canonical(state.life(), state.rises(), m);
         let key = sub(self.species, k, m, carried, first);
         if let Some(&log) = self.memo.get(&key) {
             return log;
@@ -159,7 +159,7 @@ impl Walk<'_, f64> {
         );
         // The rest of its axis: the bud one cycle younger (fn-209, P1).
         if on > 0.0 {
-            let rest = steps::rest(carried, state.lifespan);
+            let rest = steps::rest(carried, state.life());
             length.add(on, self.lived_log_length(k, m - 1, rest, None));
         }
         for event in first {

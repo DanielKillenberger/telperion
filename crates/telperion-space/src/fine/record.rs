@@ -14,7 +14,7 @@
 //!   bearer kept).
 //! - **The ancestors' survival**: where its bearer was kept on its borne
 //!   buds' chances alone, the chance its bearer's other buds had all died
-//!   (P2's shedding context), on which its own keeping is conditioned.
+//!   (P2's shedding context, as `-log2` in Q32), on which its own keeping is conditioned.
 //! - **The attachment**: its bearer's PA and the bearer's laid frame at
 //!   the node, before bending and as laid: the node's phytomer (its tip,
 //!   frame, rank, scale and size, which the root's base scale is read
@@ -73,7 +73,7 @@ pub struct Committed {
 #[derive(Debug, Clone)]
 pub struct FineRoot {
     pub(crate) bud: Bud,
-    pub(crate) context: Option<f64>,
+    pub(crate) context: Option<i64>,
     pub(crate) record: Record,
     pub(crate) attachment: Attachment,
     pub committed: Committed,

@@ -48,7 +48,7 @@ impl Grower<'_> {
                 (draws.alive, draws.living) = (true, 1.0);
             }
         }
-        assign(&mut axes, &draws);
+        assign(&mut axes, &draws, self.species);
         let shed = shed(axes, self.species, cycle);
         let from: Vec<usize> = (0..from.len())
             .filter(|&j| shed.index[j] != usize::MAX)

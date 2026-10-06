@@ -4,6 +4,7 @@ use super::shoot::Shoot;
 use super::stop::Stop;
 use super::{shared, stop_stake, Apex};
 use crate::error::Result;
+use crate::fixed;
 use crate::lineage::{above, below, Key, ABORTION, END, ENDED, VIABILITY};
 use crate::schedule::Carried;
 
@@ -39,7 +40,7 @@ impl Shoot<'_, '_> {
             gone: if first { draws.sleep } else { 0.0 },
             relay: first && relay,
         };
-        let step = carried.unit(state.lifespan, 1);
+        let step = carried.unit(state.life(), 1);
         let share = step.share;
         // Shade raises the apex's death hazard, ln survival = ln
         // viability x light^-phi (host, 2026-10-05): near-certain survival
@@ -50,10 +51,13 @@ impl Shoot<'_, '_> {
         } else {
             state.viability
         };
+        // Decided on the contract's threshold (FINE-CONTRACT.md D5); the
+        // real survival sizes the unit's presence.
+        let survives = fixed::decide::survival(viability, share);
         let viability = shared(viability, share);
         let d = decide.child(VIABILITY).draw();
         let u = d.unit();
-        if !d.under(viability) {
+        if d.0 >= survives {
             self.axis_mut(apex.axis).apex_end = Some(cycle - 1);
             self.draws_mut(apex.axis).failed = true;
             // The unit that failed is spent: a relay's first unit draws
@@ -94,12 +98,13 @@ impl Shoot<'_, '_> {
         // (`schedule.rs`).
         let draws = self.draws(apex.axis);
         let grown = draws.aged + draws.shares.iter().sum::<f64>();
-        let exposure = carried.exposure(state.lifespan, 1);
+        let exposure = carried.exposure(state.life(), 1);
         let abortion = 1.0 - shared(1.0 - state.abortion_at(grown), exposure);
-        if abortion > 0.0 && !step.ends {
+        let aborts = fixed::decide::abortion(state, grown, exposure);
+        if aborts > 0 && !step.ends {
             let d = decide.child(ABORTION).draw();
             let u = d.unit();
-            if d.under(abortion) {
+            if d.0 < aborts {
                 self.axis_mut(apex.axis).apex_end = Some(cycle);
                 self.stop(
                     apex,

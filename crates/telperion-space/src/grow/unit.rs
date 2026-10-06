@@ -4,6 +4,7 @@
 use super::shoot::Shoot;
 use super::{Apex, Certain};
 use crate::error::{Error, Result};
+use crate::fixed;
 use crate::lineage::{self, Key, ZONE};
 use crate::species::{ALONG, MAX_BUDS, MAX_NODES_PER_ZONE};
 use crate::structure::{Origin, Phytomer, Vec3};
@@ -75,7 +76,7 @@ impl Shoot<'_, '_> {
                     size: 1.0,
                     light: 1.0,
                 });
-                let node_presence = windows.presence(node_lead, node_wood);
+                let node_presence = fixed::real(fixed::decide::node(node_lead, node_wood));
                 self.draws_mut(apex.axis).nodes.push(node_presence);
                 for (slot, bud) in buds[..zone.places()].iter().enumerate() {
                     let Some((lateral_pa, lead, placed)) = *bud else {

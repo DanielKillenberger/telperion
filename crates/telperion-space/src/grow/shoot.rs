@@ -96,8 +96,8 @@ pub(super) struct Shoot<'g, 'a> {
     pub grown: u64,
     /// One zone's node leads and its nodes (order draw, draw index, lead,
     /// buds), reused.
-    pub leads: Vec<f64>,
-    pub node_buds: Vec<(Draw, u64, f64, [Placed; MAX_BUDS as usize])>,
+    pub leads: Vec<i64>,
+    pub node_buds: Vec<(Draw, u64, i64, [Placed; MAX_BUDS as usize])>,
     /// One zone's sleeping buds' expected wood per PA, reused.
     pub sleeping: Vec<f64>,
 }

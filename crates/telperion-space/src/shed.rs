@@ -80,7 +80,7 @@ pub(crate) fn lasting(species: &Species, laterals: &[Vec<Vec<f64>>]) -> Vec<Opti
                 bears(species.lived(j).map(|(q, _)| q));
             }
         }
-        last[pa] = after.map(|a| state.lifespan.ceil() + a);
+        last[pa] = after.map(|a| state.life().ceil() + a);
     }
     last
 }

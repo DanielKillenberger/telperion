@@ -27,7 +27,7 @@ use std::f64::consts::TAU;
 const UPRIGHT: f64 = 0.2;
 
 /// Sizes every phytomer by its axis's vigour, its parent's scale and its
-/// unit's own size, and sets each relay's node.
+/// unit's own size; each relay's node is its draws' (`presence::assign`).
 pub(crate) fn scale(structure: &mut Structure, species: &Species) {
     // Each axis's scale at its base, from its already scaled parent.
     let mut base_scale = vec![1.0; structure.axes.len()];
@@ -47,13 +47,6 @@ pub(crate) fn scale(structure: &mut Structure, species: &Species) {
         base_scale[i] = inherited * axis.vigour * share;
         for phytomer in &mut axis.phytomers {
             phytomer.scale *= base_scale[i];
-        }
-        // A relay's node: where along its parent's last growth unit it
-        // stands, which girth and placement both read.
-        if let Origin::Relay { parent, .. } = structure.axes[i].origin {
-            let share = species.states[structure.axes[parent].pa].relay_at;
-            let node = relay_point(&structure.axes[parent], share).node;
-            structure.axes[i].origin = Origin::Relay { parent, node };
         }
     }
     // A unit's size is its own: applied once every axis has inherited its
@@ -173,14 +166,14 @@ pub(crate) fn frame(
             };
             (base, heading, side)
         }
-        Origin::Relay { parent, .. } => {
+        Origin::Relay { parent, node } => {
             // Between the continuation it replaces, at the tip on the
             // axis's line, and its own bud in the axis's span at the PA's
             // `relay_at`, facing where a bud there would, turned up by the
             // PA's epitony: by the presence of the stop that made it.
             let p = &axes[parent];
             let state = &species.states[p.pa];
-            let at = relay_point(p, state.relay_at);
+            let at = relay_point(p, state.relay_at, node);
             let (heading, side) = turned(
                 (at.along, at.side),
                 state.divergence * at.rank,
@@ -207,8 +200,6 @@ pub(crate) fn frame(
 
 /// A point along an axis and the frame there.
 struct Point {
-    /// The phytomer whose span holds it.
-    node: usize,
     base: Vec3,
     along: Vec3,
     side: Vec3,
@@ -216,23 +207,23 @@ struct Point {
 }
 
 /// The point `share` of the way along axis `p`'s last growth unit, by its
-/// phytomers' scaled lengths. The frame turns from one phytomer's direction to the next's along
-/// each span, so the point's frame moves by degree as `share` does; at 1
-/// it is the last node and the frame of its phytomer, at 0 the base of the
-/// unit's first internode.
-fn relay_point(p: &Axis, share: f64) -> Point {
+/// phytomers' scaled lengths, in the span of its node `k`, which the
+/// contract decides on its nodes' presences (`fixed::decide::relay_node`,
+/// FINE-CONTRACT.md D18). The frame turns from one phytomer's direction to
+/// the next's along each span, so the point's frame moves by degree as
+/// `share` does; at 1 it is the last node and the frame of its phytomer,
+/// at 0 the base of the unit's first internode.
+fn relay_point(p: &Axis, share: f64, k: usize) -> Point {
     let n = p.phytomers.len();
     if n == 0 {
         return Point {
-            node: 0,
             base: p.base,
             along: p.heading,
             side: p.side,
             rank: p.rank,
         };
     }
-    // The last growth unit's nodes: the module's curvature zone, wherever
-    // relays of it before have split the axis.
+    let k = k.min(n - 1);
     let last = p.phytomers[n - 1].cycle;
     let first = p
         .phytomers
@@ -242,22 +233,15 @@ fn relay_point(p: &Axis, share: f64) -> Point {
     // `share` of the unit's length, its phytomers by their scale, so a node
     // growing in from nothing moves the point by nothing (fn-206).
     let total: f64 = p.phytomers[first..].iter().map(|q| q.scale).sum();
-    let (k, t) = if total > 0.0 {
-        let target = share * total;
-        let mut before = 0.0;
-        let mut found = (n - 1, 1.0);
-        for (j, q) in p.phytomers.iter().enumerate().skip(first) {
-            if q.scale > 0.0 && before + q.scale >= target {
-                found = (j, ((target - before) / q.scale).clamp(0.0, 1.0));
-                break;
-            }
-            before += q.scale;
-        }
-        found
+    let scale = p.phytomers[k].scale;
+    let t = if total > 0.0 && scale > 0.0 {
+        let before: f64 = p.phytomers[first.min(k)..k].iter().map(|q| q.scale).sum();
+        ((share * total - before) / scale).clamp(0.0, 1.0)
+    } else if total > 0.0 {
+        1.0
     } else {
         let f = first as f64 + share * (n - first) as f64;
-        let k = (f.ceil() as usize).clamp(first + 1, n) - 1;
-        (k, (f - k as f64).clamp(0.0, 1.0))
+        (f - k as f64).clamp(0.0, 1.0)
     };
     let at = &p.phytomers[k];
     let start = if k == 0 {
@@ -268,7 +252,6 @@ fn relay_point(p: &Axis, share: f64) -> Point {
     let next = p.phytomers.get(k + 1);
     let blend = |a: Vec3, b: Vec3| (a * (1.0 - t) + b * t).unit().unwrap_or(a);
     Point {
-        node: k,
         base: start + (at.tip - start) * t,
         along: blend(at.heading, next.map_or(at.heading, |q| q.heading)),
         side: blend(at.side, next.map_or(at.side, |q| q.side)),

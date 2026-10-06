@@ -127,7 +127,7 @@ impl Shoot<'_, '_> {
             birth: made,
             ..Draws::default()
         };
-        let lifespan = self.species().states[pa].lifespan;
+        let lifespan = self.species().states[pa].life();
         self.push(key, pa, cycle, origin, (lifespan, root.0, draws));
         self.made.last_mut().unwrap().axis.apex_end = Some(cycle);
     }

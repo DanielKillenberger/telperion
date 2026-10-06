@@ -8,6 +8,7 @@
 //! that grew, a branch made anywhere moves no other draw's window.
 use crate::closed_form::expected_log_lengths;
 use crate::dormant::wakes_in;
+use crate::fixed;
 use crate::species::{Species, Zone};
 use crate::structure::{Axis, Origin};
 
@@ -48,6 +49,16 @@ impl Windows {
             return 0.0;
         }
         (log - self.whole).exp()
+    }
+
+    /// The log of `wood`: none where it is none (FINE-CONTRACT.md D10's
+    /// table).
+    pub fn log_wood(&self, pa: usize, cycle: u32) -> f64 {
+        let log = self.expected[(self.age + 1).saturating_sub(cycle) as usize][pa];
+        if log == f64::NEG_INFINITY {
+            return log;
+        }
+        log - self.whole
     }
 
     /// The wood a bud of `pa` is expected to grow from `used` of the way
@@ -178,9 +189,17 @@ pub(crate) struct Draws {
 
 /// Sets every axis's vigour, growth-unit presences, phytomer scales (each
 /// relative to its axis's base), phyllotactic ranks and living presence.
-pub(crate) fn assign(axes: &mut [Axis], draws: &[Draws]) {
+pub(crate) fn assign(axes: &mut [Axis], draws: &[Draws], species: &Species) {
     let mut end = vec![1.0; axes.len()];
     for i in 0..axes.len() {
+        // A relay's node: where along its parent's last growth unit it
+        // stands, which girth and placement both read, on its nodes'
+        // presences (FINE-CONTRACT.md D18).
+        if let Origin::Relay { parent, .. } = axes[i].origin {
+            let share = species.states[axes[parent].pa].relay_at;
+            let node = relay_node(&axes[parent], &draws[parent], share);
+            axes[i].origin = Origin::Relay { parent, node };
+        }
         let axis = &mut axes[i];
         let birth = axis.birth;
         let mut running = 1.0;
@@ -216,4 +235,24 @@ pub(crate) fn assign(axes: &mut [Axis], draws: &[Draws]) {
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => end[parent] * made,
         };
     }
+}
+
+/// The node of axis `p`'s last growth unit a relay of it stands at,
+/// `share` of the way along the unit by its nodes' presences.
+pub(crate) fn relay_node(p: &Axis, draws: &Draws, share: f64) -> usize {
+    let n = p.phytomers.len();
+    let Some(last) = p.phytomers.last().map(|q| q.cycle) else {
+        return 0;
+    };
+    let first = p
+        .phytomers
+        .iter()
+        .position(|q| q.cycle == last)
+        .unwrap_or(0);
+    // Each presence is a Q32 fixed point held exactly in its real.
+    let presences: Vec<u64> = draws.nodes[first..n]
+        .iter()
+        .map(|&x| (x * fixed::ONE32 as f64) as u64)
+        .collect();
+    fixed::decide::relay_node(&presences, first, n, share)
 }

@@ -14,6 +14,7 @@ use crate::allocation::{sizes, vigours, Link, TIP};
 use crate::error::{Error, Result};
 use crate::geometry::{bend, dominance, frame, Layer};
 use crate::light::{Field, Light};
+use crate::presence::relay_node;
 use crate::structure::{Origin, Vec3};
 
 /// The rough layout and the light it casts.
@@ -149,6 +150,14 @@ impl Grower<'_> {
     /// A new axis's pencil, at its frame, sized as `geometry::scale` sizes
     /// it from what its draws have made of it so far.
     fn pencil(&mut self, sketch: &Sketch, i: usize) -> Pencil {
+        // A relay stands at its node, which its parent's last unit, grown
+        // whole by now, decides (`presence::assign`).
+        if let Origin::Relay { parent, .. } = self.axes[i].origin {
+            let p = &self.axes[parent];
+            let share = self.species.states[p.pa].relay_at;
+            let node = relay_node(p, &self.draws[parent], share);
+            self.axes[i].origin = Origin::Relay { parent, node };
+        }
         let ends = |p: usize| sketch.pencils[p].layer.ends();
         let framed = frame(&self.axes, self.species, i, &ends);
         let axis = &self.axes[i];

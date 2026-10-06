@@ -137,7 +137,7 @@ fn steps_to(
     let mut path = Along::default();
     let mut survival = 1.0;
     for i in 1..=m.min(units) {
-        let unit = carried.unit(state.lifespan, i);
+        let unit = carried.unit(state.life(), i);
         let spent = unit.before + unit.share;
         // A woken bud's partial first unit runs its share of the year's
         // risks (`First`); a unit that shares its cycle, its share.
@@ -158,7 +158,7 @@ fn steps_to(
             Some(_) => 0.0,
             None if !unit.ends => {
                 // Over the share of the age's next unit.
-                let exposure = carried.exposure(state.lifespan, i);
+                let exposure = carried.exposure(state.life(), i);
                 1.0 - shared(1.0 - state.abortion_at(grown), exposure)
             }
             None => 0.0,

@@ -15,16 +15,6 @@ use crate::schedule::Carried;
 use crate::species::{Species, Zone};
 use crate::structure::Axis;
 
-/// The years after its node grew that a sleeping bud wakes, for the draw
-/// `u`, by the inverse of the release law's distribution; infinite when it
-/// never wakes.
-pub(crate) fn wake(zone: &Zone, u: f64) -> f64 {
-    if zone.rate <= 0.0 {
-        return f64::INFINITY;
-    }
-    zone.delay - (-u).ln_1p() / zone.rate
-}
-
 /// The probability that a sleeping bud wakes in the `s`th whole year after
 /// its node grew: its waking time lies in [s, s + 1).
 pub(crate) fn wakes_in(zone: &Zone, s: u32) -> f64 {
@@ -72,7 +62,9 @@ pub(crate) fn draw(
 ) -> Option<(usize, Sleeper)> {
     let key = place.child(DORMANT);
     let (pa, lead) = lineage::bud(&zone.dormant, key.draw())?;
-    let years = wake(zone, key.child(DORMANT).unit());
+    // By the inverse of the release law's distribution, on the tick grid
+    // (FINE-CONTRACT.md D11).
+    let years = crate::fixed::decide::wake(zone, key.child(DORMANT).draw());
     if years >= f64::from(age - cycle) {
         return None;
     }
@@ -149,10 +141,10 @@ pub(crate) fn aged(species: &Species, pa: usize, slept: f64) -> Option<(usize, f
     let mut slept = slept;
     loop {
         let state = &species.states[pa];
-        if slept < state.lifespan {
+        if slept < state.life() {
             return Some((pa, slept, reach));
         }
-        slept -= state.lifespan;
+        slept -= state.life();
         let (next, go) = species.successor(pa)?;
         (pa, reach) = (next, reach * go);
     }
@@ -190,13 +182,13 @@ impl First {
                 gone: x,
                 relay: false,
             };
-            let unit = woken.unit(state.lifespan, 1);
+            let unit = woken.unit(state.life(), 1);
             let survive = share(state.viability, unit.share);
             if unit.ends {
                 return (survive, survive);
             }
             let grown = woken.aged + unit.share;
-            let exposure = woken.exposure(state.lifespan, 1);
+            let exposure = woken.exposure(state.life(), 1);
             let abortion = 1.0 - share(1.0 - state.abortion_at(grown), exposure);
             (survive, survive * (1.0 - abortion))
         };
@@ -266,7 +258,7 @@ pub(crate) fn stages(species: &Species, zone: &Zone, pa: usize, s: u32) -> Vec<P
     // The time the stage `at` began.
     let mut began = 0.0;
     loop {
-        let ends = began + species.states[at].lifespan;
+        let ends = began + species.states[at].life();
         let (lo, hi) = (start.max(began), (start + 1.0).min(ends));
         if hi > lo {
             let wakes = asleep(zone, lo) - asleep(zone, hi);

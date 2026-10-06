@@ -189,3 +189,36 @@ What the table says. These are the worker's readings, not decisions.
 4. **The executor** stays in `telperion-space` until F4 moves it under `pipeline::executor`; integration is not brought forward.
 
 **Overflow (task 2):** an item that grows past its bound is split along its chains, each from its own bud's record, preserving the result.
+
+## Host decision 1 built (task 2, worker, 2026-10-06)
+
+`crates/telperion-space/src/fixed.rs` is the contract's arithmetic and `fixed/decide.rs` its per-bud thresholds. The GPU executor mirrors these two files in 32-bit words; nothing else on the decision chain computes a threshold.
+
+**The procedure.**
+- **Time** is whole ticks of 2^-20 cycle. A lifespan is read on the grid (`PaState::life`, round to nearest), a waking time is floored to it (D11), and every other time is a sum or difference of those. The CPU holds ticks in an f64, where they and their sums are exact, so its comparisons are the integer ones. A positive lifespan under half a tick is refused by name.
+- **A probability** is Q62 (`q62`, floored from the species' f64). Its threshold against the 53-bit draw is `ceil(n / 2^9)`, which is the real comparison on Q62.
+- **A log** is Q32 in an i64, saturated at ±2^62. `log2` of an integer takes its mantissa (Q62) through 32 truncating squarings. `exp2_neg` multiplies the 32 constants `2^-(2^-i)` (Q62, floored) its fraction's bits select, then shifts by the integer part. Every product is 64 × 64 bits, its high part kept by a truncating shift; `ln` multiplies a log2 by `ln 2` in Q62. Accuracy against the reals (`fixed/tests.rs`): `log2` within 4 units of Q32's last place; `2^-x` within 1e-15 relative.
+- A setting that decides alone keeps D1's exact threshold: a whole unit's survival, and an abortion hazard that neither rises nor runs over part of a cycle. So a tree of whole lifespans and no sleeping buds moves only by D10 and D18's presences.
+
+| # | Built as |
+|---|---|
+| D5 | `survival`: `p^share` as `exp2_neg(-log2 p · share_ticks / 2^20)`. |
+| D6 | `abortion`: `1 - (1 - a)^(t^rise · exposure)`; `t^rise` as `exp2(rise · log2 t)`, Q32. |
+| D7, D12 | ticks (above); `WHOLE` stays and is now exact, since two grid times differ by at least 2^-20. |
+| D9 inside D10 | the relay of an apex that all but stopped is grown on D9's integer test, never on a presence above 0. |
+| D10 | `moved`: the move's presence `(logit go - logit u) / window`, Q32, its window from the log wood interpolated by the used ticks. The continuation's and relay's presences are that Q32 value, so the decision and the geometry agree. |
+| D11 | `wake`: `delay` on the grid plus `-ln(1 - u) / rate`, floored to a tick. |
+| D15 | `kept`: each borne bud's `dead_by` as `-log2`, Q32, summed (exact, order-free), the conditioning on the bearer's context in Q62. The record's `context` is now that Q32 sum. |
+| D18 | `relay_node`: a phytomer's scale within one growth unit is its node presence times factors the unit shares, so the relay's node is decided on the unit's node presences alone, Q32 integers (`lineage::nodes` now gives Q32 leads, `decide::node` the presence). The node is set in `presence::assign` (and by the rough layout when it frames a relay); `geometry::relay_point` reads it and keeps only the continuous point within the span. |
+
+**What it moves** (`contract dump` on the four species, ages 40 and 80, seeds 1 and 7, whole and P2, against task 1's head `f3633bd7`; `raw/fixed/fixed-vs-task1.md`):
+- **Topology:** identical in all 28 trees (no axis and no phytomer only on either side).
+- **Tips:** at most 24.5 µm (spruce 80, seed 7, whole), RMS at most 0.25 µm. The beech moves at most 1.5 µm, the oak 11 µm, the palm not at all.
+- **Radii:** at most 1.56 % relative (spruce 80, seed 7), on woken buds' first units, as the tick probe measured; the beech at most 1.1e-5, the oak 0.93 %.
+- These are task 1's candidate B figures (2.5e-5 m, 1.6e-2), now with the fixed-point thresholds built: the thresholds add no topology change and no visible movement.
+
+**Stills** (age 80, seed 1, bare and in leaf, before and after; `raw/fixed/stills/`, side by side in `pair-<species>.png`): indistinguishable. Pixels that differ out of 691,200: beech 7 bare and 26 in leaf, spruce 1 and 3, oak 15 and 23, palm none. Viewed by the worker; the host's and owner's judgment stands.
+
+**Tests:** `fixed/tests.rs` (7: accuracy, monotonicity, the threshold's semantics, presences, the grid) and `fine/tests/ticks.rs` (3: a lifespan read on the grid, waking on it, a lifespan under half a tick refused). Every existing `telperion-space` test passes unchanged, the cut, order, chunking and adversarial tests included.
+
+**Not covered:** the lit oak's shade-scaled viability (`viability^(light^-φ)`) is computed in f64 before the fixed-point share, since light is F2b's and refused on the fine path.

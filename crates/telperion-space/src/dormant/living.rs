@@ -109,7 +109,7 @@ impl<'a> Living<'a> {
         let left = if self.windows.is_some() { m } else { 0 };
         let key = (
             k,
-            carried.key(state.lifespan),
+            carried.key(state.life()),
             left,
             i,
             y,
@@ -118,7 +118,7 @@ impl<'a> Living<'a> {
         if let Some(&p) = self.memo.get(&key) {
             return p;
         }
-        let unit = carried.unit(state.lifespan, i);
+        let unit = carried.unit(state.life(), i);
         let spent = unit.before + unit.share;
         let (relay, ended) = (state.relay, state.relay_ended);
         let p = if !unit.ends {
@@ -187,7 +187,7 @@ impl<'a> Living<'a> {
         if u > 1 {
             // From its unit u on, an axis is the same PA's bud u − 1
             // cycles younger, carrying the time spent (fn-209, P1).
-            let before = carried.unit(state.lifespan, u).before;
+            let before = carried.unit(state.life(), u).before;
             let rest = Carried {
                 spent: before,
                 aged: carried.aged + before - carried.spent,
@@ -196,13 +196,13 @@ impl<'a> Living<'a> {
             };
             return self.from((k, rest, m.saturating_sub(u - 1)), 1, y - (u - 1));
         }
-        let carried = carried.canonical(state.lifespan, state.rises(), y);
+        let carried = carried.canonical(state.life(), state.rises(), y);
         let left = if self.windows.is_some() { m } else { 0 };
-        let key = (k, carried.key(state.lifespan), left, u, y, None);
+        let key = (k, carried.key(state.life()), left, u, y, None);
         if let Some(&p) = self.memo.get(&key) {
             return p;
         }
-        let unit = carried.unit(state.lifespan, u);
+        let unit = carried.unit(state.life(), u);
         let spent = unit.before + unit.share;
         let viability = share(state.viability, unit.share);
         let relay = state.relay_failed;
@@ -210,7 +210,7 @@ impl<'a> Living<'a> {
             0.0
         } else {
             let grown = carried.aged + spent - carried.spent;
-            let exposure = carried.exposure(state.lifespan, u);
+            let exposure = carried.exposure(state.life(), u);
             1.0 - share(1.0 - state.abortion_at(grown), exposure)
         };
         let mut p = viability * self.after((k, carried, m), u, y, abortion);

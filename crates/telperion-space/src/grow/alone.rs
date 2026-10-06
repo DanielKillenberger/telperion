@@ -196,7 +196,7 @@ pub(crate) fn grow(rules: &Rules, seed: u64, bud: Option<&Bud>) -> Result<Chain>
             w.kept(&g.axes, &g.draws, &g.successor, age)
         })
         .collect();
-    assign(&mut g.axes, &g.draws);
+    assign(&mut g.axes, &g.draws, g.species);
     let mut buds = Vec::new();
     for (i, axis) in g.axes.iter().enumerate() {
         if i > root && matches!(axis.origin, Origin::Lateral { .. }) {

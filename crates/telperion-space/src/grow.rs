@@ -264,7 +264,7 @@ pub(crate) fn run(
         let kept = woken.kept(&grower.axes, &grower.draws, &grower.successor, request.age);
         grower.draws[woken.axis].birth[1] *= kept;
     }
-    assign(&mut grower.axes, &grower.draws);
+    assign(&mut grower.axes, &grower.draws, species);
     let made: Vec<Record> = if options.settle {
         grower
             .axes
@@ -447,7 +447,7 @@ impl Grower<'_> {
     fn living(&self, apex: Apex) -> f64 {
         let pa = self.axes[apex.axis].pa;
         let state = &self.species.states[pa];
-        let left = (state.lifespan - apex.spent).clamp(0.0, 1.0);
+        let left = (state.life() - apex.spent).clamp(0.0, 1.0);
         let go = self.species.successor(pa).map_or(0.0, |(_, go)| go);
         left + (1.0 - left) * (go + (1.0 - go) * state.relay_ended)
     }

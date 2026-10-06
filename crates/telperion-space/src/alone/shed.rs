@@ -1,6 +1,7 @@
 //! A chain's shedding from its own axes and its borne buds' committed
 //! extinction curves alone (fn-209 probe P2, `alone.rs`).
 use crate::closed_form::boundary::Rows;
+use crate::fixed::decide;
 use crate::grow::alone::Chain;
 use crate::grow::Rules;
 use crate::lineage::{Key, SHED};
@@ -31,12 +32,14 @@ pub(super) fn set_parent(origin: &mut Origin, at: &[usize]) {
 /// by the bearer, and the chain's own chance π becomes π / (1 - (1 - π)
 /// context), the chance it lived given that its bearer was kept. The
 /// second value is each borne bud's context, by its place in `chain.buds`.
+/// Chances of death are summed as `-log2`, Q32, and the decision taken
+/// on the contract's fixed point (FINE-CONTRACT.md D15).
 pub(super) fn shed(
     chain: &Chain,
     rows: &Rows,
     rules: &Rules,
-    context: Option<f64>,
-) -> (Vec<bool>, Vec<Option<f64>>) {
+    context: Option<i64>,
+) -> (Vec<bool>, Vec<Option<i64>>) {
     let (species, age) = (rules.species, i64::from(rules.age));
     let n = chain.axes.len();
     let parent = |i: usize| {
@@ -68,12 +71,13 @@ pub(super) fn shed(
     }
     // The chance every bud borne in each own axis's subtree had died by
     // that axis's threshold.
-    let mut dead = vec![1.0f64; n];
+    let mut dead = vec![0i64; n];
     for b in &chain.buds {
         let mut j = Some(b.bearer()).filter(|&j| j >= chain.root);
         while let Some(at) = j {
             if let Some(t) = threshold[at] {
-                dead[at] *= rows.dead_by(b.axis.pa, b.axis.birth, t);
+                let p = rows.dead_by(b.axis.pa, b.axis.birth, t);
+                dead[at] = decide::and(dead[at], decide::neg_log(p));
             }
             j = parent(at);
         }
@@ -89,12 +93,7 @@ pub(super) fn shed(
                     .child(SHED)
                     .child(u64::MAX)
                     .draw();
-                let lives = 1.0 - dead[i];
-                let lives = match context.filter(|_| i == chain.root) {
-                    Some(r) => (lives / (1.0 - (1.0 - lives) * r)).min(1.0),
-                    None => lives,
-                };
-                !d.under(1.0 - lives)
+                decide::kept(dead[i], context.filter(|_| i == chain.root), d)
             }
         };
         kept[i] = above && pass;
@@ -110,13 +109,13 @@ pub(super) fn shed(
                     if until[at] > t {
                         return None;
                     }
-                    let others: f64 = chain
+                    let others = chain
                         .buds
                         .iter()
                         .enumerate()
                         .filter(|&(o, c)| o != k && bears(chain, c.bearer(), at))
-                        .map(|(_, c)| rows.dead_by(c.axis.pa, c.axis.birth, t))
-                        .product();
+                        .map(|(_, c)| decide::neg_log(rows.dead_by(c.axis.pa, c.axis.birth, t)))
+                        .fold(0, decide::and);
                     return Some(others);
                 }
                 j = parent(at);

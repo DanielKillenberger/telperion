@@ -3,6 +3,7 @@
 //! stream, so adding a branch anywhere moves no other draw. Each draw's lead
 //! past the bound it was tested against, in log-odds, is what `presence.rs`
 //! grows its element in by.
+use crate::fixed::decide;
 use crate::species::NodeLaw;
 
 /// The draws of one growth unit, under its unit key.
@@ -131,16 +132,6 @@ pub(crate) fn above(u: f64, bound: f64) -> f64 {
     logit(u) - logit(bound)
 }
 
-/// How far a count's draw `u` lies above the `bound` it must reach: the
-/// log of their ratio, unbounded as the bound nears 0, where the node
-/// becomes a sure one, and gentle as it nears 1.
-fn past(u: f64, bound: f64) -> f64 {
-    if bound <= 0.0 {
-        return f64::INFINITY;
-    }
-    u.ln() - bound.ln()
-}
-
 /// A bud's PA under `lateral` for the draw `d`, with its lead past the
 /// nearer bound of the PA's run of draws; none for a bare bud. The bounds
 /// are the running sums of `lateral` in its order (FINE-CONTRACT.md D3).
@@ -158,10 +149,13 @@ pub(crate) fn bud(lateral: &[f64], d: Draw) -> Option<(usize, f64)> {
 }
 
 /// A zone's node count under `law` for the draw `d`, by the inverse of the
-/// law's distribution, and each node's lead into `leads`: a node of the
+/// law's distribution, and each node's lead into `leads`, in Q32 log-odds
+/// (`fixed.rs`; D18 reads the presences they give): a node of the
 /// Poisson law is made as the mean passes its draw (FINE-CONTRACT.md D2).
-pub(crate) fn nodes(law: NodeLaw, d: Draw, cap: u32, leads: &mut Vec<f64>) {
-    let u = d.unit();
+/// A uniform node's lead is the log of the draw's ratio to its bound,
+/// unbounded as the bound nears 0, where the node becomes a sure one, and
+/// gentle as it nears 1.
+pub(crate) fn nodes(law: NodeLaw, d: Draw, cap: u32, leads: &mut Vec<i64>) {
     leads.clear();
     match law {
         NodeLaw::Uniform { min, max } => {
@@ -172,7 +166,7 @@ pub(crate) fn nodes(law: NodeLaw, d: Draw, cap: u32, leads: &mut Vec<f64>) {
                 if d.under(bound) {
                     break;
                 }
-                leads.push(past(u, bound));
+                leads.push(decide::past(d, bound));
             }
         }
         NodeLaw::Poisson { mean } => {
@@ -181,7 +175,7 @@ pub(crate) fn nodes(law: NodeLaw, d: Draw, cap: u32, leads: &mut Vec<f64>) {
             let mut cumulative = mass;
             let mut k = 0u32;
             while !d.under(cumulative) && k < cap {
-                leads.push(above(u, cumulative));
+                leads.push(decide::above(d, cumulative));
                 k += 1;
                 mass *= mean / f64::from(k);
                 cumulative += mass;

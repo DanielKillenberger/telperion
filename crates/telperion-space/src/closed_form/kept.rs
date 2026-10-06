@@ -324,7 +324,7 @@ impl<'a> Kept<'a> {
 
     fn lived(&mut self, k: usize, m: usize, carried: Carried, first: Option<First>) -> Rc<Table> {
         let state = &self.species.states[k];
-        let carried = carried.canonical(state.lifespan, state.rises(), m);
+        let carried = carried.canonical(state.life(), state.rises(), m);
         let key = sub(self.species, k, m, carried, first);
         if let Some(t) = self.memo.get(&key) {
             return t.clone();
@@ -333,7 +333,7 @@ impl<'a> Kept<'a> {
         // The rest of its axis: the bud one cycle younger (fn-209, P1).
         let rest = match &step {
             Some(s) if s.end.is_none() && s.after > 0.0 && m > 1 => {
-                let lifespan = self.species.states[k].lifespan;
+                let lifespan = self.species.states[k].life();
                 Some(self.lived(k, m - 1, rest(carried, lifespan), None))
             }
             _ => None,

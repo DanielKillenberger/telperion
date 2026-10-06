@@ -55,13 +55,14 @@ pub struct Alone<'s> {
 
 /// A chain to grow: the bud it grows from (none: the seed's), its
 /// bearer's index among the axes kept, its bud's record, its order, and
-/// its bearer's shedding context (`shed.rs`).
+/// its bearer's shedding context (`shed.rs`): the chance its bearer's other
+/// buds all died, as `-log2` in Q32 (`fixed.rs`).
 pub(crate) struct Item {
     pub bud: Option<Bud>,
     pub bearer: usize,
     pub record: Option<usize>,
     pub order: usize,
-    pub context: Option<f64>,
+    pub context: Option<i64>,
 }
 
 /// What growing chains alone leaves: the axes kept, every bud made on a

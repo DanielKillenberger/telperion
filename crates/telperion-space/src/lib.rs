@@ -23,6 +23,7 @@ mod cores;
 mod dormant;
 mod error;
 mod fine;
+mod fixed;
 mod geometry;
 mod girth;
 mod grow;
