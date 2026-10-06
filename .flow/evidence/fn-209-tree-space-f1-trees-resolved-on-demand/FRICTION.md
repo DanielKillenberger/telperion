@@ -48,3 +48,17 @@
 - **Slowed:** the example is new, so it does not exist on the base; the shell guard refuses `git checkout <ref> -- <path>` and redirects to a computed path, so the base ran from a `git archive` copy of the crate in the scratchpad with its own target directory and a hand-written `[workspace]` and `ci` profile. The base read itself took 4 minutes (oak 140 s at 80).
 - **Cost:** about 10 minutes.
 - **Would remove it:** a timing example that lands with the code it times, so a later change has a base to run it on.
+
+## 2026-10-06, `cargo fmt` reformats files nobody touched (task 1, fine roots)
+
+- **Doing:** formatting the fine-root executor before committing (`cargo fmt -p telperion-space`).
+- **Slowed:** the crate holds files rustfmt disagrees with on the base (`examples/alone.rs`, `examples/field.rs`, `examples/junctions.rs`, `src/light.rs`, `src/light/tests.rs`), so every package-wide format rewrites them, and the unrelated hunks had to be reversed by hand (`git diff | git apply -R`, since the shell guard refuses `git checkout --`) twice before each commit.
+- **Cost:** about 5 minutes and two near-misses of committing unrelated formatting.
+- **Would remove it:** one formatting commit of those five files on master, and a `cargo fmt --check` step in CI so the crate stays formatted.
+
+## 2026-10-06, measuring a contract candidate on the base needs a throwaway worktree (task 1, fine roots)
+
+- **Doing:** dumping the four species' trees on the base and on two candidate patches (pinned `libm`; waking times in ticks) to measure how far each moves the trees.
+- **Slowed:** the dump example is new, so the base needed a temporary `git worktree` with its own `target/` (the scratchpad's stale `base` worktree entry from another session blocked the obvious name); reverting the first patch there to apply the second needed `git apply -R` because the guard refuses `git checkout --`.
+- **Cost:** about 6 minutes, three builds of the crate (1 minute each with the dumps).
+- **Would remove it:** the dump example (`examples/contract.rs`) now lands with this task, so the next candidate is a patch and one run on this branch.
