@@ -15,6 +15,7 @@ use super::{Apex, Grower};
 use crate::closed_form::boundary::Rows;
 use crate::couple::{Aggregate, Inputs, Records};
 use crate::dormant::Sleeper;
+use crate::fixed::sum::Sum;
 use crate::presence::Draws;
 use crate::structure::{Axis, Origin, Vec3};
 pub(crate) use stand::Probe;
@@ -245,13 +246,16 @@ impl Grower<'_> {
     ) -> Vec<[f64; 2]> {
         let species = self.species;
         let pas = species.states.len();
-        let mut sums = vec![[0.0; 2]; pas];
+        let mut acc = vec![[Sum::default(); 2]; pas];
         for i in (0..got.len()).filter(|&i| presence[i] > 0.0) {
-            sums[pa[i]][0] += presence[i];
-            sums[pa[i]][1] += (got[i] / presence[i]).powf(psi[i]) * presence[i];
+            acc[pa[i]][0].add(presence[i]);
+            acc[pa[i]][1].add((got[i] / presence[i]).powf(psi[i]) * presence[i]);
         }
+        let value = |acc: &[[Sum; 2]]| -> Vec<[f64; 2]> {
+            acc.iter().map(|[t, w]| [t.value(), w.value()]).collect()
+        };
         let (Some(pass), Some(sketch)) = (self.couple.as_mut(), self.sketch.as_ref()) else {
-            return sums;
+            return value(&acc);
         };
         let mut by_pa = vec![0.0; pas];
         for f in pass.fine.iter_mut().filter(|f| !f.dead) {
@@ -270,10 +274,11 @@ impl Grower<'_> {
             by_pa.iter_mut().for_each(|x| *x = 0.0);
             f.agg.living_by_pa(f.scale * p.kept, &mut by_pa);
             for (g, &pg) in by_pa.iter().enumerate().filter(|(_, &pg)| pg > 0.0) {
-                sums[g][0] += pg;
-                sums[g][1] += f.ratio.powf(species.states[g].shade_size) * pg;
+                acc[g][0].add(pg);
+                acc[g][1].add(f.ratio.powf(species.states[g].shade_size) * pg);
             }
         }
+        let sums = value(&acc);
         let means = sums
             .iter()
             .map(|&[t, w]| if t > 0.0 && w > 0.0 { w / t } else { 1.0 });

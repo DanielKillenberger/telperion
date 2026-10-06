@@ -67,3 +67,15 @@ Bit identity across a cut is what probe (a) expects. With today's floating-point
 - **C. Exchange per-bud data for the normalisers** (per-leaf data already crosses for the lattice) so that the sums keep the tree's order. This is against Astra's change 3 and the design's "no per-node data".
 
 The stepped executor itself (fn-209's CPU executor resumable cycle by cycle) is not built. The interface above is what it would implement. Whether it is fn-209's chain grower (committed mechanics, chains grown alone) made resumable, or the engine's own grower scoped to a root, is the host's call. Host decision 3 (realized mechanics) points to the second: under that decision a root grows and reports, and the CPU settles as today's engine does.
+
+## After host decision A (2026-10-06): the three sums made order-free
+
+`fixed/sum.rs` now accumulates all three sums. `allocation::sizes`, the lattice's deposits (`Field::deposit_all`) and the leaf-light mean (`girth::leaf_terms`, `girth/disused.rs`) take every term through it, and the partition's partials merge as integers.
+
+- **What it moves** (`contract dump` of 28 trees against `38ced830`; `raw/task4/sums-vs-base.md`):
+  - The beech, spruce and palm do not move at all.
+  - The oak keeps its topology in all four trees. Its tips move at most 1.85e-11 m (RMS at most 5.9e-13 m) and its radii at most 1.0e-8 relative.
+- **Probe (a) re-run** (`raw/task4/partition-sums.txt`): every phase of every cycle is identical, and so is the tree, in every run finished when this was committed.
+  - Finished: the oak at 40, seeds 1 and 7, and at 80 seed 1 up to cut 1,024, each at cuts 256, 1,024 and 4,096, in forward, reverse and shuffled order, in chunks of 1, 7 and 64.
+  - Still running (the desk at load 14 to 33): the oak at 80 seed 7, the beech and the spruce. The beech and spruce were identical before the change and have none of the three sums.
+- **The oak's stills** at 80, seeds 1 and 7, bare and in leaf, against today's: 0 pixels differ out of 691,200 (`raw/task4/stills/sums-oak-80-{1,7}.png`, viewed).

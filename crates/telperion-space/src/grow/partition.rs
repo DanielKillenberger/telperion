@@ -18,6 +18,7 @@
 //! above the cut in index order, then each fine root's own partial in its
 //! index order, the roots taken in the plan's order, `chunk` partials
 //! summed before they join the total.
+use crate::fixed::sum::Sum;
 use crate::structure::Vec3;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
@@ -60,32 +61,33 @@ pub(crate) fn ordered(mut roots: Vec<usize>, order: Order) -> Vec<usize> {
 
 /// Sums `n`-wide values, each owned by the structure above the cut (none)
 /// or a fine root, as the grouping takes them: the structure's in order,
-/// then each root's partial, `chunk` partials at a time.
+/// then each root's partial, `chunk` partials at a time; every sum
+/// order-free (`fixed::sum`), as the tree's own are.
 pub(crate) fn grouped(items: &[(Option<usize>, Vec<f64>)], n: usize, g: &Grouping) -> Vec<f64> {
-    let mut total = vec![0.0; n];
-    let mut partial: std::collections::HashMap<usize, Vec<f64>> = Default::default();
+    let mut total = vec![Sum::default(); n];
+    let mut partial: std::collections::HashMap<usize, Vec<Sum>> = Default::default();
     for (root, v) in items {
         let into = match root {
             None => &mut total,
-            Some(r) => partial.entry(*r).or_insert_with(|| vec![0.0; n]),
+            Some(r) => partial.entry(*r).or_insert_with(|| vec![Sum::default(); n]),
         };
-        for (t, x) in into.iter_mut().zip(v) {
-            *t += x;
+        for (t, &x) in into.iter_mut().zip(v) {
+            t.add(x);
         }
     }
     let roots = ordered(partial.keys().copied().collect(), g.order);
     for chunk in roots.chunks(g.chunk.max(1)) {
-        let mut sum = vec![0.0; n];
+        let mut sum = vec![Sum::default(); n];
         for r in chunk {
-            for (s, x) in sum.iter_mut().zip(&partial[r]) {
-                *s += x;
+            for (s, &x) in sum.iter_mut().zip(&partial[r]) {
+                s.merge(x);
             }
         }
         for (t, s) in total.iter_mut().zip(sum) {
-            *t += s;
+            t.merge(s);
         }
     }
-    total
+    total.into_iter().map(Sum::value).collect()
 }
 
 /// Leaves regrouped: the structure's in their order, then each root's.

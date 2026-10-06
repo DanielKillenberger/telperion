@@ -295,24 +295,37 @@ impl Grower<'_> {
         let (Some(oracle), Some(sketch)) = (self.oracle.as_mut(), self.sketch.as_ref()) else {
             return;
         };
+        // Order-free: each living apex hashed with its lineage and summed,
+        // so a run that numbers its axes otherwise (a stepped executor)
+        // compares by the same digest.
         let live = self.live.iter().filter(|a| a.axis < sketch.pencils.len());
         let p = |a: &Apex| &sketch.pencils[a.axis];
+        let keyed = |a: &Apex, v: &[f64]| {
+            let lineage = f64::from_bits(self.axes[a.axis].lineage);
+            super::partition::hash(std::iter::once(lineage).chain(v.iter().copied()))
+        };
+        let tip = |a: &Apex| {
+            let axis = &self.axes[a.axis];
+            axis.phytomers.last().map_or(axis.base, |q| q.tip)
+        };
         let h = match k {
-            0 => super::partition::hash(live.flat_map(|a| [p(a).kept, p(a).memory])),
-            1 => super::partition::hash(live.map(|a| p(a).size)),
+            0 => live
+                .map(|a| keyed(a, &[p(a).kept, p(a).memory]))
+                .fold(0, u64::wrapping_add),
+            1 => live
+                .map(|a| keyed(a, &[p(a).size]))
+                .fold(0, u64::wrapping_add),
             2 => {
                 let phytomers: usize = self.axes.iter().map(|a| a.phytomers.len()).sum();
                 let n = [self.axes.len(), phytomers, self.live.len()];
                 super::partition::hash(n.into_iter().map(|x| x as f64))
             }
-            _ => {
-                let tip = |a: &Apex| {
-                    let axis = &self.axes[a.axis];
-                    axis.phytomers.last().map_or(axis.base, |q| q.tip)
-                };
-                let v = live.flat_map(|a| [p(a).light, tip(a).x, tip(a).y, tip(a).z]);
-                super::partition::hash(v)
-            }
+            _ => live
+                .map(|a| {
+                    let t = tip(a);
+                    keyed(a, &[p(a).light, t.x, t.y, t.z])
+                })
+                .fold(0, u64::wrapping_add),
         };
         oracle.mark(cycle, k, h);
     }
@@ -353,7 +366,10 @@ mod tests {
         let expected = Expected::new(&species, request.age, 0);
         let today = crate::grow::grow(&species, request).unwrap();
         let whole = grow_partitioned(&species, request, &expected, 1024.0, None).unwrap();
-        assert_eq!(crate::fine::digest(&whole.structure), crate::fine::digest(&today));
+        assert_eq!(
+            crate::fine::digest(&whole.structure),
+            crate::fine::digest(&today)
+        );
         let g = Grouping {
             order: Order::Reverse,
             chunk: 7,
@@ -365,7 +381,10 @@ mod tests {
         let (a, b) = (&whole.structure, &part.structure);
         assert_eq!(a.axes.len(), b.axes.len());
         for (x, y) in a.axes.iter().zip(&b.axes) {
-            assert_eq!((x.lineage, x.phytomers.len()), (y.lineage, y.phytomers.len()));
+            assert_eq!(
+                (x.lineage, x.phytomers.len()),
+                (y.lineage, y.phytomers.len())
+            );
             for (p, q) in x.phytomers.iter().zip(&y.phytomers) {
                 assert!((p.tip - q.tip).length() < 1e-9);
             }

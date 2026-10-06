@@ -5,6 +5,7 @@
 //! both sides of the branch's removal.
 use super::{own, Disused, Girth};
 use crate::cores::{map, PIECE};
+use crate::fixed::sum::Sum;
 use crate::geometry::dominance;
 use crate::shed::Shed;
 use crate::species::Species;
@@ -71,11 +72,13 @@ pub(crate) fn attachments(axes: &[Axis], species: &Species, age: u32, threads: u
             }
             out
         });
-        let (mut total, mut weighted) = (0.0, 0.0);
+        // Order-free (`fixed::sum`).
+        let (mut total, mut weighted) = (Sum::default(), Sum::default());
         for (pipe, term) in terms.into_iter().flatten() {
-            total += pipe;
-            weighted += term;
+            total.add(pipe);
+            weighted.add(term);
         }
+        let (total, weighted) = (total.value(), weighted.value());
         if weighted > 0.0 {
             total / weighted
         } else {

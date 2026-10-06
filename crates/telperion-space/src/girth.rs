@@ -13,6 +13,7 @@
 //! bearer (`retained`; Shinozaki's disused pipes; `girth/disused.rs`).
 mod disused;
 
+use crate::fixed::sum::Sum;
 use crate::species::{Form, Species};
 use crate::structure::{Origin, Phytomer, Structure};
 use crate::upward::Tree;
@@ -42,15 +43,17 @@ pub(super) fn leaf_terms(structure: &Structure, species: &Species) -> Option<f64
     if species.states.iter().all(|s| s.leaf_girth == 0.0) {
         return None;
     }
-    let (mut total, mut weighted) = (0.0, 0.0);
+    // Order-free (`fixed::sum`).
+    let (mut total, mut weighted) = (Sum::default(), Sum::default());
     for axis in &structure.axes {
         let state = &species.states[axis.pa];
         for p in &axis.phytomers {
             let pipe = own(&state.form, p, structure.age, p.scale, 1.0);
-            total += pipe;
-            weighted += pipe * p.light.powf(state.leaf_girth);
+            total.add(pipe);
+            weighted.add(pipe * p.light.powf(state.leaf_girth));
         }
     }
+    let (total, weighted) = (total.value(), weighted.value());
     (weighted > 0.0).then(|| total / weighted)
 }
 

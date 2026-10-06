@@ -20,6 +20,8 @@ pub(crate) struct Link {
 /// A link's node where it carries its parent on: after every node.
 pub(crate) const TIP: usize = usize::MAX;
 
+use crate::fixed::sum::Sum;
+
 /// Each axis's bud's vigour, from the base's vigour, the light its own bud
 /// collects (`own`, 0 where it has none) and its apical control λ at its
 /// branching points. Parents precede children. The base's vigour is the
@@ -119,11 +121,14 @@ pub(crate) fn sizes(vigour: &[f64], presence: &[f64], psi: &[f64], group: &[usiz
             }
         })
         .collect();
-    let (mut total, mut weighted) = (vec![0.0; groups], vec![0.0; groups]);
+    // Order-free (`fixed::sum`), so a partition sums them as the tree does.
+    let (mut total, mut weighted) = (vec![Sum::default(); groups], vec![Sum::default(); groups]);
     for i in 0..vigour.len() {
-        total[group[i]] += presence[i];
-        weighted[group[i]] += drawn[i] * presence[i];
+        total[group[i]].add(presence[i]);
+        weighted[group[i]].add(drawn[i] * presence[i]);
     }
+    let total: Vec<f64> = total.into_iter().map(Sum::value).collect();
+    let weighted: Vec<f64> = weighted.into_iter().map(Sum::value).collect();
     (0..vigour.len())
         .map(|i| {
             let (w, d, g) = (presence[i], drawn[i], group[i]);
