@@ -179,8 +179,9 @@ fn a_deterministic_tree_keeps_what_the_formula_keeps() {
             let windows = Windows::new(&species, age);
             let mut kept = Kept::new(&species, &windows);
             let table = kept.of(0, age as usize, Carried::default(), None);
-            let theirs = formula(&table.b[age as usize]);
-            assert!((table.a[age as usize] - 1.0).abs() < 1e-12);
+            let (a, _, b) = table.at(age as i64);
+            let theirs = formula(b.expect("born"));
+            assert!((a - 1.0).abs() < 1e-12);
             for q in 0..6 {
                 let (a, b) = (ours[q], theirs[q]);
                 assert!(
@@ -256,7 +257,7 @@ fn branches_agree(species: &Species) {
         .for_each(|s| s.shedding = f64::INFINITY);
     let age = 12u32;
     let windows = Windows::new(&species, age);
-    let mut kept = Kept::new(&species, &windows);
+    let mut kept = Kept::every_cycle(&species, &windows);
     // By birth: each branch's kept quantities per unit base scale, and its
     // subtree's last living cycle, from its birth.
     let mut groups: HashMap<u32, Vec<([f64; 6], u32)>> = HashMap::new();
@@ -307,7 +308,7 @@ fn branches_agree(species: &Species) {
         }
         let m = (age - birth) as usize;
         let table = kept.of(1, m, Carried::default(), None);
-        let theirs = formula(&table.b[m]);
+        let theirs = formula(table.at(m as i64).2.expect("born"));
         let n = subjects.len() as f64;
         for q in 0..6 {
             let values: Vec<f64> = subjects.iter().map(|s| s.0[q]).collect();

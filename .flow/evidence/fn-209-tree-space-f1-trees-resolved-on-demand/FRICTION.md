@@ -34,3 +34,17 @@
 - **Slowed:** the stills runner reads the closed form's rows inside the locked command, and the rows take 87 to 103 s at age 80 on this branch (P1's subject), so the GPU lock is held through a minute and a half of CPU work per alone still, and the other probes wait on it.
 - **Cost:** about 3 minutes of lock time held without the GPU, once.
 - **Would remove it:** rows read outside the lock (a `--rows` file the runner loads, or the stills runner taking the lock only around `render`), or P1's faster tables.
+
+## 2026-10-06, no sampling profiler on the desk (probe P1, tables)
+
+- **Doing:** profiling where the closed form's table reads spend their time, as the probe brief asks first.
+- **Slowed:** `perf` is not installed and `samply` refuses to record because `kernel.perf_event_paranoid` is above 1; the profile had to be taken by hand with timers and call counters patched into the code and taken out again.
+- **Cost:** about 10 minutes and two extra builds.
+- **Would remove it:** `perf_event_paranoid` at 1 on the desk (a local setup matter, reported not specced), so `samply record` runs without sudo.
+
+## 2026-10-06, timing the base beside a change needs a second copy (probe P1, tables)
+
+- **Doing:** timing the closed form's tables on the base commit beside the changed code, with the same timing example.
+- **Slowed:** the example is new, so it does not exist on the base; the shell guard refuses `git checkout <ref> -- <path>` and redirects to a computed path, so the base ran from a `git archive` copy of the crate in the scratchpad with its own target directory and a hand-written `[workspace]` and `ci` profile. The base read itself took 4 minutes (oak 140 s at 80).
+- **Cost:** about 10 minutes.
+- **Would remove it:** a timing example that lands with the code it times, so a later change has a base to run it on.

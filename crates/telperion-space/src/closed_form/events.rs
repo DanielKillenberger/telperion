@@ -4,7 +4,7 @@
 //! bud's axis (`along.rs`), which the envelope reads (fn-209) and the
 //! counts and lengths do not.
 use super::along::{dominance, Along, Count};
-use super::steps::{scaled, steps, zones, Relay};
+use super::steps::{first_step, scaled, steps, zones, Relay, Step};
 use crate::dormant::{First, Living, Piece};
 use crate::schedule::Carried;
 use crate::species::{Species, Zone};
@@ -106,11 +106,36 @@ pub(super) fn events(
     (k, m, carried): (usize, usize, Carried),
     first: Option<First>,
 ) -> Vec<Event> {
+    let steps = steps(species, living, (k, m, carried), first);
+    events_of(species, laterals, k, &steps)
+}
+
+/// The events of a bud's first unit, and the chance its axis carries on
+/// into the rest, the same PA's bud one cycle younger carrying
+/// `steps::rest` (fn-209, P1).
+pub(super) fn first_events(
+    species: &Species,
+    laterals: &[Vec<f64>],
+    living: &mut Living,
+    (k, m, carried): (usize, usize, Carried),
+    first: Option<First>,
+) -> (Vec<Event>, f64) {
+    let Some(step) = first_step(species, living, (k, m, carried), first) else {
+        return (Vec::new(), 0.0);
+    };
+    let on = if step.end.is_none() && m > 1 {
+        step.after
+    } else {
+        0.0
+    };
+    (events_of(species, laterals, k, &[step]), on)
+}
+
+fn events_of(species: &Species, laterals: &[Vec<f64>], k: usize, steps: &[Step]) -> Vec<Event> {
     let state = &species.states[k];
     let counts: Vec<Count> = state.zones.iter().map(|z| Count::of(z.nodes)).collect();
     let (starts, _) = zones(&counts);
     let mut out = Vec::new();
-    let steps = steps(species, living, (k, m, carried), first);
     // Where a relay stands: its PA's share of the way along the unit it
     // stands on (`geometry::relay_point`), or the axis's base.
     let on = |unit: usize| {
@@ -132,7 +157,7 @@ pub(super) fn events(
             });
         }
     };
-    for step in &steps {
+    for step in steps {
         relay(&mut out, step.failed);
         let (survival, size, i) = (step.grown, step.size, step.i);
         let internode = state.internode * size;

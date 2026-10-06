@@ -413,6 +413,11 @@ impl PaState {
     /// The probability the apex aborts after a growth unit that ends `t`
     /// cycles of its axis's growth: whole cycles for whole units, the real
     /// time where a unit is partial (host decision 7).
+    /// Whether an apex's abortion hazard changes with the time it grew.
+    pub(crate) fn rises(&self) -> bool {
+        self.abortion_rise != 0.0 && self.abortion > 0.0
+    }
+
     pub fn abortion_at(&self, t: f64) -> f64 {
         if self.abortion_rise == 0.0 || self.abortion <= 0.0 {
             return self.abortion;

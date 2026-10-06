@@ -17,19 +17,26 @@
 //! mean and mean square among the subtrees kept (`kept/section.rs`); the
 //! mass's radius likewise, at the axis's own exponent (host decision 15).
 //!
+//! A bud's table is its first unit's with the rest of its axis, the same
+//! PA's bud one cycle younger carrying the time spent, set at the unit's
+//! tip (fn-209, P1): each table one unit's work, and buds that grow alike
+//! one table (`Carried::canonical`).
+//!
 //! Approximations, each measured (`tests.rs`): presences whole, as the
 //! counts have them; times whole cycles; axes straight, azimuths even;
 //! the delta method's second order; a unit's own phytomers bearing, for
-//! sag, the section beyond its middle; a relay's section entering at its
-//! axis's tip; sleeping buds independent of the axis that bears them.
+//! sag, the section beyond its middle, and the section beyond a unit
+//! the rest of its axis's as one mixture over how it ends; a relay's
+//! section entering at its axis's tip, a failed unit's relay at the
+//! rest's base; sleeping buds independent of the axis that bears them.
 use super::along::Along;
-use super::steps::steps;
+use super::steps::{first_step, rest};
 use super::{sub, Sub};
 use crate::dormant::{First, Living};
+use crate::memo::Memo;
 use crate::presence::Windows;
 use crate::schedule::Carried;
 use crate::species::Species;
-use std::collections::HashMap;
 use std::rc::Rc;
 
 mod bound;
@@ -62,16 +69,19 @@ fn powers(e: f64) -> [f64; WIDTH] {
     [1.0, 2.0, 3.0, 3.0, 3.0, 4.0, 3.0, 4.0, e, 2.0 * e]
 }
 
-/// A bud's kept quantities by cycle: `a[t]` the chance its subtree's last
-/// living cycle is at most t, `k[t]` the chance of that and its being
-/// kept, `b[t]` each quantity's expectation on it.
+/// A bud's kept quantities by cycle t from `lo` on: `a` the chance its
+/// subtree's last living cycle is at most t, `k` the chance of that and
+/// its being kept, `b` each quantity's expectation on it.
 #[derive(Debug)]
 pub(crate) struct Table {
+    pub lo: usize,
     pub a: Vec<f64>,
     pub k: Vec<f64>,
     pub b: Vec<[f64; WIDTH]>,
     /// The exponent its section is carried in.
     pub e: f64,
+    /// How far its wood can reach (`bound.rs`).
+    pub reach: f64,
 }
 
 /// A table's row at a cycle: (a, k, b), none before its birth.
@@ -82,8 +92,9 @@ impl Table {
         if t < 0 {
             return (0.0, 0.0, None);
         }
-        let t = (t as usize).min(self.a.len() - 1);
-        (self.a[t], self.k[t], Some(&self.b[t]))
+        let t = (t as usize).min(self.lo + self.a.len() - 1);
+        let i = t.checked_sub(self.lo).expect("a cycle the window holds");
+        (self.a[i], self.k[i], Some(&self.b[i]))
     }
 }
 
@@ -152,10 +163,34 @@ impl Placing {
 pub(crate) struct Kept<'a> {
     species: &'a Species,
     living: Living<'a>,
-    laterals: Vec<Vec<Vec<f64>>>,
-    memo: HashMap<Sub, Rc<Table>>,
-    faded: HashMap<(Sub, u64), Rc<Table>>,
-    bounds: HashMap<Sub, f64>,
+    laterals: Rc<[Vec<Vec<f64>>]>,
+    axes: Rc<[path::Axis]>,
+    memo: Memo<Sub, Rc<Table>>,
+    faded: Memo<(Sub, u64), Rc<Table>>,
+    /// The cycles before a bud's last that its table holds (`window`).
+    lags: usize,
+    tape: Tape,
+}
+
+/// The tables one cycle of a bud's window reads, in order. Every cycle
+/// reads the same ones, so the first records them and the rest replay
+/// them, one lookup a table for the whole window (fn-209, P1).
+#[derive(Default)]
+enum Tape {
+    #[default]
+    Off,
+    Record(Vec<Rc<Table>>),
+    Replay(Vec<Rc<Table>>, usize),
+}
+
+/// The cycles before its last that every table needs: a row reads a bud
+/// at its last cycle, a bearer reads what it bears as many cycles before
+/// their last as it is before its own, and a fade of delay d reads the
+/// cycles while it is under way and the one before them.
+fn window(species: &Species) -> usize {
+    let delays = species.states.iter().map(|s| s.shedding);
+    let finite = delays.filter(|d| d.is_finite());
+    finite.map(|d| (d + 1.0).ceil() as usize).max().unwrap_or(0)
 }
 
 impl<'a> Kept<'a> {
@@ -164,9 +199,22 @@ impl<'a> Kept<'a> {
             species,
             living: Living::new(species, Some(windows)),
             laterals: species.states.iter().map(|s| s.laterals()).collect(),
-            memo: HashMap::new(),
-            faded: HashMap::new(),
-            bounds: HashMap::new(),
+            axes: (0..species.states.len())
+                .map(|k| path::Axis::of(species, k))
+                .collect(),
+            memo: Memo::default(),
+            faded: Memo::default(),
+            lags: window(species),
+            tape: Tape::Off,
+        }
+    }
+
+    /// Tables over every cycle, for the tests that read a whole curve.
+    #[cfg(test)]
+    pub fn every_cycle(species: &'a Species, windows: &'a Windows) -> Self {
+        Self {
+            lags: usize::MAX,
+            ..Self::new(species, windows)
         }
     }
 
@@ -177,10 +225,12 @@ impl<'a> Kept<'a> {
     pub fn of(&mut self, k: usize, m: usize, carried: Carried, first: Option<First>) -> Rc<Table> {
         let Some((k, reach)) = self.species.lived(k) else {
             return Rc::new(Table {
+                lo: 0,
                 a: vec![1.0; m + 1],
                 k: vec![1.0; m + 1],
                 b: vec![[0.0; WIDTH]; m + 1],
                 e: 2.0,
+                reach: 0.0,
             });
         };
         let table = self.lived(k, m, carried, first);
@@ -193,11 +243,30 @@ impl<'a> Kept<'a> {
             .iter()
             .map(|b| std::array::from_fn(|q| b[q] * reach.powf(p[q])));
         Rc::new(Table {
+            lo: table.lo,
             a: table.a.clone(),
             k: table.k.clone(),
             b: b.collect(),
             e: table.e,
+            reach: reach * table.reach,
         })
+    }
+
+    /// `shed`, read once for a bud's whole window (`Tape`).
+    pub(super) fn child(
+        &mut self,
+        bud: (usize, usize, Carried, Option<First>),
+        delay: f64,
+    ) -> Rc<Table> {
+        if let Tape::Replay(read, i) = &mut self.tape {
+            *i += 1;
+            return read[*i - 1].clone();
+        }
+        let table = self.shed(bud, delay);
+        if let Tape::Record(read) = &mut self.tape {
+            read.push(table.clone());
+        }
+        table
     }
 
     /// `of`, then faded as shedding fades a lateral or relay of a PA with
@@ -219,52 +288,79 @@ impl<'a> Kept<'a> {
         let p = powers(table.e);
         let (mut b, mut kept) = (Vec::with_capacity(m + 1), Vec::with_capacity(m + 1));
         let (mut sum, mut k_sum) = ([0.0; WIDTH], 0.0);
-        for s in 0..table.a.len() {
-            // Its last unit s cycles in, m - s before the tree's age.
+        for (i, s) in (table.lo..=m).enumerate() {
+            // Its last unit s cycles in, m - s before the tree's age; a
+            // cycle it has faded by adds nothing.
             let fade = (delay + 1.0 - (m - s) as f64).clamp(0.0, 1.0);
-            let (a0, b0) = if s > 0 {
-                (table.a[s - 1], table.b[s - 1])
-            } else {
-                (0.0, [0.0; WIDTH])
-            };
-            for q in 0..WIDTH {
-                sum[q] += fade.powf(p[q]) * (table.b[s][q] - b0[q]);
-            }
             if fade > 0.0 {
-                k_sum += table.a[s] - a0;
+                let (a0, b0) = match s {
+                    0 => (0.0, [0.0; WIDTH]),
+                    _ => (table.a[i - 1], table.b[i - 1]),
+                };
+                for q in 0..WIDTH {
+                    sum[q] += fade.powf(p[q]) * (table.b[i][q] - b0[q]);
+                }
+                k_sum += table.a[i] - a0;
             }
             b.push(sum);
             kept.push(k_sum);
         }
         let t = Rc::new(Table {
+            lo: table.lo,
             a: table.a.clone(),
             k: kept,
             b,
             e: table.e,
+            reach: table.reach,
         });
         self.faded.insert(key, t.clone());
         t
     }
 
     fn lived(&mut self, k: usize, m: usize, carried: Carried, first: Option<First>) -> Rc<Table> {
+        let state = &self.species.states[k];
+        let carried = carried.canonical(state.lifespan, state.rises(), m);
         let key = sub(self.species, k, m, carried, first);
         if let Some(t) = self.memo.get(&key) {
             return t.clone();
         }
-        let steps = steps(self.species, &mut self.living, (k, m, carried), first);
-        let axis = path::Axis::of(self.species, k);
-        let (mut a, mut b) = (Vec::with_capacity(m + 1), Vec::with_capacity(m + 1));
-        for t in 0..=m {
-            let (at, bt) = self.threshold((k, m), &axis, &steps, t as i64);
+        let step = first_step(self.species, &mut self.living, (k, m, carried), first);
+        // The rest of its axis: the bud one cycle younger (fn-209, P1).
+        let rest = match &step {
+            Some(s) if s.end.is_none() && s.after > 0.0 && m > 1 => {
+                let lifespan = self.species.states[k].lifespan;
+                Some(self.lived(k, m - 1, rest(carried, lifespan), None))
+            }
+            _ => None,
+        };
+        let reach = self.bound((k, m), step.as_ref(), rest.as_deref());
+        let steps: Vec<_> = step.into_iter().collect();
+        let axes = self.axes.clone();
+        let axis = &axes[k];
+        let lo = m.saturating_sub(self.lags);
+        let (mut a, mut b) = (
+            Vec::with_capacity(m + 1 - lo),
+            Vec::with_capacity(m + 1 - lo),
+        );
+        let outer = std::mem::take(&mut self.tape);
+        for t in lo..=m {
+            self.tape = match std::mem::take(&mut self.tape) {
+                Tape::Record(read) | Tape::Replay(read, _) => Tape::Replay(read, 0),
+                Tape::Off => Tape::Record(Vec::new()),
+            };
+            let (at, bt) = self.threshold((k, m), axis, (&steps, rest.as_deref()), t as i64);
             a.push(at);
             b.push(bt);
         }
+        self.tape = outer;
         let e = self.species.states[k].form.exponent;
         let table = Rc::new(Table {
+            lo,
             k: a.clone(),
             a,
             b,
             e,
+            reach,
         });
         self.memo.insert(key, table.clone());
         table

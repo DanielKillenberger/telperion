@@ -8,6 +8,9 @@ use crate::schedule::Carried;
 use crate::species::Species;
 use std::sync::Mutex;
 
+#[cfg(test)]
+mod tests;
+
 /// What a bud of one PA made `m` cycles before the tree's age keeps, per
 /// unit base scale: the chance it is kept; its base section's partial
 /// moments on that (E[S; kept], E[S²; kept]) in its own exponent `e`;
@@ -46,7 +49,8 @@ impl Rows {
     /// every age 0 to the tree's, on up to `threads` cores. Each core
     /// reads its own share of the rows, interleaved so the costly old
     /// ones are spread, with tables of its own: a row is a value of its
-    /// PA and age alone, whatever core read it.
+    /// PA and age alone, whatever core read it. The first core reads the
+    /// seed's too, from the tables its rows left.
     pub fn new(species: &Species, age: u32, threads: usize) -> Self {
         let m_max = age as usize;
         let borne = borne(species);
@@ -56,8 +60,8 @@ impl Rows {
         }
         jobs.sort_by_key(|&(_, m)| std::cmp::Reverse(m));
         let shares = threads.clamp(1, jobs.len().max(1));
-        let done: Vec<Mutex<Read>> =
-            (0..shares).map(|_| Mutex::new(Vec::new())).collect();
+        let done: Vec<Mutex<Read>> = (0..shares).map(|_| Mutex::new(Vec::new())).collect();
+        let seed = Mutex::new(Row::default());
         crate::cores::spread(shares, threads, &|k| {
             let windows = Windows::new(species, age);
             let mut kept = Kept::new(species, &windows);
@@ -65,6 +69,11 @@ impl Rows {
             *done[k].lock().unwrap() = mine
                 .map(|&(pa, m)| ((pa, m), read(&mut kept, species, pa, m)))
                 .collect();
+            if k == 0 {
+                let whole = kept.of(0, m_max, Carried::default(), None);
+                let reach = kept.reach_bound(0, m_max, Carried::default(), None);
+                *seed.lock().unwrap() = row(&whole, &whole, m_max, reach);
+            }
         });
         let mut rows = vec![Row::default(); species.states.len() * (m_max + 1)];
         let mut curves = vec![Vec::new(); rows.len()];
@@ -72,15 +81,11 @@ impl Rows {
             rows[pa * (m_max + 1) + m] = row;
             curves[pa * (m_max + 1) + m] = curve;
         }
-        let windows = Windows::new(species, age);
-        let mut kept = Kept::new(species, &windows);
-        let seed = kept.of(0, m_max, Carried::default(), None);
-        let reach = kept.reach_bound(0, m_max, Carried::default(), None);
         Self {
             age: m_max,
             rows,
             curves,
-            seed: row(&seed, &seed, m_max, reach),
+            seed: seed.into_inner().unwrap(),
         }
     }
 

@@ -61,14 +61,20 @@ impl Kept<'_> {
     ) -> Ended {
         let state = &self.species.states[k];
         let (insertion, delay, e) = (state.insertion, state.shedding, state.form.exponent);
-        let table = self.shed((k, m - born, carried, None), delay);
+        let table = self.child((k, m - born, carried, None), delay);
         let (a, b, _) = self.whole(&table, t - born as i64, (at, insertion.cos()), e);
         (a, b, [b[SECTION], b[SECTION2]])
     }
 
     /// A whole child's factor and its quantities at the axis's exponent
     /// `e`, placed at `at` turned by `turn`.
-    fn whole(&self, table: &super::Table, t: i64, (at, turn): (Along, f64), e: f64) -> Ended {
+    pub(super) fn whole(
+        &self,
+        table: &super::Table,
+        t: i64,
+        (at, turn): (Along, f64),
+        e: f64,
+    ) -> Ended {
         let row = table.at(t);
         let mut out = [0.0; WIDTH];
         if let (_, _, Some(b)) = row {
@@ -100,7 +106,7 @@ impl Kept<'_> {
         };
         let go = (weight / p).min(1.0);
         let e = self.species.states[k].form.exponent;
-        let table = self.of(pa, m - born, onward, None);
+        let table = self.child((pa, m - born, onward, None), f64::INFINITY);
         let on = self.whole(&table, t - born as i64, (tip, 1.0), e);
         // Given it moves on, its relay comes as the borderline's share;
         // given it stops, as the rest.

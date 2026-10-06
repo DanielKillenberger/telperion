@@ -12,7 +12,7 @@
 use super::ends::{Ended, NONE};
 use super::mass::Units;
 use super::section::{handed, zoned};
-use super::{Kept, Placing, LEAVES, LEAVES_ALONG, PARALLEL, SECTION, SECTION2, WIDTH, WOOD};
+use super::{Kept, Placing, Table, LEAVES, LEAVES_ALONG, PARALLEL, SECTION, SECTION2, WIDTH, WOOD};
 use crate::closed_form::along::{dominance_power, Along, Count};
 use crate::closed_form::events::Event;
 use crate::closed_form::steps::Step;
@@ -66,7 +66,7 @@ impl Kept<'_> {
         &mut self,
         (k, m): (usize, usize),
         axis: &Axis,
-        steps: &[Step],
+        (steps, rest): (&[Step], Option<&Table>),
         t: i64,
     ) -> (f64, [f64; WIDTH]) {
         let relay_at = self.species.states[k].relay_at;
@@ -108,6 +108,13 @@ impl Kept<'_> {
                     end(aborted, step.i, &run, &units, e);
                     if step.i == m {
                         end(step.after, m, &run, &units, NONE);
+                    } else if let Some(rest) = rest {
+                        // The rest of the axis, one cycle younger, from
+                        // the unit's tip.
+                        let e = self.species.states[k].form.exponent;
+                        let at = t - step.i as i64;
+                        let rest = self.whole(rest, at, (path, 1.0), e);
+                        end(step.after, step.i, &run, &units, rest);
                     }
                 }
                 Some(stop) => {
@@ -144,7 +151,8 @@ impl Kept<'_> {
         let mut length = Along::default();
         for &z in ALONG.iter().filter(|&&z| z < state.zones.len()) {
             let zone = &state.zones[z];
-            let lateral = self.laterals[k][z].clone();
+            let laterals = self.laterals.clone();
+            let lateral = &laterals[k][z];
             // Each place's factor: bare, or a lateral whose subtree has
             // stopped living by t; and each lateral's table.
             let mut tables = Vec::new();
@@ -152,7 +160,7 @@ impl Kept<'_> {
             for (j, &p) in lateral.iter().enumerate().filter(|(_, &p)| p > 0.0) {
                 let lived = species.lived(j).map(|(q, _)| &species.states[q]);
                 let delay = lived.map_or(f64::INFINITY, |s| s.shedding);
-                let table = self.shed((j, m - i, Carried::default(), None), delay);
+                let table = self.child((j, m - i, Carried::default(), None), delay);
                 phi += p * (table.at(t - i as i64).0 - 1.0);
                 tables.push((j, p, table));
             }
@@ -279,7 +287,7 @@ impl Kept<'_> {
         let species = self.species;
         let lived = species.lived(*pa).map(|(q, _)| &species.states[q]);
         let delay = lived.map_or(f64::INFINITY, |s| s.shedding);
-        let table = self.shed((*pa, m - at, *carried, *first), delay);
+        let table = self.child((*pa, m - at, *carried, *first), delay);
         let row = table.at(t - *at as i64);
         let lambda = weight / grown;
         let factor = (lambda * (row.0 - 1.0)).exp();

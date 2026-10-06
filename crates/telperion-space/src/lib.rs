@@ -27,6 +27,7 @@ mod girth;
 mod grow;
 mod light;
 mod lineage;
+mod memo;
 mod oak;
 mod palm;
 mod presence;
