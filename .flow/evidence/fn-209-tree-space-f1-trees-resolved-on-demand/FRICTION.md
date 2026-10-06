@@ -27,3 +27,10 @@
 - **Slowed:** each kept table of a bud m cycles old works every threshold t ≤ m, and each m is its own memo entry, so the beech's limb rows alone took 3.3 s at 40 years on one core (the seed's table 0.03 s).
 - **Cost:** the test bed's trees could not each read their own rows; they now share one read per species and age, spread over the cores.
 - **Would remove it:** a kept table that carries every m at once (one recursion yielding the row at each age), or rows kept between runs on disk.
+
+## 2026-10-06, a still at age 80 holds the GPU lock through the closed form's rows (probe P2)
+
+- **Doing:** rendering the P2 stills (beech, spruce, palm, oak at age 80, seed 1) under the shared GPU lock.
+- **Slowed:** the stills runner reads the closed form's rows inside the locked command, and the rows take 87 to 103 s at age 80 on this branch (P1's subject), so the GPU lock is held through a minute and a half of CPU work per alone still, and the other probes wait on it.
+- **Cost:** about 3 minutes of lock time held without the GPU, once.
+- **Would remove it:** rows read outside the lock (a `--rows` file the runner loads, or the stills runner taking the lock only around `render`), or P1's faster tables.
