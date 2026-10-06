@@ -16,12 +16,15 @@ use telperion_space::{
 };
 
 const AXW: usize = 32;
+/// A chain's first region: most chains are a few axes, so a small region
+/// and a large batch; one that outgrows it is grown again in a region
+/// eight times larger, in batches an eighth the size.
 const CAPS: Caps = Caps {
-    axes: 256,
-    phyts: 1024,
-    live: 32,
-    sleepers: 128,
-    woken: 64,
+    axes: 32,
+    phyts: 64,
+    live: 8,
+    sleepers: 16,
+    woken: 8,
 };
 
 /// A chain to grow: its root's index, its bud, and its bearer among the
@@ -97,7 +100,7 @@ fn grow(
         }
         pending.retain(|&c| grown[c].is_none());
         cost.again += pending.len();
-        (caps, size) = (caps.times(8), 64);
+        (caps, size) = (caps.times(8), (size / 8).max(64));
         assert!(caps.axes < 1 << 16, "a chain no region holds");
     }
     grown.into_iter().map(|g| g.expect("grown")).collect()
@@ -262,8 +265,8 @@ fn fine_roots_at_40_and_80() {
                 let tables_ms = t.elapsed().as_secs_f64() * 1e3;
                 let buds: Vec<ChainBud> = cases.iter().map(|c| c.0).collect();
                 let forward: Vec<usize> = (0..buds.len()).collect();
-                let (roots, cold) = expand((&gpu, &grower), (&buds, &forward, 4096), &tables);
-                let (again, warm) = expand((&gpu, &grower), (&buds, &forward, 4096), &tables);
+                let (roots, cold) = expand((&gpu, &grower), (&buds, &forward, 1 << 16), &tables);
+                let (again, warm) = expand((&gpu, &grower), (&buds, &forward, 1 << 16), &tables);
                 assert!(again == roots);
                 let want: Vec<&Vec<ChainAxis>> = cases.iter().map(|c| &c.1).collect();
                 assert!(

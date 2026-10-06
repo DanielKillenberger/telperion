@@ -172,6 +172,10 @@ pub struct Woke {
     pub cycle: u32,
 }
 
+/// A chain (or a fine root) as the executor takes it, and its axes as the
+/// CPU reference executor grows them.
+pub type Case = (ChainBud, Vec<ChainAxis>);
+
 /// A chain's axis as grown: its parent among the chain's axes (none: the
 /// bearer), how it stands there, its lineage, PA and birth, where its
 /// apex stopped, and its phytomers' cycles and keys. Borne laterals are
@@ -199,7 +203,7 @@ pub struct ChainAxis {
 
 /// Every chain of `species`'s tree grown alone as the CPU reference grows
 /// it, breadth first, each with its bud and its axes.
-pub fn chain_cases(species: &Species, request: Request) -> Result<Vec<(ChainBud, Vec<ChainAxis>)>> {
+pub fn chain_cases(species: &Species, request: Request) -> Result<Vec<Case>> {
     let rules = rules(species, request.age, request.budget)?;
     let expected = Expected::new(species, request.age, 0);
     let rows = expected.rows();
@@ -231,7 +235,7 @@ pub fn fine_cases(
     species: &Species,
     request: Request,
     plan: Plan,
-) -> Result<(Fine, Vec<(ChainBud, Vec<ChainAxis>)>)> {
+) -> Result<(Fine, Vec<Case>)> {
     let expected = Expected::new(species, request.age, 0);
     let fine = grow_fine(species, request, &expected, plan)?;
     let cases = fine
