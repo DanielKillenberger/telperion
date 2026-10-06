@@ -93,3 +93,37 @@ The executor is the engine's own `Grower` scoped to one fine root. Each root is 
 6. **(iv) Light.** Every grower's leaves are deposited into one lattice (`Sum`, order-free). It is swept once, and every grower reads its own buds.
 
 The order argument that makes it bit-identical rests on one assumption, not yet checked by a run. Each grower's live list must keep the whole tree's live order restricted to that grower: apexes appended as they are made, and removed ones dropped in order. Then each parent's children are numbered in the same relative order in its grower as in the whole tree. The phase digests are now order-free (keyed by lineage), so the stepped run compares with `grow_partitioned(None)` cycle by cycle, phase by phase.
+
+## The stepped executor built, and probe (a) through it (2026-10-07)
+
+`grow/stepped.rs` (with `stepped/handover.rs`, `stepped/assemble.rs`) is host decision 2 as planned above. Today's passes were factored so it calls them, not copies of them: the grower's `start` and `year`; balance's `totals` and `shed_by` (axis 1 given by its bearer); the allotment's `inputs` and `set_sizes`; allocation's `split` (incoming and bud vigour, since `(v·x)/x` is not `v` to the bit), `subtotals`, `size_sums` and `sized`. Today's 32 trees (4 species, seeds 1 and 7, ages 40 and 80, lit and unlit) hash identically before and after (`measures hash`, `8a28b918` against HEAD).
+
+- **The assumption:** each grower's living list is the whole tree's restricted to it, at every cycle's end (`each_grower_keeps_the_whole_trees_living_order`: oak 24 s7 lit, cut 256, 3,608 roots, whole tree and executor stepped side by side). It holds.
+- **Probe (a)** (`examples/stepped.rs`; `raw/task4/stepped.txt`, `stepped-parallel.txt`): the oak lit at seeds 1 and 7, the beech and the spruce, at 40 and 80; cuts 256, 1,024 and 4,096; at 40 every order (forward, reverse, shuffled) with every chunking (1, 7, 64), at 80 each order once with another chunking. **Every phase of every cycle and the tree are the whole tree's to the bit in all 216 runs**, and again in the 54 runs at 80 after the items were spread over the cores. At 80 the items grow 97 to 99.7 % of the phytomers (oak s1 cut 1,024: 7,179 roots, 5,515,030 of 5,534,295).
+- The beech and spruce read no light, so only the growth digest and the tree compare there.
+- **What is checked by running, not by reading:** handover at birth (with a woken root's same-cycle chain and sleeping buds), the bearer-to-child exchanges of phases (i) and (ii), the merged normalisers, one lattice, and today's re-lay and settle on the assembled tree.
+
+### Fidelity against today's oak
+
+The executor's tree is today's by lineage, every field to the bit, at 40 and 80, seeds 1 and 7, so kept phytomers per order, per-PA growth, bud light per fine root, trunk base and order-1 radius are today's exactly (0 % against the bars of 10 %, 2 % and 10 %).
+
+The stills (oak 80, seeds 1 and 7, bare and in leaf; `raw/task4/stills/`) are not identical in their own axis order: 0.5 to 1.1 % of pixels differ. Rendered in canonical order (`space_oak --canonical`, by depth then lineage identity), the stepped tree's stills equal today's to the pixel, all four. Today's own tree differs from its canonical rendering by 0.5 to 1.3 %. The difference is therefore the axis order alone: the still converter numbers pipeline nodes, and settles a relay's girth over laterals drawn after it, in axis order, and the assembly's order (coarse axes, then each item's) is a different parents-first order from today's creation order. Side by side (`pair-stepped-oak-80-{1,7}.png`, today left): viewed, indistinguishable.
+
+### Cost (`examples/stepcost.rs`, cut 1,024; `raw/task4/stepcost-{all,one}.txt`)
+
+Ryzen 9 5950X; "1 core" is `taskset -c 0`. The desk's load was 10 to 12 from the other workers on all cores and 5 to 11 on one.
+
+| Oak | Today, all cores | Stepped, all cores | Today, 1 core | Stepped, 1 core | Roots |
+|---|--:|--:|--:|--:|--:|
+| 40 s1 | 0.34 to 0.39 s | 0.40 to 0.45 s | 0.58 s | 0.70 s | 1,821 |
+| 40 s7 | 0.48 s | 0.59 to 0.61 s | 0.86 s | 1.12 s | 2,937 |
+| 80 s1 | 3.63 to 3.68 s | 4.39 to 4.56 s | 7.79 s | 9.17 s | 7,179 |
+| 80 s7 | 7.83 s (10.78 s once, load) | 9.74 to 11.04 s | 16.05 s | 20.07 s | 17,370 |
+
+- **Per year:** the stepped years take 1.1 to 1.4 × today's (oak 80 s1, all cores: median 19 to 20 ms against 17 to 18; worst, the re-lay of year 70, 452 to 487 ms against 332 to 338). The re-lay years carry the assembly's moves. Assembly and settle: 0.89 to 0.91 s against today's settle 0.77 to 0.79 s.
+- This is the CPU reference's cost, the items stepped as engine growers. It prices nothing of the GPU executor; probe (b) (synchronisation) is next in DESIGN-INTERLEAVE.md.
+
+### Open for the host
+
+1. **The axis order of an assembled tree.** Its renders differ from today's by the order alone. Either every build is put in canonical order before conversion (today's stills move once, by 0.5 to 1.3 % of pixels), or the executor reproduces today's creation order (a global rank per living apex and sleeping bud each cycle), or the converter is made order-free. A design choice; not taken.
+2. **The task's acceptance** predates DESIGN-INTERLEAVE.md. Its third bullet (the aggregate against fine subtrees grown under recorded histories) has no subject once the aggregate is deleted, and the description's last step (lift the oak's refusal in fn-209's executors) waits on the GPU executor's stepping (probe (b)). Neither is done here.
