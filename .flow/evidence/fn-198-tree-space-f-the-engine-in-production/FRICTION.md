@@ -23,3 +23,11 @@
 - **Slowed by:** the dcg hook blocks a `>` redirect to a new file under `.flow/evidence/` when the command also runs `mkdir -p` on the parent. fn-190 hit the same guard.
 - **Cost:** about 1 minute.
 - **Would remove it:** nothing in the repository; it is a local hook setting.
+
+## 2026-10-06, task 1 survey: the engine in wasm32
+
+- **Doing:** checking whether `telperion-space` builds and runs for wasm32 and how close each species and age comes to the 4 GB ceiling (INTEGRATION.md, section 2.7).
+- **Slowed by:** no tool runs the engine or the GPU path's CPU preparation in wasm32. `rust:test:wasm` covers the main module's entries only; GPU-PATH.md's peaks are native RSS.
+- **Cost:** about 15 minutes: a scratch `cdylib` (`wasm-probe/`) and a Node runner, one tree per process. The load was 14 to 15 throughout, so its times are indicative only.
+- **Would remove it:** a wasm32 memory probe kept beside the stills runner (species, age, peak memory per step), so step 3's ceiling per species and age is one command.
+- **Also:** the dcg hook blocked a `cp`/redirect into `.flow/evidence/` through shell variables; literal paths passed (about 1 minute, local hook, as recorded on 2026-10-05).
