@@ -4,7 +4,7 @@
 //! geometry status. The executor itself never reads any of this.
 use super::chains::{topology, AXW, PW};
 use super::laid::{SA, SP};
-use super::roots::Expanded;
+use super::roots::Grown;
 use super::steps::{CW, RW};
 use crate::Gpu;
 use std::collections::HashMap;
@@ -21,8 +21,8 @@ fn words(gpu: &Gpu, buffer: &wgpu::Buffer) -> Vec<u32> {
     bytemuck::cast_slice(&bytes).to_vec()
 }
 
-/// What `ex` grew for `roots` roots.
-pub(super) fn read(gpu: &Gpu, ex: &Expanded, roots: usize) -> Read {
+/// What `grown` holds for `roots` roots.
+pub(super) fn read(gpu: &Gpu, grown: &[Grown], roots: usize) -> Read {
     let mut out = Read {
         roots: vec![Vec::new(); roots],
         laid: vec![Vec::new(); roots],
@@ -42,7 +42,7 @@ pub(super) fn read(gpu: &Gpu, ex: &Expanded, roots: usize) -> Read {
         woke: None,
         context: None,
     };
-    for (w0, g) in ex.grown.iter().enumerate() {
+    for (w0, g) in grown.iter().enumerate() {
         let w = w0 + 1;
         let meta = words(gpu, &g.meta);
         let places = words(gpu, &g.places);

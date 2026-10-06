@@ -286,7 +286,7 @@ pub fn fine_cases(
     Ok((fine, cases))
 }
 
-fn input(species: &Species, seed: u64, bud: Option<&Bud>) -> ChainBud {
+pub(super) fn input(species: &Species, seed: u64, bud: Option<&Bud>) -> ChainBud {
     let horizon = |h: f64| if h.is_finite() { q32(h) } else { -INF };
     match bud {
         None => {

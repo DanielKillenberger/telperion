@@ -54,10 +54,22 @@ impl Root {
     /// it by what it realized.
     pub fn grow(species: &Species, rules: &Rules, handed: &Handed) -> Result<Self> {
         let started = Instant::now();
+        let assigned = realized::root(rules, &handed.bud)?;
+        Ok(Self::shed(species, rules, handed, assigned, started))
+    }
+
+    /// Phase 1's end: `assigned`, `handed`'s subtree as grown, marked and
+    /// assigned, shed by what it realized.
+    pub fn shed(
+        species: &Species,
+        rules: &Rules,
+        handed: &Handed,
+        assigned: realized::Assigned,
+        started: Instant,
+    ) -> Self {
         let Origin::Lateral { node, woken, .. } = handed.bud.axis.origin else {
             unreachable!("a fine root is a lateral bud")
         };
-        let assigned = realized::root(rules, &handed.bud)?;
         let mut axes = assigned.axes;
         let made = axes.len() - 1;
         axes[0].phytomers = vec![node_phytomer()];
@@ -78,7 +90,7 @@ impl Root {
             axes: made,
             micros: started.elapsed().as_secs_f64() * 1e6,
         };
-        Ok(Self {
+        Self {
             at: handed.at,
             node,
             woken,
@@ -90,7 +102,12 @@ impl Root {
             radius: 0.0,
             load: Load::default(),
             work,
-        })
+        }
+    }
+
+    /// Its tree: its bearer's stub (axis 0), then its axes.
+    pub fn axes(&self) -> &[Axis] {
+        &self.tree.axes
     }
 
     /// Its kept phytomers, its bearer's stub aside.

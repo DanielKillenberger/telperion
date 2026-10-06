@@ -66,7 +66,7 @@ impl Grower {
             gpu,
             &mut encoder,
             (&input, 0, n),
-            (&tables, t, span, age),
+            (&tables, t, span, age, false),
             caps,
         );
         let Region {

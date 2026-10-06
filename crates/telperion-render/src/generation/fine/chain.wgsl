@@ -25,7 +25,8 @@ struct Cfg {
     geo: u32,
     unit_cap: u32,
     first: u32,
-    pad1: u32,
+    // Realized mechanics: every axis kept, its shedding the fades'.
+    keep: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -409,7 +410,9 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
         wrf(at, VIG, vig);
         wr(at, WHORL, sleepers[p + 16u]);
     }
-    if overflow == 0u {
+    if overflow == 0u && cfg.keep != 0u {
+        keep_all();
+    } else if overflow == 0u {
         shed(select(1u, 0u, seed), conditioned, buds[b + 10u]);
     }
     status[c] = vec4<u32>(n_axes, n_phyts, overflow, n_axes - n_pends);

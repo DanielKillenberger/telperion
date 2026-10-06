@@ -165,3 +165,11 @@ fn shed(root: u32, conditioned: bool, context: vec2<u32>) {
         }
     }
 }
+
+// Realized mechanics (fn-209 F1 task 6): the chain keeps every axis, its
+// shedding left to the fades its whole subtree realizes.
+fn keep_all() {
+    for (var i = 0u; i < n_axes; i++) {
+        wr(i, SHED_FLAGS, KEPT);
+    }
+}

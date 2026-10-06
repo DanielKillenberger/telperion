@@ -8,7 +8,7 @@
 //! nothing per chain or per node does.
 use super::chains::{bud_words, packed, upload, Caps, Grower, Packed, Uploaded, AXW, PW};
 use super::laid::{self, Resolver, Wave};
-use super::steps::{buffer, Steps, BW2, CW, IW, RW};
+use super::steps::{buffer, Steps, BW2, CW, DESCRIBE, HAND, IW, RW};
 use crate::Gpu;
 use std::time::Instant;
 use telperion_space::{ChainBud, ChainTables, GeometryTables, RootGeometry};
@@ -47,6 +47,8 @@ pub(super) struct Tables<'a> {
     pub uploaded: Uploaded,
     pub table: wgpu::Buffer,
     pub sags: bool,
+    /// Realized mechanics: every axis kept by the chain grower.
+    pub keep: bool,
 }
 
 impl<'a> Tables<'a> {
@@ -63,6 +65,7 @@ impl<'a> Tables<'a> {
             packed,
             table,
             sags,
+            keep: false,
         }
     }
 }
@@ -103,7 +106,7 @@ pub(super) struct Expanded {
 
 /// The four totals a run reads back: its packed axes and phytomers, its
 /// scratch words, and its chains queued for a larger region.
-fn totals(gpu: &Gpu, buffer: &wgpu::Buffer, words: u64, cost: &mut Cost) -> Vec<u32> {
+pub(super) fn totals(gpu: &Gpu, buffer: &wgpu::Buffer, words: u64, cost: &mut Cost) -> Vec<u32> {
     cost.trips += 1;
     let bytes = super::super::io::read(gpu, buffer, words * 4).unwrap();
     bytemuck::cast_slice(&bytes).to_vec()
@@ -171,7 +174,7 @@ pub(super) fn expand(
             let lay = (&run.runoff, &places, &wave_meta, &run.items);
             let hand = (&run.axes, &run.scratch, &next_buds, &next_meta);
             k.steps
-                .hand(gpu, &mut encoder, (run.n, stub, false), lay, hand);
+                .hand(gpu, &mut encoder, (run.n, stub, DESCRIBE), lay, hand);
             k.resolver.dispatch(
                 gpu,
                 &mut encoder,
@@ -181,7 +184,7 @@ pub(super) fn expand(
                 (tables.chain.age, tables.sags),
             );
             k.steps
-                .hand(gpu, &mut encoder, (run.n, stub, true), lay, hand);
+                .hand(gpu, &mut encoder, (run.n, stub, HAND), lay, hand);
         }
         gpu.queue.submit([encoder.finish()]);
         gpu.device
@@ -202,7 +205,7 @@ pub(super) fn expand(
 /// Grows a wave's `n` buds in runs of `batch`, each chain that outgrew its
 /// region again in one eight times larger, each run recorded and packed;
 /// each chain's counts into `places`.
-fn grow_wave(
+pub(super) fn grow_wave(
     gpu: &Gpu,
     k: &Kernels,
     (buds, n, batch): (&wgpu::Buffer, u32, usize),
@@ -262,7 +265,7 @@ fn grow_run(
 ) -> (Run, Option<(wgpu::Buffer, u32)>) {
     let t = tables;
     let mut encoder = gpu.device.create_command_encoder(&Default::default());
-    let at = (&t.uploaded, &t.packed, t.chain.span, t.chain.age);
+    let at = (&t.uploaded, &t.packed, t.chain.span, t.chain.age, t.keep);
     let region = k
         .grower
         .region(gpu, &mut encoder, (input, first, m), at, caps);

@@ -44,6 +44,10 @@ mod laid_tests;
 #[cfg(test)]
 mod readback;
 #[cfg(test)]
+mod realized;
+#[cfg(test)]
+mod realized_tests;
+#[cfg(test)]
 mod roots;
 #[cfg(test)]
 mod steps;

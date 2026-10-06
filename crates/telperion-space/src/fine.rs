@@ -23,6 +23,7 @@
 //! Where no bud reads light only; a species that reads light follows
 //! fn-211's stepped executor.
 mod canonical;
+mod cases;
 mod committed;
 mod executor;
 mod geometry;
@@ -46,6 +47,7 @@ use crate::shed::shed_given;
 use crate::species::Species;
 use crate::structure::Structure;
 pub use canonical::{canonical, digest, identities, lineage_order};
+pub use cases::{realized_cases, Presences, RealizedCase};
 pub use committed::{grow_committed, CommittedFine};
 pub use executor::Work;
 pub use geometry::{

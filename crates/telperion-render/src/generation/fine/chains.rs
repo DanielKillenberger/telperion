@@ -203,13 +203,14 @@ impl Grower {
     }
 
     /// Grows the `n` buds from `first` of `input` in regions of `caps`,
-    /// recorded into `encoder`.
+    /// recorded into `encoder`; `keep`: every axis kept (realized
+    /// mechanics), else shed by the committed boundaries.
     pub(super) fn region(
         &self,
         gpu: &Gpu,
         encoder: &mut wgpu::CommandEncoder,
         (input, first, n): (&wgpu::Buffer, u32, u32),
-        (tables, t, span, age): (&Uploaded, &Packed, i64, u32),
+        (tables, t, span, age, keep): (&Uploaded, &Packed, i64, u32, bool),
         caps: Caps,
     ) -> Region {
         let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
@@ -232,7 +233,7 @@ impl Grower {
             t.2[2],
             caps.units,
             first,
-            0,
+            u32::from(keep),
         ];
         let b = |label, bytes: u64| io::buffer(gpu, label, bytes, storage, &[]).unwrap();
         let usage = wgpu::BufferUsages::UNIFORM;
