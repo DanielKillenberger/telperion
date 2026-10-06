@@ -25,6 +25,7 @@ mod wake;
 
 use crate::dormant::{Sleeper, Woken};
 use crate::error::{refuse, Error, Result};
+use crate::fine::lineage_order;
 use crate::light::Light;
 use crate::lineage::Key;
 use crate::presence::{Draws, Windows};
@@ -57,18 +58,38 @@ struct Apex {
     spent: f64,
 }
 
-/// Grows, sheds and places the tree.
+/// Grows, sheds and places the tree, in its canonical lineage order. A
+/// species that neither reads light nor reads its tree as grown is built
+/// through the realized partition at the cut N = 1,024 (host decision 7,
+/// FINE-CONTRACT.md): the same tree as `grow_whole`, to the bit.
 pub fn grow(species: &Species, request: Request) -> Result<Structure> {
+    if species.reads_light() || keeps(species) {
+        return grow_whole(species, request);
+    }
+    species.validate()?;
+    request.light.validate()?;
+    if request.age == 0 {
+        return refuse("age", "a tree grows at least one cycle");
+    }
+    let expected = crate::bounded::Expected::new(species, request.age, 0);
+    let plan = crate::fine::Plan::default();
+    let fine = crate::fine::grow_fine(species, request, &expected, plan)?;
+    Ok(lineage_order(fine.structure))
+}
+
+/// Today's whole-tree engine, every axis grown in one grower: the tests'
+/// reference for `grow`, in the same canonical order.
+pub fn grow_whole(species: &Species, request: Request) -> Result<Structure> {
     grow_staged(species, request, &mut |_| {})
 }
 
-/// `grow`, reporting each stage as it ends.
+/// `grow_whole`, reporting each stage as it ends.
 pub fn grow_staged(
     species: &Species,
     request: Request,
     stage: &mut dyn FnMut(Stage),
 ) -> Result<Structure> {
-    run(species, request, stage, true, Options::default()).map(|g| g.structure)
+    run(species, request, stage, true, Options::default()).map(|g| lineage_order(g.structure))
 }
 
 /// How the engine grows a tree, never what it grows: every choice here
@@ -143,7 +164,8 @@ pub(crate) struct Record {
 
 /// The tree as `grow` grows it, with every phytomer where the rough
 /// layout grown with it put it, before the final lay: what light read as
-/// the tree grew. Without shade it has no layout and is refused.
+/// the tree grew, in the same lineage order. Without shade it has no
+/// layout and is refused.
 pub fn sketch(species: &Species, request: Request) -> Result<Structure> {
     if !request.light.shades() {
         return refuse(
@@ -151,7 +173,8 @@ pub fn sketch(species: &Species, request: Request) -> Result<Structure> {
             "a rough layout is grown only where light shades",
         );
     }
-    run(species, request, &mut |_| {}, false, Options::default()).map(|g| g.structure)
+    run(species, request, &mut |_| {}, false, Options::default())
+        .map(|g| lineage_order(g.structure))
 }
 
 pub(crate) fn run(

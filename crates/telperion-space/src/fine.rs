@@ -45,7 +45,7 @@ use crate::sag::{any, levers_given};
 use crate::shed::shed_given;
 use crate::species::Species;
 use crate::structure::Structure;
-pub use canonical::{canonical, digest, identities};
+pub use canonical::{canonical, digest, identities, lineage_order};
 pub use committed::{grow_committed, CommittedFine};
 pub use executor::Work;
 pub use geometry::{
@@ -144,6 +144,7 @@ pub fn grow_fine(
         rules(species, request.age, request.budget)?,
         expected.rows(),
     );
+    request.light.validate()?;
     let threads = match plan.threads {
         0 => crate::cores::available(),
         n => n,

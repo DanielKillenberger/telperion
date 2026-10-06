@@ -8,7 +8,8 @@
 //! Run under `RAYON_NUM_THREADS=1` for one core.
 use std::time::Instant;
 use telperion_space::{
-    beech, digest, grow, grow_fine, spruce, Expected, Fine, Light, Order, Plan, Request, Species,
+    beech, digest, grow_fine, grow_whole, spruce, Expected, Fine, Light, Order, Plan, Request,
+    Species,
 };
 
 fn main() {
@@ -50,7 +51,7 @@ fn tree(label: &str, species: &Species, request: Request, cuts: &[f64]) {
     let rows = ms(t);
     let whole = || {
         let t = Instant::now();
-        let tree = grow(species, request).expect("grows whole");
+        let tree = grow_whole(species, request).expect("grows whole");
         (digest(&tree), tree.phytomer_count(), ms(t))
     };
     let (reference, phytomers, cold) = whole();
