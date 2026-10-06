@@ -92,7 +92,6 @@ impl Shoot<'_, '_> {
             whorl: sleeper.whorl,
             woken: true,
         };
-        let lead = self.windows().presence(sleeper.lead, sleeper.wood) * sleeper.placed;
         let at = self.len();
         self.woken.push(Woken {
             axis: at,
@@ -103,7 +102,7 @@ impl Shoot<'_, '_> {
         });
         let (first, _) = self.species().lived(sleeper.pa).expect("aged");
         let draws = Draws {
-            birth: [lead, carried * reach],
+            birth: sleeper.made(carried, reach),
             ..Draws::default()
         };
         let key = Key(sleeper.key);
@@ -138,8 +137,8 @@ impl Shoot<'_, '_> {
             woken: true,
         };
         let mut key = Key(sleeper.key);
-        let lead = self.windows().presence(sleeper.lead, sleeper.wood) * sleeper.placed;
-        let mut made = [lead, carried * reach];
+
+        let mut made = sleeper.made(carried, reach);
         self.woken.push(Woken {
             axis: self.len(),
             bearer,

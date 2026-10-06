@@ -3,7 +3,7 @@
 //! stream, so adding a branch anywhere moves no other draw. Each draw's lead
 //! past the bound it was tested against, in log-odds, is what `presence.rs`
 //! grows its element in by.
-use crate::fixed::decide;
+use crate::fixed::{self, decide};
 use crate::species::NodeLaw;
 
 /// The draws of one growth unit, under its unit key.
@@ -114,16 +114,6 @@ fn logit(p: f64) -> f64 {
     (p / (1.0 - p)).ln()
 }
 
-/// How far, in log-odds, a draw `u` lies below the `bound` it must stay
-/// under to make its element: none at the crossing, unbounded when the
-/// element is certain.
-pub(crate) fn below(u: f64, bound: f64) -> f64 {
-    if bound >= 1.0 || u <= 0.0 {
-        return f64::INFINITY;
-    }
-    logit(bound) - logit(u)
-}
-
 /// How far, in log-odds, a draw `u` lies above the `bound` it must reach.
 pub(crate) fn above(u: f64, bound: f64) -> f64 {
     if bound <= 0.0 {
@@ -133,15 +123,20 @@ pub(crate) fn above(u: f64, bound: f64) -> f64 {
 }
 
 /// A bud's PA under `lateral` for the draw `d`, with its lead past the
-/// nearer bound of the PA's run of draws; none for a bare bud. The bounds
-/// are the running sums of `lateral` in its order (FINE-CONTRACT.md D3).
-pub(crate) fn bud(lateral: &[f64], d: Draw) -> Option<(usize, f64)> {
-    let u = d.unit();
+/// nearer bound of the PA's run of draws, in log-odds Q32 on the bounds'
+/// thresholds (host decision 8); none for a bare bud. The bounds are the
+/// running sums of `lateral` in its order (FINE-CONTRACT.md D3).
+pub(crate) fn bud(lateral: &[f64], d: Draw) -> Option<(usize, i64)> {
     let mut low = 0.0;
     for (pa, &p) in lateral.iter().enumerate() {
         let high = low + p;
         if p > 0.0 && d.under(high) {
-            return Some((pa, above(u, low).min(below(u, high))));
+            let lead = if low <= 0.0 {
+                fixed::INF
+            } else {
+                fixed::presence::over(threshold(low), d.0)
+            };
+            return Some((pa, lead.min(fixed::presence::under(threshold(high), d.0))));
         }
         low = high;
     }

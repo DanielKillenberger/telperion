@@ -8,6 +8,7 @@ use super::shoot::{Rules, Shoot};
 use super::{bud, parallel, Apex, Grower};
 use crate::dormant::{self, Sleeper, Woken};
 use crate::error::{refuse, Error, Result};
+use crate::fixed::presence::{q, real, times, ONE};
 use crate::lineage::Key;
 use crate::presence::{assign, Draws, Windows};
 use crate::shed::lasting;
@@ -160,7 +161,7 @@ pub(super) fn start<'a>(
             let key = Key::root(seed);
             let (pa, reach) = species.lived(0).ok_or(Error::Collapsed)?;
             let draws = Draws {
-                birth: [reach, 1.0],
+                birth: [q(reach), ONE].map(real),
                 ..Draws::default()
             };
             g.adopt(
@@ -204,7 +205,8 @@ pub(super) fn start<'a>(
                     let share = shoot.finish(Vec::new());
                     g.absorb(share);
                     g.woken.clear();
-                    g.draws[1].birth[1] *= kept;
+                    let made = &mut g.draws[1].birth[1];
+                    *made = real(times(q(*made), q(kept)));
                     (p.cycle + 1, 1)
                 }
             }
@@ -278,8 +280,8 @@ pub(super) fn woken_bud(rules: &Rules, horizon: f64, p: Pending, kept: f64) -> B
         woken: true,
     };
     let mut axis = bud_axis(Key(s.key).onto(first), first, p.cycle - 1, origin);
-    let lead = rules.windows.presence(s.lead, s.wood) * s.placed;
-    axis.vigour = lead * p.carried * p.aged.2 * kept;
+    let [own, carried] = s.made(p.carried, p.aged.2).map(q);
+    axis.vigour = real(times(times(own, carried), q(kept)));
     Bud {
         axis,
         draws: Draws::default(),

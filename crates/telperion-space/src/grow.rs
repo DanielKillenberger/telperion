@@ -26,6 +26,7 @@ mod wake;
 use crate::dormant::{Sleeper, Woken};
 use crate::error::{refuse, Error, Result};
 use crate::fine::lineage_order;
+use crate::fixed::presence::{q, real, times, ONE};
 use crate::light::Light;
 use crate::lineage::Key;
 use crate::presence::{Draws, Windows};
@@ -47,9 +48,9 @@ pub struct Request {
     pub light: Light,
 }
 
-/// A bud of a node: its PA and lead, and the share its place stands at;
-/// or none for a bare bud.
-type Placed = Option<(usize, f64, f64)>;
+/// A bud of a node: its PA and lead (log-odds, Q32), and the share its
+/// place stands at; or none for a bare bud.
+type Placed = Option<(usize, i64, f64)>;
 
 /// A living apex: the time it has spent in its current PA.
 #[derive(Debug, Clone, Copy)]
@@ -251,15 +252,6 @@ fn stop_stake(relay: f64) -> f64 {
     1.0 - relay
 }
 
-/// A survival over a share of the year: to the share, itself whole.
-fn shared(p: f64, share: f64) -> f64 {
-    if share < 1.0 {
-        p.powf(share)
-    } else {
-        p
-    }
-}
-
 fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
     Axis {
         lineage: key.0,
@@ -350,7 +342,7 @@ impl<'a> Grower<'a> {
             marked: Vec::new(),
             axes: vec![bud(root.onto(pa), pa, 0, Origin::Seed)],
             draws: vec![Draws {
-                birth: [reach, 1.0],
+                birth: [q(reach), ONE].map(real),
                 ..Draws::default()
             }],
             live: vec![Apex {
@@ -395,8 +387,10 @@ impl Grower<'_> {
     fn living(&self, apex: Apex) -> f64 {
         let pa = self.axes[apex.axis].pa;
         let state = &self.species.states[pa];
-        let left = (state.life() - apex.spent).clamp(0.0, 1.0);
-        let go = self.species.successor(pa).map_or(0.0, |(_, go)| go);
-        left + (1.0 - left) * (go + (1.0 - go) * state.relay_ended)
+        // Q32, floored in turn (host decision 8); the times on the grid.
+        let left = q((state.life() - apex.spent).clamp(0.0, 1.0));
+        let go = q(self.species.successor(pa).map_or(0.0, |(_, go)| go));
+        let on = go + times(ONE - go, q(state.relay_ended));
+        real(left + times(ONE - left, on))
     }
 }

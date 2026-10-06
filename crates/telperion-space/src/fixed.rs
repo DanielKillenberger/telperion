@@ -254,6 +254,7 @@ pub fn draw(key: u64) -> u64 {
 }
 
 pub mod decide;
+pub mod presence;
 
 #[cfg(test)]
 mod tests;

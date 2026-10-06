@@ -9,6 +9,7 @@
 //! release law that moves its waking moves its growth by degree.
 //! It wakes only while the axis that bears it lives, through that axis's
 //! continuations and relays, and its size carries every draw on the way.
+use crate::fixed::presence::{q, real, times, ONE};
 use crate::lineage::{self, Key, DORMANT};
 use crate::presence::Draws;
 use crate::schedule::Carried;
@@ -26,6 +27,16 @@ pub(crate) fn wakes_in(zone: &Zone, s: u32) -> f64 {
     asleep(f64::from(s)) - asleep(f64::from(s) + 1.0)
 }
 
+impl Sleeper {
+    /// The presences, Q32 (host decision 8), of the draws that made the
+    /// bud as it wakes, `carried` there and reaching its stage by `reach`:
+    /// its own draw's, by its place's share, and its bearer's carrying.
+    pub fn made(&self, carried: f64, reach: f64) -> [f64; 2] {
+        let own = crate::fixed::decide::node(self.lead, self.wood);
+        [times(own, q(self.placed)), times(q(carried), q(reach))].map(real)
+    }
+}
+
 /// A sleeping bud that will wake: where it stands and what it was drawn.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Sleeper {
@@ -39,7 +50,7 @@ pub(crate) struct Sleeper {
     /// Its lineage, its draw's lead past its bound, and the share its bud
     /// place stands at (1 for a whole place).
     pub key: u64,
-    pub lead: f64,
+    pub lead: i64,
     pub placed: f64,
     /// The expected wood it decides, as a share of the tree's.
     pub wood: f64,
@@ -100,14 +111,15 @@ pub(crate) fn carried(
     cycle: u32,
 ) -> Vec<(f64, usize)> {
     let axis = sleeper.parent;
-    let presence = draws[axis].units[sleeper.unit].persist;
+    let presence = q(draws[axis].units[sleeper.unit].persist);
     let mut open = vec![(presence, axis, sleeper.unit + 1)];
     let mut out = Vec::new();
+    // Each presence Q32, its products floored in turn (host decision 8).
     while let Some((mut presence, axis, from)) = open.pop() {
-        presence *= draws[axis].units[from..]
-            .iter()
-            .map(|u| u.survive * u.persist)
-            .product::<f64>();
+        for u in &draws[axis].units[from..] {
+            presence = times(times(presence, q(u.survive)), q(u.persist));
+        }
+        let presence_real = real(presence);
         if successor[axis].is_empty() {
             // A bearer whose age ended within the waking cycle bears it,
             // as far as it lived past the waking (`Woken::kept`), so a
@@ -115,13 +127,16 @@ pub(crate) fn carried(
             // round 5 on fn-206).
             let ended_here = axes[axis].apex_end == Some(cycle) && draws[axis].outlived.is_some();
             if axes[axis].apex_end.is_none() || ended_here {
-                out.push((presence, axis));
+                out.push((presence_real, axis));
             }
             continue;
         }
         for &next in successor[axis].iter().rev() {
             open.push((
-                presence * draws[next].birth[0] * draws[next].birth[1],
+                times(
+                    times(presence, q(draws[next].birth[0])),
+                    q(draws[next].birth[1]),
+                ),
                 next,
                 0,
             ));
@@ -308,28 +323,30 @@ impl Woken {
     /// its bearer then carries on through the next cycle (`p`), and the
     /// part of its waking cycle it grew otherwise, share + (1 - share) p,
     /// so a bud that woke just before its bearer's end is small (host,
-    /// 2026-10-04).
+    /// 2026-10-04). A Q32 presence, its sums and products floored in
+    /// turn (host decision 8).
     pub fn kept(&self, axes: &[Axis], draws: &[Draws], successor: &[Vec<usize>], age: u32) -> f64 {
         let bearer = &draws[self.bearer];
+        let share = q(self.share);
         // A bearer whose age ended within the waking cycle: the part of
-        // the cycle it lived past the waking.
+        // the cycle it lived past the waking (times on the tick grid).
         if let (Some(used), Some(end)) = (bearer.outlived, axes[self.bearer].apex_end) {
             if end == self.cycle && successor[self.bearer].is_empty() {
-                return (used + self.share - 1.0).max(0.0);
+                return real((q(used) + share).saturating_sub(ONE));
             }
         }
+        let rest = |p: u64| real(share + times(ONE - share, p));
         // In the tree's last cycle, as far as its bearer lives on past the
         // tree's age (`Grower::living`), so a bearer whose age ends just
         // after it keeps the bud as one ending just before it does (Codex
         // round 6 on fn-206).
         if self.cycle >= age {
-            let on = if bearer.alive { bearer.living } else { 1.0 };
-            return self.share + (1.0 - self.share) * on;
+            return rest(if bearer.alive { q(bearer.living) } else { ONE });
         }
         let on = |next: &[usize]| {
             next.iter()
-                .map(|&n| draws[n].birth[0] * draws[n].birth[1])
-                .sum::<f64>()
+                .map(|&n| times(q(draws[n].birth[0]), q(draws[n].birth[1])))
+                .sum::<u64>()
         };
         let p = match bearer.units.get(self.next) {
             // It died before its next unit: as far as a relay took over.
@@ -337,16 +354,15 @@ impl Woken {
             // It grew it, and stopped after it, or carried on.
             Some(unit) => {
                 let stopped = axes[self.bearer].apex_end == Some(self.cycle + 1) && !bearer.failed;
-                unit.survive
-                    * unit.persist
-                    * if stopped {
-                        on(&successor[self.bearer])
-                    } else {
-                        1.0
-                    }
+                let carried = times(q(unit.survive), q(unit.persist));
+                if stopped {
+                    times(carried, on(&successor[self.bearer]))
+                } else {
+                    carried
+                }
             }
         };
-        self.share + (1.0 - self.share) * p
+        rest(p)
     }
 }
 

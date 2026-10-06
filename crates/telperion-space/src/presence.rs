@@ -9,6 +9,7 @@
 use crate::closed_form::expected_log_lengths;
 use crate::dormant::wakes_in;
 use crate::fixed;
+use crate::fixed::presence::{q, real, times, ONE};
 use crate::species::{Species, Zone};
 use crate::structure::{Axis, Origin};
 
@@ -59,18 +60,6 @@ impl Windows {
             return log;
         }
         log - self.whole
-    }
-
-    /// The wood a bud of `pa` is expected to grow from `used` of the way
-    /// through `cycle`: between the cycle's and the next's by its log, so
-    /// an age ending just before a whole cycle decides as one ending just
-    /// after it (Codex round 7 on fn-206).
-    pub fn wood_at(&self, pa: usize, cycle: u32, used: f64) -> f64 {
-        let (a, b) = (self.wood(pa, cycle), self.wood(pa, cycle + 1));
-        if a <= 0.0 || b <= 0.0 {
-            return a + (b - a) * used;
-        }
-        (a.ln() + (b.ln() - a.ln()) * used).exp()
     }
 
     /// The wood a bud of `pa` is expected to grow over the `left` cycles
@@ -127,10 +116,24 @@ impl Windows {
         metres * (-self.whole).exp()
     }
 
-    /// The presence of a draw `lead` log-odds past its bound that decides
-    /// `share` of the tree's expected wood.
-    pub fn presence(&self, lead: f64, share: f64) -> f64 {
-        self.decided(lead, share, 1.0)
+    /// The window, Q32, of a draw deciding `stake` of the wood a bud of
+    /// `pa` is expected to grow from `cycle` on, or from `used` of the way
+    /// through it (host decision 8, `fixed::presence`).
+    pub fn window_q(&self, (pa, cycle, used): (usize, u32, Option<f64>), stake: f64) -> i64 {
+        use crate::fixed::{exp, presence, q32, ticks};
+        let log = |c: u32| q32(self.log_wood(pa, c));
+        let wood = match used {
+            None => exp(log(cycle)),
+            Some(used) => presence::wood_at((log(cycle), log(cycle + 1)), ticks(used)),
+        };
+        let window = (q32(RATE * stake), q32(FLOOR * stake), q32(SPAN));
+        presence::window(wood, window)
+    }
+
+    /// The presence, Q32, of a draw `lead` log-odds (Q32) past its bound
+    /// deciding `stake` of the wood `window_q` names.
+    pub fn presence_q(&self, lead: i64, at: (usize, u32, Option<f64>), stake: f64) -> u64 {
+        crate::fixed::presence::of(lead, self.window_q(at, stake))
     }
 
     /// The presence of a draw `lead` log-odds past its bound that decides
@@ -261,10 +264,12 @@ pub(crate) fn assign_living<D: std::borrow::Borrow<Draws> + Sync>(
     let end: Vec<f64> = ends.into_iter().flatten().collect();
     for (axis, draws) in axes.iter_mut().zip(draws) {
         let draws: &Draws = draws.borrow();
-        let made = draws.birth[0] * draws.birth[1];
+        let made = times(q(draws.birth[0]), q(draws.birth[1]));
         axis.vigour = match axis.origin {
-            Origin::Seed | Origin::Lateral { .. } => made,
-            Origin::Continuation { parent } | Origin::Relay { parent, .. } => end[parent] * made,
+            Origin::Seed | Origin::Lateral { .. } => real(made),
+            Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
+                real(times(q(end[parent]), made))
+            }
         };
     }
 }
@@ -290,30 +295,32 @@ pub(crate) fn relay_node(p: &Axis, draws: &Draws, share: f64) -> usize {
 }
 
 /// Assigns one axis's presences from its draws: its end's presence.
+/// Every presence a fade reads is Q32, each product floored in turn (host
+/// decision 8); the ranks stay real, which geometry alone reads.
 fn assign_one(axis: &mut Axis, draws: &Draws, living: Option<f64>) -> f64 {
     let birth = axis.birth;
-    let mut running = 1.0;
+    let mut running = ONE;
     let mut presences = Vec::with_capacity(draws.units.len());
     let mut j = 0;
     let mut rank = 0.0;
     for (k, unit) in draws.units.iter().enumerate() {
-        running *= unit.survive;
-        let grown = unit.share;
-        presences.push(running * grown);
+        running = times(running, q(unit.survive));
+        let grown = q(unit.share);
+        presences.push(real(times(running, grown)));
         let [size, light] = draws.shade(k);
         while j < axis.phytomers.len() && (axis.phytomers[j].cycle - birth - 1) as usize == k {
-            axis.phytomers[j].scale = running * draws.nodes[j] * grown;
+            axis.phytomers[j].scale = real(times(times(running, q(draws.nodes[j])), grown));
             axis.phytomers[j].size = size;
             axis.phytomers[j].light = light;
             axis.phytomers[j].rank = rank;
-            rank += draws.nodes[j] * grown;
+            rank += draws.nodes[j] * unit.share;
             j += 1;
         }
-        running *= unit.persist;
+        running = times(running, q(unit.persist));
     }
     axis.units = presences;
     axis.sleep = draws.sleep;
     axis.rank = rank;
-    axis.alive = living.map_or(0.0, |l| running * l);
-    running
+    axis.alive = living.map_or(0.0, |l| real(times(running, q(l))));
+    real(running)
 }

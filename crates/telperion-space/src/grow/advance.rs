@@ -2,10 +2,10 @@
 //! (`shoot.rs`).
 use super::shoot::Shoot;
 use super::stop::Stop;
-use super::{shared, stop_stake, Apex};
+use super::{stop_stake, Apex};
 use crate::error::Result;
-use crate::fixed;
-use crate::lineage::{above, below, Key, ABORTION, END, ENDED, VIABILITY};
+use crate::fixed::{self, presence};
+use crate::lineage::{Key, ABORTION, END, ENDED, VIABILITY};
 use crate::presence::Unit;
 use crate::schedule::Carried;
 
@@ -55,9 +55,7 @@ impl Shoot<'_, '_> {
         // Decided on the contract's threshold (FINE-CONTRACT.md D5); the
         // real survival sizes the unit's presence.
         let survives = fixed::decide::survival(viability, share);
-        let viability = shared(viability, share);
         let d = decide.child(VIABILITY).draw();
-        let u = d.unit();
         if d.0 >= survives {
             self.axis_mut(apex.axis).apex_end = Some(cycle - 1);
             self.draws_mut(apex.axis).failed = true;
@@ -67,20 +65,20 @@ impl Shoot<'_, '_> {
             self.stop(
                 apex,
                 (cycle, 1.0),
-                above(u, viability),
+                presence::over(survives, d.0),
                 decide,
                 spent,
                 Stop::Failed,
             )?;
             return Ok(());
         }
-        let survive = below(u, viability);
-        let wood = self.windows().wood(pa, cycle);
-        let survive = self
-            .windows()
-            .decided(survive, wood, stop_stake(state.relay_failed));
-        // And its subtrees' survival of shedding on their balance.
-        let survive = survive * self.kept(apex.axis);
+        // Its presence on its survival's own threshold, Q32 (host decision
+        // 8), and its subtrees' survival of shedding on their balance.
+        let lead = presence::under(survives, d.0);
+        let stake = stop_stake(state.relay_failed);
+        let survive = self.windows().presence_q(lead, (pa, cycle, None), stake);
+        let survive = presence::times(survive, presence::q(self.kept(apex.axis)));
+        let survive = fixed::real(survive);
         let (size, reads) = (self.size(apex.axis), self.reads);
         let draws = self.draws_mut(apex.axis);
         draws.units.push(Unit {
@@ -102,17 +100,15 @@ impl Shoot<'_, '_> {
         let draws = self.draws(apex.axis);
         let grown = draws.aged + draws.grown();
         let exposure = carried.exposure(state.life(), 1);
-        let abortion = 1.0 - shared(1.0 - state.abortion_at(grown), exposure);
         let aborts = fixed::decide::abortion(state, grown, exposure);
         if aborts > 0 && !step.ends {
             let d = decide.child(ABORTION).draw();
-            let u = d.unit();
             if d.0 < aborts {
                 self.axis_mut(apex.axis).apex_end = Some(cycle);
                 self.stop(
                     apex,
                     (cycle, 1.0),
-                    below(u, abortion),
+                    presence::under(aborts, d.0),
                     decide,
                     apex.spent,
                     Stop::Aborted,
@@ -122,14 +118,15 @@ impl Shoot<'_, '_> {
             // An apex that all but aborted carries on as itself and as the
             // relay it would have had, which at the bound is laid as its
             // continuation and draws what it would: the two sum, so no
-            // stop near its bound fades the stem (host decision 11).
-            let wood = self.windows().wood(pa, cycle + 1);
-            let faded = self
-                .windows()
-                .decided(above(u, abortion), wood, stop_stake(state.relay));
-            let relayed = self.relayed(state.relay, decide, wood);
+            // stop near its bound fades the stem (host decision 11), each
+            // a Q32 presence (host decision 8).
+            let at = (pa, cycle + 1, None);
+            let lead = presence::over(aborts, d.0);
+            let faded = self.windows().presence_q(lead, at, stop_stake(state.relay));
+            let relayed = self.relayed(state.relay, decide, at);
+            let persist = relayed + presence::times(presence::ONE - relayed, faded);
             let units = &mut self.draws_mut(apex.axis).units;
-            units.last_mut().unwrap().persist = relayed + (1.0 - relayed) * faded;
+            units.last_mut().unwrap().persist = fixed::real(persist);
         }
         if !step.ends {
             self.next.push(apex);

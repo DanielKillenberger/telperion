@@ -47,7 +47,7 @@ The representation is the one specified for both executors. "Status" says what t
 | D14 | A lateral certain to be shed is not grown (fn-210 lever 1) | `grow/shoot.rs:279` | horizon (a maximum of `delay + 1` along the bud's line), `lasting` (species), cycle, age | Equivalent integer form: grown unless `cycle <= age - last - ceil(horizon)`. The record carries the horizon. Every shipped delay is whole, so this is exact either way. | no | as is (exact under A; integer under B) |
 | D15 | P2's shedding of a chain's laterals and relays | `alone/shed.rs:57` (threshold cycle), `:86` (`until > t`), `:76` (product of borne buds' `dead_by`), `:92` to `:97` (conditioned on the bearer, decision) | each borne bud's extinction curve (closed-form table, supplied), the record's context | The threshold cycle and `until` are integers. The product is taken in `chain.buds` order (the chain's kept axes in index order, then the buds that woke on it). A: f64 in that order. B: fixed-point sums of `-ln dead_by` (exact and in any order), with the conditioning in fixed point. The decision is D1's against `threshold(1 - lives)`. **Open** on the product's arithmetic. | A: no | open |
 | D16 | The carbon balance's shedding | `grow/balance.rs:82` | light | Light-reading species only. | – | **F2b** (refused here) |
-| D17 | Whole-tree shedding by fade (`fade <= 0`), and `standing` | `shed.rs:108`, `:36` | presences | Not on the fine path: chains grown alone are shed by D15. Listed because the whole-tree grower still takes it. | – | not on the fine path |
+| D17 | Whole-tree shedding by fade (`fade <= 0`), and `standing` | `shed.rs` (`fades`), `:36` | presences, living times | On the fine path under realized mechanics (task 6). Host decision 8: every presence the fade reads is Q32 and the fade is an integer test (`fixed::presence`; "Host decision 8 built"). | no (measured: 0 of 28 trees) | **built** (CPU) |
 | D18 | A relay's node on its parent | `geometry.rs:55` (in `scale`), `:250` | the parent's last unit's phytomer scales (products of presences) against `relay_at` | **A presence decides an index:** the node is where the cumulative scale first reaches `relay_at` of the unit's. A: f64 as written. B would have to put every presence on the path in fixed point, the logit leads included. **Open.** | A: no | open |
 | D19 | An axis whose base stands below the ground is refused | `geometry/single.rs:56`; `geometry/lay.rs:285` (trunk only) | laid positions | A geometry test. Within a fine root it reads float32 positions on the GPU. **Design question 3.** | – | open (host) |
 | D20 | A vector of no length | `structure.rs:26` (`length > 1e-12`) | geometry | Degenerate guard. Geometry within fn-125's screen; it matters only at exact degeneracy. | no | as is |
@@ -256,3 +256,34 @@ Option (a) of task 5's question: the GPU executor's wave loop runs on the device
 **Open on decision 7 (worker, 2026-10-07): the axes' order.** The partition assembles the same tree by lineage, but not in today's index order: each root's first axis takes its stand-in's index, and its other axes follow the structure above the cut. `measures hash` folds the axes in index order, with each origin's parent index included, so it differs although every axis, phytomer and float is the same (`digest`, which folds in canonical order, is equal). See the task's report for the options.
 
 **Host decision on the order (2026-10-07): option C.** Every `grow` returns its tree in one canonical lineage order, whichever path built it: parents first, siblings by lineage. fn-198 adopts the same order before conversion, so one rule serves both. As built (`fine/canonical.rs`, `lineage_order`): breadth first from the seed; each placed axis's children follow, in the order their parents were placed, each parent's children sorted by lineage and, where two share a lineage (a sleeping bud woken on two carrying axes), by identity (`identities`). The proof of decision 7 is the lineage digest of every tree equal to today's (all four species, seeds 1 and 7, ages 40 and 80, neutral and lit); `measures hash` is re-pinned once to the canonical order. `grow_whole` is today's whole-tree path, in the same order, kept as the tests' reference.
+
+## Host decision 8 built on the CPU (task 6, worker, 2026-10-07)
+
+`crates/telperion-space/src/fixed/presence.rs` is the contract's presence arithmetic; the GPU executor mirrors it. Every presence the shedding sums read is a Q32 integer, held exactly in its real, and every sum and product over them is taken in integers.
+
+- **Leads** come from the decision's own threshold: `under(t, d) = logit(t) - logit(d)` and `over(t, d)`, Q32. A presence and its decision therefore agree. This covers survival (D5's threshold), abortion (D6), the move's stop, the relays (D9's threshold), and a bud's PA (D3's running-sum thresholds, `lineage::bud`).
+- **Windows** are the expected wood's share from the Q32 log-wood table (`exp`), or D10's interpolation by used ticks (`wood_at`), times the rate and clamped, all Q32 (`Windows::window_q`). A sleeping bud's window is `decide::node`'s, from its supplied wood.
+- **Products** are floored in the grower's order (`times`); a species' real (a place's share, a reach, a continuation, the relay share) enters floored (`q`). The products covered:
+  - a unit's survival times the balance's keeping;
+  - a persistence, `relayed + (1 - relayed) faded`;
+  - the carrying of a woken bud (`dormant::carried`) and what its bearer keeps of it (`Woken::kept`);
+  - the living share of an apex (`Grower::living`);
+  - the running presence, unit presences and phytomer presences (`presence::assign_one`);
+  - each axis's vigour.
+- **Fades** (`shed.rs`) are integers throughout:
+  - living times are Q32.32 cycles, presences Q32;
+  - the carry `before + weight (gap + lived)` is floored;
+  - the shedding test is `delay + 1 - (age - until)` clamped to the living apex, an exact integer.
+  - The real fade that sizes a kept axis is that integer's real.
+- The ranks stay real: geometry alone reads them, and D18 reads the node presences, which were already Q32.
+
+**What it moves** (`contract dump`, the 28 trees at 40 and 80, seeds 1 and 7, whole and P2, against `2bda5531`; `raw/d17/q32-vs-base.md`):
+- **Topology:** identical in all 28 trees.
+- **Tips:** at most 0.45 µm (spruce 80, seed 7); RMS at most 19 nm.
+- **Radii:** at most 2.8e-4 relative (oak 80, seed 1), and 5.5e-5 on the beech and spruce.
+- **The palm:** does not move.
+
+**Stills** (age 80, seed 1, bare and in leaf, six views each, before and after; `raw/d17/stills/`, the in-leaf pairs side by side in `pair-<species>.png`, all four viewed by the worker): indistinguishable.
+- Out of 691,200 pixels, the most that differ in one view: the beech 89 (crown); the oak 22; the spruce under 1; the palm none.
+
+**Tests:** `fixed/tests.rs`, `presences_lead_from_their_thresholds` (the lead against the real log-odds within 1e-7; certain elements unbounded; products floored). Every existing `telperion-space` test, the realized partition's bit identity with `grow_whole` included, passes on the integer path.

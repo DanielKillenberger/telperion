@@ -2,6 +2,7 @@
 //! shed, sized, thickened and laid.
 use super::{Grower, Grown, Options, Pass, Record, Request, Stage};
 use crate::error::{Error, Result};
+use crate::fixed::presence::{q, real, times};
 use crate::geometry::{place, scale};
 use crate::girth::{attachments, disused, thicken, Girth};
 use crate::presence::assign;
@@ -21,7 +22,8 @@ impl Grower<'_> {
         }
         for woken in &self.woken {
             let kept = woken.kept(&self.axes, &self.draws, &self.successor, age);
-            self.draws[woken.axis].birth[1] *= kept;
+            let made = &mut self.draws[woken.axis].birth[1];
+            *made = real(times(q(*made), q(kept)));
         }
     }
 
