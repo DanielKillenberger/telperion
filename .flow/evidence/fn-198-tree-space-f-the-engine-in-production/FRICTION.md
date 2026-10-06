@@ -45,3 +45,10 @@
 - **Slowed by:** the GPU lock was held by other workers; the two stills took about 10 minutes of waiting for under 10 seconds of rendering.
 - **Cost:** about 10 minutes wall, no tokens.
 - **Would remove it:** a lock that reports its holder and queue, so a worker can do other work and come back.
+
+## 2026-10-07, task 2: timing at a load of 65 to 130
+
+- **Doing:** timing parameters to a prepared tree for the four species at 40 and 80, one core and all.
+- **Slowed by:** other sessions held the 1-minute load at 65 to 130 on 32 threads through the run (the GPU lock serialises the device, not the CPU), so every all-core time is inflated by an unknown factor and the one-core times compete for a core.
+- **Cost:** a 16-tree run of about 6 minutes whose times are indicative only; a quiet rerun is needed for R2.
+- **Would remove it:** as recorded on 2026-10-05: a timing runner that records the load and refuses above a ceiling, or a quiet window for cost runs.
