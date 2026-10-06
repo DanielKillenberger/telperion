@@ -31,7 +31,6 @@ use crate::structure::{Axis, Structure};
 pub use field::{field_probe, FieldProbe};
 use shed::{in_chain, set_parent, shed};
 use std::collections::VecDeque;
-use std::time::Instant;
 
 /// One chain's growth and shedding: microseconds, phytomers grown,
 /// whether its first axis was kept, its order, the cycles it was grown
@@ -163,7 +162,7 @@ pub(crate) fn chains(
     let (mut costs, mut handed) = (Vec::new(), Vec::new());
     let mut queue = VecDeque::from([first]);
     while let Some(item) = queue.pop_front() {
-        let started = Instant::now();
+        let started = crate::clock::seconds();
         let chain = alone::grow(rules, seed, item.bud.as_ref())?;
         let context = item.context.filter(|_| correct);
         let (kept, contexts) = shed(&chain, rows, rules, context);
@@ -175,7 +174,7 @@ pub(crate) fn chains(
             contexts: &contexts,
         });
         costs.push(ChainCost {
-            micros: started.elapsed().as_secs_f64() * 1e6,
+            micros: (crate::clock::seconds() - started) * 1e6,
             grown: chain.grown,
             kept: kept[chain.root],
             order: item.order,

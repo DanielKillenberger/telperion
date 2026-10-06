@@ -3,6 +3,7 @@
 //! holds only the rows that differ from the default family, one `<path> =
 //! <value>` line each (`grammar.rs`).
 use super::grammar;
+use super::space::{self, Cell};
 use super::table::{Refused, Value};
 use crate::catalogue::{self, Entry, Kind};
 use crate::Family;
@@ -12,7 +13,14 @@ use crate::Family;
 /// line.
 pub fn read(text: &str) -> Result<Family, String> {
     let mut f = Family::default();
-    for line in grammar::parse(text)? {
+    let (engine, rows): (Vec<_>, Vec<_>) = grammar::parse(text)?
+        .into_iter()
+        .partition(|l| space::holds(l.path));
+    f.space = space::read(engine.iter().map(|l| (l.path, Cell::of(l)))).map_err(|why| {
+        let at = engine.iter().find(|l| why.starts_with(l.path)).map_or(0, |l| l.at);
+        format!("{at}: {why}")
+    })?;
+    for line in rows {
         let at = line.at;
         let path = line.path;
         let why = match Value::row(path, line.form, line.number()) {
@@ -47,6 +55,22 @@ pub fn write(family: &Family, source: &str, note: &str) -> Result<String, String
     if let Some(e) = set.iter().find(|e| e.get(family).number().is_none()) {
         return Err(format!("{} is unset where the default sets it", e.path()));
     }
+    // Every row the family sets, by its path: its value and how it is written.
+    let mut set: Vec<(String, f64, String)> = set
+        .iter()
+        .map(|e| {
+            let n = e.get(family).number().expect("a set row");
+            (e.path().to_string(), n, value(*e, family))
+        })
+        .collect();
+    for (path, cell) in space::rows(&family.space)? {
+        let n = match cell {
+            Cell::Number(v) => v,
+            Cell::Switch(b) => f64::from(u8::from(b)),
+            Cell::Never => f64::INFINITY,
+        };
+        set.push((path, n, cell.text()));
+    }
     let rows = grammar::parse(source)?;
     let mut out = String::new();
     for (i, line) in source.lines().enumerate() {
@@ -55,21 +79,20 @@ pub fn write(family: &Family, source: &str, note: &str) -> Result<String, String
             out += "\n";
             continue;
         };
-        let Some(e) = set.iter().find(|e| e.path() == row.path) else {
+        let Some((_, now, written)) = set.iter().find(|(p, ..)| p == row.path) else {
             continue;
         };
-        let now = e.get(family).number();
-        let text = match now == Some(row.number()) {
+        let text = match *now == row.number() {
             true => row.text.to_string(),
-            false => value(*e, family),
+            false => written.clone(),
         };
         let (head, tail) = line.split_once('=').expect("a row line holds `=`");
         out += &format!("{head}={}\n", tail.replacen(row.text, &text, 1));
     }
     let added: Vec<String> = set
         .iter()
-        .filter(|e| !rows.iter().any(|r| r.path == e.path()))
-        .map(|e| format!("{} = {}\n", e.path(), value(*e, family)))
+        .filter(|(p, ..)| !rows.iter().any(|r| r.path == p))
+        .map(|(p, _, written)| format!("{p} = {written}\n"))
         .collect();
     if !added.is_empty() {
         if !out.is_empty() && !out.ends_with("\n\n") {

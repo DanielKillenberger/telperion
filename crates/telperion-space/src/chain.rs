@@ -30,7 +30,8 @@ pub const SHORT: usize = 14;
 pub const AGES: usize = 15;
 
 /// An age a species passes through: no lifespan, moving on to the next.
-fn passed() -> PaState {
+/// What a preset's `/space` rows are laid over (fn-198).
+pub fn passed() -> PaState {
     PaState {
         lifespan: 0.0,
         continuation: 1.0,

@@ -20,7 +20,6 @@ use crate::grow::Rules;
 use crate::species::Species;
 use crate::structure::{Axis, Origin, Structure};
 use std::sync::Arc;
-use std::time::Instant;
 
 /// The root's parent in an expanded root's axes: its bearer above the cut.
 pub(crate) const BEARER: usize = usize::MAX;
@@ -57,7 +56,7 @@ pub(crate) struct Context<'a> {
 
 /// Expands `root` from its record alone.
 pub(crate) fn expand(cx: &Context, root: &FineRoot) -> Result<Expanded> {
-    let started = Instant::now();
+    let started = crate::clock::seconds();
     let (unbent, bent) = root.attachment.stubs();
     let mut record = root.record;
     record.origin = local(record.origin);
@@ -88,7 +87,7 @@ pub(crate) fn expand(cx: &Context, root: &FineRoot) -> Result<Expanded> {
         work.axes += c.axes;
     }
     if grown.axes.len() == 1 {
-        work.micros = started.elapsed().as_secs_f64() * 1e6;
+        work.micros = (crate::clock::seconds() - started) * 1e6;
         return Ok(Expanded {
             axes: Vec::new(),
             work,
@@ -132,7 +131,7 @@ pub(crate) fn expand(cx: &Context, root: &FineRoot) -> Result<Expanded> {
             axis
         })
         .collect();
-    work.micros = started.elapsed().as_secs_f64() * 1e6;
+    work.micros = (crate::clock::seconds() - started) * 1e6;
     Ok(Expanded { axes, work })
 }
 

@@ -1,10 +1,6 @@
 # European beech, Fagus sylvatica.
 # Rows off the default family, checked against the catalogue as core compiles.
 
-# Mature open-grown Fagus sylvatica. Envelope height is the 32 m
-# reference at 120 yr.
-/age = 120.0
-
 # The winter photograph (B-BARE, fn-54): a straight trunk clear to about
 # a fifth of the height, a core that stays the thickest wood to about
 # half of it and runs on toward the top, and limbs that leave it 25 to
@@ -35,17 +31,10 @@
 # An upright oval, widest a little below the middle of the crown and
 # rounding to its top (B-BARE: width over height about 0.74). The shell
 # starts at 0.06 of the height, so no wood and no leaf stands under 1.9 m.
-/skeleton/envelope/height = 32.0
-/skeleton/envelope/crownBase = 0.06
-/skeleton/envelope/spread = 0.36
-/skeleton/envelope/fullness = 0.3
-/skeleton/envelope/shoulder = 1.8
 
 # A beech's crown is lumpy where its limbs end and hollow where they
 # do not. Four or five broad lobes around a wavelength most of the
 # tree's own height, at not quite a fifth of the radius.
-/skeleton/envelope/irregularity = 0.18
-/skeleton/envelope/lobeScale = 0.7
 /skeleton/bias/gravitropism = 0.0
 /skeleton/bias/lean = 0.0
 
@@ -71,7 +60,7 @@
 # a flat frond and the crown read as a hemlock (owner and host, round 11).
 /skeleton/twigs/angle = 40.0
 /skeleton/twigs/divergence = 137.5
-/skeleton/twigs/twig/internodeLength = 0.05
+/skeleton/twigs/twig/internodeLength = 0.006
 /skeleton/twigs/twig/bearingDiameter = 0.03
 
 # A trunk a little over a metre through at breast height, a third of
@@ -106,7 +95,7 @@
 # every shoot with a comb of level leaves, and the crown's edge read as
 # fern fronds against the sky (host, round 17). They stand where the
 # slender wood's own row of leaves stood, so that row is off.
-/canopy/shortShootSpacing = 0.03
+/canopy/shortShootSpacing = 0.0
 /canopy/shortShootRadius = 0.7
 /canopy/shortShootLength = 0.2
 /canopy/shortShootLeaves = 8
@@ -117,7 +106,7 @@
 # systems to their centres, so the crown breaks into rounded clumps
 # with gaps between them, as B-WHOLE's does; the spurs stand a
 # centimetre closer than round 18's to give back what the gaps take.
-/canopy/limbClumping = 0.25
+/canopy/limbClumping = 0.0
 
 # A beech leaf is held flat and turned every way about its shoot;
 # leaning along it (0.45) laid the leaves down the twig like needles.
@@ -275,3 +264,233 @@
 # Left at the default family:
 # The default dead colour: this table keeps no skirt to show it on.
 # No plate network: smooth bark has none to draw.
+
+# The rows the tree-space example restated for a tree that grows its own
+# shoots (fn-193 to fn-196): leaves along the grown shoots, no clusters
+# seated along slender wood.
+/canopy/shootRadius = 0.018
+
+# The age the harness opens the tree at (fn-198 host decision 5); the
+# engine grows the tree to it.
+/age = 40.0
+
+# The engine species (fn-198 host decision 1): telperion_space::beech (fn-193; SOURCES.md there).
+# The envelope is derived from the grown tree (host decision 7).
+/space/ages/2/lifespan = 9.0
+/space/ages/2/internode = 0.07
+/space/ages/2/insertion = 0.3
+/space/ages/2/divergence = 2.4
+/space/ages/2/abortion = 0.5
+/space/ages/2/relay = 1.0
+/space/ages/2/relayEnded = 1.0
+/space/ages/2/relayFailed = 1.0
+/space/ages/2/relayAt = 0.15
+/space/ages/2/epitony = 0.6
+/space/ages/2/erection = 0.1
+/space/ages/2/straightening = 1.0
+/space/ages/2/form/tropism = 0.6
+/space/ages/2/form/elevation = 1.4
+/space/ages/2/form/wander = 0.2
+/space/ages/2/form/plane = 1.5707963267948966
+/space/ages/2/form/pipe = 0.008
+/space/ages/2/form/exponent = 2.6
+/space/ages/2/zones/0/buds = 1.0
+/space/ages/2/zones/0/nodes/min = 3.0
+/space/ages/2/zones/0/nodes/max = 4.0
+/space/ages/2/zones/1/buds = 1.0
+/space/ages/2/zones/1/nodes/min = 2.0
+/space/ages/2/zones/1/nodes/max = 3.0
+/space/ages/2/zones/1/lateral/9 = 0.35
+/space/ages/2/zones/2/buds = 1.0
+/space/ages/2/zones/2/nodes/min = 1.0
+/space/ages/2/zones/2/nodes/max = 1.0
+/space/ages/2/zones/2/lateral/9 = 0.8
+/space/ages/4/lifespan = 40.0
+/space/ages/4/insertion = 0.7
+/space/ages/4/abortion = 0.3
+/space/ages/4/relay = 1.0
+/space/ages/4/relayEnded = 1.0
+/space/ages/4/relayFailed = 1.0
+/space/ages/4/relayAt = 0.15
+/space/ages/4/epitony = 0.6
+/space/ages/4/straightening = 1.0
+/space/ages/4/form/tropism = 0.6
+/space/ages/4/form/elevation = 1.35
+/space/ages/4/form/wander = 1.2
+/space/ages/4/form/pipe = 0.008
+/space/ages/4/form/exponent = 2.6
+/space/ages/4/form/ripening = 15.0
+/space/ages/4/form/roll = 1.2
+/space/ages/4/zones/0/buds = 1.0
+/space/ages/4/zones/0/nodes/min = 2.0
+/space/ages/4/zones/0/nodes/max = 3.0
+/space/ages/4/zones/1/buds = 1.0
+/space/ages/4/zones/1/nodes/min = 2.0
+/space/ages/4/zones/1/nodes/max = 3.0
+/space/ages/4/zones/1/lateral/9 = 0.27
+/space/ages/4/zones/1/lateral/14 = 0.3
+/space/ages/4/zones/2/buds = 1.0
+/space/ages/4/zones/2/nodes/min = 1.0
+/space/ages/4/zones/2/nodes/max = 1.0
+/space/ages/4/zones/2/lateral/6 = 0.3
+/space/ages/4/zones/2/lateral/7 = 0.2
+/space/ages/5/lifespan = 2.0
+/space/ages/5/continuation = 0.0
+/space/ages/5/divergence = 2.4
+/space/ages/5/form/tropism = 0.3
+/space/ages/5/form/elevation = 1.5707963267948966
+/space/ages/5/form/wander = 0.2
+/space/ages/5/form/plane = 1.5707963267948966
+/space/ages/5/form/pipe = 0.008
+/space/ages/5/form/exponent = 2.6
+/space/ages/5/zones/0/buds = 1.0
+/space/ages/5/zones/0/nodes/min = 2.0
+/space/ages/5/zones/0/nodes/max = 3.0
+/space/ages/5/zones/1/buds = 1.0
+/space/ages/5/zones/1/nodes/min = 2.0
+/space/ages/5/zones/1/nodes/max = 2.0
+/space/ages/5/zones/1/lateral/6 = 0.3
+/space/ages/5/zones/1/lateral/7 = 0.5
+/space/ages/5/zones/2/buds = 1.0
+/space/ages/5/zones/2/nodes/min = 1.0
+/space/ages/5/zones/2/nodes/max = 1.0
+/space/ages/5/zones/2/lateral/6 = 0.9
+/space/ages/6/lifespan = 70.0
+/space/ages/6/continuation = 0.0
+/space/ages/6/viability = 0.995
+/space/ages/6/insertion = 0.7
+/space/ages/6/abortion = 0.3
+/space/ages/6/relay = 1.0
+/space/ages/6/relayEnded = 1.0
+/space/ages/6/relayFailed = 1.0
+/space/ages/6/relayAt = 0.15
+/space/ages/6/epitony = 0.6
+/space/ages/6/straightening = 0.6
+/space/ages/6/form/tropism = 0.6
+/space/ages/6/form/elevation = 0.3
+/space/ages/6/form/wander = 1.2
+/space/ages/6/form/pipe = 0.008
+/space/ages/6/form/exponent = 2.6
+/space/ages/6/form/ripening = 15.0
+/space/ages/6/form/roll = 1.2
+/space/ages/6/zones/0/buds = 1.0
+/space/ages/6/zones/0/nodes/min = 2.0
+/space/ages/6/zones/0/nodes/max = 3.0
+/space/ages/6/zones/1/buds = 1.0
+/space/ages/6/zones/1/nodes/min = 2.0
+/space/ages/6/zones/1/nodes/max = 3.0
+/space/ages/6/zones/1/lateral/9 = 0.27
+/space/ages/6/zones/1/lateral/14 = 0.3
+/space/ages/6/zones/2/buds = 1.0
+/space/ages/6/zones/2/nodes/min = 1.0
+/space/ages/6/zones/2/nodes/max = 1.0
+/space/ages/6/zones/2/lateral/7 = 0.16
+/space/ages/7/lifespan = 30.0
+/space/ages/7/continuation = 0.0
+/space/ages/7/viability = 0.995
+/space/ages/7/insertion = 0.7
+/space/ages/7/abortion = 0.35
+/space/ages/7/relay = 1.0
+/space/ages/7/relayEnded = 1.0
+/space/ages/7/relayFailed = 1.0
+/space/ages/7/relayAt = 0.15
+/space/ages/7/epitony = 0.6
+/space/ages/7/straightening = 0.6
+/space/ages/7/form/tropism = 0.6
+/space/ages/7/form/elevation = 0.2
+/space/ages/7/form/wander = 1.2
+/space/ages/7/form/pipe = 0.008
+/space/ages/7/form/exponent = 2.6
+/space/ages/7/form/ripening = 15.0
+/space/ages/7/form/roll = 1.2
+/space/ages/7/zones/0/buds = 1.0
+/space/ages/7/zones/0/nodes/min = 2.0
+/space/ages/7/zones/0/nodes/max = 3.0
+/space/ages/7/zones/1/buds = 1.0
+/space/ages/7/zones/1/nodes/min = 2.0
+/space/ages/7/zones/1/nodes/max = 3.0
+/space/ages/7/zones/1/lateral/9 = 0.27
+/space/ages/7/zones/1/lateral/14 = 0.3
+/space/ages/7/zones/2/buds = 1.0
+/space/ages/7/zones/2/nodes/min = 1.0
+/space/ages/7/zones/2/nodes/max = 1.0
+/space/ages/7/zones/2/lateral/8 = 0.14
+/space/ages/8/lifespan = 25.0
+/space/ages/8/continuation = 0.0
+/space/ages/8/viability = 0.995
+/space/ages/8/insertion = 0.7
+/space/ages/8/straightening = 0.25
+/space/ages/8/form/tropism = 0.25
+/space/ages/8/form/elevation = 0.6
+/space/ages/8/form/wander = 1.2
+/space/ages/8/form/pipe = 0.008
+/space/ages/8/form/exponent = 2.6
+/space/ages/8/form/ripening = 15.0
+/space/ages/8/form/roll = 1.2
+/space/ages/8/zones/0/buds = 1.0
+/space/ages/8/zones/0/nodes/min = 2.0
+/space/ages/8/zones/0/nodes/max = 3.0
+/space/ages/8/zones/1/buds = 1.0
+/space/ages/8/zones/1/nodes/min = 2.0
+/space/ages/8/zones/1/nodes/max = 3.0
+/space/ages/8/zones/1/lateral/9 = 0.27
+/space/ages/8/zones/1/lateral/14 = 0.3
+/space/ages/8/zones/2/buds = 1.0
+/space/ages/8/zones/2/nodes/min = 1.0
+/space/ages/8/zones/2/nodes/max = 1.0
+/space/ages/8/zones/2/lateral/9 = 0.45
+/space/ages/9/lifespan = 10.0
+/space/ages/9/viability = 0.95
+/space/ages/9/shedding = 1.0
+/space/ages/9/internode = 0.03
+/space/ages/9/insertion = 1.0
+/space/ages/9/form/tropism = 0.8
+/space/ages/9/form/elevation = 0.35
+/space/ages/9/form/wander = 0.5
+/space/ages/9/form/pipe = 0.0009
+/space/ages/9/form/roll = 1.2
+/space/ages/9/zones/0/buds = 1.0
+/space/ages/9/zones/0/nodes/min = 1.0
+/space/ages/9/zones/0/nodes/max = 2.0
+/space/ages/9/zones/1/buds = 1.0
+/space/ages/9/zones/1/nodes/min = 2.0
+/space/ages/9/zones/1/nodes/max = 3.0
+/space/ages/9/zones/1/lateral/14 = 0.7
+/space/ages/9/zones/2/buds = 1.0
+/space/ages/9/zones/2/nodes/min = 1.0
+/space/ages/9/zones/2/nodes/max = 1.0
+/space/ages/9/zones/2/lateral/9 = 0.08
+/space/ages/9/zones/3/buds = 1.0
+/space/ages/9/zones/3/nodes/min = 1.0
+/space/ages/9/zones/3/nodes/max = 2.0
+/space/ages/9/zones/3/lateral/12 = 0.65
+/space/ages/12/lifespan = 5.0
+/space/ages/12/continuation = 0.0
+/space/ages/12/viability = 0.95
+/space/ages/12/shedding = 1.0
+/space/ages/12/internode = 0.025
+/space/ages/12/insertion = 1.0
+/space/ages/12/form/tropism = 1.0
+/space/ages/12/form/elevation = 0.15
+/space/ages/12/form/wander = 1.0
+/space/ages/12/form/pipe = 0.0009
+/space/ages/12/zones/0/buds = 1.0
+/space/ages/12/zones/0/nodes/min = 1.0
+/space/ages/12/zones/0/nodes/max = 1.0
+/space/ages/12/zones/1/buds = 1.0
+/space/ages/12/zones/1/nodes/min = 2.0
+/space/ages/12/zones/1/nodes/max = 3.0
+/space/ages/12/zones/1/lateral/14 = 0.6
+/space/ages/14/lifespan = 3.0
+/space/ages/14/continuation = 0.0
+/space/ages/14/viability = 0.9
+/space/ages/14/shedding = 1.0
+/space/ages/14/internode = 0.006
+/space/ages/14/insertion = 0.9
+/space/ages/14/form/pipe = 0.00095
+/space/ages/14/zones/0/buds = 1.0
+/space/ages/14/zones/0/nodes/min = 3.0
+/space/ages/14/zones/0/nodes/max = 5.0
+/space/ages/2/trunk = true
+/space/ages/4/trunk = true
+/space/ages/5/trunk = true

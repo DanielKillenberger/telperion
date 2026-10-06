@@ -1,7 +1,9 @@
 //! The value file's grammar, shared by the build script that compiles the
 //! shipped presets and by the reader and writer the tools use. A line is a
 //! blank, a comment whose first mark is `#`, or one row: its wire path, `=`,
-//! and a value, `true`, `false` or a decimal number. A path appears once.
+//! and a value, `true`, `false`, `never` or a decimal number. A path appears
+//! once. `never` is an unbounded delay, a typed token rather than a number
+//! (fn-198 host decision 1); only an engine species' shedding admits it.
 //! Only the grammar is judged here; the catalogue judges the rows.
 
 /// How a value is written, which decides the rows it may set.
@@ -13,6 +15,8 @@ pub enum Form {
     Real,
     /// `true` or `false`.
     Switch,
+    /// `never`: a delay with no end.
+    Never,
 }
 
 /// One row of a value file, as written.
@@ -30,6 +34,7 @@ impl Line<'_> {
         match self.text {
             "true" => 1.0,
             "false" => 0.0,
+            "never" => f64::INFINITY,
             text => text.parse().expect("the grammar admitted a number"),
         }
     }
@@ -53,7 +58,7 @@ pub fn parse(text: &str) -> Result<Vec<Line<'_>>, String> {
             return Err(format!("{at}: `{path}` is not a wire path"));
         }
         let form = form(text).ok_or(format!("{at}: `{text}` is not a value"))?;
-        if form != Form::Switch && !text.parse::<f64>().is_ok_and(f64::is_finite) {
+        if matches!(form, Form::Whole | Form::Real) && !text.parse::<f64>().is_ok_and(f64::is_finite) {
             return Err(format!("{at}: `{text}` is past the largest double"));
         }
         if let Some(first) = rows.iter().find(|r| r.path == path) {
@@ -80,6 +85,9 @@ fn is_path(path: &str) -> bool {
 fn form(text: &str) -> Option<Form> {
     if text == "true" || text == "false" {
         return Some(Form::Switch);
+    }
+    if text == "never" {
+        return Some(Form::Never);
     }
     let (mantissa, exponent) = match text.split_once(['e', 'E']) {
         Some((m, e)) => (m, Some(e.strip_prefix(['-', '+']).unwrap_or(e))),
@@ -118,6 +126,14 @@ mod tests {
             ]
         );
         assert_eq!(rows[2].number(), -2.5e-3);
+    }
+
+    /// `never` is read as a delay with no end, a form of its own.
+    #[test]
+    fn never_is_a_token_of_its_own() {
+        let rows = parse("/space/ages/9/shedding = never\n").unwrap();
+        assert_eq!(rows[0].form, Form::Never);
+        assert_eq!(rows[0].number(), f64::INFINITY);
     }
 
     #[test]

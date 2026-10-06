@@ -16,11 +16,6 @@
 /skeleton/bias/lean = 0.02
 /skeleton/bias/supernatural/writheWavelength = 0.35
 
-# A narrow envelope whose crown starts at 45 % of the height.
-/skeleton/envelope/height = 22.86
-/skeleton/envelope/crownBase = 0.45
-/skeleton/envelope/spread = 0.1
-/skeleton/envelope/shoulder = 0.45
 /skeleton/twigs/twig/diameter = 0.007
 /skeleton/twigs/hang = 2.75
 /skeleton/twigs/sag = 1.0
@@ -119,3 +114,25 @@
 /material/leafDeadRed = 0.34
 /material/leafDeadGreen = 0.29
 /material/leafDeadBlue = 0.22
+
+# The age the harness opens the tree at (fn-198 host decision 5); the
+# engine grows the tree to it.
+/age = 40.0
+
+# The engine species (fn-198 host decision 1): telperion_space::palm (fn-196).
+# The envelope is derived from the grown tree (host decision 7).
+/space/ages/2/lifespan = 150.0
+/space/ages/2/continuation = 0.0
+/space/ages/2/internode = 0.031
+/space/ages/2/divergence = 2.399963
+/space/ages/2/readiness = 0.0
+/space/ages/2/rhythm = 0.0
+/space/ages/2/form/tropism = 0.5
+/space/ages/2/form/elevation = 1.5707963267948966
+/space/ages/2/form/wander = 0.05
+/space/ages/2/form/pipe = 0.297
+/space/ages/2/form/secondary = 0.0
+/space/ages/2/zones/0/buds = 1.0
+/space/ages/2/zones/0/nodes/min = 12.0
+/space/ages/2/zones/0/nodes/max = 12.0
+/space/ages/2/trunk = true

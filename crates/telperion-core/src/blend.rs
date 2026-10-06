@@ -5,7 +5,7 @@
 use crate::{
     bias::SupernaturalParams,
     catalogue::{linear, walk},
-    presets::Family,
+    presets::{space::Space, Family},
     Error, Result,
 };
 
@@ -82,7 +82,35 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
     );
     g.max_nodes = (oa.max_nodes.is_some() || ob.max_nodes.is_some())
         .then(|| linear(ga.max_nodes as f64, gb.max_nodes as f64, t).round() as usize);
+    f.space = space(&a.space, &b.space, t)?;
     Ok(f)
+}
+
+/// The engine species between two families' (fn-206's walk on the shared
+/// reference axis), the stem ages of either end, and the light between
+/// theirs. A walk from a family with no species to one with one is refused
+/// by name: there is no species to start from.
+fn space(a: &Space, b: &Space, t: f64) -> Result<Space> {
+    let species = match (&a.species, &b.species) {
+        (Some(x), Some(y)) => Some(
+            telperion_space::blend(x, y, t)
+                .map_err(|_| Error::InvalidInput("blend of two engine species"))?,
+        ),
+        (None, None) => None,
+        _ => return Err(Error::InvalidInput("blend of one engine species")),
+    };
+    let mut trunk: Vec<usize> = a.trunk.iter().chain(&b.trunk).copied().collect();
+    trunk.sort_unstable();
+    trunk.dedup();
+    let light = telperion_space::Light {
+        extinction: linear(a.light.extinction, b.light.extinction, t),
+        sky: linear(a.light.sky, b.light.sky, t),
+    };
+    Ok(Space {
+        species,
+        trunk,
+        light,
+    })
 }
 
 /// A growth override neither row states is left to the envelope, as it was on

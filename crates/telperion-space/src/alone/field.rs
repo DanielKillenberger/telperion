@@ -3,7 +3,6 @@
 use crate::bounded::Expected;
 use crate::species::Species;
 use crate::structure::{Origin, Structure};
-use std::time::Instant;
 
 /// The committed light field measured (fn-209 probe P2): its resolution,
 /// its build's milliseconds, its nodes, the leaves deposited and the buds
@@ -121,7 +120,7 @@ pub fn field_probe(
     cells
         .iter()
         .map(|&cell| {
-            let started = Instant::now();
+            let started = crate::clock::seconds();
             let mut leaves = own.clone();
             let mut expected_lit = expected_area;
             for &(base, area, reach) in &buds {
@@ -146,7 +145,7 @@ pub fn field_probe(
                 field = Field::sized(&light, &spread, &[], cell);
                 expected_lit = spread[own.len()..].iter().map(|l| l.1).sum();
             }
-            let millis = started.elapsed().as_secs_f64() * 1e3;
+            let millis = (crate::clock::seconds() - started) * 1e3;
             let mut diffs: Vec<f64> = Vec::with_capacity(tips.len());
             let (mut a, mut b) = (0.0, 0.0);
             for (&tip, &(_, l)) in tips.iter().zip(&realized) {

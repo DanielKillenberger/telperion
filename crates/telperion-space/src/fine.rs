@@ -143,9 +143,9 @@ pub fn grow_fine(
         seed: request.seed,
         age: request.age,
     };
-    let started = std::time::Instant::now();
+    let started = crate::clock::seconds();
     let expanded = execute(&cx, &roots, plan, threads)?;
-    let expand_seconds = started.elapsed().as_secs_f64();
+    let expand_seconds = crate::clock::seconds() - started;
     let mut structure = bounded.into_structure();
     let above = structure.axes.len();
     let mut out = Vec::with_capacity(roots.len());

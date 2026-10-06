@@ -33,6 +33,9 @@ crate::catalogue::rows! {
         pub canopy: CanopyParams,
         pub element: ElementParams,
         pub material: MaterialParams,
+        /// The tree-space engine's species, the ages that are stem and the
+        /// site's light: the indexed `/space` rows (`presets/space.rs`).
+        pub space: crate::presets::space::Space,
         /// How deep into the crown leaves are kept, as a share of the crown's
         /// widest radius; a leaf further in than that is dropped. Raising it
         /// keeps more of the crown's interior foliage, and one keeps it all.
@@ -62,6 +65,7 @@ impl Default for Family {
             canopy: CanopyParams::default(),
             element: ElementParams::default(),
             material: MaterialParams::default(),
+            space: Default::default(),
             shell_depth: 0.45,
         }
     }

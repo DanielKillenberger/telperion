@@ -23,7 +23,13 @@
 //! with those rows stripped from fn-179's text, the family, walk and override
 //! texts were each the new one, and every single-row refusal of every row that
 //! remains read as it did, `age`'s included; only the refusal pairs, which pair
-//! rows by index, re-paired.
+//! rows by index, re-paired. fn-198 re-pinned the family, walk and override
+//! digests for the four engine presets (beech, spruce, oak, palm): each
+//! carries its engine species as `/space` rows, the age the harness opens it
+//! at (40), the dressing rows the tree-space examples restated, and no
+//! envelope rows, which the pipeline derives from the grown tree; a walk
+//! between a preset with a species and one without is refused by name. The
+//! refusal digest, over the catalogue's rows alone, did not move.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -59,7 +65,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        5_648_004_428_133_584_001,
+        6_130_194_522_114_778_952,
         "{}",
         digest(&text)
     );
@@ -91,7 +97,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        14_247_106_638_314_447_635,
+        3_598_780_732_817_124_087,
         "{}",
         digest(&text)
     );
@@ -116,7 +122,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        640_139_014_775_524_557,
+        4_317_389_471_735_493_231,
         "{}",
         digest(&text)
     );

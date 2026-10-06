@@ -1392,6 +1392,7 @@ dependencies = [
  "serde_json",
  "slotmap",
  "telperion-core",
+ "telperion-space",
  "trybuild",
 ]
 

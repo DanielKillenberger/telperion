@@ -54,12 +54,12 @@ impl Expected {
         } else {
             threads
         };
-        let started = std::time::Instant::now();
+        let started = crate::clock::seconds();
         let rows = Arc::new(Rows::new(species, age, threads));
         Self {
             rows,
             age,
-            seconds: started.elapsed().as_secs_f64(),
+            seconds: (crate::clock::seconds() - started),
         }
     }
 
@@ -118,7 +118,7 @@ impl<'s> Bounded<'s> {
             settle: true,
             ..Options::default()
         };
-        let started = std::time::Instant::now();
+        let started = crate::clock::seconds();
         let grown = run(species, request, &mut |_| {}, true, options)?;
         let rows = expected.rows.clone();
         let mut tree = Self::settled(
@@ -127,7 +127,7 @@ impl<'s> Bounded<'s> {
             grown.records,
             (rows, grown.leaf_mean),
         );
-        tree.timings = (started.elapsed().as_secs_f64(), expected.seconds);
+        tree.timings = ((crate::clock::seconds() - started), expected.seconds);
         Ok(tree)
     }
 

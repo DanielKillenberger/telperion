@@ -3,6 +3,7 @@
 //! into a table of rows over the default family (`table.rs`).
 #[doc(hidden)]
 pub mod grammar;
+pub mod space;
 #[doc(hidden)]
 pub mod table;
 pub mod values;
