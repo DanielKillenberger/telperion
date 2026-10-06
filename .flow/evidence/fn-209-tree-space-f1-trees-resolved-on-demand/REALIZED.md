@@ -159,3 +159,35 @@ What the table shows:
 - (a) Leave out the table where it costs more than it saves. Cut ∞ needs none: the spruce was fastest there on every core count, and the beech on one core.
 - (b) A count-only predictor. The cut reads only the rows' `count`; reach bounds, sections, mass and the seed row are the committed path's.
 - (c) Cache the table per species and age across `grow` calls. A retune that changes the species still pays for it.
+
+## Host decision 8: what is built, and the GPU mirror's remaining work (2026-10-07)
+
+**Built:**
+- **CPU:** every presence the shedding sums read is Q32, and the fade is integer (FINE-CONTRACT.md, "Host decision 8 built on the CPU"). Topology is identical in 28 trees; tips move at most 0.45 µm; the stills are indistinguishable.
+- **GPU contract:** `contract.wgsl` mirrors `under`, `over`, `times`, `wood_at`, `window`, `carry` and `fade` bit for bit. The contract probe covers 262,144 cases each (selectors 12 to 14), and every result is bit-identical.
+
+**Not built: the GPU executor itself under realized mechanics.** The device loop (`roots.rs`, `chain.wgsl`, `shed.wgsl`, `emit.wgsl`, `resolve.wgsl`) runs option 4 today. The work, in the order it can be tested:
+
+1. **Growth without committed shedding.** `shed.wgsl` keeps every axis, so every borne bud becomes the next wave's chain. Test: every root's axes by lineage before shedding, against `grow::realized::root`.
+2. **Q32 presences in the chain grower** (`presence.wgsl` alongside its f32 geometry presences):
+   - unit survival and persistence, the relays and the stop of a failed unit;
+   - a lateral's and a woken bud's made presences;
+   - a woken bud's carrying and keeping;
+   - the living share.
+   - Each is stored per unit and per axis in the packed records. Test: bit identity with the CPU's `Draws`, per axis.
+3. **Phase 1 on the device**, one invocation per chain as now:
+   - Q32 assign (the running products, unit presences, phytomer presences and vigour);
+   - the fades bottom-up across waves. Each chain reads its borne buds' chains, contiguous in the next wave, at the range the emit scan already computes, so the 64-bit max needs no atomics;
+   - the shedding flags top-down;
+   - one `Living` record per root up.
+   - Test: topology by lineage after shedding, against `grow_fine`.
+4. **Phases 2 to 4.** The CPU settles the structure above the cut between them, as `grow_fine` does:
+   - scale top-down, girth bottom-up across waves (base radius up);
+   - the unbent lay top-down, the levers bottom-up across waves (base load up);
+   - the bent lay from the first lay's frames (`lay.wgsl`'s `was_heading` and `was_side`).
+   - These replace `resolve.wgsl`'s committed girth fit and borne loads.
+   - Test: fn-125's screen against `grow_fine`.
+5. **The conservative ground bound.** A root goes to the CPU where its reach bound, with the bearer's fade taken as 1, can reach the landing zone (host decision 3). It is decided after phase 1, from the down record's base scale.
+6. **Timing, and removal of the probe.** Timed cold and warm against `grow_fine` on 1 and all cores, round trips counted. Then `grow_committed` and the option-4 kernels leave the GPU tests.
+
+**Sizing (worker's reading, for the host):** tasks 2 to 5 each took a session for one comparable slice (growth, geometry, the device loop). Steps 1 to 3 are one such session; step 4 is another.
