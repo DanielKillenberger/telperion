@@ -254,7 +254,7 @@ pub(crate) fn run(
         grower.draws[woken.axis].birth[1] *= kept;
     }
     stage(Stage::Pass(Pass::Mark));
-    assign(&mut grower.axes, &grower.draws);
+    assign(&mut grower.axes, &grower.draws, threads);
     stage(Stage::Pass(Pass::Assign));
     let made: Vec<Record> = if options.settle {
         grower

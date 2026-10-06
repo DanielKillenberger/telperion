@@ -178,42 +178,60 @@ pub(crate) struct Draws {
 
 /// Sets every axis's vigour, growth-unit presences, phytomer scales (each
 /// relative to its axis's base), phyllotactic ranks and living presence.
-pub(crate) fn assign(axes: &mut [Axis], draws: &[Draws]) {
-    let mut end = vec![1.0; axes.len()];
-    for i in 0..axes.len() {
-        let axis = &mut axes[i];
-        let birth = axis.birth;
-        let mut running = 1.0;
-        let mut presences = Vec::with_capacity(draws[i].units.len());
-        let mut j = 0;
-        let mut rank = 0.0;
-        for (k, &[survive, persist]) in draws[i].units.iter().enumerate() {
-            running *= survive;
-            let grown = draws[i].shares[k];
-            presences.push(running * grown);
-            while j < axis.phytomers.len() && (axis.phytomers[j].cycle - birth - 1) as usize == k {
-                axis.phytomers[j].scale = running * draws[i].nodes[j] * grown;
-                axis.phytomers[j].size = draws[i].sizes.get(k).copied().unwrap_or(1.0);
-                axis.phytomers[j].light = draws[i].lights.get(k).copied().unwrap_or(1.0);
-                axis.phytomers[j].rank = rank;
-                rank += draws[i].nodes[j] * grown;
-                j += 1;
-            }
-            running *= persist;
-        }
-        end[i] = running;
-        axis.units = presences;
-        axis.sleep = draws[i].sleep;
-        axis.rank = rank;
-        axis.alive = if draws[i].alive {
-            running * draws[i].living
-        } else {
-            0.0
-        };
-        let made = draws[i].birth[0] * draws[i].birth[1];
+pub(crate) fn assign(axes: &mut [Axis], draws: &[Draws], threads: usize) {
+    // Each axis's presence at its end, which what carries it on is made
+    // at: its own alone, so every axis is assigned on its own, on up to
+    // `threads` cores, and its vigour then from its parent's end.
+    let pieces: Vec<(usize, &mut [Axis])> = axes
+        .chunks_mut(crate::cores::PIECE)
+        .enumerate()
+        .map(|(k, c)| (k * crate::cores::PIECE, c))
+        .collect();
+    let ends = crate::cores::map(pieces, 1, threads, &|_, (from, piece)| {
+        piece
+            .iter_mut()
+            .enumerate()
+            .map(|(j, axis)| assign_one(axis, &draws[from + j]))
+            .collect::<Vec<f64>>()
+    });
+    let end: Vec<f64> = ends.into_iter().flatten().collect();
+    for (axis, draws) in axes.iter_mut().zip(draws) {
+        let made = draws.birth[0] * draws.birth[1];
         axis.vigour = match axis.origin {
             Origin::Seed | Origin::Lateral { .. } => made,
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => end[parent] * made,
         };
     }
+}
+
+/// Assigns one axis's presences from its draws: its end's presence.
+fn assign_one(axis: &mut Axis, draws: &Draws) -> f64 {
+    let birth = axis.birth;
+    let mut running = 1.0;
+    let mut presences = Vec::with_capacity(draws.units.len());
+    let mut j = 0;
+    let mut rank = 0.0;
+    for (k, &[survive, persist]) in draws.units.iter().enumerate() {
+        running *= survive;
+        let grown = draws.shares[k];
+        presences.push(running * grown);
+        while j < axis.phytomers.len() && (axis.phytomers[j].cycle - birth - 1) as usize == k {
+            axis.phytomers[j].scale = running * draws.nodes[j] * grown;
+            axis.phytomers[j].size = draws.sizes.get(k).copied().unwrap_or(1.0);
+            axis.phytomers[j].light = draws.lights.get(k).copied().unwrap_or(1.0);
+            axis.phytomers[j].rank = rank;
+            rank += draws.nodes[j] * grown;
+            j += 1;
+        }
+        running *= persist;
+    }
+    axis.units = presences;
+    axis.sleep = draws.sleep;
+    axis.rank = rank;
+    axis.alive = if draws.alive {
+        running * draws.living
+    } else {
+        0.0
+    };
+    running
 }
