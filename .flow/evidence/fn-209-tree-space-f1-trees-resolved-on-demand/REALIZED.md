@@ -115,4 +115,4 @@ What the table shows:
 | GPU geometry within 50 µm max, 10 µm RMS | **not met**: GPU mirror not built; stops at D17 |
 | Committed-boundary path out of production, kept only where named | **met**: `grow_committed`, kept for the GPU tests |
 | Timing warm and cold against the CPU on 1 and all cores; round trips counted | **met for the CPU executor** (`Fine::phases`, `Fine::trips`); the GPU's waits on its mirror |
-| Workspace gate green | see the task's done summary |
+| Workspace gate green | **met**: `cargo test --profile ci --workspace --no-fail-fast` at `13f22e09`'s code, 1,148 passed, 0 failed, 10 m 49 s at load 6 to 32 (GPU lock held) |
