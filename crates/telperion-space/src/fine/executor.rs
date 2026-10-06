@@ -70,7 +70,14 @@ pub(crate) fn expand(cx: &Context, root: &FineRoot) -> Result<Expanded> {
         context: root.context,
     };
     let start = (vec![unbent.clone()], vec![record], first);
-    let grown = chains(cx.rules, cx.rows, cx.seed, start, &|_| false, true)?;
+    let grown = chains(
+        cx.rules,
+        cx.rows,
+        cx.seed,
+        start,
+        (&|_| false, &mut |_, _| {}),
+        true,
+    )?;
     let mut work = Work {
         chains: grown.costs.len(),
         ..Work::default()

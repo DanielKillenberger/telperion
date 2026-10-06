@@ -24,7 +24,7 @@ use crate::closed_form::boundary::Rows;
 use crate::error::{Error, Result};
 use crate::geometry::scale;
 use crate::girth::{thicken, Girth};
-use crate::grow::alone::{self, Bud};
+use crate::grow::alone::{self, Bud, Chain};
 use crate::grow::{Record, Request, Rules};
 use crate::species::Species;
 use crate::structure::{Axis, Structure};
@@ -97,7 +97,14 @@ pub fn grow_alone_with<'s>(
     let rules = alone::rules(species, request.age, request.budget)?;
     let rows = expected.rows();
     let start = (Vec::new(), Vec::new(), seed_item());
-    let grown = chains(&rules, &rows, request.seed, start, &|_| false, correct)?;
+    let grown = chains(
+        &rules,
+        &rows,
+        request.seed,
+        start,
+        (&|_| false, &mut |_, _| {}),
+        correct,
+    )?;
     let mut structure = Structure {
         age: request.age,
         pas: species.states.len(),
@@ -126,15 +133,19 @@ pub(crate) fn seed_item() -> Item {
     }
 }
 
+/// What sees each chain grown, with the bud it grew from.
+pub(crate) type Observe<'o> = &'o mut dyn FnMut(Option<&Bud>, &Chain);
+
 /// Grows chains breadth first from `start` (the axes and records held
 /// already, and the first chain), each from its bud alone, and sheds
-/// each; a bud `hand` takes is recorded and handed back, not grown.
+/// each; a bud `hand` takes is recorded and handed back, not grown, and
+/// `observe` sees each chain grown with the bud it grew from.
 pub(crate) fn chains(
     rules: &Rules,
     rows: &Rows,
     seed: u64,
     (axes, records, first): (Vec<Axis>, Vec<Record>, Item),
-    hand: &dyn Fn(&Bud) -> bool,
+    (hand, observe): (&dyn Fn(&Bud) -> bool, Observe),
     correct: bool,
 ) -> Result<Chains> {
     let (mut axes, mut records) = (axes, records);
@@ -143,6 +154,7 @@ pub(crate) fn chains(
     while let Some(item) = queue.pop_front() {
         let started = Instant::now();
         let chain = alone::grow(rules, seed, item.bud.as_ref())?;
+        observe(item.bud.as_ref(), &chain);
         let (kept, contexts) = shed(&chain, rows, rules, item.context.filter(|_| correct));
         costs.push(ChainCost {
             micros: started.elapsed().as_secs_f64() * 1e6,

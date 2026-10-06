@@ -45,6 +45,17 @@ impl Bud {
         self.wake.is_some()
     }
 
+    /// The lineage its chain of ages began from.
+    pub fn root(&self) -> u64 {
+        self.root
+    }
+
+    /// What it and the laterals or relays it stands on keep it for past
+    /// its last growth.
+    pub fn horizon(&self) -> f64 {
+        self.horizon
+    }
+
     /// The axis of its bearer's chain it stands on.
     pub fn bearer(&self) -> usize {
         self.axis.origin.parent().expect("a bud is borne")

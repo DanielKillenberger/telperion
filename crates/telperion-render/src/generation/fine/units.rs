@@ -15,7 +15,7 @@ const NONE: u32 = u32::MAX;
 type Case = (&'static str, fn() -> Species, u32, u64);
 
 /// The tables as the kernel reads them (`unit.wgsl`).
-fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
+pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
     let mut table = Vec::new();
     let mut words = Vec::new();
     let zones: usize = units.zones.iter().map(Vec::len).sum();
@@ -95,7 +95,7 @@ struct Run {
 
 impl Kernel {
     fn new(gpu: &Gpu) -> Self {
-        let shader = format!("{}\n{UNIT}", super::contract());
+        let shader = format!("{}\n{UNIT}", super::zones());
         let pass = io::Pass::new(
             gpu,
             shader,

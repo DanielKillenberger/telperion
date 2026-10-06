@@ -19,6 +19,7 @@ mod canonical;
 mod executor;
 mod record;
 mod survey;
+mod surface;
 mod tables;
 #[cfg(test)]
 mod tests;
@@ -37,6 +38,7 @@ use executor::{expand, Context, Expanded, BEARER};
 pub use record::FineRoot;
 use record::{Attachment, Committed, Frame};
 pub use survey::{survey_lit, Surveyed};
+pub use surface::{chain_cases, ChainAxis, ChainBud, ChainTables, PaRow};
 pub use tables::{UnitZone, Units};
 
 /// Where the work runs: the cut in expected kept phytomers (a bud at or
@@ -104,7 +106,7 @@ pub fn grow_fine(
         records,
         handed,
         ..
-    } = chains(&rules, &rows, request.seed, start, &fine, true)?;
+    } = chains(&rules, &rows, request.seed, start, (&fine, &mut |_, _| {}), true)?;
     let mut above = Structure {
         age: request.age,
         pas: species.states.len(),
