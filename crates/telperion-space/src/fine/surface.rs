@@ -7,7 +7,7 @@ use super::tables::Units;
 use crate::alone::{chains, seed_item, Seen};
 use crate::bounded::Expected;
 use crate::error::Result;
-use crate::fine::{grow_committed as grow_fine, CommittedFine as Fine, Plan};
+use crate::fine::{grow_committed, CommittedFine, Plan};
 use crate::fixed::{neg_log2, q32, q62, ticks, INF};
 use crate::grow::alone::{rules, Bud, Chain};
 use crate::grow::Request;
@@ -227,13 +227,17 @@ pub fn chain_cases(species: &Species, request: Request) -> Result<Vec<Case>> {
     Ok(out)
 }
 
-/// A tree grown above `plan`'s cut and expanded below it on the CPU
-/// reference executor: each fine root's bud as the GPU executor takes it,
+/// A tree grown above `plan`'s cut and expanded below it on the committed
+/// boundaries (`committed.rs`): each fine root's bud as the GPU executor takes it,
 /// and the root's kept axes as the CPU expanded them (its first axis's
 /// parent none, the rest numbered among the root's).
-pub fn fine_cases(species: &Species, request: Request, plan: Plan) -> Result<(Fine, Vec<Case>)> {
+pub fn fine_cases(
+    species: &Species,
+    request: Request,
+    plan: Plan,
+) -> Result<(CommittedFine, Vec<Case>)> {
     let expected = Expected::new(species, request.age, 0);
-    let fine = grow_fine(species, request, &expected, plan)?;
+    let fine = grow_committed(species, request, &expected, plan)?;
     let cases = fine
         .roots
         .iter()

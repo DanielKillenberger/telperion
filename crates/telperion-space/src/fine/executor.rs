@@ -1,5 +1,5 @@
-//! The expansion's fine growth, on the CPU reference executor (fn-209 F1;
-//! `docs/pipeline.md`, "Fine growth"): one fine root grown, shed, scaled,
+//! The committed-boundary probe's expansion (`committed.rs`; fn-209 F1
+//! tasks 1 to 5): one fine root grown, shed, scaled,
 //! girthed and laid from its record alone.
 //!
 //! The root's tree holds its bearer as a stub (axis 0: the node's
