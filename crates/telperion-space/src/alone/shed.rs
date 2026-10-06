@@ -93,7 +93,7 @@ pub(super) fn shed(
                     .child(SHED)
                     .child(u64::MAX)
                     .draw();
-                decide::kept(dead[i], context.filter(|_| i == chain.root), d)
+                decide::kept(dead[i], context.filter(|_| i == chain.root), d.0)
             }
         };
         kept[i] = above && pass;

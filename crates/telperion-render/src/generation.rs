@@ -4,6 +4,10 @@ mod clock;
 mod compute;
 use clock::Clock;
 mod data;
+// fn-209 F1: the fine-root executor's GPU side, its decision contract so
+// far; built for its tests until the executor's shaders read it.
+#[cfg(test)]
+mod fine;
 mod io;
 mod positions;
 mod preparation;

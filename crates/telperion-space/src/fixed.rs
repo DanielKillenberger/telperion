@@ -21,10 +21,10 @@
 //! both executors the same integers.
 
 /// Ticks a cycle: 2^20.
-pub(crate) const CYCLE: f64 = (1u64 << 20) as f64;
+pub const CYCLE: f64 = (1u64 << 20) as f64;
 
 /// The time on the tick grid nearest `t` (`round`, half away from zero).
-pub(crate) fn grid(t: f64) -> f64 {
+pub fn grid(t: f64) -> f64 {
     if !t.is_finite() {
         return t;
     }
@@ -32,17 +32,17 @@ pub(crate) fn grid(t: f64) -> f64 {
 }
 
 /// A time on the grid as its ticks.
-pub(crate) fn ticks(t: f64) -> u64 {
+pub fn ticks(t: f64) -> u64 {
     debug_assert_eq!(grid(t), t, "a time off the tick grid");
     (t * CYCLE) as u64
 }
 
 /// A certain probability, Q62.
-pub(crate) const P_ONE: u64 = 1 << 62;
+pub const P_ONE: u64 = 1 << 62;
 /// Q32's one.
-pub(crate) const ONE32: i64 = 1 << 32;
+pub const ONE32: i64 = 1 << 32;
 /// A log beyond any finite one this contract meets: a probability of none.
-pub(crate) const INF: i64 = 1 << 62;
+pub const INF: i64 = 1 << 62;
 
 /// `ln 2` and `log2 e` in Q62.
 const LN2: i128 = 0x2c5c_85fd_f473_de6a;
@@ -85,12 +85,12 @@ const ROOTS: [u64; 32] = [
 ];
 
 /// The high part of a Q62 product: `a b / 2^62`, truncated.
-pub(crate) fn mul62(a: u64, b: u64) -> u64 {
+pub fn mul62(a: u64, b: u64) -> u64 {
     ((u128::from(a) * u128::from(b)) >> 62) as u64
 }
 
 /// A probability as Q62, floored: none for none or NaN, one from one.
-pub(crate) fn q62(p: f64) -> u64 {
+pub fn q62(p: f64) -> u64 {
     if p.is_nan() || p <= 0.0 {
         return 0;
     }
@@ -101,7 +101,7 @@ pub(crate) fn q62(p: f64) -> u64 {
 }
 
 /// A real as Q32, to the nearest (saturated at `INF`).
-pub(crate) fn q32(x: f64) -> i64 {
+pub fn q32(x: f64) -> i64 {
     if x.is_nan() {
         return 0;
     }
@@ -110,12 +110,12 @@ pub(crate) fn q32(x: f64) -> i64 {
 
 /// A Q62 probability's threshold against a 53-bit draw: the draws under
 /// it are those whose `d / 2^53` lies below `p / 2^62`.
-pub(crate) fn threshold(p: u64) -> u64 {
+pub fn threshold(p: u64) -> u64 {
     (p.min(P_ONE) + 511) >> 9
 }
 
 /// `log2 n` in Q32; `-INF` for none.
-pub(crate) fn log2(n: u64) -> i64 {
+pub fn log2(n: u64) -> i64 {
     if n == 0 {
         return -INF;
     }
@@ -137,7 +137,7 @@ pub(crate) fn log2(n: u64) -> i64 {
 }
 
 /// `2^-x` for `x` in Q32, as a Q62 probability: one for none or less.
-pub(crate) fn exp2_neg(x: i64) -> u64 {
+pub fn exp2_neg(x: i64) -> u64 {
     if x <= 0 {
         return P_ONE;
     }
@@ -156,7 +156,7 @@ pub(crate) fn exp2_neg(x: i64) -> u64 {
 }
 
 /// `2^y` for `y` in Q32, in Q32, saturated at `INF`.
-pub(crate) fn exp2(y: i64) -> i64 {
+pub fn exp2(y: i64) -> i64 {
     if y <= 0 {
         return (exp2_neg(-y) >> 30) as i64;
     }
@@ -170,7 +170,7 @@ pub(crate) fn exp2(y: i64) -> i64 {
 }
 
 /// `-log2 p` of a Q62 probability, in Q32: `INF` for none.
-pub(crate) fn neg_log2(p: u64) -> i64 {
+pub fn neg_log2(p: u64) -> i64 {
     if p == 0 {
         return INF;
     }
@@ -178,7 +178,7 @@ pub(crate) fn neg_log2(p: u64) -> i64 {
 }
 
 /// The probability `2^-l` of a `-log2`, Q62.
-pub(crate) fn prob(l: i64) -> u64 {
+pub fn prob(l: i64) -> u64 {
     if l >= INF {
         return 0;
     }
@@ -186,7 +186,7 @@ pub(crate) fn prob(l: i64) -> u64 {
 }
 
 /// `ln(a / b)` in Q32: `-INF` where `a` is none, `INF` where `b` is.
-pub(crate) fn ln_ratio(a: u64, b: u64) -> i64 {
+pub fn ln_ratio(a: u64, b: u64) -> i64 {
     match (a, b) {
         (0, _) => -INF,
         (_, 0) => INF,
@@ -195,7 +195,7 @@ pub(crate) fn ln_ratio(a: u64, b: u64) -> i64 {
 }
 
 /// `e^x` for `x` in Q32 (natural), in Q32.
-pub(crate) fn exp(x: i64) -> i64 {
+pub fn exp(x: i64) -> i64 {
     if x <= -INF {
         return 0;
     }
@@ -203,13 +203,13 @@ pub(crate) fn exp(x: i64) -> i64 {
 }
 
 /// `a b` of two Q32 values, in Q32, floored and saturated.
-pub(crate) fn mul(a: i64, b: i64) -> i64 {
+pub fn mul(a: i64, b: i64) -> i64 {
     ((i128::from(a) * i128::from(b)) >> 32).clamp(-i128::from(INF), i128::from(INF)) as i64
 }
 
 /// A probability raised to `share` ticks of a cycle: `-log2 p` scaled by
 /// the share, `l s / 2^20`, floored and saturated.
-pub(crate) fn scaled(l: i64, share: u64) -> i64 {
+pub fn scaled(l: i64, share: u64) -> i64 {
     if l >= INF {
         return INF;
     }
@@ -218,7 +218,7 @@ pub(crate) fn scaled(l: i64, share: u64) -> i64 {
 
 /// A presence's fixed point: `lead / window`, in [0, 1], Q32. Whole
 /// where the lead is unbounded or the window none.
-pub(crate) fn presence(lead: i64, window: i64) -> u64 {
+pub fn presence(lead: i64, window: i64) -> u64 {
     if lead >= INF || window <= 0 {
         return ONE32 as u64;
     }
@@ -229,21 +229,31 @@ pub(crate) fn presence(lead: i64, window: i64) -> u64 {
 }
 
 /// A Q32 presence as a real: exact.
-pub(crate) fn real(q: u64) -> f64 {
+pub fn real(q: u64) -> f64 {
     q as f64 / ONE32 as f64
 }
 
 /// The log-odds of a 53-bit draw `d`, `ln(d / (2^53 - d))`, in Q32.
-pub(crate) fn logit_draw(d: u64) -> i64 {
+pub fn logit_draw(d: u64) -> i64 {
     ln_ratio(d, (1u64 << 53) - d)
 }
 
 /// The log-odds of a Q62 probability, in Q32.
-pub(crate) fn logit(p: u64) -> i64 {
+pub fn logit(p: u64) -> i64 {
     ln_ratio(p, P_ONE - p.min(P_ONE))
 }
 
-pub(crate) mod decide;
+/// D1's hash, for the GPU's mirror: the key one step further, `part`.
+pub fn child(key: u64, part: u64) -> u64 {
+    crate::lineage::Key(key).child(part).0
+}
+
+/// D1's draw of a key: its 53 bits.
+pub fn draw(key: u64) -> u64 {
+    crate::lineage::Key(key).draw().0
+}
+
+pub mod decide;
 
 #[cfg(test)]
 mod tests;
