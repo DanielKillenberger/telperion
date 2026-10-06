@@ -60,6 +60,12 @@ pub fn run(
     // fn-211.4's light oracle: buds below N = 1,024 read their fine
     // root's mean (`mean`) or its mean and slopes (`slopes`).
     let mut oracle: Option<telperion_space::Read> = None;
+    // fn-211.4's stepped executor: every fine root at N = 1,024 grown by
+    // its own grower beside the coarse one.
+    let mut stepped = false;
+    // Every tree in canonical order (by depth, then lineage identity), so
+    // two builds of one tree convert alike whatever order grew them.
+    let mut canonical = false;
     let mut tuning = Tuning::default();
     let mut words = rest.iter();
     while let Some(word) = words.next() {
@@ -84,6 +90,10 @@ pub fn run(
                 Some("slopes") => telperion_space::Read::Slopes,
                 _ => return Err("--oracle exact|mean|slopes".into()),
             });
+        } else if word == "--stepped" {
+            stepped = true;
+        } else if word == "--canonical" {
+            canonical = true;
         } else if word == "--alone" {
             // fn-209 probe P2: chains grown and shed alone, then resolved
             // as option 4 resolves them.
@@ -207,7 +217,18 @@ pub fn run(
                     budget: BUDGET,
                     light: tuning.light(),
                 };
-                let structure = if let Some(read) = oracle {
+                let structure = if stepped {
+                    let expected = Expected::new(species, age, 0);
+                    let grouping = telperion_space::Grouping {
+                        order: telperion_space::PartitionOrder::Forward,
+                        chunk: 1,
+                        sizes: true,
+                        leaves: true,
+                        girth: true,
+                    };
+                    telperion_space::grow_stepped(species, request, &expected, 1024.0, grouping)
+                        .map(|s| s.structure)
+                } else if let Some(read) = oracle {
                     let expected = Expected::new(species, age, 0);
                     telperion_space::grow_oracle(species, request, &expected, 1024.0, read)
                         .map(|o| o.structure)
@@ -223,6 +244,10 @@ pub fn run(
                     grow(species, request)
                 }
                 .map_err(|e| format!("age {age} seed {seed}: {e:?}"))?;
+                let structure = match canonical {
+                    true => telperion_space::canonical(&structure),
+                    false => structure,
+                };
                 let grown = started.elapsed().as_secs_f64() * 1e3;
                 let pipeline_tree = tree::convert(&structure, trunk);
                 let nodes = pipeline_tree.nodes.len();

@@ -131,34 +131,37 @@ impl<'a> Executor<'a> {
 
     fn cycle(&mut self, cycle: u32) -> Result<()> {
         let first_new = self.coarse.axes.len();
-        let living = |g: &Grower| g.live.iter().map(|a| a.axis).collect::<Vec<_>>();
+        let living = |g: &Grower| -> Vec<usize> { g.live.iter().map(|a| a.axis).collect() };
         let advanced = living(&self.coarse);
         let advanced_items: Vec<Vec<usize>> = self.items.iter().map(|i| living(&i.g)).collect();
         self.balance(cycle);
         self.mark(cycle, 0);
         self.allot();
         self.mark(cycle, 1);
-        let quiet = &mut |_: Stage| {};
-        let mut grown = 0;
-        for g in self.growers() {
+        // Phase (iv): each grower grows, wakes and lays its own (the
+        // count the growth digest takes is the same once laid).
+        let sketching = self.coarse.sketch.is_some() && cycle < self.request.age;
+        let step = |g: &mut Grower, advanced: &[usize]| -> Result<()> {
             let live = std::mem::take(&mut g.live);
-            g.grow_live(live, cycle, quiet)?;
+            g.grow_live(live, cycle, &mut |_| {})?;
             g.wake(cycle)?;
-            grown += g.rules.grown;
-        }
+            if sketching {
+                g.sketch(cycle, advanced)?;
+            }
+            Ok(())
+        };
+        step(&mut self.coarse, &advanced)?;
+        let done = self.each(advanced_items, &|item, advanced| {
+            step(&mut item.g, &advanced)
+        });
+        done.into_iter().collect::<Result<Vec<()>>>()?;
+        let grown: u64 = self.growers().map(|g| g.rules.grown).sum();
         if grown > u64::from(self.request.budget) {
             return Err(Error::Budget {
                 limit: self.request.budget,
             });
         }
         self.mark(cycle, 2);
-        let sketching = self.coarse.sketch.is_some() && cycle < self.request.age;
-        if sketching {
-            self.coarse.sketch(cycle, &advanced)?;
-            for (item, advanced) in self.items.iter_mut().zip(&advanced_items) {
-                item.g.sketch(cycle, advanced)?;
-            }
-        }
         if sketching || self.coarse.sketch.is_none() {
             self.hand_over(first_new);
         }
@@ -177,34 +180,48 @@ impl<'a> Executor<'a> {
         std::iter::once(&mut self.coarse).chain(self.items.iter_mut().map(|i| &mut i.g))
     }
 
+    /// `work` on every item on every core, in the items' order: each
+    /// item touches only itself.
+    fn each<T: Send, R: Send>(
+        &mut self,
+        with: Vec<T>,
+        work: &(dyn Fn(&mut Item<'a>, T) -> R + Sync),
+    ) -> Vec<R> {
+        let threads = self.coarse.threads;
+        let items: Vec<_> = self.items.iter_mut().zip(with).collect();
+        crate::cores::map(items, ITEMS, threads, &|_, (item, t)| work(item, t))
+    }
+
     /// Phase (i): each item's totals at its root reported to its bearer,
     /// the coarse grower's decisions at each placeholder handed down.
     fn balance(&mut self, cycle: u32) {
         if !self.coarse.balances() {
             return;
         }
-        let mut done: HashMap<usize, (Links, Totals)> = HashMap::new();
-        let mut given = Vec::with_capacity(self.items.len());
-        for k in self.visit() {
-            let item = &self.items[k];
+        let none = vec![(); self.items.len()];
+        let done: Vec<(Links, Totals)> = self.each(none, &|item, ()| {
             let rows = links(&item.g);
-            let t = item.g.totals(&rows, &[]);
-            given.push((item.at, t.light[1], t.cost[1], t.living[1]));
-            done.insert(k, (rows, t));
-        }
+            let totals = item.g.totals(&rows, &[]);
+            (rows, totals)
+        });
+        let given: Vec<_> = (self.visit().into_iter())
+            .map(|k| {
+                let t = &done[k].1;
+                (self.items[k].at, t.light[1], t.cost[1], t.living[1])
+            })
+            .collect();
         let rows = self.coarse.rows().expect("laid");
         let totals = self.coarse.totals(&rows, &given);
         let (shed, kept) = self.coarse.shed_by(cycle, &rows, &totals, None);
         let pencils = &self.coarse.sketch.as_ref().expect("sketching").pencils;
-        for k in self.visit() {
-            let item = &mut self.items[k];
-            let memory = pencils[item.at].memory;
+        let decided: Vec<_> = (self.items.iter().zip(done))
+            .map(|(i, d)| (d, (shed[i.at], kept[i.at], pencils[i.at].memory)))
+            .collect();
+        self.each(decided, &|item, ((rows, t), (shed, kept, memory))| {
             let root = &mut item.g.sketch.as_mut().expect("sketching").pencils[1];
             root.memory = memory;
-            let (rows, t) = &done[&k];
-            item.g
-                .shed_by(cycle, rows, t, Some((shed[item.at], kept[item.at])));
-        }
+            item.g.shed_by(cycle, &rows, &t, Some((shed, kept)));
+        });
     }
 
     /// Phases (ii) and (iii): each item's lit presence reported to its
@@ -214,15 +231,18 @@ impl<'a> Executor<'a> {
         if !self.coarse.allots() {
             return;
         }
-        let mut done: HashMap<usize, (Links, Inputs)> = HashMap::new();
-        let mut given = Vec::with_capacity(self.items.len());
-        for k in self.visit() {
-            let item = &self.items[k];
+        let none = vec![(); self.items.len()];
+        let done: Vec<(Links, Inputs)> = self.each(none, &|item, ()| {
             let rows = links(&item.g);
             let inputs = item.g.inputs(&rows);
-            given.push((item.at, subtotals(&rows.links, &inputs.lit)[1]));
-            done.insert(k, (rows, inputs));
-        }
+            (rows, inputs)
+        });
+        let given: Vec<_> = (self.visit().into_iter())
+            .map(|k| {
+                let (r, i) = &done[k];
+                (self.items[k].at, subtotals(&r.links, &i.lit)[1])
+            })
+            .collect();
         let rows = self.coarse.rows().expect("laid");
         let mut inputs = self.coarse.inputs(&rows);
         for &(at, lit) in &given {
@@ -230,33 +250,30 @@ impl<'a> Executor<'a> {
         }
         let (incoming, got) = split(&rows.links, &inputs.lit, &inputs.lambda, None);
         let pas = self.coarse.species.states.len();
-        let sums = |rows: &Links, i: &Inputs, got: &[f64]| {
-            size_sums(got, &i.presence, &i.psi, &rows.pa, pas)
+        let sums = move |rows: &Links, i: &Inputs, got: &[f64]| {
+            flat(&size_sums(got, &i.presence, &i.psi, &rows.pa, pas))
         };
-        let mut total: Vec<Sum> = flat(&sums(&rows, &inputs, &got));
-        let mut partial = HashMap::new();
-        let mut gots = HashMap::new();
-        for k in self.visit() {
-            let (r, i) = &done[&k];
-            let base = incoming[self.items[k].at];
+        let mut total: Vec<Sum> = sums(&rows, &inputs, &got);
+        let based: Vec<_> = (self.items.iter().zip(done))
+            .map(|(i, d)| (d, incoming[i.at]))
+            .collect();
+        let split_up = self.each(based, &|_, ((r, i), base)| {
             let got = split(&r.links, &i.lit, &i.lambda, Some(base)).1;
-            partial.insert(k, flat(&sums(r, i, &got)));
-            gots.insert(k, got);
-        }
+            let partial = sums(&r, &i, &got);
+            ((r, i, got), partial)
+        });
+        let (done, partials): (Vec<_>, Vec<_>) = split_up.into_iter().unzip();
+        let partial: HashMap<usize, Vec<Sum>> = partials.into_iter().enumerate().collect();
         merge(&mut total, &partial, &self.grouping);
         let factors: Vec<[f64; 2]> = total
             .chunks(2)
             .map(|s| [s[0].value(), s[1].value()])
             .collect();
-        let size = |g: &mut Grower, rows: &Links, i: &Inputs, got: &[f64]| {
-            let s = sized(got, &i.presence, &i.psi, &rows.pa, &factors);
-            g.set_sizes(&s);
+        let size = |g: &mut Grower, (rows, i, got): (Links, Inputs, Vec<f64>)| {
+            g.set_sizes(&sized(&got, &i.presence, &i.psi, &rows.pa, &factors));
         };
-        size(&mut self.coarse, &rows, &inputs, &got);
-        for (k, item) in self.items.iter_mut().enumerate() {
-            let (r, i) = &done[&k];
-            size(&mut item.g, r, i, &gots[&k]);
-        }
+        size(&mut self.coarse, (rows, inputs, got));
+        self.each(done, &|item, d| size(&mut item.g, d));
     }
 
     /// Phase (iv)'s light: every grower's leaves of the cycle into one
@@ -331,6 +348,9 @@ impl<'a> Executor<'a> {
         self.phases[c][k] = d.finish(k);
     }
 }
+
+/// The items in a piece of the work spread over the cores.
+const ITEMS: usize = 64;
 
 /// An item's links and PAs, its root the base of its own split.
 fn links(g: &Grower) -> Links {
