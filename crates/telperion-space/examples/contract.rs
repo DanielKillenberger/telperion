@@ -6,6 +6,7 @@
 //!
 //!   cargo run --profile ci -p telperion-space --example contract -- dump <file> [ages] [seeds]
 //!   cargo run --profile ci -p telperion-space --example contract -- compare <a> <b>
+//!   cargo run --profile ci -p telperion-space --example contract -- against <a> <b>
 //!
 //! Self-contained (it computes identities itself), so it builds on any
 //! commit the engine's public API has not changed on.
@@ -30,8 +31,9 @@ fn main() {
             };
             dump(&args[1], &list(2, "40,80"), &list(3, "1,7"));
         }
-        Some("compare") => compare(&args[1], &args[2]),
-        _ => eprintln!("dump <file> [ages] [seeds] | compare <a> <b>"),
+        Some("compare") => compare(&args[1], &args[2], false),
+        Some("against") => compare(&args[1], &args[2], true),
+        _ => eprintln!("dump <file> [ages] [seeds] | compare <a> <b> | against <a> <b>"),
     }
 }
 
@@ -156,11 +158,30 @@ fn read(path: &str) -> Vec<(String, Tree)> {
     out
 }
 
-fn compare(a: &str, b: &str) {
+/// Each tree of `a` against the same tree of `b`; or (`against`) each
+/// whole tree of `a` against the tree of the same species, age and seed
+/// grown alone in `b`, by lineage.
+fn compare(a: &str, b: &str, against: bool) {
     let (a, b) = (read(a), read(b));
     println!("| Tree | Axes | Axes only before / after | Phytomers | Phytomers only before / after | Tip moved max / RMS (m) | Radius max rel. |");
     println!("|---|--:|--:|--:|--:|--:|--:|");
-    for ((label, ta), (_, tb)) in a.iter().zip(&b) {
+    let pairs: Vec<(&String, &Tree, &Tree)> = if against {
+        a.iter()
+            .filter_map(|(label, ta)| {
+                let stem = label.strip_suffix(" whole")?;
+                let alone = format!("{stem} alone");
+                b.iter()
+                    .find(|(l, _)| *l == alone)
+                    .map(|(_, tb)| (label, ta, tb))
+            })
+            .collect()
+    } else {
+        a.iter()
+            .zip(&b)
+            .map(|((l, ta), (_, tb))| (l, ta, tb))
+            .collect()
+    };
+    for (label, ta, tb) in pairs {
         let (mut only_a, mut only_b, mut pa, mut pb) = (0, 0, 0usize, 0usize);
         let (mut phy, mut max, mut sum, mut n, mut rad) = (0usize, 0.0f64, 0.0, 0usize, 0.0f64);
         for (id, ps) in ta {
