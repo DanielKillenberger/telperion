@@ -58,6 +58,14 @@ fn main() {
         let species = make();
         for &age in &ages {
             let expected = Expected::new(&species, age as u32, 0);
+            if what == "perf" {
+                let (all, held) = expected.cost();
+                let one = Expected::new(&species, age as u32, 1).cost().0;
+                println!(
+                    "{name} age {age}: closed-form rows {held} ({} kB), read in {one:.2} s on one core, {all:.2} s on every core",
+                    held * std::mem::size_of::<[f64; 9]>() / 1024
+                );
+            }
             for &seed in &seeds {
                 let request = Request {
                     age: age as u32,
@@ -279,6 +287,9 @@ fn perf(label: &str, species: &Species, request: Request, expected: &Expected) {
     let one: f64 = times.iter().sum::<f64>() / 1e6;
     let rss_full = stats::rss();
     let (p50, p99, max) = stats::tail(&mut times);
+    let mut sizes: Vec<f64> = (0..tree.chains()).map(|c| tree.phytomers(c) as f64).collect();
+    let (s50, s99, smax) = stats::tail(&mut sizes);
+    let per = settled / phytomers as f64 * 1e6;
     let mut again = Bounded::with(species, request, expected).expect("settles");
     let t = Instant::now();
     again.resolve_all(1).expect("resolves");
@@ -295,6 +306,10 @@ fn perf(label: &str, species: &Species, request: Request, expected: &Expected) {
         "  grow and settle {settled:.2} s (whole topology, not per chain); closed-form rows {rows:.3} s, {} rows ({} kB)",
         held,
         held * 72 / 1024
+    );
+    println!(
+        "  chain sizes p50 {s50:.0} p99 {s99:.0} max {smax:.0} phytomers; growth and settling {per:.2} us a phytomer, so growth alone would add about {:.0} / {:.0} / {:.0} us at those sizes",
+        s50 * per, s99 * per, smax * per
     );
     println!(
         "  chain resolution us: p50 {p50:.1} p99 {p99:.1} max {max:.0}; all chains one by one {one:.3} s; one-pass on 1 core {one_pass:.3} s, on every core {every:.3} s"
