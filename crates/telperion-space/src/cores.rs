@@ -1,14 +1,13 @@
 //! Work spread over the machine's cores (fn-210, lever 2). The engine's
 //! parallel stages hand out numbered pieces of work; what each piece
 //! makes depends on its number alone, so the tree is the same however
-//! many cores took part. Helper threads are drawn from what the process
-//! has spare, so trees grown at once do not each take every core.
+//! many cores took part. The helpers are rayon's global pool, kept for
+//! the process (fn-211 task 3): it holds one thread a core, so trees
+//! grown at once share the cores rather than each taking every one.
+//! Where threads cannot be made (wasm), `available` is one and every
+//! piece runs on the calling thread.
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
-
-/// The threads at work in this process's spread work, across every tree:
-/// each caller and its helpers.
-static HELPERS: AtomicUsize = AtomicUsize::new(0);
 
 /// The cores the machine has; one where it cannot say (wasm).
 pub(crate) fn available() -> usize {
@@ -16,8 +15,13 @@ pub(crate) fn available() -> usize {
 }
 
 /// Runs `work(k)` for every `k` below `count`, on this thread and on up
-/// to `threads - 1` helpers.
+/// to `threads - 1` of the pool's threads.
 pub(crate) fn spread(count: usize, threads: usize, work: &(dyn Fn(usize) + Sync)) {
+    let helpers = threads.min(count).min(rayon::current_num_threads());
+    if helpers <= 1 {
+        (0..count).for_each(work);
+        return;
+    }
     let ticket = AtomicUsize::new(0);
     let run = || loop {
         let k = ticket.fetch_add(1, Ordering::Relaxed);
@@ -26,10 +30,9 @@ pub(crate) fn spread(count: usize, threads: usize, work: &(dyn Fn(usize) + Sync)
         }
         work(k);
     };
-    let held = Held::reserve(threads.min(count).saturating_sub(1), threads);
-    std::thread::scope(|scope| {
-        for _ in 0..held.0 - 1 {
-            scope.spawn(run);
+    rayon::in_place_scope(|scope| {
+        for _ in 1..helpers {
+            scope.spawn(|_| run());
         }
         run();
     });
@@ -92,36 +95,6 @@ pub(crate) fn fill<T: Send>(
             *o = work(k * piece + j);
         }
     });
-}
-
-/// Threads held, the caller first, given back when dropped.
-struct Held(usize);
-
-impl Held {
-    /// The caller, which always works, and up to `wanted` helpers, as far
-    /// as the process then holds no more than `cores` in all.
-    fn reserve(wanted: usize, cores: usize) -> Self {
-        let mut held = HELPERS.load(Ordering::Relaxed);
-        loop {
-            let take = 1 + wanted.min(cores.saturating_sub(held + 1));
-            let swapped = HELPERS.compare_exchange_weak(
-                held,
-                held + take,
-                Ordering::Relaxed,
-                Ordering::Relaxed,
-            );
-            match swapped {
-                Ok(_) => return Self(take),
-                Err(now) => held = now,
-            }
-        }
-    }
-}
-
-impl Drop for Held {
-    fn drop(&mut self) {
-        HELPERS.fetch_sub(self.0, Ordering::Relaxed);
-    }
 }
 
 /// Mutable references to `v`'s elements at the increasing indices
