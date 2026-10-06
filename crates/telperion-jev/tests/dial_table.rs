@@ -75,7 +75,9 @@ fn every_numeric_row_of_every_family_is_a_dial_or_an_excluded_row() {
         let mut found = Vec::new();
         rows(&family, "", &mut found);
         for (path, value) in &found {
-            if value.is_number() {
+            // An engine species' `/space` rows are no catalogue dial; tuning
+            // them is the add-species pipeline's recalibration (fn-198).
+            if value.is_number() && !path.starts_with("/space/") {
                 assert!(
                     paths.contains(&path.as_str()) || excluded.contains_key(path),
                     "{id}: {path} is a numeric row the table neither offers nor excludes"

@@ -44,7 +44,7 @@ fn answers() -> (Vec<u8>, Vec<f32>, Vec<f32>, Vec<u32>) {
 
 #[test]
 fn an_unknown_or_in_work_species_is_refused_with_the_core_error() {
-    for id in ["no-such-tree", "european-beech", ""] {
+    for id in ["no-such-tree", ""] {
         write_species(id);
         assert_eq!(grow(1, FAMILY_ORDER), 1, "{id}");
         assert_eq!(error(), "invalid input: preset identity");
@@ -62,7 +62,7 @@ fn a_query_needs_a_standing_tree_at_its_revision() {
     assert_eq!(query_alloc(1), 0);
     assert_eq!(query(revision()), 1);
     assert_eq!(error(), "invalid input: no tree grown");
-    write_species("ordinary");
+    write_species("european-beech");
     assert_eq!(grow(1, FAMILY_ORDER), 0, "{}", error());
     let handle = revision();
     assert_eq!(bounds_len(), 6);
@@ -75,7 +75,7 @@ fn a_query_needs_a_standing_tree_at_its_revision() {
 
 #[test]
 fn a_batch_with_one_bad_cell_answers_nothing() {
-    write_species("ordinary");
+    write_species("european-beech");
     assert_eq!(grow(1, FAMILY_ORDER), 0, "{}", error());
     let b = bounds();
     assert_eq!(query_alloc(2), 0);
@@ -91,7 +91,7 @@ fn a_batch_with_one_bad_cell_answers_nothing() {
 
 #[test]
 fn the_same_species_and_seed_answer_identically_and_the_order_names_limbs() {
-    write_species("ordinary");
+    write_species("european-beech");
     assert_eq!(grow(7, FAMILY_ORDER), 0, "{}", error());
     write_grid(8);
     assert_eq!(query(revision()), 0, "{}", error());
@@ -99,19 +99,19 @@ fn the_same_species_and_seed_answer_identically_and_the_order_names_limbs() {
     assert_eq!(first.0.len(), 512);
     assert!(first.0.iter().any(|f| f & 1 != 0), "wood somewhere");
     assert!(first.0.iter().any(|f| f & 2 != 0), "foliage somewhere");
-    write_species("ordinary");
+    write_species("european-beech");
     assert_eq!(grow(7, FAMILY_ORDER), 0);
     write_grid(8);
     assert_eq!(query(revision()), 0);
     assert_eq!(answers(), first, "a rebuild answers the same bytes");
-    write_species("ordinary");
+    write_species("european-beech");
     assert_eq!(grow(7, 0), 0);
     write_grid(8);
     assert_eq!(query(revision()), 0);
     let coarse = answers();
     assert_eq!(coarse.0, first.0, "the order changes no flag");
     assert_ne!(coarse.3, first.3, "order 0 parts the crown differently");
-    write_species("ordinary");
+    write_species("european-beech");
     assert_eq!(grow(8, FAMILY_ORDER), 0);
     write_grid(8);
     assert_eq!(query(revision()), 0);
@@ -147,6 +147,11 @@ fn every_shipped_preset_answers_as_the_main_pipeline_does() {
         for seed in [1, 4242] {
             write_species(id);
             let status = grow(seed, FAMILY_ORDER);
+            // A preset with no engine species is refused by name (fn-198).
+            if Preset::from_id(id).unwrap().parameters().space.species.is_none() {
+                assert_eq!((status, error()), (1, "invalid input: no engine species".into()));
+                continue;
+            }
             assert_eq!(
                 status,
                 0,

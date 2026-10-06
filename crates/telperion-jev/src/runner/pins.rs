@@ -81,7 +81,9 @@ pub fn write(folder: &Path, species: &str, family: &Family) -> Result<String, St
     let record = json!({
         "schema": "pins", "schema_version": 1, "species": species, "seed": SEED,
         "profile_sha256": crate::sha256_hex(&profile),
-        "growth_reference": {"age": family.age, "height_m": family.skeleton.envelope.height},
+        // The engine grows the tree to its age; its height is the grown
+        // tree's (fn-198), the mesh's top above the ground.
+        "growth_reference": {"age": family.age, "height_m": pins["max"][1]},
         "leaf_band": band, "pins": pins,
     });
     let mut bytes = serde_json::to_vec_pretty(&record).map_err(|e| e.to_string())?;
