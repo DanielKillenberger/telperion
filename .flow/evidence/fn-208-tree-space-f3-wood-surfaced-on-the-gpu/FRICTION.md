@@ -86,3 +86,17 @@
 - **Slowed by:** `git push origin` failed: the SSH agent could not sign ("communication with agent failed"). The push went over HTTPS with the gh CLI's stored credentials instead.
 - **Cost:** two minutes.
 - **Would remove it:** a local setup matter for the owner (the SSH agent), not a spec.
+
+## 2026-10-05, host, merging #156
+
+- **Doing:** merging fn-208's PR after its CI watch.
+- **What went wrong:** the host's merge command chained `gh pr view --json mergeStateStatus -q .mergeStateStatus && gh pr merge`; `gh pr view` exits 0 whatever the state, so the PR merged while its state was UNSTABLE with two jobs killed (runner shutdown signal, likely memory). Master went red.
+- **Cost:** a red master and a fix-forward branch.
+- **What would remove it:** merge only when the CI watch exits 0 and the state is exactly CLEAN, tested as a condition (`[ "$(gh pr view N --json mergeStateStatus -q .mergeStateStatus)" = CLEAN ] && gh pr merge`), never as a chained command whose exit code ignores the state.
+
+## 2026-10-05, the hero test outgrew CI's runner after the merge
+
+- **Doing:** fixing master's red CI after #156 (branch `fix-ci-runner-memory`).
+- **Slowed by:** `every_presets_wood_surfaces_at_a_hero_view` peaked at 12.4 GB alone. Its close view (added for host decision 23) surfaced every preset's whole tree unculled, and it re-tessellated the hero view while the first was still held. The core lib suite under four threads peaked at 16.0 GB, the runner's whole memory. No local check ran a suite under the runner's memory, so it showed only as a killed job.
+- **Cost:** a red master and one fix branch.
+- **Would remove it:** a peak-memory check on the core lib suite at four threads (it is `getrusage` around one process), or a per-test memory ceiling like the beech's on any test that tessellates every preset.

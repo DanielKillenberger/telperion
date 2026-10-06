@@ -197,29 +197,28 @@ fn every_presets_wood_surfaces_at_a_hero_view() {
             orthographic: false,
             planes: None,
         };
-        let t = curve.tessellate(&viewer, 0.5, None).unwrap();
-        let vertices = (t.positions.len() / 3) as u32;
         // No view asks more than the tree's demand at its nearest pixels a
-        // metre (host decision 23), close in as at the hero distance.
+        // metre (host decision 23), at the hero distance and close in. Each
+        // view's surface is checked and dropped before the next, and the
+        // close view culls to its frustum as every real view does, so the
+        // test holds one view's wood at a time (CI's runner memory).
         let demand = curve.demand();
-        let close = Viewer {
-            eye: middle + (viewer.eye - middle) * 0.1,
-            ..viewer
-        };
-        for v in [viewer, close] {
-            let t = curve.tessellate(&v, 0.5, None).unwrap();
-            let most = demand.at(v.pixels_per_metre / v.near, 0.5);
-            let asked = [
+        let asked = |t: &super::Tessellation| {
+            [
                 t.rings as u64,
                 (t.positions.len() / 3) as u64,
                 t.indices.len() as u64,
                 t.ribbons.len() as u64,
-            ];
-            assert!(
-                asked.iter().zip(most).all(|(&a, m)| a <= m),
-                "{id}: {asked:?} past {most:?}"
-            );
-        }
+            ]
+        };
+        let t = curve.tessellate(&viewer, 0.5, None).unwrap();
+        let most = demand.at(viewer.pixels_per_metre / viewer.near, 0.5);
+        assert!(
+            asked(&t).iter().zip(most).all(|(&a, m)| a <= m),
+            "{id}: {:?} past {most:?} at the hero distance",
+            asked(&t)
+        );
+        let vertices = (t.positions.len() / 3) as u32;
         assert!(
             t.indices.iter().all(|&i| i < vertices),
             "{id}: an index past the vertices"
@@ -234,5 +233,43 @@ fn every_presets_wood_surfaces_at_a_hero_view() {
             t.ribbons.len() / 3,
             t.rings
         );
+        drop(t);
+        let eye = middle + (viewer.eye - middle) * 0.1;
+        let close = Viewer {
+            eye,
+            planes: Some(frustum(
+                eye,
+                viewer.forward,
+                25f64.to_radians(),
+                viewer.near,
+            )),
+            ..viewer
+        };
+        let t = curve.tessellate(&close, 0.5, None).unwrap();
+        let most = demand.at(close.pixels_per_metre / close.near, 0.5);
+        assert!(
+            asked(&t).iter().zip(most).all(|(&a, m)| a <= m),
+            "{id}: {:?} past {most:?} close in",
+            asked(&t)
+        );
+        assert!(t.rings > 0, "{id}: the close view sees no wood");
     }
+}
+
+/// The planes of a square frustum from `eye` along `forward`, `half` its
+/// half-angle, inward-facing as `Viewer::planes` reads them.
+fn frustum(eye: Vec3, forward: Vec3, half: f64, near: f64) -> [[f64; 4]; 6] {
+    let right = forward.cross(Vec3::new(0.0, 1.0, 0.0)).normalized();
+    let up = right.cross(forward);
+    let (sin, cos) = half.sin_cos();
+    let plane = |n: Vec3, d: f64| [n.x, n.y, n.z, d];
+    let side = |n: Vec3| plane(n, -n.dot(eye));
+    [
+        side(right * cos + forward * sin),
+        side(right * -cos + forward * sin),
+        side(up * cos + forward * sin),
+        side(up * -cos + forward * sin),
+        plane(forward, -forward.dot(eye) - near),
+        plane(forward * -1.0, forward.dot(eye) + 1e4),
+    ]
 }

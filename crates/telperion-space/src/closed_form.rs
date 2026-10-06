@@ -11,7 +11,7 @@
 //! a lateral that grows from the cycle it wakes in, weighted by the chance
 //! it wakes then and that its bearer is still carried on (`Living`).
 //! Shedding is outside the formula.
-use crate::dormant::{stages, First, Living, Piece};
+use crate::dormant::{First, Living, Piece};
 use crate::error::{refuse, Result};
 use crate::presence::Windows;
 use crate::schedule::Carried;
@@ -119,7 +119,7 @@ fn events(
             }
             None => 0.0,
         };
-        for (zone, lateral) in state.zones.iter().zip(laterals) {
+        for (z, (zone, lateral)) in state.zones.iter().zip(laterals).enumerate() {
             let nodes = survival * zone.nodes.mean();
             // A partial unit counts its phytomers whole, at its share of
             // their length; a woken bud's first unit as before, whole.
@@ -146,7 +146,7 @@ fn events(
                 }
             }
             let bearer = ((k, carried, m), i, abortion);
-            sleeping(species, living, zone, (nodes, size), bearer, m, &mut out);
+            sleeping(living, (zone, z), (nodes, size), bearer, m, &mut out);
         }
         if !unit.ends {
             match partial {
@@ -205,9 +205,8 @@ fn shared(p: f64, share: f64) -> f64 {
 /// unit): each wakes `s` years on and grows from cycle i + 1 + s in the
 /// stage it has aged into, while its bearer is still carried on.
 fn sleeping(
-    species: &Species,
     living: &mut Living,
-    zone: &Zone,
+    (zone, z): (&Zone, usize),
     (nodes, size): (f64, f64),
     (bearer, i, abortion): ((usize, Carried, usize), usize, f64),
     m: usize,
@@ -220,7 +219,7 @@ fn sleeping(
             continue;
         }
         for s in 0..(m - i) as u32 {
-            let pieces = stages(species, zone, j, s);
+            let pieces = living.woken((bearer.0, z), j, s);
             if pieces.is_empty() {
                 continue;
             }
@@ -230,13 +229,16 @@ fn sleeping(
             // year that wakes it there. It ages its slept years in the
             // stage, and its abortion hazard counts them; its first unit's
             // time is a whole cycle's.
-            for Piece {
-                within,
-                wakes,
-                pa,
-                slept,
-                reach,
-            } in pieces
+            for &(
+                Piece {
+                    wakes,
+                    pa,
+                    slept,
+                    reach,
+                    ..
+                },
+                first,
+            ) in pieces.iter()
             {
                 let woken = Carried {
                     spent: slept,
@@ -251,7 +253,7 @@ fn sleeping(
                     // grower grows it; it is counted whole.
                     weight: buds * wakes * carried,
                     size: size * shared * reach,
-                    first: Some(First::of(species, zone, (s, within), (pa, slept))),
+                    first: Some(first),
                 });
             }
         }

@@ -10,12 +10,121 @@
     "fn-206-tree-space-one-reference-axis-every"
   ],
   "id": "fn-210-tree-space-f2-the-exact-speed-levers",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-210-tree-space-f2-the-exact-speed-levers.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "22198afb17020e5d32d1a12f1e0a34d2a274335d127a60cbc8435ccab931bce6",
+      "backend": "codex",
+      "base_sha": "b5161f4823282c33f52aef231834d48a127d239c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-649faf613196fc1ac96291f738866216",
+            "classification": "introduced",
+            "findingId": "finding-649faf613196fc1ac96291f738866216",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d8b15234b5f7d2151e96030e520fa94cc88270d0",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 425482,
+      "output_sha256": "8998ccab9e98363635a82f2bb86d3fc8dd7f8444513a5203f3f2f5f08ceb8317",
+      "reservation_id": "8973ff6a3e90467c9925c3524bf045a4",
+      "round_consumed": true,
+      "scope": "impl:fn-210-tree-space-f2-the-exact-speed-levers.1",
+      "superseded_by": null,
+      "task": "fn-210-tree-space-f2-the-exact-speed-levers.1",
+      "timestamp": "2026-10-05T19:53:02.244919Z",
+      "tool_calls": 21,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "bff3aad84f17874dadb6e7e29df5bcc218f99d3715b6436d5e55f970ec4d4bc5",
+      "backend": "codex",
+      "base_sha": "b5161f4823282c33f52aef231834d48a127d239c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-649faf613196fc1ac96291f738866216",
+            "classification": "introduced",
+            "findingId": "finding-649faf613196fc1ac96291f738866216",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-b87c2b451bedfbee5abe90548d97fbbd",
+            "classification": "introduced",
+            "findingId": "finding-b87c2b451bedfbee5abe90548d97fbbd",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "81f5020ff2e78bec32aa1f5fa14e535fbe15cd63",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1343,
+      "output_sha256": "59a327d5a01fcedfb1b000f1635388ba116783d0d453cb2ae0ff51bb7304992c",
+      "reservation_id": "f4a222b4fd434469967cb712548dff4e",
+      "round_consumed": true,
+      "scope": "impl:fn-210-tree-space-f2-the-exact-speed-levers.1",
+      "superseded_by": null,
+      "task": "fn-210-tree-space-f2-the-exact-speed-levers.1",
+      "timestamp": "2026-10-05T19:55:16.044546Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-210-tree-space-f2-the-exact-speed-levers.1": 2
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-210-tree-space-f2-the-exact-speed-levers.1": 0
+  },
   "spec_path": ".flow/specs/fn-210-tree-space-f2-the-exact-speed-levers.md",
   "status": "open",
   "title": "Tree space F2: the exact speed levers",
@@ -30,5 +139,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T13:00:52.680138Z"
+  "updated_at": "2026-10-05T19:55:16.046818Z"
 }

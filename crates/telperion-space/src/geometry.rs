@@ -10,14 +10,14 @@
 //! ground rests on it and runs along it; the trunk reaching the ground,
 //! or an axis whose base is below it, is an error.
 mod lay;
+mod place;
 
-use crate::error::{Error, Result};
 use crate::lineage::{Key, DOMINANCE, ROLL};
-use crate::sag::Lever;
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
-use lay::{lay, rotated, UP};
-pub(crate) use lay::{support, Layer, GROUND_TOLERANCE};
+use lay::{rotated, UP};
+pub(crate) use lay::{support, Layer};
+pub(crate) use place::place;
 use std::f64::consts::TAU;
 
 /// The sine of the lean below which a parent has too little of an upper
@@ -59,75 +59,6 @@ pub(crate) fn scale(structure: &mut Structure, species: &Species) {
     for phytomer in structure.axes.iter_mut().flat_map(|a| &mut a.phytomers) {
         phytomer.scale *= phytomer.size;
     }
-}
-
-/// Lays every axis from its parent's frame; with `levers` (`sag.rs`),
-/// each phytomer also turns down under the load it carries. Where each
-/// axis's walk ended, by index.
-pub(crate) fn place(
-    structure: &mut Structure,
-    species: &Species,
-    levers: Option<&[Vec<Lever>]>,
-) -> Result<Vec<Layer>> {
-    let mut layers: Vec<Layer> = Vec::with_capacity(structure.axes.len());
-    let age = structure.age;
-    // The trunk: the seed axis and what carries it on.
-    let mut trunk = vec![false; structure.axes.len()];
-    let reaches = reaches(&structure.axes);
-    let mut bends = Vec::with_capacity(structure.axes.len());
-    for (i, &reach) in reaches.iter().enumerate() {
-        let ends = |p: usize| layers[p].ends();
-        let (base, heading, side) = frame(&structure.axes, species, i, &ends);
-        // A continuation or relay carries its bearer's wander on.
-        let curve = match structure.axes[i].origin {
-            Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
-                layers[parent].curve()
-            }
-            _ => Vec3::default(),
-        };
-        let axis = &mut structure.axes[i];
-        let state = &species.states[axis.pa];
-        let years = f64::from(age.saturating_sub(axis.birth)) - axis.sleep;
-        let bend = bend(axis, state, years);
-        bends.push(bend);
-        // A relay carries on the pulls of the axis it replaces, as far as it
-        // is still that axis's continuation, so one that has barely left
-        // the axis's line is laid as the axis would have gone on (fn-206).
-        let inherited = match axis.origin {
-            Origin::Relay { parent, .. } => {
-                layers[parent].handed((bends[parent], reaches[parent]), axis.blend)
-            }
-            _ => Vec::new(),
-        };
-        trunk[i] = match axis.origin {
-            Origin::Seed => true,
-            Origin::Continuation { parent } | Origin::Relay { parent, .. } => trunk[parent],
-            Origin::Lateral { .. } => false,
-        };
-        let load = levers.map(|t| t[i].as_slice());
-        let (pa, birth) = (axis.pa, axis.birth);
-        let below = move |height: f64| Error::BelowGround {
-            axis: i,
-            pa,
-            birth,
-            base: base.z,
-            height,
-        };
-        if base.z < -GROUND_TOLERANCE {
-            return Err(below(-base.z));
-        }
-        let layer = lay(
-            axis,
-            ((base, heading, side), curve, inherited),
-            state,
-            (bend, reach),
-            load,
-            trunk[i],
-        )
-        .map_err(below)?;
-        layers.push(layer);
-    }
-    Ok(layers)
 }
 
 /// How far an axis `years` old is pulled towards the vertical at its

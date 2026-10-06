@@ -86,7 +86,7 @@
     "impl:fn-194-tree-space-d-the-norway-spruce-as-a.1": 0
   },
   "spec_path": ".flow/specs/fn-194-tree-space-d-the-norway-spruce-as-a.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space D: the Norway spruce as a point",
   "tracker": {
     "baseHashFlow": null,
@@ -99,5 +99,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T09:13:30.897741Z"
+  "updated_at": "2026-10-05T18:17:25.347427Z"
 }

@@ -11,9 +11,10 @@ Bare still strips walking the spruce to the oak at a fixed seed, one tree per pr
 
 
 ## Done summary
-Blocked:
-Blocked by fn-206-tree-space-one-reference-axis-every (host, 2026-10-05): the spruce and the oak have no per-setting midpoint until both species are written on one shared reference axis. See RESULT.md, R3.
+R3: the spruce-to-oak walk at age 60, seed 1, bare strips (fn-206 walk7, on the port onto master with the round-10 oak), viewed by the host: the spruce cone opens into the oak crown by degree, 16.9 to 19.0 to 15.8 m, no pop.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
-- PRs:
+- Commits: 8e7cb7b1
+- Tests: cargo test --profile ci --workspace --no-fail-fast
+- PRs: #154

@@ -2,7 +2,8 @@
 //! leave. Where a stop all but happened, the apex carries on and also
 //! grows the relay it would have had, the two at shares that sum, so no
 //! stop near its bound fades what the axis carries on (host decision 11).
-use super::{stop_stake, Apex, Grower};
+use super::shoot::Shoot;
+use super::{stop_stake, Apex};
 use crate::error::Result;
 use crate::lineage::{above, below, Key, MOVE, RELAY};
 use crate::presence::SPAN;
@@ -31,16 +32,17 @@ impl Stop {
     }
 }
 
-impl Grower<'_> {
+impl Shoot<'_, '_> {
     /// The apex has spent its age in the growth unit keyed `unit`: it
     /// moves on to the next age it grows in, past any it passes through,
     /// by its continuation, or it stops; in this cycle at the rest of it,
     /// `used`, where the age ended within it; its draws keyed `unit`, the
     /// age's end.
     pub(super) fn move_on(&mut self, apex: Apex, unit: Key, cycle: u32, used: f64) -> Result<()> {
-        let pa = self.axes[apex.axis].pa;
-        let state = &self.species.states[pa];
-        let Some((next, go)) = self.species.successor(pa) else {
+        let (species, windows) = (self.species(), self.windows());
+        let pa = self.axis(apex.axis).pa;
+        let state = &species.states[pa];
+        let Some((next, go)) = species.successor(pa) else {
             return self.stop(
                 apex,
                 (cycle, used),
@@ -55,24 +57,19 @@ impl Grower<'_> {
             let stopped = above(u, go);
             return self.stop(apex, (cycle, used), stopped, unit, apex.spent, Stop::Ended);
         }
-        let wood = self.windows.wood_at(next, cycle, used);
-        let made = self
-            .windows
-            .decided(below(u, go), wood, stop_stake(state.relay_ended));
-        let key = Key(self.roots[apex.axis]).onto(next);
+        let wood = windows.wood_at(next, cycle, used);
+        let made = windows.decided(below(u, go), wood, stop_stake(state.relay_ended));
+        let key = Key(self.root(apex.axis)).onto(next);
         let origin = Origin::Continuation { parent: apex.axis };
-        self.successor[apex.axis].push(self.axes.len());
+        let at = self.len();
+        self.successor_mut(apex.axis).push(at);
         self.sprout(key, next, cycle, origin, [made, 1.0]);
         self.carry_on(cycle, used)?;
         // An apex that all but stopped also grows the relay it would have
         // had, at the share its continuation lacks (host decision 11).
-        let relayed = self.relayed(
-            state.relay_ended,
-            unit,
-            self.windows.wood_at(pa, cycle, used),
-        );
+        let relayed = self.relayed(state.relay_ended, unit, windows.wood_at(pa, cycle, used));
         if made < 1.0 && relayed > 0.0 {
-            self.units[apex.axis] = apex.spent;
+            *self.units_mut(apex.axis) = apex.spent;
             let made = [1.0 - made, relayed];
             self.relay_bud(apex, (cycle, used), apex.spent, made, (0.0, Stop::Ended))?;
         }
@@ -94,8 +91,8 @@ impl Grower<'_> {
         made: [f64; 2],
         (blend, why): (f64, Stop),
     ) -> Result<()> {
-        let (pa, key) = (self.axes[apex.axis].pa, Key(self.axes[apex.axis].lineage));
-        let draws = &self.draws[apex.axis];
+        let (pa, key) = (self.axis(apex.axis).pa, Key(self.axis(apex.axis).lineage));
+        let draws = self.draws(apex.axis);
         let grown = draws.aged + draws.shares.iter().sum::<f64>() + spent - apex.spent;
         let ended_relays = draws.ended_relays + u32::from(why == Stop::Ended);
         // The relay of an age that ended, or of a unit that failed, grows
@@ -105,10 +102,12 @@ impl Grower<'_> {
             parent: apex.axis,
             node: 0,
         };
-        self.successor[apex.axis].push(self.axes.len());
+        let at = self.len();
+        self.successor_mut(apex.axis).push(at);
         self.sprout(key, pa, cycle, origin, made);
-        self.axes.last_mut().unwrap().blend = blend;
-        let draws = self.draws.last_mut().unwrap();
+        let line = self.made.last_mut().unwrap();
+        line.axis.blend = blend;
+        let draws = &mut line.draws;
         (draws.aged, draws.ended, draws.ended_relays) = (grown, ended, ended_relays);
         self.carry_on(cycle, used)
     }
@@ -121,7 +120,7 @@ impl Grower<'_> {
         }
         let u = unit.child(RELAY).unit();
         if u < relay {
-            self.windows.presence(below(u, relay), wood)
+            self.windows().presence(below(u, relay), wood)
         } else {
             0.0
         }
@@ -144,28 +143,29 @@ impl Grower<'_> {
         spent: f64,
         why: Stop,
     ) -> Result<()> {
-        self.units[apex.axis] = spent;
+        *self.units_mut(apex.axis) = spent;
         if why == Stop::Ended {
-            self.draws[apex.axis].outlived = Some(used);
+            self.draws_mut(apex.axis).outlived = Some(used);
         }
-        let axis = &self.axes[apex.axis];
-        let relay = why.relay(&self.species.states[axis.pa]);
+        let windows = self.windows();
+        let axis = self.axis(apex.axis);
+        let relay = why.relay(&self.species().states[axis.pa]);
         if relay <= 0.0 {
             return Ok(());
         }
         let u = unit.child(RELAY).unit();
         if u < relay {
-            let wood = self.windows.wood_at(axis.pa, cycle, used);
+            let wood = windows.wood_at(axis.pa, cycle, used);
             // A stop by abortion or a move is whole: the apex that all
             // but stopped grew its relay as well (host decision 11). A
             // failed unit's relay misses that unit, so it grows in from
             // nothing past the bound.
             let stop = if why == Stop::Failed {
-                self.windows.decided(stopped, wood, stop_stake(relay))
+                windows.decided(stopped, wood, stop_stake(relay))
             } else {
                 1.0
             };
-            let made = [stop, self.windows.presence(below(u, relay), wood)];
+            let made = [stop, windows.presence(below(u, relay), wood)];
             // The relay moves over the widest window: its move is a growth
             // unit's length whatever wood it carries.
             let blend = (stopped / SPAN).clamp(0.0, 1.0);

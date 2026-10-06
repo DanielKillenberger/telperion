@@ -121,7 +121,7 @@
     "impl:fn-196-tree-space-d-the-date-palm-as-a-point.1": 0
   },
   "spec_path": ".flow/specs/fn-196-tree-space-d-the-date-palm-as-a-point.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space D: the date palm as a point",
   "tracker": {
     "baseHashFlow": null,
@@ -134,5 +134,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T04:36:22.331892Z"
+  "updated_at": "2026-10-05T18:17:27.245526Z"
 }

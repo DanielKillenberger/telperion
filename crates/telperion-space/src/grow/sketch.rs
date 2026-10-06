@@ -38,7 +38,7 @@ pub(super) struct Pencil {
     /// The light at its tip, from the last cycle's leaves, and its
     /// growth unit's size among its siblings this cycle.
     pub(super) light: f64,
-    size: f64,
+    pub(super) size: f64,
     /// Its own present wood in metres, its remembered carbon balance and
     /// what its subtrees' survival of shedding makes of its unit this
     /// cycle (`balance.rs`).
@@ -88,24 +88,6 @@ impl Grower<'_> {
             sketch.pencils[apex.axis].light = field.at(tip);
         }
         self.sketch = Some(sketch);
-    }
-
-    /// The light axis `i`'s apex grows in: from the leaves of the cycle
-    /// before, or whole where nothing shades.
-    pub(super) fn light(&self, i: usize) -> f64 {
-        self.sketch
-            .as_ref()
-            .and_then(|s| s.pencils.get(i))
-            .map_or(1.0, |p| p.light)
-    }
-
-    /// Axis `i`'s growth unit's size this cycle (`allocation.rs`); whole
-    /// where nothing shades.
-    pub(super) fn size(&self, i: usize) -> f64 {
-        self.sketch
-            .as_ref()
-            .and_then(|s| s.pencils.get(i))
-            .map_or(1.0, |p| p.size)
     }
 
     /// Gives each living apex its unit's size this cycle from the vigour

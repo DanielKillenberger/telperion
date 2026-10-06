@@ -668,7 +668,7 @@
     "impl:fn-206-tree-space-one-reference-axis-every.1": 0
   },
   "spec_path": ".flow/specs/fn-206-tree-space-one-reference-axis-every.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space: one reference axis, every setting by degree",
   "tracker": {
     "baseHashFlow": null,
@@ -681,5 +681,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T17:44:26.528179Z"
+  "updated_at": "2026-10-05T18:17:24.393677Z"
 }

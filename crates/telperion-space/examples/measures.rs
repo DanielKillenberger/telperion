@@ -1,18 +1,20 @@
 //! The engine's measures for the passed species (fn-197).
 //!
-//!   cargo run --release -p telperion-space --example measures -- <what> [age] [seeds] [species]
+//!   cargo run --release -p telperion-space --example measures -- <what> [age] [seeds] [species] [light]
 //!
 //! - `hash`: each tree's hash over every public field, to the bit, without
-//!   light: the proof that a change left every species as it was.
+//!   light, or under `LIT` (`lit`) or both (`both`): the proof that a
+//!   change left every species as it was.
 //! - `stages`: each tree's time per stage (`telperion_space::Stage`), without
-//!   light and under `LIT`.
+//!   light and under `LIT`, or only one of them where `light` is `neutral`
+//!   or `lit`.
 //! - `gap`: under `LIT`, the oak's and the beech's rough layout grown with
 //!   the tree against their final lay: crown extent, how far each phytomer
 //!   stands from its final place, and the light at each living bud.
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::Instant;
 use telperion_space::{
-    beech, bud_light, grow, grow_staged, oak, sketch, spruce, Light, Request, Species, Stage,
+    beech, bud_light, grow, grow_staged, oak, palm, sketch, spruce, Light, Request, Species, Stage,
     Structure, Vec3,
 };
 
@@ -29,7 +31,12 @@ const LIT: [Light; 2] = [
         sky: 0.0,
     },
 ];
-const SPECIES: [(&str, fn() -> Species); 3] = [("beech", beech), ("spruce", spruce), ("oak", oak)];
+const SPECIES: [(&str, fn() -> Species); 4] = [
+    ("beech", beech),
+    ("spruce", spruce),
+    ("oak", oak),
+    ("palm", palm),
+];
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -44,7 +51,13 @@ fn main() {
         budget: BUDGET,
         light,
     };
-    let only = args.get(3);
+    let only = args.get(3).filter(|o| o.as_str() != "all");
+    // `hash` defaults to neutral light, `stages` to both.
+    let lights: Vec<Light> = match (args.get(4).map(String::as_str), what) {
+        (Some("neutral"), _) | (None, "hash") => vec![Light::NEUTRAL],
+        (Some("lit"), _) => vec![LIT[0]],
+        _ => vec![Light::NEUTRAL, LIT[0]],
+    };
     for (name, make) in SPECIES {
         if only.is_some_and(|o| o != name) {
             continue;
@@ -53,21 +66,24 @@ fn main() {
         for &seed in &seeds {
             match what {
                 "hash" => {
-                    let started = Instant::now();
-                    let tree = grow(&species, request(seed, Light::NEUTRAL)).expect("grows");
-                    println!(
-                        "{name} age {age} seed {seed}: hash {:016x}, {} phytomers, grown in {:.2} s",
-                        hash(&tree),
-                        tree.phytomer_count(),
-                        started.elapsed().as_secs_f64()
-                    );
+                    for &light in &lights {
+                        let started = Instant::now();
+                        let tree = grow(&species, request(seed, light)).expect("grows");
+                        println!(
+                            "{name} age {age} seed {seed} extinction {}: hash {:016x}, {} phytomers, grown in {:.2} s",
+                            light.extinction,
+                            hash(&tree),
+                            tree.phytomer_count(),
+                            started.elapsed().as_secs_f64()
+                        );
+                    }
                 }
                 "stages" => {
-                    for light in [Light::NEUTRAL, LIT[0]] {
+                    for &light in &lights {
                         stages(name, &species, request(seed, light));
                     }
                 }
-                "gap" if name != "spruce" => {
+                "gap" if name == "oak" || name == "beech" => {
                     // And with every sag at 0: the share of the gap that
                     // is sag's.
                     let mut unsagged = species.clone();

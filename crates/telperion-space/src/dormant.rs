@@ -15,6 +15,7 @@ use crate::schedule::Carried;
 use crate::species::{Species, Zone};
 use crate::structure::Axis;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 /// The years after its node grew that a sleeping bud wakes, for the draw
 /// `u`, by the inverse of the release law's distribution; infinite when it
@@ -237,6 +238,7 @@ fn mean(
 }
 
 /// A stage a sleeping bud may wake in over one year (`stages`).
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Piece {
     /// The part of the year that wakes it there.
     pub within: (f64, f64),
@@ -369,7 +371,15 @@ pub(crate) struct Living<'a> {
     /// decision 13). None for the expected lengths that make them.
     windows: Option<&'a Windows>,
     memo: HashMap<Asked, f64>,
+    /// The stages a sleeping bud of a zone may wake in over a year, each
+    /// with its first unit's law (`stages`, `First::of`), by the zone's PA
+    /// and place, the bud's PA and the year: the same for every bearer.
+    woken: HashMap<(usize, usize, usize, u32), Wakes>,
 }
+
+/// The stages a sleeping bud may wake in over a year, each with the law
+/// of its first unit.
+pub(crate) type Wakes = Rc<[(Piece, First)]>;
 
 /// A chance `Living` was asked: the bud (PA and what it carries), the
 /// cycles of the tree's age left at its birth where windows are read, the
@@ -389,7 +399,24 @@ impl<'a> Living<'a> {
             species,
             windows,
             memo: HashMap::new(),
+            woken: HashMap::new(),
         }
+    }
+
+    /// The stages a sleeping bud of PA `j` in zone `z` of PA `k` may wake
+    /// in over its `s`th year, each with the law of its first unit.
+    pub fn woken(&mut self, (k, z): (usize, usize), j: usize, s: u32) -> Wakes {
+        let species = self.species;
+        self.woken
+            .entry((k, z, j, s))
+            .or_insert_with(|| {
+                let zone = &species.states[k].zones[z];
+                stages(species, zone, j, s)
+                    .into_iter()
+                    .map(|p| (p, First::of(species, zone, (s, p.within), (p.pa, p.slept))))
+                    .collect()
+            })
+            .clone()
     }
 
     /// The chance an apex of PA `k` whose age ended in a unit with `left`
