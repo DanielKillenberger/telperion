@@ -12,7 +12,9 @@
 use super::ends::{Ended, NONE};
 use super::mass::Units;
 use super::section::{handed, zoned};
-use super::{Kept, Placing, Table, LEAVES, LEAVES_ALONG, PARALLEL, SECTION, SECTION2, WIDTH, WOOD};
+use super::{
+    Kept, Placing, Table, COUNT, LEAVES, LEAVES_ALONG, PARALLEL, SECTION, SECTION2, WIDTH, WOOD,
+};
 use crate::closed_form::along::{dominance_power, Along, Count};
 use crate::closed_form::events::Event;
 use crate::closed_form::steps::Step;
@@ -232,6 +234,7 @@ impl Kept<'_> {
         y[PARALLEL] = q;
         y[LEAVES] = w * o * o;
         y[LEAVES_ALONG] = a * o * o;
+        y[COUNT] = n.moments().0;
         y
     }
 

@@ -22,6 +22,7 @@
 //! ≥ 1 − β |ln ρ| ≥ 0. The fit is the chain's alone; nothing it bears is
 //! scaled by it.
 use super::Bounded;
+use crate::closed_form::boundary::Row;
 use crate::closed_form::kept::section::delta;
 use crate::girth::ripe;
 use crate::grow::Record;
@@ -35,7 +36,7 @@ pub(super) fn bud(record: &Record) -> (Origin, usize, u64) {
 
 impl Bounded<'_> {
     /// A record's committed section handed to a bearer of exponent `e`.
-    fn handed(&self, record: &Record, e: f64) -> f64 {
+    pub(crate) fn handed(&self, record: &Record, e: f64) -> f64 {
         let row = self.rows.lateral(record.pa, record.birth);
         let s = self.base_scale(record);
         let (ec, k) = (row.e, row.kept);
@@ -66,7 +67,13 @@ impl Bounded<'_> {
             }
             None => (self.rows.seed(), 1.0),
         };
-        let form = &self.species.states[self.bent.axes[chain.axes[0]].pa].form;
+        self.base_radius(row, s, self.bent.axes[chain.axes[0]].pa)
+    }
+
+    /// A committed base radius from its row and base scale `s`, for a
+    /// chain whose first axis is of `pa`.
+    pub(crate) fn base_radius(&self, row: &Row, s: f64, pa: usize) -> f64 {
+        let form = &self.species.states[pa].form;
         let (e, k) = (row.e, row.kept);
         let pipe = if k > 0.0 {
             delta(k, row.s1 * s.powf(e), row.s2 * s.powf(2.0 * e), 1.0 / e) / k

@@ -2,7 +2,7 @@
 //! kept tables read once for every PA and every age a bud can have at the
 //! tree's age, so a bud's boundary is a row times powers of its base
 //! scale, the same at any zoom and in any order of refinement.
-use super::kept::{Kept, Table, LEAVES, LEAVES_ALONG, MASS, MASS_ALONG, SECTION, SECTION2};
+use super::kept::{Kept, Table, COUNT, LEAVES, LEAVES_ALONG, MASS, MASS_ALONG, SECTION, SECTION2};
 use crate::presence::Windows;
 use crate::schedule::Carried;
 use crate::species::Species;
@@ -15,8 +15,9 @@ mod tests;
 /// unit base scale: the chance it is kept; its base section's partial
 /// moments on that (E[S; kept], E[S²; kept]) in its own exponent `e`;
 /// the same before its own fade, which its bearer retains a share of;
-/// its mass and that mass's moment along its heading, on being kept; and
-/// its extent bound.
+/// its mass and that mass's moment along its heading, on being kept; its
+/// phytomers kept (E[N; kept], the cut's predictor, fn-209 F1); and its
+/// extent bound.
 #[derive(Debug, Clone, Copy, Default)]
 pub(crate) struct Row {
     pub kept: f64,
@@ -26,6 +27,7 @@ pub(crate) struct Row {
     pub grown2: f64,
     pub mass: f64,
     pub moment: f64,
+    pub count: f64,
     pub reach: f64,
     pub e: f64,
 }
@@ -145,7 +147,10 @@ fn read(kept: &mut Kept, species: &Species, pa: usize, m: usize) -> (Row, Vec<f6
     let grown = kept.of(pa, m, Carried::default(), None);
     let faded = kept.shed((pa, m, Carried::default(), None), delay);
     let reach = kept.reach_bound(pa, m, Carried::default(), None);
-    (row(&faded, &grown, m, reach), grown.a[..=m.min(grown.a.len() - 1)].to_vec())
+    (
+        row(&faded, &grown, m, reach),
+        grown.a[..=m.min(grown.a.len() - 1)].to_vec(),
+    )
 }
 
 fn row(faded: &Table, grown: &Table, m: usize, reach: f64) -> Row {
@@ -160,6 +165,7 @@ fn row(faded: &Table, grown: &Table, m: usize, reach: f64) -> Row {
         grown2: g[SECTION2],
         mass: b[MASS] + b[LEAVES],
         moment: b[MASS_ALONG] + b[LEAVES_ALONG],
+        count: b[COUNT],
         reach,
         e: faded.e,
     }

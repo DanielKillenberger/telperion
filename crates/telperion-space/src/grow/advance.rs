@@ -51,8 +51,9 @@ impl Shoot<'_, '_> {
             state.viability
         };
         let viability = shared(viability, share);
-        let u = decide.child(VIABILITY).unit();
-        if u >= viability {
+        let d = decide.child(VIABILITY).draw();
+        let u = d.unit();
+        if !d.under(viability) {
             self.axis_mut(apex.axis).apex_end = Some(cycle - 1);
             self.draws_mut(apex.axis).failed = true;
             // The unit that failed is spent: a relay's first unit draws
@@ -96,8 +97,9 @@ impl Shoot<'_, '_> {
         let exposure = carried.exposure(state.lifespan, 1);
         let abortion = 1.0 - shared(1.0 - state.abortion_at(grown), exposure);
         if abortion > 0.0 && !step.ends {
-            let u = decide.child(ABORTION).unit();
-            if u < abortion {
+            let d = decide.child(ABORTION).draw();
+            let u = d.unit();
+            if d.under(abortion) {
                 self.axis_mut(apex.axis).apex_end = Some(cycle);
                 self.stop(
                     apex,

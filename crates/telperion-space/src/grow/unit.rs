@@ -18,7 +18,7 @@ impl Shoot<'_, '_> {
         let along = ALONG.iter().filter(|&&z| z < state.zones.len());
         for (z, zone) in along.map(|&z| (z, &state.zones[z])) {
             let zone_key = unit.child(ZONE + z as u64);
-            lineage::nodes(zone.nodes, zone_key.unit(), MAX_NODES_PER_ZONE, &mut leads);
+            lineage::nodes(zone.nodes, zone_key.draw(), MAX_NODES_PER_ZONE, &mut leads);
             let lateral = &rules.laterals[pa][z];
             // A node decides its internode and the buds it is expected to bear;
             // a PA its buds cannot carry takes no part.
@@ -39,18 +39,19 @@ impl Shoot<'_, '_> {
                 for (slot, bud) in buds[..zone.places()].iter_mut().enumerate() {
                     let place_key = node_key.child(slot as u64);
                     let placed = zone.share(slot);
-                    *bud = lineage::bud(lateral, place_key.unit())
+                    *bud = lineage::bud(lateral, place_key.draw())
                         .map(|(pa, lead)| (pa, lead, placed));
                 }
                 // Ordered by the first place's draw, which every node has, so
-                // a place a fraction grows moves no node.
-                let order = node_key.child(0).unit();
+                // a place a fraction grows moves no node; by its bits, and
+                // equal bits by the node's index (FINE-CONTRACT.md D4).
+                let order = node_key.child(0).draw();
                 nodes.push((order, i as u64, node_lead, buds));
             }
             // Acrotony: the nodes stand in order of their draws, so the
             // youngest lateral PA is on top, bare nodes at the base, and a
             // bud a setting makes or unmakes moves no node.
-            nodes.sort_by(|a, b| b.0.total_cmp(&a.0));
+            nodes.sort_by_key(|n| std::cmp::Reverse(n.0));
             // Counted a zone at a time; the shares of a cycle are summed
             // once they are merged (`Grower::step`).
             self.grown += nodes.len() as u64;

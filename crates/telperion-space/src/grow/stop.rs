@@ -52,8 +52,9 @@ impl Shoot<'_, '_> {
                 Stop::Ended,
             );
         };
-        let u = unit.child(MOVE).unit();
-        if u >= go {
+        let d = unit.child(MOVE).draw();
+        let u = d.unit();
+        if !d.under(go) {
             let stopped = above(u, go);
             return self.stop(apex, (cycle, used), stopped, unit, apex.spent, Stop::Ended);
         }
@@ -118,9 +119,9 @@ impl Shoot<'_, '_> {
         if relay <= 0.0 {
             return 0.0;
         }
-        let u = unit.child(RELAY).unit();
-        if u < relay {
-            self.windows().presence(below(u, relay), wood)
+        let d = unit.child(RELAY).draw();
+        if d.under(relay) {
+            self.windows().presence(below(d.unit(), relay), wood)
         } else {
             0.0
         }
@@ -153,8 +154,9 @@ impl Shoot<'_, '_> {
         if relay <= 0.0 {
             return Ok(());
         }
-        let u = unit.child(RELAY).unit();
-        if u < relay {
+        let d = unit.child(RELAY).draw();
+        if d.under(relay) {
+            let u = d.unit();
             let wood = windows.wood_at(axis.pa, cycle, used);
             // A stop by abortion or a move is whole: the apex that all
             // but stopped grew its relay as well (host decision 11). A

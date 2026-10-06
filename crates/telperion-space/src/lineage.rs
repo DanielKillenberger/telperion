@@ -62,9 +62,50 @@ impl Key {
         self.child(CONTINUATION).child(age as u64)
     }
 
-    /// The draw this key decides, uniform on [0, 1).
+    /// The draw this key decides: 53 bits, uniform on [0, 2^53).
+    pub fn draw(self) -> Draw {
+        Draw(mix(self.0 ^ 0xd1b5_4a32_d192_ed03) >> 11)
+    }
+
+    /// The draw as a real, uniform on [0, 1).
     pub fn unit(self) -> f64 {
-        (mix(self.0 ^ 0xd1b5_4a32_d192_ed03) >> 11) as f64 / (1u64 << 53) as f64
+        self.draw().unit()
+    }
+}
+
+/// A draw's 53 bits (fn-209, FINE-CONTRACT.md D1): every decision a draw
+/// takes compares them, as an integer, with a probability's canonical
+/// threshold, so two executors that hold the same bits and the same
+/// threshold take the same decision.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) struct Draw(pub u64);
+
+/// 2^53: a probability's threshold where it is certain.
+pub(crate) const ONE: u64 = 1 << 53;
+
+/// A probability's canonical threshold: the draws under it are those
+/// below ceil(p 2^53), which are exactly those whose real `d / 2^53` lies
+/// below `p` (the scaling by 2^53 is exact), so the integer decision is
+/// the real one to the bit. None for a probability of none or NaN.
+pub(crate) fn threshold(p: f64) -> u64 {
+    if p.is_nan() || p <= 0.0 {
+        return 0;
+    }
+    if p >= 1.0 {
+        return ONE;
+    }
+    (p * ONE as f64).ceil() as u64
+}
+
+impl Draw {
+    /// The draw as a real, uniform on [0, 1): exact, 53 bits.
+    pub fn unit(self) -> f64 {
+        self.0 as f64 / ONE as f64
+    }
+
+    /// Whether the draw falls under probability `p`: `draw < threshold(p)`.
+    pub fn under(self, p: f64) -> bool {
+        self.0 < threshold(p)
     }
 }
 
@@ -100,13 +141,15 @@ fn past(u: f64, bound: f64) -> f64 {
     u.ln() - bound.ln()
 }
 
-/// A bud's PA under `lateral` for the draw `u`, with its lead past the
-/// nearer bound of the PA's run of draws; none for a bare bud.
-pub(crate) fn bud(lateral: &[f64], u: f64) -> Option<(usize, f64)> {
+/// A bud's PA under `lateral` for the draw `d`, with its lead past the
+/// nearer bound of the PA's run of draws; none for a bare bud. The bounds
+/// are the running sums of `lateral` in its order (FINE-CONTRACT.md D3).
+pub(crate) fn bud(lateral: &[f64], d: Draw) -> Option<(usize, f64)> {
+    let u = d.unit();
     let mut low = 0.0;
     for (pa, &p) in lateral.iter().enumerate() {
         let high = low + p;
-        if p > 0.0 && u < high {
+        if p > 0.0 && d.under(high) {
             return Some((pa, above(u, low).min(below(u, high))));
         }
         low = high;
@@ -114,10 +157,11 @@ pub(crate) fn bud(lateral: &[f64], u: f64) -> Option<(usize, f64)> {
     None
 }
 
-/// A zone's node count under `law` for the draw `u`, by the inverse of the
+/// A zone's node count under `law` for the draw `d`, by the inverse of the
 /// law's distribution, and each node's lead into `leads`: a node of the
-/// Poisson law is made as the mean passes its draw.
-pub(crate) fn nodes(law: NodeLaw, u: f64, cap: u32, leads: &mut Vec<f64>) {
+/// Poisson law is made as the mean passes its draw (FINE-CONTRACT.md D2).
+pub(crate) fn nodes(law: NodeLaw, d: Draw, cap: u32, leads: &mut Vec<f64>) {
+    let u = d.unit();
     leads.clear();
     match law {
         NodeLaw::Uniform { min, max } => {
@@ -125,7 +169,7 @@ pub(crate) fn nodes(law: NodeLaw, u: f64, cap: u32, leads: &mut Vec<f64>) {
             let span = max - min + 1.0;
             for j in 0..(max.ceil() as u32).min(cap) {
                 let bound = (f64::from(j) - min + 1.0) / span;
-                if u < bound {
+                if d.under(bound) {
                     break;
                 }
                 leads.push(past(u, bound));
@@ -136,7 +180,7 @@ pub(crate) fn nodes(law: NodeLaw, u: f64, cap: u32, leads: &mut Vec<f64>) {
             let mut mass = (-mean).exp();
             let mut cumulative = mass;
             let mut k = 0u32;
-            while cumulative <= u && k < cap {
+            while !d.under(cumulative) && k < cap {
                 leads.push(above(u, cumulative));
                 k += 1;
                 mass *= mean / f64::from(k);

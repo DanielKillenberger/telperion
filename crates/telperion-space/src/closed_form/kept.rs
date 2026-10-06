@@ -51,7 +51,8 @@ mod tests;
 /// the heading, its second moment about the base, its second moment along
 /// the heading; the pipes' mass Σ l r² and its moment along the heading;
 /// the leaves' mass Σ l o² and its moment; the base section S in the
-/// bud's own exponent, and S².
+/// bud's own exponent, and S²; and the phytomers (fn-209 F1, the cut's
+/// predictor), which no base scale changes.
 pub(crate) const WOOD: usize = 0;
 pub(crate) const ALONG: usize = 1;
 pub(crate) const SQUARE: usize = 2;
@@ -62,11 +63,12 @@ pub(crate) const LEAVES: usize = 6;
 pub(crate) const LEAVES_ALONG: usize = 7;
 pub(crate) const SECTION: usize = 8;
 pub(crate) const SECTION2: usize = 9;
-pub(crate) const WIDTH: usize = 10;
+pub(crate) const COUNT: usize = 10;
+pub(crate) const WIDTH: usize = 11;
 
 /// Each quantity's power of the base scale, the section's at exponent `e`.
 fn powers(e: f64) -> [f64; WIDTH] {
-    [1.0, 2.0, 3.0, 3.0, 3.0, 4.0, 3.0, 4.0, e, 2.0 * e]
+    [1.0, 2.0, 3.0, 3.0, 3.0, 4.0, 3.0, 4.0, e, 2.0 * e, 0.0]
 }
 
 /// A bud's kept quantities by cycle t from `lo` on: `a` the chance its
@@ -100,10 +102,11 @@ impl Table {
 
 /// How a borne bud stands: its base scale's moments E[s^p] (p = 1 to 4),
 /// E[s^p x] (p = 1 to 3) and E[s^p x²] (p = 1, 2) for x its base's
-/// distance along the axis, summed over its buds; and the cosine of its
-/// angle to the axis.
+/// distance along the axis, summed over its buds; the buds; and the
+/// cosine of its angle to the axis.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Placing {
+    n: f64,
     s: [f64; 4],
     x: [f64; 3],
     x2: [f64; 2],
@@ -121,6 +124,7 @@ impl Placing {
     /// `count` buds whose base scale's moments are `powers` (p = 1 to 4),
     /// standing at `at`.
     pub fn add(&mut self, count: f64, powers: &[f64; 4], at: Along) {
+        self.n += count;
         for (s, &w) in self.s.iter_mut().zip(powers) {
             *s += count * w;
         }
@@ -156,6 +160,7 @@ impl Placing {
         out[MASS_ALONG] += x3 * c[MASS] + cos * s4 * c[MASS_ALONG];
         out[LEAVES] += s3 * c[LEAVES];
         out[LEAVES_ALONG] += x3 * c[LEAVES] + cos * s4 * c[LEAVES_ALONG];
+        out[COUNT] += self.n * c[COUNT];
     }
 }
 

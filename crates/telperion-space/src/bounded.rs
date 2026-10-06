@@ -184,6 +184,30 @@ impl<'s> Bounded<'s> {
         }
     }
 
+    /// A fine root's tree (fn-209 F1, `fine/executor.rs`): axis 0 is its
+    /// bearer's stub, as laid before bending in the structure it was
+    /// settled from and as laid `bent`; its chain is taken as resolved.
+    pub(crate) fn on_stub(mut self, bent: crate::structure::Axis) -> Self {
+        self.bent.axes[0] = bent;
+        self.resolved[0] = true;
+        self
+    }
+
+    /// The tree as laid before it bends; an unresolved chain's axes unlaid.
+    pub(crate) fn unbent(&self) -> &Structure {
+        &self.unbent
+    }
+
+    /// The committed rows it reads.
+    pub(crate) fn rows_of(&self) -> &Rows {
+        &self.rows
+    }
+
+    /// Every bud made on a kept axis, by its record.
+    pub(crate) fn records(&self) -> &[Record] {
+        &self.records
+    }
+
     /// Seconds spent growing and settling the tree, and reading its
     /// closed form's rows.
     pub fn timings(&self) -> (f64, f64) {
@@ -301,8 +325,7 @@ impl<'s> Bounded<'s> {
         use std::sync::Mutex;
         const PIECE: usize = 16;
         let pieces = chains.len().div_ceil(PIECE);
-        let done: Vec<Mutex<Worked>> =
-            (0..pieces).map(|_| Mutex::new(Vec::new())).collect();
+        let done: Vec<Mutex<Worked>> = (0..pieces).map(|_| Mutex::new(Vec::new())).collect();
         crate::cores::spread(pieces, threads, &|k| {
             let piece = &chains[k * PIECE..((k + 1) * PIECE).min(chains.len())];
             *done[k].lock().unwrap() = piece.iter().map(|&c| (c, self.work(c))).collect();
@@ -315,7 +338,7 @@ impl<'s> Bounded<'s> {
     /// A record's base scale: its bearer's at its node, before the size
     /// the bearer's unit took, times its vigour as made and its share of
     /// it among its siblings.
-    fn base_scale(&self, record: &Record) -> f64 {
+    pub(crate) fn base_scale(&self, record: &Record) -> f64 {
         let Origin::Lateral { parent, node, .. } = record.origin else {
             return 1.0;
         };

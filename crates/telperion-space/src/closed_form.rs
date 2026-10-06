@@ -249,7 +249,7 @@ mod tests;
 /// base scale, by `[pa][m]`: its phytomers of that cycle (counted whole)
 /// times each one's PA's leaf area. `windows` is the species whose
 /// windows the tree grows under: `species` itself, or the species it is
-/// taken at a constant light from (`alone::at_light`).
+/// taken at a constant light from (`alone/field.rs`, `at_light`).
 pub(crate) fn last_leaves(species: &Species, windows: &Species, age: u32) -> Vec<Vec<f64>> {
     let laterals: Vec<Vec<Vec<f64>>> = species.states.iter().map(|s| s.laterals()).collect();
     let windows = Windows::new(windows, age);

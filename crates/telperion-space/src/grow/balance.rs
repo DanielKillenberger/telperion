@@ -74,11 +74,12 @@ impl Grower<'_> {
                 continue;
             }
             let p = -(-hazard).exp_m1();
-            let u = Key(self.axes[i].lineage)
+            let d = Key(self.axes[i].lineage)
                 .child(SHED)
                 .child(u64::from(cycle))
-                .unit();
-            if u < p {
+                .draw();
+            let u = d.unit();
+            if d.under(p) {
                 shed[i] = true;
             } else {
                 let windows = &self.rules.windows;

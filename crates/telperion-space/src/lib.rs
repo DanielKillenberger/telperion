@@ -22,6 +22,7 @@ mod closed_form;
 mod cores;
 mod dormant;
 mod error;
+mod fine;
 mod geometry;
 mod girth;
 mod grow;
@@ -44,6 +45,10 @@ pub use blend::blend;
 pub use bounded::{grow_bounded, Bounded, Expected};
 pub use closed_form::expected_counts;
 pub use error::{Error, Result};
+pub use fine::{
+    canonical, digest, grow_fine, identities, survey_lit, Fine, FineRoot, Order, Plan, Surveyed,
+    Work,
+};
 pub use grow::{grow, grow_staged, sketch, Request, Stage};
 pub use light::{bud_light, Light};
 pub use oak::oak;

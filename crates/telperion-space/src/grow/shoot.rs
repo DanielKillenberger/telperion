@@ -7,7 +7,7 @@
 use super::sketch::Pencil;
 use super::{bud, Apex, Certain, Placed};
 use crate::dormant::{Sleeper, Woken};
-use crate::lineage::Key;
+use crate::lineage::{Draw, Key};
 use crate::presence::{Draws, Windows};
 use crate::species::{Species, MAX_BUDS};
 use crate::structure::{Axis, Origin};
@@ -97,7 +97,7 @@ pub(super) struct Shoot<'g, 'a> {
     /// One zone's node leads and its nodes (order draw, draw index, lead,
     /// buds), reused.
     pub leads: Vec<f64>,
-    pub node_buds: Vec<(f64, u64, f64, [Placed; MAX_BUDS as usize])>,
+    pub node_buds: Vec<(Draw, u64, f64, [Placed; MAX_BUDS as usize])>,
     /// One zone's sleeping buds' expected wood per PA, reused.
     pub sleeping: Vec<f64>,
 }

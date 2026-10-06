@@ -71,7 +71,7 @@ pub(crate) fn draw(
     (cycle, age): (u32, u32),
 ) -> Option<(usize, Sleeper)> {
     let key = place.child(DORMANT);
-    let (pa, lead) = lineage::bud(&zone.dormant, key.unit())?;
+    let (pa, lead) = lineage::bud(&zone.dormant, key.draw())?;
     let years = wake(zone, key.child(DORMANT).unit());
     if years >= f64::from(age - cycle) {
         return None;
