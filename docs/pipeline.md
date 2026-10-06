@@ -13,12 +13,16 @@ The stages live in private modules of the pipeline (`crates/telperion-core/src/p
 
 | input | stage | rows |
 |---|---|---|
-| `GrowInput` | the skeleton | skeleton, radii, canopy (a frond crown clears apical twigs) |
-| `PlanInput` | the element, the leaf plan, the leaf box | element, envelope, canopy, surface, seed, the twig placement, the leaf box |
+| `GrowInput` | the skeleton | the engine species, its stem ages and site light (`/space`), the age, the seed |
+| `PlanInput` | the element, the leaf plan, the leaf box | element, the grown tree's envelope, canopy, surface, seed, the twig placement, the leaf box |
 | `SurfaceInput` | the rings and the wood | the envelope's height, surface |
 | `LeafInput` | placement and the cull | envelope, canopy, seed, shell depth |
 
 `GrowInput` lends the family's groups to the one stage that reads them; the others are owned copies with no reference back to the family, so an expansion outlives it. Family-level values are derived there once: the resolved twig rows, the twig placement and the leaf box read from them, the height. A derivation that can fail is kept as its result and answered where its stage runs, so the error a request meets is the one it met before, in the same order. Values that live at a branch or a surface sample (internodes, curtains, sample positions) stay derived inside their stage, where their inputs exist (fn-152 `ASTRA-REVIEW.md`, finding 1).
+
+## Stage 2: the tree-space engine (fn-198)
+
+The skeleton stage is the tree-space engine (`pipeline/space.rs`, private). It grows the family's engine species (`Family.space`, the preset's indexed `/space` rows, `presets/space.rs`) for `Family.age` whole years at the family's seed, under the site light the preset states, then converts the engine's structure into the pipeline's tree. Before conversion every structure is put into one canonical axis order, parents first and siblings by lineage (host, 2026-10-07), so the tree never depends on how it was assembled. Every constant of the conversion names its owner where it is defined. A family with no engine species is refused by name (`no engine species`), never grown another way; on this branch that is the silver birch, Laurelin, Telperion and the ordinary tree. Every stage past it reads the envelope of the grown tree (`grown_envelope`: its height, its reach, where its crown starts and is widest; the outline's shape rows are the family's). The scaffold's grower is reached by the suite alone until R0 removes it.
 
 ## The executor interface
 
@@ -45,7 +49,7 @@ Expansion
 
 Each step is synchronous CPU work. The GPU executor keeps its own schedule: it calls the steps between its GPU submissions exactly where it called the stage functions, so the position upload still runs while the CPU prepares stations (`preparation.rs`, the overlap after `begin_positions`), and every timing it reports covers the same work. `Expansion::mesh` is the pipeline's own CPU build of the prepared tree, the reference the GPU falls back to.
 
-`expand` takes a tree the caller already holds, for the renderer's tests of the GPU kernels on hand-built trees. It builds no tree: growing one stays inside the pipeline, so `expand` opens no second chain. Expansion opens by hanging the shed leaf bases on the stems (fn-204), so a handed-in tree is clothed exactly as a grown one; a tree that already carries its bases is clothed again.
+`expand` takes a tree the caller already holds, for the renderer's tests of the GPU kernels on hand-built trees, under the envelope that tree grew to. It builds no tree, and nothing outside the pipeline converts the engine's structure, so the tree-space examples' handed-in path is closed (fn-198): growing one stays inside the pipeline, so `expand` opens no second chain. Expansion opens by hanging the shed leaf bases on the stems (fn-204), so a handed-in tree is clothed exactly as a grown one; a tree that already carries its bases is clothed again.
 
 The growth path, the second sanctioned exception, was removed on 2026-10-02 (fn-181, `docs/growth-path.md`); the scaffold's grower, `branching::Specimen`, is private to the crate.
 
