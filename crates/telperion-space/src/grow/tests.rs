@@ -181,7 +181,14 @@ fn every_pass_is_reported() {
         light: LIT,
     };
     let mut reported = Vec::new();
-    run(&oak(), request, &mut |s| reported.push(s), true, Options::default()).unwrap();
+    run(
+        &oak(),
+        request,
+        &mut |s| reported.push(s),
+        true,
+        Options::default(),
+    )
+    .unwrap();
     let passes: HashSet<Pass> = reported
         .iter()
         .filter_map(|s| match s {
