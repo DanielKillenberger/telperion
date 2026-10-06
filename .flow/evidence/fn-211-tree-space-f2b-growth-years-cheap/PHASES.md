@@ -75,9 +75,10 @@ The stepped executor itself (fn-209's CPU executor resumable cycle by cycle) is 
 - **What it moves** (`contract dump` of 28 trees against `38ced830`; `raw/task4/sums-vs-base.md`):
   - The beech, spruce and palm do not move at all.
   - The oak keeps its topology in all four trees. Its tips move at most 1.85e-11 m (RMS at most 5.9e-13 m) and its radii at most 1.0e-8 relative.
-- **Probe (a) re-run** (`raw/task4/partition-sums.txt`): every phase of every cycle is identical, and so is the tree, in every run finished when this was committed.
-  - Finished: the oak at 40, seeds 1 and 7, and at 80 seed 1 up to cut 1,024, each at cuts 256, 1,024 and 4,096, in forward, reverse and shuffled order, in chunks of 1, 7 and 64.
-  - Still running (the desk at load 14 to 33): the oak at 80 seed 7, the beech and the spruce. The beech and spruce were identical before the change and have none of the three sums.
+- **Probe (a) re-run** (`raw/task4/partition-sums.txt`, finished): every phase of every cycle is identical, and so is the tree, in all 432 runs.
+  - Trees: the oak at seeds 1 and 7, ages 40 and 80, and the beech and spruce at the same seeds and ages.
+  - Each at cuts 256, 1,024 and 4,096, combined in forward, reverse and shuffled order, in chunks of 1, 7 and 64.
+  - The unpartitioned reference is today's tree to the bit for all 12 trees.
 - **The oak's stills** at 80, seeds 1 and 7, bare and in leaf, against today's: 0 pixels differ out of 691,200 (`raw/task4/stills/sums-oak-80-{1,7}.png`, viewed).
 
 ## Host decision 2: the stepped executor, its build plan (not built yet)
