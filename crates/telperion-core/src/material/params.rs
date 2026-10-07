@@ -137,6 +137,62 @@ crate::catalogue::rows! {
             dial: bounded("material_leaf_dead_blue", "the blue in the colour a dead frond has \
                 aged to", [0.05, 0.1]),
         },
+        /// The colour of a petal's upper face, a linear reflectance per channel
+        /// (fn-216): the flowers' own, drawn by the leaf shader.
+        pub bloom_front_red: f64 = "bloomFrontRed" "reflectance"
+            Bounds::closed(0.0, 1.0) => [Draw] {
+            wire: 266,
+            check: input(Site::Material, 95, "bloom front red"),
+            applies: "no age flowering",
+            dial: bounded("material_bloom_front_red", "the red in the colour of a petal's upper face",
+                [0.05, 0.1]),
+        },
+        /// The green channel of `bloom_front_red`.
+        pub bloom_front_green: f64 = "bloomFrontGreen" "reflectance"
+            Bounds::closed(0.0, 1.0) => [Draw] {
+            wire: 267,
+            check: input(Site::Material, 96, "bloom front green"),
+            applies: "no age flowering",
+            dial: bounded("material_bloom_front_green", "the green in the colour of a petal's upper face",
+                [0.05, 0.1]),
+        },
+        /// The blue channel of `bloom_front_red`.
+        pub bloom_front_blue: f64 = "bloomFrontBlue" "reflectance"
+            Bounds::closed(0.0, 1.0) => [Draw] {
+            wire: 268,
+            check: input(Site::Material, 97, "bloom front blue"),
+            applies: "no age flowering",
+            dial: bounded("material_bloom_front_blue", "the blue in the colour of a petal's upper face",
+                [0.05, 0.1]),
+        },
+        /// The colour of a petal's underside, a linear reflectance per channel
+        /// (fn-216): the flowers' own, drawn by the leaf shader.
+        pub bloom_back_red: f64 = "bloomBackRed" "reflectance"
+            Bounds::closed(0.0, 1.0) => [Draw] {
+            wire: 269,
+            check: input(Site::Material, 98, "bloom back red"),
+            applies: "no age flowering",
+            dial: bounded("material_bloom_back_red", "the red in the colour of a petal's underside",
+                [0.05, 0.1]),
+        },
+        /// The green channel of `bloom_back_red`.
+        pub bloom_back_green: f64 = "bloomBackGreen" "reflectance"
+            Bounds::closed(0.0, 1.0) => [Draw] {
+            wire: 270,
+            check: input(Site::Material, 99, "bloom back green"),
+            applies: "no age flowering",
+            dial: bounded("material_bloom_back_green", "the green in the colour of a petal's underside",
+                [0.05, 0.1]),
+        },
+        /// The blue channel of `bloom_back_red`.
+        pub bloom_back_blue: f64 = "bloomBackBlue" "reflectance"
+            Bounds::closed(0.0, 1.0) => [Draw] {
+            wire: 271,
+            check: input(Site::Material, 100, "bloom back blue"),
+            applies: "no age flowering",
+            dial: bounded("material_bloom_back_blue", "the blue in the colour of a petal's underside",
+                [0.05, 0.1]),
+        },
         /// The hue offsets one leaf may take, as a fraction of the colour circle.
         pub hue_range_low: f64 = "hueRangeLow" "-" Bounds::closed(-0.5, 0.5) => [Draw] {
             wire: 163,
@@ -849,6 +905,12 @@ impl Default for MaterialParams {
             leaf_dead_red: 0.30,
             leaf_dead_green: 0.25,
             leaf_dead_blue: 0.18,
+            bloom_front_red: 0.82,
+            bloom_front_green: 0.8,
+            bloom_front_blue: 0.74,
+            bloom_back_red: 0.72,
+            bloom_back_green: 0.72,
+            bloom_back_blue: 0.64,
             hue_range_low: -0.03,
             hue_range_high: 0.03,
             brightness_range_low: -0.12,

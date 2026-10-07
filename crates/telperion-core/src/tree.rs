@@ -3,10 +3,12 @@
 //! the specimen provides a cached packed layout when a consumer reads it.
 //! Timeline nodes retain their birth identity and slot after their death year;
 //! the legacy envelope builder still compacts. Consumer reads exclude dead nodes.
+mod bloom;
 mod identity;
 mod section;
 mod shoot;
 use crate::{math::Vec3, Error, Result};
+pub use bloom::Bloom;
 pub use identity::NodeIdentity;
 pub(crate) use identity::NodeKey;
 pub use section::{Section, SectionRing};
@@ -129,6 +131,10 @@ pub struct Tree {
     /// `sections` is: a specimen's bytes are the ones they always were.
     #[cfg_attr(feature = "json", serde(skip))]
     pub pipe: Vec<[f64; 2]>,
+    /// The nodes that may flower, in node order (fn-216). Empty on every
+    /// tree whose ages bear none, and never stored, as `sections` is.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub blooms: Vec<Bloom>,
 }
 impl Tree {
     /// Node `i`'s radii as the pipe model solved them, `[start, distal]`,

@@ -50,6 +50,7 @@ fn ramp() -> TreeMesh {
             element: Element::default(),
             instances: Instances::default(),
         },
+        organ: None,
         bounds: Bounds {
             min: Vec3::new(-LENGTH / 2.0, AXIS - THICK, -THICK),
             max: Vec3::new(LENGTH / 2.0, AXIS + THICK, THICK),

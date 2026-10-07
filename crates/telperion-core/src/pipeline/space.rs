@@ -12,7 +12,7 @@
 //! key, so every draw keyed by it is the node's own.
 use super::GrowInput;
 use crate::math::Vec3;
-use crate::tree::{BudFate, Node, NodeIdentity, NodeKind, ShootState, Tree};
+use crate::tree::{Bloom, BudFate, Node, NodeIdentity, NodeKind, ShootState, Tree};
 use crate::{Error, Result};
 use telperion_space::{Origin, Request, Structure};
 
@@ -71,7 +71,8 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     // and a relay's girth never depend on how the tree was assembled.
     let structure = telperion_space::grow(species, request).map_err(engine)?;
     fits(&structure, KEPT)?;
-    Ok(convert(&structure, &input.space.trunk))
+    let flowering: Vec<f64> = species.states.iter().map(|s| s.flowering).collect();
+    Ok(convert(&structure, &input.space.trunk, &flowering))
 }
 
 /// The refusal of a tree over the browser's ceiling.
@@ -187,9 +188,11 @@ fn joint(
 /// a limb stops being stem there, and a limb's relays never are, so the
 /// canopy measures its slender wood against the trunk, not a fork of
 /// limbs deep in the crown. Two trunk-level axes leaving one node, a
-/// codominant fork of the trunk, are both stem.
-fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
+/// codominant fork of the trunk, are both stem. A drawn node of an age
+/// that flowers (`flowering`, by age; none past its end) is kept as a bloom.
+fn convert(structure: &Structure, trunk: &[usize], flowering: &[f64]) -> Tree {
     let mut nodes = vec![Node::root()];
+    let mut blooms = Vec::new();
     // The node each axis ends on, for what continues it.
     let mut ends: Vec<Option<u32>> = vec![None; structure.axes.len()];
     // Each axis's drawn nodes, base first.
@@ -235,6 +238,7 @@ fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
             continue;
         };
         let stem = stem && trunk.contains(&axis.pa);
+        let share = flowering.get(axis.pa).copied().unwrap_or(0.0);
         let run = if lateral || parent == 0 {
             nodes.len() as u32
         } else {
@@ -290,6 +294,13 @@ fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
                 node.codominant = codominance(p.radius, inherited);
             }
             parent = nodes.len() as u32;
+            if share > 0.0 {
+                blooms.push(Bloom {
+                    node: parent,
+                    share,
+                    side: up(p.side),
+                });
+            }
             made = true;
             drawn[i].push(parent);
             nodes.push(node);
@@ -322,6 +333,7 @@ fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
     Tree {
         nodes,
         crossover,
+        blooms,
         ..Tree::default()
     }
 }

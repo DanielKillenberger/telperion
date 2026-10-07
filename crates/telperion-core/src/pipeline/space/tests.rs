@@ -58,11 +58,11 @@ fn a_tree_assembled_in_another_order_converts_to_the_same_tree() {
     let other = reversed(&structure);
     assert_ne!(other.axes, structure.axes, "the orders differ");
     // Without the order the assembly reaches the tree.
-    let unsorted = convert(&other, &trunk) != convert(&structure, &trunk);
+    let unsorted = convert(&other, &trunk, &[]) != convert(&structure, &trunk, &[]);
     assert!(unsorted, "the order never reached the conversion");
     let again = telperion_space::lineage_order(other);
     assert_eq!(again.axes, structure.axes, "grow returns the lineage order");
-    assert!(convert(&again, &trunk) == convert(&structure, &trunk));
+    assert!(convert(&again, &trunk, &[]) == convert(&structure, &trunk, &[]));
 }
 
 /// A tree over the Wasm ceiling is refused by name, and the name states
@@ -141,7 +141,7 @@ fn keys(structure: &Structure) -> std::collections::HashMap<(u64, usize), u64> {
 #[test]
 fn every_engine_node_has_its_own_identity() {
     let (structure, trunk) = grown();
-    let tree = convert(&structure, &trunk);
+    let tree = convert(&structure, &trunk, &[]);
     let ids = identities(&tree);
     let distinct: std::collections::HashSet<u64> = ids.iter().copied().collect();
     assert_eq!(distinct.len(), ids.len(), "two nodes share an identity");
@@ -178,9 +178,10 @@ fn a_node_keeps_its_identity_across_ages() {
         }
     }
     let trunk = &family.space.trunk;
-    let last: std::collections::HashSet<u64> =
-        identities(&convert(&young, trunk)).into_iter().collect();
-    let kept = identities(&convert(&old, trunk))
+    let last: std::collections::HashSet<u64> = identities(&convert(&young, trunk, &[]))
+        .into_iter()
+        .collect();
+    let kept = identities(&convert(&old, trunk, &[]))
         .iter()
         .filter(|id| last.contains(id))
         .count();
@@ -202,14 +203,14 @@ fn a_node_keeps_its_identity_across_cuts() {
     };
     let trunk = &family.space.trunk;
     let whole = telperion_space::grow_whole(&species, request).unwrap();
-    let reference = identities(&convert(&whole, trunk));
+    let reference = identities(&convert(&whole, trunk, &[]));
     for cut in [0.0, 16.0, 1024.0] {
         let plan = telperion_space::Plan {
             cut,
             ..Default::default()
         };
         let fine = telperion_space::grow_fine(&species, request, plan).unwrap();
-        let tree = convert(&telperion_space::lineage_order(fine.structure), trunk);
+        let tree = convert(&telperion_space::lineage_order(fine.structure), trunk, &[]);
         assert_eq!(identities(&tree), reference, "cut {cut}");
     }
 }

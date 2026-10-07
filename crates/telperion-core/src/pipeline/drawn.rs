@@ -92,6 +92,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     let wood = wood
         .zip(rings)
         .map(|((faces, _), (rings, _))| rings.into_mesh(faces));
+    let organ = organ(tree, inputs, request)?;
     let curve = request
         .curve
         .then(|| crate::pipeline::surface::curve(tree, surface.height, &surface.params))
@@ -102,6 +103,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
         wood,
         curve,
         leaves: leaves.map(|(l, _)| l),
+        organ,
         field: field.map(|(f, _)| f),
         structure,
         stages,
@@ -263,6 +265,17 @@ fn leaves(
     };
     let ms = [rung - start, placed_at - rung, clock() - placed_at];
     Ok(Some((leaves, ms)))
+}
+
+/// The flowers (fn-216): where leaves are asked for and the tree's ages
+/// flower, the organ element and its florets; none where nothing flowers.
+fn organ(tree: &Tree, inputs: &Inputs, request: Request) -> Result<Option<crate::mesh::Foliage>> {
+    if !request.leaves || tree.blooms.is_empty() {
+        return Ok(None);
+    }
+    let element = foliage::bloom_element(&inputs.bloom)?;
+    let instances = foliage::place_blooms(tree, &inputs.bloom, request.season)?;
+    Ok(Some(crate::mesh::Foliage { element, instances }))
 }
 
 /// The field read from placed leaves, where the plan cannot describe them.

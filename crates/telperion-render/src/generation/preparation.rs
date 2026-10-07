@@ -272,7 +272,13 @@ impl Generator {
         });
         metrics.wood_ms = started.elapsed_ms() + early_wood_ms;
         metrics.wood_cpu_bytes = wood::cpu_bytes(&wood);
-        let bounds = union(curve.bounds(), full)
+        // The flowers are the CPU step's on both executors (fn-216).
+        let organ = x.organ()?;
+        let flowers = match &organ {
+            Some(o) => o.instances.bounds(&o.element)?.map(Bounds::from),
+            None => None,
+        };
+        let bounds = union(union(curve.bounds(), full), flowers)
             .ok_or(telperion_core::Error::InvalidInput("mesh has no geometry"))?;
         let mesh = TreeMesh {
             wood,
@@ -281,6 +287,7 @@ impl Generator {
                 element: x.into_element(),
                 instances,
             },
+            organ,
             bounds,
         };
         crate::submit::fits_count(&self.gpu.device.limits(), &mesh, metrics.instances as usize)?;

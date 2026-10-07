@@ -50,6 +50,7 @@ fn the_expected_length_weighs_the_expected_counts() {
         rhythm: 0.6,
         straightening: 0.0,
         leaf_area: 0.0,
+        flowering: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,

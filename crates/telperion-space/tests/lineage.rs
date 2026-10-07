@@ -31,6 +31,7 @@ fn state(lifespan: u32, viability: f64, nodes: NodeLaw, lateral: &[f64]) -> PaSt
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,

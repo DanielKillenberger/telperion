@@ -61,6 +61,8 @@ pub const SCALES: &[(&str, Scale)] = &[
     // Phase E (fn-197): an area, a cost and a rate are magnitudes; a
     // response's exponent, a share and a balance mix by value.
     ("leaf_area", Log { floor: 1e-4 }),
+    // fn-216: a share of nodes, by value.
+    ("flowering", Linear),
     ("shade_hazard", Linear),
     ("shade_size", Linear),
     ("apical_control", Linear),
@@ -150,6 +152,7 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         rhythm,
         straightening,
         leaf_area,
+        flowering,
         shade_hazard,
         shade_size,
         apical_control,
@@ -194,6 +197,7 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         ("rhythm", rhythm),
         ("straightening", straightening),
         ("leaf_area", leaf_area),
+        ("flowering", flowering),
         ("shade_hazard", shade_hazard),
         ("shade_size", shade_size),
         ("apical_control", apical_control),

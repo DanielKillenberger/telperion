@@ -169,6 +169,7 @@ pub enum Site {
     Leaf,
     LeafCounts,
     Shell,
+    Bloom,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -185,6 +185,18 @@ impl Expansion {
         let s = &self.inputs.surface;
         surface::build(&self.tree, s.height, &s.params)
     }
+    /// The flowers at the window's middle (fn-216), a CPU step both
+    /// executors take: their element and florets, keyed by each node's
+    /// lineage; none where the tree flowers nowhere.
+    pub fn organ(&self) -> Result<Option<mesh::Foliage>> {
+        if self.tree.blooms.is_empty() {
+            return Ok(None);
+        }
+        let bloom = &self.inputs.bloom;
+        let element = foliage::bloom_element(bloom)?;
+        let instances = foliage::place_blooms(&self.tree, bloom, None)?;
+        Ok(Some(mesh::Foliage { element, instances }))
+    }
     /// The pipeline's own CPU build of this tree: the reference a GPU
     /// expansion falls back to.
     pub fn mesh(&self) -> Result<TreeMesh> {
