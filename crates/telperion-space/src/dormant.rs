@@ -195,6 +195,7 @@ impl First {
                 aged: spent + x,
                 gone: x,
                 relay: false,
+                rest: false,
             };
             let unit = woken.unit(state.life(), 1);
             let survive = share(state.viability, unit.share);

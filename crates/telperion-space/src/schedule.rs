@@ -17,6 +17,9 @@ pub(crate) struct Carried {
     pub aged: f64,
     pub gone: f64,
     pub relay: bool,
+    /// It is a failed unit's relay, whose first unit, the rest of that
+    /// cycle, carries on where its own failure relays (host decision A3).
+    pub rest: bool,
 }
 
 /// A share of a cycle within this of a whole one is whole: a sum of shares
@@ -100,12 +103,13 @@ impl Carried {
 
     /// Past its lifespan an age's time changes nothing (every bud grows
     /// one unit and ends), so a key may hold it there.
-    pub fn key(self, lifespan: f64) -> (u64, u64, u64, bool) {
+    pub fn key(self, lifespan: f64) -> (u64, u64, u64, bool, bool) {
         (
             self.spent.min(lifespan).to_bits(),
             self.aged.to_bits(),
             self.gone.to_bits(),
             self.relay,
+            self.rest,
         )
     }
 }
@@ -157,6 +161,7 @@ impl Carried {
             aged: self.aged + spent - self.spent,
             gone: if same { used } else { 0.0 },
             relay: unit.whole,
+            rest: true,
         };
         (relay, same)
     }

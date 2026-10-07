@@ -51,6 +51,7 @@ impl Shoot<'_, '_> {
             aged: 0.0,
             gone: if first { draws.sleep } else { 0.0 },
             relay: first && relay,
+            rest: first && draws.rest,
         };
         let step = carried.unit(state.life(), 1);
         let share = step.share;
@@ -74,7 +75,12 @@ impl Shoot<'_, '_> {
         let relay = state.relay_failed;
         let relays = relay > 0.0 && decide.child(RELAY).draw().under(relay);
         let relayed = || self.relayed(relay, decide, (pa, cycle, Some(step.used)));
-        if d.0 >= survives && relays {
+        // The first unit of a failed unit's relay, the rest of that cycle,
+        // carries on where its own failure relays, at that relay's
+        // presence, as an apex that all but failed does: relays do not
+        // nest within a cycle (fn-199, host decision A3).
+        let nested = first && self.draws(apex.axis).rest && relays;
+        if d.0 >= survives && relays && !nested {
             let relayed = relayed();
             let lived = fixed::real(fixed::decide::lived(viability, share, d) << 12);
             let stopped = presence::over(survives, d.0);
@@ -86,7 +92,7 @@ impl Shoot<'_, '_> {
                 pa_unit,
             );
         }
-        if d.0 >= survives {
+        if d.0 >= survives && !nested {
             self.axis_mut(apex.axis).apex_end = Some(cycle - 1);
             self.draws_mut(apex.axis).failed = true;
             // The unit that failed is spent: a relay's first unit draws

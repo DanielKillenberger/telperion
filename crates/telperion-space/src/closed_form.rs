@@ -74,7 +74,12 @@ pub fn expected_kept(species: &Species, age: u32) -> Result<Option<f64>> {
 
 /// A substructure: its PA, cycles, what it carries, and the law of a woken
 /// bud's first unit.
-type Sub = (usize, usize, (u64, u64, u64, bool), Option<(u64, u64)>);
+type Sub = (
+    usize,
+    usize,
+    (u64, u64, u64, bool, bool),
+    Option<(u64, u64)>,
+);
 
 fn sub(species: &Species, k: usize, m: usize, carried: Carried, first: Option<First>) -> Sub {
     (

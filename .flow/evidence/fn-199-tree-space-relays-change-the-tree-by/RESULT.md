@@ -199,3 +199,25 @@ R3's blended placement, GPU parity under the lock (the WGSL edits are still unch
 - **B.** B2: the relay's first-unit thresholds read the unrounded lived share, a Q32 value both executors compute, written into the fixed-point contract. A one-tick step breaks "by degree", so B3 is out; B1 changes more than needed.
 - **Epitony.** Neither the threshold lowered for the whole pool nor the pool filtered to pass. Two checks: the relays of stops after a whole unit rise at least 0.05 (the original law), and failed units' relays do not fall (they start near their bound).
 - **Then** R3's blended placement, GPU parity under the lock (every WGSL edit compiled and run), the rows re-pinned once, R6's beech stills viewed, `pub(crate)` restored on `Axis.blend`, `units` and `alive`, and the gate, render half first.
+
+## A1 and A3 built: adopted
+
+**A1:** `LIVED` 1 (`eacb5181`).
+
+**A3, the nesting cut**, built alike in every executor:
+- **Grower:** `advance.rs`. A failed unit's relay's first unit (`draws.rest`) whose failure would relay carries on instead, at that relay's presence. That is what an apex that all but failed carries, so the two sides still meet.
+- **GPU:** `apex.wgsl`, the same test on `IS_REST`.
+- **Closed form and `Living`:** `Carried.rest`, set by `Carried::failed` and part of every table's key, counts that failure as carrying on, as `LIVED_FLOOR` does for slivers.
+
+**Comparison tests:** every one passes (`closed_form::kept`, `settings`, `dormant`, `closed_form`). So do the walks but the tick-grid breach (now 1.183e-6; B2 next), among them R1's walk and the release law. The rows' pins still differ for the beech and the oak alone.
+
+**Predictor**, one core, best of 5, ms (the second of two runs; the first ran beside a build):
+
+| | before (`e9bb5b08`) | A1 | A1 + A3 |
+|---|---|---|---|
+| beech 40 | 2.4 | 17 | 3.4 |
+| beech 80 | 10.9 | 168 | 18.0 |
+| oak 40 | 5.2 | 21 | 5.6 |
+| oak 80 | 19.3 | 117 | 20.7 |
+| spruce 40 | 10.2 | 10.8 | 10.2 |
+| spruce 80 | 29.0 | 31.9 | 27.6 |

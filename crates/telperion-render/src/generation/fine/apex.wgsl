@@ -241,10 +241,13 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
     // A failure's relay, where its draw makes one (D9).
     let tf = row(pa, 6u + FAILED);
     let relays = !is_zero(tf) && lt64(draw(child(decide, RELAY)), tf);
-    if !lt64(dv, survives) && relays {
+    // A failed unit's relay's first unit carries on where its own failure
+    // relays (fn-199, host decision A3).
+    let nested = first && (rd(a, KIND) & IS_REST) != 0u && relays;
+    if !lt64(dv, survives) && relays && !nested {
         return fail(apex, cycle, s1, gone, first && relay, array<vec2<u32>, 2>(decide, unit), dv, survives);
     }
-    if !lt64(dv, survives) {
+    if !lt64(dv, survives) && !nested {
         wr(a, APEX_END, cycle);
         wr(a, KIND, rd(a, KIND) | IS_FAILED);
         let stopped = above_t(dv, survives);

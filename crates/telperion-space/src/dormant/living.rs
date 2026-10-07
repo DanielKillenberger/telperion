@@ -34,7 +34,7 @@ pub(crate) type Wakes = Rc<[(Piece, First)]>;
 /// unit, the cycle, and the abortion after the unit when it is given.
 type Asked = (
     usize,
-    (u64, u64, u64, bool),
+    (u64, u64, u64, bool, bool),
     usize,
     usize,
     usize,
@@ -194,6 +194,7 @@ impl<'a> Living<'a> {
                 aged: carried.aged + before - carried.spent,
                 gone: 0.0,
                 relay: false,
+                rest: false,
             };
             return self.from((k, rest, m.saturating_sub(u - 1)), 1, y - (u - 1));
         }
@@ -214,9 +215,10 @@ impl<'a> Living<'a> {
             let exposure = carried.exposure(state.life(), u);
             1.0 - share(1.0 - state.abortion_at(grown), exposure)
         };
-        // A failure its relay takes over in a sliver of a cycle carries on
-        // (`LIVED_FLOOR`).
-        let (viability, relay) = if unit.share < LIVED_FLOOR {
+        // A failure its relay takes over in a sliver of a cycle, or in a
+        // failed unit's relay's first unit, carries on (`LIVED_FLOOR`,
+        // host decision A3).
+        let (viability, relay) = if unit.share < LIVED_FLOOR || carried.rest {
             (viability + (1.0 - viability) * relay, 0.0)
         } else {
             (viability, relay)

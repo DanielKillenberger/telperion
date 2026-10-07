@@ -152,6 +152,7 @@ pub(super) fn rest(carried: Carried, lifespan: f64) -> Carried {
         aged: carried.aged + spent - carried.spent,
         gone: 0.0,
         relay: false,
+        rest: false,
     }
 }
 
@@ -176,6 +177,7 @@ fn steps_to(
                 aged: carried.aged + spent - carried.spent,
                 gone,
                 relay: ended,
+                rest: false,
             },
             weight,
             on,
@@ -200,7 +202,10 @@ fn steps_to(
         let mut relayed = fails * state.relay_failed / LIVED as f64;
         let lived_at = lived(state.viability, unit.share);
         let mut survive = survive;
-        if unit.share < LIVED_FLOOR {
+        // A sliver's failure, or the failure of a failed unit's relay's
+        // first unit (relays do not nest within a cycle, host decision
+        // A3), carries on where it relays.
+        if unit.share < LIVED_FLOOR || (i == 1 && carried.rest) {
             survive += (1.0 - survive) * state.relay_failed;
             relayed = 0.0;
         }
