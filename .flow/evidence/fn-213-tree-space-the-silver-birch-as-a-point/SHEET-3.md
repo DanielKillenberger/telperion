@@ -67,3 +67,9 @@ Submitted as `codex exec -m gpt-6-astra --sandbox read-only -C <worktree> -o raw
 ## Gate (round 3, commit `25986b14`)
 
 In two parts, as the host set (2026-10-07), with `CARGO_BUILD_JOBS=8` and `RUST_TEST_THREADS=8`: `cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render` without the GPU lock, 89 targets ok and none failed; `cargo test --profile ci -p telperion-render --no-fail-fast` under the lock, 41 targets ok and none failed. `harness/parity.test.ts` passes 8 of 8 on round 3's values (the Wasm rebuilt). Logs in the ignored `raw/gate3-*.log`.
+
+## The host's reading (2026-10-07, sheet-80 viewed)
+
+The host agrees with Astra's (j): the limb close-ups show long, straight, nearly parallel limbs with drooping tufts at regular spacing, where the references show crooked, irregularly subdivided limbs. Seed 7's lowest limb at 80 reaches the ground.
+
+Round 4: break the regularity by values (more variation in lateral angles and lengths, more subdivision of the mid-crown limbs, the persistent curvature of fn-207's `form.bend_length`, occasional forks where the engine allows, the low limb raised or shed); if values cannot, report a capability gap with options. (b) waits on the new spec "Bark that matures with girth"; the birch passes only when it lands. Sheet 4 in the same layout (SHEET-4.md), then Astra with the same prompt.
