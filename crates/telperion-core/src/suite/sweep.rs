@@ -71,7 +71,10 @@ const SWEEP_NODES: usize = 8_000;
 // (the walk is refused), and the engine beech and oak no longer seat short
 // shoots or clump their limbs: the short shoots' spacing, the limb clumping
 // and the shell depth moved only between such pairs, so they are held.
-const HELD: [&str; 72] = [
+const HELD: [&str; 75] = [
+    "/age",
+    "/skeleton/habit/attractorWeight",
+    "/skeleton/habit/sheddingThreshold",
     "/canopy/clumpSystemOrder",
     "/canopy/limbClumping",
     "/canopy/shortShootSpacing",

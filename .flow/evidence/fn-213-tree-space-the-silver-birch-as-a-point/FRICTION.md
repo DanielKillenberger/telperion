@@ -20,3 +20,14 @@
 - **Slowed by:** another session holds the lock for `cargo test --profile ci --workspace` (the whole gate, not a GPU step), so the stills wait behind a CPU-bound run.
 - **Cost:** about 15 minutes of waiting so far.
 - **Would remove it:** take the GPU lock only around the GPU-touching test binaries (the render crate's), not the whole workspace gate.
+
+## 2026-10-07: a gate piped through `head` stopped early
+
+- **Doing:** the workspace gate at the end of task 1.
+- **Slowed by:** the first run was filtered through `| head -60`, which closed the pipe and ended cargo partway; the failures it showed were real, but the run had to be repeated in full.
+- **Cost:** about 25 minutes (one gate run, most of it waiting on the GPU lock).
+- **Would remove it:** nothing in the repository; write the gate's output to a file and grep the file.
+
+## 2026-10-07: the gate's one failure is on the base
+
+- `generation_limit_guard::generation_limits_are_classified` fails on two sites in `crates/telperion-core/src/pipeline/input/shoulder.rs` (fn-198's grown envelope shoulder, commits `24005de7` and `f7d227ee`), which this spec does not touch. Reported, not fixed here.
