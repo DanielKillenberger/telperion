@@ -51,6 +51,8 @@ mod realized;
 #[cfg(test)]
 mod realized_tests;
 #[cfg(test)]
+mod realized_timing;
+#[cfg(test)]
 mod roots;
 #[cfg(test)]
 mod shedding;

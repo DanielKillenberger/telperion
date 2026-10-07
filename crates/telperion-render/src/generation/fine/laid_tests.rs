@@ -273,6 +273,10 @@ fn fine_geometry_at_40_and_80() {
     ] {
         for age in [40, 80] {
             for seed in [1, 7] {
+                let only = std::env::var("FINE_ONLY").unwrap_or_default();
+                if !only.is_empty() && only != format!("{name} {age} {seed}") {
+                    continue;
+                }
                 let r = reference(&species, (age, seed));
                 let expected = Expected::new(&species, age, 0);
                 let cpu = |threads| {

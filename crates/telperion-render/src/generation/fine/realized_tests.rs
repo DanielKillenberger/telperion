@@ -16,7 +16,7 @@ use telperion_space::{
     Light, Plan, Presences, RealizedCase, Request, Species, Vec3,
 };
 
-fn request(age: u32, seed: u64) -> Request {
+pub(super) fn request(age: u32, seed: u64) -> Request {
     Request {
         age,
         seed,
@@ -185,20 +185,33 @@ fn every_root_grows_whole_on_the_gpu_as_on_the_cpu() {
 const MOST: f64 = 50e-6;
 const RMS: f64 = 10e-6;
 
-/// How far the device's roots lie from the CPU executor's.
+/// How far the device's roots lie from the CPU executor's, the chains'
+/// statuses, what the device's settle cost and its wall milliseconds.
 #[derive(Debug, Default, Clone, Copy)]
-struct Apart {
-    phytomers: usize,
-    most: f64,
-    squares: f64,
-    radius: f64,
-    digest: u64,
+pub(super) struct Apart {
+    pub phytomers: usize,
+    pub most: f64,
+    pub squares: f64,
+    pub radius: f64,
+    pub digest: u64,
+    pub statuses: u32,
+    pub cost: Cost,
+    pub wall: f64,
+    /// The farthest phytomer: its root, wave, place along its axis,
+    /// distance from its root's origin and radius.
+    pub worst: (usize, usize, usize, f64, f64),
+}
+
+impl Apart {
+    pub(super) fn rms(&self) -> f64 {
+        (self.squares / self.phytomers.max(1) as f64).sqrt()
+    }
 }
 
 /// Step 4: the tree settled with its roots on the device, in `order` and
 /// batches of `batch`: each root's kept axes by lineage as the CPU
 /// executor's (`grow_fine`), and how far its laid tips and radii lie.
-fn settled_against(
+pub(super) fn settled_against(
     gpu: &Gpu,
     k: &Kernels,
     (species, at): (&Species, (u32, u64)),
@@ -208,19 +221,25 @@ fn settled_against(
     let expected = Expected::new(species, at.0, 0);
     let chain = ChainTables::new(species, at.0, &expected).expect("tables");
     let geo = GeometryTables::new(species, at.0, &expected).expect("tables");
+    let t = std::time::Instant::now();
     let mut tables = Tables::new(gpu, &chain, &geo);
     tables.keep = true;
     let mut dev = Device::new(gpu, k, &tables, batch).ordered(order.to_vec());
     let plan = Plan::default();
     settle(species, request(at.0, at.1), &expected, plan, &mut dev).expect("settles");
+    let wall = t.elapsed().as_secs_f64() * 1e3;
     let c = dev.cost;
     let reads = 2 + usize::from(tables.sags);
     assert_eq!(c.trips, c.runs + c.waves + reads, "{c:?}");
     let (waves, laid) = dev.waves();
     let got = readback::read(gpu, &waves.grown, want.len(), true);
     let floats: Vec<Vec<f32>> = laid.iter().map(|w| w.read(gpu)).collect();
-    let mut apart = Apart::default();
-    assert_eq!(got.statuses, 0, "a chain's status");
+    let mut apart = Apart {
+        statuses: got.statuses,
+        cost: c,
+        wall,
+        ..Apart::default()
+    };
     for (r, w) in want.iter().enumerate() {
         let Some((axes, origin)) = w else {
             assert!(got.roots[r].is_empty(), "root {r} was shed");
@@ -248,6 +267,13 @@ fn settled_against(
                 ];
                 let e = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
                 assert!(e.is_finite(), "root {r}: {p:?}");
+                if e > apart.most {
+                    apart.worst = (r, w, n, want.length(), radius);
+                }
+                if std::env::var("FINE_ROOT").ok() == Some(r.to_string()) {
+                    let a = &axes[c].0;
+                    eprintln!("axis {c} kind {} pa {} birth {} n {n} cycle {} dist {:.4} err {:.3e} cpu {:.7} {:.7} {:.7} gpu {:.7} {:.7} {:.7}", a.kind, a.pa, a.birth, a.phytomers[n].0, want.length(), e, want.x, want.y, want.z, p[0], p[1], p[2]);
+                }
                 apart.most = apart.most.max(e);
                 apart.squares += e * e;
                 apart.phytomers += 1;
@@ -259,7 +285,7 @@ fn settled_against(
     apart
 }
 
-type RootAxes = (Vec<(ChainAxis, Vec<(Vec3, f64)>)>, Vec3);
+pub(super) type RootAxes = (Vec<(ChainAxis, Vec<(Vec3, f64)>)>, Vec3);
 
 /// One tree settled in three orders and batch sizes, each against the
 /// CPU executor, the same geometry in each.
@@ -276,8 +302,10 @@ fn settles_as_on_the_cpu(
     let forward: Vec<usize> = (0..want.len()).collect();
     let reverse: Vec<usize> = forward.iter().rev().copied().collect();
     let a = settled_against(gpu, k, (species, at), &want, (&forward, 4096));
+    assert_eq!(a.statuses, 0, "{name} {at:?}: a chain's status");
     for (order, batch) in [(&reverse, 777), (&forward, 64)] {
         let b = settled_against(gpu, k, (species, at), &want, (order, batch));
+        assert_eq!(b.statuses, 0, "{name} {at:?}: a chain's status");
         assert_eq!(
             a.digest, b.digest,
             "{name} {at:?}: the same geometry in any order and batch"
@@ -300,7 +328,7 @@ fn every_root_settles_on_the_gpu_as_on_the_cpu() {
     for (name, species) in &species {
         for seed in [1, 7] {
             let a = settles_as_on_the_cpu(&gpu, &k, name, species, (25, seed));
-            let rms = (a.squares / a.phytomers.max(1) as f64).sqrt();
+            let rms = a.rms();
             println!(
                 "{name} 25 {seed}: {} phytomers, tips {:.2e} most {rms:.2e} RMS, radii {:.2e} rel",
                 a.phytomers, a.most, a.radius

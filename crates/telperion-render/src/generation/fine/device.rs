@@ -197,7 +197,7 @@ impl Roots for Device<'_> {
             attached,
             nodes,
         });
-        self.cost.grow += start.elapsed().as_secs_f64() * 1e3;
+        self.cost.grow = start.elapsed().as_secs_f64() * 1e3;
         Ok((lived, grown))
     }
 

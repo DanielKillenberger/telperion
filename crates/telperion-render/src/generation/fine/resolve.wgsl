@@ -181,7 +181,7 @@ fn bend_of(i: u32, f: Pa) -> f32 {
     let years = f32(cfg.age - min(ax(i, BIRTH), cfg.age)) - f32(ax(i, SLEEP)) * (1.0 / 1048576.0);
     let k = kind_of(i);
     let b = axf(i, BLEND);
-    let erected = 1.0 - exp(-f.erection * years);
+    let erected = gone(f.erection * years);
     if k == CONTINUED {
         return 0.0;
     }

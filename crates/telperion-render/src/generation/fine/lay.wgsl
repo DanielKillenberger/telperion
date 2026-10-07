@@ -96,7 +96,8 @@ fn toward_elevation(direction: vec3<f32>, side: vec3<f32>, elevation: f32, share
     } else {
         return direction;
     }
-    let now = asin(clamp(direction.z, -1.0, 1.0));
+    // Its elevation, from its lean: asin of a near-one loses its digits.
+    let now = atan2(direction.z, lean);
     let to = now + (elevation - now) * share;
     return out * cos(to) + UP * sin(to);
 }
@@ -210,6 +211,16 @@ struct Step {
     side: vec3<f32>,
 }
 
+// 1 - e^-x, without the cancellation of f32 near none: a short step's
+// share of a pull is a small difference of two near-ones, whose error a
+// long axis turns into a drift of its heading (fn-209 task 6).
+fn gone(x: f32) -> f32 {
+    if abs(x) < 0.05 {
+        return x * (1.0 - x * (0.5 - x * (1.0 / 6.0 - x * (1.0 / 24.0 - x / 120.0))));
+    }
+    return 1.0 - exp(-x);
+}
+
 // A key's draw as a real in [0, 1).
 fn unit_of(key: vec2<u32>) -> f32 {
     let d = draw(key);
@@ -227,7 +238,7 @@ fn step(walk: ptr<function, Walk>, p: ptr<function, Step>, f: Pa, own: vec2<f32>
     let tip = (*walk).tip;
     var run = (*walk).run;
     let len = f.internode * (*p).scale;
-    let share = 1.0 - exp(-f.tropism * len);
+    let share = gone(f.tropism * len);
     let bent = toward_elevation(running, across, f.elevation, share);
     across = carried_by(across, running, bent);
     curve = carried_by(curve, running, bent);
@@ -248,7 +259,7 @@ fn step(walk: ptr<function, Walk>, p: ptr<function, Step>, f: Pa, own: vec2<f32>
         let keep = exp(-len / f.bend_length);
         curve = curve * keep;
         if kicked {
-            curve = curve + pivot * (draw0 * sqrt(1.0 - keep * keep));
+            curve = curve + pivot * (draw0 * sqrt(gone(2.0 * len / f.bend_length)));
         }
         curve = curve - running * dot(curve, running);
         let angle = length(curve) * len;
