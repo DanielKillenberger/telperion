@@ -62,6 +62,16 @@ impl Predictor {
     }
 }
 
+/// The whole tree's expected kept phytomers at `age`: the seed's table
+/// at the tree's age, which no bearer fades (fn-198 host decision 15:
+/// the browser's ceiling read before the tree grows).
+pub(crate) fn tree(species: &Species, windows: &Windows, age: u32) -> f64 {
+    let m = age as usize;
+    let mut walk = Walk::new(species, windows);
+    let seed = walk.child((0, m, Carried::default(), None), f64::INFINITY);
+    seed.at(m as i64).1.expect("born")
+}
+
 /// A bud's table by cycle t from `lo` on: `a` the chance its subtree's
 /// last living cycle is at most t, `n` its expected phytomers on that.
 struct Table {

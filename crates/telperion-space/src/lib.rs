@@ -47,7 +47,7 @@ pub use beech::beech;
 pub use blend::blend;
 pub use bounded::{grow_bounded, Bounded, Expected};
 pub use chain::{passed, AGES};
-pub use closed_form::expected_counts;
+pub use closed_form::{expected_counts, expected_kept};
 pub use error::{Error, Result};
 pub use fine::{
     bearer_frame, canonical, chain_cases, digest, grow_fine, identities, landed, lineage_order,

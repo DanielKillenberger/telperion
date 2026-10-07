@@ -52,6 +52,25 @@ pub fn expected_counts(species: &Species, age: u32) -> Result<CountTable> {
     Ok(walk.counts(0, age as usize, Carried::default(), None))
 }
 
+/// The expected kept phytomers of a tree grown `age` cycles: the cut's
+/// predictor read at the seed, without growing the tree. None for a
+/// species whose buds read light: the predictor is light-neutral, and the
+/// lit oak keeps 27 to 64 % of its count at 80 (fn-198 task 4).
+pub fn expected_kept(species: &Species, age: u32) -> Result<Option<f64>> {
+    species.validate()?;
+    if age == 0 {
+        return refuse("age", "a tree grows at least one cycle");
+    }
+    if species.reads_light() {
+        return Ok(None);
+    }
+    Ok(Some(predictor::tree(
+        species,
+        &Windows::new(species, age),
+        age,
+    )))
+}
+
 /// A substructure: its PA, cycles, what it carries, and the law of a woken
 /// bud's first unit.
 type Sub = (usize, usize, (u64, u64, u64, bool), Option<(u64, u64)>);

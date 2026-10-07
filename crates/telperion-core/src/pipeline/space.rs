@@ -57,33 +57,57 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
             value,
         });
     }
+    foreseen(species, age as u32, KEPT)?;
     let request = Request {
         age: age as u32,
         seed: u64::from(input.seed),
         budget: BUDGET,
         light: input.space.light,
     };
-    let structure = telperion_space::grow(species, request).map_err(|e| match e {
+    let structure = telperion_space::grow(species, request).map_err(engine)?;
+    fits(&structure, KEPT)?;
+    Ok(convert(&canonical(structure)?, &input.space.trunk))
+}
+
+/// The refusal of a tree over the browser's ceiling.
+const OVER: Error = Error::ResourceLimit(
+    "the tree keeps more than 4,000,000 phytomers, more than a browser \
+     prepares in its 4 GB Wasm memory; grow it younger",
+);
+
+/// Refuses, before it grows, a tree expected to keep more phytomers than
+/// `ceiling` (host decision 15): the cut's predictor, in milliseconds where
+/// growth takes seconds. A species whose buds read light has no expected
+/// count and is held by `fits` after growth alone.
+fn foreseen(species: &telperion_space::Species, age: u32, ceiling: Option<usize>) -> Result<()> {
+    let Some(most) = ceiling else {
+        return Ok(());
+    };
+    let expected = telperion_space::expected_kept(species, age).map_err(engine)?;
+    match expected {
+        Some(kept) if kept > most as f64 => Err(OVER),
+        _ => Ok(()),
+    }
+}
+
+/// Refuses a grown tree that keeps more phytomers than `ceiling`, before
+/// any of its preparation is allocated: a tree kept above its expectation.
+fn fits(structure: &Structure, ceiling: Option<usize>) -> Result<()> {
+    let kept: usize = structure.axes.iter().map(|a| a.phytomers.len()).sum();
+    match ceiling {
+        Some(most) if kept > most => Err(OVER),
+        _ => Ok(()),
+    }
+}
+
+/// The engine's refusal as the pipeline's.
+fn engine(e: telperion_space::Error) -> Error {
+    match e {
         telperion_space::Error::Budget { .. } => Error::ResourceLimit("engine phytomer budget"),
         e => Error::InvalidValue {
             field: "engine",
             value: e.to_string(),
         },
-    })?;
-    fits(&structure, KEPT)?;
-    Ok(convert(&canonical(structure)?, &input.space.trunk))
-}
-
-/// Refuses a grown tree that keeps more phytomers than `ceiling`, before
-/// any of its preparation is allocated.
-fn fits(structure: &Structure, ceiling: Option<usize>) -> Result<()> {
-    let kept: usize = structure.axes.iter().map(|a| a.phytomers.len()).sum();
-    match ceiling {
-        Some(most) if kept > most => Err(Error::ResourceLimit(
-            "the tree keeps more than 4,000,000 phytomers, more than a browser \
-             prepares in its 4 GB Wasm memory; grow it younger",
-        )),
-        _ => Ok(()),
     }
 }
 

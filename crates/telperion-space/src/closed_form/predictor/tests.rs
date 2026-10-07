@@ -78,3 +78,28 @@ fn counts_at_40_and_80() {
         }
     }
 }
+
+/// The whole tree's expected kept phytomers (fn-198 host decision 15) is
+/// the closed form's seed row to the bit; a species whose buds read light
+/// has none, and the palm, which sheds by no draw, keeps exactly it.
+#[test]
+fn the_trees_count_is_the_seed_row() {
+    for species in [beech(), spruce(), palm()] {
+        for age in [1, 9, 30] {
+            let rows = Rows::new(&species, age, 1);
+            let kept = crate::expected_kept(&species, age).unwrap().unwrap();
+            assert_eq!(kept.to_bits(), rows.seed().count.to_bits(), "age {age}");
+        }
+    }
+    assert_eq!(crate::expected_kept(&oak(), 9).unwrap(), None);
+    let request = crate::Request {
+        age: 30,
+        seed: 3,
+        budget: 1_000_000,
+        light: crate::Light::default(),
+    };
+    let tree = crate::grow(&palm(), request).unwrap();
+    let kept: usize = tree.axes.iter().map(|a| a.phytomers.len()).sum();
+    let expected = crate::expected_kept(&palm(), 30).unwrap().unwrap();
+    assert_eq!(kept as f64, expected);
+}

@@ -86,3 +86,34 @@ fn a_tree_over_the_wasm_ceiling_is_refused_by_name() {
     assert!(refused.contains("4 GB Wasm memory"), "{refused}");
     assert_eq!(KEPT, None, "no ceiling natively");
 }
+
+/// A tree expected to keep more than the ceiling is refused before it
+/// grows, in the predictor's milliseconds (host decision 15); one under
+/// it, and every tree natively, passes on to growth.
+#[test]
+fn a_tree_expected_over_the_ceiling_is_refused_before_it_grows() {
+    let family = Preset::EuropeanBeech.parameters();
+    let species = family.space.species.unwrap();
+    let expected = telperion_space::expected_kept(&species, 15)
+        .unwrap()
+        .unwrap();
+    let under = expected.ceil() as usize;
+    assert!(foreseen(&species, 15, Some(under)).is_ok());
+    let refused = foreseen(&species, 15, Some(under - 1)).unwrap_err();
+    assert!(
+        refused.to_string().contains("4 GB Wasm memory"),
+        "{refused}"
+    );
+    assert!(foreseen(&species, 15, None).is_ok());
+}
+
+/// A species whose buds read light has no expected count: the lit oak
+/// keeps far fewer than the light-neutral predictor counts, so it is held
+/// after growth alone.
+#[test]
+fn a_tree_that_reads_light_is_held_after_growth() {
+    let family = Preset::OregonWhiteOak.parameters();
+    let species = family.space.species.unwrap();
+    assert_eq!(telperion_space::expected_kept(&species, 15).unwrap(), None);
+    assert!(foreseen(&species, 15, Some(0)).is_ok());
+}
