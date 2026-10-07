@@ -31,7 +31,11 @@
 //! between a preset with a species and one without is refused by name. The
 //! European beech ships, so its identity serves it, and the age walks as the
 //! whole years the engine grows. The refusal digest, over the catalogue's
-//! rows alone, did not move.
+//! rows alone, did not move. fn-216 re-pinned all four for the flowers:
+//! the `/bloom` rows, the six `bloom*` colour rows of the material and each
+//! engine age's `flowering` share. With those stripped from the text, the
+//! family, walk and override digests were each fn-198's to the bit; the
+//! refusal digest pairs rows by index, so the new rows re-paired it.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -67,7 +71,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        17_880_590_084_460_784_836,
+        13_844_188_164_580_442_026,
         "{}",
         digest(&text)
     );
@@ -99,7 +103,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        1_767_313_639_397_470_619,
+        6_208_646_110_072_882_477,
         "{}",
         digest(&text)
     );
@@ -124,7 +128,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        4_317_389_471_735_493_231,
+        12_807_164_887_391_010_168,
         "{}",
         digest(&text)
     );
@@ -187,7 +191,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        13_927_056_433_570_196_194,
+        16_913_526_557_282_246_325,
         "{}",
         digest(&text)
     );

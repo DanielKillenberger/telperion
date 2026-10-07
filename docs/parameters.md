@@ -1754,6 +1754,66 @@ The blue channel of `leaf_dead_red`.
 - dormant: no dead frond (`canopy.skirtFronds` zero)
 - blend: linear; dial: `material_leaf_dead_blue` (the blue in the colour a dead frond has aged to), window its bounds (validated bound), steps 0.05 and 0.1
 
+### `/material/bloomFrontRed`
+
+The colour of a petal's upper face, a linear reflectance per channel (fn-216): the flowers' own, drawn by the leaf shader.
+
+- real, reflectance, [0, 1], default 0.82
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 95, as invalid input `bloom front red`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/material/bloomFrontGreen`
+
+The green channel of `bloom_front_red`.
+
+- real, reflectance, [0, 1], default 0.8
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 96, as invalid input `bloom front green`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/material/bloomFrontBlue`
+
+The blue channel of `bloom_front_red`.
+
+- real, reflectance, [0, 1], default 0.74
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 97, as invalid input `bloom front blue`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/material/bloomBackRed`
+
+The colour of a petal's underside, a linear reflectance per channel (fn-216): the flowers' own, drawn by the leaf shader.
+
+- real, reflectance, [0, 1], default 0.72
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 98, as invalid input `bloom back red`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/material/bloomBackGreen`
+
+The green channel of `bloom_back_red`.
+
+- real, reflectance, [0, 1], default 0.72
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 99, as invalid input `bloom back green`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/material/bloomBackBlue`
+
+The blue channel of `bloom_back_red`.
+
+- real, reflectance, [0, 1], default 0.64
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 100, as invalid input `bloom back blue`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
 ### `/material/hueRangeLow`
 
 The hue offsets one leaf may take, as a fraction of the colour circle.
@@ -2511,3 +2571,165 @@ How far that grain varies the blade's colour and tilts its normal.
 - checked: Material site, rank 61, as invalid input `leaf blade grain strength`
 - dormant: `bladeGrainScale` zero
 - blend: linear; dial: `material_blade_grain_strength` (how far that grain varies the blade's colour and tilts its normal), window its bounds (validated bound), steps 0.15 and 0.3
+
+## `/bloom`
+
+### `/bloom/florets`
+
+Florets on one inflorescence. The fractional part is the last floret's size, so a walk across counts grows one in by degree.
+
+- real, florets, [1, 64], default 1
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 0, as invalid input `bloom florets`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/rachis`
+
+Metres of the inflorescence's axis the florets stand along: zero is a cluster at the node, a few centimetres a raceme or catkin.
+
+- real, m, [0, 1], default 0
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 1, as invalid input `bloom rachis`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/droop`
+
+How the axis turns from the bud's side as it grows: 1 hangs straight down, -1 stands up as a candle, 0 holds the side.
+
+- real, share, [-1, 1], default 0
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 2, as invalid input `bloom droop`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/pedicel`
+
+Metres of stalk between the axis and each floret.
+
+- real, m, [0, 0.5], default 0.01
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 3, as invalid input `bloom pedicel`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/spread`
+
+The degrees a floret's stalk leaves the axis: small packs a spike, ninety spreads a raceme, more fans a cluster back.
+
+- real, degrees, [0, 180], default 60
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 4, as invalid input `bloom spread`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/taper`
+
+How much smaller the floret at the axis's tip is than the one at its base, as a share.
+
+- real, share, [0, 1], default 0
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 5, as invalid input `bloom taper`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/petals`
+
+Petals on a floret, turned evenly about it by the count. The fractional part is the last petal's size (host decision 4), so a walk across counts changes a flower by degree.
+
+- real, petals, [1, 12], default 5
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 6, as invalid input `bloom petals`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/open`
+
+The degrees a petal opens from the floret's axis: a bud near zero, an open blossom near ninety.
+
+- real, degrees, [0, 180], default 70
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 7, as invalid input `bloom open`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/petalLength`
+
+A petal's length in metres.
+
+- real, m, [0.0001, 1], default 0.012
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 8, as invalid input `bloom petal length`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/petalWidth`
+
+A petal's greatest width in metres.
+
+- real, m, [0.0001, 1], default 0.009
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 9, as invalid input `bloom petal width`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/petalWidest`
+
+Where a petal is widest, as a share from its base to its tip.
+
+- real, share of the petal, [0.05, 0.95], default 0.6
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 10, as invalid input `bloom petal widest point`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/petalCup`
+
+How far a petal's margins lift out of its plane, as a share of its half-width: a cupped blossom.
+
+- real, share of the half-width, [-2, 2], default 0.2
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 11, as invalid input `bloom petal cup`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/scatter`
+
+How far a floret's size varies from one to the next, as a share.
+
+- real, share, [0, 1], default 0.1
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 12, as invalid input `bloom scatter`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/opens`
+
+Where in the year the flowering window opens, as a share of the year from its start.
+
+- real, share of the year, [0, 1], default 0.3
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 13, as invalid input `bloom opens`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/lasts`
+
+How long the window lasts, as a share of the year. A floret grows in and shrinks out inside it; zero flowers never.
+
+- real, share of the year, [0, 1], default 0.1
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 14, as invalid input `bloom lasts`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/stagger`
+
+The share of the window the florets' openings are spread over: zero opens every floret at once.
+
+- real, share of the window, [0, 1], default 0.5
+- read by expand; removed growth path: as the direct build
+- checked: Bloom site, rank 15, as invalid input `bloom stagger`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).

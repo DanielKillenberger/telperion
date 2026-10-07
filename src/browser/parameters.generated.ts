@@ -373,6 +373,18 @@ export interface Family {
     leafDeadGreen: number;
     /** The blue channel of `leaf_dead_red`. */
     leafDeadBlue: number;
+    /** The colour of a petal's upper face, a linear reflectance per channel (fn-216): the flowers' own, drawn by the leaf shader. */
+    bloomFrontRed: number;
+    /** The green channel of `bloom_front_red`. */
+    bloomFrontGreen: number;
+    /** The blue channel of `bloom_front_red`. */
+    bloomFrontBlue: number;
+    /** The colour of a petal's underside, a linear reflectance per channel (fn-216): the flowers' own, drawn by the leaf shader. */
+    bloomBackRed: number;
+    /** The green channel of `bloom_back_red`. */
+    bloomBackGreen: number;
+    /** The blue channel of `bloom_back_red`. */
+    bloomBackBlue: number;
     /** The hue offsets one leaf may take, as a fraction of the colour circle. */
     hueRangeLow: number;
     /** The upper end of the hue offsets `hue_range_low` opens. */
@@ -529,6 +541,40 @@ export interface Family {
     bladeGrainScale: number;
     /** How far that grain varies the blade's colour and tilts its normal. */
     bladeGrainStrength: number;
+  };
+  bloom: {
+    /** Florets on one inflorescence. The fractional part is the last floret's size, so a walk across counts grows one in by degree. */
+    florets: number;
+    /** Metres of the inflorescence's axis the florets stand along: zero is a cluster at the node, a few centimetres a raceme or catkin. */
+    rachis: number;
+    /** How the axis turns from the bud's side as it grows: 1 hangs straight down, -1 stands up as a candle, 0 holds the side. */
+    droop: number;
+    /** Metres of stalk between the axis and each floret. */
+    pedicel: number;
+    /** The degrees a floret's stalk leaves the axis: small packs a spike, ninety spreads a raceme, more fans a cluster back. */
+    spread: number;
+    /** How much smaller the floret at the axis's tip is than the one at its base, as a share. */
+    taper: number;
+    /** Petals on a floret, turned evenly about it by the count. The fractional part is the last petal's size (host decision 4), so a walk across counts changes a flower by degree. */
+    petals: number;
+    /** The degrees a petal opens from the floret's axis: a bud near zero, an open blossom near ninety. */
+    open: number;
+    /** A petal's length in metres. */
+    petalLength: number;
+    /** A petal's greatest width in metres. */
+    petalWidth: number;
+    /** Where a petal is widest, as a share from its base to its tip. */
+    petalWidest: number;
+    /** How far a petal's margins lift out of its plane, as a share of its half-width: a cupped blossom. */
+    petalCup: number;
+    /** How far a floret's size varies from one to the next, as a share. */
+    scatter: number;
+    /** Where in the year the flowering window opens, as a share of the year from its start. */
+    opens: number;
+    /** How long the window lasts, as a share of the year. A floret grows in and shrinks out inside it; zero flowers never. */
+    lasts: number;
+    /** The share of the window the florets' openings are spread over: zero opens every floret at once. */
+    stagger: number;
   };
 }
 
@@ -734,6 +780,12 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/material/leafDeadRed", kind: "real", optional: false, meaning: "The colour a dead frond has aged to, both faces alike, shown only on the fronds a rosette keeps below its living crown. Raising a channel pushes the skirt toward it.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no dead frond (`canopy.skirtFronds` zero)", reach: "mature", dial: { window: [0, 1], step: 0.05 } },
   { path: "/material/leafDeadGreen", kind: "real", optional: false, meaning: "The green channel of `leaf_dead_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no dead frond (`canopy.skirtFronds` zero)", reach: "mature", dial: { window: [0, 1], step: 0.05 } },
   { path: "/material/leafDeadBlue", kind: "real", optional: false, meaning: "The blue channel of `leaf_dead_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no dead frond (`canopy.skirtFronds` zero)", reach: "mature", dial: { window: [0, 1], step: 0.05 } },
+  { path: "/material/bloomFrontRed", kind: "real", optional: false, meaning: "The colour of a petal's upper face, a linear reflectance per channel (fn-216): the flowers' own, drawn by the leaf shader.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/material/bloomFrontGreen", kind: "real", optional: false, meaning: "The green channel of `bloom_front_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/material/bloomFrontBlue", kind: "real", optional: false, meaning: "The blue channel of `bloom_front_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/material/bloomBackRed", kind: "real", optional: false, meaning: "The colour of a petal's underside, a linear reflectance per channel (fn-216): the flowers' own, drawn by the leaf shader.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/material/bloomBackGreen", kind: "real", optional: false, meaning: "The green channel of `bloom_back_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/material/bloomBackBlue", kind: "real", optional: false, meaning: "The blue channel of `bloom_back_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/material/hueRangeLow", kind: "real", optional: false, meaning: "The hue offsets one leaf may take, as a fraction of the colour circle.", unit: "-", low: -0.5, high: 0.5, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [-0.5, 0], step: 0.0025 } },
   { path: "/material/hueRangeHigh", kind: "real", optional: false, meaning: "The upper end of the hue offsets `hue_range_low` opens.", unit: "-", low: -0.5, high: 0.5, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 0.5], step: 0.0025 } },
   { path: "/material/brightnessRangeLow", kind: "real", optional: false, meaning: "The brightness offsets one leaf may take, about no change at all.", unit: "-", low: -1, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [-1, 0], step: 0.015 } },
@@ -812,4 +864,20 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/material/barkGrainStrength", kind: "real", optional: false, meaning: "How far the grain varies the bark's colour and tilts its normal.", unit: "-", low: 0, high: 1, lowOpen: false, zero: false, applies: "`barkGrainScale` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/bladeGrainScale", kind: "real", optional: false, meaning: "The blade's cell grain, in cells per blade length; zero is none.", unit: "-", low: 0, high: 256, lowOpen: false, zero: false, applies: "`bladeGrainStrength` zero", reach: "mature", dial: { window: [0, 256], step: 20 } },
   { path: "/material/bladeGrainStrength", kind: "real", optional: false, meaning: "How far that grain varies the blade's colour and tilts its normal.", unit: "-", low: 0, high: 1, lowOpen: false, zero: false, applies: "`bladeGrainScale` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
+  { path: "/bloom/florets", kind: "real", optional: false, meaning: "Florets on one inflorescence. The fractional part is the last floret's size, so a walk across counts grows one in by degree.", unit: "florets", low: 1, high: 64, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/rachis", kind: "real", optional: false, meaning: "Metres of the inflorescence's axis the florets stand along: zero is a cluster at the node, a few centimetres a raceme or catkin.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/droop", kind: "real", optional: false, meaning: "How the axis turns from the bud's side as it grows: 1 hangs straight down, -1 stands up as a candle, 0 holds the side.", unit: "share", low: -1, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/pedicel", kind: "real", optional: false, meaning: "Metres of stalk between the axis and each floret.", unit: "m", low: 0, high: 0.5, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/spread", kind: "real", optional: false, meaning: "The degrees a floret's stalk leaves the axis: small packs a spike, ninety spreads a raceme, more fans a cluster back.", unit: "degrees", low: 0, high: 180, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/taper", kind: "real", optional: false, meaning: "How much smaller the floret at the axis's tip is than the one at its base, as a share.", unit: "share", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/petals", kind: "real", optional: false, meaning: "Petals on a floret, turned evenly about it by the count. The fractional part is the last petal's size (host decision 4), so a walk across counts changes a flower by degree.", unit: "petals", low: 1, high: 12, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/open", kind: "real", optional: false, meaning: "The degrees a petal opens from the floret's axis: a bud near zero, an open blossom near ninety.", unit: "degrees", low: 0, high: 180, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/petalLength", kind: "real", optional: false, meaning: "A petal's length in metres.", unit: "m", low: 0.0001, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/petalWidth", kind: "real", optional: false, meaning: "A petal's greatest width in metres.", unit: "m", low: 0.0001, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/petalWidest", kind: "real", optional: false, meaning: "Where a petal is widest, as a share from its base to its tip.", unit: "share of the petal", low: 0.05, high: 0.95, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/petalCup", kind: "real", optional: false, meaning: "How far a petal's margins lift out of its plane, as a share of its half-width: a cupped blossom.", unit: "share of the half-width", low: -2, high: 2, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/scatter", kind: "real", optional: false, meaning: "How far a floret's size varies from one to the next, as a share.", unit: "share", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/opens", kind: "real", optional: false, meaning: "Where in the year the flowering window opens, as a share of the year from its start.", unit: "share of the year", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/lasts", kind: "real", optional: false, meaning: "How long the window lasts, as a share of the year. A floret grows in and shrinks out inside it; zero flowers never.", unit: "share of the year", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/stagger", kind: "real", optional: false, meaning: "The share of the window the florets' openings are spread over: zero opens every floret at once.", unit: "share of the window", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
 ];

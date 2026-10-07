@@ -144,8 +144,7 @@ crate::catalogue::rows! {
             wire: 266,
             check: input(Site::Material, 95, "bloom front red"),
             applies: "no age flowering",
-            dial: bounded("material_bloom_front_red", "the red in the colour of a petal's upper face",
-                [0.05, 0.1]),
+            dial: crate::catalogue::FLOWERS,
         },
         /// The green channel of `bloom_front_red`.
         pub bloom_front_green: f64 = "bloomFrontGreen" "reflectance"
@@ -153,8 +152,7 @@ crate::catalogue::rows! {
             wire: 267,
             check: input(Site::Material, 96, "bloom front green"),
             applies: "no age flowering",
-            dial: bounded("material_bloom_front_green", "the green in the colour of a petal's upper face",
-                [0.05, 0.1]),
+            dial: crate::catalogue::FLOWERS,
         },
         /// The blue channel of `bloom_front_red`.
         pub bloom_front_blue: f64 = "bloomFrontBlue" "reflectance"
@@ -162,8 +160,7 @@ crate::catalogue::rows! {
             wire: 268,
             check: input(Site::Material, 97, "bloom front blue"),
             applies: "no age flowering",
-            dial: bounded("material_bloom_front_blue", "the blue in the colour of a petal's upper face",
-                [0.05, 0.1]),
+            dial: crate::catalogue::FLOWERS,
         },
         /// The colour of a petal's underside, a linear reflectance per channel
         /// (fn-216): the flowers' own, drawn by the leaf shader.
@@ -172,8 +169,7 @@ crate::catalogue::rows! {
             wire: 269,
             check: input(Site::Material, 98, "bloom back red"),
             applies: "no age flowering",
-            dial: bounded("material_bloom_back_red", "the red in the colour of a petal's underside",
-                [0.05, 0.1]),
+            dial: crate::catalogue::FLOWERS,
         },
         /// The green channel of `bloom_back_red`.
         pub bloom_back_green: f64 = "bloomBackGreen" "reflectance"
@@ -181,8 +177,7 @@ crate::catalogue::rows! {
             wire: 270,
             check: input(Site::Material, 99, "bloom back green"),
             applies: "no age flowering",
-            dial: bounded("material_bloom_back_green", "the green in the colour of a petal's underside",
-                [0.05, 0.1]),
+            dial: crate::catalogue::FLOWERS,
         },
         /// The blue channel of `bloom_back_red`.
         pub bloom_back_blue: f64 = "bloomBackBlue" "reflectance"
@@ -190,8 +185,7 @@ crate::catalogue::rows! {
             wire: 271,
             check: input(Site::Material, 100, "bloom back blue"),
             applies: "no age flowering",
-            dial: bounded("material_bloom_back_blue", "the blue in the colour of a petal's underside",
-                [0.05, 0.1]),
+            dial: crate::catalogue::FLOWERS,
         },
         /// The hue offsets one leaf may take, as a fraction of the colour circle.
         pub hue_range_low: f64 = "hueRangeLow" "-" Bounds::closed(-0.5, 0.5) => [Draw] {
