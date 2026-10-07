@@ -317,12 +317,11 @@ fn settles_as_on_the_cpu(
     name: &str,
     (species, at, cut): (&Species, (u32, u64), f64),
 ) -> Apart {
-    let expected = Expected::new(species, at.0, 0);
     let plan = Plan {
         cut,
         ..Plan::default()
     };
-    let cpu = grow_fine(species, request(at.0, at.1), &expected, plan).expect("grows");
+    let cpu = grow_fine(species, request(at.0, at.1), plan).expect("grows");
     let want = root_axes(&cpu);
     let forward: Vec<usize> = (0..want.len()).collect();
     let reverse: Vec<usize> = forward.iter().rev().copied().collect();

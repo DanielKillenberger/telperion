@@ -25,12 +25,12 @@ use crate::structure::{Axis, Structure};
 pub(crate) struct Landing<'a> {
     species: &'a Species,
     rules: &'a Rules<'a>,
-    rows: &'a Rows,
+    /// The closed form's reach bounds; none where the CPU executor grows
+    /// every root already.
+    rows: Option<&'a Rows>,
     plan: Plan,
     threads: usize,
     internode: f64,
-    /// Off where the CPU executor grows every root already.
-    active: bool,
     pub roots: Vec<(usize, Root)>,
     unbent: Vec<Axis>,
 }
@@ -38,9 +38,8 @@ pub(crate) struct Landing<'a> {
 impl<'a> Landing<'a> {
     pub fn new(
         species: &'a Species,
-        (rules, rows): (&'a Rules<'a>, &'a Rows),
+        (rules, rows): (&'a Rules<'a>, Option<&'a Rows>),
         (plan, threads): (Plan, usize),
-        active: bool,
     ) -> Self {
         let internode = species
             .states
@@ -54,7 +53,6 @@ impl<'a> Landing<'a> {
             plan,
             threads,
             internode,
-            active,
             roots: Vec::new(),
             unbent: Vec::new(),
         }
@@ -64,6 +62,7 @@ impl<'a> Landing<'a> {
     /// radius `radius`, can reach the landing zone from `stubs`.
     fn reaches(
         &self,
+        rows: &Rows,
         seed: &RootSeed,
         (base, drawn): (f64, f64),
         radius: f64,
@@ -76,7 +75,7 @@ impl<'a> Landing<'a> {
             .iter()
             .flat_map(|a| [a.base.z, a.phytomers[0].tip.z])
             .fold(f64::INFINITY, f64::min);
-        low - self.rows.lateral(axis.pa, axis.birth).reach * s <= zone
+        low - rows.lateral(axis.pa, axis.birth).reach * s <= zone
     }
 
     /// `seed`'s root grown, scaled and laid on the CPU from `unbent`.
@@ -97,16 +96,24 @@ impl<'a> Landing<'a> {
         (scales, radii): (&[(f64, f64)], &[f64]),
         loads: &mut [Loaded],
     ) -> Result<()> {
-        if !self.active {
+        let Some(rows) = self.rows else {
             return Ok(());
-        }
+        };
         self.unbent = live
             .iter()
             .zip(bearers)
             .map(|(&k, &b)| stub(&tree.axes[b], node(&seeds[k])))
             .collect();
         let ground: Vec<usize> = (0..live.len())
-            .filter(|&j| self.reaches(&seeds[live[j]], scales[j], radii[j], &[&self.unbent[j]]))
+            .filter(|&j| {
+                self.reaches(
+                    rows,
+                    &seeds[live[j]],
+                    scales[j],
+                    radii[j],
+                    &[&self.unbent[j]],
+                )
+            })
             .collect();
         for (j, root) in self.land_all(&ground, (seeds, live), scales)? {
             if any(self.species) {
@@ -141,9 +148,9 @@ impl<'a> Landing<'a> {
         (seeds, live, bearers): (&[RootSeed], &[usize], &[usize]),
         (scales, radii): (&[(f64, f64)], &[f64]),
     ) -> Result<()> {
-        if !self.active {
+        let Some(rows) = self.rows else {
             return Ok(());
-        }
+        };
         let bent: Vec<Axis> = live
             .iter()
             .zip(bearers)
@@ -156,7 +163,7 @@ impl<'a> Landing<'a> {
         let ground: Vec<usize> = (0..live.len())
             .filter(|&j| {
                 let stubs = [&self.unbent[j], &bent[j]];
-                !landed[j] && self.reaches(&seeds[live[j]], scales[j], radii[j], &stubs)
+                !landed[j] && self.reaches(rows, &seeds[live[j]], scales[j], radii[j], &stubs)
             })
             .collect();
         let more = self.land_all(&ground, (seeds, live), scales)?;

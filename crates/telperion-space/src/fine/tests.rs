@@ -2,7 +2,6 @@
 //! engine (`realized.rs`), the decision contract's draws (`draws.rs`) and
 //! ticks (`ticks.rs`), and the landing rule (`landing.rs`).
 use super::{digest, grow_fine, Plan};
-use crate::bounded::Expected;
 use crate::grow::{grow_whole, Request};
 use crate::light::Light;
 use crate::species::Species;
@@ -24,13 +23,12 @@ pub(super) fn request(age: u32, seed: u64) -> Request {
 /// The tree at each of `cuts` is today's whole-tree engine's.
 pub(super) fn same_at_cuts(species: &Species, request: Request, cuts: &[f64]) {
     let whole = digest(&grow_whole(species, request).expect("grows whole"));
-    let expected = Expected::new(species, request.age, 0);
     for &cut in cuts {
         let plan = Plan {
             cut,
             ..Plan::default()
         };
-        let fine = grow_fine(species, request, &expected, plan).expect("grows fine");
+        let fine = grow_fine(species, request, plan).expect("grows fine");
         assert_eq!(digest(&fine.structure), whole, "at cut {cut}");
     }
 }
@@ -40,8 +38,7 @@ pub(super) fn same_at_cuts(species: &Species, request: Request, cuts: &[f64]) {
 #[test]
 fn a_species_that_reads_light_is_refused() {
     let species = crate::oak();
-    let expected = Expected::new(&species, 5, 1);
-    let refused = grow_fine(&species, request(5, 1), &expected, Plan::default());
+    let refused = grow_fine(&species, request(5, 1), Plan::default());
     assert!(
         matches!(refused, Err(crate::Error::Refused { .. })),
         "{:?}",

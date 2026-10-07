@@ -10,6 +10,7 @@ use super::surface::input;
 use super::{Clock, Plan};
 use crate::bounded::Expected;
 use crate::closed_form::boundary::Rows;
+use crate::closed_form::predictor::Predictor;
 use crate::error::{Error, Result};
 use crate::fixed::presence::{q, times};
 use crate::geometry::{place, scale};
@@ -78,7 +79,8 @@ pub struct Settled {
 
 /// Grows `species` above `plan`'s cut and settles it with its fine
 /// roots, grown by `roots`, every root that can reach the ground laid on
-/// the CPU reference executor; and the roots' seeds.
+/// the CPU reference executor by `expected`'s reach; and the roots'
+/// seeds. The cut reads the predictor's counts (host decision 9).
 pub fn settle(
     species: &Species,
     request: Request,
@@ -87,21 +89,23 @@ pub fn settle(
     roots: &mut dyn Roots,
 ) -> Result<(Settled, Vec<RootSeed>)> {
     let rules = crate::grow::alone::rules(species, request.age, request.budget)?;
+    let predictor = Predictor::new(species, &rules.windows, request.age);
+    let rows = expected.rows();
     settle_with(
         species,
-        (request, &expected.rows(), &rules),
+        (request, &predictor, &rules),
         plan,
         roots,
-        true,
+        Some(&rows),
     )
 }
 
 pub(crate) fn settle_with(
     species: &Species,
-    (request, rows, rules): (Request, &Rows, &Rules),
+    (request, predictor, rules): (Request, &Predictor, &Rules),
     plan: Plan,
     roots: &mut dyn Roots,
-    land: bool,
+    reach: Option<&Rows>,
 ) -> Result<(Settled, Vec<RootSeed>)> {
     request.light.validate()?;
     let threads = match plan.threads {
@@ -110,7 +114,7 @@ pub(crate) fn settle_with(
     };
     let pas = species.states.len();
     let hands = Hands::new(pas, request.age, |pa, birth| {
-        rows.lateral(pa, birth).count <= plan.cut
+        predictor.count(pa, birth) <= plan.cut
     });
     let (grown, handed) = above(rules, hands, request.seed, threads)?;
     let seeds: Vec<RootSeed> = handed
@@ -184,7 +188,7 @@ pub(crate) fn settle_with(
     // a root that can reach the ground is laid on the CPU (host decision
     // 3, `landing.rs`).
     let mut loads = clock.time(|| roots.lay(&tree, &live, &bearers))?;
-    let mut landing = Landing::new(species, (rules, rows), (plan, threads), land);
+    let mut landing = Landing::new(species, (rules, reach), (plan, threads));
     let at_roots = (&seeds[..], &live[..], &bearers[..]);
     landing.lay(&tree, at_roots, (&scales, &radii), &mut loads)?;
     if any(species) {

@@ -4,6 +4,7 @@
 //! another executor lays.
 use super::request;
 use crate::bounded::Expected;
+use crate::closed_form::predictor::Predictor;
 use crate::fine::expansion::settle_with;
 use crate::fine::realized::Cpu;
 use crate::fine::Plan;
@@ -21,6 +22,7 @@ fn routed(species: &Species, age: u32, seed: u64) -> (usize, usize, usize) {
         rules(species, age, request.budget).expect("rules"),
         expected.rows(),
     );
+    let predictor = Predictor::new(species, &rules.windows, age);
     let plan = Plan::default();
     let mut cpu = Cpu {
         species,
@@ -29,8 +31,14 @@ fn routed(species: &Species, age: u32, seed: u64) -> (usize, usize, usize) {
         threads: crate::cores::available(),
         roots: Vec::new(),
     };
-    let (settled, _) =
-        settle_with(species, (request, &rows, &rules), plan, &mut cpu, true).expect("settles");
+    let (settled, _) = settle_with(
+        species,
+        (request, &predictor, &rules),
+        plan,
+        &mut cpu,
+        Some(&rows),
+    )
+    .expect("settles");
     let near = settled
         .live
         .iter()

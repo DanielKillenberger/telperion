@@ -7,7 +7,7 @@
 //! bud below the cut is made where it stands and handed on, its stand-in
 //! keeping its place among its bearer's children. The cut is chosen
 //! before growth, by the closed form's expected kept phytomers of the bud
-//! (its row's `count`, light-neutral), so which buds are fine never
+//! (`closed_form::predictor`, light-neutral), so which buds are fine never
 //! depends on what they grow into. The expansion grows every fine root
 //! whole from its bud alone (`realized.rs`), and the two settle together
 //! in four phases: each root reports its realized totals up (its
@@ -34,8 +34,7 @@ mod tables;
 #[cfg(test)]
 mod tests;
 
-use crate::bounded::Expected;
-use crate::closed_form::boundary::Rows;
+use crate::closed_form::predictor::Predictor;
 use crate::error::{refuse, Error, Result};
 use crate::grow::alone::rules;
 use crate::grow::{keeps, Request};
@@ -113,8 +112,9 @@ pub struct Expanded {
 /// structure above the cut, each fine root's first axis where its
 /// stand-in stood, then each root's other axes in the roots' order), its
 /// axes above the cut, each root, where each root's other axes start,
-/// the seconds each phase of the expansion took on the plan's cores, and
-/// the round trips between the structure above the cut and the items.
+/// the seconds each phase of the expansion took on the plan's cores, the
+/// round trips between the structure above the cut and the items, and
+/// the seconds the cut's predictor took.
 pub struct Fine {
     pub structure: Structure,
     pub above: usize,
@@ -122,6 +122,7 @@ pub struct Fine {
     pub starts: Vec<usize>,
     pub phases: Vec<f64>,
     pub trips: usize,
+    pub predict: f64,
 }
 
 impl Fine {
@@ -135,22 +136,18 @@ impl Fine {
 /// from its bud alone on the CPU reference executor, and settles the two
 /// together: today's whole-tree engine's tree. Refuses a species any bud
 /// of which reads light (fn-211), or whose girth reads the tree as grown.
-pub fn grow_fine(
-    species: &Species,
-    request: Request,
-    expected: &Expected,
-    plan: Plan,
-) -> Result<Fine> {
+pub fn grow_fine(species: &Species, request: Request, plan: Plan) -> Result<Fine> {
     if keeps(species) {
         return refuse(
             "retained",
             "a fine root's shed pipes and leaf girth are fn-211's stepped executor's",
         );
     }
-    let (rules, rows) = (
-        rules(species, request.age, request.budget)?,
-        expected.rows(),
-    );
+    let rules = rules(species, request.age, request.budget)?;
+    request.light.validate()?;
+    let started = Instant::now();
+    let predictor = Predictor::new(species, &rules.windows, request.age);
+    let predict = started.elapsed().as_secs_f64();
     let threads = match plan.threads {
         0 => crate::cores::available(),
         n => n,
@@ -163,13 +160,14 @@ pub fn grow_fine(
         roots: Vec::new(),
     };
     let (settled, _) =
-        expansion::settle_with(species, (request, &rows, &rules), plan, &mut cpu, false)?;
-    assemble(settled, cpu.roots, &rows)
+        expansion::settle_with(species, (request, &predictor, &rules), plan, &mut cpu, None)?;
+    let fine = assemble(settled, cpu.roots, &predictor)?;
+    Ok(Fine { predict, ..fine })
 }
 
 /// The tree whole: each kept root's first axis where its stand-in stood,
 /// its others after the structure above the cut, in the roots' order.
-fn assemble(settled: Settled, roots: Vec<Root>, rows: &Rows) -> Result<Fine> {
+fn assemble(settled: Settled, roots: Vec<Root>, predictor: &Predictor) -> Result<Fine> {
     let Settled {
         structure: mut tree,
         at,
@@ -191,7 +189,7 @@ fn assemble(settled: Settled, roots: Vec<Root>, rows: &Rows) -> Result<Fine> {
     for (k, root) in roots.into_iter().enumerate() {
         let report = |kept| Expanded {
             at: at[k],
-            predicted: rows.lateral(root.pa, root.birth).count,
+            predicted: predictor.count(root.pa, root.birth),
             kept,
             woken: root.woken,
             work: root.work,
@@ -224,6 +222,7 @@ fn assemble(settled: Settled, roots: Vec<Root>, rows: &Rows) -> Result<Fine> {
         starts,
         trips: phases.len(),
         phases,
+        predict: 0.0,
     })
 }
 

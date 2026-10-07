@@ -323,7 +323,7 @@ impl Kept<'_> {
 /// A zone's node count under its subtrees' factor `f` a node: E[f^N], the
 /// count's moments tilted by f^N (normalized), and its moments with one
 /// node replaced, E[N^p f^(N-1)].
-fn tilts(pmf: &[f64], f: f64, zone: &Zone) -> (f64, Count, Count) {
+pub(in crate::closed_form) fn tilts(pmf: &[f64], f: f64, zone: &Zone) -> (f64, Count, Count) {
     let (mut g, mut mu, mut nu) = (0.0, [0.0; 3], [0.0; 3]);
     for (n, &pn) in pmf.iter().enumerate() {
         let tilt = pn * f.powi(n as i32);

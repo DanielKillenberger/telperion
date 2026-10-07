@@ -8,8 +8,7 @@
 //! Run under `RAYON_NUM_THREADS=1` for one core.
 use std::time::Instant;
 use telperion_space::{
-    beech, digest, grow_fine, grow_whole, spruce, Expected, Fine, Light, Order, Plan, Request,
-    Species,
+    beech, digest, grow_fine, grow_whole, spruce, Fine, Light, Order, Plan, Request, Species,
 };
 
 fn main() {
@@ -22,7 +21,7 @@ fn main() {
     };
     let (ages, seeds, cuts) = (list(0, "40,80"), list(1, "1,7"), list(2, "256,1024,4096"));
     println!(
-        "| Tree | Cut | Roots | Above (phytomers) | Phytomers | Rows ms | Whole cold / warm ms | Fine cold / warm ms | Phases warm ms | Trips | Equal |"
+        "| Tree | Cut | Roots | Above (phytomers) | Phytomers | Predictor ms | Whole cold / warm ms | Fine cold / warm ms | Phases warm ms | Trips | Equal |"
     );
     println!("|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|---|");
     for (name, species) in [("beech", beech()), ("spruce", spruce())] {
@@ -46,9 +45,6 @@ fn ms(t: Instant) -> f64 {
 }
 
 fn tree(label: &str, species: &Species, request: Request, cuts: &[f64]) {
-    let t = Instant::now();
-    let expected = Expected::new(species, request.age, 0);
-    let rows = ms(t);
     let whole = || {
         let t = Instant::now();
         let tree = grow_whole(species, request).expect("grows whole");
@@ -65,7 +61,7 @@ fn tree(label: &str, species: &Species, request: Request, cuts: &[f64]) {
                 threads: 0,
             };
             let t = Instant::now();
-            let fine = grow_fine(species, request, &expected, plan).expect("grows fine");
+            let fine = grow_fine(species, request, plan).expect("grows fine");
             (fine, ms(t))
         };
         let (first, fine_cold) = fine(Order::Forward, 16);
@@ -95,6 +91,7 @@ fn tree(label: &str, species: &Species, request: Request, cuts: &[f64]) {
             .iter()
             .map(|s| format!("{:.0}", s * 1e3))
             .collect();
+        let rows = second.predict * 1e3;
         println!(
             "| {label} | {cut} | {} | {above} | {phytomers} | {rows:.0} | {cold:.0} / {warm:.0} | {fine_cold:.0} / {fine_warm:.0} | {} | {} | {} |",
             second.roots.len(),

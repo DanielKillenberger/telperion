@@ -9,7 +9,7 @@
 use super::realized_tests::{request, settled_against, Apart};
 use super::roots::kernels;
 use std::time::Instant;
-use telperion_space::{grow_fine, root_axes, Expected, Plan, Species};
+use telperion_space::{grow_fine, root_axes, Plan, Species};
 
 /// fn-125's screen, in metres.
 const MOST: f64 = 50e-6;
@@ -31,7 +31,6 @@ fn locked() -> Option<std::fs::File> {
 /// The CPU executor's build of the tree on `threads` cores, cold and
 /// then the best of two warm, in milliseconds.
 fn cpu(species: &Species, at: (u32, u64), threads: usize) -> (f64, f64) {
-    let expected = Expected::new(species, at.0, 0);
     let plan = Plan {
         threads,
         cut: cut(),
@@ -39,7 +38,7 @@ fn cpu(species: &Species, at: (u32, u64), threads: usize) -> (f64, f64) {
     };
     let mut times = (0..3).map(|_| {
         let t = Instant::now();
-        grow_fine(species, request(at.0, at.1), &expected, plan).expect("grows");
+        grow_fine(species, request(at.0, at.1), plan).expect("grows");
         t.elapsed().as_secs_f64() * 1e3
     });
     let cold = times.next().expect("a build");
@@ -91,8 +90,7 @@ fn realized_at_40_and_80() {
                 if !only.is_empty() && only != format!("{name} {age} {seed}") {
                     continue;
                 }
-                let expected = Expected::new(&species, age, 0);
-                let fine = grow_fine(&species, request(age, seed), &expected, plan).expect("grows");
+                let fine = grow_fine(&species, request(age, seed), plan).expect("grows");
                 let want = root_axes(&fine);
                 drop(fine);
                 let (all_cold, all_warm) = cpu(&species, at, 0);

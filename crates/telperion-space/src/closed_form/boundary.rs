@@ -101,6 +101,13 @@ impl Rows {
         row
     }
 
+    /// The row of a lateral of `pa` `m` cycles from the tree's age, none
+    /// where no bud of the PA is borne (the predictor's proof).
+    #[cfg(test)]
+    pub(crate) fn row_at(&self, pa: usize, m: usize) -> Option<&Row> {
+        self.rows.get(pa * (self.age + 1) + m).filter(|r| r.e > 0.0)
+    }
+
     /// The chance that a lateral of `pa` made in cycle `birth` has no
     /// living apex past cycle `t`: its extinction curve, 0 before its
     /// birth.
@@ -127,7 +134,7 @@ impl Rows {
 
 /// The PAs a lateral or sleeping bud can grow in: every one a living
 /// age's zone draws, as far as it passes through ages that do not live.
-fn borne(species: &Species) -> Vec<bool> {
+pub(super) fn borne(species: &Species) -> Vec<bool> {
     let mut borne = vec![false; species.states.len()];
     for state in species.states.iter().filter(|s| s.lifespan > 0.0) {
         for zone in &state.zones {

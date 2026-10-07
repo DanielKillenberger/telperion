@@ -328,3 +328,42 @@ What the table says (the worker's readings):
 | The committed-boundary path removed from production code | **met**: removed outright (`d00eb019`); P2 stays as a named probe |
 | Timing warm and cold against the CPU on 1 and all cores; round trips counted | **met**: table above; 14 to 40 round trips a tree, asserted |
 | Workspace gate green | **met**: `cargo test --profile ci --workspace --no-fail-fast` at `689ede1c`, 2,291 passed, 0 failed, 48 ignored, 14 m 19 s at load 4.5 to 33 (GPU lock held; `raw/gpu-realized/gate.txt`) |
+## Host decision 9 built: a cut predictor that costs what the cut reads (task 7, 2026-10-07)
+
+**Built** (`closed_form/predictor.rs`, `predictor/axis.rs`): the kept recursion cut down to the two columns the count reads, the extinction curve and the expected kept phytomers. Every operation on them is the kept tables' own, in their order; sections, masses, moments and reach bounds are left out. `grow_fine` builds it from the grower's own windows (`grow_fine(species, request, plan)`; no `Expected`), and reports its seconds in `Fine::predict`.
+- **Iterative.** A bud's table waits on younger tables only; they are built on a heap stack of pending buds, never by recursion. Test: age 300 on a 128 kB thread (`an_old_tree_needs_no_deep_stack`). `cores::deep` stays for the full rows (`Expected`: the bounded and committed paths), which `grow` no longer builds. The grower's windows (`expected_log_lengths`) still recurse, as before this task.
+
+**Proof** (raw output in `raw/predictor/`):
+- **Every count equal to the closed form's row to the bit:** every borne PA, every age 0 to the tree's. In the gate: the four species at ages 1, 2, 9 and 30 (690 counts). Run once at 40 and 80 (`counts_at_40_and_80`, ignored): beech 246 / 486, spruce 123 / 243, oak 246 / 486, the palm none (it bears no lateral). So every cut decision is unchanged.
+- **Every tree unchanged:** the lineage digest of all 32 trees (`examples/digests.rs`: four species, 40 and 80, seeds 1 and 7, neutral and lit) and `measures hash 80` (seeds 1 and 7, neutral and lit, 16 trees) equal to the task's base `3fb527eb`.
+
+**Cost of the cut's reading** (one core pinned, `taskset -c 2`, `RAYON_NUM_THREADS=1`; then all cores):
+
+| Tree | Table (rows), one core / all cores ms | Predictor, one core / all cores ms |
+|---|--:|--:|
+| beech 40 | 7 / 17 | 2 / 3 |
+| beech 80 | 31 / 61 | 10 / 11 |
+| spruce 40 | 34 / 47 | 8 / 8 |
+| spruce 80 | 95 / 142 | 25 / 24 |
+
+**The premise did not hold on this tip** (FRICTION.md): the table cost 31 and 95 ms on one CPU, not 0.70 and 1.20 s. The earlier reading most likely ran 32 `cores::deep` threads, each with its own memo, under `RAYON_NUM_THREADS=1` alone. So the predictor saves 20 to 70 ms on one core. That is within the noise of `grow`.
+
+**`grow` against `grow_whole`, warm ms** (`examples/timegrow.rs`, seed 1, neutral light; best of three after a cold build; base and new interleaved, two rounds each, plus one earlier run; `raw/predictor/time-*.md`):
+
+| Tree | One core: `grow` base | `grow` new | `grow_whole` | All cores: `grow` base | `grow` new | `grow_whole` |
+|---|--:|--:|--:|--:|--:|--:|
+| beech 40 | 76, 80, 81 | 74, 78, 74 | 69 to 81 | 27, 27, 28 | 19, 18, 17 | 41 to 43 |
+| beech 80 | 1,115, 1,149, 1,152 | 1,151, 1,178, 1,143 | 1,272 to 1,471 | 219, 218, 219 | 381 (one outlier), 172, 183 | 446 to 477 |
+| spruce 40 | 1,857, 1,947, 1,908 | 1,913, 1,907, 1,883 | 1,816 to 2,054 | 303, 294, 295 | 276, 261, 277 | 576 to 590 |
+| spruce 80 | 8,798, 8,931, 8,582 | 8,747, 9,057, 8,679 | 8,290 to 9,369 | 1,149, 1,182, 1,153 | 1,056, 1,059, 1,044 | 2,206 to 2,253 |
+
+Load ran from 1 to 13 across the runs, shared with the other worktree's GPU work.
+
+What the table shows:
+- **All cores:** `grow` is 6 to 37 % faster than before (beech 40: 27 to 18 ms; spruce 80: 1.16 to 1.05 s), about what the table cost there, and still twice as fast as `grow_whole`.
+- **One core:** the beech at 80 is faster than `grow_whole` (1.14 to 1.18 s against 1.27 to 1.47). The beech at 40 and the spruce at 40 and 80 are at parity within the noise. The spruce at 80 averages 8.83 s against `grow_whole`'s 8.81 s, and single pairs differ by up to 3 % either way.
+- **Where the spruce's one-core time goes:** the partition's four phases alone take 8.5 s at age 80 (`Fine::phases`), as long as the whole tree. The remaining 0.4 s is the structure above the cut, its settle and `lineage_order`. A clear one-core gain needs less work in the partition, or a different cut for one core (REALIZED.md's timing: the spruce was fastest at ∞). The cut is a host decision (decision 7); this task leaves it at N = 1,024.
+
+**Gate:** `cargo test --profile ci --workspace --no-fail-fast` at `c104e058`'s code: 1,151 passed, 0 failed, 11 m 27 s, load 5.5 at the start and 9.5 at the end (31.7 at its one-minute peak), GPU lock held.
+
+**Acceptance, as the worker reads it:** the cut decisions, trees, iteration, all-core timing and gate are met. One-core `grow` at least as fast as `grow_whole` is met for the beech at 80 only; the beech at 40 and the spruce at 40 and 80 are at parity within ±3 % noise, not measurably faster or slower. Not marked done; for the host.
