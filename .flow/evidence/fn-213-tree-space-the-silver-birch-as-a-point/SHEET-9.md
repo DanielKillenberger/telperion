@@ -90,3 +90,22 @@ Round 9 is cheaper than round 8 at both ages and about round 7's node count at 8
 ## Gate (round 9, commit `a35e4f3b`)
 
 Render half first, under the GPU lock: `cargo test --profile ci -p telperion-render --no-fail-fast` exits 0. Then `cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render` exits 0. `harness/parity.test.ts` passes 8 of 8. Limits at 8; logs in the ignored `raw/gate9-*.log`.
+
+## Code check before any round 10 (2026-10-07, host's question; no renders)
+
+Does the engine draw a per-axis variation, keyed by lineage, for the strands' leaving angle, turning rate and roll? Read on the branch tip (`916b44ec`):
+
+| Trait | Row | Per axis? | Where |
+|---|---|---|---|
+| Roll about the bearer | `form.roll` (per PA) | **Yes**: a uniform spread of ±`roll` radians, drawn per axis from `Key(lineage).child(ROLL)` | `geometry.rs:177-178`, `geometry/single.rs:84`; documented at `species.rs:220-223` |
+| Leaving angle | `insertion` (per PA) | **No**: one constant per age, passed unchanged to `turned(...)` for every lateral and relay | `geometry.rs:183`, `geometry.rs:208`, `geometry/single.rs:89`; also read as a constant by the closed form (`closed_form/events.rs:156`, `236`, `268`; `kept/path.rs:256`) |
+| Turning rate | `form.tropism` (per PA), toward `form.elevation` (per PA) | **No**: `share = 1 - exp(-tropism × length)` with the PA's constant; only `length` varies, through `internodeSpread` | `geometry/lay.rs:148-150` |
+
+Per-axis or per-node keyed variation that does exist, and touches the strands only indirectly:
+
+- Internode length (`form.internodeSpread`, per node, `lay.rs:148`).
+- Wander (`form.wander`, a keyed turn per node, `lay.rs:155-160`) and its remembered bend (`form.bendLength`).
+- Sibling size (`form.dominance`).
+- Survival (`viability`).
+
+Round 9 already uses roll at 1.2 rad on the strands. A per-axis spread of the leaving angle and of the turning rate does not exist; per the host's instruction the worker stops here.
