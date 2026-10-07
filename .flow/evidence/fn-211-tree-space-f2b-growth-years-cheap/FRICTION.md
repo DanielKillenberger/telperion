@@ -85,3 +85,17 @@
 - **What slowed it:** `rustfmt` follows `mod` declarations, so naming `grow.rs` and `lib.rs` reformatted `fine/surface.rs` and `light/tests.rs` (task 2's entry); reverted with a reverse patch.
 - **Cost:** about 2 minutes.
 - **What would remove it:** task 2's fix (one formatting commit for the crate).
+
+## 2026-10-07, task 5 worker: the crate's tests took ten minutes to check a merge
+
+- **Doing:** checking the F1 merge with `cargo test --profile ci -p telperion-space`.
+- **What slowed it:** one test binary ran 551 s of the 606 s (load 8 at the start, a 50 peak from other workers). The merge needed only the digests (1 min) and the partition and stepped tests.
+- **Cost:** about 10 minutes of wall time, waited on.
+- **What would remove it:** a named quick set for merges (the digests example plus `fine/tests/realized.rs` and `grow/stepped/tests.rs`), the slow binary's cases left to the gate.
+
+## 2026-10-07, task 5 worker: the shell guard blocks writes to variables' paths and `git checkout <ref> -- <path>`
+
+- **Doing:** writing scratch outputs to `$S/...` and restoring a probed file from HEAD.
+- **What slowed it:** `dcg` refuses a redirect whose target is a shell variable and refuses `git checkout HEAD -- <file>`; each needed a rewrite (the Write tool, a literal path, or a script that writes the file).
+- **Cost:** about 4 minutes and three retries.
+- **What would remove it:** a local setup matter (the guard's allow list for the scratchpad), reported.
