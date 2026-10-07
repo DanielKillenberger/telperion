@@ -358,12 +358,12 @@ fn the_slice_is_the_same_in_any_order_and_chunking() {
     );
 }
 
-/// The f64-seeded square root and the division-free unit quotient give the
-/// bits of the exact reference algorithms (Newton from above; i128
-/// division), over every bit length, squares and their neighbours, and
-/// millions of random cases.
+/// The f64-seeded square root gives the bits of the exact reference
+/// (Newton from above), and the unit vectors those of the reference root,
+/// over every bit length, squares and their neighbours, and millions of
+/// random cases.
 #[test]
-fn the_fast_root_and_quotient_are_the_exact_ones() {
+fn the_fast_root_is_the_exact_one() {
     fn newton(n: u128) -> u128 {
         if n == 0 {
             return 0;
