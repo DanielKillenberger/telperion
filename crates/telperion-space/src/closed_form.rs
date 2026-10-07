@@ -11,6 +11,7 @@
 //! a lateral that grows from the cycle it wakes in, weighted by the chance
 //! it wakes then and that its bearer is still carried on (`Living`).
 //! Shedding is outside the formula.
+use crate::transcendental::Transcendental;
 // The stand-in tables are read from fn-209's step 2 on.
 #[cfg_attr(not(test), allow(dead_code))]
 mod along;
@@ -148,7 +149,7 @@ impl Walk<'_, f64> {
         let Some((k, reach)) = self.species.lived(k) else {
             return f64::NEG_INFINITY;
         };
-        reach.ln() + self.lived_log_length(k, m, carried, first)
+        reach.ln_fixed() + self.lived_log_length(k, m, carried, first)
     }
 
     fn lived_log_length(
@@ -242,13 +243,13 @@ impl LogSum {
         if weight <= 0.0 || log == f64::NEG_INFINITY {
             return;
         }
-        let term = weight.ln() + log;
+        let term = weight.ln_fixed() + log;
         let (high, low) = if term > self.0 {
             (term, self.0)
         } else {
             (self.0, term)
         };
-        self.0 = high + (low - high).exp().ln_1p();
+        self.0 = high + (low - high).exp_fixed().ln_1p_fixed();
     }
 }
 

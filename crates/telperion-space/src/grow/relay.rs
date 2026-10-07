@@ -69,6 +69,12 @@ impl Grower<'_> {
                 living[index[apex.axis]] = true;
             }
         }
+        // A fine root stands while its aggregate lives (fn-211.4).
+        for i in self.fine_standing() {
+            if index[i] != usize::MAX {
+                living[index[i]] = true;
+            }
+        }
         let living = |j: usize, _: &Draws| living[j].then_some(1.0);
         assign_living(&mut axes, &draws, self.species, &living, self.threads);
         let shed = shed(axes, self.species, cycle);
@@ -82,12 +88,29 @@ impl Grower<'_> {
             axes: shed.axes,
         };
         scale(&mut tree, self.species, self.threads);
-        thicken(&mut tree, self.species, &Girth::default(), self.threads);
+        let mut at = vec![usize::MAX; self.axes.len()];
+        for (j, &i) in from.iter().enumerate() {
+            at[i] = j;
+        }
+        let laid = |i: usize| Some(at[i]).filter(|&j| j != usize::MAX);
+        // Each fine root's expected section and load on its bearer.
+        self.check_girth(cycle, &tree, &from);
+        let girth = Girth {
+            disused: self.fine_stands(cycle, &tree, &laid).1,
+            leaf_mean: None,
+        };
+        thicken(&mut tree, self.species, &girth, self.threads);
         report(Stage::Pass(Pass::RelaySettle));
         let mut layers = place(&mut tree, self.species, None, self.threads)?;
         report(Stage::Pass(Pass::RelayPlace));
         if sag::any(self.species) {
-            let levers = sag::levers(&tree, self.species, self.threads);
+            let borne = self.fine_stands(cycle, &tree, &laid).0;
+            let all: Vec<usize> = (0..tree.axes.len()).collect();
+            let trunk = sag::trunks(&tree.axes);
+            let (axes, species, age) = (&tree.axes, self.species, tree.age);
+            let none: crate::shed::Given<sag::Load> = &|_| None;
+            let given = (&borne[..], none);
+            let levers = sag::gather(axes, species, age, (&all, &trunk), given, self.threads).0;
             report(Stage::Pass(Pass::RelayLevers));
             layers = place(&mut tree, self.species, Some(&levers), self.threads)?;
             report(Stage::Pass(Pass::RelaySag));
@@ -130,6 +153,18 @@ impl Grower<'_> {
         self.leaves.clear();
         for piece in leaves {
             self.leaves.extend(piece);
+        }
+        if let Some(oracle) = self.oracle.as_mut() {
+            oracle.leaf_axes.clear();
+            for (i, axis) in self.axes.iter().enumerate() {
+                let n = axis
+                    .phytomers
+                    .iter()
+                    .rev()
+                    .take_while(|p| p.cycle == cycle)
+                    .count();
+                oracle.leaf_axes.extend(std::iter::repeat_n(i, n));
+            }
         }
         report(Stage::Pass(Pass::RelayWrite));
         Ok(())

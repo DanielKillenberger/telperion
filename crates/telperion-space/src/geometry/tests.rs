@@ -2,6 +2,7 @@
 //! vertical turns by degree, never flipping from one side to the other.
 use super::lay::toward_elevation;
 use crate::structure::Vec3;
+use crate::transcendental::Transcendental;
 
 #[test]
 fn a_direction_swept_through_straight_down_turns_by_degree() {
@@ -9,7 +10,7 @@ fn a_direction_swept_through_straight_down_turns_by_degree() {
     // lateral's frame is.
     let side = Vec3::new(1.0, 0.0, 0.0);
     let turned = |angle: f64| {
-        let direction = Vec3::new(0.0, angle.sin(), -angle.cos());
+        let direction = Vec3::new(0.0, angle.sin_fixed(), -angle.cos_fixed());
         toward_elevation(direction, side, 0.4, 0.3)
     };
     let steps = 2_000;

@@ -1,6 +1,7 @@
 //! The contract's fixed point against the reals it stands for: close to
 //! them, monotone, and exact where it must be.
 use super::*;
+use crate::transcendental::Transcendental;
 
 fn real32(x: i64) -> f64 {
     x as f64 / ONE32 as f64
@@ -231,7 +232,7 @@ fn exp2_and_exp_hold_on_both_sides_of_one() {
         );
         let got = real32(exp(q32(y)));
         assert!(
-            (got - y.exp()).abs() <= y.exp() * 1e-8 + 1e-9,
+            (got - y.exp_fixed()).abs() <= y.exp_fixed() * 1e-8 + 1e-9,
             "e^{y}: {got}"
         );
     }
@@ -257,7 +258,7 @@ fn a_share_of_a_survival_is_the_real_power() {
     for (p, share) in [(0.9, 0.5), (0.5, 0.25), (0.999, 0.01), (0.2, 0.75)] {
         let ticks = (share * CYCLE) as u64;
         let got = prob(scaled(neg_log2(q62(p)), ticks)) as f64 / P_ONE as f64;
-        let want: f64 = p.powf(share);
+        let want: f64 = p.powf_fixed(share);
         assert!((got - want).abs() < 1e-9, "{p}^{share}: {got}");
     }
     assert_eq!(prob(scaled(neg_log2(0), 5)), 0);
@@ -266,10 +267,10 @@ fn a_share_of_a_survival_is_the_real_power() {
 #[test]
 fn ratios_logits_and_presences() {
     let got = real32(ln_ratio(3, 7));
-    assert!((got - (3.0f64 / 7.0).ln()).abs() < 1e-8);
+    assert!((got - (3.0f64 / 7.0).ln_fixed()).abs() < 1e-8);
     let d = 1u64 << 51;
-    assert!((real32(logit_draw(d)) - (0.25f64 / 0.75).ln()).abs() < 1e-8);
-    assert!((real32(logit(q62(0.8))) - 4f64.ln()).abs() < 1e-8);
+    assert!((real32(logit_draw(d)) - (0.25f64 / 0.75).ln_fixed()).abs() < 1e-8);
+    assert!((real32(logit(q62(0.8))) - 4f64.ln_fixed()).abs() < 1e-8);
     assert_eq!(presence(INF, 5), ONE32 as u64);
     assert_eq!(presence(5, 0), ONE32 as u64);
     assert_eq!(presence(-1, 5), 0);
@@ -291,7 +292,7 @@ fn time_on_the_grid() {
 #[test]
 fn presences_lead_from_their_thresholds() {
     use presence::{over, times, under, ONE};
-    let logit = |p: f64| (p / (1.0 - p)).ln();
+    let logit = |p: f64| (p / (1.0 - p)).ln_fixed();
     for k in 1..2_000u64 {
         let p = k as f64 / 2_001.0;
         let t = crate::lineage::threshold(p);

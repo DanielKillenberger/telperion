@@ -1,0 +1,155 @@
+diff --git i/crates/telperion-space/examples/sensitivity.rs w/crates/telperion-space/examples/sensitivity.rs
+new file mode 100644
+index 00000000..ffcc1265
+--- /dev/null
++++ w/crates/telperion-space/examples/sensitivity.rs
+@@ -0,0 +1,50 @@
++//! fn-211.5's sensitivity probe: the lit oak grown with its light field's
++//! positions or reads moved (`PROBE_POS`, `PROBE_LIGHT`), its axes by
++//! identity against the unmoved tree's.
++use std::collections::HashSet;
++use telperion_space::{digest, grow, identities, oak, Light, Request};
++fn main() {
++    let args: Vec<String> = std::env::args().skip(1).collect();
++    let modes: Vec<(String, String)> = args
++        .iter()
++        .map(|a| {
++            let (k, v) = a.split_once('=').expect("KEY=value");
++            (k.to_string(), v.to_string())
++        })
++        .collect();
++    let s = oak();
++    for age in [40u32, 80] {
++        for seed in [1, 7] {
++            let r = Request {
++                age,
++                seed,
++                budget: 20_000_000,
++                light: Light {
++                    extinction: 0.5,
++                    sky: 0.5,
++                },
++            };
++            std::env::remove_var("PROBE_POS");
++            std::env::remove_var("PROBE_LIGHT");
++            let base = grow(&s, r).expect("grows");
++            let ids: HashSet<u64> = identities(&base).into_iter().collect();
++            for (k, v) in &modes {
++                std::env::remove_var("PROBE_POS");
++                std::env::remove_var("PROBE_LIGHT");
++                std::env::set_var(k, v);
++                let t = grow(&s, r).expect("grows");
++                let other: HashSet<u64> = identities(&t).into_iter().collect();
++                let only_base = ids.difference(&other).count();
++                let only_moved = other.difference(&ids).count();
++                println!(
++                    "oak {age} {seed} {k}={v}: axes {} / {}, only unmoved {only_base}, only moved {only_moved}, phytomers {} / {}, digest {}",
++                    ids.len(),
++                    other.len(),
++                    base.phytomer_count(),
++                    t.phytomer_count(),
++                    if digest(&t) == digest(&base) { "same" } else { "moved" }
++                );
++            }
++        }
++    }
++}
+diff --git i/crates/telperion-space/src/grow/sketch.rs w/crates/telperion-space/src/grow/sketch.rs
+index ec26f0cf..3073d5f3 100644
+--- i/crates/telperion-space/src/grow/sketch.rs
++++ w/crates/telperion-space/src/grow/sketch.rs
+@@ -103,7 +103,7 @@ impl Grower<'_> {
+         let field = Field::on(&sketch.light, &self.leaves, &tips, self.threads);
+         report(Stage::Pass(Pass::ShadeField));
+         let mut read = vec![0.0; tips.len()];
+-        crate::cores::fill(&mut read, 1 << 10, self.threads, &|k| field.at(tips[k]));
++        crate::cores::fill(&mut read, 1 << 10, self.threads, &|k| field.at_probed(tips[k]));
+         let n = self.live.len();
+         if let Some(oracle) = self.oracle.as_mut() {
+             oracle.reread(&self.axes, &self.live, &tips, &mut read[..n]);
+diff --git i/crates/telperion-space/src/grow/stepped.rs w/crates/telperion-space/src/grow/stepped.rs
+index 37014785..9d9a5b56 100644
+--- i/crates/telperion-space/src/grow/stepped.rs
++++ w/crates/telperion-space/src/grow/stepped.rs
+@@ -291,7 +291,7 @@ impl<'a> Executor<'a> {
+         }
+         let field = Field::on(&light, &leaves, &tips, threads);
+         let mut read = vec![0.0; tips.len()];
+-        crate::cores::fill(&mut read, 1 << 10, threads, &|k| field.at(tips[k]));
++        crate::cores::fill(&mut read, 1 << 10, threads, &|k| field.at_probed(tips[k]));
+         let mut from = 0;
+         for &k in &growers {
+             let g = self.grower_mut(k);
+diff --git i/crates/telperion-space/src/light.rs w/crates/telperion-space/src/light.rs
+index 32b67908..d379e71a 100644
+--- i/crates/telperion-space/src/light.rs
++++ w/crates/telperion-space/src/light.rs
+@@ -187,7 +187,23 @@ impl Field {
+ 
+     /// `new`, its directions swept on up to `threads` cores.
+     pub fn on(light: &Light, leaves: &[(Vec3, f64)], reads: &[Vec3], threads: usize) -> Self {
+-        Self::built(light, leaves, reads, (CELL, threads))
++        match probe::position() {
++            Some(mode) => {
++                let leaves: Vec<_> = leaves.iter().map(|&(p, a)| (probe::moved(p, mode), a)).collect();
++                let reads: Vec<_> = reads.iter().map(|&p| probe::moved(p, mode)).collect();
++                Self::built(light, &leaves, &reads, (CELL, threads))
++            }
++            None => Self::built(light, leaves, reads, (CELL, threads)),
++        }
++    }
++
++    /// The light at `at`, moved by the probe's relative noise, if any.
++    pub fn at_probed(&self, at: Vec3) -> f64 {
++        let l = self.at(at);
++        match probe::light() {
++            Some(rel) => (l * (1.0 + rel * probe::hash(at.x.to_bits() ^ at.y.to_bits().rotate_left(21) ^ at.z.to_bits().rotate_left(42), 3))).min(1.0),
++            None => l,
++        }
+     }
+ 
+     fn built(
+@@ -376,5 +392,43 @@ fn corners(at: Vec3, cell: f64) -> impl Iterator<Item = ([i64; 3], f64)> {
+     })
+ }
+ 
++/// fn-211.5's sensitivity probe (not committed): positions and reads
++/// moved by f32 rounding or noise, from the environment.
++pub(crate) mod probe {
++    use crate::structure::Vec3;
++    #[derive(Clone, Copy)]
++    pub enum Mode {
++        F32,
++        Noise(f64),
++    }
++    pub fn position() -> Option<Mode> {
++        let v = std::env::var("PROBE_POS").ok()?;
++        if v == "f32" {
++            return Some(Mode::F32);
++        }
++        v.strip_prefix("noise:").and_then(|m| m.parse().ok()).map(Mode::Noise)
++    }
++    pub fn light() -> Option<f64> {
++        std::env::var("PROBE_LIGHT").ok()?.parse().ok()
++    }
++    /// A value in [-1, 1) from `bits` and `salt`.
++    pub fn hash(bits: u64, salt: u64) -> f64 {
++        let mut z = bits ^ salt.wrapping_mul(0x9e37_79b9_7f4a_7c15);
++        z = (z ^ (z >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
++        z = (z ^ (z >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
++        z ^= z >> 31;
++        (z >> 11) as f64 / (1u64 << 52) as f64 - 1.0
++    }
++    pub fn moved(p: Vec3, mode: Mode) -> Vec3 {
++        match mode {
++            Mode::F32 => Vec3::new(p.x as f32 as f64, p.y as f32 as f64, p.z as f32 as f64),
++            Mode::Noise(m) => {
++                let k = p.x.to_bits() ^ p.y.to_bits().rotate_left(21) ^ p.z.to_bits().rotate_left(42);
++                Vec3::new(p.x + m * hash(k, 0), p.y + m * hash(k, 1), p.z + m * hash(k, 2))
++            }
++        }
++    }
++}
++
+ #[cfg(test)]
+ mod tests;

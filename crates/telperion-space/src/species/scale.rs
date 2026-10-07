@@ -11,6 +11,7 @@
 //! added to `PaState`, `Form` or `Zone` does not compile until it is listed
 //! there, and one listed with no scale here is refused.
 use super::{NodeLaw, PaState, Zone};
+use crate::transcendental::Transcendental;
 
 /// How a setting mixes between two species.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -110,7 +111,8 @@ impl Scale {
             Linear | Outcome => lerp(a, b),
             // Never below the lesser end, which rounding could leave.
             Log { floor } => {
-                let mixed = lerp((a + floor).ln(), (b + floor).ln()).exp() - floor;
+                let mixed =
+                    lerp((a + floor).ln_fixed(), (b + floor).ln_fixed()).exp_fixed() - floor;
                 mixed.max(a.min(b))
             }
             Kept => {

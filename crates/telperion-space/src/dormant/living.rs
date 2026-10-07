@@ -5,6 +5,7 @@ use crate::memo::Memo;
 use crate::presence::Windows;
 use crate::schedule::Carried;
 use crate::species::Species;
+use crate::transcendental::Transcendental;
 use std::rc::Rc;
 
 /// The closed form of `carried`: the chance that the axis a bud grows is
@@ -85,7 +86,7 @@ impl<'a> Living<'a> {
             windows.wood_left(next, left),
         );
         let wood = if a > 0.0 && b > 0.0 {
-            (a.ln() + (b.ln() - a.ln()) * used).exp()
+            (a.ln_fixed() + (b.ln_fixed() - a.ln_fixed()) * used).exp_fixed()
         } else {
             a + (b - a) * used
         };

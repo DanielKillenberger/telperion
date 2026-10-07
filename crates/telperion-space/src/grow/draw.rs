@@ -22,6 +22,12 @@ impl Grower<'_> {
     /// reads wood already laid.
     pub(super) fn sketch(&mut self, cycle: u32, advanced: &[usize]) -> Result<()> {
         let mut sketch = self.sketch.take().expect("sketching");
+        if self.fine.is_some() {
+            // A fine subtree grown alone: its units tallied, never laid.
+            self.tally_units(&mut sketch, advanced);
+            self.sketch = Some(sketch);
+            return Ok(());
+        }
         let (species, threads) = (self.species, self.threads);
         let first_new = sketch.pencils.len();
         let grew: Vec<usize> = advanced
@@ -102,6 +108,14 @@ impl Grower<'_> {
                 (axis.base, axis.heading, axis.side) = framed;
                 fresh[i - first_new] = Some(pencil);
             }
+            // A lateral the coupling pass takes as a fine root is not laid.
+            let todo: Vec<usize> = todo
+                .into_iter()
+                .filter(|&i| {
+                    let scale = fresh[i - first_new].as_ref().map_or(0.0, |p| p.base_scale);
+                    !self.classify(i, scale, cycle)
+                })
+                .collect();
             let jobs: Vec<_> = todo
                 .iter()
                 .zip(
@@ -135,12 +149,25 @@ impl Grower<'_> {
             .iter()
             .enumerate()
             .map(|(k, p)| (first_new + k, 0, p.as_ref().expect("drawn").laid));
+        let mut owners = self
+            .oracle
+            .as_mut()
+            .map(|o| std::mem::take(&mut o.leaf_axes));
+        if let Some(o) = owners.as_mut() {
+            o.clear();
+        }
         for (i, from, to) in laid.chain(made) {
             let axis = &self.axes[i];
             let area = species.states[axis.pa].leaf_area;
             for p in &axis.phytomers[from..to] {
                 leaves.push((p.tip, p.scale * p.size * area));
             }
+            if let Some(o) = owners.as_mut() {
+                o.extend(std::iter::repeat_n(i, to - from));
+            }
+        }
+        if let (Some(oracle), Some(o)) = (self.oracle.as_mut(), owners) {
+            oracle.leaf_axes = o;
         }
         sketch
             .pencils
