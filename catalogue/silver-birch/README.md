@@ -28,11 +28,11 @@
 | Seed | 7 |
 | Wood vertices | 2737674 |
 | Wood triangles | 5311200 |
-| Leaf instances | 279485 |
+| Leaf instances | 327463 |
 | Bounds min | -7.390350341796875, -0.07199999690055847, -7.914402484893799 |
 | Bounds max | 8.12118688650846, 17.40048599243164, 6.267824172973633 |
 | Skeleton hash | 7062016405819824468 |
-| Placement hash | 8148347474598104036 |
+| Placement hash | 11198018013511526101 |
 | Element hash | 1566806128915370638 |
 | Leaf band | 100000 to 10000000 |
 | Growth reference | 18 m at 70 years |
