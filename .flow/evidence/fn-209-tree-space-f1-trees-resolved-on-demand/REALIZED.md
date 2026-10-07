@@ -191,3 +191,140 @@ What the table shows:
 6. **Timing, and removal of the probe.** Timed cold and warm against `grow_fine` on 1 and all cores, round trips counted. Then `grow_committed` and the option-4 kernels leave the GPU tests.
 
 **Sizing (worker's reading, for the host):** tasks 2 to 5 each took a session for one comparable slice (growth, geometry, the device loop). Steps 1 to 3 are one such session; step 4 is another.
+
+## The GPU mirror built (task 6, worker, 2026-10-07)
+
+Steps 1 to 6 of "Host decision 8" above, from `837edc7c` to `689ede1c`.
+
+### Answer in brief
+
+- **Built.** The GPU executor runs realized mechanics as the roots executor of one driver.
+  - The driver is `telperion_space::settle` (`fine/expansion.rs`). It grows the structure above the cut and settles it through the four phases exactly as `grow_fine` did.
+  - `grow_fine` is now the same driver with the CPU reference as its executor (the `Roots` trait). Its trees are unchanged to the bit (`fine/tests/realized.rs`).
+  - The GPU's side is `telperion-render`'s `generation/fine/device.rs`.
+- **Topology, presences and living equal the CPU executor's to the bit.**
+  - At 25: beech, spruce and the unlit oak, seeds 1 and 7, forward in runs of 4,096, reversed in runs of 777, and forward in runs of 64. The gate test is `every_root_grows_whole_on_the_gpu_as_on_the_cpu`.
+  - Compared: every root's axes as grown, by lineage; every axis's Q32 presences (vigour, its units' presences summed, each phytomer's scale, its living apex, its sleep); each root's living as reported up; each root's axes kept by its own subtree's shedding.
+- **The whole tree settles on the GPU as `grow_fine` settles it.**
+  - At 25: cuts 256, 1,024 and 4,096, in the same three orders and batches (gate test `every_root_settles_on_the_gpu_as_on_the_cpu`).
+  - At 40 and 80: beech and spruce, seeds 1 and 7, cuts 256, 1,024 and 4,096 (`realized_at_40_and_80`, ignored).
+  - Every live root's kept axes equal `grow_fine`'s by lineage.
+  - Tips are at most **25.3 µm** from `grow_fine`'s (beech 80, seed 1, cut 4,096), RMS at most **1.44 µm**; radii within 6.4e-6 relative.
+  - The laid floats are equal by digest, forward in runs of 65,536 against reversed in runs of 4,096 (and the three orders at 25).
+- **Round trips** are the runs plus the waves plus one record per root per phase: living, base radius and load (two records where no PA sags). That is **14 to 40 a tree**, held by the tests.
+- **Option 4 is gone** (`d00eb019`).
+  - On the GPU: committed shedding, its emit and resolve kernels, and their tests.
+  - On the CPU: `grow_committed`, its executor and records, `fine_cases`, `roots_geometry`, and the committed rows and extinction curves the GPU read.
+  - P2 (`alone.rs`) stays as the named probe that the chain grower's tests and two examples read.
+- **Speed:** the spruce at 80 builds on the GPU in about the time 32 CPU cores take (1.08 to 1.12 s against 1.09 to 1.13 s warm), 8 times faster than one core. The beech is 2 to 7 times slower than 32 cores. Phase 1's growth is most of it (below).
+
+### How it works
+
+1. **Growth without per-chain shedding** (`837edc7c`). The chain grower keeps every axis. `emit.wgsl`'s `realized` entry hands every borne bud on as a chain of the next wave.
+2. **Q32 presences in the chain grower** (`assign.wgsl`, `carry.wgsl`). Every presence a fade reads is the CPU's integer.
+   - No decision reads a presence. So growth records only each one's inputs (its draw's key, its bounds, its wood), and the chain's end takes them all in one loop, through one call of the contract's leads and windows.
+   - With a call at each of about fifteen sites, the driver's compiler inlined the 128-bit `log2` and `exp2` at each and never finished (11 GB resident; FRICTION.md).
+   - The products then run in the grower's order: running survival, units' presences, phytomers' scales, each lateral's time to its birth and its node's scale, a woken bud's carrying (walked again from its pending record), `Woken::kept`, `Grower::living` and vigour.
+3. **Phase 1 on the device** (`fades.wgsl`, `shedding.rs`).
+   - `up` carries each subtree's living from the deepest wave to the first. Each chain reads its borne buds' chains in the next wave at the range the emit scan gave it, so the maxima need no atomics.
+   - One record per root crosses: lived (Q32.32) and alive (Q32). The CPU sheds the structure above the cut on them.
+   - `down` then keeps each axis from the first wave down: its bearer kept and its fade more than none.
+4. **Phases 2 to 4** (`settle.wgsl`). The CPU settles between them as `grow_fine` does.
+   - Scales top-down: vigour times fade, the Q32 scales.
+   - Girth bottom-up from the next wave's base radii; one base radius per root goes up.
+   - The unbent lay top-down from the CPU's bearer frames.
+   - Levers bottom-up from the next wave's loads; one load per root goes up. Its moment is the root's own, moved to the tree's frame on the CPU.
+   - The bent lay from each phytomer's first-lay frame (FRAME-CORRECTION.md).
+5. **The conservative ground bound** (`fine/landing.rs`, `cae01463`). It is decided in the driver, so it holds whichever executor grows the roots.
+   - The bound: a live root whose closed-form reach at its base scale (fade taken as whole), from the lower of its node and the point below it, can reach the landing zone. The zone takes twice its realized base radius and the longest internode.
+   - Such a root is laid on the CPU, from its bearer's unbent frame in phase 3 and from either frame in phase 4, on the plan's cores. Its load replaces the executor's.
+   - `tests/landing.rs` holds that no other root's wood enters the zone (beech and spruce at 30).
+   - Counted at 80: 16 to 50 of the beech's roots and 4,843 to 5,623 of the spruce's (about 5 % of its phytomers).
+6. **Removal and cleanup** (`d00eb019`, `689ede1c`). The grower's f32 presences, which only option 4's geometry read, went with option 4. The relay's blend and the whorl stay.
+
+**Three f32 fixes the screen needed** (`19d8ad2e`, `7baafe8c`, `8d6b2fac`).
+- The fault was a drift of the heading along the beech's long modules. It came from three places:
+  - a step's share of a pull, `1 - e^-x` near none;
+  - the elevation, `asin` of a near-one z;
+  - the GPU's own sine, good to about 5e-7 whatever its argument. The elevation's pull and a module's sixty wander turns gathered it.
+- The fixes:
+  - an expm1-like series;
+  - `atan2` of the lean;
+  - the elevation's step as a rotation in its vertical plane;
+  - a short turn's sine, cosine and versine by their series.
+- Beech 80, seed 1: 137 µm down to 18.8 µm. The option-4 path's oak at 25 had also fallen, from 20.8 to 9.8 µm, before that path was removed.
+
+### Geometry (`raw/gpu-realized/final-cut*.txt`)
+
+The GPU's roots against `grow_fine`'s. "Roots on the CPU" are the roots the ground bound lays there; their tips are compared with `grow_fine`'s from their own origins. The beech's are equal: no PA sags, so the structure above the cut is the CPU's to the bit. The spruce's differ by the structure above the cut settled on the GPU's f32 radii and loads.
+
+| Tree | Cut | Roots | Phytomers | Tips most / RMS µm | Roots on the CPU (their tips most µm) |
+|---|--:|--:|--:|--:|--:|
+| beech 40 1 | 256 | 3769 | 90866 | 1.5 / 0.10 | 4 (0.0) |
+| beech 40 1 | 1024 | 553 | 106588 | 2.8 / 0.43 | 4 (0.0) |
+| beech 40 1 | 4096 | 380 | 107430 | 2.8 / 0.45 | 4 (0.0) |
+| beech 40 7 | 256 | 6062 | 153720 | 1.4 / 0.12 | 2 (0.0) |
+| beech 40 7 | 1024 | 975 | 176142 | 7.9 / 0.74 | 3 (0.0) |
+| beech 40 7 | 4096 | 649 | 177689 | 7.9 / 0.78 | 3 (0.0) |
+| beech 80 1 | 256 | 46644 | 1321079 | 18.8 / 1.26 | 16 (0.0) |
+| beech 80 1 | 1024 | 7865 | 1535951 | 18.8 / 1.42 | 16 (0.0) |
+| beech 80 1 | 4096 | 6362 | 1521728 | 25.3 / 1.44 | 25 (0.0) |
+| beech 80 7 | 256 | 79607 | 2238625 | 18.7 / 1.13 | 28 (0.0) |
+| beech 80 7 | 1024 | 12829 | 2597942 | 18.7 / 1.31 | 29 (0.0) |
+| beech 80 7 | 4096 | 10288 | 2556270 | 18.7 / 1.26 | 50 (0.0) |
+| spruce 40 1 | 256 | 21626 | 1088389 | 1.7 / 0.25 | 1337 (0.4) |
+| spruce 40 1 | 1024 | 21307 | 1088613 | 1.7 / 0.25 | 1337 (0.4) |
+| spruce 40 1 | 4096 | 19826 | 1089589 | 1.9 / 0.27 | 1337 (0.4) |
+| spruce 40 7 | 256 | 20869 | 1071286 | 1.6 / 0.26 | 1021 (0.5) |
+| spruce 40 7 | 1024 | 20444 | 1071594 | 1.6 / 0.26 | 1021 (0.5) |
+| spruce 40 7 | 4096 | 19024 | 1072522 | 2.2 / 0.28 | 1021 (0.5) |
+| spruce 80 1 | 256 | 93093 | 4350964 | 2.7 / 0.39 | 5623 (39.1) |
+| spruce 80 1 | 1024 | 92703 | 4351256 | 2.7 / 0.39 | 5623 (39.1) |
+| spruce 80 1 | 4096 | 91293 | 4352152 | 2.7 / 0.39 | 5623 (39.1) |
+| spruce 80 7 | 256 | 91587 | 4342978 | 2.6 / 0.39 | 4843 (44.5) |
+| spruce 80 7 | 1024 | 91262 | 4343230 | 2.6 / 0.39 | 4843 (44.5) |
+| spruce 80 7 | 4096 | 89987 | 4344034 | 2.6 / 0.40 | 4843 (44.5) |
+
+### Timing (`raw/gpu-realized/clean-cut1024.txt`; cut 1,024)
+
+Ryzen 9 5950X (32 threads) and RTX 3080. Load 1.35 at the start and 3.58 at the end.
+- **GPU:** the whole tree's build through `settle` with the device as executor, from table upload to the last bent lay. The structure above the cut, settled on the CPU, is included. In brackets: phase 1 on the device with its round trips (and of it the fades), then phases 2 to 4 on the device.
+- **CPU:** `grow_fine` on all cores and on one, cold and then the better of two warm.
+- **Cold** is the first build of that tree in the process. The pipelines were built before, from the driver's cache (35 ms; a first build after a shader change takes 35 to 45 s).
+
+| Tree | GPU cold ms (device phase 1 / phases 2 to 4; trips) | GPU warm ms | CPU all cores cold / warm ms | CPU 1 core cold / warm ms |
+|---|--:|--:|--:|--:|
+| beech 40 1 | 104 (91, of it 1 fading / 6; 23 trips) | 103 (90, of it 1 fading / 6; 23 trips) | 17 / 15 | 86 / 70 |
+| beech 40 7 | 95 (81, of it 1 fading / 6; 25 trips) | 96 (82, of it 1 fading / 6; 25 trips) | 24 / 24 | 129 / 115 |
+| beech 80 1 | 575 (503, of it 2 fading / 16; 37 trips) | 376 (305, of it 2 fading / 16; 37 trips) | 174 / 175 | 1349 / 1115 |
+| beech 80 7 | 690 (590, of it 3 fading / 21; 38 trips) | 532 (433, of it 3 fading / 21; 38 trips) | 282 / 281 | 2022 / 1882 |
+| spruce 40 1 | 536 (454, of it 2 fading / 19; 15 trips) | 307 (225, of it 2 fading / 18; 15 trips) | 274 / 272 | 1851 / 1850 |
+| spruce 40 7 | 496 (419, of it 2 fading / 18; 14 trips) | 285 (210, of it 1 fading / 18; 14 trips) | 271 / 267 | 1805 / 1809 |
+| spruce 80 1 | 1328 (983, of it 5 fading / 73; 25 trips) | 1079 (735, of it 5 fading / 73; 25 trips) | 1132 / 1131 | 9239 / 8637 |
+| spruce 80 7 | 1245 (917, of it 5 fading / 72; 25 trips) | 1124 (790, of it 5 fading / 72; 25 trips) | 1092 / 1093 | 8510 / 8508 |
+
+What the table says (the worker's readings):
+- **Phase 1's growth is the cost**: 305 to 433 ms of the beech's 376 to 532 ms at 80, and 735 to 790 ms of the spruce's 1.08 to 1.12 s.
+  - Under option 4 the same chains grew in about 165 ms (GPU-FINE.md).
+  - Two things changed. Every borne bud now grows (205k chains for the beech at 80, where option 4 grew 126k). And each chain's end takes its Q32 presences through the contract's 128-bit `log2`: four of them per presence, two for the draw and two for the threshold.
+- **The fades, the girth, the lays and the levers cost little**: 1 to 5 ms and 6 to 73 ms.
+- **The beech is slow on the device for the reason it was under option 4.** Its chains are long and few, so each wave is a handful of runs, and the round trips (37 a tree) and serial waves dominate.
+
+### Open, for the host
+
+- **Speed of phase 1 (proposals, not built).**
+  - (a) A thresholds' `logit` table, computed on the CPU by `fixed::logit` and read wherever a presence's bound is a species constant: the whole-unit survival, the relays, the runs of laterals and sleeping buds. This would take about half of the `log2` calls out.
+  - (b) One `logit_draw` per two-sided lead (the run leads) instead of two.
+  - (c) A workgroup per heavy chain for the beech (GPU-FINE.md's lever).
+- **The geometry's floor.** f32 on the device leaves 19 to 25 µm on the beech's 80-year roots, under half the screen. The CPU-laid spruce roots near the ground differ from `grow_fine`'s by up to 44.5 µm: the structure above the cut settles on the device's f32 radii and loads. Settling it on f64 copies of the roots' records would remove that, at no round trip.
+- **The ground bound's tail.** The reach is the closed form's quantile bound, as under option 4. `tests/landing.rs` holds that no unrouted root's wood came near the ground at 30. At 40 and 80 no GPU chain set its below-ground status bit.
+
+### Acceptance against the task
+
+| Criterion | State |
+|---|---|
+| Beech and spruce, 40 and 80, seeds 1 and 7: topology by lineage, bit-identical geometry on the CPU reference, within 50 µm max and 10 µm RMS on the GPU | **met**: topology equal; GPU tips at most 25.3 µm, RMS at most 1.44 µm; CPU-laid roots at most 44.5 µm |
+| The same at cuts 256, 1,024 and 4,096, in any order or batch | **met** at 25 (three orders and batches, gate test) and at 40 and 80 (two orders and batches) |
+| The committed-boundary path removed from production code | **met**: removed outright (`d00eb019`); P2 stays as a named probe |
+| Timing warm and cold against the CPU on 1 and all cores; round trips counted | **met**: table above; 14 to 40 round trips a tree, asserted |
+| Workspace gate green | **met**: `cargo test --profile ci --workspace --no-fail-fast` at `689ede1c`, 2,291 passed, 0 failed, 48 ignored, 14 m 19 s at load 4.5 to 33 (GPU lock held; `raw/gpu-realized/gate.txt`) |

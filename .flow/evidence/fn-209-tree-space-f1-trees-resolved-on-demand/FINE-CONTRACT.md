@@ -286,4 +286,6 @@ Option (a) of task 5's question: the GPU executor's wave loop runs on the device
 **Stills** (age 80, seed 1, bare and in leaf, six views each, before and after; `raw/d17/stills/`, the in-leaf pairs side by side in `pair-<species>.png`, all four viewed by the worker): indistinguishable.
 - Out of 691,200 pixels, the most that differ in one view: the beech 89 (crown); the oak 22; the spruce under 1; the palm none.
 
+**On the GPU** (task 6, 2026-10-07): the chain grower takes every one of these presences as the same Q32 integer, held to the bit against the CPU executor per axis (REALIZED.md, "The GPU mirror built").
+
 **Tests:** `fixed/tests.rs`, `presences_lead_from_their_thresholds` (the lead against the real log-odds within 1e-7; certain elements unbounded; products floored). Every existing `telperion-space` test, the realized partition's bit identity with `grow_whole` included, passes on the integer path.
