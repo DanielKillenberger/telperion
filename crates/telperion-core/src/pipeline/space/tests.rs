@@ -58,11 +58,11 @@ fn a_tree_assembled_in_another_order_converts_to_the_same_tree() {
     let other = reversed(&structure);
     assert_ne!(other.axes, structure.axes, "the orders differ");
     // Without the order the assembly reaches the tree.
-    let unsorted = convert(&other, &trunk) != convert(&structure, &trunk);
+    let unsorted = convert(&other, &trunk).0 != convert(&structure, &trunk).0;
     assert!(unsorted, "the order never reached the conversion");
     let again = telperion_space::lineage_order(other);
     assert_eq!(again.axes, structure.axes, "grow returns the lineage order");
-    assert!(convert(&again, &trunk) == convert(&structure, &trunk));
+    assert!(convert(&again, &trunk).0 == convert(&structure, &trunk).0);
 }
 
 /// A tree over the Wasm ceiling is refused by name, and the name states

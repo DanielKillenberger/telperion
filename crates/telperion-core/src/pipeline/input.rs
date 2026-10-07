@@ -28,13 +28,16 @@ pub(crate) struct Inputs {
     pub(crate) leaves: LeafInput,
 }
 
-/// The skeleton: the engine's species, the age it grows to and the seed.
-/// It lends the family's species for the one stage that reads it.
+/// The skeleton: the engine's species, the age it grows to, the seed and
+/// the cut below which a fine root stands as its expectation (fn-214; 0
+/// grows every one). It lends the family's species for the one stage that
+/// reads it.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GrowInput<'f> {
     pub(crate) space: &'f Space,
     pub(crate) age: f64,
     pub(crate) seed: u32,
+    pub(crate) cut: u32,
 }
 
 impl<'f> GrowInput<'f> {
@@ -43,6 +46,7 @@ impl<'f> GrowInput<'f> {
             space: &family.space,
             age: family.age,
             seed: family.skeleton.seed,
+            cut: 0,
         }
     }
 }

@@ -257,8 +257,8 @@ impl Field {
     }
     fn wood(tree: &Tree) -> Result<(Vec<Segment>, Index)> {
         tree.validate_solved()?;
-        let mut wood = reserved(tree.nodes.len())?;
-        let mut wood_items = reserved(tree.nodes.len())?;
+        let mut wood = reserved(tree.nodes.len() + tree.stands.len())?;
+        let mut wood_items = reserved(tree.nodes.len() + tree.stands.len())?;
         for n in &tree.nodes {
             let a = n
                 .parent
@@ -278,6 +278,21 @@ impl Field {
                 b: n.position,
                 start,
                 end: n.radius,
+            });
+        }
+        // A coarse tree's fine root: its wood tapered from its base radius
+        // to none at its tip (fn-214).
+        for s in &tree.stands {
+            let bounds = union(cube(s.base, s.radius)?, cube(s.tip, 0.)?);
+            wood_items.push(Item {
+                bounds,
+                id: wood.len(),
+            });
+            wood.push(Segment {
+                a: s.base,
+                b: s.tip,
+                start: s.radius,
+                end: 0.,
             });
         }
         Ok((wood, Index::new(wood_items)?))

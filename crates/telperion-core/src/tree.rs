@@ -128,6 +128,24 @@ pub struct Tree {
     /// `sections` is: a specimen's bytes are the ones they always were.
     #[cfg_attr(feature = "json", serde(skip))]
     pub pipe: Vec<[f64; 2]>,
+    /// The fine roots a coarse tree holds as their expected occupancy, never
+    /// grown (fn-214): empty on every tree grown whole. Never stored.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub stands: Vec<Stand>,
+}
+/// A fine root of a coarse tree as its expectation (fn-214): the node it is
+/// borne on, its wood from `base` toward `tip` (twice its expected wood's
+/// centre along its heading) at its base radius, the reach about that line
+/// its expected wood spreads to (the centre's distance), and its expected
+/// kept phytomers.
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+pub struct Stand {
+    pub node: u32,
+    pub base: Vec3,
+    pub tip: Vec3,
+    pub radius: f64,
+    pub reach: f64,
+    pub phytomers: f64,
 }
 impl Tree {
     /// Node `i`'s radii as the pipe model solved them, `[start, distal]`,

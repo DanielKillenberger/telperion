@@ -117,6 +117,7 @@ impl Shape {
             count: 1,
             system,
             side: flank * (half.x + reach),
+            spread: 0.0,
         }
     }
 }

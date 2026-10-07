@@ -73,15 +73,7 @@ impl Bounded<'_> {
     /// A committed base radius from its row and base scale `s`, for a
     /// chain whose first axis is of `pa`.
     pub(crate) fn base_radius(&self, row: &Row, s: f64, pa: usize) -> f64 {
-        let form = &self.species.states[pa].form;
-        let (e, k) = (row.e, row.kept);
-        let pipe = if k > 0.0 {
-            delta(k, row.s1 * s.powf(e), row.s2 * s.powf(2.0 * e), 1.0 / e) / k
-        } else {
-            0.0
-        };
-        let established = form.pipe * s * ripe(1.0, form.ripening);
-        form.secondary * pipe + (1.0 - form.secondary) * established
+        committed_radius(self.species, row, s, pa)
     }
 
     /// Chain `c`'s radii by axis, its axes `axes[first..]` renumbered
@@ -131,6 +123,22 @@ impl Bounded<'_> {
         fit(&mut radii[first..], self.committed(c));
         radii
     }
+}
+
+/// A committed base radius from its row and base scale `s`, for a chain
+/// whose first axis is of `pa`: its boundary's E[r | kept], blended with
+/// the radius a phytomer of its base scale is established at, by its PA's
+/// secondary growth.
+pub(crate) fn committed_radius(species: &Species, row: &Row, s: f64, pa: usize) -> f64 {
+    let form = &species.states[pa].form;
+    let (e, k) = (row.e, row.kept);
+    let pipe = if k > 0.0 {
+        delta(k, row.s1 * s.powf(e), row.s2 * s.powf(2.0 * e), 1.0 / e) / k
+    } else {
+        0.0
+    };
+    let established = form.pipe * s * ripe(1.0, form.ripening);
+    form.secondary * pipe + (1.0 - form.secondary) * established
 }
 
 /// Axis `j`'s pipe-model radii from its own pipes and what its nodes and

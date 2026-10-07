@@ -88,10 +88,13 @@ pub extern "C" fn error_len() -> usize {
     ENGINE.with(|e| e.borrow().error.len())
 }
 /// Grows the species written at `species_ptr` at `seed`, with limbs named at
-/// `limb_order` (`FAMILY_ORDER` for the family's own). Drops the previous
-/// tree and advances the revision whether or not the growth succeeds.
+/// `limb_order` (`FAMILY_ORDER` for the family's own), every fine root at or
+/// below `cut` expected kept phytomers standing as its expected occupancy
+/// (fn-214; 0, which a caller passing two arguments gives, grows every one).
+/// Drops the previous tree and advances the revision whether or not the
+/// growth succeeds.
 #[no_mangle]
-pub extern "C" fn grow(seed: u32, limb_order: u32) -> u32 {
+pub extern "C" fn grow(seed: u32, limb_order: u32, cut: u32) -> u32 {
     ENGINE.with(|e| {
         let mut e = e.borrow_mut();
         e.drop_tree();
@@ -99,7 +102,7 @@ pub extern "C" fn grow(seed: u32, limb_order: u32) -> u32 {
             let species =
                 std::str::from_utf8(&e.species).map_err(|_| Error::InvalidInput("species id"))?;
             let order = (limb_order != FAMILY_ORDER).then_some(limb_order);
-            let field = grow::field(species, seed, order)?;
+            let field = grow::field(species, seed, order, cut)?;
             if let Some(b) = field.bounds() {
                 e.bounds
                     .try_reserve(6)

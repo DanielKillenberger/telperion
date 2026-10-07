@@ -50,11 +50,11 @@ pub use chain::{passed, AGES};
 pub use closed_form::{expected_counts, expected_kept};
 pub use error::{Error, Result};
 pub use fine::{
-    bearer_frame, canonical, chain_cases, digest, grow_fine, identities, landed, lineage_order,
-    realized_cases, root_axes, settle, survey_lit, BearerFrame, ChainAxis, ChainBud, ChainTables,
-    Expanded, Fine, GeometryTables, Lived, Loaded, Order, PaGeometry, PaRow, Plan, Presences,
-    RealizedCase, RootAxes, RootGeometry, RootSeed, Roots, Settled, Surveyed, UnitZone, Units,
-    Woke, Work, ZoneGeometry,
+    bearer_frame, canonical, chain_cases, digest, grow_coarse, grow_fine, identities, landed,
+    lineage_order, realized_cases, root_axes, settle, survey_lit, BearerFrame, ChainAxis, ChainBud,
+    ChainTables, Coarse, Expanded, Fine, GeometryTables, Lived, Loaded, Order, PaGeometry, PaRow,
+    Plan, Presences, RealizedCase, RootAxes, RootGeometry, RootSeed, Roots, Settled, Stand,
+    Surveyed, UnitZone, Units, Woke, Work, ZoneGeometry,
 };
 pub use grow::{grow, grow_staged, grow_whole, sketch, Pass, Request, Stage};
 pub use light::{bud_light, Light};

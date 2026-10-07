@@ -142,6 +142,10 @@ pub struct Descriptor {
     /// oriented box: the rectangle the segment sweeps from `-side` to
     /// `side`, pushed out by its radius either way along its normal.
     pub side: Vec3,
+    /// How far past a leaf's own reach what it stands for spreads: a coarse
+    /// tree's fine root, its expected wood's reach (fn-214). Zero for every
+    /// leaf-bearing segment and leaflet.
+    pub spread: f64,
 }
 
 /// Every descriptor of one tree under one family, with the family's reach.
@@ -168,7 +172,7 @@ impl Plan {
     /// distance of the segment: the wood's radius carried out to the seat,
     /// plus the rachis, plus the blade.
     pub fn reach(&self, d: &Descriptor) -> f64 {
-        d.radii[0].max(d.radii[1]) * self.seat + self.rachis + self.blade
+        d.radii[0].max(d.radii[1]) * self.seat + self.rachis + self.blade + d.spread
     }
 }
 
@@ -237,6 +241,7 @@ pub fn plan(
                 count: (last - first) * run.leaflets,
                 system: system[run.nodes[segment + 1]],
                 side: Vec3::ZERO,
+                spread: 0.0,
             });
         }
         total += run.count * run.leaflets;
@@ -248,6 +253,7 @@ pub fn plan(
         .fold(0.0, f64::max);
     if rosette::bearing(&p) {
         total = fronds::describe(tree, p, element, seed, &system, &mut descriptors)?;
+        total = stands(tree, &runs, &system, total, &mut descriptors)?;
         return Ok(Some(Plan {
             descriptors,
             total,
@@ -256,6 +262,7 @@ pub fn plan(
             rachis: 0.0,
         }));
     }
+    total = stands(tree, &runs, &system, total, &mut descriptors)?;
     Ok(Some(Plan {
         descriptors,
         total,
@@ -263,6 +270,47 @@ pub fn plan(
         seat: seating(surface, p),
         rachis: rachis(p),
     }))
+}
+
+/// A coarse tree's fine roots (fn-214), each a capsule from its wood's base
+/// to its tip, spread by its reach, on its bearer's limb system, carrying
+/// the leaves its expected kept phytomers bear at the plan's own leaves per
+/// leaf-bearing node of the tree it stands on; the plan's total with theirs.
+fn stands(
+    tree: &Tree,
+    runs: &[Run],
+    system: &[u32],
+    total: u32,
+    descriptors: &mut Vec<Descriptor>,
+) -> Result<u32> {
+    if tree.stands.is_empty() {
+        return Ok(total);
+    }
+    let nodes: usize = runs.iter().map(|r| r.nodes.len() - 1).sum();
+    let per = if nodes > 0 {
+        f64::from(total) / nodes as f64
+    } else {
+        0.0
+    };
+    descriptors
+        .try_reserve(tree.stands.len())
+        .map_err(|_| Error::ResourceLimit("foliage plan allocation"))?;
+    let mut total = total;
+    for s in &tree.stands {
+        let count = (s.phytomers * per).round() as u32;
+        total = total
+            .checked_add(count)
+            .ok_or(Error::ResourceLimit("foliage instance budget"))?;
+        descriptors.push(Descriptor {
+            endpoints: [s.base, s.tip],
+            radii: [0.0; 2],
+            count,
+            system: system[s.node as usize],
+            side: Vec3::ZERO,
+            spread: s.reach,
+        });
+    }
+    Ok(total)
 }
 
 /// Every unbranched run of leaf-bearing wood: what the twig layer marked, plus

@@ -23,7 +23,7 @@
 //! grown alone. The grower grows the whole tree and sheds it as today,
 //! and the chains are cut from what it grew; only girth and lay are
 //! resolved per chain.
-mod girth;
+pub(crate) mod girth;
 #[cfg(test)]
 mod tests;
 mod work;

@@ -68,9 +68,17 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     // first and siblings by lineage, whichever path built it (FINE-CONTRACT
     // decision C; fn-198 host decision 17): the conversion's node numbering
     // and a relay's girth never depend on how the tree was assembled.
+    if input.cut > 0 {
+        let coarse =
+            telperion_space::grow_coarse(species, request, f64::from(input.cut)).map_err(engine)?;
+        fits(&coarse.structure, KEPT)?;
+        let (mut tree, drawn) = convert(&coarse.structure, &input.space.trunk);
+        tree.stands = stands::convert(&coarse, &drawn);
+        return Ok(tree);
+    }
     let structure = telperion_space::grow(species, request).map_err(engine)?;
     fits(&structure, KEPT)?;
-    Ok(convert(&structure, &input.space.trunk))
+    Ok(convert(&structure, &input.space.trunk).0)
 }
 
 /// The refusal of a tree over the browser's ceiling.
@@ -116,7 +124,7 @@ fn engine(e: telperion_space::Error) -> Error {
 }
 
 /// The engine's z up as the pipeline's y up.
-fn up(v: telperion_space::Vec3) -> Vec3 {
+pub(super) fn up(v: telperion_space::Vec3) -> Vec3 {
     Vec3::new(v.x, v.z, -v.y)
 }
 
@@ -187,7 +195,7 @@ fn joint(
 /// canopy measures its slender wood against the trunk, not a fork of
 /// limbs deep in the crown. Two trunk-level axes leaving one node, a
 /// codominant fork of the trunk, are both stem.
-fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
+fn convert(structure: &Structure, trunk: &[usize]) -> (Tree, Vec<Vec<u32>>) {
     let mut nodes = vec![Node::root()];
     // The node each axis ends on, for what continues it.
     let mut ends: Vec<Option<u32>> = vec![None; structure.axes.len()];
@@ -315,12 +323,16 @@ fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
         };
     }
     let crossover = nodes.len();
-    Tree {
+    let tree = Tree {
         nodes,
         crossover,
         ..Tree::default()
-    }
+    };
+    (tree, drawn)
 }
 
+#[cfg(test)]
+mod coarse_tests;
+mod stands;
 #[cfg(test)]
 mod tests;

@@ -24,6 +24,7 @@
 //! fn-211's stepped executor.
 mod canonical;
 mod cases;
+mod coarse;
 mod expansion;
 mod geometry;
 mod landing;
@@ -42,6 +43,7 @@ use crate::species::Species;
 use crate::structure::Structure;
 pub use canonical::{canonical, digest, identities, lineage_order};
 pub use cases::{landed, realized_cases, root_axes, Presences, RealizedCase, RootAxes};
+pub use coarse::{grow_coarse, Coarse, Stand};
 pub use expansion::{settle, Lived, Loaded, RootSeed, Roots, Settled};
 pub use geometry::{
     bearer_frame, BearerFrame, GeometryTables, PaGeometry, RootGeometry, ZoneGeometry,

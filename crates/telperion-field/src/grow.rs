@@ -8,11 +8,15 @@ use telperion_core::{
     presets, Error, Result,
 };
 
-pub fn field(species: &str, seed: u32, limb_order: Option<u32>) -> Result<Field> {
+/// The field of `species` at `seed`, its limbs named at `limb_order`, every
+/// fine root at or below `cut` expected kept phytomers standing as its
+/// expected occupancy (fn-214; 0 grows every one).
+pub fn field(species: &str, seed: u32, limb_order: Option<u32>, cut: u32) -> Result<Field> {
     let mut family = presets::by_identity(species)?;
     family.skeleton.seed = seed;
     let request = Request {
         field: Some(limb_order),
+        cut,
         ..Request::default()
     };
     pipeline::build(&family, request)?
