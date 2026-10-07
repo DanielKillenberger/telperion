@@ -79,3 +79,46 @@ fn fine_stage_and_build() {
     let load = std::fs::read_to_string("/proc/loadavg").unwrap_or_default();
     println!("load at the end: {}", load.trim());
 }
+
+/// Task 9: the build sowing its roots while the structure above the cut
+/// grows, from 2,048 and 8,192 roots on, against none sown, each warm
+/// build interleaved, five rounds; the best and the median.
+#[test]
+#[ignore = "a measurement"]
+fn sown_against_none() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let k = kernels(&gpu);
+    let load = std::fs::read_to_string("/proc/loadavg").unwrap_or_default();
+    println!("load at the start: {}", load.trim());
+    let modes = [("none", usize::MAX), ("2048", 2048), ("8192", 8192)];
+    for (name, species) in [
+        ("beech", telperion_space::beech()),
+        ("spruce", telperion_space::spruce()),
+    ] {
+        for at in [(40, 1), (80, 1), (80, 7)] {
+            let lock = locked();
+            build(&gpu, &k, &species, at);
+            let mut ms = vec![Vec::new(); modes.len()];
+            for _ in 0..5 {
+                for (m, &(_, least)) in modes.iter().enumerate() {
+                    let b = super::profile_tests::build_sown(&gpu, &k, &species, at, Some(least));
+                    ms[m].push(b.ms);
+                }
+            }
+            drop(lock);
+            let row: Vec<String> = modes
+                .iter()
+                .zip(&mut ms)
+                .map(|((mode, _), v)| {
+                    v.sort_by(f64::total_cmp);
+                    format!("{mode} {:.0} / {:.0}", v[0], v[2])
+                })
+                .collect();
+            println!("{name} {} {}: {}", at.0, at.1, row.join(", "));
+        }
+    }
+    let load = std::fs::read_to_string("/proc/loadavg").unwrap_or_default();
+    println!("load at the end: {}", load.trim());
+}

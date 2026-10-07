@@ -240,7 +240,8 @@ pub(crate) fn settle_with(
 /// Grows the structure above the cut on a thread of its own, offering
 /// `roots` each cycle's laterals as they are made (task 9): the structure
 /// grown, every root's seed by its stand-in's order, and the stages'
-/// milliseconds: the growth above the cut, then the seeds made after it.
+/// milliseconds: the growth above the cut, the executor's sowing past its
+/// end, and the woken buds' seeds made and merged.
 #[allow(clippy::type_complexity)]
 fn sow(
     species: &Species,
@@ -248,6 +249,7 @@ fn sow(
     roots: &mut dyn Roots,
 ) -> Result<(Assigned, Vec<RootSeed>, Vec<(&'static str, f64)>)> {
     let started = std::time::Instant::now();
+    let ms = |t: std::time::Instant| (t - started).as_secs_f64() * 1e3;
     let (tx, rx) = std::sync::mpsc::channel::<Vec<Handed>>();
     let make = |h: Handed| RootSeed {
         bud: input(species, seed, Some(&h.bud)),
@@ -257,10 +259,11 @@ fn sow(
     };
     std::thread::scope(|scope| {
         let grower = scope.spawn(move || {
-            streamed(rules, hands, seed, threads, &mut |made| {
+            let grown = streamed(rules, hands, seed, threads, &mut |made| {
                 // The driver's end of the channel lives while this does.
                 tx.send(made).expect("the driver takes the laterals")
-            })
+            });
+            (grown, std::time::Instant::now())
         });
         let (mut laterals, mut taken) = (Vec::new(), 0);
         let mut failed = None;
@@ -274,15 +277,20 @@ fn sow(
                 }
             }
         }
-        let (grown, woken) = grower.join().expect("the structure above the cut")?;
+        let sown = std::time::Instant::now();
+        let (grown, ended) = grower.join().expect("the structure above the cut");
+        let (grown, woken) = grown?;
         if let Some(e) = failed {
             return Err(e);
         }
-        let grew = started.elapsed().as_secs_f64() * 1e3;
         let woken = woken.into_iter().map(make).collect();
         let seeds = merged(laterals, woken, |s| s.handed.at);
-        let all = started.elapsed().as_secs_f64() * 1e3;
-        Ok((grown, seeds, vec![("above the cut", grew), ("seeds", all - grew)]))
+        let stages = vec![
+            ("above the cut", ms(ended)),
+            ("sowing past it", ms(sown.max(ended)) - ms(ended)),
+            ("seeds", ms(std::time::Instant::now()) - ms(sown.max(ended))),
+        ];
+        Ok((grown, seeds, stages))
     })
 }
 
