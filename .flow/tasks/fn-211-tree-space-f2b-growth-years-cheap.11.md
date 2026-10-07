@@ -12,9 +12,14 @@ Host decisions (2026-10-07) after task 10 (TASK10-GPU.md). First: task 10 measur
 - Gate green (two parts, render first).
 
 ## Done summary
-TBD
+Part 1: stepped and grow give identical digests on all 20 trees. Stepped is faster on the lit oak (0.75 to 0.78 times grow) and level on the unlit oak (0.87 to 0.99). It is slower on the beech (1.11 to 1.50) and the spruce (1.53 to 1.90), whose grow is grow_fine, so the build was not moved. The gain comes from the cores: stepped spreads over the items the balance, allotment, rough layout and waking that the whole-tree grower runs on one thread. On one thread stepped is 1.09 times slower. Options for the host are in TASK11.md.
 
+Part 2: the WGSL quotient is now Knuth's algorithm D in 16-bit digits. It matches the CPU to the bit on 4.2 M cases and on the probe. Layout kernels take 22 to 32 percent less time and D16 kernels 28 to 49 percent less. The device run takes 13.35 s and 30.74 s, against 6.86 s and 14.57 s on the CPU.
+
+The gate is green: render 168 passed, the rest 1,013 passed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2e41e078, 62432ff6, 8a08be03
+- Tests: cargo test --profile ci -p telperion-render --no-fail-fast, cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render
 - PRs:
