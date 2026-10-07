@@ -79,7 +79,10 @@ fn a_tree_over_the_wasm_ceiling_is_refused_by_name() {
     let refused = fits(&structure, Some(kept - 1)).unwrap_err().to_string();
     // The message names the bound by hand: the two move together.
     assert_eq!(WASM_KEPT, 4_000_000);
-    assert!(refused.contains("more than 4,000,000 phytomers"), "{refused}");
+    assert!(
+        refused.contains("more than 4,000,000 phytomers"),
+        "{refused}"
+    );
     assert!(refused.contains("4 GB Wasm memory"), "{refused}");
     assert_eq!(KEPT, None, "no ceiling natively");
 }
