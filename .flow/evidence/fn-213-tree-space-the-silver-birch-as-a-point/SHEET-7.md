@@ -59,3 +59,7 @@ Round 6's shorter-lived limbs, which made 40-year seed 42 lopsided, are gone (`L
 What remains at 80, as Astra and the worker read it: an upper axis that still overtops the limbs (seeds 1, 7), because a relay of the old stem, or a scaffold set at 1.3 rad, keeps rising for up to 25 years; and upper forks held tightly upright (seed 42), because every scaffold rises at the same set-point before it spreads. No further values were tried.
 
 **The preset carries round 7**: 40 now passes, the 80-year crowns are broader in their upper half than round 5's, and the base holds. It is the worker's candidate for the strongest sheet; the host decides which sheet goes to the owner (round 5's is `raw/sheet5/`).
+
+## Gate (round 7, commit `3ff611e9`)
+
+Render half first, under the GPU lock: `cargo test --profile ci -p telperion-render --no-fail-fast` exits 0; then `cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render` exits 0; `harness/parity.test.ts` passes 8 of 8. Limits at 8; logs in the ignored `raw/gate7-*.log`.
