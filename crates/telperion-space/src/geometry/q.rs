@@ -77,7 +77,7 @@ pub(crate) fn rotated(v: Q3, pivot: Q3, angle: i64) -> Q3 {
         let a = mul(v[k], cos);
         let b = narrow(I256::mul(across[k], i128::from(sin)).floor_shift(64));
         let fall = i128::from(pivot[k]) * i128::from(ONE32 - cos);
-        let c = narrow(I256::mul(along, fall).floor_shift(128));
+        let c = narrow(I256::mul(along, fall).floor_shift(96));
         a + b + c
     })
 }
