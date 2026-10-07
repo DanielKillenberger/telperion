@@ -8,8 +8,9 @@ pub(super) struct Run {
 pub(super) struct Paths {
     pub nodes: Vec<usize>,
     pub runs: Vec<Run>,
-    /// Every node above the root a codominant sibling leaves: the run through
-    /// it carries on into the widest wood that is not one, the fork's primary.
+    /// Every node above the root a codominant sibling leaves, a fine root's
+    /// by its attachment: the run through it carries on into the widest wood
+    /// that is not one, the fork's primary.
     pub forks: Vec<bool>,
     /// Whether each node is a fine root's wood: a seam, or borne by one
     /// (fn-212 D4, D5).
@@ -65,14 +66,22 @@ pub(super) fn paths(tree: &Tree) -> Result<Paths> {
             } else if wider(widest[at]) {
                 widest[at] = i;
             }
-            if nodes[i].codominant.is_some() {
+            // A seam's fork is its attachment's (below), never its node's.
+            if seam[i] {
+            } else if nodes[i].codominant.is_some() {
                 result.forks[at] = at != 0;
-            } else if !seam[i] && wider(leaders[at]) {
+            } else if wider(leaders[at]) {
                 leaders[at] = i;
             }
         } else {
             stands[i] = at;
         }
+    }
+    // A fine root forks its bearer as its base radius reads, whichever
+    // executor draws it (fn-212 task 7, host option 3).
+    for a in tree.attachments.iter().filter(|a| a.fork) {
+        let at = stands[a.node as usize];
+        result.forks[at] |= at != 0;
     }
     // A node every child of which is a codominant sibling carries on into
     // the widest, as everywhere else.

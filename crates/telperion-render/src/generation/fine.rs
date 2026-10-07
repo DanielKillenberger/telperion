@@ -51,31 +51,17 @@ mod dress_tests;
 #[cfg(test)]
 mod fixture;
 #[cfg(test)]
-mod placed_tests;
-#[cfg(test)]
-mod rings;
-#[cfg(test)]
-mod stations;
-#[cfg(test)]
-mod stations_tests;
-#[cfg(test)]
-mod sweep;
-#[cfg(test)]
-mod sweep_tests;
-#[cfg(test)]
 mod group;
 #[cfg(test)]
 mod handoff;
 #[cfg(test)]
-mod resident;
-#[cfg(test)]
-mod resident_tests;
-#[cfg(test)]
-mod seam_stills;
-#[cfg(test)]
 mod hostrun;
 #[cfg(test)]
 mod laid;
+#[cfg(test)]
+mod option3_tests;
+#[cfg(test)]
+mod placed_tests;
 #[cfg(test)]
 mod pool;
 #[cfg(test)]
@@ -89,15 +75,31 @@ mod realized_tests;
 #[cfg(test)]
 mod realized_timing;
 #[cfg(test)]
+mod resident;
+#[cfg(test)]
+mod resident_tests;
+#[cfg(test)]
+mod rings;
+#[cfg(test)]
 mod roots;
+#[cfg(test)]
+mod seam_stills;
 #[cfg(test)]
 mod shedding;
 #[cfg(test)]
 mod speed_tests;
 #[cfg(test)]
+mod stations;
+#[cfg(test)]
+mod stations_tests;
+#[cfg(test)]
 mod step_probe;
 #[cfg(test)]
 mod steps;
+#[cfg(test)]
+mod sweep;
+#[cfg(test)]
+mod sweep_tests;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]

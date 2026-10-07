@@ -93,6 +93,10 @@ pub struct Settled {
     /// live.
     pub grounded: Vec<usize>,
     pub(crate) landed: Vec<(usize, super::realized::Root)>,
+    /// Each live root's base radius as phase 2 handed it up, by its place
+    /// among the live: what its seam's codominance is read from (fn-212
+    /// task 7, host option 3).
+    pub radii: Vec<f64>,
     /// The live roots grown ahead on the spare cores for the landing
     /// (task 9, `spare.rs`).
     pub ahead: usize,
@@ -221,7 +225,7 @@ pub(crate) fn settle_with(
             (threads, rows.as_ref()),
         );
         spare.as_ref().inspect(|s| s.stop());
-        laid.map(|()| (landing.roots, spare.as_ref().map_or(0, Spare::grown)))
+        laid.map(|radii| (landing.roots, radii, spare.as_ref().map_or(0, Spare::grown)))
     });
     // What was grown ahead and not landed is freed off the build's path.
     if cfg!(target_family = "wasm") {
@@ -229,7 +233,7 @@ pub(crate) fn settle_with(
     } else {
         std::thread::spawn(move || drop(spare));
     }
-    let (landed, ahead) = laid?;
+    let (landed, radii, ahead) = laid?;
     let grounded = landed.iter().map(|(j, _)| live[*j]).collect();
     let settled = Settled {
         structure: tree,
@@ -240,6 +244,7 @@ pub(crate) fn settle_with(
         stages: stages.out,
         grounded,
         landed,
+        radii,
         ahead,
     };
     Ok((settled, seeds))
@@ -265,7 +270,7 @@ fn lay(
     ),
     (landing, clock, stages): (&mut Landing, &mut Clock, &mut Stages),
     (threads, rows): (usize, Option<&Rows>),
-) -> Result<()> {
+) -> Result<Vec<f64>> {
     // The order the roots are grown ahead in, read while the executor
     // scales and thickens its roots.
     let radii = std::thread::scope(|scope| {
@@ -323,7 +328,7 @@ fn lay(
         landed?;
         stages.mark("landing, bent");
     }
-    Ok(())
+    Ok(radii)
 }
 
 /// Grows the structure above the cut, on a thread of its own where there

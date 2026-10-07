@@ -118,6 +118,9 @@ pub struct Expanded {
 /// the seconds the cut's predictor took.
 pub struct Fine {
     pub structure: Structure,
+    /// Each live root's first axis's lineage and its base radius as phase
+    /// 2 handed it up (`Settled::radii`), by lineage.
+    pub bases: Vec<(u64, f64)>,
     pub above: usize,
     pub roots: Vec<Expanded>,
     pub starts: Vec<usize>,
@@ -174,6 +177,7 @@ pub fn grow_fine(species: &Species, request: Request, plan: Plan) -> Result<Fine
 /// The tree whole: each kept root's first axis where its stand-in stood,
 /// its others after the structure above the cut, in the roots' order.
 fn assemble(settled: Settled, roots: Vec<Root>, predictor: &Predictor) -> Result<Fine> {
+    let bases = bases(&settled);
     let Settled {
         structure: mut tree,
         at,
@@ -225,6 +229,7 @@ fn assemble(settled: Settled, roots: Vec<Root>, predictor: &Predictor) -> Result
     }
     Ok(Fine {
         structure: tree,
+        bases,
         above,
         roots: out,
         starts,
@@ -245,13 +250,27 @@ fn assemble(settled: Settled, roots: Vec<Root>, predictor: &Predictor) -> Result
 pub struct Partial {
     pub structure: Structure,
     pub fine: Vec<bool>,
+    pub bases: Vec<(u64, f64)>,
     pub lineages: Vec<Option<u64>>,
     pub grounded: Vec<usize>,
+}
+
+/// Each live root's first axis's lineage and its base radius as phase 2
+/// handed it up, by lineage: what the conversion reads a seam's
+/// codominance from on every path (fn-212 task 7, host option 3).
+fn bases(settled: &Settled) -> Vec<(u64, f64)> {
+    let axes = &settled.structure.axes;
+    let mut out: Vec<(u64, f64)> = (settled.live.iter().zip(&settled.radii))
+        .map(|(&k, &r)| (axes[settled.at[k].expect("live")].lineage, r))
+        .collect();
+    out.sort_by_key(|b| b.0);
+    out
 }
 
 /// `settled` as the CPU converts it beside an executor holding its other
 /// fine roots (`Partial`).
 pub fn partial(settled: Settled) -> Partial {
+    let bases = bases(&settled);
     let Settled {
         structure: mut tree,
         at,
@@ -280,6 +299,7 @@ pub fn partial(settled: Settled) -> Partial {
     Partial {
         structure,
         fine,
+        bases,
         lineages,
         grounded,
     }

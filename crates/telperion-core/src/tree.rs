@@ -196,6 +196,11 @@ pub struct Attachment {
     /// Its seams (`Tree::seams`): the first node its first axis draws, if
     /// any, then any lateral that hangs from its bearer's node.
     pub seams: Vec<u32>,
+    /// Whether it forks its bearer codominantly, read from its base radius
+    /// as phase 2 handed it up against its bearer's node's radius: what
+    /// the sweep eases its bearer's fork by, whichever executor draws the
+    /// root (fn-212 task 7, host option 3).
+    pub fork: bool,
 }
 impl Tree {
     /// Node `i`'s key (`keys`), or its index where no engine grew it.

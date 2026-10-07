@@ -69,17 +69,22 @@ struct Apex {
 /// through the realized partition at the cut N = 1,024 (host decision 7,
 /// FINE-CONTRACT.md): the same tree as `grow_whole`, to the bit.
 pub fn grow(species: &Species, request: Request) -> Result<Structure> {
-    grow_marked(species, request).map(|(structure, _)| structure)
+    grow_marked(species, request).map(|(structure, ..)| structure)
 }
 
 /// `grow`, with each axis marked where it was grown in a fine root (fn-212
 /// D4, D5): its wood starts its own run at the seam and keeps its side's
-/// run order. A tree grown whole marks none.
-pub fn grow_marked(species: &Species, request: Request) -> Result<(Structure, Vec<bool>)> {
+/// run order. A tree grown whole marks none. Also each fine root's base
+/// radius as phase 2 handed it up, by its first axis's lineage.
+#[allow(clippy::type_complexity)]
+pub fn grow_marked(
+    species: &Species,
+    request: Request,
+) -> Result<(Structure, Vec<bool>, Vec<(u64, f64)>)> {
     if species.reads_light() || keeps(species) {
         let structure = grow_whole(species, request)?;
         let marks = vec![false; structure.axes.len()];
-        return Ok((structure, marks));
+        return Ok((structure, marks, Vec::new()));
     }
     species.validate()?;
     request.light.validate()?;
@@ -89,11 +94,14 @@ pub fn grow_marked(species: &Species, request: Request) -> Result<(Structure, Ve
     let fine = crate::fine::grow_fine(species, request, crate::fine::Plan::default())?;
     // A fine root's first axis stands in its stand-in's place; the rest of
     // its axes are appended past `above`.
-    let mut marks: Vec<bool> = (0..fine.structure.axes.len()).map(|i| i >= fine.above).collect();
+    let mut marks: Vec<bool> = (0..fine.structure.axes.len())
+        .map(|i| i >= fine.above)
+        .collect();
     for i in fine.roots.iter().filter_map(|r| r.at) {
         marks[i] = true;
     }
-    Ok(crate::fine::lineage_order_marked(fine.structure, marks))
+    let (structure, marks) = crate::fine::lineage_order_marked(fine.structure, marks);
+    Ok((structure, marks, fine.bases))
 }
 
 /// Today's whole-tree engine, every axis grown in one grower: the tests'

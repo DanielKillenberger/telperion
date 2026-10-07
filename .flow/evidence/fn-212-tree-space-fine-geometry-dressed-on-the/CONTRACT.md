@@ -242,3 +242,7 @@ Measured `tree_buffer_bytes` after the submit: 141 MB (beech 80 s1), 240 MB (bee
 2. **Curve.** The device packs the fine curve into the renderer's own curve format, offset after the CPU's points, runs and clusters (D5's order). The renderer reads one block and learns nothing new.
 3. **Leaves.** The fine block is placed directly at an offset in the one leaf buffer, with no copy, and one mass grid is built over both.
 - Then: the submit takes those device buffers; final-output parity on a submitted tree against the CPU path, by named class; the seam close-ups (D4) at a close camera, viewed; the timing harness rerun on the real path (five builds a side, alternating, one per process, both spruce-80 seeds, per-stage medians), and whether the stations numbering pass dominates its 300 ms; the 3× verdict on the real path.
+
+## Host decision on the seam couplings (2026-10-07)
+
+- **Option 3.** A bearer's kind counts every attachment as a child, and its fork easing takes a fine root's codominance from the base radius the root sends up in phase 2. Both come from data the CPU already holds, so no round trip is added. Real codominant fine children still ease their bearer's fork, which option 1 would have removed for thin bearers. Trees change only where a root draws nothing at its seam or merges its first phytomers. Measure how many bearers, view the beech-30 runs that moved, and trace the 3 and 11 extra leaves at 30. If the phase-2 base radius is not available before conversion decides kind and easing, stop and report.

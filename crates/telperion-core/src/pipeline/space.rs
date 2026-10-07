@@ -54,14 +54,11 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     // first and siblings by lineage, whichever path built it (FINE-CONTRACT
     // decision C; fn-198 host decision 17): the conversion's node numbering
     // and a relay's girth never depend on how the tree was assembled.
-    let (structure, fine) = telperion_space::grow_marked(species, request).map_err(engine)?;
+    let (structure, fine, bases) =
+        telperion_space::grow_marked(species, request).map_err(engine)?;
     fits(&structure, KEPT)?;
-    Ok(convert(
-        &structure,
-        &fine,
-        &input.space.trunk,
-        &internodes(species),
-    ))
+    let rows = (&input.space.trunk[..], &internodes(species)[..]);
+    Ok(convert(&structure, (&fine, &bases), rows))
 }
 
 /// The family's species settled with its fine roots grown and laid by
@@ -87,7 +84,11 @@ pub(super) fn part(
     (trunk, internodes): (&[usize], &[f64]),
 ) -> (Tree, Vec<Option<u64>>, Vec<usize>) {
     let part = telperion_space::partial(settled);
-    let tree = convert(&part.structure, &part.fine, trunk, internodes);
+    let tree = convert(
+        &part.structure,
+        (&part.fine, &part.bases),
+        (trunk, internodes),
+    );
     (tree, part.lineages, part.grounded)
 }
 
@@ -239,7 +240,11 @@ fn joint(
 /// limbs deep in the crown. Two trunk-level axes leaving one node, a
 /// codominant fork of the trunk, are both stem. `internodes` is each
 /// PA's internode length, which each node's grown wood is measured by.
-fn convert(structure: &Structure, fine: &[bool], trunk: &[usize], internodes: &[f64]) -> Tree {
+fn convert(
+    structure: &Structure,
+    (fine, bases): (&[bool], &[(u64, f64)]),
+    (trunk, internodes): (&[usize], &[f64]),
+) -> Tree {
     // Each fine root's node drawn from wood above the cut.
     let mut seams = Vec::new();
     let mut attachments = Vec::new();
@@ -267,10 +272,15 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize], internodes: &[
                 let start = drawn[parent].get(node);
                 if let (true, Some(&n)) = (root, start) {
                     of_root[i] = Some(attachments.len());
+                    // Its bearer's fork, from its base radius as phase 2
+                    // handed it up (host option 3).
+                    let base = bases.binary_search_by_key(&axis.lineage, |b| b.0);
+                    let base = base.map_or(0.0, |k| bases[k].1);
                     attachments.push(Attachment {
                         lineage: axis.lineage,
                         node: n,
                         seams: Vec::new(),
+                        fork: codominance(base, nodes[n as usize].radius).is_some(),
                     });
                 }
                 start.map(|&n| (n, true, false))
@@ -401,9 +411,19 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize], internodes: &[
     let root = nodes.get(1).map_or(0.0, |n| n.start_radius);
     nodes[0].radius = root;
     nodes[0].start_radius = root;
+    // A bearer counts each fine root it bears as one child, whatever the
+    // root draws at its seam (host option 3): its kind never reads wood
+    // another executor draws.
     let mut children = vec![0u32; nodes.len()];
-    for n in &nodes[1..] {
-        children[n.parent.unwrap() as usize] += 1;
+    let mut seam = vec![false; nodes.len()];
+    for &s in &seams {
+        seam[s as usize] = true;
+    }
+    for (i, n) in nodes.iter().enumerate().skip(1) {
+        children[n.parent.unwrap() as usize] += u32::from(!seam[i]);
+    }
+    for a in &attachments {
+        children[a.node as usize] += 1;
     }
     for i in 0..nodes.len() {
         let run = nodes[i].branch as usize;
