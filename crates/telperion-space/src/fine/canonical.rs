@@ -75,6 +75,13 @@ pub fn canonical(structure: &Structure) -> Structure {
     }
 }
 
+/// Whether no two of `sorted` siblings share a key (fn-198 task 5, option
+/// b). An identity folds its bearer's in, so two axes of one identity are
+/// siblings, and in a sorted list neighbours: the check costs one pass.
+fn distinct(sorted: &[usize], keys: &[(u64, u64)]) -> bool {
+    sorted.windows(2).all(|w| keys[w[0]] != keys[w[1]])
+}
+
 fn renumber(axis: &mut Axis, at: &[usize]) {
     match &mut axis.origin {
         Origin::Seed => {}
@@ -185,11 +192,13 @@ pub fn lineage_order(structure: Structure) -> Structure {
         }
     }
     order.sort_by_key(|&i| keys[i]);
+    debug_assert!(distinct(&order, &keys), "two axes share a lineage");
     let mut k = 0;
     while k < order.len() {
         let p = order[k];
         let kids = &mut children[start[p]..start[p + 1]];
         kids.sort_by_key(|&i| keys[i]);
+        debug_assert!(distinct(kids, &keys), "two axes share a lineage");
         order.extend_from_slice(kids);
         k += 1;
     }
@@ -209,3 +218,6 @@ pub fn lineage_order(structure: Structure) -> Structure {
         .collect();
     Structure { age, pas, axes }
 }
+
+#[cfg(test)]
+mod tests;
