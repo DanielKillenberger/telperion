@@ -226,8 +226,8 @@ pub fn birch() -> Species {
         relay_failed: 1.0,
         epitony: 0.4,
         form: Form {
-            tropism: 0.9,
-            elevation: 1.3,
+            tropism: 0.7,
+            elevation: 1.15,
             wander: 0.6,
             plane: 0.0,
             pipe: 0.002,
@@ -235,20 +235,20 @@ pub fn birch() -> Species {
             ripening: 10.0,
             dominance: 0.2,
             roll: 1.2,
-            sag: 3e-5,
+            sag: 6e-5,
             secondary: 1.0,
             bend_length: 3.0,
             internode_spread: 0.7,
         },
-        ..state(25, 1.0, {
-            let mut u = unit(
+        ..state(
+            20,
+            1.0,
+            unit(
                 (2, 3),
-                ((3, 5), &[(BOUGH, 0.12), (BRANCH, 0.4), (SHORT, 0.35)]),
-                ((1, 2), &[(BOUGH, 0.45), (BRANCH, 0.5)]),
-            );
-            u[1] = sleeping(u[1].clone(), 0.6);
-            u
-        })
+                ((3, 5), &[(BOUGH, 0.12), (BRANCH, 0.15), (SHORT, 0.35)]),
+                ((1, 2), &[(BOUGH, 0.45), (BRANCH, 0.4)]),
+            ),
+        )
     };
     let bough = PaState {
         insertion: 0.6,
@@ -261,9 +261,9 @@ pub fn birch() -> Species {
         relay_failed: 1.0,
         epitony: 0.4,
         form: Form {
-            tropism: 0.6,
-            elevation: 0.8,
-            sag: 3e-5,
+            tropism: 0.3,
+            elevation: 0.5,
+            sag: 8e-5,
             pipe: 0.002,
             ..limb.form
         },
@@ -273,7 +273,7 @@ pub fn birch() -> Species {
                 ((3, 4), &[(BRANCH, 0.4), (SHORT, 0.35)]),
                 ((1, 1), &[(BRANCH, 0.5)]),
             );
-            u[1] = sleeping(u[1].clone(), 0.6);
+            u[1] = sleeping(u[1].clone(), 0.2);
             u
         })
     };
@@ -313,7 +313,7 @@ pub fn birch() -> Species {
     let hanging = Form {
         tropism: 3.0,
         elevation: -FRAC_PI_2,
-        wander: 0.15,
+        wander: 0.4,
         plane: 0.0,
         pipe: 0.0008,
         exponent: 2.0,
@@ -322,16 +322,23 @@ pub fn birch() -> Species {
         roll: 1.2,
         sag: 2e-4,
         secondary: 1.0,
-        bend_length: 0.0,
-        internode_spread: 0.3,
+        bend_length: 1.0,
+        internode_spread: 0.7,
     };
     let branch = PaState {
         insertion: 0.7,
         internode: 0.06,
-        viability: 0.96,
+        viability: 0.92,
         shedding: 1.0,
         form: hanging,
-        ..state(12, 0.0, vec![zone(1, 1, &[]), zone(3, 5, &[(SHORT, 0.5)])])
+        ..state(
+            12,
+            0.0,
+            vec![
+                zone(1, 1, &[]),
+                zone(3, 5, &[(SHORT, 0.5), (BRANCH, 0.005)]),
+            ],
+        )
     };
     // The short shoot: a few crowded nodes a year, its one bud carrying it
     // on, never branching.

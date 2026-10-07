@@ -172,3 +172,16 @@ The rows and their sources are in SHEET-8.md, "What moved". In short:
 - Limb and bough wood holds sleeping strand buds (0.6 a node, waking after 4 years at 0.15 a year; Cameron and Sani 1994 for epicormic sprouting in *B. pendula*).
 
 All **estimated** from the stills and checked by `birch_measure.rs`; no value is taken from the old generator.
+
+## Round 9 (2026-10-07, arching limbs and irregular strands)
+
+The rows and their reasons are in SHEET-9.md, "What moved". In short:
+
+- **Limbs:** they rise less steeply, pass sooner to their spreading age, and the old limbs bend over under their own load (`sag`).
+- **Strands:**
+  - They sit on the limbs' outer, younger wood; the sleeping strand buds on inner wood are removed or thinned.
+  - They curve a little and spread unevenly in internode length and tip survival.
+  - They fork rarely (0.005 a node).
+- **Fine wood:** its colour is set from S1's crown haze, read by code.
+
+All values are **estimated** from the stills and checked by `birch_measure.rs`.

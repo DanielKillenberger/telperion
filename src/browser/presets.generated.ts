@@ -2648,10 +2648,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateScale": 0.4,
         "ridgeScale": 0.16,
         "roughnessDetail": 0.1,
-        "shootBlue": 0.055,
-        "shootGreen": 0.07,
+        "shootBlue": 0.09,
+        "shootGreen": 0.09,
         "shootRadius": 0.03,
-        "shootRed": 0.095,
+        "shootRed": 0.12,
         "skyOcclusionStrength": 0.4,
         "thickness": 0.45,
         "transmissionBlue": 0.1,
@@ -2965,19 +2965,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "bendLength": 3,
               "dominance": 0.2,
-              "elevation": 1.3,
+              "elevation": 1.15,
               "exponent": 2.4,
               "internodeSpread": 0.7,
               "pipe": 0.002,
               "ripening": 10,
               "roll": 1.2,
-              "sag": 0.00003,
-              "tropism": 0.9,
+              "sag": 0.00006,
+              "tropism": 0.7,
               "wander": 0.6
             },
             "insertion": 0.6,
             "internode": 0.055,
-            "lifespan": 25,
+            "lifespan": 20,
             "relay": 1,
             "relayEnded": 1,
             "relayFailed": 1,
@@ -2993,26 +2993,21 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               },
               "1": {
                 "buds": 1,
-                "delay": 4,
-                "dormant": {
-                  "9": 0.6
-                },
                 "lateral": {
                   "7": 0.12,
-                  "9": 0.4,
+                  "9": 0.15,
                   "14": 0.35
                 },
                 "nodes": {
                   "max": 5,
                   "min": 3
-                },
-                "rate": 0.15
+                }
               },
               "2": {
                 "buds": 1,
                 "lateral": {
                   "7": 0.45,
-                  "9": 0.5
+                  "9": 0.4
                 },
                 "nodes": {
                   "max": 2,
@@ -3029,14 +3024,14 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "bendLength": 3,
               "dominance": 0.2,
-              "elevation": 0.8,
+              "elevation": 0.5,
               "exponent": 2.4,
               "internodeSpread": 0.7,
               "pipe": 0.002,
               "ripening": 10,
               "roll": 1.2,
-              "sag": 0.00003,
-              "tropism": 0.6,
+              "sag": 0.00008,
+              "tropism": 0.3,
               "wander": 0.6
             },
             "insertion": 0.6,
@@ -3059,7 +3054,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                 "buds": 1,
                 "delay": 4,
                 "dormant": {
-                  "9": 0.6
+                  "9": 0.2
                 },
                 "lateral": {
                   "9": 0.4,
@@ -3135,19 +3130,20 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "continuation": 0,
             "divergence": 2.5132741228718345,
             "form": {
+              "bendLength": 1,
               "elevation": -1.5707963267948966,
-              "internodeSpread": 0.3,
+              "internodeSpread": 0.7,
               "pipe": 0.0008,
               "roll": 1.2,
               "sag": 0.0002,
               "tropism": 3,
-              "wander": 0.15
+              "wander": 0.4
             },
             "insertion": 0.7,
             "internode": 0.06,
             "lifespan": 12,
             "shedding": 1,
-            "viability": 0.96,
+            "viability": 0.92,
             "zones": {
               "0": {
                 "buds": 1,
@@ -3159,6 +3155,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
+                  "9": 0.005,
                   "14": 0.5
                 },
                 "nodes": {
