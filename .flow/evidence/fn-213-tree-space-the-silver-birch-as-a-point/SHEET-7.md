@@ -63,3 +63,7 @@ What remains at 80, as Astra and the worker read it: an upper axis that still ov
 ## Gate (round 7, commit `3ff611e9`)
 
 Render half first, under the GPU lock: `cargo test --profile ci -p telperion-render --no-fail-fast` exits 0; then `cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render` exits 0; `harness/parity.test.ts` passes 8 of 8. Limits at 8; logs in the ignored `raw/gate7-*.log`.
+
+## The owner's verdict (2026-10-07), verbatim
+
+> birch crown of the old generator looked more convincing tbh. Not enough curtainesque branches/leaves/foliage. Branches bare look very unconvincing.
