@@ -272,22 +272,8 @@ pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
     if rosette::bearing(&p) {
         return Vec::new();
     }
-    let slender = tree.stem_radius(|i| tree.pipe(i)[1]) * p.shoot_radius;
-    let bearing = |i: usize| {
-        let n = &tree.nodes[i];
-        n.parent.is_some()
-            && (n.kind == NodeKind::Twig
-                || (slender > 0. && tree.pipe(i)[0].max(tree.pipe(i)[1]) <= slender))
-    };
-    let mut children = vec![(0usize, 0usize); tree.nodes.len()];
-    for (i, n) in tree.nodes.iter().enumerate().skip(1) {
-        if bearing(i) {
-            if let Some(parent) = n.parent {
-                children[parent as usize].0 += 1;
-                children[parent as usize].1 = i;
-            }
-        }
-    }
+    let bearing = bearing_of(tree, p);
+    let children = bearing_children(tree, &bearing, false);
     let continues = |parent: usize, child: usize| {
         bearing(parent)
             && tree.nodes[parent].branch == tree.nodes[child].branch
@@ -315,5 +301,41 @@ pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
     runs
 }
 
+/// Whether a node bears leaves: a twig, or wood within the slender bound.
+fn bearing_of(tree: &Tree, p: CanopyParams) -> impl Fn(usize) -> bool + '_ {
+    let slender = tree.stem_radius(|i| tree.pipe(i)[1]) * p.shoot_radius;
+    move |i: usize| {
+        let n = &tree.nodes[i];
+        n.parent.is_some()
+            && (n.kind == NodeKind::Twig
+                || (slender > 0. && tree.pipe(i)[0].max(tree.pipe(i)[1]) <= slender))
+    }
+}
+
+/// Each node's bearing children, counted, and the last of them. A fine
+/// root's first node never counts among its bearer's, so a run's
+/// dependencies cross the seam one way only (fn-212, host decision
+/// 2026-10-07); `seams` counts them as before, for the measurement.
+fn bearing_children(
+    tree: &Tree,
+    bearing: &dyn Fn(usize) -> bool,
+    seams: bool,
+) -> Vec<(usize, usize)> {
+    let mut seam = vec![false; tree.nodes.len()];
+    for &s in tree.seams.iter().filter(|_| !seams) {
+        seam[s as usize] = true;
+    }
+    let mut children = vec![(0usize, 0usize); tree.nodes.len()];
+    for (i, n) in tree.nodes.iter().enumerate().skip(1) {
+        if let (true, false, Some(parent)) = (bearing(i), seam[i], n.parent) {
+            children[parent as usize].0 += 1;
+            children[parent as usize].1 = i;
+        }
+    }
+    children
+}
+
+#[cfg(test)]
+mod measured;
 #[cfg(test)]
 mod tests;

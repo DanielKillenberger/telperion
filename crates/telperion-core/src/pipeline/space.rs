@@ -203,6 +203,7 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
     // Whether each node is a fine root's.
     let mut in_root = vec![false];
     let mut frames = vec![[0.0f32; 6]];
+    let mut keys = vec![0u32];
     // Each fine root's axis's root, by its place in `attachments`.
     let mut of_root: Vec<Option<usize>> = vec![None; structure.axes.len()];
     // The node each axis ends on, for what continues it.
@@ -281,7 +282,12 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
             _ => Vec3::ZERO,
         };
         let mut made = false;
-        for p in axis.phytomers.iter().take_while(|p| p.radius >= FINEST) {
+        for (place, p) in axis
+            .phytomers
+            .iter()
+            .enumerate()
+            .take_while(|(_, p)| p.radius >= FINEST)
+        {
             let from = nodes[parent as usize].position;
             // ... and those still inside the wood of the joint, where a
             // turn over less than the stem's radius would fold its surface.
@@ -330,6 +336,7 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
             in_root.push(grown);
             let (h, s) = (up(p.heading), up(p.side));
             frames.push([h.x, h.y, h.z, s.x, s.y, s.z].map(|v| v as f32));
+            keys.push(crate::tree::node_key(axis.lineage, place));
             made = true;
             drawn[i].push(parent);
             nodes.push(node);
@@ -366,6 +373,7 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
         seams,
         attachments,
         frames,
+        keys,
         ..Tree::default()
     }
 }

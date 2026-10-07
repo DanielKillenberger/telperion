@@ -25,6 +25,9 @@ pub struct StationSegment {
     pub frame: [Vec3; 3],
     /// Lower/upper ring, then first/last ring on the sweep path.
     pub contact: Option<[u32; 4]>,
+    /// The key of its run's first node (`Tree::key`): with the family's
+    /// seed, the stream its leaves draw from (`tree::leaf_stream`).
+    pub key: u32,
 }
 
 /// No per-leaf positions or transforms are constructed by this preparation.
@@ -165,6 +168,7 @@ fn prepare_inner<C>(
         None
     };
     let runs = plan::runs(tree, envelope, p, Some(twig))?.unwrap_or_default();
+    let fine = tree.in_fine_roots();
     for run in &runs {
         let points: Vec<_> = run.nodes.iter().map(|&i| tree.nodes[i].position).collect();
         // Eight f64 rounding units cover the original multiply/divide angle
@@ -177,8 +181,12 @@ fn prepare_inner<C>(
         if phase_error > 0.00025 {
             return Ok(None);
         }
-        for (segment, (tangent, normal, binormal)) in
-            station::station_frame_iter(&points, &run.along).enumerate()
+        for (segment, (tangent, normal, binormal)) in station::station_frame_iter(
+            &points,
+            &run.along,
+            tree.seed_side(&fine, run.nodes[0], run.nodes[1]),
+        )
+        .enumerate()
         {
             let (first, last) = run.segment_stations(segment, twig);
             if first == last {
@@ -219,6 +227,7 @@ fn prepare_inner<C>(
                     span: run.along[segment + 1] - run.along[segment],
                     frame: [tangent, normal, binormal],
                     contact,
+                    key: tree.key(run.nodes[1]),
                 });
                 tile_first += tile_count;
             }

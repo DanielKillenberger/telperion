@@ -147,6 +147,34 @@ pub struct Tree {
     /// host decision 2026-10-07). Never stored, as `seams`.
     #[cfg_attr(feature = "json", serde(skip))]
     pub frames: Vec<[f32; 6]>,
+    /// Each node's key, from its axis's lineage and its phytomer's place
+    /// along the axis (`node_key`): what a run's leaves draw their random
+    /// values by, whatever order an executor walks the runs in (fn-212,
+    /// host decision 2026-10-07). Empty on a tree no engine grew, whose
+    /// nodes key by their index. Never stored, as `seams`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub keys: Vec<u32>,
+}
+
+/// A 32-bit finaliser: the one the leaves' draws already use.
+pub fn mix32(z: u32) -> u32 {
+    let z = (z ^ (z >> 16)).wrapping_mul(0x21f0_aaad);
+    let z = (z ^ (z >> 15)).wrapping_mul(0x735a_2d97);
+    z ^ (z >> 15)
+}
+
+/// A node's key: its axis's lineage and its phytomer's place along the
+/// axis, mixed; the GPU executor's drawing computes the same words.
+pub fn node_key(lineage: u64, place: usize) -> u32 {
+    let low = mix32(lineage as u32);
+    let high = mix32(low ^ (lineage >> 32) as u32);
+    mix32(high ^ place as u32)
+}
+
+/// The random stream a run's leaves draw from: the family's seed and the
+/// key of the run's first node (fn-212, host decision 2026-10-07).
+pub fn leaf_stream(seed: u32, key: u32) -> u32 {
+    mix32(seed ^ 0x2c9e_1a7f ^ key)
 }
 
 /// A fine root as the conversion drew it (fn-212 task 4): the record an
@@ -162,6 +190,47 @@ pub struct Attachment {
     pub seams: Vec<u32>,
 }
 impl Tree {
+    /// Node `i`'s key (`keys`), or its index where no engine grew it.
+    pub fn key(&self, i: usize) -> u32 {
+        self.keys.get(i).copied().unwrap_or(i as u32)
+    }
+    /// Whether each node is a fine root's wood: a seam, or borne by one
+    /// (fn-212 D4); all false on a tree grown whole.
+    pub(crate) fn in_fine_roots(&self) -> Vec<bool> {
+        let mut fine = vec![
+            false;
+            if self.seams.is_empty() {
+                0
+            } else {
+                self.nodes.len()
+            }
+        ];
+        if fine.is_empty() {
+            return fine;
+        }
+        for &s in &self.seams {
+            fine[s as usize] = true;
+        }
+        for i in 1..self.nodes.len() {
+            let p = self.nodes[i].parent.unwrap() as usize;
+            fine[i] |= fine[p];
+        }
+        fine
+    }
+    /// The side a fine root's bearing or sweep run seeds its frame from:
+    /// its attachment's laid side, where its first node is a fine root's.
+    pub(crate) fn seed_side(
+        &self,
+        fine: &[bool],
+        attach: usize,
+        first: usize,
+    ) -> Option<crate::math::Vec3> {
+        if !fine.get(first).copied().unwrap_or(false) {
+            return None;
+        }
+        let f = self.frames.get(attach)?.map(f64::from);
+        Some(crate::math::Vec3::new(f[3], f[4], f[5]))
+    }
     /// Node `i`'s radii as the pipe model solved them, `[start, distal]`,
     /// whatever `girthHold` drew: the radii leaf-bearing decisions read.
     pub(crate) fn pipe(&self, i: usize) -> [f64; 2] {

@@ -78,7 +78,7 @@ pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
                 s.phase[0] as f32,
                 s.phase[1] as f32,
             ],
-            range: [s.first, s.count, s.run_station, 0],
+            range: [s.first, s.count, s.run_station, s.key],
             edge: s.contact.unwrap_or([0; 4]),
         })
         .collect()
