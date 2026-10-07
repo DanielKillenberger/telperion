@@ -3,9 +3,9 @@
 //! reference run of the fine roots' side, point for point within fn-125's
 //! screen, its frames within 0.01 rad, its clusters' bounds, radius
 //! extrema and error ladders with them, and the runs widest first (D5).
-use super::dress::Dresser;
-use super::dress_tests::strays;
-use super::fixture::with_dressed;
+use super::dress::{Dressed, Dresser};
+use super::dress_tests::{self, folded, strays};
+use super::fixture::{with_dressed, Fixture};
 use super::roots::{kernels, Kernels};
 use super::sweep::{rows, Sweeper, Swept, KW, PW, TW};
 use crate::Gpu;
@@ -209,28 +209,34 @@ pub(super) fn curved(
     at: (u32, u32),
 ) -> Curved {
     with_dressed(gpu, k, d, id, at, |fx, dressed| {
-        let curve = fx.reference.curve().unwrap();
-        let rows = rows(&fx.family.surface, curve.height);
-        let t = std::time::Instant::now();
-        let swept = sw.sweep(gpu, dressed, rows);
-        let ms = t.elapsed().as_secs_f64() * 1e3;
-        // The reference's runs of the device's nodes: its fine roots' side.
-        let tree = fx.reference.tree();
-        let fine: Vec<Vec3> = (tree.nodes.iter().enumerate())
-            .filter(|&(i, _)| fx.fine[i])
-            .map(|(_, n)| n.position)
-            .collect();
-        let firsts: Vec<Vec3> = (curve.runs.iter())
-            .filter(|r| r.count > 1)
-            .map(|r| curve.points[r.first as usize + 1].centre)
-            .collect();
-        let fine_runs = firsts.len() - strays(&firsts, &fine);
-        Curved {
-            ms,
-            reference: (curve.runs.len(), curve.points.len()),
-            ..compared(gpu, &curve, &swept, fine_runs)
-        }
+        swept_against(gpu, sw, fx, dressed)
     })
+}
+
+/// The fine roots `dressed` drew swept on the device, against the
+/// reference's curve.
+fn swept_against(gpu: &Gpu, sw: &Sweeper, fx: &Fixture, dressed: &Dressed) -> Curved {
+    let curve = fx.reference.curve().unwrap();
+    let rows = rows(&fx.family.surface, curve.height);
+    let t = std::time::Instant::now();
+    let swept = sw.sweep(gpu, dressed, rows);
+    let ms = t.elapsed().as_secs_f64() * 1e3;
+    // The reference's runs of the device's nodes: its fine roots' side.
+    let tree = fx.reference.tree();
+    let fine: Vec<Vec3> = (tree.nodes.iter().enumerate())
+        .filter(|&(i, _)| fx.fine[i])
+        .map(|(_, n)| n.position)
+        .collect();
+    let firsts: Vec<Vec3> = (curve.runs.iter())
+        .filter(|r| r.count > 1)
+        .map(|r| curve.points[r.first as usize + 1].centre)
+        .collect();
+    let fine_runs = firsts.len() - strays(&firsts, &fine);
+    Curved {
+        ms,
+        reference: (curve.runs.len(), curve.points.len()),
+        ..compared(gpu, &curve, &swept, fine_runs)
+    }
 }
 
 fn checked(name: &str, at: (u32, u32), c: &Curved) {
@@ -244,22 +250,29 @@ fn checked(name: &str, at: (u32, u32), c: &Curved) {
     assert!(c.turn <= TURN, "{name} {at:?}: frames");
 }
 
-/// The beech and the spruce at 30: the fine roots' curve swept on the
-/// device as the pipeline sweeps it.
+/// The beech and the spruce at 30: fine roots drawn, folded and swept on
+/// the device as the pipeline draws, folds and sweeps them, on one
+/// settled tree each (the device holds one tree at a time).
 #[test]
-fn fine_roots_are_swept_on_the_device() {
+fn fine_roots_are_drawn_folded_and_swept_on_the_device() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
     };
     let (k, d, sw) = (kernels(&gpu), Dresser::new(&gpu), Sweeper::new(&gpu));
+    let at = (30, 1);
     for id in ["european-beech", "norway-spruce"] {
-        let c = curved(&gpu, &k, &d, &sw, id, (30, 1));
-        checked(id, (30, 1), &c);
-        assert_eq!(c.runs.2, 0, "{id}: every device run a reference run");
-        assert_eq!(
-            c.runs.0 as usize, c.runs.1,
-            "{id}: every fine run on the device"
-        );
+        with_dressed(&gpu, &k, &d, id, at, |fx, dressed| {
+            let p = folded(&gpu, &d, fx, dressed);
+            dress_tests::checked(id, at, &p);
+            assert_eq!((p.strays.1, p.strays.2), (0, 0), "{id}: the nodes drawn");
+            let c = swept_against(&gpu, &sw, fx, dressed);
+            checked(id, at, &c);
+            assert_eq!(c.runs.2, 0, "{id}: every device run a reference run");
+            assert_eq!(
+                c.runs.0 as usize, c.runs.1,
+                "{id}: every fine run on the device"
+            );
+        });
     }
 }
 

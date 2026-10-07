@@ -80,7 +80,7 @@ pub(super) fn probe(gpu: &Gpu, k: &Kernels, d: &Dresser, id: &str, at: (u32, u32
 }
 
 /// The device's folds against the pipeline's, on a fixture drawn.
-fn folded(gpu: &Gpu, d: &Dresser, fx: &Fixture, dressed: &Dressed) -> Probe {
+pub(super) fn folded(gpu: &Gpu, d: &Dresser, fx: &Fixture, dressed: &Dressed) -> Probe {
     let (reference, fine) = (&fx.reference, &fx.fine);
     let tree = reference.tree();
     let d0 = std::time::Instant::now();
@@ -171,7 +171,7 @@ fn folded(gpu: &Gpu, d: &Dresser, fx: &Fixture, dressed: &Dressed) -> Probe {
     }
 }
 
-fn checked(name: &str, at: (u32, u32), p: &Probe) {
+pub(super) fn checked(name: &str, at: (u32, u32), p: &Probe) {
     println!("{name} {at:?}: {p:?}");
     assert!(
         !p.kept.1 && p.kept.0 < CAP as usize,
@@ -180,21 +180,6 @@ fn checked(name: &str, at: (u32, u32), p: &Probe) {
     assert!(p.folds <= MOST, "{name} {at:?}: the device's folds");
     assert!(p.envelope.0 <= MOST, "{name} {at:?}: the envelope");
     assert!(p.boxed <= 2.0 * MOST, "{name} {at:?}: the leaf box");
-}
-
-/// The beech and the spruce at 30: fine roots drawn and folded on the
-/// device as the pipeline draws and folds them.
-#[test]
-fn fine_roots_are_drawn_and_folded_on_the_device() {
-    let Some(gpu) = crate::generation::test_gpu() else {
-        return;
-    };
-    let (k, d) = (kernels(&gpu), Dresser::new(&gpu));
-    for id in ["european-beech", "norway-spruce"] {
-        let p = probe(&gpu, &k, &d, id, (30, 1));
-        checked(id, (30, 1), &p);
-        assert_eq!((p.strays.1, p.strays.2), (0, 0), "{id}: the nodes drawn");
-    }
 }
 
 /// The probe's fixtures, beech and spruce at 40 and 80, seeds 1 and 7
