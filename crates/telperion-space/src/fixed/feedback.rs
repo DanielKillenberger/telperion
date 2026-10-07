@@ -19,6 +19,7 @@ pub mod edge;
 pub mod lattice;
 pub mod power;
 pub mod shed;
+pub mod slice;
 pub mod total;
 pub mod vector;
 pub mod wide;

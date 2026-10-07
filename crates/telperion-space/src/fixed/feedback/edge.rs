@@ -46,12 +46,12 @@ pub fn settle(fall: u32, x: i64) -> u32 {
 
 /// `ln(tan(fall / 2) / tan(high / 2))`, Q32, for angles in [0, 1/2]
 /// turn: the log ratio of the exact products `sin_f cos_h` and
-/// `cos_f sin_h`; `INF` where the second is none (an upright `fall`),
+/// `cos_f sin_h`, each factor at least none; `INF` where the second is none (an upright `fall`),
 /// `-INF` where the first is.
 pub fn tangent_ratio(fall: u32, high: u32) -> i64 {
     let (cf, sf) = sincos(fall >> 1);
     let (ch, sh) = sincos(high >> 1);
-    let product = |a: i64, b: i64| (a as u128) * (b as u128);
+    let product = |a: i64, b: i64| (a.max(0) as u128) * (b.max(0) as u128);
     let (a, b) = (product(sf, ch), product(cf, sh));
     match (a, b) {
         (0, _) => -INF,

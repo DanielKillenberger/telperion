@@ -34,6 +34,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
     vec![
         ("fine contract probe", tests::source()),
         ("feedback probe", feedback_tests::source()),
+        ("feedback slice", feedback_slice::source()),
         ("fine unit", units::source()),
         ("fine chain grower", chains::source()),
         ("fine pack", chains::pack_source()),
@@ -51,6 +52,8 @@ mod chain_tests;
 mod chains;
 #[cfg(test)]
 mod device;
+#[cfg(test)]
+mod feedback_slice;
 #[cfg(test)]
 mod feedback_tests;
 #[cfg(test)]

@@ -329,3 +329,31 @@ fn d16_threshold_and_kept_share() {
     .unwrap();
     assert_eq!((calm.threshold, calm.shed, calm.kept), (0, false, 77));
 }
+
+/// The slice: the same lattice, light and balances for any deposit order
+/// and chunking; the crown shades and the balance both sheds and keeps.
+#[test]
+fn the_slice_is_the_same_in_any_order_and_chunking() {
+    use super::slice::{crown, run};
+    let light = crate::light::Light {
+        extinction: 0.5,
+        sky: 0.5,
+    };
+    let (leaves, reads) = crown(4_000, 500, 7);
+    let n = leaves.len();
+    let forward: Vec<usize> = (0..n).collect();
+    let reversed: Vec<usize> = (0..n).rev().collect();
+    let shuffled: Vec<usize> = (0..n).map(|k| (k * 2_654_435_761) % n).collect();
+    let base = run(&light, &leaves, &reads, &forward, n).unwrap();
+    for order in [&forward, &reversed, &shuffled] {
+        for chunk in [1, 7, 1_000] {
+            assert!(run(&light, &leaves, &reads, order, chunk).unwrap() == base);
+        }
+    }
+    let shaded = base.light.iter().filter(|&&l| l < ONE32).count();
+    let shed = base.reads.iter().filter(|r| r.1.shed).count();
+    assert!(
+        shaded > 0 && shed > 0 && shed < reads.len(),
+        "{shaded} {shed}"
+    );
+}
