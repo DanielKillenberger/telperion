@@ -23,10 +23,14 @@ impl Executor<'_> {
             items,
             counts,
             request,
+            finished,
+            marked,
             ..
         } = self;
         let (species, age, threads) = (coarse.species, request.age, coarse.threads);
-        coarse.mark();
+        if !marked {
+            coarse.mark();
+        }
         // A root that woke keeps what its bearer kept of it, as the
         // whole tree's mark sizes it.
         let mut held = vec![None; coarse.axes.len()];
@@ -46,11 +50,12 @@ impl Executor<'_> {
         for item in &items {
             coarse.draws[item.at].birth = item.g.draws[1].birth;
         }
-        let seats: Vec<(usize, usize)> = items
-            .iter()
-            .map(|i| (i.at, Made::of(&i.g.axes[1]).node))
+        let seats: Vec<(usize, usize)> = (finished.iter().map(|f| (f.at, f.node)))
+            .chain(items.iter().map(|i| (i.at, Made::of(&i.g.axes[1]).node)))
             .collect();
-        let grew: u64 = items.iter().map(|i| i.g.rules.grown).sum();
+        let grew: u64 = (finished.iter().map(|f| f.root.work.grown))
+            .chain(items.iter().map(|i| i.g.rules.grown))
+            .sum();
         let roots = crate::cores::pinned(items, ITEMS, threads, &|_, item| {
             let started = Instant::now();
             let mut g = item.g;
@@ -64,6 +69,9 @@ impl Executor<'_> {
             };
             Root::shed_grown(species, age, made, assigned, started)
         });
+        let roots: Vec<Root> = (finished.into_iter().map(|f| f.root))
+            .chain(roots)
+            .collect();
         let living = roots
             .iter()
             .map(|r| (r.living.lived, r.living.alive))

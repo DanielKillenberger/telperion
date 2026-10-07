@@ -29,6 +29,7 @@
 //! The tree is then assembled and settled as today's engine settles it.
 //! An experiment behind its own entry point: `grow` never builds one.
 mod assemble;
+mod buds;
 mod feedback;
 mod handover;
 mod lay;
@@ -156,18 +157,22 @@ fn run(
         Arc::new(move |pa, birth| predictor.count(pa, birth))
     });
     let mut x = Executor::new(coarse, (counts, cut, grouping), request, keep);
+    x.hand_buds();
     let mut years = Vec::with_capacity(request.age as usize);
     for cycle in 1..=request.age {
         let started = std::time::Instant::now();
         x.cycle(cycle, again(&mut device))?;
         years.push(started.elapsed().as_secs_f64());
     }
+    let started = std::time::Instant::now();
+    x.grow_buds()?;
     if keep != Keep::Tree {
         x.grown();
     }
-    let started = std::time::Instant::now();
-    let roots = x.items.len();
-    let fine_grown = x.items.iter().map(|i| i.g.rules.grown).sum();
+    let roots = x.items.len() + x.finished.len();
+    let fine_grown = (x.items.iter().map(|i| i.g.rules.grown))
+        .chain(x.finished.iter().map(|f| f.root.work.grown))
+        .sum();
     let coarse_grown = x.coarse.rules.grown;
     let phases = std::mem::take(&mut x.phases);
     let (states, lattices) = (
@@ -219,6 +224,10 @@ pub(super) struct Executor<'a> {
     pub due: Vec<Vec<usize>>,
     pub died: Vec<usize>,
     pub items_grown: u64,
+    /// The roots handed over as buds, grown and finished at the end, and
+    /// whether the structure above was marked for them.
+    pub finished: Vec<buds::Finished>,
+    pub marked: bool,
 }
 
 impl<'a> Executor<'a> {
@@ -247,6 +256,8 @@ impl<'a> Executor<'a> {
             due: vec![Vec::new(); request.age as usize + 2],
             died: Vec::new(),
             items_grown: 0,
+            finished: Vec::new(),
+            marked: false,
         }
     }
 
@@ -343,7 +354,8 @@ impl<'a> Executor<'a> {
             });
         }
         self.mark(cycle, 2);
-        if sketching || self.coarse.sketch.is_none() {
+        let buds = self.coarse.rules.hands.is_some();
+        if (sketching || self.coarse.sketch.is_none()) && !buds {
             self.hand_over(first_new, cycle + 1);
         }
         if sketching {
