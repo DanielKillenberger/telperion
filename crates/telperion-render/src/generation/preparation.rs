@@ -18,6 +18,8 @@ impl Generator {
         let mut uploaded_wood = None;
         let mut shared_stations = None;
         let mut early_wood_ms = 0.0;
+        // The curve the compact rings were read from, kept for the drawn wood.
+        let mut swept = None;
         // Ring positions have one reader, the seated leaves' contacts
         // (`pack.wgsl`): a family that seats nothing builds none (fn-212 R2).
         if delivery == Delivery::Resident
@@ -29,7 +31,8 @@ impl Generator {
             let mut candidate_stations = None;
             let mut station_ms = 0.0;
             let mut station_bytes = 0;
-            let compact = x.compact_with_contacts().and_then(|shared| {
+            let compact = x.curve_with_contacts().and_then(|(curve, shared)| {
+                swept = Some(curve);
                 metrics.shared_contact_cpu_bytes = shared.contact_bytes() as u64;
                 if shared.surface().qualified() {
                     let station_start = Clock::now();
@@ -220,7 +223,10 @@ impl Generator {
         // the reference mesh's wood beside it for consumers without a GPU.
         drop(uploaded_wood);
         let started = Clock::now();
-        let curve = x.curve()?;
+        let curve = match swept {
+            Some(curve) => curve,
+            None => x.curve()?,
+        };
         let wood = if delivery == Delivery::Cpu {
             x.wood()?
         } else {

@@ -139,6 +139,14 @@ impl Expansion {
         let s = &self.inputs.surface;
         surface::compact::prepare_with_contacts(&self.tree, s.height, &s.params)
     }
+    /// The wood as curves and its compact rings with contacts, read from
+    /// the one sweep (fn-212 R2).
+    pub fn curve_with_contacts(&self) -> Result<(Curve, CompactWithContacts<'_>)> {
+        let s = &self.inputs.surface;
+        let traced = surface::traced(&self.tree, s.height, &s.params)?;
+        let compact = surface::compact::with_contacts(&traced, &self.tree, s.height, &s.params)?;
+        Ok((traced.curve, compact))
+    }
     /// Stations tied to the compact rings' emitted vertices.
     pub fn compact_stations(
         &self,

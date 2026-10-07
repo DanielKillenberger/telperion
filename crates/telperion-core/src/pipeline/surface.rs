@@ -42,7 +42,7 @@ use build::*;
 #[cfg(feature = "geometry")]
 pub(crate) use build::{faces, Faces};
 #[cfg(feature = "geometry")]
-pub(crate) use curve::curve;
+pub(crate) use curve::{curve, traced};
 #[cfg(feature = "geometry")]
 pub use curve::{
     Curve, CurveCluster, CurvePoint, CurveRun, Demand, PackedPoint, Tessellation, CLUSTER_WORDS, SECTION_FLOATS, Viewer, Budget, RIBBON, SCALES, CLUSTER, LEVELS,
