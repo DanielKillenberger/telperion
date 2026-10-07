@@ -147,3 +147,20 @@ Each root runs ahead to its next synchronisation point: the next cycle at which 
 - For the lit oak, every cycle is a synchronisation point.
 - The schedule comes from what crosses, not from the species. It is the order of evaluation, not a second way of building.
 - The per-cycle growth digest is rebuilt from the counts each root recorded as it ran. The per-cycle probe (`examples/stepped.rs`, now with the unlit oak) holds every phase identical.
+
+## Host decision 2, amended (2026-10-08, fn-211 task 12): a handover is a root with whatever it has grown
+
+Decision 2 had the coarse grower grow each fine root in the cycle it is made, then hand it, and what it bore that cycle, to an item.
+
+As amended, a handover is a root with whatever it has grown so far, and when it goes over follows the schedule's one rule: what crosses decides.
+- **A root whose next synchronisation point is the tree's end is handed over at zero cycles: its bud.** This covers every root of a tree in which nothing crosses per cycle (the beech, the spruce, the unlit oak).
+  - The structure above hands the bud over as it is made (`Hands`, as fine growth's structure above the cut does) and never grows it.
+  - At the end, each root is grown from its bud, marked, assigned and shed on one core (`grow/stepped/buds.rs`).
+  - Its growth is counted cycle by cycle for the growth digest.
+- **A lit root is handed over grown, and steps on** with the structure above, as before.
+
+**The reason (TASK12.md):** the stepped executor built each root's grower on the main thread and grew it on the pool's, then marked, assigned and shed the roots in a second pass. The beech and spruce were 1.20 to 1.38 times today's build because of it. Grown from its bud on the core that finishes it, a root costs what fine growth's phase 1 costs.
+
+**What stays one:** the item at zero cycles is a bud because a woken root's kept share (what its bearer keeps of it at the tree's age) is known only at the end. A grower started from a woken bud carries that share, so it cannot be built before the end. The bud is the zero-cycle handover, and the grower is made from it where it is finished, on the same path as every root's phase 1 (`fine::Root`).
+
+**The order argument still holds:** each grower keeps the whole tree's living order restricted to it. A bud's grower is its root's alone, and the probe holds every phase identical.
