@@ -417,3 +417,25 @@ It would use the same grammar with paths of the engine's own `settings` names (f
 12. **Trunk ages** become a 0-1 weight per age, not a boolean, so blending presets changes the tree by degree (docs/principles.md); same follow-up.
 13. **The 25 ignored old-grower tests** stand until R0 removes the grower; no frozen fixture copies.
 14. `executor::expand` stays for the renderer's GPU tests on hand-built trees; no engine structure can reach it.
+
+## Task 4 (worker, 2026-10-07): what is built, and the GPU executor in stage 2, for the host
+
+**Built.**
+1. **F1 merged** (`8a1eafc1`, F1's tip `2975e8d5`). One conflict: F1 deleted `fine/executor.rs`, which this branch had moved to the engine's clock; F1's new stage clocks (`fine.rs`, `fine/realized.rs`, `fine/expansion.rs`, `fine/cases.rs`) were moved to `crate::clock` too (host decision 8). The engine crate differs from F1's tip only in those clocks. **Identical by lineage:** F1's own `examples/digests.rs` (32 trees: four species, 40 and 80, seeds 1 and 7, neutral and lit) prints F1's final digests and kept counts to the digit (`raw/task4/digests.txt` against F1's `raw/gpu-fast/digests-final.txt`). Stage 2 calls the same `telperion_space::grow`, so every engine preset's tree is F1's. Core and engine tests green after the merge (567 passed, 0 failed).
+2. **Host decision 15** (`f4c2ad12`): `telperion_space::expected_kept(species, age)`, the predictor's table at the seed, equal to the closed form's seed row to the bit (test), and stage 2 refuses a tree expected over 4,000,000 kept phytomers in Wasm before growth. A species whose buds read light gets none (see BROWSER.md, "Task 4": the light-neutral count would refuse the lit oak at 80, which builds).
+
+**Not built: stage 2 through `settle` with the GPU executor.** Two things stand in the way that the task's text does not decide, and one of them reverses a recorded decision.
+
+1. **Nothing downstream reads fine roots on the device.** Stage 3 and 4 (descriptors, wood, leaves) are CPU code over the converted `Tree`. The GPU executor ends in device buffers (host decision 5 of FINE-CONTRACT.md: F4 with fn-171 defines device-side readers; option (c), reading fine geometry back, was rejected). "The same tree either way, by lineage" in the pipeline therefore needs the roots read back into a `Structure`: no code does that today (`fine/readback.rs` reads topology and laid indices for the tests, not tips and radii). Size: the fine roots hold 1.37M of the beech's 1.60M kept phytomers at 80 and 3.08M of the spruce's 4.78M (`harness/fine_share.rs`).
+2. **The browser cannot block.** `settle` and `Roots` are synchronous, with 14 to 40 device round trips a tree; the GPU executor waits with `pollster::block_on` and `device.poll(wait)`, builds its tables and the reach rows on `std::thread::spawn`, and unwraps its reads. None of that runs in a browser's WebGPU. The whole GPU fine module is `#[cfg(test)]`; its region buffers take about 1.4 GB, whose fit under a browser's buffer limits is unknown.
+
+**Options.**
+- **(a) Read back, natively and in the browser.** The GPU executor's roots read back per phytomer (tip, radius, scale) and assembled as `grow_fine` assembles; `settle` and `Roots` made async (the CPU executor's futures ready at once), the threads replaced by in-turn work on wasm32, the reads made errors. Reverses decision 5's (c) until fn-171's readers land. Cost unmeasured; the readback is roughly 16 bytes a phytomer (50 MB for the spruce at 80) plus the assembly.
+- **(b) Read back natively only.** As (a) for `Generator::prepare` on a native device; the browser keeps the CPU executor until the driver is async. Smaller; the browser gains nothing.
+- **(c) Door (ii) proper: the device-side readers first.** `Grown` carries the structure above the cut and the roots' records; wood and leaves read fine roots from device buffers (fn-171's scope). No readback, the architecture the spec names; the largest piece of work.
+- **(d) Hold.** Stage 2 stays on the CPU `grow` (the partition on all cores natively, one core in Wasm) until fn-211's stepped executor and fn-171 land.
+
+**Also for the host.**
+- **The merge is slower on one core** (9 to 41 percent, the oak's unchanged path included; TIMING.md, "Task 4"), which is the browser's case: the harness's beech and oak at 80 build 7 and 25 percent slower than in task 3. Natively on all cores the beech and spruce grow twice as fast. Not profiled.
+- **The refusal's two counts.** The expectation is seed-free and runs up to 7 percent under the spruce's kept count, so at seed 42 the spruce at 71 and 72 still grows and is refused after growth (kept over 4,000,000), while 73 and older are refused before it. Options: keep both; raise the after-growth bound towards the measured trap edge (4.27M built, 4.48M trapped); or refuse on the expectation alone.
+- **The canonical sort** in stage 2 re-orders `grow`'s lineage order into (depth, identity) for 0.14 s at spruce 80; FINE-CONTRACT.md's decision C says fn-198 adopts F1's order, which would delete it and move the conversion's bytes.

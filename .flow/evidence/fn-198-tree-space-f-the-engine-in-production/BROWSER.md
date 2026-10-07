@@ -72,3 +72,21 @@ The two raises are on this branch only and are the owner's decision (`scripts/ar
 1. **Refuse before growth or after it.** Today the refusal follows growth (up to 8 s for the spruce at 80). Options: (a) keep it; (b) expose the closed form's expected kept count and refuse on it before growing, at the cost of the closed form's read and its approximation; (c) a per-preset browser age row, which docs/principles.md's "by degree" argues against.
 2. **The ceiling's margin.** 4,000,000 sits 6 percent under the largest tree measured to build (4.27M, the spruce at 73), so the spruce stops at 70 though 73 fits in a fresh page; it is measured on the spruce only, at one seed.
 3. **The slow second build** above, before the owner drives the spruce through its ages.
+
+## Task 4: after the F1 merge and the refusal before growth (2026-10-07 06:27, load 2.2 to 2.9)
+
+Task 3's driver and plans, fresh pages, one per species, `npm run dev`'s modules built at `fab45ab8`, the GPU lock held. Stage 2 in the browser is still the engine's CPU `grow` (the GPU executor is not in stage 2; INTEGRATION.md, "Task 4"). Raw: `raw/task4/harness-after.txt` and `drive-*.json`.
+
+| Tree | Seed change at 40, before / after ms | Age 40 to 80, before / after ms (stage 2) |
+|---|--:|--:|
+| European beech | 552 / 611 | 5,743 / 6,130 (2,668 / 3,234) |
+| Oregon white oak | 1,615 / 1,732 | 17,544 / 21,944 (15,104 / 19,469) |
+| Norway spruce | 4,834 / 5,720 | to 80: refused in 8,326 / **322**; to 70: 15,635 / 15,834 |
+| Date palm | 366 / 294 | 47 / 40 |
+
+- **The spruce at 80 is refused before it grows** (host decision 15): 322 ms from the dial to the error, against 8.3 s when it grew first. Its expected kept count at 80 is 4,653,767; the expectation reads no seed, so the spruce is refused from 73 at every seed (expected 4,005,921 at 73, 3,912,703 at 72). At seed 42 the after-growth rule still refuses it from 71 (kept 4,058,956), after growing it.
+- **Slower elsewhere by 6 to 25 percent:** Wasm grows on one thread, where the merged engine is slower than the base (TIMING.md, "Task 4"); the beech's partition gains nothing on one core.
+- The predictor is light-neutral: the lit oak keeps 27 to 64 percent of its expected count at 80 (expected 4,068,066, kept 1.10M to 2.59M at seeds 1, 7, 42; `raw/task4/kept-probe.txt`, probe `harness/kept_probe.rs`), so a species whose buds read light is held after growth only, as before. Otherwise the oak at 80 would be refused though it builds.
+- On the spruce the expectation runs 0 to 7 percent under the kept count (seed 42 highest); the after-growth refusal stays as the backstop for a tree kept above its expectation.
+
+Screenshots (all viewed): `raw/task4/beech-40.png` (seed 42), `beech-80.png` (seed 2), `oak-40.png`, `oak-80.png`, `spruce-40.png`, `spruce-70.png` (seed 2, the largest that fits), `spruce-80-refused.png` (the panel's error), `palm-40.png`, `palm-80.png`. Each reads as its species as in task 3; no tree is blank, collapsed or below the ground.

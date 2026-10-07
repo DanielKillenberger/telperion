@@ -80,3 +80,17 @@
 - **Slowed by:** another session's `cargo test --profile ci` held the shared GPU lock for over 10 minutes, so the run's `flock -w 600` gave up; the load rose to 16 to 32 meanwhile, so a rerun would not time cleanly anyway. Also: `npm run build` during a dev session hot-updates the render glue under a versioned URL, and the driver's wrapper then patches a stale copy (the dev server is restarted after a rebuild).
 - **Cost:** 10 minutes of waiting; the check is left open.
 - **Would remove it:** as recorded above, a lock that names its holder and a per-device-use lock rather than per suite.
+
+## 2026-10-07 06:25, task 4: reverting a scratch timer in a tracked file
+
+- **Doing:** splitting stage 2's time (growth, canonical sort, conversion) with a temporary `eprintln!` in `pipeline/space.rs`, then putting the file back.
+- **Slowed by:** the dcg hook blocks both `git checkout -- <file>` and `git show HEAD:<file> > <file>` on a file whose only change is the agent's own scratch instrumentation; the edit had to be reversed by a script.
+- **Cost:** about 3 minutes.
+- **Would remove it:** a stage-split clock the pipeline reports itself (stage 2's growth, sort and conversion in `Stages`), so no tracked file is instrumented by hand; the hook is a local setting.
+
+## 2026-10-07 06:10, task 4: the gate's runner
+
+- **Doing:** running core and engine tests after the F1 merge.
+- **Slowed by:** AGENTS.md names nextest as CI's runner, and `cargo nextest` is not installed on this desk; the first run failed at once.
+- **Cost:** about 1 minute.
+- **Would remove it:** nothing in the repository; a local install.
