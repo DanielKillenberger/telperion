@@ -1,5 +1,5 @@
 // fn-198 task 3: drives the dev harness headless, every step under a timeout.
-//   node drive.mjs <base-url> <out-dir> <plan.json>
+//   node drive.mjs <base-url> <out-dir> <plan.json | inline JSON>
 // A plan is a list of steps: {open: "?species=..&age=.."} | {age: 80} |
 // {preset: "silver birch"} | {shot: "name.png"}. After each open, age or
 // preset it waits for the build that step started to settle, and records
@@ -8,7 +8,7 @@ import { chromium } from 'playwright';
 import { readFile, writeFile } from 'node:fs/promises';
 
 const [base, out, planPath] = process.argv.slice(2);
-const plan = JSON.parse(await readFile(planPath, 'utf8'));
+const plan = JSON.parse(planPath.startsWith('[') ? planPath : await readFile(planPath, 'utf8'));
 const STEP_MS = Number(process.env.STEP_MS ?? 120000);
 const browser = await chromium.launch({
   executablePath: '/usr/bin/chromium', headless: true, timeout: 30000,
@@ -21,7 +21,12 @@ const browser = await chromium.launch({
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 page.setDefaultTimeout(STEP_MS);
 const errors = [];
-page.on('pageerror', (e) => errors.push(String(e)));
+/* A Wasm trap leaves the build's promise unsettled, so a trap ends the
+   wait at once rather than at the step's timeout. */
+let trap = () => {};
+const trapped = new Promise((_, reject) => { trap = reject; });
+trapped.catch(() => {});
+page.on('pageerror', (e) => { errors.push(String(e)); if (/unreachable|RuntimeError/.test(String(e))) trap(new Error(`trap: ${e}`)); });
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 page.on('crash', () => errors.push('page crashed'));
 await page.addInitScript(() => { window.__qa = { calls: [] }; });
@@ -51,11 +56,11 @@ QaRenderer.prototype.setTreeGpu = async function (family) {
 });
 
 const settle = async (count, changed) => {
-  await page.waitForFunction((n) => {
+  await Promise.race([trapped, page.waitForFunction((n) => {
     const c = window.__qa.calls;
     const last = c.at(-1);
     return c.length > n && last && (last.error !== undefined || last.drawn !== undefined);
-  }, count, { timeout: STEP_MS });
+  }, count, { timeout: STEP_MS })]);
   await page.waitForTimeout(400);
   const calls = await page.evaluate(() => window.__qa.calls);
   const last = calls.at(-1);
@@ -92,6 +97,10 @@ try {
       const changed = await page.evaluate(() => performance.now());
       await page.getByRole('button', { name: step.preset, exact: true }).click();
       log.push({ step, ...(await settle(count, changed)) });
+    } else if (step.panel !== undefined) {
+      await page.evaluate(() => document.querySelector('.gd-panel').scrollTo(0, 0));
+      await page.screenshot({ path: `${out}/${step.panel}`, timeout: 30000 });
+      log.push({ step });
     } else if (step.shot !== undefined) {
       await page.evaluate(() => [...document.querySelectorAll('button')]
         .find((b) => b.textContent.trim() === 'reframe').click());

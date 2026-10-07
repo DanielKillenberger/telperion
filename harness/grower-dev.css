@@ -18,6 +18,10 @@
   touch-action: none;
 }
 
+.gd-refused {
+  visibility: hidden;
+}
+
 /* The panel is bounded by the window and scrolls inside it. It carries
    thirty-odd dials now and it grew past the bottom of the viewport
    without one, which hides the terms at the end of the list - the

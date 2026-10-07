@@ -60,6 +60,10 @@ export function GrowerDev() {
 
   const [ready, setReady] = useState(false);
   const [buildError, setBuildError] = useState<string | null>(null);
+  /* A build that failed - a preset with no engine species, a tree over
+     the browser's memory - shows its error instead of a tree: the tree
+     still on the canvas is not the one asked for. */
+  const [refused, setRefused] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
 
   /* One device per canvas, for the canvas's whole life. React's
@@ -153,14 +157,15 @@ export function GrowerDev() {
       try {
         cancelBuild = builds?.submit(params, (submitted) => {
           setBuildError(null);
+          setRefused(false);
           setStats(submitted);
           lastBuildMs.current = submitted.buildMs;
           stage?.frameIfWaiting();
-        }, (error) => setBuildError(String(error)));
+        }, (error) => { setBuildError(String(error)); setRefused(true); });
       } catch (error) {
-        /* The generator's or the renderer's own words. Nothing was
-           replaced, so the tree already on the canvas stays where it is
-           beside the message. */
+        /* The panel's own words, before any build: nothing was asked of
+           the generator, so the tree already on the canvas stays where it
+           is beside the message. */
         setBuildError(String(error));
       }
     };
@@ -274,7 +279,7 @@ export function GrowerDev() {
 
   return (
     <div className="gd">
-      <canvas className="gd-canvas" ref={canvasRef} />
+      <canvas className={refused ? "gd-canvas gd-refused" : "gd-canvas"} ref={canvasRef} />
 
       <aside className="gd-panel">
         <h1 className="gd-title">grower</h1>

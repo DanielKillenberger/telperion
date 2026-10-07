@@ -19,6 +19,19 @@ use telperion_space::{Axis, Origin, Request, Structure};
 /// bound no shipped species reaches at the harness's ages (the tree-space
 /// examples' still runner, fn-193; the spruce at 80 grows 4.8M).
 const BUDGET: u32 = 20_000_000;
+/// The most phytomers a tree may keep where the pipeline runs in 32-bit
+/// Wasm, so its CPU preparation fits the 4 GB Wasm memory and a tree too
+/// large is refused by name, never a trap (fn-198 host decision 5). Measured
+/// in the harness at seed 42 (task 3, BROWSER.md): the spruce at 73 keeps
+/// 4.27M and builds, at 75 it keeps 4.48M and traps; the bound leaves the
+/// slack a page's earlier trees and other seeds take. fn-209's fine path
+/// lifts it.
+const WASM_KEPT: usize = 4_000_000;
+const KEPT: Option<usize> = if cfg!(target_arch = "wasm32") {
+    Some(WASM_KEPT)
+} else {
+    None
+};
 /// Where fine wood begins, as a share of the root's radius: the fine-wood
 /// measure of the pinned baseline (fn-190, BASELINE.md).
 const STRUCTURAL: f64 = 0.05;
@@ -57,7 +70,21 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
             value: e.to_string(),
         },
     })?;
+    fits(&structure, KEPT)?;
     Ok(convert(&canonical(structure)?, &input.space.trunk))
+}
+
+/// Refuses a grown tree that keeps more phytomers than `ceiling`, before
+/// any of its preparation is allocated.
+fn fits(structure: &Structure, ceiling: Option<usize>) -> Result<()> {
+    let kept: usize = structure.axes.iter().map(|a| a.phytomers.len()).sum();
+    match ceiling {
+        Some(most) if kept > most => Err(Error::ResourceLimit(
+            "the tree keeps more than 4,000,000 phytomers, more than a browser \
+             prepares in its 4 GB Wasm memory; grow it younger",
+        )),
+        _ => Ok(()),
+    }
 }
 
 /// The grown structure in one canonical axis order, parents first and

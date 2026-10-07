@@ -66,3 +66,10 @@
 - **Slowed by:** the repository's browser scripts all launch Chromium with `headless: false` (a window on the owner's desktop); headless with their flags offers only SwiftShader, which the stage refuses. Native Vulkan with ANGLE on it (`--enable-features=Vulkan,VulkanFromANGLE,DefaultANGLEVulkan --use-vulkan=native --disable-vulkan-surface`) gives the NVIDIA adapter, but the page's first adapter request comes back empty before the GPU process is up (the panel's "retry build" then succeeds), and a headless page screenshot does not carry the WebGPU canvas (it is read with `toDataURL` in the frame it is drawn in).
 - **Cost:** about 12 minutes and five short runs.
 - **Would remove it:** one checked-in headless driver for the harness with these flags, the retry and the in-frame canvas read (this task's `harness/drive.mjs` is a start), named in docs so no worker rediscovers them.
+
+## 2026-10-07 05:35, task 3: a Wasm trap hangs the harness; the GPU shared outside the lock
+
+- **Doing:** finding the spruce's ceiling age in the browser, and driving the beech to 80 after the other species in one page.
+- **Slowed by:** a Wasm trap (`RuntimeError: unreachable`, the spruce at 75 and 80) leaves `setTreeGpu`'s promise unsettled, so the panel says "building..." for ever; a driver without its own timeout waits for ever, which is most likely the previous worker's three-hour stall. Separately, the beech at 80 was refused "Out of Memory" by the GPU while another worktree's `telperion_render` test held 4.7 GB of the 10 GB card with the shared lock free.
+- **Cost:** two 150-second waits on traps before the driver failed fast on a page error; one beech-at-80 run to repeat.
+- **Would remove it:** the driver now ends a step on a trap at once. A GPU test outside the lock is a lock-discipline gap; a lock that GPU tests take by construction (a test harness wrapper) would close it.
