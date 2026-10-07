@@ -41,6 +41,7 @@ mod shed;
 mod species;
 mod spruce;
 mod structure;
+mod transcendental;
 mod upward;
 
 pub use alone::{field_probe, grow_alone, grow_alone_with, Alone, ChainCost, FieldProbe};
@@ -75,3 +76,4 @@ pub use species::{
 };
 pub use spruce::spruce;
 pub use structure::{Axis, CountTable, Origin, Phytomer, Structure, Vec3};
+pub use transcendental::Transcendental;

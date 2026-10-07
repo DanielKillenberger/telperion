@@ -6,6 +6,7 @@
 //! decides how far up the zone it stands. Every other place and every
 //! sleeping bud stands at a node of no preferred rank.
 use crate::species::{NodeLaw, MAX_NODES_PER_ZONE};
+use crate::transcendental::Transcendental;
 
 /// A length along an axis: its mean and its mean square.
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -155,7 +156,7 @@ pub(crate) fn dominance_power(d: f64, p: f64) -> f64 {
         return 1.0;
     }
     const STEPS: usize = 256;
-    let f = |u: f64| (1.0 - d * (1.0 - u.powi(4))).powf(p);
+    let f = |u: f64| (1.0 - d * (1.0 - u.powi(4))).powf_fixed(p);
     let h = 1.0 / STEPS as f64;
     let mut sum = f(0.0) + f(1.0);
     for i in 1..STEPS {
@@ -188,7 +189,7 @@ impl Count {
                     .collect()
             }
             NodeLaw::Poisson { mean } => {
-                let mut out = vec![(-mean).exp()];
+                let mut out = vec![(-mean).exp_fixed()];
                 let mut total = out[0];
                 let mut n = 0u32;
                 while total < 1.0 - 1e-15 && n < MAX_NODES_PER_ZONE {

@@ -2,6 +2,7 @@
 //! shoulder whose outline holds every node of the crown, on the pinned
 //! transcendentals of the outline the cull reads (`quadrant`).
 use crate::envelope::quadrant;
+use crate::math::Transcendental;
 use crate::tree::Node;
 
 /// The shoulders searched, from nearly a cone's point to nearly a
@@ -49,7 +50,7 @@ fn front(nodes: &[Node], [base, height, radius, fullness]: [f64; 4]) -> Vec<(f64
         return Vec::new();
     }
     let points = nodes.iter().filter_map(|n| {
-        let (y, reach) = (n.position.y, n.position.x.hypot(n.position.z));
+        let (y, reach) = (n.position.y, n.position.x.hypot_fixed(n.position.z));
         if y <= base || y >= height || reach <= 0.0 {
             return None;
         }

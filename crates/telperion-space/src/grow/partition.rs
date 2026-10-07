@@ -31,6 +31,7 @@ use crate::fixed::sum::Sum;
 use crate::light::Field;
 use crate::species::Species;
 use crate::structure::{Structure, Vec3};
+use crate::transcendental::Transcendental;
 use std::collections::HashMap;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
@@ -238,7 +239,7 @@ impl Grower<'_> {
             .map(|i| {
                 let mut v = vec![0.0; 2 * pas];
                 v[2 * pa[i]] = presence[i];
-                v[2 * pa[i] + 1] = (got[i] / presence[i]).powf(psi[i]) * presence[i];
+                v[2 * pa[i] + 1] = (got[i] / presence[i]).powf_fixed(psi[i]) * presence[i];
                 (i, v)
             })
             .collect();
@@ -293,7 +294,7 @@ impl Grower<'_> {
             let state = &species.states[axis.pa];
             for p in &axis.phytomers {
                 let pipe = crate::girth::own(&state.form, p, tree.age, p.scale, 1.0);
-                terms.push((i, vec![pipe, pipe * p.light.powf(state.leaf_girth)]));
+                terms.push((i, vec![pipe, pipe * p.light.powf_fixed(state.leaf_girth)]));
             }
         }
         let whole: Vec<_> = terms.iter().map(|(_, v)| (None, v.clone())).collect();

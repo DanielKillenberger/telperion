@@ -14,6 +14,7 @@ use super::sketch::Rows;
 use super::Grower;
 use crate::allocation::TIP;
 use crate::lineage::{above, Key, SHED};
+use crate::transcendental::Transcendental;
 
 /// The share of last year's remembered balance kept each year: a
 /// half-life of a year. An estimate, unsourced.
@@ -135,7 +136,7 @@ impl Grower<'_> {
             if hazard <= 0.0 {
                 continue;
             }
-            let p = -(-hazard).exp_m1();
+            let p = -(-hazard).exp_m1_fixed();
             let d = Key(self.axes[i].lineage)
                 .child(SHED)
                 .child(u64::from(cycle))

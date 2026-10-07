@@ -4,6 +4,7 @@
 //! under light from overhead (Letort et al., eq. 1), the sky's shares, and
 //! the neutral and by-degree contracts.
 use super::*;
+use crate::transcendental::Transcendental;
 
 const K: f64 = 0.5;
 
@@ -69,7 +70,7 @@ fn a_leaf_slab_transmits_exp_of_minus_k_l_along_every_direction() {
         for k in 0..=8 {
             let at = Vec3::new(0.0, 0.0, f64::from(k) * CELL);
             let lai = density * (top - at.z);
-            let expected = (-K * lai / toward.z).exp();
+            let expected = (-K * lai / toward.z).exp_fixed();
             let got = f.at(at);
             assert!(
                 (got / expected - 1.0).abs() < 1e-9,
@@ -109,7 +110,7 @@ fn a_leaf_sphere_transmits_exp_of_minus_k_rho_chord() {
         let f = field(&leaves, &reads, &one(toward));
         for &p in &reads {
             let expected = K * density * chord(p, centre, radius, toward);
-            let got = -f.at(p).ln();
+            let got = -f.at(p).ln_fixed();
             worst = worst.max((got - expected).abs());
             assert!(
                 (got - expected).abs() < tolerance,
@@ -137,13 +138,13 @@ fn an_even_crown_gathers_greenlabs_production_from_overhead() {
             Vec3::new(0.0, 0.0, high) + corner,
             density,
             4,
-            |p| p.x.hypot(p.y) < radius,
+            |p| p.x.hypot_fixed(p.y) < radius,
         );
         let f = field(&leaves, &[], &one(Vec3::new(0.0, 0.0, 1.0)));
         let gathered: f64 = leaves.iter().map(|&(p, a)| K * a * f.at(p)).sum();
         let projected = std::f64::consts::PI * radius * radius;
         let area: f64 = leaves.iter().map(|l| l.1).sum();
-        let expected = projected * (1.0 - (-K * area / projected).exp());
+        let expected = projected * (1.0 - (-K * area / projected).exp_fixed());
         (gathered / expected - 1.0).abs()
     };
     let (narrow, wide) = (error(5.0), error(10.0));
@@ -168,13 +169,13 @@ fn the_skys_shares_follow_their_radiance_laws() {
             (0..m)
                 .map(|i| {
                     let e = a + (f64::from(i) + 0.5) * h;
-                    radiance(e) * e.sin() * e.cos() * h
+                    radiance(e) * e.sin_fixed() * e.cos_fixed() * h
                 })
                 .sum::<f64>()
         };
         total(from.to_radians(), to.to_radians(), h) / total(0.0, 90f64.to_radians(), h)
     };
-    let laws: [(f64, fn(f64) -> f64); 2] = [(0.5, |e| 1.0 + 2.0 * e.sin()), (1.0, |_| 1.0)];
+    let laws: [(f64, fn(f64) -> f64); 2] = [(0.5, |e| 1.0 + 2.0 * e.sin_fixed()), (1.0, |_| 1.0)];
     for (sky, radiance) in laws {
         let d = Light { extinction: K, sky }.directions();
         let band = |from: usize, to: usize| d[from..to].iter().map(|x| x.1).sum::<f64>();

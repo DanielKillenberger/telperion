@@ -9,6 +9,7 @@ use super::events::Event;
 use crate::dormant::{First, Living};
 use crate::schedule::Carried;
 use crate::species::{Species, ALONG};
+use crate::transcendental::Transcendental;
 
 /// A relay a stop leaves: the cycle offset it is made in (its first unit
 /// grows in the next), what it carries, its unconditional chance, and the
@@ -243,7 +244,7 @@ fn steps_to(
 /// A survival over a share of a cycle: to the share, itself whole.
 pub(super) fn shared(p: f64, share: f64) -> f64 {
     if share < 1.0 {
-        p.powf(share)
+        p.powf_fixed(share)
     } else {
         p
     }

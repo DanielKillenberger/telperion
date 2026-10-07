@@ -5,6 +5,7 @@ use crate::lineage::Key;
 use crate::sag::{held, torque, turn, Lever};
 use crate::species::PaState;
 use crate::structure::{Axis, Phytomer, Vec3};
+use crate::transcendental::Transcendental;
 use std::f64::consts::{FRAC_PI_2, PI, TAU};
 
 /// The height, in the wood's own radii, below which it eases onto the
@@ -145,7 +146,7 @@ impl Layer {
             self.curve,
         );
         let length = state.internode * phytomer.scale;
-        let share = 1.0 - (-form.tropism * length).exp();
+        let share = 1.0 - (-form.tropism * length).exp_fixed();
         let bent = toward_elevation(running, across, form.elevation, share);
         across = carried(across, running, bent);
         curve = carried(curve, running, bent);
@@ -156,7 +157,7 @@ impl Layer {
             let key = Key(phytomer.key).child(WANDER);
             let draw = form.wander * (2.0 * key.child(0).unit() - 1.0);
             let azimuth = TAU * key.child(1).unit();
-            let pivot = across * azimuth.cos() + running.cross(across) * azimuth.sin();
+            let pivot = across * azimuth.cos_fixed() + running.cross(across) * azimuth.sin_fixed();
             (key, draw, pivot)
         });
         if form.bend_length > 0.0 {
@@ -164,7 +165,7 @@ impl Layer {
             // the node's draw, its stationary spread the draw's; the turn
             // is the curvature over the internode (fn-207). An inherited
             // curvature relaxes on without wander.
-            let keep = (-length / form.bend_length).exp();
+            let keep = (-length / form.bend_length).exp_fixed();
             curve = curve * keep;
             if let Some((_, draw, pivot)) = kick {
                 curve = curve + pivot * (draw * (1.0 - keep * keep).sqrt());
@@ -219,7 +220,7 @@ impl Layer {
                 // straight up the room shrinks again, to none at the
                 // angle's cut, so no side of the cut turns it.
                 let square = running - pivot * running.dot(pivot);
-                let room = square.cross(DOWN).dot(pivot).atan2(square.dot(DOWN));
+                let room = square.cross(DOWN).dot(pivot).atan2_fixed(square.dot(DOWN));
                 let room = if room < -FRAC_PI_2 { room + TAU } else { room };
                 let room = if room > PI {
                     2.0 * (1.5 * PI - room)
@@ -359,7 +360,7 @@ pub(super) fn toward_elevation(direction: Vec3, side: Vec3, elevation: f64, shar
     }
     let level = |v: Vec3| Vec3::new(v.x, v.y, 0.0).unit();
     let lean = Vec3::new(direction.x, direction.y, 0.0).length();
-    let cone = DOWNWARD.sin();
+    let cone = DOWNWARD.sin_fixed();
     let share = if direction.z < 0.0 && lean < cone {
         share * lean / cone
     } else {
@@ -368,9 +369,9 @@ pub(super) fn toward_elevation(direction: Vec3, side: Vec3, elevation: f64, shar
     let Some(out) = level(direction).or_else(|| level(side)) else {
         return direction;
     };
-    let now = direction.z.clamp(-1.0, 1.0).asin();
+    let now = direction.z.clamp(-1.0, 1.0).asin_fixed();
     let to = now + (elevation - now) * share;
-    out * to.cos() + UP * to.sin()
+    out * to.cos_fixed() + UP * to.sin_fixed()
 }
 
 /// `v` carried by the rotation that takes the frame of unit `heading` and
@@ -390,13 +391,13 @@ fn carried(v: Vec3, from: Vec3, to: Vec3) -> Vec3 {
     let axis = from.cross(to);
     let sin = axis.length();
     match axis.unit() {
-        Some(pivot) => rotated(v, pivot, sin.atan2(from.dot(to))),
+        Some(pivot) => rotated(v, pivot, sin.atan2_fixed(from.dot(to))),
         None => v,
     }
 }
 
 /// `v` rotated by `angle` about the unit `pivot` (Rodrigues).
 pub(super) fn rotated(v: Vec3, pivot: Vec3, angle: f64) -> Vec3 {
-    let (sin, cos) = angle.sin_cos();
+    let (sin, cos) = angle.sin_cos_fixed();
     v * cos + pivot.cross(v) * sin + pivot * (pivot.dot(v) * (1.0 - cos))
 }

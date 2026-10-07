@@ -11,6 +11,7 @@ use crate::closed_form::kept::section::delta;
 use crate::girth::Disused;
 use crate::sag::Borne;
 use crate::structure::Vec3;
+use crate::transcendental::Transcendental;
 
 /// The pass's last field before the tree's last cycle (the light tool,
 /// fn-211.4): its leaves, marked where a stand-in cast them, and its
@@ -129,7 +130,7 @@ impl Grower<'_> {
                 pipes.push(Disused {
                     axis: bearer,
                     node: Some(node),
-                    radius: section.powf(1.0 / e),
+                    radius: section.powf_fixed(1.0 / e),
                     share: 1.0,
                 });
             }
@@ -142,7 +143,7 @@ impl Grower<'_> {
 /// retained share of its shed pipes included (`Bounded::handed`).
 fn handed(row: &Row, s: f64, e: f64, retained: f64) -> f64 {
     let (ec, k) = (row.e, row.kept);
-    let (p1, p2) = (s.powf(ec), s.powf(2.0 * ec));
+    let (p1, p2) = (s.powf_fixed(ec), s.powf_fixed(2.0 * ec));
     let r = e / ec;
     let kept = delta(k, row.s1 * p1, row.s2 * p2, r);
     if retained <= 0.0 {

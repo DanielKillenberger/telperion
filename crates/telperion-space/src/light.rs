@@ -15,6 +15,7 @@ use crate::error::{refuse, Result};
 use crate::fixed::sum::Sum;
 use crate::species::Species;
 use crate::structure::{Structure, Vec3};
+use crate::transcendental::Transcendental;
 
 /// The lattice's spacing in metres.
 pub(crate) const CELL: f64 = 0.5;
@@ -87,7 +88,11 @@ impl Light {
             let (e, share) = (elevation.to_radians(), blend(ring + 1) / 4.0);
             for k in 0..4 {
                 let a = (turn + 90.0 * f64::from(k)).to_radians();
-                let toward = Vec3::new(e.cos() * a.cos(), e.cos() * a.sin(), e.sin());
+                let toward = Vec3::new(
+                    e.cos_fixed() * a.cos_fixed(),
+                    e.cos_fixed() * a.sin_fixed(),
+                    e.sin_fixed(),
+                );
                 out.push((toward, share));
             }
         }
@@ -148,14 +153,14 @@ fn bands(gathered: fn(f64) -> f64) -> [f64; 3] {
 /// A uniform sky's light on a level surface from below elevation `e`:
 /// the integral of sin e cos e, normalised.
 fn uniform(e: f64) -> f64 {
-    e.sin().powi(2)
+    e.sin_fixed().powi(2)
 }
 
 /// The standard overcast sky's (radiance as 1 + 2 sin e): the integral of
 /// (1 + 2 sin e) sin e cos e, sin^2 e / 2 + 2 sin^3 e / 3, normalised by
 /// its value overhead, 7 / 6.
 fn standard(e: f64) -> f64 {
-    let s = e.sin();
+    let s = e.sin_fixed();
     (s * s / 2.0 + 2.0 * s.powi(3) / 3.0) / (7.0 / 6.0)
 }
 
@@ -335,7 +340,7 @@ impl Field {
             }
             let lit = &mut light[k * layer..(k + 1) * layer];
             for (l, &d) in lit.iter_mut().zip(&depth) {
-                *l = share * (-d).exp();
+                *l = share * (-d).exp_fixed();
             }
             std::mem::swap(&mut above_depth, &mut depth);
         }

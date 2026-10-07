@@ -17,6 +17,7 @@ use crate::cores::fill;
 use crate::geometry::Layer;
 use crate::light::{Field, Light};
 use crate::structure::{Origin, Vec3};
+use crate::transcendental::Transcendental;
 
 /// The axes in a piece of the gathering of rows.
 const ROWS: usize = 1 << 15;
@@ -290,7 +291,7 @@ fn read_sizes(
 ) -> Vec<f64> {
     (0..got.len())
         .map(|i| match (presence[i] > 0.0, factor(pa[i])) {
-            (true, Some([t, w])) => (got[i] / presence[i]).powf(psi[i]) * t / w,
+            (true, Some([t, w])) => (got[i] / presence[i]).powf_fixed(psi[i]) * t / w,
             _ => 1.0,
         })
         .collect()

@@ -9,6 +9,7 @@ use crate::grow::alone;
 use crate::grow::realized::{above, Hands};
 use crate::lineage::{bud, nodes, threshold, Draw, Key, ONE, VIABILITY};
 use crate::species::NodeLaw;
+use crate::transcendental::Transcendental;
 
 fn real(bits: u64) -> f64 {
     bits as f64 / ONE as f64
@@ -53,7 +54,7 @@ fn a_node_count_at_its_law_s_bound_counts_the_node() {
     assert_eq!(leads.len(), 1);
     // The Poisson law's first bound, P(N = 0) = e^-mean.
     let law = NodeLaw::Poisson { mean: 1.7 };
-    let first = threshold((-1.7f64).exp());
+    let first = threshold((-1.7f64).exp_fixed());
     nodes(law, Draw(first - 1), 8, &mut leads);
     assert_eq!(leads.len(), 0);
     nodes(law, Draw(first), 8, &mut leads);

@@ -15,6 +15,7 @@ use crate::geometry::support;
 use crate::girth::ripe;
 use crate::species::Species;
 use crate::structure::{Origin, Structure, Vec3};
+use crate::transcendental::Transcendental;
 use crate::upward::Tree;
 use std::f64::consts::PI;
 
@@ -284,15 +285,17 @@ pub(crate) fn turn(lever: Vec3, cap: f64, sag: f64, radius: f64, length: f64) ->
         return 0.0;
     }
     let c = sag / radius.powi(4);
-    let start = (-lever.z / reach).clamp(-1.0, 1.0).acos();
-    let low = (cap / reach).min(1.0).asin();
+    let start = (-lever.z / reach).clamp(-1.0, 1.0).acos_fixed();
+    let low = (cap / reach).min(1.0).asin_fixed();
     let high = PI - low;
-    let settle = |fall: f64, s: f64| 2.0 * ((fall / 2.0).tan() * (-c * reach * s).exp()).atan();
+    let settle = |fall: f64, s: f64| {
+        2.0 * ((fall / 2.0).tan_fixed() * (-c * reach * s).exp_fixed()).atan_fixed()
+    };
     let (mut fall, mut left) = (start, length);
     // Near upright the turned lever is the smaller, until its moment
     // reaches the cap.
     if fall > high {
-        let s = ((fall / 2.0).tan() / (high / 2.0).tan()).ln() / (c * reach);
+        let s = ((fall / 2.0).tan_fixed() / (high / 2.0).tan_fixed()).ln_fixed() / (c * reach);
         if s >= left {
             return start - settle(fall, left);
         }

@@ -1387,7 +1387,6 @@ name = "telperion-core"
 version = "0.1.0"
 dependencies = [
  "bincode",
- "libm",
  "serde",
  "serde_json",
  "slotmap",
@@ -1439,6 +1438,7 @@ dependencies = [
 name = "telperion-space"
 version = "0.1.0"
 dependencies = [
+ "libm",
  "rayon",
  "serde_json",
 ]

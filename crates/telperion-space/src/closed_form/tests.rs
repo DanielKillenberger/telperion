@@ -2,6 +2,7 @@
 //! expected counts.
 use super::{expected_counts, expected_log_lengths};
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
+use crate::transcendental::Transcendental;
 
 /// The expected length is the expected counts weighted by internode,
 /// with every setting away from neutral but two that count what weighs
@@ -65,7 +66,7 @@ fn the_expected_length_weighs_the_expected_counts() {
     };
     let counts = expected_counts(&species, 7).unwrap();
     let weighed = counts.total(0) * 0.7 + counts.total(1) * 0.3;
-    let length = expected_log_lengths(&species, 7)[7][0].exp();
+    let length = expected_log_lengths(&species, 7)[7][0].exp_fixed();
     assert!(
         (length - weighed).abs() < 1e-9 * weighed,
         "{length} vs {weighed}"

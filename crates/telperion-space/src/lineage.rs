@@ -5,6 +5,7 @@
 //! grows its element in by.
 use crate::fixed::{self, decide};
 use crate::species::NodeLaw;
+use crate::transcendental::Transcendental;
 
 /// The draws of one growth unit, under its unit key.
 pub(crate) const VIABILITY: u64 = 0;
@@ -111,7 +112,7 @@ impl Draw {
 }
 
 fn logit(p: f64) -> f64 {
-    (p / (1.0 - p)).ln()
+    (p / (1.0 - p)).ln_fixed()
 }
 
 /// How far, in log-odds, a draw `u` lies above the `bound` it must reach.
@@ -215,7 +216,7 @@ fn walk(law: NodeLaw, d: Draw, cap: u32, mut node: impl FnMut(Past)) {
         }
         NodeLaw::Poisson { mean } => {
             // Node k stands while u lies above P(count <= k).
-            let mut mass = (-mean).exp();
+            let mut mass = (-mean).exp_fixed();
             let mut cumulative = mass;
             let mut k = 0u32;
             while !d.under(cumulative) && k < cap {

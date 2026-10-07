@@ -8,6 +8,7 @@
 //! the balance, the allocation and the light as its subtree would, and
 //! its records are written; in the full re-lays it stands with its
 //! expected section and load (`couple/stand.rs`).
+use crate::transcendental::Transcendental;
 mod stand;
 
 use super::sketch::Sketch;
@@ -249,7 +250,7 @@ impl Grower<'_> {
         let mut acc = vec![[Sum::default(); 2]; pas];
         for i in (0..got.len()).filter(|&i| presence[i] > 0.0) {
             acc[pa[i]][0].add(presence[i]);
-            acc[pa[i]][1].add((got[i] / presence[i]).powf(psi[i]) * presence[i]);
+            acc[pa[i]][1].add((got[i] / presence[i]).powf_fixed(psi[i]) * presence[i]);
         }
         let value = |acc: &[[Sum; 2]]| -> Vec<[f64; 2]> {
             acc.iter().map(|[t, w]| [t.value(), w.value()]).collect()
@@ -275,7 +276,7 @@ impl Grower<'_> {
             f.agg.living_by_pa(f.scale * p.kept, &mut by_pa);
             for (g, &pg) in by_pa.iter().enumerate().filter(|(_, &pg)| pg > 0.0) {
                 acc[g][0].add(pg);
-                acc[g][1].add(f.ratio.powf(species.states[g].shade_size) * pg);
+                acc[g][1].add(f.ratio.powf_fixed(species.states[g].shade_size) * pg);
             }
         }
         let sums = value(&acc);
@@ -315,7 +316,7 @@ impl Grower<'_> {
                     .zip(&means)
                     .map(|(s, m)| match s.shade_size {
                         0.0 => 1.0,
-                        psi => f.ratio.powf(psi) / m,
+                        psi => f.ratio.powf_fixed(psi) / m,
                     })
                     .collect();
                 let at = Inputs {

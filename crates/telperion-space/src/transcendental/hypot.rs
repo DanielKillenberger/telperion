@@ -50,7 +50,25 @@ pub(super) fn hypot(x: f64, y: f64) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::hypot;
-    use crate::rng::Rng;
+
+    /// The core's test generator (`telperion_core::rng`), so the cases are
+    /// the ones this test ran on there.
+    struct Rng(u32);
+    impl Rng {
+        fn new(seed: u32) -> Self {
+            Self(seed)
+        }
+        fn next_u32(&mut self) -> u32 {
+            self.0 = self.0.wrapping_add(0x9e3779b9);
+            let mut z = self.0;
+            z = (z ^ (z >> 16)).wrapping_mul(0x21f0aaad);
+            z = (z ^ (z >> 15)).wrapping_mul(0x735a2d97);
+            z ^ (z >> 15)
+        }
+        fn range(&mut self, min: f64, max: f64) -> f64 {
+            min + (max - min) * (self.next_u32() as f64 / 4294967296.0)
+        }
+    }
 
     #[test]
     fn matches_the_pinned_libm_to_the_bit() {

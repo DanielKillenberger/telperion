@@ -8,6 +8,7 @@
 //! proportion to light, so each bud's vigour is its own light's share of
 //! the tree's: the split is unbiased. Every sum is of presence-weighted
 //! light, and no bud is excluded by a threshold.
+use crate::transcendental::Transcendental;
 
 /// Where an axis stands on its bearer: its parent's index and the node it
 /// grows from, `TIP` where it carries the parent on (none for the root).
@@ -139,7 +140,7 @@ pub(crate) fn sizes(vigour: &[f64], presence: &[f64], psi: &[f64], group: &[usiz
 /// A bud's (v/p)^ψ; whole where it has no presence.
 fn drawn(vigour: f64, presence: f64, psi: f64) -> f64 {
     if presence > 0.0 {
-        (vigour / presence).powf(psi)
+        (vigour / presence).powf_fixed(psi)
     } else {
         1.0
     }

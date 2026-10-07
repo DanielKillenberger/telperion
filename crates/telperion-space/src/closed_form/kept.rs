@@ -37,6 +37,7 @@ use crate::memo::Memo;
 use crate::presence::Windows;
 use crate::schedule::Carried;
 use crate::species::Species;
+use crate::transcendental::Transcendental;
 use std::rc::Rc;
 
 mod bound;
@@ -247,7 +248,7 @@ impl<'a> Kept<'a> {
         let b = table
             .b
             .iter()
-            .map(|b| std::array::from_fn(|q| b[q] * reach.powf(p[q])));
+            .map(|b| std::array::from_fn(|q| b[q] * reach.powf_fixed(p[q])));
         Rc::new(Table {
             lo: table.lo,
             a: table.a.clone(),
@@ -304,7 +305,7 @@ impl<'a> Kept<'a> {
                     _ => (table.a[i - 1], table.b[i - 1]),
                 };
                 for q in 0..WIDTH {
-                    sum[q] += fade.powf(p[q]) * (table.b[i][q] - b0[q]);
+                    sum[q] += fade.powf_fixed(p[q]) * (table.b[i][q] - b0[q]);
                 }
                 k_sum += table.a[i] - a0;
             }

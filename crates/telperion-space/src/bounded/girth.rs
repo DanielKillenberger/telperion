@@ -28,6 +28,7 @@ use crate::girth::ripe;
 use crate::grow::Record;
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
+use crate::transcendental::Transcendental;
 
 /// What `bud_frame` reads of a record.
 pub(super) fn bud(record: &Record) -> (Origin, usize, u64) {
@@ -40,7 +41,7 @@ impl Bounded<'_> {
         let row = self.rows.lateral(record.pa, record.birth);
         let s = self.base_scale(record);
         let (ec, k) = (row.e, row.kept);
-        let (p1, p2) = (s.powf(ec), s.powf(2.0 * ec));
+        let (p1, p2) = (s.powf_fixed(ec), s.powf_fixed(2.0 * ec));
         let r = e / ec;
         let kept = delta(k, row.s1 * p1, row.s2 * p2, r);
         let share = self.species.states[record.pa].retained;
@@ -76,7 +77,12 @@ impl Bounded<'_> {
         let form = &self.species.states[pa].form;
         let (e, k) = (row.e, row.kept);
         let pipe = if k > 0.0 {
-            delta(k, row.s1 * s.powf(e), row.s2 * s.powf(2.0 * e), 1.0 / e) / k
+            delta(
+                k,
+                row.s1 * s.powf_fixed(e),
+                row.s2 * s.powf_fixed(2.0 * e),
+                1.0 / e,
+            ) / k
         } else {
             0.0
         };
@@ -147,11 +153,11 @@ fn own_profile(
     let (e, s) = (form.exponent, form.secondary);
     let mut section = at_tip;
     for (k, p) in axes[j].phytomers.iter().enumerate().rev() {
-        let leaf = mean.map_or(1.0, |m| p.light.powf(state.leaf_girth) * m);
+        let leaf = mean.map_or(1.0, |m| p.light.powf_fixed(state.leaf_girth) * m);
         let own = crate::girth::own(&form, p, age, p.scale, leaf);
-        section += own.powf(e) + at_node[k];
+        section += own.powf_fixed(e) + at_node[k];
         let established = form.pipe * p.scale * ripe(1.0, form.ripening);
-        radii[k] = s * section.powf(1.0 / e) + (1.0 - s) * established;
+        radii[k] = s * section.powf_fixed(1.0 / e) + (1.0 - s) * established;
     }
     section
 }
@@ -168,8 +174,8 @@ fn hand_on(
     if j == first {
         return;
     }
-    let radius = section.powf(1.0 / species.states[axes[j].pa].form.exponent);
-    let carried = |p: usize| radius.powf(species.states[axes[p].pa].form.exponent);
+    let radius = section.powf_fixed(1.0 / species.states[axes[j].pa].form.exponent);
+    let carried = |p: usize| radius.powf_fixed(species.states[axes[p].pa].form.exponent);
     match axes[j].origin {
         Origin::Relay { parent, node } => {
             let section = carried(parent);
@@ -198,7 +204,7 @@ fn fit(radii: &mut [Vec<f64>], base: f64) {
         radii.iter_mut().flatten().for_each(|r| *r = 0.0);
         return;
     }
-    let log = (base / r0).ln();
+    let log = (base / r0).ln_fixed();
     let beta = if log.abs() > 1.0 {
         1.0 / log.abs()
     } else {
@@ -206,6 +212,6 @@ fn fit(radii: &mut [Vec<f64>], base: f64) {
     };
     for r in radii.iter_mut().flatten() {
         let q = (*r / r0).min(1.0);
-        *r *= (log * q.powf(beta)).exp();
+        *r *= (log * q.powf_fixed(beta)).exp_fixed();
     }
 }

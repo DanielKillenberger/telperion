@@ -11,6 +11,7 @@ use crate::grow::node_wood;
 use crate::lineage::{threshold, ONE};
 use crate::presence::{FLOOR, RATE, SPAN};
 use crate::species::{NodeLaw, Species, ALONG, MAX_NODES_PER_ZONE};
+use crate::transcendental::Transcendental;
 
 /// Every PA's unit tables for a tree of one age.
 #[derive(Debug, Clone)]
@@ -134,7 +135,7 @@ fn law(law: NodeLaw) -> (bool, Vec<u64>, Vec<u64>) {
             (false, thresholds, bounds)
         }
         NodeLaw::Poisson { mean } => {
-            let mut mass = (-mean).exp();
+            let mut mass = (-mean).exp_fixed();
             let mut cumulative = mass;
             for k in 0..MAX_NODES_PER_ZONE {
                 let t = threshold(cumulative);

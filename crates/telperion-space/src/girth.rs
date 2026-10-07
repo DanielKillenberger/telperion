@@ -11,6 +11,7 @@
 //! follows its leaves' light against the tree's pipe-weighted mean
 //! (`leaf_girth`), and a shed branch leaves a share of its pipe in its
 //! bearer (`retained`; Shinozaki's disused pipes; `girth/disused.rs`).
+use crate::transcendental::Transcendental;
 mod disused;
 
 use crate::fixed::sum::Sum;
@@ -50,7 +51,7 @@ pub(super) fn leaf_terms(structure: &Structure, species: &Species) -> Option<f64
         for p in &axis.phytomers {
             let pipe = own(&state.form, p, structure.age, p.scale, 1.0);
             total.add(pipe);
-            weighted.add(pipe * p.light.powf(state.leaf_girth));
+            weighted.add(pipe * p.light.powf_fixed(state.leaf_girth));
         }
     }
     let (total, weighted) = (total.value(), weighted.value());
@@ -113,14 +114,14 @@ pub(crate) fn thicken_given(
             at_node.resize(axis.phytomers.len(), 0.0);
             let mut at_tip = 0.0;
             for d in &kept[i] {
-                let section = d.share * d.radius.powf(e);
+                let section = d.share * d.radius.powf_fixed(e);
                 match d.node.and_then(|n| at_node.get_mut(n)) {
                     Some(at) => *at += section,
                     None => at_tip += section,
                 }
             }
             for &c in tree.children(i) {
-                let section = given(c).unwrap_or(radii[c]).powf(e);
+                let section = given(c).unwrap_or(radii[c]).powf_fixed(e);
                 match links[c].0 {
                     Origin::Seed => {}
                     Origin::Lateral { node, .. } => match at_node.get_mut(node) {
@@ -144,14 +145,14 @@ pub(crate) fn thicken_given(
             }
             let mut section = at_tip;
             for (k, phytomer) in axis.phytomers.iter_mut().enumerate().rev() {
-                let leaf = mean.map_or(1.0, |m| phytomer.light.powf(state.leaf_girth) * m);
+                let leaf = mean.map_or(1.0, |m| phytomer.light.powf_fixed(state.leaf_girth) * m);
                 let own = own(&state.form, phytomer, age, phytomer.scale, leaf);
-                section += own.powf(e) + at_node[k];
+                section += own.powf_fixed(e) + at_node[k];
                 // Laid down at the apex, the phytomer carried nothing but itself.
                 let established = form.pipe * phytomer.scale * ripe(1.0, form.ripening);
-                phytomer.radius = s * section.powf(1.0 / e) + (1.0 - s) * established;
+                phytomer.radius = s * section.powf_fixed(1.0 / e) + (1.0 - s) * established;
             }
-            section.powf(1.0 / e)
+            section.powf_fixed(1.0 / e)
         },
     )
 }

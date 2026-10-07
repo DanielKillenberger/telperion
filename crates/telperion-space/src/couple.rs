@@ -18,6 +18,7 @@
 //! vigour share and its kept share, and the cycle its balance shed it
 //! (`Records`): what its subtree is grown from.
 use crate::species::Species;
+use crate::transcendental::Transcendental;
 
 /// Living apexes below this weight are dropped.
 const NEGLIGIBLE: f64 = 1e-9;
@@ -103,7 +104,7 @@ impl Aggregate {
             let state = &species.states[pa];
             let mut v = state.viability;
             if state.shade_hazard > 0.0 && at.light < 1.0 {
-                v = v.powf(at.light.max(1e-6).powf(-state.shade_hazard));
+                v = v.powf_fixed(at.light.max(1e-6).powf_fixed(-state.shade_hazard));
             }
             let w = c.w * at.kept;
             let spent = f64::from(c.spent) + 1.0;
