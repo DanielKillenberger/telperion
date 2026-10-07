@@ -38,3 +38,25 @@ D1 has the conversion keep every kept phytomer. A trial of it collides with the 
 - **Option (b):** contact rings are built only on runs that bear leaves.
 - Every other run, thin wood included, is surfaced as F3's curves on both executors, the CPU reference included. No ring check then meets thin unseated wood.
 - If (b) still trips the float32 ring check on leaf-bearing runs, that is reported before (a) is taken.
+
+## (b) measured: it still trips the ring check (2026-10-07, after merging fn-198's tip)
+
+D1 was built in the conversion: `d1-conversion.patch`. `FINEST`, `SHORTEST` and the relay's behind and inside merges are gone, and every axis is whole. The probe was `task3-d1-probe.rs`, at seed 1. The patch is reverted and nothing of it is committed, because (b) does not clear the check.
+
+| Tree | Nodes | Under 0.2 mm | Internodes under 1 mm | Runs | Leaf-bearing runs | Bearing runs with an unqualified ring | Unqualified rings on them | Stations on them |
+|---|--:|--:|--:|--:|--:|--:|--:|--:|
+| spruce 40 | 1,183,167 | 34,663 | 7,314 | 222,525 | 222,525 | 2,531 | 7,234 | 12,424 of 4,662,320 |
+| spruce 80 | 4,780,268 | 137,987 | 57,872 | 700,504 | 700,504 | 20,637 | 77,393 | 120,013 of 17,069,121 |
+
+- **Every run of the spruce bears leaves.** Its needles stand on the thinnest wood, so (b) removes no run from the contact rings.
+- **The rings that fail the check are on runs that bear leaves.** At 80 that is 77,393 rings on 20,637 runs, under 0.7 % of the stations. The spruce would leave the GPU path whole.
+  - The station probe counts a run as leaf-bearing when a station's contact names the run's first ring.
+- **The CPU reference fails too.** It does not fall back; it refuses, and it is not only the seated spruce:
+  - `mesh::build` errs on the spruce at 40 (`surface triangles collapsed in float32 = 3435`) and on the unseated oak (`= 296`). That is the swept wood mesh meeting thin and short wood.
+  - The beech and palm at 40 build.
+  - So D1b's "the CPU reference included" needs the CPU reference's drawn wood to come from the curve, not from the swept mesh. Its consumers (the Wasm binding's buffers, the tests, the headless tools) read that mesh today. That is a design step of its own.
+- **The curve takes every tree:** frames finite, 5.48M points at the spruce at 80. Stations prepare (17.1M at 80). The GPU executor's unseated path (beech, oak) builds no rings since task 2, so it draws them.
+
+**For the host:**
+- (a) is now the only option of the three for the seated spruce: a contact qualification by the contact's own float32 precision.
+- The CPU reference's thin wood needs a decision too: the curve's tessellation as the reference's wood, or the swept mesh kept with its ring check relaxed.
