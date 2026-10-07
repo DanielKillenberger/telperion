@@ -23,3 +23,14 @@ This spec makes the fine roots' laid geometry reach the frame on the device: the
 ## Boundaries
 
 Depends on fn-209 (the device-resident fine roots) and fn-198 (the engine as stage 2). The oak waits on the owner's decision on its GPU arithmetic (fn-211 task 5). Not fn-176's level of detail.
+
+## After Astra's review (2026-10-07, fn-209 evidence ASTRA-REVIEW-READERS.md): accept with changes, all taken
+
+These replace R1 to R4 above; R5 stands.
+
+- **R1 (contract):** a checked input/output contract: botanical identities (fn-209 decision 2: the converter's merges and radius cutoffs become draw-time choices, resolved before the probe's reference is frozen), the partition boundary including ground-routed roots, wood contacts across the seam, the whole-tree envelope reduced on the device from fine nodes and combined with the CPU's (closing fn-198 decision 11's shoulder, irregularity and lobe scale), and buffer ownership. The share of nodes on the device measured from the realized executor's final routing.
+- **R2 (delete first):** an audit with measured costs of what can disappear before porting: rings and curves share path sampling and framing; contact geometry only where consumed; the foliage cull's rejection policy removed on both executors (fn-198 R1), keeping only the bounds, packing and filtering a consumer reads.
+- **R3 (native vertical probe, gate):** from settled geometry to equivalent draw-ready resident artifacts (remaining CPU work, GPU work, allocation, uploads, synchronization), against a fresh baseline on the same code, hardware, inputs and fidelity; the proposed 3x (host's feasibility target) at both spruce-80 seeds; a miss ends the probe with its profile. Final-output parity (seated leaves, surfaced wood, contacts, partition seams) against the CPU reference, the tolerance spent once on the final output.
+- **R4 (browser):** async completion, allocation and binding limits, device errors, repeated large-to-small rebuilds; a measured pass criterion for the spruce at 80, not "should fit".
+- **R5a:** build latency and steady-frame cost reported apart. The spruce at 80 draws at 58.2 ms a frame (38.7 ms vegetation, GPU-PATH.md); realtime drawing of mature trees needs fn-176's level of detail, which consumes F3's curve data and preserves identities.
+- **Relations:** fn-212 stays separate; fn-125 and fn-171 are reconciled after F4's acceptance (fn-198 R5); fn-171 does not land first; its obligations (sequential-frame timing, contact correctness, precision errors, measured gain) move here; one ring implementation.
