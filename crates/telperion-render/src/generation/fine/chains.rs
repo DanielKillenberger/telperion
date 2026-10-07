@@ -14,6 +14,7 @@ const SHED: &str = include_str!("shed.wgsl");
 const PACK: &str = include_str!("pack.wgsl");
 const PRESENCE: &str = include_str!("presence.wgsl");
 const ASSIGN: &str = include_str!("assign.wgsl");
+const CARRY: &str = include_str!("carry.wgsl");
 pub(super) const AXW: usize = 80;
 pub(super) const PW: usize = 11;
 const NONE: u32 = u32::MAX;
@@ -148,7 +149,7 @@ pub(super) fn bud_words(b: &ChainBud, made: [f32; 2], birth: [u64; 2]) -> [u64; 
 /// The chain grower's WGSL.
 pub(super) fn source() -> String {
     format!(
-        "{}\n{CHAIN}\n{PRESENCE}\n{ASSIGN}\n{APEX}\n{SLEEP}\n{SHED}",
+        "{}\n{CHAIN}\n{PRESENCE}\n{ASSIGN}\n{CARRY}\n{APEX}\n{SLEEP}\n{SHED}",
         super::zones()
     )
 }

@@ -91,50 +91,22 @@ fn f(x: f64) -> u64 {
     u64::from((x as f32).to_bits())
 }
 
-/// The presences' values as `presence.wgsl` reads them, a word each: the
-/// PAs and the zones' block offsets, each PA's block, the woods, then each
-/// zone's block, its runs' thresholds and its sleeping woods.
+/// The zones' values as `presence.wgsl` and `assign.wgsl` read them, a
+/// word each: the PAs and where the zones' blocks start, then each
+/// zone's block (its buds a node, and where its runs' thresholds of
+/// laterals and sleeping buds start) and those thresholds.
 pub(super) fn presences(g: &GeometryTables) -> Vec<u64> {
-    const GP: usize = 16;
     let npas = g.pas.len();
     let zones: usize = g.zones.iter().map(Vec::len).sum();
-    let mut out = vec![npas as u64, (2 + GP * npas) as u64];
-    out.resize(2 + GP * npas + 4 * zones, 0);
-    for (pa, p) in g.pas.iter().enumerate() {
-        let woods = out.len() as u64;
-        out.extend(g.woods[pa].iter().map(|&w| f(w)));
-        let block = [
-            f(p.reach),
-            f(p.go),
-            f(p.relay[0]),
-            f(p.relay[1]),
-            f(p.relay[2]),
-            f(p.life),
-            woods,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ];
-        out[2 + GP * pa..2 + GP * (pa + 1)].copy_from_slice(&block);
-    }
+    let mut out = vec![npas as u64, 2];
+    out.resize(2 + 4 * zones, 0);
     for (z, zone) in g.zones.iter().flatten().enumerate() {
-        let at = 2 + GP * npas + 4 * z;
+        let at = 2 + 4 * z;
         out[at] = f(zone.buds);
         out[at + 1] = out.len() as u64;
         out.extend(zone.laterals.iter().flatten());
         out[at + 2] = out.len() as u64;
         out.extend(zone.dormant.iter().flatten());
-        out[at + 3] = out.len() as u64;
-        for woods in &zone.sleeping {
-            assert_eq!(woods.len(), zone.dormant.len(), "a wood per sleeping PA");
-            out.extend(woods.iter().map(|&w| f(w)));
-        }
     }
     out
 }

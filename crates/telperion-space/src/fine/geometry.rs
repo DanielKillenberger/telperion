@@ -1,9 +1,8 @@
-//! The GPU executor's surface for a fine root's geometry (fn-209 F1, task
-//! 4): a species point's continuous values as the presences, scale, girth
-//! and lay read them (`presence.rs`, `geometry.rs`, `bounded/girth.rs`,
-//! `geometry/lay.rs`, `sag.rs`), each in the form an f32 executor computes
-//! it from without cancellation (logs and log-odds taken here in f64), and
-//! each fine root's attachment as its record holds it. Geometry decides no
+//! The GPU executor's surface for a fine root's geometry (fn-209 F1,
+//! tasks 4 and 6): a species point's continuous values as scale, girth
+//! and lay read them (`geometry.rs`, `girth.rs`, `geometry/lay.rs`,
+//! `sag.rs`), the zones' thresholds the presences' leads are taken from,
+//! and a bearer's laid frame at a fine root's node. Geometry decides no
 //! topology, so it is held to fn-125's screen, never to the bit.
 use crate::error::Result;
 use crate::grow::alone::rules;
@@ -34,30 +33,17 @@ pub struct PaGeometry {
     pub secondary: f64,
     pub bend_length: f64,
     pub retained: f64,
-    /// The share of a bud of it that reaches the age it grows in
-    /// (`Species::lived`).
-    pub reach: f64,
-    /// Its move's chance, the reach of its successor included; none (0)
-    /// where it has none.
-    pub go: f64,
-    /// Its relays' chances (by abortion, end, failure).
-    pub relay: [f64; 3],
-    /// Its lifespan, in cycles on the tick grid.
-    pub life: f64,
 }
 
 /// One zone of a PA's growth unit: its buds a node, and per PA a lateral
 /// (or a sleeping bud) of it is drawn under, the thresholds of the running
 /// sums below and above its run of draws (`lineage::bud`), which its lead
-/// is read from; and, per cycle
-/// from 0 to the age, the wood each PA's sleeping bud on a node grown then
-/// is expected to grow.
+/// is read from.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct ZoneGeometry {
     pub buds: f64,
     pub laterals: Vec<[u64; 2]>,
     pub dormant: Vec<[u64; 2]>,
-    pub sleeping: Vec<Vec<f64>>,
 }
 
 /// A species point's continuous values for a fine root's geometry.
@@ -67,10 +53,6 @@ pub struct GeometryTables {
     pub pas: Vec<PaGeometry>,
     /// Per PA, the zones in their order along a unit (`Units`).
     pub zones: Vec<Vec<ZoneGeometry>>,
-    /// Per PA, per cycle 0 to the age plus one, the wood a bud of it is
-    /// expected to grow from then, as a share of the tree's
-    /// (`Windows::wood`).
-    pub woods: Vec<Vec<f64>>,
 }
 
 /// The thresholds of the running sums below and above each PA's run.
@@ -92,12 +74,10 @@ impl GeometryTables {
     /// reads light.
     pub fn new(species: &Species, age: u32) -> Result<Self> {
         let rules = rules(species, age, 0)?;
-        let windows = &rules.windows;
         let pas = (0..species.states.len())
             .map(|pa| {
                 let s = &species.states[pa];
                 let f = s.form;
-                let go = species.successor(pa).map_or(0.0, |(_, go)| go);
                 PaGeometry {
                     internode: s.internode,
                     insertion: s.insertion,
@@ -119,14 +99,9 @@ impl GeometryTables {
                     secondary: f.secondary,
                     bend_length: f.bend_length,
                     retained: s.retained,
-                    reach: species.lived(pa).map_or(0.0, |l| l.1),
-                    go,
-                    relay: [s.relay, s.relay_ended, s.relay_failed],
-                    life: s.life(),
                 }
             })
             .collect();
-        let mut woods = Vec::new();
         let zones = (0..species.states.len())
             .map(|pa| {
                 let state = &species.states[pa];
@@ -134,36 +109,16 @@ impl GeometryTables {
                 along
                     .map(|&z| {
                         let zone = &state.zones[z];
-                        let sleeping = (0..=age)
-                            .map(|cycle| {
-                                windows.sleeping(zone, cycle, &mut woods);
-                                woods.clone()
-                            })
-                            .collect();
                         ZoneGeometry {
                             buds: zone.buds,
                             laterals: bounds(&rules.laterals[pa][z]),
                             dormant: bounds(&zone.dormant),
-                            sleeping,
                         }
                     })
                     .collect()
             })
             .collect();
-        let woods = (0..species.states.len())
-            .map(|pa| {
-                // Cycle 0 grows nothing and reads none.
-                (0..=age + 1)
-                    .map(|c| if c == 0 { 0.0 } else { windows.wood(pa, c) })
-                    .collect()
-            })
-            .collect();
-        Ok(Self {
-            age,
-            pas,
-            zones,
-            woods,
-        })
+        Ok(Self { age, pas, zones })
     }
 }
 

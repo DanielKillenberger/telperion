@@ -280,10 +280,6 @@ pub(super) fn settled_against(
                 if e > apart.most {
                     apart.worst = (r, w, n, want.length(), radius);
                 }
-                if std::env::var("FINE_ROOT").ok() == Some(r.to_string()) {
-                    let a = &axes[c].0;
-                    eprintln!("axis {c} kind {} pa {} birth {} n {n} cycle {} dist {:.4} err {:.3e} cpu {:.7} {:.7} {:.7} gpu {:.7} {:.7} {:.7}", a.kind, a.pa, a.birth, a.phytomers[n].0, want.length(), e, want.x, want.y, want.z, p[0], p[1], p[2]);
-                }
                 apart.most = apart.most.max(e);
                 apart.squares += e * e;
                 apart.phytomers += 1;
