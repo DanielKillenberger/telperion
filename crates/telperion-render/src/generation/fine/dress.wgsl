@@ -13,8 +13,10 @@ struct Cfg {
     prev_phyts: u32,
     out_records: u32,
     prev_records: u32,
-    _a: u32,
-    _b: u32,
+    // Where this wave's records and the wave before's start among every
+    // drawn record of the group (`curve.wgsl`'s node ids).
+    out_base: u32,
+    prev_base: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -46,17 +48,25 @@ const FINEST: f32 = 2e-4;
 const SHORTEST: f32 = 1e-3;
 const FORK_FROM: f32 = 0.4;
 // A drawn axis: how many of its phytomers the conversion took, the node
-// it ends on, whether it took them all, its root's flags, and its root's
-// origin (its bearer's node as laid, z up).
-const CA: u32 = 8u;
+// it ends on, whether it took them all, its root's flags, its root's
+// origin (its bearer's node as laid, z up), its bearer's distance
+// along the wood from the tree's root, and its depth among its root's
+// axes and lineage, which order its nodes as the conversion numbers them
+// (`lineage_order`).
+const CA: u32 = 12u;
 // A drawn phytomer: its node's position (y up), radius, start radius and
 // base radius, its flags, the node it is drawn as, its node's run, its
-// laid axis, and its node's parent's position.
-const CV: u32 = 13u;
+// laid axis, its node's parent's position, codominance, id, distance
+// along the wood from its root's bearer and its parent's id.
+const CV: u32 = 17u;
 const TAKEN: u32 = 1u;
 const MADE: u32 = 2u;
 // Its root is laid on the CPU (host decision 3): drawn there.
 const LANDED: u32 = 4u;
+// The node is a fine root's; one drawn from wood above the cut is a seam,
+// where a run of its own starts (D4).
+const FINE: u32 = 8u;
+const SEAM: u32 = 16u;
 // A node of the wave before; a run begun there, its base radius carried.
 const PREV: u32 = 0x80000000u;
 const INHERITED: u32 = 0xfffffffeu;
@@ -82,6 +92,10 @@ struct Nd {
     base: f32,
     run: u32,
     up: vec3<f32>,
+    codom: f32,
+    id: u32,
+    dist: f32,
+    fine: bool,
 }
 
 fn rec(r: u32) -> u32 {
@@ -105,7 +119,9 @@ fn node(r: u32) -> Nd {
     if (r & PREV) == 0u {
         run = bitcast<u32>(drawn[rec(r) + 8u]);
     }
-    return Nd(p, at(r, 3u), at(r, 4u), at(r, 5u), run, up);
+    let flags = bitcast<u32>(at(r, 6u));
+    let id = bitcast<u32>(at(r, 14u));
+    return Nd(p, at(r, 3u), at(r, 4u), at(r, 5u), run, up, at(r, 13u), id, at(r, 15u), (flags & FINE) != 0u);
 }
 
 fn put(r: u32, f: u32, v: f32) {
@@ -131,6 +147,20 @@ fn copy(r: u32, n: Nd) {
     put(r, 10u, n.up.x);
     put(r, 11u, n.up.y);
     put(r, 12u, n.up.z);
+    put(r, 13u, n.codom);
+    putu(r, 14u, n.id);
+    put(r, 15u, n.dist);
+    var fine = 0u;
+    if n.fine {
+        fine = FINE;
+    }
+    putu(r, 6u, (getu(r, 6u) & ~FINE) | fine);
+}
+
+// A lateral as thick as `parent` parts from it as a fork does
+// (`space.rs`, `codominance`).
+fn codominance(radius: f32, parent: f32) -> f32 {
+    return clamp((radius / parent - FORK_FROM) / (0.7 - FORK_FROM), 0.0, 1.0);
 }
 
 // Whether `r` is a node of this wave, which the conversion may still
@@ -224,6 +254,7 @@ fn aside(p: u32, j0: u32) {
     }
     if mine(first) {
         put(first, 4u, node(first).radius);
+        put(first, 13u, codominance(node(first).radius, carrier));
     }
 }
 
@@ -256,6 +287,7 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
             putu(r, 6u, TAKEN | flags);
             putu(r, 7u, parent);
             copy(r, held);
+            putu(r, 16u, NONE);
             continue;
         }
         let first = !made;
@@ -280,7 +312,19 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
         put(r, 10u, held.pos.x);
         put(r, 11u, held.pos.y);
         put(r, 12u, held.pos.z);
-        putu(r, 6u, TAKEN | MADE | flags);
+        var codom = 0.0;
+        if lateral && first {
+            codom = codominance(radius, held.radius);
+        }
+        put(r, 13u, codom);
+        putu(r, 14u, cfg.out_base + r);
+        put(r, 15u, held.dist + length(d));
+        putu(r, 16u, held.id);
+        var seam = 0u;
+        if !held.fine {
+            seam = SEAM;
+        }
+        putu(r, 6u, TAKEN | MADE | FINE | seam | flags);
         putu(r, 7u, r);
         parent = r;
         made = true;
@@ -327,6 +371,14 @@ fn dress(@builtin(global_invocation_id) id: vec3<u32>) {
         drawn[la * CA + 4u] = origin.x;
         drawn[la * CA + 5u] = origin.y;
         drawn[la * CA + 6u] = origin.z;
+        drawn[la * CA + 7u] = before[b0 + 7u];
+        var depth = bitcast<u32>(before[b0 + 8u]) + 1u;
+        if i > 1u && s(ax(i, PARENT), S_OWN) != NONE {
+            depth = bitcast<u32>(drawn[(out_ax + s(ax(i, PARENT), S_OWN)) * CA + 8u]) + 1u;
+        }
+        pda(la, 8u, depth);
+        pda(la, 9u, ax(i, 0u));
+        pda(la, 10u, ax(i, 1u));
         pda(la, 0u, 0u);
         pda(la, 1u, NONE);
         pda(la, 2u, 0u);

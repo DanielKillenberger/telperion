@@ -28,6 +28,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
         ("fine fades", shedding::source()),
         ("fine dress", dress::DRESS.to_string()),
         ("fine fold", dress::FOLD.to_string()),
+        ("fine sweep", sweep::source()),
     ]
     .into_iter()
     .chain(steps::sources())
@@ -44,6 +45,12 @@ mod device;
 mod dress;
 #[cfg(test)]
 mod dress_tests;
+#[cfg(test)]
+mod fixture;
+#[cfg(test)]
+mod sweep;
+#[cfg(test)]
+mod sweep_tests;
 #[cfg(test)]
 mod group;
 #[cfg(test)]

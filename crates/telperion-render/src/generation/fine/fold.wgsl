@@ -25,7 +25,7 @@ struct Cfg {
 @group(0) @binding(3) var<storage, read> beyond: array<f32>;
 @group(0) @binding(4) var<storage, read_write> kept: array<f32>;
 
-const CV: u32 = 13u;
+const CV: u32 = 17u;
 const MADE: u32 = 2u;
 const LANDED: u32 = 4u;
 const BINS: u32 = 1024u;

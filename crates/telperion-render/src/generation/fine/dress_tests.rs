@@ -4,21 +4,20 @@
 //! nodes within fn-125's screen, the folds within it, and the envelope and
 //! leaf box the pipeline reads. The folds combine exactly
 //! (`telperion-core`, `parts_of_a_tree_combine_to_the_whole`).
-use super::device::Device;
-use super::dress::{dress, Dresser, Stub, StubNode, CAP, CV, LANDED, MADE};
-use super::roots::{kernels, Kernels, Tables};
+use super::dress::{Dressed, Dresser, CAP, CA_WORDS, CV, LANDED, MADE};
+use super::fixture::{with_dressed, Fixture};
+use super::roots::{kernels, Kernels};
 use crate::Gpu;
-use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
+use std::collections::HashMap;
 use telperion_core::math::Vec3;
-use telperion_core::pipeline::executor::{self, beyond, bins, envelope, Folds};
-use telperion_core::tree::Tree;
-use telperion_space::{settle, ChainTables, GeometryTables, Plan, Request};
+use telperion_core::pipeline::executor::{beyond, bins, envelope, Folds};
 
 /// fn-125's screen, in metres.
 const MOST: f64 = 50e-6;
 
 /// What the probe measured on one tree.
+// Read through its `Debug` print.
+#[allow(dead_code)]
 #[derive(Debug, Default)]
 pub(super) struct Probe {
     /// The fine roots' nodes drawn on the device, and the reference's.
@@ -46,28 +45,8 @@ pub(super) struct Probe {
     pub ms: f64,
 }
 
-fn f3(v: Vec3) -> [f32; 3] {
-    [v.x as f32, v.y as f32, v.z as f32]
-}
-
-/// Every node in each fine root's seam's subtree, the roots in `landed`
-/// (by their first axes' lineages) aside: the nodes the device draws.
-fn fine_nodes(tree: &Tree, landed: &HashSet<u64>) -> Vec<bool> {
-    let mut fine = vec![false; tree.nodes.len()];
-    for a in &tree.attachments {
-        if let (Some(s), false) = (a.seam, landed.contains(&a.lineage)) {
-            fine[s as usize] = true;
-        }
-    }
-    for i in 1..tree.nodes.len() {
-        let p = tree.nodes[i].parent.unwrap() as usize;
-        fine[i] |= fine[p];
-    }
-    fine
-}
-
 /// How many of `points` have none of `against` within the screen.
-fn strays(points: &[Vec3], against: &[Vec3]) -> usize {
+pub(super) fn strays(points: &[Vec3], against: &[Vec3]) -> usize {
     let cell = |v: Vec3| {
         let c = |x: f64| (x / 1e-3).floor() as i64;
         (c(v.x), c(v.y), c(v.z))
@@ -96,68 +75,15 @@ fn apart(a: Vec3, b: Vec3) -> f64 {
 
 /// The fine roots of the preset `id` at `age` and `seed` settled on the
 /// device, drawn and folded there, against the pipeline's build.
-pub(super) fn probe(
-    gpu: &Gpu,
-    k: &Kernels,
-    d: &Dresser,
-    id: &str,
-    (age, seed): (u32, u32),
-) -> Probe {
-    let mut family = telperion_core::presets::by_identity(id).unwrap();
-    family.age = f64::from(age);
-    family.skeleton.seed = seed;
-    let reference = executor::grow(&family).unwrap().expansion().unwrap();
+pub(super) fn probe(gpu: &Gpu, k: &Kernels, d: &Dresser, id: &str, at: (u32, u32)) -> Probe {
+    with_dressed(gpu, k, d, id, at, |fx, dressed| folded(gpu, d, fx, dressed))
+}
+
+/// The device's folds against the pipeline's, on a fixture drawn.
+fn folded(gpu: &Gpu, d: &Dresser, fx: &Fixture, dressed: &Dressed) -> Probe {
+    let (reference, fine) = (&fx.reference, &fx.fine);
     let tree = reference.tree();
-    let species = family.space.species.clone().unwrap();
-    let request = Request {
-        age,
-        seed: u64::from(seed),
-        budget: 20_000_000,
-        light: family.space.light,
-    };
-    let chain = ChainTables::new(&species, age).unwrap();
-    let geo = GeometryTables::new(&species, age).unwrap();
-    let tables = Tables::new(gpu, Arc::new(chain), &geo);
-    let mut dev = Device::new(gpu, k, &tables, 1 << 16).sown_from(64);
-    let (settled, _) = settle(&species, request, Plan::default(), &mut dev).unwrap();
-    dev.wait();
-    // Each root's attachment as the pipeline drew its bearer.
-    let drawn: HashMap<u64, u32> = tree
-        .attachments
-        .iter()
-        .map(|a| (a.lineage, a.node))
-        .collect();
-    let lineage = |r: usize| settled.at[r].map(|i| settled.structure.axes[i].lineage);
-    let landed: HashSet<usize> = settled.grounded.iter().copied().collect();
-    let stubs: Vec<Stub> = (0..settled.at.len())
-        .map(|r| {
-            let node = lineage(r).and_then(|l| drawn.get(&l)).map(|&n| {
-                let n = &tree.nodes[n as usize];
-                let parent = n
-                    .parent
-                    .map_or(n.position, |p| tree.nodes[p as usize].position);
-                StubNode {
-                    position: f3(n.position),
-                    parent: f3(parent),
-                    radius: n.radius as f32,
-                    start: n.start_radius as f32,
-                    base: n.base_radius as f32,
-                }
-            });
-            Stub {
-                node,
-                origin: {
-                    let o = dev.origin(r);
-                    [o.x as f32, o.y as f32, o.z as f32]
-                },
-                landed: landed.contains(&r),
-            }
-        })
-        .collect();
-    let landed_lineages: HashSet<u64> = landed.iter().filter_map(|&r| lineage(r)).collect();
-    let fine = fine_nodes(tree, &landed_lineages);
     let d0 = std::time::Instant::now();
-    let dressed = dress(gpu, d, &dev, &stubs);
     // The device's folds combined with the pipeline's own nodes'.
     let device = dressed.extent(gpu, d);
     let cpu = Folds::of(&tree.nodes, |i| !fine[i]);
@@ -198,11 +124,12 @@ pub(super) fn probe(
     };
     // Every drawn node, read back for the comparison alone.
     let mut nodes = Vec::new();
-    for (buffer, axes, phyts) in &dressed.waves {
-        let words = *axes as usize * 8 + *phyts as usize * CV;
+    for w in dressed.waves.iter().filter(|w| !w.stubs) {
+        let (buffer, axes, phyts) = (&w.buffer, &w.axes, &w.phyts);
+        let words = *axes as usize * CA_WORDS + *phyts as usize * CV;
         let raw = super::super::io::read(gpu, buffer, (words.max(4) * 4) as u64).unwrap();
         let floats: &[f32] = bytemuck::cast_slice(&raw);
-        for r in floats[*axes as usize * 8..]
+        for r in floats[*axes as usize * CA_WORDS..]
             .chunks(CV)
             .take(*phyts as usize)
         {
@@ -224,7 +151,7 @@ pub(super) fn probe(
             strays(&nodes, &all),
             strays(&theirs, &nodes),
         ),
-        landed: landed.len(),
+        landed: fx.landed,
         folds: fold_apart(folds, whole),
         envelope: (
             (grown.height - want.height)
@@ -240,7 +167,7 @@ pub(super) fn probe(
         ),
         boxed: apart(boxed.min, rb.min).max(apart(boxed.max(), rb.max())),
         kept: (kept.len(), over),
-        ms,
+        ms: ms + fx.dress_ms,
     }
 }
 

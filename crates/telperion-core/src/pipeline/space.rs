@@ -188,10 +188,14 @@ fn joint(
 /// limbs deep in the crown. Two trunk-level axes leaving one node, a
 /// codominant fork of the trunk, are both stem.
 fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
-    // The first node drawn of each fine root's first axis.
+    // Each fine root's node drawn from wood above the cut.
     let mut seams = Vec::new();
     let mut attachments = Vec::new();
     let mut nodes = vec![Node::root()];
+    // Whether each node is a fine root's.
+    let mut in_root = vec![false];
+    // Each fine root's axis's root, by its place in `attachments`.
+    let mut of_root: Vec<Option<usize>> = vec![None; structure.axes.len()];
     // The node each axis ends on, for what continues it.
     let mut ends: Vec<Option<u32>> = vec![None; structure.axes.len()];
     // Each axis's drawn nodes, base first.
@@ -199,15 +203,19 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
     for (i, axis) in structure.axes.iter().enumerate() {
         let root =
             fine.get(i).copied().unwrap_or(false) && !axis.origin.parent().is_some_and(|p| fine[p]);
+        if let Some(p) = axis.origin.parent() {
+            of_root[i] = of_root[p];
+        }
         let start = match axis.origin {
             Origin::Seed => Some((0, false, true)),
             Origin::Lateral { parent, node, .. } => {
                 let start = drawn[parent].get(node);
                 if let (true, Some(&n)) = (root, start) {
+                    of_root[i] = Some(attachments.len());
                     attachments.push(Attachment {
                         lineage: axis.lineage,
                         node: n,
-                        seam: None,
+                        seams: Vec::new(),
                     });
                 }
                 start.map(|&n| (n, true, false))
@@ -298,13 +306,19 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
             if lateral && first {
                 node.codominant = codominance(p.radius, inherited);
             }
+            let held = parent as usize;
             parent = nodes.len() as u32;
-            if root && !made {
+            // Every fine root's node drawn from wood above the cut starts a
+            // run of its own (D4): its first axis's first node, and a
+            // lateral its merged first phytomers hang from its bearer.
+            let grown = fine.get(i).copied().unwrap_or(false);
+            if grown && !in_root[held] {
                 seams.push(parent);
-                if let Some(a) = attachments.last_mut() {
-                    a.seam = Some(parent);
+                if let Some(a) = of_root[i] {
+                    attachments[a].seams.push(parent);
                 }
             }
+            in_root.push(grown);
             made = true;
             drawn[i].push(parent);
             nodes.push(node);

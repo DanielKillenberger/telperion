@@ -128,8 +128,10 @@ pub struct Tree {
     /// `sections` is: a specimen's bytes are the ones they always were.
     #[cfg_attr(feature = "json", serde(skip))]
     pub pipe: Vec<[f64; 2]>,
-    /// The first node of each fine root the engine grew (fn-209 F1), in
-    /// increasing order: the seam its wood starts a run of its own at, and
+    /// Each fine root's node drawn from wood above the cut (fn-209 F1): its
+    /// first axis's first node, and any lateral its first phytomers,
+    /// merged into its bearer's node, hang there; in increasing order. The
+    /// seam its wood starts a run of its own at, and
     /// from which all it bears keeps its own side's run order (fn-212 D4,
     /// D5). Empty on a tree grown whole. Never stored, as `sections`.
     #[cfg_attr(feature = "json", serde(skip))]
@@ -143,14 +145,15 @@ pub struct Tree {
 
 /// A fine root as the conversion drew it (fn-212 task 4): the record an
 /// executor dressing the root on its own starts from.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Attachment {
     /// Its first axis's lineage.
     pub lineage: u64,
     /// The node its bearer's phytomer is drawn as, which it is drawn from.
     pub node: u32,
-    /// Its seam: the first node its first axis draws, if any.
-    pub seam: Option<u32>,
+    /// Its seams (`Tree::seams`): the first node its first axis draws, if
+    /// any, then any lateral that hangs from its bearer's node.
+    pub seams: Vec<u32>,
 }
 impl Tree {
     /// Node `i`'s radii as the pipe model solved them, `[start, distal]`,

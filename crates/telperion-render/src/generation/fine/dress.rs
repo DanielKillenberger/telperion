@@ -17,8 +17,9 @@ use telperion_core::pipeline::executor::{reach, Folds, BINS};
 pub(super) const DRESS: &str = include_str!("dress.wgsl");
 pub(super) const FOLD: &str = include_str!("fold.wgsl");
 /// A drawn axis's and phytomer's floats (`dress.wgsl`).
-const CA: u32 = 8;
-pub(super) const CV: usize = 13;
+const CA: u32 = 12;
+pub(super) const CV: usize = 17;
+pub(super) const CA_WORDS: usize = CA as usize;
 pub(super) const MADE: u32 = 2;
 pub(super) const LANDED: u32 = 4;
 const TAKEN: u32 = 1;
@@ -39,6 +40,8 @@ pub(super) struct Stub {
     pub node: Option<StubNode>,
     pub origin: [f32; 3],
     pub landed: bool,
+    /// Its bearer's node's distance along the wood from the tree's root.
+    pub distance: f32,
 }
 
 /// A drawn node as the conversion reads it: its position and its
@@ -69,10 +72,21 @@ impl Dresser {
     }
 }
 
-/// Every group's drawn waves, each with its axes and phytomers, and the
+/// A drawn wave, or a group's stubs: its buffer, its axes and records,
+/// and its records' first id.
+pub(super) struct Drawn {
+    pub buffer: wgpu::Buffer,
+    pub axes: u32,
+    pub phyts: u32,
+    pub base: u32,
+    pub stubs: bool,
+}
+
+/// Every group's stubs and drawn waves, the ids they take, and the
 /// folds' sums.
 pub(super) struct Dressed {
-    pub waves: Vec<(wgpu::Buffer, u32, u32)>,
+    pub waves: Vec<Drawn>,
+    pub ids: u32,
     sums: wgpu::Buffer,
 }
 
@@ -94,8 +108,9 @@ fn uniform(gpu: &Gpu, words: &[u32]) -> wgpu::Buffer {
     .unwrap()
 }
 
-/// The stubs' drawn records, by the roots' places in their group.
-fn stub_records(stubs: &[Stub]) -> Vec<f32> {
+/// The stubs' drawn records, by the roots' places in their group, their
+/// ids from `base`.
+fn stub_records(stubs: &[Stub], base: u32) -> Vec<f32> {
     let n = stubs.len();
     let mut out = vec![0.0f32; n * CA as usize + n * CV];
     let at = n * CA as usize;
@@ -103,8 +118,11 @@ fn stub_records(stubs: &[Stub]) -> Vec<f32> {
         let a = &mut out[k * CA as usize..][..CA as usize];
         a[3] = f32::from_bits(if s.landed { LANDED } else { 0 });
         a[4..7].copy_from_slice(&s.origin);
+        a[7] = s.distance;
         let r = &mut out[at + k * CV..][..CV];
         r[9] = f32::from_bits(k as u32);
+        r[14] = f32::from_bits(base + k as u32);
+        r[16] = f32::from_bits(u32::MAX);
         let Some(node) = s.node else {
             continue;
         };
@@ -121,10 +139,17 @@ fn stub_records(stubs: &[Stub]) -> Vec<f32> {
 /// the pipeline's nodes, wave by wave.
 pub(super) fn dress(gpu: &Gpu, d: &Dresser, dev: &Device, stubs: &[Stub]) -> Dressed {
     let mut waves = Vec::new();
+    let mut ids = 0u32;
     let mut encoder = gpu.device.create_command_encoder(&Default::default());
     for (grown, laid, roots) in dev.groups() {
         let mine: Vec<Stub> = roots.iter().map(|&r| stubs[r]).collect();
-        let records = stub_records(&mine);
+        let records = stub_records(&mine, ids);
+        let mut bases = vec![ids];
+        ids += mine.len() as u32;
+        for w in &laid[1..] {
+            bases.push(ids);
+            ids += w.phyts;
+        }
         let mut bufs = vec![storage(
             gpu,
             "drawn stubs",
@@ -145,8 +170,8 @@ pub(super) fn dress(gpu: &Gpu, d: &Dresser, dev: &Device, stubs: &[Stub]) -> Dre
                     was.axes * AL as u32,
                     now.axes * CA,
                     was.axes * CA,
-                    0,
-                    0,
+                    bases[w + 1],
+                    bases[w],
                 ];
                 let cfg = uniform(gpu, &cfg);
                 let all = [
@@ -163,17 +188,19 @@ pub(super) fn dress(gpu: &Gpu, d: &Dresser, dev: &Device, stubs: &[Stub]) -> Dre
                 d.dress.run(&mut encoder, &bind, 0, groups);
             }
         }
-        let sized = laid[1..].iter().map(|w: &Wave| (w.axes, w.phyts));
-        waves.extend(
-            bufs.into_iter()
-                .skip(1)
-                .zip(sized)
-                .map(|(b, (a, p))| (b, a, p)),
-        );
+        let sized = laid.iter().map(|w: &Wave| (w.axes, w.phyts));
+        let all = bufs.into_iter().zip(sized).zip(bases).enumerate();
+        waves.extend(all.map(|(w, ((buffer, (axes, phyts)), base))| Drawn {
+            buffer,
+            axes,
+            phyts,
+            base,
+            stubs: w == 0,
+        }));
     }
     gpu.queue.submit([encoder.finish()]);
     let sums = storage(gpu, "fold sums", SUMS, bytemuck::cast_slice(&empty_sums()));
-    Dressed { waves, sums }
+    Dressed { waves, ids, sums }
 }
 
 /// The sums before any node is folded.
@@ -210,10 +237,8 @@ impl Dressed {
         bound: (&wgpu::Buffer, &wgpu::Buffer),
     ) {
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
-        for (buffer, axes, phyts) in &self.waves {
-            if *phyts == 0 {
-                continue;
-            }
+        for w in self.waves.iter().filter(|w| !w.stubs && w.phyts > 0) {
+            let (buffer, axes, phyts) = (&w.buffer, &w.axes, &w.phyts);
             let groups = phyts.div_ceil(64);
             let most = gpu.device.limits().max_compute_workgroups_per_dimension;
             let mut cfg = vec![*phyts, axes * CA, CAP, groups.min(most) * 64];
