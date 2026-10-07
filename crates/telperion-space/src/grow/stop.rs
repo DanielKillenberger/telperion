@@ -77,7 +77,13 @@ impl Shoot<'_, '_> {
             let relayed = self.relayed(relay, unit, (pa, cycle, Some(used)));
             *self.units_mut(apex.axis) = apex.spent;
             let made = [1.0 - fixed::real(made), fixed::real(relayed)];
-            self.relay_bud(apex, (cycle, used), apex.spent, made, (0.0, Stop::Ended))?;
+            self.relay_bud(
+                apex,
+                (cycle, used),
+                apex.spent,
+                made,
+                (0.0, Stop::Ended, true),
+            )?;
         }
         Ok(())
     }
@@ -91,7 +97,7 @@ impl Shoot<'_, '_> {
     pub(super) fn fail(
         &mut self,
         mut apex: Apex,
-        (cycle, gone): (u32, f64),
+        (cycle, gone, whole): (u32, f64, bool),
         (lived, relayed, stopped): (f64, u64, i64),
         (pa, unit): (usize, Key),
     ) -> Result<()> {
@@ -115,7 +121,13 @@ impl Shoot<'_, '_> {
         *self.units_mut(apex.axis) = apex.spent;
         let blend = fixed::real(presence::of(stopped, fixed::q32(SPAN)));
         let used = (cycle, gone + lived);
-        self.relay_bud(apex, used, apex.spent, [1.0; 2], (blend, Stop::Failed))
+        self.relay_bud(
+            apex,
+            used,
+            apex.spent,
+            [1.0; 2],
+            (blend, Stop::Failed, whole),
+        )
     }
 
     /// The relay of the apex that stopped having spent `spent` of its PA,
@@ -123,15 +135,15 @@ impl Shoot<'_, '_> {
     /// axis's continuation to its own bud. It carries on the axis's
     /// lineage, its time in its PA and the time the axis has grown, which
     /// its abortion hazard counts, so a relay laid as the continuation
-    /// grows what the apex would have (host decision 11). The relay of an
-    /// age that `ended` grows a whole first unit (`schedule.rs`).
+    /// grows what the apex would have (host decision 11). A relay made
+    /// `whole` grows a whole first unit (`schedule.rs`).
     fn relay_bud(
         &mut self,
         apex: Apex,
         (cycle, used): (u32, f64),
         spent: f64,
         made: [f64; 2],
-        (blend, why): (f64, Stop),
+        (blend, why, whole): (f64, Stop, bool),
     ) -> Result<()> {
         let (pa, key) = (self.axis(apex.axis).pa, Key(self.axis(apex.axis).lineage));
         let draws = self.draws(apex.axis);
@@ -139,9 +151,9 @@ impl Shoot<'_, '_> {
         let ended_relays = draws.ended_relays + u32::from(why == Stop::Ended);
         // The relay of an age that ended grows a whole first unit: it is
         // not the apex carried on. A failed unit's relay carries the
-        // apex's time on from the moment it failed (fn-199 R1), and an
-        // aborted one's grows what the apex would have.
-        let ended = why == Stop::Ended;
+        // apex's time on from the moment it failed (fn-199 R1), the rest
+        // of a whole unit whole, and an aborted one's grows what the apex
+        // would have.
         let origin = Origin::Relay {
             parent: apex.axis,
             node: 0,
@@ -152,7 +164,7 @@ impl Shoot<'_, '_> {
         let line = self.made.last_mut().unwrap();
         line.axis.blend = blend;
         let draws = &mut line.draws;
-        (draws.aged, draws.ended, draws.ended_relays) = (grown, ended, ended_relays);
+        (draws.aged, draws.ended, draws.ended_relays) = (grown, whole, ended_relays);
         draws.rest = why == Stop::Failed;
         self.carry_on(cycle, used)
     }
@@ -211,7 +223,13 @@ impl Shoot<'_, '_> {
             // The relay moves over the widest window: its move is a growth
             // unit's length whatever wood it carries.
             let blend = fixed::real(presence::of(stopped, fixed::q32(SPAN)));
-            return self.relay_bud(apex, (cycle, used), spent, made, (blend, why));
+            return self.relay_bud(
+                apex,
+                (cycle, used),
+                spent,
+                made,
+                (blend, why, why == Stop::Ended),
+            );
         }
         Ok(())
     }

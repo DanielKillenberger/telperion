@@ -34,6 +34,8 @@ pub(crate) struct Unit {
     pub ends: bool,
     /// The share of its cycle gone when it ends: before it and with it.
     pub used: f64,
+    /// It is the whole first unit of a relay of an age that ended.
+    pub whole: bool,
 }
 
 impl Carried {
@@ -53,17 +55,15 @@ impl Carried {
         };
         let room = 1.0 - gone;
         let left = lifespan - before;
-        let share = if i == 1 && self.relay {
-            room
-        } else {
-            room.min(left)
-        };
+        let whole = i == 1 && self.relay;
+        let share = if whole { room } else { room.min(left) };
         let ends = left <= room + WHOLE;
         Unit {
             before,
             share,
             ends,
             used: gone + share,
+            whole,
         }
     }
 
@@ -143,7 +143,9 @@ pub(crate) fn lived(viability: f64, share: f64) -> [f64; LIVED] {
 impl Carried {
     /// What the relay of unit `unit`, which failed `lived` into its share,
     /// carries: the apex's time on from that moment, and the rest of its
-    /// cycle where any is left; whether it grows in that cycle.
+    /// cycle where any is left; whether it grows in that cycle. The relay
+    /// of a whole unit grows that unit's rest whole, past the lifespan as
+    /// the apex would have, so its share is never below none.
     pub fn failed(self, unit: Unit, lived: f64) -> (Self, bool) {
         let spent = unit.before + lived;
         let used = unit.used - unit.share + lived;
@@ -152,7 +154,7 @@ impl Carried {
             spent,
             aged: self.aged + spent - self.spent,
             gone: if same { used } else { 0.0 },
-            relay: false,
+            relay: unit.whole,
         };
         (relay, same)
     }

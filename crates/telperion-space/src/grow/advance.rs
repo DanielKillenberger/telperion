@@ -81,7 +81,7 @@ impl Shoot<'_, '_> {
             let pa_unit = (pa, unit);
             return self.fail(
                 apex,
-                (cycle, carried.gone),
+                (cycle, carried.gone, step.whole),
                 (lived, relayed, stopped),
                 pa_unit,
             );

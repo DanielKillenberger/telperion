@@ -83,8 +83,9 @@ fn carry_on(cycle: u32, used: vec2<u32>) -> Next {
     return Next(true, Apex(e.x, e.yz));
 }
 
-// The relay of the apex that stopped having spent `spent` (`relay_bud`).
-fn relay_bud(apex: Apex, cycle: u32, used: vec2<u32>, spent: vec2<u32>, why: u32, blend: f32, asks: array<vec4<u32>, 2>) -> Next {
+// The relay of the apex that stopped having spent `spent` (`relay_bud`);
+// one made `whole` grows a whole first unit.
+fn relay_bud(apex: Apex, cycle: u32, used: vec2<u32>, spent: vec2<u32>, why: u32, whole: bool, blend: f32, asks: array<vec4<u32>, 2>) -> Next {
     let a = apex.axis;
     let pa = rd(a, PA);
     let grown = add64(add64(rd64(a, AGED), rd64(a, SHARES)), sub64(spent, apex.spent));
@@ -99,7 +100,7 @@ fn relay_bud(apex: Apex, cycle: u32, used: vec2<u32>, spent: vec2<u32>, why: u32
     made_axis(r, blend);
     ask(r, asks[0], asks[1]);
     wr64(r, AGED, grown);
-    wr(r, KIND, RELAYED | select(0u, IS_ENDED, why == ENDS) | select(0u, IS_REST, why == FAILED));
+    wr(r, KIND, RELAYED | select(0u, IS_ENDED, whole) | select(0u, IS_REST, why == FAILED));
     wr(r, ENDED_RELAYS, ended_relays);
     push_next(r, units);
     return carry_on(cycle, used);
@@ -126,7 +127,7 @@ fn stop(apex: Apex, cycle: u32, used: vec2<u32>, key: vec2<u32>, spent: vec2<u32
         // bound.
         let blend = clamp(stopped / SPAN_F, 0.0, 1.0);
         let asks = array<vec4<u32>, 2>(vec4<u32>(RELAY_ASKS, why, key.x, key.y), vec4<u32>(cycle, used.x, bound.x, bound.y));
-        return relay_bud(apex, cycle, used, spent, why, blend, asks);
+        return relay_bud(apex, cycle, used, spent, why, why == ENDS, blend, asks);
     }
     return none();
 }
@@ -178,7 +179,7 @@ fn relay_after(f: After, cycle: u32) -> Next {
     if lt64(f.made, one32()) && !is_zero(t) && lt64(draw(child(f.key, RELAY)), t) {
         wr64(f.apex.axis, UNITS, f.apex.spent);
         let asks = array<vec4<u32>, 2>(vec4<u32>(AFTER_ASKS, f.key.x, f.key.y, cycle), vec4<u32>(f.used.x, f.made.x, f.made.y, 0u));
-        return relay_bud(f.apex, cycle, f.used, f.apex.spent, ENDS, 0.0, asks);
+        return relay_bud(f.apex, cycle, f.used, f.apex.spent, ENDS, true, 0.0, asks);
     }
     return none();
 }
@@ -187,7 +188,7 @@ fn relay_after(f: After, cycle: u32) -> Next {
 // and its relay draw makes one (`fail`, fn-199 R1): the unit grows the
 // share of its cycle the apex lived, at the relay's presence, and the
 // relay grows the rest of the cycle, whole.
-fn fail(apex_in: Apex, cycle: u32, s1: Step, gone: u32, keys: array<vec2<u32>, 2>, dv: vec2<u32>, survives: vec2<u32>) -> Next {
+fn fail(apex_in: Apex, cycle: u32, s1: Step, gone: u32, whole: bool, keys: array<vec2<u32>, 2>, dv: vec2<u32>, survives: vec2<u32>) -> Next {
     var apex = apex_in;
     let a = apex.axis;
     let pa = rd(a, PA);
@@ -207,7 +208,7 @@ fn fail(apex_in: Apex, cycle: u32, s1: Step, gone: u32, keys: array<vec2<u32>, 2
     let blend = clamp(above_t(dv, survives) / SPAN_F, 0.0, 1.0);
     let used = add64(w(gone, 0u), lived);
     let asks = array<vec4<u32>, 2>(vec4<u32>(RELAY_ASKS, FAILED, keys[0].x, keys[0].y), vec4<u32>(cycle, used.x, 0u, 0u));
-    return relay_bud(apex, cycle, used, apex.spent, FAILED, blend, asks);
+    return relay_bud(apex, cycle, used, apex.spent, FAILED, whole, blend, asks);
 }
 
 // One living apex's growth unit in `cycle` (`advance`).
@@ -241,7 +242,7 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
     let tf = row(pa, 6u + FAILED);
     let relays = !is_zero(tf) && lt64(draw(child(decide, RELAY)), tf);
     if !lt64(dv, survives) && relays {
-        return fail(apex, cycle, s1, gone, array<vec2<u32>, 2>(decide, unit), dv, survives);
+        return fail(apex, cycle, s1, gone, first && relay, array<vec2<u32>, 2>(decide, unit), dv, survives);
     }
     if !lt64(dv, survives) {
         wr(a, APEX_END, cycle);

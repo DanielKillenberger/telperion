@@ -8,11 +8,11 @@
 //! and the leaves its last unit grew. Its transitions are the engine's
 //! unit rules in expectation, evaluated from the current parameters:
 //! survival under shade, each zone's nodes and laterals, abortion and its
-//! relay, a failed unit's lived share and its relay, an age's end and its continuation. Its
-//! explicit approximations: whole-cycle units; sleeping buds are not
-//! carried; the balance shedding of laterals inside the subtree is not
-//! carried (only the root's own); a cohort's units are all of its PA's
-//! size; presences near a bound are taken whole.
+//! relay, a failed unit's lived share and its relay, an age's end and its
+//! continuation. Its explicit approximations: whole-cycle units; sleeping
+//! buds are not carried; the balance shedding of laterals inside the
+//! subtree is not carried (only the root's own); a cohort's units are all
+//! of its PA's size; presences near a bound are taken whole.
 //!
 //! The pass writes, per fine root per cycle, the light it read, its
 //! vigour share and its kept share, and the cycle its balance shed it

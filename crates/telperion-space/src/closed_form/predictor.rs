@@ -256,7 +256,9 @@ impl<'a> Walk<'a> {
         let relay = |r: Option<Relay>, p: f64| r.filter(|_| p > 0.0);
         for l in &step.lived {
             let r = l.relay;
-            parts.lived.push(get(self, (k, m - r.at, r.carried, None), shedding));
+            parts
+                .lived
+                .push(get(self, (k, m - r.at, r.carried, None), shedding));
         }
         for &z in ALONG.iter().filter(|&&z| z < state.zones.len()) {
             let mut laterals = Vec::new();
@@ -283,9 +285,7 @@ impl<'a> Walk<'a> {
                         carried,
                         first,
                         ..
-                    } if grown > 0.0 => {
-                        get(self, (*pa, m - at, *carried, *first), delay_of(*pa))
-                    }
+                    } if grown > 0.0 => get(self, (*pa, m - at, *carried, *first), delay_of(*pa)),
                     _ => None,
                 });
             }

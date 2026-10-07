@@ -5,10 +5,12 @@ use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use crate::transcendental::Transcendental;
 
 /// The expected length is the expected counts weighted by internode,
-/// with every setting away from neutral but two that count what weighs
+/// with every setting away from neutral but three that count what weighs
 /// less than whole: bud places are whole (a fractional one counts whole
-/// at its share of the length), and an age that ends relays none (a move
-/// all but made grows its relay, counted whole and faded).
+/// at its share of the length), an age that ends relays none (a move all
+/// but made grows its relay, counted whole and faded), and a failed unit
+/// relays none (its apex grew its nodes whole at the share of their
+/// length it lived, fn-199 R1).
 #[test]
 fn the_expected_length_weighs_the_expected_counts() {
     let state = |continuation, internode, lateral: [f64; 2]| PaState {
@@ -43,7 +45,7 @@ fn the_expected_length_weighs_the_expected_counts() {
         // A move all but made grows its relay beside its continuation,
         // counted whole and of no expected length (host decision 13).
         relay_ended: 0.0,
-        relay_failed: 0.4,
+        relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
         erection: 0.0,

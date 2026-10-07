@@ -55,11 +55,14 @@ impl Kept<'_> {
             .sum();
         let path = most * state.internode * step.size;
         let mut best = path + rest.map_or(0.0, |r| r.reach);
-        // A failed unit's relay stands on the part its apex lived, no
-        // farther than the unit's tip (fn-199 R1).
+        // A failed unit's relay stands on the tip of the part its apex
+        // lived (fn-199 R1) and grows the rest of the unit and on as the
+        // apex would have, so the parts it chains through one cycle add
+        // up to no more than the unit.
         for l in &step.lived {
             let r = l.relay;
-            best = best.max(path + self.reach_bound(k, m - r.at, r.carried, None));
+            let lived = most * state.internode * l.size;
+            best = best.max(lived + self.reach_bound(k, m - r.at, r.carried, None));
         }
         // Laterals stand at most at the unit's tip, no larger than its
         // size (a place's share and a dominance share are at most 1).
