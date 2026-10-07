@@ -106,3 +106,10 @@
 - **What slowed it:** two other workers' test binaries (`walks-*`) held the desk at a one-minute load of 97 to 176, which inflated the oak's build seven to eight times (34 s against 4.5 s). The run script's load gate called `bc`, which this desk lacks, so it ran every case at once under that load; the first run was set aside (`raw/task6/old-binary-highload/`) and rerun behind an `awk` gate.
 - **Cost:** about 5 minutes for the gate; the wait for the load to fall dwarfs the work (noted with the timings).
 - **What would remove it:** one shared desk scheduler or lock for timing runs (as `gpu.lock` is for the GPU), so a timing worker queues rather than measuring other workers' load; the gate written without `bc`.
+
+## 2026-10-07, task 7 worker: the desk's load again gates a four-run timing
+
+- **Doing:** timing option A's ceiling (the lit oak at 80, seeds 1 and 7, all cores and one), each run gated on a one-minute load under 8.
+- **What slowed it:** the load stood at 30 to 61 when the task started. One run got through at load 7.5 after a 4-minute wait; then the load rose to 56 again, and the other three runs queued behind it.
+- **Cost:** the gate's waits were 255 s, 450 s, 3,300 s and 525 s for set a (the one-core seed 1 waited 55 minutes), and up to 375 s in set b. The runs themselves take 10 to 60 s each, so measurement time was about a tenth of wall time.
+- **What would remove it:** task 6's entry stands: a shared desk lock for timing runs, so a timing worker queues on the lock rather than polling the load average.

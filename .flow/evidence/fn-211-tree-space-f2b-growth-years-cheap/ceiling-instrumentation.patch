@@ -1,0 +1,534 @@
+diff --git i/crates/telperion-space/src/grow/stepped.rs w/crates/telperion-space/src/grow/stepped.rs
+index 37014785..787ba724 100644
+--- i/crates/telperion-space/src/grow/stepped.rs
++++ w/crates/telperion-space/src/grow/stepped.rs
+@@ -134,10 +134,20 @@ impl<'a> Executor<'a> {
+         let living = |g: &Grower| -> Vec<usize> { g.live.iter().map(|a| a.axis).collect() };
+         let advanced = living(&self.coarse);
+         let advanced_items: Vec<Vec<usize>> = self.items.iter().map(|i| living(&i.g)).collect();
++        let mut h = hyb::Row::start(cycle, self);
++        let t = std::time::Instant::now();
+         self.balance(cycle);
++        h.t[hyb::BALANCE] = t.elapsed().as_secs_f64();
++        let t = std::time::Instant::now();
+         self.mark(cycle, 0);
++        h.t[hyb::MARK] += t.elapsed().as_secs_f64();
++        let t = std::time::Instant::now();
+         self.allot();
++        h.t[hyb::ALLOT] = t.elapsed().as_secs_f64();
++        let t = std::time::Instant::now();
+         self.mark(cycle, 1);
++        h.t[hyb::MARK] += t.elapsed().as_secs_f64();
++        h.before_growth(self);
+         // Phase (iv): each grower grows, wakes and lays its own (the
+         // count the growth digest takes is the same once laid).
+         let sketching = self.coarse.sketch.is_some() && cycle < self.request.age;
+@@ -150,28 +160,66 @@ impl<'a> Executor<'a> {
+             }
+             Ok(())
+         };
++        let t = std::time::Instant::now();
+         step(&mut self.coarse, &advanced)?;
+-        let done = self.each(advanced_items, &|item, advanced| {
+-            step(&mut item.g, &advanced)
++        h.t[hyb::COARSE] = t.elapsed().as_secs_f64();
++        // Probe (fn-211.6): the items' growth and waking, then their
++        // sketch, in two passes so each is timed alone.
++        let t = std::time::Instant::now();
++        let done = self.each(vec![(); self.items.len()], &|item, ()| {
++            let live = std::mem::take(&mut item.g.live);
++            let mut last = std::time::Instant::now();
++            item.g.grow_live(live, cycle, &mut |s| {
++                if let Stage::Pass(p) = s {
++                    hyb::add(p, last.elapsed());
++                }
++                last = std::time::Instant::now();
++            })?;
++            let woke = item.g.wake(cycle);
++            hyb::add(super::Pass::Wake, last.elapsed());
++            woke
+         });
+         done.into_iter().collect::<Result<Vec<()>>>()?;
++        h.t[hyb::ITEMS_GROW] = t.elapsed().as_secs_f64();
++        h.after_growth(self);
++        let t = std::time::Instant::now();
++        if sketching {
++            let done = self.each(advanced_items, &|item, advanced| {
++                item.g.sketch(cycle, &advanced)
++            });
++            done.into_iter().collect::<Result<Vec<()>>>()?;
++        }
++        h.t[hyb::ITEMS_SKETCH] = t.elapsed().as_secs_f64();
+         let grown: u64 = self.growers().map(|g| g.rules.grown).sum();
+         if grown > u64::from(self.request.budget) {
+             return Err(Error::Budget {
+                 limit: self.request.budget,
+             });
+         }
++        let t = std::time::Instant::now();
+         self.mark(cycle, 2);
++        h.t[hyb::MARK] += t.elapsed().as_secs_f64();
++        let t = std::time::Instant::now();
++        let before = self.items.len();
+         if sketching || self.coarse.sketch.is_none() {
+             self.hand_over(first_new);
+         }
++        h.t[hyb::HANDOVER] = t.elapsed().as_secs_f64();
++        h.handed(self, before);
+         if sketching {
++            let t = std::time::Instant::now();
+             if cycle % RELAY_EVERY == 0 {
+                 self.relay(cycle)?;
+             }
++            h.t[hyb::RELAY] = t.elapsed().as_secs_f64();
++            let t = std::time::Instant::now();
+             self.shade();
++            h.t[hyb::SHADE] = t.elapsed().as_secs_f64();
++            let t = std::time::Instant::now();
+             self.mark(cycle, 3);
++            h.t[hyb::MARK] += t.elapsed().as_secs_f64();
+         }
++        h.print();
+         Ok(())
+     }
+ 
+@@ -198,12 +246,15 @@ impl<'a> Executor<'a> {
+         if !self.coarse.balances() {
+             return;
+         }
++        let t = std::time::Instant::now();
+         let none = vec![(); self.items.len()];
+         let done: Vec<(Links, Totals)> = self.each(none, &|item, ()| {
+             let rows = links(&item.g);
+             let totals = item.g.totals(&rows, &[]);
+             (rows, totals)
+         });
++        hyb::wall(hyb::W_BAL_ITEMS, t);
++        let t = std::time::Instant::now();
+         let given: Vec<_> = (self.visit().into_iter())
+             .map(|k| {
+                 let t = &done[k].1;
+@@ -217,11 +268,14 @@ impl<'a> Executor<'a> {
+         let decided: Vec<_> = (self.items.iter().zip(done))
+             .map(|(i, d)| (d, (shed[i.at], kept[i.at], pencils[i.at].memory)))
+             .collect();
++        hyb::wall(hyb::W_BAL_COARSE, t);
++        let t = std::time::Instant::now();
+         self.each(decided, &|item, ((rows, t), (shed, kept, memory))| {
+             let root = &mut item.g.sketch.as_mut().expect("sketching").pencils[1];
+             root.memory = memory;
+             item.g.shed_by(cycle, &rows, &t, Some((shed, kept)));
+         });
++        hyb::wall(hyb::W_BAL_ITEMS, t);
+     }
+ 
+     /// Phases (ii) and (iii): each item's lit presence reported to its
+@@ -231,12 +285,15 @@ impl<'a> Executor<'a> {
+         if !self.coarse.allots() {
+             return;
+         }
++        let t = std::time::Instant::now();
+         let none = vec![(); self.items.len()];
+         let done: Vec<(Links, Inputs)> = self.each(none, &|item, ()| {
+             let rows = links(&item.g);
+             let inputs = item.g.inputs(&rows);
+             (rows, inputs)
+         });
++        hyb::wall(hyb::W_ALLOT_ITEMS, t);
++        let t = std::time::Instant::now();
+         let given: Vec<_> = (self.visit().into_iter())
+             .map(|k| {
+                 let (r, i) = &done[k];
+@@ -254,6 +311,8 @@ impl<'a> Executor<'a> {
+             flat(&size_sums(got, &i.presence, &i.psi, &rows.pa, pas))
+         };
+         let mut total: Vec<Sum> = sums(&rows, &inputs, &got);
++        hyb::wall(hyb::W_ALLOT_COARSE, t);
++        let t = std::time::Instant::now();
+         let based: Vec<_> = (self.items.iter().zip(done))
+             .map(|(i, d)| (d, incoming[i.at]))
+             .collect();
+@@ -262,6 +321,8 @@ impl<'a> Executor<'a> {
+             let partial = sums(&r, &i, &got);
+             ((r, i, got), partial)
+         });
++        hyb::wall(hyb::W_ALLOT_ITEMS, t);
++        let t = std::time::Instant::now();
+         let (done, partials): (Vec<_>, Vec<_>) = split_up.into_iter().unzip();
+         let partial: HashMap<usize, Vec<Sum>> = partials.into_iter().enumerate().collect();
+         merge(&mut total, &partial, &self.grouping);
+@@ -273,7 +334,10 @@ impl<'a> Executor<'a> {
+             g.set_sizes(&sized(&got, &i.presence, &i.psi, &rows.pa, &factors));
+         };
+         size(&mut self.coarse, (rows, inputs, got));
++        hyb::wall(hyb::W_ALLOT_COARSE, t);
++        let t = std::time::Instant::now();
+         self.each(done, &|item, d| size(&mut item.g, d));
++        hyb::wall(hyb::W_ALLOT_ITEMS, t);
+     }
+ 
+     /// Phase (iv)'s light: every grower's leaves of the cycle into one
+@@ -283,15 +347,35 @@ impl<'a> Executor<'a> {
+         let threads = self.coarse.threads;
+         let light = self.coarse.sketch.as_ref().expect("sketching").light;
+         let growers: Vec<usize> = std::iter::once(usize::MAX).chain(order).collect();
++        let t = std::time::Instant::now();
+         let (mut leaves, mut tips) = (Vec::new(), Vec::new());
++        let (mut nl, mut nt) = (0, 0);
+         for &k in &growers {
+             let g = self.grower(k);
+             leaves.extend_from_slice(&g.leaves);
+             tips.extend(g.live.iter().map(|a| g.tip(a.axis)));
++            if k == usize::MAX {
++                (nl, nt) = (leaves.len(), tips.len());
++            }
+         }
+-        let field = Field::on(&light, &leaves, &tips, threads);
++        hyb::wall(hyb::W_GLUE, t);
++        hyb::count(hyb::C_LEAVES_COARSE, nl);
++        hyb::count(hyb::C_LEAVES_FINE, leaves.len() - nl);
++        hyb::count(hyb::C_TIPS_COARSE, nt);
++        hyb::count(hyb::C_TIPS_FINE, tips.len() - nt);
++        let (field, parts) = Field::probe_on(&light, &leaves, nl, &tips, threads);
++        for (k, v) in parts.into_iter().enumerate() {
++            hyb::add_secs(hyb::W_SPAN + k, v);
++        }
++        hyb::count(hyb::C_NODES, field.nodes());
+         let mut read = vec![0.0; tips.len()];
+-        crate::cores::fill(&mut read, 1 << 10, threads, &|k| field.at(tips[k]));
++        let t = std::time::Instant::now();
++        crate::cores::fill(&mut read[..nt], 1 << 10, threads, &|k| field.at(tips[k]));
++        hyb::wall(hyb::W_READ_COARSE, t);
++        let t = std::time::Instant::now();
++        crate::cores::fill(&mut read[nt..], 1 << 10, threads, &|k| field.at(tips[nt + k]));
++        hyb::wall(hyb::W_READ_FINE, t);
++        let t = std::time::Instant::now();
+         let mut from = 0;
+         for &k in &growers {
+             let g = self.grower_mut(k);
+@@ -302,6 +386,7 @@ impl<'a> Executor<'a> {
+             }
+             from += n;
+         }
++        hyb::wall(hyb::W_GLUE, t);
+     }
+ 
+     fn grower(&self, k: usize) -> &Grower<'a> {
+@@ -321,14 +406,43 @@ impl<'a> Executor<'a> {
+     /// Every tenth cycle, today's re-lay on the tree assembled, its
+     /// places and walks handed back, its leaves the cycle's.
+     fn relay(&mut self, cycle: u32) -> Result<()> {
++        let t = std::time::Instant::now();
+         let (mut tree, layout) = self.assemble(false);
+-        tree.relay(cycle, &mut |_| {})?;
++        hyb::wall(hyb::W_ASSEMBLE, t);
++        let (mut fine, mut all) = (0, 0);
++        for (axis, &(k, _)) in tree.axes.iter().zip(&layout.from_probe()) {
++            all += axis.phytomers.len();
++            if k.is_some() {
++                fine += axis.phytomers.len();
++            }
++        }
++        hyb::count(hyb::C_RELAY_FINE, fine);
++        hyb::count(hyb::C_RELAY_ALL, all);
++        let t = std::time::Instant::now();
++        let mut last = std::time::Instant::now();
++        tree.relay(cycle, &mut |s| {
++            if let Stage::Pass(p) = s {
++                use super::Pass::*;
++                let k = match p {
++                    RelaySettle => 0,
++                    RelayPlace => 1,
++                    RelayLevers => 2,
++                    RelaySag => 3,
++                    _ => 4,
++                };
++                hyb::wall(hyb::W_RELAY_PASS + k, last);
++            }
++            last = std::time::Instant::now();
++        })?;
++        hyb::wall(hyb::W_RELAY_TREE, t);
++        let t = std::time::Instant::now();
+         let leaves = std::mem::take(&mut tree.leaves);
+         self.disperse(tree, layout);
+         self.coarse.leaves = leaves;
+         for item in &mut self.items {
+             item.g.leaves.clear();
+         }
++        hyb::wall(hyb::W_DISPERSE, t);
+         Ok(())
+     }
+ 
+@@ -365,3 +479,206 @@ fn flat(sums: &[[Sum; 2]]) -> Vec<Sum> {
+ 
+ #[cfg(test)]
+ mod tests;
++
++/// Probe (fn-211.6, not product code): each cycle's phases timed, and
++/// the records a CPU-led hybrid would move between the CPU and a device
++/// growing the items, counted.
++mod hyb {
++    use super::Executor;
++    use crate::dormant::{Sleeper, Woken};
++    use crate::presence::{Draws, Unit};
++    use crate::structure::{Axis, Phytomer};
++    use std::mem::size_of;
++
++    pub const BALANCE: usize = 0;
++    pub const ALLOT: usize = 1;
++    pub const COARSE: usize = 2;
++    pub const ITEMS_GROW: usize = 3;
++    pub const ITEMS_SKETCH: usize = 4;
++    pub const HANDOVER: usize = 5;
++    pub const RELAY: usize = 6;
++    pub const SHADE: usize = 7;
++    pub const MARK: usize = 8;
++
++    use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
++    static CPU: [AtomicU64; 4] = [const { AtomicU64::new(0) }; 4];
++
++    // fn-211.7: wall seconds of each sub-phase, and counts.
++    pub const W_BAL_ITEMS: usize = 0;
++    pub const W_BAL_COARSE: usize = 1;
++    pub const W_ALLOT_ITEMS: usize = 2;
++    pub const W_ALLOT_COARSE: usize = 3;
++    pub const W_GLUE: usize = 4;
++    pub const W_SPAN: usize = 5; // then DEPOSIT_COARSE 6, DEPOSIT_FINE 7, SWEEP 8
++    pub const W_READ_COARSE: usize = 9;
++    pub const W_READ_FINE: usize = 10;
++    pub const W_ASSEMBLE: usize = 11;
++    pub const W_RELAY_TREE: usize = 12;
++    pub const W_DISPERSE: usize = 13;
++    pub const W_RELAY_PASS: usize = 14; // settle, place, levers, sag, write: 14..19
++    const NW: usize = 19;
++    static WALL: [AtomicU64; NW] = [const { AtomicU64::new(0) }; NW];
++    pub const C_LEAVES_COARSE: usize = 0;
++    pub const C_LEAVES_FINE: usize = 1;
++    pub const C_TIPS_COARSE: usize = 2;
++    pub const C_TIPS_FINE: usize = 3;
++    pub const C_NODES: usize = 4;
++    pub const C_RELAY_FINE: usize = 5;
++    pub const C_RELAY_ALL: usize = 6;
++    const NC: usize = 7;
++    static COUNT: [AtomicU64; NC] = [const { AtomicU64::new(0) }; NC];
++
++    pub fn wall(k: usize, since: std::time::Instant) {
++        WALL[k].fetch_add(since.elapsed().as_nanos() as u64, Relaxed);
++    }
++
++    pub fn add_secs(k: usize, s: f64) {
++        WALL[k].fetch_add((s * 1e9) as u64, Relaxed);
++    }
++
++    pub fn count(k: usize, n: usize) {
++        COUNT[k].fetch_add(n as u64, Relaxed);
++    }
++
++    fn walls() -> Vec<String> {
++        WALL.iter()
++            .map(|c| format!("{:.6}", c.swap(0, Relaxed) as f64 * 1e-9))
++            .collect()
++    }
++
++    fn counts() -> Vec<String> {
++        COUNT.iter().map(|c| c.swap(0, Relaxed).to_string()).collect()
++    }
++
++    /// An item's pass's seconds on its core, summed over the items.
++    pub fn add(p: super::super::Pass, d: std::time::Duration) {
++        use super::super::Pass::*;
++        let k = match p {
++            Homes => 0,
++            Units => 1,
++            Merge => 2,
++            Wake => 3,
++            _ => return,
++        };
++        CPU[k].fetch_add(d.as_nanos() as u64, Relaxed);
++    }
++
++    fn cpu() -> Vec<String> {
++        CPU.iter()
++            .map(|c| format!("{:.6}", c.swap(0, Relaxed) as f64 * 1e-9))
++            .collect()
++    }
++
++    #[derive(Default)]
++    pub struct Row {
++        cycle: u32,
++        pub t: [f64; 9],
++        live0: usize,
++        live: usize,
++        live1: usize,
++        axes0: usize,
++        axes1: usize,
++        grown0: u64,
++        grown1: u64,
++        asleep0: usize,
++        asleep1: usize,
++        woken0: usize,
++        woken1: usize,
++        items: usize,
++        handed: usize,
++        handed_axes: usize,
++        handed_phyt: usize,
++        handed_asleep: usize,
++        handed_live: usize,
++        coarse_live: usize,
++        coarse_axes: usize,
++    }
++
++    fn sum(x: &Executor, f: impl Fn(&super::Grower) -> usize) -> usize {
++        x.items.iter().map(|i| f(&i.g)).sum()
++    }
++
++    fn asleep(g: &super::Grower) -> usize {
++        g.asleep.iter().map(Vec::len).sum()
++    }
++
++    fn phyt(g: &super::Grower) -> usize {
++        g.axes.iter().map(|a| a.phytomers.len()).sum()
++    }
++
++    impl Row {
++        pub fn start(cycle: u32, x: &Executor) -> Self {
++            Self {
++                cycle,
++                live0: sum(x, |g| g.live.len()),
++                ..Self::default()
++            }
++        }
++
++        pub fn before_growth(&mut self, x: &Executor) {
++            self.live = sum(x, |g| g.live.len());
++            self.axes0 = sum(x, |g| g.axes.len());
++            self.grown0 = x.items.iter().map(|i| i.g.rules.grown).sum();
++            self.asleep0 = sum(x, asleep);
++            self.woken0 = sum(x, |g| g.woken.len());
++        }
++
++        pub fn after_growth(&mut self, x: &Executor) {
++            self.live1 = sum(x, |g| g.live.len());
++            self.axes1 = sum(x, |g| g.axes.len());
++            self.grown1 = x.items.iter().map(|i| i.g.rules.grown).sum();
++            self.asleep1 = sum(x, asleep);
++            self.woken1 = sum(x, |g| g.woken.len());
++        }
++
++        pub fn handed(&mut self, x: &Executor, before: usize) {
++            let new = &x.items[before..];
++            self.items = x.items.len();
++            self.handed = new.len();
++            self.handed_axes = new.iter().map(|i| i.g.axes.len()).sum();
++            self.handed_phyt = new.iter().map(|i| phyt(&i.g)).sum();
++            self.handed_asleep = new.iter().map(|i| asleep(&i.g)).sum();
++            self.handed_live = new.iter().map(|i| i.g.live.len()).sum();
++            self.coarse_live = x.coarse.live.len();
++            self.coarse_axes = x.coarse.axes.len();
++        }
++
++        pub fn print(&self) {
++            if std::env::var_os("HYBRID").is_none() {
++                return;
++            }
++            let t: Vec<String> = self.t.iter().map(|v| format!("{:.6}", v)).collect();
++            println!(
++                "HYB {{\"cycle\":{},\"w\":[{}],\"c\":[{}],\"cpu\":[{}],\"t\":[{}],\"live0\":{},\"live\":{},\"live1\":{},\"axes0\":{},\"axes1\":{},\"grown\":{},\"asleep0\":{},\"asleep1\":{},\"woken\":{},\"items\":{},\"handed\":{},\"handed_axes\":{},\"handed_phyt\":{},\"handed_asleep\":{},\"handed_live\":{},\"coarse_live\":{},\"coarse_axes\":{},\"sz\":{{\"phytomer\":{},\"axis\":{},\"draws\":{},\"unit\":{},\"sleeper\":{},\"woken\":{}}}}}",
++                self.cycle,
++                walls().join(","),
++                counts().join(","),
++                cpu().join(","),
++                t.join(","),
++                self.live0,
++                self.live,
++                self.live1,
++                self.axes0,
++                self.axes1,
++                self.grown1 - self.grown0,
++                self.asleep0,
++                self.asleep1,
++                self.woken1 - self.woken0,
++                self.items,
++                self.handed,
++                self.handed_axes,
++                self.handed_phyt,
++                self.handed_asleep,
++                self.handed_live,
++                self.coarse_live,
++                self.coarse_axes,
++                size_of::<Phytomer>(),
++                size_of::<Axis>(),
++                size_of::<Draws>(),
++                size_of::<Unit>(),
++                size_of::<Sleeper>(),
++                size_of::<Woken>(),
++            );
++        }
++    }
++}
+diff --git i/crates/telperion-space/src/grow/stepped/assemble.rs w/crates/telperion-space/src/grow/stepped/assemble.rs
+index 001e24de..91de4dd8 100644
+--- i/crates/telperion-space/src/grow/stepped/assemble.rs
++++ w/crates/telperion-space/src/grow/stepped/assemble.rs
+@@ -20,6 +20,13 @@ pub(super) struct Layout {
+     origins: Vec<Origin>,
+ }
+ 
++impl Layout {
++    /// Probe (fn-211.7): where each assembled axis came from.
++    pub(super) fn from_probe(&self) -> Vec<(Option<usize>, usize)> {
++        self.from.clone()
++    }
++}
++
+ impl<'a> Executor<'a> {
+     /// The tree assembled, its axes and draws moved out of the growers:
+     /// with their pencils for a re-lay, or with their successors and
+diff --git i/crates/telperion-space/src/light.rs w/crates/telperion-space/src/light.rs
+index 32b67908..2836973f 100644
+--- i/crates/telperion-space/src/light.rs
++++ w/crates/telperion-space/src/light.rs
+@@ -205,6 +205,43 @@ impl Field {
+         field
+     }
+ 
++    /// Probe (fn-211.7): `on`, timed: the box, the first `split` leaves'
++    /// deposits, the rest's, and the sweep, in seconds.
++    pub(crate) fn probe_on(
++        light: &Light,
++        leaves: &[(Vec3, f64)],
++        split: usize,
++        reads: &[Vec3],
++        threads: usize,
++    ) -> (Self, [f64; 4]) {
++        let t = std::time::Instant::now();
++        let mut field = Self::spanning(
++            leaves.iter().map(|l| l.0).chain(reads.iter().copied()),
++            CELL,
++        );
++        let mut sums = vec![Sum::default(); field.density.len()];
++        let mut out = [t.elapsed().as_secs_f64(), 0.0, 0.0, 0.0];
++        let t = std::time::Instant::now();
++        for &(at, area) in &leaves[..split] {
++            field.deposit(at, area, &mut sums);
++        }
++        out[1] = t.elapsed().as_secs_f64();
++        let t = std::time::Instant::now();
++        for &(at, area) in &leaves[split..] {
++            field.deposit(at, area, &mut sums);
++        }
++        out[2] = t.elapsed().as_secs_f64();
++        let t = std::time::Instant::now();
++        for (d, s) in field.density.iter_mut().zip(sums) {
++            *d = s.value();
++        }
++        out[0] += t.elapsed().as_secs_f64();
++        let t = std::time::Instant::now();
++        field.sweep(light.extinction, &light.directions(), threads);
++        out[3] = t.elapsed().as_secs_f64();
++        (field, out)
++    }
++
+     /// The lattice `leaves` deposit in the box spanning them and `reads`,
+     /// before any sweep (probe (a): any grouping of the leaves gives it).
+     pub(crate) fn deposited(leaves: &[(Vec3, f64)], reads: &[Vec3]) -> Vec<f64> {
