@@ -6,6 +6,7 @@
 use super::super::io;
 use super::sweep::Swept;
 use crate::Gpu;
+use telperion_core::pipeline::executor::Expansion;
 
 const STATIONS: &str = include_str!("stations.wgsl");
 const SW: u64 = 4;
@@ -156,5 +157,21 @@ impl Stationer {
             segments,
             buffer,
         }
+    }
+}
+
+/// The rows the device's stations read from the pipeline's expansion, its
+/// rings `segments` vertices round.
+pub(super) fn station_rows(x: &Expansion, segments: u32) -> Rows {
+    let [structural, slender] = x.bearing_bounds();
+    let (twig, canopy) = (x.twig(), x.leaves().canopy);
+    Rows {
+        spi: twig.stations_per_internode,
+        segments,
+        structural: structural as f32,
+        slender: slender as f32,
+        internode: twig.internode_length as f32,
+        divergence: canopy.divergence.to_radians() as f32,
+        contact: x.seats(),
     }
 }

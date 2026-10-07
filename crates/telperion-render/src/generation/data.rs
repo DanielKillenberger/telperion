@@ -31,7 +31,8 @@ pub(super) fn vector(p: Vec3, w: f64) -> [f32; 4] {
     [p.x as f32, p.y as f32, p.z as f32, w as f32]
 }
 /// The placement's rows for `count` stations on `segments` segments, their
-/// contacts on rings of `ring_size` vertices.
+/// contacts on rings of `ring_size` vertices; the leaves written from the
+/// leaf buffer's start (`at` places them further on).
 pub(super) fn config(
     l: &LeafInput,
     t: TwigPlacement,
@@ -58,6 +59,15 @@ pub(super) fn config(
             c.upward as f32,
         ],
         size: [c.size as f32, c.size_variation as f32, 0.0, 0.0],
+    }
+}
+impl Config {
+    /// These rows with the leaves written from leaf `first` on: a block
+    /// placed into a leaf buffer after another's (fn-212 task 7).
+    #[cfg(test)]
+    pub(super) fn at(mut self, first: u32) -> Self {
+        self.random[3] = first;
+        self
     }
 }
 pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {

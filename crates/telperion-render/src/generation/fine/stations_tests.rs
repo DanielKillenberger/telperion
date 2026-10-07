@@ -7,13 +7,12 @@
 use super::dress::{Dressed, Dresser};
 use super::fixture::{with_dressed, Fixture};
 use super::roots::{kernels, Kernels};
-use super::stations::{Rows, Stationer, GW};
+use super::stations::{station_rows, Stationer, GW};
 use super::sweep::{rows, Sweeper};
 use crate::Gpu;
 use std::collections::{HashMap, HashSet};
 use telperion_core::foliage::prepared::StationSegment;
 use telperion_core::math::Vec3;
-use telperion_core::pipeline::executor::Expansion;
 use telperion_core::tree::Tree;
 
 /// fn-125's screen, in metres, and radians for a frame.
@@ -88,22 +87,6 @@ pub(super) fn drawn_by_device<'a>(tree: &'a Tree, fine: &'a [bool]) -> impl Fn(V
     move |p: Vec3| {
         at.get(&[p.x, p.y, p.z].map(f64::to_bits))
             .is_some_and(|&i| fine[i])
-    }
-}
-
-/// The rows the device's stations read from the pipeline's expansion, its
-/// rings `segments` vertices round.
-pub(super) fn station_rows(x: &Expansion, segments: u32) -> Rows {
-    let [structural, slender] = x.bearing_bounds();
-    let (twig, canopy) = (x.twig(), x.leaves().canopy);
-    Rows {
-        spi: twig.stations_per_internode,
-        segments,
-        structural: structural as f32,
-        slender: slender as f32,
-        internode: twig.internode_length as f32,
-        divergence: canopy.divergence.to_radians() as f32,
-        contact: x.seats(),
     }
 }
 

@@ -48,6 +48,51 @@ const FORK_AT: f64 = 0.7;
 /// with no engine species is refused by name, never grown another way
 /// (host decision 9).
 pub(super) fn grow(input: GrowInput) -> Result<Tree> {
+    let (species, request) = asked(input)?;
+    foreseen(species, request.age, KEPT)?;
+    // The engine returns its tree in its canonical lineage order, parents
+    // first and siblings by lineage, whichever path built it (FINE-CONTRACT
+    // decision C; fn-198 host decision 17): the conversion's node numbering
+    // and a relay's girth never depend on how the tree was assembled.
+    let (structure, fine) = telperion_space::grow_marked(species, request).map_err(engine)?;
+    fits(&structure, KEPT)?;
+    Ok(convert(
+        &structure,
+        &fine,
+        &input.space.trunk,
+        &internodes(species),
+    ))
+}
+
+/// The family's species settled with its fine roots grown and laid by
+/// `roots` (fn-212 task 7, host decision 1), and the rows its conversion
+/// reads: the trunk's PAs and each PA's internode. Never on the browser's
+/// ceiling: the executor holding the roots is what lifts it.
+pub(super) fn settled(
+    input: GrowInput,
+    roots: &mut dyn telperion_space::Roots,
+) -> Result<(telperion_space::Settled, Vec<usize>, Vec<f64>)> {
+    let (species, request) = asked(input)?;
+    let plan = telperion_space::Plan::default();
+    let (settled, _) = telperion_space::settle(species, request, plan, roots).map_err(engine)?;
+    Ok((settled, input.space.trunk.clone(), internodes(species)))
+}
+
+/// `settled`'s structure above the cut and its roots laid on the CPU
+/// converted by the one conversion, each other root's attachment recorded
+/// and none of its wood drawn; each root's first axis's lineage (none:
+/// shed), and the roots laid on the CPU.
+pub(super) fn part(
+    settled: telperion_space::Settled,
+    (trunk, internodes): (&[usize], &[f64]),
+) -> (Tree, Vec<Option<u64>>, Vec<usize>) {
+    let part = telperion_space::partial(settled);
+    let tree = convert(&part.structure, &part.fine, trunk, internodes);
+    (tree, part.lineages, part.grounded)
+}
+
+/// The family's engine species and the request it grows by.
+fn asked(input: GrowInput<'_>) -> Result<(&telperion_space::Species, Request)> {
     let species = (input.space.species.as_ref()).ok_or(Error::InvalidInput("no engine species"))?;
     let age = input.age;
     if age.fract() != 0.0 || !(0.0..=f64::from(u32::MAX)).contains(&age) {
@@ -57,21 +102,18 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
             value,
         });
     }
-    foreseen(species, age as u32, KEPT)?;
     let request = Request {
         age: age as u32,
         seed: u64::from(input.seed),
         budget: BUDGET,
         light: input.space.light,
     };
-    // The engine returns its tree in its canonical lineage order, parents
-    // first and siblings by lineage, whichever path built it (FINE-CONTRACT
-    // decision C; fn-198 host decision 17): the conversion's node numbering
-    // and a relay's girth never depend on how the tree was assembled.
-    let (structure, fine) = telperion_space::grow_marked(species, request).map_err(engine)?;
-    fits(&structure, KEPT)?;
-    let internodes: Vec<f64> = species.states.iter().map(|s| s.internode).collect();
-    Ok(convert(&structure, &fine, &input.space.trunk, &internodes))
+    Ok((species, request))
+}
+
+/// Each PA's internode length, which each node's grown wood is measured by.
+fn internodes(species: &telperion_space::Species) -> Vec<f64> {
+    species.states.iter().map(|s| s.internode).collect()
 }
 
 /// The refusal of a tree over the browser's ceiling.

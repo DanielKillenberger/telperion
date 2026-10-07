@@ -31,6 +31,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
         ("fine sweep", sweep::source()),
         ("fine stations", stations::source()),
         ("fine rings", rings::source()),
+        ("fine handoff", handoff::source()),
     ]
     .into_iter()
     .chain(steps::sources())
@@ -63,6 +64,12 @@ mod sweep;
 mod sweep_tests;
 #[cfg(test)]
 mod group;
+#[cfg(test)]
+mod handoff;
+#[cfg(test)]
+mod resident;
+#[cfg(test)]
+mod resident_tests;
 #[cfg(test)]
 mod hostrun;
 #[cfg(test)]

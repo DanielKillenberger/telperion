@@ -65,6 +65,11 @@ impl Wood {
         self.curve = (!curve.clusters.is_empty()).then(|| crate::curve::CurveGpu::new(gpu, curve));
     }
 
+    /// Takes a curve already on the device (fn-212 task 7).
+    pub(crate) fn submit_on_device(&mut self, curve: crate::curve::CurveGpu) {
+        self.curve = Some(curve);
+    }
+
     /// Surfaces the wood for `viewport` whatever the frame's size, or for the
     /// frame again with `None`: a measurement override, never a production
     /// path.

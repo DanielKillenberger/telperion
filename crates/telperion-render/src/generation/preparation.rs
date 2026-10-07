@@ -22,10 +22,7 @@ impl Generator {
         let mut swept = None;
         // Ring positions have one reader, the seated leaves' contacts
         // (`pack.wgsl`): a family that seats nothing builds none (fn-212 R2).
-        if delivery == Delivery::Resident
-            && x.seats()
-            && x.supports_stations()
-            && x.round_section()
+        if delivery == Delivery::Resident && x.seats() && x.supports_stations() && x.round_section()
         {
             let begin = Clock::now();
             let mut candidate_stations = None;
@@ -144,6 +141,7 @@ impl Generator {
                 identity: self.identity.clone(),
                 mesh,
                 resident: None,
+                wood: None,
                 backend: Backend::CpuFallback,
                 metrics,
             });
@@ -256,6 +254,7 @@ impl Generator {
             identity: self.identity.clone(),
             mesh,
             resident,
+            wood: None,
             backend: Backend::Gpu,
             metrics,
         })

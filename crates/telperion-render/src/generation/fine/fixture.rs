@@ -56,43 +56,23 @@ fn distances(tree: &Tree) -> Vec<f64> {
     d
 }
 
-/// The preset `id` at `age` and `seed` built by the pipeline, settled and
-/// drawn on the device; `then` reads both.
-pub(super) fn with_dressed<R>(
-    gpu: &Gpu,
-    k: &Kernels,
-    d: &Dresser,
-    id: &str,
-    (age, seed): (u32, u32),
-    then: impl FnOnce(&Fixture, &Dressed) -> R,
-) -> R {
-    let mut family = telperion_core::presets::by_identity(id).unwrap();
-    family.age = f64::from(age);
-    family.skeleton.seed = seed;
-    let reference = executor::grow(&family).unwrap().expansion().unwrap();
-    let tree = reference.tree();
+/// Each fine root as the device draws it (`dress`): from its attachment
+/// in `tree` (by its first axis's lineage, none where shed), as the
+/// pipeline drew its bearer, from its origin as laid on the device, and
+/// whether it was laid on the CPU (`landed`, by root).
+pub(super) fn stubs(
+    tree: &Tree,
+    dev: &Device,
+    lineages: &[Option<u64>],
+    landed: &HashSet<usize>,
+) -> Vec<Stub> {
     let distance = distances(tree);
-    let species = family.space.species.clone().unwrap();
-    let request = Request {
-        age,
-        seed: u64::from(seed),
-        budget: 20_000_000,
-        light: family.space.light,
-    };
-    let chain = ChainTables::new(&species, age).unwrap();
-    let geo = GeometryTables::new(&species, age).unwrap();
-    let tables = Tables::new(gpu, Arc::new(chain), &geo);
-    let mut dev = Device::new(gpu, k, &tables, 1 << 16).sown_from(64);
-    let (settled, _) = settle(&species, request, Plan::default(), &mut dev).unwrap();
-    dev.wait();
     let attached: HashMap<u64, u32> = (tree.attachments.iter())
         .map(|a| (a.lineage, a.node))
         .collect();
-    let lineage = |r: usize| settled.at[r].map(|i| settled.structure.axes[i].lineage);
-    let landed: HashSet<usize> = settled.grounded.iter().copied().collect();
-    let stubs: Vec<Stub> = (0..settled.at.len())
+    (0..lineages.len())
         .map(|r| {
-            let at = lineage(r)
+            let at = lineages[r]
                 .and_then(|l| attached.get(&l))
                 .map(|&n| n as usize);
             let node = at.map(|i| {
@@ -119,8 +99,43 @@ pub(super) fn with_dressed<R>(
                 distance: at.map_or(0.0, |i| distance[i] as f32),
             }
         })
+        .collect()
+}
+
+/// The preset `id` at `age` and `seed` built by the pipeline, settled and
+/// drawn on the device; `then` reads both.
+pub(super) fn with_dressed<R>(
+    gpu: &Gpu,
+    k: &Kernels,
+    d: &Dresser,
+    id: &str,
+    (age, seed): (u32, u32),
+    then: impl FnOnce(&Fixture, &Dressed) -> R,
+) -> R {
+    let mut family = telperion_core::presets::by_identity(id).unwrap();
+    family.age = f64::from(age);
+    family.skeleton.seed = seed;
+    let reference = executor::grow(&family).unwrap().expansion().unwrap();
+    let tree = reference.tree();
+    let species = family.space.species.clone().unwrap();
+    let request = Request {
+        age,
+        seed: u64::from(seed),
+        budget: 20_000_000,
+        light: family.space.light,
+    };
+    let chain = ChainTables::new(&species, age).unwrap();
+    let geo = GeometryTables::new(&species, age).unwrap();
+    let tables = Tables::new(gpu, Arc::new(chain), &geo);
+    let mut dev = Device::new(gpu, k, &tables, 1 << 16).sown_from(64);
+    let (settled, _) = settle(&species, request, Plan::default(), &mut dev).unwrap();
+    dev.wait();
+    let lineages: Vec<Option<u64>> = (settled.at.iter())
+        .map(|a| a.map(|i| settled.structure.axes[i].lineage))
         .collect();
-    let landed_lineages: HashSet<u64> = landed.iter().filter_map(|&r| lineage(r)).collect();
+    let landed: HashSet<usize> = settled.grounded.iter().copied().collect();
+    let stubs = stubs(tree, &dev, &lineages, &landed);
+    let landed_lineages: HashSet<u64> = landed.iter().filter_map(|&r| lineages[r]).collect();
     let fine = fine_nodes(tree, &landed_lineages);
     let d0 = std::time::Instant::now();
     let dressed = dress(gpu, d, &dev, &stubs);

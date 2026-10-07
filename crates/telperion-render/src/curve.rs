@@ -72,7 +72,26 @@ impl CurveGpu {
     pub(crate) fn new(gpu: &Gpu, curve: &Curve) -> Self {
         let points: Vec<[u32; POINT_WORDS]> = curve.packed();
         let clusters: Vec<[u32; CLUSTER_WORDS]> = curve.packed_clusters();
-        let mut sections: Vec<[f32; SECTION_FLOATS]> = curve.packed_sections();
+        let blocks = (
+            filled(gpu, "curve points", bytemuck::cast_slice(&points)),
+            filled(gpu, "curve clusters", bytemuck::cast_slice(&clusters)),
+        );
+        let counts = (points.len() as u64, clusters.len() as u32);
+        Self::on_device(gpu, curve, blocks, counts, curve.demand())
+    }
+
+    /// A curve already on the device in its packed form (`points` and
+    /// `clusters` words, `counts` of each) with the rows, sections and
+    /// demand `rows`' and `demand` give: the fine roots' block packed after
+    /// the CPU's (fn-212 task 7, host decision 2).
+    pub(crate) fn on_device(
+        gpu: &Gpu,
+        rows: &Curve,
+        (points, clusters): (wgpu::Buffer, wgpu::Buffer),
+        (point_count, count): (u64, u32),
+        demand: Demand,
+    ) -> Self {
+        let mut sections: Vec<[f32; SECTION_FLOATS]> = rows.packed_sections();
         if sections.is_empty() {
             sections.push([0.0; SECTION_FLOATS]);
         }
@@ -106,25 +125,40 @@ impl CurveGpu {
             .collect();
         // A slice of whole points, on a 256-byte boundary.
         let per_slice = (BINDING / 256) * 256 / 4;
+        let words = point_count * POINT_WORDS as u64;
         Self {
             pipelines,
-            points: filled(gpu, "curve points", bytemuck::cast_slice(&points)),
-            point_slice: per_slice.min((points.len() * POINT_WORDS) as u64),
-            point_bytes: (points.len() * POINT_WORDS * 4) as u64,
-            clusters: filled(gpu, "curve clusters", bytemuck::cast_slice(&clusters)),
+            points,
+            point_slice: per_slice.min(words),
+            point_bytes: words * 4,
+            clusters,
             sections: filled(gpu, "curve sections", bytemuck::cast_slice(&sections)),
-            count: clusters.len() as u32,
-            demand: curve.demand(),
+            count,
+            demand,
             shape: [
-                curve.lobe_depth as f32,
-                curve.twist_rate as f32,
-                curve.height as f32,
+                rows.lobe_depth as f32,
+                rows.twist_rate as f32,
+                rows.height as f32,
                 0.0,
             ],
-            lobes: curve.lobes,
+            lobes: rows.lobes,
             camera: None,
             sun: None,
         }
+    }
+
+    /// The packed points and clusters, how many of each, and the demand
+    /// (fn-212 task 7's parity probe reads them back).
+    #[cfg(test)]
+    pub(crate) fn blocks(&self) -> (&wgpu::Buffer, &wgpu::Buffer, u64, u32, Demand) {
+        let points = self.point_bytes / (POINT_WORDS as u64 * 4);
+        (
+            &self.points,
+            &self.clusters,
+            points,
+            self.count,
+            self.demand,
+        )
     }
 
     /// Bytes on the device: the curve and both views' budgets.

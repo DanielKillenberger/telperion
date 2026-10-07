@@ -112,6 +112,9 @@ pub struct Prepared {
     identity: Arc<()>,
     mesh: TreeMesh,
     resident: Option<Resident>,
+    /// The wood's curve already on the device, which the submit takes in
+    /// place of `mesh.curve` (fn-212 task 7).
+    wood: Option<crate::curve::CurveGpu>,
     pub backend: Backend,
     pub metrics: Metrics,
 }

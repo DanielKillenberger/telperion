@@ -51,6 +51,98 @@ pub fn expand(tree: Tree, family: &Family) -> Result<Expansion> {
     Grown { tree, inputs }.expansion()
 }
 
+/// A tree whose fine roots another executor grows, lays and draws
+/// (fn-212 task 7, host decision 1): the structure above the cut and the
+/// roots laid on the CPU, converted; each root's first axis's lineage
+/// (none: shed) and the roots laid on the CPU, by root, which the executor
+/// draws its own from (`Tree::attachments`).
+pub struct Part {
+    tree: Tree,
+    pub lineages: Vec<Option<u64>>,
+    pub grounded: Vec<usize>,
+}
+
+/// Stage 2 with the fine roots grown and laid by `roots`, settled: what
+/// `Settling::part` converts.
+pub fn settle(family: &Family, roots: &mut dyn telperion_space::Roots) -> Result<Settling> {
+    let (settled, trunk, internodes) = super::space::settled(GrowInput::of(family), roots)?;
+    Ok(Settling {
+        settled,
+        trunk,
+        internodes,
+    })
+}
+
+/// A tree settled with its fine roots on another executor, and the rows
+/// its conversion reads.
+pub struct Settling {
+    pub settled: telperion_space::Settled,
+    trunk: Vec<usize>,
+    internodes: Vec<f64>,
+}
+
+impl Settling {
+    /// The part of the tree the pipeline converts.
+    pub fn part(self) -> Part {
+        let rows = (&self.trunk[..], &self.internodes[..]);
+        let (tree, lineages, grounded) = super::space::part(self.settled, rows);
+        Part {
+            tree,
+            lineages,
+            grounded,
+        }
+    }
+}
+
+impl Part {
+    pub fn tree(&self) -> &Tree {
+        &self.tree
+    }
+    /// The whole-tree folds over this part's nodes.
+    pub fn folds(&self) -> Folds {
+        Folds::of(&self.tree.nodes, |_| true)
+    }
+    /// The terms of a station's reach from its wood (`wood_reach`) under
+    /// the whole tree's `height`, which is all of the envelope they read:
+    /// what the executor folds its own nodes' leaf box by.
+    pub fn wood_reach(&self, family: &Family, height: f64) -> Result<[f64; 4]> {
+        let envelope = Envelope {
+            height,
+            ..Envelope::default()
+        };
+        Ok(Inputs::of(family, envelope).plan.reach?.terms())
+    }
+    /// Stage 3's descriptors for the whole tree, as `Grown::expansion`
+    /// makes them, from this part and the executor's: the whole tree's
+    /// `folds`, the executor's crown nodes no other passes (`crown`, read
+    /// under the whole tree's bins) and its nodes' leaf box (`corners`).
+    pub fn expansion(
+        self,
+        family: &Family,
+        folds: Folds,
+        crown: &[Vec3],
+        corners: (Vec3, Vec3),
+    ) -> Result<Expansion> {
+        let own = self.tree.nodes.iter().map(|n| n.position);
+        let envelope = envelope(folds, own.chain(crown.iter().copied()));
+        let inputs = Inputs::of(family, envelope);
+        let terms = inputs.plan.reach.clone()?.terms();
+        debug_assert_eq!(terms, self.wood_reach(family, envelope.height)?);
+        let x = Grown {
+            tree: self.tree,
+            inputs,
+        }
+        .expansion()?;
+        let (lo, hi) = x.wood_box(|_| true)?;
+        let (a, b) = corners;
+        let reference = Reference::spanning(
+            Vec3::new(lo.x.min(a.x), lo.y.min(a.y), lo.z.min(a.z)),
+            Vec3::new(hi.x.max(b.x), hi.y.max(b.y), hi.z.max(b.z)),
+        );
+        Ok(Expansion { reference, ..x })
+    }
+}
+
 /// The leaf element built from its rows, as the plan stage builds it.
 pub fn element(params: ElementParams) -> Result<Element> {
     foliage::build_element(params)

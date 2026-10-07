@@ -255,6 +255,7 @@ fn foreign_prepared_result_preserves_the_live_tree() {
         identity: source.identity.clone(),
         mesh,
         resident: None,
+        wood: None,
         backend: Backend::CpuFallback,
         metrics: Metrics::default(),
     };

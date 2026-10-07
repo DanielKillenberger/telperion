@@ -234,6 +234,57 @@ fn assemble(settled: Settled, roots: Vec<Root>, predictor: &Predictor) -> Result
     })
 }
 
+/// A settled tree as the CPU converts it where another executor holds
+/// its fine roots (fn-212 task 7, host decision 1): the structure above
+/// the cut with each root laid on the CPU (D3(c)) assembled where it
+/// stands, as `assemble` does, and each other live root's first axis left
+/// where its stand-in stood with no phytomers, so the conversion records
+/// its attachment and draws none of its wood; marked as `grow_marked`
+/// marks, in the canonical order. Also each root's first axis's lineage
+/// (none: shed), and the roots laid on the CPU.
+pub struct Partial {
+    pub structure: Structure,
+    pub fine: Vec<bool>,
+    pub lineages: Vec<Option<u64>>,
+    pub grounded: Vec<usize>,
+}
+
+/// `settled` as the CPU converts it beside an executor holding its other
+/// fine roots (`Partial`).
+pub fn partial(settled: Settled) -> Partial {
+    let Settled {
+        structure: mut tree,
+        at,
+        live,
+        bearers,
+        grounded,
+        landed,
+        ..
+    } = settled;
+    let lineages = (at.iter())
+        .map(|a| a.map(|i| tree.axes[i].lineage))
+        .collect();
+    let mut fine = vec![false; tree.axes.len()];
+    for i in live.iter().map(|&k| at[k].expect("live")) {
+        fine[i] = true;
+        tree.axes[i].phytomers.clear();
+    }
+    for (j, root) in landed {
+        let (i, offset) = (at[live[j]].expect("live"), tree.axes.len());
+        let mut axes = root.into_axes(bearers[j], (i, offset)).into_iter();
+        tree.axes[i] = axes.next().expect("a kept root's first axis");
+        tree.axes.extend(axes);
+    }
+    fine.resize(tree.axes.len(), true);
+    let (structure, fine) = lineage_order_marked(tree, fine);
+    Partial {
+        structure,
+        fine,
+        lineages,
+        grounded,
+    }
+}
+
 /// The seconds each phase of the expansion took.
 #[derive(Default)]
 pub(crate) struct Clock {

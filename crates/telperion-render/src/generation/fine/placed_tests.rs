@@ -13,8 +13,9 @@ use super::dress::{Dressed, Dresser};
 use super::fixture::{with_dressed, Fixture};
 use super::rings::Ringer;
 use super::roots::{kernels, Kernels};
-use super::stations::{Stationer, GW};
-use super::stations_tests::{drawn_by_device, station_rows};
+use super::stations::station_rows;
+use super::stations::{Stationed, Stationer, GW};
+use super::stations_tests::drawn_by_device;
 use super::sweep::{rows, Sweeper};
 use crate::Gpu;
 use std::borrow::Cow;
@@ -65,7 +66,10 @@ pub(super) struct Seated {
 
 /// The pipeline's resident leaves of `x`, its segments' keys, first
 /// stations, first leaves and counts.
-fn reference(gen: &Generator, x: &telperion_core::pipeline::executor::Expansion) -> Reference {
+pub(super) fn reference(
+    gen: &Generator,
+    x: &telperion_core::pipeline::executor::Expansion,
+) -> Reference {
     let (_, shared) = x.curve_with_contacts().unwrap();
     let theirs = x.compact_stations(&shared).unwrap().unwrap();
     let segments = (theirs.segments.iter())
@@ -94,19 +98,19 @@ fn reference(gen: &Generator, x: &telperion_core::pipeline::executor::Expansion)
     }
 }
 
-struct Reference {
-    leaves: Vec<[u32; 3]>,
-    segments: Vec<Seg>,
+pub(super) struct Reference {
+    pub leaves: Vec<[u32; 3]>,
+    pub segments: Vec<Seg>,
 }
 
 /// A station segment as matching reads it: its run's key, its first
 /// station along the run, its first leaf and its leaves; and where it
 /// starts.
 #[derive(Clone, Copy)]
-struct Seg {
-    words: [u32; 4],
-    start: Vec3,
-    end: Vec3,
+pub(super) struct Seg {
+    pub words: [u32; 4],
+    pub start: Vec3,
+    pub end: Vec3,
 }
 
 /// One run's leaves by station, from its first, where it starts, and
@@ -183,45 +187,68 @@ fn seated(
     let ms = t.elapsed().as_secs_f64() * 1e3;
     let leaves = io::read_leaves_async(gpu, &placed.leaves, device.stations);
     let leaves = pollster::block_on(leaves).unwrap();
-    let words = device.segments as usize * GW;
-    let raw = io::read(gpu, &device.buffer, (words.max(4) * 4) as u64).unwrap();
-    let f = |w: u32| f64::from(f32::from_bits(w));
-    let mine: Vec<Seg> = (bytemuck::cast_slice::<u8, u32>(&raw).chunks(GW))
-        .take(device.segments as usize)
-        .map(|g| Seg {
-            words: [g[27], g[26], g[24], g[25]],
-            start: Vec3::new(f(g[0]), f(g[1]), f(g[2])),
-            end: Vec3::new(f(g[4]), f(g[5]), f(g[6])),
-        })
-        .collect();
+    let mine = device_segments(gpu, &device, 0);
     let keys: HashSet<u32> = mine.iter().map(|g| g.words[0]).collect();
     let drawn = drawn_by_device(x.tree(), &fx.fine);
-    let threshold = at_threshold(x.tree());
     let refs: Vec<Seg> = (theirs.segments.iter())
         .filter(|g| keys.contains(&g.words[0]) && drawn(g.end))
         .copied()
         .collect();
-    let theirs_runs = runs(&refs);
+    let box_ = x.reference();
+    let mut out = compare_leaves(
+        (&leaves, &mine, box_),
+        (&theirs.leaves, &refs, box_),
+        x.tree(),
+    );
+    out.flags = u32::from_ne_bytes(summary[4..8].try_into().unwrap());
+    out.ms = ms;
+    out
+}
+
+/// The device's station segments as matching reads them, their leaves
+/// written from leaf `first` on.
+pub(super) fn device_segments(gpu: &Gpu, device: &Stationed, first: u32) -> Vec<Seg> {
+    let words = device.segments as usize * GW;
+    let raw = io::read(gpu, &device.buffer, (words.max(4) * 4) as u64).unwrap();
+    let f = |w: u32| f64::from(f32::from_bits(w));
+    (bytemuck::cast_slice::<u8, u32>(&raw).chunks(GW))
+        .take(device.segments as usize)
+        .map(|g| Seg {
+            words: [g[27], g[26], g[24] + first, g[25]],
+            start: Vec3::new(f(g[0]), f(g[1]), f(g[2])),
+            end: Vec3::new(f(g[4]), f(g[5]), f(g[6])),
+        })
+        .collect()
+}
+
+/// Leaves `mine` (their words, station segments and box) against
+/// `theirs`, run by run (matched by key and first station, nearest
+/// start), leaf by leaf; the named f32-against-f64 classes read off
+/// `tree`, the reference's.
+pub(super) fn compare_leaves(
+    (leaves, mine, mine_box): (&[[u32; 3]], &[Seg], telperion_core::foliage::Reference),
+    (their_leaves, refs, box_): (&[[u32; 3]], &[Seg], telperion_core::foliage::Reference),
+    tree: &Tree,
+) -> Seated {
+    let threshold = at_threshold(tree);
+    let theirs_runs = runs(refs);
     let mut by: HashMap<(u32, u32), Vec<usize>> = HashMap::new();
     for (i, r) in theirs_runs.iter().enumerate() {
         by.entry((r.key, r.station)).or_default().push(i);
     }
-    let box_ = x.reference();
-    let (mut a, mut b) = (Instances::new(box_), Instances::new(box_));
-    (a.leaves, b.leaves) = (leaves, theirs.leaves);
-    let step = box_.step().length();
+    let (mut a, mut b) = (Instances::new(mine_box), Instances::new(box_));
+    (a.leaves, b.leaves) = (leaves.to_vec(), their_leaves.to_vec());
+    let step = box_.step().length().max(mine_box.step().length());
     let mut out = Seated {
         leaves: (
-            device.stations,
+            leaves.len() as u32,
             refs.iter().map(|g| u64::from(g.words[3])).sum(),
         ),
         bound: step * 2.0 + 32.0 * f64::from(f32::EPSILON) * 4.0,
-        flags: u32::from_ne_bytes(summary[4..8].try_into().unwrap()),
-        ms,
         ..Seated::default()
     };
     let mut used = vec![false; theirs_runs.len()];
-    for run in runs(&mine) {
+    for run in runs(mine) {
         let near = by.get(&(run.key, run.station)).and_then(|c| {
             let off = |&i: &usize| (theirs_runs[i].start - run.start).length();
             c.iter()
@@ -259,7 +286,7 @@ fn seated(
                 *list.iter().find(on).unwrap()
             };
             let agree = off > out.bound && {
-                let (m, t) = (seg(&mine, d as u32), seg(&refs, r as u32));
+                let (m, t) = (seg(mine, d as u32), seg(refs, r as u32));
                 (m.start - t.start).length().max((m.end - t.end).length()) <= MOST
             };
             out.grazing += u64::from(agree);
