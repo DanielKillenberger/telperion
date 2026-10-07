@@ -34,3 +34,10 @@
 - **Hindered:** the shared scratchpad in `/tmp` (tmpfs, 16 GB) filled to its quota with seven workers' dumps (11 GB), so tool output was lost (EDQUOT); then the machine ran out of memory and the host stopped the workers and deleted the scratch dumps, my probes' binaries and drivers with them, mid-session (the 80-year digest of the last state and every timing run lost).
 - **Cost:** the session's remaining two hours of queued work; about 15 minutes to rebuild the probes and drivers inside the worktree.
 - **Removal:** build outputs and dumps inside each worktree (as the host now requires), a memory ceiling per worker, and `CARGO_BUILD_JOBS`/`RUST_TEST_THREADS` set by default for agents.
+
+## 2026-10-07 14:35, task 2 (worker): the split gate fails jev's replay tests
+
+- **Doing:** the gate's CPU half, `--exclude telperion-render`, as the host now asks.
+- **Hindered:** `telperion-jev`'s two replay tests read the render crate's examples (`headless`, `species_measure`, `geometry_benchmark`) from the target directory, which only the render half builds, so they fail in the CPU half on a fresh target ("missing: run the workspace gate"). Also, `generation_limits_are_classified` fails on this branch before any of my commits: nine limit sites in `pipeline/input/shoulder.rs` (fn-198's shoulder) are not in `docs/generation-limits-inventory.json`.
+- **Cost:** one false red each; the replay tests are re-run after the render half.
+- **Removal:** run the replay tests in the render half (or build the render examples before the CPU half); classify the shoulder's sites in the inventory on fn-198's branch.
