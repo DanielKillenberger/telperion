@@ -134,6 +134,23 @@ pub struct Tree {
     /// D5). Empty on a tree grown whole. Never stored, as `sections`.
     #[cfg_attr(feature = "json", serde(skip))]
     pub seams: Vec<u32>,
+    /// Each fine root drawn, in the order its first axis is converted
+    /// (fn-212 task 4). Empty on a tree grown whole. Never stored, as
+    /// `seams`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub attachments: Vec<Attachment>,
+}
+
+/// A fine root as the conversion drew it (fn-212 task 4): the record an
+/// executor dressing the root on its own starts from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Attachment {
+    /// Its first axis's lineage.
+    pub lineage: u64,
+    /// The node its bearer's phytomer is drawn as, which it is drawn from.
+    pub node: u32,
+    /// Its seam: the first node its first axis draws, if any.
+    pub seam: Option<u32>,
 }
 impl Tree {
     /// Node `i`'s radii as the pipe model solved them, `[start, distal]`,

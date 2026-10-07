@@ -11,7 +11,7 @@
 //! cannot resolve in float32.
 use super::GrowInput;
 use crate::math::Vec3;
-use crate::tree::{BudFate, Node, NodeKind, ShootState, Tree};
+use crate::tree::{Attachment, BudFate, Node, NodeKind, ShootState, Tree};
 use crate::{Error, Result};
 use telperion_space::{Origin, Request, Structure};
 
@@ -190,16 +190,27 @@ fn joint(
 fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
     // The first node drawn of each fine root's first axis.
     let mut seams = Vec::new();
+    let mut attachments = Vec::new();
     let mut nodes = vec![Node::root()];
     // The node each axis ends on, for what continues it.
     let mut ends: Vec<Option<u32>> = vec![None; structure.axes.len()];
     // Each axis's drawn nodes, base first.
     let mut drawn: Vec<Vec<u32>> = vec![Vec::new(); structure.axes.len()];
     for (i, axis) in structure.axes.iter().enumerate() {
+        let root =
+            fine.get(i).copied().unwrap_or(false) && !axis.origin.parent().is_some_and(|p| fine[p]);
         let start = match axis.origin {
             Origin::Seed => Some((0, false, true)),
             Origin::Lateral { parent, node, .. } => {
-                drawn[parent].get(node).map(|&n| (n, true, false))
+                let start = drawn[parent].get(node);
+                if let (true, Some(&n)) = (root, start) {
+                    attachments.push(Attachment {
+                        lineage: axis.lineage,
+                        node: n,
+                        seam: None,
+                    });
+                }
+                start.map(|&n| (n, true, false))
             }
             // A relay from inside its parent takes the parent's run on from
             // the node nearest its base, which moves from its bud's node to
@@ -288,10 +299,11 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
                 node.codominant = codominance(p.radius, inherited);
             }
             parent = nodes.len() as u32;
-            let root = fine.get(i).copied().unwrap_or(false)
-                && !axis.origin.parent().is_some_and(|p| fine[p]);
             if root && !made {
                 seams.push(parent);
+                if let Some(a) = attachments.last_mut() {
+                    a.seam = Some(parent);
+                }
             }
             made = true;
             drawn[i].push(parent);
@@ -327,6 +339,7 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
         nodes,
         crossover,
         seams,
+        attachments,
         ..Tree::default()
     }
 }

@@ -26,6 +26,8 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
         ("fine pack", chains::pack_source()),
         ("fine geometry", laid::source()),
         ("fine fades", shedding::source()),
+        ("fine dress", dress::DRESS.to_string()),
+        ("fine fold", dress::FOLD.to_string()),
     ]
     .into_iter()
     .chain(steps::sources())
@@ -39,15 +41,19 @@ mod chains;
 #[cfg(test)]
 mod device;
 #[cfg(test)]
+mod dress;
+#[cfg(test)]
+mod dress_tests;
+#[cfg(test)]
 mod group;
 #[cfg(test)]
 mod hostrun;
 #[cfg(test)]
+mod laid;
+#[cfg(test)]
 mod pool;
 #[cfg(test)]
 mod profile_tests;
-#[cfg(test)]
-mod laid;
 #[cfg(test)]
 mod readback;
 #[cfg(test)]
@@ -59,9 +65,9 @@ mod realized_timing;
 #[cfg(test)]
 mod roots;
 #[cfg(test)]
-mod speed_tests;
-#[cfg(test)]
 mod shedding;
+#[cfg(test)]
+mod speed_tests;
 #[cfg(test)]
 mod step_probe;
 #[cfg(test)]

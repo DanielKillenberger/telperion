@@ -8,7 +8,7 @@
 use crate::pipeline::foliage::Reach;
 use crate::{
     envelope::Envelope,
-    math::Transcendental,
+    math::Vec3,
     pipeline::foliage::{CanopyParams, ElementParams, TwigPlacement},
     pipeline::surface::SurfaceParams,
     pipeline::twigs::TwigParams,
@@ -17,7 +17,11 @@ use crate::{
     Result,
 };
 
+mod folds;
 mod shoulder;
+use folds::share;
+pub use folds::{reach, Folds};
+pub use shoulder::{beyond, bins, crown_point, BINS};
 
 /// The input of every stage past the skeleton, read off one family.
 #[derive(Debug, Clone)]
@@ -58,29 +62,22 @@ impl<'f> GrowInput<'f> {
 /// its top.
 pub(crate) fn grown_envelope(tree: &Tree) -> Envelope {
     let nodes = &tree.nodes;
-    let height = nodes.iter().map(|n| n.position.y).fold(0.0, f64::max);
-    let reach = |n: &crate::tree::Node| n.position.x.hypot_fixed(n.position.z);
-    let base = nodes
-        .iter()
-        .filter(|n| !n.stem && n.parent.is_some())
-        .map(|n| n.position.y)
-        .fold(height, f64::min);
-    let widest = nodes.iter().max_by(|a, b| reach(a).total_cmp(&reach(b)));
-    let (radius, at) = widest.map_or((0.0, height), |n| (reach(n), n.position.y));
-    let share = |v: f64, of: f64| {
-        if of > 0.0 {
-            (v / of).clamp(0.0, 1.0)
-        } else {
-            0.0
-        }
-    };
-    let fullness = share(at - base, height - base);
+    let folds = Folds::of(nodes, |_| true);
+    envelope(folds, nodes.iter().map(|n| n.position))
+}
+
+/// The envelope of a tree whose nodes fold to `folds` and whose crown's
+/// shoulder is read off `points`: every node's position, or any set of
+/// them that holds every node no other passes (`shoulder.rs`). The folds
+/// may be combined from parts of the tree (fn-212 task 4).
+pub fn envelope(folds: Folds, points: impl Iterator<Item = Vec3> + Clone) -> Envelope {
+    let shape @ [base, height, radius, fullness] = folds.shape();
     Envelope {
         height,
         crown_base: share(base, height),
         spread: if height > 0.0 { radius / height } else { 0.0 },
         fullness,
-        shoulder: shoulder::contained(nodes, [base, height, radius, fullness]),
+        shoulder: shoulder::contained(points, shape),
         irregularity: 0.0,
         ..Envelope::default()
     }

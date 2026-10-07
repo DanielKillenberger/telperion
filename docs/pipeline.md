@@ -45,7 +45,11 @@ Expansion
   prepared_wood, wood                        the canonical wood; the CPU wood
   curve                                      the wood as curves, which it is surfaced from (fn-208)
   mesh                                       the CPU reference for the whole tree
+  wood_reach, wood_box(keep)                 a station's reach terms; the leaf box of some nodes
+Folds, envelope, bins, beyond, crown_point   the whole-tree folds of some nodes, combined exactly
 ```
+
+An executor that holds part of a tree's nodes (the GPU's fine roots, fn-212 task 4) folds its part and the pipeline combines it with its own: the height, the crown's lowest node and the widest (`Folds::with`), the shoulder's bins by their most, and the leaf box by its corners, each exactly the whole tree's over any split (`parts_of_a_tree_combine_to_the_whole`). The shoulder is read off the pipeline's own nodes and the crown nodes the executor hands on, those no node in a bin beyond may pass: a bounded summary, since the front is the nodes no other passes whatever the bins. `Tree::attachments` gives each fine root's first axis's lineage, the node its bearer's phytomer is drawn as, and its seam: what the executor draws the root from.
 
 Each step is synchronous CPU work. The GPU executor keeps its own schedule: it calls the steps between its GPU submissions exactly where it called the stage functions, so the position upload still runs while the CPU prepares stations (`preparation.rs`, the overlap after `begin_positions`), and every timing it reports covers the same work. `Expansion::mesh` is the pipeline's own CPU build of the prepared tree, the reference the GPU falls back to.
 

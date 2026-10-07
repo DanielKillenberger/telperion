@@ -4,9 +4,13 @@
 //! synchronous, so the executor keeps its own schedule and overlap around
 //! them. `docs/pipeline.md` has the rationale.
 pub use super::input::LeafInput;
+// The whole-tree folds an executor holding part of a tree's nodes folds
+// its part of and the pipeline combines (fn-212 task 4).
+pub use super::input::{beyond, bins, crown_point, envelope, reach, Folds, BINS};
 use super::{grown_envelope, GrowInput, Inputs, Request};
 use crate::{
     envelope::Envelope,
+    math::Vec3,
     mesh::{self, TreeMesh},
     pipeline::foliage::{
         self,
@@ -112,6 +116,19 @@ impl Expansion {
     }
     fn canopy(&self) -> CanopyParams {
         self.inputs.leaves.canopy
+    }
+
+    /// The terms of a station's reach from its wood, for an executor
+    /// folding its own nodes' leaf box: `[scale, beyond, rachis,
+    /// authored]` (`Reach::terms`).
+    pub fn wood_reach(&self) -> Result<[f64; 4]> {
+        Ok(self.inputs.plan.reach.clone()?.terms())
+    }
+    /// The corners of the leaf box of the nodes `keep` keeps, and the
+    /// root's position: combined by their corners with an executor's own,
+    /// exactly the box of the whole (`reference`).
+    pub fn wood_box(&self, keep: impl Fn(usize) -> bool) -> Result<(Vec3, Vec3)> {
+        Ok(self.inputs.plan.reach.clone()?.wood_box(&self.tree, keep))
     }
 
     /// Whether the family's leaves stand on regular twig stations.

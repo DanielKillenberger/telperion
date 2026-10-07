@@ -199,6 +199,13 @@ impl<'a> Device<'a> {
         &mut self.groups[g].attached[i]
     }
 
+    /// Root `r`'s bearer's node as laid under sag, which its positions
+    /// are measured from (fn-212 task 4).
+    pub(super) fn origin(&self, r: usize) -> telperion_space::Vec3 {
+        let (g, i) = self.places[r];
+        self.groups[g].attached[i].bent.tip
+    }
+
     fn node(&self, r: usize) -> usize {
         let (g, i) = self.places[r];
         self.groups[g].nodes[i]
