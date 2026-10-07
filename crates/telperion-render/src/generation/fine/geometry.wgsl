@@ -60,7 +60,7 @@ const IS_WOKEN: u32 = 0x80000u;
 const AL: u32 = 8u;
 const PL: u32 = 22u;
 // The scratch: per region axis, then per region phytomer.
-const SA: u32 = 66u;
+const SA: u32 = 70u;
 const SP: u32 = 12u;
 const S_OWN: u32 = 0u;
 const S_START: u32 = 1u;
@@ -73,6 +73,9 @@ const S_WALK: u32 = 10u;
 const S_LIFTS: u32 = 21u;
 const S_FAR: u32 = 54u;
 const S_FRAME: u32 = 57u;
+// What a relay standing in its parent's first span hands its parent's
+// base: a section (`girths`) or a load (`levers`).
+const S_BASE: u32 = 66u;
 const P_ORDER: u32 = 0u;
 const P_NODE: u32 = 1u;
 const P_LOAD: u32 = 2u;

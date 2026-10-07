@@ -19,7 +19,7 @@ const SETTLE: &str = include_str!("settle.wgsl");
 pub(super) const AL: usize = 8;
 pub(super) const PL: usize = 22;
 /// A chain's scratch: per region axis, per region phytomer, then a status.
-pub(super) const SA: u32 = 66;
+pub(super) const SA: u32 = 70;
 pub(super) const SP: u32 = 12;
 const GG: usize = 24;
 /// `settle.wgsl`'s passes.

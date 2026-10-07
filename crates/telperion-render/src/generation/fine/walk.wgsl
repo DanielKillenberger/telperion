@@ -34,14 +34,13 @@ fn end_of(p: u32, o: u32) -> vec3<f32> {
     return o3(lo(p, n - 1u) + o);
 }
 
-// The point `share` along own axis `p`'s last growth unit in node `k`'s
-// span, and its frame (`geometry::relay_point`): base, along, side, and
-// its rank's turn under `p`'s divergence, as a fraction of a whole one.
-fn relay_point(p: u32, share: f32, k_in: u32, o: u32) -> array<vec4<f32>, 3> {
+// How far along node `k_in`'s span of own axis `p` its relay at `share`
+// of the last growth unit stands, by the unit's scaled lengths
+// (`geometry::relay_span`); 1 on an axis of no phytomers.
+fn relay_span(p: u32, share: f32, k_in: u32) -> f32 {
     let n = s(p, S_COUNT);
-    let d = divergence_q(ax(p, PA));
     if n == 0u {
-        return array<vec4<f32>, 3>(vec4<f32>(s3(p, S_FRAME), turns(axis_rank(p), d)), vec4<f32>(s3(p, S_FRAME + 3u), 0.0), vec4<f32>(s3(p, S_FRAME + 6u), 0.0));
+        return 1.0;
     }
     let k = min(k_in, n - 1u);
     let last = ph(at_k(p, n - 1u), 2u);
@@ -57,17 +56,30 @@ fn relay_point(p: u32, share: f32, k_in: u32, o: u32) -> array<vec4<f32>, 3> {
         total += out[lo(p, j) + 19u];
     }
     let scale = out[lo(p, k) + 19u];
-    var t = 1.0;
     if total > 0.0 && scale > 0.0 {
         var before = 0.0;
         for (var j = min(first, k); j < k; j++) {
             before += out[lo(p, j) + 19u];
         }
-        t = clamp((share * total - before) / scale, 0.0, 1.0);
+        return clamp((share * total - before) / scale, 0.0, 1.0);
     } else if total <= 0.0 {
         let fr = f32(first) + share * f32(n - first);
-        t = clamp(fr - f32(k), 0.0, 1.0);
+        return clamp(fr - f32(k), 0.0, 1.0);
     }
+    return 1.0;
+}
+
+// The point `share` along own axis `p`'s last growth unit in node `k`'s
+// span, and its frame (`geometry::relay_point`): base, along, side, and
+// its rank's turn under `p`'s divergence, as a fraction of a whole one.
+fn relay_point(p: u32, share: f32, k_in: u32, o: u32) -> array<vec4<f32>, 3> {
+    let n = s(p, S_COUNT);
+    let d = divergence_q(ax(p, PA));
+    if n == 0u {
+        return array<vec4<f32>, 3>(vec4<f32>(s3(p, S_FRAME), turns(axis_rank(p), d)), vec4<f32>(s3(p, S_FRAME + 3u), 0.0), vec4<f32>(s3(p, S_FRAME + 6u), 0.0));
+    }
+    let k = min(k_in, n - 1u);
+    let t = relay_span(p, share, k);
     let at = lo(p, k);
     var start = s3(p, S_FRAME);
     if k > 0u {

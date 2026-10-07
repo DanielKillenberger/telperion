@@ -3,6 +3,7 @@
 //! scale it is walked on. The shape measures are in `measure.rs`.
 #![allow(dead_code)]
 mod bend;
+pub mod degree;
 mod measure;
 pub use bend::sag_bend;
 pub use measure::*;

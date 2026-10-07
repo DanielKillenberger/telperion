@@ -252,25 +252,7 @@ fn relay_point(p: &Axis, share: f64, k: usize) -> Point {
         };
     }
     let k = k.min(n - 1);
-    let last = p.phytomers[n - 1].cycle;
-    let first = p
-        .phytomers
-        .iter()
-        .position(|q| q.cycle == last)
-        .unwrap_or(0);
-    // `share` of the unit's length, its phytomers by their scale, so a node
-    // growing in from nothing moves the point by nothing (fn-206).
-    let total: f64 = p.phytomers[first..].iter().map(|q| q.scale).sum();
-    let scale = p.phytomers[k].scale;
-    let t = if total > 0.0 && scale > 0.0 {
-        let before: f64 = p.phytomers[first.min(k)..k].iter().map(|q| q.scale).sum();
-        ((share * total - before) / scale).clamp(0.0, 1.0)
-    } else if total > 0.0 {
-        1.0
-    } else {
-        let f = first as f64 + share * (n - first) as f64;
-        (f - k as f64).clamp(0.0, 1.0)
-    };
+    let t = relay_span(p, share, k);
     let at = &p.phytomers[k];
     let start = if k == 0 {
         p.base
@@ -284,6 +266,37 @@ fn relay_point(p: &Axis, share: f64, k: usize) -> Point {
         along: blend(at.heading, next.map_or(at.heading, |q| q.heading)),
         side: blend(at.side, next.map_or(at.side, |q| q.side)),
         rank: at.rank + t * (next.map_or(p.rank, |q| q.rank) - at.rank),
+    }
+}
+
+/// How far along the span of node `k` of axis `p` (from node `k - 1`, or
+/// the base, to node `k`) its relay at `share` of the last growth unit
+/// stands, by the unit's phytomers' scaled lengths, so a node growing in
+/// from nothing moves it by nothing (fn-206). Girth and sag take the
+/// relay's pipe and load in at the two ends of that span by it (fn-199
+/// R4). An axis of no phytomers has no span: 1.
+pub(crate) fn relay_span(p: &Axis, share: f64, k: usize) -> f64 {
+    let n = p.phytomers.len();
+    if n == 0 {
+        return 1.0;
+    }
+    let k = k.min(n - 1);
+    let last = p.phytomers[n - 1].cycle;
+    let first = p
+        .phytomers
+        .iter()
+        .position(|q| q.cycle == last)
+        .unwrap_or(0);
+    let total: f64 = p.phytomers[first..].iter().map(|q| q.scale).sum();
+    let scale = p.phytomers[k].scale;
+    if total > 0.0 && scale > 0.0 {
+        let before: f64 = p.phytomers[first.min(k)..k].iter().map(|q| q.scale).sum();
+        ((share * total - before) / scale).clamp(0.0, 1.0)
+    } else if total > 0.0 {
+        1.0
+    } else {
+        let f = first as f64 + share * (n - first) as f64;
+        (f - k as f64).clamp(0.0, 1.0)
     }
 }
 
