@@ -19,12 +19,15 @@ impl Shoot<'_, '_> {
         let along = ALONG.iter().filter(|&&z| z < state.zones.len());
         for (z, zone) in along.map(|&z| (z, &state.zones[z])) {
             let zone_key = unit.child(ZONE + z as u64);
-            lineage::nodes(zone.nodes, zone_key.draw(), MAX_NODES_PER_ZONE, &mut leads);
             let lateral = &rules.laterals[pa][z];
             let mut sleeping = std::mem::take(&mut self.sleeping);
             let node_wood = node_wood(rules, (pa, z), cycle, &mut sleeping);
+            // Each node's presence, Q32 (D18 reads it).
+            let window = fixed::decide::node_window(node_wood);
+            let draw = zone_key.draw();
+            lineage::node_presences(zone.nodes, draw, MAX_NODES_PER_ZONE, window, &mut leads);
             nodes.clear();
-            for (i, &node_lead) in leads.iter().enumerate() {
+            for (i, &node_presence) in leads.iter().enumerate() {
                 let node_key = zone_key.child(i as u64);
                 let mut buds = [None; MAX_BUDS as usize];
                 for (slot, bud) in buds[..zone.places()].iter_mut().enumerate() {
@@ -37,7 +40,7 @@ impl Shoot<'_, '_> {
                 // a place a fraction grows moves no node; by its bits, and
                 // equal bits by the node's index (FINE-CONTRACT.md D4).
                 let order = node_key.child(0).draw();
-                nodes.push((order, i as u64, node_lead, buds));
+                nodes.push((order, i as u64, node_presence, buds));
             }
             // Acrotony: the nodes stand in order of their draws, so the
             // youngest lateral PA is on top, bare nodes at the base, and a
@@ -51,7 +54,7 @@ impl Shoot<'_, '_> {
                     limit: rules.budget,
                 });
             }
-            for &(_, drawn, node_lead, buds) in &nodes {
+            for &(_, drawn, node_presence, buds) in &nodes {
                 let axis = self.axis_mut(apex.axis);
                 let node = axis.phytomers.len();
                 axis.phytomers.push(Phytomer {
@@ -66,7 +69,7 @@ impl Shoot<'_, '_> {
                     size: 1.0,
                     light: 1.0,
                 });
-                let node_presence = fixed::real(fixed::decide::node(node_lead, node_wood));
+                let node_presence = fixed::real(node_presence);
                 self.draws_mut(apex.axis).nodes.push(node_presence);
                 for (slot, bud) in buds[..zone.places()].iter().enumerate() {
                     let Some((drawn_pa, d, placed)) = *bud else {

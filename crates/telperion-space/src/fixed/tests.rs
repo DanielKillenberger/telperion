@@ -152,6 +152,25 @@ fn a_draw_s_presence_is_its_lead_s_to_the_bit() {
 }
 
 #[test]
+fn a_node_s_presence_is_its_lead_s_to_the_bit() {
+    use crate::lineage::Draw;
+    let mut x = 0x5851_f42d_4c95_7f2du64;
+    let mut next = || {
+        x = x.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+        x
+    };
+    for _ in 0..300_000 {
+        let d = Draw(next() >> 11);
+        let bound = (next() >> 11) as f64 / (1u64 << 53) as f64;
+        let window = (next() % (3 * ONE32 as u64)) as i64 - ONE32 / 4;
+        let past = presence(decide::past_q(d.0, q62(bound)), window);
+        assert_eq!(decide::node_past(d, bound, window), past, "{d:?} {bound}");
+        let above = presence(decide::above_q(d.0, q62(bound)), window);
+        assert_eq!(decide::node_above(d, bound, window), above, "{d:?} {bound}");
+    }
+}
+
+#[test]
 fn exp2_neg_is_close_and_monotone() {
     for k in 0..20_000i64 {
         let x = (k * 0x9e37_79b1) % (70 * ONE32);

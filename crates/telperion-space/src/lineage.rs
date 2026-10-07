@@ -168,8 +168,39 @@ fn bounds(lateral: &[f64], pa: usize) -> (f64, f64) {
 /// A uniform node's lead is the log of the draw's ratio to its bound,
 /// unbounded as the bound nears 0, where the node becomes a sure one, and
 /// gentle as it nears 1.
+#[cfg(test)]
 pub(crate) fn nodes(law: NodeLaw, d: Draw, cap: u32, leads: &mut Vec<i64>) {
     leads.clear();
+    walk(law, d, cap, |past| {
+        leads.push(match past {
+            Past::Uniform(bound) => decide::past(d, bound),
+            Past::Poisson(bound) => decide::above(d, bound),
+        })
+    });
+}
+
+/// `nodes`, each node's presence over `window` (Q32, `decide::node_window`) in
+/// place of its lead: the same nodes, their presences settled without
+/// their logs where bounds of them settle them.
+pub(crate) fn node_presences(law: NodeLaw, d: Draw, cap: u32, window: i64, out: &mut Vec<u64>) {
+    out.clear();
+    walk(law, d, cap, |past| {
+        out.push(match past {
+            Past::Uniform(bound) => decide::node_past(d, bound, window),
+            Past::Poisson(bound) => decide::node_above(d, bound, window),
+        })
+    });
+}
+
+/// The bound a node's draw stands past: a uniform law's share of its span,
+/// or a Poisson law's cumulative chance.
+enum Past {
+    Uniform(f64),
+    Poisson(f64),
+}
+
+/// Each node `law` makes for the draw `d`, at most `cap`, in order.
+fn walk(law: NodeLaw, d: Draw, cap: u32, mut node: impl FnMut(Past)) {
     match law {
         NodeLaw::Uniform { min, max } => {
             // Node j stands while u lies above its share of the span.
@@ -179,7 +210,7 @@ pub(crate) fn nodes(law: NodeLaw, d: Draw, cap: u32, leads: &mut Vec<i64>) {
                 if d.under(bound) {
                     break;
                 }
-                leads.push(decide::past(d, bound));
+                node(Past::Uniform(bound));
             }
         }
         NodeLaw::Poisson { mean } => {
@@ -188,7 +219,7 @@ pub(crate) fn nodes(law: NodeLaw, d: Draw, cap: u32, leads: &mut Vec<i64>) {
             let mut cumulative = mass;
             let mut k = 0u32;
             while !d.under(cumulative) && k < cap {
-                leads.push(decide::above(d, cumulative));
+                node(Past::Poisson(cumulative));
                 k += 1;
                 mass *= mean / f64::from(k);
                 cumulative += mass;

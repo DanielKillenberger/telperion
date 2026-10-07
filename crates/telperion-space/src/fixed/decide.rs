@@ -104,18 +104,14 @@ pub fn moved_q(go: u64, d: u64, woods: (i64, i64), used: u64, window: (i64, i64,
     presence(lead, mul(rate, wood).clamp(floor, span))
 }
 
-/// A node's presence, Q32 (D18 reads it): its draw's lead `lead` past its
-/// bound, Q32, over the window of the `wood` it decides.
-pub(crate) fn node(lead: i64, wood: f64) -> u64 {
-    presence(lead, node_window(wood))
-}
-
-/// The window, Q32, of a node or bud deciding `wood`.
+/// The window, Q32, of a node or bud deciding `wood`: a node's presence
+/// (D18 reads it) is its draw's lead past its bound over it.
 pub(crate) fn node_window(wood: f64) -> i64 {
     q32((RATE * wood).clamp(FLOOR, SPAN))
 }
 
 /// A node's lead past a uniform law's `bound`: `ln u - ln bound`.
+#[cfg(test)]
 pub(crate) fn past(d: Draw, bound: f64) -> i64 {
     past_q(d.0, q62(bound))
 }
@@ -129,8 +125,36 @@ pub fn past_q(d: u64, bound: u64) -> i64 {
 }
 
 /// A node's lead past a Poisson law's cumulative `bound`, in log-odds.
+#[cfg(test)]
 pub(crate) fn above(d: Draw, bound: f64) -> i64 {
     above_q(d.0, q62(bound))
+}
+
+/// A uniform law's node's presence over `window`, Q32: `node`'s of
+/// `past(d, bound)`, whole without its logs where bounds of them settle
+/// it (`presence::of_under`).
+pub(crate) fn node_past(d: Draw, bound: f64, window: i64) -> u64 {
+    let bound = q62(bound);
+    if window > 0 && bound != 0 && d.0 != 0 {
+        let (low, _) = presence::log2_bounds(d.0 << 9);
+        if presence::ln(low - presence::kept_log2(bound)) >= window {
+            return ONE32 as u64;
+        }
+    }
+    super::presence(past_q(d.0, bound), window)
+}
+
+/// A Poisson law's node's presence over `window`, Q32: `node`'s of
+/// `above(d, bound)`, settled as `node_past` settles one.
+pub(crate) fn node_above(d: Draw, bound: f64, window: i64) -> u64 {
+    let bound = q62(bound);
+    if window > 0 && bound != 0 && presence::bounded(d.0) {
+        let (low, _) = presence::logit_draw_bounds(d.0);
+        if low - presence::kept_logit(bound) >= window {
+            return ONE32 as u64;
+        }
+    }
+    super::presence(above_q(d.0, bound), window)
 }
 
 /// `above`'s integer form, `bound` Q62.

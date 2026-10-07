@@ -84,16 +84,20 @@ pub fn of_over(t: u64, d: u64, window: i64) -> u64 {
 
 /// Whether a 53-bit draw and its complement each have the nine bits
 /// `log2_bounds` reads.
-fn bounded(d: u64) -> bool {
+pub(super) fn bounded(d: u64) -> bool {
     d >= 1 << 8 && (1 << 53) - d >= 1 << 8
 }
 
 /// Bounds of `logit_draw(d)`: `ln_ratio` of the bounds of its two logs,
 /// whose difference it is monotone in.
-fn logit_draw_bounds(d: u64) -> (i64, i64) {
+pub(super) fn logit_draw_bounds(d: u64) -> (i64, i64) {
     let ((a_low, a_high), (b_low, b_high)) = (log2_bounds(d), log2_bounds((1 << 53) - d));
-    let ln = |x: i64| (wide_signed(x, LN2) >> 62) as i64;
     (ln(a_low - b_high), ln(a_high - b_low))
+}
+
+/// `ln_ratio` of a difference of two logs: monotone in it.
+pub(super) fn ln(log2s: i64) -> i64 {
+    (wide_signed(log2s, LN2) >> 62) as i64
 }
 
 /// Bounds of `log2 n`, `n` of nine bits or more: the logs of `n` with all
@@ -118,25 +122,41 @@ const GRID: [i64; 257] = {
     grid
 };
 
-/// The log-odds of a draw's threshold `t`, Q32. A tree meets few: most
-/// are a species' settings, so the last taken are kept, by the core that
-/// took them, and a log a draw is not taken twice for one.
+/// The log-odds of a draw's threshold `t`, Q32.
 fn threshold_logit(t: u64) -> i64 {
+    kept_logit(t << 9)
+}
+
+/// The log-odds of a Q62 probability `p`, Q32 (`logit`). A tree meets
+/// few: most are a species' settings, so the last taken are kept, by the
+/// core that took them, and a log a draw is not taken twice for one.
+pub(super) fn kept_logit(p: u64) -> i64 {
+    kept(p, logit)
+}
+
+/// `log2` of a Q62 probability `p`, kept as `kept_logit` keeps one.
+pub(super) fn kept_log2(p: u64) -> i64 {
+    kept(p | 1 << 63, |key| log2(key & !(1 << 63)))
+}
+
+/// `log(key)`, from the last 256 the core took. A key holds a Q62 value,
+/// at most 2^62, and the 63rd bit names the log; none is `u64::MAX`, so
+/// an empty slot matches none.
+fn kept(key: u64, log: impl Fn(u64) -> i64) -> i64 {
     use std::cell::Cell;
     const SLOTS: usize = 256;
     thread_local! {
-        // No threshold reaches `u64::MAX`, so an empty slot matches none.
         static KEPT: [Cell<(u64, i64)>; SLOTS] =
             const { [const { Cell::new((u64::MAX, 0)) }; SLOTS] };
     }
-    let slot = (t.wrapping_mul(0x9e37_79b9_7f4a_7c15) >> 56) as usize;
+    let slot = (key.wrapping_mul(0x9e37_79b9_7f4a_7c15) >> 56) as usize;
     KEPT.with(|kept| {
-        let (key, value) = kept[slot].get();
-        if key == t {
+        let (k, value) = kept[slot].get();
+        if k == key {
             return value;
         }
-        let value = logit(t << 9);
-        kept[slot].set((t, value));
+        let value = log(key);
+        kept[slot].set((key, value));
         value
     })
 }

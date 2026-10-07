@@ -99,10 +99,10 @@ pub(super) struct Shoot<'g, 'a> {
     pub marked: Vec<u64>,
     /// The phytomers this share grew.
     pub grown: u64,
-    /// One zone's node leads and its nodes (order draw, draw index, lead,
-    /// buds), reused.
-    pub leads: Vec<i64>,
-    pub node_buds: Vec<(Draw, u64, i64, [Placed; MAX_BUDS as usize])>,
+    /// One zone's node presences and its nodes (order draw, draw index,
+    /// presence, buds), reused.
+    pub leads: Vec<u64>,
+    pub node_buds: Vec<(Draw, u64, u64, [Placed; MAX_BUDS as usize])>,
     /// One zone's sleeping buds' expected wood per PA, reused.
     pub sleeping: Vec<f64>,
 }
@@ -113,8 +113,8 @@ pub(super) struct Shoot<'g, 'a> {
 #[derive(Default)]
 pub(super) struct Spare {
     pub next: Vec<Apex>,
-    pub leads: Vec<i64>,
-    pub node_buds: Vec<(Draw, u64, i64, [Placed; MAX_BUDS as usize])>,
+    pub leads: Vec<u64>,
+    pub node_buds: Vec<(Draw, u64, u64, [Placed; MAX_BUDS as usize])>,
     pub sleeping: Vec<f64>,
 }
 
