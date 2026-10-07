@@ -11,8 +11,10 @@
 //! - **A half angle** halves the amount, floored, before any wrap.
 //! - **Radians** are Q32; the conversions are one product by a constant
 //!   of 60 or 64 fraction bits (`TAU60`, `INV_TAU64`), floored.
-//! - **sin, cos and atan2** are CORDIC on 62 fraction bits, 40 iterations,
-//!   with the literal table and gain below (`feedback-constants.py`).
+//! - **sin and cos** are a Q62 polynomial on the rest from the nearest
+//!   eighth turn (host decision, 2026-10-07; `sincos`); **atan2** is
+//!   CORDIC on 62 fraction bits, 40 iterations, with the literal table
+//!   below (`feedback-constants.py`).
 use super::vector::isqrt;
 use super::Fault;
 use crate::fixed::ONE32;
@@ -72,8 +74,6 @@ pub const ATAN: [i64; STEPS] = [
     0x145f30,
 ];
 
-/// CORDIC's gain over its iterations, `prod (1 + 2^-2i)^-1/2`, Q62.
-pub const K: i64 = 0x26dd_3b6a_10d7_969a;
 
 /// The amounts whose radians stay in an i64: below 2^60, 2^28 turns.
 pub const AMOUNT: i64 = 1 << 60;
@@ -113,35 +113,66 @@ pub fn turns(radians: i64) -> i64 {
     ((i128::from(radians) * i128::from(INV_TAU64)) >> 64) as i64
 }
 
-/// `(cos t, sin t)`, Q32, each in [-1, 1]: exact at every quarter turn.
+/// `sin` and `cos` coefficients in Q62, the nearest: `(-1)^k / (2k + 1)!`
+/// and `(-1)^k / (2k)!` for k from 0 to 5 (host decision, 2026-10-07).
+pub const SIN: [i64; 6] = [
+    0x4000_0000_0000_0000,
+    -0x0aaa_aaaa_aaaa_aaab,
+    0x0088_8888_8888_8889,
+    -0x0003_4034_0340_3403,
+    0x0000_0b8e_f1d2_ab64,
+    -0x0000_001a_e645_67f5,
+];
+pub const COS: [i64; 6] = [
+    0x4000_0000_0000_0000,
+    -0x2000_0000_0000_0000,
+    0x02aa_aaaa_aaaa_aaab,
+    -0x0016_c16c_16c1_6c17,
+    0x0000_6806_8068_0680,
+    -0x0000_0127_e4fb_778a,
+];
+
+/// `sqrt(1/2)` in Q62, the nearest.
+pub const HALF_ROOT: i64 = 0x2d41_3ccc_fe77_9921;
+
+/// `a b / 2^62`, floored.
+fn mul62(a: i64, b: i64) -> i64 {
+    ((i128::from(a) * i128::from(b)) >> 62) as i64
+}
+
+/// A polynomial in `z` (Q62) by Horner's rule, from its highest term down,
+/// one floor a product.
+fn horner(c: &[i64; 6], z: i64) -> i64 {
+    c.iter().rev().fold(0, |p, &k| k + mul62(z, p))
+}
+
+/// `(cos t, sin t)`, Q32, each in [-1, 1]: exact at every quarter turn
+/// (host decision, 2026-10-07, CONTRACT-A.md 2.3).
+/// 1. The nearest eighth `n = (t + 2^28) >> 29`, and the rest `r = (t - n
+///    2^29) as i32`, within 1/16 turn.
+/// 2. `θ = floor(r TAU60 / 2^30)` (Q62 radians) and `z = floor(θ^2 / 2^62)`.
+/// 3. `sin = floor(θ horner(SIN, z) / 2^62)`, `cos = horner(COS, z)`.
+/// 4. An odd eighth turns them by 1/8 turn: `(floor((c - s) H / 2^62),
+///    floor((c + s) H / 2^62))`, H = `HALF_ROOT`; then `n >> 1` quarter
+///    turns, exactly (a swap and negations).
+/// 5. Each floored to Q32 (`>> 30`) and clamped to [-1, 1].
 pub fn sincos(t: u32) -> (i64, i64) {
-    // The nearest quarter, and the rest in [-1/8, 1/8) turn.
-    let q = t.wrapping_add(1 << 29) >> 30;
-    let r = t.wrapping_sub(q << 30) as i32;
-    let (c, s) = if r == 0 { (ONE32, 0) } else { rotated(r) };
-    match q {
+    let n = t.wrapping_add(1 << 28) >> 29;
+    let r = t.wrapping_sub(n << 29) as i32;
+    let theta = ((i128::from(r) * i128::from(TAU60)) >> 30) as i64;
+    let z = mul62(theta, theta);
+    let (mut c, mut s) = (horner(&COS, z), mul62(theta, horner(&SIN, z)));
+    if n & 1 == 1 {
+        (c, s) = (mul62(c - s, HALF_ROOT), mul62(c + s, HALF_ROOT));
+    }
+    let (c, s) = match n >> 1 {
         0 => (c, s),
         1 => (-s, c),
         2 => (-c, -s),
         _ => (s, -c),
-    }
-}
-
-/// CORDIC in rotation mode from `(K, 0)` through `r` (T units): every
-/// step updates x and y from their old values together, its direction
-/// positive where the angle left is none or more.
-fn rotated(r: i32) -> (i64, i64) {
-    let (mut x, mut y, mut z) = (K, 0i64, i64::from(r) << 30);
-    for (i, &a) in ATAN.iter().enumerate() {
-        let (dx, dy) = (y >> i, x >> i);
-        if z >= 0 {
-            (x, y, z) = (x - dx, y + dy, z - a);
-        } else {
-            (x, y, z) = (x + dx, y - dy, z + a);
-        }
-    }
+    };
     let q32 = |v: i64| (v >> 30).clamp(-ONE32, ONE32);
-    (q32(x), q32(y))
+    (q32(c), q32(s))
 }
 
 /// The orientation of `(x, y)`: exact on the axes, `atan2(0, 0)` none.

@@ -7,7 +7,7 @@ const QUARTER: u32 = 0x40000000u;
 const HALF: u32 = 0x80000000u;
 const TAU60 = vec2<u32>(0x10b4611au, 0x6487ed51u);
 const INV_TAU64 = vec2<u32>(0x9391054au, 0x28be60dbu);
-const CORDIC_K = vec2<u32>(0x10d7969au, 0x26dd3b6au);
+const HALF_ROOT = vec2<u32>(0xfe779921u, 0x2d413cccu);
 
 // atan(2^-i) in turns at 2^62 a turn (`angle::ATAN`).
 var<private> ATAN: array<vec2<u32>, 40> = array<vec2<u32>, 40>(
@@ -86,47 +86,59 @@ fn toward(origin: u32, to: u32, share: vec2<u32>) -> u32 {
     return origin + smul_shr(between(origin, to), share, 32u, false).x;
 }
 
-// CORDIC in rotation mode through r, T units in [-1/8, 1/8): (cos, sin).
-fn rotated(r: i32) -> vec4<u32> {
-    var x = CORDIC_K;
-    var y = vec2<u32>(0u);
-    var z = shl64(i64of(r), 30u);
-    for (var i = 0u; i < 40u; i++) {
-        let dx = sar64(y, i);
-        let dy = sar64(x, i);
-        if !negative(z) {
-            x = sub64(x, dx);
-            y = add64(y, dy);
-            z = sub64(z, ATAN[i]);
-        } else {
-            x = add64(x, dx);
-            y = sub64(y, dy);
-            z = add64(z, ATAN[i]);
-        }
+// `angle::SIN` and `angle::COS`, Q62.
+var<private> SIN: array<vec2<u32>, 6> = array<vec2<u32>, 6>(
+    vec2<u32>(0x00000000u, 0x40000000u), vec2<u32>(0x55555555u, 0xf5555555u), vec2<u32>(0x88888889u, 0x00888888u), vec2<u32>(0xfcbfcbfdu, 0xfffcbfcbu), vec2<u32>(0xf1d2ab64u, 0x00000b8eu), vec2<u32>(0x19ba980bu, 0xffffffe5u),
+);
+var<private> COS: array<vec2<u32>, 6> = array<vec2<u32>, 6>(
+    vec2<u32>(0x00000000u, 0x40000000u), vec2<u32>(0x00000000u, 0xe0000000u), vec2<u32>(0xaaaaaaabu, 0x02aaaaaau), vec2<u32>(0xe93e93e9u, 0xffe93e93u), vec2<u32>(0x80680680u, 0x00006806u), vec2<u32>(0x1b048876u, 0xfffffed8u),
+);
+
+fn mul62s(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
+    return smul_shr(a, b, 62u, false);
+}
+
+// Horner from the highest term down, one floor a product.
+fn horner_sin(z: vec2<u32>) -> vec2<u32> {
+    var p = vec2<u32>(0u);
+    for (var k = 6; k > 0; k--) {
+        p = add64(SIN[k - 1], mul62s(z, p));
     }
-    let lo = neg64(one32());
-    return vec4<u32>(smax64(smin64(sar64(x, 30u), one32()), lo), smax64(smin64(sar64(y, 30u), one32()), lo));
+    return p;
+}
+
+fn horner_cos(z: vec2<u32>) -> vec2<u32> {
+    var p = vec2<u32>(0u);
+    for (var k = 6; k > 0; k--) {
+        p = add64(COS[k - 1], mul62s(z, p));
+    }
+    return p;
 }
 
 // `angle::sincos`: (cos.xy, sin.zw).
 fn sincos(t: u32) -> vec4<u32> {
-    let q = (t + (1u << 29u)) >> 30u;
-    let r = bitcast<i32>(t - (q << 30u));
-    var cs = vec4<u32>(one32(), 0u, 0u);
-    if r != 0 {
-        cs = rotated(r);
+    let n = (t + (1u << 28u)) >> 29u;
+    let r = bitcast<i32>(t - (n << 29u));
+    let theta = smul_shr(i64of(r), TAU60, 30u, false);
+    let z = mul62s(theta, theta);
+    var c = horner_cos(z);
+    var s = mul62s(theta, horner_sin(z));
+    if (n & 1u) == 1u {
+        let c2 = mul62s(sub64(c, s), HALF_ROOT);
+        s = mul62s(add64(c, s), HALF_ROOT);
+        c = c2;
     }
-    let c = cs.xy;
-    let s = cs.zw;
-    var out = vec4<u32>(s, neg64(c));
+    let q = n >> 1u;
+    var cs = vec4<u32>(s, neg64(c));
     if q == 0u {
-        out = vec4<u32>(c, s);
+        cs = vec4<u32>(c, s);
     } else if q == 1u {
-        out = vec4<u32>(neg64(s), c);
+        cs = vec4<u32>(neg64(s), c);
     } else if q == 2u {
-        out = vec4<u32>(neg64(c), neg64(s));
+        cs = vec4<u32>(neg64(c), neg64(s));
     }
-    return out;
+    let lo = neg64(one32());
+    return vec4<u32>(smax64(smin64(sar64(cs.xy, 30u), one32()), lo), smax64(smin64(sar64(cs.zw, 30u), one32()), lo));
 }
 
 // A magnitude scaled by the common shift, its sign restored.

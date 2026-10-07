@@ -123,7 +123,7 @@ fn sin_and_cos_are_within_a_unit() {
             .max((real(s) - a.sin()).abs());
     }
     println!("sin, cos: {} units", most * ONE32 as f64);
-    assert!(most <= 1.05 / ONE32 as f64, "{}", most * ONE32 as f64);
+    assert!(most <= 1.001 / ONE32 as f64, "{}", most * ONE32 as f64);
     assert_eq!(sincos(0), (ONE32, 0));
     assert_eq!(sincos(QUARTER), (0, ONE32));
     assert_eq!(sincos(HALF), (-ONE32, 0));
