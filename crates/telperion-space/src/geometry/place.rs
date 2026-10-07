@@ -121,11 +121,9 @@ fn start(structure: &Structure, species: &Species, laid: &Laid, i: usize) -> Sta
     // A relay carries on the pulls of the axis it replaces, as far as it
     // is still that axis's continuation, so one that has barely left the
     // axis's line is laid as the axis would have gone on (fn-206).
-    let inherited = match axis.origin {
-        Origin::Relay { parent, .. } => {
-            layer(parent).handed((laid.bends[parent], laid.reaches[parent]), axis.blend)
-        }
-        _ => Vec::new(),
+    let inherited = match axis.carried_on() {
+        Some((parent, b)) => layer(parent).handed((laid.bends[parent], laid.reaches[parent]), b),
+        None => Vec::new(),
     };
     let trunk = match axis.origin {
         Origin::Seed => true,

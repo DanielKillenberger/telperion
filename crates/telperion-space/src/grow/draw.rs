@@ -192,8 +192,8 @@ fn pencil<'p>(
     let axis = &axes[i];
     // A relay carries on the pulls of the axis it replaces, as the final
     // lay has it, at that axis's age and reach so far (fn-206).
-    let handed = match axis.origin {
-        Origin::Relay { parent, .. } => {
+    let handed = match axis.carried_on() {
+        Some((parent, b)) => {
             let p = &axes[parent];
             let state = &species.states[p.pa];
             // The parent's years when the relay was made: each axis's time
@@ -203,9 +203,9 @@ fn pencil<'p>(
             let made = f64::from(axis.birth) + draws[i].sleep;
             let years = (made - f64::from(p.birth) - draws[parent].sleep).max(0.0);
             let layer = &of(parent).layer;
-            layer.handed((bend(p, state, years), layer.run()), axis.blend)
+            layer.handed((bend(p, state, years), layer.run()), b)
         }
-        _ => Vec::new(),
+        None => Vec::new(),
     };
     let made = draws[i].birth[0] * draws[i].birth[1];
     let curve = match axis.origin {
@@ -270,7 +270,7 @@ fn draw(
             let p = &mut axis.phytomers[j];
             // Unsized: what it bears inherits its scale without its size.
             p.scale = pencil.base_scale * present * draws.nodes[j] * grown;
-            axis.first = (axis.first + present * draws.nodes[j]).min(1.0);
+            axis.first = (axis.first + present * draws.nodes[j] * grown).min(1.0);
             p.size = size;
             p.rank = pencil.rank;
             pencil.rank += draws.nodes[j] * grown;

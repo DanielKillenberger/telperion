@@ -78,6 +78,19 @@ pub enum Origin {
     Relay { parent: usize, node: usize },
 }
 
+impl Axis {
+    /// The axis it carries on and how far it has left that axis's line:
+    /// a relay by its blend, a continuation at none, for it is a relay at
+    /// blend 0 (fn-199, host 2026-10-07); none for a lateral or the seed.
+    pub(crate) fn carried_on(&self) -> Option<(usize, f64)> {
+        match self.origin {
+            Origin::Relay { parent, .. } => Some((parent, self.blend)),
+            Origin::Continuation { parent } => Some((parent, 0.0)),
+            Origin::Seed | Origin::Lateral { .. } => None,
+        }
+    }
+}
+
 impl Origin {
     /// The axis this one grows from; none for the seed.
     pub fn parent(self) -> Option<usize> {
@@ -126,10 +139,10 @@ pub struct Axis {
     /// The share of its first cycle a bud that woke still slept: its age
     /// is that much less than its birth gives.
     pub(crate) sleep: f64,
-    /// How much of a node it has grown in, up to one: each phytomer's
-    /// unit's presence times its node's, summed (`presence::assign`), not
-    /// the share of the cycle it grew, which its length already holds; none
-    /// with no phytomers. A relay
+    /// Its grown extent: over its nodes, each unit's presence times its
+    /// node's times the share of its cycle the unit lived, summed, at most
+    /// one (`presence::assign`; host 2026-10-07, rule 2); none with no
+    /// phytomers. A relay
     /// standing on an axis that carries another on stands that far from
     /// where it would on the axis carried on (fn-199 R3).
     pub(crate) first: f64,

@@ -86,18 +86,14 @@ pub(crate) fn scale(structure: &mut Structure, species: &Species, threads: usize
 
 /// How far an axis `years` old is pulled towards the vertical at its
 /// base: its straightening, and its secondary erection over its years;
-/// never a continuation's, whose base is its parent's tip, and a relay's
-/// as far as it has left the continuation it replaces (`blend`).
+/// an axis carried on only as far as it has left the line of the axis it
+/// carries on (`Axis::carried_on`), so a continuation's none.
 pub(crate) fn bend(axis: &Axis, state: &PaState, years: f64) -> f64 {
-    let straightening = match axis.origin {
-        Origin::Lateral { .. } => state.straightening,
-        Origin::Relay { .. } => state.straightening * axis.blend,
-        Origin::Seed | Origin::Continuation { .. } => 0.0,
-    };
-    let erected = match axis.origin {
-        Origin::Continuation { .. } => 0.0,
-        Origin::Relay { .. } => axis.blend * (1.0 - (-state.erection * years).exp_fixed()),
-        _ => 1.0 - (-state.erection * years).exp_fixed(),
+    let erected = 1.0 - (-state.erection * years).exp_fixed();
+    let (straightening, erected) = match (axis.origin, axis.carried_on()) {
+        (_, Some((_, b))) => (state.straightening * b, b * erected),
+        (Origin::Lateral { .. }, None) => (state.straightening, erected),
+        _ => (0.0, erected),
     };
     1.0 - (1.0 - straightening) * (1.0 - erected)
 }
@@ -113,8 +109,8 @@ pub(crate) fn reaches(axes: &[Axis]) -> Vec<f64> {
     // Relays follow their parents, so a backward pass meets each one's
     // reach before its parent's.
     for i in (0..axes.len()).rev() {
-        if let Origin::Relay { parent, .. } = axes[i].origin {
-            reach[parent] += (1.0 - axes[i].blend) * reach[i];
+        if let Some((parent, b)) = axes[i].carried_on() {
+            reach[parent] += (1.0 - b) * reach[i];
         }
     }
     reach
@@ -151,18 +147,6 @@ pub(crate) fn frame(
     let axis = &axes[i];
     match axis.origin {
         Origin::Seed => (Vec3::default(), UP, Vec3::new(1.0, 0.0, 0.0)),
-        Origin::Continuation { parent } => {
-            let p = &axes[parent];
-            // On from the parent's tip in the running direction and side it
-            // ends on, where its pull towards the vertical has faded to
-            // none, so a last unit all but gone turns nothing (fn-206).
-            let (base, _, _) = end(p);
-            let (heading, side) = ends(parent);
-            // The phyllotaxis runs on across the change of PA.
-            let turn = species.states[p.pa].divergence * p.rank;
-            let side = side * turn.cos_fixed() + heading.cross(side) * turn.sin_fixed();
-            (base, heading, side)
-        }
         Origin::Lateral {
             parent,
             node,
@@ -176,7 +160,10 @@ pub(crate) fn frame(
             // Turned about its parent by its PA's roll, as its lineage keys.
             let roll = species.states[axis.pa].form.roll
                 * (2.0 * Key(axis.lineage).child(ROLL).unit() - 1.0);
-            let azimuth = parent_state.divergence * at.rank + TAU * f64::from(slot) / whorl + roll;
+            let azimuth = phase(axes, species, parent)
+                + parent_state.divergence * at.rank
+                + TAU * f64::from(slot) / whorl
+                + roll;
             let (heading, side) = turned(
                 (at.heading, at.side),
                 azimuth,
@@ -194,39 +181,59 @@ pub(crate) fn frame(
             };
             (base, heading, side)
         }
-        Origin::Relay { parent, node } => {
-            // Between the continuation it replaces, at the tip on the
-            // axis's line, and its own bud in the axis's span at the PA's
-            // `relay_at`, facing where a bud there would, turned up by the
-            // PA's epitony: by the presence of the stop that made it.
+        Origin::Relay { .. } | Origin::Continuation { .. } => {
+            // An axis carried on, a continuation at blend 0 (fn-199, host
+            // 2026-10-07): between the axis's line at its tip, running and
+            // facing as it runs, and its own bud in the axis's span at the
+            // PA's `relay_at`, facing where a bud there would, turned up by
+            // the PA's epitony: by the presence of the stop that made it.
+            let (parent, b) = axis.carried_on().expect("carried on");
+            let node = match axis.origin {
+                Origin::Relay { node, .. } => node,
+                _ => 0,
+            };
             let p = &axes[parent];
             let state = &species.states[p.pa];
             let at = carried_point(axes, species, parent, relay_point(p, state.relay_at, node));
             let (heading, side) = turned(
                 (at.along, at.side),
-                state.divergence * at.rank,
+                at.rank,
                 species.states[axis.pa].insertion,
                 state.form.plane,
                 state.epitony,
             );
             // The axis's running direction and side at its tip, before its
-            // pull towards the vertical, which the relay carries on.
+            // pull towards the vertical, which the axis carried on runs on
+            // with; its phyllotaxis runs on as a phase (`phase`).
             let (tip, _, _) = end(p);
             let (along, across) = ends(parent);
-            let turn = state.divergence * p.rank;
-            let carried = across * turn.cos_fixed() + along.cross(across) * turn.sin_fixed();
-            let b = axis.blend;
             let heading = (along * (1.0 - b) + heading * b).unit().unwrap_or(heading);
-            let side = carried * (1.0 - b) + side * b;
+            let side = across * (1.0 - b) + side * b;
             let side = (side - heading * side.dot(heading))
                 .unit()
-                .unwrap_or(carried);
+                .unwrap_or(across);
             (tip + (at.base - tip) * b, heading, side)
         }
     }
 }
 
-/// Where a relay of axis `i` stands, `own` on it: where `i` carries
+/// The phase axis `i`'s phyllotaxis starts from: each axis it carries on
+/// adds its divergence times its rank, so an axis carried on turns its
+/// laterals on from where that axis's would have stood (fn-199, host
+/// 2026-10-07), and a lateral or the seed starts afresh.
+pub(crate) fn phase(axes: &[Axis], species: &Species, i: usize) -> f64 {
+    let mut phase = 0.0;
+    let mut at = i;
+    while let Some((parent, _)) = axes[at].carried_on() {
+        let p = &axes[parent];
+        phase += species.states[p.pa].divergence * p.rank;
+        at = parent;
+    }
+    phase
+}
+
+/// Where a relay of axis `i` stands, `own` on it, its rank given as the
+/// azimuth it turns a bud by: where `i` carries
 /// another axis on (a relay or a continuation) and its first node has not
 /// grown whole, blended from where it would stand on that axis by how far
 /// the node has grown, so a relay on an axis of no node yet stands as on
@@ -235,20 +242,23 @@ pub(crate) fn frame(
 fn carried_point(axes: &[Axis], species: &Species, i: usize, own: Point) -> Point {
     let mut line = vec![i];
     while let Some(&a) = line.last() {
-        match axes[a].origin {
-            Origin::Relay { parent, .. } | Origin::Continuation { parent }
-                if axes[a].first < 1.0 =>
-            {
-                line.push(parent);
-            }
+        match axes[a].carried_on() {
+            Some((parent, _)) if axes[a].first < 1.0 => line.push(parent),
             _ => break,
         }
     }
+    // Each point's rank as the azimuth it turns a bud by, phase included,
+    // so points on different axes of one line blend as one phyllotaxis.
+    let turns = |a: usize, at: Point| Point {
+        rank: phase(axes, species, a) + species.states[axes[a].pa].divergence * at.rank,
+        ..at
+    };
     let zone = |a: usize| {
         let axis = &axes[a];
         let share = species.states[axis.pa].relay_at;
-        relay_point(axis, share, zone_node(axis, share))
+        turns(a, relay_point(axis, share, zone_node(axis, share)))
     };
+    let own = turns(i, own);
     let top = line.pop().expect("the axis itself");
     let mut point = if top == i { own } else { zone(top) };
     while let Some(a) = line.pop() {
