@@ -30,6 +30,40 @@ The references, their sources and licences are SHEET-1.md's ("The references"); 
 2. **Width at 80.** 17 to 20 m against sheet 2's 14 to 16; the 80-year crown is a broad dome, the 40-year one still a narrow egg (8 to 9 m, about half the height). Seed 7's lowest limb at 80 hangs to the ground beside the stem.
 3. The bare crowns at 40 and 80 keep sheet 2's look: white stem, ascending limbs, dark fine haze, hanging strands.
 
-## Astra's verdict
+## Astra's verdict (2026-10-07)
 
-See below (recorded after the submission).
+Submitted as `codex exec -m gpt-6-astra --sandbox read-only -C <worktree> -o raw/astra-sheet3.md "<prompt>" < /dev/null`, at commit `25986b14`. The prompt gave it `raw/sheet3/sheet-40.png`, `sheet-80.png`, `bases.png`, the individual stills, this file and MODEL-BIRCH.md, and asked, per age and seed, whether the tree reads as a mature open-grown silver birch beside the references (yes, nearly, no), then pass or fail per trait (a) to (j) with evidence, an overall verdict and the single most useful change. Its answer, verbatim:
+
+> **All six are nearly convincing.** The white stems, ascending limbs and hanging foliage establish birch, but the repeated branch structure weakens the likeness beside the photographs.
+>
+> | Age | Seed | Judgment | Visible reason |
+> |---|---|---|---|
+> | 40 | 1 | **Nearly** | Slender curved stem and narrow crown; foliage forms conspicuously repetitive feather-like sprays. |
+> | 40 | 7 | **Nearly** | Convincing narrow silhouette and pendulous foliage; bare branching looks crowded and mechanically regular. |
+> | 40 | 42 | **Nearly** | Plausible asymmetric crown; repeated upright limbs and hooked tips remain conspicuous. |
+> | 80 | 1 | **Nearly** | Broader, rounded crown reads as mature; exposed lower branches form an unusually regular fan. |
+> | 80 | 7 | **Nearly** | Strong leafy crown, but the isolated low branches and orderly internal framework distract. |
+> | 80 | 42 | **Nearly** | Broad asymmetric crown suggests an older birch; long parallel branches with repeated drooping ends weaken it. |
+>
+> | Trait | Verdict | Visible evidence |
+> |---|---|---|
+> | **(a) White, slender, curving or leaning stem** | **Pass** | `sheet-40.png` and `sheet-80.png` show slender white stems with visible bends in every seed. |
+> | **(b) Dark base on the old tree** | **Fail** | `bases.png` shows more dark markings at 80, but all three old bases remain predominantly white with black speckling rather than a convincing dark, fissured lower trunk. |
+> | **(c) Narrow egg at 40, broader dome at 80** | **Pass** | `sheet-40.png` shows narrow elongated crowns, while `sheet-80.png` shows wider, more rounded crowns, although seed 7 retains a pointed top. |
+> | **(d) Ascending main limbs** | **Pass** | The bare views in both sheets clearly show main limbs rising outward from the stem. |
+> | **(e) Hanging fine outer shoots** | **Pass** | `birch-80-42-limb.png` clearly shows fine terminal shoots arching downward, also visible as hanging foliage in both sheets. |
+> | **(f) Dark fine wood in the bare crown** | **Pass** | The bare crowns in both sheets carry a dark brown-grey twig haze around the pale structural wood. |
+> | **(g) Openness, with sky between limbs** | **Pass** | Both sheets show gaps between limb systems, especially in the lower and outer crowns at 80. |
+> | **(h) Leaf mass in leaf** | **Pass** | The leafy whole-tree views in both sheets form coherent crown masses, with seed 7 at 80 especially full, though less continuous than the Oslo reference. |
+> | **(i) Leaf colour** | **Pass** | `birch-40-1-crown.png` shows plausible fresh yellow-green foliage, albeit brighter and more uniformly lime-coloured than the reference crowns. |
+> | **(j) Other features wrong for birch** | **Fail** | `birch-80-42-limb.png` shows long, nearly parallel branches ending in repeated umbrella-like sprays, and `birch-40-1-crown.png` gives those sprays a fern-like regularity absent from the photographs. |
+>
+> **Overall verdict: FAIL.**
+>
+> **Single most useful change:** break up the repeated long-branch-and-drooping-tuft pattern into more irregular, subdivided branch systems, so the crown loses its comb-like structure.
+
+**In short:** every age and seed is *nearly*; traits (a) and (c) to (i) pass; (b) the dark old base fails (the host's decision keeps the tint until the mature-bark capability spec); (j) fails on a repeated, comb-like branch structure: long nearly parallel limbs ending in regular drooping tufts. Overall **FAIL**; its one change: break the repeated long-branch-and-tuft pattern into more irregular, subdivided branch systems.
+
+## Gate (round 3, commit `25986b14`)
+
+In two parts, as the host set (2026-10-07), with `CARGO_BUILD_JOBS=8` and `RUST_TEST_THREADS=8`: `cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render` without the GPU lock, 89 targets ok and none failed; `cargo test --profile ci -p telperion-render --no-fail-fast` under the lock, 41 targets ok and none failed. `harness/parity.test.ts` passes 8 of 8 on round 3's values (the Wasm rebuilt). Logs in the ignored `raw/gate3-*.log`.
