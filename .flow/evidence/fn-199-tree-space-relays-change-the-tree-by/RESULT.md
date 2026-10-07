@@ -498,3 +498,18 @@ So the phase steepened it.
 - census over seeds 1 to 50: R1 0, R3 0;
 - relay walks, `geometry` and `form` green;
 - the light walk 26.82 / 29.07.
+
+## The gate, green (on `d3bb6617`)
+
+- **`telperion-render`, under the lock:** 163 passed, 0 failed (`raw/gate-render2.log`).
+- **The rest of the workspace:** 994 passed, 0 failed (`raw/gate-rest2.log`).
+
+**R6 on the gated code.** `raw/r6/sheet3.png`: bare base, bare after, whole base, whole after; seeds 1, 2, 3, 4, 7 at 80 years. I viewed it.
+- Every tree reads as an open-grown beech: one trunk, a domed crown forking a few metres up, a full rounded crown in leaf. No defect.
+- The after trees carry F4's merged work too (internodes varying node to node). Heights 17.8 to 19.0 m.
+
+## Acceptance
+
+- **R1 to R4.** Walk tests red on the base and green now (`tests/relays.rs`). The census over seeds 1 to 50 shows no jump for R1 or R3.
+- **R5.** Crate tests and the workspace gate are green.
+- **R6.** The beech re-rendered at its five seeds, viewed by the host (first sheets) and by me (final sheet); the change is recorded above.
