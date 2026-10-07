@@ -101,3 +101,10 @@
 - **Slowed by:** `samply record` refuses with `perf_event_paranoid` at 2 (it needs 1), and `perf` and `valgrind` are not installed; the cause had to be found by stage clocks (`grow_staged`) and call counters patched into a scratch copy of the engine (log2, exp2_neg, Q32 products, leads by call site), then a microbenchmark of each primitive's cost.
 - **Cost:** about 15 minutes and four scratch builds.
 - **Would remove it:** a local setting (`kernel.perf_event_paranoid = 1`) or `perf` installed; nothing in the repository.
+
+## 2026-10-07 09:15, task 5: one-core timings under another worktree's test load
+
+- **Doing:** the final one-core matrix (base against now, natively and in Wasm), after the gate.
+- **Slowed by:** the F1 worktree's test suite (`closed_form` and others at 400 % CPU) took the desk to a load of 24 to 47; one matrix run gave the base spruce at 80 13.5 s against 5.9 s quiet, so it was thrown away and the matrix waits for a quiet desk. Earlier, interleaved rounds were needed because single runs moved 3 to 8 percent with the load.
+- **Cost:** one wasted matrix (5 minutes) and the wait.
+- **Would remove it:** a desk-wide timing lock, like the GPU lock, that test suites and timing runs both take; or timings on a reserved core (`isolcpus`), a local setting.
