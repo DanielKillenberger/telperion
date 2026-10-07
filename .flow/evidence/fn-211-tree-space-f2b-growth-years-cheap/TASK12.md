@@ -153,3 +153,56 @@ For a root whose next synchronisation point is the tree's end (the beech, spruce
 - that is (a) and (b) together.
 
 This is reported for the host's decision.
+
+## After the host's decision on the handover: one form, and the deletion (2026-10-08)
+
+Built:
+- **The handover as one form (`a092b447`, `25f8456c`; PHASES.md, decision 2 amended).** A handover is a root with whatever it has grown so far.
+  - Where the schedule's rule sets a root's next synchronisation point at the tree's end, the structure above hands its bud over as it is made (`Hands`) and never grows it. At the end, the root is grown from its bud, marked, assigned and shed on one core (`grow/stepped/buds.rs`).
+  - A lit root is handed over grown and steps on.
+  - The bud is the zero-cycle handover rather than a grower built at handover for one reason: a woken root's kept share is known only at the tree's end, and a grower started from a woken bud carries it. The grower is built from the bud where it is finished, through the same phase 1 every root takes (`fine::Root`).
+- **(a) is folded for these roots:** growth, mark, assign and shed run in one pass on one core. A lit root's phase 1 is still a pass in the settle. The lit oak is 0.66 to 0.76 times today's build, and folding it would need its woken roots' kept shares before the end.
+- **The probe:** every phase identical in 48 runs at 40 and 24 at 80 (`raw/task12/probe-*.txt`).
+
+### The 20 trees, the build alone (`raw/task12/measure-5.txt`)
+
+- **Method.** Each run started at a one-minute load under 6. The best of six warm builds, after one cold build.
+  - The two builds take turns to go first.
+  - Each tree is hashed and let go after its timing, before the other is built (`25f8456c`).
+  - The earlier method kept today's tree alive while `grow` ran, so `grow` built under the memory today's tree held.
+
+| Tree | `grow_today`, s | `grow`, s | Ratio |
+|---|--:|--:|--:|
+| beech 40 s1 / s7 | 0.023 / 0.034 | 0.023 / 0.033 | 0.99 / 0.99 |
+| beech 80 s1 / s7 | 0.293 / 0.477 | 0.287 / 0.475 | 0.98 / 0.99 |
+| spruce 40 s1 / s7 | 0.563 / 0.560 | 0.565 / 0.556 | 1.00 / 0.99 |
+| spruce 80 s1 / s7 | 2.386 / 2.428 | 2.395 / 2.422 | 1.00 (+0.4 %) / 1.00 |
+| oak 40 s1 / s7 | 0.195 / 0.331 | 0.100 / 0.164 | 0.51 / 0.50 |
+| oak 80 s1 / s7 | 2.357 / 5.941 | 0.968 / 2.272 | 0.41 / 0.38 |
+| lit oak 40 s1 / s7 | 0.669 / 1.023 | 0.506 / 0.718 | 0.76 / 0.70 |
+| lit oak 80 s1 / s7 | 8.087 / 17.656 | 5.629 / 11.692 | 0.70 / 0.66 |
+| palm | under 1 ms | under 1 ms | 0.90 to 0.96 |
+
+**All 20 digests are identical, and no ratio is above 1.00 at two places.** Spruce 80 s1 is 9 ms (0.4 %) over. That is inside the run-to-run spread of today's build itself: 2.386 to 2.448 s across `measure-4` and `measure-5`.
+
+Profiled, `grow` does what `grow_fine` did, without the GPU's seed inputs: at spruce 80 s1, `grow` built in 2.258 s against `grow_fine`'s 2.216.
+- The structure above the cut costs about 0.03 s more: 0.079 s of cycles plus 0.059 s of mark and handover, against 0.101 s.
+- The roots' phase 1 is the same: 0.39 s against 0.38 s.
+- The settle is the same.
+- `grow_fine` spent 0.035 s on the GPU's seed inputs, which `grow` skips.
+
+### Deleted (`5ab1d1ef`)
+
+- **`grow_today`, `grow_whole`, `grow_staged` and `grow_fine`.**
+  - `grow` is the stepped executor.
+  - `grow_roots` is the same build reported root by root (`Fine`). It is the CPU reference the GPU executor's tests now hold its roots to: `realized_tests`, `chain_tests`, `realized_timing` and `speed_tests`.
+- **The whole-tree run is test-only (`grow::whole`, `#[cfg(test)]`):** the reference the fine tests hold the build to. The engine's internal run stays under the probes that need it (`grow_partitioned`, `grow_oracle`, `grow_coupled`, `grow_bounded`, `sketch`). Whether those probes stay is the host's call.
+- **The examples that compared or timed the deleted paths:** `stepcost`, `realized`, `timegrow`, `passcost` and `stepvsgrow`. `measures` loses its `stages` and `passes` modes.
+- **`grow_fine`'s refusal test** is replaced by the named gap's test: an executor without the exchange refuses a tree kept as grown (`an_executor_without_the_exchange_refuses_a_tree_kept_as_grown`).
+- **The exchange's trait methods** are `grown_partials` and `grown_radii`: `attach` clashed with the GPU device's own method.
+
+### The gate
+
+Both halves were run at `5ab1d1ef`, with 8 build jobs, 8 test threads and 8 Rayon threads (`raw/task12/gate-*.txt`):
+- **The render half,** first, under the GPU lock: `cargo test --profile ci -p telperion-render --no-fail-fast`. 168 passed, 0 failed, 11 ignored, at a load of 9 falling to 4. The GPU's realized settle against `grow_roots` is among them (`every_root_settles_on_the_gpu_as_on_the_cpu`).
+- **The rest:** `cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render`. 1,013 passed, 0 failed, 18 ignored, at a load of 6 rising to 18.
