@@ -10,7 +10,7 @@ const CASES: usize = 1 << 14;
 pub(super) struct Rng(pub(super) u64);
 
 impl Rng {
-    fn next(&mut self) -> u64 {
+    pub(super) fn next(&mut self) -> u64 {
         self.0 = self.0.wrapping_add(0x9e37_79b9_7f4a_7c15);
         let mut z = self.0;
         z = (z ^ (z >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
@@ -95,6 +95,7 @@ fn edges(s: u32) -> Vec<[u64; 8]> {
         ],
         11 => vec![[(1 << 31) / 3, (1 << 31) / 3, (1 << 31) / 3, 1, 0, 0, 0, 0]],
         12 => vec![[q / 4, q, 0, 2 * q, q / 2, 1 << 52, q, q]],
+        16 => super::feedback_quotient::edges(),
         13 => vec![
             [
                 3 << 32,
@@ -229,6 +230,7 @@ pub(super) fn cases(s: u32, rng: &mut Rng, terms: &mut Vec<u64>) -> Vec<[u64; 8]
                 a[..3].copy_from_slice(&from.map(|c| c as u64));
                 a[3..6].copy_from_slice(&to.map(|c| c as u64));
             }
+            16 => a = super::feedback_quotient::random(rng),
             _ => {
                 a[0] = rng.within(0, 1 << 40) as u64;
                 a[1] = rng.within(-(1 << 34), 1 << 40) as u64;

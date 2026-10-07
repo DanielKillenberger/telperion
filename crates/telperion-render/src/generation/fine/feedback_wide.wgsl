@@ -167,7 +167,10 @@ fn xnarrow64(a: X) -> R4 {
     return R4(vec4<u32>(a[0], a[1], fill, fill), select(1u, 0u, ok));
 }
 
-// a / d toward zero, by restoring long division of the magnitudes.
+// a / d toward zero: the magnitudes' quotient by Knuth's algorithm D in
+// 16-bit digits, so every partial product and estimate fits a u32
+// (Hacker's Delight, `divmnu`). The quotient is unique, so its bits are
+// the CPU's bit loop's whatever the algorithm.
 fn xquotient(a: X, d: vec4<u32>) -> R8 {
     var q: X;
     if zero4(d) {
@@ -178,20 +181,111 @@ fn xquotient(a: X, d: vec4<u32>) -> R8 {
         m = xneg(a);
     }
     let den = abs4(d);
-    var r = vec4<u32>(0u);
-    for (var i = 255; i >= 0; i--) {
-        let k = u32(i);
-        r = shift4(r, 1u, true, false);
-        r.x |= (m[k / 32u] >> (k % 32u)) & 1u;
-        if !lt4(r, den) {
-            r = sub4(r, den);
-            q[k / 32u] |= 1u << (k % 32u);
+    // u has one digit more for the normalising shift.
+    var u: array<u32, 17>;
+    var v: array<u32, 8>;
+    for (var k = 0u; k < 16u; k++) {
+        u[k] = (m[k / 2u] >> (16u * (k % 2u))) & 0xffffu;
+    }
+    for (var k = 0u; k < 8u; k++) {
+        v[k] = (den[k / 2u] >> (16u * (k % 2u))) & 0xffffu;
+    }
+    var n = 8u;
+    while v[n - 1u] == 0u {
+        n--;
+    }
+    var len = 16u;
+    while len > 0u && u[len - 1u] == 0u {
+        len--;
+    }
+    var digits: array<u32, 16>;
+    if len >= n {
+        if n == 1u {
+            digits = short_quotient(u, len, v[0]);
+        } else {
+            digits = long_quotient(u, v, len, n);
         }
+    }
+    for (var k = 0u; k < 16u; k++) {
+        q[k / 2u] |= digits[k] << (16u * (k % 2u));
     }
     if xnegative(a) != neg4q(d) {
         q = xneg(q);
     }
     return R8(q, 0u);
+}
+
+// The `len` digits of u over the one digit `v`: each partial remainder
+// and digit together stay below 2^32.
+fn short_quotient(u: array<u32, 17>, len: u32, v: u32) -> array<u32, 16> {
+    var digits: array<u32, 16>;
+    var r = 0u;
+    for (var j = i32(len) - 1; j >= 0; j--) {
+        let top = (r << 16u) | u[j];
+        digits[j] = top / v;
+        r = top - digits[j] * v;
+    }
+    return digits;
+}
+
+// The `len` digits of u over the `n` (two or more) of v, both normalised
+// so v's top digit has its high bit set: each digit is estimated from the
+// top two of the remainder, corrected by v's second digit, then by one
+// add-back where it is still one too large.
+fn long_quotient(u_in: array<u32, 17>, v_in: array<u32, 8>, len: u32, n: u32) -> array<u32, 16> {
+    var u = u_in;
+    var v = v_in;
+    var digits: array<u32, 16>;
+    let s = countLeadingZeros(v[n - 1u]) - 16u;
+    for (var i = n - 1u; i > 0u; i--) {
+        v[i] = ((v[i] << s) | (v[i - 1u] >> (16u - s))) & 0xffffu;
+    }
+    v[0] = (v[0] << s) & 0xffffu;
+    u[len] = u[len - 1u] >> (16u - s);
+    for (var i = len - 1u; i > 0u; i--) {
+        u[i] = ((u[i] << s) | (u[i - 1u] >> (16u - s))) & 0xffffu;
+    }
+    u[0] = (u[0] << s) & 0xffffu;
+    let top = v[n - 1u];
+    let next = v[n - 2u];
+    for (var j = i32(len - n); j >= 0; j--) {
+        let lo = u32(j);
+        let head = (u[lo + n] << 16u) | u[lo + n - 1u];
+        var qhat = head / top;
+        var rhat = head - qhat * top;
+        loop {
+            if qhat < 0x10000u && qhat * next <= ((rhat << 16u) | u[lo + n - 2u]) {
+                break;
+            }
+            qhat--;
+            rhat += top;
+            if rhat >= 0x10000u {
+                break;
+            }
+        }
+        // Multiply and subtract, borrowing in i32.
+        var k = 0;
+        for (var i = 0u; i < n; i++) {
+            let p = qhat * v[i];
+            let t = i32(u[i + lo]) - k - i32(p & 0xffffu);
+            u[i + lo] = u32(t) & 0xffffu;
+            k = i32(p >> 16u) - (t >> 16u);
+        }
+        let t = i32(u[lo + n]) - k;
+        u[lo + n] = u32(t) & 0xffffu;
+        digits[lo] = qhat;
+        if t < 0 {
+            digits[lo] = qhat - 1u;
+            var c = 0u;
+            for (var i = 0u; i < n; i++) {
+                let sum = u[i + lo] + v[i] + c;
+                u[i + lo] = sum & 0xffffu;
+                c = sum >> 16u;
+            }
+            u[lo + n] = (u[lo + n] + c) & 0xffffu;
+        }
+    }
+    return digits;
 }
 
 // `mul_shr`: floor(a b / 2^n) as 128 bits.

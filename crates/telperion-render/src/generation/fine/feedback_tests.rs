@@ -6,6 +6,7 @@
 use super::super::io;
 use super::feedback_cases::{cases, join, split, Rng};
 use crate::Gpu;
+use telperion_space::fixed::feedback::wide::I256;
 use telperion_space::fixed::feedback::{
     angle, edge, lattice, power, shed, status, total::Total, vector, wide,
 };
@@ -15,7 +16,7 @@ use telperion_space::fixed::P_ONE;
 const SLOTS: usize = 24;
 const PROBE: &str = include_str!("feedback_probe.wgsl");
 
-const NAMES: [&str; 16] = [
+const NAMES: [&str; 17] = [
     "mul_shr",
     "prod_shr",
     "ratio",
@@ -32,6 +33,7 @@ const NAMES: [&str; 16] = [
     "ripe, shade, settle, tangent_ratio",
     "turned",
     "carry, dot, cross",
+    "quotient",
 ];
 
 /// The probe's WGSL: the decision contract, the feedback contract, the
@@ -41,7 +43,7 @@ pub(super) fn source() -> String {
 }
 
 /// The CPU's results for one case.
-fn expected(s: u32, a: &[u64; 8], terms: &[u64]) -> [u64; SLOTS] {
+pub(super) fn expected(s: u32, a: &[u64; 8], terms: &[u64]) -> [u64; SLOTS] {
     let mut r = [0u64; SLOTS];
     let i = |k: usize| a[k] as i64;
     let x = |k: usize| join(a[k], a[k + 1]);
@@ -162,6 +164,18 @@ fn expected(s: u32, a: &[u64; 8], terms: &[u64]) -> [u64; SLOTS] {
                 r[7 + k] = c as u64;
             }
         }
+        16 => {
+            let n = I256 {
+                hi: join(a[2], a[3]),
+                lo: join(a[0], a[1]) as u128,
+            };
+            let v = n.quotient(join(a[4], a[5]));
+            if let Ok(v) = v {
+                r[..2].copy_from_slice(&split(v.lo as i128));
+                r[2..4].copy_from_slice(&split(v.hi));
+            }
+            r[4] = status(&v);
+        }
         _ => {
             let (fall, high) = (a[5] as u32, (a[5] >> 32) as u32);
             r[0] = edge::ripe(i(0), i(1)) as u64;
@@ -174,7 +188,13 @@ fn expected(s: u32, a: &[u64; 8], terms: &[u64]) -> [u64; SLOTS] {
 }
 
 /// Selector `s` over `cases` on the GPU.
-fn run(gpu: &Gpu, pass: &io::Pass, s: u32, cases: &[[u64; 8]], terms: &[u64]) -> Vec<[u64; SLOTS]> {
+pub(super) fn run(
+    gpu: &Gpu,
+    pass: &io::Pass,
+    s: u32,
+    cases: &[[u64; 8]],
+    terms: &[u64],
+) -> Vec<[u64; SLOTS]> {
     let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
     let n = cases.len() as u32;
     let groups = n.div_ceil(64);

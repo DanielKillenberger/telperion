@@ -169,6 +169,20 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
             put32(2u, settle(a[5].x, a[6]));
             put(3u, tangent_ratio(a[5].x, a[5].y));
         }
+        case 16u: {
+            var x: X;
+            for (var k = 0u; k < 4u; k++) {
+                x[2u * k] = a[k].x;
+                x[2u * k + 1u] = a[k].y;
+            }
+            var r = xquotient(x, vec4<u32>(a[4], a[5]));
+            if r.status == 0u {
+                for (var k = 0u; k < 4u; k++) {
+                    put(k, vec2<u32>(r.v[2u * k], r.v[2u * k + 1u]));
+                }
+            }
+            put32(4u, r.status);
+        }
         default: {}
     }
 }
