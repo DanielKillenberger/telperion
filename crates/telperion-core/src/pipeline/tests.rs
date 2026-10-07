@@ -200,7 +200,7 @@ fn every_shipped_preset_builds_every_artifact_through_the_pipeline() {
             .unwrap_or_else(|e| panic!("preset {id}: skeleton: {e}"))
             .tree;
         assert!(tree.nodes.len() > 1, "preset {id}: skeleton: no wood");
-        let inputs = Inputs::of(&family, grown_envelope(&tree, family.skeleton.envelope));
+        let inputs = Inputs::of(&family, grown_envelope(&tree));
         clothe(&mut tree, &inputs).unwrap();
         let kinds: [(&str, Request); 4] = [
             (

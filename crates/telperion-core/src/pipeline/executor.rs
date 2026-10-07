@@ -33,7 +33,7 @@ pub struct Grown {
 /// Stage 2: the family read once into its stage inputs, and its skeleton.
 pub fn grow(family: &Family) -> Result<Grown> {
     let tree = super::skeleton(GrowInput::of(family))?.tree;
-    let inputs = Inputs::of(family, grown_envelope(&tree, family.skeleton.envelope));
+    let inputs = Inputs::of(family, grown_envelope(&tree));
     Ok(Grown { tree, inputs })
 }
 
@@ -43,7 +43,7 @@ pub fn grow(family: &Family) -> Result<Grown> {
 /// tree stays inside the pipeline: nothing outside it converts the engine's
 /// structure (fn-198).
 pub fn expand(tree: Tree, family: &Family) -> Result<Expansion> {
-    let inputs = Inputs::of(family, grown_envelope(&tree, family.skeleton.envelope));
+    let inputs = Inputs::of(family, grown_envelope(&tree));
     Grown { tree, inputs }.expansion()
 }
 

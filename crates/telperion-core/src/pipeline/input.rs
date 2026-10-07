@@ -16,6 +16,8 @@ use crate::{
     Result,
 };
 
+mod shoulder;
+
 /// The input of every stage past the skeleton, read off one family.
 #[derive(Debug, Clone)]
 pub(crate) struct Inputs {
@@ -47,11 +49,13 @@ impl<'f> GrowInput<'f> {
 
 /// The envelope of a grown tree (fn-198 host decision 7): its height, its
 /// widest reach off the root as a share of it, where its crown starts (the
-/// lowest node off the stem) and where the crown is widest between that and
-/// the top. The outline's shape rows (`shape`'s shoulder, irregularity and
-/// lobe scale) are the family's. A tree with no wood off the stem has its
-/// crown at its top.
-pub(crate) fn grown_envelope(tree: &Tree, shape: Envelope) -> Envelope {
+/// lowest node off the stem), where the crown is widest between that and
+/// the top, and the least shoulder whose outline holds the crown (host
+/// decision 11a). The outline is smooth: irregularity is 0, and the lobe
+/// scale, which nothing on this path reads, is the struct's until R0
+/// removes both rows. A tree with no wood off the stem has its crown at
+/// its top.
+pub(crate) fn grown_envelope(tree: &Tree) -> Envelope {
     let nodes = &tree.nodes;
     let height = nodes.iter().map(|n| n.position.y).fold(0.0, f64::max);
     let reach = |n: &crate::tree::Node| n.position.x.hypot(n.position.z);
@@ -69,12 +73,15 @@ pub(crate) fn grown_envelope(tree: &Tree, shape: Envelope) -> Envelope {
             0.0
         }
     };
+    let fullness = share(at - base, height - base);
     Envelope {
         height,
         crown_base: share(base, height),
         spread: if height > 0.0 { radius / height } else { 0.0 },
-        fullness: share(at - base, height - base),
-        ..shape
+        fullness,
+        shoulder: shoulder::contained(nodes, [base, height, radius, fullness]),
+        irregularity: 0.0,
+        ..Envelope::default()
     }
 }
 

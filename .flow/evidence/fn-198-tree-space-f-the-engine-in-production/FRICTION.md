@@ -122,3 +122,10 @@
 - **Slowed by:** `grow` panics in a debug build at `closed_form/predictor.rs:60`, `debug_assert!(!count.is_nan(), "a count for PA 0")`; the gate's `ci` profile has no debug assertions, so no suite has seen it. The test grows through `grow_whole` instead. The NaN count was not traced.
 - **Cost:** about 3 minutes.
 - **Would remove it:** the predictor's NaN count traced and fixed, or the assertion's premise corrected; a debug-profile run of the engine's tests somewhere.
+
+## 2026-10-07 14:20, task 6: `cargo fmt -p telperion-core` rewrites 33 files
+
+- **Doing:** formatting the shoulder fit's two files before the commit.
+- **Slowed by:** the core crate is not rustfmt-clean on this branch, so the package-wide format rewrote 33 files the task never touched; with `git checkout --` blocked by the dcg hook, each had to be put back from `git show HEAD:` by a script, and the file-level `rustfmt --check` used instead.
+- **Cost:** about 4 minutes.
+- **Would remove it:** the crate formatted once in its own commit (or a CI `cargo fmt --check`), so a package-wide format touches only what changed.

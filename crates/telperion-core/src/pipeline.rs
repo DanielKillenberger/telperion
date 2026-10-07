@@ -193,7 +193,7 @@ pub(crate) fn clothe(tree: &mut Tree, inputs: &Inputs) -> Result<()> {
 pub fn build(family: &Family, request: Request) -> Result<Built> {
     let started = (request.clock)();
     let mut skeleton = skeleton(GrowInput::of(family))?;
-    let inputs = Inputs::of(family, grown_envelope(&skeleton.tree, family.skeleton.envelope));
+    let inputs = Inputs::of(family, grown_envelope(&skeleton.tree));
     clothe(&mut skeleton.tree, &inputs)?;
     // The skeleton's time keeps the clothing it always held.
     let grown = (request.clock)();

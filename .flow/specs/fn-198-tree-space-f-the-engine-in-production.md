@@ -33,6 +33,7 @@ R0 needs every shipped preset as an engine species; silver birch, laurelin, telp
 ## Acceptance Criteria
 
 - **R0:** Today's grower and its stages (the scaffold's grower, the twig layer, its thickness gate, the tip shoot, girth patches, the shell-based shedding) are removed; every shipped preset builds through the engine; the tree-space examples' handed-in path is closed. [owner]
+  - With R0 (host, 2026-10-07, decisions 11a and 12a): the envelope's `irregularity` and `lobeScale` rows are removed from `Envelope` (the engine path holds irregularity at 0 and reads no lobe scale); `Node.stem` becomes a 0-1 value read by degree by its three readers (the grown envelope's crown base, `stem_radius`, `stem_apices`), the trunk ages become a 0-1 weight per age that a preset blend walks linearly, and a walk test across a blend of two presets shows no jump (decision 12's acceptance, moved here from task 6). [host]
 - **R1:** The engine inside the pipeline's stage 2 for the passed presets, as values; the twig layer, its thickness gate, the tip shoot, girth patches and the foliage cull are removed for those presets' path (`docs/pipeline.md`). [user]
 - **R2:** Growth time per passed preset within 1.5x of today's skeleton time at equal or greater fine wood, against the pinned baseline (BASELINE.md); full build no slower than today; memory reported. [user]
 - **R3:** `cargo test --profile ci --workspace --no-fail-fast` and `npm test` green; the Codex review passes; every shipped artifact within its CI size budget. [AGENTS.md]
