@@ -35,7 +35,7 @@ pub(super) fn reparent(origin: &mut Origin, f: impl Fn(usize) -> usize) {
 impl<'a> Executor<'a> {
     /// Hands every fine root the coarse grower made since axis
     /// `first_new` to a new item.
-    pub(super) fn hand_over(&mut self, first_new: usize) {
+    pub(super) fn hand_over(&mut self, first_new: usize, next: u32) {
         let to = self.destinations(first_new);
         if to.iter().all(|t| matches!(t, To::Coarse(_))) {
             return;
@@ -145,7 +145,8 @@ impl<'a> Executor<'a> {
             self.items.push(Item {
                 at: root,
                 g,
-                dead: false,
+                next,
+                died: None,
             });
         }
     }

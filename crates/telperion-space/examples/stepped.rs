@@ -27,7 +27,7 @@ fn main() {
             .collect()
     };
     let (ages, seeds, cuts) = (list(0, "40,80"), list(1, "1,7"), list(3, "256,1024,4096"));
-    let only = arg(2, "oak,beech,spruce");
+    let only = arg(2, "oak,unlitoak,beech,spruce");
     let full = arg(4, "") == "full";
     let orders = [
         PartitionOrder::Forward,
@@ -48,8 +48,16 @@ fn main() {
             }
         }
     }
-    let all: [(&str, fn() -> Species); 3] = [("oak", oak), ("beech", beech), ("spruce", spruce)];
-    for (name, make) in all.into_iter().filter(|s| only.contains(s.0)) {
+    // The unlit oak's roots run ahead between synchronisation points;
+    // the lit oak's step every cycle (fn-211 task 12).
+    let all: [(&str, fn() -> Species, Light); 4] = [
+        ("oak", oak, LIT),
+        ("unlit oak", oak, Light::NEUTRAL),
+        ("beech", beech, LIT),
+        ("spruce", spruce, LIT),
+    ];
+    let wanted = |name: &str| only.split(',').any(|o| o == name.replace(' ', ""));
+    for (name, make, light) in all.into_iter().filter(|s| wanted(s.0)) {
         let species = make();
         for &age in &ages {
             let expected = Expected::new(&species, age as u32, 0);
@@ -58,7 +66,7 @@ fn main() {
                     age: age as u32,
                     seed: seed as u64,
                     budget: 20_000_000,
-                    light: LIT,
+                    light,
                 };
                 let started = std::time::Instant::now();
                 let whole = grow_partitioned(&species, request, &expected, &[]).expect("grows");

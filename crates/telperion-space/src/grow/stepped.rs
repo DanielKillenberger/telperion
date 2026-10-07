@@ -147,9 +147,18 @@ fn run(
 pub(super) struct Item<'a> {
     pub at: usize,
     pub g: Grower<'a>,
-    /// Whether nothing in it lives or sleeps on: it grows, wakes and
-    /// lays nothing more, so the cycles pass it by (task 12).
-    pub dead: bool,
+    /// The next cycle it steps (`u32::MAX` once nothing in it lives or
+    /// sleeps on), and the cycle it died, if it has (task 12).
+    pub next: u32,
+    pub died: Option<u32>,
+}
+
+/// What an item's run gave: its growth digest's part each cycle, and the
+/// cycle it died in, if it did.
+#[derive(Default)]
+struct Ran {
+    parts: Vec<Digest>,
+    died: Option<u32>,
 }
 
 pub(super) struct Executor<'a> {
@@ -163,8 +172,11 @@ pub(super) struct Executor<'a> {
     pub complete: bool,
     pub states: Vec<[u64; 4]>,
     pub lattices: Vec<u64>,
-    /// The dead items' part of the growth digest, which no cycle changes.
+    /// The dead items' part of the growth digest, which no cycle changes;
+    /// the parts added at each cycle; and each cycle's from the items' runs.
     pub buried: Digest,
+    pub burials: Vec<Digest>,
+    pub grown_parts: Vec<Digest>,
 }
 
 impl<'a> Executor<'a> {
@@ -188,6 +200,8 @@ impl<'a> Executor<'a> {
             states: Vec::new(),
             lattices: Vec::new(),
             buried: Digest::default(),
+            burials: Vec::new(),
+            grown_parts: Vec::new(),
         }
     }
 
@@ -215,25 +229,41 @@ impl<'a> Executor<'a> {
         let sketching = self.coarse.sketch.is_some() && cycle < self.request.age;
         // The items' layout on the device where one is given.
         let laying = device.is_some();
-        let step = |g: &mut Grower, advanced: &[usize], lays: bool| -> Result<()> {
+        let step = |g: &mut Grower, c: u32, advanced: &[usize], lays: bool| -> Result<()> {
             let live = std::mem::take(&mut g.live);
-            g.grow_live(live, cycle, &mut |_| {})?;
-            g.wake(cycle)?;
+            g.grow_live(live, c, &mut |_| {})?;
+            g.wake(c)?;
             if sketching && lays {
-                g.sketch(cycle, advanced)?;
+                g.sketch(c, advanced)?;
             }
             Ok(())
         };
-        step(&mut self.coarse, &advanced, true)?;
+        step(&mut self.coarse, cycle, &advanced, true)?;
+        // Each item due runs ahead to its next synchronisation point.
+        let reach = self.reach(cycle);
         let none = vec![(); self.items.len()];
-        let done = self.each(none, &|item, ()| match item.dead {
-            true => Ok(()),
-            false => {
-                let advanced = living(&item.g);
-                step(&mut item.g, &advanced, !laying)
+        let ran = self.each(none, &|item, ()| -> Result<Ran> {
+            let mut ran = Ran::default();
+            if item.next != cycle {
+                return Ok(ran);
             }
+            for c in cycle..=reach {
+                let advanced = living(&item.g);
+                step(&mut item.g, c, &advanced, !laying)?;
+                let mut part = item.g.digest(2);
+                part.counts[0] -= 2;
+                ran.parts.push(part);
+                item.next = c + 1;
+                if item.g.idle(c + 1) {
+                    (item.next, item.died, ran.died) = (u32::MAX, Some(c), Some(c));
+                    break;
+                }
+            }
+            Ok(ran)
         });
-        done.into_iter().collect::<Result<Vec<()>>>()?;
+        for r in ran {
+            self.record(cycle, r?);
+        }
         if let (true, Some(device)) = (sketching, again(&mut device)) {
             self.sketch_on(cycle, device, advanced_items)?;
         }
@@ -245,7 +275,7 @@ impl<'a> Executor<'a> {
         }
         self.mark(cycle, 2);
         if sketching || self.coarse.sketch.is_none() {
-            self.hand_over(first_new);
+            self.hand_over(first_new, cycle + 1);
         }
         if sketching {
             if cycle % RELAY_EVERY == 0 {
@@ -254,27 +284,42 @@ impl<'a> Executor<'a> {
             self.shade(device);
             self.mark(cycle, 3);
         }
-        self.bury(cycle);
+        // An item that died this cycle shades no more.
+        for item in self.items.iter_mut().filter(|i| i.died == Some(cycle)) {
+            item.g.leaves.clear();
+        }
         Ok(())
     }
 
-    /// Marks each item that lives and sleeps no more after `cycle` dead,
-    /// its growth digest's part kept, its last leaves let go.
-    fn bury(&mut self, cycle: u32) {
-        let after = cycle as usize + 1;
-        for item in self.items.iter_mut().filter(|i| !i.dead) {
-            let g = &mut item.g;
-            let sleeps = g
-                .asleep
-                .get(after..)
-                .is_some_and(|a| a.iter().any(|s| !s.is_empty()));
-            if g.live.is_empty() && !sleeps {
-                item.dead = true;
-                g.leaves.clear();
-                let mut part = g.digest(2);
-                part.counts[0] -= 2;
-                self.buried = self.buried.and(part);
-            }
+    /// The last cycle an item stepping in `cycle` runs to before anything
+    /// crosses between it and the structure above (host decision on task
+    /// 12, PHASES.md): its light, layout and re-lay at a cycle's end, and
+    /// the balance or allotment reading its wood at a cycle's start.
+    fn reach(&self, cycle: u32) -> u32 {
+        let c = &self.coarse;
+        let before = c.balances() || c.allots();
+        let after = |k: u32| c.sketch.is_some() && k < self.request.age;
+        let mut last = cycle;
+        while last < self.request.age && !after(last) && !before {
+            last += 1;
+        }
+        last
+    }
+
+    /// An item's run from `cycle` kept: its growth digest's part each
+    /// cycle it ran, and, where it died, that part for every cycle after.
+    fn record(&mut self, cycle: u32, ran: Ran) {
+        let age = self.request.age as usize;
+        if self.grown_parts.len() < age + 2 {
+            self.grown_parts.resize(age + 2, Digest::default());
+            self.burials.resize(age + 2, Digest::default());
+        }
+        for (k, part) in ran.parts.iter().enumerate() {
+            let c = cycle as usize + k;
+            self.grown_parts[c] = self.grown_parts[c].and(*part);
+        }
+        if let (Some(d), Some(last)) = (ran.died, ran.parts.last()) {
+            self.burials[d as usize + 1] = self.burials[d as usize + 1].and(*last);
         }
     }
 
@@ -419,15 +464,21 @@ impl<'a> Executor<'a> {
     /// counted once, as the coarse grower's placeholder.
     fn mark(&mut self, cycle: u32, k: usize) {
         let mut d = self.coarse.digest(k);
-        if k == 2 {
-            d = d.and(self.buried);
-        }
-        for item in self.items.iter().filter(|i| !i.dead) {
-            let mut part = item.g.digest(k);
-            part.counts[0] -= 2;
-            d = d.and(part);
-        }
         let c = cycle as usize;
+        if k == 2 {
+            // Each item's growth is counted as it ran, ahead or not.
+            if let Some(burial) = self.burials.get(c) {
+                self.buried = self.buried.and(*burial);
+            }
+            let ran = self.grown_parts.get(c).copied().unwrap_or_default();
+            d = d.and(self.buried).and(ran);
+        } else {
+            for item in self.items.iter().filter(|i| i.next != u32::MAX) {
+                let mut part = item.g.digest(k);
+                part.counts[0] -= 2;
+                d = d.and(part);
+            }
+        }
         if self.phases.len() <= c {
             self.phases.resize(c + 1, [0; 4]);
         }
