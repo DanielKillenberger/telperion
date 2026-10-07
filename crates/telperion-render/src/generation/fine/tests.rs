@@ -18,7 +18,7 @@ const NAMES: [&str; 16] = [
     "ln_ratio, exp",
     "mul, presence",
     "survival_q, scaled",
-    "abortion_q",
+    "abortion_q, lived_q",
     "moved_q",
     "past_q, above_q",
     "wake_q, kept",
@@ -109,6 +109,14 @@ fn cases(s: u32, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
                     a[2] = rng.within(-4 * Q, 4 * Q) as u64;
                     a[3] = rng.within(0, 4096 << 20) as u64;
                     a[4] = rng.within(0, 1 << 20) as u64;
+                    // D5's lived time (fn-199 R1), at the edges too.
+                    a[5] = match rng.next() % 8 {
+                        0 => 0,
+                        1 => fx::INF as u64,
+                        _ => rng.log(60 * Q) as u64,
+                    };
+                    a[6] = rng.within(0, (1 << 20) + 1) as u64;
+                    a[7] = rng.draw();
                 }
                 7 => {
                     let stake = rng.within(0, 1 << 20) as f64 / f64::from(1 << 20);
@@ -244,7 +252,7 @@ fn expected(s: u32, a: &[u64; 8], presences: &[u64]) -> [u64; 2] {
         ],
         6 => [
             decide::abortion_q(i(0), (a[1] != 0).then(|| i(2)), a[3], a[4]),
-            0,
+            decide::lived_q(i(5), a[6], a[7]),
         ],
         7 => {
             let window = (i(5), i(6), i(7));

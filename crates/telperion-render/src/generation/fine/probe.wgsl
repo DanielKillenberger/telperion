@@ -79,6 +79,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         }
         case 6u: {
             r0 = abortion_q(a[0], a[1].x != 0u, a[2], a[3], a[4]);
+            r1 = lived_q(a[5], a[6], a[7]);
         }
         case 7u: {
             r0 = moved_q(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);

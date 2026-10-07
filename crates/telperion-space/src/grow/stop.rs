@@ -7,6 +7,7 @@ use super::{stop_stake, Apex};
 use crate::error::Result;
 use crate::fixed::{self, presence};
 use crate::lineage::{threshold, Key, MOVE, RELAY};
+use crate::presence::Unit;
 use crate::presence::SPAN;
 use crate::species::PaState;
 use crate::structure::Origin;
@@ -81,6 +82,42 @@ impl Shoot<'_, '_> {
         Ok(())
     }
 
+    /// The apex's unit keyed `unit` failed `stopped` log-odds past its
+    /// bound, having lived `lived` of its cycle from `gone`, and its relay
+    /// draw makes one, of presence `relayed` (fn-199 R1, host 2026-10-07):
+    /// the unit grows the share it lived, at the relay's presence, and
+    /// the relay grows the rest of the cycle, whole, so a draw at the
+    /// bound grows what an apex that all but failed does.
+    pub(super) fn fail(
+        &mut self,
+        mut apex: Apex,
+        (cycle, gone): (u32, f64),
+        (lived, relayed, stopped): (f64, u64, i64),
+        (pa, unit): (usize, Key),
+    ) -> Result<()> {
+        let survive = presence::times(relayed, presence::q(self.kept(apex.axis)));
+        let (size, light, reads) = (self.size(apex.axis), self.light(apex.axis), self.reads);
+        let draws = self.draws_mut(apex.axis);
+        draws.units.push(Unit {
+            survive: fixed::real(survive),
+            persist: 1.0,
+            share: lived,
+        });
+        if reads.sketching {
+            draws
+                .shade
+                .push([size, if reads.lights { light } else { 1.0 }]);
+        }
+        draws.failed = true;
+        self.grow_unit(apex, pa, unit, cycle)?;
+        apex.spent += lived;
+        self.axis_mut(apex.axis).apex_end = Some(cycle);
+        *self.units_mut(apex.axis) = apex.spent;
+        let blend = fixed::real(presence::of(stopped, fixed::q32(SPAN)));
+        let used = (cycle, gone + lived);
+        self.relay_bud(apex, used, apex.spent, [1.0; 2], (blend, Stop::Failed))
+    }
+
     /// The relay of the apex that stopped having spent `spent` of its PA,
     /// made by draws of presences `made` and `blend` of the way from its
     /// axis's continuation to its own bud. It carries on the axis's
@@ -100,9 +137,11 @@ impl Shoot<'_, '_> {
         let draws = self.draws(apex.axis);
         let grown = draws.aged + draws.grown() + spent - apex.spent;
         let ended_relays = draws.ended_relays + u32::from(why == Stop::Ended);
-        // The relay of an age that ended, or of a unit that failed, grows
-        // a whole first unit: neither is the apex carried on.
-        let ended = why != Stop::Aborted;
+        // The relay of an age that ended grows a whole first unit: it is
+        // not the apex carried on. A failed unit's relay carries the
+        // apex's time on from the moment it failed (fn-199 R1), and an
+        // aborted one's grows what the apex would have.
+        let ended = why == Stop::Ended;
         let origin = Origin::Relay {
             parent: apex.axis,
             node: 0,
@@ -114,6 +153,7 @@ impl Shoot<'_, '_> {
         line.axis.blend = blend;
         let draws = &mut line.draws;
         (draws.aged, draws.ended, draws.ended_relays) = (grown, ended, ended_relays);
+        draws.rest = why == Stop::Failed;
         self.carry_on(cycle, used)
     }
 
@@ -162,17 +202,12 @@ impl Shoot<'_, '_> {
         let d = unit.child(RELAY).draw();
         if d.under(relay) {
             let at = (axis.pa, cycle, Some(used));
-            // A stop by abortion or a move is whole: the apex that all
-            // but stopped grew its relay as well (host decision 11). A
-            // failed unit's relay misses that unit, so it grows in from
-            // nothing past the bound. Each a Q32 presence (host decision 8).
-            let stop = if why == Stop::Failed {
-                windows.presence_q(stopped, at, stop_stake(relay))
-            } else {
-                presence::ONE
-            };
+            // A stop is whole: the apex that all but stopped grew its relay
+            // as well (host decision 11), and a failed unit's relay is
+            // grown by `fail`, never here. A Q32 presence (host decision 8).
+            debug_assert!(why != Stop::Failed, "a failed unit's relay grows in `fail`");
             let made = presence::of_under(threshold(relay), d.0, windows.window_q(at, 1.0));
-            let made = [stop, made].map(fixed::real);
+            let made = [presence::ONE, made].map(fixed::real);
             // The relay moves over the widest window: its move is a growth
             // unit's length whatever wood it carries.
             let blend = fixed::real(presence::of(stopped, fixed::q32(SPAN)));

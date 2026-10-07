@@ -29,6 +29,32 @@ pub fn survival_q(l: i64, share: u64) -> u64 {
     threshold(prob(scaled(l, share)))
 }
 
+/// D5 extended (fn-199 R1, host 2026-10-07): the share of its cycle an
+/// apex lived whose unit of `share` failed on draw `d` under survival `p`
+/// a cycle, in ticks: `v^t = u` gives `t = log2 u / log2 p`, at most the
+/// unit's share, so a draw at the survival's bound lives it whole.
+pub(crate) fn lived(p: f64, share: f64, d: Draw) -> u64 {
+    lived_q(neg_log2(q62(p)), ticks(share.min(1.0)), d.0)
+}
+
+/// D5's lived time, integer form: a survival of `-log2` chance `l` a
+/// cycle (Q32), a unit of `share` ticks, the 53-bit draw `d`; the ticks
+/// `-log2(d / 2^53) 2^20 / l`, floored, at most `share`.
+pub fn lived_q(l: i64, share: u64, d: u64) -> u64 {
+    if l <= 0 {
+        return share;
+    }
+    if l >= INF {
+        return 0;
+    }
+    let u = neg_log2(d << 9);
+    if u >= l {
+        return share.min(1 << 20);
+    }
+    let t = ((u as u128) << 20) / l as u128;
+    (t as u64).min(share)
+}
+
 /// D6: the chance an apex aborts after a unit that ends `grown` cycles of
 /// its axis's growth, exposed `exposure` of a cycle, as a draw's
 /// threshold: `1 - (1 - a)^(grown^rise exposure)`.

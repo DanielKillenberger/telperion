@@ -99,7 +99,7 @@ fn relay_bud(apex: Apex, cycle: u32, used: vec2<u32>, spent: vec2<u32>, why: u32
     made_axis(r, blend);
     ask(r, asks[0], asks[1]);
     wr64(r, AGED, grown);
-    wr(r, KIND, RELAYED | select(0u, IS_ENDED, why != ABORTED));
+    wr(r, KIND, RELAYED | select(0u, IS_ENDED, why == ENDS) | select(0u, IS_REST, why == FAILED));
     wr(r, ENDED_RELAYS, ended_relays);
     push_next(r, units);
     return carry_on(cycle, used);
@@ -183,6 +183,33 @@ fn relay_after(f: After, cycle: u32) -> Next {
     return none();
 }
 
+// The apex's unit keyed `keys.y` failed on draw `dv` under `survives`
+// and its relay draw makes one (`fail`, fn-199 R1): the unit grows the
+// share of its cycle the apex lived, at the relay's presence, and the
+// relay grows the rest of the cycle, whole.
+fn fail(apex_in: Apex, cycle: u32, s1: Step, gone: u32, keys: array<vec2<u32>, 2>, dv: vec2<u32>, survives: vec2<u32>) -> Next {
+    var apex = apex_in;
+    let a = apex.axis;
+    let pa = rd(a, PA);
+    let lived = lived_q(row(pa, 2u), unsigned_ticks(s1.share), dv);
+    let u = push_unit(a, rd(a, NUNITS));
+    unit_asks(u, cycle, lived.x, keys[0], survives);
+    unit_fails(u, 2u, s1.used.x);
+    unit_grows(u, a, true);
+    wr(a, NUNITS, rd(a, NUNITS) + 1u);
+    wr64(a, SHARES, add64(rd64(a, SHARES), lived));
+    grow_unit(a, pa, keys[1], cycle, lived.x);
+    unit_grows(u, a, false);
+    apex.spent = add64(apex.spent, lived);
+    wr(a, APEX_END, cycle + 1u);
+    wr(a, KIND, rd(a, KIND) | IS_FAILED);
+    wr64(a, UNITS, apex.spent);
+    let blend = clamp(above_t(dv, survives) / SPAN_F, 0.0, 1.0);
+    let used = add64(w(gone, 0u), lived);
+    let asks = array<vec4<u32>, 2>(vec4<u32>(RELAY_ASKS, FAILED, keys[0].x, keys[0].y), vec4<u32>(cycle, used.x, 0u, 0u));
+    return relay_bud(apex, cycle, used, apex.spent, FAILED, blend, asks);
+}
+
 // One living apex's growth unit in `cycle` (`advance`).
 fn advance(apex_in: Apex, cycle: u32) -> Next {
     var apex = apex_in;
@@ -190,13 +217,17 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
     let pa = rd(a, PA);
     let life = row(pa, 0u);
     let lineage = rd64(a, LINEAGE);
-    let unit = child(lineage, w(cycle, 0u));
+    let first = rd(a, NUNITS) == 0u;
+    var unit = child(lineage, w(cycle, 0u));
+    // A failed unit's relay's first unit is keyed apart (fn-199 R1).
+    if first && (rd(a, KIND) & IS_REST) != 0u {
+        unit = child(unit, FAILED_KEY);
+    }
     let n = rd(a, ENDED_RELAYS);
     var decide = unit;
     if n != 0u {
         decide = child(child(unit, ENDED), w(n, 0u));
     }
-    let first = rd(a, NUNITS) == 0u;
     let relay = (rd(a, KIND) & IS_ENDED) != 0u;
     let gone = select(0u, rd(a, SLEEP), first);
     let s1 = step(apex.spent, gone, first && relay, life, 1u);
@@ -206,6 +237,12 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
         survives = survival_q(row(pa, 2u), unsigned_ticks(s1.share));
     }
     let dv = draw(child(decide, w(VIABILITY, 0u)));
+    // A failure's relay, where its draw makes one (D9).
+    let tf = row(pa, 6u + FAILED);
+    let relays = !is_zero(tf) && lt64(draw(child(decide, RELAY)), tf);
+    if !lt64(dv, survives) && relays {
+        return fail(apex, cycle, s1, gone, array<vec2<u32>, 2>(decide, unit), dv, survives);
+    }
     if !lt64(dv, survives) {
         wr(a, APEX_END, cycle);
         wr(a, KIND, rd(a, KIND) | IS_FAILED);
@@ -216,6 +253,9 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
     // Its survival's presence, Q32, at the chain's end (`assign.wgsl`).
     let u = push_unit(a, rd(a, NUNITS));
     unit_asks(u, cycle, unsigned_ticks(s1.share).x, decide, survives);
+    if relays {
+        unit_fails(u, 1u, s1.used.x);
+    }
     unit_grows(u, a, true);
     wr(a, NUNITS, rd(a, NUNITS) + 1u);
     wr64(a, SHARES, add64(rd64(a, SHARES), s1.share));

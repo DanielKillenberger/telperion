@@ -277,6 +277,22 @@ fn lead_q(low: vec2<u32>, high: vec2<u32>, d: vec2<u32>, given: vec4<u32>, known
 }
 
 // `a b / 2^32`, unsigned, floored: a product of presences.
+// D5's lived time (fn-199 R1): `-log2(d / 2^53) 2^20 / l` ticks, floored,
+// at most `share`.
+fn lived_q(l: vec2<u32>, share: vec2<u32>, d: vec2<u32>) -> vec2<u32> {
+    if !slt64(vec2<u32>(0u), l) {
+        return share;
+    }
+    if is_inf(l) {
+        return vec2<u32>(0u);
+    }
+    let u = neg_log2(shl64(d, 9u));
+    if !slt64(u, l) {
+        return min64(share, w(0x100000u, 0u));
+    }
+    return min64(fraction(u, l, 20u), share);
+}
+
 fn times_q(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
     return shr128(mul128(a, b), 32u);
 }

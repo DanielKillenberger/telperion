@@ -55,6 +55,7 @@ const MOVE: u32 = 2u;
 const RELAY = vec2<u32>(0xfffffffdu, 0xffffffffu);
 const ENDED = vec2<u32>(0xfffffff8u, 0xffffffffu);
 const END = vec2<u32>(0xfffffff7u, 0xffffffffu);
+const FAILED_KEY = vec2<u32>(0xfffffff6u, 0xffffffffu);
 const CONTINUATION = vec2<u32>(0xffffffffu, 0xffffffffu);
 
 // How an axis stands on its parent.
@@ -104,6 +105,8 @@ const IS_ENDED: u32 = 0x10000u;
 const IS_FAILED: u32 = 0x20000u;
 const HAS_OUTLIVED: u32 = 0x40000u;
 const IS_WOKEN: u32 = 0x80000u;
+// A failed unit's relay, its first unit the rest of that cycle (fn-199 R1).
+const IS_REST: u32 = 0x200000u;
 
 var<private> axis_base: u32;
 var<private> phyt_base: u32;

@@ -32,6 +32,9 @@ pub(crate) const DORMANT: u64 = u64::MAX - 6;
 pub(crate) const ENDED: u64 = u64::MAX - 7;
 /// An age's end: whether it moves on, and its relay if it does not.
 pub(crate) const END: u64 = u64::MAX - 8;
+/// The decisions of a failed unit's relay's first unit, which grows the
+/// rest of the cycle the unit failed in (fn-199 R1).
+pub(crate) const FAILED: u64 = u64::MAX - 9;
 pub(crate) const CONTINUATION: u64 = u64::MAX;
 
 /// A hashed path from the root.

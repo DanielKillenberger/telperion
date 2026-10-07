@@ -5,7 +5,7 @@ use super::stop::Stop;
 use super::{stop_stake, Apex};
 use crate::error::Result;
 use crate::fixed::{self, presence};
-use crate::lineage::{Key, ABORTION, END, ENDED, VIABILITY};
+use crate::lineage::{Key, ABORTION, END, ENDED, FAILED, RELAY, VIABILITY};
 use crate::presence::Unit;
 use crate::schedule::Carried;
 use crate::transcendental::Transcendental;
@@ -21,6 +21,16 @@ impl Shoot<'_, '_> {
         // a lifespan's fraction makes or unmakes renumbers none after it
         // (host decision 7).
         let unit = Key(self.axis(apex.axis).lineage).child(u64::from(cycle));
+        // A failed unit's relay grows the rest of that unit's cycle, its
+        // first unit keyed apart from the failed one, its nodes and its
+        // decisions (fn-199 R1); its later units draw what the apex's
+        // would have.
+        let first = self.draws(apex.axis).units.is_empty();
+        let unit = if first && self.draws(apex.axis).rest {
+            unit.child(FAILED)
+        } else {
+            unit
+        };
         // Its stop decisions are drawn apart for each relay of an age that
         // ended, the first of which may grow in the cycle its axis stopped
         // in: apart from that axis's, and the same whether the age ended
@@ -59,6 +69,23 @@ impl Shoot<'_, '_> {
         // real survival sizes the unit's presence.
         let survives = fixed::decide::survival(viability, share);
         let d = decide.child(VIABILITY).draw();
+        // A failure's relay, where its draw makes one (D9's integer test),
+        // and its presence over the unit's cycle (host decision 8).
+        let relay = state.relay_failed;
+        let relays = relay > 0.0 && decide.child(RELAY).draw().under(relay);
+        let relayed = || self.relayed(relay, decide, (pa, cycle, Some(step.used)));
+        if d.0 >= survives && relays {
+            let relayed = relayed();
+            let lived = fixed::real(fixed::decide::lived(viability, share, d) << 12);
+            let stopped = presence::over(survives, d.0);
+            let pa_unit = (pa, unit);
+            return self.fail(
+                apex,
+                (cycle, carried.gone),
+                (lived, relayed, stopped),
+                pa_unit,
+            );
+        }
         if d.0 >= survives {
             self.axis_mut(apex.axis).apex_end = Some(cycle - 1);
             self.draws_mut(apex.axis).failed = true;
@@ -80,6 +107,15 @@ impl Shoot<'_, '_> {
         let stake = stop_stake(state.relay_failed);
         let window = self.windows().window_q((pa, cycle, None), stake);
         let survive = presence::of_under(survives, d.0, window);
+        // An apex that all but failed carries on as itself and as the
+        // relay it would have had, as one that all but aborted does (host
+        // decision 11; fn-199 R1): the relay's share is whole at the bound.
+        let survive = if relays {
+            let relayed = relayed();
+            relayed + presence::times(presence::ONE - relayed, survive)
+        } else {
+            survive
+        };
         let survive = presence::times(survive, presence::q(self.kept(apex.axis)));
         let survive = fixed::real(survive);
         let (size, reads) = (self.size(apex.axis), self.reads);

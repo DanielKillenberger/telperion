@@ -146,12 +146,6 @@ impl Windows {
         presence::window(wood, window)
     }
 
-    /// The presence, Q32, of a draw `lead` log-odds (Q32) past its bound
-    /// deciding `stake` of the wood `window_q` names.
-    pub fn presence_q(&self, lead: i64, at: (usize, u32, Option<f64>), stake: f64) -> u64 {
-        crate::fixed::presence::of(lead, self.window_q(at, stake))
-    }
-
     /// The presence of a draw `lead` log-odds past its bound that decides
     /// `decided` of the `wood` share it would carry: its window is that
     /// share of the whole window, floor included, so a draw that decides
@@ -189,6 +183,9 @@ pub(crate) struct Draws {
     /// A relay of an age that ended or of a unit that failed
     /// (`schedule.rs`).
     pub ended: bool,
+    /// A failed unit's relay, whose first unit grows the rest of the cycle
+    /// the unit failed in, drawn apart from it (fn-199 R1).
+    pub rest: bool,
     /// The share of the cycle its age ended at, where it ended there and
     /// stopped: a sleeping bud waking in that cycle wakes on it.
     pub outlived: Option<f64>,

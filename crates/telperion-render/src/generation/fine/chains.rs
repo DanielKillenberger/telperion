@@ -50,7 +50,7 @@ impl Caps {
 /// A sleeping bud's and a woken bud's words (`chain.wgsl`).
 const SW: u32 = 15;
 const QW: u32 = 21;
-const UW: u32 = 24;
+const UW: u32 = 28;
 
 /// The unit tables, then each PA's row (flags, lived, successor, words at)
 /// and its words (`chain.wgsl`); the rows' offset in the table.
