@@ -141,7 +141,8 @@ fn aside(nodes: &mut [Node], from: &[u32]) {
         .iter()
         .all(|&n| (nodes[n as usize].position - joint).length() < carrier);
     let thickest = nodes[first as usize].radius;
-    if inside && thickest > FORK_FROM * carrier {
+    let scaled = inside && thickest > FORK_FROM * carrier;
+    if scaled {
         let scale = FORK_FROM * carrier / thickest;
         for &n in from.iter().filter(|&&n| n >= first) {
             nodes[n as usize].radius *= scale;
@@ -153,8 +154,15 @@ fn aside(nodes: &mut [Node], from: &[u32]) {
     };
     head.start_radius = head.radius;
     // As thick as the stem it leaves, it parts as a fork does, with no
-    // socket flange.
-    head.codominant = codominance(head.radius, carrier);
+    // socket flange. One drawn down to `FORK_FROM` stands where a fork's
+    // weight begins, none, decided by the branch taken and never by the
+    // radius it rounds to (fn-212 host decision, 2026-10-07: the
+    // executors round it differently).
+    head.codominant = if scaled {
+        None
+    } else {
+        codominance(head.radius, carrier)
+    };
 }
 
 /// A lateral nearly as thick as the wood it leaves parts from it as a fork
@@ -194,6 +202,7 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
     let mut nodes = vec![Node::root()];
     // Whether each node is a fine root's.
     let mut in_root = vec![false];
+    let mut frames = vec![[0.0f32; 6]];
     // Each fine root's axis's root, by its place in `attachments`.
     let mut of_root: Vec<Option<usize>> = vec![None; structure.axes.len()];
     // The node each axis ends on, for what continues it.
@@ -319,6 +328,8 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
                 }
             }
             in_root.push(grown);
+            let (h, s) = (up(p.heading), up(p.side));
+            frames.push([h.x, h.y, h.z, s.x, s.y, s.z].map(|v| v as f32));
             made = true;
             drawn[i].push(parent);
             nodes.push(node);
@@ -354,6 +365,7 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
         crossover,
         seams,
         attachments,
+        frames,
         ..Tree::default()
     }
 }

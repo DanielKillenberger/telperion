@@ -57,7 +57,7 @@ use rings::Swept;
 #[cfg(feature = "geometry")]
 use {
     crate::{math::Transcendental, tree::Tree},
-    frames::frames,
+    frames::{frames, seed},
     paths::paths,
     samples::sample_path,
 };

@@ -44,12 +44,6 @@ pub(super) struct Curved {
     /// Matched runs whose points leave the screen: they part from the
     /// reference's at a node.
     pub parted: usize,
-    /// Runs whose frame's seed (`perpendicular` of the first tangent)
-    /// chose another axis on the device than on the CPU: the two smallest
-    /// of the tangent's components nearly equal, so the executors' few
-    /// micrometres apart choose differently; and the widest turn of their
-    /// frames (rad), left out of `turn`.
-    pub seeded: (usize, f64),
     pub ms: f64,
 }
 
@@ -65,17 +59,6 @@ fn v(w: &[u32]) -> Vec3 {
 
 fn angle(a: Vec3, b: Vec3) -> f64 {
     a.dot(b).clamp(-1.0, 1.0).acos()
-}
-
-/// The axis `Vec3::perpendicular` crosses `t` with: its smallest
-/// component's, the first of equals.
-fn axis(t: Vec3) -> usize {
-    let a = [t.x.abs(), t.y.abs(), t.z.abs()];
-    match (a[0] <= a[1] && a[0] <= a[2], a[1] <= a[2]) {
-        (true, _) => 0,
-        (false, true) => 1,
-        (false, false) => 2,
-    }
 }
 
 /// The reference's runs, by the cell of their first node (their second
@@ -159,8 +142,6 @@ fn compared(gpu: &Gpu, curve: &Curve, s: &Swept, fine_runs: usize) -> Curved {
             out.parted += 1;
             continue;
         }
-        let seeded = axis(theirs[1].centre - theirs[0].centre) != axis(v(point(1)) - v(point(0)));
-        out.seeded.0 += usize::from(seeded);
         for (i, c) in theirs.iter().enumerate() {
             let p = point(i as u32);
             let f = |j: usize| f64::from(f32::from_bits(p[j]));
@@ -170,11 +151,7 @@ fn compared(gpu: &Gpu, curve: &Curve, s: &Swept, fine_runs: usize) -> Curved {
             out.radius = out.radius.max((f(3) - c.radius).abs() / c.radius.max(1e-9));
             out.along = out.along.max((f(4) - c.along).abs());
             let turn = angle(v(&p[5..]), c.normal).max(angle(v(&p[8..]), c.binormal));
-            if seeded {
-                out.seeded.1 = out.seeded.1.max(turn);
-            } else {
-                out.turn = out.turn.max(turn);
-            }
+            out.turn = out.turn.max(turn);
         }
         let theirs = curve.clusters[of_run[k].0..][..of_run[k].1].iter();
         let mine = (0..(count - 1).div_ceil(31) as usize)

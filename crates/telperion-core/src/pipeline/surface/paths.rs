@@ -11,6 +11,9 @@ pub(super) struct Paths {
     /// Every node above the root a codominant sibling leaves: the run through
     /// it carries on into the widest wood that is not one, the fork's primary.
     pub forks: Vec<bool>,
+    /// Whether each node is a fine root's wood: a seam, or borne by one
+    /// (fn-212 D4, D5).
+    pub fine: Vec<bool>,
 }
 /// The tree's runs: each carries on into the widest child that is not a
 /// codominant sibling, never into a fine root's first node, which starts a
@@ -25,6 +28,7 @@ pub(super) fn paths(tree: &Tree) -> Result<Paths> {
         )?,
         runs: reserved(n)?,
         forks: filled(n, false)?,
+        fine: filled(if tree.seams.is_empty() { 0 } else { n }, false)?,
     };
     if n < 2 {
         return Ok(result);
@@ -38,6 +42,12 @@ pub(super) fn paths(tree: &Tree) -> Result<Paths> {
     let mut seam = filled(n, false)?;
     for &i in &tree.seams {
         seam[i as usize] = true;
+    }
+    if !result.fine.is_empty() {
+        for i in 1..n {
+            let p = nodes[i].parent.unwrap() as usize;
+            result.fine[i] = seam[i] || result.fine[p];
+        }
     }
     for i in 1..n {
         let at = stands[nodes[i].parent.unwrap() as usize];

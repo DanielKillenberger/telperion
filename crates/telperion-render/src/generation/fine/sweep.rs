@@ -10,7 +10,7 @@ use crate::Gpu;
 use telperion_core::surface::SurfaceParams;
 
 const SWEEP: &str = include_str!("sweep.wgsl");
-const NW: u64 = 15;
+const NW: u64 = 21;
 const LW: u64 = 12;
 /// A run's place in the table, a point's and a cluster's words.
 pub(super) const TW: usize = 4;

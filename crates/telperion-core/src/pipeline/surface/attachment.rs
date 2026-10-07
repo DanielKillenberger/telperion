@@ -104,7 +104,7 @@ impl AttachmentSurface<'static> {
                 continue;
             }
             sample_path(tree, height, params, &paths, path, &distance, &mut samples);
-            frames(&samples, &mut scratch, &mut frame);
+            frames(&samples, &mut scratch, &mut frame, seed(tree, &paths, path));
             let base = rings.len() / 3;
             let shape = section::of(tree, &paths, path);
             for (i, s) in samples.iter().enumerate() {

@@ -57,8 +57,9 @@ const CA: u32 = 12u;
 // A drawn phytomer: its node's position (y up), radius, start radius and
 // base radius, its flags, the node it is drawn as, its node's run, its
 // laid axis, its node's parent's position, codominance, id, distance
-// along the wood from its root's bearer and its parent's id.
-const CV: u32 = 17u;
+// along the wood from its root's bearer, its parent's id, and its wood's
+// frame as laid (heading, side; y up), which a run it bears seeds from.
+const CV: u32 = 23u;
 const TAKEN: u32 = 1u;
 const MADE: u32 = 2u;
 // Its root is laid on the CPU (host decision 3): drawn there.
@@ -243,7 +244,8 @@ fn aside(p: u32, j0: u32) {
         }
     }
     let thickest = node(first).radius;
-    if inside && thickest > FORK_FROM * carrier {
+    let scaled = inside && thickest > FORK_FROM * carrier;
+    if scaled {
         let scale = FORK_FROM * carrier / thickest;
         for (var k = first_at; k < taken; k++) {
             let n = getu(li(p, k), 7u);
@@ -254,7 +256,8 @@ fn aside(p: u32, j0: u32) {
     }
     if mine(first) {
         put(first, 4u, node(first).radius);
-        put(first, 13u, codominance(node(first).radius, carrier));
+        // Drawn down to `FORK_FROM`: no fork, by the branch taken.
+        put(first, 13u, select(codominance(node(first).radius, carrier), 0.0, scaled));
     }
 }
 
@@ -320,6 +323,13 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
         putu(r, 14u, cfg.out_base + r);
         put(r, 15u, held.dist + length(d));
         putu(r, 16u, held.id);
+        let lb = cfg.out_phyts + r * PL;
+        let heading = up(vec3<f32>(out[lb + 3u], out[lb + 4u], out[lb + 5u]));
+        let side = up(vec3<f32>(out[lb + 6u], out[lb + 7u], out[lb + 8u]));
+        for (var c = 0u; c < 3u; c++) {
+            put(r, 17u + c, heading[c]);
+            put(r, 20u + c, side[c]);
+        }
         var seam = 0u;
         if !held.fine {
             seam = SEAM;

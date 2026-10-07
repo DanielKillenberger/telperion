@@ -161,7 +161,8 @@ impl Scratch {
     /// Samples path `path_id`'s run and frames it.
     pub(super) fn sweep(&mut self, at: Swept, path_id: usize) -> (&[Sample], &[(Vec3, Vec3)]) {
         at.sample(path_id, &mut self.samples);
-        frames(&self.samples, &mut self.directions, &mut self.frame);
+        let seed = seed(at.tree, at.paths, &at.paths.runs[path_id]);
+        frames(&self.samples, &mut self.directions, &mut self.frame, seed);
         if let Some(shape) = at.section(path_id) {
             section::square(shape, &mut self.frame);
         }
@@ -299,26 +300,13 @@ pub(super) fn rank(at: Swept, scratch: &mut Scratch) -> Result<Vec<(usize, f64)>
     // Each side keeps its own order, the structure above the cut first and
     // the fine roots after it, widest first within each (fn-212 D5): no
     // sort reaches across the seam.
-    let fine = fine_nodes(at.tree)?;
-    let side = |path_id: usize| fine[at.paths.nodes[at.paths.runs[path_id].start + 1]];
+    let fine = &at.paths.fine;
+    let side = |path_id: usize| {
+        let first = at.paths.nodes[at.paths.runs[path_id].start + 1];
+        fine.get(first).copied().unwrap_or(false)
+    };
     ordered.sort_by(|a, b| side(a.0).cmp(&side(b.0)).then(b.1.total_cmp(&a.1)));
     Ok(ordered)
-}
-
-/// Whether each node is a fine root's wood: a seam, or borne by one.
-fn fine_nodes(tree: &Tree) -> Result<Vec<bool>> {
-    let mut fine = filled(tree.nodes.len(), false)?;
-    if tree.seams.is_empty() {
-        return Ok(fine);
-    }
-    for &i in &tree.seams {
-        fine[i as usize] = true;
-    }
-    for i in 1..tree.nodes.len() {
-        let parent = tree.nodes[i].parent.expect("a node above the root") as usize;
-        fine[i] |= fine[parent];
-    }
-    Ok(fine)
 }
 
 /// The ranked runs as the run table. It is allocated after the rings, so

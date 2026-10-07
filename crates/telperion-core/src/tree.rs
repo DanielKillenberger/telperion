@@ -141,6 +141,12 @@ pub struct Tree {
     /// `seams`.
     #[cfg_attr(feature = "json", serde(skip))]
     pub attachments: Vec<Attachment>,
+    /// Each node's wood's frame as the engine laid it, its heading and the
+    /// side its first bud faces (y up), where the engine grew the tree:
+    /// what a fine root's run seeds its frame from at its socket (fn-212,
+    /// host decision 2026-10-07). Never stored, as `seams`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub frames: Vec<[f32; 6]>,
 }
 
 /// A fine root as the conversion drew it (fn-212 task 4): the record an

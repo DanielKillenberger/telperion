@@ -39,7 +39,7 @@ struct Cfg {
 
 const NONE: u32 = 0xffffffffu;
 const CA: u32 = 12u;
-const CV: u32 = 17u;
+const CV: u32 = 23u;
 const MADE: u32 = 2u;
 const LANDED: u32 = 4u;
 const FINE: u32 = 8u;
@@ -48,8 +48,8 @@ const SEAM: u32 = 16u;
 // root's bearer, its bearer's distance from the root, parent, flags, the
 // widest ring of the run it starts, and its axis's depth in its root and
 // lineage (high word, low word), which order it among its siblings as the
-// conversion numbered them.
-const NW: u32 = 15u;
+// conversion numbered them; its wood's frame as laid (heading, side).
+const NW: u32 = 21u;
 // A node's links: the widest start radius of its children that are not
 // codominant and of all, the first child of each so wide, whether a
 // codominant child leaves it, the points of the run it starts; then, for
@@ -133,6 +133,9 @@ fn gather(@builtin(global_invocation_id) id: vec3<u32>) {
     nodes[i * NW + 12u] = drawn[axis * CA + 8u];
     nodes[i * NW + 13u] = drawn[axis * CA + 10u];
     nodes[i * NW + 14u] = drawn[axis * CA + 9u];
+    for (var c = 0u; c < 6u; c++) {
+        nodes[i * NW + 15u + c] = drawn[b + 17u + c];
+    }
     if cfg.stubs != 0u {
         // A bearer's node: never a fine root's, and at its bearer.
         nodes[i * NW + 6u] = 0.0;
@@ -497,7 +500,10 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
     var seg_before = segment(cur, next, vec3<f32>(0.0, 1.0, 0.0));
     var seg = seg_before;
     var previous = seg;
-    var normal = perpendicular(previous);
+    // Seeded from the bearer's wood's frame at the socket: its side, laid
+    // across the first tangent (`frames.rs`, `seed`; fn-212, 2026-10-07).
+    let a = parent(first) * NW;
+    var normal = vec3<f32>(nodes[a + 18u], nodes[a + 19u], nodes[a + 20u]);
     for (var i = 0u; i < count; i++) {
         var t = seg;
         if i > 0u && i + 1u < count {

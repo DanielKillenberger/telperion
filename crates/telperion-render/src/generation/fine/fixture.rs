@@ -106,6 +106,7 @@ pub(super) fn with_dressed<R>(
                     radius: n.radius as f32,
                     start: n.start_radius as f32,
                     base: n.base_radius as f32,
+                    frame: tree.frames.get(i).copied().unwrap_or_default(),
                 }
             });
             let o = dev.origin(r);

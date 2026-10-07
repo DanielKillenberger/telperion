@@ -269,6 +269,15 @@ mod readback_tests;
 
 /// Match the integration tests: unavailable hardware is explicit, while a
 /// device that exists but fails for another reason still fails the test.
+/// The whole-tree GPU probes one at a time in a process (fn-212): each
+/// holds a settled tree's buffers, which beside another's outgrow the
+/// device; the harness's threads then wait here rather than fail.
+#[cfg(test)]
+fn whole_tree() -> std::sync::MutexGuard<'static, ()> {
+    static LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    LOCK.lock().unwrap_or_else(|e| e.into_inner())
+}
+
 #[cfg(test)]
 fn test_gpu() -> Option<crate::Gpu> {
     match pollster::block_on(crate::Gpu::request(None)) {

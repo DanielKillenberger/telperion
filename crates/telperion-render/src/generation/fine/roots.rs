@@ -92,6 +92,10 @@ pub(super) struct Kernels {
     pub resolver: Resolver,
     pub fades: Fades,
     pub pool: Pool,
+    /// Held while the kernels live: their pool keeps a settled tree's
+    /// buffers, so whole-tree tests take the device one at a time
+    /// (`whole_tree`).
+    _one: std::sync::MutexGuard<'static, ()>,
 }
 
 pub(super) fn kernels(gpu: &Gpu) -> Kernels {
@@ -101,6 +105,7 @@ pub(super) fn kernels(gpu: &Gpu) -> Kernels {
         resolver: Resolver::new(gpu),
         fades: Fades::new(gpu),
         pool: Pool::default(),
+        _one: crate::generation::whole_tree(),
     }
 }
 
@@ -229,8 +234,12 @@ fn grow_run(
     encoder.copy_buffer_to_buffer(&queued, 0, &sums, 12, 4);
     gpu.queue.submit([encoder.finish()]);
     let t = totals(gpu, &sums, 4, cost);
-    let axes = k.pool.take(gpu, "packed axes", u64::from(t[0]) * AXW as u64);
-    let phyts = k.pool.take(gpu, "packed phytomers", u64::from(t[1]) * PW as u64);
+    let axes = k
+        .pool
+        .take(gpu, "packed axes", u64::from(t[0]) * AXW as u64);
+    let phyts = k
+        .pool
+        .take(gpu, "packed phytomers", u64::from(t[1]) * PW as u64);
     let scratch = k.pool.take(gpu, "laid scratch", u64::from(t[2]));
     let items = buffer(gpu, "laid items", u64::from(m * IW));
     let mut encoder = gpu.device.create_command_encoder(&Default::default());

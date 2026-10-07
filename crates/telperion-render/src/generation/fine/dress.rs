@@ -18,7 +18,7 @@ pub(super) const DRESS: &str = include_str!("dress.wgsl");
 pub(super) const FOLD: &str = include_str!("fold.wgsl");
 /// A drawn axis's and phytomer's floats (`dress.wgsl`).
 const CA: u32 = 12;
-pub(super) const CV: usize = 17;
+pub(super) const CV: usize = 23;
 pub(super) const CA_WORDS: usize = CA as usize;
 pub(super) const MADE: u32 = 2;
 pub(super) const LANDED: u32 = 4;
@@ -53,6 +53,8 @@ pub(super) struct StubNode {
     pub radius: f32,
     pub start: f32,
     pub base: f32,
+    /// Its wood's frame as laid: heading, then side (y up).
+    pub frame: [f32; 6],
 }
 
 pub(super) struct Dresser {
@@ -131,6 +133,7 @@ fn stub_records(stubs: &[Stub], base: u32) -> Vec<f32> {
         r[6] = f32::from_bits(TAKEN | MADE);
         r[7] = f32::from_bits(k as u32 | PREV);
         r[10..13].copy_from_slice(&node.parent);
+        r[17..23].copy_from_slice(&node.frame);
     }
     out
 }
