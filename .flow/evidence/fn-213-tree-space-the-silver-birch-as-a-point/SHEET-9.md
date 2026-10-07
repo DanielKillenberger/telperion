@@ -86,3 +86,7 @@ Round 9 is cheaper than round 8 at both ages and about round 7's node count at 8
   - **Ranks:** the strands stand at the bearer's evenly spaced nodes along one bough.
 
   Values could vary each of these by degree (insertion, tropism, roll). Whether to try that, or to treat the comb as the stop it now is, is the host's call. No further values were tried.
+
+## Gate (round 9, commit `a35e4f3b`)
+
+Render half first, under the GPU lock: `cargo test --profile ci -p telperion-render --no-fail-fast` exits 0. Then `cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render` exits 0. `harness/parity.test.ts` passes 8 of 8. Limits at 8; logs in the ignored `raw/gate9-*.log`.
