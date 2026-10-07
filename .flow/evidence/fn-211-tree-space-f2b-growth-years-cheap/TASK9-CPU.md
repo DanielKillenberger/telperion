@@ -120,3 +120,27 @@ Against the base (`raw/task9/sag-vs-base.txt`):
 - **Two bugs found and fixed:**
   - sag as a Q32 value lost its digits (`de934601`);
   - a frame with no side skipped sag where today carries the lever unchanged. The alone spruce had moved metres (`02cd51bc`).
+
+## The host's second cost decision: steps 1 and 2 reach nothing, so the work stops (2026-10-07)
+
+**Step 1, fewer logs in girth and sag: almost nothing to cut, and the one cut tried broke an identity.**
+- **Where spruce 80's 51 M `log2` calls come from** (by count, 4.8 M phytomers):
+  - Girth runs twice: the tree as grown (`attachments`) and the tree as kept (`thicken`). Each run takes two logs a phytomer, one for its own pipe's power and one for its radius: about 19 M.
+  - The children's sections: about 2 M, one per axis.
+  - Sag's bent pass: about five a phytomer (log r, the lever's and the cap's lengths, the settled span, the rest): about 24 M.
+- **Nothing is computed twice within a pass.** Each log is of a value made just before it. The radius's log is taken in the bent pass, after the girth pass has floored the radius to Q32.
+- **The cut tried:** handing each child's base-radius log to its bearer in place of the radius (`raw/task9/step1-girth-carry.patch`). It saves one log and one power per axis, about 2 % of the calls. It also broke the fine executor's identity at every cut (`fine::tests::realized`), because a fine root hands its bearer a radius and the bearer would read a log. Carrying the log through the executor's records would fix that, for a 2 % saving. Reverted.
+- **One real saving, not built:** both girth runs compute the same own pipe, and so the same `section(own, e)`, for every phytomer kept. Caching it between the two runs would save about 10 M of the logs and powers (about 20 %). It needs a phytomer map across the shed. Larger work; not in the decision's scope.
+
+**Step 2, faster log2, exp2 and exp2_neg with identical bits: not reached; stopped, as the decision says.**
+- **Branchless forms of both procedures** (`raw/task9/branchless-logs.patch`) were proven identical:
+  - `exp2_neg` exhaustively, all 2^32 fractions (its whole part only shifts);
+  - `log2_frac` on 10^8 random mantissas, every power of two and its neighbours, and the ends.
+  
+  They were no faster: `log2` 69 ns, `exp2_neg` 62 ns, `exp2` 61 ns, against 67, 64 and 65 ns. Reverted.
+- **Why the bits cannot come faster:**
+  - Each procedure is a chain of 32 dependent 64-by-64-bit products, each truncated before the next. The time is the chain's latency, not its branches.
+  - `log2`'s squarings depend on all 63 bits of the mantissa from the first step, so no table can stand for any prefix of the chain.
+  - `exp2_neg` can halve its chain with identical bits: a 2^16-entry table (512 KB) of the chain over the fraction's top 16 bits, then 16 products. That is about twice as fast on 2.2 of the 13 CPU seconds, about 8 % of the layout.
+  - Anything faster changes the truncation order, which is a re-specification of D1 to D18. The host excluded that.
+- **Step 3 (the tropism rework) is not started:** the decision stops at step 2.
