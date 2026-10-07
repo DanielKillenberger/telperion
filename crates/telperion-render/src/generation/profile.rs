@@ -43,7 +43,7 @@ pub(super) fn slot(label: &str) -> Option<(wgpu::QuerySet, u32)> {
     ON.with_borrow_mut(|p| {
         let p = p.as_mut()?;
         let at = 2 * p.labels.len() as u32;
-        if at % SET == 0 {
+        if at.is_multiple_of(SET) {
             p.sets
                 .push(p.device.create_query_set(&wgpu::QuerySetDescriptor {
                     label: Some("profile"),
@@ -77,7 +77,7 @@ pub(crate) fn finish(gpu: &Gpu) -> Vec<(String, f64, f64)> {
     }
     p.labels
         .into_iter()
-        .zip(ticks.chunks_exact(2))
+        .zip(ticks.as_chunks::<2>().0)
         .map(|(l, t)| (l, t[0] as f64 * period, t[1] as f64 * period))
         .collect()
 }
