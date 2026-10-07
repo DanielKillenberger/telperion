@@ -187,6 +187,7 @@ Measured `tree_buffer_bytes` after the submit: 141 MB (beech 80 s1), 240 MB (bee
 - **D1 (reference):** the conversion keeps every kept phytomer (fn-209 decision 2 built here, task 3); thin wood is drawn as F3's sub-pixel ribbons instead of dropped by geometry; the probe's reference is frozen after that.
 - **D2:** leaf-bearing and station counts come from record and integer data, so counts are equal across executors.
 - **D3:** ground-routed roots never reach the device; they are excluded before upload.
+  - **Amended from (a) to (c)** (host, 2026-10-07), after task 4 showed that phase 1 has no floor for a bearer's height. Routing stays exact where it is decided today, and landed roots are masked on the device by the `LANDED` flag. Measured cost: about 7 % of the spruce's phytomers masked (TASK4.md).
 - **D4:** a fine root always starts its own sweep run, joined at the seam by a socket; the seam is judged on stills.
 - **D5:** each side keeps its own run order, the coarse structure's first; no global sort.
 - **D6:** on wasm32 the driver's sowing runs on the calling thread and every timer reads the engine's clock (`crate::clock::seconds()`); the same tree as natively.

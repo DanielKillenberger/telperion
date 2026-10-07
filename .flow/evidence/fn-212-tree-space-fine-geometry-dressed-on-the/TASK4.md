@@ -113,3 +113,10 @@ The choice is the host's.
 | `crates/telperion-render/src/generation/fine/dress_tests.rs` | the probe against the pipeline |
 | `crates/telperion-core/src/pipeline/input/folds.rs` | the combinable folds and their test |
 | `raw/task4/` (ignored) | `dressed-1.txt`, `dressed-2.txt`, the gate logs |
+
+## Host decision on D3 (2026-10-07)
+
+- **D3 amended from (a) to (c)** (host, 2026-10-07), after task 4 showed that phase 1 has no floor for a bearer's height. Routing stays exact where it is decided today, in phases 3 and 4. The device masks a landed root with the `LANDED` flag: it is never drawn, folded or surfaced there.
+- **Measured cost:** about 7 % of the spruce's phytomers are masked on the device: 6.9 to 7.9 % at 80, and 5.5 to 7.0 % at 40 (CONTRACT.md §2).
+- **Option 1's estimate stands beside it:** about 19,000 of 74,000 roots routed, and the device's share down from 91 % to 65 to 70 % (estimated). Together with the 7 %, this satisfies the acceptance's "routed share measured".
+- **Carried to task 7's handoff:** in production, the leaf box's reach terms come from the combined envelope, not the reference build's.
