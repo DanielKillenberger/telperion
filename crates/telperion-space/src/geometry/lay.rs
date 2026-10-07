@@ -2,7 +2,7 @@
 //! walks an axis from its base, and the rough layout grown with the tree
 //! (fn-197) carries the same walk on as each growth unit grows.
 use super::q::{self, add, amount, carry, cross, dot, q3, scaled, sub, turned_by, unit, v3, Q3};
-use crate::fixed::feedback::angle::{asin, between, sincos, turns, wrap};
+use crate::fixed::feedback::angle::{atan2, between, sincos, turns, wrap};
 use crate::fixed::feedback::lattice::REACH;
 use crate::fixed::feedback::vector::isqrt;
 use crate::fixed::{exp2_neg, mul, q32, LOG2E, ONE32, P_ONE};
@@ -395,7 +395,9 @@ pub(super) fn toward_elevation(direction: Q3, side: Q3, elevation: i64, share: i
     let Some(out) = level(direction).or_else(|| level(side)) else {
         return direction;
     };
-    let now = between(0, asin(direction[2]));
+    // Its elevation from its own height and lean (host decision,
+    // 2026-10-07: the lean already taken, no second root).
+    let now = between(0, atan2(direction[2], lean));
     let to = now + ((i128::from(elevation - now) * i128::from(share)) >> 32) as i64;
     let (cos, sin) = sincos(wrap(to));
     add(scaled(out, cos), scaled(q::UP, sin))
