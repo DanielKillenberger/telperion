@@ -119,7 +119,7 @@ pub fn birch() -> Species {
         sag: 0.0,
         secondary: 1.0,
         bend_length: 6.0,
-        internode_spread: 0.0,
+        internode_spread: 0.2,
     };
     // A1, the young stem: fast yearly units, bearing the young tree's
     // passing branches acrotonically.
@@ -153,7 +153,7 @@ pub fn birch() -> Species {
     };
     // The old top: short units forking into small boughs.
     let top = PaState {
-        internode: 0.02,
+        internode: 0.015,
         form: Form {
             wander: 0.5,
             ..stem
@@ -196,7 +196,7 @@ pub fn birch() -> Species {
             sag: 3e-5,
             secondary: 1.0,
             bend_length: 3.0,
-            internode_spread: 0.0,
+            internode_spread: 0.7,
         },
         ..state(
             15,
@@ -220,7 +220,7 @@ pub fn birch() -> Species {
         epitony: 0.4,
         form: Form {
             tropism: 0.6,
-            elevation: 0.95,
+            elevation: 0.8,
             sag: 3e-5,
             pipe: 0.002,
             ..limb.form
@@ -254,7 +254,7 @@ pub fn birch() -> Species {
             sag: 2e-4,
             secondary: 1.0,
             bend_length: 0.0,
-            internode_spread: 0.0,
+            internode_spread: 0.4,
         },
         ..state(
             8,
@@ -281,7 +281,7 @@ pub fn birch() -> Species {
         sag: 2e-4,
         secondary: 1.0,
         bend_length: 0.0,
-        internode_spread: 0.0,
+        internode_spread: 0.6,
     };
     let branch = PaState {
         insertion: 0.7,

@@ -143,3 +143,17 @@ Aimed at trait (j): long, straight, nearly parallel limbs ending in regularly sp
 | `LIMB` `viability`, `shedding` | 1, never | 0.993 a year, 3 years | A few limbs die and are shed, the low ones among them (the host's low limb) |
 
 A first probe with `abortion` 0.15 and `dominance` 0.4 drew a narrow column (6 m at 40, 11 m at 80); its relays rose steeply on the upper side. Codominant forks: the engine forks where a relay is as thick as the limb it continues; no separate fork setting was used.
+
+## Round 5 (2026-10-07, after the merge of fn-221 and fn-222)
+
+Each value **estimated** from the stills (SHEET-5.md); this table supersedes the rows above.
+
+| Row | Round 4 | Round 5 | Aimed at |
+|---|---|---|---|
+| `form.internodeSpread` (fn-222): stem, `LIMB`/`BOUGH`, `SPRIG`, hanging `BRANCH`/`SHOOT` | none | 0.2, 0.7, 0.4, 0.6 | (j): laterals and strands stand at uneven spacing along each axis |
+| `TOP` internode (the old stem's yearly unit) | 0.02 m | 0.015 m | (c): the 80-year crown less tall and pointed |
+| `BOUGH` set-point (old limbs carry on in it) | 0.95 rad | 0.8 rad | (c): old limbs spread, the crown broadens at 80 |
+| `/material/mature*` (fn-221): colour, furrow strength, radius, span | off | 0.05/0.048/0.045, 0.8, 0.23 m, 0.06 m | (b): old bark near-black and deeply furrowed from 23 cm of radius to 29 cm (JRC, OSU, rule 19): the 40-year stem white above its flare, the 80-year base black to about a metre |
+| `/material/crest*`, `cavityStrength` | −0.5/−0.5/−0.48 at 1.0, 0.8 | +0.1 at 0.4, 0.3 (the owner-reviewed preset's values) | The tints act on the old colour too (fn-221): ridges a lighter grey on the black base, as in S1, no dark crest on the white stem |
+
+A probe with old bark from 20 cm darkened the 80-year stems of seeds 7 and 42 to two metres and more; 24 cm left seed 1's base white above the flare.

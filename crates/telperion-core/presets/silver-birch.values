@@ -212,6 +212,20 @@
 /material/leafBackGreen = 0.33
 /material/leafBackBlue = 0.09
 
+# The old birch's base turns black and fissured (JRC: the bark "with
+# age darkens and develops fissures"; OSU: "with age, trunk becomes
+# mostly black"). fn-221's old bark: a near-black grey-brown, deeply
+# furrowed, taken over from 23 cm of radius to 29 cm: the 40-year stem
+# stays white above its flare, the 80-year base is black to about a
+# metre. The crest tint above
+# keeps the ridges a lighter grey on it, as in S1.
+/material/matureRed = 0.05
+/material/matureGreen = 0.048
+/material/matureBlue = 0.045
+/material/matureFurrowStrength = 0.8
+/material/matureRadius = 0.23
+/material/matureSpan = 0.06
+
 /material/hueRangeLow = -0.025
 /material/hueRangeHigh = 0.025
 /material/interiorDarkening = 0.15
@@ -221,9 +235,8 @@
 # width to two and a half, so at 8 cm it holds the root flare (20 cm
 # at a quarter metre, 13 cm at one metre, 10 cm by four at seed 1)
 # and leaves the stem and every limb smooth. Long, deep furrows.
-# On the engine tree (fn-213 round 2) relief starts at 16 cm, so the
-# 40-year stem stays white and the old flare matures dark: crests and
-# cavities darken as relief comes in, the furrows already did.
+# On the engine tree (fn-213) relief starts at 16 cm, so the 40-year
+# stem stays white and the old flare fissures.
 /material/ridgeScale = 0.16
 /material/plateScale = 0.4
 /material/roughnessDetail = 0.1
@@ -237,13 +250,13 @@
 /material/fissureGreen = -0.44
 /material/fissureBlue = -0.41
 /material/fissureStrength = 1.0
-/material/crestRed = -0.5
-/material/crestGreen = -0.5
-/material/crestBlue = -0.48
-/material/crestStrength = 1.0
+/material/crestRed = 0.1
+/material/crestGreen = 0.1
+/material/crestBlue = 0.1
+/material/crestStrength = 0.4
 /material/barkMottleScale = 0.15
 /material/barkMottleStrength = 0.12
-/material/cavityStrength = 0.8
+/material/cavityStrength = 0.3
 /material/bladeMottleScale = 5.5
 /material/bladeMottleStrength = 0.2
 /material/marginWidth = 0.05
@@ -343,6 +356,7 @@
 /space/ages/2/form/pipe = 0.004
 /space/ages/2/form/exponent = 2.5
 /space/ages/2/form/bendLength = 6.0
+/space/ages/2/form/internodeSpread = 0.2
 /space/ages/2/zones/0/buds = 1.0
 /space/ages/2/zones/0/nodes/min = 4.0
 /space/ages/2/zones/0/nodes/max = 6.0
@@ -363,6 +377,7 @@
 /space/ages/4/form/pipe = 0.004
 /space/ages/4/form/exponent = 2.5
 /space/ages/4/form/bendLength = 6.0
+/space/ages/4/form/internodeSpread = 0.2
 /space/ages/4/zones/0/buds = 1.0
 /space/ages/4/zones/0/nodes/min = 3.0
 /space/ages/4/zones/0/nodes/max = 4.0
@@ -378,7 +393,7 @@
 /space/ages/4/zones/2/lateral/9 = 0.12
 /space/ages/5/lifespan = 100.0
 /space/ages/5/continuation = 0.0
-/space/ages/5/internode = 0.02
+/space/ages/5/internode = 0.015
 /space/ages/5/divergence = 2.5132741228718345
 /space/ages/5/form/tropism = 0.5
 /space/ages/5/form/elevation = 1.5707963267948966
@@ -386,6 +401,7 @@
 /space/ages/5/form/pipe = 0.004
 /space/ages/5/form/exponent = 2.5
 /space/ages/5/form/bendLength = 6.0
+/space/ages/5/form/internodeSpread = 0.2
 /space/ages/5/zones/0/buds = 1.0
 /space/ages/5/zones/0/nodes/min = 1.0
 /space/ages/5/zones/0/nodes/max = 2.0
@@ -420,6 +436,7 @@
 /space/ages/6/form/roll = 1.2
 /space/ages/6/form/sag = 3e-5
 /space/ages/6/form/bendLength = 3.0
+/space/ages/6/form/internodeSpread = 0.7
 /space/ages/6/zones/0/buds = 1.0
 /space/ages/6/zones/0/nodes/min = 2.0
 /space/ages/6/zones/0/nodes/max = 3.0
@@ -447,7 +464,7 @@
 /space/ages/7/relayFailed = 1.0
 /space/ages/7/epitony = 0.4
 /space/ages/7/form/tropism = 0.6
-/space/ages/7/form/elevation = 0.95
+/space/ages/7/form/elevation = 0.8
 /space/ages/7/form/wander = 0.6
 /space/ages/7/form/pipe = 0.002
 /space/ages/7/form/exponent = 2.4
@@ -456,6 +473,7 @@
 /space/ages/7/form/roll = 1.2
 /space/ages/7/form/sag = 3e-5
 /space/ages/7/form/bendLength = 3.0
+/space/ages/7/form/internodeSpread = 0.7
 /space/ages/7/zones/0/buds = 1.0
 /space/ages/7/zones/0/nodes/min = 1.0
 /space/ages/7/zones/0/nodes/max = 2.0
@@ -481,6 +499,7 @@
 /space/ages/8/form/exponent = 2.2
 /space/ages/8/form/roll = 0.8
 /space/ages/8/form/sag = 0.0002
+/space/ages/8/form/internodeSpread = 0.4
 /space/ages/8/zones/0/buds = 1.0
 /space/ages/8/zones/0/nodes/min = 1.0
 /space/ages/8/zones/0/nodes/max = 2.0
@@ -506,6 +525,7 @@
 /space/ages/9/form/pipe = 0.0008
 /space/ages/9/form/roll = 1.2
 /space/ages/9/form/sag = 0.0002
+/space/ages/9/form/internodeSpread = 0.6
 /space/ages/9/zones/0/buds = 1.0
 /space/ages/9/zones/0/nodes/min = 1.0
 /space/ages/9/zones/0/nodes/max = 2.0
@@ -531,6 +551,7 @@
 /space/ages/12/form/pipe = 0.0006
 /space/ages/12/form/roll = 1.2
 /space/ages/12/form/sag = 0.0002
+/space/ages/12/form/internodeSpread = 0.6
 /space/ages/12/zones/0/buds = 1.0
 /space/ages/12/zones/0/nodes/min = 1.0
 /space/ages/12/zones/0/nodes/max = 1.0
