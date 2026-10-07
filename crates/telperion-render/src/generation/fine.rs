@@ -5,10 +5,22 @@
 const WIDE: &str = include_str!("fine/wide.wgsl");
 const CONTRACT: &str = include_str!("fine/contract.wgsl");
 const ZONES: &str = include_str!("fine/zones.wgsl");
+const FEEDBACK_WIDE: &str = include_str!("fine/feedback_wide.wgsl");
+const FEEDBACK: &str = include_str!("fine/feedback.wgsl");
+const FEEDBACK_SITES: &str = include_str!("fine/feedback_sites.wgsl");
 
 /// The contract's WGSL: its wide words, then its arithmetic.
 pub(super) fn contract() -> String {
     format!("{WIDE}\n{CONTRACT}")
+}
+
+/// The decision contract and the feedback contract (fn-211 task 8,
+/// CONTRACT-A.md): `telperion_space::fixed::feedback` word for word.
+pub(super) fn feedback() -> String {
+    format!(
+        "{}\n{FEEDBACK_WIDE}\n{FEEDBACK}\n{FEEDBACK_SITES}",
+        contract()
+    )
 }
 
 /// The contract and a growth unit's zones, for a shader that binds the
@@ -21,6 +33,7 @@ pub(super) fn zones() -> String {
 pub(super) fn sources() -> Vec<(&'static str, String)> {
     vec![
         ("fine contract probe", tests::source()),
+        ("feedback probe", feedback_tests::source()),
         ("fine unit", units::source()),
         ("fine chain grower", chains::source()),
         ("fine pack", chains::pack_source()),
@@ -39,13 +52,15 @@ mod chains;
 #[cfg(test)]
 mod device;
 #[cfg(test)]
+mod feedback_tests;
+#[cfg(test)]
 mod hostrun;
+#[cfg(test)]
+mod laid;
 #[cfg(test)]
 mod pool;
 #[cfg(test)]
 mod profile_tests;
-#[cfg(test)]
-mod laid;
 #[cfg(test)]
 mod readback;
 #[cfg(test)]
@@ -57,9 +72,9 @@ mod realized_timing;
 #[cfg(test)]
 mod roots;
 #[cfg(test)]
-mod speed_tests;
-#[cfg(test)]
 mod shedding;
+#[cfg(test)]
+mod speed_tests;
 #[cfg(test)]
 mod step_probe;
 #[cfg(test)]

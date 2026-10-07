@@ -77,7 +77,13 @@ fn log2q(n: vec2<u32>) -> vec2<u32> {
         return neg64(inf());
     }
     let e = 63u - clz64(n);
-    var m = select(shr64(n, 1u), shl64(n, 62u - e), e <= 62u);
+    return w(log2_frac(select(shr64(n, 1u), shl64(n, 62u - e), e <= 62u)), e);
+}
+
+// The fraction of log2 m, Q32, of a Q62 mantissa in [1, 2)
+// (`fixed::log2_frac`).
+fn log2_frac(mantissa: vec2<u32>) -> u32 {
+    var m = mantissa;
     var frac = 0u;
     for (var i = 0u; i < 32u; i++) {
         let square = mul62(m, m);
@@ -89,7 +95,7 @@ fn log2q(n: vec2<u32>) -> vec2<u32> {
             m = square;
         }
     }
-    return w(frac, e);
+    return frac;
 }
 
 // 2^-x for x in Q32, a Q62 probability.
