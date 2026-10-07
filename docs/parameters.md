@@ -1670,6 +1670,67 @@ Metres. The radius below which wood is young.
 - checked: Material site, rank 80, as invalid input `young shoot radius`
 - blend: linear; dial: `material_shoot_radius` (the metres of radius below which wood counts as young), window its bounds (validated bound), steps 0.015 and 0.03
 
+### `/material/matureRed`
+
+The old bark's own colour, the one thick wood grows into. Wood takes it over the bark colour on a smoothstep of its radius from `mature_radius_low` to `mature_radius_high`.
+
+- real, reflectance, [0, 1], default 0.147
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 95, as invalid input `bark mature red`
+- dormant: `matureRadiusHigh` zero
+- blend: linear; dial: `material_mature_red` (the red in the old bark's colour, the one thick wood grows into), window its bounds (validated bound), steps 0.15 and 0.3
+
+### `/material/matureGreen`
+
+The green channel of `mature_red`.
+
+- real, reflectance, [0, 1], default 0.105
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 96, as invalid input `bark mature green`
+- dormant: `matureRadiusHigh` zero
+- blend: linear; dial: `material_mature_green` (the green in the old bark's colour, the one thick wood grows into), window its bounds (validated bound), steps 0.15 and 0.3
+
+### `/material/matureBlue`
+
+The blue channel of `mature_red`.
+
+- real, reflectance, [0, 1], default 0.068
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 97, as invalid input `bark mature blue`
+- dormant: `matureRadiusHigh` zero
+- blend: linear; dial: `material_mature_blue` (the blue in the old bark's colour, the one thick wood grows into), window its bounds (validated bound), steps 0.15 and 0.3
+
+### `/material/matureFurrowStrength`
+
+The furrow strength old bark takes in place of `furrow_strength`, over the same radius range as its colour: how deep it fissures.
+
+- real, -, [0, 1], default 1
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 98, as invalid input `bark mature furrow strength`
+- dormant: `matureRadiusHigh` zero, or `ridgeScale` zero
+- blend: linear; dial: `material_mature_furrow_strength` (the width and depth of old bark's furrows, which thick wood grows into), window its bounds (validated bound), steps 0.15 and 0.3
+
+### `/material/matureRadiusLow`
+
+Metres. The radius at which bark starts to turn old.
+
+- real, m, [0, 2], default 0
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 99, as invalid input `bark mature radius low`
+- dormant: `matureRadiusHigh` zero
+- note: Refused above `matureRadiusHigh` (`bark mature radius range`).
+- blend: linear; dial: `material_mature_radius_low` (the metres of radius at which bark starts to turn old), window its bounds (validated bound), steps 0.015 and 0.03
+
+### `/material/matureRadiusHigh`
+
+Metres. The radius past which bark is wholly old; zero means no wood is old.
+
+- real, m, [0, 2], default 0
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 100, as invalid input `bark mature radius high`
+- note: Refused below `matureRadiusLow` (`bark mature radius range`).
+- blend: linear; dial: `material_mature_radius_high` (the metres of radius past which bark is wholly old; zero leaves no wood old), window its bounds (validated bound), steps 0.015 and 0.03
+
 ### `/material/leafFrontRed`
 
 The colour of a leaf's upper face, a linear reflectance per channel. Raising a channel pushes the sunlit face toward it.

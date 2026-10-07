@@ -52,7 +52,22 @@ fn bark_groove(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32>)
 fn bark_height(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32>,
     groove: f32) -> f32 {
     return bark_field_filtered(circle, along, radius, u.bark_detail.x, u.bark_detail.y,
-        footprint, u.bark_detail.w, u.plate, vec3(u.bark_structure.xw, u.peel.w)) - groove;
+        footprint, bark_furrow(radius), u.plate, vec3(u.bark_structure.xw, u.peel.w)) - groove;
+}
+
+// How old the bark is at a radius: none below the row's low radius, all of
+// it past the high one, on a smoothstep between. A range that ends at zero
+// is a row with no old bark.
+fn bark_age(radius: f32) -> f32 {
+    let range = u.mature_radius.xy;
+    let t = clamp((radius - range.x) / max(range.y - range.x, 1e-6), 0.0, 1.0);
+    return select(0.0, t * t * (3.0 - 2.0 * t), range.y > 0.0);
+}
+
+// The furrow strength at a radius: the row's own, giving way to old bark's.
+fn bark_furrow(radius: f32) -> f32 {
+    return select(u.bark_detail.w, mix(u.bark_detail.w, u.mature.w, bark_age(radius)),
+        u.mature_radius.y > 0.0);
 }
 
 // A furrow floor is dark because its own crest stands between it and the sun.
@@ -199,8 +214,8 @@ fn bark_light(n: vec3<f32>, height: f32, spread: f32, world: vec3<f32>, shadow: 
     // A weathered face is greyer and paler than the fresh wood a furrow keeps.
     // Greying the base row rather than the tinted albedo keeps the whole map
     // affine in the filtered height: the offset below is a constant vector.
-    // The base is this fragment's own wood, the bark row or young wood's
-    // colour by radius, which is one colour over the whole footprint.
+    // The base is this fragment's own wood, the bark row, old bark's or young
+    // wood's colour by radius, which is one colour over the whole footprint.
     let grey = dot(bark, vec3<f32>(0.2126, 0.7152, 0.0722));
     let weathered = vec3<f32>(grey) - bark + u.weathering.rgb;
     let albedo = bark * cavity_weight + u.fissure.rgb * u.fissure.w * fissure
@@ -252,8 +267,12 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // by radius in shoot radii. Wood below the row's radius is the shoot's
     // colour, gives it up to the bark's by twice that, and mottle, cavity and
     // occlusion still act on it. A row with no radius takes the bark alone.
+    // Old bark takes the row's colour over the same way, by its radius range.
+    let old = select(u.bark.rgb, mix(u.bark.rgb, u.mature.rgb, bark_age(in.radius)),
+        u.mature_radius.y > 0.0);
     let youth = 1.0 - smoothstep(u.shoot.w, 2.0 * u.shoot.w, in.radius);
-    let bark = select(u.bark.rgb, mix(u.bark.rgb, u.shoot.rgb, youth), u.shoot.w > 0.0);
+    let bark = select(old, mix(old, u.shoot.rgb, youth), u.shoot.w > 0.0);
+    let furrow = bark_furrow(in.radius);
     var contact = base;
     if (u.bark_colour_detail.z > 0.0) {
         contact = max(contact, socket_contact(base_normal, dx, dy, nx, ny, in.radius));
@@ -264,7 +283,7 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     let orientation = away * mix(0.55, 1.0, 1.0 - smoothstep(0.0, 2.5, in.world.y));
     var appearance = vec4<f32>(mottle, contact, depth_in_crown(in.world), maturity);
     let colour_range = bark_colour_range(in.radius, u.bark_detail.x, u.bark_detail.y,
-        u.bark_detail.w, u.plate, u.bark_structure.w, u.peel.w);
+        furrow, u.plate, u.bark_structure.w, u.peel.w);
     let shadow = sunlight(in.world, base_normal);
     // Where the eye is actually looking on the surface, once the relief has
     // depth. Every field read below starts from here; the world position,
@@ -352,12 +371,12 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     let fine = max(cell_pixel.x / 0.19, cell_pixel.y / 0.19 + cell_pixel.x * 5.64);
     let retained = bark_box(fine) * bark_pass(fine);
     let fine_slope = 0.012 / (0.19 * 0.3);
-    let broad_slope = 0.095 * u.bark_detail.w / mix(0.04, 0.28, u.bark_detail.w);
+    let broad_slope = 0.095 * furrow / mix(0.04, 0.28, furrow);
     // A ridge shoulder is box-filtered by the footprint a cell reads it at:
     // the edge integral keeps the cell's own width, so the slope variance it
     // keeps falls as sqrt(3/5) of the shoulder over that footprint, and what
     // it loses shades the cell as the slopes the box removed would have.
-    let shoulder = mix(0.04, 0.28, u.bark_detail.w);
+    let shoulder = mix(0.04, 0.28, furrow);
     let coarse = sqrt(min(1.0, 0.775 * shoulder / max(cell_pixel.x, 1e-6)));
     let variance = (fine_slope * fine_slope * (1.0 - retained * retained)
         + (broad_slope * broad_slope + 0.05 * 0.05 / (0.3 * 0.3)) * (1.0 - coarse * coarse))

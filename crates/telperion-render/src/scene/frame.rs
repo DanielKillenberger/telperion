@@ -205,6 +205,13 @@ impl Scene {
                 ),
                 plate_profile: colour(m.plate_edge_shape, 0.0, 0.0, 0.0),
                 leaf_dead: colour(m.leaf_dead_red, m.leaf_dead_green, m.leaf_dead_blue, 0.0),
+                mature: colour(
+                    m.mature_red,
+                    m.mature_green,
+                    m.mature_blue,
+                    m.mature_furrow_strength,
+                ),
+                mature_radius: colour(m.mature_radius_low, m.mature_radius_high, 0.0, 0.0),
             }),
         );
     }
