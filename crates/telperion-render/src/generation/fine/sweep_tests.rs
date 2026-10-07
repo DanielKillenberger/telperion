@@ -264,8 +264,16 @@ fn swept_at_40_and_80() {
         return;
     };
     let (k, d, sw) = (kernels(&gpu), Dresser::new(&gpu), Sweeper::new(&gpu));
+    // One tree where `PROBE` names it (`norway-spruce:80:1`).
+    let only = std::env::var("PROBE").ok();
     for id in ["european-beech", "norway-spruce"] {
         for at in [(40, 1), (40, 7), (80, 1), (80, 7)] {
+            if only
+                .as_ref()
+                .is_some_and(|o| *o != format!("{id}:{}:{}", at.0, at.1))
+            {
+                continue;
+            }
             checked(id, at, &curved(&gpu, &k, &d, &sw, id, at));
         }
     }

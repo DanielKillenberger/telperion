@@ -6,9 +6,9 @@
 //! relay carries its parent's on. Wood under `STRUCTURAL` of the root's
 //! radius is fine wood: a twig where nothing grows from it, a branch
 //! otherwise. Wood thinner than `FINEST` (a phytomer growing in from its
-//! draw, and all it bears) is not drawn, and an internode shorter than
-//! `SHORTEST` is merged into its node, so the sweep never meets a ring it
-//! cannot resolve in float32.
+//! draw, and all it bears) is not drawn, and a phytomer is merged into the
+//! last node drawn while the wood grown since that node is shorter than
+//! `SHORTEST`, so the sweep never meets a ring it cannot resolve in float32.
 use super::GrowInput;
 use crate::math::Vec3;
 use crate::tree::{Attachment, BudFate, Node, NodeKind, ShootState, Tree};
@@ -35,10 +35,14 @@ const KEPT: Option<usize> = if cfg!(target_arch = "wasm32") {
 /// Where fine wood begins, as a share of the root's radius: the fine-wood
 /// measure of the pinned baseline (fn-190, BASELINE.md).
 pub(super) const STRUCTURAL: f64 = 0.05;
-/// The thinnest wood drawn, in metres, and the shortest internode kept: a
-/// float32 ring stays resolved above them (host, fn-193 C, the beech).
+/// The thinnest wood drawn, in metres, and the shortest internode kept, in
+/// whole micrometres of wood grown since the last node drawn: a float32
+/// ring stays resolved above them (host, fn-193 C, the beech). The length
+/// is the recorded grown wood (`Tree::grown`) counted as the stations count
+/// it (`plan::micrometres`), so both executors take the merge alike (host,
+/// fn-212 task 8).
 const FINEST: f64 = 2e-4;
-const SHORTEST: f64 = 1e-3;
+const SHORTEST: f64 = 1000.0;
 /// A lateral of `FORK_FROM` to `FORK_AT` of its parent's radius grows in as
 /// a codominant fork, so a fork has no collar (host, fn-193 RESULT.md).
 const FORK_FROM: f64 = 0.4;
@@ -354,7 +358,7 @@ fn convert(
                 along != Vec3::ZERO && (up(p.tip) - from).length() < nodes[parent as usize].radius;
             let behind = !made && ((up(p.tip) - from).dot(along) < 0.0 || inside);
             pending += internode * p.scale;
-            if behind || (up(p.tip) - from).length() < SHORTEST {
+            if behind || super::foliage::plan::micrometres(pending) < SHORTEST {
                 drawn[i].push(parent);
                 continue;
             }

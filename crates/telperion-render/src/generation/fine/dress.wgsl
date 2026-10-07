@@ -51,7 +51,7 @@ const PA: u32 = 2u;
 const GG: u32 = 24u;
 // `space.rs`'s constants.
 const FINEST: f32 = 2e-4;
-const SHORTEST: f32 = 1e-3;
+const SHORTEST: f32 = 1000.0;
 const FORK_FROM: f32 = 0.4;
 // A drawn axis: how many of its phytomers the conversion took, the node
 // it ends on, whether it took them all, its root's flags, its root's
@@ -318,7 +318,8 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
         let d = pos - held.pos;
         let inside = any(along != vec3<f32>(0.0)) && length(d) < held.radius;
         let behind = !made && (dot(d, along) < 0.0 || inside);
-        if behind || length(d) < SHORTEST {
+        // `SHORTEST` in whole micrometres of grown wood (`space.rs`).
+        if behind || floor(pending * 1e6 + 0.5) < SHORTEST {
             putu(r, 6u, TAKEN | flags);
             putu(r, 7u, parent);
             copy(r, held);

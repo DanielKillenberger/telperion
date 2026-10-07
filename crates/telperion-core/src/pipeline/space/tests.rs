@@ -178,3 +178,40 @@ fn seams_read_by_their_attachments() {
         }
     }
 }
+
+/// fn-212 task 8: each tree's nodes and the phytomers merged into them,
+/// at 40 and 80 (`cargo test --profile ci -p telperion-core merges_per_tree
+/// -- --ignored --nocapture`). Merged: the phytomers the conversion takes
+/// (to the first under `FINEST` on each axis) less the nodes it draws.
+/// Reported, not held.
+#[test]
+#[ignore]
+fn merges_per_tree() {
+    for preset in [Preset::EuropeanBeech, Preset::NorwaySpruce] {
+        for (age, seed) in [(40, 1), (40, 7), (80, 1), (80, 7)] {
+            let mut family = preset.parameters();
+            (family.age, family.skeleton.seed) = (f64::from(age), seed);
+            let species = family.space.species.clone().unwrap();
+            let request = Request {
+                age,
+                seed: u64::from(seed),
+                budget: BUDGET,
+                light: family.space.light,
+            };
+            let (structure, ..) = telperion_space::grow_marked(&species, request).unwrap();
+            let taken: usize = (structure.axes.iter())
+                .map(|a| {
+                    a.phytomers
+                        .iter()
+                        .take_while(|p| p.radius >= FINEST)
+                        .count()
+                })
+                .sum();
+            let nodes = grow(GrowInput::of(&family)).unwrap().nodes.len() - 1;
+            println!(
+                "{preset:?} ({age}, {seed}): nodes {nodes}, taken {taken}, merged {}",
+                taken - nodes
+            );
+        }
+    }
+}

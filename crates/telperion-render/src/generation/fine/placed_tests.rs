@@ -46,9 +46,10 @@ pub(super) struct Seated {
     pub steps: (u64, u64),
     /// Leaves over in direction on a run through a threshold of the named
     /// f32-against-f64 class (`at_threshold`), up to the leaf's segment:
-    /// `SHORTEST` (the executors draw the run's nodes differently, and its
-    /// frames are carried through them), and the half micrometre (the
-    /// leaf's station on another segment).
+    /// `SHORTEST`, the merge at 1,000 whole micrometres of grown wood (the
+    /// executors draw the run's nodes differently, and its frames are
+    /// carried through them), and the half micrometre (the leaf's station
+    /// on another segment).
     pub thresholds: (u64, u64),
     /// Leaves over in position whose segment agrees within the screen: the
     /// contact search's ray hit another triangle of the same rings.
@@ -304,8 +305,9 @@ pub(super) fn compare_leaves(
 /// fn-125's screen on a position, in metres: a leaf's direction is held
 /// to 0.005 plus it over its segment's chord (host, 2026-10-07).
 const MOST: f64 = 50e-6;
-/// The shortest internode the conversion keeps (`space.rs`).
-const SHORTEST: f64 = 1e-3;
+/// Where the conversion's merge rounds (`space.rs`, `SHORTEST`): wood
+/// grown under 999.5 micrometres since the last node drawn is merged.
+const SHORTEST: f64 = 999.5;
 
 /// A threshold of the named f32-against-f64 class.
 #[derive(PartialEq)]
@@ -315,10 +317,10 @@ enum Threshold {
 }
 
 /// The named f32-against-f64 class of the reference's run from `start` to
-/// `end`, if it passes a node at one of its thresholds: within the screen
-/// of `SHORTEST` from its parent (the conversion keeps or merges it by the
-/// executor's rounding), or its grown wood within 0.01 um of a half
-/// micrometre (a station split on the other side of a node).
+/// `end`, if it passes a node at one of its thresholds: its grown wood
+/// within 0.01 um of `SHORTEST` (the conversion keeps or merges it by the
+/// executor's rounding; fn-212 task 8), or of any other half micrometre (a
+/// station split on the other side of a node).
 fn at_threshold(tree: &Tree) -> impl Fn(Vec3, Vec3) -> Option<Threshold> + '_ {
     let key = |p: Vec3| [p.x, p.y, p.z].map(f64::to_bits);
     let at: HashMap<[u64; 3], usize> = (tree.nodes.iter().enumerate())
@@ -329,11 +331,10 @@ fn at_threshold(tree: &Tree) -> impl Fn(Vec3, Vec3) -> Option<Threshold> + '_ {
         let mut n = last;
         while n != first {
             let p = tree.nodes[n].parent? as usize;
-            let chord = tree.nodes[n].position.distance(tree.nodes[p].position);
-            if (chord - SHORTEST).abs() < MOST {
+            let u = tree.grown_length(n) * 1e6;
+            if (u - SHORTEST).abs() < 0.01 {
                 return Some(Threshold::Shortest);
             }
-            let u = tree.grown_length(n) * 1e6;
             if ((u - u.floor()) - 0.5).abs() < 0.01 {
                 return Some(Threshold::Rounding);
             }
