@@ -180,3 +180,14 @@ Measured `tree_buffer_bytes` after the submit: 141 MB (beech 80 s1), 240 MB (bee
 4. **The run graph across the seam** (§3): keep `paths`' leader rule whole-tree (the device needs every bearer's leader decision and distance), or make a fine root always start its own run (the trees change: a bearer's tip no longer flows into its widest lateral).
 5. **The run ranking** (§4): a global sort, or each side's own order, if nothing reads it but the table.
 6. **The browser's clock and threads in `sow`** before R4 (§6; FRICTION.md).
+
+## Host decisions on CONTRACT.md and AUDIT.md (2026-10-07)
+
+- **Denominator: option B.** The CPU deletions the audit found are taken first (task 2); R3's 3x is measured against the build after them, so it comes from the device port alone.
+- **D1 (reference):** the conversion keeps every kept phytomer (fn-209 decision 2 built here, task 3); thin wood is drawn as F3's sub-pixel ribbons instead of dropped by geometry; the probe's reference is frozen after that.
+- **D2:** leaf-bearing and station counts come from record and integer data, so counts are equal across executors.
+- **D3:** ground-routed roots never reach the device; they are excluded before upload.
+- **D4:** a fine root always starts its own sweep run, joined at the seam by a socket; the seam is judged on stills.
+- **D5:** each side keeps its own run order, the coarse structure's first; no global sort.
+- **D6:** on wasm32 the driver's sowing runs on the calling thread and every timer reads the engine's clock (`crate::clock::seconds()`); the same tree as natively.
+- **The branch's compile error** (`Stages::add` assigning `Instant::now()` to an f64, expansion.rs:405) is fixed in task 2 with the patch the audit saved.
