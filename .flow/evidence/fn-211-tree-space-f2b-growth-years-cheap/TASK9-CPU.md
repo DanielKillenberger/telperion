@@ -144,3 +144,38 @@ Against the base (`raw/task9/sag-vs-base.txt`):
   - `exp2_neg` can halve its chain with identical bits: a 2^16-entry table (512 KB) of the chain over the fraction's top 16 bits, then 16 products. That is about twice as fast on 2.2 of the 13 CPU seconds, about 8 % of the layout.
   - Anything faster changes the truncation order, which is a re-specification of D1 to D18. The host excluded that.
 - **Step 3 (the tropism rework) is not started:** the decision stops at step 2.
+
+## The host's third cost decision (2026-10-07): the polynomial logs, the girth cache, the tropism
+
+- **Step 1, log2 and exp2_neg as table-reduced Q62 polynomials** (`afa6eec2`). Specified to the bit in FINE-CONTRACT.md and CONTRACT-A.md and mirrored in `contract.wgsl`. The contract probe, over every D1–D18 user, agrees word for word, with the tables' edges added; so does the feedback probe. The bounds are no looser than the procedures': log2 within 1.000 Q32 units, as before; 2^-f within 2.22e-16 relative, as before. They cost 8 ns where the procedures took 62 to 69.
+- **Step 2, caching the own-pipe sections between the two girth runs: skipped.** After step 1 a section costs about 20 ns (a log, a power). A lineage-keyed lookup over 4.8 M phytomers costs as much or more, with its cache misses and about 100 MB. The saving would be at most about 0.1 CPU s on spruce 80.
+- **Step 3, the tropism's elevation as `atan2(z, lean)`** (`eb3f1416`). It saves the second root, 9.5 M `isqrt` calls on spruce 80. The layout has no device mirror yet (task 10); atan2 is already probed.
+
+### Measured (`raw/task9/passcost-logs.txt`; back to back at load under 10; 80, seed 1)
+
+| Tree | Base build ms | Now build ms | Whole build | Base layout ms | Now layout ms | Layout ratio |
+|---|--:|--:|--:|--:|--:|--:|
+| beech | 538 | 581 | +8 % | 68 | 154 | 2.3 |
+| spruce | 2,983 | 3,709 | +24 % | 613 | 1,637 | 2.7 |
+| oak | 1,968 | 2,180 | +11 % | 144 | 310 | 2.2 |
+| oak lit | 7,363 | 7,577 | +3 % | 886 | 1,502 | 1.7 |
+
+### Decision flips against `02cd51bc` (`raw/task9/logs-vs-sag.txt`)
+
+- **Topology** changes in one of 28 trees: the lit oak at 80, seed 7, with 3 phytomers new of 2.59 M.
+- **Tips** move at most 0.67 mm (spruce 80, seed 7, alone). Every other tree moves at most 0.36 mm (lit oak 80, seed 7), most of them under 0.1 mm.
+
+### The profile now (spruce 80, seed 1; calls counted for one run, times the micro-costs)
+
+| Primitive | Calls | ns | CPU s |
+|---|--:|--:|--:|
+| `unit` | 54.9 M | 34 | 1.9 |
+| `atan2` (CORDIC, 40 steps) | 21.0 M | 67 | 1.4 |
+| `turned` | 47.6 M | 24 | 1.1 |
+| `sincos` | 40.7 M | 16 | 0.7 |
+| other `isqrt` | 30.8 M | 19 | 0.6 |
+| `unit_w` | 7.6 M | 63 | 0.5 |
+| `log2` | 56.6 M | 8 | 0.5 |
+| `exp2_neg` (with `exp2`'s) | 33.8 M | 8 | 0.3 |
+
+The decision contract's logs are no longer the cost. What remains is the vector work (unit vectors and rotations) and the CORDIC `atan2`: one in the elevation and one in sag's room each step.
