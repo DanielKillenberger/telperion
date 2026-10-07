@@ -11,7 +11,7 @@ use crate::error::Result;
 use crate::grow::alone::rules;
 use crate::lineage::threshold;
 use crate::species::{Species, ALONG};
-use crate::structure::Vec3;
+use crate::structure::{Structure, Vec3};
 
 /// One PA's continuous values.
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -241,4 +241,22 @@ pub fn roots_geometry(fine: &CommittedFine) -> Vec<RootGeometry> {
             }
         })
         .collect()
+}
+
+/// The laid frame of axis `bearer` of `tree` at its node `node`, as a
+/// fine root standing there reads it (realized mechanics).
+pub fn bearer_frame(tree: &Structure, bearer: usize, node: usize) -> BearerFrame {
+    let axis = &tree.axes[bearer];
+    let at = &axis.phytomers[node];
+    BearerFrame {
+        below: node
+            .checked_sub(1)
+            .map_or(axis.base, |n| axis.phytomers[n].tip),
+        tip: at.tip,
+        heading: at.heading,
+        side: at.side,
+        rank: at.rank,
+        scale: at.scale,
+        size: at.size,
+    }
 }

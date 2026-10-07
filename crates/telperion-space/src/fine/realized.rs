@@ -18,7 +18,8 @@
 //! The root's tree holds its bearer as a stub (axis 0), whose one
 //! phytomer stands for the node the root grows on, so every pass is the
 //! whole tree's own, run on the root's axes.
-use super::Work;
+use super::expansion::{Lived, Loaded, RootSeed, Roots};
+use super::{each, pick, Plan, Work};
 use crate::error::Result;
 use crate::geometry::{place_from, scale};
 use crate::girth::{thicken_given, Girth};
@@ -32,8 +33,6 @@ use std::time::Instant;
 
 /// One fine root carried through the phases.
 pub(crate) struct Root {
-    /// Its stand-in's index above the cut, as grown.
-    pub at: usize,
     /// The node of its bearer it stands on.
     pub node: usize,
     pub woken: bool,
@@ -91,7 +90,6 @@ impl Root {
             micros: started.elapsed().as_secs_f64() * 1e6,
         };
         Self {
-            at: handed.at,
             node,
             woken,
             pa: handed.bud.axis.pa,
@@ -221,5 +219,58 @@ fn stub(bearer: &Axis, node: usize) -> Axis {
         alive: 0.0,
         rank: 0.0,
         sleep: 0.0,
+    }
+}
+
+/// The CPU reference executor's roots, grown and settled `plan.chunk` at
+/// a time in the plan's order on `threads` cores.
+pub(crate) struct Cpu<'s, 'r> {
+    pub species: &'s Species,
+    pub rules: &'r Rules<'s>,
+    pub plan: Plan,
+    pub threads: usize,
+    pub roots: Vec<Root>,
+}
+
+impl Roots for Cpu<'_, '_> {
+    fn grow(&mut self, seeds: &[RootSeed]) -> Result<(Vec<Lived>, u64)> {
+        let (species, rules) = (self.species, self.rules);
+        let mut slots: Vec<&RootSeed> = seeds.iter().collect();
+        let grown = each(&mut slots, self.plan, self.threads, &|_, s| {
+            Root::grow(species, rules, &s.handed)
+        });
+        self.roots = grown.into_iter().collect::<Result<Vec<Root>>>()?;
+        let living = self.roots.iter().map(|r| (r.living.lived, r.living.alive));
+        let phytomers = self.roots.iter().map(|r| r.work.grown).sum();
+        Ok((living.collect(), phytomers))
+    }
+
+    fn girth(&mut self, live: &[usize], scales: &[(f64, f64)]) -> Vec<f64> {
+        let species = self.species;
+        let mut alive = pick(&mut self.roots, live);
+        each(&mut alive, self.plan, self.threads, &|j, r| {
+            r.girth(species, scales[j])
+        });
+        live.iter().map(|&k| self.roots[k].radius).collect()
+    }
+
+    fn lay(&mut self, tree: &Structure, live: &[usize], bearers: &[usize]) -> Result<Vec<Loaded>> {
+        let species = self.species;
+        let mut alive = pick(&mut self.roots, live);
+        let laid = each(&mut alive, self.plan, self.threads, &|j, r| {
+            r.lay(species, &tree.axes[bearers[j]])
+        });
+        laid.into_iter().collect::<Result<()>>()?;
+        let load = |k: usize| (self.roots[k].load.mass, self.roots[k].load.moment);
+        Ok(live.iter().map(|&k| load(k)).collect())
+    }
+
+    fn bend(&mut self, tree: &Structure, live: &[usize], bearers: &[usize]) -> Result<()> {
+        let species = self.species;
+        let mut alive = pick(&mut self.roots, live);
+        let bent = each(&mut alive, self.plan, self.threads, &|j, r| {
+            r.bend(species, &tree.axes[bearers[j]])
+        });
+        bent.into_iter().collect()
     }
 }

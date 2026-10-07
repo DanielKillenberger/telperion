@@ -8,6 +8,7 @@ use crate::alone::{chains, seed_item, Seen};
 use crate::bounded::Expected;
 use crate::error::Result;
 use crate::fine::{grow_committed, CommittedFine, Plan};
+use crate::fixed::presence::q;
 use crate::fixed::{neg_log2, q32, q62, ticks, INF};
 use crate::grow::alone::{rules, Bud, Chain};
 use crate::grow::Request;
@@ -44,6 +45,16 @@ pub struct PaRow {
     pub relay_at: u64,
     /// D15: the last cycle its delay leaves dead, where it is shed.
     pub shed_at: Option<i64>,
+    /// Host decision 8, Q32: the window's rate and floor at stake 1, at
+    /// a failed unit's (1 - relay_failed) and at an abortion's (1 -
+    /// relay); its successor's chance and its ended age's relay
+    /// (`Grower::living`); each stage's reach from a bud of it, its own
+    /// first (`Species::lived`, `dormant::aged`); and its fade's delay
+    /// plus a cycle (`shed.rs`).
+    pub stakes: [(i64, i64); 3],
+    pub living: (u64, u64),
+    pub reaches: Vec<u64>,
+    pub fade_delay: u64,
 }
 
 /// A species point's tables for a chain's growth.
@@ -111,6 +122,18 @@ impl ChainTables {
                         .shedding
                         .is_finite()
                         .then(|| (f64::from(age) - s.shedding - 1.0).floor() as i64),
+                    stakes: [1.0, 1.0 - s.relay_failed, 1.0 - s.relay]
+                        .map(|stake| (q32(RATE * stake), q32(FLOOR * stake))),
+                    living: (
+                        q(species.successor(pa).map_or(0.0, |(_, go)| go)),
+                        q(s.relay_ended),
+                    ),
+                    reaches: reaches(species, pa),
+                    fade_delay: if s.shedding.is_finite() {
+                        q(s.shedding + 1.0)
+                    } else {
+                        0
+                    },
                 }
             })
             .collect();
@@ -134,6 +157,22 @@ impl ChainTables {
             curves,
             dead,
         })
+    }
+}
+
+/// Each stage a bud of `pa` reaches, its reach Q32: the age it grows in
+/// and each it moves on to (`dormant::aged`'s walk, its products real).
+fn reaches(species: &Species, pa: usize) -> Vec<u64> {
+    let mut out = Vec::new();
+    let Some((mut at, mut reach)) = species.lived(pa) else {
+        return out;
+    };
+    loop {
+        out.push(q(reach));
+        let Some((next, go)) = species.successor(at) else {
+            return out;
+        };
+        (at, reach) = (next, reach * go);
     }
 }
 

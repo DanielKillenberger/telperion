@@ -15,7 +15,7 @@ use crate::grow::alone::rules;
 use crate::grow::realized::{above, root, Hands};
 use crate::grow::Request;
 use crate::species::Species;
-use crate::structure::{Axis, Origin};
+use crate::structure::{Axis, Origin, Vec3};
 use std::time::Instant;
 
 /// One axis's presences as its fades read them, Q32: its vigour, each
@@ -36,6 +36,9 @@ pub struct RealizedCase {
     pub bud: ChainBud,
     /// Its first axis's vigour as made and its node's buds a whorl.
     pub made: (f64, f64),
+    /// The presences of the draws that made its first axis, Q32, as its
+    /// own grower takes them (`grow::alone::start`).
+    pub birth: [u64; 2],
     /// Its axes as grown and assigned, before shedding, its first axis's
     /// parent none and the rest numbered among the root's.
     pub grown: Vec<ChainAxis>,
@@ -79,6 +82,7 @@ pub fn realized_cases(
             Ok(RealizedCase {
                 bud: input(species, request.seed, Some(&h.bud)),
                 made: (h.bud.axis.vigour, whorl),
+                birth: super::expansion::birth(&h.bud),
                 grown,
                 presences,
                 kept,
@@ -132,4 +136,42 @@ fn presences(a: &Axis) -> Presences {
         alive: q(a.alive),
         sleep: q(a.sleep),
     }
+}
+
+/// Each fine root of `fine` (by its stand-in's order): its kept axes, its
+/// first axis's parent none and the rest numbered among the root's, each
+/// with its phytomers' tips and radii, and its bearer's node as laid,
+/// which its positions are taken from; none where the root was shed.
+pub fn root_axes(fine: &super::Fine) -> Vec<Option<(Vec<(ChainAxis, Vec<(Vec3, f64)>)>, Vec3)>> {
+    let axes = &fine.structure.axes;
+    let mut live = 0;
+    fine.roots
+        .iter()
+        .map(|r| {
+            let at = r.at?;
+            let (from, to) = (fine.starts[live], fine.starts[live + 1]);
+            live += 1;
+            let Origin::Lateral { parent, node, .. } = axes[at].origin else {
+                unreachable!("a fine root is a lateral bud")
+            };
+            let origin = axes[parent].phytomers[node].tip;
+            let mut stub = vec![axes[parent].clone()];
+            let local = |p: usize| if p == at { 1 } else { p - from + 2 };
+            for i in std::iter::once(at).chain(from..to) {
+                let mut a = axes[i].clone();
+                match &mut a.origin {
+                    Origin::Lateral { parent, .. } if i == at => *parent = 0,
+                    Origin::Lateral { parent, .. }
+                    | Origin::Continuation { parent }
+                    | Origin::Relay { parent, .. } => *parent = local(*parent),
+                    Origin::Seed => unreachable!("a root's axes are borne"),
+                }
+                stub.push(a);
+            }
+            let tips = stub[1..]
+                .iter()
+                .map(|a| a.phytomers.iter().map(|p| (p.tip, p.radius)).collect());
+            Some((chain_axes(&stub).into_iter().zip(tips).collect(), origin))
+        })
+        .collect()
 }
