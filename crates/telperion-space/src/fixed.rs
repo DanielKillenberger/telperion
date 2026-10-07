@@ -45,8 +45,8 @@ pub const ONE32: i64 = 1 << 32;
 pub const INF: i64 = 1 << 62;
 
 /// `ln 2` and `log2 e` in Q62.
-const LN2: i128 = 0x2c5c_85fd_f473_de6a;
-const LOG2E: i128 = 0x5c55_1d94_ae0b_f85d;
+pub(crate) const LN2: i128 = 0x2c5c_85fd_f473_de6a;
+pub(crate) const LOG2E: i128 = 0x5c55_1d94_ae0b_f85d;
 
 /// `2^-(2^-(i + 1))` in Q62, floored.
 const ROOTS: [u64; 32] = [
@@ -121,7 +121,13 @@ pub fn log2(n: u64) -> i64 {
     }
     let e = 63 - n.leading_zeros();
     // The mantissa in Q62, in [1, 2); a 64-bit `n` loses its last bit.
-    let mut m = if e <= 62 { n << (62 - e) } else { n >> 1 };
+    let m = if e <= 62 { n << (62 - e) } else { n >> 1 };
+    (i64::from(e) << 32) | log2_frac(m) as i64
+}
+
+/// The fraction of `log2 m`, Q32, of a Q62 mantissa `m` in [1, 2): 32
+/// squarings, each product's high part kept by a truncating shift.
+pub(crate) fn log2_frac(mut m: u64) -> u64 {
     let mut frac = 0u64;
     for _ in 0..32 {
         let square = (u128::from(m) * u128::from(m)) >> 62;
@@ -133,7 +139,7 @@ pub fn log2(n: u64) -> i64 {
             m = square as u64;
         }
     }
-    (i64::from(e) << 32) | frac as i64
+    frac
 }
 
 /// `2^-x` for `x` in Q32, as a Q62 probability: one for none or less.
@@ -254,6 +260,7 @@ pub fn draw(key: u64) -> u64 {
 }
 
 pub mod decide;
+pub mod feedback;
 pub mod presence;
 pub mod sum;
 

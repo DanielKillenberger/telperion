@@ -113,3 +113,10 @@
 - **What slowed it:** the load stood at 30 to 61 when the task started. One run got through at load 7.5 after a 4-minute wait; then the load rose to 56 again, and the other three runs queued behind it.
 - **Cost:** the gate's waits were 255 s, 450 s, 3,300 s and 525 s for set a (the one-core seed 1 waited 55 minutes), and up to 375 s in set b. The runs themselves take 10 to 60 s each, so measurement time was about a tenth of wall time.
 - **What would remove it:** task 6's entry stands: a shared desk lock for timing runs, so a timing worker queues on the lock rather than polling the load average.
+
+## 2026-10-07, task 8 worker: the session's /tmp quota is full, and every command's output is lost
+
+- **Doing:** writing the feedback contract's CPU module.
+- **What slowed it:** the host session's scratchpad under `/tmp/claude-1000/` holds 11 GB of other workers' build trees (`out/` 2.3 GB, `t5/` 1.8 GB, `topo/`, `before/`, `after/` 1.2 to 1.3 GB each), so the per-user tmpfs quota is full and the harness cannot store any Bash output (EDQUOT). Every command's output now has to be redirected into the worktree's `target/` and read back with a second call. Not deleted: they are not this worker's.
+- **Cost:** two calls for every command from here on; about 5 minutes to find the cause.
+- **What would remove it:** builds in each worktree's own `target/` (AGENTS.md already says so), and the host clearing finished scratch build trees; a local setup matter, reported.

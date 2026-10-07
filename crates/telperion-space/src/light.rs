@@ -343,6 +343,30 @@ impl Field {
     }
 }
 
+/// The light at each node of a lattice of W densities (`n / 2^64` square
+/// metres a cubic metre), its box `low` and `size` at `CELL` (fn-211 task
+/// 8's feedback slice): today's sweep, each density converted once to the
+/// nearest f64.
+pub(crate) fn swept_w(
+    light: &Light,
+    low: [i64; 3],
+    size: [usize; 3],
+    density: &[u128],
+) -> Vec<f64> {
+    let mut field = Field {
+        low,
+        size,
+        cell: CELL,
+        density: density
+            .iter()
+            .map(|&d| d as f64 / 18_446_744_073_709_551_616.0)
+            .collect(),
+        light: vec![1.0; density.len()],
+    };
+    field.sweep(light.extinction, &light.directions(), 1);
+    field.light
+}
+
 /// The value at fractional node (x, y) of a layer, bilinear; 0 beyond it.
 fn bilinear(layer: &[f64], nx: usize, ny: usize, x: f64, y: f64) -> f64 {
     let (fx, fy) = (x.floor(), y.floor());
