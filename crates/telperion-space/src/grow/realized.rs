@@ -60,6 +60,26 @@ pub(crate) fn above(
     seed: u64,
     threads: usize,
 ) -> Result<(Assigned, Vec<Handed>)> {
+    let mut laterals = Vec::new();
+    let (grown, woken) = streamed(rules, hands, seed, threads, &mut |made| {
+        laterals.extend(made)
+    })?;
+    Ok((grown, merged(laterals, woken, |h| h.at)))
+}
+
+/// `above`, each cycle's laterals handed to `sow` as the cycle makes them
+/// (task 9: the executor grows them while the structure grows on): its
+/// axes, and the sleeping buds that woke below the cut, by their
+/// stand-ins' order. A lateral below the cut never grows here, so what it
+/// is handed on with is fixed when it is made; the woken buds wait for
+/// what their bearers keep of them, which the whole growth decides.
+pub(crate) fn streamed(
+    rules: &Rules,
+    hands: Hands,
+    seed: u64,
+    threads: usize,
+    sow: &mut dyn FnMut(Vec<Handed>),
+) -> Result<(Assigned, Vec<Handed>)> {
     let rules = Rules {
         alone: false,
         hands: Some(Arc::new(hands)),
@@ -67,12 +87,44 @@ pub(crate) fn above(
     };
     let share = super::parallel::SHARE;
     let mut g = Grower::seeded(rules, (threads, share), None, seed)?;
+    #[cfg(test)]
+    let mut sown = Vec::new();
+    let mut from = 0;
     for cycle in 1..=g.rules.age {
         g.step(cycle, &mut |_| {})?;
+        let made = g.laterals(from);
+        from = g.axes.len();
+        #[cfg(test)]
+        sown.extend(made.iter().map(|h| format!("{} {:?}", h.at, h.bud)));
+        sow(made);
     }
     g.mark();
-    let handed = g.handed();
-    Ok((g.assigned(), handed))
+    // Every lateral as handed on when made is the one the grown tree
+    // holds (each crate test that grows through the partition checks).
+    #[cfg(test)]
+    {
+        let last: Vec<String> = g
+            .laterals(0)
+            .iter()
+            .map(|h| format!("{} {:?}", h.at, h.bud))
+            .collect();
+        assert_eq!(sown, last, "the laterals as made are those grown");
+    }
+    let woken = g.woken();
+    Ok((g.assigned(), woken))
+}
+
+/// Two lists, each ordered by `at`, as one.
+pub(crate) fn merged<T>(a: Vec<T>, b: Vec<T>, at: impl Fn(&T) -> usize) -> Vec<T> {
+    let mut out = Vec::with_capacity(a.len() + b.len());
+    let (mut a, mut b) = (a.into_iter().peekable(), b.into_iter().peekable());
+    while let (Some(x), Some(y)) = (a.peek(), b.peek()) {
+        let next = if at(x) < at(y) { a.next() } else { b.next() };
+        out.extend(next);
+    }
+    out.extend(a);
+    out.extend(b);
+    out
 }
 
 /// Grows `bud`'s whole subtree from the bud alone: its bearer's stub
@@ -95,23 +147,19 @@ pub(crate) fn root(rules: &Rules, bud: &Bud) -> Result<Assigned> {
 }
 
 impl Grower<'_> {
-    /// Every bud handed on, by its stand-in's index: the laterals made
-    /// and not grown, and the sleeping buds that woke, each keeping what
-    /// its bearer kept of it.
-    fn handed(&self) -> Vec<Handed> {
-        let age = self.rules.age;
-        let mut out: Vec<Handed> = self
-            .axes
-            .iter()
-            .enumerate()
-            .filter(|(_, a)| {
-                matches!(a.origin, Origin::Lateral { woken: false, .. })
-                    && self.rules.hands(a.pa, a.birth)
-            })
-            .map(|(i, axis)| Handed {
+    /// The laterals handed on from axis `from` on, by their stand-ins'
+    /// index: made and not grown.
+    fn laterals(&self, from: usize) -> Vec<Handed> {
+        let lateral = |a: &Axis| {
+            matches!(a.origin, Origin::Lateral { woken: false, .. })
+                && self.rules.hands(a.pa, a.birth)
+        };
+        (from..self.axes.len())
+            .filter(|&i| lateral(&self.axes[i]))
+            .map(|i| Handed {
                 at: i,
                 bud: Bud {
-                    axis: axis.clone(),
+                    axis: self.axes[i].clone(),
                     draws: Draws {
                         birth: self.draws[i].birth,
                         ..Draws::default()
@@ -121,22 +169,32 @@ impl Grower<'_> {
                     wake: None,
                 },
             })
+            .collect()
+    }
+
+    /// The sleeping buds handed on as they woke, by their stand-ins'
+    /// index, each keeping what its bearer kept of it.
+    fn woken(&self) -> Vec<Handed> {
+        let age = self.rules.age;
+        let mut out: Vec<Handed> = self
+            .handed
+            .iter()
+            .map(|&(at, p)| {
+                let woken = Woken {
+                    axis: at,
+                    bearer: p.bearer,
+                    next: p.next,
+                    cycle: p.cycle,
+                    share: 1.0 - p.sleeper.sleep,
+                };
+                let kept = woken.kept(&self.axes, &self.draws, &self.successor, age);
+                let horizon = self.horizon[p.sleeper.parent];
+                Handed {
+                    at,
+                    bud: woken_bud(&self.rules, horizon, p, kept),
+                }
+            })
             .collect();
-        for &(at, p) in &self.handed {
-            let woken = Woken {
-                axis: at,
-                bearer: p.bearer,
-                next: p.next,
-                cycle: p.cycle,
-                share: 1.0 - p.sleeper.sleep,
-            };
-            let kept = woken.kept(&self.axes, &self.draws, &self.successor, age);
-            let horizon = self.horizon[p.sleeper.parent];
-            out.push(Handed {
-                at,
-                bud: woken_bud(&self.rules, horizon, p, kept),
-            });
-        }
         out.sort_by_key(|h| h.at);
         out
     }

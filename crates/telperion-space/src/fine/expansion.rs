@@ -15,7 +15,7 @@ use crate::fixed::presence::{q, times};
 use crate::geometry::{place, scale};
 use crate::girth::{thicken_given, Girth};
 use crate::grow::alone::Bud;
-use crate::grow::realized::{above, Handed, Hands};
+use crate::grow::realized::{merged, streamed, Assigned, Handed, Hands};
 use crate::grow::{Request, Rules};
 use crate::sag::{any, levers_given, Load};
 use crate::shed::{shed_given, Living};
@@ -43,9 +43,21 @@ pub struct RootSeed {
 
 /// What grows and settles the fine roots, phase by phase.
 pub trait Roots {
+    /// Phase 1 begun early (task 9): the roots made so far and not yet
+    /// taken (`seeds`, laterals all, in the order made) offered while the
+    /// structure above the cut grows on; how many of the first the
+    /// executor took to grow now. Those taken are the first laterals
+    /// among `grow`'s seeds, in the same order. By default none: every
+    /// root grows in `grow`.
+    fn sow(&mut self, seeds: &[RootSeed]) -> Result<usize> {
+        let _ = seeds;
+        Ok(0)
+    }
     /// Phase 1: every root grown whole from its seed, marked, assigned
     /// and shed by its own subtree; each one's living, by root, and the
-    /// phytomers grown in all.
+    /// phytomers grown in all. `seeds` are every root, by their
+    /// stand-ins' order; the laterals among them (`bud.woke` none) are in
+    /// the order `sow` offered them.
     fn grow(&mut self, seeds: &[RootSeed]) -> Result<(Vec<Lived>, u64)>;
     /// Phase 2: the live roots (`live`, by root) scaled from their
     /// bearers' base scales and their nodes' drawn scales (`scales`) and
@@ -120,20 +132,10 @@ pub(crate) fn settle_with(
     let hands = Hands::new(pas, request.age, |pa, birth| {
         predictor.count(pa, birth) <= plan.cut
     });
-    let (grown, handed) = above(rules, hands, request.seed, threads)?;
-    stages.mark("above the cut");
-    let seeds: Vec<RootSeed> = handed
-        .into_iter()
-        .map(|h| RootSeed {
-            bud: input(species, request.seed, Some(&h.bud)),
-            made: (h.bud.axis.vigour, whorl(&h.bud)),
-            birth: birth(&h.bud),
-            handed: h,
-        })
-        .collect();
-    stages.mark("seeds");
-    let mut clock = Clock::default();
     let reach = land.then(|| reach(species, request.age));
+    let (grown, seeds, sowing) = sow(species, (rules, hands, request.seed, threads), roots)?;
+    stages.add(sowing);
+    let mut clock = Clock::default();
     let (living, grew) = clock.time(|| roots.grow(&seeds))?;
     stages.mark("phase 1 (executor)");
     if grown.grown + grew > u64::from(request.budget) {
@@ -235,6 +237,55 @@ pub(crate) fn settle_with(
     Ok((settled, seeds))
 }
 
+/// Grows the structure above the cut on a thread of its own, offering
+/// `roots` each cycle's laterals as they are made (task 9): the structure
+/// grown, every root's seed by its stand-in's order, and the stages'
+/// milliseconds: the growth above the cut, then the seeds made after it.
+#[allow(clippy::type_complexity)]
+fn sow(
+    species: &Species,
+    (rules, hands, seed, threads): (&Rules, Hands, u64, usize),
+    roots: &mut dyn Roots,
+) -> Result<(Assigned, Vec<RootSeed>, Vec<(&'static str, f64)>)> {
+    let started = std::time::Instant::now();
+    let (tx, rx) = std::sync::mpsc::channel::<Vec<Handed>>();
+    let make = |h: Handed| RootSeed {
+        bud: input(species, seed, Some(&h.bud)),
+        made: (h.bud.axis.vigour, whorl(&h.bud)),
+        birth: birth(&h.bud),
+        handed: h,
+    };
+    std::thread::scope(|scope| {
+        let grower = scope.spawn(move || {
+            streamed(rules, hands, seed, threads, &mut |made| {
+                // The driver's end of the channel lives while this does.
+                tx.send(made).expect("the driver takes the laterals")
+            })
+        });
+        let (mut laterals, mut taken) = (Vec::new(), 0);
+        let mut failed = None;
+        for made in &rx {
+            laterals.extend(made.into_iter().map(make));
+            laterals.extend(rx.try_iter().flatten().map(make));
+            if failed.is_none() && taken < laterals.len() {
+                match roots.sow(&laterals[taken..]) {
+                    Ok(n) => taken += n,
+                    Err(e) => failed = Some(e),
+                }
+            }
+        }
+        let (grown, woken) = grower.join().expect("the structure above the cut")?;
+        if let Some(e) = failed {
+            return Err(e);
+        }
+        let grew = started.elapsed().as_secs_f64() * 1e3;
+        let woken = woken.into_iter().map(make).collect();
+        let seeds = merged(laterals, woken, |s| s.handed.at);
+        let all = started.elapsed().as_secs_f64() * 1e3;
+        Ok((grown, seeds, vec![("above the cut", grew), ("seeds", all - grew)]))
+    })
+}
+
 /// Each stage's milliseconds, from the last mark.
 struct Stages {
     last: std::time::Instant,
@@ -251,6 +302,12 @@ impl Default for Stages {
 }
 
 impl Stages {
+    /// Stages timed elsewhere, ending now.
+    fn add(&mut self, stages: Vec<(&'static str, f64)>) {
+        self.out.extend(stages);
+        self.last = std::time::Instant::now();
+    }
+
     fn mark(&mut self, stage: &'static str) {
         let now = std::time::Instant::now();
         self.out
