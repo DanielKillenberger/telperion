@@ -171,7 +171,7 @@ fn point_in(u: UnitRef, share: f32, k: u32, o: u32) -> array<vec4<f32>, 3> {
     let r = rank_f(rank_of(at)) + t * rank_f(sub64(nr, rank_of(at)));
     let base = start + (o3(at + o) - start) * t;
     let along = unit_or(h * (1.0 - t) + nh * t, h);
-    let side = unit_or(sd * (1.0 - t) + ns * t, sd);
+    let side = square(unit_or(sd * (1.0 - t) + ns * t, sd), along);
     let w = axis_phase(p) + r * divergence_f(ax(p, PA));
     return array<vec4<f32>, 3>(vec4<f32>(base, w), vec4<f32>(along, 0.0), vec4<f32>(side, 0.0));
 }
@@ -187,12 +187,17 @@ fn unit_point(u: UnitRef, j: u32, p: u32, node: u32, o: u32) -> array<vec4<f32>,
     return point_in(u, share, k, o);
 }
 
+// `side` made square to `along` (`stand::square`).
+fn square(side: vec3<f32>, along: vec3<f32>) -> vec3<f32> {
+    return unit_or(side - along * dot(side, along), side);
+}
+
 // `t` of the way from `a` to `b`, the frame turned as far.
 fn point_toward(a: array<vec4<f32>, 3>, b: array<vec4<f32>, 3>, t: f32) -> array<vec4<f32>, 3> {
     let base = a[0].xyz + (b[0].xyz - a[0].xyz) * t;
     let w = a[0].w + t * (b[0].w - a[0].w);
     let along = unit_or(a[1].xyz * (1.0 - t) + b[1].xyz * t, b[1].xyz);
-    let side = unit_or(a[2].xyz * (1.0 - t) + b[2].xyz * t, b[2].xyz);
+    let side = square(unit_or(a[2].xyz * (1.0 - t) + b[2].xyz * t, b[2].xyz), along);
     return array<vec4<f32>, 3>(vec4<f32>(base, w), vec4<f32>(along, 0.0), vec4<f32>(side, 0.0));
 }
 

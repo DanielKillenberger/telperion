@@ -25,10 +25,11 @@ impl Point {
     /// `t` of the way from this point to `to`, its frame turned as far.
     fn toward(self, to: Point, t: f64) -> Point {
         let blend = |a: Vec3, b: Vec3| (a * (1.0 - t) + b * t).unit().unwrap_or(b);
+        let along = blend(self.along, to.along);
         Point {
             base: self.base + (to.base - self.base) * t,
-            along: blend(self.along, to.along),
-            side: blend(self.side, to.side),
+            along,
+            side: square(blend(self.side, to.side), along),
             rank: self.rank + t * (to.rank - self.rank),
         }
     }
@@ -90,6 +91,14 @@ pub(super) fn stand(axes: &[Axis], species: &Species, p: usize, node: usize) -> 
     point
 }
 
+/// `side` made square to `along`, so a bud's frame stays a frame however
+/// far apart the frames it was blended from stood: a bud turned by epitony
+/// reads its facing from it, which an oblique side would step at the
+/// turn's cut (fn-199).
+fn square(side: Vec3, along: Vec3) -> Vec3 {
+    (side - along * side.dot(along)).unit().unwrap_or(side)
+}
+
 /// Each growth unit's phytomers, as index ranges, base to tip.
 fn unit_ranges(p: &Axis) -> Vec<(usize, usize)> {
     let mut out: Vec<(usize, usize)> = Vec::new();
@@ -135,10 +144,11 @@ fn point_in(p: &Axis, range: (usize, usize), share: f64, k: usize) -> Point {
     };
     let next = p.phytomers.get(k + 1);
     let blend = |a: Vec3, b: Vec3| (a * (1.0 - t) + b * t).unit().unwrap_or(a);
+    let along = blend(at.heading, next.map_or(at.heading, |q| q.heading));
     Point {
         base: start + (at.tip - start) * t,
-        along: blend(at.heading, next.map_or(at.heading, |q| q.heading)),
-        side: blend(at.side, next.map_or(at.side, |q| q.side)),
+        along,
+        side: square(blend(at.side, next.map_or(at.side, |q| q.side)), along),
         rank: at.rank + t * (next.map_or(p.rank, |q| q.rank) - at.rank),
     }
 }

@@ -479,3 +479,22 @@ So the phase steepened it.
 - Every tree reads as an open-grown beech, with no defect.
 - The crowns are broader than the first after-sheet, nearer the base's spread. Seed 4 now carries a long, spreading low limb on its left; seed 1 a few long limbs.
 - Heights 17.8 to 19.1 m, against 17.8 to 18.8 m on the base.
+
+## F4's tip merged (`78cc3fbe`); a crossing it exposed, fixed
+
+**The merge.** F4's tip `a478abb8` (after `2fd97b73`) merged; conflicts resolved:
+- `lineage::FAILED` moves to `u64::MAX - 10` (the GPU's `FAILED_KEY` with it), since F4's `INTERNODE` took `u64::MAX - 9`;
+- the contract probe takes F4's `internode_draw` as selector 16 and fn-199's fine forms as 17 and 18;
+- the walks' verdict stays in `walk::degree` (`judge`, `Walks`), read by F4's walks made once.
+
+**The limits guard** (`generation_limits_are_classified`) passes after the merge.
+
+**A new census flag after the merge.** R3, seed 19 near -1.056, 0.012 of the tree, bisected to a jump.
+- **What moved.** The relay of a node-less relay changed heading by 0.18 rad, with its frame's inputs identical on both sides: azimuth, along and side.
+- **Cause.** Rule 2' blends the along and the side of two units' frames separately. Blended, the side is no longer square to the along. Epitony reads a bud's facing from that frame, and its turn has a cut where the bud faces opposite the upper side. That cut is continuous only for a square frame, where the facing there is exactly -1 and the turn's weight `(1 + facing) / 2` is 0.
+- **Fix.** The blended side is made square to the blended along (`stand::square`, both executors).
+
+**After:**
+- census over seeds 1 to 50: R1 0, R3 0;
+- relay walks, `geometry` and `form` green;
+- the light walk 26.82 / 29.07.
