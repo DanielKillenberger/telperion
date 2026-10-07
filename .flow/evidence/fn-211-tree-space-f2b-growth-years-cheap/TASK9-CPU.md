@@ -42,3 +42,29 @@ Micro-costs on this desk:
 - A 256-bit product, shift and narrow: 4 ns.
 
 A layout step takes about six sin/cos and three atan2.
+
+## After options 1 and 2 (host, 2026-10-07): still over 1.3x
+
+Commit `053ba4ec` (vector-built rotations; one sin and cos per stated angle). The 28 trees move as at `0c70e64b`, to the micrometre (`raw/task9/turn-vs-base.txt`). The base and the new layout were run back to back at load 9 to 10 (`raw/task9/passcost-base-2.txt`, `passcost-turn.txt`).
+
+| Tree 80 s1 | Base build ms | New build ms | Base layout ms | New layout ms | Layout ratio |
+|---|--:|--:|--:|--:|--:|
+| beech | 586 | 802 | 71 | 220 | 3.1 |
+| spruce | 3,389 | 4,659 | 729 | 2,004 | 2.75 |
+| oak | 2,153 | 2,738 | 147 | 446 | 3.0 |
+| oak lit | 8,217 | 9,173 | 1,044 | 1,860 | 1.8 (final place and sag alone: 108 to 276, 2.6) |
+
+### The profile
+
+`perf` and `samply` cannot run on this desk (`perf_event_paranoid`). Instead, calls were counted once per spruce 80 build, with counters added for one run and then removed, and multiplied by the micro-costs above. These are CPU seconds summed over threads, an estimate:
+
+| Primitive | Calls a build | ns each | CPU s | Its sources in a step |
+|---|--:|--:|--:|---|
+| `sincos` (CORDIC, 40 steps) | 38.5 M | 114 | 4.4 | the tropism's elevation, the wander's azimuth, the wander's turn, sag's turn: about 4 a step |
+| `unit` (includes one `isqrt`) | 52.2 M | 40 | 2.1 | elevation's level, carry (twice), the lifts' blend, the side: about 5 a step |
+| other `isqrt` | 30.6 M | 18 | 0.6 | `length`, `asin` |
+| Rodrigues (`turned`) | 47.6 M | about 25 | 1.2 | carry (2), wander (2), sag (3) |
+| `atan2` | 11.4 M | 70 | 0.8 | `asin` in the elevation |
+| `exp2_neg` | 15.2 M | about 40 | 0.6 | the tropism's share, the bend length's keep |
+
+The sin and cos are about half the identified cost, and the unit vectors about a quarter. Neither is redundant any more: each angle left is a stated quantity.
