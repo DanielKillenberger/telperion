@@ -50,7 +50,7 @@ fn fine_stage_and_build() {
     // One build first, so the device's clocks are up before the first
     // tree's cold build is timed.
     let warming = locked();
-    build(&gpu, &k, &telperion_space::beech(), (40, 1));
+    build(&gpu, &k, &telperion_space::spruce(), (25, 1));
     drop(warming);
     let load = std::fs::read_to_string("/proc/loadavg").unwrap_or_default();
     println!("load at the start: {}", load.trim());
