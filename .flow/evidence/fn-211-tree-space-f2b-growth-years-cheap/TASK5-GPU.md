@@ -173,6 +173,6 @@ What it gives and costs:
 | The oak identical by lineage to the stepped CPU executor on the GPU, at 40 and 80, seeds 1 and 7, geometry within the screen | **not met.** The device executor is not built; the design question above stops it |
 | The canonical light arithmetic specified, mirrored and measured on today's trees | **not met.** Its scope is the design question: the task's list omits the positions light reads |
 | Round trips counted; the oak timed warm and cold against today | Round trips: **counted and timed** for the synchronisation floor (probe (b)). The oak's timing waits on the executor |
-| Workspace gate green | not run: no product change since the merge's crate and GPU tests |
+| Workspace gate green | **met** at `90330dee` (the merge and the probe): `cargo test --profile ci --workspace --no-fail-fast`, 1,155 passed, 0 failed, 28 ignored, 10 min 5 s at load 4.2 to 10.6, GPU lock held (`raw/task5/gate.txt`) |
 
 The merge (step 1 of the brief) is met.
