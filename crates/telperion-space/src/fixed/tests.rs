@@ -87,6 +87,28 @@ fn a_product_by_halves_is_the_whole_product() {
 }
 
 #[test]
+fn a_presence_is_its_whole_quotient_to_the_bit() {
+    let reference = |lead: i64, window: i64| {
+        if lead >= INF || window <= 0 {
+            return ONE32 as u64;
+        }
+        if lead <= 0 {
+            return 0;
+        }
+        ((i128::from(lead) << 32) / i128::from(window)).min(i128::from(ONE32)) as u64
+    };
+    let mut x = 0x9e37_79b9_7f4a_7c15u64;
+    for _ in 0..200_000 {
+        x = x.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+        let lead = (x >> (x % 64)) as i64 - (1 << 40);
+        let window = ((x >> 20) % (8 * ONE32 as u64)) as i64;
+        for (l, w) in [(lead, window), (lead >> 20, window), (window - 1, window)] {
+            assert_eq!(presence(l, w), reference(l, w), "{l} {w}");
+        }
+    }
+}
+
+#[test]
 fn exp2_neg_is_close_and_monotone() {
     for k in 0..20_000i64 {
         let x = (k * 0x9e37_79b1) % (70 * ONE32);

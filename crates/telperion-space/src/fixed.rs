@@ -184,21 +184,22 @@ fn log2_pair(a: u64, b: u64) -> (i64, i64) {
     ((ea << 32) | fa as i64, (eb << 32) | fb as i64)
 }
 
-/// A non-zero `n`'s exponent and its mantissa in Q62, in [1, 2); a 64-bit
-/// `n` loses its last bit.
+/// A non-zero `n`'s exponent and its mantissa in Q62, in [1, 2), held
+/// doubled (Q63, its last bit clear) so a square's high word is the Q62
+/// square; a 64-bit `n` loses its last bit.
 fn mantissa(n: u64) -> (i64, u64) {
-    let e = 63 - n.leading_zeros();
-    let m = if e <= 62 { n << (62 - e) } else { n >> 1 };
-    (i64::from(e), m)
+    let zeros = n.leading_zeros();
+    (i64::from(63 - zeros), (n << zeros) & !1)
 }
 
 /// One step of `log2`: the mantissa squared in Q62, truncated, and halved
 /// back into [1, 2) where it reached 2; the bit is whether it did.
 fn square(m: &mut u64) -> u64 {
-    // m < 2^63, so the square in Q62 is under 2^64.
-    let square = (wide(*m, *m) >> 62) as u64;
+    // The high word of the doubled mantissa's square: the Q62 square.
+    let square = (wide(*m, *m) >> 64) as u64;
     let bit = square >> 63;
-    *m = square >> bit;
+    // Halved and doubled, or doubled: its last bit stays clear.
+    *m = if bit == 1 { square & !1 } else { square << 1 };
     bit
 }
 
@@ -293,6 +294,14 @@ pub fn presence(lead: i64, window: i64) -> u64 {
     }
     if lead <= 0 {
         return 0;
+    }
+    // A lead past its window is whole, and a lead under one (Q32)
+    // divides in 64 bits: the same quotient, without a 128-bit division.
+    if lead >= window {
+        return ONE32 as u64;
+    }
+    if lead < ONE32 {
+        return ((lead as u64) << 32) / window as u64;
     }
     ((i128::from(lead) << 32) / i128::from(window)).min(i128::from(ONE32)) as u64
 }
