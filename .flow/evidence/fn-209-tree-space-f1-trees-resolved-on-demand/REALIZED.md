@@ -516,3 +516,82 @@ For the beech, **option c** of "The GPU mirror built" (a workgroup per heavy cha
 | CPU and GPU identical by lineage after every speed change; the contract probe green | **met**: the GPU fine tests after each commit; `realized_at_40_and_80` at the end |
 | GPU at least 3x faster than 32 cores on spruce 80, faster on beech 80, or the reason with numbers | beech 80 **met** (152 / 205 ms against 158 / 263); spruce 80 fine stage 3.5x, whole build 2.1 to 2.3x, **the reason above**: the CPU's stages alone are about 300 ms |
 | Workspace gate green | **met** |
+
+## Task 9: the driver overlapped with the GPU (worker, 2026-10-07)
+
+Host decision after task 8, option 2. From `f1895b0c` to `2e73a320`. Raw output in `raw/task9/` (ignored).
+
+### Answer in brief
+
+- **Every tree identical.** The 32 lineage digests and `measures hash 80` (neutral and lit, 16 trees) equal task 8's final. On the GPU, `realized_at_40_and_80` gives task 6's table to the printed digit (beech 80 18.8 / 1.42 µm, spruce 80 2.7 / 0.39 µm, the same roots on the CPU, statuses 0), and a sown build's digest equals a reversed, unsown one's. The GPU fine tests compare a sown build at 25 with three ordered builds.
+- **Spruce 80, warm:** 0.44-0.46 s in task 8; now 369-388 ms (`fine_stage_and_build`) and 369-374 ms best of five interleaved (`sown_against_none`, 441-455 ms with nothing sown). 32 cores take 1,027-1,139 ms in the same runs. **2.7 to 2.8 times 32 cores, not 3.** The reason is below.
+- **Beech 80:** unchanged (149-155 ms seed 1, 205-206 ms seed 7, against 155 / 205 ms unsown; 32 cores 169-186 / 272-297 ms).
+
+### What was built
+
+| Commit | Change |
+|---|---|
+| `f1895b0c` | The structure above the cut grows on a thread of its own and hands each cycle's laterals below the cut to the driver as it makes them (`grow/realized.rs`, `streamed`); the driver offers them to the executor (`Roots::sow`, by default taking none) |
+| `4b1d2a4a` | The GPU executor grows what it takes as a group of its own while the structure grows on, from 8,192 roots on (`group.rs`); the rest grow in `grow`. Each group keeps its waves and settles on its own; a root reads only its own chains |
+| `34ce4512` | A sleeping bud below the cut is handed on as it wakes, kept whole. What its bearer keeps of it, known only once the structure has grown, sizes only its root's first axis's vigour, so the device now takes that vigour from the seed in phase 2 (the root's record beside its origins), and the driver puts the final one in at the end |
+| `2e73a320` | The landing's roots grown ahead (`spare.rs`, `likely.rs`): while the device runs phases 2 and 3, the idle cores grow, scale and lay the roots likeliest to land, and wait while the structure's passes run. Also: the landing reads stubs as plain values, the device's bent lay runs while the CPU lands, every group's records come back in one round trip |
+
+Each crate test that grows through the partition checks every bud as handed on against the grown tree, a woken bud's keeping aside. `a_root_grown_ahead_lands_as_the_executor_lays_it` holds each landed root equal to the CPU executor's own, to the bit.
+
+### Timing (`raw/task9/speed.txt`; cut 1,024; load 13 to 35 at the start, 4 at the end, from the other workers)
+
+| Tree | GPU cold / warm ms (fine stage in `grow`) | CPU all cores cold / warm ms | CPU 1 core cold / warm ms |
+|---|--:|--:|--:|
+| beech 40 1 | 44 / 42 | 21 / 18 | 96 / 82 |
+| beech 40 7 | 47 / 49 | 32 / 28 | 136 / 128 |
+| beech 80 1 | 174 / 172 | 213 / 169 | 1330 / 1152 |
+| beech 80 7 | 228 / 213 | 295 / 272 | 2065 / 1880 |
+| spruce 40 1 | 116 / 114 | 255 / 253 | 1852 / 1866 |
+| spruce 40 7 | 111 / 108 | 243 / 244 | 1818 / 1798 |
+| spruce 80 1 | 410 / 369 | 1165 / 1027 | 9257 / 8702 |
+| spruce 80 7 | 392 / 388 | 1069 / 1029 | 8556 / 8490 |
+
+The fine stage column of task 8 no longer measures the executor: phase 1 now runs mostly inside `sow`, before `grow`. The interleaved A/B (`raw/task9/sown.txt`, five rounds, best / median ms) is the cleaner comparison: spruce 80 seed 1 none 441 / 468, sown from 8,192 369 / 393; seed 7 455 / 478 against 374 / 392; beech 80 seed 1 155 / 159 against 149 / 156. Sowing from 2,048 costs the beech 6 ms (its few long chains pay their waves once per group), so the device takes 8,192 or more.
+
+### Where spruce 80's 0.37 s goes (`growth_by_kernel`, warm, seed 1)
+
+| Stage | ms | Before (task 8) |
+|---|--:|--:|
+| Rules, predictor | 16 + 24 | 16 + 26 |
+| Structure above the cut (the device grows 4 groups meanwhile) | 115-127 | 110-124 |
+| Phase 1 past it: the device's last group | 41-55 | 103-108 (all of phase 1) |
+| Seeds | 4 | 14-18 |
+| Shed and scale | 13-15 | 13-14 |
+| Phase 2 (the spare cores grow ahead) | 23-27 | 23 |
+| Thicken and place | 20-27 | 17-19 |
+| Phase 3 (the spare cores grow and lay ahead) | 33-36 | 30 |
+| Landing, unbent | 2 | 7-8 |
+| Levers and place | 21-24 | 21-22 |
+| Phase 4, beside the landing bent | 8-10 / 12-16 | 6 / 48-55 |
+
+**Why not 3 times.** 3 times 32 cores is 342-343 ms on this run's CPU columns (330 ms on task 8's). Three serial pieces are left:
+- **Before the last bud exists: 155-165 ms** (rules, predictor, the structure above the cut). This is F2b's work and the cut's reading; nothing on the device can start on a root before it is made.
+- **The device's phase 1 is throughput-bound.** Its five groups take 128 ms of device time against 103 ms as one, and the device is busy from its first group to the end. The last group (about 21,000 roots, three waves) is the 41-55 ms past the structure.
+- **The settle chain after phase 1: about 150 ms.** Every stage feeds the next.
+- The spare cores slow phase 3 by 3-8 ms, most likely through the allocator the driver's own part of phase 3 shares with them (not profiled). 16, 8 and 4 helpers grew 6,700, 3,800 and 1,900 roots ahead and left the landing 30-42 ms, no faster overall (an A/B with a temporary `FINE_HELPERS`, not kept).
+
+### Design questions (host)
+
+1. **The selection rule is a guess, not a safe superset.** Before the tree is laid, the trunk's height is read as its length; once laid, the roots that land on it come first, then those whose bearer node, hung straight down from where its branch leaves the trunk, reaches the landing zone (`likely.rs`). It covers 4,904 of spruce 80 seed 1's 5,623 landed roots and 16 of 16 and 29 of 29 on the beech; the rest are grown at landing as before. It is not a bound because the trunk sags too: a proof needs a bound on the trunk's own bend. The landing still decides by host decision 3's bound itself, so a miss costs time only. Options: (a) keep the guess; (b) bound the trunk's sag (a design of the sag's backstop) and take the path rule as a superset (about 19,000 of 74,000 roots at spruce 80); (c) grow every candidate whatever its rank, at more contention.
+2. **The phase-1 tail.** Options: (a) let the CPU executor take part of the last group on its idle cores, roots wholly on the CPU like the landing's (a change in which roots the device grows); (b) a faster phase 1 on the device per root (task 8's lever c, the chain grower's redesign); (c) F2b's shorter structure above the cut, which also moves the last buds earlier.
+
+### Changes to the driver's interfaces (fn-198 is merging this branch)
+
+- `Roots` gains `sow(&mut self, seeds: &[RootSeed]) -> Result<usize>`, a default method taking none; `grow`'s seeds are unchanged in order (by stand-in), those sown first. A woken root's seed is offered with its keeping whole; `grow`'s seed carries the final `made.0` and `birth[1]`.
+- `settle`'s signature is unchanged. `Settled` gains `ahead` (roots grown ahead). The stages read: "above the cut", "sowing past it", "seeds", then "the reach's rows" before phase 2; the landing's stages as before.
+- The GPU executor (test code in `telperion-render`): `Device::waves()` is now `groups()`, each group with its roots; `sown_from(least)` sets the threshold; `ordered(order)` takes every root in one group, unsown. The root's record in `records` is four floats (origins' heights, then the first axis's vigour, Q32), `settle.wgsl`'s `RR`.
+
+### Gate and acceptance
+
+**Gate:** `cargo test --profile ci --workspace --no-fail-fast` at `2e73a320`, GPU lock held: 1,146 passed, **1 failed**, 28 ignored, 10 m 59 s, load 8.9 at the start and 35 at the end (`raw/task9/gate.txt`). The failure is `telperion-core`'s `fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens`, which this task does not touch: its peak resident 5.84 GB stood over a process ceiling of 5.77 GB, and that ceiling is read from the memory available when the test starts (`suite/species/budget.rs`, `ceiling_from(available_bytes())`), with the other worktrees' builds holding about 17 of 31 GB. Run alone just after, it passed in 12 s. Not rerun as a whole (AGENTS.md: the gate is run once); for the host.
+
+| Criterion | State |
+|---|---|
+| Every tree identical by lineage on both executors; GPU tests green | **met**: digests and `measures hash 80` equal task 8's; GPU fine tests green; `realized_at_40_and_80` as task 6 |
+| Spruce 80 and beech 80 timed warm and cold against 32 and 1 cores; the 3x bar or the reason with numbers | spruce 80 **2.7 to 2.8x** 32 cores, 23 to 24x one core; beech 80 at 32 cores' speed. **The reason above** |
+| Workspace gate green | **not met as run**: one environmental failure in an untouched crate's memory ceiling, green alone (above) |
