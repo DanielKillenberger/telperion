@@ -209,3 +209,9 @@ Measured `tree_buffer_bytes` after the submit: 141 MB (beech 80 s1), 240 MB (bee
   - **Codominance near `FORK_FROM`:** a lateral at 0.4 of its parent plus 2.7e-9 (beech 80 s7: one run's radius off 6 %). Contract A's exact radii are expected to remove it.
   - **`SHORTEST` at 1 mm:** spruce 80 s7 run 62151, a point off 1.0 mm. If it persists after contract A, it is a candidate for deciding on the CPU's fixed-point length; not built now.
   - **Task 7's parity verdict counts this class per tree: how many runs, and how far.**
+
+## Host decisions on task 6 (2026-10-07)
+
+1. **Station numbering: option (b).** A leaf's random values are drawn from its station's identity: the run's first node's lineage, plus the station's place within the run. The engine keys every draw by lineage, which is free of order and survives partial trees and level of detail. A global index ties leaves to whatever order an executor happens to walk. The stream changes for every tree, which generator evolution allows. Show that the leaf scale and scatter distributions are unchanged in law, and view stills (hero and close up, beech and spruce at 80, before and after).
+2. **Station frame seed:** the same side seed for bearing runs, on both executors. Count the runs near its jump.
+3. **Bearing runs across the seam: option (a).** A fine root's first node never counts among its bearer's bearing children, so dependencies cross the seam one way only. Measure how many bearers change, inside core: a crate-internal test or a `pub(crate)` helper, never a wider API.
