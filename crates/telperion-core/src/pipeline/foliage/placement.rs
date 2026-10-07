@@ -2,9 +2,9 @@
 use super::{
     canopy::validate,
     clumping,
-    plan::bearing_runs,
+    plan::{bearing_runs, walk},
     rosette, short_shoots,
-    station::{place_run, reserve_all, station_count, walk, Run},
+    station::{place_run, reserve_all, station_count, Run},
     CanopyParams, Instances, Reference, TwigPlacement,
 };
 use crate::{
@@ -96,7 +96,7 @@ fn leaves_on(
     runs: &[Vec<usize>],
 ) -> Result<usize> {
     let overflow = || Error::ResourceLimit("foliage count overflow");
-    let (mut points, mut along) = (Vec::new(), Vec::new());
+    let (mut points, mut chord, mut along) = (Vec::new(), Vec::new(), Vec::new());
     let leaflets = rosette::leaflets(&p);
     let mut total = if rosette::bearing(&p) {
         rosette::count(tree, &p)?
@@ -104,7 +104,7 @@ fn leaves_on(
         short_shoots::count(tree, envelope, seed, &p)?
     };
     for nodes in runs {
-        let length = walk(tree, nodes, &mut points, &mut along);
+        let length = walk(tree, nodes, twig, &mut points, (&mut chord, &mut along));
         total = station_count(length, envelope, p, twig)?
             .checked_mul(leaflets)
             .and_then(|leaves| total.checked_add(leaves))

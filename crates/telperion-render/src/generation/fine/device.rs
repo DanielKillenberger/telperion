@@ -90,6 +90,11 @@ impl<'a> Device<'a> {
             .expect("the tables, built")
     }
 
+    /// The geometry table on the device (`laid::table`).
+    pub(super) fn table(&self) -> &wgpu::Buffer {
+        &self.tables().table
+    }
+
     /// The tables, uploaded once built.
     fn ready(&mut self) {
         if let Some(building) = self.building.take() {

@@ -1,5 +1,6 @@
 //! One shoot's stations: where each leaf sits along the run, how far it leans
 //! off the wood, and the frame the renderer receives.
+use super::plan::{micrometres, walk};
 use super::{CanopyParams, Instances, TwigPlacement};
 use crate::math::Transcendental;
 use crate::{
@@ -24,26 +25,6 @@ pub(super) struct Run<'a> {
     pub fine: &'a [bool],
 }
 
-/// The points one run passes through and the distance along it to each, into
-/// scratch the caller owns; the run's own length is the last of them. The
-/// builder sweeps this walk and the count reads it, so a run is measured by
-/// one rule however many times it is read.
-pub(super) fn walk(
-    tree: &Tree,
-    nodes: &[usize],
-    points: &mut Vec<Vec3>,
-    along: &mut Vec<f64>,
-) -> f64 {
-    points.clear();
-    points.extend(nodes.iter().map(|i| tree.nodes[*i].position));
-    along.clear();
-    along.push(0.);
-    for i in 1..points.len() {
-        along.push(along[i - 1] + points[i].distance(points[i - 1]));
-    }
-    *along.last().unwrap()
-}
-
 pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result<()> {
     let Run {
         tree,
@@ -54,13 +35,13 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
         contacts,
         fine,
     } = *run;
-    let (mut points, mut along) = (Vec::new(), Vec::new());
-    let length = walk(tree, nodes, &mut points, &mut along);
+    let (mut points, mut chord, mut along) = (Vec::new(), Vec::new(), Vec::new());
+    let length = walk(tree, nodes, twig, &mut points, (&mut chord, &mut along));
     let stations = stations(length, envelope, p, twig, rng)?;
     if stations.is_empty() {
         return Ok(());
     }
-    let frames = station_frames(&points, &along, tree.seed_side(fine, nodes[0], nodes[1]));
+    let frames = station_frames(&points, &chord, tree.seed_side(fine, nodes[0], nodes[1]));
     let leaflets = super::rosette::leaflets(&p);
     reserve(
         out,
@@ -139,9 +120,10 @@ fn addressable() -> f64 {
     (isize::MAX as usize / std::mem::size_of::<f64>()) as f64
 }
 
-/// How many leaves a run of this length carries: one set per internode under a
-/// twig layer, height-relative spacing plus a terminal clump without one. The
-/// builder places exactly this many and the prediction counts them, from here.
+/// How many leaves a run of this grown length (`walk`'s units) carries: one
+/// set per internode under a twig layer, height-relative spacing plus a
+/// terminal clump without one. The builder places exactly this many and the
+/// prediction counts them, from here.
 pub(super) fn station_count(
     length: f64,
     envelope: Envelope,
@@ -156,7 +138,7 @@ pub(super) fn station_count(
     }
     if let Some(t) = twig {
         let per = t.stations_per_internode as f64;
-        let internodes = (length / t.internode_length - 1e-9).ceil().max(1.);
+        let internodes = (length / micrometres(t.internode_length)).ceil().max(1.);
         if !internodes.is_finite()
             || internodes * per > p.max_instances as f64
             || internodes * per >= addressable()
@@ -175,7 +157,7 @@ pub(super) fn station_count(
     Ok(count as usize + p.clump as usize)
 }
 
-/// Distances along the run at which those leaves sit.
+/// Distances along the run at which those leaves sit, in `walk`'s units.
 fn stations(
     length: f64,
     envelope: Envelope,
@@ -197,7 +179,7 @@ fn stations(
         let per = t.stations_per_internode as usize;
         for i in 0..total / per {
             for _ in 0..per {
-                stations.push(i as f64 * t.internode_length);
+                stations.push(i as f64 * micrometres(t.internode_length));
             }
         }
         return Ok(stations);

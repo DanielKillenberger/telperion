@@ -18,7 +18,7 @@ pub(super) const DRESS: &str = include_str!("dress.wgsl");
 pub(super) const FOLD: &str = include_str!("fold.wgsl");
 /// A drawn axis's and phytomer's floats (`dress.wgsl`).
 const CA: u32 = 12;
-pub(super) const CV: usize = 25;
+pub(super) const CV: usize = 26;
 pub(super) const CA_WORDS: usize = CA as usize;
 pub(super) const MADE: u32 = 2;
 pub(super) const LANDED: u32 = 4;
@@ -68,7 +68,7 @@ pub(super) struct Dresser {
 
 impl Dresser {
     pub(super) fn new(gpu: &Gpu) -> Self {
-        let dress = [true, true, true, true, true, true, false];
+        let dress = [true, true, true, true, true, true, false, true];
         let fold = [true, false, true, false];
         let folds = ["extent", "widest", "crowns", "sift"];
         Self {
@@ -192,6 +192,7 @@ pub(super) fn dress(gpu: &Gpu, d: &Dresser, dev: &Device, stubs: &[Stub]) -> Dre
                     &now.buffer,
                     &bufs[w],
                     &bufs[w + 1],
+                    dev.table(),
                 ];
                 let bind = d.dress.bind(gpu, &all);
                 d.dress.run(&mut encoder, &bind, 0, groups);

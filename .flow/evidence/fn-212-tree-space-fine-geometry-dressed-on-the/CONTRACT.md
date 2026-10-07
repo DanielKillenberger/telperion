@@ -215,3 +215,12 @@ Measured `tree_buffer_bytes` after the submit: 141 MB (beech 80 s1), 240 MB (bee
 1. **Station numbering: option (b).** A leaf's random values are drawn from its station's identity: the run's first node's lineage, plus the station's place within the run. The engine keys every draw by lineage, which is free of order and survives partial trees and level of detail. A global index ties leaves to whatever order an executor happens to walk. The stream changes for every tree, which generator evolution allows. Show that the leaf scale and scatter distributions are unchanged in law, and view stills (hero and close up, beech and spruce at 80, before and after).
 2. **Station frame seed:** the same side seed for bearing runs, on both executors. Count the runs near its jump.
 3. **Bearing runs across the seam: option (a).** A fine root's first node never counts among its bearer's bearing children, so dependencies cross the seam one way only. Measure how many bearers change, inside core: a crate-internal test or a `pub(crate)` helper, never a wider API.
+
+## Host decision on the whole-internode ties (2026-10-07)
+
+- **Option (a): station counts and split points come from the grown length** (Σ internode × scale over the phytomers a node draws), record data as D2 asks, on both executors. CPU counts move where a run's arc and chord differ.
+- **Worker, built** (TASK6.md, "Grown length"):
+  - Each node's grown wood is `Tree::grown` (the conversion's record) on the CPU and a drawn record's word on the device.
+  - Each node's share is rounded to whole micrometres and summed as integers on both executors. A float sum of the internodes alone does not tie the same way in f32 and f64: the spruce's fine PA is 3.25 twig internodes, and four nodes sum to exactly 13.
+  - A dyadic grid (1/4096 internode) was tried and dropped: it breaks the beech's 25/6.
+  - Where a node's grown wood lies within float32's error of a half micrometre, the executors round it apart. That is the named f32-against-f64 class, and the probe counts it per tree.

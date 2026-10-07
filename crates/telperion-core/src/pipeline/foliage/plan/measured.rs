@@ -3,7 +3,9 @@
 //! stations_measured_at_80 -- --ignored --nocapture`): the bearers whose
 //! bearing children change when a seam no longer counts, the fine bearing
 //! runs near their frame seed's jump, and the leaves' draws in law under
-//! the global stream and under each run's own.
+//! the global stream and under each run's own; and the stations every
+//! bearing run carries counted by its chord (before) and by its grown wood
+//! (after, `grown_stations_at_80`).
 use super::*;
 use crate::pipeline::executor;
 use crate::tree::{leaf_stream, mix32};
@@ -125,4 +127,66 @@ fn runs_of(
         .unwrap()
         .unwrap();
     runs.iter().map(|r| (r.nodes[1], r.count)).collect()
+}
+
+/// Stations by the chord against stations by the grown wood (host
+/// decision 2026-10-07, whole-internode ties): per tree, the bearing runs
+/// whose count moves, the stations before and after, and the runs whose
+/// segments split elsewhere (`cargo test --profile ci -p telperion-core
+/// grown_stations_at_80 -- --ignored --nocapture`).
+#[test]
+#[ignore]
+fn grown_stations_at_80() {
+    for id in ["european-beech", "norway-spruce"] {
+        for seed in [1, 7] {
+            let mut family = crate::presets::by_identity(id).unwrap();
+            family.age = 80.0;
+            family.skeleton.seed = seed;
+            let x = executor::grow(&family).unwrap().expansion().unwrap();
+            let (tree, leaves, twig) = (x.tree(), x.leaves(), x.twig());
+            let runs = runs(tree, leaves.envelope, leaves.canopy, Some(twig))
+                .unwrap()
+                .unwrap();
+            let unit = twig.internode_length;
+            let (mut before, mut after, mut moved, mut split) = (0u64, 0u64, 0usize, 0usize);
+            let (mut longer, mut shorter) = (0usize, 0usize);
+            for run in &runs {
+                // The chord's count and split, as `runs` took them before.
+                let mut chord = vec![0.0];
+                for pair in run.nodes.windows(2) {
+                    let step = tree.nodes[pair[0]]
+                        .position
+                        .distance(tree.nodes[pair[1]].position);
+                    chord.push(chord.last().unwrap() + step);
+                }
+                let length = *chord.last().unwrap();
+                let internodes = (length / unit - 1e-9).ceil().max(1.0) as u32;
+                let old = Run {
+                    nodes: run.nodes.clone(),
+                    along: chord.iter().map(|c| c * 1e6).collect(),
+                    internodes,
+                    count: internodes * twig.stations_per_internode,
+                    leaflets: run.leaflets,
+                };
+                before += u64::from(old.count);
+                after += u64::from(run.count);
+                moved += usize::from(old.count != run.count);
+                longer += usize::from(run.count > old.count);
+                shorter += usize::from(run.count < old.count);
+                let parts = |r: &Run| -> Vec<(u32, u32)> {
+                    (0..r.nodes.len() - 1)
+                        .map(|s| r.segment_stations(s, twig))
+                        .collect()
+                };
+                split += usize::from(old.count == run.count && parts(&old) != parts(run));
+            }
+            println!(
+                "{id} 80 {seed}: bearing runs {}; stations by the chord {before}, by the grown wood \
+                 {after} ({:+.3} %); runs counted differently {moved} (more {longer}, fewer \
+                 {shorter}); runs of equal count split elsewhere {split}",
+                runs.len(),
+                (after as f64 / before as f64 - 1.0) * 100.0,
+            );
+        }
+    }
 }

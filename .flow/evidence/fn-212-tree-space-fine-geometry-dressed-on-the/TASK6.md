@@ -122,3 +122,72 @@ Probe (`stationed_at_40_and_80`, `raw/task6/stationed-3.txt`). Segments are matc
 
 - **CPU half:** 987 passed, then 1 red. The scaffold birch's catalogue record (`catalogue/silver-birch/pins.json`) still held the old leaf stream's bounds and placement. It was re-pinned with `identity.rs`'s values, and the identity tests now pass.
 - **Render half,** under the GPU lock at eight test threads: 160 passed.
+
+## Grown length: counts and splits by record data (worker, 2026-10-07, host decision (a))
+
+### What was built
+
+- **The record.** `Tree::grown` holds, per node, the internodes of the phytomers it draws, each its PA's length at its scale (`space.rs`, `convert`). Phytomers merged into a node are carried to the next node drawn. A tree no engine grew reads its chord (`Tree::grown_length`).
+- **One rule, both executors.**
+  - `plan::walk` measures a run: the chord for its frames, and the grown wood for its stations.
+  - Under a twig layer, each node's grown wood is rounded to whole micrometres (`plan::micrometres`), and the sums are exact.
+  - Counts are `ceil(Σ / internode)`, and splits are `mid × internode < along`, all in micrometres.
+  - `stations.wgsl` does the same in `u32`, from a new word on each drawn record (`dress.wgsl` reads each PA's internode from the geometry table).
+- **Why micrometres.** In plain float sums, f32 and f64 disagree at real ties:
+  - the spruce's fine PA is 3.25 twig internodes, so four nodes sum to exactly 13 (at 30: 22 keys and 296 split segments);
+  - a dyadic grid (1/4096 internode) breaks the beech's 25 mm PA, which is 25/6 of the twig layer's 6 mm, and moved 2,755 beech runs at 80;
+  - the internodes are decimal lengths, so whole micrometres keep every such ratio exact.
+- **Positions.** The prepared segment's `along` and `span` (what `pack.wgsl` reads) are now micrometres × 1e-6 of grown wood. Frames still read the chord.
+
+### CPU: stations per tree, chord (before) against grown (after) (`grown_stations_at_80`, `raw/task6b/grown-stations-3.txt`)
+
+| Tree | Bearing runs | Stations before | Stations after | Change | Runs counted differently (more / fewer) | Equal count, split elsewhere |
+|---|--:|--:|--:|--:|--:|--:|
+| beech 80 s1 | 229,177 | 2,474,018 | 2,474,226 | +0.008 % | 222 (160 / 62) | 39,155 |
+| beech 80 s7 | 390,776 | 4,295,198 | 4,294,864 | −0.008 % | 413 (259 / 154) | 57,781 |
+| spruce 80 s1 | 1,070,192 | 16,911,023 | 16,871,064 | −0.236 % | 19,616 (797 / 18,819) | 8,879 |
+| spruce 80 s7 | 1,073,177 | 16,846,937 | 16,806,937 | −0.237 % | 19,584 (812 / 18,772) | 10,321 |
+
+- **The spruce loses runs mostly** because its runs' chords are longer than their grown wood: the chord from a bearer's node takes in what the conversion merged into that node.
+- **The beech's many "split elsewhere"** are the whole-internode ties themselves. A station exactly at a node now always opens the next segment, where f64 noise used to place it on either side. Its place on the wood is the same.
+- **The scaffold birch** is measured by its chord in micrometres. Its placement hash and twelve seed digests move (`identity.rs`, `catalogue/silver-birch/pins.json`, `digests.json`); its bounds do not.
+
+### Stills at 80, seed 1 (`raw/task6b/stills/`, viewed as before|after pairs)
+
+- **Before** is `raw/task6/bin/headless-after`, HEAD's product. **After** is `raw/task6b/bin/headless-after`.
+- **Hero and close** (`--camera '{"fill": 10, "targetHeight": 0.45, "elevation": 5}'`, leaves shown), beech and spruce, all four pairs viewed: indistinguishable by eye.
+- **Instances:** beech 2,474,226 and spruce 16,871,064, the CPU counts above.
+
+| Still | Pixels apart, exact | Under 6 % fuzz |
+|---|--:|--:|
+| beech hero | 0.42 % | 0.12 % |
+| beech close | 0.55 % | 0.17 % |
+| spruce hero | 0.26 % | 0.06 % |
+| spruce close | 1.05 % | 0.44 % |
+
+### Device against the reference (`stationed_at_40_and_80`, `raw/task6b/stationed-80.txt`; fast test at 30 in `stationed-30.txt`)
+
+The test now matches a key's every run. 32-bit keys collide, about runs²/2³³ pairs, so two runs can share a key; the four "tied" runs at 30 were such pairs. Two runs that share a key draw the same leaf stream (host decision 1).
+
+| Tree | Device runs / segments / stations | Reference segments / stations | Keys counted differently (device stations) | Split elsewhere | Residual keys by class: rounding / parted |
+|---|---|---|--:|--:|---|
+| beech 30 s1 | 2,457 / 7,243 / 10,578 | 7,243 / 10,578 | 0 | 0 | 0 / 0 |
+| spruce 30 s1 | 174,450 / 509,317 / 2,163,967 | 509,317 / 2,163,967 | 0 | 0 | 0 / 0 |
+| beech 40 s1, s7 | 12,066 / 43,702 / 63,256; 21,256 / 115,117 / 191,948 | equal | 0 | 0 | 0 / 0 |
+| spruce 40 s1, s7 | 325,437 / 1,052,373 / 4,305,432; 315,135 / 1,031,333 / 4,233,230 | equal | 0 | 0 | 0 / 0 |
+| beech 80 s1 | 226,569 / 1,157,539 / 2,409,975 | 1,157,568 / 2,410,077 | 1 (8) | 0 | see below |
+| beech 80 s7 | 385,593 / 1,956,230 / 4,170,671 | equal | 0 | 0 | 0 / 0 |
+| spruce 80 s1 | 1,013,164 / 4,200,343 / 15,635,597 | 4,200,369 / 15,635,810 | 20 (501) | 222 | see below |
+| spruce 80 s7 | 1,023,708 / 4,224,869 / 15,755,194 | 4,224,972 / 15,755,520 | 11 (133) | 0 | see below |
+
+Before this change the same probe had 31,624 beech runs at 80 s1 counted differently (TASK6.md, above).
+
+**The residuals, by class** (`raw/task6b/stationed-80-diag2.txt` to `diag5.txt`):
+
+1. **Rounding, the f32-against-f64 class.** A node's grown wood lies within float32's error of a half micrometre, and the executors round it apart.
+   - Spruce 80 s1: all 222 split segments (111 runs) and 2 of the 20 keys. They are one recurring value, 14,666.499 µm, which is 0.001 µm under the half. Float32's step there is 0.0009 µm.
+2. **Parted runs, not located.** A run continues on one executor and stops on the other, where the stopped side starts a new run.
+   - Counts: beech 80 s1, 1 key; spruce 80 s1, 18 keys; spruce 80 s7, 11 keys.
+   - The device's endpoints sit on the reference's within micrometres.
+   - **What it is not:** the nodes involved lie 15 to 86 % from both bearing bounds (slender and `STRUCTURAL`), so this is not those bounds fed by f32.
+   - **Unknown:** which bearing-child count differs. Locating it needs the device's per-node station words read back, which was not done.

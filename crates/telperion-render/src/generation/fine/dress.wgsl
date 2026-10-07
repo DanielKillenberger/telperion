@@ -27,6 +27,9 @@ struct Cfg {
 @group(0) @binding(5) var<storage, read> out: array<f32>;
 @group(0) @binding(6) var<storage, read> before: array<f32>;
 @group(0) @binding(7) var<storage, read_write> drawn: array<f32>;
+// The geometry table (`laid.rs`): each PA's internode, which a node's
+// grown wood is measured by.
+@group(0) @binding(8) var<storage, read> gtab: array<f32>;
 
 const NONE: u32 = 0xffffffffu;
 const AXW: u32 = 80u;
@@ -43,6 +46,9 @@ const S_START: u32 = 1u;
 const S_COUNT: u32 = 2u;
 const AL: u32 = 8u;
 const PL: u32 = 22u;
+const PA: u32 = 2u;
+// The geometry table's PA blocks (`geometry.wgsl`).
+const GG: u32 = 24u;
 // `space.rs`'s constants.
 const FINEST: f32 = 2e-4;
 const SHORTEST: f32 = 1e-3;
@@ -60,8 +66,9 @@ const CA: u32 = 12u;
 // along the wood from its root's bearer, its parent's id, its wood's
 // frame as laid (heading, side; y up), which a run it bears seeds from,
 // its branch (the id of its branch's first node; a branch of the structure
-// above the cut tagged `PREV`) and its key (`tree::node_key`).
-const CV: u32 = 25u;
+// above the cut tagged `PREV`), its key (`tree::node_key`) and its wood
+// as grown (`Tree::grown`): its phytomers' internodes at their scales.
+const CV: u32 = 26u;
 const TAKEN: u32 = 1u;
 const MADE: u32 = 2u;
 // Its root is laid on the CPU (host decision 3): drawn there.
@@ -294,6 +301,10 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
     var made = false;
     var run = NONE;
     var taken = 0u;
+    // The wood grown since the axis's last node: the internodes merged
+    // into a node are carried on to the next one drawn.
+    let internode = gtab[4u + GG * ax(i, PA)];
+    var pending = 0.0;
     for (var k = 0u; k < s(i, S_COUNT); k++) {
         let r = li(i, k);
         let radius = out[cfg.out_phyts + r * PL + 18u];
@@ -301,6 +312,7 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
             break;
         }
         taken += 1u;
+        pending += internode * out[cfg.out_phyts + r * PL + 19u];
         let pos = up(origin + tip(i, k));
         let held = node(parent);
         let d = pos - held.pos;
@@ -330,6 +342,8 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
             putu(r, 23u, held.branch);
         }
         putu(r, 24u, node_key(vec2<u32>(ax(i, 0u), ax(i, 1u)), k));
+        put(r, 25u, pending);
+        pending = 0.0;
         put(r, 0u, pos.x);
         put(r, 1u, pos.y);
         put(r, 2u, pos.z);

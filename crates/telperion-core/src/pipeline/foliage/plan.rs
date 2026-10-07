@@ -22,9 +22,53 @@ pub fn supports(p: CanopyParams, twig: Option<TwigPlacement>) -> bool {
     twig.is_some() && p.short_shoot_spacing == 0.0 && p.limb_clumping == 0.0
 }
 
+/// A length in whole micrometres, rounded: what a run's grown wood is
+/// counted in under a twig layer. The species' internodes are decimal
+/// lengths, so a run whose wood is a whole number of the twig layer's
+/// internodes in exact arithmetic (whole phytomers, or a PA's internode a
+/// simple multiple of it, as the beech's 25 mm is 25/6 of 6 mm) sums to it
+/// exactly, in float64 and in float32 alike (fn-212 D2, host decision
+/// 2026-10-07).
+pub fn micrometres(metres: f64) -> f64 {
+    (metres * 1e6 + 0.5).floor()
+}
+
+/// The points one run passes through, the chord along it to each (what its
+/// frames read) and the wood grown along it to each (`Tree::grown`), into
+/// scratch the caller owns; the run's own grown length is the last of them.
+/// Under a twig layer each node's wood is counted in whole micrometres
+/// (`micrometres`); on a shoot no twig layer marks it is in metres. The
+/// builder sweeps this walk and the count reads it, so a run is measured by
+/// one rule however many times it is read.
+pub(crate) fn walk(
+    tree: &Tree,
+    nodes: &[usize],
+    twig: Option<TwigPlacement>,
+    points: &mut Vec<Vec3>,
+    (chord, along): (&mut Vec<f64>, &mut Vec<f64>),
+) -> f64 {
+    points.clear();
+    points.extend(nodes.iter().map(|i| tree.nodes[*i].position));
+    chord.clear();
+    chord.push(0.);
+    along.clear();
+    along.push(0.);
+    for i in 1..points.len() {
+        chord.push(chord[i - 1] + points[i].distance(points[i - 1]));
+        let wood = tree.grown_length(nodes[i]);
+        let step = match twig {
+            Some(_) => micrometres(wood),
+            None => wood,
+        };
+        along.push(along[i - 1] + step);
+    }
+    *along.last().unwrap()
+}
+
 /// One unbranched run of leaf-bearing wood under a twig layer: its nodes,
-/// attachment first, the distance along it to each, its station count before
-/// any cull and the leaves each station carries. The counts and ordinals are
+/// attachment first, the wood grown along it to each in whole micrometres
+/// (`walk`), its station count before any cull and the
+/// leaves each station carries. The counts and ordinals are
 /// stations, which the station preparation tiles by; a placement of leaflets
 /// along a rachis multiplies the leaves, never the stations.
 #[derive(Debug)]
@@ -36,15 +80,15 @@ pub struct Run {
     pub leaflets: u32,
 }
 impl Run {
-    /// Stations standing before `distance` along the run. The original
-    /// reverse search chooses the last segment starting at or below a
-    /// distance; this lower bound keeps that tie convention, repeated
-    /// zero-length segments included, without enumerating leaves.
+    /// Stations standing before `distance` micrometres along the run. The
+    /// original reverse search chooses the last segment starting at or
+    /// below a distance; this lower bound keeps that tie convention,
+    /// repeated zero-length segments included, without enumerating leaves.
     pub fn stations_before(&self, distance: f64, twig: TwigPlacement) -> u32 {
         let (mut lo, mut hi) = (0u32, self.internodes);
         while lo < hi {
             let mid = lo + (hi - lo) / 2;
-            if f64::from(mid) * twig.internode_length < distance {
+            if f64::from(mid) * micrometres(twig.internode_length) < distance {
                 lo = mid + 1;
             } else {
                 hi = mid;
@@ -87,22 +131,25 @@ pub fn runs(
     }
     let leaflets = rosette::leaflets(&p) as u32;
     let mut total = 0u32;
+    let (mut points, mut chord) = (Vec::new(), Vec::new());
     for nodes in bearing_runs(tree, p) {
-        let mut along = vec![0.0];
-        for pair in nodes.windows(2) {
-            let step = tree.nodes[pair[0]]
-                .position
-                .distance(tree.nodes[pair[1]].position);
-            along.push(along.last().unwrap() + step);
-        }
-        let length = *along.last().unwrap();
+        let mut along = Vec::new();
+        let length = walk(
+            tree,
+            &nodes,
+            Some(twig),
+            &mut points,
+            (&mut chord, &mut along),
+        );
         if length == 0.0 {
             continue;
         }
         if !length.is_finite() {
             return Err(Error::ResourceLimit("shoot length overflow"));
         }
-        let internodes = (length / twig.internode_length - 1e-9).ceil().max(1.0);
+        let internodes = (length / micrometres(twig.internode_length))
+            .ceil()
+            .max(1.0);
         let count = internodes * f64::from(twig.stations_per_internode);
         let leaves = count * f64::from(leaflets);
         if !leaves.is_finite()

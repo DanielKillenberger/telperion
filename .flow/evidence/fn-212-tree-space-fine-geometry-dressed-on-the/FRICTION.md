@@ -61,3 +61,17 @@
 - **Doing:** the render half of the gate, then the 40 and 80 probes.
 - **Hindered:** the libtest harness runs a crate's GPU tests on eight threads at once. Two fast probes (each a settled spruce, drawn and swept) beside the realized suite ran the 10 GB card out of memory, and so did the dress and sweep probes at 80 run in one command. Each red needed a rerun under the lock: about 3 minutes and one 70 s probe pass.
 - **Removal:** GPU tests that hold whole trees take a process-wide device semaphore (or run under `--test-threads=1` by a nextest group), so concurrency is bounded by device memory, not by threads.
+
+## 2026-10-07 19:45, task 6 (worker): the shell guard refuses a redirect to a variable path or an existing file
+
+- **Doing:** saving each probe's output beside the evidence, `> $R/file.txt` and reruns into the same file.
+- **Hindered:** dcg blocks a truncating redirect to a dynamic path, and to any existing file under home. Every rerun needed a new literal file name: `diag-1` to `diag-5`, `stationed-80-diag`, `-diag2`.
+- **Cost:** two refused commands and about 3 minutes, plus a scatter of raw files.
+- **Removal:** `tee` or an allowlisted evidence directory for probe output (`.flow/evidence/*/raw/`).
+
+## 2026-10-07 19:50, task 6 (worker): classifying a residual run takes a full 40/80 probe pass each time
+
+- **Doing:** finding why 20 spruce keys count differently at 80, one diagnostic print at a time.
+- **Hindered:** every question about a residual meant rebuilding and rerunning the whole ignored probe, eight trees at about 55 s plus build, under the GPU lock. The test cannot select one tree, and core's `plan::runs` is not reachable from the render crate's tests (the contract exports only `Run`, `Plan`, `Descriptor`), so runs were rebuilt from segment endpoints.
+- **Cost:** five passes, about 15 minutes.
+- **Removal:** an env-selected tree and age for the ignored probes, and a probe dump of the residual runs (both sides' node lists) written once and read offline.

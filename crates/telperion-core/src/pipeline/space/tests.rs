@@ -4,8 +4,9 @@
 use super::*;
 use crate::presets::Preset;
 
-/// The young beech's grown structure.
-fn grown() -> (Structure, Vec<usize>) {
+/// The young beech's grown structure, its trunk's PAs and each PA's
+/// internode.
+fn grown() -> (Structure, Vec<usize>, Vec<f64>) {
     let family = Preset::EuropeanBeech.parameters();
     let species = family.space.species.unwrap();
     let request = Request {
@@ -15,7 +16,8 @@ fn grown() -> (Structure, Vec<usize>) {
         light: family.space.light,
     };
     let structure = telperion_space::grow(&species, request).unwrap();
-    (structure, family.space.trunk)
+    let internodes = species.states.iter().map(|s| s.internode).collect();
+    (structure, family.space.trunk, internodes)
 }
 
 /// `structure` reassembled with its siblings in the reverse of their
@@ -54,22 +56,22 @@ fn reversed(structure: &Structure) -> Structure {
 /// order takes again, so it converts to one tree.
 #[test]
 fn a_tree_assembled_in_another_order_converts_to_the_same_tree() {
-    let (structure, trunk) = grown();
+    let (structure, trunk, l) = grown();
     let other = reversed(&structure);
     assert_ne!(other.axes, structure.axes, "the orders differ");
     // Without the order the assembly reaches the tree.
-    let unsorted = convert(&other, &[], &trunk) != convert(&structure, &[], &trunk);
+    let unsorted = convert(&other, &[], &trunk, &l) != convert(&structure, &[], &trunk, &l);
     assert!(unsorted, "the order never reached the conversion");
     let again = telperion_space::lineage_order(other);
     assert_eq!(again.axes, structure.axes, "grow returns the lineage order");
-    assert!(convert(&again, &[], &trunk) == convert(&structure, &[], &trunk));
+    assert!(convert(&again, &[], &trunk, &l) == convert(&structure, &[], &trunk, &l));
 }
 
 /// A tree over the Wasm ceiling is refused by name, and the name states
 /// the ceiling the code holds; natively there is none.
 #[test]
 fn a_tree_over_the_wasm_ceiling_is_refused_by_name() {
-    let (structure, _) = grown();
+    let (structure, _, _) = grown();
     let kept: usize = structure.axes.iter().map(|a| a.phytomers.len()).sum();
     assert!(fits(&structure, Some(kept)).is_ok());
     let refused = fits(&structure, Some(kept - 1)).unwrap_err().to_string();

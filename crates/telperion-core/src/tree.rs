@@ -154,6 +154,14 @@ pub struct Tree {
     /// nodes key by their index. Never stored, as `seams`.
     #[cfg_attr(feature = "json", serde(skip))]
     pub keys: Vec<u32>,
+    /// Each node's wood as the engine grew it, in metres: the internodes
+    /// of the phytomers it draws, each its PA's length at its scale,
+    /// summed. Record data, the same on every executor, which a run's
+    /// stations are counted and split by (fn-212 D2, host decision
+    /// 2026-10-07). Empty on a tree no engine grew, whose wood is its
+    /// chord. Never stored, as `seams`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub grown: Vec<f64>,
 }
 
 /// A 32-bit finaliser: the one the leaves' draws already use.
@@ -193,6 +201,16 @@ impl Tree {
     /// Node `i`'s key (`keys`), or its index where no engine grew it.
     pub fn key(&self, i: usize) -> u32 {
         self.keys.get(i).copied().unwrap_or(i as u32)
+    }
+    /// Node `i`'s grown wood (`grown`), or its chord from its parent where
+    /// no engine grew it.
+    pub fn grown_length(&self, i: usize) -> f64 {
+        self.grown.get(i).copied().unwrap_or_else(|| {
+            let n = &self.nodes[i];
+            n.parent.map_or(0.0, |p| {
+                self.nodes[p as usize].position.distance(n.position)
+            })
+        })
     }
     /// Whether each node is a fine root's wood: a seam, or borne by one
     /// (fn-212 D4); all false on a tree grown whole.

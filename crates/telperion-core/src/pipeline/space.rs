@@ -70,7 +70,8 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     // and a relay's girth never depend on how the tree was assembled.
     let (structure, fine) = telperion_space::grow_marked(species, request).map_err(engine)?;
     fits(&structure, KEPT)?;
-    Ok(convert(&structure, &fine, &input.space.trunk))
+    let internodes: Vec<f64> = species.states.iter().map(|s| s.internode).collect();
+    Ok(convert(&structure, &fine, &input.space.trunk, &internodes))
 }
 
 /// The refusal of a tree over the browser's ceiling.
@@ -194,8 +195,9 @@ fn joint(
 /// a limb stops being stem there, and a limb's relays never are, so the
 /// canopy measures its slender wood against the trunk, not a fork of
 /// limbs deep in the crown. Two trunk-level axes leaving one node, a
-/// codominant fork of the trunk, are both stem.
-fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
+/// codominant fork of the trunk, are both stem. `internodes` is each
+/// PA's internode length, which each node's grown wood is measured by.
+fn convert(structure: &Structure, fine: &[bool], trunk: &[usize], internodes: &[f64]) -> Tree {
     // Each fine root's node drawn from wood above the cut.
     let mut seams = Vec::new();
     let mut attachments = Vec::new();
@@ -204,6 +206,7 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
     let mut in_root = vec![false];
     let mut frames = vec![[0.0f32; 6]];
     let mut keys = vec![0u32];
+    let mut lengths = vec![0.0];
     // Each fine root's axis's root, by its place in `attachments`.
     let mut of_root: Vec<Option<usize>> = vec![None; structure.axes.len()];
     // The node each axis ends on, for what continues it.
@@ -282,6 +285,10 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
             _ => Vec3::ZERO,
         };
         let mut made = false;
+        // The wood grown since the axis's last node: the internodes merged
+        // into a node are carried on to the next one drawn.
+        let internode = internodes[axis.pa];
+        let mut pending = 0.0;
         for (place, p) in axis
             .phytomers
             .iter()
@@ -294,6 +301,7 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
             let inside =
                 along != Vec3::ZERO && (up(p.tip) - from).length() < nodes[parent as usize].radius;
             let behind = !made && ((up(p.tip) - from).dot(along) < 0.0 || inside);
+            pending += internode * p.scale;
             if behind || (up(p.tip) - from).length() < SHORTEST {
                 drawn[i].push(parent);
                 continue;
@@ -337,6 +345,7 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
             let (h, s) = (up(p.heading), up(p.side));
             frames.push([h.x, h.y, h.z, s.x, s.y, s.z].map(|v| v as f32));
             keys.push(crate::tree::node_key(axis.lineage, place));
+            lengths.push(std::mem::take(&mut pending));
             made = true;
             drawn[i].push(parent);
             nodes.push(node);
@@ -374,6 +383,7 @@ fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
         attachments,
         frames,
         keys,
+        grown: lengths,
         ..Tree::default()
     }
 }

@@ -35,7 +35,7 @@ struct Cfg {
 @group(0) @binding(6) var<storage, read_write> segs: array<u32>;
 
 const NONE: u32 = 0xffffffffu;
-const NW: u32 = 26u;
+const NW: u32 = 27u;
 const TW: u32 = 4u;
 const MADE: u32 = 2u;
 const LANDED: u32 = 4u;
@@ -66,6 +66,26 @@ fn pos(i: u32) -> vec3<f32> {
 
 fn parent(i: u32) -> u32 {
     return word(i, 8u);
+}
+
+// A length in whole micrometres (`plan::micrometres`): grown wood is
+// counted and summed in them, exactly.
+fn micrometres(metres: f32) -> u32 {
+    return u32(floor(metres * 1e6 + 0.5));
+}
+
+// The wood grown into node `i` (`plan::walk`).
+fn grown(i: u32) -> u32 {
+    return micrometres(nodes[i * NW + 26u]);
+}
+
+// The twig layer's internode.
+fn unit() -> u32 {
+    return micrometres(cfg.internode);
+}
+
+fn metres(micrometres: u32) -> f32 {
+    return f32(micrometres) * 1e-6;
 }
 
 // A node the device draws stations on: a fine root's, not laid on the CPU.
@@ -136,14 +156,15 @@ fn starts(@builtin(global_invocation_id) id: vec3<u32>) {
     runs[r * RW] = i;
 }
 
-// Stations standing before `distance` along a run of `internodes`
+// Stations standing before `distance` micrometres along a run of
+// `internodes`
 // (`plan::Run::stations_before`).
-fn before(distance: f32, internodes: u32) -> u32 {
+fn before(distance: u32, internodes: u32) -> u32 {
     var lo = 0u;
     var hi = internodes;
     while lo < hi {
         let mid = lo + (hi - lo) / 2u;
-        if f32(mid) * cfg.internode < distance {
+        if mid * unit() < distance {
             lo = mid + 1u;
         } else {
             hi = mid;
@@ -153,7 +174,7 @@ fn before(distance: f32, internodes: u32) -> u32 {
 }
 
 // A segment's station range (`plan::Run::segment_stations`).
-fn range(j: u32, nodes_n: u32, along: vec2<f32>, internodes: u32, count: u32) -> vec2<u32> {
+fn range(j: u32, nodes_n: u32, along: vec2<u32>, internodes: u32, count: u32) -> vec2<u32> {
     var first = 0u;
     if j > 0u {
         first = before(along.x, internodes);
@@ -172,34 +193,38 @@ fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     let first = runs[r * RW];
-    var length = 0.0;
+    var length = grown(first);
     var n = 2u;
     var at = first;
-    length += distance(pos(parent(first)), pos(first));
     loop {
         let c = next(at);
         if c == NONE {
             break;
         }
-        length += distance(pos(at), pos(c));
+        length += grown(c);
         at = c;
         n += 1u;
     }
-    let internodes = u32(max(ceil(length / cfg.internode - 1e-9), 1.0));
+    // A run with no wood grown carries nothing (`plan::runs`).
+    if length == 0u {
+        runs[r * RW + 1u] = 0u;
+        runs[r * RW + 2u] = 0u;
+        runs[r * RW + 3u] = n;
+        return;
+    }
+    let internodes = max((length + unit() - 1u) / unit(), 1u);
     let count = internodes * cfg.spi;
     // The segments' tiles, walked again.
     var tiles = 0u;
-    var a = parent(first);
     var b = first;
-    var along = 0.0;
+    var along = 0u;
     for (var j = 0u; j + 1u < n; j++) {
-        let step = distance(pos(a), pos(b));
-        let span = range(j, n, vec2<f32>(along, along + step), internodes, count);
+        let step = grown(b);
+        let span = range(j, n, vec2<u32>(along, along + step), internodes, count);
         if span.y > span.x {
             tiles += (span.y - span.x + TILE - 1u) / TILE;
         }
         along += step;
-        a = b;
         b = next(b);
     }
     runs[r * RW + 1u] = count;
@@ -293,7 +318,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
     let seed = vec3<f32>(nodes[attach * NW + 18u], nodes[attach * NW + 19u], nodes[attach * NW + 20u]);
     var a = attach;
     var b = first;
-    var along = 0.0;
+    var along = 0u;
     var previous_segment = vec3<f32>(0.0);
     var previous_tangent = vec3<f32>(0.0);
     var carried = vec3<f32>(0.0);
@@ -334,7 +359,8 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
             nm = normalize(nm);
         }
         let bn = normalize(cross(t, nm));
-        let span = range(j, n, vec2<f32>(along, along + step), internodes, count);
+        let wood = grown(b);
+        let span = range(j, n, vec2<u32>(along, along + wood), internodes, count);
         let edge = contact(b);
         var tile = span.x;
         while tile < span.y {
@@ -346,7 +372,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
             put4(at + 8u, vec4<f32>(t, 0.0));
             put4(at + 12u, vec4<f32>(nm, 0.0));
             put4(at + 16u, vec4<f32>(bn, 0.0));
-            put4(at + 20u, vec4<f32>(along, step, sin(turn), cos(turn)));
+            put4(at + 20u, vec4<f32>(metres(along), metres(wood), sin(turn), cos(turn)));
             segs[at + 24u] = station0 + tile;
             segs[at + 25u] = tiles;
             segs[at + 26u] = tile;
@@ -357,7 +383,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
             g += 1u;
             tile += tiles;
         }
-        along += step;
+        along += wood;
         a = b;
         b = next(b);
     }
