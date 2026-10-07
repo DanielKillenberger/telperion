@@ -3,7 +3,8 @@
   "created_at": "2026-10-07T08:21:40.970723Z",
   "depends_on_epics": [
     "fn-198-tree-space-f-the-engine-in-production",
-    "fn-221-bark-that-matures-with-girth"
+    "fn-221-bark-that-matures-with-girth",
+    "fn-223-leaves-cluster-at-the-engines-short"
   ],
   "id": "fn-213-tree-space-the-silver-birch-as-a-point",
   "next_task": 1,
@@ -23,5 +24,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-07T13:02:11.369707Z"
+  "updated_at": "2026-10-07T17:26:51.260098Z"
 }
