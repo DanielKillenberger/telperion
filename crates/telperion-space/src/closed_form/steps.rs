@@ -268,7 +268,7 @@ fn steps_to(
             let relay = Relay {
                 at,
                 carried: onward,
-                weight,
+                weight: weight * carried.lived_on(state, (i, unit), t),
                 on: i,
             };
             lived_parts.push(Lived {

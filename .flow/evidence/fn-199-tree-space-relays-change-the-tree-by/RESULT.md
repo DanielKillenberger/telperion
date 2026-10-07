@@ -280,3 +280,38 @@ The failing side never takes that abortion draw, so at the bound the relay's ble
 ### Not yet done
 
 GPU parity under the lock (none of the WGSL edits has compiled yet), the R3 GPU mirror, the pins, R6 and the gate. The crate suite is red on R1's and R3's walks and the two pins.
+
+## C1 built; R1's walk red with a new kind of crossing (host stop rule)
+
+**C1, as decided.** Built on:
+- the grower: `fail` and `persists` in `stop.rs`; `stop` and `relay_bud` take `whole` and `below`;
+- the GPU: `fail`, `make_relay`, `abortion_after`;
+- the closed form and `Living`: `Carried::lived_on` in `schedule.rs`, folded into the lived part's relay weight; the predictor's lived end through `maybe`;
+- FINE-CONTRACT.md's table.
+
+A relay that grows in the cycle its axis stopped in, other than an ended age's, is a rest relay. That now covers the aborted lived part's relay too.
+
+**Comparison tests:** all green (`closed_form::kept`, `settings`, `dormant`, `closed_form`). The WGSL has still not been compiled.
+
+**R1's walk.** The three C-class crossings (seed 3 at 1.2364, seed 1 at 1.8963 and 3.6070) are gone. Two new ones at seed 2, 0.6743 and 0.6987 (0.054 and 0.099 of the tree), are of a new kind:
+- **Failing side.** A failure lives one tick short of the whole unit. Its relay grows a one-tick rest in the cycle it failed: born the cycle before, sleep near 1.
+- **Other side.** The unit lives whole and its relay grows from the next cycle: born a cycle later, sleep 0.
+- **Effect.** That relay's own relay is laid with a different heading (z 0.54 against 0.95).
+
+**Suspected cause, not yet checked by a fix.** In the grower's sketch (`grow/draw.rs::pencil`), a relay's handed pulls count its years as `axis.birth - p.birth - draws[parent].sleep`. That leaves out the relay's own sleep. So its birth stepping by a cycle at the tick, with its sleep stepping from about 1 to 0, moves its age by a whole year. Elsewhere an axis's years are `age - birth - sleep`, which is continuous there.
+
+### Every crossing class found so far, and what each fix changed
+
+| # | Class | Where found | Fix | What it changed |
+|---|---|---|---|---|
+| 1 | A failed unit lost its year: its relay grew next cycle, whole (R1 as specced) | R1 walk on the base | Decision (b), the crashed worker's `3e34dc6b`: lived share plus the relay's rest | Grower, GPU, schedule. R1's walk green on the walk tree |
+| 2 | A failed whole unit of an ended age's relay took a negative share; the closed form recursed forever, and the grower regrew the cycle | Stack overflow in the crate suite | `795a3555`: `Unit.whole` carried to the failure's relay | Schedule, grower, GPU flag. Rows' reach back to the old reading |
+| 3 | Closed form on the old law; then its cost (7 to 115 times at two points) | Comparison tests; timing | A1 (one point) and A3 (no nesting within a cycle), `eacb5181`, `3afbe0fd` | Predictor at 80 back near its old cost. Every comparison test green |
+| 4 | The tick grid: a lived time crossing a tick stepped the relay's thresholds | Vanishing-size walk, 1.18e-6 | B2, `704ad2d3`: a share below the tick | Contract D5/D6, both executors. Walk green |
+| 5 | A3's cut applied to a whole-lived failure's next-cycle relay | Probe on R1's walk after A3 | `e21d3d7a`: such a relay is not a rest | Grower, schedule, GPU |
+| 6 | A relay on a node-less carried-on axis stood at its base, not in the curvature zone (R3) | R3 walk, three crossings | R3 blend by the first node's presence, `e21d3d7a` | Geometry (CPU). Two of three crossings met |
+| 7 | A failure at its bound skipped the unit's abortion draw | R1 walk, three crossings | C1 (this commit) | Grower, GPU, closed form, `Living`. All three met |
+| 8 | The straightening handed by a parent of no phytomers | R3 walk, seed 2 at -0.7675 | Not traced yet | |
+| 9 | A one-tick rest relay's birth and its age | R1 walk, seed 2, two crossings | Not built (suspected cause above) | |
+
+**Convergence.** Each fix removed the crossings it aimed at, and none came back. What is left are geometry and age-accounting cases at a stop's bound (8, 9), not growth-law ones. Classes 6, 8 and 9 sit in how an axis that carries another on is laid. Each fix so far moved which seed shows the next class rather than shrinking a common measure. A walk over more seeds would say whether there are more.

@@ -231,7 +231,8 @@ impl<'a> Living<'a> {
             for t in lived(state.viability, unit.share) {
                 let (relayed, same) = carried.failed(unit, t);
                 let at = if same { u - 1 } else { u };
-                p += weight * self.from((k, relayed, m.saturating_sub(at)), 1, y - at);
+                let on = carried.lived_on(state, (u, unit), t);
+                p += weight * on * self.from((k, relayed, m.saturating_sub(at)), 1, y - at);
             }
         }
         self.memo.insert(key, p);

@@ -4,6 +4,7 @@
 //! carries the axis on grows in the same cycle at the rest, as a woken
 //! bud's first unit does. The grower, the closed form and `Living` read
 //! the one schedule here.
+use crate::species::PaState;
 use crate::transcendental::Transcendental;
 
 /// What a bud carries into its age: the time it has spent in it (a relay
@@ -164,6 +165,29 @@ impl Carried {
             rest: same,
         };
         (relay, same)
+    }
+}
+
+impl Carried {
+    /// The chance a failed unit's relay carries its axis on, its unit
+    /// `unit`, the `i`th, having lived `t`: the lived part takes the
+    /// unit's abortion draw over `t` and the next unit's share, and where
+    /// it aborts the relay stops at once and the abortion's relay, which
+    /// carries the same, takes over (fn-199, host decision C1). Whole
+    /// where the age ends with the unit.
+    pub fn lived_on(self, state: &PaState, (i, unit): (usize, Unit), t: f64) -> f64 {
+        if unit.ends {
+            return 1.0;
+        }
+        let grown = self.aged + unit.before + t - self.spent;
+        let exposure = t.min(self.unit(state.life(), i + 1).share);
+        let kept = 1.0 - state.abortion_at(grown);
+        let persists = if exposure < 1.0 {
+            kept.powf_fixed(exposure)
+        } else {
+            kept
+        };
+        1.0 - (1.0 - persists) * (1.0 - state.relay)
     }
 }
 

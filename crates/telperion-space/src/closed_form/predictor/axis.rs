@@ -43,7 +43,12 @@ impl Walk<'_> {
             let grown = (l.weight, &l.sleeping[..]);
             let run = times(NONE_RUN, self.unit(k, (step.i, grown), &parts.zones, t));
             let child = whole(table.as_deref().expect("built"), t - l.relay.at as i64);
-            end(l.weight, step.i, run, child);
+            end(
+                l.weight,
+                step.i,
+                run,
+                maybe(l.relay.weight / l.weight, child),
+            );
         }
         let grown = (step.grown, &step.sleeping[..]);
         let run = times(NONE_RUN, self.unit(k, (step.i, grown), &parts.zones, t));

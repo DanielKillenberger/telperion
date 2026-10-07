@@ -6,7 +6,7 @@ use super::shoot::Shoot;
 use super::{stop_stake, Apex};
 use crate::error::Result;
 use crate::fixed::{self, presence};
-use crate::lineage::{threshold, Key, MOVE, RELAY};
+use crate::lineage::{threshold, Key, ABORTION, MOVE, RELAY};
 use crate::presence::Unit;
 use crate::presence::SPAN;
 use crate::species::PaState;
@@ -51,13 +51,14 @@ impl Shoot<'_, '_> {
                 fixed::INF,
                 unit,
                 apex.spent,
-                Stop::Ended,
+                (Stop::Ended, true, 0),
             );
         };
         let d = unit.child(MOVE).draw();
         if !d.under(go) {
             let stopped = presence::over(threshold(go), d.0);
-            return self.stop(apex, (cycle, used), stopped, unit, apex.spent, Stop::Ended);
+            let why = (Stop::Ended, true, 0);
+            return self.stop(apex, (cycle, used), stopped, unit, apex.spent, why);
         }
         // Its presence decides whether it also grows its relay, so it is
         // the contract's (FINE-CONTRACT.md D10).
@@ -99,14 +100,15 @@ impl Shoot<'_, '_> {
         mut apex: Apex,
         (cycle, gone, whole): (u32, f64, bool),
         (lived, below, relayed, stopped): (f64, u64, u64, i64),
-        (pa, unit): (usize, Key),
+        (pa, unit, decide): (usize, Key, Key),
+        after: std::result::Result<f64, i64>,
     ) -> Result<()> {
         let survive = presence::times(relayed, presence::q(self.kept(apex.axis)));
         let (size, light, reads) = (self.size(apex.axis), self.light(apex.axis), self.reads);
         let draws = self.draws_mut(apex.axis);
         draws.units.push(Unit {
             survive: fixed::real(survive),
-            persist: 1.0,
+            persist: after.unwrap_or(1.0),
             share: lived,
         });
         if reads.sketching {
@@ -121,13 +123,50 @@ impl Shoot<'_, '_> {
         *self.units_mut(apex.axis) = apex.spent;
         let blend = fixed::real(presence::of(stopped, fixed::q32(SPAN)));
         let used = (cycle, gone + lived);
-        self.relay_bud(
-            apex,
-            used,
-            apex.spent,
-            [1.0; 2],
-            (blend, Stop::Failed, whole, below),
-        )
+        let made = (blend, Stop::Failed, whole, below);
+        let Err(lead) = after else {
+            return self.relay_bud(apex, used, apex.spent, [1.0; 2], made);
+        };
+        // The lived part aborted (fn-199, host decision C1): its relay
+        // stops at once, as an apex that aborted, and the abortion's relay
+        // stands on it, so on the failed axis (`geometry::carried_point`).
+        self.make_relay((apex, used, apex.spent, [1.0; 2]), made);
+        let relay = self.next.pop().expect("sprouted");
+        self.axis_mut(relay.axis).apex_end = Some(cycle);
+        let why = (Stop::Aborted, whole, below);
+        self.stop(relay, used, lead, decide, relay.spent, why)
+    }
+
+    /// The abortion draw keyed `decide` after a unit of PA `pa` in `cycle`
+    /// with threshold `aborts`: the lead past it where the apex aborts,
+    /// else its persistence, the relay it would have had included, as a
+    /// presence (host decision 11).
+    pub(super) fn persists(
+        &self,
+        decide: Key,
+        (pa, cycle): (usize, u32),
+        aborts: u64,
+    ) -> std::result::Result<f64, i64> {
+        if aborts == 0 {
+            return Ok(1.0);
+        }
+        let d = decide.child(ABORTION).draw();
+        if d.0 < aborts {
+            return Err(presence::under(aborts, d.0));
+        }
+        // An apex that all but aborted carries on as itself and as the
+        // relay it would have had, which at the bound is laid as its
+        // continuation and draws what it would: the two sum, so no stop
+        // near its bound fades the stem (host decision 11), each a Q32
+        // presence (host decision 8).
+        let state = &self.species().states[pa];
+        let at = (pa, cycle + 1, None);
+        let window = self.windows().window_q(at, stop_stake(state.relay));
+        let faded = presence::of_over(aborts, d.0, window);
+        let relayed = self.relayed(state.relay, decide, at);
+        Ok(fixed::real(
+            relayed + presence::times(presence::ONE - relayed, faded),
+        ))
     }
 
     /// The relay of the apex that stopped having spent `spent` of its PA,
@@ -145,6 +184,17 @@ impl Shoot<'_, '_> {
         made: [f64; 2],
         (blend, why, whole, below): (f64, Stop, bool, u64),
     ) -> Result<()> {
+        let at = (apex, (cycle, used), spent, made);
+        self.make_relay(at, (blend, why, whole, below));
+        self.carry_on(cycle, used)
+    }
+
+    /// `relay_bud`'s relay, made and not yet grown: the next apex.
+    fn make_relay(
+        &mut self,
+        (apex, (cycle, used), spent, made): (Apex, (u32, f64), f64, [f64; 2]),
+        (blend, why, whole, below): (f64, Stop, bool, u64),
+    ) {
         let (pa, key) = (self.axis(apex.axis).pa, Key(self.axis(apex.axis).lineage));
         let draws = self.draws(apex.axis);
         let grown = draws.aged + draws.grown() + spent - apex.spent;
@@ -165,12 +215,12 @@ impl Shoot<'_, '_> {
         line.axis.blend = blend;
         let draws = &mut line.draws;
         (draws.aged, draws.ended, draws.ended_relays) = (grown, whole, ended_relays);
-        // A failed unit's relay that grows in the same cycle grows its
-        // rest; one whose unit lived it whole grows on from the next, as
-        // the apex would have.
-        let rest = why == Stop::Failed && used < 1.0;
+        // A relay that grows in the cycle its axis stopped in, other than
+        // an ended age's, grows the rest of a failed unit (fn-199 R1, C1);
+        // one whose unit lived it whole grows on from the next, as the
+        // apex would have.
+        let rest = why != Stop::Ended && used < 1.0;
         (draws.rest, draws.below) = (rest, if rest { below } else { 0 });
-        self.carry_on(cycle, used)
     }
 
     /// The presence of the relay a stop in the growth unit keyed `unit`
@@ -203,7 +253,7 @@ impl Shoot<'_, '_> {
         stopped: i64,
         unit: Key,
         spent: f64,
-        why: Stop,
+        (why, whole, below): (Stop, bool, u64),
     ) -> Result<()> {
         *self.units_mut(apex.axis) = spent;
         if why == Stop::Ended {
@@ -232,7 +282,7 @@ impl Shoot<'_, '_> {
                 (cycle, used),
                 spent,
                 made,
-                (blend, why, why == Stop::Ended, 0),
+                (blend, why, whole || why == Stop::Ended, below),
             );
         }
         Ok(())
