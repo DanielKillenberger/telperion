@@ -342,6 +342,13 @@ pub fn draw(key: u64) -> u64 {
     crate::lineage::Key(key).draw().0
 }
 
+/// The 53 bits of the internode draw of the node keyed `key` (fn-222),
+/// which `lineage::internode` scales its length by.
+pub fn internode_draw(key: u64) -> u64 {
+    use crate::lineage::{Key, INTERNODE};
+    Key(key).child(INTERNODE).draw().0
+}
+
 pub mod decide;
 pub mod presence;
 pub mod sum;

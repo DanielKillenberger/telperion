@@ -2,7 +2,10 @@
   "branch_name": "fn-213-tree-space-the-silver-birch-as-a-point",
   "created_at": "2026-10-07T08:21:40.970723Z",
   "depends_on_epics": [
-    "fn-198-tree-space-f-the-engine-in-production"
+    "fn-198-tree-space-f-the-engine-in-production",
+    "fn-221-bark-that-matures-with-girth",
+    "fn-223-leaves-cluster-at-the-engines-short",
+    "fn-224-leaving-angles-and-turning-rates-that"
   ],
   "id": "fn-213-tree-space-the-silver-birch-as-a-point",
   "next_task": 1,
@@ -22,5 +25,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-07T08:22:19.235985Z"
+  "updated_at": "2026-10-07T20:23:01.655633Z"
 }

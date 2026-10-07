@@ -3,15 +3,28 @@
 //! all is walked over its range in `STEPS` steps at three seeds, on its own
 //! scale: log-odds for a probability, its unit otherwise.
 mod walk;
-use walk::degree::{by_degree, walks};
+use std::sync::OnceLock;
+use walk::degree::{by_degree, judge, walks, Walks};
 use walk::{
     crossing, in_leaf, light_settings, made, refine, release_settings, setting, settings, Setting,
     STEPS,
 };
 
+/// Every setting with its walks, made once: two tests read the same walks,
+/// and a second making of them was a third of this binary's time.
+fn every_walk() -> &'static (Vec<Setting>, Walks) {
+    static ALL: OnceLock<(Vec<Setting>, Walks)> = OnceLock::new();
+    ALL.get_or_init(|| {
+        let all = settings();
+        let walked = walks(&all);
+        (all, walked)
+    })
+}
+
 #[test]
 fn every_setting_changes_the_tree_by_degree() {
-    let failed = by_degree(&settings());
+    let (all, walked) = every_walk();
+    let failed = judge(all, walked);
     assert!(failed.is_empty(), "{failed:#?}");
 }
 
@@ -100,10 +113,10 @@ fn every_setting_in_leaf_changes_the_tree_by_degree() {
 /// when it goes: bisected to the crossing, its wood is none.
 #[test]
 fn branches_are_made_and_unmade_at_vanishing_size() {
-    let all = settings();
+    let (all, walked) = every_walk();
     let mut crossed = 0;
-    for (setting, seeds) in all.iter().zip(walks(&all)) {
-        for (seed, steps) in &seeds {
+    for (setting, seeds) in all.iter().zip(walked) {
+        for (seed, steps) in seeds {
             let Some(step) = steps.iter().max_by(|a, b| a.made.total_cmp(&b.made)) else {
                 continue;
             };

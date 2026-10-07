@@ -13,8 +13,11 @@ pub const SEEDS: [u64; 3] = [1, 2, 3];
 /// The levels a walk's steepest steps are split into eighths.
 pub const REFINE: u32 = 6;
 
+/// Every walk's steps at every seed, by setting.
+pub type Walks = Vec<Vec<(u64, Vec<Step>)>>;
+
 /// Every walk's steps at every seed, the walks in parallel.
-pub fn walks(all: &[Setting]) -> Vec<Vec<(u64, Vec<Step>)>> {
+pub fn walks(all: &[Setting]) -> Walks {
     std::thread::scope(|scope| {
         let handles: Vec<_> = all
             .iter()
@@ -27,8 +30,13 @@ pub fn walks(all: &[Setting]) -> Vec<Vec<(u64, Vec<Step>)>> {
 /// Each walk's steepest step against the bound, and its three steepest
 /// split finer: what fails.
 pub fn by_degree(all: &[Setting]) -> Vec<String> {
+    judge(all, &walks(all))
+}
+
+/// `by_degree` on walks already made.
+pub fn judge(all: &[Setting], walked: &Walks) -> Vec<String> {
     let mut failed = Vec::new();
-    for (setting, seeds) in all.iter().zip(walks(all)) {
+    for (setting, seeds) in all.iter().zip(walked) {
         let (seed, worst) = seeds
             .iter()
             .flat_map(|(seed, steps)| steps.iter().map(move |s| (*seed, s)))

@@ -33,6 +33,7 @@ pub struct PaGeometry {
     pub secondary: f64,
     pub bend_length: f64,
     pub retained: f64,
+    pub internode_spread: f64,
 }
 
 /// One zone of a PA's growth unit: its buds a node, and per PA a lateral
@@ -99,6 +100,7 @@ impl GeometryTables {
                     secondary: f.secondary,
                     bend_length: f.bend_length,
                     retained: s.retained,
+                    internode_spread: f.internode_spread,
                 }
             })
             .collect();

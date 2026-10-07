@@ -121,7 +121,7 @@ fn grown(tree: &Structure) -> Vec<Grown> {
 /// a zone (`lineage::ZONE` + z) and the node's draw index.
 fn unit_key(lineage: u64, cycle: u32, node: u64) -> u64 {
     const ZONE: u64 = 16;
-    const FAILED: u64 = u64::MAX - 9;
+    const FAILED: u64 = u64::MAX - 10;
     let unit = fixed::child(lineage, u64::from(cycle));
     let apart = fixed::child(unit, FAILED);
     let holds = |key: u64| {

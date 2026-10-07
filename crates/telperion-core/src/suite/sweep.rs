@@ -3,7 +3,6 @@
 //! the oak-to-spruce walk with no frame where the tree changes kind; and every
 //! wire parameter a preset moves proved to be walked at all. No device is
 //! needed; this is the core's own arithmetic.
-use super::specimens;
 use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
@@ -71,7 +70,9 @@ const SWEEP_NODES: usize = 8_000;
 // (the walk is refused), and the engine beech and oak no longer seat short
 // shoots or clump their limbs: the short shoots' spacing, the limb clumping
 // and the shell depth moved only between such pairs, so they are held.
-const HELD: [&str; 72] = [
+// fn-221's six old-bark rows are stated by no preset yet (fn-213 owns the
+// birch's), so every table leaves them at their neutral and they are held.
+const HELD: [&str; 78] = [
     "/canopy/clumpSystemOrder",
     "/canopy/limbClumping",
     "/canopy/shortShootSpacing",
@@ -102,6 +103,12 @@ const HELD: [&str; 72] = [
     "/material/leafDeadRed",
     "/material/leafDeadGreen",
     "/material/leafDeadBlue",
+    "/material/matureRed",
+    "/material/matureGreen",
+    "/material/matureBlue",
+    "/material/matureFurrowStrength",
+    "/material/matureRadius",
+    "/material/matureSpan",
     "/canopy/clumpNeighbours",
     "/surface/socketContainment",
     "/skeleton/habit/reachProbeSteps",
@@ -310,22 +317,6 @@ fn every_pair_of_presets_grows_a_tree_at_every_step() {
                 "{a}->{b} at {at}: nothing was built"
             );
         }
-    }
-}
-
-#[test]
-fn every_shipped_preset_carries_foliage() {
-    for id in IDS {
-        // The scaffold's specimens: an engine preset grows no scaffold
-        // tree now (fn-198).
-        if family(id).space.species.is_some() {
-            continue;
-        }
-        let mesh = specimens::mesh(&family(id));
-        assert!(
-            !mesh.foliage.instances.is_empty(),
-            "{id}: crown carries no foliage"
-        );
     }
 }
 

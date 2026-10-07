@@ -55,7 +55,7 @@ const MOVE: u32 = 2u;
 const RELAY = vec2<u32>(0xfffffffdu, 0xffffffffu);
 const ENDED = vec2<u32>(0xfffffff8u, 0xffffffffu);
 const END = vec2<u32>(0xfffffff7u, 0xffffffffu);
-const FAILED_KEY = vec2<u32>(0xfffffff6u, 0xffffffffu);
+const FAILED_KEY = vec2<u32>(0xfffffff5u, 0xffffffffu);
 const CONTINUATION = vec2<u32>(0xffffffffu, 0xffffffffu);
 
 // How an axis stands on its parent.

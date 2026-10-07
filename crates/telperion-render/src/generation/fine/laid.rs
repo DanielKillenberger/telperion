@@ -77,6 +77,7 @@ pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
         let [lo, hi] = q(p.divergence / std::f64::consts::TAU, 60);
         out[4 + GG * pa + 20] = f32::from_bits(lo);
         out[4 + GG * pa + 21] = f32::from_bits(hi);
+        out[4 + GG * pa + 22] = p.internode_spread as f32;
     }
     let sags = g.pas.iter().any(|p| p.sag > 0.0);
     (out, sags)

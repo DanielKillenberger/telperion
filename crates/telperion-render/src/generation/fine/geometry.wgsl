@@ -200,7 +200,7 @@ fn lift_at(at: u32, k: u32) -> vec4<f32> {
 
 fn pa_of(pa: u32) -> Pa {
     let b = 4u + GG * pa;
-    return Pa(gtab[b], gtab[b + 1u], gtab[b + 2u], gtab[b + 3u], gtab[b + 4u], gtab[b + 5u], gtab[b + 6u], gtab[b + 7u], gtab[b + 8u], gtab[b + 9u], gtab[b + 10u], gtab[b + 11u], gtab[b + 12u], gtab[b + 13u], gtab[b + 14u], gtab[b + 15u], gtab[b + 16u], gtab[b + 17u], gtab[b + 18u], gtab[b + 19u]);
+    return Pa(gtab[b], gtab[b + 1u], gtab[b + 2u], gtab[b + 3u], gtab[b + 4u], gtab[b + 5u], gtab[b + 6u], gtab[b + 7u], gtab[b + 8u], gtab[b + 9u], gtab[b + 10u], gtab[b + 11u], gtab[b + 12u], gtab[b + 13u], gtab[b + 14u], gtab[b + 15u], gtab[b + 16u], gtab[b + 17u], gtab[b + 18u], gtab[b + 19u], gtab[b + 22u]);
 }
 
 fn ripe(years: f32, ripening: f32) -> f32 {
