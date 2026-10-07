@@ -43,8 +43,8 @@ fn changed(a: &Still, b: &Still) -> f64 {
 }
 
 /// The preset's tree at 80, seed 1, whose trunk carries a close-up as the
-/// mature scaffold tree's did; the birch, which has no engine species,
-/// dressed on the engine beech's structure (fn-198).
+/// mature scaffold tree's did; a preset with no engine species dressed on
+/// the engine beech's structure (fn-198).
 fn family(preset: Preset) -> telperion_core::Family {
     let mut family = preset.parameters();
     if family.space.species.is_none() {

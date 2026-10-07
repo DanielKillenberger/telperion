@@ -1,5 +1,5 @@
 //! The engine species as preset values (fn-198 host decision 1): each of the
-//! four engine presets carries the engine's own species, stem ages and site
+//! five engine presets carries the engine's own species, stem ages and site
 //! light as `/space` rows, read back to the bit through the value file and
 //! the wire; the other presets carry none.
 use telperion_core::{
@@ -9,11 +9,11 @@ use telperion_core::{
         values, Preset,
     },
 };
-use telperion_space::{beech, oak, palm, spruce, Light, Species};
+use telperion_space::{beech, birch, oak, palm, spruce, Light, Species};
 
 /// The species each engine preset states, as the tree-space examples grew it
 /// (`crates/telperion-render/examples/space_*.rs`, BASELINE.md's oak light).
-fn engine() -> [(Preset, Species, Vec<usize>, Light); 4] {
+fn engine() -> [(Preset, Species, Vec<usize>, Light); 5] {
     let oak_light = Light {
         extinction: 0.5,
         sky: 0.5,
@@ -33,6 +33,7 @@ fn engine() -> [(Preset, Species, Vec<usize>, Light); 4] {
         ),
         (Preset::OregonWhiteOak, oak(), vec![2, 3, 4], oak_light),
         (Preset::DatePalm, palm(), vec![2], Light::NEUTRAL),
+        (Preset::SilverBirch, birch(), vec![2, 4, 5], Light::NEUTRAL),
     ]
 }
 
@@ -49,7 +50,6 @@ fn every_engine_preset_carries_the_engines_species() {
 fn a_preset_without_an_engine_species_carries_none() {
     for preset in [
         Preset::Ordinary,
-        Preset::SilverBirch,
         Preset::Telperion,
         Preset::Laurelin,
     ] {

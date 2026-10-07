@@ -2474,7 +2474,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
   {
     "abiId": 6,
     "family": {
-      "age": 70,
+      "age": 40,
       "canopy": {
         "acanthophyllLength": 0.35,
         "acanthophyllPitch": 80,
@@ -2506,7 +2506,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "rosettePitch": 45,
         "rosettePitchSpread": 60,
         "scatter": 18,
-        "shootRadius": 0,
+        "shootRadius": 0.03,
         "shortShootLeaves": 3,
         "shortShootLength": 0.04,
         "shortShootRadius": 0.15,
@@ -2645,7 +2645,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "maxTaperExponent": 12,
         "trunkRadius": 0.014
       },
-      "shellDepth": 0.45,
+      "shellDepth": 1,
       "skeleton": {
         "attractors": 500,
         "bias": {
@@ -2726,11 +2726,399 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "twig": {
             "bearingDiameter": 0.02,
             "diameter": 0.003,
-            "internodeLength": 0.06,
+            "internodeLength": 0.015,
             "length": 0.45,
             "stationsPerInternode": 1
           },
           "vigourVariation": 0.15
+        }
+      },
+      "space": {
+        "ages": {
+          "2": {
+            "divergence": 2.5132741228718345,
+            "form": {
+              "bendLength": 4,
+              "elevation": 1.5707963267948966,
+              "exponent": 2.5,
+              "pipe": 0.004,
+              "tropism": 1,
+              "wander": 0.3
+            },
+            "internode": 0.055,
+            "lifespan": 5,
+            "trunk": true,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 6,
+                  "min": 4
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.3,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 8,
+                  "min": 6
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.7
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              }
+            }
+          },
+          "4": {
+            "divergence": 2.5132741228718345,
+            "form": {
+              "bendLength": 4,
+              "elevation": 1.5707963267948966,
+              "exponent": 2.5,
+              "pipe": 0.004,
+              "tropism": 1,
+              "wander": 0.3
+            },
+            "lifespan": 35,
+            "trunk": true,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 4,
+                  "min": 3
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.12,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 5,
+                  "min": 3
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.3,
+                  "9": 0.2
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 2
+                }
+              }
+            }
+          },
+          "5": {
+            "continuation": 0,
+            "divergence": 2.5132741228718345,
+            "form": {
+              "bendLength": 4,
+              "elevation": 1.5707963267948966,
+              "exponent": 2.5,
+              "pipe": 0.004,
+              "tropism": 1,
+              "wander": 0.5
+            },
+            "internode": 0.02,
+            "lifespan": 100,
+            "trunk": true,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.3,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "7": 0.3,
+                  "9": 0.3
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "6": {
+            "divergence": 2.5132741228718345,
+            "form": {
+              "bendLength": 1,
+              "elevation": 1.2,
+              "exponent": 2.4,
+              "pipe": 0.002,
+              "ripening": 10,
+              "roll": 0.8,
+              "sag": 0.0001,
+              "tropism": 0.6,
+              "wander": 0.25
+            },
+            "insertion": 0.6,
+            "internode": 0.045,
+            "lifespan": 15,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "7": 0.08,
+                  "9": 0.2,
+                  "14": 0.35
+                },
+                "nodes": {
+                  "max": 5,
+                  "min": 3
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "7": 0.4,
+                  "9": 0.35
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "7": {
+            "continuation": 0,
+            "divergence": 2.5132741228718345,
+            "form": {
+              "bendLength": 1,
+              "elevation": 0.6,
+              "exponent": 2.4,
+              "pipe": 0.002,
+              "ripening": 10,
+              "roll": 0.8,
+              "sag": 0.00003,
+              "tropism": 0.6,
+              "wander": 0.25
+            },
+            "insertion": 0.6,
+            "internode": 0.02,
+            "lifespan": 100,
+            "shedding": 2,
+            "viability": 0.995,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.25,
+                  "14": 0.35
+                },
+                "nodes": {
+                  "max": 4,
+                  "min": 3
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.4
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "8": {
+            "continuation": 0,
+            "divergence": 2.5132741228718345,
+            "form": {
+              "elevation": 0.8,
+              "exponent": 2.2,
+              "pipe": 0.0012,
+              "roll": 0.8,
+              "sag": 0.0002,
+              "tropism": 0.5,
+              "wander": 0.4
+            },
+            "insertion": 0.7,
+            "lifespan": 8,
+            "shedding": 2,
+            "viability": 0.97,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.4,
+                  "14": 0.4
+                },
+                "nodes": {
+                  "max": 4,
+                  "min": 3
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.5
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "9": {
+            "continuation": 0,
+            "divergence": 2.5132741228718345,
+            "form": {
+              "elevation": -1,
+              "pipe": 0.0008,
+              "roll": 1.2,
+              "sag": 0.0002,
+              "tropism": 1,
+              "wander": 0.6
+            },
+            "insertion": 0.7,
+            "internode": 0.035,
+            "lifespan": 6,
+            "shedding": 1,
+            "viability": 0.95,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "12": 0.25,
+                  "14": 0.45
+                },
+                "nodes": {
+                  "max": 6,
+                  "min": 4
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "12": 0.4
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "12": {
+            "continuation": 0,
+            "divergence": 2.5132741228718345,
+            "form": {
+              "elevation": -1.4,
+              "pipe": 0.0006,
+              "roll": 1.2,
+              "sag": 0.0002,
+              "tropism": 1.5,
+              "wander": 0.6
+            },
+            "insertion": 0.6,
+            "internode": 0.03,
+            "lifespan": 3,
+            "shedding": 1,
+            "viability": 0.9,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "14": 0.45
+                },
+                "nodes": {
+                  "max": 5,
+                  "min": 3
+                }
+              }
+            }
+          },
+          "14": {
+            "continuation": 0,
+            "divergence": 2.5132741228718345,
+            "form": {
+              "pipe": 0.0007
+            },
+            "insertion": 0.8,
+            "internode": 0.003,
+            "lifespan": 10,
+            "shedding": 1,
+            "viability": 0.92,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              }
+            }
+          }
         }
       },
       "surface": {

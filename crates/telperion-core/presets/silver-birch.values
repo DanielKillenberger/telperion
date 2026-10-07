@@ -1,9 +1,9 @@
 # Silver birch, Betula pendula.
 # Rows off the default family, checked against the catalogue as core compiles.
 
-# Mature open-grown Betula pendula. Envelope height is the 18 m
-# reference at 70 yr; pendulous laterals.
-/age = 70.0
+# Mature open-grown Betula pendula, grown by the engine (fn-213); the
+# habit, envelope and twig-layer rows below are today's generator's and
+# the engine reads none of them.
 /skeleton/habit/apicalDominance = 0.45
 /skeleton/habit/whorlStrength = 0.2
 /skeleton/habit/leaderInternode = 1.6
@@ -92,7 +92,7 @@
 # A leaf every 60 mm of shoot: two stems carry two crowns' worth of
 # shoots inside one shell, and at the single stem's 36 mm the curtain
 # closed back into a mass with no sky through it.
-/skeleton/twigs/twig/internodeLength = 0.06
+/skeleton/twigs/twig/internodeLength = 0.015
 /skeleton/twigs/twig/bearingDiameter = 0.02
 
 # The weeping birch's own curtain: a full hang, shoots running metres
@@ -308,3 +308,223 @@
 # shell twice over, and the photograph's birch is a light tree. Retaining
 # less than half the shell's depth is what lets the light back in.
 # The default dead colour: this table keeps no skirt to show it on.
+
+# The rows the tree-space example restated for a tree that grows its own
+# shoots (fn-193 to fn-196): leaves along the grown shoots, no clusters
+# seated along slender wood.
+/canopy/shootRadius = 0.03
+
+# Every leaf the grown shoots carry is kept, as on the other engine
+# trees: the cull's shell is the whole crown.
+/shellDepth = 1.0
+
+# The age the harness opens the tree at (fn-198 host decision 5); the
+# engine grows the tree to it.
+/age = 40.0
+
+# The engine species (fn-213): telperion_space::birch (MODEL-BIRCH.md in the spec's evidence).
+# The envelope is derived from the grown tree (fn-198 host decision 7).
+/space/ages/2/lifespan = 5.0
+/space/ages/2/internode = 0.055
+/space/ages/2/divergence = 2.5132741228718345
+/space/ages/2/form/tropism = 1.0
+/space/ages/2/form/elevation = 1.5707963267948966
+/space/ages/2/form/wander = 0.3
+/space/ages/2/form/pipe = 0.004
+/space/ages/2/form/exponent = 2.5
+/space/ages/2/form/bendLength = 4.0
+/space/ages/2/zones/0/buds = 1.0
+/space/ages/2/zones/0/nodes/min = 4.0
+/space/ages/2/zones/0/nodes/max = 6.0
+/space/ages/2/zones/1/buds = 1.0
+/space/ages/2/zones/1/nodes/min = 6.0
+/space/ages/2/zones/1/nodes/max = 8.0
+/space/ages/2/zones/1/lateral/8 = 0.3
+/space/ages/2/zones/1/lateral/14 = 0.3
+/space/ages/2/zones/2/buds = 1.0
+/space/ages/2/zones/2/nodes/min = 2.0
+/space/ages/2/zones/2/nodes/max = 3.0
+/space/ages/2/zones/2/lateral/8 = 0.7
+/space/ages/4/lifespan = 35.0
+/space/ages/4/divergence = 2.5132741228718345
+/space/ages/4/form/tropism = 1.0
+/space/ages/4/form/elevation = 1.5707963267948966
+/space/ages/4/form/wander = 0.3
+/space/ages/4/form/pipe = 0.004
+/space/ages/4/form/exponent = 2.5
+/space/ages/4/form/bendLength = 4.0
+/space/ages/4/zones/0/buds = 1.0
+/space/ages/4/zones/0/nodes/min = 3.0
+/space/ages/4/zones/0/nodes/max = 4.0
+/space/ages/4/zones/1/buds = 1.0
+/space/ages/4/zones/1/nodes/min = 3.0
+/space/ages/4/zones/1/nodes/max = 5.0
+/space/ages/4/zones/1/lateral/9 = 0.12
+/space/ages/4/zones/1/lateral/14 = 0.3
+/space/ages/4/zones/2/buds = 1.0
+/space/ages/4/zones/2/nodes/min = 2.0
+/space/ages/4/zones/2/nodes/max = 2.0
+/space/ages/4/zones/2/lateral/6 = 0.3
+/space/ages/4/zones/2/lateral/9 = 0.2
+/space/ages/5/lifespan = 100.0
+/space/ages/5/continuation = 0.0
+/space/ages/5/internode = 0.02
+/space/ages/5/divergence = 2.5132741228718345
+/space/ages/5/form/tropism = 1.0
+/space/ages/5/form/elevation = 1.5707963267948966
+/space/ages/5/form/wander = 0.5
+/space/ages/5/form/pipe = 0.004
+/space/ages/5/form/exponent = 2.5
+/space/ages/5/form/bendLength = 4.0
+/space/ages/5/zones/0/buds = 1.0
+/space/ages/5/zones/0/nodes/min = 1.0
+/space/ages/5/zones/0/nodes/max = 2.0
+/space/ages/5/zones/1/buds = 1.0
+/space/ages/5/zones/1/nodes/min = 2.0
+/space/ages/5/zones/1/nodes/max = 3.0
+/space/ages/5/zones/1/lateral/9 = 0.3
+/space/ages/5/zones/1/lateral/14 = 0.3
+/space/ages/5/zones/2/buds = 1.0
+/space/ages/5/zones/2/nodes/min = 1.0
+/space/ages/5/zones/2/nodes/max = 2.0
+/space/ages/5/zones/2/lateral/7 = 0.3
+/space/ages/5/zones/2/lateral/9 = 0.3
+/space/ages/6/lifespan = 15.0
+/space/ages/6/internode = 0.045
+/space/ages/6/insertion = 0.6
+/space/ages/6/divergence = 2.5132741228718345
+/space/ages/6/form/tropism = 0.6
+/space/ages/6/form/elevation = 1.2
+/space/ages/6/form/wander = 0.25
+/space/ages/6/form/pipe = 0.002
+/space/ages/6/form/exponent = 2.4
+/space/ages/6/form/ripening = 10.0
+/space/ages/6/form/roll = 0.8
+/space/ages/6/form/sag = 0.0001
+/space/ages/6/form/bendLength = 1.0
+/space/ages/6/zones/0/buds = 1.0
+/space/ages/6/zones/0/nodes/min = 2.0
+/space/ages/6/zones/0/nodes/max = 3.0
+/space/ages/6/zones/1/buds = 1.0
+/space/ages/6/zones/1/nodes/min = 3.0
+/space/ages/6/zones/1/nodes/max = 5.0
+/space/ages/6/zones/1/lateral/7 = 0.08
+/space/ages/6/zones/1/lateral/9 = 0.2
+/space/ages/6/zones/1/lateral/14 = 0.35
+/space/ages/6/zones/2/buds = 1.0
+/space/ages/6/zones/2/nodes/min = 1.0
+/space/ages/6/zones/2/nodes/max = 2.0
+/space/ages/6/zones/2/lateral/7 = 0.4
+/space/ages/6/zones/2/lateral/9 = 0.35
+/space/ages/7/lifespan = 100.0
+/space/ages/7/continuation = 0.0
+/space/ages/7/viability = 0.995
+/space/ages/7/shedding = 2.0
+/space/ages/7/internode = 0.02
+/space/ages/7/insertion = 0.6
+/space/ages/7/divergence = 2.5132741228718345
+/space/ages/7/form/tropism = 0.6
+/space/ages/7/form/elevation = 0.6
+/space/ages/7/form/wander = 0.25
+/space/ages/7/form/pipe = 0.002
+/space/ages/7/form/exponent = 2.4
+/space/ages/7/form/ripening = 10.0
+/space/ages/7/form/roll = 0.8
+/space/ages/7/form/sag = 3e-5
+/space/ages/7/form/bendLength = 1.0
+/space/ages/7/zones/0/buds = 1.0
+/space/ages/7/zones/0/nodes/min = 1.0
+/space/ages/7/zones/0/nodes/max = 2.0
+/space/ages/7/zones/1/buds = 1.0
+/space/ages/7/zones/1/nodes/min = 3.0
+/space/ages/7/zones/1/nodes/max = 4.0
+/space/ages/7/zones/1/lateral/9 = 0.25
+/space/ages/7/zones/1/lateral/14 = 0.35
+/space/ages/7/zones/2/buds = 1.0
+/space/ages/7/zones/2/nodes/min = 1.0
+/space/ages/7/zones/2/nodes/max = 1.0
+/space/ages/7/zones/2/lateral/9 = 0.4
+/space/ages/8/lifespan = 8.0
+/space/ages/8/continuation = 0.0
+/space/ages/8/viability = 0.97
+/space/ages/8/shedding = 2.0
+/space/ages/8/insertion = 0.7
+/space/ages/8/divergence = 2.5132741228718345
+/space/ages/8/form/tropism = 0.5
+/space/ages/8/form/elevation = 0.8
+/space/ages/8/form/wander = 0.4
+/space/ages/8/form/pipe = 0.0012
+/space/ages/8/form/exponent = 2.2
+/space/ages/8/form/roll = 0.8
+/space/ages/8/form/sag = 0.0002
+/space/ages/8/zones/0/buds = 1.0
+/space/ages/8/zones/0/nodes/min = 1.0
+/space/ages/8/zones/0/nodes/max = 2.0
+/space/ages/8/zones/1/buds = 1.0
+/space/ages/8/zones/1/nodes/min = 3.0
+/space/ages/8/zones/1/nodes/max = 4.0
+/space/ages/8/zones/1/lateral/9 = 0.4
+/space/ages/8/zones/1/lateral/14 = 0.4
+/space/ages/8/zones/2/buds = 1.0
+/space/ages/8/zones/2/nodes/min = 1.0
+/space/ages/8/zones/2/nodes/max = 1.0
+/space/ages/8/zones/2/lateral/9 = 0.5
+/space/ages/9/lifespan = 6.0
+/space/ages/9/continuation = 0.0
+/space/ages/9/viability = 0.95
+/space/ages/9/shedding = 1.0
+/space/ages/9/internode = 0.035
+/space/ages/9/insertion = 0.7
+/space/ages/9/divergence = 2.5132741228718345
+/space/ages/9/form/tropism = 1.0
+/space/ages/9/form/elevation = -1.0
+/space/ages/9/form/wander = 0.6
+/space/ages/9/form/pipe = 0.0008
+/space/ages/9/form/roll = 1.2
+/space/ages/9/form/sag = 0.0002
+/space/ages/9/zones/0/buds = 1.0
+/space/ages/9/zones/0/nodes/min = 1.0
+/space/ages/9/zones/0/nodes/max = 2.0
+/space/ages/9/zones/1/buds = 1.0
+/space/ages/9/zones/1/nodes/min = 4.0
+/space/ages/9/zones/1/nodes/max = 6.0
+/space/ages/9/zones/1/lateral/12 = 0.25
+/space/ages/9/zones/1/lateral/14 = 0.45
+/space/ages/9/zones/2/buds = 1.0
+/space/ages/9/zones/2/nodes/min = 1.0
+/space/ages/9/zones/2/nodes/max = 2.0
+/space/ages/9/zones/2/lateral/12 = 0.4
+/space/ages/12/lifespan = 3.0
+/space/ages/12/continuation = 0.0
+/space/ages/12/viability = 0.9
+/space/ages/12/shedding = 1.0
+/space/ages/12/internode = 0.03
+/space/ages/12/insertion = 0.6
+/space/ages/12/divergence = 2.5132741228718345
+/space/ages/12/form/tropism = 1.5
+/space/ages/12/form/elevation = -1.4
+/space/ages/12/form/wander = 0.6
+/space/ages/12/form/pipe = 0.0006
+/space/ages/12/form/roll = 1.2
+/space/ages/12/form/sag = 0.0002
+/space/ages/12/zones/0/buds = 1.0
+/space/ages/12/zones/0/nodes/min = 1.0
+/space/ages/12/zones/0/nodes/max = 1.0
+/space/ages/12/zones/1/buds = 1.0
+/space/ages/12/zones/1/nodes/min = 3.0
+/space/ages/12/zones/1/nodes/max = 5.0
+/space/ages/12/zones/1/lateral/14 = 0.45
+/space/ages/14/lifespan = 10.0
+/space/ages/14/continuation = 0.0
+/space/ages/14/viability = 0.92
+/space/ages/14/shedding = 1.0
+/space/ages/14/internode = 0.003
+/space/ages/14/insertion = 0.8
+/space/ages/14/divergence = 2.5132741228718345
+/space/ages/14/form/pipe = 0.0007
+/space/ages/14/zones/0/buds = 1.0
+/space/ages/14/zones/0/nodes/min = 2.0
+/space/ages/14/zones/0/nodes/max = 3.0
+/space/ages/2/trunk = true
+/space/ages/4/trunk = true
+/space/ages/5/trunk = true

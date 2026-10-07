@@ -13,3 +13,10 @@
 - **Slowed by:** the shell guard refuses `> $DIR/file` and `> file-$(...)` (a dynamic redirect target); each loop had to be rewritten as a script with literal paths or piped through `tee`.
 - **Cost:** two blocked commands, about 3 minutes.
 - **Would remove it:** nothing in the repository; a local guard setting (reported, not specced).
+
+## 2026-10-07: the GPU lock is held by another session's workspace test
+
+- **Doing:** rendering sheet 1 (6 trees, 6 shots each) under the shared GPU lock.
+- **Slowed by:** another session holds the lock for `cargo test --profile ci --workspace` (the whole gate, not a GPU step), so the stills wait behind a CPU-bound run.
+- **Cost:** about 15 minutes of waiting so far.
+- **Would remove it:** take the GPU lock only around the GPU-touching test binaries (the render crate's), not the whole workspace gate.
