@@ -7,7 +7,7 @@
 //! `FINE_GPU_LOCK` naming the GPU lock.
 use super::device::Device;
 use super::realized_tests::request;
-use super::roots::{kernels, Cost, Kernels, Tables};
+use super::roots::{kernels, Cost, Kernels};
 use crate::generation::profile;
 use crate::Gpu;
 use std::collections::BTreeMap;
@@ -15,19 +15,19 @@ use std::time::Instant;
 use telperion_space::{settle, ChainTables, GeometryTables, Plan, Species};
 
 /// One build of `species` at `at` on the device, batch 65,536, from its
-/// parameters: its species point's tables, then the tree settled. Its
-/// wall milliseconds whole and from the tables' upload, and the device's
-/// phase costs.
-fn build(gpu: &Gpu, k: &Kernels, species: &Species, at: (u32, u64)) -> ([f64; 2], Cost) {
+/// parameters: its species point's tables built on another core while
+/// the structure above the cut grows, then the tree settled. Its wall
+/// milliseconds and the device's phase costs.
+fn build(gpu: &Gpu, k: &Kernels, species: &Species, at: (u32, u64)) -> (f64, Cost) {
     let whole = Instant::now();
-    let chain = ChainTables::new(species, at.0).expect("tables");
-    let geo = GeometryTables::new(species, at.0).expect("tables");
-    let t = Instant::now();
-    let tables = Tables::new(gpu, &chain, &geo);
-    let mut dev = Device::new(gpu, k, &tables, 1 << 16);
+    let point = species.clone();
+    let building = std::thread::spawn(move || {
+        let chain = ChainTables::new(&point, at.0).expect("tables");
+        (chain, GeometryTables::new(&point, at.0).expect("tables"))
+    });
+    let mut dev = Device::building(gpu, k, building, 1 << 16);
     settle(species, request(at.0, at.1), Plan::default(), &mut dev).expect("settles");
-    let ms = |t: Instant| t.elapsed().as_secs_f64() * 1e3;
-    ([ms(whole), ms(t)], dev.cost)
+    (whole.elapsed().as_secs_f64() * 1e3, dev.cost)
 }
 
 /// Each entry point's passes, GPU milliseconds summed and the longest.
@@ -67,15 +67,15 @@ fn growth_by_kernel() {
             if !only.is_empty() && only != tree {
                 continue;
             }
-            let ([cold, cold_dev], _) = build(&gpu, &k, &species, at);
-            let ([warm, warm_dev], _) = build(&gpu, &k, &species, at);
+            let (cold, _) = build(&gpu, &k, &species, at);
+            let (warm, _) = build(&gpu, &k, &species, at);
             assert!(profile::start(&gpu), "timestamps");
             let (_, cost) = build(&gpu, &k, &species, at);
             let passes = profile::finish(&gpu);
             let busy: f64 = passes.iter().map(|p| (p.2 - p.1) / 1e6).sum();
             let span = passes.last().map_or(0.0, |l| l.2) - passes.first().map_or(0.0, |f| f.1);
             println!(
-                "{tree}: from parameters cold {cold:.0} / warm {warm:.0} ms, from upload {cold_dev:.0} / {warm_dev:.0} ms; profiled: grow {:.0}, fade {:.0}, lay {:.0} ms, {} trips, {} waves, {} runs, {} chains, {} again; {} passes, GPU busy {busy:.0} ms over a span of {:.0} ms",
+                "{tree}: from parameters cold {cold:.0} / warm {warm:.0} ms; profiled: grow {:.0}, fade {:.0}, lay {:.0} ms, {} trips, {} waves, {} runs, {} chains, {} again; {} passes, GPU busy {busy:.0} ms over a span of {:.0} ms",
                 cost.grow, cost.fade, cost.lay, cost.trips, cost.waves, cost.runs, cost.chains, cost.again,
                 passes.len(), span / 1e6
             );

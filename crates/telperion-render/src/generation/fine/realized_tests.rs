@@ -11,6 +11,7 @@ use super::roots::kernels;
 use super::roots::{Cost, Kernels, Tables};
 use super::shedding;
 use crate::Gpu;
+use std::sync::Arc;
 use telperion_space::{
     grow_fine, landed, realized_cases, root_axes, settle, ChainAxis, ChainTables, GeometryTables,
     Light, Plan, Presences, RealizedCase, Request, RootAxes, Species,
@@ -82,15 +83,15 @@ fn summed(of: &[Presences], order: &[usize]) -> Vec<Presences> {
 
 /// A tree's roots, its tables on the device keeping every axis, and the
 /// roots as the device takes them.
-fn setup<'a>(
+fn setup(
     gpu: &Gpu,
     species: &Species,
     (age, seed): (u32, u64),
-    chain: &'a ChainTables,
-) -> (Vec<RealizedCase>, Tables<'a>, Vec<RootBud>) {
+    chain: &Arc<ChainTables>,
+) -> (Vec<RealizedCase>, Tables, Vec<RootBud>) {
     let cases = realized_cases(species, request(age, seed), Plan::default()).expect("grows");
     let geo = GeometryTables::new(species, age).expect("tables");
-    let tables = Tables::new(gpu, chain, &geo);
+    let tables = Tables::new(gpu, chain.clone(), &geo);
     let roots = cases
         .iter()
         .map(|c| (c.bud, [c.made.0 as f32, c.made.1 as f32], c.birth))
@@ -106,7 +107,7 @@ fn trips(cost: &Cost) {
 /// and their presences, Q32, to the bit; each root's living as reported
 /// up; and its axes kept by its own subtree's shedding.
 fn grown_as_on_the_cpu(gpu: &Gpu, k: &Kernels, name: &str, species: &Species, at: (u32, u64)) {
-    let chain = ChainTables::new(species, at.0).expect("tables");
+    let chain = Arc::new(ChainTables::new(species, at.0).expect("tables"));
     let (cases, tables, roots) = setup(gpu, species, at, &chain);
     let forward: Vec<usize> = (0..cases.len()).collect();
     let reverse: Vec<usize> = forward.iter().rev().copied().collect();
@@ -222,7 +223,7 @@ pub(super) fn settled_against(
     let chain = ChainTables::new(species, at.0).expect("tables");
     let geo = GeometryTables::new(species, at.0).expect("tables");
     let t = std::time::Instant::now();
-    let tables = Tables::new(gpu, &chain, &geo);
+    let tables = Tables::new(gpu, Arc::new(chain), &geo);
     let mut dev = Device::new(gpu, k, &tables, batch).ordered(order.to_vec());
     let (settled, _) = settle(species, request(at.0, at.1), plan, &mut dev).expect("settles");
     let wall = t.elapsed().as_secs_f64() * 1e3;

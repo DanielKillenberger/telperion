@@ -9,6 +9,7 @@ use super::laid::{self, Resolver};
 use super::shedding::Fades;
 use super::steps::{buffer, Steps, BW2, IW, RW};
 use crate::Gpu;
+use std::sync::Arc;
 use telperion_space::{ChainTables, GeometryTables};
 
 /// A chain's first region: most chains are a few axes, so a small region
@@ -41,22 +42,22 @@ pub(super) struct Cost {
 }
 
 /// A species point's tables, packed and on the device.
-pub(super) struct Tables<'a> {
-    pub chain: &'a ChainTables,
+pub(super) struct Tables {
+    pub chain: Arc<ChainTables>,
     pub packed: Packed,
     pub uploaded: Uploaded,
     pub table: wgpu::Buffer,
     pub sags: bool,
 }
 
-impl<'a> Tables<'a> {
-    pub(super) fn new(gpu: &Gpu, chain: &'a ChainTables, geo: &GeometryTables) -> Self {
+impl Tables {
+    pub(super) fn new(gpu: &Gpu, chain: Arc<ChainTables>, geo: &GeometryTables) -> Self {
         let (table, sags) = laid::table(geo);
         let usage = wgpu::BufferUsages::STORAGE;
         let bytes = table.len() as u64 * 4;
         let data = bytemuck::cast_slice(&table);
         let table = super::super::io::buffer(gpu, "laid table", bytes, usage, data).unwrap();
-        let packed = packed(chain, geo);
+        let packed = packed(&chain, geo);
         Self {
             chain,
             uploaded: upload(gpu, &packed),

@@ -13,10 +13,11 @@ use super::roots::{Cost, Kernels, Tables};
 use super::shedding::{report, table};
 use super::steps::{buffer, DESCRIBE};
 use crate::Gpu;
+use std::sync::Arc;
 use std::time::Instant;
 use telperion_space::{
-    bearer_frame, BearerFrame, Lived, Loaded, Result, RootGeometry, RootSeed, Roots, Structure,
-    Vec3,
+    bearer_frame, BearerFrame, ChainTables, GeometryTables, Lived, Loaded, Result, RootGeometry,
+    RootSeed, Roots, Structure, Vec3,
 };
 
 /// A chain's record (`settle.wgsl`'s `CR`).
@@ -35,11 +36,17 @@ struct Kept {
     nodes: Vec<usize>,
 }
 
+/// A species point's tables built on another core while the structure
+/// above the cut grows: the chain's and the geometry's (task 8).
+pub(super) type Building = std::thread::JoinHandle<(ChainTables, GeometryTables)>;
+
 /// The GPU executor's roots, taken in `order`, `batch` chains a run.
 pub(super) struct Device<'a> {
     gpu: &'a Gpu,
     k: &'a Kernels,
-    tables: &'a Tables<'a>,
+    given: Option<&'a Tables>,
+    built: Option<Tables>,
+    building: Option<Building>,
     order: Vec<usize>,
     batch: usize,
     pub cost: Cost,
@@ -47,16 +54,40 @@ pub(super) struct Device<'a> {
 }
 
 impl<'a> Device<'a> {
-    pub(super) fn new(gpu: &'a Gpu, k: &'a Kernels, tables: &'a Tables<'a>, batch: usize) -> Self {
+    pub(super) fn new(gpu: &'a Gpu, k: &'a Kernels, tables: &'a Tables, batch: usize) -> Self {
         Self {
             gpu,
             k,
-            tables,
+            given: Some(tables),
+            built: None,
+            building: None,
             order: Vec::new(),
             batch,
             cost: Cost::default(),
             kept: None,
         }
+    }
+
+    /// The executor with its tables still `building`, uploaded when phase
+    /// 1 first needs them.
+    pub(super) fn building(gpu: &'a Gpu, k: &'a Kernels, building: Building, batch: usize) -> Self {
+        Self {
+            gpu,
+            k,
+            given: None,
+            built: None,
+            building: Some(building),
+            order: Vec::new(),
+            batch,
+            cost: Cost::default(),
+            kept: None,
+        }
+    }
+
+    fn tables(&self) -> &Tables {
+        self.given
+            .or(self.built.as_ref())
+            .expect("the tables, built")
     }
 
     /// Takes the roots in `order` (by default, forward).
@@ -86,7 +117,7 @@ impl<'a> Device<'a> {
     /// Runs `entry` over every wave, down from the first (`down`) or up
     /// from the deepest.
     fn pass(&self, kept: &Kept, entry: usize, down: bool) {
-        let (gpu, t) = (self.gpu, self.tables);
+        let (gpu, t) = (self.gpu, self.tables());
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
         let n = kept.waves.grown.len();
         let waves: Vec<usize> = match down {
@@ -144,6 +175,10 @@ impl Roots for Device<'_> {
     fn grow(&mut self, seeds: &[RootSeed]) -> Result<(Vec<Lived>, u64)> {
         let (gpu, k) = (self.gpu, self.k);
         let start = Instant::now();
+        if let Some(building) = self.building.take() {
+            let (chain, geo) = building.join().expect("the tables");
+            self.built = Some(Tables::new(gpu, Arc::new(chain), &geo));
+        }
         if self.order.len() != seeds.len() {
             self.order = (0..seeds.len()).collect();
         }
@@ -151,15 +186,14 @@ impl Roots for Device<'_> {
             .iter()
             .map(|s| (s.bud, [s.made.0 as f32, s.made.1 as f32], s.birth))
             .collect();
-        let (waves, cost) = grow_roots((gpu, k), (&roots, &self.order, self.batch), self.tables);
-        self.cost = cost;
+        let t = self.tables();
+        let (waves, cost) = grow_roots((gpu, k), (&roots, &self.order, self.batch), t);
         let fading = Instant::now();
-        let fades = table(gpu, self.tables.chain);
-        let living = k.fades.living(
-            gpu,
-            (&waves.grown, &waves.chains),
-            (&fades, self.tables.chain.age),
-        );
+        let fades = table(gpu, &t.chain);
+        let living = k
+            .fades
+            .living(gpu, (&waves.grown, &waves.chains), (&fades, t.chain.age));
+        self.cost = cost;
         let read = report(gpu, &living[0], seeds.len(), &mut self.cost);
         self.cost.fade = fading.elapsed().as_secs_f64() * 1e3;
         let mut lived = vec![(0, 0); seeds.len()];
@@ -251,7 +285,7 @@ impl Roots for Device<'_> {
         let kept = self.kept.take().expect("grown");
         self.attach(&kept);
         self.pass(&kept, LAYS, true);
-        let sags = self.tables.sags;
+        let sags = self.tables().sags;
         if sags {
             self.pass(&kept, LEVERS, false);
         }
