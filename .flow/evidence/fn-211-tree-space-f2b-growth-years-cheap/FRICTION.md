@@ -155,3 +155,17 @@
 - **What slowed it:** the load from other workers rose from 11 to 24 during the run. Spruce 80 s1's stepped build read 18.2 s, against 6.9 s on a rerun at load 7. One seed of the device run caught a spike too: today's `grow` read 26.6 s against 17.6 s. The render gate's load rose to 98, so the rest of the workspace took 10 minutes.
 - **Cost:** a rerun of two trees (6 minutes). One device row is unusable for today's `grow`.
 - **What would remove it:** task 6's entry stands: a shared desk lock for timing runs.
+
+## 2026-10-07, task 12 worker: glibc's allocator under 92,703 growers
+
+- **Doing:** timing the stepped executor's spruce at 80.
+- **What slowed it:** the root growers' memory moved between threads. Each was made on the main thread, grown on whichever pool thread took its piece, and freed on another. Their frees waited on each other's allocator arenas: letting the growers go took 3.4 s on 8 threads. No profiler runs on this desk (`perf_event_paranoid`), so the cause was found by timing each field's drop, then confirmed with jemalloc preloaded.
+- **Cost:** about 40 minutes.
+- **What would remove it:** a profiler that runs on the desk (local setup, reported). In the code, pieces pinned to pool threads (`cores::pinned`) and the rules' tables shared through `Arc`, both done here.
+
+## 2026-10-07, task 12 worker: the timing gate waits on the desk's load
+
+- **Doing:** timing the 20 trees, each gated on a one-minute load under 6.
+- **What slowed it:** the load rose from 6 to 22 during the runs. The ten gated pairs took 50 minutes for about 6 minutes of measurement, and the palm's last pair was stopped while it waited.
+- **Cost:** about 45 minutes of wall time.
+- **What would remove it:** task 6's entry stands: a shared desk lock for timing runs.
