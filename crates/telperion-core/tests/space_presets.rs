@@ -33,7 +33,12 @@ fn engine() -> [(Preset, Species, Vec<usize>, Light); 5] {
         ),
         (Preset::OregonWhiteOak, oak(), vec![2, 3, 4], oak_light),
         (Preset::DatePalm, palm(), vec![2], Light::NEUTRAL),
-        (Preset::SilverBirch, birch(), vec![2, 4, 5], Light::NEUTRAL),
+        (
+            Preset::SilverBirch,
+            birch(),
+            vec![2, 3, 4, 5],
+            Light::NEUTRAL,
+        ),
     ]
 }
 
@@ -48,11 +53,7 @@ fn every_engine_preset_carries_the_engines_species() {
 
 #[test]
 fn a_preset_without_an_engine_species_carries_none() {
-    for preset in [
-        Preset::Ordinary,
-        Preset::Telperion,
-        Preset::Laurelin,
-    ] {
+    for preset in [Preset::Ordinary, Preset::Telperion, Preset::Laurelin] {
         assert_eq!(preset.parameters().space, Space::default(), "{preset:?}");
     }
 }

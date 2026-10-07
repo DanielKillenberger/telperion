@@ -2627,9 +2627,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "matureBlue": 0.045,
         "matureFurrowStrength": 0.8,
         "matureGreen": 0.048,
-        "matureRadius": 0.23,
+        "matureRadius": 0.3,
         "matureRed": 0.05,
-        "matureSpan": 0.06,
+        "matureSpan": 0.07,
         "orientationBlue": 0,
         "orientationGreen": 0,
         "orientationRed": 0,
@@ -2774,7 +2774,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "internodeSpread": 0.2,
               "pipe": 0.004,
               "tropism": 0.5,
-              "wander": 0.5
+              "wander": 0.35
             },
             "internode": 0.055,
             "lifespan": 5,
@@ -2810,7 +2810,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               }
             }
           },
-          "4": {
+          "3": {
             "divergence": 2.5132741228718345,
             "form": {
               "bendLength": 6,
@@ -2819,9 +2819,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "internodeSpread": 0.2,
               "pipe": 0.004,
               "tropism": 0.5,
-              "wander": 0.5
+              "wander": 0.35
             },
-            "lifespan": 35,
+            "lifespan": 9,
             "trunk": true,
             "zones": {
               "0": {
@@ -2834,6 +2834,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
+                  "8": 0.25,
                   "9": 0.06,
                   "14": 0.3
                 },
@@ -2845,7 +2846,56 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 1,
                 "lateral": {
-                  "6": 0.3,
+                  "6": 0.1,
+                  "8": 0.6,
+                  "9": 0.12
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 2
+                }
+              }
+            }
+          },
+          "4": {
+            "divergence": 2.5132741228718345,
+            "form": {
+              "bendLength": 6,
+              "elevation": 1.5707963267948966,
+              "exponent": 2.5,
+              "internodeSpread": 0.2,
+              "pipe": 0.004,
+              "tropism": 0.5,
+              "wander": 0.35
+            },
+            "lifespan": 26,
+            "trunk": true,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 4,
+                  "min": 3
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.04,
+                  "8": 0.25,
+                  "9": 0.06,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 5,
+                  "min": 3
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.22,
+                  "8": 0.45,
                   "9": 0.12
                 },
                 "nodes": {
@@ -2856,19 +2906,25 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "5": {
+            "abortion": 0.8,
             "continuation": 0,
             "divergence": 2.5132741228718345,
+            "epitony": 0.2,
             "form": {
               "bendLength": 6,
-              "elevation": 1.5707963267948966,
+              "elevation": 1,
               "exponent": 2.5,
               "internodeSpread": 0.2,
               "pipe": 0.004,
-              "tropism": 0.5,
+              "tropism": 0.4,
               "wander": 0.5
             },
             "internode": 0.015,
             "lifespan": 100,
+            "relay": 1,
+            "relayAt": 0.6,
+            "relayEnded": 1,
+            "relayFailed": 1,
             "trunk": true,
             "zones": {
               "0": {
@@ -2892,7 +2948,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 1,
                 "lateral": {
-                  "7": 0.3,
+                  "7": 0.5,
                   "9": 0.2
                 },
                 "nodes": {
@@ -2921,12 +2977,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.6,
             "internode": 0.055,
-            "lifespan": 15,
+            "lifespan": 25,
             "relay": 1,
             "relayEnded": 1,
             "relayFailed": 1,
             "shedding": 3,
-            "viability": 0.993,
+            "viability": 0.998,
             "zones": {
               "0": {
                 "buds": 1,
@@ -3031,7 +3087,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.4
             },
             "insertion": 0.7,
-            "lifespan": 8,
+            "lifespan": 14,
             "shedding": 2,
             "viability": 0.97,
             "zones": {

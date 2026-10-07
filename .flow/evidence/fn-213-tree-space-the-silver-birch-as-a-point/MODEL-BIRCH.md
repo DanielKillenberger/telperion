@@ -157,3 +157,7 @@ Each value **estimated** from the stills (SHEET-5.md); this table supersedes the
 | `/material/crest*`, `cavityStrength` | −0.5/−0.5/−0.48 at 1.0, 0.8 | +0.1 at 0.4, 0.3 (the owner-reviewed preset's values) | The tints act on the old colour too (fn-221): ridges a lighter grey on the black base, as in S1, no dark crest on the white stem |
 
 A probe with old bark from 20 cm darkened the 80-year stems of seeds 7 and 42 to two metres and more; 24 cm left seed 1's base white above the flare.
+
+## Round 7 (2026-10-07, scaffold limbs, host's decision on sheet 6)
+
+The rows and their reasons are in SHEET-7.md, "The mechanism". In short: a young-leader age (`LOW_FORK`, years 6 to 14) bearing passing branches and a few low scaffolds; the leader (years 15 to 40) bearing few limbs among passing branches; limbs steep for 25 years (was 15), viability 0.998, then spreading as boughs; round 6's forking old stem; stem wander 0.35; old bark from 0.30 m of radius over 0.07 m. All **estimated** from the stills; the scaffold structure follows the references (S1, S3) and the oak's long-lived limbs. Stem ages are now 2, 3, 4 and 5.

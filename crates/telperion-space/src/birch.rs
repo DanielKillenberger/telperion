@@ -20,6 +20,7 @@ use std::f64::consts::{FRAC_PI_2, PI};
 /// forks, the limbs and their boughs, the young stem's passing branches,
 /// the hanging long-shoot systems, their long shoots and the short shoots.
 const TRUNK: usize = chain::TRUNK;
+const YOUNG: usize = chain::LOW_FORK;
 const LEADER: usize = chain::LEADER;
 const TOP: usize = chain::TOP_FORK;
 const LIMB: usize = chain::LIMB;
@@ -109,7 +110,7 @@ pub fn birch() -> Species {
     let stem = Form {
         tropism: 0.5,
         elevation: FRAC_PI_2,
-        wander: 0.5,
+        wander: 0.35,
         plane: 0.0,
         pipe: 0.004,
         exponent: 2.5,
@@ -136,25 +137,56 @@ pub fn birch() -> Species {
             ),
         )
     };
-    // The stem in the crown: shorter units, bearing the limbs at the top
-    // of each and hanging shoot systems along it.
+    // The young stem in the crown, years 6 to 14: shorter units bearing
+    // passing branches, which the bole sheds.
+    let young = PaState {
+        internode: 0.04,
+        form: stem,
+        ..state(
+            9,
+            1.0,
+            unit(
+                (3, 4),
+                ((3, 5), &[(SPRIG, 0.25), (BRANCH, 0.06), (SHORT, 0.3)]),
+                ((2, 2), &[(LIMB, 0.1), (SPRIG, 0.6), (BRANCH, 0.12)]),
+            ),
+        )
+    };
+    // The stem's middle years, 15 to 40: a few scaffold limbs that live
+    // and grow for decades into the old crown's top (S1, S3; host, round
+    // 7), among passing branches.
     let leader = PaState {
         internode: 0.04,
         form: stem,
         ..state(
-            35,
+            26,
             1.0,
             unit(
                 (3, 4),
-                ((3, 5), &[(BRANCH, 0.06), (SHORT, 0.3)]),
-                ((2, 2), &[(LIMB, 0.3), (BRANCH, 0.12)]),
+                (
+                    (3, 5),
+                    &[(LIMB, 0.04), (SPRIG, 0.25), (BRANCH, 0.06), (SHORT, 0.3)],
+                ),
+                ((2, 2), &[(LIMB, 0.22), (SPRIG, 0.45), (BRANCH, 0.12)]),
             ),
         )
     };
     // The old top: short units forking into small boughs.
+    // The old stem gives up its lead (MBE99: "the extremity of the main
+    // stem assume[s] a divaricated structure with very short growth
+    // units"): from its 40s its tip often dies and a bud below it, barely
+    // turned upward, carries on at a slant: small forks (round 6).
     let top = PaState {
         internode: 0.015,
+        abortion: 0.8,
+        relay: 1.0,
+        relay_ended: 1.0,
+        relay_failed: 1.0,
+        relay_at: 0.6,
+        epitony: 0.2,
         form: Form {
+            tropism: 0.4,
+            elevation: 1.0,
             wander: 0.5,
             ..stem
         },
@@ -164,7 +196,7 @@ pub fn birch() -> Species {
             unit(
                 (1, 2),
                 ((2, 3), &[(BRANCH, 0.15), (SHORT, 0.3)]),
-                ((1, 2), &[(BOUGH, 0.3), (BRANCH, 0.2)]),
+                ((1, 2), &[(BOUGH, 0.5), (BRANCH, 0.2)]),
             ),
         )
     };
@@ -176,7 +208,7 @@ pub fn birch() -> Species {
     let limb = PaState {
         insertion: 0.6,
         internode: 0.055,
-        viability: 0.993,
+        viability: 0.998,
         shedding: 3.0,
         abortion: 0.08,
         relay: 1.0,
@@ -199,7 +231,7 @@ pub fn birch() -> Species {
             internode_spread: 0.7,
         },
         ..state(
-            15,
+            25,
             1.0,
             unit(
                 (2, 3),
@@ -257,7 +289,7 @@ pub fn birch() -> Species {
             internode_spread: 0.4,
         },
         ..state(
-            8,
+            14,
             0.0,
             unit(
                 (1, 2),
@@ -327,6 +359,7 @@ pub fn birch() -> Species {
     };
     on_chain(vec![
         (TRUNK, trunk),
+        (YOUNG, young),
         (LEADER, leader),
         (TOP, top),
         (LIMB, limb),
