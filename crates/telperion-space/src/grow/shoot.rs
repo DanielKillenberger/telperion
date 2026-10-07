@@ -11,6 +11,7 @@ use crate::lineage::{Draw, Key};
 use crate::presence::{Draws, Windows};
 use crate::species::{Species, MAX_BUDS};
 use crate::structure::{Axis, Origin};
+use std::sync::Arc;
 
 /// What every growth unit reads and none writes: the species, its
 /// laterals as drawn, the bound on each PA's life, the windows, and the
@@ -19,10 +20,11 @@ use crate::structure::{Axis, Origin};
 pub(crate) struct Rules<'a> {
     pub species: &'a Species,
     /// Each PA's zones' lateral probabilities as drawn (`PaState::laterals`).
-    pub laterals: Vec<Vec<Vec<f64>>>,
+    /// Shared, as the windows are, by every fine root's grower.
+    pub laterals: Arc<[Vec<Vec<f64>>]>,
     /// Each PA's bound on its subtree's life (`shed::lasting`); none
     /// throughout where shedding is not decided before growth.
-    pub lasting: Vec<Option<f64>>,
+    pub lasting: Arc<[Option<f64>]>,
     pub certain: Certain,
     pub windows: Windows,
     pub age: u32,
@@ -34,7 +36,7 @@ pub(crate) struct Rules<'a> {
     pub alone: bool,
     /// The buds the structure above a cut hands to the expansion (fn-209
     /// F1, `realized.rs`): made where they stand, never grown here.
-    pub hands: Option<std::sync::Arc<super::realized::Hands>>,
+    pub hands: Option<Arc<super::realized::Hands>>,
 }
 
 /// What the rough layout gives a growing apex (`sketch.rs`): its light,

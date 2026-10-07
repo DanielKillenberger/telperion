@@ -205,8 +205,8 @@ pub(crate) fn run(
     let threads = options.threads.unwrap_or_else(crate::cores::available);
     let rules = Rules {
         species,
-        laterals,
-        lasting,
+        laterals: laterals.into(),
+        lasting: lasting.into(),
         certain: options.certain,
         windows: Windows::new(species, request.age),
         age: request.age,

@@ -12,6 +12,7 @@ use crate::fixed;
 use crate::fixed::presence::{q, real, times, ONE};
 use crate::species::{Species, Zone};
 use crate::structure::{Axis, Origin};
+use std::sync::Arc;
 
 /// The window, in log-odds, per share of the tree's expected length that a
 /// draw decides.
@@ -22,16 +23,19 @@ pub const SPAN: f64 = 2.0;
 pub const FLOOR: f64 = 0.05;
 
 /// The expected wood each draw decides, as a share of the whole tree's.
+/// Its tables are shared: every fine root's grower holds the tree's
+/// (`Rules`), and a copy of them a root cost most of a root's growth in
+/// Wasm.
 #[derive(Clone)]
 pub(crate) struct Windows {
     /// expected[m][k]: the log of the metres a bud of PA k grows in m cycles.
-    expected: Vec<Vec<f64>>,
+    expected: Arc<Vec<Vec<f64>>>,
     /// The log of the whole tree's expected metres.
     whole: f64,
     /// woods[m][k]: `expected[m][k]`'s share of the whole tree, Q32, by
     /// the contract's `exp` (host decision 8): taken once a tree, not
     /// once a draw.
-    woods: Vec<Vec<i64>>,
+    woods: Arc<Vec<Vec<i64>>>,
     age: u32,
 }
 
@@ -46,9 +50,9 @@ impl Windows {
             .map(|row| row.iter().map(|&log| exp(q32(log - whole))).collect())
             .collect();
         Self {
-            expected,
+            expected: Arc::new(expected),
             whole,
-            woods,
+            woods: Arc::new(woods),
             age,
         }
     }
