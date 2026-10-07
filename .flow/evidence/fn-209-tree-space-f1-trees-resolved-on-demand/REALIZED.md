@@ -219,11 +219,11 @@ What the table shows:
 | beech 40 | 76, 80, 81 | 74, 78, 74 | 69 to 81 | 27, 27, 28 | 19, 18, 17 | 41 to 43 |
 | beech 80 | 1,115, 1,149, 1,152 | 1,151, 1,178, 1,143 | 1,272 to 1,471 | 219, 218, 219 | 381 (one outlier), 172, 183 | 446 to 477 |
 | spruce 40 | 1,857, 1,947, 1,908 | 1,913, 1,907, 1,883 | 1,816 to 2,054 | 303, 294, 295 | 276, 261, 277 | 576 to 590 |
-| spruce 80 | 8,798, 8,931, 8,582 | 8,747, 9,057, 8,679 | 8,269 to 9,369 | 1,149, 1,182, 1,153 | 1,056, 1,059, 1,044 | 2,206 to 2,253 |
+| spruce 80 | 8,798, 8,931, 8,582 | 8,747, 9,057, 8,679 | 8,290 to 9,369 | 1,149, 1,182, 1,153 | 1,056, 1,059, 1,044 | 2,206 to 2,253 |
 
 Load ran from 1 to 13 across the runs, shared with the other worktree's GPU work.
 
 What the table shows:
-- **All cores:** `grow` is 8 to 35 % faster than before (beech 40: 27 to 18 ms; spruce 80: 1.16 to 1.05 s), and still twice as fast as `grow_whole`.
+- **All cores:** `grow` is 6 to 37 % faster than before (beech 40: 27 to 18 ms; spruce 80: 1.16 to 1.05 s), about what the table cost there, and still twice as fast as `grow_whole`.
 - **One core:** the beech at 80 is faster than `grow_whole` (1.14 to 1.18 s against 1.27 to 1.47). The beech at 40 and the spruce at 40 and 80 are at parity within the noise. The spruce at 80 averages 8.83 s against `grow_whole`'s 8.81 s, and single pairs differ by up to 3 % either way.
 - **Where the spruce's one-core time goes:** the partition's four phases alone take 8.5 s at age 80 (`Fine::phases`), as long as the whole tree. The remaining 0.4 s is the structure above the cut, its settle and `lineage_order`. A clear one-core gain needs less work in the partition, or a different cut for one core (REALIZED.md's timing: the spruce was fastest at ∞). The cut is a host decision (decision 7); this task leaves it at N = 1,024.
