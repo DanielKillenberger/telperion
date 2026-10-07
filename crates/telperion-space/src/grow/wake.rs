@@ -29,7 +29,9 @@ impl Grower<'_> {
         }
         // The buds that wake make axes of their own and touch none the
         // tree has: one share, numbered from the tree's count.
-        let mut shoot = Shoot::new(&self.rules, self.reads(), (&self.roots, &self.horizon));
+        let spare = std::mem::take(&mut self.spare);
+        let mut shoot =
+            Shoot::new(&self.rules, self.reads(), (&self.roots, &self.horizon)).spared(spare);
         let mut handed = Vec::new();
         for sleeper in asleep {
             // It ages through the whole of the time it slept, the share of

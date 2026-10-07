@@ -107,6 +107,17 @@ pub(super) struct Shoot<'g, 'a> {
     pub sleeping: Vec<f64>,
 }
 
+/// The lists a share fills and the grower empties each cycle, kept
+/// between cycles: a fine root grows a few apexes a cycle, and making
+/// them anew each one was most of its allocations.
+#[derive(Default)]
+pub(super) struct Spare {
+    pub next: Vec<Apex>,
+    pub leads: Vec<i64>,
+    pub node_buds: Vec<(Draw, u64, i64, [Placed; MAX_BUDS as usize])>,
+    pub sleeping: Vec<f64>,
+}
+
 impl Rules<'_> {
     /// Whether a lateral of `pa` born in `birth` is handed on below the
     /// cut rather than grown here.
@@ -135,6 +146,17 @@ impl<'g, 'a> Shoot<'g, 'a> {
             leads: Vec::new(),
             node_buds: Vec::new(),
             sleeping: Vec::new(),
+        }
+    }
+
+    /// The share, filling `spare`'s lists rather than new ones.
+    pub fn spared(self, spare: Spare) -> Self {
+        Self {
+            next: spare.next,
+            leads: spare.leads,
+            node_buds: spare.node_buds,
+            sleeping: spare.sleeping,
+            ..self
         }
     }
 

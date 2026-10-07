@@ -306,6 +306,8 @@ struct Grower<'a> {
     /// Above a cut, each sleeping bud handed on as it woke: its
     /// stand-in's index and its waking (`realized.rs`).
     handed: Vec<(usize, alone::Pending)>,
+    /// The lists a cycle's share fills, kept for the next.
+    spare: shoot::Spare,
 }
 
 /// Whether any PA reads the tree as grown: its shed pipes or its leaves'
@@ -356,6 +358,7 @@ impl<'a> Grower<'a> {
             leaves: Vec::new(),
             wakes: Vec::new(),
             handed: Vec::new(),
+            spare: Default::default(),
         })
     }
 }

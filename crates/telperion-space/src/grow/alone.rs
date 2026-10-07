@@ -155,6 +155,7 @@ pub(super) fn start<'a>(
         leaves: Vec::new(),
         wakes: Vec::new(),
         handed: Vec::new(),
+        spare: Default::default(),
     };
     let (from, root) = match bud {
         None => {
