@@ -122,6 +122,26 @@ fn main() -> Result<(), String> {
                 .collect()
         )
     );
+    // Each strand's leaving angle (its first segment's elevation) and drop
+    // rate (the elevation it loses over its first 0.3 m, per metre).
+    let elevation = |i: usize| seg(i).map(|(x, y, z, _)| y.atan2(x.hypot(z)).to_degrees());
+    let (mut leaving, mut drop) = (Vec::new(), Vec::new());
+    for r in &strands {
+        let Some(e0) = elevation(r.nodes[0]) else { continue };
+        leaving.push(e0);
+        let mut walked = 0.0;
+        for &i in &r.nodes {
+            walked += seg(i).map_or(0.0, |s| s.3);
+            if walked >= 0.3 {
+                if let Some(e1) = elevation(i) {
+                    drop.push((e0 - e1) / walked);
+                }
+                break;
+            }
+        }
+    }
+    println!("    leaving elevation deg: {}", quantiles(leaving));
+    println!("    drop over first 0.3 m, deg per m: {}", quantiles(drop));
     let limbs: Vec<&Run> = runs.iter().filter(|r| r.base_radius >= LIMB && r.length > 1.0).collect();
     println!(
         "  limbs (base radius >= {LIMB} m, > 1 m): {}; laterals per metre: {}",

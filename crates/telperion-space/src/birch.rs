@@ -228,8 +228,8 @@ pub fn birch() -> Species {
         relay_failed: 1.0,
         epitony: 0.4,
         form: Form {
-            tropism: 0.7,
-            elevation: 1.15,
+            tropism: 0.9,
+            elevation: 1.3,
             wander: 0.6,
             plane: 0.0,
             pipe: 0.002,
@@ -245,7 +245,7 @@ pub fn birch() -> Species {
             tropism_spread: 0.0,
         },
         ..state(
-            20,
+            25,
             1.0,
             unit(
                 (2, 3),
@@ -325,13 +325,13 @@ pub fn birch() -> Species {
         exponent: 2.0,
         ripening: 0.0,
         dominance: 0.0,
-        roll: 1.2,
+        roll: 1.6,
         sag: 2e-4,
         secondary: 1.0,
         bend_length: 1.0,
         internode_spread: 0.7,
-        insertion_spread: 0.0,
-        tropism_spread: 0.0,
+        insertion_spread: 0.5,
+        tropism_spread: 0.6,
     };
     let branch = PaState {
         insertion: 0.7,

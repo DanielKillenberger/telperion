@@ -185,3 +185,7 @@ The rows and their reasons are in SHEET-9.md, "What moved". In short:
 - **Fine wood:** its colour is set from S1's crown haze, read by code.
 
 All values are **estimated** from the stills and checked by `birch_measure.rs`.
+
+## Round 10 (2026-10-07, fn-224's spreads)
+
+The strands take fn-224's per-axis spreads: insertion ± 0.5 rad and tropism × (1 ± 0.6). Their roll rises to 1.6 rad. Young limbs return to round 8's steep rise (1.3 rad, tropism 0.9, 25 years); the old limbs keep round 9's spread and bend. Rows and measures are in SHEET-10.md. All values are **estimated**.
