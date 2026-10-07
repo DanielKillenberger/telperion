@@ -112,3 +112,16 @@ The rules above stand; these values moved, each **estimated** from the stills ag
 | `/material/ridgeScale`, `crest` (RGB, strength), `cavityStrength` | 0.08, +0.1 at 0.4, 0.3 | 0.16, −0.5 at 1.0, 0.8 | (5) and (c): a dark base on old, thick wood |
 
 Cost at round 2 (native, `--profile ci`): 315,075 to 475,769 nodes at 40 and 621,895 to 808,944 at 80 (seeds 1, 7, 42), a third of sheet 1's; 16.6 to 16.8 m tall at 40, 23.5 to 24.1 m at 80; crowns 7 to 9 m wide at 40, 14 to 16 m at 80.
+
+## Round 3 (2026-10-07, after the host's reading of sheet 2)
+
+Each value **estimated** from the stills (SHEET-3.md); this table supersedes the rows above.
+
+| Age or row | Round 2 | Round 3 | Aimed at (host's point) |
+|---|---|---|---|
+| `BRANCH`, `SHOOT` lateral `SHORT` | 0.35 | 0.5 | (1) more short shoots, so more leaves, along each strand |
+| `/skeleton/twigs/twig/internodeLength` (leaf stations) | 20 mm (default) | 12 mm | (1) more leaves per short shoot and strand |
+| `/element/length`, `/element/width` | 5.5, 4.5 cm | 6.5, 5.2 cm | (1) larger leaves, inside JRC's 3 to 7 cm |
+| `BOUGH` internode, set-point (the old limb carries on in it) | 0.02 m, 1.0 rad | 0.025 m, 0.95 rad | (2) old limbs reach further, so the crown broadens with age; young limbs, still in `LIMB`, are unchanged |
+
+A probe of 0.03 m and 0.85 rad gave a 22 m crown at 80 and a 9 m one at 40, too broad at both; round 3 takes the step between.

@@ -2530,13 +2530,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crossSegments": 2,
         "cup": 0.18,
         "curl": 0.12,
-        "length": 0.055,
+        "length": 0.065,
         "lobeCount": 8,
         "lobeDepth": 0.1,
         "sectionRoundness": 0,
         "tipSharpness": 1.1,
         "widestAt": 0.2,
-        "width": 0.045
+        "width": 0.052
       },
       "material": {
         "barkBlue": 0.7,
@@ -2726,7 +2726,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "twig": {
             "bearingDiameter": 0.02,
             "diameter": 0.003,
-            "internodeLength": 0.02,
+            "internodeLength": 0.012,
             "length": 0.45,
             "stationsPerInternode": 1
           },
@@ -2923,7 +2923,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "divergence": 2.5132741228718345,
             "form": {
               "bendLength": 1,
-              "elevation": 1,
+              "elevation": 0.95,
               "exponent": 2.4,
               "pipe": 0.002,
               "ripening": 10,
@@ -2933,7 +2933,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.25
             },
             "insertion": 0.6,
-            "internode": 0.02,
+            "internode": 0.025,
             "lifespan": 100,
             "shedding": 2,
             "viability": 0.995,
@@ -3043,7 +3043,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                 "buds": 1,
                 "lateral": {
                   "12": 0.25,
-                  "14": 0.35
+                  "14": 0.5
                 },
                 "nodes": {
                   "max": 6,
@@ -3089,7 +3089,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "14": 0.35
+                  "14": 0.5
                 },
                 "nodes": {
                   "max": 5,

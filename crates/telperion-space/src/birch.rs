@@ -196,12 +196,12 @@ pub fn birch() -> Species {
     };
     let bough = PaState {
         insertion: 0.6,
-        internode: 0.02,
+        internode: 0.025,
         viability: 0.995,
         shedding: 2.0,
         form: Form {
             tropism: 0.6,
-            elevation: 1.0,
+            elevation: 0.95,
             sag: 3e-5,
             pipe: 0.002,
             ..limb.form
@@ -273,7 +273,7 @@ pub fn birch() -> Species {
             0.0,
             unit(
                 (1, 2),
-                ((4, 6), &[(SHORT, 0.35), (SHOOT, 0.25)]),
+                ((4, 6), &[(SHORT, 0.5), (SHOOT, 0.25)]),
                 ((1, 2), &[(SHOOT, 0.4)]),
             ),
         )
@@ -289,7 +289,7 @@ pub fn birch() -> Species {
             pipe: 0.0006,
             ..hanging
         },
-        ..state(3, 0.0, vec![zone(1, 1, &[]), zone(3, 5, &[(SHORT, 0.35)])])
+        ..state(3, 0.0, vec![zone(1, 1, &[]), zone(3, 5, &[(SHORT, 0.5)])])
     };
     // The short shoot: a few crowded nodes a year, its one bud carrying it
     // on, never branching.
