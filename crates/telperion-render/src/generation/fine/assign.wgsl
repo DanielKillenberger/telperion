@@ -129,7 +129,8 @@ fn unit_persists(u: u32, aborts: vec2<u32>) {
 
 // A presence to take: its draw `d` past the lower bound `low` and under
 // the upper `high` (none: 0 and 2^53), over the window of PA `pa`'s wood
-// from `cycle` (`used` ticks through it) at `stake`, or over `window`.
+// from `cycle` (`used` ticks through it) at `stake`, or over `window`;
+// and the bounds' own log-odds where a table gives them (`lead_q`).
 struct Ask {
     go: bool,
     low: vec2<u32>,
@@ -141,14 +142,36 @@ struct Ask {
     stake: u32,
     window: vec2<u32>,
     wood: bool,
+    given: vec4<u32>,
+    known: u32,
 }
 
 fn no_ask() -> Ask {
-    return Ask(false, vec2<u32>(0u), NEVER53, vec2<u32>(0u), 0u, 0u, 0u, 0u, vec2<u32>(0u), false);
+    return Ask(false, vec2<u32>(0u), NEVER53, vec2<u32>(0u), 0u, 0u, 0u, 0u, vec2<u32>(0u), false, vec4<u32>(0u), 0u);
 }
 
 fn wood_ask(low: vec2<u32>, high: vec2<u32>, d: vec2<u32>, pa: u32, cycle: u32, used: u32, stake: u32) -> Ask {
-    return Ask(true, low, high, d, pa, cycle, used, stake, vec2<u32>(0u), true);
+    return Ask(true, low, high, d, pa, cycle, used, stake, vec2<u32>(0u), true, vec4<u32>(0u), 0u);
+}
+
+// The PA rows' log-odds of their thresholds (`chains.rs`): the whole
+// unit's survival, then each relay's.
+const ROW_LOGITS: u32 = 28u;
+
+// `a` with its upper bound's log-odds `own`.
+fn high_known(a_in: Ask, own: vec2<u32>) -> Ask {
+    var a = a_in;
+    a.given = vec4<u32>(0u, 0u, own);
+    a.known = 2u;
+    return a;
+}
+
+// `a` with both bounds' log-odds from the geometry tables at `at`.
+fn both_known(a_in: Ask, at: u32) -> Ask {
+    var a = a_in;
+    a.given = vec4<u32>(words[at], words[at + 1u]);
+    a.known = 3u;
+    return a;
 }
 
 // Unit `u`'s ask `j`: its survival (`advance`), then, where its apex all
@@ -159,7 +182,12 @@ fn unit_ask(u: u32, j: u32) -> Ask {
     let key = unit_q(u, U_KEY);
     if j == 0u {
         let d = draw(child(key, w(VIABILITY, 0u)));
-        return wood_ask(vec2<u32>(0u), unit_q(u, U_SURVIVES), d, pa, cycle, 0u, FAIL_STAKE);
+        let survives = unit_q(u, U_SURVIVES);
+        let a = wood_ask(vec2<u32>(0u), survives, d, pa, cycle, 0u, FAIL_STAKE);
+        if all(survives == row(pa, 1u)) {
+            return high_known(a, row(pa, ROW_LOGITS));
+        }
+        return a;
     }
     if sleepers[u + U_ABORTS] == 0u {
         return no_ask();
@@ -173,7 +201,8 @@ fn unit_ask(u: u32, j: u32) -> Ask {
     if is_zero(t) || !lt64(d, t) {
         return no_ask();
     }
-    return wood_ask(vec2<u32>(0u), t, d, pa, cycle + 1u, 0u, WHOLE_STAKE);
+    let a = wood_ask(vec2<u32>(0u), t, d, pa, cycle + 1u, 0u, WHOLE_STAKE);
+    return high_known(a, row(pa, ROW_LOGITS + 1u + ABORTED));
 }
 
 // Axis `i`'s ask `j`: the presence of its first (0) or second (1)
@@ -185,9 +214,11 @@ fn axis_ask(i: u32, j: u32) -> Ask {
     if kind == LATERAL_ASKS && j == 0u {
         let zat = rd(i, p);
         let drew = rd(i, p + 1u);
-        let at = cfg.geo + gu(zone_g(zat) + 1u) + 2u * drew;
+        let zg = zone_g(zat);
+        let at = cfg.geo + gu(zg + 1u) + 2u * drew;
         let d = draw(vec2<u32>(rd(i, p + 2u), rd(i, p + 3u)));
-        return wood_ask(words[at], words[at + 1u], d, pa, rd(i, BIRTH) + 1u, 0u, WHOLE_STAKE);
+        let a = wood_ask(words[at], words[at + 1u], d, pa, rd(i, BIRTH) + 1u, 0u, WHOLE_STAKE);
+        return both_known(a, cfg.geo + gu(zg + 3u) + 2u * drew);
     }
     if kind == RELAY_ASKS {
         let why = rd(i, p);
@@ -203,21 +234,27 @@ fn axis_ask(i: u32, j: u32) -> Ask {
             return wood_ask(bound, NEVER53, d, pa, cycle, used, FAIL_STAKE);
         }
         let d = draw(child(key, RELAY));
-        return wood_ask(vec2<u32>(0u), row(pa, 6u + why), d, pa, cycle, used, WHOLE_STAKE);
+        let a = wood_ask(vec2<u32>(0u), row(pa, 6u + why), d, pa, cycle, used, WHOLE_STAKE);
+        return high_known(a, row(pa, ROW_LOGITS + 1u + why));
     }
     if kind == AFTER_ASKS && j == 1u {
         let key = vec2<u32>(rd(i, p), rd(i, p + 1u));
         let d = draw(child(key, RELAY));
-        return wood_ask(vec2<u32>(0u), row(pa, 6u + ENDS), d, pa, rd(i, p + 2u), rd(i, p + 3u), WHOLE_STAKE);
+        let a = wood_ask(vec2<u32>(0u), row(pa, 6u + ENDS), d, pa, rd(i, p + 2u), rd(i, p + 3u), WHOLE_STAKE);
+        return high_known(a, row(pa, ROW_LOGITS + 1u + ENDS));
     }
     if kind == WOKEN_ASKS && j == 0u {
         let zat = rd(i, p);
         let spa = rd(i, p + 2u);
-        let at = cfg.geo + gu(zone_g(zat) + 2u) + 2u * spa;
+        let zg = zone_g(zat);
+        let at = cfg.geo + gu(zg + 2u) + 2u * spa;
         let d = draw(vec2<u32>(rd(i, p + 3u), rd(i, p + 4u)));
         let npa = table[zat + 9u];
         let window = words[table[zat + 13u] + rd(i, p + 1u) * npa + spa];
-        return Ask(true, words[at], words[at + 1u], d, 0u, 0u, 0u, 0u, window, false);
+        let a = Ask(true, words[at], words[at + 1u], d, 0u, 0u, 0u, 0u, window, false, vec4<u32>(0u), 0u);
+        // The dormant bounds' log-odds follow the laterals'.
+        let laterals = gu(zg + 2u) - gu(zg + 1u);
+        return both_known(a, cfg.geo + gu(zg + 3u) + laterals + 2u * spa);
     }
     return no_ask();
 }
@@ -243,7 +280,7 @@ fn take_ask(r: u32) {
                 let rate = row(a.pa, 18u + 2u * a.stake);
                 window = window_q(wood, rate, row(a.pa, 19u + 2u * a.stake), span);
             }
-            p = presence(lead_q(a.low, a.high, a.d), window);
+            p = presence(lead_q(a.low, a.high, a.d, a.given, a.known), window);
         }
         if r < units {
             set_unit_q(unit_base + (r / 3u) * UW, QSURV + 2u * (r % 3u), p);

@@ -8,7 +8,7 @@
 use super::super::io;
 use super::pool::Pool;
 use crate::Gpu;
-use telperion_space::{BearerFrame, GeometryTables, RootGeometry, Vec3};
+use telperion_space::{fixed, BearerFrame, GeometryTables, RootGeometry, Vec3};
 
 const CONTRACT_LAY: &str = include_str!("lay.wgsl");
 const GEOMETRY: &str = include_str!("geometry.wgsl");
@@ -108,6 +108,11 @@ pub(super) fn presences(g: &GeometryTables) -> Vec<u64> {
         out.extend(zone.laterals.iter().flatten());
         out[at + 2] = out.len() as u64;
         out.extend(zone.dormant.iter().flatten());
+        // Each bound's log-odds, the laterals' then the dormant's, for the
+        // asks (`assign.wgsl`, task 8).
+        out[at + 3] = out.len() as u64;
+        let logits = zone.laterals.iter().chain(&zone.dormant).flatten();
+        out.extend(logits.map(|&t| fixed::logit(t << 9) as u64));
     }
     out
 }

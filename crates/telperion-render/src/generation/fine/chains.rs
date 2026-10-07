@@ -6,7 +6,7 @@ use super::super::io;
 use super::units::pack;
 use crate::Gpu;
 use std::cell::RefCell;
-use telperion_space::{ChainAxis, ChainBud, ChainTables, GeometryTables, Woke};
+use telperion_space::{fixed, ChainAxis, ChainBud, ChainTables, GeometryTables, Woke};
 
 const CHAIN: &str = include_str!("chain.wgsl");
 const APEX: &str = include_str!("apex.wgsl");
@@ -96,6 +96,10 @@ pub(super) fn packed(t: &ChainTables, g: &GeometryTables) -> Packed {
             words.extend([rate as u64, floor as u64]);
         }
         words.extend([r.living.0, r.living.1, r.fade_delay, 0]);
+        // The thresholds' log-odds, from word 28 (`assign.wgsl`'s
+        // `ROW_LOGITS`, task 8): the whole unit's survival, each relay's.
+        words.push(fixed::logit(r.viability.0 << 9) as u64);
+        words.extend(r.relay.map(|t| fixed::logit(t << 9) as u64));
         woods.push((at as usize + 15, pa));
         reaches.push((at as usize + 27, pa));
     }

@@ -246,10 +246,12 @@ fn over_q(t: vec2<u32>, d: vec2<u32>) -> vec2<u32> {
     return sub64(logit_draw(d), logit(shl64(t, 9u)));
 }
 
-// The lesser of `over_q(low, d)` and `under_q(high, d)`, the draw's
-// log-odds taken once where both bounds hold (task 8; REALIZED.md's
-// option b): the same words, half the draw's `log2` calls.
-fn lead_q(low: vec2<u32>, high: vec2<u32>, d: vec2<u32>) -> vec2<u32> {
+// The lesser of `over_q(low, d)` and `under_q(high, d)` (task 8;
+// REALIZED.md's options a and b): the draw's log-odds taken once where
+// both bounds hold, and a bound's own, `logit(bound << 9)`, read from
+// `given` where `known` says a table gave it (bit 0 the low bound's, bit
+// 1 the high's): the same words, a quarter of the `log2` calls.
+fn lead_q(low: vec2<u32>, high: vec2<u32>, d: vec2<u32>, given: vec4<u32>, known: u32) -> vec2<u32> {
     let over = !is_zero(low);
     let under = lt64(high, w(0u, 0x200000u)) && !is_zero(d);
     if !over && !under {
@@ -258,10 +260,18 @@ fn lead_q(low: vec2<u32>, high: vec2<u32>, d: vec2<u32>) -> vec2<u32> {
     let drawn = logit_draw(d);
     var lead = inf();
     if over {
-        lead = smin64(lead, sub64(drawn, logit(shl64(low, 9u))));
+        var own = given.xy;
+        if (known & 1u) == 0u {
+            own = logit(shl64(low, 9u));
+        }
+        lead = smin64(lead, sub64(drawn, own));
     }
     if under {
-        lead = smin64(lead, sub64(logit(shl64(high, 9u)), drawn));
+        var own = given.zw;
+        if (known & 2u) == 0u {
+            own = logit(shl64(high, 9u));
+        }
+        lead = smin64(lead, sub64(own, drawn));
     }
     return lead;
 }

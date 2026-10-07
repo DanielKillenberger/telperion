@@ -184,6 +184,17 @@ fn cases(s: u32, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
                         _ => near(rng),
                     };
                     a[2] = d;
+                    // Each bound's log-odds given or not; a value not
+                    // given is noise the lead must not read.
+                    a[3] = rng.next() % 4;
+                    a[4] = match a[3] & 1 {
+                        0 => rng.next(),
+                        _ => fx::logit(a[0] << 9) as u64,
+                    };
+                    a[5] = match a[3] & 2 {
+                        0 => rng.next(),
+                        _ => fx::logit(a[1] << 9) as u64,
+                    };
                 }
                 14 => {
                     let age = rng.within(1, 4096) as u64;
