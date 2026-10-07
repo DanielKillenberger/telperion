@@ -8,10 +8,18 @@ use super::sketch::Pencil;
 use super::Grower;
 use crate::cores::{map, picked, PIECE};
 use crate::error::{Error, Result};
+use crate::fixed::feedback::wide::prod_shr;
+use crate::fixed::{mul, q32, ONE32};
 use crate::geometry::{bend, dominance, frame, Layer};
+
 use crate::presence::{relay_node, Draws};
 use crate::species::Species;
 use crate::structure::{Axis, Origin, Vec3};
+
+/// A Q32 as its exact real.
+fn real(q: i64) -> f64 {
+    q as f64 / ONE32 as f64
+}
 
 /// A new axis's frame: base, heading and side.
 type Framed = (Vec3, Vec3, Vec3);
@@ -202,17 +210,20 @@ fn pencil<'p>(
         }
         _ => Vec::new(),
     };
-    let made = draws[i].birth[0] * draws[i].birth[1];
+    // Contract A (CONTRACT-A.md 2.4): every factor Q32, one floor each.
+    let made = mul(q32(draws[i].birth[0]), q32(draws[i].birth[1]));
     let curve = match axis.origin {
         Origin::Continuation { parent } | Origin::Relay { parent, .. } => of(parent).layer.curve(),
         _ => Vec3::default(),
     };
     let (inherited, vigour, trunk) = match axis.origin {
-        Origin::Seed => (1.0, made, true),
-        Origin::Lateral { parent, node, .. } => (axes[parent].phytomers[node].scale, made, false),
+        Origin::Seed => (ONE32, made, true),
+        Origin::Lateral { parent, node, .. } => {
+            (q32(axes[parent].phytomers[node].scale), made, false)
+        }
         Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
             let p = of(parent);
-            (p.base_scale, p.running * made, p.trunk)
+            (q32(p.base_scale), mul(q32(p.running), made), p.trunk)
         }
     };
     let share = match axis.origin {
@@ -221,7 +232,7 @@ fn pencil<'p>(
     };
     let pencil = Pencil {
         layer: Layer::bent(framed, curve).inheriting(handed),
-        base_scale: inherited * vigour * share,
+        base_scale: real(mul(mul(inherited, vigour), q32(share))),
         running: 1.0,
         rank: 0.0,
         units: 0,
@@ -251,8 +262,8 @@ fn draw(
         let k = pencil.units;
         let drawn = draws.units[k];
         // The share of its cycle the unit grew (`schedule.rs`).
-        let grown = drawn.share;
-        let present = pencil.running * drawn.survive;
+        let grown = q32(drawn.share);
+        let present = mul(q32(pencil.running), q32(drawn.survive));
         let [size, _] = draws.shade(k);
         let birth = axis.birth;
         let unit = |p: &crate::structure::Phytomer| (p.cycle - birth - 1) as usize == k;
@@ -264,36 +275,33 @@ fn draw(
         for j in pencil.laid..end {
             let p = &mut axis.phytomers[j];
             // Unsized: what it bears inherits its scale without its size.
-            p.scale = pencil.base_scale * present * draws.nodes[j] * grown;
+            let node = q32(draws.nodes[j]);
+            let factors = [q32(pencil.base_scale), present, node, grown];
+            p.scale = real(prod_shr(factors, 96).expect("a scale inside Q32"));
             p.size = size;
             p.rank = pencil.rank;
-            pencil.rank += draws.nodes[j] * grown;
+            pencil.rank = real(q32(pencil.rank) + mul(node, grown));
         }
-        let total = pencil.layer.run()
+        let total = q32(pencil.layer.run())
             + axis.phytomers[pencil.laid..end]
                 .iter()
-                .map(|p| p.scale * p.size)
-                .sum::<f64>();
+                .map(|p| mul(q32(p.scale), q32(p.size)))
+                .sum::<i64>();
+        let total = real(total);
         for j in pencil.laid..end {
             let p = &mut axis.phytomers[j];
             // Laid at its size, then left unsized for what it bears.
             let bare = p.scale;
-            p.scale = bare * p.size;
+            p.scale = real(mul(q32(bare), q32(p.size)));
             pencil
                 .layer
                 .step(p, state, (bent, total), None, pencil.trunk)
-                .map_err(|height| Error::BelowGround {
-                    axis: i,
-                    pa: axis.pa,
-                    birth: axis.birth,
-                    base: axis.base.z,
-                    height,
-                })?;
-            pencil.wood += state.internode * p.scale;
+                .map_err(|s| s.error(i, axis.pa, axis.birth, axis.base.z))?;
+            pencil.wood = real(q32(pencil.wood) + mul(q32(state.internode), q32(p.scale)));
             p.scale = bare;
         }
         pencil.laid = end;
-        pencil.running = present * drawn.persist;
+        pencil.running = real(mul(present, q32(drawn.persist)));
         pencil.units += 1;
     }
     axis.rank = pencil.rank;

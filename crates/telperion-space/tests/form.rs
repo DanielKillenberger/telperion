@@ -112,11 +112,12 @@ fn a_parents_plane_turns_its_laterals_plane() {
     let (turned_lineage, turned_heading, turned_side) = side_of(std::f64::consts::FRAC_PI_2);
     assert_eq!(lineage, turned_lineage);
     assert!(
-        (heading - turned_heading).length() < 1e-12,
+        // Contract A lays in Q32: angles hold to Q32's last places.
+        (heading - turned_heading).length() < 1e-8,
         "the heading holds"
     );
     assert!(
-        side.dot(turned_side).abs() < 1e-12,
+        side.dot(turned_side).abs() < 1e-8,
         "the side turns a quarter"
     );
 }
@@ -137,7 +138,7 @@ fn a_lateral_leaves_from_its_parents_direction_at_its_node() {
         let along = tree.axes[parent].phytomers[node].heading;
         let angle = along.dot(axis.heading).clamp(-1.0, 1.0).acos();
         assert!(
-            (angle - species.states[2].insertion).abs() < 1e-9,
+            (angle - species.states[2].insertion).abs() < 1e-8,
             "{angle}"
         );
         checked += 1;

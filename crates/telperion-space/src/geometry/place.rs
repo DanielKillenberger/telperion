@@ -3,7 +3,7 @@
 //! every core, after the depth that bears them. Where axes cannot be
 //! laid, the error is the one of the first in index order, as laying them
 //! in turn would give.
-use super::lay::{lay, Layer, Lift, GROUND_TOLERANCE};
+use super::lay::{lay, Layer, Lift, Stop, GROUND_TOLERANCE};
 use super::{bend, frame, reaches};
 use crate::cores::{map, picked, spread, PIECE};
 use crate::error::{Error, Result};
@@ -95,8 +95,9 @@ pub(crate) fn place_from(
             (pieces, framed),
             threads,
         );
-        if let Some((i, (base, height))) = first {
-            failed = Some((i, below(structure, i, base, height)));
+        if let Some((i, (base, stop))) = first {
+            let axis = &structure.axes[i];
+            failed = Some((i, stop.error(i, axis.pa, axis.birth, base)));
         }
     }
     if let Some((_, error)) = failed {
@@ -179,7 +180,7 @@ fn lay_all(
     layers: &mut [Option<Layer>],
     (pieces, framed): (Vec<Vec<usize>>, Vec<Vec<Start>>),
     threads: usize,
-) -> Option<(usize, (f64, f64))> {
+) -> Option<(usize, (f64, Stop))> {
     let at = || pieces.iter().flatten().copied();
     let (mut axes, mut ends) = (
         picked(&mut structure.axes, at()).into_iter(),
@@ -197,7 +198,7 @@ fn lay_all(
             Mutex::new(Some((piece.clone(), starts, mine.0, mine.1)))
         })
         .collect();
-    let done: Vec<Mutex<Option<(usize, (f64, f64))>>> =
+    let done: Vec<Mutex<Option<(usize, (f64, Stop))>>> =
         (0..work.len()).map(|_| Mutex::new(None)).collect();
     spread(work.len(), threads, &|k| {
         let (at, starts, axes, ends) = work[k].lock().unwrap().take().expect("a piece once");
@@ -208,8 +209,8 @@ fn lay_all(
             let base = framed.0.z;
             match lay(axis, (framed, curve, inherited), state, bend, load, trunk) {
                 Ok(layer) => *end = Some(layer),
-                Err(height) => {
-                    *done[k].lock().unwrap() = Some((i, (base, height)));
+                Err(stop) => {
+                    *done[k].lock().unwrap() = Some((i, (base, stop)));
                     break;
                 }
             }

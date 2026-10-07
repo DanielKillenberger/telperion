@@ -67,11 +67,6 @@ impl Key {
     pub fn draw(self) -> Draw {
         Draw(mix(self.0 ^ 0xd1b5_4a32_d192_ed03) >> 11)
     }
-
-    /// The draw as a real, uniform on [0, 1).
-    pub fn unit(self) -> f64 {
-        self.draw().unit()
-    }
 }
 
 /// A draw's 53 bits (fn-209, FINE-CONTRACT.md D1): every decision a draw
@@ -100,6 +95,7 @@ pub(crate) fn threshold(p: f64) -> u64 {
 
 impl Draw {
     /// The draw as a real, uniform on [0, 1): exact, 53 bits.
+    #[cfg(test)]
     pub fn unit(self) -> f64 {
         self.0 as f64 / ONE as f64
     }
@@ -108,18 +104,6 @@ impl Draw {
     pub fn under(self, p: f64) -> bool {
         self.0 < threshold(p)
     }
-}
-
-fn logit(p: f64) -> f64 {
-    (p / (1.0 - p)).ln()
-}
-
-/// How far, in log-odds, a draw `u` lies above the `bound` it must reach.
-pub(crate) fn above(u: f64, bound: f64) -> f64 {
-    if bound <= 0.0 {
-        return f64::INFINITY;
-    }
-    logit(u) - logit(bound)
 }
 
 /// A bud's PA under `lateral` for the draw `d`, with its lead past the
