@@ -357,3 +357,59 @@ fn the_slice_is_the_same_in_any_order_and_chunking() {
         "{shaded} {shed}"
     );
 }
+
+/// The f64-seeded square root and the division-free unit quotient give the
+/// bits of the exact reference algorithms (Newton from above; i128
+/// division), over every bit length, squares and their neighbours, and
+/// millions of random cases.
+#[test]
+fn the_fast_root_and_quotient_are_the_exact_ones() {
+    fn newton(n: u128) -> u128 {
+        if n == 0 {
+            return 0;
+        }
+        let mut x = 1u128 << (128 - n.leading_zeros()).div_ceil(2);
+        loop {
+            let y = (x + n / x) >> 1;
+            if y >= x {
+                return x;
+            }
+            x = y;
+        }
+    }
+    let mut z = 0x1234_5678_9abc_def0u64;
+    let mut next = move || {
+        z = z.wrapping_add(0x9e37_79b9_7f4a_7c15);
+        let mut x = z;
+        x = (x ^ (x >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
+        x = (x ^ (x >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
+        x ^ (x >> 31)
+    };
+    for k in 0..3_000_000u32 {
+        let n = ((u128::from(next()) << 64) | u128::from(next())) >> (k % 128);
+        assert_eq!(isqrt(n), newton(n), "{n}");
+    }
+    for r in (0..64).flat_map(|b| [1u128 << b, (1u128 << b) - 1, (1u128 << b) + 1]) {
+        let sq = r * r;
+        for n in [sq.saturating_sub(1), sq, sq + 1, sq + 2 * r, sq.saturating_add(2 * r + 1)] {
+            assert_eq!(isqrt(n), newton(n), "{n}");
+        }
+    }
+    assert_eq!(isqrt(u128::MAX), newton(u128::MAX));
+    for _ in 0..3_000_000 {
+        let v = [0; 3].map(|_: i64| (next() as i64) >> (next() % 63));
+        let Some(u) = unit(v) else { continue };
+        // The reference: the same scale and root, an i128 division.
+        let most = v.iter().map(|c| c.unsigned_abs()).max().unwrap();
+        let shift = 61 - (63 - most.leading_zeros() as i32);
+        let c = v.map(|c| {
+            let m = u128::from(c.unsigned_abs());
+            let m = if shift >= 0 { m << shift } else { m >> -shift } as i64;
+            if c < 0 { -m } else { m }
+        });
+        let sum: u128 = c.iter().map(|&x| u128::from(x.unsigned_abs()).pow(2)).sum();
+        let root = newton(sum) as i128;
+        let want = c.map(|x| ((i128::from(x) << 32) / root) as i64);
+        assert_eq!(u, want, "{v:?}");
+    }
+}

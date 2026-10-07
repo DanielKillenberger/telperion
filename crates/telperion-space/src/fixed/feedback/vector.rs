@@ -7,20 +7,25 @@
 //! zero; the quotient is truncated toward zero.
 use crate::fixed::{log2, INF};
 
-/// `floor(sqrt n)`.
+/// `floor(sqrt n)`, specified by its result (CONTRACT-A.md 2.3). Taken as
+/// an f64 estimate, one correction from its exact residual, then exact
+/// steps: the same bits as any exact algorithm, without a 128-bit division.
 pub fn isqrt(n: u128) -> u128 {
-    if n == 0 {
-        return 0;
+    // The root of a u128 lies below 2^64; the estimate is within 2^11.
+    let mut s = ((n as f64).sqrt() as u128).min(u128::from(u64::MAX));
+    if s > 0 {
+        let sq = s * s;
+        let step = |d: u128| ((d as f64) / (2.0 * s as f64)).round() as u128;
+        s = if n >= sq { s + step(n - sq) } else { s - step(sq - n).min(s) };
+        s = s.min(u128::from(u64::MAX));
     }
-    // Newton from above: the first iterate not below its successor.
-    let mut x = 1u128 << (128 - n.leading_zeros()).div_ceil(2);
-    loop {
-        let y = (x + n / x) >> 1;
-        if y >= x {
-            return x;
-        }
-        x = y;
+    while s * s > n {
+        s -= 1;
     }
+    while (s + 1).checked_mul(s + 1).is_some_and(|q| q <= n) {
+        s += 1;
+    }
+    s
 }
 
 /// The length of a Q32 vector, Q32, floored: the root of its squares'
@@ -62,7 +67,25 @@ fn normal(v: [i128; 3]) -> Option<([i64; 3], u64, i32)> {
 
 /// The unit components, Q32, each `c 2^32 / root` toward zero.
 fn unit_of(c: [i64; 3], root: u64) -> [i64; 3] {
-    c.map(|x| ((i128::from(x) << 32) / i128::from(root)) as i64)
+    c.map(|x| over_root(x, root))
+}
+
+/// `trunc(c 2^32 / root)` for `|c| < 2^63`, `root` in `[2^61, 2^63)`: an
+/// f64 estimate made exact by 96-bit products, without a 128-bit division.
+fn over_root(c: i64, root: u64) -> i64 {
+    let (num, d) = (u128::from(c.unsigned_abs()) << 32, u128::from(root));
+    let mut q = (c.unsigned_abs() as f64 * 4_294_967_296.0 / root as f64) as u128;
+    while q * d > num {
+        q -= 1;
+    }
+    while (q + 1) * d <= num {
+        q += 1;
+    }
+    if c < 0 {
+        -(q as i64)
+    } else {
+        q as i64
+    }
 }
 
 /// The unit vector along a Q32 vector: none for the zero vector exactly.
