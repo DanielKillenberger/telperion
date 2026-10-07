@@ -1,0 +1,15 @@
+# fn-213 friction
+
+## 2026-10-07: the Jev commands in docs/typesafe.md do not run
+
+- **Doing:** screening the birch's height sources with Jev (task 1, R1).
+- **Slowed by:** `cargo run -p telperion-jev -- screen ...`, as `docs/typesafe.md` "Commands" gives it, fails: the crate has three binaries (`jev`, `species`, `tape_trim`) and no `default-run`. The working form is `cargo run -p telperion-jev --bin jev -- screen ...`.
+- **Cost:** one failed run, about 2 minutes.
+- **Would remove it:** `default-run = "jev"` in `crates/telperion-jev/Cargo.toml`, or `--bin jev` in the doc's five commands.
+
+## 2026-10-07: a redirect to a path held in a variable is blocked
+
+- **Doing:** writing literature and screen logs under the spec's `raw/` folder from a loop.
+- **Slowed by:** the shell guard refuses `> $DIR/file` and `> file-$(...)` (a dynamic redirect target); each loop had to be rewritten as a script with literal paths or piped through `tee`.
+- **Cost:** two blocked commands, about 3 minutes.
+- **Would remove it:** nothing in the repository; a local guard setting (reported, not specced).
