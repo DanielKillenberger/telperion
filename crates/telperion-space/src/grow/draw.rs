@@ -196,7 +196,12 @@ fn pencil<'p>(
         Origin::Relay { parent, .. } => {
             let p = &axes[parent];
             let state = &species.states[p.pa];
-            let years = f64::from(axis.birth.saturating_sub(p.birth)) - draws[parent].sleep;
+            // The parent's years when the relay was made: each axis's time
+            // from its birth less the share of that cycle it slept, as
+            // everywhere else, so a relay made at the end of a cycle and
+            // one made at the start of the next meet (fn-199).
+            let made = f64::from(axis.birth) + draws[i].sleep;
+            let years = (made - f64::from(p.birth) - draws[parent].sleep).max(0.0);
             let layer = &of(parent).layer;
             layer.handed((bend(p, state, years), layer.run()), axis.blend)
         }
@@ -265,9 +270,7 @@ fn draw(
             let p = &mut axis.phytomers[j];
             // Unsized: what it bears inherits its scale without its size.
             p.scale = pencil.base_scale * present * draws.nodes[j] * grown;
-            if j == 0 {
-                axis.first = present * draws.nodes[j];
-            }
+            axis.first = (axis.first + present * draws.nodes[j]).min(1.0);
             p.size = size;
             p.rank = pencil.rank;
             pencil.rank += draws.nodes[j] * grown;

@@ -126,9 +126,10 @@ pub struct Axis {
     /// The share of its first cycle a bud that woke still slept: its age
     /// is that much less than its birth gives.
     pub(crate) sleep: f64,
-    /// How far its first node has grown in: its unit's presence times its
-    /// node's (`presence::assign`), not the share of the cycle it grew,
-    /// which its length already holds; none with no phytomers. A relay
+    /// How much of a node it has grown in, up to one: each phytomer's
+    /// unit's presence times its node's, summed (`presence::assign`), not
+    /// the share of the cycle it grew, which its length already holds; none
+    /// with no phytomers. A relay
     /// standing on an axis that carries another on stands that far from
     /// where it would on the axis carried on (fn-199 R3).
     pub(crate) first: f64,

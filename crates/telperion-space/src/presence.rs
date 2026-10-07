@@ -328,9 +328,7 @@ fn assign_one(axis: &mut Axis, draws: &Draws, living: Option<f64>) -> f64 {
         let [size, light] = draws.shade(k);
         while j < axis.phytomers.len() && (axis.phytomers[j].cycle - birth - 1) as usize == k {
             axis.phytomers[j].scale = real(times(times(running, q(draws.nodes[j])), grown));
-            if j == 0 {
-                axis.first = real(times(running, q(draws.nodes[j])));
-            }
+            axis.first = (axis.first + real(times(running, q(draws.nodes[j])))).min(1.0);
             axis.phytomers[j].size = size;
             axis.phytomers[j].light = light;
             axis.phytomers[j].rank = rank;
