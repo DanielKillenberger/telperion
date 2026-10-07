@@ -28,16 +28,27 @@ pub(crate) struct Windows {
     expected: Vec<Vec<f64>>,
     /// The log of the whole tree's expected metres.
     whole: f64,
+    /// woods[m][k]: `expected[m][k]`'s share of the whole tree, Q32, by
+    /// the contract's `exp` (host decision 8): taken once a tree, not
+    /// once a draw.
+    woods: Vec<Vec<i64>>,
     age: u32,
 }
 
 impl Windows {
     pub fn new(species: &Species, age: u32) -> Self {
+        use crate::fixed::{exp, q32};
         let expected = expected_log_lengths(species, age);
         let whole = expected[age as usize][0];
+        let share = |log: f64| if log == f64::NEG_INFINITY { log } else { log - whole };
+        let woods = expected
+            .iter()
+            .map(|row| row.iter().map(|&log| exp(q32(share(log)))).collect())
+            .collect();
         Self {
             expected,
             whole,
+            woods,
             age,
         }
     }
@@ -120,10 +131,10 @@ impl Windows {
     /// `pa` is expected to grow from `cycle` on, or from `used` of the way
     /// through it (host decision 8, `fixed::presence`).
     pub fn window_q(&self, (pa, cycle, used): (usize, u32, Option<f64>), stake: f64) -> i64 {
-        use crate::fixed::{exp, presence, q32, ticks};
+        use crate::fixed::{presence, q32, ticks};
         let log = |c: u32| q32(self.log_wood(pa, c));
         let wood = match used {
-            None => exp(log(cycle)),
+            None => self.woods[(self.age + 1).saturating_sub(cycle) as usize][pa],
             Some(used) => presence::wood_at((log(cycle), log(cycle + 1)), ticks(used)),
         };
         let window = (q32(RATE * stake), q32(FLOOR * stake), q32(SPAN));
