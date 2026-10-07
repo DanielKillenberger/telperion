@@ -15,18 +15,25 @@ use telperion_space::{BearerFrame, Lived, RootGeometry, Vec3};
 
 /// A chain's record (`settle.wgsl`'s `CR`).
 pub(super) const CR: u32 = 5;
+/// A root's record before them: its origins' heights and its first
+/// axis's vigour (`settle.wgsl`'s `RR`).
+const ROOT: u32 = 4;
 
 /// A group as the device keeps it between the phases.
 pub(super) struct Group {
     pub waves: Waves,
     /// The stubs (the first wave's bearers), then each wave's laid buffer.
     pub laid: Vec<Wave>,
-    /// Each root's origins' heights, then each wave's chains' records.
+    /// Each root's origins' heights and first axis's vigour, then each
+    /// wave's chains' records.
     records: wgpu::Buffer,
     at: Vec<u32>,
     /// Each root's attachment as the stubs take it, and its node.
     pub attached: Vec<RootGeometry>,
     pub nodes: Vec<usize>,
+    /// Each root's first axis's vigour (Q32), by its place: its seed's
+    /// as `grow` hands it (task 9).
+    pub made: Vec<u64>,
     /// The group's roots in the order the device took them (by their
     /// place in the group), and each one's living, by its place.
     order: Vec<usize>,
@@ -74,7 +81,7 @@ impl Group {
         let n = roots.len() as u32;
         let mut laid = vec![Wave::taken(&k.pool, gpu, (n, n))];
         let mut at = Vec::with_capacity(waves.chains.len());
-        let mut floats = 2 * n;
+        let mut floats = ROOT * n;
         for (w, &chains) in waves.chains.iter().enumerate() {
             laid.push(Wave::taken(&k.pool, gpu, (waves.own[w], waves.phyts[w])));
             at.push(floats);
@@ -98,6 +105,7 @@ impl Group {
             at,
             attached,
             nodes,
+            made: vec![0; roots.len()],
             order,
             lived,
         }
@@ -105,7 +113,7 @@ impl Group {
 
     /// Writes each root's stub and origins from its attachment.
     pub(super) fn attach(&self, gpu: &Gpu) {
-        let (data, origins) = stubs(&self.attached);
+        let (data, origins) = stubs(&self.attached, &self.made);
         let q = &gpu.queue;
         q.write_buffer(&self.laid[0].buffer, 0, bytemuck::cast_slice(&data));
         q.write_buffer(&self.records, 0, bytemuck::cast_slice(&origins));

@@ -12,6 +12,10 @@
 // A chain's record in `records`: its first axis's base radius, then its
 // load at its base (mass and first moment, positions the root's own).
 const CR: u32 = 5u;
+// A root's record, before the chains': its origins' heights, then its
+// first axis's vigour, Q32, as its seed hands it (task 9: a woken root's
+// as its bearer kept it, known once the structure above has grown).
+const RR: u32 = 4u;
 // The grower's Q32 fields (`assign.wgsl`, `fades.wgsl`).
 const QVIG: u32 = 48u;
 const FADE: u32 = 66u;
@@ -31,6 +35,7 @@ struct Chain {
     ground_b: f32,
     wi: u32,
     k0: u32,
+    root_vigour: f32,
 }
 
 fn begin(c: u32) -> Chain {
@@ -58,12 +63,19 @@ fn begin(c: u32) -> Chain {
         below_b = p3(bearer - PL);
     }
     let pa = bitcast<u32>(prev[rec + 6u]);
-    let ground = vec2<f32>(records[2u * root], records[2u * root + 1u]);
+    let ground = vec2<f32>(records[RR * root], records[RR * root + 1u]);
+    // A first wave's chain is its root's: its first axis's vigour comes
+    // down from its seed.
+    var root_vigour = -1.0;
+    if stub {
+        let made = vec2<u32>(bitcast<u32>(records[RR * root + 2u]), bitcast<u32>(records[RR * root + 3u]));
+        root_vigour = qf(made.x, made.y);
+    }
     status = 0u;
     if na > 0u {
         status = scratch[sp + np * SP];
     }
-    return Chain(na, np, bearer, below_u, below_b, pa, ground.x, ground.y, items[it + 10u], items[it + 11u]);
+    return Chain(na, np, bearer, below_u, below_b, pa, ground.x, ground.y, items[it + 10u], items[it + 11u], root_vigour);
 }
 
 fn finish(ch: Chain) {
@@ -84,9 +96,15 @@ fn vigour_of(i: u32) -> f32 {
     return qf(ax(i, QVIG), ax(i, QVIG + 1u)) * qf(ax(i, FADE), ax(i, FADE + 1u));
 }
 
+// A root's first axis's vigour as shed sizes it: its seed's times its
+// fade.
+fn root_vigour_of(made: f32) -> f32 {
+    return made * qf(ax(1u, FADE), ax(1u, FADE + 1u));
+}
+
 // Each own axis's base scale, from its bearer's (`geometry::scale`), and
 // its phytomers' scales and ranks.
-fn scale_realized(na: u32, bearer: u32) {
+fn scale_realized(na: u32, bearer: u32, root_vigour: f32) {
     for (var i = 1u; i < na; i++) {
         if s(i, S_OWN) == NONE {
             continue;
@@ -94,7 +112,11 @@ fn scale_realized(na: u32, bearer: u32) {
         var base = 0.0;
         if i == 1u {
             let f = pa_of(ax(i, PA));
-            base = prev[bearer + 19u] * vigour_of(i) * dominance(f.dominance, lineage_of(i));
+            var vigour = vigour_of(1u);
+            if root_vigour >= 0.0 {
+                vigour = root_vigour_of(root_vigour);
+            }
+            base = prev[bearer + 19u] * vigour * dominance(f.dominance, lineage_of(i));
         } else {
             base = sf(ax(i, PARENT), S_SCALE) * vigour_of(i);
         }
@@ -317,7 +339,7 @@ fn scales(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     own_axes(ch.na, ch.np);
-    scale_realized(ch.na, ch.bearer);
+    scale_realized(ch.na, ch.bearer, ch.root_vigour);
 }
 
 @compute @workgroup_size(64)

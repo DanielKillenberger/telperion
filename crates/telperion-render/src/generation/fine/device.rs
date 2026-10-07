@@ -15,6 +15,7 @@ use super::roots::{Cost, Kernels, Tables};
 use crate::Gpu;
 use std::sync::Arc;
 use std::time::Instant;
+use telperion_space::fixed::presence::times;
 use telperion_space::{
     bearer_frame, ChainTables, GeometryTables, Lived, Loaded, Result, RootSeed, Roots, Structure,
     Vec3,
@@ -208,22 +209,15 @@ impl Roots for Device<'_> {
 
     fn grow(&mut self, seeds: &[RootSeed]) -> Result<(Vec<Lived>, u64)> {
         let start = Instant::now();
-        // The laterals sown, in the order sown, are the first among the
-        // seeds: each sown group's roots, then the rest's.
-        let sizes: Vec<usize> = self.groups.iter().map(|g| g.attached.len()).collect();
-        let mut roots: Vec<Vec<usize>> = sizes.iter().map(|&n| Vec::with_capacity(n)).collect();
-        let (mut g, mut rest) = (0, Vec::new());
-        for (r, s) in seeds.iter().enumerate() {
-            while g < sizes.len() && roots[g].len() == sizes[g] {
-                g += 1;
-            }
-            match g < sizes.len() && s.bud.woke.is_none() {
-                true => roots[g].push(r),
-                false => rest.push(r),
-            }
+        // The roots sown are the first seeds, group by group; the rest's
+        // after them.
+        let mut roots: Vec<Vec<usize>> = Vec::with_capacity(self.groups.len() + 1);
+        let mut from = 0;
+        for g in &self.groups {
+            roots.push((from..from + g.attached.len()).collect());
+            from += g.attached.len();
         }
-        let whole = roots.iter().zip(&sizes).all(|(r, &n)| r.len() == n);
-        assert!(whole, "every root sown is among the seeds");
+        let rest: Vec<usize> = (from..seeds.len()).collect();
         if !rest.is_empty() {
             let order = match self.order.len() == seeds.len() {
                 // The order given, over every root: none was sown.
@@ -241,6 +235,12 @@ impl Roots for Device<'_> {
             }
         }
         self.roots = roots;
+        // Each root's first axis's vigour as its bearer made it, a woken
+        // root's as its bearer kept it, which phase 2 scales it by.
+        for (r, s) in seeds.iter().enumerate() {
+            let (g, i) = self.places[r];
+            self.groups[g].made[i] = times(s.birth[0], s.birth[1]);
+        }
         let lived = self
             .places
             .iter()

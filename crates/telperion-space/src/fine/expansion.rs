@@ -15,7 +15,7 @@ use crate::fixed::presence::{q, times};
 use crate::geometry::{place, scale};
 use crate::girth::{thicken_given, Girth};
 use crate::grow::alone::Bud;
-use crate::grow::realized::{merged, streamed, Assigned, Handed, Hands};
+use crate::grow::realized::{streamed, Assigned, Handed, Hands};
 use crate::grow::{Request, Rules};
 use crate::sag::{any, levers_given, Load};
 use crate::shed::{shed_given, Living};
@@ -44,11 +44,14 @@ pub struct RootSeed {
 /// What grows and settles the fine roots, phase by phase.
 pub trait Roots {
     /// Phase 1 begun early (task 9): the roots made so far and not yet
-    /// taken (`seeds`, laterals all, in the order made) offered while the
+    /// taken (`seeds`, by their stand-ins' order) offered while the
     /// structure above the cut grows on; how many of the first the
-    /// executor took to grow now. Those taken are the first laterals
-    /// among `grow`'s seeds, in the same order. By default none: every
-    /// root grows in `grow`.
+    /// executor took to grow now. Those taken are `grow`'s first seeds, in
+    /// the same order. A woken root's seed is offered whole: what its
+    /// bearer keeps of it, known once the structure has grown, sizes only
+    /// its first axis's vigour (`made.0` and `birth[1]`), which `grow`'s
+    /// seed carries. By default none is taken: every root grows in
+    /// `grow`.
     fn sow(&mut self, seeds: &[RootSeed]) -> Result<usize> {
         let _ = seeds;
         Ok(0)
@@ -56,8 +59,7 @@ pub trait Roots {
     /// Phase 1: every root grown whole from its seed, marked, assigned
     /// and shed by its own subtree; each one's living, by root, and the
     /// phytomers grown in all. `seeds` are every root, by their
-    /// stand-ins' order; the laterals among them (`bud.woke` none) are in
-    /// the order `sow` offered them.
+    /// stand-ins' order, those `sow` took first.
     fn grow(&mut self, seeds: &[RootSeed]) -> Result<(Vec<Lived>, u64)>;
     /// Phase 2: the live roots (`live`, by root) scaled from their
     /// bearers' base scales and their nodes' drawn scales (`scales`) and
@@ -238,10 +240,10 @@ pub(crate) fn settle_with(
 }
 
 /// Grows the structure above the cut on a thread of its own, offering
-/// `roots` each cycle's laterals as they are made (task 9): the structure
+/// `roots` each cycle's buds as they are made (task 9): the structure
 /// grown, every root's seed by its stand-in's order, and the stages'
 /// milliseconds: the growth above the cut, the executor's sowing past its
-/// end, and the woken buds' seeds made and merged.
+/// end, and the woken roots' seeds kept as their bearers kept them.
 #[allow(clippy::type_complexity)]
 fn sow(
     species: &Species,
@@ -265,13 +267,13 @@ fn sow(
             });
             (grown, std::time::Instant::now())
         });
-        let (mut laterals, mut taken) = (Vec::new(), 0);
+        let (mut made, mut taken) = (Vec::new(), 0);
         let mut failed = None;
-        for made in &rx {
-            laterals.extend(made.into_iter().map(make));
-            laterals.extend(rx.try_iter().flatten().map(make));
-            if failed.is_none() && taken < laterals.len() {
-                match roots.sow(&laterals[taken..]) {
+        for buds in &rx {
+            made.extend(buds.into_iter().map(make));
+            made.extend(rx.try_iter().flatten().map(make));
+            if failed.is_none() && taken < made.len() {
+                match roots.sow(&made[taken..]) {
                     Ok(n) => taken += n,
                     Err(e) => failed = Some(e),
                 }
@@ -283,8 +285,15 @@ fn sow(
         if let Some(e) = failed {
             return Err(e);
         }
-        let woken = woken.into_iter().map(make).collect();
-        let seeds = merged(laterals, woken, |s| s.handed.at);
+        // Each woken root as its bearer kept it: its first axis's vigour.
+        let mut woken = woken.into_iter();
+        for s in made.iter_mut().filter(|s| s.handed.bud.wake.is_some()) {
+            let kept = woken.next().expect("each woken bud kept");
+            assert_eq!(kept.at, s.handed.at, "the woken buds in order");
+            (s.made.0, s.birth) = (kept.bud.axis.vigour, birth(&kept.bud));
+            s.handed = kept;
+        }
+        let seeds = made;
         let stages = vec![
             ("above the cut", ms(ended)),
             ("sowing past it", ms(sown.max(ended)) - ms(ended)),
