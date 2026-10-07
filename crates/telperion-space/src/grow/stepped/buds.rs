@@ -19,7 +19,6 @@ use std::time::Instant;
 
 /// The buds in a piece of the work spread over the cores, as fine
 /// growth takes its roots (`fine::Plan`'s chunk).
-const BUDS: usize = 16;
 
 /// A root grown from its bud: where it stands, the root settled through
 /// phase 1, and its run.
@@ -61,43 +60,54 @@ impl Executor<'_> {
         };
         let (species, age, keep) = (self.coarse.species, self.request.age, self.keep);
         let threads = self.coarse.threads;
-        let done = crate::cores::map(handed, BUDS, threads, &|_, h| -> Result<(Finished, Ran)> {
-            let started = Instant::now();
-            let (mut g, from, _) = start(rules.clone(), 0, Some(&h.bud))?;
-            // Its state at the end of the cycle it was made in, then each
-            // cycle it grows.
-            let mut ran = Ran {
-                from: from - 1,
-                ..Ran::default()
-            };
-            let count = |g: &Grower, ran: &mut Ran| {
-                if keep != Keep::Tree {
-                    let mut part: Digest = g.digest(2);
-                    part.counts[0] -= 2;
-                    ran.parts.push(part);
-                }
-            };
-            count(&g, &mut ran);
-            for cycle in from..=age {
-                if g.idle(cycle) {
-                    ran.died = Some(cycle - 1);
-                    break;
-                }
-                g.step(cycle, &mut |_| {})?;
+        // Spread over the cores as fine growth spreads its roots.
+        let mut handed = handed;
+        let plan = crate::fine::Plan {
+            threads,
+            ..crate::fine::Plan::default()
+        };
+        let done = crate::fine::each(
+            &mut handed,
+            plan,
+            threads,
+            &|_, h| -> Result<(Finished, Ran)> {
+                let started = Instant::now();
+                let (mut g, from, _) = start(rules.clone(), 0, Some(&h.bud))?;
+                // Its state at the end of the cycle it was made in, then each
+                // cycle it grows.
+                let mut ran = Ran {
+                    from: from - 1,
+                    ..Ran::default()
+                };
+                let count = |g: &Grower, ran: &mut Ran| {
+                    if keep != Keep::Tree {
+                        let mut part: Digest = g.digest(2);
+                        part.counts[0] -= 2;
+                        ran.parts.push(part);
+                    }
+                };
                 count(&g, &mut ran);
-            }
-            g.mark();
-            let root = Root::shed(species, &rules, &h, g.assigned(), started);
-            let node = Made::of(&h.bud.axis).node;
-            Ok((
-                Finished {
-                    at: h.at,
-                    node,
-                    root,
-                },
-                ran,
-            ))
-        });
+                for cycle in from..=age {
+                    if g.idle(cycle) {
+                        ran.died = Some(cycle - 1);
+                        break;
+                    }
+                    g.step(cycle, &mut |_| {})?;
+                    count(&g, &mut ran);
+                }
+                g.mark();
+                let root = Root::shed(species, &rules, h, g.assigned(), started);
+                let node = Made::of(&h.bud.axis).node;
+                Ok((
+                    Finished {
+                        at: h.at,
+                        node,
+                        root,
+                    },
+                    ran,
+                ))
+            },
+        );
         for d in done {
             let (finished, ran) = d?;
             self.record(ran);

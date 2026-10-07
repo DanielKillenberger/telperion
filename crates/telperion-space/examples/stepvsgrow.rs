@@ -47,17 +47,24 @@ fn main() {
                     light,
                 };
                 let (mut best, mut same) = ([f64::INFINITY; 2], true);
-                // One cold build of each, then three warm of each in turn.
-                for round in 0..4 {
+                // One cold build of each, then warm ones, the two taking
+                // turns to go first; each tree hashed and let go after its
+                // timing, before the other is built.
+                let build = |way: usize| {
                     let started = Instant::now();
-                    let today = grow_today(&species, request).expect("grows");
-                    let g = started.elapsed().as_secs_f64();
-                    let started = Instant::now();
-                    let tree = grow(&species, request).expect("grows");
-                    let t = started.elapsed().as_secs_f64();
-                    same &= digest(&tree) == digest(&today);
+                    let tree = [grow_today, grow][way](&species, request).expect("grows");
+                    let took = started.elapsed().as_secs_f64();
+                    (took, digest(&tree))
+                };
+                for round in 0..=list(3, "3")[0] {
+                    let order = if round % 2 == 0 { [0, 1] } else { [1, 0] };
+                    let mut got = [(0.0, 0); 2];
+                    for way in order {
+                        got[way] = build(way);
+                    }
+                    same &= got[0].1 == got[1].1;
                     if round > 0 {
-                        best = [best[0].min(g), best[1].min(t)];
+                        best = [best[0].min(got[0].0), best[1].min(got[1].0)];
                     }
                 }
                 println!(
