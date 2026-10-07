@@ -157,8 +157,8 @@ fn cases(s: u32, rng: &mut Rng, terms: &mut Vec<u64>) -> Vec<[u64; 8]> {
                 a[4] = rng.next() % if s == 0 { 256 } else { 127 };
             }
             1 => {
-                for k in 0..4 {
-                    a[k] = rng.any() as u64;
+                for v in &mut a[0..4] {
+                    *v = rng.any() as u64;
                 }
                 a[4] = rng.next() % 256;
             }
@@ -182,13 +182,13 @@ fn cases(s: u32, rng: &mut Rng, terms: &mut Vec<u64>) -> Vec<[u64; 8]> {
                 a[0] = rng.within(-2 * q, 2 * q) as u64;
                 a[1] = rng.within(-2 * q, 2 * q) as u64;
                 put(&mut a, 2, rng.wide());
-                for k in 4..7 {
-                    a[k] = rng.any() as u64;
+                for v in &mut a[4..7] {
+                    *v = rng.any() as u64;
                 }
             }
             7 => {
-                for k in 0..3 {
-                    a[k] = rng.any() as u64;
+                for v in &mut a[0..3] {
+                    *v = rng.any() as u64;
                 }
             }
             8 => {
@@ -211,8 +211,8 @@ fn cases(s: u32, rng: &mut Rng, terms: &mut Vec<u64>) -> Vec<[u64; 8]> {
                 }
             }
             11 => {
-                for k in 0..3 {
-                    a[k] = rng.within(0, (1 << 31) - 1) as u64;
+                for v in &mut a[0..3] {
+                    *v = rng.within(0, (1 << 31) - 1) as u64;
                 }
                 a[3] = rng.within(0, (1 << 48) - 1) as u64;
             }
