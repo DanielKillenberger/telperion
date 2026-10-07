@@ -4,9 +4,9 @@
 //! build is `profile_tests::build` (the species point's tables, the
 //! structure above the cut, the four phases and the landing); the CPU's
 //! is `grow_fine` at the default plan. The fine stage is the executor's
-//! four phases. Cold is a tree's first build in the process, after one
-//! build of another tree (the device's clocks up, its pools those of
-//! another tree). `cargo test --profile ci -p telperion-render
+//! four phases. Cold is a tree's first build in the process, just after
+//! one build of a tree not timed (the device's clocks up, its pools that
+//! tree's). `cargo test --profile ci -p telperion-render
 //! fine_stage_and_build -- --ignored --nocapture`, `FINE_GPU_LOCK`
 //! naming the GPU lock, taken only around the device's builds.
 use super::profile_tests::build;
@@ -47,11 +47,7 @@ fn fine_stage_and_build() {
         return;
     };
     let k = kernels(&gpu);
-    // One build first, so the device's clocks are up before the first
-    // tree's cold build is timed.
-    let warming = locked();
-    build(&gpu, &k, &telperion_space::spruce(), (25, 1));
-    drop(warming);
+    let warming = telperion_space::spruce();
     let load = std::fs::read_to_string("/proc/loadavg").unwrap_or_default();
     println!("load at the start: {}", load.trim());
     println!("| Tree | GPU cold / warm ms (fine stage) | CPU all cores cold / warm ms (fine stage) | CPU 1 core cold / warm ms (fine stage) |");
@@ -62,6 +58,10 @@ fn fine_stage_and_build() {
     ] {
         for at in [(40, 1), (40, 7), (80, 1), (80, 7)] {
             let lock = locked();
+            // A tree not timed first: the device's clocks fall while the
+            // CPU builds alone, and a cold build is a first tree's, not
+            // an idle device's.
+            build(&gpu, &k, &warming, (25, 1));
             let cold = build(&gpu, &k, &species, at).ms;
             let warm = (0..2)
                 .map(|_| build(&gpu, &k, &species, at))
