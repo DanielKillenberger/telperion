@@ -20,3 +20,10 @@
 - **Slowed by:** the scratchpad sits on `/tmp`, a 16 GB tmpfs shared by every session. The base copy's `target/` and the dump filled the quota; the dump, the first GPU test run's output and its lock wait were lost, and other sessions writing to `/tmp` may have failed in that window. Both removed at once.
 - **Cost:** one GPU run lost, about 15 minutes.
 - **Would remove it:** a base checkout and its `target/` under the worktree's ignored `raw/` (home disk), never under the scratchpad; the guidance for agents to say so.
+
+## 2026-10-07 13:35, the GPU lock again
+
+- **Doing:** R1's GPU parity (`generation::fine`) on the work-in-progress.
+- **Slowed by:** four sessions queued on the one GPU lock (a workspace gate among them); `flock -w 1200` timed out without the run starting.
+- **Cost:** 20 minutes, and R1's shader edits stay unchecked at the timebox.
+- **Would remove it:** as the first entry: the lock taken around GPU work only, not whole gates.

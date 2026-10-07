@@ -61,3 +61,43 @@ So `r` jumps from `q`'s curvature zone to `q`'s tip: 0.05 of the tree on seed 1 
 ## Gate
 
 Not run: the task stops at the two design questions. The crate suite (`raw/space-tests-r4.log`; R1 and R3 then red, since ignored) and the GPU fine tests are green on `56e431d8`'s code.
+
+## Host decisions (2026-10-07)
+
+- **R1: option (b), continuous time.** A failing unit grows the share of its year the apex lived (`ln u / ln viability`), and its relay grows the rest of that cycle. The `ln` is a specified fixed-point routine built on the contract's fixed-point `log2` (FINE-CONTRACT D5/D7 extended), mirrored bit for bit in WGSL and covered by the contract probe. Trees change only where a failing unit with a relay exists; show which and how much.
+- **R3: not the worker's candidate**, which still jumps when the first node grows in. A relay on a node-less continuation is placed by a blend from the grandparent's curvature zone to its own, weighted by the continuation's grown fraction of its first node, so the placement moves by degree. The heading change of existing relays is accepted, with stills.
+- **R4's matching sag-load fix stays:** one rule for girth and load.
+- **Then R6:** the beech at its five seeds on the base (fn-198's tip) and after, viewed side by side; the gate; `flowctl done` if the acceptance holds.
+
+## R1 under decision (b): built in the grower and both executors, stopped at the closed form
+
+Kept on the local branch `fn-199-r1-wip` (one commit on `cfa2a735`), not on this branch, because it leaves the crate suite red (below).
+
+**What is built:**
+- **Contract:** `fixed::decide::lived_q(l, share, d)`, the ticks `-log2(d / 2^53) · 2^20 / l`, floored, at most the unit's share, with `l = -log2 viability` (Q32, the row D5 already holds). The WGSL `lived_q` is word for word, using `log2q` and `fraction`; the contract probe's selector 6 now also checks it, edges included (`l` 0 and `INF`, shares to a tick past whole).
+- **Grower** (`grow/advance.rs`, `grow/stop.rs::fail`):
+  - Where a failure's relay draw makes one (D9's integer test), a failing unit grows its lived share at the relay's presence `ρ`.
+  - Its relay is made whole (presences 1, 1, so its vigour is the parent's end, which holds `ρ` once), laid by the stop's lead over `SPAN` as before. It grows the rest of the cycle via `carry_on`, its first unit keyed apart (`lineage::FAILED`): nodes, laterals and decisions.
+  - The surviving side carries `ρ + (1 - ρ) · faded`, decision 11's form, so the two sides meet at the bound.
+  - A failed unit's relay carries the apex's time on: `Carried.relay` is false for it, so the rest is bounded by the lifespan and a failure in an age's last unit moves on as the surviving apex does (this removed lifespan-walk jumps the first build had).
+  - With no failure relay (`relay_failed` 0, or the draw over it) nothing changes, to the bit.
+- **GPU** (`apex.wgsl` `fail`, `assign.wgsl`): the same law. A unit records whether its failure is relayed (`U_FAILS`), its cycle's used ticks, and a fourth ask for `ρ` (`UNIT_ASKS` 4, `UW` 24 to 28). A failed unit's relay asks nothing, and its made presences are 1. `IS_REST` keys the relay's first unit apart.
+
+**Walk tests:** R1's walk (`survival_with_every_stop_relayed…`) is green. Still red:
+- **The closed form.** It models the old law: a failed unit grows nothing and its relay starts next cycle with a whole first unit (`closed_form/steps.rs`, `failed`). Five statistical tests compare it with the grower and fail:
+  - `closed_form::kept` (two tests): born 2, phytomers 17.0 ± 0.4 grown against 15.2 in the formula;
+  - `the_settings_grow_the_expected_counts`;
+  - `sleeping_buds_grow_the_expected_counts`;
+  - `a_bud_never_wakes_in_a_stage_it_outlived`.
+
+  The closed form also feeds the windows and the realized cut's predictor and kept tables, so those see the old law too. Bringing it to (b) means modelling a random lived share (its mean and square for lengths, and a relay whose first unit starts at a random point in the cycle) through `steps.rs`, `events.rs`, `kept/` and `predictor/`. The choice of how is the host's: the mean lived share (cheap, biased by Jensen's inequality), or a few quadrature points over the lived-time distribution (exact to the test's tolerance, at a cost per failed step).
+- **Two walk jumps the new law exposes on the walk tree** (its limbs relay 0.3 of failures):
+  - The release law: `sleeping: states[1].zones[0].rate` and `.delay` at seed 3, 0.019 of the tree, not shrinking. At the crossing (`raw/probe199.rs rate 3 0.4692 0.4790`) a sleeping twig on a relay whose age ended wakes either in the last tick of cycle 8 (vigour 1e-6) or at the start of cycle 9 (vigour 1). The base's walk did not meet this configuration; not yet traced to its cause.
+  - `branches_are_made_and_unmade_at_vanishing_size`: limb viability, seed 3, a branch made at 1.3e-6 of the tree against the 1e-6 bound.
+- `a_relay_stands_in_the_curvature_zone_on_the_upper_side`: epitony's rise is 0.045 against the 0.05 the test asks. The pool of relays now includes failed units' relays, which stand in a partial unit.
+
+**GPU parity: not yet run.** The GPU lock stayed held by other sessions for the 20 minutes `flock` waited (`raw/gpu-fine-r1-wip.log` holds only the timeout). The WGSL compiles only when the GPU tests run, so the shader edits are unchecked.
+
+## R3 under the host's design: not started
+
+Time ran out after R1. R6 and the gate wait for R1 and R3.
