@@ -12,9 +12,12 @@ The task: after merging F1, one core is 9-41 % slower on every tree, and the bro
 - The one-core regression's cause named with numbers. - One core no slower than before the F1 merge for beech, spruce, oak, palm at 40 and 80 (natively and in Wasm), every tree unchanged. - Stage 2's re-sort removed; bytes change recorded. - Harness timings after; npm test and the workspace gate green.
 
 ## Done summary
-TBD
+One-core regression's cause: F1's Q32 presences turned each draw's lead into four fixed-point log2 calls (spruce 40: 24,606 to 5,604,666 log2 calls; 441 ms native, 1,048 ms Wasm), plus the lineage order and the partition's allocations. 17 perf commits, every tree identical (32 lineage digests, measures hash 80, 7 Wasm digests, 16 clothed hashes): logs only where a bound does not decide, side-by-side logs, per-core log-odds tables, wood shares tabled, Wasm products by 32-bit halves, faster lineage order, shared tables, reused lists. One core now within 0-2 % of before the merge (noise) and 25-30 % faster for beech and spruce at 80. Decision 17: stage 2's re-sort removed, converted bytes moved once (8f3ce65d). Harness: beech 40 to 80 4.5 s, oak 17.8 s, spruce 40 to 70 13.8 s; spruce 80 refused in 330 ms. Gate (1,137) and npm test (143) green.
 
+Host (2026-10-07): parity within noise accepted as "no slower"; the duplicate-identity check returns as a debug assertion in lineage_order (follow-up); F1's further work starts from fn-198's tip, which carries these engine changes.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8f3ce65d
+- Tests: cargo test --profile ci --workspace --no-fail-fast, npm test
 - PRs:
