@@ -13,29 +13,34 @@ pub fn identities(structure: &Structure) -> Vec<u64> {
 }
 
 fn identities_of(axes: &[Axis]) -> Vec<u64> {
-    let mut ids = vec![0u64; axes.len()];
-    for (i, axis) in axes.iter().enumerate() {
-        ids[i] = match axis.origin {
-            Origin::Seed => Key::root(0).child(axis.pa as u64).0,
-            Origin::Lateral {
-                parent,
-                node,
-                slot,
-                woken,
-                ..
-            } => {
-                Key(ids[parent])
-                    .child(1)
-                    .child(node as u64)
-                    .child(u64::from(slot))
-                    .child(u64::from(woken))
-                    .0
-            }
-            Origin::Continuation { parent } => Key(ids[parent]).child(2).child(axis.pa as u64).0,
-            Origin::Relay { parent, .. } => Key(ids[parent]).child(3).child(axis.pa as u64).0,
-        };
+    let mut ids = Vec::with_capacity(axes.len());
+    for axis in axes {
+        ids.push(identity(axis, |p| ids[p]));
     }
     ids
+}
+
+/// An axis's identity, its bearer's (`of`) taken first.
+fn identity(axis: &Axis, of: impl Fn(usize) -> u64) -> u64 {
+    match axis.origin {
+        Origin::Seed => Key::root(0).child(axis.pa as u64).0,
+        Origin::Lateral {
+            parent,
+            node,
+            slot,
+            woken,
+            ..
+        } => {
+            Key(of(parent))
+                .child(1)
+                .child(node as u64)
+                .child(u64::from(slot))
+                .child(u64::from(woken))
+                .0
+        }
+        Origin::Continuation { parent } => Key(of(parent)).child(2).child(axis.pa as u64).0,
+        Origin::Relay { parent, .. } => Key(of(parent)).child(3).child(axis.pa as u64).0,
+    }
 }
 
 /// The tree in canonical order, by depth and then identity, its parents
@@ -147,28 +152,31 @@ fn put_vec(put: &mut impl FnMut(u64), v: crate::structure::Vec3) {
 /// by lineage and, where two share one, by identity. Every `grow` returns
 /// its tree so, whichever path built it.
 pub fn lineage_order(structure: Structure) -> Structure {
-    let Structure { age, pas, mut axes } = structure;
+    let Structure { age, pas, axes } = structure;
     let n = axes.len();
-    let ids = identities_of(&axes);
-    let keys: Vec<(u64, u64)> = axes
-        .iter()
-        .zip(&ids)
-        .map(|(a, &id)| (a.lineage, id))
-        .collect();
-    let parents: Vec<Option<usize>> = axes.iter().map(|a| a.origin.parent()).collect();
-    // Each parent's children, by index, in one table: `children[start[p]..start[p + 1]]`.
+    // One pass over the axes: each one's key, (lineage, identity), and
+    // the children each bears, counted into `start`.
+    let mut keys: Vec<(u64, u64)> = Vec::with_capacity(n);
+    let mut parents = Vec::with_capacity(n);
     let mut start = vec![0usize; n + 1];
-    for &p in parents.iter().flatten() {
-        start[p + 1] += 1;
+    for axis in &axes {
+        let parent = axis.origin.parent();
+        keys.push((axis.lineage, identity(axis, |p| keys[p].1)));
+        if let Some(p) = parent {
+            start[p + 1] += 1;
+        }
+        parents.push(parent);
     }
+    // Each parent's children, by index, in one table:
+    // `children[start[p]..start[p + 1]]`.
     for p in 0..n {
         start[p + 1] += start[p];
     }
     let mut fill = start.clone();
     let mut children = vec![0usize; start[n]];
     let mut order: Vec<usize> = Vec::with_capacity(n);
-    for (i, parent) in parents.iter().enumerate() {
-        match *parent {
+    for (i, parent) in parents.into_iter().enumerate() {
+        match parent {
             Some(p) => {
                 children[fill[p]] = i;
                 fill[p] += 1;
@@ -185,27 +193,19 @@ pub fn lineage_order(structure: Structure) -> Structure {
         order.extend_from_slice(kids);
         k += 1;
     }
-    // The axes moved to their places in place, a cycle of the
-    // permutation at a time: place `k` takes axis `order[k]`.
-    let mut placed = vec![false; n];
-    for first in 0..n {
-        let mut k = first;
-        while !placed[k] {
-            placed[k] = true;
-            let from = order[k];
-            if from == first {
-                break;
-            }
-            axes.swap(k, from);
-            k = from;
-        }
-    }
     let mut at = vec![usize::MAX; n];
     for (k, &i) in order.iter().enumerate() {
         at[i] = k;
     }
-    for axis in &mut axes {
-        renumber(axis, &at);
-    }
+    // Each axis taken once from where it was grown, in its new order.
+    let mut slots: Vec<Option<Axis>> = axes.into_iter().map(Some).collect();
+    let axes = order
+        .iter()
+        .map(|&i| {
+            let mut axis = slots[i].take().expect("each axis once");
+            renumber(&mut axis, &at);
+            axis
+        })
+        .collect();
     Structure { age, pas, axes }
 }
