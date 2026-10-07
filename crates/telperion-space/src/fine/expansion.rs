@@ -8,7 +8,6 @@
 use super::landing::Landing;
 use super::surface::input;
 use super::{Clock, Plan};
-use crate::bounded::Expected;
 use crate::closed_form::boundary::Rows;
 use crate::closed_form::predictor::Predictor;
 use crate::error::{Error, Result};
@@ -79,25 +78,19 @@ pub struct Settled {
 
 /// Grows `species` above `plan`'s cut and settles it with its fine
 /// roots, grown by `roots`, every root that can reach the ground laid on
-/// the CPU reference executor by `expected`'s reach; and the roots'
-/// seeds. The cut reads the predictor's counts (host decision 9).
+/// the CPU reference executor; and the roots' seeds. The cut reads the
+/// predictor's counts (host decision 9); the ground bound's reach is read
+/// from the closed form's rows, on a core of its own while the executor
+/// grows the roots (task 8).
 pub fn settle(
     species: &Species,
     request: Request,
-    expected: &Expected,
     plan: Plan,
     roots: &mut dyn Roots,
 ) -> Result<(Settled, Vec<RootSeed>)> {
     let rules = crate::grow::alone::rules(species, request.age, request.budget)?;
     let predictor = Predictor::new(species, &rules.windows, request.age);
-    let rows = expected.rows();
-    settle_with(
-        species,
-        (request, &predictor, &rules),
-        plan,
-        roots,
-        Some(&rows),
-    )
+    settle_with(species, (request, &predictor, &rules), plan, roots, true)
 }
 
 pub(crate) fn settle_with(
@@ -105,7 +98,7 @@ pub(crate) fn settle_with(
     (request, predictor, rules): (Request, &Predictor, &Rules),
     plan: Plan,
     roots: &mut dyn Roots,
-    reach: Option<&Rows>,
+    land: bool,
 ) -> Result<(Settled, Vec<RootSeed>)> {
     request.light.validate()?;
     let threads = match plan.threads {
@@ -127,6 +120,7 @@ pub(crate) fn settle_with(
         })
         .collect();
     let mut clock = Clock::default();
+    let reach = land.then(|| reach(species, request.age));
     let (living, grew) = clock.time(|| roots.grow(&seeds))?;
     if grown.grown + grew > u64::from(request.budget) {
         return Err(Error::Budget {
@@ -188,7 +182,8 @@ pub(crate) fn settle_with(
     // a root that can reach the ground is laid on the CPU (host decision
     // 3, `landing.rs`).
     let mut loads = clock.time(|| roots.lay(&tree, &live, &bearers))?;
-    let mut landing = Landing::new(species, (rules, reach), (plan, threads));
+    let rows = reach.map(|r| r.join().expect("the reach's rows"));
+    let mut landing = Landing::new(species, (rules, rows.as_ref()), (plan, threads));
     let at_roots = (&seeds[..], &live[..], &bearers[..]);
     landing.lay(&tree, at_roots, (&scales, &radii), &mut loads)?;
     if any(species) {
@@ -214,6 +209,14 @@ pub(crate) fn settle_with(
         landed: landing.roots,
     };
     Ok((settled, seeds))
+}
+
+/// The closed form's rows of `species` at `age`, for the ground bound's
+/// reach, read on a core of their own: one core reads them faster than
+/// many, each with its own tables (REALIZED.md, decision 9's timing).
+fn reach(species: &Species, age: u32) -> std::thread::JoinHandle<Rows> {
+    let species = species.clone();
+    std::thread::spawn(move || Rows::new(&species, age, 1))
 }
 
 /// The node of its bearer a root stands on.

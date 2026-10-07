@@ -159,8 +159,13 @@ pub fn grow_fine(species: &Species, request: Request, plan: Plan) -> Result<Fine
         threads,
         roots: Vec::new(),
     };
-    let (settled, _) =
-        expansion::settle_with(species, (request, &predictor, &rules), plan, &mut cpu, None)?;
+    let (settled, _) = expansion::settle_with(
+        species,
+        (request, &predictor, &rules),
+        plan,
+        &mut cpu,
+        false,
+    )?;
     let fine = assemble(settled, cpu.roots, &predictor)?;
     Ok(Fine { predict, ..fine })
 }

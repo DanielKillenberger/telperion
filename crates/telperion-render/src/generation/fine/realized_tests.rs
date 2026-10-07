@@ -12,8 +12,8 @@ use super::roots::{Cost, Kernels, Tables};
 use super::shedding;
 use crate::Gpu;
 use telperion_space::{
-    grow_fine, landed, realized_cases, root_axes, settle, ChainAxis, ChainTables, Expected,
-    GeometryTables, Light, Plan, Presences, RealizedCase, Request, RootAxes, Species,
+    grow_fine, landed, realized_cases, root_axes, settle, ChainAxis, ChainTables, GeometryTables,
+    Light, Plan, Presences, RealizedCase, Request, RootAxes, Species,
 };
 
 pub(super) fn request(age: u32, seed: u64) -> Request {
@@ -219,14 +219,12 @@ pub(super) fn settled_against(
     want: &[Option<RootAxes>],
     (order, batch): (&[usize], usize),
 ) -> Apart {
-    let expected = Expected::new(species, at.0, 0);
     let chain = ChainTables::new(species, at.0).expect("tables");
     let geo = GeometryTables::new(species, at.0).expect("tables");
     let t = std::time::Instant::now();
     let tables = Tables::new(gpu, &chain, &geo);
     let mut dev = Device::new(gpu, k, &tables, batch).ordered(order.to_vec());
-    let (settled, _) =
-        settle(species, request(at.0, at.1), &expected, plan, &mut dev).expect("settles");
+    let (settled, _) = settle(species, request(at.0, at.1), plan, &mut dev).expect("settles");
     let wall = t.elapsed().as_secs_f64() * 1e3;
     // A root that can reach the ground is the CPU's (host decision 3).
     let landed = landed(&settled);

@@ -21,7 +21,10 @@ thread_local! {
 /// Starts recording every pass on this thread; false where the device
 /// has no timestamps.
 pub(crate) fn start(gpu: &Gpu) -> bool {
-    let on = gpu.device.features().contains(wgpu::Features::TIMESTAMP_QUERY);
+    let on = gpu
+        .device
+        .features()
+        .contains(wgpu::Features::TIMESTAMP_QUERY);
     if on {
         ON.with_borrow_mut(|p| {
             *p = Some(Profile {
@@ -41,11 +44,12 @@ pub(super) fn slot(label: &str) -> Option<(wgpu::QuerySet, u32)> {
         let p = p.as_mut()?;
         let at = 2 * p.labels.len() as u32;
         if at % SET == 0 {
-            p.sets.push(p.device.create_query_set(&wgpu::QuerySetDescriptor {
-                label: Some("profile"),
-                ty: wgpu::QueryType::Timestamp,
-                count: SET,
-            }));
+            p.sets
+                .push(p.device.create_query_set(&wgpu::QuerySetDescriptor {
+                    label: Some("profile"),
+                    ty: wgpu::QueryType::Timestamp,
+                    count: SET,
+                }));
         }
         p.labels.push(label.to_string());
         Some((p.sets.last().expect("a set").clone(), at % SET))

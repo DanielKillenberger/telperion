@@ -3,7 +3,6 @@
 //! other root's wood enters that zone, so the ground never acts on what
 //! another executor lays.
 use super::request;
-use crate::bounded::Expected;
 use crate::closed_form::predictor::Predictor;
 use crate::fine::expansion::settle_with;
 use crate::fine::realized::Cpu;
@@ -17,11 +16,7 @@ use crate::{beech, spruce};
 /// the landing zone though they were not.
 fn routed(species: &Species, age: u32, seed: u64) -> (usize, usize, usize) {
     let request = request(age, seed);
-    let expected = Expected::new(species, age, 0);
-    let (rules, rows) = (
-        rules(species, age, request.budget).expect("rules"),
-        expected.rows(),
-    );
+    let rules = rules(species, age, request.budget).expect("rules");
     let predictor = Predictor::new(species, &rules.windows, age);
     let plan = Plan::default();
     let mut cpu = Cpu {
@@ -31,14 +26,8 @@ fn routed(species: &Species, age: u32, seed: u64) -> (usize, usize, usize) {
         threads: crate::cores::available(),
         roots: Vec::new(),
     };
-    let (settled, _) = settle_with(
-        species,
-        (request, &predictor, &rules),
-        plan,
-        &mut cpu,
-        Some(&rows),
-    )
-    .expect("settles");
+    let (settled, _) =
+        settle_with(species, (request, &predictor, &rules), plan, &mut cpu, true).expect("settles");
     let near = settled
         .live
         .iter()
