@@ -80,7 +80,7 @@ The GPU executor (`crates/telperion-render/src/generation/fine/`, built for its 
 
 A species any bud of which reads light is refused until F2b (fn-211) carries its light aggregates in the record.
 
-The engine marks the axes it grew in fine roots (`telperion_space::grow_marked`), and the conversion keeps each fine root's first drawn node as a seam (`Tree::seams`). A sweep run never carries on into a seam: a fine root's wood starts a run of its own and meets its bearer at a socket (fn-212 D4). The runs keep two orders, the structure above the cut's and then the fine roots', each widest first, and no sort reaches across the seam (D5).
+The engine marks the axes it grew in fine roots (`telperion_space::grow_marked`), and the conversion keeps as a seam (`Tree::seams`) every fine root's node drawn from wood above the cut: its first axis's first node, and a lateral that its first phytomers, merged into the bearer's node, hang there (fn-212 task 5). A sweep run never carries on into a seam: a fine root's wood starts a run of its own and meets its bearer at a socket (fn-212 D4). The runs keep two orders, the structure above the cut's and then the fine roots', each widest first, and no sort reaches across the seam (D5).
 
 ## The wood's curve (fn-208)
 
