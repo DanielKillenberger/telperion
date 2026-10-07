@@ -253,8 +253,7 @@ impl Default for Stages {
 impl Stages {
     fn mark(&mut self, stage: &'static str) {
         let now = crate::clock::seconds();
-        self.out
-            .push((stage, (now - self.last) * 1e3));
+        self.out.push((stage, (now - self.last) * 1e3));
         self.last = now;
     }
 }
