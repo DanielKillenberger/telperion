@@ -166,7 +166,7 @@ impl<'a> Executor<'a> {
                 _ => None,
             };
             let fine = matches!(axis.origin, Origin::Lateral { .. })
-                && self.rows.lateral(axis.pa, axis.birth).count <= self.cut;
+                && (self.counts)(axis.pa, axis.birth) <= self.cut;
             to.push(match (inherited, fine) {
                 (Some(k), _) => {
                     items[k] += 1;

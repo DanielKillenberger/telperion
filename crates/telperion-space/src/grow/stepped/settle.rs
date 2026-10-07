@@ -21,7 +21,7 @@ impl Executor<'_> {
         let Executor {
             mut coarse,
             items,
-            rows,
+            counts,
             request,
             ..
         } = self;
@@ -90,7 +90,6 @@ impl Executor<'_> {
             None,
             (Clock::default(), Stages::default()),
         )?;
-        let count = |pa: usize, birth: u32| rows.lateral(pa, birth).count;
-        Ok(assemble(settled, cpu.roots, &count)?.structure)
+        Ok(assemble(settled, cpu.roots, &*counts)?.structure)
     }
 }

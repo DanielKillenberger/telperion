@@ -62,7 +62,7 @@ pub use grow::partition::{
 };
 pub use grow::stepped::{grow_stepped, grow_stepped_on, Cpu, Feedback, Laid, LayJob, LayPa, Stepped};
 pub use grow::subtree::Measured;
-pub use grow::{grow, grow_staged, grow_whole, sketch, Pass, Request, Stage};
+pub use grow::{grow, grow_staged, grow_today, grow_whole, sketch, Pass, Request, Stage};
 pub use light::{bud_light, field_reads, Light};
 pub use oak::oak;
 pub use palm::palm;

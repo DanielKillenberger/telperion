@@ -44,7 +44,7 @@ use super::partition::{ordered, Digest, Grouping};
 use super::relay::RELAY_EVERY;
 use super::{start, Grower, Options, Request};
 use crate::bounded::Expected;
-use crate::closed_form::boundary::Rows;
+use crate::closed_form::predictor::Predictor;
 use crate::error::{Error, Result};
 use crate::species::Species;
 use crate::structure::Structure;
@@ -80,7 +80,13 @@ pub fn grow_stepped(
     cut: f64,
     grouping: Grouping,
 ) -> Result<Stepped> {
-    run(species, request, (expected, cut, grouping), None, false)
+    run(
+        species,
+        request,
+        (counts(expected), cut, grouping),
+        None,
+        false,
+    )
 }
 
 /// `grow_stepped` with the fine roots' layout, D16, deposits and sampling
@@ -94,24 +100,47 @@ pub fn grow_stepped_on(
     device: Option<&mut dyn Feedback>,
     complete: bool,
 ) -> Result<Stepped> {
-    run(
-        species,
-        request,
-        (expected, cut, grouping),
-        device,
-        complete,
-    )
+    let at = (counts(expected), cut, grouping);
+    run(species, request, at, device, complete)
+}
+
+/// The build's executor (fn-211 task 12, host decision (b)): every root
+/// at the cut its own grower, the cut read from the predictor's counts
+/// (fn-209 host decision 9), the items visited forward.
+pub(crate) fn build(species: &Species, request: Request) -> Result<Structure> {
+    species.validate()?;
+    let windows = crate::presence::Windows::new(species, request.age);
+    let predictor = Predictor::new(species, &windows, request.age);
+    let counts: Counts = Arc::new(move |pa, birth| predictor.count(pa, birth));
+    let grouping = Grouping {
+        order: crate::grow::partition::Order::Forward,
+        chunk: ITEMS,
+        sizes: true,
+        leaves: true,
+        girth: true,
+    };
+    let at = (counts, crate::fine::Plan::default().cut, grouping);
+    Ok(run(species, request, at, None, false)?.structure)
+}
+
+/// The closed form's expected kept phytomers of a bud of a PA born in a
+/// cycle: what the cut reads.
+pub(super) type Counts = Arc<dyn Fn(usize, u32) -> f64 + Send + Sync>;
+
+fn counts(expected: &Expected) -> Counts {
+    let rows = expected.rows();
+    Arc::new(move |pa, birth| rows.lateral(pa, birth).count)
 }
 
 fn run(
     species: &Species,
     request: Request,
-    (expected, cut, grouping): (&Expected, f64, Grouping),
+    (counts, cut, grouping): (Counts, f64, Grouping),
     mut device: Option<&mut dyn Feedback>,
     complete: bool,
 ) -> Result<Stepped> {
     let (coarse, _) = start(species, request, true, Options::default())?;
-    let mut x = Executor::new(coarse, (expected.rows(), cut, grouping), request, complete);
+    let mut x = Executor::new(coarse, (counts, cut, grouping), request, complete);
     let mut years = Vec::with_capacity(request.age as usize);
     for cycle in 1..=request.age {
         let started = std::time::Instant::now();
@@ -154,7 +183,7 @@ pub(super) struct Item<'a> {
 pub(super) struct Executor<'a> {
     pub coarse: Grower<'a>,
     pub items: Vec<Item<'a>>,
-    pub rows: Arc<Rows>,
+    pub counts: Counts,
     pub cut: f64,
     pub grouping: Grouping,
     pub request: Request,
@@ -174,14 +203,14 @@ impl<'a> Executor<'a> {
     /// `cut` by `rows`, visited in `grouping`'s order.
     pub(super) fn new(
         coarse: Grower<'a>,
-        (rows, cut, grouping): (Arc<Rows>, f64, Grouping),
+        (counts, cut, grouping): (Counts, f64, Grouping),
         request: Request,
         complete: bool,
     ) -> Self {
         Self {
             coarse,
             items: Vec::new(),
-            rows,
+            counts,
             cut,
             grouping,
             request,

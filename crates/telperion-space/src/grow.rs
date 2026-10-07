@@ -64,11 +64,18 @@ struct Apex {
     spent: f64,
 }
 
-/// Grows, sheds and places the tree, in its canonical lineage order. A
-/// species that neither reads light nor reads its tree as grown is built
-/// through the realized partition at the cut N = 1,024 (host decision 7,
-/// FINE-CONTRACT.md): the same tree as `grow_whole`, to the bit.
+/// Grows, sheds and places the tree, in its canonical lineage order, by
+/// the stepped executor (fn-211 task 12, host decision (b)): every fine
+/// root at the cut N = 1,024 its own grower, run ahead to its next
+/// synchronisation point and settled per root.
 pub fn grow(species: &Species, request: Request) -> Result<Structure> {
+    stepped::build(species, request).map(lineage_order)
+}
+
+/// Today's path before task 12, kept for its measurement until it is
+/// deleted: the whole-tree engine where any bud reads light or the tree
+/// as grown, the realized partition otherwise.
+pub fn grow_today(species: &Species, request: Request) -> Result<Structure> {
     if species.reads_light() || keeps(species) {
         return grow_whole(species, request);
     }
