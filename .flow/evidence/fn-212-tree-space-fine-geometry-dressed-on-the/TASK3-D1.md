@@ -32,3 +32,9 @@ D1 has the conversion keep every kept phytomer. A trial of it collides with the 
   - (c) the conversion's thin-wood cut kept for the seated path only. This contradicts D1's "one identity per kept phytomer".
 - Each option changes what a seated leaf stands on, so the choice is the host's.
 - The probe (`f212_keep.rs`) and the trial patch were not kept. The table above holds their result.
+
+## Host decision D1b (2026-10-07)
+
+- **Option (b):** contact rings are built only on runs that bear leaves.
+- Every other run, thin wood included, is surfaced as F3's curves on both executors, the CPU reference included. No ring check then meets thin unseated wood.
+- If (b) still trips the float32 ring check on leaf-bearing runs, that is reported before (a) is taken.
