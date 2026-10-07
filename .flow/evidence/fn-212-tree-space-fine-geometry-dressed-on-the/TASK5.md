@@ -127,3 +127,23 @@ CONTRACT.md's probe, second part. The fine roots' F3 curve is now built on the d
 
 - **CPU half:** 988 passed.
 - **Render half:** 159 passed, at eight test threads.
+
+## The side seed kept: what moved (host, 2026-10-07)
+
+- **The seed's turn, by run** (`seed_twist_at_80`, `raw/task5/seed-twist.txt`). This is each fine run's first normal against the old seed (the first tangent's `perpendicular`), in 15° bins from 0° to 180°:
+  - **Beech 80 s1:** 9,064, 10,111, 10,550, 10,382, 10,528, 10,004, 9,949, 10,661, 10,452, 10,460, 9,893 and 8,733.
+  - **Spruce 80 s1:** 80,285, 57,545, 53,673, 53,141, 52,813, 54,749, 54,218, 52,163, 49,586, 48,656, 48,914 and 67,684.
+  - The old seed came from world axes and the new one from the bearer, so the turn is spread evenly. Every fine run's bark and lobe angle moves; its centres, radii and twist rate along the run do not.
+- **Stills at 80, seed 1, before (old seed) and after (side seed)**, hero view and a close look at the wood (`--view bare --camera '{"fill": 10, "targetHeight": 0.45, "elevation": 5}'`). All eight are in `raw/task5/stills/` and all were viewed.
+  - **Indistinguishable by eye.** Triangle and instance counts are equal.
+  - **Pixels apart** (ImageMagick AE):
+
+    | Still | Exact | Under 6 % fuzz |
+    |---|--:|--:|
+    | beech hero | 45 | 10 |
+    | beech close | 1,690 (0.16 %) | 808 |
+    | spruce hero | 124 | 51 |
+    | spruce close | 38 | 0 |
+
+  - The close-ups show mostly the structure above the cut. The fine runs' wood is thin at those distances, so its bark turn barely registers.
+- **The binaries:** `raw/task5/bin/headless-before` is this branch with the seed switched off, and `headless-after` is the branch as committed.

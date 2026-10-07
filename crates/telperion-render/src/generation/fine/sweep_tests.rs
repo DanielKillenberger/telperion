@@ -270,3 +270,48 @@ fn swept_at_40_and_80() {
         }
     }
 }
+
+/// What the frame seed moved (fn-212, host decision 2026-10-07): for every
+/// fine run of the pipeline's curve, the angle from the old seed (the
+/// first tangent's `perpendicular`) to the new (the bearer's side laid
+/// across it), binned by 15°; the spruce and beech at 80, seed 1
+/// (`cargo test --profile ci -p telperion-render seed_twist_at_80 --
+/// --ignored --nocapture`).
+#[test]
+#[ignore]
+fn seed_twist_at_80() {
+    for id in ["european-beech", "norway-spruce"] {
+        let mut family = telperion_core::presets::by_identity(id).unwrap();
+        family.age = 80.0;
+        family.skeleton.seed = 1;
+        let reference = telperion_core::pipeline::executor::grow(&family)
+            .unwrap()
+            .expansion()
+            .unwrap();
+        let (tree, curve) = (reference.tree(), reference.curve().unwrap());
+        let mut fine = vec![false; tree.nodes.len()];
+        for &s in &tree.seams {
+            fine[s as usize] = true;
+        }
+        for i in 1..tree.nodes.len() {
+            fine[i] |= fine[tree.nodes[i].parent.unwrap() as usize];
+        }
+        let key = |v: Vec3| [v.x.to_bits(), v.y.to_bits(), v.z.to_bits()];
+        let at: HashMap<[u64; 3], usize> = (tree.nodes.iter().enumerate())
+            .map(|(i, n)| (key(n.position), i))
+            .collect();
+        let mut bins = [0usize; 12];
+        for r in curve.runs.iter().filter(|r| r.count > 1) {
+            let p = &curve.points[r.first as usize..][..2];
+            if !at.get(&key(p[1].centre)).is_some_and(|&i| fine[i]) {
+                continue;
+            }
+            let t = (p[1].centre - p[0].centre).normalized();
+            let old = t.perpendicular();
+            let old = (old - t * old.dot(t)).normalized();
+            let turn = angle(old, p[0].normal).to_degrees();
+            bins[((turn / 15.0) as usize).min(11)] += 1;
+        }
+        println!("{id} 80 1: fine runs by the seed's turn, 15° bins from 0 to 180: {bins:?}");
+    }
+}
