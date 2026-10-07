@@ -123,3 +123,33 @@ Two changes would close it. Neither is built:
 - (b) Hand a fine bud over as it is made, never growing it in the coarse grower, as `grow_fine`'s `Hands` does.
 
 (b) changes the handover's order argument (PHASES.md, host decision 2: each grower keeps the whole tree's living order), so it is a design question.
+
+## Before (a) and (b): the profile, and why (b) stops at the lit oak (2026-10-08)
+
+The host decided (a) and (b). Before building, the beech and spruce at 80, seed 1, were profiled at a one-minute load of 4.7 to 6 (`raw/task12/profile-80.txt`), each stage timed in one run:
+
+| Spruce 80 s1, s | Stepped | `grow_fine` |
+|---|--:|--:|
+| Structure above the cut | coarse steps 0.10, handover 0.15 | 0.09 (and 0.04 for the seeds) |
+| The roots grown | 0.70 | 0.42 (phase 1: grown from the bud, marked, assigned, shed) |
+| The roots marked, assigned, shed | 0.38 | (in phase 1) |
+| Phases 2 to 4 | 1.45 | 1.39 |
+| Assembly | 0.29 | about 0.3 |
+| Build | 3.41 | 2.47 |
+
+The beech at 80 has the same shape: its roots took 0.094 s to grow plus 0.048 s for phase 1, against 0.060 s for `grow_fine`'s whole phase 1. Its build took 0.36 to 0.40 s against 0.29 to 0.32 s.
+
+So the gap is the roots:
+- **Growth costs twice what `grow_fine`'s does, and phase 1 is a second pass.** The stepped roots' growers are made on the main thread at handover and grown on the pool's threads. `grow_fine` makes each root's grower from its bud on the thread that grows it.
+- **Spreading the last run dynamically does not close it.** One piece at a time, in place of the pinned pieces, took spruce 80 to 0.81 s of root growth and a build of 3.47 s.
+
+**(b) as `grow_fine` does it cannot hold for the lit oak's roots.** `grow_fine` grows a woken root from its bud with its kept share already in its vigour (`alone::woken_bud`). That share is what its bearer keeps of it at the tree's age (`Woken::kept`, at the end), which `grow_fine` knows because it grows every root after the structure above the cut is done. A lit root steps every cycle from its birth, so its kept share does not exist yet when it starts.
+
+A root first frames its pencil from its bearer's walk in its birth cycle's layout, and with (b) it would be framed in the root's own grower, not in the structure above. The bearer's laid frame at its node would then cross down at birth: a crossing that does not exist today.
+
+For a root whose next synchronisation point is the tree's end (the beech, spruce and unlit oak), (b) is exactly `grow_fine`'s phase 1:
+- the structure above the cut hands the bud over as it is made (`Hands`);
+- the root is grown from the bud, marked, assigned and shed at the end, on one core;
+- that is (a) and (b) together.
+
+This is reported for the host's decision.
