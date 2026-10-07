@@ -94,3 +94,10 @@
 - **Slowed by:** AGENTS.md names nextest as CI's runner, and `cargo nextest` is not installed on this desk; the first run failed at once.
 - **Cost:** about 1 minute.
 - **Would remove it:** nothing in the repository; a local install.
+
+## 2026-10-07 07:00, task 5: no sampling profiler on the desk
+
+- **Doing:** profiling `grow` on one core, base against now, to name the regression's cause.
+- **Slowed by:** `samply record` refuses with `perf_event_paranoid` at 2 (it needs 1), and `perf` and `valgrind` are not installed; the cause had to be found by stage clocks (`grow_staged`) and call counters patched into a scratch copy of the engine (log2, exp2_neg, Q32 products, leads by call site), then a microbenchmark of each primitive's cost.
+- **Cost:** about 15 minutes and four scratch builds.
+- **Would remove it:** a local setting (`kernel.perf_event_paranoid = 1`) or `perf` installed; nothing in the repository.
