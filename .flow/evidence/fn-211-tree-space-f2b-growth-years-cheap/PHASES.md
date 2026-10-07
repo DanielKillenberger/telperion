@@ -138,3 +138,12 @@ The shared per-root settle (`fine::settle_grown`, the `Roots` trait) carries the
 - **Down:** the tree's mean, and each root's bearers' fades at its base.
 - **Up:** each root's base radius as grown. This is the retained pipe its bearer keeps where the root is shed or fading. The root keeps its own shed pipes for phase 2's thickening.
 - **An executor that does not carry the exchange refuses by name.** The `Roots` trait's default methods do so, and the GPU's realized executor is one such. This is a named gap, never a fallback.
+
+## Host decision on the schedule (2026-10-07, fn-211 task 12, option (i) as one rule)
+
+Each root runs ahead to its next synchronisation point: the next cycle at which anything crosses between it and the structure above. That means a light reading, layout or re-lay at a cycle's end, or a balance or allotment reading its wood at a cycle's start (`grow/stepped/schedule.rs`, `Executor::reach`).
+
+- For a species that reads nothing per cycle (the beech, the spruce, the unlit oak), a root runs every cycle it has left when it is due.
+- For the lit oak, every cycle is a synchronisation point.
+- The schedule comes from what crosses, not from the species. It is the order of evaluation, not a second way of building.
+- The per-cycle growth digest is rebuilt from the counts each root recorded as it ran. The per-cycle probe (`examples/stepped.rs`, now with the unlit oak) holds every phase identical.
