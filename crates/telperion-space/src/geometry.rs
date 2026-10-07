@@ -12,6 +12,7 @@
 mod lay;
 mod place;
 pub(crate) mod q;
+mod sagged;
 mod single;
 
 use crate::cores::{fill, map};
