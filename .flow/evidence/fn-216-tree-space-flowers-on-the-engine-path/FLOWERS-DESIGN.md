@@ -188,3 +188,11 @@ Every number here is an **estimate**, scaled from measured leaf counts. Measured
 5. Whether the conversion's missing node identity (§1) is fixed for leaves too, in its own small spec. It affects short shoots on any engine preset that turns them on.
 
 Not in this spec: emitted light and the dew (fn-217), the Two Trees' values (fn-218, fn-219), and fruit (fn-111 takes the slot once it exists).
+
+## Host decisions (2026-10-07)
+
+1. **Option B:** a `flowering` share per PA; the engine's topology unchanged; the expansion draws blossoms and racemes keyed by the engine's phytomer key; a second foliage pass through the leaf shader with its own colours; nothing drawn at zero flowering (passed species keep their bytes); a season scaling flowers in and out by degree.
+2. **The proof (R2) on existing species, no new species:** the oak's catkins as pendant clusters (a real trait, judged against photographs), and a blossom test on the beech (the Two Trees' base), judged as an organ test. A bird cherry is its own species spec if the owner wants one later.
+3. **The light-driven outer-crown row waits;** the first build uses the PA share only.
+4. **Petal count** is a whole-number row whose fractional part scales the last petal's size, so a walk across counts changes the flower by degree.
+5. **Node identity** gets its own small spec first: the conversion sets each node's identity from the engine's lineage, so every draw keyed by identity (flowers, short shoots) is stable and distinct. GPU leaf draws keyed by station number across the tree (a draw reshuffle when a twig is added) are recorded for fn-125's rewrite.
