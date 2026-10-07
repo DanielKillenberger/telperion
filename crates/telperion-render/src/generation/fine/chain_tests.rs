@@ -4,11 +4,12 @@
 //! birth, how and where each stands, where its apex stopped), phytomers
 //! (cycle and key) and woken buds, in the same order; in any order of the
 //! chains and any size of batch.
-use super::chains::{packed, Caps, Grower, Grown};
+use super::chains::{packed, Caps, Grower};
+use super::hostrun::Grown;
 use crate::Gpu;
 use std::time::Instant;
 use telperion_space::{
-    chain_cases, grow_fine, ChainAxis, ChainBud, ChainTables, Expected, Light, Plan, Request,
+    chain_cases, grow_fine, ChainAxis, ChainBud, ChainTables, GeometryTables, Light, Plan, Request,
     Species,
 };
 
@@ -23,6 +24,7 @@ const CAPS: Caps = Caps {
     live: 32,
     sleepers: 128,
     woken: 64,
+    units: 1024,
 };
 
 /// What growing a tree's chains on the GPU took: milliseconds growing
@@ -41,9 +43,11 @@ fn grow_all(
     gpu: &Gpu,
     grower: &Grower,
     (buds, order, batch): (&[ChainBud], &[usize], usize),
-    tables: &ChainTables,
+    (tables, geo): (&ChainTables, &GeometryTables),
 ) -> (Vec<Vec<ChainAxis>>, Cost) {
-    let packed = packed(tables);
+    let packed = packed(tables, geo);
+    // Presences decide nothing: topology reads none of them.
+    let made = vec![[1.0f32; 2]; buds.len()];
     let at = (tables.span, tables.age);
     let mut grown: Grown = vec![None; buds.len()];
     let mut cost = Cost::default();
@@ -52,7 +56,7 @@ fn grow_all(
     while !pending.is_empty() {
         for part in pending.chunks(size) {
             let these: Vec<ChainBud> = part.iter().map(|&c| buds[c]).collect();
-            let (got, g, r) = grower.run(gpu, &these, &packed, at, caps);
+            let (got, g, r) = grower.run(gpu, (&these, &made[..these.len()]), &packed, at, caps);
             (cost.grow, cost.read) = (cost.grow + g, cost.read + r);
             for (&c, axes) in part.iter().zip(got) {
                 grown[c] = axes;
@@ -68,12 +72,19 @@ fn grow_all(
 }
 
 /// The tree's chains as the CPU grows them, and the counts compared.
+/// The grower keeps every axis (realized mechanics); P2's committed
+/// shedding, which the CPU's chains carry, is not compared.
 fn hold(cases: &[(ChainBud, Vec<ChainAxis>)], grown: &[Vec<ChainAxis>]) -> (usize, usize) {
     let (mut axes, mut phytomers) = (0, 0);
+    let grown_whole = |a: &ChainAxis| ChainAxis {
+        kept: true,
+        context: None,
+        ..a.clone()
+    };
     for (c, ((bud, want), got)) in cases.iter().zip(grown).enumerate() {
         assert_eq!(got.len(), want.len(), "chain {c} ({bud:?}): axes");
         for (k, (g, w)) in got.iter().zip(want).enumerate() {
-            assert_eq!(g, w, "chain {c} axis {k}");
+            assert_eq!(grown_whole(g), grown_whole(w), "chain {c} axis {k}");
         }
         axes += want.len();
         phytomers += want.iter().map(|a| a.phytomers.len()).sum::<usize>();
@@ -128,15 +139,15 @@ fn every_chain_grows_on_the_gpu_as_on_the_cpu() {
     for (name, species) in adversarial() {
         for seed in [1, 7] {
             let cases = chain_cases(&species, request(25, seed)).expect("chains");
-            let expected = Expected::new(&species, 25, 0);
-            let tables = ChainTables::new(&species, 25, &expected).expect("tables");
+            let tables = ChainTables::new(&species, 25).expect("tables");
+            let geo = GeometryTables::new(&species, 25).expect("tables");
             let buds: Vec<ChainBud> = cases.iter().map(|c| c.0).collect();
             let forward: Vec<usize> = (0..buds.len()).collect();
-            let (grown, _) = grow_all(&gpu, &grower, (&buds, &forward, 4096), &tables);
+            let (grown, _) = grow_all(&gpu, &grower, (&buds, &forward, 4096), (&tables, &geo));
             let (axes, phytomers) = hold(&cases, &grown);
             // Reversed, a few hundred at a time: the same chains.
             let reverse: Vec<usize> = forward.iter().rev().copied().collect();
-            let (again, _) = grow_all(&gpu, &grower, (&buds, &reverse, 333), &tables);
+            let (again, _) = grow_all(&gpu, &grower, (&buds, &reverse, 333), (&tables, &geo));
             assert!(again == grown, "{name} {seed}: the same in any order");
             println!(
                 "{name} 25 {seed}: {} chains, {axes} axes, {phytomers} phytomers",
@@ -175,23 +186,21 @@ fn chains_at_40_and_80() {
                 let t = Instant::now();
                 let cases = chain_cases(&species, request(age, seed)).expect("chains");
                 let cpu = t.elapsed().as_secs_f64() * 1e3;
-                let expected = Expected::new(&species, age, 0);
                 let t = Instant::now();
-                let plan = Plan {
-                    cut: f64::INFINITY,
-                    ..Plan::default()
-                };
-                grow_fine(&species, request(age, seed), &expected, plan).expect("grows");
+                grow_fine(&species, request(age, seed), Plan::default()).expect("grows");
                 let fine = t.elapsed().as_secs_f64() * 1e3;
                 let t = Instant::now();
-                let tables = ChainTables::new(&species, age, &expected).expect("tables");
+                let tables = ChainTables::new(&species, age).expect("tables");
+                let geo = GeometryTables::new(&species, age).expect("tables");
                 let tables_ms = t.elapsed().as_secs_f64() * 1e3;
                 let buds: Vec<ChainBud> = cases.iter().map(|c| c.0).collect();
                 let forward: Vec<usize> = (0..buds.len()).collect();
-                let (grown, cold) = grow_all(&gpu, &grower, (&buds, &forward, 4096), &tables);
+                let (grown, cold) =
+                    grow_all(&gpu, &grower, (&buds, &forward, 4096), (&tables, &geo));
                 let (axes, phytomers) = hold(&cases, &grown);
                 let reverse: Vec<usize> = forward.iter().rev().copied().collect();
-                let (again, warm) = grow_all(&gpu, &grower, (&buds, &reverse, 1000), &tables);
+                let (again, warm) =
+                    grow_all(&gpu, &grower, (&buds, &reverse, 1000), (&tables, &geo));
                 assert!(again == grown, "{name} {age} {seed}: the same in any order");
                 println!(
                     "| {name} {age} {seed} | {} | {axes} | {phytomers} | {tables_ms:.0} | {:.0} / {:.0} | {:.0} | {} | {:.2} | {cpu:.0} | {fine:.0} |",

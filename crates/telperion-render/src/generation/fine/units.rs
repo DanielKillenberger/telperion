@@ -6,15 +6,20 @@
 use super::super::io;
 use crate::Gpu;
 use std::time::Instant;
-use telperion_space::{grow, Light, Origin, Request, Species, Structure, Units};
+use telperion_space::{fixed, grow, Light, Origin, Request, Species, Structure, Units};
 
 const UNIT: &str = include_str!("unit.wgsl");
 const NONE: u32 = u32::MAX;
 /// A zone's words in the table (`zones.wgsl`).
-const ZW: u32 = 12;
+const ZW: u32 = 14;
 
 /// A tree to check: species, age and seed.
 type Case = (&'static str, fn() -> Species, u32, u64);
+
+/// The unit kernel's WGSL.
+pub(super) fn source() -> String {
+    format!("{}\n{UNIT}", super::zones())
+}
 
 /// The tables as the kernel reads them (`unit.wgsl`).
 pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
@@ -32,6 +37,14 @@ pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
         for (t, b) in zone.thresholds.iter().zip(&zone.bounds) {
             words.extend([*t, *b]);
         }
+        // Each node's bound's side of its lead (`zones.wgsl`, `node_lead`),
+        // by the contract on the CPU (task 8).
+        assert_eq!(zone.bounds.len(), zone.thresholds.len(), "a bound a node");
+        words.extend(zone.bounds.iter().map(|&b| match (b, zone.poisson) {
+            (0, _) => 0,
+            (b, true) => fixed::logit(b) as u64,
+            (b, false) => fixed::log2(b) as u64,
+        }));
         let laterals = words.len() as u32;
         words.extend(zone.laterals.iter().map(|t| t.unwrap_or(u64::MAX)));
         let windows = words.len() as u32;
@@ -44,6 +57,12 @@ pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
         });
         let sleeps = words.len() as u32;
         words.extend(zone.sleeps.iter().map(|&s| u64::from(s)));
+        let placed = words.len() as u32;
+        words.extend(&zone.placed);
+        let windows_asleep = words.len() as u32;
+        for cycle in &zone.sleep_windows {
+            words.extend(cycle.iter().map(|&w| w as u64));
+        }
         table.extend([
             zone.zone as u32,
             u32::from(zone.poisson),
@@ -57,6 +76,8 @@ pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
             zone.dormant.len() as u32,
             wake,
             sleeps,
+            placed,
+            windows_asleep,
         ]);
     }
     (table, words)
@@ -109,10 +130,9 @@ struct Run {
 
 impl Kernel {
     fn new(gpu: &Gpu) -> Self {
-        let shader = format!("{}\n{UNIT}", super::zones());
         let pass = io::Pass::new(
             gpu,
-            shader,
+            source(),
             &[true, true, true, false, false],
             &["count", "emit"],
         );

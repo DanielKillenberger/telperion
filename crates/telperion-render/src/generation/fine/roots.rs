@@ -1,21 +1,18 @@
-//! Fine roots expanded on the GPU, wave by wave (fn-209 F1, task 2, R1):
-//! each root's chains grown on the device from its record, the buds a
-//! wave's kept axes bear grown in the next, until none is left; the
-//! roots' kept axes, compared by lineage with the CPU reference
-//! executor's expansion of the same records before any geometry (host
-//! decision 2), in any order of the roots and any batch size. The overflow
-//! rule is the chain: an item is split along its chains, each grown from
-//! its own bud's record, and a chain that outgrows its region is grown
-//! again in a larger one.
-use super::chains::{packed, Caps, Grew, Grower};
+//! The GPU executor's waves (fn-209 F1, tasks 2, 5 and 6): a wave's
+//! chains grown from their buds in runs of a batch, recorded and packed.
+//! The overflow rule is the chain: a chain that outgrows its region is
+//! queued and grown again in one eight times larger. Per run only the
+//! scan's totals cross to the host, to size the next buffers (host
+//! decision 6); nothing per chain or per node does.
+use super::chains::{packed, upload, Caps, Grower, Packed, Uploaded, AXW, PW};
+use super::laid::{self, Resolver};
+use super::pool::Pool;
+use super::shedding::Fades;
+use super::steps::{buffer, Steps, BW2, IW, RW};
 use crate::Gpu;
-use std::time::Instant;
-use telperion_space::{
-    chain_cases, fine_cases, grow_fine, ChainAxis, ChainBud, ChainTables, Expected, Light, Plan,
-    Request, Species, Woke,
-};
+use std::sync::Arc;
+use telperion_space::{ChainTables, GeometryTables};
 
-const AXW: usize = 32;
 /// A chain's first region: most chains are a few axes, so a small region
 /// and a large batch; one that outgrows it is grown again in a region
 /// eight times larger, in batches an eighth the size.
@@ -25,271 +22,213 @@ const CAPS: Caps = Caps {
     live: 8,
     sleepers: 16,
     woken: 8,
+    units: 64,
 };
 
-/// A chain to grow: its root's index, its bud, and its bearer among the
-/// root's kept axes (none: the root's own bud, borne above the cut).
-struct Item {
-    root: usize,
-    bud: ChainBud,
-    bearer: Option<usize>,
-}
-
-/// What expanding a tree's roots took: waves and chains, milliseconds
-/// growing (upload to the device's finishing) and reading back, and the
-/// chains grown again in larger regions.
+/// What expanding a tree's roots took: waves, chains grown (again ones
+/// included) and runs, milliseconds growing and recording (to each run's
+/// totals) and laying, the chains grown again, and the round trips: each
+/// a few totals read back.
 #[derive(Debug, Default, Clone, Copy)]
-struct Cost {
-    waves: usize,
-    chains: usize,
-    grow: f64,
-    read: f64,
-    again: usize,
+pub(super) struct Cost {
+    pub waves: usize,
+    pub chains: usize,
+    pub runs: usize,
+    pub grow: f64,
+    pub lay: f64,
+    /// Under realized mechanics: phase 1's fades and its report.
+    pub fade: f64,
+    pub again: usize,
+    pub trips: usize,
 }
 
-/// A bud a chain bears, from its axis's words, as its own chain takes it.
-fn bud(words: &[u32], i: usize, context: Option<i64>) -> ChainBud {
-    let w = |f: usize| words[i * AXW + f];
-    let wide = |f: usize| u64::from(w(f)) | u64::from(w(f + 1)) << 32;
-    let kind = w(4);
-    let birth = w(3);
-    ChainBud {
-        seed: false,
-        lineage: wide(0),
-        pa: w(2) as usize,
-        birth,
-        node: w(6) as usize,
-        slot: (kind >> 8 & 0xff) as u8,
-        root: wide(8),
-        horizon: wide(10) as i64,
-        woke: (kind & 0x80000 != 0).then(|| Woke {
-            key: wide(8),
-            pa: w(31) as usize,
-            sleep: u64::from(w(19)),
-            stage: w(20) as usize,
-            spent: wide(12),
-            cycle: birth + 1,
-        }),
-        context,
+/// A species point's tables, packed and on the device.
+pub(super) struct Tables {
+    pub chain: Arc<ChainTables>,
+    pub packed: Packed,
+    pub uploaded: Uploaded,
+    pub table: wgpu::Buffer,
+    pub sags: bool,
+}
+
+impl Tables {
+    pub(super) fn new(gpu: &Gpu, chain: Arc<ChainTables>, geo: &GeometryTables) -> Self {
+        let (table, sags) = laid::table(geo);
+        let usage = wgpu::BufferUsages::STORAGE;
+        let bytes = table.len() as u64 * 4;
+        let data = bytemuck::cast_slice(&table);
+        let table = super::super::io::buffer(gpu, "laid table", bytes, usage, data).unwrap();
+        let packed = packed(&chain, geo);
+        Self {
+            chain,
+            uploaded: upload(gpu, &packed),
+            packed,
+            table,
+            sags,
+        }
     }
 }
 
-/// Grows `items`, `batch` at a time, each outgrown chain again in a region
-/// eight times larger.
-fn grow(
-    (gpu, grower): (&Gpu, &Grower),
-    items: &[Item],
-    batch: usize,
-    tables: &ChainTables,
+/// The executor's kernels.
+pub(super) struct Kernels {
+    pub grower: Grower,
+    pub steps: Steps,
+    pub resolver: Resolver,
+    pub fades: Fades,
+    pub pool: Pool,
+}
+
+pub(super) fn kernels(gpu: &Gpu) -> Kernels {
+    Kernels {
+        grower: Grower::new(gpu),
+        steps: Steps::new(gpu),
+        resolver: Resolver::new(gpu),
+        fades: Fades::new(gpu),
+        pool: Pool::default(),
+    }
+}
+
+/// One run as the device keeps it: its chains, their records (places in
+/// its packed regions and scratch, counts, wave indices), the regions
+/// packed, the geometry scratch and items.
+pub(super) struct Run {
+    pub n: u32,
+    pub runoff: wgpu::Buffer,
+    pub axes: wgpu::Buffer,
+    pub phyts: wgpu::Buffer,
+    pub scratch: wgpu::Buffer,
+    pub items: wgpu::Buffer,
+}
+
+/// One wave as the device keeps it: its buds' roots and bearers, its
+/// chains' places in its laid buffer, and its runs.
+pub(super) struct Grown {
+    pub meta: wgpu::Buffer,
+    pub places: wgpu::Buffer,
+    pub runs: Vec<Run>,
+}
+
+/// The four totals a run reads back: its packed axes and phytomers, its
+/// scratch words, and its chains queued for a larger region.
+pub(super) fn totals(gpu: &Gpu, buffer: &wgpu::Buffer, words: u64, cost: &mut Cost) -> Vec<u32> {
+    cost.trips += 1;
+    let bytes = super::super::io::read(gpu, buffer, words * 4).unwrap();
+    bytemuck::cast_slice(&bytes).to_vec()
+}
+
+/// Grows a wave's `n` buds in runs of `batch`, each chain that outgrew its
+/// region again in one eight times larger, each run recorded and packed;
+/// each chain's counts into `places`.
+pub(super) fn grow_wave(
+    gpu: &Gpu,
+    k: &Kernels,
+    (buds, n, batch): (&wgpu::Buffer, u32, usize),
+    (places, tables): (&wgpu::Buffer, &Tables),
     cost: &mut Cost,
-) -> Vec<Grew> {
-    let packed = packed(tables);
-    let at = (tables.span, tables.age);
-    let buds: Vec<ChainBud> = items.iter().map(|i| i.bud).collect();
-    let mut grown: Vec<Option<Grew>> = vec![None; buds.len()];
-    let mut pending: Vec<usize> = (0..buds.len()).collect();
-    let (mut caps, mut size) = (CAPS, batch);
-    while !pending.is_empty() {
-        for part in pending.chunks(size) {
-            let these: Vec<ChainBud> = part.iter().map(|&c| buds[c]).collect();
-            let (got, g, r) = grower.run(gpu, &these, &packed, at, caps);
-            (cost.grow, cost.read) = (cost.grow + g, cost.read + r);
-            for (&c, chain) in part.iter().zip(got) {
-                grown[c] = chain;
+) -> Vec<Run> {
+    let mut runs = Vec::new();
+    // A level's work: its buds (none: the wave's own), the wave indices
+    // they stand for, and their count.
+    let mut work: Vec<(Option<wgpu::Buffer>, wgpu::Buffer, u32)> =
+        vec![(None, buffer(gpu, "no list", 1), n)];
+    let (mut caps, mut size) = first_region(n, batch as u32);
+    let mut level = 0u32;
+    loop {
+        let mut queues = Vec::new();
+        for (gathered, list, count) in &work {
+            let input = gathered.as_ref().unwrap_or(buds);
+            for first in (0..*count).step_by(size as usize) {
+                let m = size.min(count - first);
+                let at = (input, list, first, m, level);
+                let (run, queued) = grow_run(gpu, k, at, (places, tables), caps, cost);
+                cost.runs += 1;
+                cost.chains += m as usize;
+                runs.push(run);
+                queues.extend(queued);
             }
         }
-        pending.retain(|&c| grown[c].is_none());
-        cost.again += pending.len();
-        (caps, size) = (caps.times(8), (size / 8).max(64));
+        if queues.is_empty() {
+            return runs;
+        }
+        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        work = queues
+            .into_iter()
+            .map(|(queue, count)| {
+                cost.again += count as usize;
+                let gathered = buffer(gpu, "gathered buds", u64::from(count * BW2));
+                k.steps
+                    .gather(gpu, &mut encoder, count, (&queue, buds, &gathered));
+                (Some(gathered), queue, count)
+            })
+            .collect();
+        gpu.queue.submit([encoder.finish()]);
+        (caps, size, level) = (caps.times(8), (size / 8).max(64), level + 1);
         assert!(caps.axes < 1 << 16, "a chain no region holds");
     }
-    grown.into_iter().map(|g| g.expect("grown")).collect()
 }
 
-/// Expands every root of `buds`, taken in `order`, `batch` chains at a
-/// time: each root's kept axes, by its index.
-fn expand(
-    gpu: (&Gpu, &Grower),
-    (buds, order, batch): (&[ChainBud], &[usize], usize),
-    tables: &ChainTables,
-) -> (Vec<Vec<ChainAxis>>, Cost) {
-    let mut roots: Vec<Vec<ChainAxis>> = vec![Vec::new(); buds.len()];
-    let mut cost = Cost::default();
-    let mut wave: Vec<Item> = order
-        .iter()
-        .map(|&k| Item {
-            root: k,
-            bud: buds[k],
-            bearer: None,
-        })
-        .collect();
-    while !wave.is_empty() {
-        cost.waves += 1;
-        cost.chains += wave.len();
-        let grown = grow(gpu, &wave, batch, tables, &mut cost);
-        let mut next = Vec::new();
-        for (item, chain) in wave.iter().zip(&grown) {
-            let axes = &chain.axes;
-            if !axes[0].kept {
-                continue;
-            }
-            // The chain's kept own axes join its root's, each on its
-            // parent's place there; the stub stands for the item's bearer.
-            let mut at = vec![None; axes.len()];
-            let kept = &mut roots[item.root];
-            for (i, a) in axes.iter().enumerate() {
-                let own = i == 0 || a.kind != 1;
-                if !own || !a.kept {
-                    continue;
-                }
-                let parent = a.parent.map_or(item.bearer, |p| at[p]);
-                at[i] = Some(kept.len());
-                kept.push(ChainAxis {
-                    parent,
-                    context: None,
-                    ..a.clone()
-                });
-            }
-            for (i, a) in axes.iter().enumerate().skip(1) {
-                let bearer = a.parent.and_then(|p| at[p]);
-                if a.kind == 1 && bearer.is_some() {
-                    next.push(Item {
-                        root: item.root,
-                        bud: bud(&chain.words, i + 1, a.context),
-                        bearer,
-                    });
-                }
-            }
-        }
-        wave = next;
+/// A wave of `n` chains' first regions and run size: a wave a fraction
+/// of a batch takes regions as many times larger as fit in the batch's
+/// room, so its long chains are not grown twice, once to overflow and
+/// once in a larger region (task 8: the beech's level-1 runs, a few
+/// chains each, took 2 to 5 ms a wave). A chain grows the same in any
+/// region that holds it.
+fn first_region(n: u32, batch: u32) -> (Caps, u32) {
+    let (mut caps, mut size) = (CAPS, batch);
+    while n <= size / 8 && size / 8 >= 64 {
+        (caps, size) = (caps.times(8), size / 8);
     }
-    (roots, cost)
+    (caps, size)
 }
 
-fn request(age: u32, seed: u64) -> Request {
-    Request {
-        age,
-        seed,
-        budget: 20_000_000,
-        light: Light::NEUTRAL,
-    }
-}
-
-/// The roots of `species` at `age` and `seed`, expanded on the GPU in two
-/// orders and batch sizes and held against the CPU's: the roots, their
-/// kept axes and phytomers, and the costs of the two runs.
-fn hold(gpu: (&Gpu, &Grower), species: &Species, (age, seed): (u32, u64)) -> [usize; 3] {
-    let (_, cases) = fine_cases(species, request(age, seed), Plan::default()).expect("grows");
-    let tables = ChainTables::new(species, age, &Expected::new(species, age, 0)).expect("tables");
-    let buds: Vec<ChainBud> = cases.iter().map(|c| c.0).collect();
-    let forward: Vec<usize> = (0..buds.len()).collect();
-    let (roots, _) = expand(gpu, (&buds, &forward, 4096), &tables);
-    let reverse: Vec<usize> = forward.iter().rev().copied().collect();
-    let (again, _) = expand(gpu, (&buds, &reverse, 777), &tables);
-    assert!(again == roots, "the same roots in any order and batch");
-    let (mut axes, mut phytomers) = (0, 0);
-    for (k, ((_, want), got)) in cases.iter().zip(&roots).enumerate() {
-        assert_eq!(got.len(), want.len(), "root {k}: kept axes");
-        for (j, (g, w)) in got.iter().zip(want).enumerate() {
-            assert_eq!(g, w, "root {k} axis {j}");
-        }
-        axes += want.len();
-        phytomers += want.iter().map(|a| a.phytomers.len()).sum::<usize>();
-    }
-    [buds.len(), axes, phytomers]
-}
-
-#[test]
-fn every_fine_root_expands_on_the_gpu_as_on_the_cpu() {
-    let Some(gpu) = crate::generation::test_gpu() else {
-        return;
+/// One run: `m` chains from `first` of `input` grown in regions of
+/// `caps`, recorded, scanned and packed; the chains it queued for a larger
+/// region, if any. One round trip: its four totals.
+fn grow_run(
+    gpu: &Gpu,
+    k: &Kernels,
+    (input, list, first, m, level): (&wgpu::Buffer, &wgpu::Buffer, u32, u32, u32),
+    (places, tables): (&wgpu::Buffer, &Tables),
+    caps: Caps,
+    cost: &mut Cost,
+) -> (Run, Option<(wgpu::Buffer, u32)>) {
+    let t = tables;
+    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let at = (&t.uploaded, &t.packed, t.chain.span, t.chain.age);
+    let region = k
+        .grower
+        .region(gpu, &mut encoder, (input, first, m), at, caps);
+    let runoff = buffer(gpu, "run records", u64::from(m * RW));
+    let queue = buffer(gpu, "run queue", u64::from(m));
+    let queued = buffer(gpu, "run queued", 1);
+    let sums = buffer(gpu, "run totals", 4);
+    k.steps.record(
+        gpu,
+        &mut encoder,
+        (m, first, level, caps.axes),
+        (&region.status, &region.axes, list),
+        (places, &queue, &queued, &runoff),
+    );
+    k.steps.scan(gpu, &mut encoder, (&runoff, m, RW, 3), &sums);
+    encoder.copy_buffer_to_buffer(&queued, 0, &sums, 12, 4);
+    gpu.queue.submit([encoder.finish()]);
+    let t = totals(gpu, &sums, 4, cost);
+    let axes = k.pool.take(gpu, "packed axes", u64::from(t[0]) * AXW as u64);
+    let phyts = k.pool.take(gpu, "packed phytomers", u64::from(t[1]) * PW as u64);
+    let scratch = k.pool.take(gpu, "laid scratch", u64::from(t[2]));
+    let items = buffer(gpu, "laid items", u64::from(m * IW));
+    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let packed = (&axes, &phyts);
+    k.grower
+        .pack(gpu, &mut encoder, (&region, m, caps), (&runoff, RW), packed);
+    gpu.queue.submit([encoder.finish()]);
+    let run = Run {
+        n: m,
+        runoff,
+        axes,
+        phyts,
+        scratch,
+        items,
     };
-    let grower = Grower::new(&gpu);
-    let mut oak = telperion_space::oak();
-    for state in &mut oak.states {
-        state.shade_hazard = 0.0;
-        state.shade_size = 0.0;
-        state.balance_hazard = 0.0;
-        state.leaf_girth = 0.0;
-    }
-    let species = [
-        ("beech", telperion_space::beech()),
-        ("spruce", telperion_space::spruce()),
-        ("oak, light off", oak),
-    ];
-    for (name, species) in species {
-        for seed in [1, 7] {
-            let [roots, axes, phytomers] = hold((&gpu, &grower), &species, (25, seed));
-            println!("{name} 25 {seed}: {roots} roots, {axes} kept axes, {phytomers} phytomers");
-        }
-    }
-}
-
-/// The beech and spruce at 40 and 80, seeds 1 and 7, held against the CPU,
-/// with the costs of both executors: `cargo test --profile ci -p
-/// telperion-render fine_roots_at_40_and_80 -- --ignored --nocapture`.
-#[test]
-#[ignore = "a measurement over the old trees"]
-fn fine_roots_at_40_and_80() {
-    let Some(gpu) = crate::generation::test_gpu() else {
-        return;
-    };
-    let grower = Grower::new(&gpu);
-    println!("| Tree | Roots | Chains | Waves | Kept axes | Phytomers | Tables ms | GPU grow and shed, cold / warm ms | Read ms | Again | µs a root (warm) | CPU grow and shed, every chain, 1 core ms | CPU items Σ, 1 core ms | CPU tree, all cores ms |");
-    println!("|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|");
-    let species: [(&str, Species); 2] = [
-        ("beech", telperion_space::beech()),
-        ("spruce", telperion_space::spruce()),
-    ];
-    for (name, species) in &species {
-        for age in [40, 80] {
-            for seed in [1, 7] {
-                let request = request(age, seed);
-                let (_, cases) = fine_cases(species, request, Plan::default()).expect("grows");
-                let expected = Expected::new(species, age, 0);
-                let cpu = |threads| {
-                    let plan = Plan {
-                        threads,
-                        ..Plan::default()
-                    };
-                    let fine = grow_fine(species, request, &expected, plan).expect("grows");
-                    let micros: f64 = fine.roots.iter().map(|r| r.2.micros).sum();
-                    (micros / 1e3, fine)
-                };
-                let t = Instant::now();
-                chain_cases(species, request).expect("chains");
-                let chains_ms = t.elapsed().as_secs_f64() * 1e3;
-                let (one, _) = cpu(1);
-                let t = Instant::now();
-                cpu(0);
-                let all = t.elapsed().as_secs_f64() * 1e3;
-                let t = Instant::now();
-                let tables = ChainTables::new(species, age, &expected).expect("tables");
-                let tables_ms = t.elapsed().as_secs_f64() * 1e3;
-                let buds: Vec<ChainBud> = cases.iter().map(|c| c.0).collect();
-                let forward: Vec<usize> = (0..buds.len()).collect();
-                let (roots, cold) = expand((&gpu, &grower), (&buds, &forward, 1 << 16), &tables);
-                let (again, warm) = expand((&gpu, &grower), (&buds, &forward, 1 << 16), &tables);
-                assert!(again == roots);
-                let want: Vec<&Vec<ChainAxis>> = cases.iter().map(|c| &c.1).collect();
-                assert!(
-                    roots.iter().zip(&want).all(|(g, w)| g == *w),
-                    "{name} {age} {seed}"
-                );
-                let axes: usize = roots.iter().map(Vec::len).sum();
-                let phyts: usize = roots.iter().flatten().map(|a| a.phytomers.len()).sum();
-                println!(
-                    "| {name} {age} {seed} | {} | {} | {} | {axes} | {phyts} | {tables_ms:.0} | {:.0} / {:.0} | {:.0} | {} | {:.2} | {chains_ms:.0} | {one:.0} | {all:.0} |",
-                    buds.len(),
-                    warm.chains,
-                    warm.waves,
-                    cold.grow,
-                    warm.grow,
-                    warm.read,
-                    warm.again,
-                    warm.grow * 1e3 / buds.len() as f64,
-                );
-            }
-        }
-    }
+    (run, (t[3] > 0).then_some((queue, t[3])))
 }

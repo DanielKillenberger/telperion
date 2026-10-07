@@ -231,7 +231,7 @@ fn solve(mut a: [[f64; 3]; 3], mut y: [f64; 3]) -> [f64; 3] {
 
 impl Grower<'_> {
     /// Under an oracle, hashes phase `k` of `cycle` (`partition::Digest`).
-    pub(super) fn mark(&mut self, cycle: u32, k: usize) {
+    pub(super) fn hash_phase(&mut self, cycle: u32, k: usize) {
         if self.oracle.is_none() {
             return;
         }

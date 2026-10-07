@@ -51,20 +51,24 @@ The growth path, the second sanctioned exception, was removed on 2026-10-02 (fn-
 
 ## Fine growth (fn-209 F1)
 
-The tree-space engine's finest orders are grown in the expansion, not on the CPU before it (`.flow/specs/fn-209-*.md`; DESIGN-FINE.md and ASTRA-REVIEW-FINE.md in its evidence). The CPU grows the structure above a cut. A bud whose expected kept phytomers (the closed form's `count`, light-neutral, read before growth) are at most the cut is a fine root. It is recorded once (`telperion_space::FineRoot`):
+The tree-space engine's finest orders are grown in the expansion, not on the CPU before it (`.flow/specs/fn-209-*.md`; DESIGN-FINE.md and ASTRA-REVIEW-FINE.md in its evidence). The CPU grows the structure above a cut by the engine's own grower. A bud whose expected kept phytomers (the closed form's `count`, light-neutral, read before growth) are at most the cut is a fine root: it is made where it stands and handed on, and its stand-in keeps its place among its bearer's children.
 
-- its bud as made, with its dormant and relay history;
-- its ancestors' survival;
-- its bearer's laid frame at its node, before bending and as laid;
-- its committed section, mass, first moment and base radius.
+Production uses realized mechanics (fn-211's DESIGN-INTERLEAVE.md, "After Astra's review", host decision 3). The expansion grows each fine root whole from its bud alone, by the engine's own grower, and the root and the structure above the cut settle together in four phases. In each phase a root reports one record of totals up and its bearer hands it what it reads down, never anything per node:
 
-The expansion grows each fine root from that record alone, by the engine's own chain rules: grown, shed, scaled, girthed and laid by option 4. The cut decides where the work runs, never what is computed. A tree is the same to the bit at every cut, in every item order and chunking, and equals the tree grown whole (`crates/telperion-space/src/fine/tests.rs`).
+1. The root is marked, assigned and shed by its realized subtree; up goes its subtree's living, which its bearer's fade reads.
+2. Down comes its bearer's scale and its node's drawn scale; the root is scaled and thickened; up goes its base radius.
+3. Down comes its bearer's laid frame at its node; the root is laid and its levers gathered; up goes its load at its base (mass and first moment).
+4. Down comes its bearer's frame as laid under sag; the root is laid again under its levers, from its own first lay's frames.
 
-The CPU reference executor of this step is `telperion_space::grow_fine` (`crates/telperion-space/src/fine/executor.rs`). It lives in the engine's crate until F4 (fn-198) brings the engine into this pipeline; then it moves under `pipeline::executor` beside the expansion's other steps, and the GPU executor (fn-209 task 2) runs the same steps in WGSL. Every decision a fine root takes is listed in FINE-CONTRACT.md with its representation, so the two executors cannot disagree on topology:
+Every pass is the whole tree's own and every sum a root enters is taken in the whole tree's order, so the tree is today's whole-tree engine's to the bit at every cut, in every item order and chunking (`crates/telperion-space/src/fine/tests/realized.rs`; beech and spruce at 40 and 80 in the `realized` example). A species that reads light, or whose girth reads the tree as grown (retained pipes, leaf girth), is refused here and follows fn-211's stepped executor.
+
+The CPU reference executor of this step is `telperion_space::grow_fine` (`crates/telperion-space/src/fine.rs`, `fine/realized.rs`; growth in `grow/realized.rs`). It lives in the engine's crate until F4 (fn-198) brings the engine into this pipeline; then it moves under `pipeline::executor` beside the expansion's other steps. The structure above the cut and its four phases are one driver, `telperion_space::settle` (`fine/expansion.rs`), whichever executor grows the roots (the `Roots` trait): the CPU reference or the GPU's. A root whose conservative reach bound can reach the ground's landing zone from its bearer's node is laid on the CPU reference executor whichever executor grew it (host decision 3, `fine/landing.rs`). Option 4's committed boundaries are gone, its probe `grow_committed` with them. Every decision a fine root takes is listed in FINE-CONTRACT.md with its representation, so the two executors cannot disagree on topology:
 
 - a draw is 53 bits, compared as an integer with a probability's threshold `ceil(p · 2^53)`;
 - tables computed once per species point are supplied to both executors;
-- the arithmetic of a per-bud threshold is the host's open choice.
+- a per-bud threshold is computed in one specified fixed point, time in ticks of 2^-20 cycle (host decision 1, `telperion_space::fixed`).
+
+The GPU executor (`crates/telperion-render/src/generation/fine/`, built for its tests until F4 reads it) runs realized mechanics as `settle`'s `Roots` (`device.rs`). It grows each wave of chains on the contract to the bit, every axis kept (task 2), and takes every presence a fade reads as a Q32 integer, bit for bit the CPU's: growth records each one's inputs and the chain's end takes them through one call of the contract's leads and windows (`assign.wgsl`; host decision 8). Phase 1's fades carry each subtree's living up from the deepest wave, each chain reading its borne buds' chains at the range the emit scan gave it, and shed from the first wave down (`fades.wgsl`). Phases 2 to 4 scale, thicken, lay, gather levers and bend in f32 between the CPU's settles (`settle.wgsl`). Per run, per wave and per phase only totals or one record per root cross (host decision 6). It ends at the botanical tree and its laid geometry in device buffers, positions each root's own from its bearer's node (host decision 5); F4 with fn-171 defines the readers. Its topology and presences equal the CPU executor's to the bit, and its geometry is held to fn-125's screen against `grow_fine` (`realized_tests.rs`, `realized_timing.rs`).
 
 A species any bud of which reads light is refused until F2b (fn-211) carries its light aggregates in the record.
 

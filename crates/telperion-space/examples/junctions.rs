@@ -287,7 +287,9 @@ fn perf(label: &str, species: &Species, request: Request, expected: &Expected) {
     let one: f64 = times.iter().sum::<f64>() / 1e6;
     let rss_full = stats::rss();
     let (p50, p99, max) = stats::tail(&mut times);
-    let mut sizes: Vec<f64> = (0..tree.chains()).map(|c| tree.phytomers(c) as f64).collect();
+    let mut sizes: Vec<f64> = (0..tree.chains())
+        .map(|c| tree.phytomers(c) as f64)
+        .collect();
     let (s50, s99, smax) = stats::tail(&mut sizes);
     let per = settled / phytomers as f64 * 1e6;
     let mut again = Bounded::with(species, request, expected).expect("settles");

@@ -20,6 +20,7 @@ mod envelope;
 mod events;
 #[cfg_attr(not(test), allow(dead_code))]
 pub(crate) mod kept;
+pub(crate) mod predictor;
 mod steps;
 
 use crate::dormant::{First, Living};

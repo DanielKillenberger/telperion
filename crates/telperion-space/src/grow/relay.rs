@@ -108,7 +108,9 @@ impl Grower<'_> {
             let all: Vec<usize> = (0..tree.axes.len()).collect();
             let trunk = sag::trunks(&tree.axes);
             let (axes, species, age) = (&tree.axes, self.species, tree.age);
-            let levers = sag::gather(axes, species, age, (&all, &trunk), &borne, self.threads);
+            let none: crate::shed::Given<sag::Load> = &|_| None;
+            let given = (&borne[..], none);
+            let levers = sag::gather(axes, species, age, (&all, &trunk), given, self.threads).0;
             report(Stage::Pass(Pass::RelayLevers));
             layers = place(&mut tree, self.species, Some(&levers), self.threads)?;
             report(Stage::Pass(Pass::RelaySag));

@@ -5,6 +5,7 @@
 //! shrinks away before it is shed; it is dropped once its fade reaches
 //! nothing, which for whole presences and delays is the cycle GreenLab
 //! drops it in (fn-206).
+use crate::fixed::presence::{carry, fade, q, real, times};
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
 
@@ -93,8 +94,34 @@ pub(crate) struct Shed {
     pub fade: Vec<f64>,
 }
 
-pub(crate) fn shed(mut axes: Vec<Axis>, species: &Species, age: u32) -> Shed {
-    let fade = fades(&axes, species, age);
+pub(crate) fn shed(axes: Vec<Axis>, species: &Species, age: u32) -> Shed {
+    shed_given(axes, species, age, &|_| None, None).0
+}
+
+/// A subtree's living as its bearer's fade reads it (fn-209 F1, realized
+/// mechanics): the last time anything in it lived, from its birth, in
+/// presence-weighted cycles (Q32.32), and the presence of its most present
+/// living apex (Q32; host decision 8).
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub(crate) struct Living {
+    pub lived: u64,
+    pub alive: u64,
+}
+
+/// What stands in for an axis whose subtree is grown elsewhere: its
+/// subtree's living, by index (none: the axis's own).
+pub(crate) type Given<'g, T> = &'g (dyn Fn(usize) -> Option<T> + Sync);
+
+/// `shed`, each axis `given` names standing for a subtree grown elsewhere
+/// whose living it gives; and the living of axis `report`'s subtree.
+pub(crate) fn shed_given(
+    mut axes: Vec<Axis>,
+    species: &Species,
+    age: u32,
+    given: Given<Living>,
+    report: Option<usize>,
+) -> (Shed, Living) {
+    let (fade, reported) = fades(&axes, species, age, given, report);
     let mut index = vec![usize::MAX; axes.len()];
     let mut kept = Vec::with_capacity(axes.len());
     for (i, mut axis) in axes.drain(..).enumerate() {
@@ -121,36 +148,44 @@ pub(crate) fn shed(mut axes: Vec<Axis>, species: &Species, age: u32) -> Shed {
         index[i] = kept.len();
         kept.push(axis);
     }
-    Shed {
+    let shed = Shed {
         axes: kept,
         index,
         fade,
-    }
+    };
+    (shed, reported)
 }
 
 /// Each axis's size factor from shedding: 1 for a living subtree, falling
 /// to 0 as its idle time, measured in presence-weighted cycles, passes the
 /// delay, but never below its most present living apex. Where every
 /// presence is whole it is 1 for every kept axis.
-fn fades(axes: &[Axis], species: &Species, age: u32) -> Vec<f64> {
+fn fades(
+    axes: &[Axis],
+    species: &Species,
+    age: u32,
+    given: Given<Living>,
+    report: Option<usize>,
+) -> (Vec<f64>, Living) {
     let delay = |a: &Axis| match a.origin {
         Origin::Lateral { .. } | Origin::Relay { .. } => {
             Some(species.states[a.pa].shedding).filter(|d| d.is_finite())
         }
         _ => None,
     };
-    if !axes.iter().any(|a| delay(a).is_some()) {
-        return vec![1.0; axes.len()];
+    if report.is_none() && !axes.iter().any(|a| delay(a).is_some()) {
+        return (vec![1.0; axes.len()], Living::default());
     }
-    // grown[at[a] + k]: the presence of axis a's first k growth units.
+    // grown[at[a] + k]: the presence of axis a's first k growth units,
+    // Q32 (host decision 8: every sum a fade reads is an integer).
     let mut at = Vec::with_capacity(axes.len());
-    let mut grown = Vec::new();
+    let mut grown: Vec<u64> = Vec::new();
     for a in axes {
         at.push(grown.len());
-        grown.push(0.0);
-        let mut sum = 0.0;
-        for p in &a.units {
-            sum += p;
+        grown.push(0);
+        let mut sum = 0;
+        for &p in &a.units {
+            sum += q(p);
             grown.push(sum);
         }
     }
@@ -164,51 +199,60 @@ fn fades(axes: &[Axis], species: &Species, age: u32) -> Vec<f64> {
     // up: their parent's own time to their birth plus their weight times
     // theirs. That carry never lowers a larger time below a smaller, its
     // weights being no less than nothing, so the most carried up is the
-    // carry of the most, to the bit, and children follow their parents:
-    // one backward pass (fn-211).
-    let mut lived: Vec<f64> = axes
+    // carry of the most, and children follow their parents: one backward
+    // pass (fn-211). Times are Q32.32 cycles, presences Q32, each product
+    // floored, so the pass is exact and order-free.
+    let mut lived: Vec<u64> = axes
         .iter()
         .enumerate()
-        .map(|(i, a)| a.sleep + grown[at[i] + a.units.len()])
+        .map(|(i, a)| q(a.sleep) + grown[at[i] + a.units.len()])
         .collect();
-    let mut alive: Vec<f64> = axes.iter().map(|a| 0.0f64.max(a.alive)).collect();
+    let mut alive: Vec<u64> = axes.iter().map(|a| q(a.alive)).collect();
+    for (i, (lived, alive)) in lived.iter_mut().zip(&mut alive).enumerate() {
+        if let Some(g) = given(i) {
+            (*lived, *alive) = (g.lived, g.alive);
+        }
+    }
     for (i, link) in axes.iter().enumerate().rev() {
         let Some(parent) = link.origin.parent() else {
             continue;
         };
-        let mut weight = link.vigour;
+        let mut weight = q(link.vigour);
         if let Origin::Lateral { node, .. } = link.origin {
-            weight *= axes[parent].phytomers[node].scale;
+            weight = times(weight, q(axes[parent].phytomers[node].scale));
         }
         let p = &axes[parent];
         let units = (link.birth.saturating_sub(p.birth) as usize).min(p.units.len());
         // A relay made the cycle its parent died starts a cycle after
         // the parent's last growth unit.
-        let gap = f64::from(link.birth - p.birth) - units as f64;
+        let gap = u64::from(link.birth - p.birth) - units as u64;
         // The parent's own time to the child's birth: from its share of
         // its first cycle gone, through its units before the child; none
         // where the child carries it on in the cycle it began, whose own
         // share gone already holds the parent's (Codex on fn-206's port).
         let before = if units == 0 {
-            0.0
+            0
         } else {
-            p.sleep + grown[at[parent] + units]
+            q(p.sleep) + grown[at[parent] + units]
         };
-        lived[parent] = lived[parent].max(before + weight * (gap + lived[i]));
-        alive[parent] = alive[parent].max(alive[i] * weight);
+        let carried = carry(before, weight, gap, lived[i]);
+        lived[parent] = lived[parent].max(carried);
+        alive[parent] = alive[parent].max(times(alive[i], weight));
     }
-    let living: Vec<f64> = axes
-        .iter()
-        .zip(&lived)
-        .map(|(a, &l)| f64::from(a.birth) + l)
-        .collect();
+    let reported = report.map_or_else(Living::default, |r| Living {
+        lived: lived[r],
+        alive: alive[r],
+    });
     // A living subtree is never drawn smaller than its living apex; an apex
-    // that light grew past whole (`allocation.rs`) keeps it whole.
-    axes.iter()
-        .zip(living.iter().zip(&alive))
-        .map(|(axis, (&until, &apex))| match delay(axis) {
-            Some(d) => (d + 1.0 - (f64::from(age) - until)).clamp(apex.min(1.0), 1.0),
+    // that light grew past whole (`allocation.rs`) keeps it whole. Shed
+    // where the fade is none (D17): an integer test.
+    let faded = axes
+        .iter()
+        .zip(lived.iter().zip(&alive))
+        .map(|(axis, (&lived, &apex))| match delay(axis) {
+            Some(d) => real(fade(q(d + 1.0), axis.birth, (lived, apex), age)),
             None => 1.0,
         })
-        .collect()
+        .collect();
+    (faded, reported)
 }

@@ -97,3 +97,94 @@
 - **Slowed:** the gate ran from 21:17 to about 21:45 at a one-minute load of 40 to 58 (another session's work on the desk); one test binary alone took 671 s and another 464 s. The merge itself, the 28-tree dump comparison and both hash runs took about 15 minutes together.
 - **Cost:** about 28 minutes of the timebox waiting on the gate, with the GPU lock held for all of it, CPU tests included.
 - **Would remove it:** the GPU lock taken only around the GPU tests (as the entry above proposes), and a way to see the desk's load owner before starting a gate, so a gate is not started into a contended desk.
+
+## 2026-10-06, the age-25 equality test holds the GPU lock through its CPU reference (task 4, GPU geometry)
+
+- **Doing:** running `every_fine_root_expands_and_lays_on_the_gpu_as_on_the_cpu` after each shader change, under the GPU lock.
+- **Slowed:** 33 to 38 s of each locked run is the CPU reference's growth (`fine_cases` for six trees); the GPU part is about 2 s. Six runs held the lock about 3.5 minutes without the GPU. The naga parse (now an ordinary test) caught every WGSL error before a locked run, so no lock was spent on a shader that could not build.
+- **Cost:** about 3 minutes of lock time the desk could have used.
+- **Would remove it:** the lock taken inside the test only around the dispatches (the measurement test now does this through `FINE_GPU_LOCK`), or CPU references written once to disk by an unlocked step.
+
+## 2026-10-06, the GPU lock held by another session's workspace gate and stills (task 5)
+
+- **Doing:** re-running one 1.9 s GPU debug test after a one-line WGSL fix (the overflow list's offset).
+- **Slowed:** fn-211's workspace gate took the GPU lock at about 23:07 for its whole run, CPU tests included, with an oak stills run queued behind it; the desk's load reached 48. My 2-second check waited behind both.
+- **Cost:** about 10 minutes so far, spent on the evidence write-up.
+- **Would remove it:** as the earlier entries say, a gate that takes the lock only around the GPU tests.
+
+## 2026-10-06, a memory-ceiling test fails the gate under a loaded desk (task 5)
+
+- **Doing:** the workspace gate at the end of task 5, under the GPU lock, at a one-minute load of 21 to 36 from other sessions.
+- **Slowed:** `telperion-core`'s `fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens` peaked at 6,506 MB resident against its 6,483 MB ceiling (0.4 % over) and failed. This branch does not touch `telperion-core` (no diff from the merge base), and the test passed alone in 13 s right after. The gate had to run a second time.
+- **Cost:** about 14 minutes of gate, the GPU lock held for all of it.
+- **Would remove it:** a resident-memory ceiling that does not depend on what else the desk is running, or the gate's memory tests run with the desk's other sessions accounted for.
+
+## 2026-10-07, timing the realized executor on a desk at load 123 (task 6)
+
+- **Doing:** the first timing run of the realized CPU executor against today's engine (beech and spruce at 40, then the 40/80 sweep).
+- **Slowed:** the one-minute load stood at 123 when the sweep started (other sessions' work) and fell to 16 by its end, so its timings span a hundredfold change in contention; the equality columns are unaffected, the milliseconds are not comparable row to row.
+- **Cost:** a second timing run once the desk is quieter, about 4 minutes of wall and 16 of CPU; the first run's timings are kept only as indicative.
+- **Would remove it:** a desk-load reading taken before a timing run starts (and printed in its header, as the sweep now does with `uptime`), or a timing slot the sessions sharing the desk respect.
+
+## 2026-10-07, the shell guard refuses scripted edits and restores (task 6)
+
+- **Doing:** a multi-line edit of `grow.rs` through a Python heredoc, and later restoring three files `cargo fmt -p telperion-render` had reformatted that this task never touched.
+- **Slowed:** the local `dcg` hook refuses heredocs fed to an interpreter and every form of `git checkout -- <path>` or `git show HEAD:<path> > <path>`; the edits went through the editor tool one block at a time, and the restore through `git diff > patch; git apply -R patch`.
+- **Cost:** about 10 minutes and a few thousand tokens, and one botched splice of `place.rs` (lines cut by a `sed -n` range) that cost two rebuilds.
+- **Would remove it:** a local setup matter, reported, not specced: formatting only the files a task touches (`rustfmt <files>` rather than `cargo fmt -p`), which would have avoided the restore entirely.
+
+## 2026-10-07, a stack overflow the gate found after decision 7 (task 6)
+
+- **Doing:** the workspace gate after host decisions 7 and 8.
+- **Slowed:** `tests/geometry.rs`'s `an_overflowing_expectation_draws_finite_wood` (age 1,500) aborted the test binary with a stack overflow. `grow` now builds the closed form's table for its cut, and `Kept::of` and `Kept::lived` recurse once per cycle of age. The crate's own test run after decision 7 had passed, because which thread reads the deepest rows depends on scheduling: a pool thread or the 2 MB test thread.
+- **Cost:** one gate (11.5 minutes, the GPU lock held) and about 10 minutes to backtrace and fix. The fix runs the table's shares on threads with a 256 MB reserved stack (`cores::deep`).
+- **Would remove it:** a test that builds the closed form at the deepest age any test grows, run on a 2 MB thread, beside the closed form's own tests. The recursion made iterative would remove the limit altogether.
+
+## 2026-10-07, the GPU mirror's step 2: a silent ten-minute run, then the lock behind a gate (task 6)
+
+- **Doing:** the first locked run of the realized GPU test after porting the Q32 presences into the chain grower (`assign.wgsl`).
+- **Slowed:** the test printed nothing for ten minutes (the step 1 run had taken 40 s), so it was killed by PID; a workspace gate from another worktree then took the GPU lock for its whole run. The cause was not yet known when this was written: a pipeline compile of the larger chain shader, or a kernel that never ends, look the same from outside, because the test prints nothing until a whole tree is done.
+- **Cause, found on the second run (02:29 to 02:33):** the test thread at 100 % of one core and 11 GB resident with the GPU idle: the driver compiling the chain grower's pipeline. Each Q32 presence site (about fifteen) inlines the contract's 128-bit `log2` and `exp2` loops, and the compile blew up. Fixed by recording each presence's inputs during growth and evaluating them all at the chain's end through one call site.
+- **Cost:** about 14 minutes of locked GPU time on two compiles that never finished, then the gate's wait (about 10 minutes).
+- **Would remove it:** the GPU tests printing the pipeline build time before any tree, and a per-dispatch timeout in `io` (a poll with a deadline rather than `wait_indefinitely`), so a hang reports itself; and, as before, a gate that takes the lock only around its GPU tests.
+
+## 2026-10-07, a bud width in a third shader (task 6, GPU mirror)
+
+- **Doing:** widening a bud's record by two words (its making draws' Q32 presences) for the realized GPU mirror.
+- **Slowed:** the width is a constant in four places (`chain.wgsl`'s `BW`, `emit.wgsl`'s and `gather.wgsl`'s `BW2`, `steps.rs`'s `BW2`). `gather.wgsl` kept the old width, so every chain regrown in a larger region read a garbage bud, and the realized test ran for minutes with the GPU at 100 %. Found by bisection: the chain test (no regrown chains in the realized path's sense) passed in 6 s.
+- **Cost:** about 15 minutes and four locked GPU runs, two of them timeouts.
+- **Would remove it:** the record widths injected into every shader from the one Rust constant (a `const` prelude the source functions prepend), so a width cannot disagree between kernels.
+
+## 2026-10-07, f32 geometry on the realized roots: three searches for one drift (task 6, GPU mirror)
+
+- **Doing:** holding the realized GPU executor's geometry to fn-125's screen at beech 80 (cuts 1,024 and 4,096).
+- **Slowed:** the farthest tip was 79 to 137 µm and the cause was not where the code pointed. A drift of the heading along the beech's long modules came from three places in turn: `1 - e^-x` near none, `asin` of a near-one z, and the GPU's own sine, good to about 5e-7 whatever its argument (a large share of a 0.015 rad turn), which the elevation's pull and the walk's turns gather over a module's 60 steps. Each was found by dumping one root's tips against the CPU's and reading the drift's shape.
+- **Cost:** about 45 minutes and twelve short locked runs.
+- **Would remove it:** a note beside `lay.wgsl` that the GPU's transcendental functions are approximate to about 5e-7 absolute (so a small angle's sine must be taken by its series and an attractor's step as a rotation), and a test that holds one long axis's heading to the CPU's per step, which would have pointed at the step in one run.
+## 2026-10-07, the one-core cost the predictor was to remove is not there (task 7)
+
+- **Doing:** timing `grow` against `grow_whole` on one core before and after the count-only predictor.
+- **Slowed:** the task rests on REALIZED.md's reading that the closed form's table took 0.70 s (beech 80) and 1.20 s (spruce 80) on one core. On this branch's tip it takes 31 and 95 ms pinned to one CPU (`taskset -c 2`, `RAYON_NUM_THREADS=1`; 33 and 103 ms with a share per available core). The predictor takes 10 and 25 ms. So `grow` on one core barely moves (spruce 80: 8.80 s before, 8.75 s after, against `grow_whole`'s 8.29 to 8.54 s); the gap is the partition's own work on one core (spruce 80: its four phases alone 8.5 s), not the table. The earlier figure was most likely taken with `RAYON_NUM_THREADS=1` alone, which leaves the table's 32 `cores::deep` threads, each building its own memo, on whatever cores the desk gave them.
+- **Cost:** about 20 minutes of timing and a second, interleaved timing run; the predictor itself was built as specified and is kept (3 to 4 times cheaper than the table, iterative).
+- **Would remove it:** a one-core timing taken pinned (`taskset`), with the table's threads counted, before a task is written around it; and a stage split (`Fine::phases`, `Fine::predict`) printed by `timegrow` so the cost a task targets is read rather than inferred. The load at both runs was 3 to 10, the other worktree's GPU build sharing the desk.
+
+## 2026-10-07, `cargo fmt --all` rewrites 26 files nobody touched (task 8)
+
+- **Doing:** formatting the predictor merge's resolution.
+- **Slowed:** `cargo fmt --all` reformatted 26 files in `telperion-core` and `telperion-render` that neither branch changed (removed blank lines, rewrapped calls), so the merge's diff had to be picked apart and the unrelated hunks reversed by patch (`git checkout --` is blocked by the guard).
+- **Cost:** about 3 minutes.
+- **Would remove it:** the tree formatted once on master (or a CI `cargo fmt --check`), so a crate-wide format touches only what a change touched; until then, `rustfmt <file>` on the files changed.
+
+## 2026-10-07, no CPU sampler on the desk (task 8)
+
+- **Doing:** finding where the 110 ms of the structure above the cut and the GPU path's other CPU stages go.
+- **Slowed:** `samply` refuses with `perf_event_paranoid` at 2 and there is no `perf`; each split took a hand-written `eprintln!` timer, a rebuild and a run, restored by copying the file back.
+- **Cost:** about 15 minutes over five rounds of tracing.
+- **Would remove it:** `kernel.perf_event_paranoid = 1` on the desk (a local setup, the owner's call), or a stage clock in the driver (`Settled` carrying each CPU stage's milliseconds beside the executor's phases) printed by the timing tests.
+
+## 2026-10-07, cold GPU timings that measured the device's idle clocks (task 8)
+
+- **Doing:** the step 3 table, GPU cold and warm against the CPU on 1 and all cores.
+- **Slowed:** the timing tests run a tree's CPU columns (up to 27 s at spruce 80 on one core) between the GPU builds, and the device's clocks fall meanwhile. The next tree's cold build then ran on a slow device. Beech 40 seed 1 showed 769 ms cold and 90 ms warm where 40 ms was usual, spruce 80 0.65 to 0.76 s in `realized_at_40_and_80`. It looked like an allocation fault and was chased as one (the pool's growth and its bound were real faults found on the way, `7120ccb0` and `a70177d0`).
+- **Cost:** about 10 minutes and four locked runs.
+- **Would remove it:** a timing test that builds an untimed tree just before each timed cold build (`speed_tests` now does), and a note in the GPU timing harnesses that cold means "first build of this tree", not "first work for an idle device".

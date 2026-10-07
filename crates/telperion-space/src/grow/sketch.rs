@@ -124,7 +124,7 @@ impl Grower<'_> {
             }
         }
         self.leaves.truncate(own);
-        self.mark(cycle, 3);
+        self.hash_phase(cycle, 3);
         report(Stage::Pass(Pass::ShadeRead));
     }
 

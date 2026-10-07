@@ -4,7 +4,7 @@
 use super::shoot::{Rules, Shoot};
 use super::{Apex, Certain};
 use crate::error::{Error, Result};
-use crate::fixed;
+use crate::fixed::{self, presence};
 use crate::lineage::{self, Key, ZONE};
 use crate::species::{ALONG, MAX_BUDS, MAX_NODES_PER_ZONE};
 use crate::structure::{Origin, Phytomer, Vec3};
@@ -94,8 +94,12 @@ impl Shoot<'_, '_> {
                         woken: false,
                     };
                     let key = zone_key.child(drawn).child(slot as u64);
-                    let wood = windows.wood(lateral_pa, cycle + 1);
-                    let made = [windows.presence(lead, wood) * placed, reach];
+                    // Host decision 8: the made presences, Q32.
+                    let lead = windows.presence_q(lead, (lateral_pa, cycle + 1, None), 1.0);
+                    let made = [
+                        fixed::real(presence::times(lead, presence::q(placed))),
+                        fixed::real(presence::q(reach)),
+                    ];
                     self.sprout(key, lateral_pa, cycle, origin, made);
                 }
                 if sleeping.iter().any(|&wood| wood > 0.0) {

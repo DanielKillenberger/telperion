@@ -73,6 +73,19 @@ pub(crate) struct Girth {
 /// Sets every phytomer's radius from the pipes it carries, and the shed
 /// branches' pipes it keeps, on up to `threads` cores.
 pub(crate) fn thicken(structure: &mut Structure, species: &Species, girth: &Girth, threads: usize) {
+    thicken_given(structure, species, girth, &|_| None, threads);
+}
+
+/// `thicken`, each axis `given` names standing for a subtree grown
+/// elsewhere whose base radius it gives (fn-209 F1, realized mechanics):
+/// each axis's base radius, by index.
+pub(crate) fn thicken_given(
+    structure: &mut Structure,
+    species: &Species,
+    girth: &Girth,
+    given: crate::shed::Given<f64>,
+    threads: usize,
+) -> Vec<f64> {
     let age = structure.age;
     let mean = girth.leaf_mean.or_else(|| leaf_terms(structure, species));
     let axes = &mut structure.axes;
@@ -107,7 +120,7 @@ pub(crate) fn thicken(structure: &mut Structure, species: &Species, girth: &Girt
                 }
             }
             for &c in tree.children(i) {
-                let section = radii[c].powf(e);
+                let section = given(c).unwrap_or(radii[c]).powf(e);
                 match links[c].0 {
                     Origin::Seed => {}
                     Origin::Lateral { node, .. } => match at_node.get_mut(node) {
@@ -140,7 +153,7 @@ pub(crate) fn thicken(structure: &mut Structure, species: &Species, girth: &Girt
             }
             section.powf(1.0 / e)
         },
-    );
+    )
 }
 
 /// How far a phytomer `years` old has laid down its own wood, ripening

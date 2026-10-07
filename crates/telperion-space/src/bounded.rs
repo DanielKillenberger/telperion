@@ -184,30 +184,6 @@ impl<'s> Bounded<'s> {
         }
     }
 
-    /// A fine root's tree (fn-209 F1, `fine/executor.rs`): axis 0 is its
-    /// bearer's stub, as laid before bending in the structure it was
-    /// settled from and as laid `bent`; its chain is taken as resolved.
-    pub(crate) fn on_stub(mut self, bent: crate::structure::Axis) -> Self {
-        self.bent.axes[0] = bent;
-        self.resolved[0] = true;
-        self
-    }
-
-    /// The tree as laid before it bends; an unresolved chain's axes unlaid.
-    pub(crate) fn unbent(&self) -> &Structure {
-        &self.unbent
-    }
-
-    /// The committed rows it reads.
-    pub(crate) fn rows_of(&self) -> &Rows {
-        &self.rows
-    }
-
-    /// Every bud made on a kept axis, by its record.
-    pub(crate) fn records(&self) -> &[Record] {
-        &self.records
-    }
-
     /// Seconds spent growing and settling the tree, and reading its
     /// closed form's rows.
     pub fn timings(&self) -> (f64, f64) {

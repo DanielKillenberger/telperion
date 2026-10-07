@@ -5,8 +5,8 @@
 use super::shoot::Shoot;
 use super::{stop_stake, Apex};
 use crate::error::Result;
-use crate::fixed;
-use crate::lineage::{above, below, Key, MOVE, RELAY};
+use crate::fixed::{self, presence};
+use crate::lineage::{threshold, Key, MOVE, RELAY};
 use crate::presence::SPAN;
 use crate::species::PaState;
 use crate::structure::Origin;
@@ -47,16 +47,15 @@ impl Shoot<'_, '_> {
             return self.stop(
                 apex,
                 (cycle, used),
-                f64::INFINITY,
+                fixed::INF,
                 unit,
                 apex.spent,
                 Stop::Ended,
             );
         };
         let d = unit.child(MOVE).draw();
-        let u = d.unit();
         if !d.under(go) {
-            let stopped = above(u, go);
+            let stopped = presence::over(threshold(go), d.0);
             return self.stop(apex, (cycle, used), stopped, unit, apex.spent, Stop::Ended);
         }
         // Its presence decides whether it also grows its relay, so it is
@@ -74,9 +73,9 @@ impl Shoot<'_, '_> {
         // where its relay draw makes one (D9's integer test).
         let relay = state.relay_ended;
         if made < fixed::ONE32 as u64 && relay > 0.0 && unit.child(RELAY).draw().under(relay) {
-            let relayed = self.relayed(relay, unit, windows.wood_at(pa, cycle, used));
+            let relayed = self.relayed(relay, unit, (pa, cycle, Some(used)));
             *self.units_mut(apex.axis) = apex.spent;
-            let made = [1.0 - fixed::real(made), relayed];
+            let made = [1.0 - fixed::real(made), fixed::real(relayed)];
             self.relay_bud(apex, (cycle, used), apex.spent, made, (0.0, Stop::Ended))?;
         }
         Ok(())
@@ -119,16 +118,18 @@ impl Shoot<'_, '_> {
     }
 
     /// The presence of the relay a stop in the growth unit keyed `unit`
-    /// would have: none where its PA relays none or the draw fails.
-    pub(super) fn relayed(&self, relay: f64, unit: Key, wood: f64) -> f64 {
+    /// would have, Q32 (host decision 8): none where its PA relays none
+    /// or the draw fails.
+    pub(super) fn relayed(&self, relay: f64, unit: Key, at: (usize, u32, Option<f64>)) -> u64 {
         if relay <= 0.0 {
-            return 0.0;
+            return 0;
         }
         let d = unit.child(RELAY).draw();
         if d.under(relay) {
-            self.windows().presence(below(d.unit(), relay), wood)
+            let lead = presence::under(threshold(relay), d.0);
+            self.windows().presence_q(lead, at, 1.0)
         } else {
-            0.0
+            0
         }
     }
 
@@ -144,7 +145,7 @@ impl Shoot<'_, '_> {
         &mut self,
         apex: Apex,
         (cycle, used): (u32, f64),
-        stopped: f64,
+        stopped: i64,
         unit: Key,
         spent: f64,
         why: Stop,
@@ -161,21 +162,21 @@ impl Shoot<'_, '_> {
         }
         let d = unit.child(RELAY).draw();
         if d.under(relay) {
-            let u = d.unit();
-            let wood = windows.wood_at(axis.pa, cycle, used);
+            let at = (axis.pa, cycle, Some(used));
             // A stop by abortion or a move is whole: the apex that all
             // but stopped grew its relay as well (host decision 11). A
             // failed unit's relay misses that unit, so it grows in from
-            // nothing past the bound.
+            // nothing past the bound. Each a Q32 presence (host decision 8).
             let stop = if why == Stop::Failed {
-                windows.decided(stopped, wood, stop_stake(relay))
+                windows.presence_q(stopped, at, stop_stake(relay))
             } else {
-                1.0
+                presence::ONE
             };
-            let made = [stop, windows.presence(below(u, relay), wood)];
+            let lead = presence::under(threshold(relay), d.0);
+            let made = [stop, windows.presence_q(lead, at, 1.0)].map(fixed::real);
             // The relay moves over the widest window: its move is a growth
             // unit's length whatever wood it carries.
-            let blend = (stopped / SPAN).clamp(0.0, 1.0);
+            let blend = fixed::real(presence::of(stopped, fixed::q32(SPAN)));
             return self.relay_bud(apex, (cycle, used), spent, made, (blend, why));
         }
         Ok(())

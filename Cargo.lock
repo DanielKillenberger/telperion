@@ -1421,6 +1421,7 @@ dependencies = [
  "bytemuck",
  "futures-channel",
  "js-sys",
+ "naga",
  "png",
  "pollster",
  "serde_json",

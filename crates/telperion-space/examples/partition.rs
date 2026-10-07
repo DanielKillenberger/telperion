@@ -43,7 +43,10 @@ fn matrix() -> Vec<(String, PartitionRun)> {
             PartitionOrder::Shuffled(3),
         ] {
             for chunk in [1, 7, 64] {
-                add(format!("cut {cut} all, {order:?}, chunk {chunk}"), every(order, chunk));
+                add(
+                    format!("cut {cut} all, {order:?}, chunk {chunk}"),
+                    every(order, chunk),
+                );
             }
         }
     }

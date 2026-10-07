@@ -15,7 +15,8 @@ use stats::{quantiles, tail};
 use std::collections::HashMap;
 use std::time::Instant;
 use telperion_space::{
-    beech, grow, grow_alone_with, palm, spruce, Expected, Light, Origin, Request, Species, Structure,
+    beech, grow, grow_alone_with, palm, spruce, Expected, Light, Origin, Request, Species,
+    Structure,
 };
 
 const BUDGET: u32 = 20_000_000;
@@ -27,7 +28,9 @@ fn main() {
     let only = args.first().filter(|o| o.as_str() != "all");
     let list = |i: usize, d: &str| -> Vec<u64> {
         let text = args.get(i).map_or(d, String::as_str);
-        text.split(',').map(|v| v.parse().expect("a number")).collect()
+        text.split(',')
+            .map(|v| v.parse().expect("a number"))
+            .collect()
     };
     let (ages, seeds) = (list(1, "40"), list(2, "1,7"));
     for (name, make) in SPECIES {
@@ -49,7 +52,12 @@ fn main() {
                     budget: BUDGET,
                     light: Light::NEUTRAL,
                 };
-                run(&format!("{name} age {age} seed {seed}"), &species, request, &expected);
+                run(
+                    &format!("{name} age {age} seed {seed}"),
+                    &species,
+                    request,
+                    &expected,
+                );
             }
         }
     }

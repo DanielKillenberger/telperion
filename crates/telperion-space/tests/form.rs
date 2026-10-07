@@ -304,10 +304,22 @@ fn a_relay_carries_on_its_axis_growth_units() {
     trunk.abortion = 1.0 - 1e-12;
     trunk.relay = 1.0;
     let tree = grown(&species, 1);
+    // The stem: the seed and what carries it on, laterals aside (the
+    // tree's axes stand in lineage order, so the stem's is not first).
+    let mut stem = vec![false; tree.axes.len()];
+    for (i, a) in tree.axes.iter().enumerate() {
+        stem[i] = match a.origin {
+            Origin::Seed => true,
+            Origin::Continuation { parent } | Origin::Relay { parent, .. } => stem[parent],
+            Origin::Lateral { .. } => false,
+        };
+    }
     let continued = tree
         .axes
         .iter()
-        .find(|a| matches!(a.origin, Origin::Continuation { .. }))
+        .zip(&stem)
+        .find(|(a, &s)| s && matches!(a.origin, Origin::Continuation { .. }))
+        .map(|(a, _)| a)
         .expect("the stem reaches its next PA");
     assert_eq!(
         continued.birth, 4,

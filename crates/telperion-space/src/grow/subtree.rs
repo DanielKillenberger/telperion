@@ -199,6 +199,7 @@ impl<'a> Grower<'a> {
             sketch: None,
             leaves: Vec::new(),
             wakes: Vec::new(),
+            handed: Vec::new(),
             oracle: None,
             couple: None,
             fine: None,
