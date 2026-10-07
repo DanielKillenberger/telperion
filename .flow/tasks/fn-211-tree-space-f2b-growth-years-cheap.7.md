@@ -12,9 +12,10 @@ After HYBRID.md (delete the hybrid), the host's plan (accepted by the owner, 202
 - No product code changed.
 
 ## Done summary
-TBD
+Measured option A's ceiling on the lit oak at 80 (seeds 1 and 7, cut 1,024, two load-gated sets started at load 5.9 to 7.9, plus one high-load one-core set). The fine roots' own work (items' balance, allotment, growth and waking, sketch, fine deposits and reads, the re-lay's fine share) is 50 to 56 % of the stepped build on all cores (34 to 38 % without the re-lay) and 57 to 74 % on one core: above the 30 % bar, so no stop. The settle (21 to 26 %) is most of what stays; the stepped executor's glue is 15 to 17 % on all cores. Wrote CONTRACT-A.md: formats (Q32 i64, W Q64.64 i128, T u32 turns), one rule per operation (floored products, truncating quotients, isqrt, CORDIC sin/cos/atan2, existing exp/log extended to W, wrapping sums with range checks), and the seven parts of Astra's table with widths, rounding and order, plus the inductive argument, ranges and build order. Proposals for review: the contract binds every cut-movable computation on every axis; the sweep stays f64 on the CPU with Q32 output; corner weights sum to one exactly; D16 made integer. Instrumentation reverse-applied; git diff -- crates/ empty.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5147b36d
+- Tests: HYBRID=1 target/ci/examples/hybrid 80 {1,7} 2 (instrumented, reverted); target/ci/examples/stepcost 40 1,7 1 (same tree: true on the instrumented build)
 - PRs:
