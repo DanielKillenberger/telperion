@@ -192,3 +192,12 @@ Measured `tree_buffer_bytes` after the submit: 141 MB (beech 80 s1), 240 MB (bee
 - **D5:** each side keeps its own run order, the coarse structure's first; no global sort.
 - **D6:** on wasm32 the driver's sowing runs on the calling thread and every timer reads the engine's clock (`crate::clock::seconds()`); the same tree as natively.
 - **The branch's compile error** (`Stages::add` assigning `Instant::now()` to an f64, expansion.rs:405) is fixed in task 2 with the patch the audit saved.
+
+## Host decisions after task 5 (2026-10-07)
+
+1. **Frame seed.** A fine run's frame is seeded from its bearer's frame at the socket, carried along the tangent by parallel transport, on both executors. A seed that jumps on near-equal components is a defect, not a contract. Outputs change on both sides, which the generator-evolution rule allows. Show what moved: the twist distribution before and after, and stills of the spruce and beech at 80, at the hero view and close up, viewed. Drop the test's exclusion of flipped runs.
+   - **Worker, built and measured** (TASK5.md, "After the host's decisions"): the rotation from the bearer's heading turns where a run leaves backwards. At the spruce at 80, 5,457 runs leave within 10° of backwards, and 1,702 to 1,704 runs turn by up to 3.1 rad.
+   - **What is committed for the host's choice:** the bearer's laid side, laid across the first tangent. It turns where a run leaves along its bearer's side, and at most 4 runs on the eight trees leave within 10° of that. Frames are within 0.0091 rad with no exclusion.
+2. **Codominance tie.** A head scaled to exactly `FORK_FROM` gets no codominance on both executors. It is decided by an exact comparison, not an f64 epsilon. The cross-executor case breaks D1''s determinism assumption, so it is in scope. Built (`16328f13`).
+3. **The spruce at 80, seed 7, point 1.0 mm off:** to be explained before task 7's parity verdict. Done: it is a `SHORTEST` flip at the 1 mm threshold (TASK5.md).
+4. **GPU test memory.** The whole-tree probes serialise themselves through a process-wide lock in the test support code, so the suite stays green at the default thread count. Built: the lock is held while a test's kernels live.

@@ -76,3 +76,54 @@ CONTRACT.md's probe, second part. The fine roots' F3 curve is now built on the d
 
 - The leaf box's reach terms come from the combined envelope in production (host).
 - The fine runs' points, clusters and table are relative to the fine block. The resident handoff offsets them after the CPU side's (D5).
+
+## After the host's decisions (2026-10-07)
+
+### 1. Frame seed: what was built, and a question for the host
+
+- **The rule as asked.** Parallel transport of the bearer's frame from its heading onto the run's first tangent (`rotate(side, heading, t0)`). It was built on both executors and measured (`raw/task5/seeded-1.txt`).
+  - It turns wherever a run leaves its bearer nearly backwards, because the shortest rotation onto the opposite direction has no unique axis.
+  - The spruce has many such runs. Of the fine runs, these leave more than 170°, 175° and 179° from the bearer's laid heading:
+
+    | Tree | Fine runs | Over 170° | Over 175° | Over 179° |
+    |---|--:|--:|--:|--:|
+    | spruce 80 s1 | 638,494 | 5,457 | 2,802 | 590 |
+    | spruce 80 s7 | 644,903 | 5,608 | 2,954 | 634 |
+    | spruce 40 | about 200k | 1,337 to 1,349 | | |
+    | beech | | 0 | 0 | 0 |
+
+  - **Result:** 1,702 to 1,704 runs at the spruce at 80, and 66 to 68 at 40, had frames over 0.01 rad apart, up to 3.1 rad. The beech had none.
+- **What is committed: the bearer's laid side, laid across the first tangent.**
+  - The run's first normal is the side, with its component along the tangent removed. That is the frame's own first step, so the seed is just `side`.
+  - It turns only where a run leaves along the bearer's side. On the eight trees, 0 to 4 runs leave within 10° of it, and none within 1° (`raw/task5/seeded-2.txt`).
+  - Measured end to end (`raw/task5/probes-seed.txt`): frames within 0.0091 rad on every tree, with no exclusion; centres, radii and clusters as before.
+  - It is a seed from the bearer's frame at the socket, but it is a projection, not the parallel transport the host named. Some direction must turn under any continuous seed (the hairy ball), and this choice puts it where no measured run goes. **The host's choice:** keep the side, or take the rotation and accept its 1,700 runs.
+- **Not yet done, pending that choice:** the twist distribution before and after, and the stills (hero and close up, spruce and beech at 80). They show whichever rule is kept.
+- **Bytes:** every fine run's frame on both executors moves; centres and radii do not. The node frames the seed reads agree across executors within 8e-6 rad (a temporary check).
+
+### 2. Codominance tie
+
+- A head the conversion scales to `FORK_FROM` now gets no codominance on both executors, decided by the branch taken (`space.rs`, `aside`; `dress.wgsl`). Built in `16328f13`.
+- **The beech 80 seed 7 radius outlier was not this.** It is still 6 %. The run's node 1548695 bears a lateral of codominance 8.9e-9: its radius is 0.4 of its parent's plus 2.7e-9 relative. The CPU reads a fork there and eases the next node's girth; the device, in float32, does not.
+  - This is a lateral's own codominance near its threshold: a D1' residual, which contract A's exact radii remove. It is not a tie of the code's own making.
+
+### 3. The spruce at 80, seed 7: the point 1.0 mm off
+
+- **Where:** run 62151, point 2 of 23. Every other point of the run is within 4 µm.
+- **Why: a `SHORTEST` decision at its threshold.**
+  - The parent node P and the CPU's node X are 2.0 mm apart. The phytomer between them, Y, lies 1.0 mm from P.
+  - The CPU found Y under 1 mm from P and merged it into P, then made X.
+  - The device found Y at 1 mm or more, made it, then merged X into Y (X lies under 1 mm from Y).
+  - Both runs have 23 points. Point 2 is Y on the device and X on the CPU, 1.0 mm apart.
+- **Classification:** a D1' residual (a decision within float noise of its threshold), not settled-structure noise. Contract A removes it.
+- **The other run of seed 7 over 200 µm** (run 179788: 111 to 206 µm, growing towards its tip) was not traced.
+
+### 4. GPU test memory
+
+- `generation::whole_tree()` is a process-wide lock. The fine executor's kernels take it on creation and hold it while they live, because their pool keeps a settled tree's buffers.
+- The render half and both 40/80 probes together pass at the default eight threads (`raw/task5/gate-render-lock.txt`, `raw/task5/probes-seed.txt`).
+
+### Gate after these changes
+
+- **CPU half:** 988 passed.
+- **Render half:** 159 passed, at eight test threads.
