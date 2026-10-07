@@ -75,7 +75,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        5_751_451_074_739_886_240,
+        5_357_851_899_238_535_438,
         "{}",
         digest(&text)
     );
@@ -107,7 +107,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        11_840_404_008_701_245_752,
+        1_015_347_911_077_234_790,
         "{}",
         digest(&text)
     );
@@ -130,7 +130,12 @@ fn every_override_reads_and_writes_as_it_did() {
         none["skeleton"]["growth"][row] = serde_json::Value::Null;
     }
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
-    assert_eq!(digest(&text), 884_447_711_185_349_928, "{}", digest(&text));
+    assert_eq!(
+        digest(&text),
+        17_736_338_315_378_759_014,
+        "{}",
+        digest(&text)
+    );
 }
 
 /// Every numeric leaf of the wire, as a JSON pointer.

@@ -161,3 +161,14 @@ A probe with old bark from 20 cm darkened the 80-year stems of seeds 7 and 42 to
 ## Round 7 (2026-10-07, scaffold limbs, host's decision on sheet 6)
 
 The rows and their reasons are in SHEET-7.md, "The mechanism". In short: a young-leader age (`LOW_FORK`, years 6 to 14) bearing passing branches and a few low scaffolds; the leader (years 15 to 40) bearing few limbs among passing branches; limbs steep for 25 years (was 15), viability 0.998, then spreading as boughs; round 6's forking old stem; stem wander 0.35; old bark from 0.30 m of radius over 0.07 m. All **estimated** from the stills; the scaffold structure follows the references (S1, S3) and the oak's long-lived limbs. Stem ages are now 2, 3, 4 and 5.
+
+## Round 8 (2026-10-07, curtains; host's decision after the owner's verdict on round 7)
+
+The rows and their sources are in SHEET-8.md, "What moved". In short:
+
+- The hanging axis (`BRANCH`) is an unbranched strand set straight down (set-point −π/2, tropism 3, wander 0.15). It grows 4 to 6 nodes of 0.06 m a year for up to 12 years, carrying only short shoots.
+- The `SHOOT` age is no longer lived.
+- Limbs, boughs and the old top bear strands at 0.3 to 0.5 per node.
+- Limb and bough wood holds sleeping strand buds (0.6 a node, waking after 4 years at 0.15 a year; Cameron and Sani 1994 for epicormic sprouting in *B. pendula*).
+
+All **estimated** from the stills and checked by `birch_measure.rs`; no value is taken from the old generator.

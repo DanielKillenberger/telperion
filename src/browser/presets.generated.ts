@@ -2937,7 +2937,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.15,
+                  "9": 0.3,
                   "14": 0.3
                 },
                 "nodes": {
@@ -2949,7 +2949,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                 "buds": 1,
                 "lateral": {
                   "7": 0.5,
-                  "9": 0.2
+                  "9": 0.4
                 },
                 "nodes": {
                   "max": 2,
@@ -2993,21 +2993,26 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               },
               "1": {
                 "buds": 1,
+                "delay": 4,
+                "dormant": {
+                  "9": 0.6
+                },
                 "lateral": {
                   "7": 0.12,
-                  "9": 0.1,
+                  "9": 0.4,
                   "14": 0.35
                 },
                 "nodes": {
                   "max": 5,
                   "min": 3
-                }
+                },
+                "rate": 0.15
               },
               "2": {
                 "buds": 1,
                 "lateral": {
                   "7": 0.45,
-                  "9": 0.25
+                  "9": 0.5
                 },
                 "nodes": {
                   "max": 2,
@@ -3052,19 +3057,24 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               },
               "1": {
                 "buds": 1,
+                "delay": 4,
+                "dormant": {
+                  "9": 0.6
+                },
                 "lateral": {
-                  "9": 0.1,
+                  "9": 0.4,
                   "14": 0.35
                 },
                 "nodes": {
                   "max": 4,
                   "min": 3
-                }
+                },
+                "rate": 0.15
               },
               "2": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.22
+                  "9": 0.5
                 },
                 "nodes": {
                   "max": 1,
@@ -3125,67 +3135,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "continuation": 0,
             "divergence": 2.5132741228718345,
             "form": {
-              "elevation": -1,
-              "internodeSpread": 0.6,
+              "elevation": -1.5707963267948966,
+              "internodeSpread": 0.3,
               "pipe": 0.0008,
               "roll": 1.2,
               "sag": 0.0002,
-              "tropism": 1,
-              "wander": 0.6
+              "tropism": 3,
+              "wander": 0.15
             },
             "insertion": 0.7,
-            "internode": 0.035,
-            "lifespan": 6,
+            "internode": 0.06,
+            "lifespan": 12,
             "shedding": 1,
-            "viability": 0.95,
-            "zones": {
-              "0": {
-                "buds": 1,
-                "nodes": {
-                  "max": 2,
-                  "min": 1
-                }
-              },
-              "1": {
-                "buds": 1,
-                "lateral": {
-                  "12": 0.25,
-                  "14": 0.5
-                },
-                "nodes": {
-                  "max": 6,
-                  "min": 4
-                }
-              },
-              "2": {
-                "buds": 1,
-                "lateral": {
-                  "12": 0.4
-                },
-                "nodes": {
-                  "max": 2,
-                  "min": 1
-                }
-              }
-            }
-          },
-          "12": {
-            "continuation": 0,
-            "divergence": 2.5132741228718345,
-            "form": {
-              "elevation": -1.4,
-              "internodeSpread": 0.6,
-              "pipe": 0.0006,
-              "roll": 1.2,
-              "sag": 0.0002,
-              "tropism": 1.5,
-              "wander": 0.6
-            },
-            "insertion": 0.6,
-            "internode": 0.03,
-            "lifespan": 3,
-            "shedding": 1,
-            "viability": 0.9,
+            "viability": 0.96,
             "zones": {
               "0": {
                 "buds": 1,
