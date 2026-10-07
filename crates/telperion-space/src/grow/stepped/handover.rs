@@ -142,7 +142,11 @@ impl<'a> Executor<'a> {
                     _ => None,
                 })
                 .expect("its root");
-            self.items.push(Item { at: root, g });
+            self.items.push(Item {
+                at: root,
+                g,
+                dead: false,
+            });
         }
     }
 

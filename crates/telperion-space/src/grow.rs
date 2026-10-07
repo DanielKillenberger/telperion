@@ -269,7 +269,7 @@ fn start<'a>(
     let threads = options.threads.unwrap_or_else(crate::cores::available);
     let rules = Rules {
         species,
-        laterals,
+        laterals: laterals.into(),
         lasting,
         certain: options.certain,
         windows: Windows::new(species, request.age),

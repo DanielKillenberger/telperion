@@ -19,7 +19,7 @@ use crate::structure::{Axis, Origin};
 pub(crate) struct Rules<'a> {
     pub species: &'a Species,
     /// Each PA's zones' lateral probabilities as drawn (`PaState::laterals`).
-    pub laterals: Vec<Vec<Vec<f64>>>,
+    pub laterals: std::sync::Arc<Vec<Vec<Vec<f64>>>>,
     /// Each PA's bound on its subtree's life (`shed::lasting`); none
     /// throughout where shedding is not decided before growth.
     pub lasting: Vec<Option<f64>>,

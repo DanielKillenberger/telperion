@@ -21,7 +21,10 @@ use crate::fixed::{exp2, log2, mul, q32, ONE32};
 use crate::species::{Form, Species};
 use crate::structure::{Origin, Phytomer, Structure};
 use crate::upward::Tree;
-pub(crate) use disused::{attachments, disused};
+pub(crate) use disused::{
+    above, attachments, attachments_given, bases, disused, disused_below, grown_mean,
+    leaf_partials, Stand,
+};
 
 /// A branch's pipe that stays in its bearer as it is shed: the bearer's
 /// index, the node it stood at (none: the bearer's tip), its base radius
@@ -112,7 +115,10 @@ pub(crate) fn leaf(light: f64, chi: f64, mean: Option<f64>) -> f64 {
 /// Σpipe light^χ` (W over W, to Q32); none where the weighted sum is.
 pub(crate) fn mean_of(total: Total, weighted: Total) -> Option<f64> {
     let (t, w) = (total.get(), weighted.get());
-    let (t, w) = (t.expect("a pipe sum inside W"), w.expect("a pipe sum inside W"));
+    let (t, w) = (
+        t.expect("a pipe sum inside W"),
+        w.expect("a pipe sum inside W"),
+    );
     (w > 0).then(|| {
         let q = ratio(t, w, 32).expect("a mean");
         real(i64::try_from(q).expect("a mean inside Q32"))

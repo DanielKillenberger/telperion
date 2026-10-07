@@ -99,7 +99,7 @@ pub(crate) fn rules<'a>(species: &'a Species, age: u32, budget: u32) -> Result<R
     let lasting = lasting(species, &laterals);
     Ok(Rules {
         species,
-        laterals,
+        laterals: laterals.into(),
         lasting,
         certain: super::Certain::Skip,
         windows: Windows::new(species, age),

@@ -24,6 +24,7 @@
 //! fn-211's stepped executor.
 mod canonical;
 mod cases;
+mod exchange;
 mod expansion;
 mod geometry;
 mod landing;
@@ -43,10 +44,11 @@ use crate::structure::Structure;
 pub use canonical::{canonical, digest, identities, lineage_order};
 pub use cases::{landed, realized_cases, root_axes, Presences, RealizedCase, RootAxes};
 pub use expansion::{settle, Lived, Loaded, RootSeed, Roots, Settled};
+pub(crate) use expansion::{settle_grown, Above, Stages};
 pub use geometry::{
     bearer_frame, BearerFrame, GeometryTables, PaGeometry, RootGeometry, ZoneGeometry,
 };
-use realized::{Cpu, Root};
+pub(crate) use realized::{Cpu, Made, Root};
 use std::time::Instant;
 pub use surface::{chain_cases, ChainAxis, ChainBud, ChainTables, PaRow, Woke};
 pub use survey::{survey_laid, survey_lit, Surveyed};
@@ -154,7 +156,7 @@ pub fn grow_fine(species: &Species, request: Request, plan: Plan) -> Result<Fine
     };
     let mut cpu = Cpu {
         species,
-        rules: &rules,
+        rules: Some(&rules),
         plan,
         threads,
         roots: Vec::new(),
@@ -166,13 +168,17 @@ pub fn grow_fine(species: &Species, request: Request, plan: Plan) -> Result<Fine
         &mut cpu,
         false,
     )?;
-    let fine = assemble(settled, cpu.roots, &predictor)?;
+    let fine = assemble(settled, cpu.roots, &|pa, birth| predictor.count(pa, birth))?;
     Ok(Fine { predict, ..fine })
 }
 
 /// The tree whole: each kept root's first axis where its stand-in stood,
 /// its others after the structure above the cut, in the roots' order.
-fn assemble(settled: Settled, roots: Vec<Root>, predictor: &Predictor) -> Result<Fine> {
+pub(crate) fn assemble(
+    settled: Settled,
+    roots: Vec<Root>,
+    predicted: &dyn Fn(usize, u32) -> f64,
+) -> Result<Fine> {
     let Settled {
         structure: mut tree,
         at,
@@ -194,7 +200,7 @@ fn assemble(settled: Settled, roots: Vec<Root>, predictor: &Predictor) -> Result
     for (k, root) in roots.into_iter().enumerate() {
         let report = |kept| Expanded {
             at: at[k],
-            predicted: predictor.count(root.pa, root.birth),
+            predicted: predicted(root.pa, root.birth),
             kept,
             woken: root.woken,
             work: root.work,

@@ -10,12 +10,13 @@ use super::surface::input;
 use super::{Clock, Plan};
 use crate::closed_form::boundary::Rows;
 use crate::closed_form::predictor::Predictor;
-use crate::error::{Error, Result};
+use crate::error::{refuse, Error, Result};
+use crate::fixed::feedback::total::Total;
 use crate::fixed::presence::{q, times};
 use crate::geometry::{place, scale};
 use crate::girth::{thicken_given, Girth};
 use crate::grow::alone::Bud;
-use crate::grow::realized::{above, Handed, Hands};
+use crate::grow::realized::{above, Assigned, Handed, Hands};
 use crate::grow::{Request, Rules};
 use crate::sag::{any, levers_given, Load};
 use crate::shed::{shed_given, Living};
@@ -47,6 +48,25 @@ pub trait Roots {
     /// and shed by its own subtree; each one's living, by root, and the
     /// phytomers grown in all.
     fn grow(&mut self, seeds: &[RootSeed]) -> Result<(Vec<Lived>, u64)>;
+    /// The exchange where any PA keeps its tree as grown (`retained`,
+    /// `leaf_girth`; host decision on fn-211 task 12, PHASES.md): down,
+    /// each root's bearer's base and its node's drawn scale as grown
+    /// (Q32, real), by root; up, each one's leaf partials as grown.
+    fn partials(&mut self, _stands: &[(i64, f64)]) -> Result<Vec<[Total; 2]>> {
+        refuse(
+            "retained",
+            "this executor's roots do not carry the as-grown exchange (fn-211 task 12)",
+        )
+    }
+    /// The exchange's second half: down, the tree's leaf mean and each
+    /// root's bearers' fades at its base (Q32), by root; up, each one's
+    /// base radius as grown, its own shed pipes kept for phase 2.
+    fn attach(&mut self, _mean: Option<f64>, _above: &[i64]) -> Result<Vec<f64>> {
+        refuse(
+            "retained",
+            "this executor's roots do not carry the as-grown exchange (fn-211 task 12)",
+        )
+    }
     /// Phase 2: the live roots (`live`, by root) scaled from their
     /// bearers' base scales and their nodes' drawn scales (`scales`) and
     /// thickened; each one's base radius.
@@ -136,6 +156,54 @@ pub(crate) fn settle_with(
     let reach = land.then(|| reach(species, request.age));
     let (living, grew) = clock.time(|| roots.grow(&seeds))?;
     stages.mark("phase 1 (executor)");
+    let seats = seeds.iter().map(|s| (s.handed.at, node(s))).collect();
+    let ground = reach.map(|reach| Ground {
+        seeds: &seeds[..],
+        reach,
+    });
+    let settled = settle_grown(
+        species,
+        (request, rules, plan, threads),
+        Above { grown, seats },
+        (living, grew),
+        roots,
+        ground,
+        (clock, stages),
+    )?;
+    Ok((settled, seeds))
+}
+
+/// The structure above the cut as grown, marked and assigned, and where
+/// each root stands on it: its stand-in's index and its bearer's node.
+pub(crate) struct Above {
+    pub grown: Assigned,
+    pub seats: Vec<(usize, usize)>,
+}
+
+/// Where the roots that can reach the ground are laid on the CPU: their
+/// seeds and the reach's rows; none where the CPU lays every root.
+pub(crate) struct Ground<'s> {
+    pub seeds: &'s [RootSeed],
+    pub reach: std::thread::JoinHandle<Rows>,
+}
+
+/// The structure above the cut settled with its roots, grown by `roots`
+/// (phase 1's living and phytomers given), through phases 2 to 4 and,
+/// where any PA keeps its tree as grown, the exchange before them.
+pub(crate) fn settle_grown(
+    species: &Species,
+    (request, rules, plan, threads): (Request, &Rules, Plan, usize),
+    Above { grown, seats }: Above,
+    (living, grew): (Vec<Lived>, u64),
+    roots: &mut dyn Roots,
+    ground: Option<Ground>,
+    (mut clock, mut stages): (Clock, Stages),
+) -> Result<Settled> {
+    let pas = species.states.len();
+    let (seeds, reach) = match ground {
+        Some(g) => (g.seeds, Some(g.reach)),
+        None => (&[][..], None),
+    };
     if grown.grown + grew > u64::from(request.budget) {
         return Err(Error::Budget {
             limit: request.budget,
@@ -143,8 +211,8 @@ pub(crate) fn settle_with(
     }
     // Shed on what each root realized.
     let mut stood = vec![None; grown.axes.len()];
-    for (k, s) in seeds.iter().enumerate() {
-        stood[s.handed.at] = Some(k);
+    for (k, &(at, _)) in seats.iter().enumerate() {
+        stood[at] = Some(k);
     }
     let given = |i: usize| {
         stood[i].map(|k: usize| Living {
@@ -152,17 +220,31 @@ pub(crate) fn settle_with(
             alive: living[k].1,
         })
     };
+    let kept = crate::grow::keeps(species).then(|| grown.axes.clone());
+    let at = (request.age, threads);
+    let mean = match &kept {
+        Some(axes) => Some(super::exchange::partials(species, at, axes, &seats, roots)?),
+        None => None,
+    };
     let (shed, _) = shed_given(grown.axes, species, request.age, &given, None);
-    let at: Vec<Option<usize>> = seeds
+    let girth = match (kept, mean) {
+        (Some(axes), Some(mean)) => {
+            let seated = (&axes[..], &seats[..], &stood[..]);
+            super::exchange::attach(species, at, seated, (&shed, mean), roots)?
+        }
+        _ => Girth::default(),
+    };
+    stages.mark("the exchange");
+    let at: Vec<Option<usize>> = seats
         .iter()
-        .map(|s| Some(shed.index[s.handed.at]).filter(|&i| i != usize::MAX))
+        .map(|&(i, _)| Some(shed.index[i]).filter(|&i| i != usize::MAX))
         .collect();
     let mut tree = Structure {
         age: request.age,
         pas,
         axes: shed.axes,
     };
-    let live: Vec<usize> = (0..seeds.len()).filter(|&k| at[k].is_some()).collect();
+    let live: Vec<usize> = (0..seats.len()).filter(|&k| at[k].is_some()).collect();
     let mut by_axis = vec![None; tree.axes.len()];
     for (j, &k) in live.iter().enumerate() {
         by_axis[at[k].expect("live")] = Some(j);
@@ -180,7 +262,7 @@ pub(crate) fn settle_with(
     let drawn: Vec<f64> = live
         .iter()
         .zip(&bearers)
-        .map(|(&k, &b)| tree.axes[b].phytomers[node(&seeds[k])].scale)
+        .map(|(&k, &b)| tree.axes[b].phytomers[seats[k].1].scale)
         .collect();
     let base = scale(&mut tree, species, threads);
     stages.mark("shed and scale");
@@ -192,7 +274,7 @@ pub(crate) fn settle_with(
     let radii = clock.time(|| roots.girth(&live, &scales));
     stages.mark("phase 2 (executor)");
     let radius = |i: usize| by_axis[i].map(|j: usize| radii[j]);
-    thicken_given(&mut tree, species, &Girth::default(), &radius, threads);
+    thicken_given(&mut tree, species, &girth, &radius, threads);
     place(&mut tree, species, None, threads)?;
     stages.mark("thicken and place");
     // Lay on each bearer's frame, and load the tree by each root's wood;
@@ -207,9 +289,7 @@ pub(crate) fn settle_with(
     landing.lay(&tree, at_roots, (&scales, &radii), &mut loads)?;
     stages.mark("landing, unbent");
     if any(species) {
-        let load = |i: usize| {
-            by_axis[i].map(|j: usize| Load::of(loads[j].0, loads[j].1))
-        };
+        let load = |i: usize| by_axis[i].map(|j: usize| Load::of(loads[j].0, loads[j].1));
         let (levers, _) = levers_given(&tree, species, &load, threads);
         place(&mut tree, species, Some(&levers), threads)?;
         stages.mark("levers and place");
@@ -229,11 +309,11 @@ pub(crate) fn settle_with(
         grounded,
         landed: landing.roots,
     };
-    Ok((settled, seeds))
+    Ok(settled)
 }
 
 /// Each stage's milliseconds, from the last mark.
-struct Stages {
+pub(crate) struct Stages {
     last: std::time::Instant,
     out: Vec<(&'static str, f64)>,
 }

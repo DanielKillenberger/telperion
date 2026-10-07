@@ -25,7 +25,7 @@ pub const FLOOR: f64 = 0.05;
 #[derive(Clone)]
 pub(crate) struct Windows {
     /// expected[m][k]: the log of the metres a bud of PA k grows in m cycles.
-    expected: Vec<Vec<f64>>,
+    expected: std::sync::Arc<Vec<Vec<f64>>>,
     /// The log of the whole tree's expected metres.
     whole: f64,
     age: u32,
@@ -36,7 +36,7 @@ impl Windows {
         let expected = expected_log_lengths(species, age);
         let whole = expected[age as usize][0];
         Self {
-            expected,
+            expected: std::sync::Arc::new(expected),
             whole,
             age,
         }

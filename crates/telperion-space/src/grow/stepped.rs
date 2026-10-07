@@ -32,16 +32,17 @@ mod assemble;
 mod feedback;
 mod handover;
 mod lay;
+mod settle;
 
 use feedback::{again, relaid};
 pub use feedback::{Cpu, Feedback};
 pub use lay::{Laid, LayJob, LayPa};
 
 use super::balance::Totals;
-use super::partition::{merge, ordered, Grouping};
+use super::partition::{merge, ordered, Digest, Grouping};
 use super::relay::RELAY_EVERY;
 use super::sketch::{Inputs, Rows as Links};
-use super::{start, Grower, Options, Request, Stage};
+use super::{start, Grower, Options, Request};
 use crate::allocation::{size_sums, sized, split, subtotals};
 use crate::bounded::Expected;
 use crate::closed_form::boundary::Rows;
@@ -95,7 +96,13 @@ pub fn grow_stepped_on(
     device: Option<&mut dyn Feedback>,
     complete: bool,
 ) -> Result<Stepped> {
-    run(species, request, (expected, cut, grouping), device, complete)
+    run(
+        species,
+        request,
+        (expected, cut, grouping),
+        device,
+        complete,
+    )
 }
 
 fn run(
@@ -105,19 +112,8 @@ fn run(
     mut device: Option<&mut dyn Feedback>,
     complete: bool,
 ) -> Result<Stepped> {
-    let (coarse, keeps) = start(species, request, true, Options::default())?;
-    let mut x = Executor {
-        coarse,
-        items: Vec::new(),
-        rows: expected.rows(),
-        cut,
-        grouping,
-        request,
-        phases: Vec::new(),
-        complete,
-        states: Vec::new(),
-        lattices: Vec::new(),
-    };
+    let (coarse, _) = start(species, request, true, Options::default())?;
+    let mut x = Executor::new(coarse, (expected.rows(), cut, grouping), request, complete);
     let mut years = Vec::with_capacity(request.age as usize);
     for cycle in 1..=request.age {
         let started = std::time::Instant::now();
@@ -133,11 +129,9 @@ fn run(
         std::mem::take(&mut x.states),
         std::mem::take(&mut x.lattices),
     );
-    let tree = x.assemble(true).0;
-    let quiet = &mut |_: Stage| {};
-    let grown = tree.settle((request, Options::default()), (true, keeps), quiet)?;
+    let structure = x.settle()?;
     Ok(Stepped {
-        structure: grown.structure,
+        structure,
         phases,
         roots,
         fine_grown,
@@ -153,6 +147,9 @@ fn run(
 pub(super) struct Item<'a> {
     pub at: usize,
     pub g: Grower<'a>,
+    /// Whether nothing in it lives or sleeps on: it grows, wakes and
+    /// lays nothing more, so the cycles pass it by (task 12).
+    pub dead: bool,
 }
 
 pub(super) struct Executor<'a> {
@@ -166,9 +163,34 @@ pub(super) struct Executor<'a> {
     pub complete: bool,
     pub states: Vec<[u64; 4]>,
     pub lattices: Vec<u64>,
+    /// The dead items' part of the growth digest, which no cycle changes.
+    pub buried: Digest,
 }
 
 impl<'a> Executor<'a> {
+    /// An executor about to grow `coarse`'s first cycle, its roots at
+    /// `cut` by `rows`, visited in `grouping`'s order.
+    pub(super) fn new(
+        coarse: Grower<'a>,
+        (rows, cut, grouping): (Arc<Rows>, f64, Grouping),
+        request: Request,
+        complete: bool,
+    ) -> Self {
+        Self {
+            coarse,
+            items: Vec::new(),
+            rows,
+            cut,
+            grouping,
+            request,
+            phases: Vec::new(),
+            complete,
+            states: Vec::new(),
+            lattices: Vec::new(),
+            buried: Digest::default(),
+        }
+    }
+
     /// The items in the order they are visited and merged.
     pub(super) fn visit(&self) -> Vec<usize> {
         ordered((0..self.items.len()).collect(), self.grouping.order)
@@ -178,7 +200,12 @@ impl<'a> Executor<'a> {
         let first_new = self.coarse.axes.len();
         let living = |g: &Grower| -> Vec<usize> { g.live.iter().map(|a| a.axis).collect() };
         let advanced = living(&self.coarse);
-        let advanced_items: Vec<Vec<usize>> = self.items.iter().map(|i| living(&i.g)).collect();
+        // What each item grew from, where the device lays it; on the CPU
+        // each item takes its own on the core it grows on.
+        let advanced_items: Vec<Vec<usize>> = match device.is_some() {
+            true => self.items.iter().map(|i| living(&i.g)).collect(),
+            false => Vec::new(),
+        };
         self.balance(cycle, again(&mut device));
         self.mark(cycle, 0);
         self.allot();
@@ -198,9 +225,13 @@ impl<'a> Executor<'a> {
             Ok(())
         };
         step(&mut self.coarse, &advanced, true)?;
-        let with = advanced_items.clone();
-        let done = self.each(with, &|item, advanced| {
-            step(&mut item.g, &advanced, !laying)
+        let none = vec![(); self.items.len()];
+        let done = self.each(none, &|item, ()| match item.dead {
+            true => Ok(()),
+            false => {
+                let advanced = living(&item.g);
+                step(&mut item.g, &advanced, !laying)
+            }
         });
         done.into_iter().collect::<Result<Vec<()>>>()?;
         if let (true, Some(device)) = (sketching, again(&mut device)) {
@@ -223,7 +254,28 @@ impl<'a> Executor<'a> {
             self.shade(device);
             self.mark(cycle, 3);
         }
+        self.bury(cycle);
         Ok(())
+    }
+
+    /// Marks each item that lives and sleeps no more after `cycle` dead,
+    /// its growth digest's part kept, its last leaves let go.
+    fn bury(&mut self, cycle: u32) {
+        let after = cycle as usize + 1;
+        for item in self.items.iter_mut().filter(|i| !i.dead) {
+            let g = &mut item.g;
+            let sleeps = g
+                .asleep
+                .get(after..)
+                .is_some_and(|a| a.iter().any(|s| !s.is_empty()));
+            if g.live.is_empty() && !sleeps {
+                item.dead = true;
+                g.leaves.clear();
+                let mut part = g.digest(2);
+                part.counts[0] -= 2;
+                self.buried = self.buried.and(part);
+            }
+        }
     }
 
     /// The coarse grower, then each item.
@@ -240,7 +292,7 @@ impl<'a> Executor<'a> {
     ) -> Vec<R> {
         let threads = self.coarse.threads;
         let items: Vec<_> = self.items.iter_mut().zip(with).collect();
-        crate::cores::map(items, ITEMS, threads, &|_, (item, t)| work(item, t))
+        crate::cores::pinned(items, ITEMS, threads, &|_, (item, t)| work(item, t))
     }
 
     /// Phase (i): each item's totals at its root reported to its bearer,
@@ -350,7 +402,7 @@ impl<'a> Executor<'a> {
     /// Every tenth cycle, today's re-lay on the tree assembled, its
     /// places and walks handed back, its leaves the cycle's.
     fn relay(&mut self, cycle: u32) -> Result<()> {
-        let (mut tree, layout) = self.assemble(false);
+        let (mut tree, layout) = self.assemble();
         tree.relay(cycle, &mut |_| {})?;
         self.disperse(tree, layout);
         // The cycle's leaves where the re-lay put them, each grower's its
@@ -367,7 +419,10 @@ impl<'a> Executor<'a> {
     /// counted once, as the coarse grower's placeholder.
     fn mark(&mut self, cycle: u32, k: usize) {
         let mut d = self.coarse.digest(k);
-        for item in &self.items {
+        if k == 2 {
+            d = d.and(self.buried);
+        }
+        for item in self.items.iter().filter(|i| !i.dead) {
             let mut part = item.g.digest(k);
             part.counts[0] -= 2;
             d = d.and(part);
@@ -387,7 +442,7 @@ impl<'a> Executor<'a> {
 }
 
 /// The items in a piece of the work spread over the cores.
-const ITEMS: usize = 64;
+pub(super) const ITEMS: usize = 64;
 
 /// An item's links and PAs, its root the base of its own split.
 fn links(g: &Grower) -> Links {

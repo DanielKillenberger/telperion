@@ -142,7 +142,7 @@ impl Grower<'_> {
     }
 
     /// Its axes with their presences assigned.
-    fn assigned(mut self) -> Assigned {
+    pub(crate) fn assigned(mut self) -> Assigned {
         assign(&mut self.axes, &self.draws, self.species, self.threads);
         Assigned {
             axes: self.axes,
