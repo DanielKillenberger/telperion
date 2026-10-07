@@ -169,3 +169,10 @@
 - **What slowed it:** the load rose from 6 to 22 during the runs. The ten gated pairs took 50 minutes for about 6 minutes of measurement, and the palm's last pair was stopped while it waited.
 - **Cost:** about 45 minutes of wall time.
 - **What would remove it:** task 6's entry stands: a shared desk lock for timing runs.
+
+## 2026-10-08, task 12 worker: a digest timed inside one side of a comparison
+
+- **Doing:** comparing `grow` with the stepped executor (task 11), then `grow_today` with `grow` (task 12).
+- **What slowed it:** the example computed the first path's tree digest inside its timed region and the second's outside it. On small trees that charged one side up to 0.02 s of digest. Task 11's and task 12's first ratios favoured the stepped executor by that, and a decision was taken on them (TASK12.md, "A correction").
+- **Cost:** a decision round, and about an hour of optimisation aimed at a target that was too easy.
+- **What would remove it:** one timing helper for comparisons that times the build alone and hashes after both. The examples are deleted with the old paths, so any new comparison should start from such a helper.

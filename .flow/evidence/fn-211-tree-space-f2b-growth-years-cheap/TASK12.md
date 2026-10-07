@@ -65,3 +65,61 @@ All 20 digests are identical. The palm's row is from the load-gated runs before 
 
 - The deletion of `grow_fine` and `grow_whole`, pending the decision.
 - The gate. The space crate's stepped, fine and girth tests pass (20), as does the per-phase probe at 40.
+
+## After the host's decision (i): each root runs to its next synchronisation point (2026-10-08)
+
+Built:
+- **The schedule (`7a55150b`, `160f495b`; PHASES.md, host decision on the schedule):**
+  - A root runs from the cycle it is due to the next cycle at which anything crosses between it and the structure above.
+  - Roots due before that point wait for it, then run together, each from its own cycle.
+  - For the beech, the spruce and the unlit oak, every root runs at the last cycle. The lit oak steps every cycle.
+- **The probe:** the growth digest is rebuilt from the counts each root recorded as it ran. The probe holds every phase identical: 48 runs at 40 and 24 at 80 (the oak, unlit oak, beech and spruce, seeds 1 and 7; `raw/task12/probe-*.txt`).
+- **`grow` is now the stepped executor (`2c569792`).** Its cut is read from the predictor's counts, and it keeps no phase digests (`Keep::Tree`). Today's path is kept as `grow_today` only for this measurement.
+
+### A correction to every earlier ratio
+
+Until `160f495b`, the comparison example timed the first path with its tree's digest inside the timing:
+- **Task 11:** `digest(&grow(..))` was timed, so today's `grow` was charged its digest.
+- **Task 12's first run:** `digest(&grow_today(..))` was timed in the same way.
+
+The digest canonicalises and hashes the whole tree. For small trees it is a large share of the build: the beech at 40 takes 0.025 s without it and about 0.044 s with it. The ratios in TASK11.md and in `measure-1.txt` favour the stepped executor by that much. Task 11's lit-oak gain (0.75 to 0.78) is about the same after the correction (0.64 to 0.75 below).
+
+### The 20 trees, digests outside the timing (`raw/task12/measure-3.txt`)
+
+Each run started at a one-minute load under 6. Best of three warm builds, back to back.
+
+| Tree | Today, s | grow (stepped), s | Ratio |
+|---|--:|--:|--:|
+| beech 40 s1 / s7 | 0.025 / 0.034 | 0.030 / 0.043 | **1.20 / 1.27** |
+| beech 80 s1 / s7 | 0.313 / 0.530 | 0.398 / 0.643 | **1.27 / 1.21** |
+| spruce 40 s1 / s7 | 0.565 / 0.541 | 0.776 / 0.721 | **1.37 / 1.33** |
+| spruce 80 s1 / s7 | 2.425 / 2.645 | 3.339 / 3.326 | **1.38 / 1.26** |
+| oak 40 s1 / s7 | 0.199 / 0.316 | 0.126 / 0.207 | 0.63 / 0.66 |
+| oak 80 s1 / s7 | 2.327 / 6.145 | 1.291 / 3.248 | 0.55 / 0.53 |
+| lit oak 40 s1 / s7 | 0.656 / 0.980 | 0.495 / 0.708 | 0.75 / 0.72 |
+| lit oak 80 s1 / s7 | 8.119 / 20.550 | 5.370 / 13.049 | 0.66 / 0.64 |
+| palm 40 and 80 | under 1 ms | under 1 ms | 0.91 to 1.01 |
+
+All 20 digests are identical. **The beech and spruce are 1.20 to 1.38 times slower, so nothing is deleted.**
+
+### Where the beech's and spruce's time goes
+
+Spruce 80 s1 at load 6, one run:
+
+| | Stepped, s | `grow_fine`, s |
+|---|--:|--:|
+| Structure above the cut | 1.0 (coarse cycles, handover, the roots run together) | about 0.5 |
+| Roots grown, marked, assigned, shed | 0.38 (marked, assigned and shed as a separate pass after growth) | 0.53 (phase 1, growth included) |
+| Phases 2 to 4 | 1.45 | 1.65 |
+| Assembly | 0.31 | in its total |
+| Total | 3.16 | 2.44 |
+
+The difference lies outside the shared settle:
+- **The stepped coarse grower grows each fine root's first cycle itself.** It then hands the root over each cycle (`hand_over`: drained, renumbered, a grower made per root). `grow_fine`'s structure above the cut never grows a stand-in.
+- **The roots' phase 1 is a second pass over 92,703 growers,** after their growth, where `grow_fine` grows, marks, assigns and sheds each root in one pass.
+
+Two changes would close it. Neither is built:
+- (a) Fold phase 1 into the roots' run where their run ends the tree (grow, then mark, assign and shed on the same core). The woken roots' kept share from the coarse grower is applied first.
+- (b) Hand a fine bud over as it is made, never growing it in the coarse grower, as `grow_fine`'s `Hands` does.
+
+(b) changes the handover's order argument (PHASES.md, host decision 2: each grower keeps the whole tree's living order), so it is a design question.
