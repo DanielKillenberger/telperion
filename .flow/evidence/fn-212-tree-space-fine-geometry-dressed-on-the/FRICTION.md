@@ -89,3 +89,10 @@
 - **Hindered:** the spruce at 80 s7 ran out of device memory in the full pass, though it ran alone and in an earlier full pass. Memory left by the trees before it, or another holder of the card, decides it.
 - **Cost:** one rerun of three trees one at a time.
 - **Removal:** run the 80-year trees one per process (the `PROBE` filter), or assert the device's free memory before each tree.
+
+## 2026-10-07, task 7 (worker): the seed-7 timing pass ran at a load of 20 to 33
+
+- **Doing:** the 3x harness on the real path, five builds a side alternately, one a process, under the GPU lock.
+- **Hindered:** the seed-1 pass ran at a one-minute load of 7 to 9; during the seed-7 pass other workers brought it to 20 to 33. Today's side read 8.8 to 14.0 s against 5.4 to 7.5 s for seed 1, and the device's settle doubled, so the pass is not a clean measurement.
+- **Cost:** one pass of ten spruce-80 processes, about 12 minutes, retaken.
+- **Removal:** the quiet window this file's first timing entry asked for, or a timing lock that other heavy jobs respect.
