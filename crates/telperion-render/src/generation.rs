@@ -72,7 +72,6 @@ pub struct Metrics {
     pub descriptors_ms: f64,
     pub upload_dispatch_ms: f64,
     pub placement_wait_ms: f64,
-    pub compact_ms: f64,
     pub mass_ms: f64,
     pub readback_ms: f64,
     /// Wood work including early position preparation; contains wood substage timings.
@@ -92,7 +91,6 @@ pub struct Metrics {
     pub wood_cpu_bytes: u64,
     /// GPU output capacity retained by this result, excluding the previous tree.
     pub retained_gpu_bytes: u64,
-    pub input_instances: u32,
     pub instances: u32,
     pub descriptor_cpu_bytes: u64,
     pub shared_contact_cpu_bytes: u64,
@@ -141,7 +139,6 @@ pub struct Generator {
     gpu: Gpu,
     identity: Arc<()>,
     place: io::Pass,
-    compact: io::Pass,
     mass: io::Pass,
     positions: Option<io::Pass>,
 }
@@ -175,14 +172,8 @@ impl Generator {
         let place = io::Pass::new(
             &gpu,
             sources::place(),
-            &[true, true, true, false, false, false],
-            &["place", "prefix"],
-        );
-        let compact = io::Pass::new(
-            &gpu,
-            sources::scatter(),
-            &[true, true, true, false],
-            &["scatter"],
+            &[true, true, true, false, false],
+            &["place"],
         );
         let mass = io::Pass::new(
             &gpu,
@@ -204,7 +195,6 @@ impl Generator {
             identity,
             resident_allowed,
             place,
-            compact,
             mass,
             positions,
         })

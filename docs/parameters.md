@@ -27,12 +27,12 @@ The specimen's age in years: the engine grows the family's species for this many
 
 ### `/shellDepth`
 
-How deep into the crown leaves are kept, as a share of the crown's widest radius; a leaf further in than that is dropped. Raising it keeps more of the crown's interior foliage, and one keeps it all.
+How deep into the crown leaves were kept, as a share of the crown's widest radius. Checked and read by nothing past the check: the cull it set kept every leaf on every engine preset and was removed (fn-198 R1, fn-212 R2); whether the row goes is the owner's call.
 
 - real, share of the crown's widest radius, [0, 1], default 0.45
 - read by cull; removed growth path: measured against the envelope at the specimen's age
 - checked: Shell site, rank 0, as invalid input `shell depth`
-- note: `foliage::cull` and the GPU executor's preparation check it again; the planned field counts stations before the cull and does not read it.
+- note: The leaves stage checks it again; no cull reads it since fn-212 R2, and the planned field does not read it.
 - blend: linear; dial: `shell_depth` (how deep into the crown leaves are kept, as a share of its widest radius), window its bounds (validated bound), steps 0.15 and 0.3
 
 ## `/skeleton`

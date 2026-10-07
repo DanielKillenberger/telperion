@@ -71,8 +71,7 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
     };
     let reference = Reference::spanning(Vec3::new(-2.0, -1.0, -2.0), Vec3::new(2.0, 3.0, 2.0));
     let element = executor::element(f.element).unwrap();
-    for (angle, shell) in [(0.0, 1.0), (0.73, 0.01)] {
-        f.shell_depth = shell;
+    for angle in [0.0, 0.73] {
         let tree = fixture(angle);
         let x = expansion(&tree, &f, twig);
         let prepare = || expansion(&tree, &f, twig).stations().unwrap().unwrap();
@@ -144,19 +143,8 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
         );
         assert_eq!(&uploaded.positions, &positions);
 
-        // The pipeline's CPU leaves on the same tree, and before the cull
-        // (a shell of one keeps every leaf).
+        // The pipeline's CPU leaves on the same tree: every placed leaf.
         let cpu = x.mesh().unwrap().foliage.instances;
-        let mut whole = f.clone();
-        whole.shell_depth = 1.0;
-        let placed = expansion(&tree, &whole, twig)
-            .mesh()
-            .unwrap()
-            .foliage
-            .instances;
-        if shell < 1.0 {
-            assert!(!cpu.is_empty() && cpu.len() < placed.len());
-        }
         let mut actual = Instances::new(reference);
         actual.leaves = a
             .chunks_exact(12)

@@ -115,48 +115,34 @@ impl Generator {
             0
         };
         drop((p.segments, segments));
-        let mut geometry: Vec<_> = e.positions.iter().map(|&v| data::vector(v, 0.0)).collect();
-        geometry.extend(
-            l.envelope
-                .profile()
-                .iter()
-                .map(|v| [v[0] as f32, v[1] as f32, 0.0, 0.0]),
-        );
-        let geometry = upload(gpu, "generation element and shell", &geometry, STORAGE)?;
-        let raw = io::buffer(gpu, "generation raw", u64::from(count) * 12, STORAGE, &[])?;
-        let ranks = io::buffer(gpu, "generation ranks", u64::from(count) * 4, STORAGE, &[])?;
-        let mut initial = vec![0u32; 16 + groups as usize];
+        let geometry: Vec<_> = e.positions.iter().map(|&v| data::vector(v, 0.0)).collect();
+        let geometry = upload(gpu, "generation element", &geometry, STORAGE)?;
+        // Every placed leaf is drawn, written where it was placed (fn-212 R2).
+        let leaves = io::buffer(
+            gpu,
+            "generated foliage",
+            u64::from(count) * 12,
+            STORAGE,
+            &[],
+        )?;
+        let mut initial = [0u32; 16];
+        initial[0] = count;
         for i in 0..12 {
             initial[2 + i] = if (i / 3) % 2 == 0 { u32::MAX } else { 0 };
         }
         let summary = upload(gpu, "generation summary", &initial, STORAGE)?;
-        let live = [
+        let buffers = [
             &config,
             &segment_buffer,
             &*ring_buffer,
             &geometry,
-            &raw,
-            &ranks,
+            &leaves,
             &summary,
-        ]
-        .iter()
-        .map(|b| b.size())
-        .sum::<u64>();
-        let bind = self.place.bind(
-            gpu,
-            &[
-                &config,
-                &segment_buffer,
-                &*ring_buffer,
-                &geometry,
-                &raw,
-                &ranks,
-                &summary,
-            ],
-        );
+        ];
+        let live = buffers.iter().map(|b| b.size()).sum::<u64>();
+        let bind = self.place.bind(gpu, &buffers);
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
         self.place.run(&mut encoder, &bind, 0, groups);
-        self.place.run(&mut encoder, &bind, 1, 1);
         gpu.queue.submit([encoder.finish()]);
         m.upload_dispatch_ms = started.elapsed_ms();
         let wait = Clock::now();
@@ -172,55 +158,20 @@ impl Generator {
             )
             .into());
         }
-        let survivors = values[0];
-        m.input_instances = count;
-        m.instances = survivors;
-        let crown = (survivors > 0).then(|| bounds(&values, 2));
-        let full = (survivors > 0).then(|| bounds(&values, 8));
-        let start = Clock::now();
-        let leaves = io::buffer(
-            gpu,
-            "generated foliage",
-            u64::from(survivors) * 12,
-            STORAGE,
-            &[],
-        )?;
-        let compact_config = upload(
-            gpu,
-            "generation compact config",
-            &[[count, groups, 0, 0]],
-            wgpu::BufferUsages::UNIFORM,
-        )?;
-        let compact_bind = self
-            .compact
-            .bind(gpu, &[&compact_config, &raw, &ranks, &summary, &leaves]);
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
-        self.compact.run(&mut encoder, &compact_bind, 0, groups);
-        gpu.queue.submit([encoder.finish()]);
-        io::complete(gpu).await?;
-        m.compact_ms = start.elapsed_ms();
-        m.gpu_compute_peak_bytes = live + leaves.size() + compact_config.size() + 64;
-        drop((
-            bind,
-            compact_bind,
-            config,
-            segment_buffer,
-            ring_buffer,
-            geometry,
-            raw,
-            ranks,
-            summary,
-            compact_config,
-        ));
+        m.instances = count;
+        let crown = Some(bounds(&values, 2));
+        let full = Some(bounds(&values, 8));
+        m.gpu_compute_peak_bytes = live;
+        drop((bind, config, segment_buffer, ring_buffer, geometry, summary));
         let start = Clock::now();
         let masses = self
-            .mass(&leaves, survivors, crown, r, retained_contacts, m)
+            .mass(&leaves, count, crown, r, retained_contacts, m)
             .await?;
         m.mass_ms = start.elapsed_ms();
         Ok(Resident {
-            leaves: Held::resident(leaves, u64::from(survivors) * 12, "generated foliage"),
+            leaves: Held::resident(leaves, u64::from(count) * 12, "generated foliage"),
             masses: Held::resident(masses.0, masses.1, "generated foliage masses"),
-            count: survivors,
+            count,
             crown,
             full,
         })

@@ -13,3 +13,10 @@
 - **Hindered:** first the lock was held about 12 minutes by another worktree's workspace gate; then, during the pass, other workers' tests (a 9-core `walks` test, a `contract dump`) kept the one-minute load at 38 to 60 on 32 threads. The spruce's CPU stations ran 11 to 12 s against 5.8 to 7.2 s in the same step at load 10 to 12 an hour earlier, so the pass is not a clean baseline.
 - **Cost:** about 15 minutes of waiting plus a repeated pass (about 6 minutes).
 - **Removal:** a desk-wide quiet window for timing passes (a second lock, or the GPU lock's holders refraining from heavy CPU work while a timing pass runs). The figures carry their load and a second pass is taken.
+
+## 2026-10-07 11:25, task 2 (worker): the GPU lock queued behind two workspace gates
+
+- **Doing:** the base digests (the pipeline's hashes at 40 and 80) before the first deletion.
+- **Hindered:** the lock was held by another worktree's workspace gate with a second gate and two GPU captures queued; my run queued at 11:07 and had not started at 11:25. `flock -w 900` gives up after 15 minutes, so a queued run can silently time out with empty output.
+- **Cost:** about 20 minutes of wall time on the first proof (worked on code meanwhile); one driver rewritten to retry on `flock -E 99`.
+- **Removal:** a lock with a visible queue (who holds it, who waits, since when), or gates that build first and take the lock only for their GPU tests.

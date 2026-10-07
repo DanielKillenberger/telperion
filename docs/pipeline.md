@@ -16,7 +16,7 @@ The stages live in private modules of the pipeline (`crates/telperion-core/src/p
 | `GrowInput` | the skeleton | the engine species, its stem ages and site light (`/space`), the age, the seed |
 | `PlanInput` | the element, the leaf plan, the leaf box | element, the grown tree's envelope, canopy, surface, seed, the twig placement, the leaf box |
 | `SurfaceInput` | the rings and the wood | the envelope's height, surface |
-| `LeafInput` | placement and the cull | envelope, canopy, seed, shell depth |
+| `LeafInput` | placement | envelope, canopy, seed, shell depth (checked, unread since fn-212 R2) |
 
 `GrowInput` lends the family's groups to the one stage that reads them; the others are owned copies with no reference back to the family, so an expansion outlives it. Family-level values are derived there once: the resolved twig rows, the twig placement and the leaf box read from them, the height. A derivation that can fail is kept as its result and answered where its stage runs, so the error a request meets is the one it met before, in the same order. Values that live at a branch or a surface sample (internodes, curtains, sample positions) stay derived inside their stage, where their inputs exist (fn-152 `ASTRA-REVIEW.md`, finding 1).
 

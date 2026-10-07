@@ -14,8 +14,6 @@ pub(super) struct Config {
     shape: [f32; 4],
     lean: [f32; 4],
     size: [f32; 4],
-    envelope: [f32; 4],
-    curve: [f32; 4],
 }
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
@@ -40,7 +38,6 @@ pub(super) fn config<R>(
     r: Reference,
 ) -> Config {
     let c = l.canopy;
-    let env = l.envelope;
     Config {
         counts: [
             p.count,
@@ -48,7 +45,7 @@ pub(super) fn config<R>(
             e.positions.len() as u32,
             p.ring_size,
         ],
-        random: [l.seed, t.stations_per_internode, p.count.div_ceil(256), 129],
+        random: [l.seed, t.stations_per_internode, p.count.div_ceil(256), 0],
         box_min: vector(r.min, 0.0),
         box_extent: vector(r.extent, 0.0),
         shape: [
@@ -63,19 +60,7 @@ pub(super) fn config<R>(
             c.outward as f32,
             c.upward as f32,
         ],
-        size: [
-            c.size as f32,
-            c.size_variation as f32,
-            (l.shell_depth * env.max_radius()) as f32,
-            0.0,
-        ],
-        envelope: [
-            env.height as f32,
-            env.crown_base as f32,
-            env.max_radius() as f32,
-            env.fullness as f32,
-        ],
-        curve: [env.shoulder as f32, 0.0, 0.0, 0.0],
+        size: [c.size as f32, c.size_variation as f32, 0.0, 0.0],
     }
 }
 pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {

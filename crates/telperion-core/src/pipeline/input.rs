@@ -108,7 +108,7 @@ pub(crate) struct SurfaceInput {
     pub(crate) params: SurfaceParams,
 }
 
-/// Placement and the cull: the rows an executor places leaves by.
+/// Placement: the rows an executor places leaves by.
 #[derive(Debug, Clone, Copy)]
 pub struct LeafInput {
     pub envelope: Envelope,

@@ -12,10 +12,6 @@ pub(super) fn place() -> String {
     )
 }
 
-pub(super) fn scatter() -> String {
-    include_str!("scatter.wgsl").into()
-}
-
 pub(super) fn mass() -> String {
     format!("{LEAF}\n{}", include_str!("mass.wgsl"))
 }
@@ -38,7 +34,6 @@ fn position_probe() -> String {
 pub(super) fn all() -> Vec<(&'static str, String)> {
     let mut out = vec![
         ("place", place()),
-        ("scatter", scatter()),
         ("mass", mass()),
         ("positions", positions()),
         ("position probe", position_probe()),
