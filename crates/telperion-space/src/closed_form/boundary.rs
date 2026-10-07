@@ -139,7 +139,7 @@ impl Rows {
 
 /// The PAs a lateral or sleeping bud can grow in: every one a living
 /// age's zone draws, as far as it passes through ages that do not live.
-fn borne(species: &Species) -> Vec<bool> {
+pub(super) fn borne(species: &Species) -> Vec<bool> {
     let mut borne = vec![false; species.states.len()];
     for state in species.states.iter().filter(|s| s.lifespan > 0.0) {
         for zone in &state.zones {

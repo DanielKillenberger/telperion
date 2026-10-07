@@ -72,9 +72,7 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
     if request.age == 0 {
         return refuse("age", "a tree grows at least one cycle");
     }
-    let expected = crate::bounded::Expected::new(species, request.age, 0);
-    let plan = crate::fine::Plan::default();
-    let fine = crate::fine::grow_fine(species, request, &expected, plan)?;
+    let fine = crate::fine::grow_fine(species, request, crate::fine::Plan::default())?;
     Ok(lineage_order(fine.structure))
 }
 

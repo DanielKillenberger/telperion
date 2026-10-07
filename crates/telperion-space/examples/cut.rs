@@ -62,29 +62,27 @@ fn main() {
                         wall,
                     );
                     let unlit = unlit(&species);
-                    let expected = Expected::new(&unlit, age as u32, 0);
                     expand(
                         &format!("{label}, light off"),
                         &unlit,
                         request(Light::NEUTRAL),
-                        &expected,
                         cut,
                     );
                 } else {
-                    expand(&label, &species, request(Light::NEUTRAL), &expected, cut);
+                    expand(&label, &species, request(Light::NEUTRAL), cut);
                 }
             }
         }
     }
 }
 
-fn expand(label: &str, species: &Species, request: Request, expected: &Expected, cut: f64) {
+fn expand(label: &str, species: &Species, request: Request, cut: f64) {
     let t = Instant::now();
     let plan = Plan {
         cut,
         ..Plan::default()
     };
-    let fine = grow_fine(species, request, expected, plan).expect("grows");
+    let fine = grow_fine(species, request, plan).expect("grows");
     let wall = t.elapsed().as_secs_f64();
     let sizes: Vec<(f64, usize)> = fine.roots.iter().map(|r| (r.predicted, r.kept)).collect();
     let work: Vec<Work> = fine.roots.iter().map(|r| r.work).collect();
