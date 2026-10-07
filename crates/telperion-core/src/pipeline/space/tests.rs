@@ -1,5 +1,6 @@
-//! The canonical axis order (host, 2026-10-07): one tree assembled in two
-//! orders converts to one tree, and the order is the engine's own.
+//! The axis order (host decision 17): stage 2 converts the engine's tree in
+//! the engine's lineage order, and one tree assembled in two orders
+//! converts to one tree.
 use super::*;
 use crate::presets::Preset;
 
@@ -20,10 +21,9 @@ fn grown() -> (Structure, Vec<usize>) {
 /// `structure` reassembled with its siblings in the reverse of their
 /// canonical order, parents still first.
 fn reversed(structure: &Structure) -> Structure {
-    let mut s = canonical(structure.clone()).unwrap();
-    let ids = telperion_space::identities(&s);
+    let ids = telperion_space::identities(structure);
     let mut depth = vec![0usize; ids.len()];
-    for (i, axis) in s.axes.iter().enumerate() {
+    for (i, axis) in structure.axes.iter().enumerate() {
         depth[i] = axis.origin.parent().map_or(0, |p| depth[p] + 1);
     }
     let mut order: Vec<usize> = (0..ids.len()).collect();
@@ -32,11 +32,11 @@ fn reversed(structure: &Structure) -> Structure {
     for (k, &i) in order.iter().enumerate() {
         at[i] = k;
     }
-    let axes = std::mem::take(&mut s.axes);
+    let mut s = structure.clone();
     s.axes = order
         .iter()
         .map(|&i| {
-            let mut axis = axes[i].clone();
+            let mut axis = structure.axes[i].clone();
             match &mut axis.origin {
                 Origin::Seed => {}
                 Origin::Lateral { parent, .. }
@@ -49,24 +49,20 @@ fn reversed(structure: &Structure) -> Structure {
     s
 }
 
+/// Stage 2 converts the engine's tree as the engine returns it (host
+/// decision 17): in its lineage order, which a tree assembled in any other
+/// order takes again, so it converts to one tree.
 #[test]
 fn a_tree_assembled_in_another_order_converts_to_the_same_tree() {
     let (structure, trunk) = grown();
     let other = reversed(&structure);
     assert_ne!(other.axes, structure.axes, "the orders differ");
-    // Without the sort the order reaches the tree.
+    // Without the order the assembly reaches the tree.
     let unsorted = convert(&other, &trunk) != convert(&structure, &trunk);
     assert!(unsorted, "the order never reached the conversion");
-    let a = convert(&canonical(structure).unwrap(), &trunk);
-    let b = convert(&canonical(other).unwrap(), &trunk);
-    assert!(a == b, "one tree, two orders, two conversions");
-}
-
-#[test]
-fn the_order_is_the_engines_canonical_order() {
-    let (structure, _) = grown();
-    let theirs = telperion_space::canonical(&structure);
-    assert_eq!(canonical(structure).unwrap().axes, theirs.axes);
+    let again = telperion_space::lineage_order(other);
+    assert_eq!(again.axes, structure.axes, "grow returns the lineage order");
+    assert!(convert(&again, &trunk) == convert(&structure, &trunk));
 }
 
 /// A tree over the Wasm ceiling is refused by name, and the name states
