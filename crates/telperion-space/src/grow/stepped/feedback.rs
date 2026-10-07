@@ -6,7 +6,8 @@
 //! all-CPU run's to the word (CONTRACT-A.md 2.9), which `states` shows
 //! after every phase of every cycle.
 use super::lay::{Laid, LayJob};
-use super::{links, Executor};
+use super::phases::links;
+use super::Executor;
 use crate::fixed::feedback::lattice::Grid;
 use crate::fixed::feedback::shed::{walk, Lateral, Walked};
 use crate::fixed::feedback::Fault;
@@ -116,7 +117,7 @@ impl<'a> Executor<'a> {
         &mut self,
         cycle: u32,
         device: &mut dyn Feedback,
-        roots: Vec<(super::Totals, (bool, f64, f64))>,
+        roots: Vec<(crate::grow::balance::Totals, (bool, f64, f64))>,
     ) {
         let read = self.each(roots, &|item, (t, (shed, kept, memory))| {
             let root = &mut item.g.sketch.as_mut().expect("sketching").pencils[1];
