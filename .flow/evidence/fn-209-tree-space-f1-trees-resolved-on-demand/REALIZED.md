@@ -367,3 +367,141 @@ What the table shows:
 **Gate:** `cargo test --profile ci --workspace --no-fail-fast` at `c104e058`'s code: 1,151 passed, 0 failed, 11 m 27 s, load 5.5 at the start and 9.5 at the end (31.7 at its one-minute peak), GPU lock held.
 
 **Acceptance, as the worker reads it:** the cut decisions, trees, iteration, all-core timing and gate are met. One-core `grow` at least as fast as `grow_whole` is met for the beech at 80 only; the beech at 40 and the spruce at 40 and 80 are at parity within ±3 % noise, not measurably faster or slower. Not marked done; for the host.
+
+## Task 8: the predictor merged, and the GPU's growth made fast (worker, 2026-10-07)
+
+From `543c4400` to `6e03261d`. Raw output in `raw/gpu-fast/` (ignored).
+
+### Answer in brief
+
+- **Merged.** fn-209-predictor is in. `settle_with`'s cut reads the count-only predictor. The GPU's public `settle` no longer takes `Expected`: the ground bound's reach rows are read by the driver itself (below). Every tree is identical: the 32 lineage digests and `measures hash 80` (16 trees) equal the base `c147e06a`'s. The GPU's fine tests are green.
+- **No bit moved.** After every speed change the GPU's fine tests passed: the contract probe, chains and units, and every root grown and settled by lineage in three orders and batches. At 40 and 80 (`realized_at_40_and_80`), every tree's tips and radii against `grow_fine` are the task 6 table's to the printed digit: beech 80 18.8 / 1.42 µm, spruce 80 2.7 / 0.39 µm; statuses 0. The digests and `measures hash 80` were taken again on the final code: unchanged.
+- **Speed, warm, from parameters** (the species point's tables, the structure above the cut, the four phases and the landing):
+  - spruce 80: 1.08 to 1.12 s on the GPU before, now 0.44 to 0.46 s. 32 cores take 0.98 to 0.99 s (`grow_fine`) and 1.14 s (`grow`). That is 2.1 to 2.3 times faster than 32 cores, not 3.
+  - spruce 80's fine stage (the executor's four phases): 163 to 165 ms against 575 to 579 ms on 32 cores, 3.5 times faster.
+  - beech 80: seed 1 152 ms against 158 (`grow_fine`) and 182 ms (`grow`) on 32 cores; seed 7 205 ms against 263 ms. Faster than 32 cores on both seeds; on seed 1 by 4 % against `grow_fine`.
+- **The bar.** Faster than 32 cores on the beech at 80: met, narrowly on seed 1. Three times faster on the spruce at 80: met for the fine stage (3.5 times), not for the whole build (2.1 to 2.3 times). The reason, with numbers, is below.
+
+### What the profile showed
+
+A per-pass GPU timestamp profile (`generation/profile.rs`, test-only; `profile_tests::growth_by_kernel`) and a clock on the driver's stages (`Settled::stages`).
+
+The first profile, spruce 80 at the merge: the device was busy 229 ms of a 1,078 ms build.
+- Each run of 65,536 chains created and cleared 1.4 GB of region buffers: 22 ms of `create_buffer` and 10 ms of submit, against about 8 ms of kernels.
+- `pack` took a thread a chain: 78 ms.
+- The grow kernel was 82 ms, and half of it was the chain's end taking its presences (four 128-bit `log2` calls each). On the beech the longest chains of each wave set that pass's time.
+
+### What was built
+
+| Commit | Change | Effect (warm) |
+|---|---|---|
+| `5de838b0` | The grower's five region buffers kept from run to run | spruce 80 1.07 to 0.60 s; beech 80 0.38-0.53 to 0.28-0.35 s |
+| `fc2c57b2` | `pack`: a workgroup a chain | `pack` 78 to 4 ms; phase 1 235 to 162 ms |
+| `a5c28c82` | The asks in their own pass, eight threads a chain; the products a thread a chain after | beech 80 grow kernels 158 to 96 ms |
+| `21b8cd81` | Option b: one draw log-odds per two-sided lead (`lead_q`, in the probe) | asks 27 to 16 ms (spruce 80) |
+| `5c371321` | The reach rows read on one thread while phase 1 runs; `settle` drops `Expected` | 143 to 168 ms off the GPU path at spruce 80 |
+| `5a5d2ad9` | A wave a fraction of the batch starts in regions as many times larger as the room holds | beech 80 220 to 201 ms; beech 40 75 to 51 ms |
+| `bf347388` | The species point's tables built on another core while the structure grows (`Device::building`) | beech 80 201 to 176 ms |
+| `d81245d3` | The driver's stages timed (`Settled::stages`) | |
+| `ca4be70e` | A node's lead from its zone's draw, taken once a zone, and its bound's `logit` or `log2` from a table | beech 80 grow kernel 75 to 48 ms |
+| `14d214f8` | The large buffers kept from build to build in a pool, cleared when taken again | spruce 80 0.49-0.53 to 0.46-0.49 s |
+| `f5f6ddfd` | Phase 4's lays overlap the CPU's landing | spruce 80 to 0.45 s |
+| `5b89186b` | Option a for the asks: every species-constant bound's log-odds from a table (in the probe) | asks 16 to 10 ms (spruce 80) |
+| `7120ccb0` | Each region buffer grows on its own (the five had traded places every build) | beech 40 seed 7 130 to 45 ms |
+| `a70177d0` | The pool holds one build's buffers | spruce 80 cold 742 to 501 ms |
+
+Every table value is computed on the CPU by the contract's own `fixed::logit` and `fixed::log2`, which the probe holds to the GPU's.
+
+The pool clears a buffer it hands out again. The first try did not, and the GPU tests' status check failed: the geometry's status words are read before they are written.
+
+**Tried and dropped:**
+- Making the handed buds and the roots' seeds on every core (`cores::map`) slowed both: above the cut 106 to 118 ms, seeds 14 to 33 ms.
+- Other cuts (spruce and beech at 80, warm): 256, 4,096 and 16,384 are each slower than 1,024. Beech 80 seed 1 takes 264, 152, 185 and 199 ms; spruce 80 seed 1 takes 442, 448, 479 and 534 ms.
+
+### Timing (`raw/gpu-fast/speed-1.txt`, `speed_tests::fine_stage_and_build`; cut 1,024)
+
+Ryzen 9 5950X (32 threads) and RTX 3080. Load 2.5 at the start and 3.0 at the end.
+- **GPU:** the build from parameters, as above.
+- **CPU:** `grow_fine` on all cores and on one (`Plan::threads`).
+- **Cold** is the tree's first build in the process, just after one build of a tree not timed. Without that build, the device's clocks fall while the CPU columns run, and a cold build pays for it (`realized_at_40_and_80`'s GPU columns show it: spruce 80 0.65 to 0.76 s).
+- **Warm** is the best of two more builds.
+- In brackets: the fine stage, the executor's four phases.
+
+| Tree | GPU cold / warm ms (fine stage) | CPU all cores cold / warm ms (fine stage) | CPU 1 core cold / warm ms (fine stage) |
+|---|--:|--:|--:|
+| beech 40 1 | 38 / 38 (29) | 18 / 16 (8) | 83 / 73 (66) |
+| beech 40 7 | 43 / 42 (31) | 25 / 25 (12) | 125 / 118 (109) |
+| beech 80 1 | 162 / 152 (88) | 191 / 158 (87) | 1283 / 1117 (1047) |
+| beech 80 7 | 417 / 205 (117) | 272 / 263 (151) | 2004 / 1854 (1749) |
+| spruce 40 1 | 148 / 122 (51) | 249 / 261 (131) | 1942 / 1913 (1785) |
+| spruce 40 7 | 113 / 113 (47) | 239 / 231 (121) | 1786 / 1786 (1678) |
+| spruce 80 1 | 504 / 463 (165) | 1129 / 994 (579) | 9267 / 8671 (8235) |
+| spruce 80 7 | 465 / 439 (163) | 987 / 979 (575) | 8484 / 8625 (8199) |
+
+`grow` itself (`examples/timegrow.rs`, seed 1, cold / warm ms; `raw/gpu-fast/timegrow-*.txt`):
+
+| Tree | 32 cores | 1 core (pinned) |
+|---|--:|--:|
+| beech 40 | 26 / 17 | 93 / 78 |
+| beech 80 | 231 / 182 | 1343 / 1215 |
+| spruce 40 | 268 / 266 | 1998 / 2019 |
+| spruce 80 | 1226 / 1139 | 9774 / 8971 |
+
+What the tables say (the worker's readings):
+- **Against one core** the GPU is 7 to 20 times faster at 80, and 2 to 16 times at 40.
+- **The young beech is slower on the GPU** than on 32 cores (38 to 42 ms against 16 to 25 ms). Its 8 to 9 waves of a few long chains are latency, and 26 ms of the device's time.
+- **Beech 80 seed 7's cold build is 417 ms.** Its 21 runs create their packed buffers anew when the pool holds another tree's, at about 3.6 ms for each large one.
+
+### Where the spruce 80's 0.44 to 0.47 s goes (`raw/gpu-fast/profile.txt`, warm)
+
+On the CPU, about 300 ms:
+
+| Stage | ms |
+|---|--:|
+| Rules | 16 |
+| Predictor | 26 |
+| Structure above the cut | 110 to 124 |
+| Seeds | 14 to 18 |
+| Shed and scale | 13 to 14 |
+| Thicken and place | 17 to 19 |
+| Landing, unbent | 7 to 8 |
+| Levers and place | 21 to 22 |
+| Landing, bent (5,623 roots regrown and laid on the CPU) | 48 to 55 |
+
+On the executor, about 165 ms: phase 1 103 to 108, phase 2 23, phase 3 30, phase 4 6 (overlapped). The device is busy 136 to 138 ms of it:
+
+| Kernel | ms |
+|---|--:|
+| grow | 38 |
+| assign | 17 |
+| asks | 10 |
+| lays | 11 |
+| levers | 12 |
+| scales | 10 |
+| girths | 6 |
+| others | 34 |
+
+Three times 32 cores is 330 ms (`grow_fine`, 979 to 994 ms) or 380 ms (`grow`, 1,139 ms). The CPU's stages alone are about 300 ms.
+- They run before, between and after the device's phases, and every one feeds the next.
+- The structure above the cut runs on one core in all but name: 105 to 110 ms on 32 threads, 110 to 125 on one. Its time is its 92,703 buds being made and handed on (`grow_live` 70 ms, `handed` 20 ms).
+- So even a device that took no time would leave the build at about 300 ms. That is 3.3 times `grow_fine` and 3.8 times `grow`, before the device's own 165 ms.
+- The bar for the whole build needs the CPU's stages shortened or overlapped with the device. That is the driver's design (below), not the GPU's growth.
+
+### Design question (host)
+
+**Q: what closes the spruce 80 from 2.2 times 32 cores to 3?** Options, in the worker's order of what each would buy. None is built.
+
+1. **Count the bar on the fine stage.** It stands at 3.5 times today. The structure above the cut and its settle are F2b's, and the same on either executor.
+2. **Overlap the driver with the device.**
+   - (a) Hand the buds to the device as `above` makes them, cycle by cycle, so phase 1 grows while the structure grows. That is about 100 ms of the 110 at spruce 80. It changes the driver's shape: the waves would start from buds made over 80 cycles, not from one list.
+   - (b) Regrow the roots likely to land during phases 1 to 3, while the CPU is idle. Only their selection waits for the bent frames. The landing's 48 to 55 ms are mostly that regrowth (36 ms). It needs a selection rule that is a superset and stays cheap: a design of host decision 3's bound.
+3. **Shorten the structure above the cut** (F2b's work). Its bud making (`grow_live`, 70 ms) is serial in practice, whatever the cores.
+4. **Lay the near-ground roots on the device too.** This is host decision 3 reversed, with the ground's terms in emulated f64. It removes the CPU landing (55 ms), but the ground bound is the reason those roots are the CPU's.
+
+For the beech, **option c** of "The GPU mirror built" (a workgroup per heavy chain) is what remains. Its grow kernel is 48 to 62 ms over 12 waves, each set by its longest chain's serial growth. Splitting a chain's cycle across threads needs a deterministic order for the axes it makes in parallel: a redesign of the chain grower, not a change that keeps its code.
+
+### Open, for the host
+
+- **Cold builds** create every large buffer anew (about 3.6 ms each). A per-build arena bound at offsets would remove that, at the cost of every pass binding a range rather than a buffer.
+- The pool and the region buffers together hold one build's worth of the device: about 1.4 GB of regions plus the last tree's packed buffers.
+- `realized_at_40_and_80`'s GPU columns now read the device after the CPU columns have let it idle. Its timing is superseded by `speed_tests`. Its geometry, the screen and the orders, is what it is run for.

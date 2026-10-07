@@ -181,3 +181,10 @@
 - **Slowed:** `samply` refuses with `perf_event_paranoid` at 2 and there is no `perf`; each split took a hand-written `eprintln!` timer, a rebuild and a run, restored by copying the file back.
 - **Cost:** about 15 minutes over five rounds of tracing.
 - **Would remove it:** `kernel.perf_event_paranoid = 1` on the desk (a local setup, the owner's call), or a stage clock in the driver (`Settled` carrying each CPU stage's milliseconds beside the executor's phases) printed by the timing tests.
+
+## 2026-10-07, cold GPU timings that measured the device's idle clocks (task 8)
+
+- **Doing:** the step 3 table, GPU cold and warm against the CPU on 1 and all cores.
+- **Slowed:** the timing tests run a tree's CPU columns (up to 27 s at spruce 80 on one core) between the GPU builds, and the device's clocks fall meanwhile. The next tree's cold build then ran on a slow device. Beech 40 seed 1 showed 769 ms cold and 90 ms warm where 40 ms was usual, spruce 80 0.65 to 0.76 s in `realized_at_40_and_80`. It looked like an allocation fault and was chased as one (the pool's growth and its bound were real faults found on the way, `7120ccb0` and `a70177d0`).
+- **Cost:** about 10 minutes and four locked runs.
+- **Would remove it:** a timing test that builds an untimed tree just before each timed cold build (`speed_tests` now does), and a note in the GPU timing harnesses that cold means "first build of this tree", not "first work for an idle device".
