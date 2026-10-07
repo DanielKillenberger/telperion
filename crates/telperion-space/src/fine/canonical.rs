@@ -147,38 +147,65 @@ fn put_vec(put: &mut impl FnMut(u64), v: crate::structure::Vec3) {
 /// by lineage and, where two share one, by identity. Every `grow` returns
 /// its tree so, whichever path built it.
 pub fn lineage_order(structure: Structure) -> Structure {
-    let Structure { age, pas, axes } = structure;
+    let Structure { age, pas, mut axes } = structure;
     let n = axes.len();
     let ids = identities_of(&axes);
-    let key = |i: usize| (axes[i].lineage, ids[i]);
-    let mut children: Vec<Vec<usize>> = vec![Vec::new(); n];
+    let keys: Vec<(u64, u64)> = axes
+        .iter()
+        .zip(&ids)
+        .map(|(a, &id)| (a.lineage, id))
+        .collect();
+    let parents: Vec<Option<usize>> = axes.iter().map(|a| a.origin.parent()).collect();
+    // Each parent's children, by index, in one table: `children[start[p]..start[p + 1]]`.
+    let mut start = vec![0usize; n + 1];
+    for &p in parents.iter().flatten() {
+        start[p + 1] += 1;
+    }
+    for p in 0..n {
+        start[p + 1] += start[p];
+    }
+    let mut fill = start.clone();
+    let mut children = vec![0usize; start[n]];
     let mut order: Vec<usize> = Vec::with_capacity(n);
-    for (i, axis) in axes.iter().enumerate() {
-        match axis.origin.parent() {
-            Some(p) => children[p].push(i),
+    for (i, parent) in parents.iter().enumerate() {
+        match *parent {
+            Some(p) => {
+                children[fill[p]] = i;
+                fill[p] += 1;
+            }
             None => order.push(i),
         }
     }
-    order.sort_by_key(|&i| key(i));
+    order.sort_by_key(|&i| keys[i]);
     let mut k = 0;
     while k < order.len() {
-        let mut kids = std::mem::take(&mut children[order[k]]);
-        kids.sort_by_key(|&i| key(i));
-        order.extend(kids);
+        let p = order[k];
+        let kids = &mut children[start[p]..start[p + 1]];
+        kids.sort_by_key(|&i| keys[i]);
+        order.extend_from_slice(kids);
         k += 1;
+    }
+    // The axes moved to their places in place, a cycle of the
+    // permutation at a time: place `k` takes axis `order[k]`.
+    let mut placed = vec![false; n];
+    for first in 0..n {
+        let mut k = first;
+        while !placed[k] {
+            placed[k] = true;
+            let from = order[k];
+            if from == first {
+                break;
+            }
+            axes.swap(k, from);
+            k = from;
+        }
     }
     let mut at = vec![usize::MAX; n];
     for (k, &i) in order.iter().enumerate() {
         at[i] = k;
     }
-    let mut slots: Vec<Option<Axis>> = axes.into_iter().map(Some).collect();
-    let axes = order
-        .iter()
-        .map(|&i| {
-            let mut axis = slots[i].take().expect("each axis once");
-            renumber(&mut axis, &at);
-            axis
-        })
-        .collect();
+    for axis in &mut axes {
+        renumber(axis, &at);
+    }
     Structure { age, pas, axes }
 }
