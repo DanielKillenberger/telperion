@@ -209,25 +209,59 @@ fn node_phytomer() -> Phytomer {
 /// The bearer as a root's tree holds it: its phytomer at `node` alone,
 /// standing on the point below it, as laid.
 pub(crate) fn stub(bearer: &Axis, node: usize) -> Axis {
-    let below = node
-        .checked_sub(1)
-        .map_or(bearer.base, |n| bearer.phytomers[n].tip);
-    Axis {
-        lineage: bearer.lineage,
-        pa: bearer.pa,
-        birth: bearer.birth,
-        origin: Origin::Seed,
-        vigour: 1.0,
-        blend: 1.0,
-        apex_end: None,
-        base: below,
-        heading: Vec3::default(),
-        side: Vec3::default(),
-        phytomers: vec![bearer.phytomers[node]],
-        units: Vec::new(),
-        alive: 0.0,
-        rank: 0.0,
-        sleep: 0.0,
+    Stub::of(bearer, node).axis()
+}
+
+/// A root's bearer's stub as plain values (task 9): what `stub` makes its
+/// axis of, kept without one.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Stub {
+    lineage: u64,
+    pa: usize,
+    birth: u32,
+    below: Vec3,
+    phytomer: Phytomer,
+}
+
+impl Stub {
+    /// `bearer`'s stub at its `node`, as laid.
+    pub fn of(bearer: &Axis, node: usize) -> Self {
+        let below = node
+            .checked_sub(1)
+            .map_or(bearer.base, |n| bearer.phytomers[n].tip);
+        Self {
+            lineage: bearer.lineage,
+            pa: bearer.pa,
+            birth: bearer.birth,
+            below,
+            phytomer: bearer.phytomers[node],
+        }
+    }
+
+    /// Its lowest point: the lower of its base and its tip.
+    pub fn low(&self) -> f64 {
+        self.below.z.min(self.phytomer.tip.z)
+    }
+
+    /// The stub as a root's tree holds it (axis 0).
+    pub fn axis(&self) -> Axis {
+        Axis {
+            lineage: self.lineage,
+            pa: self.pa,
+            birth: self.birth,
+            origin: Origin::Seed,
+            vigour: 1.0,
+            blend: 1.0,
+            apex_end: None,
+            base: self.below,
+            heading: Vec3::default(),
+            side: Vec3::default(),
+            phytomers: vec![self.phytomer],
+            units: Vec::new(),
+            alive: 0.0,
+            rank: 0.0,
+            sleep: 0.0,
+        }
     }
 }
 

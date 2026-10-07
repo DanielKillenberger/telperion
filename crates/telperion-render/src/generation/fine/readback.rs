@@ -20,6 +20,35 @@ pub(super) struct Read {
     pub root_statuses: Vec<u32>,
 }
 
+impl Read {
+    /// Nothing read yet, for `roots` roots.
+    pub(super) fn empty(roots: usize) -> Self {
+        Self {
+            roots: vec![Vec::new(); roots],
+            presences: vec![Vec::new(); roots],
+            laid: vec![Vec::new(); roots],
+            statuses: 0,
+            root_statuses: vec![0; roots],
+        }
+    }
+
+    /// A group's read (task 9), its roots at `roots` by their places in
+    /// it, its laid buffers numbered from `offset`.
+    pub(super) fn take(&mut self, group: Read, roots: &[usize], offset: usize) {
+        self.statuses |= group.statuses;
+        let laid = group.laid.into_iter();
+        let parts = group.roots.into_iter().zip(group.presences).zip(laid);
+        for ((&r, ((axes, presences), laid)), status) in
+            roots.iter().zip(parts).zip(group.root_statuses)
+        {
+            self.roots[r] = axes;
+            self.presences[r] = presences;
+            self.laid[r] = laid.into_iter().map(|(w, i)| (w + offset, i)).collect();
+            self.root_statuses[r] = status;
+        }
+    }
+}
+
 fn words(gpu: &Gpu, buffer: &wgpu::Buffer) -> Vec<u32> {
     let bytes = super::super::io::read(gpu, buffer, buffer.size()).unwrap();
     bytemuck::cast_slice(&bytes).to_vec()
@@ -28,13 +57,7 @@ fn words(gpu: &Gpu, buffer: &wgpu::Buffer) -> Vec<u32> {
 /// What `grown` holds for `roots` roots, each wave's laid places counting
 /// every own axis, kept or not, as realized growth places them.
 pub(super) fn read(gpu: &Gpu, grown: &[Grown], roots: usize) -> Read {
-    let mut out = Read {
-        roots: vec![Vec::new(); roots],
-        presences: vec![Vec::new(); roots],
-        laid: vec![Vec::new(); roots],
-        statuses: 0,
-        root_statuses: vec![0; roots],
-    };
+    let mut out = Read::empty(roots);
     // Each laid axis's place among its root's kept axes.
     let mut local: HashMap<(usize, u32), usize> = HashMap::new();
     let stub = ChainBud {

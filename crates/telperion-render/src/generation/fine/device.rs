@@ -5,40 +5,33 @@
 //! down and gives one per root up, and nothing per chain or per node
 //! crosses. Phase 1 grows every root whole and carries its living up;
 //! phase 2 sheds, scales and thickens, its base radius up; phase 3 lays
-//! and loads, its load up; phase 4 lays under the levers.
+//! and loads, its load up; phase 4 lays under the levers. The roots grow
+//! in groups (task 9, `group.rs`): those the driver sows while the
+//! structure above the cut grows, then the rest in `grow`.
 use super::super::io;
-use super::laid::{stubs, Wave, BENDS, GIRTHS, LAYS, LEVERS, SCALES};
-use super::realized::{grow_roots, RootBud, Waves};
+use super::group::{unlaid, Group, CR};
+use super::laid::{Wave, BENDS, GIRTHS, LAYS, LEVERS, SCALES};
+use super::realized::{RootBud, Waves};
 use super::roots::{Cost, Kernels, Tables};
-use super::shedding::{report, table};
-use super::steps::{buffer, DESCRIBE};
 use crate::Gpu;
 use std::sync::Arc;
 use std::time::Instant;
+use telperion_space::fixed::presence::times;
 use telperion_space::{
-    bearer_frame, BearerFrame, ChainTables, GeometryTables, Lived, Loaded, Result, RootGeometry,
-    RootSeed, Roots, Structure, Vec3,
+    bearer_frame, ChainTables, GeometryTables, Lived, Loaded, Result, RootSeed, Roots, Structure,
+    Vec3,
 };
-
-/// A chain's record (`settle.wgsl`'s `CR`).
-const CR: u32 = 5;
-
-/// What the device keeps between the phases.
-struct Kept {
-    waves: Waves,
-    /// The stubs (the first wave's bearers), then each wave's laid buffer.
-    laid: Vec<Wave>,
-    /// Each root's origins' heights, then each wave's chains' records.
-    records: wgpu::Buffer,
-    at: Vec<u32>,
-    /// Each root's attachment as the stubs take it, and its node.
-    attached: Vec<RootGeometry>,
-    nodes: Vec<usize>,
-}
 
 /// A species point's tables built on another core while the structure
 /// above the cut grows: the chain's and the geometry's (task 8).
 pub(super) type Building = std::thread::JoinHandle<(ChainTables, GeometryTables)>;
+
+/// The least roots the device takes to grow while the structure above
+/// the cut grows on (task 9): fewer wait for the next cycle's. Each
+/// group grown pays its waves in turn, so the beech, whose few long
+/// chains take most of its build, gains nothing from more (2,048: beech
+/// 80 seed 1 at 163 ms against 156 unsown; `sown_against_none`).
+const LEAST: usize = 8192;
 
 /// The GPU executor's roots, taken in `order`, `batch` chains a run.
 pub(super) struct Device<'a> {
@@ -49,38 +42,45 @@ pub(super) struct Device<'a> {
     building: Option<Building>,
     order: Vec<usize>,
     batch: usize,
+    least: usize,
     pub cost: Cost,
-    kept: Option<Kept>,
+    /// The groups grown, those sown first, and each one's roots, by
+    /// their place in it.
+    groups: Vec<Group>,
+    roots: Vec<Vec<usize>>,
+    /// Each root's group and place in it.
+    places: Vec<(usize, usize)>,
 }
 
 impl<'a> Device<'a> {
     pub(super) fn new(gpu: &'a Gpu, k: &'a Kernels, tables: &'a Tables, batch: usize) -> Self {
-        Self {
-            gpu,
-            k,
-            given: Some(tables),
-            built: None,
-            building: None,
-            order: Vec::new(),
-            batch,
-            cost: Cost::default(),
-            kept: None,
-        }
+        let mut device = Self::unbuilt(gpu, k, batch);
+        device.given = Some(tables);
+        device
     }
 
     /// The executor with its tables still `building`, uploaded when phase
     /// 1 first needs them.
     pub(super) fn building(gpu: &'a Gpu, k: &'a Kernels, building: Building, batch: usize) -> Self {
+        let mut device = Self::unbuilt(gpu, k, batch);
+        device.building = Some(building);
+        device
+    }
+
+    fn unbuilt(gpu: &'a Gpu, k: &'a Kernels, batch: usize) -> Self {
         Self {
             gpu,
             k,
             given: None,
             built: None,
-            building: Some(building),
+            building: None,
             order: Vec::new(),
             batch,
+            least: LEAST,
             cost: Cost::default(),
-            kept: None,
+            groups: Vec::new(),
+            roots: Vec::new(),
+            places: Vec::new(),
         }
     }
 
@@ -90,16 +90,35 @@ impl<'a> Device<'a> {
             .expect("the tables, built")
     }
 
-    /// Takes the roots in `order` (by default, forward).
+    /// The tables, uploaded once built.
+    fn ready(&mut self) {
+        if let Some(building) = self.building.take() {
+            let (chain, geo) = building.join().expect("the tables");
+            self.built = Some(Tables::new(self.gpu, Arc::new(chain), &geo));
+        }
+    }
+
+    /// Takes every root in `order` (by default, forward), in one group:
+    /// none is sown while the structure above the cut grows.
     pub(super) fn ordered(mut self, order: Vec<usize>) -> Self {
         self.order = order;
         self
     }
 
-    /// The waves as the device keeps them, and the laid buffers.
-    pub(super) fn waves(&self) -> (&Waves, &[Wave]) {
-        let kept = self.kept.as_ref().expect("grown");
-        (&kept.waves, &kept.laid)
+    /// Sows while the structure above the cut grows from `least` roots on.
+    pub(super) fn sown_from(mut self, least: usize) -> Self {
+        self.least = least;
+        self
+    }
+
+    /// Each group's waves as the device keeps them, its laid buffers, and
+    /// its roots by their place in it.
+    pub(super) fn groups(&self) -> impl Iterator<Item = (&Waves, &[Wave], &[usize])> {
+        let roots = self.roots.iter().map(Vec::as_slice);
+        self.groups
+            .iter()
+            .zip(roots)
+            .map(|(g, r)| (&g.waves, &g.laid[..], r))
     }
 
     /// Waits for the last phase's passes, which the driver's own landing
@@ -111,185 +130,164 @@ impl<'a> Device<'a> {
             .unwrap();
     }
 
-    fn kept(&mut self) -> &mut Kept {
-        self.kept.as_mut().expect("grown")
+    /// `seeds` grown as one group, taken in `order`.
+    fn group(&mut self, seeds: &[&RootSeed], order: Vec<usize>) {
+        let start = Instant::now();
+        self.ready();
+        let roots: Vec<RootBud> = seeds
+            .iter()
+            .map(|s| (s.bud, [s.made.0 as f32, s.made.1 as f32], s.birth))
+            .collect();
+        let nodes = seeds.iter().map(|s| s.bud.node).collect();
+        let (gpu, k, batch) = (self.gpu, self.k, self.batch);
+        let mut cost = std::mem::take(&mut self.cost);
+        let t = self.tables();
+        let group = Group::grow((gpu, k), (&roots, nodes), (order, batch), (t, &mut cost));
+        self.cost = cost;
+        self.cost.grow += start.elapsed().as_secs_f64() * 1e3;
+        self.groups.push(group);
     }
 
-    /// Writes each root's stub and origins from its attachment.
-    fn attach(&self, kept: &Kept) {
-        let (data, origins) = stubs(&kept.attached);
-        let q = &self.gpu.queue;
-        q.write_buffer(&kept.laid[0].buffer, 0, bytemuck::cast_slice(&data));
-        q.write_buffer(&kept.records, 0, bytemuck::cast_slice(&origins));
-    }
-
-    /// Runs `entry` over every wave, down from the first (`down`) or up
-    /// from the deepest.
-    fn pass(&self, kept: &Kept, entry: usize, down: bool) {
-        let (gpu, t) = (self.gpu, self.tables());
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
-        let n = kept.waves.grown.len();
-        let waves: Vec<usize> = match down {
-            true => (0..n).collect(),
-            false => (0..n).rev().collect(),
-        };
-        for w in waves {
-            let prior = kept.at.get(w + 1).copied().unwrap_or(0);
-            for run in &kept.waves.grown[w].runs {
-                let packed = (&run.axes, &run.phyts);
-                let item = (&run.items, run.n, packed, &run.scratch);
-                let at = (entry, prior, kept.at[w]);
-                let laid = (&kept.laid[w], &kept.laid[w + 1]);
-                let bufs = (&t.table, &kept.records);
-                let how = (t.chain.age, t.sags);
-                self.k
-                    .resolver
-                    .settle(gpu, &mut encoder, item, bufs, laid, how, at);
-            }
-        }
-        gpu.queue.submit([encoder.finish()]);
-    }
-
-    /// The first wave's records read back: one record per root, by root.
+    /// Each group's records read back in one round trip, by root.
     fn records(&mut self) -> Vec<[f32; CR as usize]> {
         self.cost.trips += 1;
-        let kept = self.kept.as_ref().expect("grown");
-        let (n, cr) = (self.order.len(), CR as usize);
-        let from = kept.at[0] as usize;
-        let bytes = ((from + n * cr) * 4) as u64;
-        let raw = io::read(self.gpu, &kept.records, bytes.max(16)).unwrap();
-        let floats: &[f32] = bytemuck::cast_slice(&raw);
-        let mut out = vec![[0.0; CR as usize]; n];
-        for (wi, &r) in self.order.iter().enumerate() {
-            out[r].copy_from_slice(&floats[from + wi * cr..][..cr]);
+        let gpu = self.gpu;
+        let roots: u64 = self.roots.iter().map(|r| r.len() as u64).sum();
+        let total = roots * u64::from(CR) * 4;
+        let usage = wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+        let into = io::buffer(gpu, "records gathered", total.max(16), usage, &[]).unwrap();
+        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut at = Vec::with_capacity(self.groups.len());
+        let mut bytes = 0;
+        for g in &self.groups {
+            at.push(bytes as usize / 4);
+            bytes += g.gather(&mut encoder, &into, bytes);
         }
-        out
+        gpu.queue.submit([encoder.finish()]);
+        let raw = io::read(gpu, &into, total.max(16)).unwrap();
+        let floats: &[f32] = bytemuck::cast_slice(&raw);
+        let by_group: Vec<_> = self
+            .groups
+            .iter()
+            .zip(at)
+            .map(|(g, at)| g.records(&floats[at..]))
+            .collect();
+        self.places.iter().map(|&(g, i)| by_group[g][i]).collect()
+    }
+
+    /// Each group's roots among `live`, as a word each by their place.
+    fn on(&self, live: &[usize]) -> Vec<Vec<u32>> {
+        let mut on: Vec<Vec<u32>> = self.roots.iter().map(|r| vec![0; r.len()]).collect();
+        for &r in live {
+            let (g, i) = self.places[r];
+            on[g][i] = 1;
+        }
+        on
+    }
+
+    /// Writes each group's stubs and runs `entry` over it.
+    fn passes(&self, entry: usize, down: bool) {
+        let t = self.tables();
+        for g in &self.groups {
+            g.attach(self.gpu);
+            g.pass((self.gpu, self.k), t, entry, down);
+        }
+    }
+
+    fn attached(&mut self, r: usize) -> &mut telperion_space::RootGeometry {
+        let (g, i) = self.places[r];
+        &mut self.groups[g].attached[i]
+    }
+
+    fn node(&self, r: usize) -> usize {
+        let (g, i) = self.places[r];
+        self.groups[g].nodes[i]
     }
 }
 
 /// The pooled buffers go back for the next build (`pool.rs`).
 impl Drop for Device<'_> {
     fn drop(&mut self) {
-        let Some(kept) = self.kept.take() else {
-            return;
-        };
-        let runs = kept.waves.grown.into_iter().flat_map(|g| g.runs);
-        let packed = runs.flat_map(|r| [r.axes, r.phyts, r.scratch]);
-        self.k.pool.give(packed.chain(kept.laid.into_iter().map(|w| w.buffer)));
-    }
-}
-
-/// A root's attachment before its bearer is laid.
-fn unlaid(scale: f64) -> BearerFrame {
-    BearerFrame {
-        below: Vec3::default(),
-        tip: Vec3::default(),
-        heading: Vec3::default(),
-        side: Vec3::default(),
-        rank: 0.0,
-        scale,
-        size: 1.0,
+        for g in std::mem::take(&mut self.groups) {
+            self.k.pool.give(g.buffers());
+        }
     }
 }
 
 impl Roots for Device<'_> {
-    fn grow(&mut self, seeds: &[RootSeed]) -> Result<(Vec<Lived>, u64)> {
-        let (gpu, k) = (self.gpu, self.k);
+    fn sow(&mut self, seeds: &[RootSeed]) -> Result<usize> {
+        if !self.order.is_empty() || seeds.len() < self.least {
+            return Ok(0);
+        }
         let start = Instant::now();
-        if let Some(building) = self.building.take() {
-            let (chain, geo) = building.join().expect("the tables");
-            self.built = Some(Tables::new(gpu, Arc::new(chain), &geo));
+        let all: Vec<&RootSeed> = seeds.iter().collect();
+        self.group(&all, (0..all.len()).collect());
+        self.cost.sown += start.elapsed().as_secs_f64() * 1e3;
+        Ok(seeds.len())
+    }
+
+    fn grow(&mut self, seeds: &[RootSeed]) -> Result<(Vec<Lived>, u64)> {
+        let start = Instant::now();
+        // The roots sown are the first seeds, group by group; the rest's
+        // after them.
+        let mut roots: Vec<Vec<usize>> = Vec::with_capacity(self.groups.len() + 1);
+        let mut from = 0;
+        for g in &self.groups {
+            roots.push((from..from + g.attached.len()).collect());
+            from += g.attached.len();
         }
-        if self.order.len() != seeds.len() {
-            self.order = (0..seeds.len()).collect();
+        let rest: Vec<usize> = (from..seeds.len()).collect();
+        if !rest.is_empty() {
+            let order = match self.order.len() == seeds.len() {
+                // The order given, over every root: none was sown.
+                true => self.order.clone(),
+                false => (0..rest.len()).collect(),
+            };
+            let group: Vec<&RootSeed> = rest.iter().map(|&r| &seeds[r]).collect();
+            self.group(&group, order);
+            roots.push(rest);
         }
-        let roots: Vec<RootBud> = seeds
+        self.places = vec![(0, 0); seeds.len()];
+        for (g, rs) in roots.iter().enumerate() {
+            for (i, &r) in rs.iter().enumerate() {
+                self.places[r] = (g, i);
+            }
+        }
+        self.roots = roots;
+        // Each root's first axis's vigour as its bearer made it, a woken
+        // root's as its bearer kept it, which phase 2 scales it by.
+        for (r, s) in seeds.iter().enumerate() {
+            let (g, i) = self.places[r];
+            self.groups[g].made[i] = times(s.birth[0], s.birth[1]);
+        }
+        let lived = self
+            .places
             .iter()
-            .map(|s| (s.bud, [s.made.0 as f32, s.made.1 as f32], s.birth))
+            .map(|&(g, i)| self.groups[g].lived[i])
             .collect();
-        let t = self.tables();
-        let (waves, cost) = grow_roots((gpu, k), (&roots, &self.order, self.batch), t);
-        let fading = Instant::now();
-        let fades = table(gpu, &t.chain);
-        let living = k
-            .fades
-            .living(gpu, (&waves.grown, &waves.chains), (&fades, t.chain.age));
-        self.cost = cost;
-        let read = report(gpu, &living[0], seeds.len(), &mut self.cost);
-        self.cost.fade = fading.elapsed().as_secs_f64() * 1e3;
-        let mut lived = vec![(0, 0); seeds.len()];
-        for (wi, &r) in self.order.iter().enumerate() {
-            lived[r] = read[wi];
-        }
-        let grown = waves.phyts.iter().map(|&p| u64::from(p)).sum();
-        // The laid buffers and the records, sized now: nothing more is
-        // read back to size them.
-        let n = seeds.len() as u32;
-        let mut laid = vec![Wave::taken(&k.pool, gpu, (n, n))];
-        let mut at = Vec::with_capacity(waves.chains.len());
-        let mut floats = 2 * n;
-        for (w, &chains) in waves.chains.iter().enumerate() {
-            laid.push(Wave::taken(&k.pool, gpu, (waves.own[w], waves.phyts[w])));
-            at.push(floats);
-            floats += CR * chains;
-        }
-        let records = buffer(gpu, "settle records", u64::from(floats));
-        let attached = seeds
-            .iter()
-            .map(|s| RootGeometry {
-                vigour: s.made.0,
-                whorl: s.made.1,
-                bearer_pa: 0,
-                unbent: unlaid(0.0),
-                bent: unlaid(0.0),
-            })
-            .collect();
-        let nodes = seeds.iter().map(|s| s.bud.node).collect();
-        self.kept = Some(Kept {
-            waves,
-            laid,
-            records,
-            at,
-            attached,
-            nodes,
-        });
-        self.cost.grow = start.elapsed().as_secs_f64() * 1e3;
+        let grown = self.groups.iter().flat_map(|g| &g.waves.phyts);
+        let grown = grown.map(|&p| u64::from(p)).sum();
+        self.cost.last = start.elapsed().as_secs_f64() * 1e3;
         Ok((lived, grown))
     }
 
     fn girth(&mut self, live: &[usize], scales: &[(f64, f64)]) -> Vec<f64> {
-        let (gpu, k) = (self.gpu, self.k);
         let start = Instant::now();
-        let kept = self.kept.take().expect("grown");
-        let mut on = vec![0u32; kept.attached.len()];
-        for &r in live {
-            on[r] = 1;
+        let (gpu, k) = (self.gpu, self.k);
+        for (g, on) in self.groups.iter().zip(self.on(live)) {
+            g.shed((gpu, k), &on);
         }
-        let usage = wgpu::BufferUsages::STORAGE;
-        let bytes = (on.len().max(4) * 4) as u64;
-        let on = io::buffer(gpu, "roots kept", bytes, usage, bytemuck::cast_slice(&on)).unwrap();
-        k.fades.shed(gpu, (&kept.waves.grown, &kept.waves.own), &on);
-        // Each chain described for geometry, in its wave.
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
-        for (w, g) in kept.waves.grown.iter().enumerate() {
-            let none = buffer(gpu, "no buds", 4);
-            for run in &g.runs {
-                let lay = (&run.runoff, &g.places, &g.meta, &run.items);
-                let hand = (&run.axes, &run.scratch, &none, &none);
-                k.steps
-                    .hand(gpu, &mut encoder, (run.n, w == 0, DESCRIBE), lay, hand);
-            }
-        }
-        gpu.queue.submit([encoder.finish()]);
-        let mut kept = kept;
         for (&r, &(base, drawn)) in live.iter().zip(scales) {
-            kept.attached[r].unbent = unlaid(base * drawn);
-            kept.attached[r].bent = kept.attached[r].unbent;
+            let a = self.attached(r);
+            a.unbent = unlaid(base * drawn);
+            a.bent = a.unbent;
         }
-        self.attach(&kept);
-        self.pass(&kept, SCALES, true);
-        self.pass(&kept, GIRTHS, false);
-        self.kept = Some(kept);
+        let t = self.tables();
+        for g in &self.groups {
+            g.attach(gpu);
+            g.pass((gpu, k), t, SCALES, true);
+            g.pass((gpu, k), t, GIRTHS, false);
+        }
         let read = self.records();
         self.cost.lay += start.elapsed().as_secs_f64() * 1e3;
         live.iter().map(|&r| f64::from(read[r][0])).collect()
@@ -297,26 +295,25 @@ impl Roots for Device<'_> {
 
     fn lay(&mut self, tree: &Structure, live: &[usize], bearers: &[usize]) -> Result<Vec<Loaded>> {
         let start = Instant::now();
-        let kept = self.kept();
         for (&r, &b) in live.iter().zip(bearers) {
-            let frame = bearer_frame(tree, b, kept.nodes[r]);
-            let a = &mut kept.attached[r];
+            let frame = bearer_frame(tree, b, self.node(r));
+            let a = self.attached(r);
             (a.bearer_pa, a.unbent, a.bent) = (tree.axes[b].pa, frame, frame);
         }
-        let kept = self.kept.take().expect("grown");
-        self.attach(&kept);
-        self.pass(&kept, LAYS, true);
         let sags = self.tables().sags;
-        if sags {
-            self.pass(&kept, LEVERS, false);
+        let t = self.tables();
+        for g in &self.groups {
+            g.attach(self.gpu);
+            g.pass((self.gpu, self.k), t, LAYS, true);
+            if sags {
+                g.pass((self.gpu, self.k), t, LEVERS, false);
+            }
         }
-        let origins: Vec<Vec3> = live.iter().map(|&r| kept.attached[r].unbent.tip).collect();
-        self.kept = Some(kept);
         let loads = if sags {
             let read = self.records();
             live.iter()
-                .zip(&origins)
-                .map(|(&r, &o)| {
+                .map(|&r| {
+                    let o = self.attached(r).unbent.tip;
                     let [_, m, x, y, z] = read[r].map(f64::from);
                     (m, Vec3::new(x, y, z) + o * m)
                 })
@@ -330,15 +327,12 @@ impl Roots for Device<'_> {
 
     fn bend(&mut self, tree: &Structure, live: &[usize], bearers: &[usize]) -> Result<()> {
         let start = Instant::now();
-        let kept = self.kept();
         for (&r, &b) in live.iter().zip(bearers) {
-            kept.attached[r].bent = bearer_frame(tree, b, kept.nodes[r]);
+            let frame = bearer_frame(tree, b, self.node(r));
+            self.attached(r).bent = frame;
         }
-        let kept = self.kept.take().expect("grown");
-        self.attach(&kept);
         // Not waited for: the CPU lands its roots meanwhile (`wait`).
-        self.pass(&kept, BENDS, true);
-        self.kept = Some(kept);
+        self.passes(BENDS, true);
         self.cost.lay += start.elapsed().as_secs_f64() * 1e3;
         Ok(())
     }

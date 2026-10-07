@@ -100,8 +100,8 @@ fn realized_at_40_and_80() {
                 let lock = locked();
                 let cold =
                     settled_against(&gpu, &k, (&species, at, plan), &want, (&forward, 1 << 16));
-                let warm =
-                    settled_against(&gpu, &k, (&species, at, plan), &want, (&forward, 1 << 16));
+                // Sown while the structure above the cut grows (task 9).
+                let warm = settled_against(&gpu, &k, (&species, at, plan), &want, (&[], 2048));
                 let other =
                     settled_against(&gpu, &k, (&species, at, plan), &want, (&reverse, 4096));
                 drop(lock);

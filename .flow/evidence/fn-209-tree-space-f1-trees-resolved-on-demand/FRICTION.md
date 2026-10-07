@@ -188,3 +188,24 @@
 - **Slowed:** the timing tests run a tree's CPU columns (up to 27 s at spruce 80 on one core) between the GPU builds, and the device's clocks fall meanwhile. The next tree's cold build then ran on a slow device. Beech 40 seed 1 showed 769 ms cold and 90 ms warm where 40 ms was usual, spruce 80 0.65 to 0.76 s in `realized_at_40_and_80`. It looked like an allocation fault and was chased as one (the pool's growth and its bound were real faults found on the way, `7120ccb0` and `a70177d0`).
 - **Cost:** about 10 minutes and four locked runs.
 - **Would remove it:** a timing test that builds an untimed tree just before each timed cold build (`speed_tests` now does), and a note in the GPU timing harnesses that cold means "first build of this tree", not "first work for an idle device".
+
+## 2026-10-07, one cold and one warm build cannot rank a change (task 9)
+
+- **Doing:** choosing how many roots the device takes while the structure above the cut grows on (2,048, 8,192 or none).
+- **Slowed:** `growth_by_kernel` builds a tree cold and warm once. Back to back under the same lock, spruce 80 seed 1 with nothing sown read 718 ms and then 446 ms warm, and beech 80 seed 1 159 then 193 ms, so a 5 % change could not be read. The first locked run also waited about 6 minutes for the other workers.
+- **Cost:** about 10 minutes and two locked runs.
+- **Would remove it:** an interleaved A/B in the timing harness (`speed_tests::sown_against_none`: modes alternated within a round, five rounds, best and median), and a note that a single warm build is not a measurement.
+
+## 2026-10-07, profile runs queued behind the other workers' gates (task 9)
+
+- **Doing:** profiling spruce and beech at 80 after each step of the overlap.
+- **Slowed:** three locked runs waited 6 to 10 minutes for the GPU lock while other worktrees ran their workspace gates (load 25 to 47), and one background run outlived its 10-minute call. Timings taken just after such a wait ran at load 13 to 35 and read 5 to 15 % slow on both the GPU and CPU columns.
+- **Cost:** about 25 minutes of waiting, and one table rerun in its interleaved form.
+- **Would remove it:** a GPU-lock queue that shows who holds it and for how long (a line written into the lock file by the holder), so a worker schedules CPU-only work meanwhile; and the timing harnesses printing the load at each row, not only at the ends.
+
+## 2026-10-07, a memory ceiling read from the desk's free memory fails the gate (task 9)
+
+- **Doing:** the workspace gate at the end of task 9.
+- **Slowed:** `telperion-core`'s `fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens` failed: its process ceiling is taken from the memory available when it starts, and two other worktrees' builds held about 17 of 31 GB, so a 5.84 GB peak stood over a 5.77 GB ceiling. Alone it passed in 12 s. The gate is run once, so the task cannot show it green without a second 11-minute run on a quieter desk.
+- **Cost:** about 5 minutes to read, and the task left open for the host.
+- **Would remove it:** the ceiling under test pinned (`Budget::with` a stated ceiling, as the module already offers for tests) rather than read from the desk, or the gate run with no other worktree building.

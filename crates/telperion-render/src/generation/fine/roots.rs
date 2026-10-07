@@ -40,6 +40,22 @@ pub(super) struct Cost {
     pub fade: f64,
     pub again: usize,
     pub trips: usize,
+    /// Under realized mechanics (task 9): phase 1's milliseconds growing
+    /// the groups sown while the structure above the cut grew, and in
+    /// `grow` itself, the rest's.
+    pub sown: f64,
+    pub last: f64,
+}
+
+impl Cost {
+    /// `other`'s counts added to these.
+    pub(super) fn add(&mut self, other: &Cost) {
+        self.waves += other.waves;
+        self.chains += other.chains;
+        self.runs += other.runs;
+        self.again += other.again;
+        self.trips += other.trips;
+    }
 }
 
 /// A species point's tables, packed and on the device.

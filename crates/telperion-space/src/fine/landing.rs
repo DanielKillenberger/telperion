@@ -9,7 +9,9 @@
 //! below the lower of its node and the point below it, against the
 //! landing zone of twice its base radius and the longest internode.
 use super::expansion::{node, Loaded, RootSeed};
-use super::realized::{stub, Root};
+use super::likely::once_laid;
+use super::realized::{Root, Stub};
+use super::spare::{grown, Spare};
 use super::{each, Plan};
 use crate::closed_form::boundary::Rows;
 use crate::error::Result;
@@ -18,7 +20,8 @@ use crate::geometry::ground_zone;
 use crate::grow::Rules;
 use crate::sag::any;
 use crate::species::Species;
-use crate::structure::{Axis, Structure};
+use crate::structure::Structure;
+use std::sync::Arc;
 
 /// The roots laid on the CPU, by their place among the live roots, and
 /// each live root's bearer's stub as laid before bending.
@@ -32,7 +35,26 @@ pub(crate) struct Landing<'a> {
     threads: usize,
     internode: f64,
     pub roots: Vec<(usize, Root)>,
-    unbent: Vec<Axis>,
+    unbent: Arc<Vec<Stub>>,
+    /// The roots grown ahead (task 9).
+    pub spare: Option<&'a Spare>,
+}
+
+/// Whether `seed`'s root, at base scale `(base, drawn)` and base radius
+/// `radius`, can reach the landing zone from a stub whose lowest point is
+/// `low`, the longest internode `internode`.
+pub(crate) fn reaches(
+    rows: &Rows,
+    internode: f64,
+    seed: &RootSeed,
+    (base, drawn): (f64, f64),
+    radius: f64,
+    low: f64,
+) -> bool {
+    let axis = &seed.handed.bud.axis;
+    let s = base * drawn * real(times(seed.birth[0], seed.birth[1]));
+    let zone = ground_zone(2.0 * radius, internode * s);
+    low - rows.lateral(axis.pa, axis.birth).reach * s <= zone
 }
 
 impl<'a> Landing<'a> {
@@ -54,64 +76,73 @@ impl<'a> Landing<'a> {
             threads,
             internode,
             roots: Vec::new(),
-            unbent: Vec::new(),
+            unbent: Arc::default(),
+            spare: None,
         }
     }
 
-    /// Whether `seed`'s root, at base scale `(base, drawn)` and base
-    /// radius `radius`, can reach the landing zone from `stubs`.
-    fn reaches(
-        &self,
-        rows: &Rows,
-        seed: &RootSeed,
-        (base, drawn): (f64, f64),
-        radius: f64,
-        stubs: &[&Axis],
-    ) -> bool {
-        let axis = &seed.handed.bud.axis;
-        let s = base * drawn * real(times(seed.birth[0], seed.birth[1]));
-        let zone = ground_zone(2.0 * radius, self.internode * s);
-        let low = stubs
-            .iter()
-            .flat_map(|a| [a.base.z, a.phytomers[0].tip.z])
-            .fold(f64::INFINITY, f64::min);
-        low - rows.lateral(axis.pa, axis.birth).reach * s <= zone
-    }
-
-    /// `seed`'s root grown, scaled and laid on the CPU from `unbent`.
-    fn land(&self, seed: &RootSeed, scales: (f64, f64), unbent: &Axis) -> Result<Root> {
-        let mut root = Root::grow(self.species, self.rules, &seed.handed)?;
-        root.girth(self.species, scales);
-        root.lay_on(self.species, unbent.clone())?;
+    /// The root at live place `j` (`seed`'s) grown and scaled, or taken
+    /// as grown ahead, and laid on the CPU from `unbent`.
+    fn land(&self, j: usize, seed: &RootSeed, scales: (f64, f64), unbent: &Stub) -> Result<Root> {
+        let (root, laid) = match self.spare.and_then(|s| s.take(j)) {
+            Some(ahead) => ahead,
+            None => (grown(self.species, self.rules, seed, scales), false),
+        };
+        let mut root = root?;
+        if !laid {
+            root.lay_on(self.species, unbent.axis())?;
+        }
         Ok(root)
     }
 
-    /// Phase 3: each live root that can reach the ground from `tree` as
-    /// laid before bending, laid on the CPU; its load replaces the
-    /// executor's.
-    pub fn lay(
+    /// Each live root's bearer's stub as laid before bending, from `tree`
+    /// so laid; the roots grown ahead lay on them from now, and are those
+    /// likeliest to land on the tree so laid.
+    pub fn frame(
         &mut self,
         tree: &Structure,
         (seeds, live, bearers): (&[RootSeed], &[usize], &[usize]),
+        (scales, radii): (&[(f64, f64)], &[f64]),
+    ) {
+        let Some(rows) = self.rows else {
+            return;
+        };
+        let stubs = live
+            .iter()
+            .zip(bearers)
+            .map(|(&k, &b)| Stub::of(&tree.axes[b], node(&seeds[k])));
+        self.unbent = Arc::new(stubs.collect());
+        if let Some(spare) = self.spare {
+            let at = (self.species, tree, rows);
+            let roots = (seeds, live, bearers, scales);
+            let laid = (radii, &self.unbent[..], self.internode);
+            let order = once_laid(at, roots, laid, any(self.species));
+            spare.laid(self.unbent.clone(), order);
+        }
+    }
+
+    /// Phase 3: each live root that can reach the ground from its bearer
+    /// as laid before bending (`frame`), laid on the CPU; its load
+    /// replaces the executor's.
+    pub fn lay(
+        &mut self,
+        (seeds, live): (&[RootSeed], &[usize]),
         (scales, radii): (&[(f64, f64)], &[f64]),
         loads: &mut [Loaded],
     ) -> Result<()> {
         let Some(rows) = self.rows else {
             return Ok(());
         };
-        self.unbent = live
-            .iter()
-            .zip(bearers)
-            .map(|(&k, &b)| stub(&tree.axes[b], node(&seeds[k])))
-            .collect();
         let ground: Vec<usize> = (0..live.len())
             .filter(|&j| {
-                self.reaches(
+                let low = self.unbent[j].low();
+                reaches(
                     rows,
+                    self.internode,
                     &seeds[live[j]],
                     scales[j],
                     radii[j],
-                    &[&self.unbent[j]],
+                    low,
                 )
             })
             .collect();
@@ -134,7 +165,7 @@ impl<'a> Landing<'a> {
         let mut slots: Vec<usize> = ground.to_vec();
         let landed = each(&mut slots, self.plan, self.threads, &|_, j| {
             let j = *j;
-            self.land(&seeds[live[j]], scales[j], &self.unbent[j])
+            self.land(j, &seeds[live[j]], scales[j], &self.unbent[j])
                 .map(|root| (j, root))
         });
         landed.into_iter().collect()
@@ -151,10 +182,10 @@ impl<'a> Landing<'a> {
         let Some(rows) = self.rows else {
             return Ok(());
         };
-        let bent: Vec<Axis> = live
+        let bent: Vec<Stub> = live
             .iter()
             .zip(bearers)
-            .map(|(&k, &b)| stub(&tree.axes[b], node(&seeds[k])))
+            .map(|(&k, &b)| Stub::of(&tree.axes[b], node(&seeds[k])))
             .collect();
         let mut landed = vec![false; live.len()];
         for (j, _) in &self.roots {
@@ -162,15 +193,16 @@ impl<'a> Landing<'a> {
         }
         let ground: Vec<usize> = (0..live.len())
             .filter(|&j| {
-                let stubs = [&self.unbent[j], &bent[j]];
-                !landed[j] && self.reaches(rows, &seeds[live[j]], scales[j], radii[j], &stubs)
+                let low = self.unbent[j].low().min(bent[j].low());
+                let seed = &seeds[live[j]];
+                !landed[j] && reaches(rows, self.internode, seed, scales[j], radii[j], low)
             })
             .collect();
         let more = self.land_all(&ground, (seeds, live), scales)?;
         self.roots.extend(more);
         let species = self.species;
         let bend = each(&mut self.roots, self.plan, self.threads, &|_, (j, root)| {
-            root.bend_on(species, bent[*j].clone())
+            root.bend_on(species, bent[*j].axis())
         });
         bend.into_iter().collect()
     }

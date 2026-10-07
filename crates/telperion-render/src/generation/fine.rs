@@ -39,6 +39,8 @@ mod chains;
 #[cfg(test)]
 mod device;
 #[cfg(test)]
+mod group;
+#[cfg(test)]
 mod hostrun;
 #[cfg(test)]
 mod pool;

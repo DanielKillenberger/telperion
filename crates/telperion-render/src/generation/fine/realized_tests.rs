@@ -202,6 +202,8 @@ pub(super) struct Apart {
     /// CPU executor's.
     pub grounded: usize,
     pub landed_most: f64,
+    /// The groups the roots grew in (task 9).
+    pub groups: usize,
 }
 
 impl Apart {
@@ -211,7 +213,7 @@ impl Apart {
 }
 
 /// Step 4: the tree settled with its roots on the device, in `order` and
-/// batches of `batch`: each root's kept axes by lineage as the CPU
+/// batches of `batch` (no order: sown from `batch` roots on, task 9): each root's kept axes by lineage as the CPU
 /// executor's (`grow_fine`), and how far its laid tips and radii lie.
 pub(super) fn settled_against(
     gpu: &Gpu,
@@ -224,22 +226,37 @@ pub(super) fn settled_against(
     let geo = GeometryTables::new(species, at.0).expect("tables");
     let t = std::time::Instant::now();
     let tables = Tables::new(gpu, Arc::new(chain), &geo);
-    let mut dev = Device::new(gpu, k, &tables, batch).ordered(order.to_vec());
+    // No order given: the roots sown while the structure above the cut
+    // grows, from `batch` roots on, in runs of 65,536.
+    let mut dev = match order.is_empty() {
+        true => Device::new(gpu, k, &tables, 1 << 16).sown_from(batch),
+        false => Device::new(gpu, k, &tables, batch).ordered(order.to_vec()),
+    };
     let (settled, _) = settle(species, request(at.0, at.1), plan, &mut dev).expect("settles");
     dev.wait();
     let wall = t.elapsed().as_secs_f64() * 1e3;
     // A root that can reach the ground is the CPU's (host decision 3).
     let landed = landed(&settled);
     let c = dev.cost;
-    let reads = 2 + usize::from(tables.sags);
+    let groups = dev.groups().count();
+    // Each group's living, then each phase's records in one.
+    let reads = groups + 1 + usize::from(tables.sags);
     assert_eq!(c.trips, c.runs + c.waves + reads, "{c:?}");
-    let (waves, laid) = dev.waves();
-    let got = readback::read(gpu, &waves.grown, want.len());
-    let floats: Vec<Vec<f32>> = laid.iter().map(|w| w.read(gpu)).collect();
+    // Each group read back, its roots by their places in the tree.
+    let mut got = readback::Read::empty(want.len());
+    let mut laid = Vec::new();
+    let mut floats: Vec<Vec<f32>> = Vec::new();
+    for (waves, waves_laid, roots) in dev.groups() {
+        let read = readback::read(gpu, &waves.grown, roots.len());
+        got.take(read, roots, laid.len());
+        laid.extend(waves_laid.iter().map(|w| (w.axes, w.phyts)));
+        floats.extend(waves_laid.iter().map(|w| w.read(gpu)));
+    }
     let mut apart = Apart {
         cost: c,
         wall,
         grounded: landed.len(),
+        groups,
         ..Apart::default()
     };
     for (r, axes) in &landed {
@@ -261,7 +278,7 @@ pub(super) fn settled_against(
         for (&g, &c) in by.iter().zip(&want_by) {
             let (w, i) = got.laid[r][g];
             let wave = &floats[w];
-            let phyts = laid[w].axes as usize * AL;
+            let phyts = laid[w].0 as usize * AL;
             let first = wave[i as usize * AL + 7].to_bits() as usize;
             for (n, &(tip, radius)) in axes[c].1.iter().enumerate() {
                 let p = &wave[phyts + (first + n) * PL..][..PL];
@@ -325,9 +342,10 @@ fn settles_as_on_the_cpu(
     let want = root_axes(&cpu);
     let forward: Vec<usize> = (0..want.len()).collect();
     let reverse: Vec<usize> = forward.iter().rev().copied().collect();
-    let a = settled_against(gpu, k, (species, at, plan), &want, (&forward, 4096));
+    // Sown from 64 roots on as the structure grows, in groups.
+    let a = settled_against(gpu, k, (species, at, plan), &want, (&[], 64));
     assert_eq!(a.statuses, 0, "{name} {at:?}: a chain's status");
-    for (order, batch) in [(&reverse, 777), (&forward, 64)] {
+    for (order, batch) in [(&forward, 4096), (&reverse, 777), (&forward, 64)] {
         let b = settled_against(gpu, k, (species, at, plan), &want, (order, batch));
         assert_eq!(b.statuses, 0, "{name} {at:?}: a chain's status");
         assert_eq!(
@@ -354,8 +372,8 @@ fn every_root_settles_on_the_gpu_as_on_the_cpu() {
             let a = settles_as_on_the_cpu(&gpu, &k, name, (species, (25, seed), cut));
             let rms = a.rms();
             println!(
-                "{name} 25 {seed} at {cut}: {} phytomers, tips {:.2e} most {rms:.2e} RMS, radii {:.2e} rel; {} roots on the CPU, their tips {:.2e}",
-                a.phytomers, a.most, a.radius, a.grounded, a.landed_most
+                "{name} 25 {seed} at {cut}: {} groups sown and grown, {} phytomers, tips {:.2e} most {rms:.2e} RMS, radii {:.2e} rel; {} roots on the CPU, their tips {:.2e}",
+                a.groups, a.phytomers, a.most, a.radius, a.grounded, a.landed_most
             );
             assert!(a.landed_most <= MOST, "{name} 25 {seed}: roots on the CPU");
             assert!(a.most <= MOST && rms <= RMS, "{name} 25 {seed}: {a:?}");

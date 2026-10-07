@@ -118,11 +118,12 @@ pub(super) fn presences(g: &GeometryTables) -> Vec<u64> {
 }
 
 /// The first wave's bearers: each root's attachment as a laid axis of one
-/// phytomer, in its own positions; and each root's origins' heights.
-pub(super) fn stubs(roots: &[RootGeometry]) -> (Vec<f32>, Vec<f32>) {
+/// phytomer, in its own positions; and each root's origins' heights and
+/// its first axis's vigour (`made`, Q32, two words).
+pub(super) fn stubs(roots: &[RootGeometry], made: &[u64]) -> (Vec<f32>, Vec<f32>) {
     let mut out = vec![0.0f32; roots.len() * (AL + PL)];
     let phyts = roots.len() * AL;
-    let mut origins = Vec::with_capacity(2 * roots.len());
+    let mut origins = Vec::with_capacity(4 * roots.len());
     let v = |v: Vec3| [v.x as f32, v.y as f32, v.z as f32];
     for (k, r) in roots.iter().enumerate() {
         let rel = |f: &BearerFrame| v(f.below - f.tip);
@@ -140,7 +141,8 @@ pub(super) fn stubs(roots: &[RootGeometry]) -> (Vec<f32>, Vec<f32>) {
         let [lo, hi] = q(r.unbent.rank, 52);
         p[20] = f32::from_bits(lo);
         p[21] = f32::from_bits(hi);
-        origins.extend([r.unbent.tip.z as f32, r.bent.tip.z as f32]);
+        let [lo, hi] = [made[k] as u32, (made[k] >> 32) as u32].map(f32::from_bits);
+        origins.extend([r.unbent.tip.z as f32, r.bent.tip.z as f32, lo, hi]);
     }
     (out, origins)
 }
