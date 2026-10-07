@@ -8,7 +8,8 @@
 //! and loads, its load up; phase 4 lays under the levers. The roots grow
 //! in groups (task 9, `group.rs`): those the driver sows while the
 //! structure above the cut grows, then the rest in `grow`.
-use super::group::{unlaid, Group};
+use super::super::io;
+use super::group::{unlaid, Group, CR};
 use super::laid::{Wave, BENDS, GIRTHS, LAYS, LEVERS, SCALES};
 use super::realized::{RootBud, Waves};
 use super::roots::{Cost, Kernels, Tables};
@@ -147,12 +148,30 @@ impl<'a> Device<'a> {
         self.groups.push(group);
     }
 
-    /// Each group's records read back, by root.
-    fn records(&mut self) -> Vec<[f32; 5]> {
-        let mut by_group = Vec::with_capacity(self.groups.len());
+    /// Each group's records read back in one round trip, by root.
+    fn records(&mut self) -> Vec<[f32; CR as usize]> {
+        self.cost.trips += 1;
+        let gpu = self.gpu;
+        let roots: u64 = self.roots.iter().map(|r| r.len() as u64).sum();
+        let total = roots * u64::from(CR) * 4;
+        let usage = wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+        let into = io::buffer(gpu, "records gathered", total.max(16), usage, &[]).unwrap();
+        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut at = Vec::with_capacity(self.groups.len());
+        let mut bytes = 0;
         for g in &self.groups {
-            by_group.push(g.records(self.gpu, &mut self.cost));
+            at.push(bytes as usize / 4);
+            bytes += g.gather(&mut encoder, &into, bytes);
         }
+        gpu.queue.submit([encoder.finish()]);
+        let raw = io::read(gpu, &into, total.max(16)).unwrap();
+        let floats: &[f32] = bytemuck::cast_slice(&raw);
+        let by_group: Vec<_> = self
+            .groups
+            .iter()
+            .zip(at)
+            .map(|(g, at)| g.records(&floats[at..]))
+            .collect();
         self.places.iter().map(|&(g, i)| by_group[g][i]).collect()
     }
 

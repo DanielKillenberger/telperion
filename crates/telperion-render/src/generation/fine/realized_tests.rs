@@ -239,8 +239,9 @@ pub(super) fn settled_against(
     let landed = landed(&settled);
     let c = dev.cost;
     let groups = dev.groups().count();
-    let reads = 2 + usize::from(tables.sags);
-    assert_eq!(c.trips, c.runs + c.waves + reads * groups, "{c:?}");
+    // Each group's living, then each phase's records in one.
+    let reads = groups + 1 + usize::from(tables.sags);
+    assert_eq!(c.trips, c.runs + c.waves + reads, "{c:?}");
     // Each group read back, its roots by their places in the tree.
     let mut got = readback::Read::empty(want.len());
     let mut laid = Vec::new();

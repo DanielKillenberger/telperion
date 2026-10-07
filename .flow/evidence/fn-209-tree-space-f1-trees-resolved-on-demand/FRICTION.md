@@ -188,3 +188,10 @@
 - **Slowed:** the timing tests run a tree's CPU columns (up to 27 s at spruce 80 on one core) between the GPU builds, and the device's clocks fall meanwhile. The next tree's cold build then ran on a slow device. Beech 40 seed 1 showed 769 ms cold and 90 ms warm where 40 ms was usual, spruce 80 0.65 to 0.76 s in `realized_at_40_and_80`. It looked like an allocation fault and was chased as one (the pool's growth and its bound were real faults found on the way, `7120ccb0` and `a70177d0`).
 - **Cost:** about 10 minutes and four locked runs.
 - **Would remove it:** a timing test that builds an untimed tree just before each timed cold build (`speed_tests` now does), and a note in the GPU timing harnesses that cold means "first build of this tree", not "first work for an idle device".
+
+## 2026-10-07, one cold and one warm build cannot rank a change (task 9)
+
+- **Doing:** choosing how many roots the device takes while the structure above the cut grows on (2,048, 8,192 or none).
+- **Slowed:** `growth_by_kernel` builds a tree cold and warm once. Back to back under the same lock, spruce 80 seed 1 with nothing sown read 718 ms and then 446 ms warm, and beech 80 seed 1 159 then 193 ms, so a 5 % change could not be read. The first locked run also waited about 6 minutes for the other workers.
+- **Cost:** about 10 minutes and two locked runs.
+- **Would remove it:** an interleaved A/B in the timing harness (`speed_tests::sown_against_none`: modes alternated within a round, five rounds, best and median), and a note that a single warm build is not a measurement.

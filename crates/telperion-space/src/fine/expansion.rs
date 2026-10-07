@@ -6,6 +6,8 @@
 //! the roots one record each down and takes one record each up (Astra
 //! change 3: a record per root, never per node).
 use super::landing::Landing;
+use super::likely::before_laid;
+use super::spare::Spare;
 use super::surface::input;
 use super::{Clock, Plan};
 use crate::closed_form::boundary::Rows;
@@ -91,6 +93,9 @@ pub struct Settled {
     /// live.
     pub grounded: Vec<usize>,
     pub(crate) landed: Vec<(usize, super::realized::Root)>,
+    /// The live roots grown ahead on the spare cores for the landing
+    /// (task 9, `spare.rs`).
+    pub ahead: usize,
 }
 
 /// Grows `species` above `plan`'s cut and settles it with its fine
@@ -193,39 +198,34 @@ pub(crate) fn settle_with(
         .zip(&drawn)
         .map(|(&b, &d)| (base[b], d))
         .collect();
-    let radii = clock.time(|| roots.girth(&live, &scales));
-    stages.mark("phase 2 (executor)");
-    let radius = |i: usize| by_axis[i].map(|j: usize| radii[j]);
-    thicken_given(&mut tree, species, &Girth::default(), &radius, threads);
-    place(&mut tree, species, None, threads)?;
-    stages.mark("thicken and place");
-    // Lay on each bearer's frame, and load the tree by each root's wood;
-    // a root that can reach the ground is laid on the CPU (host decision
-    // 3, `landing.rs`).
-    let mut loads = clock.time(|| roots.lay(&tree, &live, &bearers))?;
-    stages.mark("phase 3 (executor)");
+    // The roots likeliest to reach the ground grown ahead on the spare
+    // cores while the rest settles (task 9, `spare.rs`).
     let rows = reach.map(|r| r.join().expect("the reach's rows"));
     stages.mark("the reach's rows");
-    let mut landing = Landing::new(species, (rules, rows.as_ref()), (plan, threads));
-    let at_roots = (&seeds[..], &live[..], &bearers[..]);
-    landing.lay(&tree, at_roots, (&scales, &radii), &mut loads)?;
-    stages.mark("landing, unbent");
-    if any(species) {
-        let load = |i: usize| {
-            by_axis[i].map(|j: usize| Load {
-                mass: loads[j].0,
-                moment: loads[j].1,
-            })
-        };
-        let (levers, _) = levers_given(&tree, species, &load, threads);
-        place(&mut tree, species, Some(&levers), threads)?;
-        stages.mark("levers and place");
-        clock.time(|| roots.bend(&tree, &live, &bearers))?;
-        stages.mark("phase 4 (executor)");
-        landing.bend(&tree, at_roots, (&scales, &radii))?;
-        stages.mark("landing, bent");
-    }
-    let grounded = landing.roots.iter().map(|(j, _)| live[*j]).collect();
+    let spare = rows.as_ref().map(|_| Spare::new(live.len()));
+    let live_seeds: Vec<&RootSeed> = live.iter().map(|&k| &seeds[k]).collect();
+    let laid = std::thread::scope(|scope| {
+        if let Some(spare) = &spare {
+            for _ in 0..helpers(threads) {
+                scope.spawn(|| spare.work((species, rules, &live_seeds, &scales)));
+            }
+        }
+        let at_roots = (&seeds[..], &live[..], &bearers[..]);
+        let mut landing = Landing::new(species, (rules, rows.as_ref()), (plan, threads));
+        landing.spare = spare.as_ref();
+        let laid = lay(
+            (species, &mut tree, roots),
+            (at_roots, &scales, &by_axis),
+            (&mut landing, &mut clock, &mut stages),
+            (threads, rows.as_ref()),
+        );
+        spare.as_ref().inspect(|s| s.stop());
+        laid.map(|()| (landing.roots, spare.as_ref().map_or(0, Spare::grown)))
+    });
+    // What was grown ahead and not landed is freed off the build's path.
+    std::thread::spawn(move || drop(spare));
+    let (landed, ahead) = laid?;
+    let grounded = landed.iter().map(|(j, _)| live[*j]).collect();
     let settled = Settled {
         structure: tree,
         at,
@@ -234,9 +234,88 @@ pub(crate) fn settle_with(
         phases: clock.phases,
         stages: stages.out,
         grounded,
-        landed: landing.roots,
+        landed,
+        ahead,
     };
     Ok((settled, seeds))
+}
+
+/// The cores that grow the ground bound's roots ahead (`spare.rs`) while
+/// the executor runs: all but the driver's.
+fn helpers(threads: usize) -> usize {
+    threads.saturating_sub(1).max(1)
+}
+
+/// Phases 2 to 4: the live roots scaled and thickened, the structure
+/// above the cut thickened and laid on them, the roots laid on its
+/// frames, the structure loaded and bent by them, and the roots laid
+/// again on it; each root that can reach the ground laid on the CPU.
+#[allow(clippy::type_complexity)]
+fn lay(
+    (species, tree, roots): (&Species, &mut Structure, &mut dyn Roots),
+    ((seeds, live, bearers), scales, by_axis): (
+        (&[RootSeed], &[usize], &[usize]),
+        &[(f64, f64)],
+        &[Option<usize>],
+    ),
+    (landing, clock, stages): (&mut Landing, &mut Clock, &mut Stages),
+    (threads, rows): (usize, Option<&Rows>),
+) -> Result<()> {
+    // The order the roots are grown ahead in, read while the executor
+    // scales and thickens its roots.
+    let radii = std::thread::scope(|scope| {
+        if let (Some(spare), Some(rows), true) = (landing.spare, rows, any(species)) {
+            let tree = &*tree;
+            scope.spawn(move || {
+                let order = before_laid((species, tree, rows), (seeds, live, bearers, scales));
+                spare.plan(order);
+            });
+        }
+        clock.time(|| roots.girth(live, scales))
+    });
+    stages.mark("phase 2 (executor)");
+    // The roots grown ahead wait while the structure's passes run.
+    let spare = landing.spare;
+    let hold = |held: bool| spare.inspect(|s| s.hold(held));
+    hold(true);
+    let radius = |i: usize| by_axis[i].map(|j: usize| radii[j]);
+    thicken_given(tree, species, &Girth::default(), &radius, threads);
+    place(tree, species, None, threads)?;
+    landing.frame(tree, (seeds, live, bearers), (scales, &radii));
+    stages.mark("thicken and place");
+    // Lay on each bearer's frame, and load the tree by each root's wood;
+    // a root that can reach the ground is laid on the CPU (host decision
+    // 3, `landing.rs`).
+    hold(false);
+    let mut loads = clock.time(|| roots.lay(tree, live, bearers))?;
+    stages.mark("phase 3 (executor)");
+    hold(true);
+    let at_roots = (seeds, live, bearers);
+    landing.lay((seeds, live), (scales, &radii), &mut loads)?;
+    stages.mark("landing, unbent");
+    if any(species) {
+        let load = |i: usize| {
+            by_axis[i].map(|j: usize| Load {
+                mass: loads[j].0,
+                moment: loads[j].1,
+            })
+        };
+        let (levers, _) = levers_given(tree, species, &load, threads);
+        place(tree, species, Some(&levers), threads)?;
+        stages.mark("levers and place");
+        landing.spare.inspect(|s| s.stop());
+        // The device's bent lay set going while the CPU lands its roots.
+        let tree = &*tree;
+        let landed = std::thread::scope(|scope| {
+            let landed = scope.spawn(|| landing.bend(tree, at_roots, (scales, &radii)));
+            clock.time(|| roots.bend(tree, live, bearers))?;
+            stages.mark("phase 4 (executor)");
+            landed.join().expect("the landing")
+        });
+        landed?;
+        stages.mark("landing, bent");
+    }
+    Ok(())
 }
 
 /// Grows the structure above the cut on a thread of its own, offering

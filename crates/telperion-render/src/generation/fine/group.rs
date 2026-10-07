@@ -165,18 +165,29 @@ impl Group {
         gpu.queue.submit([encoder.finish()]);
     }
 
-    /// The first wave's records read back: one record per root, by its
-    /// place in the group.
-    pub(super) fn records(&self, gpu: &Gpu, cost: &mut Cost) -> Vec<[f32; CR as usize]> {
-        cost.trips += 1;
-        let (n, cr) = (self.order.len(), CR as usize);
-        let from = self.at[0] as usize;
-        let bytes = ((from + n * cr) * 4) as u64;
-        let raw = io::read(gpu, &self.records, bytes.max(16)).unwrap();
-        let floats: &[f32] = bytemuck::cast_slice(&raw);
-        let mut out = vec![[0.0; CR as usize]; n];
+    /// The first wave's records copied into `into` at `at` bytes; the
+    /// bytes they take.
+    pub(super) fn gather(
+        &self,
+        encoder: &mut wgpu::CommandEncoder,
+        into: &wgpu::Buffer,
+        at: u64,
+    ) -> u64 {
+        let bytes = (self.order.len() * CR as usize * 4) as u64;
+        if bytes > 0 {
+            let from = u64::from(self.at[0]) * 4;
+            encoder.copy_buffer_to_buffer(&self.records, from, into, at, bytes);
+        }
+        bytes
+    }
+
+    /// The first wave's records as gathered (`floats`): one record per
+    /// root, by its place in the group.
+    pub(super) fn records(&self, floats: &[f32]) -> Vec<[f32; CR as usize]> {
+        let cr = CR as usize;
+        let mut out = vec![[0.0; CR as usize]; self.order.len()];
         for (wi, &r) in self.order.iter().enumerate() {
-            out[r].copy_from_slice(&floats[from + wi * cr..][..cr]);
+            out[r].copy_from_slice(&floats[wi * cr..][..cr]);
         }
         out
     }

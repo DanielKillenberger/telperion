@@ -32,6 +32,8 @@ pub(super) struct Built {
     pub cost: Cost,
     /// The groups the roots grew in (task 9).
     pub groups: usize,
+    /// The roots grown ahead for the landing, and those landed.
+    pub ahead: (usize, usize),
 }
 
 /// One build of `species` at `at` on the device, batch 65,536, from its
@@ -71,6 +73,7 @@ pub(super) fn build_sown(
         stages: settled.stages,
         cost: dev.cost,
         groups: dev.groups().count(),
+        ahead: (settled.ahead, settled.grounded.len()),
     }
 }
 
@@ -118,6 +121,7 @@ fn growth_by_kernel() {
                 stages,
                 cost,
                 groups,
+                ahead,
                 ..
             } = build(&gpu, &k, &species, at);
             let passes = profile::finish(&gpu);
@@ -133,6 +137,7 @@ fn growth_by_kernel() {
                 .map(|(s, ms)| format!("{s} {ms:.1}"))
                 .collect();
             println!("  stages: {}", stages.join(", "));
+            println!("  roots grown ahead {}, landed {}", ahead.0, ahead.1);
             for (label, (n, ms, most)) in by_kernel(&passes) {
                 println!("  {label:>12}: {n:>5} passes, {ms:>8.1} ms, longest {most:.2} ms");
             }
