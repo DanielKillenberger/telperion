@@ -133,3 +133,63 @@ fn a_relay_moving_along_its_parent_thickens_it_by_degree() {
     }
     assert!(failed.is_empty(), "{failed:#?}");
 }
+
+/// fn-199's census (host, 2026-10-07): R1's and R3's walks over seeds 1
+/// to 50, each seed's three steepest steps refined; prints every step that
+/// does not shrink twentyfold, with its size. A measurement, not a check:
+/// `cargo test --profile ci -p telperion-space --test relays census -- --ignored --nocapture`.
+#[test]
+#[ignore = "a census over fifty seeds"]
+fn census_of_r1_and_r3_over_fifty_seeds() {
+    let r1 = setting("R1".into(), 0.6, 1.0 - walk::EDGE, true, |s, v| {
+        always_relayed(s, 1);
+        s.states[1].viability = v;
+    });
+    let r3 = setting("R3".into(), walk::EDGE, 0.5, true, |s, v| {
+        always_relayed(s, 1);
+        let limb = &mut s.states[1];
+        limb.relay_at = 0.5;
+        limb.epitony = 0.6;
+        limb.straightening = 1.0;
+        limb.abortion = v;
+    });
+    let seeds: Vec<u64> = (1..=50).collect();
+    for walked in [&r1, &r3] {
+        let found: Vec<Vec<String>> = std::thread::scope(|scope| {
+            let handles: Vec<_> = seeds
+                .chunks(7)
+                .map(|chunk| {
+                    scope.spawn(move || {
+                        let mut out = Vec::new();
+                        for &seed in chunk {
+                            let mut steps = walk::walk(walked, seed);
+                            steps.sort_by(|a, b| b.slope.total_cmp(&a.slope));
+                            for step in steps.iter().take(3).filter(|s| s.slope > 0.0) {
+                                let c = walk::refine(walked, seed, step.from, step.to, REFINE, 8);
+                                let (first, last) = (c[0], c[REFINE as usize]);
+                                if last > first / 20.0 {
+                                    out.push(format!(
+                                        "CENSUS {} seed {seed} {:.4}..{:.4}: {last:.3e} of the tree, from {first:.3e}, slope {:.1}, in {}",
+                                        walked.name, step.from, step.to, step.slope, step.what
+                                    ));
+                                }
+                            }
+                        }
+                        out
+                    })
+                })
+                .collect();
+            handles.into_iter().map(|h| h.join().unwrap()).collect()
+        });
+        let all: Vec<&String> = found.iter().flatten().collect();
+        println!(
+            "CENSUS {}: {} jumps over {} seeds",
+            walked.name,
+            all.len(),
+            seeds.len()
+        );
+        for line in all {
+            println!("{line}");
+        }
+    }
+}

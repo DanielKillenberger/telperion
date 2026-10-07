@@ -315,3 +315,41 @@ A relay that grows in the cycle its axis stopped in, other than an ended age's, 
 | 9 | A one-tick rest relay's birth and its age | R1 walk, seed 2, two crossings | Not built (suspected cause above) | |
 
 **Convergence.** Each fix removed the crossings it aimed at, and none came back. What is left are geometry and age-accounting cases at a stop's bound (8, 9), not growth-law ones. Classes 6, 8 and 9 sit in how an axis that carries another on is laid. Each fix so far moved which seed shows the next class rather than shrinking a common measure. A walk over more seeds would say whether there are more.
+
+## Class 9 fixed; the WGSL compiled; the census (host, 2026-10-07)
+
+### Class 9 (`0e7ddd65`)
+
+**The defect.** The relay's handed years in `grow/draw.rs::pencil` now use `age - birth - sleep` on both axes, as the host asked. That alone did not move the two crossings. Their cause was R3's weight: it read the first phytomer alone, a one-tick unit's node at partial presence (0.43), and pulled a relay of a whole-grown relay back toward the axis carried on.
+
+**The fix.** `Axis.first` is now the presence grown, unit times node, summed over the axis's nodes to one. With it, R1's and R3's walks on seeds 1 to 3 are green, R3's seed-2 crossing (class 8) included.
+
+### WGSL
+
+**Status.** The WGSL is compiled and run under the lock: `generation::fine`, 6 passed in 252 s (`raw/gpu-fine-c1.log`).
+- The contract probe passes with selectors 16 and 17.
+- Chains, units, and every realized root grown and settled on the GPU as on the CPU.
+
+**Caveat.** R3's placement is not mirrored in `walk.wgsl` yet, and the settle test did not catch that. Its trees likely hold no relay on an axis of partial `first`, or the geometry screen absorbs it.
+
+### Census: R1 and R3 over seeds 1 to 50 (`raw/census.log`, probes in `raw/census/`)
+
+**Method.** Each seed's three steepest steps were refined six levels of eight (the walk tests' rule). Every flagged step was then bisected 60 times by `probe199` on the largest change. Six of the 13 flags bisect to 4e-11 to 3e-10 of the tree: steep slopes the 4096th refinement does not resolve, not jumps. They are R3 seeds 5, 8, 12, 19, 23 and 32.
+
+**Jumps:**
+
+| Class | Walk, seed | Size (share of tree) | What happens |
+|---|---|---|---|
+| 10 | R1 30 | 2.3e-2 | A relay grows a one-tick rest of one node on one side, none on the other. R3's weight counts that node's presence (1) though its length is a tick, so the relay's relay stands on it, not on the carried-on axis's zone |
+| 10 | R1 42 | 1.3e-2 | The same, one step further down a chain of relays |
+| 11 | R3 27 | 1.1e-2 | An abortion at its bound: one side's axis carries on itself, the other's relay at blend 0 carries it on. The laterals it bears are framed differently on the two |
+| 11 | R3 4 | 3.6e-3 | The same |
+| 11 | R3 48 | 2.4e-3 | The same |
+| 11 | R3 25 | 2.8e-4 | The same |
+| 11 | R3 50 | 2.7e-4 | The same |
+
+**Reading.** Both live classes sit where the host placed classes 6, 8 and 9: how an axis that carries another on is placed and laid. Two of seven are 1e-2 and over.
+- **Class 10** is the presence-against-length tension in R3's weight. Weighting by presence breaks for a node of a tick's length. Weighting by length broke the sliver unit at seed 1, class 6's first try.
+- **Class 11:** a relay at blend 0 is laid, and frames what it bears, from its own phytomers, not as the axis it carries on would be. Which part differs (handed pulls, years, or the phyllotaxis side) is not traced.
+
+Nothing was fixed after the census.
