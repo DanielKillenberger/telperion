@@ -39,9 +39,11 @@ impl Pool {
         taken
     }
 
-    /// Buffers a build is done with, for the next.
+    /// Buffers a build is done with, for the next; those the last build
+    /// left and this one did not take are let go, so the pool holds one
+    /// build's buffers at most.
     pub(super) fn give(&self, buffers: impl IntoIterator<Item = wgpu::Buffer>) {
-        self.0.borrow_mut().extend(buffers);
+        *self.0.borrow_mut() = buffers.into_iter().collect();
     }
 }
 
