@@ -52,3 +52,10 @@
 - **Slowed by:** other sessions held the 1-minute load at 65 to 130 on 32 threads through the run (the GPU lock serialises the device, not the CPU), so every all-core time is inflated by an unknown factor and the one-core times compete for a core.
 - **Cost:** a 16-tree run of about 6 minutes whose times are indicative only; a quiet rerun is needed for R2.
 - **Would remove it:** as recorded on 2026-10-05: a timing runner that records the load and refuses above a ceiling, or a quiet window for cost runs.
+
+## 2026-10-07, task 3: the shared GPU lock before the first harness run
+
+- **Doing:** opening the harness on the beech at 40 in a headless Chromium, the first look at the engine through `setTreeGpu`.
+- **Slowed by:** the shared GPU lock was held by another worker; one five-second page load waited 8.5 minutes for it (load 6 to 12 on 32 threads).
+- **Cost:** about 9 minutes wall, no tokens.
+- **Would remove it:** as recorded on task 2: a lock that names its holder and queue, so a worker does CPU work meanwhile; or a lock per device use measured in seconds, not per script.

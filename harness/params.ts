@@ -9,7 +9,7 @@
  * a control without a line here.
  * ------------------------------------------------------------------ */
 
-import { ORDINARY, type Family } from "../src/browser/core";
+import { ORDINARY, presetById, type Family } from "../src/browser/core";
 import { presetToParams } from "./family";
 
 /** Seeds are unsigned 32-bit integers, and nothing else is a seed. */
@@ -31,6 +31,12 @@ export const DEFAULT_PARAMS: GrowerParams = {
   seed: 1, density: 0.5,
 };
 
+/** The tree the harness opens on and resets to: the engine's beech at its
+ *  preset age (fn-198 host decision 5). The Ordinary rows above stay the
+ *  dials' trait baseline, but the Ordinary tree has no engine species and
+ *  is refused by name (host decision 9), so it is no tree to open on. */
+export const OPENING_PARAMS: GrowerParams = { ...presetToParams(presetById("european-beech")), seed: 1 };
+
 /** The seed field is the one free-text surface on the panel, so it is
  *  the one place a value can arrive as anything at all. Parsed
  *  strictly: Number() would take "1e3", " 12", "0x4" and "", none of
@@ -41,6 +47,14 @@ export function normalizeSeed(raw: string): number | null {
   const value = Number(raw);
   if (!Number.isInteger(value) || value > SEED_MAX) return null;
   return value;
+}
+
+/** An age in a link (`?age=`): whole years from one, strictly parsed as a
+ *  seed is. Null where the text is not one, and the preset's age stands. */
+export function normalizeAge(raw: string): number | null {
+  if (!/^\d{1,6}$/.test(raw)) return null;
+  const value = Number(raw);
+  return value >= 1 ? value : null;
 }
 
 /** A fresh seed, drawn from the platform CSPRNG so consecutive rerolls

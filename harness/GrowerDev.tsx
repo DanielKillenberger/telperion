@@ -21,11 +21,12 @@ import { PRESETS, presetById, type TreePreset } from "../src/browser/core";
 import type { FrameStats, SceneRow, Submitted, TimingReport, View } from "../src/browser/render";
 
 import { LookControls, useLook } from "./LookControls";
-import { Dials, Traits } from "./dials";
+import { AgeDial, Dials, Traits } from "./dials";
 import { familyJson, presetToParams } from "./family";
 import {
-  DEFAULT_PARAMS,
+  OPENING_PARAMS,
   type GrowerParams,
+  normalizeAge,
   normalizeSeed,
   randomSeed,
 } from "./params";
@@ -97,11 +98,14 @@ export function GrowerDev() {
     try {
       const query = new URLSearchParams(window.location.search);
       const id = query.get("species");
-      const initial = id ? presetToParams(presetById(id)) : DEFAULT_PARAMS;
+      const initial = id ? presetToParams(presetById(id)) : OPENING_PARAMS;
       const seed = query.has("seed") ? normalizeSeed(query.get("seed")!) : null;
-      return { params: seed === null ? initial : { ...initial, seed }, error: null };
+      const age = query.has("age") ? normalizeAge(query.get("age")!) : null;
+      const seeded = seed === null ? initial : { ...initial, seed };
+      const params = age === null ? seeded : { ...seeded, family: { ...seeded.family, age } };
+      return { params, error: null };
     } catch (error) {
-      return { params: DEFAULT_PARAMS, error: String(error) };
+      return { params: OPENING_PARAMS, error: String(error) };
     }
   });
   const [params, setParams] = useState<GrowerParams>(initialLink.params);
@@ -219,6 +223,11 @@ export function GrowerDev() {
     if (seed !== null) { setParams((prev) => ({ ...prev, seed })); stageRef.current?.frameNext(); }
   }, []);
 
+  /* The age rebuilds through the same engine path as any dial. */
+  const setAge = useCallback((age: number) => {
+    setParams((prev) => ({ ...prev, family: { ...prev.family, age } }));
+  }, []);
+
   const reroll = useCallback(() => {
     const seed = randomSeed();
     setSeedText(String(seed));
@@ -236,11 +245,11 @@ export function GrowerDev() {
   }, []);
 
   const reset = useCallback(() => {
-    setSeedText(String(DEFAULT_PARAMS.seed));
-    // A fresh object rather than DEFAULT_PARAMS itself: reset from an
+    setSeedText(String(OPENING_PARAMS.seed));
+    // A fresh object rather than OPENING_PARAMS itself: reset from an
     // already-default state still has to rebuild and re-frame, and
     // React elides a state write that is the same reference.
-    setParams({ ...DEFAULT_PARAMS });
+    setParams({ ...OPENING_PARAMS });
     /* Not `frame()`. `setParams` is asynchronous and the tree on the
        canvas right now is the one being replaced; `frameNext` frames
        the tree this click actually builds. */
@@ -301,6 +310,8 @@ export function GrowerDev() {
             reroll
           </button>
         </div>
+
+        <AgeDial age={params.family.age} onChange={setAge} />
 
         <div className="gd-row">
           {PRESETS.map((preset) => (

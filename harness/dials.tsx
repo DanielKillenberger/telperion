@@ -21,9 +21,10 @@ import { ADAPTERS, adapterAdmits, type Adapter } from "./family";
 import type { GrowerParams } from "./params";
 import { admit, groupOf, labelOf, readRow, shownRows, slider, writeRow, type Value } from "./rows";
 
-/** Rows another control owns: the seed box and each adapter's row. */
+/** Rows another control owns: the seed box, the age dial and each
+ *  adapter's row. */
 const OWNED: ReadonlySet<string> = new Set([
-  "/skeleton/seed", ...ADAPTERS.flatMap(a => (a.owns === undefined ? [] : [a.owns])),
+  "/skeleton/seed", "/age", ...ADAPTERS.flatMap(a => (a.owns === undefined ? [] : [a.owns])),
 ]);
 
 /** A dial's value, at a precision that can tell its own steps apart -
@@ -125,6 +126,26 @@ function AdapterDial({ adapter: a, params, onChange }: {
       onChange={raw => { if (adapterAdmits(params, a, raw)) onChange(raw); }} />
     <p className="gd-meaning">{a.meaning}</p>
     <Dormant applies={applies} />
+  </div>;
+}
+
+/** The oldest age the age dial reaches, in years (fn-198 host decision 5:
+ *  the engine's species open at 40 with the dial to 80). The engine grows
+ *  at least one year. A preset older than this keeps its own age on the
+ *  dial, as a row's slider takes its value in. */
+export const AGE_MAX = 80;
+
+/** The age the tree is drawn at, in whole years: the viewer's control, not
+ *  a tuning dial (the `/age` row's catalogue entry), so it stands beside
+ *  the seed. Every age rebuilds through the same engine path. */
+export function AgeDial({ age, onChange }: { age: number; onChange: (age: number) => void }) {
+  const set = (raw: number): void => {
+    if (Number.isFinite(raw)) onChange(Math.max(1, Math.round(raw)));
+  };
+  return <div className="gd-row">
+    <label className="gd-label" htmlFor="gd-age">age <span className="gd-value">{age} years</span></label>
+    <input id="gd-age" type="range" min={1} max={Math.max(AGE_MAX, age)} step={1} value={age}
+      onChange={event => set(event.target.valueAsNumber)} />
   </div>;
 }
 

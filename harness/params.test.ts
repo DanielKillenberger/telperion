@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_PARAMS, SEED_MAX, normalizeSeed } from "./params";
+import { DEFAULT_PARAMS, OPENING_PARAMS, SEED_MAX, normalizeAge, normalizeSeed } from "./params";
 
 describe("normalizeSeed", () => {
   it.each([
@@ -24,6 +24,24 @@ describe("normalizeSeed", () => {
     ["seed", "not a number"],
   ])("rejects %s (%s)", (raw) => {
     expect(normalizeSeed(raw)).toBeNull();
+  });
+});
+
+describe("normalizeAge", () => {
+  it("takes whole years from one", () => {
+    expect(normalizeAge("1")).toBe(1);
+    expect(normalizeAge("80")).toBe(80);
+  });
+
+  it.each(["", "0", "-4", "40.5", "4e1", " 40", "age"])("rejects %j", (raw) => {
+    expect(normalizeAge(raw)).toBeNull();
+  });
+});
+
+describe("the opening tree", () => {
+  it("is the engine's beech at 40 (fn-198 host decision 5)", () => {
+    expect(OPENING_PARAMS.family.age).toBe(40);
+    expect(OPENING_PARAMS.family.space).toBeDefined();
   });
 });
 
