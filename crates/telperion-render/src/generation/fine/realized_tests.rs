@@ -1,15 +1,19 @@
 //! Fine roots under realized mechanics on the GPU executor against the
 //! realized CPU executor (fn-209 F1 task 6; REALIZED.md, "Host decision
-//! 8", steps 1 to 3): every root's subtree grown whole, identical by
-//! lineage, in any order of the roots and any batch size.
+//! 8", steps 1 to 4): every root's subtree grown whole and shed,
+//! identical by lineage, then settled with the structure above the cut,
+//! within fn-125's screen, in any order of the roots and any batch size.
+use super::device::Device;
+use super::laid::{AL, PL};
 use super::laid_tests::kernels;
 use super::readback;
 use super::realized::{grow_roots, RootBud};
 use super::roots::{Cost, Kernels, Tables};
+use super::shedding;
 use crate::Gpu;
 use telperion_space::{
-    realized_cases, ChainAxis, ChainTables, Expected, GeometryTables, Light, Plan, RealizedCase,
-    Request, Species,
+    grow_fine, realized_cases, root_axes, settle, ChainAxis, ChainTables, Expected, GeometryTables,
+    Light, Plan, Presences, RealizedCase, Request, Species, Vec3,
 };
 
 fn request(age: u32, seed: u64) -> Request {
@@ -32,9 +36,10 @@ fn unlit_oak() -> Species {
     oak
 }
 
-/// A root's axes in canonical order: by depth, then identity (its
-/// bearer's identity and how it stands there), parents renumbered.
-fn canon(axes: &[ChainAxis]) -> Vec<ChainAxis> {
+/// A root's axes in canonical order, by depth and then identity (its
+/// bearer's identity and how it stands there), parents renumbered; and
+/// the order, by the axes' places.
+fn canon(axes: &[ChainAxis]) -> (Vec<ChainAxis>, Vec<usize>) {
     let mix = |h: u64, v: u64| (h ^ v).wrapping_mul(0x0000_0100_0000_01b3);
     let (mut ids, mut depth) = (vec![0u64; axes.len()], vec![0usize; axes.len()]);
     for (i, a) in axes.iter().enumerate() {
@@ -54,11 +59,23 @@ fn canon(axes: &[ChainAxis]) -> Vec<ChainAxis> {
     for (k, &i) in order.iter().enumerate() {
         at[i] = k;
     }
-    order
+    let canonical = order
         .iter()
         .map(|&i| ChainAxis {
             parent: axes[i].parent.map(|p| at[p]),
             ..axes[i].clone()
+        })
+        .collect();
+    (canonical, order)
+}
+
+/// `of` in `order`, each axis's units summed, as the GPU's are read.
+fn summed(of: &[Presences], order: &[usize]) -> Vec<Presences> {
+    order
+        .iter()
+        .map(|&i| Presences {
+            units: vec![of[i].units.iter().sum()],
+            ..of[i].clone()
         })
         .collect()
 }
@@ -78,7 +95,7 @@ fn setup<'a>(
     tables.keep = true;
     let roots = cases
         .iter()
-        .map(|c| (c.bud, [c.made.0 as f32, c.made.1 as f32]))
+        .map(|c| (c.bud, [c.made.0 as f32, c.made.1 as f32], c.birth))
         .collect();
     (cases, tables, roots)
 }
@@ -87,7 +104,9 @@ fn trips(cost: &Cost) {
     assert_eq!(cost.trips, cost.runs + cost.waves, "{cost:?}");
 }
 
-/// Step 1: every root's axes as grown, before shedding, by lineage.
+/// Steps 1 to 3: every root's axes as grown, before shedding, by lineage,
+/// and their presences, Q32, to the bit; each root's living as reported
+/// up; and its axes kept by its own subtree's shedding.
 fn grown_as_on_the_cpu(gpu: &Gpu, k: &Kernels, name: &str, species: &Species, at: (u32, u64)) {
     let expected = Expected::new(species, at.0, 0);
     let chain = ChainTables::new(species, at.0, &expected).expect("tables");
@@ -95,12 +114,47 @@ fn grown_as_on_the_cpu(gpu: &Gpu, k: &Kernels, name: &str, species: &Species, at
     let forward: Vec<usize> = (0..cases.len()).collect();
     let reverse: Vec<usize> = forward.iter().rev().copied().collect();
     let mut axes = 0;
+    let fade_table = shedding::table(gpu, &chain);
+    let all = vec![1u32; cases.len()];
+    let usage = wgpu::BufferUsages::STORAGE;
+    let all = crate::generation::io::buffer(
+        gpu,
+        "roots kept",
+        (all.len().max(4) * 4) as u64,
+        usage,
+        bytemuck::cast_slice(&all),
+    )
+    .unwrap();
     for (order, batch) in [(&forward, 4096), (&reverse, 777), (&forward, 64)] {
-        let (grown, cost) = grow_roots((gpu, k), (&roots, order, batch), &tables);
+        let (waves, mut cost) = grow_roots((gpu, k), (&roots, order, batch), &tables);
         trips(&cost);
-        let got = readback::read(gpu, &grown, cases.len());
+        let got = readback::read(gpu, &waves.grown, cases.len(), true);
         for (r, (c, have)) in cases.iter().zip(&got.roots).enumerate() {
-            assert_eq!(canon(have), canon(&c.grown), "{name} {at:?} root {r}");
+            let ((gpu, by), (cpu, want)) = (canon(have), canon(&c.grown));
+            assert_eq!(gpu, cpu, "{name} {at:?} root {r}");
+            let (gpu, cpu) = (summed(&got.presences[r], &by), summed(&c.presences, &want));
+            for (j, (g, c)) in gpu.iter().zip(&cpu).enumerate() {
+                assert_eq!(g, c, "{name} {at:?} root {r} axis {j}: presences");
+            }
+        }
+        let living = k
+            .fades
+            .living(gpu, (&waves.grown, &waves.chains), (&fade_table, at.0));
+        let report = shedding::report(gpu, &living[0], cases.len(), &mut cost);
+        for (wi, &r) in order.iter().enumerate() {
+            assert_eq!(
+                report[wi], cases[r].living,
+                "{name} {at:?} root {r}: living"
+            );
+        }
+        k.fades.shed(gpu, (&waves.grown, &waves.own), &all);
+        let shed = readback::read(gpu, &waves.grown, cases.len(), true);
+        for (r, (c, have)) in cases.iter().zip(&shed.roots).enumerate() {
+            assert_eq!(
+                canon(have).0,
+                canon(&c.kept).0,
+                "{name} {at:?} root {r}: kept"
+            );
         }
         axes = got.roots.iter().map(Vec::len).sum::<usize>();
     }
@@ -112,7 +166,9 @@ fn every_root_grows_whole_on_the_gpu_as_on_the_cpu() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
     };
+    let t = std::time::Instant::now();
     let k = kernels(&gpu);
+    println!("pipelines {:.0} ms", t.elapsed().as_secs_f64() * 1e3);
     let species = [
         ("beech", telperion_space::beech()),
         ("spruce", telperion_space::spruce()),
@@ -121,6 +177,135 @@ fn every_root_grows_whole_on_the_gpu_as_on_the_cpu() {
     for (name, species) in &species {
         for seed in [1, 7] {
             grown_as_on_the_cpu(&gpu, &k, name, species, (25, seed));
+        }
+    }
+}
+
+/// fn-125's screen, in metres.
+const MOST: f64 = 50e-6;
+const RMS: f64 = 10e-6;
+
+/// How far the device's roots lie from the CPU executor's.
+#[derive(Debug, Default, Clone, Copy)]
+struct Apart {
+    phytomers: usize,
+    most: f64,
+    squares: f64,
+    radius: f64,
+    digest: u64,
+}
+
+/// Step 4: the tree settled with its roots on the device, in `order` and
+/// batches of `batch`: each root's kept axes by lineage as the CPU
+/// executor's (`grow_fine`), and how far its laid tips and radii lie.
+fn settled_against(
+    gpu: &Gpu,
+    k: &Kernels,
+    (species, at): (&Species, (u32, u64)),
+    want: &[Option<RootAxes>],
+    (order, batch): (&[usize], usize),
+) -> Apart {
+    let expected = Expected::new(species, at.0, 0);
+    let chain = ChainTables::new(species, at.0, &expected).expect("tables");
+    let geo = GeometryTables::new(species, at.0, &expected).expect("tables");
+    let mut tables = Tables::new(gpu, &chain, &geo);
+    tables.keep = true;
+    let mut dev = Device::new(gpu, k, &tables, batch).ordered(order.to_vec());
+    let plan = Plan::default();
+    settle(species, request(at.0, at.1), &expected, plan, &mut dev).expect("settles");
+    let c = dev.cost;
+    let reads = 2 + usize::from(tables.sags);
+    assert_eq!(c.trips, c.runs + c.waves + reads, "{c:?}");
+    let (waves, laid) = dev.waves();
+    let got = readback::read(gpu, &waves.grown, want.len(), true);
+    let floats: Vec<Vec<f32>> = laid.iter().map(|w| w.read(gpu)).collect();
+    let mut apart = Apart::default();
+    assert_eq!(got.statuses, 0, "a chain's status");
+    for (r, w) in want.iter().enumerate() {
+        let Some((axes, origin)) = w else {
+            assert!(got.roots[r].is_empty(), "root {r} was shed");
+            continue;
+        };
+        let cpu: Vec<ChainAxis> = axes.iter().map(|a| a.0.clone()).collect();
+        let ((gpu_axes, by), (cpu_axes, want_by)) = (canon(&got.roots[r]), canon(&cpu));
+        assert_eq!(gpu_axes, cpu_axes, "root {r}: kept axes");
+        for (&g, &c) in by.iter().zip(&want_by) {
+            let (w, i) = got.laid[r][g];
+            let wave = &floats[w];
+            let phyts = laid[w].axes as usize * AL;
+            let first = wave[i as usize * AL + 7].to_bits() as usize;
+            for (n, &(tip, radius)) in axes[c].1.iter().enumerate() {
+                let p = &wave[phyts + (first + n) * PL..][..PL];
+                for v in p {
+                    apart.digest =
+                        (apart.digest ^ u64::from(v.to_bits())).wrapping_mul(0x100_0000_01b3);
+                }
+                let want = tip - *origin;
+                let d = [
+                    p[0] as f64 - want.x,
+                    p[1] as f64 - want.y,
+                    p[2] as f64 - want.z,
+                ];
+                let e = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
+                assert!(e.is_finite(), "root {r}: {p:?}");
+                apart.most = apart.most.max(e);
+                apart.squares += e * e;
+                apart.phytomers += 1;
+                let dr = (f64::from(p[18]) - radius).abs() / radius.max(1e-9);
+                apart.radius = apart.radius.max(dr);
+            }
+        }
+    }
+    apart
+}
+
+type RootAxes = (Vec<(ChainAxis, Vec<(Vec3, f64)>)>, Vec3);
+
+/// One tree settled in three orders and batch sizes, each against the
+/// CPU executor, the same geometry in each.
+fn settles_as_on_the_cpu(
+    gpu: &Gpu,
+    k: &Kernels,
+    name: &str,
+    species: &Species,
+    at: (u32, u64),
+) -> Apart {
+    let expected = Expected::new(species, at.0, 0);
+    let cpu = grow_fine(species, request(at.0, at.1), &expected, Plan::default()).expect("grows");
+    let want = root_axes(&cpu);
+    let forward: Vec<usize> = (0..want.len()).collect();
+    let reverse: Vec<usize> = forward.iter().rev().copied().collect();
+    let a = settled_against(gpu, k, (species, at), &want, (&forward, 4096));
+    for (order, batch) in [(&reverse, 777), (&forward, 64)] {
+        let b = settled_against(gpu, k, (species, at), &want, (order, batch));
+        assert_eq!(
+            a.digest, b.digest,
+            "{name} {at:?}: the same geometry in any order and batch"
+        );
+    }
+    a
+}
+
+#[test]
+fn every_root_settles_on_the_gpu_as_on_the_cpu() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let k = kernels(&gpu);
+    let species = [
+        ("beech", telperion_space::beech()),
+        ("spruce", telperion_space::spruce()),
+        ("oak, unlit", unlit_oak()),
+    ];
+    for (name, species) in &species {
+        for seed in [1, 7] {
+            let a = settles_as_on_the_cpu(&gpu, &k, name, species, (25, seed));
+            let rms = (a.squares / a.phytomers.max(1) as f64).sqrt();
+            println!(
+                "{name} 25 {seed}: {} phytomers, tips {:.2e} most {rms:.2e} RMS, radii {:.2e} rel",
+                a.phytomers, a.most, a.radius
+            );
+            assert!(a.most <= MOST && rms <= RMS, "{name} 25 {seed}: {a:?}");
         }
     }
 }

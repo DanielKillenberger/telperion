@@ -21,8 +21,8 @@ struct Cfg {
 @group(0) @binding(5) var<storage, read_write> packed_axes: array<u32>;
 @group(0) @binding(6) var<storage, read_write> packed_phyts: array<u32>;
 
-const AXW: u32 = 40u;
-const PW: u32 = 9u;
+const AXW: u32 = 80u;
+const PW: u32 = 11u;
 
 @compute @workgroup_size(64)
 fn pack(@builtin(global_invocation_id) id: vec3<u32>) {

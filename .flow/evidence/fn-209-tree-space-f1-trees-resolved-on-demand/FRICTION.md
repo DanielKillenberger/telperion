@@ -139,3 +139,18 @@
 - **Slowed:** `tests/geometry.rs`'s `an_overflowing_expectation_draws_finite_wood` (age 1,500) aborted the test binary with a stack overflow. `grow` now builds the closed form's table for its cut, and `Kept::of` and `Kept::lived` recurse once per cycle of age. The crate's own test run after decision 7 had passed, because which thread reads the deepest rows depends on scheduling: a pool thread or the 2 MB test thread.
 - **Cost:** one gate (11.5 minutes, the GPU lock held) and about 10 minutes to backtrace and fix. The fix runs the table's shares on threads with a 256 MB reserved stack (`cores::deep`).
 - **Would remove it:** a test that builds the closed form at the deepest age any test grows, run on a 2 MB thread, beside the closed form's own tests. The recursion made iterative would remove the limit altogether.
+
+## 2026-10-07, the GPU mirror's step 2: a silent ten-minute run, then the lock behind a gate (task 6)
+
+- **Doing:** the first locked run of the realized GPU test after porting the Q32 presences into the chain grower (`assign.wgsl`).
+- **Slowed:** the test printed nothing for ten minutes (the step 1 run had taken 40 s), so it was killed by PID; a workspace gate from another worktree then took the GPU lock for its whole run. The cause was not yet known when this was written: a pipeline compile of the larger chain shader, or a kernel that never ends, look the same from outside, because the test prints nothing until a whole tree is done.
+- **Cause, found on the second run (02:29 to 02:33):** the test thread at 100 % of one core and 11 GB resident with the GPU idle: the driver compiling the chain grower's pipeline. Each Q32 presence site (about fifteen) inlines the contract's 128-bit `log2` and `exp2` loops, and the compile blew up. Fixed by recording each presence's inputs during growth and evaluating them all at the chain's end through one call site.
+- **Cost:** about 14 minutes of locked GPU time on two compiles that never finished, then the gate's wait (about 10 minutes).
+- **Would remove it:** the GPU tests printing the pipeline build time before any tree, and a per-dispatch timeout in `io` (a poll with a deadline rather than `wait_indefinitely`), so a hang reports itself; and, as before, a gate that takes the lock only around its GPU tests.
+
+## 2026-10-07, a bud width in a third shader (task 6, GPU mirror)
+
+- **Doing:** widening a bud's record by two words (its making draws' Q32 presences) for the realized GPU mirror.
+- **Slowed:** the width is a constant in four places (`chain.wgsl`'s `BW`, `emit.wgsl`'s and `gather.wgsl`'s `BW2`, `steps.rs`'s `BW2`). `gather.wgsl` kept the old width, so every chain regrown in a larger region read a garbage bud, and the realized test ran for minutes with the GPU at 100 %. Found by bisection: the chain test (no regrown chains in the realized path's sense) passed in 6 s.
+- **Cost:** about 15 minutes and four locked GPU runs, two of them timeouts.
+- **Would remove it:** the record widths injected into every shader from the one Rust constant (a `const` prelude the source functions prepend), so a width cannot disagree between kernels.

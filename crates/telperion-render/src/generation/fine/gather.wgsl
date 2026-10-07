@@ -15,7 +15,7 @@ struct Cfg {
 @group(0) @binding(2) var<storage, read> wave: array<u32>;
 @group(0) @binding(3) var<storage, read_write> gathered: array<u32>;
 
-const BW2: u32 = 24u;
+const BW2: u32 = 28u;
 
 @compute @workgroup_size(64)
 fn gather(@builtin(global_invocation_id) id: vec3<u32>) {

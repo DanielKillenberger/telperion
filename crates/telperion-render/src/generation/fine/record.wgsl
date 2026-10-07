@@ -27,7 +27,7 @@ struct Cfg {
 @group(0) @binding(6) var<storage, read_write> queued: array<atomic<u32>>;
 @group(0) @binding(7) var<storage, read_write> runoff: array<u32>;
 
-const AXW: u32 = 40u;
+const AXW: u32 = 80u;
 const KIND: u32 = 4u;
 const PARENT: u32 = 5u;
 const NPHYT: u32 = 24u;

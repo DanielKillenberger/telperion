@@ -73,7 +73,7 @@ impl Apart {
 /// The GPU's expansion held against the reference: topology identical by
 /// lineage, and how far its geometry lies.
 fn held(gpu: &Gpu, r: &Reference, ex: &Expanded) -> Apart {
-    let got = readback::read(gpu, &ex.grown, r.cases.len());
+    let got = readback::read(gpu, &ex.grown, r.cases.len(), false);
     for (k, ((_, want), have)) in r.cases.iter().zip(&got.roots).enumerate() {
         if r.attached[k].grounded {
             assert!(have.is_empty(), "root {k} can reach the ground: the CPU's");
@@ -185,6 +185,7 @@ pub(super) fn kernels(gpu: &Gpu) -> Kernels {
         grower: Grower::new(gpu),
         steps: Steps::new(gpu),
         resolver: Resolver::new(gpu),
+        fades: super::shedding::Fades::new(gpu),
     }
 }
 

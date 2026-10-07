@@ -8,10 +8,12 @@ use super::roots::Grown;
 use super::steps::{CW, RW};
 use crate::Gpu;
 use std::collections::HashMap;
-use telperion_space::{ChainAxis, ChainBud};
+use telperion_space::{ChainAxis, ChainBud, Presences};
 
 pub(super) struct Read {
     pub roots: Vec<Vec<ChainAxis>>,
+    /// Each kept axis's Q32 presences (`assign.wgsl`), as `roots`.
+    pub presences: Vec<Vec<Presences>>,
     pub laid: Vec<Vec<(usize, u32)>>,
     pub statuses: u32,
 }
@@ -21,10 +23,12 @@ fn words(gpu: &Gpu, buffer: &wgpu::Buffer) -> Vec<u32> {
     bytemuck::cast_slice(&bytes).to_vec()
 }
 
-/// What `grown` holds for `roots` roots.
-pub(super) fn read(gpu: &Gpu, grown: &[Grown], roots: usize) -> Read {
+/// What `grown` holds for `roots` roots; `all`: each wave's laid places
+/// count every own axis, kept or not (realized growth).
+pub(super) fn read(gpu: &Gpu, grown: &[Grown], roots: usize, all: bool) -> Read {
     let mut out = Read {
         roots: vec![Vec::new(); roots],
+        presences: vec![Vec::new(); roots],
         laid: vec![Vec::new(); roots],
         statuses: 0,
     };
@@ -72,13 +76,22 @@ pub(super) fn read(gpu: &Gpu, grown: &[Grown], roots: usize) -> Read {
             let chain = topology(&stub, axes, phyts);
             let wi = wi as usize;
             let (root, bearer) = (meta[2 * wi] as usize, meta[2 * wi + 1]);
-            let bearer = (w > 1).then(|| local[&(w - 1, bearer)]);
+            // A chain whose bearer was shed is shed with it.
+            let bearer = match (w > 1).then(|| local.get(&(w - 1, bearer))) {
+                None => None,
+                Some(Some(&b)) => Some(b),
+                Some(None) => continue,
+            };
             let out_axes = places[wi * CW as usize];
             let kept = &mut out.roots[root];
             let mut at = vec![None; chain.len()];
             let mut own = 0;
             for (i, ax) in chain.iter().enumerate() {
-                if !(i == 0 || ax.kind != 1) || !ax.kept {
+                let own_axis = i == 0 || ax.kind != 1;
+                if own_axis && all && !ax.kept {
+                    own += 1;
+                }
+                if !own_axis || !ax.kept {
                     continue;
                 }
                 let parent = ax.parent.map_or(bearer, |q| at[q]);
@@ -86,6 +99,7 @@ pub(super) fn read(gpu: &Gpu, grown: &[Grown], roots: usize) -> Read {
                 local.insert((w, out_axes + own), kept.len());
                 out.laid[root].push((w, out_axes + own));
                 own += 1;
+                out.presences[root].push(presences(axes, phyts, i + 1));
                 kept.push(ChainAxis {
                     parent,
                     context: None,
@@ -95,4 +109,23 @@ pub(super) fn read(gpu: &Gpu, grown: &[Grown], roots: usize) -> Read {
         }
     }
     out
+}
+
+/// Region axis `i`'s Q32 presences, its units' summed.
+fn presences(axes: &[u32], phyts: &[u32], i: usize) -> Presences {
+    let wide = |f: usize| u64::from(axes[i * AXW + f]) | u64::from(axes[i * AXW + f + 1]) << 32;
+    let scales = phyts
+        .as_chunks::<PW>()
+        .0
+        .iter()
+        .filter(|p| p[3] as usize == i)
+        .map(|p| u64::from(p[9]) | u64::from(p[10]) << 32)
+        .collect();
+    Presences {
+        vigour: wide(48),
+        units: vec![wide(54)],
+        scales,
+        alive: wide(52),
+        sleep: u64::from(axes[i * AXW + 19]) << 12,
+    }
 }

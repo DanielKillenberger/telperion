@@ -2,17 +2,21 @@
 // phytomers in order, scale, girth, lay, levers. Part of its shader.
 
 // The chain's own kept axes, numbered in order, and their phytomers in
-// order along each, by the region's indices.
-fn own_axes(na: u32, np: u32) -> u32 {
+// order along each, by the region's indices; with `all`, numbered among
+// every own axis, kept or not, as realized growth placed them.
+fn own_axes(na: u32, np: u32, all: bool) -> u32 {
     var n = 0u;
     var phytomers = 0u;
     for (var i = 0u; i < na; i++) {
         let own = i == 1u || (i > 1u && kind_of(i) != LATERAL);
+        let kept = own && (ax(i, SHED_FLAGS) & 1u) != 0u;
         ss(i, S_OWN, NONE);
-        if own && (ax(i, SHED_FLAGS) & 1u) != 0u {
+        if kept {
             ss(i, S_OWN, n);
             ss(i, S_START, phytomers);
             ss(i, S_COUNT, 0u);
+        }
+        if kept || (own && all) {
             phytomers += ax(i, NPHYT);
             n += 1u;
         }

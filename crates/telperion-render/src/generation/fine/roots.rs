@@ -8,6 +8,7 @@
 //! nothing per chain or per node does.
 use super::chains::{bud_words, packed, upload, Caps, Grower, Packed, Uploaded, AXW, PW};
 use super::laid::{self, Resolver, Wave};
+use super::shedding::Fades;
 use super::steps::{buffer, Steps, BW2, CW, DESCRIBE, HAND, IW, RW};
 use crate::Gpu;
 use std::time::Instant;
@@ -75,6 +76,7 @@ pub(super) struct Kernels {
     pub grower: Grower,
     pub steps: Steps,
     pub resolver: Resolver,
+    pub fades: Fades,
 }
 
 /// One run as the device keeps it: its chains, their records (places in
@@ -139,6 +141,7 @@ pub(super) fn expand(
             bud_words(
                 &buds[r],
                 [attached[r].vigour as f32, attached[r].whorl as f32],
+                [1 << 32; 2],
             )
         })
         .collect();

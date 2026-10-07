@@ -11,7 +11,7 @@ use telperion_space::{grow, Light, Origin, Request, Species, Structure, Units};
 const UNIT: &str = include_str!("unit.wgsl");
 const NONE: u32 = u32::MAX;
 /// A zone's words in the table (`zones.wgsl`).
-const ZW: u32 = 12;
+const ZW: u32 = 14;
 
 /// A tree to check: species, age and seed.
 type Case = (&'static str, fn() -> Species, u32, u64);
@@ -49,6 +49,12 @@ pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
         });
         let sleeps = words.len() as u32;
         words.extend(zone.sleeps.iter().map(|&s| u64::from(s)));
+        let placed = words.len() as u32;
+        words.extend(&zone.placed);
+        let windows_asleep = words.len() as u32;
+        for cycle in &zone.sleep_windows {
+            words.extend(cycle.iter().map(|&w| w as u64));
+        }
         table.extend([
             zone.zone as u32,
             u32::from(zone.poisson),
@@ -62,6 +68,8 @@ pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
             zone.dormant.len() as u32,
             wake,
             sleeps,
+            placed,
+            windows_asleep,
         ]);
     }
     (table, words)

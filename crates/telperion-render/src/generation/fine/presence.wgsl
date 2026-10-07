@@ -132,20 +132,26 @@ fn run_lead(at: u32, j: u32, d: vec2<u32>) -> f32 {
 }
 
 // A unit's record: its axis, its index there, its survival and its
-// persistence (`presence::Unit`), after the chain's sleeping buds.
-const UW: u32 = 4u;
+// persistence (`presence::Unit`), after the chain's sleeping buds; then
+// what its Q32 presences are taken from at the chain's end and those
+// presences (`assign.wgsl`).
+const UW: u32 = 24u;
 
-fn push_unit(axis: u32, k: u32, survive: f32) {
+fn push_unit(axis: u32, k: u32, survive: f32) -> u32 {
     if n_units >= cfg.unit_cap {
         overflow |= 256u;
-        return;
+        return NONE;
     }
     let u = unit_base + n_units * UW;
+    for (var f = 4u; f < UW; f++) {
+        sleepers[u + f] = 0u;
+    }
     sleepers[u] = axis;
     sleepers[u + 1u] = k;
     sleepers[u + 2u] = bitcast<u32>(survive);
     sleepers[u + 3u] = bitcast<u32>(1.0);
     n_units += 1u;
+    return u;
 }
 
 // Unit `k` of `axis`'s record, none where it grew no such unit.
@@ -175,6 +181,7 @@ fn units_from(axis: u32, start: u32) -> f32 {
     return p;
 }
 
+
 fn rdf(i: u32, f: u32) -> f32 {
     return bitcast<f32>(rd(i, f));
 }
@@ -186,6 +193,9 @@ fn wrf(i: u32, f: u32, v: f32) {
 // The presences the made axis `i` starts from: its draws' (`made`), its
 // running survival, rank and blend, and where it lives on at the age.
 fn made_axis(i: u32, made: f32, blend: f32) {
+    wq(i, B0, one32());
+    wq(i, B1, one32());
+    wq(i, QRUN, one32());
     wrf(i, MADE, made);
     wrf(i, RUN, 1.0);
     wr(i, RANKF, 0u);

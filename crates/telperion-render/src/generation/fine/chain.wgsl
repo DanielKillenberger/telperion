@@ -39,14 +39,14 @@ struct Cfg {
 @group(0) @binding(7) var<storage, read_write> status: array<vec4<u32>>;
 @group(0) @binding(8) var<storage, read_write> sleepers: array<u32>;
 
-const AXW: u32 = 40u;
-const PW: u32 = 9u;
+const AXW: u32 = 80u;
+const PW: u32 = 11u;
 const ROW: u32 = 18u;
 const TICKS: u32 = 0x100000u;
 const STACK: u32 = 16u;
-const SW: u32 = 13u;
-const QW: u32 = 17u;
-const BW: u32 = 12u;
+const SW: u32 = 15u;
+const QW: u32 = 21u;
+const BW: u32 = 14u;
 const DORMANT = vec2<u32>(0xfffffff9u, 0xffffffffu);
 
 // The draws' parts (`lineage.rs`).
@@ -352,6 +352,8 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
         push_axis(lineage, pa, birth, LATERAL | (slot << 8u), 0u, node, root, horizon, vec2<u32>(0u));
         wrf(1u, MADE, vigour);
         wrf(1u, WHORL, whorl);
+        wq(1u, B0, buds[b + 12u]);
+        wq(1u, B1, buds[b + 13u]);
         push_next(1u, vec2<u32>(0u));
         start = birth + 1u;
     }
@@ -382,6 +384,7 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
     for (var k = 0u; k < n_next; k++) {
         let e = live[live_base + next_half * cfg.live_cap + k];
         living(e.x, e.yz);
+        living_q(e.x, e.yz);
     }
     // The buds that woke on it, after its axes, as it bears them.
     for (var k = 0u; k < n_pends; k++) {
@@ -409,7 +412,10 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
             * bitcast<f32>(sleepers[p + 13u]) * kept;
         wrf(at, VIG, vig);
         wr(at, WHORL, sleepers[p + 16u]);
+        // The same, Q32 (host decision 8), at the chain's end.
+        ask(at, vec4<u32>(WOKEN_ASKS, sleepers[p + 19u], sleepers[p + 20u], sleepers[p + 2u]), vec4<u32>(sleepers[p], sleepers[p + 1u], p, 0u));
     }
+    assign_q();
     if overflow == 0u && cfg.keep != 0u {
         keep_all();
     } else if overflow == 0u {

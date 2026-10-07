@@ -25,6 +25,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
         ("fine chain grower", chains::source()),
         ("fine pack", chains::pack_source()),
         ("fine geometry", laid::source()),
+        ("fine fades", shedding::source()),
     ]
     .into_iter()
     .chain(steps::sources())
@@ -35,6 +36,8 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
 mod chain_tests;
 #[cfg(test)]
 mod chains;
+#[cfg(test)]
+mod device;
 #[cfg(test)]
 mod hostrun;
 #[cfg(test)]
@@ -49,6 +52,8 @@ mod realized;
 mod realized_tests;
 #[cfg(test)]
 mod roots;
+#[cfg(test)]
+mod shedding;
 #[cfg(test)]
 mod steps;
 #[cfg(test)]

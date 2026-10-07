@@ -165,8 +165,10 @@ fn hand_lifts(i: u32, p: u32) {
     ss(i, S_LIFTS, n);
 }
 
-// Lays every own axis of the chain, before bending or under its levers.
-fn lay_all(na: u32, bent: bool, bearer: u32, below: vec3<f32>, bearer_pa: u32, ground: f32) {
+// Lays every own axis of the chain, before bending or under its levers;
+// `first`: each phytomer's lever turned from its first lay's frame, as
+// whole-tree growth's second lay does (FRAME-CORRECTION.md).
+fn lay_all(na: u32, bent: bool, bearer: u32, below: vec3<f32>, bearer_pa: u32, ground: f32, first: bool) {
     let o = field(bent);
     for (var i = 1u; i < na; i++) {
         if s(i, S_OWN) == NONE {
@@ -192,6 +194,10 @@ fn lay_all(na: u32, bent: bool, bearer: u32, below: vec3<f32>, bearer_pa: u32, g
             let at = lo(i, k);
             let p = at_k(i, k);
             var st = Step(out[at + 19u], out[at + 18u], vec2<u32>(ph(p, 0u), ph(p, 1u)), vec3<f32>(0.0), vec3<f32>(0.0), vec3<f32>(0.0), vec3<f32>(0.0), vec3<f32>(0.0));
+            if first {
+                st.was_heading = o3(at + 12u);
+                st.was_side = o3(at + 15u);
+            }
             let q = s(i, S_START) + k;
             let moment = vec3<f32>(pf(q, P_LEVER), pf(q, P_LEVER + 1u), pf(q, P_LEVER + 2u));
             let chord = vec3<f32>(pf(q, P_LEVER + 3u), pf(q, P_LEVER + 4u), pf(q, P_LEVER + 5u));
@@ -236,7 +242,7 @@ fn resolve(@builtin(global_invocation_id) id: vec3<u32>) {
     let root = items[it + 9u];
     sp = sb + na * SA;
     status = 0u;
-    own_axes(na, np);
+    own_axes(na, np, false);
     // The bearer's phytomer at the bud's node in the wave before, and the
     // point below it.
     let rec = bearer_ax * AL;
@@ -252,17 +258,17 @@ fn resolve(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     scale_all(na, bearer);
     girth_all(na, np);
-    let ground_u = origins[2u * root];
-    let ground_b = origins[2u * root + 1u];
+    let ground_u = records[2u * root];
+    let ground_b = records[2u * root + 1u];
     for (var p = 0u; p < np; p++) {
         for (var f = 0u; f < 6u; f++) {
             spf(p, P_LEVER + f, 0.0);
         }
     }
-    lay_all(na, false, bearer, below_u, bearer_pa, ground_u);
+    lay_all(na, false, bearer, below_u, bearer_pa, ground_u, false);
     if cfg.sags != 0u {
         levers_all(na, np, ground_u);
-        lay_all(na, true, bearer, below_b, bearer_pa, ground_b);
+        lay_all(na, true, bearer, below_b, bearer_pa, ground_b, false);
     } else {
         for (var i = 1u; i < na; i++) {
             if s(i, S_OWN) == NONE {

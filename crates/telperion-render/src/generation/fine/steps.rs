@@ -15,9 +15,9 @@ const EMIT: &str = include_str!("emit.wgsl");
 pub(super) const RW: u32 = 10;
 pub(super) const CW: u32 = 3;
 /// A bud's words (`chain.wgsl`), as u32s.
-pub(super) const BW2: u32 = 24;
+pub(super) const BW2: u32 = 28;
 /// An item's words (`geometry.wgsl`).
-pub(super) const IW: u32 = 10;
+pub(super) const IW: u32 = 12;
 /// `emit.wgsl`'s entries.
 pub(super) const DESCRIBE: usize = 0;
 pub(super) const HAND: usize = 1;

@@ -13,6 +13,7 @@ const CONTRACT_LAY: &str = include_str!("lay.wgsl");
 const GEOMETRY: &str = include_str!("geometry.wgsl");
 const RESOLVE: &str = include_str!("resolve.wgsl");
 const WALK: &str = include_str!("walk.wgsl");
+const SETTLE: &str = include_str!("settle.wgsl");
 /// A laid axis's and phytomer's floats (`geometry.wgsl`).
 pub(super) const AL: usize = 8;
 pub(super) const PL: usize = 22;
@@ -24,7 +25,7 @@ const GG: usize = 24;
 /// The geometry kernel's WGSL.
 pub(super) fn source() -> String {
     format!(
-        "{}\n{CONTRACT_LAY}\n{GEOMETRY}\n{RESOLVE}\n{WALK}",
+        "{}\n{CONTRACT_LAY}\n{GEOMETRY}\n{RESOLVE}\n{WALK}\n{SETTLE}",
         super::contract()
     )
 }
@@ -205,15 +206,17 @@ pub(super) struct Resolver {
 
 impl Resolver {
     pub(super) fn new(gpu: &Gpu) -> Self {
-        let read = [true, true, true, true, true, false, false, true];
+        let read = [true, true, true, true, true, false, false, false];
+        let entries = ["resolve", "scales", "girths", "lays", "levers", "bends"];
         Self {
-            pass: io::Pass::new(gpu, source(), &read, &["resolve"]),
+            pass: io::Pass::new(gpu, source(), &read, &entries),
         }
     }
 
     /// Resolves a run's `n` chains, described by `items`, their regions
     /// packed in `packed` and their scratch in `scratch`, from `prev`
-    /// into `out`, recorded into `encoder`.
+    /// into `out`, recorded into `encoder` (option 4's committed path).
+    #[allow(clippy::too_many_arguments)]
     pub(super) fn dispatch(
         &self,
         gpu: &Gpu,
@@ -228,6 +231,66 @@ impl Resolver {
         (prev, out): (&Wave, &Wave),
         (age, sags): (u32, bool),
     ) {
+        let records = (0, 0, 0);
+        let run = (items, n, packed, scratch);
+        self.pass_of(
+            gpu,
+            encoder,
+            run,
+            (table, origins),
+            (prev, out),
+            (age, sags),
+            records,
+        );
+    }
+
+    /// Runs `settle.wgsl`'s `entry` (1 `scales` to 5 `bends`) over a run's
+    /// `n` chains, the next wave's records at `prior` and this wave's at
+    /// `mine` in `records`, which holds the roots' origins first.
+    #[allow(clippy::too_many_arguments)]
+    pub(super) fn settle(
+        &self,
+        gpu: &Gpu,
+        encoder: &mut wgpu::CommandEncoder,
+        run: (
+            &wgpu::Buffer,
+            u32,
+            (&wgpu::Buffer, &wgpu::Buffer),
+            &wgpu::Buffer,
+        ),
+        (table, records): (&wgpu::Buffer, &wgpu::Buffer),
+        (prev, out): (&Wave, &Wave),
+        (age, sags): (u32, bool),
+        (entry, prior, mine): (usize, u32, u32),
+    ) {
+        let at = (entry, prior, mine);
+        self.pass_of(
+            gpu,
+            encoder,
+            run,
+            (table, records),
+            (prev, out),
+            (age, sags),
+            at,
+        );
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn pass_of(
+        &self,
+        gpu: &Gpu,
+        encoder: &mut wgpu::CommandEncoder,
+        (items, n, packed, scratch): (
+            &wgpu::Buffer,
+            u32,
+            (&wgpu::Buffer, &wgpu::Buffer),
+            &wgpu::Buffer,
+        ),
+        (table, origins): (&wgpu::Buffer, &wgpu::Buffer),
+        (prev, out): (&Wave, &Wave),
+        (age, sags): (u32, bool),
+        (entry, prior, mine): (usize, u32, u32),
+    ) {
         let groups = n.div_ceil(64);
         let row = groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
         let cfg = [
@@ -237,8 +300,8 @@ impl Resolver {
             prev.phyts_at(),
             age,
             u32::from(sags),
-            0,
-            0,
+            prior,
+            mine,
         ];
         let uniform = wgpu::BufferUsages::UNIFORM;
         let cfg = io::buffer(gpu, "laid cfg", 32, uniform, bytemuck::cast_slice(&cfg)).unwrap();
@@ -254,6 +317,6 @@ impl Resolver {
             origins,
         ];
         let bind = self.pass.bind(gpu, &all);
-        self.pass.run(encoder, &bind, 0, groups);
+        self.pass.run(encoder, &bind, entry, groups);
     }
 }

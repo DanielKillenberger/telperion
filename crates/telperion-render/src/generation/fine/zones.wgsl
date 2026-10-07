@@ -9,7 +9,7 @@
 // sleeping buds).
 
 const MOST: u32 = 64u;
-const ZW: u32 = 12u;
+const ZW: u32 = 14u;
 const ZONE: u32 = 16u;
 const NONE: u32 = 0xffffffffu;
 

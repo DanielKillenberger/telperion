@@ -46,28 +46,42 @@ fn sleep(zat: u32, node_key: vec2<u32>, axis: u32, node: u32, cycle: u32) {
         let placed = min(buds_f - f32(s), 1.0);
         sleepers[q + 10u] = bitcast<u32>(decided(lead, wood_s, 1.0) * placed);
         sleepers[q + 11u] = bitcast<u32>(buds_f);
+        // Where its own draw's Q32 presence is read from at the chain's
+        // end (`Sleeper::made`): its zone and its node's cycle.
+        sleepers[q + 12u] = zat;
+        sleepers[q + 13u] = cycle;
         n_sleepers += 1u;
     }
 }
 
 // The stage a bud of `pa` that slept `slept` ticks wakes in, and its time
 // there; none where it slept past its last (`dormant::aged`).
-fn aged(pa_in: u32, slept_in: vec2<u32>) -> vec4<u32> {
+struct Aged {
+    pa: u32,
+    slept: vec2<u32>,
+    reach: f32,
+    // The stages it moved on, which index its reach, Q32.
+    steps: u32,
+}
+
+fn aged(pa_in: u32, slept_in: vec2<u32>) -> Aged {
     var pa = lived(pa_in);
     var slept = slept_in;
     // The share of it reaching each stage (f32).
     var reach = pa_f(pa_in, 0u);
+    var steps = 0u;
     // An age moves on only to an older one, so the stages run out.
     while pa != NONE {
         let life = row(pa, 0u);
         if lt64(slept, life) {
-            return vec4<u32>(pa, slept.x, slept.y, bitcast<u32>(reach));
+            return Aged(pa, slept, reach, steps);
         }
         slept = sub64(slept, life);
         reach *= pa_f(pa, 1u);
         pa = successor(pa);
+        steps += 1u;
     }
-    return vec4<u32>(NONE);
+    return Aged(NONE, vec2<u32>(0u), 0.0, 0u);
 }
 
 // The sleeping buds that wake in `cycle`: a bud on every axis that
@@ -80,7 +94,7 @@ fn wakes(cycle: u32) {
         }
         let slept = add64(shl64(w(sleepers[q + 8u], 0u), 20u), w(sleepers[q + 7u], 0u));
         let stage = aged(sleepers[q + 4u], slept);
-        if stage.x == NONE {
+        if stage.pa == NONE {
             continue;
         }
         var open: array<u32, 32>;
@@ -116,14 +130,21 @@ fn wakes(cycle: u32) {
                     sleepers[p + 7u] = a;
                     // What its own chain's waking reads.
                     sleepers[p + 8u] = sleepers[q + 7u];
-                    sleepers[p + 9u] = stage.x;
-                    sleepers[p + 10u] = stage.y;
-                    sleepers[p + 11u] = stage.z;
+                    sleepers[p + 9u] = stage.pa;
+                    sleepers[p + 10u] = stage.slept.x;
+                    sleepers[p + 11u] = stage.slept.y;
                     sleepers[p + 12u] = bitcast<u32>(here);
-                    sleepers[p + 13u] = stage.w;
+                    sleepers[p + 13u] = bitcast<u32>(stage.reach);
                     sleepers[p + 14u] = rd(a, NUNITS);
                     sleepers[p + 15u] = sleepers[q + 10u];
                     sleepers[p + 16u] = sleepers[q + 11u];
+                    // What its Q32 presences are read from at the chain's
+                    // end: its node's unit, the stages it moved on, its
+                    // zone and its node's cycle.
+                    sleepers[p + 17u] = sleepers[q + 9u];
+                    sleepers[p + 18u] = stage.steps;
+                    sleepers[p + 19u] = sleepers[q + 12u];
+                    sleepers[p + 20u] = sleepers[q + 13u];
                     n_pends += 1u;
                 }
                 continue;
@@ -176,6 +197,8 @@ fn woke(b: u32, vigour: f32, whorl: f32) -> u32 {
         if kind != CONTINUED {
             wrf(at, MADE, vigour);
             wrf(at, WHORL, whorl);
+            wq(at, B0, buds[b + 12u]);
+            wq(at, B1, buds[b + 13u]);
         }
         wr(at, APEX_END, cycle);
         stage = successor(stage);
@@ -195,6 +218,8 @@ fn woke(b: u32, vigour: f32, whorl: f32) -> u32 {
     if kind != CONTINUED {
         wrf(a, MADE, vigour);
         wrf(a, WHORL, whorl);
+        wq(a, B0, buds[b + 12u]);
+        wq(a, B1, buds[b + 13u]);
     }
     wr(a, SLEEP, sleep);
     wr64(a, AGED, spent);

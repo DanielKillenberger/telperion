@@ -13,8 +13,9 @@ const SLEEP: &str = include_str!("sleep.wgsl");
 const SHED: &str = include_str!("shed.wgsl");
 const PACK: &str = include_str!("pack.wgsl");
 const PRESENCE: &str = include_str!("presence.wgsl");
-pub(super) const AXW: usize = 40;
-pub(super) const PW: usize = 9;
+const ASSIGN: &str = include_str!("assign.wgsl");
+pub(super) const AXW: usize = 80;
+pub(super) const PW: usize = 11;
 const NONE: u32 = u32::MAX;
 
 /// A region's bounds per chain: axes, phytomers, living apexes, sleeping
@@ -43,16 +44,16 @@ impl Caps {
 }
 
 /// A sleeping bud's and a woken bud's words (`chain.wgsl`).
-const SW: u32 = 13;
-const QW: u32 = 17;
-const UW: u32 = 4;
+const SW: u32 = 15;
+const QW: u32 = 21;
+const UW: u32 = 24;
 
 /// The unit tables, then each PA's row (flags, lived, successor, words at)
 /// and its words (`chain.wgsl`); the rows' offset in the table.
 pub(super) fn packed(t: &ChainTables, g: &GeometryTables) -> Packed {
     let (mut table, mut words) = pack(&t.units);
     let rows = table.len() as u32;
-    let mut woods = Vec::new();
+    let (mut woods, mut reaches) = (Vec::new(), Vec::new());
     for (pa, r) in t.pas.iter().enumerate() {
         let at = words.len() as u32;
         let flags = u32::from(r.lives)
@@ -87,7 +88,17 @@ pub(super) fn packed(t: &ChainTables, g: &GeometryTables) -> Packed {
             r.relay_at,
             r.shed_at.unwrap_or(0) as u64,
         ]);
+        // Host decision 8's presences (`assign.wgsl`), from word 18.
+        for (rate, floor) in r.stakes {
+            words.extend([rate as u64, floor as u64]);
+        }
+        words.extend([r.living.0, r.living.1, r.fade_delay, 0]);
         woods.push((at as usize + 15, pa));
+        reaches.push((at as usize + 27, pa));
+    }
+    for (slot, pa) in reaches {
+        words[slot] = words.len() as u64;
+        words.extend(&t.pas[pa].reaches);
     }
     for (slot, pa) in woods {
         words[slot] = words.len() as u64;
@@ -109,7 +120,9 @@ pub(super) fn packed(t: &ChainTables, g: &GeometryTables) -> Packed {
 /// presences' values start.
 pub(super) type Packed = (Vec<u32>, Vec<u64>, [u32; 3]);
 
-pub(super) fn bud_words(b: &ChainBud, made: [f32; 2]) -> [u64; 12] {
+/// A bud's words: its record, its vigour as made and its node's buds a
+/// whorl (f32), and its making draws' presences (Q32, host decision 8).
+pub(super) fn bud_words(b: &ChainBud, made: [f32; 2], birth: [u64; 2]) -> [u64; 14] {
     let pair = |lo: u32, hi: u32| u64::from(lo) | u64::from(hi) << 32;
     let w = b.woke.unwrap_or(Woke {
         key: 0,
@@ -135,13 +148,15 @@ pub(super) fn bud_words(b: &ChainBud, made: [f32; 2]) -> [u64; 12] {
         pair(w.sleep as u32, w.cycle),
         b.context.unwrap_or(0) as u64,
         pair(made[0].to_bits(), made[1].to_bits()),
+        birth[0],
+        birth[1],
     ]
 }
 
 /// The chain grower's WGSL.
 pub(super) fn source() -> String {
     format!(
-        "{}\n{CHAIN}\n{PRESENCE}\n{APEX}\n{SLEEP}\n{SHED}",
+        "{}\n{CHAIN}\n{PRESENCE}\n{ASSIGN}\n{APEX}\n{SLEEP}\n{SHED}",
         super::zones()
     )
 }

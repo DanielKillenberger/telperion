@@ -15,8 +15,10 @@ struct Cfg {
     prev_phyts: u32,
     age: u32,
     sags: u32,
-    pad0: u32,
-    pad1: u32,
+    // Realized mechanics (`settle.wgsl`): where the next wave's chains'
+    // records and this wave's start in `records`.
+    prior: u32,
+    mine: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -27,12 +29,14 @@ struct Cfg {
 @group(0) @binding(5) var<storage, read> prev: array<f32>;
 @group(0) @binding(6) var<storage, read_write> out: array<f32>;
 @group(0) @binding(7) var<storage, read_write> scratch: array<u32>;
-@group(0) @binding(8) var<storage, read> origins: array<f32>;
+// Each root's origins' heights, two a root; under realized mechanics
+// then each wave's chains' records (`settle.wgsl`).
+@group(0) @binding(8) var<storage, read_write> records: array<f32>;
 
 const NONE: u32 = 0xffffffffu;
-const AXW: u32 = 40u;
-const PW: u32 = 9u;
-const IW: u32 = 10u;
+const AXW: u32 = 80u;
+const PW: u32 = 11u;
+const IW: u32 = 12u;
 // The grower's axis fields (`chain.wgsl`).
 const LINEAGE: u32 = 0u;
 const PA: u32 = 2u;

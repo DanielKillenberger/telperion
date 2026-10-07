@@ -11,8 +11,18 @@ use std::time::Instant;
 use telperion_space::ChainBud;
 
 /// A root as the device takes it: its bud, its first axis's vigour as
-/// made and its node's buds a whorl.
-pub(super) type RootBud = (ChainBud, [f32; 2]);
+/// made and its node's buds a whorl (f32), and its making draws'
+/// presences (Q32).
+pub(super) type RootBud = (ChainBud, [f32; 2], [u64; 2]);
+
+/// The waves as the device keeps them, and each one's chains, own axes
+/// and their phytomers.
+pub(super) struct Waves {
+    pub grown: Vec<Grown>,
+    pub chains: Vec<u32>,
+    pub own: Vec<u32>,
+    pub phyts: Vec<u32>,
+}
 
 /// Phase 1's growth: every root of `roots`, taken in `order`, grown
 /// whole, `batch` chains a run; every wave as the device keeps it.
@@ -20,12 +30,12 @@ pub(super) fn grow_roots(
     (gpu, k): (&Gpu, &Kernels),
     (roots, order, batch): (&[RootBud], &[usize], usize),
     tables: &Tables,
-) -> (Vec<Grown>, Cost) {
+) -> (Waves, Cost) {
     assert!(tables.keep, "realized growth keeps every axis");
     let mut cost = Cost::default();
     let words: Vec<u64> = order
         .iter()
-        .flat_map(|&r| bud_words(&roots[r].0, roots[r].1))
+        .flat_map(|&r| bud_words(&roots[r].0, roots[r].1, roots[r].2))
         .collect();
     let meta: Vec<[u32; 2]> = order.iter().map(|&r| [r as u32, r as u32]).collect();
     let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
@@ -36,7 +46,12 @@ pub(super) fn grow_roots(
     let mut wave_buds = up("wave buds", bytemuck::cast_slice(&words));
     let mut wave_meta = up("wave meta", bytemuck::cast_slice(&meta));
     let mut n = order.len() as u32;
-    let mut grown = Vec::new();
+    let mut waves = Waves {
+        grown: Vec::new(),
+        chains: Vec::new(),
+        own: Vec::new(),
+        phyts: Vec::new(),
+    };
     while n > 0 {
         cost.waves += 1;
         let start = Instant::now();
@@ -58,15 +73,18 @@ pub(super) fn grow_roots(
         }
         gpu.queue.submit([encoder.finish()]);
         cost.grow += start.elapsed().as_secs_f64() * 1e3;
-        grown.push(Grown {
+        waves.grown.push(Grown {
             meta: wave_meta,
             places,
             runs,
         });
+        waves.chains.push(n);
+        waves.own.push(t[0]);
+        waves.phyts.push(t[1]);
         (wave_buds, wave_meta, n) = (next_buds, next_meta, t[2]);
     }
     gpu.device
         .poll(wgpu::PollType::wait_indefinitely())
         .unwrap();
-    (grown, cost)
+    (waves, cost)
 }

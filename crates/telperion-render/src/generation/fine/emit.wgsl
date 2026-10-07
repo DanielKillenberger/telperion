@@ -24,10 +24,10 @@ struct Cfg {
 
 const RW: u32 = 10u;
 const CW: u32 = 3u;
-const IW: u32 = 10u;
-const AXW: u32 = 40u;
+const IW: u32 = 12u;
+const AXW: u32 = 80u;
 const SA: u32 = 66u;
-const BW2: u32 = 24u;
+const BW2: u32 = 28u;
 const KIND: u32 = 4u;
 const PARENT: u32 = 5u;
 const LATERAL: u32 = 1u;
@@ -59,6 +59,8 @@ fn describe(@builtin(global_invocation_id) id: vec3<u32>) {
     items[at + 7u] = runoff[r + 2u];
     items[at + 8u] = cfg.stub;
     items[at + 9u] = m.x;
+    items[at + 10u] = wi;
+    items[at + 11u] = places[wi * CW + 2u];
 }
 
 // Writes bud `k` of the next wave: the borne lateral at packed word `a`,
@@ -92,6 +94,10 @@ fn put_bud(a: u32, k: u32, root: u32, bearer: u32) {
     next_buds[b + 21u] = select(0u, axes[a + 30u], context);
     next_buds[b + 22u] = axes[a + 36u];
     next_buds[b + 23u] = axes[a + 37u];
+    // Its making draws' presences, Q32 (`assign.wgsl`'s B0 and B1).
+    for (var f = 0u; f < 4u; f++) {
+        next_buds[b + 24u + f] = axes[a + 40u + f];
+    }
     next_meta[k] = vec2<u32>(root, bearer);
 }
 
