@@ -25,11 +25,6 @@ impl MaterialParams {
                 self.brightness_range_high,
                 "leaf brightness range",
             ),
-            (
-                self.mature_radius_low,
-                self.mature_radius_high,
-                "bark mature radius range",
-            ),
         ] {
             if low > high {
                 return Err(Error::InvalidInput(name));

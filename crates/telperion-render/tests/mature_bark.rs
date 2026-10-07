@@ -1,6 +1,6 @@
 //! Thick wood takes the row's old bark, its colour and its furrows, over the
 //! radius range the row states, the way young wood takes the shoot's colour.
-//! A row whose range ends at zero has no old bark and draws the frame it
+//! A row whose old bark starts at zero radius has none and draws the frame it
 //! always drew, whatever old bark it states.
 mod common;
 #[path = "common/ramp.rs"]
@@ -9,7 +9,7 @@ use ramp::{columns, draw, pixel, ramp, side};
 use telperion_core::{material::MaterialParams, mesh};
 use telperion_render::{Renderer, View, STILL_FORMAT};
 
-/// The radius range old bark grows in over, inside the ramp's 0.04 to 0.28.
+/// The radius old bark starts at and is whole by, inside the ramp's 0.04 to 0.28.
 const LOW: f64 = 0.12;
 const HIGH: f64 = 0.2;
 
@@ -22,8 +22,8 @@ fn birchlike() -> MaterialParams {
         mature_red: 0.06,
         mature_green: 0.055,
         mature_blue: 0.05,
-        mature_radius_low: LOW,
-        mature_radius_high: HIGH,
+        mature_radius: LOW,
+        mature_span: HIGH - LOW,
         ..Default::default()
     }
 }
@@ -42,7 +42,7 @@ fn ramp_renderer() -> Option<Renderer> {
 }
 
 #[test]
-fn a_range_ending_at_zero_draws_the_bark_whatever_old_bark_it_states() {
+fn a_row_with_no_mature_radius_draws_the_bark_whatever_old_bark_it_states() {
     let Some(gpu) = common::gpu() else { return };
     let mut family = common::ordinary();
     family.skeleton.growth.max_nodes = Some(400);
@@ -60,6 +60,7 @@ fn a_range_ending_at_zero_draws_the_bark_whatever_old_bark_it_states() {
             mature_green: 0.0,
             mature_blue: 1.0,
             mature_furrow_strength: 0.0,
+            mature_span: 0.1,
             ..family.material
         };
         let drawn = draw(&mut renderer, &camera, stated);
@@ -76,8 +77,7 @@ fn thick_wood_takes_the_old_colour_continuously_over_its_radius_range() {
     let row = birchlike();
     let blended = draw(&mut renderer, &camera, row);
     let young = MaterialParams {
-        mature_radius_low: 0.0,
-        mature_radius_high: 0.0,
+        mature_radius: 0.0,
         ..row
     };
     let bark = draw(&mut renderer, &camera, young);
@@ -149,8 +149,8 @@ fn thick_wood_takes_the_old_furrows_and_thin_wood_keeps_its_own() {
         mature_green: shallow.bark_green,
         mature_blue: shallow.bark_blue,
         mature_furrow_strength: deep.furrow_strength,
-        mature_radius_low: LOW,
-        mature_radius_high: HIGH,
+        mature_radius: LOW,
+        mature_span: HIGH - LOW,
         ..shallow
     };
     let (b, s, d) = (

@@ -34,7 +34,12 @@
 //! rows alone, did not move. fn-222 re-pinned the family, walk and override
 //! digests for the engine's new neutral `form.internode_spread`: with
 //! `, internode_spread: 0.0` left out of the text, each was still fn-198's;
-//! no preset states the row, and the refusal digest did not move.
+//! no preset states the row, and the refusal digest did not move. fn-221
+//! re-pinned all four for the six old-bark rows (`matureRed`, `matureGreen`,
+//! `matureBlue`, `matureFurrowStrength`, `matureRadius`, `matureSpan`): with
+//! those rows stripped from the family, walk and override texts, each digest
+//! was still fn-222's, and every single-row refusal of every other row read
+//! as it did; only the refusal pairs, which pair rows by index, re-paired.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -70,7 +75,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        7_725_820_422_629_741_388,
+        17_729_859_378_156_819_142,
         "{}",
         digest(&text)
     );
@@ -102,7 +107,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        6_890_152_529_480_498_898,
+        14_735_182_995_670_064_868,
         "{}",
         digest(&text)
     );
@@ -127,7 +132,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        8_293_698_448_268_978_223,
+        9_550_647_531_219_312_557,
         "{}",
         digest(&text)
     );
@@ -190,7 +195,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        13_927_056_433_570_196_194,
+        16_530_727_032_263_983_738,
         "{}",
         digest(&text)
     );

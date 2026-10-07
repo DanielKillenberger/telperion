@@ -355,7 +355,7 @@ export interface Family {
     shootBlue: number;
     /** Metres. The radius below which wood is young. */
     shootRadius: number;
-    /** The old bark's own colour, the one thick wood grows into. Wood takes it over the bark colour on a smoothstep of its radius from `mature_radius_low` to `mature_radius_high`. */
+    /** The old bark's own colour, the one thick wood grows into. Wood takes it over the bark colour on a smoothstep of its radius from `mature_radius` to that plus `mature_span`. */
     matureRed: number;
     /** The green channel of `mature_red`. */
     matureGreen: number;
@@ -363,10 +363,10 @@ export interface Family {
     matureBlue: number;
     /** The furrow strength old bark takes in place of `furrow_strength`, over the same radius range as its colour: how deep it fissures. */
     matureFurrowStrength: number;
-    /** Metres. The radius at which bark starts to turn old. */
-    matureRadiusLow: number;
-    /** Metres. The radius past which bark is wholly old; zero means no wood is old. */
-    matureRadiusHigh: number;
+    /** Metres. The radius at which bark starts to turn old; zero means no wood is old. */
+    matureRadius: number;
+    /** Metres. How much further the radius grows before the bark is wholly old; zero turns it at once. */
+    matureSpan: number;
     /** The colour of a leaf's upper face, a linear reflectance per channel. Raising a channel pushes the sunlit face toward it. */
     leafFrontRed: number;
     /** The green channel of `leaf_front_red`. */
@@ -737,12 +737,12 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/material/shootGreen", kind: "real", optional: false, meaning: "The green channel of `shoot_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`shootRadius` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/shootBlue", kind: "real", optional: false, meaning: "The blue channel of `shoot_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`shootRadius` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/shootRadius", kind: "real", optional: false, meaning: "Metres. The radius below which wood is young.", unit: "m", low: 0, high: 0.1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 0.1], step: 0.015 } },
-  { path: "/material/matureRed", kind: "real", optional: false, meaning: "The old bark's own colour, the one thick wood grows into. Wood takes it over the bark colour on a smoothstep of its radius from `mature_radius_low` to `mature_radius_high`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`matureRadiusHigh` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
-  { path: "/material/matureGreen", kind: "real", optional: false, meaning: "The green channel of `mature_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`matureRadiusHigh` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
-  { path: "/material/matureBlue", kind: "real", optional: false, meaning: "The blue channel of `mature_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`matureRadiusHigh` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
-  { path: "/material/matureFurrowStrength", kind: "real", optional: false, meaning: "The furrow strength old bark takes in place of `furrow_strength`, over the same radius range as its colour: how deep it fissures.", unit: "-", low: 0, high: 1, lowOpen: false, zero: false, applies: "`matureRadiusHigh` zero, or `ridgeScale` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
-  { path: "/material/matureRadiusLow", kind: "real", optional: false, meaning: "Metres. The radius at which bark starts to turn old.", unit: "m", low: 0, high: 2, lowOpen: false, zero: false, applies: "`matureRadiusHigh` zero", reach: "mature", dial: { window: [0, 2], step: 0.015 } },
-  { path: "/material/matureRadiusHigh", kind: "real", optional: false, meaning: "Metres. The radius past which bark is wholly old; zero means no wood is old.", unit: "m", low: 0, high: 2, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 2], step: 0.015 } },
+  { path: "/material/matureRed", kind: "real", optional: false, meaning: "The old bark's own colour, the one thick wood grows into. Wood takes it over the bark colour on a smoothstep of its radius from `mature_radius` to that plus `mature_span`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`matureRadius` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
+  { path: "/material/matureGreen", kind: "real", optional: false, meaning: "The green channel of `mature_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`matureRadius` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
+  { path: "/material/matureBlue", kind: "real", optional: false, meaning: "The blue channel of `mature_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`matureRadius` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
+  { path: "/material/matureFurrowStrength", kind: "real", optional: false, meaning: "The furrow strength old bark takes in place of `furrow_strength`, over the same radius range as its colour: how deep it fissures.", unit: "-", low: 0, high: 1, lowOpen: false, zero: false, applies: "`matureRadius` zero, or `ridgeScale` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
+  { path: "/material/matureRadius", kind: "real", optional: false, meaning: "Metres. The radius at which bark starts to turn old; zero means no wood is old.", unit: "m", low: 0, high: 2, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 2], step: 0.015 } },
+  { path: "/material/matureSpan", kind: "real", optional: false, meaning: "Metres. How much further the radius grows before the bark is wholly old; zero turns it at once.", unit: "m", low: 0, high: 2, lowOpen: false, zero: false, applies: "`matureRadius` zero", reach: "mature", dial: { window: [0, 2], step: 0.015 } },
   { path: "/material/leafFrontRed", kind: "real", optional: false, meaning: "The colour of a leaf's upper face, a linear reflectance per channel. Raising a channel pushes the sunlit face toward it.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.02 } },
   { path: "/material/leafFrontGreen", kind: "real", optional: false, meaning: "The green channel of `leaf_front_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/leafFrontBlue", kind: "real", optional: false, meaning: "The blue channel of `leaf_front_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.015 } },

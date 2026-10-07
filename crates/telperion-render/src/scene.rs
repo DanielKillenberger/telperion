@@ -94,7 +94,7 @@ struct Uniforms {
     plate_profile: [f32; 4], // edge shape, reserved, reserved, reserved
     leaf_dead: [f32; 4], // a withered leaf's RGB, reserved
     mature: [f32; 4], // old bark RGB, the furrow strength it takes
-    mature_radius: [f32; 4], // the radius old bark starts at and is whole by, reserved, reserved
+    mature_radius: [f32; 4], // the radius old bark starts at, the span it turns over, reserved, reserved
 }
 
 /// The room and the light every pipeline draws under. Owns the one uniform

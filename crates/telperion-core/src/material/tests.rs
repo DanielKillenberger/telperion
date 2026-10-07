@@ -98,8 +98,8 @@ fn a_value_off_its_range_is_refused_by_its_own_name() {
             |m| m.mature_furrow_strength = 1.5,
             "bark mature furrow strength",
         ),
-        (|m| m.mature_radius_low = -0.1, "bark mature radius low"),
-        (|m| m.mature_radius_high = 2.1, "bark mature radius high"),
+        (|m| m.mature_radius = -0.1, "bark mature radius"),
+        (|m| m.mature_span = 2.1, "bark mature span"),
         (|m| m.leaf_front_red = -1.0, "leaf front red"),
         (|m| m.leaf_front_green = 1.2, "leaf front green"),
         (|m| m.leaf_front_blue = f64::INFINITY, "leaf front blue"),
@@ -152,12 +152,6 @@ fn a_range_that_runs_backwards_is_refused_by_the_pairs_name() {
     );
     // A range of no width is a leaf that varies not at all, which is a
     // family with one leaf colour and not an error.
-    let mut mature = MaterialParams::default();
-    (mature.mature_radius_low, mature.mature_radius_high) = (0.3, 0.2);
-    assert_eq!(
-        mature.validate(),
-        Err(Error::InvalidInput("bark mature radius range"))
-    );
     let mut flat = MaterialParams::default();
     (flat.hue_range_low, flat.hue_range_high) = (0.0, 0.0);
     assert_eq!(flat.validate(), Ok(()));

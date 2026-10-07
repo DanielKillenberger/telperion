@@ -65,11 +65,11 @@ crate::catalogue::rows! {
         },
         /// The old bark's own colour, the one thick wood grows into. Wood
         /// takes it over the bark colour on a smoothstep of its radius from
-        /// `mature_radius_low` to `mature_radius_high`.
+        /// `mature_radius` to that plus `mature_span`.
         pub mature_red: f64 = "matureRed" "reflectance" Bounds::closed(0.0, 1.0) => [Draw] {
             wire: 250,
             check: input(Site::Material, 95, "bark mature red"),
-            applies: "`matureRadiusHigh` zero",
+            applies: "`matureRadius` zero",
             dial: bounded("material_mature_red", "the red in the old bark's colour, the one \
                 thick wood grows into", [0.15, 0.3]),
         },
@@ -77,7 +77,7 @@ crate::catalogue::rows! {
         pub mature_green: f64 = "matureGreen" "reflectance" Bounds::closed(0.0, 1.0) => [Draw] {
             wire: 251,
             check: input(Site::Material, 96, "bark mature green"),
-            applies: "`matureRadiusHigh` zero",
+            applies: "`matureRadius` zero",
             dial: bounded("material_mature_green", "the green in the old bark's colour, the one \
                 thick wood grows into", [0.15, 0.3]),
         },
@@ -85,7 +85,7 @@ crate::catalogue::rows! {
         pub mature_blue: f64 = "matureBlue" "reflectance" Bounds::closed(0.0, 1.0) => [Draw] {
             wire: 252,
             check: input(Site::Material, 97, "bark mature blue"),
-            applies: "`matureRadiusHigh` zero",
+            applies: "`matureRadius` zero",
             dial: bounded("material_mature_blue", "the blue in the old bark's colour, the one \
                 thick wood grows into", [0.15, 0.3]),
         },
@@ -95,27 +95,26 @@ crate::catalogue::rows! {
             Bounds::closed(0.0, 1.0) => [Draw] {
             wire: 253,
             check: input(Site::Material, 98, "bark mature furrow strength"),
-            applies: "`matureRadiusHigh` zero, or `ridgeScale` zero",
+            applies: "`matureRadius` zero, or `ridgeScale` zero",
             dial: bounded("material_mature_furrow_strength", "the width and depth of old \
                 bark's furrows, which thick wood grows into", [0.15, 0.3]),
         },
-        /// Metres. The radius at which bark starts to turn old.
-        pub mature_radius_low: f64 = "matureRadiusLow" "m" Bounds::closed(0.0, 2.0) => [Draw] {
-            wire: 254,
-            check: input(Site::Material, 99, "bark mature radius low"),
-            applies: "`matureRadiusHigh` zero",
-            note: "Refused above `matureRadiusHigh` (`bark mature radius range`).",
-            dial: bounded("material_mature_radius_low", "the metres of radius at which bark \
-                starts to turn old", [0.015, 0.03]),
-        },
-        /// Metres. The radius past which bark is wholly old; zero means no
+        /// Metres. The radius at which bark starts to turn old; zero means no
         /// wood is old.
-        pub mature_radius_high: f64 = "matureRadiusHigh" "m" Bounds::closed(0.0, 2.0) => [Draw] {
+        pub mature_radius: f64 = "matureRadius" "m" Bounds::closed(0.0, 2.0) => [Draw] {
+            wire: 254,
+            check: input(Site::Material, 99, "bark mature radius"),
+            dial: bounded("material_mature_radius", "the metres of radius at which bark starts \
+                to turn old; zero leaves no wood old", [0.015, 0.03]),
+        },
+        /// Metres. How much further the radius grows before the bark is wholly
+        /// old; zero turns it at once.
+        pub mature_span: f64 = "matureSpan" "m" Bounds::closed(0.0, 2.0) => [Draw] {
             wire: 255,
-            check: input(Site::Material, 100, "bark mature radius high"),
-            note: "Refused below `matureRadiusLow` (`bark mature radius range`).",
-            dial: bounded("material_mature_radius_high", "the metres of radius past which bark \
-                is wholly old; zero leaves no wood old", [0.015, 0.03]),
+            check: input(Site::Material, 100, "bark mature span"),
+            applies: "`matureRadius` zero",
+            dial: bounded("material_mature_span", "the metres more of radius over which bark \
+                turns wholly old", [0.015, 0.03]),
         },
         /// The colour of a leaf's upper face, a linear reflectance per
         /// channel. Raising a channel pushes the sunlit face toward it.
@@ -898,8 +897,8 @@ impl Default for MaterialParams {
             mature_green: 0.105,
             mature_blue: 0.068,
             mature_furrow_strength: 1.0,
-            mature_radius_low: 0.0,
-            mature_radius_high: 0.0,
+            mature_radius: 0.0,
+            mature_span: 0.0,
             leaf_front_red: 0.068,
             leaf_front_green: 0.195,
             leaf_front_blue: 0.036,

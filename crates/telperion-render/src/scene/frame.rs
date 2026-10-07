@@ -211,7 +211,7 @@ impl Scene {
                     m.mature_blue,
                     m.mature_furrow_strength,
                 ),
-                mature_radius: colour(m.mature_radius_low, m.mature_radius_high, 0.0, 0.0),
+                mature_radius: colour(m.mature_radius, m.mature_span, 0.0, 0.0),
             }),
         );
     }

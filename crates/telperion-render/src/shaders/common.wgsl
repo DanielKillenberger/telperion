@@ -93,9 +93,9 @@ struct Uniforms {
     /// fronds a rosette keeps below its living crown.
     leaf_dead: vec4<f32>, // RGB, reserved
     /// Old bark: its colour and the furrow strength it takes, and the radius
-    /// range it grows in over; a range ending at zero leaves no wood old.
+    /// radius it starts at with the span it turns over; zero leaves none old.
     mature: vec4<f32>, // RGB, furrow strength
-    mature_radius: vec4<f32>, // low, high, reserved, reserved
+    mature_radius: vec4<f32>, // start, span, reserved, reserved
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;

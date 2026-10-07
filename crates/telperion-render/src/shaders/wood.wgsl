@@ -55,19 +55,18 @@ fn bark_height(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32>,
         footprint, bark_furrow(radius), u.plate, vec3(u.bark_structure.xw, u.peel.w)) - groove;
 }
 
-// How old the bark is at a radius: none below the row's low radius, all of
-// it past the high one, on a smoothstep between. A range that ends at zero
-// is a row with no old bark.
+// How old the bark is at a radius: none below the row's start radius, all
+// of it past the start and the span, on a smoothstep between. A start of
+// zero is a row with no old bark.
 fn bark_age(radius: f32) -> f32 {
-    let range = u.mature_radius.xy;
-    let t = clamp((radius - range.x) / max(range.y - range.x, 1e-6), 0.0, 1.0);
-    return select(0.0, t * t * (3.0 - 2.0 * t), range.y > 0.0);
+    let t = clamp((radius - u.mature_radius.x) / max(u.mature_radius.y, 1e-6), 0.0, 1.0);
+    return select(0.0, t * t * (3.0 - 2.0 * t), u.mature_radius.x > 0.0);
 }
 
 // The furrow strength at a radius: the row's own, giving way to old bark's.
 fn bark_furrow(radius: f32) -> f32 {
     return select(u.bark_detail.w, mix(u.bark_detail.w, u.mature.w, bark_age(radius)),
-        u.mature_radius.y > 0.0);
+        u.mature_radius.x > 0.0);
 }
 
 // A furrow floor is dark because its own crest stands between it and the sun.
@@ -269,7 +268,7 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // occlusion still act on it. A row with no radius takes the bark alone.
     // Old bark takes the row's colour over the same way, by its radius range.
     let old = select(u.bark.rgb, mix(u.bark.rgb, u.mature.rgb, bark_age(in.radius)),
-        u.mature_radius.y > 0.0);
+        u.mature_radius.x > 0.0);
     let youth = 1.0 - smoothstep(u.shoot.w, 2.0 * u.shoot.w, in.radius);
     let bark = select(old, mix(old, u.shoot.rgb, youth), u.shoot.w > 0.0);
     let furrow = bark_furrow(in.radius);
