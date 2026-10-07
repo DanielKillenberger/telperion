@@ -123,8 +123,8 @@ impl GeometryTables {
 }
 
 /// The bearer's laid frame at a fine root's node: the point below the
-/// node, its tip, heading and side, and its phytomer's rank, scale and
-/// size.
+/// node, its tip, heading and side, its phytomer's rank, scale and size,
+/// and the phase of its axis's phyllotaxis (`geometry::phase`, fn-199).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BearerFrame {
     pub below: Vec3,
@@ -134,6 +134,7 @@ pub struct BearerFrame {
     pub rank: f64,
     pub scale: f64,
     pub size: f64,
+    pub phase: f64,
 }
 
 /// A fine root's attachment as its geometry reads it: its bud's vigour as
@@ -149,8 +150,14 @@ pub struct RootGeometry {
 }
 
 /// The laid frame of axis `bearer` of `tree` at its node `node`, as a
-/// fine root standing there reads it (realized mechanics).
-pub fn bearer_frame(tree: &Structure, bearer: usize, node: usize) -> BearerFrame {
+/// fine root standing there reads it (realized mechanics), each PA's
+/// divergence `divergence`.
+pub fn bearer_frame(
+    tree: &Structure,
+    divergence: &[f64],
+    bearer: usize,
+    node: usize,
+) -> BearerFrame {
     let axis = &tree.axes[bearer];
     let at = &axis.phytomers[node];
     BearerFrame {
@@ -163,5 +170,6 @@ pub fn bearer_frame(tree: &Structure, bearer: usize, node: usize) -> BearerFrame
         rank: at.rank,
         scale: at.scale,
         size: at.size,
+        phase: crate::geometry::phase_by(&tree.axes, &|pa| divergence[pa], bearer),
     }
 }

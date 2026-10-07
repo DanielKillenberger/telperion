@@ -119,6 +119,11 @@ fn scale_realized(na: u32, bearer: u32) {
             let p = ax(j, PARENT);
             ssf(p, S_REACH, sf(p, S_REACH) + (1.0 - axf(j, BLEND)) * sf(j, S_REACH));
         }
+        // A continuation is a relay at blend 0 (fn-199).
+        if s(j, S_OWN) != NONE && kind_of(j) == CONTINUED {
+            let p = ax(j, PARENT);
+            ssf(p, S_REACH, sf(p, S_REACH) + sf(j, S_REACH));
+        }
     }
 }
 

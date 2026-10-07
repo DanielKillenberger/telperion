@@ -225,11 +225,16 @@ pub(crate) fn frame(
 /// laterals on from where that axis's would have stood (fn-199, host
 /// 2026-10-07), and a lateral or the seed starts afresh.
 pub(crate) fn phase(axes: &[Axis], species: &Species, i: usize) -> f64 {
+    phase_by(axes, &|pa| species.states[pa].divergence, i)
+}
+
+/// `phase`, each PA's divergence given by `divergence`.
+pub(crate) fn phase_by(axes: &[Axis], divergence: &dyn Fn(usize) -> f64, i: usize) -> f64 {
     let mut phase = 0.0;
     let mut at = i;
     while let Some((parent, _)) = axes[at].carried_on() {
         let p = &axes[parent];
-        phase += species.states[p.pa].divergence * p.rank;
+        phase += divergence(p.pa) * p.rank;
         at = parent;
     }
     phase + axes[at].phase
