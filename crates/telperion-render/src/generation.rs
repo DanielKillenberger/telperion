@@ -10,6 +10,8 @@ mod data;
 mod fine;
 mod io;
 mod positions;
+#[cfg(test)]
+mod profile;
 mod preparation;
 mod sources;
 #[cfg(any(target_arch = "wasm32", test))]

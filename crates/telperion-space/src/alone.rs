@@ -13,9 +13,8 @@
 //! a shed axis is never grown. Fades by partial presence are not taken:
 //! a kept axis is whole.
 //!
-//! The chains are grown breadth first by `chains`, which F1's fine roots
-//! share (`fine.rs`): a bud it is told to hand on is recorded and handed
-//! back, its chain grown elsewhere from that record alone.
+//! The chains are grown breadth first by `chains`, which the GPU chain
+//! grower's tests read (`fine::chain_cases`).
 mod field;
 mod shed;
 
@@ -65,13 +64,11 @@ pub(crate) struct Item {
 }
 
 /// What growing chains alone leaves: the axes kept, every bud made on a
-/// kept axis by its record, each chain's cost, and the buds handed on,
-/// each with its record and context.
+/// kept axis by its record, and each chain's cost.
 pub(crate) struct Chains {
     pub axes: Vec<Axis>,
     pub records: Vec<Record>,
     pub costs: Vec<ChainCost>,
-    pub handed: Vec<Item>,
 }
 
 /// Grows `species` chain by chain alone, then resolves every chain's
@@ -96,14 +93,7 @@ pub fn grow_alone_with<'s>(
     let rules = alone::rules(species, request.age, request.budget)?;
     let rows = expected.rows();
     let start = (Vec::new(), Vec::new(), seed_item());
-    let grown = chains(
-        &rules,
-        &rows,
-        request.seed,
-        start,
-        (&|_| false, &mut |_| {}),
-        correct,
-    )?;
+    let grown = chains(&rules, &rows, request.seed, start, &mut |_| {}, correct)?;
     let mut structure = Structure {
         age: request.age,
         pas: species.states.len(),
@@ -148,18 +138,17 @@ pub(crate) struct Seen<'a> {
 
 /// Grows chains breadth first from `start` (the axes and records held
 /// already, and the first chain), each from its bud alone, and sheds
-/// each; a bud `hand` takes is recorded and handed back, not grown, and
-/// `observe` sees each chain grown with the bud it grew from.
+/// each; `observe` sees each chain grown with the bud it grew from.
 pub(crate) fn chains(
     rules: &Rules,
     rows: &Rows,
     seed: u64,
     (axes, records, first): (Vec<Axis>, Vec<Record>, Item),
-    (hand, observe): (&dyn Fn(&Bud) -> bool, Observe),
+    observe: Observe,
     correct: bool,
 ) -> Result<Chains> {
     let (mut axes, mut records) = (axes, records);
-    let (mut costs, mut handed) = (Vec::new(), Vec::new());
+    let mut costs = Vec::new();
     let mut queue = VecDeque::from([first]);
     while let Some(item) = queue.pop_front() {
         let started = crate::clock::seconds();
@@ -215,30 +204,18 @@ pub(crate) fn chains(
                 vigour: b.axis.vigour,
                 axis: None,
             });
-            let next = Item {
+            queue.push_back(Item {
                 record: Some(records.len() - 1),
                 order: item.order + 1,
                 bearer,
                 context,
-                bud: None,
-            };
-            if hand(&b) {
-                handed.push(Item {
-                    bud: Some(b),
-                    ..next
-                });
-            } else {
-                queue.push_back(Item {
-                    bud: Some(b),
-                    ..next
-                });
-            }
+                bud: Some(b),
+            });
         }
     }
     Ok(Chains {
         axes,
         records,
         costs,
-        handed,
     })
 }

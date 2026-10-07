@@ -9,8 +9,12 @@ use crate::structure::{Axis, Origin, Structure};
 
 /// Each axis's identity, by index.
 pub fn identities(structure: &Structure) -> Vec<u64> {
-    let mut ids = vec![0u64; structure.axes.len()];
-    for (i, axis) in structure.axes.iter().enumerate() {
+    identities_of(&structure.axes)
+}
+
+fn identities_of(axes: &[Axis]) -> Vec<u64> {
+    let mut ids = vec![0u64; axes.len()];
+    for (i, axis) in axes.iter().enumerate() {
         ids[i] = match axis.origin {
             Origin::Seed => Key::root(0).child(axis.pa as u64).0,
             Origin::Lateral {
@@ -135,4 +139,46 @@ fn put_vec(put: &mut impl FnMut(u64), v: crate::structure::Vec3) {
     put(v.x.to_bits());
     put(v.y.to_bits());
     put(v.z.to_bits());
+}
+
+/// The tree in its canonical lineage order (host, 2026-10-07, decision 7's
+/// order): parents first, breadth first from the seed, each axis's
+/// children in the order their parents were placed, each parent's sorted
+/// by lineage and, where two share one, by identity. Every `grow` returns
+/// its tree so, whichever path built it.
+pub fn lineage_order(structure: Structure) -> Structure {
+    let Structure { age, pas, axes } = structure;
+    let n = axes.len();
+    let ids = identities_of(&axes);
+    let key = |i: usize| (axes[i].lineage, ids[i]);
+    let mut children: Vec<Vec<usize>> = vec![Vec::new(); n];
+    let mut order: Vec<usize> = Vec::with_capacity(n);
+    for (i, axis) in axes.iter().enumerate() {
+        match axis.origin.parent() {
+            Some(p) => children[p].push(i),
+            None => order.push(i),
+        }
+    }
+    order.sort_by_key(|&i| key(i));
+    let mut k = 0;
+    while k < order.len() {
+        let mut kids = std::mem::take(&mut children[order[k]]);
+        kids.sort_by_key(|&i| key(i));
+        order.extend(kids);
+        k += 1;
+    }
+    let mut at = vec![usize::MAX; n];
+    for (k, &i) in order.iter().enumerate() {
+        at[i] = k;
+    }
+    let mut slots: Vec<Option<Axis>> = axes.into_iter().map(Some).collect();
+    let axes = order
+        .iter()
+        .map(|&i| {
+            let mut axis = slots[i].take().expect("each axis once");
+            renumber(&mut axis, &at);
+            axis
+        })
+        .collect();
+    Structure { age, pas, axes }
 }

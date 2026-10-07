@@ -229,6 +229,83 @@ fn moved_q(go: vec2<u32>, d: vec2<u32>, a: vec2<u32>, b: vec2<u32>, used: vec2<u
     return presence(lead, window);
 }
 
+// Host decision 8 (`fixed/presence.rs`): a draw's lead in log-odds under
+// the 53-bit threshold `t` it had to stay under, and over the one it had
+// to reach; unbounded where the element is certain.
+fn under_q(t: vec2<u32>, d: vec2<u32>) -> vec2<u32> {
+    if !lt64(t, w(0u, 0x200000u)) || is_zero(d) {
+        return inf();
+    }
+    return sub64(logit(shl64(t, 9u)), logit_draw(d));
+}
+
+fn over_q(t: vec2<u32>, d: vec2<u32>) -> vec2<u32> {
+    if is_zero(t) {
+        return inf();
+    }
+    return sub64(logit_draw(d), logit(shl64(t, 9u)));
+}
+
+// The lesser of `over_q(low, d)` and `under_q(high, d)` (task 8;
+// REALIZED.md's options a and b): the draw's log-odds taken once where
+// both bounds hold, and a bound's own, `logit(bound << 9)`, read from
+// `given` where `known` says a table gave it (bit 0 the low bound's, bit
+// 1 the high's): the same words, a quarter of the `log2` calls.
+fn lead_q(low: vec2<u32>, high: vec2<u32>, d: vec2<u32>, given: vec4<u32>, known: u32) -> vec2<u32> {
+    let over = !is_zero(low);
+    let under = lt64(high, w(0u, 0x200000u)) && !is_zero(d);
+    if !over && !under {
+        return inf();
+    }
+    let drawn = logit_draw(d);
+    var lead = inf();
+    if over {
+        var own = given.xy;
+        if (known & 1u) == 0u {
+            own = logit(shl64(low, 9u));
+        }
+        lead = smin64(lead, sub64(drawn, own));
+    }
+    if under {
+        var own = given.zw;
+        if (known & 2u) == 0u {
+            own = logit(shl64(high, 9u));
+        }
+        lead = smin64(lead, sub64(own, drawn));
+    }
+    return lead;
+}
+
+// `a b / 2^32`, unsigned, floored: a product of presences.
+fn times_q(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
+    return shr128(mul128(a, b), 32u);
+}
+
+// The wood's share `used` ticks between the cycle's and the next's logs.
+fn wood_at_q(a: vec2<u32>, b: vec2<u32>, used: vec2<u32>) -> vec2<u32> {
+    if !slt64(neg64(inf()), a) || !slt64(neg64(inf()), b) {
+        let ea = expq(a);
+        return add64(ea, smul_shr(sub64(expq(b), ea), used, 20u, false));
+    }
+    return expq(add64(a, smul_shr(sub64(b, a), used, 20u, false)));
+}
+
+fn window_q(wood: vec2<u32>, rate: vec2<u32>, lo: vec2<u32>, hi: vec2<u32>) -> vec2<u32> {
+    return smin64(smax64(mulq(rate, wood), lo), hi);
+}
+
+// D17: what a child carries up into its bearer's living time, Q32.32.
+fn carry_q(before: vec2<u32>, weight: vec2<u32>, gap: u32, lived: vec2<u32>) -> vec2<u32> {
+    return add64(before, times_q(weight, add64(w(0u, gap), lived)));
+}
+
+// D17: an axis's fade, Q32; shed where it is none.
+fn fade_q(delay: vec2<u32>, birth: u32, lived: vec2<u32>, alive: vec2<u32>, age: u32) -> vec2<u32> {
+    let until = add64(w(0u, birth), lived);
+    let t = sub64(delay, sub64(w(0u, age), until));
+    return smin64(smax64(t, min64(alive, one32())), one32());
+}
+
 fn past_q(d: vec2<u32>, bound: vec2<u32>) -> vec2<u32> {
     if is_zero(bound) {
         return inf();

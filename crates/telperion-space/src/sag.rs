@@ -19,10 +19,10 @@ use crate::upward::Tree;
 use std::f64::consts::PI;
 
 /// Load carried: its mass and its first moment (mass times position).
-#[derive(Clone, Copy, Default)]
-struct Load {
-    mass: f64,
-    moment: Vec3,
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub(crate) struct Load {
+    pub mass: f64,
+    pub moment: Vec3,
 }
 
 impl Load {
@@ -52,6 +52,18 @@ pub(crate) struct Lever {
 
 /// Each phytomer's lever about its far end on the unbent tree.
 pub(crate) fn levers(structure: &Structure, species: &Species, threads: usize) -> Vec<Vec<Lever>> {
+    levers_given(structure, species, &|_| None, threads).0
+}
+
+/// `levers`, each axis `given` names standing for a subtree gathered
+/// elsewhere whose load at its base it gives; and each axis's load at its
+/// base, by index.
+pub(crate) fn levers_given(
+    structure: &Structure,
+    species: &Species,
+    given: crate::shed::Given<Load>,
+    threads: usize,
+) -> (Vec<Vec<Lever>>, Vec<Load>) {
     let axes = &structure.axes;
     let all: Vec<usize> = (0..axes.len()).collect();
     gather(
@@ -59,7 +71,7 @@ pub(crate) fn levers(structure: &Structure, species: &Species, threads: usize) -
         species,
         structure.age,
         (&all, &trunks(axes)),
-        &[],
+        (&[], given),
         threads,
     )
 }
@@ -90,16 +102,18 @@ pub(crate) struct Borne {
 
 /// The levers of `members` (ascending; each axis's whole tree, or one
 /// chain), from their own wood, what members bear, and `borne`: each
-/// member's levers, in the members' order. An axis outside the members
-/// loads nothing.
+/// member's levers, in the members' order, and the load at its base. An
+/// axis outside the members loads nothing; an axis `given` names stands
+/// for a subtree gathered elsewhere, whose load at its base it gives
+/// (fn-209 F1, realized mechanics).
 pub(crate) fn gather(
     axes: &[crate::structure::Axis],
     species: &Species,
     age: u32,
     (members, trunk): (&[usize], &[bool]),
-    borne: &[Borne],
+    (borne, given): (&[Borne], crate::shed::Given<Load>),
     threads: usize,
-) -> Vec<Vec<Lever>> {
+) -> (Vec<Vec<Lever>>, Vec<Load>) {
     let whole = members.len() == axes.len();
     let local = |i: usize| {
         if whole {
@@ -145,7 +159,7 @@ pub(crate) fn gather(
     // Each member takes what it bears at its nodes, then what its
     // children carry, the last first, as a backward pass meets them, and
     // hands its parent the load at its base.
-    tree.upward(
+    let loads = tree.upward(
         &mut levers,
         threads,
         &|j, levers: &mut Vec<Lever>, loads: &[Load], at_node: &mut Vec<Load>| {
@@ -161,7 +175,7 @@ pub(crate) fn gather(
                 }
             }
             for &c in tree.children(j) {
-                let (child, load) = (&axes[members[c]], loads[c]);
+                let (child, load) = (&axes[members[c]], given(members[c]).unwrap_or(loads[c]));
                 match child.origin {
                     Origin::Seed => {}
                     Origin::Lateral { node, .. } => match at_node.get_mut(node) {
@@ -225,7 +239,7 @@ pub(crate) fn gather(
             load
         },
     );
-    levers
+    (levers, loads)
 }
 
 /// The torque gravity puts on a `lever`: (S - W e) x (-z), horizontal,

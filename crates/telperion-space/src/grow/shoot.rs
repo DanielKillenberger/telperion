@@ -32,6 +32,9 @@ pub(crate) struct Rules<'a> {
     /// makes and the sleeping buds that wake on it are buds it bears,
     /// made but not grown.
     pub alone: bool,
+    /// The buds the structure above a cut hands to the expansion (fn-209
+    /// F1, `realized.rs`): made where they stand, never grown here.
+    pub hands: Option<std::sync::Arc<super::realized::Hands>>,
 }
 
 /// What the rough layout gives a growing apex (`sketch.rs`): its light,
@@ -100,6 +103,14 @@ pub(super) struct Shoot<'g, 'a> {
     pub node_buds: Vec<(Draw, u64, i64, [Placed; MAX_BUDS as usize])>,
     /// One zone's sleeping buds' expected wood per PA, reused.
     pub sleeping: Vec<f64>,
+}
+
+impl Rules<'_> {
+    /// Whether a lateral of `pa` born in `birth` is handed on below the
+    /// cut rather than grown here.
+    pub fn hands(&self, pa: usize, birth: u32) -> bool {
+        self.hands.as_ref().is_some_and(|h| h.fine(pa, birth))
+    }
 }
 
 impl<'g, 'a> Shoot<'g, 'a> {
@@ -296,7 +307,8 @@ impl<'g, 'a> Shoot<'g, 'a> {
             }
             Origin::Seed | Origin::Lateral { .. } => (key.0, key.onto(pa)),
         };
-        let borne = self.rules.alone && matches!(origin, Origin::Lateral { woken: false, .. });
+        let borne = matches!(origin, Origin::Lateral { woken: false, .. })
+            && (self.rules.alone || self.rules.hands(pa, cycle));
         if !borne {
             self.next.push(Apex {
                 axis: self.len(),

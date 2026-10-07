@@ -9,8 +9,8 @@ use super::hostrun::Grown;
 use crate::Gpu;
 use std::time::Instant;
 use telperion_space::{
-    chain_cases, grow_fine, ChainAxis, ChainBud, ChainTables, Expected, GeometryTables, Light,
-    Plan, Request, Species,
+    chain_cases, grow_fine, ChainAxis, ChainBud, ChainTables, GeometryTables, Light, Plan, Request,
+    Species,
 };
 
 /// A species, made.
@@ -72,12 +72,19 @@ fn grow_all(
 }
 
 /// The tree's chains as the CPU grows them, and the counts compared.
+/// The grower keeps every axis (realized mechanics); P2's committed
+/// shedding, which the CPU's chains carry, is not compared.
 fn hold(cases: &[(ChainBud, Vec<ChainAxis>)], grown: &[Vec<ChainAxis>]) -> (usize, usize) {
     let (mut axes, mut phytomers) = (0, 0);
+    let grown_whole = |a: &ChainAxis| ChainAxis {
+        kept: true,
+        context: None,
+        ..a.clone()
+    };
     for (c, ((bud, want), got)) in cases.iter().zip(grown).enumerate() {
         assert_eq!(got.len(), want.len(), "chain {c} ({bud:?}): axes");
         for (k, (g, w)) in got.iter().zip(want).enumerate() {
-            assert_eq!(g, w, "chain {c} axis {k}");
+            assert_eq!(grown_whole(g), grown_whole(w), "chain {c} axis {k}");
         }
         axes += want.len();
         phytomers += want.iter().map(|a| a.phytomers.len()).sum::<usize>();
@@ -132,9 +139,8 @@ fn every_chain_grows_on_the_gpu_as_on_the_cpu() {
     for (name, species) in adversarial() {
         for seed in [1, 7] {
             let cases = chain_cases(&species, request(25, seed)).expect("chains");
-            let expected = Expected::new(&species, 25, 0);
-            let tables = ChainTables::new(&species, 25, &expected).expect("tables");
-            let geo = GeometryTables::new(&species, 25, &expected).expect("tables");
+            let tables = ChainTables::new(&species, 25).expect("tables");
+            let geo = GeometryTables::new(&species, 25).expect("tables");
             let buds: Vec<ChainBud> = cases.iter().map(|c| c.0).collect();
             let forward: Vec<usize> = (0..buds.len()).collect();
             let (grown, _) = grow_all(&gpu, &grower, (&buds, &forward, 4096), (&tables, &geo));
@@ -180,17 +186,12 @@ fn chains_at_40_and_80() {
                 let t = Instant::now();
                 let cases = chain_cases(&species, request(age, seed)).expect("chains");
                 let cpu = t.elapsed().as_secs_f64() * 1e3;
-                let expected = Expected::new(&species, age, 0);
                 let t = Instant::now();
-                let plan = Plan {
-                    cut: f64::INFINITY,
-                    ..Plan::default()
-                };
-                grow_fine(&species, request(age, seed), &expected, plan).expect("grows");
+                grow_fine(&species, request(age, seed), Plan::default()).expect("grows");
                 let fine = t.elapsed().as_secs_f64() * 1e3;
                 let t = Instant::now();
-                let tables = ChainTables::new(&species, age, &expected).expect("tables");
-                let geo = GeometryTables::new(&species, age, &expected).expect("tables");
+                let tables = ChainTables::new(&species, age).expect("tables");
+                let geo = GeometryTables::new(&species, age).expect("tables");
                 let tables_ms = t.elapsed().as_secs_f64() * 1e3;
                 let buds: Vec<ChainBud> = cases.iter().map(|c| c.0).collect();
                 let forward: Vec<usize> = (0..buds.len()).collect();

@@ -5,13 +5,13 @@
 use super::super::io;
 use crate::Gpu;
 use std::time::Instant;
-use telperion_space::fixed::{self as fx, decide};
+use telperion_space::fixed::{self as fx, decide, presence as pr};
 
 const CASES: usize = 1 << 18;
 const PROBE: &str = include_str!("probe.wgsl");
 
 /// The functions the probe selects, by its `cfg.y`.
-const NAMES: [&str; 12] = [
+const NAMES: [&str; 16] = [
     "child, draw",
     "log2, exp2_neg",
     "exp2, neg_log2",
@@ -24,6 +24,10 @@ const NAMES: [&str; 12] = [
     "wake_q, kept",
     "relay_node_q",
     "and",
+    "under_q, over_q",
+    "times_q, window_q, wood_at_q",
+    "carry_q, fade_q",
+    "lead_q",
 ];
 
 /// SplitMix64, for cases.
@@ -132,6 +136,80 @@ fn cases(s: u32, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
                     a[6] = rng.draw();
                 }
                 11 => a[..2].copy_from_slice(&[rng.log(fx::INF) as u64, rng.log(fx::INF) as u64]),
+                12 => {
+                    let t = match rng.next() % 8 {
+                        0 => 0,
+                        1 => 1 << 53,
+                        _ => rng.draw(),
+                    };
+                    a[0] = t;
+                    a[1] = match rng.next() % 4 {
+                        0 => 0,
+                        1 => t.saturating_sub(rng.next() % 4),
+                        2 => t + rng.next() % 4,
+                        _ => rng.draw(),
+                    };
+                }
+                13 => {
+                    let wood = |rng: &mut Cases| match rng.next() % 6 {
+                        0 => -fx::INF,
+                        _ => rng.within(-30 * Q, Q),
+                    };
+                    let stake = rng.within(0, 1 << 20) as f64 / f64::from(1 << 20);
+                    a[0] = rng.within(0, Q + 1) as u64;
+                    a[1] = rng.within(0, 1 << 44) as u64;
+                    a[2] = wood(rng) as u64;
+                    a[3] = wood(rng) as u64;
+                    a[4] = rng.within(0, 1 << 20) as u64;
+                    a[5] = fx::q32(6.0 * stake) as u64;
+                    a[6] = fx::q32(0.05 * stake) as u64;
+                    a[7] = fx::q32(2.0) as u64;
+                }
+                15 => {
+                    let d = match rng.next() % 8 {
+                        0 => 0,
+                        _ => rng.draw(),
+                    };
+                    let near = |rng: &mut Cases| match rng.next() % 4 {
+                        0 => d.saturating_sub(rng.next() % 4),
+                        1 => d + rng.next() % 4,
+                        _ => rng.draw(),
+                    };
+                    a[0] = match rng.next() % 4 {
+                        0 => 0,
+                        _ => near(rng),
+                    };
+                    a[1] = match rng.next() % 4 {
+                        0 => 1 << 53,
+                        _ => near(rng),
+                    };
+                    a[2] = d;
+                    // Each bound's log-odds given or not; a value not
+                    // given is noise the lead must not read.
+                    a[3] = rng.next() % 4;
+                    a[4] = match a[3] & 1 {
+                        0 => rng.next(),
+                        _ => fx::logit(a[0] << 9) as u64,
+                    };
+                    a[5] = match a[3] & 2 {
+                        0 => rng.next(),
+                        _ => fx::logit(a[1] << 9) as u64,
+                    };
+                }
+                14 => {
+                    let age = rng.within(1, 4096) as u64;
+                    a[0] = rng.within(0, 1 << 44) as u64;
+                    a[1] = rng.within(0, Q + 1) as u64;
+                    a[2] = (age << 32) | rng.within(0, 100) as u64;
+                    a[3] = rng.within(0, 1 << 44) as u64;
+                    a[4] = rng.within(0, 1 << 40) as u64;
+                    a[5] = rng.within(0, age as i64 + 1) as u64;
+                    a[6] = rng.within(0, (age as i64) << 32) as u64;
+                    a[7] = match rng.next() % 3 {
+                        0 => 0,
+                        _ => rng.within(0, 2 * Q) as u64,
+                    };
+                }
                 _ => {
                     let len = 1 + rng.next() % 12;
                     a[0] = presences.len() as u64;
@@ -181,6 +259,22 @@ fn expected(s: u32, a: &[u64; 8], presences: &[u64]) -> [u64; 2] {
             u64::from(decide::kept(i(3), (a[4] != 0).then(|| i(5)), a[6])),
         ],
         11 => [decide::and(i(0), i(1)) as u64, 0],
+        12 => [
+            pr::under(a[0], a[1]) as u64,
+            pr::over(a[0], a[1]) as u64,
+        ],
+        13 => {
+            let wood = pr::wood_at((i(2), i(3)), a[4]);
+            [pr::times(a[0], a[1]), pr::window(wood, (i(5), i(6), i(7))) as u64]
+        }
+        14 => {
+            let (gap, age) = (a[2] & 0xffff_ffff, (a[2] >> 32) as u32);
+            [
+                pr::carry(a[0], a[1], gap, a[3]),
+                pr::fade(a[4], a[5] as u32, (a[6], a[7]), age),
+            ]
+        }
+        15 => [pr::over(a[0], a[2]).min(pr::under(a[1], a[2])) as u64, 0],
         _ => {
             let unit = &presences[a[0] as usize..(a[0] + a[1]) as usize];
             [decide::relay_node_q(unit, 0, unit.len(), a[2]) as u64, 0]

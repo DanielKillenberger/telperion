@@ -11,6 +11,7 @@ pub(crate) mod alone;
 mod balance;
 mod draw;
 mod parallel;
+pub(crate) mod realized;
 mod relay;
 mod settle;
 mod shoot;
@@ -24,6 +25,8 @@ mod wake;
 
 use crate::dormant::{Sleeper, Woken};
 use crate::error::{refuse, Error, Result};
+use crate::fine::lineage_order;
+use crate::fixed::presence::{q, real, times, ONE};
 use crate::light::Light;
 use crate::lineage::Key;
 use crate::presence::{Draws, Windows};
@@ -45,9 +48,9 @@ pub struct Request {
     pub light: Light,
 }
 
-/// A bud of a node: its PA and lead, and the share its place stands at;
-/// or none for a bare bud.
-type Placed = Option<(usize, f64, f64)>;
+/// A bud of a node: its PA and lead (log-odds, Q32), and the share its
+/// place stands at; or none for a bare bud.
+type Placed = Option<(usize, i64, f64)>;
 
 /// A living apex: the time it has spent in its current PA.
 #[derive(Debug, Clone, Copy)]
@@ -56,18 +59,36 @@ struct Apex {
     spent: f64,
 }
 
-/// Grows, sheds and places the tree.
+/// Grows, sheds and places the tree, in its canonical lineage order. A
+/// species that neither reads light nor reads its tree as grown is built
+/// through the realized partition at the cut N = 1,024 (host decision 7,
+/// FINE-CONTRACT.md): the same tree as `grow_whole`, to the bit.
 pub fn grow(species: &Species, request: Request) -> Result<Structure> {
+    if species.reads_light() || keeps(species) {
+        return grow_whole(species, request);
+    }
+    species.validate()?;
+    request.light.validate()?;
+    if request.age == 0 {
+        return refuse("age", "a tree grows at least one cycle");
+    }
+    let fine = crate::fine::grow_fine(species, request, crate::fine::Plan::default())?;
+    Ok(lineage_order(fine.structure))
+}
+
+/// Today's whole-tree engine, every axis grown in one grower: the tests'
+/// reference for `grow`, in the same canonical order.
+pub fn grow_whole(species: &Species, request: Request) -> Result<Structure> {
     grow_staged(species, request, &mut |_| {})
 }
 
-/// `grow`, reporting each stage as it ends.
+/// `grow_whole`, reporting each stage as it ends.
 pub fn grow_staged(
     species: &Species,
     request: Request,
     stage: &mut dyn FnMut(Stage),
 ) -> Result<Structure> {
-    run(species, request, stage, true, Options::default()).map(|g| g.structure)
+    run(species, request, stage, true, Options::default()).map(|g| lineage_order(g.structure))
 }
 
 /// How the engine grows a tree, never what it grows: every choice here
@@ -142,7 +163,8 @@ pub(crate) struct Record {
 
 /// The tree as `grow` grows it, with every phytomer where the rough
 /// layout grown with it put it, before the final lay: what light read as
-/// the tree grew. Without shade it has no layout and is refused.
+/// the tree grew, in the same lineage order. Without shade it has no
+/// layout and is refused.
 pub fn sketch(species: &Species, request: Request) -> Result<Structure> {
     if !request.light.shades() {
         return refuse(
@@ -150,7 +172,8 @@ pub fn sketch(species: &Species, request: Request) -> Result<Structure> {
             "a rough layout is grown only where light shades",
         );
     }
-    run(species, request, &mut |_| {}, false, Options::default()).map(|g| g.structure)
+    run(species, request, &mut |_| {}, false, Options::default())
+        .map(|g| lineage_order(g.structure))
 }
 
 pub(crate) fn run(
@@ -165,10 +188,6 @@ pub(crate) fn run(
     if request.age == 0 {
         return refuse("age", "a tree grows at least one cycle");
     }
-    let root = Key::root(request.seed);
-    // The seed grows in the first age it does not pass through, as far as
-    // it reaches it.
-    let (seed, reach) = species.lived(0).ok_or(Error::Collapsed)?;
     let laterals: Vec<_> = species.states.iter().map(PaState::laterals).collect();
     // The rough layout is grown only where light shades and a bud
     // reads it, or where `sketch` asks for it: without a reader the
@@ -177,51 +196,26 @@ pub(crate) fn run(
     let sketch = (request.light.shades() && read).then(|| Sketch::new(request.light));
     // What shedding will drop is grown only where something reads it
     // while it lives: the light, or the girth of what bore it.
-    let keeps = species
-        .states
-        .iter()
-        .any(|s| s.retained > 0.0 || s.leaf_girth > 0.0);
+    let keeps = keeps(species);
     let lasting = if options.certain != Certain::Grow && sketch.is_none() && !keeps {
         lasting(species, &laterals)
     } else {
         vec![None; species.states.len()]
     };
     let threads = options.threads.unwrap_or_else(crate::cores::available);
-    let mut grower = Grower {
-        rules: Rules {
-            species,
-            laterals,
-            lasting,
-            certain: options.certain,
-            windows: Windows::new(species, request.age),
-            age: request.age,
-            budget: request.budget,
-            grown: 0,
-            alone: false,
-        },
+    let rules = Rules {
         species,
-        threads,
-        share: options.share,
-        horizon: vec![f64::NEG_INFINITY],
-        marked: Vec::new(),
-        axes: vec![bud(root.onto(seed), seed, 0, Origin::Seed)],
-        draws: vec![Draws {
-            birth: [reach, 1.0],
-            ..Draws::default()
-        }],
-        live: vec![Apex {
-            axis: 0,
-            spent: 0.0,
-        }],
-        units: vec![0.0],
-        successor: vec![Vec::new()],
-        roots: vec![root.0],
-        asleep: vec![Vec::new(); request.age as usize + 2],
-        woken: Vec::new(),
-        sketch,
-        leaves: Vec::new(),
-        wakes: Vec::new(),
+        laterals,
+        lasting,
+        certain: options.certain,
+        windows: Windows::new(species, request.age),
+        age: request.age,
+        budget: request.budget,
+        grown: 0,
+        alone: false,
+        hands: None,
     };
+    let mut grower = Grower::seeded(rules, (threads, options.share), sketch, request.seed)?;
     stage(Stage::Pass(Pass::Windows));
     let mut advanced = Vec::new();
     for cycle in 1..=request.age {
@@ -254,15 +248,6 @@ pub(crate) fn run(
 /// would have, and the difference is the share that does not relay.
 fn stop_stake(relay: f64) -> f64 {
     1.0 - relay
-}
-
-/// A survival over a share of the year: to the share, itself whole.
-fn shared(p: f64, share: f64) -> f64 {
-    if share < 1.0 {
-        p.powf(share)
-    } else {
-        p
-    }
 }
 
 fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
@@ -318,6 +303,61 @@ struct Grower<'a> {
     leaves: Vec<(Vec3, f64)>,
     /// Where a chain grows alone, the sleeping buds that woke on it.
     wakes: Vec<alone::Pending>,
+    /// Above a cut, each sleeping bud handed on as it woke: its
+    /// stand-in's index and its waking (`realized.rs`).
+    handed: Vec<(usize, alone::Pending)>,
+}
+
+/// Whether any PA reads the tree as grown: its shed pipes or its leaves'
+/// girth.
+pub(crate) fn keeps(species: &Species) -> bool {
+    species
+        .states
+        .iter()
+        .any(|s| s.retained > 0.0 || s.leaf_girth > 0.0)
+}
+
+impl<'a> Grower<'a> {
+    /// A grower holding the seed's bud of the youngest PA, about to grow
+    /// its first cycle on `threads` cores in shares of `share` apexes.
+    fn seeded(
+        rules: Rules<'a>,
+        (threads, share): (usize, usize),
+        sketch: Option<Sketch>,
+        seed: u64,
+    ) -> Result<Self> {
+        let (species, age) = (rules.species, rules.age);
+        let root = Key::root(seed);
+        // The seed grows in the first age it does not pass through, as
+        // far as it reaches it.
+        let (pa, reach) = species.lived(0).ok_or(Error::Collapsed)?;
+        Ok(Self {
+            rules,
+            species,
+            threads,
+            share,
+            horizon: vec![f64::NEG_INFINITY],
+            marked: Vec::new(),
+            axes: vec![bud(root.onto(pa), pa, 0, Origin::Seed)],
+            draws: vec![Draws {
+                birth: [q(reach), ONE].map(real),
+                ..Draws::default()
+            }],
+            live: vec![Apex {
+                axis: 0,
+                spent: 0.0,
+            }],
+            units: vec![0.0],
+            successor: vec![Vec::new()],
+            roots: vec![root.0],
+            asleep: vec![Vec::new(); age as usize + 2],
+            woken: Vec::new(),
+            sketch,
+            leaves: Vec::new(),
+            wakes: Vec::new(),
+            handed: Vec::new(),
+        })
+    }
 }
 
 impl Grower<'_> {
@@ -345,8 +385,10 @@ impl Grower<'_> {
     fn living(&self, apex: Apex) -> f64 {
         let pa = self.axes[apex.axis].pa;
         let state = &self.species.states[pa];
-        let left = (state.life() - apex.spent).clamp(0.0, 1.0);
-        let go = self.species.successor(pa).map_or(0.0, |(_, go)| go);
-        left + (1.0 - left) * (go + (1.0 - go) * state.relay_ended)
+        // Q32, floored in turn (host decision 8); the times on the grid.
+        let left = q((state.life() - apex.spent).clamp(0.0, 1.0));
+        let go = q(self.species.successor(pa).map_or(0.0, |(_, go)| go));
+        let on = go + times(ONE - go, q(state.relay_ended));
+        real(left + times(ONE - left, on))
     }
 }

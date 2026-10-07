@@ -134,9 +134,10 @@ impl Bounded<'_> {
             self.species,
             self.bent.age,
             (&members, &trunk),
-            &borne,
+            (&borne, &|_| None),
             1,
         )
+        .0
     }
 
     /// Writes a resolved chain into the tree.

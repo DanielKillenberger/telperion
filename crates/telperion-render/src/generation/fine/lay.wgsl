@@ -31,9 +31,23 @@ fn has_unit(v: vec3<f32>) -> bool {
 
 // Rodrigues.
 fn rotated(v: vec3<f32>, pivot: vec3<f32>, angle: f32) -> vec3<f32> {
-    let s = sin(angle);
-    let c = cos(angle);
-    return v * c + cross(pivot, v) * s + pivot * (dot(pivot, v) * (1.0 - c));
+    let t = turned_by(angle);
+    return v * (1.0 - t.z) + cross(pivot, v) * t.x + pivot * (dot(pivot, v) * t.z);
+}
+
+// The sine, cosine and versine (1 - cos) of `a`: a short turn's by their
+// series, since the GPU's own sine is good to only about 5e-7 whatever
+// its argument, a large share of a short turn, and a walk of many short
+// turns gathers it into a drift of its heading (fn-209 task 6).
+fn turned_by(a: f32) -> vec3<f32> {
+    if abs(a) < 0.1 {
+        let t2 = a * a;
+        let s = a * (1.0 - t2 * (1.0 / 6.0 - t2 / 120.0));
+        let vers = t2 * (0.5 - t2 * (1.0 / 24.0 - t2 / 720.0));
+        return vec3<f32>(s, 1.0 - vers, vers);
+    }
+    let c = cos(a);
+    return vec3<f32>(sin(a), c, 1.0 - c);
 }
 
 // `v` by the least rotation taking unit `from` to unit `to`.
@@ -96,9 +110,18 @@ fn toward_elevation(direction: vec3<f32>, side: vec3<f32>, elevation: f32, share
     } else {
         return direction;
     }
-    let now = asin(clamp(direction.z, -1.0, 1.0));
-    let to = now + (elevation - now) * share;
-    return out * cos(to) + UP * sin(to);
+    // Its elevation, from its lean: asin of a near-one loses its digits.
+    // Turned by the step towards the elevation, as a rotation in its
+    // vertical plane rather than the sine and cosine of the elevation
+    // reached: the elevation's pull holds each step's error, so the
+    // GPU's coarse sine of a whole angle would settle as a lean of its
+    // error over the share (fn-209 task 6).
+    let now = atan2(direction.z, lean);
+    let turn = (elevation - now) * share;
+    let at = out * lean + UP * direction.z;
+    let up = UP * lean - out * direction.z;
+    let t = turned_by(turn);
+    return at * t.y + up * t.x;
 }
 
 // `geometry::support`: how far wood at height `z` stands free of the
@@ -210,6 +233,16 @@ struct Step {
     side: vec3<f32>,
 }
 
+// 1 - e^-x, without the cancellation of f32 near none: a short step's
+// share of a pull is a small difference of two near-ones, whose error a
+// long axis turns into a drift of its heading (fn-209 task 6).
+fn gone(x: f32) -> f32 {
+    if abs(x) < 0.05 {
+        return x * (1.0 - x * (0.5 - x * (1.0 / 6.0 - x * (1.0 / 24.0 - x / 120.0))));
+    }
+    return 1.0 - exp(-x);
+}
+
 // A key's draw as a real in [0, 1).
 fn unit_of(key: vec2<u32>) -> f32 {
     let d = draw(key);
@@ -227,7 +260,7 @@ fn step(walk: ptr<function, Walk>, p: ptr<function, Step>, f: Pa, own: vec2<f32>
     let tip = (*walk).tip;
     var run = (*walk).run;
     let len = f.internode * (*p).scale;
-    let share = 1.0 - exp(-f.tropism * len);
+    let share = gone(f.tropism * len);
     let bent = toward_elevation(running, across, f.elevation, share);
     across = carried_by(across, running, bent);
     curve = carried_by(curve, running, bent);
@@ -248,7 +281,7 @@ fn step(walk: ptr<function, Walk>, p: ptr<function, Step>, f: Pa, own: vec2<f32>
         let keep = exp(-len / f.bend_length);
         curve = curve * keep;
         if kicked {
-            curve = curve + pivot * (draw0 * sqrt(1.0 - keep * keep));
+            curve = curve + pivot * (draw0 * sqrt(gone(2.0 * len / f.bend_length)));
         }
         curve = curve - running * dot(curve, running);
         let angle = length(curve) * len;

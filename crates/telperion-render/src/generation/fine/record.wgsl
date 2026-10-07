@@ -27,7 +27,7 @@ struct Cfg {
 @group(0) @binding(6) var<storage, read_write> queued: array<atomic<u32>>;
 @group(0) @binding(7) var<storage, read_write> runoff: array<u32>;
 
-const AXW: u32 = 40u;
+const AXW: u32 = 80u;
 const KIND: u32 = 4u;
 const PARENT: u32 = 5u;
 const NPHYT: u32 = 24u;
@@ -61,7 +61,7 @@ fn record(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     var wi = cfg.first + c;
     if cfg.level != 0u {
-        wi = list[c];
+        wi = list[cfg.first + c];
     }
     let st = status[c];
     let r = c * RW;

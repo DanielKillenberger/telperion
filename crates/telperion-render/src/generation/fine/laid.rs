@@ -6,13 +6,15 @@
 //! own, metres from its bearer's node as laid before bending and as laid;
 //! `origins` holds those nodes' heights, which the ground is read from.
 use super::super::io;
+use super::pool::Pool;
 use crate::Gpu;
-use telperion_space::{BearerFrame, GeometryTables, RootGeometry, Vec3};
+use telperion_space::{fixed, BearerFrame, GeometryTables, RootGeometry, Vec3};
 
 const CONTRACT_LAY: &str = include_str!("lay.wgsl");
 const GEOMETRY: &str = include_str!("geometry.wgsl");
 const RESOLVE: &str = include_str!("resolve.wgsl");
 const WALK: &str = include_str!("walk.wgsl");
+const SETTLE: &str = include_str!("settle.wgsl");
 /// A laid axis's and phytomer's floats (`geometry.wgsl`).
 pub(super) const AL: usize = 8;
 pub(super) const PL: usize = 22;
@@ -20,18 +22,24 @@ pub(super) const PL: usize = 22;
 pub(super) const SA: u32 = 66;
 pub(super) const SP: u32 = 12;
 const GG: usize = 24;
+/// `settle.wgsl`'s passes.
+pub(super) const SCALES: usize = 0;
+pub(super) const GIRTHS: usize = 1;
+pub(super) const LAYS: usize = 2;
+pub(super) const LEVERS: usize = 3;
+pub(super) const BENDS: usize = 4;
 
 /// The geometry kernel's WGSL.
 pub(super) fn source() -> String {
     format!(
-        "{}\n{CONTRACT_LAY}\n{GEOMETRY}\n{RESOLVE}\n{WALK}",
+        "{}\n{CONTRACT_LAY}\n{GEOMETRY}\n{RESOLVE}\n{WALK}\n{SETTLE}",
         super::contract()
     )
 }
 
 /// The species point's values as `geometry.wgsl` reads them: the PAs,
-/// the age, where the rows start and whether any PA sags; each PA's block;
-/// the rows.
+/// the age, where the blocks end and whether any PA sags; each PA's
+/// block.
 pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
     let npas = g.pas.len();
     let rows = 4 + GG * npas;
@@ -69,7 +77,6 @@ pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
         out[4 + GG * pa + 20] = f32::from_bits(lo);
         out[4 + GG * pa + 21] = f32::from_bits(hi);
     }
-    out.extend(g.rows.iter().flatten().map(|&v| v as f32));
     let sags = g.pas.iter().any(|p| p.sag > 0.0);
     (out, sags)
 }
@@ -85,50 +92,27 @@ fn f(x: f64) -> u64 {
     u64::from((x as f32).to_bits())
 }
 
-/// The presences' values as `presence.wgsl` reads them, a word each: the
-/// PAs and the zones' block offsets, each PA's block, the woods, then each
-/// zone's block, its runs' thresholds and its sleeping woods.
+/// The zones' values as `presence.wgsl` and `assign.wgsl` read them, a
+/// word each: the PAs and where the zones' blocks start, then each
+/// zone's block (its buds a node, and where its runs' thresholds of
+/// laterals and sleeping buds start) and those thresholds.
 pub(super) fn presences(g: &GeometryTables) -> Vec<u64> {
-    const GP: usize = 16;
     let npas = g.pas.len();
     let zones: usize = g.zones.iter().map(Vec::len).sum();
-    let mut out = vec![npas as u64, (2 + GP * npas) as u64];
-    out.resize(2 + GP * npas + 4 * zones, 0);
-    for (pa, p) in g.pas.iter().enumerate() {
-        let woods = out.len() as u64;
-        out.extend(g.woods[pa].iter().map(|&w| f(w)));
-        let block = [
-            f(p.reach),
-            f(p.go),
-            f(p.relay[0]),
-            f(p.relay[1]),
-            f(p.relay[2]),
-            f(p.life),
-            woods,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ];
-        out[2 + GP * pa..2 + GP * (pa + 1)].copy_from_slice(&block);
-    }
+    let mut out = vec![npas as u64, 2];
+    out.resize(2 + 4 * zones, 0);
     for (z, zone) in g.zones.iter().flatten().enumerate() {
-        let at = 2 + GP * npas + 4 * z;
+        let at = 2 + 4 * z;
         out[at] = f(zone.buds);
         out[at + 1] = out.len() as u64;
         out.extend(zone.laterals.iter().flatten());
         out[at + 2] = out.len() as u64;
         out.extend(zone.dormant.iter().flatten());
+        // Each bound's log-odds, the laterals' then the dormant's, for the
+        // asks (`assign.wgsl`, task 8).
         out[at + 3] = out.len() as u64;
-        for woods in &zone.sleeping {
-            assert_eq!(woods.len(), zone.dormant.len(), "a wood per sleeping PA");
-            out.extend(woods.iter().map(|&w| f(w)));
-        }
+        let logits = zone.laterals.iter().chain(&zone.dormant).flatten();
+        out.extend(logits.map(|&t| fixed::logit(t << 9) as u64));
     }
     out
 }
@@ -169,19 +153,11 @@ pub(super) struct Wave {
 }
 
 impl Wave {
-    pub(super) fn new(gpu: &Gpu, (axes, phyts): (u32, u32), data: &[f32]) -> Self {
+    /// A wave of `axes` and `phyts` in a buffer from `pool`.
+    pub(super) fn taken(pool: &Pool, gpu: &Gpu, (axes, phyts): (u32, u32)) -> Self {
         let floats = axes as usize * AL + phyts as usize * PL;
-        let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-        let buffer = io::buffer(
-            gpu,
-            "fine laid",
-            floats as u64 * 4,
-            usage,
-            bytemuck::cast_slice(data),
-        )
-        .unwrap();
         Self {
-            buffer,
+            buffer: pool.take(gpu, "fine laid", floats as u64),
             axes,
             phyts,
         }
@@ -205,16 +181,20 @@ pub(super) struct Resolver {
 
 impl Resolver {
     pub(super) fn new(gpu: &Gpu) -> Self {
-        let read = [true, true, true, true, true, false, false, true];
+        let read = [true, true, true, true, true, false, false, false];
+        let entries = ["scales", "girths", "lays", "levers", "bends"];
         Self {
-            pass: io::Pass::new(gpu, source(), &read, &["resolve"]),
+            pass: io::Pass::new(gpu, source(), &read, &entries),
         }
     }
 
-    /// Resolves a run's `n` chains, described by `items`, their regions
-    /// packed in `packed` and their scratch in `scratch`, from `prev`
-    /// into `out`, recorded into `encoder`.
-    pub(super) fn dispatch(
+    /// Runs `settle.wgsl`'s `entry` (0 `scales` to 4 `bends`) over a run's
+    /// `n` chains, described by `items`, their regions packed in `packed`
+    /// and their scratch in `scratch`, from `prev` into `out`, the next
+    /// wave's records at `prior` and this wave's at `mine` in `records`,
+    /// which holds the roots' origins first; recorded into `encoder`.
+    #[allow(clippy::too_many_arguments)]
+    pub(super) fn settle(
         &self,
         gpu: &Gpu,
         encoder: &mut wgpu::CommandEncoder,
@@ -224,9 +204,10 @@ impl Resolver {
             (&wgpu::Buffer, &wgpu::Buffer),
             &wgpu::Buffer,
         ),
-        (table, origins): (&wgpu::Buffer, &wgpu::Buffer),
+        (table, records): (&wgpu::Buffer, &wgpu::Buffer),
         (prev, out): (&Wave, &Wave),
         (age, sags): (u32, bool),
+        (entry, prior, mine): (usize, u32, u32),
     ) {
         let groups = n.div_ceil(64);
         let row = groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
@@ -237,8 +218,8 @@ impl Resolver {
             prev.phyts_at(),
             age,
             u32::from(sags),
-            0,
-            0,
+            prior,
+            mine,
         ];
         let uniform = wgpu::BufferUsages::UNIFORM;
         let cfg = io::buffer(gpu, "laid cfg", 32, uniform, bytemuck::cast_slice(&cfg)).unwrap();
@@ -251,9 +232,9 @@ impl Resolver {
             &prev.buffer,
             &out.buffer,
             scratch,
-            origins,
+            records,
         ];
         let bind = self.pass.bind(gpu, &all);
-        self.pass.run(encoder, &bind, 0, groups);
+        self.pass.run(encoder, &bind, entry, groups);
     }
 }

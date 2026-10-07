@@ -94,6 +94,21 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         case 10u: {
             r0 = w(relay(a[0].x, a[1].x, a[2]), 0u);
         }
+        case 12u: {
+            r0 = under_q(a[0], a[1]);
+            r1 = over_q(a[0], a[1]);
+        }
+        case 13u: {
+            r0 = times_q(a[0], a[1]);
+            r1 = window_q(wood_at_q(a[2], a[3], a[4]), a[5], a[6], a[7]);
+        }
+        case 14u: {
+            r0 = carry_q(a[0], a[1], a[2].x, a[3]);
+            r1 = fade_q(a[4], a[5].x, a[6], a[7], a[2].y);
+        }
+        case 15u: {
+            r0 = lead_q(a[0], a[1], a[2], vec4<u32>(a[4], a[5]), a[3].x);
+        }
         default: {
             r0 = and_q(a[0], a[1]);
         }

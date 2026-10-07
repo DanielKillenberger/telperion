@@ -25,18 +25,6 @@ fn lateral_frame(r: u32, bearer_pa: u32, at: array<vec3<f32>, 3>, rank: vec2<u32
     return array<vec3<f32>, 3>(base, t[0], t[1]);
 }
 
-// Where borne bud `r` stands on own axis `j`'s node, before bending.
-fn bud_frame(r: u32, j: u32, node: u32) -> array<vec3<f32>, 2> {
-    let at = lo(j, node);
-    var below = s3(j, S_FRAME);
-    if node > 0u {
-        below = o3(lo(j, node - 1u) + 9u);
-    }
-    let tip = array<vec3<f32>, 3>(o3(at + 9u), o3(at + 12u), o3(at + 15u));
-    let fr = lateral_frame(r, ax(j, PA), tip, rank_of(at), below);
-    return array<vec3<f32>, 2>(fr[0], fr[1]);
-}
-
 // Where own axis `p` ends in this pass: its last node, or its base.
 fn end_of(p: u32, o: u32) -> vec3<f32> {
     let n = s(p, S_COUNT);
@@ -165,8 +153,10 @@ fn hand_lifts(i: u32, p: u32) {
     ss(i, S_LIFTS, n);
 }
 
-// Lays every own axis of the chain, before bending or under its levers.
-fn lay_all(na: u32, bent: bool, bearer: u32, below: vec3<f32>, bearer_pa: u32, ground: f32) {
+// Lays every own axis of the chain, before bending or under its levers;
+// `first`: each phytomer's lever turned from its first lay's frame, as
+// whole-tree growth's second lay does (FRAME-CORRECTION.md).
+fn lay_all(na: u32, bent: bool, bearer: u32, below: vec3<f32>, bearer_pa: u32, ground: f32, first: bool) {
     let o = field(bent);
     for (var i = 1u; i < na; i++) {
         if s(i, S_OWN) == NONE {
@@ -192,6 +182,10 @@ fn lay_all(na: u32, bent: bool, bearer: u32, below: vec3<f32>, bearer_pa: u32, g
             let at = lo(i, k);
             let p = at_k(i, k);
             var st = Step(out[at + 19u], out[at + 18u], vec2<u32>(ph(p, 0u), ph(p, 1u)), vec3<f32>(0.0), vec3<f32>(0.0), vec3<f32>(0.0), vec3<f32>(0.0), vec3<f32>(0.0));
+            if first {
+                st.was_heading = o3(at + 12u);
+                st.was_side = o3(at + 15u);
+            }
             let q = s(i, S_START) + k;
             let moment = vec3<f32>(pf(q, P_LEVER), pf(q, P_LEVER + 1u), pf(q, P_LEVER + 2u));
             let chord = vec3<f32>(pf(q, P_LEVER + 3u), pf(q, P_LEVER + 4u), pf(q, P_LEVER + 5u));
@@ -210,73 +204,4 @@ fn lay_all(na: u32, bent: bool, bearer: u32, below: vec3<f32>, bearer_pa: u32, g
         ss3(i, S_FRAME + 6u, fr[2]);
         wo3((out_ax + s(i, S_OWN)) * AL + select(0u, 3u, bent), fr[0]);
     }
-}
-
-@compute @workgroup_size(64)
-fn resolve(@builtin(global_invocation_id) id: vec3<u32>) {
-    let c = id.x + id.y * cfg.row;
-    if c >= cfg.n {
-        return;
-    }
-    let it = c * IW;
-    ax0 = items[it];
-    let na = items[it + 1u];
-    // A chain the grower queued for a larger region, or whose root was
-    // shed, lays nothing.
-    if na == 0u {
-        return;
-    }
-    ph0 = items[it + 2u];
-    let np = items[it + 3u];
-    let bearer_ax = items[it + 4u];
-    out_ax = items[it + 5u];
-    out_ph = items[it + 6u];
-    sb = items[it + 7u];
-    let stub = (items[it + 8u] & 1u) != 0u;
-    let root = items[it + 9u];
-    sp = sb + na * SA;
-    status = 0u;
-    own_axes(na, np);
-    // The bearer's phytomer at the bud's node in the wave before, and the
-    // point below it.
-    let rec = bearer_ax * AL;
-    let start = bitcast<u32>(prev[rec + 7u]);
-    let node = select(ax(1u, NODE), 0u, stub);
-    let bearer = cfg.prev_phyts + (start + node) * PL;
-    let bearer_pa = bitcast<u32>(prev[rec + 6u]);
-    var below_u = p3(rec);
-    var below_b = p3(rec + 3u);
-    if node > 0u {
-        below_u = p3(bearer - PL + 9u);
-        below_b = p3(bearer - PL);
-    }
-    scale_all(na, bearer);
-    girth_all(na, np);
-    let ground_u = origins[2u * root];
-    let ground_b = origins[2u * root + 1u];
-    for (var p = 0u; p < np; p++) {
-        for (var f = 0u; f < 6u; f++) {
-            spf(p, P_LEVER + f, 0.0);
-        }
-    }
-    lay_all(na, false, bearer, below_u, bearer_pa, ground_u);
-    if cfg.sags != 0u {
-        levers_all(na, np, ground_u);
-        lay_all(na, true, bearer, below_b, bearer_pa, ground_b);
-    } else {
-        for (var i = 1u; i < na; i++) {
-            if s(i, S_OWN) == NONE {
-                continue;
-            }
-            for (var k = 0u; k < s(i, S_COUNT); k++) {
-                let at = lo(i, k);
-                for (var f = 0u; f < 9u; f++) {
-                    out[at + f] = out[at + 9u + f];
-                }
-            }
-            let a = (out_ax + s(i, S_OWN)) * AL;
-            wo3(a + 3u, o3(a));
-        }
-    }
-    scratch[sp + np * SP] = status;
 }

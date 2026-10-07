@@ -17,9 +17,9 @@ use crate::cores::{fill, map};
 use crate::lineage::{Key, DOMINANCE, ROLL};
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
-use lay::{rotated, UP};
 pub(crate) use lay::{ground_zone, support, Layer};
-pub(crate) use place::place;
+use lay::{rotated, UP};
+pub(crate) use place::{place, place_from};
 pub(crate) use single::{bud_frame, lay_one};
 use std::f64::consts::TAU;
 
@@ -31,8 +31,8 @@ const UPRIGHT: f64 = 0.2;
 /// unit's own size, on up to `threads` cores: each axis's scale at its
 /// base is taken in turn, from its parent's, and the phytomers are scaled
 /// by it each on their own. Each relay's node is its draws'
-/// (`presence::assign`).
-pub(crate) fn scale(structure: &mut Structure, species: &Species, threads: usize) {
+/// (`presence::assign`). Each axis's scale at its base, by index.
+pub(crate) fn scale(structure: &mut Structure, species: &Species, threads: usize) -> Vec<f64> {
     let axes = &mut structure.axes;
     let n = axes.len();
     // Each axis's own share of its parent's scale: its vigour, its
@@ -80,6 +80,7 @@ pub(crate) fn scale(structure: &mut Structure, species: &Species, threads: usize
             phytomer.scale *= phytomer.size;
         }
     });
+    base_scale
 }
 
 /// How far an axis `years` old is pulled towards the vertical at its

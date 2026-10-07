@@ -44,6 +44,7 @@ mod ends;
 mod mass;
 mod path;
 pub(crate) mod section;
+pub(in crate::closed_form) use path::tilts;
 #[cfg(test)]
 mod tests;
 
@@ -192,7 +193,7 @@ enum Tape {
 /// at its last cycle, a bearer reads what it bears as many cycles before
 /// their last as it is before its own, and a fade of delay d reads the
 /// cycles while it is under way and the one before them.
-fn window(species: &Species) -> usize {
+pub(in crate::closed_form) fn window(species: &Species) -> usize {
     let delays = species.states.iter().map(|s| s.shedding);
     let finite = delays.filter(|d| d.is_finite());
     finite.map(|d| (d + 1.0).ceil() as usize).max().unwrap_or(0)

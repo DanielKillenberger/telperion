@@ -1,12 +1,11 @@
-// A fine root's chains resolved on the GPU (fn-209 F1, task 4): each
-// chain of a wave, as the chain grower left it in its packed region, is
-// scaled (`geometry::scale`), thickened against its committed base
-// (`bounded/girth.rs`), laid before it bends, loaded with its own wood and
-// its borne buds' committed mass and moment (`sag::gather`) and laid
-// under them (`bounded/work.rs`), from its bearer's laid frame in the
-// wave before. One invocation per chain; its kept axes and phytomers are
+// A fine root's chains settled on the GPU under realized mechanics
+// (fn-209 F1, tasks 4 and 6): each chain of a wave, as the chain grower
+// left it in its packed region, scaled, thickened, laid before it bends,
+// loaded and laid under its levers (`settle.wgsl`), from its bearer's
+// laid frame in the wave before and its borne buds' records in the wave
+// after. One invocation per chain; its kept axes and phytomers are
 // written to the wave's laid buffer, where the next wave's chains read
-// their bearers. Nothing is read back.
+// their bearers. Nothing is read back but each root's record.
 
 struct Cfg {
     n: u32,
@@ -15,8 +14,10 @@ struct Cfg {
     prev_phyts: u32,
     age: u32,
     sags: u32,
-    pad0: u32,
-    pad1: u32,
+    // Realized mechanics (`settle.wgsl`): where the next wave's chains'
+    // records and this wave's start in `records`.
+    prior: u32,
+    mine: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -27,12 +28,14 @@ struct Cfg {
 @group(0) @binding(5) var<storage, read> prev: array<f32>;
 @group(0) @binding(6) var<storage, read_write> out: array<f32>;
 @group(0) @binding(7) var<storage, read_write> scratch: array<u32>;
-@group(0) @binding(8) var<storage, read> origins: array<f32>;
+// Each root's origins' heights, two a root; under realized mechanics
+// then each wave's chains' records (`settle.wgsl`).
+@group(0) @binding(8) var<storage, read_write> records: array<f32>;
 
 const NONE: u32 = 0xffffffffu;
-const AXW: u32 = 40u;
-const PW: u32 = 9u;
-const IW: u32 = 10u;
+const AXW: u32 = 80u;
+const PW: u32 = 11u;
+const IW: u32 = 12u;
 // The grower's axis fields (`chain.wgsl`).
 const LINEAGE: u32 = 0u;
 const PA: u32 = 2u;
@@ -43,12 +46,9 @@ const NODE: u32 = 6u;
 const SLEEP: u32 = 19u;
 const NPHYT: u32 = 24u;
 const SHED_FLAGS: u32 = 28u;
-const MADE: u32 = 32u;
-const RUN: u32 = 33u;
 const RANKF: u32 = 34u;
 const RANK_HI: u32 = 39u;
 const BLEND: u32 = 35u;
-const VIG: u32 = 36u;
 const WHORL: u32 = 37u;
 const LATERAL: u32 = 1u;
 const CONTINUED: u32 = 2u;
@@ -79,7 +79,6 @@ const P_LOAD: u32 = 2u;
 const P_LEVER: u32 = 6u;
 // The geometry table: a PA's block and a row.
 const GG: u32 = 24u;
-const RW: u32 = 8u;
 const DOMINANCE = vec2<u32>(0xfffffffau, 0xffffffffu);
 const ROLL = vec2<u32>(0xfffffffbu, 0xffffffffu);
 
@@ -201,13 +200,6 @@ fn pa_of(pa: u32) -> Pa {
     return Pa(gtab[b], gtab[b + 1u], gtab[b + 2u], gtab[b + 3u], gtab[b + 4u], gtab[b + 5u], gtab[b + 6u], gtab[b + 7u], gtab[b + 8u], gtab[b + 9u], gtab[b + 10u], gtab[b + 11u], gtab[b + 12u], gtab[b + 13u], gtab[b + 14u], gtab[b + 15u], gtab[b + 16u], gtab[b + 17u], gtab[b + 18u], gtab[b + 19u]);
 }
 
-// The committed row of a bud of `pa` born in `birth`: kept, s1, s2,
-// grown1, grown2, mass, moment, e.
-fn row_at(pa: u32, birth: u32, f: u32) -> f32 {
-    let m = cfg.age - min(birth, cfg.age);
-    return gtab[bitcast<u32>(gtab[2u]) + (pa * (cfg.age + 1u) + m) * RW + f];
-}
-
 fn ripe(years: f32, ripening: f32) -> f32 {
     if ripening <= 0.0 {
         return 1.0;
@@ -223,57 +215,6 @@ fn dominance(d: f32, lineage: vec2<u32>) -> f32 {
     return 1.0 - d * (1.0 - held_share);
 }
 
-// `closed_form::kept::section::delta`.
-fn delta(kept: f32, s1: f32, s2: f32, r: f32) -> f32 {
-    if kept <= 0.0 || s1 <= 0.0 {
-        return 0.0;
-    }
-    if r == 1.0 {
-        return s1;
-    }
-    let mean = s1 / kept;
-    let spread = max(s2 / kept - mean * mean, 0.0);
-    let power = pow(mean, r);
-    let second = power * (1.0 + r * (r - 1.0) / 2.0 * spread / (mean * mean));
-    if r < 1.0 {
-        return kept * clamp(second, 0.0, power);
-    }
-    return kept * max(second, power);
-}
-
 fn lineage_of(i: u32) -> vec2<u32> {
     return vec2<u32>(ax(i, LINEAGE), ax(i, LINEAGE + 1u));
-}
-
-// A borne bud's base scale: its bearer's at its node, its vigour as made
-// and its share among its siblings (`Bounded::base_scale`).
-fn borne_scale(r: u32) -> f32 {
-    let at = lo(ax(r, PARENT), ax(r, NODE));
-    let f = pa_of(ax(r, PA));
-    return out[at + 19u] * axf(r, VIG) * dominance(f.dominance, lineage_of(r));
-}
-
-// A borne bud's committed section handed to a bearer of exponent `e`
-// (`Bounded::handed`).
-fn handed(r: u32, e: f32) -> f32 {
-    let pa = ax(r, PA);
-    let birth = ax(r, BIRTH);
-    let s0 = borne_scale(r);
-    let ec = row_at(pa, birth, 7u);
-    let p1 = pow(s0, ec);
-    let p2 = pow(s0, 2.0 * ec);
-    let q = e / ec;
-    var kept = delta(row_at(pa, birth, 0u), row_at(pa, birth, 1u) * p1, row_at(pa, birth, 2u) * p2, q);
-    let share = pa_of(pa).retained;
-    if share > 0.0 {
-        let lost1 = max(row_at(pa, birth, 3u) - row_at(pa, birth, 1u), 0.0) * p1;
-        let lost2 = max(row_at(pa, birth, 4u) - row_at(pa, birth, 2u), 0.0) * p2;
-        kept += share * delta(1.0, lost1, lost2, q);
-    }
-    return kept;
-}
-
-// Whether region axis `r` is a bud the chain bears on a kept axis.
-fn is_borne(r: u32) -> bool {
-    return r > 1u && kind_of(r) == LATERAL && s(ax(r, PARENT), S_OWN) != NONE;
 }

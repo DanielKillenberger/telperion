@@ -51,7 +51,7 @@ impl Grower {
         let input: Vec<u64> = buds
             .iter()
             .zip(made)
-            .flat_map(|(b, &m)| bud_words(b, m))
+            .flat_map(|(b, &m)| bud_words(b, m, [1 << 32; 2]))
             .collect();
         let b =
             |label, bytes: u64, data: &[u8]| io::buffer(gpu, label, bytes, storage, data).unwrap();

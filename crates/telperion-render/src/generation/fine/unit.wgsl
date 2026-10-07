@@ -62,13 +62,14 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
         let zk = zone_key(key, at);
         let d = draw(zk);
         let n = zone_count(at, d);
+        let side = zone_side(at, d, n);
         var drawn: array<u32, MOST>;
         sorted(zk, n, &drawn);
         let window = words[table[at + 7u] + u.w];
         for (var m = 0u; m < n; m++) {
             let j = drawn[m];
             let node = child(zk, w(j, 0u));
-            let lead = node_lead(at, d, j);
+            let lead = node_lead(at, d, side, j);
             var packed = vec2<u32>(0xffffffffu);
             for (var s = 0u; s < table[at + 4u]; s++) {
                 let pa = bud(at, child(node, w(s, 0u)));

@@ -106,3 +106,28 @@ fn time_on_the_grid() {
     assert_eq!(grid(0.999_999_9), 1.0);
     assert_eq!(grid(f64::INFINITY), f64::INFINITY);
 }
+
+/// Host decision 8: a draw's lead past its decision's own threshold is
+/// the real log-odds lead to within a few units of Q32's last place, and
+/// unbounded where the element is certain; products floor.
+#[test]
+fn presences_lead_from_their_thresholds() {
+    use presence::{over, times, under, ONE};
+    let logit = |p: f64| (p / (1.0 - p)).ln();
+    for k in 1..2_000u64 {
+        let p = k as f64 / 2_001.0;
+        let t = crate::lineage::threshold(p);
+        let d = (k * 0x9e37_79b9_7f4a) % t.max(1);
+        let u = d as f64 / (1u64 << 53) as f64;
+        if d > 0 {
+            let want = logit(t as f64 / (1u64 << 53) as f64) - logit(u);
+            assert!((real32(under(t, d)) - want).abs() < 1e-7, "{p} {d}");
+        }
+        assert!(over(t, t) >= 0 && under(t, t - 1) >= 0);
+    }
+    assert_eq!(under(1 << 53, 5), INF);
+    assert_eq!(under(5, 0), INF);
+    assert_eq!(over(0, 5), INF);
+    assert_eq!(times(ONE, ONE), ONE);
+    assert_eq!(times(3, ONE / 2), 1);
+}

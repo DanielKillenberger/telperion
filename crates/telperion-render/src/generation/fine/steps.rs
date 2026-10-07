@@ -15,9 +15,12 @@ const EMIT: &str = include_str!("emit.wgsl");
 pub(super) const RW: u32 = 10;
 pub(super) const CW: u32 = 3;
 /// A bud's words (`chain.wgsl`), as u32s.
-pub(super) const BW2: u32 = 24;
+pub(super) const BW2: u32 = 28;
 /// An item's words (`geometry.wgsl`).
-pub(super) const IW: u32 = 10;
+pub(super) const IW: u32 = 12;
+/// `emit.wgsl`'s entries.
+pub(super) const DESCRIBE: usize = 0;
+pub(super) const REALIZED: usize = 1;
 
 pub(super) fn sources() -> Vec<(&'static str, String)> {
     vec![
@@ -69,8 +72,8 @@ impl Steps {
             emit: io::Pass::new(
                 gpu,
                 EMIT.into(),
-                &rw(8, &[1, 2, 3, 5, 6]),
-                &["describe", "emit"],
+                &rw(8, &[1, 2, 3, 5]),
+                &["describe", "realized"],
             ),
         }
     }
@@ -131,14 +134,15 @@ impl Steps {
         self.gather.run(encoder, &bind, 0, groups);
     }
 
-    /// Describes a run's `n` chains for geometry into `items` (`hand`
-    /// false), or hands their kept axes' buds on (`hand` true).
+    /// Runs `emit.wgsl`'s `entry` over a run's `n` chains: `DESCRIBE`
+    /// writes their geometry items into `items`, `REALIZED` hands every
+    /// borne bud on.
     #[allow(clippy::too_many_arguments)]
     pub(super) fn hand(
         &self,
         gpu: &Gpu,
         encoder: &mut wgpu::CommandEncoder,
-        (n, stub, hand): (u32, bool, bool),
+        (n, stub, entry): (u32, bool, usize),
         (runoff, places, meta, items): (&wgpu::Buffer, &wgpu::Buffer, &wgpu::Buffer, &wgpu::Buffer),
         (axes, scratch, buds, next_meta): (
             &wgpu::Buffer,
@@ -153,6 +157,6 @@ impl Steps {
             &cfg, runoff, places, meta, items, axes, scratch, buds, next_meta,
         ];
         let bind = self.emit.bind(gpu, &all);
-        self.emit.run(encoder, &bind, usize::from(hand), groups);
+        self.emit.run(encoder, &bind, entry, groups);
     }
 }
