@@ -59,3 +59,10 @@
 - **Slowed by:** the shared GPU lock was held by another worker; one five-second page load waited 8.5 minutes for it (load 6 to 12 on 32 threads).
 - **Cost:** about 9 minutes wall, no tokens.
 - **Would remove it:** as recorded on task 2: a lock that names its holder and queue, so a worker does CPU work meanwhile; or a lock per device use measured in seconds, not per script.
+
+## 2026-10-07 05:15, task 3 (resumed): headless Chromium and the harness's WebGPU canvas
+
+- **Doing:** driving `npm run dev` headless to screenshot the engine's trees, after the previous worker stalled for three hours on a browser step.
+- **Slowed by:** the repository's browser scripts all launch Chromium with `headless: false` (a window on the owner's desktop); headless with their flags offers only SwiftShader, which the stage refuses. Native Vulkan with ANGLE on it (`--enable-features=Vulkan,VulkanFromANGLE,DefaultANGLEVulkan --use-vulkan=native --disable-vulkan-surface`) gives the NVIDIA adapter, but the page's first adapter request comes back empty before the GPU process is up (the panel's "retry build" then succeeds), and a headless page screenshot does not carry the WebGPU canvas (it is read with `toDataURL` in the frame it is drawn in).
+- **Cost:** about 12 minutes and five short runs.
+- **Would remove it:** one checked-in headless driver for the harness with these flags, the retry and the in-frame canvas read (this task's `harness/drive.mjs` is a start), named in docs so no worker rediscovers them.
