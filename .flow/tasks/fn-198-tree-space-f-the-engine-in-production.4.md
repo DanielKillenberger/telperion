@@ -15,9 +15,12 @@ INTEGRATION.md decision 2's door (ii), after fn-209 task 8 (owner: "super high p
 - F1 merged; trees identical by lineage to F1's branch. - Stage 2 through settle with the GPU executor natively and in the browser; CPU and GPU trees identical by lineage, geometry within the screen. - Over-ceiling trees refused before growth. - Harness and native timings before and after; screenshots viewed. - npm test and the workspace gate green.
 
 ## Done summary
-TBD
+F1 merged (8a1eafc1): every engine tree identical to F1's branch (32 digests). Decision 15 built (f4c2ad12): expected_kept refuses an over-ceiling tree before growth (spruce 80 refused in 322 ms instead of 8.3 s); light-reading species still refused after growth (the predictor ignores light). Native growth on all cores about 2x faster (spruce 80 2.1 to 1.1-1.2 s, beech 80 400 to 190 ms). Screenshots of the four species at 40 and 80 (spruce 70) viewed. Gate and npm test green.
 
+Acceptance amended by the host (2026-10-07, decision 16): stage 2 through the GPU executor is withdrawn from this task; nothing after stage 2 reads fine roots from the device, readback is excluded by fn-209 decision 5, and the device-side readers are a spec for the owner (option c). The one-core regression found here (9-41 %) is task 5.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8a1eafc1, f4c2ad12, fab45ab8, e905dcdd, da65120e
+- Tests: cargo test --profile ci --workspace --no-fail-fast, npm test
 - PRs:
