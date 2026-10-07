@@ -28,6 +28,7 @@ fn build(gpu: &Gpu, k: &Kernels, species: &Species, at: (u32, u64)) -> (f64, Cos
     let mut dev = Device::building(gpu, k, building, 1 << 16);
     let (settled, _) =
         settle(species, request(at.0, at.1), Plan::default(), &mut dev).expect("settles");
+    dev.wait();
     let ms = whole.elapsed().as_secs_f64() * 1e3;
     let stages: Vec<String> = settled
         .stages

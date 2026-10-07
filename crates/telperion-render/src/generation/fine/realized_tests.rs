@@ -226,6 +226,7 @@ pub(super) fn settled_against(
     let tables = Tables::new(gpu, Arc::new(chain), &geo);
     let mut dev = Device::new(gpu, k, &tables, batch).ordered(order.to_vec());
     let (settled, _) = settle(species, request(at.0, at.1), plan, &mut dev).expect("settles");
+    dev.wait();
     let wall = t.elapsed().as_secs_f64() * 1e3;
     // A root that can reach the ground is the CPU's (host decision 3).
     let landed = landed(&settled);

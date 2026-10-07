@@ -102,6 +102,15 @@ impl<'a> Device<'a> {
         (&kept.waves, &kept.laid)
     }
 
+    /// Waits for the last phase's passes, which the driver's own landing
+    /// overlaps (task 8).
+    pub(super) fn wait(&self) {
+        self.gpu
+            .device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .unwrap();
+    }
+
     fn kept(&mut self) -> &mut Kept {
         self.kept.as_mut().expect("grown")
     }
@@ -327,11 +336,8 @@ impl Roots for Device<'_> {
         }
         let kept = self.kept.take().expect("grown");
         self.attach(&kept);
+        // Not waited for: the CPU lands its roots meanwhile (`wait`).
         self.pass(&kept, BENDS, true);
-        self.gpu
-            .device
-            .poll(wgpu::PollType::wait_indefinitely())
-            .unwrap();
         self.kept = Some(kept);
         self.cost.lay += start.elapsed().as_secs_f64() * 1e3;
         Ok(())
