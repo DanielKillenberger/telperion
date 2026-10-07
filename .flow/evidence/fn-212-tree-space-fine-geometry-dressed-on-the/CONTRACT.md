@@ -201,3 +201,11 @@ Measured `tree_buffer_bytes` after the submit: 141 MB (beech 80 s1), 240 MB (bee
 2. **Codominance tie.** A head scaled to exactly `FORK_FROM` gets no codominance on both executors. It is decided by an exact comparison, not an f64 epsilon. The cross-executor case breaks D1''s determinism assumption, so it is in scope. Built (`16328f13`).
 3. **The spruce at 80, seed 7, point 1.0 mm off:** to be explained before task 7's parity verdict. Done: it is a `SHORTEST` flip at the 1 mm threshold (TASK5.md).
 4. **GPU test memory.** The whole-tree probes serialise themselves through a process-wide lock in the test support code, so the suite stays green at the default thread count. Built: the lock is held while a test's kernels live.
+
+## Host decisions after the seed's measurement (2026-10-07)
+
+- **Decision 1 amended** (host, 2026-10-07): a fine run's first normal is its bearer's side vector, projected off the first tangent. The rotation rule was measured with about 1,700 spruce runs mismatched at 80.
+- **A named residual class: threshold decisions fed by f32 against f64.** A decision the conversion takes against a threshold, fed by the device's float32 geometry on one side and the CPU's float64 on the other, flips where the input lies within the executors' disagreement of the threshold. D1''s margins belong to it, and so do:
+  - **Codominance near `FORK_FROM`:** a lateral at 0.4 of its parent plus 2.7e-9 (beech 80 s7: one run's radius off 6 %). Contract A's exact radii are expected to remove it.
+  - **`SHORTEST` at 1 mm:** spruce 80 s7 run 62151, a point off 1.0 mm. If it persists after contract A, it is a candidate for deciding on the CPU's fixed-point length; not built now.
+  - **Task 7's parity verdict counts this class per tree: how many runs, and how far.**
