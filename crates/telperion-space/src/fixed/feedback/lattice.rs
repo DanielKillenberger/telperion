@@ -30,6 +30,12 @@ pub const LEAVES: usize = 1 << 40;
 /// The nodes a box holds.
 pub const NODES: u64 = 1 << 28;
 
+/// A node's light, rounded once to the nearest Q32, ties to even, within
+/// [0, 1].
+pub fn rounded(l: f64) -> i64 {
+    (l * ONE32 as f64).round_ties_even().clamp(0.0, ONE32 as f64) as i64
+}
+
 /// A coordinate's node and its Q31 fraction.
 pub fn node(x: i64) -> (i64, u64) {
     (x >> SHIFT, (x & ((1 << SHIFT) - 1)) as u64)
@@ -155,19 +161,17 @@ impl Grid {
         Ok(lattice)
     }
 
-    /// The light at each node, Q32: today's sweep (`light.rs`) over the
-    /// lattice's densities, each W converted once to f64, its light rounded
-    /// once to the nearest Q32, ties to even, within [0, 1]. One wherever
-    /// nothing shades.
+    /// The light at each node, Q32: the one sweep (`light::swept_w`) over
+    /// the lattice's densities, each node's light rounded once (`rounded`).
+    /// One wherever nothing shades.
     pub fn swept(&self, light: &Light, lattice: &[u128]) -> Vec<i64> {
+        if !light.shades() {
+            return vec![ONE32; lattice.len()];
+        }
         let size = self.size.map(|s| s as usize);
-        crate::light::swept_w(light, self.low, size, lattice)
+        crate::light::swept_w(light.extinction, &light.directions(), size, lattice, 1)
             .into_iter()
-            .map(|l| {
-                (l * ONE32 as f64)
-                    .round_ties_even()
-                    .clamp(0.0, ONE32 as f64) as i64
-            })
+            .map(rounded)
             .collect()
     }
 
