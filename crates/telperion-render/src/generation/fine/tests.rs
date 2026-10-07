@@ -259,13 +259,13 @@ fn expected(s: u32, a: &[u64; 8], presences: &[u64]) -> [u64; 2] {
             u64::from(decide::kept(i(3), (a[4] != 0).then(|| i(5)), a[6])),
         ],
         11 => [decide::and(i(0), i(1)) as u64, 0],
-        12 => [pr::under(a[0], a[1]) as u64, pr::over(a[0], a[1]) as u64],
+        12 => [
+            pr::under(a[0], a[1]) as u64,
+            pr::over(a[0], a[1]) as u64,
+        ],
         13 => {
             let wood = pr::wood_at((i(2), i(3)), a[4]);
-            [
-                pr::times(a[0], a[1]),
-                pr::window(wood, (i(5), i(6), i(7))) as u64,
-            ]
+            [pr::times(a[0], a[1]), pr::window(wood, (i(5), i(6), i(7))) as u64]
         }
         14 => {
             let (gap, age) = (a[2] & 0xffff_ffff, (a[2] >> 32) as u32);
