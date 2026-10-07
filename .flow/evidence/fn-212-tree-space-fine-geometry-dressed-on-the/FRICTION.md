@@ -20,3 +20,17 @@
 - **Hindered:** the lock was held by another worktree's workspace gate with a second gate and two GPU captures queued; my run queued at 11:07 and had not started at 11:25. `flock -w 900` gives up after 15 minutes, so a queued run can silently time out with empty output.
 - **Cost:** about 20 minutes of wall time on the first proof (worked on code meanwhile); one driver rewritten to retry on `flock -E 99`.
 - **Removal:** a lock with a visible queue (who holds it, who waits, since when), or gates that build first and take the lock only for their GPU tests.
+
+## 2026-10-07 12:35, task 2 (worker): a proof run every half hour under a load of 70 to 100
+
+- **Doing:** the per-deletion digests and timings, each process taking the GPU lock alone so other workers interleave.
+- **Hindered:** two of the session's processes ran in the first hour (11:30 to 12:35); each waited 20 to 25 minutes for the lock, and the one-minute load reached 99 on 32 threads, so any timing taken now carries a load several times AUDIT.md's quietest pass.
+- **Cost:** about an hour of wall time so far for two 40-year digests; the timings will need re-taking or wide error bars.
+- **Removal:** the quiet window FRICTION's first timing entry asked for; or a per-desk queue that runs timing jobs only below a load threshold.
+
+## 2026-10-07 14:10, task 2 (worker): /tmp full, then the machine out of memory
+
+- **Doing:** the interleaved per-deletion timings and the CPU half of the gate.
+- **Hindered:** the shared scratchpad in `/tmp` (tmpfs, 16 GB) filled to its quota with seven workers' dumps (11 GB), so tool output was lost (EDQUOT); then the machine ran out of memory and the host stopped the workers and deleted the scratch dumps, my probes' binaries and drivers with them, mid-session (the 80-year digest of the last state and every timing run lost).
+- **Cost:** the session's remaining two hours of queued work; about 15 minutes to rebuild the probes and drivers inside the worktree.
+- **Removal:** build outputs and dumps inside each worktree (as the host now requires), a memory ceiling per worker, and `CARGO_BUILD_JOBS`/`RUST_TEST_THREADS` set by default for agents.
