@@ -159,3 +159,61 @@ The partial conversion sees no device root's wood, so two things a bearer above 
 3. **Decide them from data the CPU holds:** count every attachment as a child (A), and take a root's codominance from its base radius, handed up in phase 2 (B), on both executors. The trees change only where a root draws nothing at its seam or merges its first phytomers. No readback.
 
 **The worker's reading:** option 1 matches decision 3's rule and costs nothing at run time. Option 2 keeps every tree as it is. The choice is the host's. Task 7 stays open on it: the acceptance's final-output parity holds by named class apart from A and B. The gate has not been run, since the answer may change trees.
+
+## Option 3 built (host, 2026-10-07; `496e4c46`)
+
+- **The base radius is available before conversion on both paths.** Phase 2's `Roots::girth` hands each live root's base radius to the settle on either executor. The settle used it locally and dropped it, so it now keeps it as `Settled::radii`. `grow_fine` (the CPU path, through `grow_marked`) and `partial` (the real path) carry it by the root's first axis's lineage. Nothing is substituted: it is the value phase 2 sends up.
+- **One conversion, both paths:**
+  - each attachment records `fork`: codominance of the root's base radius against its bearer's drawn node's radius;
+  - a node's children for its kind are the ones that are not seams, plus one for each attachment;
+  - `paths` takes a seam's fork from its attachment, never from its node.
+
+**Bearers that moved on the CPU path** (`seams_read_by_their_attachments`; `raw/task7b/option3-bearers-2.txt`):
+
+| Tree | Roots (draw nothing at the seam) | Kinds moved | Forks moved | of them at a root that draws a seam |
+|---|--:|--:|--:|--:|
+| beech 30 s1 | 143 (26) | 4 | 3 | 0 |
+| beech 40 s1 | 463 (51) | 10 | 3 | 0 |
+| beech 40 s7 | 819 (100) | 10 | 0 | 0 |
+| beech 80 s1 | 4,973 (382) | 84 | 4 | 2 |
+| beech 80 s7 | 8,061 (654) | 122 | 14 | 0 |
+| spruce 30 s1 | 9,337 (118) | 1 | 0 | 0 |
+| spruce 40 s1 | 18,869 (202) | 2 | 3 | 0 |
+| spruce 40 s7 | 18,190 (174) | 1 | 0 | 0 |
+| spruce 80 s1 | 72,870 (910) | 5 | 5 | 0 |
+| spruce 80 s7 | 72,021 (617) | 2 | 3 | 0 |
+
+- **As the host expected,** apart from 2 forks on the beech at 80 s1: those roots draw a seam, and their base radius and their seam node's radius read on either side of a codominance threshold (a merged first phytomer, or the pipe's secondary share; not traced further).
+- **The beech-30 runs that moved** (`option3_moved_runs_on_the_beech`; `raw/task7b/option3/`, viewed):
+  - On the CPU path, no run moves at 30. Its curve is the same before and after option 3: the 3 moved forks stand where no run eases them.
+  - The runs that moved are the real path's: the 12 of class B. The part's curve with no fine root forking its bearers, against option 3: 12 runs, radius up to 19 %.
+  - The most moved one (run 20, at the trunk's fork at 6.19 m) was drawn bare before and after: 133 pixels apart, indistinguishable by eye. The real path and the CPU path at the same camera are 2 pixels apart.
+- **The extra leaves at 30 are class A** (`option3_extra_leaves_at_30`). The real path's part with its kinds read as before (a thin node is a twig where it draws no child) stations 862 leaves in its CPU block, against 859 under option 3 (beech), and 185,047 against 185,036 (spruce). That is exactly 3 and 11 more, and every one is on a segment ending at a node whose kind option 3 moved: 25 against 22 there (beech), and 725 against 714 (spruce).
+
+**Parity after option 3** (`fast-3.txt`, `parity-80-option3.txt`):
+
+| | beech 30 | spruce 30 | spruce 80 s1 | spruce 80 s7 |
+|---|--:|--:|--:|--:|
+| Kinds apart | 0 | 0 | 0 | 0 |
+| Runs off in radius at a fork | 0 | 0 | 0 | 0 |
+| Leaves on runs the CPU path lacks | 0 | 0 | 0 | 0 |
+| Leaves (submitted, CPU path) | 11,437, 11,437 | 2,349,003, 2,349,003 | 16,871,102, 16,871,100 | 16,806,937, 16,806,937 |
+
+- What remains is the tasks' named float classes:
+  - the rounding case on spruce 80 s1, whose 2 extra leaves come from 2 keys counting differently, as in task 6;
+  - the face turned about a near-vertical axis (2, 122 and 128 leaves);
+  - the grazing seat and the `SHORTEST`-flip run on spruce 80 s7.
+- Every run is matched, and none is over the screen beyond these. The fast test (`the_real_path_matches_the_cpu_path`) now holds every run matched and is in the gate.
+
+### Gate (after option 3)
+
+- **Render half,** under the GPU lock, first: 162 passed, 0 failed (`raw/task7b/gate-render.txt`).
+- **CPU half,** the workspace without the render crate: 988 passed, 0 failed (`raw/task7b/gate-cpu.txt`).
+- `RAYON_NUM_THREADS`, `RUST_TEST_THREADS` and `CARGO_BUILD_JOBS` were 8.
+
+### The acceptance
+
+- **The 3× verdict with its profile:** 7.7× (seed 1) and 7.1× (seed 7), stage medians above.
+- **Final-output parity:** by named class, after option 3.
+- **Seam close-ups:** viewed.
+- **Two-part gate:** green.
