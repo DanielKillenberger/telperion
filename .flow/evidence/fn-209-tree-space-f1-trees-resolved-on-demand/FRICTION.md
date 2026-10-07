@@ -154,3 +154,10 @@
 - **Slowed:** the width is a constant in four places (`chain.wgsl`'s `BW`, `emit.wgsl`'s and `gather.wgsl`'s `BW2`, `steps.rs`'s `BW2`). `gather.wgsl` kept the old width, so every chain regrown in a larger region read a garbage bud, and the realized test ran for minutes with the GPU at 100 %. Found by bisection: the chain test (no regrown chains in the realized path's sense) passed in 6 s.
 - **Cost:** about 15 minutes and four locked GPU runs, two of them timeouts.
 - **Would remove it:** the record widths injected into every shader from the one Rust constant (a `const` prelude the source functions prepend), so a width cannot disagree between kernels.
+
+## 2026-10-07, f32 geometry on the realized roots: three searches for one drift (task 6, GPU mirror)
+
+- **Doing:** holding the realized GPU executor's geometry to fn-125's screen at beech 80 (cuts 1,024 and 4,096).
+- **Slowed:** the farthest tip was 79 to 137 µm and the cause was not where the code pointed. A drift of the heading along the beech's long modules came from three places in turn: `1 - e^-x` near none, `asin` of a near-one z, and the GPU's own sine, good to about 5e-7 whatever its argument (a large share of a 0.015 rad turn), which the elevation's pull and the walk's turns gather over a module's 60 steps. Each was found by dumping one root's tips against the CPU's and reading the drift's shape.
+- **Cost:** about 45 minutes and twelve short locked runs.
+- **Would remove it:** a note beside `lay.wgsl` that the GPU's transcendental functions are approximate to about 5e-7 absolute (so a small angle's sine must be taken by its series and an attractor's step as a rotation), and a test that holds one long axis's heading to the CPU's per step, which would have pointed at the step in one run.
