@@ -94,10 +94,6 @@ var<private> COS: array<vec2<u32>, 6> = array<vec2<u32>, 6>(
     vec2<u32>(0x00000000u, 0x40000000u), vec2<u32>(0x00000000u, 0xe0000000u), vec2<u32>(0xaaaaaaabu, 0x02aaaaaau), vec2<u32>(0xe93e93e9u, 0xffe93e93u), vec2<u32>(0x80680680u, 0x00006806u), vec2<u32>(0x1b048876u, 0xfffffed8u),
 );
 
-fn mul62s(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
-    return smul_shr(a, b, 62u, false);
-}
-
 // Horner from the highest term down, one floor a product.
 fn horner_sin(z: vec2<u32>) -> vec2<u32> {
     var p = vec2<u32>(0u);

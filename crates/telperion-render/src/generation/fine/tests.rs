@@ -79,6 +79,16 @@ fn cases(s: u32, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
                 1 => {
                     a[0] = rng.next() >> (rng.next() % 64);
                     a[1] = rng.within(-(1 << 40), 70 * Q) as u64;
+                    // The polynomials' table edges (host decision,
+                    // 2026-10-07): a mantissa's sixty-fourths and a
+                    // fraction's, and their neighbours.
+                    if rng.next().is_multiple_of(4) {
+                        let (j, d) = (rng.next() % 64, rng.next() % 3);
+                        let edge = (1u64 << 62) + (j << 56) + d - 1;
+                        a[0] = edge >> (rng.next() % 62);
+                        let whole = (rng.next() % 70) << 32;
+                        a[1] = (whole + (j << 26) + d).wrapping_sub(1);
+                    }
                 }
                 2 => {
                     a[0] = rng.within(-70 * Q, 70 * Q) as u64;
