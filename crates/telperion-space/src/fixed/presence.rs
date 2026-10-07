@@ -13,7 +13,7 @@
 //!   grower takes them (`times`).
 //! - A species' real (a share, a reach, a continuation) enters as `q`,
 //!   floored, computed once per species point.
-use super::{exp, logit, logit_draw, mul, presence, INF, ONE32};
+use super::{exp, log2, logit, logit_draw, mul, presence, wide_signed, INF, LN2, ONE32};
 
 /// Q32's one, as a presence.
 pub const ONE: u64 = ONE32 as u64;
@@ -55,6 +55,68 @@ pub fn over(t: u64, d: u64) -> i64 {
     }
     logit_draw(d) - threshold_logit(t)
 }
+
+/// A draw `d`'s presence under the threshold `t` over `window`: its
+/// lead's (`under`). Bounds of the draw's log-odds settle most presences
+/// whole without the logs, which are most of growth's arithmetic on one
+/// core; the presence is the same either way.
+pub fn of_under(t: u64, d: u64, window: i64) -> u64 {
+    if window > 0 && t < 1 << 53 && bounded(d) {
+        let (_, high) = logit_draw_bounds(d);
+        if threshold_logit(t) - high >= window {
+            return ONE;
+        }
+    }
+    of(under(t, d), window)
+}
+
+/// A draw `d`'s presence over the threshold `t` over `window`: its
+/// lead's (`over`), settled as `of_under` settles one.
+pub fn of_over(t: u64, d: u64, window: i64) -> u64 {
+    if window > 0 && t != 0 && bounded(d) {
+        let (low, _) = logit_draw_bounds(d);
+        if low - threshold_logit(t) >= window {
+            return ONE;
+        }
+    }
+    of(over(t, d), window)
+}
+
+/// Whether a 53-bit draw and its complement each have the nine bits
+/// `log2_bounds` reads.
+fn bounded(d: u64) -> bool {
+    d >= 1 << 8 && (1 << 53) - d >= 1 << 8
+}
+
+/// Bounds of `logit_draw(d)`: `ln_ratio` of the bounds of its two logs,
+/// whose difference it is monotone in.
+fn logit_draw_bounds(d: u64) -> (i64, i64) {
+    let ((a_low, a_high), (b_low, b_high)) = (log2_bounds(d), log2_bounds((1 << 53) - d));
+    let ln = |x: i64| (wide_signed(x, LN2) >> 62) as i64;
+    (ln(a_low - b_high), ln(a_high - b_low))
+}
+
+/// Bounds of `log2 n`, `n` of nine bits or more: the logs of `n` with all
+/// but its leading nine bits cleared and of the next such integer, which
+/// `log2`, monotone, puts it between. Each is a grid point's log, its
+/// exponent added: the same mantissa, so the same squarings.
+pub(super) fn log2_bounds(n: u64) -> (i64, i64) {
+    let e = 63 - n.leading_zeros();
+    let k = ((n >> (e - 8)) & 0xff) as usize;
+    let exponent = i64::from(e - 8) << 32;
+    (exponent + GRID[k], exponent + GRID[k + 1])
+}
+
+/// `log2 (256 + k)` for k to 256, Q32.
+const GRID: [i64; 257] = {
+    let mut grid = [0; 257];
+    let mut k = 0;
+    while k < 257 {
+        grid[k] = log2(256 + k as u64);
+        k += 1;
+    }
+    grid
+};
 
 /// The log-odds of a draw's threshold `t`, Q32. A tree meets few: most
 /// are a species' settings, so the last taken are kept, by the core that

@@ -74,9 +74,9 @@ impl Shoot<'_, '_> {
         }
         // Its presence on its survival's own threshold, Q32 (host decision
         // 8), and its subtrees' survival of shedding on their balance.
-        let lead = presence::under(survives, d.0);
         let stake = stop_stake(state.relay_failed);
-        let survive = self.windows().presence_q(lead, (pa, cycle, None), stake);
+        let window = self.windows().window_q((pa, cycle, None), stake);
+        let survive = presence::of_under(survives, d.0, window);
         let survive = presence::times(survive, presence::q(self.kept(apex.axis)));
         let survive = fixed::real(survive);
         let (size, reads) = (self.size(apex.axis), self.reads);
@@ -121,8 +121,8 @@ impl Shoot<'_, '_> {
             // stop near its bound fades the stem (host decision 11), each
             // a Q32 presence (host decision 8).
             let at = (pa, cycle + 1, None);
-            let lead = presence::over(aborts, d.0);
-            let faded = self.windows().presence_q(lead, at, stop_stake(state.relay));
+            let window = self.windows().window_q(at, stop_stake(state.relay));
+            let faded = presence::of_over(aborts, d.0, window);
             let relayed = self.relayed(state.relay, decide, at);
             let persist = relayed + presence::times(presence::ONE - relayed, faded);
             let units = &mut self.draws_mut(apex.axis).units;

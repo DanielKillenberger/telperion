@@ -109,6 +109,49 @@ fn a_presence_is_its_whole_quotient_to_the_bit() {
 }
 
 #[test]
+fn a_log_lies_within_its_grid_bounds() {
+    let mut x = 0x9e37_79b9_7f4a_7c15u64;
+    let mut values: Vec<u64> = vec![256, 257, 511, 512, 1 << 53, (1 << 53) - 1, u64::MAX];
+    for _ in 0..200_000 {
+        x = x.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+        values.push((x >> (x % 55)).max(256));
+    }
+    for n in values {
+        let (low, high) = presence::log2_bounds(n);
+        assert!(low <= log2(n) && log2(n) <= high, "{n}");
+    }
+}
+
+#[test]
+fn a_draw_s_presence_is_its_lead_s_to_the_bit() {
+    use presence::{of, of_over, of_under, over, under};
+    let mut x = 0x2545_f491_4f6c_dd1du64;
+    let mut next = || {
+        x = x.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+        x
+    };
+    for _ in 0..300_000 {
+        let t = next() >> (11 + next() % 50);
+        let d = (next() >> 11).max(1);
+        let window = (next() % (3 * ONE32 as u64)) as i64 - ONE32 / 4;
+        assert_eq!(
+            of_under(t, d, window),
+            of(under(t, d), window),
+            "{t} {d} {window}"
+        );
+        assert_eq!(
+            of_over(t, d, window),
+            of(over(t, d), window),
+            "{t} {d} {window}"
+        );
+        // A draw near its threshold, where the bounds leave it open.
+        let near = t.saturating_sub(next() % 4096).max(1);
+        assert_eq!(of_under(t, near, window), of(under(t, near), window));
+        assert_eq!(of_over(t, near + 1, window), of(over(t, near + 1), window));
+    }
+}
+
+#[test]
 fn exp2_neg_is_close_and_monotone() {
     for k in 0..20_000i64 {
         let x = (k * 0x9e37_79b1) % (70 * ONE32);

@@ -126,8 +126,7 @@ impl Shoot<'_, '_> {
         }
         let d = unit.child(RELAY).draw();
         if d.under(relay) {
-            let lead = presence::under(threshold(relay), d.0);
-            self.windows().presence_q(lead, at, 1.0)
+            presence::of_under(threshold(relay), d.0, self.windows().window_q(at, 1.0))
         } else {
             0
         }
@@ -172,8 +171,8 @@ impl Shoot<'_, '_> {
             } else {
                 presence::ONE
             };
-            let lead = presence::under(threshold(relay), d.0);
-            let made = [stop, windows.presence_q(lead, at, 1.0)].map(fixed::real);
+            let made = presence::of_under(threshold(relay), d.0, windows.window_q(at, 1.0));
+            let made = [stop, made].map(fixed::real);
             // The relay moves over the widest window: its move is a growth
             // unit's length whatever wood it carries.
             let blend = fixed::real(presence::of(stopped, fixed::q32(SPAN)));

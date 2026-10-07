@@ -88,11 +88,11 @@ const ROOTS: [u64; 32] = [
 /// and takes a 128-bit one by a call, most of growth's arithmetic on one
 /// core there, so it builds the product from 32-bit halves instead: the
 /// same integer either way (test).
-pub fn wide(a: u64, b: u64) -> u128 {
+pub const fn wide(a: u64, b: u64) -> u128 {
     if cfg!(target_arch = "wasm32") {
         by_halves(a, b)
     } else {
-        u128::from(a) * u128::from(b)
+        a as u128 * b as u128
     }
 }
 
@@ -119,13 +119,13 @@ fn signed_by_halves(a: i64, b: i64) -> i128 {
 }
 
 /// `a b` from the four products of their 32-bit halves.
-fn by_halves(a: u64, b: u64) -> u128 {
+const fn by_halves(a: u64, b: u64) -> u128 {
     let (ah, al, bh, bl) = (a >> 32, a & 0xffff_ffff, b >> 32, b & 0xffff_ffff);
     let (mid, carry) = (ah * bl).overflowing_add(al * bh);
-    (u128::from(ah * bh) << 64)
-        + (u128::from(carry) << 96)
-        + (u128::from(mid) << 32)
-        + u128::from(al * bl)
+    (((ah * bh) as u128) << 64)
+        + ((carry as u128) << 96)
+        + ((mid as u128) << 32)
+        + (al * bl) as u128
 }
 
 /// The high part of a Q62 product: `a b / 2^62`, truncated.
@@ -160,14 +160,16 @@ pub fn threshold(p: u64) -> u64 {
 }
 
 /// `log2 n` in Q32; `-INF` for none.
-pub fn log2(n: u64) -> i64 {
+pub const fn log2(n: u64) -> i64 {
     if n == 0 {
         return -INF;
     }
     let (e, mut m) = mantissa(n);
     let mut frac = 0u64;
-    for _ in 0..32 {
+    let mut step = 0;
+    while step < 32 {
         frac = (frac << 1) | square(&mut m);
+        step += 1;
     }
     (e << 32) | frac as i64
 }
@@ -187,14 +189,14 @@ fn log2_pair(a: u64, b: u64) -> (i64, i64) {
 /// A non-zero `n`'s exponent and its mantissa in Q62, in [1, 2), held
 /// doubled (Q63, its last bit clear) so a square's high word is the Q62
 /// square; a 64-bit `n` loses its last bit.
-fn mantissa(n: u64) -> (i64, u64) {
+const fn mantissa(n: u64) -> (i64, u64) {
     let zeros = n.leading_zeros();
-    (i64::from(63 - zeros), (n << zeros) & !1)
+    ((63 - zeros) as i64, (n << zeros) & !1)
 }
 
 /// One step of `log2`: the mantissa squared in Q62, truncated, and halved
 /// back into [1, 2) where it reached 2; the bit is whether it did.
-fn square(m: &mut u64) -> u64 {
+const fn square(m: &mut u64) -> u64 {
     // The high word of the doubled mantissa's square: the Q62 square.
     let square = (wide(*m, *m) >> 64) as u64;
     let bit = square >> 63;

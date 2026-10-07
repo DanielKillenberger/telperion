@@ -95,8 +95,8 @@ impl Shoot<'_, '_> {
                     };
                     let key = zone_key.child(drawn).child(slot as u64);
                     // Host decision 8: the made presences, Q32.
-                    let lead = lineage::bud_lead(lateral, drawn_pa, d);
-                    let lead = windows.presence_q(lead, (lateral_pa, cycle + 1, None), 1.0);
+                    let window = windows.window_q((lateral_pa, cycle + 1, None), 1.0);
+                    let lead = lineage::bud_presence(lateral, drawn_pa, d, window);
                     let made = [
                         fixed::real(presence::times(lead, presence::q(placed))),
                         fixed::real(presence::q(reach)),

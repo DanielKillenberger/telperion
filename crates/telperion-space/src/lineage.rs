@@ -142,14 +142,33 @@ pub(crate) fn bud(lateral: &[f64], d: Draw) -> Option<usize> {
 /// bounds' thresholds (host decision 8). Taken only for a bud that is
 /// made: the logs it takes are most of growth's arithmetic on one core.
 pub(crate) fn bud_lead(lateral: &[f64], pa: usize, d: Draw) -> i64 {
-    let low = lateral[..pa].iter().fold(0.0, |low, &p| low + p);
-    let high = low + lateral[pa];
+    let (low, high) = bounds(lateral, pa);
     let lead = if low <= 0.0 {
         fixed::INF
     } else {
         fixed::presence::over(threshold(low), d.0)
     };
     lead.min(fixed::presence::under(threshold(high), d.0))
+}
+
+/// The presence, Q32, of `bud_lead` over `window`: the lesser of its two
+/// bounds' (a presence rises with its lead), each settled as
+/// `fixed::presence::of_under` settles one.
+pub(crate) fn bud_presence(lateral: &[f64], pa: usize, d: Draw, window: i64) -> u64 {
+    use fixed::presence::{of_over, of_under, ONE};
+    let (low, high) = bounds(lateral, pa);
+    let over = if low <= 0.0 {
+        ONE
+    } else {
+        of_over(threshold(low), d.0, window)
+    };
+    over.min(of_under(threshold(high), d.0, window))
+}
+
+/// The bounds of `pa`'s run of draws: the running sums of `lateral`.
+fn bounds(lateral: &[f64], pa: usize) -> (f64, f64) {
+    let low = lateral[..pa].iter().fold(0.0, |low, &p| low + p);
+    (low, low + lateral[pa])
 }
 
 /// A zone's node count under `law` for the draw `d`, by the inverse of the
