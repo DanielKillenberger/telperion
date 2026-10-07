@@ -40,6 +40,11 @@
 //! those rows stripped from the family, walk and override texts, each digest
 //! was still fn-222's, and every single-row refusal of every other row read
 //! as it did; only the refusal pairs, which pair rows by index, re-paired.
+//! fn-224 re-pinned the family, walk and override digests for the engine's
+//! new neutral `form.insertion_spread` and `form.tropism_spread`: with
+//! `, insertion_spread: 0.0, tropism_spread: 0.0` left out of the text,
+//! each was still fn-221's; no preset states the rows, and the refusal
+//! digest did not move.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -75,7 +80,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        17_729_859_378_156_819_142,
+        5_198_808_282_487_604_358,
         "{}",
         digest(&text)
     );
@@ -107,7 +112,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        14_735_182_995_670_064_868,
+        12_357_878_833_367_248_837,
         "{}",
         digest(&text)
     );
@@ -132,7 +137,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        9_550_647_531_219_312_557,
+        7_614_866_996_872_996_846,
         "{}",
         digest(&text)
     );
