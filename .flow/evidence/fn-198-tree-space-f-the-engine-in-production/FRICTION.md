@@ -129,3 +129,10 @@
 - **Slowed by:** the core crate is not rustfmt-clean on this branch, so the package-wide format rewrote 33 files the task never touched; with `git checkout --` blocked by the dcg hook, each had to be put back from `git show HEAD:` by a script, and the file-level `rustfmt --check` used instead.
 - **Cost:** about 4 minutes.
 - **Would remove it:** the crate formatted once in its own commit (or a CI `cargo fmt --check`), so a package-wide format touches only what changed.
+
+## 2026-10-07 09:40, field path measure: timings under another worker's load
+
+- **Doing:** timing the `telperion/field` path (FIELD-PATH.md), 0.1.4 against the branch, in Wasm and natively.
+- **Slowed by:** another worker's binary held 26 cores; load ran 76 to 131 on 32 cores in the smoke runs and 27 to 55 in the sweep. One 0.1.4 oak took 2.3 s against 0.17 s quiet, and one native branch spruce took 8 s against 2.5 s, so a quieter pass and a native rerun were needed before any time could be reported.
+- **Cost:** about 5 minutes and two extra passes.
+- **Would remove it:** the desk-wide timing lock named in the entry above; nothing new.
