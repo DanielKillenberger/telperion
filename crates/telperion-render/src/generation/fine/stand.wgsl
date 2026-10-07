@@ -4,14 +4,12 @@
 // the unit before by the last unit's extent, down to a whole unit or the
 // line's base. Part of the laid shader.
 
-// A unit of the line: its own axis, its phytomers `first..end`, and the
-// azimuth offset, in turns, of that axis's phyllotaxis from the line's
-// newest axis; none past the line's base, whose axis it names.
+// A unit of the line: its own axis and its phytomers `first..end`; none
+// past the line's base, whose axis it names.
 struct UnitRef {
     axis: u32,
     first: u32,
     end: u32,
-    off: f32,
     ok: bool,
 }
 
@@ -27,25 +25,44 @@ fn carries_on(i: u32) -> bool {
     return i > 1u && (k == RELAYED || k == CONTINUED);
 }
 
-// The phase of own axis `i`'s phyllotaxis, in turns (`geometry::phase`):
-// each axis it carries on adds its divergence times its rank.
-fn axis_phase(i_in: u32) -> f32 {
-    var i = i_in;
-    var phase = 0.0;
-    while carries_on(i) {
-        let p = ax(i, PARENT);
-        phase += turns(axis_rank(p), divergence_q(ax(p, PA)));
-        i = p;
+// How far own axis `i` has left the line of the axis it carries on: a
+// relay's blend, a continuation's none.
+fn blend_of(i: u32) -> f32 {
+    if kind_of(i) == RELAYED {
+        return axf(i, BLEND);
     }
-    return fract(phase);
+    return 0.0;
+}
+
+// The phase of own axis `i`'s phyllotaxis, in turns, unwrapped
+// (`geometry::phase`): each axis it carries on adds its divergence times
+// its rank, as far as it is still that axis's continuation. Taken from
+// the line's top down.
+fn axis_phase(i: u32) -> f32 {
+    var depth = 0u;
+    var top = i;
+    while carries_on(top) {
+        top = ax(top, PARENT);
+        depth += 1u;
+    }
+    var phase = 0.0;
+    for (var level = depth; level > 0u; level--) {
+        // The axis `level - 1` links down from the top, and its parent.
+        var c = i;
+        for (var k = 1u; k < level; k++) {
+            c = ax(c, PARENT);
+        }
+        let p = ax(c, PARENT);
+        phase = (1.0 - blend_of(c)) * (phase + rank_f(axis_rank(p)) * divergence_f(ax(p, PA)));
+    }
+    return phase;
 }
 
 // The unit `j` back from the newest of the line ending in own axis `p`.
 fn unit_back(p: u32, j: u32) -> UnitRef {
     var a = p;
-    var off = 0.0;
     var count = j;
-    var found = UnitRef(p, 0u, 0u, 0.0, false);
+    var found = UnitRef(p, 0u, 0u, false);
     loop {
         var end = s(a, S_COUNT);
         var hit = false;
@@ -56,7 +73,7 @@ fn unit_back(p: u32, j: u32) -> UnitRef {
                 first -= 1u;
             }
             if count == 0u {
-                found = UnitRef(a, first, end, off, true);
+                found = UnitRef(a, first, end, true);
                 hit = true;
                 break;
             }
@@ -67,12 +84,10 @@ fn unit_back(p: u32, j: u32) -> UnitRef {
             break;
         }
         if !carries_on(a) {
-            found = UnitRef(a, 0u, 0u, off, false);
+            found = UnitRef(a, 0u, 0u, false);
             break;
         }
-        let q = ax(a, PARENT);
-        off -= rank_f(axis_rank(q)) * divergence_f(ax(q, PA));
-        a = q;
+        a = ax(a, PARENT);
     }
     return found;
 }
@@ -157,7 +172,7 @@ fn point_in(u: UnitRef, share: f32, k: u32, o: u32) -> array<vec4<f32>, 3> {
     let base = start + (o3(at + o) - start) * t;
     let along = unit_or(h * (1.0 - t) + nh * t, h);
     let side = unit_or(sd * (1.0 - t) + ns * t, sd);
-    let w = u.off + r * divergence_f(ax(p, PA));
+    let w = axis_phase(p) + r * divergence_f(ax(p, PA));
     return array<vec4<f32>, 3>(vec4<f32>(base, w), vec4<f32>(along, 0.0), vec4<f32>(side, 0.0));
 }
 
@@ -204,7 +219,7 @@ fn stand(p: u32, node: u32, o: u32) -> array<vec4<f32>, 3> {
     } else {
         let top = unit_back(p, n);
         let a = top.axis;
-        pt = array<vec4<f32>, 3>(vec4<f32>(s3(a, S_FRAME), top.off), vec4<f32>(s3(a, S_FRAME + 3u), 0.0), vec4<f32>(s3(a, S_FRAME + 6u), 0.0));
+        pt = array<vec4<f32>, 3>(vec4<f32>(s3(a, S_FRAME), axis_phase(a)), vec4<f32>(s3(a, S_FRAME + 3u), 0.0), vec4<f32>(s3(a, S_FRAME + 6u), 0.0));
     }
     var j = n;
     while j > 0u {
@@ -212,6 +227,5 @@ fn stand(p: u32, node: u32, o: u32) -> array<vec4<f32>, 3> {
         let u = unit_back(p, j);
         pt = point_toward(pt, unit_point(u, j, p, node, o), extent(u));
     }
-    pt[0].w += axis_phase(p);
     return pt;
 }

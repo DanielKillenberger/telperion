@@ -223,21 +223,29 @@ pub(crate) fn frame(
 /// The phase axis `i`'s phyllotaxis starts from: each axis it carries on
 /// adds its divergence times its rank, so an axis carried on turns its
 /// laterals on from where that axis's would have stood (fn-199, host
-/// 2026-10-07), and a lateral or the seed starts afresh.
+/// 2026-10-07), as far as it is still its continuation; a lateral or the
+/// seed starts afresh.
 pub(crate) fn phase(axes: &[Axis], species: &Species, i: usize) -> f64 {
     phase_by(axes, &|pa| species.states[pa].divergence, i)
 }
 
 /// `phase`, each PA's divergence given by `divergence`.
 pub(crate) fn phase_by(axes: &[Axis], divergence: &dyn Fn(usize) -> f64, i: usize) -> f64 {
-    let mut phase = 0.0;
+    let mut line = Vec::new();
     let mut at = i;
-    while let Some((parent, _)) = axes[at].carried_on() {
-        let p = &axes[parent];
-        phase += divergence(p.pa) * p.rank;
+    while let Some((parent, b)) = axes[at].carried_on() {
+        line.push((parent, b));
         at = parent;
     }
-    phase + axes[at].phase
+    // Each axis carried on runs its parent's phyllotaxis on as far as it
+    // is still that axis's continuation (`1 - blend`): a relay become its
+    // own bud starts afresh, as a lateral does (fn-199).
+    let mut phase = axes[at].phase;
+    for &(parent, b) in line.iter().rev() {
+        let p = &axes[parent];
+        phase = (1.0 - b) * (phase + divergence(p.pa) * p.rank);
+    }
+    phase
 }
 
 /// The heading and side of a bud at `azimuth` around a parent going
