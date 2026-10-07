@@ -75,3 +75,7 @@ What the engine has no setting for (unknown whether it is needed; the host's jud
 1. Try the untried levers above as round 5, accepting the stop's risk.
 2. A capability spec: a per-node internode variation (a keyed draw, dormant at zero), so lateral spacing along an axis is irregular.
 3. Turn on light (fn-197's `shade_size`, `apical_control`) for the birch, so units and laterals vary with the light they get, as KU03 reports for birch crowns; a design question already in MODEL-BIRCH.md (3).
+
+## Gate (round 4, commit `bf4d5971`)
+
+In two parts with `CARGO_BUILD_JOBS=8`, `RUST_TEST_THREADS=8` and `RAYON_NUM_THREADS=8`: the workspace without `telperion-render` exits 0 (no lock), `telperion-render` exits 0 (under the GPU lock); `harness/parity.test.ts` passes 8 of 8. Logs in the ignored `raw/gate4-*.log`.
