@@ -454,3 +454,28 @@ The host's view of the sheet is R6's acceptance; this records mine.
   - Not changed: a threshold moves only with the botany shown right, and why this crossing steepened is not traced. For the host.
 
 `flowctl done` not run: the acceptance's gate is not green.
+
+## The light walk's 32.6, traced: a defect in the phase, fixed (`e314a066`)
+
+**Attribution.** I toggled each part of rules 1 and 2' on the probe, `light: states[0].apical_control`, seed 3:
+- the extent blend off: 32.64;
+- continuations' handed pulls and reach off: 32.43;
+- the phyllotaxis phase put back as the old turned side: 26.87, the old value.
+
+So the phase steepened it.
+
+**Cause.** Comparing the phase and the turned side on the plain walk species (no wander, no light), branch tips differed by up to 0.9 m. The first to differ were laterals on relays standing at blends between 0 and 1.
+- The old frame turned the carried side by the parent's phase and then blended it with the bud's own side by the blend.
+- The phase was added whole at any blend, so a relay become its own bud (blend 1) still turned its laterals by its parent's phase.
+
+**Fix.** Each axis carried on inherits `(1 − blend) × (parent's phase + divergence × rank)`. That is whole for a continuation and none at blend 1, as a lateral starts afresh. Mirrored in `stand.wgsl` (`axis_phase`, unwrapped, from the line's top down; points take each axis's own phase).
+
+**After the fix:**
+- the light walk's steepest steps are 26.82 (`states[0]`) and 29.07 (`states[1]`), the bound of 30 untouched;
+- the census over seeds 1 to 50 is clean, with no flag left at all;
+- the realized GPU tests pass.
+
+**R6 re-rendered after the fix.** `raw/r6/sheet2-bare.png` and `raw/r6/sheet2-whole.png`, base on top; I viewed both.
+- Every tree reads as an open-grown beech, with no defect.
+- The crowns are broader than the first after-sheet, nearer the base's spread. Seed 4 now carries a long, spreading low limb on its left; seed 1 a few long limbs.
+- Heights 17.8 to 19.1 m, against 17.8 to 18.8 m on the base.
