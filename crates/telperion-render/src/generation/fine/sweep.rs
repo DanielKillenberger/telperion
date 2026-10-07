@@ -10,7 +10,7 @@ use crate::Gpu;
 use telperion_core::surface::SurfaceParams;
 
 const SWEEP: &str = include_str!("sweep.wgsl");
-const NW: u64 = 21;
+pub(super) const NW: u64 = 26;
 const LW: u64 = 12;
 /// A run's place in the table, a point's and a cluster's words.
 pub(super) const TW: usize = 4;
@@ -81,6 +81,8 @@ pub(super) struct Swept {
     pub table: wgpu::Buffer,
     pub point_buffer: wgpu::Buffer,
     pub cluster_buffer: wgpu::Buffer,
+    /// Every drawn node by id (`sweep.wgsl`'s `NW` words), for the stations.
+    pub nodes: wgpu::Buffer,
 }
 
 fn storage(gpu: &Gpu, label: &'static str, words: u64) -> wgpu::Buffer {
@@ -248,6 +250,7 @@ impl Sweeper {
             table: b.table,
             point_buffer: b.points,
             cluster_buffer: b.clusters,
+            nodes: b.nodes,
         }
     }
 }

@@ -18,7 +18,7 @@ pub(super) const DRESS: &str = include_str!("dress.wgsl");
 pub(super) const FOLD: &str = include_str!("fold.wgsl");
 /// A drawn axis's and phytomer's floats (`dress.wgsl`).
 const CA: u32 = 12;
-pub(super) const CV: usize = 23;
+pub(super) const CV: usize = 25;
 pub(super) const CA_WORDS: usize = CA as usize;
 pub(super) const MADE: u32 = 2;
 pub(super) const LANDED: u32 = 4;
@@ -55,6 +55,10 @@ pub(super) struct StubNode {
     pub base: f32,
     /// Its wood's frame as laid: heading, then side (y up).
     pub frame: [f32; 6],
+    /// Its branch (its branch's first node, by the pipeline's index) and
+    /// its key (`Tree::key`).
+    pub branch: u32,
+    pub key: u32,
 }
 
 pub(super) struct Dresser {
@@ -134,6 +138,8 @@ fn stub_records(stubs: &[Stub], base: u32) -> Vec<f32> {
         r[7] = f32::from_bits(k as u32 | PREV);
         r[10..13].copy_from_slice(&node.parent);
         r[17..23].copy_from_slice(&node.frame);
+        r[23] = f32::from_bits(node.branch | PREV);
+        r[24] = f32::from_bits(node.key);
     }
     out
 }

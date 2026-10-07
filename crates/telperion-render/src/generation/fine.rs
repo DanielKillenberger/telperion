@@ -29,6 +29,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
         ("fine dress", dress::DRESS.to_string()),
         ("fine fold", dress::FOLD.to_string()),
         ("fine sweep", sweep::source()),
+        ("fine stations", stations::source()),
     ]
     .into_iter()
     .chain(steps::sources())
@@ -47,6 +48,10 @@ mod dress;
 mod dress_tests;
 #[cfg(test)]
 mod fixture;
+#[cfg(test)]
+mod stations;
+#[cfg(test)]
+mod stations_tests;
 #[cfg(test)]
 mod sweep;
 #[cfg(test)]

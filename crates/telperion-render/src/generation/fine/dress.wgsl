@@ -57,9 +57,11 @@ const CA: u32 = 12u;
 // A drawn phytomer: its node's position (y up), radius, start radius and
 // base radius, its flags, the node it is drawn as, its node's run, its
 // laid axis, its node's parent's position, codominance, id, distance
-// along the wood from its root's bearer, its parent's id, and its wood's
-// frame as laid (heading, side; y up), which a run it bears seeds from.
-const CV: u32 = 23u;
+// along the wood from its root's bearer, its parent's id, its wood's
+// frame as laid (heading, side; y up), which a run it bears seeds from,
+// its branch (the id of its branch's first node; a branch of the structure
+// above the cut tagged `PREV`) and its key (`tree::node_key`).
+const CV: u32 = 25u;
 const TAKEN: u32 = 1u;
 const MADE: u32 = 2u;
 // Its root is laid on the CPU (host decision 3): drawn there.
@@ -97,6 +99,7 @@ struct Nd {
     id: u32,
     dist: f32,
     fine: bool,
+    branch: u32,
 }
 
 fn rec(r: u32) -> u32 {
@@ -122,7 +125,7 @@ fn node(r: u32) -> Nd {
     }
     let flags = bitcast<u32>(at(r, 6u));
     let id = bitcast<u32>(at(r, 14u));
-    return Nd(p, at(r, 3u), at(r, 4u), at(r, 5u), run, up, at(r, 13u), id, at(r, 15u), (flags & FINE) != 0u);
+    return Nd(p, at(r, 3u), at(r, 4u), at(r, 5u), run, up, at(r, 13u), id, at(r, 15u), (flags & FINE) != 0u, bitcast<u32>(at(r, 23u)));
 }
 
 fn put(r: u32, f: u32, v: f32) {
@@ -149,6 +152,7 @@ fn copy(r: u32, n: Nd) {
     put(r, 11u, n.up.y);
     put(r, 12u, n.up.z);
     put(r, 13u, n.codom);
+    putu(r, 23u, n.branch);
     putu(r, 14u, n.id);
     put(r, 15u, n.dist);
     var fine = 0u;
@@ -156,6 +160,21 @@ fn copy(r: u32, n: Nd) {
         fine = FINE;
     }
     putu(r, 6u, (getu(r, 6u) & ~FINE) | fine);
+}
+
+fn mix32(v: u32) -> u32 {
+    var z = v;
+    z = (z ^ (z >> 16u)) * 0x21f0aaadu;
+    z = (z ^ (z >> 15u)) * 0x735a2d97u;
+    return z ^ (z >> 15u);
+}
+
+// A node's key from its axis's lineage and its place along the axis
+// (`tree::node_key`).
+fn node_key(lineage: vec2<u32>, place: u32) -> u32 {
+    let low = mix32(lineage.x);
+    let high = mix32(low ^ lineage.y);
+    return mix32(high ^ place);
 }
 
 // A lateral as thick as `parent` parts from it as a fork does
@@ -233,6 +252,7 @@ fn aside(p: u32, j0: u32) {
         let n = getu(li(p, k), 7u);
         if mine(n) {
             putu(n, 8u, first);
+            putu(n, 23u, cfg.out_base + first);
         }
     }
     let carrier = node(f0).radius;
@@ -303,10 +323,13 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
                 run = r;
             }
             putu(r, 8u, run);
+            putu(r, 23u, cfg.out_base + run);
         } else {
             putu(r, 8u, held.run);
             put(r, 5u, held.base);
+            putu(r, 23u, held.branch);
         }
+        putu(r, 24u, node_key(vec2<u32>(ax(i, 0u), ax(i, 1u)), k));
         put(r, 0u, pos.x);
         put(r, 1u, pos.y);
         put(r, 2u, pos.z);

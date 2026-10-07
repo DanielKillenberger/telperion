@@ -39,7 +39,7 @@ struct Cfg {
 
 const NONE: u32 = 0xffffffffu;
 const CA: u32 = 12u;
-const CV: u32 = 23u;
+const CV: u32 = 25u;
 const MADE: u32 = 2u;
 const LANDED: u32 = 4u;
 const FINE: u32 = 8u;
@@ -48,8 +48,11 @@ const SEAM: u32 = 16u;
 // root's bearer, its bearer's distance from the root, parent, flags, the
 // widest ring of the run it starts, and its axis's depth in its root and
 // lineage (high word, low word), which order it among its siblings as the
-// conversion numbered them; its wood's frame as laid (heading, side).
-const NW: u32 = 21u;
+// conversion numbered them; its wood's frame as laid (heading, side);
+// the run it is swept in, as a contact reads it (that run's first point,
+// its place along it and the run's place in the table, `emit`); its
+// branch and key.
+const NW: u32 = 26u;
 // A node's links: the widest start radius of its children that are not
 // codominant and of all, the first child of each so wide, whether a
 // codominant child leaves it, the points of the run it starts; then, for
@@ -136,6 +139,9 @@ fn gather(@builtin(global_invocation_id) id: vec3<u32>) {
     for (var c = 0u; c < 6u; c++) {
         nodes[i * NW + 15u + c] = drawn[b + 17u + c];
     }
+    nodes[i * NW + 21u] = bitcast<f32>(NONE);
+    nodes[i * NW + 24u] = drawn[b + 23u];
+    nodes[i * NW + 25u] = drawn[b + 24u];
     if cfg.stubs != 0u {
         // A bearer's node: never a fine root's, and at its bearer.
         nodes[i * NW + 6u] = 0.0;
@@ -533,6 +539,14 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
                 seg = segment(cur, next, seg);
             }
         }
+    }
+    // Each node's ring in its run, which its contacts read.
+    var node = first;
+    for (var i = 1u; i < count && node != NONE; i++) {
+        nodes[node * NW + 21u] = bitcast<f32>(at);
+        nodes[node * NW + 22u] = bitcast<f32>(i);
+        nodes[node * NW + 23u] = bitcast<f32>(s);
+        node = leader(node);
     }
     clusters_of(s, at, count);
 }

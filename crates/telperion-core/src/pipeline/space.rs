@@ -34,7 +34,7 @@ const KEPT: Option<usize> = if cfg!(target_arch = "wasm32") {
 };
 /// Where fine wood begins, as a share of the root's radius: the fine-wood
 /// measure of the pinned baseline (fn-190, BASELINE.md).
-const STRUCTURAL: f64 = 0.05;
+pub(super) const STRUCTURAL: f64 = 0.05;
 /// The thinnest wood drawn, in metres, and the shortest internode kept: a
 /// float32 ring stays resolved above them (host, fn-193 C, the beech).
 const FINEST: f64 = 2e-4;

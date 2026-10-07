@@ -124,6 +124,16 @@ impl Expansion {
     pub fn wood_reach(&self) -> Result<[f64; 4]> {
         Ok(self.inputs.plan.reach.clone()?.terms())
     }
+    /// The bounds an executor drawing its own nodes decides their kinds and
+    /// leaf-bearing by (fn-212 task 6): wood under the first is fine wood,
+    /// a twig where nothing grows from it; wood within the second bears
+    /// leaves (`plan::bearing_runs`).
+    pub fn bearing_bounds(&self) -> [f64; 2] {
+        let tree = &self.tree;
+        let root = tree.nodes.first().map_or(0.0, |n| n.radius);
+        let slender = tree.stem_radius(|i| tree.pipe(i)[1]) * self.canopy().shoot_radius;
+        [super::space::STRUCTURAL * root, slender]
+    }
     /// The corners of the leaf box of the nodes `keep` keeps, and the
     /// root's position: combined by their corners with an executor's own,
     /// exactly the box of the whole (`reference`).
