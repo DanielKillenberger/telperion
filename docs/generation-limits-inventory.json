@@ -1266,12 +1266,6 @@
     "reason": "The three rows of one basis column of a leaf transform; a column has three."
   },
   {
-    "path": "crates/telperion-core/src/math/transcendental/hypot.rs",
-    "site": "if eb - es > 64 {",
-    "classification": "algorithm",
-    "reason": "The pinned libm's hypot shortcut: past 64 binary orders the smaller operand cannot change the rounded sum; it limits no generated population."
-  },
-  {
     "path": "crates/telperion-core/src/pipeline/branching/specimen/budget.rs",
     "site": "while high - low > 1 {",
     "classification": "algorithm",
@@ -1510,59 +1504,5 @@
     "site": "if let Some ( k ) = ( 0 . . AGES ) . find ( | & k | stated [ k ] & & states [ k ] . lifespan < = 0 . 0 ) {",
     "classification": "algorithm",
     "reason": "Refuses a /space row on an age with no lifespan, which the engine's canonical form would overwrite; it limits no generated population."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
-    "site": ". max ( most [ b + 1 ] )",
-    "classification": "algorithm",
-    "reason": "Running maximum of the bins further out, so a node passed by one is dropped from the front; it limits no generated population."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
-    "site": ". min ( 1 . 0 )",
-    "classification": "algorithm",
-    "reason": "A node's way from the widest height to an end stays within the outline's unit interval."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
-    "site": ". min ( BINS - 1 )",
-    "classification": "algorithm",
-    "reason": "A way of exactly one falls in the last bin; the index stays inside the bin array."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
-    "site": "const BINS : usize = 1024 ;",
-    "classification": "algorithm",
-    "reason": "Resolution of the front's pre-filter only: nodes are compared exactly after it, so the fitted shoulder does not depend on it and no node is limited."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
-    "site": "const HALVINGS : usize = 40 ;",
-    "classification": "numeric",
-    "reason": "Bisection tolerance of the shoulder fit, about 1e-11 of a shoulder; it limits no generated population."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
-    "site": "for _ in 0 . . HALVINGS {",
-    "classification": "numeric",
-    "reason": "The shoulder fit's bisection to its stated tolerance."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
-    "site": "for b in ( 0 . . BINS - 1 ) . rev ( ) {",
-    "classification": "algorithm",
-    "reason": "Walks the pre-filter's bins once from the outermost in; it limits no generated population."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
-    "site": "if ! ( radius > 0 . 0 & & height > base ) {",
-    "classification": "algorithm",
-    "reason": "A crown with no span or no reach has no front to hold; the fit takes the narrowest shoulder."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
-    "site": "if y < = base | | y > = height | | reach < = 0 . 0 {",
-    "classification": "algorithm",
-    "reason": "Only nodes strictly inside the crown's span and off the axis bear on the outline; it drops no node from the tree."
   }
 ]
