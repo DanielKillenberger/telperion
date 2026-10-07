@@ -69,6 +69,9 @@ pub struct Settled {
     pub live: Vec<usize>,
     pub bearers: Vec<usize>,
     pub phases: Vec<f64>,
+    /// Each stage of the settling, the executor's phases among them, and
+    /// its milliseconds, in turn (task 8).
+    pub stages: Vec<(&'static str, f64)>,
     /// The roots laid on the CPU because they can reach the ground (host
     /// decision 3), by root; and those roots, by their place among the
     /// live.
@@ -88,9 +91,16 @@ pub fn settle(
     plan: Plan,
     roots: &mut dyn Roots,
 ) -> Result<(Settled, Vec<RootSeed>)> {
+    let mut stages = Stages::default();
     let rules = crate::grow::alone::rules(species, request.age, request.budget)?;
+    stages.mark("rules");
     let predictor = Predictor::new(species, &rules.windows, request.age);
-    settle_with(species, (request, &predictor, &rules), plan, roots, true)
+    stages.mark("predictor");
+    let (mut settled, seeds) =
+        settle_with(species, (request, &predictor, &rules), plan, roots, true)?;
+    stages.out.append(&mut settled.stages);
+    settled.stages = stages.out;
+    Ok((settled, seeds))
 }
 
 pub(crate) fn settle_with(
@@ -105,11 +115,13 @@ pub(crate) fn settle_with(
         0 => crate::cores::available(),
         n => n,
     };
+    let mut stages = Stages::default();
     let pas = species.states.len();
     let hands = Hands::new(pas, request.age, |pa, birth| {
         predictor.count(pa, birth) <= plan.cut
     });
     let (grown, handed) = above(rules, hands, request.seed, threads)?;
+    stages.mark("above the cut");
     let seeds: Vec<RootSeed> = handed
         .into_iter()
         .map(|h| RootSeed {
@@ -119,9 +131,11 @@ pub(crate) fn settle_with(
             handed: h,
         })
         .collect();
+    stages.mark("seeds");
     let mut clock = Clock::default();
     let reach = land.then(|| reach(species, request.age));
     let (living, grew) = clock.time(|| roots.grow(&seeds))?;
+    stages.mark("phase 1 (executor)");
     if grown.grown + grew > u64::from(request.budget) {
         return Err(Error::Budget {
             limit: request.budget,
@@ -169,23 +183,29 @@ pub(crate) fn settle_with(
         .map(|(&k, &b)| tree.axes[b].phytomers[node(&seeds[k])].scale)
         .collect();
     let base = scale(&mut tree, species, threads);
+    stages.mark("shed and scale");
     let scales: Vec<(f64, f64)> = bearers
         .iter()
         .zip(&drawn)
         .map(|(&b, &d)| (base[b], d))
         .collect();
     let radii = clock.time(|| roots.girth(&live, &scales));
+    stages.mark("phase 2 (executor)");
     let radius = |i: usize| by_axis[i].map(|j: usize| radii[j]);
     thicken_given(&mut tree, species, &Girth::default(), &radius, threads);
     place(&mut tree, species, None, threads)?;
+    stages.mark("thicken and place");
     // Lay on each bearer's frame, and load the tree by each root's wood;
     // a root that can reach the ground is laid on the CPU (host decision
     // 3, `landing.rs`).
     let mut loads = clock.time(|| roots.lay(&tree, &live, &bearers))?;
+    stages.mark("phase 3 (executor)");
     let rows = reach.map(|r| r.join().expect("the reach's rows"));
+    stages.mark("the reach's rows");
     let mut landing = Landing::new(species, (rules, rows.as_ref()), (plan, threads));
     let at_roots = (&seeds[..], &live[..], &bearers[..]);
     landing.lay(&tree, at_roots, (&scales, &radii), &mut loads)?;
+    stages.mark("landing, unbent");
     if any(species) {
         let load = |i: usize| {
             by_axis[i].map(|j: usize| Load {
@@ -195,8 +215,11 @@ pub(crate) fn settle_with(
         };
         let (levers, _) = levers_given(&tree, species, &load, threads);
         place(&mut tree, species, Some(&levers), threads)?;
+        stages.mark("levers and place");
         clock.time(|| roots.bend(&tree, &live, &bearers))?;
+        stages.mark("phase 4 (executor)");
         landing.bend(&tree, at_roots, (&scales, &radii))?;
+        stages.mark("landing, bent");
     }
     let grounded = landing.roots.iter().map(|(j, _)| live[*j]).collect();
     let settled = Settled {
@@ -205,10 +228,35 @@ pub(crate) fn settle_with(
         live,
         bearers,
         phases: clock.phases,
+        stages: stages.out,
         grounded,
         landed: landing.roots,
     };
     Ok((settled, seeds))
+}
+
+/// Each stage's milliseconds, from the last mark.
+struct Stages {
+    last: std::time::Instant,
+    out: Vec<(&'static str, f64)>,
+}
+
+impl Default for Stages {
+    fn default() -> Self {
+        Self {
+            last: std::time::Instant::now(),
+            out: Vec::new(),
+        }
+    }
+}
+
+impl Stages {
+    fn mark(&mut self, stage: &'static str) {
+        let now = std::time::Instant::now();
+        self.out
+            .push((stage, (now - self.last).as_secs_f64() * 1e3));
+        self.last = now;
+    }
 }
 
 /// The closed form's rows of `species` at `age`, for the ground bound's

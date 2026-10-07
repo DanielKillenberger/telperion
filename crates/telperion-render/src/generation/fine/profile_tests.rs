@@ -26,8 +26,16 @@ fn build(gpu: &Gpu, k: &Kernels, species: &Species, at: (u32, u64)) -> (f64, Cos
         (chain, GeometryTables::new(&point, at.0).expect("tables"))
     });
     let mut dev = Device::building(gpu, k, building, 1 << 16);
-    settle(species, request(at.0, at.1), Plan::default(), &mut dev).expect("settles");
-    (whole.elapsed().as_secs_f64() * 1e3, dev.cost)
+    let (settled, _) =
+        settle(species, request(at.0, at.1), Plan::default(), &mut dev).expect("settles");
+    let ms = whole.elapsed().as_secs_f64() * 1e3;
+    let stages: Vec<String> = settled
+        .stages
+        .iter()
+        .map(|(stage, ms)| format!("{stage} {ms:.1}"))
+        .collect();
+    println!("  stages: {}", stages.join(", "));
+    (ms, dev.cost)
 }
 
 /// Each entry point's passes, GPU milliseconds summed and the longest.

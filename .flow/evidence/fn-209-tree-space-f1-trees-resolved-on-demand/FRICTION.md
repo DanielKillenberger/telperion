@@ -174,3 +174,10 @@
 - **Slowed:** `cargo fmt --all` reformatted 26 files in `telperion-core` and `telperion-render` that neither branch changed (removed blank lines, rewrapped calls), so the merge's diff had to be picked apart and the unrelated hunks reversed by patch (`git checkout --` is blocked by the guard).
 - **Cost:** about 3 minutes.
 - **Would remove it:** the tree formatted once on master (or a CI `cargo fmt --check`), so a crate-wide format touches only what a change touched; until then, `rustfmt <file>` on the files changed.
+
+## 2026-10-07, no CPU sampler on the desk (task 8)
+
+- **Doing:** finding where the 110 ms of the structure above the cut and the GPU path's other CPU stages go.
+- **Slowed:** `samply` refuses with `perf_event_paranoid` at 2 and there is no `perf`; each split took a hand-written `eprintln!` timer, a rebuild and a run, restored by copying the file back.
+- **Cost:** about 15 minutes over five rounds of tracing.
+- **Would remove it:** `kernel.perf_event_paranoid = 1` on the desk (a local setup, the owner's call), or a stage clock in the driver (`Settled` carrying each CPU stage's milliseconds beside the executor's phases) printed by the timing tests.
