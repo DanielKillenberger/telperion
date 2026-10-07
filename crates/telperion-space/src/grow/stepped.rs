@@ -31,9 +31,11 @@
 mod assemble;
 mod feedback;
 mod handover;
+mod lay;
 
 use feedback::{again, relaid};
 pub use feedback::{Cpu, Feedback};
+pub use lay::{Laid, LayJob, LayPa};
 
 use super::balance::Totals;
 use super::partition::{merge, ordered, Grouping};
@@ -182,20 +184,26 @@ impl<'a> Executor<'a> {
         // Phase (iv): each grower grows, wakes and lays its own (the
         // count the growth digest takes is the same once laid).
         let sketching = self.coarse.sketch.is_some() && cycle < self.request.age;
-        let step = |g: &mut Grower, advanced: &[usize]| -> Result<()> {
+        // The items' layout on the device where one is given.
+        let laying = device.is_some();
+        let step = |g: &mut Grower, advanced: &[usize], lays: bool| -> Result<()> {
             let live = std::mem::take(&mut g.live);
             g.grow_live(live, cycle, &mut |_| {})?;
             g.wake(cycle)?;
-            if sketching {
+            if sketching && lays {
                 g.sketch(cycle, advanced)?;
             }
             Ok(())
         };
-        step(&mut self.coarse, &advanced)?;
-        let done = self.each(advanced_items, &|item, advanced| {
-            step(&mut item.g, &advanced)
+        step(&mut self.coarse, &advanced, true)?;
+        let with = advanced_items.clone();
+        let done = self.each(with, &|item, advanced| {
+            step(&mut item.g, &advanced, !laying)
         });
         done.into_iter().collect::<Result<Vec<()>>>()?;
+        if let (true, Some(device)) = (sketching, again(&mut device)) {
+            self.sketch_on(cycle, device, advanced_items)?;
+        }
         let grown: u64 = self.growers().map(|g| g.rules.grown).sum();
         if grown > u64::from(self.request.budget) {
             return Err(Error::Budget {

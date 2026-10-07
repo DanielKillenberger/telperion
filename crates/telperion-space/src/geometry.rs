@@ -22,9 +22,10 @@ use crate::fixed::{mul, q32, ONE32};
 use crate::lineage::{Key, DOMINANCE, ROLL};
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
-pub(crate) use lay::{ground_zone, support_q, Layer};
+pub(crate) use lay::{cone, ground_zone, support_q, Layer, Stop};
 pub(crate) use place::{place, place_from};
-use q::{add, amount, cross, dot, q3, rotated, scaled, sub, unit, v3, Q3, UP};
+pub(crate) use q::amount;
+use q::{add, cross, dot, q3, rotated, scaled, sub, unit, v3, Q3, UP};
 pub(crate) use single::{bud_frame, lay_one};
 
 /// The sine of the lean below which a parent has too little of an upper

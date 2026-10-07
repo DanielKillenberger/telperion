@@ -30,15 +30,24 @@ fn same(cpu: &Stepped, gpu: &Stepped, case: &str) {
     );
 }
 
-/// The oak, and the oak whose every PA tolerates a balance below 0.99:
-/// at 24 the oak's fine roots decide by D16 and never shed, and the
-/// second's shed inside them (2,421 thresholds, 52 shed at cut 256).
+/// The oak, and a neighbour that wakes what the oak leaves dormant in
+/// its fine roots at 24: every PA tolerates a balance below 0.99, so they
+/// shed inside (2,421 thresholds, 52 shed at cut 256); its laterals
+/// straighten and erect, so relays carry pulls on; and they turn hard
+/// towards 80 degrees below the horizon, so young wood eases onto the
+/// ground and rests there.
 fn oaks() -> [Species; 2] {
-    let mut tolerant = oak();
-    for s in &mut tolerant.states {
+    let mut neighbour = oak();
+    for s in &mut neighbour.states {
         s.tolerance = 0.99;
+        s.straightening = 0.4;
+        s.erection = 0.3;
+        if s.form.elevation < std::f64::consts::FRAC_PI_2 {
+            s.form.elevation = -1.4;
+            s.form.tropism *= 3.0;
+        }
     }
-    [oak(), tolerant]
+    [oak(), neighbour]
 }
 
 #[test]
@@ -73,7 +82,7 @@ fn the_lit_fine_roots_on_the_device_are_the_cpus() {
         ),
     ];
     let oaks = oaks();
-    let (mut retried, mut shed) = (0, 0);
+    let (mut retried, mut shed, mut grounded) = (0, 0, 0);
     for (k, cut, (order, chunk), taking) in cases {
         let species = &oaks[k];
         let expected = Expected::new(species, request.age, 0);
@@ -84,9 +93,13 @@ fn the_lit_fine_roots_on_the_device_are_the_cpus() {
         let on = grow_stepped_on(species, request, at, Some(&mut device)).expect("the GPU's");
         let case = format!("oak {k}, cut {cut}, {order:?} by {chunk}, {taking:?}");
         println!(
-            "{case}: {} roots; {} leaves, {} reads, {} decided, {} shed; \
-             {} dispatches, {} retries, {} KB read, {:.1} s",
+            "{case}: {} roots; {} axes and {} phytomers laid ({} on the ground), \
+             {} leaves, {} reads, {} decided, {} shed; {} dispatches, {} retries, \
+             {} KB read, {:.1} s",
             on.roots,
+            device.axes,
+            device.phytomers,
+            device.grounded,
             device.leaves,
             device.reads,
             device.decided,
@@ -104,7 +117,9 @@ fn the_lit_fine_roots_on_the_device_are_the_cpus() {
         assert_eq!(on.lattices.len() + 1, request.age as usize);
         same(&cpu, &on, &case);
         (retried, shed) = (retried + device.retries, shed + device.shed);
+        grounded += device.grounded;
     }
     assert!(retried > 0, "no attempt overflowed");
     assert!(shed > 0, "no fine root shed inside");
+    assert!(grounded > 0, "no fine wood on the ground");
 }

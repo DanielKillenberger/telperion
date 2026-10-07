@@ -5,6 +5,7 @@
 //! Every value crossing is an integer of contract A, so the tree is the
 //! all-CPU run's to the word (CONTRACT-A.md 2.9), which `states` shows
 //! after every phase of every cycle.
+use super::lay::{Laid, LayJob};
 use super::{links, Executor};
 use crate::fixed::feedback::lattice::Grid;
 use crate::fixed::feedback::shed::{walk, Lateral, Walked};
@@ -13,6 +14,7 @@ use crate::fixed::{presence, ONE32};
 use crate::grow::Grower;
 use crate::light::field::q;
 use crate::light::Field;
+use crate::species::Species;
 use crate::structure::Vec3;
 use std::collections::hash_map::DefaultHasher;
 use std::fmt::Write;
@@ -29,6 +31,8 @@ pub trait Feedback {
     fn deposit(&mut self, grid: &Grid, leaves: &[([i64; 3], i64)]) -> Result<Vec<u128>, Fault>;
     /// The light, Q32, at each point of `at` on `grid`'s swept `light`.
     fn sample(&mut self, grid: &Grid, light: &[i64], at: &[[i64; 3]]) -> Vec<i64>;
+    /// Each job's units laid (`LayPa::table(species)` its constants).
+    fn lay(&mut self, species: &Species, jobs: &[LayJob]) -> Vec<Laid>;
 }
 
 /// The device again, for one more call.
@@ -56,6 +60,10 @@ impl Feedback for Cpu {
 
     fn sample(&mut self, grid: &Grid, light: &[i64], at: &[[i64; 3]]) -> Vec<i64> {
         at.iter().map(|&p| grid.sample(light, p)).collect()
+    }
+
+    fn lay(&mut self, species: &Species, jobs: &[LayJob]) -> Vec<Laid> {
+        super::lay::lay_cpu(species, jobs)
     }
 }
 

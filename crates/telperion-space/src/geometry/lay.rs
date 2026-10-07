@@ -150,6 +150,41 @@ impl Layer {
             .collect()
     }
 
+    /// The walk as words for a second executor (fn-211 task 10): its
+    /// running direction, side, tip, run, pull and curvature, and the
+    /// pulls it carries on as `[bend, pull, total, offset]`.
+    pub(crate) fn words(&self) -> ([i64; 14], Vec<[i64; 4]>) {
+        let [r, a, t, c] = [self.running, self.across, self.tip, self.curve];
+        let w = [
+            r[0], r[1], r[2], a[0], a[1], a[2], t[0], t[1], t[2], self.run, self.pull, c[0], c[1],
+            c[2],
+        ];
+        let lifts = self.inherited.iter();
+        (
+            w,
+            lifts.map(|l| [l.bend, l.pull, l.total, l.offset]).collect(),
+        )
+    }
+
+    /// The walk from its words.
+    pub(crate) fn of_words(w: &[i64; 14], lifts: &[[i64; 4]]) -> Self {
+        let lift = |l: &[i64; 4]| Lift {
+            bend: l[0],
+            pull: l[1],
+            total: l[2],
+            offset: l[3],
+        };
+        Self {
+            running: [w[0], w[1], w[2]],
+            across: [w[3], w[4], w[5]],
+            tip: [w[6], w[7], w[8]],
+            run: w[9],
+            pull: w[10],
+            curve: [w[11], w[12], w[13]],
+            inherited: lifts.iter().map(lift).collect(),
+        }
+    }
+
     /// The wander's curvature where the walk stands.
     pub fn curve(&self) -> Vec3 {
         v3(self.curve)
@@ -369,6 +404,11 @@ pub(crate) fn support_q(z: i64, radius: i64, length: i64) -> i64 {
     isqrt((over(z.max(0), zone) as u128) << 32) as i64
 }
 
+/// The cone about straight down as the sine its lean is held to, Q32:
+/// a per-request constant a second executor is handed.
+pub(crate) fn cone() -> i64 {
+    q32(DOWNWARD.sin())
+}
 
 /// The key step of a node's wander draws.
 const WANDER: u64 = 1;
@@ -386,7 +426,7 @@ pub(super) fn toward_elevation(direction: Q3, side: Q3, elevation: i64, share: i
     }
     let level = |v: Q3| unit([v[0], v[1], 0]);
     let lean = q::length([direction[0], direction[1], 0]);
-    let cone = q32(DOWNWARD.sin());
+    let cone = cone();
     let share = if direction[2] < 0 && lean < cone {
         ((i128::from(share) * i128::from(lean)) / i128::from(cone)) as i64
     } else {
@@ -402,4 +442,3 @@ pub(super) fn toward_elevation(direction: Q3, side: Q3, elevation: i64, share: i
     let (cos, sin) = sincos(wrap(to));
     add(scaled(out, cos), scaled(q::UP, sin))
 }
-

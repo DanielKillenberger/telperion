@@ -11,12 +11,17 @@ use crate::Gpu;
 use telperion_space::fixed::feedback::lattice::Grid;
 use telperion_space::fixed::feedback::shed::{Lateral, Walked};
 use telperion_space::fixed::feedback::Fault;
-use telperion_space::Feedback;
+use telperion_space::{Feedback, Laid, LayJob, LayPa, Species};
 
 const STEPPED: &str = include_str!("feedback_stepped.wgsl");
+const LAY: &str = include_str!("feedback_lay.wgsl");
 
 pub(super) fn source() -> String {
     format!("{}\n{STEPPED}", super::feedback())
+}
+
+pub(super) fn lay_source() -> String {
+    format!("{}\n{LAY}", super::feedback())
 }
 
 const STORAGE: wgpu::BufferUsages = wgpu::BufferUsages::STORAGE.union(wgpu::BufferUsages::COPY_SRC);
@@ -37,6 +42,7 @@ pub(super) enum Taken {
 pub(super) struct Device<'a> {
     gpu: &'a Gpu,
     pass: io::Pass,
+    lay_pass: io::Pass,
     /// Leaves a dispatch, their order, and whether each cycle's first
     /// attempt is into a lattice half the box's size.
     pub chunk: usize,
@@ -53,6 +59,10 @@ pub(super) struct Device<'a> {
     pub reads: u64,
     pub decided: u64,
     pub shed: u64,
+    /// The axes and phytomers laid, and those laid resting on the ground.
+    pub axes: u64,
+    pub phytomers: u64,
+    pub grounded: u64,
 }
 
 impl<'a> Device<'a> {
@@ -62,6 +72,12 @@ impl<'a> Device<'a> {
         Self {
             gpu,
             pass: io::Pass::new(gpu, source(), &read_only, &entries),
+            lay_pass: io::Pass::new(
+                gpu,
+                lay_source(),
+                &[true, true, true, true, false, false],
+                &["lay"],
+            ),
             chunk,
             taken,
             cramped,
@@ -72,6 +88,9 @@ impl<'a> Device<'a> {
             reads: 0,
             decided: 0,
             shed: 0,
+            axes: 0,
+            phytomers: 0,
+            grounded: 0,
         }
     }
 
@@ -137,7 +156,108 @@ impl<'a> Device<'a> {
     }
 }
 
+/// Each PA's constants as the lay shader reads them.
+fn pa_words(species: &Species) -> Vec<u32> {
+    let (pas, cone) = LayPa::table(species);
+    let row = |p: &LayPa| {
+        let flags = i64::from(p.wanders) | i64::from(p.bends) << 1;
+        [
+            p.internode,
+            p.tropism,
+            p.elevation,
+            p.wander,
+            p.bend_length,
+            flags,
+            cone,
+            0,
+        ]
+    };
+    pas.iter().flat_map(row).flat_map(words).collect()
+}
+
+/// The jobs' words: their headers, their units and lifts, their nodes.
+fn job_words(jobs: &[LayJob]) -> [Vec<u32>; 3] {
+    let (mut head, mut tables, mut nodes) = (Vec::new(), Vec::new(), Vec::new());
+    let mut at = 0i64;
+    for job in jobs {
+        let units = tables.len() as i64 / 2;
+        tables.extend(job.units.iter().flatten().copied().flat_map(words));
+        let lifts = tables.len() as i64 / 2;
+        tables.extend(job.lifts.iter().flatten().copied().flat_map(words));
+        let pair = |a: i64, b: i64| a | b << 32;
+        let mut row = vec![pair(job.pa as i64, i64::from(job.trunk)), job.bend];
+        row.extend(job.layer);
+        row.extend([job.base_scale, job.running, job.rank, job.wood]);
+        row.push(pair(units, job.units.len() as i64));
+        row.push(pair(at, job.nodes.len() as i64));
+        row.push(pair(lifts, job.lifts.len() as i64));
+        row.push(0);
+        head.extend(row.into_iter().flat_map(words));
+        for &(key, node, radius) in &job.nodes {
+            nodes.extend([key as i64, node, radius].into_iter().flat_map(words));
+        }
+        at += job.nodes.len() as i64;
+    }
+    [head, tables, nodes]
+}
+
 impl Feedback for Device<'_> {
+    fn lay(&mut self, species: &Species, jobs: &[LayJob]) -> Vec<Laid> {
+        if jobs.is_empty() {
+            return Vec::new();
+        }
+        let n: usize = jobs.iter().map(|j| j.nodes.len()).sum();
+        (self.axes, self.phytomers) = (self.axes + jobs.len() as u64, self.phytomers + n as u64);
+        let [head, tables, nodes] = job_words(jobs);
+        let pas = self.buffer("lay pas", bytemuck::cast_slice(&pa_words(species)));
+        let head = self.buffer("lay jobs", bytemuck::cast_slice(&head));
+        let tables = self.buffer("lay tables", bytemuck::cast_slice(&tables));
+        let nodes = self.buffer("lay nodes", bytemuck::cast_slice(&nodes));
+        let out = self.zeros("lay out", jobs.len() * 19 * 8);
+        let laid = self.zeros("lay phytomers", n * 11 * 8);
+        let limit = self
+            .gpu
+            .device
+            .limits()
+            .max_compute_workgroups_per_dimension;
+        let count = jobs.len() as u32;
+        let cfg = [count, count.div_ceil(64).min(limit) * 64, 0, 0];
+        let uniform = wgpu::BufferUsages::UNIFORM;
+        let cfg = io::buffer(self.gpu, "lay cfg", 16, uniform, bytemuck::cast_slice(&cfg))
+            .expect("a buffer");
+        let bind =
+            (self.lay_pass).bind(self.gpu, &[&cfg, &pas, &head, &tables, &nodes, &out, &laid]);
+        let mut encoder = self.gpu.device.create_command_encoder(&Default::default());
+        self.lay_pass
+            .run(&mut encoder, &bind, 0, count.div_ceil(64));
+        self.gpu.queue.submit([encoder.finish()]);
+        self.dispatches += 1;
+        let out = self.read(&out, jobs.len() * 19 * 8);
+        let out = &bytemuck::pod_collect_to_vec::<u8, i64>(&out);
+        let rows = self.read(&laid, n * 11 * 8);
+        let rows = &bytemuck::pod_collect_to_vec::<u8, i64>(&rows);
+        self.grounded += rows.chunks(11).filter(|r| r[4] == 0).count() as u64;
+        let mut at = 0;
+        (jobs.iter().enumerate())
+            .map(|(k, job)| {
+                let o = &out[k * 19..k * 19 + 19];
+                let phytomers = (at..at + job.nodes.len())
+                    .map(|p| rows[p * 11..p * 11 + 11].try_into().expect("eleven"))
+                    .collect();
+                at += job.nodes.len();
+                Laid {
+                    status: o[0] as u32,
+                    z: o[1],
+                    layer: o[2..16].try_into().expect("fourteen"),
+                    rank: o[16],
+                    running: o[17],
+                    wood: o[18],
+                    phytomers,
+                }
+            })
+            .collect()
+    }
+
     fn shed(&mut self, items: &[(Vec<Lateral>, (bool, u64))]) -> Result<Vec<Vec<Walked>>, Fault> {
         if items.is_empty() {
             return Ok(Vec::new());
@@ -187,7 +307,7 @@ impl Feedback for Device<'_> {
             return Err(Fault::Range);
         }
         let bytes = self.read(&out, total * 24);
-        let got = bytemuck::cast_slice::<u8, u32>(&bytes);
+        let got = &bytemuck::pod_collect_to_vec::<u8, u32>(&bytes);
         let walked = |k: usize| {
             let w = &got[k * 6..k * 6 + 6];
             let wide = |lo: u32, hi: u32| u64::from(lo) | u64::from(hi) << 32;
@@ -247,7 +367,9 @@ impl Feedback for Device<'_> {
                 continue;
             }
             let bytes = self.read(&lattice, capacity * 16);
-            return Ok(bytemuck::cast_slice::<u8, u128>(&bytes)[..nodes].to_vec());
+            return Ok(bytemuck::pod_collect_to_vec::<u8, u128>(
+                &bytes[..nodes * 16],
+            ));
         }
     }
 
@@ -265,6 +387,6 @@ impl Feedback for Device<'_> {
         let bound = [p, None, l, None, None, Some(&out)];
         self.run(1, &cfg, at.len() as u32, bound);
         let bytes = self.read(&out, at.len() * 8);
-        bytemuck::cast_slice::<u8, i64>(&bytes).to_vec()
+        bytemuck::pod_collect_to_vec::<u8, i64>(&bytes)
     }
 }

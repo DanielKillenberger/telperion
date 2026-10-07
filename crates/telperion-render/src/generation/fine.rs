@@ -37,6 +37,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
         ("feedback probe", feedback_tests::source()),
         ("feedback slice", feedback_slice::source()),
         ("feedback stepped", feedback_stepped::source()),
+        ("feedback lay", feedback_stepped::lay_source()),
         ("fine unit", units::source()),
         ("fine chain grower", chains::source()),
         ("fine pack", chains::pack_source()),
