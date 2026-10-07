@@ -69,6 +69,24 @@ fn log2_and_its_pairs_are_the_reference_to_the_bit() {
 }
 
 #[test]
+fn a_product_by_halves_is_the_whole_product() {
+    let mut x = 0x9e37_79b9_7f4a_7c15u64;
+    let edges = [0, 1, u64::MAX, 1 << 63, (1 << 63) - 1, 0xffff_ffff, 1 << 32];
+    let mut values: Vec<u64> = edges.to_vec();
+    for _ in 0..100_000 {
+        x = x.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+        values.push(x >> (x % 64));
+    }
+    for pair in values.windows(2) {
+        let (a, b) = (pair[0], pair[1]);
+        assert_eq!(by_halves(a, b), u128::from(a) * u128::from(b), "{a} {b}");
+        let (a, b) = (a as i64, b as i64);
+        let want = i128::from(a) * i128::from(b);
+        assert_eq!(signed_by_halves(a, b), want, "{a} {b}");
+    }
+}
+
+#[test]
 fn exp2_neg_is_close_and_monotone() {
     for k in 0..20_000i64 {
         let x = (k * 0x9e37_79b1) % (70 * ONE32);

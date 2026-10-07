@@ -21,7 +21,7 @@ pub const ONE: u64 = ONE32 as u64;
 /// `a b` of two Q32 values, the second any Q32 (a time or a presence), in
 /// the second's scale, floored.
 pub fn times(a: u64, b: u64) -> u64 {
-    ((u128::from(a) * u128::from(b)) >> 32) as u64
+    (super::wide(a, b) >> 32) as u64
 }
 
 /// A non-negative real as Q32, floored: exact where the real is a Q32

@@ -45,8 +45,8 @@ pub const ONE32: i64 = 1 << 32;
 pub const INF: i64 = 1 << 62;
 
 /// `ln 2` and `log2 e` in Q62.
-const LN2: i128 = 0x2c5c_85fd_f473_de6a;
-const LOG2E: i128 = 0x5c55_1d94_ae0b_f85d;
+const LN2: i64 = 0x2c5c_85fd_f473_de6a;
+const LOG2E: i64 = 0x5c55_1d94_ae0b_f85d;
 
 /// `2^-(2^-(i + 1))` in Q62, floored.
 const ROOTS: [u64; 32] = [
@@ -84,9 +84,53 @@ const ROOTS: [u64; 32] = [
     0x3fff_ffff_d3a3_7a02,
 ];
 
+/// The whole product of two integers. Wasm has no 64-by-64-bit product
+/// and takes a 128-bit one by a call, most of growth's arithmetic on one
+/// core there, so it builds the product from 32-bit halves instead: the
+/// same integer either way (test).
+pub fn wide(a: u64, b: u64) -> u128 {
+    if cfg!(target_arch = "wasm32") {
+        by_halves(a, b)
+    } else {
+        u128::from(a) * u128::from(b)
+    }
+}
+
+/// `wide` of two signed integers.
+pub fn wide_signed(a: i64, b: i64) -> i128 {
+    if cfg!(target_arch = "wasm32") {
+        signed_by_halves(a, b)
+    } else {
+        i128::from(a) * i128::from(b)
+    }
+}
+
+/// `a b` by halves of their two's complements, less what each sign adds.
+fn signed_by_halves(a: i64, b: i64) -> i128 {
+    let (au, bu) = (a as u64, b as u64);
+    let mut p = by_halves(au, bu);
+    if a < 0 {
+        p = p.wrapping_sub(u128::from(bu) << 64);
+    }
+    if b < 0 {
+        p = p.wrapping_sub(u128::from(au) << 64);
+    }
+    p as i128
+}
+
+/// `a b` from the four products of their 32-bit halves.
+fn by_halves(a: u64, b: u64) -> u128 {
+    let (ah, al, bh, bl) = (a >> 32, a & 0xffff_ffff, b >> 32, b & 0xffff_ffff);
+    let (mid, carry) = (ah * bl).overflowing_add(al * bh);
+    (u128::from(ah * bh) << 64)
+        + (u128::from(carry) << 96)
+        + (u128::from(mid) << 32)
+        + u128::from(al * bl)
+}
+
 /// The high part of a Q62 product: `a b / 2^62`, truncated.
 pub fn mul62(a: u64, b: u64) -> u64 {
-    ((u128::from(a) * u128::from(b)) >> 62) as u64
+    (wide(a, b) >> 62) as u64
 }
 
 /// A probability as Q62, floored: none for none or NaN, one from one.
@@ -152,7 +196,7 @@ fn mantissa(n: u64) -> (i64, u64) {
 /// back into [1, 2) where it reached 2; the bit is whether it did.
 fn square(m: &mut u64) -> u64 {
     // m < 2^63, so the square in Q62 is under 2^64.
-    let square = ((u128::from(*m) * u128::from(*m)) >> 62) as u64;
+    let square = (wide(*m, *m) >> 62) as u64;
     let bit = square >> 63;
     *m = square >> bit;
     bit
@@ -214,7 +258,7 @@ pub fn ln_ratio(a: u64, b: u64) -> i64 {
         (_, 0) => INF,
         _ => {
             let (la, lb) = log2_pair(a, b);
-            ((i128::from(la - lb) * LN2) >> 62) as i64
+            (wide_signed(la - lb, LN2) >> 62) as i64
         }
     }
 }
@@ -224,12 +268,12 @@ pub fn exp(x: i64) -> i64 {
     if x <= -INF {
         return 0;
     }
-    exp2(((i128::from(x) * LOG2E) >> 62) as i64)
+    exp2((wide_signed(x, LOG2E) >> 62) as i64)
 }
 
 /// `a b` of two Q32 values, in Q32, floored and saturated.
 pub fn mul(a: i64, b: i64) -> i64 {
-    ((i128::from(a) * i128::from(b)) >> 32).clamp(-i128::from(INF), i128::from(INF)) as i64
+    (wide_signed(a, b) >> 32).clamp(-i128::from(INF), i128::from(INF)) as i64
 }
 
 /// A probability raised to `share` ticks of a cycle: `-log2 p` scaled by
@@ -238,7 +282,7 @@ pub fn scaled(l: i64, share: u64) -> i64 {
     if l >= INF {
         return INF;
     }
-    ((i128::from(l) * i128::from(share)) >> 20).min(i128::from(INF)) as i64
+    (wide_signed(l, share as i64) >> 20).min(i128::from(INF)) as i64
 }
 
 /// A presence's fixed point: `lead / window`, in [0, 1], Q32. Whole
