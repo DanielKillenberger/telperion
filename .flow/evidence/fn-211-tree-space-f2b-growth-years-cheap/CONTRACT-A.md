@@ -119,7 +119,7 @@ Every operation below is implemented on the CPU in `crates/telperion-space/src/f
 - **Not bound: the stages no cut can move.**
   - **The sweep** stays the CPU's f64 code, run once per cycle on the integer lattice and rounded once (2.6).
   - **The settle's final lay**, whose outputs cannot return to growth or decide identity. Its outputs that do decide identity are already integers (D17's fades) or stay above the cut (D19).
-- **One layout implementation (R2.1): open, for the host (2.14, question 1).** Astra requires shared stage logic: the rough layout and the final lay must not become two copied algorithms. The settle keeps f64 geometry while the rough layout becomes fixed point, and the contract does not yet say how one implementation serves both.
+- **One layout implementation (R2.1; host decision on 2.14, 2026-10-07: option (a)).** The rough layout and the final lay are one fixed-point layout. The final lay converts to f64 only at its output, so final geometry is integer-identical on both executors too. The settle's cost in fixed point is measured against today's f64 settle, and reported to the host if it exceeds 1.3 times.
 - **Unchanged:** the decision contract already built (D1 to D18, ticks, Q62 probabilities, Q32 logs and presences). The feedback arithmetic extends `fixed`, and the GPU mirrors it in 32-bit words, as F1's chain grower mirrors `fixed` today.
 - **Phases:** Astra's four phase boundaries, same-cycle waking and the re-lay every 10 cycles stay. No phase is fused before equivalence is shown.
 
@@ -324,7 +324,7 @@ Costs measured: CPU regression, device runtime, transfer bytes, peak memory and 
 ### 2.12 Build order
 
 1. **Done (task 8): the primitives and the probe (R4).** The arithmetic on the CPU with its accuracy tests, the WGSL mirror, the conformance probe, and the feedback slice (2.13).
-2. **The integration proof (R4):** a small lit specimen spanning a scheduled re-lay, the complete phase state compared, CPU against GPU. This needs 2.14's question 1 settled first.
+2. **The integration proof (R4):** a small lit specimen spanning a scheduled re-lay, the complete phase state compared, CPU against GPU (task 9; 2.14 settled as option (a)).
 3. **The CPU reference adopts 2.4 to 2.8 for every axis,** measured against today as 2.11 says.
 4. **The four lit oaks on the device, then the oak timed,** warm and cold, against today's.
 
@@ -342,6 +342,8 @@ Costs measured: CPU regression, device runtime, transfer bytes, peak memory and 
 - **No tree changed:** nothing in the generator calls `fixed::feedback`. The only edits to existing code are a shared helper (`log2_frac`, a pure extraction in `fixed.rs` and `contract.wgsl`) and `light::swept_w`, a new entry to the existing sweep.
 
 ### 2.14 Design questions the review does not settle (for the host)
+
+**Decided (host, 2026-10-07): option (a).** One fixed-point layout for the rough and the final lay, f64 only at the output; the settle's cost measured against today's, reported above 1.3 times. The options as put:
 
 1. **One layout implementation for the rough layout and the final lay.** Astra (R2.1) accepts f64 terminal geometry *and* requires shared stage logic, with no copied rough and final algorithms. Once the rough layout is fixed point, the two cannot both hold with today's code. The options:
    - **(a)** The final lay runs the same fixed-point layout, converting to f64 only at the output. One algorithm, and final geometry becomes integer-identical too. The cost of the settle (21 to 26 % of the stepped build, CPU) in fixed point is unknown, and today's final geometry moves as much as the rough one.
