@@ -1428,6 +1428,60 @@
     "reason": "A share of the grown tree's height (crown base, fullness) stays within its endpoint interval (fn-198 host decision 7)."
   },
   {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": ". max ( most [ b + 1 ] )",
+    "classification": "algorithm",
+    "reason": "The most reach any bin further out holds, a running maximum for the crown's front; it limits nothing generated (fn-198 host decision 11a)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": ". min ( 1 . 0 )",
+    "classification": "numeric",
+    "reason": "A node's way to the crown's end stays within the quadrant the outline is defined on, against rounding at the top (fn-198 host decision 11a)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": ". min ( BINS - 1 )",
+    "classification": "numeric",
+    "reason": "A node at the crown's very end falls in the last bin of the front's search, not past it (fn-198 host decision 11a)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": "const BINS : usize = 1024 ;",
+    "classification": "algorithm",
+    "reason": "Bins of the crown's front search: they only prune nodes another passes; the front and the shoulder are the same at any count (fn-198 host decision 11a)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": "const HALVINGS : usize = 40 ;",
+    "classification": "numeric",
+    "reason": "Bisection halvings of the shoulder's logarithmic range, about 1e-11 of a shoulder; the fit always keeps the side that holds the crown (fn-198 host decision 11a)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": "for _ in 0 . . HALVINGS {",
+    "classification": "numeric",
+    "reason": "The shoulder's bisection, HALVINGS steps (fn-198 host decision 11a)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": "for b in ( 0 . . BINS - 1 ) . rev ( ) {",
+    "classification": "algorithm",
+    "reason": "The running maximum over the front's bins, from the crown's end in (fn-198 host decision 11a)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": "if ! ( radius > 0 . 0 & & height > base ) {",
+    "classification": "algorithm",
+    "reason": "A crown with no reach or no span has no node to hold, and takes the narrowest shoulder: the palm's crown (fn-198 host decision 11a)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": "if y < = base | | y > = height | | reach < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "Only nodes strictly inside the crown's span with reach are held: the outline is zero at its ends by definition (fn-198 host decision 11a)."
+  },
+  {
     "path": "crates/telperion-core/src/pipeline/space.rs",
     "site": ". clamp ( 0 . 0 , 1 . 0 )",
     "classification": "algorithm",
