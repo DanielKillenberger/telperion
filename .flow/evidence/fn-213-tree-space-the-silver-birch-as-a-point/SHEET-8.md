@@ -78,3 +78,7 @@ Compare sheets in `raw/compare/`: `compare8-40.png` and `compare8-80.png`. For e
 
 - **Not faked:** strand separation and a floor clearance. Neither has an engine mechanism. On the sheet, round 8's strands end at their own lengths inside the crown outline, while the old curtain falls to a common hem below it; whether that hem is needed is the host's call.
 - **Variation:** Astra's change, irregular curvature and termination lengths, has engine rows: `wander`/`bendLength` on the strands (set low this round for straightness), `viability` and `internodeSpread` for lengths. Branching would undo the unbranched strands that this round aimed at. The two asks pull against each other; the host decides which.
+
+## Gate (round 8, commit `09279fba`)
+
+Render half first, under the GPU lock: `cargo test --profile ci -p telperion-render --no-fail-fast` exits 0. Then `cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render` exits 0. `harness/parity.test.ts` passes 8 of 8. Limits at 8; logs in the ignored `raw/gate8-*.log`. The scratch worktree `.worktrees/birch-old` is removed; its two examples are kept here as `birch_measure.rs` and `old_birch.rs`.
