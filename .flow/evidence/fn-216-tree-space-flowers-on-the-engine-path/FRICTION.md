@@ -13,3 +13,12 @@
 - **Slowed by:** `cargo fmt -p telperion-core` rewrote 31 unrelated files: the tree is not clean under this toolchain's rustfmt (1.98.1), so a crate-wide format is unusable and each file must be formatted by name.
 - **Cost:** about 5 minutes to reverse the unrelated changes (`git checkout --` is blocked by the shell guard, so by a reverse patch).
 - **Would remove it:** one formatting commit on master under the pinned toolchain, and `cargo fmt --check` in CI.
+
+Resolved in part (host, 2026-10-07): the gate now runs in two parts, the workspace without `telperion-render` unlocked and `telperion-render` alone under the GPU lock.
+
+## 2026-10-07, tiny organs vanish at a whole-tree view
+
+- **Doing:** the oak's catkins on the hero still.
+- **Slowed by:** florets of a few millimetres are sub-pixel at the hero distance and draw nothing visible (1.98M florets drawn, no yellow in the crown); only a close-up shows them. Each look costs a GPU-lock round trip of 10 to 30 minutes on a busy desk.
+- **Cost:** two still rounds (about 50 minutes of wall time) to learn the size, not the mechanism, was the problem.
+- **Would remove it:** a CPU-side still or a coverage estimate (florets' projected pixels at the hero pose) printed by the build, so a size that cannot show is known before the GPU.
