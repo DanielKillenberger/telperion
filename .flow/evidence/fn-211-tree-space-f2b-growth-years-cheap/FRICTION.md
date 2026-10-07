@@ -99,3 +99,10 @@
 - **What slowed it:** `dcg` refuses a redirect whose target is a shell variable and refuses `git checkout HEAD -- <file>`; each needed a rewrite (the Write tool, a literal path, or a script that writes the file).
 - **Cost:** about 4 minutes and three retries.
 - **What would remove it:** a local setup matter (the guard's allow list for the scratchpad), reported.
+
+## 2026-10-07, task 6 worker: the desk at load 100 to 176, and a load gate that never gated
+
+- **Doing:** timing the stepped executor's phases on the lit oak at 80.
+- **What slowed it:** two other workers' test binaries (`walks-*`) held the desk at a one-minute load of 97 to 176, which inflated the oak's build seven to eight times (34 s against 4.5 s). The run script's load gate called `bc`, which this desk lacks, so it ran every case at once under that load; the first run was set aside (`raw/task6/old-binary-highload/`) and rerun behind an `awk` gate.
+- **Cost:** about 5 minutes for the gate; the wait for the load to fall dwarfs the work (noted with the timings).
+- **What would remove it:** one shared desk scheduler or lock for timing runs (as `gpu.lock` is for the GPU), so a timing worker queues rather than measuring other workers' load; the gate written without `bc`.
