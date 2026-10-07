@@ -29,7 +29,11 @@
 //! The tree is then assembled and settled as today's engine settles it.
 //! An experiment behind its own entry point: `grow` never builds one.
 mod assemble;
+mod feedback;
 mod handover;
+
+use feedback::{again, relaid};
+pub use feedback::{Cpu, Feedback};
 
 use super::balance::Totals;
 use super::partition::{merge, ordered, Grouping};
@@ -41,7 +45,6 @@ use crate::bounded::Expected;
 use crate::closed_form::boundary::Rows;
 use crate::error::{Error, Result};
 use crate::fixed::feedback::total::Total;
-use crate::light::Field;
 use crate::species::Species;
 use crate::structure::Structure;
 use std::collections::HashMap;
@@ -60,6 +63,10 @@ pub struct Stepped {
     /// Seconds each cycle took, and the assembly and settle.
     pub years: Vec<f64>,
     pub settle: f64,
+    /// Where asked (`grow_stepped_on`), every grower's whole state after
+    /// each phase of each cycle, and each cycle's lattice and its light.
+    pub states: Vec<[u64; 4]>,
+    pub lattices: Vec<u64>,
 }
 
 /// Grows `species` with every fine root at `cut` its own grower, the
@@ -72,6 +79,28 @@ pub fn grow_stepped(
     cut: f64,
     grouping: Grouping,
 ) -> Result<Stepped> {
+    run(species, request, (expected, cut, grouping), None, false)
+}
+
+/// `grow_stepped` with the fine roots' D16, deposits and sampling on
+/// `device` (the CPU's own where none), every grower's whole state kept
+/// after each phase (fn-211 task 10).
+pub fn grow_stepped_on(
+    species: &Species,
+    request: Request,
+    (expected, cut, grouping): (&Expected, f64, Grouping),
+    device: Option<&mut dyn Feedback>,
+) -> Result<Stepped> {
+    run(species, request, (expected, cut, grouping), device, true)
+}
+
+fn run(
+    species: &Species,
+    request: Request,
+    (expected, cut, grouping): (&Expected, f64, Grouping),
+    mut device: Option<&mut dyn Feedback>,
+    complete: bool,
+) -> Result<Stepped> {
     let (coarse, keeps) = start(species, request, true, Options::default())?;
     let mut x = Executor {
         coarse,
@@ -81,11 +110,14 @@ pub fn grow_stepped(
         grouping,
         request,
         phases: Vec::new(),
+        complete,
+        states: Vec::new(),
+        lattices: Vec::new(),
     };
     let mut years = Vec::with_capacity(request.age as usize);
     for cycle in 1..=request.age {
         let started = std::time::Instant::now();
-        x.cycle(cycle)?;
+        x.cycle(cycle, again(&mut device))?;
         years.push(started.elapsed().as_secs_f64());
     }
     let started = std::time::Instant::now();
@@ -93,6 +125,10 @@ pub fn grow_stepped(
     let fine_grown = x.items.iter().map(|i| i.g.rules.grown).sum();
     let coarse_grown = x.coarse.rules.grown;
     let phases = std::mem::take(&mut x.phases);
+    let (states, lattices) = (
+        std::mem::take(&mut x.states),
+        std::mem::take(&mut x.lattices),
+    );
     let tree = x.assemble(true).0;
     let quiet = &mut |_: Stage| {};
     let grown = tree.settle((request, Options::default()), (true, keeps), quiet)?;
@@ -104,6 +140,8 @@ pub fn grow_stepped(
         coarse_grown,
         years,
         settle: started.elapsed().as_secs_f64(),
+        states,
+        lattices,
     })
 }
 
@@ -121,6 +159,9 @@ pub(super) struct Executor<'a> {
     pub grouping: Grouping,
     pub request: Request,
     pub phases: Vec<[u64; 4]>,
+    pub complete: bool,
+    pub states: Vec<[u64; 4]>,
+    pub lattices: Vec<u64>,
 }
 
 impl<'a> Executor<'a> {
@@ -129,12 +170,12 @@ impl<'a> Executor<'a> {
         ordered((0..self.items.len()).collect(), self.grouping.order)
     }
 
-    fn cycle(&mut self, cycle: u32) -> Result<()> {
+    fn cycle(&mut self, cycle: u32, mut device: Option<&mut dyn Feedback>) -> Result<()> {
         let first_new = self.coarse.axes.len();
         let living = |g: &Grower| -> Vec<usize> { g.live.iter().map(|a| a.axis).collect() };
         let advanced = living(&self.coarse);
         let advanced_items: Vec<Vec<usize>> = self.items.iter().map(|i| living(&i.g)).collect();
-        self.balance(cycle);
+        self.balance(cycle, again(&mut device));
         self.mark(cycle, 0);
         self.allot();
         self.mark(cycle, 1);
@@ -169,7 +210,7 @@ impl<'a> Executor<'a> {
             if cycle % RELAY_EVERY == 0 {
                 self.relay(cycle)?;
             }
-            self.shade();
+            self.shade(device);
             self.mark(cycle, 3);
         }
         Ok(())
@@ -194,7 +235,7 @@ impl<'a> Executor<'a> {
 
     /// Phase (i): each item's totals at its root reported to its bearer,
     /// the coarse grower's decisions at each placeholder handed down.
-    fn balance(&mut self, cycle: u32) {
+    fn balance(&mut self, cycle: u32, device: Option<&mut dyn Feedback>) {
         if !self.coarse.balances() {
             return;
         }
@@ -214,6 +255,12 @@ impl<'a> Executor<'a> {
         let totals = self.coarse.totals(&rows, &given);
         let (shed, kept) = self.coarse.shed_by(cycle, &rows, &totals, None);
         let pencils = &self.coarse.sketch.as_ref().expect("sketching").pencils;
+        if let Some(device) = device {
+            let roots = (self.items.iter().zip(done))
+                .map(|(i, d)| (d.1, (shed[i.at], kept[i.at], pencils[i.at].memory)))
+                .collect();
+            return self.shed_on(cycle, device, roots);
+        }
         let decided: Vec<_> = (self.items.iter().zip(done))
             .map(|(i, d)| (d, (shed[i.at], kept[i.at], pencils[i.at].memory)))
             .collect();
@@ -276,34 +323,6 @@ impl<'a> Executor<'a> {
         self.each(done, &|item, d| size(&mut item.g, d));
     }
 
-    /// Phase (iv)'s light: every grower's leaves of the cycle into one
-    /// lattice, swept once, each grower reading its own buds.
-    fn shade(&mut self) {
-        let order = self.visit();
-        let threads = self.coarse.threads;
-        let light = self.coarse.sketch.as_ref().expect("sketching").light;
-        let growers: Vec<usize> = std::iter::once(usize::MAX).chain(order).collect();
-        let (mut leaves, mut tips) = (Vec::new(), Vec::new());
-        for &k in &growers {
-            let g = self.grower(k);
-            leaves.extend_from_slice(&g.leaves);
-            tips.extend(g.live.iter().map(|a| g.tip(a.axis)));
-        }
-        let field = Field::on(&light, &leaves, &tips, threads);
-        let mut read = vec![0.0; tips.len()];
-        crate::cores::fill(&mut read, 1 << 10, threads, &|k| field.at(tips[k]));
-        let mut from = 0;
-        for &k in &growers {
-            let g = self.grower_mut(k);
-            let n = g.live.len();
-            let sketch = g.sketch.as_mut().expect("sketching");
-            for (apex, &light) in g.live.iter().zip(&read[from..from + n]) {
-                sketch.pencils[apex.axis].light = light;
-            }
-            from += n;
-        }
-    }
-
     fn grower(&self, k: usize) -> &Grower<'a> {
         match k {
             usize::MAX => &self.coarse,
@@ -323,12 +342,14 @@ impl<'a> Executor<'a> {
     fn relay(&mut self, cycle: u32) -> Result<()> {
         let (mut tree, layout) = self.assemble(false);
         tree.relay(cycle, &mut |_| {})?;
-        let leaves = std::mem::take(&mut tree.leaves);
         self.disperse(tree, layout);
-        self.coarse.leaves = leaves;
-        for item in &mut self.items {
-            item.g.leaves.clear();
-        }
+        // The cycle's leaves where the re-lay put them, each grower's its
+        // own (a placeholder bears none): the lattice is the same in any
+        // grouping.
+        relaid(&mut self.coarse, cycle);
+        self.each(vec![(); self.items.len()], &|item, ()| {
+            relaid(&mut item.g, cycle)
+        });
         Ok(())
     }
 
@@ -346,6 +367,12 @@ impl<'a> Executor<'a> {
             self.phases.resize(c + 1, [0; 4]);
         }
         self.phases[c][k] = d.finish(k);
+        if self.complete {
+            if self.states.len() <= c {
+                self.states.resize(c + 1, [0; 4]);
+            }
+            self.states[c][k] = self.state();
+        }
     }
 }
 

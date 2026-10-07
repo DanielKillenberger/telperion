@@ -246,7 +246,7 @@ fn bilinear(layer: &[f64], nx: usize, ny: usize, x: f64, y: f64) -> f64 {
     sum
 }
 
-mod field;
+pub(crate) mod field;
 pub(crate) use field::Field;
 
 #[cfg(test)]

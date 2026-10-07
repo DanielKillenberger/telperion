@@ -19,7 +19,7 @@ pub(crate) struct Field {
 }
 
 /// A point as Q32.
-fn q(p: Vec3) -> [i64; 3] {
+pub(crate) fn q(p: Vec3) -> [i64; 3] {
     [q32(p.x), q32(p.y), q32(p.z)]
 }
 
@@ -32,8 +32,16 @@ impl Field {
     }
 
     /// `new`, its directions swept on up to `threads` cores.
-    pub fn on(light: &super::Light, leaves: &[(Vec3, f64)], reads: &[Vec3], threads: usize) -> Self {
-        let mut field = Self::spanning(leaves.iter().map(|l| l.0).chain(reads.iter().copied()), CELL);
+    pub fn on(
+        light: &super::Light,
+        leaves: &[(Vec3, f64)],
+        reads: &[Vec3],
+        threads: usize,
+    ) -> Self {
+        let mut field = Self::spanning(
+            leaves.iter().map(|l| l.0).chain(reads.iter().copied()),
+            CELL,
+        );
         field.deposit_all(leaves);
         field.sweep(light.extinction, &light.directions(), threads);
         field
@@ -46,6 +54,28 @@ impl Field {
         let mut field = Self::spanning(points, CELL);
         field.deposit_all(leaves);
         field.density
+    }
+
+    /// The field of a lattice already deposited on `grid` (fn-211 task
+    /// 10: its leaves deposited by more than one executor), swept.
+    pub(crate) fn of_lattice(
+        light: &super::Light,
+        grid: Grid,
+        density: Vec<u128>,
+        threads: usize,
+    ) -> Self {
+        let mut field = Self {
+            grid,
+            density,
+            light: vec![ONE32; grid.nodes()],
+        };
+        field.sweep(light.extinction, &light.directions(), threads);
+        field
+    }
+
+    /// Its box, its W densities and its Q32 light.
+    pub(crate) fn parts(&self) -> (&Grid, &[u128], &[i64]) {
+        (&self.grid, &self.density, &self.light)
     }
 
     /// The nodes it holds.

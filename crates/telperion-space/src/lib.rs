@@ -60,7 +60,7 @@ pub use grow::oracle::{grow_oracle, Oracled, Read};
 pub use grow::partition::{
     grow_partitioned, Grouping, Order as PartitionOrder, Partitioned, Run as PartitionRun, PHASES,
 };
-pub use grow::stepped::{grow_stepped, Stepped};
+pub use grow::stepped::{grow_stepped, grow_stepped_on, Cpu, Feedback, Stepped};
 pub use grow::subtree::Measured;
 pub use grow::{grow, grow_staged, grow_whole, sketch, Pass, Request, Stage};
 pub use light::{bud_light, field_reads, Light};

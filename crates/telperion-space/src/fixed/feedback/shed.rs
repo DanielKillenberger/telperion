@@ -79,3 +79,55 @@ pub fn balance(b: &Bud) -> Result<Balance, Fault> {
         ..undecided
     })
 }
+
+/// One axis of a grower as D16's walk reads it: its bearer's index
+/// (none for a base), whether it decides (a living lateral), and its
+/// balance inputs, `keep` aside (the walk hands its bearer's down).
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Lateral {
+    pub parent: Option<u32>,
+    pub decides: bool,
+    pub bud: Bud,
+}
+
+/// What the walk makes of an axis: whether it is shed, its kept share
+/// (Q32), and its memory where it decided.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Walked {
+    pub shed: bool,
+    pub kept: u64,
+    pub memory: Option<i64>,
+}
+
+/// D16 over a grower's axes, parents first: each inherits its bearer's
+/// shedding and kept share, axis 1 takes `root` where its bearer decides
+/// it elsewhere, and each living lateral under a living bearer decides
+/// by `balance` with its bearer's kept share. The one walk both
+/// executors take (fn-211 task 10).
+pub fn walk(axes: &[Lateral], root: Option<(bool, u64)>) -> Result<Vec<Walked>, Fault> {
+    let mut out: Vec<Walked> = Vec::with_capacity(axes.len());
+    for (i, a) in axes.iter().enumerate() {
+        let (dead, keep) = match a.parent {
+            Some(p) => (out[p as usize].shed, out[p as usize].kept),
+            None => (false, ONE32 as u64),
+        };
+        let mut w = Walked {
+            shed: dead,
+            kept: keep,
+            memory: None,
+        };
+        if let (1, Some((shed, kept))) = (i, root) {
+            (w.shed, w.kept) = (shed, kept);
+        } else if !dead && a.decides {
+            let b = balance(&Bud { keep, ..a.bud })?;
+            w.memory = Some(b.memory);
+            if b.shed {
+                w.shed = true;
+            } else if b.threshold > 0 {
+                w.kept = b.kept;
+            }
+        }
+        out.push(w);
+    }
+    Ok(out)
+}
