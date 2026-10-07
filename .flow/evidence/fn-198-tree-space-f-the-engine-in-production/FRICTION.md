@@ -108,3 +108,17 @@
 - **Slowed by:** the F1 worktree's test suite (`closed_form` and others at 400 % CPU) took the desk to a load of 24 to 47; one matrix run gave the base spruce at 80 13.5 s against 5.9 s quiet, so it was thrown away and the matrix waits for a quiet desk. Earlier, interleaved rounds were needed because single runs moved 3 to 8 percent with the load.
 - **Cost:** one wasted matrix (5 minutes) and the wait.
 - **Would remove it:** a desk-wide timing lock, like the GPU lock, that test suites and timing runs both take; or timings on a reserved core (`isolcpus`), a local setting.
+
+## 2026-10-07 13:10, task 6: the task's readers of the envelope rows did not hold on the engine path
+
+- **Doing:** finding who reads shoulder, irregularity and lobe scale on the engine's path before measuring them (decision 11 says "the leaf cull and the leaf box read them").
+- **Slowed by:** the engine path's leaf box is `Reference::grown` (the wood's own extent), which reads no envelope row; `Reference::authored`, the one that reads irregularity, runs only in `Family::validate`. Lobe scale is read only by today's grower (the pendant curtain, containment). Irregularity's lobes are seeded noise, not the tree's. Two of the three rows have no consumer to measure for, which is a design question, so the task stops there with options for the host.
+- **Cost:** about 15 minutes of tracing readers; the task's two tree-changing parts held.
+- **Would remove it:** a spec's architecture claim about readers checked against code before the task is written (AGENTS.md, "Gates and checked claims").
+
+## 2026-10-07 13:15, task 6: the engine's `grow` panics in a debug build
+
+- **Doing:** a debug-only test of the lineage order's new assertion on a grown beech (age 6, seed 1).
+- **Slowed by:** `grow` panics in a debug build at `closed_form/predictor.rs:60`, `debug_assert!(!count.is_nan(), "a count for PA 0")`; the gate's `ci` profile has no debug assertions, so no suite has seen it. The test grows through `grow_whole` instead. The NaN count was not traced.
+- **Cost:** about 3 minutes.
+- **Would remove it:** the predictor's NaN count traced and fixed, or the assertion's premise corrected; a debug-profile run of the engine's tests somewhere.
