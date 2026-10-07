@@ -345,6 +345,10 @@ fn every_attachment_trait_moves_every_shipped_preset() {
         Preset::Laurelin,
     ] {
         let family = preset.parameters();
+        // An engine preset's rows reach the scaffold's grower no more (fn-198).
+        if family.space.species.is_some() {
+            continue;
+        }
         let tree = super::specimens::tree(&family);
         let base = placement_hash(&family, &tree);
         let p = family.canopy;
