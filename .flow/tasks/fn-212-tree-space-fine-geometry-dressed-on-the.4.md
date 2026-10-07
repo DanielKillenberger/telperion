@@ -12,9 +12,10 @@ CONTRACT.md's probe, first part: the device turns fine roots' bearer-relative ge
 - Two-part gate green.
 
 ## Done summary
-TBD
+The device draws fine roots in the tree's frame, as stage 2's conversion does (dress.wgsl, from Tree::attachments). It folds the height, the crown's lowest node, the widest reach, the shoulder's bins, the sifted crown nodes and the leaf box (fold.wgsl). Combined with the pipeline's own folds (executor::Folds, exact over any split) they come within 4.6 um of the CPU reference: beech and spruce at 40 and 80, seeds 1 and 7. Node strays are 0 to 1 per tree, D1''s residual. D3 was amended to (c) by the host: landed roots are masked on the device by the LANDED flag, about 7 % of the spruce's phytomers; option 1's estimate is 65 to 70 % device share. Gate: CPU half 988 passed, render half 159 passed. TASK4.md.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 63e8b272, eab7785a, 5a4122ca, 7afeb6c8
+- Tests: cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render, cargo test --profile ci -p telperion-render --no-fail-fast, cargo test --profile ci -p telperion-render dressed_at_40_and_80 -- --ignored
 - PRs:
