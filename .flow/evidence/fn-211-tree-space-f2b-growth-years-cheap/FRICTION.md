@@ -120,3 +120,10 @@
 - **What slowed it:** the host session's scratchpad under `/tmp/claude-1000/` holds 11 GB of other workers' build trees (`out/` 2.3 GB, `t5/` 1.8 GB, `topo/`, `before/`, `after/` 1.2 to 1.3 GB each), so the per-user tmpfs quota is full and the harness cannot store any Bash output (EDQUOT). Every command's output now has to be redirected into the worktree's `target/` and read back with a second call. Not deleted: they are not this worker's.
 - **Cost:** two calls for every command from here on; about 5 minutes to find the cause.
 - **What would remove it:** builds in each worktree's own `target/` (AGENTS.md already says so), and the host clearing finished scratch build trees; a local setup matter, reported.
+
+## 2026-10-07, task 9 worker: a wait loop that waits on itself
+
+- **Doing:** waiting for the crate's test binaries before rebuilding.
+- **What slowed it:** a `pgrep -f "<path>/walks"` loop matches its own command line, so it never ends. Two monitors had to be stopped and re-armed with `pgrep -f "deps/walk[s]-"`.
+- **Cost:** about 5 minutes.
+- **What would remove it:** a done-file written by the run itself (`cmd; echo $? > run.done`), which the later runs use.
