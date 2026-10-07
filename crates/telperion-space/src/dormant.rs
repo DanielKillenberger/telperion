@@ -9,6 +9,7 @@
 //! release law that moves its waking moves its growth by degree.
 //! It wakes only while the axis that bears it lives, through that axis's
 //! continuations and relays, and its size carries every draw on the way.
+use crate::fixed::decide::node_window;
 use crate::fixed::presence::{q, real, times, ONE};
 use crate::lineage::{self, Key, DORMANT};
 use crate::presence::Draws;
@@ -32,8 +33,7 @@ impl Sleeper {
     /// bud as it wakes, `carried` there and reaching its stage by `reach`:
     /// its own draw's, by its place's share, and its bearer's carrying.
     pub fn made(&self, carried: f64, reach: f64) -> [f64; 2] {
-        let own = crate::fixed::decide::node(self.lead, self.wood);
-        [times(own, q(self.placed)), times(q(carried), q(reach))].map(real)
+        [times(self.own, q(self.placed)), times(q(carried), q(reach))].map(real)
     }
 }
 
@@ -47,13 +47,12 @@ pub(crate) struct Sleeper {
     pub slot: u8,
     pub whorl: f64,
     pub pa: usize,
-    /// Its lineage, its draw's lead past its bound, and the share its bud
-    /// place stands at (1 for a whole place).
+    /// Its lineage, its own draw's presence, Q32, over the window of the
+    /// expected wood it decides, and the share its bud place stands at (1
+    /// for a whole place).
     pub key: u64,
-    pub lead: i64,
+    pub own: u64,
     pub placed: f64,
-    /// The expected wood it decides, as a share of the tree's.
-    pub wood: f64,
     /// The share of its first cycle it still slept, and the whole years
     /// before it, which it aged through.
     pub sleep: f64,
@@ -88,9 +87,8 @@ pub(crate) fn draw(
         whorl: zone.buds,
         pa,
         key: key.0,
-        lead: lineage::bud_lead(&zone.dormant, pa, key.draw()),
+        own: lineage::bud_presence(&zone.dormant, pa, key.draw(), node_window(woods[pa])),
         placed: 1.0,
-        wood: woods[pa],
         sleep: years - whole,
         slept: whole as u32,
     };

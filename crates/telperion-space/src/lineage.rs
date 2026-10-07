@@ -137,23 +137,13 @@ pub(crate) fn bud(lateral: &[f64], d: Draw) -> Option<usize> {
     None
 }
 
-/// The lead of the draw `d` that made a bud of `pa` under `lateral` past
-/// the nearer bound of the PA's run of draws, in log-odds Q32 on the
-/// bounds' thresholds (host decision 8). Taken only for a bud that is
-/// made: the logs it takes are most of growth's arithmetic on one core.
-pub(crate) fn bud_lead(lateral: &[f64], pa: usize, d: Draw) -> i64 {
-    let (low, high) = bounds(lateral, pa);
-    let lead = if low <= 0.0 {
-        fixed::INF
-    } else {
-        fixed::presence::over(threshold(low), d.0)
-    };
-    lead.min(fixed::presence::under(threshold(high), d.0))
-}
-
-/// The presence, Q32, of `bud_lead` over `window`: the lesser of its two
-/// bounds' (a presence rises with its lead), each settled as
-/// `fixed::presence::of_under` settles one.
+/// The presence, Q32, over `window` of the draw `d` that made a bud of
+/// `pa` under `lateral`: its lead past the nearer bound of the PA's run of
+/// draws, in log-odds Q32 on the bounds' thresholds (host decision 8),
+/// over the window. The lesser of the two bounds' presences (a presence
+/// rises with its lead), each settled as `fixed::presence::of_under`
+/// settles one. Taken only for a bud that is made: the logs it may take
+/// are most of growth's arithmetic on one core.
 pub(crate) fn bud_presence(lateral: &[f64], pa: usize, d: Draw, window: i64) -> u64 {
     use fixed::presence::{of_over, of_under, ONE};
     let (low, high) = bounds(lateral, pa);

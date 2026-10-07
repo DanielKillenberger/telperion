@@ -107,7 +107,12 @@ pub fn moved_q(go: u64, d: u64, woods: (i64, i64), used: u64, window: (i64, i64,
 /// A node's presence, Q32 (D18 reads it): its draw's lead `lead` past its
 /// bound, Q32, over the window of the `wood` it decides.
 pub(crate) fn node(lead: i64, wood: f64) -> u64 {
-    presence(lead, q32((RATE * wood).clamp(FLOOR, SPAN)))
+    presence(lead, node_window(wood))
+}
+
+/// The window, Q32, of a node or bud deciding `wood`.
+pub(crate) fn node_window(wood: f64) -> i64 {
+    q32((RATE * wood).clamp(FLOOR, SPAN))
 }
 
 /// A node's lead past a uniform law's `bound`: `ln u - ln bound`.
