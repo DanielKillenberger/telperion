@@ -76,6 +76,12 @@ The GPU executor (`crates/telperion-render/src/generation/fine/`, built for its 
 
 A species any bud of which reads light is refused until F2b (fn-211) carries its light aggregates in the record.
 
+## Flowers (fn-216)
+
+Where a tree flowers is the engine's: each age has a `flowering` share (`/space/ages/<k>/flowering`, neutral 0), and the conversion keeps every drawn node of a flowering age as a bloom beside the tree (`Tree::blooms`: the node, its age's share, the side its bud faces), empty where no age flowers. What flowers is the expansion's (`pipeline/foliage/bloom.rs`, the `/bloom` rows): each bloom grows in past its keyed draw by its share; its florets stand along an axis that leaves the bud's side and turns toward hanging or standing by its droop, each on a stalk, the last floret sized by the count's fraction; each floret is one instance of the organ element, a petal turned `petals` times about it, the last petal sized by the count's fraction (host decision 4); and the time of year (`Request::season`, the window's middle by default) scales each floret in and out of its staggered window. Every draw is keyed by the bearing node's identity, its lineage (fn-220), so a floret is a pure function of (bloom, index, seed).
+
+The flowers are a second foliage (`Outputs::organ`, `TreeMesh::organ`), none where nothing flowers, so a tree that flowers nowhere keeps its bytes. Both executors take them through one CPU step (`Expansion::organ`). The renderer draws them with the leaf shader under a copy of the frame's block carrying the petals' colours (`/material/bloomFront*`, `bloomBack*`), no veins, margin or mottle, and the florets' own box. They cast no shadow yet.
+
 ## The wood's curve (fn-208)
 
 The wood is handed over as curves, not triangles (`telperion_core::surface::Curve`, `Expansion::curve`). The surface is drawn from them, by the GPU at the screen's error (fn-208) or by the CPU at a stated view and error. Every tree produces the curve from its solved skeleton by the sweep's own steps (paths, samples, frames), so whatever grew the tree, its wood has one path to the screen.

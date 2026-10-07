@@ -1,0 +1,38 @@
+{
+  "space": {
+    "ages": {
+      "12": {
+        "flowering": 0.0
+      },
+      "14": {
+        "flowering": 0.0
+      }
+    }
+  },
+  "bloom": {
+    "florets": 4,
+    "rachis": 0.0,
+    "droop": 0.6,
+    "pedicel": 0.025,
+    "spread": 55.0,
+    "taper": 0.0,
+    "petals": 1,
+    "open": 75.0,
+    "petalLength": 0.013,
+    "petalWidth": 0.011,
+    "petalWidest": 0.62,
+    "petalCup": 0.25,
+    "scatter": 0.12,
+    "opens": 0.3,
+    "lasts": 0.1,
+    "stagger": 0.5
+  },
+  "material": {
+    "bloomFrontRed": 0.85,
+    "bloomFrontGreen": 0.82,
+    "bloomFrontBlue": 0.78,
+    "bloomBackRed": 0.78,
+    "bloomBackGreen": 0.72,
+    "bloomBackBlue": 0.7
+  }
+}
