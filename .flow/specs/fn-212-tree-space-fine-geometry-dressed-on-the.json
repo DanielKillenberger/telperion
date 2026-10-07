@@ -1,0 +1,27 @@
+{
+  "branch_name": "fn-212-tree-space-fine-geometry-dressed-on-the",
+  "created_at": "2026-10-07T07:33:15.539658Z",
+  "depends_on_epics": [
+    "fn-209-tree-space-f1-fine-orders-grown-in-the",
+    "fn-198-tree-space-f-the-engine-in-production"
+  ],
+  "id": "fn-212-tree-space-fine-geometry-dressed-on-the",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-212-tree-space-fine-geometry-dressed-on-the.md",
+  "status": "open",
+  "title": "Tree space: fine geometry dressed on the device",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-07T07:33:22.598680Z"
+}
