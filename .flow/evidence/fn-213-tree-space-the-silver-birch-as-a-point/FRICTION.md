@@ -31,3 +31,10 @@
 ## 2026-10-07: the gate's one failure is on the base
 
 - `generation_limit_guard::generation_limits_are_classified` fails on two sites in `crates/telperion-core/src/pipeline/input/shoulder.rs` (fn-198's grown envelope shoulder, commits `24005de7` and `f7d227ee`), which this spec does not touch. Reported, not fixed here.
+
+## 2026-10-07: a row at its default fails the value-file test only in the full gate
+
+- **Doing:** round 2's values; the leaf-station spacing moved to 0.02 m, which is the family's default.
+- **Slowed by:** the value writer drops a row at its default, so `preset_values` failed, but only in the 25-minute workspace gate; the tuning loop (`space_rows`, rebuild, render) never ran it.
+- **Cost:** one extra test round, about 5 minutes.
+- **Would remove it:** the still runner, or `build.rs`, refusing a value-file row that states its default, so the loop catches it as it compiles.

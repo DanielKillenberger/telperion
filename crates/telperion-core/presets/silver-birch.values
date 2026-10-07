@@ -89,10 +89,9 @@
 /skeleton/twigs/twig/diameter = 0.003
 /skeleton/twigs/twig/length = 0.45
 
-# A leaf every 60 mm of shoot: two stems carry two crowns' worth of
-# shoots inside one shell, and at the single stem's 36 mm the curtain
-# closed back into a mass with no sky through it.
-/skeleton/twigs/twig/internodeLength = 0.02
+# The engine tree's grown shoots carry a leaf station every 20 mm, the
+# family's default, so short shoots carry leaves and the crown stays
+# open (fn-213 round 2).
 /skeleton/twigs/twig/bearingDiameter = 0.02
 
 # The weeping birch's own curtain: a full hang, shoots running metres

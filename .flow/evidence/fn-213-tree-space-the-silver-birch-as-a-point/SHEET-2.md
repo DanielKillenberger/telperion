@@ -37,4 +37,4 @@ Still short of the references: the crown at 40 is narrower and thinner than S2-O
 
 ## Gate
 
-See the task report: `cargo test --profile ci --workspace --no-fail-fast` and `harness/parity.test.ts` after round 2.
+After round 2's values, `cargo test --profile ci --workspace --no-fail-fast` passed every target but `preset_values`: the leaf-station row stated 0.02 m, the family's default, which the value writer drops. The row is now left at the default with a comment (the family is unchanged); `preset_values`, `catalogue_identity` and `space_presets` then pass. Sheet 1's one base failure (`generation_limit_guard` on fn-198's shoulder sites) is gone with the merge. `harness/parity.test.ts` passes 8 of 8 on round 2's values.
