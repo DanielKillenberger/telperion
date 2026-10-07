@@ -75,7 +75,7 @@ fn above_t(d: vec2<u32>, t: vec2<u32>) -> f32 {
 // persistence (`presence::Unit`), after the chain's sleeping buds; then
 // what its Q32 presences are taken from at the chain's end and those
 // presences (`assign.wgsl`).
-const UW: u32 = 24u;
+const UW: u32 = 28u;
 
 fn push_unit(axis: u32, k: u32) -> u32 {
     if n_units >= cfg.unit_cap {

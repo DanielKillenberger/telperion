@@ -119,6 +119,11 @@ fn scale_realized(na: u32, bearer: u32) {
             let p = ax(j, PARENT);
             ssf(p, S_REACH, sf(p, S_REACH) + (1.0 - axf(j, BLEND)) * sf(j, S_REACH));
         }
+        // A continuation is a relay at blend 0 (fn-199).
+        if s(j, S_OWN) != NONE && kind_of(j) == CONTINUED {
+            let p = ax(j, PARENT);
+            ssf(p, S_REACH, sf(p, S_REACH) + sf(j, S_REACH));
+        }
     }
 }
 
@@ -140,6 +145,7 @@ fn borne_at(j: u32, node: u32, fp: u32, fa: u32, v: f32) {
 fn girth_realized(ch: Chain) {
     for (var i = 0u; i < ch.na; i++) {
         ssf(i, S_TIP, 0.0);
+        ssf(i, S_BASE, 0.0);
     }
     for (var p = 0u; p < ch.np; p++) {
         spf(p, P_NODE, 0.0);
@@ -175,7 +181,7 @@ fn girth_realized(ch: Chain) {
             let established = f.pipe * scale * ripe(1.0, f.ripening);
             out[at + 18u] = f.secondary * pow(section, 1.0 / f.exponent) + (1.0 - f.secondary) * established;
         }
-        let radius = pow(section, 1.0 / f.exponent);
+        let radius = pow(section + sf(j, S_BASE), 1.0 / f.exponent);
         if j == 1u {
             records[cfg.mine + CR * ch.wi] = radius;
             continue;
@@ -184,13 +190,28 @@ fn girth_realized(ch: Chain) {
         let carried = pow(radius, pa_of(ax(p, PA)).exponent);
         let node = ax(j, NODE);
         if kind_of(j) == RELAYED && node < s(p, S_COUNT) {
+            // Spread over the span it stands in (`girth::relay_shares`).
             let b = axf(j, BLEND);
+            let t = relay_span(p, pa_of(ax(p, PA)).relay_at, node);
             let q = s(p, S_START) + node;
-            spf(q, P_NODE, pf(q, P_NODE) + carried * b);
+            spf(q, P_NODE, pf(q, P_NODE) + carried * (b * t));
+            if node > 0u {
+                spf(q - 1u, P_NODE, pf(q - 1u, P_NODE) + carried * (b * (1.0 - t)));
+            } else {
+                ssf(p, S_BASE, sf(p, S_BASE) + carried * (b * (1.0 - t)));
+            }
             ssf(p, S_TIP, sf(p, S_TIP) + carried * (1.0 - b));
         } else {
             ssf(p, S_TIP, sf(p, S_TIP) + carried);
         }
+    }
+}
+
+// Adds `share` of a load (`mass`, `moment`) at region phytomer `q`.
+fn load_at(q: u32, mass: f32, moment: vec3<f32>, share: f32) {
+    spf(q, P_LOAD, pf(q, P_LOAD) + mass * share);
+    for (var c = 0u; c < 3u; c++) {
+        spf(q, P_LOAD + 1u + c, pf(q, P_LOAD + 1u + c) + moment[c] * share);
     }
 }
 
@@ -201,6 +222,7 @@ fn levers_realized(ch: Chain) {
     for (var i = 0u; i < ch.na; i++) {
         for (var f = 0u; f < 4u; f++) {
             ssf(i, S_LOAD + f, 0.0);
+            ssf(i, S_BASE + f, 0.0);
         }
     }
     for (var p = 0u; p < ch.np; p++) {
@@ -280,6 +302,8 @@ fn levers_realized(ch: Chain) {
             mass *= held_share;
             moment *= held_share;
         }
+        mass += sf(j, S_BASE);
+        moment += s3(j, S_BASE + 1u);
         if j == 1u {
             let at = cfg.mine + CR * ch.wi;
             records[at + 1u] = mass;
@@ -295,10 +319,16 @@ fn levers_realized(ch: Chain) {
             w_node = axf(j, BLEND);
         }
         if w_node > 0.0 {
+            // Spread over the span it stands in (`girth::relay_shares`).
+            let t = relay_span(p, pa_of(ax(p, PA)).relay_at, node);
             let q = s(p, S_START) + node;
-            spf(q, P_LOAD, pf(q, P_LOAD) + mass * w_node);
-            for (var c = 0u; c < 3u; c++) {
-                spf(q, P_LOAD + 1u + c, pf(q, P_LOAD + 1u + c) + moment[c] * w_node);
+            load_at(q, mass, moment, w_node * t);
+            if node > 0u {
+                load_at(q - 1u, mass, moment, w_node * (1.0 - t));
+            } else {
+                let w = w_node * (1.0 - t);
+                ssf(p, S_BASE, sf(p, S_BASE) + mass * w);
+                ss3(p, S_BASE + 1u, s3(p, S_BASE + 1u) + moment * w);
             }
         }
         ssf(p, S_LOAD, sf(p, S_LOAD) + mass * (1.0 - w_node));

@@ -32,16 +32,16 @@ pub(crate) fn lay_one(
         }
         _ => Vec3::default(),
     };
-    let inherited = match axis.origin {
-        Origin::Relay { parent, .. } => {
+    let inherited = match axis.carried_on() {
+        Some((parent, b)) => {
             let p = &axes[parent];
             let bent = bend(p, &species.states[p.pa], years(p));
             layers[parent]
                 .as_ref()
                 .expect("laid")
-                .handed((bent, reaches[parent]), axis.blend)
+                .handed((bent, reaches[parent]), b)
         }
-        _ => Vec::new(),
+        None => Vec::new(),
     };
     let state = &species.states[axis.pa];
     let own = (bend(axis, state, years(axis)), reaches[i]);
@@ -83,7 +83,10 @@ pub(crate) fn bud_frame(
     let parent_state = &species.states[p.pa];
     let state = &species.states[pa];
     let roll = state.form.roll * (2.0 * Key(lineage).child(ROLL).unit() - 1.0);
-    let azimuth = parent_state.divergence * at.rank + TAU * f64::from(slot) / whorl + roll;
+    let azimuth = super::phase(axes, species, parent)
+        + parent_state.divergence * at.rank
+        + TAU * f64::from(slot) / whorl
+        + roll;
     let angle = insertion(lineage, state.insertion, state.form.insertion_spread);
     let (heading, _) = turned(
         (at.heading, at.side),

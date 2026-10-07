@@ -15,6 +15,7 @@ use crate::transcendental::Transcendental;
 mod disused;
 
 use crate::fixed::sum::Sum;
+use crate::geometry::relay_span;
 use crate::species::{Form, Species};
 use crate::structure::{Origin, Phytomer, Structure};
 use crate::upward::Tree;
@@ -112,7 +113,7 @@ pub(crate) fn thicken_given(
             let (e, s) = (form.exponent, form.secondary);
             at_node.clear();
             at_node.resize(axis.phytomers.len(), 0.0);
-            let mut at_tip = 0.0;
+            let (mut at_tip, mut at_base) = (0.0, 0.0);
             for d in &kept[i] {
                 let section = d.share * d.radius.powf_fixed(e);
                 match d.node.and_then(|n| at_node.get_mut(n)) {
@@ -129,15 +130,18 @@ pub(crate) fn thicken_given(
                         None => at_tip += section,
                     },
                     // A relay's section enters at its node as far as it stands
-                    // there, at the tip as far as it is still the continuation.
+                    // there, spread over its span, at the tip as far as it is
+                    // still the continuation.
                     Origin::Relay { node, .. } => {
-                        let b = links[c].1;
-                        match at_node.get_mut(node) {
-                            Some(at) => {
-                                *at += section * b;
-                                at_tip += section * (1.0 - b);
+                        let t = relay_span(axis, state.relay_at, node);
+                        for (at, share) in relay_shares(node, t, links[c].1) {
+                            match at {
+                                Entry::Node(k) if k < at_node.len() => {
+                                    at_node[k] += section * share
+                                }
+                                Entry::Base => at_base += section * share,
+                                _ => at_tip += section * share,
                             }
-                            None => at_tip += section,
                         }
                     }
                     Origin::Continuation { .. } => at_tip += section,
@@ -152,9 +156,35 @@ pub(crate) fn thicken_given(
                 let established = form.pipe * phytomer.scale * ripe(1.0, form.ripening);
                 phytomer.radius = s * section.powf_fixed(1.0 / e) + (1.0 - s) * established;
             }
-            section.powf_fixed(1.0 / e)
+            (section + at_base).powf_fixed(1.0 / e)
         },
     )
+}
+
+/// Where on its parent a relay's pipe or load enters.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) enum Entry {
+    /// At the parent's node.
+    Node(usize),
+    /// At the parent's base, below its first node.
+    Base,
+    /// At the parent's tip, as its continuation.
+    Tip,
+}
+
+/// The shares of a relay's pipe or load that enter its parent where: `b`
+/// of it where it stands, `t` of the way along the span of node `node`
+/// (`geometry::relay_span`), so at that node by `t` and at the one before
+/// (or the base) by the rest; at the tip as far as it is still the
+/// continuation. A relay moving past a node moves its pipe by degree
+/// (fn-199 R4).
+pub(crate) fn relay_shares(node: usize, t: f64, b: f64) -> [(Entry, f64); 3] {
+    let below = node.checked_sub(1).map_or(Entry::Base, Entry::Node);
+    [
+        (Entry::Node(node), b * t),
+        (below, b * (1.0 - t)),
+        (Entry::Tip, 1.0 - b),
+    ]
 }
 
 /// How far a phytomer `years` old has laid down its own wood, ripening

@@ -3,12 +3,14 @@
 //! decision 1), which every fine-root shader begins with, so a decision
 //! the GPU takes is the CPU reference executor's to the bit.
 const WIDE: &str = include_str!("fine/wide.wgsl");
+const KEYS: &str = include_str!("fine/lineage.wgsl");
 const CONTRACT: &str = include_str!("fine/contract.wgsl");
 const ZONES: &str = include_str!("fine/zones.wgsl");
 
-/// The contract's WGSL: its wide words, then its arithmetic.
+/// The contract's WGSL: its wide words, its lineage keys, then its
+/// arithmetic.
 pub(super) fn contract() -> String {
-    format!("{WIDE}\n{CONTRACT}")
+    format!("{WIDE}\n{KEYS}\n{CONTRACT}")
 }
 
 /// The contract and a growth unit's zones, for a shader that binds the
@@ -47,6 +49,8 @@ mod profile_tests;
 #[cfg(test)]
 mod laid;
 #[cfg(test)]
+mod mirror_tests;
+#[cfg(test)]
 mod readback;
 #[cfg(test)]
 mod realized;
@@ -56,6 +60,8 @@ mod realized_tests;
 mod realized_timing;
 #[cfg(test)]
 mod roots;
+#[cfg(test)]
+mod selectors;
 #[cfg(test)]
 mod speed_tests;
 #[cfg(test)]

@@ -21,7 +21,7 @@
 use super::expansion::{Lived, Loaded, RootSeed, Roots};
 use super::{each, pick, Plan, Work};
 use crate::error::Result;
-use crate::geometry::{place_from, scale};
+use crate::geometry::{phase, place_from, scale};
 use crate::girth::{thicken_given, Girth};
 use crate::grow::realized::{self, Handed};
 use crate::grow::Rules;
@@ -129,7 +129,7 @@ impl Root {
 
     /// Phase 3: laid from its bearer's laid frame at its node, and its
     /// levers gathered where any PA sags.
-    pub fn lay(&mut self, species: &Species, bearer: &Axis) -> Result<()> {
+    pub fn lay(&mut self, species: &Species, bearer: (&Axis, f64)) -> Result<()> {
         self.lay_on(species, stub(bearer, self.node))
     }
 
@@ -150,7 +150,7 @@ impl Root {
     /// Phase 4: laid again under its levers from its bearer's frame as
     /// laid under sag, each phytomer's lever turned from its first lay's
     /// frame.
-    pub fn bend(&mut self, species: &Species, bearer: &Axis) -> Result<()> {
+    pub fn bend(&mut self, species: &Species, bearer: (&Axis, f64)) -> Result<()> {
         self.bend_on(species, stub(bearer, self.node))
     }
 
@@ -203,12 +203,14 @@ fn node_phytomer() -> Phytomer {
         rank: 0.0,
         size: 1.0,
         light: 1.0,
+        grown: 1.0,
     }
 }
 
 /// The bearer as a root's tree holds it: its phytomer at `node` alone,
-/// standing on the point below it, as laid.
-pub(crate) fn stub(bearer: &Axis, node: usize) -> Axis {
+/// standing on the point below it, as laid, and the phase of its
+/// phyllotaxis (`geometry::phase`).
+pub(crate) fn stub((bearer, phase): (&Axis, f64), node: usize) -> Axis {
     let below = node
         .checked_sub(1)
         .map_or(bearer.base, |n| bearer.phytomers[n].tip);
@@ -228,6 +230,7 @@ pub(crate) fn stub(bearer: &Axis, node: usize) -> Axis {
         alive: 0.0,
         rank: 0.0,
         sleep: 0.0,
+        phase,
     }
 }
 
@@ -267,7 +270,8 @@ impl Roots for Cpu<'_, '_> {
         let species = self.species;
         let mut alive = pick(&mut self.roots, live);
         let laid = each(&mut alive, self.plan, self.threads, &|j, r| {
-            r.lay(species, &tree.axes[bearers[j]])
+            let b = bearers[j];
+            r.lay(species, (&tree.axes[b], phase(&tree.axes, species, b)))
         });
         laid.into_iter().collect::<Result<()>>()?;
         let load = |k: usize| (self.roots[k].load.mass, self.roots[k].load.moment);
@@ -278,7 +282,8 @@ impl Roots for Cpu<'_, '_> {
         let species = self.species;
         let mut alive = pick(&mut self.roots, live);
         let bent = each(&mut alive, self.plan, self.threads, &|j, r| {
-            r.bend(species, &tree.axes[bearers[j]])
+            let b = bearers[j];
+            r.bend(species, (&tree.axes[b], phase(&tree.axes, species, b)))
         });
         bent.into_iter().collect()
     }

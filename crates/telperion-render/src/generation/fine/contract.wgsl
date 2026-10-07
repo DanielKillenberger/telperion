@@ -63,22 +63,21 @@ fn draw(key: vec2<u32>) -> vec2<u32> {
 }
 
 // The internode draw of the node keyed `key` (`fixed::internode_draw`,
-// fn-222): under `lineage::INTERNODE`, u64::MAX - 9.
+// fn-222).
 fn internode_draw(key: vec2<u32>) -> vec2<u32> {
-    return draw(child(key, vec2<u32>(0xfffffff6u, 0xffffffffu)));
+    return draw(child(key, KEY_INTERNODE));
 }
 
 // The insertion draw of the axis whose lineage is `key`
-// (`fixed::insertion_draw`, fn-224): under `lineage::INSERTION`,
-// u64::MAX - 10.
+// (`fixed::insertion_draw`, fn-224).
 fn insertion_draw(key: vec2<u32>) -> vec2<u32> {
-    return draw(child(key, vec2<u32>(0xfffffff5u, 0xffffffffu)));
+    return draw(child(key, KEY_INSERTION));
 }
 
 // The tropism draw of the axis whose lineage is `key`
-// (`fixed::tropism_draw`, fn-224): under `lineage::TROPISM`, u64::MAX - 11.
+// (`fixed::tropism_draw`, fn-224).
 fn tropism_draw(key: vec2<u32>) -> vec2<u32> {
-    return draw(child(key, vec2<u32>(0xfffffff4u, 0xffffffffu)));
+    return draw(child(key, KEY_TROPISM));
 }
 
 // A Q62 probability's threshold against a 53-bit draw.
@@ -214,11 +213,28 @@ fn logit(p: vec2<u32>) -> vec2<u32> {
 
 // D5.
 fn survival_q(l: vec2<u32>, share: vec2<u32>) -> vec2<u32> {
-    return threshold(prob(scaled(l, share)));
+    return survival_fine_q(l, shl64(share, 12u));
+}
+
+// A share in 2^-32 of a cycle, finer than a tick (fn-199 B2).
+fn scaled_fine(l: vec2<u32>, share: vec2<u32>) -> vec2<u32> {
+    if is_inf(l) {
+        return inf();
+    }
+    return smin64(smul_shr(l, share, 32u, true), inf());
+}
+
+fn survival_fine_q(l: vec2<u32>, share: vec2<u32>) -> vec2<u32> {
+    return threshold(prob(scaled_fine(l, share)));
 }
 
 // D6; `rises` false where the hazard does not rise.
 fn abortion_q(l0: vec2<u32>, rises: bool, rise: vec2<u32>, grown: vec2<u32>, exposure: vec2<u32>) -> vec2<u32> {
+    return abortion_fine_q(l0, rises, rise, grown, shl64(exposure, 12u));
+}
+
+// D6 over an exposure in 2^-32 of a cycle (fn-199 B2).
+fn abortion_fine_q(l0: vec2<u32>, rises: bool, rise: vec2<u32>, grown: vec2<u32>, exposure: vec2<u32>) -> vec2<u32> {
     var l = l0;
     if rises && !is_inf(l) {
         if is_zero(grown) {
@@ -228,7 +244,7 @@ fn abortion_q(l0: vec2<u32>, rises: bool, rise: vec2<u32>, grown: vec2<u32>, exp
             l = mulq(l, exp2q(mulq(rise, lt)));
         }
     }
-    return sub64(w(0u, 0x200000u), shr64(prob(scaled(l, exposure)), 9u));
+    return sub64(w(0u, 0x200000u), shr64(prob(scaled_fine(l, exposure)), 9u));
 }
 
 // D10.
@@ -296,6 +312,56 @@ fn lead_q(low: vec2<u32>, high: vec2<u32>, d: vec2<u32>, given: vec4<u32>, known
 }
 
 // `a b / 2^32`, unsigned, floored: a product of presences.
+// D5's lived time (fn-199 R1): `-log2(d / 2^53) 2^20 / l` ticks, rounded
+// up, at most `share`.
+fn lived_q(l: vec2<u32>, share: vec2<u32>, d: vec2<u32>) -> vec2<u32> {
+    if !slt64(vec2<u32>(0u), l) {
+        return share;
+    }
+    if is_inf(l) {
+        return vec2<u32>(0u);
+    }
+    let u = neg_log2(shl64(d, 9u));
+    if !slt64(u, l) {
+        return min64(share, w(0x100000u, 0u));
+    }
+    return min64(fraction_up(u, l, 20u), share);
+}
+
+// D5's lived time before the tick grid, in 2^-32 of a cycle (fn-199 B2,
+// `lived_fine_q`).
+fn lived_fine_q(l: vec2<u32>, share: vec2<u32>, d: vec2<u32>) -> vec2<u32> {
+    if !slt64(vec2<u32>(0u), l) {
+        return shl64(share, 12u);
+    }
+    if is_inf(l) {
+        return vec2<u32>(0u);
+    }
+    let u = neg_log2(shl64(d, 9u));
+    if !slt64(u, l) {
+        return shl64(min64(share, w(0x100000u, 0u)), 12u);
+    }
+    return min64(fraction(u, l, 32u), shl64(share, 12u));
+}
+
+// `fraction`, rounded up: one more where a remainder is left.
+fn fraction_up(num: vec2<u32>, den: vec2<u32>, bits: u32) -> vec2<u32> {
+    var r = num;
+    var q = vec2<u32>(0u);
+    for (var i = 0u; i < bits; i++) {
+        r = shl64(r, 1u);
+        q = shl64(q, 1u);
+        if !lt64(r, den) {
+            r = sub64(r, den);
+            q.x |= 1u;
+        }
+    }
+    if !is_zero(r) {
+        q = add64(q, w(1u, 0u));
+    }
+    return q;
+}
+
 fn times_q(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
     return shr128(mul128(a, b), 32u);
 }

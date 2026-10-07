@@ -56,6 +56,14 @@ const U_BEFORE: u32 = 17u;
 const QSURV: u32 = 18u;
 const QPERS: u32 = 20u;
 const QUNIT: u32 = 22u;
+// Whether its apex all but failed (1) or failed (2) with a relay to take
+// it over, the share of its cycle gone at the unit's end (ticks), and that
+// relay's Q32 presence (fn-199 R1).
+const U_FAILS: u32 = 24u;
+const U_USED: u32 = 25u;
+const QRELAY: u32 = 26u;
+// The asks a unit records.
+const UNIT_ASKS: u32 = 4u;
 // The windows' stakes (`PaRow::stakes`): whole, a failed unit's, an
 // abortion's.
 const WHOLE_STAKE: u32 = 0u;
@@ -118,6 +126,16 @@ fn unit_grows(u: u32, a: u32, start: bool) {
     }
 }
 
+// Records that unit `u`'s failure is relayed: its apex all but failed
+// (1) or failed (2), `used` ticks of its cycle gone at the unit's end.
+fn unit_fails(u: u32, fails: u32, used: u32) {
+    if u == NONE {
+        return;
+    }
+    sleepers[u + U_FAILS] = fails;
+    sleepers[u + U_USED] = used;
+}
+
 // Records that unit `u`'s apex all but aborted, under `aborts`.
 fn unit_persists(u: u32, aborts: vec2<u32>) {
     if u == NONE {
@@ -175,13 +193,26 @@ fn both_known(a_in: Ask, at: u32) -> Ask {
 }
 
 // Unit `u`'s ask `j`: its survival (`advance`), then, where its apex all
-// but aborted, its fade and its relay's presence.
+// but aborted, its fade and its relay's presence; then, where a failure
+// would be relayed, that relay's presence.
 fn unit_ask(u: u32, j: u32) -> Ask {
     let pa = rd(sleepers[u], PA);
     let cycle = sleepers[u + U_CYCLE];
     let key = unit_q(u, U_KEY);
+    let fails = sleepers[u + U_FAILS];
+    if j == 3u {
+        if fails == 0u {
+            return no_ask();
+        }
+        let d = draw(child(key, KEY_RELAY));
+        let a = wood_ask(vec2<u32>(0u), row(pa, 6u + FAILED), d, pa, cycle, sleepers[u + U_USED], WHOLE_STAKE);
+        return high_known(a, row(pa, ROW_LOGITS + 1u + FAILED));
+    }
+    if j == 0u && fails == 2u {
+        return no_ask();
+    }
     if j == 0u {
-        let d = draw(child(key, w(VIABILITY, 0u)));
+        let d = draw(child(key, KEY_VIABILITY));
         let survives = unit_q(u, U_SURVIVES);
         let a = wood_ask(vec2<u32>(0u), survives, d, pa, cycle, 0u, FAIL_STAKE);
         if all(survives == row(pa, 1u)) {
@@ -193,11 +224,11 @@ fn unit_ask(u: u32, j: u32) -> Ask {
         return no_ask();
     }
     if j == 1u {
-        let d = draw(child(key, w(ABORTION, 0u)));
+        let d = draw(child(key, KEY_ABORTION));
         return wood_ask(unit_q(u, U_BOUND), NEVER53, d, pa, cycle + 1u, 0u, ABORT_STAKE);
     }
     let t = row(pa, 6u + ABORTED);
-    let d = draw(child(key, RELAY));
+    let d = draw(child(key, KEY_RELAY));
     if is_zero(t) || !lt64(d, t) {
         return no_ask();
     }
@@ -225,21 +256,18 @@ fn axis_ask(i: u32, j: u32) -> Ask {
         let key = vec2<u32>(rd(i, p + 1u), rd(i, p + 2u));
         let cycle = rd(i, p + 3u);
         let used = rd(i, p + 4u);
-        if j == 0u {
-            if why != FAILED {
-                return no_ask();
-            }
-            let d = draw(child(key, w(VIABILITY, 0u)));
-            let bound = vec2<u32>(rd(i, p + 5u), rd(i, p + 6u));
-            return wood_ask(bound, NEVER53, d, pa, cycle, used, FAIL_STAKE);
+        // A failed unit's relay is whole (`fail`): its unit holds the
+        // relay's presence.
+        if j == 0u || why == FAILED {
+            return no_ask();
         }
-        let d = draw(child(key, RELAY));
+        let d = draw(child(key, KEY_RELAY));
         let a = wood_ask(vec2<u32>(0u), row(pa, 6u + why), d, pa, cycle, used, WHOLE_STAKE);
         return high_known(a, row(pa, ROW_LOGITS + 1u + why));
     }
     if kind == AFTER_ASKS && j == 1u {
         let key = vec2<u32>(rd(i, p), rd(i, p + 1u));
-        let d = draw(child(key, RELAY));
+        let d = draw(child(key, KEY_RELAY));
         let a = wood_ask(vec2<u32>(0u), row(pa, 6u + ENDS), d, pa, rd(i, p + 2u), rd(i, p + 3u), WHOLE_STAKE);
         return high_known(a, row(pa, ROW_LOGITS + 1u + ENDS));
     }
@@ -263,11 +291,11 @@ fn axis_ask(i: u32, j: u32) -> Ask {
 // first, three a unit, then the axes', two an axis, each into the unit's
 // fields or the axis's B0 and B1. No ask reads what another writes.
 fn take_ask(r: u32) {
-    let units = n_units * 3u;
+    let units = n_units * UNIT_ASKS;
     {
         var a = no_ask();
         if r < units {
-            a = unit_ask(unit_base + (r / 3u) * UW, r % 3u);
+            a = unit_ask(unit_base + (r / UNIT_ASKS) * UW, r % UNIT_ASKS);
         } else {
             a = axis_ask((r - units) / 2u, (r - units) % 2u);
         }
@@ -283,7 +311,8 @@ fn take_ask(r: u32) {
             p = presence(lead_q(a.low, a.high, a.d, a.given, a.known), window);
         }
         if r < units {
-            set_unit_q(unit_base + (r / 3u) * UW, QSURV + 2u * (r % 3u), p);
+            let j = r % UNIT_ASKS;
+            set_unit_q(unit_base + (r / UNIT_ASKS) * UW, select(QSURV + 2u * j, QRELAY, j == 3u), p);
         } else if a.go {
             wq((r - units) / 2u, B0 + 2u * ((r - units) % 2u), p);
         }
@@ -320,7 +349,7 @@ fn asks(@builtin(global_invocation_id) id: vec3<u32>) {
     if c >= cfg.n || !grown_chain(c) {
         return;
     }
-    for (var r = g % LANES; r < n_units * 3u + n_axes * 2u; r += LANES) {
+    for (var r = g % LANES; r < n_units * UNIT_ASKS + n_axes * 2u; r += LANES) {
         take_ask(r);
     }
 }
@@ -357,8 +386,11 @@ fn made_q() {
         if kind == LATERAL_ASKS {
             wq(i, B1, reach_q(rd(i, p + 1u), 0u));
         }
-        if kind == RELAY_ASKS && rd(i, p) != FAILED {
+        if kind == RELAY_ASKS {
             wq(i, B0, one32());
+        }
+        if kind == RELAY_ASKS && rd(i, p) == FAILED {
+            wq(i, B1, one32());
         }
         if kind == AFTER_ASKS {
             wq(i, B0, sub64(one32(), vec2<u32>(rd(i, p + 4u), rd(i, p + 5u))));
@@ -380,7 +412,19 @@ fn units_q() {
             set_unit_q(u, QPERS, one32());
         }
         let a = sleepers[u];
-        let run = times_q(rq(a, QRUN), unit_q(u, QSURV));
+        // An apex that all but failed carries on as itself and as its
+        // relay; one that failed grows its unit at the relay's presence.
+        var survive = unit_q(u, QSURV);
+        let relayed = unit_q(u, QRELAY);
+        if sleepers[u + U_FAILS] == 1u {
+            survive = add64(relayed, times_q(sub64(one32(), relayed), survive));
+        } else if sleepers[u + U_FAILS] == 2u {
+            survive = relayed;
+        }
+        // What a woken bud's keeping reads (`woken_kept_q`), as the CPU's
+        // unit holds it.
+        set_unit_q(u, QSURV, survive);
+        let run = times_q(rq(a, QRUN), survive);
         let share = ticks_q(w(sleepers[u + U_SHARE], 0u));
         let unit = times_q(run, share);
         set_unit_q(u, QUNIT, unit);

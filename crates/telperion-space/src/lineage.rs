@@ -7,38 +7,12 @@ use crate::fixed::{self, decide};
 use crate::species::NodeLaw;
 use crate::transcendental::Transcendental;
 
-/// The draws of one growth unit, under its unit key.
-pub(crate) const VIABILITY: u64 = 0;
-pub(crate) const ABORTION: u64 = 1;
-/// An apex that has spent its lifespan moving on, under its last unit.
-pub(crate) const MOVE: u64 = 2;
-/// Zone `z` of a growth unit is keyed `ZONE + z`.
-pub(crate) const ZONE: u64 = 16;
-/// An axis's continuation into an age, under the lineage that began its
-/// chain of ages (`Key::onto`), and its relay draw, under the growth unit
-/// it stopped in.
-pub(crate) const RELAY: u64 = u64::MAX - 2;
-/// A lateral's yearly shedding on its carbon balance, under its lineage
-/// and then the cycle.
-pub(crate) const SHED: u64 = u64::MAX - 1;
-/// A lateral's roll about its parent, under its lineage.
-pub(crate) const ROLL: u64 = u64::MAX - 4;
-/// A lateral's share of vigour among its siblings, under its lineage.
-pub(crate) const DOMINANCE: u64 = u64::MAX - 5;
-/// A bud place's sleeping bud, under the place's key, and its waking
-/// time, under the sleeping bud's.
-pub(crate) const DORMANT: u64 = u64::MAX - 6;
-/// The stop decisions of a relay of an age that ended, by its count.
-pub(crate) const ENDED: u64 = u64::MAX - 7;
-/// An age's end: whether it moves on, and its relay if it does not.
-pub(crate) const END: u64 = u64::MAX - 8;
-/// An internode's length, under its node's key (fn-222).
-pub(crate) const INTERNODE: u64 = u64::MAX - 9;
-/// An axis's insertion angle, under its lineage (fn-224).
-pub(crate) const INSERTION: u64 = u64::MAX - 10;
-/// An axis's tropism, under its lineage (fn-224).
-pub(crate) const TROPISM: u64 = u64::MAX - 11;
-pub(crate) const CONTINUATION: u64 = u64::MAX;
+pub mod keys;
+
+pub(crate) use keys::{
+    ABORTION, CONTINUATION, DOMINANCE, DORMANT, END, ENDED, FAILED, INSERTION, INTERNODE, MOVE,
+    RELAY, ROLL, SHED, TROPISM, VIABILITY, WANDER, ZONE,
+};
 
 /// A hashed path from the root.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

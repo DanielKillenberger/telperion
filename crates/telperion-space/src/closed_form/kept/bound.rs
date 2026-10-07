@@ -57,9 +57,14 @@ impl Kept<'_> {
         let longest = state.internode * (1.0 + state.form.internode_spread);
         let path = most * longest * step.size;
         let mut best = path + rest.map_or(0.0, |r| r.reach);
-        // A failed unit's relay stands on the unit before it, the base.
-        if let Some(r) = step.failed {
-            best = best.max(self.reach_bound(k, m - r.at, r.carried, None));
+        // A failed unit's relay stands on the tip of the part its apex
+        // lived (fn-199 R1) and grows the rest of the unit and on as the
+        // apex would have, so the parts it chains through one cycle add
+        // up to no more than the unit.
+        for l in &step.lived {
+            let r = l.relay;
+            let lived = most * state.internode * l.size;
+            best = best.max(lived + self.reach_bound(k, m - r.at, r.carried, None));
         }
         // Laterals stand at most at the unit's tip, no larger than its
         // size (a place's share and a dominance share are at most 1).
@@ -70,7 +75,8 @@ impl Kept<'_> {
                 best = best.max(path + step.size * child);
             }
         }
-        for event in step.sleeping.iter().flatten() {
+        let lived = step.lived.iter().flat_map(|l| l.sleeping.iter().flatten());
+        for event in step.sleeping.iter().flatten().chain(lived) {
             if let Event::Bud {
                 at,
                 pa,

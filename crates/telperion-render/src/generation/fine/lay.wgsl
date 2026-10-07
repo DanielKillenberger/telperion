@@ -281,7 +281,7 @@ fn step(walk: ptr<function, Walk>, p: ptr<function, Step>, f: Pa, own: vec2<f32>
     var pivot = vec3<f32>(0.0);
     var u0 = 0.0;
     if f.wander > 0.0 {
-        let key = child((*p).key, w(1u, 0u));
+        let key = child((*p).key, KEY_WANDER);
         u0 = unit_of(child(key, w(0u, 0u)));
         draw0 = f.wander * (2.0 * u0 - 1.0);
         let azimuth = TAU * unit_of(child(key, w(1u, 0u)));

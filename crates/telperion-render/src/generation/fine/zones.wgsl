@@ -11,7 +11,6 @@
 
 const MOST: u32 = 64u;
 const ZW: u32 = 14u;
-const ZONE: u32 = 16u;
 const NONE: u32 = 0xffffffffu;
 
 // The zone at `at`'s node count for its draw `d` (D2).
@@ -27,7 +26,7 @@ fn zone_count(at: u32, d: vec2<u32>) -> u32 {
 }
 
 fn zone_key(unit: vec2<u32>, at: u32) -> vec2<u32> {
-    return child(unit, w(ZONE + table[at], 0u));
+    return child(unit, w(KEY_ZONE.x + table[at], 0u));
 }
 
 // The zone's `n` nodes in their order along the unit (D4): by their first

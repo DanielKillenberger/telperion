@@ -149,3 +149,10 @@
 - **Slowed by:** the desk ran at a load of 20 to 55 from other worktrees' gates, stills and builds; the baseline gate took 980 s with `walks` alone at 395 s, and one test pair took 370 s wall where it took 195 s and 120 s alone an hour earlier. Wall times were unusable for comparing one change, so each change was measured by CPU time (`time`) or alone. The GPU lock was held by another worktree's whole gate, so a GPU test waited up to 15 minutes for a 1-minute run. `/usr/bin/time` and `bc` are not installed, which cost one empty gate start.
 - **Cost:** about 20 minutes of waiting and one wasted gate start.
 - **Would remove it:** per-test times from the runner itself (cargo-nextest locally, as CI has, reports each test's time and a slow-test list); a desk-wide CPU lock beside the GPU lock for timing runs; a local setup matter for the missing tools.
+
+## 2026-10-07 23:30, merging fn-199 into F4: the second key clash in a day, and no hashes to compare against
+
+- **Doing:** merging fn-199 (head 8112fb0f) onto F4's b31a4f65, which carries fn-224.
+- **Slowed by:** both branches took `u64::MAX - 10` as a lineage key (fn-199's `FAILED`, fn-224's `INSERTION`) and selector 17 of the contract probe, with the GPU copies spread over six WGSL files as raw words; nothing failed until a reader found them. fn-199's evidence records no `space_hash` output, so its 16 clothed hashes had to be rebuilt from its tree in a separate copy with its own `target/`.
+- **Cost:** about 15 minutes on the clash; one extra full build of the render crate for the hashes.
+- **Would remove it:** done in the merge: the lineage keys sit in one registry (`telperion_space::lineage_keys`), the selectors in another (`fine/selectors.rs`), each with a distinctness test and a WGSL mirror (`fine/lineage.wgsl`, `probe.wgsl`'s `P_*`) checked by `fine/mirror_tests.rs`. Still open: a branch that changes trees records its `space_hash` lines in its RESULT.md.

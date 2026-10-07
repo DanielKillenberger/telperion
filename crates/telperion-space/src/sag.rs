@@ -11,8 +11,8 @@
 //! shrinks as the branch droops and a heavy branch hangs and stops (fn-203,
 //! the first-order large-deflection correction). Growth never reads it
 //! back.
-use crate::geometry::support;
-use crate::girth::ripe;
+use crate::geometry::{relay_span, support};
+use crate::girth::{relay_shares, ripe, Entry};
 use crate::species::Species;
 use crate::structure::{Origin, Structure, Vec3};
 use crate::transcendental::Transcendental;
@@ -169,7 +169,7 @@ pub(crate) fn gather(
             let state = &species.states[axis.pa];
             at_node.clear();
             at_node.resize(axis.phytomers.len(), Load::default());
-            let mut at_tip = Load::default();
+            let (mut at_tip, mut at_base) = (Load::default(), Load::default());
             for &(node, load) in &held[j] {
                 if let Some(at) = at_node.get_mut(node) {
                     at.add(load, 1.0);
@@ -184,15 +184,16 @@ pub(crate) fn gather(
                         None => at_tip.add(load, 1.0),
                     },
                     // A relay's load enters at its node as far as it stands
-                    // there, at the tip as far as it is still the continuation.
+                    // there, spread over its span, at the tip as far as it is
+                    // still the continuation (`girth::relay_shares`).
                     Origin::Relay { node, .. } => {
-                        let b = child.blend;
-                        match at_node.get_mut(node) {
-                            Some(at) => {
-                                at.add(load, b);
-                                at_tip.add(load, 1.0 - b);
+                        let t = relay_span(axis, state.relay_at, node);
+                        for (at, share) in relay_shares(node, t, child.blend) {
+                            match at {
+                                Entry::Node(k) if k < at_node.len() => at_node[k].add(load, share),
+                                Entry::Base => at_base.add(load, share),
+                                _ => at_tip.add(load, share),
                             }
-                            None => at_tip.add(load, 1.0),
                         }
                     }
                     Origin::Continuation { .. } => at_tip.add(load, 1.0),
@@ -237,6 +238,7 @@ pub(crate) fn gather(
                     };
                 }
             }
+            load.add(at_base, 1.0);
             load
         },
     );

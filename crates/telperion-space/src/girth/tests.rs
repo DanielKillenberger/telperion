@@ -59,6 +59,7 @@ fn phytomer(light: f64) -> Phytomer {
         rank: 0.0,
         size: 1.0,
         light,
+        grown: 1.0,
     }
 }
 
@@ -79,6 +80,7 @@ fn axis(origin: Origin, lights: &[f64]) -> Axis {
         alive: 1.0,
         rank: 0.0,
         sleep: 0.0,
+        phase: 0.0,
     }
 }
 

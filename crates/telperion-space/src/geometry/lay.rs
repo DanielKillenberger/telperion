@@ -1,7 +1,7 @@
 //! Laying an axis's internodes, one phytomer at a time: the final lay
 //! walks an axis from its base, and the rough layout grown with the tree
 //! (fn-197) carries the same walk on as each growth unit grows.
-use crate::lineage::{internode, tropism, Key};
+use crate::lineage::{internode, tropism, Key, WANDER};
 use crate::sag::{held, torque, turn, Lever};
 use crate::species::PaState;
 use crate::structure::{Axis, Phytomer, Vec3};
@@ -349,9 +349,6 @@ pub(crate) fn support(z: f64, radius: f64, length: f64) -> f64 {
         (z.max(0.0) / zone).sqrt()
     }
 }
-
-/// The key step of a node's wander draws.
-const WANDER: u64 = 1;
 
 /// `direction` turned in its vertical plane by `share` of its gap to
 /// `elevation`. A vertical direction turns towards its side. Within
