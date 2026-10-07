@@ -97,9 +97,23 @@ fn toward_elevation(direction: vec3<f32>, side: vec3<f32>, elevation: f32, share
         return direction;
     }
     // Its elevation, from its lean: asin of a near-one loses its digits.
+    // Turned by the step towards the elevation, as a rotation in its
+    // vertical plane rather than the sine and cosine of the elevation
+    // reached: the elevation's pull holds each step's error, so the
+    // GPU's coarse sine of a whole angle would settle as a lean of its
+    // error over the share (fn-209 task 6).
     let now = atan2(direction.z, lean);
-    let to = now + (elevation - now) * share;
-    return out * cos(to) + UP * sin(to);
+    let turn = (elevation - now) * share;
+    let at = out * lean + UP * direction.z;
+    let up = UP * lean - out * direction.z;
+    var s = sin(turn);
+    var c = cos(turn);
+    if abs(turn) < 0.1 {
+        let t2 = turn * turn;
+        s = turn * (1.0 - t2 * (1.0 / 6.0 - t2 / 120.0));
+        c = 1.0 - t2 * (0.5 - t2 / 24.0);
+    }
+    return at * c + up * s;
 }
 
 // `geometry::support`: how far wood at height `z` stands free of the
