@@ -75,3 +75,10 @@
 - **Hindered:** every question about a residual meant rebuilding and rerunning the whole ignored probe, eight trees at about 55 s plus build, under the GPU lock. The test cannot select one tree, and core's `plan::runs` is not reachable from the render crate's tests (the contract exports only `Run`, `Plan`, `Descriptor`), so runs were rebuilt from segment endpoints.
 - **Cost:** five passes, about 15 minutes.
 - **Removal:** an env-selected tree and age for the ignored probes, and a probe dump of the residual runs (both sides' node lists) written once and read offline.
+
+## 2026-10-07 21:10, task 6 (worker): the spruce at 80 runs the 10 GB card out of memory in the placement probe
+
+- **Doing:** the seated-leaf probe at 80.
+- **Hindered:** the reference's whole-tree ring positions (about 1.3 GB) and leaves were made while the device's settled tree and its swept curve were alive. wgpu panicked "Out of Memory" on the spruce at 80 s1, and the other seven trees' results were lost with it.
+- **Cost:** one 40 s pass and a rerun.
+- **Removal:** built: the probe makes the reference first, in its own grow, and frees the sweep's node words once the stations are built. A `PROBE=<id>:<age>:<seed>` filter now runs one tree. Device memory per probe could be asserted against a budget before it runs.

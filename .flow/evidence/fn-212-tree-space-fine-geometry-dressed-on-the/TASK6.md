@@ -191,3 +191,59 @@ Before this change the same probe had 31,624 beech runs at 80 s1 counted differe
    - The device's endpoints sit on the reference's within micrometres.
    - **What it is not:** the nodes involved lie 15 to 86 % from both bearing bounds (slender and `STRUCTURAL`), so this is not those bounds fed by f32.
    - **Unknown:** which bearing-child count differs. Locating it needs the device's per-node station words read back, which was not done.
+
+## Seated leaves on the device against the reference (worker, 2026-10-07)
+
+### What was built
+
+- **`rings.wgsl`** writes the fine block's ring words from the device's curve, in `compact::read`'s layout: centre and radius, normal and along, binormal and phase, and vertex and cap offsets in the fine block.
+- **The positions pass's own `emit`** lays them as vertices (`Generator::ring_vertices`, test-only until the handoff). Those vertices are what a seated leaf's contact reads.
+- **`Generator::place_leaves`** is the placement dispatch, taken out of `compute_buffer_async`. The resident path and the fine block now share one placement pass, which takes its segments as a device buffer. `data::config` takes the counts, not the CPU's prepared stations. Production bytes are unchanged (render half green).
+- **The probe** (`placed_tests.rs`).
+  - The reference is the pipeline's own resident leaves: `compact_stations` placed on its emitted rings.
+  - It is matched to the device run by run: key, first station, then the nearest first endpoint. Two runs that share a 32-bit key are told apart this way.
+  - Leaves are compared station by station against fn-125's leaf bound in `generation/tests.rs`: position within two code steps of the leaf box, a column's direction within 0.005, scale within 1/1024.
+  - The fast test (`fine_roots_are_seated_on_the_device`, beech and spruce at 30) holds that every leaf is compared and every leaf is in the bound or in a named class. It is in the gate.
+
+### Measured (`seated_at_40_and_80`, `raw/task6b/seated-80-2.txt`; spruce 80 s1 with frames, `seated-spruce80-frames.txt`; 30 in `seated-30.txt`)
+
+| Tree | Device leaves / reference leaves of its keys | Compared | Left: device-only run / count differs / reference-only run | Over: position / direction / scale | Classes: code step / face turned | Position max (bound) | ms |
+|---|---|--:|---|---|---|---|--:|
+| beech 30 s1 | 10,578 / 10,578 | 10,578 | 0 / 0 / – | 0 / 0 / 0 | 1 / 0 | 126 µm (375) | 4 |
+| spruce 30 s1 | 2,163,967 / 2,163,967 | 2,163,967 | 0 / 0 / – | 0 / 0 / 0 | 15 / 13 | 176 µm (412) | 75 |
+| beech 40 s1 | 63,256 / 63,256 | 63,256 | 0 / 0 / 0 | 0 / 0 / 0 | 1 / 4 | 156 µm (432) | 31 |
+| beech 40 s7 | 191,948 / 191,948 | 191,948 | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 4 | 200 µm (488) | 38 |
+| beech 80 s1 | 2,409,975 / 2,410,077 | 2,409,975 | 0 / 0 / 102 | 0 / 0 / 0 | 30 / 78 | 408 µm (991) | 581 |
+| beech 80 s7 | 4,170,671 / 4,170,671 | 4,170,671 | 0 / 0 / 0 | 0 / 0 / 0 | 45 / 164 | 498 µm (1,173) | 494 |
+| spruce 40 s1 | 4,305,432 / 4,305,432 | 4,305,432 | 0 / 0 / 0 | 0 / **37** / 0 | 48 / 178 | 241 µm (557) | 450 |
+| spruce 40 s7 | 4,233,230 / 4,233,230 | 4,233,230 | 0 / 0 / 0 | 0 / 0 / 0 | 43 / 157 | 238 µm (546) | 418 |
+| spruce 80 s1 | 15,635,597 / 15,635,810 | 15,635,229 | 36 / 332 / 251 | 0 / **434** / 0 | 4,886 / 15,719 | 539 µm (1,093) | 832 |
+| spruce 80 s7 | 15,755,194 / 15,755,520 | 15,755,194 | 0 / 0 / 326 | **1** / **300** / 0 | 4,544 / 14,502 | 1.55 mm (1,049) | 675 |
+
+- **Scale agrees to 1.2e-7 everywhere,** so every leaf draws the reference's random values; the key-and-ordinal streams match. The placement flags (transform, contact, box) are clear on every tree.
+- **"ms"** is the probe's wall clock from the sweep to the placed leaves read back, including allocation. It is not task 7's harness.
+
+### The residual classes
+
+1. **Code step** (counted, not over). Orientation words one code apart in each kept component. Frames a few microradians apart land either side of the 10-bit grid: the f32-against-f64 class at the encoding's thresholds.
+2. **Face turned about the axis** (counted, not over). The axis column is within 0.005, and the face and side are turned about it.
+   - `pack.wgsl` takes a leaf's face from `up - axis·axis.y` before scatter. Where that axis stands near the vertical, an axis difference of 1e-3 turns the face many times as far.
+   - Scatter's draws are the reference's to the bit, so this is the rule's conditioning, fed by the frames' difference.
+3. **Over in direction, carried from the station frames.** 433 of the 434 at spruce 80 s1 sit on segments whose normal is 1 mrad or more from the reference's, up to 0.025 rad.
+   - The station probe saw the same frames: 0.015 to 0.016 rad on the spruce at 40 s1 and 80.
+   - **Cause:** the frames are transported along chords of 1 mm and more, between nodes the device settles on its own loads, tens of micrometres from the CPU's (TASK5.md, residual 2). 50 µm across a 1 mm segment is up to 0.05 rad.
+   - **For the host:** fn-125's orientation bound (0.005) sits below what the position screen (50 µm) allows on the shortest segments. Either bound would have to give, or the probe compares the device against a reference settled on the device's own loads.
+4. **The one position over** (spruce 80 s7, 1.55 mm against 1.05 mm). Likely TASK5's `SHORTEST` flip, the point 1.0 mm off on the same tree. Not traced.
+5. **Leaves left** are the station probe's classes: the parted runs (the device's shorter run and the reference's run with no device twin) and the rounding value on spruce 80 s1.
+
+### Gate
+
+- **Render half,** under the GPU lock at eight test threads: 161 passed, 0 failed (`raw/task6b/gate-render.txt`).
+- **CPU half,** run in full again: 988 passed, 0 failed (`raw/task6b/gate-cpu.txt`).
+
+### The acceptance, as it stands
+
+- **Counts are equal at 30 and 40** on both trees, and on the beech at 80 s7.
+- **At 80** they differ by the rounding class (spruce s1) and by the parted runs (1, 18 and 11 keys), whose cause is not located.
+- **Leaves are within fn-125's bound,** apart from the named classes, on every beech and on the spruce at 30 and 40 s7. On the spruce at 40 s1 and at 80, 1 to 434 leaves are over in direction, carried from station frame differences that the position screen allows.
+- **So `flowctl done` was not run.** The host's call: whether the frame-carried leaves and the parted runs are classes the acceptance names, or work for this task.

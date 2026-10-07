@@ -13,6 +13,7 @@ use crate::Gpu;
 use std::collections::{HashMap, HashSet};
 use telperion_core::foliage::prepared::StationSegment;
 use telperion_core::math::Vec3;
+use telperion_core::pipeline::executor::Expansion;
 use telperion_core::tree::Tree;
 
 /// fn-125's screen, in metres, and radians for a frame.
@@ -73,6 +74,22 @@ fn places(c: [u32; 4], segments: u32) -> [u32; 3] {
     [c[0] - c[2], c[1] - c[2], c[3] - c[2]].map(|o| o / segments)
 }
 
+/// The rows the device's stations read from the pipeline's expansion, its
+/// rings `segments` vertices round.
+pub(super) fn station_rows(x: &Expansion, segments: u32) -> Rows {
+    let [structural, slender] = x.bearing_bounds();
+    let (twig, canopy) = (x.twig(), x.leaves().canopy);
+    Rows {
+        spi: twig.stations_per_internode,
+        segments,
+        structural: structural as f32,
+        slender: slender as f32,
+        internode: twig.internode_length as f32,
+        divergence: canopy.divergence.to_radians() as f32,
+        contact: x.seats(),
+    }
+}
+
 /// The fine roots of `fx`, drawn as `dressed`, swept and stationed on the
 /// device, against the pipeline's stations.
 fn stationed(
@@ -86,17 +103,7 @@ fn stationed(
     let theirs = x.compact_stations(&shared).unwrap().unwrap();
     let surface = &fx.family.surface;
     let segments = surface.radial_segments.max(surface.lobes * 4);
-    let [structural, slender] = x.bearing_bounds();
-    let (twig, canopy) = (x.twig(), x.leaves().canopy);
-    let r = Rows {
-        spi: twig.stations_per_internode,
-        segments,
-        structural: structural as f32,
-        slender: slender as f32,
-        internode: twig.internode_length as f32,
-        divergence: canopy.divergence.to_radians() as f32,
-        contact: x.seats(),
-    };
+    let r = station_rows(x, segments);
     let t = std::time::Instant::now();
     let swept = sw.sweep(gpu, dressed, rows(surface, curve.height));
     let device = st.stations(gpu, &swept, dressed.ids, r);

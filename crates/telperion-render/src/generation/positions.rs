@@ -202,3 +202,73 @@ impl Generator {
         }))
     }
 }
+
+#[cfg(test)]
+impl Generator {
+    /// The vertices of `rings` compact ring descriptors already on the
+    /// device (`[u32; 16]` words, as `compact::read` writes them, in a block
+    /// of `vertices`) around `angular`'s samples: the positions pass's `emit`
+    /// alone, what a seated leaf's contact reads (fn-212 task 6, the fine
+    /// block).
+    pub(super) fn ring_vertices(
+        &self,
+        (descriptors, rings, vertices): (&wgpu::Buffer, u32, u32),
+        segments: u32,
+        angular: &[[f32; 4]],
+    ) -> Result<wgpu::Buffer> {
+        let limits = self.gpu.device.limits();
+        let config = [
+            rings,
+            0,
+            segments,
+            limits.max_compute_workgroups_per_dimension,
+            0,
+            0,
+            0,
+            0,
+        ];
+        let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
+        let make =
+            |label, size, usage, bytes: &[u8]| io::buffer(&self.gpu, label, size, usage, bytes);
+        let uniform = make(
+            "ring config",
+            32,
+            wgpu::BufferUsages::UNIFORM,
+            bytemuck::cast_slice(&config),
+        )?;
+        let bytes = std::mem::size_of_val(angular) as u64;
+        let angular = make(
+            "ring angular",
+            bytes,
+            storage,
+            bytemuck::cast_slice(angular),
+        )?;
+        let positions = make(
+            "ring positions",
+            u64::from(vertices.max(1)) * 12,
+            storage,
+            &[],
+        )?;
+        let none = make("ring none", 32, storage, &[])?;
+        let pass = self
+            .positions
+            .as_ref()
+            .expect("resident positions pipeline");
+        let all = [
+            &uniform,
+            descriptors,
+            &angular,
+            &none,
+            &positions,
+            &none,
+            &none,
+        ];
+        let bind = pass.bind(&self.gpu, &all);
+        let mut encoder = self.gpu.device.create_command_encoder(&Default::default());
+        if rings > 0 {
+            pass.run(&mut encoder, &bind, 0, rings);
+        }
+        self.gpu.queue.submit([encoder.finish()]);
+        Ok(positions)
+    }
+}

@@ -30,22 +30,19 @@ pub(super) struct Segment {
 pub(super) fn vector(p: Vec3, w: f64) -> [f32; 4] {
     [p.x as f32, p.y as f32, p.z as f32, w as f32]
 }
-pub(super) fn config<R>(
+/// The placement's rows for `count` stations on `segments` segments, their
+/// contacts on rings of `ring_size` vertices.
+pub(super) fn config(
     l: &LeafInput,
     t: TwigPlacement,
-    p: &PreparedStations<R>,
+    (count, segments, ring_size): (u32, u32, u32),
     e: &Element,
     r: Reference,
 ) -> Config {
     let c = l.canopy;
     Config {
-        counts: [
-            p.count,
-            p.segments.len() as u32,
-            e.positions.len() as u32,
-            p.ring_size,
-        ],
-        random: [l.seed, t.stations_per_internode, p.count.div_ceil(256), 0],
+        counts: [count, segments, e.positions.len() as u32, ring_size],
+        random: [l.seed, t.stations_per_internode, count.div_ceil(256), 0],
         box_min: vector(r.min, 0.0),
         box_extent: vector(r.extent, 0.0),
         shape: [

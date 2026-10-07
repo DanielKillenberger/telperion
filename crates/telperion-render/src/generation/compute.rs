@@ -43,6 +43,13 @@ fn bounds(summary: &[u32], offset: usize) -> Bounds {
         ),
     }
 }
+/// Leaves placed on the device and their placement summary.
+pub(super) struct Placed {
+    pub leaves: wgpu::Buffer,
+    pub summary: wgpu::Buffer,
+    pub live: u64,
+}
+
 impl Generator {
     pub(super) async fn compute_async(
         &self,
@@ -95,13 +102,7 @@ impl Generator {
         {
             return Err(telperion_core::Error::ResourceLimit("GPU foliage dispatch").into());
         }
-        let config = data::config(l, t, &p, e, r);
-        let config = upload(
-            gpu,
-            "generation config",
-            &[config],
-            wgpu::BufferUsages::UNIFORM,
-        )?;
+        let config = data::config(l, t, (count, p.segments.len() as u32, p.ring_size), e, r);
         let segments = data::segments(&p);
         m.descriptor_cpu_bytes = m.descriptor_cpu_bytes.max(
             (p.segments.capacity() * size_of::<telperion_core::foliage::prepared::StationSegment>()
@@ -115,35 +116,8 @@ impl Generator {
             0
         };
         drop((p.segments, segments));
-        let geometry: Vec<_> = e.positions.iter().map(|&v| data::vector(v, 0.0)).collect();
-        let geometry = upload(gpu, "generation element", &geometry, STORAGE)?;
-        // Every placed leaf is drawn, written where it was placed (fn-212 R2).
-        let leaves = io::buffer(
-            gpu,
-            "generated foliage",
-            u64::from(count) * 12,
-            STORAGE,
-            &[],
-        )?;
-        let mut initial = [0u32; 16];
-        initial[0] = count;
-        for i in 0..12 {
-            initial[2 + i] = if (i / 3) % 2 == 0 { u32::MAX } else { 0 };
-        }
-        let summary = upload(gpu, "generation summary", &initial, STORAGE)?;
-        let buffers = [
-            &config,
-            &segment_buffer,
-            &*ring_buffer,
-            &geometry,
-            &leaves,
-            &summary,
-        ];
-        let live = buffers.iter().map(|b| b.size()).sum::<u64>();
-        let bind = self.place.bind(gpu, &buffers);
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
-        self.place.run(&mut encoder, &bind, 0, groups);
-        gpu.queue.submit([encoder.finish()]);
+        let placed = self.place_leaves(config, (&segment_buffer, &ring_buffer), e, count)?;
+        let (leaves, summary, live) = (placed.leaves, placed.summary, placed.live);
         m.upload_dispatch_ms = started.elapsed_ms();
         let wait = Clock::now();
         let bytes = io::read_async(gpu, &summary, 64).await?;
@@ -162,7 +136,7 @@ impl Generator {
         let crown = Some(bounds(&values, 2));
         let full = Some(bounds(&values, 8));
         m.gpu_compute_peak_bytes = live;
-        drop((bind, config, segment_buffer, ring_buffer, geometry, summary));
+        drop((segment_buffer, ring_buffer, summary));
         let start = Clock::now();
         let masses = self
             .mass(&leaves, count, crown, r, retained_contacts, m)
@@ -174,6 +148,52 @@ impl Generator {
             count,
             crown,
             full,
+        })
+    }
+    /// The leaves `count` stations place from `segments` (`data::Segment`s
+    /// on the device), seated on `rings`, under `config`: submitted, with
+    /// the placement summary and the bytes the pass held.
+    pub(super) fn place_leaves(
+        &self,
+        config: data::Config,
+        (segments, rings): (&wgpu::Buffer, &wgpu::Buffer),
+        e: &Element,
+        count: u32,
+    ) -> Result<Placed> {
+        let gpu = &self.gpu;
+        let groups = count.div_ceil(256);
+        let config = upload(
+            gpu,
+            "generation config",
+            &[config],
+            wgpu::BufferUsages::UNIFORM,
+        )?;
+        let geometry: Vec<_> = e.positions.iter().map(|&v| data::vector(v, 0.0)).collect();
+        let geometry = upload(gpu, "generation element", &geometry, STORAGE)?;
+        // Every placed leaf is drawn, written where it was placed (fn-212 R2).
+        let leaves = io::buffer(
+            gpu,
+            "generated foliage",
+            u64::from(count) * 12,
+            STORAGE,
+            &[],
+        )?;
+        let mut initial = [0u32; 16];
+        initial[0] = count;
+        for i in 0..12 {
+            initial[2 + i] = if (i / 3) % 2 == 0 { u32::MAX } else { 0 };
+        }
+        let summary = upload(gpu, "generation summary", &initial, STORAGE)?;
+        let buffers = [&config, segments, rings, &geometry, &leaves, &summary];
+        let live = buffers.iter().map(|b| b.size()).sum::<u64>();
+        let bind = self.place.bind(gpu, &buffers);
+        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        self.place.run(&mut encoder, &bind, 0, groups);
+        gpu.queue.submit([encoder.finish()]);
+        Ok(Placed {
+            leaves,
+            summary,
+            live,
         })
     }
     async fn mass(
