@@ -175,4 +175,4 @@
 - **Doing:** comparing `grow` with the stepped executor (task 11), then `grow_today` with `grow` (task 12).
 - **What slowed it:** the example computed the first path's tree digest inside its timed region and the second's outside it. On small trees that charged one side up to 0.02 s of digest. Task 11's and task 12's first ratios favoured the stepped executor by that, and a decision was taken on them (TASK12.md, "A correction").
 - **Cost:** a decision round, and about an hour of optimisation aimed at a target that was too easy.
-- **What would remove it:** one timing helper for comparisons that times the build alone and hashes after both. The examples are deleted with the old paths, so any new comparison should start from such a helper.
+- **What would remove it:** one timing helper for comparisons that times the build alone and hashes after both; any new comparison example should start from it.
