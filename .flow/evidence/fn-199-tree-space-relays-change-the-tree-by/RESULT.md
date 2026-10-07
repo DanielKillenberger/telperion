@@ -359,3 +359,46 @@ Nothing was fixed after the census.
 - **Rule 1, one object.** An axis carrying itself on is a relay at blend 0. There is no second way to lay, age, frame or straighten a continuation: the apex's own continuation and a relay go through the same function, and a relay at blend `b` differs from it only through `b`. Class 11 vanishes by construction, with no special case. Where the code has two paths, one is deleted.
 - **Rule 2, one measure for R3's weight.** The weight is the carried-on axis's grown extent: the sum over its nodes of unit presence × node presence × the node's lived share of its unit, capped at 1. It is continuous in presence and in lived time, so a one-tick node adds about 0 (class 10). Class 6's sliver case must still meet under Rule 1; if it does not, it is reported with the probe, not patched.
 - Both rules are built on the CPU, then the census over seeds 1 to 50 is rerun as the judge. If it is clean apart from refinement-limited slopes: the R3 GPU mirror, full GPU parity, re-pinning, R6, `pub(crate)` and the gate. If new classes appear: stop and report.
+
+## Rules 1 and 2 built (CPU, `803a8063`); the census found a new class; stopped
+
+### What was built
+
+**Rule 1.** `Axis::carried_on` gives `(parent, blend)` for a relay and `(parent, 0)` for a continuation. Through it, one path:
+- **Frames:** one arm in `geometry::frame` for both.
+- **Ages and straightens:** `bend`, and `reaches`, where a continuation's reach now joins its parent's.
+- **Pulls handed down:** `place::start`, `single::lay_one`, `draw::pencil`; a continuation now carries its parent's straightening as a relay at blend 0 does.
+- **Phyllotaxis:** an axis carried on no longer turns its side. Its laterals' azimuth adds a phase: each axis carried on adds `divergence × rank` (`geometry::phase`; `bud_frame` too). R3's blend mixes the absolute azimuths.
+
+**Rule 2.** `Axis.first` is now Σ unit presence × node presence × lived share, capped at 1.
+
+### Census, seeds 1 to 50
+
+- **Rules 1 and 2:** R1 40 jumps, R3 80 jumps.
+- **Rule 1 with the earlier presence-only weight** (a measurement, not committed): R1 2, R3 1.
+
+### Under rules 1 and 2: a new class 12, class 6's sliver case not meeting
+
+Every crossing probed is this class: R3 seeds 1, 23, 37; R1 seeds 1 and 40; sizes 0.054 to 0.10.
+- **Side a.** An axis `q` ends in a partial unit, the lived part of a failure (share 0.02 to 0.37). A relay of `q` stands on that partial unit, as `relay_point` takes `q`'s last unit whatever its extent.
+- **Side b.** `q` stops a unit earlier. Its relay `p`, at blend 0, grows that same partial unit. The next relay stands on `p`, but Rule 2's weight is `p`'s extent, the partial unit's share (0.05 to 0.37). So it is pulled mostly to `q`'s previous unit.
+
+The host's check, that class 6's sliver case still meets under Rule 1, fails. Probe: `raw/probe199.rs r3 1 -3.6259 -3.5994`, axes 81, 275 and 556 against 81 and 275.
+
+### Under Rule 1 with the presence-only weight (3 jumps)
+
+| Class | Walk, seed | Size | What happens |
+|---|---|---|---|
+| 10 | R1 31 | 2.8e-2 | One-tick node, as before |
+| 10 | R1 42 | 1.8e-2 | One-tick node, as before |
+| 13 | R3 40 | 7.5e-3 | A relay at blend 0 grows one node of partial node presence. The next relay is blended back toward the axis carried on by that presence. On the other side the axis grows the same node itself, and its relay stands on it whole |
+
+**Class 11 (five crossings) is gone under Rule 1.** Rule 1 holds as designed.
+
+### Why classes 10, 12 and 13 are one question
+
+The weight pulls a relay standing on a carried-on axis back toward the axis carried on, by how much of that axis has grown. `relay_point` on the axis carried on stands on its last unit however little of it has grown. The two meet only when the same growth counts the same on both sides, whichever axis holds it. Any weight measured on the carried-on axis alone breaks where the same partial unit sits on the other axis on the other side:
+- with share counted, class 12;
+- with presence only, class 13 (and class 10 for length).
+
+**Candidate for the host, not built.** `relay_point` itself stands on the last unit blended back toward the unit before by the last unit's grown extent (Σ presence × node presence × share, capped at 1), along the whole line of axes carried on, as if one axis. The weight then belongs to the unit, not to which axis holds it. R3's `carried_point` becomes this rule's case where the last unit is on the axis carrying on. It covers classes 6, 10, 12 and 13 with one measure. It changes every relay that stands on a partial last unit (failed units' lived parts, partial lifespans).
