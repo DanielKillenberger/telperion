@@ -7,7 +7,7 @@
 use super::shoot::{Home, Line, Reads, Shoot};
 use super::sketch::Sketch;
 use super::{Apex, Grower, Pass, Stage};
-use crate::cores::{picked, spread};
+use crate::cores::spread;
 use crate::dormant::{Sleeper, Woken};
 use crate::error::{Error, Result};
 use crate::presence::Draws;
@@ -164,7 +164,9 @@ fn reads<'g>(sketch: Option<&'g Sketch>, species: &Species) -> Reads<'g> {
 }
 
 /// The living apexes' axes where they stand, in the apexes' order: each
-/// apex is its own axis, so they are apart.
+/// apex is its own axis, so they are apart. One walk up the four columns
+/// picks them (a fine root makes this list each cycle it grows, so its
+/// allocations count).
 fn homes<'g>(
     (axes, draws): (&'g mut [Axis], &'g mut [Draws]),
     (units, successor): (&'g mut [f64], &'g mut [Vec<usize>]),
@@ -173,24 +175,33 @@ fn homes<'g>(
     let mut order: Vec<(usize, usize)> =
         live.iter().enumerate().map(|(k, a)| (a.axis, k)).collect();
     order.sort_unstable();
-    let at = || order.iter().map(|&(i, _)| i);
-    let parts = picked(axes, at())
-        .into_iter()
-        .zip(picked(draws, at()))
-        .zip(picked(units, at()).into_iter().zip(picked(successor, at())));
     let mut homes: Vec<Option<Home<'g>>> = (0..live.len()).map(|_| None).collect();
-    for (&(_, k), ((axis, draws), (units, successor))) in order.iter().zip(parts) {
+    let (mut rest, mut from) = ((axes, draws, units, successor), 0);
+    for &(i, k) in &order {
+        let (axes, draws, units, successor) = rest;
+        let (axis, axes) = first(axes, i - from);
+        let (draws, d) = first(draws, i - from);
+        let (units, u) = first(units, i - from);
+        let (successor, s) = first(successor, i - from);
         homes[k] = Some(Home {
             axis,
             draws,
             units,
             successor,
         });
+        (rest, from) = ((axes, d, u, s), i + 1);
     }
     homes
         .into_iter()
         .map(|h| h.expect("every apex its own axis"))
         .collect()
+}
+
+/// `v[at]` and what follows it.
+fn first<T>(v: &mut [T], at: usize) -> (&mut T, &mut [T]) {
+    v[at..]
+        .split_first_mut()
+        .expect("an index within, increasing")
 }
 
 /// Grows `live`, each apex with its home, in shares of `share` apexes on
