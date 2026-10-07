@@ -67,7 +67,7 @@ pub(crate) fn place_from(
         let mut pieces: Vec<Vec<usize>> = todo.chunks(PIECE).map(<[usize]>::to_vec).collect();
         // Each axis's start from its parent's frame alone, on every core,
         // in pieces kept apart so no start is moved twice.
-        let mut framed = map(pieces.clone(), 1, threads, &|_, piece| {
+        let mut framed = map(pieces.iter().collect(), 1, threads, &|_, piece| {
             piece
                 .iter()
                 .map(|&i| start(structure, species, &laid, i))
