@@ -16,6 +16,8 @@ pub(super) struct Read {
     pub presences: Vec<Vec<Presences>>,
     pub laid: Vec<Vec<(usize, u32)>>,
     pub statuses: u32,
+    /// Each root's chains' statuses.
+    pub root_statuses: Vec<u32>,
 }
 
 fn words(gpu: &Gpu, buffer: &wgpu::Buffer) -> Vec<u32> {
@@ -31,6 +33,7 @@ pub(super) fn read(gpu: &Gpu, grown: &[Grown], roots: usize, all: bool) -> Read 
         presences: vec![Vec::new(); roots],
         laid: vec![Vec::new(); roots],
         statuses: 0,
+        root_statuses: vec![0; roots],
     };
     // Each laid axis's place among its root's kept axes.
     let mut local: HashMap<(usize, u32), usize> = HashMap::new();
@@ -70,12 +73,14 @@ pub(super) fn read(gpu: &Gpu, grown: &[Grown], roots: usize, all: bool) -> Read 
             let [runoff, axes, phyts, scratch] = &runs[k];
             let rec = &runoff[c * RW as usize..][..RW as usize];
             let (a, p, sb, na, np) = (rec[0], rec[1], rec[2], rec[8], rec[9]);
-            out.statuses |= scratch[(sb + na * SA + np * SP) as usize];
+            let status = scratch[(sb + na * SA + np * SP) as usize];
+            out.statuses |= status;
             let axes = &axes[a as usize * AXW..(a + na) as usize * AXW];
             let phyts = &phyts[p as usize * PW..(p + np) as usize * PW];
             let chain = topology(&stub, axes, phyts);
             let wi = wi as usize;
             let (root, bearer) = (meta[2 * wi] as usize, meta[2 * wi + 1]);
+            out.root_statuses[root] |= status;
             // A chain whose bearer was shed is shed with it.
             let bearer = match (w > 1).then(|| local.get(&(w - 1, bearer))) {
                 None => None,

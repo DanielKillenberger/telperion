@@ -131,8 +131,13 @@ impl Root {
     /// Phase 3: laid from its bearer's laid frame at its node, and its
     /// levers gathered where any PA sags.
     pub fn lay(&mut self, species: &Species, bearer: &Axis) -> Result<()> {
+        self.lay_on(species, stub(bearer, self.node))
+    }
+
+    /// Phase 3 from its bearer's stub as `stub` makes it.
+    pub fn lay_on(&mut self, species: &Species, bearer: Axis) -> Result<()> {
         let started = Instant::now();
-        self.tree.axes[0] = stub(bearer, self.node);
+        self.tree.axes[0] = bearer;
         place_from(&mut self.tree, species, None, 1, 1)?;
         if any(species) {
             let (levers, loads) = levers_given(&self.tree, species, &|_| None, 1);
@@ -147,8 +152,13 @@ impl Root {
     /// laid under sag, each phytomer's lever turned from its first lay's
     /// frame.
     pub fn bend(&mut self, species: &Species, bearer: &Axis) -> Result<()> {
+        self.bend_on(species, stub(bearer, self.node))
+    }
+
+    /// Phase 4 from its bearer's stub as `stub` makes it.
+    pub fn bend_on(&mut self, species: &Species, bearer: Axis) -> Result<()> {
         let started = Instant::now();
-        self.tree.axes[0] = stub(bearer, self.node);
+        self.tree.axes[0] = bearer;
         place_from(&mut self.tree, species, Some(&self.levers), 1, 1)?;
         self.work.micros += started.elapsed().as_secs_f64() * 1e6;
         Ok(())
@@ -199,7 +209,7 @@ fn node_phytomer() -> Phytomer {
 
 /// The bearer as a root's tree holds it: its phytomer at `node` alone,
 /// standing on the point below it, as laid.
-fn stub(bearer: &Axis, node: usize) -> Axis {
+pub(crate) fn stub(bearer: &Axis, node: usize) -> Axis {
     let below = node
         .checked_sub(1)
         .map_or(bearer.base, |n| bearer.phytomers[n].tip);

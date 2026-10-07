@@ -48,8 +48,8 @@ fn cpu(species: &Species, at: (u32, u64), threads: usize) -> (f64, f64) {
 fn ms(a: &Apart) -> String {
     let c = &a.cost;
     format!(
-        "{:.0} ({:.0} / {:.0}; {} trips)",
-        a.wall, c.grow, c.lay, c.trips
+        "{:.0} ({:.0}, of it {:.0} fading / {:.0}; {} trips)",
+        a.wall, c.grow, c.fade, c.lay, c.trips
     )
 }
 
@@ -107,6 +107,11 @@ fn realized_at_40_and_80() {
                     ms(&cold),
                     ms(&warm),
                     warm.statuses,
+                );
+                println!(
+                    "  grounded {}, farthest of theirs {:.1} µm",
+                    warm.grounded,
+                    warm.landed_most * 1e6
                 );
                 println!(
                     "  worst {:?}, waves {}, chains {}, again {}",

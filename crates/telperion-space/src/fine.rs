@@ -28,6 +28,7 @@ mod committed;
 mod executor;
 mod expansion;
 mod geometry;
+mod landing;
 mod realized;
 mod record;
 mod surface;
@@ -44,7 +45,7 @@ use crate::grow::{keeps, Request};
 use crate::species::Species;
 use crate::structure::Structure;
 pub use canonical::{canonical, digest, identities, lineage_order};
-pub use cases::{realized_cases, root_axes, Presences, RealizedCase};
+pub use cases::{landed, realized_cases, root_axes, Presences, RealizedCase, RootAxes};
 pub use committed::{grow_committed, CommittedFine};
 pub use executor::Work;
 pub use expansion::{settle, Lived, Loaded, RootSeed, Roots, Settled};
@@ -156,7 +157,8 @@ pub fn grow_fine(
         threads,
         roots: Vec::new(),
     };
-    let (settled, _) = expansion::settle_with(species, (request, &rows, &rules), plan, &mut cpu)?;
+    let (settled, _) =
+        expansion::settle_with(species, (request, &rows, &rules), plan, &mut cpu, false)?;
     assemble(settled, cpu.roots, &rows)
 }
 
@@ -169,6 +171,7 @@ fn assemble(settled: Settled, roots: Vec<Root>, rows: &Rows) -> Result<Fine> {
         live,
         bearers,
         phases,
+        ..
     } = settled;
     let kept: usize = live.iter().map(|&k| roots[k].phytomers()).sum();
     if tree.phytomer_count() + kept == 0 {

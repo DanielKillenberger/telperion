@@ -153,6 +153,7 @@ impl Roots for Device<'_> {
             .collect();
         let (waves, cost) = grow_roots((gpu, k), (&roots, &self.order, self.batch), self.tables);
         self.cost = cost;
+        let fading = Instant::now();
         let fades = table(gpu, self.tables.chain);
         let living = k.fades.living(
             gpu,
@@ -160,6 +161,7 @@ impl Roots for Device<'_> {
             (&fades, self.tables.chain.age),
         );
         let read = report(gpu, &living[0], seeds.len(), &mut self.cost);
+        self.cost.fade = fading.elapsed().as_secs_f64() * 1e3;
         let mut lived = vec![(0, 0); seeds.len()];
         for (wi, &r) in self.order.iter().enumerate() {
             lived[r] = read[wi];

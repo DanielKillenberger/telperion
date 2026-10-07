@@ -37,6 +37,8 @@ pub(super) struct Cost {
     pub runs: usize,
     pub grow: f64,
     pub lay: f64,
+    /// Under realized mechanics: phase 1's fades and its report.
+    pub fade: f64,
     pub again: usize,
     pub trips: usize,
 }

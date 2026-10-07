@@ -12,8 +12,8 @@ use super::roots::{Cost, Kernels, Tables};
 use super::shedding;
 use crate::Gpu;
 use telperion_space::{
-    grow_fine, realized_cases, root_axes, settle, ChainAxis, ChainTables, Expected, GeometryTables,
-    Light, Plan, Presences, RealizedCase, Request, Species, Vec3,
+    grow_fine, landed, realized_cases, root_axes, settle, ChainAxis, ChainTables, Expected,
+    GeometryTables, Light, Plan, Presences, RealizedCase, Request, RootAxes, Species,
 };
 
 pub(super) fn request(age: u32, seed: u64) -> Request {
@@ -200,6 +200,10 @@ pub(super) struct Apart {
     /// The farthest phytomer: its root, wave, place along its axis,
     /// distance from its root's origin and radius.
     pub worst: (usize, usize, usize, f64, f64),
+    /// The roots laid on the CPU, and the farthest of their tips from the
+    /// CPU executor's.
+    pub grounded: usize,
+    pub landed_most: f64,
 }
 
 impl Apart {
@@ -226,8 +230,11 @@ pub(super) fn settled_against(
     tables.keep = true;
     let mut dev = Device::new(gpu, k, &tables, batch).ordered(order.to_vec());
     let plan = Plan::default();
-    settle(species, request(at.0, at.1), &expected, plan, &mut dev).expect("settles");
+    let (settled, _) =
+        settle(species, request(at.0, at.1), &expected, plan, &mut dev).expect("settles");
     let wall = t.elapsed().as_secs_f64() * 1e3;
+    // A root that can reach the ground is the CPU's (host decision 3).
+    let landed = landed(&settled);
     let c = dev.cost;
     let reads = 2 + usize::from(tables.sags);
     assert_eq!(c.trips, c.runs + c.waves + reads, "{c:?}");
@@ -235,16 +242,24 @@ pub(super) fn settled_against(
     let got = readback::read(gpu, &waves.grown, want.len(), true);
     let floats: Vec<Vec<f32>> = laid.iter().map(|w| w.read(gpu)).collect();
     let mut apart = Apart {
-        statuses: got.statuses,
         cost: c,
         wall,
+        grounded: landed.len(),
         ..Apart::default()
     };
+    for (r, axes) in &landed {
+        let laid = cpu_apart(axes, want[*r].as_ref().expect("a live root"), *r);
+        apart.landed_most = apart.landed_most.max(laid);
+    }
     for (r, w) in want.iter().enumerate() {
         let Some((axes, origin)) = w else {
             assert!(got.roots[r].is_empty(), "root {r} was shed");
             continue;
         };
+        if landed.iter().any(|(k, _)| *k == r) {
+            continue;
+        }
+        apart.statuses |= got.root_statuses[r];
         let cpu: Vec<ChainAxis> = axes.iter().map(|a| a.0.clone()).collect();
         let ((gpu_axes, by), (cpu_axes, want_by)) = (canon(&got.roots[r]), canon(&cpu));
         assert_eq!(gpu_axes, cpu_axes, "root {r}: kept axes");
@@ -285,7 +300,23 @@ pub(super) fn settled_against(
     apart
 }
 
-pub(super) type RootAxes = (Vec<(ChainAxis, Vec<(Vec3, f64)>)>, Vec3);
+/// How far a root laid on the CPU (`have`) lies from the CPU executor's
+/// (`want`), by lineage: its farthest tip from its origin.
+fn cpu_apart((have, from): &RootAxes, want: &RootAxes, r: usize) -> f64 {
+    let (have_axes, want_axes): (Vec<ChainAxis>, Vec<ChainAxis>) = (
+        have.iter().map(|a| a.0.clone()).collect(),
+        want.0.iter().map(|a| a.0.clone()).collect(),
+    );
+    let ((h, by), (w, want_by)) = (canon(&have_axes), canon(&want_axes));
+    assert_eq!(h, w, "root {r} laid on the CPU: kept axes");
+    let mut most = 0.0f64;
+    for (&g, &c) in by.iter().zip(&want_by) {
+        for (p, q) in have[g].1.iter().zip(&want.0[c].1) {
+            most = most.max(((p.0 - *from) - (q.0 - want.1)).length());
+        }
+    }
+    most
+}
 
 /// One tree settled in three orders and batch sizes, each against the
 /// CPU executor, the same geometry in each.
@@ -330,9 +361,12 @@ fn every_root_settles_on_the_gpu_as_on_the_cpu() {
             let a = settles_as_on_the_cpu(&gpu, &k, name, species, (25, seed));
             let rms = a.rms();
             println!(
-                "{name} 25 {seed}: {} phytomers, tips {:.2e} most {rms:.2e} RMS, radii {:.2e} rel",
-                a.phytomers, a.most, a.radius
+                "{name} 25 {seed}: {} phytomers, tips {:.2e} most {rms:.2e} RMS, radii {:.2e} rel; {} roots on the CPU, their tips {:.2e}",
+                a.phytomers, a.most, a.radius,
+                a.grounded,
+                a.landed_most
             );
+            assert!(a.landed_most <= MOST, "{name} 25 {seed}: roots on the CPU");
             assert!(a.most <= MOST && rms <= RMS, "{name} 25 {seed}: {a:?}");
         }
     }

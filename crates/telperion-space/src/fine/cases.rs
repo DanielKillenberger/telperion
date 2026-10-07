@@ -142,7 +142,7 @@ fn presences(a: &Axis) -> Presences {
 /// first axis's parent none and the rest numbered among the root's, each
 /// with its phytomers' tips and radii, and its bearer's node as laid,
 /// which its positions are taken from; none where the root was shed.
-pub fn root_axes(fine: &super::Fine) -> Vec<Option<(Vec<(ChainAxis, Vec<(Vec3, f64)>)>, Vec3)>> {
+pub fn root_axes(fine: &super::Fine) -> Vec<Option<RootAxes>> {
     let axes = &fine.structure.axes;
     let mut live = 0;
     fine.roots
@@ -175,3 +175,28 @@ pub fn root_axes(fine: &super::Fine) -> Vec<Option<(Vec<(ChainAxis, Vec<(Vec3, f
         })
         .collect()
 }
+
+/// The roots `settled` laid on the CPU (host decision 3), by root, as
+/// `root_axes` gives a root: its axes with their tips and radii, and its
+/// bearer's node as laid.
+pub fn landed(settled: &super::Settled) -> Vec<(usize, RootAxes)> {
+    settled
+        .landed
+        .iter()
+        .map(|(j, root)| {
+            let axes = root.axes();
+            let tips = axes[1..]
+                .iter()
+                .map(|a| a.phytomers.iter().map(|p| (p.tip, p.radius)).collect());
+            let mut chained = chain_axes(axes);
+            if let Some(first) = chained.first_mut() {
+                first.node = root.node;
+            }
+            let kept = chained.into_iter().zip(tips).collect();
+            (settled.live[*j], (kept, axes[0].phytomers[0].tip))
+        })
+        .collect()
+}
+
+/// A root's kept axes with their tips and radii, and its origin.
+pub type RootAxes = (Vec<(ChainAxis, Vec<(Vec3, f64)>)>, Vec3);

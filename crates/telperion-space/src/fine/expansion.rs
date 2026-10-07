@@ -5,6 +5,7 @@
 //! settled here exactly as the whole tree settles it; each phase hands
 //! the roots one record each down and takes one record each up (Astra
 //! change 3: a record per root, never per node).
+use super::landing::Landing;
 use super::surface::input;
 use super::{Clock, Plan};
 use crate::bounded::Expected;
@@ -60,18 +61,24 @@ pub trait Roots {
 
 /// The structure above the cut, settled: the tree (its fine roots' first
 /// axes standing where their stand-ins stood, unexpanded), each root's
-/// stand-in's index (none: shed), the live roots and their bearers, and
-/// the seconds each phase took.
+/// stand-in's index (none: shed), the live roots and their bearers, the
+/// seconds each phase took, and the roots laid on the CPU.
 pub struct Settled {
     pub structure: Structure,
     pub at: Vec<Option<usize>>,
     pub live: Vec<usize>,
     pub bearers: Vec<usize>,
     pub phases: Vec<f64>,
+    /// The roots laid on the CPU because they can reach the ground (host
+    /// decision 3), by root; and those roots, by their place among the
+    /// live.
+    pub grounded: Vec<usize>,
+    pub(crate) landed: Vec<(usize, super::realized::Root)>,
 }
 
 /// Grows `species` above `plan`'s cut and settles it with its fine
-/// roots, grown by `roots`; and the roots' seeds.
+/// roots, grown by `roots`, every root that can reach the ground laid on
+/// the CPU reference executor; and the roots' seeds.
 pub fn settle(
     species: &Species,
     request: Request,
@@ -80,7 +87,13 @@ pub fn settle(
     roots: &mut dyn Roots,
 ) -> Result<(Settled, Vec<RootSeed>)> {
     let rules = crate::grow::alone::rules(species, request.age, request.budget)?;
-    settle_with(species, (request, &expected.rows(), &rules), plan, roots)
+    settle_with(
+        species,
+        (request, &expected.rows(), &rules),
+        plan,
+        roots,
+        true,
+    )
 }
 
 pub(crate) fn settle_with(
@@ -88,6 +101,7 @@ pub(crate) fn settle_with(
     (request, rows, rules): (Request, &Rows, &Rules),
     plan: Plan,
     roots: &mut dyn Roots,
+    land: bool,
 ) -> Result<(Settled, Vec<RootSeed>)> {
     request.light.validate()?;
     let threads = match plan.threads {
@@ -166,8 +180,13 @@ pub(crate) fn settle_with(
     let radius = |i: usize| by_axis[i].map(|j: usize| radii[j]);
     thicken_given(&mut tree, species, &Girth::default(), &radius, threads);
     place(&mut tree, species, None, threads)?;
-    // Lay on each bearer's frame, and load the tree by each root's wood.
-    let loads = clock.time(|| roots.lay(&tree, &live, &bearers))?;
+    // Lay on each bearer's frame, and load the tree by each root's wood;
+    // a root that can reach the ground is laid on the CPU (host decision
+    // 3, `landing.rs`).
+    let mut loads = clock.time(|| roots.lay(&tree, &live, &bearers))?;
+    let mut landing = Landing::new(species, (rules, rows), (plan, threads), land);
+    let at_roots = (&seeds[..], &live[..], &bearers[..]);
+    landing.lay(&tree, at_roots, (&scales, &radii), &mut loads)?;
     if any(species) {
         let load = |i: usize| {
             by_axis[i].map(|j: usize| Load {
@@ -178,13 +197,17 @@ pub(crate) fn settle_with(
         let (levers, _) = levers_given(&tree, species, &load, threads);
         place(&mut tree, species, Some(&levers), threads)?;
         clock.time(|| roots.bend(&tree, &live, &bearers))?;
+        landing.bend(&tree, at_roots, (&scales, &radii))?;
     }
+    let grounded = landing.roots.iter().map(|(j, _)| live[*j]).collect();
     let settled = Settled {
         structure: tree,
         at,
         live,
         bearers,
         phases: clock.phases,
+        grounded,
+        landed: landing.roots,
     };
     Ok((settled, seeds))
 }
