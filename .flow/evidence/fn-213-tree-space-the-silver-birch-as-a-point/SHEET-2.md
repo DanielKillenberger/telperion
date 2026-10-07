@@ -38,3 +38,12 @@ Still short of the references: the crown at 40 is narrower and thinner than S2-O
 ## Gate
 
 After round 2's values, `cargo test --profile ci --workspace --no-fail-fast` passed every target but `preset_values`: the leaf-station row stated 0.02 m, the family's default, which the value writer drops. The row is now left at the default with a comment (the family is unchanged); `preset_values`, `catalogue_identity` and `space_presets` then pass. Sheet 1's one base failure (`generation_limit_guard` on fn-198's shoulder sites) is gone with the merge. `harness/parity.test.ts` passes 8 of 8 on round 2's values.
+
+## The host's reading (2026-10-07, both sheets viewed)
+
+It reads as a silver birch now, especially bare at 40; all five sheet-1 points are answered and the parity gap is closed. Remaining:
+
+1. In leaf the crown reads as sparse strands; the references show a leafy mass: more leaf area along the strands (leaf size, count per short shoot, short shoots per strand), by values.
+2. At 80 the crown is narrower than the references (S2-Oslo, S3): a broader crown at 80 without losing the 40-year narrow egg.
+
+Decision: the dark base's tint stands for now; a mature-bark-by-girth row becomes its own capability spec later. Round 3 aims at (1) and (2), sheet 3 in the same layout (SHEET-3.md), then Astra's independent judgement.
