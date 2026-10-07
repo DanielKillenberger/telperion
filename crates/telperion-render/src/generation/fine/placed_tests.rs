@@ -21,6 +21,7 @@ use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
 use telperion_core::foliage::{prepared::PreparedStations, Instances};
 use telperion_core::math::Vec3;
+use telperion_core::tree::Tree;
 
 /// What the placement probe measured on one tree.
 // Read through its `Debug` print.
@@ -42,20 +43,15 @@ pub(super) struct Seated {
     /// orientation words one code step apart (`code_step`), and their face
     /// turned about an axis within the bound (`compare`).
     pub steps: (u64, u64),
-    /// Of the leaves over in direction, those whose segment's normal is
-    /// 1 mrad or more from the reference's, and the most it is.
-    pub framed: u64,
-    pub frame: f64,
-    /// Of the leaves over in direction, those still over under the bound
-    /// summed, 0.005 plus the screen over the chord (for the host).
-    pub summed: u64,
-    /// Of those, the ones still over under 0.005 plus the most the screen
-    /// lets any chord of the run so far turn: frames are carried.
-    pub carried: u64,
+    /// Leaves over in direction on a run through a threshold of the named
+    /// f32-against-f64 class (`at_threshold`), up to the leaf's segment:
+    /// `SHORTEST` (the executors draw the run's nodes differently, and its
+    /// frames are carried through them), and the half micrometre (the
+    /// leaf's station on another segment).
+    pub thresholds: (u64, u64),
     /// Leaves over in position whose segment agrees within the screen: the
     /// contact search's ray hit another triangle of the same rings.
     pub grazing: u64,
-    direction_last: f64,
     /// The most apart: position (m), a column's direction, scale
     /// (relative); and the position bound.
     pub position: f64,
@@ -77,7 +73,6 @@ fn reference(gen: &Generator, x: &telperion_core::pipeline::executor::Expansion)
             words: [s.key, s.run_station, s.first, s.count],
             start: s.endpoints[0],
             end: s.endpoints[1],
-            normal: s.frame[1],
         })
         .collect();
     let mut m = Metrics::default();
@@ -112,17 +107,16 @@ struct Seg {
     words: [u32; 4],
     start: Vec3,
     end: Vec3,
-    normal: Vec3,
 }
 
 /// One run's leaves by station, from its first, where it starts, and
-/// each leaf's segment's normal.
+/// each leaf's segment's end and chord.
 struct Run {
     key: u32,
     station: u32,
     start: Vec3,
     leaves: Vec<u32>,
-    normals: Vec<Vec3>,
+    ends: Vec<Vec3>,
     chords: Vec<f64>,
 }
 
@@ -137,19 +131,19 @@ fn runs(segments: &[Seg]) -> Vec<Run> {
             .filter(|r| r.key == key && r.station + r.leaves.len() as u32 == station);
         if on.is_none() {
             let start = s.start;
-            let (leaves, normals, chords) = (Vec::new(), Vec::new(), Vec::new());
+            let (leaves, ends, chords) = (Vec::new(), Vec::new(), Vec::new());
             out.push(Run {
                 key,
                 station,
                 start,
                 leaves,
-                normals,
+                ends,
                 chords,
             });
         }
         let run = out.last_mut().unwrap();
         run.leaves.extend(first..first + count);
-        run.normals.extend((0..count).map(|_| s.normal));
+        run.ends.extend((0..count).map(|_| s.end));
         let chord = (s.end - s.start).length();
         run.chords.extend((0..count).map(|_| chord));
     }
@@ -198,11 +192,11 @@ fn seated(
             words: [g[27], g[26], g[24], g[25]],
             start: Vec3::new(f(g[0]), f(g[1]), f(g[2])),
             end: Vec3::new(f(g[4]), f(g[5]), f(g[6])),
-            normal: Vec3::new(f(g[12]), f(g[13]), f(g[14])),
         })
         .collect();
     let keys: HashSet<u32> = mine.iter().map(|g| g.words[0]).collect();
     let drawn = drawn_by_device(x.tree(), &fx.fine);
+    let threshold = at_threshold(x.tree());
     let refs: Vec<Seg> = (theirs.segments.iter())
         .filter(|g| keys.contains(&g.words[0]) && drawn(g.end))
         .copied()
@@ -244,28 +238,17 @@ fn seated(
             out.left.1 += run.leaves.len() as u64;
             continue;
         }
-        let normals = &theirs_runs[i].normals;
-        // The frames are carried along the run: the most any chord so far
-        // lets a tangent turn.
-        let mut upstream = 0.0f64;
         for (k, (&d, &r)) in run.leaves.iter().zip(theirs).enumerate() {
             let (d, r) = (d as usize, r as usize);
             let step = code_step(a.leaves[d][0], b.leaves[r][0]);
-            let was = out.over.1;
-            let bound = (MOST / theirs_runs[i].chords[k]).max(0.005);
-            compare(&mut out, (a.matrix(d), b.matrix(r)), (step, bound));
-            let chords = &theirs_runs[i].chords;
-            upstream = upstream.max(MOST / chords[k]);
-            if out.over.1 > was {
-                let summed = 0.005 + MOST / chords[k];
-                out.summed += u64::from(out.direction_last >= summed);
-                out.carried += u64::from(out.direction_last >= 0.005 + upstream);
-            }
-            if out.over.1 > was {
-                let turn = run.normals[k].normalized().dot(normals[k].normalized());
-                let turn = turn.clamp(-1.0, 1.0).acos();
-                out.framed += u64::from(turn >= 0.001);
-                out.frame = out.frame.max(turn);
+            let bound = 0.005 + MOST / theirs_runs[i].chords[k];
+            if compare(&mut out, (a.matrix(d), b.matrix(r)), (step, bound)) {
+                let run = &theirs_runs[i];
+                match threshold(run.start, run.ends[k]) {
+                    Some(Threshold::Shortest) => out.thresholds.0 += 1,
+                    Some(Threshold::Rounding) => out.thresholds.1 += 1,
+                    None => out.over.1 += 1,
+                }
             }
             let off = a.position(d).distance(b.position(r));
             out.position = out.position.max(off);
@@ -292,8 +275,46 @@ fn seated(
 }
 
 /// fn-125's screen on a position, in metres: a leaf's direction is held
-/// to it over its segment's chord (host, 2026-10-07).
+/// to 0.005 plus it over its segment's chord (host, 2026-10-07).
 const MOST: f64 = 50e-6;
+/// The shortest internode the conversion keeps (`space.rs`).
+const SHORTEST: f64 = 1e-3;
+
+/// A threshold of the named f32-against-f64 class.
+#[derive(PartialEq)]
+enum Threshold {
+    Shortest,
+    Rounding,
+}
+
+/// The named f32-against-f64 class of the reference's run from `start` to
+/// `end`, if it passes a node at one of its thresholds: within the screen
+/// of `SHORTEST` from its parent (the conversion keeps or merges it by the
+/// executor's rounding), or its grown wood within 0.01 um of a half
+/// micrometre (a station split on the other side of a node).
+fn at_threshold(tree: &Tree) -> impl Fn(Vec3, Vec3) -> Option<Threshold> + '_ {
+    let key = |p: Vec3| [p.x, p.y, p.z].map(f64::to_bits);
+    let at: HashMap<[u64; 3], usize> = (tree.nodes.iter().enumerate())
+        .map(|(i, n)| (key(n.position), i))
+        .collect();
+    move |start: Vec3, end: Vec3| {
+        let (&first, &last) = (at.get(&key(start))?, at.get(&key(end))?);
+        let mut n = last;
+        while n != first {
+            let p = tree.nodes[n].parent? as usize;
+            let chord = tree.nodes[n].position.distance(tree.nodes[p].position);
+            if (chord - SHORTEST).abs() < MOST {
+                return Some(Threshold::Shortest);
+            }
+            let u = tree.grown_length(n) * 1e6;
+            if ((u - u.floor()) - 0.5).abs() < 0.01 {
+                return Some(Threshold::Rounding);
+            }
+            n = p;
+        }
+        None
+    }
+}
 
 /// Whether two orientation words (`pack.wgsl`'s `rotation_word`) differ by
 /// at most one code in each kept component, the same one dropped: a
@@ -311,7 +332,7 @@ fn code_step(a: u32, b: u32) -> bool {
 /// its scatter turns it, so where that axis stands near the vertical a
 /// small difference in it turns the face about it many times as far; the
 /// scatter's draws are the reference's to the bit (its scale shows it).
-fn compare(out: &mut Seated, (a, b): ([f32; 16], [f32; 16]), (step, bound): (bool, f64)) {
+fn compare(out: &mut Seated, (a, b): ([f32; 16], [f32; 16]), (step, bound): (bool, f64)) -> bool {
     let column = |m: &[f32; 16], c: usize| {
         Vec3::new(m[c * 4] as f64, m[c * 4 + 1] as f64, m[c * 4 + 2] as f64)
     };
@@ -325,14 +346,13 @@ fn compare(out: &mut Seated, (a, b): ([f32; 16], [f32; 16]), (step, bound): (boo
         scale = scale.max((x.length() - y.length()).abs() / y.length());
     }
     out.direction = out.direction.max(dir);
-    out.direction_last = dir;
     out.scale = out.scale.max(scale);
     let over = dir >= bound;
     let turned = !step && axis < bound;
     out.steps.0 += u64::from(over && step);
     out.steps.1 += u64::from(over && turned);
-    out.over.1 += u64::from(over && !step && !turned);
     out.over.2 += u64::from(scale > 1.0 / 1024.0);
+    over && !step && !turned
 }
 
 /// The preset `id` at `at`: its reference's resident leaves made first,

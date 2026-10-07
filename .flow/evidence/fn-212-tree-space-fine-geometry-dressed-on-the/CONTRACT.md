@@ -230,3 +230,8 @@ Measured `tree_buffer_bytes` after the submit: 141 MB (beech 80 s1), 240 MB (bee
 1. **A seated leaf's direction bound is consistent with the position bound.** It is the position screen (50 µm) divided by the chord of the leaf's segment, with 0.005 rad as its floor. It is written into the probe. A leaf still over it is a failure to explain, and so is the 1.55 mm position outlier on the spruce at 80 s7, which goes into the `SHORTEST` class only if traced there.
 2. **Parted runs are located in this task.** A divergence away from both bounds with no known cause is not a residual. The device's per-node station words are read back for one key, and the cause is named, then fixed or classed.
 3. **The micrometre grid stays.** Integer sums of a recorded quantity are the contract's own idiom, and they keep every decimal ratio exact. The 14,666.499 µm rounding case stays in the named f32-against-f64 class.
+
+## Host decisions on the leaf bound and frames (2026-10-07)
+
+1. **A seated leaf's direction bound is the sum, 0.005 + 50 µm / chord.** The errors add (the encoding, plus the input's difference), so a max undercounts. "Contact grazing" is a named class: a seat on another triangle of the same rings, its segment agreeing within the screen (1 leaf, spruce 80 s7).
+2. **The frame divergence on the spruce (16 to 25 mrad, beyond the screen) is traced within task 6.** Read back the frames along one spruce 40 s1 run, find where they part, then fix it or name its class.

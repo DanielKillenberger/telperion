@@ -286,3 +286,35 @@ Before this change the same probe had 31,624 beech runs at 80 s1 counted differe
 ### Gate
 
 Render half 161 passed and CPU half 988 passed, none failed (`gate-render-2.txt`, `gate-cpu-2.txt`). Task 6 is not closed: the direction residual above is the host's.
+
+## The spruce's frame divergence, located; task 6 closed (worker, 2026-10-07)
+
+### Where the frames part (`raw/task6b/frames-1.txt` to `frames-4.txt`)
+
+- **The run read back:** spruce 40 s1, key 1926370168. The station frames agree on the first segment (3.3e-4 rad). From the second segment with stations on, they are 16.4 mrad apart, constant to the run's end.
+- **Between those segments the run has one more node on the CPU.** Node 450312 lies 1.000013 mm from its parent and 1.000013 mm from its child. The device, in float32, finds it under `SHORTEST` and merges it, so the CPU transports its frame through one more turn.
+  - Check: the CPU's own `station_frame_iter`, run on the device's four points, gives the device's normal to five digits.
+- **The class:** the named `SHORTEST` class, the conversion's 1 mm merge fed by f32 against f64. It is the same signature as TASK5.md's point on spruce 80 s7.
+- **Why it ties:** the grown wood there is an exact millimetre (a PA's internode times a dyadic scale), so the chord sits at the threshold.
+- **For the host (not built):** with `Tree::grown` on the record, `SHORTEST` could be decided on grown micrometres, exact on both executors. It changes the conversion's merges on every engine tree.
+- **The other unexplained leaves on spruce 80 s1** (44 under the summed bound) are on the 14,666.499 µm rounding runs: a station split on the other side of a node sits on the neighbouring segment, with that segment's frame.
+
+### The probe now (`placed_tests.rs`)
+
+- **Direction bound:** 0.005 + 50 µm / chord (host). Classes: code step; face turned about a matching axis; `thresholds` (`SHORTEST`, rounding), found by walking the reference's run to the leaf's segment; and contact `grazing`.
+- **Final pass,** one tree at a time (`raw/task6b/seated-final-2.txt`):
+
+| Tree | Leaves compared | Over (position / direction / scale) | Face turned | `SHORTEST` / rounding | Grazing | Left (count differs) |
+|---|--:|---|--:|---|--:|--:|
+| beech 40 s1 | 63,256 | 0 / 0 / 0 | 0 | 0 / 0 | 0 | 0 |
+| beech 40 s7 | 191,948 | 0 / 0 / 0 | 0 | 0 / 0 | 0 | 0 |
+| beech 80 s1 | 2,409,975 | 0 / 0 / 0 | 13 | 0 / 0 | 0 | 0 |
+| beech 80 s7 | 4,170,671 | 0 / 0 / 0 | 30 | 0 / 0 | 0 | 0 |
+| spruce 40 s1 | 4,305,432 | 0 / 0 / 0 | 41 | 37 / 0 | 0 | 0 |
+| spruce 40 s7 | 4,233,230 | 0 / 0 / 0 | 34 | 0 / 0 | 0 | 0 |
+| spruce 80 s1 | 15,635,265 | 0 / 0 / 0 | 3,441 | 0 / 44 | 0 | 332 (rounding) |
+| spruce 80 s7 | 15,755,194 | 0 / 0 / 0 | 3,235 | 0 / 0 | 1 | 0 |
+
+- **Station counts** (`stationed-80-drawn.txt`, `parted-3.txt`): equal on every tree, but for the rounding class on spruce 80 s1 (111 keys, 2 counted differently).
+- **Gate:** render half 161 passed, then CPU half 988 passed, none failed (`gate-render-3.txt`, `gate-cpu-3.txt`).
+- **Acceptance:** seated leaves are within fn-125's bound, as the host set it, with every residual in a named class, and counts are equal but for the named rounding class. Task 6 is closed.
