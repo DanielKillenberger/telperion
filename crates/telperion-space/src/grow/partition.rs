@@ -27,7 +27,7 @@ use super::oracle::{Oracle, Read};
 use super::{run_beside, Beside, Grower, Options, Request};
 use crate::bounded::Expected;
 use crate::error::Result;
-use crate::fixed::sum::Sum;
+use crate::fixed::feedback::total::Total;
 use crate::light::Field;
 use crate::species::Species;
 use crate::structure::{Structure, Vec3};
@@ -118,10 +118,10 @@ pub(crate) fn ordered(mut roots: Vec<usize>, order: Order) -> Vec<usize> {
 
 /// Merges per-root partials into `total` as the grouping takes them:
 /// the roots in its order, `chunk` partials at a time.
-pub(crate) fn merge(total: &mut [Sum], partial: &HashMap<usize, Vec<Sum>>, g: &Grouping) {
+pub(crate) fn merge(total: &mut [Total], partial: &HashMap<usize, Vec<Total>>, g: &Grouping) {
     let roots = ordered(partial.keys().copied().collect(), g.order);
     for chunk in roots.chunks(g.chunk.max(1)) {
-        let mut sum = vec![Sum::default(); total.len()];
+        let mut sum = vec![Total::default(); total.len()];
         for r in chunk {
             for (s, &x) in sum.iter_mut().zip(&partial[r]) {
                 s.merge(x);
@@ -137,15 +137,15 @@ pub(crate) fn merge(total: &mut [Sum], partial: &HashMap<usize, Vec<Sum>>, g: &G
 /// or a fine root, as the grouping takes them (none: in the items' order,
 /// whole): the structure's in order, then each root's partial.
 pub(crate) fn grouped(
-    items: &[(Option<usize>, Vec<f64>)],
+    items: &[(Option<usize>, Vec<i128>)],
     n: usize,
     g: Option<&Grouping>,
-) -> Vec<Sum> {
-    let mut total = vec![Sum::default(); n];
-    let mut partial: HashMap<usize, Vec<Sum>> = HashMap::new();
+) -> Vec<Total> {
+    let mut total = vec![Total::default(); n];
+    let mut partial: HashMap<usize, Vec<Total>> = HashMap::new();
     for (root, v) in items {
         let into = match (root, g) {
-            (Some(r), Some(_)) => partial.entry(*r).or_insert_with(|| vec![Sum::default(); n]),
+            (Some(r), Some(_)) => partial.entry(*r).or_insert_with(|| vec![Total::default(); n]),
             _ => &mut total,
         };
         for (t, &x) in into.iter_mut().zip(v) {
@@ -233,12 +233,14 @@ impl Grower<'_> {
             return;
         }
         let pas = self.species.states.len();
-        let terms: Vec<(usize, Vec<f64>)> = (0..got.len())
-            .filter(|&i| presence[i] > 0.0)
+        let q = crate::fixed::q32;
+        let terms: Vec<(usize, Vec<i128>)> = (0..got.len())
+            .filter(|&i| q(presence[i]) > 0)
             .map(|i| {
-                let mut v = vec![0.0; 2 * pas];
-                v[2 * pa[i]] = presence[i];
-                v[2 * pa[i] + 1] = (got[i] / presence[i]).powf(psi[i]) * presence[i];
+                let (p, d) = (q(presence[i]), crate::allocation::drawn(q(got[i]), q(presence[i]), q(psi[i])));
+                let mut v = vec![0; 2 * pas];
+                v[2 * pa[i]] = i128::from(p) << 32;
+                v[2 * pa[i] + 1] = i128::from(d) * i128::from(p);
                 (i, v)
             })
             .collect();
@@ -293,7 +295,8 @@ impl Grower<'_> {
             let state = &species.states[axis.pa];
             for p in &axis.phytomers {
                 let pipe = crate::girth::own(&state.form, p, tree.age, p.scale, 1.0);
-                terms.push((i, vec![pipe, pipe * p.light.powf(state.leaf_girth)]));
+                let w = crate::allocation::w_of;
+                terms.push((i, vec![w(pipe), w(pipe * p.light.powf(state.leaf_girth))]));
             }
         }
         let whole: Vec<_> = terms.iter().map(|(_, v)| (None, v.clone())).collect();

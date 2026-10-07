@@ -40,7 +40,7 @@ use crate::allocation::{size_sums, sized, split, subtotals};
 use crate::bounded::Expected;
 use crate::closed_form::boundary::Rows;
 use crate::error::{Error, Result};
-use crate::fixed::sum::Sum;
+use crate::fixed::feedback::total::Total;
 use crate::light::Field;
 use crate::species::Species;
 use crate::structure::Structure;
@@ -253,7 +253,7 @@ impl<'a> Executor<'a> {
         let sums = move |rows: &Links, i: &Inputs, got: &[f64]| {
             flat(&size_sums(got, &i.presence, &i.psi, &rows.pa, pas))
         };
-        let mut total: Vec<Sum> = sums(&rows, &inputs, &got);
+        let mut total: Vec<Total> = sums(&rows, &inputs, &got);
         let based: Vec<_> = (self.items.iter().zip(done))
             .map(|(i, d)| (d, incoming[i.at]))
             .collect();
@@ -263,11 +263,11 @@ impl<'a> Executor<'a> {
             ((r, i, got), partial)
         });
         let (done, partials): (Vec<_>, Vec<_>) = split_up.into_iter().unzip();
-        let partial: HashMap<usize, Vec<Sum>> = partials.into_iter().enumerate().collect();
+        let partial: HashMap<usize, Vec<Total>> = partials.into_iter().enumerate().collect();
         merge(&mut total, &partial, &self.grouping);
-        let factors: Vec<[f64; 2]> = total
+        let factors: Vec<[i128; 2]> = total
             .chunks(2)
-            .map(|s| [s[0].value(), s[1].value()])
+            .map(|s| crate::allocation::factors(&[s[0], s[1]]))
             .collect();
         let size = |g: &mut Grower, (rows, i, got): (Links, Inputs, Vec<f64>)| {
             g.set_sizes(&sized(&got, &i.presence, &i.psi, &rows.pa, &factors));
@@ -359,7 +359,7 @@ fn links(g: &Grower) -> Links {
     rows
 }
 
-fn flat(sums: &[[Sum; 2]]) -> Vec<Sum> {
+fn flat(sums: &[[Total; 2]]) -> Vec<Total> {
     sums.iter().flatten().copied().collect()
 }
 
