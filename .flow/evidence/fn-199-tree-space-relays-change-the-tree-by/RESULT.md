@@ -441,3 +441,16 @@ Sheets: `raw/r6/sheet-bare.png` and `raw/r6/sheet-whole.png`, top row base, bott
 - **No defect seen.** No floating wood, no detached relays, no crown hole.
 
 The host's view of the sheet is R6's acceptance; this records mine.
+
+## The gate (2026-10-07, on `a00b825f`)
+
+**Render half, under the lock:** green, every target (`raw/gate-render.log`). The fine GPU suite is among them: the contract probe, chains, units, and every root grown and settled.
+
+**Workspace without `telperion-render`:** 991 passed, 2 failed (`raw/gate-rest.log`).
+- **`telperion-core` `generation_limit_guard::generation_limits_are_classified`.** Fails the same way on the base `e9bb5b08` (run in `raw/base`). This branch changes nothing in `telperion-core`, `telperion-wasm` or `docs/generation-limits-inventory.json`. Not fn-199's.
+- **`telperion-space` `walks::light_changes_the_tree_by_degree`.** `light: states[0].apical_control` reaches a slope of 32.6 per unit against the bound of 30, at seed 3 near 0.48, branch `834853a9fc4e3c96`. It is a steep slope, not a jump: it refines away.
+  - Before rules 1 and 2' (`0e7ddd65`), the same walk's steepest steps were 26.9 (`states[0]`) and 29.2 (`states[1]`, the same branch), already near the bound.
+  - Bisected to the rules' commits (`803a8063` / `a5445ba8`); green on `442ab586` and `0e7ddd65`.
+  - Not changed: a threshold moves only with the botany shown right, and why this crossing steepened is not traced. For the host.
+
+`flowctl done` not run: the acceptance's gate is not green.

@@ -55,3 +55,10 @@
 - **Slowed by:** `tar` keeps the archive's mtimes (the commit's time), older than the built artifacts, so cargo rebuilt nothing and every commit "failed" with the first one's numbers.
 - **Cost:** about 15 minutes and a wrong first reading (that the crashed worker's tree was already red).
 - **Would remove it:** `tar -x -m` (or `touch`) on every extraction; worth a line in the agent guidance next to "two checkouts never share a target".
+
+## 2026-10-07 late, a gate failure that predates the branch
+
+- **Doing:** the workspace half of the gate.
+- **Slowed by:** `generation_limit_guard` fails on the base (`e9bb5b08`) as well. A red test inherited from the base hides whether a branch broke it, and here took a base run to rule out.
+- **Cost:** about 5 minutes.
+- **Would remove it:** the base's inventory fixed on master. Reported here, not fixed in fn-199, whose boundaries are engine continuity.
