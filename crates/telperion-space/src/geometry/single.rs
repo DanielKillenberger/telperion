@@ -5,7 +5,7 @@
 use super::lay::{lay, Layer, GROUND_TOLERANCE};
 use super::{bend, frame, turned};
 use crate::error::{Error, Result};
-use crate::lineage::{Key, ROLL};
+use crate::lineage::{insertion, Key, ROLL};
 use crate::sag::Lever;
 use crate::species::Species;
 use crate::structure::{Axis, Origin, Vec3};
@@ -81,12 +81,14 @@ pub(crate) fn bud_frame(
     let p = &axes[parent];
     let at = &p.phytomers[node];
     let parent_state = &species.states[p.pa];
-    let roll = species.states[pa].form.roll * (2.0 * Key(lineage).child(ROLL).unit() - 1.0);
+    let state = &species.states[pa];
+    let roll = state.form.roll * (2.0 * Key(lineage).child(ROLL).unit() - 1.0);
     let azimuth = parent_state.divergence * at.rank + TAU * f64::from(slot) / whorl + roll;
+    let angle = insertion(lineage, state.insertion, state.form.insertion_spread);
     let (heading, _) = turned(
         (at.heading, at.side),
         azimuth,
-        species.states[pa].insertion,
+        angle,
         parent_state.form.plane,
         0.0,
     );

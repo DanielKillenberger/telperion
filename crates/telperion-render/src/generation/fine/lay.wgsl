@@ -219,6 +219,8 @@ struct Pa {
     bend_length: f32,
     retained: f32,
     internode_spread: f32,
+    insertion_spread: f32,
+    tropism_spread: f32,
 }
 
 // A phytomer as the walk lays it: in, its scale, radius and key, and its

@@ -113,6 +113,8 @@ impl Form {
             ("sag", self.sag, MAX_SAG),
             ("bend_length", self.bend_length, MAX_BEND_LENGTH),
             ("internode_spread", self.internode_spread, 1.0),
+            ("insertion_spread", self.insertion_spread, FRAC_PI_2),
+            ("tropism_spread", self.tropism_spread, 1.0),
         ];
         for (name, value, most) in rates {
             if !(0.0..=most).contains(&value) {

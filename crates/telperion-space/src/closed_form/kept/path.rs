@@ -16,7 +16,7 @@ use super::{
     Kept, Placing, Table, COUNT, LEAVES, LEAVES_ALONG, PARALLEL, SECTION, SECTION2, WIDTH, WOOD,
 };
 use crate::closed_form::along::{dominance_power, Along, Count};
-use crate::closed_form::events::Event;
+use crate::closed_form::events::{angled, Event};
 use crate::closed_form::steps::Step;
 use crate::girth::ripe;
 use crate::schedule::Carried;
@@ -116,7 +116,7 @@ impl Kept<'_> {
                         // the unit's tip.
                         let e = self.species.states[k].form.exponent;
                         let at = t - step.i as i64;
-                        let rest = self.whole(rest, at, (path, 1.0), e);
+                        let rest = self.whole(rest, at, (path, [1.0; 2]), e);
                         end(step.after, step.i, &run, &units, rest);
                     }
                 }
@@ -253,7 +253,7 @@ impl Kept<'_> {
         let (lived, reach) = species.lived(j).unwrap_or((j, 0.0));
         let lived = &species.states[lived];
         let d = lived.form.dominance;
-        let mut placing = Placing::turned(lived.insertion.cos_fixed());
+        let mut placing = Placing::turned(angled(Some(lived)));
         let powers = |share: f64| -> [f64; 4] {
             let base = size * share * reach;
             std::array::from_fn(|p| base.powi(p as i32 + 1) * dominance_power(d, p as f64 + 1.0))
@@ -298,7 +298,7 @@ impl Kept<'_> {
         let mut y = [0.0; WIDTH];
         if let Some(cb) = row.2 {
             let share = stand.shares[0] * unit;
-            let mut placing = Placing::turned(stand.angle.cos_fixed());
+            let mut placing = Placing::turned(stand.turn);
             let x = stand.along[0] / stand.shares[0].max(f64::MIN_POSITIVE);
             let x2 = stand.square / stand.shares[0].max(f64::MIN_POSITIVE);
             let powers = std::array::from_fn(|p| share.powi(p as i32 + 1));

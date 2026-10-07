@@ -8,6 +8,15 @@ fn field(bent: bool) -> u32 {
     return select(9u, 0u, bent);
 }
 
+// Region axis `r`'s insertion angle, of PA values `f`: its PA's, offset by
+// its lineage's draw (`lineage::insertion`, fn-224).
+fn insertion_of(r: u32, f: Pa) -> f32 {
+    if f.insertion_spread <= 0.0 {
+        return f.insertion;
+    }
+    return f.insertion + f.insertion_spread * (2.0 * real_of(insertion_draw(lineage_of(r))) - 1.0);
+}
+
 // The base, heading and side of a bud on `bearer`'s phytomer `at` (a
 // laid index), below it `below`, for region axis `r`; turned up by
 // `epitony` (`geometry::frame`'s lateral, `bud_frame`).
@@ -17,7 +26,7 @@ fn lateral_frame(r: u32, bearer_pa: u32, at: array<vec3<f32>, 3>, rank: vec2<u32
     let roll = f.roll * (2.0 * unit_of(child(lineage_of(r), ROLL)) - 1.0);
     let slot = f32((ax(r, KIND) >> 8u) & 0xffu);
     let azimuth = TAU * turns(rank, divergence_q(bearer_pa)) + TAU * slot / axf(r, WHORL) + roll;
-    let t = turned(at[1], at[2], azimuth, f.insertion, fp.plane, 0.0);
+    let t = turned(at[1], at[2], azimuth, insertion_of(r, f), fp.plane, 0.0);
     var base = at[0];
     if (ax(r, KIND) & IS_WOKEN) != 0u {
         base = (below + at[0]) * 0.5;
@@ -112,7 +121,7 @@ fn frame_of(i: u32, bent: bool, bearer: u32, below: vec3<f32>, bearer_pa: u32) -
         return array<vec3<f32>, 3>(end_of(p, o), along, carried);
     }
     let at = relay_point(p, fp.relay_at, ax(i, NODE), o);
-    let t = turned(at[1].xyz, at[2].xyz, TAU * at[0].w, pa_of(ax(i, PA)).insertion, fp.plane, fp.epitony);
+    let t = turned(at[1].xyz, at[2].xyz, TAU * at[0].w, insertion_of(i, pa_of(ax(i, PA))), fp.plane, fp.epitony);
     let tip = end_of(p, o);
     let b = axf(i, BLEND);
     let heading = unit_or(along * (1.0 - b) + t[0] * b, t[0]);
@@ -173,8 +182,12 @@ fn lay_all(na: u32, bent: bool, bearer: u32, below: vec3<f32>, bearer_pa: u32, g
         } else {
             ss(i, S_LIFTS, 0u);
         }
-        let f = pa_of(ax(i, PA));
+        var f = pa_of(ax(i, PA));
         let own = vec2<f32>(bend_of(i, f), sf(i, S_REACH));
+        // The axis's own tropism (`lineage::tropism`, fn-224), mean its PA's.
+        if f.tropism_spread > 0.0 {
+            f.tropism = f.tropism * (1.0 + f.tropism_spread * (2.0 * real_of(tropism_draw(lineage_of(i))) - 1.0));
+        }
         var walk = Walk(fr[1], fr[2], fr[0], 0.0, (1.0 + fr[1].z) / 2.0, curve - fr[1] * dot(curve, fr[1]));
         let lifts = sb + i * SA + S_LIFTS + 1u;
         let n = s(i, S_LIFTS);

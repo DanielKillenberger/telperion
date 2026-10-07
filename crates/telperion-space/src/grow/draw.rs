@@ -219,8 +219,10 @@ fn pencil<'p>(
         Origin::Lateral { .. } => dominance(species.states[axis.pa].form.dominance, axis.lineage),
         _ => 1.0,
     };
+    let spread = species.states[axis.pa].form.tropism_spread;
+    let turning = crate::lineage::tropism(axis.lineage, spread);
     let pencil = Pencil {
-        layer: Layer::bent(framed, curve).inheriting(handed),
+        layer: Layer::bent(framed, curve, turning).inheriting(handed),
         base_scale: inherited * vigour * share,
         running: 1.0,
         rank: 0.0,

@@ -112,6 +112,10 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         case 16u: {
             r0 = internode_draw(a[0]);
         }
+        case 17u: {
+            r0 = insertion_draw(a[0]);
+            r1 = tropism_draw(a[0]);
+        }
         default: {
             r0 = and_q(a[0], a[1]);
         }

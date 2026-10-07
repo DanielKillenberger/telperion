@@ -83,6 +83,8 @@ pub const SCALES: &[(&str, Scale)] = &[
     ("form.secondary", Linear),
     ("form.bend_length", Log { floor: 0.1 }),
     ("form.internode_spread", Linear),
+    ("form.insertion_spread", Linear),
+    ("form.tropism_spread", Linear),
     ("zone.nodes.min", Linear),
     ("zone.nodes.max", Linear),
     ("zone.buds", Linear),
@@ -177,6 +179,8 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         secondary,
         bend_length,
         internode_spread,
+        insertion_spread,
+        tropism_spread,
     } = form;
     vec![
         ("lifespan", lifespan),
@@ -219,6 +223,8 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         ("form.secondary", secondary),
         ("form.bend_length", bend_length),
         ("form.internode_spread", internode_spread),
+        ("form.insertion_spread", insertion_spread),
+        ("form.tropism_spread", tropism_spread),
     ]
 }
 

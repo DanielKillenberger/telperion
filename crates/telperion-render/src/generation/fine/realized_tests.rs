@@ -363,30 +363,40 @@ fn every_root_settles_on_the_gpu_as_on_the_cpu() {
     }
 }
 
-/// fn-222: internode lengths varied node to node, each by its node's
-/// keyed draw, are laid alike on the GPU and the CPU: every root settles
-/// within fn-125's screen, as it does without (a GPU that left the spread
-/// out would lie centimetres off).
+/// fn-222 and fn-224: internode lengths varied node to node, and
+/// insertion angles and tropisms axis to axis, each by its keyed draw, are
+/// laid alike on the GPU and the CPU: every root settles within fn-125's
+/// screen, as it does without (a GPU that left a spread out would lie
+/// centimetres off).
 #[test]
-fn varied_internodes_settle_on_the_gpu_as_on_the_cpu() {
+fn varied_forms_settle_on_the_gpu_as_on_the_cpu() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
     };
     let k = kernels(&gpu);
-    let mut species = telperion_space::beech();
-    for s in &mut species.states {
-        s.form.internode_spread = 0.6;
-    }
-    let name = "beech, internode spread 0.6";
-    for (seed, cut) in [(1, 1024.0), (7, 4096.0)] {
-        let a = settles_as_on_the_cpu(&gpu, &k, name, (&species, (25, seed), cut));
-        let rms = a.rms();
-        println!(
-            "{name} 25 {seed} at {cut}: {} phytomers, tips {:.2e} most {rms:.2e} RMS",
-            a.phytomers, a.most
-        );
-        assert!(a.phytomers > 0, "{name} 25 {seed}: nothing on the GPU");
-        assert!(a.landed_most <= MOST, "{name} 25 {seed}: roots on the CPU");
-        assert!(a.most <= MOST && rms <= RMS, "{name} 25 {seed}: {a:?}");
+    type Set = fn(&mut telperion_space::Form);
+    let varied: [(&str, Set); 2] = [
+        ("internode spread 0.6", |f| f.internode_spread = 0.6),
+        ("insertion spread 0.5, tropism spread 0.8", |f| {
+            (f.insertion_spread, f.tropism_spread) = (0.5, 0.8)
+        }),
+    ];
+    for (what, set) in varied {
+        let mut species = telperion_space::beech();
+        for s in &mut species.states {
+            set(&mut s.form);
+        }
+        let name = format!("beech, {what}");
+        for (seed, cut) in [(1, 1024.0), (7, 4096.0)] {
+            let a = settles_as_on_the_cpu(&gpu, &k, &name, (&species, (25, seed), cut));
+            let rms = a.rms();
+            println!(
+                "{name} 25 {seed} at {cut}: {} phytomers, tips {:.2e} most {rms:.2e} RMS",
+                a.phytomers, a.most
+            );
+            assert!(a.phytomers > 0, "{name} 25 {seed}: nothing on the GPU");
+            assert!(a.landed_most <= MOST, "{name} 25 {seed}: roots on the CPU");
+            assert!(a.most <= MOST && rms <= RMS, "{name} 25 {seed}: {a:?}");
+        }
     }
 }

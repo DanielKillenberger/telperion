@@ -105,18 +105,19 @@ impl Table {
 /// How a borne bud stands: its base scale's moments E[s^p] (p = 1 to 4),
 /// E[s^p x] (p = 1 to 3) and E[s^p x²] (p = 1, 2) for x its base's
 /// distance along the axis, summed over its buds; the buds; and the
-/// cosine of its angle to the axis.
+/// cosine of its angle to the axis and that cosine's square, each in
+/// expectation over its insertion draw (`lineage::turn`).
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Placing {
     n: f64,
     s: [f64; 4],
     x: [f64; 3],
     x2: [f64; 2],
-    turn: f64,
+    turn: [f64; 2],
 }
 
 impl Placing {
-    pub fn turned(turn: f64) -> Self {
+    pub fn turned(turn: [f64; 2]) -> Self {
         Self {
             turn,
             ..Self::default()
@@ -139,7 +140,7 @@ impl Placing {
     }
 
     /// One whole bud of its bearer's base scale at `at`.
-    pub fn whole(at: Along, turn: f64) -> Self {
+    pub fn whole(at: Along, turn: [f64; 2]) -> Self {
         let mut p = Self::turned(turn);
         p.add(1.0, &[1.0; 4], at);
         p
@@ -151,13 +152,14 @@ impl Placing {
         let [s1, s2, s3, s4] = self.s;
         let [x1, x2, x3] = self.x;
         let q1 = self.x2[0];
-        let (cos, sin2) = (self.turn, 1.0 - self.turn * self.turn);
+        let [cos, cos2] = self.turn;
+        let sin2 = 1.0 - cos2;
         out[WOOD] += s1 * c[WOOD];
         out[ALONG] += x1 * c[WOOD] + cos * s2 * c[ALONG];
         let square = q1 * c[WOOD] + 2.0 * cos * x2 * c[ALONG];
         out[SQUARE] += square + s3 * c[SQUARE];
         let across = c[SQUARE] - c[PARALLEL];
-        out[PARALLEL] += square + s3 * (cos * cos * c[PARALLEL] + sin2 * across / 2.0);
+        out[PARALLEL] += square + s3 * (cos2 * c[PARALLEL] + sin2 * across / 2.0);
         out[MASS] += s3 * c[MASS];
         out[MASS_ALONG] += x3 * c[MASS] + cos * s4 * c[MASS_ALONG];
         out[LEAVES] += s3 * c[LEAVES];

@@ -15,7 +15,7 @@ mod place;
 mod single;
 
 use crate::cores::{fill, map};
-use crate::lineage::{Key, DOMINANCE, ROLL};
+use crate::lineage::{insertion, Key, DOMINANCE, ROLL};
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
 pub(crate) use lay::{ground_zone, support, Layer};
@@ -180,7 +180,7 @@ pub(crate) fn frame(
             let (heading, side) = turned(
                 (at.heading, at.side),
                 azimuth,
-                species.states[axis.pa].insertion,
+                angle(species, axis),
                 parent_state.form.plane,
                 0.0,
             );
@@ -205,7 +205,7 @@ pub(crate) fn frame(
             let (heading, side) = turned(
                 (at.along, at.side),
                 state.divergence * at.rank,
-                species.states[axis.pa].insertion,
+                angle(species, axis),
                 state.form.plane,
                 state.epitony,
             );
@@ -224,6 +224,13 @@ pub(crate) fn frame(
             (tip + (at.base - tip) * b, heading, side)
         }
     }
+}
+
+/// Axis `axis`'s insertion angle: its PA's, offset by its lineage's draw
+/// at its PA's spread (fn-224).
+fn angle(species: &Species, axis: &Axis) -> f64 {
+    let state = &species.states[axis.pa];
+    insertion(axis.lineage, state.insertion, state.form.insertion_spread)
 }
 
 /// A point along an axis and the frame there.
