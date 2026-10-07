@@ -141,3 +141,17 @@
 - **What slowed it:** the state is hashed through its `Debug` text: the lit oak at 24 takes 6 s with it and 0.2 s without, so the GPU proof's eight runs take 40 s and an oak at 80 cannot be compared whole at all (its check is the phase digests and the tree's).
 - **Cost:** about 35 s a proof run, a dozen runs.
 - **What would remove it:** a field-wise binary hash of the grower (the f64 fields' bits, the vectors' words), about ten times cheaper; then the oak at 80 could be compared whole too.
+
+## 2026-10-07, task 11 worker: the shell guard again, on a loop's output file
+
+- **Doing:** timing the device run, base and new binaries, in a shell loop whose output went to a path held in a variable.
+- **What slowed it:** `dcg` refused the redirect, as in task 5's entry. The loop had to be written as a script in `target/t11/` and run with a literal output path.
+- **Cost:** about 2 minutes.
+- **What would remove it:** task 5's entry stands: the guard's allow list for the worktree's `target/` and the scratchpad. This is a local setup matter, reported.
+
+## 2026-10-07, task 11 worker: twenty timings taken at a load of 11 to 24, and a gate at 98
+
+- **Doing:** timing `grow` against the stepped executor on 20 trees, best of three, back to back.
+- **What slowed it:** the load from other workers rose from 11 to 24 during the run. Spruce 80 s1's stepped build read 18.2 s, against 6.9 s on a rerun at load 7. One seed of the device run caught a spike too: today's `grow` read 26.6 s against 17.6 s. The render gate's load rose to 98, so the rest of the workspace took 10 minutes.
+- **Cost:** a rerun of two trees (6 minutes). One device row is unusable for today's `grow`.
+- **What would remove it:** task 6's entry stands: a shared desk lock for timing runs.
