@@ -4,18 +4,20 @@ mod clock;
 mod compute;
 use clock::Clock;
 mod data;
-// fn-209 F1: the fine-root executor's GPU side, its decision contract so
-// far; built for its tests until the executor's shaders read it.
-#[cfg(test)]
+// fn-209 F1 and fn-212: the fine-root executor's GPU side, which settles,
+// draws and places a tree's fine roots on the device (fn-212 task 10).
+// Native first: its readbacks wait on the device, which a browser's
+// WebGPU cannot (host decision 1 makes them async).
+#[cfg(not(target_arch = "wasm32"))]
 mod fine;
 mod io;
 mod positions;
+mod preparation;
 #[cfg(test)]
 mod profile;
-mod preparation;
-mod sources;
 #[cfg(any(target_arch = "wasm32", test))]
 pub(crate) mod request;
+mod sources;
 mod submit;
 mod wood;
 use crate::{buffer::Held, Gpu, Renderer, Result, Submitted};
@@ -144,6 +146,10 @@ pub struct Generator {
     place: io::Pass,
     mass: io::Pass,
     positions: Option<io::Pass>,
+    /// The fine-root executor's kernels, made on the first tree that
+    /// settles its fine roots on the device.
+    #[cfg(not(target_arch = "wasm32"))]
+    fine: std::cell::OnceCell<fine::Kit>,
 }
 impl Generator {
     /// Live tree buffers only; excludes textures, pipelines and driver allocations.
@@ -200,6 +206,8 @@ impl Generator {
             place,
             mass,
             positions,
+            #[cfg(not(target_arch = "wasm32"))]
+            fine: std::cell::OnceCell::new(),
         })
     }
     #[cfg(not(target_arch = "wasm32"))]

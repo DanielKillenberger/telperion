@@ -46,12 +46,14 @@ pub(super) struct Rows {
 /// The fine roots' station segments on the device, their count and the
 /// stations they hold.
 pub(super) struct Stationed {
+    #[cfg_attr(not(test), allow(dead_code))]
     pub runs: u32,
     pub stations: u32,
     pub segments: u32,
     pub buffer: wgpu::Buffer,
     /// The runs' words (`RW` a run): first node, stations, segments,
     /// nodes, first station and first segment.
+    #[cfg_attr(not(test), allow(dead_code))]
     pub run_words: wgpu::Buffer,
 }
 

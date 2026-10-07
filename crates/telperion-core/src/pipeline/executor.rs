@@ -62,6 +62,24 @@ pub struct Part {
     pub grounded: Vec<usize>,
 }
 
+/// Whether `family`'s fine roots settle on another executor (`settle`),
+/// and the recorded gap where they cannot (fn-212 task 10): a family with
+/// no engine species, a species the realized settle grows whole
+/// (`telperion_space::apart`), or leaves that stand on no regular twig
+/// stations (the palm's fronds), which the executor's stations cannot
+/// number. Such a tree is built by `grow` on the CPU: a capability the
+/// executor selects by, never a fallback from a failure.
+pub fn apart(family: &Family) -> std::result::Result<(), &'static str> {
+    let species = family.space.species.as_ref().ok_or("no engine species")?;
+    telperion_space::apart(species)?;
+    let inputs = Inputs::of(family, Envelope::default());
+    let twig = inputs.plan.twig.ok();
+    if !prepared::supports_stations(inputs.leaves.canopy, twig) {
+        return Err("its leaves stand on no regular twig stations");
+    }
+    Ok(())
+}
+
 /// Stage 2 with the fine roots grown and laid by `roots`, settled: what
 /// `Settling::part` converts.
 pub fn settle(family: &Family, roots: &mut dyn telperion_space::Roots) -> Result<Settling> {

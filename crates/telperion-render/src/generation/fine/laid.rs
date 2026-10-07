@@ -19,7 +19,9 @@ const SETTLE: &str = include_str!("settle.wgsl");
 pub(super) const AL: usize = 8;
 pub(super) const PL: usize = 22;
 /// A chain's scratch: per region axis, per region phytomer, then a status.
+#[cfg(test)]
 pub(super) const SA: u32 = 66;
+#[cfg(test)]
 pub(super) const SP: u32 = 12;
 const GG: usize = 24;
 /// `settle.wgsl`'s passes.
@@ -171,6 +173,7 @@ impl Wave {
     }
 
     /// Read back, for the tests.
+    #[cfg(test)]
     pub(super) fn read(&self, gpu: &Gpu) -> Vec<f32> {
         let bytes = (self.axes as usize * AL + self.phyts as usize * PL) as u64 * 4;
         bytemuck::cast_slice(&io::read(gpu, &self.buffer, bytes.max(16)).unwrap()).to_vec()

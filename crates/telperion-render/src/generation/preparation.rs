@@ -8,6 +8,24 @@ impl Generator {
             )
             .into());
         }
+        // Fine roots on the device wherever the realized settle takes the
+        // tree apart (fn-212 task 10, host decision 2); elsewhere the CPU
+        // executor grows it whole, the gap `executor::apart` names.
+        #[cfg(not(target_arch = "wasm32"))]
+        if delivery == Delivery::Resident && executor::apart(family).is_ok() {
+            return self.prepare_fine(family);
+        }
+        self.prepare_whole(family, delivery).await
+    }
+
+    /// `family` grown whole on the CPU executor (`executor::grow`) and
+    /// prepared from it: every family a CPU delivery asks for, and those
+    /// whose fine roots the device cannot settle.
+    pub(super) async fn prepare_whole(
+        &self,
+        family: &Family,
+        delivery: Delivery,
+    ) -> Result<Prepared> {
         let total = Clock::now();
         let mut metrics = Metrics::default();
         let started = Clock::now();

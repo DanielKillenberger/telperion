@@ -12,11 +12,11 @@
 use super::super::{compute, data, io, Backend, Generator, Metrics, Prepared, Resident};
 use super::device::Device;
 use super::dress::{dress, Dresser};
-use super::fixture::stubs;
 use super::handoff::{union, Handoff};
 use super::rings::Ringer;
 use super::roots::{Kernels, Tables};
 use super::stations::{station_rows, Stationed, Stationer};
+use super::stubs::stubs;
 use super::sweep::{rows, Sweeper};
 use crate::buffer::Held;
 use crate::{Gpu, Result};
@@ -95,9 +95,13 @@ impl Timed {
 /// station segments: the CPU's as prepared, the device's buffer).
 pub(super) struct Built {
     pub prepared: Prepared,
+    #[cfg_attr(not(test), allow(dead_code))]
     pub timed: Timed,
+    #[cfg_attr(not(test), allow(dead_code))]
     pub expansion: Expansion,
+    #[cfg_attr(not(test), allow(dead_code))]
     pub cpu_segments: Vec<StationSegment>,
+    #[cfg_attr(not(test), allow(dead_code))]
     pub device: Stationed,
 }
 

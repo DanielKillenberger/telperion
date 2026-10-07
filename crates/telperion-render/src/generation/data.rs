@@ -64,7 +64,7 @@ pub(super) fn config(
 impl Config {
     /// These rows with the leaves written from leaf `first` on: a block
     /// placed into a leaf buffer after another's (fn-212 task 7).
-    #[cfg(test)]
+    #[cfg(not(target_arch = "wasm32"))]
     pub(super) fn at(mut self, first: u32) -> Self {
         self.random[3] = first;
         self

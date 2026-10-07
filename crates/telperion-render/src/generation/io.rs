@@ -331,7 +331,6 @@ pub(super) fn error(detail: String) -> RenderError {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-#[cfg(test)]
 pub(super) fn read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result<Vec<u8>> {
     pollster::block_on(read_async(gpu, source, bytes))
 }

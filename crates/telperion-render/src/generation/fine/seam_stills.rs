@@ -98,7 +98,7 @@ fn seam_stills() {
     let cameras = device_side(&gpu, &family, &dir);
     let mut renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
-    let prepared = gen.prepare(&family, Delivery::Resident).unwrap();
+    let prepared = pollster::block_on(gen.prepare_whole(&family, Delivery::Resident)).unwrap();
     renderer.submit_prepared(prepared).unwrap();
     shoot(&mut renderer, &cameras, &dir, "cpu");
 }

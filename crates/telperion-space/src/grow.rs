@@ -81,7 +81,7 @@ pub fn grow_marked(
     species: &Species,
     request: Request,
 ) -> Result<(Structure, Vec<bool>, Vec<(u64, f64)>)> {
-    if species.reads_light() || keeps(species) {
+    if apart(species).is_err() {
         let structure = grow_whole(species, request)?;
         let marks = vec![false; structure.axes.len()];
         return Ok((structure, marks, Vec::new()));
@@ -379,6 +379,22 @@ struct Grower<'a> {
     handed: Vec<(usize, alone::Pending)>,
     /// The lists a cycle's share fills, kept for the next.
     spare: shoot::Spare,
+}
+
+/// Whether the realized settle takes `species` apart from its fine roots,
+/// and why not where it does not: a species whose buds read light, or
+/// whose girth reads the tree as grown, is grown whole until fn-211's
+/// stepped executor carries what it reads (F2b). A recorded gap, read by
+/// the executor that would hold the roots (fn-212 task 10), never a
+/// fallback.
+pub fn apart(species: &Species) -> std::result::Result<(), &'static str> {
+    if species.reads_light() {
+        Err("its buds read light, which fn-211 carries to fine roots (F2b)")
+    } else if keeps(species) {
+        Err("its shed pipes and leaf girth read the tree as grown (fn-211)")
+    } else {
+        Ok(())
+    }
 }
 
 /// Whether any PA reads the tree as grown: its shed pipes or its leaves'

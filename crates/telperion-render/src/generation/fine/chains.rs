@@ -6,7 +6,9 @@ use super::super::io;
 use super::units::pack;
 use crate::Gpu;
 use std::cell::RefCell;
-use telperion_space::{fixed, ChainAxis, ChainBud, ChainTables, GeometryTables, Woke};
+#[cfg(test)]
+use telperion_space::ChainAxis;
+use telperion_space::{fixed, ChainBud, ChainTables, GeometryTables, Woke};
 
 const CHAIN: &str = include_str!("chain.wgsl");
 const APEX: &str = include_str!("apex.wgsl");
@@ -194,7 +196,9 @@ pub(super) struct Region {
     pub axes: wgpu::Buffer,
     pub phyts: wgpu::Buffer,
     pub status: wgpu::Buffer,
+    #[cfg_attr(not(test), allow(dead_code))]
     pub row: u32,
+    #[cfg_attr(not(test), allow(dead_code))]
     pub groups: u32,
 }
 
@@ -354,6 +358,7 @@ impl Grower {
 
 /// A chain's axes from its region, as `telperion_space::chain_cases` gives
 /// the CPU's: the bearer's stub left out.
+#[cfg(test)]
 pub(super) fn topology(bud: &ChainBud, axes: &[u32], phyts: &[u32]) -> Vec<ChainAxis> {
     let root = usize::from(!bud.seed);
     let word = |i: usize, f: usize| axes[i * AXW + f];

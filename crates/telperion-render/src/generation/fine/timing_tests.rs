@@ -37,7 +37,7 @@ fn today(gpu: &Gpu, family: &Family) -> f64 {
     // A renderer of its own, dropped with the tree it holds.
     let mut renderer = crate::Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
-    let prepared = gen.prepare(family, Delivery::Resident).unwrap();
+    let prepared = pollster::block_on(gen.prepare_whole(family, Delivery::Resident)).unwrap();
     let m = &prepared.metrics;
     let inside = m.total_ms - m.skeleton_ms;
     let t = Instant::now();

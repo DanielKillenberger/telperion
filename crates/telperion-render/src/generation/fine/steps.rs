@@ -22,6 +22,7 @@ pub(super) const IW: u32 = 12;
 pub(super) const DESCRIBE: usize = 0;
 pub(super) const REALIZED: usize = 1;
 
+#[cfg(test)]
 pub(super) fn sources() -> Vec<(&'static str, String)> {
     vec![
         ("fine record", RECORD.to_string()),

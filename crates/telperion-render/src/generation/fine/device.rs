@@ -59,6 +59,7 @@ impl<'a> Device<'a> {
         device
     }
 
+    #[cfg(test)]
     /// The executor with its tables still `building`, uploaded when phase
     /// 1 first needs them.
     pub(super) fn building(gpu: &'a Gpu, k: &'a Kernels, building: Building, batch: usize) -> Self {
@@ -103,6 +104,7 @@ impl<'a> Device<'a> {
         }
     }
 
+    #[cfg(test)]
     /// Takes every root in `order` (by default, forward), in one group:
     /// none is sown while the structure above the cut grows.
     pub(super) fn ordered(mut self, order: Vec<usize>) -> Self {
@@ -126,6 +128,7 @@ impl<'a> Device<'a> {
             .map(|(g, r)| (&g.waves, &g.laid[..], r))
     }
 
+    #[cfg(test)]
     /// Waits for the last phase's passes, which the driver's own landing
     /// overlaps (task 8).
     pub(super) fn wait(&self) {

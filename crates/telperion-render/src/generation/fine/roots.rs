@@ -95,6 +95,7 @@ pub(super) struct Kernels {
     /// Held while the kernels live: their pool keeps a settled tree's
     /// buffers, so whole-tree tests take the device one at a time
     /// (`whole_tree`).
+    #[cfg(test)]
     _one: std::sync::MutexGuard<'static, ()>,
 }
 
@@ -105,6 +106,7 @@ pub(super) fn kernels(gpu: &Gpu) -> Kernels {
         resolver: Resolver::new(gpu),
         fades: Fades::new(gpu),
         pool: Pool::default(),
+        #[cfg(test)]
         _one: crate::generation::whole_tree(),
     }
 }

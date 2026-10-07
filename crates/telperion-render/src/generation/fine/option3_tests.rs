@@ -191,9 +191,8 @@ fn option3_moved_runs_on_the_beech() {
     }
     renderer.submit_prepared(built.prepared).unwrap();
     shoot(&mut renderer, &camera, dir.join("beech30-real-path.png"));
-    let prepared = gen
-        .prepare(&family, crate::generation::Delivery::Resident)
-        .unwrap();
+    let resident = crate::generation::Delivery::Resident;
+    let prepared = pollster::block_on(gen.prepare_whole(&family, resident)).unwrap();
     renderer.submit_prepared(prepared).unwrap();
     shoot(&mut renderer, &camera, dir.join("beech30-cpu-path.png"));
 }

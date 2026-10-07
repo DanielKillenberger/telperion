@@ -203,7 +203,7 @@ impl Generator {
     }
 }
 
-#[cfg(test)]
+#[cfg(not(target_arch = "wasm32"))]
 impl Generator {
     /// The vertices of `rings` compact ring descriptors already on the
     /// device (`[u32; 16]` words, as `compact::read` writes them, in a block
