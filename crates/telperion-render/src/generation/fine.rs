@@ -8,6 +8,7 @@ const ZONES: &str = include_str!("fine/zones.wgsl");
 const FEEDBACK_WIDE: &str = include_str!("fine/feedback_wide.wgsl");
 const FEEDBACK: &str = include_str!("fine/feedback.wgsl");
 const FEEDBACK_SITES: &str = include_str!("fine/feedback_sites.wgsl");
+const FEEDBACK_TURN: &str = include_str!("fine/feedback_turn.wgsl");
 
 /// The contract's WGSL: its wide words, then its arithmetic.
 pub(super) fn contract() -> String {
@@ -18,7 +19,7 @@ pub(super) fn contract() -> String {
 /// CONTRACT-A.md): `telperion_space::fixed::feedback` word for word.
 pub(super) fn feedback() -> String {
     format!(
-        "{}\n{FEEDBACK_WIDE}\n{FEEDBACK}\n{FEEDBACK_SITES}",
+        "{}\n{FEEDBACK_WIDE}\n{FEEDBACK}\n{FEEDBACK_TURN}\n{FEEDBACK_SITES}",
         contract()
     )
 }

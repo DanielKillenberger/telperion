@@ -82,3 +82,62 @@ pub fn unit_w(v: [i128; 3]) -> ([i64; 3], i64) {
         }
     }
 }
+
+/// A rotation built from vectors (host decision, 2026-10-07: trig only
+/// where an angle is a stated quantity): its unit pivot and its Q32 cosine
+/// and sine, each pair normalised in fixed point.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Turn {
+    pub pivot: [i64; 3],
+    pub cos: i64,
+    pub sin: i64,
+}
+
+/// `a · b` of Q32 vectors: the exact sum, one floor.
+pub fn dot(a: [i64; 3], b: [i64; 3]) -> i64 {
+    ((0..3)
+        .map(|k| i128::from(a[k]) * i128::from(b[k]))
+        .sum::<i128>()
+        >> 32) as i64
+}
+
+/// `a × b`, exact, Q64.
+fn cross_wide(a: [i64; 3], b: [i64; 3]) -> [i128; 3] {
+    let p = |i: usize, j: usize| i128::from(a[i]) * i128::from(b[j]);
+    [p(1, 2) - p(2, 1), p(2, 0) - p(0, 2), p(0, 1) - p(1, 0)]
+}
+
+/// `a × b`, each component one floor.
+pub fn cross(a: [i64; 3], b: [i64; 3]) -> [i64; 3] {
+    cross_wide(a, b).map(|c| (c >> 32) as i64)
+}
+
+/// The least rotation taking unit `from` to unit `to`: about
+/// `unit(from × to)`, its cosine and sine the unit of `(from · to,
+/// |from × to|)`. None where the two are parallel or opposed exactly.
+pub fn carry(from: [i64; 3], to: [i64; 3]) -> Option<Turn> {
+    let axis = cross(from, to);
+    let pivot = unit(axis)?;
+    let [cos, sin, _] = unit([dot(from, to), length(axis), 0])?;
+    Some(Turn { pivot, cos, sin })
+}
+
+/// `v` turned by `t` (Rodrigues): `v cos + (p × v) sin + p (p · v)(1 -
+/// cos)`, each term one floor a component from exact intermediates (the
+/// last a 256-bit product shifted by 96), the three added exactly.
+pub fn turned(v: [i64; 3], t: &Turn) -> [i64; 3] {
+    use super::wide::I256;
+    use crate::fixed::{mul, ONE32};
+    let across = cross_wide(t.pivot, v);
+    let along: i128 = (0..3)
+        .map(|k| i128::from(t.pivot[k]) * i128::from(v[k]))
+        .sum();
+    let narrow = |x: I256| x.narrow64().expect("a turned vector inside Q32");
+    std::array::from_fn(|k| {
+        let a = mul(v[k], t.cos);
+        let b = narrow(I256::mul(across[k], i128::from(t.sin)).floor_shift(64));
+        let fall = i128::from(t.pivot[k]) * i128::from(ONE32 - t.cos);
+        let c = narrow(I256::mul(along, fall).floor_shift(96));
+        a + b + c
+    })
+}

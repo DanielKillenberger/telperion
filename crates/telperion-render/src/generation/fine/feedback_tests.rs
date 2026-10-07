@@ -15,7 +15,7 @@ use telperion_space::fixed::P_ONE;
 const SLOTS: usize = 24;
 const PROBE: &str = include_str!("feedback_probe.wgsl");
 
-const NAMES: [&str; 14] = [
+const NAMES: [&str; 16] = [
     "mul_shr",
     "prod_shr",
     "ratio",
@@ -30,6 +30,8 @@ const NAMES: [&str; 14] = [
     "weights, deposits",
     "balance (D16)",
     "ripe, shade, settle, tangent_ratio",
+    "turned",
+    "carry, dot, cross",
 ];
 
 /// The probe's WGSL: the decision contract, the feedback contract, the
@@ -133,6 +135,32 @@ fn expected(s: u32, a: &[u64; 8], terms: &[u64]) -> [u64; SLOTS] {
                 r[..4].copy_from_slice(&[b.memory as u64, b.threshold, u64::from(b.shed), b.kept]);
             }
             r[4] = status(&b);
+        }
+        14 => {
+            let t = vector::Turn {
+                pivot: [i(3), i(4), i(5)],
+                cos: i(6),
+                sin: i(7),
+            };
+            for (k, c) in vector::turned([i(0), i(1), i(2)], &t)
+                .into_iter()
+                .enumerate()
+            {
+                r[k] = c as u64;
+            }
+        }
+        15 => {
+            let (from, to) = ([i(0), i(1), i(2)], [i(3), i(4), i(5)]);
+            if let Some(t) = vector::carry(from, to) {
+                for k in 0..3 {
+                    r[k] = t.pivot[k] as u64;
+                }
+                r[3..6].copy_from_slice(&[t.cos as u64, t.sin as u64, 1]);
+            }
+            r[6] = vector::dot(from, to) as u64;
+            for (k, c) in vector::cross(from, to).into_iter().enumerate() {
+                r[7 + k] = c as u64;
+            }
         }
         _ => {
             let (fall, high) = (a[5] as u32, (a[5] >> 32) as u32);

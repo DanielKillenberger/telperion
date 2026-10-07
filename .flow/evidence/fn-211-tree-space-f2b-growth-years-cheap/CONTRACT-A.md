@@ -192,6 +192,17 @@ Every operation has one result, specified by that result. Where the result depen
 - A direction's elevation is `atan2(z, isqrt(x² + y²))`.
 - **No tangent is formed** (R1.6): every `tan(a/2)` in the reference is replaced by the pair `(sin(a/2), cos(a/2))` (2.5).
 
+**Rotations built from vectors (host decision, 2026-10-07: trig only where an angle is a stated quantity).** A rotation is a `Turn`: a unit pivot with a Q32 cosine and sine (`fixed::feedback::vector`).
+- **Applied by Rodrigues** (`turned`): `v cos + (p × v) sin + p (p · v)(1 − cos)`. Each term is one floor a component from exact intermediates; the last is a 256-bit product shifted by 96. The three add exactly.
+- **An angle that is a stated quantity** (a species' angle, a phyllotactic amount, a wander or sag turn, a curvature times a length) takes one `sincos`. Its `Turn` is reused for every vector it turns: running, across and curve alike.
+- **A rotation from one direction to another takes no angle** (`carry`):
+  - the pivot is `unit(from × to)`;
+  - `(cos, sin)` is the unit, normalised in fixed point, of `(from · to, |from × to|)`;
+  - parallel or opposed vectors give none.
+  
+  This replaces `carried`'s `atan2` followed by `sincos` (2.4).
+- **Why:** realtime is the goal, and the layout cost 3.0 to 3.7 times today's f64 layout (TASK9-CPU.md). The GPU mirror of the layout was not yet built (task 10), so revising the contract cost least now.
+
 **Roots and unit vectors (R1.5, R2.2).**
 - `isqrt(n)` of a u128: `floor(sqrt n)`, specified by its result.
 - `length(v)` of a Q32 vector: `isqrt` of the exact sum of squares (Q64, below 2^128 for any i64 components), giving Q32.
@@ -215,6 +226,7 @@ Sites and source order are as before (`grow/draw.rs`, `geometry.rs`, `geometry/l
 - **The weakened tropism share and `relay_point`'s `t`** are `ratio`s, each clamped pointwise to [0, 1] after the quotient.
 - **`toward_elevation` (R1.3):** `now = elevation(direction)`, a T read as the A `between(0, now)`; `to = now + floor((elevation − now) · share)` on As; then `out cos(to) + UP sin(to)`, rounded once a component.
 - **Wander (R1.4):** the angle `|curve| · length` is in radians, converted by `turns(r)` (one product with `INV_TAU64`), never by a Q32 constant. `keep = e^(−length / bend_length)` and `isqrt(1 − keep²)` as 2.3.
+- **`carried` (host decision, 2026-10-07):** the across and the curve are carried from the old running direction to the bent one by one `carry`, built from the two vectors, with no angle. The wander's and the sag's turns are one `sincos` each, reused for every vector they turn.
 - **Sag's room:** `atan2` of the two dots gives a T; its unwrapping (`< −π/2` adds a turn, `> π` folds) is done on As from `between`, so no turn is lost.
 - **`support`:** `isqrt` of the Q32 quotient shifted to Q64 (unchanged), the quotient a `ratio`.
 - **Positions:** each next point is checked against the 2^12 m domain (2.2) and refuses by name; the trunk's ground refusal (D19) and the clamp to z = 0 for other wood are unchanged.
@@ -331,9 +343,9 @@ Costs measured: CPU regression, device runtime, transfer bytes, peak memory and 
 ### 2.13 The proof built in task 8 (R4)
 
 - **The conformance probe** (`fine/feedback_tests.rs`, `fine/feedback_probe.wgsl`):
-  - 14 selectors cover the wide products, the quotient, both signed shifts, radians and amounts, sin, cos and atan2, asin, acos, isqrt and length, `unit`, `unit_w`, the W logs and powers, the order-free sum and its refusal, the weights and deposits, D16, and the endpoint cases.
+  - 16 selectors cover the wide products, the quotient, both signed shifts, radians and amounts, sin, cos and atan2, asin, acos, isqrt and length, `unit`, `unit_w`, the W logs and powers, the order-free sum and its refusal, the weights and deposits, D16, the endpoint cases, and (task 9) the vector-built rotation: `turned`, and `carry` with `dot` and `cross`.
   - Each selector runs 16,384 random cases at and about its domain's edges, with Astra's counterexamples first: four Q32 ones; a W quotient of 2^100 by 2^99; eight terms of 2^125; one turn in radians; raw `(1, 1, 0)`; the W lever `(1, 0, −1)`; area raw 1 with thirds; zero ripening; zero light at viability one; φ zero; the upright lever.
-  - **Every result word and error status is equal on the GPU and the CPU:** 229,400 cases, none differing.
+  - **Every result word and error status is equal on the GPU and the CPU:** 229,400 cases, none differing (task 8). Task 9 added 32,768 cases for the rotation, none differing.
 - **The feedback slice** (`fixed::feedback::slice`, `fine/feedback_slice.rs`): a synthetic lit crown of 20,000 leaves and 3,000 buds.
   - The device deposits by 128-bit atomic adds with carries, in forward, reversed and shuffled order, in one, 4,096-leaf and 777-leaf dispatches.
   - The 777-leaf run starts in a buffer half the box's size, overflows, and retries from a zeroed lattice.

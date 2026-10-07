@@ -35,6 +35,15 @@ impl Rng {
             _ => (lo as i128 + (u128::from(self.next()) % span) as i128) as i64,
         }
     }
+    /// A random Q32 unit vector (`vector::unit` of a random one).
+    fn unit_vector(&mut self) -> [i64; 3] {
+        loop {
+            let v = [0; 3].map(|_: i64| (self.next() as i64) >> 20);
+            if let Some(u) = telperion_space::fixed::feedback::vector::unit(v) {
+                return u;
+            }
+        }
+    }
     fn wide(&mut self) -> i128 {
         (i128::from(self.any()) << 64 | i128::from(self.next())) >> (self.next() % 128)
     }
@@ -192,6 +201,33 @@ pub(super) fn cases(s: u32, rng: &mut Rng, terms: &mut Vec<u64>) -> Vec<[u64; 8]
                 a[5] = rng.within(0, (1 << 53) - 1) as u64;
                 a[6] = rng.within(-(1 << 10), 1 << 40) as u64;
                 a[7] = rng.within(0, q) as u64;
+            }
+            14 => {
+                let v = rng.unit_vector();
+                let scale = rng.within(1, 1 << 12);
+                for k in 0..3 {
+                    a[k] = v[k].wrapping_mul(scale) as u64;
+                }
+                let p = rng.unit_vector();
+                a[3..6].copy_from_slice(&p.map(|c| c as u64));
+                let (c, sn) = angle::sincos(rng.next() as u32);
+                a[6] = c as u64;
+                a[7] = sn as u64;
+            }
+            15 => {
+                let from = rng.unit_vector();
+                let to = match rng.next() % 6 {
+                    0 => from,
+                    1 => from.map(|c| -c),
+                    2 => {
+                        let mut t = from;
+                        t[(rng.next() % 3) as usize] += (rng.next() % 9) as i64 - 4;
+                        t
+                    }
+                    _ => rng.unit_vector(),
+                };
+                a[..3].copy_from_slice(&from.map(|c| c as u64));
+                a[3..6].copy_from_slice(&to.map(|c| c as u64));
             }
             _ => {
                 a[0] = rng.within(0, 1 << 40) as u64;

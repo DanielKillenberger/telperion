@@ -5,12 +5,12 @@
 //! `v3` of a computed one are exact. Every product rounds once (floor),
 //! every sum is exact.
 use crate::fixed::feedback::angle::{sincos, wrap};
-use crate::fixed::feedback::vector;
-use crate::fixed::feedback::wide::I256;
+use crate::fixed::feedback::vector::{self, turned, Turn};
 use crate::fixed::{mul, q32, ONE32};
 use crate::structure::Vec3;
 
 pub(crate) type Q3 = [i64; 3];
+pub(crate) use vector::{carry, turned as turned_by};
 
 pub(crate) const UP: Q3 = [0, 0, ONE32];
 
@@ -36,25 +36,14 @@ pub(crate) fn scaled(v: Q3, s: i64) -> Q3 {
     v.map(|c| mul(c, s))
 }
 
-/// The exact dot product, Q64.
-fn dot_wide(a: Q3, b: Q3) -> i128 {
-    (0..3).map(|k| i128::from(a[k]) * i128::from(b[k])).sum()
-}
-
 /// `a · b`, one floor.
 pub(crate) fn dot(a: Q3, b: Q3) -> i64 {
-    (dot_wide(a, b) >> 32) as i64
-}
-
-/// The exact cross product, Q64.
-fn cross_wide(a: Q3, b: Q3) -> [i128; 3] {
-    let p = |i: usize, j: usize| i128::from(a[i]) * i128::from(b[j]);
-    [p(1, 2) - p(2, 1), p(2, 0) - p(0, 2), p(0, 1) - p(1, 0)]
+    vector::dot(a, b)
 }
 
 /// `a × b`, each component one floor.
 pub(crate) fn cross(a: Q3, b: Q3) -> Q3 {
-    cross_wide(a, b).map(|c| (c >> 32) as i64)
+    vector::cross(a, b)
 }
 
 pub(crate) fn length(v: Q3) -> i64 {
@@ -65,21 +54,16 @@ pub(crate) fn unit(v: Q3) -> Option<Q3> {
     vector::unit(v)
 }
 
-/// `v` rotated by the amount `angle` (Q32 turns) about the unit `pivot`
-/// (Rodrigues): `v cos + (p × v) sin + p (p · v)(1 - cos)`, each of the
-/// three one floor a component from exact intermediates, added exactly.
-pub(crate) fn rotated(v: Q3, pivot: Q3, angle: i64) -> Q3 {
+/// The rotation by the stated amount `angle` (Q32 turns) about the unit
+/// `pivot`: one sin and cos, reused for every vector it turns.
+pub(crate) fn turn(pivot: Q3, angle: i64) -> Turn {
     let (cos, sin) = sincos(wrap(angle));
-    let across = cross_wide(pivot, v);
-    let along = dot_wide(pivot, v);
-    let narrow = |x: I256| x.narrow64().expect("a rotated vector inside Q32");
-    std::array::from_fn(|k| {
-        let a = mul(v[k], cos);
-        let b = narrow(I256::mul(across[k], i128::from(sin)).floor_shift(64));
-        let fall = i128::from(pivot[k]) * i128::from(ONE32 - cos);
-        let c = narrow(I256::mul(along, fall).floor_shift(96));
-        a + b + c
-    })
+    Turn { pivot, cos, sin }
+}
+
+/// `v` rotated by the amount `angle` about the unit `pivot`.
+pub(crate) fn rotated(v: Q3, pivot: Q3, angle: i64) -> Q3 {
+    turned(v, &turn(pivot, angle))
 }
 
 /// A species' angle in radians as an amount, Q32 turns: converted once,

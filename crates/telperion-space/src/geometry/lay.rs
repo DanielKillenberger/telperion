@@ -1,7 +1,7 @@
 //! Laying an axis's internodes, one phytomer at a time: the final lay
 //! walks an axis from its base, and the rough layout grown with the tree
 //! (fn-197) carries the same walk on as each growth unit grows.
-use super::q::{self, add, amount, cross, dot, q3, rotated, scaled, sub, unit, v3, Q3};
+use super::q::{self, add, amount, carry, cross, dot, q3, scaled, sub, turned_by, unit, v3, Q3};
 use crate::fixed::feedback::angle::{asin, between, sincos, turns, wrap};
 use crate::fixed::feedback::lattice::REACH;
 use crate::fixed::feedback::vector::isqrt;
@@ -69,7 +69,13 @@ pub(crate) enum Stop {
 
 impl Stop {
     /// The error it is for axis `axis` (its PA, birth and base height).
-    pub(crate) fn error(self, axis: usize, pa: usize, birth: u32, base: f64) -> crate::error::Error {
+    pub(crate) fn error(
+        self,
+        axis: usize,
+        pa: usize,
+        birth: u32,
+        base: f64,
+    ) -> crate::error::Error {
         match self {
             Stop::Below(height) => crate::error::Error::BelowGround {
                 axis,
@@ -183,8 +189,12 @@ impl Layer {
         let length = mul(q32(state.internode), scale);
         let share = falloff(mul(q32(form.tropism), length));
         let bent = toward_elevation(running, across, amount(form.elevation), share);
-        across = carried(across, running, bent);
-        curve = carried(curve, running, bent);
+        // Carried by the least rotation from the old running direction to
+        // the bent one, built from the two vectors (no angle).
+        if let Some(t) = carry(running, bent) {
+            across = turned_by(across, &t);
+            curve = turned_by(curve, &t);
+        }
         running = bent;
         // The node's wander: a turn of keyed angle about a keyed pivot,
         // none without wander.
@@ -210,15 +220,17 @@ impl Layer {
             curve = sub(curve, scaled(running, dot(curve, running)));
             let angle = turns(mul(q::length(curve), length));
             if let Some(axis) = unit(curve) {
-                running = rotated(running, axis, angle);
-                across = rotated(across, axis, angle);
+                let t = q::turn(axis, angle);
+                running = turned_by(running, &t);
+                across = turned_by(across, &t);
             }
         } else if let Some((signed, draw, pivot)) = kick {
             // No memory: the node's own turn, as wander always drew it,
             // and the curvature it leaves a continuation is that turn's.
             let angle = turns(mul(mul(q32(form.wander), length), signed));
-            running = rotated(running, pivot, angle);
-            across = rotated(across, pivot, angle);
+            let t = q::turn(pivot, angle);
+            running = turned_by(running, &t);
+            across = turned_by(across, &t);
             curve = scaled(pivot, draw);
         } else {
             curve = [0; 3];
@@ -226,10 +238,13 @@ impl Layer {
         // Sag: the beam's curvature, its moment over its stiffness, turns
         // the axis down about the torque's axis (`sag_angle`).
         if let (Some(load), true) = (load, form.sag > 0.0 && phytomer.radius > 0.0) {
-            if let Some((pivot, angle)) = sag_angle(load, phytomer, state, (running, across, tip), trunk) {
-                running = rotated(running, pivot, angle);
-                across = rotated(across, pivot, angle);
-                curve = rotated(curve, pivot, angle);
+            if let Some((pivot, angle)) =
+                sag_angle(load, phytomer, state, (running, across, tip), trunk)
+            {
+                let t = q::turn(pivot, angle);
+                running = turned_by(running, &t);
+                across = turned_by(across, &t);
+                curve = turned_by(curve, &t);
             }
         }
         // Its own pull, and those it carries on from the axis it relays,
@@ -460,17 +475,4 @@ fn framed(v: Vec3, (heading, side): (Vec3, Vec3), (heading2, side2): (Vec3, Vec3
     };
     let (normal, normal2) = (heading.cross(side), heading2.cross(side2));
     heading2 * v.dot(heading) + side2 * v.dot(side) + normal2 * v.dot(normal)
-}
-
-/// `v` carried by the least rotation that takes unit `from` to unit `to`:
-/// about `unit(from × to)` by `atan2(|from × to|, from · to)`.
-fn carried(v: Q3, from: Q3, to: Q3) -> Q3 {
-    let axis = cross(from, to);
-    match unit(axis) {
-        Some(pivot) => {
-            let angle = crate::fixed::feedback::angle::atan2(q::length(axis), dot(from, to));
-            rotated(v, pivot, between(0, angle))
-        }
-        None => v,
-    }
 }

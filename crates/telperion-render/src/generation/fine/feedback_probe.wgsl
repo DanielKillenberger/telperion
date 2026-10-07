@@ -141,11 +141,34 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
             }
             put32(4u, b.status);
         }
-        default: {
+        case 14u: {
+            let t = Turn(V3(a[3], a[4], a[5]), a[6], a[7], true);
+            let v = turned_by(V3(a[0], a[1], a[2]), t);
+            for (var k = 0u; k < 3u; k++) {
+                put(k, v[k]);
+            }
+        }
+        case 15u: {
+            let from_v = V3(a[0], a[1], a[2]);
+            let to_v = V3(a[3], a[4], a[5]);
+            let t = carry(from_v, to_v);
+            var p = t.pivot;
+            var c = cross3(from_v, to_v);
+            for (var k = 0u; k < 3u; k++) {
+                put(k, p[k]);
+                put(7u + k, c[k]);
+            }
+            put(3u, t.cos);
+            put(4u, t.sin);
+            put32(5u, select(0u, 1u, t.some));
+            put(6u, dot3(from_v, to_v));
+        }
+        case 13u: {
             put(0u, ripe(a[0], a[1]));
             put(1u, shade(a[2], a[3], a[4]));
             put32(2u, settle(a[5].x, a[6]));
             put(3u, tangent_ratio(a[5].x, a[5].y));
         }
+        default: {}
     }
 }

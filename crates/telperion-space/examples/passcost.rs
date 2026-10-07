@@ -4,7 +4,7 @@
 //! is priced against the base, pass by pass. The layout's share is the
 //! sketch, the re-lay's place and sag, and the final lay's place and sag.
 //!
-//!   cargo run --profile ci -p telperion-space --example passcost
+//!   cargo run --profile ci -p telperion-space --example passcost -- [trees]
 use std::collections::BTreeMap;
 use std::time::Instant;
 use telperion_space::{beech, grow_staged, oak, palm, spruce, Light, Pass, Request, Stage};
@@ -30,7 +30,11 @@ fn main() {
     ];
     println!("| Tree 80 s1 | build ms | layout ms | layout share | per pass ms |");
     println!("|---|--:|--:|--:|---|");
+    let only: Vec<String> = std::env::args().skip(1).collect();
     for (name, species, light) in trees {
+        if !only.is_empty() && !only.iter().any(|o| o == name) {
+            continue;
+        }
         let request = Request {
             age: 80,
             seed: 1,
