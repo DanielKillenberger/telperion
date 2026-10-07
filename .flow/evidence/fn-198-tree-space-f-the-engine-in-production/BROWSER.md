@@ -90,3 +90,17 @@ Task 3's driver and plans, fresh pages, one per species, `npm run dev`'s modules
 - On the spruce the expectation runs 0 to 7 percent under the kept count (seed 42 highest); the after-growth refusal stays as the backstop for a tree kept above its expectation.
 
 Screenshots (all viewed): `raw/task4/beech-40.png` (seed 42), `beech-80.png` (seed 2), `oak-40.png`, `oak-80.png`, `spruce-40.png`, `spruce-70.png` (seed 2, the largest that fits), `spruce-80-refused.png` (the panel's error), `palm-40.png`, `palm-80.png`. Each reads as its species as in task 3; no tree is blank, collapsed or below the ground.
+
+## Task 5: one core as fast as before, and the lineage order (2026-10-07 08:41, load 2.6 to 6.0)
+
+Task 3's driver and plans (`harness/task5/plan-*.json`), fresh pages, one per species, the modules built at `8f3ce65d` (the one-core fixes and host decision 17), the GPU lock held. Raw: `raw/task5/harness-after.txt` and `drive-*.json`. Task 3 is the base, before the F1 merge; task 4 is after it.
+
+| Tree | Seed change at 40, task 3 / 4 / 5 ms | Age 40 to 80, task 3 / 4 / 5 ms (stage 2) |
+|---|--:|--:|
+| European beech | 552 / 611 / 540 | 5,743 / 6,130 / 4,486 (2,668 / 3,234 / 1,807) |
+| Oregon white oak | 1,615 / 1,732 / 1,411 | 17,544 / 21,944 / 17,786 (15,104 / 19,469 / 15,373) |
+| Norway spruce | 4,834 / 5,720 / 4,120 | to 70: 15,635 / 15,834 / 13,756; to 80 refused in 322 / 330 ms |
+| Date palm | 366 / 294 / 311 | 47 / 40 / 41 |
+
+- The beech and the spruce build faster than before the merge; the oak at 80, whose light keeps it on the whole grower, is within 1.4 percent of task 3 (stage 2 1.8 percent), at a load of 4.3 against task 3's 2.8; its seed change is 13 percent faster.
+- Screenshots viewed: `raw/task5/oak-40.png`, `beech-80.png`, `spruce-70.png`, `oak-80.png`, `palm-80.png`; each reads as its species as in task 4, no tree blank, collapsed or below the ground. The spruce at 80 is refused by name before it grows, as in task 4.
