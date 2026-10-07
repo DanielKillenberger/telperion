@@ -107,3 +107,10 @@ D1' asks for each quantity from realized totals in fixed point. Three of the qua
    - None of them is in AUDIT.md or CONTRACT.md.
 
 D2 (counts from record data) shares item 1's answer; D3 to D5 do not depend on it.
+
+## Host decisions on D1' (2026-10-07)
+
+1. **D1' is delivered by fn-211's contract A.** Its CPU port, in progress on `fn-211-tree-space-f2b-growth-years-cheap`, puts girth, sag and the layout in fixed point on both executors. Once it lands, the conversion's thinning reads exact radii and laid positions and cuts identically. There are no separate integer forms here.
+2. **Until then the conversion stays as today.** The margins above (0 to 3 decisions per tree near a threshold) are the known residual, and topology is compared before conversion.
+3. **D2 to D5 and the native probe proceed** exactly as CONTRACT.md specifies, against task 2's baseline B: the spruce at 80 about 8.1 s, so the 3x target is about 2.7 s. D2 uses today's radius until contract A.
+4. **The beech's exact 0.4 codominance ties** are made by the code itself and are deterministic on both sides. No change.
