@@ -27,3 +27,10 @@
 - **Slowed by:** four sessions queued on the one GPU lock (a workspace gate among them); `flock -w 1200` timed out without the run starting.
 - **Cost:** 20 minutes, and R1's shader edits stay unchecked at the timebox.
 - **Would remove it:** as the first entry: the lock taken around GPU work only, not whole gates.
+
+## 2026-10-07 14:00, /tmp's quota full, from other sessions
+
+- **Doing:** the closed form for R1.
+- **Slowed by:** `/tmp` is a 16 GB tmpfs, with 13 GB used, mostly by other sessions' scratch directories under this host's shared scratchpad (`out` 2.3 GB, `t5` 1.8 GB, `topo` 1.3 GB, `before` and `after` 1.2 GB each). The user's quota there is full, so every shell call errors on its working-directory write, and a background command's output file can be lost. This session holds only a few KB there now.
+- **Cost:** a background test's output lost; every command since then reports an error.
+- **Would remove it:** per-session scratch directories cleaned when their session ends, or the scratchpad on the home disk. A local setup problem: reported, not specced.

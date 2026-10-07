@@ -115,6 +115,26 @@ fn grown(tree: &Structure) -> Vec<Grown> {
     out
 }
 
+/// A unit's key: its axis's lineage's child by its cycle, or, for a failed
+/// unit's relay's first unit (fn-199 R1), that key's child by
+/// `lineage::FAILED`: the one its first node's key descends from, through
+/// a zone (`lineage::ZONE` + z) and the node's draw index.
+fn unit_key(lineage: u64, cycle: u32, node: u64) -> u64 {
+    const ZONE: u64 = 16;
+    const FAILED: u64 = u64::MAX - 9;
+    let unit = fixed::child(lineage, u64::from(cycle));
+    let apart = fixed::child(unit, FAILED);
+    let holds = |key: u64| {
+        (0..4).any(|z| (0..256).any(|j| fixed::child(fixed::child(key, ZONE + z), j) == node))
+    };
+    if holds(unit) {
+        unit
+    } else {
+        assert!(holds(apart), "a unit keyed neither way");
+        apart
+    }
+}
+
 struct Kernel {
     pass: io::Pass,
 }
@@ -240,12 +260,8 @@ fn tree(species: &Species, age: u32, seed: u64) -> (Structure, Vec<Grown>, Vec<[
         .iter()
         .map(|u| {
             let a = &tree.axes[u.axis];
-            [
-                a.lineage as u32,
-                (a.lineage >> 32) as u32,
-                a.pa as u32,
-                u.cycle,
-            ]
+            let key = unit_key(a.lineage, u.cycle, a.phytomers[u.from].key());
+            [key as u32, (key >> 32) as u32, a.pa as u32, u.cycle]
         })
         .collect();
     (tree, units, packed, ms)

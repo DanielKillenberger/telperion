@@ -4,6 +4,7 @@
 //! carries the axis on grows in the same cycle at the rest, as a woken
 //! bud's first unit does. The grower, the closed form and `Living` read
 //! the one schedule here.
+use crate::transcendental::Transcendental;
 
 /// What a bud carries into its age: the time it has spent in it (a relay
 /// carries its axis's on), the cycles it slept that its abortion hazard
@@ -106,6 +107,54 @@ impl Carried {
             self.gone.to_bits(),
             self.relay,
         )
+    }
+}
+
+/// The points a failed unit's lived share is taken at in the closed form
+/// (fn-199 R1, host 2026-10-07): the midpoints of `LIVED` equal parts of
+/// its distribution, each with that part's chance.
+pub(crate) const LIVED: usize = 2;
+
+/// The least share of a cycle a failed unit's lived parts are taken for in
+/// expectation: below it a failure its relay takes over is counted as the
+/// apex carrying on, which it all but is, so the parts' relays, each the
+/// rest of a shorter cycle, end.
+pub(crate) const LIVED_FLOOR: f64 = 1.0 / 256.0;
+
+/// The lived shares of a unit of `share` that failed under survival
+/// `viability` a cycle, at `LIVED` points: its time `t` given failure
+/// runs as `(1 - v^t) / (1 - v^share)`, inverted at each part's middle,
+/// on the tick grid. The grower's `fixed::decide::lived`, in expectation.
+pub(crate) fn lived(viability: f64, share: f64) -> [f64; LIVED] {
+    std::array::from_fn(|j| {
+        if viability >= 1.0 || share <= 0.0 {
+            return share;
+        }
+        if viability <= 0.0 {
+            return 0.0;
+        }
+        let u = (j as f64 + 0.5) / LIVED as f64;
+        let failing = 1.0 - viability.powf_fixed(share);
+        let t = (1.0 - u * failing).ln_fixed() / viability.ln_fixed();
+        crate::fixed::grid(t.clamp(0.0, share))
+    })
+}
+
+impl Carried {
+    /// What the relay of unit `unit`, which failed `lived` into its share,
+    /// carries: the apex's time on from that moment, and the rest of its
+    /// cycle where any is left; whether it grows in that cycle.
+    pub fn failed(self, unit: Unit, lived: f64) -> (Self, bool) {
+        let spent = unit.before + lived;
+        let used = unit.used - unit.share + lived;
+        let same = used < 1.0 - WHOLE;
+        let relay = Carried {
+            spent,
+            aged: self.aged + spent - self.spent,
+            gone: if same { used } else { 0.0 },
+            relay: false,
+        };
+        (relay, same)
     }
 }
 

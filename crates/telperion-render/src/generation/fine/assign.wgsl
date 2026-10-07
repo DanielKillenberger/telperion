@@ -421,6 +421,9 @@ fn units_q() {
         } else if sleepers[u + U_FAILS] == 2u {
             survive = relayed;
         }
+        // What a woken bud's keeping reads (`woken_kept_q`), as the CPU's
+        // unit holds it.
+        set_unit_q(u, QSURV, survive);
         let run = times_q(rq(a, QRUN), survive);
         let share = ticks_q(w(sleepers[u + U_SHARE], 0u));
         let unit = times_q(run, share);

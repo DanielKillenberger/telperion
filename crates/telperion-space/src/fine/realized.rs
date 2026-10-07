@@ -228,6 +228,7 @@ pub(crate) fn stub(bearer: &Axis, node: usize) -> Axis {
         alive: 0.0,
         rank: 0.0,
         sleep: 0.0,
+        base_scale: 1.0,
     }
 }
 

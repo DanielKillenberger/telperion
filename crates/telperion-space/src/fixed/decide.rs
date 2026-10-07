@@ -39,7 +39,8 @@ pub(crate) fn lived(p: f64, share: f64, d: Draw) -> u64 {
 
 /// D5's lived time, integer form: a survival of `-log2` chance `l` a
 /// cycle (Q32), a unit of `share` ticks, the 53-bit draw `d`; the ticks
-/// `-log2(d / 2^53) 2^20 / l`, floored, at most `share`.
+/// `-log2(d / 2^53) 2^20 / l`, rounded up, at most `share`: a draw at the
+/// bound lives the whole unit, so its relay's rest is none, not a tick.
 pub fn lived_q(l: i64, share: u64, d: u64) -> u64 {
     if l <= 0 {
         return share;
@@ -51,7 +52,7 @@ pub fn lived_q(l: i64, share: u64, d: u64) -> u64 {
     if u >= l {
         return share.min(1 << 20);
     }
-    let t = ((u as u128) << 20) / l as u128;
+    let t = (((u as u128) << 20) + l as u128 - 1) / l as u128;
     (t as u64).min(share)
 }
 

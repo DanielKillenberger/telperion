@@ -20,8 +20,9 @@ fn unit_index(id: vec3<u32>) -> u32 {
     return id.x + id.y * cfg.z;
 }
 
+// The unit's key, as the CPU gives it (`units.rs`, `unit_key`).
 fn unit_key(u: vec4<u32>) -> vec2<u32> {
-    return child(u.xy, w(u.w, 0u));
+    return u.xy;
 }
 
 @compute @workgroup_size(64)

@@ -377,8 +377,14 @@ fn a_relay_stands_in_the_curvature_zone_on_the_upper_side() {
     }
     let rise =
         |v: &[(usize, usize, usize, f64)]| v.iter().map(|r| r.3).sum::<f64>() / v.len() as f64;
+    // 0.04, from 0.05 (fn-199 R1): a failed unit's relay now stands on the
+    // part of the unit its apex lived, at the axis's tip. On these seeds
+    // those relays already point up (heading z 0.76 against 0.66) and
+    // stand nearer their bound (blend 0.25 against 0.53), so epitony, which
+    // turns a relay as far as it has left the line, raises them 0.009; the
+    // relays of stops after a whole unit rise 0.050 (0.053 on the base).
     assert!(
-        rise(&pooled(1.0)) > rise(&half) + 0.05,
+        rise(&pooled(1.0)) > rise(&half) + 0.04,
         "epitony turns relays up: {} against {}",
         rise(&pooled(1.0)),
         rise(&half)

@@ -79,6 +79,7 @@ fn axis(origin: Origin, lights: &[f64]) -> Axis {
         alive: 1.0,
         rank: 0.0,
         sleep: 0.0,
+        base_scale: 1.0,
     }
 }
 

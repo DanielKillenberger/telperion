@@ -17,7 +17,7 @@ use super::{
 };
 use crate::closed_form::along::{dominance_power, Along, Count};
 use crate::closed_form::events::Event;
-use crate::closed_form::steps::Step;
+use crate::closed_form::steps::{Grown, Step};
 use crate::girth::ripe;
 use crate::schedule::Carried;
 use crate::species::{Species, Zone, ALONG};
@@ -39,6 +39,7 @@ impl Axis {
 }
 
 /// The running product over the parts grown: E[Π f] and E[Π f · Y].
+#[derive(Clone)]
 pub(super) struct Running {
     pub a: f64,
     pub b: [f64; WIDTH],
@@ -97,10 +98,20 @@ impl Kept<'_> {
                     start.into(length, relay_at)
                 })
             };
-            let failed = step.before - step.grown;
-            let e = self.relay_end((k, m, t), step.failed, failed, on(step.i - 1, &units));
-            end(failed, step.i - 1, &run, &units, e);
-            let (g, h, length) = self.unit((k, m, t), axis, step, (path, &mut units));
+            // A failure with no relay ends the axis at the unit before;
+            // each lived part grows its unit's nodes and ends in its
+            // relay, standing on it (fn-199 R1).
+            end(step.failed, step.i - 1, &run, &units, NONE);
+            for l in &step.lived {
+                let (mut run, mut units) = (run.clone(), units.clone());
+                let (g, h, length) = self.unit((k, m, t), axis, step.part(l), (path, &mut units));
+                run.times(g, &h);
+                units.close(path, length);
+                let at = path.into(length, relay_at);
+                let e = self.relay_end((k, m, t), Some(l.relay), l.weight, at);
+                end(l.weight, step.i, &run, &units, e);
+            }
+            let (g, h, length) = self.unit((k, m, t), axis, step.whole(), (path, &mut units));
             run.times(g, &h);
             units.close(path, length);
             path = path.then(length);
@@ -139,7 +150,7 @@ impl Kept<'_> {
         &mut self,
         (k, m, t): (usize, usize, i64),
         axis: &Axis,
-        step: &Step,
+        step: Grown,
         (start, units): (Along, &mut Units),
     ) -> (f64, [f64; WIDTH], Along) {
         let species = self.species;

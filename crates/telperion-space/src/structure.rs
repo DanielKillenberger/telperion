@@ -106,7 +106,7 @@ pub struct Axis {
     /// A relay's place between the continuation it replaces (0) and its
     /// own bud's place and heading (1): the presence of the stop that made
     /// it. 1 for every other axis.
-    pub(crate) blend: f64,
+    pub blend: f64,
     /// The cycle the apex stopped (died, ended, or changed PA); none, it lives.
     pub apex_end: Option<u32>,
     pub base: Vec3,
@@ -117,15 +117,18 @@ pub struct Axis {
     pub phytomers: Vec<Phytomer>,
     /// The presence of each growth unit its apex grew, base to tip, times
     /// the share of its cycle it grew: the time it lived, by presence.
-    pub(crate) units: Vec<f64>,
+    pub units: Vec<f64>,
     /// Its apex's presence at the tree's age: every survival it passed,
     /// barely or not; 0 for a stopped apex.
-    pub(crate) alive: f64,
+    pub alive: f64,
     /// Its nodes counted by their presence: the phyllotactic rank of the next.
     pub(crate) rank: f64,
     /// The share of its first cycle a bud that woke still slept: its age
     /// is that much less than its birth gives.
     pub(crate) sleep: f64,
+    /// Its scale at its base, which its phytomers' scales carry with their
+    /// presences (`geometry::scale`); 1 until scaled.
+    pub(crate) base_scale: f64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -101,3 +101,10 @@ Kept on the local branch `fn-199-r1-wip` (one commit on `cfa2a735`), not on this
 ## R3 under the host's design: not started
 
 Time ran out after R1. R6 and the gate wait for R1 and R3.
+
+## Host decisions, second round (2026-10-07)
+
+1. The closed form models the lived share by quadrature over its distribution, with the fewest points that meet the comparison tests' tolerance, through `steps.rs`, `events.rs`, `kept/` and `predictor/`. Measure what it costs the count-only predictor on one core (`taskset -c 0`) at 40 and 80 for the beech, spruce and oak, against before.
+2. The release-law jump (seed 3): waking time must change the tree by degree. Trace the cause and fix it at its source in the same spirit as R1: a bud waking at the end of a cycle and one waking at the start of the next must meet.
+3. The 1.3e-6 vanishing-size breach and the epitony test's 0.045: find the cause. A test's threshold changes only if the botany is shown right, and the reason is stated.
+4. Then R3 (the blended placement), GPU parity for R1 under the lock, R6 (the beech, base against after, five seeds, viewed), and the gate (in two parts: the workspace without `telperion-render` unlocked, then `telperion-render` under the lock).
