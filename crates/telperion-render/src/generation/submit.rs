@@ -22,6 +22,7 @@ impl Renderer {
             resident.leaves,
             resident.masses,
         );
+        self.submit_organ(mesh.organ.as_ref(), crate::Level::default());
         self.scene
             .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
         self.scene.set_crown(resident.crown);

@@ -24,6 +24,8 @@ mod field_fronds;
 mod field_plan;
 #[path = "suite/field_still.rs"]
 mod field_still;
+#[path = "suite/flowers.rs"]
+mod flowers;
 #[path = "suite/foliage.rs"]
 mod foliage;
 #[path = "suite/foliage_reference.rs"]
