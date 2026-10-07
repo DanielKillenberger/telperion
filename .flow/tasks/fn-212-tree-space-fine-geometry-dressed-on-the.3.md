@@ -12,9 +12,10 @@ Host decisions D1-D5 (CONTRACT.md): the conversion keeps every kept phytomer (th
 - npm test and the gate green.
 
 ## Done summary
-TBD
+fn-198's tip merged (e6d45e4d) and a stale limits entry dropped (b3bf5ec0). D1 measured and withdrawn; D1' delivered by fn-211's contract A (host). D4 and D5 built (7afc0499): fine roots start their own runs with a socket at the seam; runs ordered above the cut first, widest first per side; node counts unchanged; spruce 80 322 of 70,592 seams and beech 80 79 of 4,591 moved to their own runs; hero stills indistinguishable, viewed. Two-part gate green. Host amendments (2026-10-07): D2 needs nothing until the device places stations; D3 takes option (a), a conservative pre-upload bound (task 4 measures its routing share); the native probe is split into tasks 4-7.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e6d45e4d, b3bf5ec0, 7afc0499
+- Tests: cargo test --profile ci --workspace --no-fail-fast (two parts)
 - PRs:
