@@ -192,3 +192,10 @@ For the host to accept or reject; the alternative is to pool only the relays of 
 ### Still to do, after A and B
 
 R3's blended placement, GPU parity under the lock (the WGSL edits are still unchecked, now including `whole`), the pins, R6 and the gate.
+
+## Host decisions, third round (2026-10-07)
+
+- **A.** The predictor has to stay in milliseconds, since it runs on every parameter change in the harness; two points at 1.3 s are out. A1 (one point) now. Then A3, the nesting cut, built identically in the grower and the closed form, and adopted only if every comparison test passes and it brings the predictor at 80 down toward its old cost; numbers reported either way.
+- **B.** B2: the relay's first-unit thresholds read the unrounded lived share, a Q32 value both executors compute, written into the fixed-point contract. A one-tick step breaks "by degree", so B3 is out; B1 changes more than needed.
+- **Epitony.** Neither the threshold lowered for the whole pool nor the pool filtered to pass. Two checks: the relays of stops after a whole unit rise at least 0.05 (the original law), and failed units' relays do not fall (they start near their bound).
+- **Then** R3's blended placement, GPU parity under the lock (every WGSL edit compiled and run), the rows re-pinned once, R6's beech stills viewed, `pub(crate)` restored on `Axis.blend`, `units` and `alive`, and the gate, render half first.

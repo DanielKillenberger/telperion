@@ -112,8 +112,10 @@ impl Carried {
 
 /// The points a failed unit's lived share is taken at in the closed form
 /// (fn-199 R1, host 2026-10-07): the midpoints of `LIVED` equal parts of
-/// its distribution, each with that part's chance.
-pub(crate) const LIVED: usize = 2;
+/// its distribution, each with that part's chance. One, the fewest that
+/// meet the comparison tests: two cost the predictor 7 to 115 times its
+/// time, and it runs on every change of a setting (host, decision A).
+pub(crate) const LIVED: usize = 1;
 
 /// The least share of a cycle a failed unit's lived parts are taken for in
 /// expectation: below it a failure its relay takes over is counted as the
