@@ -167,3 +167,10 @@
 - **Slowed:** the task rests on REALIZED.md's reading that the closed form's table took 0.70 s (beech 80) and 1.20 s (spruce 80) on one core. On this branch's tip it takes 31 and 95 ms pinned to one CPU (`taskset -c 2`, `RAYON_NUM_THREADS=1`; 33 and 103 ms with a share per available core). The predictor takes 10 and 25 ms. So `grow` on one core barely moves (spruce 80: 8.80 s before, 8.75 s after, against `grow_whole`'s 8.29 to 8.54 s); the gap is the partition's own work on one core (spruce 80: its four phases alone 8.5 s), not the table. The earlier figure was most likely taken with `RAYON_NUM_THREADS=1` alone, which leaves the table's 32 `cores::deep` threads, each building its own memo, on whatever cores the desk gave them.
 - **Cost:** about 20 minutes of timing and a second, interleaved timing run; the predictor itself was built as specified and is kept (3 to 4 times cheaper than the table, iterative).
 - **Would remove it:** a one-core timing taken pinned (`taskset`), with the table's threads counted, before a task is written around it; and a stage split (`Fine::phases`, `Fine::predict`) printed by `timegrow` so the cost a task targets is read rather than inferred. The load at both runs was 3 to 10, the other worktree's GPU build sharing the desk.
+
+## 2026-10-07, `cargo fmt --all` rewrites 26 files nobody touched (task 8)
+
+- **Doing:** formatting the predictor merge's resolution.
+- **Slowed:** `cargo fmt --all` reformatted 26 files in `telperion-core` and `telperion-render` that neither branch changed (removed blank lines, rewrapped calls), so the merge's diff had to be picked apart and the unrelated hunks reversed by patch (`git checkout --` is blocked by the guard).
+- **Cost:** about 3 minutes.
+- **Would remove it:** the tree formatted once on master (or a CI `cargo fmt --check`), so a crate-wide format touches only what a change touched; until then, `rustfmt <file>` on the files changed.

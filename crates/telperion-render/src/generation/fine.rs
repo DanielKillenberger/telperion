@@ -41,6 +41,8 @@ mod device;
 #[cfg(test)]
 mod hostrun;
 #[cfg(test)]
+mod profile_tests;
+#[cfg(test)]
 mod laid;
 #[cfg(test)]
 mod readback;

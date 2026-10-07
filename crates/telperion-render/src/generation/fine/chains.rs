@@ -5,6 +5,7 @@
 use super::super::io;
 use super::units::pack;
 use crate::Gpu;
+use std::cell::RefCell;
 use telperion_space::{ChainAxis, ChainBud, ChainTables, GeometryTables, Woke};
 
 const CHAIN: &str = include_str!("chain.wgsl");
@@ -194,6 +195,12 @@ pub(super) struct Region {
 pub(super) struct Grower {
     pub(super) pass: io::Pass,
     pub(super) pack: io::Pass,
+    /// The regions' buffers, kept from run to run: every shader writes a
+    /// record before it reads it, and the queue orders a run's growth
+    /// after the last run's packing, so a run takes the buffers the last
+    /// one left (task 8: a fresh 1.4 GB a run cost 30 ms of allocation and
+    /// clearing, three times the run's kernels).
+    pool: RefCell<Vec<wgpu::Buffer>>,
 }
 
 impl Grower {
@@ -207,7 +214,31 @@ impl Grower {
                 &[true, true, true, true, false, false],
                 &["pack"],
             ),
+            pool: RefCell::new(Vec::new()),
         }
+    }
+
+    /// The region's five buffers of at least `bytes` each, reused where
+    /// the pool's are large enough.
+    fn buffers(&self, gpu: &Gpu, bytes: [u64; 5]) -> Vec<wgpu::Buffer> {
+        const LABELS: [&str; 5] = [
+            "chain axes",
+            "chain phytomers",
+            "chain apexes",
+            "chain status",
+            "chain sleeping buds",
+        ];
+        let mut pool = self.pool.borrow_mut();
+        let fits = pool.len() == 5 && pool.iter().zip(bytes).all(|(b, n)| b.size() >= n);
+        if !fits {
+            let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
+            *pool = LABELS
+                .iter()
+                .zip(bytes)
+                .map(|(&label, n)| io::buffer(gpu, label, n, storage, &[]).unwrap())
+                .collect();
+        }
+        pool.clone()
     }
 
     /// Grows the `n` buds from `first` of `input` in regions of `caps`,
@@ -220,7 +251,6 @@ impl Grower {
         (tables, t, span, age): (&Uploaded, &Packed, i64, u32),
         caps: Caps,
     ) -> Region {
-        let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
         let groups = n.div_ceil(64);
         let row = groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
         let (lo, hi) = (span as u32, (span >> 32) as u32);
@@ -242,15 +272,18 @@ impl Grower {
             0,
             0,
         ];
-        let b = |label, bytes: u64| io::buffer(gpu, label, bytes, storage, &[]).unwrap();
         let usage = wgpu::BufferUsages::UNIFORM;
         let config = io::buffer(gpu, "chain cfg", 64, usage, bytemuck::cast_slice(&cfg)).unwrap();
-        let axes = b("chain axes", u64::from(n * caps.axes) * AXW as u64 * 4);
-        let phyts = b("chain phytomers", u64::from(n * caps.phyts) * PW as u64 * 4);
-        let live = b("chain apexes", u64::from(n * caps.live) * 32);
-        let status = b("chain status", u64::from(n) * 16);
         let sleep = u64::from(n * (caps.sleepers * SW + caps.woken * QW + caps.units * UW)) * 4;
-        let sleepers = b("chain sleeping buds", sleep);
+        let bytes = [
+            u64::from(n * caps.axes) * AXW as u64 * 4,
+            u64::from(n * caps.phyts) * PW as u64 * 4,
+            u64::from(n * caps.live) * 32,
+            u64::from(n) * 16,
+            sleep,
+        ];
+        let [axes, phyts, live, status, sleepers] =
+            <[wgpu::Buffer; 5]>::try_from(self.buffers(gpu, bytes)).expect("five");
         let all = [
             &config,
             input,

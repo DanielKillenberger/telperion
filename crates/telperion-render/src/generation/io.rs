@@ -39,6 +39,8 @@ pub(super) struct Pass {
     pub layout: wgpu::BindGroupLayout,
     pub pipelines: Vec<wgpu::ComputePipeline>,
     maximum: u32,
+    #[cfg(test)]
+    entries: Vec<String>,
 }
 impl Pass {
     pub fn new(gpu: &Gpu, shader: String, read_only: &[bool], entries: &[&str]) -> Self {
@@ -101,6 +103,8 @@ impl Pass {
             layout,
             pipelines,
             maximum: gpu.device.limits().max_compute_workgroups_per_dimension,
+            #[cfg(test)]
+            entries: entries.iter().map(|e| e.to_string()).collect(),
         }
     }
     pub fn bind(&self, gpu: &Gpu, buffers: &[&wgpu::Buffer]) -> wgpu::BindGroup {
@@ -124,9 +128,19 @@ impl Pass {
         entry: usize,
         groups: u32,
     ) {
+        #[cfg(test)]
+        let stamp = super::profile::slot(&self.entries[entry]);
+        #[cfg(not(test))]
+        let stamp: Option<(wgpu::QuerySet, u32)> = None;
         let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
             label: Some("experimental generation"),
-            timestamp_writes: None,
+            timestamp_writes: stamp
+                .as_ref()
+                .map(|(set, at)| wgpu::ComputePassTimestampWrites {
+                    query_set: set,
+                    beginning_of_pass_write_index: Some(*at),
+                    end_of_pass_write_index: Some(at + 1),
+                }),
         });
         pass.set_pipeline(&self.pipelines[entry]);
         pass.set_bind_group(0, bind, &[]);
