@@ -13,6 +13,15 @@ pub const SEEDS: [u64; 3] = [1, 2, 3];
 /// The levels a walk's steepest steps are split into eighths.
 pub const REFINE: u32 = 6;
 
+/// `WALK=<substring>` keeps the settings whose name holds it, so a new
+/// setting is proven alone before the gate; unset, every setting is kept.
+pub fn named(all: Vec<Setting>) -> Vec<Setting> {
+    match std::env::var("WALK") {
+        Ok(part) => all.into_iter().filter(|s| s.name.contains(&part)).collect(),
+        Err(_) => all,
+    }
+}
+
 /// Every walk's steps at every seed, by setting.
 pub type Walks = Vec<Vec<(u64, Vec<Step>)>>;
 
@@ -28,9 +37,10 @@ pub fn walks(all: &[Setting]) -> Walks {
 }
 
 /// Each walk's steepest step against the bound, and its three steepest
-/// split finer: what fails.
-pub fn by_degree(all: &[Setting]) -> Vec<String> {
-    judge(all, &walks(all))
+/// split finer: what fails. Only the settings `named` keeps are walked.
+pub fn by_degree(all: Vec<Setting>) -> Vec<String> {
+    let all = named(all);
+    judge(&all, &walks(&all))
 }
 
 /// `by_degree` on walks already made.

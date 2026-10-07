@@ -16,7 +16,7 @@ fn always_relayed(s: &mut Species, pa: usize) {
 }
 
 fn assert_by_degree(walked: Setting) {
-    let failed = by_degree(&[walked]);
+    let failed = by_degree(vec![walked]);
     assert!(failed.is_empty(), "{failed:#?}");
 }
 

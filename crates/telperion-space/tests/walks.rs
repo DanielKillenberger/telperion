@@ -1,10 +1,11 @@
 //! fn-192 R2 and R4: walking any setting at a fixed seed changes the tree
 //! by degree. Every continuous setting of a three-PA tree that uses them
 //! all is walked over its range in `STEPS` steps at three seeds, on its own
-//! scale: log-odds for a probability, its unit otherwise.
+//! scale: log-odds for a probability, its unit otherwise. `WALK=<substring>`
+//! walks only the settings whose name holds it (`walk::degree::named`).
 mod walk;
 use std::sync::OnceLock;
-use walk::degree::{by_degree, judge, walks, Walks};
+use walk::degree::{by_degree, judge, named, walks, Walks};
 use walk::{
     crossing, in_leaf, light_settings, made, refine, release_settings, setting, settings, Setting,
     STEPS,
@@ -15,7 +16,7 @@ use walk::{
 fn every_walk() -> &'static (Vec<Setting>, Walks) {
     static ALL: OnceLock<(Vec<Setting>, Walks)> = OnceLock::new();
     ALL.get_or_init(|| {
-        let all = settings();
+        let all = named(settings());
         let walked = walks(&all);
         (all, walked)
     })
@@ -52,7 +53,7 @@ fn a_walk_between_species_changes_the_tree_by_degree() {
             })
         })
         .collect();
-    let failed: Vec<String> = by_degree(&all)
+    let failed: Vec<String> = by_degree(all)
         .into_iter()
         .filter(|f| f.contains("a jump"))
         .collect();
@@ -63,7 +64,7 @@ fn a_walk_between_species_changes_the_tree_by_degree() {
 /// with it the tree, by degree.
 #[test]
 fn the_release_law_changes_the_tree_by_degree() {
-    let failed = by_degree(&release_settings());
+    let failed = by_degree(release_settings());
     assert!(failed.is_empty(), "{failed:#?}");
 }
 
@@ -72,7 +73,7 @@ fn the_release_law_changes_the_tree_by_degree() {
 /// and the site's extinction and sky.
 #[test]
 fn light_changes_the_tree_by_degree() {
-    let failed = by_degree(&light_settings());
+    let failed = by_degree(light_settings());
     assert!(failed.is_empty(), "{failed:#?}");
 }
 
@@ -92,7 +93,7 @@ fn a_sample_of_settings_in_leaf_changes_the_tree_by_degree() {
         .filter(|s| names.contains(&s.name.as_str()))
         .collect();
     assert_eq!(sample.len(), names.len());
-    let failed = by_degree(&in_leaf(sample));
+    let failed = by_degree(in_leaf(sample));
     assert!(failed.is_empty(), "{failed:#?}");
 }
 
@@ -104,7 +105,7 @@ fn a_sample_of_settings_in_leaf_changes_the_tree_by_degree() {
 #[test]
 #[ignore = "slow suite, outside the gate: see its doc comment"]
 fn every_setting_in_leaf_changes_the_tree_by_degree() {
-    let failed = by_degree(&in_leaf(settings()));
+    let failed = by_degree(in_leaf(settings()));
     assert!(failed.is_empty(), "{failed:#?}");
 }
 
@@ -138,7 +139,11 @@ fn branches_are_made_and_unmade_at_vanishing_size() {
             crossed += 1;
         }
     }
-    assert!(crossed > 60, "{crossed} walks made or unmade branches");
+    let filtered = std::env::var_os("WALK").is_some();
+    assert!(
+        filtered || crossed > 60,
+        "{crossed} walks made or unmade branches"
+    );
 }
 
 /// The jump check sees a switch: a lifespan is a whole number of growth
@@ -248,6 +253,6 @@ fn the_shedding_delay_changes_the_tree_by_degree_in_leaf() {
         s.states[1].form.sag = 3e-5;
         s.states[2].shedding = v
     });
-    let failed = by_degree(&in_leaf(vec![shedding]));
+    let failed = by_degree(in_leaf(vec![shedding]));
     assert!(failed.is_empty(), "{failed:#?}");
 }
