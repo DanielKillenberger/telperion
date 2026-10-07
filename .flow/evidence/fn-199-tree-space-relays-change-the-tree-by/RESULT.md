@@ -353,3 +353,9 @@ A relay that grows in the cycle its axis stopped in, other than an ended age's, 
 - **Class 11:** a relay at blend 0 is laid, and frames what it bears, from its own phytomers, not as the axis it carries on would be. Which part differs (handed pulls, years, or the phyllotaxis side) is not traced.
 
 Nothing was fixed after the census.
+
+## Host decision: one rule for carried-on axes (2026-10-07)
+
+- **Rule 1, one object.** An axis carrying itself on is a relay at blend 0. There is no second way to lay, age, frame or straighten a continuation: the apex's own continuation and a relay go through the same function, and a relay at blend `b` differs from it only through `b`. Class 11 vanishes by construction, with no special case. Where the code has two paths, one is deleted.
+- **Rule 2, one measure for R3's weight.** The weight is the carried-on axis's grown extent: the sum over its nodes of unit presence × node presence × the node's lived share of its unit, capped at 1. It is continuous in presence and in lived time, so a one-tick node adds about 0 (class 10). Class 6's sliver case must still meet under Rule 1; if it does not, it is reported with the probe, not patched.
+- Both rules are built on the CPU, then the census over seeds 1 to 50 is rerun as the judge. If it is clean apart from refinement-limited slopes: the R3 GPU mirror, full GPU parity, re-pinning, R6, `pub(crate)` and the gate. If new classes appear: stop and report.
