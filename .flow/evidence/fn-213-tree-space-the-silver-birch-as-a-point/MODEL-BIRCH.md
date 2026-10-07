@@ -125,3 +125,21 @@ Each value **estimated** from the stills (SHEET-3.md); this table supersedes the
 | `BOUGH` internode, set-point (the old limb carries on in it) | 0.02 m, 1.0 rad | 0.025 m, 0.95 rad | (2) old limbs reach further, so the crown broadens with age; young limbs, still in `LIMB`, are unchanged |
 
 A probe of 0.03 m and 0.85 rad gave a 22 m crown at 80 and a 9 m one at 40, too broad at both; round 3 takes the step between.
+
+## Round 4 (2026-10-07, after Astra's and the host's reading of sheet 3)
+
+Aimed at trait (j): long, straight, nearly parallel limbs ending in regularly spaced tufts. Each value **estimated** from the stills (SHEET-4.md); this table supersedes the rows above.
+
+| Age or row | Round 3 | Round 4 | Why |
+|---|---|---|---|
+| `LIMB`, `BOUGH` apex death with a relay (`abortion`, `relay*`, `epitony`) | none | 0.08 a unit, relay 1, epitony 0.4 | Now and then the apex dies and the upper bud of its last unit carries the limb on: a kink, and a new direction (MBE99: the grey birch's axes are sympodia; the module drawing of rule 1 stays monopodial elsewhere) |
+| `LIMB`, `BOUGH` `wander`, `bendLength` (fn-207) | 0.25, 1 m | 0.6, 3 m | Crooked limbs whose bend persists over metres |
+| `LIMB`, `BOUGH` `dominance` | 0 | 0.2 | Siblings differ in size, so fewer reach full length |
+| `LIMB`, `BOUGH` `roll` | 0.8 | 1.2 | Laterals leave at more varied bearings |
+| `LIMB` lateral `BOUGH` (medial, top) | 0.08, 0.4 | 0.12, 0.45 | More subdivision of the mid-crown limbs |
+| `BOUGH` lateral `BRANCH` (medial, top) | 0.12, 0.3 | 0.1, 0.22 | Keeps the crown open with the added boughs |
+| `LIMB` internode | 0.045 m | 0.055 m | The relays shorten the limbs; this restores the crown's width |
+| `BOUGH` internode | 0.025 m | 0.03 m | The 80-year width (17 to 21 m) with the kinks |
+| `LIMB` `viability`, `shedding` | 1, never | 0.993 a year, 3 years | A few limbs die and are shed, the low ones among them (the host's low limb) |
+
+A first probe with `abortion` 0.15 and `dominance` 0.4 drew a narrow column (6 m at 40, 11 m at 80); its relays rose steeply on the upper side. Codominant forks: the engine forks where a relay is as thick as the limb it continues; no separate fork setting was used.

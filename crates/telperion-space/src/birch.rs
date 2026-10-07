@@ -167,38 +167,55 @@ pub fn birch() -> Species {
             ),
         )
     };
+    // Crooked, irregularly subdivided limbs (host and Astra, sheet 3):
+    // the apex now and then dies and a bud on the upper side of its last
+    // unit carries the limb on, a kink; boughs differ in vigour; the
+    // limb's bend is remembered over metres (fn-207); a few limbs die and
+    // are shed.
     let limb = PaState {
         insertion: 0.6,
-        internode: 0.045,
+        internode: 0.055,
+        viability: 0.993,
+        shedding: 3.0,
+        abortion: 0.08,
+        relay: 1.0,
+        relay_ended: 1.0,
+        relay_failed: 1.0,
+        epitony: 0.4,
         form: Form {
             tropism: 0.9,
             elevation: 1.3,
-            wander: 0.25,
+            wander: 0.6,
             plane: 0.0,
             pipe: 0.002,
             exponent: 2.4,
             ripening: 10.0,
-            dominance: 0.0,
-            roll: 0.8,
+            dominance: 0.2,
+            roll: 1.2,
             sag: 3e-5,
             secondary: 1.0,
-            bend_length: 1.0,
+            bend_length: 3.0,
         },
         ..state(
             15,
             1.0,
             unit(
                 (2, 3),
-                ((3, 5), &[(BOUGH, 0.08), (BRANCH, 0.1), (SHORT, 0.35)]),
-                ((1, 2), &[(BOUGH, 0.4), (BRANCH, 0.25)]),
+                ((3, 5), &[(BOUGH, 0.12), (BRANCH, 0.1), (SHORT, 0.35)]),
+                ((1, 2), &[(BOUGH, 0.45), (BRANCH, 0.25)]),
             ),
         )
     };
     let bough = PaState {
         insertion: 0.6,
-        internode: 0.025,
+        internode: 0.03,
         viability: 0.995,
         shedding: 2.0,
+        abortion: 0.08,
+        relay: 1.0,
+        relay_ended: 1.0,
+        relay_failed: 1.0,
+        epitony: 0.4,
         form: Form {
             tropism: 0.6,
             elevation: 0.95,
@@ -211,8 +228,8 @@ pub fn birch() -> Species {
             0.0,
             unit(
                 (1, 2),
-                ((3, 4), &[(BRANCH, 0.12), (SHORT, 0.35)]),
-                ((1, 1), &[(BRANCH, 0.3)]),
+                ((3, 4), &[(BRANCH, 0.1), (SHORT, 0.35)]),
+                ((1, 1), &[(BRANCH, 0.22)]),
             ),
         )
     };
