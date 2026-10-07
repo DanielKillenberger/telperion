@@ -149,16 +149,15 @@ fn every_lateral_grown_has_a_count_and_an_undrawn_pa_has_none() {
     assert_eq!(predictor.count(0, 1), None, "the beech's PA 0 is drawn");
 }
 
-/// fn-222 R3: an internode spread changes no count the cut reads and no
-/// expected length, to the bit (its factor's mean is one); only the reach
-/// bound widens, each internode taken at its longest.
-#[test]
-fn an_internode_spread_moves_no_count_and_no_expected_length() {
+/// Every count the cut reads and every expected length, to the bit, with
+/// each species' every PA's form `set`; each row's reach without and with.
+fn same_counts(set: fn(&mut crate::species::Form)) -> Vec<(f64, f64)> {
     use crate::closed_form::expected_log_lengths;
+    let mut reaches = Vec::new();
     for species in [beech(), spruce(), oak(), palm()] {
         let mut varied = species.clone();
         for state in &mut varied.states {
-            state.form.internode_spread = 0.8;
+            set(&mut state.form);
         }
         let age = 30;
         let windows = Windows::new(&species, age);
@@ -186,8 +185,32 @@ fn an_internode_spread_moves_no_count_and_no_expected_length() {
                     continue;
                 };
                 assert_eq!(r.count.to_bits(), w.count.to_bits(), "PA {pa}, {m}");
-                assert!(w.reach >= r.reach, "PA {pa}, {m}");
+                reaches.push((r.reach, w.reach));
             }
         }
+    }
+    reaches
+}
+
+/// fn-222 R3: an internode spread changes no count the cut reads and no
+/// expected length, to the bit (its factor's mean is one); only the reach
+/// bound widens, each internode taken at its longest.
+#[test]
+fn an_internode_spread_moves_no_count_and_no_expected_length() {
+    for (r, w) in same_counts(|f| f.internode_spread = 0.8) {
+        assert!(w >= r, "{w} < {r}");
+    }
+}
+
+/// fn-224 R3: insertion and tropism spreads change no count the cut
+/// reads, no expected length and no reach bound, to the bit: the counts
+/// and lengths read no angle, and the bound takes every path straight.
+#[test]
+fn angle_spreads_move_no_count_no_expected_length_and_no_reach() {
+    let set = |f: &mut crate::species::Form| {
+        (f.insertion_spread, f.tropism_spread) = (std::f64::consts::FRAC_PI_2, 1.0);
+    };
+    for (r, w) in same_counts(set) {
+        assert_eq!(r.to_bits(), w.to_bits());
     }
 }

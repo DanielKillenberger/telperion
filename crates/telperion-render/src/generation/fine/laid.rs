@@ -21,7 +21,7 @@ pub(super) const PL: usize = 22;
 /// A chain's scratch: per region axis, per region phytomer, then a status.
 pub(super) const SA: u32 = 66;
 pub(super) const SP: u32 = 12;
-const GG: usize = 24;
+const GG: usize = 25;
 /// `settle.wgsl`'s passes.
 pub(super) const SCALES: usize = 0;
 pub(super) const GIRTHS: usize = 1;
@@ -77,6 +77,8 @@ pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
         out[4 + GG * pa + 20] = f32::from_bits(lo);
         out[4 + GG * pa + 21] = f32::from_bits(hi);
         out[4 + GG * pa + 22] = p.internode_spread as f32;
+        out[4 + GG * pa + 23] = p.insertion_spread as f32;
+        out[4 + GG * pa + 24] = p.tropism_spread as f32;
     }
     let sags = g.pas.iter().any(|p| p.sag > 0.0);
     (out, sags)

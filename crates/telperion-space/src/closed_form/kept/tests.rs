@@ -378,5 +378,6 @@ fn moments(values: &[f64]) -> (f64, f64) {
     (mean, (var / n).sqrt())
 }
 
+mod angles;
 mod bound;
 mod measure;

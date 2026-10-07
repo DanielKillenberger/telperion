@@ -34,6 +34,10 @@ pub(crate) const ENDED: u64 = u64::MAX - 7;
 pub(crate) const END: u64 = u64::MAX - 8;
 /// An internode's length, under its node's key (fn-222).
 pub(crate) const INTERNODE: u64 = u64::MAX - 9;
+/// An axis's insertion angle, under its lineage (fn-224).
+pub(crate) const INSERTION: u64 = u64::MAX - 10;
+/// An axis's tropism, under its lineage (fn-224).
+pub(crate) const TROPISM: u64 = u64::MAX - 11;
 pub(crate) const CONTINUATION: u64 = u64::MAX;
 
 /// A hashed path from the root.
@@ -121,6 +125,44 @@ pub(crate) fn internode(key: u64, spread: f64) -> f64 {
         return 1.0;
     }
     let u = Key(key).child(INTERNODE).unit();
+    1.0 + spread * (2.0 * u - 1.0)
+}
+
+/// The insertion angle of the axis whose lineage is `lineage`, its PA's
+/// `angle` at `spread` (`Form::insertion_spread`): angle + spread (2u − 1),
+/// u the axis's insertion draw, so its mean is the angle; exactly the
+/// angle without spread.
+pub(crate) fn insertion(lineage: u64, angle: f64, spread: f64) -> f64 {
+    if spread <= 0.0 {
+        return angle;
+    }
+    let u = Key(lineage).child(INSERTION).unit();
+    angle + spread * (2.0 * u - 1.0)
+}
+
+/// The cosine of `insertion`'s angle in expectation over its draw, and its
+/// square's: E cos(a + d) = cos a · sin s / s and E cos²(a + d) =
+/// (1 + cos 2a · sin 2s / 2s) / 2 for d uniform on [−s, s] (fn-224). The
+/// closed form reads both, exact in expectation; without spread, cos a and
+/// its square, as it always read them.
+pub(crate) fn turn(angle: f64, spread: f64) -> [f64; 2] {
+    let cos = angle.cos_fixed();
+    if spread <= 0.0 {
+        return [cos, cos * cos];
+    }
+    let sinc = |x: f64| x.sin_fixed() / x;
+    let square = (1.0 + (2.0 * angle).cos_fixed() * sinc(2.0 * spread)) / 2.0;
+    [cos * sinc(spread), square]
+}
+
+/// The factor the tropism of the axis whose lineage is `lineage` is scaled
+/// by at `spread` (`Form::tropism_spread`): 1 + spread (2u − 1), u the
+/// axis's tropism draw, so its mean is one; exactly 1 without spread.
+pub(crate) fn tropism(lineage: u64, spread: f64) -> f64 {
+    if spread <= 0.0 {
+        return 1.0;
+    }
+    let u = Key(lineage).child(TROPISM).unit();
     1.0 + spread * (2.0 * u - 1.0)
 }
 

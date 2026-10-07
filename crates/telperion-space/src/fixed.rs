@@ -340,6 +340,20 @@ pub fn internode_draw(key: u64) -> u64 {
     Key(key).child(INTERNODE).draw().0
 }
 
+/// The 53 bits of the insertion draw of the axis whose lineage is `key`
+/// (fn-224), which `lineage::insertion` offsets its angle by.
+pub fn insertion_draw(key: u64) -> u64 {
+    use crate::lineage::{Key, INSERTION};
+    Key(key).child(INSERTION).draw().0
+}
+
+/// The 53 bits of the tropism draw of the axis whose lineage is `key`
+/// (fn-224), which `lineage::tropism` scales its tropism by.
+pub fn tropism_draw(key: u64) -> u64 {
+    use crate::lineage::{Key, TROPISM};
+    Key(key).child(TROPISM).draw().0
+}
+
 pub mod decide;
 pub mod presence;
 pub mod sum;

@@ -1,7 +1,7 @@
 //! Laying an axis's internodes, one phytomer at a time: the final lay
 //! walks an axis from its base, and the rough layout grown with the tree
 //! (fn-197) carries the same walk on as each growth unit grows.
-use crate::lineage::{internode, Key};
+use crate::lineage::{internode, tropism, Key};
 use crate::sag::{held, torque, turn, Lever};
 use crate::species::PaState;
 use crate::structure::{Axis, Phytomer, Vec3};
@@ -36,6 +36,9 @@ pub(crate) struct Layer {
     run: f64,
     pull: f64,
     curve: Vec3,
+    /// The axis's own tropism over its PA's, as its lineage draws it
+    /// (fn-224; `lineage::tropism`).
+    turning: f64,
     /// The pulls a relay carries on from the axis it replaces, as far as
     /// it is still that axis's continuation (fn-206).
     inherited: Vec<Lift>,
@@ -56,8 +59,9 @@ impl Layer {
     /// At the base of an axis framed `(base, heading, side)` carrying on
     /// `curve`, its bearer's curvature, made square to its heading: a
     /// continuation or relay keeps bending as its bearer did, and a
-    /// lateral starts afresh from none.
-    pub fn bent((base, heading, side): (Vec3, Vec3, Vec3), curve: Vec3) -> Self {
+    /// lateral starts afresh from none. Its tropism is its PA's times
+    /// `turning`, the axis's own draw (`lineage::tropism`).
+    pub fn bent((base, heading, side): (Vec3, Vec3, Vec3), curve: Vec3, turning: f64) -> Self {
         Self {
             running: heading,
             across: side,
@@ -65,6 +69,7 @@ impl Layer {
             run: 0.0,
             pull: (1.0 + heading.z) / 2.0,
             curve: curve - heading * curve.dot(heading),
+            turning,
             inherited: Vec::new(),
         }
     }
@@ -147,7 +152,7 @@ impl Layer {
         );
         let length =
             state.internode * phytomer.scale * internode(phytomer.key, form.internode_spread);
-        let share = 1.0 - (-form.tropism * length).exp_fixed();
+        let share = 1.0 - (-form.tropism * self.turning * length).exp_fixed();
         let bent = toward_elevation(running, across, form.elevation, share);
         across = carried(across, running, bent);
         curve = carried(curve, running, bent);
@@ -317,7 +322,8 @@ pub(crate) fn lay(
     load: Option<&[Lever]>,
     trunk: bool,
 ) -> std::result::Result<Layer, f64> {
-    let mut layer = Layer::bent(frame, curve).inheriting(inherited);
+    let turning = tropism(axis.lineage, state.form.tropism_spread);
+    let mut layer = Layer::bent(frame, curve, turning).inheriting(inherited);
     for (k, phytomer) in axis.phytomers.iter_mut().enumerate() {
         layer.step(phytomer, state, bend, load.map(|l| &l[k]), trunk)?;
     }

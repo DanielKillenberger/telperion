@@ -246,6 +246,15 @@ pub struct Form {
     /// a unit's expected length is unchanged (fn-222). Neutral 0, every
     /// internode alike; at most 1.
     pub internode_spread: f64,
+    /// How far each lateral's or relay's insertion angle departs from its
+    /// PA's, axis to axis: offset by spread × (2u − 1) radians, u its
+    /// lineage's keyed draw, so the mean angle is unchanged (fn-224).
+    /// Neutral 0, every axis at its PA's angle; at most pi / 2.
+    pub insertion_spread: f64,
+    /// How far each axis's tropism departs from its PA's, axis to axis:
+    /// scaled by 1 + spread × (2u − 1), u its lineage's keyed draw, so its
+    /// mean is unchanged (fn-224). Neutral 0, every axis alike; at most 1.
+    pub tropism_spread: f64,
 }
 
 impl Default for Form {
@@ -265,6 +274,8 @@ impl Default for Form {
             secondary: 1.0,
             bend_length: 0.0,
             internode_spread: 0.0,
+            insertion_spread: 0.0,
+            tropism_spread: 0.0,
         }
     }
 }

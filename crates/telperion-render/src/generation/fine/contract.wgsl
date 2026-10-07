@@ -68,6 +68,19 @@ fn internode_draw(key: vec2<u32>) -> vec2<u32> {
     return draw(child(key, vec2<u32>(0xfffffff6u, 0xffffffffu)));
 }
 
+// The insertion draw of the axis whose lineage is `key`
+// (`fixed::insertion_draw`, fn-224): under `lineage::INSERTION`,
+// u64::MAX - 10.
+fn insertion_draw(key: vec2<u32>) -> vec2<u32> {
+    return draw(child(key, vec2<u32>(0xfffffff5u, 0xffffffffu)));
+}
+
+// The tropism draw of the axis whose lineage is `key`
+// (`fixed::tropism_draw`, fn-224): under `lineage::TROPISM`, u64::MAX - 11.
+fn tropism_draw(key: vec2<u32>) -> vec2<u32> {
+    return draw(child(key, vec2<u32>(0xfffffff4u, 0xffffffffu)));
+}
+
 // A Q62 probability's threshold against a 53-bit draw.
 fn threshold(p: vec2<u32>) -> vec2<u32> {
     return shr64(add64(min64(p, p_one()), w(511u, 0u)), 9u);
