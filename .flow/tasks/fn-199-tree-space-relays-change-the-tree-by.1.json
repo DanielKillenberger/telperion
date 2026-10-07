@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-07T08:22:20.260985Z",
+  "depends_on": [],
+  "id": "fn-199-tree-space-relays-change-the-tree-by.1",
+  "priority": null,
+  "spec": "fn-199-tree-space-relays-change-the-tree-by",
+  "spec_path": ".flow/tasks/fn-199-tree-space-relays-change-the-tree-by.1.md",
+  "status": "todo",
+  "title": "Relays change the tree by degree",
+  "updated_at": "2026-10-07T08:22:20.260985Z"
+}
