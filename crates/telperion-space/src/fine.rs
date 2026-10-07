@@ -146,7 +146,7 @@ pub fn grow_fine(species: &Species, request: Request, plan: Plan) -> Result<Fine
     request.light.validate()?;
     let started = crate::clock::seconds();
     let predictor = Predictor::new(species, &rules.windows, request.age);
-    let predict = (crate::clock::seconds() - started);
+    let predict = crate::clock::seconds() - started;
     let threads = match plan.threads {
         0 => crate::cores::available(),
         n => n,
@@ -240,7 +240,7 @@ impl Clock {
     pub fn time<T>(&mut self, work: impl FnOnce() -> T) -> T {
         let started = crate::clock::seconds();
         let out = work();
-        self.phases.push((crate::clock::seconds() - started));
+        self.phases.push(crate::clock::seconds() - started);
         out
     }
 }
