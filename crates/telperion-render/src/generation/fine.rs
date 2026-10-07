@@ -71,6 +71,8 @@ mod resident;
 #[cfg(test)]
 mod resident_tests;
 #[cfg(test)]
+mod seam_stills;
+#[cfg(test)]
 mod hostrun;
 #[cfg(test)]
 mod laid;

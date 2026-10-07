@@ -235,3 +235,10 @@ Measured `tree_buffer_bytes` after the submit: 141 MB (beech 80 s1), 240 MB (bee
 
 1. **A seated leaf's direction bound is the sum, 0.005 + 50 µm / chord.** The errors add (the encoding, plus the input's difference), so a max undercounts. "Contact grazing" is a named class: a seat on another triangle of the same rings, its segment agreeing within the screen (1 leaf, spruce 80 s7).
 2. **The frame divergence on the spruce (16 to 25 mrad, beyond the screen) is traced within task 6.** Read back the frames along one spruce 40 s1 run, find where they part, then fix it or name its class.
+
+## Host decisions on the handoff (2026-10-07)
+
+1. **Partial conversion.** Production converts only the structure above the cut plus the landed roots, taken from the device settle's structure (D3(c)). Attachments reach the device as the `Tree::attachments` buffer. The probe's stand-in (pruning the converted tree) is deleted once the real path exists. One conversion path, never two.
+2. **Curve.** The device packs the fine curve into the renderer's own curve format, offset after the CPU's points, runs and clusters (D5's order). The renderer reads one block and learns nothing new.
+3. **Leaves.** The fine block is placed directly at an offset in the one leaf buffer, with no copy, and one mass grid is built over both.
+- Then: the submit takes those device buffers; final-output parity on a submitted tree against the CPU path, by named class; the seam close-ups (D4) at a close camera, viewed; the timing harness rerun on the real path (five builds a side, alternating, one per process, both spruce-80 seeds, per-stage medians), and whether the stations numbering pass dominates its 300 ms; the 3× verdict on the real path.
