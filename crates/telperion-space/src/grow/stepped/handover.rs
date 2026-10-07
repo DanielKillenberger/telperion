@@ -148,6 +148,7 @@ impl<'a> Executor<'a> {
                 next,
                 died: None,
             });
+            self.due[next as usize].push(self.items.len() - 1);
         }
     }
 

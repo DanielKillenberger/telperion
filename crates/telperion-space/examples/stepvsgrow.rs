@@ -50,12 +50,12 @@ fn main() {
                 // One cold build of each, then three warm of each in turn.
                 for round in 0..4 {
                     let started = Instant::now();
-                    let want = digest(&grow_today(&species, request).expect("grows"));
+                    let today = grow_today(&species, request).expect("grows");
                     let g = started.elapsed().as_secs_f64();
                     let started = Instant::now();
                     let tree = grow(&species, request).expect("grows");
                     let t = started.elapsed().as_secs_f64();
-                    same &= digest(&tree) == want;
+                    same &= digest(&tree) == digest(&today);
                     if round > 0 {
                         best = [best[0].min(g), best[1].min(t)];
                     }

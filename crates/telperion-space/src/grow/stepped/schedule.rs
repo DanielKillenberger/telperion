@@ -10,6 +10,12 @@ use crate::grow::partition::Digest;
 /// cycle it died in, if it did.
 #[derive(Default)]
 pub(super) struct Ran {
+    /// The item, the cycles it ran from and is next due, and the
+    /// phytomers it grew.
+    pub item: usize,
+    pub from: u32,
+    pub next: u32,
+    pub grown: u64,
     pub parts: Vec<Digest>,
     pub died: Option<u32>,
 }
@@ -32,14 +38,14 @@ impl Executor<'_> {
 
     /// An item's run from `cycle` kept: its growth digest's part each
     /// cycle it ran, and, where it died, that part for every cycle after.
-    pub(super) fn record(&mut self, cycle: u32, ran: Ran) {
+    pub(super) fn record(&mut self, ran: Ran) {
         let age = self.request.age as usize;
         if self.grown_parts.len() < age + 2 {
             self.grown_parts.resize(age + 2, Digest::default());
             self.burials.resize(age + 2, Digest::default());
         }
         for (k, part) in ran.parts.iter().enumerate() {
-            let c = cycle as usize + k;
+            let c = ran.from as usize + k;
             self.grown_parts[c] = self.grown_parts[c].and(*part);
         }
         if let (Some(d), Some(last)) = (ran.died, ran.parts.last()) {
@@ -50,15 +56,18 @@ impl Executor<'_> {
     /// Phase `k`'s hash over every grower: the item's stub and root are
     /// counted once, as the coarse grower's placeholder.
     pub(super) fn mark(&mut self, cycle: u32, k: usize) {
+        if self.keep == super::Keep::Tree {
+            return;
+        }
         let mut d = self.coarse.digest(k);
         let c = cycle as usize;
+        if self.phases.len() <= c {
+            self.phases.resize(c + 1, [0; 4]);
+            self.coarse_grown.resize(c + 1, None);
+        }
         if k == 2 {
-            // Each item's growth is counted as it ran, ahead or not.
-            if let Some(burial) = self.burials.get(c) {
-                self.buried = self.buried.and(*burial);
-            }
-            let ran = self.grown_parts.get(c).copied().unwrap_or_default();
-            d = d.and(self.buried).and(ran);
+            // The items' part is known once each has run (`grown`).
+            self.coarse_grown[c] = Some(d);
         } else {
             for item in self.items.iter().filter(|i| i.next != u32::MAX) {
                 let mut part = item.g.digest(k);
@@ -66,15 +75,29 @@ impl Executor<'_> {
                 d = d.and(part);
             }
         }
-        if self.phases.len() <= c {
-            self.phases.resize(c + 1, [0; 4]);
+        if k != 2 {
+            self.phases[c][k] = d.finish(k);
         }
-        self.phases[c][k] = d.finish(k);
-        if self.complete {
+        if self.keep == super::Keep::States {
             if self.states.len() <= c {
                 self.states.resize(c + 1, [0; 4]);
             }
             self.states[c][k] = self.state();
+        }
+    }
+
+    /// Each cycle's growth digest, once every item has run: the coarse
+    /// grower's, the dead items' and each item's as it ran.
+    pub(super) fn grown(&mut self) {
+        let mut buried = Digest::default();
+        for (c, coarse) in self.coarse_grown.iter().enumerate() {
+            if let Some(burial) = self.burials.get(c) {
+                buried = buried.and(*burial);
+            }
+            if let Some(d) = coarse {
+                let ran = self.grown_parts.get(c).copied().unwrap_or_default();
+                self.phases[c][2] = d.and(buried).and(ran).finish(2);
+            }
         }
     }
 }

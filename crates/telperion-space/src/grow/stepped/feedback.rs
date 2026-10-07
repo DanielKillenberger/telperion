@@ -96,7 +96,7 @@ impl<'a> Executor<'a> {
                 (field, read)
             }
         };
-        if self.complete {
+        if self.keep == super::Keep::States {
             self.lattices.push(lattice_hash(&field));
         }
         let mut from = 0;

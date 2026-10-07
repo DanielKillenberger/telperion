@@ -37,7 +37,7 @@ fn each_grower_keeps_the_whole_trees_living_order() {
     let (mut whole, _) = start(&species, r, true, Options::default()).unwrap();
     let (coarse, _) = start(&species, r, true, Options::default()).unwrap();
     let at = (super::counts(&expected), 256.0, grouping(Order::Forward, 1));
-    let mut x = Executor::new(coarse, at, r, false);
+    let mut x = Executor::new(coarse, at, r, super::Keep::Digests);
     let mut advanced = Vec::new();
     for cycle in 1..=r.age {
         whole
