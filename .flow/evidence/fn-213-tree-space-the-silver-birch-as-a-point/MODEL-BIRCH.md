@@ -90,3 +90,25 @@ Every tree is under the browser's ceiling of 4,000,000 kept phytomers (`pipeline
 3. **No light.** Ramification and shoot length falling from crown top to bottom (KU03) and the birch's shade intolerance are what fn-197's light would draw; this point leaves light neutral, as the beech's.
 4. **Crown width at 80.** No source read gives an open-grown birch's crown width at 80; the grown 17 to 19 m comes from the limbs' estimated rates.
 5. **Bark at age.** The material draws the stem white at every girth; the black, fissured base of an old birch (JRC, OSU) does not appear at 80. Whether this is the material's rows or a capability is open.
+
+## Round 2 (2026-10-07, after the host's reading of sheet 1)
+
+The rules above stand; these values moved, each **estimated** from the stills against S1, S2 and S3 (SHEET-2.md). Where a row above gives the older value, this table supersedes it.
+
+| Age or row | Sheet 1 | Round 2 | Aimed at (host's point) |
+|---|---|---|---|
+| Stem (`TRUNK`, `LEADER`, `TOP`) `tropism`, `wander`, `bendLength` | 1.0, 0.3, 4 m | 0.5, 0.5, 6 m | (5) the stem curves and leans |
+| `LEADER` lateral `BRANCH` (medial, top) | 0.12, 0.2 | 0.06, 0.12 | (1) an open crown |
+| `TOP` lateral `BRANCH` (medial, top) | 0.3, 0.3 | 0.15, 0.2 | (1) |
+| `LIMB` `tropism`, set-point, `sag` | 0.6, 1.2 rad, 1e-4 | 0.9, 1.3 rad, 3e-5 | (2) limbs ascend steeply |
+| `LIMB` lateral `BRANCH` (medial, top) | 0.2, 0.35 | 0.1, 0.25 | (1) |
+| `BOUGH` set-point (the old limb carries on in it) | 0.6 rad | 1.0 rad | (2) old limbs no longer flatten into spokes |
+| `BOUGH` lateral `BRANCH` (medial, top) | 0.25, 0.4 | 0.12, 0.3 | (1) |
+| `BRANCH`, `SHOOT` lateral `SHORT` | 0.45 | 0.35 | (1) |
+| `SHORT` lifespan | 10 years | 6 years | (1) rule 8: short shoots at best replace themselves |
+| `/skeleton/twigs/twig/internodeLength` (leaf stations) | 15 mm | 20 mm | (1) |
+| `/material/shootRadius` | 0.01 m | 0.03 m | (3) fine wood dark, white from 6 cm in radius |
+| `/material/leafFront`, `leafBack` (R, G, B) | 0.10/0.19/0.06, 0.20/0.28/0.14 | 0.16/0.26/0.035, 0.25/0.33/0.09 | (4) bright yellow-green |
+| `/material/ridgeScale`, `crest` (RGB, strength), `cavityStrength` | 0.08, +0.1 at 0.4, 0.3 | 0.16, −0.5 at 1.0, 0.8 | (5) and (c): a dark base on old, thick wood |
+
+Cost at round 2 (native, `--profile ci`): 315,075 to 475,769 nodes at 40 and 621,895 to 808,944 at 80 (seeds 1, 7, 42), a third of sheet 1's; 16.6 to 16.8 m tall at 40, 23.5 to 24.1 m at 80; crowns 7 to 9 m wide at 40, 14 to 16 m at 80.

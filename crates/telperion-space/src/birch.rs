@@ -107,9 +107,9 @@ fn unit(
 /// The birch, one growth cycle a year.
 pub fn birch() -> Species {
     let stem = Form {
-        tropism: 1.0,
+        tropism: 0.5,
         elevation: FRAC_PI_2,
-        wander: 0.3,
+        wander: 0.5,
         plane: 0.0,
         pipe: 0.004,
         exponent: 2.5,
@@ -118,7 +118,7 @@ pub fn birch() -> Species {
         roll: 0.0,
         sag: 0.0,
         secondary: 1.0,
-        bend_length: 4.0,
+        bend_length: 6.0,
     };
     // A1, the young stem: fast yearly units, bearing the young tree's
     // passing branches acrotonically.
@@ -145,8 +145,8 @@ pub fn birch() -> Species {
             1.0,
             unit(
                 (3, 4),
-                ((3, 5), &[(BRANCH, 0.12), (SHORT, 0.3)]),
-                ((2, 2), &[(LIMB, 0.3), (BRANCH, 0.2)]),
+                ((3, 5), &[(BRANCH, 0.06), (SHORT, 0.3)]),
+                ((2, 2), &[(LIMB, 0.3), (BRANCH, 0.12)]),
             ),
         )
     };
@@ -162,8 +162,8 @@ pub fn birch() -> Species {
             0.0,
             unit(
                 (1, 2),
-                ((2, 3), &[(BRANCH, 0.3), (SHORT, 0.3)]),
-                ((1, 2), &[(BOUGH, 0.3), (BRANCH, 0.3)]),
+                ((2, 3), &[(BRANCH, 0.15), (SHORT, 0.3)]),
+                ((1, 2), &[(BOUGH, 0.3), (BRANCH, 0.2)]),
             ),
         )
     };
@@ -171,8 +171,8 @@ pub fn birch() -> Species {
         insertion: 0.6,
         internode: 0.045,
         form: Form {
-            tropism: 0.6,
-            elevation: 1.2,
+            tropism: 0.9,
+            elevation: 1.3,
             wander: 0.25,
             plane: 0.0,
             pipe: 0.002,
@@ -180,7 +180,7 @@ pub fn birch() -> Species {
             ripening: 10.0,
             dominance: 0.0,
             roll: 0.8,
-            sag: 1e-4,
+            sag: 3e-5,
             secondary: 1.0,
             bend_length: 1.0,
         },
@@ -189,8 +189,8 @@ pub fn birch() -> Species {
             1.0,
             unit(
                 (2, 3),
-                ((3, 5), &[(BOUGH, 0.08), (BRANCH, 0.2), (SHORT, 0.35)]),
-                ((1, 2), &[(BOUGH, 0.4), (BRANCH, 0.35)]),
+                ((3, 5), &[(BOUGH, 0.08), (BRANCH, 0.1), (SHORT, 0.35)]),
+                ((1, 2), &[(BOUGH, 0.4), (BRANCH, 0.25)]),
             ),
         )
     };
@@ -201,7 +201,7 @@ pub fn birch() -> Species {
         shedding: 2.0,
         form: Form {
             tropism: 0.6,
-            elevation: 0.6,
+            elevation: 1.0,
             sag: 3e-5,
             pipe: 0.002,
             ..limb.form
@@ -211,8 +211,8 @@ pub fn birch() -> Species {
             0.0,
             unit(
                 (1, 2),
-                ((3, 4), &[(BRANCH, 0.25), (SHORT, 0.35)]),
-                ((1, 1), &[(BRANCH, 0.4)]),
+                ((3, 4), &[(BRANCH, 0.12), (SHORT, 0.35)]),
+                ((1, 1), &[(BRANCH, 0.3)]),
             ),
         )
     };
@@ -273,7 +273,7 @@ pub fn birch() -> Species {
             0.0,
             unit(
                 (1, 2),
-                ((4, 6), &[(SHORT, 0.45), (SHOOT, 0.25)]),
+                ((4, 6), &[(SHORT, 0.35), (SHOOT, 0.25)]),
                 ((1, 2), &[(SHOOT, 0.4)]),
             ),
         )
@@ -289,7 +289,7 @@ pub fn birch() -> Species {
             pipe: 0.0006,
             ..hanging
         },
-        ..state(3, 0.0, vec![zone(1, 1, &[]), zone(3, 5, &[(SHORT, 0.45)])])
+        ..state(3, 0.0, vec![zone(1, 1, &[]), zone(3, 5, &[(SHORT, 0.35)])])
     };
     // The short shoot: a few crowded nodes a year, its one bud carrying it
     // on, never branching.
@@ -302,7 +302,7 @@ pub fn birch() -> Species {
             pipe: 0.0007,
             ..Form::default()
         },
-        ..state(10, 0.0, vec![zone(2, 3, &[])])
+        ..state(6, 0.0, vec![zone(2, 3, &[])])
     };
     on_chain(vec![
         (TRUNK, trunk),

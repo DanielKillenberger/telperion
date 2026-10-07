@@ -2555,11 +2555,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "brightnessRangeHigh": 0.12,
         "brightnessRangeLow": -0.12,
         "canopyNormal": 0.8,
-        "cavityStrength": 0.3,
-        "crestBlue": 0.1,
-        "crestGreen": 0.1,
-        "crestRed": 0.1,
-        "crestStrength": 0.4,
+        "cavityStrength": 0.8,
+        "crestBlue": -0.48,
+        "crestGreen": -0.5,
+        "crestRed": -0.5,
+        "crestStrength": 1,
         "crownShade": 0.2,
         "cuticleGloss": 0.28,
         "depthStrength": 0.4,
@@ -2573,15 +2573,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "hueRangeHigh": 0.025,
         "hueRangeLow": -0.025,
         "interiorDarkening": 0.15,
-        "leafBackBlue": 0.14,
-        "leafBackGreen": 0.28,
-        "leafBackRed": 0.2,
+        "leafBackBlue": 0.09,
+        "leafBackGreen": 0.33,
+        "leafBackRed": 0.25,
         "leafDeadBlue": 0.18,
         "leafDeadGreen": 0.25,
         "leafDeadRed": 0.3,
-        "leafFrontBlue": 0.06,
-        "leafFrontGreen": 0.19,
-        "leafFrontRed": 0.1,
+        "leafFrontBlue": 0.035,
+        "leafFrontGreen": 0.26,
+        "leafFrontRed": 0.16,
         "leafReflectance": 0.04,
         "leafSheen": 0.06,
         "lenticelDensity": 18,
@@ -2616,11 +2616,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateFurrowWidth": 0,
         "plateIdentity": 0.3,
         "plateScale": 0.4,
-        "ridgeScale": 0.08,
+        "ridgeScale": 0.16,
         "roughnessDetail": 0.1,
         "shootBlue": 0.055,
         "shootGreen": 0.07,
-        "shootRadius": 0.01,
+        "shootRadius": 0.03,
         "shootRed": 0.095,
         "skyOcclusionStrength": 0.4,
         "thickness": 0.45,
@@ -2726,7 +2726,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "twig": {
             "bearingDiameter": 0.02,
             "diameter": 0.003,
-            "internodeLength": 0.015,
+            "internodeLength": 0.02,
             "length": 0.45,
             "stationsPerInternode": 1
           },
@@ -2738,12 +2738,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "2": {
             "divergence": 2.5132741228718345,
             "form": {
-              "bendLength": 4,
+              "bendLength": 6,
               "elevation": 1.5707963267948966,
               "exponent": 2.5,
               "pipe": 0.004,
-              "tropism": 1,
-              "wander": 0.3
+              "tropism": 0.5,
+              "wander": 0.5
             },
             "internode": 0.055,
             "lifespan": 5,
@@ -2782,12 +2782,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "4": {
             "divergence": 2.5132741228718345,
             "form": {
-              "bendLength": 4,
+              "bendLength": 6,
               "elevation": 1.5707963267948966,
               "exponent": 2.5,
               "pipe": 0.004,
-              "tropism": 1,
-              "wander": 0.3
+              "tropism": 0.5,
+              "wander": 0.5
             },
             "lifespan": 35,
             "trunk": true,
@@ -2802,7 +2802,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.12,
+                  "9": 0.06,
                   "14": 0.3
                 },
                 "nodes": {
@@ -2814,7 +2814,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                 "buds": 1,
                 "lateral": {
                   "6": 0.3,
-                  "9": 0.2
+                  "9": 0.12
                 },
                 "nodes": {
                   "max": 2,
@@ -2827,11 +2827,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "continuation": 0,
             "divergence": 2.5132741228718345,
             "form": {
-              "bendLength": 4,
+              "bendLength": 6,
               "elevation": 1.5707963267948966,
               "exponent": 2.5,
               "pipe": 0.004,
-              "tropism": 1,
+              "tropism": 0.5,
               "wander": 0.5
             },
             "internode": 0.02,
@@ -2848,7 +2848,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.3,
+                  "9": 0.15,
                   "14": 0.3
                 },
                 "nodes": {
@@ -2860,7 +2860,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                 "buds": 1,
                 "lateral": {
                   "7": 0.3,
-                  "9": 0.3
+                  "9": 0.2
                 },
                 "nodes": {
                   "max": 2,
@@ -2873,13 +2873,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "divergence": 2.5132741228718345,
             "form": {
               "bendLength": 1,
-              "elevation": 1.2,
+              "elevation": 1.3,
               "exponent": 2.4,
               "pipe": 0.002,
               "ripening": 10,
               "roll": 0.8,
-              "sag": 0.0001,
-              "tropism": 0.6,
+              "sag": 0.00003,
+              "tropism": 0.9,
               "wander": 0.25
             },
             "insertion": 0.6,
@@ -2897,7 +2897,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                 "buds": 1,
                 "lateral": {
                   "7": 0.08,
-                  "9": 0.2,
+                  "9": 0.1,
                   "14": 0.35
                 },
                 "nodes": {
@@ -2909,7 +2909,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                 "buds": 1,
                 "lateral": {
                   "7": 0.4,
-                  "9": 0.35
+                  "9": 0.25
                 },
                 "nodes": {
                   "max": 2,
@@ -2923,7 +2923,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "divergence": 2.5132741228718345,
             "form": {
               "bendLength": 1,
-              "elevation": 0.6,
+              "elevation": 1,
               "exponent": 2.4,
               "pipe": 0.002,
               "ripening": 10,
@@ -2948,7 +2948,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.25,
+                  "9": 0.12,
                   "14": 0.35
                 },
                 "nodes": {
@@ -2959,7 +2959,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 1,
                 "lateral": {
-                  "9": 0.4
+                  "9": 0.3
                 },
                 "nodes": {
                   "max": 1,
@@ -3043,7 +3043,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                 "buds": 1,
                 "lateral": {
                   "12": 0.25,
-                  "14": 0.45
+                  "14": 0.35
                 },
                 "nodes": {
                   "max": 6,
@@ -3089,7 +3089,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "14": 0.45
+                  "14": 0.35
                 },
                 "nodes": {
                   "max": 5,
@@ -3106,7 +3106,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.8,
             "internode": 0.003,
-            "lifespan": 10,
+            "lifespan": 6,
             "shedding": 1,
             "viability": 0.92,
             "zones": {
