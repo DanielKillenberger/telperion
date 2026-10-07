@@ -108,3 +108,10 @@
 - **Slowed by:** the F1 worktree's test suite (`closed_form` and others at 400 % CPU) took the desk to a load of 24 to 47; one matrix run gave the base spruce at 80 13.5 s against 5.9 s quiet, so it was thrown away and the matrix waits for a quiet desk. Earlier, interleaved rounds were needed because single runs moved 3 to 8 percent with the load.
 - **Cost:** one wasted matrix (5 minutes) and the wait.
 - **Would remove it:** a desk-wide timing lock, like the GPU lock, that test suites and timing runs both take; or timings on a reserved core (`isolcpus`), a local setting.
+
+## 2026-10-07 09:40, field path measure: timings under another worker's load
+
+- **Doing:** timing the `telperion/field` path (FIELD-PATH.md), 0.1.4 against the branch, in Wasm and natively.
+- **Slowed by:** another worker's binary held 26 cores; load ran 76 to 131 on 32 cores in the smoke runs and 27 to 55 in the sweep. One 0.1.4 oak took 2.3 s against 0.17 s quiet, and one native branch spruce took 8 s against 2.5 s, so a quieter pass and a native rerun were needed before any time could be reported.
+- **Cost:** about 5 minutes and two extra passes.
+- **Would remove it:** the desk-wide timing lock named in the entry above; nothing new.
