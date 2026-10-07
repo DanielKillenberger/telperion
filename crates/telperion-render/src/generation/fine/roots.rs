@@ -6,6 +6,7 @@
 //! decision 6); nothing per chain or per node does.
 use super::chains::{packed, upload, Caps, Grower, Packed, Uploaded, AXW, PW};
 use super::laid::{self, Resolver};
+use super::pool::Pool;
 use super::shedding::Fades;
 use super::steps::{buffer, Steps, BW2, IW, RW};
 use crate::Gpu;
@@ -74,6 +75,7 @@ pub(super) struct Kernels {
     pub steps: Steps,
     pub resolver: Resolver,
     pub fades: Fades,
+    pub pool: Pool,
 }
 
 pub(super) fn kernels(gpu: &Gpu) -> Kernels {
@@ -82,6 +84,7 @@ pub(super) fn kernels(gpu: &Gpu) -> Kernels {
         steps: Steps::new(gpu),
         resolver: Resolver::new(gpu),
         fades: Fades::new(gpu),
+        pool: Pool::default(),
     }
 }
 
@@ -210,9 +213,9 @@ fn grow_run(
     encoder.copy_buffer_to_buffer(&queued, 0, &sums, 12, 4);
     gpu.queue.submit([encoder.finish()]);
     let t = totals(gpu, &sums, 4, cost);
-    let axes = buffer(gpu, "packed axes", u64::from(t[0]) * AXW as u64);
-    let phyts = buffer(gpu, "packed phytomers", u64::from(t[1]) * PW as u64);
-    let scratch = buffer(gpu, "laid scratch", u64::from(t[2]));
+    let axes = k.pool.take(gpu, "packed axes", u64::from(t[0]) * AXW as u64);
+    let phyts = k.pool.take(gpu, "packed phytomers", u64::from(t[1]) * PW as u64);
+    let scratch = k.pool.take(gpu, "laid scratch", u64::from(t[2]));
     let items = buffer(gpu, "laid items", u64::from(m * IW));
     let mut encoder = gpu.device.create_command_encoder(&Default::default());
     let packed = (&axes, &phyts);

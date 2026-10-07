@@ -41,6 +41,8 @@ mod device;
 #[cfg(test)]
 mod hostrun;
 #[cfg(test)]
+mod pool;
+#[cfg(test)]
 mod profile_tests;
 #[cfg(test)]
 mod laid;

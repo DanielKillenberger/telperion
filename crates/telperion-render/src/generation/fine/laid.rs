@@ -6,6 +6,7 @@
 //! own, metres from its bearer's node as laid before bending and as laid;
 //! `origins` holds those nodes' heights, which the ground is read from.
 use super::super::io;
+use super::pool::Pool;
 use crate::Gpu;
 use telperion_space::{BearerFrame, GeometryTables, RootGeometry, Vec3};
 
@@ -147,19 +148,11 @@ pub(super) struct Wave {
 }
 
 impl Wave {
-    pub(super) fn new(gpu: &Gpu, (axes, phyts): (u32, u32), data: &[f32]) -> Self {
+    /// A wave of `axes` and `phyts` in a buffer from `pool`.
+    pub(super) fn taken(pool: &Pool, gpu: &Gpu, (axes, phyts): (u32, u32)) -> Self {
         let floats = axes as usize * AL + phyts as usize * PL;
-        let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-        let buffer = io::buffer(
-            gpu,
-            "fine laid",
-            floats as u64 * 4,
-            usage,
-            bytemuck::cast_slice(data),
-        )
-        .unwrap();
         Self {
-            buffer,
+            buffer: pool.take(gpu, "fine laid", floats as u64),
             axes,
             phyts,
         }

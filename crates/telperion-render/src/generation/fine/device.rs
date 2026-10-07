@@ -158,6 +158,18 @@ impl<'a> Device<'a> {
     }
 }
 
+/// The pooled buffers go back for the next build (`pool.rs`).
+impl Drop for Device<'_> {
+    fn drop(&mut self) {
+        let Some(kept) = self.kept.take() else {
+            return;
+        };
+        let runs = kept.waves.grown.into_iter().flat_map(|g| g.runs);
+        let packed = runs.flat_map(|r| [r.axes, r.phyts, r.scratch]);
+        self.k.pool.give(packed.chain(kept.laid.into_iter().map(|w| w.buffer)));
+    }
+}
+
 /// A root's attachment before its bearer is laid.
 fn unlaid(scale: f64) -> BearerFrame {
     BearerFrame {
@@ -204,11 +216,11 @@ impl Roots for Device<'_> {
         // The laid buffers and the records, sized now: nothing more is
         // read back to size them.
         let n = seeds.len() as u32;
-        let mut laid = vec![Wave::new(gpu, (n, n), &[])];
+        let mut laid = vec![Wave::taken(&k.pool, gpu, (n, n))];
         let mut at = Vec::with_capacity(waves.chains.len());
         let mut floats = 2 * n;
         for (w, &chains) in waves.chains.iter().enumerate() {
-            laid.push(Wave::new(gpu, (waves.own[w], waves.phyts[w]), &[]));
+            laid.push(Wave::taken(&k.pool, gpu, (waves.own[w], waves.phyts[w])));
             at.push(floats);
             floats += CR * chains;
         }
