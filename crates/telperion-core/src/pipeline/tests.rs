@@ -78,15 +78,28 @@ fn one_sweep_and_one_element_serve_a_request() {
     assert_eq!((t.sweeps, t.elements), (1, 1));
 }
 
-/// Every shipped and in-work family, its leaves seated on the wood or not,
-/// builds the same bytes whether wood and leaves run side by side or one
-/// after the other, and side by side is what a native target with threads
-/// does.
+/// Every shipped and in-work family the scaffold grows, and the ordinary
+/// tree with its leaves seated on the wood, builds the same bytes whether
+/// wood and leaves run side by side or one after the other, and side by
+/// side is what a native target with threads does. An engine preset's rows
+/// reach the scaffold's grower no more (fn-198), so it is skipped here; the
+/// seated ordinary tree stands in for the spruce, the shipped family whose
+/// needles sit on the wood.
 #[test]
 fn every_family_builds_the_same_bytes_under_either_schedule() {
-    for &(_, id, _, _) in CATALOGUE.iter().chain(IN_WORK) {
-        let family = crate::presets::by_identity(id)
-            .unwrap_or_else(|_| Preset::from_id(id).unwrap().parameters());
+    let mut seated = ordinary();
+    seated.canopy.surface_contact = 1.0;
+    let families = CATALOGUE
+        .iter()
+        .chain(IN_WORK)
+        .map(|&(_, id, _, _)| {
+            let family = crate::presets::by_identity(id)
+                .unwrap_or_else(|_| Preset::from_id(id).unwrap().parameters());
+            (id, family)
+        })
+        .filter(|(_, family)| family.space.species.is_none())
+        .chain([("ordinary, seated", seated)]);
+    for (id, family) in families {
         let tree = scaffold(&family).unwrap();
         let run = |schedule| {
             let request = Request {
