@@ -118,7 +118,8 @@ pub(crate) fn settle_with(
     let mut stages = Stages::default();
     let pas = species.states.len();
     let hands = Hands::new(pas, request.age, |pa, birth| {
-        predictor.count(pa, birth) <= plan.cut
+        // A PA no zone draws makes no bud to hand on.
+        predictor.count(pa, birth).is_some_and(|c| c <= plan.cut)
     });
     let (grown, handed) = above(rules, hands, request.seed, threads)?;
     stages.mark("above the cut");

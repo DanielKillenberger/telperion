@@ -16,7 +16,7 @@ fn same(species: &Species, age: u32) -> usize {
             let Some(row) = rows.row_at(pa, (age - birth) as usize) else {
                 continue;
             };
-            let count = predictor.count(pa, birth);
+            let count = predictor.count(pa, birth).expect("a count");
             assert_eq!(
                 count.to_bits(),
                 row.count.to_bits(),
@@ -52,7 +52,7 @@ fn an_old_tree_needs_no_deep_stack() {
             .stack_size(128 << 10)
             .spawn_scoped(scope, || {
                 let predictor = Predictor::new(&species, &windows, 300);
-                let counts = predictor.counts.into_iter().filter(|c| !c.is_nan());
+                let counts = predictor.counts.into_iter().flatten();
                 counts.fold(0.0, f64::max)
             })
             .expect("a thread")
@@ -102,4 +102,49 @@ fn the_trees_count_is_the_seed_row() {
     let kept: usize = tree.axes.iter().map(|a| a.phytomers.len()).sum();
     let expected = crate::expected_kept(&palm(), 30).unwrap().unwrap();
     assert_eq!(kept as f64, expected);
+}
+
+/// A PA no zone draws has no count (fn-198 task 6: it was a NaN, which a
+/// debug build refused and the cut's `<=` read as "not fine"), and every
+/// lateral a tree grows stands in a PA that has one, so the cut never
+/// classifies a bud on a missing count.
+#[test]
+fn every_lateral_grown_has_a_count_and_an_undrawn_pa_has_none() {
+    use crate::structure::Origin;
+    let lit = crate::Light {
+        extinction: 0.5,
+        sky: 0.5,
+    };
+    for (species, light) in [
+        (beech(), crate::Light::NEUTRAL),
+        (spruce(), crate::Light::NEUTRAL),
+        (oak(), lit),
+        (palm(), crate::Light::NEUTRAL),
+    ] {
+        let age = 20;
+        let predictor = Predictor::new(&species, &Windows::new(&species, age), age);
+        let borne = crate::closed_form::boundary::borne(&species);
+        for pa in 0..species.states.len() {
+            assert_eq!(predictor.count(pa, 0).is_some(), borne[pa], "PA {pa}");
+        }
+        let request = crate::Request {
+            age,
+            seed: 1,
+            budget: 20_000_000,
+            light,
+        };
+        let tree = crate::grow(&species, request).expect("grows");
+        for axis in &tree.axes {
+            if let Origin::Lateral { woken: false, .. } = axis.origin {
+                assert!(
+                    predictor.count(axis.pa, axis.birth).is_some(),
+                    "PA {}",
+                    axis.pa
+                );
+            }
+        }
+    }
+    let beech = beech();
+    let predictor = Predictor::new(&beech, &Windows::new(&beech, 6), 6);
+    assert_eq!(predictor.count(0, 1), None, "the beech's PA 0 is drawn");
 }

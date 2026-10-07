@@ -28,10 +28,11 @@ use std::rc::Rc;
 mod tests;
 
 /// Every bud's expected kept phytomers at one age, by PA and the cycles
-/// from its birth to the tree's age: what the cut reads.
+/// from its birth to the tree's age: what the cut reads. A PA no zone
+/// draws has no bud, and so no count.
 pub(crate) struct Predictor {
     age: usize,
-    counts: Vec<f64>,
+    counts: Vec<Option<f64>>,
 }
 
 impl Predictor {
@@ -40,25 +41,23 @@ impl Predictor {
     pub(crate) fn new(species: &Species, windows: &Windows, age: u32) -> Self {
         let m_max = age as usize;
         let borne = super::boundary::borne(species);
-        let mut counts = vec![f64::NAN; species.states.len() * (m_max + 1)];
+        let mut counts = vec![None; species.states.len() * (m_max + 1)];
         let mut walk = Walk::new(species, windows);
         for m in 0..=m_max {
             for pa in (0..borne.len()).filter(|&pa| borne[pa]) {
                 let delay = species.states[pa].shedding;
                 let table = walk.child((pa, m, Carried::default(), None), delay);
-                counts[pa * (m_max + 1) + m] = table.at(m as i64).1.expect("born");
+                counts[pa * (m_max + 1) + m] = Some(table.at(m as i64).1.expect("born"));
             }
         }
         Self { age: m_max, counts }
     }
 
     /// A lateral of `pa` made in cycle `birth`: its expected kept
-    /// phytomers. A PA no zone draws has none.
-    pub(crate) fn count(&self, pa: usize, birth: u32) -> f64 {
+    /// phytomers, none for a PA no zone draws.
+    pub(crate) fn count(&self, pa: usize, birth: u32) -> Option<f64> {
         let m = self.age.saturating_sub(birth as usize);
-        let count = self.counts[pa * (self.age + 1) + m];
-        debug_assert!(!count.is_nan(), "a count for PA {pa}");
-        count
+        self.counts[pa * (self.age + 1) + m]
     }
 }
 

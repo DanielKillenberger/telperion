@@ -193,7 +193,9 @@ fn assemble(settled: Settled, roots: Vec<Root>, predictor: &Predictor) -> Result
     for (k, root) in roots.into_iter().enumerate() {
         let report = |kept| Expanded {
             at: at[k],
-            predicted: predictor.count(root.pa, root.birth),
+            predicted: predictor
+                .count(root.pa, root.birth)
+                .expect("a root's PA is drawn by a zone"),
             kept,
             woken: root.woken,
             work: root.work,
