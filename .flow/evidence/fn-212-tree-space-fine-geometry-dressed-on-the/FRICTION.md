@@ -96,3 +96,10 @@
 - **Hindered:** the seed-1 pass ran at a one-minute load of 7 to 9; during the seed-7 pass other workers brought it to 20 to 33. Today's side read 8.8 to 14.0 s against 5.4 to 7.5 s for seed 1, and the device's settle doubled, so the pass is not a clean measurement.
 - **Cost:** one pass of ten spruce-80 processes, about 12 minutes, retaken.
 - **Removal:** the quiet window this file's first timing entry asked for, or a timing lock that other heavy jobs respect.
+
+## 2026-10-07, task 7 (worker): rustfmt on a module file formats its child modules
+
+- **Doing:** formatting only the files I touched, `rustfmt <file>` on `generation/fine.rs`.
+- **Hindered:** rustfmt follows a file's out-of-line `mod` declarations, so it reformatted `step_probe.rs` and `fine/tests.rs` too; the shell guard then refused `git checkout <ref> -- <path>` to restore them, so the undo went through a reverse patch and a commit of its own.
+- **Cost:** about 4 minutes and one extra commit.
+- **Removal:** `rustfmt --config skip_children=true` (nightly) or a workspace fmt pass on the base branch, so a worker's format touches only its own lines (this file's 16:00 entry).
