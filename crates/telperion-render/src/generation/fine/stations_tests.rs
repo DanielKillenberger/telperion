@@ -32,6 +32,9 @@ pub(super) struct Stationed {
     /// class of threshold decisions fed by f32 against f64), and the
     /// stations they hold on the device. Left out of what follows.
     pub tied: (usize, u64),
+    /// Runs whose first station or segment differs from one walk over the
+    /// runs in their order (the bases' scan, fn-212 task 9).
+    pub scanned: usize,
     /// Device segments with no reference segment, and reference segments
     /// of the device's keys with no device segment.
     pub strays: (usize, usize),
@@ -108,6 +111,7 @@ fn stationed(
     let swept = sw.sweep(gpu, dressed, rows(surface, curve.height));
     let device = st.stations(gpu, &swept, dressed.ids, r);
     let ms = t.elapsed().as_secs_f64() * 1e3;
+    let scanned = scanned(gpu, &device);
     let words = device.segments as usize * GW;
     let raw = super::super::io::read(gpu, &device.buffer, (words.max(4) * 4) as u64).unwrap();
     let mine: &[u32] = bytemuck::cast_slice(&raw);
@@ -127,6 +131,7 @@ fn stationed(
     let mut out = Stationed {
         device: (device.runs, device.segments, device.stations),
         reference: (fine.len(), fine.iter().map(|s| u64::from(s.count)).sum()),
+        scanned,
         ms,
         ..Stationed::default()
     };
@@ -201,6 +206,22 @@ fn stationed(
     out
 }
 
+/// The runs whose first station or segment differs from one walk over the
+/// runs in their order: what the bases' parallel scan must equal.
+fn scanned(gpu: &Gpu, device: &super::stations::Stationed) -> usize {
+    let rw = super::stations::RW as usize;
+    let bytes = (device.runs as usize * rw).max(1) * 4;
+    let raw = super::super::io::read(gpu, &device.run_words, bytes as u64).unwrap();
+    let words: &[u32] = bytemuck::cast_slice(&raw);
+    let (mut s, mut g, mut off) = (0u32, 0u32, 0usize);
+    for run in words.chunks(rw).take(device.runs as usize) {
+        off += usize::from(run[4] != s || run[5] != g);
+        s += run[1];
+        g += run[2];
+    }
+    off
+}
+
 pub(super) fn checked(name: &str, at: (u32, u32), s: &Stationed) {
     println!("{name} {at:?}: {s:?}");
     assert!(s.endpoints <= MOST, "{name} {at:?}: endpoints");
@@ -238,6 +259,10 @@ fn fine_roots_are_stationed_on_the_device() {
         let s = probe(&gpu, &k, tools, id, (30, 1));
         checked(id, (30, 1), &s);
         assert_eq!(s.contacts, 0, "{id}: contacts");
+        assert_eq!(
+            s.scanned, 0,
+            "{id}: the bases' scan is the walk's numbering"
+        );
         // Counts from the grown wood are equal (D2).
         assert_eq!(
             (s.tied.0, s.strays, s.counts),

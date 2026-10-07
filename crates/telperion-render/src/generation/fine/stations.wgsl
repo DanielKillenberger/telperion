@@ -232,19 +232,93 @@ fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
     runs[r * RW + 3u] = n;
 }
 
-// Each run's first station and segment, in the runs' order.
-@compute @workgroup_size(1)
-fn bases() {
-    var s = 0u;
-    var g = 0u;
-    for (var r = 0u; r < cfg.n; r++) {
-        runs[r * RW + 4u] = s;
-        runs[r * RW + 5u] = g;
-        s += runs[r * RW + 1u];
-        g += runs[r * RW + 2u];
+// Each run's first station and segment, in the runs' order: an exclusive
+// scan of the runs' stations and segments, in three passes (fn-212 task
+// 9). `bases` scans each block of `LANES` runs and leaves its totals in
+// `segs`; `blocks` scans the blocks' totals in one workgroup and leaves
+// the whole tree's in `counts`; `spread` adds each block's base to its
+// runs. The same numbering as one walk over the runs, to the run.
+const LANES: u32 = 256u;
+var<workgroup> scan: array<vec2<u32>, 256>;
+
+fn block_of(group: vec3<u32>, groups: vec3<u32>) -> u32 {
+    return group.x + group.y * groups.x;
+}
+
+// The inclusive scan of `own` across the workgroup, `lane`'s.
+fn inclusive(lane: u32, own: vec2<u32>) -> vec2<u32> {
+    scan[lane] = own;
+    workgroupBarrier();
+    for (var step = 1u; step < LANES; step *= 2u) {
+        var add = vec2<u32>(0u);
+        if lane >= step {
+            add = scan[lane - step];
+        }
+        workgroupBarrier();
+        scan[lane] += add;
+        workgroupBarrier();
     }
-    atomicStore(&counts[1], s);
-    atomicStore(&counts[2], g);
+    return scan[lane];
+}
+
+@compute @workgroup_size(256)
+fn bases(
+    @builtin(local_invocation_index) lane: u32,
+    @builtin(workgroup_id) group: vec3<u32>,
+    @builtin(num_workgroups) groups: vec3<u32>,
+) {
+    let block = block_of(group, groups);
+    let r = block * LANES + lane;
+    var own = vec2<u32>(0u);
+    if r < cfg.n {
+        own = vec2<u32>(runs[r * RW + 1u], runs[r * RW + 2u]);
+    }
+    let sum = inclusive(lane, own);
+    if r < cfg.n {
+        runs[r * RW + 4u] = sum.x - own.x;
+        runs[r * RW + 5u] = sum.y - own.y;
+    }
+    if lane == LANES - 1u {
+        segs[block * 2u] = sum.x;
+        segs[block * 2u + 1u] = sum.y;
+    }
+}
+
+@compute @workgroup_size(256)
+fn blocks(@builtin(local_invocation_index) lane: u32) {
+    let n = (cfg.n + LANES - 1u) / LANES;
+    let per = (n + LANES - 1u) / LANES;
+    let end = min(n, (lane + 1u) * per);
+    var own = vec2<u32>(0u);
+    for (var k = lane * per; k < end; k++) {
+        own += vec2<u32>(segs[k * 2u], segs[k * 2u + 1u]);
+    }
+    let sum = inclusive(lane, own);
+    var base = sum - own;
+    for (var k = lane * per; k < end; k++) {
+        let total = vec2<u32>(segs[k * 2u], segs[k * 2u + 1u]);
+        segs[k * 2u] = base.x;
+        segs[k * 2u + 1u] = base.y;
+        base += total;
+    }
+    if lane == LANES - 1u {
+        atomicStore(&counts[1], sum.x);
+        atomicStore(&counts[2], sum.y);
+    }
+}
+
+@compute @workgroup_size(256)
+fn spread(
+    @builtin(local_invocation_index) lane: u32,
+    @builtin(workgroup_id) group: vec3<u32>,
+    @builtin(num_workgroups) groups: vec3<u32>,
+) {
+    let block = block_of(group, groups);
+    let r = block * LANES + lane;
+    if r < cfg.n {
+        runs[r * RW + 4u] += segs[block * 2u];
+        runs[r * RW + 5u] += segs[block * 2u + 1u];
+    }
 }
 
 fn perpendicular(v: vec3<f32>) -> vec3<f32> {

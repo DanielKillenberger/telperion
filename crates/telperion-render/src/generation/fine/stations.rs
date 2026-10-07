@@ -10,7 +10,7 @@ use telperion_core::pipeline::executor::Expansion;
 
 const STATIONS: &str = include_str!("stations.wgsl");
 const SW: u64 = 4;
-const RW: u64 = 6;
+pub(super) const RW: u64 = 6;
 /// A segment's words (`data.rs`'s `Segment`).
 pub(super) const GW: usize = 32;
 const KIDS: usize = 0;
@@ -19,6 +19,10 @@ const STARTS: usize = 2;
 const MEASURE: usize = 3;
 const BASES: usize = 4;
 const EMIT: usize = 5;
+const BLOCKS: usize = 6;
+const SPREAD: usize = 7;
+/// Runs a workgroup of the bases' scan takes.
+const LANES: u32 = 256;
 
 pub(super) fn source() -> String {
     STATIONS.to_string()
@@ -46,6 +50,9 @@ pub(super) struct Stationed {
     pub stations: u32,
     pub segments: u32,
     pub buffer: wgpu::Buffer,
+    /// The runs' words (`RW` a run): first node, stations, segments,
+    /// nodes, first station and first segment.
+    pub run_words: wgpu::Buffer,
 }
 
 pub(super) struct Stationer {
@@ -61,7 +68,9 @@ fn storage(gpu: &Gpu, label: &'static str, words: u64) -> wgpu::Buffer {
 impl Stationer {
     pub(super) fn new(gpu: &Gpu) -> Self {
         let read = [true, true, false, false, false, false];
-        let entries = ["kids", "bear", "starts", "measure", "bases", "emit"];
+        let entries = [
+            "kids", "bear", "starts", "measure", "bases", "emit", "blocks", "spread",
+        ];
         Self {
             pass: io::Pass::new(gpu, source(), &read, &entries),
         }
@@ -137,12 +146,17 @@ impl Stationer {
             rows,
             [&swept.nodes, &swept.table, &st, &runs, &counts, &none],
         );
-        self.run(
-            (gpu, &mut e),
-            (BASES, n, Some(1)),
-            rows,
-            [&swept.nodes, &swept.table, &st, &runs, &counts, &none],
-        );
+        // The runs' first stations and segments, scanned in blocks.
+        let blocks = n.div_ceil(LANES).max(1);
+        let totals = storage(gpu, "station blocks", u64::from(blocks) * 2);
+        for (entry, groups) in [(BASES, blocks), (BLOCKS, 1), (SPREAD, blocks)] {
+            self.run(
+                (gpu, &mut e),
+                (entry, n, Some(groups)),
+                rows,
+                [&swept.nodes, &swept.table, &st, &runs, &counts, &totals],
+            );
+        }
         let [_, stations, segments, _] = Self::counts(gpu, &mut e, &counts);
         let buffer = storage(gpu, "station segments", u64::from(segments) * GW as u64);
         let late = [&swept.nodes, &swept.table, &st, &runs, &counts, &buffer];
@@ -156,6 +170,7 @@ impl Stationer {
             stations,
             segments,
             buffer,
+            run_words: runs,
         }
     }
 }
