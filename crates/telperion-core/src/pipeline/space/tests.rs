@@ -113,3 +113,103 @@ fn a_tree_that_reads_light_is_held_after_growth() {
     assert_eq!(telperion_space::expected_kept(&species, 15).unwrap(), None);
     assert!(foreseen(&species, 15, Some(0)).is_ok());
 }
+
+/// Each converted node's identity, the root's left out.
+fn identities(tree: &Tree) -> Vec<u64> {
+    tree.nodes[1..]
+        .iter()
+        .map(|n| n.identity.birth_order())
+        .collect()
+}
+
+/// Each phytomer's key by its lineage: its axis's identity and its place
+/// along the axis.
+fn keys(structure: &Structure) -> std::collections::HashMap<(u64, usize), u64> {
+    let ids = telperion_space::identities(structure);
+    let mut keys = std::collections::HashMap::new();
+    for (axis, &id) in structure.axes.iter().zip(&ids) {
+        for (k, p) in axis.phytomers.iter().enumerate() {
+            keys.insert((id, k), p.key());
+        }
+    }
+    keys
+}
+
+/// Every node of an engine tree has its own identity (fn-220 R1, R2), so a
+/// draw keyed by it (short shoots, flowers) differs from one piece of wood
+/// to the next; the identity is the key of the phytomer that made it.
+#[test]
+fn every_engine_node_has_its_own_identity() {
+    let (structure, trunk) = grown();
+    let tree = convert(&structure, &trunk);
+    let ids = identities(&tree);
+    let distinct: std::collections::HashSet<u64> = ids.iter().copied().collect();
+    assert_eq!(distinct.len(), ids.len(), "two nodes share an identity");
+    let made: std::collections::HashSet<u64> = keys(&structure).into_values().collect();
+    assert!(
+        ids.iter().all(|id| made.contains(id)),
+        "not a phytomer's key"
+    );
+}
+
+/// A node keeps its identity as the tree ages (fn-220 R2): the same
+/// lineage holds the same key a year on, and most of last year's nodes
+/// are this year's by identity.
+#[test]
+fn a_node_keeps_its_identity_across_ages() {
+    let family = Preset::EuropeanBeech.parameters();
+    let species = family.space.species.unwrap();
+    let at = |age| {
+        let request = Request {
+            age,
+            seed: 7,
+            budget: BUDGET,
+            light: family.space.light,
+        };
+        telperion_space::grow(&species, request).unwrap()
+    };
+    let (young, old) = (at(14), at(15));
+    let (before, after) = (keys(&young), keys(&old));
+    let shared = before.keys().filter(|k| after.contains_key(k)).count();
+    assert!(shared * 2 > before.len(), "{shared} of {}", before.len());
+    for (lineage, key) in &before {
+        if let Some(later) = after.get(lineage) {
+            assert_eq!(key, later, "a lineage changed its key");
+        }
+    }
+    let trunk = &family.space.trunk;
+    let last: std::collections::HashSet<u64> =
+        identities(&convert(&young, trunk)).into_iter().collect();
+    let kept = identities(&convert(&old, trunk))
+        .iter()
+        .filter(|id| last.contains(id))
+        .count();
+    assert!(kept * 2 > last.len(), "{kept} of {} kept", last.len());
+}
+
+/// A node's identity does not depend on where the fine cut falls (fn-220
+/// R2): the tree grown whole and expanded below any cut converts to the
+/// same identities.
+#[test]
+fn a_node_keeps_its_identity_across_cuts() {
+    let family = Preset::EuropeanBeech.parameters();
+    let species = family.space.species.unwrap();
+    let request = Request {
+        age: 15,
+        seed: 7,
+        budget: BUDGET,
+        light: family.space.light,
+    };
+    let trunk = &family.space.trunk;
+    let whole = telperion_space::grow_whole(&species, request).unwrap();
+    let reference = identities(&convert(&whole, trunk));
+    for cut in [0.0, 16.0, 1024.0] {
+        let plan = telperion_space::Plan {
+            cut,
+            ..Default::default()
+        };
+        let fine = telperion_space::grow_fine(&species, request, plan).unwrap();
+        let tree = convert(&telperion_space::lineage_order(fine.structure), trunk);
+        assert_eq!(identities(&tree), reference, "cut {cut}");
+    }
+}

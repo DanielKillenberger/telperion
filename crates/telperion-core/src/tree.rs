@@ -23,7 +23,8 @@ pub enum NodeKind {
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Node {
-    /// Stable birth identity, assigned by the owning specimen; never a storage index.
+    /// Stable identity, never a storage index: the scaffold specimen's birth
+    /// order, or the engine phytomer's lineage key (fn-220).
     pub identity: NodeIdentity,
     pub shoot: ShootState,
     pub position: Vec3,

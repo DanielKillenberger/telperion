@@ -8,10 +8,11 @@
 //! otherwise. Wood thinner than `FINEST` (a phytomer growing in from its
 //! draw, and all it bears) is not drawn, and an internode shorter than
 //! `SHORTEST` is merged into its node, so the sweep never meets a ring it
-//! cannot resolve in float32.
+//! cannot resolve in float32. A node's identity is its phytomer's lineage
+//! key, so every draw keyed by it is the node's own.
 use super::GrowInput;
 use crate::math::Vec3;
-use crate::tree::{BudFate, Node, NodeKind, ShootState, Tree};
+use crate::tree::{BudFate, Node, NodeIdentity, NodeKind, ShootState, Tree};
 use crate::{Error, Result};
 use telperion_space::{Origin, Request, Structure};
 
@@ -263,6 +264,9 @@ fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
                 continue;
             }
             let mut node = Node::root();
+            // Its identity is the key of the phytomer that made it: its
+            // lineage, the same node at any age and any cut (fn-220).
+            node.identity = NodeIdentity::lineage(p.key());
             let inherited = nodes[parent as usize].radius;
             let first = !made;
             node.shoot = ShootState {
