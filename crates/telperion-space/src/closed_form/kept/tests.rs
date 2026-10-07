@@ -201,7 +201,9 @@ fn a_deterministic_tree_keeps_what_the_formula_keeps() {
             for q in 0..7 {
                 let (a, b) = (ours[q], theirs[q]);
                 assert!(
-                    (a - b).abs() <= 1e-9 * b.abs().max(1e-6),
+                    // Contract A: the tree's girth and sag are Q32 and W,
+                    // the formula f64 (1e-6 relative).
+                    (a - b).abs() <= 1e-6 * b.abs().max(1e-6),
                     "relayed {relayed}, age {age} {}: {a} vs {b}",
                     NAMES[q]
                 );

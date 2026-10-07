@@ -113,7 +113,7 @@ pub fn bud_light(structure: &Structure, species: &Species, light: &Light) -> Vec
             a.phytomers.iter().map(move |p| (p, area))
         })
         .filter(|(p, _)| p.cycle == structure.age)
-        .map(|(p, area)| (p.tip, p.scale * area))
+        .map(|(p, area)| (p.tip, leaf_area(p.scale, 1.0, area)))
         .collect();
     let tips: Vec<(usize, Vec3)> = structure
         .axes
@@ -125,6 +125,14 @@ pub fn bud_light(structure: &Structure, species: &Species, light: &Light) -> Vec
     let reads: Vec<Vec3> = tips.iter().map(|t| t.1).collect();
     let field = Field::new(light, &leaves, &reads);
     tips.iter().map(|&(i, at)| (i, field.at(at))).collect()
+}
+
+/// A leaf's area, `scale size leaf_area`, one rounding to Q32 (contract
+/// A, 2.6), as its exact real.
+pub(crate) fn leaf_area(scale: f64, size: f64, area: f64) -> f64 {
+    use crate::fixed::{feedback::wide::prod_shr, q32, ONE32};
+    let f = [q32(scale), q32(size), q32(area), 1];
+    prod_shr(f, 64).expect("a leaf's area inside Q32") as f64 / ONE32 as f64
 }
 
 /// All the light from overhead.

@@ -7,10 +7,13 @@ use crate::fixed::feedback::lattice::REACH;
 use crate::fixed::feedback::vector::isqrt;
 use crate::fixed::{exp2_neg, mul, q32, LOG2E, ONE32, P_ONE};
 use crate::lineage::Key;
-use crate::sag::{held, torque, turn, Lever};
+use crate::fixed::feedback::angle::atan2;
+use crate::fixed::feedback::vector::unit_w;
+use crate::fixed::feedback::wide::{mul_shr, I256};
+use crate::fixed::INF;
+use crate::sag::{held, log2_q, torque, turn, Lever, W3};
 use crate::species::PaState;
 use crate::structure::{Axis, Phytomer, Vec3};
-use std::f64::consts::{FRAC_PI_2, PI, TAU};
 
 /// The height, in the wood's own radii, below which it eases onto the
 /// ground.
@@ -27,7 +30,6 @@ const LANDING: f64 = 6.0;
 pub(crate) const GROUND_TOLERANCE: f64 = 1e-9;
 /// The same in Q32, floored (CONTRACT-A.md 2.4).
 const GROUND_TOLERANCE_Q: i64 = 4;
-const DOWN: Vec3 = Vec3::new(0.0, 0.0, -1.0);
 
 /// Where a walk along an axis stands: its running direction and side,
 /// its tip, the scaled length it has run, how far its heading lets a bend
@@ -334,8 +336,8 @@ fn rest(k: i64) -> i64 {
 }
 
 /// The sag of a loaded phytomer (`sag.rs`): its pivot and amount, or
-/// none. The lever's arithmetic is the re-lay and sag pass's
-/// (CONTRACT-A.md 2.5); here its angle enters as an amount, rounded once.
+/// none (CONTRACT-A.md 2.5). The lever stays W throughout and is
+/// normalised from W; its room is an amount, unwrapped exactly.
 fn sag_angle(
     load: &Lever,
     phytomer: &Phytomer,
@@ -344,51 +346,100 @@ fn sag_angle(
     trunk: bool,
 ) -> Option<(Q3, i64)> {
     let form = state.form;
-    let length = state.internode * phytomer.scale;
-    let (running, across, tip) = (v3(running), v3(across), v3(tip));
+    let length = mul(q32(state.internode), q32(phytomer.scale));
+    let radius = q32(phytomer.radius);
     // The lever was taken on the tree before it bent. The load beyond is
     // turned rigidly by the rotation that takes the phytomer's frame then
     // (its heading and side, still the first lay's) to its frame now
-    // (fn-203). Normalised with no cutoff: a vanishing moment bends by
-    // nothing, never by a jump.
-    let frames = ((phytomer.heading, phytomer.side), (running, across));
-    let now = framed(load.moment, frames.0, frames.1);
+    // (fn-203).
+    let frames = (
+        Frame::of(q3(phytomer.heading), q3(phytomer.side))?,
+        Frame::of(running, across)?,
+    );
+    let now = frames.0.carry_w(&frames.1, load.moment);
     // The ground carries what of the wood beyond would rest on it.
     let carried = if trunk {
-        1.0
+        ONE32
     } else {
-        held(tip.z, framed(load.chord, frames.0, frames.1))
+        held(tip[2], frames.0.carry(&frames.1, load.chord))
     };
-    let now = now * carried;
-    let turning = torque(now);
-    let moment = turning.length();
-    if moment <= 0.0 {
+    let now = now.map(|c| mul_shr(c, i128::from(carried), 32).expect("a lever inside W"));
+    // Normalised from W with no cutoff: a vanishing moment bends by
+    // nothing, never by a jump.
+    let (pivot, moment) = unit_w(torque(now));
+    if moment <= -INF {
         return None;
     }
-    let pivot = turning * (1.0 / moment);
     // The backstop: the room left to turn, short of straight down by
-    // `HANG`; measured from -pi / 2 to 3 pi / 2, so wood near straight up
-    // has the room over the top to its load's side.
-    let square = running - pivot * running.dot(pivot);
-    let room = square.cross(DOWN).dot(pivot).atan2(square.dot(DOWN));
-    let room = if room < -FRAC_PI_2 { room + TAU } else { room };
-    let room = if room > PI {
-        2.0 * (1.5 * PI - room)
-    } else {
-        room
-    };
+    // `HANG`; measured from -1/4 to 3/4 turn, so wood near straight up has
+    // the room over the top to its load's side; past straight up it shrinks
+    // again, to none at the angle's cut.
+    let square = sub(running, scaled(pivot, dot(running, pivot)));
+    let down = [0, 0, -ONE32];
+    let room = between(0, atan2(dot(cross(square, down), pivot), dot(square, down)));
+    let room = if room < -(1 << 30) { room + ONE32 } else { room };
+    let room = if room > 1 << 31 { 2 * ((3 << 30) - room) } else { room };
     // The unbent lever's moment caps the turned one's.
-    let cap = torque(load.moment).length() * carried;
-    let angle = turn(now, cap, form.sag, phytomer.radius, length).min((room - HANG).max(0.0));
+    let cap = unit_w(torque(load.moment)).1 + log2_q(carried);
+    let angle = turn(now, cap, form.sag, phytomer.radius, real(length));
+    let angle = angle.min((room - amount(HANG)).max(0));
     // Wood resting on the ground is carried by it and keeps its direction
     // there.
     let angle = if trunk {
         angle
     } else {
-        angle * support(tip.z, phytomer.radius, length)
+        mul(angle, support_q(tip[2], radius, length))
     };
-    let pivot = unit(q3(pivot))?;
-    Some((pivot, amount(angle)))
+    Some((pivot, angle))
+}
+
+/// A frame: a unit heading, its side made square and unit, and their
+/// normal; carrying a vector from one frame to another is the rotation
+/// built from the two frames (no angle).
+struct Frame {
+    heading: Q3,
+    side: Q3,
+    normal: Q3,
+}
+
+impl Frame {
+    fn of(heading: Q3, side: Q3) -> Option<Self> {
+        let side = unit(sub(side, scaled(heading, dot(side, heading))))?;
+        Some(Self {
+            heading,
+            side,
+            normal: cross(heading, side),
+        })
+    }
+
+    /// The components of `v` in this frame, carried into `to`.
+    fn carry(&self, to: &Frame, v: Q3) -> Q3 {
+        let parts = [dot(v, self.heading), dot(v, self.side), dot(v, self.normal)];
+        let axes = [to.heading, to.side, to.normal];
+        (0..3).fold([0; 3], |sum, k| add(sum, scaled(axes[k], parts[k])))
+    }
+
+    /// The same of a W vector, each product floored from 256 bits.
+    fn carry_w(&self, to: &Frame, v: W3) -> W3 {
+        let part = |axis: Q3| {
+            let wide = (0..3)
+                .map(|k| I256::mul(v[k], i128::from(axis[k])))
+                .fold(I256::of(0), I256::add);
+            wide.floor_shift(32).narrow().expect("a lever inside W")
+        };
+        let parts = [part(self.heading), part(self.side), part(self.normal)];
+        let axes = [to.heading, to.side, to.normal];
+        std::array::from_fn(|c| {
+            (0..3)
+                .map(|k| mul_shr(parts[k], i128::from(axes[k][c]), 32).expect("a lever inside W"))
+                .sum()
+        })
+    }
+}
+
+/// A Q32 as its exact real.
+fn real(q: i64) -> f64 {
+    q as f64 / ONE32 as f64
 }
 
 /// Lays the axis's internodes from its base frame, phytomer by
@@ -416,9 +467,12 @@ pub(crate) fn ground_zone(radius: f64, length: f64) -> f64 {
     CONTACT * radius + LANDING * length
 }
 
-/// `support` in Q32: `isqrt` of the Q32 quotient `max(z, 0) / zone`
-/// shifted to Q64 (CONTRACT-A.md 2.4), one above the zone.
-fn support_q(z: i64, radius: i64, length: i64) -> i64 {
+/// How far wood at height `z`, `radius` thick and `length` long (Q32),
+/// stands free of the ground: one above its landing zone (a few radii and
+/// `LANDING` internodes), easing with the square root of its height to
+/// none on the ground: `isqrt` of the Q32 quotient `max(z, 0) / zone`
+/// shifted to Q64 (CONTRACT-A.md 2.4).
+pub(crate) fn support_q(z: i64, radius: i64, length: i64) -> i64 {
     let zone = CONTACT as i64 * radius + LANDING as i64 * length;
     if z >= zone {
         return ONE32;
@@ -426,13 +480,6 @@ fn support_q(z: i64, radius: i64, length: i64) -> i64 {
     isqrt((over(z.max(0), zone) as u128) << 32) as i64
 }
 
-/// How far wood at height `z`, `radius` thick and `length` long, stands
-/// free of the ground: 1 above its landing zone (a few radii and
-/// `LANDING` internodes), easing with the square root of its height to
-/// none on the ground.
-pub(crate) fn support(z: f64, radius: f64, length: f64) -> f64 {
-    support_q(q32(z), q32(radius), q32(length)) as f64 / ONE32 as f64
-}
 
 /// The key step of a node's wander draws.
 const WANDER: u64 = 1;
@@ -465,14 +512,3 @@ pub(super) fn toward_elevation(direction: Q3, side: Q3, elevation: i64, share: i
     add(scaled(out, cos), scaled(q::UP, sin))
 }
 
-/// `v` carried by the rotation that takes the frame of unit `heading` and
-/// `side` to the frame of `heading2` and `side2` (each side made square to
-/// its heading).
-fn framed(v: Vec3, (heading, side): (Vec3, Vec3), (heading2, side2): (Vec3, Vec3)) -> Vec3 {
-    let square = |h: Vec3, s: Vec3| (s - h * s.dot(h)).unit();
-    let (Some(side), Some(side2)) = (square(heading, side), square(heading2, side2)) else {
-        return v;
-    };
-    let (normal, normal2) = (heading.cross(side), heading2.cross(side2));
-    heading2 * v.dot(heading) + side2 * v.dot(side) + normal2 * v.dot(normal)
-}

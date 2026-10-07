@@ -168,7 +168,7 @@ impl Grower<'_> {
             let axis = &self.axes[i];
             let area = species.states[axis.pa].leaf_area;
             for p in &axis.phytomers[from..to] {
-                leaves.push((p.tip, p.scale * p.size * area));
+                leaves.push((p.tip, crate::light::leaf_area(p.scale, p.size, area)));
             }
             if let Some(o) = owners.as_mut() {
                 o.extend(std::iter::repeat_n(i, to - from));

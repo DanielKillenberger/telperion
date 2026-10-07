@@ -145,7 +145,7 @@ impl Grower<'_> {
             for axis in piece {
                 let area = species.states[axis.pa].leaf_area;
                 for p in axis.phytomers.iter().rev().take_while(|p| p.cycle == cycle) {
-                    out.push((p.tip, p.scale * p.size * area));
+                    out.push((p.tip, crate::light::leaf_area(p.scale, p.size, area)));
                 }
             }
             out

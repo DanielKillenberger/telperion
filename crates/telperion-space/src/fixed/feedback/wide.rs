@@ -47,6 +47,15 @@ impl I256 {
         }
     }
 
+    /// `a + b`, wrapping in 256 bits (exact for sums of a few products).
+    pub fn add(self, b: Self) -> Self {
+        let (lo, carry) = self.lo.overflowing_add(b.lo);
+        Self {
+            hi: self.hi.wrapping_add(b.hi).wrapping_add(i128::from(carry)),
+            lo,
+        }
+    }
+
     /// `a b`, exact: its magnitude is at most 2^254.
     pub fn mul(a: i128, b: i128) -> Self {
         let (x, y) = (a.unsigned_abs(), b.unsigned_abs());

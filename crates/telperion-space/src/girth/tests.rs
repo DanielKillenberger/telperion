@@ -126,7 +126,9 @@ fn the_leaf_term_keeps_the_trees_pipe_and_thickens_the_lit_limb() {
     thicken(&mut a, &neutral, &Girth::default(), 1);
     thicken(&mut b, &leafy, &Girth::default(), 1);
     let (ta, tb) = (own_total(&a, &neutral), own_total(&b, &leafy));
-    assert!((ta - tb).abs() < 1e-12 * ta, "own pipe {ta} against {tb}");
+    // Contract A: the mean is a W quotient and each pipe one floor, so
+    // the tree's pipe holds to Q32's last places summed (1e-6 relative).
+    assert!((ta - tb).abs() < 1e-6 * ta, "own pipe {ta} against {tb}");
     assert_eq!(a.axes[1].phytomers[0].radius, a.axes[2].phytomers[0].radius);
     assert!(b.axes[1].phytomers[0].radius > a.axes[1].phytomers[0].radius);
     assert!(b.axes[2].phytomers[0].radius < a.axes[2].phytomers[0].radius);

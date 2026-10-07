@@ -182,8 +182,10 @@ fn girth_is_the_sum_of_the_sections_carried() {
                 .map_or(tip[i], |q| q.radius * q.radius);
             let own = (pipe * p.scale).powi(2);
             let want = above + own + carried[i][k];
+            // Contract A: sections are W and radii Q32, so the sum holds
+            // to Q32's resolution of a radius (2.3e-10 m).
             assert!(
-                (p.radius * p.radius - want).abs() < 1e-12 * want.max(1e-12),
+                (p.radius * p.radius - want).abs() < 1e-6 * want + 1e-12,
                 "axis {i} node {k}"
             );
         }
@@ -439,7 +441,8 @@ fn a_stem_without_secondary_growth_is_a_column() {
     assert!(column.len() > 20, "{} phytomers", column.len());
     for (k, p) in column.iter().enumerate() {
         let established = form.pipe * p.scale;
-        assert!((p.radius - established).abs() < 1e-15, "{k}: {}", p.radius);
+        // Contract A: the established pipe is one floor of its product.
+        assert!((p.radius - established).abs() < 1e-9, "{k}: {}", p.radius);
     }
     let (base, apex) = (column[0].radius, column[column.len() - 1].radius);
     assert!((base / apex - 1.0).abs() < 1e-9, "{base} against {apex}");
@@ -447,6 +450,12 @@ fn a_stem_without_secondary_growth_is_a_column() {
     for (k, p) in stem(1.0).iter().enumerate().rev() {
         section += (form.pipe * p.scale).powf(form.exponent);
         let expected = section.powf(1.0 / form.exponent);
-        assert!((p.radius - expected).abs() < 1e-12, "{k}: {}", p.radius);
+        // Contract A: a radius is Q32 (2.3e-10 m), the power of a W
+        // section taken in Q32 logs (1e-7 relative).
+        assert!(
+            (p.radius - expected).abs() < 1e-7 * expected + 1e-9,
+            "{k}: {} against {expected}",
+            p.radius
+        );
     }
 }

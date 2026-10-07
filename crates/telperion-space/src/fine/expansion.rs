@@ -208,10 +208,7 @@ pub(crate) fn settle_with(
     stages.mark("landing, unbent");
     if any(species) {
         let load = |i: usize| {
-            by_axis[i].map(|j: usize| Load {
-                mass: loads[j].0,
-                moment: loads[j].1,
-            })
+            by_axis[i].map(|j: usize| Load::of(loads[j].0, loads[j].1))
         };
         let (levers, _) = levers_given(&tree, species, &load, threads);
         place(&mut tree, species, Some(&levers), threads)?;

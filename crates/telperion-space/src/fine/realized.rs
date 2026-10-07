@@ -271,7 +271,7 @@ impl Roots for Cpu<'_, '_> {
             r.lay(species, &tree.axes[bearers[j]])
         });
         laid.into_iter().collect::<Result<()>>()?;
-        let load = |k: usize| (self.roots[k].load.mass, self.roots[k].load.moment);
+        let load = |k: usize| self.roots[k].load.real();
         Ok(live.iter().map(|&k| load(k)).collect())
     }
 
