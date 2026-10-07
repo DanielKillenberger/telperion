@@ -53,6 +53,8 @@ mod chains;
 #[cfg(test)]
 mod device;
 #[cfg(test)]
+mod feedback_cases;
+#[cfg(test)]
 mod feedback_slice;
 #[cfg(test)]
 mod feedback_tests;
