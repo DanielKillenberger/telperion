@@ -7,30 +7,25 @@ Feedback-first order (host, 2026-10-07). Each pass is one commit. Each is compar
 | Light lattice and sampling | `dd4f4bef` | One tolerance: the light slab law, 1e-9 relative to 1e-8 absolute. | The lit oak only: topology unchanged, tips at most 1.5e-6 m, radii at most 5.2e-4 relative. |
 | D16 | `4f6c2888` | Unchanged. | The lit oak only: as above, tips at most 1.8e-6 m. |
 | Allocation | `02979d5a` | Four allocation laws held to Q32 (1e-12 to 1e-8). The coupling pass shares the size rule. | The lit oak only: topology unchanged, tips at most 2.1e-6 m, radii at most 1.4e-3 relative. |
-| One fixed-point layout (option (a)) | `7bd941e2` | Four tolerances move from 1e-12 or 1e-9 to 1e-8: `tests/form.rs` (two), `tests/geometry.rs` and the closed form's extent bound. | Every species moves; see below. |
+| One fixed-point layout (option (a)) | `7bd941e2`, fixed in `0c70e64b` | Four tolerances move from 1e-12 or 1e-9 to 1e-8: `tests/form.rs` (two), `tests/geometry.rs` and the closed form's extent bound. | Every species moves; see below. |
 
 ## The layout pass: what it moves
 
-- **Topology:**
-  - The beech, spruce and palm are unchanged; no geometry feeds their growth.
-  - The lit oak changes by 0.3 to 0.4 % of its phytomers at 80 (seed 1: 3,062 gone and 3,097 new of 1.10 M; seed 7: 9,409 gone and 9,651 new of 2.59 M), and by a few phytomers at 40.
-- **Displacement on matching phytomers:**
-  - At 40, at most 1 to 3 cm (RMS 1 to 3 mm).
-  - At 80, at most 0.13 to 1.55 m (RMS 1.6 to 5.5 cm).
-  - The palm moves at most 9e-5 m.
-- **Radii:**
-  - Beech and spruce change by at most 2.9e-3 relative, except one tree (spruce 80, seed 7, whole), where one radius changes wholly (1.0 relative).
-  - The lit oak's matching lineages change radius by up to 5e4 relative, because their subtrees differ.
-- **Not yet explained:** displacements of centimetres to a metre are above what Q32 rounding alone gives on a walk. The candidates are not yet separated:
-  - sag, still the f64 lever, fed the moved geometry;
-  - the landing's square root near the ground;
-  - the backstop's piecewise room.
+At `7bd941e2` the trees moved by centimetres to 1.5 m, and the lit oak changed topology. The cause was a bug: Rodrigues' third term was shifted by 128 where 96 is right. A test now holds the layout's primitives (`rotated`, `unit`, `dot`, `cross`, `turned`, `toward_elevation`) to their f64 forms within 1e-8, and it caught the bug. After the fix (`0c70e64b`):
 
-  Sag is the next pass. The stills are viewed after it.
+- **Topology:** unchanged in all 28 trees. That includes the lit oak at 40 and 80.
+- **Displacement on matching phytomers:**
+  - At 40: at most 0.9 to 18 µm (RMS at most 4.5 µm).
+  - At 80: at most 6.7 µm to 0.73 mm (RMS at most 6.8 µm). The largest is spruce 80, seed 7, alone.
+  - The palm: at most 81 µm, RMS 31 to 60 µm.
+- **Radii:**
+  - Beech and spruce change by at most 2.9e-3 relative. The exception is one radius in spruce 80, seed 7, whole, which changes wholly (1.0 relative). Not yet looked into: a pipe that a ground-contact or disuse decision now sets or keeps.
+  - The lit oak changes by at most 0.25 relative (oak 80, seed 1).
+- **The crate's tests and telperion-render's** are green after the fix. That includes F1's GPU settle against the CPU (`every_root_settles_on_the_gpu_as_on_the_cpu`), which failed at `7bd941e2`.
 
 ## The settle's cost: over the host's 1.3x report rule
 
-From `examples/passcost.rs`: the warm best of three, age 80, seed 1, at a one-minute load of 10 to 11 in both runs. "Layout" is the sketch, the re-lay's place and sag, and the final place and sag.
+From `examples/passcost.rs`: the warm best of three, age 80, seed 1, at a one-minute load of 10 to 11 in both runs, measured at `7bd941e2`. The fix changes one shift constant, not the cost. A re-run after the fix at load 16 to 22 is inflated throughout (`raw/task9/passcost-new-fixed-load22.txt`). "Layout" is the sketch, the re-lay's place and sag, and the final place and sag.
 
 | Tree | Base build ms | New build ms | Base layout ms | New layout ms | Layout ratio |
 |---|--:|--:|--:|--:|--:|
