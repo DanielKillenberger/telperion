@@ -224,7 +224,11 @@ pub(crate) fn settle_with(
         laid.map(|()| (landing.roots, spare.as_ref().map_or(0, Spare::grown)))
     });
     // What was grown ahead and not landed is freed off the build's path.
-    std::thread::spawn(move || drop(spare));
+    if cfg!(target_family = "wasm") {
+        drop(spare);
+    } else {
+        std::thread::spawn(move || drop(spare));
+    }
     let (landed, ahead) = laid?;
     let grounded = landed.iter().map(|(j, _)| live[*j]).collect();
     let settled = Settled {
@@ -307,80 +311,117 @@ fn lay(
         landing.spare.inspect(|s| s.stop());
         // The device's bent lay set going while the CPU lands its roots.
         let tree = &*tree;
-        let landed = std::thread::scope(|scope| {
-            let landed = scope.spawn(|| landing.bend(tree, at_roots, (scales, &radii)));
-            clock.time(|| roots.bend(tree, live, bearers))?;
-            stages.mark("phase 4 (executor)");
-            landed.join().expect("the landing")
-        });
+        let (landed, bent) = crate::cores::beside(
+            || landing.bend(tree, at_roots, (scales, &radii)),
+            || {
+                let bent = clock.time(|| roots.bend(tree, live, bearers));
+                stages.mark("phase 4 (executor)");
+                bent
+            },
+        );
+        bent?;
         landed?;
         stages.mark("landing, bent");
     }
     Ok(())
 }
 
-/// Grows the structure above the cut on a thread of its own, offering
-/// `roots` each cycle's buds as they are made (task 9): the structure
-/// grown, every root's seed by its stand-in's order, and the stages'
-/// milliseconds: the growth above the cut, the executor's sowing past its
-/// end, and the woken roots' seeds kept as their bearers kept them.
+/// Grows the structure above the cut, on a thread of its own where there
+/// is more than one, offering `roots` each cycle's buds as they are made
+/// (task 9): the structure grown, every root's seed by its stand-in's
+/// order, and the stages' milliseconds: the growth above the cut, the
+/// executor's sowing past its end, and the woken roots' seeds kept as
+/// their bearers kept them.
 #[allow(clippy::type_complexity)]
 fn sow(
     species: &Species,
     (rules, hands, seed, threads): (&Rules, Hands, u64, usize),
     roots: &mut dyn Roots,
 ) -> Result<(Assigned, Vec<RootSeed>, Vec<(&'static str, f64)>)> {
-    let started = std::time::Instant::now();
-    let ms = |t: std::time::Instant| (t - started).as_secs_f64() * 1e3;
-    let (tx, rx) = std::sync::mpsc::channel::<Vec<Handed>>();
-    let make = |h: Handed| RootSeed {
-        bud: input(species, seed, Some(&h.bud)),
-        made: (h.bud.axis.vigour, whorl(&h.bud)),
-        birth: birth(&h.bud),
-        handed: h,
+    let started = crate::clock::seconds();
+    let ms = |t: f64| (t - started) * 1e3;
+    let mut sowing = Sowing {
+        species,
+        seed,
+        made: Vec::new(),
+        taken: 0,
+        failed: None,
     };
-    std::thread::scope(|scope| {
-        let grower = scope.spawn(move || {
-            let grown = streamed(rules, hands, seed, threads, &mut |made| {
-                // The driver's end of the channel lives while this does.
-                tx.send(made).expect("the driver takes the laterals")
-            });
-            (grown, std::time::Instant::now())
+    let (grown, ended, sown) = if threads <= 1 {
+        // One thread, as on wasm where none can be made (fn-212 decision
+        // D6): each cycle's buds are sown as the cycle ends, the same
+        // seeds in the same order.
+        let grown = streamed(rules, hands, seed, threads, &mut |made| {
+            sowing.take(made, roots)
         });
-        let (mut made, mut taken) = (Vec::new(), 0);
-        let mut failed = None;
-        for buds in &rx {
-            made.extend(buds.into_iter().map(make));
-            made.extend(rx.try_iter().flatten().map(make));
-            if failed.is_none() && taken < made.len() {
-                match roots.sow(&made[taken..]) {
-                    Ok(n) => taken += n,
-                    Err(e) => failed = Some(e),
-                }
+        let ended = crate::clock::seconds();
+        (grown, ended, ended)
+    } else {
+        let (tx, rx) = std::sync::mpsc::channel::<Vec<Handed>>();
+        std::thread::scope(|scope| {
+            let grower = scope.spawn(move || {
+                let grown = streamed(rules, hands, seed, threads, &mut |made| {
+                    // The driver's end of the channel lives while this does.
+                    tx.send(made).expect("the driver takes the laterals")
+                });
+                (grown, crate::clock::seconds())
+            });
+            for buds in &rx {
+                let waiting = rx.try_iter().flatten();
+                sowing.take(buds.into_iter().chain(waiting).collect(), roots);
+            }
+            let sown = crate::clock::seconds();
+            let (grown, ended) = grower.join().expect("the structure above the cut");
+            (grown, ended, sown)
+        })
+    };
+    let (grown, woken) = grown?;
+    if let Some(e) = sowing.failed {
+        return Err(e);
+    }
+    // Each woken root as its bearer kept it: its first axis's vigour.
+    let mut seeds = sowing.made;
+    let mut woken = woken.into_iter();
+    for s in seeds.iter_mut().filter(|s| s.handed.bud.wake.is_some()) {
+        let kept = woken.next().expect("each woken bud kept");
+        assert_eq!(kept.at, s.handed.at, "the woken buds in order");
+        (s.made.0, s.birth) = (kept.bud.axis.vigour, birth(&kept.bud));
+        s.handed = kept;
+    }
+    let stages = vec![
+        ("above the cut", ms(ended)),
+        ("sowing past it", ms(sown.max(ended)) - ms(ended)),
+        ("seeds", ms(crate::clock::seconds()) - ms(sown.max(ended))),
+    ];
+    Ok((grown, seeds, stages))
+}
+
+/// The roots made so far, and how many of them the executor took.
+struct Sowing<'s> {
+    species: &'s Species,
+    seed: u64,
+    made: Vec<RootSeed>,
+    taken: usize,
+    failed: Option<Error>,
+}
+
+impl Sowing<'_> {
+    /// `buds` made into seeds and offered with every one not yet taken.
+    fn take(&mut self, buds: Vec<Handed>, roots: &mut dyn Roots) {
+        let (species, seed) = (self.species, self.seed);
+        self.made.extend(buds.into_iter().map(|h| RootSeed {
+            bud: input(species, seed, Some(&h.bud)),
+            made: (h.bud.axis.vigour, whorl(&h.bud)),
+            birth: birth(&h.bud),
+            handed: h,
+        }));
+        if self.failed.is_none() && self.taken < self.made.len() {
+            match roots.sow(&self.made[self.taken..]) {
+                Ok(n) => self.taken += n,
+                Err(e) => self.failed = Some(e),
             }
         }
-        let sown = std::time::Instant::now();
-        let (grown, ended) = grower.join().expect("the structure above the cut");
-        let (grown, woken) = grown?;
-        if let Some(e) = failed {
-            return Err(e);
-        }
-        // Each woken root as its bearer kept it: its first axis's vigour.
-        let mut woken = woken.into_iter();
-        for s in made.iter_mut().filter(|s| s.handed.bud.wake.is_some()) {
-            let kept = woken.next().expect("each woken bud kept");
-            assert_eq!(kept.at, s.handed.at, "the woken buds in order");
-            (s.made.0, s.birth) = (kept.bud.axis.vigour, birth(&kept.bud));
-            s.handed = kept;
-        }
-        let seeds = made;
-        let stages = vec![
-            ("above the cut", ms(ended)),
-            ("sowing past it", ms(sown.max(ended)) - ms(ended)),
-            ("seeds", ms(std::time::Instant::now()) - ms(sown.max(ended))),
-        ];
-        Ok((grown, seeds, stages))
-    })
+    }
 }
 
 /// Each stage's milliseconds, from the last mark.

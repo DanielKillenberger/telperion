@@ -62,6 +62,23 @@ pub(crate) fn deep(count: usize, work: &(dyn Fn(usize) + Sync)) {
     });
 }
 
+/// `side()` on a thread of its own while `here()` runs on this one, both
+/// results; in turn on this thread where threads cannot be made (wasm,
+/// fn-212 decision D6). Neither reads the other's work.
+pub(crate) fn beside<A: Send, B>(
+    side: impl FnOnce() -> A + Send,
+    here: impl FnOnce() -> B,
+) -> (A, B) {
+    if cfg!(target_family = "wasm") {
+        return (side(), here());
+    }
+    std::thread::scope(|scope| {
+        let side = scope.spawn(side);
+        let here = here();
+        (side.join().expect("the work beside"), here)
+    })
+}
+
 /// The items handed to one piece of work by `map`: enough to pay for
 /// the hand-out.
 pub(crate) const PIECE: usize = 64;
