@@ -13,18 +13,23 @@
 use super::sketch::Rows;
 use super::Grower;
 use crate::allocation::TIP;
-use crate::lineage::{above, Key, SHED};
+use crate::fixed::feedback::shed::{balance, Bud};
+use crate::fixed::feedback::wide::prod_shr;
+use crate::fixed::{mul, presence, q32, ONE32};
+use crate::lineage::{Key, SHED};
 
-/// The share of last year's remembered balance kept each year: a
-/// half-life of a year. An estimate, unsourced.
-pub(crate) const MEMORY: f64 = 0.5;
+/// A Q32 as its exact real.
+fn real32(q: i64) -> f64 {
+    q as f64 / ONE32 as f64
+}
 
-/// Each laid axis's subtree's collected light, its wood's upkeep and
-/// whether anything in it lives, summed child to parent in reverse index
-/// order: what a fine root reports its bearer (PHASES.md, phase (i)).
+/// Each laid axis's subtree's collected light, its wood's upkeep (Q32)
+/// and whether anything in it lives, summed child to parent: what a fine
+/// root reports its bearer (PHASES.md, phase (i)). Contract A (2.7): each
+/// term one rounding, the sums exact.
 pub(super) struct Totals {
-    pub light: Vec<f64>,
-    pub cost: Vec<f64>,
+    pub light: Vec<i64>,
+    pub cost: Vec<i64>,
     pub living: Vec<bool>,
 }
 
@@ -57,18 +62,19 @@ impl Grower<'_> {
 
     /// Each subtree's totals, `given` (axis, light, upkeep, living) taking
     /// the place of what axis holds before they are summed.
-    pub(super) fn totals(&self, rows: &Rows, given: &[(usize, f64, f64, bool)]) -> Totals {
+    pub(super) fn totals(&self, rows: &Rows, given: &[(usize, i64, i64, bool)]) -> Totals {
         let (species, pa) = (self.species, &rows.pa);
         let sketch = self.sketch.as_ref().expect("sketching");
         let n = sketch.pencils.len();
-        let (mut light, mut cost, mut living) = (vec![0.0; n], vec![0.0; n], vec![false; n]);
+        let (mut light, mut cost, mut living) = (vec![0i64; n], vec![0i64; n], vec![false; n]);
         let pencils = &sketch.pencils;
         crate::cores::fill(&mut cost, 1 << 15, self.threads, &|i| {
-            species.states[pa[i]].upkeep * pencils[i].wood
+            mul(q32(species.states[pa[i]].upkeep), q32(pencils[i].wood))
         });
         for apex in self.live.iter().filter(|a| a.axis < n) {
             let p = &sketch.pencils[apex.axis];
-            light[apex.axis] = p.base_scale * p.running * p.light;
+            let q = [p.base_scale, p.running, p.light, 1.0].map(q32);
+            light[apex.axis] = prod_shr([q[0], q[1], q[2], 1], 64).expect("a presence's light");
             living[apex.axis] = true;
         }
         for &(i, q, c, alive) in given {
@@ -76,8 +82,8 @@ impl Grower<'_> {
         }
         for i in (1..n).rev() {
             if let Some(parent) = rows.links[i].parent {
-                light[parent] += light[i];
-                cost[parent] += cost[i];
+                light[parent] = light[parent].checked_add(light[i]).expect("a subtree's light");
+                cost[parent] = cost[parent].checked_add(cost[i]).expect("a subtree's upkeep");
                 living[parent] |= living[i];
             }
         }
@@ -123,30 +129,30 @@ impl Grower<'_> {
                 continue;
             }
             let state = &species.states[pa[i]];
-            let total = light[i] + cost[i];
-            let now = if total > 0.0 {
-                (light[i] - cost[i]) / total
-            } else {
-                1.0
-            };
             let pencil = &mut sketch.pencils[i];
-            pencil.memory = MEMORY * pencil.memory + (1.0 - MEMORY) * now;
-            let hazard = state.balance_hazard * (state.tolerance - pencil.memory).max(0.0);
-            if hazard <= 0.0 {
-                continue;
-            }
-            let p = -(-hazard).exp_m1();
             let d = Key(self.axes[i].lineage)
                 .child(SHED)
                 .child(u64::from(cycle))
                 .draw();
-            let u = d.unit();
-            if d.under(p) {
+            // D16 on contract A (CONTRACT-A.md 2.7): the window is the
+            // existing conversion at the cycle, stake one.
+            let window = self.rules.windows.window_q((pa[i], cycle, None), 1.0);
+            let bud = Bud {
+                q: light[i],
+                c: cost[i],
+                memory: q32(pencil.memory),
+                hazard: q32(state.balance_hazard),
+                tolerance: q32(state.tolerance),
+                draw: d.0,
+                window,
+                keep: presence::q(keep),
+            };
+            let b = balance(&bud).expect("a balance's light and upkeep");
+            pencil.memory = real32(b.memory);
+            if b.shed {
                 shed[i] = true;
-            } else {
-                let windows = &self.rules.windows;
-                let wood = windows.wood(pa[i], cycle);
-                kept[i] = keep * windows.decided(above(u, p), wood, 1.0);
+            } else if b.threshold > 0 {
+                kept[i] = presence::real(b.kept);
             }
         }
         let live = std::mem::take(&mut self.live);

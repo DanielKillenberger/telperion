@@ -189,7 +189,7 @@ impl Grower<'_> {
 
     /// Each living fine root's light, upkeep and whether it lives, for
     /// the balance: `(axis, light, cost, living)`.
-    pub(super) fn fine_balance(&self, sketch: &Sketch) -> Vec<(usize, f64, f64, bool)> {
+    pub(super) fn fine_balance(&self, sketch: &Sketch) -> Vec<(usize, i64, i64, bool)> {
         let Some(pass) = self.couple.as_ref() else {
             return Vec::new();
         };
@@ -198,7 +198,8 @@ impl Grower<'_> {
                 let living = f.agg.living();
                 let upkeep = self.species.states[f.pa].upkeep;
                 let light = f.scale * living * sketch.pencils[f.axis].light;
-                (f.axis, light, upkeep * f.scale * f.agg.wood, living > 0.0)
+                let q = crate::fixed::q32;
+                (f.axis, q(light), q(upkeep * f.scale * f.agg.wood), living > 0.0)
             })
             .collect()
     }
