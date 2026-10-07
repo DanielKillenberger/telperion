@@ -45,14 +45,11 @@ impl Generator {
         }
         let limits = self.gpu.device.limits();
         let words = p.runs.len() * 4 + p.rings.len() * 2 + p.angular.len();
-        let sizes = [
-            p.vertices as u64 * 12,
-            p.vertices as u64 * 12,
-            p.vertices as u64 * 8,
-            p.indices as u64 * 4,
-            p.vertices as u64 * 4,
-            words as u64 * 4,
-        ];
+        // What the pass binds: the positions and the metadata. The ring
+        // mesh's normals, coordinates and indices are never built (nothing
+        // draws them, fn-208), so their sizes no longer refuse a tree: the
+        // spruce at 80's 2.55 GB of indices did (fn-212 R2).
+        let sizes = [p.vertices as u64 * 12, words as u64 * 4];
         let scratch_sizes = [
             p.rings.len() as u64 * 64,
             p.angular.len() as u64 * 16,
@@ -110,7 +107,7 @@ impl Generator {
         )?;
         let meta = make(
             "position wood metadata",
-            sizes[5],
+            sizes[1],
             storage,
             bytemuck::cast_slice(&metadata),
         )?;
