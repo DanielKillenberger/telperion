@@ -61,3 +61,20 @@ fn an_old_tree_needs_no_deep_stack() {
     });
     assert!(most > 1e3, "{most}");
 }
+
+/// The same at the ages the trees are proved at (fn-209 decision 9):
+/// `cargo test --profile ci -p telperion-space -- --ignored counts_at`.
+#[test]
+#[ignore = "the rows at age 80, for the proof"]
+fn counts_at_40_and_80() {
+    for (name, species) in [
+        ("beech", beech()),
+        ("spruce", spruce()),
+        ("oak", oak()),
+        ("palm", palm()),
+    ] {
+        for age in [40, 80] {
+            eprintln!("{name} at {age}: {} counts equal", same(&species, age));
+        }
+    }
+}
