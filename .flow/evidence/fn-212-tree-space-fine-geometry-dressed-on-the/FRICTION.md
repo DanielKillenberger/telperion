@@ -103,3 +103,10 @@
 - **Hindered:** rustfmt follows a file's out-of-line `mod` declarations, so it reformatted `step_probe.rs` and `fine/tests.rs` too; the shell guard then refused `git checkout <ref> -- <path>` to restore them, so the undo went through a reverse patch and a commit of its own.
 - **Cost:** about 4 minutes and one extra commit.
 - **Removal:** `rustfmt --config skip_children=true` (nightly) or a workspace fmt pass on the base branch, so a worker's format touches only its own lines (this file's 16:00 entry).
+
+## 2026-10-08, task 10 (worker): the device path has no production entry to route
+
+- **Doing:** finding the native resident path that `setTreeGpu` should take in the browser.
+- **Hindered:** every file of the device path is `#[cfg(test)]` (`generation.rs:9`, `mod fine`, and every `fine/*` module). `Generator::prepare_async` still builds the tree the way it did before fn-212: `executor::grow` and the CPU preparation. The 9.3x is a test harness's number (`resident::build`, reached only from `timing_tests`, `resident_tests`, `option3_tests` and `seam_stills`). The path is also synchronous throughout: `telperion_space::Roots` returns its records by value, and about 12 readback sites call `io::read`, which is `pollster::block_on` and is compiled off wasm32. They also call `device.poll(wait_indefinitely)`, and `Instant::now()` in `device.rs` and `resident.rs`. WebGPU completes a map only on the JS event loop, so none of this can run in a browser as written.
+- **Cost:** about 20 minutes of reading before it was clear that the task's premise, a production path to route, does not hold. The task stopped on a design question for the host.
+- **Removal:** a task that depends on a production path should name it in its acceptance, for example "`Generator::prepare` takes `resident::build`". Then the gap shows when the task is planned, not when the next one opens.
