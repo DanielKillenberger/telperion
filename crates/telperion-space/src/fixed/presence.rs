@@ -30,7 +30,8 @@ pub fn q(x: f64) -> u64 {
     if x.is_nan() || x <= 0.0 {
         return 0;
     }
-    (x * ONE as f64).floor() as u64
+    // Positive, so the cast's truncation is the floor, without a call.
+    (x * ONE as f64) as u64
 }
 
 /// A presence from a real that holds one exactly.
@@ -44,7 +45,7 @@ pub fn under(t: u64, d: u64) -> i64 {
     if t >= 1 << 53 || d == 0 {
         return INF;
     }
-    logit(t << 9) - logit_draw(d)
+    threshold_logit(t) - logit_draw(d)
 }
 
 /// The lead of a draw `d` over the threshold `t` it had to reach.
@@ -52,7 +53,30 @@ pub fn over(t: u64, d: u64) -> i64 {
     if t == 0 {
         return INF;
     }
-    logit_draw(d) - logit(t << 9)
+    logit_draw(d) - threshold_logit(t)
+}
+
+/// The log-odds of a draw's threshold `t`, Q32. A tree meets few: most
+/// are a species' settings, so the last taken are kept, by the core that
+/// took them, and a log a draw is not taken twice for one.
+fn threshold_logit(t: u64) -> i64 {
+    use std::cell::Cell;
+    const SLOTS: usize = 256;
+    thread_local! {
+        // No threshold reaches `u64::MAX`, so an empty slot matches none.
+        static KEPT: [Cell<(u64, i64)>; SLOTS] =
+            const { [const { Cell::new((u64::MAX, 0)) }; SLOTS] };
+    }
+    let slot = (t.wrapping_mul(0x9e37_79b9_7f4a_7c15) >> 56) as usize;
+    KEPT.with(|kept| {
+        let (key, value) = kept[slot].get();
+        if key == t {
+            return value;
+        }
+        let value = logit(t << 9);
+        kept[slot].set((t, value));
+        value
+    })
 }
 
 /// A window, Q32: `rate` times the wood's share `wood` (Q32), clamped to

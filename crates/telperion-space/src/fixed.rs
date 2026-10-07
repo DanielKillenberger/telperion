@@ -97,7 +97,8 @@ pub fn q62(p: f64) -> u64 {
     if p >= 1.0 {
         return P_ONE;
     }
-    (p * P_ONE as f64).floor() as u64
+    // Positive, so the cast's truncation is the floor, without a call.
+    (p * P_ONE as f64) as u64
 }
 
 /// A real as Q32, to the nearest (saturated at `INF`).

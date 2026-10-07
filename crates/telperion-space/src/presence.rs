@@ -40,10 +40,10 @@ impl Windows {
         use crate::fixed::{exp, q32};
         let expected = expected_log_lengths(species, age);
         let whole = expected[age as usize][0];
-        let share = |log: f64| if log == f64::NEG_INFINITY { log } else { log - whole };
+        // A wood of none stays none: its log less a finite one is -inf.
         let woods = expected
             .iter()
-            .map(|row| row.iter().map(|&log| exp(q32(share(log)))).collect())
+            .map(|row| row.iter().map(|&log| exp(q32(log - whole))).collect())
             .collect();
         Self {
             expected,
