@@ -50,7 +50,8 @@ struct Turn {
     some: bool,
 }
 
-// `vector::carry`: the least rotation from unit `from` to unit `to`.
+// `vector::carry`: the least rotation from unit `from` to unit `to`, its
+// cosine and sine made unit by one Newton step.
 fn carry(from_v: V3, to_v: V3) -> Turn {
     var t: Turn;
     let axis = cross3(from_v, to_v);
@@ -59,12 +60,11 @@ fn carry(from_v: V3, to_v: V3) -> Turn {
         return t;
     }
     var ax = axis;
-    let cs = unit3(V3(dot3(from_v, to_v), length3(ax[0], ax[1], ax[2]), vec2<u32>(0u)));
-    if !cs.some {
-        return t;
-    }
-    var c = cs.c;
-    return Turn(p.c, c[0], c[1], true);
+    let c = dot3(from_v, to_v);
+    let s = length3(ax[0], ax[1], ax[2]);
+    let norm = shift4(add4(pair(c, c), pair(s, s)), 32u, false, true).xy;
+    let step = sar64(sub64(w(0u, 3u), norm), 1u);
+    return Turn(p.c, mulq(c, step), mulq(s, step), true);
 }
 
 // `vector::turned`: Rodrigues, one floor a term, the terms added exactly.

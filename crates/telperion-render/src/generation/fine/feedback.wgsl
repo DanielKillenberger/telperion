@@ -9,28 +9,23 @@ const TAU60 = vec2<u32>(0x10b4611au, 0x6487ed51u);
 const INV_TAU64 = vec2<u32>(0x9391054au, 0x28be60dbu);
 const HALF_ROOT = vec2<u32>(0xfe779921u, 0x2d413cccu);
 
-// atan(2^-i) in turns at 2^62 a turn (`angle::ATAN`).
-var<private> ATAN: array<vec2<u32>, 40> = array<vec2<u32>, 40>(
-    vec2<u32>(0x00000000u, 0x08000000u), vec2<u32>(0x677cc21au, 0x04b90147u),
-    vec2<u32>(0xd7b8e7a3u, 0x027ece16u), vec2<u32>(0x07776687u, 0x01444475u),
-    vec2<u32>(0xc39626bbu, 0x00a2c350u), vec2<u32>(0x5641189eu, 0x005175f8u),
-    vec2<u32>(0x970a098au, 0x0028bd87u), vec2<u32>(0x447510acu, 0x00145f15u),
-    vec2<u32>(0xd1b430ceu, 0x000a2f94u), vec2<u32>(0xaecc2aceu, 0x000517cbu),
-    vec2<u32>(0x00246e9fu, 0x00028be6u), vec2<u32>(0x052a032eu, 0x000145f3u),
-    vec2<u32>(0x8337fb18u, 0x0000a2f9u), vec2<u32>(0xc1b05cbdu, 0x0000517cu),
-    vec2<u32>(0x60daba44u, 0x000028beu), vec2<u32>(0x306dae9fu, 0x0000145fu),
-    vec2<u32>(0x9836e17fu, 0x00000a2fu), vec2<u32>(0xcc1b7205u, 0x00000517u),
-    vec2<u32>(0xe60db92bu, 0x0000028bu), vec2<u32>(0xf306dc9bu, 0x00000145u),
-    vec2<u32>(0xf9836e4eu, 0x000000a2u), vec2<u32>(0x7cc1b727u, 0x00000051u),
-    vec2<u32>(0xbe60db94u, 0x00000028u), vec2<u32>(0x5f306dcau, 0x00000014u),
-    vec2<u32>(0x2f9836e5u, 0x0000000au), vec2<u32>(0x17cc1b72u, 0x00000005u),
-    vec2<u32>(0x8be60db9u, 0x00000002u), vec2<u32>(0x45f306ddu, 0x00000001u),
-    vec2<u32>(0xa2f9836eu, 0x00000000u), vec2<u32>(0x517cc1b7u, 0x00000000u),
-    vec2<u32>(0x28be60dcu, 0x00000000u), vec2<u32>(0x145f306eu, 0x00000000u),
-    vec2<u32>(0x0a2f9837u, 0x00000000u), vec2<u32>(0x0517cc1bu, 0x00000000u),
-    vec2<u32>(0x028be60eu, 0x00000000u), vec2<u32>(0x0145f307u, 0x00000000u),
-    vec2<u32>(0x00a2f983u, 0x00000000u), vec2<u32>(0x00517cc2u, 0x00000000u),
-    vec2<u32>(0x0028be61u, 0x00000000u), vec2<u32>(0x00145f30u, 0x00000000u),
+// `angle::ATAN_TABLE` and `angle::ATAN_POLY`, turns at 2^62 (host
+// decision, 2026-10-07: atan2 as a table-reduced polynomial).
+var<private> ATAN_TABLE: array<vec2<u32>, 33> = array<vec2<u32>, 33>(
+    vec2<u32>(0x00000000u, 0x00000000u), vec2<u32>(0x5641189eu, 0x005175f8u), vec2<u32>(0xc39626bbu, 0x00a2c350u),
+    vec2<u32>(0x6b0d0241u, 0x00f3bfe2u), vec2<u32>(0x07776687u, 0x01444475u), vec2<u32>(0xa6d3f8ebu, 0x01942b2du),
+    vec2<u32>(0xa10b9cbbu, 0x01e34ff3u), vec2<u32>(0x55d95868u, 0x023190c9u), vec2<u32>(0xd7b8e7a3u, 0x027ece16u),
+    vec2<u32>(0x51d62da2u, 0x02caeae5u), vec2<u32>(0xa131dd86u, 0x0315cd0au), vec2<u32>(0x3a87bf6fu, 0x035f5d45u),
+    vec2<u32>(0x05e7569eu, 0x03a78749u), vec2<u32>(0x4fd329a4u, 0x03ee39beu), vec2<u32>(0x4a4fb911u, 0x04336634u),
+    vec2<u32>(0xd568f037u, 0x04770108u), vec2<u32>(0x677cc21au, 0x04b90147u), vec2<u32>(0xf4f0d62au, 0x04f96080u),
+    vec2<u32>(0xa8f1f77cu, 0x05381a9eu), vec2<u32>(0x22231dc9u, 0x05752db1u), vec2<u32>(0xbb7f0790u, 0x05b099bdu),
+    vec2<u32>(0x37a1c304u, 0x05ea608bu), vec2<u32>(0xef2a18f9u, 0x0622856eu), vec2<u32>(0x6d25b882u, 0x06590d1bu),
+    vec2<u32>(0x31067bcdu, 0x068dfd71u), vec2<u32>(0x1e396c23u, 0x06c15d52u), vec2<u32>(0xf7409c90u, 0x06f33477u),
+    vec2<u32>(0x1dba3856u, 0x07238b4eu), vec2<u32>(0xb22c6ed4u, 0x07526aceu), vec2<u32>(0x158f85d0u, 0x077fdc63u),
+    vec2<u32>(0xbafc8e9fu, 0x07abe9c7u), vec2<u32>(0x29142823u, 0x07d69cf3u), vec2<u32>(0x00000000u, 0x08000000u),
+);
+var<private> ATAN_POLY: array<vec2<u32>, 4> = array<vec2<u32>, 4>(
+    vec2<u32>(0xe4e44153u, 0x0a2f9836u), vec2<u32>(0x09093f8fu, 0xfc9acd43u), vec2<u32>(0xc760d9ddu, 0x020984d7u), vec2<u32>(0x71963fd0u, 0xfe8b7c8au),
 );
 
 fn sar64(a: vec2<u32>, n: u32) -> vec2<u32> {
@@ -137,14 +132,9 @@ fn sincos(t: u32) -> vec4<u32> {
     return vec4<u32>(smax64(smin64(sar64(cs.xy, 30u), one32()), lo), smax64(smin64(sar64(cs.zw, 30u), one32()), lo));
 }
 
-// A magnitude scaled by the common shift, its sign restored.
-fn scaled_by(v: vec2<u32>, top: u32) -> vec2<u32> {
-    let m = abs64(v);
-    let s = select(shr64(m, top - 60u), shl64(m, 60u - top), top <= 60u);
-    return select(s, neg64(s), negative(v));
-}
-
-// `angle::atan2`.
+// `angle::atan2`: the lesser magnitude over the greater, the nearest
+// thirty-second's table entry and a cubic in u^2 by Horner, the octant
+// restored, to the nearest T.
 fn atan2(y0: vec2<u32>, x0: vec2<u32>) -> u32 {
     if is_zero(y0) {
         return select(0u, HALF, negative(x0));
@@ -154,30 +144,32 @@ fn atan2(y0: vec2<u32>, x0: vec2<u32>) -> u32 {
     }
     let mx = abs64(x0);
     let my = abs64(y0);
-    let top = 63u - clz64(select(my, mx, lt64(my, mx)));
-    var x = scaled_by(x0, top);
-    var y = scaled_by(y0, top);
-    var base = 0u;
-    if negative(x) {
-        x = neg64(x);
-        y = neg64(y);
-        base = HALF;
+    let steep = lt64(mx, my);
+    let lo = select(my, mx, steep);
+    let hi = select(mx, my, steep);
+    let t = xquotient(xof(shift4(u4(lo), 62u, true, false)), u4(hi)).v;
+    let tq = vec2<u32>(t[0], t[1]);
+    let j = add64(tq, w(0u, 0x1000000u)).y >> 25u;
+    let c = w(0u, j << 25u);
+    let den = add4(vec4<u32>(0u, 0u, 0u, 0u), u4(add64(w(0u, 0x40000000u), smul_shr(tq, c, 62u, false))));
+    let num = shift4(ext4(sub64(tq, c)), 62u, true, false);
+    let uq = xnarrow64(xquotient(xof(num), den).v).v.xy;
+    let z = smul_shr(uq, uq, 62u, false);
+    var p = vec2<u32>(0u);
+    for (var k = 4; k > 0; k--) {
+        p = add64(ATAN_POLY[k - 1], smul_shr(z, p, 62u, false));
     }
-    var z = vec2<u32>(0u);
-    for (var i = 0u; i < 40u; i++) {
-        let dx = sar64(y, i);
-        let dy = sar64(x, i);
-        if !negative(y) {
-            x = add64(x, dx);
-            y = sub64(y, dy);
-            z = add64(z, ATAN[i]);
-        } else {
-            x = sub64(x, dx);
-            y = add64(y, dy);
-            z = sub64(z, ATAN[i]);
-        }
+    var a = add64(ATAN_TABLE[j], smul_shr(uq, p, 62u, false));
+    if steep {
+        a = sub64(w(0u, 0x10000000u), a);
     }
-    return base + sar64(add64(z, w(1u << 29u, 0u)), 30u).x;
+    if negative(x0) {
+        a = sub64(w(0u, 0x20000000u), a);
+    }
+    if negative(y0) {
+        a = neg64(a);
+    }
+    return sar64(add64(a, w(1u << 29u, 0u)), 30u).x;
 }
 
 // `vector::isqrt`: floor(sqrt n), digit by digit.

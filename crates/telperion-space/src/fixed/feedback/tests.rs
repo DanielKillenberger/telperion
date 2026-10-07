@@ -148,7 +148,7 @@ fn atan2_is_within_half_a_unit_and_exact_on_the_axes() {
         most = most.max(err.min(1.0 - err));
     }
     println!("atan2: {} units", most * 4_294_967_296.0);
-    assert!(most <= 0.55 / 4_294_967_296.0, "{}", most * 4_294_967_296.0);
+    assert!(most <= 0.501 / 4_294_967_296.0, "{}", most * 4_294_967_296.0);
     assert_eq!(atan2(0, 0), 0);
     assert_eq!(atan2(0, -5), HALF);
     assert_eq!(atan2(7, 0), QUARTER);

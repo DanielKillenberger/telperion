@@ -11,10 +11,8 @@
 //! - **A half angle** halves the amount, floored, before any wrap.
 //! - **Radians** are Q32; the conversions are one product by a constant
 //!   of 60 or 64 fraction bits (`TAU60`, `INV_TAU64`), floored.
-//! - **sin and cos** are a Q62 polynomial on the rest from the nearest
-//!   eighth turn (host decision, 2026-10-07; `sincos`); **atan2** is
-//!   CORDIC on 62 fraction bits, 40 iterations, with the literal table
-//!   below (`feedback-constants.py`).
+//! - **sin, cos and atan2** are Q62 polynomials on the rest from a table's
+//!   nearest point (host decision, 2026-10-07; `sincos`, `atan2`).
 use super::vector::isqrt;
 use super::Fault;
 use crate::fixed::ONE32;
@@ -26,54 +24,6 @@ pub const HALF: u32 = 1 << 31;
 /// `2 pi` in Q60 and `1 / (2 pi)` in Q64, each the nearest.
 pub const TAU60: i64 = 0x6487_ed51_10b4_611a;
 pub const INV_TAU64: u64 = 0x28be_60db_9391_054a;
-
-/// CORDIC's iterations.
-pub const STEPS: usize = 40;
-
-/// `atan(2^-i)` in turns, 2^62 a turn, each the nearest.
-pub const ATAN: [i64; STEPS] = [
-    0x800000000000000,
-    0x4b90147677cc21a,
-    0x27ece16d7b8e7a3,
-    0x144447507776687,
-    0xa2c350c39626bb,
-    0x5175f85641189e,
-    0x28bd87970a098a,
-    0x145f15447510ac,
-    0xa2f94d1b430ce,
-    0x517cbaecc2ace,
-    0x28be600246e9f,
-    0x145f3052a032e,
-    0xa2f98337fb18,
-    0x517cc1b05cbd,
-    0x28be60daba44,
-    0x145f306dae9f,
-    0xa2f9836e17f,
-    0x517cc1b7205,
-    0x28be60db92b,
-    0x145f306dc9b,
-    0xa2f9836e4e,
-    0x517cc1b727,
-    0x28be60db94,
-    0x145f306dca,
-    0xa2f9836e5,
-    0x517cc1b72,
-    0x28be60db9,
-    0x145f306dd,
-    0xa2f9836e,
-    0x517cc1b7,
-    0x28be60dc,
-    0x145f306e,
-    0xa2f9837,
-    0x517cc1b,
-    0x28be60e,
-    0x145f307,
-    0xa2f983,
-    0x517cc2,
-    0x28be61,
-    0x145f30,
-];
-
 
 /// The amounts whose radians stay in an i64: below 2^60, 2^28 turns.
 pub const AMOUNT: i64 = 1 << 60;
@@ -175,7 +125,39 @@ pub fn sincos(t: u32) -> (i64, i64) {
     (q32(c), q32(s))
 }
 
-/// The orientation of `(x, y)`: exact on the axes, `atan2(0, 0)` none.
+/// `atan(j/32)` in turns at 2^62 a turn, j = 0..32, the nearest
+/// (`atan-constants.py`; host decision, 2026-10-07).
+const ATAN_TABLE: [i64; 33] = [
+    0x0, 0x5175f85641189e, 0xa2c350c39626bb,
+    0xf3bfe26b0d0241, 0x144447507776687, 0x1942b2da6d3f8eb,
+    0x1e34ff3a10b9cbb, 0x23190c955d95868, 0x27ece16d7b8e7a3,
+    0x2caeae551d62da2, 0x315cd0aa131dd86, 0x35f5d453a87bf6f,
+    0x3a7874905e7569e, 0x3ee39be4fd329a4, 0x43366344a4fb911,
+    0x4770108d568f037, 0x4b90147677cc21a, 0x4f96080f4f0d62a,
+    0x5381a9ea8f1f77c, 0x5752db122231dc9, 0x5b099bdbb7f0790,
+    0x5ea608b37a1c304, 0x622856eef2a18f9, 0x6590d1b6d25b882,
+    0x68dfd7131067bcd, 0x6c15d521e396c23, 0x6f33477f7409c90,
+    0x7238b4e1dba3856, 0x7526aceb22c6ed4, 0x77fdc63158f85d0,
+    0x7abe9c7bafc8e9f, 0x7d69cf329142823, 0x800000000000000,
+];
+
+/// `atan u`'s series in turns, `(-1)^k / ((2k + 1) 2pi)`, k = 0..3, Q62.
+const ATAN_POLY: [i64; 4] = [0xa2f9836e4e44153, -0x36532bcf6f6c071, 0x20984d7c760d9dd, -0x17483758e69c030];
+
+/// The orientation of `(x, y)` (host decision, 2026-10-07: a
+/// table-reduced polynomial in place of CORDIC), specified to the bit:
+/// 1. **Axes, exact:** `y = 0` gives 0 (a half turn where `x < 0`;
+///    `atan2(0, 0) = 0`); `x = 0` a quarter (three where `y < 0`).
+/// 2. The magnitudes' lesser over their greater, `t = floor(lo 2^62 /
+///    hi)` in Q62, in [0, 1].
+/// 3. The nearest thirty-second `j = (t + 2^56) >> 57`, `c = j 2^57`; the
+///    rest `u = trunc((t - c) 2^62 / (2^62 + floor(t c / 2^62)))`, below
+///    1/64 in magnitude: `atan t = atan(j/32) + atan u`.
+/// 4. `a = A_j + floor(u P(z) / 2^62)` in turns at 2^62, `z = floor(u^2 /
+///    2^62)`, `P` Horner over `ATAN_POLY` from its fourth coefficient down.
+/// 5. Where the greater was `y`, `a = 2^60 - a`; where `x < 0`, `2^61 - a`;
+///    where `y < 0`, `-a`.
+/// 6. To the nearest T, ties up: `(a + 2^29) >> 30`, wrapped.
 pub fn atan2(y: i64, x: i64) -> u32 {
     match (y.signum(), x.signum()) {
         (0, -1) => return HALF,
@@ -184,39 +166,29 @@ pub fn atan2(y: i64, x: i64) -> u32 {
         (-1, 0) => return QUARTER.wrapping_mul(3),
         _ => {}
     }
-    // The larger magnitude brought to [2^60, 2^61), each magnitude shifted
-    // toward zero, so CORDIC's growth stays inside an i64.
-    let top = 63 - x.unsigned_abs().max(y.unsigned_abs()).leading_zeros() as i32;
-    let scale = |v: i64| {
-        let m = v.unsigned_abs();
-        let m = if top <= 60 {
-            m << (60 - top)
-        } else {
-            m >> (top - 60)
-        } as i64;
-        if v < 0 {
-            -m
-        } else {
-            m
-        }
-    };
-    let (mut x, mut y) = (scale(x), scale(y));
-    let base = if x < 0 {
-        (x, y) = (-x, -y);
-        HALF
-    } else {
-        0
-    };
-    let mut z = 0i64;
-    for (i, &a) in ATAN.iter().enumerate() {
-        let (dx, dy) = (y >> i, x >> i);
-        if y >= 0 {
-            (x, y, z) = (x + dx, y - dy, z + a);
-        } else {
-            (x, y, z) = (x - dx, y + dy, z - a);
-        }
+    let (mx, my) = (x.unsigned_abs(), y.unsigned_abs());
+    let (lo, hi, steep) = if my > mx { (mx, my, true) } else { (my, mx, false) };
+    let t = ((u128::from(lo) << 62) / u128::from(hi)) as i64;
+    let j = ((t + (1 << 56)) >> 57) as usize;
+    let c = (j as i64) << 57;
+    let den = (1i128 << 62) + ((i128::from(t) * i128::from(c)) >> 62);
+    let u = ((i128::from(t - c) << 62) / den) as i64;
+    let z = ((i128::from(u) * i128::from(u)) >> 62) as i64;
+    let p = ATAN_POLY
+        .iter()
+        .rev()
+        .fold(0i64, |p, &k| k + ((i128::from(z) * i128::from(p)) >> 62) as i64);
+    let mut a = ATAN_TABLE[j] + ((i128::from(u) * i128::from(p)) >> 62) as i64;
+    if steep {
+        a = (1 << 60) - a;
     }
-    base.wrapping_add(((z + (1 << 29)) >> 30) as u32)
+    if x < 0 {
+        a = (1 << 61) - a;
+    }
+    if y < 0 {
+        a = -a;
+    }
+    ((a + (1 << 29)) >> 30) as u32
 }
 
 /// `asin x` of a Q32 `x`, clamped to [-1, 1], as an orientation in

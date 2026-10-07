@@ -123,13 +123,23 @@ pub fn cross(a: [i64; 3], b: [i64; 3]) -> [i64; 3] {
 }
 
 /// The least rotation taking unit `from` to unit `to`: about
-/// `unit(from × to)`, its cosine and sine the unit of `(from · to,
-/// |from × to|)`. None where the two are parallel or opposed exactly.
+/// `unit(from × to)`, its cosine and sine `(from · to, |from × to|)`,
+/// unit by construction up to Q32 rounding, so made unit by one Newton
+/// step, `(3 - (c^2 + s^2)) / 2` (host decision, 2026-10-07: no
+/// normalisation where a vector is unit by construction). None where the
+/// two are parallel or opposed exactly.
 pub fn carry(from: [i64; 3], to: [i64; 3]) -> Option<Turn> {
+    use crate::fixed::{mul, ONE32};
     let axis = cross(from, to);
     let pivot = unit(axis)?;
-    let [cos, sin, _] = unit([dot(from, to), length(axis), 0])?;
-    Some(Turn { pivot, cos, sin })
+    let (c, s) = (dot(from, to), length(axis));
+    let norm = ((i128::from(c) * i128::from(c) + i128::from(s) * i128::from(s)) >> 32) as i64;
+    let step = (3 * ONE32 - norm) >> 1;
+    Some(Turn {
+        pivot,
+        cos: mul(c, step),
+        sin: mul(s, step),
+    })
 }
 
 /// `v` turned by `t` (Rodrigues): `v cos + (p × v) sin + p (p · v)(1 -
