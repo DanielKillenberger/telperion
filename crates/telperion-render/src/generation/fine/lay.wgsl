@@ -31,9 +31,23 @@ fn has_unit(v: vec3<f32>) -> bool {
 
 // Rodrigues.
 fn rotated(v: vec3<f32>, pivot: vec3<f32>, angle: f32) -> vec3<f32> {
-    let s = sin(angle);
-    let c = cos(angle);
-    return v * c + cross(pivot, v) * s + pivot * (dot(pivot, v) * (1.0 - c));
+    let t = turned_by(angle);
+    return v * (1.0 - t.z) + cross(pivot, v) * t.x + pivot * (dot(pivot, v) * t.z);
+}
+
+// The sine, cosine and versine (1 - cos) of `a`: a short turn's by their
+// series, since the GPU's own sine is good to only about 5e-7 whatever
+// its argument, a large share of a short turn, and a walk of many short
+// turns gathers it into a drift of its heading (fn-209 task 6).
+fn turned_by(a: f32) -> vec3<f32> {
+    if abs(a) < 0.1 {
+        let t2 = a * a;
+        let s = a * (1.0 - t2 * (1.0 / 6.0 - t2 / 120.0));
+        let vers = t2 * (0.5 - t2 * (1.0 / 24.0 - t2 / 720.0));
+        return vec3<f32>(s, 1.0 - vers, vers);
+    }
+    let c = cos(a);
+    return vec3<f32>(sin(a), c, 1.0 - c);
 }
 
 // `v` by the least rotation taking unit `from` to unit `to`.
@@ -106,14 +120,8 @@ fn toward_elevation(direction: vec3<f32>, side: vec3<f32>, elevation: f32, share
     let turn = (elevation - now) * share;
     let at = out * lean + UP * direction.z;
     let up = UP * lean - out * direction.z;
-    var s = sin(turn);
-    var c = cos(turn);
-    if abs(turn) < 0.1 {
-        let t2 = turn * turn;
-        s = turn * (1.0 - t2 * (1.0 / 6.0 - t2 / 120.0));
-        c = 1.0 - t2 * (0.5 - t2 / 24.0);
-    }
-    return at * c + up * s;
+    let t = turned_by(turn);
+    return at * t.y + up * t.x;
 }
 
 // `geometry::support`: how far wood at height `z` stands free of the
