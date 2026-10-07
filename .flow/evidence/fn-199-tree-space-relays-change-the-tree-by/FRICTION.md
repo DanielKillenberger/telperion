@@ -34,3 +34,17 @@
 - **Slowed by:** `/tmp` is a 16 GB tmpfs, with 13 GB used, mostly by other sessions' scratch directories under this host's shared scratchpad (`out` 2.3 GB, `t5` 1.8 GB, `topo` 1.3 GB, `before` and `after` 1.2 GB each). The user's quota there is full, so every shell call errors on its working-directory write, and a background command's output file can be lost. This session holds only a few KB there now.
 - **Cost:** a background test's output lost; every command since then reports an error.
 - **Would remove it:** per-session scratch directories cleaned when their session ends, or the scratchpad on the home disk. A local setup problem: reported, not specced.
+
+## 2026-10-07 evening, resuming after the crash: the walk suite's length
+
+- **Doing:** checking R1's closed form against the walk tests after resuming the crashed worker's tree.
+- **Slowed by:** `tests/walks.rs` runs 17 minutes on 8 threads, and one failing walk (`branches_are_made_and_unmade_at_vanishing_size`) can only be seen at its end; the crate's other binaries take under 3 minutes together.
+- **Cost:** 17 minutes of wall time per check of the walks.
+- **Would remove it:** a filter that runs one walk test, or the walks binary split so the vanishing-size check runs alone (`--test walks branches_are_made` works, but the suite's shared `walks(&all)` recomputes every setting's walk).
+
+## 2026-10-07 evening, a measurement that grew without bound
+
+- **Doing:** dumping the closed form's rows at 1, 2, 4 and 8 quadrature points to see how fast they converge.
+- **Slowed by:** the rows took 2.5 s at one point and 22.5 s at two; at four they ran past 15 minutes and were stopped. Nothing warned that the nested relays' tables multiply with the points.
+- **Cost:** about 20 minutes.
+- **Would remove it:** time one point count on one species before looping over several (done afterwards with the predictor timing).
