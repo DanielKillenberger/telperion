@@ -264,6 +264,42 @@ fn a_share_of_a_survival_is_the_real_power() {
     assert_eq!(prob(scaled(neg_log2(0), 5)), 0);
 }
 
+/// fn-199 B2: a share below the tick scales to the tick form's bits on
+/// the tick, and a lived time's rest below a tick is what rounding it up
+/// to the grid adds, under a tick and none at the bound.
+#[test]
+fn a_share_finer_than_a_tick_meets_the_tick() {
+    use super::decide::{
+        abortion_fine_q, abortion_q, lived_fine_q, lived_q, survival_fine_q, survival_q,
+    };
+    let mut z = 0x5eedu64;
+    let mut next = || {
+        z = z.wrapping_add(0x9e37_79b9_7f4a_7c15);
+        let mut x = z;
+        x = (x ^ (x >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
+        x ^ (x >> 31)
+    };
+    for _ in 0..100_000 {
+        let l = (next() % (60 * ONE32 as u64)) as i64;
+        let share = next() % ((1 << 20) + 2);
+        let d = next() >> 11;
+        assert_eq!(survival_q(l, share), survival_fine_q(l, share << 12));
+        let rise = (next() % 2 == 0).then(|| (next() % (8 * ONE32 as u64)) as i64 - 4 * ONE32);
+        let grown = next() % (4096 << 20);
+        assert_eq!(
+            abortion_q(l, rise, grown, share),
+            abortion_fine_q(l, rise, grown, share << 12)
+        );
+        let (ticks, fine) = (lived_q(l, share, d), lived_fine_q(l, share, d));
+        let rest = (ticks << 12) - fine;
+        assert!(rest <= 1 << 12, "{l} {share} {d}: {rest}");
+    }
+    assert_eq!(
+        lived_fine_q(ONE32, 1 << 20, 1 << 52),
+        lived_q(ONE32, 1 << 20, 1 << 52) << 12
+    );
+}
+
 #[test]
 fn ratios_logits_and_presences() {
     let got = real32(ln_ratio(3, 7));

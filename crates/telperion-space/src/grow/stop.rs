@@ -82,7 +82,7 @@ impl Shoot<'_, '_> {
                 (cycle, used),
                 apex.spent,
                 made,
-                (0.0, Stop::Ended, true),
+                (0.0, Stop::Ended, true, 0),
             )?;
         }
         Ok(())
@@ -98,7 +98,7 @@ impl Shoot<'_, '_> {
         &mut self,
         mut apex: Apex,
         (cycle, gone, whole): (u32, f64, bool),
-        (lived, relayed, stopped): (f64, u64, i64),
+        (lived, below, relayed, stopped): (f64, u64, u64, i64),
         (pa, unit): (usize, Key),
     ) -> Result<()> {
         let survive = presence::times(relayed, presence::q(self.kept(apex.axis)));
@@ -126,7 +126,7 @@ impl Shoot<'_, '_> {
             used,
             apex.spent,
             [1.0; 2],
-            (blend, Stop::Failed, whole),
+            (blend, Stop::Failed, whole, below),
         )
     }
 
@@ -143,7 +143,7 @@ impl Shoot<'_, '_> {
         (cycle, used): (u32, f64),
         spent: f64,
         made: [f64; 2],
-        (blend, why, whole): (f64, Stop, bool),
+        (blend, why, whole, below): (f64, Stop, bool, u64),
     ) -> Result<()> {
         let (pa, key) = (self.axis(apex.axis).pa, Key(self.axis(apex.axis).lineage));
         let draws = self.draws(apex.axis);
@@ -165,7 +165,7 @@ impl Shoot<'_, '_> {
         line.axis.blend = blend;
         let draws = &mut line.draws;
         (draws.aged, draws.ended, draws.ended_relays) = (grown, whole, ended_relays);
-        draws.rest = why == Stop::Failed;
+        (draws.rest, draws.below) = (why == Stop::Failed, below);
         self.carry_on(cycle, used)
     }
 
@@ -228,7 +228,7 @@ impl Shoot<'_, '_> {
                 (cycle, used),
                 spent,
                 made,
-                (blend, why, why == Stop::Ended),
+                (blend, why, why == Stop::Ended, 0),
             );
         }
         Ok(())

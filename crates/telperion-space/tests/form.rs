@@ -358,7 +358,11 @@ fn a_relay_stands_in_the_curvature_zone_on_the_upper_side() {
                         }
                         before += q.scale;
                     }
-                    Some((middle, p.len(), node, a.heading.z))
+                    // A stop after a whole unit relays from the next
+                    // cycle; a failed unit's relay grows the rest of the
+                    // cycle it failed in (fn-199 R1).
+                    let whole = Some(a.birth) == tree.axes[parent].apex_end;
+                    Some((middle, p.len(), node, a.heading.z, whole))
                 }
                 _ => None,
             })
@@ -372,22 +376,30 @@ fn a_relay_stands_in_the_curvature_zone_on_the_upper_side() {
     };
     let half = pooled(0.0);
     assert!(!half.is_empty());
-    for &(middle, n, node, _) in &half {
+    for &(middle, n, node, _, _) in &half {
         assert_eq!(node, middle, "the middle of {n} nodes");
     }
-    let rise =
-        |v: &[(usize, usize, usize, f64)]| v.iter().map(|r| r.3).sum::<f64>() / v.len() as f64;
-    // 0.04, from 0.05 (fn-199 R1): a failed unit's relay now stands on the
-    // part of the unit its apex lived, at the axis's tip. On these seeds
-    // those relays already point up (heading z 0.76 against 0.66) and
-    // stand nearer their bound (blend 0.25 against 0.53), so epitony, which
-    // turns a relay as far as it has left the line, raises them 0.009; the
-    // relays of stops after a whole unit rise 0.050 (0.053 on the base).
+    let rise = |v: &[(usize, usize, usize, f64, bool)], whole: bool| {
+        let z: Vec<f64> = v.iter().filter(|r| r.4 == whole).map(|r| r.3).collect();
+        assert!(!z.is_empty(), "relays of each kind");
+        z.iter().sum::<f64>() / z.len() as f64
+    };
+    let up = pooled(1.0);
+    // The relays of stops after a whole unit rise as the law asks.
     assert!(
-        rise(&pooled(1.0)) > rise(&half) + 0.04,
+        rise(&up, true) > rise(&half, true) + 0.05,
         "epitony turns relays up: {} against {}",
-        rise(&pooled(1.0)),
-        rise(&half)
+        rise(&up, true),
+        rise(&half, true)
+    );
+    // A failed unit's relay stands near its bound, on the part of the unit
+    // its apex lived, barely off the line, so epitony turns it little; it
+    // never turns it down (host, fn-199).
+    assert!(
+        rise(&up, false) >= rise(&half, false),
+        "epitony keeps failed units' relays: {} against {}",
+        rise(&up, false),
+        rise(&half, false)
     );
 }
 

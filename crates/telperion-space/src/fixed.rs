@@ -288,6 +288,15 @@ pub fn scaled(l: i64, share: u64) -> i64 {
     (wide_signed(l, share as i64) >> 20).min(i128::from(INF)) as i64
 }
 
+/// The same over a share in 2^-32 of a cycle, finer than a tick (fn-199
+/// B2): `l s / 2^32`. A tick's share `s << 12` scales to `scaled`'s bits.
+pub fn scaled_fine(l: i64, share: u64) -> i64 {
+    if l >= INF {
+        return INF;
+    }
+    (wide_signed(l, share as i64) >> 32).min(i128::from(INF)) as i64
+}
+
 /// A presence's fixed point: `lead / window`, in [0, 1], Q32. Whole
 /// where the lead is unbounded or the window none.
 pub fn presence(lead: i64, window: i64) -> u64 {

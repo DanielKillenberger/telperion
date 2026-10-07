@@ -68,7 +68,14 @@ impl Shoot<'_, '_> {
         };
         // Decided on the contract's threshold (FINE-CONTRACT.md D5); the
         // real survival sizes the unit's presence.
-        let survives = fixed::decide::survival(viability, share);
+        // A failed unit's relay's first unit holds a part of a tick more
+        // than its ticks, which its thresholds read (fn-199 B2).
+        let below = if first {
+            self.draws(apex.axis).below
+        } else {
+            0
+        };
+        let survives = fixed::decide::survival(viability, share, below);
         let d = decide.child(VIABILITY).draw();
         // A failure's relay, where its draw makes one (D9's integer test),
         // and its presence over the unit's cycle (host decision 8).
@@ -83,12 +90,13 @@ impl Shoot<'_, '_> {
         if d.0 >= survives && relays && !nested {
             let relayed = relayed();
             let lived = fixed::real(fixed::decide::lived(viability, share, d) << 12);
+            let below = fixed::decide::lived_rest(viability, share, d);
             let stopped = presence::over(survives, d.0);
             let pa_unit = (pa, unit);
             return self.fail(
                 apex,
                 (cycle, carried.gone, step.whole),
-                (lived, relayed, stopped),
+                (lived, below, relayed, stopped),
                 pa_unit,
             );
         }
@@ -144,7 +152,13 @@ impl Shoot<'_, '_> {
         // (`schedule.rs`).
         let draws = self.draws(apex.axis);
         let grown = draws.aged + draws.grown();
-        let exposure = carried.exposure(state.life(), 1);
+        let next = carried.unit(state.life(), 2).share;
+        let fine = |s: f64| fixed::ticks(s) << 12;
+        let exposure = if fine(share) + below <= fine(next) {
+            (share, below)
+        } else {
+            (next, 0)
+        };
         let aborts = fixed::decide::abortion(state, grown, exposure);
         if aborts > 0 && !step.ends {
             let d = decide.child(ABORTION).draw();

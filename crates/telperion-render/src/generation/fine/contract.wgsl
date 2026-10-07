@@ -195,11 +195,28 @@ fn logit(p: vec2<u32>) -> vec2<u32> {
 
 // D5.
 fn survival_q(l: vec2<u32>, share: vec2<u32>) -> vec2<u32> {
-    return threshold(prob(scaled(l, share)));
+    return survival_fine_q(l, shl64(share, 12u));
+}
+
+// A share in 2^-32 of a cycle, finer than a tick (fn-199 B2).
+fn scaled_fine(l: vec2<u32>, share: vec2<u32>) -> vec2<u32> {
+    if is_inf(l) {
+        return inf();
+    }
+    return smin64(smul_shr(l, share, 32u, true), inf());
+}
+
+fn survival_fine_q(l: vec2<u32>, share: vec2<u32>) -> vec2<u32> {
+    return threshold(prob(scaled_fine(l, share)));
 }
 
 // D6; `rises` false where the hazard does not rise.
 fn abortion_q(l0: vec2<u32>, rises: bool, rise: vec2<u32>, grown: vec2<u32>, exposure: vec2<u32>) -> vec2<u32> {
+    return abortion_fine_q(l0, rises, rise, grown, shl64(exposure, 12u));
+}
+
+// D6 over an exposure in 2^-32 of a cycle (fn-199 B2).
+fn abortion_fine_q(l0: vec2<u32>, rises: bool, rise: vec2<u32>, grown: vec2<u32>, exposure: vec2<u32>) -> vec2<u32> {
     var l = l0;
     if rises && !is_inf(l) {
         if is_zero(grown) {
@@ -209,7 +226,7 @@ fn abortion_q(l0: vec2<u32>, rises: bool, rise: vec2<u32>, grown: vec2<u32>, exp
             l = mulq(l, exp2q(mulq(rise, lt)));
         }
     }
-    return sub64(w(0u, 0x200000u), shr64(prob(scaled(l, exposure)), 9u));
+    return sub64(w(0u, 0x200000u), shr64(prob(scaled_fine(l, exposure)), 9u));
 }
 
 // D10.
@@ -291,6 +308,22 @@ fn lived_q(l: vec2<u32>, share: vec2<u32>, d: vec2<u32>) -> vec2<u32> {
         return min64(share, w(0x100000u, 0u));
     }
     return min64(fraction_up(u, l, 20u), share);
+}
+
+// D5's lived time before the tick grid, in 2^-32 of a cycle (fn-199 B2,
+// `lived_fine_q`).
+fn lived_fine_q(l: vec2<u32>, share: vec2<u32>, d: vec2<u32>) -> vec2<u32> {
+    if !slt64(vec2<u32>(0u), l) {
+        return shl64(share, 12u);
+    }
+    if is_inf(l) {
+        return vec2<u32>(0u);
+    }
+    let u = neg_log2(shl64(d, 9u));
+    if !slt64(u, l) {
+        return shl64(min64(share, w(0x100000u, 0u)), 12u);
+    }
+    return min64(fraction(u, l, 32u), shl64(share, 12u));
 }
 
 // `fraction`, rounded up: one more where a remainder is left.

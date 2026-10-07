@@ -89,6 +89,9 @@ const ENDED_RELAYS: u32 = 20u;
 const OUTLIVED: u32 = 21u;
 const SUCC: u32 = 22u;
 const NPHYT: u32 = 24u;
+// What a failed unit's relay's first unit holds below its ticks, in 2^-32
+// of a cycle (fn-199 B2).
+const BELOW: u32 = 25u;
 // Its relay's blend and its node's buds a whorl (f32, `presence.wgsl`);
 // its rank, Q52 in two words (34, 39): a node's presence (Q32) times its
 // unit's share (ticks), summed exactly, so its phyllotaxis turns as the

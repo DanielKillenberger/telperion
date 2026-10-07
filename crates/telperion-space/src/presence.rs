@@ -186,6 +186,10 @@ pub(crate) struct Draws {
     /// A failed unit's relay, whose first unit grows the rest of the cycle
     /// the unit failed in, drawn apart from it (fn-199 R1).
     pub rest: bool,
+    /// What its first unit holds below its ticks, in 2^-32 of a cycle:
+    /// the part of a tick its failed unit's lived time was rounded up by
+    /// (fn-199 B2).
+    pub below: u64,
     /// The share of the cycle its age ended at, where it ended there and
     /// stopped: a sleeping bud waking in that cycle wakes on it.
     pub outlived: Option<f64>,

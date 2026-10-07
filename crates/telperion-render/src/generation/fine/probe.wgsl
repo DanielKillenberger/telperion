@@ -110,6 +110,13 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         case 15u: {
             r0 = lead_q(a[0], a[1], a[2], vec4<u32>(a[4], a[5]), a[3].x);
         }
+        case 16u: {
+            r0 = survival_fine_q(a[0], a[1]);
+            r1 = lived_fine_q(a[5], a[6], a[7]);
+        }
+        case 17u: {
+            r0 = abortion_fine_q(a[0], a[1].x != 0u, a[2], a[3], a[4]);
+        }
         default: {
             r0 = and_q(a[0], a[1]);
         }
