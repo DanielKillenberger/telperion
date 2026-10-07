@@ -127,3 +127,17 @@
 - **What slowed it:** a `pgrep -f "<path>/walks"` loop matches its own command line, so it never ends. Two monitors had to be stopped and re-armed with `pgrep -f "deps/walk[s]-"`.
 - **Cost:** about 5 minutes.
 - **What would remove it:** a done-file written by the run itself (`cmd; echo $? > run.done`), which the later runs use.
+
+## 2026-10-07, task 10 worker: the lit oak's fine roots leave D16's shedding, the lifts and the landing dormant
+
+- **Doing:** proving the device's D16 and layout against the CPU on the lit oak at 24.
+- **What slowed it:** the identity held at once, but a mutation of the device's kept share passed: at 24 the oak's fine roots decide by D16 23,939 times and never meet a threshold (tolerance 0, their balance near one). The relays' carried pulls (straightening and erection are 0) and the landing (no fine wood near the ground) were dormant too. A neighbour that wakes all three (tolerance 0.99, straightening 0.4, erection 0.3, laterals turned to −1.4 rad) was found by three surveys and two rounds of mutations.
+- **Cost:** about 35 minutes, and about 15 GPU runs of 40 to 140 s.
+- **What would remove it:** a coverage count in the stepped executor's device interface (thresholds met, sheds, carried lifts, landings, rests), printed by every proof, so a specimen's dormant paths are known before an identity is claimed on it.
+
+## 2026-10-07, task 10 worker: the whole-state hash costs thirty builds
+
+- **Doing:** comparing every grower's whole state after every phase (`Stepped::states`).
+- **What slowed it:** the state is hashed through its `Debug` text: the lit oak at 24 takes 6 s with it and 0.2 s without, so the GPU proof's eight runs take 40 s and an oak at 80 cannot be compared whole at all (its check is the phase digests and the tree's).
+- **Cost:** about 35 s a proof run, a dozen runs.
+- **What would remove it:** a field-wise binary hash of the grower (the f64 fields' bits, the vectors' words), about ten times cheaper; then the oak at 80 could be compared whole too.
