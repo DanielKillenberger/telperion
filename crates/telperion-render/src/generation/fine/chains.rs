@@ -234,15 +234,20 @@ impl Grower {
             "chain status",
             "chain sleeping buds",
         ];
+        // Each buffer only grows: a run's regions are as many chains of
+        // larger caps or more of smaller ones, and its status a word a
+        // chain whatever the caps, so replacing all five at once lets two
+        // waves trade them back and forth on every build.
+        let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
         let mut pool = self.pool.borrow_mut();
-        let fits = pool.len() == 5 && pool.iter().zip(bytes).all(|(b, n)| b.size() >= n);
-        if !fits {
-            let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-            *pool = LABELS
-                .iter()
-                .zip(bytes)
-                .map(|(&label, n)| io::buffer(gpu, label, n, storage, &[]).unwrap())
-                .collect();
+        for (k, (&label, n)) in LABELS.iter().zip(bytes).enumerate() {
+            if pool.get(k).is_none_or(|b| b.size() < n) {
+                let grown = io::buffer(gpu, label, n, storage, &[]).unwrap();
+                match pool.get_mut(k) {
+                    Some(b) => *b = grown,
+                    None => pool.push(grown),
+                }
+            }
         }
         pool.clone()
     }

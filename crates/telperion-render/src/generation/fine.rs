@@ -57,6 +57,8 @@ mod realized_timing;
 #[cfg(test)]
 mod roots;
 #[cfg(test)]
+mod speed_tests;
+#[cfg(test)]
 mod shedding;
 #[cfg(test)]
 mod steps;

@@ -14,11 +14,20 @@ use std::collections::BTreeMap;
 use std::time::Instant;
 use telperion_space::{settle, ChainTables, GeometryTables, Plan, Species};
 
+/// A build on the device: its wall milliseconds from parameters, the
+/// executor's four phases' (the fine stage), the driver's stages and
+/// the device's phase costs.
+pub(super) struct Built {
+    pub ms: f64,
+    pub fine: f64,
+    pub stages: Vec<(&'static str, f64)>,
+    pub cost: Cost,
+}
+
 /// One build of `species` at `at` on the device, batch 65,536, from its
 /// parameters: its species point's tables built on another core while
-/// the structure above the cut grows, then the tree settled. Its wall
-/// milliseconds and the device's phase costs.
-fn build(gpu: &Gpu, k: &Kernels, species: &Species, at: (u32, u64)) -> (f64, Cost) {
+/// the structure above the cut grows, then the tree settled.
+pub(super) fn build(gpu: &Gpu, k: &Kernels, species: &Species, at: (u32, u64)) -> Built {
     let whole = Instant::now();
     let point = species.clone();
     let building = std::thread::spawn(move || {
@@ -29,14 +38,12 @@ fn build(gpu: &Gpu, k: &Kernels, species: &Species, at: (u32, u64)) -> (f64, Cos
     let (settled, _) =
         settle(species, request(at.0, at.1), Plan::default(), &mut dev).expect("settles");
     dev.wait();
-    let ms = whole.elapsed().as_secs_f64() * 1e3;
-    let stages: Vec<String> = settled
-        .stages
-        .iter()
-        .map(|(stage, ms)| format!("{stage} {ms:.1}"))
-        .collect();
-    println!("  stages: {}", stages.join(", "));
-    (ms, dev.cost)
+    Built {
+        ms: whole.elapsed().as_secs_f64() * 1e3,
+        fine: settled.phases.iter().sum::<f64>() * 1e3,
+        stages: settled.stages,
+        cost: dev.cost,
+    }
 }
 
 /// Each entry point's passes, GPU milliseconds summed and the longest.
@@ -71,15 +78,15 @@ fn growth_by_kernel() {
         ("beech", telperion_space::beech()),
         ("spruce", telperion_space::spruce()),
     ] {
-        for at in [(40, 1), (80, 1), (80, 7)] {
+        for at in [(40, 1), (40, 7), (80, 1), (80, 7)] {
             let tree = format!("{name} {} {}", at.0, at.1);
             if !only.is_empty() && only != tree {
                 continue;
             }
-            let (cold, _) = build(&gpu, &k, &species, at);
-            let (warm, _) = build(&gpu, &k, &species, at);
+            let cold = build(&gpu, &k, &species, at).ms;
+            let warm = build(&gpu, &k, &species, at).ms;
             assert!(profile::start(&gpu), "timestamps");
-            let (_, cost) = build(&gpu, &k, &species, at);
+            let Built { stages, cost, .. } = build(&gpu, &k, &species, at);
             let passes = profile::finish(&gpu);
             let busy: f64 = passes.iter().map(|p| (p.2 - p.1) / 1e6).sum();
             let span = passes.last().map_or(0.0, |l| l.2) - passes.first().map_or(0.0, |f| f.1);
@@ -88,6 +95,11 @@ fn growth_by_kernel() {
                 cost.grow, cost.fade, cost.lay, cost.trips, cost.waves, cost.runs, cost.chains, cost.again,
                 passes.len(), span / 1e6
             );
+            let stages: Vec<String> = stages
+                .iter()
+                .map(|(s, ms)| format!("{s} {ms:.1}"))
+                .collect();
+            println!("  stages: {}", stages.join(", "));
             for (label, (n, ms, most)) in by_kernel(&passes) {
                 println!("  {label:>12}: {n:>5} passes, {ms:>8.1} ms, longest {most:.2} ms");
             }
