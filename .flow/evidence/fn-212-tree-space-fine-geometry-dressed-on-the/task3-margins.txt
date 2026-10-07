@@ -1,0 +1,104 @@
+F212TREE european-beech 40 1
+F212MARGIN aside fork: decisions 120 under1e-5 0 under1e-4 0 least 2.83465444179982e-2
+F212MARGIN aside inside: decisions 363 under1e-5 0 under1e-4 0 least 1.0727206563916833e-3
+F212MARGIN behind: decisions 199 under1e-5 0 under1e-4 0 least 8.77754352360777e-2
+F212MARGIN codominance: decisions 9561 under1e-5 18 under1e-4 19 least 0e0
+F212MARGIN finest: decisions 105171 under1e-5 0 under1e-4 1 least 9.582222489288553e-5
+F212MARGIN inside: decisions 1762 under1e-5 0 under1e-4 0 least 4.8121890692573715e-4
+F212MARGIN joint: decisions 263 under1e-5 0 under1e-4 0 least 6.852390427336254e-3
+F212MARGIN shortest: decisions 103953 under1e-5 0 under1e-4 1 least 2.6372066427556365e-5
+F212MARGIN structural: decisions 102256 under1e-5 0 under1e-4 3 least 7.841328369276296e-5
+F212TREE european-beech 40 7
+F212MARGIN aside fork: decisions 173 under1e-5 0 under1e-4 0 least 5.1557277371471226e-3
+F212MARGIN aside inside: decisions 534 under1e-5 0 under1e-4 0 least 4.805533210066202e-4
+F212MARGIN behind: decisions 277 under1e-5 0 under1e-4 0 least 7.390734440408382e-2
+F212MARGIN codominance: decisions 17036 under1e-5 18 under1e-4 18 least 0e0
+F212MARGIN finest: decisions 179887 under1e-5 0 under1e-4 0 least 3.904531813630563e-4
+F212MARGIN inside: decisions 2959 under1e-5 0 under1e-4 0 least 1.9743013371271073e-4
+F212MARGIN joint: decisions 373 under1e-5 0 under1e-4 0 least 8.861335809695873e-3
+F212MARGIN shortest: decisions 178011 under1e-5 0 under1e-4 0 least 1.1461363173645607e-3
+F212MARGIN structural: decisions 176628 under1e-5 0 under1e-4 4 least 6.788449725498566e-5
+F212TREE european-beech 80 1
+F212MARGIN aside fork: decisions 1272 under1e-5 0 under1e-4 0 least 1.8810998233901304e-3
+F212MARGIN aside inside: decisions 4867 under1e-5 0 under1e-4 0 least 1.3638612800599722e-4
+F212MARGIN behind: decisions 2863 under1e-5 0 under1e-4 0 least 1.0031277349811974e-3
+F212MARGIN codominance: decisions 131858 under1e-5 198 under1e-4 207 least 0e0
+F212MARGIN finest: decisions 1555100 under1e-5 1 under1e-4 6 least 5.977984454295319e-6
+F212MARGIN inside: decisions 15072 under1e-5 0 under1e-4 0 least 1.986292479036538e-4
+F212MARGIN joint: decisions 2656 under1e-5 0 under1e-4 2 least 4.430089640646164e-5
+F212MARGIN shortest: decisions 1544055 under1e-5 0 under1e-4 0 least 2.4866788653123834e-4
+F212MARGIN structural: decisions 1525191 under1e-5 2 under1e-4 19 least 3.579373713437506e-6
+F212TREE european-beech 80 7
+F212MARGIN aside fork: decisions 1994 under1e-5 0 under1e-4 0 least 1.457643725715431e-3
+F212MARGIN aside inside: decisions 7610 under1e-5 0 under1e-4 0 least 2.371730871653906e-4
+F212MARGIN behind: decisions 4516 under1e-5 0 under1e-4 0 least 8.5149604439084e-4
+F212MARGIN codominance: decisions 219041 under1e-5 303 under1e-4 321 least 0e0
+F212MARGIN finest: decisions 2576306 under1e-5 0 under1e-4 40 least 2.132929874089579e-5
+F212MARGIN inside: decisions 25533 under1e-5 0 under1e-4 0 least 1.1532871827216824e-4
+F212MARGIN joint: decisions 4210 under1e-5 0 under1e-4 0 least 4.388372850966105e-3
+F212MARGIN shortest: decisions 2562535 under1e-5 0 under1e-4 1 least 7.543200592884797e-5
+F212MARGIN structural: decisions 2532841 under1e-5 2 under1e-4 14 least 5.896931813176177e-7
+F212TREE norway-spruce 40 1
+F212MARGIN codominance: decisions 216045 under1e-5 0 under1e-4 6 least 2.4386694365691186e-5
+F212MARGIN finest: decisions 1162521 under1e-5 1 under1e-4 6 least 4.670180786146491e-6
+F212MARGIN shortest: decisions 1148503 under1e-5 0 under1e-4 2 least 1.2535366117078645e-5
+F212MARGIN structural: decisions 1147615 under1e-5 0 under1e-4 0 least 1.3573155068412996e-4
+F212TREE norway-spruce 40 7
+F212MARGIN codominance: decisions 207100 under1e-5 2 under1e-4 8 least 7.773161895680003e-6
+F212MARGIN finest: decisions 1122387 under1e-5 0 under1e-4 1 least 2.434500439579151e-5
+F212MARGIN shortest: decisions 1108372 under1e-5 0 under1e-4 0 least 1.1652708637470335e-3
+F212MARGIN structural: decisions 1107566 under1e-5 0 under1e-4 0 least 1.8291368512035228e-4
+F212TREE norway-spruce 80 1
+F212MARGIN codominance: decisions 675208 under1e-5 0 under1e-4 11 least 1.648718030641816e-5
+F212MARGIN finest: decisions 4679740 under1e-5 3 under1e-4 18 least 5.383131094610074e-6
+F212MARGIN shortest: decisions 4642280 under1e-5 0 under1e-4 2 least 1.2535366163916178e-5
+F212MARGIN structural: decisions 4637482 under1e-5 0 under1e-4 4 least 1.547472190300769e-5
+F212TREE norway-spruce 80 7
+F212MARGIN codominance: decisions 677064 under1e-5 0 under1e-4 12 least 1.9643905112692872e-5
+F212MARGIN finest: decisions 4647308 under1e-5 1 under1e-4 13 least 3.5756557523886068e-6
+F212MARGIN shortest: decisions 4615152 under1e-5 0 under1e-4 0 least 1.3414576429011948e-4
+F212MARGIN structural: decisions 4610322 under1e-5 1 under1e-4 6 least 7.507045200061109e-6
+F212TREE oregon-white-oak 40 1
+F212MARGIN behind: decisions 478 under1e-5 0 under1e-4 1 least 8.344870311369807e-5
+F212MARGIN codominance: decisions 14889 under1e-5 0 under1e-4 1 least 1.656481020101408e-5
+F212MARGIN finest: decisions 164633 under1e-5 0 under1e-4 7 least 2.523027078113558e-5
+F212MARGIN inside: decisions 4678 under1e-5 0 under1e-4 0 least 1.763807277469059e-3
+F212MARGIN shortest: decisions 161061 under1e-5 0 under1e-4 0 least 2.1782427301426585e-4
+F212MARGIN structural: decisions 157595 under1e-5 0 under1e-4 0 least 1.9405445702772522e-4
+F212TREE oregon-white-oak 40 7
+F212MARGIN behind: decisions 951 under1e-5 0 under1e-4 1 least 8.826126905269949e-5
+F212MARGIN codominance: decisions 26762 under1e-5 0 under1e-4 1 least 5.5512152421915983e-5
+F212MARGIN finest: decisions 287798 under1e-5 0 under1e-4 1 least 3.001199644638258e-5
+F212MARGIN inside: decisions 10349 under1e-5 0 under1e-4 1 least 4.26628312324227e-5
+F212MARGIN shortest: decisions 283661 under1e-5 0 under1e-4 5 least 1.2607224662017705e-5
+F212MARGIN structural: decisions 281160 under1e-5 1 under1e-4 3 least 3.442287498667191e-6
+F212TREE oregon-white-oak 80 1
+F212MARGIN behind: decisions 5165 under1e-5 0 under1e-4 0 least 4.0360200618956105e-4
+F212MARGIN codominance: decisions 78936 under1e-5 1 under1e-4 14 least 5.475116994502205e-6
+F212MARGIN finest: decisions 937270 under1e-5 3 under1e-4 22 least 3.2988409340338823e-7
+F212MARGIN inside: decisions 56166 under1e-5 0 under1e-4 3 least 5.239775426835635e-5
+F212MARGIN shortest: decisions 907968 under1e-5 2 under1e-4 27 least 2.1848748641469656e-6
+F212MARGIN structural: decisions 868966 under1e-5 1 under1e-4 7 least 8.624848390760031e-6
+F212TREE oregon-white-oak 80 7
+F212MARGIN behind: decisions 14127 under1e-5 0 under1e-4 3 least 3.083720102691829e-5
+F212MARGIN codominance: decisions 197872 under1e-5 2 under1e-4 11 least 1.759693394332018e-6
+F212MARGIN finest: decisions 2306596 under1e-5 2 under1e-4 50 least 1.9449721495097983e-6
+F212MARGIN inside: decisions 147704 under1e-5 0 under1e-4 7 least 1.1499149721738279e-5
+F212MARGIN shortest: decisions 2257768 under1e-5 0 under1e-4 17 least 1.1686761056074399e-5
+F212MARGIN structural: decisions 2203466 under1e-5 0 under1e-4 14 least 1.340811423039699e-5
+F212TREE date-palm 40 1
+F212MARGIN finest: decisions 480 under1e-5 0 under1e-4 0 least 1.484e3
+F212MARGIN shortest: decisions 480 under1e-5 0 under1e-4 0 least 2.9999999999999115e1
+F212MARGIN structural: decisions 481 under1e-5 0 under1e-4 0 least 1.9e1
+F212TREE date-palm 40 7
+F212MARGIN finest: decisions 480 under1e-5 0 under1e-4 0 least 1.484e3
+F212MARGIN shortest: decisions 480 under1e-5 0 under1e-4 0 least 2.9999999999999122e1
+F212MARGIN structural: decisions 481 under1e-5 0 under1e-4 0 least 1.9e1
+F212TREE date-palm 80 1
+F212MARGIN finest: decisions 960 under1e-5 0 under1e-4 0 least 1.484e3
+F212MARGIN shortest: decisions 960 under1e-5 0 under1e-4 0 least 2.9999999999998234e1
+F212MARGIN structural: decisions 961 under1e-5 0 under1e-4 0 least 1.9e1
+F212TREE date-palm 80 7
+F212MARGIN finest: decisions 960 under1e-5 0 under1e-4 0 least 1.484e3
+F212MARGIN shortest: decisions 960 under1e-5 0 under1e-4 0 least 2.9999999999998224e1
+F212MARGIN structural: decisions 961 under1e-5 0 under1e-4 0 least 1.9e1
