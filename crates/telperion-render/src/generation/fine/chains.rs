@@ -317,7 +317,9 @@ impl Grower {
         (offsets, stride): (&wgpu::Buffer, u32),
         (axes, phyts): (&wgpu::Buffer, &wgpu::Buffer),
     ) {
-        let cfg = [n, region.row, caps.axes, caps.phyts, stride, 0, 0, 0];
+        // A workgroup a chain, in rows of the most a dimension takes.
+        let row = n.min(gpu.device.limits().max_compute_workgroups_per_dimension);
+        let cfg = [n, row, caps.axes, caps.phyts, stride, 0, 0, 0];
         let usage = wgpu::BufferUsages::UNIFORM;
         let cfg = io::buffer(gpu, "pack cfg", 32, usage, bytemuck::cast_slice(&cfg)).unwrap();
         let all = [
@@ -330,7 +332,7 @@ impl Grower {
             phyts,
         ];
         let bind = self.pack.bind(gpu, &all);
-        self.pack.run(encoder, &bind, 0, region.groups);
+        self.pack.run(encoder, &bind, 0, n);
     }
 }
 
