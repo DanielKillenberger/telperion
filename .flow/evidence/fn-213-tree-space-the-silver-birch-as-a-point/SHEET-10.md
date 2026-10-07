@@ -92,3 +92,7 @@ The most is 2.16M nodes, under the 4M cap. The rise at 80 comes from the longer-
 - **The repeated look:** what the stills still show as repeated is the strands' shape, not their parameters. Each one leaves, turns down within about 30 cm (base tropism 3 per metre) and hangs straight. Larger spreads are within the rows' bounds (insertion to π/2, tropism to 1) and untried.
 - **The 40-year egg:** not restored. The cause is unknown (see the stills section).
 - **The preset:** carries round 10. Round 9's values are in its commit `a35e4f3b` if the owner prefers that sheet.
+
+## Gate (round 10, commit `bdfe3ff7`)
+
+Render half first, under the GPU lock: `cargo test --profile ci -p telperion-render --no-fail-fast` exits 0. Then `cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render` exits 0. `harness/parity.test.ts` passes 8 of 8. Limits at 8; logs in the ignored `raw/gate10-*.log`. The scratch worktree for the old birch's measures was created again and removed.
