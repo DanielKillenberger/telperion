@@ -46,7 +46,7 @@ fn cpu(species: &Species, at: (u32, u64), threads: usize) -> (f64, f64) {
 }
 
 /// The cut: `FINE_CUT`, or the default plan's.
-fn cut() -> f64 {
+pub(super) fn cut() -> f64 {
     let at = std::env::var("FINE_CUT").ok();
     at.and_then(|c| c.parse().ok())
         .unwrap_or(Plan::default().cut)

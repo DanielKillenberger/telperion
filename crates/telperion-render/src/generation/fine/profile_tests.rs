@@ -14,6 +14,14 @@ use std::collections::BTreeMap;
 use std::time::Instant;
 use telperion_space::{settle, ChainTables, GeometryTables, Plan, Species};
 
+/// The default plan at `FINE_CUT`'s cut, if given.
+pub(super) fn plan() -> Plan {
+    Plan {
+        cut: super::realized_timing::cut(),
+        ..Plan::default()
+    }
+}
+
 /// A build on the device: its wall milliseconds from parameters, the
 /// executor's four phases' (the fine stage), the driver's stages and
 /// the device's phase costs.
@@ -36,7 +44,7 @@ pub(super) fn build(gpu: &Gpu, k: &Kernels, species: &Species, at: (u32, u64)) -
     });
     let mut dev = Device::building(gpu, k, building, 1 << 16);
     let (settled, _) =
-        settle(species, request(at.0, at.1), Plan::default(), &mut dev).expect("settles");
+        settle(species, request(at.0, at.1), plan(), &mut dev).expect("settles");
     dev.wait();
     Built {
         ms: whole.elapsed().as_secs_f64() * 1e3,

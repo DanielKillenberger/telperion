@@ -28,7 +28,7 @@ fn locked() -> Option<std::fs::File> {
 fn cpu(species: &Species, at: (u32, u64), threads: usize) -> [f64; 3] {
     let plan = Plan {
         threads,
-        ..Plan::default()
+        ..super::profile_tests::plan()
     };
     let mut runs = (0..3).map(|_| {
         let t = Instant::now();
