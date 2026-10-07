@@ -60,12 +60,9 @@ impl Executor<'_> {
         };
         let (species, age, keep) = (self.coarse.species, self.request.age, self.keep);
         let threads = self.coarse.threads;
-        // Spread over the cores as fine growth spreads its roots.
+        // Spread over the cores by the plan's order and chunking.
         let mut handed = handed;
-        let plan = crate::fine::Plan {
-            threads,
-            ..crate::fine::Plan::default()
-        };
+        let plan = self.plan;
         let done = crate::fine::each(
             &mut handed,
             plan,

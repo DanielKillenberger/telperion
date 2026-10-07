@@ -8,16 +8,15 @@
 //! tree is the whole tree's to the bit.
 use super::{Executor, ITEMS};
 use crate::error::Result;
-use crate::fine::{assemble, settle_grown, Above, Clock, Cpu, Made, Plan, Root, Stages};
+use crate::fine::{assemble, settle_grown, Above, Clock, Cpu, Fine, Made, Plan, Root, Stages};
 use crate::fixed::presence::{q, real, times};
 use crate::grow::realized::Assigned;
 use crate::presence::assign;
-use crate::structure::Structure;
 use std::time::Instant;
 
 impl Executor<'_> {
     /// The tree settled and laid, each root settled by its own grower.
-    pub(super) fn settle(self) -> Result<Structure> {
+    pub(super) fn settle(self) -> Result<Fine> {
         let Executor {
             mut coarse,
             items,
@@ -25,6 +24,7 @@ impl Executor<'_> {
             request,
             finished,
             marked,
+            plan,
             ..
         } = self;
         let (species, age, threads) = (coarse.species, request.age, coarse.threads);
@@ -78,10 +78,7 @@ impl Executor<'_> {
             .collect();
         let rules = coarse.rules.clone();
         let grown: Assigned = coarse.assigned();
-        let plan = Plan {
-            threads,
-            ..Plan::default()
-        };
+        let plan = Plan { threads, ..plan };
         let mut cpu = Cpu {
             species,
             rules: None,
@@ -98,6 +95,6 @@ impl Executor<'_> {
             None,
             (Clock::default(), Stages::default()),
         )?;
-        Ok(assemble(settled, cpu.roots, &*counts)?.structure)
+        assemble(settled, cpu.roots, &*counts)
     }
 }

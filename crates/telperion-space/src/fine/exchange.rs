@@ -34,7 +34,7 @@ pub(super) fn partials(
             (base[b], axes[b].phytomers[node].scale)
         })
         .collect();
-    let parts = roots.partials(&stands)?;
+    let parts = roots.grown_partials(&stands)?;
     if species.states.iter().all(|s| s.leaf_girth == 0.0) {
         return Ok(None);
     }
@@ -59,7 +59,7 @@ pub(super) fn attach(
     let parents: Vec<Option<usize>> = axes.iter().map(|a| a.origin.parent()).collect();
     let above = above(&parents, &shed.fade, ONE32);
     let at_roots: Vec<i64> = seats.iter().map(|&(at, _)| above[at]).collect();
-    let radii = roots.attach(mean, &at_roots)?;
+    let radii = roots.grown_radii(mean, &at_roots)?;
     let given = |i: usize| stood[i].map(|k: usize| radii[k]);
     let grown = attachments_given(axes, species, (age, threads), (Stand::WHOLE, mean), &given);
     Ok(disused(&grown, shed, species))

@@ -35,10 +35,8 @@ mod tables;
 #[cfg(test)]
 mod tests;
 
-use crate::closed_form::predictor::Predictor;
-use crate::error::{refuse, Error, Result};
-use crate::grow::alone::rules;
-use crate::grow::{keeps, Request};
+use crate::error::{Error, Result};
+use crate::grow::Request;
 use crate::species::Species;
 use crate::structure::Structure;
 pub use canonical::{canonical, digest, identities, lineage_order};
@@ -134,42 +132,12 @@ impl Fine {
     }
 }
 
-/// Grows `species` above `plan`'s cut on the CPU, expands every fine root
-/// from its bud alone on the CPU reference executor, and settles the two
-/// together: today's whole-tree engine's tree. Refuses a species any bud
-/// of which reads light (fn-211), or whose girth reads the tree as grown.
-pub fn grow_fine(species: &Species, request: Request, plan: Plan) -> Result<Fine> {
-    if keeps(species) {
-        return refuse(
-            "retained",
-            "a fine root's shed pipes and leaf girth are fn-211's stepped executor's",
-        );
-    }
-    let rules = rules(species, request.age, request.budget)?;
-    request.light.validate()?;
-    let started = Instant::now();
-    let predictor = Predictor::new(species, &rules.windows, request.age);
-    let predict = started.elapsed().as_secs_f64();
-    let threads = match plan.threads {
-        0 => crate::cores::available(),
-        n => n,
-    };
-    let mut cpu = Cpu {
-        species,
-        rules: Some(&rules),
-        plan,
-        threads,
-        roots: Vec::new(),
-    };
-    let (settled, _) = expansion::settle_with(
-        species,
-        (request, &predictor, &rules),
-        plan,
-        &mut cpu,
-        false,
-    )?;
-    let fine = assemble(settled, cpu.roots, &|pa, birth| predictor.count(pa, birth))?;
-    Ok(Fine { predict, ..fine })
+/// The build (`grow`, the stepped executor) at `plan`'s cut, order,
+/// chunking and cores, reported root by root: the CPU reference the GPU
+/// executor's tests hold its roots to (fn-211 task 12). The tree is in
+/// the order the build assembles it, not canonical.
+pub fn grow_roots(species: &Species, request: Request, plan: Plan) -> Result<Fine> {
+    crate::grow::stepped::build(species, request, plan)
 }
 
 /// The tree whole: each kept root's first axis where its stand-in stood,

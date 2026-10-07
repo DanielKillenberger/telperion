@@ -3,7 +3,7 @@
 //! 8, step 3): beech and spruce at 40 and 80, seeds 1 and 7. The GPU's
 //! build is `profile_tests::build` (the species point's tables, the
 //! structure above the cut, the four phases and the landing); the CPU's
-//! is `grow_fine` at the default plan. The fine stage is the executor's
+//! is `grow_roots` at the default plan. The fine stage is the executor's
 //! four phases. Cold is a tree's first build in the process, just after
 //! one build of a tree not timed (the device's clocks up, its pools that
 //! tree's). `cargo test --profile ci -p telperion-render
@@ -13,7 +13,7 @@ use super::profile_tests::build;
 use super::realized_tests::request;
 use super::roots::kernels;
 use std::time::Instant;
-use telperion_space::{grow_fine, Plan, Species};
+use telperion_space::{grow_roots, Plan, Species};
 
 /// The GPU lock named by `FINE_GPU_LOCK`, held while the guard lives.
 fn locked() -> Option<std::fs::File> {
@@ -23,7 +23,7 @@ fn locked() -> Option<std::fs::File> {
     Some(file)
 }
 
-/// `grow_fine` on `threads` cores: the first build's milliseconds, the
+/// `grow_roots` on `threads` cores: the first build's milliseconds, the
 /// best of two more, and that build's fine stage.
 fn cpu(species: &Species, at: (u32, u64), threads: usize) -> [f64; 3] {
     let plan = Plan {
@@ -32,7 +32,7 @@ fn cpu(species: &Species, at: (u32, u64), threads: usize) -> [f64; 3] {
     };
     let mut runs = (0..3).map(|_| {
         let t = Instant::now();
-        let fine = grow_fine(species, request(at.0, at.1), plan).expect("grows");
+        let fine = grow_roots(species, request(at.0, at.1), plan).expect("grows");
         [t.elapsed().as_secs_f64() * 1e3, fine.expand_seconds() * 1e3]
     });
     let cold = runs.next().expect("a build")[0];

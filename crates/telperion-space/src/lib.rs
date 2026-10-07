@@ -49,7 +49,7 @@ pub use bounded::{grow_bounded, Bounded, Expected};
 pub use closed_form::expected_counts;
 pub use error::{Error, Result};
 pub use fine::{
-    bearer_frame, canonical, chain_cases, digest, grow_fine, identities, landed, lineage_order,
+    bearer_frame, canonical, chain_cases, digest, grow_roots, identities, landed, lineage_order,
     realized_cases, root_axes, settle, survey_laid, survey_lit, BearerFrame, ChainAxis, ChainBud,
     ChainTables, Expanded, Fine, GeometryTables, Lived, Loaded, Order, PaGeometry, PaRow, Plan,
     Presences, RealizedCase, RootAxes, RootGeometry, RootSeed, Roots, Settled, Surveyed, UnitZone,
@@ -60,9 +60,11 @@ pub use grow::oracle::{grow_oracle, Oracled, Read};
 pub use grow::partition::{
     grow_partitioned, Grouping, Order as PartitionOrder, Partitioned, Run as PartitionRun, PHASES,
 };
-pub use grow::stepped::{grow_stepped, grow_stepped_on, Cpu, Feedback, Laid, LayJob, LayPa, Stepped};
+pub use grow::stepped::{
+    grow_stepped, grow_stepped_on, Cpu, Feedback, Laid, LayJob, LayPa, Stepped,
+};
 pub use grow::subtree::Measured;
-pub use grow::{grow, grow_staged, grow_today, grow_whole, sketch, Pass, Request, Stage};
+pub use grow::{grow, sketch, Pass, Request, Stage};
 pub use light::{bud_light, field_reads, Light};
 pub use oak::oak;
 pub use palm::palm;

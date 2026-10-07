@@ -2,15 +2,15 @@
 //! whole-tree engine (fn-209 F1 task 6): the same tree, to the bit, by
 //! lineage, at every cut, in every item order and chunking.
 use super::request;
-use crate::fine::{digest, grow_fine, Fine, Order, Plan};
-use crate::grow::{grow_whole, Request};
+use crate::fine::{digest, grow_roots, Fine, Order, Plan};
+use crate::grow::{whole, Request};
 use crate::species::Species;
 use crate::{beech, spruce};
 
 /// The tree at `plan` is today's tree, and the cut moved work.
 fn same(species: &Species, request: Request, plan: Plan) -> usize {
-    let whole = digest(&grow_whole(species, request).expect("grows whole"));
-    let fine = grow_fine(species, request, plan).expect("grows fine");
+    let whole = digest(&whole(species, request).expect("grows whole"));
+    let fine = grow_roots(species, request, plan).expect("grows fine");
     assert_eq!(digest(&fine.structure), whole, "{plan:?}");
     fine.roots.len()
 }
@@ -55,14 +55,14 @@ fn a_tree_is_todays_in_every_order_and_chunking() {
 
 /// The tree at each of `cuts` is today's; the fine trees, by cut.
 fn at_cuts(species: &Species, request: Request, cuts: &[f64]) -> Vec<Fine> {
-    let whole = digest(&grow_whole(species, request).expect("grows whole"));
+    let whole = digest(&whole(species, request).expect("grows whole"));
     cuts.iter()
         .map(|&cut| {
             let plan = Plan {
                 cut,
                 ..Plan::default()
             };
-            let fine = grow_fine(species, request, plan).expect("grows fine");
+            let fine = grow_roots(species, request, plan).expect("grows fine");
             assert_eq!(digest(&fine.structure), whole, "at cut {cut}");
             fine
         })
@@ -126,14 +126,14 @@ fn a_tree_past_its_budget_is_refused_at_every_cut() {
             ..request(30, 1)
         },
     );
-    let whole = grow_whole(&species, request).map(|t| digest(&t));
+    let whole = whole(&species, request).map(|t| digest(&t));
     assert!(whole.is_err(), "the whole tree stands");
     for cut in CUTS {
         let plan = Plan {
             cut,
             ..Plan::default()
         };
-        let fine = grow_fine(&species, request, plan).map(|f| digest(&f.structure));
+        let fine = grow_roots(&species, request, plan).map(|f| digest(&f.structure));
         assert_eq!(fine, whole, "at cut {cut}");
     }
 }

@@ -65,42 +65,20 @@ struct Apex {
 }
 
 /// Grows, sheds and places the tree, in its canonical lineage order, by
-/// the stepped executor (fn-211 task 12, host decision (b)): every fine
-/// root at the cut N = 1,024 its own grower, run ahead to its next
-/// synchronisation point and settled per root.
+/// the stepped executor (fn-211 task 12): every fine root at the cut
+/// N = 1,024 its own grower, run to its next synchronisation point and
+/// settled per root.
 pub fn grow(species: &Species, request: Request) -> Result<Structure> {
-    stepped::build(species, request).map(lineage_order)
-}
-
-/// Today's path before task 12, kept for its measurement until it is
-/// deleted: the whole-tree engine where any bud reads light or the tree
-/// as grown, the realized partition otherwise.
-pub fn grow_today(species: &Species, request: Request) -> Result<Structure> {
-    if species.reads_light() || keeps(species) {
-        return grow_whole(species, request);
-    }
-    species.validate()?;
-    request.light.validate()?;
-    if request.age == 0 {
-        return refuse("age", "a tree grows at least one cycle");
-    }
-    let fine = crate::fine::grow_fine(species, request, crate::fine::Plan::default())?;
+    let fine = crate::fine::grow_roots(species, request, crate::fine::Plan::default())?;
     Ok(lineage_order(fine.structure))
 }
 
-/// Today's whole-tree engine, every axis grown in one grower: the tests'
-/// reference for `grow`, in the same canonical order.
-pub fn grow_whole(species: &Species, request: Request) -> Result<Structure> {
-    grow_staged(species, request, &mut |_| {})
-}
-
-/// `grow_whole`, reporting each stage as it ends.
-pub fn grow_staged(
-    species: &Species,
-    request: Request,
-    stage: &mut dyn FnMut(Stage),
-) -> Result<Structure> {
-    run(species, request, stage, true, Options::default()).map(|g| lineage_order(g.structure))
+/// The whole-tree engine, every axis grown in one grower: test-only, the
+/// reference the stepped executor's and the partition's probes hold
+/// their trees to.
+#[cfg(test)]
+pub(crate) fn whole(species: &Species, request: Request) -> Result<Structure> {
+    run(species, request, &mut |_| {}, true, Options::default()).map(|g| lineage_order(g.structure))
 }
 
 /// How the engine grows a tree, never what it grows: every choice here

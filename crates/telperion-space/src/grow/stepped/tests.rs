@@ -2,6 +2,7 @@
 use super::*;
 use crate::grow::partition::{grow_partitioned, Order};
 use crate::light::Light;
+use std::collections::HashMap;
 
 const LIT: Light = Light {
     extinction: 0.5,
@@ -53,7 +54,8 @@ fn each_grower_keeps_the_whole_trees_living_order() {
             );
         }
         let mut count = 0;
-        for g in x.growers() {
+        let growers = std::iter::once(&x.coarse).chain(x.items.iter().map(|i| &i.g));
+        for g in growers {
             let seen: Vec<usize> = g.live.iter().map(|a| at[&lineage(g, a)]).collect();
             assert!(
                 seen.windows(2).all(|w| w[0] < w[1]),

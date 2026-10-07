@@ -41,12 +41,14 @@ use feedback::{again, relaid};
 pub use feedback::{Cpu, Feedback};
 pub use lay::{Laid, LayJob, LayPa};
 
+use super::partition::Order;
 use super::partition::{ordered, Digest, Grouping};
 use super::relay::RELAY_EVERY;
 use super::{start, Grower, Options, Request};
 use crate::bounded::Expected;
 use crate::closed_form::predictor::Predictor;
 use crate::error::{Error, Result};
+use crate::fine::{Fine, Plan};
 use crate::species::Species;
 use crate::structure::Structure;
 use schedule::Ran;
@@ -113,20 +115,23 @@ pub fn grow_stepped_on(
 /// The build's executor (fn-211 task 12, host decision (b)): every root
 /// at the cut its own grower, the cut read from the predictor's counts
 /// (fn-209 host decision 9), the items visited forward.
-pub(crate) fn build(species: &Species, request: Request) -> Result<Structure> {
+pub(crate) fn build(species: &Species, request: Request, plan: Plan) -> Result<Fine> {
+    let order = match plan.order {
+        crate::fine::Order::Forward => Order::Forward,
+        crate::fine::Order::Reverse => Order::Reverse,
+        crate::fine::Order::Shuffled(seed) => Order::Shuffled(seed),
+    };
     let grouping = Grouping {
-        order: crate::grow::partition::Order::Forward,
-        chunk: ITEMS,
+        order,
+        chunk: plan.chunk,
         sizes: true,
         leaves: true,
         girth: true,
     };
-    let at = (None, crate::fine::Plan::default().cut, grouping);
-    Ok(run(species, request, at, None, Keep::Tree)?.structure)
+    let at = (None, plan.cut, grouping);
+    Ok(run_with(species, request, at, (None, plan), Keep::Tree)?.1)
 }
 
-/// The closed form's expected kept phytomers of a bud of a PA born in a
-/// cycle: what the cut reads.
 /// What a run keeps beside its tree: nothing (the build), each phase's
 /// digest, or with them every grower's whole state.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -136,6 +141,8 @@ pub(super) enum Keep {
     States,
 }
 
+/// The closed form's expected kept phytomers of a bud of a PA born in a
+/// cycle: what the cut reads.
 pub(super) type Counts = Arc<dyn Fn(usize, u32) -> f64 + Send + Sync>;
 
 fn counts(expected: &Expected) -> Counts {
@@ -147,16 +154,35 @@ fn run(
     species: &Species,
     request: Request,
     (counts, cut, grouping): (Option<Counts>, f64, Grouping),
-    mut device: Option<&mut dyn Feedback>,
+    device: Option<&mut dyn Feedback>,
     keep: Keep,
 ) -> Result<Stepped> {
-    let (coarse, _) = start(species, request, true, Options::default())?;
+    let at = (counts, cut, grouping);
+    let (mut stepped, fine) = run_with(species, request, at, (device, Plan::default()), keep)?;
+    stepped.structure = fine.structure;
+    Ok(stepped)
+}
+
+/// A run, its tree also reported root by root (`Fine`), the roots that
+/// go over as buds spread by `plan`.
+fn run_with(
+    species: &Species,
+    request: Request,
+    (counts, cut, grouping): (Option<Counts>, f64, Grouping),
+    (mut device, plan): (Option<&mut dyn Feedback>, Plan),
+    keep: Keep,
+) -> Result<(Stepped, Fine)> {
+    let (mut coarse, _) = start(species, request, true, Options::default())?;
+    if plan.threads > 0 {
+        coarse.threads = plan.threads;
+    }
     // The cut reads the predictor's counts where none are given.
     let counts = counts.unwrap_or_else(|| {
         let predictor = Predictor::new(species, &coarse.rules.windows, request.age);
         Arc::new(move |pa, birth| predictor.count(pa, birth))
     });
     let mut x = Executor::new(coarse, (counts, cut, grouping), request, keep);
+    x.plan = plan;
     x.hand_buds();
     let mut years = Vec::with_capacity(request.age as usize);
     for cycle in 1..=request.age {
@@ -179,9 +205,14 @@ fn run(
         std::mem::take(&mut x.states),
         std::mem::take(&mut x.lattices),
     );
-    let structure = x.settle()?;
-    Ok(Stepped {
-        structure,
+    let fine = x.settle()?;
+    let stepped = Stepped {
+        // The tree is the report's (`run` moves it here).
+        structure: Structure {
+            age: request.age,
+            pas: species.states.len(),
+            axes: Vec::new(),
+        },
         phases,
         roots,
         fine_grown,
@@ -190,7 +221,8 @@ fn run(
         settle: started.elapsed().as_secs_f64(),
         states,
         lattices,
-    })
+    };
+    Ok((stepped, fine))
 }
 
 /// A fine root's grower and its placeholder's index in the coarse one.
@@ -228,6 +260,9 @@ pub(super) struct Executor<'a> {
     /// whether the structure above was marked for them.
     pub finished: Vec<buds::Finished>,
     pub marked: bool,
+    /// How the roots are spread over the cores: their order, chunking
+    /// and cores.
+    pub plan: Plan,
 }
 
 impl<'a> Executor<'a> {
@@ -258,6 +293,7 @@ impl<'a> Executor<'a> {
             items_grown: 0,
             finished: Vec::new(),
             marked: false,
+            plan: Plan::default(),
         }
     }
 

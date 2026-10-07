@@ -5,24 +5,13 @@
 //! - `hash`: each tree's hash over every public field, to the bit, without
 //!   light, or under `LIT` (`lit`) or both (`both`): the proof that a
 //!   change left every species as it was.
-//! - `stages`: each tree's time per stage (`telperion_space::Stage`), without
-//!   light and under `LIT`, or only one of them where `light` is `neutral`
-//!   or `lit`.
-//! - `passes`: each tree's time per pass (`telperion_space::Pass`), summed
-//!   over the cycles, in milliseconds, on one line per tree with the 1-minute
-//!   load and the cores the process may use: the time between a pass's
-//!   report and the report before it. `gaps` is the time before a stage's
-//!   report since the last pass's, and `tail` what follows the last report
-//!   until the tree is returned.
 //! - `gap`: under `LIT`, the oak's and the beech's rough layout grown with
 //!   the tree against their final lay: crown extent, how far each phytomer
 //!   stands from its final place, and the light at each living bud.
-use std::collections::BTreeMap;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::Instant;
 use telperion_space::{
-    beech, bud_light, grow, grow_staged, oak, palm, sketch, spruce, Light, Pass, Request, Species,
-    Stage, Structure, Vec3,
+    beech, bud_light, grow, oak, palm, sketch, spruce, Light, Request, Species, Structure, Vec3,
 };
 
 const BUDGET: u32 = 20_000_000;
@@ -59,7 +48,7 @@ fn main() {
         light,
     };
     let only = args.get(3).filter(|o| o.as_str() != "all");
-    // `hash` defaults to neutral light, `stages` to both.
+    // `hash` defaults to neutral light.
     let lights: Vec<Light> = match (args.get(4).map(String::as_str), what) {
         (Some("neutral"), _) | (None, "hash") => vec![Light::NEUTRAL],
         (Some("lit"), _) => vec![LIT[0]],
@@ -85,16 +74,6 @@ fn main() {
                         );
                     }
                 }
-                "stages" => {
-                    for &light in &lights {
-                        stages(name, &species, request(seed, light));
-                    }
-                }
-                "passes" => {
-                    for &light in &lights {
-                        passes(name, &species, request(seed, light));
-                    }
-                }
                 "gap" if name == "oak" || name == "beech" => {
                     // And with every sag at 0: the share of the gap that
                     // is sag's.
@@ -112,89 +91,10 @@ fn main() {
                     }
                 }
                 "gap" => {}
-                _ => panic!("measures hash | stages | passes | gap [age] [seeds]"),
+                _ => panic!("measures hash | gap [age] [seeds]"),
             }
         }
     }
-}
-
-/// The time each stage took, summed over the cycles.
-fn stages(name: &str, species: &Species, request: Request) {
-    let order = [
-        Stage::Grown,
-        Stage::Sketched,
-        Stage::Relaid,
-        Stage::Lit,
-        Stage::Settled,
-        Stage::Laid,
-    ];
-    let mut spent = [0.0; 6];
-    let mut last = Instant::now();
-    let started = last;
-    grow_staged(species, request, &mut |stage| {
-        let Some(i) = order.iter().position(|&s| s == stage) else {
-            return;
-        };
-        let now = Instant::now();
-        spent[i] += (now - last).as_secs_f64();
-        last = now;
-    })
-    .expect("grows");
-    let total = started.elapsed().as_secs_f64();
-    println!(
-        "{name} age {} seed {} extinction {} sky {}: total {total:.2} s; growth {:.2}, rough layout {:.2}, full re-lays {:.2}, light {:.2}, settle {:.2}, final lay {:.2}; peak memory so far {}",
-        request.age, request.seed, request.light.extinction, request.light.sky,
-        spent[0], spent[1], spent[2], spent[3], spent[4], spent[5], peak()
-    );
-}
-
-/// The time each pass took, summed over the cycles, in milliseconds.
-fn passes(name: &str, species: &Species, request: Request) {
-    let mut spent: BTreeMap<Pass, f64> = BTreeMap::new();
-    let mut gaps = 0.0;
-    let started = Instant::now();
-    let mut last = started;
-    grow_staged(species, request, &mut |stage| {
-        let now = Instant::now();
-        let ms = (now - last).as_secs_f64() * 1e3;
-        match stage {
-            Stage::Pass(pass) => *spent.entry(pass).or_default() += ms,
-            _ => gaps += ms,
-        }
-        last = now;
-    })
-    .expect("grows");
-    let ended = Instant::now();
-    let tail = (ended - last).as_secs_f64() * 1e3;
-    let total = (ended - started).as_secs_f64() * 1e3;
-    let load = std::fs::read_to_string("/proc/loadavg")
-        .ok()
-        .and_then(|l| l.split_whitespace().next().map(str::to_string))
-        .unwrap_or_default();
-    let cores = std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get);
-    let each: Vec<String> = spent
-        .iter()
-        .map(|(p, ms)| format!("{p:?}={ms:.2}"))
-        .collect();
-    println!(
-        "passes {name} age={} seed={} extinction={} cores={cores} load={load} total={total:.2} {} gaps={gaps:.2} tail={tail:.2}",
-        request.age,
-        request.seed,
-        request.light.extinction,
-        each.join(" ")
-    );
-}
-
-/// The process's peak resident memory, where Linux reports it.
-fn peak() -> String {
-    std::fs::read_to_string("/proc/self/status")
-        .ok()
-        .and_then(|s| {
-            s.lines()
-                .find(|l| l.starts_with("VmHWM"))
-                .map(|l| l[6..].trim().to_string())
-        })
-        .unwrap_or_else(|| "unknown".into())
 }
 
 /// The rough layout against the final lay.

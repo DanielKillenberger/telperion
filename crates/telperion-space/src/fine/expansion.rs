@@ -52,7 +52,7 @@ pub trait Roots {
     /// `leaf_girth`; host decision on fn-211 task 12, PHASES.md): down,
     /// each root's bearer's base and its node's drawn scale as grown
     /// (Q32, real), by root; up, each one's leaf partials as grown.
-    fn partials(&mut self, _stands: &[(i64, f64)]) -> Result<Vec<[Total; 2]>> {
+    fn grown_partials(&mut self, _stands: &[(i64, f64)]) -> Result<Vec<[Total; 2]>> {
         refuse(
             "retained",
             "this executor's roots do not carry the as-grown exchange (fn-211 task 12)",
@@ -61,7 +61,7 @@ pub trait Roots {
     /// The exchange's second half: down, the tree's leaf mean and each
     /// root's bearers' fades at its base (Q32), by root; up, each one's
     /// base radius as grown, its own shed pipes kept for phase 2.
-    fn attach(&mut self, _mean: Option<f64>, _above: &[i64]) -> Result<Vec<f64>> {
+    fn grown_radii(&mut self, _mean: Option<f64>, _above: &[i64]) -> Result<Vec<f64>> {
         refuse(
             "retained",
             "this executor's roots do not carry the as-grown exchange (fn-211 task 12)",

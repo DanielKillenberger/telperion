@@ -384,14 +384,14 @@ impl Roots for Cpu<'_, '_> {
         Ok(live.iter().map(|&k| load(k)).collect())
     }
 
-    fn partials(&mut self, stands: &[(i64, f64)]) -> Result<Vec<[Total; 2]>> {
+    fn grown_partials(&mut self, stands: &[(i64, f64)]) -> Result<Vec<[Total; 2]>> {
         let species = self.species;
         Ok(each(&mut self.roots, self.plan, self.threads, &|k, r| {
             r.partials(species, stands[k])
         }))
     }
 
-    fn attach(&mut self, mean: Option<f64>, above: &[i64]) -> Result<Vec<f64>> {
+    fn grown_radii(&mut self, mean: Option<f64>, above: &[i64]) -> Result<Vec<f64>> {
         let species = self.species;
         Ok(each(&mut self.roots, self.plan, self.threads, &|k, r| {
             r.attach(species, mean, above[k])
