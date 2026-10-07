@@ -14,7 +14,7 @@ const FORBIDDEN_CRATES: &[&str] = &[
 ];
 
 const FORBIDDEN_MARKERS: &[&str] = &[
-    "https://api.typesafe.ai/v1/systemone",
+    ENDPOINT,
     "telperion-jev",
     "telperion_jev",
 ];
@@ -78,10 +78,4 @@ fn walk(dir: &Path, repo_root: &Path, hits: &mut Vec<IsolationHit>) {
             }
         }
     }
-}
-
-/// The endpoint string the isolation scan looks for. Tests assert it matches
-/// the caller constant so a rename cannot hide the import.
-pub fn endpoint_marker() -> &'static str {
-    ENDPOINT
 }

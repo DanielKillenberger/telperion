@@ -3,6 +3,7 @@
 //! all is walked over its range in `STEPS` steps at three seeds, on its own
 //! scale: log-odds for a probability, its unit otherwise.
 mod walk;
+use std::sync::OnceLock;
 use walk::{
     crossing, in_leaf, light_settings, made, refine, release_settings, setting, settings, Setting,
     Step, STEPS,
@@ -20,7 +21,7 @@ const SEEDS: [u64; 3] = [1, 2, 3];
 const REFINE: u32 = 6;
 
 /// Every walk's steps at every seed, the walks in parallel.
-fn walks(all: &[Setting]) -> Vec<Vec<(u64, Vec<Step>)>> {
+fn walks(all: &[Setting]) -> Walks {
     std::thread::scope(|scope| {
         let handles: Vec<_> = all
             .iter()
@@ -37,9 +38,23 @@ fn walks(all: &[Setting]) -> Vec<Vec<(u64, Vec<Step>)>> {
     })
 }
 
+/// Every setting with its walks, made once: two tests read the same walks,
+/// and a second making of them was a third of this binary's time.
+fn every_walk() -> &'static (Vec<Setting>, Walks) {
+    static ALL: OnceLock<(Vec<Setting>, Walks)> = OnceLock::new();
+    ALL.get_or_init(|| {
+        let all = settings();
+        let walked = walks(&all);
+        (all, walked)
+    })
+}
+
+type Walks = Vec<Vec<(u64, Vec<Step>)>>;
+
 #[test]
 fn every_setting_changes_the_tree_by_degree() {
-    let failed = by_degree(&settings());
+    let (all, walked) = every_walk();
+    let failed = judge(all, walked);
     assert!(failed.is_empty(), "{failed:#?}");
 }
 
@@ -126,8 +141,13 @@ fn every_setting_in_leaf_changes_the_tree_by_degree() {
 /// Each walk's steepest step against the bound, and its three steepest
 /// split finer: what fails.
 fn by_degree(all: &[Setting]) -> Vec<String> {
+    judge(all, &walks(all))
+}
+
+/// `by_degree` on walks already made.
+fn judge(all: &[Setting], walked: &Walks) -> Vec<String> {
     let mut failed = Vec::new();
-    for (setting, seeds) in all.iter().zip(walks(all)) {
+    for (setting, seeds) in all.iter().zip(walked) {
         let (seed, worst) = seeds
             .iter()
             .flat_map(|(seed, steps)| steps.iter().map(move |s| (*seed, s)))
@@ -175,10 +195,10 @@ fn by_degree(all: &[Setting]) -> Vec<String> {
 /// when it goes: bisected to the crossing, its wood is none.
 #[test]
 fn branches_are_made_and_unmade_at_vanishing_size() {
-    let all = settings();
+    let (all, walked) = every_walk();
     let mut crossed = 0;
-    for (setting, seeds) in all.iter().zip(walks(&all)) {
-        for (seed, steps) in &seeds {
+    for (setting, seeds) in all.iter().zip(walked) {
+        for (seed, steps) in seeds {
             let Some(step) = steps.iter().max_by(|a, b| a.made.total_cmp(&b.made)) else {
                 continue;
             };

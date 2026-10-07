@@ -5,10 +5,12 @@
 //! both sides of the branch's removal.
 use super::{own, Disused, Girth};
 use crate::cores::{map, PIECE};
+use crate::fixed::sum::Sum;
 use crate::geometry::dominance;
 use crate::shed::Shed;
 use crate::species::Species;
 use crate::structure::{Axis, Origin, Phytomer};
+use crate::transcendental::Transcendental;
 use crate::upward::Tree;
 
 /// One grown axis as shedding meets it: its bearer, the node it stood at
@@ -66,16 +68,18 @@ pub(crate) fn attachments(axes: &[Axis], species: &Species, age: u32, threads: u
                 let state = &species.states[axes[i].pa];
                 for p in &axes[i].phytomers {
                     let pipe = own(&state.form, p, age, scale(i, p), 1.0);
-                    out.push((pipe, pipe * p.light.powf(state.leaf_girth)));
+                    out.push((pipe, pipe * p.light.powf_fixed(state.leaf_girth)));
                 }
             }
             out
         });
-        let (mut total, mut weighted) = (0.0, 0.0);
+        // Order-free (`fixed::sum`).
+        let (mut total, mut weighted) = (Sum::default(), Sum::default());
         for (pipe, term) in terms.into_iter().flatten() {
-            total += pipe;
-            weighted += term;
+            total.add(pipe);
+            weighted.add(term);
         }
+        let (total, weighted) = (total.value(), weighted.value());
         if weighted > 0.0 {
             total / weighted
         } else {
@@ -98,7 +102,7 @@ pub(crate) fn attachments(axes: &[Axis], species: &Species, age: u32, threads: u
             at_node.resize(axis.phytomers.len(), 0.0);
             let mut at_tip = 0.0;
             for &c in tree.children(i) {
-                let section = radii[c].powf(e);
+                let section = radii[c].powf_fixed(e);
                 match axes[c].origin {
                     Origin::Lateral { node, .. } if node < at_node.len() => {
                         at_node[node] += section
@@ -108,10 +112,10 @@ pub(crate) fn attachments(axes: &[Axis], species: &Species, age: u32, threads: u
             }
             let mut section = at_tip;
             for (k, p) in axis.phytomers.iter().enumerate().rev() {
-                let leaf = leaf_mean.map_or(1.0, |m| p.light.powf(state.leaf_girth) * m);
-                section += own(&state.form, p, age, scale(i, p), leaf).powf(e) + at_node[k];
+                let leaf = leaf_mean.map_or(1.0, |m| p.light.powf_fixed(state.leaf_girth) * m);
+                section += own(&state.form, p, age, scale(i, p), leaf).powf_fixed(e) + at_node[k];
             }
-            section.powf(1.0 / e)
+            section.powf_fixed(1.0 / e)
         },
     );
     let links = axes

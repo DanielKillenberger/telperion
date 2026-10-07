@@ -3,7 +3,6 @@
 //! the oak-to-spruce walk with no frame where the tree changes kind; and every
 //! wire parameter a preset moves proved to be walked at all. No device is
 //! needed; this is the core's own arithmetic.
-use super::specimens;
 use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
@@ -313,22 +312,6 @@ fn every_pair_of_presets_grows_a_tree_at_every_step() {
                 "{a}->{b} at {at}: nothing was built"
             );
         }
-    }
-}
-
-#[test]
-fn every_shipped_preset_carries_foliage() {
-    for id in IDS {
-        // The scaffold's specimens: an engine preset grows no scaffold
-        // tree now (fn-198).
-        if family(id).space.species.is_some() {
-            continue;
-        }
-        let mesh = specimens::mesh(&family(id));
-        assert!(
-            !mesh.foliage.instances.is_empty(),
-            "{id}: crown carries no foliage"
-        );
     }
 }
 

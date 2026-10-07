@@ -12,6 +12,7 @@ use crate::fixed;
 use crate::fixed::presence::{q, real, times, ONE};
 use crate::species::{Species, Zone};
 use crate::structure::{Axis, Origin};
+use crate::transcendental::Transcendental;
 use std::sync::Arc;
 
 /// The window, in log-odds, per share of the tree's expected length that a
@@ -64,7 +65,7 @@ impl Windows {
         if log == f64::NEG_INFINITY {
             return 0.0;
         }
-        (log - self.whole).exp()
+        (log - self.whole).exp_fixed()
     }
 
     /// The log of `wood`: none where it is none (FINE-CONTRACT.md D10's
@@ -85,7 +86,7 @@ impl Windows {
         if log == f64::NEG_INFINITY {
             return 0.0;
         }
-        (log - self.whole).exp()
+        (log - self.whole).exp_fixed()
     }
 
     /// The chance that a draw made with probability `p` is made within its
@@ -96,8 +97,8 @@ impl Windows {
         if p <= 0.0 || p >= 1.0 || window <= 0.0 {
             return 0.0;
         }
-        let logit = (p / (1.0 - p)).ln();
-        p - 1.0 / (1.0 + (window - logit).exp())
+        let logit = (p / (1.0 - p)).ln_fixed();
+        p - 1.0 / (1.0 + (window - logit).exp_fixed())
     }
 
     /// The wood a sleeping bud of `pa` on a node grown in `cycle` is
@@ -128,7 +129,7 @@ impl Windows {
 
     /// `metres` as a share of the whole tree's expected wood.
     pub fn share(&self, metres: f64) -> f64 {
-        metres * (-self.whole).exp()
+        metres * (-self.whole).exp_fixed()
     }
 
     /// The window, Q32, of a draw deciding `stake` of the wood a bud of

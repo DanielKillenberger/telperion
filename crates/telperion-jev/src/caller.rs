@@ -69,6 +69,12 @@ pub struct HttpResponse {
 
 pub trait Transport {
     fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String>;
+
+    /// The back-off before a retry after a 429 or 529. A scripted transport
+    /// records it rather than sleeping through it.
+    fn wait(&self, backoff: Duration) {
+        thread::sleep(backoff);
+    }
 }
 
 /// Live ureq transport. Used only from the `jev` binary.
@@ -183,7 +189,7 @@ pub fn evaluate(
             .collect();
         if response.status == 429 || response.status == 529 {
             if attempt + 1 < MAX_ATTEMPTS {
-                thread::sleep(Duration::from_secs(1 << attempt));
+                transport.wait(Duration::from_secs(1 << attempt));
                 continue;
             }
             break;

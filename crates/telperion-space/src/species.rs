@@ -5,6 +5,7 @@
 //! along the reference axis towards older PAs (AmapSim's oriented automaton;
 //! GreenLab's dual-scale automaton, de Reffye et al. 2021).
 use crate::error::{refuse, Result};
+use crate::transcendental::Transcendental;
 
 pub(crate) mod scale;
 mod validate;
@@ -428,7 +429,7 @@ impl PaState {
         if self.abortion_rise == 0.0 || self.abortion <= 0.0 {
             return self.abortion;
         }
-        1.0 - (1.0 - self.abortion).powf(t.powf(self.abortion_rise))
+        1.0 - (1.0 - self.abortion).powf_fixed(t.powf_fixed(self.abortion_rise))
     }
 
     /// Each zone's lateral probabilities as the axis draws them: spread

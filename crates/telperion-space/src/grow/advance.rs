@@ -8,6 +8,7 @@ use crate::fixed::{self, presence};
 use crate::lineage::{Key, ABORTION, END, ENDED, VIABILITY};
 use crate::presence::Unit;
 use crate::schedule::Carried;
+use crate::transcendental::Transcendental;
 
 impl Shoot<'_, '_> {
     /// One living apex's growth unit in `cycle`: its survival, the unit,
@@ -48,7 +49,9 @@ impl Shoot<'_, '_> {
         // moves gently as light does, and certain survival not at all.
         let light = self.light(apex.axis);
         let viability = if state.shade_hazard > 0.0 && light < 1.0 {
-            state.viability.powf(light.powf(-state.shade_hazard))
+            state
+                .viability
+                .powf_fixed(light.powf_fixed(-state.shade_hazard))
         } else {
             state.viability
         };

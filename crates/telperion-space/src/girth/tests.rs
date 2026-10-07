@@ -4,6 +4,7 @@
 use super::*;
 use crate::species::{NodeLaw, PaState, Zone};
 use crate::structure::{Axis, Vec3};
+use crate::transcendental::Transcendental;
 
 fn state(leaf_girth: f64) -> PaState {
     PaState {
@@ -108,7 +109,7 @@ fn own_total(t: &Structure, species: &Species) -> f64 {
         .iter()
         .flat_map(|a| &a.phytomers)
         .map(|p| {
-            let leaf = mean.map_or(1.0, |m| p.light.powf(state.leaf_girth) * m);
+            let leaf = mean.map_or(1.0, |m| p.light.powf_fixed(state.leaf_girth) * m);
             own(&state.form, p, t.age, p.scale, leaf)
         })
         .sum()

@@ -9,6 +9,7 @@ use super::{Kept, Placing, SECTION, SECTION2, WIDTH};
 use crate::closed_form::along::Along;
 use crate::closed_form::steps::{End, Relay};
 use crate::schedule::Carried;
+use crate::transcendental::Transcendental;
 
 /// An end's factor, its quantities on it, and the part of its section a
 /// relay hands over at its node rather than at the tip (E[S], E[S²]).
@@ -62,7 +63,7 @@ impl Kept<'_> {
         let state = &self.species.states[k];
         let (insertion, delay, e) = (state.insertion, state.shedding, state.form.exponent);
         let table = self.child((k, m - born, carried, None), delay);
-        let (a, b, _) = self.whole(&table, t - born as i64, (at, insertion.cos()), e);
+        let (a, b, _) = self.whole(&table, t - born as i64, (at, insertion.cos_fixed()), e);
         (a, b, [b[SECTION], b[SECTION2]])
     }
 

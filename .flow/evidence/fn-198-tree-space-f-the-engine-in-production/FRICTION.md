@@ -129,3 +129,23 @@
 - **Slowed by:** the core crate is not rustfmt-clean on this branch, so the package-wide format rewrote 33 files the task never touched; with `git checkout --` blocked by the dcg hook, each had to be put back from `git show HEAD:` by a script, and the file-level `rustfmt --check` used instead.
 - **Cost:** about 4 minutes.
 - **Would remove it:** the crate formatted once in its own commit (or a CI `cargo fmt --check`), so a package-wide format touches only what changed.
+
+## 2026-10-07 11:10, task 8: F2b's `Instant::now()` reached the browser's oak unseen
+
+- **Doing:** the parity test after the pin, the first Wasm build of the merge.
+- **Slowed by:** F2b's `run_beside` (every lit `grow`) read `Instant::now()`, which traps on wasm32; native tests and the engine's suite pass over it, so only the Wasm build of the oak showed it, as `RuntimeError: unreachable` with no message. Tracing it to the merge's diff took a grep of F2b's `Instant` uses.
+- **Cost:** about 8 minutes.
+- **Would remove it:** a lint or test that the engine's non-test source names no `std::time::Instant` outside `clock.rs` (host decision 8 as a check, not a convention).
+
+## 2026-10-07 11:15, task 8: the stills and digests example would not take a plain redirect
+
+- **Doing:** writing before/after digests to the scratchpad from one command.
+- **Slowed by:** the dcg hook blocks a `>` redirect to a path held in a shell variable; the commands moved into a script with literal paths.
+- **Cost:** about 3 minutes.
+- **Would remove it:** a local setup matter (the hook's rule), reported, not specced.
+## 2026-10-07 11:35, task 7: timings on a desk four worktrees share
+
+- **Doing:** the gate's wall time and the slowest tests, before and after the audit.
+- **Slowed by:** the desk ran at a load of 20 to 55 from other worktrees' gates, stills and builds; the baseline gate took 980 s with `walks` alone at 395 s, and one test pair took 370 s wall where it took 195 s and 120 s alone an hour earlier. Wall times were unusable for comparing one change, so each change was measured by CPU time (`time`) or alone. The GPU lock was held by another worktree's whole gate, so a GPU test waited up to 15 minutes for a 1-minute run. `/usr/bin/time` and `bc` are not installed, which cost one empty gate start.
+- **Cost:** about 20 minutes of waiting and one wasted gate start.
+- **Would remove it:** per-test times from the runner itself (cargo-nextest locally, as CI has, reports each test's time and a slow-test list); a desk-wide CPU lock beside the GPU lock for timing runs; a local setup matter for the missing tools.
