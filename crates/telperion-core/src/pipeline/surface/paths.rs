@@ -1,5 +1,5 @@
 use super::{filled, reserved};
-use crate::{tree::Node, Error, Result};
+use crate::{tree::Tree, Error, Result};
 pub(super) struct Run {
     pub start: usize,
     pub end: usize,
@@ -12,7 +12,11 @@ pub(super) struct Paths {
     /// it carries on into the widest wood that is not one, the fork's primary.
     pub forks: Vec<bool>,
 }
-pub(super) fn paths(nodes: &[Node]) -> Result<Paths> {
+/// The tree's runs: each carries on into the widest child that is not a
+/// codominant sibling, never into a fine root's first node, which starts a
+/// run of its own and meets its bearer at a socket (fn-212 D4).
+pub(super) fn paths(tree: &Tree) -> Result<Paths> {
+    let nodes = &tree.nodes;
     let n = nodes.len();
     let mut result = Paths {
         nodes: reserved(
@@ -31,6 +35,10 @@ pub(super) fn paths(nodes: &[Node]) -> Result<Paths> {
     let mut next = filled(n, usize::MAX)?;
     let mut leaders = filled(n, usize::MAX)?;
     let mut widest = filled(n, usize::MAX)?;
+    let mut seam = filled(n, false)?;
+    for &i in &tree.seams {
+        seam[i as usize] = true;
+    }
     for i in 1..n {
         let at = stands[nodes[i].parent.unwrap() as usize];
         if nodes[i].position.distance(nodes[at].position) > 1e-9 {
@@ -42,12 +50,14 @@ pub(super) fn paths(nodes: &[Node]) -> Result<Paths> {
             }
             last[at] = i;
             let wider = |k: usize| k == usize::MAX || nodes[i].start_radius > nodes[k].start_radius;
-            if wider(widest[at]) {
+            if seam[i] {
+                // A fine root's first node only ever starts a run.
+            } else if wider(widest[at]) {
                 widest[at] = i;
             }
             if nodes[i].codominant.is_some() {
                 result.forks[at] = at != 0;
-            } else if wider(leaders[at]) {
+            } else if !seam[i] && wider(leaders[at]) {
                 leaders[at] = i;
             }
         } else {
@@ -77,7 +87,7 @@ pub(super) fn paths(nodes: &[Node]) -> Result<Paths> {
         let (attach, mut at) = seeds[s];
         let start = result.nodes.len();
         result.nodes.extend([attach, at]);
-        while leaders[at] != usize::MAX {
+        loop {
             let leader = leaders[at];
             let mut k = first[at];
             while k != usize::MAX {
@@ -85,6 +95,9 @@ pub(super) fn paths(nodes: &[Node]) -> Result<Paths> {
                     seeds.push((at, k));
                 }
                 k = next[k];
+            }
+            if leader == usize::MAX {
+                break;
             }
             result.nodes.push(leader);
             at = leader;

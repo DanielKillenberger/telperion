@@ -69,8 +69,17 @@ struct Apex {
 /// through the realized partition at the cut N = 1,024 (host decision 7,
 /// FINE-CONTRACT.md): the same tree as `grow_whole`, to the bit.
 pub fn grow(species: &Species, request: Request) -> Result<Structure> {
+    grow_marked(species, request).map(|(structure, _)| structure)
+}
+
+/// `grow`, with each axis marked where it was grown in a fine root (fn-212
+/// D4, D5): its wood starts its own run at the seam and keeps its side's
+/// run order. A tree grown whole marks none.
+pub fn grow_marked(species: &Species, request: Request) -> Result<(Structure, Vec<bool>)> {
     if species.reads_light() || keeps(species) {
-        return grow_whole(species, request);
+        let structure = grow_whole(species, request)?;
+        let marks = vec![false; structure.axes.len()];
+        return Ok((structure, marks));
     }
     species.validate()?;
     request.light.validate()?;
@@ -78,7 +87,13 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
         return refuse("age", "a tree grows at least one cycle");
     }
     let fine = crate::fine::grow_fine(species, request, crate::fine::Plan::default())?;
-    Ok(lineage_order(fine.structure))
+    // A fine root's first axis stands in its stand-in's place; the rest of
+    // its axes are appended past `above`.
+    let mut marks: Vec<bool> = (0..fine.structure.axes.len()).map(|i| i >= fine.above).collect();
+    for i in fine.roots.iter().filter_map(|r| r.at) {
+        marks[i] = true;
+    }
+    Ok(crate::fine::lineage_order_marked(fine.structure, marks))
 }
 
 /// Today's whole-tree engine, every axis grown in one grower: the tests'

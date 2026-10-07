@@ -99,7 +99,7 @@ pub(crate) fn traced(tree: &Tree, height: f64, params: &SurfaceParams) -> Result
     tree.validate()?;
     params.validate()?;
     crate::pipeline::surface::height(height)?;
-    let paths = paths(&tree.nodes)?;
+    let paths = paths(tree)?;
     let height = height.max(1e-6);
     let mut out = Curve {
         lobes: params.lobes,

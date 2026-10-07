@@ -89,7 +89,7 @@ pub(super) fn rings_mode(
     } else {
         Vec::new()
     };
-    let paths = paths(&tree.nodes)?;
+    let paths = paths(tree)?;
     let mut out = Rings {
         positions: Vec::new(),
         coords: Vec::new(),
@@ -296,8 +296,29 @@ pub(super) fn rank(at: Swept, scratch: &mut Scratch) -> Result<Vec<(usize, f64)>
         let radius = scratch.samples.iter().map(|s| s.r).fold(0.0, f64::max);
         ordered.push((path_id, radius));
     }
-    ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
+    // Each side keeps its own order, the structure above the cut first and
+    // the fine roots after it, widest first within each (fn-212 D5): no
+    // sort reaches across the seam.
+    let fine = fine_nodes(at.tree)?;
+    let side = |path_id: usize| fine[at.paths.nodes[at.paths.runs[path_id].start + 1]];
+    ordered.sort_by(|a, b| side(a.0).cmp(&side(b.0)).then(b.1.total_cmp(&a.1)));
     Ok(ordered)
+}
+
+/// Whether each node is a fine root's wood: a seam, or borne by one.
+fn fine_nodes(tree: &Tree) -> Result<Vec<bool>> {
+    let mut fine = filled(tree.nodes.len(), false)?;
+    if tree.seams.is_empty() {
+        return Ok(fine);
+    }
+    for &i in &tree.seams {
+        fine[i as usize] = true;
+    }
+    for i in 1..tree.nodes.len() {
+        let parent = tree.nodes[i].parent.expect("a node above the root") as usize;
+        fine[i] |= fine[parent];
+    }
+    Ok(fine)
 }
 
 /// The ranked runs as the run table. It is allocated after the rings, so
@@ -359,7 +380,7 @@ impl<'t> Resweep<'t> {
 
     fn rank(&self) -> Result<Ranked> {
         let mut r = Ranked {
-            paths: paths(&self.tree.nodes)?,
+            paths: paths(self.tree)?,
             distance: distances(self.tree)?,
             angular: angular::samples(segments(self.params), self.params)?,
             ordered: Vec::new(),

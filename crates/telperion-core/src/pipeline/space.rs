@@ -68,9 +68,9 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     // first and siblings by lineage, whichever path built it (FINE-CONTRACT
     // decision C; fn-198 host decision 17): the conversion's node numbering
     // and a relay's girth never depend on how the tree was assembled.
-    let structure = telperion_space::grow(species, request).map_err(engine)?;
+    let (structure, fine) = telperion_space::grow_marked(species, request).map_err(engine)?;
     fits(&structure, KEPT)?;
-    Ok(convert(&structure, &input.space.trunk))
+    Ok(convert(&structure, &fine, &input.space.trunk))
 }
 
 /// The refusal of a tree over the browser's ceiling.
@@ -187,7 +187,9 @@ fn joint(
 /// canopy measures its slender wood against the trunk, not a fork of
 /// limbs deep in the crown. Two trunk-level axes leaving one node, a
 /// codominant fork of the trunk, are both stem.
-fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
+fn convert(structure: &Structure, fine: &[bool], trunk: &[usize]) -> Tree {
+    // The first node drawn of each fine root's first axis.
+    let mut seams = Vec::new();
     let mut nodes = vec![Node::root()];
     // The node each axis ends on, for what continues it.
     let mut ends: Vec<Option<u32>> = vec![None; structure.axes.len()];
@@ -286,6 +288,11 @@ fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
                 node.codominant = codominance(p.radius, inherited);
             }
             parent = nodes.len() as u32;
+            let root = fine.get(i).copied().unwrap_or(false)
+                && !axis.origin.parent().is_some_and(|p| fine[p]);
+            if root && !made {
+                seams.push(parent);
+            }
             made = true;
             drawn[i].push(parent);
             nodes.push(node);
@@ -315,9 +322,11 @@ fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
         };
     }
     let crossover = nodes.len();
+    seams.sort_unstable();
     Tree {
         nodes,
         crossover,
+        seams,
         ..Tree::default()
     }
 }

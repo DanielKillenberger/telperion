@@ -42,7 +42,7 @@ use crate::grow::alone::rules;
 use crate::grow::{keeps, Request};
 use crate::species::Species;
 use crate::structure::Structure;
-pub use canonical::{canonical, digest, identities, lineage_order};
+pub use canonical::{canonical, digest, identities, lineage_order, lineage_order_marked};
 pub use cases::{landed, realized_cases, root_axes, Presences, RealizedCase, RootAxes};
 pub use expansion::{settle, Lived, Loaded, RootSeed, Roots, Settled};
 pub use geometry::{

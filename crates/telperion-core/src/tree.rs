@@ -128,6 +128,12 @@ pub struct Tree {
     /// `sections` is: a specimen's bytes are the ones they always were.
     #[cfg_attr(feature = "json", serde(skip))]
     pub pipe: Vec<[f64; 2]>,
+    /// The first node of each fine root the engine grew (fn-209 F1), in
+    /// increasing order: the seam its wood starts a run of its own at, and
+    /// from which all it bears keeps its own side's run order (fn-212 D4,
+    /// D5). Empty on a tree grown whole. Never stored, as `sections`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub seams: Vec<u32>,
 }
 impl Tree {
     /// Node `i`'s radii as the pipe model solved them, `[start, distal]`,

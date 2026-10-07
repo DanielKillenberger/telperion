@@ -149,7 +149,7 @@ fn main() {
                     directory
                 });
                 let mesh = outputs.wood.take().unwrap();
-                let paths = wood_paths::paths(&tree.nodes).unwrap();
+                let paths = wood_paths::paths(&tree).unwrap();
                 let segments = f.surface.radial_segments.max(f.surface.lobes * 4) as usize;
                 let key = |p: Vec3| [p.x as f32, p.y as f32, p.z as f32].map(f32::to_bits);
                 let mut by_tip = std::collections::HashMap::new();

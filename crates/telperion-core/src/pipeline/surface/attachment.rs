@@ -73,7 +73,7 @@ impl AttachmentSurface<'static> {
         params.validate()?;
         crate::pipeline::surface::height(height)?;
         let height = height.max(1e-6);
-        let paths = paths(&tree.nodes)?;
+        let paths = paths(tree)?;
         let segments = segments(params);
         let angular = angular::samples(segments, params)?;
         let mut rings = reserved(

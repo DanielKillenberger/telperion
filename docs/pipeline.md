@@ -76,6 +76,8 @@ The GPU executor (`crates/telperion-render/src/generation/fine/`, built for its 
 
 A species any bud of which reads light is refused until F2b (fn-211) carries its light aggregates in the record.
 
+The engine marks the axes it grew in fine roots (`telperion_space::grow_marked`), and the conversion keeps each fine root's first drawn node as a seam (`Tree::seams`). A sweep run never carries on into a seam: a fine root's wood starts a run of its own and meets its bearer at a socket (fn-212 D4). The runs keep two orders, the structure above the cut's and then the fine roots', each widest first, and no sort reaches across the seam (D5).
+
 ## The wood's curve (fn-208)
 
 The wood is handed over as curves, not triangles (`telperion_core::surface::Curve`, `Expansion::curve`). The surface is drawn from them, by the GPU at the screen's error (fn-208) or by the CPU at a stated view and error. Every tree produces the curve from its solved skeleton by the sweep's own steps (paths, samples, frames), so whatever grew the tree, its wood has one path to the screen.
@@ -83,7 +85,7 @@ The wood is handed over as curves, not triangles (`telperion_core::surface::Curv
 | Table | Per | Holds |
 |---|---|---|
 | `points` | ring the sweep stands | centre, radius (girth with the fork's easing and the flare, or a shaped run's extent), distance along the wood from the root, and the parallel-transported frame (`normal × binormal` is the tangent) |
-| `runs` | run of the sweep, widest first | first point, count, whether it stands on the root, the cell a shaped run is drawn as (an index into `sections`), its largest radius |
+| `runs` | run of the sweep: the structure above the cut, then the fine roots, widest first on each side (fn-212 D5) | first point, count, whether it stands on the root, the cell a shaped run is drawn as (an index into `sections`), its largest radius |
 | `clusters` | up to `CLUSTER` (32) points of one run, neighbours sharing an end | a sphere round every ring (lobes included), largest and smallest radius, and for each of `LEVELS` ring levels (level `k` keeps every `2^k`-th point) the most a left-out ring stands off its kept neighbours, monotone |
 | `sections` | shaped run | the cell (`tree::Section`), as the tree keeps it: the palm's leaf bases |
 
