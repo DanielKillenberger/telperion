@@ -420,3 +420,24 @@ The weight pulls a relay standing on a carried-on axis back toward the axis carr
 **Tests.** Every comparison test passes. `relays`, `form` and `geometry` are green. The two pin tests wait for the re-pin.
 
 **Census, seeds 1 to 50 (rules 1 and 2'):** R1 0 jumps; R3 1 flag (seed 50, 4.8e-4 after refinement). It bisects to 8.1e-11 of the tree: a refinement-limited slope. **Clean.**
+
+## GPU mirror, re-pin, `pub(crate)` and R6
+
+**GPU mirror (`43c30653`).**
+- `stand.wgsl` mirrors `geometry::stand`. A unit's extent is its phytomers' `QSCALE`; azimuths are taken relative to the line's newest axis, unwrapped, plus its phase.
+- `frame_of` frames a continuation as a relay at blend 0; continuations hand their pulls (`hand_lifts`) and their reach on.
+- Each laid phytomer carries its axis's phase in turns (`PL` 22 to 23, word 22), which the next wave's laterals read. A root's stub reads `BearerFrame.phase`, which the CPU computes from the tables' divergences.
+- Under the lock, the realized GPU tests (`every_root_grows_whole…`, `every_root_settles…`) pass. Before the mirror, `settles` failed under Rule 1.
+
+**Re-pin (`b2476a17`).** The rows were re-pinned once for the beech and the oak; the spruce and the palm hold to the bit. `the_rows_stay_near_the_old_reading` now reads only the spruce and the palm, with its reason stated: the beech's and oak's law changed, so their rows are held by their pins. `Axis.blend`, `units` and `alive` are back to `pub(crate)`. The probe lives in `raw/probe199.rs` only.
+
+### R6: the beech at its five seeds, base (`e9bb5b08`, fn-198's tip) against after, 80 years
+
+Sheets: `raw/r6/sheet-bare.png` and `raw/r6/sheet-whole.png`, top row base, bottom row after, seeds 1, 2, 3, 4 and 7. I viewed both.
+- **Every tree reads as an open-grown beech, base and after.** Each has one trunk, a domed crown forking a few metres up, and a full rounded crown in leaf.
+- **Low limbs.** The base's long, near-level low limbs (seeds 2 and 3, and seed 1's left side) are shorter or gone after. Those were relays standing on partial last units, now blended back by their extent. The crowns read more compact and rounded.
+- **Seed 7.** The base's leaning trunk stands nearer upright after, its crown forking lower.
+- **Seed 4.** The crown is a little more open and irregular after; 19.8 m tall against 18.8 m on the base.
+- **No defect seen.** No floating wood, no detached relays, no crown hole.
+
+The host's view of the sheet is R6's acceptance; this records mine.
