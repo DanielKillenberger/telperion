@@ -29,16 +29,21 @@ pub(super) fn sag_angle(
     // turned rigidly by the rotation that takes the phytomer's frame then
     // (its heading and side, still the first lay's) to its frame now
     // (fn-203).
-    let frames = (
-        Frame::of(q3(phytomer.heading), q3(phytomer.side))?,
-        Frame::of(running, across)?,
-    );
-    let now = frames.0.carry_w(&frames.1, load.moment);
+    // Where either frame has no side (a phytomer never laid, as a chain
+    // resolved alone meets it), the lever is not carried: as before.
+    let frames = Frame::of(q3(phytomer.heading), q3(phytomer.side))
+        .zip(Frame::of(running, across));
+    let now = frames
+        .as_ref()
+        .map_or(load.moment, |(from, to)| from.carry_w(to, load.moment));
+    let chord = frames
+        .as_ref()
+        .map_or(load.chord, |(from, to)| from.carry(to, load.chord));
     // The ground carries what of the wood beyond would rest on it.
     let carried = if trunk {
         ONE32
     } else {
-        held(tip[2], frames.0.carry(&frames.1, load.chord))
+        held(tip[2], chord)
     };
     let now = now.map(|c| mul_shr(c, i128::from(carried), 32).expect("a lever inside W"));
     // Normalised from W with no cutoff: a vanishing moment bends by
