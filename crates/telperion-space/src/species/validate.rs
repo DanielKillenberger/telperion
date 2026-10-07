@@ -112,6 +112,7 @@ impl Form {
             ("ripening", self.ripening, MAX_RIPENING),
             ("sag", self.sag, MAX_SAG),
             ("bend_length", self.bend_length, MAX_BEND_LENGTH),
+            ("internode_spread", self.internode_spread, 1.0),
         ];
         for (name, value, most) in rates {
             if !(0.0..=most).contains(&value) {

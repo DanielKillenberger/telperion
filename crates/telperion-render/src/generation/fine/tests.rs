@@ -11,7 +11,7 @@ const CASES: usize = 1 << 18;
 const PROBE: &str = include_str!("probe.wgsl");
 
 /// The functions the probe selects, by its `cfg.y`.
-const NAMES: [&str; 16] = [
+const NAMES: [&str; 17] = [
     "child, draw",
     "log2, exp2_neg",
     "exp2, neg_log2",
@@ -28,6 +28,7 @@ const NAMES: [&str; 16] = [
     "times_q, window_q, wood_at_q",
     "carry_q, fade_q",
     "lead_q",
+    "internode_draw",
 ];
 
 /// SplitMix64, for cases.
@@ -75,7 +76,7 @@ fn cases(s: u32, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
         .map(|_| {
             let mut a = [0u64; 8];
             match s {
-                0 => a[..2].copy_from_slice(&[rng.next(), rng.next()]),
+                0 | 16 => a[..2].copy_from_slice(&[rng.next(), rng.next()]),
                 1 => {
                     a[0] = rng.next() >> (rng.next() % 64);
                     a[1] = rng.within(-(1 << 40), 70 * Q) as u64;
@@ -275,6 +276,7 @@ fn expected(s: u32, a: &[u64; 8], presences: &[u64]) -> [u64; 2] {
             ]
         }
         15 => [pr::over(a[0], a[2]).min(pr::under(a[1], a[2])) as u64, 0],
+        16 => [fx::internode_draw(a[0]), 0],
         _ => {
             let unit = &presences[a[0] as usize..(a[0] + a[1]) as usize];
             [decide::relay_node_q(unit, 0, unit.len(), a[2]) as u64, 0]

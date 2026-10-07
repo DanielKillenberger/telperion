@@ -117,6 +117,7 @@ pub fn spruce() -> Species {
         sag: 0.0,
         secondary: 1.0,
         bend_length: 0.0,
+        internode_spread: 0.0,
     };
     // The seedling (M4): two short, unbranched years.
     let seedling = PaState {
@@ -175,6 +176,7 @@ pub fn spruce() -> Species {
             sag: 9e-4,
             secondary: 1.0,
             bend_length: 0.0,
+            internode_spread: 0.0,
         },
         // For as long as the tree lives, then they stop.
         ..state(
@@ -229,6 +231,7 @@ pub fn spruce() -> Species {
             sag: 5e-4,
             secondary: 1.0,
             bend_length: 0.0,
+            internode_spread: 0.0,
         },
         ..state(
             10,

@@ -284,7 +284,7 @@ pub fn settings() -> Vec<Setting> {
         // Sag over a range from none to limbs bowed to the ground; the
         // trunk only leans under its crown.
         let sag = [2e-4, 1e-4, 3e-4][pa];
-        let form: [(&str, f64, f64, bool, Set); 14] = [
+        let form: [(&str, f64, f64, bool, Set); 15] = [
             ("abortion_rise", 0.0, 3.0, false, |s, pa, v| {
                 s.states[pa].abortion_rise = v
             }),
@@ -330,6 +330,10 @@ pub fn settings() -> Vec<Setting> {
             }),
             ("form.secondary", 0.0, 1.0, false, |s, pa, v| {
                 s.states[pa].form.secondary = v
+            }),
+            // fn-222: each internode's length varied node to node.
+            ("form.internode_spread", 0.0, 1.0, false, |s, pa, v| {
+                s.states[pa].form.internode_spread = v
             }),
         ];
         for (field, low, high, odds, set) in table.into_iter().chain(form) {

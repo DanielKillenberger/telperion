@@ -32,6 +32,8 @@ pub(crate) const DORMANT: u64 = u64::MAX - 6;
 pub(crate) const ENDED: u64 = u64::MAX - 7;
 /// An age's end: whether it moves on, and its relay if it does not.
 pub(crate) const END: u64 = u64::MAX - 8;
+/// An internode's length, under its node's key (fn-222).
+pub(crate) const INTERNODE: u64 = u64::MAX - 9;
 pub(crate) const CONTINUATION: u64 = u64::MAX;
 
 /// A hashed path from the root.
@@ -109,6 +111,17 @@ impl Draw {
     pub fn under(self, p: f64) -> bool {
         self.0 < threshold(p)
     }
+}
+
+/// The factor the internode of the node keyed `key` is scaled by at
+/// `spread` (`Form::internode_spread`): 1 + spread (2u − 1), u the node's
+/// internode draw, so its mean is one; exactly 1 without spread.
+pub(crate) fn internode(key: u64, spread: f64) -> f64 {
+    if spread <= 0.0 {
+        return 1.0;
+    }
+    let u = Key(key).child(INTERNODE).unit();
+    1.0 + spread * (2.0 * u - 1.0)
 }
 
 fn logit(p: f64) -> f64 {

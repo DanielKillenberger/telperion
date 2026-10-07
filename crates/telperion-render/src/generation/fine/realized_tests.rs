@@ -362,3 +362,31 @@ fn every_root_settles_on_the_gpu_as_on_the_cpu() {
         }
     }
 }
+
+/// fn-222: internode lengths varied node to node, each by its node's
+/// keyed draw, are laid alike on the GPU and the CPU: every root settles
+/// within fn-125's screen, as it does without (a GPU that left the spread
+/// out would lie centimetres off).
+#[test]
+fn varied_internodes_settle_on_the_gpu_as_on_the_cpu() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let k = kernels(&gpu);
+    let mut species = telperion_space::beech();
+    for s in &mut species.states {
+        s.form.internode_spread = 0.6;
+    }
+    let name = "beech, internode spread 0.6";
+    for (seed, cut) in [(1, 1024.0), (7, 4096.0)] {
+        let a = settles_as_on_the_cpu(&gpu, &k, name, (&species, (25, seed), cut));
+        let rms = a.rms();
+        println!(
+            "{name} 25 {seed} at {cut}: {} phytomers, tips {:.2e} most {rms:.2e} RMS",
+            a.phytomers, a.most
+        );
+        assert!(a.phytomers > 0, "{name} 25 {seed}: nothing on the GPU");
+        assert!(a.landed_most <= MOST, "{name} 25 {seed}: roots on the CPU");
+        assert!(a.most <= MOST && rms <= RMS, "{name} 25 {seed}: {a:?}");
+    }
+}

@@ -128,6 +128,7 @@ pub fn oak() -> Species {
         sag: 0.0,
         secondary: 1.0,
         bend_length: 0.0,
+        internode_spread: 0.0,
     };
     // The young stem: erect and monopodial, a yearly shoot of about
     // 0.36 m, its laterals temporary long shoots that die within three
@@ -202,6 +203,7 @@ pub fn oak() -> Species {
             sag: 0.0003,
             secondary: 1.0,
             bend_length: 3.0,
+            internode_spread: 0.0,
         },
         // A limb grows for as long as an oak lives (500 years), then stops.
         ..state(
@@ -277,6 +279,7 @@ pub fn oak() -> Species {
             sag: 0.0,
             secondary: 1.0,
             bend_length: 0.0,
+            internode_spread: 0.0,
         },
         ..state(
             10,
@@ -313,6 +316,7 @@ pub fn oak() -> Species {
             sag: 0.0,
             secondary: 1.0,
             bend_length: 0.0,
+            internode_spread: 0.0,
         },
         ..state(
             12,
