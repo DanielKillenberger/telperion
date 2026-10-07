@@ -505,3 +505,14 @@ For the beech, **option c** of "The GPU mirror built" (a workgroup per heavy cha
 - **Cold builds** create every large buffer anew (about 3.6 ms each). A per-build arena bound at offsets would remove that, at the cost of every pass binding a range rather than a buffer.
 - The pool and the region buffers together hold one build's worth of the device: about 1.4 GB of regions plus the last tree's packed buffers.
 - `realized_at_40_and_80`'s GPU columns now read the device after the CPU columns have let it idle. Its timing is superseded by `speed_tests`. Its geometry, the screen and the orders, is what it is run for.
+
+### Gate and acceptance
+
+**Gate:** `cargo test --profile ci --workspace --no-fail-fast` at `8eeeeba1`: 1,146 passed, 0 failed, 27 ignored, 11 m 48 s, load 3.3 at the start and 10.7 at the end, GPU lock held (`raw/gpu-fast/gate.txt`).
+
+| Criterion | State |
+|---|---|
+| fn-209-predictor merged; every tree identical; GPU tests green | **met**: 32 digests and `measures hash 80` equal the base's; GPU fine tests green |
+| CPU and GPU identical by lineage after every speed change; the contract probe green | **met**: the GPU fine tests after each commit; `realized_at_40_and_80` at the end |
+| GPU at least 3x faster than 32 cores on spruce 80, faster on beech 80, or the reason with numbers | beech 80 **met** (152 / 205 ms against 158 / 263); spruce 80 fine stage 3.5x, whole build 2.1 to 2.3x, **the reason above**: the CPU's stages alone are about 300 ms |
+| Workspace gate green | **met** |
