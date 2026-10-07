@@ -55,3 +55,9 @@
 - **Hindered:** making `BINS` public dropped it from the guard's scan (`const BINS` matched, `pub const BINS` does not), so its inventory entry had to be deleted as stale. A public constant that bounds generation escapes the guard.
 - **Cost:** two guard runs, about 3 minutes.
 - **Removal:** the guard's pattern for constants matching `pub`, `pub(crate)` and `pub(super)` too.
+
+## 2026-10-07 16:55, task 5 (worker): two GPU probes in one test process run out of device memory
+
+- **Doing:** the render half of the gate, then the 40 and 80 probes.
+- **Hindered:** the libtest harness runs a crate's GPU tests on eight threads at once. Two fast probes (each a settled spruce, drawn and swept) beside the realized suite ran the 10 GB card out of memory, and so did the dress and sweep probes at 80 run in one command. Each red needed a rerun under the lock: about 3 minutes and one 70 s probe pass.
+- **Removal:** GPU tests that hold whole trees take a process-wide device semaphore (or run under `--test-threads=1` by a nextest group), so concurrency is bounded by device memory, not by threads.
