@@ -100,9 +100,13 @@ fn relay_bud(apex: Apex, cycle: u32, used: vec2<u32>, spent: vec2<u32>, why: u32
     made_axis(r, blend);
     ask(r, asks[0], asks[1]);
     wr64(r, AGED, grown);
-    wr(r, KIND, RELAYED | select(0u, IS_ENDED, whole) | select(0u, IS_REST, why == FAILED));
+    // A failed unit's relay grows its rest where it grows in the same
+    // cycle, and on from the next as the apex would have where the unit
+    // lived it whole.
+    let rest = why == FAILED && lt64(used, ticks_whole());
+    wr(r, KIND, RELAYED | select(0u, IS_ENDED, whole) | select(0u, IS_REST, rest));
     wr(r, ENDED_RELAYS, ended_relays);
-    wr(r, BELOW, below);
+    wr(r, BELOW, select(0u, below, rest));
     push_next(r, units);
     return carry_on(cycle, used);
 }

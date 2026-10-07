@@ -23,7 +23,6 @@ fn assert_by_degree(walked: Setting) {
 /// R1: with every stop relayed, a limb's yearly survival crossing a draw
 /// moves its growth by degree, not by the whole unit a failure loses.
 #[test]
-#[ignore = "fn-199 R1: red, its fix is a design question for the host (RESULT.md)"]
 fn survival_with_every_stop_relayed_changes_the_tree_by_degree() {
     assert_by_degree(setting(
         "states[1].viability, relay 1".into(),
@@ -61,7 +60,6 @@ fn a_node_growing_in_moves_no_relay() {
 /// the parent's remaining straightening, so a limb's module-ending chance
 /// crossing a draw bends it by degree.
 #[test]
-#[ignore = "fn-199 R3: red, its fix is a design question for the host (RESULT.md)"]
 fn a_relay_barely_off_a_bent_limb_changes_the_tree_by_degree() {
     assert_by_degree(setting(
         "states[1].abortion, relay 1, straightening 1".into(),

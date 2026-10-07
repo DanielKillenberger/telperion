@@ -221,3 +221,62 @@ R3's blended placement, GPU parity under the lock (the WGSL edits are still unch
 | oak 80 | 19.3 | 117 | 20.7 |
 | spruce 40 | 10.2 | 10.8 | 10.2 |
 | spruce 80 | 29.0 | 31.9 | 27.6 |
+
+## B2 and epitony built; R3 built; stopped at a design question in R1
+
+### B2 (`704ad2d3`)
+
+**Contract.** D5 gains `lived_fine_q`: the lived time floored in 2^-32 of a cycle. What `lived_q` rounds it up by, under a tick, goes to the failed unit's relay:
+- CPU: `Draws::below`;
+- GPU: axis word 25, `BELOW`.
+
+The relay's first unit reads its share in 2^-32 of a cycle for its survival (`survival_fine_q`) and abortion (`abortion_fine_q`, where the exposure is that unit's own share). A tick's share `s << 12` gives the tick forms' bits; `fixed::tests::a_share_finer_than_a_tick_meets_the_tick` holds that, and the contract probe has two new selectors (16, 17). Written into FINE-CONTRACT.md's table.
+
+**Walk.** `branches_are_made_and_unmade_at_vanishing_size` is green.
+
+### Epitony (`704ad2d3`)
+
+`a_relay_stands_in_the_curvature_zone_on_the_upper_side` now holds two claims, a relay classed by whether it grows from the cycle after its parent's stop (`birth == apex_end`):
+- the relays of stops after a whole unit rise more than 0.05;
+- failed units' relays do not fall.
+
+Green.
+
+### A failed unit's relay that grows from the next cycle is not a rest
+
+**Change.** Where a failed unit lived its whole unit (lived time at the bound), its relay grows from the next cycle. It is now the apex carried on: not flagged `rest`, so not keyed apart, with no nesting cut and no `below`. CPU `relay_bud`, `Carried::failed` (`rest: same`), and WGSL `relay_bud`.
+
+**Found by.** The probe on R1's walk: the A3 cut was applying to whole next-cycle units.
+
+### R3, the blended placement (uncommitted at `704ad2d3`; this commit)
+
+**Built (CPU only so far).** `Axis.first` replaces the crashed worker's unused `base_scale`. It is how far an axis's first node has grown in: its unit's presence times its node's, 0 with no phytomers. It is set in `presence::assign` and in the grower's two pencil paths.
+
+`geometry::carried_point`: a relay of an axis that carries another on (a relay or a continuation), whose `first` is under 1, stands blended between two points by `first`:
+- where it would stand on the axis carried on, at that axis's `relay_at`, the node found by scaled length (`zone_node`), taken from the farthest such axis down;
+- its own point.
+
+**The weight.** The weight is the first node's presence, not its length. A first try weighted by length (presence × share). It failed the abortion walk at seed 1 (-3.61): there the carried-on relay's first unit is a sliver of the cycle, grown whole in presence. Standing it on the axis carried on moved it off that sliver, which the other side of the crossing stands on. With the presence weight, two of R3's three crossings meet.
+
+**R3's walk.** One crossing is left: seed 2 at -0.7675, 0.028 of the tree.
+- A lateral whose first unit grew no node all but aborts. Its relay, at blend 0, grows the next unit's two nodes.
+- On the other side the lateral grows them itself.
+- The relay of either stands on the same unit's node 1, but those nodes are laid apart (their bases 0.2 m apart in height). The relay at blend 0 is laid from the node-less lateral's frame with its handed pulls, the lateral from its own straightening.
+- That is R3 as the spec first worded it (the straightening a relay barely off a bent limb keeps). fn-206's handed pulls do not cover a parent of no phytomers. Not traced further; the GPU mirror waits on it.
+
+### Design question C: the abortion a failure at its bound skips
+
+R1's walk, green on every commit up to `eacb5181`, is red from `3afbe0fd` (A3) on. Three crossings: seed 3 at 1.2364, seed 1 at 1.8963 and 3.6070, 0.05 of the tree each. A3 moves which draws these seeds meet; the gap it shows is decision (b)'s, not A3's. Every one is the same (`raw/probe199.rs r1 <seed> <from> <to>`):
+- **Failing side.** A limb's unit fails at the survival bound, its lived time the whole unit. The failure's relay is laid as the continuation (blend 0) and grows on from the next cycle.
+- **Surviving side.** The apex survives the unit and then takes the abortion draw after it. It aborts, or its age ends, and its relay is laid by that stop's lead (blend 0.48 to 1).
+
+The failing side never takes that abortion draw, so at the bound the relay's blend jumps from 0 to the abortion's. Decision (b) makes the two sides meet in what grows, not in the decisions that follow the unit.
+
+**Options:**
+- **(C1)** The failed unit's lived part takes the unit's abortion draw (the same key) over the exposure `min(lived, next unit's share)`, which vanishes as the lived time does. Where it aborts, the failure's relay is itself an apex that aborted at once: its relay stands on it, so by R3's placement on the failed axis's zone, blended by the abortion's presence. Both executors and the closed form (the abortion's chance after a lived part).
+- **(C2)** The failure's relay, where it grows from the next cycle, takes the abortion draw the apex would have taken after the unit (the apex's key, not its own), before its first unit. Simpler, but only for a lived time at the bound. A lived time just under it grows in the same cycle and takes no such draw, so the step moves to `WHOLE` rather than going.
+- **(C3)** Fade the abortion's relay in by the survival's presence: the abortion draw after a unit decides at the survival lead's presence. It changes every abortion near a survival bound, not only relayed ones.
+
+### Not yet done
+
+GPU parity under the lock (none of the WGSL edits has compiled yet), the R3 GPU mirror, the pins, R6 and the gate. The crate suite is red on R1's and R3's walks and the two pins.

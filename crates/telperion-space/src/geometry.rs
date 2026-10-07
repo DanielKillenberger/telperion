@@ -201,7 +201,7 @@ pub(crate) fn frame(
             // PA's epitony: by the presence of the stop that made it.
             let p = &axes[parent];
             let state = &species.states[p.pa];
-            let at = relay_point(p, state.relay_at, node);
+            let at = carried_point(axes, species, parent, relay_point(p, state.relay_at, node));
             let (heading, side) = turned(
                 (at.along, at.side),
                 state.divergence * at.rank,
@@ -226,12 +226,86 @@ pub(crate) fn frame(
     }
 }
 
+/// Where a relay of axis `i` stands, `own` on it: where `i` carries
+/// another axis on (a relay or a continuation) and its first node has not
+/// grown whole, blended from where it would stand on that axis by how far
+/// the node has grown, so a relay on an axis of no node yet stands as on
+/// the axis carried on, and moves by degree as the node grows in (fn-199
+/// R3, host 2026-10-07). Taken from the farthest such axis down.
+fn carried_point(axes: &[Axis], species: &Species, i: usize, own: Point) -> Point {
+    let mut line = vec![i];
+    while let Some(&a) = line.last() {
+        match axes[a].origin {
+            Origin::Relay { parent, .. } | Origin::Continuation { parent }
+                if axes[a].first < 1.0 =>
+            {
+                line.push(parent);
+            }
+            _ => break,
+        }
+    }
+    let zone = |a: usize| {
+        let axis = &axes[a];
+        let share = species.states[axis.pa].relay_at;
+        relay_point(axis, share, zone_node(axis, share))
+    };
+    let top = line.pop().expect("the axis itself");
+    let mut point = if top == i { own } else { zone(top) };
+    while let Some(a) = line.pop() {
+        let mine = if a == i { own } else { zone(a) };
+        point = point.toward(mine, axes[a].first.clamp(0.0, 1.0));
+    }
+    point
+}
+
+/// The node of axis `p`'s last growth unit a relay at `share` of it
+/// stands in, by its phytomers' scaled lengths: where the contract's node
+/// (`fixed::decide::relay_node`) is not drawn, as on an axis carried on.
+fn zone_node(p: &Axis, share: f64) -> usize {
+    let n = p.phytomers.len();
+    let Some(last) = p.phytomers.last().map(|q| q.cycle) else {
+        return 0;
+    };
+    let first = p
+        .phytomers
+        .iter()
+        .position(|q| q.cycle == last)
+        .unwrap_or(0);
+    let total: f64 = p.phytomers[first..].iter().map(|q| q.scale).sum();
+    if total <= 0.0 {
+        let k = (share * (n - first) as f64).ceil() as usize;
+        return first + k.clamp(1, n - first) - 1;
+    }
+    let mut before = 0.0;
+    for (j, q) in p.phytomers.iter().enumerate().skip(first) {
+        if q.scale > 0.0 && before + q.scale >= share * total {
+            return j;
+        }
+        before += q.scale;
+    }
+    n - 1
+}
+
 /// A point along an axis and the frame there.
+#[derive(Clone, Copy)]
 struct Point {
     base: Vec3,
     along: Vec3,
     side: Vec3,
     rank: f64,
+}
+
+impl Point {
+    /// `t` of the way from this point to `to`, its frame turned as far.
+    fn toward(self, to: Point, t: f64) -> Point {
+        let blend = |a: Vec3, b: Vec3| (a * (1.0 - t) + b * t).unit().unwrap_or(b);
+        Point {
+            base: self.base + (to.base - self.base) * t,
+            along: blend(self.along, to.along),
+            side: blend(self.side, to.side),
+            rank: self.rank + t * (to.rank - self.rank),
+        }
+    }
 }
 
 /// The point `share` of the way along axis `p`'s last growth unit, by its

@@ -165,7 +165,11 @@ impl Shoot<'_, '_> {
         line.axis.blend = blend;
         let draws = &mut line.draws;
         (draws.aged, draws.ended, draws.ended_relays) = (grown, whole, ended_relays);
-        (draws.rest, draws.below) = (why == Stop::Failed, below);
+        // A failed unit's relay that grows in the same cycle grows its
+        // rest; one whose unit lived it whole grows on from the next, as
+        // the apex would have.
+        let rest = why == Stop::Failed && used < 1.0;
+        (draws.rest, draws.below) = (rest, if rest { below } else { 0 });
         self.carry_on(cycle, used)
     }
 

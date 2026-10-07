@@ -161,7 +161,7 @@ impl Carried {
             aged: self.aged + spent - self.spent,
             gone: if same { used } else { 0.0 },
             relay: unit.whole,
-            rest: true,
+            rest: same,
         };
         (relay, same)
     }
