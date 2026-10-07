@@ -247,3 +247,42 @@ Before this change the same probe had 31,624 beech runs at 80 s1 counted differe
 - **At 80** they differ by the rounding class (spruce s1) and by the parted runs (1, 18 and 11 keys), whose cause is not located.
 - **Leaves are within fn-125's bound,** apart from the named classes, on every beech and on the spruce at 30 and 40 s7. On the spruce at 40 s1 and at 80, 1 to 434 leaves are over in direction, carried from station frame differences that the position screen allows.
 - **So `flowctl done` was not run.** The host's call: whether the frame-carried leaves and the parted runs are classes the acceptance names, or work for this task.
+
+## After the host's decisions on task 6's results (worker, 2026-10-07)
+
+### Parted runs: located and fixed
+
+- **Two causes, both read off the device's per-node station words** (`raw/task6b/parted-1.txt` to `parted-3.txt`).
+  1. **The probes' matching.** A device run's key can collide with the key of a run the device does not draw: a landed root's, or one above the cut. The probes now take only reference segments whose distal node the device draws (`drawn_by_device`, by `Fixture::fine`). This cleared every residual key on six trees.
+  2. **A CPU defect in `plan::bearing_runs`.** A fine root that continues its bearer's axis carries the bearer's branch. Seams are never counted among bearing children (decision 3), so the walk took the bearer's other counted child, and the seam's run was never started.
+     - Its stations were lost: 5 runs and 36 stations on spruce 80 s1, none on the other three trees at 80 (`grown-stations-seam.txt`).
+     - The device always starts a run at a seam. **Fixed:** a seam never continues its bearer's run (D4, decision 3).
+- **Station counts now:** equal on all eight trees at 40 and 80, apart from the named rounding class on spruce 80 s1: 111 keys at the 14,666.499 µm value, 2 of which count differently (332 device stations). `stationed-80-drawn.txt`, `parted-3.txt`.
+
+### The direction bound, max(0.005, 50 µm / chord), as directed (`placed_tests.rs`)
+
+| Tree | Over in direction | Of them, on frames ≥ 1 mrad apart (max) | Still over at 0.005 + 50 µm/chord | Still over at 0.005 + the run's largest 50 µm/chord so far |
+|---|--:|--:|--:|--:|
+| beech 40, 80, both seeds | 0 | 0 | 0 | 0 |
+| spruce 40 s7 | 0 | 0 | 0 | 0 |
+| spruce 40 s1 | 37 | 37 (16.4 mrad) | 37 | 37 |
+| spruce 80 s1 | 243 | 242 (25.0 mrad) | 64 | 60 |
+| spruce 80 s7 | 112 | 111 (3.8 mrad) | 11 | 8 |
+
+(`seated-80-3.txt`, `seated-spruce-carried.txt`.) The code-step and face-turned classes are counted as before.
+
+- **The bound as directed does not compose.** On chords of 10 to 14 mm, 50 µm / chord (3.6 to 5 mrad) is under the floor. There the frames differ by up to 3.8 mrad, within the screen over those chords, and the leaf's 10-bit orientation adds 1 to 2 mrad. Those leaves sit at 5 to 8 mrad.
+  - The floor covers the encoding on identical inputs, and the input's difference adds to it. A sum, 0.005 + 50 µm / chord, leaves 37, 64 and 11 over.
+- **Not explained:** 37 leaves on spruce 40 s1 and about 60 on spruce 80 s1, on station frames 16 to 25 mrad apart.
+  - Spruce 40 s1 is also the tree whose station probe has 26 contacts naming other rings, and frames at 0.016 rad.
+  - **Unknown:** where along those runs the frames part.
+
+### The 1.55 mm position outlier (spruce 80 s7): contact grazing, not `SHORTEST`
+
+- **The segment agrees within 1.8 µm.** Its nodes are 1.61 mm apart, above `SHORTEST`, and the contacts name the same rings.
+- **The seats differ.** The reference seats the leaf 3.51 mm from the axis and the device 1.97 mm, around wood of 1.5 mm radius. The contact search's ray hits a triangle edge on one executor and passes it on the other, then lands on a farther triangle.
+- **Classed:** `grazing`, a position over on a segment agreeing within the screen. It is a threshold of the contact search fed by micrometre ring differences: 1 leaf, on spruce 80 s7.
+
+### Gate
+
+Render half 161 passed and CPU half 988 passed, none failed (`gate-render-2.txt`, `gate-cpu-2.txt`). Task 6 is not closed: the direction residual above is the host's.

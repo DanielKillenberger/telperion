@@ -224,3 +224,9 @@ Measured `tree_buffer_bytes` after the submit: 141 MB (beech 80 s1), 240 MB (bee
   - Each node's share is rounded to whole micrometres and summed as integers on both executors. A float sum of the internodes alone does not tie the same way in f32 and f64: the spruce's fine PA is 3.25 twig internodes, and four nodes sum to exactly 13.
   - A dyadic grid (1/4096 internode) was tried and dropped: it breaks the beech's 25/6.
   - Where a node's grown wood lies within float32's error of a half micrometre, the executors round it apart. That is the named f32-against-f64 class, and the probe counts it per tree.
+
+## Host decisions on task 6's results (2026-10-07)
+
+1. **A seated leaf's direction bound is consistent with the position bound.** It is the position screen (50 µm) divided by the chord of the leaf's segment, with 0.005 rad as its floor. It is written into the probe. A leaf still over it is a failure to explain, and so is the 1.55 mm position outlier on the spruce at 80 s7, which goes into the `SHORTEST` class only if traced there.
+2. **Parted runs are located in this task.** A divergence away from both bounds with no known cause is not a residual. The device's per-node station words are read back for one key, and the cause is named, then fixed or classed.
+3. **The micrometre grid stays.** Integer sums of a recorded quantity are the contract's own idiom, and they keep every decimal ratio exact. The 14,666.499 µm rounding case stays in the named f32-against-f64 class.

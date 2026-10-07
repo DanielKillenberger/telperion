@@ -321,8 +321,16 @@ pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
     }
     let bearing = bearing_of(tree, p);
     let children = bearing_children(tree, &bearing, false);
+    // A fine root's first node always starts a run of its own, even where
+    // it carries its bearer's branch on: a run never crosses the seam, as
+    // its bearing children never count it (fn-212 D4, host decision 3).
+    let mut seam = vec![false; tree.nodes.len()];
+    for &s in &tree.seams {
+        seam[s as usize] = true;
+    }
     let continues = |parent: usize, child: usize| {
-        bearing(parent)
+        !seam[child]
+            && bearing(parent)
             && tree.nodes[parent].branch == tree.nodes[child].branch
             && children[parent].0 == 1
     };

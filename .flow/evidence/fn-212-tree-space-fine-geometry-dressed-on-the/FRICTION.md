@@ -82,3 +82,10 @@
 - **Hindered:** the reference's whole-tree ring positions (about 1.3 GB) and leaves were made while the device's settled tree and its swept curve were alive. wgpu panicked "Out of Memory" on the spruce at 80 s1, and the other seven trees' results were lost with it.
 - **Cost:** one 40 s pass and a rerun.
 - **Removal:** built: the probe makes the reference first, in its own grow, and frees the sweep's node words once the stations are built. A `PROBE=<id>:<age>:<seed>` filter now runs one tree. Device memory per probe could be asserted against a budget before it runs.
+
+## 2026-10-07 23:30, task 6 (worker): the placement probe's memory margin depends on what else holds the card
+
+- **Doing:** the eight-tree placement probe after the memory fix.
+- **Hindered:** the spruce at 80 s7 ran out of device memory in the full pass, though it ran alone and in an earlier full pass. Memory left by the trees before it, or another holder of the card, decides it.
+- **Cost:** one rerun of three trees one at a time.
+- **Removal:** run the 80-year trees one per process (the `PROBE` filter), or assert the device's free memory before each tree.

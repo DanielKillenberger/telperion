@@ -74,6 +74,23 @@ fn places(c: [u32; 4], segments: u32) -> [u32; 3] {
     [c[0] - c[2], c[1] - c[2], c[3] - c[2]].map(|o| o / segments)
 }
 
+/// Whether a reference segment ending at a point lies on wood the device
+/// draws (`Fixture::fine`), found by its distal node's position.
+pub(super) fn drawn_by_device<'a>(tree: &'a Tree, fine: &'a [bool]) -> impl Fn(Vec3) -> bool + 'a {
+    let at: HashMap<[u64; 3], usize> = (tree.nodes.iter().enumerate())
+        .map(|(i, n)| {
+            (
+                [n.position.x, n.position.y, n.position.z].map(f64::to_bits),
+                i,
+            )
+        })
+        .collect();
+    move |p: Vec3| {
+        at.get(&[p.x, p.y, p.z].map(f64::to_bits))
+            .is_some_and(|&i| fine[i])
+    }
+}
+
 /// The rows the device's stations read from the pipeline's expansion, its
 /// rings `segments` vertices round.
 pub(super) fn station_rows(x: &Expansion, segments: u32) -> Rows {
@@ -112,11 +129,13 @@ fn stationed(
     let raw = super::super::io::read(gpu, &device.buffer, (words.max(4) * 4) as u64).unwrap();
     let mine: &[u32] = bytemuck::cast_slice(&raw);
     let keys: HashSet<u32> = mine.chunks(GW).map(|g| g[27]).collect();
-    // Every reference segment of the device's keys, by key and first
-    // station: two runs may share a key (32-bit keys collide), so a key
+    // Every reference segment of the device's keys on wood the device
+    // draws, by key and first station: two runs may share a key (32-bit
+    // keys collide, with a run the device does not draw too), so a key
     // holds every run's, matched by the nearest first endpoint.
+    let drawn = drawn_by_device(x.tree(), &fx.fine);
     let fine: Vec<&StationSegment> = (theirs.segments.iter())
-        .filter(|s| keys.contains(&s.key))
+        .filter(|s| keys.contains(&s.key) && drawn(s.endpoints[1]))
         .collect();
     let mut by: HashMap<(u32, u32), Vec<usize>> = HashMap::new();
     for (i, s) in fine.iter().enumerate() {
@@ -260,8 +279,14 @@ fn stationed_at_40_and_80() {
         &Sweeper::new(&gpu),
         &Stationer::new(&gpu),
     );
+    // One tree where `PROBE` names it (`norway-spruce:80:1`).
+    let only = std::env::var("PROBE").ok();
     for id in ["european-beech", "norway-spruce"] {
         for at in [(40, 1), (40, 7), (80, 1), (80, 7)] {
+            let name = format!("{id}:{}:{}", at.0, at.1);
+            if only.as_ref().is_some_and(|o| *o != name) {
+                continue;
+            }
             // Reported, not held: the residuals are the f32-against-f64
             // threshold class, counted per tree (TASK6.md).
             println!("{id} {at:?}: {:?}", probe(&gpu, &k, tools, id, at));
