@@ -6,7 +6,7 @@
 use super::super::io;
 use crate::Gpu;
 use std::time::Instant;
-use telperion_space::{grow, Light, Origin, Request, Species, Structure, Units};
+use telperion_space::{fixed, grow, Light, Origin, Request, Species, Structure, Units};
 
 const UNIT: &str = include_str!("unit.wgsl");
 const NONE: u32 = u32::MAX;
@@ -37,6 +37,14 @@ pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
         for (t, b) in zone.thresholds.iter().zip(&zone.bounds) {
             words.extend([*t, *b]);
         }
+        // Each node's bound's side of its lead (`zones.wgsl`, `node_lead`),
+        // by the contract on the CPU (task 8).
+        assert_eq!(zone.bounds.len(), zone.thresholds.len(), "a bound a node");
+        words.extend(zone.bounds.iter().map(|&b| match (b, zone.poisson) {
+            (0, _) => 0,
+            (b, true) => fixed::logit(b) as u64,
+            (b, false) => fixed::log2(b) as u64,
+        }));
         let laterals = words.len() as u32;
         words.extend(zone.laterals.iter().map(|t| t.unwrap_or(u64::MAX)));
         let windows = words.len() as u32;

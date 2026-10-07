@@ -11,6 +11,7 @@ fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32) {
         let zk = zone_key(unit, zat);
         let d = draw(zk);
         let n = zone_count(zat, d);
+        let side = zone_side(zat, d, n);
         if n > MOST {
             overflow |= 8u;
             return;
@@ -28,7 +29,7 @@ fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32) {
                 return;
             }
             let p = phyt_base + n_phyts * PW;
-            let node_p = presence(node_lead(zat, d, j), window);
+            let node_p = presence(node_lead(zat, d, side, j), window);
             phyts[p] = node_key.x;
             phyts[p + 1u] = node_key.y;
             phyts[p + 2u] = cycle;

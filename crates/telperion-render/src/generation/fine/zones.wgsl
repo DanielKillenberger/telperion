@@ -3,7 +3,8 @@
 // chain grower. Each shader declares `table` (each PA's first zone and
 // zones, then each zone's twelve words: zone, poisson, nodes, law at,
 // places, laterals at, PAs, windows at, sleeping buds at, PAs, waking at,
-// sleeps at) and `words` (each node's threshold and bound, the laterals'
+// sleeps at) and `words` (each node's threshold and bound, then each
+// node's bound's `logit` or `log2` (task 8), the laterals'
 // and sleeping buds' thresholds, all ones for none, each cycle's window,
 // Q32, the waking delay and years a nat, and each cycle's gate on
 // sleeping buds).
@@ -46,13 +47,39 @@ fn sorted(zk: vec2<u32>, n: u32, drawn: ptr<function, array<u32, MOST>>) {
     }
 }
 
-// Node `j`'s lead past its bound, for the zone's draw `d` (D18's input).
-fn node_lead(at: u32, d: vec2<u32>, j: u32) -> vec2<u32> {
-    let bound = words[table[at + 3u] + 2u * j + 1u];
-    if table[at + 1u] != 0u {
-        return above_q(d, bound);
+// The zone's draw's side of every node's lead, taken once a zone (task
+// 8): its log-odds where the bounds are upper (`above_q`), its `log2`
+// where they are lower (`past_q`); none for a draw of none or a zone
+// that drew no node.
+fn zone_side(at: u32, d: vec2<u32>, n: u32) -> vec2<u32> {
+    if n == 0u {
+        return vec2<u32>(0u);
     }
-    return past_q(d, bound);
+    if table[at + 1u] != 0u {
+        return logit_draw(d);
+    }
+    if is_zero(d) {
+        return vec2<u32>(0u);
+    }
+    return log2q(shl64(d, 9u));
+}
+
+// Node `j`'s lead past its bound, for the zone's draw `d` and its side
+// (D18's input): `above_q(d, bound)` or `past_q(d, bound)` to the word.
+fn node_lead(at: u32, d: vec2<u32>, side: vec2<u32>, j: u32) -> vec2<u32> {
+    let bound = words[table[at + 3u] + 2u * j + 1u];
+    if is_zero(bound) {
+        return inf();
+    }
+    // The bound's own side, from the CPU (`units.rs`): its logit or log2.
+    let own = words[table[at + 3u] + 2u * table[at + 2u] + j];
+    if table[at + 1u] != 0u {
+        return sub64(side, own);
+    }
+    if is_zero(d) {
+        return neg64(inf());
+    }
+    return smul_shr(sub64(side, own), LN2, 62u, false);
 }
 
 // The PA a draw keyed `key` gives under the thresholds at `start`, `n`
