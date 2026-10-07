@@ -1021,12 +1021,6 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/surface/compact.rs",
-    "site": ". max ( 1e - 6 )",
-    "classification": "numeric",
-    "reason": "The existing surface height degeneracy floor stabilizes geometry arithmetic without limiting populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/surface/compact.rs",
     "site": ". max ( params . lobes * 4 )",
     "classification": "algorithm",
     "reason": "Angular sampling covers the requested lobes with at least four segments each; it raises resolution rather than truncating a population."
