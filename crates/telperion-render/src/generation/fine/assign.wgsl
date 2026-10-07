@@ -5,7 +5,9 @@
 // draw's key, its bounds, its wood), and the chain's end takes them all
 // in one loop through one call of the contract's leads and windows: the
 // driver's compiler inlines a 128-bit `log2` and `exp2` once, not at
-// every site (FRICTION.md). The products then run in the grower's order.
+// every site (FRICTION.md). The asks are taken by their own pass, a few
+// threads a chain, and the products then run in the grower's order, a
+// thread a chain (task 8).
 // Part of `chain.wgsl`'s shader; the f32 presences (`presence.wgsl`)
 // still size geometry alongside.
 
@@ -220,13 +222,12 @@ fn axis_ask(i: u32, j: u32) -> Ask {
     return no_ask();
 }
 
-// Every presence the chain's growth recorded, taken in one loop: unit
-// records' first, three a unit, then the axes', two an axis, each into
-// the unit's fields or the axis's B0 and B1.
-fn take_asks() {
+// The presence the chain's growth recorded as its ask `r`: unit records'
+// first, three a unit, then the axes', two an axis, each into the unit's
+// fields or the axis's B0 and B1. No ask reads what another writes.
+fn take_ask(r: u32) {
     let units = n_units * 3u;
-    let total = units + n_axes * 2u;
-    for (var r = 0u; r < total; r++) {
+    {
         var a = no_ask();
         if r < units {
             a = unit_ask(unit_base + (r / 3u) * UW, r % 3u);
@@ -250,6 +251,53 @@ fn take_asks() {
             wq((r - units) / 2u, B0 + 2u * ((r - units) % 2u), p);
         }
     }
+}
+
+// Lanes a chain's asks are shared among (task 8: a thread a chain left
+// the beech's longest chains a third of its growth).
+const LANES: u32 = 8u;
+
+// Chain `c` as its growth left it: its regions, its counts from its
+// status, and its units' count from its living apexes' room, spent once
+// the chain has grown. False where it outgrew its region.
+fn grown_chain(c: u32) -> bool {
+    axis_base = c * cfg.axes_cap * AXW;
+    phyt_base = c * cfg.phyt_cap * PW;
+    live_base = c * cfg.live_cap * 2u;
+    sleep_base = c * (cfg.sleep_cap * SW + cfg.pend_cap * QW + cfg.unit_cap * UW);
+    pend_base = sleep_base + cfg.sleep_cap * SW;
+    unit_base = pend_base + cfg.pend_cap * QW;
+    let s = status[c];
+    n_axes = s.x;
+    n_phyts = s.y;
+    overflow = s.z;
+    n_units = live[live_base].x;
+    return overflow == 0u;
+}
+
+// Every chain's asks, `LANES` threads a chain.
+@compute @workgroup_size(64)
+fn asks(@builtin(global_invocation_id) id: vec3<u32>) {
+    let g = id.x + id.y * cfg.ask_row;
+    let c = g / LANES;
+    if c >= cfg.n || !grown_chain(c) {
+        return;
+    }
+    for (var r = g % LANES; r < n_units * 3u + n_axes * 2u; r += LANES) {
+        take_ask(r);
+    }
+}
+
+// Every chain's presences from its asks, a thread a chain; then every
+// axis kept (realized mechanics).
+@compute @workgroup_size(64)
+fn assign(@builtin(global_invocation_id) id: vec3<u32>) {
+    let c = id.x + id.y * cfg.row;
+    if c >= cfg.n || !grown_chain(c) {
+        return;
+    }
+    assign_q();
+    keep_all();
 }
 
 // Stage `k` a bud of `pa` reaches, its reach (`PaRow::reaches`).
@@ -319,12 +367,11 @@ fn units_q() {
     }
 }
 
-// Every Q32 presence of the chain, once it has grown: what growth asked,
-// the products in the grower's order, each woken bud's carrying, and
+// Every Q32 presence of the chain, once it has grown and its asks are
+// taken (`asks`): the products in the grower's order, each woken bud's carrying, and
 // each axis's vigour, end and living apex's presence and its parent's
 // time to its birth (`presence::assign`).
 fn assign_q() {
-    take_asks();
     made_q();
     units_q();
     for (var i = 0u; i < n_axes; i++) {

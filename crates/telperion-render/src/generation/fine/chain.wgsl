@@ -24,7 +24,7 @@ struct Cfg {
     geo: u32,
     unit_cap: u32,
     first: u32,
-    pad0: u32,
+    ask_row: u32,
     pad1: u32,
 }
 
@@ -395,9 +395,8 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
         // The same, Q32 (host decision 8), at the chain's end.
         ask(at, vec4<u32>(WOKEN_ASKS, sleepers[p + 19u], sleepers[p + 20u], sleepers[p + 2u]), vec4<u32>(sleepers[p], sleepers[p + 1u], p, 0u));
     }
-    assign_q();
-    if overflow == 0u {
-        keep_all();
-    }
+    // Its units' count, for the asks and assignment passes (`assign.wgsl`),
+    // in the living apexes' room it no longer needs.
+    live[live_base] = vec4<u32>(n_units, 0u, 0u, 0u);
     status[c] = vec4<u32>(n_axes, n_phyts, overflow, n_axes - n_pends);
 }

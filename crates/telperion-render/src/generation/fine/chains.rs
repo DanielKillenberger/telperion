@@ -19,6 +19,8 @@ const CARRY: &str = include_str!("carry.wgsl");
 pub(super) const AXW: usize = 80;
 pub(super) const PW: usize = 11;
 const NONE: u32 = u32::MAX;
+/// Threads a chain's asks are shared among (`assign.wgsl`'s `LANES`).
+const ASK_LANES: u32 = 8;
 
 /// A region's bounds per chain: axes, phytomers, living apexes, sleeping
 /// buds and the buds that woke.
@@ -207,7 +209,7 @@ impl Grower {
     pub(super) fn new(gpu: &Gpu) -> Self {
         let read = [true, true, true, false, false, false, false, false];
         Self {
-            pass: io::Pass::new(gpu, source(), &read, &["grow"]),
+            pass: io::Pass::new(gpu, source(), &read, &["grow", "asks", "assign"]),
             pack: io::Pass::new(
                 gpu,
                 pack_source(),
@@ -254,6 +256,9 @@ impl Grower {
         let groups = n.div_ceil(64);
         let row = groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
         let (lo, hi) = (span as u32, (span >> 32) as u32);
+        // The asks' pass: `assign.wgsl`'s `LANES` threads a chain.
+        let ask_groups = (n * ASK_LANES).div_ceil(64);
+        let ask_row = ask_groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
         let cfg: [u32; 16] = [
             n,
             row,
@@ -269,7 +274,7 @@ impl Grower {
             t.2[1],
             caps.units,
             first,
-            0,
+            ask_row,
             0,
         ];
         let usage = wgpu::BufferUsages::UNIFORM;
@@ -297,6 +302,8 @@ impl Grower {
         ];
         let bind = self.pass.bind(gpu, &all);
         self.pass.run(encoder, &bind, 0, groups);
+        self.pass.run(encoder, &bind, 1, ask_groups);
+        self.pass.run(encoder, &bind, 2, groups);
         Region {
             axes,
             phyts,
