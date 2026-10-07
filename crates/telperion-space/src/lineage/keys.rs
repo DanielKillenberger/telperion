@@ -25,8 +25,10 @@ pub const ABORTION: u64 = 1;
 pub const MOVE: u64 = 2;
 /// Zone `z` of a growth unit is keyed `ZONE + z`, for `z` below `ZONES`.
 pub const ZONE: u64 = 16;
-/// A node's wander, under its node's key.
-pub const WANDER: u64 = 1;
+/// A node's bud place `slot` is keyed `PLACE + slot`, for `slot` below
+/// `MAX_BUDS`, under its node's key; the node's order is its first
+/// place's draw.
+pub const PLACE: u64 = 0;
 /// A lateral's yearly shedding on its carbon balance, under its lineage
 /// and then the cycle.
 pub const SHED: u64 = u64::MAX - 1;
@@ -54,17 +56,20 @@ pub const FAILED: u64 = u64::MAX - 10;
 pub const INSERTION: u64 = u64::MAX - 11;
 /// An axis's tropism, under its lineage (fn-224).
 pub const TROPISM: u64 = u64::MAX - 12;
+/// A node's wander, under its node's key: apart from its places, so its
+/// wander and its placement are drawn apart (host, 2026-10-07).
+pub const WANDER: u64 = u64::MAX - 13;
 /// An axis carried on into an age, under its chain's lineage.
 pub const CONTINUATION: u64 = u64::MAX;
 
-/// Every key: its name, value and what it is drawn under. `ZONE` stands
-/// for its `ZONES` values.
-pub const ALL: [(&str, u64, Under); 17] = [
+/// Every key: its name, value and what it is drawn under. `ZONE` and
+/// `PLACE` stand for their spans.
+pub const ALL: [(&str, u64, Under); 18] = [
     ("VIABILITY", VIABILITY, Under::Unit),
     ("ABORTION", ABORTION, Under::Unit),
     ("MOVE", MOVE, Under::Unit),
     ("ZONE", ZONE, Under::Unit),
-    ("WANDER", WANDER, Under::Node),
+    ("PLACE", PLACE, Under::Node),
     ("SHED", SHED, Under::Lineage),
     ("RELAY", RELAY, Under::Unit),
     ("ROLL", ROLL, Under::Lineage),
@@ -76,15 +81,17 @@ pub const ALL: [(&str, u64, Under); 17] = [
     ("FAILED", FAILED, Under::Unit),
     ("INSERTION", INSERTION, Under::Lineage),
     ("TROPISM", TROPISM, Under::Lineage),
+    ("WANDER", WANDER, Under::Node),
     ("CONTINUATION", CONTINUATION, Under::Lineage),
 ];
 
-/// The values key `name` takes: `ZONE`'s span, every other key's one.
+/// The values key `name` takes: `ZONE`'s and `PLACE`'s spans, every
+/// other key's one.
 pub fn span(name: &str, value: u64) -> std::ops::Range<u64> {
-    let n = if name == "ZONE" {
-        crate::species::ZONES as u64
-    } else {
-        1
+    let n = match name {
+        "ZONE" => crate::species::ZONES as u64,
+        "PLACE" => u64::from(crate::species::MAX_BUDS),
+        _ => 1,
     };
     value..value + n
 }
