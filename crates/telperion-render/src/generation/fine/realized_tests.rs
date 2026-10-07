@@ -218,7 +218,7 @@ impl Apart {
 pub(super) fn settled_against(
     gpu: &Gpu,
     k: &Kernels,
-    (species, at): (&Species, (u32, u64)),
+    (species, at, plan): (&Species, (u32, u64), Plan),
     want: &[Option<RootAxes>],
     (order, batch): (&[usize], usize),
 ) -> Apart {
@@ -229,7 +229,6 @@ pub(super) fn settled_against(
     let mut tables = Tables::new(gpu, &chain, &geo);
     tables.keep = true;
     let mut dev = Device::new(gpu, k, &tables, batch).ordered(order.to_vec());
-    let plan = Plan::default();
     let (settled, _) =
         settle(species, request(at.0, at.1), &expected, plan, &mut dev).expect("settles");
     let wall = t.elapsed().as_secs_f64() * 1e3;
@@ -324,18 +323,21 @@ fn settles_as_on_the_cpu(
     gpu: &Gpu,
     k: &Kernels,
     name: &str,
-    species: &Species,
-    at: (u32, u64),
+    (species, at, cut): (&Species, (u32, u64), f64),
 ) -> Apart {
     let expected = Expected::new(species, at.0, 0);
-    let cpu = grow_fine(species, request(at.0, at.1), &expected, Plan::default()).expect("grows");
+    let plan = Plan {
+        cut,
+        ..Plan::default()
+    };
+    let cpu = grow_fine(species, request(at.0, at.1), &expected, plan).expect("grows");
     let want = root_axes(&cpu);
     let forward: Vec<usize> = (0..want.len()).collect();
     let reverse: Vec<usize> = forward.iter().rev().copied().collect();
-    let a = settled_against(gpu, k, (species, at), &want, (&forward, 4096));
+    let a = settled_against(gpu, k, (species, at, plan), &want, (&forward, 4096));
     assert_eq!(a.statuses, 0, "{name} {at:?}: a chain's status");
     for (order, batch) in [(&reverse, 777), (&forward, 64)] {
-        let b = settled_against(gpu, k, (species, at), &want, (order, batch));
+        let b = settled_against(gpu, k, (species, at, plan), &want, (order, batch));
         assert_eq!(b.statuses, 0, "{name} {at:?}: a chain's status");
         assert_eq!(
             a.digest, b.digest,
@@ -357,14 +359,12 @@ fn every_root_settles_on_the_gpu_as_on_the_cpu() {
         ("oak, unlit", unlit_oak()),
     ];
     for (name, species) in &species {
-        for seed in [1, 7] {
-            let a = settles_as_on_the_cpu(&gpu, &k, name, species, (25, seed));
+        for (seed, cut) in [(1, 256.0), (1, 1024.0), (7, 1024.0), (7, 4096.0)] {
+            let a = settles_as_on_the_cpu(&gpu, &k, name, (species, (25, seed), cut));
             let rms = a.rms();
             println!(
-                "{name} 25 {seed}: {} phytomers, tips {:.2e} most {rms:.2e} RMS, radii {:.2e} rel; {} roots on the CPU, their tips {:.2e}",
-                a.phytomers, a.most, a.radius,
-                a.grounded,
-                a.landed_most
+                "{name} 25 {seed} at {cut}: {} phytomers, tips {:.2e} most {rms:.2e} RMS, radii {:.2e} rel; {} roots on the CPU, their tips {:.2e}",
+                a.phytomers, a.most, a.radius, a.grounded, a.landed_most
             );
             assert!(a.landed_most <= MOST, "{name} 25 {seed}: roots on the CPU");
             assert!(a.most <= MOST && rms <= RMS, "{name} 25 {seed}: {a:?}");

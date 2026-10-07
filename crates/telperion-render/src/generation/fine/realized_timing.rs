@@ -34,6 +34,7 @@ fn cpu(species: &Species, at: (u32, u64), threads: usize) -> (f64, f64) {
     let expected = Expected::new(species, at.0, 0);
     let plan = Plan {
         threads,
+        cut: cut(),
         ..Plan::default()
     };
     let mut times = (0..3).map(|_| {
@@ -43,6 +44,13 @@ fn cpu(species: &Species, at: (u32, u64), threads: usize) -> (f64, f64) {
     });
     let cold = times.next().expect("a build");
     (cold, times.fold(f64::INFINITY, f64::min))
+}
+
+/// The cut: `FINE_CUT`, or the default plan's.
+fn cut() -> f64 {
+    let at = std::env::var("FINE_CUT").ok();
+    at.and_then(|c| c.parse().ok())
+        .unwrap_or(Plan::default().cut)
 }
 
 fn ms(a: &Apart) -> String {
@@ -64,7 +72,7 @@ fn realized_at_40_and_80() {
         kernels(&gpu)
     };
     let load = std::fs::read_to_string("/proc/loadavg").unwrap_or_default();
-    println!("load at the start: {}", load.trim());
+    println!("load at the start: {}; cut {}", load.trim(), cut());
     println!("| Tree | Roots | Phytomers | Tips most / RMS µm | Radii most rel | GPU cold ms (device phase 1 / phases 2 to 4; trips) | GPU warm ms | CPU all cores cold / warm ms | CPU 1 core cold / warm ms | Statuses |");
     println!("|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|");
     let mut outside = Vec::new();
@@ -75,13 +83,16 @@ fn realized_at_40_and_80() {
         for age in [40, 80] {
             for seed in [1, 7] {
                 let at = (age, seed);
+                let plan = Plan {
+                    cut: cut(),
+                    ..Plan::default()
+                };
                 let only = std::env::var("FINE_ONLY").unwrap_or_default();
                 if !only.is_empty() && only != format!("{name} {age} {seed}") {
                     continue;
                 }
                 let expected = Expected::new(&species, age, 0);
-                let fine = grow_fine(&species, request(age, seed), &expected, Plan::default())
-                    .expect("grows");
+                let fine = grow_fine(&species, request(age, seed), &expected, plan).expect("grows");
                 let want = root_axes(&fine);
                 drop(fine);
                 let (all_cold, all_warm) = cpu(&species, at, 0);
@@ -89,9 +100,12 @@ fn realized_at_40_and_80() {
                 let forward: Vec<usize> = (0..want.len()).collect();
                 let reverse: Vec<usize> = forward.iter().rev().copied().collect();
                 let lock = locked();
-                let cold = settled_against(&gpu, &k, (&species, at), &want, (&forward, 1 << 16));
-                let warm = settled_against(&gpu, &k, (&species, at), &want, (&forward, 1 << 16));
-                let other = settled_against(&gpu, &k, (&species, at), &want, (&reverse, 4096));
+                let cold =
+                    settled_against(&gpu, &k, (&species, at, plan), &want, (&forward, 1 << 16));
+                let warm =
+                    settled_against(&gpu, &k, (&species, at, plan), &want, (&forward, 1 << 16));
+                let other =
+                    settled_against(&gpu, &k, (&species, at, plan), &want, (&reverse, 4096));
                 drop(lock);
                 assert_eq!(
                     warm.digest, other.digest,
