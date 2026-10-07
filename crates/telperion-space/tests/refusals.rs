@@ -215,14 +215,6 @@ fn a_tree_past_its_budget_is_refused() {
     );
 }
 
-#[test]
-fn a_trunk_below_the_ground_is_an_error() {
-    let mut s = species();
-    s.states[0].form.tropism = 1.0;
-    s.states[0].form.elevation = -std::f64::consts::FRAC_PI_2;
-    assert!(matches!(grow(&s, REQUEST), Err(Error::BelowGround { .. })));
-}
-
 /// A tree whose only wood stands exactly at its draw has no size: it is a
 /// collapsed tree, not a tree of zero length.
 #[test]

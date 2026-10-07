@@ -154,6 +154,9 @@ pub(super) fn start<'a>(
         sketch: None,
         leaves: Vec::new(),
         wakes: Vec::new(),
+        oracle: None,
+        couple: None,
+        fine: None,
         handed: Vec::new(),
         spare: Default::default(),
     };

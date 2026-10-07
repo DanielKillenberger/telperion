@@ -33,6 +33,9 @@ fn hash(mesh: &SurfaceMesh) -> u64 {
         })
 }
 
+/// The age the wood checks build at: a tree, not the staged close-up's.
+const YOUNG: f64 = 20.0;
+
 fn changed(a: &Still, b: &Still) -> f64 {
     a.rgba
         .iter()
@@ -77,7 +80,7 @@ fn each_smooth_layer_changes_the_close_up_and_moves_no_wood() {
     let Some(gpu) = common::gpu() else { return };
     let size = (480, 360);
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    let (tree, camera) = staged(&mut renderer, Preset::SilverBirch, BIRCH_BARK, size);
+    let (_, camera) = staged(&mut renderer, Preset::SilverBirch, BIRCH_BARK, size);
     renderer.set_view(View::Bare);
     let shipped = Preset::SilverBirch.parameters().material;
     let plain = MaterialParams {
@@ -88,6 +91,15 @@ fn each_smooth_layer_changes_the_close_up_and_moves_no_wood() {
     };
     renderer.set_material(plain);
     let before = render(&mut renderer, &camera, size.0, size.1).unwrap();
+    // A material row reaches no stage before the shader, so a young tree
+    // shows it moves no wood as well as the staged one at 80 does, at a
+    // fraction of the build.
+    let young = |material| {
+        let mut family = family(Preset::SilverBirch);
+        (family.age, family.material) = (YOUNG, material);
+        hash(&mesh::build(&family).unwrap().wood)
+    };
+    let shipped_wood = young(shipped);
     for (name, row) in [
         (
             "lichen",
@@ -111,11 +123,9 @@ fn each_smooth_layer_changes_the_close_up_and_moves_no_wood() {
             },
         ),
     ] {
-        let mut family = family(Preset::SilverBirch);
-        family.material = row;
         assert_eq!(
-            hash(&tree.wood),
-            hash(&mesh::build(&family).unwrap().wood),
+            shipped_wood,
+            young(row),
             "{name} moved the wood the core hands up"
         );
         renderer.set_material(row);

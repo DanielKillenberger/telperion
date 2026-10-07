@@ -8,6 +8,7 @@ use crate::presence::Windows;
 use crate::schedule::Carried;
 use crate::species::Species;
 use crate::structure::Origin;
+use crate::transcendental::Transcendental;
 use std::collections::HashMap;
 
 /// A measurement, not a test (fn-209 STEP1-C.md): the beech's and the
@@ -79,7 +80,7 @@ fn measure_production() {
                 a[0] += 1.0;
                 let b = t.at(m as i64).2.expect("born");
                 a[2] += b[WOOD] * base;
-                a[4] += b[SECTION] * base.powf(e);
+                a[4] += b[SECTION] * base.powf_fixed(e);
                 a[6] += (b[MASS] + b[LEAVES]) * base.powi(3);
                 if let Some(&k) = by.get(&axis.lineage) {
                     let v = about(&grown, &sums, k, e);
@@ -88,7 +89,7 @@ fn measure_production() {
                     a[3] += grown.axes[k]
                         .phytomers
                         .first()
-                        .map_or(0.0, |p| p.radius.powf(e));
+                        .map_or(0.0, |p| p.radius.powf_fixed(e));
                 }
             }
         }

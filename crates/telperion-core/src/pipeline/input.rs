@@ -8,6 +8,7 @@
 use crate::pipeline::foliage::Reach;
 use crate::{
     envelope::Envelope,
+    math::Transcendental,
     pipeline::foliage::{CanopyParams, ElementParams, TwigPlacement},
     pipeline::surface::SurfaceParams,
     pipeline::twigs::TwigParams,
@@ -58,7 +59,7 @@ impl<'f> GrowInput<'f> {
 pub(crate) fn grown_envelope(tree: &Tree) -> Envelope {
     let nodes = &tree.nodes;
     let height = nodes.iter().map(|n| n.position.y).fold(0.0, f64::max);
-    let reach = |n: &crate::tree::Node| n.position.x.hypot(n.position.z);
+    let reach = |n: &crate::tree::Node| n.position.x.hypot_fixed(n.position.z);
     let base = nodes
         .iter()
         .filter(|n| !n.stem && n.parent.is_some())

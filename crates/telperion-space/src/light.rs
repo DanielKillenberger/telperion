@@ -12,8 +12,10 @@
 //! along any ray, and GreenLab's production Sp (1 - exp(-k S / Sp)) on an
 //! even crown under light from overhead (Letort et al., eq. 1).
 use crate::error::{refuse, Result};
+use crate::fixed::sum::Sum;
 use crate::species::Species;
 use crate::structure::{Structure, Vec3};
+use crate::transcendental::Transcendental;
 
 /// The lattice's spacing in metres.
 pub(crate) const CELL: f64 = 0.5;
@@ -86,7 +88,11 @@ impl Light {
             let (e, share) = (elevation.to_radians(), blend(ring + 1) / 4.0);
             for k in 0..4 {
                 let a = (turn + 90.0 * f64::from(k)).to_radians();
-                let toward = Vec3::new(e.cos() * a.cos(), e.cos() * a.sin(), e.sin());
+                let toward = Vec3::new(
+                    e.cos_fixed() * a.cos_fixed(),
+                    e.cos_fixed() * a.sin_fixed(),
+                    e.sin_fixed(),
+                );
                 out.push((toward, share));
             }
         }
@@ -98,6 +104,13 @@ impl Light {
 /// index, from the leaves its last cycle grew, each node's PA's leaf area
 /// sized by its phytomer's scale: what a bud there would read before the
 /// next cycle. The measure of a rough layout against the final one.
+/// The field of `leaves` at cell `cell`, read at `reads` (fn-211.4's
+/// light tool).
+pub fn field_reads(light: &Light, leaves: &[(Vec3, f64)], reads: &[Vec3], cell: f64) -> Vec<f64> {
+    let field = Field::sized(light, leaves, reads, cell);
+    reads.iter().map(|&r| field.at(r)).collect()
+}
+
 pub fn bud_light(structure: &Structure, species: &Species, light: &Light) -> Vec<(usize, f64)> {
     let leaves: Vec<(Vec3, f64)> = structure
         .axes
@@ -140,14 +153,14 @@ fn bands(gathered: fn(f64) -> f64) -> [f64; 3] {
 /// A uniform sky's light on a level surface from below elevation `e`:
 /// the integral of sin e cos e, normalised.
 fn uniform(e: f64) -> f64 {
-    e.sin().powi(2)
+    e.sin_fixed().powi(2)
 }
 
 /// The standard overcast sky's (radiance as 1 + 2 sin e): the integral of
 /// (1 + 2 sin e) sin e cos e, sin^2 e / 2 + 2 sin^3 e / 3, normalised by
 /// its value overhead, 7 / 6.
 fn standard(e: f64) -> f64 {
-    let s = e.sin();
+    let s = e.sin_fixed();
     (s * s / 2.0 + 2.0 * s.powi(3) / 3.0) / (7.0 / 6.0)
 }
 
@@ -192,11 +205,18 @@ impl Field {
             leaves.iter().map(|l| l.0).chain(reads.iter().copied()),
             cell,
         );
-        for &(at, area) in leaves {
-            field.deposit(at, area);
-        }
+        field.deposit_all(leaves);
         field.sweep(light.extinction, &light.directions(), threads);
         field
+    }
+
+    /// The lattice `leaves` deposit in the box spanning them and `reads`,
+    /// before any sweep (probe (a): any grouping of the leaves gives it).
+    pub(crate) fn deposited(leaves: &[(Vec3, f64)], reads: &[Vec3]) -> Vec<f64> {
+        let points = leaves.iter().map(|l| l.0).chain(reads.iter().copied());
+        let mut field = Self::spanning(points, CELL);
+        field.deposit_all(leaves);
+        field.density
     }
 
     /// The nodes it holds.
@@ -253,11 +273,23 @@ impl Field {
         Some((at[2] * self.size[1] + at[1]) * self.size[0] + at[0])
     }
 
-    fn deposit(&mut self, at: Vec3, area: f64) {
+    /// Every leaf's area deposited, summed order-free (`fixed::sum`): any
+    /// grouping of the leaves gives the same lattice.
+    fn deposit_all(&mut self, leaves: &[(Vec3, f64)]) {
+        let mut sums = vec![Sum::default(); self.density.len()];
+        for &(at, area) in leaves {
+            self.deposit(at, area, &mut sums);
+        }
+        for (d, s) in self.density.iter_mut().zip(sums) {
+            *d = s.value();
+        }
+    }
+
+    fn deposit(&self, at: Vec3, area: f64, sums: &mut [Sum]) {
         let density = area / self.cell.powi(3);
         for (node, w) in corners(at, self.cell) {
             let i = self.index(node).expect("the box holds every leaf");
-            self.density[i] += w * density;
+            sums[i].add(w * density);
         }
     }
 
@@ -308,7 +340,7 @@ impl Field {
             }
             let lit = &mut light[k * layer..(k + 1) * layer];
             for (l, &d) in lit.iter_mut().zip(&depth) {
-                *l = share * (-d).exp();
+                *l = share * (-d).exp_fixed();
             }
             std::mem::swap(&mut above_depth, &mut depth);
         }

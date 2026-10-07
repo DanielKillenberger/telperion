@@ -6,6 +6,10 @@ license = "MIT"
 description = "The tree space's growth engine core: buds with a physiological age, growth units of phytomers, death and shedding, continuous in every setting. Outside the pipeline until phase F (docs/tree-space.md)."
 
 [dependencies]
+# The pinned pure-Rust transcendentals the engine and the core read
+# (`transcendental.rs`), so native and Wasm trees agree to the bit (fn-11,
+# fn-198 host decision 10).
+libm = { version = "=0.2.16", default-features = false }
 # The helpers spread work runs on, a pool kept for the process (fn-211
 # task 3); a pool of our own would need `unsafe` to hand it scoped work.
 rayon = "1"

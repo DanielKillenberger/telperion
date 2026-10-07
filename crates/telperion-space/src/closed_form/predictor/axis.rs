@@ -5,6 +5,7 @@ use super::{both, maybe, times, whole, Bud, Ended, Parts, Table, Walk, ZoneParts
 use crate::closed_form::events::Event;
 use crate::closed_form::kept::tilts;
 use crate::closed_form::steps::{End, Relay, Step};
+use crate::transcendental::Transcendental;
 
 impl Walk<'_> {
     /// `bud`'s table over its window, every table it reads in `parts`.
@@ -114,7 +115,7 @@ fn woken(t: i64, grown: f64, event: &Event, table: Option<&Table>) -> Ended {
     }
     let (a, n) = table.at(t - *at as i64);
     let lambda = weight / grown;
-    let factor = (lambda * (a - 1.0)).exp();
+    let factor = (lambda * (a - 1.0)).exp_fixed();
     (factor, lambda * factor * n.unwrap_or(0.0))
 }
 

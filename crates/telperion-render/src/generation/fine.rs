@@ -63,6 +63,8 @@ mod speed_tests;
 #[cfg(test)]
 mod shedding;
 #[cfg(test)]
+mod step_probe;
+#[cfg(test)]
 mod steps;
 #[cfg(test)]
 mod tests;

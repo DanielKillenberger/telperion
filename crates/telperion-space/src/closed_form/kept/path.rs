@@ -21,6 +21,7 @@ use crate::closed_form::steps::Step;
 use crate::girth::ripe;
 use crate::schedule::Carried;
 use crate::species::{Species, Zone, ALONG};
+use crate::transcendental::Transcendental;
 
 /// What a bud's own PA lays down, the same at every cycle: each zone's
 /// node-count law.
@@ -197,14 +198,14 @@ impl Kept<'_> {
                 let d = species.states[lived.0].form.dominance;
                 for (slot, s) in slots.iter_mut().enumerate() {
                     let base = size * zone.share(slot) * lived.1;
-                    s.0 += p * base.powf(e) * dominance_power(d, e) * x1;
-                    s.1 += p * base.powf(2.0 * e) * dominance_power(d, 2.0 * e) * x2;
+                    s.0 += p * base.powf_fixed(e) * dominance_power(d, e) * x1;
+                    s.1 += p * base.powf_fixed(2.0 * e) * dominance_power(d, 2.0 * e) * x2;
                 }
             }
             let (s1, s2) = zoned(
                 &axis.pmfs[z],
                 (f, phi, places),
-                (own.powf(e), own.powf(2.0 * e)),
+                (own.powf_fixed(e), own.powf_fixed(2.0 * e)),
                 &slots,
             );
             (h[SECTION], h[SECTION2]) = (s1, s2);
@@ -252,7 +253,7 @@ impl Kept<'_> {
         let (lived, reach) = species.lived(j).unwrap_or((j, 0.0));
         let lived = &species.states[lived];
         let d = lived.form.dominance;
-        let mut placing = Placing::turned(lived.insertion.cos());
+        let mut placing = Placing::turned(lived.insertion.cos_fixed());
         let powers = |share: f64| -> [f64; 4] {
             let base = size * share * reach;
             std::array::from_fn(|p| base.powi(p as i32 + 1) * dominance_power(d, p as f64 + 1.0))
@@ -293,11 +294,11 @@ impl Kept<'_> {
         let table = self.child((*pa, m - at, *carried, *first), delay);
         let row = table.at(t - *at as i64);
         let lambda = weight / grown;
-        let factor = (lambda * (row.0 - 1.0)).exp();
+        let factor = (lambda * (row.0 - 1.0)).exp_fixed();
         let mut y = [0.0; WIDTH];
         if let Some(cb) = row.2 {
             let share = stand.shares[0] * unit;
-            let mut placing = Placing::turned(stand.angle.cos());
+            let mut placing = Placing::turned(stand.angle.cos_fixed());
             let x = stand.along[0] / stand.shares[0].max(f64::MIN_POSITIVE);
             let x2 = stand.square / stand.shares[0].max(f64::MIN_POSITIVE);
             let powers = std::array::from_fn(|p| share.powi(p as i32 + 1));
@@ -312,7 +313,7 @@ impl Kept<'_> {
             placing.place(cb, &mut y);
         }
         let (x1, x2) = handed(row, table.e, e);
-        let share = (stand.shares[0] * unit).powf(e);
+        let share = (stand.shares[0] * unit).powf_fixed(e);
         // A Poisson count of them: E[Σ X²] gains the pairs, λ² E[X]².
         y[SECTION] = share * x1;
         y[SECTION2] = share * share * (x2 + lambda * x1 * x1);

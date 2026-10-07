@@ -239,3 +239,31 @@ fn edge_mask(wood: &telperion_core::surface::SurfaceMesh, camera: &Camera) -> Ve
         })
         .collect()
 }
+
+/// Both settings, without a device (one copy, here, though the shared
+/// module is compiled into three test binaries): the run nobody asked for the evidence from
+/// writes beside the test binary, and only the asked-for run names the tracked
+/// file, in the same place and under the same name as before.
+#[test]
+fn only_an_asked_for_run_names_the_tracked_evidence() {
+    let asked = resolution::receipt_path("smooth_bark", true);
+    assert!(
+        asked.ends_with(".flow/evidence/fn71/resolution/smooth_bark.json"),
+        "asked-for receipt moved: {}",
+        asked.display()
+    );
+
+    let plain = resolution::receipt_path("smooth_bark", false);
+    assert_eq!(
+        plain,
+        std::path::PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("resolution/smooth_bark.json"),
+        "a plain run must keep its receipt in the target temp directory"
+    );
+    assert!(
+        !plain
+            .components()
+            .any(|part| part.as_os_str() == "evidence"),
+        "a plain run reached the tracked evidence: {}",
+        plain.display()
+    );
+}

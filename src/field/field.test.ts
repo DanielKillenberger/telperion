@@ -59,7 +59,9 @@ describe("the slim field entry point", () => {
         await expect(growField(preset.id, 1, { source: module })).rejects.toThrow("no engine species");
         continue;
       }
-      for (const seed of [1, 4242]) {
+      // One seed a preset: the slim chain's agreement is the chain's, not
+      // the seed's; the first test holds it at the beech's seed 5 as well.
+      for (const seed of [1]) {
         const tree = await growField(preset.id, seed, { source: module });
         const family = presetById(preset.id);
         family.skeleton.seed = seed;

@@ -9,6 +9,7 @@
 //! The seed stands at the origin, growing up (+z). Wood that reaches the
 //! ground rests on it and runs along it; the trunk reaching the ground,
 //! or an axis whose base is below it, is an error.
+use crate::transcendental::Transcendental;
 mod lay;
 mod place;
 mod single;
@@ -95,8 +96,8 @@ pub(crate) fn bend(axis: &Axis, state: &PaState, years: f64) -> f64 {
     };
     let erected = match axis.origin {
         Origin::Continuation { .. } => 0.0,
-        Origin::Relay { .. } => axis.blend * (1.0 - (-state.erection * years).exp()),
-        _ => 1.0 - (-state.erection * years).exp(),
+        Origin::Relay { .. } => axis.blend * (1.0 - (-state.erection * years).exp_fixed()),
+        _ => 1.0 - (-state.erection * years).exp_fixed(),
     };
     1.0 - (1.0 - straightening) * (1.0 - erected)
 }
@@ -159,7 +160,7 @@ pub(crate) fn frame(
             let (heading, side) = ends(parent);
             // The phyllotaxis runs on across the change of PA.
             let turn = species.states[p.pa].divergence * p.rank;
-            let side = side * turn.cos() + heading.cross(side) * turn.sin();
+            let side = side * turn.cos_fixed() + heading.cross(side) * turn.sin_fixed();
             (base, heading, side)
         }
         Origin::Lateral {
@@ -213,7 +214,7 @@ pub(crate) fn frame(
             let (tip, _, _) = end(p);
             let (along, across) = ends(parent);
             let turn = state.divergence * p.rank;
-            let carried = across * turn.cos() + along.cross(across) * turn.sin();
+            let carried = across * turn.cos_fixed() + along.cross(across) * turn.sin_fixed();
             let b = axis.blend;
             let heading = (along * (1.0 - b) + heading * b).unit().unwrap_or(heading);
             let side = carried * (1.0 - b) + side * b;
@@ -296,7 +297,7 @@ fn turned(
     plane: f64,
     epitony: f64,
 ) -> (Vec3, Vec3) {
-    let mut toward = side * azimuth.cos() + along.cross(side) * azimuth.sin();
+    let mut toward = side * azimuth.cos_fixed() + along.cross(side) * azimuth.sin_fixed();
     // Turned towards the upper side through the smaller angle; the turn
     // fades as the bud faces straight down, where no side is nearer, so
     // no bud flips from one side to the other, and as the parent stands
@@ -305,13 +306,13 @@ fn turned(
     let level = UP - along * UP.dot(along);
     if let Some(upper) = level.unit() {
         let facing = toward.dot(upper);
-        let turn = along.dot(toward.cross(upper)).atan2(facing);
+        let turn = along.dot(toward.cross(upper)).atan2_fixed(facing);
         let sided = (level.length() / UPRIGHT).min(1.0);
         toward = rotated(toward, along, epitony * sided * turn * (1.0 + facing) / 2.0);
     }
-    let heading = along * angle.cos() + toward * angle.sin();
-    let side = toward * angle.cos() - along * angle.sin();
-    let side = side * plane.cos() + heading.cross(side) * plane.sin();
+    let heading = along * angle.cos_fixed() + toward * angle.sin_fixed();
+    let side = toward * angle.cos_fixed() - along * angle.sin_fixed();
+    let side = side * plane.cos_fixed() + heading.cross(side) * plane.sin_fixed();
     (heading, side)
 }
 

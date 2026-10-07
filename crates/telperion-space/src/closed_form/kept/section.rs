@@ -6,6 +6,7 @@
 //! and mean square among the subtrees kept, so the shed, whose section is
 //! none, do not stand in the spread.
 use super::{Row, SECTION, SECTION2};
+use crate::transcendental::Transcendental;
 
 /// E[S^r; event] by the second-order delta method, from S's partial
 /// moments `s1` = E[S; kept] and `s2` = E[S²; kept] on an event of chance
@@ -20,7 +21,7 @@ pub(crate) fn delta(kept: f64, s1: f64, s2: f64, r: f64) -> f64 {
     }
     let mean = s1 / kept;
     let spread = (s2 / kept - mean * mean).max(0.0);
-    let power = mean.powf(r);
+    let power = mean.powf_fixed(r);
     let second = power * (1.0 + r * (r - 1.0) / 2.0 * spread / (mean * mean));
     let taken = if r < 1.0 {
         second.clamp(0.0, power)

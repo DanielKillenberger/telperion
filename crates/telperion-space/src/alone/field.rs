@@ -3,6 +3,7 @@
 use crate::bounded::Expected;
 use crate::species::Species;
 use crate::structure::{Origin, Structure};
+use crate::transcendental::Transcendental;
 
 /// The committed light field measured (fn-209 probe P2): its resolution,
 /// its build's milliseconds, its nodes, the leaves deposited and the buds
@@ -181,7 +182,9 @@ fn at_light(species: &Species, light: f64) -> Species {
     let mut s = species.clone();
     for state in &mut s.states {
         if state.shade_hazard > 0.0 && light < 1.0 {
-            state.viability = state.viability.powf(light.powf(-state.shade_hazard));
+            state.viability = state
+                .viability
+                .powf_fixed(light.powf_fixed(-state.shade_hazard));
         }
     }
     s
@@ -189,9 +192,9 @@ fn at_light(species: &Species, light: f64) -> Species {
 
 /// A table's value at light `l`, linear in log light between the levels.
 fn interpolate(tables: &[Vec<Vec<f64>>], pa: usize, m: usize, l: f64) -> f64 {
-    let x = l.ln();
+    let x = l.ln_fixed();
     for k in 0..LEVELS.len() - 1 {
-        let (a, b) = (LEVELS[k].ln(), LEVELS[k + 1].ln());
+        let (a, b) = (LEVELS[k].ln_fixed(), LEVELS[k + 1].ln_fixed());
         if x <= a && x >= b {
             let t = (a - x) / (a - b);
             return (1.0 - t) * tables[k][pa][m] + t * tables[k + 1][pa][m];
