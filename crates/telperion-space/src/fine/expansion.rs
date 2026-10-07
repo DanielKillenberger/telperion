@@ -402,7 +402,7 @@ impl Stages {
     /// Stages timed elsewhere, ending now.
     fn add(&mut self, stages: Vec<(&'static str, f64)>) {
         self.out.extend(stages);
-        self.last = std::time::Instant::now();
+        self.last = crate::clock::seconds();
     }
 
     fn mark(&mut self, stage: &'static str) {
