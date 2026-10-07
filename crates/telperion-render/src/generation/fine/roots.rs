@@ -127,7 +127,8 @@ pub(super) fn grow_wave(
     // they stand for, and their count.
     let mut work: Vec<(Option<wgpu::Buffer>, wgpu::Buffer, u32)> =
         vec![(None, buffer(gpu, "no list", 1), n)];
-    let (mut caps, mut size, mut level) = (CAPS, batch as u32, 0u32);
+    let (mut caps, mut size) = first_region(n, batch as u32);
+    let mut level = 0u32;
     loop {
         let mut queues = Vec::new();
         for (gathered, list, count) in &work {
@@ -160,6 +161,20 @@ pub(super) fn grow_wave(
         (caps, size, level) = (caps.times(8), (size / 8).max(64), level + 1);
         assert!(caps.axes < 1 << 16, "a chain no region holds");
     }
+}
+
+/// A wave of `n` chains' first regions and run size: a wave a fraction
+/// of a batch takes regions as many times larger as fit in the batch's
+/// room, so its long chains are not grown twice, once to overflow and
+/// once in a larger region (task 8: the beech's level-1 runs, a few
+/// chains each, took 2 to 5 ms a wave). A chain grows the same in any
+/// region that holds it.
+fn first_region(n: u32, batch: u32) -> (Caps, u32) {
+    let (mut caps, mut size) = (CAPS, batch);
+    while n <= size / 8 && size / 8 >= 64 {
+        (caps, size) = (caps.times(8), size / 8);
+    }
+    (caps, size)
 }
 
 /// One run: `m` chains from `first` of `input` grown in regions of
