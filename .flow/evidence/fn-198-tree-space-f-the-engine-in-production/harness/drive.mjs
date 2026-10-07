@@ -1,9 +1,11 @@
 // fn-198 task 3: drives the dev harness headless, every step under a timeout.
 //   node drive.mjs <base-url> <out-dir> <plan.json | inline JSON>
-// A plan is a list of steps: {open: "?species=..&age=.."} | {age: 80} |
+// A plan is a list of steps: {open: "?species=..&age=.."} | {age: 80} | {seed: 2} |
 // {preset: "silver birch"} | {shot: "name.png"}. After each open, age or
 // preset it waits for the build that step started to settle, and records
 // the time from the change to the first frame drawn after the build.
+// Restart the dev server after a Wasm rebuild: a hot update versions the
+// render glue's URL, and the wrapper below then patches a stale copy.
 import { chromium } from 'playwright';
 import { readFile, writeFile } from 'node:fs/promises';
 
@@ -92,6 +94,10 @@ try {
     } else if (step.age !== undefined) {
       const changed = await page.evaluate(() => performance.now());
       await page.locator('#gd-age').fill(String(step.age));
+      log.push({ step, ...(await settle(count, changed)) });
+    } else if (step.seed !== undefined) {
+      const changed = await page.evaluate(() => performance.now());
+      await page.locator('#gd-seed').fill(String(step.seed));
       log.push({ step, ...(await settle(count, changed)) });
     } else if (step.preset !== undefined) {
       const changed = await page.evaluate(() => performance.now());

@@ -20,15 +20,15 @@
     },
     {
       "path": "dist/telperion-field.wasm",
-      "ceilingBytes": 400000,
-      "reason": "owner, 2026-09-27: kept small, the homepage loads only the slim field module",
+      "ceilingBytes": 632580,
+      "reason": "fn-198 host decision 6, 2026-10-07, on the branch only and for the owner to decide: raised from the owner's 400000 (2026-09-27: kept small, the homepage loads only the slim field module) to the measured size once stage 2 is the engine",
       "baselineBytes": 363305,
       "baselineOn": "master ed23f773 CI package (PR #131)"
     },
     {
       "path": "dist/telperion.js",
-      "ceilingBytes": 150000,
-      "reason": "owner, 2026-09-27: headroom for the main entry script",
+      "ceilingBytes": 153565,
+      "reason": "fn-198 host decision 6, 2026-10-07, on the branch only and for the owner to decide: raised from the owner's 150000 (2026-09-27: headroom for the main entry script) to the measured size once the presets carry the engine species' rows",
       "baselineBytes": 119550,
       "baselineOn": "master ed23f773 CI package (PR #131)"
     },

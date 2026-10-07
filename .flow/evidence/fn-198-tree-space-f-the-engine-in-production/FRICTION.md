@@ -73,3 +73,10 @@
 - **Slowed by:** a Wasm trap (`RuntimeError: unreachable`, the spruce at 75 and 80) leaves `setTreeGpu`'s promise unsettled, so the panel says "building..." for ever; a driver without its own timeout waits for ever, which is most likely the previous worker's three-hour stall. Separately, the beech at 80 was refused "Out of Memory" by the GPU while another worktree's `telperion_render` test held 4.7 GB of the 10 GB card with the shared lock free.
 - **Cost:** two 150-second waits on traps before the driver failed fast on a page error; one beech-at-80 run to repeat.
 - **Would remove it:** the driver now ends a step on a trap at once. A GPU test outside the lock is a lock-discipline gap; a lock that GPU tests take by construction (a test harness wrapper) would close it.
+
+## 2026-10-07 05:43, task 3: the GPU lock held through another session's test suite
+
+- **Doing:** one more harness run (a smaller spruce after a larger one in the same page, which took 66 s against 9.6 s fresh).
+- **Slowed by:** another session's `cargo test --profile ci` held the shared GPU lock for over 10 minutes, so the run's `flock -w 600` gave up; the load rose to 16 to 32 meanwhile, so a rerun would not time cleanly anyway. Also: `npm run build` during a dev session hot-updates the render glue under a versioned URL, and the driver's wrapper then patches a stale copy (the dev server is restarted after a rebuild).
+- **Cost:** 10 minutes of waiting; the check is left open.
+- **Would remove it:** as recorded above, a lock that names its holder and a per-device-use lock rather than per suite.
