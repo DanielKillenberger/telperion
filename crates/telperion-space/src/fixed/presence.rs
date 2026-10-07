@@ -27,10 +27,8 @@ pub fn times(a: u64, b: u64) -> u64 {
 /// A non-negative real as Q32, floored: exact where the real is a Q32
 /// value or a time on the tick grid.
 pub fn q(x: f64) -> u64 {
-    if x.is_nan() || x <= 0.0 {
-        return 0;
-    }
-    // Positive, so the cast's truncation is the floor, without a call.
+    // The cast truncates a positive real, which is its floor, and takes
+    // none, a negative or NaN to 0: one conversion, no branch or call.
     (x * ONE as f64) as u64
 }
 

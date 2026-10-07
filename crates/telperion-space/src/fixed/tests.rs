@@ -171,6 +171,35 @@ fn a_node_s_presence_is_its_lead_s_to_the_bit() {
 }
 
 #[test]
+fn q_is_the_floor_of_a_positive_real_and_none_else() {
+    let reference = |x: f64| {
+        if x.is_nan() || x <= 0.0 {
+            0
+        } else {
+            (x * ONE32 as f64).floor() as u64
+        }
+    };
+    let edges = [
+        f64::NAN,
+        -0.0,
+        0.0,
+        -1.0,
+        1e-12,
+        0.5,
+        1.0,
+        3.75,
+        1e30,
+        f64::INFINITY,
+    ];
+    for x in edges
+        .into_iter()
+        .chain((0..10_000).map(|k| k as f64 * 0.000_123_7))
+    {
+        assert_eq!(presence::q(x), reference(x), "{x}");
+    }
+}
+
+#[test]
 fn exp2_neg_is_close_and_monotone() {
     for k in 0..20_000i64 {
         let x = (k * 0x9e37_79b1) % (70 * ONE32);
