@@ -119,21 +119,42 @@ pub fn log2(n: u64) -> i64 {
     if n == 0 {
         return -INF;
     }
-    let e = 63 - n.leading_zeros();
-    // The mantissa in Q62, in [1, 2); a 64-bit `n` loses its last bit.
-    let mut m = if e <= 62 { n << (62 - e) } else { n >> 1 };
+    let (e, mut m) = mantissa(n);
     let mut frac = 0u64;
     for _ in 0..32 {
-        let square = (u128::from(m) * u128::from(m)) >> 62;
-        frac <<= 1;
-        if square >= 1 << 63 {
-            frac |= 1;
-            m = (square >> 1) as u64;
-        } else {
-            m = square as u64;
-        }
+        frac = (frac << 1) | square(&mut m);
     }
-    (i64::from(e) << 32) | frac as i64
+    (e << 32) | frac as i64
+}
+
+/// `log2` of two non-zero integers at once: the same steps, the two
+/// chains of squarings interleaved so one core runs them side by side.
+fn log2_pair(a: u64, b: u64) -> (i64, i64) {
+    let ((ea, mut ma), (eb, mut mb)) = (mantissa(a), mantissa(b));
+    let (mut fa, mut fb) = (0u64, 0u64);
+    for _ in 0..32 {
+        fa = (fa << 1) | square(&mut ma);
+        fb = (fb << 1) | square(&mut mb);
+    }
+    ((ea << 32) | fa as i64, (eb << 32) | fb as i64)
+}
+
+/// A non-zero `n`'s exponent and its mantissa in Q62, in [1, 2); a 64-bit
+/// `n` loses its last bit.
+fn mantissa(n: u64) -> (i64, u64) {
+    let e = 63 - n.leading_zeros();
+    let m = if e <= 62 { n << (62 - e) } else { n >> 1 };
+    (i64::from(e), m)
+}
+
+/// One step of `log2`: the mantissa squared in Q62, truncated, and halved
+/// back into [1, 2) where it reached 2; the bit is whether it did.
+fn square(m: &mut u64) -> u64 {
+    // m < 2^63, so the square in Q62 is under 2^64.
+    let square = ((u128::from(*m) * u128::from(*m)) >> 62) as u64;
+    let bit = square >> 63;
+    *m = square >> bit;
+    bit
 }
 
 /// `2^-x` for `x` in Q32, as a Q62 probability: one for none or less.
@@ -190,7 +211,10 @@ pub fn ln_ratio(a: u64, b: u64) -> i64 {
     match (a, b) {
         (0, _) => -INF,
         (_, 0) => INF,
-        _ => ((i128::from(log2(a) - log2(b)) * LN2) >> 62) as i64,
+        _ => {
+            let (la, lb) = log2_pair(a, b);
+            ((i128::from(la - lb) * LN2) >> 62) as i64
+        }
     }
 }
 

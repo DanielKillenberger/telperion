@@ -21,6 +21,53 @@ fn log2_is_within_a_few_units_of_its_last_place() {
     assert_eq!(log2(0), -INF);
 }
 
+/// `log2` as the contract first wrote it: the reference its faster form
+/// is held to, bit for bit.
+fn log2_reference(n: u64) -> i64 {
+    if n == 0 {
+        return -INF;
+    }
+    let e = 63 - n.leading_zeros();
+    let mut m = if e <= 62 { n << (62 - e) } else { n >> 1 };
+    let mut frac = 0u64;
+    for _ in 0..32 {
+        let square = (u128::from(m) * u128::from(m)) >> 62;
+        frac <<= 1;
+        if square >= 1 << 63 {
+            frac |= 1;
+            m = (square >> 1) as u64;
+        } else {
+            m = square as u64;
+        }
+    }
+    (i64::from(e) << 32) | frac as i64
+}
+
+#[test]
+fn log2_and_its_pairs_are_the_reference_to_the_bit() {
+    let mut x = 0x9e37_79b9_7f4a_7c15u64;
+    let edges = [
+        1,
+        2,
+        3,
+        (1 << 53) - 1,
+        1 << 62,
+        (1 << 63) - 1,
+        1 << 63,
+        u64::MAX,
+    ];
+    let mut values: Vec<u64> = edges.to_vec();
+    for _ in 0..200_000 {
+        x = x.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+        values.push(x >> (x % 64));
+    }
+    for pair in values.windows(2) {
+        let (a, b) = (pair[0].max(1), pair[1].max(1));
+        assert_eq!(log2(a), log2_reference(a), "log2 {a}");
+        assert_eq!(log2_pair(a, b), (log2_reference(a), log2_reference(b)));
+    }
+}
+
 #[test]
 fn exp2_neg_is_close_and_monotone() {
     for k in 0..20_000i64 {
