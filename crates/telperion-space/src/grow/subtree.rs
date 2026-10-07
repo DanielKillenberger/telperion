@@ -293,9 +293,9 @@ impl<'a> Grower<'a> {
 
     /// Grows every fine subtree from its records on every core and joins
     /// each to its root's place among the pass's axes.
-    pub(super) fn grow_fine_all(&mut self, started: std::time::Instant) -> Result<Measured> {
+    pub(super) fn grow_fine_all(&mut self, started: f64) -> Result<Measured> {
         let pass: Box<Pass> = self.couple.take().expect("a coupling pass");
-        let pass_s = started.elapsed().as_secs_f64();
+        let pass_s = crate::clock::seconds() - started;
         let pass_grown = self.rules.grown;
         let (means, split) = (Arc::new(pass.means), pass.split);
         let fine = pass.fine;
@@ -328,7 +328,7 @@ impl<'a> Grower<'a> {
             expected_fine: fine.iter().map(|f| f.agg.grown).sum(),
             record_bytes: fine.iter().map(|f| f.records.bytes()).sum(),
             pass_s,
-            fine_s: started.elapsed().as_secs_f64() - pass_s,
+            fine_s: crate::clock::seconds() - started - pass_s,
             tag,
             growth,
             leaves,

@@ -217,7 +217,7 @@ fn run_beside(
     options: Options,
     beside: Beside,
 ) -> Result<(Grown, Besides)> {
-    let started = std::time::Instant::now();
+    let started = crate::clock::seconds();
     let (mut grower, keeps) = start(species, request, lay, options)?;
     grower.oracle = beside.oracle.map(Box::new);
     grower.couple = beside.couple.map(Box::new);

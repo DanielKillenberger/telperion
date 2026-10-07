@@ -84,11 +84,11 @@ pub fn grow_stepped(
     };
     let mut years = Vec::with_capacity(request.age as usize);
     for cycle in 1..=request.age {
-        let started = std::time::Instant::now();
+        let started = crate::clock::seconds();
         x.cycle(cycle)?;
-        years.push(started.elapsed().as_secs_f64());
+        years.push(crate::clock::seconds() - started);
     }
-    let started = std::time::Instant::now();
+    let started = crate::clock::seconds();
     let roots = x.items.len();
     let fine_grown = x.items.iter().map(|i| i.g.rules.grown).sum();
     let coarse_grown = x.coarse.rules.grown;
@@ -103,7 +103,7 @@ pub fn grow_stepped(
         fine_grown,
         coarse_grown,
         years,
-        settle: started.elapsed().as_secs_f64(),
+        settle: crate::clock::seconds() - started,
     })
 }
 
