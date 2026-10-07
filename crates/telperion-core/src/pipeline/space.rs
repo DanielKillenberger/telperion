@@ -57,7 +57,6 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
             value,
         });
     }
-    foreseen(species, age as u32, KEPT)?;
     let request = Request {
         age: age as u32,
         seed: u64::from(input.seed),
@@ -68,6 +67,8 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     // first and siblings by lineage, whichever path built it (FINE-CONTRACT
     // decision C; fn-198 host decision 17): the conversion's node numbering
     // and a relay's girth never depend on how the tree was assembled.
+    // A coarse tree keeps a structure above its cut, never the tree's
+    // expected count: `fits` holds it once grown.
     if input.cut > 0 {
         let coarse =
             telperion_space::grow_coarse(species, request, f64::from(input.cut)).map_err(engine)?;
@@ -76,6 +77,7 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
         tree.stands = stands::convert(&coarse, &drawn);
         return Ok(tree);
     }
+    foreseen(species, age as u32, KEPT)?;
     let structure = telperion_space::grow(species, request).map_err(engine)?;
     fits(&structure, KEPT)?;
     Ok(convert(&structure, &input.space.trunk).0)

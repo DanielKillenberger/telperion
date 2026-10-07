@@ -22,7 +22,6 @@ use super::expansion::{settle_with, Lived, Loaded, RootSeed, Roots};
 use super::Plan;
 use crate::bounded::girth::committed_radius;
 use crate::closed_form::boundary::Rows;
-use crate::closed_form::predictor::Predictor;
 use crate::error::{refuse, Result};
 use crate::fixed::presence::{fade, q, real};
 use crate::geometry::{bud_frame, dominance};
@@ -69,8 +68,8 @@ pub fn grow_coarse(species: &Species, request: Request, cut: f64) -> Result<Coar
     }
     let rules = rules(species, request.age, request.budget)?;
     request.light.validate()?;
-    let predictor = Predictor::new(species, &rules.windows, request.age);
-    let rows = Rows::new(species, request.age, crate::cores::available());
+    let rows = Rows::laterals(species, request.age, crate::cores::available());
+    let predictor = rows.predictor();
     let mut expected = Expected {
         species,
         rows: &rows,
