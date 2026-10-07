@@ -31,7 +31,10 @@
 //! between a preset with a species and one without is refused by name. The
 //! European beech ships, so its identity serves it, and the age walks as the
 //! whole years the engine grows. The refusal digest, over the catalogue's
-//! rows alone, did not move.
+//! rows alone, did not move. fn-222 re-pinned the family, walk and override
+//! digests for the engine's new neutral `form.internode_spread`: with
+//! `, internode_spread: 0.0` left out of the text, each was still fn-198's;
+//! no preset states the row, and the refusal digest did not move.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -67,7 +70,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        17_880_590_084_460_784_836,
+        7_725_820_422_629_741_388,
         "{}",
         digest(&text)
     );
@@ -99,7 +102,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        9_721_173_967_828_737_872,
+        6_890_152_529_480_498_898,
         "{}",
         digest(&text)
     );
@@ -124,7 +127,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        4_317_389_471_735_493_231,
+        8_293_698_448_268_978_223,
         "{}",
         digest(&text)
     );
