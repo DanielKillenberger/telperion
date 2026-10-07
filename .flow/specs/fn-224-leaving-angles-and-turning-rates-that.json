@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-224-leaving-angles-and-turning-rates-that",
+  "created_at": "2026-10-07T20:22:51.896512Z",
+  "depends_on_epics": [],
+  "id": "fn-224-leaving-angles-and-turning-rates-that",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-224-leaving-angles-and-turning-rates-that.md",
+  "status": "open",
+  "title": "Leaving angles and turning rates that vary axis to axis",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-07T20:22:51.927458Z"
+}
