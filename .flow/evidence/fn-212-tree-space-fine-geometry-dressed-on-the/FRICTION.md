@@ -41,3 +41,17 @@
 - **Hindered:** `telperion-jev`'s two replay tests read the render crate's examples (`headless`, `species_measure`, `geometry_benchmark`) from the target directory, which only the render half builds, so they fail in the CPU half on a fresh target ("missing: run the workspace gate"). Also, `generation_limits_are_classified` fails on this branch before any of my commits: nine limit sites in `pipeline/input/shoulder.rs` (fn-198's shoulder) are not in `docs/generation-limits-inventory.json`.
 - **Cost:** one false red each; the replay tests are re-run after the render half.
 - **Removal:** run the replay tests in the render half (or build the render examples before the CPU half); classify the shoulder's sites in the inventory on fn-198's branch.
+
+## 2026-10-07 16:00, task 4 (worker): `cargo fmt` rewrites 20 files nobody touched
+
+- **Doing:** formatting the task's two crates before the first commit.
+- **Hindered:** `cargo fmt -p telperion-core -p telperion-render` reformatted about 20 unrelated files on this branch (`build.rs`, the catalogue, the scaffold, the mesh), so the branch is not fmt-clean. Reverting them took a saved reverse patch, because the shell guard refuses `git checkout --` on a dirty file.
+- **Cost:** about 5 minutes.
+- **Removal:** run `cargo fmt` once on fn-198's branch and keep a `cargo fmt --check` in CI, so a worker's fmt touches only its own lines.
+
+## 2026-10-07 16:05, task 4 (worker): the limit guard does not see a `pub const`
+
+- **Doing:** classifying the shoulder's sites after the folds moved.
+- **Hindered:** making `BINS` public dropped it from the guard's scan (`const BINS` matched, `pub const BINS` does not), so its inventory entry had to be deleted as stale. A public constant that bounds generation escapes the guard.
+- **Cost:** two guard runs, about 3 minutes.
+- **Removal:** the guard's pattern for constants matching `pub`, `pub(crate)` and `pub(super)` too.
