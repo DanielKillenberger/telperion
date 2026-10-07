@@ -4,8 +4,12 @@
 //! grower's whole state after every phase of every cycle and every
 //! cycle's lattice compared word for word.
 use super::feedback_stepped::{Device, Taken};
+use telperion_space::fixed::feedback::lattice::Grid;
+use telperion_space::fixed::feedback::shed::{Lateral, Walked};
+use telperion_space::fixed::feedback::Fault;
 use telperion_space::{
-    grow_stepped_on, oak, Expected, Light, PartitionOrder as Order, Request, Species, Stepped,
+    grow_stepped_on, oak, Expected, Feedback, Laid, LayJob, Light, PartitionOrder as Order,
+    Request, Species, Stepped,
 };
 
 fn grouping(order: Order, chunk: usize) -> telperion_space::Grouping {
@@ -87,10 +91,10 @@ fn the_lit_fine_roots_on_the_device_are_the_cpus() {
         let species = &oaks[k];
         let expected = Expected::new(species, request.age, 0);
         let at = (&expected, cut, grouping(order, chunk));
-        let cpu = grow_stepped_on(species, request, at, None).expect("the CPU's");
+        let cpu = grow_stepped_on(species, request, at, None, true).expect("the CPU's");
         let mut device = Device::new(&gpu, taking);
         let started = std::time::Instant::now();
-        let on = grow_stepped_on(species, request, at, Some(&mut device)).expect("the GPU's");
+        let on = grow_stepped_on(species, request, at, Some(&mut device), true).expect("the GPU's");
         let case = format!("oak {k}, cut {cut}, {order:?} by {chunk}, {taking:?}");
         println!(
             "{case}: {} roots; {} axes and {} phytomers laid ({} on the ground), \
@@ -122,4 +126,130 @@ fn the_lit_fine_roots_on_the_device_are_the_cpus() {
     assert!(retried > 0, "no attempt overflowed");
     assert!(shed > 0, "no fine root shed inside");
     assert!(grounded > 0, "no fine wood on the ground");
+}
+
+/// A device whose every call is timed: layout, D16, deposits, reads.
+struct Timed<'d>(Device<'d>, [f64; 4]);
+
+impl Timed<'_> {
+    fn time<R>(&mut self, k: usize, f: impl FnOnce(&mut Device) -> R) -> R {
+        let started = std::time::Instant::now();
+        let r = f(&mut self.0);
+        self.1[k] += started.elapsed().as_secs_f64();
+        r
+    }
+}
+
+impl Feedback for Timed<'_> {
+    fn lay(&mut self, species: &Species, jobs: &[LayJob]) -> Vec<Laid> {
+        self.time(0, |d| d.lay(species, jobs))
+    }
+
+    fn shed(&mut self, items: &[(Vec<Lateral>, (bool, u64))]) -> Result<Vec<Vec<Walked>>, Fault> {
+        self.time(1, |d| d.shed(items))
+    }
+
+    fn deposit(&mut self, grid: &Grid, leaves: &[([i64; 3], i64)]) -> Result<Vec<u128>, Fault> {
+        self.time(2, |d| d.deposit(grid, leaves))
+    }
+
+    fn sample(&mut self, grid: &Grid, light: &[i64], at: &[[i64; 3]]) -> Vec<i64> {
+        self.time(3, |d| d.sample(grid, light, at))
+    }
+}
+
+/// The lit oak at 80 with its fine roots on the device, timed beside
+/// today's whole-tree build and the stepped executor on the CPU, each
+/// warm (the second of two); the device's tree checked against the
+/// CPU's by every phase's digest and the tree's.
+#[test]
+#[ignore = "a timing run: the lit oak at 80, under the GPU lock"]
+fn the_lit_oak_at_80_on_the_device_timed() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let species = oak();
+    let seed = std::env::var("SEED").map_or(1, |s| s.parse().expect("a seed"));
+    let request = Request {
+        age: 80,
+        seed,
+        budget: 20_000_000,
+        light: Light {
+            extinction: 0.5,
+            sky: 0.5,
+        },
+    };
+    let expected = Expected::new(&species, request.age, 0);
+    let at = (&expected, 1_024.0, grouping(Order::Forward, 1));
+    let warm = |f: &mut dyn FnMut() -> f64| {
+        f();
+        f()
+    };
+    let today = warm(&mut || {
+        let started = std::time::Instant::now();
+        telperion_space::grow(&species, request).expect("today's");
+        started.elapsed().as_secs_f64()
+    });
+    let mut cpu = None;
+    let stepped = warm(&mut || {
+        let started = std::time::Instant::now();
+        cpu = Some(grow_stepped_on(&species, request, at, None, false).expect("the CPU's"));
+        started.elapsed().as_secs_f64()
+    });
+    let mut gpu_tree = None;
+    let mut parts = [0.0; 4];
+    let mut counts = (0, 0, 0);
+    let on = warm(&mut || {
+        let mut device = Timed(
+            Device::new(&gpu, (usize::MAX, Taken::Forward, false)),
+            [0.0; 4],
+        );
+        let started = std::time::Instant::now();
+        let s = grow_stepped_on(&species, request, at, Some(&mut device), false);
+        let took = started.elapsed().as_secs_f64();
+        gpu_tree = Some(s.expect("the GPU's"));
+        parts = device.1;
+        counts = (device.0.dispatches, device.0.read_bytes, device.0.phytomers);
+        took
+    });
+    // Once more, each pass's time on the device itself.
+    let mut kernels = [0.0; 4];
+    if crate::generation::profile::start(&gpu) {
+        let mut device = Device::new(&gpu, (usize::MAX, Taken::Forward, false));
+        grow_stepped_on(&species, request, at, Some(&mut device), false).expect("the GPU's");
+        for (label, start, end) in crate::generation::profile::finish(&gpu) {
+            let k = ["lay", "shed", "deposit", "sample"]
+                .iter()
+                .position(|l| *l == label);
+            kernels[k.expect("a pass of this device")] += (end - start) * 1e-9;
+        }
+    }
+    let (cpu, gpu_tree) = (cpu.expect("run"), gpu_tree.expect("run"));
+    let settle = |s: &Stepped| s.settle;
+    println!(
+        "oak lit 80 s{seed}, cut 1,024, {} roots: today {today:.2} s; stepped on the CPU \
+         {stepped:.2} s (settle {:.2}); with the device {on:.2} s (settle {:.2}): layout \
+         {:.2}, D16 {:.2}, deposits {:.2}, reads {:.2} s, of it on the device {:.3}, {:.3}, \
+         {:.3}, {:.3} s; {} dispatches, {} MB read, {} phytomers laid",
+        cpu.roots,
+        settle(&cpu),
+        settle(&gpu_tree),
+        parts[0],
+        parts[1],
+        parts[2],
+        parts[3],
+        kernels[0],
+        kernels[1],
+        kernels[2],
+        kernels[3],
+        counts.0,
+        counts.1 >> 20,
+        counts.2,
+    );
+    assert_eq!(gpu_tree.phases, cpu.phases, "the phases");
+    assert_eq!(
+        telperion_space::digest(&gpu_tree.structure),
+        telperion_space::digest(&cpu.structure),
+        "the tree"
+    );
 }

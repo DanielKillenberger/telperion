@@ -113,9 +113,9 @@ fn the_feedback_interface_keeps_every_phase_whole() {
     for (order, chunk) in [(Order::Forward, 1), (Order::Shuffled(3), 7)] {
         let at = (&expected, 256.0, grouping(order, chunk));
         let started = std::time::Instant::now();
-        let cpu = grow_stepped_on(&species, r, at, None).unwrap();
+        let cpu = grow_stepped_on(&species, r, at, None, true).unwrap();
         let took = started.elapsed();
-        let on = grow_stepped_on(&species, r, at, Some(&mut Cpu)).unwrap();
+        let on = grow_stepped_on(&species, r, at, Some(&mut Cpu), true).unwrap();
         eprintln!(
             "{order:?}: {} roots, {} states, {} lattices, {took:?}",
             cpu.roots,

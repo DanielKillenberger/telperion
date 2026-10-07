@@ -84,16 +84,18 @@ pub fn grow_stepped(
     run(species, request, (expected, cut, grouping), None, false)
 }
 
-/// `grow_stepped` with the fine roots' D16, deposits and sampling on
-/// `device` (the CPU's own where none), every grower's whole state kept
-/// after each phase (fn-211 task 10).
+/// `grow_stepped` with the fine roots' layout, D16, deposits and sampling
+/// on `device` (the stepped executor's own where none), and where
+/// `complete`, every grower's whole state kept after each phase (fn-211
+/// task 10).
 pub fn grow_stepped_on(
     species: &Species,
     request: Request,
     (expected, cut, grouping): (&Expected, f64, Grouping),
     device: Option<&mut dyn Feedback>,
+    complete: bool,
 ) -> Result<Stepped> {
-    run(species, request, (expected, cut, grouping), device, true)
+    run(species, request, (expected, cut, grouping), device, complete)
 }
 
 fn run(
