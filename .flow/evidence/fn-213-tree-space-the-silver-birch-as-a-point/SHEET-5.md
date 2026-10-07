@@ -78,3 +78,9 @@ Both (c) and (j) are now named twice after changes aimed at them: (c) on sheets 
 ## Gate (round 5, commit `e12645b1`)
 
 Render half first, under the GPU lock: `cargo test --profile ci -p telperion-render --no-fail-fast` exits 0. Then `cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render` exits 0. `harness/parity.test.ts` passes 8 of 8. All with `CARGO_BUILD_JOBS`, `RUST_TEST_THREADS` and `RAYON_NUM_THREADS` at 8; logs in the ignored `raw/gate5-*.log`.
+
+## The host's decisions (2026-10-07, sheet-40, sheet-80 and bases viewed)
+
+- The base passes; the host agrees with Astra on (c), (h) and (j).
+- (j) and (h): a capability, captured as fn-223 "leaves cluster at the engine's short shoots"; the birch depends on it. It builds after fn-212's station work lands on F4; the leaves are left alone.
+- (c): the diagnosis is a new cause, not the same knob (rounds 2 to 5 widened the limbs; the never-ending leader keeps the crown elongated). Round 6 tests it with existing mechanisms only: the old stem's tip dies and is relayed often from its 50s, so the top becomes a system of small forks (MBE99), and the limbs flatten with age; the 40-year tree keeps its leader. Only (c) is judged, on the 80-year sheet; if it fails again it is architecture and the host's call.
