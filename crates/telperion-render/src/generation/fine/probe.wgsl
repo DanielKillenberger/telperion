@@ -109,6 +109,9 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         case 15u: {
             r0 = lead_q(a[0], a[1], a[2], vec4<u32>(a[4], a[5]), a[3].x);
         }
+        case 16u: {
+            r0 = internode_draw(a[0]);
+        }
         default: {
             r0 = and_q(a[0], a[1]);
         }

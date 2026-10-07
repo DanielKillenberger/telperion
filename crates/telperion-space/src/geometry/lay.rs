@@ -1,7 +1,7 @@
 //! Laying an axis's internodes, one phytomer at a time: the final lay
 //! walks an axis from its base, and the rough layout grown with the tree
 //! (fn-197) carries the same walk on as each growth unit grows.
-use crate::lineage::Key;
+use crate::lineage::{internode, Key};
 use crate::sag::{held, torque, turn, Lever};
 use crate::species::PaState;
 use crate::structure::{Axis, Phytomer, Vec3};
@@ -145,7 +145,8 @@ impl Layer {
             self.pull,
             self.curve,
         );
-        let length = state.internode * phytomer.scale;
+        let length =
+            state.internode * phytomer.scale * internode(phytomer.key, form.internode_spread);
         let share = 1.0 - (-form.tropism * length).exp_fixed();
         let bent = toward_elevation(running, across, form.elevation, share);
         across = carried(across, running, bent);

@@ -1708,8 +1708,9 @@ fn the_routing_state_names_the_kinds_of_dial_rather_than_every_row() {
     state.dials = telperion_jev::tuning::table::authored();
     // 233 authored rows, less the three deprecated canopy rows (fn-152):
     // fn-170 retired five stems rows and added nine fork and share rows;
-    // fn-177 added the two girth rows; fn-180 the node budget.
-    assert_eq!(state.dials.len(), 233);
+    // fn-177 added the two girth rows; fn-180 the node budget; fn-221 the
+    // six old-bark rows.
+    assert_eq!(state.dials.len(), 239);
 
     let dials = telperion_jev::tuning::judgments::summary(&state)["dials"].clone();
     let bytes = serde_json::to_vec(&dials).unwrap().len();
@@ -1722,7 +1723,7 @@ fn the_routing_state_names_the_kinds_of_dial_rather_than_every_row() {
         .iter()
         .find(|g| g["group"] == "material")
         .expect("the router is not told the material dials exist");
-    assert_eq!(material["dials"], 95);
+    assert_eq!(material["dials"], 101);
     assert_eq!(material["examples"].as_array().unwrap().len(), 3);
     // Every group is named, and the whole routing state still fits.
     assert_eq!(groups.len(), 7);

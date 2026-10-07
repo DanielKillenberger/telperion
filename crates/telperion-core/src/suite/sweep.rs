@@ -70,7 +70,9 @@ const SWEEP_NODES: usize = 8_000;
 // (the walk is refused), and the engine beech and oak no longer seat short
 // shoots or clump their limbs: the short shoots' spacing, the limb clumping
 // and the shell depth moved only between such pairs, so they are held.
-const HELD: [&str; 75] = [
+// fn-221's six old-bark rows are stated by no preset yet (fn-213 owns the
+// birch's), so every table leaves them at their neutral and they are held.
+const HELD: [&str; 81] = [
     "/age",
     "/skeleton/habit/attractorWeight",
     "/skeleton/habit/sheddingThreshold",
@@ -104,6 +106,12 @@ const HELD: [&str; 75] = [
     "/material/leafDeadRed",
     "/material/leafDeadGreen",
     "/material/leafDeadBlue",
+    "/material/matureRed",
+    "/material/matureGreen",
+    "/material/matureBlue",
+    "/material/matureFurrowStrength",
+    "/material/matureRadius",
+    "/material/matureSpan",
     "/canopy/clumpNeighbours",
     "/surface/socketContainment",
     "/skeleton/habit/reachProbeSteps",

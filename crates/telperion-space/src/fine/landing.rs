@@ -44,7 +44,7 @@ impl<'a> Landing<'a> {
         let internode = species
             .states
             .iter()
-            .map(|p| p.internode)
+            .map(|p| p.internode * (1.0 + p.form.internode_spread))
             .fold(0.0, f64::max);
         Self {
             species,

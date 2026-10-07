@@ -241,6 +241,11 @@ pub struct Form {
     /// in a few slow arcs of the same spread per metre. Neutral 0;
     /// dormant without wander.
     pub bend_length: f64,
+    /// How far each internode's length departs from its PA's, node to
+    /// node: scaled by 1 + spread × (2u − 1), u its node's keyed draw, so
+    /// a unit's expected length is unchanged (fn-222). Neutral 0, every
+    /// internode alike; at most 1.
+    pub internode_spread: f64,
 }
 
 impl Default for Form {
@@ -259,6 +264,7 @@ impl Default for Form {
             sag: 0.0,
             secondary: 1.0,
             bend_length: 0.0,
+            internode_spread: 0.0,
         }
     }
 }

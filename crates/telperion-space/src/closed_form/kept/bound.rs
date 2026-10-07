@@ -53,7 +53,9 @@ impl Kept<'_> {
             .iter()
             .map(|z| quantile(&Count::pmf(z.nodes)))
             .sum();
-        let path = most * state.internode * step.size;
+        // Each internode at its longest (fn-222).
+        let longest = state.internode * (1.0 + state.form.internode_spread);
+        let path = most * longest * step.size;
         let mut best = path + rest.map_or(0.0, |r| r.reach);
         // A failed unit's relay stands on the unit before it, the base.
         if let Some(r) = step.failed {

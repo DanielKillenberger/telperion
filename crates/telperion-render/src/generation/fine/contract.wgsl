@@ -62,6 +62,12 @@ fn draw(key: vec2<u32>) -> vec2<u32> {
     return shr64(mix(xor64(key, vec2<u32>(0xd192ed03u, 0xd1b54a32u))), 11u);
 }
 
+// The internode draw of the node keyed `key` (`fixed::internode_draw`,
+// fn-222): under `lineage::INTERNODE`, u64::MAX - 9.
+fn internode_draw(key: vec2<u32>) -> vec2<u32> {
+    return draw(child(key, vec2<u32>(0xfffffff6u, 0xffffffffu)));
+}
+
 // A Q62 probability's threshold against a 53-bit draw.
 fn threshold(p: vec2<u32>) -> vec2<u32> {
     return shr64(add64(min64(p, p_one()), w(511u, 0u)), 9u);
