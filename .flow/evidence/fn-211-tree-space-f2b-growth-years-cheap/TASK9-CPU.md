@@ -179,3 +179,60 @@ Against the base (`raw/task9/sag-vs-base.txt`):
 | `exp2_neg` (with `exp2`'s) | 33.8 M | 8 | 0.3 |
 
 The decision contract's logs are no longer the cost. What remains is the vector work (unit vectors and rotations) and the CORDIC `atan2`: one in the elevation and one in sag's room each step.
+
+## The fourth cost decision and the close of 9a (host, 2026-10-07)
+
+- **atan2 as a table-reduced polynomial** (`5e85bf6c`): the lesser magnitude over the greater; the nearest thirty-second's `atan`; a cubic series in `u²` by Horner; the octant restored; to the nearest T. Error at most 0.49999 T units, against CORDIC's 0.502. Specified in CONTRACT-A.md 2.3, mirrored in `feedback.wgsl`; the probe's atan2, asin, acos, settle and carry selectors agree word for word.
+- **carry's `(cos, sin)`**, unit by construction up to Q32 rounding, takes one Newton step in place of a normalisation (CONTRACT-A.md 2.3, mirrored in `feedback_turn.wgsl`).
+- **The identical-bits square root:** skipped (host). Its ceiling was measured earlier.
+
+### The final whole-build table (`raw/task9/passcost-final.txt`; base `02979d5a` and `5e85bf6c` back to back at load under 10; 80, seed 1)
+
+| Tree | Base build ms | Now build ms | Whole build | Base layout ms | Now layout ms | Layout ratio |
+|---|--:|--:|--:|--:|--:|--:|
+| beech | 543 | 575 | +6 % | 70 | 132 | 1.9 |
+| spruce | 3,031 | 3,690 | +22 % | 613 | 1,388 | 2.3 |
+| oak | 2,120 | 2,211 | +4 % | 142 | 297 | 2.1 |
+| oak lit | 7,557 | 7,605 | +1 % | 893 | 1,484 | 1.7 |
+
+The host accepted the residual, for the device to take on (task 10).
+
+### What contract A changes in today's trees (`raw/task9/final-vs-base.txt`; 28 trees against `56b02531`)
+
+- **Topology:** unchanged in 27 of 28 trees. The lit oak at 80, seed 7, changes 39 of 342,705 axes (97 of 2.59 M phytomers gone, 89 new). It is the one tree whose light, allocation and shedding read the geometry over 80 years, so a threshold-adjacent draw can fall the other way (Astra, R3).
+- **Tips on matching phytomers:**
+  - beech at most 14 µm;
+  - spruce at most 55 µm;
+  - the unlit oak at most 30 µm;
+  - the palm at most 1.6 µm;
+  - the lit oak at 80, seed 7: 2 cm, beside its changed axes (RMS 27 µm).
+- **Radii:** the worst relative changes are radii below Q32's last place (2.3e-10 m), which floor to none (host: fine). Each tree's worst radius before and after is in the table.
+- **Against `02cd51bc`** (`raw/task9/final-vs-sag.txt`), decision flips from the polynomial logs, atan2 and tropism: only the lit oak at 80, seed 7 (14 axes gone, 9 new; 33 phytomers gone, 28 new). Tips elsewhere move at most 0.66 mm.
+
+### The stills (`raw/task9/stills/`, viewed)
+
+The four species at 80, seeds 1 and 7, bare and in leaf, and the oak lit (extinction 0.5, sky 0.5). Base (`56b02531`) beside new (`5e85bf6c`) in `pair/*.png`; all ten pairs were viewed.
+- **No pair can be told apart by eye:** the same crowns, limbs, sag and shadows.
+- **Pixels differing beyond a 2 % fuzz:**
+  - beech 1.2 to 1.4 %;
+  - unlit oak 0.7 to 0.8 %;
+  - spruce 0.3 to 0.8 %;
+  - lit oak at 80, seed 7: 1.0 to 1.1 %;
+  - lit oak at 80, seed 1: 0.002 %;
+  - palm: 0.003 % or less.
+- **Where those pixels lie** (`diff-beech-80-1-bare.png`): they are spread over the whole crown as single fine-twig pixels, not a moved branch.
+
+### Pins re-taken once
+
+- **The closed form's rows** (`0c6ec96e`): 30 of 40 hashes re-taken. `the_rows_stay_near_the_old_reading` holds them to their old values. No other pin in either crate moved.
+- **Tolerances moved from f64's to Q32's last places** across the passes:
+  - the light slab law;
+  - four allocation laws;
+  - `tests/form.rs` (four);
+  - `tests/geometry.rs` (one);
+  - girth's leaf term;
+  - the closed form's kept laws and extent bound.
+
+### The gate
+
+The render half ran first, under the GPU lock: `cargo test --profile ci -p telperion-render --no-fail-fast`, 166 passed, none failed. Then the rest: `cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render`, 1,012 passed, none failed. Both ran at `0c6ec96e`, with the limits of 8 build jobs, 8 test threads and 8 Rayon threads.
