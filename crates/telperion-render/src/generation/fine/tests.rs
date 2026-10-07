@@ -11,7 +11,7 @@ const CASES: usize = 1 << 18;
 const PROBE: &str = include_str!("probe.wgsl");
 
 /// The functions the probe selects, by its `cfg.y`.
-const NAMES: [&str; 15] = [
+const NAMES: [&str; 16] = [
     "child, draw",
     "log2, exp2_neg",
     "exp2, neg_log2",
@@ -27,6 +27,7 @@ const NAMES: [&str; 15] = [
     "under_q, over_q",
     "times_q, window_q, wood_at_q",
     "carry_q, fade_q",
+    "lead_q",
 ];
 
 /// SplitMix64, for cases.
@@ -164,6 +165,26 @@ fn cases(s: u32, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
                     a[6] = fx::q32(0.05 * stake) as u64;
                     a[7] = fx::q32(2.0) as u64;
                 }
+                15 => {
+                    let d = match rng.next() % 8 {
+                        0 => 0,
+                        _ => rng.draw(),
+                    };
+                    let near = |rng: &mut Cases| match rng.next() % 4 {
+                        0 => d.saturating_sub(rng.next() % 4),
+                        1 => d + rng.next() % 4,
+                        _ => rng.draw(),
+                    };
+                    a[0] = match rng.next() % 4 {
+                        0 => 0,
+                        _ => near(rng),
+                    };
+                    a[1] = match rng.next() % 4 {
+                        0 => 1 << 53,
+                        _ => near(rng),
+                    };
+                    a[2] = d;
+                }
                 14 => {
                     let age = rng.within(1, 4096) as u64;
                     a[0] = rng.within(0, 1 << 44) as u64;
@@ -242,6 +263,7 @@ fn expected(s: u32, a: &[u64; 8], presences: &[u64]) -> [u64; 2] {
                 pr::fade(a[4], a[5] as u32, (a[6], a[7]), age),
             ]
         }
+        15 => [pr::over(a[0], a[2]).min(pr::under(a[1], a[2])) as u64, 0],
         _ => {
             let unit = &presences[a[0] as usize..(a[0] + a[1]) as usize];
             [decide::relay_node_q(unit, 0, unit.len(), a[2]) as u64, 0]

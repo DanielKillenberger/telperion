@@ -246,6 +246,26 @@ fn over_q(t: vec2<u32>, d: vec2<u32>) -> vec2<u32> {
     return sub64(logit_draw(d), logit(shl64(t, 9u)));
 }
 
+// The lesser of `over_q(low, d)` and `under_q(high, d)`, the draw's
+// log-odds taken once where both bounds hold (task 8; REALIZED.md's
+// option b): the same words, half the draw's `log2` calls.
+fn lead_q(low: vec2<u32>, high: vec2<u32>, d: vec2<u32>) -> vec2<u32> {
+    let over = !is_zero(low);
+    let under = lt64(high, w(0u, 0x200000u)) && !is_zero(d);
+    if !over && !under {
+        return inf();
+    }
+    let drawn = logit_draw(d);
+    var lead = inf();
+    if over {
+        lead = smin64(lead, sub64(drawn, logit(shl64(low, 9u))));
+    }
+    if under {
+        lead = smin64(lead, sub64(logit(shl64(high, 9u)), drawn));
+    }
+    return lead;
+}
+
 // `a b / 2^32`, unsigned, floored: a product of presences.
 fn times_q(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
     return shr128(mul128(a, b), 32u);

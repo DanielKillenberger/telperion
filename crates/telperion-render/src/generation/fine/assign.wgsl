@@ -243,7 +243,7 @@ fn take_ask(r: u32) {
                 let rate = row(a.pa, 18u + 2u * a.stake);
                 window = window_q(wood, rate, row(a.pa, 19u + 2u * a.stake), span);
             }
-            p = presence(smin64(over_q(a.low, a.d), under_q(a.high, a.d)), window);
+            p = presence(lead_q(a.low, a.high, a.d), window);
         }
         if r < units {
             set_unit_q(unit_base + (r / 3u) * UW, QSURV + 2u * (r % 3u), p);

@@ -106,6 +106,9 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
             r0 = carry_q(a[0], a[1], a[2].x, a[3]);
             r1 = fade_q(a[4], a[5].x, a[6], a[7], a[2].y);
         }
+        case 15u: {
+            r0 = lead_q(a[0], a[1], a[2]);
+        }
         default: {
             r0 = and_q(a[0], a[1]);
         }
