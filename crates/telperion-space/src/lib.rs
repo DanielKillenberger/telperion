@@ -48,10 +48,9 @@ pub use bounded::{grow_bounded, Bounded, Expected};
 pub use closed_form::expected_counts;
 pub use error::{Error, Result};
 pub use fine::{
-    bearer_frame, canonical, chain_cases, digest, fine_cases, grow_committed, grow_fine,
-    identities, landed, lineage_order, realized_cases, root_axes, roots_geometry, settle,
-    survey_lit, BearerFrame, ChainAxis, ChainBud, ChainTables, CommittedFine, Expanded, Fine,
-    FineRoot, GeometryTables, Lived, Loaded, Order, PaGeometry, PaRow, Plan, Presences,
+    bearer_frame, canonical, chain_cases, digest, grow_fine, identities, landed, lineage_order,
+    realized_cases, root_axes, settle, survey_lit, BearerFrame, ChainAxis, ChainBud, ChainTables,
+    Expanded, Fine, GeometryTables, Lived, Loaded, Order, PaGeometry, PaRow, Plan, Presences,
     RealizedCase, RootAxes, RootGeometry, RootSeed, Roots, Settled, Surveyed, UnitZone, Units,
     Woke, Work, ZoneGeometry,
 };

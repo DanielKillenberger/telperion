@@ -61,8 +61,7 @@ pub(super) fn packed(t: &ChainTables, g: &GeometryTables) -> Packed {
             | u32::from(r.abortion.is_some_and(|a| a.2.is_some())) << 2
             | u32::from(r.successor.is_some()) << 3
             | u32::from(r.delay.is_some()) << 4
-            | u32::from(r.lasting.is_some()) << 5
-            | u32::from(r.shed_at.is_some()) << 6;
+            | u32::from(r.lasting.is_some()) << 5;
         let (a_thr, a_log, rise) = r.abortion.unwrap_or((0, 0, None));
         let (next, go, go62) = r
             .successor
@@ -86,7 +85,7 @@ pub(super) fn packed(t: &ChainTables, g: &GeometryTables) -> Packed {
             r.lasting.unwrap_or(0) as u64,
             0, // the log woods' offset, set below
             r.relay_at,
-            r.shed_at.unwrap_or(0) as u64,
+            0,
         ]);
         // Host decision 8's presences (`assign.wgsl`), from word 18.
         for (rate, floor) in r.stakes {
@@ -104,21 +103,14 @@ pub(super) fn packed(t: &ChainTables, g: &GeometryTables) -> Packed {
         words[slot] = words.len() as u64;
         words.extend(t.log_woods[pa].iter().map(|&l| l as u64));
     }
-    // The extinction curves: each one's start in the words and length.
-    let curves = table.len() as u32;
-    let dead = words.len() as u32;
-    words.extend(t.dead.iter().map(|&d| d as u64));
-    for &(at, len) in &t.curves {
-        table.extend([dead + at, len]);
-    }
     let geo = words.len() as u32;
     words.extend(super::laid::presences(g));
-    (table, words, [rows, curves, geo])
+    (table, words, [rows, geo])
 }
 
-/// The tables as words, and where the PA rows, the curves and the
-/// presences' values start.
-pub(super) type Packed = (Vec<u32>, Vec<u64>, [u32; 3]);
+/// The tables as words, and where the PA rows and the presences' values
+/// start.
+pub(super) type Packed = (Vec<u32>, Vec<u64>, [u32; 2]);
 
 /// A bud's words: its record, its vigour as made and its node's buds a
 /// whorl (f32), and its making draws' presences (Q32, host decision 8).
@@ -218,14 +210,13 @@ impl Grower {
     }
 
     /// Grows the `n` buds from `first` of `input` in regions of `caps`,
-    /// recorded into `encoder`; `keep`: every axis kept (realized
-    /// mechanics), else shed by the committed boundaries.
+    /// recorded into `encoder`, every axis kept (realized mechanics).
     pub(super) fn region(
         &self,
         gpu: &Gpu,
         encoder: &mut wgpu::CommandEncoder,
         (input, first, n): (&wgpu::Buffer, u32, u32),
-        (tables, t, span, age, keep): (&Uploaded, &Packed, i64, u32, bool),
+        (tables, t, span, age): (&Uploaded, &Packed, i64, u32),
         caps: Caps,
     ) -> Region {
         let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
@@ -245,10 +236,10 @@ impl Grower {
             caps.sleepers,
             caps.woken,
             t.2[1],
-            t.2[2],
             caps.units,
             first,
-            u32::from(keep),
+            0,
+            0,
         ];
         let b = |label, bytes: u64| io::buffer(gpu, label, bytes, storage, &[]).unwrap();
         let usage = wgpu::BufferUsages::UNIFORM;

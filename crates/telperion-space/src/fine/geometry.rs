@@ -5,8 +5,6 @@
 //! it from without cancellation (logs and log-odds taken here in f64), and
 //! each fine root's attachment as its record holds it. Geometry decides no
 //! topology, so it is held to fn-125's screen, never to the bit.
-use super::CommittedFine;
-use crate::bounded::Expected;
 use crate::error::Result;
 use crate::grow::alone::rules;
 use crate::lineage::threshold;
@@ -73,10 +71,6 @@ pub struct GeometryTables {
     /// expected to grow from then, as a share of the tree's
     /// (`Windows::wood`).
     pub woods: Vec<Vec<f64>>,
-    /// The committed rows by `pa * (age + 1) + m` for a lateral `m` cycles
-    /// from the tree's age: kept, s1, s2, grown1, grown2, mass, moment
-    /// and e (none, 0, where no bud of the PA is borne).
-    pub rows: Vec<[f64; 8]>,
 }
 
 /// The thresholds of the running sums below and above each PA's run.
@@ -96,7 +90,7 @@ fn bounds(probabilities: &[f64]) -> Vec<[u64; 2]> {
 impl GeometryTables {
     /// The tables of `species` grown to `age`, for a tree no bud of which
     /// reads light.
-    pub fn new(species: &Species, age: u32, expected: &Expected) -> Result<Self> {
+    pub fn new(species: &Species, age: u32) -> Result<Self> {
         let rules = rules(species, age, 0)?;
         let windows = &rules.windows;
         let pas = (0..species.states.len())
@@ -164,22 +158,11 @@ impl GeometryTables {
                     .collect()
             })
             .collect();
-        let held = expected.rows();
-        let rows = (0..species.states.len())
-            .flat_map(|pa| (0..=age).map(move |m| (pa, m)))
-            .map(|(pa, m)| match held.row_at(pa, m as usize) {
-                Some(r) => [
-                    r.kept, r.s1, r.s2, r.grown1, r.grown2, r.mass, r.moment, r.e,
-                ],
-                None => [0.0; 8],
-            })
-            .collect();
         Ok(Self {
             age,
             pas,
             zones,
             woods,
-            rows,
         })
     }
 }
@@ -203,44 +186,11 @@ pub struct BearerFrame {
 /// bearer's frame before bending and as laid.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RootGeometry {
-    /// Grown on the CPU reference executor (host decision 3).
-    pub grounded: bool,
     pub vigour: f64,
     pub whorl: f64,
     pub bearer_pa: usize,
     pub unbent: BearerFrame,
     pub bent: BearerFrame,
-}
-
-/// Each fine root's attachment, in record order.
-pub fn roots_geometry(fine: &CommittedFine) -> Vec<RootGeometry> {
-    fine.roots
-        .iter()
-        .map(|(root, ..)| {
-            let a = &root.attachment;
-            let whorl = match root.record.origin {
-                crate::structure::Origin::Lateral { whorl, .. } => whorl,
-                _ => unreachable!("a fine root is a lateral bud"),
-            };
-            let frame = |f: &super::record::Frame| BearerFrame {
-                below: f.below,
-                tip: f.at.tip,
-                heading: f.at.heading,
-                side: f.at.side,
-                rank: f.at.rank,
-                scale: f.at.scale,
-                size: f.at.size,
-            };
-            RootGeometry {
-                grounded: root.grounded,
-                vigour: root.record.vigour,
-                whorl,
-                bearer_pa: a.pa,
-                unbent: frame(&a.unbent),
-                bent: frame(&a.bent),
-            }
-        })
-        .collect()
 }
 
 /// The laid frame of axis `bearer` of `tree` at its node `node`, as a

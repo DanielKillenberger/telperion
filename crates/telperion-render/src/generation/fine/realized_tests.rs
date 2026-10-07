@@ -5,9 +5,9 @@
 //! within fn-125's screen, in any order of the roots and any batch size.
 use super::device::Device;
 use super::laid::{AL, PL};
-use super::laid_tests::kernels;
 use super::readback;
 use super::realized::{grow_roots, RootBud};
+use super::roots::kernels;
 use super::roots::{Cost, Kernels, Tables};
 use super::shedding;
 use crate::Gpu;
@@ -89,10 +89,8 @@ fn setup<'a>(
     chain: &'a ChainTables,
 ) -> (Vec<RealizedCase>, Tables<'a>, Vec<RootBud>) {
     let cases = realized_cases(species, request(age, seed), Plan::default()).expect("grows");
-    let expected = Expected::new(species, age, 0);
-    let geo = GeometryTables::new(species, age, &expected).expect("tables");
-    let mut tables = Tables::new(gpu, chain, &geo);
-    tables.keep = true;
+    let geo = GeometryTables::new(species, age).expect("tables");
+    let tables = Tables::new(gpu, chain, &geo);
     let roots = cases
         .iter()
         .map(|c| (c.bud, [c.made.0 as f32, c.made.1 as f32], c.birth))
@@ -108,8 +106,7 @@ fn trips(cost: &Cost) {
 /// and their presences, Q32, to the bit; each root's living as reported
 /// up; and its axes kept by its own subtree's shedding.
 fn grown_as_on_the_cpu(gpu: &Gpu, k: &Kernels, name: &str, species: &Species, at: (u32, u64)) {
-    let expected = Expected::new(species, at.0, 0);
-    let chain = ChainTables::new(species, at.0, &expected).expect("tables");
+    let chain = ChainTables::new(species, at.0).expect("tables");
     let (cases, tables, roots) = setup(gpu, species, at, &chain);
     let forward: Vec<usize> = (0..cases.len()).collect();
     let reverse: Vec<usize> = forward.iter().rev().copied().collect();
@@ -128,7 +125,7 @@ fn grown_as_on_the_cpu(gpu: &Gpu, k: &Kernels, name: &str, species: &Species, at
     for (order, batch) in [(&forward, 4096), (&reverse, 777), (&forward, 64)] {
         let (waves, mut cost) = grow_roots((gpu, k), (&roots, order, batch), &tables);
         trips(&cost);
-        let got = readback::read(gpu, &waves.grown, cases.len(), true);
+        let got = readback::read(gpu, &waves.grown, cases.len());
         for (r, (c, have)) in cases.iter().zip(&got.roots).enumerate() {
             let ((gpu, by), (cpu, want)) = (canon(have), canon(&c.grown));
             assert_eq!(gpu, cpu, "{name} {at:?} root {r}");
@@ -148,7 +145,7 @@ fn grown_as_on_the_cpu(gpu: &Gpu, k: &Kernels, name: &str, species: &Species, at
             );
         }
         k.fades.shed(gpu, (&waves.grown, &waves.own), &all);
-        let shed = readback::read(gpu, &waves.grown, cases.len(), true);
+        let shed = readback::read(gpu, &waves.grown, cases.len());
         for (r, (c, have)) in cases.iter().zip(&shed.roots).enumerate() {
             assert_eq!(
                 canon(have).0,
@@ -223,11 +220,10 @@ pub(super) fn settled_against(
     (order, batch): (&[usize], usize),
 ) -> Apart {
     let expected = Expected::new(species, at.0, 0);
-    let chain = ChainTables::new(species, at.0, &expected).expect("tables");
-    let geo = GeometryTables::new(species, at.0, &expected).expect("tables");
+    let chain = ChainTables::new(species, at.0).expect("tables");
+    let geo = GeometryTables::new(species, at.0).expect("tables");
     let t = std::time::Instant::now();
-    let mut tables = Tables::new(gpu, &chain, &geo);
-    tables.keep = true;
+    let tables = Tables::new(gpu, &chain, &geo);
     let mut dev = Device::new(gpu, k, &tables, batch).ordered(order.to_vec());
     let (settled, _) =
         settle(species, request(at.0, at.1), &expected, plan, &mut dev).expect("settles");
@@ -238,7 +234,7 @@ pub(super) fn settled_against(
     let reads = 2 + usize::from(tables.sags);
     assert_eq!(c.trips, c.runs + c.waves + reads, "{c:?}");
     let (waves, laid) = dev.waves();
-    let got = readback::read(gpu, &waves.grown, want.len(), true);
+    let got = readback::read(gpu, &waves.grown, want.len());
     let floats: Vec<Vec<f32>> = laid.iter().map(|w| w.read(gpu)).collect();
     let mut apart = Apart {
         cost: c,

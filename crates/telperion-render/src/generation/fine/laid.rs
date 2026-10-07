@@ -21,6 +21,12 @@ pub(super) const PL: usize = 22;
 pub(super) const SA: u32 = 66;
 pub(super) const SP: u32 = 12;
 const GG: usize = 24;
+/// `settle.wgsl`'s passes.
+pub(super) const SCALES: usize = 0;
+pub(super) const GIRTHS: usize = 1;
+pub(super) const LAYS: usize = 2;
+pub(super) const LEVERS: usize = 3;
+pub(super) const BENDS: usize = 4;
 
 /// The geometry kernel's WGSL.
 pub(super) fn source() -> String {
@@ -31,8 +37,8 @@ pub(super) fn source() -> String {
 }
 
 /// The species point's values as `geometry.wgsl` reads them: the PAs,
-/// the age, where the rows start and whether any PA sags; each PA's block;
-/// the rows.
+/// the age, where the blocks end and whether any PA sags; each PA's
+/// block.
 pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
     let npas = g.pas.len();
     let rows = 4 + GG * npas;
@@ -70,7 +76,6 @@ pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
         out[4 + GG * pa + 20] = f32::from_bits(lo);
         out[4 + GG * pa + 21] = f32::from_bits(hi);
     }
-    out.extend(g.rows.iter().flatten().map(|&v| v as f32));
     let sags = g.pas.iter().any(|p| p.sag > 0.0);
     (out, sags)
 }
@@ -207,86 +212,29 @@ pub(super) struct Resolver {
 impl Resolver {
     pub(super) fn new(gpu: &Gpu) -> Self {
         let read = [true, true, true, true, true, false, false, false];
-        let entries = ["resolve", "scales", "girths", "lays", "levers", "bends"];
+        let entries = ["scales", "girths", "lays", "levers", "bends"];
         Self {
             pass: io::Pass::new(gpu, source(), &read, &entries),
         }
     }
 
-    /// Resolves a run's `n` chains, described by `items`, their regions
-    /// packed in `packed` and their scratch in `scratch`, from `prev`
-    /// into `out`, recorded into `encoder` (option 4's committed path).
-    #[allow(clippy::too_many_arguments)]
-    pub(super) fn dispatch(
-        &self,
-        gpu: &Gpu,
-        encoder: &mut wgpu::CommandEncoder,
-        (items, n, packed, scratch): (
-            &wgpu::Buffer,
-            u32,
-            (&wgpu::Buffer, &wgpu::Buffer),
-            &wgpu::Buffer,
-        ),
-        (table, origins): (&wgpu::Buffer, &wgpu::Buffer),
-        (prev, out): (&Wave, &Wave),
-        (age, sags): (u32, bool),
-    ) {
-        let records = (0, 0, 0);
-        let run = (items, n, packed, scratch);
-        self.pass_of(
-            gpu,
-            encoder,
-            run,
-            (table, origins),
-            (prev, out),
-            (age, sags),
-            records,
-        );
-    }
-
-    /// Runs `settle.wgsl`'s `entry` (1 `scales` to 5 `bends`) over a run's
-    /// `n` chains, the next wave's records at `prior` and this wave's at
-    /// `mine` in `records`, which holds the roots' origins first.
+    /// Runs `settle.wgsl`'s `entry` (0 `scales` to 4 `bends`) over a run's
+    /// `n` chains, described by `items`, their regions packed in `packed`
+    /// and their scratch in `scratch`, from `prev` into `out`, the next
+    /// wave's records at `prior` and this wave's at `mine` in `records`,
+    /// which holds the roots' origins first; recorded into `encoder`.
     #[allow(clippy::too_many_arguments)]
     pub(super) fn settle(
         &self,
         gpu: &Gpu,
         encoder: &mut wgpu::CommandEncoder,
-        run: (
+        (items, n, packed, scratch): (
             &wgpu::Buffer,
             u32,
             (&wgpu::Buffer, &wgpu::Buffer),
             &wgpu::Buffer,
         ),
         (table, records): (&wgpu::Buffer, &wgpu::Buffer),
-        (prev, out): (&Wave, &Wave),
-        (age, sags): (u32, bool),
-        (entry, prior, mine): (usize, u32, u32),
-    ) {
-        let at = (entry, prior, mine);
-        self.pass_of(
-            gpu,
-            encoder,
-            run,
-            (table, records),
-            (prev, out),
-            (age, sags),
-            at,
-        );
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    fn pass_of(
-        &self,
-        gpu: &Gpu,
-        encoder: &mut wgpu::CommandEncoder,
-        (items, n, packed, scratch): (
-            &wgpu::Buffer,
-            u32,
-            (&wgpu::Buffer, &wgpu::Buffer),
-            &wgpu::Buffer,
-        ),
-        (table, origins): (&wgpu::Buffer, &wgpu::Buffer),
         (prev, out): (&Wave, &Wave),
         (age, sags): (u32, bool),
         (entry, prior, mine): (usize, u32, u32),
@@ -314,7 +262,7 @@ impl Resolver {
             &prev.buffer,
             &out.buffer,
             scratch,
-            origins,
+            records,
         ];
         let bind = self.pass.bind(gpu, &all);
         self.pass.run(encoder, &bind, entry, groups);

@@ -6,8 +6,8 @@
 //! --profile ci -p telperion-render realized_at_40_and_80 -- --ignored
 //! --nocapture`, with `FINE_GPU_LOCK` naming the GPU lock, taken only
 //! around the device's builds.
-use super::laid_tests::kernels;
 use super::realized_tests::{request, settled_against, Apart};
+use super::roots::kernels;
 use std::time::Instant;
 use telperion_space::{grow_fine, root_axes, Expected, Plan, Species};
 

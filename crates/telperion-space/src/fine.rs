@@ -24,13 +24,10 @@
 //! fn-211's stepped executor.
 mod canonical;
 mod cases;
-mod committed;
-mod executor;
 mod expansion;
 mod geometry;
 mod landing;
 mod realized;
-mod record;
 mod surface;
 mod survey;
 mod tables;
@@ -46,17 +43,13 @@ use crate::species::Species;
 use crate::structure::Structure;
 pub use canonical::{canonical, digest, identities, lineage_order};
 pub use cases::{landed, realized_cases, root_axes, Presences, RealizedCase, RootAxes};
-pub use committed::{grow_committed, CommittedFine};
-pub use executor::Work;
 pub use expansion::{settle, Lived, Loaded, RootSeed, Roots, Settled};
 pub use geometry::{
-    bearer_frame, roots_geometry, BearerFrame, GeometryTables, PaGeometry, RootGeometry,
-    ZoneGeometry,
+    bearer_frame, BearerFrame, GeometryTables, PaGeometry, RootGeometry, ZoneGeometry,
 };
 use realized::{Cpu, Root};
-pub use record::FineRoot;
 use std::time::Instant;
-pub use surface::{chain_cases, fine_cases, ChainAxis, ChainBud, ChainTables, PaRow, Woke};
+pub use surface::{chain_cases, ChainAxis, ChainBud, ChainTables, PaRow, Woke};
 pub use survey::{survey_lit, Surveyed};
 pub use tables::{UnitZone, Units};
 
@@ -90,6 +83,18 @@ impl Default for Plan {
             threads: 0,
         }
     }
+}
+
+/// The work inside one item: chains grown, phytomers grown (the shed
+/// ones included), the cycles its chains were grown through, the axes
+/// made, and microseconds.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct Work {
+    pub chains: usize,
+    pub grown: u64,
+    pub cycles: u64,
+    pub axes: usize,
+    pub micros: f64,
 }
 
 /// A fine root as the expansion reports it: where its first axis stands

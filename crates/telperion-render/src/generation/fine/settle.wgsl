@@ -316,7 +316,7 @@ fn scales(@builtin(global_invocation_id) id: vec3<u32>) {
     if ch.na == 0u {
         return;
     }
-    own_axes(ch.na, ch.np, true);
+    own_axes(ch.na, ch.np);
     scale_realized(ch.na, ch.bearer);
 }
 

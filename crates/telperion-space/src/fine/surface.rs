@@ -7,7 +7,6 @@ use super::tables::Units;
 use crate::alone::{chains, seed_item, Seen};
 use crate::bounded::Expected;
 use crate::error::Result;
-use crate::fine::{grow_committed, CommittedFine, Plan};
 use crate::fixed::presence::q;
 use crate::fixed::{neg_log2, q32, q62, ticks, INF};
 use crate::grow::alone::{rules, Bud, Chain};
@@ -43,8 +42,6 @@ pub struct PaRow {
     pub lasting: Option<i64>,
     /// D18: where along its last unit a relay of it stands (Q32).
     pub relay_at: u64,
-    /// D15: the last cycle its delay leaves dead, where it is shed.
-    pub shed_at: Option<i64>,
     /// Host decision 8, Q32: the window's rate and floor at stake 1, at
     /// a failed unit's (1 - relay_failed) and at an abortion's (1 -
     /// relay); its successor's chance and its ended age's relay
@@ -68,30 +65,13 @@ pub struct ChainTables {
     /// The widest window (Q32).
     pub span: i64,
     pub age: u32,
-    /// D15: each borne bud's extinction curve as `-log2`, Q32, by
-    /// `pa * (age + 1) + m` for a bud `m` cycles from the tree's age: its
-    /// start in `dead` and its length.
-    pub curves: Vec<(u32, u32)>,
-    pub dead: Vec<i64>,
 }
 
 impl ChainTables {
     /// The tables of `species` grown to `age`, for a tree no bud of which
     /// reads light.
-    pub fn new(species: &Species, age: u32, expected: &Expected) -> Result<Self> {
+    pub fn new(species: &Species, age: u32) -> Result<Self> {
         let rules = rules(species, age, 0)?;
-        let rows = expected.rows();
-        let (all, rows_age) = rows.curves();
-        debug_assert_eq!(rows_age, age as usize);
-        let mut dead = Vec::new();
-        let curves = all
-            .iter()
-            .map(|c| {
-                let at = dead.len() as u32;
-                dead.extend(c.iter().map(|&p| neg_log2(q62(p))));
-                (at, c.len() as u32)
-            })
-            .collect();
         let pas = (0..species.states.len())
             .map(|pa| {
                 let s = &species.states[pa];
@@ -118,10 +98,6 @@ impl ChainTables {
                     delay: s.shedding.is_finite().then(|| q32(s.shedding + 1.0)),
                     lasting: rules.lasting[pa].map(q32),
                     relay_at: q32(s.relay_at.clamp(0.0, 1.0)) as u64,
-                    shed_at: s
-                        .shedding
-                        .is_finite()
-                        .then(|| (f64::from(age) - s.shedding - 1.0).floor() as i64),
                     stakes: [1.0, 1.0 - s.relay_failed, 1.0 - s.relay]
                         .map(|stake| (q32(RATE * stake), q32(FLOOR * stake))),
                     living: (
@@ -154,8 +130,6 @@ impl ChainTables {
             log_woods,
             span: q32(SPAN),
             age,
-            curves,
-            dead,
         })
     }
 }
@@ -255,74 +229,8 @@ pub fn chain_cases(species: &Species, request: Request) -> Result<Vec<Case>> {
         out.push((bud, topology(seen.chain, seen.kept, seen.contexts)));
     };
     let start = (Vec::new(), Vec::new(), seed_item());
-    chains(
-        &rules,
-        &rows,
-        request.seed,
-        start,
-        (&|_| false, &mut observe),
-        true,
-    )?;
+    chains(&rules, &rows, request.seed, start, &mut observe, true)?;
     Ok(out)
-}
-
-/// A tree grown above `plan`'s cut and expanded below it on the committed
-/// boundaries (`committed.rs`): each fine root's bud as the GPU executor takes it,
-/// and the root's kept axes as the CPU expanded them (its first axis's
-/// parent none, the rest numbered among the root's).
-pub fn fine_cases(
-    species: &Species,
-    request: Request,
-    plan: Plan,
-) -> Result<(CommittedFine, Vec<Case>)> {
-    let expected = Expected::new(species, request.age, 0);
-    let fine = grow_committed(species, request, &expected, plan)?;
-    let cases = fine
-        .roots
-        .iter()
-        .enumerate()
-        .map(|(k, (root, ..))| {
-            let bud = ChainBud {
-                context: root.context,
-                ..input(species, request.seed, Some(&root.bud))
-            };
-            let (from, to) = (fine.starts[k], fine.starts[k + 1]);
-            let axes = fine.structure.axes[from..to]
-                .iter()
-                .map(|a| {
-                    let local = |p: usize| (p >= from).then(|| p - from);
-                    let (kind, node, slot, woken, parent) = match a.origin {
-                        Origin::Lateral {
-                            parent,
-                            node,
-                            slot,
-                            woken,
-                            ..
-                        } => (1, node, slot, woken, local(parent)),
-                        Origin::Continuation { parent } => (2, 0, 0, false, local(parent)),
-                        Origin::Relay { parent, node } => (3, node, 0, false, local(parent)),
-                        Origin::Seed => unreachable!("a fine root is a lateral bud"),
-                    };
-                    ChainAxis {
-                        parent,
-                        kind,
-                        node,
-                        slot,
-                        lineage: a.lineage,
-                        pa: a.pa,
-                        birth: a.birth,
-                        apex_end: a.apex_end,
-                        phytomers: a.phytomers.iter().map(|p| (p.cycle, p.key())).collect(),
-                        woken,
-                        kept: true,
-                        context: None,
-                    }
-                })
-                .collect();
-            (bud, axes)
-        })
-        .collect();
-    Ok((fine, cases))
 }
 
 pub(super) fn input(species: &Species, seed: u64, bud: Option<&Bud>) -> ChainBud {

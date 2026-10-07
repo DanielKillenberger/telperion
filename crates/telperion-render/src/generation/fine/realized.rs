@@ -31,7 +31,6 @@ pub(super) fn grow_roots(
     (roots, order, batch): (&[RootBud], &[usize], usize),
     tables: &Tables,
 ) -> (Waves, Cost) {
-    assert!(tables.keep, "realized growth keeps every axis");
     let mut cost = Cost::default();
     let words: Vec<u64> = order
         .iter()

@@ -7,7 +7,7 @@
 //! phase 2 sheds, scales and thickens, its base radius up; phase 3 lays
 //! and loads, its load up; phase 4 lays under the levers.
 use super::super::io;
-use super::laid::{stubs, Wave};
+use super::laid::{stubs, Wave, BENDS, GIRTHS, LAYS, LEVERS, SCALES};
 use super::realized::{grow_roots, RootBud, Waves};
 use super::roots::{Cost, Kernels, Tables};
 use super::shedding::{report, table};
@@ -182,7 +182,6 @@ impl Roots for Device<'_> {
         let attached = seeds
             .iter()
             .map(|s| RootGeometry {
-                grounded: false,
                 vigour: s.made.0,
                 whorl: s.made.1,
                 bearer_pa: 0,
@@ -233,8 +232,8 @@ impl Roots for Device<'_> {
             kept.attached[r].bent = kept.attached[r].unbent;
         }
         self.attach(&kept);
-        self.pass(&kept, 1, true);
-        self.pass(&kept, 2, false);
+        self.pass(&kept, SCALES, true);
+        self.pass(&kept, GIRTHS, false);
         self.kept = Some(kept);
         let read = self.records();
         self.cost.lay += start.elapsed().as_secs_f64() * 1e3;
@@ -251,10 +250,10 @@ impl Roots for Device<'_> {
         }
         let kept = self.kept.take().expect("grown");
         self.attach(&kept);
-        self.pass(&kept, 3, true);
+        self.pass(&kept, LAYS, true);
         let sags = self.tables.sags;
         if sags {
-            self.pass(&kept, 4, false);
+            self.pass(&kept, LEVERS, false);
         }
         let origins: Vec<Vec3> = live.iter().map(|&r| kept.attached[r].unbent.tip).collect();
         self.kept = Some(kept);
@@ -282,7 +281,7 @@ impl Roots for Device<'_> {
         }
         let kept = self.kept.take().expect("grown");
         self.attach(&kept);
-        self.pass(&kept, 5, true);
+        self.pass(&kept, BENDS, true);
         self.gpu
             .device
             .poll(wgpu::PollType::wait_indefinitely())

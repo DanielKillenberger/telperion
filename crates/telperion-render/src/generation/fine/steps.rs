@@ -20,8 +20,7 @@ pub(super) const BW2: u32 = 28;
 pub(super) const IW: u32 = 12;
 /// `emit.wgsl`'s entries.
 pub(super) const DESCRIBE: usize = 0;
-pub(super) const HAND: usize = 1;
-pub(super) const REALIZED: usize = 2;
+pub(super) const REALIZED: usize = 1;
 
 pub(super) fn sources() -> Vec<(&'static str, String)> {
     vec![
@@ -74,7 +73,7 @@ impl Steps {
                 gpu,
                 EMIT.into(),
                 &rw(8, &[1, 2, 3, 5]),
-                &["describe", "emit", "realized"],
+                &["describe", "realized"],
             ),
         }
     }
@@ -136,8 +135,8 @@ impl Steps {
     }
 
     /// Runs `emit.wgsl`'s `entry` over a run's `n` chains: `DESCRIBE`
-    /// writes their geometry items into `items`, `HAND` hands their kept
-    /// axes' buds on, `REALIZED` hands every borne bud on.
+    /// writes their geometry items into `items`, `REALIZED` hands every
+    /// borne bud on.
     #[allow(clippy::too_many_arguments)]
     pub(super) fn hand(
         &self,

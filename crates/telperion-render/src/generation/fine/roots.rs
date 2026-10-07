@@ -1,18 +1,15 @@
-//! Fine roots expanded on the GPU, wave by wave, on the device (fn-209
-//! F1, tasks 2, 4 and 5): each wave's chains grown from their buds in runs
-//! of a batch, recorded, packed and laid, and the buds their kept axes
-//! bear written as the next wave's, until none is left. The overflow rule
-//! is the chain: a chain that outgrows its region is queued and grown
-//! again in one eight times larger. Per run and per wave only the scans'
-//! totals cross to the host, to size the next buffers (host decision 6);
-//! nothing per chain or per node does.
-use super::chains::{bud_words, packed, upload, Caps, Grower, Packed, Uploaded, AXW, PW};
-use super::laid::{self, Resolver, Wave};
+//! The GPU executor's waves (fn-209 F1, tasks 2, 5 and 6): a wave's
+//! chains grown from their buds in runs of a batch, recorded and packed.
+//! The overflow rule is the chain: a chain that outgrows its region is
+//! queued and grown again in one eight times larger. Per run only the
+//! scan's totals cross to the host, to size the next buffers (host
+//! decision 6); nothing per chain or per node does.
+use super::chains::{packed, upload, Caps, Grower, Packed, Uploaded, AXW, PW};
+use super::laid::{self, Resolver};
 use super::shedding::Fades;
-use super::steps::{buffer, Steps, BW2, CW, DESCRIBE, HAND, IW, RW};
+use super::steps::{buffer, Steps, BW2, IW, RW};
 use crate::Gpu;
-use std::time::Instant;
-use telperion_space::{ChainBud, ChainTables, GeometryTables, RootGeometry};
+use telperion_space::{ChainTables, GeometryTables};
 
 /// A chain's first region: most chains are a few axes, so a small region
 /// and a large batch; one that outgrows it is grown again in a region
@@ -50,8 +47,6 @@ pub(super) struct Tables<'a> {
     pub uploaded: Uploaded,
     pub table: wgpu::Buffer,
     pub sags: bool,
-    /// Realized mechanics: every axis kept by the chain grower.
-    pub keep: bool,
 }
 
 impl<'a> Tables<'a> {
@@ -68,7 +63,6 @@ impl<'a> Tables<'a> {
             packed,
             table,
             sags,
-            keep: false,
         }
     }
 }
@@ -79,6 +73,15 @@ pub(super) struct Kernels {
     pub steps: Steps,
     pub resolver: Resolver,
     pub fades: Fades,
+}
+
+pub(super) fn kernels(gpu: &Gpu) -> Kernels {
+    Kernels {
+        grower: Grower::new(gpu),
+        steps: Steps::new(gpu),
+        resolver: Resolver::new(gpu),
+        fades: Fades::new(gpu),
+    }
 }
 
 /// One run as the device keeps it: its chains, their records (places in
@@ -101,110 +104,12 @@ pub(super) struct Grown {
     pub runs: Vec<Run>,
 }
 
-/// The roots expanded on the device: the laid buffers (the first the
-/// roots' attachments) and, for the tests, every wave as kept.
-pub(super) struct Expanded {
-    pub waves: Vec<Wave>,
-    pub grown: Vec<Grown>,
-}
-
 /// The four totals a run reads back: its packed axes and phytomers, its
 /// scratch words, and its chains queued for a larger region.
 pub(super) fn totals(gpu: &Gpu, buffer: &wgpu::Buffer, words: u64, cost: &mut Cost) -> Vec<u32> {
     cost.trips += 1;
     let bytes = super::super::io::read(gpu, buffer, words * 4).unwrap();
     bytemuck::cast_slice(&bytes).to_vec()
-}
-
-/// Expands every root of `buds` (none that can reach the ground, host
-/// decision 3), taken in `order`, `batch` chains a run.
-pub(super) fn expand(
-    (gpu, k): (&Gpu, &Kernels),
-    (buds, attached, order, batch): (&[ChainBud], &[RootGeometry], &[usize], usize),
-    tables: &Tables,
-) -> (Expanded, Cost) {
-    let mut cost = Cost::default();
-    let (stubs, origins) = laid::stubs(attached);
-    let usage = wgpu::BufferUsages::STORAGE;
-    let data = bytemuck::cast_slice(&origins);
-    let bytes = origins.len().max(4) as u64 * 4;
-    let origins = super::super::io::buffer(gpu, "laid origins", bytes, usage, data).unwrap();
-    let roots = buds.len() as u32;
-    let mut waves = vec![Wave::new(gpu, (roots, roots), &stubs)];
-    // The first wave's buds are the roots' records, uploaded.
-    let first: Vec<usize> = order
-        .iter()
-        .copied()
-        .filter(|&r| !attached[r].grounded)
-        .collect();
-    let words: Vec<u64> = first
-        .iter()
-        .flat_map(|&r| {
-            bud_words(
-                &buds[r],
-                [attached[r].vigour as f32, attached[r].whorl as f32],
-                [1 << 32; 2],
-            )
-        })
-        .collect();
-    let meta: Vec<[u32; 2]> = first.iter().map(|&r| [r as u32, r as u32]).collect();
-    let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-    let up = |label, data: &[u8]| {
-        let bytes = data.len().max(16) as u64;
-        super::super::io::buffer(gpu, label, bytes, storage, data).unwrap()
-    };
-    let mut wave_buds = up("wave buds", bytemuck::cast_slice(&words));
-    let mut wave_meta = up("wave meta", bytemuck::cast_slice(&meta));
-    let mut n = first.len() as u32;
-    let mut grown = Vec::new();
-    while n > 0 {
-        cost.waves += 1;
-        let start = Instant::now();
-        let places = buffer(gpu, "wave places", u64::from(n * CW));
-        let runs = grow_wave(gpu, k, (&wave_buds, n, batch), (&places, tables), &mut cost);
-        // The wave's places, and its laid buffer and next buds sized.
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
-        let sums = buffer(gpu, "wave totals", 4);
-        k.steps.scan(gpu, &mut encoder, (&places, n, CW, CW), &sums);
-        gpu.queue.submit([encoder.finish()]);
-        let t = totals(gpu, &sums, 3, &mut cost);
-        cost.grow += start.elapsed().as_secs_f64() * 1e3;
-        let start = Instant::now();
-        let out = Wave::new(gpu, (t[0], t[1]), &[]);
-        let next_buds = buffer(gpu, "wave buds", u64::from(t[2] * BW2));
-        let next_meta = buffer(gpu, "wave meta", u64::from(t[2] * 2));
-        let stub = waves.len() == 1;
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
-        for run in &runs {
-            let lay = (&run.runoff, &places, &wave_meta, &run.items);
-            let hand = (&run.axes, &run.scratch, &next_buds, &next_meta);
-            k.steps
-                .hand(gpu, &mut encoder, (run.n, stub, DESCRIBE), lay, hand);
-            k.resolver.dispatch(
-                gpu,
-                &mut encoder,
-                (&run.items, run.n, (&run.axes, &run.phyts), &run.scratch),
-                (&tables.table, &origins),
-                (waves.last().expect("a wave"), &out),
-                (tables.chain.age, tables.sags),
-            );
-            k.steps
-                .hand(gpu, &mut encoder, (run.n, stub, HAND), lay, hand);
-        }
-        gpu.queue.submit([encoder.finish()]);
-        gpu.device
-            .poll(wgpu::PollType::wait_indefinitely())
-            .unwrap();
-        cost.lay += start.elapsed().as_secs_f64() * 1e3;
-        waves.push(out);
-        grown.push(Grown {
-            meta: wave_meta,
-            places,
-            runs,
-        });
-        (wave_buds, wave_meta, n) = (next_buds, next_meta, t[2]);
-    }
-    (Expanded { waves, grown }, cost)
 }
 
 /// Grows a wave's `n` buds in runs of `batch`, each chain that outgrew its
@@ -270,7 +175,7 @@ fn grow_run(
 ) -> (Run, Option<(wgpu::Buffer, u32)>) {
     let t = tables;
     let mut encoder = gpu.device.create_command_encoder(&Default::default());
-    let at = (&t.uploaded, &t.packed, t.chain.span, t.chain.age, t.keep);
+    let at = (&t.uploaded, &t.packed, t.chain.span, t.chain.age);
     let region = k
         .grower
         .region(gpu, &mut encoder, (input, first, m), at, caps);

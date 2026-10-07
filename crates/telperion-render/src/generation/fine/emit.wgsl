@@ -1,9 +1,8 @@
-// A wave's chains handed on, on the device (fn-209 F1, task 5; host
-// decision 6): `describe` writes each chain's geometry item from its run
-// record and its places in the wave (`geometry.wgsl` reads them), and
-// `emit` writes the buds its kept axes bear as the next wave's buds, each
-// with its root and its bearer's index in this wave's laid buffer, in the
-// order the CPU reference grows them.
+// A wave's chains handed on, on the device (fn-209 F1, tasks 5 and 6;
+// host decision 6): `describe` writes each chain's geometry item from its
+// run record and its places in the wave (`geometry.wgsl` reads them), and
+// `realized` writes every bud its axes bear as the next wave's buds, each
+// with its root and its bearer's index in this wave's laid buffer.
 
 struct Cfg {
     n: u32,
@@ -32,7 +31,6 @@ const KIND: u32 = 4u;
 const PARENT: u32 = 5u;
 const LATERAL: u32 = 1u;
 const IS_WOKEN: u32 = 0x80000u;
-const SHED_FLAGS: u32 = 28u;
 
 fn chain_of(id: vec3<u32>) -> u32 {
     return id.x + id.y * cfg.row;
@@ -69,7 +67,6 @@ fn put_bud(a: u32, k: u32, root: u32, bearer: u32) {
     let kind = axes[a + KIND];
     let b = k * BW2;
     let woke = (kind & IS_WOKEN) != 0u;
-    let context = (axes[a + SHED_FLAGS] & 2u) != 0u;
     next_buds[b] = axes[a];
     next_buds[b + 1u] = axes[a + 1u];
     next_buds[b + 2u] = axes[a + 2u];
@@ -80,7 +77,7 @@ fn put_bud(a: u32, k: u32, root: u32, bearer: u32) {
     next_buds[b + 7u] = axes[a + 9u];
     next_buds[b + 8u] = axes[a + 10u];
     next_buds[b + 9u] = axes[a + 11u];
-    next_buds[b + 10u] = select(0u, 1u, woke) | select(0u, 2u, context);
+    next_buds[b + 10u] = select(0u, 1u, woke);
     next_buds[b + 11u] = (kind >> 8u) & 0xffu;
     next_buds[b + 12u] = select(0u, axes[a + 8u], woke);
     next_buds[b + 13u] = select(0u, axes[a + 9u], woke);
@@ -90,8 +87,8 @@ fn put_bud(a: u32, k: u32, root: u32, bearer: u32) {
     next_buds[b + 17u] = select(0u, axes[a + 13u], woke);
     next_buds[b + 18u] = select(0u, axes[a + 19u], woke);
     next_buds[b + 19u] = select(0u, axes[a + 3u] + 1u, woke);
-    next_buds[b + 20u] = select(0u, axes[a + 29u], context);
-    next_buds[b + 21u] = select(0u, axes[a + 30u], context);
+    next_buds[b + 20u] = 0u;
+    next_buds[b + 21u] = 0u;
     next_buds[b + 22u] = axes[a + 36u];
     next_buds[b + 23u] = axes[a + 37u];
     // Its making draws' presences, Q32 (`assign.wgsl`'s B0 and B1).
@@ -99,37 +96,6 @@ fn put_bud(a: u32, k: u32, root: u32, bearer: u32) {
         next_buds[b + 24u + f] = axes[a + 40u + f];
     }
     next_meta[k] = vec2<u32>(root, bearer);
-}
-
-@compute @workgroup_size(64)
-fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
-    let c = chain_of(id);
-    if c >= cfg.n {
-        return;
-    }
-    let r = c * RW;
-    if runoff[r + 6u] == 0u {
-        return;
-    }
-    let wi = runoff[r + 7u];
-    let a0 = runoff[r];
-    let na = runoff[r + 8u];
-    let sb = runoff[r + 2u];
-    let out_axes = places[wi * CW];
-    var k = places[wi * CW + 2u];
-    let root = owners[wi].x;
-    for (var i = 2u; i < na; i++) {
-        let a = (a0 + i) * AXW;
-        if (axes[a + KIND] & 0xffu) != LATERAL {
-            continue;
-        }
-        let own = scratch[sb + axes[a + PARENT] * SA];
-        if own == 0xffffffffu {
-            continue;
-        }
-        put_bud(a, k, root, out_axes + own);
-        k += 1u;
-    }
 }
 
 // Realized mechanics' growth (fn-209 F1 task 6): every axis kept, so each

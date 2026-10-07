@@ -25,9 +25,9 @@ fn words(gpu: &Gpu, buffer: &wgpu::Buffer) -> Vec<u32> {
     bytemuck::cast_slice(&bytes).to_vec()
 }
 
-/// What `grown` holds for `roots` roots; `all`: each wave's laid places
-/// count every own axis, kept or not (realized growth).
-pub(super) fn read(gpu: &Gpu, grown: &[Grown], roots: usize, all: bool) -> Read {
+/// What `grown` holds for `roots` roots, each wave's laid places counting
+/// every own axis, kept or not, as realized growth places them.
+pub(super) fn read(gpu: &Gpu, grown: &[Grown], roots: usize) -> Read {
     let mut out = Read {
         roots: vec![Vec::new(); roots],
         presences: vec![Vec::new(); roots],
@@ -93,7 +93,7 @@ pub(super) fn read(gpu: &Gpu, grown: &[Grown], roots: usize, all: bool) -> Read 
             let mut own = 0;
             for (i, ax) in chain.iter().enumerate() {
                 let own_axis = i == 0 || ax.kind != 1;
-                if own_axis && all && !ax.kept {
+                if own_axis && !ax.kept {
                     own += 1;
                 }
                 if !own_axis || !ax.kept {

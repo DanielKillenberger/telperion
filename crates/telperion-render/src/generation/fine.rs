@@ -43,8 +43,6 @@ mod hostrun;
 #[cfg(test)]
 mod laid;
 #[cfg(test)]
-mod laid_tests;
-#[cfg(test)]
 mod readback;
 #[cfg(test)]
 mod realized;
