@@ -14,7 +14,7 @@ pub(super) fn cpu_bytes(p: &CompactSurface) -> u64 {
         + p.run_table.capacity() * size_of::<telperion_core::surface::SurfaceRun>()) as u64
 }
 
-pub(super) struct PendingPositions {
+struct PendingPositions {
     surface: CompactSurface,
     positions: wgpu::Buffer,
     metadata: wgpu::Buffer,
@@ -34,7 +34,7 @@ impl Generator {
         }
     }
 
-    pub(super) fn begin_positions(
+    fn begin_positions(
         &self,
         p: CompactSurface,
         metrics: &mut Metrics,
@@ -173,7 +173,7 @@ impl Generator {
         }))
     }
 
-    pub(super) async fn complete_positions(
+    async fn complete_positions(
         &self,
         pending: PendingPositions,
         metrics: &mut Metrics,

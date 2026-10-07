@@ -18,34 +18,34 @@ impl Generator {
         let mut uploaded_wood = None;
         let mut shared_stations = None;
         let mut early_wood_ms = 0.0;
-        let mut station_unsupported = false;
-        if delivery == Delivery::Resident && x.supports_stations() && x.round_section() {
+        // Ring positions have one reader, the seated leaves' contacts
+        // (`pack.wgsl`): a family that seats nothing builds none (fn-212 R2).
+        if delivery == Delivery::Resident
+            && x.seats()
+            && x.supports_stations()
+            && x.round_section()
+        {
             let begin = Clock::now();
-            let needs_contacts = x.seats();
             let mut candidate_stations = None;
             let mut station_ms = 0.0;
             let mut station_bytes = 0;
-            let compact = if needs_contacts {
-                x.compact_with_contacts().and_then(|shared| {
-                    metrics.shared_contact_cpu_bytes = shared.contact_bytes() as u64;
-                    if shared.surface().qualified() {
-                        let station_start = Clock::now();
-                        candidate_stations = x
-                            .compact_stations(&shared)?
-                            .map(|p| (p.segments, p.count, p.ring_size));
-                        station_ms = station_start.elapsed_ms();
-                        station_bytes = candidate_stations.as_ref().map_or(0, |(s, _, _)| {
-                            (s.capacity() * size_of::<foliage::prepared::StationSegment>()) as u64
-                        });
-                    }
-                    metrics.shared_prepare_cpu_bytes = positions::cpu_bytes(shared.surface())
-                        + metrics.shared_contact_cpu_bytes
-                        + station_bytes;
-                    Ok(shared.into_surface())
-                })
-            } else {
-                x.compact()
-            };
+            let compact = x.compact_with_contacts().and_then(|shared| {
+                metrics.shared_contact_cpu_bytes = shared.contact_bytes() as u64;
+                if shared.surface().qualified() {
+                    let station_start = Clock::now();
+                    candidate_stations = x
+                        .compact_stations(&shared)?
+                        .map(|p| (p.segments, p.count, p.ring_size));
+                    station_ms = station_start.elapsed_ms();
+                    station_bytes = candidate_stations.as_ref().map_or(0, |(s, _, _)| {
+                        (s.capacity() * size_of::<foliage::prepared::StationSegment>()) as u64
+                    });
+                }
+                metrics.shared_prepare_cpu_bytes = positions::cpu_bytes(shared.surface())
+                    + metrics.shared_contact_cpu_bytes
+                    + station_bytes;
+                Ok(shared.into_surface())
+            });
             metrics.position_prepare_ms = begin.elapsed_ms() - station_ms;
             let compact = match compact {
                 Ok(p) => Some(p),
@@ -59,46 +59,7 @@ impl Generator {
                 metrics.shared_prepare_cpu_bytes = metrics
                     .shared_prepare_cpu_bytes
                     .max(positions::cpu_bytes(&p) + station_bytes);
-                if !needs_contacts {
-                    let scopes = io::scope(&self.gpu);
-                    let pending = self.begin_positions(p, &mut metrics);
-                    let station_start = Clock::now();
-                    let station_result = x.stations();
-                    #[cfg(test)]
-                    let station_result = super::tests::late_station_result(
-                        station_result,
-                        pending.as_ref().ok().is_some_and(|p| p.is_some()),
-                    );
-                    station_ms = station_start.elapsed_ms();
-                    let result = match pending {
-                        Ok(Some(pending)) => self.complete_positions(pending, &mut metrics).await,
-                        Ok(None) => Ok(None),
-                        Err(error) => {
-                            let _ = io::complete(&self.gpu).await;
-                            Err(error)
-                        }
-                    };
-                    let errors = io::errors(&self.gpu, scopes).await;
-                    let prepared = station_result?;
-                    errors?;
-                    let candidate = result?;
-                    candidate_stations = prepared.map(|p| (p.segments, p.count, p.ring_size));
-                    station_unsupported = candidate_stations.is_none();
-                    station_bytes = candidate_stations.as_ref().map_or(0, |(s, _, _)| {
-                        (s.capacity() * size_of::<foliage::prepared::StationSegment>()) as u64
-                    });
-                    metrics.shared_prepare_cpu_bytes = metrics
-                        .shared_prepare_cpu_bytes
-                        .max(metrics.position_cpu_bytes + station_bytes);
-                    if station_unsupported {
-                        drop(candidate);
-                        metrics.gpu_positions = false;
-                        metrics.position_retained_metadata_bytes = 0;
-                        metrics.position_fallback = Some("station capability");
-                    } else {
-                        uploaded_wood = candidate;
-                    }
-                } else if candidate_stations.is_some() || !p.qualified() {
+                if candidate_stations.is_some() || !p.qualified() {
                     let scopes = io::scope(&self.gpu);
                     let result = self.emit_positions(p, &mut metrics).await;
                     let errors = io::errors(&self.gpu, scopes).await;
@@ -116,7 +77,7 @@ impl Generator {
                 }
             }
             early_wood_ms = begin.elapsed_ms() - station_ms;
-        } else if delivery == Delivery::Resident {
+        } else if delivery == Delivery::Resident && x.seats() {
             metrics.position_fallback = Some("profile or station capability");
         }
         if uploaded_wood.is_none()
@@ -161,7 +122,7 @@ impl Generator {
                 metrics.wood_fallback = Some("CPU triangle admission");
             }
         }
-        let stations = if shared_stations.is_some() || station_unsupported {
+        let stations = if shared_stations.is_some() {
             None
         } else {
             x.stations()?
