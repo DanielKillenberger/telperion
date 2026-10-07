@@ -53,3 +53,22 @@ What does not yet read, against the references:
 - **Native and Wasm topologies differ for the birch.** `harness/parity.test.ts` ("native/wasm topology bytes and positions to rounding: silver-birch") fails: at the preset's own tree (age 40, seed 42) the native build keeps 1,417,415 nodes and the Wasm build 1,417,246. The other four engine presets pass. Probes that each changed one thing and rebuilt both sides kept the gap at exactly 169 nodes: a thicker short-shoot pipe (0.0007 to 0.001 m), a longer short-shoot internode (3 to 5 mm), no `sag` anywhere, no `bendLength` anywhere. So it is not the conversion's thinnest-wood or shortest-internode cut, nor the beam or the remembered bend. Unknown: which engine draw rounds differently. Options: (a) find the draw (an engine or conversion fix, its own spec); (b) the host's pending decision to pin the engine's math (fn-198) settles it; (c) values that avoid it, found by search, which hides rather than fixes it.
 - **Pendulous shoots by set-point, not by weight** (MODEL-BIRCH.md design question 2): drawable now; whether it stands is the host's call.
 - **Dark old bark** (question 5): unknown whether material rows or a capability.
+
+## The host's reading (2026-10-07, both sheets viewed)
+
+Reads as birch: the white stem, the hanging strands, the narrow crown at 40 rounding by 80. Not yet:
+
+1. The crown is far too dense, bare and in leaf; the references show an open crown with sky between ascending limbs.
+2. Main limbs at 80 run out as flat horizontal white spokes; a birch's main limbs ascend steeply and the weeping strands hang from them.
+3. All wood is white to the tips; a birch is white on the stem and thick limbs only, its fine wood dark brown to purple-grey (that dark fine wood is much of how a bare birch reads).
+4. Leaves bluish; they should be a bright yellow-green.
+5. The stem never curves or leans, and there is no dark fissured base at 80.
+
+## The host's decisions
+
+- (a) Merge `fn-198-tree-space-f-the-engine-in-production` (pinned math, F2b, faster tests) first and re-run `harness/parity.test.ts`; if the 169-node gap remains, stop that thread and report it for its own spec.
+- (b) Hanging by a target angle below the horizontal stands if it reads right.
+- (c) Bark white by girth and dark on fine wood and on the old fissured base: try the existing material rows first; if they cannot express colour by radius or age, report a capability gap with options, never fake it.
+- (d) Monopodial axes and the estimated crown width stand.
+
+Round 2 aims at (1), (2), (4) and (5)'s lean by values, then a second sheet in the same layout (SHEET-2.md).
