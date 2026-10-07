@@ -270,7 +270,7 @@ fn draw(
             let p = &mut axis.phytomers[j];
             // Unsized: what it bears inherits its scale without its size.
             p.scale = pencil.base_scale * present * draws.nodes[j] * grown;
-            axis.first = (axis.first + present * draws.nodes[j] * grown).min(1.0);
+            p.grown = present * draws.nodes[j] * grown;
             p.size = size;
             p.rank = pencil.rank;
             pencil.rank += draws.nodes[j] * grown;

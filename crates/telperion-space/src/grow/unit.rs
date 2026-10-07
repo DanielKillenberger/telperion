@@ -68,6 +68,7 @@ impl Shoot<'_, '_> {
                     rank: 0.0,
                     size: 1.0,
                     light: 1.0,
+                    grown: 0.0,
                 });
                 let node_presence = fixed::real(node_presence);
                 self.draws_mut(apex.axis).nodes.push(node_presence);

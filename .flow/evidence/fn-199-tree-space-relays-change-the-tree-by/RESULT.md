@@ -402,3 +402,21 @@ The weight pulls a relay standing on a carried-on axis back toward the axis carr
 - with presence only, class 13 (and class 10 for length).
 
 **Candidate for the host, not built.** `relay_point` itself stands on the last unit blended back toward the unit before by the last unit's grown extent (Σ presence × node presence × share, capped at 1), along the whole line of axes carried on, as if one axis. The weight then belongs to the unit, not to which axis holds it. R3's `carried_point` becomes this rule's case where the last unit is on the axis carrying on. It covers classes 6, 10, 12 and 13 with one measure. It changes every relay that stands on a partial last unit (failed units' lived parts, partial lifespans).
+
+## Host decision: Rule 2 withdrawn, Rule 2' adopted (2026-10-07); built; the census is clean
+
+**Decision.** Rule 2 (R3's weight on the carried-on axis) is withdrawn. Rule 2': `relay_point` blends from the last unit back towards the unit before, by the last unit's grown extent (unit presence × node presence × lived share, capped at 1), along the whole line of carried-on axes read as one axis. R3's blend is that rule's special case, and the separate R3 weight is deleted. Moving relays that stand on partial last units is accepted: it is the "by degree" requirement.
+
+**Built (CPU):**
+- **`geometry/stand.rs`.**
+  - `stand(axes, species, p, node)` reads the line's units newest first. The newest takes the contract's node (D18); the others take the node by scaled length.
+  - Each unit's extent is `Phytomer.grown`, set in `presence::assign` and the grower's pencils. It replaces `Axis.first`, which is deleted, along with `carried_point`.
+  - Points blend down to a whole unit or the line's base. The ranks are absolute azimuths, phase included.
+  - `relay_span` (girth and sag, R4) stays on the last unit.
+- **The base phase.** `Axis.phase` is the phase from outside the structure. A fine root's stub (`stub((bearer, phase), node)`) holds its bearer's phase, so a root's laterals keep the phyllotaxis of the line they stand on (`phyllotaxis_runs_on_across_a_continuation` caught its absence).
+- **Closed form.** A lived part's relay stands blended back by the lived part's extent, its nodes at their mean (`lived_extent`, in `events.rs` and `kept/path.rs`), an explicit approximation.
+- **`Living`.** Not affected: it reads chances, not places.
+
+**Tests.** Every comparison test passes. `relays`, `form` and `geometry` are green. The two pin tests wait for the re-pin.
+
+**Census, seeds 1 to 50 (rules 1 and 2'):** R1 0 jumps; R3 1 flag (seed 50, 4.8e-4 after refinement). It bisects to 8.1e-11 of the tree: a refinement-limited slope. **Clean.**

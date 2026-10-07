@@ -13,6 +13,7 @@ use crate::transcendental::Transcendental;
 mod lay;
 mod place;
 mod single;
+mod stand;
 
 use crate::cores::{fill, map};
 use crate::lineage::{Key, DOMINANCE, ROLL};
@@ -22,6 +23,8 @@ pub(crate) use lay::{ground_zone, support, Layer};
 use lay::{rotated, UP};
 pub(crate) use place::{place, place_from};
 pub(crate) use single::{bud_frame, lay_one};
+pub(crate) use stand::relay_span;
+use stand::stand;
 use std::f64::consts::TAU;
 
 /// The sine of the lean below which a parent has too little of an upper
@@ -194,7 +197,7 @@ pub(crate) fn frame(
             };
             let p = &axes[parent];
             let state = &species.states[p.pa];
-            let at = carried_point(axes, species, parent, relay_point(p, state.relay_at, node));
+            let at = stand(axes, species, parent, node);
             let (heading, side) = turned(
                 (at.along, at.side),
                 at.rank,
@@ -229,159 +232,7 @@ pub(crate) fn phase(axes: &[Axis], species: &Species, i: usize) -> f64 {
         phase += species.states[p.pa].divergence * p.rank;
         at = parent;
     }
-    phase
-}
-
-/// Where a relay of axis `i` stands, `own` on it, its rank given as the
-/// azimuth it turns a bud by: where `i` carries
-/// another axis on (a relay or a continuation) and its first node has not
-/// grown whole, blended from where it would stand on that axis by how far
-/// the node has grown, so a relay on an axis of no node yet stands as on
-/// the axis carried on, and moves by degree as the node grows in (fn-199
-/// R3, host 2026-10-07). Taken from the farthest such axis down.
-fn carried_point(axes: &[Axis], species: &Species, i: usize, own: Point) -> Point {
-    let mut line = vec![i];
-    while let Some(&a) = line.last() {
-        match axes[a].carried_on() {
-            Some((parent, _)) if axes[a].first < 1.0 => line.push(parent),
-            _ => break,
-        }
-    }
-    // Each point's rank as the azimuth it turns a bud by, phase included,
-    // so points on different axes of one line blend as one phyllotaxis.
-    let turns = |a: usize, at: Point| Point {
-        rank: phase(axes, species, a) + species.states[axes[a].pa].divergence * at.rank,
-        ..at
-    };
-    let zone = |a: usize| {
-        let axis = &axes[a];
-        let share = species.states[axis.pa].relay_at;
-        turns(a, relay_point(axis, share, zone_node(axis, share)))
-    };
-    let own = turns(i, own);
-    let top = line.pop().expect("the axis itself");
-    let mut point = if top == i { own } else { zone(top) };
-    while let Some(a) = line.pop() {
-        let mine = if a == i { own } else { zone(a) };
-        point = point.toward(mine, axes[a].first.clamp(0.0, 1.0));
-    }
-    point
-}
-
-/// The node of axis `p`'s last growth unit a relay at `share` of it
-/// stands in, by its phytomers' scaled lengths: where the contract's node
-/// (`fixed::decide::relay_node`) is not drawn, as on an axis carried on.
-fn zone_node(p: &Axis, share: f64) -> usize {
-    let n = p.phytomers.len();
-    let Some(last) = p.phytomers.last().map(|q| q.cycle) else {
-        return 0;
-    };
-    let first = p
-        .phytomers
-        .iter()
-        .position(|q| q.cycle == last)
-        .unwrap_or(0);
-    let total: f64 = p.phytomers[first..].iter().map(|q| q.scale).sum();
-    if total <= 0.0 {
-        let k = (share * (n - first) as f64).ceil() as usize;
-        return first + k.clamp(1, n - first) - 1;
-    }
-    let mut before = 0.0;
-    for (j, q) in p.phytomers.iter().enumerate().skip(first) {
-        if q.scale > 0.0 && before + q.scale >= share * total {
-            return j;
-        }
-        before += q.scale;
-    }
-    n - 1
-}
-
-/// A point along an axis and the frame there.
-#[derive(Clone, Copy)]
-struct Point {
-    base: Vec3,
-    along: Vec3,
-    side: Vec3,
-    rank: f64,
-}
-
-impl Point {
-    /// `t` of the way from this point to `to`, its frame turned as far.
-    fn toward(self, to: Point, t: f64) -> Point {
-        let blend = |a: Vec3, b: Vec3| (a * (1.0 - t) + b * t).unit().unwrap_or(b);
-        Point {
-            base: self.base + (to.base - self.base) * t,
-            along: blend(self.along, to.along),
-            side: blend(self.side, to.side),
-            rank: self.rank + t * (to.rank - self.rank),
-        }
-    }
-}
-
-/// The point `share` of the way along axis `p`'s last growth unit, by its
-/// phytomers' scaled lengths, in the span of its node `k`, which the
-/// contract decides on its nodes' presences (`fixed::decide::relay_node`,
-/// FINE-CONTRACT.md D18). The frame turns from one phytomer's direction to
-/// the next's along each span, so the point's frame moves by degree as
-/// `share` does; at 1 it is the last node and the frame of its phytomer,
-/// at 0 the base of the unit's first internode.
-fn relay_point(p: &Axis, share: f64, k: usize) -> Point {
-    let n = p.phytomers.len();
-    if n == 0 {
-        return Point {
-            base: p.base,
-            along: p.heading,
-            side: p.side,
-            rank: p.rank,
-        };
-    }
-    let k = k.min(n - 1);
-    let t = relay_span(p, share, k);
-    let at = &p.phytomers[k];
-    let start = if k == 0 {
-        p.base
-    } else {
-        p.phytomers[k - 1].tip
-    };
-    let next = p.phytomers.get(k + 1);
-    let blend = |a: Vec3, b: Vec3| (a * (1.0 - t) + b * t).unit().unwrap_or(a);
-    Point {
-        base: start + (at.tip - start) * t,
-        along: blend(at.heading, next.map_or(at.heading, |q| q.heading)),
-        side: blend(at.side, next.map_or(at.side, |q| q.side)),
-        rank: at.rank + t * (next.map_or(p.rank, |q| q.rank) - at.rank),
-    }
-}
-
-/// How far along the span of node `k` of axis `p` (from node `k - 1`, or
-/// the base, to node `k`) its relay at `share` of the last growth unit
-/// stands, by the unit's phytomers' scaled lengths, so a node growing in
-/// from nothing moves it by nothing (fn-206). Girth and sag take the
-/// relay's pipe and load in at the two ends of that span by it (fn-199
-/// R4). An axis of no phytomers has no span: 1.
-pub(crate) fn relay_span(p: &Axis, share: f64, k: usize) -> f64 {
-    let n = p.phytomers.len();
-    if n == 0 {
-        return 1.0;
-    }
-    let k = k.min(n - 1);
-    let last = p.phytomers[n - 1].cycle;
-    let first = p
-        .phytomers
-        .iter()
-        .position(|q| q.cycle == last)
-        .unwrap_or(0);
-    let total: f64 = p.phytomers[first..].iter().map(|q| q.scale).sum();
-    let scale = p.phytomers[k].scale;
-    if total > 0.0 && scale > 0.0 {
-        let before: f64 = p.phytomers[first.min(k)..k].iter().map(|q| q.scale).sum();
-        ((share * total - before) / scale).clamp(0.0, 1.0)
-    } else if total > 0.0 {
-        1.0
-    } else {
-        let f = first as f64 + share * (n - first) as f64;
-        (f - k as f64).clamp(0.0, 1.0)
-    }
+    phase + axes[at].phase
 }
 
 /// The heading and side of a bud at `azimuth` around a parent going

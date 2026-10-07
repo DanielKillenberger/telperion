@@ -139,13 +139,11 @@ pub struct Axis {
     /// The share of its first cycle a bud that woke still slept: its age
     /// is that much less than its birth gives.
     pub(crate) sleep: f64,
-    /// Its grown extent: over its nodes, each unit's presence times its
-    /// node's times the share of its cycle the unit lived, summed, at most
-    /// one (`presence::assign`; host 2026-10-07, rule 2); none with no
-    /// phytomers. A relay
-    /// standing on an axis that carries another on stands that far from
-    /// where it would on the axis carried on (fn-199 R3).
-    pub(crate) first: f64,
+    /// The phase its phyllotaxis starts from outside the structure: a fine
+    /// root's bearer's, held by its stub (`fine::realized::stub`); none in
+    /// a whole tree, whose axes carried on take theirs from the axes they
+    /// carry on (`geometry::phase`).
+    pub(crate) phase: f64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -174,6 +172,10 @@ pub struct Phytomer {
     pub(crate) size: f64,
     /// The light its bud grew in (`light.rs`): 1 where nothing shades.
     pub(crate) light: f64,
+    /// How much of a node it is: its unit's presence times its node's
+    /// times the share of its cycle the unit lived (`presence::assign`),
+    /// which a relay standing on its unit reads (`geometry::stand`).
+    pub(crate) grown: f64,
 }
 
 impl Phytomer {

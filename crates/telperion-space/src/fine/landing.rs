@@ -102,7 +102,10 @@ impl<'a> Landing<'a> {
         self.unbent = live
             .iter()
             .zip(bearers)
-            .map(|(&k, &b)| stub(&tree.axes[b], node(&seeds[k])))
+            .map(|(&k, &b)| {
+                let phase = crate::geometry::phase(&tree.axes, self.species, b);
+                stub((&tree.axes[b], phase), node(&seeds[k]))
+            })
             .collect();
         let ground: Vec<usize> = (0..live.len())
             .filter(|&j| {
@@ -154,7 +157,10 @@ impl<'a> Landing<'a> {
         let bent: Vec<Axis> = live
             .iter()
             .zip(bearers)
-            .map(|(&k, &b)| stub(&tree.axes[b], node(&seeds[k])))
+            .map(|(&k, &b)| {
+                let phase = crate::geometry::phase(&tree.axes, self.species, b);
+                stub((&tree.axes[b], phase), node(&seeds[k]))
+            })
             .collect();
         let mut landed = vec![false; live.len()];
         for (j, _) in &self.roots {

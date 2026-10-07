@@ -16,7 +16,7 @@ use super::{
     Kept, Placing, Table, COUNT, LEAVES, LEAVES_ALONG, PARALLEL, SECTION, SECTION2, WIDTH, WOOD,
 };
 use crate::closed_form::along::{dominance_power, Along, Count};
-use crate::closed_form::events::Event;
+use crate::closed_form::events::{lived_extent, Event};
 use crate::closed_form::steps::{Grown, Step};
 use crate::girth::ripe;
 use crate::schedule::Carried;
@@ -107,7 +107,18 @@ impl Kept<'_> {
                 let (g, h, length) = self.unit((k, m, t), axis, step.part(l), (path, &mut units));
                 run.times(g, &h);
                 units.close(path, length);
-                let at = path.into(length, relay_at);
+                // Blended back towards the unit before by the lived
+                // part's extent (rule 2', `geometry::stand`), its nodes
+                // taken at their mean.
+                let grown = lived_extent(&self.species.states[k], l.size);
+                let at = match step.i.checked_sub(2) {
+                    Some(u) => {
+                        let (start, before) = units.place(u);
+                        let back = relay_at + grown * (1.0 - relay_at);
+                        start.into(before, back).into(length, grown * relay_at)
+                    }
+                    None => path.into(length, grown * relay_at),
+                };
                 let e = self.relay_end((k, m, t), Some(l.relay), l.weight, at);
                 end(l.weight, step.i, &run, &units, e);
             }

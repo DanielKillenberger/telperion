@@ -157,14 +157,24 @@ fn events_of(species: &Species, laterals: &[Vec<f64>], k: usize, steps: &[Step])
             });
         }
     };
-    for step in steps {
-        // A failed unit's lived parts, each with its relay standing on it
-        // (fn-199 R1).
+    for (n, step) in steps.iter().enumerate() {
+        // A failed unit's lived parts, each with its relay standing on it,
+        // blended back towards the unit before by its extent (fn-199 R1,
+        // rule 2'), its nodes taken at their mean.
         for l in &step.lived {
             let grown = (step.i, l.weight, l.size, step.start);
             unit_events(&mut out, species, (k, laterals), grown, &l.sleeping);
             let length = scaled(whole, state.internode * l.size);
-            let at = step.start.into(length, state.relay_at);
+            let extent = lived_extent(state, l.size);
+            let (r, back) = (
+                state.relay_at,
+                state.relay_at + extent * (1.0 - state.relay_at),
+            );
+            let at = match n.checked_sub(1).map(|u| &steps[u]) {
+                Some(before) => before.start.into(before.length, back),
+                None => step.start,
+            }
+            .into(length, extent * r);
             out.push(Event::Bud {
                 at: l.relay.at,
                 pa: k,
@@ -196,6 +206,14 @@ fn events_of(species: &Species, laterals: &[Vec<f64>], k: usize, steps: &[Step])
         }
     }
     out
+}
+
+/// A failed unit's lived part's extent, `size` of its cycle grown: its
+/// nodes at their mean times that share, at most one (rule 2',
+/// `geometry::stand`).
+pub(super) fn lived_extent(state: &crate::species::PaState, size: f64) -> f64 {
+    let nodes: f64 = state.zones.iter().map(|z| z.nodes.mean()).sum();
+    (nodes * size).min(1.0)
 }
 
 /// A unit's events: each zone's nodes, grown `weight` of the time at
