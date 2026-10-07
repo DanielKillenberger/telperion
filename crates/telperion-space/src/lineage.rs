@@ -122,25 +122,34 @@ pub(crate) fn above(u: f64, bound: f64) -> f64 {
     logit(u) - logit(bound)
 }
 
-/// A bud's PA under `lateral` for the draw `d`, with its lead past the
-/// nearer bound of the PA's run of draws, in log-odds Q32 on the bounds'
-/// thresholds (host decision 8); none for a bare bud. The bounds are the
-/// running sums of `lateral` in its order (FINE-CONTRACT.md D3).
-pub(crate) fn bud(lateral: &[f64], d: Draw) -> Option<(usize, i64)> {
+/// A bud's PA under `lateral` for the draw `d`; none for a bare bud. The
+/// bounds are the running sums of `lateral` in its order (FINE-CONTRACT.md
+/// D3).
+pub(crate) fn bud(lateral: &[f64], d: Draw) -> Option<usize> {
     let mut low = 0.0;
     for (pa, &p) in lateral.iter().enumerate() {
         let high = low + p;
         if p > 0.0 && d.under(high) {
-            let lead = if low <= 0.0 {
-                fixed::INF
-            } else {
-                fixed::presence::over(threshold(low), d.0)
-            };
-            return Some((pa, lead.min(fixed::presence::under(threshold(high), d.0))));
+            return Some(pa);
         }
         low = high;
     }
     None
+}
+
+/// The lead of the draw `d` that made a bud of `pa` under `lateral` past
+/// the nearer bound of the PA's run of draws, in log-odds Q32 on the
+/// bounds' thresholds (host decision 8). Taken only for a bud that is
+/// made: the logs it takes are most of growth's arithmetic on one core.
+pub(crate) fn bud_lead(lateral: &[f64], pa: usize, d: Draw) -> i64 {
+    let low = lateral[..pa].iter().fold(0.0, |low, &p| low + p);
+    let high = low + lateral[pa];
+    let lead = if low <= 0.0 {
+        fixed::INF
+    } else {
+        fixed::presence::over(threshold(low), d.0)
+    };
+    lead.min(fixed::presence::under(threshold(high), d.0))
 }
 
 /// A zone's node count under `law` for the draw `d`, by the inverse of the

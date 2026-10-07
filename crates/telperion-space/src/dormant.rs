@@ -72,7 +72,7 @@ pub(crate) fn draw(
     (cycle, age): (u32, u32),
 ) -> Option<(usize, Sleeper)> {
     let key = place.child(DORMANT);
-    let (pa, lead) = lineage::bud(&zone.dormant, key.draw())?;
+    let pa = lineage::bud(&zone.dormant, key.draw())?;
     // By the inverse of the release law's distribution, on the tick grid
     // (FINE-CONTRACT.md D11).
     let years = crate::fixed::decide::wake(zone, key.child(DORMANT).draw());
@@ -88,7 +88,7 @@ pub(crate) fn draw(
         whorl: zone.buds,
         pa,
         key: key.0,
-        lead,
+        lead: lineage::bud_lead(&zone.dormant, pa, key.draw()),
         placed: 1.0,
         wood: woods[pa],
         sleep: years - whole,

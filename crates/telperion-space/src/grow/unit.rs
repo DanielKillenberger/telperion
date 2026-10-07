@@ -30,8 +30,8 @@ impl Shoot<'_, '_> {
                 for (slot, bud) in buds[..zone.places()].iter_mut().enumerate() {
                     let place_key = node_key.child(slot as u64);
                     let placed = zone.share(slot);
-                    *bud = lineage::bud(lateral, place_key.draw())
-                        .map(|(pa, lead)| (pa, lead, placed));
+                    let d = place_key.draw();
+                    *bud = lineage::bud(lateral, d).map(|pa| (pa, d, placed));
                 }
                 // Ordered by the first place's draw, which every node has, so
                 // a place a fraction grows moves no node; by its bits, and
@@ -69,12 +69,12 @@ impl Shoot<'_, '_> {
                 let node_presence = fixed::real(fixed::decide::node(node_lead, node_wood));
                 self.draws_mut(apex.axis).nodes.push(node_presence);
                 for (slot, bud) in buds[..zone.places()].iter().enumerate() {
-                    let Some((lateral_pa, lead, placed)) = *bud else {
+                    let Some((drawn_pa, d, placed)) = *bud else {
                         continue;
                     };
                     // A bud of an age it passes through grows in the next
                     // it lives in, as far as it reaches it, or not at all.
-                    let Some((lateral_pa, reach)) = rules.species.lived(lateral_pa) else {
+                    let Some((lateral_pa, reach)) = rules.species.lived(drawn_pa) else {
                         continue;
                     };
                     // Nor where it is certain to be shed by the tree's age
@@ -95,6 +95,7 @@ impl Shoot<'_, '_> {
                     };
                     let key = zone_key.child(drawn).child(slot as u64);
                     // Host decision 8: the made presences, Q32.
+                    let lead = lineage::bud_lead(lateral, drawn_pa, d);
                     let lead = windows.presence_q(lead, (lateral_pa, cycle + 1, None), 1.0);
                     let made = [
                         fixed::real(presence::times(lead, presence::q(placed))),

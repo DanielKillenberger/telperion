@@ -48,9 +48,9 @@ pub struct Request {
     pub light: Light,
 }
 
-/// A bud of a node: its PA and lead (log-odds, Q32), and the share its
-/// place stands at; or none for a bare bud.
-type Placed = Option<(usize, i64, f64)>;
+/// A bud of a node: its PA, its place's draw, and the share its place
+/// stands at; or none for a bare bud.
+type Placed = Option<(usize, crate::lineage::Draw, f64)>;
 
 /// A living apex: the time it has spent in its current PA.
 #[derive(Debug, Clone, Copy)]

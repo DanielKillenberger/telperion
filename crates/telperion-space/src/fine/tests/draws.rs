@@ -37,10 +37,10 @@ fn a_draw_is_under_a_probability_exactly_below_its_threshold() {
 fn a_bud_at_its_band_s_bound_takes_the_next_band() {
     let lateral = [0.25, 0.25];
     let quarter = ONE / 4;
-    assert_eq!(bud(&lateral, Draw(quarter - 1)).map(|b| b.0), Some(0));
-    assert_eq!(bud(&lateral, Draw(quarter)).map(|b| b.0), Some(1));
-    assert_eq!(bud(&lateral, Draw(ONE / 2 - 1)).map(|b| b.0), Some(1));
-    assert_eq!(bud(&lateral, Draw(ONE / 2)).map(|b| b.0), None);
+    assert_eq!(bud(&lateral, Draw(quarter - 1)), Some(0));
+    assert_eq!(bud(&lateral, Draw(quarter)), Some(1));
+    assert_eq!(bud(&lateral, Draw(ONE / 2 - 1)), Some(1));
+    assert_eq!(bud(&lateral, Draw(ONE / 2)), None);
 }
 
 #[test]
