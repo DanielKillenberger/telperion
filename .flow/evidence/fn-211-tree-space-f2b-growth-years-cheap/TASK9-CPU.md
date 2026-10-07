@@ -68,3 +68,55 @@ Commit `053ba4ec` (vector-built rotations; one sin and cos per stated angle). Th
 | `exp2_neg` | 15.2 M | about 40 | 0.6 | the tropism's share, the bend length's keep |
 
 The sin and cos are about half the identified cost, and the unit vectors about a quarter. Neither is redundant any more: each angle left is a stated quantity.
+
+## Steps 1 and 2 of the host's cost decision, then the re-lay, girth and sag pass
+
+Run back to back, each at a one-minute load under 10 (`raw/task9/passcost-steps.txt`, `passcost-sag.txt`). Layout ms at 80, seed 1; the base is `02979d5a`.
+
+| Commit | What | beech | spruce | oak | oak lit |
+|---|---|--:|--:|--:|--:|
+| `02979d5a` | base (f64 layout) | 71 | 660 to 679 | 145 to 150 | 911 to 918 |
+| `053ba4ec` | vector-built rotations | 193 | 1,860 | 385 | 1,745 |
+| `550e72a4` | step 1, first form (slower: u128 conversions, libm round) | 230 | 2,165 | 468 | 1,944 |
+| `a64b3045` | step 2, polynomial sin and cos | 189 | 1,805 | 429 | 1,789 |
+| `02cd51bc` | step 1 fixed (`cb8466bd`), then girth and sag on contract A | 227 | 2,135 | 437 | 1,995 |
+
+- **Ratio after steps 1 and 2:** 2.6 to 3.2 times, against the 1.3x rule. The sag pass adds W levers, logs and the vector-built frames, and its cost is about the polynomial's saving.
+- **Micro-costs now:**
+  - `sincos` 16 ns (was 114 ns);
+  - `atan2` 67 ns;
+  - `unit` 34 ns;
+  - `isqrt` 19 ns;
+  - `unit_w` 97 ns;
+  - `turned` 24 ns;
+  - `fixed::log2` 67 ns, `exp2_neg` 64 ns and `exp2` 65 ns (the decision contract's squarings and roots).
+
+### The profile now (spruce 80, seed 1, one build)
+
+Calls counted with counters added for one run and then removed, multiplied by the micro-costs. CPU seconds summed over threads:
+
+| Primitive | Calls | CPU s | Where |
+|---|--:|--:|---|
+| `fixed::log2` | 51.1 M | 3.4 | girth (each section and radius), sag's turn (logs of radius, lengths and settled spans), `unit_w`'s length |
+| `exp2_neg` (with `exp2`'s) | 33.8 M | 2.2 | the tropism's share, the bend length's keep, girth's powers, sag's settle |
+| `unit` | 54.9 M | 1.9 | the elevation's level, carry (2), the lifts' blend, the side |
+| `atan2` | 21.0 M | 1.4 | the elevation's `asin`, sag's room |
+| `turned` | 47.6 M | 1.1 | carry (2), wander (2), sag (3) |
+| `exp2` | 14.7 M | 1.0 | girth's radius, sag's logs |
+| other `isqrt` | 40 M | 0.8 | `length`, `asin`, `unit_w` |
+| `unit_w` | 7.6 M | 0.7 | sag's levers and caps |
+| `sincos` | 40.7 M | 0.7 | elevation, wander, sag |
+
+The decision contract's log and power procedures (32 squarings, 32 roots) are now the largest cost, ahead of the tropism.
+
+## The re-lay, girth and sag pass (`f4dd8b0e`, fixes `de934601` and `02cd51bc`)
+
+Against the base (`raw/task9/sag-vs-base.txt`):
+- **Topology:** unchanged in 27 of 28 trees. The lit oak at 80, seed 7, changes 44 of 342,705 axes (113 of 2.59 M phytomers).
+- **Tips on matching phytomers:** at most 1 to 30 µm, except the lit oak at 80 seed 7 (2 cm, next to its changed axes) and the spruce at 80 seed 7 alone (0.72 mm).
+- **Radii:**
+  - **The spruce 80 seed 7 radius that "flips" (1.0 relative):** its cause is the radius of a phytomer of vanishing presence, 1.8e-11 m, below Q32's last place (2.3e-10 m), which floors to 0. Every 1.0 in the table is such a radius (oak 40 seed 7, 2.7e-10 m; oak 80 seed 1, 1.5e-10 m; spruce 40 seed 7, 2.0e-11 m). The comparison now prints the worst radius before and after.
+  - Elsewhere radii move by at most 1e-2 relative, on radii below 1e-7 m.
+- **Two bugs found and fixed:**
+  - sag as a Q32 value lost its digits (`de934601`);
+  - a frame with no side skipped sag where today carries the lever unchanged. The alone spruce had moved metres (`02cd51bc`).

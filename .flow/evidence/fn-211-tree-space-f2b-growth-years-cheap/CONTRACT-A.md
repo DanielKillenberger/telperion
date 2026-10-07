@@ -254,6 +254,8 @@ Sites and source order are as before (`grow/draw.rs`, `geometry.rs`, `geometry/l
 **Sag levers (R2.2):**
 - `mass = length · (r² + leaves²)` is one exact expression in 256 bits, rounded once to W.
 - `moment = middle · mass` is `mul_shr(middle, mass, 32)`, a Q32 position by W, exact in 256 bits and narrowed with a check. Moments sum in a `Total`: the review's "checked bound on the sum of absolute term magnitudes" (R2.3).
+- **The PA's sag enters as `log2 sag`, a Q32 converted once from the species' real (task 9).** As a Q32 value, a sag of 1e-8 kept two digits and bent fine wood by up to 0.017 rad off its real. `sag::turn` is held to the f64 form within 1e-4 rad (`sag/tests.rs`).
+- **Carrying the lever into the frame now** uses the rotation built from the two frames (2.3): each frame is its heading, its side made square and unit, and their normal. A W vector's components in the first frame are 256-bit sums floored to W, carried by one floor a term. Where either frame has no side (a phytomer never laid), the lever is carried unchanged, as today's f64 pass does.
 - The lever `moment − tip · mass` stays in W. It is **never shortened to Q32**: `turn` reads it through `unit_w`, so its direction is exact to Q32 and `log2 reach` comes from W (R2.2). A small moment over `r⁴` is taken in logs, `log2 c = log2 sag − 4 log2 r`, and `k = c · reach · s` as `exp2(log2 c + log2 reach + log2 s)`; it is a small bend only where its logs say so.
 - The load operand before `support`'s product is checked against i128 by the narrowing (2.3), not by a separate bound.
 
