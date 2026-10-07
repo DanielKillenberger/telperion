@@ -4,17 +4,20 @@
 //! engine grows whole, lit, and each fine root's realized kept phytomers
 //! are read off that tree.
 use crate::bounded::Expected;
+use crate::closed_form::boundary::Rows;
 use crate::error::Result;
-use crate::grow::{run, Options, Request};
+use crate::grow::{run, Grown, Options, Request};
 use crate::species::Species;
-use crate::structure::Origin;
+use crate::structure::{Origin, Structure};
 
 /// A tree grown whole, surveyed at a cut: each fine root's predicted and
-/// realized kept phytomers, and the phytomers above the cut.
+/// realized kept phytomers, the phytomers above the cut, and the fine
+/// root each axis stands in (none: above the cut).
 #[derive(Debug, Clone, Default)]
 pub struct Surveyed {
     pub roots: Vec<(f64, usize)>,
     pub above: usize,
+    pub root_of: Vec<Option<usize>>,
 }
 
 /// Grows `species` whole and surveys its fine roots at `cut`: every bud
@@ -31,7 +34,27 @@ pub fn survey_lit(
         ..Options::default()
     };
     let grown = run(species, request, &mut |_| {}, true, options)?;
-    let rows = expected.rows();
+    Ok(survey(&grown, &expected.rows(), cut))
+}
+
+/// `survey_lit` on the tree laid in full by today's final lay, returned
+/// beside its survey (fn-211.4: bud light per fine root).
+pub fn survey_laid(
+    species: &Species,
+    request: Request,
+    expected: &Expected,
+    cut: f64,
+) -> Result<(Structure, Surveyed)> {
+    let options = Options {
+        records: true,
+        ..Options::default()
+    };
+    let grown = run(species, request, &mut |_| {}, true, options)?;
+    let surveyed = survey(&grown, &expected.rows(), cut);
+    Ok((grown.structure, surveyed))
+}
+
+fn survey(grown: &Grown, rows: &Rows, cut: f64) -> Surveyed {
     let axes = &grown.structure.axes;
     let mut root_of: Vec<Option<usize>> = vec![None; axes.len()];
     let mut by_axis = vec![None; axes.len()];
@@ -67,5 +90,6 @@ pub fn survey_lit(
             out.roots.push((predicted, 0));
         }
     }
-    Ok(out)
+    out.root_of = root_of;
+    out
 }

@@ -9,15 +9,20 @@
 mod advance;
 pub(crate) mod alone;
 mod balance;
+pub(crate) mod couple;
 mod draw;
+pub(crate) mod oracle;
 mod parallel;
+pub(crate) mod partition;
 pub(crate) mod realized;
 mod relay;
 mod settle;
 mod shoot;
 mod sketch;
 mod stage;
+pub(crate) mod stepped;
 mod stop;
+pub(crate) mod subtree;
 #[cfg(test)]
 mod tests;
 mod unit;
@@ -108,6 +113,9 @@ pub(crate) struct Options {
     /// keeping every lateral bud made as a record (`bounded.rs`, fn-209
     /// option 4): what a bounded build resolves chain by chain.
     pub settle: bool,
+    /// Whether a laid tree keeps its lateral buds' records as a settled
+    /// one does (fn-211.4: a laid tree surveyed at a cut).
+    pub records: bool,
 }
 
 impl Default for Options {
@@ -118,6 +126,7 @@ impl Default for Options {
             share: parallel::SHARE,
             unread_light: false,
             settle: false,
+            records: false,
         }
     }
 }
@@ -147,6 +156,8 @@ pub(crate) struct Grown {
     pub records: Vec<Record>,
     /// The leaf term's mean over the tree as grown, where any PA sets it.
     pub leaf_mean: Option<f64>,
+    /// Each grown axis's index in the shed tree (`usize::MAX`: shed).
+    pub index: Vec<usize>,
 }
 
 /// A lateral bud as its bearer made it, before shedding: where it stands,
@@ -183,6 +194,59 @@ pub(crate) fn run(
     lay: bool,
     options: Options,
 ) -> Result<Grown> {
+    run_beside(species, request, (stage, lay), options, Beside::default()).map(|g| g.0)
+}
+
+/// What fn-211.4 adds to a run: the light oracle, or the coupling pass.
+#[derive(Default)]
+pub(crate) struct Beside {
+    pub oracle: Option<oracle::Oracle>,
+    pub couple: Option<couple::Pass>,
+}
+
+/// What they hand back.
+pub(crate) struct Besides {
+    pub oracle: Option<Box<oracle::Oracle>>,
+    pub measured: Option<subtree::Measured>,
+}
+
+fn run_beside(
+    species: &Species,
+    request: Request,
+    (stage, lay): (&mut dyn FnMut(Stage), bool),
+    options: Options,
+    beside: Beside,
+) -> Result<(Grown, Besides)> {
+    let started = std::time::Instant::now();
+    let (mut grower, keeps) = start(species, request, lay, options)?;
+    grower.oracle = beside.oracle.map(Box::new);
+    grower.couple = beside.couple.map(Box::new);
+    stage(Stage::Pass(Pass::Windows));
+    let mut advanced = Vec::new();
+    for cycle in 1..=request.age {
+        // The last cycle's layout, full lay and light are read by no bud,
+        // and the final lay rewrites every place (fn-198, lever c1); only
+        // `sketch` keeps them.
+        let sketching = cycle < request.age || !lay || options.unread_light;
+        grower.year(cycle, sketching, &mut advanced, stage)?;
+    }
+    let measured = match grower.couple.is_some() {
+        true => Some(grower.grow_fine_all(started)?),
+        false => None,
+    };
+    let oracle = grower.oracle.take();
+    let grown = grower.settle((request, options), (lay, keeps), stage)?;
+    Ok((grown, Besides { oracle, measured }))
+}
+
+/// The grower of `request` before its first cycle, and whether any PA
+/// reads the tree as grown (its shed pipes or its leaves' girth).
+fn start<'a>(
+    species: &'a Species,
+    request: Request,
+    lay: bool,
+    options: Options,
+) -> Result<(Grower<'a>, bool)> {
     species.validate()?;
     request.light.validate()?;
     if request.age == 0 {
@@ -215,30 +279,8 @@ pub(crate) fn run(
         alone: false,
         hands: None,
     };
-    let mut grower = Grower::seeded(rules, (threads, options.share), sketch, request.seed)?;
-    stage(Stage::Pass(Pass::Windows));
-    let mut advanced = Vec::new();
-    for cycle in 1..=request.age {
-        advanced.clear();
-        advanced.extend(grower.live.iter().map(|a| a.axis));
-        grower.step(cycle, stage)?;
-        stage(Stage::Grown);
-        // The last cycle's layout, full lay and light are read by no bud,
-        // and the final lay rewrites every place (fn-198, lever c1); only
-        // `sketch` keeps them.
-        if grower.sketch.is_some() && (cycle < request.age || !lay || options.unread_light) {
-            grower.sketch(cycle, &advanced)?;
-            stage(Stage::Pass(Pass::Sketch));
-            stage(Stage::Sketched);
-            if cycle % relay::RELAY_EVERY == 0 {
-                grower.relay(cycle, stage)?;
-                stage(Stage::Relaid);
-            }
-            grower.shade(stage);
-            stage(Stage::Lit);
-        }
-    }
-    grower.settle((request, options), (lay, keeps), stage)
+    let grower = Grower::seeded(rules, (threads, options.share), sketch, request.seed)?;
+    Ok((grower, keeps))
 }
 
 /// The share of an apex's expected wood a stop decides: a stop with no
@@ -303,6 +345,12 @@ struct Grower<'a> {
     leaves: Vec<(Vec3, f64)>,
     /// Where a chain grows alone, the sleeping buds that woke on it.
     wakes: Vec<alone::Pending>,
+    /// fn-211.4's light oracle, where the tree is grown under one; the
+    /// coupling pass, where it is one; a fine subtree's records, where
+    /// it is one.
+    oracle: Option<Box<oracle::Oracle>>,
+    couple: Option<Box<couple::Pass>>,
+    fine: Option<Box<subtree::Reads>>,
     /// Above a cut, each sleeping bud handed on as it woke: its
     /// stand-in's index and its waking (`realized.rs`).
     handed: Vec<(usize, alone::Pending)>,
@@ -359,6 +407,9 @@ impl<'a> Grower<'a> {
             wakes: Vec::new(),
             handed: Vec::new(),
             spare: Default::default(),
+            oracle: None,
+            couple: None,
+            fine: None,
         })
     }
 }
@@ -370,14 +421,46 @@ impl Grower<'_> {
     fn step(&mut self, cycle: u32, report: &mut dyn FnMut(Stage)) -> Result<()> {
         let rows = self.rows();
         self.balance(cycle, rows.as_ref());
+        self.hash_phase(cycle, 0);
         report(Stage::Pass(Pass::Balance));
-        self.allot(rows.as_ref());
+        self.allot(rows.as_ref(), cycle);
         drop(rows);
+        self.advance_fine(cycle);
+        self.hash_phase(cycle, 1);
         report(Stage::Pass(Pass::Allot));
         let live = std::mem::take(&mut self.live);
         self.grow_live(live, cycle, report)?;
         self.wake(cycle)?;
+        self.hash_phase(cycle, 2);
         report(Stage::Pass(Pass::Wake));
+        Ok(())
+    }
+
+    /// One cycle: its growth, then, `sketching` where a rough layout is
+    /// grown, its layout, any re-lay and its light.
+    fn year(
+        &mut self,
+        cycle: u32,
+        sketching: bool,
+        advanced: &mut Vec<usize>,
+        stage: &mut dyn FnMut(Stage),
+    ) -> Result<()> {
+        advanced.clear();
+        advanced.extend(self.live.iter().map(|a| a.axis));
+        self.step(cycle, stage)?;
+        stage(Stage::Grown);
+        if self.sketch.is_none() || !sketching {
+            return Ok(());
+        }
+        self.sketch(cycle, advanced)?;
+        stage(Stage::Pass(Pass::Sketch));
+        stage(Stage::Sketched);
+        if cycle % relay::RELAY_EVERY == 0 {
+            self.relay(cycle, stage)?;
+            stage(Stage::Relaid);
+        }
+        self.shade(cycle, stage);
+        stage(Stage::Lit);
         Ok(())
     }
 

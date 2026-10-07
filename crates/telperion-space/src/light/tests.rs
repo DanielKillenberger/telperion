@@ -41,9 +41,7 @@ fn field(leaves: &[(Vec3, f64)], reads: &[Vec3], directions: &[(Vec3, f64)]) -> 
         leaves.iter().map(|l| l.0).chain(reads.iter().copied()),
         CELL,
     );
-    for &(at, area) in leaves {
-        f.deposit(at, area);
-    }
+    f.deposit_all(leaves);
     // The directions on four cores: each node sums them in their order.
     f.sweep(K, directions, 4);
     f
