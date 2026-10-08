@@ -221,3 +221,64 @@ No sub-tick word. A 32-bit fraction per age, carried on both executors through t
 - **In code.** It becomes a named list beside `ROUGH_LAYOUT` (e.g. `TICK_RESOLUTION`), with its derivation in the doc comment, as for the apical-control pair. It names `states[*].lifespan` for the walked species and holds them at 1e-5. Every other row stays at 1e-6.
 - **Who decided.** The host decided this, as it decided `ROUGH_LAYOUT`. The release PR lists it under Decisions so that the owner sees it.
 - **Then finish the task.** Merge `fn-231-cut-wip` onto the task branch. The three additions you made are accepted: woken axes are never cut, death is spread over two cycles in expectation, and the floor is above 0. Then run the shipped-species pass with strips wherever a species changes, R3 at both ends, the gate, npm test, the review and `flowctl done`.
+
+## Result (2026-10-08, after the fifth answer)
+
+### What changed after the merge
+
+Two more units a lifespan makes were still crowded at 80. R3's convergence test found both:
+
+1. **An age's last unit is cut from the room its cycle leaves** (`9a8128a6`). Where a draw already shortened the unit's room (a failed unit's relay's rest, a woken bud's later unit) and the age also ends inside it, the unit lays `share / room` of each zone's nodes at the room's length. The cut then grows from none as the age's end passes the room's. Cutting it from a whole unit had left a kink at a whole lifespan: 6.7e-4 of the oak's kept count at one tick (age 9, viability 0.98).
+2. **An ended age's relay rest is cut as a continuation's is** (`f2379818`). The relay of an age that ended inside its cycle grows the rest of that cycle, and that rest is cut from a whole unit. It was 1.4 % of the beech at 80, a millionth off its end (age 7, `relay_ended` 1). On both executors, the successor's rest is now any axis carried on in the cycle (`Draws::carried`, `IS_CARRIED`) that is not a failed unit's relay (`rest`, `IS_REST`).
+
+`TICK_RESOLUTION` (`tests/walk/degree.rs`) holds `states[0..2].lifespan` at 1e-5, with its derivation in the doc comment. A test checks that the walks it names exist.
+
+### R1: the ends after
+
+The raw engine (`raw/r5.txt`, from `walk_ends`), kept / grown / wood, a millionth off each end:
+
+| At 40 | Off the first end | First end | Off the second end | Second end |
+|---|---|---|---|---|
+| beech → oak | 147,362 / 345,591 / 4,040.1 | 147,362 / 345,590 / 4,040.1 | 457,384 / 1,055,529 | 457,386 / 1,055,532 |
+| beech → spruce | 147,362 / 345,592 | 147,362 / 345,590 | 1,149,900 / 2,753,850 | 1,149,893 / 2,753,834 |
+| beech → ordinary | 147,362 / 345,591 (refused before) | 147,362 / 345,590 | 288,164 / 725,161 | 288,164 / 725,161 |
+| oak → spruce | 457,384 / 1,055,528 | 457,386 / 1,055,532 | 1,149,893 / 2,753,832 | 1,149,893 / 2,753,834 |
+| spruce → ordinary | 1,149,895 / 2,753,837 (refused before) | 1,149,893 / 2,753,834 | 288,165 / 725,163 | 288,164 / 725,161 |
+
+At 80 every pair is within 1e-5 of its end a millionth off, in all three measures. For example, beech → spruce keeps 2,187,253 against 2,187,240; before, it kept 186,172,110. Walks off the ordinary tree, which were refused a millionth off it, now build.
+
+### R3: the walk test and the frames
+
+`the_engines_walk_converges_on_either_end_at_40_and_80` (`crates/telperion-core/tests/space_walks.rs`) replaces the assertion that the raw jump remained. For every pair of the passed branching species and the ordinary tree, at 40 and 80, it checks kept, grown and wood at a hundredth, a ten-thousandth and a millionth off either end. The three must draw in, and a millionth off must be within 1e-4 of the end. It runs in 64 s, threaded over its 12 walks. Geometry by degree: fn-192's `every_setting_changes_the_tree_by_degree`, `branches_are_made_and_unmade_at_vanishing_size` and `a_walk_between_species_changes_the_tree_by_degree` all pass.
+
+**fn-230's walk frames, re-judged.** All 60 frames are seed 1, bare, on the beech's dressing: `raw/walks/strips-40.png` and `strips-80.png`, beside fn-230's `strips-40.png` and `strips-80.png` in the fn-230 worktree's raw evidence. I viewed all four.
+- **Before:** the frames at 0.25 and 0.75 from the beech to the oak, at 0.25 from the beech to the ordinary tree, and at 0.25 from the oak to the spruce were sparse skeletons beside both their ends.
+- **After:** every frame is a full tree, turning from one end into the other by degree. No frame is sparser than both its ends. The pop is gone at 40 and 80.
+
+**fn-230's factor.** It still holds, with one premise moved. The continuous walk puts many points at or under their ends' mean, where the factor is 1 (host decision 1: only shrink). For example, beech → oak at 0.5 and 40 is at 0.88 kept and 0.88 grown. `a_walk_between_branching_species_keeps_its_ends_size_at_40_and_80` now accepts factor 1 with both counts at most the mean. The grown-binding case moved to beech → spruce at 0.75 and 80, since oak → spruce at 0.75 now sits at 0.54 and 0.68 of the mean.
+
+### Shipped species
+
+- **Unchanged:** `space_hash` for the beech, spruce, oak and palm, at 40 and 80, seeds 1 and 7: all 16 identical to `MERGE-223.md`'s, nodes included (`raw/space_hash.txt`). The silver birch carries no engine species (`Preset::SilverBirch` has none), so nothing of it is walked.
+- **Changed: the ordinary tree.** Its stored rows hold fractional bud counts, lifespans and delays.
+  - `examples/centroid.rs` re-solved its lateral factor at 80. Its lateral rows move by one factor, 1.2327, and nothing else.
+  - The browser presets were regenerated, and the family and walk identity digests re-pinned (`7df6fd3f`).
+  - Its kept count at 80 is the corners' mean again (3.56M), as before.
+  - Its grown tree at 80, seed 7, goes from 1.58M to 3.54M nodes and from 13.3 to 40.1 km of wood. At 40, seed 1, it goes from 135k to 197k nodes. Its height is unchanged: 12.5 and 13.2 m at 40, 23.1 and 23.4 m at 80.
+
+  Before, its count was met by crowded subtrees at vanishing size, so the visible tree was sparse.
+
+  **Strips:** `raw/ordinary/strip-{40,80}-{1,7}.png`. Each is a before row over an after row: whole, bare, crown and limb views. I viewed all four. The after trees have the same silhouette and height with a fuller crown. There are no broken, floating or crowded parts. At 80 the crown is dense, close to a hedge from the limb view. I judge this a change of density, not a regression, and accept it under the host's rule. **The owner should look at the 80 strips:** if the ordinary tree should stay airy, that is a tuning of its size target, not of this rule.
+
+### R5: cost
+
+- **One prediction** (`predict_bench.rs.txt`, best of 3, the base built apart): the cost is unchanged.
+  - The kept count is +0 to 4 %: beech at 80, 0.029 → 0.030 s.
+  - The grown count is −3 to −6 %: beech-oak at 0.5 and 80, 4.57 → 4.31 s.
+- **The walk's solve** (`blend::families` for each frame of fn-230's sheet; `walk_solve.rs.txt`; `raw/solve-*.txt`): most frames are faster, and the slowest falls from 53.6 to 8.4 s (oak → spruce at 0.75 and 80).
+
+**R5 is not met: some frames are more than 10 % slower.**
+- At 80: beech → spruce at 0.5 and 0.75 (3.2 → 4.9 s and 3.0 → 4.7 s), and spruce → ordinary at 0.5 (61.2 → 76.0 s).
+- At 40: beech → oak at 0.25 (0.45 → 1.34 s), spruce → ordinary at 0.5 (1.40 → 3.00 s), and four frames near an end.
+
+The cause is not the predictor. These points' sizes moved, so their solve now binds on the grown count, which costs 5 to 20 times a kept prediction and is solved after the kept one. fn-230 already named this (FRICTION.md: a grown count as cheap as the kept one would remove it). Meeting R5 for these frames needs that engine work or a change to the solve, and both are outside this rule. **For the host.**

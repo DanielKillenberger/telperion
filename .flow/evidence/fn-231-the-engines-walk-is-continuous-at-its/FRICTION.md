@@ -35,3 +35,20 @@
   - fn-192's vanishing-size bound is tied to the tick (about 9.5e-7), which a log-odds lead over one tick of fraction overshoots.
 - **Cost:** about 2 hours, four space-suite runs, two GPU parity runs, and a fourth escalation.
 - **Would have removed it:** a probe of the rule against `branches_are_made_and_unmade_at_vanishing_size` on a lifespan walk before ruling. The crossing probe (`cross_probe.rs.txt`) takes 5 s.
+
+## 2026-10-08: the fifth round, two more lifespan-made rests found by R3 at 80
+
+- **Doing:** writing R3's convergence test at 40 and 80 after the merge.
+- **Slowed:** R3 passed at 40 but not at 80. Two lifespan-made partial units were still crowded:
+  - An age's last unit shortened by a draw-made room (a failed relay's rest). This was 6.7e-4 of the oak's kept count at one tick, and it is now cut from the room.
+  - An ended age's relay rest. This was 1.4 % of the beech at 80, and it is now cut like a continuation's.
+  Each needed a 12 s single-row probe at 80 and a tick probe with relays, abortion, failure, shedding and sleep switched off in turn to name it. fn-230's sizing tests also assumed every blend is oversized, which the continuous walk ends.
+- **Cost:** about 50 minutes, two space-suite runs and two GPU parity runs. R3 itself runs 64 s, threaded over its 12 walks.
+- **Would have removed it:** the tick probe parameterised by age and switches, kept as an example rather than retyped each round (`tick_probe.rs.txt`).
+
+## 2026-10-08: the GPU lock held by another session's 45-minute sleep
+
+- **Doing:** rendering fn-230's walk frames at 40 and 80 for R3's pop check, and then the render half of the gate.
+- **Slowed:** the shared `gpu.lock` was held by `flock ... sh -c 'echo held; sleep 2700'`, with another session's `fixpass.sh` queued behind it. My first frame waited 26 minutes on its 30-minute `flock -w` before I stopped the run. I did not touch the holder.
+- **Cost:** about 30 minutes waiting. In the meantime I timed the solve on the CPU (R5).
+- **Would have removed it:** a lock that names its holder and purpose, for example a line written into the lock file, so a waiter can tell a deliberate hold from a stuck one. Or one queue that reports its position.
