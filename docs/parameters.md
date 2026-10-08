@@ -1880,6 +1880,46 @@ The blue channel of `bloom_back_red`.
 - dormant: no age flowering
 - blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
 
+### `/material/bloomEyeRed`
+
+A floret's eye: the colour its petals turn toward at their base, a linear reflectance on the petals' scale, and the stamens' colour.
+
+- real, reflectance, [0, 1], default 0.12
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 107, as invalid input `bloom eye red`
+- dormant: no age flowering, or `bloomEyeShare` zero
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/material/bloomEyeGreen`
+
+The green channel of `bloom_eye_red`.
+
+- real, reflectance, [0, 1], default 0.1
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 108, as invalid input `bloom eye green`
+- dormant: no age flowering, or `bloomEyeShare` zero
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/material/bloomEyeBlue`
+
+The blue channel of `bloom_eye_red`.
+
+- real, reflectance, [0, 1], default 0.02
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 109, as invalid input `bloom eye blue`
+- dormant: no age flowering, or `bloomEyeShare` zero
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/material/bloomEyeShare`
+
+How far up each petal from its base the eye reaches, as a share of the petal's length. Zero is no eye: the petal and its stamens are the petal's colour.
+
+- real, share of the petal, [0, 1], default 0
+- read by draw; removed growth path: as the direct build
+- checked: Material site, rank 110, as invalid input `bloom eye share`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
 ### `/material/hueRangeLow`
 
 The hue offsets one leaf may take, as a fraction of the colour circle.
@@ -2760,6 +2800,46 @@ How far a petal's margins lift out of its plane, as a share of its half-width: a
 - dormant: no age flowering
 - blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
 
+### `/bloom/petalCurl`
+
+How far a petal bends along its length, as a share of its length at the tip: positive turns the tip out, away from the floret's axis, so a narrow-opened floret flares into a horn's mouth.
+
+- real, share of the length, [-2, 2], default 0
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 16, as invalid input `bloom petal curl`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/stamens`
+
+Stamens in a floret, a ring of filaments standing up inside its petals. The fractional part is the last stamen's size, so a walk across counts grows one in by degree; zero is none.
+
+- real, stamens, [0, 64], default 0
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 17, as invalid input `bloom stamens`
+- dormant: no age flowering
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/stamenLength`
+
+A stamen's length in metres, from the floret's centre.
+
+- real, m, [0.0001, 0.1], default 0.008
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 18, as invalid input `bloom stamen length`
+- dormant: no age flowering, or `stamens` zero
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+### `/bloom/stamenWidth`
+
+A stamen's width in metres.
+
+- real, m, [0.00001, 0.01], default 0.0004
+- read by plan; removed growth path: as the direct build
+- checked: Bloom site, rank 19, as invalid input `bloom stamen width`
+- dormant: no age flowering, or `stamens` zero
+- blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
 ### `/bloom/scatter`
 
 How far a floret's size varies from one to the next, as a share.
@@ -3094,6 +3174,46 @@ How rough the back and the margin are as mirrors: low is a sharp glint, high a b
 - optional real, share of the half-width, [-2, 2], default unset
 - read by plan; removed growth path: as the direct build
 - checked: Supernatural site, rank 11, as invalid input `supernatural bloom petalCup`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/petalCurl`
+
+`/bloom/petalCurl` while the group is on; unset, the natural row.
+
+- optional real, share of the length, [-2, 2], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 16, as invalid input `supernatural bloom petalCurl`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/stamens`
+
+`/bloom/stamens` while the group is on; unset, the natural row.
+
+- optional real, stamens, [0, 64], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 17, as invalid input `supernatural bloom stamens`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/stamenLength`
+
+`/bloom/stamenLength` while the group is on; unset, the natural row.
+
+- optional real, m, [0.0001, 0.1], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 18, as invalid input `supernatural bloom stamenLength`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/stamenWidth`
+
+`/bloom/stamenWidth` while the group is on; unset, the natural row.
+
+- optional real, m, [0.00001, 0.01], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 19, as invalid input `supernatural bloom stamenWidth`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 

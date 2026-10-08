@@ -210,6 +210,7 @@ impl Scene {
             ),
             mature_radius: colour(m.mature_radius, m.mature_span, 0.0, 0.0),
             leaf_reflection: colour(r.back_tint[0], r.back_tint[1], r.back_tint[2], r.back),
+            bloom_eye: [0.0; 4],
         };
         gpu.queue
             .write_buffer(&self.uniforms, 0, bytemuck::bytes_of(&uniforms));
@@ -223,7 +224,8 @@ impl Scene {
 
 /// The flowers' block (fn-216): the frame's, drawn by the same leaf shader,
 /// with the petals' two colours, no veins, no margin, no mottle, none of
-/// the leaf's mirrors and no canopy normal, and their florets' own box.
+/// the leaf's mirrors and no canopy normal, their eye, and their florets'
+/// own box.
 fn organ(
     mut u: Uniforms,
     m: &telperion_core::material::MaterialParams,
@@ -247,6 +249,12 @@ fn organ(
     // A petal is lit as its own surface: the normal a leaf bends toward the
     // crown's mass would shade a flower as part of it (fn-217 F3).
     u.canopy[0] = 0.0;
+    u.bloom_eye = colour(
+        m.bloom_eye_red,
+        m.bloom_eye_green,
+        m.bloom_eye_blue,
+        m.bloom_eye_share as f32,
+    );
     u.leaf_box_min = colour(reference.min.x, reference.min.y, reference.min.z, 0.0);
     u.leaf_box_extent = colour(
         reference.extent.x,
@@ -296,5 +304,22 @@ mod tests {
         let m = telperion_core::material::MaterialParams::default();
         let o = organ(leaves, &m, telperion_core::foliage::Reference::default());
         assert_eq!(o.canopy, [0.0, 0.3, 0.4, 0.2]);
+    }
+
+    /// The eye is the flowers' alone (fn-217 F1): the organ's block carries
+    /// the material's eye colour and share, the leaves' none.
+    #[test]
+    fn the_eye_is_the_flowers_alone() {
+        let m = telperion_core::material::MaterialParams {
+            bloom_eye_red: 0.2,
+            bloom_eye_green: 0.15,
+            bloom_eye_blue: 0.05,
+            bloom_eye_share: 0.3,
+            ..Default::default()
+        };
+        let leaves = Uniforms::zeroed();
+        let o = organ(leaves, &m, telperion_core::foliage::Reference::default());
+        assert_eq!(o.bloom_eye, [0.2, 0.15, 0.05, 0.3]);
+        assert_eq!(leaves.bloom_eye, [0.0; 4]);
     }
 }

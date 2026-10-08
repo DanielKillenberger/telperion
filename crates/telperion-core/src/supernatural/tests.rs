@@ -35,7 +35,7 @@ pub(crate) fn legendary(enabled: bool) -> Supernatural {
 fn every_override_mirrors_its_natural_row() {
     let pairs: Vec<_> = mirrored().collect();
     let declared = SupernaturalMaterial::ROWS.len() + SupernaturalBloom::ROWS.len();
-    assert_eq!((pairs.len(), declared), (25, 25));
+    assert_eq!((pairs.len(), declared), (29, 29));
     for (over, natural) in pairs {
         let (o, n) = (over.info(), natural.info());
         assert_eq!(over.path(), format!("/supernatural{}", natural.path()));

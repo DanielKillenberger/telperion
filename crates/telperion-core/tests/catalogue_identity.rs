@@ -69,6 +69,12 @@
 //! family, walk and override texts were each fn-215's and fn-216's to the
 //! byte, and every single-row refusal of every other row read as it did;
 //! only the refusal pairs, which pair rows by index, re-paired.
+//! fn-217 task 3 re-pinned all four for the floret's rows: `/bloom/petalCurl`,
+//! `stamens`, `stamenLength`, `stamenWidth`, their `/supernatural/bloom`
+//! overrides and the material's four `bloomEye*` rows. With those stripped
+//! from the text and the wire, the family, walk and override digests were
+//! each task 2's to the bit; the refusal digest takes the new rows' own
+//! refusals and re-pairs by index.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -104,7 +110,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        5_249_597_165_643_459_300,
+        13_878_907_739_081_869_282,
         "{}",
         digest(&text)
     );
@@ -136,7 +142,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        11_432_553_802_668_524_547,
+        14_067_540_499_039_792_468,
         "{}",
         digest(&text)
     );
@@ -161,7 +167,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        15_406_529_057_358_593_657,
+        12_599_330_519_613_523_963,
         "{}",
         digest(&text)
     );
@@ -224,7 +230,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        9_920_640_247_297_317_436,
+        3_594_093_222_556_197_033,
         "{}",
         digest(&text)
     );

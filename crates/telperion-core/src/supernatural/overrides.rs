@@ -202,6 +202,38 @@ crate::catalogue::rows! {
             blend: crate::catalogue::Blend::Coupled,
             dial: OVERRIDE,
         },
+        /// `/bloom/petalCurl` while the group is on; unset, the natural row.
+        pub petal_curl: Option<f64> = "petalCurl" "share of the length" Bounds::closed(-2.0, 2.0) => [Plan] {
+            wire: 327,
+            check: input(Site::Supernatural, 16, "supernatural bloom petalCurl"),
+            applies: "`/supernatural/enabled` off",
+            blend: crate::catalogue::Blend::Coupled,
+            dial: OVERRIDE,
+        },
+        /// `/bloom/stamens` while the group is on; unset, the natural row.
+        pub stamens: Option<f64> = "stamens" "stamens" Bounds::closed(0.0, 64.0) => [Plan] {
+            wire: 335,
+            check: input(Site::Supernatural, 17, "supernatural bloom stamens"),
+            applies: "`/supernatural/enabled` off",
+            blend: crate::catalogue::Blend::Coupled,
+            dial: OVERRIDE,
+        },
+        /// `/bloom/stamenLength` while the group is on; unset, the natural row.
+        pub stamen_length: Option<f64> = "stamenLength" "m" Bounds::closed(1e-4, 0.1) => [Plan] {
+            wire: 336,
+            check: input(Site::Supernatural, 18, "supernatural bloom stamenLength"),
+            applies: "`/supernatural/enabled` off",
+            blend: crate::catalogue::Blend::Coupled,
+            dial: OVERRIDE,
+        },
+        /// `/bloom/stamenWidth` while the group is on; unset, the natural row.
+        pub stamen_width: Option<f64> = "stamenWidth" "m" Bounds::closed(1e-5, 0.01) => [Plan] {
+            wire: 337,
+            check: input(Site::Supernatural, 19, "supernatural bloom stamenWidth"),
+            applies: "`/supernatural/enabled` off",
+            blend: crate::catalogue::Blend::Coupled,
+            dial: OVERRIDE,
+        },
         /// `/bloom/scatter` while the group is on; unset, the natural row.
         pub scatter: Option<f64> = "scatter" "share" Bounds::closed(0.0, 1.0) => [Expand] {
             wire: 307,
@@ -252,6 +284,10 @@ impl SupernaturalBloom {
         petal_width: None,
         petal_widest: None,
         petal_cup: None,
+        petal_curl: None,
+        stamens: None,
+        stamen_length: None,
+        stamen_width: None,
         scatter: None,
         opens: None,
         lasts: None,

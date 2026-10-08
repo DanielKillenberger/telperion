@@ -103,6 +103,39 @@ crate::catalogue::rows! {
             applies: "no age flowering",
             dial: FLOWERS,
         },
+        /// How far a petal bends along its length, as a share of its length
+        /// at the tip: positive turns the tip out, away from the floret's
+        /// axis, so a narrow-opened floret flares into a horn's mouth.
+        pub petal_curl: f64 = "petalCurl" "share of the length"
+            Bounds::closed(-2.0, 2.0) => [Plan] {
+            wire: 326,
+            check: input(Site::Bloom, 16, "bloom petal curl"),
+            applies: "no age flowering",
+            dial: FLOWERS,
+        },
+        /// Stamens in a floret, a ring of filaments standing up inside its
+        /// petals. The fractional part is the last stamen's size, so a walk
+        /// across counts grows one in by degree; zero is none.
+        pub stamens: f64 = "stamens" "stamens" Bounds::closed(0.0, 64.0) => [Plan] {
+            wire: 332,
+            check: input(Site::Bloom, 17, "bloom stamens"),
+            applies: "no age flowering",
+            dial: FLOWERS,
+        },
+        /// A stamen's length in metres, from the floret's centre.
+        pub stamen_length: f64 = "stamenLength" "m" Bounds::closed(1e-4, 0.1) => [Plan] {
+            wire: 333,
+            check: input(Site::Bloom, 18, "bloom stamen length"),
+            applies: "no age flowering, or `stamens` zero",
+            dial: FLOWERS,
+        },
+        /// A stamen's width in metres.
+        pub stamen_width: f64 = "stamenWidth" "m" Bounds::closed(1e-5, 0.01) => [Plan] {
+            wire: 334,
+            check: input(Site::Bloom, 19, "bloom stamen width"),
+            applies: "no age flowering, or `stamens` zero",
+            dial: FLOWERS,
+        },
         /// How far a floret's size varies from one to the next, as a share.
         pub scatter: f64 = "scatter" "share" Bounds::closed(0.0, 1.0) => [Expand] {
             wire: 268,
@@ -154,6 +187,10 @@ impl Default for BloomParams {
             petal_width: 0.009,
             petal_widest: 0.6,
             petal_cup: 0.2,
+            petal_curl: 0.0,
+            stamens: 0.0,
+            stamen_length: 0.008,
+            stamen_width: 0.0004,
             scatter: 0.1,
             opens: 0.3,
             lasts: 0.1,

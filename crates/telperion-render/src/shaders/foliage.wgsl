@@ -149,6 +149,12 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     }
     let scale = u.leaf_colour_detail.x;
     let pixel = fwidth(in.coord);
+    // A floret's eye (fn-217 F1): its petals turn toward the eye's colour
+    // from their base up the row's share of their length, and the stamens,
+    // which stand at the base, take it whole. None on a leaf.
+    if (u.bloom_eye.w > 0.0) {
+        face = mix(face, u.bloom_eye.rgb, band(in.coord.x, 0.0, u.bloom_eye.w, pixel.x));
+    }
     // Geometry derivatives before any row branch: WGSL wants them in
     // uniform control flow, including in Chromium.
     let dx = dpdx(in.world);

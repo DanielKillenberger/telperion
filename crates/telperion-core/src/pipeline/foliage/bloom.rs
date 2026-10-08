@@ -86,7 +86,8 @@ pub(crate) fn now(p: &BloomParams, season: Option<f64>) -> f64 {
 /// The organ element: one petal built from the bloom's rows and turned
 /// `petals` times about the floret's axis (+Y), each opened `open` degrees
 /// from it, facing out of the flower; the last petal is the count's
-/// fraction of the others' size. Its levels are the petal's, replicated.
+/// fraction of the others' size. Its levels are the petal's, replicated,
+/// with the stamens on every level finer than their length.
 pub(crate) fn element(p: &BloomParams) -> Result<Element> {
     crate::catalogue::check(BloomParams::CHECKS, p, crate::catalogue::Site::Bloom)?;
     let petal = build_element(ElementParams {
@@ -97,7 +98,9 @@ pub(crate) fn element(p: &BloomParams) -> Result<Element> {
         base_fullness: 0.85,
         tip_sharpness: 1.0,
         cup: p.petal_cup,
-        curl: 0.0,
+        // The blade's curl bends toward its face, which looks in at the
+        // floret's axis, so the row turns it over: positive flares out.
+        curl: -p.petal_curl,
         lobe_count: 0,
         lobe_depth: 0.0,
         section_roundness: 0.0,
@@ -129,12 +132,18 @@ pub(crate) fn element(p: &BloomParams) -> Result<Element> {
         let offset = j as u32 * n;
         e.indices.extend(petal.indices.iter().map(|i| i + offset));
     }
+    let filaments = stamens(p, &mut e);
     for level in &petal.levels {
         let start = e.level_indices.len() as u32;
         let range = level.indices.start as usize..level.indices.end as usize;
         for j in 0..count as u32 {
             let indices = &petal.level_indices[range.clone()];
             e.level_indices.extend(indices.iter().map(|i| i + j * n));
+        }
+        // A level keeps the stamens while its error is under their length;
+        // one that coarse already stands for their absence.
+        if level.deviation < p.stamen_length {
+            e.level_indices.extend_from_slice(&filaments);
         }
         e.levels.push(super::Level {
             indices: start..e.level_indices.len() as u32,
@@ -143,6 +152,40 @@ pub(crate) fn element(p: &BloomParams) -> Result<Element> {
     }
     e.validate()?;
     Ok(e)
+}
+
+/// The stamens appended to `e`: each a quad of the stamen's width from the
+/// floret's centre to its length, leaning out half the petals' opening,
+/// turned between the petals; the last is the count's fraction of the
+/// others' size. Their coordinates sit at the petal's base, so the eye
+/// colours them. Returns their triangles.
+fn stamens(p: &BloomParams, e: &mut Element) -> Vec<u32> {
+    let count = p.stamens.ceil() as usize;
+    let last = p.stamens - count.saturating_sub(1) as f64;
+    let (s, c) = (0.5 * p.open).to_radians().sin_cos_fixed();
+    let mut indices = Vec::with_capacity(6 * count);
+    for k in 0..count {
+        let turn = TAU * (k as f64 + 0.5) / p.stamens;
+        let (sin, cos) = turn.sin_cos_fixed();
+        let radial = Vec3::new(cos, 0.0, sin);
+        let along = Vec3::Y * c + radial * s;
+        let across = Vec3::Y.cross(radial) * (0.5 * p.stamen_width);
+        let size = if k + 1 == count { last } else { 1.0 };
+        let tip = along * p.stamen_length;
+        let first = e.positions.len() as u32;
+        for v in [-across, across, tip + across, tip - across] {
+            let at = v * size;
+            e.positions.push(Vec3::new(
+                at.x as f32 as f64,
+                at.y as f32 as f64,
+                at.z as f32 as f64,
+            ));
+            e.coords.extend([0.0, 0.0]);
+        }
+        indices.extend([0, 1, 2, 0, 2, 3].map(|i| first + i));
+    }
+    e.indices.extend_from_slice(&indices);
+    indices
 }
 
 /// One floret's transform before packing: where it stands and its frame.

@@ -101,6 +101,9 @@ struct Uniforms {
     /// both mirrors' roughness are `reflectance.zw`. Zero on every natural
     /// leaf and on every flower.
     leaf_reflection: vec4<f32>, // back tint RGB, back reflectance
+    /// A floret's eye: the colour its petals turn toward at their base, and
+    /// the share of their length it reaches. Zero on every leaf.
+    bloom_eye: vec4<f32>, // eye RGB, share of the petal
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;

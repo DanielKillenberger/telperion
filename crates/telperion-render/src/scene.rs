@@ -101,6 +101,9 @@ struct Uniforms {
     /// its reflectance at normal incidence (fn-217 E2); the margin's
     /// reflectance and both mirrors' roughness sit in `reflectance`.
     leaf_reflection: [f32; 4], // back tint RGB, back reflectance
+    /// A floret's eye: the colour its petals turn toward at their base and
+    /// the share of their length it reaches (fn-217 F1); none on a leaf.
+    bloom_eye: [f32; 4], // eye RGB, share of the petal
 }
 
 /// The room and the light every pipeline draws under. Owns the one uniform

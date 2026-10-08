@@ -7,7 +7,7 @@ use telperion_core::foliage::BloomParams;
 use telperion_core::presets::Preset;
 use telperion_core::{math::Vec3, Family};
 use telperion_render::{
-    hero_pose, render, write_png, Camera, Level, Renderer, SceneRow, View, GROUND_REACH,
+    hero_pose, render, write_png, Camera, Level, Renderer, SceneRow, Still, View, GROUND_REACH,
     STILL_FORMAT,
 };
 
@@ -22,22 +22,24 @@ fn flowering(age: f64, share: f64) -> Family {
     f
 }
 
-/// Laurelin's racemes on existing rows (DESIGN.md 7.5): narrow-opened
-/// petals, widest at the mouth and cupped, hanging on a long axis.
-fn horn(f: &mut Family, open: f64, cup: f64) {
+/// Laurelin's racemes (DESIGN.md 9.2): small narrow-opened florets packed
+/// close along a hanging axis, each petal curled out at `curl` into a
+/// horn's mouth.
+fn horn(f: &mut Family, curl: f64) {
     f.bloom = BloomParams {
-        florets: 14.0,
+        florets: 24.0,
         rachis: 0.16,
         droop: 1.0,
-        pedicel: 0.012,
-        spread: 70.0,
+        pedicel: 0.008,
+        spread: 25.0,
         taper: 0.35,
         petals: 5.0,
-        open,
-        petal_length: 0.024,
-        petal_width: 0.016,
+        open: 20.0,
+        petal_length: 0.012,
+        petal_width: 0.008,
         petal_widest: 0.85,
-        petal_cup: cup,
+        petal_cup: 0.6,
+        petal_curl: curl,
         scatter: 0.1,
         ..f.bloom
     };
@@ -98,8 +100,8 @@ fn at_a_bloom(family: &Family, distance: f64, drop: f64) -> Camera {
     }
 }
 
-/// One still of `family` from `camera` at `w` x `w`, written to `dir`.
-fn shoot(renderer: &mut Renderer, family: &Family, camera: &Camera, w: u32, path: String) {
+/// One still of `family` from `camera` at `w` x `w`.
+fn still(renderer: &mut Renderer, family: &Family, camera: &Camera, w: u32) -> Still {
     let tree = telperion_core::mesh::build(family).unwrap();
     renderer.submit_at(&tree, Level::Chosen).unwrap();
     renderer.set_family(family);
@@ -109,8 +111,46 @@ fn shoot(renderer: &mut Renderer, family: &Family, camera: &Camera, w: u32, path
         sun_elevation: 40.0,
         ..SceneRow::default()
     });
-    let still = render(renderer, camera, w, w).unwrap();
+    render(renderer, camera, w, w).unwrap()
+}
+
+/// One still of `family` from `camera` at `w` x `w`, written to `path`.
+fn shoot(renderer: &mut Renderer, family: &Family, camera: &Camera, w: u32, path: String) {
+    let still = still(renderer, family, camera, w);
     write_png(std::path::Path::new(&path), &still).unwrap();
+}
+
+fn changed(a: &Still, b: &Still) -> usize {
+    a.rgba.iter().zip(&b.rgba).filter(|(x, y)| x != y).count()
+}
+
+/// The eye and the stamens are dormant at zero, to the pixel, and each
+/// changes the floret where it is set (fn-217 F1, F2).
+#[test]
+fn the_eye_and_the_stamens_act_only_where_set() {
+    let Some(gpu) = common::gpu() else { return };
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    let mut f = flowering(20.0, 0.6);
+    blossom(&mut f);
+    let camera = at_a_bloom(&f, 0.1, 0.0);
+    let plain = still(&mut renderer, &f, &camera, 256);
+    // An eye colour with no share, and stamens' size with no count.
+    let mut dormant = f.clone();
+    let m = &mut dormant.material;
+    (m.bloom_eye_red, m.bloom_eye_green, m.bloom_eye_blue) = (0.3, 0.0, 0.0);
+    (dormant.bloom.stamen_length, dormant.bloom.stamen_width) = (0.02, 0.002);
+    assert_eq!(
+        changed(&plain, &still(&mut renderer, &dormant, &camera, 256)),
+        0
+    );
+    let mut eye = dormant.clone();
+    eye.material.bloom_eye_share = 0.4;
+    let tinted = changed(&plain, &still(&mut renderer, &eye, &camera, 256));
+    assert!(tinted > 500, "the eye moved {tinted} values");
+    let mut stamens = f.clone();
+    stamens.bloom.stamens = 20.0;
+    let ringed = changed(&plain, &still(&mut renderer, &stamens, &camera, 256));
+    assert!(ringed > 200, "the stamens moved {ringed} values");
 }
 
 #[test]
@@ -119,19 +159,33 @@ fn stills_of_the_floret_s_form() {
     let Some(gpu) = common::gpu() else { return };
     let dir = std::env::var("STILLS").expect("STILLS names the directory the stills go to");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    // The horn on existing rows: two openings and cups of one raceme, a
-    // sparse flowering so one raceme stands clear, whole and close.
-    for (open, cup) in [(18.0, 0.6), (30.0, 1.4)] {
-        let mut f = flowering(20.0, 0.3);
-        horn(&mut f, open, cup);
-        // The leaves shrunk to specks, so no blade stands between the eye
-        // and the raceme it looks at.
+    // The petal's curl on one floret, straight and flared, the leaves
+    // shrunk to specks so no blade stands in front of it.
+    for curl in [0.0, 0.6] {
+        let mut f = flowering(20.0, 1.0);
+        horn(&mut f, curl);
         (f.element.length, f.element.connector_length) = (0.003, 0.0005);
-        for (shot, distance, drop) in [("raceme", 0.35, 0.0), ("floret", 0.1, 0.0)] {
-            let camera = at_a_bloom(&f, distance, drop);
-            let path = format!("{dir}/horn-{shot}-open{open}-cup{cup}.png");
-            shoot(&mut renderer, &f, &camera, 512, path);
-        }
+        let camera = at_a_bloom(&f, 0.06, 0.0);
+        shoot(
+            &mut renderer,
+            &f,
+            &camera,
+            512,
+            format!("{dir}/horn-floret-curl{curl}.png"),
+        );
+    }
+    // The raceme among its leaves, close and from the middle distance.
+    let mut f = flowering(20.0, 1.0);
+    horn(&mut f, 0.6);
+    for (shot, distance) in [("close", 0.35), ("middle", 1.5)] {
+        let camera = at_a_bloom(&f, distance, 0.08);
+        shoot(
+            &mut renderer,
+            &f,
+            &camera,
+            512,
+            format!("{dir}/horn-raceme-{shot}.png"),
+        );
     }
     let mut f = flowering(20.0, 0.6);
     blossom(&mut f);

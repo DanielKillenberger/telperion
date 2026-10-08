@@ -75,7 +75,7 @@ const SWEEP_NODES: usize = 8_000;
 // birch's), so every table leaves them at their neutral and they are held.
 // fn-217's supernatural group is off on every preset the sweep walks, and
 // no table states its rows, so they are held.
-const HELD: [&str; 147] = [
+const HELD: [&str; 159] = [
     "/bloom/florets",
     "/bloom/rachis",
     "/bloom/droop",
@@ -88,6 +88,10 @@ const HELD: [&str; 147] = [
     "/bloom/petalWidth",
     "/bloom/petalWidest",
     "/bloom/petalCup",
+    "/bloom/petalCurl",
+    "/bloom/stamens",
+    "/bloom/stamenLength",
+    "/bloom/stamenWidth",
     "/bloom/scatter",
     "/bloom/opens",
     "/bloom/lasts",
@@ -98,6 +102,10 @@ const HELD: [&str; 147] = [
     "/material/bloomBackRed",
     "/material/bloomBackGreen",
     "/material/bloomBackBlue",
+    "/material/bloomEyeRed",
+    "/material/bloomEyeGreen",
+    "/material/bloomEyeBlue",
+    "/material/bloomEyeShare",
     "/canopy/clumpSystemOrder",
     "/canopy/limbClumping",
     "/canopy/shortShootSpacing",
@@ -204,6 +212,10 @@ const HELD: [&str; 147] = [
     "/supernatural/bloom/petalWidth",
     "/supernatural/bloom/petalWidest",
     "/supernatural/bloom/petalCup",
+    "/supernatural/bloom/petalCurl",
+    "/supernatural/bloom/stamens",
+    "/supernatural/bloom/stamenLength",
+    "/supernatural/bloom/stamenWidth",
     "/supernatural/bloom/scatter",
     "/supernatural/bloom/opens",
     "/supernatural/bloom/lasts",
