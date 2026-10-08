@@ -177,7 +177,10 @@ fn the_bark_s_lengths_are_drawn_at_the_group_s_scale() {
             scale,
             ..legendary(enabled)
         };
-        assert_eq!(bits(&beech.drawn_material()), bits(&beech.applied().material));
+        assert_eq!(
+            bits(&beech.drawn_material()),
+            bits(&beech.applied().material)
+        );
     }
     beech.supernatural = legendary(true);
     let (applied, drawn) = (beech.applied().material, beech.drawn_material());

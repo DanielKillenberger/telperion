@@ -20,7 +20,11 @@ fn beech() -> Family {
     let mut f = Preset::EuropeanBeech.parameters();
     (f.age, f.skeleton.seed) = (10.0, 1);
     let m = &mut f.material;
-    (m.vein_contrast, m.blade_mottle_strength, m.blade_grain_strength) = (0.0, 0.0, 0.0);
+    (
+        m.vein_contrast,
+        m.blade_mottle_strength,
+        m.blade_grain_strength,
+    ) = (0.0, 0.0, 0.0);
     (m.hue_range_low, m.hue_range_high) = (0.0, 0.0);
     (m.brightness_range_low, m.brightness_range_high) = (0.0, 0.0);
     (m.margin_red, m.margin_green, m.margin_blue) = (0.0, 0.0, 0.0);
