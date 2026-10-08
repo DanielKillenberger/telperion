@@ -268,3 +268,12 @@ Measured `tree_buffer_bytes` after the submit: 141 MB (beech 80 s1), 240 MB (bee
 3. **A stated budget before a browser build.** The estimated peak (from the predictor's counts) plus what is held is checked against the browser's budget. The budget is set from measurement on this card and recorded, and a build over it is refused by name. Then measured: a second spruce 80 with an 80 on screen, three in a row, and large-to-small.
 4. **The beech's slender bound is decided on the exact recorded form both sides compute**, as SHORTEST was in task 8, and the 30 leaves are shown gone.
 5. **The remaining 6 % frame gap** goes to fn-176 (level of detail), noted.
+
+## Host decision on task 11's finding 8 (2026-10-08)
+
+**Option (a): lobed ring vertices on the device.**
+- The positions pass (`positions.wgsl`), which lays both blocks' ring vertices, applies the section's lobe profile at each ring's twist phase, as the CPU's wood does (`angular.rs`, `profile`).
+- `CompactSurface::qualified` no longer excludes lobed wood.
+- Seated leaves on lobed wood take the same path as on round wood: the device path in production, and the compact positions in the whole path.
+- Option (b), a named gap in `apart`, was rejected. Lobe depth crossing 0 would switch the tree between two ways of building, and the build time would jump by seconds in the harness. The principles rule out a parameter that switches paths.
+- Checked on the spruce, two lobes a tenth deep, at 40 and 80: vertex parity against the CPU's lobed vertices, leaf parity, and a close-up still (TASK11.md).

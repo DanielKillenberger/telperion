@@ -18,6 +18,8 @@ pub struct CompactSurface {
     pub vertices: u32,
     pub indices: u32,
     pub segments: u32,
+    /// The section's lobes and their depth, which the positions pass lays
+    /// each ring's outline with (fn-212 task 11).
     pub lobes: u32,
     pub depth: f32,
     /// Whether any run is drawn as a lattice cell. The ring words carry a round
@@ -40,7 +42,6 @@ pub fn qualified_ring(centre: [f32; 3], radius: f32) -> bool {
 impl CompactSurface {
     pub fn qualified(&self) -> bool {
         !self.shaped
-            && (self.lobes == 0 || self.depth == 0.0)
             && self.rings.iter().all(|r| {
                 qualified_ring([r[0], r[1], r[2]].map(f32::from_bits), f32::from_bits(r[3]))
             })

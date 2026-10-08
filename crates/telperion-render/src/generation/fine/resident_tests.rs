@@ -360,8 +360,8 @@ fn the_real_path_matches_the_cpu_path() {
 
 /// The parity probe at 40 and 80 (`cargo test --profile ci -p
 /// telperion-render real_path_at_80 -- --ignored --nocapture`, under the
-/// GPU lock, `PROBE=norway-spruce:80:1` for one tree a process).
-/// Reported, not held.
+/// GPU lock, `PROBE=norway-spruce:80:1` for one tree a process, with
+/// `:lobed` for its wood two lobes a tenth deep). Reported, not held.
 #[test]
 #[ignore]
 fn real_path_at_80() {
@@ -372,6 +372,10 @@ fn real_path_at_80() {
     let only = std::env::var("PROBE").unwrap_or_else(|_| "norway-spruce:80:1".into());
     let parts: Vec<&str> = only.split(':').collect();
     let at = (parts[1].parse().unwrap(), parts[2].parse().unwrap());
-    let p = parity(&gpu, &k, &gen, &family(parts[0], at));
+    let mut family = family(parts[0], at);
+    if parts.get(3) == Some(&"lobed") {
+        (family.surface.lobes, family.surface.lobe_depth) = (2, 0.1);
+    }
+    let p = parity(&gpu, &k, &gen, &family);
     println!("{only}: {p:?}");
 }

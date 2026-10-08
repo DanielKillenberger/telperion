@@ -175,12 +175,13 @@ pub(super) async fn build(
     // that seats nothing lays none (fn-212 task 11, as `preparation.rs`).
     let seats = x.seats();
     let mut m = Metrics::default();
-    let (curve, cpu, wood, angular, segments) = stage(gpu, &mut t.cpu, async || {
+    let (curve, cpu, wood, angular, section) = stage(gpu, &mut t.cpu, async || {
         let (curve, shared) = x.curve_with_contacts()?;
         let stations = x.compact_stations(&shared)?;
         let stations = stations.ok_or_else(|| refused("the fine path needs regular stations"))?;
         let surface = shared.surface();
-        let (angular, segments) = (surface.angular.clone(), surface.segments);
+        let angular = surface.angular.clone();
+        let section = (surface.segments, surface.lobes, surface.depth);
         let wood = match seats {
             true => {
                 let wood = gen.emit_positions(shared.into_surface(), &mut m).await?;
@@ -188,9 +189,10 @@ pub(super) async fn build(
             }
             false => None,
         };
-        Ok((curve, stations, wood, angular, segments))
+        Ok((curve, stations, wood, angular, section))
     })
     .await?;
+    let segments = section.0;
     // The device's: its curve, stations and ring positions.
     let surface = &family.surface;
     let height = x.leaves().envelope.height;
@@ -221,7 +223,7 @@ pub(super) async fn build(
                 let twist = std::f64::consts::TAU * surface.twist_rate / height;
                 let rung = tools.ringer.rings(gpu, &swept, segments, twist as f32)?;
                 let rings = (&*rung.buffer, rung.rings, rung.vertices);
-                gen.ring_vertices(rings, segments, &angular)
+                gen.ring_vertices(rings, section, &angular)
             })
             .await?,
         ),

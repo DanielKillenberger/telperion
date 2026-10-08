@@ -1,6 +1,6 @@
 //! fn-212 task 7, D4's seams at a close camera (`cargo test --profile ci
 //! -p telperion-render seam_stills -- --ignored --nocapture`,
-//! `PROBE=norway-spruce:80:1`, `STILLS=<dir>`, under the GPU lock): the
+//! `PROBE=norway-spruce:80:1[:lobed]`, `STILLS=<dir>`, under the GPU lock): the
 //! tree built on the real path and submitted, then the CPU path's, each
 //! drawn bare and whole from the same cameras at the seams of the two
 //! fine roots the device draws on the thickest bearers in the middle of
@@ -82,6 +82,10 @@ fn family(only: &str) -> Family {
     let mut family = telperion_core::presets::by_identity(parts[0]).unwrap();
     family.age = parts[1].parse().unwrap();
     family.skeleton.seed = parts[2].parse().unwrap();
+    // `:lobed`: the wood two lobes a tenth deep (fn-212 task 11).
+    if parts.get(3) == Some(&"lobed") {
+        (family.surface.lobes, family.surface.lobe_depth) = (2, 0.1);
+    }
     family
 }
 

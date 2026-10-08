@@ -166,7 +166,9 @@ fn seated(
     let x = &fx.reference;
     let (curve, shared) = x.curve_with_contacts().unwrap();
     let surface = &fx.family.surface;
-    let (segments, angular) = (shared.surface().segments, shared.surface().angular.clone());
+    let s = shared.surface();
+    let (segments, angular) = (s.segments, s.angular.clone());
+    let section = (segments, s.lobes, s.depth);
     drop(shared);
     let t = std::time::Instant::now();
     let swept = pollster::block_on(sw.sweep(gpu, dressed, rows(surface, curve.height))).unwrap();
@@ -183,7 +185,7 @@ fn seated(
     let twist = std::f64::consts::TAU * surface.twist_rate / curve.height;
     let rung = rg.rings(gpu, &swept, segments, twist as f32).unwrap();
     let rings = (&*rung.buffer, rung.rings, rung.vertices);
-    let positions = gen.ring_vertices(rings, segments, &angular).unwrap();
+    let positions = gen.ring_vertices(rings, section, &angular).unwrap();
     let (l, e) = (x.leaves(), x.element());
     let counts = (device.stations, device.segments, segments);
     let config = data::config(&l, x.twig(), counts, e, x.reference());

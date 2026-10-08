@@ -82,8 +82,8 @@ impl Generator {
             limits.max_compute_workgroups_per_dimension,
             ring_offset,
             angle_offset,
-            0,
-            0,
+            p.lobes,
+            p.depth.to_bits(),
         ];
         let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
         let make =
@@ -209,11 +209,11 @@ impl Generator {
     /// device (`[u32; 16]` words, as `compact::read` writes them, in a block
     /// of `vertices`) around `angular`'s samples: the positions pass's `emit`
     /// alone, what a seated leaf's contact reads (fn-212 task 6, the fine
-    /// block).
+    /// block), each ring's outline `lobes` lobes `depth` deep.
     pub(super) fn ring_vertices(
         &self,
         (descriptors, rings, vertices): (&wgpu::Buffer, u32, u32),
-        segments: u32,
+        (segments, lobes, depth): (u32, u32, f32),
         angular: &[[f32; 4]],
     ) -> Result<Owned> {
         let limits = self.gpu.device.limits();
@@ -224,8 +224,8 @@ impl Generator {
             limits.max_compute_workgroups_per_dimension,
             0,
             0,
-            0,
-            0,
+            lobes,
+            depth.to_bits(),
         ];
         let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
         let make =

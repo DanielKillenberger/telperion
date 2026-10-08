@@ -280,6 +280,8 @@ mod tests;
 mod readback_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod release_tests;
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod lobed_tests;
 
 /// Match the integration tests: unavailable hardware is explicit, while a
 /// device that exists but fails for another reason still fails the test.
