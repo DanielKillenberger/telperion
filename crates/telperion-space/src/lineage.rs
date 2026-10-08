@@ -172,23 +172,35 @@ pub(crate) fn place_presence(place: Key, share: f64, window: i64) -> u64 {
 }
 
 /// The nodes of a zone a unit a lifespan's fraction cut lays (fn-231,
-/// host 2026-10-08): of its n `presences`, the first ⌊n share / of⌋ whole,
-/// and the next where its `LAID` draw, under the zone's key `zone`, falls
-/// under the fraction left, at its presence times its lead over `window`,
-/// so it grows in from nothing as the fraction passes its draw; the rest
-/// are not laid. In whole ticks, so the device takes the same nodes.
+/// host 2026-10-08): `share / of` of its present nodes, the sum of their
+/// `presences` (Q32), so a node the law only starts to make adds a
+/// vanishing share. In index order, each node whose presence the quota
+/// still holds is laid whole, at its presence; the next, where its `LAID`
+/// draw, under the zone's key `zone`, falls under the share of it left,
+/// at its presence times that draw's lead over `window`, so it grows in
+/// from nothing; the rest are not laid. In integers, so the device takes
+/// the same nodes.
 pub(crate) fn laid(presences: &mut Vec<u64>, cut: crate::schedule::Cut, zone: Key, window: i64) {
-    let (share, of) = (fixed::ticks(cut.share), fixed::ticks(cut.of));
-    let at = share * presences.len() as u64;
-    let (whole, left) = ((at / of) as usize, at % of);
-    let last = (left > 0 && whole < presences.len()).then(|| {
-        let d = zone.child(whole as u64).child(LAID).draw();
-        let t = ((u128::from(left) << 53).div_ceil(u128::from(of))) as u64;
-        let lead = fixed::presence::of_under(t, d.0, window);
-        (d.0 < t).then(|| fixed::presence::times(presences[whole], lead))
-    });
-    presences.truncate(whole);
-    presences.extend(last.flatten());
+    let (share, of) = (fixed::ticks(cut.share) as u128, fixed::ticks(cut.of) as u128);
+    let quota = share * presences.iter().map(|&p| p as u128).sum::<u128>();
+    let mut held = 0u128;
+    for (j, &p) in presences.iter().enumerate() {
+        let p = p as u128;
+        if (held + p) * of <= quota {
+            held += p;
+            continue;
+        }
+        let left = quota - held * of;
+        let last = (left > 0).then(|| {
+            let d = zone.child(j as u64).child(LAID).draw();
+            let t = (left << 53).div_ceil(p * of) as u64;
+            let lead = fixed::presence::of_under(t, d.0, window);
+            (d.0 < t).then(|| fixed::presence::times(p as u64, lead))
+        });
+        presences.truncate(j);
+        presences.extend(last.flatten());
+        return;
+    }
 }
 
 /// A bud's PA under `lateral` for the draw `d`; none for a bare bud. The

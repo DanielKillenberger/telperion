@@ -2,10 +2,45 @@
 // unit (`grow_unit`), its advance, stop, move and relay (`advance.rs`,
 // `stop.rs`), and each relay's node (D18). Part of `chain.wgsl`'s shader.
 
+// The nodes of a zone a unit cut to `cut` ticks of `span_of` lays
+// (`lineage::laid`): the index of the node its quota runs out in (`n`
+// where it does not), and the threshold its `LAID` draw takes, none where
+// that node is not laid.
+struct Laid {
+    last: u32,
+    t: vec2<u32>,
+}
+
+fn laid_nodes(zat: u32, d: vec2<u32>, side: vec2<u32>, n: u32, window: vec2<u32>, cut: u32, span_of: u32) -> Laid {
+    if span_of == 0u {
+        return Laid(n, vec2<u32>(0u));
+    }
+    var sum = vec2<u32>(0u);
+    for (var j = 0u; j < n; j++) {
+        sum = add64(sum, presence(node_lead(zat, d, side, j), window));
+    }
+    let quota = mul64(w(cut, 0u), sum);
+    let span = w(span_of, 0u);
+    var held = vec2<u32>(0u);
+    for (var j = 0u; j < n; j++) {
+        let p = presence(node_lead(zat, d, side, j), window);
+        if !lt64(quota, mul64(add64(held, p), span)) {
+            held = add64(held, p);
+            continue;
+        }
+        let left = sub64(quota, mul64(held, span));
+        if is_zero(left) {
+            return Laid(j, vec2<u32>(0u));
+        }
+        return Laid(j, fraction_up(left, mul64(p, span), 53u));
+    }
+    return Laid(n, vec2<u32>(0u));
+}
+
 // A growth unit's phytomers and the laterals they bear (`grow_unit`), its
 // nodes `ticks` of a whole one's length; where a lifespan's fraction cut it
 // to `cut` ticks of `span_of` (none: 0), `cut / span_of` of each zone's
-// nodes, the next one by its `LAID` draw (`lineage::laid`, fn-231).
+// present nodes, the next one by its `LAID` draw (`lineage::laid`, fn-231).
 fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32, cut: u32, span_of: u32) {
     let first = table[2u * pa];
     let zones = table[2u * pa + 1u];
@@ -24,18 +59,16 @@ fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32, cut: u
         let window = words[table[zat + 7u] + cycle];
         let zg = zone_g(zat);
         let buds_f = gf(zg);
-        let at = n * cut;
-        let whole = select(n, at / max(span_of, 1u), span_of != 0u);
-        let fraction = select(0u, at % max(span_of, 1u), span_of != 0u);
+        let laid = laid_nodes(zat, d, side, n, window, cut, span_of);
         for (var m = 0u; m < n; m++) {
             let j = drawn[m];
             let node_key = child(zk, w(j, 0u));
-            if span_of != 0u && (j > whole || (j == whole && fraction == 0u)) {
+            if j > laid.last || (j == laid.last && is_zero(laid.t)) {
                 continue;
             }
             var node_p = presence(node_lead(zat, d, side, j), window);
-            if span_of != 0u && j == whole {
-                let t = fraction_up(w(fraction, 0u), w(span_of, 0u), 53u);
+            if j == laid.last {
+                let t = laid.t;
                 let dl = draw(child(node_key, KEY_LAID));
                 if !lt64(dl, t) {
                     continue;
