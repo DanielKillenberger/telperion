@@ -392,7 +392,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-231-the-engines-walk-is-continuous-at-its.md",
-  "status": "open",
+  "status": "done",
   "title": "The engine's walk is continuous at its ends",
   "tracker": {
     "baseHashFlow": null,
@@ -405,5 +405,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T22:45:12.392626Z"
+  "updated_at": "2026-10-08T23:03:20.530481Z"
 }
