@@ -10,6 +10,8 @@ The owner's goal (2026-10-08/09): "replace the old generator with the new one th
 - **R2:** fn-198 task 9's release checks pass (harness timing against master, the site's field against 0.1.4, sizes, docs, npm version) and the release PR is opened per docs/pr-format.md.
 - **R3:** the owner's verdict on each species and on the site's grove recorded.
 
+- **R4 (found on the way):** fn-234's measurement found the resident device path's tree reaching 0.227 m below ground against the CPU's 0.040 m (the cherry beech at 40); checked in the release checks, and a spec minted if it is a defect.
+
 ## Boundaries
 
 Map only. Post-release: fn-232, fn-233.
