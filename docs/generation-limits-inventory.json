@@ -1600,5 +1600,41 @@
     "site": "if species . states . iter ( ) . any ( | s | s . flowering > 0 . 0 ) {",
     "classification": "algorithm",
     "reason": "Whether any age flowers selects the executor (an interim recorded gap until fn-125's GPU bloom pass); it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/blend.rs",
+    "site": "if points . iter ( ) . any ( | ( _ , w ) | bad ( w ) ) | | ! ( total > 0 . 0 & & total . is_finite ( ) ) {",
+    "classification": "algorithm",
+    "reason": "Refuses blend weights that name no point (negative, not finite, or summing to nothing); it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/blend/size.rs",
+    "site": "const STEPS : usize = 64 ;",
+    "classification": "algorithm",
+    "reason": "The blend's size solve (fn-230): a bounded regula-falsi root find on the lateral factor; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/blend/size.rs",
+    "site": "for _ in 0 . . STEPS {",
+    "classification": "algorithm",
+    "reason": "The blend's size solve (fn-230): a bounded regula-falsi root find on the lateral factor; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/blend/size.rs",
+    "site": "if high < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A blend predicted at or below its ends' size is left unshrunk (fn-230, host 2026-10-08); it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/blend/size.rs",
+    "site": "if width > 64 . 0 {",
+    "classification": "algorithm",
+    "reason": "The blend's size solve (fn-230): a bounded regula-falsi root find on the lateral factor; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/blend/size.rs",
+    "site": "while ga > 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "The blend's size solve (fn-230): a bounded regula-falsi root find on the lateral factor; it limits no generated population."
   }
 ]
