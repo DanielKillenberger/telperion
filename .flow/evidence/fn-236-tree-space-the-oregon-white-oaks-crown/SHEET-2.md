@@ -43,3 +43,16 @@ The crown is still clumps with gaps after the leaf rounds, so this stops here as
 Seed 7 at 80: 1,493,410 nodes, 21.4 m tall, crown 23.0 m wide, DBH 2.0 m (round 1). It is the widest seed and has the most nodes, as under every probe.
 
 Not run: the site's field stills (R3), the timing (R4), the gate, `npm test` and impl-review. These wait for a round that reads as the dome.
+
+## Host decisions after the leaf rounds (2026-10-09)
+
+Astra's review (ASTRA-CROWN.md) found that the values have not been exhausted. Three controls were never tried, and they act on the cause Astra names: nothing refills foliage behind the advancing tips or between the limbs. Astra also corrects one reading. f1 turned off only light-driven shedding. Baseline viability, lifespans and post-death shedding were still on, so the f1 probe does not show that the gaps are not shed shoots.
+
+Round 3 runs on the structure, starting from round 1, with the leaf state of L3 kept:
+1. **Reserve buds:** earlier release on the limbs (`delay` and `rate`, and the dormant rows at `oregon-white-oak.values:266`), plus modest reserves on the boughs. Try earlier release before raising bud counts.
+2. **Fine-order `shadeSize`:** lowered from 1.5 on BRANCH, SHOOT, TWIG and SHORT, so the fine orders keep extending into the gaps between clumps without adding axes.
+3. **Fine-order placement:** move the existing lateral budget from distal clusters toward medial and basal positions, using insertion, elevation, tropism and twig viability and lifespan.
+
+Each probe is judged on the 80-year stills from several azimuths. Measure the projected foliage gap share as well as width over height, grown phytomers and time. The 20 M budget holds.
+
+**If round 3 does not close the crown,** stop. The host then mints Astra's candidate capability as its own spec: local, light-directed steering of growing shoots, dormant at strength 0, first proven on two branch systems with a lit gap between them.
