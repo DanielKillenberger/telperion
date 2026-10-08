@@ -209,11 +209,18 @@ fn a_positive_curl_flares_the_petal_tips_away_from_the_axis() {
         element(&p).unwrap()
     };
     let flat = at(0.0);
-    assert_eq!(format!("{flat:?}"), format!("{:?}", element(&raceme_open(20.0)).unwrap()));
+    assert_eq!(
+        format!("{flat:?}"),
+        format!("{:?}", element(&raceme_open(20.0)).unwrap())
+    );
     // The first petal's tip: of its vertices, the farthest from the base.
     let n = flat.positions.len() / 5;
     let tip = (0..n)
-        .max_by(|&a, &b| flat.positions[a].length().total_cmp(&flat.positions[b].length()))
+        .max_by(|&a, &b| {
+            flat.positions[a]
+                .length()
+                .total_cmp(&flat.positions[b].length())
+        })
         .unwrap();
     // The first petal opens toward +X, so its tip's x is how far out it is.
     let reach = |e: &Element| e.positions[tip].x;
@@ -242,9 +249,15 @@ fn stamens_stand_in_a_ring_by_degree_and_leave_the_coarse_levels() {
         element(&p).unwrap()
     };
     let none = at(0.0);
-    assert_eq!(format!("{none:?}"), format!("{:?}", element(&raceme()).unwrap()));
+    assert_eq!(
+        format!("{none:?}"),
+        format!("{:?}", element(&raceme()).unwrap())
+    );
     let five = at(5.0);
-    let (petals, added) = (none.positions.len(), five.positions.len() - none.positions.len());
+    let (petals, added) = (
+        none.positions.len(),
+        five.positions.len() - none.positions.len(),
+    );
     assert_eq!(added, 5 * 4);
     let ring = &five.positions[petals..];
     let reach = ring.iter().map(|v| v.length()).fold(0.0, f64::max);
@@ -253,11 +266,17 @@ fn stamens_stand_in_a_ring_by_degree_and_leave_the_coarse_levels() {
     // A sixth grows in from nothing.
     let more = at(5.001);
     let sixth = &more.positions[petals + 20..];
-    assert!(sixth.iter().all(|v| v.length() < 1e-4), "the sixth stamen popped");
+    assert!(
+        sixth.iter().all(|v| v.length() < 1e-4),
+        "the sixth stamen popped"
+    );
     // The finest level keeps them; a level as coarse as a stamen is long
     // drops them, and the ladder still narrows to the finest.
     let finest = five.levels.last().unwrap();
-    assert_eq!(&five.level_indices[finest.indices.start as usize..], &five.indices[..]);
+    assert_eq!(
+        &five.level_indices[finest.indices.start as usize..],
+        &five.indices[..]
+    );
     for (l, base) in five.levels.iter().zip(&none.levels) {
         let grown = (l.indices.end - l.indices.start) - (base.indices.end - base.indices.start);
         let kept = if base.deviation < 0.006 { 5 * 6 } else { 0 };

@@ -210,3 +210,61 @@ fn flower(f: &mut Family) {
     (f.bloom.stamens, f.bloom.stamen_length) = (20.0, 0.008);
     f.bloom.stamen_width = 0.0004;
 }
+
+/// The whole tree at the hero pose (`STILLS=<dir> ... --ignored`): the
+/// cherry's blossom with more and larger florets (M1, DESIGN.md 3.7), and
+/// Laurelin's test tree, the group on at scale three with the gold rim and
+/// the horn racemes.
+#[test]
+#[ignore]
+fn stills_at_whole_tree_distance() {
+    use telperion_core::supernatural::Supernatural;
+    let Some(gpu) = common::gpu() else { return };
+    let dir = std::env::var("STILLS").expect("STILLS names the directory the stills go to");
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    let mut cherry = flowering(40.0, 1.0);
+    blossom(&mut cherry);
+    flower(&mut cherry);
+    (cherry.bloom.florets, cherry.bloom.petal_length) = (6.0, 0.016);
+    cherry.bloom.petal_width = 0.014;
+    // Denser still: every outer age flowers, twelve florets of 20 mm petals.
+    let mut dense = cherry.clone();
+    for k in 10..15 {
+        dense.space.species.as_mut().unwrap().states[k].flowering = 1.0;
+    }
+    (dense.bloom.florets, dense.bloom.petal_length) = (12.0, 0.02);
+    dense.bloom.petal_width = 0.018;
+    let mut laurelin = flowering(40.0, 1.0);
+    horn(&mut laurelin, 0.6);
+    laurelin.supernatural = Supernatural {
+        enabled: true,
+        scale: 3.0,
+        margin_reflectance: 0.9,
+        roughness: 0.25,
+        ..Supernatural::NONE
+    };
+    let m = &mut laurelin.supernatural.material;
+    (m.margin_red, m.margin_green, m.margin_blue) = (Some(0.6), Some(0.42), Some(0.03));
+    for (name, f) in [
+        ("cherry", &cherry),
+        ("dense", &dense),
+        ("laurelin", &laurelin),
+    ] {
+        let tree = telperion_core::mesh::build(f).unwrap();
+        let camera = hero_pose(tree.bounds, 4.0 / 3.0, GROUND_REACH);
+        renderer.submit_at(&tree, Level::Chosen).unwrap();
+        renderer.set_family(f);
+        renderer.set_view(View::Whole);
+        renderer.set_scene(SceneRow {
+            sun_azimuth: 115.0,
+            sun_elevation: 40.0,
+            ..SceneRow::default()
+        });
+        let still = render(&mut renderer, &camera, 960, 720).unwrap();
+        write_png(
+            std::path::Path::new(&format!("{dir}/{name}-whole.png")),
+            &still,
+        )
+        .unwrap();
+    }
+}

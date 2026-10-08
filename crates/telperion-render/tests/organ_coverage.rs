@@ -170,4 +170,19 @@ fn measure_the_florets_coverage_at_the_hero_pose() {
         write("chosen", chosen.rgba.clone());
         write("reference", grey(&truth));
     }
+    // M1 by values: every outer age flowering, twice the florets, larger.
+    for age in [20.0, 40.0] {
+        let mut f = blossoming(age, 1.0);
+        for k in 10..15 {
+            f.space.species.as_mut().unwrap().states[k].flowering = 1.0;
+        }
+        (f.bloom.florets, f.bloom.petal_length, f.bloom.petal_width) = (12.0, 0.02, 0.018);
+        let tree = mesh::build(&f).unwrap();
+        let florets = tree.organ.as_ref().map_or(0, |o| o.instances.leaves.len());
+        let camera = hero_pose(tree.bounds, f64::from(w) / f64::from(h), GROUND_REACH);
+        renderer.submit_at(&tree, Level::Chosen).unwrap();
+        renderer.set_family(&f);
+        let share = coverage(&mask(&mut renderer, &camera, w, h));
+        println!("beech {age}, denser: {florets} florets; coverage chosen {share:.5}");
+    }
 }
