@@ -103,12 +103,19 @@ fn main() -> Result<(), String> {
         .filter(|r| fine_run(r) && r.droop > HANG && r.length >= SHORT)
         .collect();
     let fine_runs = runs.iter().filter(|r| fine_run(r)).count();
-    println!("preset {id} age {age} seed {seed}: {} nodes, {} runs", nodes.len(), runs.len());
+    println!(
+        "preset {id} age {age} seed {seed}: {} nodes, {} runs",
+        nodes.len(),
+        runs.len()
+    );
     println!(
         "  hanging strands (fine runs >= {SHORT} m whose chord falls > 30 deg): {} of {fine_runs} fine runs",
         strands.len()
     );
-    println!("    length m: {}", quantiles(strands.iter().map(|r| r.length).collect()));
+    println!(
+        "    length m: {}",
+        quantiles(strands.iter().map(|r| r.length).collect())
+    );
     println!(
         "    droop deg: {}",
         quantiles(strands.iter().map(|r| r.droop.to_degrees()).collect())
@@ -127,7 +134,9 @@ fn main() -> Result<(), String> {
     let elevation = |i: usize| seg(i).map(|(x, y, z, _)| y.atan2(x.hypot(z)).to_degrees());
     let (mut leaving, mut drop) = (Vec::new(), Vec::new());
     for r in &strands {
-        let Some(e0) = elevation(r.nodes[0]) else { continue };
+        let Some(e0) = elevation(r.nodes[0]) else {
+            continue;
+        };
         leaving.push(e0);
         let mut walked = 0.0;
         for &i in &r.nodes {
@@ -142,7 +151,10 @@ fn main() -> Result<(), String> {
     }
     println!("    leaving elevation deg: {}", quantiles(leaving));
     println!("    drop over first 0.3 m, deg per m: {}", quantiles(drop));
-    let limbs: Vec<&Run> = runs.iter().filter(|r| r.base_radius >= LIMB && r.length > 1.0).collect();
+    let limbs: Vec<&Run> = runs
+        .iter()
+        .filter(|r| r.base_radius >= LIMB && r.length > 1.0)
+        .collect();
     println!(
         "  limbs (base radius >= {LIMB} m, > 1 m): {}; laterals per metre: {}",
         limbs.len(),
@@ -188,15 +200,26 @@ fn main() -> Result<(), String> {
             metres[b] += l;
         }
     }
-    let names = ["<0.5mm", "0.5-1mm", "1-2mm", "2-5mm", "5-10mm", "10-30mm", ">30mm"];
+    let names = [
+        "<0.5mm", "0.5-1mm", "1-2mm", "2-5mm", "5-10mm", "10-30mm", ">30mm",
+    ];
     for b in 0..7 {
-        println!("    radius {:>8}: {:>9} segments, {:>9.1} m", names[b], count[b], metres[b]);
+        println!(
+            "    radius {:>8}: {:>9} segments, {:>9.1} m",
+            names[b], count[b], metres[b]
+        );
     }
     // Leaves: the nearest node's run, by a coarse grid.
     let leaves = built.outputs.leaves.ok_or("no leaves")?;
     let n = leaves.instances.leaves.len();
     let cell = 0.25;
-    let key = |x: f64, y: f64, z: f64| ((x / cell).floor() as i64, (y / cell).floor() as i64, (z / cell).floor() as i64);
+    let key = |x: f64, y: f64, z: f64| {
+        (
+            (x / cell).floor() as i64,
+            (y / cell).floor() as i64,
+            (z / cell).floor() as i64,
+        )
+    };
     let mut grid: HashMap<(i64, i64, i64), Vec<usize>> = HashMap::new();
     for i in 1..nodes.len() {
         if nodes[i].radius < 0.03 {
@@ -205,8 +228,7 @@ fn main() -> Result<(), String> {
         }
     }
     let (mut on_strand, mut on_short, mut on_other, mut unmatched) = (0, 0, 0, 0);
-    let strand_set: std::collections::HashSet<usize> =
-        strands.iter().map(|r| r.nodes[0]).collect();
+    let strand_set: std::collections::HashSet<usize> = strands.iter().map(|r| r.nodes[0]).collect();
     for k in 0..n {
         let m = leaves.instances.matrix(k);
         let (x, y, z) = (m[12] as f64, m[13] as f64, m[14] as f64);
@@ -241,7 +263,65 @@ fn main() -> Result<(), String> {
     println!(
         "  leaves {n}: nearest wood on a hanging strand {on_strand}, on a short run (< {SHORT} m) {on_short}, elsewhere {on_other}, none within 0.5 m {unmatched}"
     );
-    let b = built.skeleton.tree.nodes.iter().fold((f64::MAX, f64::MIN), |(lo, hi), n| (lo.min(n.position.y), hi.max(n.position.y)));
+    // Leaves per metre of hanging strand, and per short run.
+    let strand_m: f64 = strands.iter().map(|r| r.length).sum();
+    let short_runs = runs
+        .iter()
+        .filter(|r| fine_run(r) && r.length < SHORT)
+        .count();
+    println!(
+        "  leaves per metre of hanging strand: {:.1} ({on_strand} on {strand_m:.0} m); per short run: {:.2} ({short_runs} runs)",
+        on_strand as f64 / strand_m.max(1e-9),
+        on_short as f64 / (short_runs.max(1) as f64)
+    );
+    // Leaf size: the blade's extent along and across its axis, and the
+    // stalk below it, times each instance's scale (the column length).
+    if let Some(element) = built.outputs.element.as_ref() {
+        let blade = element
+            .anatomy
+            .as_ref()
+            .map_or(0..element.positions.len(), |a| a.vertices.clone());
+        let (mut y0, mut y1, mut x0, mut x1) = (f64::MAX, f64::MIN, f64::MAX, f64::MIN);
+        for p in &element.positions[blade] {
+            (y0, y1, x0, x1) = (y0.min(p.y), y1.max(p.y), x0.min(p.x), x1.max(p.x));
+        }
+        let scales: Vec<f64> = (0..n)
+            .step_by((n / 20_000).max(1))
+            .map(|k| {
+                let m = leaves.instances.matrix(k);
+                f64::from(m[4])
+                    .hypot(f64::from(m[5]))
+                    .hypot(f64::from(m[6]))
+            })
+            .collect();
+        let mm = |s: f64| s * 1e3;
+        let q = |v: &[f64], f: f64| v[((v.len() - 1) as f64 * f).round() as usize];
+        let mut s = scales.clone();
+        s.sort_by(f64::total_cmp);
+        println!(
+            "  leaf blade length mm p10/p50/p90: {:.0} / {:.0} / {:.0}; width p50 {:.0}; stalk p50 {:.0}",
+            mm((y1 - y0) * q(&s, 0.1)),
+            mm((y1 - y0) * q(&s, 0.5)),
+            mm((y1 - y0) * q(&s, 0.9)),
+            mm((x1 - x0) * q(&s, 0.5)),
+            mm(y0 * q(&s, 0.5))
+        );
+    }
+    let m = &family.material;
+    println!(
+        "  leaf colour rows (linear): front {:.3}/{:.3}/{:.3}, back {:.3}/{:.3}/{:.3}, transmission {:.3}/{:.3}/{:.3} at {:.2}",
+        m.leaf_front_red, m.leaf_front_green, m.leaf_front_blue,
+        m.leaf_back_red, m.leaf_back_green, m.leaf_back_blue,
+        m.transmission_red, m.transmission_green, m.transmission_blue, m.transmission_strength
+    );
+    let b = built
+        .skeleton
+        .tree
+        .nodes
+        .iter()
+        .fold((f64::MAX, f64::MIN), |(lo, hi), n| {
+            (lo.min(n.position.y), hi.max(n.position.y))
+        });
     println!("  height {:.1} m", b.1 - b.0);
     Ok(())
 }

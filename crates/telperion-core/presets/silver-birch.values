@@ -92,8 +92,11 @@
 # The engine tree's grown shoots carry a leaf station every 20 mm, the
 # family's default, so short shoots carry leaves and the crown stays
 # open (fn-213 round 2). Round 3 (host: a leafy mass along the strands)
-# puts one every 12 mm.
-/skeleton/twigs/twig/internodeLength = 0.012
+# puts one every 12 mm. Round 11 (owner: leaves "small and numerous ...
+# like they just fill the twigs length"): one every 60 mm, a leaf a node of
+# the strand's 0.06 m internode, so 4 to 6 a year's growth, inside the 3 to
+# 7 leaves a long shoot bears (SU03). Each short shoot keeps at least one.
+/skeleton/twigs/twig/internodeLength = 0.06
 /skeleton/twigs/twig/bearingDiameter = 0.02
 
 # The weeping birch's own curtain: a full hang, shoots running metres
@@ -151,14 +154,17 @@
 # each margin stand for its teeth: the lobe rows cut symmetric notches,
 # not the forward-leaning double teeth the photograph shows, which are
 # fn-60's. Thirty-two stations keep the outline from reading as facets.
-# A blade of 6.5 by 5.2 cm, inside the 3 to 7 cm of the floras (JRC),
-# so the strands of the engine tree read as a leafy mass (fn-213 round 3).
-/element/length = 0.065
-/element/width = 0.052
-/element/connectorLength = 0.022
+# Round 11: Flora of China (Betula pendula): "Petiole slender, 2-3 cm;
+# leaf blade triangular-ovate or rhombic-ovate, 3-7.5 x 1.5-6 cm ... base
+# truncate, broadly cuneate ... apex acuminate". A 5.0 by 3.7 cm blade
+# (the ranges' middles) varying 0.3 either way (35 to 65 mm), on a 2.5 cm
+# stalk, widest near its truncate base and drawn to an acuminate tip.
+/element/length = 0.05
+/element/width = 0.037
+/element/connectorLength = 0.025
 /element/widestAt = 0.2
 /element/baseFullness = 0.3
-/element/tipSharpness = 1.1
+/element/tipSharpness = 1.5
 /element/lobeCount = 8
 /element/lobeDepth = 0.1
 /element/axialSegments = 32
@@ -173,7 +179,7 @@
 # half of the row a leaf could not reach before.
 /canopy/upward = -0.35
 /canopy/divergence = 180.0
-/canopy/sizeVariation = 0.2
+/canopy/sizeVariation = 0.3
 /material/barkRed = 0.78
 /material/barkGreen = 0.76
 /material/barkBlue = 0.7
@@ -210,12 +216,18 @@
 # darker green, and the rows below draw it at 83/105/73. On the engine
 # tree that read bluish beside S2 (host, fn-213 sheet 1); the blade is
 # warmed towards a bright yellow-green.
-/material/leafFrontRed = 0.16
-/material/leafFrontGreen = 0.26
-/material/leafFrontBlue = 0.035
-/material/leafBackRed = 0.25
-/material/leafBackGreen = 0.33
-/material/leafBackBlue = 0.09
+# Round 11 (owner: "weird color"): code read the leaf pixels of S2-Oslo's
+# sunlit crown, sRGB to linear, on the exposure its sunlit white stem
+# reads the bark rows (0.78/0.76/0.70) on: 0.134/0.145/0.066
+# (leaf_colour.py). No reference shows a leaf's underside or a backlit
+# leaf apart from the rest, so the back and the transmitted tint take the
+# same measured colour.
+/material/leafFrontRed = 0.134
+/material/leafFrontGreen = 0.145
+/material/leafFrontBlue = 0.066
+/material/leafBackRed = 0.134
+/material/leafBackGreen = 0.145
+/material/leafBackBlue = 0.066
 
 # The old birch's base turns black and fissured (JRC: the bark "with
 # age darkens and develops fissures"; OSU: "with age, trunk becomes
@@ -248,8 +260,9 @@
 /material/veinScale = 6.0
 /material/veinContrast = 0.8
 /material/transmissionStrength = 0.6
-/material/transmissionRed = 0.28
-/material/transmissionGreen = 0.55
+/material/transmissionRed = 0.134
+/material/transmissionGreen = 0.145
+/material/transmissionBlue = 0.066
 /material/thickness = 0.45
 /material/fissureRed = -0.44
 /material/fissureGreen = -0.44

@@ -189,3 +189,7 @@ All values are **estimated** from the stills and checked by `birch_measure.rs`.
 ## Round 10 (2026-10-07, fn-224's spreads)
 
 The strands take fn-224's per-axis spreads: insertion ± 0.5 rad and tropism × (1 ± 0.6). Their roll rises to 1.6 rad. Young limbs return to round 8's steep rise (1.3 rad, tropism 0.9, 25 years); the old limbs keep round 9's spread and bend. Rows and measures are in SHEET-10.md. All values are **estimated**.
+
+## Round 11 (2026-10-08, the leaves; owner's verdict on round 10)
+
+Leaf rows only; no wood row moved. A leaf station every 0.06 m (one a strand node; SU03's 3 to 7 leaves a long shoot), a 5.0 × 3.7 cm triangular-ovate blade varying 0.3 on a 2.5 cm petiole with an acuminate tip (Flora of China, *Betula pendula*: "Petiole slender, 2-3 cm; leaf blade triangular-ovate or rhombic-ovate, 3-7.5 × 1.5-6 cm ... apex acuminate", `raw/lit/foc-betula-pendula.txt`), and the leaf colour read by code from S2-Oslo's sunlit crown on its stem's exposure, linear 0.134/0.145/0.066, for front, back and transmission alike (`leaf_colour.py`). Rows, measures and stills are in SHEET-11.md.
