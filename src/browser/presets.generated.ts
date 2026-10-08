@@ -4249,6 +4249,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "14": {
+            "clusterLeaves": 3,
+            "clusterSpread": 0.6,
             "continuation": 0,
             "divergence": 2.5132741228718345,
             "form": {
