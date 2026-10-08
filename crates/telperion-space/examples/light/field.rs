@@ -91,7 +91,7 @@ pub fn compare(s: &Structure, m: &Measured, species: &Species, light: &Light) {
     }
     let points: Vec<Vec3> = pass_at.iter().chain(&laid_at).copied().collect();
     let np = pass_at.len();
-    let read = |leaves: &[(Vec3, f64)]| field_reads(light, leaves, &points, 0.5);
+    let read = |leaves: &[(Vec3, f64)]| field_reads(light, leaves, &points);
     let pass = read(&kept(&m.leaves, &|_| true));
     let real = read(&kept(&laid, &|_| true));
     let mut swap = kept(&laid, &|f| !f);

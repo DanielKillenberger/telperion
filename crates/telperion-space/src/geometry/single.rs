@@ -2,14 +2,12 @@
 //! `place` does for a depth, for the one axis a chain's resolution lays,
 //! so a chain is laid whenever it is resolved and the tree is the same in
 //! any order.
-use super::lay::{lay, Layer, GROUND_TOLERANCE};
-use super::{bend, frame, turned};
-use crate::error::{Error, Result};
-use crate::lineage::{insertion, Key, ROLL};
+use super::lay::{lay, Layer, Stop, GROUND_TOLERANCE};
+use super::{bend, frame};
+use crate::error::Result;
 use crate::sag::Lever;
 use crate::species::Species;
 use crate::structure::{Axis, Origin, Vec3};
-use std::f64::consts::TAU;
 
 /// Lays axis `i` from its parent's laid frame (`layers`, by index), its
 /// relays pulled as far as the axis they replace (`reaches`), with
@@ -46,18 +44,11 @@ pub(crate) fn lay_one(
     let state = &species.states[axis.pa];
     let own = (bend(axis, state, years(axis)), reaches[i]);
     let (pa, birth, base) = (axis.pa, axis.birth, framed.0.z);
-    let below = |height: f64| Error::BelowGround {
-        axis: i,
-        pa,
-        birth,
-        base,
-        height,
-    };
     if base < -GROUND_TOLERANCE {
-        return Err(below(-base));
+        return Err(Stop::Below(-base).error(i, pa, birth, base));
     }
     let start = (framed, curve, inherited);
-    lay(&mut axes[i], start, state, own, levers, trunk).map_err(below)
+    lay(&mut axes[i], start, state, own, levers, trunk).map_err(|s| s.error(i, pa, birth, base))
 }
 
 /// Where a lateral bud would stand and face on its laid bearer, as
@@ -67,39 +58,6 @@ pub(crate) fn bud_frame(
     species: &Species,
     bud: (Origin, usize, u64),
 ) -> (Vec3, Vec3) {
-    let (origin, pa, lineage) = bud;
-    let Origin::Lateral {
-        parent,
-        node,
-        slot,
-        whorl,
-        woken,
-    } = origin
-    else {
-        unreachable!("a bud record is a lateral")
-    };
-    let p = &axes[parent];
-    let at = &p.phytomers[node];
-    let parent_state = &species.states[p.pa];
-    let state = &species.states[pa];
-    let roll = state.form.roll * (2.0 * Key(lineage).child(ROLL).unit() - 1.0);
-    let azimuth = super::phase(axes, species, parent)
-        + parent_state.divergence * at.rank
-        + TAU * f64::from(slot) / whorl
-        + roll;
-    let angle = insertion(lineage, state.insertion, state.form.insertion_spread);
-    let (heading, _) = turned(
-        (at.heading, at.side),
-        azimuth,
-        angle,
-        parent_state.form.plane,
-        0.0,
-    );
-    let base = if woken {
-        let below = node.checked_sub(1).map_or(p.base, |n| p.phytomers[n].tip);
-        (below + at.tip) * 0.5
-    } else {
-        at.tip
-    };
-    (base, heading)
+    let (base, heading, _) = super::lateral(axes, species, bud);
+    (super::q::v3(base), super::q::v3(heading))
 }

@@ -99,3 +99,80 @@
 - **What slowed it:** `dcg` refuses a redirect whose target is a shell variable and refuses `git checkout HEAD -- <file>`; each needed a rewrite (the Write tool, a literal path, or a script that writes the file).
 - **Cost:** about 4 minutes and three retries.
 - **What would remove it:** a local setup matter (the guard's allow list for the scratchpad), reported.
+
+## 2026-10-07, task 6 worker: the desk at load 100 to 176, and a load gate that never gated
+
+- **Doing:** timing the stepped executor's phases on the lit oak at 80.
+- **What slowed it:** two other workers' test binaries (`walks-*`) held the desk at a one-minute load of 97 to 176, which inflated the oak's build seven to eight times (34 s against 4.5 s). The run script's load gate called `bc`, which this desk lacks, so it ran every case at once under that load; the first run was set aside (`raw/task6/old-binary-highload/`) and rerun behind an `awk` gate.
+- **Cost:** about 5 minutes for the gate; the wait for the load to fall dwarfs the work (noted with the timings).
+- **What would remove it:** one shared desk scheduler or lock for timing runs (as `gpu.lock` is for the GPU), so a timing worker queues rather than measuring other workers' load; the gate written without `bc`.
+
+## 2026-10-07, task 7 worker: the desk's load again gates a four-run timing
+
+- **Doing:** timing option A's ceiling (the lit oak at 80, seeds 1 and 7, all cores and one), each run gated on a one-minute load under 8.
+- **What slowed it:** the load stood at 30 to 61 when the task started. One run got through at load 7.5 after a 4-minute wait; then the load rose to 56 again, and the other three runs queued behind it.
+- **Cost:** the gate's waits were 255 s, 450 s, 3,300 s and 525 s for set a (the one-core seed 1 waited 55 minutes), and up to 375 s in set b. The runs themselves take 10 to 60 s each, so measurement time was about a tenth of wall time.
+- **What would remove it:** task 6's entry stands: a shared desk lock for timing runs, so a timing worker queues on the lock rather than polling the load average.
+
+## 2026-10-07, task 8 worker: the session's /tmp quota is full, and every command's output is lost
+
+- **Doing:** writing the feedback contract's CPU module.
+- **What slowed it:** the host session's scratchpad under `/tmp/claude-1000/` holds 11 GB of other workers' build trees (`out/` 2.3 GB, `t5/` 1.8 GB, `topo/`, `before/`, `after/` 1.2 to 1.3 GB each), so the per-user tmpfs quota is full and the harness cannot store any Bash output (EDQUOT). Every command's output now has to be redirected into the worktree's `target/` and read back with a second call. Not deleted: they are not this worker's.
+- **Cost:** two calls for every command from here on; about 5 minutes to find the cause.
+- **What would remove it:** builds in each worktree's own `target/` (AGENTS.md already says so), and the host clearing finished scratch build trees; a local setup matter, reported.
+
+## 2026-10-07, task 9 worker: a wait loop that waits on itself
+
+- **Doing:** waiting for the crate's test binaries before rebuilding.
+- **What slowed it:** a `pgrep -f "<path>/walks"` loop matches its own command line, so it never ends. Two monitors had to be stopped and re-armed with `pgrep -f "deps/walk[s]-"`.
+- **Cost:** about 5 minutes.
+- **What would remove it:** a done-file written by the run itself (`cmd; echo $? > run.done`), which the later runs use.
+
+## 2026-10-07, task 10 worker: the lit oak's fine roots leave D16's shedding, the lifts and the landing dormant
+
+- **Doing:** proving the device's D16 and layout against the CPU on the lit oak at 24.
+- **What slowed it:** the identity held at once, but a mutation of the device's kept share passed: at 24 the oak's fine roots decide by D16 23,939 times and never meet a threshold (tolerance 0, their balance near one). The relays' carried pulls (straightening and erection are 0) and the landing (no fine wood near the ground) were dormant too. A neighbour that wakes all three (tolerance 0.99, straightening 0.4, erection 0.3, laterals turned to −1.4 rad) was found by three surveys and two rounds of mutations.
+- **Cost:** about 35 minutes, and about 15 GPU runs of 40 to 140 s.
+- **What would remove it:** a coverage count in the stepped executor's device interface (thresholds met, sheds, carried lifts, landings, rests), printed by every proof, so a specimen's dormant paths are known before an identity is claimed on it.
+
+## 2026-10-07, task 10 worker: the whole-state hash costs thirty builds
+
+- **Doing:** comparing every grower's whole state after every phase (`Stepped::states`).
+- **What slowed it:** the state is hashed through its `Debug` text: the lit oak at 24 takes 6 s with it and 0.2 s without, so the GPU proof's eight runs take 40 s and an oak at 80 cannot be compared whole at all (its check is the phase digests and the tree's).
+- **Cost:** about 35 s a proof run, a dozen runs.
+- **What would remove it:** a field-wise binary hash of the grower (the f64 fields' bits, the vectors' words), about ten times cheaper; then the oak at 80 could be compared whole too.
+
+## 2026-10-07, task 11 worker: the shell guard again, on a loop's output file
+
+- **Doing:** timing the device run, base and new binaries, in a shell loop whose output went to a path held in a variable.
+- **What slowed it:** `dcg` refused the redirect, as in task 5's entry. The loop had to be written as a script in `target/t11/` and run with a literal output path.
+- **Cost:** about 2 minutes.
+- **What would remove it:** task 5's entry stands: the guard's allow list for the worktree's `target/` and the scratchpad. This is a local setup matter, reported.
+
+## 2026-10-07, task 11 worker: twenty timings taken at a load of 11 to 24, and a gate at 98
+
+- **Doing:** timing `grow` against the stepped executor on 20 trees, best of three, back to back.
+- **What slowed it:** the load from other workers rose from 11 to 24 during the run. Spruce 80 s1's stepped build read 18.2 s, against 6.9 s on a rerun at load 7. One seed of the device run caught a spike too: today's `grow` read 26.6 s against 17.6 s. The render gate's load rose to 98, so the rest of the workspace took 10 minutes.
+- **Cost:** a rerun of two trees (6 minutes). One device row is unusable for today's `grow`.
+- **What would remove it:** task 6's entry stands: a shared desk lock for timing runs.
+
+## 2026-10-07, task 12 worker: glibc's allocator under 92,703 growers
+
+- **Doing:** timing the stepped executor's spruce at 80.
+- **What slowed it:** the root growers' memory moved between threads. Each was made on the main thread, grown on whichever pool thread took its piece, and freed on another. Their frees waited on each other's allocator arenas: letting the growers go took 3.4 s on 8 threads. No profiler runs on this desk (`perf_event_paranoid`), so the cause was found by timing each field's drop, then confirmed with jemalloc preloaded.
+- **Cost:** about 40 minutes.
+- **What would remove it:** a profiler that runs on the desk (local setup, reported). In the code, pieces pinned to pool threads (`cores::pinned`) and the rules' tables shared through `Arc`, both done here.
+
+## 2026-10-07, task 12 worker: the timing gate waits on the desk's load
+
+- **Doing:** timing the 20 trees, each gated on a one-minute load under 6.
+- **What slowed it:** the load rose from 6 to 22 during the runs. The ten gated pairs took 50 minutes for about 6 minutes of measurement, and the palm's last pair was stopped while it waited.
+- **Cost:** about 45 minutes of wall time.
+- **What would remove it:** task 6's entry stands: a shared desk lock for timing runs.
+
+## 2026-10-08, task 12 worker: a digest timed inside one side of a comparison
+
+- **Doing:** comparing `grow` with the stepped executor (task 11), then `grow_today` with `grow` (task 12).
+- **What slowed it:** the example computed the first path's tree digest inside its timed region and the second's outside it. On small trees that charged one side up to 0.02 s of digest. Task 11's and task 12's first ratios favoured the stepped executor by that, and a decision was taken on them (TASK12.md, "A correction").
+- **Cost:** a decision round, and about an hour of optimisation aimed at a target that was too easy.
+- **What would remove it:** one timing helper for comparisons that times the build alone and hashes after both; any new comparison example should start from it.

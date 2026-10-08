@@ -64,36 +64,21 @@ struct Apex {
     spent: f64,
 }
 
-/// Grows, sheds and places the tree, in its canonical lineage order. A
-/// species that neither reads light nor reads its tree as grown is built
-/// through the realized partition at the cut N = 1,024 (host decision 7,
-/// FINE-CONTRACT.md): the same tree as `grow_whole`, to the bit.
+/// Grows, sheds and places the tree, in its canonical lineage order, by
+/// the stepped executor (fn-211 task 12): every fine root at the cut
+/// N = 1,024 its own grower, run to its next synchronisation point and
+/// settled per root.
 pub fn grow(species: &Species, request: Request) -> Result<Structure> {
-    if species.reads_light() || keeps(species) {
-        return grow_whole(species, request);
-    }
-    species.validate()?;
-    request.light.validate()?;
-    if request.age == 0 {
-        return refuse("age", "a tree grows at least one cycle");
-    }
-    let fine = crate::fine::grow_fine(species, request, crate::fine::Plan::default())?;
+    let fine = crate::fine::grow_roots(species, request, crate::fine::Plan::default())?;
     Ok(lineage_order(fine.structure))
 }
 
-/// Today's whole-tree engine, every axis grown in one grower: the tests'
-/// reference for `grow`, in the same canonical order.
-pub fn grow_whole(species: &Species, request: Request) -> Result<Structure> {
-    grow_staged(species, request, &mut |_| {})
-}
-
-/// `grow_whole`, reporting each stage as it ends.
-pub fn grow_staged(
-    species: &Species,
-    request: Request,
-    stage: &mut dyn FnMut(Stage),
-) -> Result<Structure> {
-    run(species, request, stage, true, Options::default()).map(|g| lineage_order(g.structure))
+/// The whole-tree engine, every axis grown in one grower: test-only, the
+/// reference the stepped executor's and the partition's probes hold
+/// their trees to.
+#[cfg(test)]
+pub(crate) fn whole(species: &Species, request: Request) -> Result<Structure> {
+    run(species, request, &mut |_| {}, true, Options::default()).map(|g| lineage_order(g.structure))
 }
 
 /// How the engine grows a tree, never what it grows: every choice here
@@ -309,7 +294,7 @@ fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
         alive: 0.0,
         rank: 0.0,
         sleep: 0.0,
-        phase: 0.0,
+        phase: 0,
     }
 }
 

@@ -1,5 +1,5 @@
 //! The tree assembled from the coarse grower and its items for today's
-//! re-lay and settle (PHASES.md's plan, step 5): the coarse axes in their
+//! re-lay (PHASES.md's plan, step 5; the settle is per root, `settle.rs`): the coarse axes in their
 //! order, each placeholder replaced by its root, then each item's other
 //! axes in its order, the items in the visiting order. Every parent's
 //! children keep their relative order, so every bearer-to-child reduction
@@ -21,10 +21,9 @@ pub(super) struct Layout {
 }
 
 impl<'a> Executor<'a> {
-    /// The tree assembled, its axes and draws moved out of the growers:
-    /// with their pencils for a re-lay, or with their successors and
-    /// woken buds to `settle`.
-    pub(super) fn assemble(&mut self, settle: bool) -> (Grower<'a>, Layout) {
+    /// The tree assembled for a re-lay, its axes, draws and pencils moved
+    /// out of the growers.
+    pub(super) fn assemble(&mut self) -> (Grower<'a>, Layout) {
         let nc = self.coarse.axes.len();
         let mut root_of = vec![None; nc];
         for (k, item) in self.items.iter().enumerate() {
@@ -47,16 +46,10 @@ impl<'a> Executor<'a> {
         let placed: Vec<Origin> = at.iter().map(|&i| self.coarse.axes[i].origin).collect();
         let mut tree = Grower::bare(self.coarse.rules.clone(), self.coarse.threads);
         tree.rules.grown += self.items.iter().map(|i| i.g.rules.grown).sum::<u64>();
-        let laid = !settle && self.coarse.sketch.is_some();
-        tree.sketch = self
-            .coarse
-            .sketch
-            .as_ref()
-            .filter(|_| laid)
-            .map(|s| Sketch {
-                light: s.light,
-                pencils: Vec::with_capacity(from.len()),
-            });
+        tree.sketch = self.coarse.sketch.as_ref().map(|s| Sketch {
+            light: s.light,
+            pencils: Vec::with_capacity(from.len()),
+        });
         let mut origins = Vec::with_capacity(from.len());
         for &(k, j) in &from {
             let g = match k {
@@ -75,10 +68,6 @@ impl<'a> Executor<'a> {
                 t.pencils
                     .push(std::mem::replace(&mut s.pencils[j], bare(0.0)));
             }
-            if settle {
-                let next = g.successor[j].iter().map(|&s| global(k, s)).collect();
-                tree.successor.push(next);
-            }
         }
         let growers = std::iter::once((None, &self.coarse))
             .chain(self.items.iter().enumerate().map(|(k, i)| (Some(k), &i.g)));
@@ -88,14 +77,6 @@ impl<'a> Executor<'a> {
                 ..*a
             });
             tree.live.extend(live);
-            if settle {
-                tree.woken.extend(g.woken.iter().map(|w| {
-                    let mut w = *w;
-                    (w.axis, w.bearer) = (global(k, w.axis), global(k, w.bearer));
-                    w
-                }));
-                tree.marked.extend(&g.marked);
-            }
         }
         (tree, Layout { from, origins })
     }

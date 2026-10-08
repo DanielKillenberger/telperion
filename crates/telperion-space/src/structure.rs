@@ -139,11 +139,12 @@ pub struct Axis {
     /// The share of its first cycle a bud that woke still slept: its age
     /// is that much less than its birth gives.
     pub(crate) sleep: f64,
-    /// The phase its phyllotaxis starts from outside the structure: a fine
-    /// root's bearer's, held by its stub (`fine::realized::stub`); none in
-    /// a whole tree, whose axes carried on take theirs from the axes they
-    /// carry on (`geometry::phase`).
-    pub(crate) phase: f64,
+    /// The phase its phyllotaxis starts from outside the structure, an
+    /// amount (Q32 turns, CONTRACT-A.md 2.2): a fine root's bearer's, held
+    /// by its stub (`fine::realized::stub`); none in a whole tree, whose
+    /// axes carried on take theirs from the axes they carry on
+    /// (`geometry::phase`).
+    pub(crate) phase: i64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -13,8 +13,8 @@ use super::shedding;
 use crate::Gpu;
 use std::sync::Arc;
 use telperion_space::{
-    grow_fine, landed, realized_cases, root_axes, settle, ChainAxis, ChainTables, GeometryTables,
-    Light, Plan, Presences, RealizedCase, Request, RootAxes, Species,
+    landed, realized_cases, root_axes, settle, ChainAxis, ChainTables, GeometryTables, Light, Plan,
+    Presences, RealizedCase, Request, RootAxes, Species,
 };
 
 pub(super) fn request(age: u32, seed: u64) -> Request {
@@ -211,8 +211,9 @@ impl Apart {
 }
 
 /// Step 4: the tree settled with its roots on the device, in `order` and
-/// batches of `batch`: each root's kept axes by lineage as the CPU
-/// executor's (`grow_fine`), and how far its laid tips and radii lie.
+/// batches of `batch`: each root's kept axes by lineage as the build's
+/// (`telperion_space::grow_roots`), and how far its laid tips and radii
+/// lie.
 pub(super) fn settled_against(
     gpu: &Gpu,
     k: &Kernels,
@@ -321,7 +322,7 @@ fn settles_as_on_the_cpu(
         cut,
         ..Plan::default()
     };
-    let cpu = grow_fine(species, request(at.0, at.1), plan).expect("grows");
+    let cpu = telperion_space::grow_roots(species, request(at.0, at.1), plan).expect("grows");
     let want = root_axes(&cpu);
     let forward: Vec<usize> = (0..want.len()).collect();
     let reverse: Vec<usize> = forward.iter().rev().copied().collect();

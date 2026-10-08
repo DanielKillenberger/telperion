@@ -17,6 +17,7 @@ pub trait Transcendental {
     fn exp_m1_fixed(self) -> f64;
     fn ln_fixed(self) -> f64;
     fn ln_1p_fixed(self) -> f64;
+    fn log2_fixed(self) -> f64;
     fn powf_fixed(self, other: f64) -> f64;
     fn cbrt_fixed(self) -> f64;
     fn hypot_fixed(self, other: f64) -> f64;
@@ -57,6 +58,9 @@ impl Transcendental for f64 {
     }
     fn ln_1p_fixed(self) -> f64 {
         libm::log1p(self)
+    }
+    fn log2_fixed(self) -> f64 {
+        libm::log2(self)
     }
     fn powf_fixed(self, other: f64) -> f64 {
         libm::pow(self, other)

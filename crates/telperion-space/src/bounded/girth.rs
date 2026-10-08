@@ -182,7 +182,7 @@ fn hand_on(
         Origin::Relay { parent, node } => {
             let section = carried(parent);
             let relay_at = species.states[axes[parent].pa].relay_at;
-            let t = relay_span(&axes[parent], relay_at, node);
+            let t = relay_span(&axes[parent], relay_at, node) as f64 / crate::fixed::ONE32 as f64;
             for (at, share) in relay_shares(node, t, axes[j].blend) {
                 match at {
                     Entry::Node(k) if k < at_node[parent].len() => {

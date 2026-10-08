@@ -163,8 +163,8 @@ fn read(path: &str) -> Vec<(String, Tree)> {
 /// grown alone in `b`, by lineage.
 fn compare(a: &str, b: &str, against: bool) {
     let (a, b) = (read(a), read(b));
-    println!("| Tree | Axes | Axes only before / after | Phytomers | Phytomers only before / after | Tip moved max / RMS (m) | Radius max rel. |");
-    println!("|---|--:|--:|--:|--:|--:|--:|");
+    println!("| Tree | Axes | Axes only before / after | Phytomers | Phytomers only before / after | Tip moved max / RMS (m) | Radius max rel. | Its radius before / after (m) |");
+    println!("|---|--:|--:|--:|--:|--:|--:|--:|");
     let pairs: Vec<(&String, &Tree, &Tree)> = if against {
         a.iter()
             .filter_map(|(label, ta)| {
@@ -184,6 +184,7 @@ fn compare(a: &str, b: &str, against: bool) {
     for (label, ta, tb) in pairs {
         let (mut only_a, mut only_b, mut pa, mut pb) = (0, 0, 0usize, 0usize);
         let (mut phy, mut max, mut sum, mut n, mut rad) = (0usize, 0.0f64, 0.0, 0usize, 0.0f64);
+        let mut worst = (0.0f64, 0.0f64);
         for (id, ps) in ta {
             phy += ps.len();
             let Some(qs) = tb.get(id) else {
@@ -199,8 +200,9 @@ fn compare(a: &str, b: &str, against: bool) {
                 max = max.max(d);
                 sum += d * d;
                 n += 1;
-                if p[3] > 0.0 {
-                    rad = rad.max(((q[3] - p[3]) / p[3]).abs());
+                if p[3] > 0.0 && ((q[3] - p[3]) / p[3]).abs() > rad {
+                    rad = ((q[3] - p[3]) / p[3]).abs();
+                    worst = (p[3], q[3]);
                 }
             }
         }
@@ -212,8 +214,10 @@ fn compare(a: &str, b: &str, against: bool) {
         }
         let rms = (sum / n.max(1) as f64).sqrt();
         println!(
-            "| {label} | {} | {only_a} / {only_b} | {phy} | {pa} / {pb} | {max:.2e} / {rms:.2e} | {rad:.2e} |",
-            ta.len()
+            "| {label} | {} | {only_a} / {only_b} | {phy} | {pa} / {pb} | {max:.2e} / {rms:.2e} | {rad:.2e} | {:.3e} / {:.3e} |",
+            ta.len(),
+            worst.0,
+            worst.1
         );
     }
 }

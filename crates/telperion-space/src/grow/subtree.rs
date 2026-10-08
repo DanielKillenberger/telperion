@@ -78,7 +78,7 @@ pub(super) fn bare(base_scale: f64) -> Pencil {
     );
     Pencil {
         // Never laid: a fine subtree's pencils only tally (`tally_units`).
-        layer: Layer::bent(frame, Vec3::default(), 1.0),
+        layer: Layer::bent(frame, Vec3::default(), crate::fixed::ONE32),
         base_scale,
         running: 1.0,
         rank: 0.0,

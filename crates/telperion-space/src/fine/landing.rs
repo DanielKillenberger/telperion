@@ -120,7 +120,7 @@ impl<'a> Landing<'a> {
             .collect();
         for (j, root) in self.land_all(&ground, (seeds, live), scales)? {
             if any(self.species) {
-                loads[j] = (root.load.mass, root.load.moment);
+                loads[j] = root.load.real();
             }
             self.roots.push((j, root));
         }

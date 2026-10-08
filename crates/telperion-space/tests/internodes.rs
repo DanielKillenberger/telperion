@@ -65,10 +65,11 @@ fn the_spread_moves_no_node_and_keeps_the_mean_length() {
                 assert_eq!(p.key(), q.key(), "{name}");
             }
         }
-        // Without spread each internode is its PA's length times its scale.
+        // Without spread each internode is its PA's length times its scale,
+        // to Q32's last place on the shortest (contract A).
         let (mean, sd) = moments(&factors(&species, &plain));
         assert!(
-            (mean - 1.0).abs() < 1e-9 && sd < 1e-9,
+            (mean - 1.0).abs() < 1e-6 && sd < 1e-6,
             "{name}: {mean} {sd}"
         );
         // With it the lengths keep their mean and spread as the uniform
@@ -86,7 +87,7 @@ fn the_spread_moves_no_node_and_keeps_the_mean_length() {
             .iter()
             .fold((f64::MAX, 0.0f64), |(l, h), &(v, _)| (l.min(v), h.max(v)));
         assert!(
-            low >= 0.4 - 1e-9 && high <= 1.6 + 1e-9,
+            low >= 0.4 - 1e-6 && high <= 1.6 + 1e-6,
             "{name}: {low} {high}"
         );
     }

@@ -6,11 +6,24 @@ const WIDE: &str = include_str!("fine/wide.wgsl");
 const KEYS: &str = include_str!("fine/lineage.wgsl");
 const CONTRACT: &str = include_str!("fine/contract.wgsl");
 const ZONES: &str = include_str!("fine/zones.wgsl");
+const FEEDBACK_WIDE: &str = include_str!("fine/feedback_wide.wgsl");
+const FEEDBACK: &str = include_str!("fine/feedback.wgsl");
+const FEEDBACK_SITES: &str = include_str!("fine/feedback_sites.wgsl");
+const FEEDBACK_TURN: &str = include_str!("fine/feedback_turn.wgsl");
 
 /// The contract's WGSL: its wide words, its lineage keys, then its
 /// arithmetic.
 pub(super) fn contract() -> String {
     format!("{WIDE}\n{KEYS}\n{CONTRACT}")
+}
+
+/// The decision contract and the feedback contract (fn-211 task 8,
+/// CONTRACT-A.md): `telperion_space::fixed::feedback` word for word.
+pub(super) fn feedback() -> String {
+    format!(
+        "{}\n{FEEDBACK_WIDE}\n{FEEDBACK}\n{FEEDBACK_TURN}\n{FEEDBACK_SITES}",
+        contract()
+    )
 }
 
 /// The contract and a growth unit's zones, for a shader that binds the
@@ -23,6 +36,10 @@ pub(super) fn zones() -> String {
 pub(super) fn sources() -> Vec<(&'static str, String)> {
     vec![
         ("fine contract probe", tests::source()),
+        ("feedback probe", feedback_tests::source()),
+        ("feedback slice", feedback_slice::source()),
+        ("feedback stepped", feedback_stepped::source()),
+        ("feedback lay", feedback_stepped::lay_source()),
         ("fine unit", units::source()),
         ("fine chain grower", chains::source()),
         ("fine pack", chains::pack_source()),
@@ -41,15 +58,27 @@ mod chains;
 #[cfg(test)]
 mod device;
 #[cfg(test)]
+mod feedback_cases;
+#[cfg(test)]
+mod feedback_quotient;
+#[cfg(test)]
+mod feedback_slice;
+#[cfg(test)]
+mod feedback_stepped;
+#[cfg(test)]
+mod feedback_stepped_tests;
+#[cfg(test)]
+mod feedback_tests;
+#[cfg(test)]
 mod hostrun;
-#[cfg(test)]
-mod pool;
-#[cfg(test)]
-mod profile_tests;
 #[cfg(test)]
 mod laid;
 #[cfg(test)]
 mod mirror_tests;
+#[cfg(test)]
+mod pool;
+#[cfg(test)]
+mod profile_tests;
 #[cfg(test)]
 mod readback;
 #[cfg(test)]
@@ -63,9 +92,9 @@ mod roots;
 #[cfg(test)]
 mod selectors;
 #[cfg(test)]
-mod speed_tests;
-#[cfg(test)]
 mod shedding;
+#[cfg(test)]
+mod speed_tests;
 #[cfg(test)]
 mod step_probe;
 #[cfg(test)]

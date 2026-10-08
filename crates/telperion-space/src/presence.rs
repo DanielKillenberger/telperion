@@ -145,18 +145,6 @@ impl Windows {
         let window = (q32(RATE * stake), q32(FLOOR * stake), q32(SPAN));
         presence::window(wood, window)
     }
-
-    /// The presence of a draw `lead` log-odds past its bound that decides
-    /// `decided` of the `wood` share it would carry: its window is that
-    /// share of the whole window, floor included, so a draw that decides
-    /// no wood (a stop that is always relayed) has none.
-    pub fn decided(&self, lead: f64, wood: f64, decided: f64) -> f64 {
-        let window = (RATE * wood * decided).clamp(FLOOR * decided, SPAN);
-        if lead == f64::INFINITY || window <= 0.0 {
-            return 1.0;
-        }
-        (lead / window).clamp(0.0, 1.0)
-    }
 }
 
 /// The presences of the draws that shaped one axis.

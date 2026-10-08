@@ -191,7 +191,7 @@ fn unlaid(scale: f64) -> BearerFrame {
         rank: 0.0,
         scale,
         size: 1.0,
-        phase: 0.0,
+        phase: 0,
     }
 }
 

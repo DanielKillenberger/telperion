@@ -24,6 +24,7 @@
 //! fn-211's stepped executor.
 mod canonical;
 mod cases;
+mod exchange;
 mod expansion;
 mod geometry;
 mod landing;
@@ -34,19 +35,18 @@ mod tables;
 #[cfg(test)]
 mod tests;
 
-use crate::closed_form::predictor::Predictor;
-use crate::error::{refuse, Error, Result};
-use crate::grow::alone::rules;
-use crate::grow::{keeps, Request};
+use crate::error::{Error, Result};
+use crate::grow::Request;
 use crate::species::Species;
 use crate::structure::Structure;
 pub use canonical::{canonical, digest, identities, lineage_order};
 pub use cases::{landed, realized_cases, root_axes, Presences, RealizedCase, RootAxes};
 pub use expansion::{settle, Lived, Loaded, RootSeed, Roots, Settled};
+pub(crate) use expansion::{settle_grown, Above, Stages};
 pub use geometry::{
     bearer_frame, BearerFrame, GeometryTables, PaGeometry, RootGeometry, ZoneGeometry,
 };
-use realized::{Cpu, Root};
+pub(crate) use realized::{Cpu, Made, Root};
 pub use surface::{chain_cases, ChainAxis, ChainBud, ChainTables, PaRow, Woke};
 pub use survey::{survey_laid, survey_lit, Surveyed};
 pub use tables::{UnitZone, Units};
@@ -131,47 +131,21 @@ impl Fine {
     }
 }
 
-/// Grows `species` above `plan`'s cut on the CPU, expands every fine root
-/// from its bud alone on the CPU reference executor, and settles the two
-/// together: today's whole-tree engine's tree. Refuses a species any bud
-/// of which reads light (fn-211), or whose girth reads the tree as grown.
-pub fn grow_fine(species: &Species, request: Request, plan: Plan) -> Result<Fine> {
-    if keeps(species) {
-        return refuse(
-            "retained",
-            "a fine root's shed pipes and leaf girth are fn-211's stepped executor's",
-        );
-    }
-    let rules = rules(species, request.age, request.budget)?;
-    request.light.validate()?;
-    let started = crate::clock::seconds();
-    let predictor = Predictor::new(species, &rules.windows, request.age);
-    let predict = crate::clock::seconds() - started;
-    let threads = match plan.threads {
-        0 => crate::cores::available(),
-        n => n,
-    };
-    let mut cpu = Cpu {
-        species,
-        rules: &rules,
-        plan,
-        threads,
-        roots: Vec::new(),
-    };
-    let (settled, _) = expansion::settle_with(
-        species,
-        (request, &predictor, &rules),
-        plan,
-        &mut cpu,
-        false,
-    )?;
-    let fine = assemble(settled, cpu.roots, &predictor)?;
-    Ok(Fine { predict, ..fine })
+/// The build (`grow`, the stepped executor) at `plan`'s cut, order,
+/// chunking and cores, reported root by root: the CPU reference the GPU
+/// executor's tests hold its roots to (fn-211 task 12). The tree is in
+/// the order the build assembles it, not canonical.
+pub fn grow_roots(species: &Species, request: Request, plan: Plan) -> Result<Fine> {
+    crate::grow::stepped::build(species, request, plan)
 }
 
 /// The tree whole: each kept root's first axis where its stand-in stood,
 /// its others after the structure above the cut, in the roots' order.
-fn assemble(settled: Settled, roots: Vec<Root>, predictor: &Predictor) -> Result<Fine> {
+pub(crate) fn assemble(
+    settled: Settled,
+    roots: Vec<Root>,
+    predicted: &dyn Fn(usize, u32) -> f64,
+) -> Result<Fine> {
     let Settled {
         structure: mut tree,
         at,
@@ -193,9 +167,7 @@ fn assemble(settled: Settled, roots: Vec<Root>, predictor: &Predictor) -> Result
     for (k, root) in roots.into_iter().enumerate() {
         let report = |kept| Expanded {
             at: at[k],
-            predicted: predictor
-                .count(root.pa, root.birth)
-                .expect("a root's PA is drawn by a zone"),
+            predicted: predicted(root.pa, root.birth),
             kept,
             woken: root.woken,
             work: root.work,

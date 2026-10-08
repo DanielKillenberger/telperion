@@ -145,7 +145,7 @@ pub(super) fn stubs(roots: &[RootGeometry]) -> (Vec<f32>, Vec<f32>) {
         p[20] = f32::from_bits(lo);
         p[21] = f32::from_bits(hi);
         // The phase of its axis's phyllotaxis, in turns (fn-199).
-        p[22] = (r.unbent.phase / std::f64::consts::TAU).rem_euclid(1.0) as f32;
+        p[22] = (r.unbent.phase as f64 / (1u64 << 32) as f64).rem_euclid(1.0) as f32;
         origins.extend([r.unbent.tip.z as f32, r.bent.tip.z as f32]);
     }
     (out, origins)
