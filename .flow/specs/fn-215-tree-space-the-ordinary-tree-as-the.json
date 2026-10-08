@@ -10,13 +10,67 @@
     "fn-198-tree-space-f-the-engine-in-production"
   ],
   "id": "fn-215-tree-space-the-ordinary-tree-as-the",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-215-tree-space-the-ordinary-tree-as-the.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "6c6e4cfdc454f7a064353d13307f05f336125bb40ed7445505a31785046bc8e5",
+      "backend": "codex",
+      "base_sha": "d69898a8d32b5706de96bb5f1af776189ac31e9b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f6888adc80bd317e9f50413b53108a78",
+            "classification": "introduced",
+            "findingId": "finding-f6888adc80bd317e9f50413b53108a78",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4edc4a49ac2e187a1210422b412b6b6fd0fd5df8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 973,
+      "output_sha256": "b89e73cb2475db213e3222b6eb9813b532093157412586fd6db5dfe359cc0702",
+      "reservation_id": "e1bdf724aab54976980cec2bbd204616",
+      "round_consumed": true,
+      "scope": "impl:fn-215-tree-space-the-ordinary-tree-as-the.1",
+      "superseded_by": null,
+      "task": "fn-215-tree-space-the-ordinary-tree-as-the.1",
+      "timestamp": "2026-10-08T12:22:49.081336Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-215-tree-space-the-ordinary-tree-as-the.1": 0
+  },
   "spec_path": ".flow/specs/fn-215-tree-space-the-ordinary-tree-as-the.md",
   "status": "open",
   "title": "Tree space: the ordinary tree as the space's centroid",
@@ -31,5 +85,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T12:02:32.370034Z"
+  "updated_at": "2026-10-08T12:22:49.083449Z"
 }
