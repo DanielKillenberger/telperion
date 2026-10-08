@@ -2,6 +2,7 @@
 //! `grow_roots` grows it, each fine root standing as its expectations.
 use super::request;
 use crate::fine::{grow_coarse, grow_roots, Plan};
+use crate::grow::Request;
 use crate::structure::Structure;
 
 fn kept(s: &Structure) -> usize {
@@ -77,11 +78,48 @@ fn below_the_cut_each_root_stands_for_its_expectation() {
     );
 }
 
-/// A species whose structure above the cut reads its fine roots as grown
+/// A species whose buds read light stands its roots in the stepped
+/// executor (task 2): the structure above the cut keeps the stepped tree's
+/// height, and each live root stands for its expectation.
+#[test]
+fn a_lit_species_stands_its_roots_in_the_stepped_executor() {
+    let species = crate::oak();
+    let r = Request {
+        light: crate::Light {
+            extinction: 0.5,
+            sky: 0.5,
+        },
+        ..request(24, 1)
+    };
+    let coarse = grow_coarse(&species, r, 256.0).expect("grows");
+    let plan = Plan {
+        cut: 256.0,
+        ..Plan::default()
+    };
+    let fine = grow_roots(&species, r, plan).expect("grows");
+    assert!(!coarse.stands.is_empty());
+    assert!(coarse
+        .stands
+        .iter()
+        .all(|s| s.radius > 0.0 && s.phytomers > 0.0));
+    let height = |s: &Structure| {
+        let tips = s.axes.iter().flat_map(|a| &a.phytomers);
+        tips.map(|p| p.tip.z).fold(0.0, f64::max)
+    };
+    let ratio = height(&coarse.structure) / height(&fine.structure);
+    assert!(
+        (ratio - 1.0).abs() < 0.05,
+        "height coarse / stepped {ratio}"
+    );
+}
+
+/// A species that keeps its tree as grown but whose buds read no light
 /// is refused a coarse tree by name.
 #[test]
-fn a_species_that_reads_its_tree_as_grown_is_refused() {
-    let refused = grow_coarse(&crate::oak(), request(5, 1), 1024.0);
+fn a_kept_tree_no_light_reads_is_refused() {
+    let mut species = crate::spruce();
+    species.states.iter_mut().for_each(|s| s.retained = 0.5);
+    let refused = grow_coarse(&species, request(5, 1), 1024.0);
     assert!(
         matches!(refused, Err(crate::Error::Refused { .. })),
         "{:?}",

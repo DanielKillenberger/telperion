@@ -34,6 +34,8 @@ mod lay;
 mod phases;
 mod schedule;
 mod settle;
+mod standing;
+mod stands;
 
 use feedback::again;
 pub use feedback::{Cpu, Feedback};
@@ -49,6 +51,8 @@ use crate::fine::{Fine, Plan};
 use crate::species::Species;
 use crate::structure::Structure;
 use schedule::Ran;
+pub(crate) use standing::stand;
+pub(crate) use stands::Stood;
 use std::sync::Arc;
 
 /// A tree grown by the stepped executor: its state hashed after each
@@ -260,6 +264,8 @@ pub(super) struct Executor<'a> {
     /// How the roots are spread over the cores: their order, chunking
     /// and cores.
     pub plan: Plan,
+    /// Where the roots stand as their aggregates, never grown (fn-214).
+    pub stands: Option<stands::Stands>,
 }
 
 impl<'a> Executor<'a> {
@@ -291,6 +297,7 @@ impl<'a> Executor<'a> {
             finished: Vec::new(),
             marked: false,
             plan: Plan::default(),
+            stands: None,
         }
     }
 
@@ -311,7 +318,8 @@ impl<'a> Executor<'a> {
         };
         self.balance(cycle, again(&mut device));
         self.mark(cycle, 0);
-        self.allot();
+        let factors = self.allot();
+        self.stand_advance(cycle, &factors);
         self.mark(cycle, 1);
         // Phase (iv): each grower grows, wakes and lays its own (the
         // count the growth digest takes is the same once laid).
@@ -389,10 +397,13 @@ impl<'a> Executor<'a> {
         self.mark(cycle, 2);
         let buds = self.coarse.rules.hands.is_some();
         if (sketching || self.coarse.sketch.is_none()) && !buds {
-            self.hand_over(first_new, cycle + 1);
+            match self.stands.is_some() {
+                true => self.stand_over(first_new),
+                false => self.hand_over(first_new, cycle + 1),
+            }
         }
         if sketching {
-            self.shade(device);
+            self.shade(cycle, device);
             self.mark(cycle, 3);
         }
         // An item that died this cycle shades no more.

@@ -70,9 +70,10 @@ impl Feedback for Cpu {
 
 impl<'a> Executor<'a> {
     /// Phase (iv)'s light: every grower's leaves of the cycle into one
-    /// lattice, swept once, each grower reading its own buds; the items'
-    /// deposits and reads on `device` where one is given.
-    pub(super) fn shade(&mut self, device: Option<&mut dyn Feedback>) {
+    /// lattice, swept once, each grower reading its own buds and each
+    /// standing root its centroid (`stands.rs`); the items' deposits and
+    /// reads on `device` where one is given.
+    pub(super) fn shade(&mut self, cycle: u32, device: Option<&mut dyn Feedback>) {
         let order = self.visit();
         let threads = self.coarse.threads;
         let light = self.coarse.sketch.as_ref().expect("sketching").light;
@@ -84,6 +85,9 @@ impl<'a> Executor<'a> {
             leaves[fine].extend_from_slice(&g.leaves);
             tips[fine].extend(g.live.iter().map(|a| g.tip(a.axis)));
         }
+        let (stood, at) = self.stand_leaves(cycle);
+        leaves[1].extend(stood);
+        tips[1].extend(at);
         let (field, read) = match device {
             Some(device) => self.shade_on(device, (&leaves, &tips)),
             None => {
@@ -109,6 +113,7 @@ impl<'a> Executor<'a> {
             }
             from += n;
         }
+        self.stand_read(&read[from..]);
     }
 
     /// Phase (i) inside the items on `device`: each item's walk read from

@@ -36,8 +36,11 @@ struct Cohort {
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Aggregate {
     cohorts: Vec<Cohort>,
-    /// Its wood grown so far (internode × size per phytomer).
+    /// Its wood grown so far (internode × size per phytomer), and its
+    /// pipes so grown (its PA's pipe × size per phytomer, unripened): the
+    /// weight its leaves' light carries in the tree's leaf mean (fn-214).
     pub wood: f64,
+    pub pipes: f64,
     /// The leaf area its last unit grew: none once it is extinct.
     pub leaves: f64,
     /// The phytomers it is expected to have grown, and in its last unit.
@@ -71,6 +74,16 @@ impl Aggregate {
         self.cohorts.iter().map(|c| c.w).sum()
     }
 
+    /// The PAs its living apexes are in, each once.
+    pub fn pas(&self) -> impl Iterator<Item = usize> + '_ {
+        let mut last = None;
+        self.cohorts.iter().filter_map(move |c| {
+            let new = last != Some(c.pa);
+            last = Some(c.pa);
+            new.then_some(c.pa as usize)
+        })
+    }
+
     /// Its living apexes by PA, times `scale`, added into `by_pa`.
     pub fn living_by_pa(&self, scale: f64, by_pa: &mut [f64]) {
         for c in &self.cohorts {
@@ -95,13 +108,23 @@ impl Aggregate {
                 });
             }
         };
+        // Survival under this cycle's shade, once per PA: the cohorts are
+        // ordered by PA.
+        let mut survival: Option<(usize, f64)> = None;
         for c in std::mem::take(&mut self.cohorts) {
             let pa = c.pa as usize;
             let state = &species.states[pa];
-            let mut v = state.viability;
-            if state.shade_hazard > 0.0 && at.light < 1.0 {
-                v = v.powf_fixed(at.light.max(1e-6).powf_fixed(-state.shade_hazard));
-            }
+            let v = match survival {
+                Some((p, v)) if p == pa => v,
+                _ => {
+                    let mut v = state.viability;
+                    if state.shade_hazard > 0.0 && at.light < 1.0 {
+                        v = v.powf_fixed(at.light.max(1e-6).powf_fixed(-state.shade_hazard));
+                    }
+                    survival = Some((pa, v));
+                    v
+                }
+            };
             let w = c.w * at.kept;
             let spent = f64::from(c.spent) + 1.0;
             // A unit that failed grows the share of its cycle its apex
@@ -117,6 +140,7 @@ impl Aggregate {
                 self.last += made;
                 self.leaves += nodes * state.leaf_area * size;
                 self.wood += nodes * state.internode * size;
+                self.pipes += nodes * state.form.pipe * size;
                 for (j, &p) in laterals[pa][z].iter().enumerate() {
                     if let (true, Some((lived, reach))) = (p > 0.0, species.lived(j)) {
                         push(lived, 0.0, made * zone.buds * p * reach);

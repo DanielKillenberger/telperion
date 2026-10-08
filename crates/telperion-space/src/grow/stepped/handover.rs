@@ -16,7 +16,7 @@ use crate::structure::{Axis, Origin};
 /// Where an axis made this cycle goes: kept by the coarse grower at an
 /// index, or an item's (its number among the new ones) at one.
 #[derive(Clone, Copy)]
-enum To {
+pub(super) enum To {
     Coarse(usize),
     Root(usize, usize),
     Item(usize, usize),
@@ -154,7 +154,7 @@ impl<'a> Executor<'a> {
 
     /// Where each axis made since `first_new` goes: a lateral the cut
     /// classes fine roots an item, and every axis on it stands in it.
-    fn destinations(&self, first_new: usize) -> Vec<To> {
+    pub(super) fn destinations(&self, first_new: usize) -> Vec<To> {
         let c = &self.coarse;
         let mut to: Vec<To> = Vec::with_capacity(c.axes.len() - first_new);
         let (mut next, mut items) = (first_new, Vec::<usize>::new());
@@ -190,20 +190,20 @@ impl<'a> Executor<'a> {
 
 /// An axis's lines beside it in a grower.
 #[derive(Clone)]
-struct Rest {
-    draws: Draws,
-    units: f64,
-    successor: Vec<usize>,
-    root: u64,
-    horizon: f64,
-    pencil: Option<crate::grow::sketch::Pencil>,
+pub(super) struct Rest {
+    pub draws: Draws,
+    pub units: f64,
+    pub successor: Vec<usize>,
+    pub root: u64,
+    pub horizon: f64,
+    pub pencil: Option<crate::grow::sketch::Pencil>,
 }
 
 /// The axes made since an index, drained from a grower with their lines.
-struct Tail(Vec<(Axis, Rest)>);
+pub(super) struct Tail(Vec<(Axis, Rest)>);
 
 impl Tail {
-    fn drained(g: &mut Grower, from: usize) -> Self {
+    pub(super) fn drained(g: &mut Grower, from: usize) -> Self {
         let pencils: Vec<Option<_>> = match g.sketch.as_mut() {
             Some(s) => {
                 assert_eq!(s.pencils.len(), g.axes.len(), "every axis laid");
@@ -236,13 +236,13 @@ impl Tail {
         Self(made.collect())
     }
 
-    fn into_iter(self) -> std::vec::IntoIter<(Axis, Rest)> {
+    pub(super) fn into_iter(self) -> std::vec::IntoIter<(Axis, Rest)> {
         self.0.into_iter()
     }
 }
 
 /// Adds an axis and its lines to a grower.
-fn push(g: &mut Grower, axis: Axis, rest: Rest) {
+pub(super) fn push(g: &mut Grower, axis: Axis, rest: Rest) {
     g.push_axis(axis, rest.draws, (rest.units, rest.root, rest.horizon));
     *g.successor.last_mut().expect("pushed") = rest.successor;
     if let (Some(s), Some(p)) = (g.sketch.as_mut(), rest.pencil) {

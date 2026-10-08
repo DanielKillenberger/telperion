@@ -167,3 +167,79 @@ The light model stays today's lattice (fn-226's verdict: outline light rejected)
 The known weak point is that a root reads its light inside its own leaves, reading 12–17 % low (TASK4-LIGHT.md). Measure it first. Add TASK4's repair only if the coarse oak's structure above the cut, its field cubes or its site timing miss.
 
 Option 2 (a second grower) is out. Options 3 and 4 are kept only as the floor and the report.
+
+## Task 2: the coarse oak, built under option 1 and measured (2026-10-08)
+
+F4 at `e292c435` is merged (`9cb352ae`). The coarse oak is built as the host decided, without TASK4's light repair. The look does not hold, and seed 1234 misses 0.1.4's time. The task stops here for the host.
+
+### What was built
+
+- **Stands in the stepped executor** (`grow/stepped/stands.rs`, `standing.rs`). A species whose buds read light grows its structure above the cut in the stepped executor. Each fine root the cut hands over at birth keeps its placeholder there and stands as an `Aggregate`, with no grower of its own:
+  - (i) up, its light, upkeep and living; down, the coarse grower's shed decision and kept share at the placeholder;
+  - (ii) its lit presence at the placeholder, and its vigour per presence from what the placeholder is given;
+  - (iii) its per-PA normaliser partials, merged with the coarse grower's;
+  - (iv) its last unit's leaves on the seven-point stencil of its row's extent, in the one lattice, and the light read at its centroid.
+- **The settle** (`fine/coarse.rs`, `fine/coarse/expected.rs`). `settle_grown` runs on the `Expected` executor, which now answers the exchange:
+  - leaf partials: its pipes at its base scale as grown, by the light it last read raised to χ;
+  - base radius as grown: its row's `grown1`/`grown2` through `committed_radius`'s form, by its leaf factor under the tree's mean.
+- **Refusals.** A species that keeps its tree as grown but whose buds read no light is still refused by name. The spruce and palm path is unchanged.
+- **One departure from the decision text.** The exchange's pipe weight is the aggregate's own pipe sum (a new `Aggregate::pipes`: Σ nodes × PA pipe × size), not E[S; kept]. The leaf mean is Σpipe / Σpipe·light^χ, where each pipe is a phytomer's own pipe radius. A section (radius^e) is a different unit: at a 3 mm root it is about 10^-6 against a pipe sum near 0.1, and it would drop the roots out of the mean. (Inferred from `girth/disused.rs::leaf_partials`; the two were not run against each other.)
+- **Speed.** `Aggregate::advance` now reads each PA's survival under shade once per cycle, not once per cohort. The stands' unit sizes are computed only for the PAs their apexes live in. Both give the same values; the stands' advance fell from 53 to 28 ms natively on one core.
+
+### The structure above the cut, against the stepped oak (age 40, cut 1,024, by lineage)
+
+`raw/native/compare.jsonl`, `src/bin/compare.rs` (the family's own species and light):
+
+| | seed 1234 stepped / coarse | seed 5678 stepped / coarse |
+|---|--:|--:|
+| Axes above the cut, shared by lineage | 193 / 193 | 94 / 94 |
+| Kept phytomers above, orders 0 / 1 / 2 / 3 | 278 / 4,127 / 2,624 / 159 against 278 / 4,897 / 2,624 / 159 | 284 / 2,637 / 373 against 284 / 2,993 / 373 |
+| Height of the structure above (m) | 12.71 / 12.72 | 12.96 / 13.01 |
+| Crown extent of the structure above (m) | 6.43 / 6.42 | 4.63 / 4.64 |
+| **Trunk base radius (m)** | **0.559 / 0.309** | **0.330 / 0.182** |
+| Live roots | 1,460 / 1,596 | 352 / 415 |
+| Phytomers below the cut, realized / expected | 404,688 / 587,025 | 118,358 / 134,292 |
+| **Extent of the whole tree / the stands' reach (m)** | **7.85 / 6.26** | **7.19 / 4.65** |
+
+The structure above grows as the stepped oak's does: same axes, height and extent. The coarse tree's order-1 surplus (770 and 356 phytomers) sits on axes outside the shared ones; its cause was not looked into. The miss is in the roots:
+
+- Matched by lineage, the stands' total section (r^2.5) is 0.12 of the realized roots'. At cut 4,096 and 16,384 it is 0.12 and 0.11, and the trunk 0.336 and 0.332 m.
+- The thickest realized roots were predicted at 357 to 661 kept phytomers. They kept 952 to 2,750 and stand at 0.16 to 0.22 m base radius; their stands are 0.02 to 0.03 m. The closed form's rows carry neither retained pipes nor light (`closed_form` reads neither), and the `grown` moments give the same trunk (0.311 m against 0.309).
+- The fine roots reach 1.6 to 2.5 m further out than the stands' expected wood.
+
+So under light the cut's light-neutral count puts some of the oak's limbs below the cut, and their rows stand for a small, thin subtree. (Measured: the sizes and reach above. Inferred: that these are the lower spreading limbs.)
+
+### The site's request in Wasm (n = 48, three repeats, load 4.8 to 6.7)
+
+`raw/field-path/oak.jsonl`, `oak2.jsonl` (medians; end to end is grow, query and voxelize; the module is `field-oak.wasm`, 1,265,238 bytes stripped):
+
+| Oak, seed, build | grow ms | query ms | voxelize ms | end to end ms | Wasm memory MB | cubes n = 48 (wood + foliage) |
+|---|--:|--:|--:|--:|--:|--:|
+| 1234, 0.1.4 | 175 to 201 | 149 to 151 | 25 to 26 | 350 to 377 | 72.6 | 10,899 (634 + 10,265) |
+| 1234, full | 5,801 | 260 | 14 | 6,076 | 437.8 | 6,428 (3,776 + 2,652) |
+| 1234, **coarse** | 353 | 51 | 17 | **421** | **10.8** | 6,988 (1,981 + 5,007) |
+| 5678, 0.1.4 | 201 to 232 | 166 to 169 | 24 to 25 | 392 to 425 | 115.6 | 10,723 (649 + 10,074) |
+| 5678, full | 2,064 | 106 | 9 | 2,179 | 157.7 | 3,730 (2,028 + 1,702) |
+| 5678, **coarse** | 220 | 33 | 14 | **267** | **10.2** | 5,216 (842 + 4,374) |
+
+**R3 for the oak: not met.**
+- Memory holds.
+- Seed 5678 holds in time.
+- Seed 1234 runs 421 ms against 0.1.4's 350 to 377 ms.
+
+Natively on one core (load about 6), seed 1234's coarse build is rows 62 to 65 ms, the stepped run with its stands 109 to 147 ms, and the settle 22 to 27 ms. Per cycle, the coarse grower's allotment, the lattice and the stands' advance each take 28 to 34 ms in all. The stands' own sums take 3 ms of the allotment.
+
+### Renders for the host
+
+`raw/field-path/oak-1234-n48.png`, `oak-5678-n48.png`, `oak-1234-n30.png`, `oak-5678-n30.png`: 0.1.4, the full field and the coarse field at cut 1,024, left to right, drawn as task 1's stills are. The worker viewed all four. Its reading, not a verdict:
+- The coarse oak is a narrow, upright crown, densely leaved.
+- The full field's spreading lower limbs and its wide, wood-heavy crown are gone.
+- The trunk shows about half as wide.
+- The coarse oak holds about half the full field's wood cubes and nearly twice its foliage cubes.
+
+### For the host
+
+- Option 1 grows the structure above the cut faithfully and fits the memory.
+- The roots' expectations are the closed form's light-neutral, retention-free rows, so they miss the size, girth and reach of the roots that light lets grow past their prediction. TASK4's light repair moves where a root reads its light, not what its row stands for. Whether it would close any of this gap is not measured.
+- The time gap on seed 1234 is 44 to 71 ms. Nothing measured here closes it.
+- Task 3 depends on this task and was not started.
