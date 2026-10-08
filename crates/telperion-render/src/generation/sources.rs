@@ -12,10 +12,6 @@ pub(super) fn place() -> String {
     )
 }
 
-pub(super) fn scatter() -> String {
-    include_str!("scatter.wgsl").into()
-}
-
 pub(super) fn mass() -> String {
     format!("{LEAF}\n{}", include_str!("mass.wgsl"))
 }
@@ -28,20 +24,13 @@ pub(super) fn positions() -> String {
     )
 }
 
-#[cfg(test)]
-fn position_probe() -> String {
-    include_str!("position_probe.wgsl").into()
-}
-
 /// Every pass's source by name, the fine-root executor's included.
 #[cfg(test)]
 pub(super) fn all() -> Vec<(&'static str, String)> {
     let mut out = vec![
         ("place", place()),
-        ("scatter", scatter()),
         ("mass", mass()),
         ("positions", positions()),
-        ("position probe", position_probe()),
     ];
     out.extend(super::fine::sources());
     out

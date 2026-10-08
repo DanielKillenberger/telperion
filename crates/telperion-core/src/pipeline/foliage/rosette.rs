@@ -3,7 +3,7 @@
 //!
 //! A rosette stands at the apex of every stem - the childless node of an
 //! order-zero axis - and bears its fronds on a phyllotactic spiral about that
-//! axis. Like the short shoots it is a placement source over wood the skeleton
+//! axis. It is a placement source over wood the skeleton
 //! already has: no node, no run, every draw keyed by the bearing apex's own
 //! identity and the seed, and the apices visited in identity order, so no
 //! storage or build order moves a frond. Where a rosette stands it is the
@@ -242,7 +242,6 @@ pub(super) fn clothe(
     }
     Ok(())
 }
-
 
 #[cfg(feature = "geometry")]
 /// The matrices one placement stands for: one where the grouping is off, else

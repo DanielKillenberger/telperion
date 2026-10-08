@@ -27,15 +27,12 @@ pub mod field {
 }
 
 pub mod foliage {
-    #[cfg(feature = "geometry")]
-    pub use crate::pipeline::foliage::ShortShoot;
     #[cfg(test)]
     pub use crate::pipeline::foliage::*;
     pub use crate::pipeline::foliage::{
-        transform_point, withered, AnatomyGeometry, Bounds, CanopyParams, Element, ElementParams,
-        FoliageUnit, Instances, Leaf, Level, Reference, Rosette,
-        TwigPlacement, MAX_FRONDS, MAX_LEAFLETS, MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING,
-        WITHERED, WORDS,
+        transform_point, withered, AnatomyGeometry, BloomParams, Bounds, CanopyParams, Element,
+        ElementParams, FoliageUnit, Instances, Leaf, Level, Reference, Rosette, TwigPlacement,
+        MAX_FRONDS, MAX_LEAFLETS, WITHERED, WORDS,
     };
     pub mod plan {
         #[cfg(test)]
@@ -69,8 +66,8 @@ pub mod surface {
     };
     #[cfg(feature = "geometry")]
     pub use crate::pipeline::surface::{
-        Curve, CurveCluster, CurvePoint, CurveRun, Demand, PackedPoint, Tessellation, CLUSTER_WORDS, SECTION_FLOATS, Viewer, Budget, RIBBON, SCALES, CLUSTER,
-        LEVELS, POINT_WORDS,
+        Budget, Curve, CurveCluster, CurvePoint, CurveRun, Demand, PackedPoint, Tessellation,
+        Viewer, CLUSTER, CLUSTER_WORDS, LEVELS, POINT_WORDS, RIBBON, SCALES, SECTION_FLOATS,
     };
     #[cfg(feature = "geometry")]
     pub mod compact {

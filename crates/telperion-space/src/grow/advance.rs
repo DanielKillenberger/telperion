@@ -5,7 +5,7 @@ use super::stop::Stop;
 use super::{stop_stake, Apex};
 use crate::error::Result;
 use crate::fixed::{self, presence};
-use crate::lineage::{Key, ABORTION, END, ENDED, VIABILITY};
+use crate::lineage::{Key, END, ENDED, FAILED, RELAY, VIABILITY};
 use crate::presence::Unit;
 use crate::schedule::Carried;
 use crate::transcendental::Transcendental;
@@ -21,6 +21,16 @@ impl Shoot<'_, '_> {
         // a lifespan's fraction makes or unmakes renumbers none after it
         // (host decision 7).
         let unit = Key(self.axis(apex.axis).lineage).child(u64::from(cycle));
+        // A failed unit's relay grows the rest of that unit's cycle, its
+        // first unit keyed apart from the failed one, its nodes and its
+        // decisions (fn-199 R1); its later units draw what the apex's
+        // would have.
+        let first = self.draws(apex.axis).units.is_empty();
+        let unit = if first && self.draws(apex.axis).rest {
+            unit.child(FAILED)
+        } else {
+            unit
+        };
         // Its stop decisions are drawn apart for each relay of an age that
         // ended, the first of which may grow in the cycle its axis stopped
         // in: apart from that axis's, and the same whether the age ended
@@ -41,6 +51,7 @@ impl Shoot<'_, '_> {
             aged: 0.0,
             gone: if first { draws.sleep } else { 0.0 },
             relay: first && relay,
+            rest: first && draws.rest,
         };
         let step = carried.unit(state.life(), 1);
         let share = step.share;
@@ -57,9 +68,50 @@ impl Shoot<'_, '_> {
         };
         // Decided on the contract's threshold (FINE-CONTRACT.md D5); the
         // real survival sizes the unit's presence.
-        let survives = fixed::decide::survival(viability, share);
+        // A failed unit's relay's first unit holds a part of a tick more
+        // than its ticks, which its thresholds read (fn-199 B2).
+        let below = if first {
+            self.draws(apex.axis).below
+        } else {
+            0
+        };
+        let survives = fixed::decide::survival(viability, share, below);
         let d = decide.child(VIABILITY).draw();
-        if d.0 >= survives {
+        // A failure's relay, where its draw makes one (D9's integer test),
+        // and its presence over the unit's cycle (host decision 8).
+        let relay = state.relay_failed;
+        let relays = relay > 0.0 && decide.child(RELAY).draw().under(relay);
+        let relayed = || self.relayed(relay, decide, (pa, cycle, Some(step.used)));
+        // The first unit of a failed unit's relay, the rest of that cycle,
+        // carries on where its own failure relays, at that relay's
+        // presence, as an apex that all but failed does: relays do not
+        // nest within a cycle (fn-199, host decision A3).
+        let nested = first && self.draws(apex.axis).rest && relays;
+        if d.0 >= survives && relays && !nested {
+            let relayed = relayed();
+            let lived = fixed::real(fixed::decide::lived(viability, share, d) << 12);
+            let below = fixed::decide::lived_rest(viability, share, d);
+            let stopped = presence::over(survives, d.0);
+            // The lived part takes the unit's abortion draw over the share
+            // it lived and the next unit's (fn-199, host decision C1).
+            let draws = self.draws(apex.axis);
+            let grown = draws.aged + draws.grown() + lived;
+            let next = carried.unit(state.life(), 2).share;
+            let aborts = if step.ends {
+                0
+            } else {
+                fixed::decide::abortion(state, grown, (lived.min(next), 0))
+            };
+            let after = self.persists(decide, (pa, cycle), aborts);
+            return self.fail(
+                apex,
+                (cycle, carried.gone, step.whole),
+                (lived, below, relayed, stopped),
+                (pa, unit, decide),
+                after,
+            );
+        }
+        if d.0 >= survives && !nested {
             self.axis_mut(apex.axis).apex_end = Some(cycle - 1);
             self.draws_mut(apex.axis).failed = true;
             // The unit that failed is spent: a relay's first unit draws
@@ -71,7 +123,7 @@ impl Shoot<'_, '_> {
                 presence::over(survives, d.0),
                 decide,
                 spent,
-                Stop::Failed,
+                (Stop::Failed, false, 0),
             )?;
             return Ok(());
         }
@@ -80,6 +132,15 @@ impl Shoot<'_, '_> {
         let stake = stop_stake(state.relay_failed);
         let window = self.windows().window_q((pa, cycle, None), stake);
         let survive = presence::of_under(survives, d.0, window);
+        // An apex that all but failed carries on as itself and as the
+        // relay it would have had, as one that all but aborted does (host
+        // decision 11; fn-199 R1): the relay's share is whole at the bound.
+        let survive = if relays {
+            let relayed = relayed();
+            relayed + presence::times(presence::ONE - relayed, survive)
+        } else {
+            survive
+        };
         let survive = presence::times(survive, presence::q(self.kept(apex.axis)));
         let survive = fixed::real(survive);
         let (size, reads) = (self.size(apex.axis), self.reads);
@@ -102,34 +163,26 @@ impl Shoot<'_, '_> {
         // (`schedule.rs`).
         let draws = self.draws(apex.axis);
         let grown = draws.aged + draws.grown();
-        let exposure = carried.exposure(state.life(), 1);
+        let next = carried.unit(state.life(), 2).share;
+        let fine = |s: f64| fixed::ticks(s) << 12;
+        let exposure = if fine(share) + below <= fine(next) {
+            (share, below)
+        } else {
+            (next, 0)
+        };
         let aborts = fixed::decide::abortion(state, grown, exposure);
-        if aborts > 0 && !step.ends {
-            let d = decide.child(ABORTION).draw();
-            if d.0 < aborts {
-                self.axis_mut(apex.axis).apex_end = Some(cycle);
-                self.stop(
-                    apex,
-                    (cycle, 1.0),
-                    presence::under(aborts, d.0),
-                    decide,
-                    apex.spent,
-                    Stop::Aborted,
-                )?;
-                return Ok(());
+        if !step.ends {
+            match self.persists(decide, (pa, cycle), aborts) {
+                Err(lead) => {
+                    self.axis_mut(apex.axis).apex_end = Some(cycle);
+                    let why = (Stop::Aborted, false, 0);
+                    return self.stop(apex, (cycle, 1.0), lead, decide, apex.spent, why);
+                }
+                Ok(persist) => {
+                    let units = &mut self.draws_mut(apex.axis).units;
+                    units.last_mut().unwrap().persist = persist;
+                }
             }
-            // An apex that all but aborted carries on as itself and as the
-            // relay it would have had, which at the bound is laid as its
-            // continuation and draws what it would: the two sum, so no
-            // stop near its bound fades the stem (host decision 11), each
-            // a Q32 presence (host decision 8).
-            let at = (pa, cycle + 1, None);
-            let window = self.windows().window_q(at, stop_stake(state.relay));
-            let faded = presence::of_over(aborts, d.0, window);
-            let relayed = self.relayed(state.relay, decide, at);
-            let persist = relayed + presence::times(presence::ONE - relayed, faded);
-            let units = &mut self.draws_mut(apex.axis).units;
-            units.last_mut().unwrap().persist = fixed::real(persist);
         }
         if !step.ends {
             self.next.push(apex);

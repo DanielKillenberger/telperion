@@ -6,6 +6,7 @@ Commit:
 - Specs and task receipts, final result summaries, qualification gaps, decisions and friction dispositions.
 - Reusable verification or benchmark sources and the small inputs they require.
 - Curated numeric summaries and provenance needed to assess a claim.
+- For a branch that changes trees, its `space_hash` lines (`crates/telperion-render/examples/space_hash.rs`) in its RESULT.md, so a later merge can compare against them without rebuilding the branch.
 - Test fixtures that executable tests actually load; these are source inputs, not disposable run output.
 
 Write raw logs, stdout/stderr, per-iteration measurements, screenshots, videos, scratch patches and temporary diagnostic output under `.flow/evidence/<spec>/raw/`. That directory is ignored. Demo recordings belong in the ignored `demo-video/` directory. Generated output should not be force-added simply because a workflow collected it. Promote a necessary fixture or concise summary deliberately and explain its role.

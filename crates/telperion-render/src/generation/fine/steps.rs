@@ -5,7 +5,8 @@
 //! and handed on as the next wave's buds (`emit.wgsl`). Only the scans'
 //! totals cross to the host.
 use super::super::io;
-use crate::Gpu;
+use crate::buffer::Owned;
+use crate::{Gpu, Result};
 
 const RECORD: &str = include_str!("record.wgsl");
 const SCAN: &str = include_str!("scan.wgsl");
@@ -22,6 +23,7 @@ pub(super) const IW: u32 = 12;
 pub(super) const DESCRIBE: usize = 0;
 pub(super) const REALIZED: usize = 1;
 
+#[cfg(test)]
 pub(super) fn sources() -> Vec<(&'static str, String)> {
     vec![
         ("fine record", RECORD.to_string()),
@@ -39,14 +41,14 @@ pub(super) struct Steps {
 }
 
 /// A buffer for the device's own use, readable for its totals.
-pub(super) fn buffer(gpu: &Gpu, label: &'static str, words: u64) -> wgpu::Buffer {
+pub(super) fn buffer(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-    io::buffer(gpu, label, words.max(4) * 4, usage, &[]).unwrap()
+    io::buffer(gpu, label, words.max(4) * 4, usage, &[])
 }
 
-fn uniform(gpu: &Gpu, data: &[u32; 8]) -> wgpu::Buffer {
+fn uniform(gpu: &Gpu, data: &[u32; 8]) -> Result<Owned> {
     let usage = wgpu::BufferUsages::UNIFORM;
-    io::buffer(gpu, "steps cfg", 32, usage, bytemuck::cast_slice(data)).unwrap()
+    io::buffer(gpu, "steps cfg", 32, usage, bytemuck::cast_slice(data))
 }
 
 fn row(gpu: &Gpu, n: u32) -> (u32, u32) {
@@ -93,12 +95,13 @@ impl Steps {
             &wgpu::Buffer,
             &wgpu::Buffer,
         ),
-    ) {
+    ) -> Result<()> {
         let (groups, row) = row(gpu, n);
-        let cfg = uniform(gpu, &[n, row, first, level, axes_cap, 0, 0, 0]);
+        let cfg = uniform(gpu, &[n, row, first, level, axes_cap, 0, 0, 0])?;
         let all = [&cfg, status, axes, list, counts, queue, queued, runoff];
         let bind = self.record.bind(gpu, &all);
         self.record.run(encoder, &bind, 0, groups);
+        Ok(())
     }
 
     /// Scans the first `fields` words of `n` records `stride` apart into
@@ -109,15 +112,16 @@ impl Steps {
         encoder: &mut wgpu::CommandEncoder,
         (data, n, stride, fields): (&wgpu::Buffer, u32, u32, u32),
         totals: &wgpu::Buffer,
-    ) {
+    ) -> Result<()> {
         let blocks = n.div_ceil(256);
         let (groups, row) = row(gpu, n);
-        let cfg = uniform(gpu, &[n, stride, fields, blocks, row, 0, 0, 0]);
-        let sums = buffer(gpu, "scan sums", u64::from(blocks.max(1)) * 4);
+        let cfg = uniform(gpu, &[n, stride, fields, blocks, row, 0, 0, 0])?;
+        let sums = buffer(gpu, "scan sums", u64::from(blocks.max(1)) * 4)?;
         let bind = self.scan.bind(gpu, &[&cfg, data, &sums, totals]);
         self.scan.run(encoder, &bind, 0, blocks.div_ceil(64));
         self.scan.run(encoder, &bind, 1, 1);
         self.scan.run(encoder, &bind, 2, groups);
+        Ok(())
     }
 
     /// Gathers the `n` queued chains' buds from the wave's into `gathered`.
@@ -127,11 +131,12 @@ impl Steps {
         encoder: &mut wgpu::CommandEncoder,
         n: u32,
         (queue, wave, gathered): (&wgpu::Buffer, &wgpu::Buffer, &wgpu::Buffer),
-    ) {
+    ) -> Result<()> {
         let (groups, row) = row(gpu, n);
-        let cfg = uniform(gpu, &[n, row, 0, 0, 0, 0, 0, 0]);
+        let cfg = uniform(gpu, &[n, row, 0, 0, 0, 0, 0, 0])?;
         let bind = self.gather.bind(gpu, &[&cfg, queue, wave, gathered]);
         self.gather.run(encoder, &bind, 0, groups);
+        Ok(())
     }
 
     /// Runs `emit.wgsl`'s `entry` over a run's `n` chains: `DESCRIBE`
@@ -150,13 +155,14 @@ impl Steps {
             &wgpu::Buffer,
             &wgpu::Buffer,
         ),
-    ) {
+    ) -> Result<()> {
         let (groups, row) = row(gpu, n);
-        let cfg = uniform(gpu, &[n, row, u32::from(stub), 0, 0, 0, 0, 0]);
+        let cfg = uniform(gpu, &[n, row, u32::from(stub), 0, 0, 0, 0, 0])?;
         let all = [
             &cfg, runoff, places, meta, items, axes, scratch, buds, next_meta,
         ];
         let bind = self.emit.bind(gpu, &all);
         self.emit.run(encoder, &bind, entry, groups);
+        Ok(())
     }
 }

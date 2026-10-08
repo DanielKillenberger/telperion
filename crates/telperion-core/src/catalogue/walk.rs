@@ -17,7 +17,6 @@ pub fn walk(a: &Family, b: &Family, t: f64, f: &mut Family) {
             Blend::Count | Blend::Many => linear(x, y, t).round(),
             Blend::Down => linear(x, y, t).floor(),
             Blend::Up => linear(x, y, t).ceil(),
-            Blend::Density => density(x, y, t),
             Blend::Kept | Blend::Coupled => continue,
         };
         entry.set(f).put(value);
@@ -50,18 +49,5 @@ pub fn degrees(a: f64, b: f64, t: f64) -> f64 {
         turned + 360.0
     } else {
         turned
-    }
-}
-
-/// Shoots per metre walk linearly, and the spacing is what they leave: a walk
-/// from zero, which grows none, starts past the furthest the rail allows and
-/// closes in, with no frame where the wood is suddenly crowded.
-pub fn density(a: f64, b: f64, t: f64) -> f64 {
-    let per = |spacing: f64| if spacing > 0.0 { 1.0 / spacing } else { 0.0 };
-    let walked = linear(per(a), per(b), t);
-    if walked > 0.0 {
-        (1.0 / walked).min(crate::foliage::SHORT_SHOOT_SPACING.1)
-    } else {
-        0.0
     }
 }

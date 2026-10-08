@@ -3,7 +3,7 @@
 //! 8, step 3): beech and spruce at 40 and 80, seeds 1 and 7. The GPU's
 //! build is `profile_tests::build` (the species point's tables, the
 //! structure above the cut, the four phases and the landing); the CPU's
-//! is `grow_fine` at the default plan. The fine stage is the executor's
+//! is `grow_roots` at the default plan. The fine stage is the executor's
 //! four phases. Cold is a tree's first build in the process, just after
 //! one build of a tree not timed (the device's clocks up, its pools that
 //! tree's). `cargo test --profile ci -p telperion-render
@@ -13,7 +13,7 @@ use super::profile_tests::build;
 use super::realized_tests::request;
 use super::roots::kernels;
 use std::time::Instant;
-use telperion_space::{grow_fine, Plan, Species};
+use telperion_space::{grow_roots, Plan, Species};
 
 /// The GPU lock named by `FINE_GPU_LOCK`, held while the guard lives.
 fn locked() -> Option<std::fs::File> {
@@ -23,7 +23,7 @@ fn locked() -> Option<std::fs::File> {
     Some(file)
 }
 
-/// `grow_fine` on `threads` cores: the first build's milliseconds, the
+/// `grow_roots` on `threads` cores: the first build's milliseconds, the
 /// best of two more, and that build's fine stage.
 fn cpu(species: &Species, at: (u32, u64), threads: usize) -> [f64; 3] {
     let plan = Plan {
@@ -32,7 +32,7 @@ fn cpu(species: &Species, at: (u32, u64), threads: usize) -> [f64; 3] {
     };
     let mut runs = (0..3).map(|_| {
         let t = Instant::now();
-        let fine = grow_fine(species, request(at.0, at.1), plan).expect("grows");
+        let fine = grow_roots(species, request(at.0, at.1), plan).expect("grows");
         [t.elapsed().as_secs_f64() * 1e3, fine.expand_seconds() * 1e3]
     });
     let cold = runs.next().expect("a build")[0];
@@ -74,6 +74,49 @@ fn fine_stage_and_build() {
                 "| {name} {} {} | {cold:.0} / {:.0} ({:.0}) | {ac:.0} / {aw:.0} ({af:.0}) | {oc:.0} / {ow:.0} ({of:.0}) |",
                 at.0, at.1, warm.ms, warm.fine
             );
+        }
+    }
+    let load = std::fs::read_to_string("/proc/loadavg").unwrap_or_default();
+    println!("load at the end: {}", load.trim());
+}
+
+/// Task 9: the build sowing its roots while the structure above the cut
+/// grows, from 2,048 and 8,192 roots on, against none sown, each warm
+/// build interleaved, five rounds; the best and the median.
+#[test]
+#[ignore = "a measurement"]
+fn sown_against_none() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let k = kernels(&gpu);
+    let load = std::fs::read_to_string("/proc/loadavg").unwrap_or_default();
+    println!("load at the start: {}", load.trim());
+    let modes = [("none", usize::MAX), ("2048", 2048), ("8192", 8192)];
+    for (name, species) in [
+        ("beech", telperion_space::beech()),
+        ("spruce", telperion_space::spruce()),
+    ] {
+        for at in [(40, 1), (80, 1), (80, 7)] {
+            let lock = locked();
+            build(&gpu, &k, &species, at);
+            let mut ms = vec![Vec::new(); modes.len()];
+            for _ in 0..5 {
+                for (m, &(_, least)) in modes.iter().enumerate() {
+                    let b = super::profile_tests::build_sown(&gpu, &k, &species, at, Some(least));
+                    ms[m].push(b.ms);
+                }
+            }
+            drop(lock);
+            let row: Vec<String> = modes
+                .iter()
+                .zip(&mut ms)
+                .map(|((mode, _), v)| {
+                    v.sort_by(f64::total_cmp);
+                    format!("{mode} {:.0} / {:.0}", v[0], v[2])
+                })
+                .collect();
+            println!("{name} {} {}: {}", at.0, at.1, row.join(", "));
         }
     }
     let load = std::fs::read_to_string("/proc/loadavg").unwrap_or_default();

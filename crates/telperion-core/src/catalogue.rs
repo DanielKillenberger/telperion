@@ -22,11 +22,11 @@ pub use check::check;
 pub use mount::{entries, entry, locate, Entry};
 pub use reference::reference;
 pub use scalar::{Kind, Scalar, Typed};
-pub use walk::{degrees, density, linear, walk, weighted};
+pub use walk::{degrees, linear, walk, weighted};
 
 /// Rows the catalogue no longer holds, each refused with what replaced it: a
 /// wire or value file that still names one is refused, never read silently.
-const RETIRED: [(&str, &str); 6] = [
+const RETIRED: [(&str, &str); 11] = [
     (
         "/growth",
         "/growth is retired: the growth path its rows tuned was removed (fn-181), \
@@ -54,6 +54,31 @@ const RETIRED: [(&str, &str); 6] = [
         "/skeleton/habit/stemForkHeight",
         "/skeleton/habit/stemForkHeight is retired: use /skeleton/habit/forkHeight, a share \
          of the tree's height",
+    ),
+    (
+        "/canopy/shortShootSpacing",
+        "/canopy/shortShootSpacing is retired: a short shoot is an engine axis that bears its \
+         leaves at its tip, /space/ages/N/clusterLeaves and clusterSpread (fn-223)",
+    ),
+    (
+        "/canopy/shortShootRadius",
+        "/canopy/shortShootRadius is retired: a short shoot is an engine axis that bears its \
+         leaves at its tip, /space/ages/N/clusterLeaves and clusterSpread (fn-223)",
+    ),
+    (
+        "/canopy/shortShootLength",
+        "/canopy/shortShootLength is retired: a short shoot is an engine axis that bears its \
+         leaves at its tip, /space/ages/N/clusterLeaves and clusterSpread (fn-223)",
+    ),
+    (
+        "/canopy/shortShootLeaves",
+        "/canopy/shortShootLeaves is retired: a short shoot is an engine axis that bears its \
+         leaves at its tip, /space/ages/N/clusterLeaves and clusterSpread (fn-223)",
+    ),
+    (
+        "/canopy/shortShootSpread",
+        "/canopy/shortShootSpread is retired: a short shoot is an engine axis that bears its \
+         leaves at its tip, /space/ages/N/clusterLeaves and clusterSpread (fn-223)",
     ),
 ];
 
@@ -164,11 +189,12 @@ pub enum Site {
     Surface,
     Material,
     Canopy,
-    ShortShoots,
+    Clumping,
     Rosette,
     Leaf,
     LeafCounts,
     Shell,
+    Bloom,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -208,8 +234,6 @@ pub enum Blend {
     Up,
     /// A large count, rounded to the nearest.
     Many,
-    /// A spacing, walked as the density it stands for.
-    Density,
     /// The first family's value, unwalked.
     Kept,
     /// Walked with the rows it is coupled to, by `blend::families`.
@@ -247,6 +271,12 @@ pub struct Tuning {
     pub unset: Option<f64>,
 }
 /// A dial that steps across the row's own bounds.
+/// No flower row is tuned until a species flowers (fn-216).
+pub const FLOWERS: Dial = Dial::Excluded(
+    "Dormant on every shipped species until one flowers; that species' spec opens its \
+     flowers to tuning (fn-216).",
+);
+
 pub const fn bounded(id: &'static str, ask: &'static str, steps: [f64; 2]) -> Dial {
     Dial::Tuned(Tuning {
         id,

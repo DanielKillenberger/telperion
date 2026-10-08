@@ -64,36 +64,48 @@ struct Apex {
     spent: f64,
 }
 
-/// Grows, sheds and places the tree, in its canonical lineage order. A
-/// species that neither reads light nor reads its tree as grown is built
-/// through the realized partition at the cut N = 1,024 (host decision 7,
-/// FINE-CONTRACT.md): the same tree as `grow_whole`, to the bit.
+/// Grows, sheds and places the tree, in its canonical lineage order, by
+/// the stepped executor (fn-211 task 12): every fine root at the cut
+/// N = 1,024 its own grower, run to its next synchronisation point and
+/// settled per root.
 pub fn grow(species: &Species, request: Request) -> Result<Structure> {
-    if species.reads_light() || keeps(species) {
-        return grow_whole(species, request);
-    }
-    species.validate()?;
-    request.light.validate()?;
-    if request.age == 0 {
-        return refuse("age", "a tree grows at least one cycle");
-    }
-    let fine = crate::fine::grow_fine(species, request, crate::fine::Plan::default())?;
-    Ok(lineage_order(fine.structure))
+    grow_marked(species, request).map(|(structure, ..)| structure)
 }
 
-/// Today's whole-tree engine, every axis grown in one grower: the tests'
-/// reference for `grow`, in the same canonical order.
-pub fn grow_whole(species: &Species, request: Request) -> Result<Structure> {
-    grow_staged(species, request, &mut |_| {})
-}
-
-/// `grow_whole`, reporting each stage as it ends.
-pub fn grow_staged(
+/// `grow`, with each axis marked where it was grown in a fine root (fn-212
+/// D4, D5): its wood starts its own run at the seam and keeps its side's
+/// run order. A species another executor cannot hold apart (`apart`)
+/// marks none. Also each fine root's base radius as phase 2 handed it
+/// up, by its first axis's lineage.
+#[allow(clippy::type_complexity)]
+pub fn grow_marked(
     species: &Species,
     request: Request,
-    stage: &mut dyn FnMut(Stage),
-) -> Result<Structure> {
-    run(species, request, stage, true, Options::default()).map(|g| lineage_order(g.structure))
+) -> Result<(Structure, Vec<bool>, Vec<(u64, f64)>)> {
+    let fine = crate::fine::grow_roots(species, request, crate::fine::Plan::default())?;
+    if apart(species).is_err() {
+        let structure = lineage_order(fine.structure);
+        let marks = vec![false; structure.axes.len()];
+        return Ok((structure, marks, Vec::new()));
+    }
+    // A fine root's first axis stands in its stand-in's place; the rest of
+    // its axes are appended past `above`.
+    let mut marks: Vec<bool> = (0..fine.structure.axes.len())
+        .map(|i| i >= fine.above)
+        .collect();
+    for i in fine.roots.iter().filter_map(|r| r.at) {
+        marks[i] = true;
+    }
+    let (structure, marks) = crate::fine::lineage_order_marked(fine.structure, marks);
+    Ok((structure, marks, fine.bases))
+}
+
+/// The whole-tree engine, every axis grown in one grower: test-only, the
+/// reference the stepped executor's and the partition's probes hold
+/// their trees to.
+#[cfg(test)]
+pub(crate) fn whole(species: &Species, request: Request) -> Result<Structure> {
+    run(species, request, &mut |_| {}, true, Options::default()).map(|g| lineage_order(g.structure))
 }
 
 /// How the engine grows a tree, never what it grows: every choice here
@@ -309,6 +321,7 @@ fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
         alive: 0.0,
         rank: 0.0,
         sleep: 0.0,
+        phase: 0,
     }
 }
 
@@ -356,6 +369,23 @@ struct Grower<'a> {
     handed: Vec<(usize, alone::Pending)>,
     /// The lists a cycle's share fills, kept for the next.
     spare: shoot::Spare,
+}
+
+/// Whether the realized settle (`fine::settle`) takes `species` apart from
+/// its fine roots on another executor, and why not where it does not: its
+/// roots grow alone, which no bud that reads light does (`alone::rules`),
+/// and the device's roots carry no as-grown exchange (fn-211 task 12), so
+/// such a species is built by the stepped executor on the CPU. A recorded
+/// gap, read by the executor that would hold the roots (fn-212 task 10),
+/// never a fallback.
+pub fn apart(species: &Species) -> std::result::Result<(), &'static str> {
+    if species.reads_light() {
+        Err("its buds read light, which its roots grown alone do not carry (fn-211)")
+    } else if keeps(species) {
+        Err("its shed pipes and leaf girth read the tree as grown (fn-211 task 12)")
+    } else {
+        Ok(())
+    }
 }
 
 /// Whether any PA reads the tree as grown: its shed pipes or its leaves'

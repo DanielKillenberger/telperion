@@ -1,0 +1,75 @@
+diff --git i/crates/telperion-core/src/pipeline/space.rs w/crates/telperion-core/src/pipeline/space.rs
+index c5e516bd..79b63a99 100644
+--- i/crates/telperion-core/src/pipeline/space.rs
++++ w/crates/telperion-core/src/pipeline/space.rs
+@@ -5,10 +5,10 @@
+ //! the pipeline's y up. A lateral starts a branch run; a continuation or
+ //! relay carries its parent's on. Wood under `STRUCTURAL` of the root's
+ //! radius is fine wood: a twig where nothing grows from it, a branch
+-//! otherwise. Wood thinner than `FINEST` (a phytomer growing in from its
+-//! draw, and all it bears) is not drawn, and an internode shorter than
+-//! `SHORTEST` is merged into its node, so the sweep never meets a ring it
+-//! cannot resolve in float32.
++//! otherwise. Every kept phytomer is a node, however thin or short its
++//! internode (fn-212 host decision D1, fn-209 decision 2): what is drawn
++//! of thin wood is the curve's choice at draw time (F3's ribbons), never
++//! the conversion's.
+ use super::GrowInput;
+ use crate::math::Vec3;
+ use crate::tree::{BudFate, Node, NodeKind, ShootState, Tree};
+@@ -35,10 +35,6 @@ const KEPT: Option<usize> = if cfg!(target_arch = "wasm32") {
+ /// Where fine wood begins, as a share of the root's radius: the fine-wood
+ /// measure of the pinned baseline (fn-190, BASELINE.md).
+ const STRUCTURAL: f64 = 0.05;
+-/// The thinnest wood drawn, in metres, and the shortest internode kept: a
+-/// float32 ring stays resolved above them (host, fn-193 C, the beech).
+-const FINEST: f64 = 2e-4;
+-const SHORTEST: f64 = 1e-3;
+ /// A lateral of `FORK_FROM` to `FORK_AT` of its parent's radius grows in as
+ /// a codominant fork, so a fork has no collar (host, fn-193 RESULT.md).
+ const FORK_FROM: f64 = 0.4;
+@@ -239,29 +235,8 @@ fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
+         } else {
+             nodes[parent as usize].branch
+         };
+-        // A relay's base stands inside its parent's span, below the node
+-        // it is drawn from: its first internodes that still lie behind that
+-        // node along the stem merge into it, so the stem never folds back.
+-        let along = match axis.origin {
+-            Origin::Relay { .. } if parent > 0 => {
+-                let p = &nodes[parent as usize];
+-                let span = p.position - nodes[p.parent.unwrap() as usize].position;
+-                span * (1.0 / span.length().max(1e-12))
+-            }
+-            _ => Vec3::ZERO,
+-        };
+         let mut made = false;
+-        for p in axis.phytomers.iter().take_while(|p| p.radius >= FINEST) {
+-            let from = nodes[parent as usize].position;
+-            // ... and those still inside the wood of the joint, where a
+-            // turn over less than the stem's radius would fold its surface.
+-            let inside =
+-                along != Vec3::ZERO && (up(p.tip) - from).length() < nodes[parent as usize].radius;
+-            let behind = !made && ((up(p.tip) - from).dot(along) < 0.0 || inside);
+-            if behind || (up(p.tip) - from).length() < SHORTEST {
+-                drawn[i].push(parent);
+-                continue;
+-            }
++        for p in &axis.phytomers {
+             let mut node = Node::root();
+             let inherited = nodes[parent as usize].radius;
+             let first = !made;
+@@ -290,11 +265,8 @@ fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
+             drawn[i].push(parent);
+             nodes.push(node);
+         }
+-        // An axis with no drawn phytomers ends where it starts, and only a
+-        // whole axis is carried on.
+-        if drawn[i].len() == axis.phytomers.len() {
+-            ends[i] = Some(parent);
+-        }
++        // An axis with no phytomers ends where it starts.
++        ends[i] = Some(parent);
+     }
+     let root = nodes.get(1).map_or(0.0, |n| n.start_radius);
+     nodes[0].radius = root;

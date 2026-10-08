@@ -62,6 +62,21 @@ pub(crate) fn deep(count: usize, work: &(dyn Fn(usize) + Sync)) {
     });
 }
 
+#[cfg(not(target_family = "wasm"))]
+/// `side()` on a thread of its own while `here()` runs on this one, both
+/// results; in turn on this thread where threads cannot be made (wasm,
+/// fn-212 decision D6). Neither reads the other's work.
+pub(crate) fn beside<A: Send, B>(
+    side: impl FnOnce() -> A + Send,
+    here: impl FnOnce() -> B,
+) -> (A, B) {
+    std::thread::scope(|scope| {
+        let side = scope.spawn(side);
+        let here = here();
+        (side.join().expect("the work beside"), here)
+    })
+}
+
 /// The items handed to one piece of work by `map`: enough to pay for
 /// the hand-out.
 pub(crate) const PIECE: usize = 64;
@@ -93,6 +108,43 @@ pub(crate) fn map<I: Send, R: Send>(
             .enumerate()
             .map(|(j, item)| work(k * piece + j, item))
             .collect();
+    });
+    done.into_iter()
+        .flat_map(|d| d.into_inner().unwrap())
+        .collect()
+}
+
+/// `map`, each piece always on the same thread of the pool (piece `p` on
+/// thread `p mod n`): work on items kept across calls (the stepped
+/// executor's roots, fn-211 task 12) grows and frees their memory on the
+/// thread that made it, so no core waits on another's allocator.
+pub(crate) fn pinned<I: Send, R: Send>(
+    items: Vec<I>,
+    piece: usize,
+    threads: usize,
+    work: &(dyn Fn(usize, I) -> R + Sync),
+) -> Vec<R> {
+    let n = threads.min(rayon::current_num_threads());
+    if n <= 1 || items.len() <= piece {
+        return map(items, piece, 1, work);
+    }
+    let mut items = items.into_iter();
+    let pieces: Vec<Mutex<Vec<I>>> = (0..items.len().div_ceil(piece))
+        .map(|_| Mutex::new(items.by_ref().take(piece).collect()))
+        .collect();
+    let done: Vec<Mutex<Vec<R>>> = (0..pieces.len()).map(|_| Mutex::new(Vec::new())).collect();
+    rayon::broadcast(|ctx| {
+        for k in (ctx.index()..pieces.len())
+            .step_by(n)
+            .take_while(|_| ctx.index() < n)
+        {
+            let piece_items = std::mem::take(&mut *pieces[k].lock().unwrap());
+            *done[k].lock().unwrap() = piece_items
+                .into_iter()
+                .enumerate()
+                .map(|(j, item)| work(k * piece + j, item))
+                .collect();
+        }
     });
     done.into_iter()
         .flat_map(|d| d.into_inner().unwrap())

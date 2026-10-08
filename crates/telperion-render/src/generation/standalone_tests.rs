@@ -20,7 +20,6 @@ fn standalone_rejects_resident_before_generation_and_delivers_owned_cpu_mesh() {
         .contains("standalone generation requires CPU delivery"));
     family.canopy.size = 0.1;
     family.skeleton.attractors = 16;
-    family.canopy.short_shoot_spacing = 0.0;
     family.canopy.limb_clumping = 0.0;
     let prepared = generator.prepare(&family, Delivery::Cpu).unwrap();
     assert_eq!(prepared.backend, Backend::Gpu);

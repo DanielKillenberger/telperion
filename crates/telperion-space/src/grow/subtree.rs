@@ -78,7 +78,7 @@ pub(super) fn bare(base_scale: f64) -> Pencil {
     );
     Pencil {
         // Never laid: a fine subtree's pencils only tally (`tally_units`).
-        layer: Layer::bent(frame, Vec3::default(), 1.0),
+        layer: Layer::bent(frame, Vec3::default(), crate::fixed::ONE32),
         base_scale,
         running: 1.0,
         rank: 0.0,
@@ -280,6 +280,7 @@ impl<'a> Grower<'a> {
             for j in pencil.laid..end {
                 let p = &mut axis.phytomers[j];
                 p.scale = pencil.base_scale * present * draws.nodes[j] * drawn.share;
+                p.grown = present * draws.nodes[j] * drawn.share;
                 p.size = size;
                 p.rank = pencil.rank;
                 pencil.rank += draws.nodes[j] * drawn.share;

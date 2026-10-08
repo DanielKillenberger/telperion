@@ -2,6 +2,7 @@
 use super::*;
 use crate::grow::partition::{grow_partitioned, Order};
 use crate::light::Light;
+use std::collections::HashMap;
 
 const LIT: Light = Light {
     extinction: 0.5,
@@ -36,21 +37,14 @@ fn each_grower_keeps_the_whole_trees_living_order() {
     let expected = Expected::new(&species, r.age, 0);
     let (mut whole, _) = start(&species, r, true, Options::default()).unwrap();
     let (coarse, _) = start(&species, r, true, Options::default()).unwrap();
-    let mut x = Executor {
-        coarse,
-        items: Vec::new(),
-        rows: expected.rows(),
-        cut: 256.0,
-        grouping: grouping(Order::Forward, 1),
-        request: r,
-        phases: Vec::new(),
-    };
+    let at = (super::counts(&expected), 256.0, grouping(Order::Forward, 1));
+    let mut x = Executor::new(coarse, at, r, super::Keep::Digests);
     let mut advanced = Vec::new();
     for cycle in 1..=r.age {
         whole
             .year(cycle, cycle < r.age, &mut advanced, &mut |_| {})
             .unwrap();
-        x.cycle(cycle).unwrap();
+        x.cycle(cycle, None).unwrap();
         let lineage = |g: &Grower, a: &super::super::Apex| g.axes[a.axis].lineage;
         let mut at = HashMap::new();
         for (k, a) in whole.live.iter().enumerate() {
@@ -60,7 +54,8 @@ fn each_grower_keeps_the_whole_trees_living_order() {
             );
         }
         let mut count = 0;
-        for g in x.growers() {
+        let growers = std::iter::once(&x.coarse).chain(x.items.iter().map(|i| &i.g));
+        for g in growers {
             let seen: Vec<usize> = g.live.iter().map(|a| at[&lineage(g, a)]).collect();
             assert!(
                 seen.windows(2).all(|w| w[0] < w[1]),
@@ -95,5 +90,39 @@ fn the_stepped_tree_is_the_whole_tree() {
             assert_eq!(s.phases, whole.phases, "{order:?}");
             assert_eq!(crate::fine::digest(&s.structure), want, "{order:?}");
         }
+    }
+}
+
+/// fn-211 task 10: the fine roots' D16, deposits and reads through the
+/// device interface, on the CPU's own, leave every grower's whole state
+/// after every phase, and every cycle's lattice, the all-CPU run's.
+#[test]
+fn the_feedback_interface_keeps_every_phase_whole() {
+    let species = crate::oak();
+    let r = request(24, 7);
+    let expected = Expected::new(&species, r.age, 0);
+    let mut first: Option<Vec<[u64; 4]>> = None;
+    for (order, chunk) in [(Order::Forward, 1), (Order::Shuffled(3), 7)] {
+        let at = (&expected, 256.0, grouping(order, chunk));
+        let started = std::time::Instant::now();
+        let cpu = grow_stepped_on(&species, r, at, None, true).unwrap();
+        let took = started.elapsed();
+        let on = grow_stepped_on(&species, r, at, Some(&mut Cpu), true).unwrap();
+        eprintln!(
+            "{order:?}: {} roots, {} states, {} lattices, {took:?}",
+            cpu.roots,
+            cpu.states.len(),
+            cpu.lattices.len()
+        );
+        assert!(cpu.roots > 10 && cpu.lattices.len() + 1 == r.age as usize);
+        assert_eq!(on.phases, cpu.phases, "{order:?}");
+        assert_eq!(on.states, cpu.states, "{order:?}");
+        assert_eq!(on.lattices, cpu.lattices, "{order:?}");
+        // Each grower's state is its own whatever order the items take.
+        assert_eq!(&cpu.states, first.get_or_insert(cpu.states.clone()));
+        assert_eq!(
+            crate::fine::digest(&on.structure),
+            crate::fine::digest(&cpu.structure)
+        );
     }
 }

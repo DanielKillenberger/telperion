@@ -3,6 +3,10 @@
 //! receiving less, and λ = 0.5 sharing in proportion to light.
 use super::*;
 
+/// Contract A: inputs enter as Q32 and each product and quotient
+/// truncates once, so laws hold to a few units of Q32's last place.
+const Q32_FEW: f64 = 1e-8;
+
 fn link(parent: Option<usize>, node: usize) -> Link {
     Link { parent, node }
 }
@@ -24,12 +28,12 @@ fn one_branching_point_splits_as_palubicki_states() {
         let lateral = total * (1.0 - lambda) * ql / (lambda * qm + (1.0 - lambda) * ql);
         let main = total * lambda * qm / (lambda * qm + (1.0 - lambda) * ql);
         assert!(
-            (v[1] - lateral).abs() < 1e-12,
+            (v[1] - lateral).abs() < Q32_FEW,
             "λ {lambda}: lateral {} against {lateral}",
             v[1]
         );
         assert!(
-            (v[0] - main).abs() < 1e-12,
+            (v[0] - main).abs() < Q32_FEW,
             "λ {lambda}: main {} against {main}",
             v[0]
         );
@@ -62,7 +66,7 @@ fn the_trees_vigour_is_conserved_at_every_lambda() {
         let v = vigours(&links, &own, &vec![lambda; links.len()]);
         let sum: f64 = v.iter().sum();
         assert!(
-            (sum - total).abs() < 1e-12,
+            (sum - total).abs() < Q32_FEW,
             "λ {lambda}: {sum} against {total}"
         );
     }
@@ -75,7 +79,7 @@ fn an_unbiased_split_gives_every_bud_its_own_light() {
     let (links, own) = tree();
     let v = vigours(&links, &own, &vec![0.5; links.len()]);
     for (i, (&vi, &qi)) in v.iter().zip(&own).enumerate() {
-        assert!((vi - qi).abs() < 1e-12, "bud {i}: {vi} against {qi}");
+        assert!((vi - qi).abs() < Q32_FEW, "bud {i}: {vi} against {qi}");
     }
 }
 
@@ -146,7 +150,7 @@ fn sizes_keep_each_orders_mean_whole_and_favour_light() {
             }
             let total: f64 = members.iter().map(|&i| presence[i]).sum();
             let mean = members.iter().map(|&i| s[i] * presence[i]).sum::<f64>() / total;
-            assert!((mean - 1.0).abs() < 1e-12, "ψ {psi} group {g}: mean {mean}");
+            assert!((mean - 1.0).abs() < Q32_FEW, "ψ {psi} group {g}: mean {mean}");
         }
         // Groups 2 and 3 hold one bud each: whole to the bit.
         assert_eq!((s[4], s[7]), (1.0, 1.0), "ψ {psi}");

@@ -97,11 +97,13 @@ fn new_limits_are_named_validated_and_walked() {
         .to_string()
         .contains("socketContainment"));
     f.canopy.clump_neighbours = 0;
-    let error = telperion_core::foliage::short_shoots(
+    let error = telperion_core::foliage::place(
         &Default::default(),
         f.skeleton.envelope,
         1,
         f.canopy,
+        None,
+        Default::default(),
     )
     .unwrap_err();
     assert!(error.to_string().contains("clumpNeighbours"));
@@ -142,7 +144,6 @@ fn sampling_budget_is_explicit_and_exhaustion_is_named() {
         100
     );
 }
-
 
 #[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]

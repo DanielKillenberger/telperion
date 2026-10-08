@@ -1,10 +1,10 @@
 //! Leaf placement: every station on every bearing run, as a transform.
 use super::{
     canopy::validate,
-    clumping,
-    plan::bearing_runs,
-    rosette, short_shoots,
-    station::{place_run, reserve_all, station_count, walk, Run},
+    clumping, cluster,
+    plan::{bearing_runs, walk},
+    rosette,
+    station::{place_run, reserve_all, station_count, Run},
     CanopyParams, Instances, Reference, TwigPlacement,
 };
 use crate::{
@@ -86,25 +86,24 @@ fn runs(tree: &Tree, p: CanopyParams, twig: Option<TwigPlacement>) -> Vec<Vec<us
     }
 }
 
-/// Leaves these runs and this family's short shoots place, before any cull.
+/// Leaves these runs and this family's clusters place, before any cull.
 fn leaves_on(
     tree: &Tree,
     envelope: Envelope,
-    seed: u32,
     p: CanopyParams,
     twig: Option<TwigPlacement>,
     runs: &[Vec<usize>],
 ) -> Result<usize> {
     let overflow = || Error::ResourceLimit("foliage count overflow");
-    let (mut points, mut along) = (Vec::new(), Vec::new());
+    let (mut points, mut chord, mut along) = (Vec::new(), Vec::new(), Vec::new());
     let leaflets = rosette::leaflets(&p);
     let mut total = if rosette::bearing(&p) {
         rosette::count(tree, &p)?
     } else {
-        short_shoots::count(tree, envelope, seed, &p)?
+        cluster::count(tree, &p)?
     };
     for nodes in runs {
-        let length = walk(tree, nodes, &mut points, &mut along);
+        let length = walk(tree, nodes, twig, &mut points, (&mut chord, &mut along));
         total = station_count(length, envelope, p, twig)?
             .checked_mul(leaflets)
             .and_then(|leaves| total.checked_add(leaves))
@@ -120,14 +119,13 @@ fn leaves_on(
 pub(crate) fn leaf_count(
     tree: &Tree,
     envelope: Envelope,
-    seed: u32,
     p: CanopyParams,
     twig: Option<TwigPlacement>,
 ) -> Result<usize> {
     if !bearing(tree, envelope, p, twig)? {
         return Ok(0);
     }
-    leaves_on(tree, envelope, seed, p, twig, &runs(tree, p, twig))
+    leaves_on(tree, envelope, p, twig, &runs(tree, p, twig))
 }
 
 /// Places on the contact surface given, swept or read from a built wood;
@@ -150,15 +148,15 @@ pub(crate) fn place_on(
     // every later reserve finds the room already there, so the vector's
     // capacity is that count and nothing the cull or the clumping retains
     // holds a block larger than the specimen was said to cost.
-    reserve_all(
-        &mut out,
-        leaves_on(tree, envelope, seed, p, twig, &runs)?,
-        p,
-    )?;
-    let mut rng = Rng::new(seed ^ 0x2c9e1a7f);
+    reserve_all(&mut out, leaves_on(tree, envelope, p, twig, &runs)?, p)?;
     // Which wood bears each leaf, kept only where limb systems clump.
     let mut owners = (p.limb_clumping > 0.).then(Vec::new);
+    let fine = tree.in_fine_roots();
     for nodes in runs {
+        // Each run draws from its own stream, keyed by its first node, so a
+        // leaf's draws never depend on the order the runs are walked in
+        // (fn-212, host decision 2026-10-07).
+        let mut rng = Rng::new(crate::tree::leaf_stream(seed, tree.key(nodes[1])));
         place_run(
             &Run {
                 tree,
@@ -167,6 +165,7 @@ pub(crate) fn place_on(
                 params: p,
                 twig,
                 contacts,
+                fine: &fine,
             },
             &mut rng,
             &mut out,
@@ -175,13 +174,13 @@ pub(crate) fn place_on(
             owners.resize(out.leaves.len(), nodes[1] as u32);
         }
     }
-    // The second source: a rosette at every stem apex where the rows state
-    // one, else short shoots over the limbs and branches. Either draws from
-    // its own wood's stream, so the leaves above keep every byte.
+    // The short shoots' clusters at their tips (fn-223), on their own
+    // streams.
+    cluster::clothe(tree, seed, p, &mut out, owners.as_mut())?;
+    // A rosette at every stem apex where the rows state one, on its own
+    // wood's stream, so the leaves above keep every byte.
     if rosette::bearing(&p) {
         rosette::clothe(tree, seed, &p, &mut out, owners.as_mut())?;
-    } else {
-        short_shoots::clothe(tree, envelope, seed, &p, &mut out, owners.as_mut())?;
     }
     if let Some(owners) = owners {
         clumping::thin(tree, &owners, seed, p, &mut out);

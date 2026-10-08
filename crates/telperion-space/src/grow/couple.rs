@@ -16,7 +16,6 @@ use super::{Apex, Grower};
 use crate::closed_form::boundary::Rows;
 use crate::couple::{Aggregate, Inputs, Records};
 use crate::dormant::Sleeper;
-use crate::fixed::sum::Sum;
 use crate::presence::Draws;
 use crate::structure::{Axis, Origin, Vec3};
 pub(crate) use stand::Probe;
@@ -190,7 +189,7 @@ impl Grower<'_> {
 
     /// Each living fine root's light, upkeep and whether it lives, for
     /// the balance: `(axis, light, cost, living)`.
-    pub(super) fn fine_balance(&self, sketch: &Sketch) -> Vec<(usize, f64, f64, bool)> {
+    pub(super) fn fine_balance(&self, sketch: &Sketch) -> Vec<(usize, i64, i64, bool)> {
         let Some(pass) = self.couple.as_ref() else {
             return Vec::new();
         };
@@ -199,7 +198,13 @@ impl Grower<'_> {
                 let living = f.agg.living();
                 let upkeep = self.species.states[f.pa].upkeep;
                 let light = f.scale * living * sketch.pencils[f.axis].light;
-                (f.axis, light, upkeep * f.scale * f.agg.wood, living > 0.0)
+                let q = crate::fixed::q32;
+                (
+                    f.axis,
+                    q(light),
+                    q(upkeep * f.scale * f.agg.wood),
+                    living > 0.0,
+                )
             })
             .collect()
     }
@@ -244,16 +249,12 @@ impl Grower<'_> {
         cycle: u32,
         got: &[f64],
         (presence, psi, pa): (&[f64], &[f64], &[usize]),
-    ) -> Vec<[f64; 2]> {
+    ) -> Vec<[i128; 2]> {
         let species = self.species;
         let pas = species.states.len();
-        let mut acc = vec![[Sum::default(); 2]; pas];
-        for i in (0..got.len()).filter(|&i| presence[i] > 0.0) {
-            acc[pa[i]][0].add(presence[i]);
-            acc[pa[i]][1].add((got[i] / presence[i]).powf_fixed(psi[i]) * presence[i]);
-        }
-        let value = |acc: &[[Sum; 2]]| -> Vec<[f64; 2]> {
-            acc.iter().map(|[t, w]| [t.value(), w.value()]).collect()
+        let mut acc = crate::allocation::size_sums(got, presence, psi, pa, pas);
+        let value = |acc: &[[crate::fixed::feedback::total::Total; 2]]| -> Vec<[i128; 2]> {
+            acc.iter().map(crate::allocation::factors).collect()
         };
         let (Some(pass), Some(sketch)) = (self.couple.as_mut(), self.sketch.as_ref()) else {
             return value(&acc);
@@ -275,14 +276,21 @@ impl Grower<'_> {
             by_pa.iter_mut().for_each(|x| *x = 0.0);
             f.agg.living_by_pa(f.scale * p.kept, &mut by_pa);
             for (g, &pg) in by_pa.iter().enumerate().filter(|(_, &pg)| pg > 0.0) {
-                acc[g][0].add(pg);
-                acc[g][1].add(f.ratio.powf_fixed(species.states[g].shade_size) * pg);
+                let (q, one) = (crate::fixed::q32, crate::fixed::ONE32);
+                let p = q(pg);
+                let d = crate::allocation::drawn(q(f.ratio), one, q(species.states[g].shade_size));
+                acc[g][0].add(i128::from(p) << 32);
+                acc[g][1].add(i128::from(d) * i128::from(p));
             }
         }
         let sums = value(&acc);
-        let means = sums
-            .iter()
-            .map(|&[t, w]| if t > 0.0 && w > 0.0 { w / t } else { 1.0 });
+        let means = sums.iter().map(|&[t, w]| {
+            if t > 0 && w > 0 {
+                w as f64 / t as f64
+            } else {
+                1.0
+            }
+        });
         let means: Vec<f64> = means.collect();
         if pass.means.len() <= cycle as usize {
             pass.means.resize(cycle as usize + 1, vec![1.0; pas]);

@@ -24,29 +24,35 @@
 //! fn-211's stepped executor.
 mod canonical;
 mod cases;
+mod exchange;
 mod expansion;
 mod geometry;
 mod landing;
+mod lay;
+mod likely;
 mod realized;
+mod spare;
+mod step;
 mod surface;
 mod survey;
 mod tables;
 #[cfg(test)]
 mod tests;
 
-use crate::closed_form::predictor::Predictor;
-use crate::error::{refuse, Error, Result};
-use crate::grow::alone::rules;
-use crate::grow::{keeps, Request};
+use crate::error::{Error, Result};
+use crate::grow::Request;
 use crate::species::Species;
 use crate::structure::Structure;
-pub use canonical::{canonical, digest, identities, lineage_order};
+pub use canonical::{canonical, digest, identities, lineage_order, lineage_order_marked};
 pub use cases::{landed, realized_cases, root_axes, Presences, RealizedCase, RootAxes};
 pub use expansion::{settle, Lived, Loaded, RootSeed, Roots, Settled};
+pub(crate) use expansion::{settle_grown, Above, Stages};
 pub use geometry::{
     bearer_frame, BearerFrame, GeometryTables, PaGeometry, RootGeometry, ZoneGeometry,
 };
-use realized::{Cpu, Root};
+pub(crate) use realized::{Cpu, Made, Root};
+pub(crate) use step::now;
+pub use step::{ready, Step};
 pub use surface::{chain_cases, ChainAxis, ChainBud, ChainTables, PaRow, Woke};
 pub use survey::{survey_laid, survey_lit, Surveyed};
 pub use tables::{UnitZone, Units};
@@ -116,6 +122,9 @@ pub struct Expanded {
 /// the seconds the cut's predictor took.
 pub struct Fine {
     pub structure: Structure,
+    /// Each live root's first axis's lineage and its base radius as phase
+    /// 2 handed it up (`Settled::radii`), by lineage.
+    pub bases: Vec<(u64, f64)>,
     pub above: usize,
     pub roots: Vec<Expanded>,
     pub starts: Vec<usize>,
@@ -131,47 +140,22 @@ impl Fine {
     }
 }
 
-/// Grows `species` above `plan`'s cut on the CPU, expands every fine root
-/// from its bud alone on the CPU reference executor, and settles the two
-/// together: today's whole-tree engine's tree. Refuses a species any bud
-/// of which reads light (fn-211), or whose girth reads the tree as grown.
-pub fn grow_fine(species: &Species, request: Request, plan: Plan) -> Result<Fine> {
-    if keeps(species) {
-        return refuse(
-            "retained",
-            "a fine root's shed pipes and leaf girth are fn-211's stepped executor's",
-        );
-    }
-    let rules = rules(species, request.age, request.budget)?;
-    request.light.validate()?;
-    let started = crate::clock::seconds();
-    let predictor = Predictor::new(species, &rules.windows, request.age);
-    let predict = crate::clock::seconds() - started;
-    let threads = match plan.threads {
-        0 => crate::cores::available(),
-        n => n,
-    };
-    let mut cpu = Cpu {
-        species,
-        rules: &rules,
-        plan,
-        threads,
-        roots: Vec::new(),
-    };
-    let (settled, _) = expansion::settle_with(
-        species,
-        (request, &predictor, &rules),
-        plan,
-        &mut cpu,
-        false,
-    )?;
-    let fine = assemble(settled, cpu.roots, &predictor)?;
-    Ok(Fine { predict, ..fine })
+/// The build (`grow`, the stepped executor) at `plan`'s cut, order,
+/// chunking and cores, reported root by root: the CPU reference the GPU
+/// executor's tests hold its roots to (fn-211 task 12). The tree is in
+/// the order the build assembles it, not canonical.
+pub fn grow_roots(species: &Species, request: Request, plan: Plan) -> Result<Fine> {
+    crate::grow::stepped::build(species, request, plan)
 }
 
 /// The tree whole: each kept root's first axis where its stand-in stood,
 /// its others after the structure above the cut, in the roots' order.
-fn assemble(settled: Settled, roots: Vec<Root>, predictor: &Predictor) -> Result<Fine> {
+pub(crate) fn assemble(
+    settled: Settled,
+    roots: Vec<Root>,
+    predicted: &dyn Fn(usize, u32) -> f64,
+) -> Result<Fine> {
+    let bases = bases(&settled);
     let Settled {
         structure: mut tree,
         at,
@@ -193,9 +177,7 @@ fn assemble(settled: Settled, roots: Vec<Root>, predictor: &Predictor) -> Result
     for (k, root) in roots.into_iter().enumerate() {
         let report = |kept| Expanded {
             at: at[k],
-            predicted: predictor
-                .count(root.pa, root.birth)
-                .expect("a root's PA is drawn by a zone"),
+            predicted: predicted(root.pa, root.birth),
             kept,
             woken: root.woken,
             work: root.work,
@@ -223,6 +205,7 @@ fn assemble(settled: Settled, roots: Vec<Root>, predictor: &Predictor) -> Result
     }
     Ok(Fine {
         structure: tree,
+        bases,
         above,
         roots: out,
         starts,
@@ -232,6 +215,72 @@ fn assemble(settled: Settled, roots: Vec<Root>, predictor: &Predictor) -> Result
     })
 }
 
+/// A settled tree as the CPU converts it where another executor holds
+/// its fine roots (fn-212 task 7, host decision 1): the structure above
+/// the cut with each root laid on the CPU (D3(c)) assembled where it
+/// stands, as `assemble` does, and each other live root's first axis left
+/// where its stand-in stood with no phytomers, so the conversion records
+/// its attachment and draws none of its wood; marked as `grow_marked`
+/// marks, in the canonical order. Also each root's first axis's lineage
+/// (none: shed), and the roots laid on the CPU.
+pub struct Partial {
+    pub structure: Structure,
+    pub fine: Vec<bool>,
+    pub bases: Vec<(u64, f64)>,
+    pub lineages: Vec<Option<u64>>,
+    pub grounded: Vec<usize>,
+}
+
+/// Each live root's first axis's lineage and its base radius as phase 2
+/// handed it up, by lineage: what the conversion reads a seam's
+/// codominance from on every path (fn-212 task 7, host option 3).
+fn bases(settled: &Settled) -> Vec<(u64, f64)> {
+    let axes = &settled.structure.axes;
+    let mut out: Vec<(u64, f64)> = (settled.live.iter().zip(&settled.radii))
+        .map(|(&k, &r)| (axes[settled.at[k].expect("live")].lineage, r))
+        .collect();
+    out.sort_by_key(|b| b.0);
+    out
+}
+
+/// `settled` as the CPU converts it beside an executor holding its other
+/// fine roots (`Partial`).
+pub fn partial(settled: Settled) -> Partial {
+    let bases = bases(&settled);
+    let Settled {
+        structure: mut tree,
+        at,
+        live,
+        bearers,
+        grounded,
+        landed,
+        ..
+    } = settled;
+    let lineages = (at.iter())
+        .map(|a| a.map(|i| tree.axes[i].lineage))
+        .collect();
+    let mut fine = vec![false; tree.axes.len()];
+    for i in live.iter().map(|&k| at[k].expect("live")) {
+        fine[i] = true;
+        tree.axes[i].phytomers.clear();
+    }
+    for (j, root) in landed {
+        let (i, offset) = (at[live[j]].expect("live"), tree.axes.len());
+        let mut axes = root.into_axes(bearers[j], (i, offset)).into_iter();
+        tree.axes[i] = axes.next().expect("a kept root's first axis");
+        tree.axes.extend(axes);
+    }
+    fine.resize(tree.axes.len(), true);
+    let (structure, fine) = lineage_order_marked(tree, fine);
+    Partial {
+        structure,
+        fine,
+        bases,
+        lineages,
+        grounded,
+    }
+}
+
 /// The seconds each phase of the expansion took.
 #[derive(Default)]
 pub(crate) struct Clock {
@@ -239,9 +288,18 @@ pub(crate) struct Clock {
 }
 
 impl Clock {
+    #[cfg(not(target_family = "wasm"))]
     pub fn time<T>(&mut self, work: impl FnOnce() -> T) -> T {
         let started = crate::clock::seconds();
         let out = work();
+        self.phases.push(crate::clock::seconds() - started);
+        out
+    }
+
+    /// An executor's step, awaited and timed as a phase.
+    pub async fn timed<T>(&mut self, step: impl std::future::Future<Output = T>) -> T {
+        let started = crate::clock::seconds();
+        let out = step.await;
         self.phases.push(crate::clock::seconds() - started);
         out
     }

@@ -7,7 +7,7 @@
 use super::along::{Along, Count};
 use super::events::Event;
 use crate::dormant::{First, Living};
-use crate::schedule::Carried;
+use crate::schedule::{lived, Carried, LIVED, LIVED_FLOOR};
 use crate::species::{Species, ALONG};
 use crate::transcendental::Transcendental;
 
@@ -32,12 +32,55 @@ pub(super) struct End {
     pub both: f64,
 }
 
+/// A failed unit's lived part at one quadrature point, where its relay
+/// takes it over (fn-199 R1): its unconditional chance, the share of a
+/// whole unit's length it grew, its zones' sleeping buds, and its relay,
+/// standing on it.
+pub(super) struct Lived {
+    pub weight: f64,
+    pub size: f64,
+    pub sleeping: Vec<Vec<Event>>,
+    pub relay: Relay,
+}
+
+/// A unit as a part grows it: its index, the share of a whole unit's
+/// length its phytomers grow at, its chance, and its zones' sleeping
+/// buds; the unit itself or a failed unit's lived part.
+#[derive(Clone, Copy)]
+pub(super) struct Grown<'s> {
+    pub i: usize,
+    pub size: f64,
+    pub grown: f64,
+    pub sleeping: &'s [Vec<Event>],
+}
+
+impl Step {
+    /// The unit as it grows whole.
+    pub fn whole(&self) -> Grown<'_> {
+        Grown {
+            i: self.i,
+            size: self.size,
+            grown: self.grown,
+            sleeping: &self.sleeping,
+        }
+    }
+
+    /// Its lived part `l` (fn-199 R1).
+    pub fn part<'s>(&self, l: &'s Lived) -> Grown<'s> {
+        Grown {
+            i: self.i,
+            size: l.size,
+            grown: l.weight,
+            sleeping: &l.sleeping,
+        }
+    }
+}
+
 /// One growth unit of the bud's own axis.
 pub(super) struct Step {
     pub i: usize,
-    /// The chances the axis reaches the unit, grows it, and carries on
-    /// past it (none where its age ends with it).
-    pub before: f64,
+    /// The chances the axis grows the unit and carries on past it (none
+    /// where its age ends with it).
     pub grown: f64,
     pub after: f64,
     /// The share of a whole unit's length its phytomers grow at.
@@ -45,7 +88,11 @@ pub(super) struct Step {
     /// Where it starts along the axis and how long it is.
     pub start: Along,
     pub length: Along,
-    pub failed: Option<Relay>,
+    /// Its failure: the chance it fails with no relay, which ends the
+    /// axis at the unit before, and its lived parts where a relay takes
+    /// it over (fn-199 R1).
+    pub failed: f64,
+    pub lived: Vec<Lived>,
     /// Each zone's sleeping buds that wake, as events, by zone index.
     pub sleeping: Vec<Vec<Event>>,
     pub aborted: Option<Relay>,
@@ -105,6 +152,7 @@ pub(super) fn rest(carried: Carried, lifespan: f64) -> Carried {
         aged: carried.aged + spent - carried.spent,
         gone: 0.0,
         relay: false,
+        rest: false,
     }
 }
 
@@ -129,6 +177,7 @@ fn steps_to(
                 aged: carried.aged + spent - carried.spent,
                 gone,
                 relay: ended,
+                rest: false,
             },
             weight,
             on,
@@ -145,12 +194,21 @@ fn steps_to(
         let partial = first.filter(|_| i == 1);
         let before = survival;
         let survive = partial.map_or(shared(state.viability, unit.share), |f| f.survive);
-        // A unit that failed is spent; its relay stands on the unit before.
-        let failed = relay(
-            (i, spent, 0.0, true),
-            survival * (1.0 - survive) * state.relay_failed,
-            i - 1,
-        );
+        // A unit that failed grows the share of its cycle its apex lived
+        // where a relay takes it over, and the relay the rest (fn-199 R1);
+        // otherwise the axis ends at the unit before.
+        let fails = survival * (1.0 - survive);
+        let failed = fails * (1.0 - state.relay_failed);
+        let mut relayed = fails * state.relay_failed / LIVED as f64;
+        let lived_at = lived(state.viability, unit.share);
+        let mut survive = survive;
+        // A sliver's failure, or the failure of a failed unit's relay's
+        // first unit (relays do not nest within a cycle, host decision
+        // A3), carries on where it relays.
+        if unit.share < LIVED_FLOOR || (i == 1 && carried.rest) {
+            survive += (1.0 - survive) * state.relay_failed;
+            relayed = 0.0;
+        }
         survival *= survive;
         // The chance it then aborts, its hazard counting the time grown.
         let grown = carried.aged + spent - carried.spent;
@@ -185,16 +243,51 @@ fn steps_to(
             );
             sleeping.push(woken);
         }
+        let mut lived_parts = Vec::new();
+        for (j, &t) in lived_at.iter().enumerate() {
+            if relayed <= 0.0 || (j > 0 && t == lived_at[j - 1]) {
+                continue;
+            }
+            // Equal points share their parts' chances.
+            let same = lived_at[j..].iter().filter(|&&u| u == t).count() as f64;
+            let weight = relayed * same;
+            let size = if partial.is_some() { t / unit.share } else { t };
+            let internode = state.internode * size;
+            let mut sleeping = Vec::with_capacity(state.zones.len());
+            for (z, zone) in state.zones.iter().enumerate() {
+                let start = path.then(scaled(starts[z], internode));
+                let bearer = ((k, carried, m), i, 0.0);
+                let placed = (counts[z], start, internode);
+                let mut woken = Vec::new();
+                let nodes = (weight * zone.nodes.mean(), size);
+                super::events::sleeping(living, (zone, z), nodes, bearer, (m, placed), &mut woken);
+                sleeping.push(woken);
+            }
+            let (onward, same_cycle) = carried.failed(unit, t);
+            let at = if same_cycle { i - 1 } else { i };
+            let relay = Relay {
+                at,
+                carried: onward,
+                weight: weight * carried.lived_on(state, (i, unit), t),
+                on: i,
+            };
+            lived_parts.push(Lived {
+                weight,
+                size,
+                sleeping,
+                relay,
+            });
+        }
         let length = scaled(whole, internode);
         let mut step = Step {
             i,
-            before,
             grown: survival,
             after: survival,
             size,
             start: path,
             length,
             failed,
+            lived: lived_parts,
             sleeping,
             aborted: None,
             end: None,

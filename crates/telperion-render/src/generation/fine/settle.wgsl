@@ -6,12 +6,17 @@
 // levers from its first lay's frames (`bends`), the structure above the
 // cut settling between the phases. Each pass is the whole tree's own on
 // the chain's axes (`geometry::scale`, `girth::thicken_given`,
-// `geometry::place_from`, `sag::gather`), in f32. Part of the geometry
-// kernel's shader.
+// `geometry::place_from`, `sag::gather`), in f32 but the girth, which is
+// contract A's fixed point (`girth.wgsl`). Part of the geometry kernel's
+// shader.
 
 // A chain's record in `records`: its first axis's base radius, then its
 // load at its base (mass and first moment, positions the root's own).
 const CR: u32 = 5u;
+// A root's record, before the chains': its origins' heights, then its
+// first axis's vigour, Q32, as its seed hands it (task 9: a woken root's
+// as its bearer kept it, known once the structure above has grown).
+const RR: u32 = 4u;
 // The grower's Q32 fields (`assign.wgsl`, `fades.wgsl`).
 const QVIG: u32 = 48u;
 const FADE: u32 = 66u;
@@ -31,6 +36,7 @@ struct Chain {
     ground_b: f32,
     wi: u32,
     k0: u32,
+    root_vigour: f32,
 }
 
 fn begin(c: u32) -> Chain {
@@ -58,12 +64,19 @@ fn begin(c: u32) -> Chain {
         below_b = p3(bearer - PL);
     }
     let pa = bitcast<u32>(prev[rec + 6u]);
-    let ground = vec2<f32>(records[2u * root], records[2u * root + 1u]);
+    let ground = vec2<f32>(records[RR * root], records[RR * root + 1u]);
+    // A first wave's chain is its root's: its first axis's vigour comes
+    // down from its seed.
+    var root_vigour = -1.0;
+    if stub {
+        let made = vec2<u32>(bitcast<u32>(records[RR * root + 2u]), bitcast<u32>(records[RR * root + 3u]));
+        root_vigour = qf(made.x, made.y);
+    }
     status = 0u;
     if na > 0u {
         status = scratch[sp + np * SP];
     }
-    return Chain(na, np, bearer, below_u, below_b, pa, ground.x, ground.y, items[it + 10u], items[it + 11u]);
+    return Chain(na, np, bearer, below_u, below_b, pa, ground.x, ground.y, items[it + 10u], items[it + 11u], root_vigour);
 }
 
 fn finish(ch: Chain) {
@@ -84,9 +97,15 @@ fn vigour_of(i: u32) -> f32 {
     return qf(ax(i, QVIG), ax(i, QVIG + 1u)) * qf(ax(i, FADE), ax(i, FADE + 1u));
 }
 
+// A root's first axis's vigour as shed sizes it: its seed's times its
+// fade.
+fn root_vigour_of(made: f32) -> f32 {
+    return made * qf(ax(1u, FADE), ax(1u, FADE + 1u));
+}
+
 // Each own axis's base scale, from its bearer's (`geometry::scale`), and
 // its phytomers' scales and ranks.
-fn scale_realized(na: u32, bearer: u32) {
+fn scale_realized(na: u32, bearer: u32, root_vigour: f32) {
     for (var i = 1u; i < na; i++) {
         if s(i, S_OWN) == NONE {
             continue;
@@ -94,7 +113,11 @@ fn scale_realized(na: u32, bearer: u32) {
         var base = 0.0;
         if i == 1u {
             let f = pa_of(ax(i, PA));
-            base = prev[bearer + 19u] * vigour_of(i) * dominance(f.dominance, lineage_of(i));
+            var vigour = vigour_of(1u);
+            if root_vigour >= 0.0 {
+                vigour = root_vigour_of(root_vigour);
+            }
+            base = prev[bearer + 19u] * vigour * dominance(f.dominance, lineage_of(i));
         } else {
             base = sf(ax(i, PARENT), S_SCALE) * vigour_of(i);
         }
@@ -119,6 +142,11 @@ fn scale_realized(na: u32, bearer: u32) {
             let p = ax(j, PARENT);
             ssf(p, S_REACH, sf(p, S_REACH) + (1.0 - axf(j, BLEND)) * sf(j, S_REACH));
         }
+        // A continuation is a relay at blend 0 (fn-199).
+        if s(j, S_OWN) != NONE && kind_of(j) == CONTINUED {
+            let p = ax(j, PARENT);
+            ssf(p, S_REACH, sf(p, S_REACH) + sf(j, S_REACH));
+        }
     }
 }
 
@@ -134,63 +162,11 @@ fn borne_at(j: u32, node: u32, fp: u32, fa: u32, v: f32) {
     }
 }
 
-// The chain's radii by the pipe model over its own phytomers and its
-// borne buds' base radii from their chains in the next wave
-// (`girth::thicken_given`); its first axis's base radius into its record.
-fn girth_realized(ch: Chain) {
-    for (var i = 0u; i < ch.na; i++) {
-        ssf(i, S_TIP, 0.0);
-    }
-    for (var p = 0u; p < ch.np; p++) {
-        spf(p, P_NODE, 0.0);
-    }
-    var k = ch.k0;
-    for (var r = 2u; r < ch.na; r++) {
-        if kind_of(r) != LATERAL {
-            continue;
-        }
-        let radius = records[cfg.prior + CR * k];
-        k += 1u;
-        let j = ax(r, PARENT);
-        if s(j, S_OWN) == NONE || radius <= 0.0 {
-            continue;
-        }
-        borne_at(j, ax(r, NODE), P_NODE, S_TIP, pow(radius, pa_of(ax(j, PA)).exponent));
-    }
-    let age = f32(cfg.age);
-    for (var i = ch.na; i > 1u; i--) {
-        let j = i - 1u;
-        if s(j, S_OWN) == NONE {
-            continue;
-        }
-        let f = pa_of(ax(j, PA));
-        var section = sf(j, S_TIP);
-        for (var n = s(j, S_COUNT); n > 0u; n--) {
-            let at = lo(j, n - 1u);
-            let p = at_k(j, n - 1u);
-            let scale = out[at + 19u];
-            let years = age - min(f32(ph(p, 2u)), age) + 1.0;
-            let own = f.pipe * scale * ripe(years, f.ripening);
-            section += pow(own, f.exponent) + pf(s(j, S_START) + n - 1u, P_NODE);
-            let established = f.pipe * scale * ripe(1.0, f.ripening);
-            out[at + 18u] = f.secondary * pow(section, 1.0 / f.exponent) + (1.0 - f.secondary) * established;
-        }
-        let radius = pow(section, 1.0 / f.exponent);
-        if j == 1u {
-            records[cfg.mine + CR * ch.wi] = radius;
-            continue;
-        }
-        let p = ax(j, PARENT);
-        let carried = pow(radius, pa_of(ax(p, PA)).exponent);
-        let node = ax(j, NODE);
-        if kind_of(j) == RELAYED && node < s(p, S_COUNT) {
-            let b = axf(j, BLEND);
-            let q = s(p, S_START) + node;
-            spf(q, P_NODE, pf(q, P_NODE) + carried * b);
-            ssf(p, S_TIP, sf(p, S_TIP) + carried * (1.0 - b));
-        } else {
-            ssf(p, S_TIP, sf(p, S_TIP) + carried);
-        }
+// Adds `share` of a load (`mass`, `moment`) at region phytomer `q`.
+fn load_at(q: u32, mass: f32, moment: vec3<f32>, share: f32) {
+    spf(q, P_LOAD, pf(q, P_LOAD) + mass * share);
+    for (var c = 0u; c < 3u; c++) {
+        spf(q, P_LOAD + 1u + c, pf(q, P_LOAD + 1u + c) + moment[c] * share);
     }
 }
 
@@ -201,6 +177,7 @@ fn levers_realized(ch: Chain) {
     for (var i = 0u; i < ch.na; i++) {
         for (var f = 0u; f < 4u; f++) {
             ssf(i, S_LOAD + f, 0.0);
+            ssf(i, S_BASE + f, 0.0);
         }
     }
     for (var p = 0u; p < ch.np; p++) {
@@ -262,7 +239,7 @@ fn levers_realized(ch: Chain) {
             let len = length(tip - base);
             let p = at_k(j, m - 1u);
             let years = age - min(f32(ph(p, 2u)), age) + 1.0;
-            let leaves = f.pipe * out[at + 19u] * ripe(years, f.ripening);
+            let leaves = f.pipe * out[at + 19u] * ripe_f(years, f.ripening);
             let radius = out[at + 18u];
             let own = len * (radius * radius + leaves * leaves);
             let q = s(j, S_START) + m - 1u;
@@ -280,6 +257,8 @@ fn levers_realized(ch: Chain) {
             mass *= held_share;
             moment *= held_share;
         }
+        mass += sf(j, S_BASE);
+        moment += s3(j, S_BASE + 1u);
         if j == 1u {
             let at = cfg.mine + CR * ch.wi;
             records[at + 1u] = mass;
@@ -295,10 +274,16 @@ fn levers_realized(ch: Chain) {
             w_node = axf(j, BLEND);
         }
         if w_node > 0.0 {
+            // Spread over the span it stands in (`girth::relay_shares`).
+            let t = relay_span(p, pa_of(ax(p, PA)).relay_at, node);
             let q = s(p, S_START) + node;
-            spf(q, P_LOAD, pf(q, P_LOAD) + mass * w_node);
-            for (var c = 0u; c < 3u; c++) {
-                spf(q, P_LOAD + 1u + c, pf(q, P_LOAD + 1u + c) + moment[c] * w_node);
+            load_at(q, mass, moment, w_node * t);
+            if node > 0u {
+                load_at(q - 1u, mass, moment, w_node * (1.0 - t));
+            } else {
+                let w = w_node * (1.0 - t);
+                ssf(p, S_BASE, sf(p, S_BASE) + mass * w);
+                ss3(p, S_BASE + 1u, s3(p, S_BASE + 1u) + moment * w);
             }
         }
         ssf(p, S_LOAD, sf(p, S_LOAD) + mass * (1.0 - w_node));
@@ -317,7 +302,7 @@ fn scales(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     own_axes(ch.na, ch.np);
-    scale_realized(ch.na, ch.bearer);
+    scale_realized(ch.na, ch.bearer, ch.root_vigour);
 }
 
 @compute @workgroup_size(64)
@@ -327,7 +312,9 @@ fn girths(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     let ch = begin(c);
-    records[cfg.mine + CR * ch.wi] = 0.0;
+    for (var f = 0u; f < 3u; f++) {
+        records[cfg.mine + CR * ch.wi + f] = 0.0;
+    }
     if ch.na == 0u {
         return;
     }

@@ -67,17 +67,37 @@ const SWEEP_NODES: usize = 8_000;
 // fn-120's three skirt rows and its dead colour are the palm's too, held for
 // the same reason, and so are fn-144's two lattice rows.
 // fn-198 walks no pair of one preset with an engine species and one without
-// (the walk is refused), and the engine beech and oak no longer seat short
-// shoots or clump their limbs: the short shoots' spacing, the limb clumping
-// and the shell depth moved only between such pairs, so they are held.
-const HELD: [&str; 75] = [
+// (the walk is refused), and the engine beech and oak no longer clump their
+// limbs: the limb clumping moved only between such pairs, so it is held. The shell depth
+// moves again between the ordinary tree and the beech (fn-215). With the
+// birch and the ordinary tree both engine presets, every engine preset leaves
+// the age and the supernatural switch at one value, so they are held.
+const HELD: [&str; 94] = [
     "/age",
-    "/skeleton/habit/attractorWeight",
-    "/skeleton/habit/sheddingThreshold",
+    "/bloom/florets",
+    "/bloom/rachis",
+    "/bloom/droop",
+    "/bloom/pedicel",
+    "/bloom/spread",
+    "/bloom/taper",
+    "/bloom/petals",
+    "/bloom/open",
+    "/bloom/petalLength",
+    "/bloom/petalWidth",
+    "/bloom/petalWidest",
+    "/bloom/petalCup",
+    "/bloom/scatter",
+    "/bloom/opens",
+    "/bloom/lasts",
+    "/bloom/stagger",
+    "/material/bloomFrontRed",
+    "/material/bloomFrontGreen",
+    "/material/bloomFrontBlue",
+    "/material/bloomBackRed",
+    "/material/bloomBackGreen",
+    "/material/bloomBackBlue",
     "/canopy/clumpSystemOrder",
     "/canopy/limbClumping",
-    "/canopy/shortShootSpacing",
-    "/shellDepth",
     "/canopy/rosetteFronds",
     "/canopy/rosetteDivergence",
     "/canopy/rosettePitch",
@@ -117,6 +137,7 @@ const HELD: [&str; 75] = [
     "/radii/girthFall",
     "/skeleton/samplingAttemptsPerAttractor",
     "/radii/maxTaperExponent",
+    "/skeleton/bias/supernatural/enabled",
     "/skeleton/bias/supernatural/maxWritheMagnitude",
     "/skeleton/twigs/maxInternodes",
     "/skeleton/twigs/maxDroop",

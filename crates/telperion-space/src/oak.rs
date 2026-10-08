@@ -85,6 +85,9 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         // to 200 years old (Visakorpi et al. 2020, PLoS ONE 15: e0228157,
         // Table 1).
         leaf_area: 0.00181,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
         // Light as the oak's own values (fn-195 round 5, on fn-197's
         // engine; host decision 29): shade raises its shoots' death hazard
         // and shares its growth by light within each order (Borchert-Honda,

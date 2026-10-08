@@ -14,8 +14,6 @@ pub(super) struct Config {
     shape: [f32; 4],
     lean: [f32; 4],
     size: [f32; 4],
-    envelope: [f32; 4],
-    curve: [f32; 4],
 }
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
@@ -32,23 +30,20 @@ pub(super) struct Segment {
 pub(super) fn vector(p: Vec3, w: f64) -> [f32; 4] {
     [p.x as f32, p.y as f32, p.z as f32, w as f32]
 }
-pub(super) fn config<R>(
+/// The placement's rows for `count` stations on `segments` segments, their
+/// contacts on rings of `ring_size` vertices; the leaves written from the
+/// leaf buffer's start (`at` places them further on).
+pub(super) fn config(
     l: &LeafInput,
     t: TwigPlacement,
-    p: &PreparedStations<R>,
+    (count, segments, ring_size): (u32, u32, u32),
     e: &Element,
     r: Reference,
 ) -> Config {
     let c = l.canopy;
-    let env = l.envelope;
     Config {
-        counts: [
-            p.count,
-            p.segments.len() as u32,
-            e.positions.len() as u32,
-            p.ring_size,
-        ],
-        random: [l.seed, t.stations_per_internode, p.count.div_ceil(256), 129],
+        counts: [count, segments, e.positions.len() as u32, ring_size],
+        random: [l.seed, t.stations_per_internode, count.div_ceil(256), 0],
         box_min: vector(r.min, 0.0),
         box_extent: vector(r.extent, 0.0),
         shape: [
@@ -63,19 +58,15 @@ pub(super) fn config<R>(
             c.outward as f32,
             c.upward as f32,
         ],
-        size: [
-            c.size as f32,
-            c.size_variation as f32,
-            (l.shell_depth * env.max_radius()) as f32,
-            0.0,
-        ],
-        envelope: [
-            env.height as f32,
-            env.crown_base as f32,
-            env.max_radius() as f32,
-            env.fullness as f32,
-        ],
-        curve: [env.shoulder as f32, 0.0, 0.0, 0.0],
+        size: [c.size as f32, c.size_variation as f32, 0.0, 0.0],
+    }
+}
+impl Config {
+    /// These rows with the leaves written from leaf `first` on: a block
+    /// placed into a leaf buffer after another's (fn-212 task 7).
+    pub(super) fn at(mut self, first: u32) -> Self {
+        self.random[3] = first;
+        self
     }
 }
 pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
@@ -87,13 +78,18 @@ pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
             tangent: vector(s.frame[0], 0.0),
             normal: vector(s.frame[1], 0.0),
             binormal: vector(s.frame[2], 0.0),
-            distance: [
-                s.along as f32,
-                s.span as f32,
-                s.phase[0] as f32,
-                s.phase[1] as f32,
-            ],
-            range: [s.first, s.count, s.run_station, 0],
+            // A cluster (fn-223) is marked by a negative span, its spread
+            // where a run's phase stands.
+            distance: match s.cluster {
+                Some(spread) => [0.0, -1.0, spread as f32, 0.0],
+                None => [
+                    s.along as f32,
+                    s.span as f32,
+                    s.phase[0] as f32,
+                    s.phase[1] as f32,
+                ],
+            },
+            range: [s.first, s.count, s.run_station, s.key],
             edge: s.contact.unwrap_or([0; 4]),
         })
         .collect()

@@ -24,7 +24,8 @@
 use super::Bounded;
 use crate::closed_form::boundary::Row;
 use crate::closed_form::kept::section::delta;
-use crate::girth::ripe;
+use crate::geometry::relay_span;
+use crate::girth::{relay_shares, ripe, Entry};
 use crate::grow::Record;
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
@@ -105,6 +106,7 @@ impl Bounded<'_> {
             || -> Vec<Vec<f64>> { axes.iter().map(|a| vec![0.0; a.phytomers.len()]).collect() };
         let mut at_node = blank();
         let mut at_tip = vec![0.0; axes.len()];
+        let mut at_base = vec![0.0; axes.len()];
         for &r in &self.chains[c].borne {
             let record = &self.records[r];
             let Origin::Lateral { parent, node, .. } = record.origin else {
@@ -125,13 +127,13 @@ impl Bounded<'_> {
                 self.leaf_mean,
                 carried,
                 &mut radii[j],
-            );
+            ) + at_base[j];
             hand_on(
                 species,
                 axes,
                 (j, first),
                 section,
-                (&mut at_node, &mut at_tip),
+                (&mut at_node, &mut at_tip, &mut at_base),
             );
         }
         fit(&mut radii[first..], self.committed(c));
@@ -169,7 +171,7 @@ fn hand_on(
     axes: &[Axis],
     (j, first): (usize, usize),
     section: f64,
-    (at_node, at_tip): (&mut [Vec<f64>], &mut [f64]),
+    (at_node, at_tip, at_base): (&mut [Vec<f64>], &mut [f64], &mut [f64]),
 ) {
     if j == first {
         return;
@@ -179,13 +181,16 @@ fn hand_on(
     match axes[j].origin {
         Origin::Relay { parent, node } => {
             let section = carried(parent);
-            let b = axes[j].blend;
-            match at_node[parent].get_mut(node) {
-                Some(at) => {
-                    *at += section * b;
-                    at_tip[parent] += section * (1.0 - b);
+            let relay_at = species.states[axes[parent].pa].relay_at;
+            let t = relay_span(&axes[parent], relay_at, node) as f64 / crate::fixed::ONE32 as f64;
+            for (at, share) in relay_shares(node, t, axes[j].blend) {
+                match at {
+                    Entry::Node(k) if k < at_node[parent].len() => {
+                        at_node[parent][k] += section * share
+                    }
+                    Entry::Base => at_base[parent] += section * share,
+                    _ => at_tip[parent] += section * share,
                 }
-                None => at_tip[parent] += section,
             }
         }
         Origin::Continuation { parent } => at_tip[parent] += carried(parent),

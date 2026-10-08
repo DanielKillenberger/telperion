@@ -86,20 +86,6 @@
 /element/axialSegments = 8
 /shellDepth = 1.0
 
-# Most of a beech's leaves stand in clusters all along its limbs and
-# deep inside the crown, on any wood under 0.7 of the trunk's radius,
-# which twig wood alone left bare. A cluster of eight leaves fanned a
-# half circle every 3 cm, held 20 cm off the wood: longer than a spur,
-# it stands where a leafy side shoot holds its leaves, so each limb
-# wears a sleeve of rosettes. Five leaves every 2.5 cm, 5 cm off, lined
-# every shoot with a comb of level leaves, and the crown's edge read as
-# fern fronds against the sky (host, round 17). They stand where the
-# slender wood's own row of leaves stood, so that row is off.
-/canopy/shortShootRadius = 0.7
-/canopy/shortShootLength = 0.2
-/canopy/shortShootLeaves = 8
-/canopy/shortShootSpread = 90.0
-
 # Each limb system keeps a leaf mass of its own (fn-54): the leaves are
 # thinned within a quarter of the way from the wall between two
 # systems to their centres, so the crown breaks into rounded clumps

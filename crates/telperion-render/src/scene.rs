@@ -115,11 +115,17 @@ pub struct Scene {
     leaf_reference: telperion_core::foliage::Reference,
     layout: wgpu::BindGroupLayout,
     bind_group: wgpu::BindGroup,
-    uniforms: wgpu::Buffer,
+    uniforms: crate::buffer::Owned,
+    /// The flowers' own block (fn-216): the frame's, with the petals'
+    /// colours and the box their florets were quantised against. None
+    /// while no tree that flowers is up.
+    organ_reference: Option<telperion_core::foliage::Reference>,
+    organ_bind_group: wgpu::BindGroup,
+    organ_uniforms: crate::buffer::Owned,
     pipeline: wgpu::RenderPipeline,
     sky: wgpu::RenderPipeline,
-    vertices: wgpu::Buffer,
-    indices: wgpu::Buffer,
+    vertices: crate::buffer::Owned,
+    indices: crate::buffer::Owned,
     index_count: u32,
     /// The indices that are the floor alone; the figure follows them.
     floor_index_count: u32,
@@ -137,26 +143,33 @@ impl Scene {
         indices.extend(figure_indices(vertices.len() as u32));
         vertices.extend(figure(Vec3::ZERO, figure_colour));
 
-        let vertex_buffer = gpu
-            .device
-            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("scene vertices"),
-                contents: bytemuck::cast_slice(&vertices),
-                usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-            });
-        let index_buffer = gpu
-            .device
-            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("scene indices"),
-                contents: bytemuck::cast_slice(&indices),
-                usage: wgpu::BufferUsages::INDEX,
-            });
-        let uniforms = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("scene uniforms"),
-            size: size_of::<Uniforms>() as u64,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
+        let vertex_buffer = crate::buffer::Owned::new(
+            gpu,
+            gpu.device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("scene vertices"),
+                    contents: bytemuck::cast_slice(&vertices),
+                    usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                }),
+        );
+        let index_buffer = crate::buffer::Owned::new(
+            gpu,
+            gpu.device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("scene indices"),
+                    contents: bytemuck::cast_slice(&indices),
+                    usage: wgpu::BufferUsages::INDEX,
+                }),
+        );
+        let uniforms = crate::buffer::Owned::create(
+            gpu,
+            &wgpu::BufferDescriptor {
+                label: Some("scene uniforms"),
+                size: size_of::<Uniforms>() as u64,
+                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            },
+        );
         let layout = gpu
             .device
             .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -178,6 +191,23 @@ impl Scene {
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
                 resource: uniforms.as_entire_binding(),
+            }],
+        });
+        let organ_uniforms = crate::buffer::Owned::create(
+            gpu,
+            &wgpu::BufferDescriptor {
+                label: Some("organ uniforms"),
+                size: size_of::<Uniforms>() as u64,
+                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            },
+        );
+        let organ_bind_group = gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("organ"),
+            layout: &layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: organ_uniforms.as_entire_binding(),
             }],
         });
 
@@ -219,6 +249,9 @@ impl Scene {
             layout,
             bind_group,
             uniforms,
+            organ_reference: None,
+            organ_bind_group,
+            organ_uniforms,
             pipeline,
             sky,
             vertices: vertex_buffer,
@@ -260,6 +293,17 @@ impl Scene {
     /// that reads a placement decodes positions with.
     pub fn set_leaf_reference(&mut self, reference: telperion_core::foliage::Reference) {
         self.leaf_reference = reference;
+    }
+
+    /// The box the flowers that are up were quantised against; none where
+    /// the tree flowers nowhere, and then no organ block is written.
+    pub fn set_organ_reference(&mut self, reference: Option<telperion_core::foliage::Reference>) {
+        self.organ_reference = reference;
+    }
+
+    /// Binds the flowers' block in place of the frame's, for their draw.
+    pub fn bind_organ(&self, pass: &mut wgpu::RenderPass<'_>) {
+        pass.set_bind_group(0, &self.organ_bind_group, &[]);
     }
 
     /// That same box, for a caller that has to hand it to another pass.

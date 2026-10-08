@@ -54,21 +54,25 @@ pub use chain::{passed, AGES};
 pub use closed_form::{expected_counts, expected_kept};
 pub use error::{Error, Result};
 pub use fine::{
-    bearer_frame, canonical, chain_cases, digest, grow_fine, identities, landed, lineage_order,
-    realized_cases, root_axes, settle, survey_laid, survey_lit, BearerFrame, ChainAxis, ChainBud,
-    ChainTables, Expanded, Fine, GeometryTables, Lived, Loaded, Order, PaGeometry, PaRow, Plan,
-    Presences, RealizedCase, RootAxes, RootGeometry, RootSeed, Roots, Settled, Surveyed, UnitZone,
-    Units, Woke, Work, ZoneGeometry,
+    bearer_frame, canonical, chain_cases, digest, grow_roots, identities, landed, lineage_order,
+    partial, ready, realized_cases, root_axes, settle, survey_laid, survey_lit, BearerFrame,
+    ChainAxis, ChainBud, ChainTables, Expanded, Fine, GeometryTables, Lived, Loaded, Order,
+    PaGeometry, PaRow, Partial, Plan, Presences, RealizedCase, RootAxes, RootGeometry, RootSeed,
+    Roots, Settled, Step, Surveyed, UnitZone, Units, Woke, Work, ZoneGeometry,
 };
 pub use grow::couple::{grow_coupled, Split};
 pub use grow::oracle::{grow_oracle, Oracled, Read};
 pub use grow::partition::{
     grow_partitioned, Grouping, Order as PartitionOrder, Partitioned, Run as PartitionRun, PHASES,
 };
-pub use grow::stepped::{grow_stepped, Stepped};
+pub use grow::stepped::{
+    grow_stepped, grow_stepped_on, Cpu, Feedback, Laid, LayJob, LayPa, Stepped,
+};
 pub use grow::subtree::Measured;
-pub use grow::{grow, grow_staged, grow_whole, sketch, Pass, Request, Stage};
+pub use grow::{apart, grow, grow_marked, sketch, Pass, Request, Stage};
 pub use light::{bud_light, field_reads, Light};
+pub use lineage::internode_factor;
+pub use lineage::keys as lineage_keys;
 pub use oak::oak;
 pub use palm::palm;
 pub use presence::{FLOOR, RATE, SPAN};

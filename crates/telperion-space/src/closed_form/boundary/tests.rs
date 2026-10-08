@@ -8,38 +8,43 @@ use crate::{beech, oak, palm, spruce, Species};
 /// table is read from its first unit and the rest of its axis (fn-209,
 /// P1 round 2); re-pinned when the engine took the pinned libm (fn-198
 /// task 8): the bits move at rounding, and the rows stay near the old
-/// reading (the next test).
+/// reading (the next test); re-pinned for the beech and the oak by fn-199
+/// (R1's lived share and relays, C1's abortion after it, rule 2's stand),
+/// the spruce and the palm holding to the bit; re-taken once at the F2b
+/// merge (fn-198): contract A's ripe and the decision contract's
+/// polynomial logs move the beech's, spruce's and oak's rows at rounding
+/// level, the palm's holding.
 const PINNED: [(&str, u32, u64); 40] = [
-    ("beech", 1, 0x6c6d014abadb96ac),
-    ("beech", 2, 0x3e13297b503060e0),
-    ("beech", 3, 0xe4f081cee522b51a),
-    ("beech", 5, 0x381d27ef15f44242),
-    ("beech", 8, 0xf1b4123fcd27719e),
-    ("beech", 13, 0x1799b64e027bb45a),
-    ("beech", 21, 0x18f91294061b8fce),
-    ("beech", 34, 0x5591ae175f088fb3),
-    ("beech", 55, 0x7d6774148c86e47f),
-    ("beech", 80, 0xb1a43df59fbc84d4),
-    ("spruce", 1, 0x0a0b4289900822d9),
-    ("spruce", 2, 0xaa90e4709127602e),
-    ("spruce", 3, 0xcf94d4731d5dd17b),
-    ("spruce", 5, 0x1f19ddfb1c79b1f6),
-    ("spruce", 8, 0x5d5d211dc98a8078),
-    ("spruce", 13, 0x435ee5098df6b18a),
-    ("spruce", 21, 0x4fdb0de6227f832a),
-    ("spruce", 34, 0x18bdc3f134a74d3f),
-    ("spruce", 55, 0x51f8b990aca76340),
-    ("spruce", 80, 0x7748bf9b0b9252ff),
-    ("oak", 1, 0x1b861979056e103d),
-    ("oak", 2, 0x0aab33f5f6729988),
-    ("oak", 3, 0x6ed2be6dd979f061),
-    ("oak", 5, 0x956b98fed4ef5c5b),
-    ("oak", 8, 0xddd52b098c6af00b),
-    ("oak", 13, 0x3ff290c4ebe0e2de),
-    ("oak", 21, 0xe5859d946bffbe96),
-    ("oak", 34, 0x171af0a60b8c60b3),
-    ("oak", 55, 0x312f0ec43ef426b8),
-    ("oak", 80, 0x2311d24551bc7b2d),
+    ("beech", 1, 0x47f411f2dbf2035e),
+    ("beech", 2, 0x301aa5429ed7b286),
+    ("beech", 3, 0x796c3af822113e02),
+    ("beech", 5, 0x0b826e702aef527a),
+    ("beech", 8, 0xe477e89727289c01),
+    ("beech", 13, 0x58c8d1f71470851e),
+    ("beech", 21, 0x8988aa11b829e0aa),
+    ("beech", 34, 0x27dbc368f2d27c6c),
+    ("beech", 55, 0x27dfb9e33835ee3d),
+    ("beech", 80, 0xcba5cfde9d8b79b1),
+    ("spruce", 1, 0xd237b64de0045cbb),
+    ("spruce", 2, 0xdcd92aa357638f82),
+    ("spruce", 3, 0x8aff78070a417e48),
+    ("spruce", 5, 0xa41a1277de5fb838),
+    ("spruce", 8, 0xc743d61c5fd2ff97),
+    ("spruce", 13, 0x610450c7c1e36b6e),
+    ("spruce", 21, 0x90499d2709d9cea6),
+    ("spruce", 34, 0xd8cc06b282db064f),
+    ("spruce", 55, 0xce07d27f7121dda6),
+    ("spruce", 80, 0x07b0d433934ea534),
+    ("oak", 1, 0xf58bd96acdae44a5),
+    ("oak", 2, 0xc9c03a5c3c93838b),
+    ("oak", 3, 0xfb786638d2b148e4),
+    ("oak", 5, 0x2b3fb0813541ab68),
+    ("oak", 8, 0xead85eec3455ee8f),
+    ("oak", 13, 0x93b0a87fbb835895),
+    ("oak", 21, 0xd068f5dce3fb5fc2),
+    ("oak", 34, 0x3419d70a22e76dad),
+    ("oak", 55, 0x9602540840c3688a),
+    ("oak", 80, 0x9e09547de51a09ce),
     ("palm", 1, 0xda237154468f69ae),
     ("palm", 2, 0xf30b6b627d772f9e),
     ("palm", 3, 0xa76f80968375a52b),
@@ -136,10 +141,10 @@ const TOLERANCE: [(&str, f64); 6] = [
 #[test]
 fn the_rows_stay_near_the_old_reading() {
     let mut worst = Vec::new();
-    for (name, age) in ["beech", "spruce", "oak", "palm"]
-        .iter()
-        .flat_map(|n| [(n, 40), (n, 80)])
-    {
+    // The beech and the oak relay their failed units, whose law fn-199
+    // changed (R1's lived share, C1, rule 2'): their rows are no longer
+    // 9f063433's reading summed another way, and are held by their pins.
+    for (name, age) in ["spruce", "palm"].iter().flat_map(|n| [(n, 40), (n, 80)]) {
         let new = bits(&Rows::new(&species(name), age, 1));
         let mut d = vec![Vec::new(); TOLERANCE.len()];
         let prefix = format!("{name} {age} ");

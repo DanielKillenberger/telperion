@@ -3,6 +3,7 @@
 //! scale it is walked on. The shape measures are in `measure.rs`.
 #![allow(dead_code)]
 mod bend;
+pub mod degree;
 mod measure;
 pub use bend::sag_bend;
 pub use measure::*;
@@ -49,6 +50,9 @@ pub fn species() -> Species {
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
@@ -80,6 +84,9 @@ pub fn species() -> Species {
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
@@ -115,6 +122,9 @@ pub fn species() -> Species {
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,

@@ -63,7 +63,6 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
     f.skeleton.envelope.spread = 0.5;
     f.shell_depth = 1.0;
     f.canopy.surface_contact = 1.0;
-    f.canopy.short_shoot_spacing = 0.0;
     f.canopy.limb_clumping = 0.0;
     let twig = TwigPlacement {
         internode_length: 0.07,
@@ -71,8 +70,7 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
     };
     let reference = Reference::spanning(Vec3::new(-2.0, -1.0, -2.0), Vec3::new(2.0, 3.0, 2.0));
     let element = executor::element(f.element).unwrap();
-    for (angle, shell) in [(0.0, 1.0), (0.73, 0.01)] {
-        f.shell_depth = shell;
+    for angle in [0.0, 0.73] {
         let tree = fixture(angle);
         let x = expansion(&tree, &f, twig);
         let prepare = || expansion(&tree, &f, twig).stations().unwrap().unwrap();
@@ -117,12 +115,12 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
             .upload_wood(shared.into_surface(), &mut metrics)
             .unwrap()
             .unwrap();
-        let positions = uploaded.positions.clone();
+        let positions = (*uploaded.positions).clone();
         let p = foliage::prepared::PreparedStations {
             segments,
             count,
             ring_size,
-            rings: std::borrow::Cow::Borrowed(&uploaded.positions),
+            rings: crate::buffer::Lent::Borrowed(&uploaded.positions),
         };
         let shared_leaves = pollster::block_on(generator.compute_buffer_async(
             p,
@@ -142,21 +140,10 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
             )
             .unwrap()
         );
-        assert_eq!(&uploaded.positions, &positions);
+        assert_eq!(&*uploaded.positions, &positions);
 
-        // The pipeline's CPU leaves on the same tree, and before the cull
-        // (a shell of one keeps every leaf).
+        // The pipeline's CPU leaves on the same tree: every placed leaf.
         let cpu = x.mesh().unwrap().foliage.instances;
-        let mut whole = f.clone();
-        whole.shell_depth = 1.0;
-        let placed = expansion(&tree, &whole, twig)
-            .mesh()
-            .unwrap()
-            .foliage
-            .instances;
-        if shell < 1.0 {
-            assert!(!cpu.is_empty() && cpu.len() < placed.len());
-        }
         let mut actual = Instances::new(reference);
         actual.leaves = a
             .chunks_exact(12)
@@ -230,12 +217,12 @@ fn preparation_capabilities_and_failures_are_explicit() {
     let tree = fixture(0.0);
     let mut f = Family::default();
     let twig = TwigPlacement::default();
-    f.canopy.short_shoot_spacing = 0.1;
+    f.canopy.limb_clumping = 0.1;
     assert!(expansion(&tree, &f, twig).stations().unwrap().is_none());
     f.canopy.size = f64::NAN;
     assert!(expansion(&tree, &f, twig).stations().is_err());
     f.canopy.size = 1.0;
-    f.canopy.short_shoot_spacing = 0.0;
+    f.canopy.limb_clumping = 0.0;
     f.canopy.max_instances = 1;
     assert!(expansion(&tree, &f, twig).stations().is_err());
     f.canopy.size = 0.0;
@@ -267,6 +254,7 @@ fn foreign_prepared_result_preserves_the_live_tree() {
         identity: source.identity.clone(),
         mesh,
         resident: None,
+        wood: None,
         backend: Backend::CpuFallback,
         metrics: Metrics::default(),
     };
@@ -291,7 +279,6 @@ fn huge_phases_fall_back_but_supported_large_ordinals_keep_orientation() {
     let tree = fixture(0.0);
     let mut f = Family::default();
     f.canopy.surface_contact = 0.0;
-    f.canopy.short_shoot_spacing = 0.0;
     f.canopy.limb_clumping = 0.0;
     f.canopy.divergence = 1e9;
     let tiny = TwigPlacement {
@@ -392,9 +379,9 @@ fn gpu_extrema_order_preserves_signed_zero_and_finite_signs() {
     )
     .unwrap();
     let bind = pass.bind(&gpu, &[&config, &out]);
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     pass.run(&mut encoder, &bind, 0, 1);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let bytes = io::read(&gpu, &out, 24).unwrap();
     let words: Vec<u32> = bytes
         .chunks_exact(4)
@@ -433,7 +420,6 @@ fn compact_positions_seat_contacts_on_the_rendered_surface() {
     f.skeleton.envelope.spread = 0.5;
     f.shell_depth = 1.0;
     f.canopy.surface_contact = 1.0;
-    f.canopy.short_shoot_spacing = 0.0;
     f.canopy.limb_clumping = 0.0;
     let twig = TwigPlacement {
         internode_length: 0.07,
@@ -448,12 +434,12 @@ fn compact_positions_seat_contacts_on_the_rendered_surface() {
     let wood = pollster::block_on(g.emit_positions(shared.into_surface(), &mut metrics))
         .unwrap()
         .unwrap();
-    let positions = wood.positions.clone();
+    let positions = (*wood.positions).clone();
     let p = foliage::prepared::PreparedStations {
         segments: p.segments,
         count: p.count,
         ring_size: p.ring_size,
-        rings: std::borrow::Cow::Borrowed(&positions),
+        rings: crate::buffer::Lent::Borrowed(&positions),
     };
     let leaves = pollster::block_on(g.compute_buffer_async(
         p,
@@ -473,7 +459,7 @@ fn compact_positions_seat_contacts_on_the_rendered_surface() {
     .unwrap();
     actual.validate().unwrap();
     assert!(!actual.is_empty());
-    assert_eq!(&wood.positions, &positions);
+    assert_eq!(&*wood.positions, &positions);
     // The contacts against the reference build's surface: the GPU's ring
     // positions read back, under the CPU's triangles.
     let reference_wood = x.wood().unwrap();
@@ -531,7 +517,6 @@ fn compact_position_candidate_does_not_override_station_capability() {
     let mut f = Family::default();
     f.surface.lobes = 0;
     f.canopy.surface_contact = 0.0;
-    f.canopy.short_shoot_spacing = 0.0;
     f.canopy.limb_clumping = 0.0;
     f.canopy.divergence = 1e9;
     assert!(executor::expand(tree.clone(), &f)
@@ -550,72 +535,4 @@ fn compact_position_candidate_does_not_override_station_capability() {
     .stations()
     .unwrap()
     .is_none());
-}
-
-thread_local! {
-    static LATE_STATION: std::cell::Cell<Option<bool>> = const { std::cell::Cell::new(None) };
-    static LATE_SUBMITTED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
-}
-
-pub(super) fn late_station_result<T>(
-    result: telperion_core::Result<Option<T>>,
-    submitted: bool,
-) -> telperion_core::Result<Option<T>> {
-    match LATE_STATION.with(|s| s.take()) {
-        None => result,
-        Some(error) => {
-            LATE_SUBMITTED.with(|s| s.set(submitted));
-            if error {
-                Err(telperion_core::Error::InvalidInput(
-                    "injected station error",
-                ))
-            } else {
-                Ok(None)
-            }
-        }
-    }
-}
-
-#[test]
-fn late_station_capability_and_error_join_positions_before_reusing_generator() {
-    let Some(gpu) = crate::generation::test_gpu() else {
-        return;
-    };
-    let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
-    let g = Generator::new(&renderer).unwrap();
-    // A young engine beech in the default dressing (fn-198).
-    let mut f = Family::default();
-    let beech = telperion_core::presets::Preset::EuropeanBeech.parameters();
-    (f.space, f.age) = (beech.space, 20.0);
-    f.skeleton.attractors = 16;
-    f.surface.lobes = 0;
-    f.canopy.surface_contact = 0.0;
-    f.canopy.short_shoot_spacing = 0.0;
-    f.canopy.limb_clumping = 0.0;
-    for error in [false, true] {
-        LATE_STATION.with(|s| s.set(Some(error)));
-        LATE_SUBMITTED.with(|s| s.set(false));
-        let result = g.prepare(&f, Delivery::Resident);
-        assert!(
-            LATE_SUBMITTED.with(|s| s.get()),
-            "station result must follow submitted positions"
-        );
-        if error {
-            assert!(result
-                .err()
-                .unwrap()
-                .to_string()
-                .contains("injected station error"));
-        } else {
-            let p = result.unwrap();
-            assert_eq!(p.backend, Backend::CpuFallback);
-            assert!(!p.metrics.gpu_positions);
-            assert_eq!(p.metrics.position_retained_metadata_bytes, 0);
-            assert!(p.metrics.position_gpu_peak_bytes > 0);
-            assert!(p.resident.is_none());
-        }
-        let p = g.prepare(&f, Delivery::Resident).unwrap();
-        assert!(p.metrics.gpu_positions);
-        assert!(p.count() > 0);
-    }
 }

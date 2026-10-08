@@ -28,49 +28,73 @@ fn rotation_word(x:vec3<f32>, y:vec3<f32>, z:vec3<f32>) -> u32 {
     }
     return word;
 }
-fn random(ordinal:u32) -> f32 {
-    var z=(config.random.x ^ 0x2c9e1a7fu)+(ordinal+1u)*0x9e3779b9u;
-    z=(z^(z>>16u))*0x21f0aaadu; z=(z^(z>>15u))*0x735a2d97u;
-    return f32(z^(z>>15u))*(1.0/4294967296.0);
+fn mix32(v:u32) -> u32 {
+    var z=v; z=(z^(z>>16u))*0x21f0aaadu; z=(z^(z>>15u))*0x735a2d97u;
+    return z^(z>>15u);
+}
+// The `ordinal`th draw of a run's stream: the family's seed and its first
+// node's key (`tree::leaf_stream`, fn-212), whatever order runs are walked.
+fn random(key:u32, ordinal:u32) -> f32 {
+    let stream=mix32(config.random.x ^ 0x2c9e1a7fu ^ key);
+    return f32(mix32(stream+(ordinal+1u)*0x9e3779b9u))*(1.0/4294967296.0);
 }
 fn rotate(v:vec3<f32>, axis:vec3<f32>, angle:f32) -> vec3<f32> {
     let c=cos(angle); let s=sin(angle);
     return v*c+cross(axis,v)*s+axis*(dot(axis,v)*(1.0-c));
+}
+// Leaf `j` of a cluster of `n` (fn-223, `cluster::radial`): the level
+// bearing of the tip's heading, +X where it stands vertical, turned about
+// +Y by the spread either way, evenly.
+fn fanned(heading:vec3<f32>, n:u32, spread:f32, j:u32) -> vec3<f32> {
+    var bearing=vec3<f32>(1.0,0.0,0.0);
+    let flat=vec3<f32>(heading.x,0.0,heading.z);
+    if dot(flat,flat)>1e-12 { bearing=normalize(flat); }
+    var across=0.0;
+    if n>1u { across=spread*(2.0*f32(j)/f32(n-1u)-1.0); }
+    return rotate(bearing,vec3<f32>(0.0,1.0,0.0),across);
 }
 fn station(index:u32) -> vec3<u32> {
     var lo=0u; var hi=config.counts.y;
     while lo+1u<hi { let mid=lo+(hi-lo)/2u; if segments[mid].range.x<=index { lo=mid; } else { hi=mid; } }
     let seg=segments[lo];
     let k=seg.range.z+index-seg.range.x;
-    let internode=k/config.random.y;
-    let distance=f32(internode)*config.shape.x;
-    var t=0.0; if seg.distance.y>1e-12 { t=(distance-seg.distance.x)/seg.distance.y; }
-    let centre=seg.a.xyz*(1.0-t)+seg.b.xyz*t;
-    let radius=seg.a.w*(1.0-t)+seg.b.w*t;
-    let turn=f32(internode-seg.range.z/config.random.y)*config.shape.y+f32(k%config.random.y)*6.283185307179586/f32(config.random.y);
-    let sin_turn=seg.distance.z*cos(turn)+seg.distance.w*sin(turn);
-    let cos_turn=seg.distance.w*cos(turn)-seg.distance.z*sin(turn);
-    let radial=seg.normal.xyz*cos_turn+seg.binormal.xyz*sin_turn;
-    var point=centre+radial*radius;
-    if config.shape.z>0.0 { point=point*(1.0-config.shape.z)+contact(seg.edge,centre,radial,radius)*config.shape.z; }
-    var axis=radial+seg.tangent.xyz*(config.lean.x+config.lean.y*max(radial.y,0.0));
+    var radial:vec3<f32>; var point:vec3<f32>; let tangent=seg.tangent.xyz; var normal=seg.normal.xyz;
+    if seg.distance.y<0.0 {
+        // A cluster at its tip, on the tip's own stream.
+        radial=fanned(tangent,seg.range.y,seg.distance.z,k);
+        point=seg.a.xyz; normal=radial;
+    } else {
+        let internode=k/config.random.y;
+        let distance=f32(internode)*config.shape.x;
+        var t=0.0; if seg.distance.y>1e-12 { t=(distance-seg.distance.x)/seg.distance.y; }
+        let centre=seg.a.xyz*(1.0-t)+seg.b.xyz*t;
+        let radius=seg.a.w*(1.0-t)+seg.b.w*t;
+        let turn=f32(internode-seg.range.z/config.random.y)*config.shape.y+f32(k%config.random.y)*6.283185307179586/f32(config.random.y);
+        let sin_turn=seg.distance.z*cos(turn)+seg.distance.w*sin(turn);
+        let cos_turn=seg.distance.w*cos(turn)-seg.distance.z*sin(turn);
+        radial=seg.normal.xyz*cos_turn+seg.binormal.xyz*sin_turn;
+        point=centre+radial*radius;
+        if config.shape.z>0.0 { point=point*(1.0-config.shape.z)+contact(seg.edge,centre,radial,radius)*config.shape.z; }
+    }
+    var axis=radial+tangent*(config.lean.x+config.lean.y*max(radial.y,0.0));
     let outward=vec3<f32>(point.x,0.0,point.z);
     if dot(outward,outward)>1e-12 { axis+=normalize(outward)*config.lean.z; }
     axis.y+=config.lean.w;
     if dot(axis,axis)<=1e-12 { axis=radial; }
     axis=normalize(axis);
     var face=vec3<f32>(0.0,1.0,0.0)-axis*axis.y;
-    if dot(face,face)<=1e-12 { face=seg.tangent.xyz-axis*dot(seg.tangent.xyz,axis); }
-    if dot(face,face)<=1e-12 { face=seg.normal.xyz-axis*dot(seg.normal.xyz,axis); }
+    if dot(face,face)<=1e-12 { face=tangent-axis*dot(tangent,axis); }
+    if dot(face,face)<=1e-12 { face=normal-axis*dot(normal,axis); }
     face=normalize(face); var side=normalize(cross(axis,face));
-    var draw=index*select(1u,4u,config.shape.w>0.0);
+    var draw=k*select(1u,4u,config.shape.w>0.0);
+    let key=seg.range.w;
     if config.shape.w>0.0 {
-        let z=random(draw)*2.0-1.0; let phi=random(draw+1u)*6.283185307179586;
+        let z=random(key,draw)*2.0-1.0; let phi=random(key,draw+1u)*6.283185307179586;
         let ring=sqrt(max(1.0-z*z,0.0)); let jitter=vec3<f32>(ring*cos(phi),z,ring*sin(phi));
-        let angle=config.shape.w*random(draw+2u);
+        let angle=config.shape.w*random(key,draw+2u);
         axis=rotate(axis,jitter,angle);face=rotate(face,jitter,angle);side=rotate(side,jitter,angle); draw+=3u;
     }
-    let scale=config.size.x*(1.0+config.size.y*(random(draw)*2.0-1.0));
+    let scale=config.size.x*(1.0+config.size.y*(random(key,draw)*2.0-1.0));
     if !finite(point) || !finite(axis) || !finite(face) || !finite(side) || !(scale>=0.0 && scale<=65504.0) {
         atomicOr(&summary[1],2u);
     }

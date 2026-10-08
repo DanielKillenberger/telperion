@@ -1,5 +1,5 @@
 //! Compact regular twig stations, shared by accelerated consumers without a GPU dependency.
-use super::{plan, station, CanopyParams, TwigPlacement};
+use super::{cluster, plan, station, CanopyParams, TwigPlacement};
 use crate::math::Transcendental;
 use crate::{
     envelope::Envelope,
@@ -25,6 +25,13 @@ pub struct StationSegment {
     pub frame: [Vec3; 3],
     /// Lower/upper ring, then first/last ring on the sweep path.
     pub contact: Option<[u32; 4]>,
+    /// The key of its run's first node (`Tree::key`): with the family's
+    /// seed, the stream its leaves draw from (`tree::leaf_stream`).
+    pub key: u32,
+    /// A short shoot's cluster (fn-223), its spread: `count` leaves at
+    /// the tip `endpoints` names, fanned about the heading `frame[0]`,
+    /// drawing on the tip's cluster stream (`key`).
+    pub cluster: Option<f64>,
 }
 
 /// No per-leaf positions or transforms are constructed by this preparation.
@@ -165,8 +172,18 @@ fn prepare_inner<C>(
         None
     };
     let runs = plan::runs(tree, envelope, p, Some(twig))?.unwrap_or_default();
+    let fine = tree.in_fine_roots();
+    let (mut points, mut chord, mut along) = (Vec::new(), Vec::new(), Vec::new());
     for run in &runs {
-        let points: Vec<_> = run.nodes.iter().map(|&i| tree.nodes[i].position).collect();
+        // The chord along the run, which its frames read; its stations
+        // stand by the grown wood (`run.along`).
+        plan::walk(
+            tree,
+            &run.nodes,
+            Some(twig),
+            &mut points,
+            (&mut chord, &mut along),
+        );
         // Eight f64 rounding units cover the original multiply/divide angle
         // chain. Keep periodic tile reconstruction below 0.00025 radians of
         // extra uncertainty; larger valid requests use the reference CPU path.
@@ -177,8 +194,12 @@ fn prepare_inner<C>(
         if phase_error > 0.00025 {
             return Ok(None);
         }
-        for (segment, (tangent, normal, binormal)) in
-            station::station_frame_iter(&points, &run.along).enumerate()
+        for (segment, (tangent, normal, binormal)) in station::station_frame_iter(
+            &points,
+            &chord,
+            tree.seed_side(&fine, run.nodes[0], run.nodes[1]),
+        )
+        .enumerate()
         {
             let (first, last) = run.segment_stations(segment, twig);
             if first == last {
@@ -215,15 +236,39 @@ fn prepare_inner<C>(
                     phase: [sin, cos],
                     endpoints: [points[segment], points[segment + 1]],
                     radii: [distal.start_radius, distal.radius],
-                    along: run.along[segment],
-                    span: run.along[segment + 1] - run.along[segment],
+                    along: run.along[segment] * 1e-6,
+                    span: (run.along[segment + 1] - run.along[segment]) * 1e-6,
                     frame: [tangent, normal, binormal],
                     contact,
+                    key: tree.key(run.nodes[1]),
+                    cluster: None,
                 });
                 tile_first += tile_count;
             }
         }
         total_count += run.count;
+    }
+    // Each short shoot's cluster after every run (fn-223): one segment at
+    // its tip.
+    for c in cluster::of(tree, &p) {
+        let tip = c.node as usize;
+        let at = tree.nodes[tip].position;
+        let radius = tree.nodes[tip].radius;
+        segments.push(StationSegment {
+            first: total_count,
+            count: c.leaves,
+            run_station: 0,
+            phase: [0.0, 1.0],
+            endpoints: [at; 2],
+            radii: [radius; 2],
+            along: 0.0,
+            span: 0.0,
+            frame: [cluster::heading(tree, tip), Vec3::ZERO, Vec3::ZERO],
+            contact: None,
+            key: crate::tree::cluster_key(tree.key(tip)),
+            cluster: Some(c.spread),
+        });
+        total_count += c.leaves;
     }
     Ok(Some((segments, total_count, contacts)))
 }

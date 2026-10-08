@@ -195,6 +195,7 @@ impl First {
                 aged: spent + x,
                 gone: x,
                 relay: false,
+                rest: false,
             };
             let unit = woken.unit(state.life(), 1);
             let survive = share(state.viability, unit.share);
@@ -354,10 +355,16 @@ impl Woken {
             Some(unit) => {
                 let stopped = axes[self.bearer].apex_end == Some(self.cycle + 1) && !bearer.failed;
                 let carried = times(q(unit.survive), q(unit.persist));
-                if stopped {
-                    times(carried, on(&successor[self.bearer]))
-                } else {
-                    carried
+                match bearer.outlived {
+                    // Its age ended within that unit's cycle and nothing
+                    // carries it on: it bears the bud as far as it lived
+                    // into the cycle, as it does a bud that wakes in that
+                    // cycle, so the two meet (fn-199).
+                    Some(used) if stopped && successor[self.bearer].is_empty() => {
+                        times(carried, q(used))
+                    }
+                    _ if stopped => times(carried, on(&successor[self.bearer])),
+                    _ => carried,
                 }
             }
         };

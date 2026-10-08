@@ -9,6 +9,143 @@ const HEADROOM: f64 = 1.25;
 /// Buffer sizes stay a multiple of this, which every copy and binding wants.
 const ALIGNMENT: u64 = wgpu::COPY_BUFFER_ALIGNMENT;
 
+/// A buffer destroyed when its owner lets it go. A browser frees a buffer
+/// only when it is destroyed or its wrapper is collected (wgpu's web backend
+/// drops nothing), so every buffer the renderer allocates is owned through
+/// this and freed where its owner ends (fn-212 task 10, host decision 2).
+/// A pass may bind a buffer its owner lets go before the encoder is
+/// submitted, so the destroy waits for every encoder open when it was let
+/// go (`Ledger::close`; fn-212 task 11).
+#[derive(Debug)]
+pub(crate) struct Owned {
+    buffer: wgpu::Buffer,
+    ledger: std::sync::Arc<Ledger>,
+}
+
+/// The device's owned buffers: those let go and not yet destroyed, and the
+/// bytes live now and at most since the peak was last read (fn-212 task
+/// 10: a browser build is checked against a stated budget).
+#[derive(Debug, Default)]
+pub(crate) struct Ledger {
+    waiting: std::sync::Mutex<Waiting>,
+    live: std::sync::atomic::AtomicU64,
+    peak: std::sync::atomic::AtomicU64,
+}
+
+/// The encoders open now, and each buffer let go with those it waits on.
+#[derive(Debug, Default)]
+struct Waiting {
+    next: u64,
+    open: Vec<u64>,
+    let_go: Vec<(wgpu::Buffer, Vec<u64>)>,
+}
+
+impl Ledger {
+    fn waiting(&self) -> std::sync::MutexGuard<'_, Waiting> {
+        self.waiting.lock().unwrap_or_else(|e| e.into_inner())
+    }
+
+    /// Opens an encoder, named by what it returns.
+    pub(crate) fn open(&self) -> u64 {
+        let mut waiting = self.waiting();
+        let id = waiting.next;
+        waiting.next += 1;
+        waiting.open.push(id);
+        id
+    }
+
+    /// Closes encoder `id`, submitted or dropped, and destroys each
+    /// buffer that waited on no other.
+    pub(crate) fn close(&self, id: u64) {
+        let mut done = Vec::new();
+        let mut waiting = self.waiting();
+        waiting.open.retain(|&o| o != id);
+        waiting.let_go.retain_mut(|(buffer, on)| {
+            on.retain(|&o| o != id);
+            on.is_empty() && {
+                done.push(buffer.clone());
+                false
+            }
+        });
+        drop(waiting);
+        done.iter().for_each(wgpu::Buffer::destroy);
+    }
+
+    /// Destroys `buffer` now, or once every encoder open now has closed:
+    /// any of them may bind it.
+    fn let_go(&self, buffer: &wgpu::Buffer) {
+        let mut waiting = self.waiting();
+        if waiting.open.is_empty() {
+            drop(waiting);
+            buffer.destroy();
+        } else {
+            let on = waiting.open.clone();
+            waiting.let_go.push((buffer.clone(), on));
+        }
+    }
+
+    /// The bytes the device's owned buffers hold now.
+    #[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
+    pub(crate) fn live(&self) -> u64 {
+        self.live.load(std::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// The most they held since the last call, which starts the next span
+    /// at what they hold now.
+    #[cfg(test)]
+    pub(crate) fn take_peak(&self) -> u64 {
+        let live = self.live();
+        self.peak
+            .swap(live, std::sync::atomic::Ordering::Relaxed)
+            .max(live)
+    }
+}
+
+impl Owned {
+    pub(crate) fn new(gpu: &Gpu, buffer: wgpu::Buffer) -> Self {
+        use std::sync::atomic::Ordering::Relaxed;
+        let ledger = gpu.ledger.clone();
+        let live = ledger.live.fetch_add(buffer.size(), Relaxed) + buffer.size();
+        ledger.peak.fetch_max(live, Relaxed);
+        Self { buffer, ledger }
+    }
+
+    pub(crate) fn create(gpu: &Gpu, descriptor: &wgpu::BufferDescriptor<'_>) -> Self {
+        Self::new(gpu, gpu.device.create_buffer(descriptor))
+    }
+}
+
+/// A buffer a pass binds, its own or one another owner lends it.
+pub(crate) enum Lent<'a> {
+    Own(Owned),
+    Borrowed(&'a wgpu::Buffer),
+}
+
+impl std::ops::Deref for Lent<'_> {
+    type Target = wgpu::Buffer;
+    fn deref(&self) -> &wgpu::Buffer {
+        match self {
+            Lent::Own(b) => b,
+            Lent::Borrowed(b) => b,
+        }
+    }
+}
+
+impl std::ops::Deref for Owned {
+    type Target = wgpu::Buffer;
+    fn deref(&self) -> &wgpu::Buffer {
+        &self.buffer
+    }
+}
+
+impl Drop for Owned {
+    fn drop(&mut self) {
+        let size = self.buffer.size();
+        (self.ledger.live).fetch_sub(size, std::sync::atomic::Ordering::Relaxed);
+        self.ledger.let_go(&self.buffer);
+    }
+}
+
 /// An allocation with headroom and the live range inside it. Reuse is decided
 /// here and nowhere else, so the decision is testable without a device.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -64,14 +201,14 @@ pub fn attributes(values: &[f32], floats: usize) -> std::borrow::Cow<'_, [f32]> 
 
 /// One buffer and the region that says how much of it is live.
 pub struct Held {
-    buffer: wgpu::Buffer,
+    buffer: Owned,
     region: Region,
     usage: wgpu::BufferUsages,
     label: &'static str,
 }
 
 impl Held {
-    pub(crate) fn resident(buffer: wgpu::Buffer, used: u64, label: &'static str) -> Self {
+    pub(crate) fn resident(buffer: Owned, used: u64, label: &'static str) -> Self {
         let capacity = buffer.size();
         let usage = buffer.usage();
         Self {
@@ -142,13 +279,16 @@ fn allocate(
     usage: wgpu::BufferUsages,
     capacity: u64,
     bytes: &[u8],
-) -> wgpu::Buffer {
-    let buffer = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some(label),
-        size: capacity,
-        usage: usage | wgpu::BufferUsages::COPY_DST,
-        mapped_at_creation: false,
-    });
+) -> Owned {
+    let buffer = Owned::create(
+        gpu,
+        &wgpu::BufferDescriptor {
+            label: Some(label),
+            size: capacity,
+            usage: usage | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        },
+    );
     if !bytes.is_empty() {
         gpu.queue.write_buffer(&buffer, 0, bytes);
     }
@@ -196,19 +336,20 @@ pub fn reserve(
 #[cfg(not(target_arch = "wasm32"))]
 pub fn read(gpu: &Gpu, held: &Held) -> Option<Vec<u8>> {
     let size = held.region().used();
-    let readback = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("readback"),
-        size,
-        usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
-        mapped_at_creation: false,
-    });
-    let mut encoder = gpu
-        .device
-        .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+    let readback = Owned::create(
+        gpu,
+        &wgpu::BufferDescriptor {
             label: Some("readback"),
-        });
+            size,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        },
+    );
+    let mut encoder = gpu.encoder(&wgpu::CommandEncoderDescriptor {
+        label: Some("readback"),
+    });
     encoder.copy_buffer_to_buffer(held.buffer(), 0, &readback, 0, size);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
 
     let (sender, receiver) = std::sync::mpsc::channel();
     readback

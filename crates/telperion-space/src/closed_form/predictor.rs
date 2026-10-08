@@ -99,7 +99,8 @@ type Bud = (usize, usize, Carried, Option<First>);
 #[derive(Default)]
 struct Parts {
     rest: Option<Rc<Table>>,
-    failed: Option<Rc<Table>>,
+    /// Each lived part's relay (fn-199 R1).
+    lived: Vec<Option<Rc<Table>>>,
     zones: Vec<ZoneParts>,
     aborted: Option<Rc<Table>>,
     relay: Option<Rc<Table>>,
@@ -253,8 +254,11 @@ impl<'a> Walk<'a> {
             parts.rest = get(self, bud, f64::INFINITY);
         }
         let relay = |r: Option<Relay>, p: f64| r.filter(|_| p > 0.0);
-        if let Some(r) = relay(step.failed, step.before - step.grown) {
-            parts.failed = get(self, (k, m - r.at, r.carried, None), shedding);
+        for l in &step.lived {
+            let r = l.relay;
+            parts
+                .lived
+                .push(get(self, (k, m - r.at, r.carried, None), shedding));
         }
         for &z in ALONG.iter().filter(|&&z| z < state.zones.len()) {
             let mut laterals = Vec::new();
@@ -266,8 +270,14 @@ impl<'a> Walk<'a> {
                     }
                 }
             }
+            // A failed unit's lived parts wake the same buds as the unit
+            // (`steps.rs`), so one list of tables serves them all.
+            let (sleeping, grown) = match step.lived.first() {
+                Some(l) if step.grown <= 0.0 => (&l.sleeping[z], l.weight),
+                _ => (&step.sleeping[z], step.grown),
+            };
             let mut woken = Vec::new();
-            for event in &step.sleeping[z] {
+            for event in sleeping {
                 woken.push(match event {
                     Event::Bud {
                         at,
@@ -275,9 +285,7 @@ impl<'a> Walk<'a> {
                         carried,
                         first,
                         ..
-                    } if step.grown > 0.0 => {
-                        get(self, (*pa, m - at, *carried, *first), delay_of(*pa))
-                    }
+                    } if grown > 0.0 => get(self, (*pa, m - at, *carried, *first), delay_of(*pa)),
                     _ => None,
                 });
             }

@@ -20,26 +20,34 @@ use telperion_render::{
 
 use walk::{Arguments, Schedule, FPS};
 
+/// A partial wire object at `path`, laid over `family`; the family itself
+/// where there is none.
+fn laid(family: Family, path: Option<&PathBuf>, flag: &str) -> Result<Family, String> {
+    let Some(path) = path else {
+        return Ok(family);
+    };
+    let text = std::fs::read_to_string(path).map_err(|error| format!("{flag}: {error}"))?;
+    let rows = serde_json::from_str(&text).map_err(|error| format!("{flag}: {error}"))?;
+    params::overlay(&family, &rows).map_err(|error| format!("{flag}: {error:?}"))
+}
+
 fn run() -> Result<(), String> {
     let arguments = walk::parse(std::env::args().skip(1))?;
     let preset = Preset::from_id(&arguments.preset)
         .ok_or_else(|| format!("unknown tree \"{}\"", arguments.preset))?;
-    let mut family = preset.parameters();
-    if let Some(path) = &arguments.family {
-        let text = std::fs::read_to_string(path).map_err(|error| format!("--family: {error}"))?;
-        let rows = serde_json::from_str(&text).map_err(|error| format!("--family: {error}"))?;
-        family = params::overlay(&family, &rows).map_err(|error| format!("--family: {error:?}"))?;
-    }
+    let mut family = laid(preset.parameters(), arguments.family.as_ref(), "--family")?;
     family.skeleton.seed = arguments.seed;
     if let Some(id) = &arguments.to {
-        let mut far = Preset::from_id(id)
+        let far = Preset::from_id(id)
             .ok_or_else(|| format!("unknown tree \"{id}\""))?
             .parameters();
+        let mut far = laid(far, arguments.to_family.as_ref(), "--to-family")?;
         far.skeleton.seed = arguments.seed;
         return transition(&arguments, family, far);
     }
 
     let tree = mesh::build(&family).map_err(|error| error.to_string())?;
+    let florets = tree.organ.as_ref().map_or(0, |o| o.instances.len());
     let level = level_of(arguments.level, tree.foliage.element.levels.len())?;
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|error| error.to_string())?;
     let adapter = gpu.adapter.name.clone();
@@ -77,7 +85,7 @@ fn run() -> Result<(), String> {
 
     println!(
         "{} {}x{} on {adapter} at {} samples a pixel: {} wood vertices, {} wood triangles, \
-         {} foliage instances; {} triangles and {} instances drawn in {} calls; {} wood caster triangles; {} foliage caster instances",
+         {} foliage instances, {} florets; {} triangles and {} instances drawn in {} calls; {} wood caster triangles; {} foliage caster instances",
         arguments.out.display(),
         width,
         height,
@@ -85,6 +93,7 @@ fn run() -> Result<(), String> {
         submitted.wood_vertices,
         submitted.wood_triangles,
         submitted.foliage_instances,
+        florets,
         still.stats.triangles,
         still.stats.instances,
         still.stats.draw_calls,

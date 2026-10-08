@@ -87,6 +87,9 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         retained: 0.0,
         leaf_girth: 0.0,
         straightening: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
         form: Form::default(),
     }
 }

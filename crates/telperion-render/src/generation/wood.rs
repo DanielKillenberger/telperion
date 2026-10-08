@@ -1,18 +1,19 @@
 //! The wood's ring positions on the device, which the leaves' stations seat
 //! on. The wood itself is drawn from its curve (fn-208, host decision 20).
 use super::{io, Clock, Generator, Metrics};
+use crate::buffer::Owned;
 use crate::Result;
 use telperion_core::surface::{prepared::PreparedSurface, SurfaceRun};
 
 pub(super) struct UploadedWood {
-    pub positions: wgpu::Buffer,
+    pub positions: Owned,
     /// The positions kernel's run and ring metadata, where it made them.
-    pub metadata: Option<wgpu::Buffer>,
+    pub metadata: Option<Owned>,
     pub(super) runs: Vec<SurfaceRun>,
 }
 impl UploadedWood {
     pub fn gpu_metadata_bytes(&self) -> u64 {
-        self.metadata.as_ref().map_or(0, wgpu::Buffer::size)
+        self.metadata.as_ref().map_or(0, |b| b.size())
     }
 
     pub fn metadata_bytes(&self) -> u64 {

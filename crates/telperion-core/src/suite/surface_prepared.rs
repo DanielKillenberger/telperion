@@ -96,7 +96,6 @@ fn shared_contacts_preserve_station_stream_and_rounded_rings() {
     let mut family = Family::default();
     family.skeleton.envelope.height = 4.0;
     family.canopy.surface_contact = 1.0;
-    family.canopy.short_shoot_spacing = 0.0;
     family.canopy.limb_clumping = 0.0;
     let twig = Some(TwigPlacement {
         internode_length: 0.07,
@@ -227,7 +226,7 @@ fn shared_empty_and_validation_outcomes_are_explicit() {
     env.height += 1.0;
     assert!(foliage::prepared::prepare_shared_stations(&shared, env, family.canopy, twig).is_err());
     let mut canopy = family.canopy;
-    canopy.short_shoot_spacing = 0.1;
+    canopy.limb_clumping = 0.1;
     assert!(foliage::prepared::prepare_shared_stations(
         &shared,
         family.skeleton.envelope,

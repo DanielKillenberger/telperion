@@ -70,10 +70,10 @@ fn schedule(roots: u64, pas: u64, nodes: u64, relay: bool) -> Vec<Trip> {
 }
 
 struct Buffers {
-    run: wgpu::Buffer,
-    down: wgpu::Buffer,
-    up: wgpu::Buffer,
-    staging: wgpu::Buffer,
+    run: crate::buffer::Owned,
+    down: crate::buffer::Owned,
+    up: crate::buffer::Owned,
+    staging: crate::buffer::Owned,
     bind: wgpu::BindGroup,
 }
 
@@ -92,12 +92,13 @@ fn trip(gpu: &Gpu, pass: &Pass, b: &Buffers, t: Trip, salt: u32) -> Spent {
     gpu.queue
         .write_buffer(&b.down, 0, bytemuck::cast_slice(&down));
     let run = [t.up as u32, salt, 0, 0];
-    gpu.queue.write_buffer(&b.run, 0, bytemuck::cast_slice(&run));
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    gpu.queue
+        .write_buffer(&b.run, 0, bytemuck::cast_slice(&run));
+    let mut encoder = gpu.encoder(&Default::default());
     pass.run(&mut encoder, &b.bind, 0, (t.up as u32).div_ceil(64));
     let bytes = t.up * 4;
     encoder.copy_buffer_to_buffer(&b.up, 0, &b.staging, 0, bytes);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let (send, receive) = std::sync::mpsc::channel();
     b.staging
         .slice(..bytes)
@@ -163,7 +164,12 @@ fn stepping_costs() {
     println!("| Oak | Roots | Lattice nodes | Trips | Total ms | Per trip median / max ms | Submit / wait / read ms |");
     println!("|---|--:|--:|--:|--:|--:|--:|");
     // Fine roots at cut 1,024 (TASK4 PHASES.md, stepped executor's count).
-    for (age, seed, roots) in [(40u32, 1u64, 1_821u64), (40, 7, 2_937), (80, 1, 7_179), (80, 7, 17_370)] {
+    for (age, seed, roots) in [
+        (40u32, 1u64, 1_821u64),
+        (40, 7, 2_937),
+        (80, 1, 7_179),
+        (80, 7, 17_370),
+    ] {
         let nodes = nodes(age, seed);
         let most = (0..=1)
             .flat_map(|r| schedule(roots, pas, nodes, r == 1))

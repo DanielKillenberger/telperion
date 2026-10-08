@@ -45,6 +45,13 @@ struct Live {
     renderer: Renderer,
     camera: Camera,
     stats: FrameStats,
+    /// Whether the last frame's work is still on the device. The page asks
+    /// for a frame every animation frame; a frame is drawn only once the
+    /// last one's work is done, so a tree that takes longer than a frame to
+    /// draw never queues work faster than the device does it, and a build's
+    /// readbacks are not starved behind frames (fn-212 task 10, host
+    /// decision 1).
+    drawing: std::sync::Arc<std::sync::atomic::AtomicBool>,
 }
 
 impl Live {
@@ -65,6 +72,7 @@ impl Live {
             renderer,
             camera,
             stats: FrameStats::default(),
+            drawing: Default::default(),
         })
     }
 
@@ -293,9 +301,19 @@ impl WebRenderer {
         Ok(())
     }
 
-    /// Draws one frame.
+    /// Draws one frame, unless the last one's work is still on the device.
     pub fn frame(&self) -> std::result::Result<(), JsError> {
-        self.borrow()?.draw(None).map_err(js_error)
+        let mut live = self.borrow()?;
+        let order = std::sync::atomic::Ordering::Relaxed;
+        if live.drawing.load(order) {
+            return Ok(());
+        }
+        live.draw(None).map_err(js_error)?;
+        let drawing = live.drawing.clone();
+        drawing.store(true, order);
+        let queue = &live.renderer.gpu().queue;
+        queue.on_submitted_work_done(move || drawing.store(false, order));
+        Ok(())
     }
 
     /// What the last frame cost, as JSON. `triangles` leaves out the wood,

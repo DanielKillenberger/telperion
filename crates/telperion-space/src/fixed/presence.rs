@@ -95,13 +95,13 @@ pub(super) fn logit_draw_bounds(d: u64) -> (i64, i64) {
 
 /// `ln_ratio` of a difference of two logs: monotone in it.
 pub(super) fn ln(log2s: i64) -> i64 {
-    (wide_signed(log2s, LN2) >> 62) as i64
+    (wide_signed(log2s, LN2 as i64) >> 62) as i64
 }
 
 /// Bounds of `log2 n`, `n` of nine bits or more: the logs of `n` with all
 /// but its leading nine bits cleared and of the next such integer, which
 /// `log2`, monotone, puts it between. Each is a grid point's log, its
-/// exponent added: the same mantissa, so the same squarings.
+/// exponent added: the same mantissa, so the same polynomial.
 pub(super) fn log2_bounds(n: u64) -> (i64, i64) {
     let e = 63 - n.leading_zeros();
     let k = ((n >> (e - 8)) & 0xff) as usize;

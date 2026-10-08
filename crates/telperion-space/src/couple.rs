@@ -8,11 +8,11 @@
 //! and the leaves its last unit grew. Its transitions are the engine's
 //! unit rules in expectation, evaluated from the current parameters:
 //! survival under shade, each zone's nodes and laterals, abortion and its
-//! relay, a failed unit's relay, an age's end and its continuation. Its
-//! explicit approximations: whole-cycle units; sleeping buds are not
-//! carried; the balance shedding of laterals inside the subtree is not
-//! carried (only the root's own); a cohort's units are all of its PA's
-//! size; presences near a bound are taken whole.
+//! relay, a failed unit's lived share and its relay, an age's end and its
+//! continuation. Its explicit approximations: whole-cycle units; sleeping
+//! buds are not carried; the balance shedding of laterals inside the
+//! subtree is not carried (only the root's own); a cohort's units are all
+//! of its PA's size; presences near a bound are taken whole.
 //!
 //! The pass writes, per fine root per cycle, the light it read, its
 //! vigour share and its kept share, and the cycle its balance shed it
@@ -108,18 +108,22 @@ impl Aggregate {
             }
             let w = c.w * at.kept;
             let spent = f64::from(c.spent) + 1.0;
-            // A unit that failed is spent; its relay grows from the next.
-            push(pa, spent, w * (1.0 - v) * state.relay_failed);
-            let grows = w * v;
+            // A unit that failed grows the share of its cycle its apex
+            // lived and its relay the rest (fn-199 R1): in whole cycles,
+            // one unit's wood on two units' nodes, the relay carrying on as
+            // the apex would have.
+            let relayed = w * (1.0 - v) * state.relay_failed;
+            let grows = w * v + relayed;
             let size = at.size[pa];
             for (z, zone) in state.zones.iter().enumerate() {
                 let nodes = grows * zone.nodes.mean();
-                self.last += nodes;
+                let made = nodes + relayed * zone.nodes.mean();
+                self.last += made;
                 self.leaves += nodes * state.leaf_area * size;
                 self.wood += nodes * state.internode * size;
                 for (j, &p) in laterals[pa][z].iter().enumerate() {
                     if let (true, Some((lived, reach))) = (p > 0.0, species.lived(j)) {
-                        push(lived, 0.0, nodes * zone.buds * p * reach);
+                        push(lived, 0.0, made * zone.buds * p * reach);
                     }
                 }
             }

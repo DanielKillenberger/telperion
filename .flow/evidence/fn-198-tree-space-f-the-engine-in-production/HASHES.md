@@ -68,3 +68,30 @@ palm 80 7 nodes 1473 clothed 8401a8d5b6fcbd40 ms 3
 ```
 
 **Before/after stills**, age 40 seed 1, whole view, 960x720 (`raw/sort/{before,after}/`, gitignored; the before built with the sort bypassed): the oak differs on 5,611 pixels (0.81 %), the beech on 5,820 (0.84 %) (`magick compare -metric AE`), within fn-211's 0.5 to 1.3 %. Viewed (the oak pair): the same tree, crown, limbs and shadow; the difference is scattered leaf placement inside the crown.
+
+## After a node's wander is drawn apart from its places (host, 2026-10-07)
+
+A node's wander was keyed `node.child(1)`, which is also its slot-1 bud place's key, so its wander and that place's draw were one stream. `lineage_keys::WANDER` moves to the reserved `u64::MAX - 13`, and the registry now lists the places (`PLACE`, `MAX_BUDS` values under the node key), so `keys_under_one_parent_are_distinct` fails on the old value ("PLACE and WANDER meet"). Every wandering tree changes. Base is the fn-199 merge (49773335), whose 16 hashes equal fn-199's own; `space_hash`, `node count / clothed hash` before, then after:
+
+```
+beech 40 1 102840 9ce782a7682af851 102841 5811567f7f3670bf
+beech 40 7 181015 599b1dbde4424241 181015 11f2c0b5a799ac06
+beech 80 1 1540448 6fd6aed2f0a431e1 1540449 e12f497857fd4d8a
+beech 80 7 2609681 9e658469509a53c9 2609652 cff3dcd09da8775a
+spruce 40 1 1147615 65b3a0577b13b3b8 1147615 3324e54ed90088b7
+spruce 40 7 1107566 89fd1c097108b239 1107566 cda21916e9c0abf6
+spruce 80 1 4637482 af8f7512c34502b1 4637482 18d1e715d3968286
+spruce 80 7 4610322 13ebdaaffdc70f37 4610322 7ab24d5670ac9ed6
+oak 40 1 164533 dae6a94a9ae44f02 167177 1369b2a64d812568
+oak 40 7 298514 b275fbff908fec91 296176 78cfd0ebb356b793
+oak 80 1 970257 69d1139498de1807 950317 04b0a548c5595683
+oak 80 7 2311842 1eb9d7984e9e53f8 2333490 ecc67a4291310e96
+palm 40 1 993 8c5c37c4741272e2 993 061987de19837971
+palm 40 7 993 19a541c6262b7258 993 8d2ce3067c21f86e
+palm 80 1 1473 3f8c871219dc6b9b 1473 025e167fec51c301
+palm 80 7 1473 158cecedcd5bab6c 1473 333ad5c2de1e903a
+```
+
+The spruce and the palm keep their node counts. The beech changes by up to 29 nodes, and the oak by up to 2.1 % (80/1: 970,257 to 950,317), because a different wander moves shoots in the light.
+
+**Hero stills**, age 80 seed 1, 1024x1024 (`headless --family {"age": 80}`, `raw/wander/{before,after}/`, gitignored). Differing pixels (`magick compare -metric AE`): beech 4.1 %, spruce 2.4 %, oak 5.7 %, palm 1.7 %. Viewed side by side: the beech, the spruce and the palm are the same tree, with differences in twig and frond placement. The oak is visibly another specimen of the same species: the same height, spread and open, irregular crown, but its leader leans differently and its main fork is placed differently. No defect is visible in any of the four. The four species' walk tests (`telperion-space` `walks`, 10 tests) pass.

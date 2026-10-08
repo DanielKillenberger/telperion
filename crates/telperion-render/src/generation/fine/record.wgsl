@@ -40,7 +40,7 @@ const LATERAL: u32 = 1u;
 const RW: u32 = 10u;
 const CW: u32 = 3u;
 // The geometry kernel's scratch (`geometry.wgsl`).
-const SA: u32 = 66u;
+const SA: u32 = 70u;
 const SP: u32 = 12u;
 
 fn ax(c: u32, i: u32, f: u32) -> u32 {

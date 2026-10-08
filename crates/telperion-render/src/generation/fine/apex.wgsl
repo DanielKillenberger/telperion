@@ -83,8 +83,19 @@ fn carry_on(cycle: u32, used: vec2<u32>) -> Next {
     return Next(true, Apex(e.x, e.yz));
 }
 
-// The relay of the apex that stopped having spent `spent` (`relay_bud`).
-fn relay_bud(apex: Apex, cycle: u32, used: vec2<u32>, spent: vec2<u32>, why: u32, blend: f32, asks: array<vec4<u32>, 2>) -> Next {
+// The relay of the apex that stopped having spent `spent` (`relay_bud`);
+// one made `whole` grows a whole first unit.
+fn relay_bud(apex: Apex, cycle: u32, used: vec2<u32>, spent: vec2<u32>, why: u32, whole: bool, below: u32, blend: f32, asks: array<vec4<u32>, 2>) -> Next {
+    let r = make_relay(apex, cycle, used, spent, why, whole, below, blend, asks);
+    if r == NONE {
+        return none();
+    }
+    push_next(r, rd64(apex.axis, UNITS));
+    return carry_on(cycle, used);
+}
+
+// `relay_bud`'s relay, made and not yet grown (`make_relay`).
+fn make_relay(apex: Apex, cycle: u32, used: vec2<u32>, spent: vec2<u32>, why: u32, whole: bool, below: u32, blend: f32, asks: array<vec4<u32>, 2>) -> u32 {
     let a = apex.axis;
     let pa = rd(a, PA);
     let grown = add64(add64(rd64(a, AGED), rd64(a, SHARES)), sub64(spent, apex.spent));
@@ -93,20 +104,25 @@ fn relay_bud(apex: Apex, cycle: u32, used: vec2<u32>, spent: vec2<u32>, why: u32
     let h = horizon_of(pa, RELAYED, a);
     let r = push_axis(rd64(a, LINEAGE), pa, cycle, RELAYED, a, 0u, rd64(a, ROOT), h, units);
     if r == NONE {
-        return none();
+        return NONE;
     }
     add_successor(a, r);
     made_axis(r, blend);
     ask(r, asks[0], asks[1]);
     wr64(r, AGED, grown);
-    wr(r, KIND, RELAYED | select(0u, IS_ENDED, why != ABORTED));
+    // A relay that grows in the cycle its axis stopped in, other than an
+    // ended age's, grows the rest of a failed unit (fn-199 R1, C1); one
+    // whose unit lived it whole grows on from the next, as the apex would
+    // have.
+    let rest = why != ENDS && lt64(used, ticks_whole());
+    wr(r, KIND, RELAYED | select(0u, IS_ENDED, whole) | select(0u, IS_REST, rest));
     wr(r, ENDED_RELAYS, ended_relays);
-    push_next(r, units);
-    return carry_on(cycle, used);
+    wr(r, BELOW, select(0u, below, rest));
+    return r;
 }
 
 // The apex has stopped in the unit keyed `key` (`stop`).
-fn stop(apex: Apex, cycle: u32, used: vec2<u32>, key: vec2<u32>, spent: vec2<u32>, why: u32, stopped: f32, bound: vec2<u32>) -> Next {
+fn stop(apex: Apex, cycle: u32, used: vec2<u32>, key: vec2<u32>, spent: vec2<u32>, why: u32, whole: bool, below: u32, stopped: f32, bound: vec2<u32>) -> Next {
     let a = apex.axis;
     wr64(a, UNITS, spent);
     if why == ENDS {
@@ -118,7 +134,7 @@ fn stop(apex: Apex, cycle: u32, used: vec2<u32>, key: vec2<u32>, spent: vec2<u32
     if is_zero(t) {
         return none();
     }
-    let d = draw(child(key, RELAY));
+    let d = draw(child(key, KEY_RELAY));
     if lt64(d, t) {
         // It stands between the axis's line and its own bud by the
         // stop's lead over the widest window (`stop`); its presences,
@@ -126,7 +142,7 @@ fn stop(apex: Apex, cycle: u32, used: vec2<u32>, key: vec2<u32>, spent: vec2<u32
         // bound.
         let blend = clamp(stopped / SPAN_F, 0.0, 1.0);
         let asks = array<vec4<u32>, 2>(vec4<u32>(RELAY_ASKS, why, key.x, key.y), vec4<u32>(cycle, used.x, bound.x, bound.y));
-        return relay_bud(apex, cycle, used, spent, why, blend, asks);
+        return relay_bud(apex, cycle, used, spent, why, whole || why == ENDS, below, blend, asks);
     }
     return none();
 }
@@ -137,12 +153,12 @@ fn move_on(apex: Apex, key: vec2<u32>, cycle: u32, used: vec2<u32>) -> Next {
     let pa = rd(a, PA);
     let next = successor(pa);
     if next == NONE {
-        return stop(apex, cycle, used, key, apex.spent, ENDS, HUGE, vec2<u32>(0u));
+        return stop(apex, cycle, used, key, apex.spent, ENDS, true, 0u, HUGE, vec2<u32>(0u));
     }
-    let d = draw(child(key, w(MOVE, 0u)));
+    let d = draw(child(key, KEY_MOVE));
     if !lt64(d, row(pa, 9u)) {
         let stopped = above_t(d, row(pa, 9u));
-        return stop(apex, cycle, used, key, apex.spent, ENDS, stopped, vec2<u32>(0u));
+        return stop(apex, cycle, used, key, apex.spent, ENDS, true, 0u, stopped, vec2<u32>(0u));
     }
     let woods = array<vec2<u32>, 2>(log_wood(next, cycle), log_wood(next, cycle + 1u));
     let span = w(cfg.span_lo, cfg.span_hi);
@@ -175,12 +191,76 @@ fn move_on(apex: Apex, key: vec2<u32>, cycle: u32, used: vec2<u32>) -> Next {
 fn relay_after(f: After, cycle: u32) -> Next {
     let pa = rd(f.apex.axis, PA);
     let t = row(pa, 7u);
-    if lt64(f.made, one32()) && !is_zero(t) && lt64(draw(child(f.key, RELAY)), t) {
+    if lt64(f.made, one32()) && !is_zero(t) && lt64(draw(child(f.key, KEY_RELAY)), t) {
         wr64(f.apex.axis, UNITS, f.apex.spent);
         let asks = array<vec4<u32>, 2>(vec4<u32>(AFTER_ASKS, f.key.x, f.key.y, cycle), vec4<u32>(f.used.x, f.made.x, f.made.y, 0u));
-        return relay_bud(f.apex, cycle, f.used, f.apex.spent, ENDS, 0.0, asks);
+        return relay_bud(f.apex, cycle, f.used, f.apex.spent, ENDS, true, 0u, 0.0, asks);
     }
     return none();
+}
+
+// The apex's unit keyed `keys.y` failed on draw `dv` under `survives`
+// and its relay draw makes one (`fail`, fn-199 R1): the unit grows the
+// share of its cycle the apex lived, at the relay's presence, and the
+// relay grows the rest of the cycle, whole.
+fn fail(apex_in: Apex, cycle: u32, s1: Step, gone: u32, whole: bool, keys: array<vec2<u32>, 2>, dv: vec2<u32>, survives: vec2<u32>) -> Next {
+    var apex = apex_in;
+    let a = apex.axis;
+    let pa = rd(a, PA);
+    let lived = lived_q(row(pa, 2u), unsigned_ticks(s1.share), dv);
+    let below = sub64(shl64(lived, 12u), lived_fine_q(row(pa, 2u), unsigned_ticks(s1.share), dv)).x;
+    let u = push_unit(a, rd(a, NUNITS));
+    unit_asks(u, cycle, lived.x, keys[0], survives);
+    unit_fails(u, 2u, s1.used.x);
+    unit_grows(u, a, true);
+    wr(a, NUNITS, rd(a, NUNITS) + 1u);
+    wr64(a, SHARES, add64(rd64(a, SHARES), lived));
+    grow_unit(a, pa, keys[1], cycle, lived.x);
+    unit_grows(u, a, false);
+    apex.spent = add64(apex.spent, lived);
+    wr(a, APEX_END, cycle + 1u);
+    wr(a, KIND, rd(a, KIND) | IS_FAILED);
+    wr64(a, UNITS, apex.spent);
+    let blend = clamp(above_t(dv, survives) / SPAN_F, 0.0, 1.0);
+    let used = add64(w(gone, 0u), lived);
+    let asks = array<vec4<u32>, 2>(vec4<u32>(RELAY_ASKS, FAILED, keys[0].x, keys[0].y), vec4<u32>(cycle, used.x, 0u, 0u));
+    // The lived part takes the unit's abortion draw over the share it
+    // lived and the next unit's (fn-199, host decision C1).
+    var aborts = vec2<u32>(0u);
+    if !s1.ends {
+        let grown = add64(rd64(a, AGED), rd64(a, SHARES));
+        let next = shl64(unsigned_ticks(step(apex_in.spent, gone, whole, row(pa, 0u), 2u).share), 12u);
+        aborts = abortion_after(pa, grown, min64(shl64(lived, 12u), next));
+    }
+    if !is_zero(aborts) {
+        let da = draw(child(keys[0], KEY_ABORTION));
+        if lt64(da, aborts) {
+            // Its relay stops at once, as an apex that aborted, and the
+            // abortion's relay stands on it, so on the failed axis.
+            let r = make_relay(apex, cycle, used, apex.spent, FAILED, whole, below, blend, asks);
+            if r == NONE {
+                return none();
+            }
+            wr(r, APEX_END, cycle + 1u);
+            let stopped = below_t(da, aborts);
+            return stop(Apex(r, apex.spent), cycle, used, keys[0], apex.spent, ABORTED, whole, below, stopped, aborts);
+        }
+        unit_persists(u, aborts);
+    }
+    return relay_bud(apex, cycle, used, apex.spent, FAILED, whole, below, blend, asks);
+}
+
+// D6: the abortion threshold after a unit of PA `pa`, its axis having
+// grown `grown` ticks, exposed `exposure` in 2^-32 of a cycle.
+fn abortion_after(pa: u32, grown: vec2<u32>, exposure: vec2<u32>) -> vec2<u32> {
+    let f = flags(pa);
+    if (f & 2u) == 0u {
+        return vec2<u32>(0u);
+    }
+    if (f & 4u) == 0u && !lt64(exposure, shl64(ticks_whole(), 12u)) {
+        return row(pa, 3u);
+    }
+    return abortion_fine_q(row(pa, 4u), (f & 4u) != 0u, row(pa, 5u), unsigned_ticks(grown), exposure);
 }
 
 // One living apex's growth unit in `cycle` (`advance`).
@@ -190,32 +270,51 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
     let pa = rd(a, PA);
     let life = row(pa, 0u);
     let lineage = rd64(a, LINEAGE);
-    let unit = child(lineage, w(cycle, 0u));
+    let first = rd(a, NUNITS) == 0u;
+    var unit = child(lineage, w(cycle, 0u));
+    // A failed unit's relay's first unit is keyed apart (fn-199 R1).
+    if first && (rd(a, KIND) & IS_REST) != 0u {
+        unit = child(unit, KEY_FAILED);
+    }
     let n = rd(a, ENDED_RELAYS);
     var decide = unit;
     if n != 0u {
-        decide = child(child(unit, ENDED), w(n, 0u));
+        decide = child(child(unit, KEY_ENDED), w(n, 0u));
     }
-    let first = rd(a, NUNITS) == 0u;
     let relay = (rd(a, KIND) & IS_ENDED) != 0u;
     let gone = select(0u, rd(a, SLEEP), first);
     let s1 = step(apex.spent, gone, first && relay, life, 1u);
     // D5.
+    // A failed unit's relay's first unit holds a part of a tick more than
+    // its ticks, which its thresholds read (fn-199 B2).
+    let below = w(select(0u, rd(a, BELOW), first), 0u);
     var survives = row(pa, 1u);
     if lt64(unsigned_ticks(s1.share), ticks_whole()) {
-        survives = survival_q(row(pa, 2u), unsigned_ticks(s1.share));
+        survives = survival_fine_q(row(pa, 2u), add64(shl64(unsigned_ticks(s1.share), 12u), below));
     }
-    let dv = draw(child(decide, w(VIABILITY, 0u)));
-    if !lt64(dv, survives) {
+    let dv = draw(child(decide, KEY_VIABILITY));
+    // A failure's relay, where its draw makes one (D9).
+    let tf = row(pa, 6u + FAILED);
+    let relays = !is_zero(tf) && lt64(draw(child(decide, KEY_RELAY)), tf);
+    // A failed unit's relay's first unit carries on where its own failure
+    // relays (fn-199, host decision A3).
+    let nested = first && (rd(a, KIND) & IS_REST) != 0u && relays;
+    if !lt64(dv, survives) && relays && !nested {
+        return fail(apex, cycle, s1, gone, first && relay, array<vec2<u32>, 2>(decide, unit), dv, survives);
+    }
+    if !lt64(dv, survives) && !nested {
         wr(a, APEX_END, cycle);
         wr(a, KIND, rd(a, KIND) | IS_FAILED);
         let stopped = above_t(dv, survives);
         let spent = add64(apex.spent, s1.share);
-        return stop(apex, cycle, ticks_whole(), decide, spent, FAILED, stopped, survives);
+        return stop(apex, cycle, ticks_whole(), decide, spent, FAILED, false, 0u, stopped, survives);
     }
     // Its survival's presence, Q32, at the chain's end (`assign.wgsl`).
     let u = push_unit(a, rd(a, NUNITS));
     unit_asks(u, cycle, unsigned_ticks(s1.share).x, decide, survives);
+    if relays {
+        unit_fails(u, 1u, s1.used.x);
+    }
     unit_grows(u, a, true);
     wr(a, NUNITS, rd(a, NUNITS) + 1u);
     wr64(a, SHARES, add64(rd64(a, SHARES), s1.share));
@@ -224,22 +323,15 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
     apex.spent = add64(apex.spent, s1.share);
     // D6.
     let grown = add64(rd64(a, AGED), rd64(a, SHARES));
-    let exposure = unsigned_ticks(smin64(s1.share, step(apex_in.spent, gone, first && relay, life, 2u).share));
-    var aborts = vec2<u32>(0u);
-    let f = flags(pa);
-    if (f & 2u) != 0u {
-        if (f & 4u) == 0u && !lt64(exposure, ticks_whole()) {
-            aborts = row(pa, 3u);
-        } else {
-            aborts = abortion_q(row(pa, 4u), (f & 4u) != 0u, row(pa, 5u), unsigned_ticks(grown), exposure);
-        }
-    }
+    let next = shl64(unsigned_ticks(step(apex_in.spent, gone, first && relay, life, 2u).share), 12u);
+    let exposure = min64(add64(shl64(unsigned_ticks(s1.share), 12u), below), next);
+    let aborts = abortion_after(pa, grown, exposure);
     if !is_zero(aborts) && !s1.ends {
-        let da = draw(child(decide, w(ABORTION, 0u)));
+        let da = draw(child(decide, KEY_ABORTION));
         if lt64(da, aborts) {
             wr(a, APEX_END, cycle + 1u);
             let stopped = below_t(da, aborts);
-            return stop(apex, cycle, ticks_whole(), decide, apex.spent, ABORTED, stopped, aborts);
+            return stop(apex, cycle, ticks_whole(), decide, apex.spent, ABORTED, false, 0u, stopped, aborts);
         }
         // An apex that all but aborted carries on as itself and as the
         // relay it would have had (host decision 11): its persistence,
@@ -255,7 +347,7 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
     if lt64(s1.used, ticks_whole()) {
         used = s1.used;
     }
-    let ends = child(child(lineage, END), w(n, 0u));
+    let ends = child(child(lineage, KEY_END), w(n, 0u));
     return move_on(apex, ends, cycle, used);
 }
 

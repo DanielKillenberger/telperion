@@ -77,8 +77,6 @@ describe("the control's arithmetic", () => {
     expect(admit(shell, Number.NaN)).toBeNull();
     const open = PARAMETERS.find(p => p.lowOpen && !p.zero)!;
     expect(admit(open, open.low)).toBeNull();
-    const zero = PARAMETERS.find(p => p.zero && p.low > 0)!;
-    expect(admit(zero, 0)).toBe(0);
   });
 });
 

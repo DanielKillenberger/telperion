@@ -8,6 +8,7 @@ mod buffer;
 mod camera;
 mod curve;
 mod device;
+mod encoder;
 mod foliage;
 pub mod generation;
 #[cfg(not(target_arch = "wasm32"))]
@@ -33,6 +34,7 @@ pub use camera::{
 };
 pub use curve::{viewer as curve_viewer, CurveReport};
 pub use device::{Gpu, RenderError, Result};
+pub use encoder::{Encoder, Recorded};
 pub use scene::{SceneRow, DEPTH_FORMAT, GROUND_REACH};
 pub use select::{Level, MAX_LEVELS};
 pub use shot::Shot;
@@ -104,6 +106,9 @@ pub struct Renderer {
     shadow: shadow::Shadow,
     wood: wood::Wood,
     foliage: foliage::Foliage,
+    /// The flowers (fn-216): a second foliage drawn by the same shader under
+    /// a colour block of their own; empty where the tree flowers nowhere.
+    organ: foliage::Foliage,
     view: View,
     /// Whether the room draws its scale figure. On unless a still imitates a
     /// photograph.
@@ -116,6 +121,11 @@ pub struct Renderer {
     /// What this renderer's pipelines were built to draw into, and so what its
     /// caller has to make its targets as.
     surface: Surface,
+    /// Set when a frame met a device error (a target the device could not
+    /// allocate while a build held its memory): the next frame makes its
+    /// targets again rather than drawing from invalid ones (fn-212 task 10,
+    /// host decision 2).
+    frame_failed: std::sync::Arc<std::sync::Mutex<Option<String>>>,
 }
 
 impl Renderer {
@@ -128,6 +138,12 @@ impl Renderer {
     /// The same renderer drawing at another multisample count, which is how a
     /// measurement compares counts (fn-208); one where the device does not
     /// offer it.
+    /// The device error the last frame met, if it met one: the next frame
+    /// makes its targets again.
+    pub fn frame_error(&self) -> Option<String> {
+        self.frame_failed.lock().ok()?.clone()
+    }
+
     pub fn with_samples(gpu: Gpu, colour_format: wgpu::TextureFormat, samples: u32) -> Self {
         // Asked of the device once, here, because every pipeline below has to
         // be built at the count the frame will be drawn at, and the frame's
@@ -144,6 +160,7 @@ impl Renderer {
         let scene = scene::Scene::new(&gpu, surface, shadow.layout());
         let wood = wood::Wood::new(&gpu, scene.layout(), &shadow, surface);
         let foliage = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface);
+        let organ = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface);
         Self {
             identity: std::sync::Arc::new(()),
             gpu,
@@ -151,7 +168,9 @@ impl Renderer {
             shadow,
             wood,
             foliage,
+            organ,
             view: View::default(),
+            frame_failed: Default::default(),
             figure: true,
             bounds: None,
             level_deviations: Vec::new(),
@@ -189,6 +208,7 @@ impl Renderer {
         fits(&self.gpu.device.limits(), mesh)?;
         self.wood.submit(&self.gpu, &mesh.curve);
         self.foliage.submit(&self.gpu, &mesh.foliage, level);
+        self.submit_organ(mesh.organ.as_ref(), level);
         self.scene
             .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
         self.scene.set_crown(crown_of(&mesh.foliage));
@@ -209,6 +229,19 @@ impl Renderer {
             foliage_instances: mesh.foliage_instances(),
             bounds: mesh.bounds,
         })
+    }
+
+    /// Uploads the flowers, or empties their draw where there are none, so
+    /// no later tree inherits the last one's.
+    fn submit_organ(&mut self, organ: Option<&telperion_core::mesh::Foliage>, level: Level) {
+        let empty = telperion_core::mesh::Foliage {
+            element: telperion_core::foliage::Element::default(),
+            instances: telperion_core::foliage::Instances::default(),
+        };
+        let organ_or_none = organ.unwrap_or(&empty);
+        self.organ.submit(&self.gpu, organ_or_none, level);
+        self.scene
+            .set_organ_reference(organ.map(|o| o.instances.reference));
     }
 
     /// Surfaces the wood as if every frame were `viewport` in size, so
@@ -305,8 +338,12 @@ impl Renderer {
     ) -> impl std::future::Future<Output = [Option<CurveReport>; 2]> + 'static {
         let curve = self.wood.curve();
         let pending = [
-            curve.and_then(|c| c.camera.as_ref()).map(|t| t.report_async(&self.gpu)),
-            curve.and_then(|c| c.sun.as_ref()).map(|t| t.report_async(&self.gpu)),
+            curve
+                .and_then(|c| c.camera.as_ref())
+                .map(|t| t.report_async(&self.gpu)),
+            curve
+                .and_then(|c| c.sun.as_ref())
+                .map(|t| t.report_async(&self.gpu)),
         ];
         async move {
             let [camera, sun] = pending;
@@ -413,6 +450,14 @@ impl Renderer {
         target: Target<'_>,
         timed: Option<Timed<'_>>,
     ) -> FrameStats {
+        // A frame's errors are its own: its scopes keep them out of a build
+        // awaiting its readbacks meanwhile, and a frame that failed has its
+        // targets made again by the next.
+        if self.frame_error().is_some() {
+            *self.frame_failed.lock().unwrap_or_else(|e| e.into_inner()) = None;
+            self.wood.forget_targets();
+        }
+        let scopes = self.gpu.scopes();
         let light = shadow::light(self.scene.row(), self.bounds());
         self.scene
             .set_frame(&self.gpu, camera, aspect_of(viewport), &light, self.view);
@@ -433,14 +478,17 @@ impl Renderer {
             ),
             None => (None, None, None, None),
         };
-        let mut encoder = self
-            .gpu
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("frame"),
-            });
-        self.wood
-            .tessellate(&self.gpu, &mut encoder, camera, viewport, &light, surfacing_writes);
+        let mut encoder = self.gpu.encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("frame"),
+        });
+        self.wood.tessellate(
+            &self.gpu,
+            &mut encoder,
+            camera,
+            viewport,
+            &light,
+            surfacing_writes,
+        );
         self.foliage.dispatch(
             &self.gpu,
             &mut encoder,
@@ -449,6 +497,8 @@ impl Renderer {
             self.view,
             selection_writes,
         );
+        self.organ
+            .dispatch(&self.gpu, &mut encoder, camera, viewport, self.view, None);
         {
             let mut pass = self.shadow.begin(&mut encoder, shadow_writes);
             match self.view {
@@ -492,10 +542,15 @@ impl Renderer {
             self.shadow.bind(&mut pass);
             match self.view {
                 View::Leaf => self.foliage.draw(&mut pass, self.view),
-                view => self.wood.draw(&mut pass) + self.foliage.draw(&mut pass, view),
+                view => {
+                    let tree = self.wood.draw(&mut pass) + self.foliage.draw(&mut pass, view);
+                    self.scene.bind_organ(&mut pass);
+                    tree + self.organ.draw(&mut pass, view)
+                }
             }
         };
-        self.gpu.queue.submit([encoder.finish()]);
+        self.gpu.submit([encoder.finish()]);
+        self.gpu.watch(scopes, self.frame_failed.clone());
         room + vegetation
     }
 }

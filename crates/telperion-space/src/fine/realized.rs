@@ -19,14 +19,16 @@
 //! phytomer stands for the node the root grows on, so every pass is the
 //! whole tree's own, run on the root's axes.
 use super::expansion::{Lived, Loaded, RootSeed, Roots};
+use super::step::{ready, Step};
 use super::{each, pick, Plan, Work};
 use crate::error::Result;
-use crate::geometry::{place_from, scale};
-use crate::girth::{thicken_given, Girth};
+use crate::fixed::feedback::total::Total;
+use crate::geometry::{phase, place_from, scale};
+use crate::girth::{attachments_given, disused_below, leaf_partials, thicken_given, Girth, Stand};
 use crate::grow::realized::{self, Handed};
 use crate::grow::Rules;
 use crate::sag::{any, levers_given, Lever, Load};
-use crate::shed::{shed_given, Living};
+use crate::shed::{shed_given, Living, Shed};
 use crate::species::Species;
 use crate::structure::{Axis, Origin, Phytomer, Structure, Vec3};
 
@@ -40,11 +42,49 @@ pub(crate) struct Root {
     pub birth: u32,
     tree: Structure,
     levers: Vec<Vec<Lever>>,
+    /// Where it keeps its tree as grown (any PA's `retained` or
+    /// `leaf_girth`): its axes before shedding, its sheds' index and
+    /// fades, its bearer's base and node's drawn scale as grown, and the
+    /// shed pipes and leaf mean it thickens by (task 12's exchange).
+    grown: Option<Box<AsGrown>>,
+    girth: Girth,
     /// What it reported up: its living, base radius and load.
     pub living: Living,
     pub radius: f64,
     pub load: Load,
     pub work: Work,
+}
+
+/// A fine root's first axis as its bearer made it: the node it stands
+/// on, whether it woke, its PA and birth.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Made {
+    pub node: usize,
+    pub woken: bool,
+    pub pa: usize,
+    pub birth: u32,
+}
+
+impl Made {
+    pub fn of(axis: &Axis) -> Self {
+        let Origin::Lateral { node, woken, .. } = axis.origin else {
+            unreachable!("a fine root is a lateral bud")
+        };
+        Self {
+            node,
+            woken,
+            pa: axis.pa,
+            birth: axis.birth,
+        }
+    }
+}
+
+/// A root's tree as grown, kept for the exchange.
+struct AsGrown {
+    axes: Vec<Axis>,
+    index: Vec<usize>,
+    fade: Vec<f64>,
+    stand: (i64, f64),
 }
 
 impl Root {
@@ -65,17 +105,42 @@ impl Root {
         assigned: realized::Assigned,
         started: f64,
     ) -> Self {
-        let Origin::Lateral { node, woken, .. } = handed.bud.axis.origin else {
-            unreachable!("a fine root is a lateral bud")
-        };
+        let made = Made::of(&handed.bud.axis);
+        Self::shed_grown(species, rules.age, made, assigned, started)
+    }
+
+    /// Phase 1's end for a subtree grown by any grower: its bearer's stub
+    /// (axis 0), then its axes, marked and assigned; shed by what it
+    /// realized (the stepped executor's roots, fn-211 task 12).
+    pub fn shed_grown(
+        species: &Species,
+        age: u32,
+        made: Made,
+        assigned: realized::Assigned,
+        started: f64,
+    ) -> Self {
+        let Made {
+            node,
+            woken,
+            pa,
+            birth,
+        } = made;
         let mut axes = assigned.axes;
         let made = axes.len() - 1;
         axes[0].phytomers = vec![node_phytomer()];
         if let Origin::Lateral { node, .. } = &mut axes[1].origin {
             *node = 0;
         }
-        let age = rules.age;
+        let kept = crate::grow::keeps(species).then(|| axes.clone());
         let (shed, living) = shed_given(axes, species, age, &|_| None, Some(1));
+        let grown = kept.map(|axes| {
+            Box::new(AsGrown {
+                axes,
+                index: shed.index.clone(),
+                fade: shed.fade.clone(),
+                stand: (0, 0.0),
+            })
+        });
         let tree = Structure {
             age,
             pas: species.states.len(),
@@ -84,17 +149,19 @@ impl Root {
         let work = Work {
             chains: 1,
             grown: assigned.grown,
-            cycles: u64::from(age - handed.bud.axis.birth),
+            cycles: u64::from(age - birth),
             axes: made,
             micros: (crate::clock::seconds() - started) * 1e6,
         };
         Self {
             node,
             woken,
-            pa: handed.bud.axis.pa,
-            birth: handed.bud.axis.birth,
+            pa,
+            birth,
             tree,
             levers: Vec::new(),
+            grown,
+            girth: Girth::default(),
             living,
             radius: 0.0,
             load: Load::default(),
@@ -122,14 +189,53 @@ impl Root {
         stub.vigour = base;
         stub.phytomers[0].scale = drawn;
         scale(&mut self.tree, species, 1);
-        let radii = thicken_given(&mut self.tree, species, &Girth::default(), &|_| None, 1);
+        let radii = thicken_given(&mut self.tree, species, &self.girth, &|_| None, 1);
         self.radius = radii.get(1).copied().unwrap_or(0.0);
         self.work.micros += (crate::clock::seconds() - started) * 1e6;
     }
 
+    /// The exchange's first half (fn-211 task 12; PHASES.md, the settle):
+    /// down, its bearer's base and its node's drawn scale as grown (Q32,
+    /// real); up, its subtree's leaf partials as grown.
+    pub fn partials(&mut self, species: &Species, stand: (i64, f64)) -> [Total; 2] {
+        let age = self.tree.age;
+        let g = self.grown.as_mut().expect("a tree kept as grown");
+        g.stand = stand;
+        g.axes[0].phytomers[0].scale = stand.1;
+        let from = Stand {
+            top: Some(stand.0),
+            first: 1,
+        };
+        match species.states.iter().any(|s| s.leaf_girth > 0.0) {
+            true => leaf_partials(&g.axes, species, (age, 1), from),
+            false => [Total::default(); 2],
+        }
+    }
+
+    /// The exchange's second half: down, the tree's leaf mean and its
+    /// bearers' fades at its base (Q32); its own shed pipes kept; up, its
+    /// base radius as grown.
+    pub fn attach(&mut self, species: &Species, mean: Option<f64>, above: i64) -> f64 {
+        let age = self.tree.age;
+        let g = self.grown.as_ref().expect("a tree kept as grown");
+        let from = Stand {
+            top: Some(g.stand.0),
+            first: 1,
+        };
+        let links = attachments_given(&g.axes, species, (age, 1), (from, mean), &|_| None);
+        let shed = Shed {
+            axes: Vec::new(),
+            index: g.index.clone(),
+            fade: g.fade.clone(),
+        };
+        self.girth = disused_below(&links, &shed, species, Some(above));
+        self.grown = None;
+        links.radius(1)
+    }
+
     /// Phase 3: laid from its bearer's laid frame at its node, and its
     /// levers gathered where any PA sags.
-    pub fn lay(&mut self, species: &Species, bearer: &Axis) -> Result<()> {
+    pub fn lay(&mut self, species: &Species, bearer: (&Axis, i64)) -> Result<()> {
         self.lay_on(species, stub(bearer, self.node))
     }
 
@@ -150,7 +256,7 @@ impl Root {
     /// Phase 4: laid again under its levers from its bearer's frame as
     /// laid under sag, each phytomer's lever turned from its first lay's
     /// frame.
-    pub fn bend(&mut self, species: &Species, bearer: &Axis) -> Result<()> {
+    pub fn bend(&mut self, species: &Species, bearer: (&Axis, i64)) -> Result<()> {
         self.bend_on(species, stub(bearer, self.node))
     }
 
@@ -203,83 +309,163 @@ fn node_phytomer() -> Phytomer {
         rank: 0.0,
         size: 1.0,
         light: 1.0,
+        grown: 1.0,
     }
 }
 
 /// The bearer as a root's tree holds it: its phytomer at `node` alone,
-/// standing on the point below it, as laid.
-pub(crate) fn stub(bearer: &Axis, node: usize) -> Axis {
-    let below = node
-        .checked_sub(1)
-        .map_or(bearer.base, |n| bearer.phytomers[n].tip);
-    Axis {
-        lineage: bearer.lineage,
-        pa: bearer.pa,
-        birth: bearer.birth,
-        origin: Origin::Seed,
-        vigour: 1.0,
-        blend: 1.0,
-        apex_end: None,
-        base: below,
-        heading: Vec3::default(),
-        side: Vec3::default(),
-        phytomers: vec![bearer.phytomers[node]],
-        units: Vec::new(),
-        alive: 0.0,
-        rank: 0.0,
-        sleep: 0.0,
+/// standing on the point below it, as laid, and the phase of its
+/// phyllotaxis (`geometry::phase`).
+pub(crate) fn stub(bearer: (&Axis, i64), node: usize) -> Axis {
+    Stub::of(bearer, node).axis()
+}
+
+/// A root's bearer's stub as plain values (task 9): what `stub` makes its
+/// axis of, kept without one.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Stub {
+    lineage: u64,
+    pa: usize,
+    birth: u32,
+    below: Vec3,
+    phytomer: Phytomer,
+    phase: i64,
+}
+
+impl Stub {
+    /// `bearer`'s stub at its `node`, as laid, with its phyllotaxis's
+    /// `phase`.
+    pub fn of((bearer, phase): (&Axis, i64), node: usize) -> Self {
+        let below = node
+            .checked_sub(1)
+            .map_or(bearer.base, |n| bearer.phytomers[n].tip);
+        Self {
+            lineage: bearer.lineage,
+            pa: bearer.pa,
+            birth: bearer.birth,
+            below,
+            phytomer: bearer.phytomers[node],
+            phase,
+        }
+    }
+
+    /// Its lowest point: the lower of its base and its tip.
+    pub fn low(&self) -> f64 {
+        self.below.z.min(self.phytomer.tip.z)
+    }
+
+    /// The stub as a root's tree holds it (axis 0).
+    pub fn axis(&self) -> Axis {
+        Axis {
+            lineage: self.lineage,
+            pa: self.pa,
+            birth: self.birth,
+            origin: Origin::Seed,
+            vigour: 1.0,
+            blend: 1.0,
+            apex_end: None,
+            base: self.below,
+            heading: Vec3::default(),
+            side: Vec3::default(),
+            phytomers: vec![self.phytomer],
+            units: Vec::new(),
+            alive: 0.0,
+            rank: 0.0,
+            sleep: 0.0,
+            phase: self.phase,
+        }
     }
 }
 
 /// The CPU reference executor's roots, grown and settled `plan.chunk` at
-/// a time in the plan's order on `threads` cores.
+/// a time in the plan's order on `threads` cores: grown from their seeds
+/// by `rules`, or none where they are held grown already (the stepped
+/// executor's, fn-211 task 12).
 pub(crate) struct Cpu<'s, 'r> {
     pub species: &'s Species,
-    pub rules: &'r Rules<'s>,
+    pub rules: Option<&'r Rules<'s>>,
     pub plan: Plan,
     pub threads: usize,
     pub roots: Vec<Root>,
 }
 
 impl Roots for Cpu<'_, '_> {
-    fn grow(&mut self, seeds: &[RootSeed]) -> Result<(Vec<Lived>, u64)> {
-        let (species, rules) = (self.species, self.rules);
-        let mut slots: Vec<&RootSeed> = seeds.iter().collect();
-        let grown = each(&mut slots, self.plan, self.threads, &|_, s| {
-            Root::grow(species, rules, &s.handed)
-        });
-        self.roots = grown.into_iter().collect::<Result<Vec<Root>>>()?;
+    fn grow<'a>(&'a mut self, seeds: &'a [RootSeed]) -> Step<'a, Result<(Vec<Lived>, u64)>> {
+        let species = self.species;
+        if let Some(rules) = self.rules {
+            let mut slots: Vec<&RootSeed> = seeds.iter().collect();
+            let grown = each(&mut slots, self.plan, self.threads, &|_, s| {
+                Root::grow(species, rules, &s.handed)
+            });
+            match grown.into_iter().collect::<Result<Vec<Root>>>() {
+                Ok(roots) => self.roots = roots,
+                Err(e) => return ready(Err(e)),
+            }
+        }
         let living = self.roots.iter().map(|r| (r.living.lived, r.living.alive));
         let phytomers = self.roots.iter().map(|r| r.work.grown).sum();
-        Ok((living.collect(), phytomers))
+        ready(Ok((living.collect(), phytomers)))
     }
 
-    fn girth(&mut self, live: &[usize], scales: &[(f64, f64)]) -> Vec<f64> {
+    fn girth<'a>(
+        &'a mut self,
+        live: &'a [usize],
+        scales: &'a [(f64, f64)],
+    ) -> Step<'a, Result<Vec<f64>>> {
         let species = self.species;
         let mut alive = pick(&mut self.roots, live);
         each(&mut alive, self.plan, self.threads, &|j, r| {
             r.girth(species, scales[j])
         });
-        live.iter().map(|&k| self.roots[k].radius).collect()
+        ready(Ok(live.iter().map(|&k| self.roots[k].radius).collect()))
     }
 
-    fn lay(&mut self, tree: &Structure, live: &[usize], bearers: &[usize]) -> Result<Vec<Loaded>> {
+    fn lay<'a>(
+        &'a mut self,
+        tree: &'a Structure,
+        live: &'a [usize],
+        bearers: &'a [usize],
+    ) -> Step<'a, Result<Vec<Loaded>>> {
         let species = self.species;
         let mut alive = pick(&mut self.roots, live);
         let laid = each(&mut alive, self.plan, self.threads, &|j, r| {
-            r.lay(species, &tree.axes[bearers[j]])
+            let b = bearers[j];
+            r.lay(species, (&tree.axes[b], phase(&tree.axes, species, b)))
         });
-        laid.into_iter().collect::<Result<()>>()?;
-        let load = |k: usize| (self.roots[k].load.mass, self.roots[k].load.moment);
-        Ok(live.iter().map(|&k| load(k)).collect())
+        let load = |k: usize| self.roots[k].load.real();
+        ready(
+            laid.into_iter()
+                .collect::<Result<()>>()
+                .map(|()| live.iter().map(|&k| load(k)).collect()),
+        )
     }
 
-    fn bend(&mut self, tree: &Structure, live: &[usize], bearers: &[usize]) -> Result<()> {
+    fn grown_partials(&mut self, stands: &[(i64, f64)]) -> Result<Vec<[Total; 2]>> {
+        let species = self.species;
+        Ok(each(&mut self.roots, self.plan, self.threads, &|k, r| {
+            r.partials(species, stands[k])
+        }))
+    }
+
+    fn grown_radii(&mut self, mean: Option<f64>, above: &[i64]) -> Result<Vec<f64>> {
+        let species = self.species;
+        Ok(each(&mut self.roots, self.plan, self.threads, &|k, r| {
+            r.attach(species, mean, above[k])
+        }))
+    }
+
+    fn bend<'a>(
+        &'a mut self,
+        tree: &'a Structure,
+        live: &'a [usize],
+        bearers: &'a [usize],
+    ) -> Step<'a, Result<()>> {
         let species = self.species;
         let mut alive = pick(&mut self.roots, live);
         let bent = each(&mut alive, self.plan, self.threads, &|j, r| {
-            r.bend(species, &tree.axes[bearers[j]])
+            let b = bearers[j];
+            r.bend(species, (&tree.axes[b], phase(&tree.axes, species, b)))
         });
-        bent.into_iter().collect()
+        ready(bent.into_iter().collect())
     }
 }

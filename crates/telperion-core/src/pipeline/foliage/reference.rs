@@ -13,7 +13,7 @@ use crate::{
 
 /// How far a station can stand from the wood axis it sits on, read off a
 /// family's rows: out to the skin of the wood it is seated on, then on along
-/// a spur, down a rosette or out along a rachis.
+/// down a rosette or out along a rachis.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) struct Reach {
     /// The reach from the thickest wood the rows let a station sit on.
@@ -22,7 +22,7 @@ pub(crate) struct Reach {
     seats: bool,
     /// The swept skin's fork swell, lobe depth and basal flare.
     skin: [f64; 3],
-    /// How far a spur or a rosette carries a station past its wood.
+    /// How far a rosette carries a station past its wood.
     beyond: f64,
     /// How far a rachis carries its leaflets past the station.
     rachis: f64,
@@ -89,10 +89,22 @@ impl Reference {
     /// every node out by the reach of a station seated on that node's own
     /// widest radius, and never less than the reach the rows state.
     pub(crate) fn grown(tree: &Tree, reach: Reach) -> Self {
+        let (lo, hi) = reach.wood_box(tree, |_| true);
+        Self::spanning(lo, hi)
+    }
+}
+
+impl Reach {
+    /// The corners of the box of the nodes of `tree` that `keep` keeps,
+    /// each out by the reach of a station seated on its widest radius, and
+    /// the root's position: boxes of parts of a tree combine by their
+    /// corners, exactly (fn-212 task 4).
+    pub(crate) fn wood_box(self, tree: &Tree, keep: impl Fn(usize) -> bool) -> (Vec3, Vec3) {
         let first = tree.nodes.first().map_or(Vec3::ZERO, |n| n.position);
-        let (lo, hi) = tree.nodes.iter().fold((first, first), |(lo, hi), n| {
+        let kept = tree.nodes.iter().enumerate().filter(|&(i, _)| keep(i));
+        kept.fold((first, first), |(lo, hi), (_, n)| {
             let wood = n.radius.max(n.start_radius).max(n.base_radius);
-            let out = reach.from_wood(wood).max(reach.authored);
+            let out = self.from_wood(wood).max(self.authored);
             let (a, b) = (
                 n.position - Vec3::new(out, out, out),
                 n.position + Vec3::new(out, out, out),
@@ -101,8 +113,21 @@ impl Reference {
                 Vec3::new(lo.x.min(a.x), lo.y.min(a.y), lo.z.min(a.z)),
                 Vec3::new(hi.x.max(b.x), hi.y.max(b.y), hi.z.max(b.z)),
             )
-        });
-        Self::spanning(lo, hi)
+        })
+    }
+
+    /// The terms of a station's reach from wood of radius `w`, for an
+    /// executor that folds its own nodes' box: `max(max(w * scale, beyond)
+    /// + rachis, 0)`, never under `authored`; `[scale, beyond, rachis,
+    /// authored]`.
+    pub(crate) fn terms(self) -> [f64; 4] {
+        let [swell, lobe, flare] = self.skin;
+        let scale = if self.seats {
+            swell * (1.0 + lobe) * flare
+        } else {
+            1.0
+        };
+        [scale, self.beyond, self.rachis, self.authored]
     }
 }
 
@@ -127,13 +152,6 @@ fn reach(
     } else {
         twigs.twig.diameter / 2.0
     };
-    // A short shoot stands on limb wood up to its own share of the stem and
-    // carries its cluster a spur's length further out again.
-    let spur = if canopy.short_shoot_spacing > 0.0 {
-        canopy.short_shoot_radius * trunk + canopy.short_shoot_length
-    } else {
-        0.0
-    };
     // A rachis carries its leaflets a length further out from the station,
     // arched out of that line again, and a rosette spreads its insertions,
     // and its skirt's, down the axis below the apex. Both are off at the neutral rows, so the
@@ -155,7 +173,7 @@ fn reach(
         authored: 0.0,
         seats: canopy.surface_contact > 0.0,
         skin: [surface.fork_swell, surface.lobe_depth, surface.flare_radius],
-        beyond: spur.max(apex),
+        beyond: apex,
         rachis,
     };
     reach.authored = reach.from_wood(wood);

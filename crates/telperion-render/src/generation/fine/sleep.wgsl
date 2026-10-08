@@ -12,12 +12,12 @@ fn sleep(zat: u32, node_key: vec2<u32>, axis: u32, node: u32, cycle: u32) {
     }
     let buds_f = gf(zone_g(zat));
     for (var s = 0u; s < table[zat + 4u]; s++) {
-        let key = child(child(node_key, w(s, 0u)), DORMANT);
+        let key = child(child(node_key, w(s, 0u)), KEY_DORMANT);
         let pa = drawn_pa(table[zat + 8u], table[zat + 9u], key);
         if pa == 0xffu {
             continue;
         }
-        let years = wake_q(words[waking], words[waking + 1u], draw(child(key, DORMANT)));
+        let years = wake_q(words[waking], words[waking + 1u], draw(child(key, KEY_DORMANT)));
         if !lt64(years, shl64(w(cfg.age - cycle, 0u), 20u)) {
             continue;
         }

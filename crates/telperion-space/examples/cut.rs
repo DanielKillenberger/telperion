@@ -6,7 +6,7 @@
 //!   cargo run --profile ci -p telperion-space --example cut -- [ages] [seeds] [cut]
 //!
 //! The beech and spruce are grown above the cut and expanded below it
-//! (`grow_fine`). The oak reads light, so its fine roots cannot be
+//! (`grow_roots`). The oak reads light, so its fine roots cannot be
 //! expanded yet (F2b): its predictor is surveyed against the lit tree the
 //! engine grows whole (`survey_lit`, sizes only), and its item work is
 //! read off the oak with its light switched off, expanded.
@@ -16,7 +16,7 @@ mod stats;
 use stats::{quantiles, tail};
 use std::time::Instant;
 use telperion_space::{
-    beech, grow_fine, oak, spruce, survey_lit, Expected, Light, Plan, Request, Species, Work,
+    beech, grow_roots, oak, spruce, survey_lit, Expected, Light, Plan, Request, Species, Work,
 };
 
 fn main() {
@@ -82,7 +82,7 @@ fn expand(label: &str, species: &Species, request: Request, cut: f64) {
         cut,
         ..Plan::default()
     };
-    let fine = grow_fine(species, request, plan).expect("grows");
+    let fine = grow_roots(species, request, plan).expect("grows");
     let wall = t.elapsed().as_secs_f64();
     let sizes: Vec<(f64, usize)> = fine.roots.iter().map(|r| (r.predicted, r.kept)).collect();
     let work: Vec<Work> = fine.roots.iter().map(|r| r.work).collect();

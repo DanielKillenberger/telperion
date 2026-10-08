@@ -37,6 +37,9 @@ fn axes_take_their_lengths_and_angles_from_their_pa() {
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
@@ -73,9 +76,10 @@ fn axes_take_their_lengths_and_angles_from_their_pa() {
         };
         let tip = axis.phytomers.last().unwrap().tip;
         let run = tip - axis.base;
-        assert!((length(run) - 0.3 * axis.phytomers.len() as f64).abs() < 1e-12);
+        // Contract A lays in Q32: lengths and angles hold to its last places.
+        assert!((length(run) - 0.3 * axis.phytomers.len() as f64).abs() < 1e-8);
         assert!(
-            (run.z / length(run) - 0.6f64.cos()).abs() < 1e-12,
+            (run.z / length(run) - 0.6f64.cos()).abs() < 1e-8,
             "the insertion angle"
         );
         assert_eq!(axis.base, trunk.phytomers[node].tip);
@@ -121,6 +125,9 @@ fn phyllotaxis_runs_on_across_a_continuation() {
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
@@ -192,6 +199,9 @@ fn an_overflowing_expectation_draws_finite_wood() {
             readiness: 1.0,
             rhythm: 1.0,
             leaf_area: 0.0,
+            flowering: 0.0,
+            cluster_leaves: 0.0,
+            cluster_spread: 0.0,
             shade_hazard: 0.0,
             shade_size: 0.0,
             apical_control: 0.5,
@@ -247,6 +257,9 @@ fn an_unreachable_pa_takes_no_part_in_a_window() {
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,

@@ -39,7 +39,6 @@ fn main() {
                         light,
                         &expected,
                         level as usize,
-                        &[0.5, 1.0, 2.0],
                         lit,
                     )
                     .into_iter()

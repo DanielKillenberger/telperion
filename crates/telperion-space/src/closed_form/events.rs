@@ -146,7 +146,7 @@ pub(super) fn first_events(
 fn events_of(species: &Species, laterals: &[Vec<f64>], k: usize, steps: &[Step]) -> Vec<Event> {
     let state = &species.states[k];
     let counts: Vec<Count> = state.zones.iter().map(|z| Count::of(z.nodes)).collect();
-    let (starts, _) = zones(&counts);
+    let (_, whole) = zones(&counts);
     let mut out = Vec::new();
     // Where a relay stands: its PA's share of the way along the unit it
     // stands on (`geometry::relay_point`), or the axis's base.
@@ -169,45 +169,37 @@ fn events_of(species: &Species, laterals: &[Vec<f64>], k: usize, steps: &[Step])
             });
         }
     };
-    for step in steps {
-        relay(&mut out, step.failed);
-        let (survival, size, i) = (step.grown, step.size, step.i);
-        let internode = state.internode * size;
-        for (z, (zone, lateral)) in state.zones.iter().zip(laterals).enumerate() {
-            let nodes = survival * zone.nodes.mean();
-            let start = step.start.then(scaled(starts[z], internode));
-            let wood = counts[z].wood(start, internode).map(|w| survival * w);
-            out.push(Event::Nodes {
-                at: i,
-                count: nodes,
-                size,
-                wood,
-            });
-            // Every bud place grows, the last a fraction's at its share of
-            // the size: counted whole, sized by the mean share.
-            let (places, shared) = zone_places(zone);
-            let mut low = 0.0;
-            for (j, &p) in lateral.iter().enumerate() {
-                let band = (low, low + p);
-                low += p;
-                let buds = nodes * places * p;
-                if buds > 0.0 {
-                    let placed = (start, internode);
-                    let stand = lateral_stand(species, (zone, counts[z]), placed, (j, p, band));
-                    out.push(Event::Bud {
-                        at: i,
-                        pa: j,
-                        carried: Carried::default(),
-                        weight: buds,
-                        size: size * shared,
-                        first: None,
-                        unit: size,
-                        stand,
-                    });
-                }
+    for (n, step) in steps.iter().enumerate() {
+        // A failed unit's lived parts, each with its relay standing on it,
+        // blended back towards the unit before by its extent (fn-199 R1,
+        // rule 2'), its nodes taken at their mean.
+        for l in &step.lived {
+            let grown = (step.i, l.weight, l.size, step.start);
+            unit_events(&mut out, species, (k, laterals), grown, &l.sleeping);
+            let length = scaled(whole, state.internode * l.size);
+            let extent = lived_extent(state, l.size);
+            let (r, back) = (
+                state.relay_at,
+                state.relay_at + extent * (1.0 - state.relay_at),
+            );
+            let at = match n.checked_sub(1).map(|u| &steps[u]) {
+                Some(before) => before.start.into(before.length, back),
+                None => step.start,
             }
-            out.extend(step.sleeping[z].iter().cloned());
+            .into(length, extent * r);
+            out.push(Event::Bud {
+                at: l.relay.at,
+                pa: k,
+                carried: l.relay.carried,
+                weight: l.relay.weight,
+                size: 1.0,
+                first: None,
+                unit: 1.0,
+                stand: Stand::whole(at, angled(Some(state))),
+            });
         }
+        let grown = (step.i, step.grown, step.size, step.start);
+        unit_events(&mut out, species, (k, laterals), grown, &step.sleeping);
         relay(&mut out, step.aborted);
         if let Some(end) = step.end {
             if let Some((at, pa, onward, weight)) = end.continuation {
@@ -226,6 +218,65 @@ fn events_of(species: &Species, laterals: &[Vec<f64>], k: usize, steps: &[Step])
         }
     }
     out
+}
+
+/// A failed unit's lived part's extent, `size` of its cycle grown: its
+/// nodes at their mean times that share, at most one (rule 2',
+/// `geometry::stand`).
+pub(super) fn lived_extent(state: &crate::species::PaState, size: f64) -> f64 {
+    let nodes: f64 = state.zones.iter().map(|z| z.nodes.mean()).sum();
+    (nodes * size).min(1.0)
+}
+
+/// A unit's events: each zone's nodes, grown `weight` of the time at
+/// `size` of a whole unit's length from `start`, the laterals they bear
+/// and the sleeping buds that wake on them.
+fn unit_events(
+    out: &mut Vec<Event>,
+    species: &Species,
+    (k, laterals): (usize, &[Vec<f64>]),
+    (i, weight, size, start): (usize, f64, f64, Along),
+    sleeping: &[Vec<Event>],
+) {
+    let state = &species.states[k];
+    let counts: Vec<Count> = state.zones.iter().map(|z| Count::of(z.nodes)).collect();
+    let (starts, _) = zones(&counts);
+    let internode = state.internode * size;
+    for (z, (zone, lateral)) in state.zones.iter().zip(laterals).enumerate() {
+        let nodes = weight * zone.nodes.mean();
+        let start = start.then(scaled(starts[z], internode));
+        let wood = counts[z].wood(start, internode).map(|w| weight * w);
+        out.push(Event::Nodes {
+            at: i,
+            count: nodes,
+            size,
+            wood,
+        });
+        // Every bud place grows, the last a fraction's at its share of
+        // the size: counted whole, sized by the mean share.
+        let (places, shared) = zone_places(zone);
+        let mut low = 0.0;
+        for (j, &p) in lateral.iter().enumerate() {
+            let band = (low, low + p);
+            low += p;
+            let buds = nodes * places * p;
+            if buds > 0.0 {
+                let placed = (start, internode);
+                let stand = lateral_stand(species, (zone, counts[z]), placed, (j, p, band));
+                out.push(Event::Bud {
+                    at: i,
+                    pa: j,
+                    carried: Carried::default(),
+                    weight: buds,
+                    size: size * shared,
+                    first: None,
+                    unit: size,
+                    stand,
+                });
+            }
+        }
+        out.extend(sleeping[z].iter().cloned());
+    }
 }
 
 /// Where the laterals of PA `j`, drawn at `p` within `band` of place 0's

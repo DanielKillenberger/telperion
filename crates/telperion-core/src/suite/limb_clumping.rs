@@ -1,6 +1,6 @@
 //! Limb systems clump their leaves: the row thins every source of leaves
 //! toward the walls between limb systems, keeps what it keeps where the
-//! stations and the short shoots put it, refuses a value off its rail by
+//! stations put it, refuses a value off its rail by
 //! name, and reaches the growth view as it reaches a one-shot build.
 use telperion_core::{
     branching,
@@ -10,16 +10,12 @@ use telperion_core::{
     Error,
 };
 
-/// An ordinary tree under a node cap, with short shoots along its limbs so
-/// both sources of leaves are present, and no clumping of its own.
+/// An ordinary tree under a node cap, with no clumping of its own.
 fn family(seed: u32) -> Family {
     let mut f = Preset::Ordinary.parameters();
     f.skeleton.seed = seed;
     f.skeleton.growth.max_nodes = Some(12_000);
     f.canopy = CanopyParams {
-        short_shoot_spacing: 0.08,
-        short_shoot_radius: 0.4,
-        short_shoot_leaves: 4,
         limb_clumping: 0.0,
         ..f.canopy
     };
@@ -79,4 +75,3 @@ fn a_value_off_the_rail_is_refused_by_name() {
         );
     }
 }
-

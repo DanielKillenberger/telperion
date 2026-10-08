@@ -78,6 +78,19 @@ pub enum Origin {
     Relay { parent: usize, node: usize },
 }
 
+impl Axis {
+    /// The axis it carries on and how far it has left that axis's line:
+    /// a relay by its blend, a continuation at none, for it is a relay at
+    /// blend 0 (fn-199, host 2026-10-07); none for a lateral or the seed.
+    pub(crate) fn carried_on(&self) -> Option<(usize, f64)> {
+        match self.origin {
+            Origin::Relay { parent, .. } => Some((parent, self.blend)),
+            Origin::Continuation { parent } => Some((parent, 0.0)),
+            Origin::Seed | Origin::Lateral { .. } => None,
+        }
+    }
+}
+
 impl Origin {
     /// The axis this one grows from; none for the seed.
     pub fn parent(self) -> Option<usize> {
@@ -126,6 +139,12 @@ pub struct Axis {
     /// The share of its first cycle a bud that woke still slept: its age
     /// is that much less than its birth gives.
     pub(crate) sleep: f64,
+    /// The phase its phyllotaxis starts from outside the structure, an
+    /// amount (Q32 turns, CONTRACT-A.md 2.2): a fine root's bearer's, held
+    /// by its stub (`fine::realized::stub`); none in a whole tree, whose
+    /// axes carried on take theirs from the axes they carry on
+    /// (`geometry::phase`).
+    pub(crate) phase: i64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -154,6 +173,10 @@ pub struct Phytomer {
     pub(crate) size: f64,
     /// The light its bud grew in (`light.rs`): 1 where nothing shades.
     pub(crate) light: f64,
+    /// How much of a node it is: its unit's presence times its node's
+    /// times the share of its cycle the unit lived (`presence::assign`),
+    /// which a relay standing on its unit reads (`geometry::stand`).
+    pub(crate) grown: f64,
 }
 
 impl Phytomer {
