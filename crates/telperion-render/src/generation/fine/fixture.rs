@@ -91,7 +91,7 @@ pub(super) fn with_family<R>(
     let landed_lineages: HashSet<u64> = landed.iter().filter_map(|&r| lineages[r]).collect();
     let fine = fine_nodes(tree, &landed_lineages);
     let d0 = std::time::Instant::now();
-    let dressed = dress(gpu, d, &dev, &stubs).unwrap();
+    let dressed = dress(gpu, d, &dev, (&stubs, family.supernatural.scale())).unwrap();
     let dress_ms = d0.elapsed().as_secs_f64() * 1e3;
     let fx = Fixture {
         family,

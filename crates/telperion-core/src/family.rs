@@ -39,6 +39,8 @@ crate::catalogue::rows! {
         /// The tree-space engine's species, the ages that are stem and the
         /// site's light: the indexed `/space` rows (`presets/space.rs`).
         pub space: crate::presets::space::Space,
+        /// The legendary traits, off on every natural species (fn-217).
+        pub supernatural: crate::supernatural::Supernatural,
         /// How deep into the crown leaves were kept, as a share of the crown's
         /// widest radius. Checked and read by nothing past the check: the
         /// cull it set kept every leaf on every engine preset and was removed
@@ -71,17 +73,26 @@ impl Default for Family {
             material: MaterialParams::default(),
             bloom: BloomParams::default(),
             space: Default::default(),
+            supernatural: Default::default(),
             shell_depth: 0.45,
         }
     }
 }
 impl Family {
-    /// Every row judged as the build judges it, each refused by the name it
-    /// refuses it by, with no attractor scattered, no node grown and no leaf
+    /// Every row judged as the build judges it, the supernatural group's
+    /// overrides laid over the rows they stand in for, each refused by the
+    /// name it refuses it by, with no attractor scattered, no node grown and no leaf
     /// placed. The checks run in the order the build reaches them. A scatter
     /// that falls short of its count is left to growth: that depends on the
     /// seed as much as on any row.
     pub fn validate(&self) -> Result<()> {
+        self.supernatural.validate()?;
+        self.applied().judged()
+    }
+
+    /// Every row but the supernatural group's, as `validate` judges the
+    /// family the build reads.
+    fn judged(&self) -> Result<()> {
         use crate::foliage::{Instances, Reference, TwigPlacement};
         use crate::pipeline::{build_element, canopy_rows, height, validate_skeleton};
         self.material.validate()?;

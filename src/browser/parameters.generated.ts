@@ -588,6 +588,110 @@ export interface Family {
     /** The share of the window the florets' openings are spread over: zero opens every floret at once. */
     stagger: number;
   };
+  supernatural: {
+    /** Whether the legendary traits act. Off, the group reads as none: the scale is one, the reflectances zero and every override leaves its natural row as it is. */
+    enabled: boolean;
+    /** How many times its natural size the tree is drawn: every position and length of the grown wood, after the engine grew it at its natural size, so its topology is the natural tree's. Leaves and flowers keep their own size; the leaves keep their spacing along the wood. One is the natural tree. */
+    scale: number;
+    /** What a leaf's underside mirrors at normal incidence, as a metal does: the sun's glint and the sky's sheen off the back of the blade, tinted by the back tint, taken from the face's diffuse. Zero mirrors nothing and leaves the back as the natural leaf's. */
+    backReflectance: number;
+    /** The colour the underside mirrors in, a linear reflectance per channel: a metal's reflection is its colour. Silver is near white. */
+    backRed: number;
+    /** The green channel of `back_red`. */
+    backGreen: number;
+    /** The blue channel of `back_red`. */
+    backBlue: number;
+    /** What a leaf's margin band mirrors at normal incidence, on either face, tinted by the margin's colour: a metallic rim, taken from the band's diffuse. Zero mirrors nothing. */
+    marginReflectance: number;
+    /** How rough the back and the margin are as mirrors: low is a sharp glint, high a broad sheen. */
+    roughness: number;
+    material: {
+      /** `/material/leafFrontRed` while the group is on; unset, the natural row. */
+      leafFrontRed?: number;
+      /** `/material/leafFrontGreen` while the group is on; unset, the natural row. */
+      leafFrontGreen?: number;
+      /** `/material/leafFrontBlue` while the group is on; unset, the natural row. */
+      leafFrontBlue?: number;
+      /** `/material/leafBackRed` while the group is on; unset, the natural row. */
+      leafBackRed?: number;
+      /** `/material/leafBackGreen` while the group is on; unset, the natural row. */
+      leafBackGreen?: number;
+      /** `/material/leafBackBlue` while the group is on; unset, the natural row. */
+      leafBackBlue?: number;
+      /** `/material/marginRed` while the group is on; unset, the natural row. */
+      marginRed?: number;
+      /** `/material/marginGreen` while the group is on; unset, the natural row. */
+      marginGreen?: number;
+      /** `/material/marginBlue` while the group is on; unset, the natural row. */
+      marginBlue?: number;
+    };
+    bloom: {
+      /** `/bloom/florets` while the group is on; unset, the natural row. */
+      florets?: number;
+      /** `/bloom/rachis` while the group is on; unset, the natural row. */
+      rachis?: number;
+      /** `/bloom/droop` while the group is on; unset, the natural row. */
+      droop?: number;
+      /** `/bloom/pedicel` while the group is on; unset, the natural row. */
+      pedicel?: number;
+      /** `/bloom/spread` while the group is on; unset, the natural row. */
+      spread?: number;
+      /** `/bloom/taper` while the group is on; unset, the natural row. */
+      taper?: number;
+      /** `/bloom/petals` while the group is on; unset, the natural row. */
+      petals?: number;
+      /** `/bloom/open` while the group is on; unset, the natural row. */
+      open?: number;
+      /** `/bloom/petalLength` while the group is on; unset, the natural row. */
+      petalLength?: number;
+      /** `/bloom/petalWidth` while the group is on; unset, the natural row. */
+      petalWidth?: number;
+      /** `/bloom/petalWidest` while the group is on; unset, the natural row. */
+      petalWidest?: number;
+      /** `/bloom/petalCup` while the group is on; unset, the natural row. */
+      petalCup?: number;
+      /** `/bloom/scatter` while the group is on; unset, the natural row. */
+      scatter?: number;
+      /** `/bloom/opens` while the group is on; unset, the natural row. */
+      opens?: number;
+      /** `/bloom/lasts` while the group is on; unset, the natural row. */
+      lasts?: number;
+      /** `/bloom/stagger` while the group is on; unset, the natural row. */
+      stagger?: number;
+    };
+    flowering: {
+      /** `/space/ages/0/flowering` while the group is on; unset, the natural share. */
+      age0?: number;
+      /** `/space/ages/1/flowering` while the group is on; unset, the natural share. */
+      age1?: number;
+      /** `/space/ages/2/flowering` while the group is on; unset, the natural share. */
+      age2?: number;
+      /** `/space/ages/3/flowering` while the group is on; unset, the natural share. */
+      age3?: number;
+      /** `/space/ages/4/flowering` while the group is on; unset, the natural share. */
+      age4?: number;
+      /** `/space/ages/5/flowering` while the group is on; unset, the natural share. */
+      age5?: number;
+      /** `/space/ages/6/flowering` while the group is on; unset, the natural share. */
+      age6?: number;
+      /** `/space/ages/7/flowering` while the group is on; unset, the natural share. */
+      age7?: number;
+      /** `/space/ages/8/flowering` while the group is on; unset, the natural share. */
+      age8?: number;
+      /** `/space/ages/9/flowering` while the group is on; unset, the natural share. */
+      age9?: number;
+      /** `/space/ages/10/flowering` while the group is on; unset, the natural share. */
+      age10?: number;
+      /** `/space/ages/11/flowering` while the group is on; unset, the natural share. */
+      age11?: number;
+      /** `/space/ages/12/flowering` while the group is on; unset, the natural share. */
+      age12?: number;
+      /** `/space/ages/13/flowering` while the group is on; unset, the natural share. */
+      age13?: number;
+      /** `/space/ages/14/flowering` while the group is on; unset, the natural share. */
+      age14?: number;
+    };
+  };
 }
 
 /** The engine species: the indexed `/space` rows (fn-198); absent on a family with none. */
@@ -898,4 +1002,52 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/bloom/opens", kind: "real", optional: false, meaning: "Where in the year the flowering window opens, as a share of the year from its start.", unit: "share of the year", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/bloom/lasts", kind: "real", optional: false, meaning: "How long the window lasts, as a share of the year. A floret grows in and shrinks out inside it; zero flowers never.", unit: "share of the year", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/bloom/stagger", kind: "real", optional: false, meaning: "The share of the window the florets' openings are spread over: zero opens every floret at once.", unit: "share of the window", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/supernatural/enabled", kind: "switch", optional: false, meaning: "Whether the legendary traits act. Off, the group reads as none: the scale is one, the reflectances zero and every override leaves its natural row as it is.", unit: "switch", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature" },
+  { path: "/supernatural/scale", kind: "real", optional: false, meaning: "How many times its natural size the tree is drawn: every position and length of the grown wood, after the engine grew it at its natural size, so its topology is the natural tree's. Leaves and flowers keep their own size; the leaves keep their spacing along the wood. One is the natural tree.", unit: "times the natural size", low: 0.1, high: 100, lowOpen: false, zero: false, applies: "`enabled` off", reach: "mature" },
+  { path: "/supernatural/backReflectance", kind: "real", optional: false, meaning: "What a leaf's underside mirrors at normal incidence, as a metal does: the sun's glint and the sky's sheen off the back of the blade, tinted by the back tint, taken from the face's diffuse. Zero mirrors nothing and leaves the back as the natural leaf's.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`enabled` off", reach: "mature" },
+  { path: "/supernatural/backRed", kind: "real", optional: false, meaning: "The colour the underside mirrors in, a linear reflectance per channel: a metal's reflection is its colour. Silver is near white.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`enabled` off, or `backReflectance` zero", reach: "mature" },
+  { path: "/supernatural/backGreen", kind: "real", optional: false, meaning: "The green channel of `back_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`enabled` off, or `backReflectance` zero", reach: "mature" },
+  { path: "/supernatural/backBlue", kind: "real", optional: false, meaning: "The blue channel of `back_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`enabled` off, or `backReflectance` zero", reach: "mature" },
+  { path: "/supernatural/marginReflectance", kind: "real", optional: false, meaning: "What a leaf's margin band mirrors at normal incidence, on either face, tinted by the margin's colour: a metallic rim, taken from the band's diffuse. Zero mirrors nothing.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`enabled` off, or `/material/marginWidth` zero", reach: "mature" },
+  { path: "/supernatural/roughness", kind: "real", optional: false, meaning: "How rough the back and the margin are as mirrors: low is a sharp glint, high a broad sheen.", unit: "-", low: 0, high: 1, lowOpen: false, zero: false, applies: "`enabled` off, or both reflectances zero", reach: "mature" },
+  { path: "/supernatural/material/leafFrontRed", kind: "real", optional: true, meaning: "`/material/leafFrontRed` while the group is on; unset, the natural row.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/material/leafFrontGreen", kind: "real", optional: true, meaning: "`/material/leafFrontGreen` while the group is on; unset, the natural row.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/material/leafFrontBlue", kind: "real", optional: true, meaning: "`/material/leafFrontBlue` while the group is on; unset, the natural row.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/material/leafBackRed", kind: "real", optional: true, meaning: "`/material/leafBackRed` while the group is on; unset, the natural row.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/material/leafBackGreen", kind: "real", optional: true, meaning: "`/material/leafBackGreen` while the group is on; unset, the natural row.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/material/leafBackBlue", kind: "real", optional: true, meaning: "`/material/leafBackBlue` while the group is on; unset, the natural row.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/material/marginRed", kind: "real", optional: true, meaning: "`/material/marginRed` while the group is on; unset, the natural row.", unit: "offset", low: -1, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/material/marginGreen", kind: "real", optional: true, meaning: "`/material/marginGreen` while the group is on; unset, the natural row.", unit: "offset", low: -1, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/material/marginBlue", kind: "real", optional: true, meaning: "`/material/marginBlue` while the group is on; unset, the natural row.", unit: "offset", low: -1, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/florets", kind: "real", optional: true, meaning: "`/bloom/florets` while the group is on; unset, the natural row.", unit: "florets", low: 1, high: 64, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/rachis", kind: "real", optional: true, meaning: "`/bloom/rachis` while the group is on; unset, the natural row.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/droop", kind: "real", optional: true, meaning: "`/bloom/droop` while the group is on; unset, the natural row.", unit: "share", low: -1, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/pedicel", kind: "real", optional: true, meaning: "`/bloom/pedicel` while the group is on; unset, the natural row.", unit: "m", low: 0, high: 0.5, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/spread", kind: "real", optional: true, meaning: "`/bloom/spread` while the group is on; unset, the natural row.", unit: "degrees", low: 0, high: 180, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/taper", kind: "real", optional: true, meaning: "`/bloom/taper` while the group is on; unset, the natural row.", unit: "share", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/petals", kind: "real", optional: true, meaning: "`/bloom/petals` while the group is on; unset, the natural row.", unit: "petals", low: 1, high: 12, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/open", kind: "real", optional: true, meaning: "`/bloom/open` while the group is on; unset, the natural row.", unit: "degrees", low: 0, high: 180, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/petalLength", kind: "real", optional: true, meaning: "`/bloom/petalLength` while the group is on; unset, the natural row.", unit: "m", low: 0.0001, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/petalWidth", kind: "real", optional: true, meaning: "`/bloom/petalWidth` while the group is on; unset, the natural row.", unit: "m", low: 0.0001, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/petalWidest", kind: "real", optional: true, meaning: "`/bloom/petalWidest` while the group is on; unset, the natural row.", unit: "share of the petal", low: 0.05, high: 0.95, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/petalCup", kind: "real", optional: true, meaning: "`/bloom/petalCup` while the group is on; unset, the natural row.", unit: "share of the half-width", low: -2, high: 2, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/scatter", kind: "real", optional: true, meaning: "`/bloom/scatter` while the group is on; unset, the natural row.", unit: "share", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/opens", kind: "real", optional: true, meaning: "`/bloom/opens` while the group is on; unset, the natural row.", unit: "share of the year", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/lasts", kind: "real", optional: true, meaning: "`/bloom/lasts` while the group is on; unset, the natural row.", unit: "share of the year", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/stagger", kind: "real", optional: true, meaning: "`/bloom/stagger` while the group is on; unset, the natural row.", unit: "share of the window", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age0", kind: "real", optional: true, meaning: "`/space/ages/0/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age1", kind: "real", optional: true, meaning: "`/space/ages/1/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age2", kind: "real", optional: true, meaning: "`/space/ages/2/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age3", kind: "real", optional: true, meaning: "`/space/ages/3/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age4", kind: "real", optional: true, meaning: "`/space/ages/4/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age5", kind: "real", optional: true, meaning: "`/space/ages/5/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age6", kind: "real", optional: true, meaning: "`/space/ages/6/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age7", kind: "real", optional: true, meaning: "`/space/ages/7/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age8", kind: "real", optional: true, meaning: "`/space/ages/8/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age9", kind: "real", optional: true, meaning: "`/space/ages/9/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age10", kind: "real", optional: true, meaning: "`/space/ages/10/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age11", kind: "real", optional: true, meaning: "`/space/ages/11/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age12", kind: "real", optional: true, meaning: "`/space/ages/12/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age13", kind: "real", optional: true, meaning: "`/space/ages/13/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age14", kind: "real", optional: true, meaning: "`/space/ages/14/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
 ];

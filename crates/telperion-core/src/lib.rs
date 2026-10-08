@@ -29,6 +29,7 @@ extern crate self as telperion_core;
 pub mod presets;
 pub mod ranges;
 pub mod rng;
+pub mod supernatural;
 pub mod tree;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

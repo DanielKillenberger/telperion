@@ -11,6 +11,7 @@ use crate::{
     foliage::{BloomParams, CanopyParams, ElementParams},
     material::MaterialParams,
     radius::RadiusParams,
+    supernatural::{Supernatural, SupernaturalBloom, SupernaturalFlowering, SupernaturalMaterial},
     surface::SurfaceParams,
     twigs::{TwigAnatomy, TwigParams},
     Family,
@@ -131,6 +132,10 @@ groups! {
     ElementParams: element;
     MaterialParams: material;
     BloomParams: bloom;
+    Supernatural: supernatural;
+    SupernaturalMaterial: supernatural.material;
+    SupernaturalBloom: supernatural.bloom;
+    SupernaturalFlowering: supernatural.flowering;
 }
 
 const fn find<S>(rows: &[Row<S>], path: &str) -> Option<usize> {

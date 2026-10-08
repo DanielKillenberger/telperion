@@ -83,6 +83,7 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
     g.max_nodes = (oa.max_nodes.is_some() || ob.max_nodes.is_some())
         .then(|| linear(ga.max_nodes as f64, gb.max_nodes as f64, t).round() as usize);
     f.space = space(&a.space, &b.space, t)?;
+    f.supernatural = crate::supernatural::blend(a, b, t);
     Ok(f)
 }
 

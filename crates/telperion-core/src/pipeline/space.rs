@@ -54,7 +54,7 @@ const FORK_AT: f64 = 0.7;
 /// with no engine species is refused by name, never grown another way
 /// (host decision 9).
 pub(super) fn grow(input: GrowInput) -> Result<Tree> {
-    let (species, request) = asked(input)?;
+    let (species, request) = asked(&input)?;
     foreseen(species, request.age, KEPT)?;
     // The engine returns its tree in its canonical lineage order, parents
     // first and siblings by lineage, whichever path built it (FINE-CONTRACT
@@ -64,39 +64,67 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
         telperion_space::grow_marked(species, request).map_err(engine)?;
     fits(&structure, KEPT)?;
     let rows = (&input.space.trunk[..], &pa_rows(species)[..]);
-    Ok(convert(&structure, (&fine, &bases), rows))
+    let mut tree = convert(&structure, (&fine, &bases), rows);
+    scaled(&mut tree, input.supernatural.scale());
+    Ok(tree)
 }
 
 /// The family's species settled with its fine roots grown and laid by
-/// `roots` (fn-212 task 7, host decision 1), and the rows its conversion
-/// reads: the trunk's PAs and each PA's internode. Never on the browser's
-/// ceiling: the executor holding the roots is what lifts it.
+/// `roots` (fn-212 task 7, host decision 1), and what its conversion
+/// reads: the trunk's PAs, each PA's row and the scale the tree is drawn
+/// at. Never on the browser's ceiling: the executor holding the roots is
+/// what lifts it.
 pub(super) async fn settled(
     input: GrowInput<'_>,
     roots: &mut dyn telperion_space::Roots,
-) -> Result<(telperion_space::Settled, Vec<usize>, Vec<PaRow>)> {
-    let (species, request) = asked(input)?;
+) -> Result<(telperion_space::Settled, Vec<usize>, Vec<PaRow>, f64)> {
+    let (species, request) = asked(&input)?;
     let plan = telperion_space::Plan::default();
     let settling = telperion_space::settle(species, request, plan, roots);
     let (settled, _) = settling.await.map_err(engine)?;
-    Ok((settled, input.space.trunk.clone(), pa_rows(species)))
+    let scale = input.supernatural.scale();
+    Ok((settled, input.space.trunk.clone(), pa_rows(species), scale))
 }
 
 /// `settled`'s structure above the cut and its roots laid on the CPU
 /// converted by the one conversion, each other root's attachment recorded
 /// and none of its wood drawn; each root's first axis's lineage (none:
-/// shed), and the roots laid on the CPU.
+/// shed), and the roots laid on the CPU; the tree drawn at `scale`.
 pub(super) fn part(
     settled: telperion_space::Settled,
     (trunk, rows): (&[usize], &[PaRow]),
+    scale: f64,
 ) -> (Tree, Vec<Option<u64>>, Vec<usize>) {
     let part = telperion_space::partial(settled);
-    let tree = convert(&part.structure, (&part.fine, &part.bases), (trunk, rows));
+    let mut tree = convert(&part.structure, (&part.fine, &part.bases), (trunk, rows));
+    scaled(&mut tree, scale);
     (tree, part.lineages, part.grounded)
 }
 
-/// The family's engine species and the request it grows by.
-fn asked(input: GrowInput<'_>) -> Result<(&telperion_space::Species, Request)> {
+/// The converted tree drawn at `scale` times its natural size (fn-217
+/// S1): every position and length once, and no orientation. The engine
+/// grew it, and the conversion took every decision of its topology, at the
+/// natural size, so the tree is the natural one enlarged.
+fn scaled(tree: &mut Tree, scale: f64) {
+    if scale == 1.0 {
+        return;
+    }
+    for n in &mut tree.nodes {
+        n.position = n.position * scale;
+        n.radius *= scale;
+        n.start_radius *= scale;
+        n.base_radius *= scale;
+    }
+    for grown in &mut tree.grown {
+        *grown *= scale;
+    }
+}
+
+/// The family's engine species and the request it grows by. The
+/// supernatural group's rows are judged here, whether or not it is on: the
+/// conversion reads its scale.
+fn asked<'a>(input: &'a GrowInput<'_>) -> Result<(&'a telperion_space::Species, Request)> {
+    input.supernatural.validate()?;
     let species = (input.space.species.as_ref()).ok_or(Error::InvalidInput("no engine species"))?;
     let age = input.age;
     if age.fract() != 0.0 || !(0.0..=f64::from(u32::MAX)).contains(&age) {

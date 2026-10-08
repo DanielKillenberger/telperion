@@ -2799,3 +2799,492 @@ The share of the window the florets' openings are spread over: zero opens every 
 - checked: Bloom site, rank 15, as invalid input `bloom stagger`
 - dormant: no age flowering
 - blend: linear; dial: none: Dormant on every shipped species until one flowers; that species' spec opens its flowers to tuning (fn-216).
+
+## `/supernatural`
+
+### `/supernatural/enabled`
+
+Whether the legendary traits act. Off, the group reads as none: the scale is one, the reflectances zero and every override leaves its natural row as it is.
+
+- switch, switch, [0, 1], default 0
+- read by grow, plan, expand, draw; removed growth path: as the direct build
+- checked: by a named check or not at all (see note)
+- note: A walk interpolates what each side applies, so a family that switches the group on ramps up from its natural rows.
+- blend: with the rows it is coupled to; dial: none: Boolean, not a numeric scalar.
+
+### `/supernatural/scale`
+
+How many times its natural size the tree is drawn: every position and length of the grown wood, after the engine grew it at its natural size, so its topology is the natural tree's. Leaves and flowers keep their own size; the leaves keep their spacing along the wood. One is the natural tree.
+
+- real, times the natural size, [0.1, 100], default 1
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 0, as invalid value `scale`
+- dormant: `enabled` off
+- note: Checked while dormant too. Applied once, to the converted tree, before the whole-tree folds; the device scales the wood it draws by the same value.
+- blend: with the rows it is coupled to; dial: none: A legendary row, dormant on every natural species; the Two Trees' specs open it to tuning (fn-218, fn-219).
+
+### `/supernatural/backReflectance`
+
+What a leaf's underside mirrors at normal incidence, as a metal does: the sun's glint and the sky's sheen off the back of the blade, tinted by the back tint, taken from the face's diffuse. Zero mirrors nothing and leaves the back as the natural leaf's.
+
+- real, reflectance, [0, 1], default 0
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 1, as invalid input `back reflectance`
+- dormant: `enabled` off
+- blend: with the rows it is coupled to; dial: none: A legendary row, dormant on every natural species; the Two Trees' specs open it to tuning (fn-218, fn-219).
+
+### `/supernatural/backRed`
+
+The colour the underside mirrors in, a linear reflectance per channel: a metal's reflection is its colour. Silver is near white.
+
+- real, reflectance, [0, 1], default 1
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 2, as invalid input `back tint red`
+- dormant: `enabled` off, or `backReflectance` zero
+- blend: with the rows it is coupled to; dial: none: A legendary row, dormant on every natural species; the Two Trees' specs open it to tuning (fn-218, fn-219).
+
+### `/supernatural/backGreen`
+
+The green channel of `back_red`.
+
+- real, reflectance, [0, 1], default 1
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 3, as invalid input `back tint green`
+- dormant: `enabled` off, or `backReflectance` zero
+- blend: with the rows it is coupled to; dial: none: A legendary row, dormant on every natural species; the Two Trees' specs open it to tuning (fn-218, fn-219).
+
+### `/supernatural/backBlue`
+
+The blue channel of `back_red`.
+
+- real, reflectance, [0, 1], default 1
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 4, as invalid input `back tint blue`
+- dormant: `enabled` off, or `backReflectance` zero
+- blend: with the rows it is coupled to; dial: none: A legendary row, dormant on every natural species; the Two Trees' specs open it to tuning (fn-218, fn-219).
+
+### `/supernatural/marginReflectance`
+
+What a leaf's margin band mirrors at normal incidence, on either face, tinted by the margin's colour: a metallic rim, taken from the band's diffuse. Zero mirrors nothing.
+
+- real, reflectance, [0, 1], default 0
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 5, as invalid input `margin reflectance`
+- dormant: `enabled` off, or `/material/marginWidth` zero
+- blend: with the rows it is coupled to; dial: none: A legendary row, dormant on every natural species; the Two Trees' specs open it to tuning (fn-218, fn-219).
+
+### `/supernatural/roughness`
+
+How rough the back and the margin are as mirrors: low is a sharp glint, high a broad sheen.
+
+- real, -, [0, 1], default 0.3
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 6, as invalid input `reflection roughness`
+- dormant: `enabled` off, or both reflectances zero
+- blend: with the rows it is coupled to; dial: none: A legendary row, dormant on every natural species; the Two Trees' specs open it to tuning (fn-218, fn-219).
+
+## `/supernatural/material`
+
+### `/supernatural/material/leafFrontRed`
+
+`/material/leafFrontRed` while the group is on; unset, the natural row.
+
+- optional real, reflectance, [0, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 0, as invalid input `supernatural material leafFrontRed`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/material/leafFrontGreen`
+
+`/material/leafFrontGreen` while the group is on; unset, the natural row.
+
+- optional real, reflectance, [0, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 1, as invalid input `supernatural material leafFrontGreen`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/material/leafFrontBlue`
+
+`/material/leafFrontBlue` while the group is on; unset, the natural row.
+
+- optional real, reflectance, [0, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 2, as invalid input `supernatural material leafFrontBlue`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/material/leafBackRed`
+
+`/material/leafBackRed` while the group is on; unset, the natural row.
+
+- optional real, reflectance, [0, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 3, as invalid input `supernatural material leafBackRed`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/material/leafBackGreen`
+
+`/material/leafBackGreen` while the group is on; unset, the natural row.
+
+- optional real, reflectance, [0, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 4, as invalid input `supernatural material leafBackGreen`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/material/leafBackBlue`
+
+`/material/leafBackBlue` while the group is on; unset, the natural row.
+
+- optional real, reflectance, [0, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 5, as invalid input `supernatural material leafBackBlue`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/material/marginRed`
+
+`/material/marginRed` while the group is on; unset, the natural row.
+
+- optional real, offset, [-1, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 6, as invalid input `supernatural material marginRed`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/material/marginGreen`
+
+`/material/marginGreen` while the group is on; unset, the natural row.
+
+- optional real, offset, [-1, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 7, as invalid input `supernatural material marginGreen`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/material/marginBlue`
+
+`/material/marginBlue` while the group is on; unset, the natural row.
+
+- optional real, offset, [-1, 1], default unset
+- read by draw; removed growth path: as the direct build
+- checked: Supernatural site, rank 8, as invalid input `supernatural material marginBlue`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+## `/supernatural/bloom`
+
+### `/supernatural/bloom/florets`
+
+`/bloom/florets` while the group is on; unset, the natural row.
+
+- optional real, florets, [1, 64], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 0, as invalid input `supernatural bloom florets`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/rachis`
+
+`/bloom/rachis` while the group is on; unset, the natural row.
+
+- optional real, m, [0, 1], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 1, as invalid input `supernatural bloom rachis`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/droop`
+
+`/bloom/droop` while the group is on; unset, the natural row.
+
+- optional real, share, [-1, 1], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 2, as invalid input `supernatural bloom droop`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/pedicel`
+
+`/bloom/pedicel` while the group is on; unset, the natural row.
+
+- optional real, m, [0, 0.5], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 3, as invalid input `supernatural bloom pedicel`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/spread`
+
+`/bloom/spread` while the group is on; unset, the natural row.
+
+- optional real, degrees, [0, 180], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 4, as invalid input `supernatural bloom spread`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/taper`
+
+`/bloom/taper` while the group is on; unset, the natural row.
+
+- optional real, share, [0, 1], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 5, as invalid input `supernatural bloom taper`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/petals`
+
+`/bloom/petals` while the group is on; unset, the natural row.
+
+- optional real, petals, [1, 12], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 6, as invalid input `supernatural bloom petals`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/open`
+
+`/bloom/open` while the group is on; unset, the natural row.
+
+- optional real, degrees, [0, 180], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 7, as invalid input `supernatural bloom open`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/petalLength`
+
+`/bloom/petalLength` while the group is on; unset, the natural row.
+
+- optional real, m, [0.0001, 1], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 8, as invalid input `supernatural bloom petalLength`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/petalWidth`
+
+`/bloom/petalWidth` while the group is on; unset, the natural row.
+
+- optional real, m, [0.0001, 1], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 9, as invalid input `supernatural bloom petalWidth`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/petalWidest`
+
+`/bloom/petalWidest` while the group is on; unset, the natural row.
+
+- optional real, share of the petal, [0.05, 0.95], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 10, as invalid input `supernatural bloom petalWidest`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/petalCup`
+
+`/bloom/petalCup` while the group is on; unset, the natural row.
+
+- optional real, share of the half-width, [-2, 2], default unset
+- read by plan; removed growth path: as the direct build
+- checked: Supernatural site, rank 11, as invalid input `supernatural bloom petalCup`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/scatter`
+
+`/bloom/scatter` while the group is on; unset, the natural row.
+
+- optional real, share, [0, 1], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 12, as invalid input `supernatural bloom scatter`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/opens`
+
+`/bloom/opens` while the group is on; unset, the natural row.
+
+- optional real, share of the year, [0, 1], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 13, as invalid input `supernatural bloom opens`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/lasts`
+
+`/bloom/lasts` while the group is on; unset, the natural row.
+
+- optional real, share of the year, [0, 1], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 14, as invalid input `supernatural bloom lasts`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/bloom/stagger`
+
+`/bloom/stagger` while the group is on; unset, the natural row.
+
+- optional real, share of the window, [0, 1], default unset
+- read by expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 15, as invalid input `supernatural bloom stagger`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+## `/supernatural/flowering`
+
+### `/supernatural/flowering/age0`
+
+`/space/ages/0/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 0, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age1`
+
+`/space/ages/1/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 1, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age2`
+
+`/space/ages/2/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 2, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age3`
+
+`/space/ages/3/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 3, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age4`
+
+`/space/ages/4/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 4, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age5`
+
+`/space/ages/5/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 5, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age6`
+
+`/space/ages/6/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 6, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age7`
+
+`/space/ages/7/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 7, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age8`
+
+`/space/ages/8/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 8, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age9`
+
+`/space/ages/9/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 9, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age10`
+
+`/space/ages/10/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 10, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age11`
+
+`/space/ages/11/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 11, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age12`
+
+`/space/ages/12/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 12, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age13`
+
+`/space/ages/13/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 13, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/flowering/age14`
+
+`/space/ages/14/flowering` while the group is on; unset, the natural share.
+
+- optional real, share of the age's nodes, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 14, as invalid input `supernatural flowering`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
