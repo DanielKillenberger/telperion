@@ -163,3 +163,10 @@
 - **Slowed by:** both branches rewrote the decision contract's `log2` (F4 for speed, as squarings with a paired form; F2b as a polynomial that is not `const`), and F4's presence bounds build a `const` table from `log2`, so the polynomial had to be made `const` too. fn-211's evidence records no `space_hash` lines either (the rule in the entry above), so the before half was built and kept as binaries copied out of `target/` before merging. The desk's command guard refuses a shell redirect to a variable path and `rm -rf` of a variable path, which cost two re-runs with literal paths.
 - **Cost:** about 15 minutes on the two `log2`s; about 3 minutes on the guard.
 - **Would remove it:** a branch that rewrites a shared contract helper names it in its RESULT.md, so the other branch's speed work on it is seen before the merge; `space_hash` taking a revision (fn-224's entry) would remove the copied binaries.
+
+## 2026-10-08 09:30, merging fn-212 into F4: hard-coded strides in a reader shader, and a shared scratch directory
+
+- **Doing:** resolving 15 conflicted files, then checking that fn-212's device readers still read F4's laid buffers.
+- **Slowed by:** `dress.wgsl` copies the laid layout as literals (`SA = 66u`, `PL = 22u`, `GG = 24u`) while F4 widened it in `laid.rs` and `geometry.wgsl` (70, 23, 25). Nothing ties the copies to `laid.rs`, so the merge compiles and only a device parity probe would catch the stride. Separately, another session wrote its own `stills.sh` into this session's scratch directory over mine (an f2b script), found only because the harness echoed the change. The desk's command guard again refused shell redirects to variable paths (three re-runs).
+- **Cost:** about 10 minutes tracing the layout; about 3 minutes on the overwritten script and the guard.
+- **Would remove it:** the laid layout's widths injected into `dress.wgsl` from `laid.rs` (as `contract()` prefixes the keys), or a mirror test like `fine/mirror_tests.rs` that reads them from the shader source; and a scratch subdirectory per dispatched agent.

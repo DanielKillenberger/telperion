@@ -60,3 +60,18 @@ fn a_reserved_word_fails_the_parse() {
     assert!(check("probe", "fn f() -> u32 { let x = 1u; return x; }").is_ok());
     assert!(check("probe", "fn f(x: u32) -> u32 { if x > 0u { return 1u; } }").is_err());
 }
+
+/// Every generation shader written to `SHADERS=<dir>`, one file a source,
+/// for a browser's compiler to check (fn-212 task 10: Tint refuses some
+/// WGSL naga accepts). `cargo test --profile ci -p telperion-render
+/// dump_generation_shaders -- --ignored`.
+#[test]
+#[ignore]
+fn dump_generation_shaders() {
+    let dir = std::path::PathBuf::from(std::env::var("SHADERS").expect("SHADERS: a directory"));
+    std::fs::create_dir_all(&dir).unwrap();
+    for (k, (name, source)) in super::sources::all().iter().enumerate() {
+        let file = format!("{k:02}-{}.wgsl", name.replace(' ', "-"));
+        std::fs::write(dir.join(file), source).unwrap();
+    }
+}

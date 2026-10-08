@@ -249,7 +249,11 @@ fn leaves(
     drop(own);
     let placed_at = clock();
     let placed_count = placed.len();
-    let instances = foliage::cull(placed, element, envelope, input.shell_depth)?;
+    // The row is still checked where it was, so a request meets the same
+    // error; nothing past the check reads it (fn-212 R2).
+    foliage::range(input.shell_depth, 0., 1., "shell depth")?;
+    foliage::admit(&placed, element)?;
+    let instances = placed;
     let bounds = if request.leaves {
         instances.bounds(element)?
     } else {

@@ -7,6 +7,7 @@
 //! chunkings, the device's own deposit orders and chunkings, and a
 //! forced buffer retry.
 use super::super::io;
+use crate::buffer::Owned;
 use crate::Gpu;
 use telperion_space::fixed::feedback::lattice::Grid;
 use telperion_space::fixed::feedback::shed::{Lateral, Walked};
@@ -94,15 +95,15 @@ impl<'a> Device<'a> {
         }
     }
 
-    fn buffer(&self, label: &'static str, bytes: &[u8]) -> wgpu::Buffer {
+    fn buffer(&self, label: &'static str, bytes: &[u8]) -> Owned {
         io::buffer(self.gpu, label, bytes.len() as u64, STORAGE, bytes).expect("a buffer")
     }
 
-    fn zeros(&self, label: &'static str, bytes: usize) -> wgpu::Buffer {
+    fn zeros(&self, label: &'static str, bytes: usize) -> Owned {
         self.buffer(label, &vec![0u8; bytes.max(16)])
     }
 
-    fn cfg(&self, grid: &Grid, (n, start, capacity): (u32, u32, u32)) -> wgpu::Buffer {
+    fn cfg(&self, grid: &Grid, (n, start, capacity): (u32, u32, u32)) -> Owned {
         let limit = self
             .gpu
             .device
@@ -121,10 +122,10 @@ impl<'a> Device<'a> {
 
     /// One dispatch of `entry` over `n`, with `bound` at bindings 1 to 6
     /// and a buffer of its own wherever the entry reads none.
-    fn run(&mut self, entry: usize, cfg: &wgpu::Buffer, n: u32, bound: [Option<&wgpu::Buffer>; 6]) {
-        let unused: Vec<wgpu::Buffer> = (0..6).map(|_| self.zeros("stepped unused", 16)).collect();
+    fn run(&mut self, entry: usize, cfg: &wgpu::Buffer, n: u32, bound: [Option<&Owned>; 6]) {
+        let unused: Vec<Owned> = (0..6).map(|_| self.zeros("stepped unused", 16)).collect();
         let mut all = vec![cfg];
-        all.extend(bound.iter().zip(&unused).map(|(b, u)| b.unwrap_or(u)));
+        all.extend(bound.iter().zip(&unused).map(|(b, u)| &**b.unwrap_or(u)));
         let bind = self.pass.bind(self.gpu, &all);
         let mut encoder = self.gpu.device.create_command_encoder(&Default::default());
         self.pass.run(&mut encoder, &bind, entry, n.div_ceil(64));

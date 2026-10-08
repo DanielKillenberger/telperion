@@ -4,9 +4,13 @@
 //! synchronous, so the executor keeps its own schedule and overlap around
 //! them. `docs/pipeline.md` has the rationale.
 pub use super::input::LeafInput;
+// The whole-tree folds an executor holding part of a tree's nodes folds
+// its part of and the pipeline combines (fn-212 task 4).
+pub use super::input::{beyond, bins, crown_point, envelope, reach, Folds, BINS};
 use super::{grown_envelope, GrowInput, Inputs, Request};
 use crate::{
     envelope::Envelope,
+    math::Vec3,
     mesh::{self, TreeMesh},
     pipeline::foliage::{
         self,
@@ -45,6 +49,117 @@ pub fn grow(family: &Family) -> Result<Grown> {
 pub fn expand(tree: Tree, family: &Family) -> Result<Expansion> {
     let inputs = Inputs::of(family, grown_envelope(&tree));
     Grown { tree, inputs }.expansion()
+}
+
+/// A tree whose fine roots another executor grows, lays and draws
+/// (fn-212 task 7, host decision 1): the structure above the cut and the
+/// roots laid on the CPU, converted; each root's first axis's lineage
+/// (none: shed) and the roots laid on the CPU, by root, which the executor
+/// draws its own from (`Tree::attachments`).
+pub struct Part {
+    tree: Tree,
+    pub lineages: Vec<Option<u64>>,
+    pub grounded: Vec<usize>,
+}
+
+/// Whether `family`'s fine roots settle on another executor (`settle`),
+/// and the recorded gap where they cannot (fn-212 task 10): a family with
+/// no engine species, a species the realized settle grows whole
+/// (`telperion_space::apart`), or leaves that stand on no regular twig
+/// stations (the palm's fronds), which the executor's stations cannot
+/// number. Such a tree is built by `grow` on the CPU: a capability the
+/// executor selects by, never a fallback from a failure.
+pub fn apart(family: &Family) -> std::result::Result<(), &'static str> {
+    let species = family.space.species.as_ref().ok_or("no engine species")?;
+    telperion_space::apart(species)?;
+    let inputs = Inputs::of(family, Envelope::default());
+    let twig = inputs.plan.twig.ok();
+    if !prepared::supports_stations(inputs.leaves.canopy, twig) {
+        return Err("its leaves stand on no regular twig stations");
+    }
+    Ok(())
+}
+
+/// Stage 2 with the fine roots grown and laid by `roots`, settled: what
+/// `Settling::part` converts. Each of the executor's phases is awaited
+/// (fn-212 task 10): natively the caller blocks on it, a browser awaits.
+pub async fn settle(family: &Family, roots: &mut dyn telperion_space::Roots) -> Result<Settling> {
+    let (settled, trunk, internodes) = super::space::settled(GrowInput::of(family), roots).await?;
+    Ok(Settling {
+        settled,
+        trunk,
+        internodes,
+    })
+}
+
+/// A tree settled with its fine roots on another executor, and the rows
+/// its conversion reads.
+pub struct Settling {
+    pub settled: telperion_space::Settled,
+    trunk: Vec<usize>,
+    internodes: Vec<f64>,
+}
+
+impl Settling {
+    /// The part of the tree the pipeline converts.
+    pub fn part(self) -> Part {
+        let rows = (&self.trunk[..], &self.internodes[..]);
+        let (tree, lineages, grounded) = super::space::part(self.settled, rows);
+        Part {
+            tree,
+            lineages,
+            grounded,
+        }
+    }
+}
+
+impl Part {
+    pub fn tree(&self) -> &Tree {
+        &self.tree
+    }
+    /// The whole-tree folds over this part's nodes.
+    pub fn folds(&self) -> Folds {
+        Folds::of(&self.tree.nodes, |_| true)
+    }
+    /// The terms of a station's reach from its wood (`wood_reach`) under
+    /// the whole tree's `height`, which is all of the envelope they read:
+    /// what the executor folds its own nodes' leaf box by.
+    pub fn wood_reach(&self, family: &Family, height: f64) -> Result<[f64; 4]> {
+        let envelope = Envelope {
+            height,
+            ..Envelope::default()
+        };
+        Ok(Inputs::of(family, envelope).plan.reach?.terms())
+    }
+    /// Stage 3's descriptors for the whole tree, as `Grown::expansion`
+    /// makes them, from this part and the executor's: the whole tree's
+    /// `folds`, the executor's crown nodes no other passes (`crown`, read
+    /// under the whole tree's bins) and its nodes' leaf box (`corners`).
+    pub fn expansion(
+        self,
+        family: &Family,
+        folds: Folds,
+        crown: &[Vec3],
+        corners: (Vec3, Vec3),
+    ) -> Result<Expansion> {
+        let own = self.tree.nodes.iter().map(|n| n.position);
+        let envelope = envelope(folds, own.chain(crown.iter().copied()));
+        let inputs = Inputs::of(family, envelope);
+        let terms = inputs.plan.reach.clone()?.terms();
+        debug_assert_eq!(terms, self.wood_reach(family, envelope.height)?);
+        let x = Grown {
+            tree: self.tree,
+            inputs,
+        }
+        .expansion()?;
+        let (lo, hi) = x.wood_box(|_| true)?;
+        let (a, b) = corners;
+        let reference = Reference::spanning(
+            Vec3::new(lo.x.min(a.x), lo.y.min(a.y), lo.z.min(a.z)),
+            Vec3::new(hi.x.max(b.x), hi.y.max(b.y), hi.z.max(b.z)),
+        );
+        Ok(Expansion { reference, ..x })
+    }
 }
 
 /// The leaf element built from its rows, as the plan stage builds it.
@@ -114,6 +229,29 @@ impl Expansion {
         self.inputs.leaves.canopy
     }
 
+    /// The terms of a station's reach from its wood, for an executor
+    /// folding its own nodes' leaf box: `[scale, beyond, rachis,
+    /// authored]` (`Reach::terms`).
+    pub fn wood_reach(&self) -> Result<[f64; 4]> {
+        Ok(self.inputs.plan.reach.clone()?.terms())
+    }
+    /// The bounds an executor drawing its own nodes decides their kinds and
+    /// leaf-bearing by (fn-212 task 6): wood under the first is fine wood,
+    /// a twig where nothing grows from it; wood within the second bears
+    /// leaves (`plan::bearing_runs`).
+    pub fn bearing_bounds(&self) -> [f64; 2] {
+        let tree = &self.tree;
+        let root = tree.nodes.first().map_or(0.0, |n| n.radius);
+        let slender = tree.stem_radius(|i| tree.pipe(i)[1]) * self.canopy().shoot_radius;
+        [super::space::STRUCTURAL * root, slender]
+    }
+    /// The corners of the leaf box of the nodes `keep` keeps, and the
+    /// root's position: combined by their corners with an executor's own,
+    /// exactly the box of the whole (`reference`).
+    pub fn wood_box(&self, keep: impl Fn(usize) -> bool) -> Result<(Vec3, Vec3)> {
+        Ok(self.inputs.plan.reach.clone()?.wood_box(&self.tree, keep))
+    }
+
     /// Whether the family's leaves stand on regular twig stations.
     pub fn supports_stations(&self) -> bool {
         prepared::supports_stations(self.canopy(), Some(self.twig))
@@ -138,6 +276,14 @@ impl Expansion {
     pub fn compact_with_contacts(&self) -> Result<CompactWithContacts<'_>> {
         let s = &self.inputs.surface;
         surface::compact::prepare_with_contacts(&self.tree, s.height, &s.params)
+    }
+    /// The wood as curves and its compact rings with contacts, read from
+    /// the one sweep (fn-212 R2).
+    pub fn curve_with_contacts(&self) -> Result<(Curve, CompactWithContacts<'_>)> {
+        let s = &self.inputs.surface;
+        let traced = surface::traced(&self.tree, s.height, &s.params)?;
+        let compact = surface::compact::with_contacts(&traced, &self.tree, s.height, &s.params)?;
+        Ok((traced.curve, compact))
     }
     /// Stations tied to the compact rings' emitted vertices.
     pub fn compact_stations(

@@ -193,6 +193,10 @@
 //! twigs run to the length their own rules give them, and the leaf box is the
 //! grown tree's wood grown by the station reach. Skeletons, bounds and
 //! placements move; every element pin is byte-identical.
+//! fn-212 R2 removes the foliage cull from the pipeline: the scaffold's
+//! silver birch, the one pin whose shell (the family's 0.45) dropped leaves,
+//! keeps them now, so its placement moves; its skeleton, bounds and element
+//! do not, and no other pin moves.
 //! No device is needed; this is the core's own arithmetic.
 use super::specimens;
 use telperion_core::{branching, mesh, presets::Preset};
@@ -261,9 +265,9 @@ const PINS: [Pin; 4] = [
     Pin {
         id: "silver-birch",
         min: [-7.390350341796875, -0.07199999690055847, -7.914402484893799],
-        max: [8.12118688650846, 17.40048599243164, 6.267824172973633],
+        max: [8.122490432350421, 17.40048599243164, 6.267824172973633],
         skeleton: 7062016405819824468,
-        placement: 8148347474598104036,
+        placement: 14969418428372594691,
         element: 1566806128915370638,
     },
 ];

@@ -152,9 +152,7 @@ fn sample_profile(size: f32, long: f32, furrow: f32, smooth: bool, shape: f32) -
             },
         ],
     });
-    let mut encoder = gpu
-        .device
-        .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+    let mut encoder = gpu.encoder(&wgpu::CommandEncoderDescriptor { label: None });
     {
         let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
             label: None,
@@ -165,7 +163,7 @@ fn sample_profile(size: f32, long: f32, furrow: f32, smooth: bool, shape: f32) -
         pass.dispatch_workgroups(count as u32 / 64, 1, 1);
     }
     encoder.copy_buffer_to_buffer(&output, 0, &read, 0, bytes);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let (send, recv) = std::sync::mpsc::channel();
     read.slice(..)
         .map_async(wgpu::MapMode::Read, move |r| send.send(r).unwrap());

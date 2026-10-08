@@ -4,8 +4,9 @@
 use super::*;
 use crate::presets::Preset;
 
-/// The young beech's grown structure.
-fn grown() -> (Structure, Vec<usize>) {
+/// The young beech's grown structure, its trunk's PAs and each PA's
+/// internode.
+fn grown() -> (Structure, Vec<usize>, Vec<f64>) {
     let family = Preset::EuropeanBeech.parameters();
     let species = family.space.species.unwrap();
     let request = Request {
@@ -15,7 +16,8 @@ fn grown() -> (Structure, Vec<usize>) {
         light: family.space.light,
     };
     let structure = telperion_space::grow(&species, request).unwrap();
-    (structure, family.space.trunk)
+    let internodes = species.states.iter().map(|s| s.internode).collect();
+    (structure, family.space.trunk, internodes)
 }
 
 /// `structure` reassembled with its siblings in the reverse of their
@@ -54,22 +56,25 @@ fn reversed(structure: &Structure) -> Structure {
 /// order takes again, so it converts to one tree.
 #[test]
 fn a_tree_assembled_in_another_order_converts_to_the_same_tree() {
-    let (structure, trunk) = grown();
+    let (structure, trunk, l) = grown();
     let other = reversed(&structure);
     assert_ne!(other.axes, structure.axes, "the orders differ");
     // Without the order the assembly reaches the tree.
-    let unsorted = convert(&other, &trunk) != convert(&structure, &trunk);
+    let unsorted =
+        convert(&other, (&[], &[]), (&trunk, &l)) != convert(&structure, (&[], &[]), (&trunk, &l));
     assert!(unsorted, "the order never reached the conversion");
     let again = telperion_space::lineage_order(other);
     assert_eq!(again.axes, structure.axes, "grow returns the lineage order");
-    assert!(convert(&again, &trunk) == convert(&structure, &trunk));
+    assert!(
+        convert(&again, (&[], &[]), (&trunk, &l)) == convert(&structure, (&[], &[]), (&trunk, &l))
+    );
 }
 
 /// A tree over the Wasm ceiling is refused by name, and the name states
 /// the ceiling the code holds; natively there is none.
 #[test]
 fn a_tree_over_the_wasm_ceiling_is_refused_by_name() {
-    let (structure, _) = grown();
+    let (structure, _, _) = grown();
     let kept: usize = structure.axes.iter().map(|a| a.phytomers.len()).sum();
     assert!(fits(&structure, Some(kept)).is_ok());
     let refused = fits(&structure, Some(kept - 1)).unwrap_err().to_string();
@@ -112,4 +117,101 @@ fn a_tree_that_reads_light_is_held_after_growth() {
     let species = family.space.species.unwrap();
     assert_eq!(telperion_space::expected_kept(&species, 15).unwrap(), None);
     assert!(foreseen(&species, 15, Some(0)).is_ok());
+}
+
+/// Host option 3 (fn-212 task 7) on the CPU path: the bearers whose kind
+/// or fork moved from their seams' nodes to their attachments, at 30, 40
+/// and 80 (`cargo test --profile ci -p telperion-core seams_read_by_their_attachments
+/// -- --ignored --nocapture`). Reported, not held.
+#[test]
+#[ignore]
+fn seams_read_by_their_attachments() {
+    for preset in [Preset::EuropeanBeech, Preset::NorwaySpruce] {
+        for (age, seed) in [(30, 1), (40, 1), (40, 7), (80, 1), (80, 7)] {
+            let mut family = preset.parameters();
+            (family.age, family.skeleton.seed) = (f64::from(age), seed);
+            let tree = grow(GrowInput::of(&family)).unwrap();
+            let n = tree.nodes.len();
+            let mut seam = vec![false; n];
+            for &s in &tree.seams {
+                seam[s as usize] = true;
+            }
+            let (mut all, mut kept, mut was_fork) = (vec![0u32; n], vec![0u32; n], vec![false; n]);
+            for (i, node) in tree.nodes.iter().enumerate().skip(1) {
+                let p = node.parent.unwrap() as usize;
+                all[p] += 1;
+                kept[p] += u32::from(!seam[i]);
+                was_fork[p] |= seam[i] && node.codominant.is_some();
+            }
+            let mut is_fork = vec![false; n];
+            let mut bearers = std::collections::HashSet::new();
+            for a in &tree.attachments {
+                kept[a.node as usize] += 1;
+                is_fork[a.node as usize] |= a.fork;
+                bearers.insert(a.node);
+            }
+            let thin = STRUCTURAL * tree.nodes[0].radius;
+            let kinds = (1..n)
+                .filter(|&i| tree.nodes[i].radius < thin && (all[i] == 0) != (kept[i] == 0))
+                .count();
+            let forks = (0..n).filter(|&i| was_fork[i] != is_fork[i]).count();
+            let bare = tree
+                .attachments
+                .iter()
+                .filter(|a| a.seams.is_empty())
+                .count();
+            // Forks moved at a root that draws a seam: its base radius and
+            // its seam node's radius read across a threshold.
+            let drawn = (tree.attachments.iter())
+                .filter(|a| !a.seams.is_empty())
+                .filter(|a| a.fork != tree.nodes[a.seams[0] as usize].codominant.is_some())
+                .count();
+            println!(
+                "{preset:?} ({age}, {seed}): bearers {}, roots {} (drawing nothing at the seam {bare}), \
+                 kinds moved {kinds}, forks moved {forks} (forks now {}, before {}; roots \
+                 whose seam's fork moved though it draws one {drawn})",
+                bearers.len(),
+                tree.attachments.len(),
+                is_fork.iter().filter(|&&f| f).count(),
+                was_fork.iter().filter(|&&f| f).count(),
+            );
+        }
+    }
+}
+
+/// fn-212 task 8: each tree's nodes and the phytomers merged into them,
+/// at 40 and 80 (`cargo test --profile ci -p telperion-core merges_per_tree
+/// -- --ignored --nocapture`). Merged: the phytomers the conversion takes
+/// (to the first under `FINEST` on each axis) less the nodes it draws.
+/// Reported, not held.
+#[test]
+#[ignore]
+fn merges_per_tree() {
+    for preset in [Preset::EuropeanBeech, Preset::NorwaySpruce] {
+        for (age, seed) in [(40, 1), (40, 7), (80, 1), (80, 7)] {
+            let mut family = preset.parameters();
+            (family.age, family.skeleton.seed) = (f64::from(age), seed);
+            let species = family.space.species.clone().unwrap();
+            let request = Request {
+                age,
+                seed: u64::from(seed),
+                budget: BUDGET,
+                light: family.space.light,
+            };
+            let (structure, ..) = telperion_space::grow_marked(&species, request).unwrap();
+            let taken: usize = (structure.axes.iter())
+                .map(|a| {
+                    a.phytomers
+                        .iter()
+                        .take_while(|p| p.radius >= FINEST)
+                        .count()
+                })
+                .sum();
+            let nodes = grow(GrowInput::of(&family)).unwrap().nodes.len() - 1;
+            println!(
+                "{preset:?} ({age}, {seed}): nodes {nodes}, taken {taken}, merged {}",
+                taken - nodes
+            );
+        }
+    }
 }

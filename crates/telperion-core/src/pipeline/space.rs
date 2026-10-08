@@ -6,12 +6,12 @@
 //! relay carries its parent's on. Wood under `STRUCTURAL` of the root's
 //! radius is fine wood: a twig where nothing grows from it, a branch
 //! otherwise. Wood thinner than `FINEST` (a phytomer growing in from its
-//! draw, and all it bears) is not drawn, and an internode shorter than
-//! `SHORTEST` is merged into its node, so the sweep never meets a ring it
-//! cannot resolve in float32.
+//! draw, and all it bears) is not drawn, and a phytomer is merged into the
+//! last node drawn while the wood grown since that node is shorter than
+//! `SHORTEST`, so the sweep never meets a ring it cannot resolve in float32.
 use super::GrowInput;
 use crate::math::Vec3;
-use crate::tree::{BudFate, Node, NodeKind, ShootState, Tree};
+use crate::tree::{Attachment, BudFate, Node, NodeKind, ShootState, Tree};
 use crate::{Error, Result};
 use telperion_space::{Origin, Request, Structure};
 
@@ -34,11 +34,15 @@ const KEPT: Option<usize> = if cfg!(target_arch = "wasm32") {
 };
 /// Where fine wood begins, as a share of the root's radius: the fine-wood
 /// measure of the pinned baseline (fn-190, BASELINE.md).
-const STRUCTURAL: f64 = 0.05;
-/// The thinnest wood drawn, in metres, and the shortest internode kept: a
-/// float32 ring stays resolved above them (host, fn-193 C, the beech).
+pub(super) const STRUCTURAL: f64 = 0.05;
+/// The thinnest wood drawn, in metres, and the shortest internode kept, in
+/// whole micrometres of wood grown since the last node drawn: a float32
+/// ring stays resolved above them (host, fn-193 C, the beech). The length
+/// is the recorded grown wood (`Tree::grown`) counted as the stations count
+/// it (`plan::micrometres`), so both executors take the merge alike (host,
+/// fn-212 task 8).
 const FINEST: f64 = 2e-4;
-const SHORTEST: f64 = 1e-3;
+const SHORTEST: f64 = 1000.0;
 /// A lateral of `FORK_FROM` to `FORK_AT` of its parent's radius grows in as
 /// a codominant fork, so a fork has no collar (host, fn-193 RESULT.md).
 const FORK_FROM: f64 = 0.4;
@@ -48,6 +52,53 @@ const FORK_AT: f64 = 0.7;
 /// with no engine species is refused by name, never grown another way
 /// (host decision 9).
 pub(super) fn grow(input: GrowInput) -> Result<Tree> {
+    let (species, request) = asked(input)?;
+    foreseen(species, request.age, KEPT)?;
+    // The engine returns its tree in its canonical lineage order, parents
+    // first and siblings by lineage, whichever path built it (FINE-CONTRACT
+    // decision C; fn-198 host decision 17): the conversion's node numbering
+    // and a relay's girth never depend on how the tree was assembled.
+    let (structure, fine, bases) =
+        telperion_space::grow_marked(species, request).map_err(engine)?;
+    fits(&structure, KEPT)?;
+    let rows = (&input.space.trunk[..], &internodes(species)[..]);
+    Ok(convert(&structure, (&fine, &bases), rows))
+}
+
+/// The family's species settled with its fine roots grown and laid by
+/// `roots` (fn-212 task 7, host decision 1), and the rows its conversion
+/// reads: the trunk's PAs and each PA's internode. Never on the browser's
+/// ceiling: the executor holding the roots is what lifts it.
+pub(super) async fn settled(
+    input: GrowInput<'_>,
+    roots: &mut dyn telperion_space::Roots,
+) -> Result<(telperion_space::Settled, Vec<usize>, Vec<f64>)> {
+    let (species, request) = asked(input)?;
+    let plan = telperion_space::Plan::default();
+    let settling = telperion_space::settle(species, request, plan, roots);
+    let (settled, _) = settling.await.map_err(engine)?;
+    Ok((settled, input.space.trunk.clone(), internodes(species)))
+}
+
+/// `settled`'s structure above the cut and its roots laid on the CPU
+/// converted by the one conversion, each other root's attachment recorded
+/// and none of its wood drawn; each root's first axis's lineage (none:
+/// shed), and the roots laid on the CPU.
+pub(super) fn part(
+    settled: telperion_space::Settled,
+    (trunk, internodes): (&[usize], &[f64]),
+) -> (Tree, Vec<Option<u64>>, Vec<usize>) {
+    let part = telperion_space::partial(settled);
+    let tree = convert(
+        &part.structure,
+        (&part.fine, &part.bases),
+        (trunk, internodes),
+    );
+    (tree, part.lineages, part.grounded)
+}
+
+/// The family's engine species and the request it grows by.
+fn asked(input: GrowInput<'_>) -> Result<(&telperion_space::Species, Request)> {
     let species = (input.space.species.as_ref()).ok_or(Error::InvalidInput("no engine species"))?;
     let age = input.age;
     if age.fract() != 0.0 || !(0.0..=f64::from(u32::MAX)).contains(&age) {
@@ -57,20 +108,18 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
             value,
         });
     }
-    foreseen(species, age as u32, KEPT)?;
     let request = Request {
         age: age as u32,
         seed: u64::from(input.seed),
         budget: BUDGET,
         light: input.space.light,
     };
-    // The engine returns its tree in its canonical lineage order, parents
-    // first and siblings by lineage, whichever path built it (FINE-CONTRACT
-    // decision C; fn-198 host decision 17): the conversion's node numbering
-    // and a relay's girth never depend on how the tree was assembled.
-    let structure = telperion_space::grow(species, request).map_err(engine)?;
-    fits(&structure, KEPT)?;
-    Ok(convert(&structure, &input.space.trunk))
+    Ok((species, request))
+}
+
+/// Each PA's internode length, which each node's grown wood is measured by.
+fn internodes(species: &telperion_space::Species) -> Vec<f64> {
+    species.states.iter().map(|s| s.internode).collect()
 }
 
 /// The refusal of a tree over the browser's ceiling.
@@ -141,7 +190,8 @@ fn aside(nodes: &mut [Node], from: &[u32]) {
         .iter()
         .all(|&n| (nodes[n as usize].position - joint).length() < carrier);
     let thickest = nodes[first as usize].radius;
-    if inside && thickest > FORK_FROM * carrier {
+    let scaled = inside && thickest > FORK_FROM * carrier;
+    if scaled {
         let scale = FORK_FROM * carrier / thickest;
         for &n in from.iter().filter(|&&n| n >= first) {
             nodes[n as usize].radius *= scale;
@@ -153,8 +203,15 @@ fn aside(nodes: &mut [Node], from: &[u32]) {
     };
     head.start_radius = head.radius;
     // As thick as the stem it leaves, it parts as a fork does, with no
-    // socket flange.
-    head.codominant = codominance(head.radius, carrier);
+    // socket flange. One drawn down to `FORK_FROM` stands where a fork's
+    // weight begins, none, decided by the branch taken and never by the
+    // radius it rounds to (fn-212 host decision, 2026-10-07: the
+    // executors round it differently).
+    head.codominant = if scaled {
+        None
+    } else {
+        codominance(head.radius, carrier)
+    };
 }
 
 /// A lateral nearly as thick as the wood it leaves parts from it as a fork
@@ -186,18 +243,52 @@ fn joint(
 /// a limb stops being stem there, and a limb's relays never are, so the
 /// canopy measures its slender wood against the trunk, not a fork of
 /// limbs deep in the crown. Two trunk-level axes leaving one node, a
-/// codominant fork of the trunk, are both stem.
-fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
+/// codominant fork of the trunk, are both stem. `internodes` is each
+/// PA's internode length, which each node's grown wood is measured by.
+fn convert(
+    structure: &Structure,
+    (fine, bases): (&[bool], &[(u64, f64)]),
+    (trunk, internodes): (&[usize], &[f64]),
+) -> Tree {
+    // Each fine root's node drawn from wood above the cut.
+    let mut seams = Vec::new();
+    let mut attachments = Vec::new();
     let mut nodes = vec![Node::root()];
+    // Whether each node is a fine root's.
+    let mut in_root = vec![false];
+    let mut frames = vec![[0.0f32; 6]];
+    let mut keys = vec![0u32];
+    let mut lengths = vec![0.0];
+    // Each fine root's axis's root, by its place in `attachments`.
+    let mut of_root: Vec<Option<usize>> = vec![None; structure.axes.len()];
     // The node each axis ends on, for what continues it.
     let mut ends: Vec<Option<u32>> = vec![None; structure.axes.len()];
     // Each axis's drawn nodes, base first.
     let mut drawn: Vec<Vec<u32>> = vec![Vec::new(); structure.axes.len()];
     for (i, axis) in structure.axes.iter().enumerate() {
+        let root =
+            fine.get(i).copied().unwrap_or(false) && !axis.origin.parent().is_some_and(|p| fine[p]);
+        if let Some(p) = axis.origin.parent() {
+            of_root[i] = of_root[p];
+        }
         let start = match axis.origin {
             Origin::Seed => Some((0, false, true)),
             Origin::Lateral { parent, node, .. } => {
-                drawn[parent].get(node).map(|&n| (n, true, false))
+                let start = drawn[parent].get(node);
+                if let (true, Some(&n)) = (root, start) {
+                    of_root[i] = Some(attachments.len());
+                    // Its bearer's fork, from its base radius as phase 2
+                    // handed it up (host option 3).
+                    let base = bases.binary_search_by_key(&axis.lineage, |b| b.0);
+                    let base = base.map_or(0.0, |k| bases[k].1);
+                    attachments.push(Attachment {
+                        lineage: axis.lineage,
+                        node: n,
+                        seams: Vec::new(),
+                        fork: codominance(base, nodes[n as usize].radius).is_some(),
+                    });
+                }
+                start.map(|&n| (n, true, false))
             }
             // A relay from inside its parent takes the parent's run on from
             // the node nearest its base, which moves from its bud's node to
@@ -251,14 +342,24 @@ fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
             _ => Vec3::ZERO,
         };
         let mut made = false;
-        for p in axis.phytomers.iter().take_while(|p| p.radius >= FINEST) {
+        // The wood grown since the axis's last node: the internodes merged
+        // into a node are carried on to the next one drawn.
+        let internode = internodes[axis.pa];
+        let mut pending = 0.0;
+        for (place, p) in axis
+            .phytomers
+            .iter()
+            .enumerate()
+            .take_while(|(_, p)| p.radius >= FINEST)
+        {
             let from = nodes[parent as usize].position;
             // ... and those still inside the wood of the joint, where a
             // turn over less than the stem's radius would fold its surface.
             let inside =
                 along != Vec3::ZERO && (up(p.tip) - from).length() < nodes[parent as usize].radius;
             let behind = !made && ((up(p.tip) - from).dot(along) < 0.0 || inside);
-            if behind || (up(p.tip) - from).length() < SHORTEST {
+            pending += internode * p.scale;
+            if behind || super::foliage::plan::micrometres(pending) < SHORTEST {
                 drawn[i].push(parent);
                 continue;
             }
@@ -285,7 +386,23 @@ fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
             if lateral && first {
                 node.codominant = codominance(p.radius, inherited);
             }
+            let held = parent as usize;
             parent = nodes.len() as u32;
+            // Every fine root's node drawn from wood above the cut starts a
+            // run of its own (D4): its first axis's first node, and a
+            // lateral its merged first phytomers hang from its bearer.
+            let grown = fine.get(i).copied().unwrap_or(false);
+            if grown && !in_root[held] {
+                seams.push(parent);
+                if let Some(a) = of_root[i] {
+                    attachments[a].seams.push(parent);
+                }
+            }
+            in_root.push(grown);
+            let (h, s) = (up(p.heading), up(p.side));
+            frames.push([h.x, h.y, h.z, s.x, s.y, s.z].map(|v| v as f32));
+            keys.push(crate::tree::node_key(axis.lineage, place));
+            lengths.push(std::mem::take(&mut pending));
             made = true;
             drawn[i].push(parent);
             nodes.push(node);
@@ -299,9 +416,19 @@ fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
     let root = nodes.get(1).map_or(0.0, |n| n.start_radius);
     nodes[0].radius = root;
     nodes[0].start_radius = root;
+    // A bearer counts each fine root it bears as one child, whatever the
+    // root draws at its seam (host option 3): its kind never reads wood
+    // another executor draws.
     let mut children = vec![0u32; nodes.len()];
-    for n in &nodes[1..] {
-        children[n.parent.unwrap() as usize] += 1;
+    let mut seam = vec![false; nodes.len()];
+    for &s in &seams {
+        seam[s as usize] = true;
+    }
+    for (i, n) in nodes.iter().enumerate().skip(1) {
+        children[n.parent.unwrap() as usize] += u32::from(!seam[i]);
+    }
+    for a in &attachments {
+        children[a.node as usize] += 1;
     }
     for i in 0..nodes.len() {
         let run = nodes[i].branch as usize;
@@ -315,9 +442,15 @@ fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
         };
     }
     let crossover = nodes.len();
+    seams.sort_unstable();
     Tree {
         nodes,
         crossover,
+        seams,
+        attachments,
+        frames,
+        keys,
+        grown: lengths,
         ..Tree::default()
     }
 }

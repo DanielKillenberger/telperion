@@ -2,6 +2,7 @@
 //! decisions 19 and 21): sized from the view's pixels, each buffer larger
 //! than a binding bound in slices that do not overlap.
 use super::{CurveGpu, BINDING, PASSES, RECORD_WORDS, VERTEX_FLOATS};
+use crate::buffer::Owned;
 use crate::device::Gpu;
 
 /// What a view may write per pixel it covers: rings, vertices, tube indices
@@ -77,30 +78,28 @@ pub struct CurveReport {
 /// One view's buffers, its slices and the bind group each pass reads.
 pub(crate) struct Target {
     pub(crate) budget: Budget,
-    pub(super) config: wgpu::Buffer,
-    pub(super) totals: wgpu::Buffer,
-    pub(crate) vertices: wgpu::Buffer,
-    pub(crate) indices: wgpu::Buffer,
-    pub(crate) args: wgpu::Buffer,
+    pub(super) config: Owned,
+    pub(super) totals: Owned,
+    pub(crate) vertices: Owned,
+    pub(crate) indices: Owned,
+    pub(crate) args: Owned,
     pub(super) vertex_slice: u64,
     pub(super) index_slice: u64,
     pub(super) record_slice: u64,
     pub(super) groups: Vec<wgpu::BindGroup>,
-    held: Vec<wgpu::Buffer>,
+    held: Vec<Owned>,
 }
 
-pub(super) fn buffer(
-    gpu: &Gpu,
-    label: &str,
-    bytes: u64,
-    usage: wgpu::BufferUsages,
-) -> wgpu::Buffer {
-    gpu.device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some(label),
-        size: bytes.max(256).div_ceil(256) * 256,
-        usage: usage | wgpu::BufferUsages::COPY_DST,
-        mapped_at_creation: false,
-    })
+pub(super) fn buffer(gpu: &Gpu, label: &str, bytes: u64, usage: wgpu::BufferUsages) -> Owned {
+    Owned::create(
+        gpu,
+        &wgpu::BufferDescriptor {
+            label: Some(label),
+            size: bytes.max(256).div_ceil(256) * 256,
+            usage: usage | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        },
+    )
 }
 
 /// `elements` words cut into `slices` equal slices on 256-byte boundaries:
@@ -259,15 +258,18 @@ impl Target {
         &self,
         gpu: &Gpu,
     ) -> impl std::future::Future<Output = Option<CurveReport>> + 'static {
-        let staging = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("curve readback"),
-            size: 192,
-            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
-            mapped_at_creation: false,
-        });
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let staging = crate::buffer::Owned::create(
+            gpu,
+            &wgpu::BufferDescriptor {
+                label: Some("curve readback"),
+                size: 192,
+                usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+                mapped_at_creation: false,
+            },
+        );
+        let mut encoder = gpu.encoder(&Default::default());
         encoder.copy_buffer_to_buffer(&self.totals, 0, &staging, 0, 192);
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
         let (sender, receiver) = futures_channel::oneshot::channel();
         staging.slice(..).map_async(wgpu::MapMode::Read, move |r| {
             let _ = sender.send(r);
@@ -307,15 +309,18 @@ impl Target {
 #[cfg(not(target_arch = "wasm32"))]
 fn read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Vec<u8> {
     let bytes = bytes.max(4).div_ceil(4) * 4;
-    let staging = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("curve readback"),
-        size: bytes,
-        usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
-        mapped_at_creation: false,
-    });
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let staging = crate::buffer::Owned::create(
+        gpu,
+        &wgpu::BufferDescriptor {
+            label: Some("curve readback"),
+            size: bytes,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        },
+    );
+    let mut encoder = gpu.encoder(&Default::default());
     encoder.copy_buffer_to_buffer(source, 0, &staging, 0, bytes);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let slice = staging.slice(..);
     slice.map_async(wgpu::MapMode::Read, |_| {});
     let _ = gpu.device.poll(wgpu::PollType::wait_indefinitely());

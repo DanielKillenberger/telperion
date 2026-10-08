@@ -7,7 +7,8 @@
 use super::super::io;
 use super::roots::{Cost, Grown};
 use super::steps::buffer;
-use crate::Gpu;
+use crate::buffer::Owned;
+use crate::{Gpu, Result};
 use telperion_space::ChainTables;
 
 const FADES: &str = include_str!("fades.wgsl");
@@ -22,7 +23,7 @@ pub(super) struct Fades {
 }
 
 /// Each PA's fade delay (Q32) and whether it sheds, as `up` reads them.
-pub(super) fn table(gpu: &Gpu, chain: &ChainTables) -> wgpu::Buffer {
+pub(super) fn table(gpu: &Gpu, chain: &ChainTables) -> Result<Owned> {
     let words: Vec<u32> = chain
         .pas
         .iter()
@@ -40,7 +41,6 @@ pub(super) fn table(gpu: &Gpu, chain: &ChainTables) -> wgpu::Buffer {
         usage,
         bytemuck::cast_slice(&words),
     )
-    .unwrap()
 }
 
 impl Fades {
@@ -59,7 +59,7 @@ impl Fades {
         (entry, age): (usize, u32),
         g: &Grown,
         (info, prior, mine): (&wgpu::Buffer, &wgpu::Buffer, &wgpu::Buffer),
-    ) {
+    ) -> Result<()> {
         for run in &g.runs {
             let groups = run.n.div_ceil(64);
             let most = gpu.device.limits().max_compute_workgroups_per_dimension;
@@ -67,7 +67,7 @@ impl Fades {
             let cfg = [run.n, row, age, 0];
             let uniform = wgpu::BufferUsages::UNIFORM;
             let data = bytemuck::cast_slice(&cfg);
-            let cfg = io::buffer(gpu, "fades cfg", 16, uniform, data).unwrap();
+            let cfg = io::buffer(gpu, "fades cfg", 16, uniform, data)?;
             let all = [
                 &cfg,
                 &run.runoff,
@@ -81,6 +81,7 @@ impl Fades {
             let bind = self.pass.bind(gpu, &all);
             self.pass.run(encoder, &bind, entry, groups);
         }
+        Ok(())
     }
 
     /// Each wave's chains' living (4 words a chain), carried up from the
@@ -90,13 +91,13 @@ impl Fades {
         gpu: &Gpu,
         (waves, chains): (&[Grown], &[u32]),
         (table, age): (&wgpu::Buffer, u32),
-    ) -> Vec<wgpu::Buffer> {
-        let mut out: Vec<wgpu::Buffer> = chains
+    ) -> Result<Vec<Owned>> {
+        let mut out: Vec<Owned> = chains
             .iter()
             .map(|&n| buffer(gpu, "wave living", u64::from(n) * 4))
-            .collect();
-        let none = buffer(gpu, "no living", 4);
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+            .collect::<Result<_>>()?;
+        let none = buffer(gpu, "no living", 4)?;
+        let mut encoder = gpu.encoder(&Default::default());
         for w in (0..waves.len()).rev() {
             let prior = out.get(w + 1).unwrap_or(&none);
             self.dispatch(
@@ -105,11 +106,11 @@ impl Fades {
                 (0, age),
                 &waves[w],
                 (table, prior, &out[w]),
-            );
+            )?;
         }
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
         out.truncate(waves.len());
-        out
+        Ok(out)
     }
 
     /// Each wave's own axes kept (a word each, at their places), from
@@ -119,37 +120,37 @@ impl Fades {
         gpu: &Gpu,
         (waves, own): (&[Grown], &[u32]),
         roots: &wgpu::Buffer,
-    ) -> Vec<wgpu::Buffer> {
-        let mut out: Vec<wgpu::Buffer> = Vec::with_capacity(waves.len());
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    ) -> Result<Vec<Owned>> {
+        let mut out: Vec<Owned> = Vec::with_capacity(waves.len());
+        let mut encoder = gpu.encoder(&Default::default());
         for (w, g) in waves.iter().enumerate() {
-            let mine = buffer(gpu, "wave kept", u64::from(own[w]));
-            let prior = out.last().unwrap_or(roots);
-            self.dispatch(gpu, &mut encoder, (1, 0), g, (&g.meta, prior, &mine));
+            let mine = buffer(gpu, "wave kept", u64::from(own[w]))?;
+            let prior = out.last().map_or(roots, |b| b);
+            self.dispatch(gpu, &mut encoder, (1, 0), g, (&g.meta, prior, &mine))?;
             out.push(mine);
         }
-        gpu.queue.submit([encoder.finish()]);
-        out
+        gpu.submit([encoder.finish()]);
+        Ok(out)
     }
 }
 
 /// The first wave's living read back: one record per root, by its place
 /// in the order the roots were taken (lived, Q32.32; alive, Q32).
-pub(super) fn report(
+pub(super) async fn report(
     gpu: &Gpu,
     living: &wgpu::Buffer,
     n: usize,
     cost: &mut Cost,
-) -> Vec<(u64, u64)> {
+) -> crate::Result<Vec<(u64, u64)>> {
     cost.trips += 1;
-    let bytes = io::read(gpu, living, (n.max(1) * 16) as u64).unwrap();
+    let bytes = io::read_async(gpu, living, (n.max(1) * 16) as u64).await?;
     let words: &[u32] = bytemuck::cast_slice(&bytes);
-    words
+    Ok(words
         .chunks_exact(4)
         .take(n)
         .map(|w| {
             let wide = |lo: u32, hi: u32| u64::from(lo) | u64::from(hi) << 32;
             (wide(w[0], w[1]), wide(w[2], w[3]))
         })
-        .collect()
+        .collect())
 }

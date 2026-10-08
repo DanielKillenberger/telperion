@@ -37,16 +37,17 @@ crate::catalogue::rows! {
         /// The tree-space engine's species, the ages that are stem and the
         /// site's light: the indexed `/space` rows (`presets/space.rs`).
         pub space: crate::presets::space::Space,
-        /// How deep into the crown leaves are kept, as a share of the crown's
-        /// widest radius; a leaf further in than that is dropped. Raising it
-        /// keeps more of the crown's interior foliage, and one keeps it all.
+        /// How deep into the crown leaves were kept, as a share of the crown's
+        /// widest radius. Checked and read by nothing past the check: the
+        /// cull it set kept every leaf on every engine preset and was removed
+        /// (fn-198 R1, fn-212 R2); whether the row goes is the owner's call.
         pub shell_depth: f64 = "shellDepth" "share of the crown's widest radius"
             Bounds::closed(0.0, 1.0) => [Cull] {
             wire: 241,
             check: input(Site::Shell, 0, "shell depth"),
             growth: Growth::Differs("measured against the envelope at the specimen's age"),
-            note: "`foliage::cull` and the GPU executor's preparation check it again; the \
-                planned field counts stations before the cull and does not read it.",
+            note: "The leaves stage checks it again; no cull reads it since fn-212 R2, and \
+                the planned field does not read it.",
             dial: bounded("shell_depth", "how deep into the crown leaves are kept, as a share of \
                 its widest radius", [0.15, 0.3]),
         },

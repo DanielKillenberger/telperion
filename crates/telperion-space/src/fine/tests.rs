@@ -39,20 +39,32 @@ pub(super) fn same_at_cuts(species: &Species, request: Request, cuts: &[f64]) {
 #[test]
 fn an_executor_without_the_exchange_refuses_a_tree_kept_as_grown() {
     use super::expansion::{settle, Lived, Loaded, RootSeed, Roots};
+    use super::step::{now, Step};
     use crate::structure::Structure;
+    type Done<'a, T> = Step<'a, crate::Result<T>>;
     /// The CPU executor's four phases and nothing more.
     struct Plain<'s, 'r>(super::Cpu<'s, 'r>);
     impl Roots for Plain<'_, '_> {
-        fn grow(&mut self, seeds: &[RootSeed]) -> crate::Result<(Vec<Lived>, u64)> {
+        fn grow<'a>(&'a mut self, seeds: &'a [RootSeed]) -> Done<'a, (Vec<Lived>, u64)> {
             self.0.grow(seeds)
         }
-        fn girth(&mut self, live: &[usize], scales: &[(f64, f64)]) -> Vec<f64> {
-            self.0.girth(live, scales)
+        fn girth<'a>(&'a mut self, live: &'a [usize], s: &'a [(f64, f64)]) -> Done<'a, Vec<f64>> {
+            self.0.girth(live, s)
         }
-        fn lay(&mut self, t: &Structure, l: &[usize], b: &[usize]) -> crate::Result<Vec<Loaded>> {
+        fn lay<'a>(
+            &'a mut self,
+            t: &'a Structure,
+            l: &'a [usize],
+            b: &'a [usize],
+        ) -> Done<'a, Vec<Loaded>> {
             self.0.lay(t, l, b)
         }
-        fn bend(&mut self, t: &Structure, l: &[usize], b: &[usize]) -> crate::Result<()> {
+        fn bend<'a>(
+            &'a mut self,
+            t: &'a Structure,
+            l: &'a [usize],
+            b: &'a [usize],
+        ) -> Done<'a, ()> {
             self.0.bend(t, l, b)
         }
     }
@@ -67,7 +79,7 @@ fn an_executor_without_the_exchange_refuses_a_tree_kept_as_grown() {
         threads: 1,
         roots: Vec::new(),
     };
-    let refused = settle(&species, request, Plan::default(), &mut Plain(cpu));
+    let refused = now(settle(&species, request, Plan::default(), &mut Plain(cpu)));
     assert!(
         matches!(refused, Err(crate::Error::Refused { .. })),
         "{:?}",

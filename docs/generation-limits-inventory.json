@@ -1021,12 +1021,6 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/surface/compact.rs",
-    "site": ". max ( 1e - 6 )",
-    "classification": "numeric",
-    "reason": "The existing surface height degeneracy floor stabilizes geometry arithmetic without limiting populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/surface/compact.rs",
     "site": ". max ( params . lobes * 4 )",
     "classification": "algorithm",
     "reason": "Angular sampling covers the requested lobes with at least four segments each; it raises resolution rather than truncating a population."
@@ -1416,10 +1410,16 @@
     "reason": "The demand bound never counts more pieces a stretch than the planner cuts, MOST_PIECES (fn-208, host decision 23). It sizes a view's budget; it does not limit the tree."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/input.rs",
+    "path": "crates/telperion-core/src/pipeline/input/folds.rs",
     "site": ". clamp ( 0 . 0 , 1 . 0 )",
     "classification": "algorithm",
-    "reason": "A share of the grown tree's height (crown base, fullness) stays within its endpoint interval (fn-198 host decision 7)."
+    "reason": "A share of the grown tree's height (crown base, fullness) stays within its endpoint interval (fn-198 host decision 7). The share moved with the folds (fn-212 task 4)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/folds.rs",
+    "site": ". max ( 0 . 0 )",
+    "classification": "algorithm",
+    "reason": "A node's height folds as the tree's never under the ground, as the whole tree's height fold always started from 0 (fn-198 host decision 7; fn-212 task 4)."
   },
   {
     "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
@@ -1441,12 +1441,6 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
-    "site": "const BINS : usize = 1024 ;",
-    "classification": "algorithm",
-    "reason": "Bins of the crown's front search: they only prune nodes another passes; the front and the shoulder are the same at any count (fn-198 host decision 11a)."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
     "site": "const HALVINGS : usize = 40 ;",
     "classification": "numeric",
     "reason": "Bisection halvings of the shoulder's logarithmic range, about 1e-11 of a shoulder; the fit always keeps the side that holds the crown (fn-198 host decision 11a)."
@@ -1459,15 +1453,21 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
-    "site": "for b in ( 0 . . BINS - 1 ) . rev ( ) {",
+    "site": "for b in ( 0 . . most . len ( ) . saturating_sub ( 1 ) ) . rev ( ) {",
     "classification": "algorithm",
-    "reason": "The running maximum over the front's bins, from the crown's end in (fn-198 host decision 11a)."
+    "reason": "The running maximum over the front's bins, from the crown's end in (fn-198 host decision 11a). Over the bins handed in, which an executor folds with its own (fn-212 task 4)."
   },
   {
     "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
     "site": "if ! ( radius > 0 . 0 & & height > base ) {",
     "classification": "algorithm",
     "reason": "A crown with no reach or no span has no node to hold, and takes the narrowest shoulder: the palm's crown (fn-198 host decision 11a)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",
+    "site": "if ! ( radius > 0 . 0 & & height > base ) {",
+    "classification": "algorithm",
+    "reason": "The bins of a crown with no reach or no span hold nothing, as its front holds nothing (fn-198 host decision 11a; fn-212 task 4)."
   },
   {
     "path": "crates/telperion-core/src/pipeline/input/shoulder.rs",

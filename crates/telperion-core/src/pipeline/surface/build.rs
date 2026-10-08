@@ -57,7 +57,7 @@ pub fn extent(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<WoodEx
     tree.validate()?;
     params.validate()?;
     crate::pipeline::surface::height(height)?;
-    let paths = paths(&tree.nodes)?;
+    let paths = paths(tree)?;
     if paths.runs.is_empty() {
         return Ok(WoodExtent::default());
     }

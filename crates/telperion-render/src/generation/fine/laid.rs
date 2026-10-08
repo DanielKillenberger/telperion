@@ -7,7 +7,8 @@
 //! `origins` holds those nodes' heights, which the ground is read from.
 use super::super::io;
 use super::pool::Pool;
-use crate::Gpu;
+use crate::buffer::Owned;
+use crate::{Gpu, Result};
 use telperion_space::{fixed, BearerFrame, GeometryTables, RootGeometry, Vec3};
 
 const CONTRACT_LAY: &str = include_str!("lay.wgsl");
@@ -20,7 +21,9 @@ const STAND: &str = include_str!("stand.wgsl");
 pub(super) const AL: usize = 8;
 pub(super) const PL: usize = 23;
 /// A chain's scratch: per region axis, per region phytomer, then a status.
+#[cfg(test)]
 pub(super) const SA: u32 = 70;
+#[cfg(test)]
 pub(super) const SP: u32 = 12;
 const GG: usize = 25;
 /// `settle.wgsl`'s passes.
@@ -122,11 +125,12 @@ pub(super) fn presences(g: &GeometryTables) -> Vec<u64> {
 }
 
 /// The first wave's bearers: each root's attachment as a laid axis of one
-/// phytomer, in its own positions; and each root's origins' heights.
-pub(super) fn stubs(roots: &[RootGeometry]) -> (Vec<f32>, Vec<f32>) {
+/// phytomer, in its own positions; and each root's origins' heights and
+/// its first axis's vigour (`made`, Q32, two words).
+pub(super) fn stubs(roots: &[RootGeometry], made: &[u64]) -> (Vec<f32>, Vec<f32>) {
     let mut out = vec![0.0f32; roots.len() * (AL + PL)];
     let phyts = roots.len() * AL;
-    let mut origins = Vec::with_capacity(2 * roots.len());
+    let mut origins = Vec::with_capacity(4 * roots.len());
     let v = |v: Vec3| [v.x as f32, v.y as f32, v.z as f32];
     for (k, r) in roots.iter().enumerate() {
         let rel = |f: &BearerFrame| v(f.below - f.tip);
@@ -146,27 +150,28 @@ pub(super) fn stubs(roots: &[RootGeometry]) -> (Vec<f32>, Vec<f32>) {
         p[21] = f32::from_bits(hi);
         // The phase of its axis's phyllotaxis, in turns (fn-199).
         p[22] = (r.unbent.phase as f64 / (1u64 << 32) as f64).rem_euclid(1.0) as f32;
-        origins.extend([r.unbent.tip.z as f32, r.bent.tip.z as f32]);
+        let [lo, hi] = [made[k] as u32, (made[k] >> 32) as u32].map(f32::from_bits);
+        origins.extend([r.unbent.tip.z as f32, r.bent.tip.z as f32, lo, hi]);
     }
     (out, origins)
 }
 
 /// A wave's laid buffer: its axes, then its phytomers.
 pub(super) struct Wave {
-    pub buffer: wgpu::Buffer,
+    pub buffer: Owned,
     pub axes: u32,
     pub phyts: u32,
 }
 
 impl Wave {
     /// A wave of `axes` and `phyts` in a buffer from `pool`.
-    pub(super) fn taken(pool: &Pool, gpu: &Gpu, (axes, phyts): (u32, u32)) -> Self {
+    pub(super) fn taken(pool: &Pool, gpu: &Gpu, (axes, phyts): (u32, u32)) -> Result<Self> {
         let floats = axes as usize * AL + phyts as usize * PL;
-        Self {
-            buffer: pool.take(gpu, "fine laid", floats as u64),
+        Ok(Self {
+            buffer: pool.take(gpu, "fine laid", floats as u64)?,
             axes,
             phyts,
-        }
+        })
     }
 
     /// The word its phytomers start at.
@@ -175,6 +180,7 @@ impl Wave {
     }
 
     /// Read back, for the tests.
+    #[cfg(test)]
     pub(super) fn read(&self, gpu: &Gpu) -> Vec<f32> {
         let bytes = (self.axes as usize * AL + self.phyts as usize * PL) as u64 * 4;
         bytemuck::cast_slice(&io::read(gpu, &self.buffer, bytes.max(16)).unwrap()).to_vec()
@@ -214,7 +220,7 @@ impl Resolver {
         (prev, out): (&Wave, &Wave),
         (age, sags): (u32, bool),
         (entry, prior, mine): (usize, u32, u32),
-    ) {
+    ) -> Result<()> {
         let groups = n.div_ceil(64);
         let row = groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
         let cfg = [
@@ -228,7 +234,7 @@ impl Resolver {
             mine,
         ];
         let uniform = wgpu::BufferUsages::UNIFORM;
-        let cfg = io::buffer(gpu, "laid cfg", 32, uniform, bytemuck::cast_slice(&cfg)).unwrap();
+        let cfg = io::buffer(gpu, "laid cfg", 32, uniform, bytemuck::cast_slice(&cfg))?;
         let all = [
             &cfg,
             items,
@@ -242,5 +248,6 @@ impl Resolver {
         ];
         let bind = self.pass.bind(gpu, &all);
         self.pass.run(encoder, &bind, entry, groups);
+        Ok(())
     }
 }

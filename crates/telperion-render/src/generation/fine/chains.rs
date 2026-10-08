@@ -4,9 +4,12 @@
 //! (`pack.wgsl`) as `telperion_space::chain_cases` gives the CPU's.
 use super::super::io;
 use super::units::pack;
-use crate::Gpu;
+use crate::buffer::Owned;
+use crate::{Gpu, Result};
 use std::cell::RefCell;
-use telperion_space::{fixed, ChainAxis, ChainBud, ChainTables, GeometryTables, Woke};
+#[cfg(test)]
+use telperion_space::ChainAxis;
+use telperion_space::{fixed, ChainBud, ChainTables, GeometryTables, Woke};
 
 const CHAIN: &str = include_str!("chain.wgsl");
 const APEX: &str = include_str!("apex.wgsl");
@@ -168,33 +171,36 @@ pub(super) fn pack_source() -> String {
 
 /// The tables on the device.
 pub(super) struct Uploaded {
-    pub table: wgpu::Buffer,
-    pub words: wgpu::Buffer,
+    pub table: Owned,
+    pub words: Owned,
 }
 
-pub(super) fn upload(gpu: &Gpu, t: &Packed) -> Uploaded {
+pub(super) fn upload(gpu: &Gpu, t: &Packed) -> Result<Uploaded> {
     let usage = wgpu::BufferUsages::STORAGE;
-    let b = |label, bytes: u64, data: &[u8]| io::buffer(gpu, label, bytes, usage, data).unwrap();
-    Uploaded {
+    let b = |label, bytes: u64, data: &[u8]| io::buffer(gpu, label, bytes, usage, data);
+    Ok(Uploaded {
         table: b(
             "chain table",
             t.0.len() as u64 * 4,
             bytemuck::cast_slice(&t.0),
-        ),
+        )?,
         words: b(
             "chain words",
             t.1.len() as u64 * 8,
             bytemuck::cast_slice(&t.1),
-        ),
-    }
+        )?,
+    })
 }
 
-/// A run's regions on the device, as the grower left them.
+/// A run's regions on the device, as the grower left them: handles on
+/// the grower's pool, which owns them.
 pub(super) struct Region {
     pub axes: wgpu::Buffer,
     pub phyts: wgpu::Buffer,
     pub status: wgpu::Buffer,
+    #[cfg_attr(not(test), allow(dead_code))]
     pub row: u32,
+    #[cfg_attr(not(test), allow(dead_code))]
     pub groups: u32,
 }
 
@@ -206,8 +212,20 @@ pub(super) struct Grower {
     /// after the last run's packing, so a run takes the buffers the last
     /// one left (task 8: a fresh 1.4 GB a run cost 30 ms of allocation and
     /// clearing, three times the run's kernels).
-    pool: RefCell<Vec<wgpu::Buffer>>,
+    pool: RefCell<Vec<Owned>>,
+    /// The most bytes this build asked of each region (fn-212 task 10, host
+    /// decision 1): what the pool is trimmed to once the build is done.
+    asked: RefCell<[u64; 5]>,
 }
+
+/// The regions' labels.
+const LABELS: [&str; 5] = [
+    "chain axes",
+    "chain phytomers",
+    "chain apexes",
+    "chain status",
+    "chain sleeping buds",
+];
 
 impl Grower {
     pub(super) fn new(gpu: &Gpu) -> Self {
@@ -221,19 +239,39 @@ impl Grower {
                 &["pack"],
             ),
             pool: RefCell::new(Vec::new()),
+            asked: RefCell::default(),
         }
+    }
+
+    /// The regions trimmed to what this build asked, the excess freed: a
+    /// retune at the same size takes them as they are, a smaller tree
+    /// keeps no larger tree's.
+    pub(super) fn trim(&self, gpu: &Gpu) -> Result<()> {
+        let asked = std::mem::take(&mut *self.asked.borrow_mut());
+        let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
+        let mut pool = self.pool.borrow_mut();
+        for (k, b) in pool.iter_mut().enumerate() {
+            let wanted = asked[k].max(16).next_multiple_of(4);
+            if b.size() > wanted {
+                *b = io::buffer(gpu, LABELS[k], wanted, storage, &[])?;
+            }
+        }
+        Ok(())
+    }
+
+    /// The bytes the regions keep between builds.
+    #[cfg(test)]
+    pub(super) fn bytes(&self) -> u64 {
+        self.pool.borrow().iter().map(|b| b.size()).sum()
     }
 
     /// The region's five buffers of at least `bytes` each, reused where
     /// the pool's are large enough.
-    fn buffers(&self, gpu: &Gpu, bytes: [u64; 5]) -> Vec<wgpu::Buffer> {
-        const LABELS: [&str; 5] = [
-            "chain axes",
-            "chain phytomers",
-            "chain apexes",
-            "chain status",
-            "chain sleeping buds",
-        ];
+    fn buffers(&self, gpu: &Gpu, bytes: [u64; 5]) -> Result<[wgpu::Buffer; 5]> {
+        let mut asked = self.asked.borrow_mut();
+        for (a, &n) in asked.iter_mut().zip(&bytes) {
+            *a = (*a).max(n);
+        }
         // Each buffer only grows: a run's regions are as many chains of
         // larger caps or more of smaller ones, and its status a word a
         // chain whatever the caps, so replacing all five at once lets two
@@ -242,14 +280,14 @@ impl Grower {
         let mut pool = self.pool.borrow_mut();
         for (k, (&label, n)) in LABELS.iter().zip(bytes).enumerate() {
             if pool.get(k).is_none_or(|b| b.size() < n) {
-                let grown = io::buffer(gpu, label, n, storage, &[]).unwrap();
+                let grown = io::buffer(gpu, label, n, storage, &[])?;
                 match pool.get_mut(k) {
                     Some(b) => *b = grown,
                     None => pool.push(grown),
                 }
             }
         }
-        pool.clone()
+        Ok(std::array::from_fn(|k| (*pool[k]).clone()))
     }
 
     /// Grows the `n` buds from `first` of `input` in regions of `caps`,
@@ -261,7 +299,7 @@ impl Grower {
         (input, first, n): (&wgpu::Buffer, u32, u32),
         (tables, t, span, age): (&Uploaded, &Packed, i64, u32),
         caps: Caps,
-    ) -> Region {
+    ) -> Result<Region> {
         let groups = n.div_ceil(64);
         let row = groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
         let (lo, hi) = (span as u32, (span >> 32) as u32);
@@ -287,7 +325,7 @@ impl Grower {
             0,
         ];
         let usage = wgpu::BufferUsages::UNIFORM;
-        let config = io::buffer(gpu, "chain cfg", 64, usage, bytemuck::cast_slice(&cfg)).unwrap();
+        let config = io::buffer(gpu, "chain cfg", 64, usage, bytemuck::cast_slice(&cfg))?;
         let sleep = u64::from(n * (caps.sleepers * SW + caps.woken * QW + caps.units * UW)) * 4;
         let bytes = [
             u64::from(n * caps.axes) * AXW as u64 * 4,
@@ -296,8 +334,7 @@ impl Grower {
             u64::from(n) * 16,
             sleep,
         ];
-        let [axes, phyts, live, status, sleepers] =
-            <[wgpu::Buffer; 5]>::try_from(self.buffers(gpu, bytes)).expect("five");
+        let [axes, phyts, live, status, sleepers] = self.buffers(gpu, bytes)?;
         let all = [
             &config,
             input,
@@ -313,13 +350,13 @@ impl Grower {
         self.pass.run(encoder, &bind, 0, groups);
         self.pass.run(encoder, &bind, 1, ask_groups);
         self.pass.run(encoder, &bind, 2, groups);
-        Region {
+        Ok(Region {
             axes,
             phyts,
             status,
             row,
             groups,
-        }
+        })
     }
 
     /// Packs a run's regions to `offsets` (`stride` words a chain) into
@@ -332,12 +369,12 @@ impl Grower {
         (region, n, caps): (&Region, u32, Caps),
         (offsets, stride): (&wgpu::Buffer, u32),
         (axes, phyts): (&wgpu::Buffer, &wgpu::Buffer),
-    ) {
+    ) -> Result<()> {
         // A workgroup a chain, in rows of the most a dimension takes.
         let row = n.min(gpu.device.limits().max_compute_workgroups_per_dimension);
         let cfg = [n, row, caps.axes, caps.phyts, stride, 0, 0, 0];
         let usage = wgpu::BufferUsages::UNIFORM;
-        let cfg = io::buffer(gpu, "pack cfg", 32, usage, bytemuck::cast_slice(&cfg)).unwrap();
+        let cfg = io::buffer(gpu, "pack cfg", 32, usage, bytemuck::cast_slice(&cfg))?;
         let all = [
             &cfg,
             &region.status,
@@ -349,11 +386,13 @@ impl Grower {
         ];
         let bind = self.pack.bind(gpu, &all);
         self.pack.run(encoder, &bind, 0, n);
+        Ok(())
     }
 }
 
 /// A chain's axes from its region, as `telperion_space::chain_cases` gives
 /// the CPU's: the bearer's stub left out.
+#[cfg(test)]
 pub(super) fn topology(bud: &ChainBud, axes: &[u32], phyts: &[u32]) -> Vec<ChainAxis> {
     let root = usize::from(!bud.seed);
     let word = |i: usize, f: usize| axes[i * AXW + f];

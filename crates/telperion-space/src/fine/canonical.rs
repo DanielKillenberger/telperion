@@ -159,6 +159,12 @@ fn put_vec(put: &mut impl FnMut(u64), v: crate::structure::Vec3) {
 /// by lineage and, where two share one, by identity. Every `grow` returns
 /// its tree so, whichever path built it.
 pub fn lineage_order(structure: Structure) -> Structure {
+    lineage_order_marked(structure, Vec::new()).0
+}
+
+/// `lineage_order`, carrying a mark per axis (`marks`, one per axis or
+/// none) to the axes' new places.
+pub fn lineage_order_marked(structure: Structure, marks: Vec<bool>) -> (Structure, Vec<bool>) {
     let Structure { age, pas, axes } = structure;
     let n = axes.len();
     // One pass over the axes: each one's key, (lineage, identity), and
@@ -216,7 +222,12 @@ pub fn lineage_order(structure: Structure) -> Structure {
             axis
         })
         .collect();
-    Structure { age, pas, axes }
+    let marks = if marks.is_empty() {
+        marks
+    } else {
+        order.iter().map(|&i| marks[i]).collect()
+    };
+    (Structure { age, pas, axes }, marks)
 }
 
 #[cfg(test)]
