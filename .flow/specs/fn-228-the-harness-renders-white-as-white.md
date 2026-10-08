@@ -7,7 +7,7 @@ The silver birch's leaf rows were set to a measured linear colour (S2-Oslo's sun
 ## Requirements
 
 - **R1 (measure):** a neutral white and a neutral mid-grey object (linear albedo stated) rendered in the harness scene under its default sun and sky, lit and in shadow; their rendered colour measured by code; the cause located (sky ambient colour, sun colour, tonemapping or exposure) by changing one at a time.
-- **R2 (fix):** the scene's light corrected so a neutral object renders neutral (each channel within a stated tolerance of the others) in sun and in shade, by the cause R1 finds; no species row changes.
+- **R2 (fix):** the default sun re-tinted so a neutral surface in full daylight (sun plus sky, a sunlit horizontal floor) renders neutral, each channel within 3% of the mean of the three, white and grey both; the sun keeps its current luminance. The drawn sky and the sky light are unchanged, and shade stays cool: it is measured and reported, not bounded. No new settings, no frame-wide balance, no species row changes. Host decision (2026-10-08): the reference photographs are white-balanced to daylight, where sun plus sky reads neutral and shade stays bluish, so the target is camera daylight balance, not neutral everywhere.
 - **R3 (shown):** hero stills of every shipped species before and after, viewed; the birch leaf and bark ratios re-measured; the headless stills and the browser harness agree; gate and npm test green.
 
 ## Boundaries
