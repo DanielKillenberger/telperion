@@ -170,3 +170,13 @@
 - **Slowed by:** `dress.wgsl` copies the laid layout as literals (`SA = 66u`, `PL = 22u`, `GG = 24u`) while F4 widened it in `laid.rs` and `geometry.wgsl` (70, 23, 25). Nothing ties the copies to `laid.rs`, so the merge compiles and only a device parity probe would catch the stride. Separately, another session wrote its own `stills.sh` into this session's scratch directory over mine (an f2b script), found only because the harness echoed the change. The desk's command guard again refused shell redirects to variable paths (three re-runs).
 - **Cost:** about 10 minutes tracing the layout; about 3 minutes on the overwritten script and the guard.
 - **Would remove it:** the laid layout's widths injected into `dress.wgsl` from `laid.rs` (as `contract()` prefixes the keys), or a mirror test like `fine/mirror_tests.rs` that reads them from the shader source; and a scratch subdirectory per dispatched agent.
+
+## 2026-10-08 11:30, the girth port's proofs: a shared card and a wait that matched itself
+
+- **Doing:** the fine GPU tests, fn-212's placement probe at spruce 80 and the native timings, under the GPU lock.
+- **Slowed by:**
+  - **A shared card.** Another process outside the lock (`bun`, 1.15 GB of device memory) left the card short. Four fine GPU tests at eight threads, the placement probe at spruce 80 (both seeds, first pass) and one timing run were refused for device memory. They needed reruns at four threads or in a quieter moment.
+  - **A wait that matched itself.** A wait loop on `pgrep -f "<the gate's command>"` matched its own command line and never ended. It was stopped by its task id.
+  - **The command guard.** It refused heredocs containing `<(` (a Rust type `Vec<(f64, f64)>`), so edits went through script files.
+- **Cost:** about 15 minutes of reruns; about 5 minutes on the wait and the guard.
+- **Would remove it:** the GPU lock taken by every process that holds the card on this desk (or a device-memory check before a GPU test binary starts); waiting on a background task's own completion rather than on `pgrep`.

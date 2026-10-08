@@ -299,3 +299,18 @@ Option (a) of task 5's question: the GPU executor's wave loop runs on the device
 **On the GPU** (task 6, 2026-10-07): the chain grower takes every one of these presences as the same Q32 integer, held to the bit against the CPU executor per axis (REALIZED.md, "The GPU mirror built").
 
 **Tests:** `fixed/tests.rs`, `presences_lead_from_their_thresholds` (the lead against the real log-odds within 1e-7; certain elements unbounded; products floored). Every existing `telperion-space` test, the realized partition's bit identity with `grow_whole` included, passes on the integer path.
+
+## Host decision (2026-10-08, the fn-212 merge into F4): phase 2's girth in contract A's fixed point
+
+- **Why.** In fn-212's parity probes at spruce 80, seed 1, the device-settled structure above the cut lay 70 µm from the CPU's (fn-198 MERGE-F212.md). The cause was phase 2: `settle.wgsl` computed each root's base radius in f32, about 1.5e-6 relative from the CPU's fixed-point girth, and the sag amplifies that.
+- **The decision.** The device's girth pass mirrors `girth::thicken_given` exactly, using contract operations that already exist. Any new operation goes into the contract probe.
+- **Built** (`ee13130f`, `fine/girth.wgsl`):
+  - sections in W and pipes and radii in Q32, through the feedback contract's `log2_w`, `exp2_w`, `prod_shr`, `mul_shr` and `ripe` and the decision contract's `log2q`, `exp2q` and `mulq`;
+  - relays split by `relay_parts` at a Q32 `relay_span`;
+  - the PA's girth values carried as Q32 in the geometry table;
+  - each chain's base radius carried as Q32 in its record and read back exact.
+  - One new operation, `q32_f` (the CPU's `q32` of a float the device holds), is in `contract.wgsl` and the contract probe (selector 20, `P_Q32_FLOAT`).
+- **Result** (spruce 80, seed 1):
+  - 71,459 of 74,358 base radii equal the CPU's to the bit. Every root that differs also gets different scales (in Q32) from the f32 scale pass; none with equal scales differs.
+  - The structure above the cut lies 5.8 µm from the CPU's, against 70 µm before.
+- **Still f32:** the scale, lay, lever and bend passes. Their share, from replaying the device's outputs into the CPU settle: the radii they still move account for 6.4 µm above the cut, and the lay's loads for 0.74 µm. Porting them is a separate step (host).

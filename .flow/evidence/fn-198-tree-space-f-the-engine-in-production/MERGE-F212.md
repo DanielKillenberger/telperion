@@ -1,6 +1,11 @@
-# fn-212 merged into F4 (worker, 2026-10-08): halted at the device parity probes
+# fn-212 merged into F4 (worker, 2026-10-08)
 
-fn-212's head `34e52ec2` was merged onto F4's `8f451083`. The merge compiles across the workspace, and the CPU proofs hold. The proofs **stopped at item 3**: on the spruce at 80, seed 1, fn-212's dress, sweep and real-path probes now part 1,376 runs that fn-212 matched. The cause is already in F4's device path, and it is not one of fn-212's named classes (below). The gate, `npm test` and the timings were not run.
+fn-212's head `34e52ec2` was merged onto F4's `8f451083` as `d52e1a76`.
+- **The first pass stopped at proof 3:** on the spruce at 80, seed 1, fn-212's parity probes parted 1,376 runs. The cause predated the merge, in F4's device girth.
+- **After the host's decisions:**
+  - grown wood counts each internode at its spread (`1b74db15`);
+  - the device's girth takes contract A's fixed point (`ee13130f`).
+- **Every proof then holds, except the artifact ceilings** (proofs 5 to 8 below; the ceilings are an owner decision).
 
 ## How the conflicts were resolved (15 files)
 
@@ -155,3 +160,73 @@ Each phase's outputs were recorded on both executors at spruce 80, seeds 1 and 7
   - Laid in fixed point, the same run's chord comes out 1.290000002 m. `ceil(length / unit − 1e-9)` rounds 215.0000003 up to 216.
   - Of the 36,983 runs counted apart at seed 1, 36,768 lie within 1 µm of their grown wood and account for +36,762 stations; the other 215 account for +344. At seed 7: 53,761 runs and +53,749, against 357 runs and −102.
 - **The grown-wood count is the right one.** The F4 change that makes the chords land just over the boundary is inferred to be contract A's Q32 lengths, not traced. On fn-212's own base the same measure moved −0.02 %.
+
+## The girth in contract A's fixed point (host decision, 2026-10-08; `ee13130f`)
+
+- **The decision:** the girth pass in `settle.wgsl` mirrors the CPU's girth exactly, using existing contract operations, with no bisect. The record is in FINE-CONTRACT.md, under "Host decision (2026-10-08, the fn-212 merge into F4)".
+- **Built:** `fine/girth.wgsl`.
+  - **Sections and radii:** sections in W, pipes and radii in Q32, through `log2_w`, `exp2_w`, `prod_shr`, `mul_shr` and `ripe` (feedback contract) and `log2q`, `exp2q` and `mulq` (decision contract).
+  - **Relays:** split by `relay_parts` at a Q32 `relay_span`.
+  - **Table and records:** the PA's girth values travel as Q32 in the geometry table (GG 25 to 37), and each chain's base radius as Q32 in its record, read back exact.
+  - **One new operation:** `q32_f`, the CPU's `q32` of a float scale. It is in `contract.wgsl` and the contract probe as selector 20. The probe first caught its missing saturation at 2^62; that is fixed.
+  - **Names the shader now shares:** the feedback contract's `atan2` is `atan2_t` (it shadowed the builtin), `lay.wgsl`'s `unit_of` is `key_unit`, and the float `ripe` is `ripe_f`. `over` moved from `feedback_lay.wgsl` to `feedback.wgsl`.
+- **Phase 2's radii, the device's against the CPU build's:**
+
+  | Tree | Equal to the bit | Apart: median / worst (relative) |
+  |---|--:|--:|
+  | Beech 30 s1 | 149 of 150 | 1.5e-7 |
+  | Spruce 30 s1 | 9,579 of 9,764 | 2.5e-7 / 5.2e-6 |
+  | Beech 80 s1 | 4,819 of 5,040 | 9.3e-8 / 1.5e-6 |
+  | Spruce 80 s1 | 71,459 of 74,358 | 3.6e-7 / 2.9e-6 |
+
+  - **The residual is the f32 scale pass.** At spruce 80 s1, no root whose scales all equal the CPU's in Q32 has a base radius apart: 0 of 1,692. All 2,864 roots apart sit under scales the f32 pass parts. 64,235 other roots have such scales, yet their radii still round to the same bits.
+  - **Gate test** `the_device_s_base_radii_are_the_cpu_s_to_the_bit`: at least 90 % of the roots at 30 equal to the bit.
+- **The structure above the cut, device-settled against the CPU's** (replay into the CPU settle; spruce at 80):
+
+  | Seed | Before | Now | The device's radii alone (scale pass) | The device's loads alone (lay) |
+  |---|--:|--:|--:|--:|
+  | 1 | 70.0 µm | 5.8 µm | 6.4 µm | 0.74 µm |
+  | 7 | 26.4 µm | 5.2 µm | 5.8 µm | 0.79 µm |
+
+  The scale, lay, lever and bend passes stay f32. They were not ported in this merge.
+
+## fn-212's probes after it (`raw/merge-f212/probes-girth.txt`, one tree a process, under the lock)
+
+- **Dress:** nodes equal and 0 strays on all eight trees. Spruce 80 s1 had 6,587 strays before.
+- **Sweep:** runs equal one for one, 0 unmatched, on all eight. Spruce 80 s1's turn is 2.1e-3 against its 1e-2 bound (it was 1.28e-2).
+- **Stations:** counts equal on seven trees. Spruce 80 s1 keeps fn-212's named half-micrometre class (111 keys, 2 / 332 tied).
+- **Placement:** all eight compared, with 0 over the bound and 0 flags. Spruce 80 s1 has the rounding class (332 leaves) and its one grazing seat.
+- **Real path, spruce 80 s1:**
+  - runs: 0 unmatched, 0 missing, 0 parted, 0 sockets; above-cut nodes at most 7.1 µm apart;
+  - leaves: 16,870,702 / 16,870,700, 332 in the named class, 0 over the bound, 0 flags.
+
+## Proofs 5 to 8
+
+- **Proof 5, the contract probe and every fine GPU test under the lock:** 32 passed, with the contract probe at 21 selectors and `q32_f` among them. With eight test threads, four tests failed for device memory while another process (`bun`, 1.15 GB) held the card; at four threads every test passes.
+- **Proof 6, the gate** (at `ee13130f`; `raw/merge-f212/gate-*.log`):
+  - render half under the lock: 189 passed, 0 failed, 29 ignored;
+  - the rest: 1,026 passed, 0 failed, 46 ignored.
+- **Proof 7, `npm test`:** 13 files and 143 tests pass.
+- **The artifact ceilings (`npm run build`, then `scripts/artifact-budgets.mjs`):** four modules are over their ceiling. F4's head was already over on three of them. **For the owner:** crossing a ceiling is the owner's decision.
+
+  | Artifact | Ceiling | F4 head `8f451083` | Merged |
+  |---|--:|--:|--:|
+  | `telperion-render.wasm` | 2,800,000 | 2,430,697 | **3,137,657** |
+  | `telperion.wasm` | 1,600,000 | 1,700,018 | 1,758,162 |
+  | `telperion-field.wasm` | 632,580 | 1,124,458 | 1,171,132 |
+  | `telperion.js` | 153,565 | 154,861 | 154,994 |
+
+  fn-212 raised the render ceiling to 2,800,000 over a base without F4's engine. F4's engine and fn-212's device executor together come to 3,137,657.
+- **Proof 8, native timing** (`drawn_tree`: a parameter change to the tree drawn, one side a process, under the lock, load 3.4 to 4.8; `raw/merge-f212/timing.txt`):
+
+  | Tree | Side | Prepare ms | Drawn ms | Peak RSS MB | Vegetation p50 ms | Frame p50 ms | fn-212 TASK10 (prepare / drawn / frame) |
+  |---|---|--:|--:|--:|--:|--:|--|
+  | Spruce 80 s1 | device | 1,547 / 1,592 | 1,652 / 1,693 | 820 / 880 | 49.6 / 50.1 | 70.7 / 71.4 | 1,453 to 2,349 / 1,592 to 2,570 / 69.2 to 70.7 |
+  | | whole | 8,504 to 8,922 | 9,016 to 9,457 | 4,889 to 4,901 | 39.0 to 39.4 | 57.5 to 58.1 | 8,396 to 10,437 / 8,963 to 11,193 / 56.3 to 57.2 |
+  | Beech 80 s1 | device | 539 to 557 | 576 to 597 | 304 to 307 | 10.2 to 10.4 | 14.6 to 14.7 | 373 / 550 / 13.59 |
+  | | whole | 1,748 to 1,897 | 1,889 to 2,038 | 1,312 to 1,319 | 9.7 to 10.0 | 14.4 to 14.8 | 1,731 / 2,003 / 14.00 |
+
+  - The spruce matches fn-212's figures.
+  - The beech's device build is 551 ms against fn-212's 373 ms (drawn 588 against 550). F4's tree at the beech carries the stepped executor and contract A's lay; the extra time was not profiled.
+  - The third spruce device run was refused its device ("Out of Memory") while `bun` held 1.15 GB of the card.
+- **Hashes:** the 16 clothed hashes are unchanged from the merge by `1b74db15`, checked by `space_hash`. `ee13130f` changes only the device's code.
