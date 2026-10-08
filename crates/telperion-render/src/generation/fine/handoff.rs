@@ -172,3 +172,65 @@ pub(super) fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
         (a, b) => a.or(b),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{Handoff, PACK, USAGE};
+    use crate::generation::io;
+    use telperion_core::math::Vec3;
+    use telperion_core::surface::CurvePoint;
+
+    /// fn-212 task 11, Astra's finding 5: the device packs a frame as the
+    /// CPU does, a zero component's sign as `signum` takes it. The frames
+    /// are exact in float32, so no rounding residual enters.
+    #[test]
+    fn the_device_packs_a_frame_as_the_cpu_does() {
+        let Some(gpu) = crate::generation::test_gpu() else {
+            return;
+        };
+        let frames = [
+            (Vec3::new(0.0, 0.0, -1.0), Vec3::new(1.0, 0.0, 0.0)),
+            (Vec3::new(-0.0, 0.0, -1.0), Vec3::new(0.0, -1.0, -0.0)),
+            (Vec3::new(0.0, -0.5, -0.5), Vec3::new(-0.0, 0.5, -0.5)),
+            (Vec3::new(0.5, 0.0, -0.5), Vec3::new(0.0, 1.0, 0.0)),
+        ];
+        let points: Vec<CurvePoint> = (frames.iter())
+            .map(|&(normal, binormal)| CurvePoint {
+                centre: Vec3::new(1.0, 2.0, 3.0),
+                radius: 0.5,
+                along: 4.0,
+                normal,
+                binormal,
+            })
+            .collect();
+        let fine: Vec<f32> = (points.iter())
+            .flat_map(|p| {
+                let (c, n, b) = (p.centre, p.normal, p.binormal);
+                [
+                    c.x, c.y, c.z, p.radius, p.along, n.x, n.y, n.z, b.x, b.y, b.z,
+                ]
+            })
+            .map(|v| v as f32)
+            .collect();
+        let n = points.len() as u32;
+        let words = [n, 64, 0, 0, 0, 0, 0, 0];
+        let uniform = wgpu::BufferUsages::UNIFORM;
+        let b = |label, bytes: u64, data: &[u8]| io::buffer(&gpu, label, bytes, USAGE, data);
+        let cfg = io::buffer(&gpu, "cfg", 32, uniform, bytemuck::cast_slice(&words)).unwrap();
+        let fine = b("fine", fine.len() as u64 * 4, bytemuck::cast_slice(&fine)).unwrap();
+        let packed = b("packed", u64::from(n) * 32, &[]).unwrap();
+        let s: Vec<_> = (0..5).map(|_| b("spare", 1024, &[]).unwrap()).collect();
+        let all = [&*cfg, &*fine, &s[0], &s[1], &*packed, &s[2], &s[3], &s[4]];
+        let handoff = Handoff::new(&gpu);
+        let bind = handoff.pass.bind(&gpu, &all);
+        let mut e = gpu.encoder(&Default::default());
+        handoff.pass.run(&mut e, &bind, PACK, 1);
+        gpu.submit([e.finish()]);
+        let read = io::read(&gpu, &packed, u64::from(n) * 32).unwrap();
+        let read: &[u32] = bytemuck::cast_slice(&read);
+        for (k, p) in points.iter().enumerate() {
+            let cpu = p.pack();
+            assert_eq!(read[k * 8 + 5..k * 8 + 8], cpu[5..8], "frame {k}");
+        }
+    }
+}

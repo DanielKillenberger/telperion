@@ -53,6 +53,12 @@ fn v3(p: u32, k: u32) -> vec3<f32> {
     return vec3<f32>(at(p, k), at(p, k + 1u), at(p, k + 2u));
 }
 
+// `f64::signum` as the CPU's packing takes it: a zero is one, signed as
+// its sign bit says (WGSL's `sign` makes it zero; fn-212 task 11).
+fn signum(x: f32) -> f32 {
+    return select(1.0, -1.0, (bitcast<u32>(x) & 0x80000000u) != 0u);
+}
+
 // A unit vector folded onto the octahedron and quantised to two snorm24
 // (`pack.rs`, `octahedral`).
 fn octahedral(v: vec3<f32>) -> vec2<u32> {
@@ -62,8 +68,8 @@ fn octahedral(v: vec3<f32>) -> vec2<u32> {
     if v.z < 0.0 {
         let ox = x;
         let oy = y;
-        x = (1.0 - abs(oy)) * sign(ox);
-        y = (1.0 - abs(ox)) * sign(oy);
+        x = (1.0 - abs(oy)) * signum(ox);
+        y = (1.0 - abs(ox)) * signum(oy);
     }
     let top = f32((1u << (BITS - 1u)) - 1u);
     let qx = u32(i32(round(clamp(x, -1.0, 1.0) * top))) & MASK;
