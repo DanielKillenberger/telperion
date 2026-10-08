@@ -2,7 +2,7 @@
 
 ## Goal & Context
 
-fn-217 task 3 measured blossom at the whole-tree view (TASK3.md, M0/M1): rasterisation keeps 92-96 % of the flowers' finest coverage, so sampling is not the loss, yet a beech flowering as densely as a cherry reads as a green crown with grey speckle beside the cherry photograph's white mass, and tripling the florets with larger petals raised visible coverage only to 2.9 % of the frame. The outer leaves hide most florets and petals read grey at distance: where florets stand, and how they are lit, decides it, not how many (Astra P1-3 on fn-217's design). Telperion (fn-218) and Laurelin (fn-219) need their blossom to read from the whole-tree view; real flowering trees (cherry, apple, laburnum) do too. Host decision (2026-10-08): transferred from fn-217 R2 as its own capability spec.
+fn-217 task 3 measured blossom at the whole-tree view (TASK3.md, M0/M1): rasterisation keeps 92-96 % of the flowers' finest coverage, so sampling is not the loss, yet a beech flowering as densely as a cherry reads as a green crown with grey speckle beside the cherry photograph's white mass, and tripling the florets with larger petals raised visible coverage only to 2.9 % of the frame. The outer leaves hide most florets and petals read grey at distance: where florets stand, and how they are lit, decides it, not how many (Astra P1-3 on fn-217's design). Laurelin (fn-218) and Telperion (fn-219) need their blossom to read from the whole-tree view; real flowering trees (cherry, apple, laburnum) do too. Host decision (2026-10-08): transferred from fn-217 R2 as its own capability spec.
 
 ## Requirements
 
