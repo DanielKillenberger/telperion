@@ -1,11 +1,152 @@
 {
   "branch_name": "fn-223-leaves-cluster-at-the-engines-short",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-07T17:26:46.917762Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-223-leaves-cluster-at-the-engines-short",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-08T13:08:10.009460Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "752418b30e54a369bcf401d28e5739950831ea927755e8f100c2f740a1b2e15c",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b1ab14a32c501a36b0a9e23d490584a4",
+            "classification": "introduced",
+            "findingId": "finding-b1ab14a32c501a36b0a9e23d490584a4",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-58570faaed01f8a32105b1145787f8e5",
+            "classification": "introduced",
+            "findingId": "finding-58570faaed01f8a32105b1145787f8e5",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e6b2dd9566f6bd9389e6f1429c6ac1e8",
+            "classification": "introduced",
+            "findingId": "finding-e6b2dd9566f6bd9389e6f1429c6ac1e8",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "571af29186b12e26d10fe0c87ef1506640411ceb",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 298505,
+      "output_sha256": "1020120b0c5124bbf9cce394504783ca5054ff017bfcdf0677c73dbd4d576a6b",
+      "reservation_id": "aa46955fa8b9466c964bbc9459255762",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T13:06:50.807728Z",
+      "tool_calls": 22,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "9d0a149fac8d95b20447b30d035eaab601657e4ab84a7e3841b000499c18b146",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b1ab14a32c501a36b0a9e23d490584a4",
+            "classification": "introduced",
+            "findingId": "finding-b1ab14a32c501a36b0a9e23d490584a4",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-58570faaed01f8a32105b1145787f8e5",
+            "classification": "introduced",
+            "findingId": "finding-58570faaed01f8a32105b1145787f8e5",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-e6b2dd9566f6bd9389e6f1429c6ac1e8",
+            "classification": "introduced",
+            "findingId": "finding-e6b2dd9566f6bd9389e6f1429c6ac1e8",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "571af29186b12e26d10fe0c87ef1506640411ceb",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 818,
+      "output_sha256": "b180167b446ffbff137c669861c036a04ca9272ddc8da01c88262a2f69076fea",
+      "reservation_id": "6ebe25dbc60d42d3acb617cd3698ac16",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T13:08:10.007066Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-223-leaves-cluster-at-the-engines-short.md",
   "status": "open",
   "title": "Leaves cluster at the engine's short shoots",
@@ -20,5 +161,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-07T17:26:46.924980Z"
+  "updated_at": "2026-10-08T13:08:16.241252Z"
 }
