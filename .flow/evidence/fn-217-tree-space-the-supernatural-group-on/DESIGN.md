@@ -393,3 +393,29 @@ Release lens: the owner's goal is a release PR; the old generator's Telperion an
     - (c) emitted light, cycle, dew and two trees in one frame, after the release.
 
     fn-218 and fn-219 depend on (a) and (b) only.
+
+## 7. After Astra's review (host, 2026-10-08)
+
+Astra's findings are in ASTRA-REVIEW-DESIGN.md; every one is taken.
+
+1. **X2 extended (P1).** Every legendary visual is a group override that applies over the natural row only while `enabled`:
+   - the flowering share;
+   - the `/bloom` rows;
+   - the leaf front, back and margin colours;
+   - the new reflectances and scale.
+
+   Off returns all of them to natural values: an old beech in form, leaf and flower, with no legendary blossom and no coloured rim. The test is an off-sheet and an off-hash equal to the base species'.
+2. **S1 (P1).** Scale every position and length quantity exactly once: positions, `radius`, `start_radius`, `base_radius`, grown lengths and the device's attachment distances, previous-wave records included. Leave orientation vectors unchanged. Keep topology decisions in natural units. Apply the scale before whole-tree folds and expansion, through the common pipeline input, so the field gets it too. Test at 0.1, 1 and 100.
+3. **Coverage (P1).** Crown coverage is judged at the legendary scales: organ-only coverage and visible clustering, on stills. `florets × s²` is a hypothesis to measure, not a recipe.
+4. **M0 (P2).** Measure an isolated organ mask against a supersampled reference resolved to the target size, with matching visibility, separately for the finest geometry and the selected LOD. Verify M2's quantised coverage the same way.
+5. **Horn form (P2).** Laurelin's horn-shaped flowers are checked with existing values first: throat, flared mouth and silhouette, plus racemes reading as hanging clusters. If they can't be reached, that's a capability gap: stop for the host.
+6. **E2 identity (P2):**
+   - at neutral, the existing back sheen resolves to today's exactly;
+   - the organ block takes no leaf-only silver term;
+   - energy is shared with diffuse and front reflection by a stated rule;
+   - roughness is chosen by a row.
+
+   Geometry identity and pixel identity are tested separately.
+7. **Light (P2).** The sky claim is corrected in the light spec (post-release). L2 and G1 need lighting-interface changes there.
+
+Wind (fn-15) remains a separate, unowned visual gap. It is not a release item.
