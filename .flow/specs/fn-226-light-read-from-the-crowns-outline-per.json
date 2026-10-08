@@ -523,7 +523,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-226-light-read-from-the-crowns-outline-per.md",
-  "status": "open",
+  "status": "done",
   "title": "Light read from the crown's outline, per bud",
   "tracker": {
     "baseHashFlow": null,
@@ -536,5 +536,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T23:02:58.569900Z"
+  "updated_at": "2026-10-08T23:04:28.917174Z"
 }
