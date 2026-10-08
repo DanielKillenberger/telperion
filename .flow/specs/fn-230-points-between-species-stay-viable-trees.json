@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-230-points-between-species-stay-viable-trees",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-08T14:34:13.728257Z",
   "created_at": "2026-10-08T12:23:49.837805Z",
   "default_impl": null,
   "default_review": null,
@@ -169,5 +169,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T14:33:09.608983Z"
+  "updated_at": "2026-10-08T14:34:13.728270Z"
 }
