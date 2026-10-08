@@ -170,10 +170,20 @@ fn every_root_grows_whole_on_the_gpu_as_on_the_cpu() {
     let t = std::time::Instant::now();
     let k = kernels(&gpu);
     println!("pipelines {:.0} ms", t.elapsed().as_secs_f64() * 1e3);
+    // Fractional bud counts: each last place a making draw, its presence
+    // its lead (fn-231); the oak's sleeping buds wake on such places.
+    let fractional = |mut s: Species| {
+        for zone in s.states.iter_mut().flat_map(|s| &mut s.zones) {
+            zone.buds = zone.buds * 1.3 + 0.2;
+        }
+        s
+    };
     let species = [
         ("beech", telperion_space::beech()),
         ("spruce", telperion_space::spruce()),
         ("oak, unlit", unlit_oak()),
+        ("beech, fractional buds", fractional(telperion_space::beech())),
+        ("oak, unlit, fractional buds", fractional(unlit_oak())),
     ];
     for (name, species) in &species {
         for seed in [1, 7] {

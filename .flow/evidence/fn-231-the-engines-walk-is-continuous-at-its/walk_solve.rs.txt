@@ -1,0 +1,33 @@
+//! Times `blend::families` (the walk's solve) for every walk frame of
+//! fn-230's sheet: the best of three runs.
+use std::time::Instant;
+use telperion_core::{blend, presets::Preset};
+
+fn main() {
+    let names = [
+        (Preset::EuropeanBeech, "beech"),
+        (Preset::OregonWhiteOak, "oak"),
+        (Preset::NorwaySpruce, "spruce"),
+        (Preset::Ordinary, "ordinary"),
+    ];
+    let ages: Vec<f64> = std::env::args().skip(1).map(|a| a.parse().unwrap()).collect();
+    for &age in &ages {
+        for (i, &(p, pn)) in names.iter().enumerate() {
+            for &(q, qn) in &names[i + 1..] {
+                let (mut a, mut b) = (p.parameters(), q.parameters());
+                (a.age, b.age) = (age, age);
+                for t in [0.25, 0.5, 0.75] {
+                    let runs: usize = std::env::var("RUNS").ok().and_then(|r| r.parse().ok()).unwrap_or(3);
+                    let best = (0..runs)
+                        .map(|_| {
+                            let s = Instant::now();
+                            let _ = blend::families(&a, &b, t);
+                            s.elapsed().as_secs_f64()
+                        })
+                        .fold(f64::INFINITY, f64::min);
+                    println!("{pn} {qn} {age} {t} {best:.3}");
+                }
+            }
+        }
+    }
+}

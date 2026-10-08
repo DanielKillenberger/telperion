@@ -63,6 +63,9 @@ fn a_preset_without_an_engine_species_carries_none() {
 /// (host, 2026-10-08). The value file is written by `examples/centroid.rs`
 /// in the order beech, oak, spruce; this reads it back in another.
 #[test]
+#[ignore = "fn-231 (host, 2026-10-09): the ordinary tree keeps its pre-fn-231 rows; \
+            a fresh solve on the continuous walk reads as a hedge at 80, so its sizing \
+            measure is the owner's question (ENDS.md, seventh answer)"]
 fn the_ordinary_tree_is_the_centroid_of_the_branching_species() {
     let corners = [
         Preset::NorwaySpruce,

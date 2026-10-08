@@ -106,8 +106,23 @@ fn request(age: u32, seed: u64) -> Request {
 /// lifespans run to fractions, which grows ages within a cycle
 /// (`carry_on`) and partial units; the spruce, whose sleeping buds wake;
 /// and the oak with its light switched off, whose sleeping buds wake into
-/// later stages, also with its lifespans run to fractions.
+/// later stages, also with its lifespans run to fractions; a beech whose
+/// bud counts run to fractions, each last place drawn; and a beech whose
+/// unlived ages live a tenth of a tick, each a unit cut to nothing
+/// (fn-231).
 fn adversarial() -> Vec<(&'static str, Species)> {
+    let sub_tick = |mut s: Species| {
+        for state in s.states.iter_mut().filter(|s| s.lifespan == 0.0) {
+            state.lifespan = 0.1 / f64::from(1u32 << 20);
+        }
+        s
+    };
+    let fractional_buds = |mut s: Species| {
+        for zone in s.states.iter_mut().flat_map(|s| &mut s.zones) {
+            zone.buds = zone.buds * 1.3 + 0.2;
+        }
+        s
+    };
     let fractional = |mut s: Species| {
         for state in s.states.iter_mut().filter(|s| s.lifespan > 0.0) {
             state.lifespan = state.lifespan * 1.37 + 0.29;
@@ -124,6 +139,8 @@ fn adversarial() -> Vec<(&'static str, Species)> {
     vec![
         ("beech", telperion_space::beech()),
         ("beech, fractional", fractional(telperion_space::beech())),
+        ("beech, fractional buds", fractional_buds(telperion_space::beech())),
+        ("beech, sub-tick ages", sub_tick(telperion_space::beech().canonical())),
         ("spruce", telperion_space::spruce()),
         ("oak, light off", oak.clone()),
         ("oak, light off, fractional", fractional(oak)),

@@ -78,8 +78,10 @@ fn factor(sized: &Species, mixed: &Species) -> f64 {
 
 /// R1, R2: points between two branching species at 40 and 80 are predicted
 /// at their ends' weighted geometric mean in one count and at most it in the
-/// other, by a factor below one on the mix the engine's own walk gives;
-/// every other row is that walk's.
+/// other, by a factor below one on the mix the engine's own walk gives, or
+/// at most it in both with no factor where that walk is no larger (host
+/// decision 1: only shrink; since fn-231 made the walk continuous, many
+/// points are); every other row is that walk's.
 #[test]
 fn a_walk_between_branching_species_keeps_its_ends_size_at_40_and_80() {
     for age in [40, 80] {
@@ -108,9 +110,9 @@ fn a_walk_between_branching_species_keeps_its_ends_size_at_40_and_80() {
                     assert_eq!(bare, mixed, "{p:?} to {q:?} at {t}, {age}");
                     let [kept, grown] = sizes(species(&walked), species(&a), species(&b), t, age);
                     let name = format!("{p:?} to {q:?} at {t}, {age}: factor {f}, {kept} {grown}");
-                    assert!(f < 1.0, "{name}");
+                    assert!(f <= 1.0, "{name}");
                     assert!(kept < 1.0 + 1e-9 && grown < 1.0 + 1e-9, "{name}");
-                    assert!((kept.max(grown) - 1.0).abs() < 1e-9, "{name}");
+                    assert!(f == 1.0 || (kept.max(grown) - 1.0).abs() < 1e-9, "{name}");
                 }
             }
         }
@@ -119,13 +121,14 @@ fn a_walk_between_branching_species_keeps_its_ends_size_at_40_and_80() {
 
 /// Host decision (2026-10-08, option A): kept phytomers do not bound grown
 /// ones, since a blend can shed a larger share than either end. Three
-/// quarters of the way from the oak to the spruce at 80, the point sized on
-/// its kept count alone was predicted to grow 21.7M phytomers, over the
-/// engine's 20M budget; its grown count binds and holds it to the ends'.
+/// quarters of the way from the beech to the spruce at 80, the grown count
+/// binds while the kept one is 5 % under the ends' mean. (Before fn-231 the
+/// case was the oak to the spruce, predicted to grow 21.7M phytomers sized
+/// on kept alone; the continuous walk puts that point under its ends.)
 #[test]
 fn the_grown_count_binds_where_a_blend_sheds_more_than_its_ends() {
     let (a, b) = (
-        at(Preset::OregonWhiteOak, 80.0),
+        at(Preset::EuropeanBeech, 80.0),
         at(Preset::NorwaySpruce, 80.0),
     );
     let walked = blend::families(&a, &b, 0.75).unwrap();
@@ -138,11 +141,8 @@ fn the_grown_count_binds_where_a_blend_sheds_more_than_its_ends() {
     assert!(predicted < 20_000_000.0, "{predicted}");
 }
 
-/// R1: the factor is exactly 1 at either end, and the size is continuous off
-/// it. The engine's own walk is not: a millionth of the way from the beech
-/// to the spruce it is predicted 20 times the beech, because an age only
-/// the spruce lives in starts being lived (fn-230's evidence). The factor
-/// takes that jump out of the size, so it is far below 1 right off the end.
+/// fn-230 R1: the factor is exactly 1 at either end, and the size is
+/// continuous off it.
 #[test]
 fn the_size_is_neutral_at_either_end_and_continuous_off_it() {
     let (a, b) = (
@@ -153,17 +153,67 @@ fn the_size_is_neutral_at_either_end_and_continuous_off_it() {
     same(&blend::families(&a, &b, 1.0).unwrap(), &b);
     for (t, end) in [(1e-6, &a), (1.0 - 1e-6, &b)] {
         let walked = kept(species(&blend::families(&a, &b, t).unwrap()), 40);
-        let engine_walk = telperion_space::blend(species(&a), species(&b), t).unwrap();
         let near = kept(species(end), 40);
         assert!(
             (walked / near - 1.0).abs() < 1e-5,
             "at {t}: {walked} {near}"
         );
-        assert!(
-            kept(&engine_walk, 40) > 1.5 * near,
-            "the engine's walk mended"
-        );
     }
+}
+
+/// The raw engine's predicted kept and grown phytomers and its expected
+/// metres of wood (its phytomers weighted by their size).
+fn measures(species: &Species, age: u32) -> [f64; 3] {
+    let length = telperion_space::expected_length(&neutral(species), age).unwrap();
+    [kept(species, age), grown(species, age), length]
+}
+
+/// fn-231 R3: the engine's own walk (`telperion_space::blend`, before
+/// fn-230's size factor) is continuous at both its ends, for every pair of
+/// the passed branching species and the ordinary tree at 40 and 80: a
+/// hundredth, a ten-thousandth and a millionth of the way off either end,
+/// its kept and grown counts and its wood draw in on the end's, within
+/// 1e-4 at a millionth. Before fn-231 a millionth off the beech towards
+/// the spruce kept 19.6 times the beech at 40 and 85 times at 80.
+#[test]
+fn the_engines_walk_converges_on_either_end_at_40_and_80() {
+    let pairs: Vec<(Preset, Preset)> = (0..BRANCHING.len())
+        .flat_map(|i| (i + 1..BRANCHING.len()).map(move |j| (BRANCHING[i], BRANCHING[j])))
+        .collect();
+    let failed: Vec<String> = std::thread::scope(|scope| {
+        let jobs: Vec<_> = pairs
+            .iter()
+            .flat_map(|&pair| [40, 80].map(|age| (pair, age)))
+            .map(|((p, q), age)| scope.spawn(move || converges(p, q, age)))
+            .collect();
+        jobs.into_iter().flat_map(|j| j.join().unwrap()).collect()
+    });
+    assert!(failed.is_empty(), "{failed:#?}");
+}
+
+/// Where the walk from `p` to `q` at `age` fails to draw in on its ends.
+fn converges(p: Preset, q: Preset, age: u32) -> Vec<String> {
+    let (a, b) = (at(p, f64::from(age)), at(q, f64::from(age)));
+    let (a, b) = (species(&a), species(&b));
+    let mut failed = Vec::new();
+    for (end, toward) in [(0.0, 1.0), (1.0, -1.0)] {
+        let exact = measures(if end == 0.0 { a } else { b }, age);
+        let off: Vec<[f64; 3]> = [1e-2, 1e-4, 1e-6]
+            .iter()
+            .map(|d| {
+                let walked = telperion_space::blend(a, b, end + toward * d).unwrap();
+                let m = measures(&walked, age);
+                std::array::from_fn(|k| (m[k] / exact[k] - 1.0).abs())
+            })
+            .collect();
+        for k in 0..3 {
+            let (far, mid, near) = (off[0][k], off[1][k], off[2][k]);
+            if near > 1e-4 || near > mid.max(1e-9) || mid > far.max(1e-9) {
+                failed.push(format!("{p:?} to {q:?} at {age}, end {end}, measure {k}: {far:e} {mid:e} {near:e}"));
+            }
+        }
+    }
+    failed
 }
 
 /// Host decision 1 (2026-10-08): the factor only shrinks. A walk to the

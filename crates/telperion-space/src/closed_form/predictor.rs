@@ -316,7 +316,7 @@ impl<'a> Walk<'a> {
 }
 
 /// `table`, of a bud `m` cycles before the tree's age, faded by a delay
-/// `delay` as `Kept::shed` fades it: the count's power of the fade is 0.
+/// `delay` as `Kept::shed` fades it: the count by the fade (fn-231).
 fn fade(table: &Table, m: usize, delay: f64) -> Table {
     let mut n = Vec::with_capacity(m + 1);
     let mut sum = 0.0;
@@ -324,7 +324,7 @@ fn fade(table: &Table, m: usize, delay: f64) -> Table {
         let fade = (delay + 1.0 - (m - s) as f64).clamp(0.0, 1.0);
         if fade > 0.0 {
             let n0 = if s == 0 { 0.0 } else { table.n[i - 1] };
-            sum += table.n[i] - n0;
+            sum += fade * (table.n[i] - n0);
         }
         n.push(sum);
     }

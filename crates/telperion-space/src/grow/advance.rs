@@ -55,6 +55,14 @@ impl Shoot<'_, '_> {
         };
         let step = carried.unit(state.life(), 1);
         let share = step.share;
+        // A unit a lifespan's fraction cuts, the age's last or its
+        // successor's rest of the cycle, lays that share of each zone's
+        // nodes, whole (fn-231); every other unit all of them at its share.
+        // What carries the axis on where its age ended inside the cycle,
+        // its continuation or the relay of an age that ended; not a failed
+        // unit's relay, whose rest a draw made.
+        let successor = draws.carried && !draws.rest;
+        let laid = step.laid(carried.gone, (first && successor, first && draws.woke));
         // Shade raises the apex's death hazard, ln survival = ln
         // viability x light^-phi (host, 2026-10-05): near-certain survival
         // moves gently as light does, and certain survival not at all.
@@ -149,13 +157,14 @@ impl Shoot<'_, '_> {
             survive,
             persist: 1.0,
             share,
+            size: laid.map_or(share, |c| c.of),
         });
         if reads.sketching {
             draws
                 .shade
                 .push([size, if reads.lights { light } else { 1.0 }]);
         }
-        self.grow_unit(apex, pa, unit, cycle)?;
+        self.grow_unit(apex, pa, unit, (cycle, laid))?;
         apex.spent += share;
         // An apex that has spent its PA's lifespan moves on; it does not
         // also abort. Its hazard counts the time its axis has grown, and

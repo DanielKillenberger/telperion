@@ -512,9 +512,16 @@ impl Zone {
         self.buds.ceil() as usize
     }
 
-    /// The share of bud place `slot`: 1 for a whole one, the fraction of
-    /// `buds` for the last.
+    /// The chance bud place `slot` stands: 1 for a whole one, the fraction
+    /// of `buds` for the last, a making draw (fn-231).
     pub(crate) fn share(&self, slot: usize) -> f64 {
         (self.buds - slot as f64).min(1.0)
+    }
+
+    /// Its whole bud places a node, and the chance the last, a fraction,
+    /// stands: none where every place is whole.
+    pub(crate) fn whole_places(&self) -> (i32, f64) {
+        let whole = self.buds.floor();
+        (whole as i32, self.buds - whole)
     }
 }

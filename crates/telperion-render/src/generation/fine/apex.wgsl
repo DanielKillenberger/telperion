@@ -2,8 +2,46 @@
 // unit (`grow_unit`), its advance, stop, move and relay (`advance.rs`,
 // `stop.rs`), and each relay's node (D18). Part of `chain.wgsl`'s shader.
 
-// A growth unit's phytomers and the laterals they bear (`grow_unit`).
-fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32) {
+// The nodes of a zone a unit cut to `cut` ticks of `span_of` lays
+// (`lineage::laid`): the index of the node its quota runs out in (`n`
+// where it does not), and the threshold its `LAID` draw takes, none where
+// that node is not laid.
+struct Laid {
+    last: u32,
+    t: vec2<u32>,
+}
+
+fn laid_nodes(zat: u32, d: vec2<u32>, side: vec2<u32>, n: u32, window: vec2<u32>, cut: u32, span_of: u32) -> Laid {
+    if span_of == 0u {
+        return Laid(n, vec2<u32>(0u));
+    }
+    var sum = vec2<u32>(0u);
+    for (var j = 0u; j < n; j++) {
+        sum = add64(sum, presence(node_lead(zat, d, side, j), window));
+    }
+    let quota = mul64(w(cut, 0u), sum);
+    let span = w(span_of, 0u);
+    var held = vec2<u32>(0u);
+    for (var j = 0u; j < n; j++) {
+        let p = presence(node_lead(zat, d, side, j), window);
+        if !lt64(quota, mul64(add64(held, p), span)) {
+            held = add64(held, p);
+            continue;
+        }
+        let left = sub64(quota, mul64(held, span));
+        if is_zero(left) {
+            return Laid(j, vec2<u32>(0u));
+        }
+        return Laid(j, fraction_up(left, mul64(p, span), 53u));
+    }
+    return Laid(n, vec2<u32>(0u));
+}
+
+// A growth unit's phytomers and the laterals they bear (`grow_unit`), its
+// nodes `ticks` of a whole one's length; where a lifespan's fraction cut it
+// to `cut` ticks of `span_of` (none: 0), `cut / span_of` of each zone's
+// present nodes, the next one by its `LAID` draw (`lineage::laid`, fn-231).
+fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32, cut: u32, span_of: u32) {
     let first = table[2u * pa];
     let zones = table[2u * pa + 1u];
     for (var k = 0u; k < zones; k++) {
@@ -21,15 +59,27 @@ fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32) {
         let window = words[table[zat + 7u] + cycle];
         let zg = zone_g(zat);
         let buds_f = gf(zg);
+        let laid = laid_nodes(zat, d, side, n, window, cut, span_of);
         for (var m = 0u; m < n; m++) {
             let j = drawn[m];
             let node_key = child(zk, w(j, 0u));
+            if j > laid.last || (j == laid.last && is_zero(laid.t)) {
+                continue;
+            }
+            var node_p = presence(node_lead(zat, d, side, j), window);
+            if j == laid.last {
+                let t = laid.t;
+                let dl = draw(child(node_key, KEY_LAID));
+                if !lt64(dl, t) {
+                    continue;
+                }
+                node_p = times_q(node_p, presence(lead_q(vec2<u32>(0u), t, dl, vec4<u32>(0u), 0u), window));
+            }
             if n_phyts >= cfg.phyt_cap {
                 overflow |= 2u;
                 return;
             }
             let p = phyt_base + n_phyts * PW;
-            let node_p = presence(node_lead(zat, d, side, j), window);
             phyts[p] = node_key.x;
             phyts[p + 1u] = node_key.y;
             phyts[p + 2u] = cycle;
@@ -48,6 +98,9 @@ fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32) {
             wr(axis, NPHYT, node + 1u);
             for (var s = 0u; s < table[zat + 4u]; s++) {
                 let place = child(node_key, w(s, 0u));
+                if !stands(zat, s, place) {
+                    continue;
+                }
                 let drew = bud(zat, place);
                 if drew == 0xffu || lived(drew) == NONE {
                     continue;
@@ -80,6 +133,7 @@ fn carry_on(cycle: u32, used: vec2<u32>) -> Next {
     let e = live[live_base + next_half * cfg.live_cap + n_next];
     wr(e.x, BIRTH, cycle - 1u);
     wr(e.x, SLEEP, used.x);
+    wr(e.x, KIND, rd(e.x, KIND) | IS_CARRIED);
     return Next(true, Apex(e.x, e.yz));
 }
 
@@ -215,7 +269,7 @@ fn fail(apex_in: Apex, cycle: u32, s1: Step, gone: u32, whole: bool, keys: array
     unit_grows(u, a, true);
     wr(a, NUNITS, rd(a, NUNITS) + 1u);
     wr64(a, SHARES, add64(rd64(a, SHARES), lived));
-    grow_unit(a, pa, keys[1], cycle, lived.x);
+    grow_unit(a, pa, keys[1], cycle, lived.x, 0u, 0u);
     unit_grows(u, a, false);
     apex.spent = add64(apex.spent, lived);
     wr(a, APEX_END, cycle + 1u);
@@ -312,13 +366,31 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
     // Its survival's presence, Q32, at the chain's end (`assign.wgsl`).
     let u = push_unit(a, rd(a, NUNITS));
     unit_asks(u, cycle, unsigned_ticks(s1.share).x, decide, survives);
+    // A unit a lifespan's fraction cuts, the age's last or a successor's
+    // rest of the cycle, lays that share of each zone's nodes, whole
+    // (`Unit::laid`, fn-231); a woken bud's first unit does not.
+    let share = unsigned_ticks(s1.share).x;
+    let kind = rd(a, KIND);
+    let successor = first && (kind & IS_CARRIED) != 0u && (kind & IS_REST) == 0u;
+    let woken = first && (kind & IS_WOKE) != 0u;
+    // A successor's rest is cut from a whole unit; the age's last from the
+    // room its cycle leaves (`Unit::laid`).
+    var span_of = 0u;
+    if !woken && successor && gone > 0u {
+        span_of = TICKS;
+    } else if !woken && s1.ends && share < TICKS - gone {
+        span_of = TICKS - gone;
+    }
+    if u != NONE {
+        sleepers[u + U_LAID] = span_of;
+    }
     if relays {
         unit_fails(u, 1u, s1.used.x);
     }
     unit_grows(u, a, true);
     wr(a, NUNITS, rd(a, NUNITS) + 1u);
     wr64(a, SHARES, add64(rd64(a, SHARES), s1.share));
-    grow_unit(a, pa, unit, cycle, unsigned_ticks(s1.share).x);
+    grow_unit(a, pa, unit, cycle, select(share, span_of, span_of != 0u), share, span_of);
     unit_grows(u, a, false);
     apex.spent = add64(apex.spent, s1.share);
     // D6.

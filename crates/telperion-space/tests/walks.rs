@@ -5,7 +5,10 @@
 //! walks only the settings whose name holds it (`walk::degree::named`).
 mod walk;
 use std::sync::OnceLock;
-use walk::degree::{bound, by_degree, judge, named, walks, Walks, MULTIPLE, ROUGH_LAYOUT};
+use walk::degree::{
+    bound, by_degree, judge, named, vanishing, walks, Walks, MULTIPLE, ROUGH_LAYOUT,
+    TICK_RESOLUTION,
+};
 use walk::{
     crossing, in_leaf, light_settings, made, refine, release_settings, setting, settings, Setting,
     STEPS,
@@ -89,6 +92,17 @@ fn only_the_named_light_walks_take_their_own_bound() {
     assert_eq!(wider, ROUGH_LAYOUT.len());
 }
 
+/// fn-231: the tick-resolution exception names lifespan walks that exist.
+#[test]
+fn only_the_named_lifespan_walks_take_the_tick_bound() {
+    let names: Vec<String> = walk::settings().into_iter().map(|s| s.name).collect();
+    for (walk, _) in TICK_RESOLUTION {
+        assert!(names.iter().any(|n| n == walk), "{walk} is walked");
+    }
+    let wider = names.iter().filter(|n| vanishing(n) != walk::degree::VANISHING);
+    assert_eq!(wider.count(), TICK_RESOLUTION.len());
+}
+
 /// fn-197 decision 12: a sample of structural settings walked in leaf,
 /// with light shading, changes the tree by degree: a limb's sag, a limb's yearly survival (a lifespan is
 /// a whole number of units, never walked) and a sleeping-bud probability.
@@ -122,7 +136,8 @@ fn every_setting_in_leaf_changes_the_tree_by_degree() {
 
 /// R2: a branch a setting makes enters at vanishing size, and one it
 /// unmakes (death, abortion, a lost bud, shedding) has faded to nothing
-/// when it goes: bisected to the crossing, its wood is none.
+/// when it goes: bisected to the crossing, its wood is none, a lifespan's
+/// at one tick's resolution (`TICK_RESOLUTION`).
 #[test]
 fn branches_are_made_and_unmade_at_vanishing_size() {
     let (all, walked) = every_walk();
@@ -142,7 +157,7 @@ fn branches_are_made_and_unmade_at_vanishing_size() {
             let (_, lineage) = made(&a, &b);
             let wood = crossing(setting, *seed, step.from, step.to, lineage.unwrap(), 48);
             assert!(
-                wood < 1e-6,
+                wood < vanishing(&setting.name),
                 "{} seed {seed} at {:.4}: {wood} of the tree",
                 setting.name,
                 step.to

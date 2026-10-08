@@ -12,7 +12,11 @@ fn sleep(zat: u32, node_key: vec2<u32>, axis: u32, node: u32, cycle: u32) {
     }
     let buds_f = gf(zone_g(zat));
     for (var s = 0u; s < table[zat + 4u]; s++) {
-        let key = child(child(node_key, w(s, 0u)), KEY_DORMANT);
+        let place = child(node_key, w(s, 0u));
+        if !stands(zat, s, place) {
+            continue;
+        }
+        let key = child(place, KEY_DORMANT);
         let pa = drawn_pa(table[zat + 8u], table[zat + 9u], key);
         if pa == 0xffu {
             continue;
@@ -44,6 +48,11 @@ fn sleep(zat: u32, node_key: vec2<u32>, axis: u32, node: u32, cycle: u32) {
         // end (`Sleeper::made`): its zone and its node's cycle.
         sleepers[q + 12u] = zat;
         sleepers[q + 13u] = cycle;
+        // Its place's presence over its own draw's window (fn-231).
+        let window = words[table[zat + 13u] + cycle * table[zat + 9u] + pa];
+        let placed = place_q(zat, s, place, window);
+        sleepers[q + 10u] = placed.x;
+        sleepers[q + 14u] = placed.y;
         n_sleepers += 1u;
     }
 }
@@ -125,6 +134,8 @@ fn wakes(cycle: u32) {
                     sleepers[p + 18u] = stage.steps;
                     sleepers[p + 19u] = sleepers[q + 12u];
                     sleepers[p + 20u] = sleepers[q + 13u];
+                    sleepers[p + 12u] = sleepers[q + 10u];
+                    sleepers[p + 13u] = sleepers[q + 14u];
                     n_pends += 1u;
                 }
                 continue;
@@ -194,6 +205,7 @@ fn woke(b: u32, whorl: f32) -> u32 {
         wq(a, B1, buds[b + 13u]);
     }
     wr(a, SLEEP, sleep);
+    wr(a, KIND, rd(a, KIND) | IS_WOKE);
     wr64(a, AGED, spent);
     wr64(a, UNITS, spent);
     run(Apex(a, spent), cycle);
