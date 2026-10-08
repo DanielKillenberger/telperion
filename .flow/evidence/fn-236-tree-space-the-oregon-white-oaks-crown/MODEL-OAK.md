@@ -108,3 +108,14 @@ Light (`/space/light`) stays the site's (extinction 0.5, sky 0.5): fn-226's verd
 ## Round 1 (2026-10-09)
 
 Leader 6 years, limb internode 0.035 m, ψ 0.5 on limbs and boughs, boughs ascending at 0.9 rad, no retained pipe, more short shoots with a thinner pipe. The values, measures, stills and the probes behind them are in SHEET-1.md. It reaches the sizes, the stem and the tuft; it does not reach T1's closed, round crown, which stops for the host.
+
+## The leaves (host decision after round 1: the leaf rows join the brief)
+
+| # | Trait | Quote | Source |
+|---|---|---|---|
+| L1 | **Blade size** | "Leaf blade obovate, elliptic or subrotund, moderately to deeply lobed, 25-120(-140) × 15-85 mm"; "petiole 4-10 mm" | Flora of North America, *Quercus garryana* (`raw/lit/fna-garryana.md`) |
+| L2 | **Blade size, a second account** | "Leaves alternate, simple, 5-15 cm long, dark green, round lobed"; OSU-OAK-ID: "Blade width 2-5 inches" | OSU, OSU-OAK-ID (catalogue extracts) |
+| L3 | **Buds, and so shoots and leaves, crowd at the tip of the year's shoot** | fn-195 rule 5 (BC07): "Acrotony … is the prevalent development", the distal laterals the most vigorous; fn-195 `SOURCES.md`: "S4 shows laterals bunched at the shoot tip" | *Q. robur* and oaks in general; for *Q. garryana* no source read states leaf crowding, so a tip cluster's leaf count is **estimated** |
+| L4 | **A dense crown on open-grown trees** | SILV: "Branch development on open-grown trees may be very dense"; "dense, rounded crowns" | T1 above |
+
+Today's leaf rows (preset, round 1): blade 100 × 75 mm (`/element/length`, `/width`), inside L1 and L2; one leaf every 8 mm of grown shoot (`/skeleton/twigs/twig/internodeLength`, the fn-193-to-196 still rows, **estimated**); leaves on wood under 6 % of the root's radius (`/canopy/shootRadius`, **estimated**); size variation 0.2, forward lean 0.25, no outward or upward turn; no cluster on any age.

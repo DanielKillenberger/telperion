@@ -27,3 +27,10 @@
 - **Slowed by:** one-minute loads of 18 to 118 on 32 threads from other sessions; a 40-year probe that takes 0.7 s took 11 s.
 - **Cost:** a few minutes, and build times in this round that are noise.
 - **Would remove it:** nothing in the repository (reported, not specced).
+
+## 2026-10-09: a leaf probe needs a rebuild, and the first after the merge took over ten minutes
+
+- **Doing:** the leaf probes L1 to L4, each a preset edit and a render.
+- **Slowed by:** the still runner reads the compiled preset, so each probe is a rebuild (about 45 s), and the first one after merging F4 rebuilt the workspace and ran past the 10-minute foreground limit. Restoring the preset between probes needed a scratch copy, because the shell guard refuses `git checkout -- <file>`.
+- **Cost:** about 12 minutes.
+- **Would remove it:** the still runner reading a value file from disk (as `oak_measure.rs` does) behind a flag, so a probe needs no rebuild.
