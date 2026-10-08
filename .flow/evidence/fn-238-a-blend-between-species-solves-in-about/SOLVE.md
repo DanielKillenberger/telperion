@@ -80,3 +80,20 @@ The brief stops the work where the fix needs a choice between ways of building, 
 - Which route or routes to build.
 - Whether the walk digest may be re-pinned for factors that move within the solve's tolerance.
 - Whether R3's 1 s at 80 holds for frames with the ordinary tree as an end, or is relaxed, or waits for route 4 as its own spec.
+
+## Host decision (2026-10-09)
+
+1. **Build route 2, plus exact caching of the ends.**
+   - The grown count becomes a running total, built the way `expected_length` already is, so the solve no longer pays for count tables it only sums.
+   - A walk's two ends are fixed for the whole walk, so their predictions are computed once per walk and reused for every frame. This is exact, not a new first guess.
+   - Route 1 (faster tables, same bits) is not built: route 2 makes it unnecessary for the solve.
+2. **Re-pinning the walk digest is allowed** when the solved factors move only within the solve's own tolerance. This follows the generator-evolution policy in AGENTS.md. The evidence is:
+   - every factor's change listed against its tolerance;
+   - fn-230's walk strips at 40 and 80, before and after, viewed and showing no perceptible change;
+   - shipped species byte-identical.
+3. **The bar.**
+   - At 40, every frame of fn-230's strips stays at 1 s or under.
+   - At 80, frames without the ordinary tree as an end also stay at 1 s or under.
+   - At 80, frames with the ordinary tree as an end are measured and reported. They are not held to 1 s, because a single kept prediction of the ordinary tree already costs 0.88 s.
+4. **Route 4 becomes its own post-release spec.** It is a faster kept predictor for species with fractional rows. The host captures it.
+5. **R3 is amended to match.** Then finish: the gate, npm test, impl-review and `flowctl done`.
