@@ -428,3 +428,27 @@ Task 2 left four questions. The host decides them as follows.
 2. **The gold rim at distance.** Task 3 fixes this. The rim's width becomes a fraction of the leaf, set in leaf space and not in pixels, and a leaf smaller than a pixel takes the area-weighted mix of blade and rim. Verified on M0's distance stills: at the whole-tree view Laurelin reads green with gold edges, not as a gold crown.
 3. **Bark rows under scale.** `shootRadius`, `matureRadius` and `matureSpan` are lengths, so S1 scales them once, where it scales the other lengths. This is done in task 3. At scale 1 the output is byte-identical.
 4. **Contact precision at large scales.** No change for release. fn-218 and fn-219 measure contact error at the scale they choose. A chosen scale whose error exceeds fn-125's screen is refused there, by name.
+
+## 9. The horn gap (host, 2026-10-08)
+
+I viewed `raw/form6/sheet-horn-beside-laburnum.png`. The floret is a straight-sided cone. The raceme is a cloud of large florets around the twigs and does not hang as a strand.
+
+1. **Flare: expose the curl the element already has.** `bloom::element` builds every petal with `curl: 0.0` hard-coded. The leaf element already carries `curl` (wire 139, from -2 to 2 times the length, bending the tip out of the plane its base stands in).
+   - Add one bloom row, `/bloom/petalCurl`, with the same bounds and unit, default 0. It passes straight into the petal's `ElementParams.curl`.
+   - At 0 the output is byte-identical. This is a new row on an existing mechanism; no new geometry code.
+   - A narrow `open` gives the throat, and a positive `petalCurl` turns the tips outward into the mouth.
+   - Check the sign on a still: the tips must flare away from the floret's axis. If the element's curl bends them toward the axis, the row's sign is set so that positive flares.
+2. **The raceme: values before capability.** The stills used florets about 24 mm across, with 14 per 0.16 m axis spread 70°, at a flowering share of 0.3.
+   - **Values first.** Re-run with:
+     - a spread of 20-30°;
+     - 20-30 florets;
+     - petals of 10-14 mm (Laburnum's flower is about 2 cm long);
+     - droop 1;
+     - a flowering share of 1 on the flowering ages.
+   - **The judgement.** Judge it at close and middle distance against the Laburnum photograph: does it read as a hanging strand? A dense raceme hides its axis in the photograph too, so an axis that is not drawn is not the gap by itself.
+   - **If it still reads as a cloud,** stop and report with stills. Drawing the rachis is then a capability for the host to shape; do not build it.
+3. **Margin change on natural species: yes, check it.** Beech, birch and oak have a margin width, so 8.2 moves their pixels.
+   - **Stills:** before and after, near and whole-tree, for each of the three.
+   - **Acceptance:** under the generator-evolution policy, if no regression is visible, accept the change.
+   - **Re-pins:** re-pin any pixel baselines with that evidence.
+4. **Friction (where a floret stands, and a low share shrinking florets rather than thinning them):** this is noted for the end-of-spec friction review. The second half of that entry may be a product question: should a low flowering share thin the florets rather than shrink them? Report it there; do not change it in this task.
