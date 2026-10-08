@@ -59,3 +59,12 @@ pub(crate) fn waited(what: &str) {
         );
     });
 }
+
+/// A compute pipeline made, and what making it took.
+pub(crate) fn compiled(entry: &str, took: std::time::Duration) {
+    with(|log| {
+        let at = ms(log);
+        let took = took.as_secs_f64() * 1e3;
+        eprintln!("[trace {at:.0} ms] pipeline {entry} made in {took:.0} ms");
+    });
+}

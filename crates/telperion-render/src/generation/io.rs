@@ -97,7 +97,10 @@ impl Pass {
         let pipelines = entries
             .iter()
             .map(|&entry| {
-                gpu.device
+                #[cfg(test)]
+                let started = std::time::Instant::now();
+                let pipeline = gpu
+                    .device
                     .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
                         label: Some(entry),
                         layout: Some(&pipeline_layout),
@@ -105,7 +108,10 @@ impl Pass {
                         entry_point: Some(entry),
                         compilation_options: Default::default(),
                         cache: None,
-                    })
+                    });
+                #[cfg(test)]
+                crate::trace::compiled(entry, started.elapsed());
+                pipeline
             })
             .collect();
         Self {
