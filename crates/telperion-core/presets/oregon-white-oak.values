@@ -160,7 +160,6 @@
 /space/ages/2/apicalControl = 0.45
 /space/ages/2/upkeep = 0.35
 /space/ages/2/balanceHazard = 2.0
-/space/ages/2/retained = 0.5
 /space/ages/2/leafGirth = 1.0
 /space/ages/2/form/tropism = 0.6
 /space/ages/2/form/elevation = 1.5707963267948966
@@ -187,7 +186,6 @@
 /space/ages/3/apicalControl = 0.45
 /space/ages/3/upkeep = 0.35
 /space/ages/3/balanceHazard = 2.0
-/space/ages/3/retained = 0.5
 /space/ages/3/leafGirth = 1.0
 /space/ages/3/form/tropism = 0.6
 /space/ages/3/form/elevation = 1.5707963267948966
@@ -205,7 +203,7 @@
 /space/ages/3/zones/2/nodes/min = 1.0
 /space/ages/3/zones/2/nodes/max = 1.0
 /space/ages/3/zones/2/lateral/6 = 0.55
-/space/ages/4/lifespan = 19.0
+/space/ages/4/lifespan = 6.0
 /space/ages/4/internode = 0.05
 /space/ages/4/divergence = 2.513
 /space/ages/4/leafArea = 0.00181
@@ -214,7 +212,6 @@
 /space/ages/4/apicalControl = 0.45
 /space/ages/4/upkeep = 0.35
 /space/ages/4/balanceHazard = 2.0
-/space/ages/4/retained = 0.5
 /space/ages/4/leafGirth = 1.0
 /space/ages/4/form/tropism = 0.6
 /space/ages/4/form/elevation = 1.5707963267948966
@@ -238,7 +235,7 @@
 /space/ages/6/lifespan = 500.0
 /space/ages/6/continuation = 0.0
 /space/ages/6/shedding = 5.0
-/space/ages/6/internode = 0.045
+/space/ages/6/internode = 0.035
 /space/ages/6/insertion = 0.5
 /space/ages/6/divergence = 2.513
 /space/ages/6/abortion = 0.15
@@ -249,11 +246,10 @@
 /space/ages/6/straightening = 0.15
 /space/ages/6/leafArea = 0.00181
 /space/ages/6/shadeHazard = 1.0
-/space/ages/6/shadeSize = 1.5
+/space/ages/6/shadeSize = 0.5
 /space/ages/6/apicalControl = 0.45
 /space/ages/6/upkeep = 0.35
 /space/ages/6/balanceHazard = 2.0
-/space/ages/6/retained = 0.5
 /space/ages/6/leafGirth = 1.0
 /space/ages/6/form/tropism = 0.5
 /space/ages/6/form/elevation = 1.05
@@ -276,7 +272,7 @@
 /space/ages/6/zones/1/delay = 6.0
 /space/ages/6/zones/1/rate = 0.04
 /space/ages/6/zones/1/lateral/9 = 0.45
-/space/ages/6/zones/1/lateral/14 = 0.25
+/space/ages/6/zones/1/lateral/14 = 0.4
 /space/ages/6/zones/1/dormant/9 = 0.1
 /space/ages/6/zones/2/buds = 3.0
 /space/ages/6/zones/2/nodes/min = 1.0
@@ -300,14 +296,13 @@
 /space/ages/7/epitony = 0.2
 /space/ages/7/leafArea = 0.00181
 /space/ages/7/shadeHazard = 1.0
-/space/ages/7/shadeSize = 1.5
+/space/ages/7/shadeSize = 0.5
 /space/ages/7/apicalControl = 0.45
 /space/ages/7/upkeep = 0.35
 /space/ages/7/balanceHazard = 2.0
-/space/ages/7/retained = 0.5
 /space/ages/7/leafGirth = 1.0
 /space/ages/7/form/tropism = 0.48
-/space/ages/7/form/elevation = 0.5
+/space/ages/7/form/elevation = 0.9
 /space/ages/7/form/wander = 0.35
 /space/ages/7/form/pipe = 0.004
 /space/ages/7/form/exponent = 2.6
@@ -322,7 +317,7 @@
 /space/ages/7/zones/1/nodes/min = 2.0
 /space/ages/7/zones/1/nodes/max = 3.0
 /space/ages/7/zones/1/lateral/9 = 0.3
-/space/ages/7/zones/1/lateral/14 = 0.3
+/space/ages/7/zones/1/lateral/14 = 0.5
 /space/ages/7/zones/2/buds = 3.0
 /space/ages/7/zones/2/nodes/min = 1.0
 /space/ages/7/zones/2/nodes/max = 1.0
@@ -339,7 +334,6 @@
 /space/ages/8/apicalControl = 0.45
 /space/ages/8/upkeep = 0.35
 /space/ages/8/balanceHazard = 2.0
-/space/ages/8/retained = 0.5
 /space/ages/8/leafGirth = 1.0
 /space/ages/8/form/tropism = 0.5
 /space/ages/8/form/elevation = 0.7
@@ -375,7 +369,6 @@
 /space/ages/9/apicalControl = 0.45
 /space/ages/9/upkeep = 0.35
 /space/ages/9/balanceHazard = 2.0
-/space/ages/9/retained = 0.5
 /space/ages/9/leafGirth = 1.0
 /space/ages/9/form/tropism = 0.33
 /space/ages/9/form/elevation = 0.2
@@ -389,7 +382,7 @@
 /space/ages/9/zones/1/nodes/min = 2.0
 /space/ages/9/zones/1/nodes/max = 3.0
 /space/ages/9/zones/1/lateral/13 = 0.18
-/space/ages/9/zones/1/lateral/14 = 0.3
+/space/ages/9/zones/1/lateral/14 = 0.6
 /space/ages/9/zones/2/buds = 3.0
 /space/ages/9/zones/2/nodes/min = 1.0
 /space/ages/9/zones/2/nodes/max = 1.0
@@ -408,7 +401,6 @@
 /space/ages/12/apicalControl = 0.45
 /space/ages/12/upkeep = 0.35
 /space/ages/12/balanceHazard = 2.0
-/space/ages/12/retained = 0.5
 /space/ages/12/leafGirth = 1.0
 /space/ages/12/form/tropism = 0.8
 /space/ages/12/form/elevation = 0.2
@@ -439,7 +431,6 @@
 /space/ages/13/apicalControl = 0.45
 /space/ages/13/upkeep = 0.35
 /space/ages/13/balanceHazard = 2.0
-/space/ages/13/retained = 0.5
 /space/ages/13/leafGirth = 1.0
 /space/ages/13/form/tropism = 0.4
 /space/ages/13/form/elevation = 0.2
@@ -452,7 +443,7 @@
 /space/ages/13/zones/1/buds = 1.0
 /space/ages/13/zones/1/nodes/min = 2.0
 /space/ages/13/zones/1/nodes/max = 3.0
-/space/ages/13/zones/1/lateral/14 = 0.4
+/space/ages/13/zones/1/lateral/14 = 0.7
 /space/ages/13/zones/2/buds = 3.0
 /space/ages/13/zones/2/nodes/min = 1.0
 /space/ages/13/zones/2/nodes/max = 1.0
@@ -470,9 +461,8 @@
 /space/ages/14/apicalControl = 0.45
 /space/ages/14/upkeep = 0.35
 /space/ages/14/balanceHazard = 2.0
-/space/ages/14/retained = 0.5
 /space/ages/14/leafGirth = 1.0
-/space/ages/14/form/pipe = 0.00095
+/space/ages/14/form/pipe = 0.0006
 /space/ages/14/zones/0/buds = 1.0
 /space/ages/14/zones/0/nodes/min = 3.0
 /space/ages/14/zones/0/nodes/max = 5.0

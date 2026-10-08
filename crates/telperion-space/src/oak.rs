@@ -91,15 +91,16 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         // Light as the oak's own values (fn-195 round 5, on fn-197's
         // engine; host decision 29): shade raises its shoots' death hazard
         // and shares its growth by light within each order (Borchert-Honda,
-        // λ 0.45), its carbon balance sheds its starved laterals, its shed
-        // branches leave a share of their pipe, and lit limbs thicken.
+        // λ 0.45), its carbon balance sheds its starved laterals, and lit
+        // limbs thicken. A shed branch leaves none of its pipe (fn-236
+        // round 1): at 0.5 the stem stood two to four times Silvics' DBH.
         shade_hazard: 1.0,
         shade_size: 1.5,
         apical_control: 0.45,
         upkeep: 0.35,
         balance_hazard: 2.0,
         tolerance: 0.0,
-        retained: 0.5,
+        retained: 0.0,
         leaf_girth: 1.0,
         straightening: 0.0,
         form: Form::default(),
@@ -151,8 +152,9 @@ pub fn oak() -> Species {
         form: stem,
         ..state(2, 1.0, unit((3, 4), &[(SPRIG, 0.3)], (3, &[(LIMB, 0.55)])))
     };
-    // The stem carries on above the fork as a weaker leader for two
-    // decades, bearing limbs now and then and boughs from its top
+    // The stem carries on above the fork as a weaker leader for six
+    // years (fn-236 round 1; two decades stood it above the dome as a
+    // tuft), bearing limbs now and then and boughs from its top
     // clusters, so the crown's top fills and rounds; then it carries on
     // as one more limb. K19: the trunk "contributes to the vertical tree
     // extent", the lowest main branches to the horizontal. The limbs it
@@ -166,7 +168,7 @@ pub fn oak() -> Species {
             ..stem
         },
         ..state(
-            19,
+            6,
             1.0,
             unit(
                 (3, 4),
@@ -188,7 +190,10 @@ pub fn oak() -> Species {
         // found). An E-side value, reconciled with the oak's branch.
         shedding: 5.0,
         insertion: 0.5,
-        internode: 0.045,
+        // fn-236 round 1: 0.035 m and a light share of ψ 0.5 (as the
+        // bough's), so a lit limb does not outgrow the dome.
+        internode: 0.035,
+        shade_size: 0.5,
         straightening: 0.15,
         abortion: 0.15,
         relay: 1.0,
@@ -218,7 +223,7 @@ pub fn oak() -> Species {
             0.0,
             unit(
                 (2, 3),
-                &[(SHORT, 0.25), (BRANCH, 0.45)],
+                &[(SHORT, 0.4), (BRANCH, 0.45)],
                 (3, &[(LIMB, 0.007), (BOUGH, 0.08)]),
             ),
         )
@@ -237,6 +242,7 @@ pub fn oak() -> Species {
     let bough = PaState {
         insertion: 0.6,
         internode: 0.03,
+        shade_size: 0.5,
         viability: 0.999,
         shedding: 4.0,
         abortion: 0.1,
@@ -246,7 +252,9 @@ pub fn oak() -> Species {
         epitony: 0.2,
         form: Form {
             tropism: 0.48,
-            elevation: 0.5,
+            // Ascending (fn-236 round 1): at 0.5 rad the boughs spread
+            // flat past the crown's edge.
+            elevation: 0.9,
             wander: 0.35,
             pipe: 0.004,
             exponent: 2.6,
@@ -260,7 +268,7 @@ pub fn oak() -> Species {
             0.0,
             unit(
                 (2, 3),
-                &[(SHORT, 0.3), (BRANCH, 0.3)],
+                &[(SHORT, 0.5), (BRANCH, 0.3)],
                 (3, &[(BRANCH, 0.3)]),
             ),
         )
@@ -334,7 +342,7 @@ pub fn oak() -> Species {
             1.0,
             unit(
                 (1, 2),
-                &[(SHORT, 0.3), (TWIG, 0.18)],
+                &[(SHORT, 0.6), (TWIG, 0.18)],
                 (3, &[(TWIG, 0.25), (BRANCH, 0.02)]),
             ),
         )
@@ -358,7 +366,7 @@ pub fn oak() -> Species {
         ..state(
             3,
             0.0,
-            unit((1, 1), &[(SHORT, 0.4)], (3, &[(TWIG, 0.0), (SHORT, 0.3)])),
+            unit((1, 1), &[(SHORT, 0.7)], (3, &[(TWIG, 0.0), (SHORT, 0.3)])),
         )
     };
     // Long shoots bearing short shoots only.
@@ -378,13 +386,16 @@ pub fn oak() -> Species {
         ..state(4, 0.0, unit((1, 1), &[(SHORT, 0.3)], (2, &[(SHORT, 0.35)])))
     };
     // Short shoots: a few crowded leaves and a bud cluster, unbranched.
+    // fn-236 round 1 raised the shares that bear them (limb 0.4, bough
+    // 0.5, branch 0.6, twig 0.7) to fill the crown, and thinned their pipe
+    // so the wood below does not thicken with them.
     let short = PaState {
         insertion: 0.9,
         internode: 0.006,
         viability: 0.9,
         shedding: 2.0,
         form: Form {
-            pipe: 0.00095,
+            pipe: 0.0006,
             ..Form::default()
         },
         ..state(3, 0.0, vec![zone(3, 5, 1, &[])])

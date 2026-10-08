@@ -3,8 +3,11 @@
 //! Copied into `crates/telperion-core/examples/oak_measure.rs` by
 //! `measure.sh` for a run and removed after.
 //!
-//!   cargo run --profile ci -p telperion-core --example oak_measure -- <ages> <seeds>
+//!   cargo run --profile ci -p telperion-core --example oak_measure -- <ages> <seeds> [<path>=<value>...]
 //!
+//! The family is the preset's value file as it stands on disk, read at run
+//! time, with each `<path>=<value>` row replaced or added: a probe needs no
+//! rebuild. Without overrides it is the preset the build compiled.
 //! One JSON line per tree. Crown points are the nodes of fine wood (radius
 //! under 5 mm), where the leaves sit; y is up, the trunk's root at x = z = 0.
 //! - `height`, `width` (mean of the x and z extents of the crown points),
@@ -22,12 +25,28 @@
 //!   1.3 m, and `mcw`: Paine and Hann's (1982) open-grown maximum crown
 //!   width for it, 3.0786 + 1.9242 D ft at D in inches, in metres.
 use std::time::Instant;
-use telperion_core::{pipeline::executor, presets::Preset, tree::Tree};
+use telperion_core::{pipeline::executor, presets::values, tree::Tree};
+
+const FILE: &str = "crates/telperion-core/presets/oregon-white-oak.values";
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let list = |i: usize| -> Vec<u32> { args[i].split(',').map(|v| v.parse().unwrap()).collect() };
-    let base = Preset::from_id("oregon-white-oak").unwrap().parameters();
+    let mut text = std::fs::read_to_string(FILE).expect("the preset's value file");
+    for set in &args[2..] {
+        let (path, value) = set.split_once('=').expect("<path>=<value>");
+        let line = format!("{path} = {value}");
+        let at = text.lines().position(|l| l.split('=').next().map(str::trim) == Some(path));
+        text = match at {
+            Some(i) => {
+                let mut lines: Vec<&str> = text.lines().collect();
+                lines[i] = &line;
+                lines.join("\n") + "\n"
+            }
+            None => text + &line + "\n",
+        };
+    }
+    let base = values::read(&text).expect("the value file reads");
     for &age in &list(0) {
         for &seed in &list(1) {
             let mut family = base.clone();

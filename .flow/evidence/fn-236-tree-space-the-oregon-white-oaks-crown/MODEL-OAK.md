@@ -104,3 +104,7 @@ Which traits values can reach, as far as reading the engine's fields tells; each
 Light (`/space/light`) stays the site's (extinction 0.5, sky 0.5): fn-226's verdict. Other species and the leaf, bark and material rows are not touched.
 
 **A dependency to name before the rounds:** `the_ordinary_tree_is_the_centroid_of_the_branching_species` (`tests/space_presets.rs`) computes the ordinary preset as the centroid of the beech, the oak and the spruce. Any move of the oak's `/space` rows moves that centroid, so the ordinary tree's value file either moves with the oak (the ordinary tree then changes, against R6's "other species byte-identical") or the test fails. This is the host's call; see the round reports.
+
+## Round 1 (2026-10-09)
+
+Leader 6 years, limb internode 0.035 m, ψ 0.5 on limbs and boughs, boughs ascending at 0.9 rad, no retained pipe, more short shoots with a thinner pipe. The values, measures, stills and the probes behind them are in SHEET-1.md. It reaches the sizes, the stem and the tuft; it does not reach T1's closed, round crown, which stops for the host.
