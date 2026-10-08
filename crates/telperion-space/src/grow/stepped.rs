@@ -22,13 +22,11 @@
 //! 3. **(iii) normalisers**: every grower's per-PA `Sum` partials merge
 //!    (order-free, `fixed::sum`) and every grower sizes its buds by them.
 //! 4. **(iv)** each grower grows, wakes and lays its own; new roots are
-//!    handed over; every tenth cycle the tree is assembled for today's
-//!    re-lay (`assemble.rs`); every grower's leaves are deposited into one
-//!    lattice and each reads its own buds.
+//!    handed over; every grower's leaves are deposited into one lattice
+//!    where its rough layout put them, and each reads its own buds.
 //!
 //! The tree is then assembled and settled as today's engine settles it.
 //! An experiment behind its own entry point: `grow` never builds one.
-mod assemble;
 mod buds;
 mod feedback;
 mod handover;
@@ -37,13 +35,12 @@ mod phases;
 mod schedule;
 mod settle;
 
-use feedback::{again, relaid};
+use feedback::again;
 pub use feedback::{Cpu, Feedback};
 pub use lay::{Laid, LayJob, LayPa};
 
 use super::partition::Order;
 use super::partition::{ordered, Digest, Grouping};
-use super::relay::RELAY_EVERY;
 use super::{start, Grower, Options, Request};
 use crate::bounded::Expected;
 use crate::closed_form::predictor::Predictor;
@@ -126,7 +123,6 @@ pub(crate) fn build(species: &Species, request: Request, plan: Plan) -> Result<F
         chunk: plan.chunk,
         sizes: true,
         leaves: true,
-        girth: true,
     };
     let at = (None, plan.cut, grouping);
     Ok(run_with(species, request, at, (None, plan), Keep::Tree)?.1)
@@ -396,9 +392,6 @@ impl<'a> Executor<'a> {
             self.hand_over(first_new, cycle + 1);
         }
         if sketching {
-            if cycle % RELAY_EVERY == 0 {
-                self.relay(cycle)?;
-            }
             self.shade(device);
             self.mark(cycle, 3);
         }
@@ -433,22 +426,6 @@ impl<'a> Executor<'a> {
             usize::MAX => &mut self.coarse,
             k => &mut self.items[k].g,
         }
-    }
-
-    /// Every tenth cycle, today's re-lay on the tree assembled, its
-    /// places and walks handed back, its leaves the cycle's.
-    fn relay(&mut self, cycle: u32) -> Result<()> {
-        let (mut tree, layout) = self.assemble();
-        tree.relay(cycle, &mut |_| {})?;
-        self.disperse(tree, layout);
-        // The cycle's leaves where the re-lay put them, each grower's its
-        // own (a placeholder bears none): the lattice is the same in any
-        // grouping.
-        relaid(&mut self.coarse, cycle);
-        self.each(vec![(); self.items.len()], &|item, ()| {
-            relaid(&mut item.g, cycle)
-        });
-        Ok(())
     }
 }
 

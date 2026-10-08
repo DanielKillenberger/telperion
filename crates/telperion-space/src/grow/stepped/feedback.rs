@@ -1,7 +1,7 @@
 //! Contract A's fine roots on a second executor (fn-211 task 10): inside
 //! the stepped executor, the device takes the items' D16, their leaves'
 //! deposits and their buds' sampling each cycle, and the CPU the rest:
-//! the coarse grower's, the lattice's box, the one sweep, the re-lay.
+//! the coarse grower's, the lattice's box, the one sweep.
 //! Every value crossing is an integer of contract A, so the tree is the
 //! all-CPU run's to the word (CONTRACT-A.md 2.9), which `states` shows
 //! after every phase of every cycle.
@@ -176,19 +176,6 @@ impl<'a> Executor<'a> {
             whole(g, &mut h);
         }
         h.0.finish()
-    }
-}
-
-/// A grower's leaves of `cycle` as its axes stand.
-pub(super) fn relaid(g: &mut Grower, cycle: u32) {
-    let species = g.species;
-    g.leaves.clear();
-    for axis in &g.axes {
-        let area = species.states[axis.pa].leaf_area;
-        for p in axis.phytomers.iter().rev().take_while(|p| p.cycle == cycle) {
-            g.leaves
-                .push((p.tip, crate::light::leaf_area(p.scale, p.size, area)));
-        }
     }
 }
 

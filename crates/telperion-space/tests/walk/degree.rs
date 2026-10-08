@@ -9,6 +9,28 @@ use super::{refine, walk, Setting, Step};
 /// moves the tree faster than about its length per `SPAN` log-odds; linear
 /// settings move it in proportion. The bound stands at the first round's 30.
 pub const MULTIPLE: f64 = 30.0;
+
+/// The walks held to their own bound: apical control under light on the
+/// trunk and the limbs (fn-226, host decision 2026-10-08). With the re-lay
+/// deleted, light is read at the rough layout's places, and their steepest
+/// crossing is a light flip 7 to 10 % steeper (31.1 and 32.1): a slope
+/// that refinement shrinks, not a jump (R2.md, "The walk's cause"). The
+/// re-lay that kept them under 30 cost 15 to 44 % of the lit oak's build
+/// (R5-R6.md); the host keeps today's model and bounds these two at 33.
+/// The jump check holds them as it holds every walk.
+pub const ROUGH_LAYOUT: [(&str, f64); 2] = [
+    ("light: states[0].apical_control", 33.0),
+    ("light: states[1].apical_control", 33.0),
+];
+
+/// The bound a walk's steepest step is held to: `MULTIPLE`, but for the
+/// named exceptions.
+pub fn bound(name: &str) -> f64 {
+    ROUGH_LAYOUT
+        .iter()
+        .find(|(walk, _)| *walk == name)
+        .map_or(MULTIPLE, |&(_, bound)| bound)
+}
 pub const SEEDS: [u64; 3] = [1, 2, 3];
 /// The levels a walk's steepest steps are split into eighths.
 pub const REFINE: u32 = 6;
@@ -56,7 +78,7 @@ pub fn judge(all: &[Setting], walked: &Walks) -> Vec<String> {
             "{:36} {:7.2}  seed {seed} at {:.4}: {}",
             setting.name, worst.slope, worst.to, worst.what
         );
-        if worst.slope > MULTIPLE {
+        if worst.slope > bound(&setting.name) {
             failed.push(format!(
                 "{}: {:.1} per unit in {}",
                 setting.name, worst.slope, worst.what

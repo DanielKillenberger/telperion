@@ -170,7 +170,7 @@ fn many_cores_grow_the_tree_one_does() {
 }
 
 /// Every pass reports as it ends, before its stage (fn-211): the oak in
-/// light through a full lay, whose every pass runs.
+/// light, whose every pass runs.
 #[test]
 fn every_pass_is_reported() {
     use super::{Pass, Stage};
@@ -199,7 +199,7 @@ fn every_pass_is_reported() {
     assert_eq!(passes.len(), Pass::SagPlace as usize + 1, "{passes:?}");
     let at = |s: Stage| reported.iter().position(|&r| r == s).unwrap();
     assert!(at(Stage::Pass(Pass::Wake)) < at(Stage::Grown));
-    assert!(at(Stage::Pass(Pass::RelayWrite)) < at(Stage::Relaid));
+    assert!(at(Stage::Pass(Pass::ShadeRead)) < at(Stage::Lit));
     assert!(at(Stage::Pass(Pass::LeafMean)) < at(Stage::Settled));
     assert!(at(Stage::Pass(Pass::SagPlace)) < at(Stage::Laid));
 }

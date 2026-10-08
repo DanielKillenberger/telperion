@@ -15,7 +15,6 @@ pub(crate) mod oracle;
 mod parallel;
 pub(crate) mod partition;
 pub(crate) mod realized;
-mod relay;
 mod settle;
 mod shoot;
 mod sketch;
@@ -119,7 +118,7 @@ pub(crate) struct Options {
     pub share: usize,
     /// Whether the light work no bud reads is done as well: the rough
     /// layout where light shades but no bud reads it, and the last
-    /// cycle's layout, full lay and sweep (fn-210, lever 3).
+    /// cycle's layout and sweep (fn-210, lever 3).
     pub unread_light: bool,
     /// Whether the tree stops once settled, before its girth and lay,
     /// keeping every lateral bud made as a record (`bounded.rs`, fn-209
@@ -236,7 +235,7 @@ fn run_beside(
     stage(Stage::Pass(Pass::Windows));
     let mut advanced = Vec::new();
     for cycle in 1..=request.age {
-        // The last cycle's layout, full lay and light are read by no bud,
+        // The last cycle's layout and light are read by no bud,
         // and the final lay rewrites every place (fn-198, lever c1); only
         // `sketch` keeps them.
         let sketching = cycle < request.age || !lay || options.unread_light;
@@ -467,7 +466,7 @@ impl Grower<'_> {
     }
 
     /// One cycle: its growth, then, `sketching` where a rough layout is
-    /// grown, its layout, any re-lay and its light.
+    /// grown, its layout and its light, read on the layout's places.
     fn year(
         &mut self,
         cycle: u32,
@@ -485,10 +484,6 @@ impl Grower<'_> {
         self.sketch(cycle, advanced)?;
         stage(Stage::Pass(Pass::Sketch));
         stage(Stage::Sketched);
-        if cycle % relay::RELAY_EVERY == 0 {
-            self.relay(cycle, stage)?;
-            stage(Stage::Relaid);
-        }
         self.shade(cycle, stage);
         stage(Stage::Lit);
         Ok(())

@@ -78,10 +78,6 @@ impl Aggregate {
         }
     }
 
-    pub fn alive(&self) -> bool {
-        !self.cohorts.is_empty()
-    }
-
     /// One cycle's growth unit of every living apex; an extinct aggregate
     /// grows nothing and casts no leaves (probe P4 kept casting its last
     /// unit's leaves, about twice the realized area at 80).
@@ -247,11 +243,11 @@ mod tests {
             size: &size,
         };
         let mut cycles = 0;
-        while agg.alive() && cycles < 500 {
+        while !agg.cohorts.is_empty() && cycles < 500 {
             agg.advance(&species, &laterals, dark());
             cycles += 1;
         }
-        assert!(!agg.alive(), "dies out");
+        assert!(agg.cohorts.is_empty(), "dies out");
         agg.advance(&species, &laterals, dark());
         assert_eq!((agg.leaves, agg.last), (0.0, 0.0));
     }

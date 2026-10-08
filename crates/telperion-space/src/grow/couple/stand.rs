@@ -1,17 +1,12 @@
 //! Where a fine root stands in the coupling pass (fn-211.4): its stand-in
 //! leaves spread over its subtree's expected extent, the point it reads
-//! its light at, and in the full re-lays its expected section and load at
-//! its node. Each reads the closed form's row of a subtree of the root's
+//! its light at. Each reads the closed form's row of a subtree of the root's
 //! age then (its PA, born that many cycles before the tree's age), at the
 //! root's base scale: light-neutral expectations, so the subtree's wood
 //! and extent grow in with it.
 use super::super::Grower;
 use crate::closed_form::boundary::Row;
-use crate::closed_form::kept::section::delta;
-use crate::girth::Disused;
-use crate::sag::Borne;
 use crate::structure::Vec3;
-use crate::transcendental::Transcendental;
 
 /// The pass's last field before the tree's last cycle (the light tool,
 /// fn-211.4): its leaves, marked where a stand-in cast them, and its
@@ -89,67 +84,4 @@ impl Grower<'_> {
         let pass = self.couple.as_mut().expect("coupling");
         pass.probe = Probe { leaves, reads };
     }
-
-    /// The load and the section each living fine root hands its bearer in
-    /// a re-lay at `cycle`, by the re-laid tree's indices (`index`, the
-    /// grower's axis to the tree's; none where its bearer is not laid).
-    pub(crate) fn fine_stands(
-        &self,
-        cycle: u32,
-        tree: &crate::structure::Structure,
-        index: &dyn Fn(usize) -> Option<usize>,
-    ) -> (Vec<Borne>, Vec<Disused>) {
-        let Some(pass) = self.couple.as_ref() else {
-            return (Vec::new(), Vec::new());
-        };
-        let (mut loads, mut pipes) = (Vec::new(), Vec::new());
-        for (k, f) in pass.fine.iter().enumerate().filter(|(_, f)| !f.dead) {
-            let crate::structure::Origin::Lateral { parent, node, .. } = self.axes[f.axis].origin
-            else {
-                continue;
-            };
-            let Some(bearer) = index(parent) else {
-                continue;
-            };
-            let row = self.row_at(k, cycle);
-            let s = f.scale;
-            let Some(at) = tree.axes[bearer].phytomers.get(node) else {
-                continue;
-            };
-            let (base, heading) = (at.tip, self.axes[f.axis].heading);
-            let e = self.species.states[tree.axes[bearer].pa].form.exponent;
-            let mass = row.mass * s.powi(3);
-            loads.push(Borne {
-                axis: bearer,
-                node,
-                mass,
-                moment: base * mass + heading * (row.moment * s.powi(4)),
-            });
-            let section = handed(row, s, e, self.species.states[f.pa].retained);
-            if section > 0.0 {
-                pipes.push(Disused {
-                    axis: bearer,
-                    node: Some(node),
-                    radius: section.powf_fixed(1.0 / e),
-                    share: 1.0,
-                });
-            }
-        }
-        (loads, pipes)
-    }
-}
-
-/// A subtree's committed section handed to a bearer of exponent `e`, its
-/// retained share of its shed pipes included (`Bounded::handed`).
-fn handed(row: &Row, s: f64, e: f64, retained: f64) -> f64 {
-    let (ec, k) = (row.e, row.kept);
-    let (p1, p2) = (s.powf_fixed(ec), s.powf_fixed(2.0 * ec));
-    let r = e / ec;
-    let kept = delta(k, row.s1 * p1, row.s2 * p2, r);
-    if retained <= 0.0 {
-        return kept;
-    }
-    let lost1 = (row.grown1 - row.s1).max(0.0) * p1;
-    let lost2 = (row.grown2 - row.s2).max(0.0) * p2;
-    kept + retained * delta(1.0, lost1, lost2, r)
 }

@@ -37,11 +37,9 @@ struct Trip {
 /// 3 down a root; (ii) demand, 2 up (an f64) and 2 down; (iii) the
 /// normalisers, each PA's two Q64.64 sums (8 words) up and down; (iv) the
 /// lattice's Q64.64 deposits up (4 words a node) and its swept light
-/// down (2). A re-lay adds two trips a root: its section, retained pipe,
-/// mass and moment up (12 words), its bearer's frame down (24), then its
-/// load up and its bent frame down.
-fn schedule(roots: u64, pas: u64, nodes: u64, relay: bool) -> Vec<Trip> {
-    let mut trips = vec![
+/// down (2).
+fn schedule(roots: u64, pas: u64, nodes: u64) -> Vec<Trip> {
+    vec![
         Trip {
             down: 3 * roots,
             up: 3 * roots,
@@ -58,15 +56,7 @@ fn schedule(roots: u64, pas: u64, nodes: u64, relay: bool) -> Vec<Trip> {
             down: 2 * nodes,
             up: 4 * nodes,
         },
-    ];
-    if relay {
-        let frame = Trip {
-            down: 24 * roots,
-            up: 12 * roots,
-        };
-        trips.extend([frame, frame]);
-    }
-    trips
+    ]
 }
 
 struct Buffers {
@@ -171,8 +161,8 @@ fn stepping_costs() {
         (80, 7, 17_370),
     ] {
         let nodes = nodes(age, seed);
-        let most = (0..=1)
-            .flat_map(|r| schedule(roots, pas, nodes, r == 1))
+        let most = schedule(roots, pas, nodes)
+            .into_iter()
             .map(|t| t.up.max(t.down))
             .max()
             .expect("a trip");
@@ -196,7 +186,7 @@ fn stepping_costs() {
             let started = Instant::now();
             let mut each = Vec::new();
             for cycle in 1..age {
-                for t in schedule(roots, pas, nodes, cycle % 10 == 0) {
+                for t in schedule(roots, pas, nodes) {
                     each.push(trip(&gpu, &pass, &bufs, t, cycle));
                 }
             }

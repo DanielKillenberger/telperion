@@ -1,0 +1,518 @@
+diff --git i/crates/telperion-space/examples/r1.rs w/crates/telperion-space/examples/r1.rs
+new file mode 100644
+index 00000000..6e2a9c08
+--- /dev/null
++++ w/crates/telperion-space/examples/r1.rs
+@@ -0,0 +1,188 @@
++//! fn-226 R1 probe, not product code: the lit oak's light work by pass,
++//! and the measures with one light pass or reader off.
++//!
++//!   cargo run --profile ci -p telperion-space --example r1 -- <ages> <seeds> <variants> <repeats>
++//!
++//! Variants: lit, unlit, flat (every bud reads 1), norelay, noallot
++//! (shade_size 0), nobalance (balance_hazard 0), nohazard (shade_hazard
++//! 0), nogirth (leaf_girth 0).
++use telperion_space::{grow_stepped, oak, r1_probe, Expected, Grouping, Light, Origin};
++use telperion_space::{PartitionOrder, Request, Species, Structure};
++
++const LIT: Light = Light {
++    extinction: 0.5,
++    sky: 0.5,
++};
++
++fn main() {
++    let args: Vec<String> = std::env::args().skip(1).collect();
++    let list = |i: usize| -> Vec<String> { args[i].split(',').map(String::from).collect() };
++    let (ages, seeds, variants) = (list(0), list(1), list(2));
++    let repeats: usize = args.get(3).map_or(1, |r| r.parse().unwrap());
++    for v in &variants {
++        for age in &ages {
++            for seed in &seeds {
++                run(v, age.parse().unwrap(), seed.parse().unwrap(), repeats);
++            }
++        }
++    }
++}
++
++fn run(variant: &str, age: u32, seed: u64, repeats: usize) {
++    let mut species = oak();
++    let mut light = LIT;
++    std::env::remove_var("R1_FLAT");
++    std::env::remove_var("R1_NO_RELAY");
++    for s in species.states.iter_mut() {
++        match variant {
++            "noallot" => s.shade_size = 0.0,
++            "nobalance" => s.balance_hazard = 0.0,
++            "nohazard" => s.shade_hazard = 0.0,
++            "nogirth" => s.leaf_girth = 0.0,
++            _ => {}
++        }
++    }
++    match variant {
++        "unlit" => light = Light::NEUTRAL,
++        "flat" => std::env::set_var("R1_FLAT", "1"),
++        "norelay" => std::env::set_var("R1_NO_RELAY", "1"),
++        _ => {}
++    }
++    let request = Request {
++        age,
++        seed,
++        budget: 20_000_000,
++        light,
++    };
++    let load = || std::fs::read_to_string("/proc/loadavg").unwrap_or_default();
++    let mut best: Option<(f64, Vec<f64>, Vec<u64>, Structure, String)> = None;
++    for _ in 0..repeats {
++        r1_probe::take();
++        let before = load();
++        let t = std::time::Instant::now();
++        let built = telperion_space::grow(&species, request).expect("grows");
++        let took = t.elapsed().as_secs_f64();
++        let (times, counts) = r1_probe::take();
++        let l = before.split(' ').next().unwrap_or("").to_string();
++        if best.as_ref().map_or(true, |b| took < b.0) {
++            best = Some((took, times, counts, built, l));
++        }
++    }
++    let (took, times, counts, tree, load) = best.unwrap();
++    let grown = counts[6];
++    let m = measures(&species, &tree);
++    let kept = m.kept as f64;
++    let mut out = format!(
++        "{{\"variant\":\"{variant}\",\"age\":{age},\"seed\":{seed},\"build\":{took:.4},\"load\":\"{load}\",\"grown\":{grown},\"kept\":{},\"shed\":{:.2},\"height\":{:.2},\"crown_x\":{:.2},\"crown_y\":{:.2},\"base_live\":{:.2},\"base_major\":{:.2}",
++        m.kept,
++        100.0 * (grown as f64 - kept) / grown as f64,
++        m.height,
++        m.crown[0],
++        m.crown[1],
++        m.base_live,
++        m.base_major
++    );
++    for (n, t) in r1_probe::NAMES.iter().zip(&times) {
++        out += &format!(",\"t_{n}\":{t:.4}");
++    }
++    for (n, c) in r1_probe::COUNTS.iter().zip(&counts) {
++        out += &format!(",\"n_{n}\":{c}");
++    }
++    out += &format!(",\"digest\":\"{:x}\"", telperion_space::digest(&tree));
++    println!("{out}}}");
++    if variant == "lit" && std::env::var_os("R1_CHECK").is_some() {
++        check(&species, request, &tree);
++    }
++}
++
++/// The stepped run's tree is `grow`'s (the shed share reads its counts).
++fn check(species: &Species, request: Request, tree: &Structure) {
++    let expected = Expected::new(species, request.age, 0);
++    let g = Grouping {
++        order: PartitionOrder::Forward,
++        chunk: 16,
++        sizes: true,
++        leaves: true,
++        girth: true,
++    };
++    let s = grow_stepped(species, request, &expected, 1024.0, g).expect("grows");
++    let same = telperion_space::digest(&s.structure) == telperion_space::digest(tree);
++    eprintln!(
++        "check {} s{}: digest same {same}, stepped grown {}",
++        request.age,
++        request.seed,
++        s.fine_grown + s.coarse_grown
++    );
++}
++
++struct Measures {
++    kept: usize,
++    height: f64,
++    crown: [f64; 2],
++    base_live: f64,
++    base_major: f64,
++}
++
++/// OAK-LIGHT.md's definitions: tips' extent; the lowest lateral off the
++/// stem bearing a living apex, and among those carrying 1 % of the kept
++/// phytomers.
++fn measures(species: &Species, tree: &Structure) -> Measures {
++    let _ = species;
++    let axes = &tree.axes;
++    let (mut lo, mut hi) = ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]);
++    let mut kept = 0;
++    for a in axes {
++        for p in &a.phytomers {
++            kept += 1;
++            for (k, v) in [p.tip.x, p.tip.y, p.tip.z].into_iter().enumerate() {
++                lo[k] = lo[k].min(v);
++                hi[k] = hi[k].max(v);
++            }
++        }
++    }
++    let parent = |a: &telperion_space::Axis| match a.origin {
++        Origin::Seed => None,
++        Origin::Lateral { parent, .. } => Some(parent),
++        Origin::Continuation { parent } | Origin::Relay { parent, .. } => Some(parent),
++    };
++    let mut stem = vec![false; axes.len()];
++    let (mut living, mut count) = (vec![false; axes.len()], vec![0usize; axes.len()]);
++    for (i, a) in axes.iter().enumerate() {
++        living[i] = a.apex_end.is_none();
++        count[i] = a.phytomers.len();
++        stem[i] = match a.origin {
++            Origin::Seed => true,
++            Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
++                stem[parent] && (2..=4).contains(&a.pa)
++            }
++            Origin::Lateral { .. } => false,
++        };
++        if let Some(p) = parent(a) {
++            assert!(p < i, "parents first");
++        }
++    }
++    for i in (1..axes.len()).rev() {
++        if let Some(p) = parent(&axes[i]) {
++            living[p] |= living[i];
++            count[p] += count[i];
++        }
++    }
++    let (mut live, mut major) = (f64::INFINITY, f64::INFINITY);
++    for (i, a) in axes.iter().enumerate() {
++        if let Origin::Lateral { parent, .. } = a.origin {
++            if stem[parent] && living[i] {
++                live = live.min(a.base.z);
++                if count[i] as f64 >= 0.01 * kept as f64 {
++                    major = major.min(a.base.z);
++                }
++            }
++        }
++    }
++    Measures {
++        kept,
++        height: hi[2],
++        crown: [hi[0] - lo[0], hi[1] - lo[1]],
++        base_live: live,
++        base_major: major,
++    }
++}
+diff --git i/crates/telperion-space/src/grow/stepped.rs w/crates/telperion-space/src/grow/stepped.rs
+index 09b6bc07..8f626e6c 100644
+--- i/crates/telperion-space/src/grow/stepped.rs
++++ w/crates/telperion-space/src/grow/stepped.rs
+@@ -34,6 +34,7 @@ mod feedback;
+ mod handover;
+ mod lay;
+ mod phases;
++pub mod probe;
+ mod schedule;
+ mod settle;
+ 
+@@ -192,6 +193,7 @@ fn run_with(
+         years.push(crate::clock::seconds() - started);
+     }
+     let started = crate::clock::seconds();
++    let t_settle = std::time::Instant::now();
+     x.grow_buds()?;
+     if keep != Keep::Tree {
+         x.grown();
+@@ -206,7 +208,9 @@ fn run_with(
+         std::mem::take(&mut x.states),
+         std::mem::take(&mut x.lattices),
+     );
++    probe::set(6, fine_grown + coarse_grown);
+     let fine = x.settle()?;
++    probe::wall(16, t_settle);
+     let stepped = Stepped {
+         // The tree is the report's (`run` moves it here).
+         structure: Structure {
+@@ -313,9 +317,13 @@ impl<'a> Executor<'a> {
+             true => self.items.iter().map(|i| living(&i.g)).collect(),
+             false => Vec::new(),
+         };
++        let t = std::time::Instant::now();
+         self.balance(cycle, again(&mut device));
++        probe::wall(0, t);
+         self.mark(cycle, 0);
++        let t = std::time::Instant::now();
+         self.allot();
++        probe::wall(1, t);
+         self.mark(cycle, 1);
+         // Phase (iv): each grower grows, wakes and lays its own (the
+         // count the growth digest takes is the same once laid).
+@@ -331,7 +339,17 @@ impl<'a> Executor<'a> {
+             }
+             Ok(())
+         };
+-        step(&mut self.coarse, cycle, &advanced, true)?;
++        let t = std::time::Instant::now();
++        step(&mut self.coarse, cycle, &advanced, false)?;
++        probe::wall(2, t);
++        let t = std::time::Instant::now();
++        if sketching {
++            self.coarse.sketch(cycle, &advanced)?;
++        }
++        probe::wall(3, t);
++        // Probe: each item's advanced list kept, its sketch run apart.
++        let mut sketch_after: Vec<(usize, u32, Vec<usize>)> = Vec::new();
++        let sketch_items = std::sync::Mutex::new(&mut sketch_after);
+         // Each item due runs to its next synchronisation point; until it
+         // is reached, nothing reads it, so it runs there, with every other
+         // item due by then, all at once.
+@@ -348,6 +366,7 @@ impl<'a> Executor<'a> {
+             .filter(|(k, _)| want.next_if_eq(k).is_some())
+             .collect();
+         let threads = self.coarse.threads;
++        let t_items = std::time::Instant::now();
+         let ran = crate::cores::pinned(due, ITEMS, threads, &|_, (k, item)| -> Result<Ran> {
+             let before = item.g.rules.grown;
+             let mut ran = Ran {
+@@ -357,7 +376,11 @@ impl<'a> Executor<'a> {
+             };
+             for c in item.next..=reach {
+                 let advanced = living(&item.g);
+-                step(&mut item.g, c, &advanced, !laying)?;
++                let apart = c == reach && !laying && sketching;
++                step(&mut item.g, c, &advanced, !laying && !apart)?;
++                if apart {
++                    sketch_items.lock().unwrap().push((k, c, advanced));
++                }
+                 if keep != Keep::Tree {
+                     let mut part = item.g.digest(2);
+                     part.counts[0] -= 2;
+@@ -372,6 +395,19 @@ impl<'a> Executor<'a> {
+             (ran.next, ran.grown) = (item.next, item.g.rules.grown - before);
+             Ok(ran)
+         });
++        probe::wall(4, t_items);
++        drop(sketch_items);
++        let t = std::time::Instant::now();
++        let mut jobs: Vec<Option<(u32, Vec<usize>)>> = vec![None; self.items.len()];
++        for (k, c, a) in sketch_after {
++            jobs[k] = Some((c, a));
++        }
++        let sketched = self.each(jobs, &|item, job| match job {
++            Some((c, a)) => item.g.sketch(c, &a),
++            None => Ok(()),
++        });
++        sketched.into_iter().collect::<Result<Vec<()>>>()?;
++        probe::wall(5, t);
+         for r in ran {
+             let r = r?;
+             self.items_grown += r.grown;
+@@ -392,14 +428,17 @@ impl<'a> Executor<'a> {
+         }
+         self.mark(cycle, 2);
+         let buds = self.coarse.rules.hands.is_some();
++        let t = std::time::Instant::now();
+         if (sketching || self.coarse.sketch.is_none()) && !buds {
+             self.hand_over(first_new, cycle + 1);
+         }
++        probe::wall(6, t);
+         if sketching {
+-            if cycle % RELAY_EVERY == 0 {
++            if cycle % RELAY_EVERY == 0 && !probe::no_relay() {
+                 self.relay(cycle)?;
+             }
+             self.shade(device);
++            probe::count(5, 1);
+             self.mark(cycle, 3);
+         }
+         // An item that died this cycle shades no more.
+@@ -438,8 +477,15 @@ impl<'a> Executor<'a> {
+     /// Every tenth cycle, today's re-lay on the tree assembled, its
+     /// places and walks handed back, its leaves the cycle's.
+     fn relay(&mut self, cycle: u32) -> Result<()> {
++        let t = std::time::Instant::now();
+         let (mut tree, layout) = self.assemble();
++        probe::wall(7, t);
++        probe::count(3, tree.axes.iter().map(|a| a.phytomers.len()).sum());
++        probe::count(4, 1);
++        let t = std::time::Instant::now();
+         tree.relay(cycle, &mut |_| {})?;
++        probe::wall(8, t);
++        let t = std::time::Instant::now();
+         self.disperse(tree, layout);
+         // The cycle's leaves where the re-lay put them, each grower's its
+         // own (a placeholder bears none): the lattice is the same in any
+@@ -448,6 +494,7 @@ impl<'a> Executor<'a> {
+         self.each(vec![(); self.items.len()], &|item, ()| {
+             relaid(&mut item.g, cycle)
+         });
++        probe::wall(9, t);
+         Ok(())
+     }
+ }
+diff --git i/crates/telperion-space/src/grow/stepped/feedback.rs w/crates/telperion-space/src/grow/stepped/feedback.rs
+index 64ed936f..7b7c400e 100644
+--- i/crates/telperion-space/src/grow/stepped/feedback.rs
++++ w/crates/telperion-space/src/grow/stepped/feedback.rs
+@@ -76,6 +76,8 @@ impl<'a> Executor<'a> {
+         let order = self.visit();
+         let threads = self.coarse.threads;
+         let light = self.coarse.sketch.as_ref().expect("sketching").light;
++        use super::probe;
++        let t = std::time::Instant::now();
+         let growers: Vec<usize> = std::iter::once(usize::MAX).chain(order).collect();
+         let (mut leaves, mut tips) = ([Vec::new(), Vec::new()], [Vec::new(), Vec::new()]);
+         for &k in &growers {
+@@ -84,18 +86,34 @@ impl<'a> Executor<'a> {
+             leaves[fine].extend_from_slice(&g.leaves);
+             tips[fine].extend(g.live.iter().map(|a| g.tip(a.axis)));
+         }
++        probe::wall(10, t);
+         let (field, read) = match device {
+             Some(device) => self.shade_on(device, (&leaves, &tips)),
++            None if probe::flat() => {
++                let tips = tips.concat();
++                probe::count(1, tips.len());
++                let read = vec![1.0; tips.len()];
++                (Field::new(&light, &[], &[]), read)
++            }
+             None => {
+                 let [mut leaves, fine] = leaves;
+                 leaves.extend(fine);
+                 let tips = tips.concat();
+-                let field = Field::on(&light, &leaves, &tips, threads);
++                probe::count(0, leaves.len());
++                probe::count(1, tips.len());
++                let (field, times) = Field::timed(&light, &leaves, &tips, threads);
++                probe::count(2, field.nodes());
++                for (k, s) in times.into_iter().enumerate() {
++                    probe::secs(11 + k, s);
++                }
++                let t = std::time::Instant::now();
+                 let mut read = vec![0.0; tips.len()];
+                 crate::cores::fill(&mut read, 1 << 10, threads, &|k| field.at(tips[k]));
++                probe::wall(14, t);
+                 (field, read)
+             }
+         };
++        let t = std::time::Instant::now();
+         if self.keep == super::Keep::States {
+             self.lattices.push(lattice_hash(&field));
+         }
+@@ -109,6 +127,7 @@ impl<'a> Executor<'a> {
+             }
+             from += n;
+         }
++        super::probe::wall(15, t);
+     }
+ 
+     /// Phase (i) inside the items on `device`: each item's walk read from
+diff --git i/crates/telperion-space/src/grow/stepped/probe.rs w/crates/telperion-space/src/grow/stepped/probe.rs
+new file mode 100644
+index 00000000..b0bd3233
+--- /dev/null
++++ w/crates/telperion-space/src/grow/stepped/probe.rs
+@@ -0,0 +1,70 @@
++//! fn-226 R1 probe, not product code: the stepped executor's light work
++//! timed by pass and counted, and switches that turn one light pass off
++//! (`R1_FLAT`: every bud reads 1, no deposit, sweep or sample;
++//! `R1_NO_RELAY`: no re-lay). Reverse-applied after the runs.
++use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
++use std::time::Instant;
++
++pub const NAMES: [&str; 17] = [
++    "balance",
++    "allot",
++    "coarse_grow",
++    "coarse_sketch",
++    "items_grow",
++    "items_sketch",
++    "handover",
++    "relay_assemble",
++    "relay_tree",
++    "relay_disperse",
++    "shade_gather",
++    "shade_box",
++    "shade_deposit",
++    "shade_sweep",
++    "shade_read",
++    "shade_write",
++    "settle",
++];
++pub const COUNTS: [&str; 7] = [
++    "leaves",
++    "tips",
++    "nodes",
++    "relay_phytomers",
++    "relays",
++    "cycles_shaded",
++    "grown",
++];
++
++static T: [AtomicU64; 17] = [const { AtomicU64::new(0) }; 17];
++static C: [AtomicU64; 7] = [const { AtomicU64::new(0) }; 7];
++
++/// Adds the wall time since `t` to pass `k`.
++pub fn wall(k: usize, t: Instant) {
++    T[k].fetch_add(t.elapsed().as_nanos() as u64, Relaxed);
++}
++
++pub fn secs(k: usize, s: f64) {
++    T[k].fetch_add((s * 1e9) as u64, Relaxed);
++}
++
++pub fn count(k: usize, n: usize) {
++    C[k].fetch_add(n as u64, Relaxed);
++}
++
++pub fn set(k: usize, n: u64) {
++    C[k].store(n, Relaxed);
++}
++
++/// Every timer and count, read and zeroed.
++pub fn take() -> (Vec<f64>, Vec<u64>) {
++    let t = T.iter().map(|a| a.swap(0, Relaxed) as f64 / 1e9).collect();
++    let c = C.iter().map(|a| a.swap(0, Relaxed)).collect();
++    (t, c)
++}
++
++pub fn flat() -> bool {
++    std::env::var_os("R1_FLAT").is_some()
++}
++
++pub fn no_relay() -> bool {
++    std::env::var_os("R1_NO_RELAY").is_some()
++}
+diff --git i/crates/telperion-space/src/lib.rs w/crates/telperion-space/src/lib.rs
+index f8aff408..459d37b0 100644
+--- i/crates/telperion-space/src/lib.rs
++++ w/crates/telperion-space/src/lib.rs
+@@ -63,6 +63,7 @@ pub use grow::oracle::{grow_oracle, Oracled, Read};
+ pub use grow::partition::{
+     grow_partitioned, Grouping, Order as PartitionOrder, Partitioned, Run as PartitionRun, PHASES,
+ };
++pub use grow::stepped::probe as r1_probe;
+ pub use grow::stepped::{
+     grow_stepped, grow_stepped_on, Cpu, Feedback, Laid, LayJob, LayPa, Stepped,
+ };
+diff --git i/crates/telperion-space/src/light/field.rs w/crates/telperion-space/src/light/field.rs
+index 124f4dba..609db113 100644
+--- i/crates/telperion-space/src/light/field.rs
++++ w/crates/telperion-space/src/light/field.rs
+@@ -47,6 +47,27 @@ impl Field {
+         field
+     }
+ 
++    /// fn-226 R1 probe: `on`, its box, deposits and sweep timed apart.
++    pub(crate) fn timed(
++        light: &super::Light,
++        leaves: &[(Vec3, f64)],
++        reads: &[Vec3],
++        threads: usize,
++    ) -> (Self, [f64; 3]) {
++        let t = std::time::Instant::now();
++        let mut field = Self::spanning(
++            leaves.iter().map(|l| l.0).chain(reads.iter().copied()),
++            CELL,
++        );
++        let a = t.elapsed().as_secs_f64();
++        let t = std::time::Instant::now();
++        field.deposit_all(leaves);
++        let b = t.elapsed().as_secs_f64();
++        let t = std::time::Instant::now();
++        field.sweep(light.extinction, &light.directions(), threads);
++        (field, [a, b, t.elapsed().as_secs_f64()])
++    }
++
+     /// The lattice `leaves` deposit in the box spanning them and `reads`,
+     /// before any sweep (probe (a): any grouping of the leaves gives it).
+     pub(crate) fn deposited(leaves: &[(Vec3, f64)], reads: &[Vec3]) -> Vec<u128> {

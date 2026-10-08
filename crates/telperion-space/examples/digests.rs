@@ -65,7 +65,6 @@ fn main() {
         chunk: 1,
         sizes: true,
         leaves: true,
-        girth: true,
     };
     let s = oak();
     for age in [40, 80] {
