@@ -198,3 +198,29 @@ fn a_buffer_over_the_devices_limit_is_refused_by_name() {
         other => panic!("not refused by name: {:?}", other.err()),
     }
 }
+
+/// fn-212 task 11, Astra's finding 4: the authored foliage budget holds
+/// the whole tree's leaves, the device's block with the CPU's, and is
+/// refused in the CPU reference's words.
+#[test]
+fn the_foliage_budget_holds_the_whole_trees_leaves() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    let mut family = family("european-beech", 30);
+    let count = gen.prepare(&family, Delivery::Resident).unwrap().count();
+    family.canopy.max_instances = count as usize - 1;
+    let whole = pollster::block_on(gen.prepare_whole(&family, Delivery::Resident));
+    let whole = whole.err().expect("the CPU reference refuses").to_string();
+    assert!(whole.contains("foliage instance budget"), "{whole}");
+    let device = gen.prepare(&family, Delivery::Resident).err();
+    assert_eq!(device.map(|e| e.to_string()), Some(whole));
+    // A budget of exactly the tree's leaves holds it.
+    family.canopy.max_instances = count as usize;
+    assert_eq!(
+        gen.prepare(&family, Delivery::Resident).unwrap().count(),
+        count
+    );
+}

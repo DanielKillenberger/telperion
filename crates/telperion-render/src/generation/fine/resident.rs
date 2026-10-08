@@ -202,6 +202,10 @@ pub(super) async fn build(
             .await
     })
     .await?;
+    // The authored budget holds the whole tree's leaves, both blocks.
+    let count = (cpu.count.checked_add(device.stations))
+        .filter(|&n| n as usize <= x.leaves().canopy.max_instances)
+        .ok_or(Error::ResourceLimit("foliage instance budget"))?;
     swept.nodes.destroy();
     let positions = stage(gpu, &mut t.rings, async || {
         let twist = std::f64::consts::TAU * surface.twist_rate / height;
@@ -213,7 +217,6 @@ pub(super) async fn build(
     })
     .await?;
     // Both blocks into one leaf buffer, one mass grid over both.
-    let count = cpu.count + device.stations;
     let reference = x.reference();
     let resident = stage(gpu, &mut t.place, async || {
         let leaves = gen.leaf_buffer(count)?;
