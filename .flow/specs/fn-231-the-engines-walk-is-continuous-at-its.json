@@ -1,11 +1,136 @@
 {
   "branch_name": "fn-231-the-engines-walk-is-continuous-at-its",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-08T13:14:15.281213Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-231-the-engines-walk-is-continuous-at-its",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-08T16:35:58.577835Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "5079f83493052f905d4ed52609025fbb445bd8ea298c6f281c64c051ee04e855",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-eb37ea957fca16d7476b67018cffa01a",
+            "classification": "introduced",
+            "findingId": "finding-eb37ea957fca16d7476b67018cffa01a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4f40751a3fb122b4bf7adca94eb2d3c8",
+            "classification": "introduced",
+            "findingId": "finding-4f40751a3fb122b4bf7adca94eb2d3c8",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ce3b9dc5f62ed487624a160ece0244977c95353a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1040157,
+      "output_sha256": "4c9f2ef7ef9f152b268b532f7a39b78d746c67c6405d17452cc20a82fdc87be6",
+      "reservation_id": "f3969a960c4b4588abafe80f48ec7476",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T16:35:17.076185Z",
+      "tool_calls": 19,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "8f16458cd161c4bf9b729e1ef4365e4cec9fba4ad1b47d218787463fd5bbb49f",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-eb37ea957fca16d7476b67018cffa01a",
+            "classification": "introduced",
+            "findingId": "finding-eb37ea957fca16d7476b67018cffa01a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4f40751a3fb122b4bf7adca94eb2d3c8",
+            "classification": "introduced",
+            "findingId": "finding-4f40751a3fb122b4bf7adca94eb2d3c8",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ce3b9dc5f62ed487624a160ece0244977c95353a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 650,
+      "output_sha256": "da88d2c09a50f329824ad4e926a1c478ab1d42d325ae94c12e80f5be9281d597",
+      "reservation_id": "148eb8f02bbb48619db0b4c6d0bd3e8a",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T16:35:58.575732Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-231-the-engines-walk-is-continuous-at-its.md",
   "status": "open",
   "title": "The engine's walk is continuous at its ends",
@@ -20,5 +145,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T13:14:15.296064Z"
+  "updated_at": "2026-10-08T16:36:04.196587Z"
 }
