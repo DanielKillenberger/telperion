@@ -42,7 +42,8 @@ pub fn sized(shape: Species, ends: &[(&Species, f64)], age: u32) -> Result<Speci
 }
 
 /// The factor, at most `ceiling`, at which `count` of `shape` at `age` is the
-/// ends' weighted geometric mean of it.
+/// ends' weighted geometric mean of it, or 0 where no factor brings it down
+/// that far.
 fn factor(
     shape: &Species,
     ends: &[(&Species, f64)],
@@ -50,6 +51,9 @@ fn factor(
     count: Count,
     ceiling: f64,
 ) -> Result<f64> {
+    if ceiling == 0.0 {
+        return Ok(0.0);
+    }
     let (mut logs, mut total) = (0.0, 0.0);
     for &(end, share) in ends.iter().filter(|(_, share)| *share > 0.0) {
         logs += share * count(end, age)?.ln();
@@ -76,9 +80,9 @@ fn solve(at: impl Fn(f64) -> Result<f64>, top: f64, high: f64) -> Result<f64> {
     let mut width = 0.25;
     while ga > 0.0 {
         if width > 64.0 {
-            return Err(Error::InvalidInput(
-                "a blend no lateral factor shrinks to its ends' size",
-            ));
+            // What the tree grows without laterals is already above the
+            // target (a first year grows no laterals): none comes nearest.
+            return Ok(0.0);
         }
         (b, gb) = (a, ga);
         width *= 2.0;

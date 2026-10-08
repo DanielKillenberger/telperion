@@ -198,6 +198,11 @@ fn a_walk_is_the_two_point_centroid_and_bad_weights_are_refused() {
         &blend::families(&a, &b, 0.25).unwrap(),
     );
     same(&blend::centroid(&[(&a, 0.0), (&b, 2.0)]).unwrap(), &b);
+    // Weights weigh as their ratios, however large.
+    same(
+        &blend::centroid(&[(&a, 5e307), (&b, 5e307)]).unwrap(),
+        &blend::centroid(&[(&a, 1.0), (&b, 1.0)]).unwrap(),
+    );
     for weights in [
         [-1.0, 2.0],
         [f64::NAN, 1.0],
@@ -212,4 +217,25 @@ fn a_walk_is_the_two_point_centroid_and_bad_weights_are_refused() {
         );
     }
     assert!(blend::centroid(&[]).is_err());
+}
+
+/// A first year grows no laterals, so in its first year a point between two
+/// species can grow more than its ends' mean with no lateral to shrink: it
+/// is a tree all the same, with its laterals at none, the nearest the factor
+/// comes (Codex on fn-230).
+#[test]
+fn a_first_year_blend_is_a_tree_though_no_factor_reaches_its_size() {
+    for (p, q) in [
+        (Preset::EuropeanBeech, Preset::OregonWhiteOak),
+        (Preset::EuropeanBeech, Preset::NorwaySpruce),
+    ] {
+        let (a, b) = (at(p, 1.0), at(q, 1.0));
+        let walked = blend::families(&a, &b, 0.5).unwrap();
+        let laterals = species(&walked)
+            .states
+            .iter()
+            .flat_map(|s| &s.zones)
+            .flat_map(|z| &z.lateral);
+        assert!(laterals.copied().all(|l| l == 0.0), "{p:?} to {q:?}");
+    }
 }

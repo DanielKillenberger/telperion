@@ -43,22 +43,26 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
 /// between engine species, one factor on the lateral probabilities so the
 /// light-neutral predicted size at the centroid's age is the points'
 /// weighted geometric mean, shrinking only. Every row a two-way walk mixes
-/// linearly is the same in any order.
+/// on a continuous scale, the engine species and its size included, is the
+/// same in any order; a row of whole counts rounds at each point, so the
+/// order can move it by one.
 pub fn centroid(points: &[(&Family, f64)]) -> Result<Family> {
     let total: f64 = points.iter().map(|(_, w)| w).sum();
     let bad = |w: &f64| !w.is_finite() || *w < 0.0;
     if points.iter().any(|(_, w)| bad(w)) || !(total > 0.0 && total.is_finite()) {
         return Err(Error::InvalidInput("blend weights"));
     }
-    let (first, rest) = points.split_first().expect("a positive total has a point");
+    // Shares, so weights near the largest double weigh as their ratios do.
+    let shares: Vec<(&Family, f64)> = points.iter().map(|&(p, w)| (p, w / total)).collect();
+    let (first, rest) = shares.split_first().expect("a positive total has a point");
     let (mut mean, mut seen) = (first.0.clone(), first.1);
-    for &(point, weight) in rest {
-        seen += weight;
+    for &(point, share) in rest {
+        seen += share;
         if seen > 0.0 {
-            mean = mixed(&mean, point, weight / seen)?;
+            mean = mixed(&mean, point, share / seen)?;
         }
     }
-    sized(mean, points)
+    sized(mean, &shares)
 }
 
 /// The rows' point, shrunk to its ends' size where both carry a species.
