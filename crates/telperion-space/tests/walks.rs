@@ -5,7 +5,7 @@
 //! walks only the settings whose name holds it (`walk::degree::named`).
 mod walk;
 use std::sync::OnceLock;
-use walk::degree::{by_degree, judge, named, walks, Walks};
+use walk::degree::{bound, by_degree, judge, named, walks, Walks, MULTIPLE, ROUGH_LAYOUT};
 use walk::{
     crossing, in_leaf, light_settings, made, refine, release_settings, setting, settings, Setting,
     STEPS,
@@ -75,6 +75,18 @@ fn the_release_law_changes_the_tree_by_degree() {
 fn light_changes_the_tree_by_degree() {
     let failed = by_degree(light_settings());
     assert!(failed.is_empty(), "{failed:#?}");
+}
+
+/// fn-226: the rough layout's exception names two light walks that exist,
+/// and every other light walk stays at the stated bound.
+#[test]
+fn only_the_named_light_walks_take_their_own_bound() {
+    let names: Vec<String> = light_settings().into_iter().map(|s| s.name).collect();
+    for (walk, _) in ROUGH_LAYOUT {
+        assert!(names.iter().any(|n| n == walk), "{walk} is walked");
+    }
+    let wider = names.iter().filter(|n| bound(n) != MULTIPLE).count();
+    assert_eq!(wider, ROUGH_LAYOUT.len());
 }
 
 /// fn-197 decision 12: a sample of structural settings walked in leaf,
