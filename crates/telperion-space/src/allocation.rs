@@ -214,17 +214,6 @@ pub(crate) fn size_of(vigour: i64, presence: i64, psi: i64, [total, weighted]: [
         .expect("a size inside Q32")
 }
 
-/// A bud's size against a mean its group is given rather than summed
-/// (fn-226 R4): `drawn / mean`, one truncation; whole where it has no
-/// presence or the mean is none.
-pub(crate) fn size_against(vigour: i64, presence: i64, psi: i64, mean: i64) -> i64 {
-    if presence <= 0 || mean <= 0 {
-        return ONE32;
-    }
-    let drawn = i128::from(drawn(vigour, presence, psi));
-    ((drawn << 32) / i128::from(mean)).min(i128::from(crate::fixed::INF)) as i64
-}
-
 /// Each bud's size against its group's sums.
 pub(crate) fn sized(
     vigour: &[f64],

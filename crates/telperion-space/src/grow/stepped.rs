@@ -27,17 +27,14 @@
 //!
 //! The tree is then assembled and settled as today's engine settles it.
 //! An experiment behind its own entry point: `grow` never builds one.
-mod ahead;
 mod buds;
 mod feedback;
 mod handover;
 mod lay;
-mod outline;
 mod phases;
 mod schedule;
 mod settle;
 
-pub use ahead::{grow_outline, Outlined};
 use feedback::again;
 pub use feedback::{Cpu, Feedback};
 pub use lay::{Laid, LayJob, LayPa};
@@ -129,18 +126,6 @@ pub(crate) fn build(species: &Species, request: Request, plan: Plan) -> Result<F
     };
     let at = (None, plan.cut, grouping);
     Ok(run_with(species, request, at, (None, plan), Keep::Tree)?.1)
-}
-
-/// `build` at the default plan, with its counts.
-pub(super) fn built(species: &Species, request: Request) -> Result<(Stepped, Fine)> {
-    let plan = Plan::default();
-    let grouping = Grouping {
-        order: Order::Forward,
-        chunk: plan.chunk,
-        sizes: true,
-        leaves: true,
-    };
-    run_with(species, request, (None, plan.cut, grouping), (None, plan), Keep::Tree)
 }
 
 /// What a run keeps beside its tree: nothing (the build), each phase's
