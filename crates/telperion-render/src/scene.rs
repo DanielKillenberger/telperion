@@ -124,9 +124,9 @@ pub struct Scene {
     /// The organ mask (fn-217 M0): in the clay room, the flowers white and
     /// everything else black, unlit. An instrument, off in every picture.
     mask: bool,
-    pub(crate) section_roundness: f64,
+    section_roundness: f64,
     /// The submitted leaf's margin band as a share of its area, by width.
-    pub(crate) band_shares: BandShares,
+    band_shares: BandShares,
     /// The ellipsoid the submitted crown's placements fill, which a leaf's
     /// depth into the crown is measured against. None before a tree is up.
     crown: Option<Bounds>,
@@ -309,6 +309,13 @@ impl Scene {
 
     /// The supernatural group's leaf mirrors for the subject that is up,
     /// set after its material.
+    /// What the frame reads of the submitted leaf element: its section
+    /// and its margin band's area share. Every submission path sets it.
+    pub(crate) fn set_leaf(&mut self, element: &telperion_core::foliage::Element) {
+        self.section_roundness = element.section_roundness;
+        self.band_shares = BandShares::of(element);
+    }
+
     pub fn set_mask(&mut self, on: bool) {
         self.mask = on;
     }

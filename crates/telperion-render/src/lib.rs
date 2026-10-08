@@ -214,8 +214,7 @@ impl Renderer {
         self.scene.set_crown(crown_of(&mesh.foliage));
         self.scene
             .set_leaf_reference(mesh.foliage.instances.reference);
-        self.scene.section_roundness = mesh.foliage.element.section_roundness;
-        self.scene.band_shares = scene::BandShares::of(&mesh.foliage.element);
+        self.scene.set_leaf(&mesh.foliage.element);
         self.bounds = Some(mesh.bounds);
         self.level_deviations = mesh
             .foliage
