@@ -43,8 +43,8 @@ fn generator() -> Option<Generator> {
     Some(Generator::new(&Renderer::new(gpu, crate::STILL_FORMAT)).unwrap())
 }
 
-/// The position screen of the compact path (`position_probe.rs`'s
-/// contract): 50 micrometres at most, 10 in the root mean square.
+/// The compact path's position screen (the deleted `position_probe.rs`'s,
+/// F3): 50 micrometres at most, 10 in the root mean square.
 fn screened(label: &str, (most, rms, n): (f64, f64, usize)) {
     println!("LOBED {label}: {n} vertices, most {most:.3e} m, rms {rms:.3e} m");
     assert!(n > 0 && most <= 50e-6 && rms <= 10e-6, "{label}");
