@@ -303,3 +303,32 @@ The re-review verdict is **NEEDS_WORK**, with two surviving findings. Both need 
    - Re-solve the centroid's lateral factor against the **geometric** mean of the corners' kept counts, the same mean fn-230's size factor uses.
    - If that is within 5% of the old rows' factor, keep the old rows.
    - Make before and after strips at 40 and 80, seeds 1 and 7, and view them. The target is a tree, not a hedge. If it still reads as a hedge, stop and report.
+
+## The sixth answers built, and the ordinary tree stopped (2026-10-09)
+
+**1. Presence share, built (`6a60b106` red, `5f2264b2` green).**
+- A cut unit's quota is `share / of` of the sum of its zone's node presences (Q32). Nodes are laid whole in index order while the quota holds them. The node the quota runs out in is a `LAID` draw on the share of it that is left.
+- Both executors do this in integers (`lineage::laid`; `apex.wgsl`'s `laid_nodes`). Where every presence is whole, this is the old rule to the bit.
+- The reviewer's repro is a standalone test, `a_node_made_at_vanishing_presence_lays_no_other_node_whole`. It was red before the change (2 m → 3 m) and is green after.
+- fn-192's walks gain `states[1].zones[0].nodes.mean, lifespan 6.5`, a node walk on a unit the lifespan cuts. Both of fn-192's tests pass on it.
+- The full space suite passes, and so do GPU parity (chain, realized and stepped) and the key mirror.
+- **One approximation:** the closed form thins the node count law by the share (`Count::laid_pmf`), which is the presence rule's expectation wherever presences are whole. Where a node is fading in at a law bound, its presence is under 1 and the predictor counts it at the count rule. The predictor ignores presences everywhere else too, so this is the same approximation it already makes.
+
+**2. R5:** amended to measured and reported, which is done above.
+
+**3. The ordinary tree: stopped as instructed.**
+- **The solve already uses the geometric mean.** `blend::size::sized` targets "the ends' weighted geometric mean" for both kept and grown counts (module doc, `sized`). `examples/centroid.rs` runs `blend::centroid`, which calls it. The re-solve at `7df6fd3f` was therefore already against the corners' geometric mean of kept and grown counts. Re-running it after the presence share leaves `presets/ordinary.values` unchanged. The factor is 1.2327 times the old rows', which is outside 5 %, so the old rows cannot be kept under the answer's rule.
+- **It matches the corners in node count.** Its kept count at 80 is the corners' geometric mean, 3.56M; the corners are 2.19M (beech), 4.43M (oak) and 4.65M (spruce). Grown nodes at 80:
+
+  | | Beech | Spruce | Oak | Corners' geometric mean | Ordinary |
+  |---|---|---|---|---|---|
+  | Seed 1 | 1.54M | 4.64M | 0.95M | 1.89M | 1.85M |
+  | Seed 7 | 2.61M | 4.61M | 2.22M | 2.99M | 3.54M |
+
+- **Strips viewed:** `raw/ordinary/strip2-{40,80}-{1,7}.png`, before over after, after the presence share. At 40 both seeds read as trees, fuller than before. At 80, seed 1 reads as a full upright tree. **At 80, seed 7 still reads as a hedge-like column**: the crown is dense from ground to top, and the limb view is a thicket. Its wood is 40.0 km against 13.3 km before.
+
+**For the host:** the hedge does not come from an arithmetic mean. The geometric mean of the corners' counts, met by real nodes rather than by crowded subtrees at vanishing size, is this dense at seed 7, 80. The fn-230 tree was sparse only because its count was mostly invisible nodes. Options, none chosen:
+- size the ordinary tree on a measure other than node count, such as wood or crown volume;
+- size it at another age;
+- accept seed 7's density;
+- keep the old rows as the owner's tuning and re-derive later.

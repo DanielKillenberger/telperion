@@ -52,3 +52,10 @@
 - **Slowed:** the shared `gpu.lock` was held by `flock ... sh -c 'echo held; sleep 2700'`, with another session's `fixpass.sh` queued behind it. My first frame waited 26 minutes on its 30-minute `flock -w` before I stopped the run. I did not touch the holder.
 - **Cost:** about 30 minutes waiting. In the meantime I timed the solve on the CPU (R5).
 - **Would have removed it:** a lock that names its holder and purpose, for example a line written into the lock file, so a waiter can tell a deliberate hold from a stuck one. Or one queue that reports its position.
+
+## 2026-10-09: the reboot took the scratchpad; the sixth answer's premise did not hold
+
+- **Doing:** resuming after the reboot, building the presence share, re-solving the ordinary tree.
+- **Slowed:** the base worktree and its target under the scratchpad (`base231`, `base231-target`) and the solve timers went with `/tmp`. I recreated what I needed: the timers are kept in evidence (`walk_solve.rs.txt`, `predict_bench.rs.txt`). The ordinary tree's answer assumed an arithmetic mean that the code does not use (`blend::size` is geometric), so the re-solve changed nothing and the answer's stop condition was hit at once.
+- **Cost:** about 10 minutes, plus one more escalation round.
+- **Would have removed it:** checking `blend::size`'s mean before ruling, or keeping base worktrees outside `/tmp`.
