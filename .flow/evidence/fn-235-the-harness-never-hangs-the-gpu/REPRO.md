@@ -132,3 +132,15 @@ is kept, so the split fails decision 1's condition and was not built.
 `grow` stays one slimmed pipeline at 13 to 17 s cold, over the 2.5 s
 bound; `every_pipeline_within_2_5_s_and_the_first_tree_within_5_s_cold`
 stays red on it.
+
+## Host decisions (2026-10-09, third)
+
+1. **`grow` is a named exception to the cold-compile bound.**
+   - **The bound:** at most 20 s natively cold. Its cause and measurements are recorded beside the test: the apex loop's inlined copies of the 64-bit arithmetic behind contract A, and the split's measured 11-13 % run cost on the beech.
+   - **Every other pipeline** stays at 2.5 s or less, and the test turns green.
+   - **What decides it:** the owner's browser check, with a fresh profile and a cold cache. Chrome compiles through its own shader translator, so the native time is not Chrome's time.
+   - **If Chrome loses the device** on the first build, the next step is either async creation or a contract-A arithmetic form that inlines less. The host decides which; the worker does not start either.
+2. **The budget counts the drawn tree, so make room before refusing.** A build that fits the budget on its own, but not beside the drawn tree, first releases the drawn tree, then builds. The screen is empty while it builds, and the status says so. A build that does not fit even alone is refused by name, and the drawn tree is kept. This is one stated rule, not a fallback: the tree is either built or refused. A test covers each case.
+3. **R2's per-submission caps are still required.** Every shader loop gets a cap derived from its inputs, and no single submission of a shipped species at 80 may run longer than 1 s on the 3080. A test asserts the caps and the measured worst submission.
+
+Then run impl-review and `flowctl done`. After that, the host asks the owner for the browser check.
