@@ -1,15 +1,14 @@
 ---
 satisfies: [R4, R5]
 ---
-# fn-226-light-read-from-the-crowns-outline-per.2 Head-to-head, the owner's verdict, one model
+# fn-226-light-read-from-the-crowns-outline-per.2 Delete the re-lay, measured
 
 ## Description
-R4 and R5: the sheet with the references and measures; the owner chooses; the chosen model replaces the lattice, the rest deleted; per-bud light on the GPU executor; the occluder follow-up recorded.
-
+The spec's R2: the periodic whole-tree re-lay removed; light reads the rough layout's positions; measured and viewed against today before it lands.
 ## Acceptance
-- Sheet and table viewed; owner verdict recorded.
-- One light model; lattice and losers deleted; GPU per-bud light; gate and npm test green.
-
+- Re-lay deleted on both executors.
+- Lit oak at 40 and 80, seeds 1, 7, 42: crown width, clear trunk, phytomers grown, build time against today; hero stills before and after viewed; a visible change reported before landing.
+- Gate and npm test green.
 ## Done summary
 TBD
 

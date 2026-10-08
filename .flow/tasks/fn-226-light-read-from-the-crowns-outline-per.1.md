@@ -1,20 +1,17 @@
 ---
 satisfies: [R1, R2, R3]
 ---
-# fn-226-light-read-from-the-crowns-outline-per.1 Measure the lattice, then outline light A and B on the CPU
+# fn-226-light-read-from-the-crowns-outline-per.1 Measure the lattice by pass and effect
 
 ## Description
-R1, R2, R3: the lattice's cost by pass and which effects come from which; outline light A (outline folded per cycle) and B (closed form's expected outline) on the CPU in fixed point, beside the lattice for the comparison only (the losers are deleted in task 2).
-
+R1 only: the lattice's cost by pass and which effect comes from which pass (R1.md). Outline models A and B are superseded by the revised spec (host, 2026-10-08).
 ## Acceptance
-- R1 table.
-- A and B built, deterministic, per bud with no neighbour read; walks pass for their rows.
-- Gate green.
-
+- R1.md with the cost and effect tables.
 ## Done summary
-TBD
+R1 done (R1.md, 9f790ac0); A and B superseded by the revised spec.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
+- Commits: 9f790ac0
 - Tests:
 - PRs:
