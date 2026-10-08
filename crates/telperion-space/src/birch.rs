@@ -252,7 +252,7 @@ pub fn birch() -> Species {
             1.0,
             unit(
                 (2, 3),
-                ((3, 5), &[(BOUGH, 0.12), (BRANCH, 0.15), (SHORT, 0.35)]),
+                ((3, 5), &[(BOUGH, 0.12), (BRANCH, 0.15), (SHORT, 0.58)]),
                 ((1, 2), &[(BOUGH, 0.45), (BRANCH, 0.4)]),
             ),
         )
@@ -277,7 +277,7 @@ pub fn birch() -> Species {
         ..state(100, 0.0, {
             let mut u = unit(
                 (1, 2),
-                ((3, 4), &[(BRANCH, 0.4), (SHORT, 0.35)]),
+                ((3, 4), &[(BRANCH, 0.4), (SHORT, 0.45)]),
                 ((1, 1), &[(BRANCH, 0.5)]),
             );
             u[1] = sleeping(u[1].clone(), 0.2);
@@ -312,13 +312,17 @@ pub fn birch() -> Species {
             0.0,
             unit(
                 (1, 2),
-                ((3, 4), &[(BRANCH, 0.4), (SHORT, 0.4)]),
+                ((3, 4), &[(BRANCH, 0.4), (SHORT, 0.45)]),
                 ((1, 1), &[(BRANCH, 0.5)]),
             ),
         )
     };
     // The hanging long-shoot system: thin, set below the horizontal and
-    // bowed by its own weight, clothed in short shoots.
+    // bowed by its own weight, clothed in short shoots. A long shoot's
+    // every leaf has an axillary bud and most shoots a branch bears are
+    // short (SU03, >80 %): the medial nodes of the strands, limbs, boughs
+    // and passing branches bear a shoot at 0.85, the short shoot taking
+    // what the long laterals leave (round 13; the 0.85 estimated).
     let hanging = Form {
         tropism: 3.0,
         elevation: -FRAC_PI_2,
@@ -347,7 +351,7 @@ pub fn birch() -> Species {
             0.0,
             vec![
                 zone(1, 1, &[]),
-                zone(3, 5, &[(SHORT, 0.5), (BRANCH, 0.005)]),
+                zone(3, 5, &[(SHORT, 0.845), (BRANCH, 0.005)]),
             ],
         )
     };

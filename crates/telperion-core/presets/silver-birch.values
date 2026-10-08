@@ -498,7 +498,7 @@
 /space/ages/6/zones/1/nodes/max = 5.0
 /space/ages/6/zones/1/lateral/7 = 0.12
 /space/ages/6/zones/1/lateral/9 = 0.15
-/space/ages/6/zones/1/lateral/14 = 0.35
+/space/ages/6/zones/1/lateral/14 = 0.58
 /space/ages/6/zones/2/buds = 1.0
 /space/ages/6/zones/2/nodes/min = 1.0
 /space/ages/6/zones/2/nodes/max = 2.0
@@ -536,7 +536,7 @@
 /space/ages/7/zones/1/delay = 4.0
 /space/ages/7/zones/1/rate = 0.15
 /space/ages/7/zones/1/lateral/9 = 0.4
-/space/ages/7/zones/1/lateral/14 = 0.35
+/space/ages/7/zones/1/lateral/14 = 0.45
 /space/ages/7/zones/1/dormant/9 = 0.2
 /space/ages/7/zones/2/buds = 1.0
 /space/ages/7/zones/2/nodes/min = 1.0
@@ -563,7 +563,7 @@
 /space/ages/8/zones/1/nodes/min = 3.0
 /space/ages/8/zones/1/nodes/max = 4.0
 /space/ages/8/zones/1/lateral/9 = 0.4
-/space/ages/8/zones/1/lateral/14 = 0.4
+/space/ages/8/zones/1/lateral/14 = 0.45
 /space/ages/8/zones/2/buds = 1.0
 /space/ages/8/zones/2/nodes/min = 1.0
 /space/ages/8/zones/2/nodes/max = 1.0
@@ -592,7 +592,7 @@
 /space/ages/9/zones/1/nodes/min = 3.0
 /space/ages/9/zones/1/nodes/max = 5.0
 /space/ages/9/zones/1/lateral/9 = 0.005
-/space/ages/9/zones/1/lateral/14 = 0.5
+/space/ages/9/zones/1/lateral/14 = 0.845
 /space/ages/14/lifespan = 6.0
 /space/ages/14/continuation = 0.0
 /space/ages/14/viability = 0.92

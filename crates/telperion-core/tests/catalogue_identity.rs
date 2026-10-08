@@ -108,7 +108,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        17_871_085_158_191_469_014,
+        11_237_643_877_739_501_088,
         "{}",
         digest(&text)
     );
@@ -140,7 +140,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        17_324_980_909_424_153_934,
+        16_077_239_637_572_568_246,
         "{}",
         digest(&text)
     );
@@ -165,7 +165,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        10_882_865_779_862_592_599,
+        2_383_016_913_384_672_253,
         "{}",
         digest(&text)
     );
