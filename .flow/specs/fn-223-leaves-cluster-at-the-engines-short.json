@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-223-leaves-cluster-at-the-engines-short",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-08T14:48:30.520945Z",
   "created_at": "2026-10-07T17:26:46.917762Z",
   "default_impl": null,
   "default_review": null,
@@ -253,5 +253,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T14:19:30.810501Z"
+  "updated_at": "2026-10-08T14:48:30.520955Z"
 }
