@@ -95,6 +95,18 @@ def main(out):
     scale = np.array([0.78, 0.76, 0.70]) / bark
     c = oslo.mean(0) * scale
     print(f"S2-oslo crown on the stem's exposure: {c[0]:.3f}/{c[1]:.3f}/{c[2]:.3f}")
+    # Sunlit only (host, 2026-10-08: the renderer shades again): leaf
+    # pixels unclipped and above the crown's median luminance, where the
+    # shadow mode ends; the upper cuts add sheen and blue.
+    lin = linear(rgb)
+    lit = crown & (rgb.max(-1) < 250)
+    y = lin[lit] @ np.array([0.2126, 0.7152, 0.0722])
+    for q in (0.5, 0.75, 0.9):
+        c = lin[lit][y > np.quantile(y, q)].mean(0) * scale
+        print(
+            f"S2-oslo sunlit leaves above p{int(q * 100)}, stem's exposure: "
+            f"{c[0]:.3f}/{c[1]:.3f}/{c[2]:.3f}  R:G:B {c[0] / c[1]:.2f}:1:{c[2] / c[1]:.2f}"
+        )
     # S2-Uusimaa, end of September: yellowing in mist (README caveat).
     rgb = load("S2-uusimaa-field-leaf.jpg")
     report(

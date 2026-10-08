@@ -216,18 +216,19 @@
 # darker green, and the rows below draw it at 83/105/73. On the engine
 # tree that read bluish beside S2 (host, fn-213 sheet 1); the blade is
 # warmed towards a bright yellow-green.
-# Round 11 (owner: "weird color"): code read the leaf pixels of S2-Oslo's
-# sunlit crown, sRGB to linear, on the exposure its sunlit white stem
-# reads the bark rows (0.78/0.76/0.70) on: 0.134/0.145/0.066
-# (leaf_colour.py). No reference shows a leaf's underside or a backlit
-# leaf apart from the rest, so the back and the transmitted tint take the
-# same measured colour.
-/material/leafFrontRed = 0.134
-/material/leafFrontGreen = 0.145
-/material/leafFrontBlue = 0.066
-/material/leafBackRed = 0.134
-/material/leafBackGreen = 0.145
-/material/leafBackBlue = 0.066
+# Round 11 (owner: "weird color"): code read S2-Oslo's crown leaf pixels,
+# sRGB to linear, on the exposure its sunlit white stem reads the bark
+# rows (0.78/0.76/0.70) on, keeping only the sunlit ones (host: the
+# renderer shades again): those above the crown's median luminance,
+# clear of the shadow mode below it, 0.227/0.241/0.111 (leaf_colour.py).
+# No reference shows a leaf's underside or a backlit leaf apart from the
+# rest, so the back and the transmitted tint take the same colour.
+/material/leafFrontRed = 0.227
+/material/leafFrontGreen = 0.241
+/material/leafFrontBlue = 0.111
+/material/leafBackRed = 0.227
+/material/leafBackGreen = 0.241
+/material/leafBackBlue = 0.111
 
 # The old birch's base turns black and fissured (JRC: the bark "with
 # age darkens and develops fissures"; OSU: "with age, trunk becomes
@@ -260,9 +261,9 @@
 /material/veinScale = 6.0
 /material/veinContrast = 0.8
 /material/transmissionStrength = 0.6
-/material/transmissionRed = 0.134
-/material/transmissionGreen = 0.145
-/material/transmissionBlue = 0.066
+/material/transmissionRed = 0.227
+/material/transmissionGreen = 0.241
+/material/transmissionBlue = 0.111
 /material/thickness = 0.45
 /material/fissureRed = -0.44
 /material/fissureGreen = -0.44

@@ -111,3 +111,45 @@ The worker viewed every still.
 - **Then the workspace:** `cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render` exits 0 after the digest re-pin.
 - **npm test:** 13 files, 143 tests passing.
 - **Logs:** limits at 8; logs in the ignored `raw/gate11-*.log`.
+
+## Round 11b: sunlit colour (host decision, 2026-10-08)
+
+**Host:** "take the colour from the sunlit leaf pixels only. The renderer shades again, so a mean that includes shadow double-counts them." Only the three colour triples moved. The values above (0.134/0.145/0.066) are superseded.
+
+**Measure (`leaf_colour.py`, `raw/leaf-colour.txt`).**
+
+- S2-Oslo crown leaf pixels, unclipped, are scaled to the stem's exposure as before. Their luminance is not bimodal: there is a shadow mode below about 0.04 linear and a long sunlit tail (median 0.068).
+- "Sunlit" is taken as above the median, past that shadow mode.
+
+| Cut | Linear, stem's exposure | R:G:B |
+|---|---|---|
+| **Above p50 (the rows)** | **0.227 / 0.241 / 0.111** | 0.94 : 1 : 0.46 |
+| Above p75 | 0.352 / 0.369 / 0.186 | 0.95 : 1 : 0.50 |
+| Above p90 | 0.508 / 0.528 / 0.301 | 0.96 : 1 : 0.57 |
+
+The higher cuts add sheen, and blue rises with them. Front, back and transmission all take 0.227 / 0.241 / 0.111, for the same reason as before. No rendered leaf pixel clips: 0% have a channel at 250 or above, on both close-ups and the 80-year crown.
+
+**Rendered** (`raw/leaf-colour-rendered-b.txt`):
+
+| Still | Linear mean | R:G:B |
+|---|---|---|
+| Crown @80, seeds 1 / 7 / 42 | 0.282/0.302/0.197, 0.251/0.272/0.176, 0.275/0.296/0.191 | 0.93 : 1 : 0.65 (all three) |
+| Leaf close-up @40 / @80 (seed 1) | 0.213/0.233/0.133, 0.262/0.282/0.161 | 0.92:1:0.57, 0.93:1:0.57 |
+| S2-Oslo sunlit leaves (photo, above p50) | 0.227/0.241/0.111 | 0.94 : 1 : 0.46 |
+
+**The blue excess.**
+
+- **Leaves:** the rows state blue-to-green 0.46. The leaf renders at 0.57 up close and 0.65 in the crown shot.
+- **The stem shifts the same way:** its bark rows are 0.78/0.76/0.70 (0.92), and it renders at 1.06 in the 40-year base shot and 1.19 at 80 (`raw/sheet11b/birch-80-1-base.png`, 0.406/0.476/0.564).
+- **So the excess is the scene's lighting, not the leaf rows:** the sky light adds blue to every surface, more in the shaded crown.
+- **Not compensated:** leaf rows tuned against it would no longer be the measured colour. Whether to correct the scene or the rows is the host's call.
+
+**Stills, viewed:**
+
+- `raw/compare/compare11b-80.png`: old, round 10 and round 11 sunlit at 80, seeds 1, 7 and 42.
+- `raw/compare/leaf11b.png`: the S5 and S2 crops beside round 11's mean-colour and sunlit close-ups at 40 and 80.
+- Round 11b's own stills are in `raw/sheet11b/`.
+
+**Reading:** the sunlit leaves are lighter, a pale sage, and lift the close-ups. At a distance the crown is still see-through, which is fn-223's leaf mass. The hue is still greyer than Oslo's yellow-green, because the scene adds blue.
+
+**Gate:** `catalogue_identity.rs`'s three digests are re-pinned. `cargo test --profile ci --workspace --no-fail-fast --exclude telperion-render` exits 0. No render pin moved; this is a colour-only change, so the render half was not rerun. `npm run wasm:build` regenerated `presets.generated.ts`.
