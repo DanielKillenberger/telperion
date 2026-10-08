@@ -33,8 +33,8 @@ export const DEFAULT_PARAMS: GrowerParams = {
 
 /** The tree the harness opens on and resets to: the engine's beech at its
  *  preset age (fn-198 host decision 5). The Ordinary rows above stay the
- *  dials' trait baseline, but the Ordinary tree has no engine species and
- *  is refused by name (host decision 9), so it is no tree to open on. */
+ *  dials' trait baseline; the Ordinary tree, the space's centroid since
+ *  fn-215, is not the tree it opens on. */
 export const OPENING_PARAMS: GrowerParams = { ...presetToParams(presetById("european-beech")), seed: 1 };
 
 /** The seed field is the one free-text surface on the panel, so it is
