@@ -8,7 +8,6 @@ use crate::fixed::{self, presence};
 use crate::lineage::{Key, END, ENDED, FAILED, RELAY, VIABILITY};
 use crate::presence::Unit;
 use crate::schedule::Carried;
-use crate::structure::Origin;
 use crate::transcendental::Transcendental;
 
 impl Shoot<'_, '_> {
@@ -59,8 +58,10 @@ impl Shoot<'_, '_> {
         // A unit a lifespan's fraction cuts, the age's last or its
         // successor's rest of the cycle, lays that share of each zone's
         // nodes, whole (fn-231); every other unit all of them at its share.
-        let origin = self.axis(apex.axis).origin;
-        let successor = matches!(origin, Origin::Continuation { .. }) && draws.carried;
+        // What carries the axis on where its age ended inside the cycle,
+        // its continuation or the relay of an age that ended; not a failed
+        // unit's relay, whose rest a draw made.
+        let successor = draws.carried && !draws.rest;
         let laid = step.laid(carried.gone, (first && successor, first && draws.woke));
         // Shade raises the apex's death hazard, ln survival = ln
         // viability x light^-phi (host, 2026-10-05): near-certain survival

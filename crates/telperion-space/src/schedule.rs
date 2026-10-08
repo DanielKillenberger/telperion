@@ -210,8 +210,9 @@ impl Unit {
     /// Where a lifespan's fraction cuts it (fn-231, host 2026-10-08), its
     /// share and the length it is cut from: it lays `share / of` of each
     /// zone's nodes, each `of` of a whole node's length. A successor's
-    /// first unit, the rest of the cycle its age before left, is cut from
-    /// a whole unit. The age's last, ending inside the room its cycle
+    /// first unit, the rest of the cycle its age before left (its
+    /// continuation's or its ended age's relay's), is cut from a whole
+    /// unit. The age's last, ending inside the room its cycle
     /// leaves after `gone`, is cut from that room, whose own shortness a
     /// draw made (a failed unit's relay, a woken bud), so the cut grows
     /// from none as the age's end passes the room's. None for every other

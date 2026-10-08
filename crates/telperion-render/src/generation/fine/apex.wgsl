@@ -338,7 +338,7 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
     // (`Unit::laid`, fn-231); a woken bud's first unit does not.
     let share = unsigned_ticks(s1.share).x;
     let kind = rd(a, KIND);
-    let successor = first && (kind & 0xffu) == CONTINUED && (kind & IS_CARRIED) != 0u;
+    let successor = first && (kind & IS_CARRIED) != 0u && (kind & IS_REST) == 0u;
     let woken = first && (kind & IS_WOKE) != 0u;
     // A successor's rest is cut from a whole unit; the age's last from the
     // room its cycle leaves (`Unit::laid`).

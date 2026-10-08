@@ -174,8 +174,8 @@ pub(crate) struct Draws {
     /// A failed unit's relay, whose first unit grows the rest of the cycle
     /// the unit failed in, drawn apart from it (fn-199 R1).
     pub rest: bool,
-    /// Carried on in the cycle the axis before it ended in, growing the
-    /// rest of it (`Shoot::carry_on`): a successor's rest, which a
+    /// Carried on in the cycle the axis before it stopped in, growing the
+    /// rest of it (`Shoot::carry_on`): where its age ended there, a rest a
     /// lifespan's fraction cuts (fn-231).
     pub carried: bool,
     /// The axis a sleeping bud grows in as it wakes (`Shoot::woke`), whose

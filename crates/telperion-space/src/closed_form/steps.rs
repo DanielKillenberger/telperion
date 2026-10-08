@@ -239,7 +239,9 @@ fn steps_to(
         // whole, at its share of their length; a woken bud's first unit as
         // before, whole.
         let gone = if i == 1 { carried.gone } else { 0.0 };
-        let successor = i == 1 && !carried.relay && !carried.rest;
+        // What carries the axis on where its age ended inside the cycle:
+        // its continuation, or the relay of an age that ended.
+        let successor = i == 1 && !carried.rest;
         let laid = match partial {
             None => unit.laid(gone, (successor, false)),
             Some(_) => None,

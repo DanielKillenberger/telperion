@@ -78,8 +78,10 @@ fn factor(sized: &Species, mixed: &Species) -> f64 {
 
 /// R1, R2: points between two branching species at 40 and 80 are predicted
 /// at their ends' weighted geometric mean in one count and at most it in the
-/// other, by a factor below one on the mix the engine's own walk gives;
-/// every other row is that walk's.
+/// other, by a factor below one on the mix the engine's own walk gives, or
+/// at most it in both with no factor where that walk is no larger (host
+/// decision 1: only shrink; since fn-231 made the walk continuous, many
+/// points are); every other row is that walk's.
 #[test]
 fn a_walk_between_branching_species_keeps_its_ends_size_at_40_and_80() {
     for age in [40, 80] {
@@ -108,9 +110,9 @@ fn a_walk_between_branching_species_keeps_its_ends_size_at_40_and_80() {
                     assert_eq!(bare, mixed, "{p:?} to {q:?} at {t}, {age}");
                     let [kept, grown] = sizes(species(&walked), species(&a), species(&b), t, age);
                     let name = format!("{p:?} to {q:?} at {t}, {age}: factor {f}, {kept} {grown}");
-                    assert!(f < 1.0, "{name}");
+                    assert!(f <= 1.0, "{name}");
                     assert!(kept < 1.0 + 1e-9 && grown < 1.0 + 1e-9, "{name}");
-                    assert!((kept.max(grown) - 1.0).abs() < 1e-9, "{name}");
+                    assert!(f == 1.0 || (kept.max(grown) - 1.0).abs() < 1e-9, "{name}");
                 }
             }
         }
@@ -119,13 +121,14 @@ fn a_walk_between_branching_species_keeps_its_ends_size_at_40_and_80() {
 
 /// Host decision (2026-10-08, option A): kept phytomers do not bound grown
 /// ones, since a blend can shed a larger share than either end. Three
-/// quarters of the way from the oak to the spruce at 80, the point sized on
-/// its kept count alone was predicted to grow 21.7M phytomers, over the
-/// engine's 20M budget; its grown count binds and holds it to the ends'.
+/// quarters of the way from the beech to the spruce at 80, the grown count
+/// binds while the kept one is 5 % under the ends' mean. (Before fn-231 the
+/// case was the oak to the spruce, predicted to grow 21.7M phytomers sized
+/// on kept alone; the continuous walk puts that point under its ends.)
 #[test]
 fn the_grown_count_binds_where_a_blend_sheds_more_than_its_ends() {
     let (a, b) = (
-        at(Preset::OregonWhiteOak, 80.0),
+        at(Preset::EuropeanBeech, 80.0),
         at(Preset::NorwaySpruce, 80.0),
     );
     let walked = blend::families(&a, &b, 0.75).unwrap();
