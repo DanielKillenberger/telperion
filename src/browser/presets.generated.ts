@@ -372,7 +372,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "8": 0.08333333333333333
+                  "8": 0.06182724199411316
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -382,7 +382,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 3,
                 "lateral": {
-                  "8": 0.2833333333333333
+                  "8": 0.21021262277998473
                 },
                 "nodes": {
                   "max": 1,
@@ -435,8 +435,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "8": 0.23333333333333334,
-                  "9": 0.11666666666666667
+                  "8": 0.17311627758351683,
+                  "9": 0.08655813879175842
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -446,8 +446,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 3,
                 "lateral": {
-                  "8": 0.48333333333333334,
-                  "9": 0.2666666666666667
+                  "8": 0.3585980035658563,
+                  "9": 0.19784717438116214
                 },
                 "nodes": {
                   "max": 1,
@@ -500,7 +500,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "8": 0.1
+                  "8": 0.07419269039293579
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -510,7 +510,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 3,
                 "lateral": {
-                  "6": 0.18333333333333335
+                  "6": 0.13601993238704896
                 },
                 "nodes": {
                   "max": 1,
@@ -565,9 +565,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "8": 0.09999999999999999,
-                  "9": 0.22333333333333336,
-                  "14": 0.18333333333333335
+                  "8": 0.07419269039293579,
+                  "9": 0.16569700854422328,
+                  "14": 0.13601993238704896
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -577,9 +577,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 3,
                 "lateral": {
-                  "6": 0.12666666666666668,
-                  "7": 0.10000000000000002,
-                  "8": 0.2833333333333333
+                  "6": 0.093977407831052,
+                  "7": 0.0741926903929358,
+                  "8": 0.21021262277998473
                 },
                 "nodes": {
                   "max": 1,
@@ -625,8 +625,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "6": 0.1,
-                  "7": 0.16666666666666669
+                  "6": 0.07419269039293579,
+                  "7": 0.12365448398822633
                 },
                 "nodes": {
                   "max": 2.3333333333333335,
@@ -636,7 +636,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 3,
                 "lateral": {
-                  "6": 0.30000000000000004
+                  "6": 0.2225780711788074
                 },
                 "nodes": {
                   "max": 1,
@@ -703,8 +703,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                   "9": 0.03333333333333334
                 },
                 "lateral": {
-                  "9": 0.24,
-                  "14": 0.18333333333333335
+                  "9": 0.1780624569430459,
+                  "14": 0.13601993238704896
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -719,8 +719,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                   "9": 0.03333333333333334
                 },
                 "lateral": {
-                  "6": 0.0023333333333333335,
-                  "7": 0.08
+                  "6": 0.0017311627758351685,
+                  "7": 0.05935415231434863
                 },
                 "nodes": {
                   "max": 1,
@@ -782,8 +782,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                 "buds": 1.3333333333333333,
                 "delay": 0.12239800905693157,
                 "lateral": {
-                  "9": 0.19000000000000003,
-                  "14": 0.2
+                  "9": 0.14096611174657803,
+                  "14": 0.14838538078587157
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -795,8 +795,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                 "buds": 2,
                 "delay": 0.12239800905693157,
                 "lateral": {
-                  "8": 0.046666666666666676,
-                  "9": 0.1
+                  "8": 0.03462325551670337,
+                  "9": 0.07419269039293579
                 },
                 "nodes": {
                   "max": 1,
@@ -857,10 +857,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                   "10": 0.15
                 },
                 "lateral": {
-                  "9": 0.09000000000000001,
-                  "10": 0.2333333333333333,
-                  "13": 0.1,
-                  "14": 0.2
+                  "9": 0.06677342135364221,
+                  "10": 0.17311627758351683,
+                  "13": 0.07419269039293579,
+                  "14": 0.14838538078587157
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -875,9 +875,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                   "10": 0.15
                 },
                 "lateral": {
-                  "9": 0.18333333333333335,
-                  "10": 0.31666666666666665,
-                  "13": 0.13333333333333336
+                  "9": 0.13601993238704896,
+                  "10": 0.23494351957763,
+                  "13": 0.09892358719058107
                 },
                 "nodes": {
                   "max": 1,
@@ -940,9 +940,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                   "10": 0.15
                 },
                 "lateral": {
-                  "10": 0.2333333333333333,
-                  "13": 0.06,
-                  "14": 0.33333333333333337
+                  "10": 0.17311627758351683,
+                  "13": 0.044515614235761475,
+                  "14": 0.24730896797645266
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -957,9 +957,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                   "10": 0.15
                 },
                 "lateral": {
-                  "9": 0.03333333333333334,
-                  "10": 0.31666666666666665,
-                  "13": 0.08333333333333334
+                  "9": 0.024730896797645268,
+                  "10": 0.23494351957763,
+                  "13": 0.061827241994113165
                 },
                 "nodes": {
                   "max": 1,
@@ -970,7 +970,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "3": {
                 "buds": 1,
                 "lateral": {
-                  "12": 0.21666666666666667
+                  "12": 0.16075082918469422
                 },
                 "nodes": {
                   "max": 0.6666666666666667,
@@ -1017,7 +1017,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1.3333333333333333,
                 "lateral": {
-                  "12": 0.18333333333333335
+                  "12": 0.13601993238704896
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -1027,7 +1027,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 2.3333333333333335,
                 "lateral": {
-                  "12": 0.26666666666666666
+                  "12": 0.19784717438116212
                 },
                 "nodes": {
                   "max": 1,
@@ -1085,7 +1085,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 1.6666666666666667,
                 "lateral": {
-                  "12": 0.19999999999999998
+                  "12": 0.14838538078587157
                 },
                 "nodes": {
                   "max": 0.6666666666666666,
@@ -1131,7 +1131,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "14": 0.3
+                  "14": 0.22257807117880737
                 },
                 "nodes": {
                   "max": 2,
@@ -1141,7 +1141,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 1.3333333333333333,
                 "lateral": {
-                  "14": 0.11666666666666667
+                  "14": 0.08655813879175842
                 },
                 "nodes": {
                   "max": 0.33333333333333337,
@@ -1187,7 +1187,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "14": 0.13333333333333336
+                  "14": 0.09892358719058107
                 },
                 "nodes": {
                   "max": 2,
@@ -1197,7 +1197,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 1.6666666666666667,
                 "lateral": {
-                  "14": 0.1
+                  "14": 0.07419269039293579
                 },
                 "nodes": {
                   "max": 0.33333333333333337,

@@ -9,7 +9,9 @@ use telperion_core::{
         values, Preset,
     },
 };
-use telperion_space::{beech, oak, palm, settings, spruce, Light, Species};
+use telperion_space::{
+    beech, expected_kept, oak, palm, settings, spruce, zone_settings, Light, Species,
+};
 
 /// The species each engine preset states, as the tree-space examples grew it
 /// (`crates/telperion-render/examples/space_*.rs`, BASELINE.md's oak light).
@@ -52,10 +54,13 @@ fn a_preset_without_an_engine_species_carries_none() {
     }
 }
 
-/// The ordinary tree's space is the equal-weight centroid of the passed
-/// branching species on the space's own walk (fn-215 R1): the k-th corner a
-/// share 1/k of the way from the mean of those before, any order alike.
-/// The value file is written by `examples/centroid.rs`.
+/// The ordinary tree's space is the passed branching species' centroid
+/// (fn-215 R1): its shape the equal-weight mean on the space's own walk,
+/// the k-th corner a share 1/k of the way from the mean of those before,
+/// any order alike; its size the corners' geometric mean, its lateral
+/// probabilities all multiplied by one factor so its light-neutral expected
+/// kept count at 80 is theirs (host, 2026-10-08). The value file is written
+/// by `examples/centroid.rs`.
 #[test]
 fn the_ordinary_tree_is_the_centroid_of_the_branching_species() {
     let corners = [
@@ -71,27 +76,54 @@ fn the_ordinary_tree_is_the_centroid_of_the_branching_species() {
         }
         mean.space
     };
-    let ordinary = Preset::Ordinary.parameters().space;
-    assert_eq!(ordinary, centroid([0, 1, 2]));
-    let other = centroid([2, 0, 1]);
-    assert_eq!(other.trunk, ordinary.trunk);
     let near = |name: &str, p: f64, q: f64| {
         let close = p == q || (p - q).abs() <= 1e-9 * p.abs().max(1.0);
         assert!(close, "{name}: {p} {q}");
     };
-    near(
-        "extinction",
-        other.light.extinction,
-        ordinary.light.extinction,
+    let (shape, other) = (centroid([0, 1, 2]), centroid([2, 0, 1]));
+    let ordinary = Preset::Ordinary.parameters().space;
+    assert_eq!(
+        (&ordinary.trunk, ordinary.light),
+        (&shape.trunk, shape.light)
     );
-    near("sky", other.light.sky, ordinary.light.sky);
-    let (a, b) = (ordinary.species.unwrap(), other.species.unwrap());
-    for (x, y) in a.states.iter().zip(&b.states) {
-        let (mut x, mut y) = (x.clone(), y.clone());
-        for ((name, p), (_, q)) in settings(&mut x).into_iter().zip(settings(&mut y)) {
-            near(name, *p, *q);
+    assert_eq!(other.trunk, shape.trunk);
+    near("extinction", other.light.extinction, shape.light.extinction);
+    let (a, b) = (ordinary.species.unwrap(), shape.species.unwrap());
+    let c = other.species.unwrap();
+    let factor = a.states[2].zones[1].lateral[9] / b.states[2].zones[1].lateral[9];
+    assert!(factor > 0.0 && factor < 1.0, "{factor}");
+    for ((x, y), z) in a.states.iter().zip(&b.states).zip(&c.states) {
+        let (mut x, mut y, mut z) = (x.clone(), y.clone(), z.clone());
+        let named = settings(&mut x).into_iter().zip(settings(&mut y));
+        for (((name, p), (_, q)), (_, r)) in named.zip(settings(&mut z)) {
+            assert_eq!(p.to_bits(), q.to_bits(), "{name}");
+            near(name, *q, *r);
+        }
+        for (p, q) in x.zones.iter_mut().zip(&mut y.zones) {
+            let both = zone_settings(p).unwrap().into_iter();
+            for ((name, p), (_, q)) in both.zip(zone_settings(q).unwrap()) {
+                let scale = if name == "zone.lateral" { factor } else { 1.0 };
+                near(name, *p, *q * scale);
+            }
         }
     }
+    let kept = |species: &Species| {
+        let mut neutral = species.clone();
+        for s in &mut neutral.states {
+            (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+        }
+        expected_kept(&neutral, 80).unwrap().unwrap()
+    };
+    let logs: f64 = corners
+        .iter()
+        .map(|p| kept(&p.parameters().space.species.unwrap()).ln())
+        .sum();
+    let target = (logs / 3.0).exp();
+    assert!(
+        (kept(&a) / target - 1.0).abs() < 1e-6,
+        "{} {target}",
+        kept(&a)
+    );
 }
 
 #[test]
