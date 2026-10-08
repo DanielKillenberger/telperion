@@ -503,3 +503,27 @@ fn a_fractional_shedding_delay_keeps_by_its_fade() {
     let half = kept(0.5);
     assert!(whole < half && half < next, "{whole} {half} {next}");
 }
+
+/// fn-231 review (codex, 2026-10-08): a unit a lifespan's fraction cuts
+/// lays its share of its zone's present nodes, so a node the node law only
+/// starts to make adds a vanishing share and lays no other node whole. A
+/// half-cycle age of one bare zone, its node count crossing 4.2422 at seed
+/// 1, laid a third whole node (2 m to 3 m of wood) before the share was
+/// taken from presences.
+#[test]
+fn a_node_made_at_vanishing_presence_lays_no_other_node_whole() {
+    let wood = |nodes: f64| {
+        let mut only = state(1, 0.0, vec![zone(1, 1, &[0.0])]);
+        only.lifespan = 0.5;
+        only.zones[0].nodes = NodeLaw::Uniform {
+            min: nodes,
+            max: nodes,
+        };
+        let species = Species { states: vec![only] };
+        let tree = tree(&species, 1, 1);
+        let scales = tree.axes.iter().flat_map(|a| &a.phytomers).map(|p| p.scale);
+        scales.sum::<f64>()
+    };
+    let (before, after) = (wood(4.242236618634503), wood(4.242236638634503));
+    assert!((after - before).abs() < 1e-3, "{before} m to {after} m");
+}
