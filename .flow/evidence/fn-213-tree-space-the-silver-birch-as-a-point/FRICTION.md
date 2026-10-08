@@ -87,3 +87,10 @@
 - **Slowed by:** `> $E/raw/...` was refused (the 2026-10-08 entry above); both became literal paths and a script in the scratchpad.
 - **Cost:** two blocked commands, about 3 minutes.
 - **Would remove it:** nothing in the repository; local guard setting (reported, not specced).
+
+## 2026-10-08: round 14's workspace gate outran the foreground limit again
+
+- **Doing:** the workspace half of round 14's gate.
+- **Slowed by:** the run passed 10 minutes at the machine's load, as in round 13. It went to the background and was waited on twice.
+- **Cost:** about 2 minutes of handling; no rerun.
+- **Would remove it:** the same as round 13's entry: a longer foreground ceiling, or the gate split in halves under 10 minutes.

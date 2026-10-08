@@ -201,3 +201,21 @@ Leaf rows only; no wood row moved. A leaf station every 0.06 m (one a strand nod
 ## Round 13 (2026-10-08, more short shoots; host's reading of round 12)
 
 The medial nodes of the hanging strands (`BRANCH`), limbs, boughs and passing branches now bear a shoot at 0.85. The long laterals keep their shares and the short shoot takes the rest: `SHORT` is 0.845 on `BRANCH` (was 0.5), 0.58 on `LIMB` (0.35), 0.45 on `BOUGH` (0.35) and 0.45 on `SPRIG` (0.4). Source: SU03 on *B. maximowicziana*, a long shoot's leaves each carry an axillary bud and ">80 % of all current-year shoots within each first-order branch were short shoots". The 0.85 is **estimated**. Clusters, leaf rows and every form row are round 12's. The added shoots thicken the wood below them under the pipe model, so the old bark climbs the trunk (SHEET-13.md, "For the host"). Rows, measures, the colour analysis and stills are in SHEET-13.md.
+
+## Round 14 (2026-10-08, the short shoot's pipe; host's decision on round 13's bark)
+
+**DBH target.** No source read gives an open-grown birch's DBH at a stated age, so **the target is round 12's stem**. The sources bracket it but do not pin it:
+
+- **LO96, stand-grown floor:** the top diameter (DO, mean of the 100 thickest stems a hectare) is 27.3 cm at 40 and 37.7 cm at 80 in class II (28 m at 100), and 22.0 and 29.4 cm in class III. An open-grown tree is thicker than a stand's.
+- **FVA, released crop trees:** "ein durchschnittlicher Radialzuwachs von 4-5 mm pro Jahr" with early, strong release, "Zieldurchmesser von 45-50 cm in 50-55 Jahren". That rate gives 32 to 40 cm at 40. It is a managed growth rate, not a measured diameter at 80.
+- **SU03:** its *B. maximowicziana* is 31.4 cm DBH at 14.4 m, with no age stated, so it is not usable.
+
+DBH is the stem's diameter 1.3 m above the root (`birch_dbh.rs`), in cm, for seeds 1 / 7 / 42:
+
+| Round | At 40 | At 80 |
+|---|---|---|
+| 12 (target) | 31.7 / 34.1 / 31.3 | 61.2 / 61.9 / 63.7 |
+| 13 (short-shoot pipe 0.0007) | 36.5 / 39.4 / 36.1 | 69.5 / 70.1 / 72.3 |
+| 14 (pipe 0.0005) | 30.7 / 33.0 / 30.3 | 59.7 / 60.3 / 62.1 |
+
+**The row.** `SHORT` `form.pipe` (`/space/ages/14/form/pipe`) is 0.0005, was 0.0007. A probe at 0.0003 gave 25.9 to 28.0 cm at 40 and 52 to 54 cm at 80, under target. At 0.0005 the stems sit 1 to 1.5 cm under round 12's, 3% or less; this value is **estimated** by that probe. A short shoot's own base radius (runs under 0.05 m) is p50 0.66 to 0.95 mm and p90 1.31 to 1.50 mm at 40 and 80, against 0.89 to 1.33 and 1.82 to 2.10 mm at 0.0007. The p50 sits inside the host's 0.5 to 1 mm; the p90 sits within the 1 to 2 mm a brachyblast keeps. Round 13's shares and clusters are kept. With the thinner pipe the clusters fall 1 to 5% against round 13 (seed 1 at 80: 203,283 against 207,038); the cause was not isolated.
