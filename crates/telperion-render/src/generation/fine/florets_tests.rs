@@ -7,8 +7,11 @@
 //! - **within:** each position code within one of the other's (fn-125's
 //!   screen, 50 um, lies under one code), the frame within `TURN` and the
 //!   scale within a half float's step;
-//! - **turned:** the same floret (the same size, to the bit) off by its
-//!   stalk's turn about the axis, under twice the stalk's length;
+//! - **turned:** the same floret (its size within the screen) off by its
+//!   stalk's turn about the axis, under twice the stalk's length: its
+//!   axis's tangent at `Vec3::perpendicular`'s switch, two components equal
+//!   in magnitude, where the executors take different reference axes and
+//!   the golden spiral starts from another normal (FLORETS.md);
 //! - **least:** a floret one side keeps and the other drops, its size at
 //!   `bloom.rs`'s least size (`LEAST`, 1e-3) within a half float's step:
 //!   the f32-against-f64 class of that threshold;
@@ -37,8 +40,6 @@ struct Florets {
     counts: (usize, usize, usize),
     exact: usize,
     within: usize,
-    /// Matched by position, their frame or scale off the screen.
-    apart: usize,
     turned: usize,
     /// The device's, and the whole tree's, at the least size.
     least: (usize, usize),
@@ -52,7 +53,7 @@ struct Florets {
 /// `id` at (age, seed), every age flowering at 0.6 under the oak's catkin
 /// rows (fn-216's `overlays/oak-catkins.json`), each stalk a few
 /// millimetres long so the pedicel is drawn too.
-fn flowering(id: &str, (age, seed): (u32, u32)) -> Family {
+pub(super) fn flowering(id: &str, (age, seed): (u32, u32)) -> Family {
     let mut family = telperion_core::presets::by_identity(id).unwrap();
     (family.age, family.skeleton.seed) = (f64::from(age), seed);
     for s in &mut family.space.species.as_mut().unwrap().states {
@@ -81,6 +82,11 @@ fn flowering(id: &str, (age, seed): (u32, u32)) -> Family {
 
 fn codes(f: &Leaf) -> [i32; 3] {
     [f[1] & 0xffff, f[1] >> 16, f[2] & 0xffff].map(|c| c as i32)
+}
+
+/// Two florets' scales apart, relative to the second's.
+fn relative(r: Reference, f: &Leaf, g: &Leaf) -> f64 {
+    (r.scale(*f) - r.scale(*g)).abs() / r.scale(*g).max(1e-12)
 }
 
 fn column(m: &[f32; 16], c: usize) -> Vec3 {
@@ -124,22 +130,19 @@ fn compare(mine: &[Leaf], theirs: &[Leaf], r: Reference) -> Florets {
         let near = (-1..=1).flat_map(|x| {
             (-1..=1).flat_map(move |y| (-1..=1).map(move |z| [c[0] + x, c[1] + y, c[2] + z]))
         });
+        // A partner within the screen only: a catkin's florets stand a few
+        // millimetres apart, so a nearer floret off the screen is another.
         let best = near
             .flat_map(|n| by.get(&n).into_iter().flatten().copied())
-            .filter(|&k| !used[k])
+            .filter(|&k| !used[k] && off(k) <= TURN && relative(r, f, &right[k]) <= 1e-3)
             .min_by(|&p, &q| off(p).total_cmp(&off(q)));
         let Some(k) = best else {
             lost.push(*f);
             continue;
         };
         used[k] = true;
-        let (turn, s, t) = (off(k), r.scale(*f), r.scale(right[k]));
-        let scale = (s - t).abs() / t.max(1e-12);
+        let (turn, scale) = (off(k), relative(r, f, &right[k]));
         let position = r.position(*f).distance(r.position(right[k]));
-        if turn > TURN || scale > 1e-3 {
-            out.apart += 1;
-            continue;
-        }
         out.within += 1;
         (out.position, out.turn) = (out.position.max(position), out.turn.max(turn));
         out.scale = out.scale.max(scale);
@@ -152,9 +155,10 @@ fn compare(mine: &[Leaf], theirs: &[Leaf], r: Reference) -> Florets {
     let least = |f: &Leaf| (r.scale(*f) - 1e-3).abs() < 2e-6;
     for f in &lost {
         let at = r.position(*f);
-        let twin = rest
-            .iter()
-            .position(|g| g[2] >> 16 == f[2] >> 16 && r.position(*g).distance(at) < 2.0 * STALK);
+        let apart = |g: &Leaf| r.position(*g).distance(at);
+        let twin = (0..rest.len())
+            .filter(|&k| relative(r, f, &rest[k]) <= 1e-3 && apart(&rest[k]) < 2.0 * STALK)
+            .min_by(|&p, &q| apart(&rest[p]).total_cmp(&apart(&rest[q])));
         match twin {
             Some(k) => (out.turned, _) = (out.turned + 1, rest.swap_remove(k)),
             None if least(f) => out.least.0 += 1,
@@ -223,11 +227,7 @@ fn florets_on_the_device_match_the_whole_tree() {
         let p = parity(&gpu, &flowering(id, (30, 1)));
         println!("{id} (30, 1): {p:?}");
         assert!(p.counts.1 > 0, "{id}: the device draws florets");
-        assert_eq!(
-            (p.apart, p.unmatched),
-            (0, (0, 0)),
-            "{id}: every floret classed"
-        );
+        assert_eq!(p.unmatched, (0, 0), "{id}: every floret classed");
         let (mine, theirs) = (p.counts.0 + p.counts.1, p.counts.2);
         assert_eq!(
             mine + p.least.1,
