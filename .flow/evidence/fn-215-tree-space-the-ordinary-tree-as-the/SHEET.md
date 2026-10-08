@@ -86,7 +86,12 @@ There is no visible pop at the frame's scale. No numeric walk test starts at the
 | Oak | 22.9 m | refused (budget) | refused (budget) | 20.2 m |
 | Spruce | 22.9 m | 22.8 m | refused (budget) | 21.7 m |
 
-This predates fn-215. Between the corners themselves at t = 0.5 and 80, the beech-to-oak walk builds (20.4 m), but the oak-to-spruce and beech-to-spruce walks are refused by the budget. A walk mixes the ends' lateral production with their lifespans as the unsized centroid did, so points inside the space can outgrow the budget where neither end does. Left to the host.
+Deferred to fn-230, "Points between species stay viable trees" (host, 2026-10-08; spec R3 amended). fn-230 owns the age-80 walks and re-derives the ordinary tree through one space-wide blend rule. This predates fn-215. Between the corners themselves at t = 0.5 and 80, the beech-to-oak walk builds (20.4 m), but the oak-to-spruce and beech-to-spruce walks are refused by the budget. A walk mixes the ends' lateral production with their lifespans as the unsized centroid did, so points inside the space can outgrow the budget where neither end does. Left to the host.
+
+## Open for the owner
+
+- **Build time at 80:** the ordinary tree grows in 22 to 43 s at 80 (seeds 1, 7, 42), the slowest preset at that age. The corners take 0.7 to 1.1 s (beech), 7 to 14 s (oak) and 3.5 s (spruce). At 40 it grows in 1.2 to 1.6 s.
+- **Dressing:** the bark and leaf colour stay at the default family's.
 
 ## The early refusal (host: record, do not extend)
 
