@@ -133,6 +133,35 @@ fn a_failed_build_leaves_the_drawn_tree_drawing() {
         .has_subject());
 }
 
+/// fn-235 R3: a build over the device budget is refused by name before
+/// it starts, and the tree drawn keeps drawing.
+#[test]
+fn a_build_over_the_budget_is_refused_and_the_drawn_tree_kept() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let mut renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    let first = family("european-beech", 12);
+    renderer
+        .submit_prepared(gen.prepare(&first, Delivery::Resident).unwrap())
+        .unwrap();
+    let aspect = 4.0 / 3.0;
+    let camera = crate::hero_pose(renderer.bounds().unwrap(), aspect, crate::GROUND_REACH);
+    let before = crate::render(&mut renderer, &camera, 320, 240).unwrap();
+    // A budget the drawn tree all but fills.
+    gen.budget.set(Some(gpu.ledger.live() + (1 << 20)));
+    let error = gen
+        .prepare(&family("european-beech", 30), Delivery::Resident)
+        .err()
+        .expect("the build is refused");
+    assert!(error.to_string().contains("device budget"), "{error}");
+    let after = crate::render(&mut renderer, &camera, 320, 240).unwrap();
+    assert!(after.has_subject());
+    assert_eq!(after.stats.triangles, before.stats.triangles);
+    assert_eq!(after.stats.instances, before.stats.instances);
+}
+
 /// fn-212 task 10, host decision 3: the device bytes a build peaks at, from
 /// a fresh generator and renderer, against the predictor's expected kept
 /// phytomers, and what stays held once its tree is drawn

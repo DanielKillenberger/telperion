@@ -73,6 +73,10 @@ impl super::Generator {
         // A browser build over its device budget is refused before it starts.
         #[cfg(target_arch = "wasm32")]
         budget::check(family, gpu.ledger.live(), budget::BROWSER)?;
+        #[cfg(test)]
+        if let Some(stated) = self.budget.get() {
+            budget::check(family, gpu.ledger.live(), stated)?;
+        }
         // The kernels are made inside the scopes, so a shader the device
         // refuses is the error reported.
         let scopes = super::io::scope(gpu);
@@ -137,7 +141,7 @@ mod chain_tests;
 #[cfg(test)]
 mod cluster_tests;
 // The browser's budget is checked in a browser alone; natively it is tested.
-#[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
+#[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
 mod budget;
 mod chains;
 mod device;
