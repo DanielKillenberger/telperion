@@ -130,6 +130,9 @@ fn scale_realized(na: u32, bearer: u32, root_vigour: f32) {
             out[at + 19u] = scale;
             out[at + 20u] = bitcast<f32>(ph(p, 7u));
             out[at + 21u] = bitcast<f32>(ph(p, 8u));
+            // Its key, which its node's blooms are drawn by (fn-229).
+            out[at + 24u] = bitcast<f32>(ph(p, 0u));
+            out[at + 25u] = bitcast<f32>(ph(p, 1u));
             reach += scale;
         }
         ssf(i, S_REACH, reach);

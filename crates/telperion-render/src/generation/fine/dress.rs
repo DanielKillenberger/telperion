@@ -19,7 +19,7 @@ pub(super) const DRESS: &str = include_str!("dress.wgsl");
 pub(super) const FOLD: &str = include_str!("fold.wgsl");
 /// A drawn axis's and phytomer's floats (`dress.wgsl`).
 const CA: u32 = 12;
-pub(super) const CV: usize = 26;
+pub(super) const CV: usize = 29;
 pub(super) const CA_WORDS: usize = CA as usize;
 pub(super) const MADE: u32 = 2;
 pub(super) const LANDED: u32 = 4;

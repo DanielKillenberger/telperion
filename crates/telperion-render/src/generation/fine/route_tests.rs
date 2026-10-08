@@ -275,12 +275,10 @@ fn the_device_path_draws_what_the_cpu_path_draws() {
     }
 }
 
-/// fn-216 merged into F4 (host, 2026-10-08): a flower is drawn from the
-/// tree the CPU converts, which a fine root dressed on the device never
-/// enters, so on the device path a flowering beech drew only the blooms
-/// above the cut (3.7 % of its florets at 40). Until the device draws its
-/// roots' flowers (fn-125), a family that flowers is refused the device
-/// path and grows whole: every floret, the same ones a CPU delivery draws.
+/// fn-229: a flowering tree comes apart, and the device draws its own
+/// roots' florets, the CPU block's beside them in one organ buffer: the
+/// resident, whole and CPU deliveries draw the same number of florets (at
+/// fn-216's merge the device path drew 1,900 of the beech's 2,643).
 #[test]
 fn a_flowering_tree_draws_every_floret_on_either_path() {
     let Some(gpu) = crate::generation::test_gpu() else {
@@ -289,20 +287,25 @@ fn a_flowering_tree_draws_every_floret_on_either_path() {
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     let mut family = family("european-beech", 12);
-    assert!(executor::apart(&family).is_ok(), "the beech comes apart");
     for s in &mut family.space.species.as_mut().unwrap().states {
         s.flowering = 0.6;
     }
     assert!(
-        executor::apart(&family).is_err(),
-        "a flowering beech is refused"
+        executor::apart(&family).is_ok(),
+        "a flowering beech comes apart"
     );
-    let florets =
-        |p: &super::super::Prepared| p.mesh.organ.as_ref().map_or(0, |o| o.instances.len());
+    let florets = |p: &super::super::Prepared| {
+        let held = p.mesh.organ.as_ref().map_or(0, |o| o.instances.len());
+        held + p.organ.as_ref().map_or(0, |o| o.count as usize)
+    };
     let resident = gen.prepare(&family, Delivery::Resident).unwrap();
     let whole = pollster::block_on(gen.prepare_whole(&family, Delivery::Resident)).unwrap();
     let cpu = gen.prepare(&family, Delivery::Cpu).unwrap();
     assert!(florets(&whole) > 0, "the beech flowers");
+    assert!(
+        resident.organ.is_some(),
+        "the device path holds its florets"
+    );
     assert_eq!(florets(&resident), florets(&whole));
     assert_eq!(florets(&cpu), florets(&whole));
 }

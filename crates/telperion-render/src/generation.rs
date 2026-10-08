@@ -112,6 +112,9 @@ pub struct Prepared {
     identity: Arc<()>,
     mesh: TreeMesh,
     resident: Option<Resident>,
+    /// The flowers already on the device, which the submit takes in place
+    /// of `mesh.organ`'s florets (fn-229).
+    organ: Option<Resident>,
     /// The wood's curve already on the device, which the submit takes in
     /// place of `mesh.curve` (fn-212 task 7).
     wood: Option<crate::curve::CurveGpu>,
@@ -182,7 +185,7 @@ impl Generator {
             &gpu,
             sources::place(),
             &[true, true, true, false, false],
-            &["place"],
+            &["place", "bloom"],
         );
         let mass = io::Pass::new(
             &gpu,
@@ -277,11 +280,11 @@ mod standalone_tests;
 mod tests;
 
 #[cfg(all(test, not(target_arch = "wasm32")))]
+mod lobed_tests;
+#[cfg(all(test, not(target_arch = "wasm32")))]
 mod readback_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod release_tests;
-#[cfg(all(test, not(target_arch = "wasm32")))]
-mod lobed_tests;
 
 /// Match the integration tests: unavailable hardware is explicit, while a
 /// device that exists but fails for another reason still fails the test.

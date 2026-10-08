@@ -7,11 +7,14 @@
 //! box, sweeps, stations and places them, and packs its curve after the
 //! CPU block's in the renderer's own form (decision 2); both blocks of
 //! leaves are placed into one leaf buffer, the device's at an offset, with
-//! one mass grid over both (decision 3). Only totals and summaries are
-//! read back. The submit takes these buffers as they are.
-use super::super::{compute, data, io, Backend, Clock, Generator, Metrics, Prepared, Resident};
+//! one mass grid over both (decision 3). A flowering tree's florets are
+//! handed off the same way (fn-229, `florets.rs`). Only totals and
+//! summaries are read back. The submit takes these buffers as they are.
+use super::super::compute::{self, Placement};
+use super::super::{data, io, Backend, Clock, Generator, Metrics, Prepared, Resident};
 use super::device::Device;
 use super::dress::{dress, Dresser};
+use super::florets::Organ;
 use super::handoff::{union, Handoff};
 use super::rings::Ringer;
 use super::roots::{Kernels, Tables};
@@ -27,7 +30,7 @@ use telperion_core::foliage::Instances;
 use telperion_core::mesh::{Foliage, TreeMesh};
 use telperion_core::pipeline::executor::{self, beyond, bins, Expansion};
 use telperion_core::presets::Family;
-use telperion_core::surface::{Bounds, SurfaceMesh};
+use telperion_core::surface::SurfaceMesh;
 use telperion_core::Error;
 use telperion_space::{ChainTables, GeometryTables};
 
@@ -129,6 +132,7 @@ pub(super) async fn build(
     family: &Family,
 ) -> Result<Built> {
     let species = (family.space.species.clone()).ok_or_else(|| refused("no engine species"))?;
+    let flowers = species.states.iter().any(|s| s.flowering > 0.0);
     let age = family.age as u32;
     let chain = ChainTables::new(&species, age).map_err(|_| refused("chain tables"))?;
     let geo = GeometryTables::new(&species, age).map_err(|_| refused("geometry tables"))?;
@@ -204,7 +208,7 @@ pub(super) async fn build(
     .await?;
     let ids = dressed.ids;
     drop(dressed);
-    let station = station_rows(&x, segments);
+    let station = station_rows(&x, segments, flowers);
     let stationer = &tools.stationer;
     let device = stage(gpu, &mut t.stations, async || {
         stationer
@@ -229,9 +233,14 @@ pub(super) async fn build(
         ),
         false => None,
     };
-    // Both blocks into one leaf buffer, one mass grid over both.
+    // Both blocks into one leaf buffer, one mass grid over both; the
+    // florets likewise, the device's in the submission of its leaves.
     let reference = x.reference();
-    let resident = stage(gpu, &mut t.place, async || {
+    let organ = match flowers {
+        true => Some(Organ::of(&x)?),
+        false => None,
+    };
+    let (resident, florets) = stage(gpu, &mut t.place, async || {
         let leaves = gen.leaf_buffer(count)?;
         let (l, e) = (x.leaves(), x.element());
         let counts = (cpu.count, cpu.segments.len() as u32, cpu.ring_size);
@@ -253,13 +262,21 @@ pub(super) async fn build(
             let rings = wood.as_deref().unwrap_or(&none);
             summaries.push(gen.place_into(config, (&*segs, rings), e, at)?.0);
         }
+        let mut encoder = gpu.encoder(&Default::default());
         if device.stations > 0 {
             let counts = (device.stations, device.segments, segments);
             let config = data::config(&l, x.twig(), counts, e, reference).at(cpu.count);
             let at = (device.stations, &*leaves);
             let rings = positions.as_deref().unwrap_or(&none);
-            summaries.push(gen.place_into(config, (&*device.buffer, rings), e, at)?.0);
+            let bufs = (&*device.buffer, rings);
+            let placed = gen.record_place(&mut encoder, Placement::Leaves, config, bufs, e, at)?;
+            summaries.push(placed.0);
         }
+        let placed = match &organ {
+            Some(o) => o.place(gen, &mut encoder, &device)?,
+            None => None,
+        };
+        gpu.submit([encoder.finish()]);
         let (mut crown, mut full) = (None, None);
         for s in &summaries {
             let raw = io::read_async(gpu, s, 64).await?;
@@ -273,13 +290,18 @@ pub(super) async fn build(
         let masses = gen
             .mass(&leaves, count, crown, reference, 0, &mut m)
             .await?;
-        Ok(Resident {
+        let florets = match (&organ, placed) {
+            (Some(o), Some(p)) => Some(o.resident(gen, p, &mut m).await?),
+            _ => None,
+        };
+        let resident = Resident {
             leaves: Held::resident(leaves, u64::from(count) * 12, "generated foliage"),
             masses: Held::resident(masses.0, masses.1, "generated foliage masses"),
             count,
             crown,
             full,
-        })
+        };
+        Ok((resident, florets))
     })
     .await?;
     // The ring positions served the placements alone.
@@ -292,15 +314,14 @@ pub(super) async fn build(
     for b in [&swept.point_buffer, &swept.cluster_buffer, &swept.table] {
         b.destroy();
     }
-    // The flowers of the part the CPU converted (fn-216): none, since a
-    // flowering tree is refused this path (`executor::apart`).
-    let organ = x.organ()?;
-    let flowers = match &organ {
-        Some(o) => o.instances.bounds(&o.element)?.map(Bounds::from),
-        None => None,
-    };
+    // The flowers of both blocks, on the device (fn-229).
     let bounds = union(union(curve.bounds(), handed.fine), resident.full);
-    let bounds = union(bounds, flowers).ok_or_else(|| refused("mesh has no geometry"))?;
+    let bounds = union(bounds, florets.as_ref().and_then(|f| f.full));
+    let bounds = bounds.ok_or_else(|| refused("mesh has no geometry"))?;
+    let organ = match (&organ, &florets) {
+        (Some(o), Some(_)) => Some(o.foliage()),
+        _ => None,
+    };
     let mesh = TreeMesh {
         wood: SurfaceMesh::default(),
         curve,
@@ -319,6 +340,7 @@ pub(super) async fn build(
         identity: gen.identity.clone(),
         mesh,
         resident: Some(resident),
+        organ: florets,
         wood: Some(handed.curve),
         backend: Backend::Gpu,
         metrics: m,

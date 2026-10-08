@@ -1,9 +1,10 @@
 use bytemuck::{Pod, Zeroable};
 use telperion_core::{
-    foliage::{prepared::PreparedStations, Element, Reference, TwigPlacement},
+    foliage::{prepared::PreparedStations, BloomParams, Element, Reference, TwigPlacement},
     math::Vec3,
     pipeline::executor::LeafInput,
 };
+use telperion_space::Transcendental;
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
 pub(super) struct Config {
@@ -59,6 +60,37 @@ pub(super) fn config(
             c.upward as f32,
         ],
         size: [c.size as f32, c.size_variation as f32, 0.0, 0.0],
+    }
+}
+/// A bloom's rows as `bloom.wgsl`'s `Flower` reads them (fn-229), drawn at
+/// `now`: the florets, taper, scatter and the time of year; the window's
+/// opening, length and stagger, and the droop; the rachis, the pedicel and
+/// the stalk's spread as its sine and cosine, taken as `bloom.rs` takes them.
+pub(super) fn flower(p: &BloomParams, now: f64) -> [[f32; 4]; 3] {
+    let (sin, cos) = p.spread.to_radians().sin_cos_fixed();
+    [
+        [p.florets, p.taper, p.scatter, now],
+        [p.opens, p.lasts, p.stagger, p.droop],
+        [p.rachis, p.pedicel, sin, cos],
+    ]
+    .map(|row| row.map(|v| v as f32))
+}
+/// The florets' rows: `count` florets of `records` blooms, the organ
+/// element `e`, packed against `r` (fn-229).
+pub(super) fn florets(
+    rows: [[f32; 4]; 3],
+    (count, records): (u32, u32),
+    e: &Element,
+    r: Reference,
+) -> Config {
+    Config {
+        counts: [count, records, e.positions.len() as u32, 0],
+        random: [0, 0, count.div_ceil(256), 0],
+        box_min: vector(r.min, 0.0),
+        box_extent: vector(r.extent, 0.0),
+        shape: rows[0],
+        lean: rows[1],
+        size: rows[2],
     }
 }
 impl Config {

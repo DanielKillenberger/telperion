@@ -45,10 +45,10 @@ const S_OWN: u32 = 0u;
 const S_START: u32 = 1u;
 const S_COUNT: u32 = 2u;
 const AL: u32 = 8u;
-const PL: u32 = 24u;
+const PL: u32 = 26u;
 const PA: u32 = 2u;
 // The geometry table's PA blocks (`geometry.wgsl`).
-const GG: u32 = 37u;
+const GG: u32 = 38u;
 // `space.rs`'s constants.
 const FINEST: f32 = 2e-4;
 const SHORTEST: f32 = 1000.0;
@@ -66,9 +66,11 @@ const CA: u32 = 12u;
 // along the wood from its root's bearer, its parent's id, its wood's
 // frame as laid (heading, side; y up), which a run it bears seeds from,
 // its branch (the id of its branch's first node; a branch of the structure
-// above the cut tagged `PREV`), its key (`tree::node_key`) and its wood
-// as grown (`Tree::grown`): its phytomers' internodes at their scales.
-const CV: u32 = 26u;
+// above the cut tagged `PREV`), its key (`tree::node_key`), its wood
+// as grown (`Tree::grown`): its phytomers' internodes at their scales, and
+// what its blooms are drawn by (fn-229): its phytomer's key (two words)
+// and its age's flowering share.
+const CV: u32 = 29u;
 const TAKEN: u32 = 1u;
 const MADE: u32 = 2u;
 // Its root is laid on the CPU (host decision 3): drawn there.
@@ -347,6 +349,9 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
         putu(r, 24u, node_key(vec2<u32>(ax(i, 0u), ax(i, 1u)), k));
         put(r, 25u, pending);
         pending = 0.0;
+        put(r, 26u, out[laid + 24u]);
+        put(r, 27u, out[laid + 25u]);
+        put(r, 28u, gtab[4u + GG * ax(i, PA) + 37u]);
         put(r, 0u, pos.x);
         put(r, 1u, pos.y);
         put(r, 2u, pos.z);

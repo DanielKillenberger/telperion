@@ -56,9 +56,10 @@ const RELAYED: u32 = 3u;
 const IS_WOKEN: u32 = 0x80000u;
 // A laid axis: its base before bending and as laid, its PA, and its
 // first phytomer's index; a laid phytomer: as laid (tip, heading, side),
-// before bending, its radius, scale and rank.
+// before bending, its radius, scale and rank, its phase, its internode's
+// factor, and its key (`Phytomer::key`, two words; fn-229).
 const AL: u32 = 8u;
-const PL: u32 = 24u;
+const PL: u32 = 26u;
 // The scratch: per region axis, then per region phytomer.
 const SA: u32 = 70u;
 const SP: u32 = 12u;
@@ -81,7 +82,7 @@ const P_NODE: u32 = 1u;
 const P_LOAD: u32 = 2u;
 const P_LEVER: u32 = 6u;
 // The geometry table: a PA's block and a row.
-const GG: u32 = 37u;
+const GG: u32 = 38u;
 
 var<private> ax0: u32;
 var<private> ph0: u32;

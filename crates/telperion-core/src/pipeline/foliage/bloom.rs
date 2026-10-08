@@ -150,16 +150,42 @@ type Matrix = [f32; 16];
 
 /// Every flowering node's inflorescence, packed against a box of its own.
 pub(crate) fn place(tree: &Tree, p: &BloomParams, season: Option<f64>) -> Result<Instances> {
+    let matrices = matrices(tree, p, season)?;
+    Ok(packed(&matrices, reference(&matrices, p)))
+}
+
+/// The same florets packed against `box`, which holds every one: the box
+/// an executor drawing its own roots' florets shares (fn-229).
+pub(crate) fn place_in(
+    tree: &Tree,
+    p: &BloomParams,
+    season: Option<f64>,
+    within: Reference,
+) -> Result<Instances> {
+    Ok(packed(&matrices(tree, p, season)?, within))
+}
+
+/// The farthest a floret stands from its node: along the axis, then its
+/// stalk.
+pub(crate) fn reach(p: &BloomParams) -> f64 {
+    p.rachis + p.pedicel
+}
+
+fn matrices(tree: &Tree, p: &BloomParams, season: Option<f64>) -> Result<Vec<Matrix>> {
     let now = now(p, season);
     let mut matrices = Vec::new();
     for bloom in &tree.blooms {
         inflorescence(tree, bloom, p, now, &mut matrices)?;
     }
-    let mut instances = Instances::new(reference(&matrices, p));
-    for m in &matrices {
+    Ok(matrices)
+}
+
+fn packed(matrices: &[Matrix], reference: Reference) -> Instances {
+    let mut instances = Instances::new(reference);
+    for m in matrices {
         instances.push(m);
     }
-    Ok(instances)
+    instances
 }
 
 /// The box every floret stands in, a petal's reach round their positions.

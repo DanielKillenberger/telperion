@@ -25,7 +25,23 @@ impl Renderer {
             resident.leaves,
             resident.masses,
         );
-        self.submit_organ(mesh.organ.as_ref(), crate::Level::default());
+        match (prepared.organ, mesh.organ.as_ref()) {
+            // The florets on the device (fn-229), as the leaves are.
+            (Some(organ), Some(o)) => {
+                let reference = o.instances.reference;
+                let (count, placements) = (organ.count, organ.leaves);
+                self.organ.submit_resident(
+                    &self.gpu,
+                    &o.element,
+                    reference,
+                    count,
+                    placements,
+                    organ.masses,
+                );
+                self.scene.set_organ_reference(Some(reference));
+            }
+            (_, organ) => self.submit_organ(organ, crate::Level::default()),
+        }
         self.scene
             .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
         self.scene.set_crown(resident.crown);
