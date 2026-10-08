@@ -452,3 +452,18 @@ I viewed `raw/form6/sheet-horn-beside-laburnum.png`. The floret is a straight-si
    - **Acceptance:** under the generator-evolution policy, if no regression is visible, accept the change.
    - **Re-pins:** re-pin any pixel baselines with that evidence.
 4. **Friction (where a floret stands, and a low share shrinking florets rather than thinning them):** this is noted for the end-of-spec friction review. The second half of that entry may be a product question: should a low flowering share thin the florets rather than shrink them? Report it there; do not change it in this task.
+
+## 10. Blossom at distance is moved to fn-234 (host, 2026-10-08)
+
+This section answers task 3's blossom question and the completion review's R2 finding. I viewed `raw/distance/sheet-cherry.png`: a beech flowering as densely as a cherry reads as a green crown, with no visible blossom.
+- **What M0 rules out:** sampling is not the cause. The flowers keep 92 to 96 % of their finest coverage.
+- **What M1 shows:** values cannot fix it either. Three times the florets reached only 2.9 % of the frame.
+- **What remains:** this is a capability gap, namely where the florets stand and how they are lit at distance.
+
+fn-217's R2, for blossom at the whole-tree view, therefore moves to its own spec: **fn-234, "Blossom shows from a distance"**. It depends on fn-217, and fn-218 and fn-219 depend on it.
+
+The rest of R2 stands as fn-217 delivered it:
+- the horn form, through `petalCurl` (`raw/form7/sheet-curl.png`, viewed: a throat opening into a flared mouth);
+- racemes hanging as strands at middle distance (`raw/form7/sheet-raceme.png`, viewed).
+
+The racemes' colour is ochre where it should be golden. That is a values question for fn-219.
