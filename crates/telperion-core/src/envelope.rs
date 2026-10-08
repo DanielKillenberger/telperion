@@ -30,8 +30,8 @@ crate::catalogue::rows! {
             Bounds::closed(0.0, 1.0) => [Grow, Expand, Cull] {
             wire: 28,
             check: input(Site::Envelope, 1, "envelope"),
-            note: "`height·crownBase` is the default `trunkHeight`, the floor of the stems' bole \
-                and the lowest a short shoot grows.",
+            note: "`height·crownBase` is the default `trunkHeight`, the floor of the stems' \
+                bole.",
             dial: bounded("crown_base", "where the crown starts, as a share of the height",
                 [0.15, 0.3]),
         },

@@ -67,13 +67,12 @@ const SWEEP_NODES: usize = 8_000;
 // fn-120's three skirt rows and its dead colour are the palm's too, held for
 // the same reason, and so are fn-144's two lattice rows.
 // fn-198 walks no pair of one preset with an engine species and one without
-// (the walk is refused), and the engine beech and oak no longer seat short
-// shoots or clump their limbs: the short shoots' spacing and the limb
-// clumping moved only between such pairs, so they are held. The shell depth
+// (the walk is refused), and the engine beech and oak no longer clump their
+// limbs: the limb clumping moved only between such pairs, so it is held. The shell depth
 // moves again between the ordinary tree and the beech (fn-215).
 // fn-221's six old-bark rows are stated by no preset yet (fn-213 owns the
 // birch's), so every table leaves them at their neutral and they are held.
-const HELD: [&str; 99] = [
+const HELD: [&str; 98] = [
     "/bloom/florets",
     "/bloom/rachis",
     "/bloom/droop",
@@ -98,7 +97,6 @@ const HELD: [&str; 99] = [
     "/material/bloomBackBlue",
     "/canopy/clumpSystemOrder",
     "/canopy/limbClumping",
-    "/canopy/shortShootSpacing",
     "/canopy/rosetteFronds",
     "/canopy/rosetteDivergence",
     "/canopy/rosettePitch",

@@ -42,7 +42,7 @@ try {
   assert(checks.canonical.stages.gpuPositions===false && checks.canonical.stages.positionFallback==='profile or station capability','profile capability fallback');
   assert(checks.canonical.stages.woodCpuBytes===0 && checks.canonical.stages.woodPreparedCpuBytes>0,'canonical fallback accounting');
   checks.invalid=await rejected(renderer.setTreeGpu('{'),'not JSON');
-  const fallback=structuredClone(family);fallback.canopy.shortShootSpacing=0.1;
+  const fallback=structuredClone(family);fallback.canopy.limbClumping=0.1;
   checks.fallback=await renderer.setTreeGpu(JSON.stringify(fallback));
   assert(checks.fallback.backend==='CpuFallback','fallback backend');
   const first=renderer.setTreeGpu(text);

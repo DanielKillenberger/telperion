@@ -116,11 +116,6 @@ fn unsupported_families_have_no_plan_and_bad_rows_are_refused() {
         )
     };
     assert!(none(CanopyParams::default(), None).unwrap().is_none());
-    let spurs = CanopyParams {
-        short_shoot_spacing: 0.03,
-        ..Default::default()
-    };
-    assert!(none(spurs, twig).unwrap().is_none());
     let clumped = CanopyParams {
         limb_clumping: 0.25,
         ..Default::default()

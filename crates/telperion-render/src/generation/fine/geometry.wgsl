@@ -81,7 +81,7 @@ const P_NODE: u32 = 1u;
 const P_LOAD: u32 = 2u;
 const P_LEVER: u32 = 6u;
 // The geometry table: a PA's block and a row.
-const GG: u32 = 37u;
+const GG: u32 = 39u;
 
 var<private> ax0: u32;
 var<private> ph0: u32;

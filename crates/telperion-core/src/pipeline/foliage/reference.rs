@@ -13,7 +13,7 @@ use crate::{
 
 /// How far a station can stand from the wood axis it sits on, read off a
 /// family's rows: out to the skin of the wood it is seated on, then on along
-/// a spur, down a rosette or out along a rachis.
+/// down a rosette or out along a rachis.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) struct Reach {
     /// The reach from the thickest wood the rows let a station sit on.
@@ -22,7 +22,7 @@ pub(crate) struct Reach {
     seats: bool,
     /// The swept skin's fork swell, lobe depth and basal flare.
     skin: [f64; 3],
-    /// How far a spur or a rosette carries a station past its wood.
+    /// How far a rosette carries a station past its wood.
     beyond: f64,
     /// How far a rachis carries its leaflets past the station.
     rachis: f64,
@@ -152,13 +152,6 @@ fn reach(
     } else {
         twigs.twig.diameter / 2.0
     };
-    // A short shoot stands on limb wood up to its own share of the stem and
-    // carries its cluster a spur's length further out again.
-    let spur = if canopy.short_shoot_spacing > 0.0 {
-        canopy.short_shoot_radius * trunk + canopy.short_shoot_length
-    } else {
-        0.0
-    };
     // A rachis carries its leaflets a length further out from the station,
     // arched out of that line again, and a rosette spreads its insertions,
     // and its skirt's, down the axis below the apex. Both are off at the neutral rows, so the
@@ -180,7 +173,7 @@ fn reach(
         authored: 0.0,
         seats: canopy.surface_contact > 0.0,
         skin: [surface.fork_swell, surface.lobe_depth, surface.flare_radius],
-        beyond: spur.max(apex),
+        beyond: apex,
         rachis,
     };
     reach.authored = reach.from_wood(wood);

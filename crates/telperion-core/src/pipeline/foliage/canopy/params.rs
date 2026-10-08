@@ -132,56 +132,6 @@ crate::catalogue::rows! {
             dial: bounded("leaf_size_variation", "how far leaf size varies leaf to leaf",
                 [0.15, 0.3]),
         },
-        /// Metres between short shoots along limb and branch wood: spurs a few
-        /// centimetres long, each ending in a cluster of leaves. Zero grows none.
-        pub short_shoot_spacing: f64 = "shortShootSpacing" "m"
-            Bounds::closed(crate::pipeline::foliage::SHORT_SHOOT_SPACING.0, crate::pipeline::foliage::SHORT_SHOOT_SPACING.1).or_zero() => [Plan, Expand] {
-            wire: 101,
-            check: input(Site::ShortShoots, 1, "short shoot spacing"),
-            note: "Above zero there is no leaf plan: leaves are placed for the field, and the \
-                GPU executor falls back.",
-            blend: Blend::Density,
-            dial: tuned("spacing", "metres between leaf clusters",
-                [0.01, 0.08], [0.01, 0.02], "authored"),
-        },
-        /// Wood thicker than this fraction of the stem's radius carries no short
-        /// shoot, and neither does twig wood or anything below the crown base.
-        pub short_shoot_radius: f64 = "shortShootRadius" "share of stem radius"
-            Bounds::closed(0.0, 1.0) => [Expand] {
-            wire: 102,
-            check: input(Site::ShortShoots, 2, "short shoot radius"),
-            applies: "`shortShootSpacing` zero",
-            dial: bounded("short_shoot_radius", "the share of the stem's radius above which wood \
-                carries no short shoot", [0.15, 0.3]),
-        },
-        /// Metres from the bark to the cluster a short shoot carries.
-        pub short_shoot_length: f64 = "shortShootLength" "m" Bounds::closed(0.0, 0.5) => [Expand] {
-            wire: 103,
-            check: input(Site::ShortShoots, 3, "short shoot length"),
-            applies: "`shortShootSpacing` zero",
-            dial: bounded("short_shoot_length", "the metres from the bark to the cluster a short \
-                shoot carries", [0.1, 0.2]),
-        },
-        /// Leaves in one short shoot's cluster, 1 to 8.
-        pub short_shoot_leaves: u32 = "shortShootLeaves" "leaves"
-            Bounds::closed(1.0, crate::pipeline::foliage::MAX_SHORT_SHOOT_LEAVES as f64) => [Expand] {
-            wire: 104,
-            check: input(Site::ShortShoots, 5, "short shoot leaves"),
-            applies: "`shortShootSpacing` zero",
-            blend: Blend::Count,
-            dial: tuned("leaves", "leaves per cluster", [2.0, 12.0], [2.0, 4.0], "authored"),
-        },
-        /// Degrees either side of its short shoot's bearing a cluster's leaves
-        /// fan across, held level: 90 is a half circle, 0 stacks them.
-        pub short_shoot_spread: f64 = "shortShootSpread" "degrees"
-            Bounds::closed(0.0, 90.0) => [Expand] {
-            wire: 105,
-            check: input(Site::ShortShoots, 4, "short shoot spread"),
-            applies: "`shortShootSpacing` zero",
-            blend: Blend::Degrees,
-            dial: bounded("short_shoot_spread", "the degrees either side of its bearing a \
-                cluster's leaves fan across", [10.0, 20.0]).span([22.5, 90.0]),
-        },
         /// How far into each limb system the gap between it and its neighbours
         /// reaches, as a share of the way from their shared boundary to the
         /// system's centre: each limb system then keeps a rounded leaf mass of its
@@ -215,7 +165,7 @@ crate::catalogue::rows! {
         pub clump_neighbours: u32 = "clumpNeighbours" "neighbours"
             crate::ranges::POSITIVE_COUNT.bounds() => [Expand] {
             wire: 108,
-            check: value(Site::ShortShoots, 0, "clumpNeighbours"),
+            check: value(Site::Clumping, 0, "clumpNeighbours"),
             applies: "`limbClumping` zero",
             blend: Blend::Count,
             dial: Dial::Excluded("An approximation budget: neighbours and cell crossings the \
@@ -230,7 +180,7 @@ crate::catalogue::rows! {
             wire: 109,
             check: input(Site::Rosette, 18, "rosette fronds"),
             note: "Above zero the apical twigs are cleared, fronds are planned instead of runs \
-                and the rosette is placed instead of short shoots; the GPU executor falls back.",
+                and the rosette is placed instead; the GPU executor falls back.",
             blend: Blend::Count,
             dial: bounded("rosette_fronds", "fronds in the crown at each stem apex; at zero no \
                 rosette stands", [1.0, 4.0]),
@@ -537,14 +487,7 @@ impl Default for CanopyParams {
             scatter: 18.,
             size: 1.,
             size_variation: 0.35,
-            // Neutral: no short shoot grows until a table states a spacing.
-            // The other four are a beech's spur, so a spacing alone reads.
-            short_shoot_spacing: 0.,
-            short_shoot_radius: 0.15,
-            short_shoot_length: 0.04,
-            short_shoot_leaves: 3,
-            short_shoot_spread: 45.,
-            // Neutral: every leaf the stations and the short shoots place.
+            // Neutral: every leaf the stations and the clusters place.
             limb_clumping: 0.,
             clump_system_order: crate::ranges::default_clump_system_order(),
             clump_neighbours: crate::ranges::default_clump_neighbours(),

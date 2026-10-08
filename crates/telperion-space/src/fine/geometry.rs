@@ -36,6 +36,10 @@ pub struct PaGeometry {
     pub internode_spread: f64,
     pub insertion_spread: f64,
     pub tropism_spread: f64,
+    /// The leaves at each tip of this PA and their fan (fn-223): what the
+    /// executor that draws a fine root seats there.
+    pub cluster_leaves: f64,
+    pub cluster_spread: f64,
 }
 
 /// One zone of a PA's growth unit: its buds a node, and per PA a lateral
@@ -105,6 +109,8 @@ impl GeometryTables {
                     internode_spread: f.internode_spread,
                     insertion_spread: f.insertion_spread,
                     tropism_spread: f.tropism_spread,
+                    cluster_leaves: s.cluster_leaves,
+                    cluster_spread: s.cluster_spread,
                 }
             })
             .collect();

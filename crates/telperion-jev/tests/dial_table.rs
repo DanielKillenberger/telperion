@@ -189,7 +189,12 @@ fn the_six_rows_the_pilot_qualified_still_hash_to_what_it_paid_for() {
         "the dial table's shape changed under the calibrated manifests"
     );
     let authored = table();
-    for dial in &pilot {
+    // A row the catalogue retired leaves the table with its dial: fn-223
+    // retired the short shoots' rows the pilot tuned.
+    let kept = pilot
+        .iter()
+        .filter(|d| telperion_core::catalogue::retired(&d.path).is_none());
+    for dial in kept {
         let now = authored
             .iter()
             .find(|d| d.id == dial.id)

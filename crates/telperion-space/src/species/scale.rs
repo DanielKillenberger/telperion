@@ -64,6 +64,9 @@ pub const SCALES: &[(&str, Scale)] = &[
     ("leaf_area", Log { floor: 1e-4 }),
     // fn-216: a share of nodes, by value.
     ("flowering", Linear),
+    // fn-223: a count of leaves and an angle, by value.
+    ("cluster_leaves", Linear),
+    ("cluster_spread", Linear),
     ("shade_hazard", Linear),
     ("shade_size", Linear),
     ("apical_control", Linear),
@@ -158,6 +161,8 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         straightening,
         leaf_area,
         flowering,
+        cluster_leaves,
+        cluster_spread,
         shade_hazard,
         shade_size,
         apical_control,
@@ -206,6 +211,8 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         ("straightening", straightening),
         ("leaf_area", leaf_area),
         ("flowering", flowering),
+        ("cluster_leaves", cluster_leaves),
+        ("cluster_spread", cluster_spread),
         ("shade_hazard", shade_hazard),
         ("shade_size", shade_size),
         ("apical_control", apical_control),

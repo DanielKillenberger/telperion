@@ -74,12 +74,16 @@ pub const FLORET: u64 = 0x0b10_0002;
 /// floret's key (fn-216).
 pub const FLORET_SIZE: u64 = 0;
 pub const FLORET_OPENING: u64 = 1;
+/// A short shoot's cluster, under its tip node's key (fn-223); its
+/// leaves draw by their index in it. Clear of the node's places and
+/// blooms.
+pub const CLUSTER: u64 = 0x0c10_0000;
 /// An axis carried on into an age, under its chain's lineage.
 pub const CONTINUATION: u64 = u64::MAX;
 
 /// Every key: its name, value and what it is drawn under. `ZONE` and
 /// `PLACE` stand for their spans.
-pub const ALL: [(&str, u64, Under); 23] = [
+pub const ALL: [(&str, u64, Under); 24] = [
     ("VIABILITY", VIABILITY, Under::Unit),
     ("ABORTION", ABORTION, Under::Unit),
     ("MOVE", MOVE, Under::Unit),
@@ -102,6 +106,7 @@ pub const ALL: [(&str, u64, Under); 23] = [
     ("FLORET", FLORET, Under::Node),
     ("FLORET_SIZE", FLORET_SIZE, Under::Floret),
     ("FLORET_OPENING", FLORET_OPENING, Under::Floret),
+    ("CLUSTER", CLUSTER, Under::Node),
     ("CONTINUATION", CONTINUATION, Under::Lineage),
 ];
 

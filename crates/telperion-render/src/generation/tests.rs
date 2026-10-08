@@ -63,7 +63,6 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
     f.skeleton.envelope.spread = 0.5;
     f.shell_depth = 1.0;
     f.canopy.surface_contact = 1.0;
-    f.canopy.short_shoot_spacing = 0.0;
     f.canopy.limb_clumping = 0.0;
     let twig = TwigPlacement {
         internode_length: 0.07,
@@ -218,12 +217,12 @@ fn preparation_capabilities_and_failures_are_explicit() {
     let tree = fixture(0.0);
     let mut f = Family::default();
     let twig = TwigPlacement::default();
-    f.canopy.short_shoot_spacing = 0.1;
+    f.canopy.limb_clumping = 0.1;
     assert!(expansion(&tree, &f, twig).stations().unwrap().is_none());
     f.canopy.size = f64::NAN;
     assert!(expansion(&tree, &f, twig).stations().is_err());
     f.canopy.size = 1.0;
-    f.canopy.short_shoot_spacing = 0.0;
+    f.canopy.limb_clumping = 0.0;
     f.canopy.max_instances = 1;
     assert!(expansion(&tree, &f, twig).stations().is_err());
     f.canopy.size = 0.0;
@@ -280,7 +279,6 @@ fn huge_phases_fall_back_but_supported_large_ordinals_keep_orientation() {
     let tree = fixture(0.0);
     let mut f = Family::default();
     f.canopy.surface_contact = 0.0;
-    f.canopy.short_shoot_spacing = 0.0;
     f.canopy.limb_clumping = 0.0;
     f.canopy.divergence = 1e9;
     let tiny = TwigPlacement {
@@ -422,7 +420,6 @@ fn compact_positions_seat_contacts_on_the_rendered_surface() {
     f.skeleton.envelope.spread = 0.5;
     f.shell_depth = 1.0;
     f.canopy.surface_contact = 1.0;
-    f.canopy.short_shoot_spacing = 0.0;
     f.canopy.limb_clumping = 0.0;
     let twig = TwigPlacement {
         internode_length: 0.07,
@@ -520,7 +517,6 @@ fn compact_position_candidate_does_not_override_station_capability() {
     let mut f = Family::default();
     f.surface.lobes = 0;
     f.canopy.surface_contact = 0.0;
-    f.canopy.short_shoot_spacing = 0.0;
     f.canopy.limb_clumping = 0.0;
     f.canopy.divergence = 1e9;
     assert!(executor::expand(tree.clone(), &f)

@@ -74,13 +74,6 @@ const CASES: &[Case] = &[
     },
     Case {
         preset: Preset::Ordinary,
-        row: "/canopy/shortShootLeaves",
-        to: 6.0,
-        asleep: &[("/canopy/shortShootSpacing", 0.0)],
-        awake: &[("/canopy/shortShootSpacing", 0.05)],
-    },
-    Case {
-        preset: Preset::Ordinary,
         row: "/element/cup",
         to: 0.4,
         asleep: &[("/element/card", 1.0)],
@@ -153,10 +146,7 @@ fn build(family: &Family) -> Vec<(&'static str, u64)> {
     let f = out.field.as_ref().expect("a field").snapshot().unwrap();
     let index = |i: &IndexSnapshot| digest(&(&i.bounds, &i.topology, i.node_count));
     vec![
-        (
-            "skeleton",
-            digest(&built.skeleton.tree),
-        ),
+        ("skeleton", digest(&built.skeleton.tree)),
         ("wood", digest(&out.wood)),
         ("element", digest(&out.element)),
         ("leaves", digest(&leaves)),

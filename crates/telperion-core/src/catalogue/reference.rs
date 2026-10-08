@@ -153,7 +153,6 @@ fn blend(b: Blend) -> &'static str {
         Blend::Count | Blend::Many => "rounded to the nearest",
         Blend::Down => "rounded down",
         Blend::Up => "rounded up",
-        Blend::Density => "as the density it spaces",
         Blend::Kept => "the first family's",
         Blend::Coupled => "with the rows it is coupled to",
     }

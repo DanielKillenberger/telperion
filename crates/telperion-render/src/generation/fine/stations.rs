@@ -28,7 +28,8 @@ const OWNED: usize = 8;
 const LANES: u32 = 256;
 
 pub(super) fn source() -> String {
-    STATIONS.to_string()
+    // The registry's mirror, for a cluster's stream key (fn-223).
+    format!("{}\n{STATIONS}", super::KEYS)
 }
 
 /// The rows the stations read: the stations per internode, the ring's
