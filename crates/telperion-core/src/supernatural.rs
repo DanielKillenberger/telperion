@@ -237,6 +237,18 @@ impl Family {
         }
         Cow::Owned(f)
     }
+
+    /// The material the renderer draws the applied family with: the bark's
+    /// metre rows (`shootRadius`, `matureRadius`, `matureSpan`) at the
+    /// group's scale, as S1 scales every other length of the wood, once.
+    pub fn drawn_material(&self) -> crate::material::MaterialParams {
+        let mut m = self.applied().material;
+        let s = self.supernatural.scale();
+        m.shoot_radius *= s;
+        m.mature_radius *= s;
+        m.mature_span *= s;
+        m
+    }
 }
 
 impl Supernatural {

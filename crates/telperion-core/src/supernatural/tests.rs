@@ -159,3 +159,37 @@ fn a_family_with_the_group_off_draws_its_base_species_to_the_byte() {
     on.supernatural.enabled = true;
     assert_ne!(mesh(&on), base);
 }
+
+/// The bark's metre rows are lengths: the drawn material carries them at
+/// the group's scale, once, and every other row as the applied family's
+/// (DESIGN.md 8.3). At scale one, and with the group off, it is the applied
+/// material to the bit.
+#[test]
+fn the_bark_s_lengths_are_drawn_at_the_group_s_scale() {
+    let mut beech = Preset::EuropeanBeech.parameters();
+    beech.material.shoot_radius = 0.02;
+    beech.material.mature_radius = 0.3;
+    beech.material.mature_span = 0.4;
+    let bits = |m: &crate::material::MaterialParams| format!("{m:?}");
+    for (enabled, scale) in [(false, 3.0), (true, 1.0)] {
+        beech.supernatural = Supernatural {
+            enabled,
+            scale,
+            ..legendary(enabled)
+        };
+        assert_eq!(bits(&beech.drawn_material()), bits(&beech.applied().material));
+    }
+    beech.supernatural = legendary(true);
+    let (applied, drawn) = (beech.applied().material, beech.drawn_material());
+    assert_eq!(
+        (drawn.shoot_radius, drawn.mature_radius, drawn.mature_span),
+        (0.02 * 3.0, 0.3 * 3.0, 0.4 * 3.0)
+    );
+    let restored = crate::material::MaterialParams {
+        shoot_radius: applied.shoot_radius,
+        mature_radius: applied.mature_radius,
+        mature_span: applied.mature_span,
+        ..drawn
+    };
+    assert_eq!(bits(&restored), bits(&applied));
+}
