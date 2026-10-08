@@ -62,7 +62,7 @@ crate::catalogue::rows! {
         /// the pipe model alone.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_share"))]
         pub lateral_share: f64 = "lateralShare" "share" Bounds::closed(0.01, 1.0) => [Grow] {
-            wire: 246,
+            wire: 241,
             check: value(Site::Radius, 4, "lateralShare"),
             note: "Below one a lateral leaves thinner than a continuation carrying as many \
                 tips. A lateral is the wood the scaffold marks `BudFate::Lateral`.",
@@ -74,7 +74,7 @@ crate::catalogue::rows! {
         /// one the parts divide by the pipe model alone.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_share"))]
         pub fork_balance: f64 = "forkBalance" "share" Bounds::closed(0.01, 1.0) => [Grow] {
-            wire: 247,
+            wire: 242,
             check: value(Site::Radius, 5, "forkBalance"),
             applies: "`skeleton.habit.codominance` zero",
             note: "A sibling is the wood the scaffold marks `codominant`; its share is this \
@@ -88,7 +88,7 @@ crate::catalogue::rows! {
         /// model's radius by the axis's tip. At zero wood is the pipe model's.
         #[cfg_attr(feature = "json", serde(default))]
         pub girth_hold: f64 = "girthHold" "share of reach" Bounds::closed(0.0, 0.9) => [Grow] {
-            wire: 248,
+            wire: 243,
             check: value(Site::Radius, 6, "girthHold"),
             growth: Growth::Ignored,
             note: "Every part leaving the root starts an axis, as do a lateral and a \
@@ -110,7 +110,7 @@ crate::catalogue::rows! {
         /// over a shorter distance.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_girth_fall"))]
         pub girth_fall: f64 = "girthFall" "-" Bounds::closed(0.5, 8.0) => [Grow] {
-            wire: 249,
+            wire: 244,
             check: value(Site::Radius, 7, "girthFall"),
             growth: Growth::Ignored,
             applies: "`girthHold` zero",

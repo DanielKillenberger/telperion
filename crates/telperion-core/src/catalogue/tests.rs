@@ -16,7 +16,7 @@ const PRESETS: [Preset; 8] = [
 #[test]
 fn every_wire_row_has_one_entry() {
     let paths: Vec<_> = entries().map(|e| e.path()).collect();
-    assert_eq!(paths.len(), 278);
+    assert_eq!(paths.len(), 273);
     let mut seen = std::collections::BTreeSet::new();
     for path in &paths {
         assert!(seen.insert(*path), "{path} is declared twice");
@@ -182,7 +182,7 @@ fn the_deprecated_rows_parse_overlay_and_serialise_as_before() {
 fn every_row_has_its_own_rank_on_the_wire() {
     let mut ranks: Vec<u16> = entries().map(|e| e.info().wire).collect();
     ranks.sort_unstable();
-    assert_eq!(ranks, (0..278).collect::<Vec<u16>>());
+    assert_eq!(ranks, (0..273).collect::<Vec<u16>>());
 }
 
 /// A row no direct-build stage reads says so: the removed growth path's own

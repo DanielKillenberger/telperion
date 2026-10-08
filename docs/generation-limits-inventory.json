@@ -24,12 +24,6 @@
     "reason": "The generated scalar check's stack buffer holds one group's rows; `every_group_fits_the_check` keeps every catalogue group within it, so it never limits a family."
   },
   {
-    "path": "crates/telperion-core/src/catalogue/walk.rs",
-    "site": ". min ( crate : : foliage : : SHORT_SHOOT_SPACING . 1 )",
-    "classification": "parameter",
-    "reason": "Sparse short-shoot spacing interpolates within the named validated SHORT_SHOOT_SPACING range."
-  },
-  {
     "path": "crates/telperion-core/src/pipeline/branching.rs",
     "site": ". max ( 1e - 6 )",
     "classification": "numeric",
@@ -696,12 +690,6 @@
     "reason": "The thicker of a segment's two pipe radii, which decides whether that wood bears leaves; it limits no generated population."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/foliage/short_shoots.rs",
-    "site": ". max ( tree . pipe ( i ) [ 1 ] )",
-    "classification": "algorithm",
-    "reason": "The thicker of a segment's two pipe radii, which decides whether that wood bears leaves; it limits no generated population."
-  },
-  {
     "path": "crates/telperion-core/src/pipeline/foliage/placement.rs",
     "site": "while first > 0 & & tree . pipe ( run [ first - 1 ] ) [ 1 ] < = max_radius {",
     "classification": "algorithm",
@@ -778,30 +766,6 @@
     "site": ". max ( 4e - 6 )",
     "classification": "numeric",
     "reason": "Reference-box radius floor mirrors the validated trunk-radius minimum."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/foliage/short_shoots.rs",
-    "site": ". max ( 0 . )",
-    "classification": "algorithm",
-    "reason": "Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/foliage/short_shoots.rs",
-    "site": ". min ( 1 . )",
-    "classification": "algorithm",
-    "reason": "Unit progress or blend weight saturates at its endpoint; the authored length and population remain independent."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/foliage/canopy.rs",
-    "site": "const MAX_SHORT_SHOOT_LEAVES : u32 = 8 ;",
-    "classification": "parameter",
-    "reason": "MAX_SHORT_SHOOT_LEAVES is the named validated short-shoot anatomy domain."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/foliage/short_shoots.rs",
-    "site": "if spacing = = 0 . | | p . size = = 0 . | | tree . nodes . len ( ) < 2 {",
-    "classification": "algorithm",
-    "reason": "Disabled, empty, or geometrically separated foliage has no placements to emit."
   },
   {
     "path": "crates/telperion-core/src/pipeline/foliage/station.rs",
