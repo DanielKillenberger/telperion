@@ -33,8 +33,8 @@ pub(super) fn source() -> String {
 
 /// The rows the stations read: the stations per internode, the ring's
 /// segments, `STRUCTURAL` of the root's radius, the slender bound, the
-/// twig layer's internode, the divergence (radians) and whether leaves
-/// are seated.
+/// twig layer's internode, the divergence (radians), whether leaves are
+/// seated, and whether there are leaves at all.
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Rows {
     pub spi: u32,
@@ -45,6 +45,9 @@ pub(super) struct Rows {
     pub internode: f32,
     pub divergence: f32,
     pub contact: bool,
+    /// Whether the canopy bears leaves at all: none of zero size, as the
+    /// pipeline prepares none (`prepared.rs`; fn-212 task 11).
+    pub leaves: bool,
 }
 
 pub(super) struct Stationed {
@@ -129,6 +132,15 @@ impl Stationer {
         ids: u32,
         rows: Rows,
     ) -> Result<Stationed> {
+        if !rows.leaves {
+            return Ok(Stationed {
+                runs: 0,
+                stations: 0,
+                segments: 0,
+                buffer: storage(gpu, "station segments", 0)?,
+                run_words: storage(gpu, "station runs", 0)?,
+            });
+        }
         let st = storage(gpu, "station words", u64::from(ids) * SW)?;
         let counts = storage(gpu, "station counts", 4)?;
         let none = storage(gpu, "stations none", 4)?;
@@ -229,5 +241,6 @@ pub(super) fn station_rows(x: &Expansion, segments: u32) -> Rows {
         divergence: (canopy.divergence * std::f64::consts::PI / 180.0)
             .rem_euclid(std::f64::consts::TAU) as f32,
         contact: x.seats(),
+        leaves: canopy.size != 0.0,
     }
 }

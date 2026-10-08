@@ -224,3 +224,27 @@ fn the_foliage_budget_holds_the_whole_trees_leaves() {
         count
     );
 }
+
+/// fn-212 task 11, Astra's finding 7: a canopy of zero leaf size places
+/// no leaves on the device, as the CPU reference places none.
+#[test]
+fn a_zero_leaf_size_places_no_leaves() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let mut renderer = Renderer::new(gpu, crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    let mut family = family("european-beech", 30);
+    family.canopy.size = 0.0;
+    let whole = pollster::block_on(gen.prepare_whole(&family, Delivery::Resident)).unwrap();
+    assert_eq!(whole.count(), 0);
+    let prepared = gen.prepare(&family, Delivery::Resident).unwrap();
+    assert!(prepared.wood.is_some(), "not the device path");
+    assert_eq!(prepared.count(), 0);
+    // The leafless tree draws.
+    renderer.submit_prepared(prepared).unwrap();
+    let camera = crate::hero_pose(renderer.bounds().unwrap(), 4.0 / 3.0, crate::GROUND_REACH);
+    assert!(crate::render(&mut renderer, &camera, 320, 240)
+        .unwrap()
+        .has_subject());
+}
