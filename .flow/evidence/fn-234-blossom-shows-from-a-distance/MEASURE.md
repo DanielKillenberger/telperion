@@ -143,3 +143,13 @@ These are facts only. No candidate was built.
    - The leaf transmission colour tints the petals green.
    - The crown-shade terms and LOD are minor (2 to 4 units).
 3. **Frame.** At `hero_pose` the age-40 beech's whole leaf silhouette is 6.2 % of the frame. So any blossom mass is bounded by a sparse crown that fills little of the frame.
+
+## Host design for R2 (2026-10-09)
+
+The measurement narrows the problem. Placement is not the main loss: with the leaves taken off, the florets cover 5.4 % of the frame against the crown outline's 6.2 %, and the leaves hide only about half of them. The loss is that a white petal draws grey-green, at sRGB (82, 92, 75). Two causes are measured: the petals take the leaves' transmission colour, and a "white" material value of 0.1 sits far below a white albedo. The design fixes those two first and measures again before touching placement.
+
+1. **Petals transmit their own colour.** In the organ shader, use the petal's own material colour where the leaves' transmission colour is used today. Nothing else in the leaf lighting changes. No shipped preset flowers, so every shipped species stays byte-identical. Flowering test trees and Laurelin's racemes will change, as intended.
+2. **Petal colour is an albedo, the same quantity as the leaf colour.** Fix the material doc comment, which wrongly says petals "clip to flat white past about 0.15". Set the flowering test trees, and later Laurelin and Telperion, to real albedos: a white petal about 0.8, a gold one about (0.85, 0.65, 0.1). This is a values change with no code switch. If the tone curve cannot show a white albedo as near-white under the scene's sun, stop and report. That would be a renderer question.
+3. **Measure again,** on both executors, at the whole-tree view, beside the cherry photograph. That photograph is referenced in fn-217's evidence; copy it into this worktree's evidence. If the cherry-dense tree reads as a white blossom mass and Laurelin reads gold, R2 is done. If it does not, report the remaining occlusion and stop. A placement or phenology row (leaf presence at bloom) is then the host's next step. Do not build it now.
+
+The device's tree reaching 0.23 m below ground is outside this spec. The host records it for fn-198's release checks.
