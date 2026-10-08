@@ -78,8 +78,7 @@ fn light_changes_the_tree_by_degree() {
 }
 
 /// fn-197 decision 12: a sample of structural settings walked in leaf,
-/// with light shading and the full lay grown with the tree, changes the
-/// tree by degree: a limb's sag, a limb's yearly survival (a lifespan is
+/// with light shading, changes the tree by degree: a limb's sag, a limb's yearly survival (a lifespan is
 /// a whole number of units, never walked) and a sleeping-bud probability.
 #[test]
 fn a_sample_of_settings_in_leaf_changes_the_tree_by_degree() {
@@ -97,8 +96,8 @@ fn a_sample_of_settings_in_leaf_changes_the_tree_by_degree() {
     assert!(failed.is_empty(), "{failed:#?}");
 }
 
-/// fn-197 decision 8: every setting walked in leaf, with light shading
-/// and the full lay grown with the tree, changes the tree by degree. A
+/// fn-197 decision 8: every setting walked in leaf, with light shading,
+/// changes the tree by degree. A
 /// slow suite outside the gate (host decision 12): it ran past 50 minutes
 /// on 2026-10-05. Run it with
 /// `cargo test --profile ci -p telperion-space --test walks -- --ignored every_setting_in_leaf`.
@@ -243,10 +242,8 @@ fn a_midpoint_between_two_undying_leaders_keeps_its_leader() {
 }
 
 /// A twig's shedding delay between whole cycles, walked in leaf on
-/// sagging limbs, the full lay grown with the tree included: the full lay
-/// keeps a dead branch's load as far as its fade does, so a delay
-/// crossing a whole cycle moves the tree by degree (Codex on fn-206's
-/// port).
+/// sagging limbs: a delay crossing a whole cycle moves the tree by
+/// degree (Codex on fn-206's port).
 #[test]
 fn the_shedding_delay_changes_the_tree_by_degree_in_leaf() {
     let shedding = setting("states[2].shedding".into(), 0.0, 3.0, false, |s, v| {

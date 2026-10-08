@@ -23,7 +23,7 @@ pub(super) struct Ran {
 impl Executor<'_> {
     /// The last cycle an item stepping in `cycle` runs to before anything
     /// crosses between it and the structure above (host decision on task
-    /// 12, PHASES.md): its light, layout and re-lay at a cycle's end, and
+    /// 12, PHASES.md): its light and layout at a cycle's end, and
     /// the balance or allotment reading its wood at a cycle's start.
     pub(super) fn reach(&self, cycle: u32) -> u32 {
         let c = &self.coarse;

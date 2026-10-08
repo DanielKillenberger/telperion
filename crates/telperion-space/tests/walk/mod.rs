@@ -688,9 +688,8 @@ fn shaded(name: &str, low: f64, high: f64, edit: fn(&mut Species, f64)) -> Setti
     walked
 }
 
-/// Every setting walked in leaf under the site's light, the full lay
-/// grown with the tree included (host decision 8): `leafy` first, then
-/// the setting.
+/// Every setting walked in leaf under the site's light (host decision
+/// 8): `leafy` first, then the setting.
 pub fn in_leaf(all: Vec<Setting>) -> Vec<Setting> {
     all.into_iter()
         .map(|walked| {
