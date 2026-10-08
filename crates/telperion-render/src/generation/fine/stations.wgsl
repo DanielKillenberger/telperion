@@ -6,7 +6,10 @@
 // carried along the run from its attachment's side (host decision,
 // 2026-10-07), tiles of 256 stations, contact rings read from the run the
 // curve swept each node in. A segment's leaves draw by its run's first
-// node's key, so the runs may be numbered in any order.
+// node's key, so the runs may be numbered in any order. Each fine node's
+// florets are counted beside its runs and scanned with them, and each
+// bloom that keeps one is written as a record placement reads (fn-229,
+// `blooms`).
 
 struct Cfg {
     n: u32,
@@ -21,9 +24,12 @@ struct Cfg {
     internode: f32,
     divergence: f32,
     contact: u32,
-    _a: u32,
+    // Whether the canopy bears leaves: a tree may flower where it does not.
+    leaves: u32,
     _b: u32,
     _c: u32,
+    // The blooms' rows (`bloom.wgsl`).
+    flower: Flower,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -33,14 +39,17 @@ struct Cfg {
 @group(0) @binding(4) var<storage, read_write> runs: array<u32>;
 @group(0) @binding(5) var<storage, read_write> counts: array<atomic<u32>>;
 @group(0) @binding(6) var<storage, read_write> segs: array<u32>;
-// Each fine root's bearing runs, by its stub's node id (`cfg.n` words,
-// counted, then scanned into each root's first run), then each run's
-// first node's stub and its rank among its root's runs (task 10, host
-// decision 3: a root's runs, and so its leaves, are numbered together).
+// Each node's `OW` words, scanned together: the bearing runs of the fine
+// root whose stub it is (counted, then scanned into each root's first
+// run), its florets and whether it keeps a bloom (counted, then scanned
+// into its first floret and its record; fn-229); then each run's first
+// node's stub and its rank among its root's runs (task 10, host decision
+// 3: a root's runs, and so its leaves, are numbered together).
 @group(0) @binding(7) var<storage, read_write> owners: array<atomic<u32>>;
+const OW: u32 = 3u;
 
 const NONE: u32 = 0xffffffffu;
-const NW: u32 = 27u;
+const NW: u32 = 30u;
 const TW: u32 = 4u;
 const MADE: u32 = 2u;
 const LANDED: u32 = 4u;
@@ -115,7 +124,7 @@ fn kids(@builtin(global_invocation_id) id: vec3<u32>) {
 @compute @workgroup_size(64)
 fn bear(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = index(id);
-    if i >= cfg.n || !fine(i) {
+    if i >= cfg.n || !fine(i) || cfg.leaves == 0u {
         return;
     }
     let radius = nodes[i * NW + 3u];
@@ -175,8 +184,8 @@ fn owned(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     let s = stub(i);
-    atomicStore(&owners[cfg.n + i], s);
-    atomicStore(&owners[2u * cfg.n + i], atomicAdd(&owners[s], 1u));
+    atomicStore(&owners[OW * cfg.n + i], s);
+    atomicStore(&owners[(OW + 1u) * cfg.n + i], atomicAdd(&owners[s * OW], 1u));
 }
 
 // Each run at its root's first run plus its rank: a root's runs together,
@@ -187,8 +196,8 @@ fn starts(@builtin(global_invocation_id) id: vec3<u32>) {
     if i >= cfg.n || !starts_run(i) {
         return;
     }
-    let s = atomicLoad(&owners[cfg.n + i]);
-    let r = atomicLoad(&owners[s]) + atomicLoad(&owners[2u * cfg.n + i]);
+    let s = atomicLoad(&owners[OW * cfg.n + i]);
+    let r = atomicLoad(&owners[s * OW]) + atomicLoad(&owners[(OW + 1u) * cfg.n + i]);
     atomicAdd(&counts[0], 1u);
     runs[r * RW] = i;
 }

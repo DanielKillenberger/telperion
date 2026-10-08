@@ -189,6 +189,31 @@ impl Generator {
         e: &Element,
         (count, leaves): (u32, &wgpu::Buffer),
     ) -> Result<(Owned, u64)> {
+        let mut encoder = self.gpu.encoder(&Default::default());
+        let placed = self.record_place(
+            &mut encoder,
+            Placement::Leaves,
+            config,
+            (segments, rings),
+            e,
+            (count, leaves),
+        )?;
+        self.gpu.submit([encoder.finish()]);
+        Ok(placed)
+    }
+    /// `place_into`'s pass recorded into `encoder` and not submitted, so a
+    /// block's leaves and its florets go in one submission (fn-229): the
+    /// leaves from their segments, or the florets from their blooms'
+    /// records, each packed as a leaf is.
+    pub(super) fn record_place(
+        &self,
+        encoder: &mut wgpu::CommandEncoder,
+        placement: Placement,
+        config: data::Config,
+        (segments, rings): (&wgpu::Buffer, &wgpu::Buffer),
+        e: &Element,
+        (count, leaves): (u32, &wgpu::Buffer),
+    ) -> Result<(Owned, u64)> {
         let gpu = &self.gpu;
         let groups = count.div_ceil(256);
         let config = upload(
@@ -208,9 +233,7 @@ impl Generator {
         let buffers = [&config, segments, rings, &geometry, leaves, &summary];
         let live = buffers.iter().map(|b| b.size()).sum::<u64>();
         let bind = self.place.bind(gpu, &buffers);
-        let mut encoder = gpu.encoder(&Default::default());
-        self.place.run(&mut encoder, &bind, 0, groups);
-        gpu.submit([encoder.finish()]);
+        self.place.run(encoder, &bind, placement as usize, groups);
         Ok((summary, live))
     }
     pub(super) async fn mass(
@@ -219,6 +242,22 @@ impl Generator {
         count: u32,
         crown: Option<Bounds>,
         reference: Reference,
+        retained_contacts: u64,
+        m: &mut Metrics,
+    ) -> Result<(Owned, u64)> {
+        let mut encoder = self.gpu.encoder(&Default::default());
+        let at = (leaves, count, crown, reference);
+        let masses = self.record_mass(&mut encoder, at, retained_contacts, m)?;
+        self.gpu.submit([encoder.finish()]);
+        io::complete(&self.gpu).await?;
+        Ok(masses)
+    }
+    /// `mass`'s grid recorded into `encoder` and not submitted, so the
+    /// leaves' grid and the florets' go in one submission (fn-229).
+    pub(super) fn record_mass(
+        &self,
+        encoder: &mut wgpu::CommandEncoder,
+        (leaves, count, crown, reference): (&wgpu::Buffer, u32, Option<Bounds>, Reference),
         retained_contacts: u64,
         m: &mut Metrics,
     ) -> Result<(Owned, u64)> {
@@ -270,11 +309,8 @@ impl Generator {
             &[],
         )?;
         let bind = self.mass.bind(gpu, &[&config, leaves, &counts, &masses]);
-        let mut encoder = gpu.encoder(&Default::default());
-        self.mass.run(&mut encoder, &bind, 0, count.div_ceil(256));
-        self.mass.run(&mut encoder, &bind, 1, total.div_ceil(256));
-        gpu.submit([encoder.finish()]);
-        io::complete(gpu).await?;
+        self.mass.run(encoder, &bind, 0, count.div_ceil(256));
+        self.mass.run(encoder, &bind, 1, total.div_ceil(256));
         m.gpu_compute_peak_bytes = m
             .gpu_compute_peak_bytes
             .max(retained_contacts + leaves.size() + config.size() + counts.size() + masses.size());
@@ -295,4 +331,12 @@ impl Generator {
     ) -> Result<Resident> {
         pollster::block_on(self.compute_async(p, l, t, e, r, m))
     }
+}
+
+/// What `place.wgsl` places: leaves at their stations, or the device's
+/// florets at their blooms (fn-229).
+#[derive(Clone, Copy)]
+pub(super) enum Placement {
+    Leaves = 0,
+    Florets = 1,
 }

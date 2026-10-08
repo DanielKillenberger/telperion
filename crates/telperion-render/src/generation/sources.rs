@@ -2,14 +2,24 @@
 //! and the CPU-side parse (`shader_tests.rs`) read the same source.
 const LEAF: &str = include_str!("../shaders/leaf.wgsl");
 
+/// The placement, its leaves' and its florets' (fn-229), which draw by
+/// the contract's keys.
 pub(super) fn place() -> String {
     format!(
-        "{LEAF}\n{}\n{}\n{}\n{}",
+        "{LEAF}\n{}\n{}\n{}\n{}\n{}\n{}",
+        super::fine::contract(),
+        bloom(),
         include_str!("order.wgsl"),
         include_str!("place.wgsl"),
         include_str!("contact.wgsl"),
         include_str!("pack.wgsl")
     )
+}
+
+/// The florets as `bloom.rs` draws them (fn-229): the placement places
+/// them and the fine stations count them by the same source.
+pub(super) fn bloom() -> &'static str {
+    include_str!("bloom.wgsl")
 }
 
 pub(super) fn mass() -> String {

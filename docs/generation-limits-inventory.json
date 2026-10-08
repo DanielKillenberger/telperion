@@ -1594,11 +1594,5 @@
     "site": "if x > = 1 . 0 {",
     "classification": "algorithm",
     "reason": "A floret past its own stretch of the window is gone: the season, not a limit."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/executor.rs",
-    "site": "if species . states . iter ( ) . any ( | s | s . flowering > 0 . 0 ) {",
-    "classification": "algorithm",
-    "reason": "Whether any age flowers selects the executor (an interim recorded gap until fn-125's GPU bloom pass); it limits no generated population."
   }
 ]

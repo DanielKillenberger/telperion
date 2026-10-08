@@ -25,11 +25,14 @@ mod station;
 #[cfg(test)]
 use crate::envelope::{distance_to_profile, Envelope};
 use crate::{math::Vec3, Error, Result};
+#[cfg(feature = "geometry")]
+pub(crate) use bloom::{
+    element as bloom_element, now as bloom_now, place as place_blooms, place_in as place_blooms_in,
+    reach as bloom_reach,
+};
+pub use bloom_params::BloomParams;
 /// Every canopy rail `place` judges, with no tree to place against.
 pub(crate) use canopy::rows as canopy_rows;
-pub use bloom_params::BloomParams;
-#[cfg(feature = "geometry")]
-pub(crate) use bloom::{element as bloom_element, place as place_blooms};
 pub use canopy::{CanopyParams, TwigPlacement, MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING};
 pub use element::{build_element, AnatomyGeometry, Element, ElementParams, FoliageUnit};
 pub use levels::Level;
@@ -48,9 +51,9 @@ pub(crate) use reference::Reach;
 pub(crate) use rosette::validate as validate_canopy;
 pub use rosette::{frame, rosettes, Rosette, MAX_FRONDS, MAX_LEAFLETS};
 #[cfg(all(test, feature = "geometry"))]
-pub use short_shoots::short_shoots;
-#[cfg(all(test, feature = "geometry"))]
 pub use short_shoots::place_short_shoots;
+#[cfg(all(test, feature = "geometry"))]
+pub use short_shoots::short_shoots;
 #[cfg(feature = "geometry")]
 pub use short_shoots::ShortShoot;
 

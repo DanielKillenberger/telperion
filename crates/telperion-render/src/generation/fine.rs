@@ -158,6 +158,11 @@ mod feedback_stepped_tests;
 mod feedback_tests;
 #[cfg(test)]
 mod fixture;
+#[cfg(test)]
+mod floret_stills;
+mod florets;
+#[cfg(test)]
+mod florets_tests;
 mod group;
 mod handoff;
 #[cfg(test)]

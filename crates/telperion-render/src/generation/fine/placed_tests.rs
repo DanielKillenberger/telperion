@@ -176,7 +176,7 @@ fn seated(
         gpu,
         (&swept, &super::steps::Steps::new(gpu)),
         dressed.ids,
-        station_rows(x, segments),
+        station_rows(x, segments, None),
     ))
     .unwrap();
     // The rings read the run table and the points alone.
