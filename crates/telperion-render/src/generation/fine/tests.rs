@@ -3,32 +3,13 @@
 //! on the GPU and the CPU, over a quarter of a million cases each, the
 //! threshold-adjacent and saturating ones among them, give the same bits.
 use super::super::io;
+use super::selectors::{Selector, Selector as S, ALL};
 use crate::Gpu;
 use std::time::Instant;
 use telperion_space::fixed::{self as fx, decide, presence as pr};
 
 const CASES: usize = 1 << 18;
 const PROBE: &str = include_str!("probe.wgsl");
-
-/// The functions the probe selects, by its `cfg.y`.
-const NAMES: [&str; 16] = [
-    "child, draw",
-    "log2, exp2_neg",
-    "exp2, neg_log2",
-    "ln_ratio, exp",
-    "mul, presence",
-    "survival_q, scaled",
-    "abortion_q",
-    "moved_q",
-    "past_q, above_q",
-    "wake_q, kept",
-    "relay_node_q",
-    "and",
-    "under_q, over_q",
-    "times_q, window_q, wood_at_q",
-    "carry_q, fade_q",
-    "lead_q",
-];
 
 /// SplitMix64, for cases.
 struct Cases(u64);
@@ -70,26 +51,38 @@ impl Cases {
 const Q: i64 = fx::ONE32;
 
 /// Selector `s`'s cases, and the presences the relay cases read.
-fn cases(s: u32, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
+fn cases(s: Selector, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
     (0..CASES)
         .map(|_| {
             let mut a = [0u64; 8];
             match s {
-                0 => a[..2].copy_from_slice(&[rng.next(), rng.next()]),
-                1 => {
+                S::ChildDraw | S::Internode | S::Angles => {
+                    a[..2].copy_from_slice(&[rng.next(), rng.next()])
+                }
+                S::Log2 => {
                     a[0] = rng.next() >> (rng.next() % 64);
                     a[1] = rng.within(-(1 << 40), 70 * Q) as u64;
+                    // The polynomials' table edges (host decision,
+                    // 2026-10-07): a mantissa's sixty-fourths and a
+                    // fraction's, and their neighbours.
+                    if rng.next().is_multiple_of(4) {
+                        let (j, d) = (rng.next() % 64, rng.next() % 3);
+                        let edge = (1u64 << 62) + (j << 56) + d - 1;
+                        a[0] = edge >> (rng.next() % 62);
+                        let whole = (rng.next() % 70) << 32;
+                        a[1] = (whole + (j << 26) + d).wrapping_sub(1);
+                    }
                 }
-                2 => {
+                S::Exp2 => {
                     a[0] = rng.within(-70 * Q, 70 * Q) as u64;
                     a[1] = rng.next() >> (rng.next() % 64);
                 }
-                3 => {
+                S::LnRatio => {
                     a[0] = rng.next() >> (rng.next() % 64);
                     a[1] = rng.next() >> (rng.next() % 64);
                     a[2] = rng.within(-fx::INF, 50 * Q) as u64;
                 }
-                4 => {
+                S::MulPresence => {
                     a[0] = rng.within(-fx::INF, fx::INF) as u64;
                     a[1] = rng.within(-(1 << 40), 1 << 40) as u64;
                     a[2] = if rng.next().is_multiple_of(8) {
@@ -99,18 +92,45 @@ fn cases(s: u32, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
                     } as u64;
                     a[3] = rng.within(-(1 << 10), 1 << 45) as u64;
                 }
-                5 => {
+                S::Survival => {
                     a[0] = rng.log(70 * Q) as u64;
                     a[1] = rng.within(0, 1 << 21) as u64;
                 }
-                6 => {
+                S::FineSurvival => {
+                    // fn-199 B2: shares finer than a tick.
+                    a[0] = rng.log(70 * Q) as u64;
+                    a[1] = rng.within(0, (1 << 33) + 1) as u64;
+                    a[5] = match rng.next() % 8 {
+                        0 => 0,
+                        1 => fx::INF as u64,
+                        _ => rng.log(60 * Q) as u64,
+                    };
+                    a[6] = rng.within(0, (1 << 20) + 1) as u64;
+                    a[7] = rng.draw();
+                }
+                S::FineAbortion => {
+                    a[0] = rng.log(60 * Q) as u64;
+                    a[1] = rng.next() % 2;
+                    a[2] = rng.within(-4 * Q, 4 * Q) as u64;
+                    a[3] = rng.within(0, 4096 << 20) as u64;
+                    a[4] = rng.within(0, (1 << 32) + 4096) as u64;
+                }
+                S::Abortion => {
                     a[0] = rng.log(60 * Q) as u64;
                     a[1] = rng.next() % 2;
                     a[2] = rng.within(-4 * Q, 4 * Q) as u64;
                     a[3] = rng.within(0, 4096 << 20) as u64;
                     a[4] = rng.within(0, 1 << 20) as u64;
+                    // D5's lived time (fn-199 R1), at the edges too.
+                    a[5] = match rng.next() % 8 {
+                        0 => 0,
+                        1 => fx::INF as u64,
+                        _ => rng.log(60 * Q) as u64,
+                    };
+                    a[6] = rng.within(0, (1 << 20) + 1) as u64;
+                    a[7] = rng.draw();
                 }
-                7 => {
+                S::Moved => {
                     let stake = rng.within(0, 1 << 20) as f64 / f64::from(1 << 20);
                     let wood = |rng: &mut Cases| match rng.next() % 6 {
                         0 => -fx::INF,
@@ -125,8 +145,8 @@ fn cases(s: u32, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
                     a[6] = fx::q32(0.05 * stake) as u64;
                     a[7] = fx::q32(2.0) as u64;
                 }
-                8 => a[..2].copy_from_slice(&[rng.draw(), rng.chance()]),
-                9 => {
+                S::Past => a[..2].copy_from_slice(&[rng.draw(), rng.chance()]),
+                S::Wake => {
                     a[0] = rng.within(0, 1 << 24) as u64;
                     a[1] = fx::q32(1.0 / (0.01 + rng.within(0, 1000) as f64 / 100.0)) as u64;
                     a[2] = rng.draw();
@@ -135,8 +155,10 @@ fn cases(s: u32, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
                     a[5] = rng.log(70 * Q) as u64;
                     a[6] = rng.draw();
                 }
-                11 => a[..2].copy_from_slice(&[rng.log(fx::INF) as u64, rng.log(fx::INF) as u64]),
-                12 => {
+                S::And => {
+                    a[..2].copy_from_slice(&[rng.log(fx::INF) as u64, rng.log(fx::INF) as u64])
+                }
+                S::UnderOver => {
                     let t = match rng.next() % 8 {
                         0 => 0,
                         1 => 1 << 53,
@@ -150,7 +172,7 @@ fn cases(s: u32, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
                         _ => rng.draw(),
                     };
                 }
-                13 => {
+                S::Times => {
                     let wood = |rng: &mut Cases| match rng.next() % 6 {
                         0 => -fx::INF,
                         _ => rng.within(-30 * Q, Q),
@@ -165,7 +187,7 @@ fn cases(s: u32, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
                     a[6] = fx::q32(0.05 * stake) as u64;
                     a[7] = fx::q32(2.0) as u64;
                 }
-                15 => {
+                S::Lead => {
                     let d = match rng.next() % 8 {
                         0 => 0,
                         _ => rng.draw(),
@@ -196,7 +218,7 @@ fn cases(s: u32, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
                         _ => fx::logit(a[1] << 9) as u64,
                     };
                 }
-                14 => {
+                S::Carry => {
                     let age = rng.within(1, 4096) as u64;
                     a[0] = rng.within(0, 1 << 44) as u64;
                     a[1] = rng.within(0, Q + 1) as u64;
@@ -230,52 +252,62 @@ fn cases(s: u32, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
 }
 
 /// The CPU's results for one case.
-fn expected(s: u32, a: &[u64; 8], presences: &[u64]) -> [u64; 2] {
+fn expected(s: Selector, a: &[u64; 8], presences: &[u64]) -> [u64; 2] {
     let i = |k: usize| a[k] as i64;
     match s {
-        0 => [fx::child(a[0], a[1]), fx::draw(a[0])],
-        1 => [fx::log2(a[0]) as u64, fx::exp2_neg(i(1))],
-        2 => [fx::exp2(i(0)) as u64, fx::neg_log2(a[1]) as u64],
-        3 => [fx::ln_ratio(a[0], a[1]) as u64, fx::exp(i(2)) as u64],
-        4 => [fx::mul(i(0), i(1)) as u64, fx::presence(i(2), i(3))],
-        5 => [
+        S::ChildDraw => [fx::child(a[0], a[1]), fx::draw(a[0])],
+        S::Log2 => [fx::log2(a[0]) as u64, fx::exp2_neg(i(1))],
+        S::Exp2 => [fx::exp2(i(0)) as u64, fx::neg_log2(a[1]) as u64],
+        S::LnRatio => [fx::ln_ratio(a[0], a[1]) as u64, fx::exp(i(2)) as u64],
+        S::MulPresence => [fx::mul(i(0), i(1)) as u64, fx::presence(i(2), i(3))],
+        S::Survival => [
             decide::survival_q(i(0), a[1]),
             fx::scaled(i(0), a[1]) as u64,
         ],
-        6 => [
+        S::Abortion => [
             decide::abortion_q(i(0), (a[1] != 0).then(|| i(2)), a[3], a[4]),
-            0,
+            decide::lived_q(i(5), a[6], a[7]),
         ],
-        7 => {
+        S::Moved => {
             let window = (i(5), i(6), i(7));
             [decide::moved_q(a[0], a[1], (i(2), i(3)), a[4], window), 0]
         }
-        8 => [
+        S::Past => [
             decide::past_q(a[0], a[1]) as u64,
             decide::above_q(a[0], a[1]) as u64,
         ],
-        9 => [
+        S::Wake => [
             decide::wake_q(a[0], i(1), a[2]).unwrap_or(u64::MAX),
             u64::from(decide::kept(i(3), (a[4] != 0).then(|| i(5)), a[6])),
         ],
-        11 => [decide::and(i(0), i(1)) as u64, 0],
-        12 => [
-            pr::under(a[0], a[1]) as u64,
-            pr::over(a[0], a[1]) as u64,
-        ],
-        13 => {
+        S::And => [decide::and(i(0), i(1)) as u64, 0],
+        S::UnderOver => [pr::under(a[0], a[1]) as u64, pr::over(a[0], a[1]) as u64],
+        S::Times => {
             let wood = pr::wood_at((i(2), i(3)), a[4]);
-            [pr::times(a[0], a[1]), pr::window(wood, (i(5), i(6), i(7))) as u64]
+            [
+                pr::times(a[0], a[1]),
+                pr::window(wood, (i(5), i(6), i(7))) as u64,
+            ]
         }
-        14 => {
+        S::Carry => {
             let (gap, age) = (a[2] & 0xffff_ffff, (a[2] >> 32) as u32);
             [
                 pr::carry(a[0], a[1], gap, a[3]),
                 pr::fade(a[4], a[5] as u32, (a[6], a[7]), age),
             ]
         }
-        15 => [pr::over(a[0], a[2]).min(pr::under(a[1], a[2])) as u64, 0],
-        _ => {
+        S::Lead => [pr::over(a[0], a[2]).min(pr::under(a[1], a[2])) as u64, 0],
+        S::Internode => [fx::internode_draw(a[0]), 0],
+        S::Angles => [fx::insertion_draw(a[0]), fx::tropism_draw(a[0])],
+        S::FineSurvival => [
+            decide::survival_fine_q(i(0), a[1]),
+            decide::lived_fine_q(i(5), a[6], a[7]),
+        ],
+        S::FineAbortion => [
+            decide::abortion_fine_q(i(0), (a[1] != 0).then(|| i(2)), a[3], a[4]),
+            0,
+        ],
+        S::RelayNode => {
             let unit = &presences[a[0] as usize..(a[0] + a[1]) as usize];
             [decide::relay_node_q(unit, 0, unit.len(), a[2]) as u64, 0]
         }
@@ -287,11 +319,11 @@ pub(super) fn source() -> String {
     format!("{}\n{PROBE}", super::contract())
 }
 
-struct Probe {
+struct Kernel {
     pass: io::Pass,
 }
 
-impl Probe {
+impl Kernel {
     fn new(gpu: &Gpu) -> Self {
         Self {
             pass: io::Pass::new(gpu, source(), &[true, true, false], &["main"]),
@@ -303,7 +335,7 @@ impl Probe {
     fn run(
         &self,
         gpu: &Gpu,
-        s: u32,
+        s: Selector,
         cases: &[[u64; 8]],
         presences: &[u64],
     ) -> (Vec<[u64; 2]>, f64) {
@@ -312,7 +344,7 @@ impl Probe {
         let n = cases.len() as u32;
         let groups = n.div_ceil(64);
         let row = groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
-        let cfg = [n, s, row, 0];
+        let cfg = [n, s as u32, row, 0];
         let words: &[u8] = bytemuck::cast_slice(cases);
         let uniform = io::buffer(
             gpu,
@@ -347,9 +379,9 @@ impl Probe {
     }
 }
 
-fn selector(s: u32) -> (Vec<[u64; 8]>, Vec<u64>) {
+fn selector(s: Selector) -> (Vec<[u64; 8]>, Vec<u64>) {
     let mut presences = Vec::new();
-    let cases = cases(s, &mut Cases(0x5eed + u64::from(s)), &mut presences);
+    let cases = cases(s, &mut Cases(0x5eed + s as u64), &mut presences);
     (cases, presences)
 }
 
@@ -358,8 +390,8 @@ fn the_gpu_takes_every_decision_the_cpu_does() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
     };
-    let probe = Probe::new(&gpu);
-    for s in 0..NAMES.len() as u32 {
+    let probe = Kernel::new(&gpu);
+    for (s, _, _) in ALL {
         let (cases, presences) = selector(s);
         let (got, _) = probe.run(&gpu, s, &cases, &presences);
         let mut wrong = 0;
@@ -367,7 +399,7 @@ fn the_gpu_takes_every_decision_the_cpu_does() {
             let want = expected(s, a, &presences);
             if want != *g {
                 if wrong < 5 {
-                    eprintln!("{}: {a:x?}: cpu {want:x?} gpu {g:x?}", NAMES[s as usize]);
+                    eprintln!("{}: {a:x?}: cpu {want:x?} gpu {g:x?}", s.name());
                 }
                 wrong += 1;
             }
@@ -376,7 +408,7 @@ fn the_gpu_takes_every_decision_the_cpu_does() {
             wrong,
             0,
             "{}: {wrong} of {} cases differ",
-            NAMES[s as usize],
+            s.name(),
             cases.len()
         );
     }
@@ -393,14 +425,14 @@ fn contract_cost() {
     };
     let cores = std::thread::available_parallelism().map_or(1, |n| n.get());
     let started = Instant::now();
-    let probe = Probe::new(&gpu);
+    let probe = Kernel::new(&gpu);
     println!(
         "pipeline built in {:.1} ms",
         started.elapsed().as_secs_f64() * 1e3
     );
     println!("| Functions | GPU cold ms | GPU warm ms | CPU 1 core ms | CPU {cores} cores ms | ns a case: GPU warm / CPU 1 / CPU all |");
     println!("|---|--:|--:|--:|--:|--:|");
-    for s in 0..NAMES.len() as u32 {
+    for (s, _, _) in ALL {
         let (cases, presences) = selector(s);
         let (_, cold) = probe.run(&gpu, s, &cases, &presences);
         let (_, warm) = probe.run(&gpu, s, &cases, &presences);
@@ -427,7 +459,7 @@ fn contract_cost() {
         let per = |ms: f64| ms * 1e6 / cases.len() as f64;
         println!(
             "| {} | {cold:.2} | {warm:.2} | {single:.2} | {many:.2} | {:.1} / {:.1} / {:.1} |",
-            NAMES[s as usize],
+            s.name(),
             per(warm),
             per(single),
             per(many)

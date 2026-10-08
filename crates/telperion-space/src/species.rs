@@ -5,6 +5,7 @@
 //! along the reference axis towards older PAs (AmapSim's oriented automaton;
 //! GreenLab's dual-scale automaton, de Reffye et al. 2021).
 use crate::error::{refuse, Result};
+use crate::transcendental::Transcendental;
 
 pub(crate) mod scale;
 mod validate;
@@ -240,6 +241,20 @@ pub struct Form {
     /// in a few slow arcs of the same spread per metre. Neutral 0;
     /// dormant without wander.
     pub bend_length: f64,
+    /// How far each internode's length departs from its PA's, node to
+    /// node: scaled by 1 + spread × (2u − 1), u its node's keyed draw, so
+    /// a unit's expected length is unchanged (fn-222). Neutral 0, every
+    /// internode alike; at most 1.
+    pub internode_spread: f64,
+    /// How far each lateral's or relay's insertion angle departs from its
+    /// PA's, axis to axis: offset by spread × (2u − 1) radians, u its
+    /// lineage's keyed draw, so the mean angle is unchanged (fn-224).
+    /// Neutral 0, every axis at its PA's angle; at most pi / 2.
+    pub insertion_spread: f64,
+    /// How far each axis's tropism departs from its PA's, axis to axis:
+    /// scaled by 1 + spread × (2u − 1), u its lineage's keyed draw, so its
+    /// mean is unchanged (fn-224). Neutral 0, every axis alike; at most 1.
+    pub tropism_spread: f64,
 }
 
 impl Default for Form {
@@ -258,6 +273,9 @@ impl Default for Form {
             sag: 0.0,
             secondary: 1.0,
             bend_length: 0.0,
+            internode_spread: 0.0,
+            insertion_spread: 0.0,
+            tropism_spread: 0.0,
         }
     }
 }
@@ -428,7 +446,7 @@ impl PaState {
         if self.abortion_rise == 0.0 || self.abortion <= 0.0 {
             return self.abortion;
         }
-        1.0 - (1.0 - self.abortion).powf(t.powf(self.abortion_rise))
+        1.0 - (1.0 - self.abortion).powf_fixed(t.powf_fixed(self.abortion_rise))
     }
 
     /// Each zone's lateral probabilities as the axis draws them: spread

@@ -12,6 +12,7 @@ use crate::fixed;
 use crate::fixed::presence::{q, real, times, ONE};
 use crate::species::{Species, Zone};
 use crate::structure::{Axis, Origin};
+use crate::transcendental::Transcendental;
 use std::sync::Arc;
 
 /// The window, in log-odds, per share of the tree's expected length that a
@@ -64,7 +65,7 @@ impl Windows {
         if log == f64::NEG_INFINITY {
             return 0.0;
         }
-        (log - self.whole).exp()
+        (log - self.whole).exp_fixed()
     }
 
     /// The log of `wood`: none where it is none (FINE-CONTRACT.md D10's
@@ -85,7 +86,7 @@ impl Windows {
         if log == f64::NEG_INFINITY {
             return 0.0;
         }
-        (log - self.whole).exp()
+        (log - self.whole).exp_fixed()
     }
 
     /// The chance that a draw made with probability `p` is made within its
@@ -96,8 +97,8 @@ impl Windows {
         if p <= 0.0 || p >= 1.0 || window <= 0.0 {
             return 0.0;
         }
-        let logit = (p / (1.0 - p)).ln();
-        p - 1.0 / (1.0 + (window - logit).exp())
+        let logit = (p / (1.0 - p)).ln_fixed();
+        p - 1.0 / (1.0 + (window - logit).exp_fixed())
     }
 
     /// The wood a sleeping bud of `pa` on a node grown in `cycle` is
@@ -128,7 +129,7 @@ impl Windows {
 
     /// `metres` as a share of the whole tree's expected wood.
     pub fn share(&self, metres: f64) -> f64 {
-        metres * (-self.whole).exp()
+        metres * (-self.whole).exp_fixed()
     }
 
     /// The window, Q32, of a draw deciding `stake` of the wood a bud of
@@ -143,24 +144,6 @@ impl Windows {
         };
         let window = (q32(RATE * stake), q32(FLOOR * stake), q32(SPAN));
         presence::window(wood, window)
-    }
-
-    /// The presence, Q32, of a draw `lead` log-odds (Q32) past its bound
-    /// deciding `stake` of the wood `window_q` names.
-    pub fn presence_q(&self, lead: i64, at: (usize, u32, Option<f64>), stake: f64) -> u64 {
-        crate::fixed::presence::of(lead, self.window_q(at, stake))
-    }
-
-    /// The presence of a draw `lead` log-odds past its bound that decides
-    /// `decided` of the `wood` share it would carry: its window is that
-    /// share of the whole window, floor included, so a draw that decides
-    /// no wood (a stop that is always relayed) has none.
-    pub fn decided(&self, lead: f64, wood: f64, decided: f64) -> f64 {
-        let window = (RATE * wood * decided).clamp(FLOOR * decided, SPAN);
-        if lead == f64::INFINITY || window <= 0.0 {
-            return 1.0;
-        }
-        (lead / window).clamp(0.0, 1.0)
     }
 }
 
@@ -188,6 +171,13 @@ pub(crate) struct Draws {
     /// A relay of an age that ended or of a unit that failed
     /// (`schedule.rs`).
     pub ended: bool,
+    /// A failed unit's relay, whose first unit grows the rest of the cycle
+    /// the unit failed in, drawn apart from it (fn-199 R1).
+    pub rest: bool,
+    /// What its first unit holds below its ticks, in 2^-32 of a cycle:
+    /// the part of a tick its failed unit's lived time was rounded up by
+    /// (fn-199 B2).
+    pub below: u64,
     /// The share of the cycle its age ended at, where it ended there and
     /// stopped: a sleeping bud waking in that cycle wakes on it.
     pub outlived: Option<f64>,
@@ -325,6 +315,7 @@ fn assign_one(axis: &mut Axis, draws: &Draws, living: Option<f64>) -> f64 {
         let [size, light] = draws.shade(k);
         while j < axis.phytomers.len() && (axis.phytomers[j].cycle - birth - 1) as usize == k {
             axis.phytomers[j].scale = real(times(times(running, q(draws.nodes[j])), grown));
+            axis.phytomers[j].grown = axis.phytomers[j].scale;
             axis.phytomers[j].size = size;
             axis.phytomers[j].light = light;
             axis.phytomers[j].rank = rank;

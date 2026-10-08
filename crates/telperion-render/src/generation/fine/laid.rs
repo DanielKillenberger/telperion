@@ -15,13 +15,14 @@ const GEOMETRY: &str = include_str!("geometry.wgsl");
 const RESOLVE: &str = include_str!("resolve.wgsl");
 const WALK: &str = include_str!("walk.wgsl");
 const SETTLE: &str = include_str!("settle.wgsl");
+const STAND: &str = include_str!("stand.wgsl");
 /// A laid axis's and phytomer's floats (`geometry.wgsl`).
 pub(super) const AL: usize = 8;
-pub(super) const PL: usize = 22;
+pub(super) const PL: usize = 23;
 /// A chain's scratch: per region axis, per region phytomer, then a status.
-pub(super) const SA: u32 = 66;
+pub(super) const SA: u32 = 70;
 pub(super) const SP: u32 = 12;
-const GG: usize = 24;
+const GG: usize = 25;
 /// `settle.wgsl`'s passes.
 pub(super) const SCALES: usize = 0;
 pub(super) const GIRTHS: usize = 1;
@@ -32,7 +33,7 @@ pub(super) const BENDS: usize = 4;
 /// The geometry kernel's WGSL.
 pub(super) fn source() -> String {
     format!(
-        "{}\n{CONTRACT_LAY}\n{GEOMETRY}\n{RESOLVE}\n{WALK}\n{SETTLE}",
+        "{}\n{CONTRACT_LAY}\n{GEOMETRY}\n{RESOLVE}\n{WALK}\n{STAND}\n{SETTLE}",
         super::contract()
     )
 }
@@ -76,6 +77,9 @@ pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
         let [lo, hi] = q(p.divergence / std::f64::consts::TAU, 60);
         out[4 + GG * pa + 20] = f32::from_bits(lo);
         out[4 + GG * pa + 21] = f32::from_bits(hi);
+        out[4 + GG * pa + 22] = p.internode_spread as f32;
+        out[4 + GG * pa + 23] = p.insertion_spread as f32;
+        out[4 + GG * pa + 24] = p.tropism_spread as f32;
     }
     let sags = g.pas.iter().any(|p| p.sag > 0.0);
     (out, sags)
@@ -140,6 +144,8 @@ pub(super) fn stubs(roots: &[RootGeometry]) -> (Vec<f32>, Vec<f32>) {
         let [lo, hi] = q(r.unbent.rank, 52);
         p[20] = f32::from_bits(lo);
         p[21] = f32::from_bits(hi);
+        // The phase of its axis's phyllotaxis, in turns (fn-199).
+        p[22] = (r.unbent.phase as f64 / (1u64 << 32) as f64).rem_euclid(1.0) as f32;
         origins.extend([r.unbent.tip.z as f32, r.bent.tip.z as f32]);
     }
     (out, origins)

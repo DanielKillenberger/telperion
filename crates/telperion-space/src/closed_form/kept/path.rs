@@ -16,11 +16,12 @@ use super::{
     Kept, Placing, Table, COUNT, LEAVES, LEAVES_ALONG, PARALLEL, SECTION, SECTION2, WIDTH, WOOD,
 };
 use crate::closed_form::along::{dominance_power, Along, Count};
-use crate::closed_form::events::Event;
-use crate::closed_form::steps::Step;
+use crate::closed_form::events::{angled, lived_extent, Event};
+use crate::closed_form::steps::{Grown, Step};
 use crate::girth::ripe;
 use crate::schedule::Carried;
 use crate::species::{Species, Zone, ALONG};
+use crate::transcendental::Transcendental;
 
 /// What a bud's own PA lays down, the same at every cycle: each zone's
 /// node-count law.
@@ -38,6 +39,7 @@ impl Axis {
 }
 
 /// The running product over the parts grown: E[Π f] and E[Π f · Y].
+#[derive(Clone)]
 pub(super) struct Running {
     pub a: f64,
     pub b: [f64; WIDTH],
@@ -96,10 +98,31 @@ impl Kept<'_> {
                     start.into(length, relay_at)
                 })
             };
-            let failed = step.before - step.grown;
-            let e = self.relay_end((k, m, t), step.failed, failed, on(step.i - 1, &units));
-            end(failed, step.i - 1, &run, &units, e);
-            let (g, h, length) = self.unit((k, m, t), axis, step, (path, &mut units));
+            // A failure with no relay ends the axis at the unit before;
+            // each lived part grows its unit's nodes and ends in its
+            // relay, standing on it (fn-199 R1).
+            end(step.failed, step.i - 1, &run, &units, NONE);
+            for l in &step.lived {
+                let (mut run, mut units) = (run.clone(), units.clone());
+                let (g, h, length) = self.unit((k, m, t), axis, step.part(l), (path, &mut units));
+                run.times(g, &h);
+                units.close(path, length);
+                // Blended back towards the unit before by the lived
+                // part's extent (rule 2', `geometry::stand`), its nodes
+                // taken at their mean.
+                let grown = lived_extent(&self.species.states[k], l.size);
+                let at = match step.i.checked_sub(2) {
+                    Some(u) => {
+                        let (start, before) = units.place(u);
+                        let back = relay_at + grown * (1.0 - relay_at);
+                        start.into(before, back).into(length, grown * relay_at)
+                    }
+                    None => path.into(length, grown * relay_at),
+                };
+                let e = self.relay_end((k, m, t), Some(l.relay), l.weight, at);
+                end(l.weight, step.i, &run, &units, e);
+            }
+            let (g, h, length) = self.unit((k, m, t), axis, step.whole(), (path, &mut units));
             run.times(g, &h);
             units.close(path, length);
             path = path.then(length);
@@ -115,7 +138,7 @@ impl Kept<'_> {
                         // the unit's tip.
                         let e = self.species.states[k].form.exponent;
                         let at = t - step.i as i64;
-                        let rest = self.whole(rest, at, (path, 1.0), e);
+                        let rest = self.whole(rest, at, (path, [1.0; 2]), e);
                         end(step.after, step.i, &run, &units, rest);
                     }
                 }
@@ -138,7 +161,7 @@ impl Kept<'_> {
         &mut self,
         (k, m, t): (usize, usize, i64),
         axis: &Axis,
-        step: &Step,
+        step: Grown,
         (start, units): (Along, &mut Units),
     ) -> (f64, [f64; WIDTH], Along) {
         let species = self.species;
@@ -197,14 +220,14 @@ impl Kept<'_> {
                 let d = species.states[lived.0].form.dominance;
                 for (slot, s) in slots.iter_mut().enumerate() {
                     let base = size * zone.share(slot) * lived.1;
-                    s.0 += p * base.powf(e) * dominance_power(d, e) * x1;
-                    s.1 += p * base.powf(2.0 * e) * dominance_power(d, 2.0 * e) * x2;
+                    s.0 += p * base.powf_fixed(e) * dominance_power(d, e) * x1;
+                    s.1 += p * base.powf_fixed(2.0 * e) * dominance_power(d, 2.0 * e) * x2;
                 }
             }
             let (s1, s2) = zoned(
                 &axis.pmfs[z],
                 (f, phi, places),
-                (own.powf(e), own.powf(2.0 * e)),
+                (own.powf_fixed(e), own.powf_fixed(2.0 * e)),
                 &slots,
             );
             (h[SECTION], h[SECTION2]) = (s1, s2);
@@ -252,7 +275,7 @@ impl Kept<'_> {
         let (lived, reach) = species.lived(j).unwrap_or((j, 0.0));
         let lived = &species.states[lived];
         let d = lived.form.dominance;
-        let mut placing = Placing::turned(lived.insertion.cos());
+        let mut placing = Placing::turned(angled(Some(lived)));
         let powers = |share: f64| -> [f64; 4] {
             let base = size * share * reach;
             std::array::from_fn(|p| base.powi(p as i32 + 1) * dominance_power(d, p as f64 + 1.0))
@@ -293,11 +316,11 @@ impl Kept<'_> {
         let table = self.child((*pa, m - at, *carried, *first), delay);
         let row = table.at(t - *at as i64);
         let lambda = weight / grown;
-        let factor = (lambda * (row.0 - 1.0)).exp();
+        let factor = (lambda * (row.0 - 1.0)).exp_fixed();
         let mut y = [0.0; WIDTH];
         if let Some(cb) = row.2 {
             let share = stand.shares[0] * unit;
-            let mut placing = Placing::turned(stand.angle.cos());
+            let mut placing = Placing::turned(stand.turn);
             let x = stand.along[0] / stand.shares[0].max(f64::MIN_POSITIVE);
             let x2 = stand.square / stand.shares[0].max(f64::MIN_POSITIVE);
             let powers = std::array::from_fn(|p| share.powi(p as i32 + 1));
@@ -312,7 +335,7 @@ impl Kept<'_> {
             placing.place(cb, &mut y);
         }
         let (x1, x2) = handed(row, table.e, e);
-        let share = (stand.shares[0] * unit).powf(e);
+        let share = (stand.shares[0] * unit).powf_fixed(e);
         // A Poisson count of them: E[Σ X²] gains the pairs, λ² E[X]².
         y[SECTION] = share * x1;
         y[SECTION2] = share * share * (x2 + lambda * x1 * x1);

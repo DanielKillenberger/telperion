@@ -1266,12 +1266,6 @@
     "reason": "The three rows of one basis column of a leaf transform; a column has three."
   },
   {
-    "path": "crates/telperion-core/src/math/transcendental/hypot.rs",
-    "site": "if eb - es > 64 {",
-    "classification": "algorithm",
-    "reason": "The pinned libm's hypot shortcut: past 64 binary orders the smaller operand cannot change the rounded sum; it limits no generated population."
-  },
-  {
     "path": "crates/telperion-core/src/pipeline/branching/specimen/budget.rs",
     "site": "while high - low > 1 {",
     "classification": "algorithm",

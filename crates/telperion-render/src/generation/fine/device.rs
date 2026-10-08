@@ -175,7 +175,9 @@ impl Drop for Device<'_> {
         };
         let runs = kept.waves.grown.into_iter().flat_map(|g| g.runs);
         let packed = runs.flat_map(|r| [r.axes, r.phyts, r.scratch]);
-        self.k.pool.give(packed.chain(kept.laid.into_iter().map(|w| w.buffer)));
+        self.k
+            .pool
+            .give(packed.chain(kept.laid.into_iter().map(|w| w.buffer)));
     }
 }
 
@@ -189,6 +191,7 @@ fn unlaid(scale: f64) -> BearerFrame {
         rank: 0.0,
         scale,
         size: 1.0,
+        phase: 0,
     }
 }
 
@@ -297,9 +300,10 @@ impl Roots for Device<'_> {
 
     fn lay(&mut self, tree: &Structure, live: &[usize], bearers: &[usize]) -> Result<Vec<Loaded>> {
         let start = Instant::now();
+        let divergence = self.tables().divergence.clone();
         let kept = self.kept();
         for (&r, &b) in live.iter().zip(bearers) {
-            let frame = bearer_frame(tree, b, kept.nodes[r]);
+            let frame = bearer_frame(tree, &divergence, b, kept.nodes[r]);
             let a = &mut kept.attached[r];
             (a.bearer_pa, a.unbent, a.bent) = (tree.axes[b].pa, frame, frame);
         }
@@ -330,9 +334,10 @@ impl Roots for Device<'_> {
 
     fn bend(&mut self, tree: &Structure, live: &[usize], bearers: &[usize]) -> Result<()> {
         let start = Instant::now();
+        let divergence = self.tables().divergence.clone();
         let kept = self.kept();
         for (&r, &b) in live.iter().zip(bearers) {
-            kept.attached[r].bent = bearer_frame(tree, b, kept.nodes[r]);
+            kept.attached[r].bent = bearer_frame(tree, &divergence, b, kept.nodes[r]);
         }
         let kept = self.kept.take().expect("grown");
         self.attach(&kept);

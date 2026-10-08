@@ -7,6 +7,7 @@
 use super::section::handed;
 use super::{Kept, Placing, SECTION, SECTION2, WIDTH};
 use crate::closed_form::along::Along;
+use crate::closed_form::events::angled;
 use crate::closed_form::steps::{End, Relay};
 use crate::schedule::Carried;
 
@@ -60,9 +61,9 @@ impl Kept<'_> {
         at: Along,
     ) -> Ended {
         let state = &self.species.states[k];
-        let (insertion, delay, e) = (state.insertion, state.shedding, state.form.exponent);
+        let (turn, delay, e) = (angled(Some(state)), state.shedding, state.form.exponent);
         let table = self.child((k, m - born, carried, None), delay);
-        let (a, b, _) = self.whole(&table, t - born as i64, (at, insertion.cos()), e);
+        let (a, b, _) = self.whole(&table, t - born as i64, (at, turn), e);
         (a, b, [b[SECTION], b[SECTION2]])
     }
 
@@ -72,7 +73,7 @@ impl Kept<'_> {
         &self,
         table: &super::Table,
         t: i64,
-        (at, turn): (Along, f64),
+        (at, turn): (Along, [f64; 2]),
         e: f64,
     ) -> Ended {
         let row = table.at(t);
@@ -107,7 +108,7 @@ impl Kept<'_> {
         let go = (weight / p).min(1.0);
         let e = self.species.states[k].form.exponent;
         let table = self.child((pa, m - born, onward, None), f64::INFINITY);
-        let on = self.whole(&table, t - born as i64, (tip, 1.0), e);
+        let on = self.whole(&table, t - born as i64, (tip, [1.0; 2]), e);
         // Given it moves on, its relay comes as the borderline's share;
         // given it stops, as the rest.
         let with = if go > 0.0 {

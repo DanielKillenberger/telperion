@@ -21,7 +21,7 @@ fn routed(species: &Species, age: u32, seed: u64) -> (usize, usize, usize) {
     let plan = Plan::default();
     let mut cpu = Cpu {
         species,
-        rules: &rules,
+        rules: Some(&rules),
         plan,
         threads: crate::cores::available(),
         roots: Vec::new(),

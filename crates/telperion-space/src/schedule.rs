@@ -4,6 +4,8 @@
 //! carries the axis on grows in the same cycle at the rest, as a woken
 //! bud's first unit does. The grower, the closed form and `Living` read
 //! the one schedule here.
+use crate::species::PaState;
+use crate::transcendental::Transcendental;
 
 /// What a bud carries into its age: the time it has spent in it (a relay
 /// carries its axis's on), the cycles it slept that its abortion hazard
@@ -16,6 +18,9 @@ pub(crate) struct Carried {
     pub aged: f64,
     pub gone: f64,
     pub relay: bool,
+    /// It is a failed unit's relay, whose first unit, the rest of that
+    /// cycle, carries on where its own failure relays (host decision A3).
+    pub rest: bool,
 }
 
 /// A share of a cycle within this of a whole one is whole: a sum of shares
@@ -33,6 +38,8 @@ pub(crate) struct Unit {
     pub ends: bool,
     /// The share of its cycle gone when it ends: before it and with it.
     pub used: f64,
+    /// It is the whole first unit of a relay of an age that ended.
+    pub whole: bool,
 }
 
 impl Carried {
@@ -52,17 +59,15 @@ impl Carried {
         };
         let room = 1.0 - gone;
         let left = lifespan - before;
-        let share = if i == 1 && self.relay {
-            room
-        } else {
-            room.min(left)
-        };
+        let whole = i == 1 && self.relay;
+        let share = if whole { room } else { room.min(left) };
         let ends = left <= room + WHOLE;
         Unit {
             before,
             share,
             ends,
             used: gone + share,
+            whole,
         }
     }
 
@@ -99,13 +104,90 @@ impl Carried {
 
     /// Past its lifespan an age's time changes nothing (every bud grows
     /// one unit and ends), so a key may hold it there.
-    pub fn key(self, lifespan: f64) -> (u64, u64, u64, bool) {
+    pub fn key(self, lifespan: f64) -> (u64, u64, u64, bool, bool) {
         (
             self.spent.min(lifespan).to_bits(),
             self.aged.to_bits(),
             self.gone.to_bits(),
             self.relay,
+            self.rest,
         )
+    }
+}
+
+/// The points a failed unit's lived share is taken at in the closed form
+/// (fn-199 R1, host 2026-10-07): the midpoints of `LIVED` equal parts of
+/// its distribution, each with that part's chance. One, the fewest that
+/// meet the comparison tests: two cost the predictor 7 to 115 times its
+/// time, and it runs on every change of a setting (host, decision A).
+pub(crate) const LIVED: usize = 1;
+
+/// The least share of a cycle a failed unit's lived parts are taken for in
+/// expectation: below it a failure its relay takes over is counted as the
+/// apex carrying on, which it all but is, so the parts' relays, each the
+/// rest of a shorter cycle, end.
+pub(crate) const LIVED_FLOOR: f64 = 1.0 / 256.0;
+
+/// The lived shares of a unit of `share` that failed under survival
+/// `viability` a cycle, at `LIVED` points: its time `t` given failure
+/// runs as `(1 - v^t) / (1 - v^share)`, inverted at each part's middle,
+/// on the tick grid. The grower's `fixed::decide::lived`, in expectation.
+pub(crate) fn lived(viability: f64, share: f64) -> [f64; LIVED] {
+    std::array::from_fn(|j| {
+        if viability >= 1.0 || share <= 0.0 {
+            return share;
+        }
+        if viability <= 0.0 {
+            return 0.0;
+        }
+        let u = (j as f64 + 0.5) / LIVED as f64;
+        let failing = 1.0 - viability.powf_fixed(share);
+        let t = (1.0 - u * failing).ln_fixed() / viability.ln_fixed();
+        crate::fixed::grid(t.clamp(0.0, share))
+    })
+}
+
+impl Carried {
+    /// What the relay of unit `unit`, which failed `lived` into its share,
+    /// carries: the apex's time on from that moment, and the rest of its
+    /// cycle where any is left; whether it grows in that cycle. The relay
+    /// of a whole unit grows that unit's rest whole, past the lifespan as
+    /// the apex would have, so its share is never below none.
+    pub fn failed(self, unit: Unit, lived: f64) -> (Self, bool) {
+        let spent = unit.before + lived;
+        let used = unit.used - unit.share + lived;
+        let same = used < 1.0 - WHOLE;
+        let relay = Carried {
+            spent,
+            aged: self.aged + spent - self.spent,
+            gone: if same { used } else { 0.0 },
+            relay: unit.whole,
+            rest: same,
+        };
+        (relay, same)
+    }
+}
+
+impl Carried {
+    /// The chance a failed unit's relay carries its axis on, its unit
+    /// `unit`, the `i`th, having lived `t`: the lived part takes the
+    /// unit's abortion draw over `t` and the next unit's share, and where
+    /// it aborts the relay stops at once and the abortion's relay, which
+    /// carries the same, takes over (fn-199, host decision C1). Whole
+    /// where the age ends with the unit.
+    pub fn lived_on(self, state: &PaState, (i, unit): (usize, Unit), t: f64) -> f64 {
+        if unit.ends {
+            return 1.0;
+        }
+        let grown = self.aged + unit.before + t - self.spent;
+        let exposure = t.min(self.unit(state.life(), i + 1).share);
+        let kept = 1.0 - state.abortion_at(grown);
+        let persists = if exposure < 1.0 {
+            kept.powf_fixed(exposure)
+        } else {
+            kept
+        };
+        1.0 - (1.0 - persists) * (1.0 - state.relay)
     }
 }
 

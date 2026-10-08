@@ -218,6 +218,9 @@ struct Pa {
     secondary: f32,
     bend_length: f32,
     retained: f32,
+    internode_spread: f32,
+    insertion_spread: f32,
+    tropism_spread: f32,
 }
 
 // A phytomer as the walk lays it: in, its scale, radius and key, and its
@@ -245,7 +248,11 @@ fn gone(x: f32) -> f32 {
 
 // A key's draw as a real in [0, 1).
 fn unit_of(key: vec2<u32>) -> f32 {
-    let d = draw(key);
+    return real_of(draw(key));
+}
+
+// A 53-bit draw as a real in [0, 1).
+fn real_of(d: vec2<u32>) -> f32 {
     return (f32(d.y) * 4294967296.0 + f32(d.x)) * (1.0 / 9007199254740992.0);
 }
 
@@ -259,7 +266,11 @@ fn step(walk: ptr<function, Walk>, p: ptr<function, Step>, f: Pa, own: vec2<f32>
     var curve = (*walk).curve;
     let tip = (*walk).tip;
     var run = (*walk).run;
-    let len = f.internode * (*p).scale;
+    var len = f.internode * (*p).scale;
+    // The node's internode draw (fn-222), mean one.
+    if f.internode_spread > 0.0 {
+        len = len * (1.0 + f.internode_spread * (2.0 * real_of(internode_draw((*p).key)) - 1.0));
+    }
     let share = gone(f.tropism * len);
     let bent = toward_elevation(running, across, f.elevation, share);
     across = carried_by(across, running, bent);
@@ -270,7 +281,7 @@ fn step(walk: ptr<function, Walk>, p: ptr<function, Step>, f: Pa, own: vec2<f32>
     var pivot = vec3<f32>(0.0);
     var u0 = 0.0;
     if f.wander > 0.0 {
-        let key = child((*p).key, w(1u, 0u));
+        let key = child((*p).key, KEY_WANDER);
         u0 = unit_of(child(key, w(0u, 0u)));
         draw0 = f.wander * (2.0 * u0 - 1.0);
         let azimuth = TAU * unit_of(child(key, w(1u, 0u)));

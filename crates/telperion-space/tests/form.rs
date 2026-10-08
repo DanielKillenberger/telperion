@@ -112,11 +112,12 @@ fn a_parents_plane_turns_its_laterals_plane() {
     let (turned_lineage, turned_heading, turned_side) = side_of(std::f64::consts::FRAC_PI_2);
     assert_eq!(lineage, turned_lineage);
     assert!(
-        (heading - turned_heading).length() < 1e-12,
+        // Contract A lays in Q32: angles hold to Q32's last places.
+        (heading - turned_heading).length() < 1e-8,
         "the heading holds"
     );
     assert!(
-        side.dot(turned_side).abs() < 1e-12,
+        side.dot(turned_side).abs() < 1e-8,
         "the side turns a quarter"
     );
 }
@@ -136,8 +137,10 @@ fn a_lateral_leaves_from_its_parents_direction_at_its_node() {
         };
         let along = tree.axes[parent].phytomers[node].heading;
         let angle = along.dot(axis.heading).clamp(-1.0, 1.0).acos();
+        // Contract A: frames are Q32, and the angle read back by `acos`
+        // carries their last places (1.02e-8 measured at the F2b merge).
         assert!(
-            (angle - species.states[2].insertion).abs() < 1e-9,
+            (angle - species.states[2].insertion).abs() < 2e-8,
             "{angle}"
         );
         checked += 1;
@@ -181,8 +184,10 @@ fn girth_is_the_sum_of_the_sections_carried() {
                 .map_or(tip[i], |q| q.radius * q.radius);
             let own = (pipe * p.scale).powi(2);
             let want = above + own + carried[i][k];
+            // Contract A: sections are W and radii Q32, so the sum holds
+            // to Q32's resolution of a radius (2.3e-10 m).
             assert!(
-                (p.radius * p.radius - want).abs() < 1e-12 * want.max(1e-12),
+                (p.radius * p.radius - want).abs() < 1e-6 * want + 1e-12,
                 "axis {i} node {k}"
             );
         }
@@ -358,7 +363,11 @@ fn a_relay_stands_in_the_curvature_zone_on_the_upper_side() {
                         }
                         before += q.scale;
                     }
-                    Some((middle, p.len(), node, a.heading.z))
+                    // A stop after a whole unit relays from the next
+                    // cycle; a failed unit's relay grows the rest of the
+                    // cycle it failed in (fn-199 R1).
+                    let whole = Some(a.birth) == tree.axes[parent].apex_end;
+                    Some((middle, p.len(), node, a.heading.z, whole))
                 }
                 _ => None,
             })
@@ -372,16 +381,30 @@ fn a_relay_stands_in_the_curvature_zone_on_the_upper_side() {
     };
     let half = pooled(0.0);
     assert!(!half.is_empty());
-    for &(middle, n, node, _) in &half {
+    for &(middle, n, node, _, _) in &half {
         assert_eq!(node, middle, "the middle of {n} nodes");
     }
-    let rise =
-        |v: &[(usize, usize, usize, f64)]| v.iter().map(|r| r.3).sum::<f64>() / v.len() as f64;
+    let rise = |v: &[(usize, usize, usize, f64, bool)], whole: bool| {
+        let z: Vec<f64> = v.iter().filter(|r| r.4 == whole).map(|r| r.3).collect();
+        assert!(!z.is_empty(), "relays of each kind");
+        z.iter().sum::<f64>() / z.len() as f64
+    };
+    let up = pooled(1.0);
+    // The relays of stops after a whole unit rise as the law asks.
     assert!(
-        rise(&pooled(1.0)) > rise(&half) + 0.05,
+        rise(&up, true) > rise(&half, true) + 0.05,
         "epitony turns relays up: {} against {}",
-        rise(&pooled(1.0)),
-        rise(&half)
+        rise(&up, true),
+        rise(&half, true)
+    );
+    // A failed unit's relay stands near its bound, on the part of the unit
+    // its apex lived, barely off the line, so epitony turns it little; it
+    // never turns it down (host, fn-199).
+    assert!(
+        rise(&up, false) >= rise(&half, false),
+        "epitony keeps failed units' relays: {} against {}",
+        rise(&up, false),
+        rise(&half, false)
     );
 }
 
@@ -438,7 +461,8 @@ fn a_stem_without_secondary_growth_is_a_column() {
     assert!(column.len() > 20, "{} phytomers", column.len());
     for (k, p) in column.iter().enumerate() {
         let established = form.pipe * p.scale;
-        assert!((p.radius - established).abs() < 1e-15, "{k}: {}", p.radius);
+        // Contract A: the established pipe is one floor of its product.
+        assert!((p.radius - established).abs() < 1e-9, "{k}: {}", p.radius);
     }
     let (base, apex) = (column[0].radius, column[column.len() - 1].radius);
     assert!((base / apex - 1.0).abs() < 1e-9, "{base} against {apex}");
@@ -446,6 +470,12 @@ fn a_stem_without_secondary_growth_is_a_column() {
     for (k, p) in stem(1.0).iter().enumerate().rev() {
         section += (form.pipe * p.scale).powf(form.exponent);
         let expected = section.powf(1.0 / form.exponent);
-        assert!((p.radius - expected).abs() < 1e-12, "{k}: {}", p.radius);
+        // Contract A: a radius is Q32 (2.3e-10 m), the power of a W
+        // section taken in Q32 logs (1e-7 relative).
+        assert!(
+            (p.radius - expected).abs() < 1e-7 * expected + 1e-9,
+            "{k}: {} against {expected}",
+            p.radius
+        );
     }
 }

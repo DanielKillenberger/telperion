@@ -10,6 +10,7 @@ use crate::presence::Windows;
 use crate::schedule::Carried;
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use crate::structure::{Origin, Structure, Vec3};
+use crate::transcendental::Transcendental;
 use std::collections::HashMap;
 use std::f64::consts::PI;
 
@@ -125,7 +126,7 @@ fn about(tree: &Structure, sums: &[Raw], i: usize, e: f64) -> [f64; 7] {
     let section = tree.axes[i]
         .phytomers
         .first()
-        .map_or(0.0, |p| p.radius.powf(e));
+        .map_or(0.0, |p| p.radius.powf_fixed(e));
     [
         s.wood,
         (s.first - o * s.wood).dot(h),
@@ -201,7 +202,9 @@ fn a_deterministic_tree_keeps_what_the_formula_keeps() {
             for q in 0..7 {
                 let (a, b) = (ours[q], theirs[q]);
                 assert!(
-                    (a - b).abs() <= 1e-9 * b.abs().max(1e-6),
+                    // Contract A: the tree's girth and sag are Q32 and W,
+                    // the formula f64 (1e-6 relative).
+                    (a - b).abs() <= 1e-6 * b.abs().max(1e-6),
                     "relayed {relayed}, age {age} {}: {a} vs {b}",
                     NAMES[q]
                 );
@@ -304,7 +307,7 @@ fn branches_agree(species: &Species) {
                 Some(&k) => {
                     let v = about(&grown, &sums, k, e);
                     let p = [1.0, 2.0, 3.0, 3.0, 4.0, e, 0.0];
-                    std::array::from_fn(|q| v[q] / base.powf(p[q]))
+                    std::array::from_fn(|q| v[q] / base.powf_fixed(p[q]))
                 }
                 None => [0.0; 7],
             };
@@ -377,5 +380,6 @@ fn moments(values: &[f64]) -> (f64, f64) {
     (mean, (var / n).sqrt())
 }
 
+mod angles;
 mod bound;
 mod measure;

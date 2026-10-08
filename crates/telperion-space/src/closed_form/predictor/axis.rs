@@ -5,6 +5,7 @@ use super::{both, maybe, times, whole, Bud, Ended, Parts, Table, Walk, ZoneParts
 use crate::closed_form::events::Event;
 use crate::closed_form::kept::tilts;
 use crate::closed_form::steps::{End, Relay, Step};
+use crate::transcendental::Transcendental;
 
 impl Walk<'_> {
     /// `bud`'s table over its window, every table it reads in `parts`.
@@ -34,10 +35,23 @@ impl Walk<'_> {
             a += p * ra * ea;
             n += p * (rn * ea + ra * en);
         };
-        let failed = step.before - step.grown;
-        let e = relay_end(step.failed, failed, parts.failed.as_deref(), t);
-        end(failed, step.i - 1, NONE_RUN, e);
-        let run = times(NONE_RUN, self.unit(k, step, &parts.zones, t));
+        // A failure with no relay ends the axis at the unit before; each
+        // lived part grows its unit's nodes and ends in its relay (fn-199
+        // R1).
+        end(step.failed, step.i - 1, NONE_RUN, NONE);
+        for (l, table) in step.lived.iter().zip(&parts.lived) {
+            let grown = (l.weight, &l.sleeping[..]);
+            let run = times(NONE_RUN, self.unit(k, (step.i, grown), &parts.zones, t));
+            let child = whole(table.as_deref().expect("built"), t - l.relay.at as i64);
+            end(
+                l.weight,
+                step.i,
+                run,
+                maybe(l.relay.weight / l.weight, child),
+            );
+        }
+        let grown = (step.grown, &step.sleeping[..]);
+        let run = times(NONE_RUN, self.unit(k, (step.i, grown), &parts.zones, t));
         match &step.end {
             None => {
                 let aborted = step.grown - step.after;
@@ -57,10 +71,16 @@ impl Walk<'_> {
         (a, n)
     }
 
-    /// The unit `step`: its factor and its phytomers on it.
-    fn unit(&self, k: usize, step: &Step, zones: &[ZoneParts], t: i64) -> Ended {
+    /// Unit `i`, grown with chance `grown` and bearing `sleeping`: its
+    /// factor and its phytomers on it.
+    fn unit(
+        &self,
+        k: usize,
+        (i, (grown, sleeping)): (usize, (f64, &[Vec<Event>])),
+        zones: &[ZoneParts],
+        t: i64,
+    ) -> Ended {
         let state = &self.species.states[k];
-        let i = step.i;
         let mut run = NONE_RUN;
         for zp in zones {
             let zone = &state.zones[zp.z];
@@ -92,8 +112,8 @@ impl Walk<'_> {
                 h += others * (buds * c);
             }
             run = times(run, (g, h));
-            for (event, table) in step.sleeping[zp.z].iter().zip(&zp.woken) {
-                run = times(run, woken(t, step.grown, event, table.as_deref()));
+            for (event, table) in sleeping[zp.z].iter().zip(&zp.woken) {
+                run = times(run, woken(t, grown, event, table.as_deref()));
             }
         }
         run
@@ -114,7 +134,7 @@ fn woken(t: i64, grown: f64, event: &Event, table: Option<&Table>) -> Ended {
     }
     let (a, n) = table.at(t - *at as i64);
     let lambda = weight / grown;
-    let factor = (lambda * (a - 1.0)).exp();
+    let factor = (lambda * (a - 1.0)).exp_fixed();
     (factor, lambda * factor * n.unwrap_or(0.0))
 }
 

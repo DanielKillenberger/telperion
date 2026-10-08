@@ -148,3 +148,69 @@ fn every_lateral_grown_has_a_count_and_an_undrawn_pa_has_none() {
     let predictor = Predictor::new(&beech, &Windows::new(&beech, 6), 6);
     assert_eq!(predictor.count(0, 1), None, "the beech's PA 0 is drawn");
 }
+
+/// Every count the cut reads and every expected length, to the bit, with
+/// each species' every PA's form `set`; each row's reach without and with.
+fn same_counts(set: fn(&mut crate::species::Form)) -> Vec<(f64, f64)> {
+    use crate::closed_form::expected_log_lengths;
+    let mut reaches = Vec::new();
+    for species in [beech(), spruce(), oak(), palm()] {
+        let mut varied = species.clone();
+        for state in &mut varied.states {
+            set(&mut state.form);
+        }
+        let age = 30;
+        let windows = Windows::new(&species, age);
+        let (a, b) = (
+            Predictor::new(&species, &windows, age),
+            Predictor::new(&varied, &Windows::new(&varied, age), age),
+        );
+        let bits = |p: &Predictor| -> Vec<Option<u64>> {
+            p.counts.iter().map(|c| c.map(f64::to_bits)).collect()
+        };
+        assert_eq!(bits(&a), bits(&b));
+        let bits = |l: Vec<Vec<f64>>| -> Vec<Vec<u64>> {
+            l.iter()
+                .map(|r| r.iter().map(|v| v.to_bits()).collect())
+                .collect()
+        };
+        assert_eq!(
+            bits(expected_log_lengths(&species, age)),
+            bits(expected_log_lengths(&varied, age))
+        );
+        let (rows, wide) = (Rows::new(&species, age, 1), Rows::new(&varied, age, 1));
+        for pa in 0..species.states.len() {
+            for m in 0..=age as usize {
+                let (Some(r), Some(w)) = (rows.row_at(pa, m), wide.row_at(pa, m)) else {
+                    continue;
+                };
+                assert_eq!(r.count.to_bits(), w.count.to_bits(), "PA {pa}, {m}");
+                reaches.push((r.reach, w.reach));
+            }
+        }
+    }
+    reaches
+}
+
+/// fn-222 R3: an internode spread changes no count the cut reads and no
+/// expected length, to the bit (its factor's mean is one); only the reach
+/// bound widens, each internode taken at its longest.
+#[test]
+fn an_internode_spread_moves_no_count_and_no_expected_length() {
+    for (r, w) in same_counts(|f| f.internode_spread = 0.8) {
+        assert!(w >= r, "{w} < {r}");
+    }
+}
+
+/// fn-224 R3: insertion and tropism spreads change no count the cut
+/// reads, no expected length and no reach bound, to the bit: the counts
+/// and lengths read no angle, and the bound takes every path straight.
+#[test]
+fn angle_spreads_move_no_count_no_expected_length_and_no_reach() {
+    let set = |f: &mut crate::species::Form| {
+        (f.insertion_spread, f.tropism_spread) = (std::f64::consts::FRAC_PI_2, 1.0);
+    };
+    for (r, w) in same_counts(set) {
+        assert_eq!(r.to_bits(), w.to_bits());
+    }
+}

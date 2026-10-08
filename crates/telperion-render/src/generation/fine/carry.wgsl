@@ -156,7 +156,11 @@ fn woken_kept_q(p: u32) -> vec2<u32> {
         } else {
             on = times_q(unit_q(u, QSURV), unit_q(u, QPERS));
             if end == cycle + 2u && (rd(a, KIND) & IS_FAILED) == 0u {
-                on = times_q(on, successors_q(a));
+                if (rd(a, KIND) & HAS_OUTLIVED) != 0u && !succ {
+                    on = times_q(on, ticks_q(w(rd(a, OUTLIVED), 0u)));
+                } else {
+                    on = times_q(on, successors_q(a));
+                }
             }
         }
     }

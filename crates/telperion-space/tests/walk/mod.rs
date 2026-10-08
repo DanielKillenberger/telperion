@@ -3,6 +3,7 @@
 //! scale it is walked on. The shape measures are in `measure.rs`.
 #![allow(dead_code)]
 mod bend;
+pub mod degree;
 mod measure;
 pub use bend::sag_bend;
 pub use measure::*;
@@ -284,7 +285,7 @@ pub fn settings() -> Vec<Setting> {
         // Sag over a range from none to limbs bowed to the ground; the
         // trunk only leans under its crown.
         let sag = [2e-4, 1e-4, 3e-4][pa];
-        let form: [(&str, f64, f64, bool, Set); 14] = [
+        let form: [(&str, f64, f64, bool, Set); 16] = [
             ("abortion_rise", 0.0, 3.0, false, |s, pa, v| {
                 s.states[pa].abortion_rise = v
             }),
@@ -331,6 +332,18 @@ pub fn settings() -> Vec<Setting> {
             ("form.secondary", 0.0, 1.0, false, |s, pa, v| {
                 s.states[pa].form.secondary = v
             }),
+            // fn-222: each internode's length varied node to node.
+            ("form.internode_spread", 0.0, 1.0, false, |s, pa, v| {
+                s.states[pa].form.internode_spread = v
+            }),
+            // fn-224: each axis's insertion angle varied axis to axis.
+            (
+                "form.insertion_spread",
+                0.0,
+                std::f64::consts::FRAC_PI_2,
+                false,
+                |s, pa, v| s.states[pa].form.insertion_spread = v,
+            ),
         ];
         for (field, low, high, odds, set) in table.into_iter().chain(form) {
             let mut walked = setting(at(field), low, high, odds, move |s, v| set(s, pa, v));
@@ -449,7 +462,32 @@ pub fn settings() -> Vec<Setting> {
     ));
     all.extend(sleeping_settings());
     all.extend(bend_settings());
+    all.extend(turning_settings());
     all
+}
+
+/// fn-224: each axis's tropism varied axis to axis, walked on a tree that
+/// bends (the walk tree's own tropism is none, where the spread is dormant).
+fn turning_settings() -> Vec<Setting> {
+    (0..3)
+        .map(|pa| {
+            // The tropism walk's highest: the trunk's keeps its crown off
+            // the ground.
+            let bend = [0.03, 1.0, 1.0][pa];
+            let mut walked = setting(
+                format!("states[{pa}].form.tropism_spread, bending"),
+                0.0,
+                1.0,
+                false,
+                move |s, v| {
+                    s.states[pa].form.tropism = bend;
+                    s.states[pa].form.tropism_spread = v;
+                },
+            );
+            walked.stretch = 1.0;
+            walked
+        })
+        .collect()
 }
 
 /// fn-207 R3: the wander's bend length walked on a wandering tree, and the

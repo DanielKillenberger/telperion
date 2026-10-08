@@ -99,6 +99,43 @@ pub(crate) fn map<I: Send, R: Send>(
         .collect()
 }
 
+/// `map`, each piece always on the same thread of the pool (piece `p` on
+/// thread `p mod n`): work on items kept across calls (the stepped
+/// executor's roots, fn-211 task 12) grows and frees their memory on the
+/// thread that made it, so no core waits on another's allocator.
+pub(crate) fn pinned<I: Send, R: Send>(
+    items: Vec<I>,
+    piece: usize,
+    threads: usize,
+    work: &(dyn Fn(usize, I) -> R + Sync),
+) -> Vec<R> {
+    let n = threads.min(rayon::current_num_threads());
+    if n <= 1 || items.len() <= piece {
+        return map(items, piece, 1, work);
+    }
+    let mut items = items.into_iter();
+    let pieces: Vec<Mutex<Vec<I>>> = (0..items.len().div_ceil(piece))
+        .map(|_| Mutex::new(items.by_ref().take(piece).collect()))
+        .collect();
+    let done: Vec<Mutex<Vec<R>>> = (0..pieces.len()).map(|_| Mutex::new(Vec::new())).collect();
+    rayon::broadcast(|ctx| {
+        for k in (ctx.index()..pieces.len())
+            .step_by(n)
+            .take_while(|_| ctx.index() < n)
+        {
+            let piece_items = std::mem::take(&mut *pieces[k].lock().unwrap());
+            *done[k].lock().unwrap() = piece_items
+                .into_iter()
+                .enumerate()
+                .map(|(j, item)| work(k * piece + j, item))
+                .collect();
+        }
+    });
+    done.into_iter()
+        .flat_map(|d| d.into_inner().unwrap())
+        .collect()
+}
+
 /// `out[k] = work(k)` for every place in `out`, in pieces of `piece` on
 /// up to `threads` cores.
 pub(crate) fn fill<T: Send>(

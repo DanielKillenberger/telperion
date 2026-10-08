@@ -98,7 +98,7 @@ impl Grower<'_> {
     /// Every bud handed on, by its stand-in's index: the laterals made
     /// and not grown, and the sleeping buds that woke, each keeping what
     /// its bearer kept of it.
-    fn handed(&self) -> Vec<Handed> {
+    pub(crate) fn handed(&self) -> Vec<Handed> {
         let age = self.rules.age;
         let mut out: Vec<Handed> = self
             .axes
@@ -142,7 +142,7 @@ impl Grower<'_> {
     }
 
     /// Its axes with their presences assigned.
-    fn assigned(mut self) -> Assigned {
+    pub(crate) fn assigned(mut self) -> Assigned {
         assign(&mut self.axes, &self.draws, self.species, self.threads);
         Assigned {
             axes: self.axes,

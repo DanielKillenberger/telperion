@@ -46,16 +46,6 @@ const STACK: u32 = 16u;
 const SW: u32 = 15u;
 const QW: u32 = 21u;
 const BW: u32 = 14u;
-const DORMANT = vec2<u32>(0xfffffff9u, 0xffffffffu);
-
-// The draws' parts (`lineage.rs`).
-const VIABILITY: u32 = 0u;
-const ABORTION: u32 = 1u;
-const MOVE: u32 = 2u;
-const RELAY = vec2<u32>(0xfffffffdu, 0xffffffffu);
-const ENDED = vec2<u32>(0xfffffff8u, 0xffffffffu);
-const END = vec2<u32>(0xfffffff7u, 0xffffffffu);
-const CONTINUATION = vec2<u32>(0xffffffffu, 0xffffffffu);
 
 // How an axis stands on its parent.
 const SEED: u32 = 0u;
@@ -88,6 +78,9 @@ const ENDED_RELAYS: u32 = 20u;
 const OUTLIVED: u32 = 21u;
 const SUCC: u32 = 22u;
 const NPHYT: u32 = 24u;
+// What a failed unit's relay's first unit holds below its ticks, in 2^-32
+// of a cycle (fn-199 B2).
+const BELOW: u32 = 25u;
 // Its relay's blend and its node's buds a whorl (f32, `presence.wgsl`);
 // its rank, Q52 in two words (34, 39): a node's presence (Q32) times its
 // unit's share (ticks), summed exactly, so its phyllotaxis turns as the
@@ -104,6 +97,8 @@ const IS_ENDED: u32 = 0x10000u;
 const IS_FAILED: u32 = 0x20000u;
 const HAS_OUTLIVED: u32 = 0x40000u;
 const IS_WOKEN: u32 = 0x80000u;
+// A failed unit's relay, its first unit the rest of that cycle (fn-199 R1).
+const IS_REST: u32 = 0x200000u;
 
 var<private> axis_base: u32;
 var<private> phyt_base: u32;
@@ -293,7 +288,7 @@ fn unsigned_ticks(t: vec2<u32>) -> vec2<u32> {
 }
 
 fn onto(key: vec2<u32>, pa: u32) -> vec2<u32> {
-    return child(child(key, CONTINUATION), w(pa, 0u));
+    return child(child(key, KEY_CONTINUATION), w(pa, 0u));
 }
 
 @compute @workgroup_size(64)

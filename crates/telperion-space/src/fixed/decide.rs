@@ -8,46 +8,113 @@
 //! setting's own, as D1 gives it.
 use super::{
     exp, exp2, ln_ratio, log2, logit, logit_draw, mul, mul62, neg_log2, presence, prob, q32, q62,
-    scaled, threshold, ticks, CYCLE, INF, ONE32, P_ONE,
+    scaled_fine, threshold, ticks, CYCLE, INF, ONE32, P_ONE,
 };
 use crate::lineage::{self, Draw, ONE};
 use crate::presence::{Windows, FLOOR, RATE, SPAN};
 use crate::species::{PaState, Zone};
 
-/// D5: a unit's survival `p` over `share` of its cycle, as a draw's
-/// threshold: `p^share`.
-pub(crate) fn survival(p: f64, share: f64) -> u64 {
+/// D5: a unit's survival `p` over `share` of its cycle and `rest` more
+/// in 2^-32 of a cycle, as a draw's threshold: `p^share`. `rest` is what
+/// a failed unit's relay's first unit holds below a tick (fn-199 B2).
+pub(crate) fn survival(p: f64, share: f64, rest: u64) -> u64 {
     if share >= 1.0 {
         return lineage::threshold(p);
     }
-    survival_q(neg_log2(q62(p)), ticks(share))
+    survival_fine_q(neg_log2(q62(p)), (ticks(share) << 12) + rest)
 }
 
 /// D5's integer form: a survival of `-log2` chance `l`, Q32, over `share`
 /// ticks.
 pub fn survival_q(l: i64, share: u64) -> u64 {
-    threshold(prob(scaled(l, share)))
+    survival_fine_q(l, share << 12)
+}
+
+/// D5 over a share in 2^-32 of a cycle (fn-199 B2).
+pub fn survival_fine_q(l: i64, share: u64) -> u64 {
+    threshold(prob(scaled_fine(l, share)))
+}
+
+/// D5 extended (fn-199 R1, host 2026-10-07): the share of its cycle an
+/// apex lived whose unit of `share` failed on draw `d` under survival `p`
+/// a cycle, in ticks: `v^t = u` gives `t = log2 u / log2 p`, at most the
+/// unit's share, so a draw at the survival's bound lives it whole.
+pub(crate) fn lived(p: f64, share: f64, d: Draw) -> u64 {
+    lived_q(neg_log2(q62(p)), ticks(share.min(1.0)), d.0)
+}
+
+/// D5's lived time, integer form: a survival of `-log2` chance `l` a
+/// cycle (Q32), a unit of `share` ticks, the 53-bit draw `d`; the ticks
+/// `-log2(d / 2^53) 2^20 / l`, rounded up, at most `share`: a draw at the
+/// bound lives the whole unit, so its relay's rest is none, not a tick.
+pub fn lived_q(l: i64, share: u64, d: u64) -> u64 {
+    if l <= 0 {
+        return share;
+    }
+    if l >= INF {
+        return 0;
+    }
+    let u = neg_log2(d << 9);
+    if u >= l {
+        return share.min(1 << 20);
+    }
+    let t = (((u as u128) << 20) + l as u128 - 1) / l as u128;
+    (t as u64).min(share)
+}
+
+/// D5's lived time before it is put on the tick grid (fn-199 B2), in
+/// 2^-32 of a cycle: `-log2(d / 2^53) 2^32 / l`, floored, at most `share`
+/// ticks. What `lived_q` rounds up past it, under a tick, is the part of
+/// its cycle the relay's first unit holds below its ticks, which its
+/// thresholds read, so a lived time crossing a tick moves none of them.
+pub fn lived_fine_q(l: i64, share: u64, d: u64) -> u64 {
+    if l <= 0 {
+        return share << 12;
+    }
+    if l >= INF {
+        return 0;
+    }
+    let u = neg_log2(d << 9);
+    if u >= l {
+        return share.min(1 << 20) << 12;
+    }
+    let t = ((u as u128) << 32) / l as u128;
+    (t as u64).min(share << 12)
+}
+
+/// The rest below a tick of a failed unit's relay's first unit: what
+/// `lived_q` rounds `lived_fine_q` up by, in 2^-32 of a cycle.
+pub(crate) fn lived_rest(p: f64, share: f64, d: Draw) -> u64 {
+    let (l, share) = (neg_log2(q62(p)), ticks(share.min(1.0)));
+    (lived_q(l, share, d.0) << 12) - lived_fine_q(l, share, d.0)
 }
 
 /// D6: the chance an apex aborts after a unit that ends `grown` cycles of
 /// its axis's growth, exposed `exposure` of a cycle, as a draw's
 /// threshold: `1 - (1 - a)^(grown^rise exposure)`.
-pub(crate) fn abortion(state: &PaState, grown: f64, exposure: f64) -> u64 {
+/// `rest` adds to the exposure in 2^-32 of a cycle, as in `survival`.
+pub(crate) fn abortion(state: &PaState, grown: f64, (exposure, rest): (f64, u64)) -> u64 {
     let a = state.abortion;
     if a <= 0.0 {
         return 0;
     }
-    if !state.rises() && exposure >= 1.0 {
+    let exposure = (ticks(exposure) << 12) + rest;
+    if !state.rises() && exposure >= 1 << 32 {
         return lineage::threshold(a);
     }
     let rise = state.rises().then(|| q32(state.abortion_rise));
-    abortion_q(neg_log2(q62(1.0 - a)), rise, ticks(grown), ticks(exposure))
+    abortion_fine_q(neg_log2(q62(1.0 - a)), rise, ticks(grown), exposure)
 }
 
 /// D6's integer form: persistence of `-log2` chance `l` a cycle, Q32, its
 /// hazard rising by `rise` (Q32) with `grown` ticks, over `exposure`
 /// ticks.
 pub fn abortion_q(l: i64, rise: Option<i64>, grown: u64, exposure: u64) -> u64 {
+    abortion_fine_q(l, rise, grown, exposure << 12)
+}
+
+/// D6 over an exposure in 2^-32 of a cycle (fn-199 B2).
+pub fn abortion_fine_q(l: i64, rise: Option<i64>, grown: u64, exposure: u64) -> u64 {
     let mut l = l;
     if let Some(rise) = rise.filter(|_| l < INF) {
         l = match grown {
@@ -57,7 +124,7 @@ pub fn abortion_q(l: i64, rise: Option<i64>, grown: u64, exposure: u64) -> u64 {
             _ => mul(l, exp2(mul(rise, log2(grown) - (20 << 32)))),
         };
     }
-    ONE - (prob(scaled(l, exposure)) >> 9)
+    ONE - (prob(scaled_fine(l, exposure)) >> 9)
 }
 
 /// D10: the presence, Q32, of an apex's move on to its next age `pa` by

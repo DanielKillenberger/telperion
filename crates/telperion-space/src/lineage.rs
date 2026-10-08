@@ -3,35 +3,16 @@
 //! stream, so adding a branch anywhere moves no other draw. Each draw's lead
 //! past the bound it was tested against, in log-odds, is what `presence.rs`
 //! grows its element in by.
-use crate::fixed::{self, decide};
+use crate::fixed::{self, decide, mul, q32, ONE32};
 use crate::species::NodeLaw;
+use crate::transcendental::Transcendental;
 
-/// The draws of one growth unit, under its unit key.
-pub(crate) const VIABILITY: u64 = 0;
-pub(crate) const ABORTION: u64 = 1;
-/// An apex that has spent its lifespan moving on, under its last unit.
-pub(crate) const MOVE: u64 = 2;
-/// Zone `z` of a growth unit is keyed `ZONE + z`.
-pub(crate) const ZONE: u64 = 16;
-/// An axis's continuation into an age, under the lineage that began its
-/// chain of ages (`Key::onto`), and its relay draw, under the growth unit
-/// it stopped in.
-pub(crate) const RELAY: u64 = u64::MAX - 2;
-/// A lateral's yearly shedding on its carbon balance, under its lineage
-/// and then the cycle.
-pub(crate) const SHED: u64 = u64::MAX - 1;
-/// A lateral's roll about its parent, under its lineage.
-pub(crate) const ROLL: u64 = u64::MAX - 4;
-/// A lateral's share of vigour among its siblings, under its lineage.
-pub(crate) const DOMINANCE: u64 = u64::MAX - 5;
-/// A bud place's sleeping bud, under the place's key, and its waking
-/// time, under the sleeping bud's.
-pub(crate) const DORMANT: u64 = u64::MAX - 6;
-/// The stop decisions of a relay of an age that ended, by its count.
-pub(crate) const ENDED: u64 = u64::MAX - 7;
-/// An age's end: whether it moves on, and its relay if it does not.
-pub(crate) const END: u64 = u64::MAX - 8;
-pub(crate) const CONTINUATION: u64 = u64::MAX;
+pub mod keys;
+
+pub(crate) use keys::{
+    ABORTION, CONTINUATION, DOMINANCE, DORMANT, END, ENDED, FAILED, INSERTION, INTERNODE, MOVE,
+    RELAY, ROLL, SHED, TROPISM, VIABILITY, WANDER, ZONE,
+};
 
 /// A hashed path from the root.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -67,11 +48,6 @@ impl Key {
     pub fn draw(self) -> Draw {
         Draw(mix(self.0 ^ 0xd1b5_4a32_d192_ed03) >> 11)
     }
-
-    /// The draw as a real, uniform on [0, 1).
-    pub fn unit(self) -> f64 {
-        self.draw().unit()
-    }
 }
 
 /// A draw's 53 bits (fn-209, FINE-CONTRACT.md D1): every decision a draw
@@ -100,6 +76,7 @@ pub(crate) fn threshold(p: f64) -> u64 {
 
 impl Draw {
     /// The draw as a real, uniform on [0, 1): exact, 53 bits.
+    #[cfg(test)]
     pub fn unit(self) -> f64 {
         self.0 as f64 / ONE as f64
     }
@@ -110,16 +87,62 @@ impl Draw {
     }
 }
 
-fn logit(p: f64) -> f64 {
-    (p / (1.0 - p)).ln()
+/// A draw's unit as a signed Q32, `2u − 1`: `d >> 21` is `u` in Q32,
+/// exact (CONTRACT-A.md 2.3, keyed draws).
+fn signed(d: Draw) -> i64 {
+    ((d.0 >> 21) as i64) * 2 - ONE32
 }
 
-/// How far, in log-odds, a draw `u` lies above the `bound` it must reach.
-pub(crate) fn above(u: f64, bound: f64) -> f64 {
-    if bound <= 0.0 {
-        return f64::INFINITY;
+/// The factor, Q32, the internode of the node keyed `key` is scaled by at
+/// `spread` (`Form::internode_spread`): 1 + spread (2u − 1), u the node's
+/// internode draw, so its mean is one; exactly one without spread.
+/// Contract A: the spread converted once, one floor.
+pub(crate) fn internode(key: u64, spread: f64) -> i64 {
+    if spread <= 0.0 {
+        return ONE32;
     }
-    logit(u) - logit(bound)
+    ONE32 + mul(q32(spread), signed(Key(key).child(INTERNODE).draw()))
+}
+
+/// The insertion angle, an amount (Q32 turns), of the axis whose lineage is
+/// `lineage`, its PA's `angle` (radians) at `spread` (radians,
+/// `Form::insertion_spread`): angle + spread (2u − 1), u the axis's
+/// insertion draw, so its mean is the angle; exactly the angle without
+/// spread. Contract A (2.4): each angle converted once, the offset an
+/// amount by one floor, as the roll's.
+pub(crate) fn insertion(lineage: u64, angle: f64, spread: f64) -> i64 {
+    let angle = crate::geometry::amount(angle);
+    if spread <= 0.0 {
+        return angle;
+    }
+    let u = signed(Key(lineage).child(INSERTION).draw());
+    angle + mul(crate::geometry::amount(spread), u)
+}
+
+/// The cosine of `insertion`'s angle in expectation over its draw, and its
+/// square's: E cos(a + d) = cos a · sin s / s and E cos²(a + d) =
+/// (1 + cos 2a · sin 2s / 2s) / 2 for d uniform on [−s, s] (fn-224). The
+/// closed form reads both, exact in expectation; without spread, cos a and
+/// its square, as it always read them.
+pub(crate) fn turn(angle: f64, spread: f64) -> [f64; 2] {
+    let cos = angle.cos_fixed();
+    if spread <= 0.0 {
+        return [cos, cos * cos];
+    }
+    let sinc = |x: f64| x.sin_fixed() / x;
+    let square = (1.0 + (2.0 * angle).cos_fixed() * sinc(2.0 * spread)) / 2.0;
+    [cos * sinc(spread), square]
+}
+
+/// The factor, Q32, the tropism of the axis whose lineage is `lineage` is
+/// scaled by at `spread` (`Form::tropism_spread`): 1 + spread (2u − 1), u
+/// the axis's tropism draw, so its mean is one; exactly one without
+/// spread. Contract A: the spread converted once, one floor.
+pub(crate) fn tropism(lineage: u64, spread: f64) -> i64 {
+    if spread <= 0.0 {
+        return ONE32;
+    }
+    ONE32 + mul(q32(spread), signed(Key(lineage).child(TROPISM).draw()))
 }
 
 /// A bud's PA under `lateral` for the draw `d`; none for a bare bud. The
@@ -215,7 +238,7 @@ fn walk(law: NodeLaw, d: Draw, cap: u32, mut node: impl FnMut(Past)) {
         }
         NodeLaw::Poisson { mean } => {
             // Node k stands while u lies above P(count <= k).
-            let mut mass = (-mean).exp();
+            let mut mass = (-mean).exp_fixed();
             let mut cumulative = mass;
             let mut k = 0u32;
             while !d.under(cumulative) && k < cap {

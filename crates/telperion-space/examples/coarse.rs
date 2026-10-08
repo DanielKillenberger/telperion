@@ -3,7 +3,7 @@
 //!
 //!   RAYON_NUM_THREADS=1 cargo run --release -p telperion-space --example coarse -- [cut] [age] [seeds]
 use std::time::Instant;
-use telperion_space::{grow_coarse, grow_fine, palm, spruce, Light, Plan, Request, Structure};
+use telperion_space::{grow_coarse, grow_roots, palm, spruce, Light, Plan, Request, Structure};
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -25,7 +25,7 @@ fn main() {
                 light: Light::default(),
             };
             let t = Instant::now();
-            let fine = grow_fine(
+            let fine = grow_roots(
                 &species,
                 request,
                 Plan {

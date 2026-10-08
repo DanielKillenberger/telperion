@@ -1,7 +1,7 @@
 //! The coarse tree (fn-214): the structure above the cut grown as
-//! `grow_fine` grows it, each fine root standing as its expectations.
+//! `grow_roots` grows it, each fine root standing as its expectations.
 use super::request;
-use crate::fine::{grow_coarse, grow_fine, Plan};
+use crate::fine::{grow_coarse, grow_roots, Plan};
 use crate::structure::Structure;
 
 fn kept(s: &Structure) -> usize {
@@ -19,7 +19,7 @@ fn at_cut_zero_the_coarse_tree_is_the_tree() {
         cut: 0.0,
         ..Plan::default()
     };
-    let fine = grow_fine(&species, request(12, 3), plan).expect("grows");
+    let fine = grow_roots(&species, request(12, 3), plan).expect("grows");
     assert!(coarse.stands.is_empty());
     let wood = |s: &Structure| {
         let mut w: Vec<[u64; 4]> = s
@@ -41,7 +41,7 @@ fn at_cut_zero_the_coarse_tree_is_the_tree() {
     assert_eq!(wood(&coarse.structure), wood(&fine.structure));
 }
 
-/// Above the cut the coarse tree grows what `grow_fine` grows; below it
+/// Above the cut the coarse tree grows what `grow_roots` grows; below it
 /// each root stands for its predictor's expected kept phytomers, and the
 /// trunk carries their expected sections near what their realized wood
 /// gives it.
@@ -49,7 +49,7 @@ fn at_cut_zero_the_coarse_tree_is_the_tree() {
 fn below_the_cut_each_root_stands_for_its_expectation() {
     let species = crate::spruce();
     let coarse = grow_coarse(&species, request(20, 3), 1024.0).expect("grows");
-    let fine = grow_fine(&species, request(20, 3), Plan::default()).expect("grows");
+    let fine = grow_roots(&species, request(20, 3), Plan::default()).expect("grows");
     let realized: usize = fine.roots.iter().map(|r| r.kept).sum();
     assert_eq!(kept(&coarse.structure), kept(&fine.structure) - realized);
     let expected: f64 = coarse.stands.iter().map(|s| s.phytomers).sum();

@@ -16,6 +16,7 @@ use crate::presence::Draws;
 use crate::schedule::Carried;
 use crate::species::{Species, Zone};
 use crate::structure::Axis;
+use crate::transcendental::Transcendental;
 
 /// The probability that a sleeping bud wakes in the `s`th whole year after
 /// its node grew: its waking time lies in [s, s + 1).
@@ -24,7 +25,7 @@ pub(crate) fn wakes_in(zone: &Zone, s: u32) -> f64 {
         return 0.0;
     }
     // The probability that it still sleeps at `years`.
-    let asleep = |years: f64| (-zone.rate * (years - zone.delay).max(0.0)).exp();
+    let asleep = |years: f64| (-zone.rate * (years - zone.delay).max(0.0)).exp_fixed();
     asleep(f64::from(s)) - asleep(f64::from(s) + 1.0)
 }
 
@@ -194,6 +195,7 @@ impl First {
                 aged: spent + x,
                 gone: x,
                 relay: false,
+                rest: false,
             };
             let unit = woken.unit(state.life(), 1);
             let survive = share(state.viability, unit.share);
@@ -231,7 +233,7 @@ fn mean(
     let (mut a, mut b, mut weight) = (0.0, 0.0, 0.0);
     for k in 0..STEPS {
         let x = x0 + h * (k as f64 + 0.5);
-        let w = (-r * (x - x0)).exp();
+        let w = (-r * (x - x0)).exp_fixed();
         let (p, q) = f(x);
         a += w * p;
         b += w * q;
@@ -301,7 +303,7 @@ fn asleep(zone: &Zone, years: f64) -> f64 {
     if zone.rate <= 0.0 {
         return 1.0;
     }
-    (-zone.rate * (years - zone.delay).max(0.0)).exp()
+    (-zone.rate * (years - zone.delay).max(0.0)).exp_fixed()
 }
 
 /// A bud that woke in `cycle`, on a bearer carried on by axis `bearer`,
@@ -353,10 +355,16 @@ impl Woken {
             Some(unit) => {
                 let stopped = axes[self.bearer].apex_end == Some(self.cycle + 1) && !bearer.failed;
                 let carried = times(q(unit.survive), q(unit.persist));
-                if stopped {
-                    times(carried, on(&successor[self.bearer]))
-                } else {
-                    carried
+                match bearer.outlived {
+                    // Its age ended within that unit's cycle and nothing
+                    // carries it on: it bears the bud as far as it lived
+                    // into the cycle, as it does a bud that wakes in that
+                    // cycle, so the two meet (fn-199).
+                    Some(used) if stopped && successor[self.bearer].is_empty() => {
+                        times(carried, q(used))
+                    }
+                    _ if stopped => times(carried, on(&successor[self.bearer])),
+                    _ => carried,
                 }
             }
         };
@@ -367,7 +375,7 @@ impl Woken {
 /// A survival over a share of a cycle: to the share, itself whole.
 fn share(p: f64, share: f64) -> f64 {
     if share < 1.0 {
-        p.powf(share)
+        p.powf_fixed(share)
     } else {
         p
     }

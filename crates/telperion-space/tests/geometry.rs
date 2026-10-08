@@ -73,9 +73,10 @@ fn axes_take_their_lengths_and_angles_from_their_pa() {
         };
         let tip = axis.phytomers.last().unwrap().tip;
         let run = tip - axis.base;
-        assert!((length(run) - 0.3 * axis.phytomers.len() as f64).abs() < 1e-12);
+        // Contract A lays in Q32: lengths and angles hold to its last places.
+        assert!((length(run) - 0.3 * axis.phytomers.len() as f64).abs() < 1e-8);
         assert!(
-            (run.z / length(run) - 0.6f64.cos()).abs() < 1e-12,
+            (run.z / length(run) - 0.6f64.cos()).abs() < 1e-8,
             "the insertion angle"
         );
         assert_eq!(axis.base, trunk.phytomers[node].tip);

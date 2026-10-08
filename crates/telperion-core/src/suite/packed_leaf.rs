@@ -2,10 +2,7 @@
 //! made up for it: the box every species is quantised against, that the box
 //! does not move with age, and that no station the generator places falls
 //! outside it.
-use telperion_core::{
-    foliage::Leaf,
-    mesh, params, presets,
-};
+use telperion_core::{mesh, params, presets};
 
 /// Every family the core ships, read off the catalogue itself so a species
 /// added later is judged here without anyone remembering to add it. The
@@ -24,18 +21,6 @@ fn shipped() -> impl Iterator<Item = &'static str> {
 fn family(id: &str) -> presets::Family {
     params::by_identity(id).unwrap_or_else(|e| panic!("{id} is not a shipped preset: {e}"))
 }
-
-/// R1, on the CPU: a leaf is twelve bytes, and a crown of n leaves is 12n.
-#[test]
-fn a_crown_is_twelve_bytes_a_leaf() {
-    assert_eq!(size_of::<Leaf>(), 12);
-    let m = mesh::build(&family("european-beech")).unwrap();
-    let leaves = m.foliage.instances.leaves.as_slice();
-    assert!(!leaves.is_empty(), "the beech placed no leaves");
-    assert_eq!(size_of_val(leaves), leaves.len() * 12);
-    assert_eq!(m.foliage_instances(), leaves.len());
-}
-
 
 /// R3: a station outside the box cannot occur. The debug assertion inside
 /// `pack` says so while the tests run; this says so for the release build the

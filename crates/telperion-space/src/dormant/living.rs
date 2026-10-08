@@ -3,8 +3,9 @@
 use super::{share, stages, First, Piece};
 use crate::memo::Memo;
 use crate::presence::Windows;
-use crate::schedule::Carried;
+use crate::schedule::{lived, Carried, LIVED, LIVED_FLOOR};
 use crate::species::Species;
+use crate::transcendental::Transcendental;
 use std::rc::Rc;
 
 /// The closed form of `carried`: the chance that the axis a bud grows is
@@ -33,7 +34,7 @@ pub(crate) type Wakes = Rc<[(Piece, First)]>;
 /// unit, the cycle, and the abortion after the unit when it is given.
 type Asked = (
     usize,
-    (u64, u64, u64, bool),
+    (u64, u64, u64, bool, bool),
     usize,
     usize,
     usize,
@@ -85,7 +86,7 @@ impl<'a> Living<'a> {
             windows.wood_left(next, left),
         );
         let wood = if a > 0.0 && b > 0.0 {
-            (a.ln() + (b.ln() - a.ln()) * used).exp()
+            (a.ln_fixed() + (b.ln_fixed() - a.ln_fixed()) * used).exp_fixed()
         } else {
             a + (b - a) * used
         };
@@ -193,6 +194,7 @@ impl<'a> Living<'a> {
                 aged: carried.aged + before - carried.spent,
                 gone: 0.0,
                 relay: false,
+                rest: false,
             };
             return self.from((k, rest, m.saturating_sub(u - 1)), 1, y - (u - 1));
         }
@@ -213,17 +215,25 @@ impl<'a> Living<'a> {
             let exposure = carried.exposure(state.life(), u);
             1.0 - share(1.0 - state.abortion_at(grown), exposure)
         };
+        // A failure its relay takes over in a sliver of a cycle, or in a
+        // failed unit's relay's first unit, carries on (`LIVED_FLOOR`,
+        // host decision A3).
+        let (viability, relay) = if unit.share < LIVED_FLOOR || carried.rest {
+            (viability + (1.0 - viability) * relay, 0.0)
+        } else {
+            (viability, relay)
+        };
         let mut p = viability * self.after((k, carried, m), u, y, abortion);
-        // A unit that failed is spent; its relay grows from the next cycle.
+        // A unit that failed grows the share of its cycle its apex lived,
+        // and its relay the rest (fn-199 R1), at the schedule's points.
         if (1.0 - viability) * relay > 0.0 {
-            let relayed = Carried {
-                spent,
-                aged: carried.aged + spent - carried.spent,
-                relay: true,
-                ..Carried::default()
-            };
-            let born = m.saturating_sub(u);
-            p += (1.0 - viability) * relay * self.from((k, relayed, born), 1, y - u);
+            let weight = (1.0 - viability) * relay / LIVED as f64;
+            for t in lived(state.viability, unit.share) {
+                let (relayed, same) = carried.failed(unit, t);
+                let at = if same { u - 1 } else { u };
+                let on = carried.lived_on(state, (u, unit), t);
+                p += weight * on * self.from((k, relayed, m.saturating_sub(at)), 1, y - at);
+            }
         }
         self.memo.insert(key, p);
         p

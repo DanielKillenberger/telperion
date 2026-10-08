@@ -2,7 +2,10 @@
 //! kept tables read once for every PA and every age a bud can have at the
 //! tree's age, so a bud's boundary is a row times powers of its base
 //! scale, the same at any zoom and in any order of refinement.
-use super::kept::{Kept, Table, COUNT, LEAVES, LEAVES_ALONG, MASS, MASS_ALONG, SECTION, SECTION2};
+use super::kept::{
+    Kept, Table, ALONG, COUNT, LEAVES, LEAVES_ALONG, MASS, MASS_ALONG, SECTION, SECTION2, SQUARE,
+    WOOD,
+};
 use super::predictor::Predictor;
 use crate::presence::Windows;
 use crate::schedule::Carried;
@@ -31,6 +34,11 @@ pub(crate) struct Row {
     pub count: f64,
     pub reach: f64,
     pub e: f64,
+    /// Its expected grown wood's root mean square distance from its base,
+    /// and that wood's mean distance along its heading, per unit base
+    /// scale (fn-211.4: where a fine root's stand-in leaves stand).
+    pub spread: f64,
+    pub along: f64,
 }
 
 /// One core's rows, by PA and age, each with its extinction curve.
@@ -194,5 +202,15 @@ fn row(faded: &Table, grown: &Table, m: usize, reach: f64) -> Row {
         count: b[COUNT],
         reach,
         e: faded.e,
+        spread: if g[WOOD] > 0.0 {
+            (g[SQUARE] / g[WOOD]).sqrt()
+        } else {
+            0.0
+        },
+        along: if g[WOOD] > 0.0 {
+            g[ALONG] / g[WOOD]
+        } else {
+            0.0
+        },
     }
 }

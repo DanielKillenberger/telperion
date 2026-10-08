@@ -29,6 +29,7 @@ use crate::grow::alone::rules;
 use crate::grow::{keeps, Request};
 use crate::species::Species;
 use crate::structure::{Origin, Structure, Vec3};
+use crate::transcendental::Transcendental;
 
 /// A fine root as a coarse tree holds it: its stand-in's axis in the
 /// structure, where its bud stands and heads, its base radius, how far
@@ -198,7 +199,7 @@ impl Roots for Expected<'_> {
                 // E[r | kept] weighed by the chance it is kept, in its
                 // pipe's exponent, so its section is E[S; kept].
                 let given = committed_radius(self.species, row, scale, root.pa);
-                let radius = given * row.kept.clamp(0.0, 1.0).powf(1.0 / row.e);
+                let radius = given * row.kept.clamp(0.0, 1.0).powf_fixed(1.0 / row.e);
                 let root = &mut self.roots[k];
                 (root.scale, root.radius) = (scale, radius);
                 radius

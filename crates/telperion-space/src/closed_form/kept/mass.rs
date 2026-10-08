@@ -24,6 +24,7 @@ use crate::species::Species;
 /// One zone's nodes along the axis, as tilted: each `l` long from
 /// `start`, their count's moments, their section's mean and spread, and
 /// the pipe their phytomers were established with.
+#[derive(Clone)]
 struct Segment {
     l: f64,
     start: f64,
@@ -35,6 +36,7 @@ struct Segment {
 
 /// The units grown so far: where each starts and how long it is, and
 /// their zones' segments, with where each unit's end.
+#[derive(Clone)]
 pub(super) struct Units {
     exponent: f64,
     secondary: f64,

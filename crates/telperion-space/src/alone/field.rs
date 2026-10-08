@@ -3,6 +3,7 @@
 use crate::bounded::Expected;
 use crate::species::Species;
 use crate::structure::{Origin, Structure};
+use crate::transcendental::Transcendental;
 
 /// The committed light field measured (fn-209 probe P2): its resolution,
 /// its build's milliseconds, its nodes, the leaves deposited and the buds
@@ -26,14 +27,14 @@ pub struct FieldProbe {
 /// last-cycle leaves of its axes of order up to `levels` (standing for the
 /// committed chains of the trunk's first levels), and every lateral bud
 /// they bear spread as its closed-form expected leaf area evenly over its
-/// extent bound; at each of `cells`.
+/// extent bound; at the lattice's one resolution, 0.5 m (contract A fixes
+/// it, fn-211 task 9).
 pub fn field_probe(
     species: &Species,
     reference: &Structure,
     light: crate::light::Light,
     expected: &Expected,
     levels: usize,
-    cells: &[f64],
     with_light: bool,
 ) -> Vec<FieldProbe> {
     use crate::geometry::dominance;
@@ -117,7 +118,7 @@ pub fn field_probe(
         .iter()
         .map(|&(i, _)| axes[i].phytomers.last().map_or(axes[i].base, |p| p.tip))
         .collect();
-    cells
+    [crate::light::CELL]
         .iter()
         .map(|&cell| {
             let started = crate::clock::seconds();
@@ -126,7 +127,7 @@ pub fn field_probe(
             for &(base, area, reach) in &buds {
                 spread_ball(&mut leaves, base, area, reach, cell);
             }
-            let mut field = Field::sized(&light, &leaves, &[], cell);
+            let mut field = Field::new(&light, &leaves, &[]);
             if let Some(levels) = levels_tables {
                 // The light axis: each bud's expected area at the light
                 // the neutral field gives its base, interpolated in log
@@ -142,7 +143,7 @@ pub fn field_probe(
                         cell,
                     );
                 }
-                field = Field::sized(&light, &spread, &[], cell);
+                field = Field::new(&light, &spread, &[]);
                 expected_lit = spread[own.len()..].iter().map(|l| l.1).sum();
             }
             let millis = (crate::clock::seconds() - started) * 1e3;
@@ -181,7 +182,9 @@ fn at_light(species: &Species, light: f64) -> Species {
     let mut s = species.clone();
     for state in &mut s.states {
         if state.shade_hazard > 0.0 && light < 1.0 {
-            state.viability = state.viability.powf(light.powf(-state.shade_hazard));
+            state.viability = state
+                .viability
+                .powf_fixed(light.powf_fixed(-state.shade_hazard));
         }
     }
     s
@@ -189,9 +192,9 @@ fn at_light(species: &Species, light: f64) -> Species {
 
 /// A table's value at light `l`, linear in log light between the levels.
 fn interpolate(tables: &[Vec<Vec<f64>>], pa: usize, m: usize, l: f64) -> f64 {
-    let x = l.ln();
+    let x = l.ln_fixed();
     for k in 0..LEVELS.len() - 1 {
-        let (a, b) = (LEVELS[k].ln(), LEVELS[k + 1].ln());
+        let (a, b) = (LEVELS[k].ln_fixed(), LEVELS[k + 1].ln_fixed());
         if x <= a && x >= b {
             let t = (a - x) / (a - b);
             return (1.0 - t) * tables[k][pa][m] + t * tables[k + 1][pa][m];

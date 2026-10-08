@@ -49,6 +49,8 @@ pub(super) struct Tables {
     pub uploaded: Uploaded,
     pub table: wgpu::Buffer,
     pub sags: bool,
+    /// Each PA's divergence, which a bearer's phase reads (`bearer_frame`).
+    pub divergence: Vec<f64>,
 }
 
 impl Tables {
@@ -65,6 +67,7 @@ impl Tables {
             packed,
             table,
             sags,
+            divergence: geo.pas.iter().map(|p| p.divergence).collect(),
         }
     }
 }
@@ -213,8 +216,12 @@ fn grow_run(
     encoder.copy_buffer_to_buffer(&queued, 0, &sums, 12, 4);
     gpu.queue.submit([encoder.finish()]);
     let t = totals(gpu, &sums, 4, cost);
-    let axes = k.pool.take(gpu, "packed axes", u64::from(t[0]) * AXW as u64);
-    let phyts = k.pool.take(gpu, "packed phytomers", u64::from(t[1]) * PW as u64);
+    let axes = k
+        .pool
+        .take(gpu, "packed axes", u64::from(t[0]) * AXW as u64);
+    let phyts = k
+        .pool
+        .take(gpu, "packed phytomers", u64::from(t[1]) * PW as u64);
     let scratch = k.pool.take(gpu, "laid scratch", u64::from(t[2]));
     let items = buffer(gpu, "laid items", u64::from(m * IW));
     let mut encoder = gpu.device.create_command_encoder(&Default::default());

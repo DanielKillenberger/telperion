@@ -4,6 +4,7 @@
 use super::*;
 use crate::species::{NodeLaw, PaState, Zone};
 use crate::structure::{Axis, Vec3};
+use crate::transcendental::Transcendental;
 
 fn state(leaf_girth: f64) -> PaState {
     PaState {
@@ -58,6 +59,7 @@ fn phytomer(light: f64) -> Phytomer {
         rank: 0.0,
         size: 1.0,
         light,
+        grown: 1.0,
     }
 }
 
@@ -78,6 +80,7 @@ fn axis(origin: Origin, lights: &[f64]) -> Axis {
         alive: 1.0,
         rank: 0.0,
         sleep: 0.0,
+        phase: 0,
     }
 }
 
@@ -108,7 +111,7 @@ fn own_total(t: &Structure, species: &Species) -> f64 {
         .iter()
         .flat_map(|a| &a.phytomers)
         .map(|p| {
-            let leaf = mean.map_or(1.0, |m| p.light.powf(state.leaf_girth) * m);
+            let leaf = mean.map_or(1.0, |m| p.light.powf_fixed(state.leaf_girth) * m);
             own(&state.form, p, t.age, p.scale, leaf)
         })
         .sum()
@@ -126,7 +129,9 @@ fn the_leaf_term_keeps_the_trees_pipe_and_thickens_the_lit_limb() {
     thicken(&mut a, &neutral, &Girth::default(), 1);
     thicken(&mut b, &leafy, &Girth::default(), 1);
     let (ta, tb) = (own_total(&a, &neutral), own_total(&b, &leafy));
-    assert!((ta - tb).abs() < 1e-12 * ta, "own pipe {ta} against {tb}");
+    // Contract A: the mean is a W quotient and each pipe one floor, so
+    // the tree's pipe holds to Q32's last places summed (1e-6 relative).
+    assert!((ta - tb).abs() < 1e-6 * ta, "own pipe {ta} against {tb}");
     assert_eq!(a.axes[1].phytomers[0].radius, a.axes[2].phytomers[0].radius);
     assert!(b.axes[1].phytomers[0].radius > a.axes[1].phytomers[0].radius);
     assert!(b.axes[2].phytomers[0].radius < a.axes[2].phytomers[0].radius);

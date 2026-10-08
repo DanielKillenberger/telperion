@@ -128,7 +128,7 @@ impl<'a> StandIns<'a> {
                     ..
                 } => {
                     let c = self.of(pa, m - at, carried, first);
-                    let turn = stand.angle.cos();
+                    let turn = stand.turn[0];
                     let [d1, d2, d3] = stand.dominance;
                     let [s1, s2, s3] = stand.shares;
                     let (k1, k2, k3) = (unit * d1, unit * unit * d2, unit.powi(3) * d3);

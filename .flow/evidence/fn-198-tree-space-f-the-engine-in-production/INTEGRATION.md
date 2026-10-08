@@ -469,3 +469,36 @@ It would use the same grammar with paths of the engine's own `settings` names (f
 ## Host correction 11b (2026-10-07)
 
 Decision 11a's reason was inverted: the cull keeps every leaf outside the outline and drops leaves deeper inside it than the shell, so an outline that contains the crown makes the cull drop as much as it can, not less. The shoulder should instead be fitted inside the crown (least squares, or the outline the crown's outer nodes lie on or outside of). No shipped tree is affected today (beech, spruce, oak have shellDepth 1; the palm's crown has no height span), so the change is made with the R0 list's envelope work, not now.
+
+## Task 8 (worker, 2026-10-07): F2b merged, and the engine on the pinned math
+
+### Step 1: fn-211 F2b merged
+
+`fn-211-tree-space-f2b-growth-years-cheap` at `50ed5161` (its stepped executor, the three order-free sums of its host decision A, the light oracle, the coupling pass, probe (a)'s partition and probe (b)). The common base is F1's `2975e8d5`, which both branches had merged, so only the two branches' own work met. Two conflicts:
+- `grow.rs`, the grower's initializer: this branch's `spare` (task 5's per-cycle lists) beside F2b's `oracle`, `couple` and `fine`; both kept. F2b's `subtree.rs` builds a bare grower and takes `spare` too.
+- `crates/telperion-render/examples/space/still.rs`: this branch rewrote the stills through the pipeline (`executor::grow(&family)`); F2b added probe flags (`--oracle`, `--stepped`, `--canonical`) to the old handed-in path. This branch's file is kept: a still is the pipeline's tree. The stepped oak's own stills stay F2b's (`examples/stepped.rs` in the engine crate prints its digests).
+
+**Identical by lineage** (`examples/digests.rs`, which now also prints a topology digest: each axis's lineage identity with its phytomer count, sorted; `raw/task8/digests-base.txt` at `2a458029`, built in a detached worktree with its own `target/`, against `digests-merge.txt`):
+- 28 of 32 trees equal to the bit (the lineage digest hashes every field): the beech, spruce and palm, neutral and lit, and the unlit oak, at 40 and 80, seeds 1 and 7.
+- The lit oak (the shipped oak's light 0.5, 0.5) at 40 and 80, seeds 1 and 7: topology equal in all four, kept phytomers equal; its fields move, as F2b's decision A moves them (the PA sums, the lattice's deposits and the leaf-light girth summed in Q64.64; TASK5-GPU.md measured at most 1.6 nm of tip and 3.8e-6 of radius against F1, whose arithmetic this branch's tip carries).
+- The oak stays on its path (`grow`'s whole grower, light read), and its stepped executor equals `grow` to the bit at all four (`oak-stepped` lines).
+- `cargo test --profile ci -p telperion-space` green after the merge.
+
+**After the merge, one fix** (`848b0acd`): F2b's `run_beside` (the lit oak's path through `grow`), its coupled pass and its stepped executor read `Instant::now()`, which traps on wasm32; the browser module's oak hit `RuntimeError: unreachable` in `harness/parity.test.ts`. They read the engine's clock (`crate::clock`, host decision 8) now. No tree moves; the beech, spruce and palm had passed.
+
+### Step 2: the engine on the pinned math (host decision 10)
+
+**What changed.** The core's pinned trait (`Transcendental`: libm `=0.2.16`, pure Rust, with the core's bit-exact `hypot`) moved into `telperion-space` (`src/transcendental.rs`), which now owns the `libm` dependency; the core reads it from there (`math.rs`), so the workspace has one pinned math. It gained `tan`, `asin`, `atan` and `ln_1p`, which the engine calls. Every transcendental call in the engine's source, its unit tests included (151 calls in 40 files: `sin`, `cos`, `sin_cos`, `tan`, `asin`, `acos`, `atan`, `atan2`, `exp`, `exp_m1`, `ln`, `ln_1p`, `powf`), goes through it; so do the core's two production `hypot` calls on the engine's path (`pipeline/input.rs`, `input/shoulder.rs`, the grown envelope). Left as they are: `sqrt` (correctly rounded by IEEE 754), `powi` (as in the core), the fixed-point tests' std `log2`/`exp2` references (tolerances), the engine's examples and integration tests.
+
+**Native against Wasm: bit-identical.** `harness/parity.test.ts` now asserts each engine preset's node buffer (positions, radii and topology) byte for byte, native release against `telperion.wasm`: 8 of 8 pass (four engine presets equal, four refused by name on both sides).
+
+**What moved** (`raw/task8/*-before.txt` at `848b0acd`'s tree, `*-after.txt` pinned):
+- **Topology: nothing.** All 36 topology digests (`examples/digests.rs`: the four species, 40 and 80, seeds 1 and 7, neutral and lit, and the stepped oak) and every kept phytomer count are equal; the pipeline's 16 trees keep their node counts (`space_hash`).
+- **Fields: rounding.** Every lineage digest and every clothed hash moves (the palm's included). `contract compare` over 28 trees, by lineage: no axis or phytomer only on one side; tips moved at most 1.0e-12 m (spruce 80 seed 7 alone), at most 1.5e-13 m elsewhere but the oak at 80 seed 7 (8.6e-13 m); radii at most 1.4e-10 relative (oak 80 seed 7), 2e-15 elsewhere but the oak (`contract-compare.txt`).
+- **The stepped oak still equals `grow`** to the bit at all four (`oak-stepped` lines).
+- **Stills** (`raw/task8/before/`, `after/`, seed 1, six shots each of the four species at 40 and 80, through the pipeline): 41 of 48 byte-identical; the beech's other seven differ in at most 14 pixels (`magick compare -metric AE`, beech 80 crown). Viewed: the whole shot of each species at 40 and 80 after the pin (`view-{beech,oak,spruce,palm}.png`); each reads as its species as in task 5, none blank, collapsed or below the ground.
+- **The GPU contract** (fn-209's probe, `the_gpu_takes_every_decision_the_cpu_does`, GPU lock held): green. Its WGSL mirrors fixed-point functions only, which the pin does not touch.
+
+**Pins the pin moved** (re-pinned in the commit after it, each a hash of values that moved at rounding): the closed form's row hashes (`closed_form/boundary/tests.rs`, 26 of 40; its tolerance test against 9f063433's rows holds), the catalogue's blend walk (`catalogue_identity.rs`, `every_walk_is_the_walk_it_was`: the engine species' blended values), and the palm's catalogue skeleton hash (`catalogue/date-palm/pins.json` and its README; its bounds, counts and placement hash unchanged).
+
+**Gates.** `npm test` green (13 files, 143 tests, the parity test's 8 included). `cargo test --profile ci --workspace --no-fail-fast` with the GPU lock held (`raw/task8/gate.txt`, load 6 to 36): 1,146 passed, 4 failed, 53 ignored; three of the four were the pins above, green after the re-pin (their binaries re-run). **The fourth is not this task's and fails at fn-198's tip `2a458029` too** (run there): `generation_limit_guard::generation_limits_are_classified` names nine sites of task 6's `pipeline/input/shoulder.rs` (`BINS`, `HALVINGS`, the bins' loop and clamps, the degenerate guards) that `docs/generation-limits-inventory.json` does not classify. Classifying them is a review the inventory asks for; left to the host.

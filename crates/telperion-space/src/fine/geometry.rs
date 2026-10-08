@@ -33,6 +33,9 @@ pub struct PaGeometry {
     pub secondary: f64,
     pub bend_length: f64,
     pub retained: f64,
+    pub internode_spread: f64,
+    pub insertion_spread: f64,
+    pub tropism_spread: f64,
 }
 
 /// One zone of a PA's growth unit: its buds a node, and per PA a lateral
@@ -99,6 +102,9 @@ impl GeometryTables {
                     secondary: f.secondary,
                     bend_length: f.bend_length,
                     retained: s.retained,
+                    internode_spread: f.internode_spread,
+                    insertion_spread: f.insertion_spread,
+                    tropism_spread: f.tropism_spread,
                 }
             })
             .collect();
@@ -123,8 +129,9 @@ impl GeometryTables {
 }
 
 /// The bearer's laid frame at a fine root's node: the point below the
-/// node, its tip, heading and side, and its phytomer's rank, scale and
-/// size.
+/// node, its tip, heading and side, its phytomer's rank, scale and size,
+/// and the phase of its axis's phyllotaxis, an amount (Q32 turns;
+/// `geometry::phase`, fn-199).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BearerFrame {
     pub below: Vec3,
@@ -134,6 +141,7 @@ pub struct BearerFrame {
     pub rank: f64,
     pub scale: f64,
     pub size: f64,
+    pub phase: i64,
 }
 
 /// A fine root's attachment as its geometry reads it: its bud's vigour as
@@ -149,8 +157,14 @@ pub struct RootGeometry {
 }
 
 /// The laid frame of axis `bearer` of `tree` at its node `node`, as a
-/// fine root standing there reads it (realized mechanics).
-pub fn bearer_frame(tree: &Structure, bearer: usize, node: usize) -> BearerFrame {
+/// fine root standing there reads it (realized mechanics), each PA's
+/// divergence `divergence`.
+pub fn bearer_frame(
+    tree: &Structure,
+    divergence: &[f64],
+    bearer: usize,
+    node: usize,
+) -> BearerFrame {
     let axis = &tree.axes[bearer];
     let at = &axis.phytomers[node];
     BearerFrame {
@@ -163,5 +177,6 @@ pub fn bearer_frame(tree: &Structure, bearer: usize, node: usize) -> BearerFrame
         rank: at.rank,
         scale: at.scale,
         size: at.size,
+        phase: crate::geometry::phase_by(&tree.axes, &|pa| divergence[pa], bearer),
     }
 }

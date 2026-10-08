@@ -136,3 +136,37 @@
 - **Slowed by:** another worker's binary held 26 cores; load ran 76 to 131 on 32 cores in the smoke runs and 27 to 55 in the sweep. One 0.1.4 oak took 2.3 s against 0.17 s quiet, and one native branch spruce took 8 s against 2.5 s, so a quieter pass and a native rerun were needed before any time could be reported.
 - **Cost:** about 5 minutes and two extra passes.
 - **Would remove it:** the desk-wide timing lock named in the entry above; nothing new.
+
+## 2026-10-07 11:10, task 8: F2b's `Instant::now()` reached the browser's oak unseen
+
+- **Doing:** the parity test after the pin, the first Wasm build of the merge.
+- **Slowed by:** F2b's `run_beside` (every lit `grow`) read `Instant::now()`, which traps on wasm32; native tests and the engine's suite pass over it, so only the Wasm build of the oak showed it, as `RuntimeError: unreachable` with no message. Tracing it to the merge's diff took a grep of F2b's `Instant` uses.
+- **Cost:** about 8 minutes.
+- **Would remove it:** a lint or test that the engine's non-test source names no `std::time::Instant` outside `clock.rs` (host decision 8 as a check, not a convention).
+
+## 2026-10-07 11:15, task 8: the stills and digests example would not take a plain redirect
+
+- **Doing:** writing before/after digests to the scratchpad from one command.
+- **Slowed by:** the dcg hook blocks a `>` redirect to a path held in a shell variable; the commands moved into a script with literal paths.
+- **Cost:** about 3 minutes.
+- **Would remove it:** a local setup matter (the hook's rule), reported, not specced.
+## 2026-10-07 11:35, task 7: timings on a desk four worktrees share
+
+- **Doing:** the gate's wall time and the slowest tests, before and after the audit.
+- **Slowed by:** the desk ran at a load of 20 to 55 from other worktrees' gates, stills and builds; the baseline gate took 980 s with `walks` alone at 395 s, and one test pair took 370 s wall where it took 195 s and 120 s alone an hour earlier. Wall times were unusable for comparing one change, so each change was measured by CPU time (`time`) or alone. The GPU lock was held by another worktree's whole gate, so a GPU test waited up to 15 minutes for a 1-minute run. `/usr/bin/time` and `bc` are not installed, which cost one empty gate start.
+- **Cost:** about 20 minutes of waiting and one wasted gate start.
+- **Would remove it:** per-test times from the runner itself (cargo-nextest locally, as CI has, reports each test's time and a slow-test list); a desk-wide CPU lock beside the GPU lock for timing runs; a local setup matter for the missing tools.
+
+## 2026-10-07 23:30, merging fn-199 into F4: the second key clash in a day, and no hashes to compare against
+
+- **Doing:** merging fn-199 (head 8112fb0f) onto F4's b31a4f65, which carries fn-224.
+- **Slowed by:** both branches took `u64::MAX - 10` as a lineage key (fn-199's `FAILED`, fn-224's `INSERTION`) and selector 17 of the contract probe, with the GPU copies spread over six WGSL files as raw words; nothing failed until a reader found them. fn-199's evidence records no `space_hash` output, so its 16 clothed hashes had to be rebuilt from its tree in a separate copy with its own `target/`.
+- **Cost:** about 15 minutes on the clash; one extra full build of the render crate for the hashes.
+- **Would remove it:** done in the merge: the lineage keys sit in one registry (`telperion_space::lineage_keys`), the selectors in another (`fine/selectors.rs`), each with a distinctness test and a WGSL mirror (`fine/lineage.wgsl`, `probe.wgsl`'s `P_*`) checked by `fine/mirror_tests.rs`. Still open: a branch that changes trees records its `space_hash` lines in its RESULT.md.
+
+## 2026-10-08 02:00, merging fn-211 (F2b, contract A) into F4: two lines of change on one helper, and a command guard
+
+- **Doing:** resolving 26 conflicted files, then porting F4's f64 layout features to contract A's fixed point.
+- **Slowed by:** both branches rewrote the decision contract's `log2` (F4 for speed, as squarings with a paired form; F2b as a polynomial that is not `const`), and F4's presence bounds build a `const` table from `log2`, so the polynomial had to be made `const` too. fn-211's evidence records no `space_hash` lines either (the rule in the entry above), so the before half was built and kept as binaries copied out of `target/` before merging. The desk's command guard refuses a shell redirect to a variable path and `rm -rf` of a variable path, which cost two re-runs with literal paths.
+- **Cost:** about 15 minutes on the two `log2`s; about 3 minutes on the guard.
+- **Would remove it:** a branch that rewrites a shared contract helper names it in its RESULT.md, so the other branch's speed work on it is seen before the merge; `space_hash` taking a revision (fn-224's entry) would remove the copied binaries.
