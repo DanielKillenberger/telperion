@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-08T14:47:47.982995Z",
+  "depends_on": [
+    "fn-217-tree-space-the-supernatural-group-on.1"
+  ],
+  "id": "fn-217-tree-space-the-supernatural-group-on.2",
+  "priority": null,
+  "spec": "fn-217-tree-space-the-supernatural-group-on",
+  "spec_path": ".flow/tasks/fn-217-tree-space-the-supernatural-group-on.2.md",
+  "status": "todo",
+  "title": "The group's rows, scale and leaves",
+  "updated_at": "2026-10-08T14:47:47.982995Z"
+}

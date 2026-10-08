@@ -77,6 +77,21 @@
 //! two changes touching disjoint rows; every engine preset's grown tree
 //! (`space_hash`, four species at 40 and 80, seeds 1 and 7) was fn-198's
 //! to the bit (MERGE-223.md). The override and refusal digests are fn-223's.
+//! fn-217 re-pinned all four for the supernatural group (`/supernatural`):
+//! with the group stripped from each family's text and from the wire, the
+//! family, walk and override texts were each fn-215's and fn-216's to the
+//! byte, and every single-row refusal of every other row read as it did;
+//! only the refusal pairs, which pair rows by index, re-paired.
+//! fn-217 task 3 re-pinned all four for the floret's rows: `/bloom/petalCurl`,
+//! `stamens`, `stamenLength`, `stamenWidth`, their `/supernatural/bloom`
+//! overrides and the material's four `bloomEye*` rows. With those stripped
+//! from the text and the wire, the family, walk and override digests were
+//! each task 2's to the bit; the refusal digest takes the new rows' own
+//! refusals and re-pairs by index.
+//! When fn-217 was merged onto fn-198 (MERGE-217.md) all four were
+//! re-pinned once more: fn-217's rows and F4's are disjoint, and every
+//! engine preset's grown tree (`space_hash`, four species at 40 and 80,
+//! seeds 1 and 7) was F4's to the bit with the group present and off.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -112,7 +127,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        15_341_796_280_686_330_418,
+        6_657_907_224_534_109_834,
         "{}",
         digest(&text)
     );
@@ -144,7 +159,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        10_261_846_770_402_034_553,
+        2_827_795_343_174_730_974,
         "{}",
         digest(&text)
     );
@@ -169,7 +184,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        7_934_268_765_783_179_966,
+        17_412_911_408_925_295_970,
         "{}",
         digest(&text)
     );
@@ -232,7 +247,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        1_536_851_553_539_686_348,
+        159_807_827_090_449_713,
         "{}",
         digest(&text)
     );

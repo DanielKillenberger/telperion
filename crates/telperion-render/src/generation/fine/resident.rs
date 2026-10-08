@@ -131,7 +131,10 @@ pub(super) async fn build(
     tools: &Tools,
     family: &Family,
 ) -> Result<Built> {
-    let species = (family.space.species.clone()).ok_or_else(|| refused("no engine species"))?;
+    // The species as the supernatural group applies it: its flowering is
+    // the share the conversion reads (`executor::settle`).
+    let species = family.applied().space.species.clone();
+    let species = species.ok_or_else(|| refused("no engine species"))?;
     let flowers = species.states.iter().any(|s| s.flowering > 0.0);
     let age = family.age as u32;
     let chain = ChainTables::new(&species, age).map_err(|_| refused("chain tables"))?;
@@ -150,7 +153,7 @@ pub(super) async fn build(
     let d = &tools.dresser;
     let dressed = stage(gpu, &mut t.dress, async || {
         let stubs = stubs(part.tree(), &dev, &part.lineages, &landed);
-        dress(gpu, d, &dev, &stubs)
+        dress(gpu, d, &dev, (&stubs, part.scale()))
     })
     .await?;
     drop(dev);

@@ -87,24 +87,28 @@ struct Parity {
     leaves: Seated,
 }
 
-fn cell(v: Vec3) -> (i64, i64, i64) {
-    let c = |x: f64| (x / 1e-3).floor() as i64;
+/// A millimetre's cell at the scale `s` the tree is drawn at.
+fn cell(v: Vec3, s: f64) -> (i64, i64, i64) {
+    let c = |x: f64| (x / (1e-3 * s)).floor() as i64;
     (c(v.x), c(v.y), c(v.z))
 }
 
 fn near<'a, T: Copy>(
     map: &'a HashMap<(i64, i64, i64), Vec<T>>,
-    at: Vec3,
+    (at, s): (Vec3, f64),
 ) -> impl Iterator<Item = T> + 'a {
-    let (x, y, z) = cell(at);
+    let (x, y, z) = cell(at, s);
     (-1..=1)
         .flat_map(move |a| (-1..=1).flat_map(move |b| (-1..=1).map(move |c| (x + a, y + b, z + c))))
         .flat_map(|c| map.get(&c).into_iter().flatten().copied())
 }
 
 /// The part's nodes against the whole tree's (`fine`: the whole tree's
-/// nodes the device draws).
-fn nodes(part: &Tree, whole: &Tree, fine: &[bool]) -> (Nodes, HashMap<(i64, i64, i64), Vec<Vec3>>) {
+/// nodes the device draws), the screen at the scale `s` they are drawn at.
+fn nodes(
+    (part, whole, fine): (&Tree, &Tree, &[bool]),
+    s: f64,
+) -> (Nodes, HashMap<(i64, i64, i64), Vec<Vec3>>) {
     let mut by: HashMap<u32, Vec<usize>> = HashMap::new();
     for i in 0..whole.nodes.len() {
         by.entry(whole.key(i)).or_default().push(i);
@@ -133,7 +137,7 @@ fn nodes(part: &Tree, whole: &Tree, fine: &[bool]) -> (Nodes, HashMap<(i64, i64,
         let w = &whole.nodes[j];
         let off = w.position.distance(n.position);
         out.position = out.position.max(off);
-        out.nodes.2 += usize::from(off > MOST);
+        out.nodes.2 += usize::from(off > MOST * s);
         if w.kind != n.kind {
             out.kinds.0 += 1;
             let (all, theirs) = children[j];
@@ -147,7 +151,7 @@ fn nodes(part: &Tree, whole: &Tree, fine: &[bool]) -> (Nodes, HashMap<(i64, i64,
     let mut forks: HashMap<(i64, i64, i64), Vec<Vec3>> = HashMap::new();
     for (j, _) in bears.iter().enumerate().filter(|(_, &b)| b) {
         let at = whole.nodes[j].position;
-        forks.entry(cell(at)).or_default().push(at);
+        forks.entry(cell(at, s)).or_default().push(at);
     }
     (out, forks)
 }
@@ -157,13 +161,15 @@ fn words(gpu: &Gpu, b: &wgpu::Buffer, n: u64) -> Vec<u32> {
     bytemuck::cast_slice(&raw).to_vec()
 }
 
-/// The submitted curve's runs, by class, against the reference's.
+/// The submitted curve's runs, by class, against the reference's, the
+/// screen at the scale `s` they are drawn at.
 fn curve(
     gpu: &Gpu,
     built: &Built,
-    theirs: &Curve,
-    forks: &HashMap<(i64, i64, i64), Vec<Vec3>>,
+    (theirs, forks): (&Curve, &HashMap<(i64, i64, i64), Vec<Vec3>>),
+    s: f64,
 ) -> Runs {
+    let most = MOST * s;
     let wood = built.prepared.wood.as_ref().unwrap();
     let (points, clusters, p, k, demand) = wood.blocks();
     let points = words(gpu, points, p * POINT_WORDS as u64);
@@ -185,7 +191,7 @@ fn curve(
     let mut by: HashMap<(i64, i64, i64), Vec<usize>> = HashMap::new();
     for (j, r) in theirs.runs.iter().enumerate().filter(|(_, r)| r.count > 1) {
         let at = theirs.points[r.first as usize + 1].centre;
-        by.entry(cell(at)).or_default().push(j);
+        by.entry(cell(at, s)).or_default().push(j);
     }
     let mut used = vec![false; theirs.runs.len()];
     let mut out = Runs {
@@ -202,8 +208,8 @@ fn curve(
                 .centre
                 .distance(at)
         };
-        let found = near(&by, at)
-            .filter(|&j| !used[j] && off(j) <= MOST)
+        let found = near(&by, (at, s))
+            .filter(|&j| !used[j] && off(j) <= most)
             .min_by(|&a, &b| off(a).total_cmp(&off(b)));
         let Some(j) = found else {
             out.unmatched += 1;
@@ -216,7 +222,7 @@ fn curve(
             continue;
         }
         let apart: Vec<bool> = (want.iter().enumerate())
-            .map(|(i, c)| point(first + i as u32).centre.distance(c.centre) > MOST)
+            .map(|(i, c)| point(first + i as u32).centre.distance(c.centre) > most)
             .collect();
         if apart[1..].iter().any(|&a| a) {
             out.parted += 1;
@@ -232,7 +238,7 @@ fn curve(
         if worst > 1e-3 {
             let forked = want
                 .iter()
-                .any(|c| near(forks, c.centre).any(|f: Vec3| f.distance(c.centre) <= MOST));
+                .any(|c| near(forks, (c.centre, s)).any(|f: Vec3| f.distance(c.centre) <= most));
             if forked {
                 out.radii.0 += 1;
             } else {
@@ -298,8 +304,9 @@ fn parity(gpu: &Gpu, k: &Kernels, gen: &Generator, family: &Family) -> Parity {
     let built = pollster::block_on(build(gpu, gen, k, &Tools::new(gpu), family)).unwrap();
     let part = built.expansion.tree();
     let fine = fine_nodes(x.tree(), part);
-    let (nodes, forks) = nodes(part, x.tree(), &fine);
-    let runs = curve(gpu, &built, &their_curve, &forks);
+    let s = family.supernatural.scale();
+    let (nodes, forks) = nodes((part, x.tree(), &fine), s);
+    let runs = curve(gpu, &built, (&their_curve, &forks), s);
     let resident = built.prepared.resident.as_ref().unwrap();
     let leaves = io::read_leaves_async(gpu, resident.leaves.buffer(), resident.count);
     let leaves = pollster::block_on(leaves).unwrap();
@@ -378,4 +385,35 @@ fn real_path_at_80() {
     }
     let p = parity(&gpu, &k, &gen, &family);
     println!("{only}: {p:?}");
+}
+
+/// fn-217 S1: the device draws its roots' wood at the scale the pipeline
+/// drew the tree above the cut, so the young beech on the real path
+/// matches the CPU path at both ends of the scale's range, the screen
+/// taken at the scale.
+#[test]
+fn the_real_path_matches_the_cpu_path_at_every_scale() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let (k, gen) = (kernels(&gpu), generator(&gpu));
+    for scale in [0.1, 100.0] {
+        let mut f = family("european-beech", (20, 1));
+        f.supernatural.enabled = true;
+        f.supernatural.scale = scale;
+        let p = parity(&gpu, &k, &gen, &f);
+        println!("european-beech (20, 1) at {scale}: {p:?}");
+        assert_eq!(p.leaves.flags, 0, "{scale}: placement flags");
+        assert_eq!(
+            p.runs.unmatched + p.runs.missing,
+            0,
+            "{scale}: every run matched"
+        );
+        assert_eq!(
+            p.nodes.nodes.1 + p.nodes.nodes.2,
+            0,
+            "{scale}: every node placed"
+        );
+        assert!(p.runs.runs.1 > 0, "{scale}: the device drew roots");
+    }
 }

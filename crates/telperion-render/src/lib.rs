@@ -214,7 +214,7 @@ impl Renderer {
         self.scene.set_crown(crown_of(&mesh.foliage));
         self.scene
             .set_leaf_reference(mesh.foliage.instances.reference);
-        self.scene.section_roundness = mesh.foliage.element.section_roundness;
+        self.scene.set_leaf(&mesh.foliage.element);
         self.bounds = Some(mesh.bounds);
         self.level_deviations = mesh
             .foliage
@@ -289,6 +289,14 @@ impl Renderer {
         self.view = view;
     }
 
+    /// The organ mask (fn-217 M0), an instrument for measuring coverage:
+    /// in the clay view the flowers draw white and every other surface and
+    /// the room black, unlit, so a still's resolved mean is the share of the
+    /// frame the florets cover as the frame draws them. Off by default.
+    pub fn set_organ_mask(&mut self, on: bool) {
+        self.scene.set_mask(on);
+    }
+
     pub fn view(&self) -> View {
         self.view
     }
@@ -305,6 +313,15 @@ impl Renderer {
     pub fn set_material(&mut self, material: MaterialParams) {
         self.wood.set_material(&material);
         self.scene.set_material(material);
+    }
+
+    /// What the tree that is up is made of, as `family` states it with its
+    /// supernatural group applied: its material, the group's overrides laid
+    /// over it while the group is on and the bark's lengths at its scale,
+    /// and the group's leaf mirrors.
+    pub fn set_family(&mut self, family: &telperion_core::Family) {
+        self.set_material(family.drawn_material());
+        self.scene.set_reflection(family.supernatural.reflection());
     }
 
     /// Puts the sun somewhere else and paints the sky and the ground with it.

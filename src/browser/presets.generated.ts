@@ -14,6 +14,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "opens": 0.3,
         "pedicel": 0.01,
         "petalCup": 0.2,
+        "petalCurl": 0,
         "petalLength": 0.012,
         "petalWidest": 0.6,
         "petalWidth": 0.009,
@@ -22,6 +23,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "scatter": 0.1,
         "spread": 60,
         "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
         "taper": 0
       },
       "canopy": {
@@ -99,6 +103,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bloomBackBlue": 0.64,
         "bloomBackGreen": 0.72,
         "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
         "bloomFrontBlue": 0.74,
         "bloomFrontGreen": 0.8,
         "bloomFrontRed": 0.82,
@@ -1275,6 +1283,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "extinction": 0.16666666666666669
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -1304,6 +1325,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "opens": 0.3,
         "pedicel": 0.01,
         "petalCup": 0.2,
+        "petalCurl": 0,
         "petalLength": 0.012,
         "petalWidest": 0.6,
         "petalWidth": 0.009,
@@ -1312,6 +1334,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "scatter": 0.1,
         "spread": 60,
         "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
         "taper": 0
       },
       "canopy": {
@@ -1389,6 +1414,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bloomBackBlue": 0.64,
         "bloomBackGreen": 0.72,
         "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
         "bloomFrontBlue": 0.74,
         "bloomFrontGreen": 0.8,
         "bloomFrontRed": 0.82,
@@ -2128,6 +2157,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "extinction": 0.5
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -2157,6 +2199,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "opens": 0.3,
         "pedicel": 0.01,
         "petalCup": 0.2,
+        "petalCurl": 0,
         "petalLength": 0.012,
         "petalWidest": 0.6,
         "petalWidth": 0.009,
@@ -2165,6 +2208,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "scatter": 0.1,
         "spread": 60,
         "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
         "taper": 0
       },
       "canopy": {
@@ -2242,6 +2288,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bloomBackBlue": 0.64,
         "bloomBackGreen": 0.72,
         "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
         "bloomFrontBlue": 0.74,
         "bloomFrontGreen": 0.8,
         "bloomFrontRed": 0.82,
@@ -2828,6 +2878,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -2857,6 +2920,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "opens": 0.3,
         "pedicel": 0.01,
         "petalCup": 0.2,
+        "petalCurl": 0,
         "petalLength": 0.012,
         "petalWidest": 0.6,
         "petalWidth": 0.009,
@@ -2865,6 +2929,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "scatter": 0.1,
         "spread": 60,
         "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
         "taper": 0
       },
       "canopy": {
@@ -2942,6 +3009,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bloomBackBlue": 0.64,
         "bloomBackGreen": 0.72,
         "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
         "bloomFrontBlue": 0.74,
         "bloomFrontGreen": 0.8,
         "bloomFrontRed": 0.82,
@@ -3540,6 +3611,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -3569,6 +3653,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "opens": 0.3,
         "pedicel": 0.01,
         "petalCup": 0.2,
+        "petalCurl": 0,
         "petalLength": 0.012,
         "petalWidest": 0.6,
         "petalWidth": 0.009,
@@ -3577,6 +3662,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "scatter": 0.1,
         "spread": 60,
         "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
         "taper": 0
       },
       "canopy": {
@@ -3654,6 +3742,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bloomBackBlue": 0.64,
         "bloomBackGreen": 0.72,
         "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
         "bloomFrontBlue": 0.74,
         "bloomFrontGreen": 0.8,
         "bloomFrontRed": 0.82,
@@ -3844,6 +3936,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "vigourVariation": 0.15
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -3873,6 +3978,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "opens": 0.3,
         "pedicel": 0.01,
         "petalCup": 0.2,
+        "petalCurl": 0,
         "petalLength": 0.012,
         "petalWidest": 0.6,
         "petalWidth": 0.009,
@@ -3881,6 +3987,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "scatter": 0.1,
         "spread": 60,
         "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
         "taper": 0
       },
       "canopy": {
@@ -3958,6 +4067,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bloomBackBlue": 0.64,
         "bloomBackGreen": 0.72,
         "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
         "bloomFrontBlue": 0.74,
         "bloomFrontGreen": 0.8,
         "bloomFrontRed": 0.82,
@@ -4177,6 +4290,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -4206,6 +4332,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "opens": 0.3,
         "pedicel": 0.01,
         "petalCup": 0.2,
+        "petalCurl": 0,
         "petalLength": 0.012,
         "petalWidest": 0.6,
         "petalWidth": 0.009,
@@ -4214,6 +4341,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "scatter": 0.1,
         "spread": 60,
         "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
         "taper": 0
       },
       "canopy": {
@@ -4291,6 +4421,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bloomBackBlue": 0.64,
         "bloomBackGreen": 0.72,
         "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
         "bloomFrontBlue": 0.74,
         "bloomFrontGreen": 0.8,
         "bloomFrontRed": 0.82,
@@ -4481,6 +4615,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "vigourVariation": 0.15
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -4510,6 +4657,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "opens": 0.3,
         "pedicel": 0.01,
         "petalCup": 0.2,
+        "petalCurl": 0,
         "petalLength": 0.012,
         "petalWidest": 0.6,
         "petalWidth": 0.009,
@@ -4518,6 +4666,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "scatter": 0.1,
         "spread": 60,
         "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
         "taper": 0
       },
       "canopy": {
@@ -4595,6 +4746,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bloomBackBlue": 0.64,
         "bloomBackGreen": 0.72,
         "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
         "bloomFrontBlue": 0.74,
         "bloomFrontGreen": 0.8,
         "bloomFrontRed": 0.82,
@@ -4784,6 +4939,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "vigourVariation": 0.15
         }
+      },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
       },
       "surface": {
         "flareDepth": 0.004,

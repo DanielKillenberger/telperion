@@ -76,6 +76,7 @@ pub(super) fn flowering(id: &str, (age, seed): (u32, u32)) -> Family {
         opens: 0.3,
         lasts: 0.08,
         stagger: 0.3,
+        ..BloomParams::default()
     };
     family
 }

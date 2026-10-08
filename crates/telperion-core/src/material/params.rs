@@ -254,6 +254,40 @@ crate::catalogue::rows! {
             applies: "no age flowering",
             dial: crate::catalogue::FLOWERS,
         },
+        /// A floret's eye: the colour its petals turn toward at their base,
+        /// a linear reflectance on the petals' scale, and the stamens' colour.
+        pub bloom_eye_red: f64 = "bloomEyeRed" "reflectance" Bounds::closed(0.0, 1.0) => [Draw] {
+            wire: 323,
+            check: input(Site::Material, 107, "bloom eye red"),
+            applies: "no age flowering, or `bloomEyeShare` zero",
+            dial: crate::catalogue::FLOWERS,
+        },
+        /// The green channel of `bloom_eye_red`.
+        pub bloom_eye_green: f64 = "bloomEyeGreen" "reflectance"
+            Bounds::closed(0.0, 1.0) => [Draw] {
+            wire: 324,
+            check: input(Site::Material, 108, "bloom eye green"),
+            applies: "no age flowering, or `bloomEyeShare` zero",
+            dial: crate::catalogue::FLOWERS,
+        },
+        /// The blue channel of `bloom_eye_red`.
+        pub bloom_eye_blue: f64 = "bloomEyeBlue" "reflectance"
+            Bounds::closed(0.0, 1.0) => [Draw] {
+            wire: 325,
+            check: input(Site::Material, 109, "bloom eye blue"),
+            applies: "no age flowering, or `bloomEyeShare` zero",
+            dial: crate::catalogue::FLOWERS,
+        },
+        /// How far up each petal from its base the eye reaches, as a share of
+        /// the petal's length. Zero is no eye: the petal and its stamens are
+        /// the petal's colour.
+        pub bloom_eye_share: f64 = "bloomEyeShare" "share of the petal"
+            Bounds::closed(0.0, 1.0) => [Draw] {
+            wire: 326,
+            check: input(Site::Material, 110, "bloom eye share"),
+            applies: "no age flowering",
+            dial: crate::catalogue::FLOWERS,
+        },
         /// The hue offsets one leaf may take, as a fraction of the colour circle.
         pub hue_range_low: f64 = "hueRangeLow" "-" Bounds::closed(-0.5, 0.5) => [Draw] {
             wire: 158,
@@ -497,9 +531,10 @@ crate::catalogue::rows! {
             dial: bounded("material_blade_mottle_strength", "how far that mottling varies the \
                 blade's colour", [0.15, 0.3]),
         },
-        /// How wide a band along the leaf's edge takes the margin colour, and
-        /// what that colour is as an offset per channel. Raising the width
-        /// broadens the rim around every leaf.
+        /// How wide a band along the leaf's edge takes the margin colour, as
+        /// a share of the leaf set in leaf space, and what that colour is as
+        /// an offset per channel. Raising the width broadens the rim around
+        /// every leaf; a leaf under a pixel takes the band's area share.
         pub margin_width: f64 = "marginWidth" "-" Bounds::closed(0.0, 0.5) => [Draw] {
             wire: 187,
             check: input(Site::Material, 13, "leaf margin width"),
@@ -980,6 +1015,10 @@ impl Default for MaterialParams {
             bloom_back_red: 0.72,
             bloom_back_green: 0.72,
             bloom_back_blue: 0.64,
+            bloom_eye_red: 0.12,
+            bloom_eye_green: 0.1,
+            bloom_eye_blue: 0.02,
+            bloom_eye_share: 0.0,
             hue_range_low: -0.03,
             hue_range_high: 0.03,
             brightness_range_low: -0.12,

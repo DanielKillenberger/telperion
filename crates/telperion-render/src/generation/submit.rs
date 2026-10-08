@@ -47,7 +47,7 @@ impl Renderer {
         self.scene.set_crown(resident.crown);
         self.scene
             .set_leaf_reference(mesh.foliage.instances.reference);
-        self.scene.section_roundness = mesh.foliage.element.section_roundness;
+        self.scene.set_leaf(&mesh.foliage.element);
         self.bounds = Some(mesh.bounds);
         self.level_deviations = mesh
             .foliage
