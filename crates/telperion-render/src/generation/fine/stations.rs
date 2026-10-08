@@ -56,10 +56,6 @@ pub(super) struct Stationed {
     pub stations: u32,
     pub segments: u32,
     pub buffer: Owned,
-    /// The runs' words (`RW` a run): first node, stations, segments,
-    /// nodes, first station and first segment.
-    #[cfg_attr(not(test), allow(dead_code))]
-    pub run_words: Owned,
 }
 
 pub(super) struct Stationer {
@@ -128,18 +124,31 @@ impl Stationer {
     pub(super) async fn stations(
         &self,
         gpu: &Gpu,
-        (swept, steps): (&Swept, &Steps),
+        at: (&Swept, &Steps),
         ids: u32,
         rows: Rows,
     ) -> Result<Stationed> {
+        Ok(self.stations_and_runs(gpu, at, ids, rows).await?.0)
+    }
+
+    /// The stations, and the runs' words (`RW` a run: first node,
+    /// stations, segments, nodes, first station and first segment), which
+    /// only a test reads: `stations` lets them go (fn-212 task 11).
+    pub(super) async fn stations_and_runs(
+        &self,
+        gpu: &Gpu,
+        (swept, steps): (&Swept, &Steps),
+        ids: u32,
+        rows: Rows,
+    ) -> Result<(Stationed, Owned)> {
         if !rows.leaves {
-            return Ok(Stationed {
+            let stationed = Stationed {
                 runs: 0,
                 stations: 0,
                 segments: 0,
                 buffer: storage(gpu, "station segments", 0)?,
-                run_words: storage(gpu, "station runs", 0)?,
-            });
+            };
+            return Ok((stationed, storage(gpu, "station runs", 0)?));
         }
         let st = storage(gpu, "station words", u64::from(ids) * SW)?;
         let counts = storage(gpu, "station counts", 4)?;
@@ -214,13 +223,13 @@ impl Stationer {
         self.run((gpu, &mut e), (EMIT, n, None), rows, late)?;
         gpu.submit([e.finish()]);
         io::complete(gpu).await?;
-        Ok(Stationed {
+        let stationed = Stationed {
             runs: n,
             stations,
             segments,
             buffer,
-            run_words: runs,
-        })
+        };
+        Ok((stationed, runs))
     }
 }
 

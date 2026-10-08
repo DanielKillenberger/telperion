@@ -109,7 +109,7 @@ fn stationed(
     let r = station_rows(x, segments);
     let t = std::time::Instant::now();
     let swept = pollster::block_on(sw.sweep(gpu, dressed, rows(surface, curve.height))).unwrap();
-    let device = pollster::block_on(st.stations(
+    let (device, runs) = pollster::block_on(st.stations_and_runs(
         gpu,
         (&swept, &super::steps::Steps::new(gpu)),
         dressed.ids,
@@ -117,7 +117,7 @@ fn stationed(
     ))
     .unwrap();
     let ms = t.elapsed().as_secs_f64() * 1e3;
-    let scanned = scanned(gpu, &device);
+    let scanned = scanned(gpu, &device, &runs);
     let words = device.segments as usize * GW;
     let raw = super::super::io::read(gpu, &device.buffer, (words.max(4) * 4) as u64).unwrap();
     let mine: &[u32] = bytemuck::cast_slice(&raw);
@@ -214,10 +214,10 @@ fn stationed(
 
 /// The runs whose first station or segment differs from one walk over the
 /// runs in their order: what the bases' parallel scan must equal.
-fn scanned(gpu: &Gpu, device: &super::stations::Stationed) -> usize {
+fn scanned(gpu: &Gpu, device: &super::stations::Stationed, runs: &wgpu::Buffer) -> usize {
     let rw = super::stations::RW as usize;
     let bytes = (device.runs as usize * rw).max(1) * 4;
-    let raw = super::super::io::read(gpu, &device.run_words, bytes as u64).unwrap();
+    let raw = super::super::io::read(gpu, runs, bytes as u64).unwrap();
     let words: &[u32] = bytemuck::cast_slice(&raw);
     let (mut s, mut g, mut off) = (0u32, 0u32, 0usize);
     for run in words.chunks(rw).take(device.runs as usize) {
@@ -296,6 +296,32 @@ fn a_large_divergence_turns_the_stations_as_the_pipeline_does() {
     });
     assert!(s.device.2 > 0, "no stations");
     assert!(s.phase < 1e-3, "turns apart: {}", s.phase);
+}
+
+/// fn-212 task 11, Astra's finding 9: the stations keep their segments
+/// and nothing else live; the runs' words, which only a test reads, are
+/// let go with the rest of the pass's buffers.
+#[test]
+fn the_stations_keep_only_their_segments() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let k = kernels(&gpu);
+    let (d, sw, st) = (Dresser::new(&gpu), Sweeper::new(&gpu), Stationer::new(&gpu));
+    let steps = super::steps::Steps::new(&gpu);
+    with_dressed(&gpu, &k, &d, "european-beech", (30, 1), |fx, dressed| {
+        let x = &fx.reference;
+        let (curve, _) = x.curve_with_contacts().unwrap();
+        let surface = &fx.family.surface;
+        let rows = rows(surface, curve.height);
+        let swept = pollster::block_on(sw.sweep(&gpu, dressed, rows)).unwrap();
+        let r = station_rows(x, surface.radial_segments.max(surface.lobes * 4));
+        let before = gpu.ledger.live();
+        let device = pollster::block_on(st.stations(&gpu, (&swept, &steps), dressed.ids, r));
+        let device = device.unwrap();
+        assert!(device.stations > 0);
+        assert_eq!(gpu.ledger.live() - before, device.buffer.size());
+    });
 }
 
 /// The probe's fixtures at 40 and 80 (`cargo test --profile ci -p
