@@ -102,3 +102,13 @@ I built the host's rule for `zone.buds` on both executors and the closed form, a
    - **(c)** How a sleeping bud that ages through stages (`dormant.rs`, `slept < state.life()`) reads a drawn lifespan.
    The closed form then mixes each age's two lives at every bud's entry, through every reader of `state.life()`: 43 sites in the space crate, plus `apex.wgsl` and `carry.wgsl`.
 3. **Shedding.** A fractional delay is a fade on the device (`fades.wgsl`), not a count: a lateral shed after 1 + ε cycles is faded ε, not gone. Under the rule, does it stay a whole cycle more with chance ε, or does the fade stay and only the kept prediction's `ceil` (`kept.rs`) change to an expectation?
+
+## Host answers (2026-10-08, second)
+
+One principle covers all three: **every fractional element is a making draw (host decision 8).** The executors make it by its draw, and it grows in from vanishing size as the fraction passes the draw's lead. The predictor counts it at its share. No element is ever "whole when present", and fn-192's two tests stand unchanged; there is no owner exception.
+
+1. **Bud places: grown in.** The place draw is one more making draw: present by its draw's lead over the window, counted at its share. This includes the presence on the GPU's lateral and woken asks (`assign.wgsl`), with the place key kept for the woken ask. The parked `fn-231-places-wip` is reworked to this; nothing "whole" stays.
+2. **Lifespan: the tick, by degree. Host decision 7 stands.** The age's last unit stays partial, and its successor grows the rest of the cycle. The unit reading is not taken, so (a), (b) and (c) do not arise. The jump that remains comes from the partial unit's last tick, which is counted whole. That tick becomes a making draw: its growth is present by its draw's lead and grows in from nothing, and the predictor counts it at its share. Validation's floor is "above 0", per the first decision. If the tick is not where the count jumps (measure first), stop and report.
+3. **Shedding: the fade stays.** The device's fade is already by degree. Only the kept prediction's `ceil` (`kept.rs`) becomes an expectation, matching what the executors do.
+
+Re-measure every shipped species as decided before. The ordinary tree's drop (394,267 to 238,119 at 40 with its wood unchanged) is expected: its fractional places were growing whole subtrees at tiny sizes. Make its strips before and after; if no regression is visible, accept it.
