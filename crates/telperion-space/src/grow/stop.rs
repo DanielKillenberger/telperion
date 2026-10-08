@@ -110,6 +110,7 @@ impl Shoot<'_, '_> {
             survive: fixed::real(survive),
             persist: after.unwrap_or(1.0),
             share: lived,
+            size: lived,
         });
         if reads.sketching {
             draws
@@ -117,7 +118,7 @@ impl Shoot<'_, '_> {
                 .push([size, if reads.lights { light } else { 1.0 }]);
         }
         draws.failed = true;
-        self.grow_unit(apex, pa, unit, cycle)?;
+        self.grow_unit(apex, pa, unit, (cycle, None))?;
         apex.spent += lived;
         self.axis_mut(apex.axis).apex_end = Some(cycle);
         *self.units_mut(apex.axis) = apex.spent;

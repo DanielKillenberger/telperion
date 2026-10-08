@@ -97,6 +97,12 @@ const IS_ENDED: u32 = 0x10000u;
 const IS_FAILED: u32 = 0x20000u;
 const HAS_OUTLIVED: u32 = 0x40000u;
 const IS_WOKEN: u32 = 0x80000u;
+// Carried on in the cycle the axis before it ended in (`carry_on`), its
+// first unit the rest of that cycle (fn-231).
+const IS_CARRIED: u32 = 0x100000u;
+// The axis a sleeping bud grows in as it wakes (`woke`), its first unit
+// its waking's (fn-231).
+const IS_WOKE: u32 = 0x400000u;
 // A failed unit's relay, its first unit the rest of that cycle (fn-199 R1).
 const IS_REST: u32 = 0x200000u;
 

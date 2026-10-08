@@ -192,6 +192,18 @@ impl Carried {
 }
 
 impl Unit {
+    /// The share of each zone's nodes it lays where a lifespan's fraction
+    /// cuts it (fn-231, host 2026-10-08): the age's last unit, ending
+    /// inside the room its cycle leaves after `gone`, or a successor's
+    /// first, the rest of the cycle its age before left. None for every
+    /// other unit, which lays all its nodes at its share, and for a woken
+    /// bud's first unit, whose share its waking draws (`First`).
+    pub fn laid(self, gone: f64, (successor, woken): (bool, bool)) -> Option<f64> {
+        let last = self.ends && self.share < 1.0 - gone;
+        let rest = successor && gone > 0.0;
+        ((last || rest) && !woken && self.share < 1.0).then_some(self.share)
+    }
+
     /// Whether what carries the axis on after it grows in its cycle: the
     /// cycle is not whole yet.
     pub fn same_cycle(self) -> bool {

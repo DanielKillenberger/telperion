@@ -78,9 +78,14 @@ impl Kept<'_> {
         let mut units = Units::new(self.species, k);
         let (mut a, mut b) = (0.0, [0.0; WIDTH]);
         // Weighs in one way the axis ends: chance `p`, its last unit
-        // `last`, and the end's factor and quantities.
-        let mut end = |p: f64, last: usize, run: &Running, units: &Units, (ea, eb, er): Ended| {
-            if p <= 0.0 || last as i64 > t {
+        // `last` and the cycle `die` it ends in, at most that unit's, and
+        // the end's factor and quantities.
+        let mut end = |p: f64,
+                       (last, die): (usize, usize),
+                       run: &Running,
+                       units: &Units,
+                       (ea, eb, er): Ended| {
+            if p <= 0.0 || die as i64 > t {
                 return;
             }
             a += p * run.a * ea;
@@ -101,7 +106,7 @@ impl Kept<'_> {
             // A failure with no relay ends the axis at the unit before;
             // each lived part grows its unit's nodes and ends in its
             // relay, standing on it (fn-199 R1).
-            end(step.failed, step.i - 1, &run, &units, NONE);
+            end(step.failed, (step.i - 1, step.i - 1), &run, &units, NONE);
             for l in &step.lived {
                 let (mut run, mut units) = (run.clone(), units.clone());
                 let (g, h, length) = self.unit((k, m, t), axis, step.part(l), (path, &mut units));
@@ -120,7 +125,7 @@ impl Kept<'_> {
                     None => path.into(length, grown * relay_at),
                 };
                 let e = self.relay_end((k, m, t), Some(l.relay), l.weight, at);
-                end(l.weight, step.i, &run, &units, e);
+                end(l.weight, (step.i, step.i), &run, &units, e);
             }
             let (g, h, length) = self.unit((k, m, t), axis, step.whole(), (path, &mut units));
             run.times(g, &h);
@@ -130,22 +135,31 @@ impl Kept<'_> {
                 None => {
                     let aborted = step.grown - step.after;
                     let e = self.relay_end((k, m, t), step.aborted, aborted, on(step.i, &units));
-                    end(aborted, step.i, &run, &units, e);
+                    end(aborted, (step.i, step.i), &run, &units, e);
                     if step.i == m {
-                        end(step.after, m, &run, &units, NONE);
+                        end(step.after, (m, m), &run, &units, NONE);
                     } else if let Some(rest) = rest {
                         // The rest of the axis, one cycle younger, from
                         // the unit's tip.
                         let e = self.species.states[k].form.exponent;
                         let at = t - step.i as i64;
                         let rest = self.whole(rest, at, (path, [1.0; 2]), e);
-                        end(step.after, step.i, &run, &units, rest);
+                        end(step.after, (step.i, step.i), &run, &units, rest);
                     }
                 }
                 Some(stop) => {
                     let at = on(step.i, &units);
                     let e = self.age_end((k, m, t), stop, step.grown, (path, at));
-                    end(step.grown, step.i, &run, &units, e);
+                    // An age a lifespan's fraction ends inside its cycle
+                    // ends its axis that share into it: in expectation, at
+                    // its own cycle and the one before (fn-231).
+                    let (i, u) = (step.i, step.ends_at);
+                    if u < 1.0 {
+                        end(step.grown * u, (i, i), &run, &units, e);
+                        end(step.grown * (1.0 - u), (i, i - 1), &run, &units, e);
+                    } else {
+                        end(step.grown, (i, i), &run, &units, e);
+                    }
                 }
             }
         }
@@ -194,7 +208,9 @@ impl Kept<'_> {
             let (whole, s) = zone.whole_places();
             let psi = 1.0 + s * (phi - 1.0);
             let f = if s > 0.0 { phi.powi(whole) * psi } else { phi.powi(whole) };
-            let (g, tilted, replaced) = tilts(&axis.pmfs[z], f, zone);
+            let laid = (step.laid < 1.0).then(|| Count::laid_pmf(&axis.pmfs[z], step.laid));
+            let pmf = laid.as_deref().unwrap_or(&axis.pmfs[z]);
+            let (g, tilted, replaced) = tilts(pmf, f, zone);
             let mut h = self.own(&tilted, at, l, own).map(|v| v * g);
             // One node's place holds the subtree; its other places, and
             // every other node, their factors.
@@ -238,7 +254,7 @@ impl Kept<'_> {
                 }
             }
             let (s1, s2) = zoned(
-                &axis.pmfs[z],
+                pmf,
                 (f, phi, (whole, s)),
                 (own.powf_fixed(e), own.powf_fixed(2.0 * e)),
                 &slots,

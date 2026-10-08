@@ -10,7 +10,15 @@ use crate::species::{ALONG, MAX_BUDS, MAX_NODES_PER_ZONE};
 use crate::structure::{Origin, Phytomer, Vec3};
 
 impl Shoot<'_, '_> {
-    pub(super) fn grow_unit(&mut self, apex: Apex, pa: usize, unit: Key, cycle: u32) -> Result<()> {
+    /// One growth unit of the apex in `cycle`, laying that share of each
+    /// zone's nodes where a lifespan's fraction cut it (`advance::cut`).
+    pub(super) fn grow_unit(
+        &mut self,
+        apex: Apex,
+        pa: usize,
+        unit: Key,
+        (cycle, cut): (u32, Option<f64>),
+    ) -> Result<()> {
         let rules = self.rules;
         let windows = &rules.windows;
         let state = &rules.species.states[pa];
@@ -26,6 +34,9 @@ impl Shoot<'_, '_> {
             let window = fixed::decide::node_window(node_wood);
             let draw = zone_key.draw();
             lineage::node_presences(zone.nodes, draw, MAX_NODES_PER_ZONE, window, &mut leads);
+            if let Some(share) = cut {
+                lineage::laid(&mut leads, share, zone_key, window);
+            }
             nodes.clear();
             for (i, &node_presence) in leads.iter().enumerate() {
                 let node_key = zone_key.child(i as u64);

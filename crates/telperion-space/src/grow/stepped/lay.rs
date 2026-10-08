@@ -104,7 +104,7 @@ fn job((axis, pencil, draws): (&Axis, &Pencil, &Draws), species: &Species, cycle
         let n = axis.phytomers[at..].iter().take_while(|p| unit(p)).count();
         at += n;
         let size = draws.shade(k)[0];
-        [u.share, u.survive, u.persist, size]
+        [u.size, u.survive, u.persist, size]
             .map(q32)
             .into_iter()
             .chain([n as i64])
@@ -190,6 +190,7 @@ fn lay_one(species: &Species, job: &LayJob) -> Laid {
             share: real(u[0]),
             survive: real(u[1]),
             persist: real(u[2]),
+            size: real(u[0]),
         });
         draws.shade.push([real(u[3]), 1.0]);
         for &(key, node, radius) in nodes.by_ref().take(u[4] as usize) {

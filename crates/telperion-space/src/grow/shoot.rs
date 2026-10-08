@@ -354,7 +354,8 @@ impl<'g, 'a> Shoot<'g, 'a> {
         }
         let apex = self.next.pop().expect("sprouted");
         self.axis_mut(apex.axis).birth = cycle - 1;
-        self.draws_mut(apex.axis).sleep = used;
+        let draws = self.draws_mut(apex.axis);
+        (draws.sleep, draws.carried) = (used, true);
         self.advance(apex, cycle)
     }
 }
