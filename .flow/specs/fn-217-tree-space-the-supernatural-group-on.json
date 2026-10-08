@@ -14,7 +14,7 @@
   "id": "fn-217-tree-space-the-supernatural-group-on",
   "impl_review_rounds": {
     "fn-217-tree-space-the-supernatural-group-on.2": 0,
-    "fn-217-tree-space-the-supernatural-group-on.3": 1
+    "fn-217-tree-space-the-supernatural-group-on.3": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -192,10 +192,87 @@
       "task": "fn-217-tree-space-the-supernatural-group-on.3",
       "timestamp": "2026-10-08T18:55:58.275983Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "bb3460de276bae8b7a94eb961e695a2a8aaefdb8b9fd2eb4f7ef815b49f18ae7",
+      "backend": "codex",
+      "base_sha": "7f682959deda9332a4a5d4e92caddca2c65201d4",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d51fe967b4c65a20bf07b851eb5039a4",
+            "classification": "introduced",
+            "findingId": "finding-d51fe967b4c65a20bf07b851eb5039a4",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-1b92ae23cf1b5864f18e67cbdf865461",
+            "classification": "introduced",
+            "findingId": "finding-1b92ae23cf1b5864f18e67cbdf865461",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-94d063110ac0e1fb0489e76be1ad55df",
+            "classification": "introduced",
+            "findingId": "finding-94d063110ac0e1fb0489e76be1ad55df",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-dd8ceb598708dca74bf2fadc5d23ea60",
+            "classification": "introduced",
+            "findingId": "finding-dd8ceb598708dca74bf2fadc5d23ea60",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-730fe6668c3f2b2dec611256667813c2",
+            "classification": "introduced",
+            "findingId": "finding-730fe6668c3f2b2dec611256667813c2",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d380fa988a2d24436eba3a3c461150b1d6fff319",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1727,
+      "output_sha256": "4c22f11a1d616a32f010c2e20f74d0a6c72636a1d7caf7a57e884ef79a2c4fc9",
+      "reservation_id": "ee688392d21643b0a7ad706d7337a04b",
+      "round_consumed": true,
+      "scope": "impl:fn-217-tree-space-the-supernatural-group-on.3",
+      "superseded_by": null,
+      "task": "fn-217-tree-space-the-supernatural-group-on.3",
+      "timestamp": "2026-10-08T19:41:49.753106Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-217-tree-space-the-supernatural-group-on.2": 1
+    "impl:fn-217-tree-space-the-supernatural-group-on.2": 1,
+    "impl:fn-217-tree-space-the-supernatural-group-on.3": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -217,5 +294,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T18:55:58.279147Z"
+  "updated_at": "2026-10-08T19:41:49.755935Z"
 }
