@@ -187,14 +187,26 @@ fn stills_of_the_floret_s_form() {
             format!("{dir}/horn-raceme-{shot}.png"),
         );
     }
-    let mut f = flowering(20.0, 0.6);
-    blossom(&mut f);
-    let camera = at_a_bloom(&f, 0.22, 0.0);
-    shoot(
-        &mut renderer,
-        &f,
-        &camera,
-        512,
-        format!("{dir}/blossom-close.png"),
-    );
+    // The cherry's blossom, as fn-216 left it and with an eye and stamens.
+    let mut before = flowering(20.0, 0.6);
+    blossom(&mut before);
+    let mut after = before.clone();
+    flower(&mut after);
+    for (name, f) in [("before", &before), ("after", &after)] {
+        for (shot, distance) in [("close", 0.1), ("corymb", 0.3)] {
+            let camera = at_a_bloom(f, distance, 0.0);
+            let path = format!("{dir}/blossom-{shot}-{name}.png");
+            shoot(&mut renderer, f, &camera, 512, path);
+        }
+    }
+}
+
+/// A cherry floret's centre (fn-217 F1, F2): a yellow-green eye over the
+/// petals' base and a ring of twenty stamens.
+fn flower(f: &mut Family) {
+    let m = &mut f.material;
+    (m.bloom_eye_red, m.bloom_eye_green, m.bloom_eye_blue) = (0.07, 0.075, 0.015);
+    m.bloom_eye_share = 0.22;
+    (f.bloom.stamens, f.bloom.stamen_length) = (20.0, 0.008);
+    f.bloom.stamen_width = 0.0004;
 }
