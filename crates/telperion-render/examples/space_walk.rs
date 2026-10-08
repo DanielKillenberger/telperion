@@ -6,9 +6,7 @@
 //! pipeline (fn-198).
 //!
 //!   cargo run --profile ci -p telperion-render --example space_walk -- <out dir> <from> <to> <t> <seed> <age>
-use telperion_core::{
-    blend, math::Vec3, mesh, presets::Preset, surface::Bounds,
-};
+use telperion_core::{blend, math::Vec3, mesh, presets::Preset, surface::Bounds};
 use telperion_render::{
     hero_pose, render, write_png, Gpu, Level, Renderer, SceneRow, View, GROUND_REACH, STILL_FORMAT,
 };
@@ -40,7 +38,10 @@ fn main() -> Result<(), String> {
     let (t, seed, age) = (number(t)?, number(seed)? as u32, number(age)?);
     // The species walk; the dressing is the beech's at both ends, so only
     // the structure walks. The stem is either end's trunk-level ages.
-    let (a, b) = (preset(from)?.parameters(), preset(to)?.parameters());
+    // Both ends at the walk's age, so the blend is sized at the age it is
+    // grown at (fn-230, host 2026-10-08).
+    let (mut a, mut b) = (preset(from)?.parameters(), preset(to)?.parameters());
+    (a.age, b.age) = (age, age);
     let mut family = Preset::EuropeanBeech.parameters();
     family.space = blend::families(&a, &b, t)
         .map_err(|e| format!("t {t}: {e}"))?
