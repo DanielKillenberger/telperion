@@ -492,7 +492,7 @@ fn fine_roots_are_seated_on_the_device() {
 /// telperion-render seated_at_40_and_80 -- --ignored --nocapture`, under
 /// the GPU lock). Reported, not held.
 #[test]
-#[ignore]
+#[ignore = "device limits: a tree at 80 on the device"]
 fn seated_at_40_and_80() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;

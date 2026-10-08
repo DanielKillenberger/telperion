@@ -164,7 +164,7 @@ impl Feedback for Timed<'_> {
 /// warm (the second of two); the device's tree checked against the
 /// CPU's by every phase's digest and the tree's.
 #[test]
-#[ignore = "a timing run: the lit oak at 80, under the GPU lock"]
+#[ignore = "device limits: a timing run: the lit oak at 80, under the GPU lock"]
 fn the_lit_oak_at_80_on_the_device_timed() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;

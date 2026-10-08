@@ -370,7 +370,7 @@ fn the_real_path_matches_the_cpu_path() {
 /// GPU lock, `PROBE=norway-spruce:80:1` for one tree a process, with
 /// `:lobed` for its wood two lobes a tenth deep). Reported, not held.
 #[test]
-#[ignore]
+#[ignore = "device limits: a tree at 80 on the device"]
 fn real_path_at_80() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;

@@ -169,3 +169,40 @@ fn make_grow() {
     let read = [true, true, true, false, false, false, false, false];
     let _ = super::super::io::Pass::new(&gpu, source, &read, &["grow"]);
 }
+
+/// fn-235 R4: the tests that take the device toward its limits (a tree at
+/// 80 built on it, out-of-memory probes) are marked `#[ignore = "device
+/// limits: ..."]`, so a default run beside an open harness never takes
+/// the driver's address space; they run only when asked (`-- --ignored`).
+/// Every marked test in the crate's source is one libtest leaves out.
+#[test]
+fn device_limit_probes_run_only_when_asked() {
+    let src = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let mut marked = Vec::new();
+    let mut dirs = vec![src.clone()];
+    while let Some(dir) = dirs.pop() {
+        for entry in std::fs::read_dir(dir).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                dirs.push(path);
+                continue;
+            }
+            let module = path.strip_prefix(&src).unwrap().with_extension("");
+            let module = module.to_str().unwrap().replace('/', "::");
+            let text = std::fs::read_to_string(&path).unwrap();
+            for part in text.split("#[ignore = \"device limits").skip(1) {
+                let name = part.split_once("fn ").unwrap().1.split_once('(').unwrap().0;
+                marked.push(format!("{module}::{name}: test"));
+            }
+        }
+    }
+    let listed = std::process::Command::new(std::env::current_exe().unwrap())
+        .args(["--list", "--ignored", "--format", "terse"])
+        .output()
+        .unwrap();
+    let ignored = String::from_utf8(listed.stdout).unwrap();
+    assert!(marked.len() >= 10, "the marked probes: {marked:?}");
+    for name in &marked {
+        assert!(ignored.lines().any(|l| l == name), "{name} runs by default");
+    }
+}

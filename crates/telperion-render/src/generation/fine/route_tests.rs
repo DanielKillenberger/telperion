@@ -63,7 +63,7 @@ fn a_cpu_delivery_grows_the_tree_whole() {
 /// against a fresh build's (`cargo test --profile ci -p telperion-render
 /// large_to_small -- --ignored --nocapture`, under the GPU lock).
 #[test]
-#[ignore]
+#[ignore = "device limits: a tree at 80 on the device"]
 fn large_to_small() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
@@ -204,7 +204,7 @@ fn a_lost_device_is_named_and_a_fresh_one_builds_the_tree_again() {
 /// (`cargo test --profile ci -p telperion-render budget_probe -- --ignored
 /// --nocapture`, under the GPU lock).
 #[test]
-#[ignore]
+#[ignore = "device limits: a tree at 80 on the device"]
 fn budget_probe() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;

@@ -328,7 +328,7 @@ fn the_stations_keep_only_their_segments() {
 /// telperion-render stationed_at_40_and_80 -- --ignored --nocapture`,
 /// under the GPU lock).
 #[test]
-#[ignore]
+#[ignore = "device limits: a tree at 80 on the device"]
 fn stationed_at_40_and_80() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
