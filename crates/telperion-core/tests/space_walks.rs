@@ -1,11 +1,11 @@
 //! fn-230: every point between species is a tree of its ends' size. A blend
 //! between engine species is every row mixed, then one factor on the
-//! lateral probabilities, shrinking only, so the light-neutral expected kept
-//! phytomers at the blend's age are the ends' weighted geometric mean (host,
-//! 2026-10-08). Built frames and their strips are the evidence sheet's; these
+//! lateral probabilities, shrinking only, so neither the light-neutral
+//! expected kept nor grown phytomers at the blend's age pass the ends'
+//! weighted geometric mean of them (host, 2026-10-08). Built frames and their strips are the evidence sheet's; these
 //! tests read the prediction, which costs no growth.
 use telperion_core::{blend, presets::Preset, Family};
-use telperion_space::{expected_kept, Species};
+use telperion_space::{expected_counts, expected_kept, Species};
 
 /// The passed branching species and the ordinary tree (fn-230 R2).
 const BRANCHING: [Preset; 4] = [
@@ -30,12 +30,31 @@ fn species(family: &Family) -> &Species {
     family.space.species.as_ref().expect("an engine preset")
 }
 
-fn kept(species: &Species, age: u32) -> f64 {
+fn neutral(species: &Species) -> Species {
     let mut neutral = species.clone();
     for s in &mut neutral.states {
         (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
     }
-    expected_kept(&neutral, age).unwrap().unwrap()
+    neutral
+}
+
+fn kept(species: &Species, age: u32) -> f64 {
+    expected_kept(&neutral(species), age).unwrap().unwrap()
+}
+
+/// Grown phytomers, the shed included: what the engine's budget counts.
+fn grown(species: &Species, age: u32) -> f64 {
+    let counts = expected_counts(&neutral(species), age).unwrap();
+    (0..species.states.len()).map(|pa| counts.total(pa)).sum()
+}
+
+/// The point's kept and grown predictions over the ends' weighted geometric
+/// means of them.
+fn sizes(point: &Species, a: &Species, b: &Species, t: f64, age: u32) -> [f64; 2] {
+    [kept, grown].map(|count: fn(&Species, u32) -> f64| {
+        let logs = (1.0 - t) * count(a, age).ln() + t * count(b, age).ln();
+        count(point, age) / logs.exp()
+    })
 }
 
 /// Every lateral probability of `sized` over the bare mix's, which must be
@@ -57,19 +76,23 @@ fn factor(sized: &Species, mixed: &Species) -> f64 {
     ratios[0]
 }
 
-/// R1, R2: every point at a quarter, half and three quarters between two
-/// branching species, at 40 and 80, is predicted at its ends' weighted
-/// geometric mean, by a factor below one on the mix the engine's own walk
-/// gives; every other row is that walk's.
+/// R1, R2: points between two branching species at 40 and 80 are predicted
+/// at their ends' weighted geometric mean in one count and at most it in the
+/// other, by a factor below one on the mix the engine's own walk gives;
+/// every other row is that walk's.
 #[test]
 fn a_walk_between_branching_species_keeps_its_ends_size_at_40_and_80() {
     for age in [40, 80] {
         for (i, &p) in BRANCHING.iter().enumerate() {
             for &q in &BRANCHING[i + 1..] {
                 let (a, b) = (at(p, f64::from(age)), at(q, f64::from(age)));
-                let ts: &[f64] = match (age, q) {
-                    // The ordinary tree's predictions cost a second each at 80.
-                    (80, Preset::Ordinary) => &[0.5],
+                // A grown prediction costs 5 to 7 s on most blends at 80
+                // (SHEET.md): there the middle only, and of the ordinary
+                // tree's walks the beech's; every frame is built in the sheet.
+                let ts: &[f64] = match (age, p, q) {
+                    (80, Preset::EuropeanBeech, Preset::Ordinary) => &[0.5],
+                    (80, _, Preset::Ordinary) => &[],
+                    (80, ..) => &[0.5],
                     _ => &[0.25, 0.5, 0.75],
                 };
                 for &t in ts {
@@ -83,16 +106,36 @@ fn a_walk_between_branching_species_keeps_its_ends_size_at_40_and_80() {
                         }
                     }
                     assert_eq!(bare, mixed, "{p:?} to {q:?} at {t}, {age}");
-                    let logs =
-                        (1.0 - t) * kept(species(&a), age).ln() + t * kept(species(&b), age).ln();
-                    let size = kept(species(&walked), age) / logs.exp();
-                    let name = format!("{p:?} to {q:?} at {t}, {age}: factor {f}, size {size}");
+                    let [kept, grown] = sizes(species(&walked), species(&a), species(&b), t, age);
+                    let name = format!("{p:?} to {q:?} at {t}, {age}: factor {f}, {kept} {grown}");
                     assert!(f < 1.0, "{name}");
-                    assert!((size - 1.0).abs() < 1e-9, "{name}");
+                    assert!(kept < 1.0 + 1e-9 && grown < 1.0 + 1e-9, "{name}");
+                    assert!((kept.max(grown) - 1.0).abs() < 1e-9, "{name}");
                 }
             }
         }
     }
+}
+
+/// Host decision (2026-10-08, option A): kept phytomers do not bound grown
+/// ones, since a blend can shed a larger share than either end. Three
+/// quarters of the way from the oak to the spruce at 80, the point sized on
+/// its kept count alone was predicted to grow 21.7M phytomers, over the
+/// engine's 20M budget; its grown count binds and holds it to the ends'.
+#[test]
+fn the_grown_count_binds_where_a_blend_sheds_more_than_its_ends() {
+    let (a, b) = (
+        at(Preset::OregonWhiteOak, 80.0),
+        at(Preset::NorwaySpruce, 80.0),
+    );
+    let walked = blend::families(&a, &b, 0.75).unwrap();
+    let [kept_share, grown_share] = sizes(species(&walked), species(&a), species(&b), 0.75, 80);
+    assert!(
+        (grown_share - 1.0).abs() < 1e-9 && kept_share < 0.99,
+        "{kept_share} {grown_share}"
+    );
+    let predicted = grown(species(&walked), 80);
+    assert!(predicted < 20_000_000.0, "{predicted}");
 }
 
 /// R1: the factor is exactly 1 at either end, and the size is continuous off
