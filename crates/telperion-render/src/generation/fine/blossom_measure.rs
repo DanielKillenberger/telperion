@@ -24,7 +24,7 @@ use telperion_core::presets::Family;
 
 const SIZE: (u32, u32) = (960, 720);
 
-fn linear(v: u8) -> f64 {
+pub(super) fn linear(v: u8) -> f64 {
     let c = f64::from(v) / 255.0;
     if c <= 0.04045 {
         c / 12.92
@@ -33,7 +33,7 @@ fn linear(v: u8) -> f64 {
     }
 }
 
-fn srgb(c: f64) -> f64 {
+pub(super) fn srgb(c: f64) -> f64 {
     let c = c.clamp(0.0, 1.0);
     255.0
         * if c <= 0.0031308 {
@@ -44,7 +44,7 @@ fn srgb(c: f64) -> f64 {
 }
 
 /// The share of the frame the mask covers.
-fn coverage(mask: &Still) -> f64 {
+pub(super) fn coverage(mask: &Still) -> f64 {
     let n = mask.rgba.len() / 4;
     mask.rgba.chunks(4).map(|p| linear(p[1])).sum::<f64>() / n as f64
 }

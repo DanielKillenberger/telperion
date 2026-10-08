@@ -214,3 +214,29 @@ Finish with:
 - R3's fixtures: CPU against device on flowers and coverage with the change on, and neutral rows byte-identical on both paths. Also compare renders of a tree without flowers against the base, to prove the shading change leaves it alone.
 - R4 cost.
 - The gate, npm test, impl-review and `flowctl done`.
+
+## R3 and R4 as amended (2026-10-09)
+
+**Positive fixtures, with the change on:**
+- **Florets.** `florets_tests::florets_on_the_device_match_the_whole_tree` (fn-229, in the workspace tests) passes. It matches the device's florets to the CPU whole tree's in count and position across the fine roots' seams, under fn-125's screen. This task changes no placement code.
+- **Coverage and drawn petals.** `blossom_parity::the_flowering_tree_draws_alike_on_both_executors` (new, in the workspace tests) runs the cherry beech at age 40 at the hero camera, 480 x 360.
+  - All 461,958 florets are placed on the device.
+  - Coverage is 0.02220 on the CPU and 0.02222 on the device. The test asserts they agree within 1 %.
+  - The drawn petals are (145.7, 149.1, 145.3) on the CPU and (144.4, 147.9, 144.3) on the device. The test asserts they agree within 2 per channel.
+- **Leaf presence** is not changed by this spec.
+- **Before and after on both executors.** Section 4 (R1) gives the before. The R2 section gives the after on both executors. Coverage is unchanged, because no floret moved.
+
+**Trees without flowers are unchanged** (measured):
+- **Method.** `examples/generation_gpu` rendered hero stills of the shipped presets (1280 x 720, `GENERATION_CAPTURE`). It ran once at the base `a495d61b`, the commit before the shading change, in its own worktree and target, and once at HEAD.
+- **Byte-identical PNGs:**
+  - european-beech, CPU path
+  - oregon-white-oak, CPU path
+  - oregon-white-oak, resident device path (backend `Gpu`)
+  - norway-spruce, CPU path
+- **Not compared:** the beech and spruce on the device path were stopped for time (FRICTION.md).
+- **Why the rest holds** (inferred from the code): the change writes the organ uniform block, which `scene/frame.rs` writes only when an organ reference is set. Both submit paths set it only for a tree with florets.
+
+**Cost (R4)** (inferred from the code):
+- No WGSL changed.
+- No draw, buffer, binding or triangle was added. The organ block is the same 1-block uniform write per frame, with its transmission colour taken from the petal row instead of the leaf row.
+- Prepare on the CPU and the device is untouched. The neutral stills above are byte-identical.
