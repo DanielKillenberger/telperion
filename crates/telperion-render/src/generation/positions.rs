@@ -136,7 +136,7 @@ impl Generator {
                 &status,
             ],
         );
-        let mut encoder = self.gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = self.gpu.encoder(&Default::default());
         if !p.rings.is_empty() {
             pass.run(&mut encoder, &bind, 0, config[0]);
             pass.run(&mut encoder, &bind, 1, config[1]);
@@ -267,7 +267,7 @@ impl Generator {
             &status,
         ];
         let bind = pass.bind(&self.gpu, &all);
-        let mut encoder = self.gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = self.gpu.encoder(&Default::default());
         if rings > 0 {
             pass.run(&mut encoder, &bind, 0, rings);
         }

@@ -56,7 +56,7 @@ fn shadow_blocks_transmission_and_a_lit_backface_obeys_the_row() {
             resource: output.as_entire_binding(),
         }],
     });
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     {
         let mut pass = encoder.begin_compute_pass(&Default::default());
         pass.set_pipeline(&pipeline);

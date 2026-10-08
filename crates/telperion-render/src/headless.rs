@@ -112,11 +112,9 @@ pub fn render(renderer: &mut Renderer, camera: &Camera, width: u32, height: u32)
             mapped_at_creation: false,
         },
     );
-    let mut encoder = gpu
-        .device
-        .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("readback"),
-        });
+    let mut encoder = gpu.encoder(&wgpu::CommandEncoderDescriptor {
+        label: Some("readback"),
+    });
     encoder.copy_texture_to_buffer(
         frame.picture.as_image_copy(),
         wgpu::TexelCopyBufferInfo {

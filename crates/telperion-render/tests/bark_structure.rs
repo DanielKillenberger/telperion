@@ -67,7 +67,7 @@ fn sample(x: f32, y: f32, radius: f32) -> f32 {
             resource: output.as_entire_binding(),
         }],
     });
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     {
         let mut pass = encoder.begin_compute_pass(&Default::default());
         pass.set_pipeline(&pipeline);

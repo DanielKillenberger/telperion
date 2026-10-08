@@ -92,7 +92,7 @@ fn sample(share: f32) -> Option<(Vec<[f32; 4]>, [f32; 4])> {
             resource: output.as_entire_binding(),
         }],
     });
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     {
         let mut pass = encoder.begin_compute_pass(&Default::default());
         pass.set_pipeline(&pipeline);

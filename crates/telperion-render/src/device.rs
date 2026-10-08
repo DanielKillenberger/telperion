@@ -2,6 +2,8 @@
 //! can stop a frame before it is drawn is named here, never inferred by the caller.
 use std::sync::{Arc, Mutex};
 
+use crate::encoder::{Encoder, Recorded};
+
 /// Why the renderer could not do what was asked. Each variant names the
 /// condition and carries what a reader needs to act on it.
 #[derive(Debug)]
@@ -115,8 +117,8 @@ pub struct Gpu {
     source: wgpu::Adapter,
     instance: wgpu::Instance,
     lost: Arc<Mutex<Option<String>>>,
-    /// Buffers their owners let go, destroyed after the next submit
-    /// (`Gpu::submit`, `buffer::Owned`; fn-212 task 10).
+    /// The owned buffers, each let go destroyed once the encoders open
+    /// when it was let go have closed (`buffer::Owned`, `Encoder`).
     pub(crate) ledger: Arc<crate::buffer::Ledger>,
 }
 
@@ -149,15 +151,20 @@ impl Gpu {
         wasm_bindgen_futures::spawn_local(seen);
     }
 
-    /// Submits `commands`, then destroys every buffer let go since the
-    /// last submit. A buffer a recorded pass binds may be let go before
-    /// its encoder is submitted; its destroy waits for that submit, and a
-    /// destroy after it is deferred by the device until the work is done.
-    pub fn submit<I: IntoIterator<Item = wgpu::CommandBuffer>>(&self, commands: I) {
+    /// An encoder open on this device: a buffer let go while it is open
+    /// lives until it is submitted or dropped.
+    pub fn encoder(&self, descriptor: &wgpu::CommandEncoderDescriptor<'_>) -> Encoder {
+        Encoder::new(self.device.create_command_encoder(descriptor), &self.ledger)
+    }
+
+    /// Submits `recorded`, then closes their encoders. A buffer a recorded
+    /// pass binds may be let go before its encoder is submitted; its
+    /// destroy waits for that encoder, and a destroy after the submit is
+    /// deferred by the device until the work is done.
+    pub fn submit<I: IntoIterator<Item = Recorded>>(&self, recorded: I) {
+        let (commands, open): (Vec<_>, Vec<_>) = recorded.into_iter().map(Recorded::split).unzip();
         self.queue.submit(commands);
-        let released =
-            std::mem::take(&mut *(self.ledger.released.lock()).unwrap_or_else(|e| e.into_inner()));
-        released.iter().for_each(wgpu::Buffer::destroy);
+        drop(open);
     }
 
     /// Asks the platform for a hardware device, with the adapter's own maximum

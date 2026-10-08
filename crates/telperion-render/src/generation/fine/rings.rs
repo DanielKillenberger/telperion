@@ -46,7 +46,7 @@ impl Ringer {
         let buffer = io::buffer(gpu, "fine rings", bytes, usage, &[]).unwrap();
         let all: [&wgpu::Buffer; 4] = [&cfg, &swept.table, &swept.point_buffer, &buffer];
         let bind = self.pass.bind(gpu, &all);
-        let mut e = gpu.device.create_command_encoder(&Default::default());
+        let mut e = gpu.encoder(&Default::default());
         self.pass.run(&mut e, &bind, 0, groups);
         gpu.submit([e.finish()]);
         Rung {

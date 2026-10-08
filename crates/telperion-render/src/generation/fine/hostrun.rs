@@ -61,7 +61,7 @@ impl Grower {
             bytemuck::cast_slice(&input),
         );
         let tables = upload(gpu, t);
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         let region = self.region(
             gpu,
             &mut encoder,
@@ -112,7 +112,7 @@ impl Grower {
             row,
             groups,
         };
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         self.pack(
             gpu,
             &mut encoder,

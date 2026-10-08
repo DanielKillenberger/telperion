@@ -34,7 +34,7 @@ impl Pool {
             return buffer(gpu, label, bytes / 4);
         };
         let taken = free.swap_remove(k);
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         encoder.clear_buffer(&taken, 0, None);
         gpu.submit([encoder.finish()]);
         taken

@@ -121,7 +121,7 @@ fn revised_profiles_reduce_the_rejected_broad_relief() {
             resource: heights.as_entire_binding(),
         }],
     });
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     {
         let mut pass = encoder.begin_compute_pass(&Default::default());
         pass.set_pipeline(&pipeline);

@@ -128,7 +128,7 @@ impl Group {
         let bytes = (on.len().max(4) * 4) as u64;
         let on = io::buffer(gpu, "roots kept", bytes, usage, bytemuck::cast_slice(on)).unwrap();
         k.fades.shed(gpu, (&self.waves.grown, &self.waves.own), &on);
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         for (w, g) in self.waves.grown.iter().enumerate() {
             // Two buffers: WebGPU refuses one buffer at two writable bindings.
             let (buds, meta) = (buffer(gpu, "no buds", 4), buffer(gpu, "no meta", 4));
@@ -145,7 +145,7 @@ impl Group {
     /// Runs `entry` over every wave, down from the first (`down`) or up
     /// from the deepest.
     pub(super) fn pass(&self, (gpu, k): (&Gpu, &Kernels), t: &Tables, entry: usize, down: bool) {
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         let n = self.waves.grown.len();
         let waves: Vec<usize> = match down {
             true => (0..n).collect(),

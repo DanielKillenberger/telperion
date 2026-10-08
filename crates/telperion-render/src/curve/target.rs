@@ -267,7 +267,7 @@ impl Target {
                 mapped_at_creation: false,
             },
         );
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         encoder.copy_buffer_to_buffer(&self.totals, 0, &staging, 0, 192);
         gpu.submit([encoder.finish()]);
         let (sender, receiver) = futures_channel::oneshot::channel();
@@ -318,7 +318,7 @@ fn read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Vec<u8> {
             mapped_at_creation: false,
         },
     );
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     encoder.copy_buffer_to_buffer(source, 0, &staging, 0, bytes);
     gpu.submit([encoder.finish()]);
     let slice = staging.slice(..);

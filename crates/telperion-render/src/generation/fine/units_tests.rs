@@ -120,7 +120,7 @@ impl Kernel {
         let bind = self
             .pass
             .bind(gpu, &[&uniform, &input, &table, &words, &counts, &empty]);
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         self.pass.run(&mut encoder, &bind, 0, groups);
         gpu.submit([encoder.finish()]);
         let sizes: Vec<u32> =
@@ -145,7 +145,7 @@ impl Kernel {
         let bind = self
             .pass
             .bind(gpu, &[&uniform, &input, &table, &words, &counts, &out]);
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         self.pass.run(&mut encoder, &bind, 1, groups);
         gpu.submit([encoder.finish()]);
         let read = io::read(gpu, &out, bytes).unwrap();

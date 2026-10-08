@@ -252,11 +252,9 @@ impl Shadow {
                 mapped_at_creation: false,
             },
         );
-        let mut encoder = gpu
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("shadow readback"),
-            });
+        let mut encoder = gpu.encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("shadow readback"),
+        });
         encoder.copy_texture_to_buffer(
             self.map.as_image_copy(),
             wgpu::TexelCopyBufferInfo {

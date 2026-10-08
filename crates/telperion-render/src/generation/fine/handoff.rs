@@ -93,7 +93,7 @@ impl Handoff {
             &sums,
             &sags,
         ];
-        let mut e = gpu.device.create_command_encoder(&Default::default());
+        let mut e = gpu.encoder(&Default::default());
         let runs = [
             (PACK, swept.points),
             (CLUSTERS, swept.clusters),

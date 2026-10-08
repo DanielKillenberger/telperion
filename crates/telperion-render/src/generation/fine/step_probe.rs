@@ -94,7 +94,7 @@ fn trip(gpu: &Gpu, pass: &Pass, b: &Buffers, t: Trip, salt: u32) -> Spent {
     let run = [t.up as u32, salt, 0, 0];
     gpu.queue
         .write_buffer(&b.run, 0, bytemuck::cast_slice(&run));
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     pass.run(&mut encoder, &b.bind, 0, (t.up as u32).div_ceil(64));
     let bytes = t.up * 4;
     encoder.copy_buffer_to_buffer(&b.up, 0, &b.staging, 0, bytes);

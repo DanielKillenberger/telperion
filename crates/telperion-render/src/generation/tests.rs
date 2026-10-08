@@ -381,7 +381,7 @@ fn gpu_extrema_order_preserves_signed_zero_and_finite_signs() {
     )
     .unwrap();
     let bind = pass.bind(&gpu, &[&config, &out]);
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     pass.run(&mut encoder, &bind, 0, 1);
     gpu.submit([encoder.finish()]);
     let bytes = io::read(&gpu, &out, 24).unwrap();

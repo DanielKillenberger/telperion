@@ -179,7 +179,7 @@ pub(super) async fn grow_wave(
         if queues.is_empty() {
             return Ok(runs);
         }
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         work = queues
             .into_iter()
             .map(|(queue, count)| {
@@ -222,7 +222,7 @@ async fn grow_run(
     cost: &mut Cost,
 ) -> Result<(Run, Option<(Owned, u32)>)> {
     let t = tables;
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     let at = (&t.uploaded, &t.packed, t.chain.span, t.chain.age);
     let region = k
         .grower
@@ -250,7 +250,7 @@ async fn grow_run(
         .take(gpu, "packed phytomers", u64::from(t[1]) * PW as u64);
     let scratch = k.pool.take(gpu, "laid scratch", u64::from(t[2]));
     let items = buffer(gpu, "laid items", u64::from(m * IW));
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     let packed = (&*axes, &*phyts);
     k.grower.pack(
         gpu,

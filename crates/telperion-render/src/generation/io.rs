@@ -187,7 +187,7 @@ pub(super) fn begin_read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result
         wgpu::BufferUsages::MAP_READ,
         &[],
     )?;
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     encoder.copy_buffer_to_buffer(source, 0, &target, 0, bytes);
     gpu.submit([encoder.finish()]);
     let (send, receive) = futures_channel::oneshot::channel();
@@ -293,7 +293,7 @@ pub(super) async fn read_leaves_chunked(
         let mut offset = 0;
         while offset < bytes {
             let length = chunk_bytes.min(bytes - offset);
-            let mut encoder = gpu.device.create_command_encoder(&Default::default());
+            let mut encoder = gpu.encoder(&Default::default());
             encoder.copy_buffer_to_buffer(source, offset, &target, 0, length);
             gpu.submit([encoder.finish()]);
             let (send, receive) = futures_channel::oneshot::channel();

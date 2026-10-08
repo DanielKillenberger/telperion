@@ -87,7 +87,7 @@ fn execute(g: &Generator, pass: &io::Pass, p: &CompactSurface) -> Candidate {
             &uniform, &rings, &angular, &runs, &positions, &partial, &status,
         ],
     );
-    let mut encoder = g.gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = g.gpu.encoder(&Default::default());
     if !p.rings.is_empty() {
         pass.run(&mut encoder, &bind, 0, p.rings.len() as u32);
         pass.run(&mut encoder, &bind, 1, p.runs.len() as u32);

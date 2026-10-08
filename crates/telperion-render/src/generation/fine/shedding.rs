@@ -97,7 +97,7 @@ impl Fades {
             .map(|&n| buffer(gpu, "wave living", u64::from(n) * 4))
             .collect();
         let none = buffer(gpu, "no living", 4);
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         for w in (0..waves.len()).rev() {
             let prior = out.get(w + 1).unwrap_or(&none);
             self.dispatch(
@@ -122,7 +122,7 @@ impl Fades {
         roots: &wgpu::Buffer,
     ) -> Vec<Owned> {
         let mut out: Vec<Owned> = Vec::with_capacity(waves.len());
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         for (w, g) in waves.iter().enumerate() {
             let mine = buffer(gpu, "wave kept", u64::from(own[w]));
             let prior = out.last().map_or(roots, |b| b);

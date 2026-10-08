@@ -152,9 +152,7 @@ fn sample_profile(size: f32, long: f32, furrow: f32, smooth: bool, shape: f32) -
             },
         ],
     });
-    let mut encoder = gpu
-        .device
-        .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+    let mut encoder = gpu.encoder(&wgpu::CommandEncoderDescriptor { label: None });
     {
         let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
             label: None,

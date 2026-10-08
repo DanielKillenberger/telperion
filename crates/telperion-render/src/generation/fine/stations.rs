@@ -113,12 +113,8 @@ impl Stationer {
         self.pass.run(e, &bind, entry, groups);
     }
 
-    async fn counts(
-        gpu: &Gpu,
-        e: &mut wgpu::CommandEncoder,
-        counts: &wgpu::Buffer,
-    ) -> Result<[u32; 4]> {
-        let fresh = gpu.device.create_command_encoder(&Default::default());
+    async fn counts(gpu: &Gpu, e: &mut crate::Encoder, counts: &wgpu::Buffer) -> Result<[u32; 4]> {
+        let fresh = gpu.encoder(&Default::default());
         gpu.submit([std::mem::replace(e, fresh).finish()]);
         let raw = io::read_async(gpu, counts, 16).await?;
         let w: &[u32] = bytemuck::cast_slice(&raw);
@@ -136,7 +132,7 @@ impl Stationer {
         let st = storage(gpu, "station words", u64::from(ids) * SW);
         let counts = storage(gpu, "station counts", 4);
         let none = storage(gpu, "stations none", 4);
-        let mut e = gpu.device.create_command_encoder(&Default::default());
+        let mut e = gpu.encoder(&Default::default());
         let none_runs = storage(gpu, "station runs none", 4);
         let owners = storage(gpu, "station owners", u64::from(ids) * 3);
         let early = |runs| {

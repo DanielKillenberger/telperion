@@ -334,7 +334,7 @@ impl Probe {
         let bytes = cases.len() as u64 * 16;
         let output = io::buffer(gpu, "contract results", bytes, storage, &[]).unwrap();
         let bind = self.pass.bind(gpu, &[&uniform, &input, &held, &output]);
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         self.pass.run(&mut encoder, &bind, 0, groups);
         gpu.submit([encoder.finish()]);
         let out = io::read(gpu, &output, bytes).unwrap();

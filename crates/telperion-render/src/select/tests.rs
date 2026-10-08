@@ -141,7 +141,7 @@ fn check_compaction(gpu: &Gpu, selection: &Select, instances: usize, levels: usi
         near: 0.1,
         far: 10.0,
     };
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     selection.dispatch(gpu, &mut encoder, &camera, (2, 2), true, None);
     gpu.submit([encoder.finish()]);
     let counts = selection.counted(gpu).expect("counts read back");

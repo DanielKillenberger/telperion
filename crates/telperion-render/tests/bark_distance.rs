@@ -70,7 +70,7 @@ fn resolved_scales_survive_until_the_two_pixel_boundary() {
             resource: output.as_entire_binding(),
         }],
     });
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     {
         let mut pass = encoder.begin_compute_pass(&Default::default());
         pass.set_pipeline(&pipeline);

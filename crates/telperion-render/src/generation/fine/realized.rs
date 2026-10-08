@@ -57,7 +57,7 @@ pub(super) async fn grow_roots(
         let places = buffer(gpu, "wave places", u64::from(n * CW));
         let at = (&*wave_buds, n, batch);
         let runs = grow_wave(gpu, k, at, (&*places, tables), &mut cost).await?;
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         let sums = buffer(gpu, "wave totals", 4);
         k.steps
             .scan(gpu, &mut encoder, (&*places, n, CW, CW), &sums);
@@ -65,7 +65,7 @@ pub(super) async fn grow_roots(
         let t = totals(gpu, &sums, 3, &mut cost).await?;
         let next_buds = buffer(gpu, "wave buds", u64::from(t[2] * BW2));
         let next_meta = buffer(gpu, "wave meta", u64::from(t[2] * 2));
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         for run in &runs {
             let lay = (&*run.runoff, &*places, &*wave_meta, &*run.items);
             let hand = (&*run.axes, &*run.scratch, &*next_buds, &*next_meta);

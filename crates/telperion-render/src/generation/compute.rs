@@ -208,7 +208,7 @@ impl Generator {
         let buffers = [&config, segments, rings, &geometry, leaves, &summary];
         let live = buffers.iter().map(|b| b.size()).sum::<u64>();
         let bind = self.place.bind(gpu, &buffers);
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         self.place.run(&mut encoder, &bind, 0, groups);
         gpu.submit([encoder.finish()]);
         Ok((summary, live))
@@ -270,7 +270,7 @@ impl Generator {
             &[],
         )?;
         let bind = self.mass.bind(gpu, &[&config, leaves, &counts, &masses]);
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         self.mass.run(&mut encoder, &bind, 0, count.div_ceil(256));
         self.mass.run(&mut encoder, &bind, 1, total.div_ceil(256));
         gpu.submit([encoder.finish()]);

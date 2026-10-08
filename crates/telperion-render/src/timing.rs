@@ -199,11 +199,9 @@ impl Session {
     /// Queues the copy that brings the last pairs back. Callback-driven from
     /// here on, which is what lets a browser await the same mapping.
     pub fn resolve(&self, gpu: &Gpu) {
-        let mut encoder = gpu
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("timestamps"),
-            });
+        let mut encoder = gpu.encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("timestamps"),
+        });
         encoder.resolve_query_set(&self.queries, 0..2 * PASSES, &self.resolved, 0);
         encoder.copy_buffer_to_buffer(&self.resolved, 0, &self.readback, 0, PAIRS);
         gpu.submit([encoder.finish()]);

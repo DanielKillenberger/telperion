@@ -150,7 +150,7 @@ fn stub_records(stubs: &[Stub], base: u32) -> Vec<f32> {
 pub(super) fn dress(gpu: &Gpu, d: &Dresser, dev: &Device, stubs: &[Stub]) -> Dressed {
     let mut waves = Vec::new();
     let mut ids = 0u32;
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     for (grown, laid, roots) in dev.groups() {
         let mine: Vec<Stub> = roots.iter().map(|&r| stubs[r]).collect();
         let records = stub_records(&mine, ids);
@@ -247,7 +247,7 @@ impl Dressed {
         rows: [[f32; 4]; 2],
         bound: (&wgpu::Buffer, &wgpu::Buffer),
     ) {
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         for w in self.waves.iter().filter(|w| !w.stubs && w.phyts > 0) {
             let (buffer, axes, phyts) = (&w.buffer, &w.axes, &w.phyts);
             let groups = phyts.div_ceil(64);

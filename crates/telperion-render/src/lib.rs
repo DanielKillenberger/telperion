@@ -8,6 +8,7 @@ mod buffer;
 mod camera;
 mod curve;
 mod device;
+mod encoder;
 mod foliage;
 pub mod generation;
 #[cfg(not(target_arch = "wasm32"))]
@@ -33,6 +34,7 @@ pub use camera::{
 };
 pub use curve::{viewer as curve_viewer, CurveReport};
 pub use device::{Gpu, RenderError, Result};
+pub use encoder::{Encoder, Recorded};
 pub use scene::{SceneRow, DEPTH_FORMAT, GROUND_REACH};
 pub use select::{Level, MAX_LEVELS};
 pub use shot::Shot;
@@ -457,12 +459,9 @@ impl Renderer {
             ),
             None => (None, None, None, None),
         };
-        let mut encoder = self
-            .gpu
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("frame"),
-            });
+        let mut encoder = self.gpu.encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("frame"),
+        });
         self.wood.tessellate(
             &self.gpu,
             &mut encoder,

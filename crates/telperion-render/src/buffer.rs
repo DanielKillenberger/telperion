@@ -14,7 +14,8 @@ const ALIGNMENT: u64 = wgpu::COPY_BUFFER_ALIGNMENT;
 /// drops nothing), so every buffer the renderer allocates is owned through
 /// this and freed where its owner ends (fn-212 task 10, host decision 2).
 /// A pass may bind a buffer its owner lets go before the encoder is
-/// submitted, so the destroy is the next submit's (`Gpu::submit`).
+/// submitted, so the destroy waits for every encoder open when it was let
+/// go (`Ledger::close`; fn-212 task 11).
 #[derive(Debug)]
 pub(crate) struct Owned {
     buffer: wgpu::Buffer,
@@ -26,12 +27,63 @@ pub(crate) struct Owned {
 /// 10: a browser build is checked against a stated budget).
 #[derive(Debug, Default)]
 pub(crate) struct Ledger {
-    pub(crate) released: std::sync::Mutex<Vec<wgpu::Buffer>>,
+    waiting: std::sync::Mutex<Waiting>,
     live: std::sync::atomic::AtomicU64,
     peak: std::sync::atomic::AtomicU64,
 }
 
+/// The encoders open now, and each buffer let go with those it waits on.
+#[derive(Debug, Default)]
+struct Waiting {
+    next: u64,
+    open: Vec<u64>,
+    let_go: Vec<(wgpu::Buffer, Vec<u64>)>,
+}
+
 impl Ledger {
+    fn waiting(&self) -> std::sync::MutexGuard<'_, Waiting> {
+        self.waiting.lock().unwrap_or_else(|e| e.into_inner())
+    }
+
+    /// Opens an encoder, named by what it returns.
+    pub(crate) fn open(&self) -> u64 {
+        let mut waiting = self.waiting();
+        let id = waiting.next;
+        waiting.next += 1;
+        waiting.open.push(id);
+        id
+    }
+
+    /// Closes encoder `id`, submitted or dropped, and destroys each
+    /// buffer that waited on no other.
+    pub(crate) fn close(&self, id: u64) {
+        let mut done = Vec::new();
+        let mut waiting = self.waiting();
+        waiting.open.retain(|&o| o != id);
+        waiting.let_go.retain_mut(|(buffer, on)| {
+            on.retain(|&o| o != id);
+            on.is_empty() && {
+                done.push(buffer.clone());
+                false
+            }
+        });
+        drop(waiting);
+        done.iter().for_each(wgpu::Buffer::destroy);
+    }
+
+    /// Destroys `buffer` now, or once every encoder open now has closed:
+    /// any of them may bind it.
+    fn let_go(&self, buffer: &wgpu::Buffer) {
+        let mut waiting = self.waiting();
+        if waiting.open.is_empty() {
+            drop(waiting);
+            buffer.destroy();
+        } else {
+            let on = waiting.open.clone();
+            waiting.let_go.push((buffer.clone(), on));
+        }
+    }
+
     /// The bytes the device's owned buffers hold now.
     #[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
     pub(crate) fn live(&self) -> u64 {
@@ -90,8 +142,7 @@ impl Drop for Owned {
     fn drop(&mut self) {
         let size = self.buffer.size();
         (self.ledger.live).fetch_sub(size, std::sync::atomic::Ordering::Relaxed);
-        let mut released = (self.ledger.released.lock()).unwrap_or_else(|e| e.into_inner());
-        released.push(self.buffer.clone());
+        self.ledger.let_go(&self.buffer);
     }
 }
 
@@ -294,11 +345,9 @@ pub fn read(gpu: &Gpu, held: &Held) -> Option<Vec<u8>> {
             mapped_at_creation: false,
         },
     );
-    let mut encoder = gpu
-        .device
-        .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("readback"),
-        });
+    let mut encoder = gpu.encoder(&wgpu::CommandEncoderDescriptor {
+        label: Some("readback"),
+    });
     encoder.copy_buffer_to_buffer(held.buffer(), 0, &readback, 0, size);
     gpu.submit([encoder.finish()]);
 

@@ -137,11 +137,8 @@ impl Sweeper {
     }
 
     /// The passes recorded so far submitted, then the counts read back.
-    async fn counts(gpu: &Gpu, encoder: &mut wgpu::CommandEncoder, b: &Bound) -> Result<[u32; 4]> {
-        let done = std::mem::replace(
-            encoder,
-            gpu.device.create_command_encoder(&Default::default()),
-        );
+    async fn counts(gpu: &Gpu, encoder: &mut crate::Encoder, b: &Bound) -> Result<[u32; 4]> {
+        let done = std::mem::replace(encoder, gpu.encoder(&Default::default()));
         gpu.submit([done.finish()]);
         let raw = io::read_async(gpu, &b.counts, 16).await?;
         let w: &[u32] = bytemuck::cast_slice(&raw);
@@ -168,7 +165,7 @@ impl Sweeper {
             none: storage(gpu, "sweep none", 4),
         };
         let z = [0u32; 8];
-        let mut e = gpu.device.create_command_encoder(&Default::default());
+        let mut e = gpu.encoder(&Default::default());
         for w in &dressed.waves {
             let records = w.axes * CA_WORDS as u32;
             let cfg = [0, 0, 0, 0, records, w.base, u32::from(w.stubs), 0];

@@ -164,7 +164,7 @@ impl<'a> Device<'a> {
         let total = roots * u64::from(CR) * 4;
         let usage = wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
         let into = io::buffer(gpu, "records gathered", total.max(16), usage, &[])?;
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         let mut at = Vec::with_capacity(self.groups.len());
         let mut bytes = 0;
         for g in &self.groups {
