@@ -159,3 +159,11 @@ Take **option 1**, with the exchange from the rows.
 - **Before the gate:** one comparison of the structure above the cut, by lineage against the stepped oak's (kept phytomers by order, trunk base, height, crown extent).
 
 Its cost should land well under 0.1.4's grow: the structure above is about 2 % of the phytomers, aggregates step a handful of cohorts each, and the fixed cost is the lattice's sweep (PROFILE.md: 28 ms of the oak's 475 ms natively on one core at 40). That is an estimate, not a measurement.
+
+## Host decision on task 2 (2026-10-08)
+
+The light model stays today's lattice (fn-226's verdict: outline light rejected). So the coarse oak takes **option 1**: the fine roots stand in as aggregates, stepped inside the one grower each cycle (fn-211.4's `Aggregate`, the per-root expectation model fn-226 also chose), with the as-grown exchange taken from the closed form's expectations.
+
+The known weak point is that a root reads its light inside its own leaves, reading 12–17 % low (TASK4-LIGHT.md). Measure it first. Add TASK4's repair only if the coarse oak's structure above the cut, its field cubes or its site timing miss.
+
+Option 2 (a second grower) is out. Options 3 and 4 are kept only as the floor and the report.
