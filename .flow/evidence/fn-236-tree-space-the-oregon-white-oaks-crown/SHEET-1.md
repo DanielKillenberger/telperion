@@ -81,3 +81,18 @@ A limb census of seed 7 at 80 (`oak_limbs`, scratch): 175 limb axes (144 of them
 Not run on round 1: the gate, `npm test`, the catalogue digests and `presets.generated.ts` (the round is not ready for a verdict), and the site's field stills at n = 36 and 48 (R3).
 
 **My reading:** round 1 is better than round 0 at 80 (stem, tuft, size), but it is not the target, and I would not put it to the owner.
+
+## Host decisions after round 1 (2026-10-09)
+
+I viewed `raw/compare/compare1-80.png`. Round 1 moves the right way: lower, wider, the leader tuft gone. What remains is a crown of dark clumps with gaps between them, where O-WHOLE is one continuous, closed surface.
+
+1. **The leaf rows are the oak's values too, so the brief now covers them.** The gaps lie between the limbs' foliage clumps (round 1's own finding), and adding branches runs into the budget, so the lever is how much surface each shoot carries. *Q. garryana* bears large leaves (about 5-15 cm), crowded at the tips of its shoots.
+   - Use fn-223's engine rows `cluster_leaves` and `cluster_spread` on the oak's short shoots and shoot tips.
+   - Use the leaf element's size rows and the canopy's leaf rows.
+   - Every value is sourced in MODEL-OAK.md, or marked as estimated.
+   - Rounds 2 onward run on these and keep round 1's structure.
+2. **Size at 80 comes first. No early fork.** Mature trees are the product (AGENTS.md), and an upright, shrubby crown at 40 is how a young open-grown oak really looks. The 40-year stills are reported but are not the target.
+3. **The ordinary tree keeps its rows.** The owner decided this on 2026-10-09: "an ordinary size whatever". fn-231 skips the centroid test with that decision named. Merge F4 into this branch to pick that up if it is missing, and do not regenerate the ordinary preset.
+4. **Seed 7:** report its numbers. It is judged on the stills like the other seeds.
+
+If rounds on the leaf rows still leave a crown of clumps with gaps, stop and report it. The host will then put the question to Astra and mint a capability spec.
