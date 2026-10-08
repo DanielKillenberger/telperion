@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-229-flowers-placed-on-the-device",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-08T13:40:18.801550Z",
   "created_at": "2026-10-08T11:08:56.446618Z",
   "default_impl": null,
   "default_review": null,
@@ -177,5 +177,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T13:16:56.302389Z"
+  "updated_at": "2026-10-08T13:40:18.801559Z"
 }
