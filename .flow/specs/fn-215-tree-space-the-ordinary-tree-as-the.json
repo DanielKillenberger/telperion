@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-215-tree-space-the-ordinary-tree-as-the",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-08T12:25:33.888586Z",
   "created_at": "2026-10-07T08:35:18.725971Z",
   "default_impl": null,
   "default_review": null,
@@ -131,5 +131,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T12:25:08.935722Z"
+  "updated_at": "2026-10-08T12:25:33.888596Z"
 }
