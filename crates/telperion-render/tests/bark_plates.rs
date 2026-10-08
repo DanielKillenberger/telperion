@@ -165,7 +165,7 @@ fn sample_profile(size: f32, long: f32, furrow: f32, smooth: bool, shape: f32) -
         pass.dispatch_workgroups(count as u32 / 64, 1, 1);
     }
     encoder.copy_buffer_to_buffer(&output, 0, &read, 0, bytes);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let (send, recv) = std::sync::mpsc::channel();
     read.slice(..)
         .map_async(wgpu::MapMode::Read, move |r| send.send(r).unwrap());

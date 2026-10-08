@@ -1,3 +1,4 @@
+use crate::buffer::Owned;
 use crate::{Gpu, RenderError, Result};
 
 pub(super) fn buffer(
@@ -6,7 +7,7 @@ pub(super) fn buffer(
     bytes: u64,
     usage: wgpu::BufferUsages,
     initial: &[u8],
-) -> Result<wgpu::Buffer> {
+) -> Result<Owned> {
     let size = bytes.max(16).next_multiple_of(4);
     let limits = gpu.device.limits();
     let limit = if usage.contains(wgpu::BufferUsages::STORAGE) {
@@ -23,12 +24,15 @@ pub(super) fn buffer(
             limit,
         });
     }
-    let buffer = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some(label),
-        size,
-        usage: usage | wgpu::BufferUsages::COPY_DST,
-        mapped_at_creation: false,
-    });
+    let buffer = Owned::create(
+        gpu,
+        &wgpu::BufferDescriptor {
+            label: Some(label),
+            size,
+            usage: usage | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        },
+    );
     if !initial.is_empty() {
         gpu.queue.write_buffer(&buffer, 0, initial);
     }
@@ -170,7 +174,7 @@ impl Pass {
 }
 
 pub(super) struct PendingRead {
-    target: wgpu::Buffer,
+    target: crate::buffer::Owned,
     receive: futures_channel::oneshot::Receiver<std::result::Result<(), wgpu::BufferAsyncError>>,
     bytes: u64,
 }
@@ -185,7 +189,7 @@ pub(super) fn begin_read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result
     )?;
     let mut encoder = gpu.device.create_command_encoder(&Default::default());
     encoder.copy_buffer_to_buffer(source, 0, &target, 0, bytes);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let (send, receive) = futures_channel::oneshot::channel();
     target
         .slice(..bytes)
@@ -217,7 +221,6 @@ impl PendingRead {
         let result = view.to_vec();
         drop(view);
         self.target.unmap();
-        self.target.destroy();
         Ok(result)
     }
 }
@@ -278,18 +281,21 @@ pub(super) async fn read_leaves_chunked(
     let mut leaves = reserve_leaves(count)?;
     let scopes = scope(gpu);
     let result = async {
-        let target = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("bounded leaf readback"),
-            size: chunk_bytes,
-            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
+        let target = Owned::create(
+            gpu,
+            &wgpu::BufferDescriptor {
+                label: Some("bounded leaf readback"),
+                size: chunk_bytes,
+                usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            },
+        );
         let mut offset = 0;
         while offset < bytes {
             let length = chunk_bytes.min(bytes - offset);
             let mut encoder = gpu.device.create_command_encoder(&Default::default());
             encoder.copy_buffer_to_buffer(source, offset, &target, 0, length);
-            gpu.queue.submit([encoder.finish()]);
+            gpu.submit([encoder.finish()]);
             let (send, receive) = futures_channel::oneshot::channel();
             target
                 .slice(..length)

@@ -4,6 +4,7 @@
 //! (`pack.wgsl`) as `telperion_space::chain_cases` gives the CPU's.
 use super::super::io;
 use super::units::pack;
+use crate::buffer::Owned;
 use crate::Gpu;
 use std::cell::RefCell;
 #[cfg(test)]
@@ -170,8 +171,8 @@ pub(super) fn pack_source() -> String {
 
 /// The tables on the device.
 pub(super) struct Uploaded {
-    pub table: wgpu::Buffer,
-    pub words: wgpu::Buffer,
+    pub table: Owned,
+    pub words: Owned,
 }
 
 pub(super) fn upload(gpu: &Gpu, t: &Packed) -> Uploaded {
@@ -191,7 +192,8 @@ pub(super) fn upload(gpu: &Gpu, t: &Packed) -> Uploaded {
     }
 }
 
-/// A run's regions on the device, as the grower left them.
+/// A run's regions on the device, as the grower left them: handles on
+/// the grower's pool, which owns them.
 pub(super) struct Region {
     pub axes: wgpu::Buffer,
     pub phyts: wgpu::Buffer,
@@ -210,7 +212,7 @@ pub(super) struct Grower {
     /// after the last run's packing, so a run takes the buffers the last
     /// one left (task 8: a fresh 1.4 GB a run cost 30 ms of allocation and
     /// clearing, three times the run's kernels).
-    pool: RefCell<Vec<wgpu::Buffer>>,
+    pool: RefCell<Vec<Owned>>,
 }
 
 impl Grower {
@@ -226,6 +228,12 @@ impl Grower {
             ),
             pool: RefCell::new(Vec::new()),
         }
+    }
+
+    /// The bytes the regions keep between builds.
+    #[cfg(test)]
+    pub(super) fn bytes(&self) -> u64 {
+        self.pool.borrow().iter().map(|b| b.size()).sum()
     }
 
     /// The region's five buffers of at least `bytes` each, reused where
@@ -248,13 +256,12 @@ impl Grower {
             if pool.get(k).is_none_or(|b| b.size() < n) {
                 let grown = io::buffer(gpu, label, n, storage, &[]).unwrap();
                 match pool.get_mut(k) {
-                    // The smaller one destroyed: a browser frees nothing dropped.
-                    Some(b) => std::mem::replace(b, grown).destroy(),
+                    Some(b) => *b = grown,
                     None => pool.push(grown),
                 }
             }
         }
-        pool.clone()
+        pool.iter().map(|b| (**b).clone()).collect()
     }
 
     /// Grows the `n` buds from `first` of `input` in regions of `caps`,

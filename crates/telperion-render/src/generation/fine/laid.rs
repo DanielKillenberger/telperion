@@ -7,6 +7,7 @@
 //! `origins` holds those nodes' heights, which the ground is read from.
 use super::super::io;
 use super::pool::Pool;
+use crate::buffer::Owned;
 use crate::Gpu;
 use telperion_space::{fixed, BearerFrame, GeometryTables, RootGeometry, Vec3};
 
@@ -151,7 +152,7 @@ pub(super) fn stubs(roots: &[RootGeometry], made: &[u64]) -> (Vec<f32>, Vec<f32>
 
 /// A wave's laid buffer: its axes, then its phytomers.
 pub(super) struct Wave {
-    pub buffer: wgpu::Buffer,
+    pub buffer: Owned,
     pub axes: u32,
     pub phyts: u32,
 }

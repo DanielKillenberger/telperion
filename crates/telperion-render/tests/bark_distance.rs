@@ -78,7 +78,7 @@ fn resolved_scales_survive_until_the_two_pixel_boundary() {
         pass.dispatch_workgroups(64, 1, 1);
     }
     encoder.copy_buffer_to_buffer(&output, 0, &readback, 0, output.size());
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let (send, recv) = std::sync::mpsc::channel();
     readback
         .slice(..)

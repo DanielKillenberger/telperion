@@ -93,7 +93,7 @@ fn execute(g: &Generator, pass: &io::Pass, p: &CompactSurface) -> Candidate {
         pass.run(&mut encoder, &bind, 1, p.runs.len() as u32);
     }
     pass.run(&mut encoder, &bind, 2, 1);
-    g.gpu.queue.submit([encoder.finish()]);
+    g.gpu.submit([encoder.finish()]);
     let upload_ms = millis(start);
     let wait = Instant::now();
     let bytes = io::read(&g.gpu, &status, 32).unwrap();

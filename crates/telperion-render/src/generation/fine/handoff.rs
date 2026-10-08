@@ -6,6 +6,7 @@
 //! the curve's demand and the tree's bounds fold in.
 use super::super::{compute, io};
 use super::sweep::Swept;
+use crate::buffer::Owned;
 use crate::curve::CurveGpu;
 use crate::{Gpu, Result};
 use telperion_core::math::Vec3;
@@ -81,7 +82,7 @@ impl Handoff {
         let (sums, sags) = (sums?, sags?);
         let (twist, depth) = twisting(cpu);
         let offsets = (p0 as u32, k0 as u32, twist, depth);
-        let all = [
+        let all: [&wgpu::Buffer; 7] = [
             &swept.point_buffer,
             &swept.cluster_buffer,
             &swept.table,
@@ -103,12 +104,12 @@ impl Handoff {
                 n.div_ceil(64).max(1)
             };
             let cfg = self.cfg(gpu, n, groups, offsets);
-            let mut bound = vec![&cfg];
+            let mut bound: Vec<&wgpu::Buffer> = vec![&cfg];
             bound.extend(all);
             let bind = self.pass.bind(gpu, &bound);
             self.pass.run(&mut e, &bind, entry, groups);
         }
-        gpu.queue.submit([e.finish()]);
+        gpu.submit([e.finish()]);
         let raw = io::read_async(gpu, &sums, (SUMS * 4) as u64).await?;
         let s: &[u32] = bytemuck::cast_slice(&raw);
         let fine = (swept.clusters > 0).then(|| compute::bounds(s, 1));
@@ -129,7 +130,7 @@ impl Handoff {
         n: u32,
         groups: u32,
         (p0, k0, twist, depth): (u32, u32, f64, f64),
-    ) -> wgpu::Buffer {
+    ) -> Owned {
         let most = gpu.device.limits().max_compute_workgroups_per_dimension;
         let row = groups.min(most) * 64;
         let words = [

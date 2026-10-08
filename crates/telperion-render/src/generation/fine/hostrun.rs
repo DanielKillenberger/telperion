@@ -76,7 +76,7 @@ impl Grower {
             row,
             groups,
         } = region;
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
         gpu.device
             .poll(wgpu::PollType::wait_indefinitely())
             .unwrap();
@@ -120,7 +120,7 @@ impl Grower {
             (&offsets_buf, 2),
             (&packed_axes, &packed_phyts),
         );
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
         let axes = io::read(gpu, &packed_axes, axes_bytes).unwrap();
         let axes: &[u32] = bytemuck::cast_slice(&axes);
         let phyts = io::read(gpu, &packed_phyts, phyt_bytes).unwrap();

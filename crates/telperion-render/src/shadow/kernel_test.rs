@@ -128,7 +128,7 @@ fn kernel_averages_comparisons_and_offsets_the_receiver() {
             depth_or_array_layers: 1,
         },
     );
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let (send, recv) = std::sync::mpsc::channel();
     readback
         .slice(..)

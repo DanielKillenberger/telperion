@@ -94,7 +94,7 @@ fn walk() -> vec3<f32> {{
         pass.dispatch_workgroups(1, 1, 1);
     }
     encoder.copy_buffer_to_buffer(&output, 0, &readback, 0, 64);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let (send, recv) = std::sync::mpsc::channel();
     readback
         .slice(..)

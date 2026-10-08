@@ -71,7 +71,7 @@ pub(crate) fn finish(gpu: &Gpu) -> Vec<(String, f64, f64)> {
         let resolved = super::io::buffer(gpu, "profile", bytes, usage, &[]).unwrap();
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
         encoder.resolve_query_set(set, 0..used, &resolved, 0);
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
         let raw = super::io::read(gpu, &resolved, bytes).unwrap();
         ticks.extend_from_slice(bytemuck::cast_slice::<u8, u64>(&raw));
     }

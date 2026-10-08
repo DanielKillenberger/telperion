@@ -10,6 +10,7 @@ use super::realized::{grow_roots, RootBud, Waves};
 use super::roots::{Cost, Kernels, Tables};
 use super::shedding::{report, table};
 use super::steps::{buffer, DESCRIBE};
+use crate::buffer::Owned;
 use crate::Gpu;
 use telperion_space::{BearerFrame, Lived, RootGeometry, Vec3};
 
@@ -26,7 +27,7 @@ pub(super) struct Group {
     pub laid: Vec<Wave>,
     /// Each root's origins' heights and first axis's vigour, then each
     /// wave's chains' records.
-    records: wgpu::Buffer,
+    records: Owned,
     at: Vec<u32>,
     /// Each root's attachment as the stubs take it, and its node.
     pub attached: Vec<RootGeometry>,
@@ -132,13 +133,13 @@ impl Group {
             // Two buffers: WebGPU refuses one buffer at two writable bindings.
             let (buds, meta) = (buffer(gpu, "no buds", 4), buffer(gpu, "no meta", 4));
             for run in &g.runs {
-                let lay = (&run.runoff, &g.places, &g.meta, &run.items);
-                let hand = (&run.axes, &run.scratch, &buds, &meta);
+                let lay = (&*run.runoff, &*g.places, &*g.meta, &*run.items);
+                let hand = (&*run.axes, &*run.scratch, &*buds, &*meta);
                 k.steps
                     .hand(gpu, &mut encoder, (run.n, w == 0, DESCRIBE), lay, hand);
             }
         }
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
     }
 
     /// Runs `entry` over every wave, down from the first (`down`) or up
@@ -153,17 +154,17 @@ impl Group {
         for w in waves {
             let prior = self.at.get(w + 1).copied().unwrap_or(0);
             for run in &self.waves.grown[w].runs {
-                let packed = (&run.axes, &run.phyts);
-                let item = (&run.items, run.n, packed, &run.scratch);
+                let packed = (&*run.axes, &*run.phyts);
+                let item = (&*run.items, run.n, packed, &*run.scratch);
                 let at = (entry, prior, self.at[w]);
                 let laid = (&self.laid[w], &self.laid[w + 1]);
-                let bufs = (&t.table, &self.records);
+                let bufs = (&*t.table, &*self.records);
                 let how = (t.chain.age, t.sags);
                 k.resolver
                     .settle(gpu, &mut encoder, item, bufs, laid, how, at);
             }
         }
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
     }
 
     /// The first wave's records copied into `into` at `at` bytes; the
@@ -194,17 +195,7 @@ impl Group {
     }
 
     /// Its pooled buffers, for the next build (`pool.rs`).
-    pub(super) fn buffers(self) -> impl Iterator<Item = wgpu::Buffer> {
-        // What is not pooled is destroyed: a browser frees nothing dropped.
-        self.records.destroy();
-        for g in &self.waves.grown {
-            g.meta.destroy();
-            g.places.destroy();
-            for r in &g.runs {
-                r.runoff.destroy();
-                r.items.destroy();
-            }
-        }
+    pub(super) fn buffers(self) -> impl Iterator<Item = Owned> {
         let runs = self.waves.grown.into_iter().flat_map(|g| g.runs);
         let packed = runs.flat_map(|r| [r.axes, r.phyts, r.scratch]);
         packed.chain(self.laid.into_iter().map(|w| w.buffer))

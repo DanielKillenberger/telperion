@@ -169,3 +169,87 @@ The owner's Chrome was not usable. The first two builds there were lost to devic
 
 - **Render half,** under the GPU lock: 164 passed, 0 failed (`gate-render-2.txt`).
 - **CPU half:** 988 passed, 0 failed (`gate-cpu-2.txt`).
+
+## Host decisions on part 2 (2026-10-08)
+
+Recorded in CONTRACT.md: frame pacing (b); one destroy-on-drop buffer type across every owner; fine stations placed in their roots' order; the beech's 30 leaves traced; the render module's ceiling raised to the measured size plus a margin (**for the PR's Decisions section**); the birch's catalogue page regenerated.
+
+## Part 3: the host's decisions on part 2 (2026-10-08)
+
+### Built
+
+- **Frame pacing (decision 1).** `WebRenderer::frame` draws only once the last frame's work is done: an atomic flag set at draw and cleared by `on_submitted_work_done`. The harness is unchanged.
+- **One buffer type (decision 2).** `buffer::Owned` owns every buffer the renderer allocates: the generation path (`io::buffer` and every helper), `Held`, the curve and its targets, scene, selection, shadow, timing, and the staging and readback buffers.
+  - Dropping an `Owned` releases it to the `Gpu`, and `Gpu::submit` (every submit in the crate goes through it) destroys the released buffers after that submit. A pass may bind a buffer its owner let go before the encoder is submitted: the native suite showed it ("chain cfg has been destroyed"), and the destroy now waits for the next submit.
+  - The manual `Drop` impls of part 2 are gone.
+  - Two raw handles remain, both by ownership:
+    - the grower's `Region`, which holds handles on the grower's own pool;
+    - the leaf view's identity buffers (`select/bind.rs`), owned by the bind group that outlives the function.
+- **Stations in their roots' order (decision 3).** `stations.wgsl` numbered bearing runs by a global `atomicAdd`, in no fixed order, so a run's leaves landed anywhere in the buffer. Now:
+  - `owned` walks each run's first node up to its root's stub, and counts the run there with its rank among the root's runs;
+  - the per-stub counts are scanned in node order (`Steps::scan`);
+  - `starts` writes each run at its root's first run plus its rank.
+
+  There is no sort pass. A root's runs, and so its leaves, are contiguous, with the roots in their stubs' order. Within a root the order is still the atomic rank's, as before.
+- **Render ceiling raised (decision 4, for the PR's Decisions section):** `dist/telperion-render.wasm` measures 2,732,171 bytes; the ceiling goes from 2,200,000 to 2,800,000, with the reason recorded in `scripts/artifact-budgets.json`. (`telperion-field.wasm`, 923,937 against its 632,580 ceiling, was over before this task.)
+- **`catalogue/silver-birch/README.md` regenerated (decision 5):** `npm test` is green.
+
+### Spruce 80 frame cost after the roots' order (native, one binary, alternate processes; `drawn-spruce80-order.txt`)
+
+| | Consecutive leaves apart, mean / p99 | Vegetation p50 ms | Frame p50 ms |
+|---|--:|--:|--:|
+| CPU executor (whole) | 0.0197 / 0.289 m | 30.78 | 47.16 |
+| Device, before (atomic order) | 0.0739 / 1.507 m | 48.5 to 48.9 | 69.2 to 70.7 |
+| Device, roots' order | **0.0156 / 0.069 m** | 33.72, 33.97 | **50.02, 50.33** |
+
+- The device's leaves are now more coherent than the CPU's, and the frame gap fell from +23 % to **+6 %** (vegetation +9.5 %).
+- What remains is not traced. Candidates: the random order within a root, and the CPU block placed before the device block.
+- The whole path's own frame fell from about 57 ms to 47 ms between part 1 and now, on a quiet desk. Only same-binary rows are compared.
+
+### The beech's 30 leaves, traced (decision 3)
+
+They are one run on beech 80 s1, near (-0.65, 8.73, -2.05):
+- the device's run starts one node earlier (key 159487817, node 10706: 16 leaves);
+- the CPU's starts one node later (key 413959751, node 10707: 14 leaves).
+
+Node 10706's start radius is 8.896716697e-3. The tree's slender bound (`bearing_bounds()[1]`, stem pipe × shoot radius) is 8.896716406e-3:
+- 2.9e-10 apart, under float32's step there (about 9.3e-10);
+- in f64 the node does not bear (CPU), and in f32 its girth and the bound compare equal, so it bears (device).
+
+This is the f32-against-f64 threshold, here on the slender bearing bound, and it accounts for the 2 extra leaves. TRACE output in `placed_tests`/`resident_tests` (behind `TRACE=1`) prints such runs.
+
+For the host: the slender bound could be decided as SHORTEST was in task 8, in a form both executors compute alike (for example both in f32, or the girth in whole nanometres), so the class disappears.
+
+### Browser (headless Chromium, under the GPU lock; `raw/task10/browser/paced/`, `owned/`)
+
+- **Starvation is gone with pacing alone:**
+  - no build hung;
+  - spruce 80 to 40: 1,576 to 1,692 ms;
+  - 40 to 12: 560 to 575 ms;
+  - 12 to 80: 2,295 to 2,377 ms;
+  - 1 to 80, after a failed 80: failed, the same OOM pattern as the next item.
+
+  Option (a) was not needed.
+- **OOM persists.** The spruce at 80 builds in a fresh page (3,234 to 3,330 ms). Another 80, by seed or age, built while an 80 or a 40 is drawn fails "Out of Memory", a stated error. After 12 or 1 it builds.
+  - One failure also broke the renderer's next frame ("Invalid BindGroup measure"), and the timing session after it read "disjoint".
+- **Device memory (nvidia-smi, the whole card):**
+  - 1.26 GB before the page;
+  - 7.9 GB held while the first spruce 80 is drawn, about 6.6 GB of it the page's;
+  - 9.18 GB at the second build's peak, which failed.
+- **Pool sizes kept between builds (native, `large_to_small`, which builds 80 s1, 80 s7, 80 s42, 40, 12, 80, 1, 80 in one process, all succeeding):**
+
+  | After | Kernels' pool | Grower's regions | Submitted tree |
+  |---|--:|--:|--:|
+  | Spruce 80 | 1,126 to 1,740 MB | 1,319 MB | 721 to 738 MB |
+  | Spruce 40 or 12 | 18 to 20 MB | 1,319 MB | 325 to 431 MB |
+
+  The grower's regions never shrink. The kernels' pool holds the last build's packed, scratch and laid buffers.
+- **For the host (the budget):** about 3 GB of pools stays on the device beside a drawn 80 (0.7 GB of tree plus its curve targets). In Chrome that leaves no room for a second build of the 80's peak on this 10 GB card. Natively the same sequence fits.
+
+### Gate (part 3)
+
+- **Render half,** under the GPU lock, first: 164 passed, 0 failed (`gate-render-3.txt`).
+- **CPU half:** 988 passed, 0 failed (`gate-cpu-3.txt`).
+- **`npm test`:** the catalogue check passes; vitest 143 of 143.
+
+The acceptance's "large-to-small rebuilds survive" does not hold in the browser until the budget is decided. Task 10 stays open.

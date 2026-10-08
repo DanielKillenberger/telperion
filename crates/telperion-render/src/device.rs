@@ -115,9 +115,23 @@ pub struct Gpu {
     source: wgpu::Adapter,
     instance: wgpu::Instance,
     lost: Arc<Mutex<Option<String>>>,
+    /// Buffers their owners let go, destroyed after the next submit
+    /// (`Gpu::submit`, `buffer::Owned`; fn-212 task 10).
+    pub(crate) released: Arc<Mutex<Vec<wgpu::Buffer>>>,
 }
 
 impl Gpu {
+    /// Submits `commands`, then destroys every buffer let go since the
+    /// last submit. A buffer a recorded pass binds may be let go before
+    /// its encoder is submitted; its destroy waits for that submit, and a
+    /// destroy after it is deferred by the device until the work is done.
+    pub fn submit<I: IntoIterator<Item = wgpu::CommandBuffer>>(&self, commands: I) {
+        self.queue.submit(commands);
+        let released =
+            std::mem::take(&mut *self.released.lock().unwrap_or_else(|e| e.into_inner()));
+        released.iter().for_each(wgpu::Buffer::destroy);
+    }
+
     /// Asks the platform for a hardware device, with the adapter's own maximum
     /// buffer size so a full-detail tree fits, and timestamps when offered.
     pub async fn request(compatible_surface: Option<&wgpu::Surface<'_>>) -> Result<Self> {
@@ -194,6 +208,7 @@ impl Gpu {
             source: adapter,
             instance,
             lost,
+            released: Arc::default(),
         })
     }
 

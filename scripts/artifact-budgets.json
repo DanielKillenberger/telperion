@@ -13,8 +13,8 @@
     },
     {
       "path": "dist/telperion-render.wasm",
-      "ceilingBytes": 2200000,
-      "reason": "owner, 2026-09-27: headroom for the render module",
+      "ceilingBytes": 2800000,
+      "reason": "fn-212 task 10 host decision 4, 2026-10-08, on the branch (the owner accepted raised ceilings there): raised from the owner's 2200000 (2026-09-27: headroom for the render module) to the measured 2732171 bytes plus a small margin, once the fine roots' device executor ships in the render module (its shaders and kernels)",
       "baselineBytes": 1985291,
       "baselineOn": "master ed23f773 CI package (PR #131)"
     },

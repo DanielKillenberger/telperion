@@ -122,7 +122,7 @@ impl Kernel {
             .bind(gpu, &[&uniform, &input, &table, &words, &counts, &empty]);
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
         self.pass.run(&mut encoder, &bind, 0, groups);
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
         let sizes: Vec<u32> =
             bytemuck::cast_slice(&io::read(gpu, &counts, n as u64 * 4).unwrap()).to_vec();
         assert!(
@@ -147,7 +147,7 @@ impl Kernel {
             .bind(gpu, &[&uniform, &input, &table, &words, &counts, &out]);
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
         self.pass.run(&mut encoder, &bind, 1, groups);
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
         let read = io::read(gpu, &out, bytes).unwrap();
         let nodes =
             bytemuck::cast_slice::<u8, u64>(&read).as_chunks::<3>().0[..total as usize].to_vec();

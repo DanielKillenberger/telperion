@@ -7,6 +7,7 @@
 use super::super::io;
 use super::roots::{Cost, Grown};
 use super::steps::buffer;
+use crate::buffer::Owned;
 use crate::Gpu;
 use telperion_space::ChainTables;
 
@@ -22,7 +23,7 @@ pub(super) struct Fades {
 }
 
 /// Each PA's fade delay (Q32) and whether it sheds, as `up` reads them.
-pub(super) fn table(gpu: &Gpu, chain: &ChainTables) -> wgpu::Buffer {
+pub(super) fn table(gpu: &Gpu, chain: &ChainTables) -> Owned {
     let words: Vec<u32> = chain
         .pas
         .iter()
@@ -90,8 +91,8 @@ impl Fades {
         gpu: &Gpu,
         (waves, chains): (&[Grown], &[u32]),
         (table, age): (&wgpu::Buffer, u32),
-    ) -> Vec<wgpu::Buffer> {
-        let mut out: Vec<wgpu::Buffer> = chains
+    ) -> Vec<Owned> {
+        let mut out: Vec<Owned> = chains
             .iter()
             .map(|&n| buffer(gpu, "wave living", u64::from(n) * 4))
             .collect();
@@ -107,7 +108,7 @@ impl Fades {
                 (table, prior, &out[w]),
             );
         }
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
         out.truncate(waves.len());
         out
     }
@@ -119,16 +120,16 @@ impl Fades {
         gpu: &Gpu,
         (waves, own): (&[Grown], &[u32]),
         roots: &wgpu::Buffer,
-    ) -> Vec<wgpu::Buffer> {
-        let mut out: Vec<wgpu::Buffer> = Vec::with_capacity(waves.len());
+    ) -> Vec<Owned> {
+        let mut out: Vec<Owned> = Vec::with_capacity(waves.len());
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
         for (w, g) in waves.iter().enumerate() {
             let mine = buffer(gpu, "wave kept", u64::from(own[w]));
-            let prior = out.last().unwrap_or(roots);
+            let prior = out.last().map_or(roots, |b| b);
             self.dispatch(gpu, &mut encoder, (1, 0), g, (&g.meta, prior, &mine));
             out.push(mine);
         }
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
         out
     }
 }

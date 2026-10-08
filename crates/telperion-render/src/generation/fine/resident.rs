@@ -195,14 +195,16 @@ pub(super) async fn build(
     let station = station_rows(&x, segments);
     let stationer = &tools.stationer;
     let device = stage(gpu, &mut t.stations, async || {
-        stationer.stations(gpu, &swept, ids, station).await
+        stationer
+            .stations(gpu, (&swept, &k.steps), ids, station)
+            .await
     })
     .await?;
     swept.nodes.destroy();
     let positions = stage(gpu, &mut t.rings, async || {
         let twist = std::f64::consts::TAU * surface.twist_rate / height;
         let rung = tools.ringer.rings(gpu, &swept, segments, twist as f32);
-        let rings = (&rung.buffer, rung.rings, rung.vertices);
+        let rings = (&*rung.buffer, rung.rings, rung.vertices);
         let positions = gen.ring_vertices(rings, segments, &angular);
         rung.buffer.destroy();
         positions
@@ -227,15 +229,15 @@ pub(super) async fn build(
         )?;
         let mut summaries = Vec::new();
         if cpu.count > 0 {
-            let at = (cpu.count, &leaves);
-            summaries.push(gen.place_into(config, (&segs, &wood.positions), e, at)?.0);
+            let at = (cpu.count, &*leaves);
+            summaries.push(gen.place_into(config, (&*segs, &*wood.positions), e, at)?.0);
         }
         if device.stations > 0 {
             let counts = (device.stations, device.segments, segments);
             let config = data::config(&l, x.twig(), counts, e, reference).at(cpu.count);
-            let at = (device.stations, &leaves);
+            let at = (device.stations, &*leaves);
             summaries.push(
-                gen.place_into(config, (&device.buffer, &positions), e, at)?
+                gen.place_into(config, (&*device.buffer, &*positions), e, at)?
                     .0,
             );
         }

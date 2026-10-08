@@ -305,8 +305,12 @@ impl Renderer {
     ) -> impl std::future::Future<Output = [Option<CurveReport>; 2]> + 'static {
         let curve = self.wood.curve();
         let pending = [
-            curve.and_then(|c| c.camera.as_ref()).map(|t| t.report_async(&self.gpu)),
-            curve.and_then(|c| c.sun.as_ref()).map(|t| t.report_async(&self.gpu)),
+            curve
+                .and_then(|c| c.camera.as_ref())
+                .map(|t| t.report_async(&self.gpu)),
+            curve
+                .and_then(|c| c.sun.as_ref())
+                .map(|t| t.report_async(&self.gpu)),
         ];
         async move {
             let [camera, sun] = pending;
@@ -439,8 +443,14 @@ impl Renderer {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("frame"),
             });
-        self.wood
-            .tessellate(&self.gpu, &mut encoder, camera, viewport, &light, surfacing_writes);
+        self.wood.tessellate(
+            &self.gpu,
+            &mut encoder,
+            camera,
+            viewport,
+            &light,
+            surfacing_writes,
+        );
         self.foliage.dispatch(
             &self.gpu,
             &mut encoder,
@@ -495,7 +505,7 @@ impl Renderer {
                 view => self.wood.draw(&mut pass) + self.foliage.draw(&mut pass, view),
             }
         };
-        self.gpu.queue.submit([encoder.finish()]);
+        self.gpu.submit([encoder.finish()]);
         room + vegetation
     }
 }

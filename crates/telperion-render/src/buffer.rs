@@ -9,6 +9,59 @@ const HEADROOM: f64 = 1.25;
 /// Buffer sizes stay a multiple of this, which every copy and binding wants.
 const ALIGNMENT: u64 = wgpu::COPY_BUFFER_ALIGNMENT;
 
+/// A buffer destroyed when its owner lets it go. A browser frees a buffer
+/// only when it is destroyed or its wrapper is collected (wgpu's web backend
+/// drops nothing), so every buffer the renderer allocates is owned through
+/// this and freed where its owner ends (fn-212 task 10, host decision 2).
+/// A pass may bind a buffer its owner lets go before the encoder is
+/// submitted, so the destroy is the next submit's (`Gpu::submit`).
+#[derive(Debug)]
+pub(crate) struct Owned {
+    buffer: wgpu::Buffer,
+    released: std::sync::Arc<std::sync::Mutex<Vec<wgpu::Buffer>>>,
+}
+
+impl Owned {
+    pub(crate) fn new(gpu: &Gpu, buffer: wgpu::Buffer) -> Self {
+        let released = gpu.released.clone();
+        Self { buffer, released }
+    }
+
+    pub(crate) fn create(gpu: &Gpu, descriptor: &wgpu::BufferDescriptor<'_>) -> Self {
+        Self::new(gpu, gpu.device.create_buffer(descriptor))
+    }
+}
+
+/// A buffer a pass binds, its own or one another owner lends it.
+pub(crate) enum Lent<'a> {
+    Own(Owned),
+    Borrowed(&'a wgpu::Buffer),
+}
+
+impl std::ops::Deref for Lent<'_> {
+    type Target = wgpu::Buffer;
+    fn deref(&self) -> &wgpu::Buffer {
+        match self {
+            Lent::Own(b) => b,
+            Lent::Borrowed(b) => b,
+        }
+    }
+}
+
+impl std::ops::Deref for Owned {
+    type Target = wgpu::Buffer;
+    fn deref(&self) -> &wgpu::Buffer {
+        &self.buffer
+    }
+}
+
+impl Drop for Owned {
+    fn drop(&mut self) {
+        let mut released = self.released.lock().unwrap_or_else(|e| e.into_inner());
+        released.push(self.buffer.clone());
+    }
+}
+
 /// An allocation with headroom and the live range inside it. Reuse is decided
 /// here and nowhere else, so the decision is testable without a device.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -64,23 +117,14 @@ pub fn attributes(values: &[f32], floats: usize) -> std::borrow::Cow<'_, [f32]> 
 
 /// One buffer and the region that says how much of it is live.
 pub struct Held {
-    buffer: wgpu::Buffer,
+    buffer: Owned,
     region: Region,
     usage: wgpu::BufferUsages,
     label: &'static str,
 }
 
-// A browser's WebGPU frees a buffer only when it is destroyed or its
-// wrapper is collected (wgpu's web backend drops nothing), so a buffer is
-// destroyed where its owner lets it go (fn-212 task 10).
-impl Drop for Held {
-    fn drop(&mut self) {
-        self.buffer.destroy();
-    }
-}
-
 impl Held {
-    pub(crate) fn resident(buffer: wgpu::Buffer, used: u64, label: &'static str) -> Self {
+    pub(crate) fn resident(buffer: Owned, used: u64, label: &'static str) -> Self {
         let capacity = buffer.size();
         let usage = buffer.usage();
         Self {
@@ -151,13 +195,16 @@ fn allocate(
     usage: wgpu::BufferUsages,
     capacity: u64,
     bytes: &[u8],
-) -> wgpu::Buffer {
-    let buffer = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some(label),
-        size: capacity,
-        usage: usage | wgpu::BufferUsages::COPY_DST,
-        mapped_at_creation: false,
-    });
+) -> Owned {
+    let buffer = Owned::create(
+        gpu,
+        &wgpu::BufferDescriptor {
+            label: Some(label),
+            size: capacity,
+            usage: usage | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        },
+    );
     if !bytes.is_empty() {
         gpu.queue.write_buffer(&buffer, 0, bytes);
     }
@@ -205,19 +252,22 @@ pub fn reserve(
 #[cfg(not(target_arch = "wasm32"))]
 pub fn read(gpu: &Gpu, held: &Held) -> Option<Vec<u8>> {
     let size = held.region().used();
-    let readback = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("readback"),
-        size,
-        usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
-        mapped_at_creation: false,
-    });
+    let readback = Owned::create(
+        gpu,
+        &wgpu::BufferDescriptor {
+            label: Some("readback"),
+            size,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        },
+    );
     let mut encoder = gpu
         .device
         .create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("readback"),
         });
     encoder.copy_buffer_to_buffer(held.buffer(), 0, &readback, 0, size);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
 
     let (sender, receiver) = std::sync::mpsc::channel();
     readback

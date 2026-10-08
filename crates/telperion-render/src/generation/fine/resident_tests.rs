@@ -290,6 +290,9 @@ fn fine_nodes(whole: &Tree, part: &Tree) -> Vec<bool> {
 /// resident leaves made first so the two never share the device's memory.
 fn parity(gpu: &Gpu, k: &Kernels, gen: &Generator, family: &Family) -> Parity {
     let x = executor::grow(family).unwrap().expansion().unwrap();
+    if std::env::var("TRACE").is_ok() {
+        println!("bearing bounds {:?}", x.bearing_bounds());
+    }
     let theirs = reference(gen, &x);
     let their_curve = x.curve().unwrap();
     let built = pollster::block_on(build(gpu, gen, k, &Tools::new(gpu), family)).unwrap();

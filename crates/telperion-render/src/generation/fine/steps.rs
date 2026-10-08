@@ -5,6 +5,7 @@
 //! and handed on as the next wave's buds (`emit.wgsl`). Only the scans'
 //! totals cross to the host.
 use super::super::io;
+use crate::buffer::Owned;
 use crate::Gpu;
 
 const RECORD: &str = include_str!("record.wgsl");
@@ -40,12 +41,12 @@ pub(super) struct Steps {
 }
 
 /// A buffer for the device's own use, readable for its totals.
-pub(super) fn buffer(gpu: &Gpu, label: &'static str, words: u64) -> wgpu::Buffer {
+pub(super) fn buffer(gpu: &Gpu, label: &'static str, words: u64) -> Owned {
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
     io::buffer(gpu, label, words.max(4) * 4, usage, &[]).unwrap()
 }
 
-fn uniform(gpu: &Gpu, data: &[u32; 8]) -> wgpu::Buffer {
+fn uniform(gpu: &Gpu, data: &[u32; 8]) -> Owned {
     let usage = wgpu::BufferUsages::UNIFORM;
     io::buffer(gpu, "steps cfg", 32, usage, bytemuck::cast_slice(data)).unwrap()
 }

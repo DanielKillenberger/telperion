@@ -8,11 +8,12 @@
 //! have read in a new buffer (the geometry's status words are read
 //! before they are written).
 use super::steps::buffer;
+use crate::buffer::Owned;
 use crate::Gpu;
 use std::cell::RefCell;
 
 #[derive(Default)]
-pub(super) struct Pool(RefCell<Vec<wgpu::Buffer>>);
+pub(super) struct Pool(RefCell<Vec<Owned>>);
 
 /// `bytes` rounded up to its size class: a power of two's eighths, in
 /// whole words, so a class wastes at most an eighth (a word's bytes when
@@ -26,7 +27,7 @@ fn class(bytes: u64) -> u64 {
 impl Pool {
     /// A storage buffer of at least `words`, cleared: its class's from
     /// the pool where one is free.
-    pub(super) fn take(&self, gpu: &Gpu, label: &'static str, words: u64) -> wgpu::Buffer {
+    pub(super) fn take(&self, gpu: &Gpu, label: &'static str, words: u64) -> Owned {
         let bytes = class(words.max(4) * 4);
         let mut free = self.0.borrow_mut();
         let Some(k) = free.iter().position(|b| b.size() == bytes) else {
@@ -35,19 +36,21 @@ impl Pool {
         let taken = free.swap_remove(k);
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
         encoder.clear_buffer(&taken, 0, None);
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
         taken
     }
 
     /// Buffers a build is done with, for the next; those the last build
     /// left and this one did not take are let go, so the pool holds one
     /// build's buffers at most.
-    pub(super) fn give(&self, buffers: impl IntoIterator<Item = wgpu::Buffer>) {
-        let kept = buffers.into_iter().collect();
-        // Those left over are destroyed: a browser frees nothing dropped.
-        for left in std::mem::replace(&mut *self.0.borrow_mut(), kept) {
-            left.destroy();
-        }
+    /// The bytes the pool keeps between builds.
+    #[cfg(test)]
+    pub(super) fn bytes(&self) -> u64 {
+        self.0.borrow().iter().map(|b| b.size()).sum()
+    }
+
+    pub(super) fn give(&self, buffers: impl IntoIterator<Item = Owned>) {
+        *self.0.borrow_mut() = buffers.into_iter().collect();
     }
 }
 

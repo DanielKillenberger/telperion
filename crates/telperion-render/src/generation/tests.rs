@@ -116,12 +116,12 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
             .upload_wood(shared.into_surface(), &mut metrics)
             .unwrap()
             .unwrap();
-        let positions = uploaded.positions.clone();
+        let positions = (*uploaded.positions).clone();
         let p = foliage::prepared::PreparedStations {
             segments,
             count,
             ring_size,
-            rings: std::borrow::Cow::Borrowed(&uploaded.positions),
+            rings: crate::buffer::Lent::Borrowed(&uploaded.positions),
         };
         let shared_leaves = pollster::block_on(generator.compute_buffer_async(
             p,
@@ -141,7 +141,7 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
             )
             .unwrap()
         );
-        assert_eq!(&uploaded.positions, &positions);
+        assert_eq!(&*uploaded.positions, &positions);
 
         // The pipeline's CPU leaves on the same tree: every placed leaf.
         let cpu = x.mesh().unwrap().foliage.instances;
@@ -383,7 +383,7 @@ fn gpu_extrema_order_preserves_signed_zero_and_finite_signs() {
     let bind = pass.bind(&gpu, &[&config, &out]);
     let mut encoder = gpu.device.create_command_encoder(&Default::default());
     pass.run(&mut encoder, &bind, 0, 1);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let bytes = io::read(&gpu, &out, 24).unwrap();
     let words: Vec<u32> = bytes
         .chunks_exact(4)
@@ -437,12 +437,12 @@ fn compact_positions_seat_contacts_on_the_rendered_surface() {
     let wood = pollster::block_on(g.emit_positions(shared.into_surface(), &mut metrics))
         .unwrap()
         .unwrap();
-    let positions = wood.positions.clone();
+    let positions = (*wood.positions).clone();
     let p = foliage::prepared::PreparedStations {
         segments: p.segments,
         count: p.count,
         ring_size: p.ring_size,
-        rings: std::borrow::Cow::Borrowed(&positions),
+        rings: crate::buffer::Lent::Borrowed(&positions),
     };
     let leaves = pollster::block_on(g.compute_buffer_async(
         p,
@@ -462,7 +462,7 @@ fn compact_positions_seat_contacts_on_the_rendered_surface() {
     .unwrap();
     actual.validate().unwrap();
     assert!(!actual.is_empty());
-    assert_eq!(&wood.positions, &positions);
+    assert_eq!(&*wood.positions, &positions);
     // The contacts against the reference build's surface: the GPU's ring
     // positions read back, under the CPU's triangles.
     let reference_wood = x.wood().unwrap();

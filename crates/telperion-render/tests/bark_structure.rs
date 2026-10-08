@@ -75,7 +75,7 @@ fn sample(x: f32, y: f32, radius: f32) -> f32 {
         pass.dispatch_workgroups(256, 1, 1);
     }
     encoder.copy_buffer_to_buffer(&output, 0, &readback, 0, output.size());
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let (send, recv) = std::sync::mpsc::channel();
     readback
         .slice(..)

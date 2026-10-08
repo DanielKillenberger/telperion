@@ -1,5 +1,6 @@
 use super::clock::Clock;
 use super::{data, io, Generator, Metrics, Resident};
+use crate::buffer::{Lent, Owned};
 use crate::{buffer::Held, Gpu, Result};
 use telperion_core::{
     foliage::{prepared::PreparedStations, Element, Reference, TwigPlacement},
@@ -13,7 +14,7 @@ fn upload<T: bytemuck::Pod>(
     label: &'static str,
     values: &[T],
     usage: wgpu::BufferUsages,
-) -> Result<wgpu::Buffer> {
+) -> Result<Owned> {
     io::buffer(
         gpu,
         label,
@@ -45,8 +46,8 @@ pub(super) fn bounds(summary: &[u32], offset: usize) -> Bounds {
 }
 /// Leaves placed on the device and their placement summary.
 pub(super) struct Placed {
-    pub leaves: wgpu::Buffer,
-    pub summary: wgpu::Buffer,
+    pub leaves: Owned,
+    pub summary: Owned,
     pub live: u64,
 }
 
@@ -76,7 +77,7 @@ impl Generator {
             segments: p.segments,
             count: p.count,
             ring_size: p.ring_size,
-            rings: std::borrow::Cow::Owned(ring_buffer),
+            rings: Lent::Own(ring_buffer),
         };
         let upload_ms = started.elapsed_ms();
         let result = self.compute_buffer_async(stations, l, t, e, r, m).await;
@@ -86,7 +87,7 @@ impl Generator {
 
     pub(super) async fn compute_buffer_async(
         &self,
-        p: PreparedStations<std::borrow::Cow<'_, wgpu::Buffer>>,
+        p: PreparedStations<Lent<'_>>,
         l: &LeafInput,
         t: TwigPlacement,
         e: &Element,
@@ -110,7 +111,7 @@ impl Generator {
         );
         let segment_buffer = upload(gpu, "generation segments", &segments, STORAGE)?;
         let ring_buffer = p.rings;
-        let retained_contacts = if matches!(ring_buffer, std::borrow::Cow::Borrowed(_)) {
+        let retained_contacts = if matches!(ring_buffer, Lent::Borrowed(_)) {
             ring_buffer.size()
         } else {
             0
@@ -169,7 +170,7 @@ impl Generator {
         })
     }
     /// A buffer of `count` leaves.
-    pub(super) fn leaf_buffer(&self, count: u32) -> Result<wgpu::Buffer> {
+    pub(super) fn leaf_buffer(&self, count: u32) -> Result<Owned> {
         // Every placed leaf is drawn, written where it was placed (fn-212 R2).
         io::buffer(
             &self.gpu,
@@ -187,7 +188,7 @@ impl Generator {
         (segments, rings): (&wgpu::Buffer, &wgpu::Buffer),
         e: &Element,
         (count, leaves): (u32, &wgpu::Buffer),
-    ) -> Result<(wgpu::Buffer, u64)> {
+    ) -> Result<(Owned, u64)> {
         let gpu = &self.gpu;
         let groups = count.div_ceil(256);
         let config = upload(
@@ -209,7 +210,7 @@ impl Generator {
         let bind = self.place.bind(gpu, &buffers);
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
         self.place.run(&mut encoder, &bind, 0, groups);
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
         Ok((summary, live))
     }
     pub(super) async fn mass(
@@ -220,7 +221,7 @@ impl Generator {
         reference: Reference,
         retained_contacts: u64,
         m: &mut Metrics,
-    ) -> Result<(wgpu::Buffer, u64)> {
+    ) -> Result<(Owned, u64)> {
         let gpu = &self.gpu;
         let Some(crown) = crown else {
             return Ok((
@@ -272,7 +273,7 @@ impl Generator {
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
         self.mass.run(&mut encoder, &bind, 0, count.div_ceil(256));
         self.mass.run(&mut encoder, &bind, 1, total.div_ceil(256));
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
         io::complete(gpu).await?;
         m.gpu_compute_peak_bytes = m
             .gpu_compute_peak_bytes

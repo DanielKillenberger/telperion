@@ -113,11 +113,11 @@ pub struct Scene {
     leaf_reference: telperion_core::foliage::Reference,
     layout: wgpu::BindGroupLayout,
     bind_group: wgpu::BindGroup,
-    uniforms: wgpu::Buffer,
+    uniforms: crate::buffer::Owned,
     pipeline: wgpu::RenderPipeline,
     sky: wgpu::RenderPipeline,
-    vertices: wgpu::Buffer,
-    indices: wgpu::Buffer,
+    vertices: crate::buffer::Owned,
+    indices: crate::buffer::Owned,
     index_count: u32,
     /// The indices that are the floor alone; the figure follows them.
     floor_index_count: u32,
@@ -135,26 +135,33 @@ impl Scene {
         indices.extend(figure_indices(vertices.len() as u32));
         vertices.extend(figure(Vec3::ZERO, figure_colour));
 
-        let vertex_buffer = gpu
-            .device
-            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("scene vertices"),
-                contents: bytemuck::cast_slice(&vertices),
-                usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-            });
-        let index_buffer = gpu
-            .device
-            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("scene indices"),
-                contents: bytemuck::cast_slice(&indices),
-                usage: wgpu::BufferUsages::INDEX,
-            });
-        let uniforms = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("scene uniforms"),
-            size: size_of::<Uniforms>() as u64,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
+        let vertex_buffer = crate::buffer::Owned::new(
+            gpu,
+            gpu.device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("scene vertices"),
+                    contents: bytemuck::cast_slice(&vertices),
+                    usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                }),
+        );
+        let index_buffer = crate::buffer::Owned::new(
+            gpu,
+            gpu.device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("scene indices"),
+                    contents: bytemuck::cast_slice(&indices),
+                    usage: wgpu::BufferUsages::INDEX,
+                }),
+        );
+        let uniforms = crate::buffer::Owned::create(
+            gpu,
+            &wgpu::BufferDescriptor {
+                label: Some("scene uniforms"),
+                size: size_of::<Uniforms>() as u64,
+                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            },
+        );
         let layout = gpu
             .device
             .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {

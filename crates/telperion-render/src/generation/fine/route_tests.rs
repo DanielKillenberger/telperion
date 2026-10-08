@@ -65,12 +65,31 @@ fn large_to_small() {
     };
     let mut renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
-    for age in [80, 40, 12, 80, 1, 80] {
-        let family = family("norway-spruce", age);
+    for (age, seed) in [
+        (80, 1),
+        (80, 7),
+        (80, 42),
+        (40, 1),
+        (12, 1),
+        (80, 1),
+        (1, 1),
+        (80, 1),
+    ] {
+        let mut family = family("norway-spruce", age);
+        family.skeleton.seed = seed;
         let t = std::time::Instant::now();
         let prepared = gen.prepare(&family, Delivery::Resident).unwrap();
         let ms = t.elapsed().as_secs_f64() * 1e3;
-        println!("spruce {age}: {} leaves in {ms:.0} ms", prepared.count());
+        let leaves = prepared.count();
         renderer.submit_prepared(prepared).unwrap();
+        let (pool, regions) = gen.fine_pool_bytes();
+        let tree = Generator::tree_buffer_bytes(&renderer);
+        println!(
+            "spruce {age}: {} leaves in {ms:.0} ms; kept: pool {} MB, regions {} MB, tree {} MB",
+            leaves,
+            pool >> 20,
+            regions >> 20,
+            tree >> 20
+        );
     }
 }

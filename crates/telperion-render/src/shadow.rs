@@ -30,7 +30,7 @@ pub struct Shadow {
     map: wgpu::Texture,
     sampled: wgpu::BindGroup,
     sampled_layout: wgpu::BindGroupLayout,
-    light: wgpu::Buffer,
+    light: crate::buffer::Owned,
     light_group: wgpu::BindGroup,
     light_layout: wgpu::BindGroupLayout,
     module: wgpu::ShaderModule,
@@ -107,12 +107,15 @@ impl Shadow {
             ],
         });
 
-        let light = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("light"),
-            size: size_of::<[f32; 32]>() as u64,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
+        let light = crate::buffer::Owned::create(
+            gpu,
+            &wgpu::BufferDescriptor {
+                label: Some("light"),
+                size: size_of::<[f32; 32]>() as u64,
+                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            },
+        );
         let light_layout = gpu
             .device
             .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -240,12 +243,15 @@ impl Shadow {
         let tight = RESOLUTION * size_of::<f32>() as u32;
         let padded =
             tight.div_ceil(wgpu::COPY_BYTES_PER_ROW_ALIGNMENT) * wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
-        let readback = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("shadow readback"),
-            size: u64::from(padded) * u64::from(RESOLUTION),
-            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
-            mapped_at_creation: false,
-        });
+        let readback = crate::buffer::Owned::create(
+            gpu,
+            &wgpu::BufferDescriptor {
+                label: Some("shadow readback"),
+                size: u64::from(padded) * u64::from(RESOLUTION),
+                usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+                mapped_at_creation: false,
+            },
+        );
         let mut encoder = gpu
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
@@ -267,7 +273,7 @@ impl Shadow {
                 depth_or_array_layers: 1,
             },
         );
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
 
         let (sender, receiver) = std::sync::mpsc::channel();
         readback

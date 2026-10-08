@@ -18,7 +18,6 @@ use super::stations::{Stationed, Stationer, GW};
 use super::stations_tests::drawn_by_device;
 use super::sweep::{rows, Sweeper};
 use crate::Gpu;
-use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
 use telperion_core::foliage::{prepared::PreparedStations, Instances};
 use telperion_core::math::Vec3;
@@ -87,7 +86,7 @@ pub(super) fn reference(
         segments: theirs.segments,
         count: theirs.count,
         ring_size: theirs.ring_size,
-        rings: Cow::Borrowed(&wood.positions),
+        rings: crate::buffer::Lent::Borrowed(&wood.positions),
     };
     let (l, e) = (x.leaves(), x.element());
     let r = pollster::block_on(gen.compute_buffer_async(p, &l, x.twig(), e, x.reference(), &mut m));
@@ -171,15 +170,19 @@ fn seated(
     drop(shared);
     let t = std::time::Instant::now();
     let swept = pollster::block_on(sw.sweep(gpu, dressed, rows(surface, curve.height))).unwrap();
-    let device =
-        pollster::block_on(st.stations(gpu, &swept, dressed.ids, station_rows(x, segments)))
-            .unwrap();
+    let device = pollster::block_on(st.stations(
+        gpu,
+        (&swept, &super::steps::Steps::new(gpu)),
+        dressed.ids,
+        station_rows(x, segments),
+    ))
+    .unwrap();
     // The rings read the run table and the points alone.
     swept.nodes.destroy();
     swept.cluster_buffer.destroy();
     let twist = std::f64::consts::TAU * surface.twist_rate / curve.height;
     let rung = rg.rings(gpu, &swept, segments, twist as f32);
-    let rings = (&rung.buffer, rung.rings, rung.vertices);
+    let rings = (&*rung.buffer, rung.rings, rung.vertices);
     let positions = gen.ring_vertices(rings, segments, &angular).unwrap();
     let (l, e) = (x.leaves(), x.element());
     let counts = (device.stations, device.segments, segments);
@@ -260,6 +263,15 @@ pub(super) fn compare_leaves(
         });
         let Some(&i) = near else {
             out.left.0 += run.leaves.len() as u64;
+            if std::env::var("TRACE").is_ok() {
+                println!(
+                    "device run unmatched: key {} station {} start {:?} leaves {}",
+                    run.key,
+                    run.station,
+                    run.start,
+                    run.leaves.len()
+                );
+            }
             continue;
         };
         used[i] = true;
@@ -295,6 +307,46 @@ pub(super) fn compare_leaves(
             out.grazing += u64::from(agree);
             out.over.0 += u64::from(off > out.bound && !agree);
             out.compared += 1;
+        }
+    }
+    if std::env::var("TRACE").is_ok() {
+        let near = |p: Vec3| {
+            (0..tree.nodes.len()).filter(move |&i| tree.nodes[i].position.distance(p) < 0.03)
+        };
+        for r in theirs_runs
+            .iter()
+            .zip(&used)
+            .filter(|(_, &u)| !u)
+            .map(|(r, _)| r)
+        {
+            for i in near(r.start) {
+                let n = &tree.nodes[i];
+                let kids = tree
+                    .nodes
+                    .iter()
+                    .filter(|m| m.parent == Some(i as u32))
+                    .count();
+                println!(
+                    "  node {i} key {} parent {:?} at {:?} r {:e} start {:e} kind {:?} branch {} grown {:.6} kids {kids}",
+                    tree.key(i),
+                    n.parent.map(|p| tree.key(p as usize)),
+                    n.position,
+                    n.radius,
+                    n.start_radius,
+                    n.kind,
+                    n.branch,
+                    tree.grown_length(i)
+                );
+            }
+        }
+        for (r, _) in theirs_runs.iter().zip(&used).filter(|(_, &u)| !u) {
+            println!(
+                "reference run unmatched: key {} station {} start {:?} leaves {}",
+                r.key,
+                r.station,
+                r.start,
+                r.leaves.len()
+            );
         }
     }
     out.left.2 = (theirs_runs.iter().zip(&used))

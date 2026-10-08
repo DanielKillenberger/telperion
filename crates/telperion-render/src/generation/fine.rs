@@ -28,6 +28,15 @@ pub(super) struct Kit {
 }
 
 impl super::Generator {
+    /// The bytes the fine executor keeps on the device between builds: its
+    /// kernels' pool and its grower's regions (fn-212 task 10).
+    #[cfg(test)]
+    pub(super) fn fine_pool_bytes(&self) -> (u64, u64) {
+        self.fine.get().map_or((0, 0), |kit| {
+            (kit.kernels.pool.bytes(), kit.kernels.grower.bytes())
+        })
+    }
+
     /// `family` prepared resident, its fine roots settled, drawn and
     /// placed on the device (fn-212 task 10, host decision 2): the
     /// structure above the cut and the roots laid on the CPU through the

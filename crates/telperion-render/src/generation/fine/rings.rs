@@ -3,6 +3,7 @@
 //! positions pass lays the vertices a seated leaf's contact reads.
 use super::super::io;
 use super::sweep::Swept;
+use crate::buffer::Owned;
 use crate::Gpu;
 
 const RINGS: &str = include_str!("rings.wgsl");
@@ -19,7 +20,7 @@ pub(super) struct Ringer {
 
 /// The fine block's ring words, its rings and the vertices they lay.
 pub(super) struct Rung {
-    pub buffer: wgpu::Buffer,
+    pub buffer: Owned,
     pub rings: u32,
     pub vertices: u32,
 }
@@ -43,11 +44,11 @@ impl Ringer {
         let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
         let bytes = u64::from(swept.points).max(1) * RINGW * 4;
         let buffer = io::buffer(gpu, "fine rings", bytes, usage, &[]).unwrap();
-        let all = [&cfg, &swept.table, &swept.point_buffer, &buffer];
+        let all: [&wgpu::Buffer; 4] = [&cfg, &swept.table, &swept.point_buffer, &buffer];
         let bind = self.pass.bind(gpu, &all);
         let mut e = gpu.device.create_command_encoder(&Default::default());
         self.pass.run(&mut e, &bind, 0, groups);
-        gpu.queue.submit([e.finish()]);
+        gpu.submit([e.finish()]);
         Rung {
             buffer,
             rings: swept.points,

@@ -6,6 +6,7 @@
 //! the runs, then the points and clusters, to size what follows.
 use super::super::io;
 use super::dress::{Dressed, CA_WORDS};
+use crate::buffer::Owned;
 use crate::{Gpu, Result};
 use telperion_core::surface::SurfaceParams;
 
@@ -72,34 +73,18 @@ pub(super) fn rows(p: &SurfaceParams, height: f64) -> [[f32; 4]; 3] {
     .map(|r| r.map(|v| v as f32))
 }
 
-/// The curve of the fine roots on the device: its run table (first
-/// point, first cluster, points, widest ring), its points and clusters.
-/// The curve's buffers destroyed when let go: a browser frees a buffer only then (fn-212
-/// task 10; wgpu's web backend drops nothing).
-impl Drop for Swept {
-    fn drop(&mut self) {
-        let all = [
-            &self.table,
-            &self.point_buffer,
-            &self.cluster_buffer,
-            &self.nodes,
-        ];
-        all.into_iter().for_each(wgpu::Buffer::destroy);
-    }
-}
-
 pub(super) struct Swept {
     pub runs: u32,
     pub points: u32,
     pub clusters: u32,
-    pub table: wgpu::Buffer,
-    pub point_buffer: wgpu::Buffer,
-    pub cluster_buffer: wgpu::Buffer,
+    pub table: Owned,
+    pub point_buffer: Owned,
+    pub cluster_buffer: Owned,
     /// Every drawn node by id (`sweep.wgsl`'s `NW` words), for the stations.
-    pub nodes: wgpu::Buffer,
+    pub nodes: Owned,
 }
 
-fn storage(gpu: &Gpu, label: &'static str, words: u64) -> wgpu::Buffer {
+fn storage(gpu: &Gpu, label: &'static str, words: u64) -> Owned {
     let usage =
         wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST;
     io::buffer(gpu, label, words.max(4) * 4, usage, &[]).unwrap()
@@ -107,14 +92,14 @@ fn storage(gpu: &Gpu, label: &'static str, words: u64) -> wgpu::Buffer {
 
 /// The buffers every pass binds.
 struct Bound {
-    nodes: wgpu::Buffer,
-    links: wgpu::Buffer,
-    counts: wgpu::Buffer,
-    keys: wgpu::Buffer,
-    table: wgpu::Buffer,
-    points: wgpu::Buffer,
-    clusters: wgpu::Buffer,
-    none: wgpu::Buffer,
+    nodes: Owned,
+    links: Owned,
+    counts: Owned,
+    keys: Owned,
+    table: Owned,
+    points: Owned,
+    clusters: Owned,
+    none: Owned,
 }
 
 impl Sweeper {
@@ -157,7 +142,7 @@ impl Sweeper {
             encoder,
             gpu.device.create_command_encoder(&Default::default()),
         );
-        gpu.queue.submit([done.finish()]);
+        gpu.submit([done.finish()]);
         let raw = io::read_async(gpu, &b.counts, 16).await?;
         let w: &[u32] = bytemuck::cast_slice(&raw);
         Ok([w[0], w[1], w[2], w[3]])
@@ -258,7 +243,7 @@ impl Sweeper {
         b.points = storage(gpu, "sweep points", u64::from(points) * PW as u64);
         b.clusters = storage(gpu, "sweep clusters", u64::from(clusters) * KW as u64);
         self.run((gpu, &mut e), &b, (EMIT, runs, None), z, rows, None);
-        gpu.queue.submit([e.finish()]);
+        gpu.submit([e.finish()]);
         io::complete(gpu).await?;
         for done in [&b.links, &b.counts, &b.keys, &b.none] {
             done.destroy();

@@ -129,7 +129,7 @@ fn revised_profiles_reduce_the_rejected_broad_relief() {
         pass.dispatch_workgroups((COUNT / 64) as u32, 1, 1);
     }
     encoder.copy_buffer_to_buffer(&heights, 0, &readback, 0, bytes);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let (send, recv) = std::sync::mpsc::channel();
     readback
         .slice(..)

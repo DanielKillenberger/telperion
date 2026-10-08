@@ -185,7 +185,9 @@ impl Generator {
                     segments,
                     count,
                     ring_size,
-                    rings: std::borrow::Cow::Borrowed(&uploaded_wood.as_ref().unwrap().positions),
+                    rings: crate::buffer::Lent::Borrowed(
+                        &uploaded_wood.as_ref().unwrap().positions,
+                    ),
                 };
                 let (leaves, twig) = (x.leaves(), x.twig());
                 self.compute_buffer_async(p, &leaves, twig, element, x.reference(), &mut metrics)

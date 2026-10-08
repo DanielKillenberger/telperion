@@ -9,6 +9,7 @@ use super::laid::{self, Resolver};
 use super::pool::Pool;
 use super::shedding::Fades;
 use super::steps::{buffer, Steps, BW2, IW, RW};
+use crate::buffer::Owned;
 use crate::{Gpu, Result};
 use std::sync::Arc;
 use telperion_space::{ChainTables, GeometryTables};
@@ -64,7 +65,7 @@ pub(super) struct Tables {
     pub chain: Arc<ChainTables>,
     pub packed: Packed,
     pub uploaded: Uploaded,
-    pub table: wgpu::Buffer,
+    pub table: Owned,
     pub sags: bool,
 }
 
@@ -117,18 +118,18 @@ pub(super) fn kernels(gpu: &Gpu) -> Kernels {
 /// packed, the geometry scratch and items.
 pub(super) struct Run {
     pub n: u32,
-    pub runoff: wgpu::Buffer,
-    pub axes: wgpu::Buffer,
-    pub phyts: wgpu::Buffer,
-    pub scratch: wgpu::Buffer,
-    pub items: wgpu::Buffer,
+    pub runoff: Owned,
+    pub axes: Owned,
+    pub phyts: Owned,
+    pub scratch: Owned,
+    pub items: Owned,
 }
 
 /// One wave as the device keeps it: its buds' roots and bearers, its
 /// chains' places in its laid buffer, and its runs.
 pub(super) struct Grown {
-    pub meta: wgpu::Buffer,
-    pub places: wgpu::Buffer,
+    pub meta: Owned,
+    pub places: Owned,
     pub runs: Vec<Run>,
 }
 
@@ -158,17 +159,16 @@ pub(super) async fn grow_wave(
     let mut runs = Vec::new();
     // A level's work: its buds (none: the wave's own), the wave indices
     // they stand for, and their count.
-    let mut work: Vec<(Option<wgpu::Buffer>, wgpu::Buffer, u32)> =
-        vec![(None, buffer(gpu, "no list", 1), n)];
+    let mut work: Vec<(Option<Owned>, Owned, u32)> = vec![(None, buffer(gpu, "no list", 1), n)];
     let (mut caps, mut size) = first_region(n, batch as u32);
     let mut level = 0u32;
     loop {
         let mut queues = Vec::new();
         for (gathered, list, count) in &work {
-            let input = gathered.as_ref().unwrap_or(buds);
+            let input = gathered.as_deref().unwrap_or(buds);
             for first in (0..*count).step_by(size as usize) {
                 let m = size.min(count - first);
-                let at = (input, list, first, m, level);
+                let at = (input, &**list, first, m, level);
                 let (run, queued) = grow_run(gpu, k, at, (places, tables), caps, cost).await?;
                 cost.runs += 1;
                 cost.chains += m as usize;
@@ -190,7 +190,7 @@ pub(super) async fn grow_wave(
                 (Some(gathered), queue, count)
             })
             .collect();
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
         (caps, size, level) = (caps.times(8), (size / 8).max(64), level + 1);
         assert!(caps.axes < 1 << 16, "a chain no region holds");
     }
@@ -220,7 +220,7 @@ async fn grow_run(
     (places, tables): (&wgpu::Buffer, &Tables),
     caps: Caps,
     cost: &mut Cost,
-) -> Result<(Run, Option<(wgpu::Buffer, u32)>)> {
+) -> Result<(Run, Option<(Owned, u32)>)> {
     let t = tables;
     let mut encoder = gpu.device.create_command_encoder(&Default::default());
     let at = (&t.uploaded, &t.packed, t.chain.span, t.chain.age);
@@ -240,7 +240,7 @@ async fn grow_run(
     );
     k.steps.scan(gpu, &mut encoder, (&runoff, m, RW, 3), &sums);
     encoder.copy_buffer_to_buffer(&queued, 0, &sums, 12, 4);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let t = totals(gpu, &sums, 4, cost).await?;
     let axes = k
         .pool
@@ -251,10 +251,15 @@ async fn grow_run(
     let scratch = k.pool.take(gpu, "laid scratch", u64::from(t[2]));
     let items = buffer(gpu, "laid items", u64::from(m * IW));
     let mut encoder = gpu.device.create_command_encoder(&Default::default());
-    let packed = (&axes, &phyts);
-    k.grower
-        .pack(gpu, &mut encoder, (&region, m, caps), (&runoff, RW), packed);
-    gpu.queue.submit([encoder.finish()]);
+    let packed = (&*axes, &*phyts);
+    k.grower.pack(
+        gpu,
+        &mut encoder,
+        (&region, m, caps),
+        (&*runoff, RW),
+        packed,
+    );
+    gpu.submit([encoder.finish()]);
     let run = Run {
         n: m,
         runoff,

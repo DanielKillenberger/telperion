@@ -143,7 +143,7 @@ fn check_compaction(gpu: &Gpu, selection: &Select, instances: usize, levels: usi
     };
     let mut encoder = gpu.device.create_command_encoder(&Default::default());
     selection.dispatch(gpu, &mut encoder, &camera, (2, 2), true, None);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let counts = selection.counted(gpu).expect("counts read back");
     let bytes = buffer::read(gpu, selection.lists.as_ref().unwrap()).expect("lists read back");
     let words: Vec<u32> = bytes

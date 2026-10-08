@@ -171,7 +171,7 @@ impl<'a> Device<'a> {
             at.push(bytes as usize / 4);
             bytes += g.gather(&mut encoder, &into, bytes);
         }
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
         let raw = io::read_async(gpu, &into, total.max(16)).await?;
         let floats: &[f32] = bytemuck::cast_slice(&raw);
         let by_group: Vec<_> = self

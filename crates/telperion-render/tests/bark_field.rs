@@ -81,7 +81,7 @@ fn surface_lengths_young_wood_wrap_and_plate_drift() {
         pass.dispatch_workgroups(64, 1, 1);
     }
     encoder.copy_buffer_to_buffer(&output, 0, &readback, 0, 4097 * 16);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let (send, recv) = std::sync::mpsc::channel();
     readback
         .slice(..)

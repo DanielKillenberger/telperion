@@ -10,6 +10,7 @@
 use super::super::io;
 use super::device::Device;
 use super::laid::{Wave, AL};
+use crate::buffer::Owned;
 use crate::{Gpu, Result};
 use telperion_core::math::Vec3;
 use telperion_core::pipeline::executor::{reach, Folds, BINS};
@@ -81,7 +82,7 @@ impl Dresser {
 /// A drawn wave, or a group's stubs: its buffer, its axes and records,
 /// and its records' first id.
 pub(super) struct Drawn {
-    pub buffer: wgpu::Buffer,
+    pub buffer: Owned,
     pub axes: u32,
     pub phyts: u32,
     pub base: u32,
@@ -93,25 +94,16 @@ pub(super) struct Drawn {
 pub(super) struct Dressed {
     pub waves: Vec<Drawn>,
     pub ids: u32,
-    sums: wgpu::Buffer,
+    sums: Owned,
 }
 
-/// Destroyed when let go: a browser frees a buffer only then (fn-212
-/// task 10; wgpu's web backend drops nothing).
-impl Drop for Dressed {
-    fn drop(&mut self) {
-        self.waves.iter().for_each(|w| w.buffer.destroy());
-        self.sums.destroy();
-    }
-}
-
-fn storage(gpu: &Gpu, label: &'static str, words: usize, data: &[u8]) -> wgpu::Buffer {
+fn storage(gpu: &Gpu, label: &'static str, words: usize, data: &[u8]) -> Owned {
     let usage =
         wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST;
     io::buffer(gpu, label, (words.max(4) * 4) as u64, usage, data).unwrap()
 }
 
-fn uniform(gpu: &Gpu, words: &[u32]) -> wgpu::Buffer {
+fn uniform(gpu: &Gpu, words: &[u32]) -> Owned {
     let usage = wgpu::BufferUsages::UNIFORM;
     io::buffer(
         gpu,
@@ -217,7 +209,7 @@ pub(super) fn dress(gpu: &Gpu, d: &Dresser, dev: &Device, stubs: &[Stub]) -> Dre
             stubs: w == 0,
         }));
     }
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let sums = storage(gpu, "fold sums", SUMS, bytemuck::cast_slice(&empty_sums()));
     Dressed { waves, ids, sums }
 }
@@ -268,7 +260,7 @@ impl Dressed {
                 .bind(gpu, &[&cfg, buffer, &self.sums, bound.0, bound.1]);
             d.fold.run(&mut encoder, &bind, entry, groups);
         }
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
     }
 
     async fn sums(&self, gpu: &Gpu) -> Result<Vec<u32>> {

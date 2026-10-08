@@ -4,6 +4,7 @@ use super::{
     wood::{self, UploadedWood},
     Clock, Generator, Metrics,
 };
+use crate::buffer::Owned;
 use crate::Result;
 use telperion_core::surface::compact::CompactSurface;
 
@@ -16,9 +17,9 @@ pub(super) fn cpu_bytes(p: &CompactSurface) -> u64 {
 
 struct PendingPositions {
     surface: CompactSurface,
-    positions: wgpu::Buffer,
-    metadata: wgpu::Buffer,
-    _scratch: [wgpu::Buffer; 5],
+    positions: Owned,
+    metadata: Owned,
+    _scratch: [Owned; 5],
     read: io::PendingRead,
 }
 
@@ -144,7 +145,7 @@ impl Generator {
         if !p.rings.is_empty() {
             pass.run(&mut encoder, &bind, 2, config[0]);
         }
-        self.gpu.queue.submit([encoder.finish()]);
+        self.gpu.submit([encoder.finish()]);
         metrics.position_gpu_peak_bytes = [
             &uniform,
             &descriptors,
@@ -214,7 +215,7 @@ impl Generator {
         (descriptors, rings, vertices): (&wgpu::Buffer, u32, u32),
         segments: u32,
         angular: &[[f32; 4]],
-    ) -> Result<wgpu::Buffer> {
+    ) -> Result<Owned> {
         let limits = self.gpu.device.limits();
         let config = [
             rings,
@@ -270,7 +271,7 @@ impl Generator {
         if rings > 0 {
             pass.run(&mut encoder, &bind, 0, rings);
         }
-        self.gpu.queue.submit([encoder.finish()]);
+        self.gpu.submit([encoder.finish()]);
         Ok(positions)
     }
 }

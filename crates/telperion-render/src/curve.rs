@@ -4,6 +4,7 @@
 //! - output budgets sized from its pixels that compute passes fill and two
 //! indirect draws read. The only wood path the renderer has. The CPU
 //! reference is telperion_core's `Curve::tessellate`.
+use crate::buffer::Owned;
 use crate::{device::Gpu, Camera};
 use telperion_core::{
     math::Vec3,
@@ -41,27 +42,14 @@ const PASSES: [(&str, &[u32]); 9] = [
     ("draws", &[0, 8, 15]),
 ];
 
-/// The curve on the device: its points (bound in two slices), clusters and
-/// cells, the passes, and the two views' targets.
-// A browser's WebGPU frees a buffer only when it is destroyed or its
-// wrapper is collected (wgpu's web backend drops nothing), so a buffer is
-// destroyed where its owner lets it go (fn-212 task 10).
-impl Drop for CurveGpu {
-    fn drop(&mut self) {
-        for b in [&self.points, &self.clusters, &self.sections] {
-            b.destroy();
-        }
-    }
-}
-
 pub(crate) struct CurveGpu {
     pipelines: Vec<wgpu::ComputePipeline>,
-    points: wgpu::Buffer,
+    points: Owned,
     /// Words of points the first binding holds, and the points' bytes.
     point_slice: u64,
     point_bytes: u64,
-    clusters: wgpu::Buffer,
-    sections: wgpu::Buffer,
+    clusters: Owned,
+    sections: Owned,
     count: u32,
     /// What the most any view could ask of this tree rests on.
     demand: Demand,
@@ -71,7 +59,7 @@ pub(crate) struct CurveGpu {
     pub(crate) sun: Option<Target>,
 }
 
-fn filled(gpu: &Gpu, label: &str, data: &[u8]) -> wgpu::Buffer {
+fn filled(gpu: &Gpu, label: &str, data: &[u8]) -> Owned {
     let b = target::buffer(gpu, label, data.len() as u64, wgpu::BufferUsages::STORAGE);
     gpu.queue.write_buffer(&b, 0, data);
     b
@@ -98,7 +86,7 @@ impl CurveGpu {
     pub(crate) fn on_device(
         gpu: &Gpu,
         rows: &Curve,
-        (points, clusters): (wgpu::Buffer, wgpu::Buffer),
+        (points, clusters): (Owned, Owned),
         (point_count, count): (u64, u32),
         demand: Demand,
     ) -> Self {

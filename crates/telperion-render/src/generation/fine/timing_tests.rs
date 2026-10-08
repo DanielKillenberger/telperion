@@ -42,7 +42,7 @@ fn today(gpu: &Gpu, family: &Family) -> f64 {
     let inside = m.total_ms - m.skeleton_ms;
     let t = Instant::now();
     renderer.submit_prepared(prepared).unwrap();
-    renderer.gpu().queue.submit([]);
+    renderer.gpu().submit([]);
     wait(renderer.gpu());
     inside + ms(t)
 }
@@ -57,7 +57,7 @@ fn device(gpu: &Gpu, k: &Kernels, family: &Family) {
     let passes = profile::finish(gpu);
     let t = Instant::now();
     renderer.submit_prepared(built.prepared).unwrap();
-    renderer.gpu().queue.submit([]);
+    renderer.gpu().submit([]);
     wait(renderer.gpu());
     let submit = ms(t);
     let inside = built.timed.inside() + submit;

@@ -33,6 +33,11 @@ struct Cfg {
 @group(0) @binding(4) var<storage, read_write> runs: array<u32>;
 @group(0) @binding(5) var<storage, read_write> counts: array<atomic<u32>>;
 @group(0) @binding(6) var<storage, read_write> segs: array<u32>;
+// Each fine root's bearing runs, by its stub's node id (`cfg.n` words,
+// counted, then scanned into each root's first run), then each run's
+// first node's stub and its rank among its root's runs (task 10, host
+// decision 3: a root's runs, and so its leaves, are numbered together).
+@group(0) @binding(7) var<storage, read_write> owners: array<atomic<u32>>;
 
 const NONE: u32 = 0xffffffffu;
 const NW: u32 = 27u;
@@ -146,13 +151,44 @@ fn next(at: u32) -> u32 {
     return NONE;
 }
 
+// Whether node `i` starts a bearing run.
+fn starts_run(i: u32) -> bool {
+    return bears(i) && !continues(parent(i), i);
+}
+
+// The stub a fine node's root is drawn from: up its parents to the first
+// node that is not a fine root's.
+fn stub(i: u32) -> u32 {
+    var at = i;
+    while (word(at, 9u) & FINE) != 0u {
+        at = parent(at);
+    }
+    return at;
+}
+
+// Each run counted on its root's stub, its rank among the root's runs kept.
+@compute @workgroup_size(64)
+fn owned(@builtin(global_invocation_id) id: vec3<u32>) {
+    let i = index(id);
+    if i >= cfg.n || !starts_run(i) {
+        return;
+    }
+    let s = stub(i);
+    atomicStore(&owners[cfg.n + i], s);
+    atomicStore(&owners[2u * cfg.n + i], atomicAdd(&owners[s], 1u));
+}
+
+// Each run at its root's first run plus its rank: a root's runs together,
+// the roots in their stubs' order.
 @compute @workgroup_size(64)
 fn starts(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = index(id);
-    if i >= cfg.n || !bears(i) || continues(parent(i), i) {
+    if i >= cfg.n || !starts_run(i) {
         return;
     }
-    let r = atomicAdd(&counts[0], 1u);
+    let s = atomicLoad(&owners[cfg.n + i]);
+    let r = atomicLoad(&owners[s]) + atomicLoad(&owners[2u * cfg.n + i]);
+    atomicAdd(&counts[0], 1u);
     runs[r * RW] = i;
 }
 
