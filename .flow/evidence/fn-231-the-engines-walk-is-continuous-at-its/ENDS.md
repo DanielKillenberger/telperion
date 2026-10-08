@@ -112,3 +112,34 @@ One principle covers all three: **every fractional element is a making draw (hos
 3. **Shedding: the fade stays.** The device's fade is already by degree. Only the kept prediction's `ceil` (`kept.rs`) becomes an expectation, matching what the executors do.
 
 Re-measure every shipped species as decided before. The ordinary tree's drop (394,267 to 238,119 at 40 with its wood unchanged) is expected: its fractional places were growing whole subtrees at tiny sizes. Make its strips before and after; if no regression is visible, accept it.
+
+## Built on the second answers, and the lifespan measured (2026-10-08)
+
+**Places (answer 1), built at `cee0782c`.** The last place stands by its `PLACED` draw. Its presence is its lead under the share's threshold, over the bud's window (`lineage::place_presence`), multiplied into the lateral's making presence on the CPU grower and in the GPU's lateral ask (`assign.wgsl`). For a woken bud it is taken at sleep time over the sleeping window (`dormant::draw`; `sleep.wgsl` stores it in the sleeper and pend records, and `made_q` multiplies it into B0). Nothing is whole. The closed form counts the place at its share.
+- `every_root_grows_whole_on_the_gpu_as_on_the_cpu`, which compares presences, passes with two new cases, "beech, fractional buds" and "oak, unlit, fractional buds", whose sleeping buds wake on fractional places.
+- The chain parity test and the key mirror pass.
+- fn-192's two walks pass on every `zone.buds` setting, unchanged.
+- `a_fractional_bud_place_is_counted_at_its_share` replaces the old pin. It checks the count at buds 1.3 is three tenths of the way from 1 to 2, and that the grower's mean over 20,000 seeds matches.
+
+**Shedding (answer 3), built at `5482d7ca`.** `Kept::shed` and the predictor's `fade` count a fading subtree at its fade, not whole while any fade is left. Whole delays are unchanged to the bit. `a_fractional_shedding_delay_keeps_by_its_fade` checks that the beech at 20 with its delays plus 1e-6 keeps within 1e-5 of the beech; under the old rule it kept a whole cycle's worth.
+
+**After both, at 40** (`raw/places-shed-40.txt`): a millionth off the beech, beech → oak keeps 156,002 (the beech: 147,362) and beech → spruce keeps 157,546. Every walk is continuous at the ordinary tree's end. What remains is at the oak and spruce ends: beech → oak at 1 − 1e-6 keeps 629,579 against the oak's 457,386, oak → spruce at 1e-6 keeps 610,032, and beech → spruce at 1 − 1e-6 keeps 1,802,504 against 1,149,893.
+
+**The lifespan, measured (answer 2): the jump is not in the last tick.** I moved one age's lifespan off a whole number tick by tick, at 40 (`raw/ticks-40.txt`; source `tick_probe.rs.txt`):
+
+| Age moved | 0 ticks | 1 tick | 2 | 3 | 16 | 1,024 | 65,536 | 524,288 (half a cycle) |
+|---|---|---|---|---|---|---|---|---|
+| beech age 9, 10 up | 147,362 | 155,657 | 155,657 | 155,657 | 155,657 | 155,656 | 155,630 | 155,442 |
+| oak age 2, 12 down | 457,386 | 616,920 | 616,920 | 616,920 | 616,920 | 616,920 | 616,920 | 616,920 |
+| oak age 8, 10 up | 457,386 | 462,416 | 462,416 | 462,416 | 462,416 | 462,415 | 462,364 | 462,011 |
+| spruce age 12, 2 up | 1,149,893 | 1,546,303 | 1,546,303 | 1,546,303 | 1,546,302 | 1,546,263 | 1,543,725 | 1,526,146 |
+
+(kept phytomers; grown counts move alike; wood moves by degree throughout: 8,401.8, 8,401.8, … 8,745.8 m for the oak's age 2.)
+
+The whole jump arrives with the **first** tick and does not grow with the share. A partial unit of one tick and one of half a cycle count the same. The element counted whole is the partial unit itself, at any share, as the last age's partial unit when the lifespan rises past a whole number, or as the successor's partial first unit when it falls below one. It is not a sub-tick or last-tick remainder. A lifespan on the tick grid has no fractional tick, so a draw on its last tick has a chance of 1 and would change no count. As answer 2 instructs, I stop here.
+
+**For the host:** the element that would have to be the making draw is the partial unit of share s (s of a cycle, ticks over 2^20): it stands at chance s, grows in from its lead, and is counted at s. Decision 7 then keeps its timing (the successor grows the rest of the cycle), but the unit's size when it stands needs a ruling:
+- At its share, as now. The expected size becomes s² and the wood is no longer linear in the lifespan.
+- Whole. The expected size stays s, and the fade comes from the lead.
+
+The half-tick floor ("above 0") rides on the same choice, because a lifespan below a tick is a partial unit of share under 2^-20.

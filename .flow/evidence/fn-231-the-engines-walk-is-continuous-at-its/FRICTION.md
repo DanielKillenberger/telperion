@@ -18,3 +18,10 @@
 - **Slowed:** the rule is about 20 files deep in each executor, because the GPU's asks and table layout mirror the CPU word for word. Once built, it fails fn-192's by-degree walks, which the decision expected to bound it. The lifespan part reads two ways (unit or tick), and one of them overturns host decision 7.
 - **Cost:** about 70 minutes, a 260 s space suite run and a 90 s GPU parity run. The work is parked on `fn-231-places-wip` rather than left on a broken branch.
 - **Would have removed it:** running the decision against the walk tests before ruling. A 10-line probe that sets `zone.buds = 1.3` in `tests/walks.rs`'s species would have shown the jump.
+
+## 2026-10-08: the second answer's lifespan reading did not match the engine
+
+- **Doing:** building answer 2, the lifespan's last tick as a making draw.
+- **Slowed:** the tick-by-tick measurement (one probe, two minutes) shows the count jumps at the first tick and is flat from 1 tick to half a cycle. The element is the partial unit, not a tick, so the instructed rule changes nothing, and it was the second round trip on the same question.
+- **Cost:** a third escalation. Places and shedding are built and committed, which is about 40 minutes of the round.
+- **Would have removed it:** the tick probe run before the ruling. It is `tick_probe.rs.txt`, and it takes under a minute.
