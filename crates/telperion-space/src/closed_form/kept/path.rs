@@ -189,13 +189,17 @@ impl Kept<'_> {
                 phi += p * (table.at(t - i as i64).0 - 1.0);
                 tables.push((j, p, table));
             }
-            let places = zone.places() as i32;
-            let f = phi.powi(places);
+            // Each whole place a factor phi; the last, a fraction `s`
+            // stands at, 1 + s (phi - 1) (fn-231).
+            let (whole, s) = zone.whole_places();
+            let psi = 1.0 + s * (phi - 1.0);
+            let f = if s > 0.0 { phi.powi(whole) * psi } else { phi.powi(whole) };
             let (g, tilted, replaced) = tilts(&axis.pmfs[z], f, zone);
             let mut h = self.own(&tilted, at, l, own).map(|v| v * g);
             // One node's place holds the subtree; its other places, and
             // every other node, their factors.
-            let others = phi.powi(places - 1);
+            let others = phi.powi(whole - 1);
+            let others = if s > 0.0 { others * psi } else { others };
             let mut slots = vec![(0.0, 0.0); zone.places()];
             let mut low = 0.0;
             for (j, &p) in lateral.iter().enumerate() {
@@ -208,25 +212,34 @@ impl Kept<'_> {
                 let Some(cb) = row.2 else {
                     continue;
                 };
-                let placing = self.laterals_at(j, (zone, &replaced), (at, l, size), (p, band));
+                let [placing, last] =
+                    self.laterals_at(j, (zone, &replaced), (at, l, size), (p, band));
                 let mut y = [0.0; WIDTH];
                 placing.place(cb, &mut y);
                 for q in 0..WIDTH {
                     h[q] += others * y[q];
                 }
+                if s > 0.0 {
+                    let mut y = [0.0; WIDTH];
+                    last.place(cb, &mut y);
+                    let alone = phi.powi(whole);
+                    for q in 0..WIDTH {
+                        h[q] += alone * y[q];
+                    }
+                }
                 // Its section, handed over in its place's share.
                 let (x1, x2) = handed(row, table.e, e);
                 let lived = species.lived(j).unwrap_or((j, 0.0));
                 let d = species.states[lived.0].form.dominance;
-                for (slot, s) in slots.iter_mut().enumerate() {
-                    let base = size * zone.share(slot) * lived.1;
-                    s.0 += p * base.powf_fixed(e) * dominance_power(d, e) * x1;
-                    s.1 += p * base.powf_fixed(2.0 * e) * dominance_power(d, 2.0 * e) * x2;
+                for slot in &mut slots {
+                    let base = size * lived.1;
+                    slot.0 += p * base.powf_fixed(e) * dominance_power(d, e) * x1;
+                    slot.1 += p * base.powf_fixed(2.0 * e) * dominance_power(d, 2.0 * e) * x2;
                 }
             }
             let (s1, s2) = zoned(
                 &axis.pmfs[z],
-                (f, phi, places),
+                (f, phi, (whole, s)),
                 (own.powf_fixed(e), own.powf_fixed(2.0 * e)),
                 &slots,
             );
@@ -263,31 +276,36 @@ impl Kept<'_> {
 
     /// How laterals of PA `j` stand on a zone whose one node is replaced
     /// (`replaced`: the node count's moments so weighted) from `x`, each
-    /// node `l` long on a unit of `size`.
+    /// node `l` long on a unit of `size`: on its whole places, and on the
+    /// last, a fraction's, at the chance it stands (fn-231).
     fn laterals_at(
         &self,
         j: usize,
         (zone, replaced): (&Zone, &Count),
         (x, l, size): (Along, f64, f64),
         (p, band): (f64, (f64, f64)),
-    ) -> Placing {
+    ) -> [Placing; 2] {
         let species = self.species;
         let (lived, reach) = species.lived(j).unwrap_or((j, 0.0));
         let lived = &species.states[lived];
         let d = lived.form.dominance;
-        let mut placing = Placing::turned(angled(Some(lived)));
-        let powers = |share: f64| -> [f64; 4] {
-            let base = size * share * reach;
-            std::array::from_fn(|p| base.powi(p as i32 + 1) * dominance_power(d, p as f64 + 1.0))
+        let mut placings = [(); 2].map(|_| Placing::turned(angled(Some(lived))));
+        let base = size * reach;
+        let powers: [f64; 4] =
+            std::array::from_fn(|p| base.powi(p as i32 + 1) * dominance_power(d, p as f64 + 1.0));
+        let (whole, s) = zone.whole_places();
+        let mut add = |slot: usize, n: f64, at: Along| match slot < whole as usize {
+            true => placings[0].add(n, &powers, at),
+            false => placings[1].add(n * s, &powers, at),
         };
         // Place 0's draw also orders the nodes (`grow/unit.rs`).
         let (n, at) = replaced.ranked(x, l, band);
-        placing.add(n, &powers(zone.share(0)), at);
+        add(0, n, at);
         for slot in 1..zone.places() {
             let (n, at) = replaced.spread(x, l, false);
-            placing.add(n * p, &powers(zone.share(slot)), at);
+            add(slot, n * p, at);
         }
-        placing
+        placings
     }
 
     /// A woken bud's factor and quantities: as many as its expectation

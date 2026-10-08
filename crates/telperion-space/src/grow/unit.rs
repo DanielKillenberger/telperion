@@ -32,9 +32,9 @@ impl Shoot<'_, '_> {
                 let mut buds = [None; MAX_BUDS as usize];
                 for (slot, bud) in buds[..zone.places()].iter_mut().enumerate() {
                     let place_key = node_key.child(slot as u64);
-                    let placed = zone.share(slot);
                     let d = place_key.draw();
-                    *bud = lineage::bud(lateral, d).map(|pa| (pa, d, placed));
+                    let stands = lineage::placed(place_key, zone.share(slot));
+                    *bud = stands.then(|| lineage::bud(lateral, d)).flatten().map(|pa| (pa, d));
                 }
                 // Ordered by the first place's draw, which every node has, so
                 // a place a fraction grows moves no node; by its bits, and
@@ -73,7 +73,7 @@ impl Shoot<'_, '_> {
                 let node_presence = fixed::real(node_presence);
                 self.draws_mut(apex.axis).nodes.push(node_presence);
                 for (slot, bud) in buds[..zone.places()].iter().enumerate() {
-                    let Some((drawn_pa, d, placed)) = *bud else {
+                    let Some((drawn_pa, d)) = *bud else {
                         continue;
                     };
                     // A bud of an age it passes through grows in the next
@@ -101,8 +101,9 @@ impl Shoot<'_, '_> {
                     // Host decision 8: the made presences, Q32.
                     let window = windows.window_q((lateral_pa, cycle + 1, None), 1.0);
                     let lead = lineage::bud_presence(lateral, drawn_pa, d, window);
+                    let placed = lineage::place_presence(key, zone.share(slot), window);
                     let made = [
-                        fixed::real(presence::times(lead, presence::q(placed))),
+                        fixed::real(presence::times(lead, placed)),
                         fixed::real(presence::q(reach)),
                     ];
                     self.sprout(key, lateral_pa, cycle, origin, made);

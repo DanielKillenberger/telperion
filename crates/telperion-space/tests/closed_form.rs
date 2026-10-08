@@ -154,18 +154,24 @@ fn the_closed_form_matches_a_count_by_hand() {
     assert_eq!(rows, vec![vec![1.0, 1.0, 1.0], vec![0.0, 2.0, 4.0]]);
 }
 
-/// A fractional bud place grows whole, at its share of the size (fn-206):
-/// the closed form counts every place, as the grower grows it.
+/// A fractional bud place is a making draw (fn-231, host decision 8): it
+/// stands with its fraction's chance, and the closed form counts it at
+/// that share; the engine's mean over 20,000 seeds is its expectation.
 #[test]
-fn a_fractional_bud_place_is_counted_whole() {
-    let mut first = state(1, 1.0, vec![zone(1, 1, &[0.0, 1.0])]);
-    first.zones[0].buds = 1.5;
-    let species = Species {
-        states: vec![first, state(1, 0.0, vec![zone(1, 1, &[0.0, 0.0])])],
+fn a_fractional_bud_place_is_counted_at_its_share() {
+    let with = |buds: f64| {
+        let mut first = state(1, 1.0, vec![zone(1, 1, &[0.0, 1.0])]);
+        first.zones[0].buds = buds;
+        Species {
+            states: vec![first, state(1, 0.0, vec![zone(1, 1, &[0.0, 0.0])])],
+        }
     };
-    let ours = tree(&species, 3, 1).counts();
-    let formula = expected_counts(&species, 3).unwrap();
-    assert_equal("fractional buds", &ours, &formula);
+    // The laterals' phytomers lie three tenths of the way from one place
+    // a node to two, not at two.
+    let laterals = |buds: f64| expected_counts(&with(buds), 3).unwrap().total(1);
+    let (one, two) = (laterals(1.0), laterals(2.0));
+    assert!((laterals(1.3) - (one + 0.3 * (two - one))).abs() < 1e-12);
+    means_agree("fractional buds", &with(1.3), 3, 20_000);
 }
 
 /// Host decision 13: an apex that all but stopped moving on grows its

@@ -5,7 +5,7 @@ use super::shoot::Shoot;
 use super::{Apex, Grower};
 use crate::dormant::{self, Sleeper, Woken};
 use crate::error::Result;
-use crate::lineage::Key;
+use crate::lineage::{self, Key};
 use crate::presence::Draws;
 use crate::species::Zone;
 use crate::structure::Origin;
@@ -210,10 +210,11 @@ impl Shoot<'_, '_> {
     ) {
         for slot in 0..zone.places() {
             let place = node_key.child(slot as u64);
-            let placed = zone.share(slot);
+            if !lineage::placed(place, zone.share(slot)) {
+                continue;
+            }
             let age = self.rules.age;
             let drawn = dormant::draw(zone, place, (at, slot as u8), woods, (cycle, age));
-            let drawn = drawn.map(|(wakes, sleeper)| (wakes, Sleeper { placed, ..sleeper }));
             if let Some((wakes, sleeper)) = drawn {
                 self.asleep.push((wakes, sleeper));
             }

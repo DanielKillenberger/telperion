@@ -19,6 +19,7 @@ const KEY_FAILED = vec2<u32>(0xfffffff5u, 0xffffffffu);
 const KEY_INSERTION = vec2<u32>(0xfffffff4u, 0xffffffffu);
 const KEY_TROPISM = vec2<u32>(0xfffffff3u, 0xffffffffu);
 const KEY_WANDER = vec2<u32>(0xfffffff2u, 0xffffffffu);
+const KEY_PLACED = vec2<u32>(0xfffffff1u, 0xffffffffu);
 const KEY_BLOOM = vec2<u32>(0x0b100000u, 0x00000000u);
 const KEY_BLOOM_ROLL = vec2<u32>(0x0b100001u, 0x00000000u);
 const KEY_FLORET = vec2<u32>(0x0b100002u, 0x00000000u);

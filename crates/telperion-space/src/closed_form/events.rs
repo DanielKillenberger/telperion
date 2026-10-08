@@ -252,14 +252,14 @@ fn unit_events(
             size,
             wood,
         });
-        // Every bud place grows, the last a fraction's at its share of
-        // the size: counted whole, sized by the mean share.
-        let (places, shared) = zone_places(zone);
+        // Every bud place stands, the last a fraction makes with that
+        // chance, a making draw (fn-231): `buds` places a node in
+        // expectation, each counted whole.
         let mut low = 0.0;
         for (j, &p) in lateral.iter().enumerate() {
             let band = (low, low + p);
             low += p;
-            let buds = nodes * places * p;
+            let buds = nodes * zone.buds * p;
             if buds > 0.0 {
                 let placed = (start, internode);
                 let stand = lateral_stand(species, (zone, counts[z]), placed, (j, p, band));
@@ -268,7 +268,7 @@ fn unit_events(
                     pa: j,
                     carried: Carried::default(),
                     weight: buds,
-                    size: size * shared,
+                    size,
                     first: None,
                     unit: size,
                     stand,
@@ -280,7 +280,8 @@ fn unit_events(
 }
 
 /// Where the laterals of PA `j`, drawn at `p` within `band` of place 0's
-/// draw, stand on a zone's nodes from `start`, and at what share.
+/// draw, stand on a zone's nodes from `start`, each place counted at the
+/// chance it stands, at a whole place's size.
 pub(super) fn lateral_stand(
     species: &Species,
     (zone, count): (&Zone, Count),
@@ -290,10 +291,10 @@ pub(super) fn lateral_stand(
     let mut sum = Sum::default();
     // Place 0's draw also orders the nodes (`grow/unit.rs`).
     let (n, at) = count.ranked(start, internode, band);
-    sum.add(n, zone.share(0), at);
+    sum.add(n * zone.share(0), 1.0, at);
     for slot in 1..zone.places() {
         let (n, at) = count.spread(start, internode, false);
-        sum.add(n * p, zone.share(slot), at);
+        sum.add(n * p * zone.share(slot), 1.0, at);
     }
     let lived = species.lived(j).map(|(q, _)| &species.states[q]);
     let d = lived.map_or(0.0, |s| s.form.dominance);
@@ -314,17 +315,16 @@ pub(super) fn sleeping(
     (m, placed): (usize, (Count, Along, f64)),
     out: &mut Vec<Event>,
 ) {
-    let (places, shared) = zone_places(zone);
     let (count, start, internode) = placed;
     for (j, &p) in zone.dormant.iter().enumerate() {
-        let buds = nodes * places * p;
+        let buds = nodes * zone.buds * p;
         if buds <= 0.0 {
             continue;
         }
         let mut sum = Sum::default();
         for slot in 0..zone.places() {
             let (n, at) = count.spread(start, internode, true);
-            sum.add(n * p, zone.share(slot), at);
+            sum.add(n * p * zone.share(slot), 1.0, at);
         }
         let species = living.species();
         let lived = species.lived(j).map(|(q, _)| &species.states[q]);
@@ -364,23 +364,12 @@ pub(super) fn sleeping(
                     // It reaches its stage at a share of its size, as the
                     // grower grows it; it is counted whole.
                     weight: buds * wakes * carried,
-                    size: size * shared * reach,
+                    size: size * reach,
                     first: Some(first),
                     unit: size * reach,
                     stand,
                 });
             }
         }
-    }
-}
-
-/// A zone's bud places per node, every one grown, and their mean share
-/// of a whole place's size.
-fn zone_places(zone: &Zone) -> (f64, f64) {
-    let places = zone.places() as f64;
-    if places > 0.0 {
-        (places, zone.buds / places)
-    } else {
-        (0.0, 0.0)
     }
 }

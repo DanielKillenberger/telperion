@@ -11,7 +11,7 @@ pub mod keys;
 
 pub(crate) use keys::{
     ABORTION, CONTINUATION, DOMINANCE, DORMANT, END, ENDED, FAILED, INSERTION, INTERNODE, MOVE,
-    RELAY, ROLL, SHED, TROPISM, VIABILITY, WANDER, ZONE,
+    PLACED, RELAY, ROLL, SHED, TROPISM, VIABILITY, WANDER, ZONE,
 };
 
 /// A hashed path from the root.
@@ -150,6 +150,25 @@ pub(crate) fn tropism(lineage: u64, spread: f64) -> i64 {
         return ONE32;
     }
     ONE32 + mul(q32(spread), signed(Key(lineage).child(TROPISM).draw()))
+}
+
+/// Whether the bud place keyed `place` stands at `share` (`Zone::share`):
+/// a whole one always, the last a fraction makes by its draw (fn-231,
+/// host decision 8), so its buds come in by count as the fraction grows.
+pub(crate) fn placed(place: Key, share: f64) -> bool {
+    share >= 1.0 || place.child(PLACED).draw().under(share)
+}
+
+/// The presence, Q32, over `window` of the draw that made the bud place
+/// keyed `place` stand at `share`: its lead under the share's threshold,
+/// as `bud_presence` settles a bud's, so a place grows in from nothing as
+/// the fraction passes its draw (fn-231); a whole place's is whole.
+pub(crate) fn place_presence(place: Key, share: f64, window: i64) -> u64 {
+    if share >= 1.0 {
+        return fixed::presence::ONE;
+    }
+    let d = place.child(PLACED).draw();
+    fixed::presence::of_under(threshold(share), d.0, window)
 }
 
 /// A bud's PA under `lateral` for the draw `d`; none for a bare bud. The

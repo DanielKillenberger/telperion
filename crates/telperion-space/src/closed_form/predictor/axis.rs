@@ -88,11 +88,14 @@ impl Walk<'_> {
             for (_, p, table) in &zp.laterals {
                 phi += p * (table.at(t - i as i64).0 - 1.0);
             }
-            let places = zone.places() as i32;
-            let f = phi.powi(places);
+            // Each whole place a factor phi; the last, a fraction `s`
+            // stands at, 1 + s (phi - 1) (fn-231).
+            let (whole, s) = zone.whole_places();
+            let psi = 1.0 + s * (phi - 1.0);
+            let f = if s > 0.0 { phi.powi(whole) * psi } else { phi.powi(whole) };
             let (g, tilted, replaced) = tilts(&self.pmfs[k][zp.z], f, zone);
             let mut h = tilted.moments().0 * g;
-            let others = phi.powi(places - 1);
+            let others = phi.powi(whole - 1);
             let n1 = replaced.moments().0;
             let mut low = 0.0;
             for (j, &p) in self.laterals[k][zp.z].iter().enumerate() {
@@ -104,12 +107,19 @@ impl Walk<'_> {
                 let Some(c) = table.at(t - i as i64).1 else {
                     continue;
                 };
-                // Place 0's buds, then one a node on every other place.
-                let mut buds = n1 * (band.1 - band.0);
-                for _ in 1..zone.places() {
-                    buds += n1 * p;
+                // Place 0's buds, then one a node on every other place;
+                // the last, a fraction's, apart.
+                let place = |slot: usize| n1 * if slot == 0 { band.1 - band.0 } else { p };
+                if whole > 0 {
+                    let mut buds = place(0);
+                    for slot in 1..whole as usize {
+                        buds += place(slot);
+                    }
+                    h += if s > 0.0 { others * psi } else { others } * (buds * c);
                 }
-                h += others * (buds * c);
+                if s > 0.0 {
+                    h += phi.powi(whole) * (s * place(whole as usize) * c);
+                }
             }
             run = times(run, (g, h));
             for (event, table) in sleeping[zp.z].iter().zip(&zp.woken) {

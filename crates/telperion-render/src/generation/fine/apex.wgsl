@@ -48,6 +48,9 @@ fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32) {
             wr(axis, NPHYT, node + 1u);
             for (var s = 0u; s < table[zat + 4u]; s++) {
                 let place = child(node_key, w(s, 0u));
+                if !stands(zat, s, place) {
+                    continue;
+                }
                 let drew = bud(zat, place);
                 if drew == 0xffu || lived(drew) == NONE {
                     continue;

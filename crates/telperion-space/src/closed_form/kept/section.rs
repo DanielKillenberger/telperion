@@ -45,24 +45,44 @@ pub(super) fn handed(row: Row, own: f64, e: f64) -> (f64, f64) {
 }
 
 /// One zone's section on its factor: each node bears its own pipe `own`
-/// (as o^e and o^2e) and `places` places, each a factor `phi` and, in
-/// one of them, the moments `slots[k]` (E[X], E[X²] on it). Over the node
-/// count's law `pmf`, each node's factor `f`: E[Π f · S] and E[Π f · S²].
+/// (as o^e and o^2e) and `whole` whole places, each a factor `phi`, and
+/// a last that stands at chance `s` (fn-231), a factor 1 + s (phi - 1);
+/// in one of them, the moments `slots[k]` (E[X], E[X²] on it, given it
+/// stands). Over the node count's law `pmf`, each node's factor `f`:
+/// E[Π f · S] and E[Π f · S²].
 pub(super) fn zoned(
     pmf: &[f64],
-    (f, phi, places): (f64, f64, i32),
+    (f, phi, (whole, s)): (f64, f64, (i32, f64)),
     own: (f64, f64),
     slots: &[(f64, f64)],
 ) -> (f64, f64) {
     let one = |p: i32| if p >= 0 { phi.powi(p) } else { 0.0 };
-    let sum1: f64 = slots.iter().map(|s| s.0).sum();
-    let sum2: f64 = slots.iter().map(|s| s.1).sum();
-    let pairs = sum1 * sum1 - slots.iter().map(|s| s.0 * s.0).sum::<f64>();
-    let node1 = f * own.0 + one(places - 1) * sum1;
-    let node2 = f * own.1
-        + 2.0 * own.0 * one(places - 1) * sum1
-        + one(places - 1) * sum2
-        + one(places - 2) * pairs;
+    let all = &slots[..whole as usize];
+    let sum1: f64 = all.iter().map(|s| s.0).sum();
+    let sum2: f64 = all.iter().map(|s| s.1).sum();
+    let pairs = sum1 * sum1 - all.iter().map(|s| s.0 * s.0).sum::<f64>();
+    let (node1, node2) = if s > 0.0 {
+        // The last place stands apart: its own factor where it holds the
+        // subtree, the others' where one of them does.
+        let psi = 1.0 + s * (phi - 1.0);
+        let (last1, last2) = slots[whole as usize];
+        let cross = one(whole - 1) * psi * sum1 + s * last1 * one(whole);
+        let node1 = f * own.0 + cross;
+        let node2 = f * own.1
+            + 2.0 * own.0 * cross
+            + one(whole - 1) * psi * sum2
+            + s * last2 * one(whole)
+            + one(whole - 2) * psi * pairs
+            + 2.0 * s * last1 * one(whole - 1) * sum1;
+        (node1, node2)
+    } else {
+        let node1 = f * own.0 + one(whole - 1) * sum1;
+        let node2 = f * own.1
+            + 2.0 * own.0 * one(whole - 1) * sum1
+            + one(whole - 1) * sum2
+            + one(whole - 2) * pairs;
+        (node1, node2)
+    };
     // E[N f^(N-1)] and E[N (N-1) f^(N-2)].
     let (mut c1, mut c2) = (0.0, 0.0);
     for (n, &p) in pmf.iter().enumerate().skip(1) {
