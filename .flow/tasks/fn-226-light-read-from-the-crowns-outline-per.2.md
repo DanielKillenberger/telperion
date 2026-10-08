@@ -1,5 +1,5 @@
 ---
-satisfies: [R4, R5]
+satisfies: [R2]
 ---
 # fn-226-light-read-from-the-crowns-outline-per.2 Delete the re-lay, measured
 

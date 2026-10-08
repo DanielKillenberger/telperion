@@ -1,5 +1,5 @@
 ---
-satisfies: [R1, R2, R3]
+satisfies: [R1]
 ---
 # fn-226-light-read-from-the-crowns-outline-per.1 Measure the lattice by pass and effect
 
