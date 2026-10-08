@@ -1,11 +1,136 @@
 {
   "branch_name": "fn-235-the-harness-never-hangs-the-gpu",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-08T20:13:05.342180Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-235-the-harness-never-hangs-the-gpu",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-08T21:47:57.547120Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "8089e2e98d81f00e34bab4f557ee8e2a8e3ae4f2176786586d2f1820efdc2e1c",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5d753a162675f6f4c7d56c0ec139eb11",
+            "classification": "introduced",
+            "findingId": "finding-5d753a162675f6f4c7d56c0ec139eb11",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c9e103fc3401a80ec627cdd3cd7f556e",
+            "classification": "introduced",
+            "findingId": "finding-c9e103fc3401a80ec627cdd3cd7f556e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f4d3d16ccb1f0eb48acdc5c3fe2292428982c55b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1394825,
+      "output_sha256": "5c8e9bc59c937bb622f02297e7cf672167069ef149bdb3c4491663e79bbcff2e",
+      "reservation_id": "cf5cd040900e44d89b8d1d577affb2d5",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T21:47:05.164280Z",
+      "tool_calls": 23,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "f0845a0ca966f162853cd7371fbdb177cec340978ff7f065a7d91ba592341acd",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5d753a162675f6f4c7d56c0ec139eb11",
+            "classification": "introduced",
+            "findingId": "finding-5d753a162675f6f4c7d56c0ec139eb11",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c9e103fc3401a80ec627cdd3cd7f556e",
+            "classification": "introduced",
+            "findingId": "finding-c9e103fc3401a80ec627cdd3cd7f556e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f4d3d16ccb1f0eb48acdc5c3fe2292428982c55b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 924,
+      "output_sha256": "defca3f344201f7877d9792363a894667e5371ac7ac0dc3986b4539a1307aec7",
+      "reservation_id": "1767e20731f14a94ad65a39e645bdd7e",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T21:47:57.545182Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-235-the-harness-never-hangs-the-gpu.md",
   "status": "open",
   "title": "The harness never hangs the GPU",
@@ -20,5 +145,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T21:44:45.376324Z"
+  "updated_at": "2026-10-08T21:48:05.145465Z"
 }
