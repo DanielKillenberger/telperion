@@ -53,7 +53,7 @@ fn device(gpu: &Gpu, k: &Kernels, family: &Family) {
     let gen = Generator::new(&renderer).unwrap();
     let tools = Tools::new(gpu);
     let profiling = std::env::var("PROFILE").is_ok() && profile::start(gpu);
-    let built = build(gpu, &gen, k, &tools, family).unwrap();
+    let built = pollster::block_on(build(gpu, &gen, k, &tools, family)).unwrap();
     let passes = profile::finish(gpu);
     let t = Instant::now();
     renderer.submit_prepared(built.prepared).unwrap();

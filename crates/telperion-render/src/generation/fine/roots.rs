@@ -9,7 +9,7 @@ use super::laid::{self, Resolver};
 use super::pool::Pool;
 use super::shedding::Fades;
 use super::steps::{buffer, Steps, BW2, IW, RW};
-use crate::Gpu;
+use crate::{Gpu, Result};
 use std::sync::Arc;
 use telperion_space::{ChainTables, GeometryTables};
 
@@ -43,6 +43,7 @@ pub(super) struct Cost {
     /// Under realized mechanics (task 9): phase 1's milliseconds growing
     /// the groups sown while the structure above the cut grew, and in
     /// `grow` itself, the rest's.
+    #[cfg_attr(target_arch = "wasm32", allow(dead_code))]
     pub sown: f64,
     pub last: f64,
 }
@@ -133,22 +134,27 @@ pub(super) struct Grown {
 
 /// The four totals a run reads back: its packed axes and phytomers, its
 /// scratch words, and its chains queued for a larger region.
-pub(super) fn totals(gpu: &Gpu, buffer: &wgpu::Buffer, words: u64, cost: &mut Cost) -> Vec<u32> {
+pub(super) async fn totals(
+    gpu: &Gpu,
+    buffer: &wgpu::Buffer,
+    words: u64,
+    cost: &mut Cost,
+) -> Result<Vec<u32>> {
     cost.trips += 1;
-    let bytes = super::super::io::read(gpu, buffer, words * 4).unwrap();
-    bytemuck::cast_slice(&bytes).to_vec()
+    let bytes = super::super::io::read_async(gpu, buffer, words * 4).await?;
+    Ok(bytemuck::cast_slice(&bytes).to_vec())
 }
 
 /// Grows a wave's `n` buds in runs of `batch`, each chain that outgrew its
 /// region again in one eight times larger, each run recorded and packed;
 /// each chain's counts into `places`.
-pub(super) fn grow_wave(
+pub(super) async fn grow_wave(
     gpu: &Gpu,
     k: &Kernels,
     (buds, n, batch): (&wgpu::Buffer, u32, usize),
     (places, tables): (&wgpu::Buffer, &Tables),
     cost: &mut Cost,
-) -> Vec<Run> {
+) -> Result<Vec<Run>> {
     let mut runs = Vec::new();
     // A level's work: its buds (none: the wave's own), the wave indices
     // they stand for, and their count.
@@ -163,7 +169,7 @@ pub(super) fn grow_wave(
             for first in (0..*count).step_by(size as usize) {
                 let m = size.min(count - first);
                 let at = (input, list, first, m, level);
-                let (run, queued) = grow_run(gpu, k, at, (places, tables), caps, cost);
+                let (run, queued) = grow_run(gpu, k, at, (places, tables), caps, cost).await?;
                 cost.runs += 1;
                 cost.chains += m as usize;
                 runs.push(run);
@@ -171,7 +177,7 @@ pub(super) fn grow_wave(
             }
         }
         if queues.is_empty() {
-            return runs;
+            return Ok(runs);
         }
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
         work = queues
@@ -207,14 +213,14 @@ fn first_region(n: u32, batch: u32) -> (Caps, u32) {
 /// One run: `m` chains from `first` of `input` grown in regions of
 /// `caps`, recorded, scanned and packed; the chains it queued for a larger
 /// region, if any. One round trip: its four totals.
-fn grow_run(
+async fn grow_run(
     gpu: &Gpu,
     k: &Kernels,
     (input, list, first, m, level): (&wgpu::Buffer, &wgpu::Buffer, u32, u32, u32),
     (places, tables): (&wgpu::Buffer, &Tables),
     caps: Caps,
     cost: &mut Cost,
-) -> (Run, Option<(wgpu::Buffer, u32)>) {
+) -> Result<(Run, Option<(wgpu::Buffer, u32)>)> {
     let t = tables;
     let mut encoder = gpu.device.create_command_encoder(&Default::default());
     let at = (&t.uploaded, &t.packed, t.chain.span, t.chain.age);
@@ -235,7 +241,7 @@ fn grow_run(
     k.steps.scan(gpu, &mut encoder, (&runoff, m, RW, 3), &sums);
     encoder.copy_buffer_to_buffer(&queued, 0, &sums, 12, 4);
     gpu.queue.submit([encoder.finish()]);
-    let t = totals(gpu, &sums, 4, cost);
+    let t = totals(gpu, &sums, 4, cost).await?;
     let axes = k
         .pool
         .take(gpu, "packed axes", u64::from(t[0]) * AXW as u64);
@@ -257,5 +263,5 @@ fn grow_run(
         scratch,
         items,
     };
-    (run, (t[3] > 0).then_some((queue, t[3])))
+    Ok((run, (t[3] > 0).then_some((queue, t[3]))))
 }

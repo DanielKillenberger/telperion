@@ -71,7 +71,7 @@ fn option3_extra_leaves_at_30() {
     let k = kernels(&gpu);
     for id in ["european-beech", "norway-spruce"] {
         let family = family(id, (30, 1));
-        let built = build(&gpu, &gen, &k, &Tools::new(&gpu), &family).unwrap();
+        let built = pollster::block_on(build(&gpu, &gen, &k, &Tools::new(&gpu), &family)).unwrap();
         let part = built.expansion.tree().clone();
         let (old, moved) = before(&part);
         let key = |p: Vec3| [p.x, p.y, p.z].map(f64::to_bits);
@@ -158,7 +158,14 @@ fn option3_moved_runs_on_the_beech() {
     );
     let mut renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
-    let built = build(&gpu, &gen, &kernels(&gpu), &Tools::new(&gpu), &family).unwrap();
+    let built = pollster::block_on(build(
+        &gpu,
+        &gen,
+        &kernels(&gpu),
+        &Tools::new(&gpu),
+        &family,
+    ))
+    .unwrap();
     let part = built.expansion.tree().clone();
     let mut bare = part.clone();
     bare.attachments.iter_mut().for_each(|a| a.fork = false);

@@ -70,6 +70,15 @@ pub struct Held {
     label: &'static str,
 }
 
+// A browser's WebGPU frees a buffer only when it is destroyed or its
+// wrapper is collected (wgpu's web backend drops nothing), so a buffer is
+// destroyed where its owner lets it go (fn-212 task 10).
+impl Drop for Held {
+    fn drop(&mut self) {
+        self.buffer.destroy();
+    }
+}
+
 impl Held {
     pub(crate) fn resident(buffer: wgpu::Buffer, used: u64, label: &'static str) -> Self {
         let capacity = buffer.size();

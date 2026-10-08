@@ -6,7 +6,7 @@
 //! the runs, then the points and clusters, to size what follows.
 use super::super::io;
 use super::dress::{Dressed, CA_WORDS};
-use crate::Gpu;
+use crate::{Gpu, Result};
 use telperion_core::surface::SurfaceParams;
 
 const SWEEP: &str = include_str!("sweep.wgsl");
@@ -74,6 +74,20 @@ pub(super) fn rows(p: &SurfaceParams, height: f64) -> [[f32; 4]; 3] {
 
 /// The curve of the fine roots on the device: its run table (first
 /// point, first cluster, points, widest ring), its points and clusters.
+/// The curve's buffers destroyed when let go: a browser frees a buffer only then (fn-212
+/// task 10; wgpu's web backend drops nothing).
+impl Drop for Swept {
+    fn drop(&mut self) {
+        let all = [
+            &self.table,
+            &self.point_buffer,
+            &self.cluster_buffer,
+            &self.nodes,
+        ];
+        all.into_iter().for_each(wgpu::Buffer::destroy);
+    }
+}
+
 pub(super) struct Swept {
     pub runs: u32,
     pub points: u32,
@@ -138,20 +152,25 @@ impl Sweeper {
     }
 
     /// The passes recorded so far submitted, then the counts read back.
-    fn counts(gpu: &Gpu, encoder: &mut wgpu::CommandEncoder, b: &Bound) -> [u32; 4] {
+    async fn counts(gpu: &Gpu, encoder: &mut wgpu::CommandEncoder, b: &Bound) -> Result<[u32; 4]> {
         let done = std::mem::replace(
             encoder,
             gpu.device.create_command_encoder(&Default::default()),
         );
         gpu.queue.submit([done.finish()]);
-        let raw = io::read(gpu, &b.counts, 16).unwrap();
+        let raw = io::read_async(gpu, &b.counts, 16).await?;
         let w: &[u32] = bytemuck::cast_slice(&raw);
-        [w[0], w[1], w[2], w[3]]
+        Ok([w[0], w[1], w[2], w[3]])
     }
 
     /// Sweeps the curve of the nodes `dressed` drew, under the surface's
     /// `rows`.
-    pub(super) fn sweep(&self, gpu: &Gpu, dressed: &Dressed, rows: [[f32; 4]; 3]) -> Swept {
+    pub(super) async fn sweep(
+        &self,
+        gpu: &Gpu,
+        dressed: &Dressed,
+        rows: [[f32; 4]; 3],
+    ) -> Result<Swept> {
         let ids = u64::from(dressed.ids);
         let mut b = Bound {
             nodes: storage(gpu, "sweep nodes", ids * NW),
@@ -197,7 +216,7 @@ impl Sweeper {
             rows,
             None,
         );
-        let runs = Self::counts(gpu, &mut e, &b)[0];
+        let runs = Self::counts(gpu, &mut e, &b).await?[0];
         let wide = runs.next_power_of_two().max(2);
         let pad = vec![u32::MAX; 2 * (wide - runs) as usize];
         gpu.queue
@@ -235,15 +254,16 @@ impl Sweeper {
         );
         self.run((gpu, &mut e), &b, (BLOCKS, runs, Some(1)), z, rows, None);
         self.run((gpu, &mut e), &b, (PLACE, runs, None), z, rows, None);
-        let [_, points, clusters, _] = Self::counts(gpu, &mut e, &b);
+        let [_, points, clusters, _] = Self::counts(gpu, &mut e, &b).await?;
         b.points = storage(gpu, "sweep points", u64::from(points) * PW as u64);
         b.clusters = storage(gpu, "sweep clusters", u64::from(clusters) * KW as u64);
         self.run((gpu, &mut e), &b, (EMIT, runs, None), z, rows, None);
         gpu.queue.submit([e.finish()]);
-        gpu.device
-            .poll(wgpu::PollType::wait_indefinitely())
-            .unwrap();
-        Swept {
+        io::complete(gpu).await?;
+        for done in [&b.links, &b.counts, &b.keys, &b.none] {
+            done.destroy();
+        }
+        Ok(Swept {
             runs,
             points,
             clusters,
@@ -251,6 +271,6 @@ impl Sweeper {
             point_buffer: b.points,
             cluster_buffer: b.clusters,
             nodes: b.nodes,
-        }
+        })
     }
 }

@@ -292,7 +292,7 @@ fn parity(gpu: &Gpu, k: &Kernels, gen: &Generator, family: &Family) -> Parity {
     let x = executor::grow(family).unwrap().expansion().unwrap();
     let theirs = reference(gen, &x);
     let their_curve = x.curve().unwrap();
-    let built = build(gpu, gen, k, &Tools::new(gpu), family).unwrap();
+    let built = pollster::block_on(build(gpu, gen, k, &Tools::new(gpu), family)).unwrap();
     let part = built.expansion.tree();
     let fine = fine_nodes(x.tree(), part);
     let (nodes, forks) = nodes(part, x.tree(), &fine);

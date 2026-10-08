@@ -4,7 +4,7 @@
 //! keeps its own waves, laid buffers and records, and settles through the
 //! later phases on its own; a root's work reads only its own chains, so
 //! how the roots are grouped never changes what any of them becomes.
-use super::super::io;
+use super::super::{io, Clock};
 use super::laid::{stubs, Wave};
 use super::realized::{grow_roots, RootBud, Waves};
 use super::roots::{Cost, Kernels, Tables};
@@ -57,21 +57,21 @@ impl Group {
     /// Phase 1 for `roots` (each with its node), taken in `order`,
     /// `batch` chains a run: grown whole, their living carried up and
     /// read back, and the buffers the later phases fill sized.
-    pub(super) fn grow(
+    pub(super) async fn grow(
         (gpu, k): (&Gpu, &Kernels),
         (roots, nodes): (&[RootBud], Vec<usize>),
         (order, batch): (Vec<usize>, usize),
         (t, cost): (&Tables, &mut Cost),
-    ) -> Self {
-        let (waves, grown) = grow_roots((gpu, k), (roots, &order, batch), t);
+    ) -> crate::Result<Self> {
+        let (waves, grown) = grow_roots((gpu, k), (roots, &order, batch), t).await?;
         cost.add(&grown);
-        let fading = std::time::Instant::now();
+        let fading = Clock::now();
         let fades = table(gpu, &t.chain);
         let living = k
             .fades
             .living(gpu, (&waves.grown, &waves.chains), (&fades, t.chain.age));
-        let read = report(gpu, &living[0], roots.len(), cost);
-        cost.fade += fading.elapsed().as_secs_f64() * 1e3;
+        let read = report(gpu, &living[0], roots.len(), cost).await?;
+        cost.fade += fading.elapsed_ms();
         let mut lived = vec![(0, 0); roots.len()];
         for (wi, &r) in order.iter().enumerate() {
             lived[r] = read[wi];
@@ -98,7 +98,7 @@ impl Group {
                 bent: unlaid(0.0),
             })
             .collect();
-        Self {
+        Ok(Self {
             waves,
             laid,
             records,
@@ -108,7 +108,7 @@ impl Group {
             made: vec![0; roots.len()],
             order,
             lived,
-        }
+        })
     }
 
     /// Writes each root's stub and origins from its attachment.
@@ -129,10 +129,11 @@ impl Group {
         k.fades.shed(gpu, (&self.waves.grown, &self.waves.own), &on);
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
         for (w, g) in self.waves.grown.iter().enumerate() {
-            let none = buffer(gpu, "no buds", 4);
+            // Two buffers: WebGPU refuses one buffer at two writable bindings.
+            let (buds, meta) = (buffer(gpu, "no buds", 4), buffer(gpu, "no meta", 4));
             for run in &g.runs {
                 let lay = (&run.runoff, &g.places, &g.meta, &run.items);
-                let hand = (&run.axes, &run.scratch, &none, &none);
+                let hand = (&run.axes, &run.scratch, &buds, &meta);
                 k.steps
                     .hand(gpu, &mut encoder, (run.n, w == 0, DESCRIBE), lay, hand);
             }
@@ -194,6 +195,16 @@ impl Group {
 
     /// Its pooled buffers, for the next build (`pool.rs`).
     pub(super) fn buffers(self) -> impl Iterator<Item = wgpu::Buffer> {
+        // What is not pooled is destroyed: a browser frees nothing dropped.
+        self.records.destroy();
+        for g in &self.waves.grown {
+            g.meta.destroy();
+            g.places.destroy();
+            for r in &g.runs {
+                r.runoff.destroy();
+                r.items.destroy();
+            }
+        }
         let runs = self.waves.grown.into_iter().flat_map(|g| g.runs);
         let packed = runs.flat_map(|r| [r.axes, r.phyts, r.scratch]);
         packed.chain(self.laid.into_iter().map(|w| w.buffer))

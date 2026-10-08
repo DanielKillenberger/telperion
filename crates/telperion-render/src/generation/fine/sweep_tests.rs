@@ -196,7 +196,7 @@ fn swept_against(gpu: &Gpu, sw: &Sweeper, fx: &Fixture, dressed: &Dressed) -> Cu
     let curve = fx.reference.curve().unwrap();
     let rows = rows(&fx.family.surface, curve.height);
     let t = std::time::Instant::now();
-    let swept = sw.sweep(gpu, dressed, rows);
+    let swept = pollster::block_on(sw.sweep(gpu, dressed, rows)).unwrap();
     let ms = t.elapsed().as_secs_f64() * 1e3;
     // The reference's runs of the device's nodes: its fine roots' side.
     let tree = fx.reference.tree();

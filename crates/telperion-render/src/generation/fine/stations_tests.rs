@@ -108,8 +108,8 @@ fn stationed(
     let segments = surface.radial_segments.max(surface.lobes * 4);
     let r = station_rows(x, segments);
     let t = std::time::Instant::now();
-    let swept = sw.sweep(gpu, dressed, rows(surface, curve.height));
-    let device = st.stations(gpu, &swept, dressed.ids, r);
+    let swept = pollster::block_on(sw.sweep(gpu, dressed, rows(surface, curve.height))).unwrap();
+    let device = pollster::block_on(st.stations(gpu, &swept, dressed.ids, r)).unwrap();
     let ms = t.elapsed().as_secs_f64() * 1e3;
     let scanned = scanned(gpu, &device);
     let words = device.segments as usize * GW;

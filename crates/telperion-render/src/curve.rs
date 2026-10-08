@@ -43,6 +43,17 @@ const PASSES: [(&str, &[u32]); 9] = [
 
 /// The curve on the device: its points (bound in two slices), clusters and
 /// cells, the passes, and the two views' targets.
+// A browser's WebGPU frees a buffer only when it is destroyed or its
+// wrapper is collected (wgpu's web backend drops nothing), so a buffer is
+// destroyed where its owner lets it go (fn-212 task 10).
+impl Drop for CurveGpu {
+    fn drop(&mut self) {
+        for b in [&self.points, &self.clusters, &self.sections] {
+            b.destroy();
+        }
+    }
+}
+
 pub(crate) struct CurveGpu {
     pipelines: Vec<wgpu::ComputePipeline>,
     points: wgpu::Buffer,

@@ -203,7 +203,6 @@ impl Generator {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 impl Generator {
     /// The vertices of `rings` compact ring descriptors already on the
     /// device (`[u32; 16]` words, as `compact::read` writes them, in a block
@@ -249,7 +248,10 @@ impl Generator {
             storage,
             &[],
         )?;
-        let none = make("ring none", 32, storage, &[])?;
+        // A placeholder each: WebGPU refuses one buffer at two bindings
+        // where either is written.
+        let none = || make("ring none", 32, storage, &[]);
+        let (meta, partial, status) = (none()?, none()?, none()?);
         let pass = self
             .positions
             .as_ref()
@@ -258,10 +260,10 @@ impl Generator {
             &uniform,
             descriptors,
             &angular,
-            &none,
+            &meta,
             &positions,
-            &none,
-            &none,
+            &partial,
+            &status,
         ];
         let bind = pass.bind(&self.gpu, &all);
         let mut encoder = self.gpu.device.create_command_encoder(&Default::default());

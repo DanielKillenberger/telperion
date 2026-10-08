@@ -52,3 +52,25 @@ fn a_cpu_delivery_grows_the_tree_whole() {
         .unwrap();
     assert!(prepared.wood.is_none() && prepared.cpu_mesh().is_some());
 }
+
+/// R4 natively: one generator and renderer build the spruce at 80, then
+/// smaller trees and the 80 again, each submitted, its leaves counted
+/// against a fresh build's (`cargo test --profile ci -p telperion-render
+/// large_to_small -- --ignored --nocapture`, under the GPU lock).
+#[test]
+#[ignore]
+fn large_to_small() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let mut renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    for age in [80, 40, 12, 80, 1, 80] {
+        let family = family("norway-spruce", age);
+        let t = std::time::Instant::now();
+        let prepared = gen.prepare(&family, Delivery::Resident).unwrap();
+        let ms = t.elapsed().as_secs_f64() * 1e3;
+        println!("spruce {age}: {} leaves in {ms:.0} ms", prepared.count());
+        renderer.submit_prepared(prepared).unwrap();
+    }
+}

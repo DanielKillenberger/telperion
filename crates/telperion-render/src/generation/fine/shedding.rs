@@ -135,21 +135,21 @@ impl Fades {
 
 /// The first wave's living read back: one record per root, by its place
 /// in the order the roots were taken (lived, Q32.32; alive, Q32).
-pub(super) fn report(
+pub(super) async fn report(
     gpu: &Gpu,
     living: &wgpu::Buffer,
     n: usize,
     cost: &mut Cost,
-) -> Vec<(u64, u64)> {
+) -> crate::Result<Vec<(u64, u64)>> {
     cost.trips += 1;
-    let bytes = io::read(gpu, living, (n.max(1) * 16) as u64).unwrap();
+    let bytes = io::read_async(gpu, living, (n.max(1) * 16) as u64).await?;
     let words: &[u32] = bytemuck::cast_slice(&bytes);
-    words
+    Ok(words
         .chunks_exact(4)
         .take(n)
         .map(|w| {
             let wide = |lo: u32, hi: u32| u64::from(lo) | u64::from(hi) << 32;
             (wide(w[0], w[1]), wide(w[2], w[3]))
         })
-        .collect()
+        .collect())
 }

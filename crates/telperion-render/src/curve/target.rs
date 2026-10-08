@@ -89,6 +89,24 @@ pub(crate) struct Target {
     held: Vec<wgpu::Buffer>,
 }
 
+// A browser's WebGPU frees a buffer only when it is destroyed or its
+// wrapper is collected (wgpu's web backend drops nothing), so a buffer is
+// destroyed where its owner lets it go (fn-212 task 10).
+impl Drop for Target {
+    fn drop(&mut self) {
+        let own = [
+            &self.config,
+            &self.totals,
+            &self.vertices,
+            &self.indices,
+            &self.args,
+        ];
+        for b in own.into_iter().chain(&self.held) {
+            b.destroy();
+        }
+    }
+}
+
 pub(super) fn buffer(
     gpu: &Gpu,
     label: &str,

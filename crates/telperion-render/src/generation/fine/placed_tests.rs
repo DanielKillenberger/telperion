@@ -170,8 +170,10 @@ fn seated(
     let (segments, angular) = (shared.surface().segments, shared.surface().angular.clone());
     drop(shared);
     let t = std::time::Instant::now();
-    let swept = sw.sweep(gpu, dressed, rows(surface, curve.height));
-    let device = st.stations(gpu, &swept, dressed.ids, station_rows(x, segments));
+    let swept = pollster::block_on(sw.sweep(gpu, dressed, rows(surface, curve.height))).unwrap();
+    let device =
+        pollster::block_on(st.stations(gpu, &swept, dressed.ids, station_rows(x, segments)))
+            .unwrap();
     // The rings read the run table and the points alone.
     swept.nodes.destroy();
     swept.cluster_buffer.destroy();

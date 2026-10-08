@@ -81,9 +81,10 @@ pub fn apart(family: &Family) -> std::result::Result<(), &'static str> {
 }
 
 /// Stage 2 with the fine roots grown and laid by `roots`, settled: what
-/// `Settling::part` converts.
-pub fn settle(family: &Family, roots: &mut dyn telperion_space::Roots) -> Result<Settling> {
-    let (settled, trunk, internodes) = super::space::settled(GrowInput::of(family), roots)?;
+/// `Settling::part` converts. Each of the executor's phases is awaited
+/// (fn-212 task 10): natively the caller blocks on it, a browser awaits.
+pub async fn settle(family: &Family, roots: &mut dyn telperion_space::Roots) -> Result<Settling> {
+    let (settled, trunk, internodes) = super::space::settled(GrowInput::of(family), roots).await?;
     Ok(Settling {
         settled,
         trunk,

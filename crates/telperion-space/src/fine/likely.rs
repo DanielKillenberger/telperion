@@ -26,6 +26,7 @@ type From = Option<(usize, usize, f64)>;
 /// The live roots, with their bearers and scales.
 pub(crate) type Live<'a> = (&'a [RootSeed], &'a [usize], &'a [usize], &'a [(f64, f64)]);
 
+#[cfg(not(target_family = "wasm"))]
 /// Before the tree is laid: the live roots that could reach the ground by
 /// the trunk's length, likeliest first.
 pub(crate) fn before_laid(

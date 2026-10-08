@@ -139,7 +139,9 @@ fn gather(@builtin(global_invocation_id) id: vec3<u32>) {
     for (var c = 0u; c < 6u; c++) {
         nodes[i * NW + 15u + c] = drawn[b + 17u + c];
     }
-    nodes[i * NW + 21u] = bitcast<f32>(NONE);
+    // A runtime word: Tint refuses a constant NaN, which naga folds.
+    var none = NONE;
+    nodes[i * NW + 21u] = bitcast<f32>(none);
     nodes[i * NW + 24u] = drawn[b + 23u];
     nodes[i * NW + 25u] = drawn[b + 24u];
     nodes[i * NW + 26u] = drawn[b + 25u];

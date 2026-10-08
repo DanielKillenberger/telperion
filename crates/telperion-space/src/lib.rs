@@ -53,10 +53,10 @@ pub use closed_form::{expected_counts, expected_kept};
 pub use error::{Error, Result};
 pub use fine::{
     bearer_frame, canonical, chain_cases, digest, grow_fine, identities, landed, lineage_order,
-    partial, realized_cases, root_axes, settle, survey_laid, survey_lit, BearerFrame, ChainAxis,
-    ChainBud, ChainTables, Expanded, Fine, GeometryTables, Lived, Loaded, Order, PaGeometry, PaRow,
-    Partial, Plan, Presences, RealizedCase, RootAxes, RootGeometry, RootSeed, Roots, Settled,
-    Surveyed, UnitZone, Units, Woke, Work, ZoneGeometry,
+    partial, ready, realized_cases, root_axes, settle, survey_laid, survey_lit, BearerFrame,
+    ChainAxis, ChainBud, ChainTables, Expanded, Fine, GeometryTables, Lived, Loaded, Order,
+    PaGeometry, PaRow, Partial, Plan, Presences, RealizedCase, RootAxes, RootGeometry, RootSeed,
+    Roots, Settled, Step, Surveyed, UnitZone, Units, Woke, Work, ZoneGeometry,
 };
 pub use grow::couple::{grow_coupled, Split};
 pub use grow::oracle::{grow_oracle, Oracled, Read};

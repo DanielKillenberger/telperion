@@ -27,9 +27,11 @@ mod cases;
 mod expansion;
 mod geometry;
 mod landing;
+mod lay;
 mod likely;
 mod realized;
 mod spare;
+mod step;
 mod surface;
 mod survey;
 mod tables;
@@ -49,6 +51,7 @@ pub use geometry::{
     bearer_frame, BearerFrame, GeometryTables, PaGeometry, RootGeometry, ZoneGeometry,
 };
 use realized::{Cpu, Root};
+pub use step::{ready, Step};
 pub use surface::{chain_cases, ChainAxis, ChainBud, ChainTables, PaRow, Woke};
 pub use survey::{survey_laid, survey_lit, Surveyed};
 pub use tables::{UnitZone, Units};
@@ -163,13 +166,13 @@ pub fn grow_fine(species: &Species, request: Request, plan: Plan) -> Result<Fine
         threads,
         roots: Vec::new(),
     };
-    let (settled, _) = expansion::settle_with(
+    let (settled, _) = step::now(expansion::settle_with(
         species,
         (request, &predictor, &rules),
         plan,
         &mut cpu,
         false,
-    )?;
+    ))?;
     let fine = assemble(settled, cpu.roots, &predictor)?;
     Ok(Fine { predict, ..fine })
 }
@@ -312,9 +315,18 @@ pub(crate) struct Clock {
 }
 
 impl Clock {
+    #[cfg(not(target_family = "wasm"))]
     pub fn time<T>(&mut self, work: impl FnOnce() -> T) -> T {
         let started = crate::clock::seconds();
         let out = work();
+        self.phases.push(crate::clock::seconds() - started);
+        out
+    }
+
+    /// An executor's step, awaited and timed as a phase.
+    pub async fn timed<T>(&mut self, step: impl std::future::Future<Output = T>) -> T {
+        let started = crate::clock::seconds();
+        let out = step.await;
         self.phases.push(crate::clock::seconds() - started);
         out
     }

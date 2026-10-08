@@ -19,6 +19,7 @@
 //! phytomer stands for the node the root grows on, so every pass is the
 //! whole tree's own, run on the root's axes.
 use super::expansion::{Lived, Loaded, RootSeed, Roots};
+use super::step::{ready, Step};
 use super::{each, pick, Plan, Work};
 use crate::error::Result;
 use crate::geometry::{place_from, scale};
@@ -276,44 +277,64 @@ pub(crate) struct Cpu<'s, 'r> {
 }
 
 impl Roots for Cpu<'_, '_> {
-    fn grow(&mut self, seeds: &[RootSeed]) -> Result<(Vec<Lived>, u64)> {
+    fn grow<'a>(&'a mut self, seeds: &'a [RootSeed]) -> Step<'a, Result<(Vec<Lived>, u64)>> {
         let (species, rules) = (self.species, self.rules);
         let mut slots: Vec<&RootSeed> = seeds.iter().collect();
         let grown = each(&mut slots, self.plan, self.threads, &|_, s| {
             Root::grow(species, rules, &s.handed)
         });
-        self.roots = grown.into_iter().collect::<Result<Vec<Root>>>()?;
-        let living = self.roots.iter().map(|r| (r.living.lived, r.living.alive));
-        let phytomers = self.roots.iter().map(|r| r.work.grown).sum();
-        Ok((living.collect(), phytomers))
+        let grown = grown.into_iter().collect::<Result<Vec<Root>>>();
+        ready(grown.map(|roots| {
+            self.roots = roots;
+            let living = self.roots.iter().map(|r| (r.living.lived, r.living.alive));
+            let phytomers = self.roots.iter().map(|r| r.work.grown).sum();
+            (living.collect(), phytomers)
+        }))
     }
 
-    fn girth(&mut self, live: &[usize], scales: &[(f64, f64)]) -> Vec<f64> {
+    fn girth<'a>(
+        &'a mut self,
+        live: &'a [usize],
+        scales: &'a [(f64, f64)],
+    ) -> Step<'a, Result<Vec<f64>>> {
         let species = self.species;
         let mut alive = pick(&mut self.roots, live);
         each(&mut alive, self.plan, self.threads, &|j, r| {
             r.girth(species, scales[j])
         });
-        live.iter().map(|&k| self.roots[k].radius).collect()
+        ready(Ok(live.iter().map(|&k| self.roots[k].radius).collect()))
     }
 
-    fn lay(&mut self, tree: &Structure, live: &[usize], bearers: &[usize]) -> Result<Vec<Loaded>> {
+    fn lay<'a>(
+        &'a mut self,
+        tree: &'a Structure,
+        live: &'a [usize],
+        bearers: &'a [usize],
+    ) -> Step<'a, Result<Vec<Loaded>>> {
         let species = self.species;
         let mut alive = pick(&mut self.roots, live);
         let laid = each(&mut alive, self.plan, self.threads, &|j, r| {
             r.lay(species, &tree.axes[bearers[j]])
         });
-        laid.into_iter().collect::<Result<()>>()?;
         let load = |k: usize| (self.roots[k].load.mass, self.roots[k].load.moment);
-        Ok(live.iter().map(|&k| load(k)).collect())
+        ready(
+            laid.into_iter()
+                .collect::<Result<()>>()
+                .map(|()| live.iter().map(|&k| load(k)).collect()),
+        )
     }
 
-    fn bend(&mut self, tree: &Structure, live: &[usize], bearers: &[usize]) -> Result<()> {
+    fn bend<'a>(
+        &'a mut self,
+        tree: &'a Structure,
+        live: &'a [usize],
+        bearers: &'a [usize],
+    ) -> Step<'a, Result<()>> {
         let species = self.species;
         let mut alive = pick(&mut self.roots, live);
         let bent = each(&mut alive, self.plan, self.threads, &|j, r| {
             r.bend(species, &tree.axes[bearers[j]])
         });
-        bent.into_iter().collect()
+        ready(bent.into_iter().collect())
     }
 }

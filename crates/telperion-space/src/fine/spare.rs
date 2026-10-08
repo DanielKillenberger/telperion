@@ -7,6 +7,9 @@
 //! work runs, never which roots land or what they are.
 //!
 //! Which roots, in what order, is `likely.rs`.
+// A browser makes no spare cores, so it grows nothing ahead: the
+// helpers' work is native only (fn-212 task 10).
+#![cfg_attr(target_family = "wasm", allow(dead_code))]
 use super::expansion::RootSeed;
 use super::realized::{Root, Stub};
 use crate::error::Result;

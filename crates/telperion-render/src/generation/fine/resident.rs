@@ -9,7 +9,7 @@
 //! leaves are placed into one leaf buffer, the device's at an offset, with
 //! one mass grid over both (decision 3). Only totals and summaries are
 //! read back. The submit takes these buffers as they are.
-use super::super::{compute, data, io, Backend, Generator, Metrics, Prepared, Resident};
+use super::super::{compute, data, io, Backend, Clock, Generator, Metrics, Prepared, Resident};
 use super::device::Device;
 use super::dress::{dress, Dresser};
 use super::handoff::{union, Handoff};
@@ -22,7 +22,6 @@ use crate::buffer::Held;
 use crate::{Gpu, Result};
 use std::collections::HashSet;
 use std::sync::Arc;
-use std::time::Instant;
 use telperion_core::foliage::prepared::{PreparedStations, StationSegment};
 use telperion_core::foliage::Instances;
 use telperion_core::mesh::{Foliage, TreeMesh};
@@ -105,22 +104,24 @@ pub(super) struct Built {
     pub device: Stationed,
 }
 
-fn stage<T>(gpu: &Gpu, time: &mut f64, work: impl FnOnce() -> T) -> T {
-    let t = Instant::now();
-    let out = work();
-    gpu.device
-        .poll(wgpu::PollType::wait_indefinitely())
-        .unwrap();
-    *time = t.elapsed().as_secs_f64() * 1e3;
-    out
+/// `work` awaited and its device work waited for, its milliseconds in
+/// `time`: each stage's own, natively and in a browser alike.
+async fn stage<T>(gpu: &Gpu, time: &mut f64, work: impl AsyncFnOnce() -> Result<T>) -> Result<T> {
+    let t = Clock::now();
+    let out = work().await?;
+    io::complete(gpu).await?;
+    *time = t.elapsed_ms();
+    Ok(out)
 }
 
 fn refused(what: &'static str) -> crate::RenderError {
     Error::InvalidInput(what).into()
 }
 
-/// `family` built resident, its fine roots on the device.
-pub(super) fn build(
+/// `family` built resident, its fine roots on the device. Every readback
+/// is awaited (fn-212 task 10, host decision 1), so the same build runs
+/// natively, blocked on, and in a browser.
+pub(super) async fn build(
     gpu: &Gpu,
     gen: &Generator,
     k: &Kernels,
@@ -134,75 +135,83 @@ pub(super) fn build(
     let tables = Tables::new(gpu, Arc::new(chain), &geo);
     let mut dev = Device::new(gpu, k, &tables, 1 << 16).sown_from(64);
     let mut t = Timed::default();
-    let settling = stage(gpu, &mut t.settle, || executor::settle(family, &mut dev))?;
-    let part = stage(gpu, &mut t.convert, || settling.part());
+    let settling = stage(gpu, &mut t.settle, async || {
+        Ok(executor::settle(family, &mut dev).await?)
+    })
+    .await?;
+    let part = stage(gpu, &mut t.convert, async || Ok(settling.part())).await?;
     let landed: HashSet<usize> = part.grounded.iter().copied().collect();
     let d = &tools.dresser;
-    let dressed = stage(gpu, &mut t.dress, || {
-        dress(
-            gpu,
-            d,
-            &dev,
-            &stubs(part.tree(), &dev, &part.lineages, &landed),
-        )
-    });
+    let dressed = stage(gpu, &mut t.dress, async || {
+        let stubs = stubs(part.tree(), &dev, &part.lineages, &landed);
+        Ok(dress(gpu, d, &dev, &stubs))
+    })
+    .await?;
     drop(dev);
-    let (folds, crown, corners) = stage(gpu, &mut t.folds, || {
-        let folds = part.folds().with(dressed.extent(gpu, d));
+    let (folds, crown, corners) = stage(gpu, &mut t.folds, async || {
+        let folds = part.folds().with(dressed.extent(gpu, d).await?);
         let shape = folds.shape();
         let terms = part.wood_reach(family, shape[1])?;
-        let (theirs, corners) = dressed.crowns(gpu, d, shape, terms);
+        let (theirs, corners) = dressed.crowns(gpu, d, shape, terms).await?;
         let own = part.tree().nodes.iter().map(|n| n.position);
         let most: Vec<f64> = (bins(own, shape).into_iter().zip(theirs))
             .map(|(a, b)| a.max(b))
             .collect();
-        let (crown, over) = dressed.sift(gpu, d, shape, &beyond(&most));
+        let (crown, over) = dressed.sift(gpu, d, shape, &beyond(&most)).await?;
         if over {
             return Err(Error::ResourceLimit("the device's crown front").into());
         }
-        Ok::<_, crate::RenderError>((folds, crown, corners))
-    })?;
-    let x = stage(gpu, &mut t.expand, || {
-        part.expansion(family, folds, &crown, corners)
-    })?;
+        Ok((folds, crown, corners))
+    })
+    .await?;
+    let x = stage(gpu, &mut t.expand, async || {
+        Ok(part.expansion(family, folds, &crown, corners)?)
+    })
+    .await?;
     // The pipeline's part: its curve, stations and ring positions.
     let mut m = Metrics::default();
-    let (curve, cpu, wood, angular, segments) = stage(gpu, &mut t.cpu, || {
+    let (curve, cpu, wood, angular, segments) = stage(gpu, &mut t.cpu, async || {
         let (curve, shared) = x.curve_with_contacts()?;
         let stations = x.compact_stations(&shared)?;
         let stations = stations.ok_or_else(|| refused("the fine path needs regular stations"))?;
         let surface = shared.surface();
         let (angular, segments) = (surface.angular.clone(), surface.segments);
-        let wood = pollster::block_on(gen.emit_positions(shared.into_surface(), &mut m))?;
+        let wood = gen.emit_positions(shared.into_surface(), &mut m).await?;
         let wood = wood.ok_or_else(|| refused("ring positions"))?;
-        Ok::<_, crate::RenderError>((curve, stations, wood, angular, segments))
-    })?;
+        Ok((curve, stations, wood, angular, segments))
+    })
+    .await?;
     // The device's: its curve, stations and ring positions.
     let surface = &family.surface;
     let height = x.leaves().envelope.height;
-    let swept = stage(gpu, &mut t.sweep, || {
-        tools.sweeper.sweep(gpu, &dressed, rows(surface, height))
-    });
+    let sweeper = &tools.sweeper;
+    let rows = rows(surface, height);
+    let swept = stage(gpu, &mut t.sweep, async || {
+        sweeper.sweep(gpu, &dressed, rows).await
+    })
+    .await?;
     let ids = dressed.ids;
     drop(dressed);
-    let device = stage(gpu, &mut t.stations, || {
-        tools
-            .stationer
-            .stations(gpu, &swept, ids, station_rows(&x, segments))
-    });
+    let station = station_rows(&x, segments);
+    let stationer = &tools.stationer;
+    let device = stage(gpu, &mut t.stations, async || {
+        stationer.stations(gpu, &swept, ids, station).await
+    })
+    .await?;
     swept.nodes.destroy();
-    let positions = stage(gpu, &mut t.rings, || {
+    let positions = stage(gpu, &mut t.rings, async || {
         let twist = std::f64::consts::TAU * surface.twist_rate / height;
         let rung = tools.ringer.rings(gpu, &swept, segments, twist as f32);
         let rings = (&rung.buffer, rung.rings, rung.vertices);
         let positions = gen.ring_vertices(rings, segments, &angular);
         rung.buffer.destroy();
         positions
-    })?;
+    })
+    .await?;
     // Both blocks into one leaf buffer, one mass grid over both.
     let count = cpu.count + device.stations;
     let reference = x.reference();
-    let resident = stage(gpu, &mut t.place, || {
+    let resident = stage(gpu, &mut t.place, async || {
         let leaves = gen.leaf_buffer(count)?;
         let (l, e) = (x.leaves(), x.element());
         let counts = (cpu.count, cpu.segments.len() as u32, cpu.ring_size);
@@ -232,7 +241,7 @@ pub(super) fn build(
         }
         let (mut crown, mut full) = (None, None);
         for s in &summaries {
-            let raw = io::read(gpu, s, 64)?;
+            let raw = io::read_async(gpu, s, 64).await?;
             let s: &[u32] = bytemuck::cast_slice(&raw);
             if s[1] != 0 {
                 return Err(refused("GPU foliage transform/contact/reference"));
@@ -240,7 +249,9 @@ pub(super) fn build(
             crown = union(crown, Some(compute::bounds(s, 2)));
             full = union(full, Some(compute::bounds(s, 8)));
         }
-        let masses = pollster::block_on(gen.mass(&leaves, count, crown, reference, 0, &mut m))?;
+        let masses = gen
+            .mass(&leaves, count, crown, reference, 0, &mut m)
+            .await?;
         Ok(Resident {
             leaves: Held::resident(leaves, u64::from(count) * 12, "generated foliage"),
             masses: Held::resident(masses.0, masses.1, "generated foliage masses"),
@@ -248,11 +259,17 @@ pub(super) fn build(
             crown,
             full,
         })
-    })?;
+    })
+    .await?;
+    // The ring positions served the placements alone.
+    wood.positions.destroy();
+    positions.destroy();
     drop((wood, positions));
-    let handed = stage(gpu, &mut t.handoff, || {
-        tools.handoff.hand(gpu, &curve, &swept)
-    });
+    let handoff = &tools.handoff;
+    let handed = stage(gpu, &mut t.handoff, async || {
+        handoff.hand(gpu, &curve, &swept).await
+    })
+    .await?;
     for b in [&swept.point_buffer, &swept.cluster_buffer, &swept.table] {
         b.destroy();
     }

@@ -10,7 +10,7 @@
 use super::super::io;
 use super::device::Device;
 use super::laid::{Wave, AL};
-use crate::Gpu;
+use crate::{Gpu, Result};
 use telperion_core::math::Vec3;
 use telperion_core::pipeline::executor::{reach, Folds, BINS};
 
@@ -94,6 +94,15 @@ pub(super) struct Dressed {
     pub waves: Vec<Drawn>,
     pub ids: u32,
     sums: wgpu::Buffer,
+}
+
+/// Destroyed when let go: a browser frees a buffer only then (fn-212
+/// task 10; wgpu's web backend drops nothing).
+impl Drop for Dressed {
+    fn drop(&mut self) {
+        self.waves.iter().for_each(|w| w.buffer.destroy());
+        self.sums.destroy();
+    }
 }
 
 fn storage(gpu: &Gpu, label: &'static str, words: usize, data: &[u8]) -> wgpu::Buffer {
@@ -262,14 +271,14 @@ impl Dressed {
         gpu.queue.submit([encoder.finish()]);
     }
 
-    fn sums(&self, gpu: &Gpu) -> Vec<u32> {
-        let raw = io::read(gpu, &self.sums, (SUMS * 4) as u64).unwrap();
-        bytemuck::cast_slice(&raw).to_vec()
+    async fn sums(&self, gpu: &Gpu) -> Result<Vec<u32>> {
+        let raw = io::read_async(gpu, &self.sums, (SUMS * 4) as u64).await?;
+        Ok(bytemuck::cast_slice(&raw).to_vec())
     }
 
     /// The device's folds: its nodes' highest, the crown's lowest and the
     /// widest (one round trip).
-    pub(super) fn extent(&self, gpu: &Gpu, d: &Dresser) -> Folds {
+    pub(super) async fn extent(&self, gpu: &Gpu, d: &Dresser) -> Result<Folds> {
         let (past, kept) = (
             storage(gpu, "fold none", 4, &[]),
             storage(gpu, "fold none", 4, &[]),
@@ -277,12 +286,12 @@ impl Dressed {
         for entry in [0, 1] {
             self.fold(gpu, d, entry, [[0.0; 4]; 2], (&past, &kept));
         }
-        let s = self.sums(gpu);
+        let s = self.sums(gpu).await?;
         let widest = (s[2] != 0).then(|| {
             let at = v3([s[3], s[4], s[5]].map(f32::from_bits));
             (reach(at), at.y)
         });
-        Folds {
+        Ok(Folds {
             height: f64::from(unord(s[0])),
             low: if s[1] == u32::MAX {
                 f64::INFINITY
@@ -290,53 +299,53 @@ impl Dressed {
                 f64::from(unord(s[1]))
             },
             widest,
-        }
+        })
     }
 
     /// Under the whole tree's `shape` and a station's `reach` terms: the
     /// device's bins of the shoulder's way and its nodes' leaf box (one
     /// round trip).
-    pub(super) fn crowns(
+    pub(super) async fn crowns(
         &self,
         gpu: &Gpu,
         d: &Dresser,
         shape: [f64; 4],
         terms: [f64; 4],
-    ) -> (Vec<f64>, (Vec3, Vec3)) {
+    ) -> Result<(Vec<f64>, (Vec3, Vec3))> {
         let (past, kept) = (
             storage(gpu, "fold none", 4, &[]),
             storage(gpu, "fold none", 4, &[]),
         );
         let rows = [shape.map(|v| v as f32), terms.map(|v| v as f32)];
         self.fold(gpu, d, 2, rows, (&past, &kept));
-        let s = self.sums(gpu);
+        let s = self.sums(gpu).await?;
         let bins = s[16..]
             .iter()
             .map(|&u| if u == 0 { 0.0 } else { f64::from(unord(u)) });
         let corner = |at: usize| v3([unord(s[at]), unord(s[at + 1]), unord(s[at + 2])]);
-        (bins.collect(), (corner(6), corner(9)))
+        Ok((bins.collect(), (corner(6), corner(9))))
     }
 
     /// The device's crown nodes no node beyond them (`beyond`, the whole
     /// tree's) passes, sifted: positions, y up (one round trip); and
     /// whether more were kept than handed on.
-    pub(super) fn sift(
+    pub(super) async fn sift(
         &self,
         gpu: &Gpu,
         d: &Dresser,
         shape: [f64; 4],
         beyond: &[f64],
-    ) -> (Vec<Vec3>, bool) {
+    ) -> Result<(Vec<Vec3>, bool)> {
         let past: Vec<f32> = beyond.iter().map(|&b| b as f32).collect();
         let past = storage(gpu, "fold beyond", past.len(), bytemuck::cast_slice(&past));
         let kept = storage(gpu, "fold kept", 3 * CAP as usize, &[]);
         let rows = [shape.map(|v| v as f32), [0.0; 4]];
         self.fold(gpu, d, 3, rows, (&past, &kept));
-        let n = self.sums(gpu)[12];
+        let n = self.sums(gpu).await?[12];
         let taken = n.min(CAP) as usize;
-        let raw = io::read(gpu, &kept, (taken.max(1) * 12) as u64).unwrap();
+        let raw = io::read_async(gpu, &kept, (taken.max(1) * 12) as u64).await?;
         let floats: &[f32] = bytemuck::cast_slice(&raw);
         let points = floats.chunks(3).take(taken).map(|p| v3([p[0], p[1], p[2]]));
-        (points.collect(), n > CAP)
+        Ok((points.collect(), n > CAP))
     }
 }

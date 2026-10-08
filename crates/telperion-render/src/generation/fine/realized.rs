@@ -3,11 +3,11 @@
 //! the device, wave by wave, every axis kept, its shedding left to the
 //! fades its whole subtree realizes. Per run and per wave only the scans'
 //! totals cross to the host (host decision 6).
+use super::super::Clock;
 use super::chains::bud_words;
 use super::roots::{grow_wave, totals, Cost, Grown, Kernels, Tables};
 use super::steps::{buffer, BW2, CW, REALIZED};
-use crate::Gpu;
-use std::time::Instant;
+use crate::{Gpu, Result};
 use telperion_space::ChainBud;
 
 /// A root as the device takes it: its bud, its first axis's vigour as
@@ -26,11 +26,11 @@ pub(super) struct Waves {
 
 /// Phase 1's growth: every root of `roots`, taken in `order`, grown
 /// whole, `batch` chains a run; every wave as the device keeps it.
-pub(super) fn grow_roots(
+pub(super) async fn grow_roots(
     (gpu, k): (&Gpu, &Kernels),
     (roots, order, batch): (&[RootBud], &[usize], usize),
     tables: &Tables,
-) -> (Waves, Cost) {
+) -> Result<(Waves, Cost)> {
     let mut cost = Cost::default();
     let words: Vec<u64> = order
         .iter()
@@ -53,14 +53,15 @@ pub(super) fn grow_roots(
     };
     while n > 0 {
         cost.waves += 1;
-        let start = Instant::now();
+        let start = Clock::now();
         let places = buffer(gpu, "wave places", u64::from(n * CW));
-        let runs = grow_wave(gpu, k, (&wave_buds, n, batch), (&places, tables), &mut cost);
+        let at = (&wave_buds, n, batch);
+        let runs = grow_wave(gpu, k, at, (&places, tables), &mut cost).await?;
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
         let sums = buffer(gpu, "wave totals", 4);
         k.steps.scan(gpu, &mut encoder, (&places, n, CW, CW), &sums);
         gpu.queue.submit([encoder.finish()]);
-        let t = totals(gpu, &sums, 3, &mut cost);
+        let t = totals(gpu, &sums, 3, &mut cost).await?;
         let next_buds = buffer(gpu, "wave buds", u64::from(t[2] * BW2));
         let next_meta = buffer(gpu, "wave meta", u64::from(t[2] * 2));
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
@@ -71,7 +72,7 @@ pub(super) fn grow_roots(
                 .hand(gpu, &mut encoder, (run.n, false, REALIZED), lay, hand);
         }
         gpu.queue.submit([encoder.finish()]);
-        cost.grow += start.elapsed().as_secs_f64() * 1e3;
+        cost.grow += start.elapsed_ms();
         waves.grown.push(Grown {
             meta: wave_meta,
             places,
@@ -80,10 +81,10 @@ pub(super) fn grow_roots(
         waves.chains.push(n);
         waves.own.push(t[0]);
         waves.phyts.push(t[1]);
+        // This wave's buds are spent once its passes are submitted.
+        wave_buds.destroy();
         (wave_buds, wave_meta, n) = (next_buds, next_meta, t[2]);
     }
-    gpu.device
-        .poll(wgpu::PollType::wait_indefinitely())
-        .unwrap();
-    (waves, cost)
+    super::super::io::complete(gpu).await?;
+    Ok((waves, cost))
 }

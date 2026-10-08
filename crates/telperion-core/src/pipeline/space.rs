@@ -69,13 +69,14 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
 /// `roots` (fn-212 task 7, host decision 1), and the rows its conversion
 /// reads: the trunk's PAs and each PA's internode. Never on the browser's
 /// ceiling: the executor holding the roots is what lifts it.
-pub(super) fn settled(
-    input: GrowInput,
+pub(super) async fn settled(
+    input: GrowInput<'_>,
     roots: &mut dyn telperion_space::Roots,
 ) -> Result<(telperion_space::Settled, Vec<usize>, Vec<f64>)> {
     let (species, request) = asked(input)?;
     let plan = telperion_space::Plan::default();
-    let (settled, _) = telperion_space::settle(species, request, plan, roots).map_err(engine)?;
+    let settling = telperion_space::settle(species, request, plan, roots);
+    let (settled, _) = settling.await.map_err(engine)?;
     Ok((settled, input.space.trunk.clone(), internodes(species)))
 }
 

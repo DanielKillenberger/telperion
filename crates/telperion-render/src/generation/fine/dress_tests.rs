@@ -85,12 +85,13 @@ pub(super) fn folded(gpu: &Gpu, d: &Dresser, fx: &Fixture, dressed: &Dressed) ->
     let tree = reference.tree();
     let d0 = std::time::Instant::now();
     // The device's folds combined with the pipeline's own nodes'.
-    let device = dressed.extent(gpu, d);
+    let device = pollster::block_on(dressed.extent(gpu, d)).unwrap();
     let cpu = Folds::of(&tree.nodes, |i| !fine[i]);
     let folds = cpu.with(device);
     let shape = folds.shape();
     let terms = reference.wood_reach().unwrap();
-    let (device_bins, device_box) = dressed.crowns(gpu, d, shape, terms);
+    let (device_bins, device_box) =
+        pollster::block_on(dressed.crowns(gpu, d, shape, terms)).unwrap();
     let own = || {
         let nodes = tree.nodes.iter().enumerate();
         nodes.filter(|&(i, _)| !fine[i]).map(|(_, n)| n.position)
@@ -99,7 +100,7 @@ pub(super) fn folded(gpu: &Gpu, d: &Dresser, fx: &Fixture, dressed: &Dressed) ->
         .zip(device_bins)
         .map(|(a, b)| a.max(b))
         .collect();
-    let (kept, over) = dressed.sift(gpu, d, shape, &beyond(&most));
+    let (kept, over) = pollster::block_on(dressed.sift(gpu, d, shape, &beyond(&most))).unwrap();
     let ms = d0.elapsed().as_secs_f64() * 1e3;
     let grown = envelope(folds, own().chain(kept.iter().copied()));
     let (lo, hi) = reference.wood_box(|i| !fine[i]).unwrap();

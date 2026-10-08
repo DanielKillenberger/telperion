@@ -32,18 +32,20 @@ impl super::Generator {
     /// placed on the device (fn-212 task 10, host decision 2): the
     /// structure above the cut and the roots laid on the CPU through the
     /// pipeline, the rest on the device, nothing read back per node.
-    pub(super) fn prepare_fine(&self, family: &Family) -> Result<Prepared> {
+    pub(super) async fn prepare_fine(&self, family: &Family) -> Result<Prepared> {
         let gpu = &self.gpu;
+        // The kernels are made inside the scopes, so a shader the device
+        // refuses is the error reported.
+        let scopes = super::io::scope(gpu);
         let kit = self.fine.get_or_init(|| Kit {
             kernels: roots::kernels(gpu),
             tools: resident::Tools::new(gpu),
         });
-        let scopes = super::io::scope(gpu);
-        let built = resident::build(gpu, self, &kit.kernels, &kit.tools, family);
-        let errors = pollster::block_on(super::io::errors(gpu, scopes));
-        let built = built?;
-        errors?;
-        Ok(built.prepared)
+        let built = resident::build(gpu, self, &kit.kernels, &kit.tools, family).await;
+        // A device error is the cause of any readback it failed, so it is
+        // the one reported.
+        super::io::errors(gpu, scopes).await?;
+        Ok(built?.prepared)
     }
 }
 

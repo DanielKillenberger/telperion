@@ -110,3 +110,28 @@
 - **Hindered:** every file of the device path is `#[cfg(test)]` (`generation.rs:9`, `mod fine`, and every `fine/*` module). `Generator::prepare_async` still builds the tree the way it did before fn-212: `executor::grow` and the CPU preparation. The 9.3x is a test harness's number (`resident::build`, reached only from `timing_tests`, `resident_tests`, `option3_tests` and `seam_stills`). The path is also synchronous throughout: `telperion_space::Roots` returns its records by value, and about 12 readback sites call `io::read`, which is `pollster::block_on` and is compiled off wasm32. They also call `device.poll(wait_indefinitely)`, and `Instant::now()` in `device.rs` and `resident.rs`. WebGPU completes a map only on the JS event loop, so none of this can run in a browser as written.
 - **Cost:** about 20 minutes of reading before it was clear that the task's premise, a production path to route, does not hold. The task stopped on a design question for the host.
 - **Removal:** a task that depends on a production path should name it in its acceptance, for example "`Generator::prepare` takes `resident::build`". Then the gap shows when the task is planned, not when the next one opens.
+
+## 2026-10-08, task 10 (worker): the owner's Chrome lost WebGPU on the dev origins
+
+- **Doing:** opening the harness in the owner's Chrome through claude-in-chrome, as dispatched.
+- **Hindered:** the first two builds hit WebGPU errors that native Vulkan never raises (writable-binding aliasing, a constant NaN that Tint refuses). The device was lost both times, and Chrome then refused adapters to `127.0.0.1:5212` and `localhost:5212`. No browser-side check existed for either class.
+- **Cost:** about 15 minutes. The owner's Chrome may need a restart to give WebGPU back to those origins. All later browser work ran in fn-198's headless Chromium driver.
+- **Removal:** built: `Pass::bind` asserts the aliasing rule in the native tests, and `task10-browser/tint.mjs` compiles every generation shader with Tint. A CI step running the Tint check would catch both before any page does.
+
+## 2026-10-08, task 10 (worker): builds that never finish, with nothing on the console
+
+- **Doing:** large-to-small rebuilds in the browser.
+- **Hindered:** the build's promise stayed pending with no error. Two causes stacked:
+  - wgpu's web backend frees nothing on drop;
+  - the harness kept drawing the previous spruce while the build awaited its readbacks.
+
+  Finding each took stage logging rebuilt into the Wasm and nvidia-smi sampling.
+- **Cost:** about 50 minutes, and four builds of the render module.
+- **Removal:** a per-stage console trace behind a flag in the binding (the stage timings exist already), and a driver step that fails fast once the GPU sits at 100 % with no stage progress.
+
+## 2026-10-08, task 10 (worker): `npm test` stops at a catalogue page this task did not touch
+
+- **Doing:** `npm test` for the gate.
+- **Hindered:** `catalogue:check` fails on `silver-birch/README.md`. Task 6 re-pinned `pins.json` without regenerating the page, so vitest never runs under `npm test`.
+- **Cost:** about 5 minutes; vitest was run on its own.
+- **Removal:** regenerate the page (`npm run catalogue:pages`) on the branch, and make whatever re-pins `pins.json` regenerate the page in the same step.

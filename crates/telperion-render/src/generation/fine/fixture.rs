@@ -68,7 +68,8 @@ pub(super) fn with_dressed<R>(
     let geo = GeometryTables::new(&species, age).unwrap();
     let tables = Tables::new(gpu, Arc::new(chain), &geo);
     let mut dev = Device::new(gpu, k, &tables, 1 << 16).sown_from(64);
-    let (settled, _) = settle(&species, request, Plan::default(), &mut dev).unwrap();
+    let (settled, _) =
+        pollster::block_on(settle(&species, request, Plan::default(), &mut dev)).unwrap();
     dev.wait();
     let lineages: Vec<Option<u64>> = (settled.at.iter())
         .map(|a| a.map(|i| settled.structure.axes[i].lineage))

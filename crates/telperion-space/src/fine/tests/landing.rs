@@ -26,8 +26,14 @@ fn routed(species: &Species, age: u32, seed: u64) -> (usize, usize, usize) {
         threads: crate::cores::available(),
         roots: Vec::new(),
     };
-    let (settled, _) =
-        settle_with(species, (request, &predictor, &rules), plan, &mut cpu, true).expect("settles");
+    let (settled, _) = crate::fine::step::now(settle_with(
+        species,
+        (request, &predictor, &rules),
+        plan,
+        &mut cpu,
+        true,
+    ))
+    .expect("settles");
     let near = settled
         .live
         .iter()
@@ -80,7 +86,8 @@ fn a_root_grown_ahead_lands_as_the_executor_lays_it() {
             roots: Vec::new(),
         };
         let at = (request, &predictor, &rules);
-        let (settled, _) = settle_with(&species, at, plan, &mut cpu, true).expect("settles");
+        let (settled, _) = crate::fine::step::now(settle_with(&species, at, plan, &mut cpu, true))
+            .expect("settles");
         assert!(settled.ahead > 0, "{name}: none grown ahead");
         assert!(!settled.landed.is_empty(), "{name}: none landed");
         for (j, root) in &settled.landed {

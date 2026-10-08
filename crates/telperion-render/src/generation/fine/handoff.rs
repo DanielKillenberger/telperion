@@ -7,7 +7,7 @@
 use super::super::{compute, io};
 use super::sweep::Swept;
 use crate::curve::CurveGpu;
-use crate::Gpu;
+use crate::{Gpu, Result};
 use telperion_core::math::Vec3;
 use telperion_core::surface::{Bounds, Curve, CLUSTER_WORDS, POINT_WORDS};
 
@@ -47,13 +47,13 @@ impl Handoff {
 
     /// `cpu`'s block and `swept`'s on the device as one curve, the fine
     /// block's after the CPU's.
-    pub(super) fn hand(&self, gpu: &Gpu, cpu: &Curve, swept: &Swept) -> Handed {
+    pub(super) async fn hand(&self, gpu: &Gpu, cpu: &Curve, swept: &Swept) -> Result<Handed> {
         let (p0, k0) = (cpu.points.len() as u64, cpu.clusters.len() as u64);
         let (p, k) = (p0 + u64::from(swept.points), k0 + u64::from(swept.clusters));
         let words = |n: u64, w: usize| (n * w as u64 * 4).max(4);
         let points = io::buffer(gpu, "curve points", words(p, POINT_WORDS), USAGE, &[]);
         let clusters = io::buffer(gpu, "curve clusters", words(k, CLUSTER_WORDS), USAGE, &[]);
-        let (points, clusters) = (points.unwrap(), clusters.unwrap());
+        let (points, clusters) = (points?, clusters?);
         let packed = cpu.packed();
         gpu.queue
             .write_buffer(&points, 0, bytemuck::cast_slice(&packed));
@@ -78,7 +78,7 @@ impl Handoff {
             USAGE,
             &[],
         );
-        let (sums, sags) = (sums.unwrap(), sags.unwrap());
+        let (sums, sags) = (sums?, sags?);
         let (twist, depth) = twisting(cpu);
         let offsets = (p0 as u32, k0 as u32, twist, depth);
         let all = [
@@ -109,7 +109,7 @@ impl Handoff {
             self.pass.run(&mut e, &bind, entry, groups);
         }
         gpu.queue.submit([e.finish()]);
-        let raw = io::read(gpu, &sums, (SUMS * 4) as u64).unwrap();
+        let raw = io::read_async(gpu, &sums, (SUMS * 4) as u64).await?;
         let s: &[u32] = bytemuck::cast_slice(&raw);
         let fine = (swept.clusters > 0).then(|| compute::bounds(s, 1));
         let mut demand = cpu.demand();
@@ -120,7 +120,7 @@ impl Handoff {
             .map(|&w| f64::from(f32::from_bits(w)))
             .sum::<f64>();
         let curve = CurveGpu::on_device(gpu, cpu, (points, clusters), (p, k as u32), demand);
-        Handed { curve, fine }
+        Ok(Handed { curve, fine })
     }
 
     fn cfg(

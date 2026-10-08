@@ -65,7 +65,8 @@ pub(super) fn build_sown(
     if let Some(least) = least {
         dev = dev.sown_from(least);
     }
-    let (settled, _) = settle(species, request(at.0, at.1), plan(), &mut dev).expect("settles");
+    let (settled, _) = pollster::block_on(settle(species, request(at.0, at.1), plan(), &mut dev))
+        .expect("settles");
     dev.wait();
     Built {
         ms: whole.elapsed().as_secs_f64() * 1e3,

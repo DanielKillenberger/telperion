@@ -108,7 +108,7 @@ fn device_side(gpu: &Gpu, family: &Family, dir: &PathBuf) -> Vec<(u32, Camera)> 
     let mut renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     let k = kernels(gpu);
-    let built = build(gpu, &gen, &k, &Tools::new(gpu), family).unwrap();
+    let built = pollster::block_on(build(gpu, &gen, &k, &Tools::new(gpu), family)).unwrap();
     let cameras = cameras(built.expansion.tree());
     for (n, c) in &cameras {
         let p = built.expansion.tree().nodes[*n as usize].position;

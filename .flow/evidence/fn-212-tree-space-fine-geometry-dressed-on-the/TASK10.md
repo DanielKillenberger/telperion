@@ -90,3 +90,82 @@ Indistinguishable by eye on both trees.
    - (b) a device sort of the placed leaves by a spatial key after placement. It costs one pass of about 17M keys a build.
    - (c) accept it until fn-176's level of detail reorders leaves anyway.
 2. **Beech 80 s1's 30 unclassified leaves.** Trace them now, or name them with the beech's other residual classes.
+
+## Part 2: the device path in the browser (host decisions 1 and 3)
+
+### What was built
+
+- **`Roots` is async** (`telperion-space/src/fine/step.rs`, `lay.rs`):
+  - Each phase returns a `Step` (a boxed future). The CPU reference returns ready futures (`ready`), and `grow_fine` drives them with `now` on any target.
+  - `settle`, `executor::settle` and `space::settled` are `async`.
+  - The target split is three places: the spare cores' thread scope, the planner's scope beside phase 2, and `beside` in phase 4. Natively the driver blocks inside them (`wait`, park-based, no dependency). On wasm it awaits, the reach rows are read in turn, and no spare cores grow ahead.
+  - `Device` sows natively only. A browser cannot wait on its device inside the CPU grower's callback, so every root grows in `grow`: the same seeds in the same order.
+- **Every readback on the device path is awaited and propagates its error:** the totals, records and living, the dress's folds and sifts, the sweep's and stations' counts, the handoff's sums, and the placement's summaries. `resident::build` and `prepare_fine` are `async`.
+  - A device error is reported in place of the readback it broke, and the kernels are made inside the error scopes.
+  - `Instant` is gone from production code; `Clock` serves both targets.
+  - `io::read` (the blocking read) is test-only again.
+- **Three things the browser refuses that native Vulkan lets pass**, all found there and fixed:
+  1. One buffer bound at two bindings where one is written: the shed's `no buds`, and the ring vertices' `ring none`. `Pass::bind` now asserts it in tests, so the native suite catches the next one.
+  2. A constant NaN bitcast (`sweep.wgsl:142`), which Tint refuses and naga folds. `shader_tests::dump_generation_shaders` writes every generation shader to disk, and `task10-browser/tint.mjs` compiles each one in headless Chromium and creates every compute entry point's pipeline. All 20 shaders now pass.
+  3. **Buffers are never freed on drop:** wgpu 30's WebGPU backend `Drop` is a no-op (`backend/webgpu.rs:2978`), so a buffer lives until the JS GC collects its wrapper. Without the fix, the spruce at 80 failed "Out of Memory" in a fresh page.
+     - Now destroyed when let go: `Held`, `CurveGpu` and the curve's `Target`s, the readback staging buffers, `Dressed`, `Swept`, `Stationed`, the pools' leftovers, each spent wave's buds, the group's non-pooled buffers, and the ring positions after placement.
+     - The native suite holds every destroy (164 passed): a buffer destroyed before its last use would be a validation panic.
+
+### Measured in headless Chromium (RTX 3080, Vulkan; fn-198's driver, extended)
+
+The owner's Chrome was not usable. The first two builds there were lost to device errors (the aliasing and NaN errors above), and Chrome then refused WebGPU adapters to both `127.0.0.1:5212` and `localhost:5212` (FRICTION.md). The figures below come from fn-198's headless driver (`task10-browser/drive.mjs`, with a timing step added), under the GPU lock. Raw files are in `raw/task10/browser/`.
+
+**Build latency, from the parameter change to the first drawn frame** (before is the base module `d22eb8a9`, served by the same harness):
+
+| Step | Before ms | After ms |
+|---|--:|--:|
+| Beech 40, opening (seed 42) | 840 | 982 |
+| Beech seed change at 40 | 536 | 561 |
+| Beech age 40 to 80 (seed 2) | 5,718 | 1,442 |
+| Spruce 40, opening | 4,698 | 1,550 to 1,808 |
+| Spruce 80, opening | refused (`WASM_KEPT`, 334 ms) | **3,248** (17,436,547 leaves) |
+| Spruce 80 to 40 (frames paused, below) | n/a | 2,544 |
+| Spruce 40 to 70 | 13,650 | 14,242 (settle about 8.9 s of it, one core) |
+
+**Steady frame** (harness timing, 120 frames, every verdict valid; vegetation / total p50 ms):
+
+| Tree | Before | After |
+|---|--:|--:|
+| Beech 80 s2 | 12.44 / 19.13 | 12.55 / 19.30 |
+| Spruce 40 | 11.86 / 18.29 | 11.88 to 12.02 / 18.32 to 18.50 |
+| Spruce 70 | 31.88 / 50.89 | 31.98 / 49.91 |
+| Spruce 80 s42 | n/a | 38.94 / 57.59 |
+
+**Memory:**
+- The largest headless Chromium process peaked at 4.9 GB before (spruce 70) and at 0.75 to 0.80 GB after, through the spruce at 70 and 80. The fine nodes never reach the Wasm heap (R3). The sampler's process labels are unreliable, so these are the largest process's figures.
+- The page's GPU limits: `maxBufferSize` 4,294,967,292, `maxStorageBufferBindingSize` 2,147,483,644. The spruce at 80's largest buffer is 1.23 GB (ring positions), under both. `io::buffer` refuses by name any buffer over them (`RenderError::Oversize`).
+
+**Screenshots viewed:** beech 12 and beech 80 (before and after, indistinguishable), spruce 40, spruce 70, spruce 80 (`browser/after*/`).
+
+### Open: two browser findings for the host (pass criterion not yet met)
+
+1. **The frame loop starves the build.**
+   - While a build awaits its readbacks, the harness keeps drawing the previous tree every animation frame. Behind a spruce at 80 (about 57 ms of GPU a frame), the queue grows faster than it drains: the GPU sits at 100 % and the build never completes.
+   - Measured: spruce 80 to 40 stalled for over 150 s, and 40 to 70 took 148 s before the buffer fix.
+   - With the harness skipping frames while a build is in flight (an experiment, reverted), 80 to 40 to 12 to 80 to 1 to 80 completes. Natively there is no frame loop.
+   - Options:
+     - (a) the harness pauses drawing during a build: the old tree freezes for the build's 0.3 to 3 s;
+     - (b) the renderer paces its frames, drawing only when the last frame's work is done (`onSubmittedWorkDone`): it stays interactive;
+     - (c) both.
+2. **Device memory between builds.**
+   - With frames paused, a second spruce at 80 in one page failed "Out of Memory"; the third succeeded after GC. Some buffers are still let go without being destroyed: the 83 owned `wgpu::Buffer` fields are not all covered.
+   - The two pools also keep about 2.6 GB between builds by design (fn-209 task 8: the grower's regions at about 1.4 GB, plus the packed and laid buffers).
+   - Options:
+     - (a) one destroy-on-drop buffer type for every generation buffer, a mechanical sweep of `io::buffer`'s owners;
+     - (b) the pools released after each build on wasm, trading retune speed for memory;
+     - (c) a device-memory estimate checked before the build, refusing by name. WebGPU exposes no free-memory query, so the estimate needs a stated budget.
+
+### Other findings
+
+- **`telperion-render.wasm` grows from 2,246,194 to 2,698,916 bytes (+452,722, +20 %)** with the fine module in production: 209 KB of WGSL plus the executor's code. The ceiling is 2,200,000, and the base is already over it on this branch. Raising it is an owner decision.
+- **`npm test`'s catalogue check fails before vitest runs:** `catalogue/silver-birch/README.md` differs from its regeneration (placement hash and bounds), because `pins.json` was re-pinned in task 6 (`5b9a07a3`) and the README was not regenerated. Vitest run directly: 143 of 143 passed.
+
+### Gate (part 2)
+
+- **Render half,** under the GPU lock: 164 passed, 0 failed (`gate-render-2.txt`).
+- **CPU half:** 988 passed, 0 failed (`gate-cpu-2.txt`).

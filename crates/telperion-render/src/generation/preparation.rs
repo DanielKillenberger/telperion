@@ -11,9 +11,8 @@ impl Generator {
         // Fine roots on the device wherever the realized settle takes the
         // tree apart (fn-212 task 10, host decision 2); elsewhere the CPU
         // executor grows it whole, the gap `executor::apart` names.
-        #[cfg(not(target_arch = "wasm32"))]
         if delivery == Delivery::Resident && executor::apart(family).is_ok() {
-            return self.prepare_fine(family);
+            return self.prepare_fine(family).await;
         }
         self.prepare_whole(family, delivery).await
     }

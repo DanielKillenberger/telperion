@@ -5,7 +5,7 @@
 //! totals are read back: the runs, then the stations and segments.
 use super::super::io;
 use super::sweep::Swept;
-use crate::Gpu;
+use crate::{Gpu, Result};
 use telperion_core::pipeline::executor::Expansion;
 
 const STATIONS: &str = include_str!("stations.wgsl");
@@ -45,6 +45,15 @@ pub(super) struct Rows {
 
 /// The fine roots' station segments on the device, their count and the
 /// stations they hold.
+/// Destroyed when let go: a browser frees a buffer only then (fn-212
+/// task 10; wgpu's web backend drops nothing).
+impl Drop for Stationed {
+    fn drop(&mut self) {
+        self.buffer.destroy();
+        self.run_words.destroy();
+    }
+}
+
 pub(super) struct Stationed {
     #[cfg_attr(not(test), allow(dead_code))]
     pub runs: u32,
@@ -111,16 +120,26 @@ impl Stationer {
         self.pass.run(e, &bind, entry, groups);
     }
 
-    fn counts(gpu: &Gpu, e: &mut wgpu::CommandEncoder, counts: &wgpu::Buffer) -> [u32; 4] {
+    async fn counts(
+        gpu: &Gpu,
+        e: &mut wgpu::CommandEncoder,
+        counts: &wgpu::Buffer,
+    ) -> Result<[u32; 4]> {
         let fresh = gpu.device.create_command_encoder(&Default::default());
         gpu.queue.submit([std::mem::replace(e, fresh).finish()]);
-        let raw = io::read(gpu, counts, 16).unwrap();
+        let raw = io::read_async(gpu, counts, 16).await?;
         let w: &[u32] = bytemuck::cast_slice(&raw);
-        [w[0], w[1], w[2], w[3]]
+        Ok([w[0], w[1], w[2], w[3]])
     }
 
     /// The stations of the `ids` nodes `swept` laid out.
-    pub(super) fn stations(&self, gpu: &Gpu, swept: &Swept, ids: u32, rows: Rows) -> Stationed {
+    pub(super) async fn stations(
+        &self,
+        gpu: &Gpu,
+        swept: &Swept,
+        ids: u32,
+        rows: Rows,
+    ) -> Result<Stationed> {
         let st = storage(gpu, "station words", u64::from(ids) * SW);
         let counts = storage(gpu, "station counts", 4);
         let none = storage(gpu, "stations none", 4);
@@ -141,7 +160,7 @@ impl Stationer {
             rows,
             [&swept.nodes, &swept.table, &st, &runs, &counts, &none],
         );
-        let n = Self::counts(gpu, &mut e, &counts)[0];
+        let n = Self::counts(gpu, &mut e, &counts).await?[0];
         self.run(
             (gpu, &mut e),
             (MEASURE, n, None),
@@ -159,21 +178,22 @@ impl Stationer {
                 [&swept.nodes, &swept.table, &st, &runs, &counts, &totals],
             );
         }
-        let [_, stations, segments, _] = Self::counts(gpu, &mut e, &counts);
+        let [_, stations, segments, _] = Self::counts(gpu, &mut e, &counts).await?;
         let buffer = storage(gpu, "station segments", u64::from(segments) * GW as u64);
         let late = [&swept.nodes, &swept.table, &st, &runs, &counts, &buffer];
         self.run((gpu, &mut e), (EMIT, n, None), rows, late);
         gpu.queue.submit([e.finish()]);
-        gpu.device
-            .poll(wgpu::PollType::wait_indefinitely())
-            .unwrap();
-        Stationed {
+        io::complete(gpu).await?;
+        for done in [&st, &counts, &none, &none_runs, &totals] {
+            done.destroy();
+        }
+        Ok(Stationed {
             runs: n,
             stations,
             segments,
             buffer,
             run_words: runs,
-        }
+        })
     }
 }
 

@@ -43,7 +43,11 @@ impl Pool {
     /// left and this one did not take are let go, so the pool holds one
     /// build's buffers at most.
     pub(super) fn give(&self, buffers: impl IntoIterator<Item = wgpu::Buffer>) {
-        *self.0.borrow_mut() = buffers.into_iter().collect();
+        let kept = buffers.into_iter().collect();
+        // Those left over are destroyed: a browser frees nothing dropped.
+        for left in std::mem::replace(&mut *self.0.borrow_mut(), kept) {
+            left.destroy();
+        }
     }
 }
 

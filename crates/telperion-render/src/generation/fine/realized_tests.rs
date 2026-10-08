@@ -124,7 +124,8 @@ fn grown_as_on_the_cpu(gpu: &Gpu, k: &Kernels, name: &str, species: &Species, at
     )
     .unwrap();
     for (order, batch) in [(&forward, 4096), (&reverse, 777), (&forward, 64)] {
-        let (waves, mut cost) = grow_roots((gpu, k), (&roots, order, batch), &tables);
+        let (waves, mut cost) =
+            pollster::block_on(grow_roots((gpu, k), (&roots, order, batch), &tables)).unwrap();
         trips(&cost);
         let got = readback::read(gpu, &waves.grown, cases.len());
         for (r, (c, have)) in cases.iter().zip(&got.roots).enumerate() {
@@ -138,7 +139,8 @@ fn grown_as_on_the_cpu(gpu: &Gpu, k: &Kernels, name: &str, species: &Species, at
         let living = k
             .fades
             .living(gpu, (&waves.grown, &waves.chains), (&fade_table, at.0));
-        let report = shedding::report(gpu, &living[0], cases.len(), &mut cost);
+        let report =
+            pollster::block_on(shedding::report(gpu, &living[0], cases.len(), &mut cost)).unwrap();
         for (wi, &r) in order.iter().enumerate() {
             assert_eq!(
                 report[wi], cases[r].living,
@@ -232,7 +234,8 @@ pub(super) fn settled_against(
         true => Device::new(gpu, k, &tables, 1 << 16).sown_from(batch),
         false => Device::new(gpu, k, &tables, batch).ordered(order.to_vec()),
     };
-    let (settled, _) = settle(species, request(at.0, at.1), plan, &mut dev).expect("settles");
+    let (settled, _) =
+        pollster::block_on(settle(species, request(at.0, at.1), plan, &mut dev)).expect("settles");
     dev.wait();
     let wall = t.elapsed().as_secs_f64() * 1e3;
     // A root that can reach the ground is the CPU's (host decision 3).

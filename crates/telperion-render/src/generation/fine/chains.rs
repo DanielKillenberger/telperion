@@ -248,7 +248,8 @@ impl Grower {
             if pool.get(k).is_none_or(|b| b.size() < n) {
                 let grown = io::buffer(gpu, label, n, storage, &[]).unwrap();
                 match pool.get_mut(k) {
-                    Some(b) => *b = grown,
+                    // The smaller one destroyed: a browser frees nothing dropped.
+                    Some(b) => std::mem::replace(b, grown).destroy(),
                     None => pool.push(grown),
                 }
             }

@@ -5,10 +5,8 @@ mod compute;
 use clock::Clock;
 mod data;
 // fn-209 F1 and fn-212: the fine-root executor's GPU side, which settles,
-// draws and places a tree's fine roots on the device (fn-212 task 10).
-// Native first: its readbacks wait on the device, which a browser's
-// WebGPU cannot (host decision 1 makes them async).
-#[cfg(not(target_arch = "wasm32"))]
+// draws and places a tree's fine roots on the device (fn-212 task 10),
+// every readback awaited, natively and in a browser (host decision 1).
 mod fine;
 mod io;
 mod positions;
@@ -148,7 +146,6 @@ pub struct Generator {
     positions: Option<io::Pass>,
     /// The fine-root executor's kernels, made on the first tree that
     /// settles its fine roots on the device.
-    #[cfg(not(target_arch = "wasm32"))]
     fine: std::cell::OnceCell<fine::Kit>,
 }
 impl Generator {
@@ -206,7 +203,6 @@ impl Generator {
             place,
             mass,
             positions,
-            #[cfg(not(target_arch = "wasm32"))]
             fine: std::cell::OnceCell::new(),
         })
     }

@@ -41,6 +41,11 @@ pub(super) struct Pass {
     maximum: u32,
     #[cfg(test)]
     entries: Vec<String>,
+    /// Which bindings the shader writes, the uniform first: WebGPU
+    /// refuses a dispatch whose writable binding shares its buffer with
+    /// any other binding, which native Vulkan lets pass (fn-212 task 10).
+    #[cfg(test)]
+    writable: Vec<bool>,
 }
 impl Pass {
     pub fn new(gpu: &Gpu, shader: String, read_only: &[bool], entries: &[&str]) -> Self {
@@ -105,9 +110,25 @@ impl Pass {
             maximum: gpu.device.limits().max_compute_workgroups_per_dimension,
             #[cfg(test)]
             entries: entries.iter().map(|e| e.to_string()).collect(),
+            #[cfg(test)]
+            writable: std::iter::once(false)
+                .chain(read_only.iter().map(|&r| !r))
+                .collect(),
         }
     }
     pub fn bind(&self, gpu: &Gpu, buffers: &[&wgpu::Buffer]) -> wgpu::BindGroup {
+        #[cfg(test)]
+        for (i, a) in buffers.iter().enumerate() {
+            for (j, b) in buffers.iter().enumerate().skip(i + 1) {
+                let written = self.writable[i] || self.writable[j];
+                assert!(
+                    !(written && a == b),
+                    "{:?}: bindings {i} and {j} share a buffer one of them writes, \
+                     which WebGPU refuses",
+                    self.entries
+                );
+            }
+        }
         gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("experimental generation"),
             layout: &self.layout,
@@ -196,6 +217,7 @@ impl PendingRead {
         let result = view.to_vec();
         drop(view);
         self.target.unmap();
+        self.target.destroy();
         Ok(result)
     }
 }
@@ -330,7 +352,7 @@ pub(super) fn error(detail: String) -> RenderError {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(test, not(target_arch = "wasm32")))]
 pub(super) fn read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result<Vec<u8>> {
     pollster::block_on(read_async(gpu, source, bytes))
 }
