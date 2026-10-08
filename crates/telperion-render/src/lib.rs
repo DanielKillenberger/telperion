@@ -289,6 +289,14 @@ impl Renderer {
         self.view = view;
     }
 
+    /// The organ mask (fn-217 M0), an instrument for measuring coverage:
+    /// in the clay view the flowers draw white and every other surface and
+    /// the room black, unlit, so a still's resolved mean is the share of the
+    /// frame the florets cover as the frame draws them. Off by default.
+    pub fn set_organ_mask(&mut self, on: bool) {
+        self.scene.set_mask(on);
+    }
+
     pub fn view(&self) -> View {
         self.view
     }

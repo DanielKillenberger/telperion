@@ -119,6 +119,9 @@ pub struct Scene {
     /// The supernatural group's leaf mirrors, which arrive with the
     /// material and are none on every natural family.
     reflection: Reflection,
+    /// The organ mask (fn-217 M0): in the clay room, the flowers white and
+    /// everything else black, unlit. An instrument, off in every picture.
+    mask: bool,
     pub(crate) section_roundness: f64,
     /// The ellipsoid the submitted crown's placements fill, which a leaf's
     /// depth into the crown is measured against. None before a tree is up.
@@ -256,6 +259,7 @@ impl Scene {
             row: SceneRow::default(),
             material: MaterialParams::default(),
             reflection: Reflection::NONE,
+            mask: false,
             section_roundness: 0.0,
             crown: None,
             leaf_reference: telperion_core::foliage::Reference::default(),
@@ -300,6 +304,10 @@ impl Scene {
 
     /// The supernatural group's leaf mirrors for the subject that is up,
     /// set after its material.
+    pub fn set_mask(&mut self, on: bool) {
+        self.mask = on;
+    }
+
     pub fn set_reflection(&mut self, reflection: Reflection) {
         self.reflection = reflection;
     }
@@ -335,7 +343,9 @@ impl Scene {
     /// sky at the horizon outdoors, where the sky's own triangle covers it
     /// everywhere the frame draws one.
     pub fn background(&self, view: View) -> wgpu::Color {
-        let c = if view == View::Clay {
+        let c = if self.mask {
+            [0.0, 0.0, 0.0, 1.0]
+        } else if view == View::Clay {
             linear(BACKGROUND)
         } else {
             [

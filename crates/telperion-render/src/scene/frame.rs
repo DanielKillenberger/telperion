@@ -39,7 +39,7 @@ impl Scene {
             let half = (b.max - b.min) * 0.5;
             colour(half.x, half.y, half.z, 0.0)
         });
-        let uniforms = Uniforms {
+        let mut uniforms = Uniforms {
             view_projection: camera.view_projection(aspect),
             sky: linear(SKY_LIGHT),
             ground: linear(GROUND_LIGHT),
@@ -212,10 +212,19 @@ impl Scene {
             leaf_reflection: colour(r.back_tint[0], r.back_tint[1], r.back_tint[2], r.back),
             bloom_eye: [0.0; 4],
         };
+        if self.mask {
+            // The clay room unlit and black: nothing but the flowers shows.
+            uniforms.clay = [0.0, 0.0, 0.0, uniforms.clay[3]];
+            (uniforms.sky, uniforms.ground) = ([0.0; 4], [0.0; 4]);
+        }
         gpu.queue
             .write_buffer(&self.uniforms, 0, bytemuck::bytes_of(&uniforms));
         if let Some(reference) = self.organ_reference.filter(|_| view != View::Leaf) {
-            let organ = organ(uniforms, m, reference);
+            let mut organ = organ(uniforms, m, reference);
+            if self.mask {
+                organ.clay = [1.0, 1.0, 1.0, organ.clay[3]];
+                (organ.sky, organ.ground) = ([1.0; 4], [1.0; 4]);
+            }
             gpu.queue
                 .write_buffer(&self.organ_uniforms, 0, bytemuck::bytes_of(&organ));
         }
