@@ -92,5 +92,66 @@ Pixels differing beyond a 2 % fuzz: beech 1.83 %, spruce 1.07 %, oak 1.05 %, pal
 
 ## Open for the host
 
-- **fn-222's internode spread against fn-212's grown wood.** fn-212 measures a node's grown wood as `internode[pa] × scale`, in the conversion and in `dress.wgsl` alike. F4's internode spread scales each internode by its own factor, so with a spread above 0 that measure is not the wood grown. Both executors would still agree. Every shipped preset has a spread of 0, so no tree here changes.
-- **Not run:** the contract probe and the fine GPU tests under the lock, the full gate, `npm test`, and the native timings (proofs 5 to 8).
+- **Not run:** the contract probe, the full gate, `npm test`, and the native timings (proofs 5 to 8). The fine GPU tests ran once after `1b74db15`: 31 passed.
+
+## After the host's decisions (2026-10-08)
+
+The measurements were made on archived copies of `e7816c69` (fn-212's base), `8f451083` (F4's head) and `34e52ec2` (fn-212's tip), each built with its own `target/`. They used temporary recorders and tests, all removed. The raw output is in this session's scratch directory.
+
+### 1. The 70 µm sag on the spruce at 80: phase 2's radii (cause only, no fix)
+
+Each phase's outputs were recorded on both executors at spruce 80, seeds 1 and 7. Then the device's outputs were replayed into the CPU's settle.
+
+| Seed | Snapshot | Device-settled, CPU-settled above the cut | CPU with the device's phase 2 radii only | CPU with the device's phase 3 loads only |
+|---|---|--:|--:|--:|
+| 1 | fn-212's base | 25.5 µm | 29.1 µm | 3.7 µm |
+| 1 | F4's head | 70.0 µm | 80.8 µm | 10.8 µm |
+| 7 | fn-212's base | 28.1 µm | 32.3 µm | 4.3 µm |
+| 7 | F4's head | 26.4 µm | 31.8 µm | 5.4 µm |
+
+- **The input to phase 3 is identical on both executors:** 0.0 apart above the cut. The gap opens in phase 4.
+- **The cause is phase 2's radii:** each root's base radius from `settle.wgsl`'s girth pass, in f32.
+  - The device's radii alone reproduce the gap on the CPU. The loads alone give 4 to 11 µm.
+  - The device's radii lie about 1.5 to 2.6e-6 apart (relative) from the CPU's on the heavy roots. That is about 30 times f32 rounding: the CPU's own radii rounded to f32 move the tips 0.05 µm. So it is the device's arithmetic, not its storage.
+  - These radii thicken the structure above the cut, and its sag amplifies them.
+- **The gap was there before contract A:** 25 to 28 µm at fn-212's base, where the CPU still lays in f64.
+- **What changed at seed 1 is the CPU, not the device:**
+  - The device's radii are the same to the last digit at both snapshots: 8.727258e-3 m on the heaviest root.
+  - The CPU's moved down by 4 to 6e-9 m on every heavy root at F4's head (about −6e-7 relative), with F4's fixed-point girth.
+  - The two now lie about 2.1e-6 apart, against 1.4e-6, and spruce 80 s1's far limb amplifies that to 70 to 81 µm.
+  - Seed 7 is unchanged.
+  - Which F4 commit moved the CPU's radii (contract A's girth, or fn-199 R4's integer parts) was not bisected.
+- **The phase 3 outliers do not matter.** The roots whose mass is 100 % apart are sub-micron roots (radius about 1e-7 m, mass about 1e-20 kg) at Q32's resolution, and their loads cannot bend a limb.
+- **For the host:** whether `settle.wgsl`'s girth pass takes contract A's fixed point (a design step), or which F4 commit to bisect first.
+
+### 2. Grown wood at a spread: fixed (`1b74db15`)
+
+- **The CPU:** the conversion's grown wood multiplies each internode by `lineage::internode`'s factor, now public as `telperion_space::internode_factor`.
+- **The device:** the walk writes each laid phytomer's factor to slot 23 (`PL` 23 to 24), and `dress.wgsl` multiplies by it. `lay.wgsl`'s `internode_factor` is shared by the lay and the walk.
+- **Tests at a spread of 0.7, both red without the factor and green with it:**
+  - `pipeline::space::tests::grown_wood_is_the_internodes_as_laid_at_a_spread`: every node drawn after another on its axis records the laid lengths of its phytomers, within one Q32 last place each. Without the factor, node 31 records 0.07 m against 0.1028 m laid.
+  - `generation::fine::dress_tests::a_beech_of_varied_internodes_is_drawn_as_the_pipeline_draws_it`: 20,250 nodes on both sides, 0 strays. Without the factor the device drew 20,933 nodes.
+- **No shipped tree changes:** without spread the factor is exactly 1, and the 16 clothed hashes are unchanged.
+- **Test detail:** an axis carried on into the next age keeps its chain's lineage, so `tree::node_key` names two phytomers. The test skips such keys.
+
+### 3. The beech's −1.5 % leaves: chord ties, not a layout defect
+
+- **Chord over arc, node to its parent, beech at 80** (the conversion's tree, classed by node):
+
+  | Node | Seed 1 | Seed 7 |
+  |---|--:|--:|
+  | Along its axis | 0 of 1,391,550 | 0 of 2,355,633 |
+  | A relay's first | 0 of 73 | 0 of 119 |
+  | A continuation's first | 0 of 2,570 | 1 of 4,175 |
+  | A lateral's first | 30 of 131,687 | 163 of 223,322 |
+  | Unclassified (shared lineage key) | 415 of 14,561 | 698 of 26,326 |
+
+  - **fn-212's tip** has the same classes in the same numbers, for example 17 and 145 laterals' first nodes, and 442 and 737 unclassified.
+  - **Without wander** the counts hardly change.
+  - **Not the relay stand blend:** no relay's first node has a chord over its arc.
+- **In bearing runs:** 71 (seed 1) and 249 (seed 7) pairs have a chord over the arc. All but three are a run's first pair, and every one's second node is its first node's child.
+- **The 1.5 % is the old chord count's ceiling at exact ties.**
+  - The beech's 30 mm internode is exactly five twig internodes of 6 mm, so a run's grown wood is a whole number of them: 1.29 m, exactly 215.
+  - Laid in fixed point, the same run's chord comes out 1.290000002 m. `ceil(length / unit − 1e-9)` rounds 215.0000003 up to 216.
+  - Of the 36,983 runs counted apart at seed 1, 36,768 lie within 1 µm of their grown wood and account for +36,762 stations; the other 215 account for +344. At seed 7: 53,761 runs and +53,749, against 357 runs and −102.
+- **The grown-wood count is the right one.** The F4 change that makes the chords land just over the boundary is inferred to be contract A's Q32 lengths, not traced. On fn-212's own base the same measure moved −0.02 %.
