@@ -64,7 +64,8 @@ pub use grow::partition::{
     grow_partitioned, Grouping, Order as PartitionOrder, Partitioned, Run as PartitionRun, PHASES,
 };
 pub use grow::stepped::{
-    grow_stepped, grow_stepped_on, Cpu, Feedback, Laid, LayJob, LayPa, Stepped,
+    grow_outline, grow_stepped, grow_stepped_on, Cpu, Feedback, Laid, LayJob, LayPa, Outlined,
+    Stepped,
 };
 pub use grow::subtree::Measured;
 pub use grow::{apart, grow, grow_marked, sketch, Pass, Request, Stage};

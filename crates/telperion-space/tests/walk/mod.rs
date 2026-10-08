@@ -643,16 +643,19 @@ pub fn tree(species: &Species, seed: u64) -> telperion_space::Result<Structure> 
     lit(species, Light::NEUTRAL, seed)
 }
 
+/// `MODEL=outline` walks R3 and R4 (fn-226 task 3) in place of today's
+/// model, for the head-to-head only.
 pub fn lit(species: &Species, light: Light, seed: u64) -> telperion_space::Result<Structure> {
-    grow(
-        species,
-        Request {
-            age: AGE,
-            seed,
-            budget: 2_000_000,
-            light,
-        },
-    )
+    let request = Request {
+        age: AGE,
+        seed,
+        budget: 2_000_000,
+        light,
+    };
+    match std::env::var("MODEL").as_deref() {
+        Ok("outline") => telperion_space::grow_outline(species, request).map(|o| o.structure),
+        _ => grow(species, request),
+    }
 }
 
 /// The light every light walk stands in but the one it walks: leaves at

@@ -27,14 +27,17 @@
 //!
 //! The tree is then assembled and settled as today's engine settles it.
 //! An experiment behind its own entry point: `grow` never builds one.
+mod ahead;
 mod buds;
 mod feedback;
 mod handover;
 mod lay;
+mod outline;
 mod phases;
 mod schedule;
 mod settle;
 
+pub use ahead::{grow_outline, Outlined};
 use feedback::again;
 pub use feedback::{Cpu, Feedback};
 pub use lay::{Laid, LayJob, LayPa};

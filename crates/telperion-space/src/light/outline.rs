@@ -103,7 +103,7 @@ impl Outline {
         let squares: i128 = middles.iter().map(|m| i128::from(m.1)).sum();
         let slice = i128::from(span) / HEIGHTS as i128;
         let pi = i128::from(q32(std::f64::consts::PI));
-        let volume = ((squares * slice >> 32) * pi >> 32) as i64;
+        let volume = ((((squares * slice) >> 32) * pi) >> 32) as i64;
         let density = match volume > 0 {
             true => ((i128::from(area) << 32) / i128::from(volume)) as i64,
             false => 0,
