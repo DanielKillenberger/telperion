@@ -47,9 +47,10 @@ fn browser_route() {
             family
         }
     };
+    // From the generator's making, as a page's first tree pays it.
+    let t = std::time::Instant::now();
     let mut renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let gen = pollster::block_on(Generator::new_async(&renderer)).unwrap();
-    let t = std::time::Instant::now();
     let prepared = gen.prepare(&family, Delivery::Resident).unwrap();
     let built = t.elapsed().as_secs_f64();
     renderer.submit_prepared(prepared).unwrap();
@@ -58,51 +59,43 @@ fn browser_route() {
     println!("{tree}: built in {built:.2} s and drawn");
 }
 
-/// The longest a pipeline may take to make on a cold driver cache: the
-/// bound R2 sets a submission, well under Chrome's GPU watchdog, which
-/// kills a GPU process that makes one for longer.
-const COLD_PIPELINE_MS: f64 = 1_000.0;
+/// The longest a pipeline may take to make on a cold driver cache, and
+/// the longest a page's first tree may take to build on one, every
+/// pipeline made (host decision 2, 2026-10-09): well under Chrome's GPU
+/// watchdog, which kills a GPU process that makes one for longer.
+const COLD_PIPELINE_MS: f64 = 2_000.0;
+const COLD_FIRST_TREE_S: f64 = 5.0;
 
-/// Every pipeline a browser build makes: the generator's, then the fine
-/// executor's kernels and tools. Run by the test below in a process of
-/// its own, on a cold driver cache.
+/// fn-235 R1: a page's first tree, the beech at 20 on the fine path,
+/// built in a process of its own on a cold driver cache. The chain
+/// grower's `grow` took 145 s on the RTX 3080 (2026-10-09), long past
+/// the watchdog: the harness sat at "building..." until Chrome killed its
+/// GPU process.
 #[test]
-#[ignore = "run by every_pipeline_is_made_cold_within_a_second"]
-fn make_every_pipeline() {
-    let Some(gpu) = browser_gpu() else {
-        return;
-    };
-    let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
-    let _gen = pollster::block_on(Generator::new_async(&renderer)).unwrap();
-    let _kernels = super::roots::kernels(&gpu);
-    let _tools = super::resident::Tools::new(&gpu);
-}
-
-/// fn-235 R1: a browser build's first tree makes every pipeline on a
-/// cold cache. The chain grower's `grow` took 145 s on the RTX 3080
-/// (2026-10-09), long past the watchdog: the harness sat at "building..."
-/// until Chrome killed its GPU process.
-#[test]
-fn every_pipeline_is_made_cold_within_a_second() {
+fn the_first_tree_builds_cold_within_five_seconds() {
     let mut child = std::process::Command::new(std::env::current_exe().unwrap())
         .args(["--ignored", "--exact", "--nocapture"])
-        .arg("generation::fine::hang_tests::make_every_pipeline")
+        .arg("generation::fine::hang_tests::browser_route")
+        .env("TREE", "european-beech:20")
         .env("TELPERION_TRACE", "1")
         // The NVIDIA driver's own disk cache, off: a cold page's compile.
         .env("__GL_SHADER_DISK_CACHE", "0")
         .stderr(std::process::Stdio::piped())
-        .stdout(std::process::Stdio::null())
+        .stdout(std::process::Stdio::piped())
         .spawn()
         .unwrap();
-    let stderr = child.stderr.take().unwrap();
-    let lines = std::thread::spawn(move || {
-        use std::io::BufRead;
-        std::io::BufReader::new(stderr)
-            .lines()
-            .map_while(Result::ok)
-            .collect::<Vec<_>>()
-    });
-    // Every pipeline at the bound, and a margin for the device's request.
+    let read = |pipe: Box<dyn std::io::Read + Send>| {
+        std::thread::spawn(move || {
+            use std::io::BufRead;
+            std::io::BufReader::new(pipe)
+                .lines()
+                .map_while(Result::ok)
+                .collect::<Vec<_>>()
+        })
+    };
+    let stderr = read(Box::new(child.stderr.take().unwrap()));
+    let stdout = read(Box::new(child.stdout.take().unwrap()));
+    // Well past the bound, so a slow pipeline is named rather than cut off.
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(120);
     let mut killed = false;
     while child.try_wait().unwrap().is_none() {
@@ -114,7 +107,7 @@ fn every_pipeline_is_made_cold_within_a_second() {
         std::thread::sleep(std::time::Duration::from_millis(100));
     }
     let status = child.wait().unwrap();
-    let made: Vec<(String, f64)> = lines
+    let made: Vec<(String, f64)> = stderr
         .join()
         .unwrap()
         .iter()
@@ -126,8 +119,33 @@ fn every_pipeline_is_made_cold_within_a_second() {
         .collect();
     let last = made.last().map(|(entry, _)| entry.as_str());
     assert!(!killed, "a pipeline was still being made at 120 s, after {last:?}");
-    assert!(status.success(), "making the pipelines failed: {status}");
+    assert!(status.success(), "the build failed: {status}");
     let slow: Vec<_> = made.iter().filter(|(_, ms)| *ms > COLD_PIPELINE_MS).collect();
     assert!(!made.is_empty(), "no pipeline was made");
     assert!(slow.is_empty(), "made cold over {COLD_PIPELINE_MS} ms: {slow:?}");
+    let built: f64 = (stdout.join().unwrap().iter())
+        .find_map(|l| l.split_once("built in ")?.1.split_once(" s")?.0.parse().ok())
+        .expect("the build's time");
+    assert!(built <= COLD_FIRST_TREE_S, "the first tree built cold in {built} s");
+}
+
+/// fn-235 host decision 1: the chain grower's `grow` alone, made from
+/// `GROW_WGSL` where it names a file (a bisected variant), else from its
+/// source, which `GROW_DUMP` writes out. Run with the cache off, one a
+/// process; the trace prints the make time.
+#[test]
+#[ignore = "a bisection probe"]
+fn make_grow() {
+    let Some(gpu) = browser_gpu() else {
+        return;
+    };
+    let source = match std::env::var("GROW_WGSL") {
+        Ok(path) => std::fs::read_to_string(path).unwrap(),
+        Err(_) => super::chains::source(),
+    };
+    if let Ok(path) = std::env::var("GROW_DUMP") {
+        std::fs::write(path, &source).unwrap();
+    }
+    let read = [true, true, true, false, false, false, false, false];
+    let _ = super::super::io::Pass::new(&gpu, source, &read, &["grow"]);
 }

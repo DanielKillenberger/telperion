@@ -196,8 +196,10 @@ fn woke(b: u32, whorl: f32) -> u32 {
     wr(a, SLEEP, sleep);
     wr64(a, AGED, spent);
     wr64(a, UNITS, spent);
-    run(Apex(a, spent), cycle);
-    return cycle + 1u;
+    // Its apex runs in `cycle`, alone, on the cycle loop's first pass.
+    woken_run = true;
+    woken_apex = Apex(a, spent);
+    return cycle;
 }
 
 // Whether a sleeping bud still wakes in `cycle` or after.

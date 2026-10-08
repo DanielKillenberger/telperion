@@ -199,41 +199,26 @@ fn relay_after(f: After, cycle: u32) -> Next {
     return none();
 }
 
-// The apex's unit keyed `keys.y` failed on draw `dv` under `survives`
-// and its relay draw makes one (`fail`, fn-199 R1): the unit grows the
-// share of its cycle the apex lived, at the relay's presence, and the
-// relay grows the rest of the cycle, whole.
-fn fail(apex_in: Apex, cycle: u32, s1: Step, gone: u32, whole: bool, keys: array<vec2<u32>, 2>, dv: vec2<u32>, survives: vec2<u32>) -> Next {
+// The apex's unit failed on draw `dv` under `survives` and its relay
+// draw makes one (`fail`, fn-199 R1): the unit, decided by `key`, grew
+// the share `lived` of its cycle the apex lived, at the relay's presence
+// (`advance`, which grows it, so `grow_unit` has one call site and the
+// driver compiles it once, fn-235), and the relay grows the rest of the
+// cycle, whole. `aborts` is the lived part's abortion threshold over the
+// share it lived and the next unit's (fn-199, host decision C1), zero
+// where the cycle ends the step.
+fn fail(apex_in: Apex, cycle: u32, gone: u32, whole: bool, key: vec2<u32>, dv: vec2<u32>, survives: vec2<u32>, lived: vec2<u32>, below: u32, u: u32, aborts: vec2<u32>) -> Next {
     var apex = apex_in;
     let a = apex.axis;
-    let pa = rd(a, PA);
-    let lived = lived_q(row(pa, 2u), unsigned_ticks(s1.share), dv);
-    let below = sub64(shl64(lived, 12u), lived_fine_q(row(pa, 2u), unsigned_ticks(s1.share), dv)).x;
-    let u = push_unit(a, rd(a, NUNITS));
-    unit_asks(u, cycle, lived.x, keys[0], survives);
-    unit_fails(u, 2u, s1.used.x);
-    unit_grows(u, a, true);
-    wr(a, NUNITS, rd(a, NUNITS) + 1u);
-    wr64(a, SHARES, add64(rd64(a, SHARES), lived));
-    grow_unit(a, pa, keys[1], cycle, lived.x);
-    unit_grows(u, a, false);
     apex.spent = add64(apex.spent, lived);
     wr(a, APEX_END, cycle + 1u);
     wr(a, KIND, rd(a, KIND) | IS_FAILED);
     wr64(a, UNITS, apex.spent);
     let blend = clamp(above_t(dv, survives) / SPAN_F, 0.0, 1.0);
     let used = add64(w(gone, 0u), lived);
-    let asks = array<vec4<u32>, 2>(vec4<u32>(RELAY_ASKS, FAILED, keys[0].x, keys[0].y), vec4<u32>(cycle, used.x, 0u, 0u));
-    // The lived part takes the unit's abortion draw over the share it
-    // lived and the next unit's (fn-199, host decision C1).
-    var aborts = vec2<u32>(0u);
-    if !s1.ends {
-        let grown = add64(rd64(a, AGED), rd64(a, SHARES));
-        let next = shl64(unsigned_ticks(step(apex_in.spent, gone, whole, row(pa, 0u), 2u).share), 12u);
-        aborts = abortion_after(pa, grown, min64(shl64(lived, 12u), next));
-    }
+    let asks = array<vec4<u32>, 2>(vec4<u32>(RELAY_ASKS, FAILED, key.x, key.y), vec4<u32>(cycle, used.x, 0u, 0u));
     if !is_zero(aborts) {
-        let da = draw(child(keys[0], KEY_ABORTION));
+        let da = draw(child(key, KEY_ABORTION));
         if lt64(da, aborts) {
             // Its relay stops at once, as an apex that aborted, and the
             // abortion's relay stands on it, so on the failed axis.
@@ -243,7 +228,7 @@ fn fail(apex_in: Apex, cycle: u32, s1: Step, gone: u32, whole: bool, keys: array
             }
             wr(r, APEX_END, cycle + 1u);
             let stopped = below_t(da, aborts);
-            return stop(Apex(r, apex.spent), cycle, used, keys[0], apex.spent, ABORTED, whole, below, stopped, aborts);
+            return stop(Apex(r, apex.spent), cycle, used, key, apex.spent, ABORTED, whole, below, stopped, aborts);
         }
         unit_persists(u, aborts);
     }
@@ -299,33 +284,50 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
     // A failed unit's relay's first unit carries on where its own failure
     // relays (fn-199, host decision A3).
     let nested = first && (rd(a, KIND) & IS_REST) != 0u && relays;
-    if !lt64(dv, survives) && relays && !nested {
-        return fail(apex, cycle, s1, gone, first && relay, array<vec2<u32>, 2>(decide, unit), dv, survives);
-    }
-    if !lt64(dv, survives) && !nested {
+    let failing = !lt64(dv, survives) && relays && !nested;
+    if !lt64(dv, survives) && !failing && !nested {
         wr(a, APEX_END, cycle);
         wr(a, KIND, rd(a, KIND) | IS_FAILED);
         let stopped = above_t(dv, survives);
         let spent = add64(apex.spent, s1.share);
         return stop(apex, cycle, ticks_whole(), decide, spent, FAILED, false, 0u, stopped, survives);
     }
+    // A failing unit grows the share of its cycle the apex lived (`fail`).
+    var share = s1.share;
+    var lived = vec2<u32>(0u);
+    var lived_below = 0u;
+    if failing {
+        lived = lived_q(row(pa, 2u), unsigned_ticks(s1.share), dv);
+        lived_below = sub64(shl64(lived, 12u), lived_fine_q(row(pa, 2u), unsigned_ticks(s1.share), dv)).x;
+        share = lived;
+    }
+    let grows = select(unsigned_ticks(s1.share).x, lived.x, failing);
     // Its survival's presence, Q32, at the chain's end (`assign.wgsl`).
     let u = push_unit(a, rd(a, NUNITS));
-    unit_asks(u, cycle, unsigned_ticks(s1.share).x, decide, survives);
-    if relays {
+    unit_asks(u, cycle, grows, decide, survives);
+    if failing {
+        unit_fails(u, 2u, s1.used.x);
+    } else if relays {
         unit_fails(u, 1u, s1.used.x);
     }
     unit_grows(u, a, true);
     wr(a, NUNITS, rd(a, NUNITS) + 1u);
-    wr64(a, SHARES, add64(rd64(a, SHARES), s1.share));
-    grow_unit(a, pa, unit, cycle, unsigned_ticks(s1.share).x);
+    wr64(a, SHARES, add64(rd64(a, SHARES), share));
+    grow_unit(a, pa, unit, cycle, grows);
     unit_grows(u, a, false);
-    apex.spent = add64(apex.spent, s1.share);
     // D6.
     let grown = add64(rd64(a, AGED), rd64(a, SHARES));
     let next = shl64(unsigned_ticks(step(apex_in.spent, gone, first && relay, life, 2u).share), 12u);
-    let exposure = min64(add64(shl64(unsigned_ticks(s1.share), 12u), below), next);
+    var exposure = min64(add64(shl64(unsigned_ticks(s1.share), 12u), below), next);
+    if failing {
+        exposure = min64(shl64(lived, 12u), next);
+    }
     let aborts = abortion_after(pa, grown, exposure);
+    if failing {
+        let lived_aborts = select(aborts, vec2<u32>(0u), s1.ends);
+        return fail(apex, cycle, gone, first && relay, decide, dv, survives, lived, lived_below, u, lived_aborts);
+    }
+    apex.spent = add64(apex.spent, s1.share);
     if !is_zero(aborts) && !s1.ends {
         let da = draw(child(decide, KEY_ABORTION));
         if lt64(da, aborts) {

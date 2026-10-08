@@ -37,3 +37,52 @@ Red test: `hang_tests::every_pipeline_is_made_cold_within_a_second`
 3. **R3 admission budget.** `BROWSER` drops from 8.5 GiB to 6 GiB. That is the reference 10 GiB card, less 3 GiB held by other applications (the supported condition), less 1 GiB for textures, pipelines and the driver. One shipped tree at 80 fits within it: the spruce's measured peak is 5.48 GiB. Record the derivation beside the constant. A build over the budget is refused by name, and the previous tree is kept.
 4. **R3 device loss.** On a loss the harness shows a named error and keeps the previous tree's parameters. On the owner's "retry build" it requests a fresh adapter and device and rebuilds once. It never retries automatically, so it never loops. A test forces a device loss (`device.destroy()`) and checks this.
 5. **R4 is unchanged.** Then run R5's native checks, the gate, npm test and impl-review. The browser check waits for the owner, who may need to reboot first.
+
+## Bisection of `grow`'s cold compile (task 1, 2026-10-09)
+
+`hang_tests::make_grow` makes `grow` alone from a WGSL file, one a
+process, `__GL_SHADER_DISK_CACHE=0`, RTX 3080. Load average 6 to 38
+from other agents, so a single run is good to about ±30%; a stub that
+removes code can make the compile slower (the driver's optimiser is
+not monotone in the code it is given), so only large, repeated drops
+are read as a part's share.
+
+| Variant of `grow` | Cold make, s |
+|---|--:|
+| F4 as it was | 91.6 (earlier 98.7, 144.7) |
+| no apex run at all (`run` called nowhere) | 0.1 |
+| `run` called once instead of twice (grow's cycle loop and `woke`) | 28.8 |
+| and fail's tail not reached | 11.2 |
+| and move_on not reached | 17.9 |
+| and grow_unit not called | 15.2 |
+| and log2's fraction stubbed / exp2's stubbed | 18.9 / 23.8 |
+| and the long-division loops kept rolled (opaque bound) | 73.4 (worse) |
+| and `shr128` without its local array | 45.6 (worse) |
+| and fail and move_on dispatched from `run`'s loop, not nested | 27.8 |
+
+Every part's cost is the size of the one body the driver inlines `run`
+into: everything outside `run` makes in 0.1 s, and the cost grows
+faster than the body. The body holds 528 inlined copies of `mul32` and
+380 of `shr64` (the 64-bit emulation under contract A's fixed point).
+
+Committed, bit-identical (the chain parity test and every
+`generation::fine` test green): `run` has one call site (a woken bud's
+apex runs on the cycle loop's first pass), and `grow_unit` and
+`abortion_after` one each (`advance` grows a failing unit and draws its
+abortion threshold; `fail` keeps its tail). `grow` now makes cold in
+13.2 to 16.7 s, from 92 to 145 s.
+
+What is left, on that source:
+
+| Variant | Cold make, s |
+|---|--:|
+| as committed | 13.2 to 16.7 |
+| move_on not reached | 7.3 |
+| grow_unit not called | 9.8 |
+| neither | 2.3 |
+| abortion_after not called | 18.3 (worse) |
+
+So 2 s needs move_on and grow_unit both out of `grow`'s body, and even
+then sits at the bound: only a split meets it. Taking one of moved_q's
+three `expq` copies out gave 13.2 against 13.8 s, inside the noise, and
+was reverted.
