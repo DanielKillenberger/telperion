@@ -222,6 +222,16 @@ fn framed_q(
                 Origin::Relay { node, .. } => node,
                 _ => 0,
             };
+            let (tip, _, _) = end(&axes[parent]);
+            let (along, across) = ends(parent);
+            let b = q32(b);
+            if b == 0 {
+                // On the line alone: the general form below at blend 0, to
+                // the bit, without a stand it scales by none.
+                let heading = unit(along).unwrap_or(along);
+                let side = unit(sub(across, scaled(heading, dot(across, heading))));
+                return (tip, heading, side.unwrap_or(across));
+            }
             let state = &species.states[axes[parent].pa];
             let at = stand(axes, species, parent, node);
             let (heading, side) = turned(
@@ -234,9 +244,6 @@ fn framed_q(
             // The axis's running direction and side at its tip, before its
             // pull towards the vertical, which the axis carried on runs on
             // with; its phyllotaxis runs on as a phase (`phase`).
-            let (tip, _, _) = end(&axes[parent]);
-            let (along, across) = ends(parent);
-            let b = q32(b);
             let heading =
                 unit(add(scaled(along, ONE32 - b), scaled(heading, b))).unwrap_or(heading);
             let side = add(scaled(across, ONE32 - b), scaled(side, b));
