@@ -1280,6 +1280,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "extinction": 0.16666666666666669
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -2138,6 +2151,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "extinction": 0.5
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -2842,6 +2868,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           }
         }
+      },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
       },
       "surface": {
         "flareDepth": 0.004,
@@ -3560,6 +3599,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -3868,6 +3920,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "vigourVariation": 0.15
         }
+      },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
       },
       "surface": {
         "flareDepth": 0.004,
@@ -4207,6 +4272,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -4516,6 +4594,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "vigourVariation": 0.15
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -4824,6 +4915,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "vigourVariation": 0.15
         }
+      },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
       },
       "surface": {
         "flareDepth": 0.004,
