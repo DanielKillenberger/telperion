@@ -248,3 +248,29 @@ fn a_zero_leaf_size_places_no_leaves() {
         .unwrap()
         .has_subject());
 }
+
+/// fn-212 task 11, Astra's finding 8: what the CPU path draws, the
+/// device path draws: leaves that seat on no wood, round or lobed, each
+/// the whole path's leaves. Seated leaves on lobed wood wait on the host
+/// (TASK11.md): the device lays no lobed ring positions.
+#[test]
+fn the_device_path_draws_what_the_cpu_path_draws() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    for (contact, lobes) in [(0.0, 0), (0.0, 2)] {
+        let mut family = family("european-beech", 30);
+        family.canopy.surface_contact = contact;
+        family.surface.lobes = lobes;
+        family.surface.lobe_depth = 0.1;
+        let at = format!("contact {contact}, lobes {lobes}");
+        let whole = pollster::block_on(gen.prepare_whole(&family, Delivery::Resident));
+        let whole = whole.unwrap_or_else(|e| panic!("{at}: whole: {e}"));
+        let prepared = gen.prepare(&family, Delivery::Resident);
+        let prepared = prepared.unwrap_or_else(|e| panic!("{at}: device: {e}"));
+        assert!(prepared.wood.is_some(), "{at}: not the device path");
+        assert_eq!(prepared.count(), whole.count(), "{at}: leaves");
+    }
+}

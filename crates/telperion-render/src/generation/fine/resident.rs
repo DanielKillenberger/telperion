@@ -170,7 +170,10 @@ pub(super) async fn build(
         Ok(part.expansion(family, folds, &crown, corners)?)
     })
     .await?;
-    // The pipeline's part: its curve, stations and ring positions.
+    // The pipeline's part: its curve, stations and ring positions. Ring
+    // positions have one reader, the seated leaves' contacts: a family
+    // that seats nothing lays none (fn-212 task 11, as `preparation.rs`).
+    let seats = x.seats();
     let mut m = Metrics::default();
     let (curve, cpu, wood, angular, segments) = stage(gpu, &mut t.cpu, async || {
         let (curve, shared) = x.curve_with_contacts()?;
@@ -178,8 +181,13 @@ pub(super) async fn build(
         let stations = stations.ok_or_else(|| refused("the fine path needs regular stations"))?;
         let surface = shared.surface();
         let (angular, segments) = (surface.angular.clone(), surface.segments);
-        let wood = gen.emit_positions(shared.into_surface(), &mut m).await?;
-        let wood = wood.ok_or_else(|| refused("ring positions"))?;
+        let wood = match seats {
+            true => {
+                let wood = gen.emit_positions(shared.into_surface(), &mut m).await?;
+                Some(wood.ok_or_else(|| refused("ring positions"))?.positions)
+            }
+            false => None,
+        };
         Ok((curve, stations, wood, angular, segments))
     })
     .await?;
@@ -207,15 +215,18 @@ pub(super) async fn build(
         .filter(|&n| n as usize <= x.leaves().canopy.max_instances)
         .ok_or(Error::ResourceLimit("foliage instance budget"))?;
     swept.nodes.destroy();
-    let positions = stage(gpu, &mut t.rings, async || {
-        let twist = std::f64::consts::TAU * surface.twist_rate / height;
-        let rung = tools.ringer.rings(gpu, &swept, segments, twist as f32)?;
-        let rings = (&*rung.buffer, rung.rings, rung.vertices);
-        let positions = gen.ring_vertices(rings, segments, &angular);
-        rung.buffer.destroy();
-        positions
-    })
-    .await?;
+    let positions = match seats {
+        true => Some(
+            stage(gpu, &mut t.rings, async || {
+                let twist = std::f64::consts::TAU * surface.twist_rate / height;
+                let rung = tools.ringer.rings(gpu, &swept, segments, twist as f32)?;
+                let rings = (&*rung.buffer, rung.rings, rung.vertices);
+                gen.ring_vertices(rings, segments, &angular)
+            })
+            .await?,
+        ),
+        false => None,
+    };
     // Both blocks into one leaf buffer, one mass grid over both.
     let reference = x.reference();
     let resident = stage(gpu, &mut t.place, async || {
@@ -232,19 +243,20 @@ pub(super) async fn build(
             usage,
             bytemuck::cast_slice(&segs),
         )?;
+        // Leaves that seat on nothing read no ring positions.
+        let none = io::buffer(gpu, "no ring positions", 16, usage, &[])?;
         let mut summaries = Vec::new();
         if cpu.count > 0 {
             let at = (cpu.count, &*leaves);
-            summaries.push(gen.place_into(config, (&*segs, &*wood.positions), e, at)?.0);
+            let rings = wood.as_deref().unwrap_or(&none);
+            summaries.push(gen.place_into(config, (&*segs, rings), e, at)?.0);
         }
         if device.stations > 0 {
             let counts = (device.stations, device.segments, segments);
             let config = data::config(&l, x.twig(), counts, e, reference).at(cpu.count);
             let at = (device.stations, &*leaves);
-            summaries.push(
-                gen.place_into(config, (&*device.buffer, &*positions), e, at)?
-                    .0,
-            );
+            let rings = positions.as_deref().unwrap_or(&none);
+            summaries.push(gen.place_into(config, (&*device.buffer, rings), e, at)?.0);
         }
         let (mut crown, mut full) = (None, None);
         for s in &summaries {
@@ -269,8 +281,6 @@ pub(super) async fn build(
     })
     .await?;
     // The ring positions served the placements alone.
-    wood.positions.destroy();
-    positions.destroy();
     drop((wood, positions));
     let handoff = &tools.handoff;
     let handed = stage(gpu, &mut t.handoff, async || {
