@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-226-light-read-from-the-crowns-outline-per",
   "impl_review_rounds": {
-    "fn-226-light-read-from-the-crowns-outline-per.2": 0
+    "fn-226-light-read-from-the-crowns-outline-per.2": 0,
+    "fn-226-light-read-from-the-crowns-outline-per.3": 2
   },
   "next_task": 1,
   "plan_review_rounds": 2,
@@ -211,6 +212,166 @@
       "task": "fn-226-light-read-from-the-crowns-outline-per.2",
       "timestamp": "2026-10-08T09:44:51.116709Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d25fbe106c5aac285dcab25a5eeb6c7f8e446b87d267532f7286783c3766461d",
+      "backend": "codex",
+      "base_sha": "02481da1d59df70da22640b3a6db03df611446ae",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-052c6b8ef2cd0ed1c4b9c9a32c2cfe6a",
+            "classification": "introduced",
+            "findingId": "finding-052c6b8ef2cd0ed1c4b9c9a32c2cfe6a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2f58ba311913d9d2fa4ab424dd907910",
+            "classification": "introduced",
+            "findingId": "finding-2f58ba311913d9d2fa4ab424dd907910",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-aa080bfffae829554d1599d3fff56966",
+            "classification": "introduced",
+            "findingId": "finding-aa080bfffae829554d1599d3fff56966",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-53c1fe12ec471703869b336b70a53c62",
+            "classification": "introduced",
+            "findingId": "finding-53c1fe12ec471703869b336b70a53c62",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d4cda2451724f8182d4d7f64394881c9",
+            "classification": "introduced",
+            "findingId": "finding-d4cda2451724f8182d4d7f64394881c9",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "dda49857aa11ea7a18ae9d85cbfeb81e9bf424cb",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 4238,
+      "output_sha256": "18ee4f4bd8555bdc51e26c19f2006e61673e2d073771b14c364050296273fc9e",
+      "reservation_id": "88da03f0cd4f48d8bdef8eb11a3e61eb",
+      "round_consumed": true,
+      "scope": "impl:fn-226-light-read-from-the-crowns-outline-per.3",
+      "superseded_by": null,
+      "task": "fn-226-light-read-from-the-crowns-outline-per.3",
+      "timestamp": "2026-10-08T10:38:56.570991Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "0df81fd829734e8fc1aa4da16e8b1b0d899ee5cccedfdf9678586e503bf14bfe",
+      "backend": "codex",
+      "base_sha": "02481da1d59df70da22640b3a6db03df611446ae",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-052c6b8ef2cd0ed1c4b9c9a32c2cfe6a",
+            "classification": "introduced",
+            "findingId": "finding-052c6b8ef2cd0ed1c4b9c9a32c2cfe6a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-286b53f550acb536dc81315aad9d688b",
+            "classification": "introduced",
+            "findingId": "finding-286b53f550acb536dc81315aad9d688b",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2f58ba311913d9d2fa4ab424dd907910",
+            "classification": "introduced",
+            "findingId": "finding-2f58ba311913d9d2fa4ab424dd907910",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-aa080bfffae829554d1599d3fff56966",
+            "classification": "introduced",
+            "findingId": "finding-aa080bfffae829554d1599d3fff56966",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-53c1fe12ec471703869b336b70a53c62",
+            "classification": "introduced",
+            "findingId": "finding-53c1fe12ec471703869b336b70a53c62",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d4cda2451724f8182d4d7f64394881c9",
+            "classification": "introduced",
+            "findingId": "finding-d4cda2451724f8182d4d7f64394881c9",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e03da4e55b576108e5238645483a69e604ddbee8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 2027,
+      "output_sha256": "d9499b895713ebe70db9a57267a0e8c03e441691c8624940efa39abcc12ac3b6",
+      "reservation_id": "916133629db04286b1925b286a9dac17",
+      "round_consumed": true,
+      "scope": "impl:fn-226-light-read-from-the-crowns-outline-per.3",
+      "superseded_by": null,
+      "task": "fn-226-light-read-from-the-crowns-outline-per.3",
+      "timestamp": "2026-10-08T10:51:14.862371Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -220,6 +381,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-226-light-read-from-the-crowns-outline-per.2": 0,
+    "impl:fn-226-light-read-from-the-crowns-outline-per.3": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-226-light-read-from-the-crowns-outline-per.md",
@@ -236,5 +398,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T09:44:51.118628Z"
+  "updated_at": "2026-10-08T10:51:14.867106Z"
 }
