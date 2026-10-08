@@ -45,6 +45,12 @@
 //! `, insertion_spread: 0.0, tropism_spread: 0.0` left out of the text,
 //! each was still fn-221's; no preset states the rows, and the refusal
 //! digest did not move.
+//! fn-216 re-pinned all four for the flowers: the `/bloom` rows, the six
+//! `bloom*` colour rows of the material and each engine age's `flowering`
+//! share. With those stripped from the text, the family, walk and override
+//! digests were each fn-224's to the bit (checked again when fn-216 was
+//! merged onto fn-221 and fn-224, its rows' wire ranks moved past fn-221's);
+//! the refusal digest pairs rows by index, so the new rows re-paired it.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -80,7 +86,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        5_198_808_282_487_604_358,
+        12_144_119_496_183_200_092,
         "{}",
         digest(&text)
     );
@@ -112,7 +118,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        12_357_878_833_367_248_837,
+        1_083_375_237_726_504_847,
         "{}",
         digest(&text)
     );
@@ -137,7 +143,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        7_614_866_996_872_996_846,
+        1_375_746_499_999_063_417,
         "{}",
         digest(&text)
     );
@@ -200,7 +206,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        16_530_727_032_263_983_738,
+        12_063_149_108_300_327_074,
         "{}",
         digest(&text)
     );

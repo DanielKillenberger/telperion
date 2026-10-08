@@ -94,6 +94,7 @@ fn shell() -> TreeMesh {
         wood: SurfaceMesh::default(),
         curve: Default::default(),
         foliage: Foliage { element, instances },
+        organ: None,
         bounds: Bounds {
             min: CENTRE - Vec3::new(reach, reach, reach),
             max: CENTRE + Vec3::new(reach, reach, reach),

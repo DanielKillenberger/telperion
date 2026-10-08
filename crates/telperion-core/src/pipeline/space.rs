@@ -9,9 +9,11 @@
 //! draw, and all it bears) is not drawn, and a phytomer is merged into the
 //! last node drawn while the wood grown since that node is shorter than
 //! `SHORTEST`, so the sweep never meets a ring it cannot resolve in float32.
+//! A node's identity is its phytomer's lineage key, so every draw keyed by
+//! it is the node's own.
 use super::GrowInput;
 use crate::math::Vec3;
-use crate::tree::{Attachment, BudFate, Node, NodeKind, ShootState, Tree};
+use crate::tree::{Attachment, Bloom, BudFate, Node, NodeIdentity, NodeKind, ShootState, Tree};
 use crate::{Error, Result};
 use telperion_space::{Origin, Request, Structure};
 
@@ -61,7 +63,7 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     let (structure, fine, bases) =
         telperion_space::grow_marked(species, request).map_err(engine)?;
     fits(&structure, KEPT)?;
-    let rows = (&input.space.trunk[..], &internodes(species)[..]);
+    let rows = (&input.space.trunk[..], &pa_rows(species)[..]);
     Ok(convert(&structure, (&fine, &bases), rows))
 }
 
@@ -72,12 +74,12 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
 pub(super) async fn settled(
     input: GrowInput<'_>,
     roots: &mut dyn telperion_space::Roots,
-) -> Result<(telperion_space::Settled, Vec<usize>, Vec<(f64, f64)>)> {
+) -> Result<(telperion_space::Settled, Vec<usize>, Vec<PaRow>)> {
     let (species, request) = asked(input)?;
     let plan = telperion_space::Plan::default();
     let settling = telperion_space::settle(species, request, plan, roots);
     let (settled, _) = settling.await.map_err(engine)?;
-    Ok((settled, input.space.trunk.clone(), internodes(species)))
+    Ok((settled, input.space.trunk.clone(), pa_rows(species)))
 }
 
 /// `settled`'s structure above the cut and its roots laid on the CPU
@@ -86,14 +88,10 @@ pub(super) async fn settled(
 /// shed), and the roots laid on the CPU.
 pub(super) fn part(
     settled: telperion_space::Settled,
-    (trunk, internodes): (&[usize], &[(f64, f64)]),
+    (trunk, rows): (&[usize], &[PaRow]),
 ) -> (Tree, Vec<Option<u64>>, Vec<usize>) {
     let part = telperion_space::partial(settled);
-    let tree = convert(
-        &part.structure,
-        (&part.fine, &part.bases),
-        (trunk, internodes),
-    );
+    let tree = convert(&part.structure, (&part.fine, &part.bases), (trunk, rows));
     (tree, part.lineages, part.grounded)
 }
 
@@ -117,11 +115,24 @@ fn asked(input: GrowInput<'_>) -> Result<(&telperion_space::Species, Request)> {
     Ok((species, request))
 }
 
-/// Each PA's internode length and its spread (fn-222), which each node's
-/// grown wood is measured by.
-fn internodes(species: &telperion_space::Species) -> Vec<(f64, f64)> {
+/// Each PA's row the conversion reads: its internode length and spread
+/// (fn-222), which each node's grown wood is measured by, and the share of
+/// its nodes that flower (fn-216).
+#[derive(Debug, Clone, Copy)]
+pub(super) struct PaRow {
+    internode: f64,
+    spread: f64,
+    flowering: f64,
+}
+
+/// Each PA's row (`PaRow`).
+fn pa_rows(species: &telperion_space::Species) -> Vec<PaRow> {
     (species.states.iter())
-        .map(|s| (s.internode, s.form.internode_spread))
+        .map(|s| PaRow {
+            internode: s.internode,
+            spread: s.form.internode_spread,
+            flowering: s.flowering,
+        })
         .collect()
 }
 
@@ -246,17 +257,20 @@ fn joint(
 /// a limb stops being stem there, and a limb's relays never are, so the
 /// canopy measures its slender wood against the trunk, not a fork of
 /// limbs deep in the crown. Two trunk-level axes leaving one node, a
-/// codominant fork of the trunk, are both stem. `internodes` is each
-/// PA's internode length, which each node's grown wood is measured by.
+/// codominant fork of the trunk, are both stem. `rows` is each PA's row:
+/// its internode length, which each node's grown wood is measured by, and
+/// its flowering share; a drawn node of an age that flowers (none past its
+/// end) is kept as a bloom.
 fn convert(
     structure: &Structure,
     (fine, bases): (&[bool], &[(u64, f64)]),
-    (trunk, internodes): (&[usize], &[(f64, f64)]),
+    (trunk, rows): (&[usize], &[PaRow]),
 ) -> Tree {
     // Each fine root's node drawn from wood above the cut.
     let mut seams = Vec::new();
     let mut attachments = Vec::new();
     let mut nodes = vec![Node::root()];
+    let mut blooms = Vec::new();
     // Whether each node is a fine root's.
     let mut in_root = vec![false];
     let mut frames = vec![[0.0f32; 6]];
@@ -328,6 +342,7 @@ fn convert(
             continue;
         };
         let stem = stem && trunk.contains(&axis.pa);
+        let share = rows[axis.pa].flowering;
         let run = if lateral || parent == 0 {
             nodes.len() as u32
         } else {
@@ -347,7 +362,9 @@ fn convert(
         let mut made = false;
         // The wood grown since the axis's last node: the internodes merged
         // into a node are carried on to the next one drawn.
-        let (internode, spread) = internodes[axis.pa];
+        let PaRow {
+            internode, spread, ..
+        } = rows[axis.pa];
         let mut pending = 0.0;
         for (place, p) in axis
             .phytomers
@@ -369,6 +386,9 @@ fn convert(
                 continue;
             }
             let mut node = Node::root();
+            // Its identity is the key of the phytomer that made it: its
+            // lineage, the same node at any age and any cut (fn-220).
+            node.identity = NodeIdentity::lineage(p.key());
             let inherited = nodes[parent as usize].radius;
             let first = !made;
             node.shoot = ShootState {
@@ -408,6 +428,13 @@ fn convert(
             frames.push([h.x, h.y, h.z, s.x, s.y, s.z].map(|v| v as f32));
             keys.push(crate::tree::node_key(axis.lineage, place));
             lengths.push(std::mem::take(&mut pending));
+            if share > 0.0 {
+                blooms.push(Bloom {
+                    node: parent,
+                    share,
+                    side: up(p.side),
+                });
+            }
             made = true;
             drawn[i].push(parent);
             nodes.push(node);
@@ -456,6 +483,7 @@ fn convert(
         frames,
         keys,
         grown: lengths,
+        blooms,
         ..Tree::default()
     }
 }

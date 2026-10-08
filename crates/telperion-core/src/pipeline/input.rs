@@ -9,7 +9,7 @@ use crate::pipeline::foliage::Reach;
 use crate::{
     envelope::Envelope,
     math::Vec3,
-    pipeline::foliage::{CanopyParams, ElementParams, TwigPlacement},
+    pipeline::foliage::{BloomParams, CanopyParams, ElementParams, TwigPlacement},
     pipeline::surface::SurfaceParams,
     pipeline::twigs::TwigParams,
     presets::{space::Space, Family},
@@ -31,6 +31,9 @@ pub(crate) struct Inputs {
     pub(crate) surface: SurfaceInput,
     #[cfg(feature = "geometry")]
     pub(crate) leaves: LeafInput,
+    /// What flowers where the tree's ages flower (fn-216).
+    #[cfg(feature = "geometry")]
+    pub(crate) bloom: BloomParams,
 }
 
 /// The skeleton: the engine's species, the age it grows to and the seed.
@@ -151,6 +154,8 @@ impl Inputs {
                 seed: skeleton.seed,
                 shell_depth: family.shell_depth,
             },
+            #[cfg(feature = "geometry")]
+            bloom: family.bloom,
         }
     }
 }

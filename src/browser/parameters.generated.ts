@@ -339,7 +339,7 @@ export interface Family {
     card: boolean;
   };
   material: {
-    /** The bark's own colour, a linear reflectance per channel. Raising a channel pushes mature bark toward that colour. */
+    /** The bark's own colour, a linear reflectance per channel, not a display (sRGB) value; every colour row is on this one scale (see the reference's header). Shipped barks run 0.017 (the beech's blue) to 0.78 (the birch's white). Raising a channel pushes mature bark toward that colour. */
     barkRed: number;
     /** The green channel of `bark_red`. */
     barkGreen: number;
@@ -347,7 +347,7 @@ export interface Family {
     barkBlue: number;
     /** How diffuse the bark is: 0 is a mirror, 1 is chalk. */
     barkRoughness: number;
-    /** The young wood's own colour, before its bark has formed. Wood thinner than `shoot_radius` takes it, and gives it up to the bark colour on a smoothstep of its radius by twice that; zero means no wood is young. */
+    /** The young wood's own colour, a linear reflectance per channel on the bark's scale, before its bark has formed. Wood thinner than `shoot_radius` takes it, and gives it up to the bark colour on a smoothstep of its radius by twice that; zero means no wood is young. */
     shootRed: number;
     /** The green channel of `shoot_red`. */
     shootGreen: number;
@@ -367,24 +367,36 @@ export interface Family {
     matureRadius: number;
     /** Metres. How much further the radius grows before the bark is wholly old; zero turns it at once. */
     matureSpan: number;
-    /** The colour of a leaf's upper face, a linear reflectance per channel. Raising a channel pushes the sunlit face toward it. */
+    /** The colour of a leaf's upper face, a linear reflectance per channel, not a display (sRGB) value. A dark broadleaf face is a few hundredths (the beech 0.021/0.016/0.007, the oak 0.021/0.048/0.021); shipped faces run 0.007 to 0.19. Raising a channel pushes the sunlit face toward it. */
     leafFrontRed: number;
     /** The green channel of `leaf_front_red`. */
     leafFrontGreen: number;
     /** The blue channel of `leaf_front_red`. */
     leafFrontBlue: number;
-    /** The colour of a leaf's underside, shown wherever the eye sees the back of a blade. Raising a channel pushes that face toward it. */
+    /** The colour of a leaf's underside, a linear reflectance per channel on the upper face's scale (shipped: 0.011 to 0.28), shown wherever the eye sees the back of a blade. Raising a channel pushes that face toward it. */
     leafBackRed: number;
     /** The green channel of `leaf_back_red`. */
     leafBackGreen: number;
     /** The blue channel of `leaf_back_red`. */
     leafBackBlue: number;
-    /** The colour a dead frond has aged to, both faces alike, shown only on the fronds a rosette keeps below its living crown. Raising a channel pushes the skirt toward it. */
+    /** The colour a dead frond has aged to, a linear reflectance per channel on the leaf faces' scale, both faces alike, shown only on the fronds a rosette keeps below its living crown. Raising a channel pushes the skirt toward it. */
     leafDeadRed: number;
     /** The green channel of `leaf_dead_red`. */
     leafDeadGreen: number;
     /** The blue channel of `leaf_dead_red`. */
     leafDeadBlue: number;
+    /** The colour of a petal's upper face, a linear reflectance per channel on the leaf faces' scale, not a display (sRGB) value (fn-216): the flowers' own, drawn by the leaf shader. A white petal beside a beech's leaves is about 0.1 a channel; past about 0.15 it clips to flat white under the hero sun whatever its value. */
+    bloomFrontRed: number;
+    /** The green channel of `bloom_front_red`. */
+    bloomFrontGreen: number;
+    /** The blue channel of `bloom_front_red`. */
+    bloomFrontBlue: number;
+    /** The colour of a petal's underside, a linear reflectance per channel on `bloom_front_red`'s scale (fn-216): the flowers' own, drawn by the leaf shader. */
+    bloomBackRed: number;
+    /** The green channel of `bloom_back_red`. */
+    bloomBackGreen: number;
+    /** The blue channel of `bloom_back_red`. */
+    bloomBackBlue: number;
     /** The hue offsets one leaf may take, as a fraction of the colour circle. */
     hueRangeLow: number;
     /** The upper end of the hue offsets `hue_range_low` opens. */
@@ -521,7 +533,7 @@ export interface Family {
     lenticelTint: number;
     /** How far the plate network's strips curl away: they stretch across the wood into bands, lift at their lower edge, and this share of them has peeled off to show the inner bark. At zero no strip has peeled at all, and any rise switches the peel on. */
     peelCurl: number;
-    /** The inner bark a peeled strip leaves showing. */
+    /** The inner bark a peeled strip leaves showing, a linear reflectance like the bark's. */
     peelRed: number;
     /** The green channel of `peel_red`. */
     peelGreen: number;
@@ -541,6 +553,40 @@ export interface Family {
     bladeGrainScale: number;
     /** How far that grain varies the blade's colour and tilts its normal. */
     bladeGrainStrength: number;
+  };
+  bloom: {
+    /** Florets on one inflorescence. The fractional part is the last floret's size, so a walk across counts grows one in by degree. */
+    florets: number;
+    /** Metres of the inflorescence's axis the florets stand along: zero is a cluster at the node, a few centimetres a raceme or catkin. */
+    rachis: number;
+    /** How the axis turns from the bud's side as it grows: 1 hangs straight down, -1 stands up as a candle, 0 holds the side. */
+    droop: number;
+    /** Metres of stalk between the axis and each floret. */
+    pedicel: number;
+    /** The degrees a floret's stalk leaves the axis: small packs a spike, ninety spreads a raceme, more fans a cluster back. */
+    spread: number;
+    /** How much smaller the floret at the axis's tip is than the one at its base, as a share. */
+    taper: number;
+    /** Petals on a floret, turned evenly about it by the count. The fractional part is the last petal's size (host decision 4), so a walk across counts changes a flower by degree. */
+    petals: number;
+    /** The degrees a petal opens from the floret's axis: a bud near zero, an open blossom near ninety. */
+    open: number;
+    /** A petal's length in metres. */
+    petalLength: number;
+    /** A petal's greatest width in metres. */
+    petalWidth: number;
+    /** Where a petal is widest, as a share from its base to its tip. */
+    petalWidest: number;
+    /** How far a petal's margins lift out of its plane, as a share of its half-width: a cupped blossom. */
+    petalCup: number;
+    /** How far a floret's size varies from one to the next, as a share. */
+    scatter: number;
+    /** Where in the year the flowering window opens, as a share of the year from its start. */
+    opens: number;
+    /** How long the window lasts, as a share of the year. A floret grows in and shrinks out inside it; zero flowers never. */
+    lasts: number;
+    /** The share of the window the florets' openings are spread over: zero opens every floret at once. */
+    stagger: number;
   };
 }
 
@@ -729,11 +775,11 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/element/axialSegments", kind: "count", optional: false, meaning: "How many sections the blade is built from along its length. Raising it draws the outline and any lobes more smoothly, at more triangles per leaf.", unit: "sections", low: 2, high: 64, lowOpen: false, zero: false, applies: "`card`", reach: "mature", dial: { window: [2, 64], step: 8 } },
   { path: "/element/crossSegments", kind: "count", optional: false, meaning: "How many columns the blade is built from across its width. Raising it draws the section and the margins more smoothly, at more triangles per leaf.", unit: "columns", low: 2, high: 64, lowOpen: false, zero: false, applies: "`card`", reach: "mature", dial: { window: [2, 64], step: 1 } },
   { path: "/element/card", kind: "switch", optional: false, meaning: "A flat two-triangle card in place of the modelled blade: no outline, no cup or curl, no sections and no connector.", unit: "switch", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature" },
-  { path: "/material/barkRed", kind: "real", optional: false, meaning: "The bark's own colour, a linear reflectance per channel. Raising a channel pushes mature bark toward that colour.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
+  { path: "/material/barkRed", kind: "real", optional: false, meaning: "The bark's own colour, a linear reflectance per channel, not a display (sRGB) value; every colour row is on this one scale (see the reference's header). Shipped barks run 0.017 (the beech's blue) to 0.78 (the birch's white). Raising a channel pushes mature bark toward that colour.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/barkGreen", kind: "real", optional: false, meaning: "The green channel of `bark_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/barkBlue", kind: "real", optional: false, meaning: "The blue channel of `bark_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/barkRoughness", kind: "real", optional: false, meaning: "How diffuse the bark is: 0 is a mirror, 1 is chalk.", unit: "-", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
-  { path: "/material/shootRed", kind: "real", optional: false, meaning: "The young wood's own colour, before its bark has formed. Wood thinner than `shoot_radius` takes it, and gives it up to the bark colour on a smoothstep of its radius by twice that; zero means no wood is young.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`shootRadius` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
+  { path: "/material/shootRed", kind: "real", optional: false, meaning: "The young wood's own colour, a linear reflectance per channel on the bark's scale, before its bark has formed. Wood thinner than `shoot_radius` takes it, and gives it up to the bark colour on a smoothstep of its radius by twice that; zero means no wood is young.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`shootRadius` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/shootGreen", kind: "real", optional: false, meaning: "The green channel of `shoot_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`shootRadius` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/shootBlue", kind: "real", optional: false, meaning: "The blue channel of `shoot_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`shootRadius` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/shootRadius", kind: "real", optional: false, meaning: "Metres. The radius below which wood is young.", unit: "m", low: 0, high: 0.1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 0.1], step: 0.015 } },
@@ -743,15 +789,21 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/material/matureFurrowStrength", kind: "real", optional: false, meaning: "The furrow strength old bark takes in place of `furrow_strength`, over the same radius range as its colour: how deep it fissures.", unit: "-", low: 0, high: 1, lowOpen: false, zero: false, applies: "`matureRadius` zero, or `ridgeScale` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/matureRadius", kind: "real", optional: false, meaning: "Metres. The radius at which bark starts to turn old; zero means no wood is old.", unit: "m", low: 0, high: 2, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 2], step: 0.015 } },
   { path: "/material/matureSpan", kind: "real", optional: false, meaning: "Metres. How much further the radius grows before the bark is wholly old; zero turns it at once.", unit: "m", low: 0, high: 2, lowOpen: false, zero: false, applies: "`matureRadius` zero", reach: "mature", dial: { window: [0, 2], step: 0.015 } },
-  { path: "/material/leafFrontRed", kind: "real", optional: false, meaning: "The colour of a leaf's upper face, a linear reflectance per channel. Raising a channel pushes the sunlit face toward it.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.02 } },
+  { path: "/material/leafFrontRed", kind: "real", optional: false, meaning: "The colour of a leaf's upper face, a linear reflectance per channel, not a display (sRGB) value. A dark broadleaf face is a few hundredths (the beech 0.021/0.016/0.007, the oak 0.021/0.048/0.021); shipped faces run 0.007 to 0.19. Raising a channel pushes the sunlit face toward it.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.02 } },
   { path: "/material/leafFrontGreen", kind: "real", optional: false, meaning: "The green channel of `leaf_front_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/leafFrontBlue", kind: "real", optional: false, meaning: "The blue channel of `leaf_front_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.015 } },
-  { path: "/material/leafBackRed", kind: "real", optional: false, meaning: "The colour of a leaf's underside, shown wherever the eye sees the back of a blade. Raising a channel pushes that face toward it.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
+  { path: "/material/leafBackRed", kind: "real", optional: false, meaning: "The colour of a leaf's underside, a linear reflectance per channel on the upper face's scale (shipped: 0.011 to 0.28), shown wherever the eye sees the back of a blade. Raising a channel pushes that face toward it.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/leafBackGreen", kind: "real", optional: false, meaning: "The green channel of `leaf_back_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.025 } },
   { path: "/material/leafBackBlue", kind: "real", optional: false, meaning: "The blue channel of `leaf_back_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.025 } },
-  { path: "/material/leafDeadRed", kind: "real", optional: false, meaning: "The colour a dead frond has aged to, both faces alike, shown only on the fronds a rosette keeps below its living crown. Raising a channel pushes the skirt toward it.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no dead frond (`canopy.skirtFronds` zero)", reach: "mature", dial: { window: [0, 1], step: 0.05 } },
+  { path: "/material/leafDeadRed", kind: "real", optional: false, meaning: "The colour a dead frond has aged to, a linear reflectance per channel on the leaf faces' scale, both faces alike, shown only on the fronds a rosette keeps below its living crown. Raising a channel pushes the skirt toward it.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no dead frond (`canopy.skirtFronds` zero)", reach: "mature", dial: { window: [0, 1], step: 0.05 } },
   { path: "/material/leafDeadGreen", kind: "real", optional: false, meaning: "The green channel of `leaf_dead_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no dead frond (`canopy.skirtFronds` zero)", reach: "mature", dial: { window: [0, 1], step: 0.05 } },
   { path: "/material/leafDeadBlue", kind: "real", optional: false, meaning: "The blue channel of `leaf_dead_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no dead frond (`canopy.skirtFronds` zero)", reach: "mature", dial: { window: [0, 1], step: 0.05 } },
+  { path: "/material/bloomFrontRed", kind: "real", optional: false, meaning: "The colour of a petal's upper face, a linear reflectance per channel on the leaf faces' scale, not a display (sRGB) value (fn-216): the flowers' own, drawn by the leaf shader. A white petal beside a beech's leaves is about 0.1 a channel; past about 0.15 it clips to flat white under the hero sun whatever its value.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/material/bloomFrontGreen", kind: "real", optional: false, meaning: "The green channel of `bloom_front_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/material/bloomFrontBlue", kind: "real", optional: false, meaning: "The blue channel of `bloom_front_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/material/bloomBackRed", kind: "real", optional: false, meaning: "The colour of a petal's underside, a linear reflectance per channel on `bloom_front_red`'s scale (fn-216): the flowers' own, drawn by the leaf shader.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/material/bloomBackGreen", kind: "real", optional: false, meaning: "The green channel of `bloom_back_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/material/bloomBackBlue", kind: "real", optional: false, meaning: "The blue channel of `bloom_back_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/material/hueRangeLow", kind: "real", optional: false, meaning: "The hue offsets one leaf may take, as a fraction of the colour circle.", unit: "-", low: -0.5, high: 0.5, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [-0.5, 0], step: 0.0025 } },
   { path: "/material/hueRangeHigh", kind: "real", optional: false, meaning: "The upper end of the hue offsets `hue_range_low` opens.", unit: "-", low: -0.5, high: 0.5, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 0.5], step: 0.0025 } },
   { path: "/material/brightnessRangeLow", kind: "real", optional: false, meaning: "The brightness offsets one leaf may take, about no change at all.", unit: "-", low: -1, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [-1, 0], step: 0.015 } },
@@ -820,7 +872,7 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/material/lenticelStrength", kind: "real", optional: false, meaning: "How far a dash shows: its tint, and the shallow groove it cuts.", unit: "-", low: 0, high: 1, lowOpen: false, zero: false, applies: "`lenticelLength` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/lenticelTint", kind: "real", optional: false, meaning: "A dash's value against the bark it marks: -1 is black, 0 no change.", unit: "-", low: -1, high: 1, lowOpen: false, zero: false, applies: "`lenticelStrength` or `lenticelLength` zero", reach: "mature", dial: { window: [-1, 1], step: 0.25 } },
   { path: "/material/peelCurl", kind: "real", optional: false, meaning: "How far the plate network's strips curl away: they stretch across the wood into bands, lift at their lower edge, and this share of them has peeled off to show the inner bark. At zero no strip has peeled at all, and any rise switches the peel on.", unit: "-", low: 0, high: 1, lowOpen: false, zero: false, applies: "`ridgeScale` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
-  { path: "/material/peelRed", kind: "real", optional: false, meaning: "The inner bark a peeled strip leaves showing.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`peelCurl` or `ridgeScale` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
+  { path: "/material/peelRed", kind: "real", optional: false, meaning: "The inner bark a peeled strip leaves showing, a linear reflectance like the bark's.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`peelCurl` or `ridgeScale` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/peelGreen", kind: "real", optional: false, meaning: "The green channel of `peel_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`peelCurl` or `ridgeScale` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/peelBlue", kind: "real", optional: false, meaning: "The blue channel of `peel_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`peelCurl` or `ridgeScale` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/lobeShade", kind: "real", optional: false, meaning: "How much of the sky and of what passes through the blade a leaf loses to the leaves of its own lobe standing over it, read from the crown's own placements rather than from one smooth ellipsoid: a lobe's face is lit and what hangs under it falls into its shade. Zero sees none of it.", unit: "-", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
@@ -830,4 +882,20 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/material/barkGrainStrength", kind: "real", optional: false, meaning: "How far the grain varies the bark's colour and tilts its normal.", unit: "-", low: 0, high: 1, lowOpen: false, zero: false, applies: "`barkGrainScale` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/bladeGrainScale", kind: "real", optional: false, meaning: "The blade's cell grain, in cells per blade length; zero is none.", unit: "-", low: 0, high: 256, lowOpen: false, zero: false, applies: "`bladeGrainStrength` zero", reach: "mature", dial: { window: [0, 256], step: 20 } },
   { path: "/material/bladeGrainStrength", kind: "real", optional: false, meaning: "How far that grain varies the blade's colour and tilts its normal.", unit: "-", low: 0, high: 1, lowOpen: false, zero: false, applies: "`bladeGrainScale` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
+  { path: "/bloom/florets", kind: "real", optional: false, meaning: "Florets on one inflorescence. The fractional part is the last floret's size, so a walk across counts grows one in by degree.", unit: "florets", low: 1, high: 64, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/rachis", kind: "real", optional: false, meaning: "Metres of the inflorescence's axis the florets stand along: zero is a cluster at the node, a few centimetres a raceme or catkin.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/droop", kind: "real", optional: false, meaning: "How the axis turns from the bud's side as it grows: 1 hangs straight down, -1 stands up as a candle, 0 holds the side.", unit: "share", low: -1, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/pedicel", kind: "real", optional: false, meaning: "Metres of stalk between the axis and each floret.", unit: "m", low: 0, high: 0.5, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/spread", kind: "real", optional: false, meaning: "The degrees a floret's stalk leaves the axis: small packs a spike, ninety spreads a raceme, more fans a cluster back.", unit: "degrees", low: 0, high: 180, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/taper", kind: "real", optional: false, meaning: "How much smaller the floret at the axis's tip is than the one at its base, as a share.", unit: "share", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/petals", kind: "real", optional: false, meaning: "Petals on a floret, turned evenly about it by the count. The fractional part is the last petal's size (host decision 4), so a walk across counts changes a flower by degree.", unit: "petals", low: 1, high: 12, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/open", kind: "real", optional: false, meaning: "The degrees a petal opens from the floret's axis: a bud near zero, an open blossom near ninety.", unit: "degrees", low: 0, high: 180, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/petalLength", kind: "real", optional: false, meaning: "A petal's length in metres.", unit: "m", low: 0.0001, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/petalWidth", kind: "real", optional: false, meaning: "A petal's greatest width in metres.", unit: "m", low: 0.0001, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/petalWidest", kind: "real", optional: false, meaning: "Where a petal is widest, as a share from its base to its tip.", unit: "share of the petal", low: 0.05, high: 0.95, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/petalCup", kind: "real", optional: false, meaning: "How far a petal's margins lift out of its plane, as a share of its half-width: a cupped blossom.", unit: "share of the half-width", low: -2, high: 2, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/scatter", kind: "real", optional: false, meaning: "How far a floret's size varies from one to the next, as a share.", unit: "share", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/opens", kind: "real", optional: false, meaning: "Where in the year the flowering window opens, as a share of the year from its start.", unit: "share of the year", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/lasts", kind: "real", optional: false, meaning: "How long the window lasts, as a share of the year. A floret grows in and shrinks out inside it; zero flowers never.", unit: "share of the year", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/stagger", kind: "real", optional: false, meaning: "The share of the window the florets' openings are spread over: zero opens every floret at once.", unit: "share of the window", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
 ];

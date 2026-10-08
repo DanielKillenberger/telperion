@@ -72,7 +72,29 @@ const SWEEP_NODES: usize = 8_000;
 // and the shell depth moved only between such pairs, so they are held.
 // fn-221's six old-bark rows are stated by no preset yet (fn-213 owns the
 // birch's), so every table leaves them at their neutral and they are held.
-const HELD: [&str; 78] = [
+const HELD: [&str; 100] = [
+    "/bloom/florets",
+    "/bloom/rachis",
+    "/bloom/droop",
+    "/bloom/pedicel",
+    "/bloom/spread",
+    "/bloom/taper",
+    "/bloom/petals",
+    "/bloom/open",
+    "/bloom/petalLength",
+    "/bloom/petalWidth",
+    "/bloom/petalWidest",
+    "/bloom/petalCup",
+    "/bloom/scatter",
+    "/bloom/opens",
+    "/bloom/lasts",
+    "/bloom/stagger",
+    "/material/bloomFrontRed",
+    "/material/bloomFrontGreen",
+    "/material/bloomFrontBlue",
+    "/material/bloomBackRed",
+    "/material/bloomBackGreen",
+    "/material/bloomBackBlue",
     "/canopy/clumpSystemOrder",
     "/canopy/limbClumping",
     "/canopy/shortShootSpacing",

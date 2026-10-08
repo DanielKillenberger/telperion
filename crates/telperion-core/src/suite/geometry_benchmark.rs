@@ -336,6 +336,14 @@ fn frozen_parameters_resolve_without_default_substitution() {
             let radii = emitted["radii"].as_object_mut().unwrap();
             assert_eq!(radii.remove(key).unwrap().as_f64(), Some(value), "{key}");
         }
+        // fn-216 added the flowers' rows. The frozen file predates them;
+        // where no age flowers, which is every frozen tree, they act on
+        // nothing.
+        emitted
+            .as_object_mut()
+            .unwrap()
+            .remove("bloom")
+            .expect("the flowers' rows");
         for key in ["element", "canopy", "radii", "surface"] {
             same_numbers(&emitted[key], &given[key]);
         }

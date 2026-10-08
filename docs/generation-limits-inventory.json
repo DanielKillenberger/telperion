@@ -1504,5 +1504,101 @@
     "site": "if let Some ( k ) = ( 0 . . AGES ) . find ( | & k | stated [ k ] & & states [ k ] . lifespan < = 0 . 0 ) {",
     "classification": "algorithm",
     "reason": "Refuses a /space row on an age with no lifespan, which the engine's canonical form would overwrite; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A share (presence, a place along the axis, a blend) held to the unit interval it is defined on; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A share (presence, a place along the axis, a blend) held to the unit interval it is defined on; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A share (presence, a place along the axis, a blend) held to the unit interval it is defined on; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A share (presence, a place along the axis, a blend) held to the unit interval it is defined on; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". max ( 0 . 0 )",
+    "classification": "algorithm",
+    "reason": "The axis tangent's first segment midpoint: an index into the laid axis, never a count."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". min ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A floret's place along its axis and its count's fraction held to the unit interval; it limits no population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". min ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A floret's place along its axis and its count's fraction held to the unit interval; it limits no population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". min ( SEGMENTS - 1 )",
+    "classification": "algorithm",
+    "reason": "The last segment of the laid axis, an index bound; it limits no population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". min ( SEGMENTS - 2 )",
+    "classification": "algorithm",
+    "reason": "The last pair of segment tangents, an index bound; it limits no population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": ". min ( smooth ( ( 1 . 0 - x ) / GROW ) )",
+    "classification": "algorithm",
+    "reason": "A floret grows in and fades by the lesser of its two ramps; a shape of the season, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": "const SEGMENTS : usize = 8 ;",
+    "classification": "algorithm",
+    "reason": "The segments an inflorescence axis is laid in: the resolution of one short curve, not a population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": "for k in 0 . . SEGMENTS {",
+    "classification": "algorithm",
+    "reason": "Lays the inflorescence axis in its fixed number of segments, a resolution of one curve, not a population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": "if grown < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A bloom whose presence has not grown in draws nothing: the share by degree, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": "if life < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A window of no length flowers never, as the row states."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom.rs",
+    "site": "if x > = 1 . 0 {",
+    "classification": "algorithm",
+    "reason": "A floret past its own stretch of the window is gone: the season, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/executor.rs",
+    "site": "if species . states . iter ( ) . any ( | s | s . flowering > 0 . 0 ) {",
+    "classification": "algorithm",
+    "reason": "Whether any age flowers selects the executor (an interim recorded gap until fn-125's GPU bloom pass); it limits no generated population."
   }
 ]

@@ -62,6 +62,7 @@ fn small() -> TreeMesh {
             element: Element::default(),
             instances: leaves(2),
         },
+        organ: None,
         bounds: Bounds {
             min: Vec3::ZERO,
             max: Vec3::Y,

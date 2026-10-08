@@ -26,6 +26,10 @@ pub struct TreeMesh {
     #[cfg(feature = "geometry")]
     pub curve: crate::surface::Curve,
     pub foliage: Foliage,
+    /// The flowers, drawn as a second foliage with colours of their own;
+    /// none where the tree flowers nowhere (fn-216).
+    #[cfg(feature = "geometry")]
+    pub organ: Option<Foliage>,
     pub bounds: Bounds,
 }
 impl TreeMesh {
@@ -72,7 +76,10 @@ pub(crate) fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
 #[cfg(test)]
 pub(crate) fn grow(family: &Family) -> Result<crate::tree::Tree> {
     let mut tree = pipeline::scaffold(family)?;
-    pipeline::clothe(&mut tree, &pipeline::Inputs::of(family, family.skeleton.envelope))?;
+    pipeline::clothe(
+        &mut tree,
+        &pipeline::Inputs::of(family, family.skeleton.envelope),
+    )?;
     Ok(tree)
 }
 
@@ -100,8 +107,13 @@ pub(crate) fn assembled(outputs: pipeline::Outputs) -> Result<TreeMesh> {
     let curve = outputs
         .curve
         .ok_or(Error::InvalidInput("mesh needs the wood's curve"))?;
-    let bounds = union(wood.bounds, leaves.bounds.map(Bounds::from))
-        .ok_or(Error::InvalidInput("mesh has no geometry"))?;
+    let bounds = union(wood.bounds, leaves.bounds.map(Bounds::from));
+    #[cfg(feature = "geometry")]
+    let bounds = match &outputs.organ {
+        Some(o) => union(bounds, o.instances.bounds(&o.element)?.map(Bounds::from)),
+        None => bounds,
+    };
+    let bounds = bounds.ok_or(Error::InvalidInput("mesh has no geometry"))?;
     Ok(TreeMesh {
         wood,
         #[cfg(feature = "geometry")]
@@ -110,6 +122,8 @@ pub(crate) fn assembled(outputs: pipeline::Outputs) -> Result<TreeMesh> {
             element,
             instances: leaves.instances,
         },
+        #[cfg(feature = "geometry")]
+        organ: outputs.organ,
         bounds,
     })
 }

@@ -3,7 +3,7 @@
 use crate::catalogue::{bounded, input, value, Blend, Bounds, Dial, Growth, Site};
 use crate::{
     branching::SkeletonParams,
-    foliage::{CanopyParams, ElementParams},
+    foliage::{BloomParams, CanopyParams, ElementParams},
     material::MaterialParams,
     radius::RadiusParams,
     surface::SurfaceParams,
@@ -34,6 +34,8 @@ crate::catalogue::rows! {
         pub canopy: CanopyParams,
         pub element: ElementParams,
         pub material: MaterialParams,
+        /// What flowers where the engine's ages flower (fn-216).
+        pub bloom: BloomParams,
         /// The tree-space engine's species, the ages that are stem and the
         /// site's light: the indexed `/space` rows (`presets/space.rs`).
         pub space: crate::presets::space::Space,
@@ -67,6 +69,7 @@ impl Default for Family {
             canopy: CanopyParams::default(),
             element: ElementParams::default(),
             material: MaterialParams::default(),
+            bloom: BloomParams::default(),
             space: Default::default(),
             shell_depth: 0.45,
         }
@@ -99,6 +102,7 @@ impl Family {
         self.surface.validate()?;
         height(self.skeleton.envelope.height)?;
         build_element(self.element)?;
+        crate::catalogue::check(BloomParams::CHECKS, &self.bloom, Site::Bloom)?;
         canopy_rows(self.canopy, Some(TwigPlacement::of(self)?))?;
         Instances::new(Reference::of(self)?).validate()?;
         crate::catalogue::check(Self::CHECKS, self, Site::Shell)

@@ -106,6 +106,9 @@ pub struct Renderer {
     shadow: shadow::Shadow,
     wood: wood::Wood,
     foliage: foliage::Foliage,
+    /// The flowers (fn-216): a second foliage drawn by the same shader under
+    /// a colour block of their own; empty where the tree flowers nowhere.
+    organ: foliage::Foliage,
     view: View,
     /// Whether the room draws its scale figure. On unless a still imitates a
     /// photograph.
@@ -157,6 +160,7 @@ impl Renderer {
         let scene = scene::Scene::new(&gpu, surface, shadow.layout());
         let wood = wood::Wood::new(&gpu, scene.layout(), &shadow, surface);
         let foliage = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface);
+        let organ = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface);
         Self {
             identity: std::sync::Arc::new(()),
             gpu,
@@ -164,6 +168,7 @@ impl Renderer {
             shadow,
             wood,
             foliage,
+            organ,
             view: View::default(),
             frame_failed: Default::default(),
             figure: true,
@@ -203,6 +208,7 @@ impl Renderer {
         fits(&self.gpu.device.limits(), mesh)?;
         self.wood.submit(&self.gpu, &mesh.curve);
         self.foliage.submit(&self.gpu, &mesh.foliage, level);
+        self.submit_organ(mesh.organ.as_ref(), level);
         self.scene
             .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
         self.scene.set_crown(crown_of(&mesh.foliage));
@@ -223,6 +229,19 @@ impl Renderer {
             foliage_instances: mesh.foliage_instances(),
             bounds: mesh.bounds,
         })
+    }
+
+    /// Uploads the flowers, or empties their draw where there are none, so
+    /// no later tree inherits the last one's.
+    fn submit_organ(&mut self, organ: Option<&telperion_core::mesh::Foliage>, level: Level) {
+        let empty = telperion_core::mesh::Foliage {
+            element: telperion_core::foliage::Element::default(),
+            instances: telperion_core::foliage::Instances::default(),
+        };
+        let organ_or_none = organ.unwrap_or(&empty);
+        self.organ.submit(&self.gpu, organ_or_none, level);
+        self.scene
+            .set_organ_reference(organ.map(|o| o.instances.reference));
     }
 
     /// Surfaces the wood as if every frame were `viewport` in size, so
@@ -478,6 +497,8 @@ impl Renderer {
             self.view,
             selection_writes,
         );
+        self.organ
+            .dispatch(&self.gpu, &mut encoder, camera, viewport, self.view, None);
         {
             let mut pass = self.shadow.begin(&mut encoder, shadow_writes);
             match self.view {
@@ -521,7 +542,11 @@ impl Renderer {
             self.shadow.bind(&mut pass);
             match self.view {
                 View::Leaf => self.foliage.draw(&mut pass, self.view),
-                view => self.wood.draw(&mut pass) + self.foliage.draw(&mut pass, view),
+                view => {
+                    let tree = self.wood.draw(&mut pass) + self.foliage.draw(&mut pass, view);
+                    self.scene.bind_organ(&mut pass);
+                    tree + self.organ.draw(&mut pass, view)
+                }
             }
         };
         self.gpu.submit([encoder.finish()]);

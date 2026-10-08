@@ -1,6 +1,9 @@
 //! Owned leaf elements and placements. No wood mesh is needed by this module.
 #[cfg(test)]
 use crate::math::Transcendental;
+#[cfg(feature = "geometry")]
+mod bloom;
+mod bloom_params;
 mod canopy;
 mod clumping;
 mod element;
@@ -24,6 +27,9 @@ use crate::envelope::{distance_to_profile, Envelope};
 use crate::{math::Vec3, Error, Result};
 /// Every canopy rail `place` judges, with no tree to place against.
 pub(crate) use canopy::rows as canopy_rows;
+pub use bloom_params::BloomParams;
+#[cfg(feature = "geometry")]
+pub(crate) use bloom::{element as bloom_element, place as place_blooms};
 pub use canopy::{CanopyParams, TwigPlacement, MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING};
 pub use element::{build_element, AnatomyGeometry, Element, ElementParams, FoliageUnit};
 pub use levels::Level;

@@ -67,11 +67,19 @@ pub struct Part {
 /// no engine species, a species the realized settle grows whole
 /// (`telperion_space::apart`), or leaves that stand on no regular twig
 /// stations (the palm's fronds), which the executor's stations cannot
-/// number. Such a tree is built by `grow` on the CPU: a capability the
-/// executor selects by, never a fallback from a failure.
+/// number, or an age that flowers: the flowers are drawn from the tree the
+/// CPU converts (`Expansion::organ`), which a fine root dressed on the
+/// device never enters. Such a tree is built by `grow` on the CPU: a
+/// capability the executor selects by, never a fallback from a failure.
+/// The flowering gap is interim (host, 2026-10-08): a share crossing zero
+/// switches executors until the device draws its own roots' flowers
+/// (fn-125's GPU bloom pass).
 pub fn apart(family: &Family) -> std::result::Result<(), &'static str> {
     let species = family.space.species.as_ref().ok_or("no engine species")?;
     telperion_space::apart(species)?;
+    if species.states.iter().any(|s| s.flowering > 0.0) {
+        return Err("it flowers, and the device's fine roots draw no flowers yet (fn-125)");
+    }
     let inputs = Inputs::of(family, Envelope::default());
     let twig = inputs.plan.twig.ok();
     if !prepared::supports_stations(inputs.leaves.canopy, twig) {
@@ -84,11 +92,11 @@ pub fn apart(family: &Family) -> std::result::Result<(), &'static str> {
 /// `Settling::part` converts. Each of the executor's phases is awaited
 /// (fn-212 task 10): natively the caller blocks on it, a browser awaits.
 pub async fn settle(family: &Family, roots: &mut dyn telperion_space::Roots) -> Result<Settling> {
-    let (settled, trunk, internodes) = super::space::settled(GrowInput::of(family), roots).await?;
+    let (settled, trunk, rows) = super::space::settled(GrowInput::of(family), roots).await?;
     Ok(Settling {
         settled,
         trunk,
-        internodes,
+        rows,
     })
 }
 
@@ -97,13 +105,13 @@ pub async fn settle(family: &Family, roots: &mut dyn telperion_space::Roots) -> 
 pub struct Settling {
     pub settled: telperion_space::Settled,
     trunk: Vec<usize>,
-    internodes: Vec<(f64, f64)>,
+    rows: Vec<super::space::PaRow>,
 }
 
 impl Settling {
     /// The part of the tree the pipeline converts.
     pub fn part(self) -> Part {
-        let rows = (&self.trunk[..], &self.internodes[..]);
+        let rows = (&self.trunk[..], &self.rows[..]);
         let (tree, lineages, grounded) = super::space::part(self.settled, rows);
         Part {
             tree,
@@ -330,6 +338,19 @@ impl Expansion {
     pub fn wood(&self) -> Result<SurfaceMesh> {
         let s = &self.inputs.surface;
         surface::build(&self.tree, s.height, &s.params)
+    }
+    /// The flowers at the window's middle (fn-216), a CPU step over the
+    /// converted tree: their element and florets, keyed by each node's
+    /// lineage; none where the tree flowers nowhere. A flowering tree is
+    /// grown whole (`apart`), so no bloom lies in a device's fine roots.
+    pub fn organ(&self) -> Result<Option<mesh::Foliage>> {
+        if self.tree.blooms.is_empty() {
+            return Ok(None);
+        }
+        let bloom = &self.inputs.bloom;
+        let element = foliage::bloom_element(bloom)?;
+        let instances = foliage::place_blooms(&self.tree, bloom, None)?;
+        Ok(Some(mesh::Foliage { element, instances }))
     }
     /// The pipeline's own CPU build of this tree: the reference a GPU
     /// expansion falls back to.

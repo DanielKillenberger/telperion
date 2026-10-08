@@ -27,7 +27,7 @@ use telperion_core::foliage::Instances;
 use telperion_core::mesh::{Foliage, TreeMesh};
 use telperion_core::pipeline::executor::{self, beyond, bins, Expansion};
 use telperion_core::presets::Family;
-use telperion_core::surface::SurfaceMesh;
+use telperion_core::surface::{Bounds, SurfaceMesh};
 use telperion_core::Error;
 use telperion_space::{ChainTables, GeometryTables};
 
@@ -292,8 +292,15 @@ pub(super) async fn build(
     for b in [&swept.point_buffer, &swept.cluster_buffer, &swept.table] {
         b.destroy();
     }
+    // The flowers of the part the CPU converted (fn-216): none, since a
+    // flowering tree is refused this path (`executor::apart`).
+    let organ = x.organ()?;
+    let flowers = match &organ {
+        Some(o) => o.instances.bounds(&o.element)?.map(Bounds::from),
+        None => None,
+    };
     let bounds = union(union(curve.bounds(), handed.fine), resident.full);
-    let bounds = bounds.ok_or_else(|| refused("mesh has no geometry"))?;
+    let bounds = union(bounds, flowers).ok_or_else(|| refused("mesh has no geometry"))?;
     let mesh = TreeMesh {
         wood: SurfaceMesh::default(),
         curve,
@@ -301,6 +308,7 @@ pub(super) async fn build(
             element: x.element().clone(),
             instances: Instances::new(reference),
         },
+        organ,
         bounds,
     };
     crate::submit::fits_count(&gpu.device.limits(), &mesh, count as usize)?;

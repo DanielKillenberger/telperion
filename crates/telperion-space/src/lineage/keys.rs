@@ -16,6 +16,8 @@ pub enum Under {
     Node,
     /// A bud place's key, or its sleeping bud's.
     Place,
+    /// A floret's key: its bloom's `FLORET` draw and its index (fn-216).
+    Floret,
 }
 
 /// The draws of one growth unit, under its unit key.
@@ -59,12 +61,25 @@ pub const TROPISM: u64 = u64::MAX - 12;
 /// A node's wander, under its node's key: apart from its places, so its
 /// wander and its placement are drawn apart (host, 2026-10-07).
 pub const WANDER: u64 = u64::MAX - 13;
+/// Whether a bloom flowers, under its node's key (fn-216); clear of the
+/// node's places, so a flower and a bud never draw alike.
+pub const BLOOM: u64 = 0x0b10_0000;
+/// A bloom's inflorescence's roll about its bud's side, under its node's
+/// key (fn-216).
+pub const BLOOM_ROLL: u64 = 0x0b10_0001;
+/// A bloom's florets, keyed `FLORET` and then the floret's index under its
+/// node's key (fn-216).
+pub const FLORET: u64 = 0x0b10_0002;
+/// A floret's size scatter and its opening in the season, under its
+/// floret's key (fn-216).
+pub const FLORET_SIZE: u64 = 0;
+pub const FLORET_OPENING: u64 = 1;
 /// An axis carried on into an age, under its chain's lineage.
 pub const CONTINUATION: u64 = u64::MAX;
 
 /// Every key: its name, value and what it is drawn under. `ZONE` and
 /// `PLACE` stand for their spans.
-pub const ALL: [(&str, u64, Under); 18] = [
+pub const ALL: [(&str, u64, Under); 23] = [
     ("VIABILITY", VIABILITY, Under::Unit),
     ("ABORTION", ABORTION, Under::Unit),
     ("MOVE", MOVE, Under::Unit),
@@ -82,6 +97,11 @@ pub const ALL: [(&str, u64, Under); 18] = [
     ("INSERTION", INSERTION, Under::Lineage),
     ("TROPISM", TROPISM, Under::Lineage),
     ("WANDER", WANDER, Under::Node),
+    ("BLOOM", BLOOM, Under::Node),
+    ("BLOOM_ROLL", BLOOM_ROLL, Under::Node),
+    ("FLORET", FLORET, Under::Node),
+    ("FLORET_SIZE", FLORET_SIZE, Under::Floret),
+    ("FLORET_OPENING", FLORET_OPENING, Under::Floret),
     ("CONTINUATION", CONTINUATION, Under::Lineage),
 ];
 

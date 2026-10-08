@@ -274,3 +274,35 @@ fn the_device_path_draws_what_the_cpu_path_draws() {
         assert_eq!(prepared.count(), whole.count(), "{at}: leaves");
     }
 }
+
+/// fn-216 merged into F4 (host, 2026-10-08): a flower is drawn from the
+/// tree the CPU converts, which a fine root dressed on the device never
+/// enters, so on the device path a flowering beech drew only the blooms
+/// above the cut (3.7 % of its florets at 40). Until the device draws its
+/// roots' flowers (fn-125), a family that flowers is refused the device
+/// path and grows whole: every floret, the same ones a CPU delivery draws.
+#[test]
+fn a_flowering_tree_draws_every_floret_on_either_path() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    let mut family = family("european-beech", 12);
+    assert!(executor::apart(&family).is_ok(), "the beech comes apart");
+    for s in &mut family.space.species.as_mut().unwrap().states {
+        s.flowering = 0.6;
+    }
+    assert!(
+        executor::apart(&family).is_err(),
+        "a flowering beech is refused"
+    );
+    let florets =
+        |p: &super::super::Prepared| p.mesh.organ.as_ref().map_or(0, |o| o.instances.len());
+    let resident = gen.prepare(&family, Delivery::Resident).unwrap();
+    let whole = pollster::block_on(gen.prepare_whole(&family, Delivery::Resident)).unwrap();
+    let cpu = gen.prepare(&family, Delivery::Cpu).unwrap();
+    assert!(florets(&whole) > 0, "the beech flowers");
+    assert_eq!(florets(&resident), florets(&whole));
+    assert_eq!(florets(&cpu), florets(&whole));
+}

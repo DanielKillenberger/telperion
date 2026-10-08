@@ -3,10 +3,12 @@
 //! the specimen provides a cached packed layout when a consumer reads it.
 //! Timeline nodes retain their birth identity and slot after their death year;
 //! the legacy envelope builder still compacts. Consumer reads exclude dead nodes.
+mod bloom;
 mod identity;
 mod section;
 mod shoot;
 use crate::{math::Vec3, Error, Result};
+pub use bloom::Bloom;
 pub use identity::NodeIdentity;
 pub(crate) use identity::NodeKey;
 pub use section::{Section, SectionRing};
@@ -23,7 +25,8 @@ pub enum NodeKind {
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Node {
-    /// Stable birth identity, assigned by the owning specimen; never a storage index.
+    /// Stable identity, never a storage index: the scaffold specimen's birth
+    /// order, or the engine phytomer's lineage key (fn-220).
     pub identity: NodeIdentity,
     pub shoot: ShootState,
     pub position: Vec3,
@@ -162,6 +165,10 @@ pub struct Tree {
     /// chord. Never stored, as `seams`.
     #[cfg_attr(feature = "json", serde(skip))]
     pub grown: Vec<f64>,
+    /// The nodes that may flower, in node order (fn-216). Empty on every
+    /// tree whose ages bear none, and never stored, as `sections` is.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub blooms: Vec<Bloom>,
 }
 
 /// A 32-bit finaliser: the one the leaves' draws already use.

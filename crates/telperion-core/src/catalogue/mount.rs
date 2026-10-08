@@ -8,7 +8,7 @@ use crate::{
     bias::{BiasParams, SupernaturalParams},
     branching::{GrowthOverrides, HabitParams, SkeletonParams},
     envelope::Envelope,
-    foliage::{CanopyParams, ElementParams},
+    foliage::{BloomParams, CanopyParams, ElementParams},
     material::MaterialParams,
     radius::RadiusParams,
     surface::SurfaceParams,
@@ -130,6 +130,7 @@ groups! {
     CanopyParams: canopy;
     ElementParams: element;
     MaterialParams: material;
+    BloomParams: bloom;
 }
 
 const fn find<S>(rows: &[Row<S>], path: &str) -> Option<usize> {
