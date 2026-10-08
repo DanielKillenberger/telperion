@@ -153,7 +153,7 @@ fn apply(
     for k in pencil.units..draws.units.len() {
         let size = draws.shade(k)[0];
         let unit = draws.units[k];
-        let (present, grown) = (mul(running, q32(unit.survive)), q32(unit.share));
+        let (present, grown) = (mul(running, q32(unit.survive)), q32(unit.size));
         let birth = axis.birth;
         while j < axis.phytomers.len() && (axis.phytomers[j].cycle - birth - 1) as usize == k {
             let (p, o) = (&mut axis.phytomers[j], &laid.phytomers[j - pencil.laid]);

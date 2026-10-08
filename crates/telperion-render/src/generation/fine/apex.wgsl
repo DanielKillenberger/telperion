@@ -33,11 +33,6 @@ fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32, cut: u
             if span_of != 0u && (j > whole || (j == whole && fraction == 0u)) {
                 continue;
             }
-            if n_phyts >= cfg.phyt_cap {
-                overflow |= 2u;
-                return;
-            }
-            let p = phyt_base + n_phyts * PW;
             var node_p = presence(node_lead(zat, d, side, j), window);
             if span_of != 0u && j == whole {
                 let t = fraction_up(w(fraction, 0u), w(span_of, 0u), 53u);
@@ -47,6 +42,11 @@ fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32, cut: u
                 }
                 node_p = times_q(node_p, presence(lead_q(vec2<u32>(0u), t, dl, vec4<u32>(0u), 0u), window));
             }
+            if n_phyts >= cfg.phyt_cap {
+                overflow |= 2u;
+                return;
+            }
+            let p = phyt_base + n_phyts * PW;
             phyts[p] = node_key.x;
             phyts[p + 1u] = node_key.y;
             phyts[p + 2u] = cycle;

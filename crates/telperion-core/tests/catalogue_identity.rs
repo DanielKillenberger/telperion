@@ -81,8 +81,10 @@
 //! fractional bud place, shedding fade and lifespan-cut unit at its share,
 //! so the size a blend is solved to moves, and the ordinary tree re-derived
 //! by `examples/centroid.rs` moves its lateral rows alone (by one factor,
-//! 1.2327); every other row of every preset is unchanged, and every engine
-//! preset's grown tree (`space_hash`) is fn-198's to the bit (ENDS.md).
+//! 1.2327); every other row of every preset is unchanged. The beech's,
+//! spruce's, oak's and palm's grown trees (`space_hash`) are fn-198's to
+//! the bit; the ordinary tree's grows fuller, the host's accepted change
+//! (ENDS.md).
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [

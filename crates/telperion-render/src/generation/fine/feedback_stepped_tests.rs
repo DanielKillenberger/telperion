@@ -39,7 +39,7 @@ fn same(cpu: &Stepped, gpu: &Stepped, case: &str) {
 /// towards 80 degrees below the horizon, so young wood eases onto the
 /// ground and rests there; its internodes, insertions and tropisms vary
 /// (fn-222, fn-224), so the device's lay reads their draws.
-fn oaks() -> [Species; 2] {
+fn oaks() -> [Species; 3] {
     let mut neighbour = oak();
     for s in &mut neighbour.states {
         (s.form.internode_spread, s.form.insertion_spread) = (0.6, 0.3);
@@ -52,7 +52,13 @@ fn oaks() -> [Species; 2] {
             s.form.tropism *= 3.0;
         }
     }
-    [oak(), neighbour]
+    // Lifespans run to fractions: units a lifespan cuts lay a share of
+    // their nodes, each whole (fn-231).
+    let mut fractional = oak();
+    for s in fractional.states.iter_mut().filter(|s| s.lifespan > 0.0) {
+        s.lifespan = s.lifespan * 1.37 + 0.29;
+    }
+    [oak(), neighbour, fractional]
 }
 
 #[test]
@@ -79,6 +85,7 @@ fn the_lit_fine_roots_on_the_device_are_the_cpus() {
             (4_096, Taken::Scrambled, true),
         ),
         (1, 256.0, (Order::Reverse, 7), (777, Taken::Reverse, true)),
+        (2, 256.0, (Order::Forward, 1), (all, Taken::Forward, false)),
         (
             1,
             1_024.0,
