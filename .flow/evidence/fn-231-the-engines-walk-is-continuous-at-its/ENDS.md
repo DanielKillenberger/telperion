@@ -332,3 +332,14 @@ The re-review verdict is **NEEDS_WORK**, with two surviving findings. Both need 
 - size it at another age;
 - accept seed 7's density;
 - keep the old rows as the owner's tuning and re-derive later.
+
+## Host answer (2026-10-09, seventh): the ordinary tree keeps its rows
+
+The ordinary tree keeps its old rows. It is not re-solved in this spec.
+- **What the change does to it:** under the presence rule its count falls, because the crowded nodes no longer count, but its visible tree is unchanged. Those nodes were at vanishing size.
+- **Why not re-solve:** the re-solve does reach the corners' geometric mean, yet at 80, seed 7 the tree reads as a hedge (40 km of wood against 13 km). The owner defined the ordinary tree as the centre of the space ("the mid avg tree"), so what measure sizes it is the owner's question. It is put to the owner beside the strips: wood, crown volume, another age, or accepting the density.
+- **Steps:**
+  1. Restore the ordinary preset's rows to their pre-fn-231 values.
+  2. Pin its identity digests to them, and note in ENDS.md that its kept count no longer equals the corners' mean. `examples/centroid.rs` stays as it is, as a tool.
+  3. Skip any test that asserts the ordinary preset equals a fresh solve, naming this decision; do not delete it.
+  4. Then run the gate, npm test, impl-review and `flowctl done`.
