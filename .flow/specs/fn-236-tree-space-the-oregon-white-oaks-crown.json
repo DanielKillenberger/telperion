@@ -12,9 +12,11 @@
   "id": "fn-236-tree-space-the-oregon-white-oaks-crown",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 2,
-  "plan_review_status": "needs_work",
-  "plan_reviewed_at": "2026-10-08T22:21:28.443613Z",
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-08T22:27:26.133065Z",
+  "ready": true,
   "review_attempts": [
     {
       "artifact_sha256": "3f28d76587798e1faf42ca1ef95b22ea4d4d92c7df5bcc8172dc2db87ec7ee7d",
@@ -128,9 +130,72 @@
       "task": null,
       "timestamp": "2026-10-08T22:21:28.440985Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "38e87d9469e878e43917e6273b26e21065f70816ed4d1434315ddac6e951b13d",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8da04a660a29759d54755c2e0cae9a5b",
+            "classification": "introduced",
+            "findingId": "finding-8da04a660a29759d54755c2e0cae9a5b",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b182ffdc58b8cfd0a07b4d29747ce457",
+            "classification": "introduced",
+            "findingId": "finding-b182ffdc58b8cfd0a07b4d29747ce457",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ee2370b220389618f94de61038a22f5b",
+            "classification": "introduced",
+            "findingId": "finding-ee2370b220389618f94de61038a22f5b",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "52a660649439d08fa1b1b529b1985be92b5d5a5b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 912,
+      "output_sha256": "28418d65384d36ac416ab49070b87ad50d4c52d136c2e5ce8766085997fe43c3",
+      "reservation_id": "e36c5ec6510b46c6be1bb6e1cb913602",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T22:27:26.130680Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "plan": 2,
+    "plan#completion": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -150,5 +215,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T22:21:45.437805Z"
+  "updated_at": "2026-10-08T22:28:00.587858Z"
 }
