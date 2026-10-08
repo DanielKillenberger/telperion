@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-08T08:14:50.116565Z",
+  "depends_on": [
+    "fn-226-light-read-from-the-crowns-outline-per.1"
+  ],
+  "id": "fn-226-light-read-from-the-crowns-outline-per.2",
+  "priority": null,
+  "spec": "fn-226-light-read-from-the-crowns-outline-per",
+  "spec_path": ".flow/tasks/fn-226-light-read-from-the-crowns-outline-per.2.md",
+  "status": "todo",
+  "title": "Head-to-head, the owner's verdict, one model",
+  "updated_at": "2026-10-08T08:14:50.116565Z"
+}
