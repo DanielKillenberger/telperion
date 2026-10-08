@@ -143,3 +143,12 @@ The whole jump arrives with the **first** tick and does not grow with the share.
 - Whole. The expected size stays s, and the fade comes from the lead.
 
 The half-tick floor ("above 0") rides on the same choice, because a lifespan below a tick is a partial unit of share under 2^-20.
+
+## Host answer (2026-10-08, third): a partial unit lays its share of the nodes
+
+Neither offered option is taken. Sizing at share gives s², and "full size" turns a partial unit into a whole one; neither is what decision 7 means. The count jump has a cause: a partial unit of any share lays all of its unit's nodes, crowded into its share of the length. So the fractional element is the node, not the unit.
+
+- **The rule.** A partial unit of share s lays the nodes of its unit's first share s, at the unit's own spacing. The whole nodes below s·n are laid. The last, fractional node is a making draw (decision 8): it grows in from its draw's lead and the predictor counts it at its share. The successor still grows the rest of the cycle, as decision 7 says.
+- **What follows.** Wood and counts are both linear in the lifespan, and nothing is laid whole. At s = 1 nothing changes. The floor stays "above 0": a share below 2^-20 lays its first node with that chance.
+- **Measure first, then build.** Confirm that a partial unit today lays all n nodes. If the count jump does not come from crowded nodes, stop and report.
+- **Then finish the task.** Build the rule on both executors, then re-measure the shipped species. Any species whose partial units change must have its strips made before and after, viewed, and re-pinned with that evidence. Then R3 at both ends, the gate, npm test, the review and `flowctl done`.
