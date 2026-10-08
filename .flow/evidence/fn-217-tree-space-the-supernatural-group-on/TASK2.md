@@ -14,7 +14,7 @@ DESIGN.md sections 6 and 7, release half (a). Commits `1192044d` (group and scal
   - the underside's mirror: a sun glint and a sky sheen, tinted by the back tint;
   - the margin band's glint on either face, tinted by the colour the band shows.
 
-  Energy rule: each term takes its share from the face's diffuse of the same light. The front and back glints are never on one face. Within the band, the rim's share adds to the face's, capped at all of it. One `roughness` row serves both terms. The organ block zeroes both reflectances. `set_material` resets them to none.
+  Energy rule: each term takes its share from the face's diffuse of the same light. The front and back glints are never on one face. Within the band, the rim's share adds to the face's; past what the cuticle's glint leaves, the two mirrors are scaled down together, in what they reflect as in what they take (after review). One `roughness` row serves both terms. The organ block zeroes both reflectances. `set_material` resets them to none.
 
 ## Proof (measured)
 
@@ -69,5 +69,5 @@ The step is the box's extent over 65,535, so it grows with the tree's size times
 
 1. **The gold rim at distance.** A sub-pixel leaf is drawn all band, so Laurelin reads as a gold crown at whole-tree distance, not as green leaves with gold rims (see `gold-whole`). This is a far-draw question for the host.
 2. **Material lengths do not scale.** `shootRadius`, `matureRadius` and `matureSpan` are metres of wood radius that the renderer reads. At scale 5 nearly all wood is past the mature radius. They are draw rows, outside S1's geometry, and are recorded here unchanged.
-3. **The GPU ring-position domain.** `compact::qualified_ring` admits rings within 64 m. A family that seats leaves on its wood and stands taller than 64 m is refused "ring positions" on the real path. The beech seats none, so the Two Trees are unaffected (inferred from `resident.rs`).
+3. **The GPU ring-position domain (review finding, declined to the host).** `compact::qualified_ring` admits rings within 64 m. A family that seats leaves on its wood (`surfaceContact` above 0) and stands, scaled or natural, taller than 64 m is refused "ring positions" on the real path. The beech seats none, so a beech-based Two Trees is unaffected (inferred from `resident.rs`). Options: (a) emit ring positions relative to a local origin per run or cluster so the domain no longer bounds the tree; (b) have `executor::apart` record such a tree as one the executor cannot take, so it is built on the CPU by capability; (c) leave the refusal by name as it stands.
 4. **A debug overflow in the engine.** The dev-profile test of the beech at 80 panicked in `telperion-space/src/shed.rs:228` with "attempt to subtract with overflow". The ci profile does not check overflow, and the code predates this task.

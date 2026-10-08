@@ -232,8 +232,14 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
             rim = highlight(n, u.sun_direction.xyz, to_eye, u.reflectance.z, rough);
         }
     }
-    let given = mirrored.x + min(silver.x + margin * rim.x, max(1.0 - mirrored.x, 0.0));
-    let metal = u.leaf_reflection.rgb * (silver.x * silver.y) + colour * (margin * rim.x * rim.y);
+    // The two mirrors share what the cuticle's glint leaves: past it, both
+    // are scaled down together, in what they reflect as in what they take.
+    let added = silver.x + margin * rim.x;
+    let room = max(1.0 - mirrored.x, 0.0);
+    let share = select(1.0, room / added, added > room);
+    let given = mirrored.x + added * share;
+    let metal = (u.leaf_reflection.rgb * (silver.x * silver.y)
+        + colour * (margin * rim.x * rim.y)) * share;
     // The leaves of its own mass standing over it take their share of the
     // sky and of what passes through, so a clump's face is lit and what
     // hangs under it falls into its shade.
