@@ -269,3 +269,17 @@ R3 asks for the evaluation inline in the step that grows the bud, "on both execu
 - **No code.** The spec's order is the inventory first, and its stop rule applies (S1).
 - **The `apical_control` light walk** carried from task 2 is not judged again. It needs R3's light built, so it waits on these decisions. Its bound is unchanged.
 - **Cost:** no build or test was run, and no capture was taken. The inventory was read from the code at `ae54e4ed`.
+
+## 7. Host decisions (2026-10-08)
+
+The rule for all eight: one model where one already exists, the simplest reading the spec allows, and measure before refining.
+
+- **S1: (a)** fn-211.4's `Aggregate`. It is built and has run. It becomes the one expectation model for a fine root. The spec's word "closed form" in R3/R4 is amended to "the fine root's expectation model (the closed form's light-neutral rows, advanced per cycle by `Aggregate`)". Its known approximations (no inner shedding, no sleeping buds) are measured in the head-to-head.
+- **S2: (c)** the `Aggregate`'s wood, consistent with S1.
+- **S3: (a)** R3's per-bud light at the root's base. It is the same function every bud uses, read one cycle old.
+- **S4: (a) `Recorded`.** A root splits its recorded share among its own buds as every node does, which is Borchert–Honda's own semantics. `PerLight` is the comparison, if (a) misreads in the head-to-head.
+- **S5: (a)** `T̄` over the 64 heights × 4 equal-area radii × 4 ring azimuths, volume-weighted, with `M_g = T̄^ψ_g`.
+- **S6: (b)** the `Aggregate`'s leaves under the root's history light, consistent with S1. The reach stays neutral.
+- **S7: (a)** the ball's top, bottom and outermost point, folded as points.
+- **S8: (c)** CPU only in this task. The GPU half follows R6's verdict. If R3+R4 is chosen, lit-root growth on the chain grower becomes its own spec, written by the host.
+- **Host decision 23's drift** (growth moving between orders at λ ≠ 0.5): measured in the head-to-head, not a stop.
