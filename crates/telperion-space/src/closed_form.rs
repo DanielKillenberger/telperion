@@ -72,6 +72,17 @@ pub fn expected_kept(species: &Species, age: u32) -> Result<Option<f64>> {
     )))
 }
 
+/// The expected metres of wood a tree grown `age` cycles grows, each
+/// phytomer its internode at the size of the unit it stands on: its
+/// phytomers weighted by their size (fn-231).
+pub fn expected_length(species: &Species, age: u32) -> Result<f64> {
+    species.validate()?;
+    if age == 0 {
+        return refuse("age", "a tree grows at least one cycle");
+    }
+    Ok(expected_log_lengths(species, age)[age as usize][0].exp_fixed())
+}
+
 /// A substructure: its PA, cycles, what it carries, and the law of a woken
 /// bud's first unit.
 type Sub = (

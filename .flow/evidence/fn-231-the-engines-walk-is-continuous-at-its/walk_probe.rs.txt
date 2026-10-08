@@ -1,0 +1,59 @@
+use telperion_core::presets::Preset;
+use telperion_space::{blend, expected_kept, settings, zone_settings, Species};
+
+fn neutral(species: &Species) -> Species {
+    let mut neutral = species.clone();
+    for s in &mut neutral.states {
+        (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+    }
+    neutral
+}
+fn kept(s: &Species, age: u32) -> Option<f64> {
+    let s = neutral(s);
+    s.validate().ok()?;
+    expected_kept(&s, age).ok()?
+}
+fn values(s: &mut Species) -> Vec<(usize, String, *mut f64)> {
+    let mut out = Vec::new();
+    for (k, st) in s.states.iter_mut().enumerate() {
+        for (n, v) in settings(st) { out.push((k, n.to_string(), v as *mut f64)); }
+        for (r, z) in st.zones.iter_mut().enumerate() {
+            for (i, (n, v)) in zone_settings(z).unwrap_or_default().into_iter().enumerate() {
+                out.push((k, format!("zone{r}.{n}[{i}]"), v as *mut f64));
+            }
+        }
+    }
+    out
+}
+fn main() {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let p = |n: &str| match n { "beech" => Preset::EuropeanBeech, "oak" => Preset::OregonWhiteOak, "spruce" => Preset::NorwaySpruce, _ => Preset::Ordinary };
+    let a = p(&args[0]).parameters().space.species.unwrap();
+    let b = p(&args[1]).parameters().space.species.unwrap();
+    let t: f64 = args[2].parse().unwrap();
+    let age: u32 = args[3].parse().unwrap();
+    let end = if t < 0.5 { a.clone() } else { b.clone() };
+    let mut near = blend(&a, &b, t).unwrap();
+    // pad end's zones to near's roles
+    let mut e = end.clone();
+    for (x, y) in e.states.iter_mut().zip(&near.states) {
+        while x.zones.len() < y.zones.len() { let mut z = y.zones[x.zones.len()].clone(); z.nodes = telperion_space::NodeLaw::Uniform{min:0.0,max:0.0}; z.lateral.iter_mut().for_each(|v|*v=0.0); z.dormant.iter_mut().for_each(|v|*v=0.0); z.buds=1.0; z.delay=0.0; z.rate=0.0; x.zones.push(z); }
+    }
+    let base = kept(&e, age).unwrap();
+    println!("end {base:.0} near {:.0}", kept(&near, age).unwrap());
+    let nv = values(&mut near);
+    let n = nv.len();
+    for i in 0..n {
+        let mut h = e.clone();
+        let mut hv = values(&mut h);
+        if hv.len() != n { println!("shape mismatch"); return; }
+        let (nvv, hvv) = unsafe { (*nv[i].2, *hv[i].2) };
+        if nvv == hvv { continue; }
+        unsafe { *hv[i].2 = nvv; }
+        match kept(&h, age) {
+            Some(c) if (c / base - 1.0).abs() > 0.01 => println!("age {} {}: {hvv} -> {nvv}: kept {c:.0}", nv[i].0, nv[i].1),
+            None => println!("age {} {}: {hvv} -> {nvv}: refused", nv[i].0, nv[i].1),
+            _ => {}
+        }
+    }
+}

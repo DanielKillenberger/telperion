@@ -1,0 +1,80 @@
+{
+  "branch_name": "fn-238-a-blend-between-species-solves-in-about",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-08T23:06:57.682541Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-238-a-blend-between-species-solves-in-about",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-08T23:07:59.526877Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "aa18a99b11ac5dea04e0b7845bdc6c8fe53ffffabe6db64527779fc03a4dd2fb",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fae9d10e167f055fe7894991760808b7d9999d5d",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 180492,
+      "output_sha256": "acfaf90c3ed9765f5f1f9c15ea96c8769360227bbca8b91b3cf5a2159ecc8f92",
+      "reservation_id": "eef497c1c59240b684ba23d2bca42537",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T23:07:59.521016Z",
+      "tool_calls": 19,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-238-a-blend-between-species-solves-in-about.md",
+  "status": "open",
+  "title": "A blend between species solves in about a second",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-08T23:08:05.246089Z"
+}

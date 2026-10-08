@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-222-internode-lengths-that-vary-node-to-node.md",
-  "status": "open",
+  "status": "done",
   "title": "Internode lengths that vary node to node",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-07T13:02:10.880379Z"
+  "updated_at": "2026-10-08T22:38:06.974443Z"
 }

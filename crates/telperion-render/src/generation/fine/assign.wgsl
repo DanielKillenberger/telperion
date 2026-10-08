@@ -44,6 +44,9 @@ const WOKEN_ASKS: u32 = 4u;
 // its apex all but aborted, its draws' key, its survival's and
 // abortion's bounds, the phytomers and axes its unit made and its axis's
 // phytomers before it; its Q32 survival, persistence and presence.
+// Where a lifespan's fraction cut the unit, the ticks it was cut from,
+// which its nodes grow at; none otherwise (word 2, fn-231).
+const U_LAID: u32 = 2u;
 const U_CYCLE: u32 = 4u;
 const U_SHARE: u32 = 5u;
 const U_ABORTS: u32 = 6u;
@@ -309,6 +312,13 @@ fn take_ask(r: u32) {
                 window = window_q(wood, rate, row(a.pa, 19u + 2u * a.stake), span);
             }
             p = presence(lead_q(a.low, a.high, a.d, a.given, a.known), window);
+            // A lateral's place, a making draw over the same window (fn-231).
+            let i = (r - units) / 2u;
+            if r >= units && (r - units) % 2u == 0u && rd(i, ASKS) == LATERAL_ASKS {
+                let place = vec2<u32>(rd(i, ASKS + 3u), rd(i, ASKS + 4u));
+                let slot = (rd(i, KIND) >> 8u) & 0xffu;
+                p = times_q(p, place_q(rd(i, ASKS + 1u), slot, place, window));
+            }
         }
         if r < units {
             let j = r % UNIT_ASKS;
@@ -371,17 +381,17 @@ fn reach_q(pa: u32, k: u32) -> vec2<u32> {
     return words[row(pa, 27u).x + k];
 }
 
-// Each axis's making draws' presences from what was taken: a lateral's
-// by its place's share, and its reach; a relay's stop, whole but for a
-// failed unit's; the share a continuation that all but stopped lacks.
+// Each axis's making draws' presences from what was taken: a woken bud's
+// place's (`sleep`, fn-231) and a lateral's reach; a relay's stop, whole
+// but for a failed unit's; the share a continuation that all but stopped
+// lacks.
 fn made_q() {
     for (var i = 0u; i < n_axes; i++) {
         let kind = rd(i, ASKS);
         let p = ASKS + 1u;
-        if kind == LATERAL_ASKS || kind == WOKEN_ASKS {
-            let zat = rd(i, p);
-            let placed = words[table[zat + 12u] + ((rd(i, KIND) >> 8u) & 0xffu)];
-            wq(i, B0, times_q(rq(i, B0), placed));
+        if kind == WOKEN_ASKS {
+            let q = rd(i, ASKS + 6u);
+            wq(i, B0, times_q(rq(i, B0), vec2<u32>(sleepers[q + 12u], sleepers[q + 13u])));
         }
         if kind == LATERAL_ASKS {
             wq(i, B1, reach_q(rd(i, p + 1u), 0u));
@@ -434,7 +444,8 @@ fn units_q() {
         for (var q = first; q < sleepers[u + U_PHYTS + 1u]; q++) {
             let at = phyt_base + q * PW;
             let node = vec2<u32>(phyts[at + 4u], phyts[at + 5u]);
-            let scale = times_q(times_q(run, node), share);
+            let span_of = sleepers[u + U_LAID];
+            let scale = times_q(times_q(run, node), select(share, ticks_q(w(span_of, 0u)), span_of != 0u));
             phyts[at + QSCALE] = scale.x;
             phyts[at + QSCALE + 1u] = scale.y;
         }
