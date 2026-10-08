@@ -153,3 +153,51 @@ The measurement narrows the problem. Placement is not the main loss: with the le
 3. **Measure again,** on both executors, at the whole-tree view, beside the cherry photograph. That photograph is referenced in fn-217's evidence; copy it into this worktree's evidence. If the cherry-dense tree reads as a white blossom mass and Laurelin reads gold, R2 is done. If it does not, report the remaining occlusion and stop. A placement or phenology row (leaf presence at bloom) is then the host's next step. Do not build it now.
 
 The device's tree reaching 0.23 m below ground is outside this spec. The host records it for fn-198's release checks.
+
+## R2 as the host designed it, measured (2026-10-09)
+
+**What was built:**
+- **Steps 1 and 2.** The organ block passes the petal's front colour where the leaf passes its transmission colour (`scene/frame.rs::organ`).
+  - The petal rows are documented as albedos: `material/params.rs`, `catalogue/reference.rs`, and the regenerated `docs/parameters.md` and `parameters.generated.ts`.
+  - The test trees take albedos. The cherry is the material default white (0.82/0.8/0.74, back 0.72/0.72/0.64) in `blossom_trees.rs` and `tests/bloom_form.rs`. Laurelin's gold is 0.85/0.65/0.1, back 0.72/0.55/0.085.
+- **Red/green test.** `tests/petal_white.rs` uses a beech of 20 flowering white under a saturated green leaf transmission, at the hero camera.
+  - Red on the base: lit from behind the crown, the petals drew (126, 193, 139), green.
+  - Green after the fix: (188, 190, 188) from behind and (215, 215, 212) under the hero sun.
+- **Re-measure.** The run log is `raw/m2/run.log`, and the stills are in `raw/m2/` (all viewed). The sheet beside the photograph is `raw/m2/sheet-r2.png`.
+- **Photograph.** `reference/prunus-avium-hohenwettersbach.jpg` is Wikimedia Commons "Prunus avium - Hohenwettersbach 01.jpg", by H. Zell, CC BY-SA 3.0, resized to 640 px. FLOWERS-DESIGN.md lists it as the whole-crown reference.
+
+**Petals at the hero camera, sRGB (c >= 0.5):**
+
+| | cherry | dense | laurelin |
+|---|---|---|---|
+| R1 (0.1 values, leaf transmission) | (82, 92, 75) | (84, 94, 78) | (105, 100, 75) |
+| Albedos only | (163, 168, 160) | (169, 173, 165) | (185, 180, 105) |
+| Albedos and own transmission | (168, 170, 168) | (173, 175, 174) | (190, 182, 106) |
+| Outermost quartile, sun and camera side | (186, 187, 182) | (192, 192, 188) | (206, 197, 114) |
+| Close-up at 0.1 m | (214, 215, 210) | (220, 220, 215) | (229, 221, 129) |
+
+Coverage and occlusion do not change: the build moved no floret. The cherry is 0.02156 on the CPU and 0.02155 on the device. The dense tree is 0.02868 and 0.02867, and Laurelin 0.01260 and 0.01259. The leaves still hide 53.6, 47.0 and 36.3 % of the florets.
+
+**Pale share of the crown's pixels** (luma >= 150, not green-dominated). The crown is the union of the florets' mask and the leaf silhouette:
+
+| | photograph (non-sky) | cherry | dense |
+|---|---|---|---|
+| luma >= 130 | 0.464 | 0.260 | 0.326 |
+| luma >= 150 | 0.346 | 0.186 | 0.251 |
+| luma >= 170 | 0.256 | 0.122 | 0.183 |
+
+On R1's stills, the white share by the stricter test (min channel >= 150, spread <= 45) was 0.015 for the cherry and 0.013 for the dense tree. It is now 0.162 and 0.228, against the photograph's 0.219. Laurelin's gold share (R >= 150, G >= 120, B at least 40 below G) went from 0.000 to 0.196.
+
+**Reading the stills (viewed):**
+- **The dense tree:**
+  - It now reads as a white-flowering crown. White blossom is spread over the whole crown, on the CPU and the device alike.
+  - It is a white-and-dark mottle, not the photograph's white mass. Dark green leaves stand between and in front of the blossom across the crown, and the lower crown is mostly leaf.
+  - Pale pixels are about 70 % of the photograph's share. The photograph is a crop from inside and below the crown, so its share is an upper bound.
+- **The cherry** reads the same, sparser.
+- **Laurelin** reads as a pale straw-yellow crown, not gold. The tone curve brings a 0.85/0.65/0.1 petal to (229, 221, 129) close up, and the red and green channels nearly meet.
+
+**Not a mass, so I stopped** (per the host's design). The remaining loss is occlusion, unchanged from R1:
+- The leaves hide 47 % of the dense tree's florets and 54 % of the cherry's, and 49 to 54 % of even the outermost quartile on the camera's side.
+- Leaves fill the lower crown.
+
+Laurelin's colour is a second, separate finding. Gold albedos draw straw-yellow under this tone curve, which compresses red and green toward each other near white.

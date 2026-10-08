@@ -13,3 +13,10 @@
 - **Hindrance:** the photograph lives only in fn-217's ignored `raw/distance/`. A worktree does not carry ignored evidence, and this task may not read the main checkout.
 - **Cost:** no side-by-side for R1. R3 needs one.
 - **Remedy:** track the reference photograph, or its path and source, where a worktree can reach it. One option is a small tracked crop under `.flow/evidence/fn-217-*/` or a references directory.
+
+## 2026-10-09: the guard refused logs written into a new evidence directory
+
+- **Doing:** the R2 re-measure, writing the run log straight into `raw/m2/`.
+- **Hindrance:** dcg (`redirect-truncate-root-home`) refuses a truncating redirect into a directory that does not exist yet.
+- **Cost:** about 1 minute.
+- **Remedy:** write logs to the scratchpad and copy them into evidence afterwards.

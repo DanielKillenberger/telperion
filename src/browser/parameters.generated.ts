@@ -375,13 +375,13 @@ export interface Family {
     leafDeadGreen: number;
     /** The blue channel of `leaf_dead_red`. */
     leafDeadBlue: number;
-    /** The colour of a petal's upper face, a linear reflectance per channel on the leaf faces' scale, not a display (sRGB) value (fn-216): the flowers' own, drawn by the leaf shader. A white petal beside a beech's leaves is about 0.1 a channel; past about 0.15 it clips to flat white under the hero sun whatever its value. */
+    /** The colour of a petal's upper face, a linear albedo per channel, the same quantity as the leaf faces' and not a display (sRGB) value (fn-216, fn-234): the flowers' own, drawn by the leaf shader, and the colour the petal passes when lit from behind. A white petal is about 0.8 a channel and a gold one about 0.85/0.65/0.1. */
     bloomFrontRed: number;
     /** The green channel of `bloom_front_red`. */
     bloomFrontGreen: number;
     /** The blue channel of `bloom_front_red`. */
     bloomFrontBlue: number;
-    /** The colour of a petal's underside, a linear reflectance per channel on `bloom_front_red`'s scale (fn-216): the flowers' own, drawn by the leaf shader. */
+    /** The colour of a petal's underside, a linear albedo per channel as `bloom_front_red` is (fn-216): the flowers' own, drawn by the leaf shader. */
     bloomBackRed: number;
     /** The green channel of `bloom_back_red`. */
     bloomBackGreen: number;
@@ -911,10 +911,10 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/material/leafDeadRed", kind: "real", optional: false, meaning: "The colour a dead frond has aged to, a linear reflectance per channel on the leaf faces' scale, both faces alike, shown only on the fronds a rosette keeps below its living crown. Raising a channel pushes the skirt toward it.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no dead frond (`canopy.skirtFronds` zero)", reach: "mature", dial: { window: [0, 1], step: 0.05 } },
   { path: "/material/leafDeadGreen", kind: "real", optional: false, meaning: "The green channel of `leaf_dead_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no dead frond (`canopy.skirtFronds` zero)", reach: "mature", dial: { window: [0, 1], step: 0.05 } },
   { path: "/material/leafDeadBlue", kind: "real", optional: false, meaning: "The blue channel of `leaf_dead_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no dead frond (`canopy.skirtFronds` zero)", reach: "mature", dial: { window: [0, 1], step: 0.05 } },
-  { path: "/material/bloomFrontRed", kind: "real", optional: false, meaning: "The colour of a petal's upper face, a linear reflectance per channel on the leaf faces' scale, not a display (sRGB) value (fn-216): the flowers' own, drawn by the leaf shader. A white petal beside a beech's leaves is about 0.1 a channel; past about 0.15 it clips to flat white under the hero sun whatever its value.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/material/bloomFrontRed", kind: "real", optional: false, meaning: "The colour of a petal's upper face, a linear albedo per channel, the same quantity as the leaf faces' and not a display (sRGB) value (fn-216, fn-234): the flowers' own, drawn by the leaf shader, and the colour the petal passes when lit from behind. A white petal is about 0.8 a channel and a gold one about 0.85/0.65/0.1.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/material/bloomFrontGreen", kind: "real", optional: false, meaning: "The green channel of `bloom_front_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/material/bloomFrontBlue", kind: "real", optional: false, meaning: "The blue channel of `bloom_front_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
-  { path: "/material/bloomBackRed", kind: "real", optional: false, meaning: "The colour of a petal's underside, a linear reflectance per channel on `bloom_front_red`'s scale (fn-216): the flowers' own, drawn by the leaf shader.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/material/bloomBackRed", kind: "real", optional: false, meaning: "The colour of a petal's underside, a linear albedo per channel as `bloom_front_red` is (fn-216): the flowers' own, drawn by the leaf shader.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/material/bloomBackGreen", kind: "real", optional: false, meaning: "The green channel of `bloom_back_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/material/bloomBackBlue", kind: "real", optional: false, meaning: "The blue channel of `bloom_back_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/material/bloomEyeRed", kind: "real", optional: false, meaning: "A floret's eye: the colour its petals turn toward at their base, a linear reflectance on the petals' scale, and the stamens' colour.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering, or `bloomEyeShare` zero", reach: "mature" },

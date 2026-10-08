@@ -232,9 +232,9 @@ impl Scene {
 }
 
 /// The flowers' block (fn-216): the frame's, drawn by the same leaf shader,
-/// with the petals' two colours, no veins, no margin, no mottle, none of
-/// the leaf's mirrors and no canopy normal, their eye, and their florets'
-/// own box.
+/// with the petals' two colours, the front one also what they pass, no
+/// veins, no margin, no mottle, none of the leaf's mirrors and no canopy
+/// normal, their eye, and their florets' own box.
 fn organ(
     mut u: Uniforms,
     m: &telperion_core::material::MaterialParams,
@@ -248,6 +248,13 @@ fn organ(
         u.leaf_front[3],
     );
     u.leaf_back = colour(m.bloom_back_red, m.bloom_back_green, m.bloom_back_blue, 1.0);
+    // A petal passes its own colour, not the leaf's (fn-234 R2).
+    u.transmission = colour(
+        m.bloom_front_red,
+        m.bloom_front_green,
+        m.bloom_front_blue,
+        u.transmission[3],
+    );
     u.leaf_detail[1] = 0.0;
     u.leaf_colour_detail[1] = 0.0;
     u.margin[3] = 0.0;
