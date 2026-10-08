@@ -162,6 +162,10 @@ mod feedback_tests;
 mod fixture;
 #[cfg(test)]
 mod floret_stills;
+#[cfg(test)]
+mod blossom_measure;
+#[cfg(test)]
+mod blossom_trees;
 mod florets;
 #[cfg(test)]
 mod florets_tests;
