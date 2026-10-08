@@ -371,3 +371,25 @@ The spec could split along the brief's own seams: (a) scale and leaves, (b) ligh
 12. **Split:** one spec, or three along the brief's seams.
 
 Not in this design: the Two Trees' values (fn-218, fn-219); wind; the organ in the sun's shadow pass (fn-125, FLORETS.md "Shadows").
+
+## 6. Host decisions (2026-10-08)
+
+Release lens: the owner's goal is a release PR; the old generator's Telperion and Laurelin never glowed ("leave luminosity for later", 2026-09-14), so light is not release parity.
+
+1. **C1: X2.** The group's own appearance rows are gated by `enabled`, so off is an old beech. The new rows live in a new `/supernatural/...` group. The writhe and spiral rows stay where they are until R0 removes the scaffold. They change no engine tree, so they are recorded as dead rows for R0 to delete (decision 11).
+2. **C2, frame clock:** yes, but built with the light spec (12c), not now.
+3. **C3: T2,** with the light spec (12c); T1 is left to a future stand spec.
+4. **Scale: S1,** after growth, with the grown wood scaled so leaves keep their density.
+5. **Leaves: E2,** back and margin reflectance; E3's sparkle only if a sheet asks for it.
+6. **Light: L1 + L2 + G1,** in the light spec (12c), after the release.
+7. **Cycle: K1,** in the light spec.
+8. **Dew: D1,** stateless and additive, in the light spec; no D4 pool.
+9. **Florets: F1 + F2 + F3.**
+10. **Distance: M0 first, then M1 or M2** by the measurement.
+11. **Writhe: W1, not ported.** Its rows are listed for deletion with R0's scaffold removal.
+12. **Split into three specs:**
+    - (a) scale and leaves, needed for the release;
+    - (b) floret form and blossom at distance, needed for the release;
+    - (c) emitted light, cycle, dew and two trees in one frame, after the release.
+
+    fn-218 and fn-219 depend on (a) and (b) only.
