@@ -201,3 +201,16 @@ On R1's stills, the white share by the stricter test (min channel >= 150, spread
 - Leaves fill the lower crown.
 
 Laurelin's colour is a second, separate finding. Gold albedos draw straw-yellow under this tone curve, which compresses red and green toward each other near white.
+
+## Host decision after R2 (2026-10-09)
+
+I viewed `raw/m2/sheet-r2.png`. White blossom now shows across the whole crown, on both executors. The remaining gap to the cherry photograph is not a gap in the blossom. *Prunus avium* blooms before or as its leaves come out, so the photograph is a crown of flowers on bare twigs. Our test tree flowers with every leaf present.
+
+- **No phenology row in this spec.** A "leaf presence while flowering" row fits only species that bloom before leafing out. The release's flowering trees are Laurelin and Telperion, which bloom in full leaf. That row is captured as its own post-release spec.
+- **What R3 now asks.** It judges against what the release needs: blossom that reads at the whole-tree view as a distinct white (or gold) across the crown, which this round meets. R3's acceptance is amended to match.
+- **Gold.** Laurelin's straw yellow is a value question. A deeper gold albedo, roughly (0.85, 0.55, 0.05), is settled in fn-218 (Laurelin) on its own stills. This spec keeps the gold test tree at the documented value.
+
+Finish with:
+- R3's fixtures: CPU against device on flowers and coverage with the change on, and neutral rows byte-identical on both paths. Also compare renders of a tree without flowers against the base, to prove the shading change leaves it alone.
+- R4 cost.
+- The gate, npm test, impl-review and `flowctl done`.
