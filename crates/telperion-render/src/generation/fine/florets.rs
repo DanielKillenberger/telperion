@@ -73,11 +73,11 @@ impl Organ {
             words,
         )?;
         let mut summary = None;
-        if stationed.florets > 0 {
+        if let Some(records) = &stationed.records {
             let counts = (stationed.florets, stationed.blooms);
             let config = data::florets(self.rows, counts, &self.cpu.element, self.reference());
             // No ring is read: the bindings take the records again.
-            let records = (&*stationed.records, &*stationed.records);
+            let records = (&**records, &**records);
             let at = (stationed.florets, &*buffer);
             let config = config.at(cpu);
             let e = &self.cpu.element;

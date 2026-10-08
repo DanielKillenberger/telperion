@@ -68,10 +68,11 @@ pub(super) struct Stationed {
     pub stations: u32,
     pub segments: u32,
     pub buffer: Owned,
-    /// The florets, and the blooms' records placement reads (fn-229).
+    /// The florets, and the blooms' records placement reads (fn-229):
+    /// none where no bloom keeps a floret.
     pub florets: u32,
     pub blooms: u32,
-    pub records: Owned,
+    pub records: Option<Owned>,
 }
 
 pub(super) struct Stationer {
@@ -171,7 +172,7 @@ impl Stationer {
                 buffer: storage(gpu, "station segments", 0)?,
                 florets: 0,
                 blooms: 0,
-                records: storage(gpu, "bloom records", 0)?,
+                records: None,
             };
             return Ok((stationed, storage(gpu, "station runs", 0)?));
         }
@@ -254,15 +255,17 @@ impl Stationer {
             &owners,
         ];
         self.run((gpu, &mut e), (EMIT, n, None), rows, late)?;
-        let records = storage(gpu, "bloom records", u64::from(blooms) * GW as u64)?;
+        let mut records = None;
         if blooms > 0 {
+            let words = u64::from(blooms) * GW as u64;
+            let records = &*records.insert(storage(gpu, "bloom records", words)?);
             let late: [&wgpu::Buffer; 7] = [
                 &swept.nodes,
                 &swept.table,
                 &st,
                 &runs,
                 &counts,
-                &records,
+                records,
                 &owners,
             ];
             self.run((gpu, &mut e), (BLOOMS, ids, None), rows, late)?;
