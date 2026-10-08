@@ -48,7 +48,11 @@
 //! the ordinary tree, now the space's centroid with `/space` rows and an
 //! age of 40: with the ordinary tree read as the default family it was,
 //! each digest was still fn-224's. The refusal digest reads the default
-//! family, the ordinary tree's old rows, and did not move.
+//! family, the ordinary tree's old rows, and did not move. fn-215
+//! re-pinned the family and walk digests again for the ordinary tree's
+//! size, its lateral probabilities multiplied by one factor (host,
+//! 2026-10-08): with its space read as the unsized centroid, each digest
+//! was still the first fn-215 pin.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -84,7 +88,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        6_396_264_256_824_363_664,
+        11_128_675_485_318_850_376,
         "{}",
         digest(&text)
     );
@@ -116,7 +120,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        3_916_850_146_470_771_333,
+        14_454_123_835_575_511_911,
         "{}",
         digest(&text)
     );
