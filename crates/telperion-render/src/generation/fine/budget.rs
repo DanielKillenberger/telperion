@@ -77,6 +77,12 @@ mod tests {
         let fits = |age, h| check(&spruce(age), held(h), BROWSER).is_ok();
         assert!(fits(80.0, 0), "a spruce at 80 in a fresh page");
         assert!(fits(40.0, 0), "a spruce at 40 in a fresh page");
+        // R5's beech at 40 and 80 likewise (the oak builds on the CPU).
+        for age in [40.0, 80.0] {
+            let mut beech = telperion_core::presets::by_identity("european-beech").unwrap();
+            beech.age = age;
+            assert!(check(&beech, 0, BROWSER).is_ok(), "a beech at {age}");
+        }
         assert!(!fits(80.0, 1_757), "80 with a 12 drawn");
         assert!(!fits(40.0, 4_540), "40 with an 80 drawn");
         assert!((peak(4_653_767.0) as f64 / GIB as f64 - 5.35).abs() < 0.01);
