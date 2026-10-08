@@ -2,18 +2,19 @@
 
 ## Goal & Context
 
-The `ordinary` preset builds again on the engine path (fn-198 refuses it until then) as the space's centroid among the passed broadleaves (beech, oak, birch): a plausible, unremarkable deciduous tree with a single trunk and a rounded crown, and the visible proof that a point between species is itself a tree (brief, "The ordinary tree").
+The `ordinary` preset builds again on the engine path (fn-198 refuses it until then) as the centre point of the tree space. Owner (2026-10-08): "ordinary tree we don't have to replicate the old one it should just be a tree that's the center point of the tree space. The mid avg tree." It is the visible proof that a point between species is itself a tree (brief, "The ordinary tree").
 
 ## Programme
 
-One species per spec (AGENTS.md); the tree-space programme (`docs/tree-space.md`); the host's design brief `.flow/evidence/fn-198-tree-space-f-the-engine-in-production/VISION-TWO-TREES.md` (owner, 2026-10-07: full creative freedom for the Two Trees; flow memory: the four missing species). Judging: the host views every still first; the tree passes when the host is confident and Astra, on the same sheet independently, agrees. Capability gaps go to the host and become their own specs. Errors, not fallbacks; every setting by degree; presets are values.
+One species per spec (AGENTS.md); the tree-space programme (`docs/tree-space.md`); the host's design brief `.flow/evidence/fn-198-tree-space-f-the-engine-in-production/VISION-TWO-TREES.md`. Judging: the host views every still first; the owner judges the tree. Capability gaps go to the host and become their own specs. Errors, not fallbacks; every setting by degree; presets are values.
 
 ## Requirements
 
-- **R1:** The ordinary tree's values chosen as a point between the passed broadleaves (stated weights, no new parameter), as /space rows in the `ordinary` preset; it builds natively and in the harness.
-- **R2:** The gate on a sheet (seeds 1, 7, 42; ages 40 and 80; bare and in leaf) beside the passed broadleaves' sheets.
-- **R3:** Walks from the ordinary tree to each of the beech, oak and birch with no visible pop.
+- **R1:** The ordinary tree's /space rows are the equal-weight centroid of the passed branching engine species' rows: the European beech, the Oregon white oak and the Norway spruce now, and the silver birch added when fn-213 passes (host and owner, 2026-10-08). The date palm is excluded: its rosette carries no lateral branching to average, so mixing it in gives no tree. A row with no meaningful mean (a structure one species lacks, an index, a discrete count) is reported to the host with its rule (dormant where the structure is absent, a stated rounding), never invented. Values only; no new parameter. It builds natively and in the harness.
+- **R2:** A sheet (seeds 1, 7, 42; ages 40 and 80; bare and in leaf) beside the corner species' sheets, viewed; build cost reported.
+- **R3:** Walks from the ordinary tree to each corner species with no visible pop.
+- **R4:** When the birch passes, its corner is added and the sheet retaken; until then the spec records the three-corner centroid.
 
 ## Boundaries
 
-Depends on fn-198 and fn-213 (the birch is one of its corners).
+Depends on fn-198. The birch's own values are fn-213's.
