@@ -108,6 +108,22 @@ fn cases(s: Selector, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]
                     a[6] = rng.within(0, (1 << 20) + 1) as u64;
                     a[7] = rng.draw();
                 }
+                S::Q32Float => {
+                    // A positive float from 2^-40 to 2^30 (a scale), its
+                    // Q32 tie a quarter of the time; zero now and then.
+                    let exponent = 87 + rng.next() % 71;
+                    let mantissa = rng.next() & 0x7f_ffff;
+                    let mut bits = ((exponent << 23) | mantissa) as u32;
+                    if rng.next().is_multiple_of(4) {
+                        // (2j + 1) 2^-33, exact in a float: a half at Q32.
+                        let odd = ((rng.next() % (1 << 23)) * 2 + 1) as f32;
+                        bits = (odd * (0.5f32).powi(33)).to_bits();
+                    }
+                    if rng.next().is_multiple_of(16) {
+                        bits = 0;
+                    }
+                    a[0] = u64::from(bits);
+                }
                 S::FineAbortion => {
                     a[0] = rng.log(60 * Q) as u64;
                     a[1] = rng.next() % 2;
@@ -307,6 +323,7 @@ fn expected(s: Selector, a: &[u64; 8], presences: &[u64]) -> [u64; 2] {
             decide::abortion_fine_q(i(0), (a[1] != 0).then(|| i(2)), a[3], a[4]),
             0,
         ],
+        S::Q32Float => [fx::q32(f64::from(f32::from_bits(a[0] as u32))) as u64, 0],
         S::RelayNode => {
             let unit = &presences[a[0] as usize..(a[0] + a[1]) as usize];
             [decide::relay_node_q(unit, 0, unit.len(), a[2]) as u64, 0]

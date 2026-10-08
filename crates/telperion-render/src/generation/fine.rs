@@ -10,11 +10,8 @@ const WIDE: &str = include_str!("fine/wide.wgsl");
 const KEYS: &str = include_str!("fine/lineage.wgsl");
 const CONTRACT: &str = include_str!("fine/contract.wgsl");
 const ZONES: &str = include_str!("fine/zones.wgsl");
-#[cfg(test)]
 const FEEDBACK_WIDE: &str = include_str!("fine/feedback_wide.wgsl");
-#[cfg(test)]
 const FEEDBACK: &str = include_str!("fine/feedback.wgsl");
-#[cfg(test)]
 const FEEDBACK_SITES: &str = include_str!("fine/feedback_sites.wgsl");
 #[cfg(test)]
 const FEEDBACK_TURN: &str = include_str!("fine/feedback_turn.wgsl");
@@ -23,6 +20,16 @@ const FEEDBACK_TURN: &str = include_str!("fine/feedback_turn.wgsl");
 /// arithmetic.
 pub(super) fn contract() -> String {
     format!("{WIDE}\n{KEYS}\n{CONTRACT}")
+}
+
+/// The decision contract and the feedback contract's wide words, powers
+/// and ripening (fn-211 task 8, CONTRACT-A.md): what the fine roots'
+/// girth takes contract A's fixed point from (host, 2026-10-08).
+pub(super) fn fixed_point() -> String {
+    format!(
+        "{}\n{FEEDBACK_WIDE}\n{FEEDBACK}\n{FEEDBACK_SITES}",
+        contract()
+    )
 }
 
 /// The decision contract and the feedback contract (fn-211 task 8,

@@ -26,12 +26,13 @@ pub(super) enum Selector {
     Angles = 17,
     FineSurvival = 18,
     FineAbortion = 19,
+    Q32Float = 20,
 }
 
 use Selector as S;
 
 /// Every selector, in order: its WGSL name and the functions it runs.
-pub(super) const ALL: [(Selector, &str, &str); 20] = [
+pub(super) const ALL: [(Selector, &str, &str); 21] = [
     (S::ChildDraw, "P_CHILD_DRAW", "child, draw"),
     (S::Log2, "P_LOG2", "log2, exp2_neg"),
     (S::Exp2, "P_EXP2", "exp2, neg_log2"),
@@ -56,6 +57,7 @@ pub(super) const ALL: [(Selector, &str, &str); 20] = [
         "survival_fine_q, lived_fine_q",
     ),
     (S::FineAbortion, "P_FINE_ABORTION", "abortion_fine_q"),
+    (S::Q32Float, "P_Q32_FLOAT", "q32_f"),
 ];
 
 impl Selector {

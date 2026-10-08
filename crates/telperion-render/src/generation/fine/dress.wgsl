@@ -48,7 +48,7 @@ const AL: u32 = 8u;
 const PL: u32 = 24u;
 const PA: u32 = 2u;
 // The geometry table's PA blocks (`geometry.wgsl`).
-const GG: u32 = 25u;
+const GG: u32 = 37u;
 // `space.rs`'s constants.
 const FINEST: f32 = 2e-4;
 const SHORTEST: f32 = 1000.0;

@@ -16,6 +16,7 @@ const GEOMETRY: &str = include_str!("geometry.wgsl");
 const RESOLVE: &str = include_str!("resolve.wgsl");
 const WALK: &str = include_str!("walk.wgsl");
 const SETTLE: &str = include_str!("settle.wgsl");
+const GIRTH: &str = include_str!("girth.wgsl");
 const STAND: &str = include_str!("stand.wgsl");
 /// A laid axis's and phytomer's floats (`geometry.wgsl`).
 pub(super) const AL: usize = 8;
@@ -25,7 +26,7 @@ pub(super) const PL: usize = 24;
 pub(super) const SA: u32 = 70;
 #[cfg(test)]
 pub(super) const SP: u32 = 12;
-const GG: usize = 25;
+const GG: usize = 37;
 /// `settle.wgsl`'s passes.
 pub(super) const SCALES: usize = 0;
 pub(super) const GIRTHS: usize = 1;
@@ -36,8 +37,8 @@ pub(super) const BENDS: usize = 4;
 /// The geometry kernel's WGSL.
 pub(super) fn source() -> String {
     format!(
-        "{}\n{CONTRACT_LAY}\n{GEOMETRY}\n{RESOLVE}\n{WALK}\n{STAND}\n{SETTLE}",
-        super::contract()
+        "{}\n{CONTRACT_LAY}\n{GEOMETRY}\n{RESOLVE}\n{WALK}\n{STAND}\n{SETTLE}\n{GIRTH}",
+        super::fixed_point()
     )
 }
 
@@ -83,6 +84,20 @@ pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
         out[4 + GG * pa + 22] = p.internode_spread as f32;
         out[4 + GG * pa + 23] = p.insertion_spread as f32;
         out[4 + GG * pa + 24] = p.tropism_spread as f32;
+        // The girth's values as contract A takes them (`girth.wgsl`).
+        let girth = [
+            p.pipe,
+            p.exponent,
+            1.0 / p.exponent,
+            p.ripening,
+            p.secondary,
+            p.relay_at,
+        ];
+        for (k, v) in girth.into_iter().enumerate() {
+            let q = telperion_space::fixed::q32(v);
+            out[4 + GG * pa + 25 + 2 * k] = f32::from_bits(q as u32);
+            out[4 + GG * pa + 26 + 2 * k] = f32::from_bits((q >> 32) as u32);
+        }
     }
     let sags = g.pas.iter().any(|p| p.sag > 0.0);
     (out, sags)

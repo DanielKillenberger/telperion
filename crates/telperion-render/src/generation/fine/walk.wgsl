@@ -24,7 +24,7 @@ fn insertion_of(r: u32, f: Pa) -> f32 {
 fn lateral_frame(r: u32, bearer_pa: u32, at: array<vec3<f32>, 3>, rank: vec2<u32>, phase: f32, below: vec3<f32>) -> array<vec3<f32>, 3> {
     let f = pa_of(ax(r, PA));
     let fp = pa_of(bearer_pa);
-    let roll = f.roll * (2.0 * unit_of(child(lineage_of(r), KEY_ROLL)) - 1.0);
+    let roll = f.roll * (2.0 * key_unit(child(lineage_of(r), KEY_ROLL)) - 1.0);
     let slot = f32((ax(r, KIND) >> 8u) & 0xffu);
     // Its bearer's phyllotaxis runs on from its axis's phase (fn-199).
     let azimuth = TAU * (phase + turns(rank, divergence_q(bearer_pa))) + TAU * slot / axf(r, WHORL) + roll;

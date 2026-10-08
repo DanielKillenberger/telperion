@@ -6,8 +6,9 @@
 // levers from its first lay's frames (`bends`), the structure above the
 // cut settling between the phases. Each pass is the whole tree's own on
 // the chain's axes (`geometry::scale`, `girth::thicken_given`,
-// `geometry::place_from`, `sag::gather`), in f32. Part of the geometry
-// kernel's shader.
+// `geometry::place_from`, `sag::gather`), in f32 but the girth, which is
+// contract A's fixed point (`girth.wgsl`). Part of the geometry kernel's
+// shader.
 
 // A chain's record in `records`: its first axis's base radius, then its
 // load at its base (mass and first moment, positions the root's own).
@@ -161,74 +162,6 @@ fn borne_at(j: u32, node: u32, fp: u32, fa: u32, v: f32) {
     }
 }
 
-// The chain's radii by the pipe model over its own phytomers and its
-// borne buds' base radii from their chains in the next wave
-// (`girth::thicken_given`); its first axis's base radius into its record.
-fn girth_realized(ch: Chain) {
-    for (var i = 0u; i < ch.na; i++) {
-        ssf(i, S_TIP, 0.0);
-        ssf(i, S_BASE, 0.0);
-    }
-    for (var p = 0u; p < ch.np; p++) {
-        spf(p, P_NODE, 0.0);
-    }
-    var k = ch.k0;
-    for (var r = 2u; r < ch.na; r++) {
-        if kind_of(r) != LATERAL {
-            continue;
-        }
-        let radius = records[cfg.prior + CR * k];
-        k += 1u;
-        let j = ax(r, PARENT);
-        if s(j, S_OWN) == NONE || radius <= 0.0 {
-            continue;
-        }
-        borne_at(j, ax(r, NODE), P_NODE, S_TIP, pow(radius, pa_of(ax(j, PA)).exponent));
-    }
-    let age = f32(cfg.age);
-    for (var i = ch.na; i > 1u; i--) {
-        let j = i - 1u;
-        if s(j, S_OWN) == NONE {
-            continue;
-        }
-        let f = pa_of(ax(j, PA));
-        var section = sf(j, S_TIP);
-        for (var n = s(j, S_COUNT); n > 0u; n--) {
-            let at = lo(j, n - 1u);
-            let p = at_k(j, n - 1u);
-            let scale = out[at + 19u];
-            let years = age - min(f32(ph(p, 2u)), age) + 1.0;
-            let own = f.pipe * scale * ripe(years, f.ripening);
-            section += pow(own, f.exponent) + pf(s(j, S_START) + n - 1u, P_NODE);
-            let established = f.pipe * scale * ripe(1.0, f.ripening);
-            out[at + 18u] = f.secondary * pow(section, 1.0 / f.exponent) + (1.0 - f.secondary) * established;
-        }
-        let radius = pow(section + sf(j, S_BASE), 1.0 / f.exponent);
-        if j == 1u {
-            records[cfg.mine + CR * ch.wi] = radius;
-            continue;
-        }
-        let p = ax(j, PARENT);
-        let carried = pow(radius, pa_of(ax(p, PA)).exponent);
-        let node = ax(j, NODE);
-        if kind_of(j) == RELAYED && node < s(p, S_COUNT) {
-            // Spread over the span it stands in (`girth::relay_shares`).
-            let b = axf(j, BLEND);
-            let t = relay_span(p, pa_of(ax(p, PA)).relay_at, node);
-            let q = s(p, S_START) + node;
-            spf(q, P_NODE, pf(q, P_NODE) + carried * (b * t));
-            if node > 0u {
-                spf(q - 1u, P_NODE, pf(q - 1u, P_NODE) + carried * (b * (1.0 - t)));
-            } else {
-                ssf(p, S_BASE, sf(p, S_BASE) + carried * (b * (1.0 - t)));
-            }
-            ssf(p, S_TIP, sf(p, S_TIP) + carried * (1.0 - b));
-        } else {
-            ssf(p, S_TIP, sf(p, S_TIP) + carried);
-        }
-    }
-}
-
 // Adds `share` of a load (`mass`, `moment`) at region phytomer `q`.
 fn load_at(q: u32, mass: f32, moment: vec3<f32>, share: f32) {
     spf(q, P_LOAD, pf(q, P_LOAD) + mass * share);
@@ -306,7 +239,7 @@ fn levers_realized(ch: Chain) {
             let len = length(tip - base);
             let p = at_k(j, m - 1u);
             let years = age - min(f32(ph(p, 2u)), age) + 1.0;
-            let leaves = f.pipe * out[at + 19u] * ripe(years, f.ripening);
+            let leaves = f.pipe * out[at + 19u] * ripe_f(years, f.ripening);
             let radius = out[at + 18u];
             let own = len * (radius * radius + leaves * leaves);
             let q = s(j, S_START) + m - 1u;
@@ -379,7 +312,9 @@ fn girths(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     let ch = begin(c);
-    records[cfg.mine + CR * ch.wi] = 0.0;
+    for (var f = 0u; f < 3u; f++) {
+        records[cfg.mine + CR * ch.wi + f] = 0.0;
+    }
     if ch.na == 0u {
         return;
     }

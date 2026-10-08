@@ -94,7 +94,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         }
         case 5u: {
             put4(0u, sincos(a[0].x));
-            put32(2u, atan2(a[1], a[2]));
+            put32(2u, atan2_t(a[1], a[2]));
         }
         case 6u: {
             put32(0u, asin_t(a[0]));

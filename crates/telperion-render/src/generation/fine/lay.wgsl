@@ -247,7 +247,7 @@ fn gone(x: f32) -> f32 {
 }
 
 // A key's draw as a real in [0, 1).
-fn unit_of(key: vec2<u32>) -> f32 {
+fn key_unit(key: vec2<u32>) -> f32 {
     return real_of(draw(key));
 }
 
@@ -291,9 +291,9 @@ fn step(walk: ptr<function, Walk>, p: ptr<function, Step>, f: Pa, own: vec2<f32>
     var u0 = 0.0;
     if f.wander > 0.0 {
         let key = child((*p).key, KEY_WANDER);
-        u0 = unit_of(child(key, w(0u, 0u)));
+        u0 = key_unit(child(key, w(0u, 0u)));
         draw0 = f.wander * (2.0 * u0 - 1.0);
-        let azimuth = TAU * unit_of(child(key, w(1u, 0u)));
+        let azimuth = TAU * key_unit(child(key, w(1u, 0u)));
         pivot = across * cos(azimuth) + cross(running, across) * sin(azimuth);
         kicked = true;
     }

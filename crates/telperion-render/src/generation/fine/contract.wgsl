@@ -185,6 +185,31 @@ fn mul62(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
     return shr128(mul128(a, b), 62u);
 }
 
+// `fixed::q32` of a float the device holds (a scale; the fine roots'
+// girth, host 2026-10-08): round(x 2^32),
+// half away from zero, saturated at INF; none at or below zero.
+fn q32_f(x: f32) -> vec2<u32> {
+    if !(x > 0.0) {
+        return vec2<u32>(0u);
+    }
+    let bits = bitcast<u32>(x);
+    let m = (bits & 0x7fffffu) | 0x800000u;
+    // x = m 2^(e - 150), so x 2^32 = m 2^(e - 118).
+    let e = i32((bits >> 23u) & 0xffu) - 118;
+    // Saturated at INF, as `q32` clamps.
+    if e >= 39 {
+        return inf();
+    }
+    if e >= 0 {
+        return min64(shl64(w(m, 0u), u32(e)), inf());
+    }
+    let s = u32(-e);
+    if s >= 25u {
+        return vec2<u32>(0u);
+    }
+    return w((m + (1u << (s - 1u))) >> s, 0u);
+}
+
 // log2 n in Q32; -INF for none.
 fn log2q(n: vec2<u32>) -> vec2<u32> {
     if is_zero(n) {

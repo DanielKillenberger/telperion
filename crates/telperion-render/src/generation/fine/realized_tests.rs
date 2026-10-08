@@ -424,3 +424,48 @@ fn varied_forms_settle_on_the_gpu_as_on_the_cpu() {
         }
     }
 }
+
+/// Phase 2 under contract A (host, 2026-10-08): the device's girth is the
+/// CPU's fixed point, op for op, so a root's base radius is the CPU build's
+/// to the bit wherever the f32 scale pass hands it the same scales; at 30
+/// that is nearly every root (149 of 150 beech roots, 9,579 of 9,764
+/// spruce roots; the float girth left the heaviest about 1.5e-6 apart).
+#[test]
+fn the_device_s_base_radii_are_the_cpu_s_to_the_bit() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let k = kernels(&gpu);
+    for (name, species) in [
+        ("beech", telperion_space::beech()),
+        ("spruce", telperion_space::spruce()),
+    ] {
+        let request = request(30, 1);
+        let cpu = telperion_space::grow_roots(&species, request, Plan::default()).unwrap();
+        let chain = ChainTables::new(&species, 30).unwrap();
+        let geo = GeometryTables::new(&species, 30).unwrap();
+        let tables = Tables::new(&gpu, Arc::new(chain), &geo).unwrap();
+        let mut dev = Device::new(&gpu, &k, &tables, 1 << 16).sown_from(64);
+        let (settled, _) =
+            pollster::block_on(settle(&species, request, Plan::default(), &mut dev)).unwrap();
+        dev.wait();
+        let mut device: Vec<(u64, f64)> = (settled.live.iter().zip(&settled.radii))
+            .map(|(&r, &radius)| {
+                (
+                    settled.structure.axes[settled.at[r].unwrap()].lineage,
+                    radius,
+                )
+            })
+            .collect();
+        device.sort_by_key(|b| b.0);
+        assert_eq!(device.len(), cpu.bases.len(), "{name}: the live roots");
+        let equal = (device.iter().zip(&cpu.bases))
+            .filter(|(a, b)| a.0 == b.0 && a.1.to_bits() == b.1.to_bits())
+            .count();
+        assert!(
+            equal * 10 >= device.len() * 9,
+            "{name}: {equal} of {} base radii the CPU's to the bit",
+            device.len()
+        );
+    }
+}
