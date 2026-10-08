@@ -307,6 +307,14 @@ impl Renderer {
         self.scene.set_material(material);
     }
 
+    /// What the tree that is up is made of, as `family` states it with its
+    /// supernatural group applied: its material, the group's overrides laid
+    /// over it while the group is on, and the group's leaf mirrors.
+    pub fn set_family(&mut self, family: &telperion_core::presets::Family) {
+        self.set_material(family.applied().material);
+        self.scene.set_reflection(family.supernatural.reflection());
+    }
+
     /// Puts the sun somewhere else and paints the sky and the ground with it.
     /// A scene is not a property of a tree, so it outlives every submission
     /// and no blend between two families touches it.

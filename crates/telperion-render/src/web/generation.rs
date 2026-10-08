@@ -54,7 +54,7 @@ impl WebRenderer {
             let mut live = borrow(&live)?;
             let previous_tree_gpu_bytes = Generator::tree_buffer_bytes(&live.renderer);
             let submitted = live.renderer.submit_prepared(prepared).map_err(js_error)?;
-            live.renderer.set_material(family.material);
+            live.renderer.set_family(&family);
             let mut value: serde_json::Value =
                 serde_json::from_str(&submitted_json(&submitted)).expect("submitted JSON");
             value["backend"] = json!(backend);

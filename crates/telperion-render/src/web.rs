@@ -220,7 +220,7 @@ impl WebRenderer {
         // The material rides with the tree: these parameters state both, and a
         // tree drawn in the last tree's colours would be nobody's family.
         let submitted = live.renderer.submit(&mesh).map_err(js_error)?;
-        live.renderer.set_material(family.material);
+        live.renderer.set_family(&family);
         self.generation.borrow_mut().invalidate();
         Ok(submitted_json(&submitted))
     }

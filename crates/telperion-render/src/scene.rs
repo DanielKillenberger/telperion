@@ -4,7 +4,9 @@
 //! filter. Frame-uniform assembly lives beside this file; the clay room keeps
 //! its neutral light and never reads the shadow.
 use bytemuck::{Pod, Zeroable};
-use telperion_core::{material::MaterialParams, math::Vec3, surface::Bounds};
+use telperion_core::{
+    material::MaterialParams, math::Vec3, supernatural::Reflection, surface::Bounds,
+};
 use wgpu::util::DeviceExt;
 
 use crate::{
@@ -95,6 +97,10 @@ struct Uniforms {
     leaf_dead: [f32; 4], // a withered leaf's RGB, reserved
     mature: [f32; 4], // old bark RGB, the furrow strength it takes
     mature_radius: [f32; 4], // the radius old bark starts at, the span it turns over, reserved, reserved
+    /// The supernatural group's mirror on a leaf's underside: its tint, and
+    /// its reflectance at normal incidence (fn-217 E2); the margin's
+    /// reflectance and both mirrors' roughness sit in `reflectance`.
+    leaf_reflection: [f32; 4], // back tint RGB, back reflectance
 }
 
 /// The room and the light every pipeline draws under. Owns the one uniform
@@ -107,6 +113,9 @@ pub struct Scene {
     /// What the subject is made of, as the family stated it. It arrives with
     /// the tree and outlives nothing: a second tree brings its own row.
     material: MaterialParams,
+    /// The supernatural group's leaf mirrors, which arrive with the
+    /// material and are none on every natural family.
+    reflection: Reflection,
     pub(crate) section_roundness: f64,
     /// The ellipsoid the submitted crown's placements fill, which a leaf's
     /// depth into the crown is measured against. None before a tree is up.
@@ -243,6 +252,7 @@ impl Scene {
         Self {
             row: SceneRow::default(),
             material: MaterialParams::default(),
+            reflection: Reflection::NONE,
             section_roundness: 0.0,
             crown: None,
             leaf_reference: telperion_core::foliage::Reference::default(),
@@ -282,6 +292,13 @@ impl Scene {
     /// from rather than in the last tree's colours.
     pub fn set_material(&mut self, material: MaterialParams) {
         self.material = material;
+        self.reflection = Reflection::NONE;
+    }
+
+    /// The supernatural group's leaf mirrors for the subject that is up,
+    /// set after its material.
+    pub fn set_reflection(&mut self, reflection: Reflection) {
+        self.reflection = reflection;
     }
 
     /// The ellipsoid a leaf's depth into the crown is measured against.

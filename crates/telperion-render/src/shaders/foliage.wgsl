@@ -213,6 +213,27 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     if (front && u.reflectance.y > 0.0 && any(direct > vec3<f32>(0.0))) {
         mirrored = highlight(n, u.sun_direction.xyz, to_eye, u.reflectance.y, 1.0 - gloss);
     }
+    // The supernatural group's mirrors (fn-217 E2): a metal's on the
+    // underside, tinted by the group's back tint, and on the margin band of
+    // either face, tinted by the colour the band shows. Each takes its share
+    // of the sun from the face's diffuse, as the cuticle's glint does: the
+    // front glint and the underside's are never on one face, and within the
+    // band the rim's share adds to the face's, the two together at most all
+    // of it. None of it at a reflectance of zero, on every natural leaf.
+    let back = select(u.leaf_reflection.w, 0.0, front);
+    let rough = u.reflectance.w;
+    var silver = vec2<f32>(0.0);
+    var rim = vec2<f32>(0.0);
+    if (any(direct > vec3<f32>(0.0))) {
+        if (back > 0.0) {
+            silver = highlight(n, u.sun_direction.xyz, to_eye, back, rough);
+        }
+        if (u.reflectance.z > 0.0 && margin > 0.0) {
+            rim = highlight(n, u.sun_direction.xyz, to_eye, u.reflectance.z, rough);
+        }
+    }
+    let given = mirrored.x + min(silver.x + margin * rim.x, max(1.0 - mirrored.x, 0.0));
+    let metal = u.leaf_reflection.rgb * (silver.x * silver.y) + colour * (margin * rim.x * rim.y);
     // The leaves of its own mass standing over it take their share of the
     // sky and of what passes through, so a clump's face is lit and what
     // hangs under it falls into its shade.
@@ -222,15 +243,22 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
         shaded *= own;
         through *= own;
     }
-    var radiance = colour * (shaded + direct * (1.0 - mirrored.x)) + through
-        + direct * mirrored.x * mirrored.y;
+    // The underside's metal mirrors the sky as well, its share taken from
+    // the sky's diffuse on that face.
+    let sky_given = sheen(n, to_eye, back);
+    var radiance = colour * (shaded * (1.0 - sky_given) + direct * (1.0 - given)) + through
+        + direct * mirrored.x * mirrored.y + direct * metal;
+    let mirror = reflect(-to_eye, n);
     if (u.canopy.w > 0.0) {
         // The cuticle returns the sky its own face mirrors, most of it at
         // grazing. Reflection is the surface's, so it reads the face, as the
         // sun's glint does; the bent normal stands for light arriving through
         // the mass, and on its silhouette would mirror the sky off every rim.
-        let mirror = reflect(-to_eye, n);
         radiance += sheen(n, to_eye, u.canopy.w) * occluded_ambient(mirror, in.leaf.z)
+            * interior * overhead * own;
+    }
+    if (back > 0.0) {
+        radiance += u.leaf_reflection.rgb * sky_given * occluded_ambient(mirror, in.leaf.z)
             * interior * overhead * own;
     }
     return vec4<f32>(tone(radiance), 1.0);
