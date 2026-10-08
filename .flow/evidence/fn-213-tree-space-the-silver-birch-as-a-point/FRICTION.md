@@ -73,3 +73,17 @@
 - **Slowed by:** the brief said fn-223 carries fn-198's F4 tip at `1f88d724`. It does not: fn-223's head `ce17b621` lacks fn-229 (florets on the device) and the last fn-228 merge. The merge took fn-223 only, as asked. The timings ran on a shared machine (load 12 to 14 of 32), and three repeats of each round scattered by up to 2× on identical work.
 - **Cost:** about 5 minutes checking ancestry, and 3 minutes of timing that settles nothing below about 30%.
 - **Would remove it:** a brief that states the tip by `git merge-base --is-ancestor`; a timing harness that runs on an idle machine or reports CPU time.
+
+## 2026-10-08: round 13's gate outran the shell's 10-minute foreground limit
+
+- **Doing:** the workspace half of the gate (`--exclude telperion-render`), after the render half.
+- **Slowed by:** the run passed 600 s on a machine at load 37 of 32, and the host moved it to the background; the worker then waited on its handle.
+- **Cost:** a few minutes of re-arming and a waited handle; no rerun.
+- **Would remove it:** nothing in the repository; a gate on a loaded machine needs a longer foreground ceiling, or the workspace gate split in two halves under 10 minutes each.
+
+## 2026-10-08: the shell guard blocks a variable path in a redirect again
+
+- **Doing:** writing round 13's measures to `raw/measure-r13.txt` and a leaf-row probe.
+- **Slowed by:** `> $E/raw/...` was refused (the 2026-10-08 entry above); both became literal paths and a script in the scratchpad.
+- **Cost:** two blocked commands, about 3 minutes.
+- **Would remove it:** nothing in the repository; local guard setting (reported, not specced).
