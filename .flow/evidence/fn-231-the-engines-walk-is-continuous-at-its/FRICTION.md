@@ -11,3 +11,10 @@
 - **Doing:** R1 at 80, six pairs, eight t values each, plus two checks per end.
 - **Slowed:** one grown and length prediction off an end at 80 takes about 5 s for beech to oak, and longer on the ordinary tree's walks. That is the same cost fn-230 reported for `expected_counts`.
 - **Cost:** the run takes several minutes in the background.
+
+## 2026-10-08: the host's whole-element rule meets fn-192's by-degree tests
+
+- **Doing:** building the host's rule for fractional bud places on both executors and the closed form.
+- **Slowed:** the rule is about 20 files deep in each executor, because the GPU's asks and table layout mirror the CPU word for word. Once built, it fails fn-192's by-degree walks, which the decision expected to bound it. The lifespan part reads two ways (unit or tick), and one of them overturns host decision 7.
+- **Cost:** about 70 minutes, a 260 s space suite run and a 90 s GPU parity run. The work is parked on `fn-231-places-wip` rather than left on a broken branch.
+- **Would have removed it:** running the decision against the walk tests before ruling. A 10-line probe that sets `zone.buds = 1.3` in `tests/walks.rs`'s species would have shown the jump.
