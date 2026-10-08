@@ -1,4 +1,4 @@
-//! fn-213 COMPARE.md's measures, by code: one preset's tree through the
+//! fn-213 COMPARE.md's measures, by code (round 12 adds the clusters): one preset's tree through the
 //! pipeline at an age and seed, and the hanging strands, the twigs along
 //! the limbs, the fine wood and where the leaves sit. Compiles against
 //! master (the old generator) and the fn-213 branch (the engine) alike;
@@ -273,6 +273,16 @@ fn main() -> Result<(), String> {
         "  leaves per metre of hanging strand: {:.1} ({on_strand} on {strand_m:.0} m); per short run: {:.2} ({short_runs} runs)",
         on_strand as f64 / strand_m.max(1e-9),
         on_short as f64 / (short_runs.max(1) as f64)
+    );
+    // Short shoots' clusters (fn-223), read from the tree: tips and the
+    // leaves they seat; the rest stand along the shoots.
+    let tree = &built.skeleton.tree;
+    let in_clusters: u64 = tree.clusters.iter().map(|c| u64::from(c.leaves)).sum();
+    println!(
+        "  clusters {}: {in_clusters} leaves at short-shoot tips ({:.0}% of {n}), {} along the shoots",
+        tree.clusters.len(),
+        100.0 * in_clusters as f64 / (n.max(1) as f64),
+        n as u64 - in_clusters.min(n as u64)
     );
     // Leaf size: the blade's extent along and across its axis, and the
     // stalk below it, times each instance's scale (the column length).

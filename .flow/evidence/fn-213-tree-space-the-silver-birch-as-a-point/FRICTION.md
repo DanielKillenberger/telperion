@@ -59,3 +59,17 @@
 - **Slowed by:** `git show HEAD:<path> > <path>` and `> $E/...` redirects are refused; each became a copy through the scratchpad and a script with literal paths (the 2026-10-07 entry's cause).
 - **Cost:** two blocked commands, about 3 minutes.
 - **Would remove it:** nothing in the repository; local guard setting (reported, not specced).
+
+## 2026-10-08: round 11b's stills could not be reused after the merge
+
+- **Doing:** round 12's compare sheets, old against 11b against 12.
+- **Slowed by:** the fn-223 merge brought fn-198's wood fix (`1b74db15`) and fn-228's white sun, so node counts and light moved under the 11b stills (seed 1 at 40: 280,885 nodes before, 282,041 after). 11b also had no 40-year stills. Round 11b's rows were re-rendered on the merged code by deleting the two cluster rows in the working tree, rebuilding, rendering and restoring.
+- **Cost:** about 4 minutes and one extra build of the render example.
+- **Would remove it:** an option on the still runner that names a value file, so a previous round's rows render on today's code without editing the preset.
+
+## 2026-10-08: the brief's ancestry claim and the cost timings
+
+- **Doing:** the merge, then the cost table.
+- **Slowed by:** the brief said fn-223 carries fn-198's F4 tip at `1f88d724`. It does not: fn-223's head `ce17b621` lacks fn-229 (florets on the device) and the last fn-228 merge. The merge took fn-223 only, as asked. The timings ran on a shared machine (load 12 to 14 of 32), and three repeats of each round scattered by up to 2× on identical work.
+- **Cost:** about 5 minutes checking ancestry, and 3 minutes of timing that settles nothing below about 30%.
+- **Would remove it:** a brief that states the tip by `git merge-base --is-ancestor`; a timing harness that runs on an idle machine or reports CPU time.
