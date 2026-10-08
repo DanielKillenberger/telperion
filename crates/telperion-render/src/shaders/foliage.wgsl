@@ -107,12 +107,12 @@ fn leaf_grain(coord: vec2<f32>, seed: vec2<f32>, pixel: vec2<f32>,
         leaf_cells(coord + cy, seed, pixel) - here);
 }
 
-/// The share of a pixel's footprint on the blade, `at` in a leaf coordinate
-/// that runs over [0, 1] with the blade's area, that falls in the band
+/// The share of a pixel's footprint on the leaf, `at` in a leaf coordinate
+/// that runs over [0, 1] with the leaf's area, that falls in the band
 /// [`low`, `high`]: the band's edges filtered over `footprint`, and where the
-/// footprint spans the whole blade, the band's share of its area (fn-217
+/// footprint spans the whole leaf, the band's share of its area (fn-217
 /// DESIGN.md 8.2). The band is set in leaf space, never in pixels, so a leaf
-/// under a pixel takes the area-weighted mix of blade and band.
+/// under a pixel takes the area-weighted mix of the face and the band.
 fn band(at: f32, low: f32, high: f32, footprint: f32) -> f32 {
     let half = 0.5 * max(footprint, 1e-6);
     let start = max(at - half, 0.0);
