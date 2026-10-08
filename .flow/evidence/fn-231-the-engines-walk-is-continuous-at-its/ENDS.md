@@ -152,3 +152,19 @@ Neither offered option is taken. Sizing at share gives s², and "full size" turn
 - **What follows.** Wood and counts are both linear in the lifespan, and nothing is laid whole. At s = 1 nothing changes. The floor stays "above 0": a share below 2^-20 lays its first node with that chance.
 - **Measure first, then build.** Confirm that a partial unit today lays all n nodes. If the count jump does not come from crowded nodes, stop and report.
 - **Then finish the task.** Build the rule on both executors, then re-measure the shipped species. Any species whose partial units change must have its strips made before and after, viewed, and re-pinned with that evidence. Then R3 at both ends, the gate, npm test, the review and `flowctl done`.
+
+## The third answer measured: the nodes are crowded (2026-10-08)
+
+**Confirmed.** A probe (`crowd_probe.rs.txt`) grows an age of 4 nodes a unit at lifespan 2 + x into an age of lifespan 10, to 5 cycles, on the CPU grower:
+
+| x | PA 0 phytomers (cycle 3's scale) | Closed form PA 0 |
+|---|---|---|
+| 0 | 8 | 8 |
+| 1 tick | 12 (four at scale 0.000) | 12 |
+| 0.25 | 12 (four at 0.250) | 12 |
+| 0.5 | 12 (four at 0.500) | 12 |
+
+The successor's first unit lays all four of its nodes at 0.75 and 0.5. A partial unit lays every node of its unit, each at the unit's share of its length, and the count jump is those crowded nodes. As the answer instructs, the build comes next. Two things decide its shape, and both are the host's:
+
+1. **"The unit's first share s", across its zones or within each?** Read as written, the cut falls along the whole unit, so its first share s may hold the bare and medial zones and none of the top whorl. In the grower that is plain: lay the first ⌊sN⌋ of the unit's N nodes in `ALONG` order, and draw the next. In the closed form it is not. Which zone each laid node falls in depends on every zone's count together. The predictor's factor for a unit (`predictor/axis.rs`, `kept/path.rs`, `section.rs`) then becomes a sum over the joint law of up to four zones' counts, conditioned on their total. That is about 10^5 to 10^6 terms a unit by dynamic programming, inside the recursion every blend solve runs, where fn-230 already measured 50 to 60 s a solve. The within-zone reading, where each zone lays its first share s of its own nodes, gives every zone a thinned count law: exact, as cheap as today, and linear in s. But it takes a share of the top whorl too, which a shoot cut short would not.
+2. **Every partial unit.** The rule as stated covers all partial units, not just the last unit of a fractional lifespan: a failed unit's lived part (fn-199; `lived_extent` scales its nodes today), a relay's rest of a cycle, and a woken bud's first unit. The beech, oak and spruce all have such units (viability below 1, sleeping buds), so every shipped species' grown tree changes. The strips cover that, as the answer says. Should the build take all of them, or only the units a lifespan's fraction makes?
