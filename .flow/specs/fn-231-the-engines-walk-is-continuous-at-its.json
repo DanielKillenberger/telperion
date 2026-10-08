@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-231-the-engines-walk-is-continuous-at-its",
+  "created_at": "2026-10-08T13:14:15.281213Z",
+  "depends_on_epics": [],
+  "id": "fn-231-the-engines-walk-is-continuous-at-its",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-231-the-engines-walk-is-continuous-at-its.md",
+  "status": "open",
+  "title": "The engine's walk is continuous at its ends",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-08T13:14:15.296064Z"
+}
