@@ -25,15 +25,18 @@ pub const SHIFT: u32 = 31;
 pub const REACH: i64 = 1 << 44;
 /// A leaf's area below 2^16 square metres, Q32.
 pub const AREA: i64 = 1 << 48;
-/// The leaves a lattice takes.
-pub const LEAVES: usize = 1 << 40;
+/// The leaves a lattice takes: a u64, so the bound is the same on a
+/// 32-bit target (Wasm), where a `usize` cannot hold it.
+pub const LEAVES: u64 = 1 << 40;
 /// The nodes a box holds.
 pub const NODES: u64 = 1 << 28;
 
 /// A node's light, rounded once to the nearest Q32, ties to even, within
 /// [0, 1].
 pub fn rounded(l: f64) -> i64 {
-    (l * ONE32 as f64).round_ties_even().clamp(0.0, ONE32 as f64) as i64
+    (l * ONE32 as f64)
+        .round_ties_even()
+        .clamp(0.0, ONE32 as f64) as i64
 }
 
 /// A coordinate's node and its Q31 fraction.
@@ -151,7 +154,7 @@ impl Grid {
 
     /// Every leaf's deposits: the same lattice for any order or grouping.
     pub fn deposit_all(&self, leaves: &[([i64; 3], i64)]) -> Result<Vec<u128>, Fault> {
-        if leaves.len() >= LEAVES {
+        if leaves.len() as u64 >= LEAVES {
             return Err(Fault::Range);
         }
         let mut lattice = vec![0u128; self.nodes()];
