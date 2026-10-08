@@ -343,3 +343,9 @@ The ordinary tree keeps its old rows. It is not re-solved in this spec.
   2. Pin its identity digests to them, and note in ENDS.md that its kept count no longer equals the corners' mean. `examples/centroid.rs` stays as it is, as a tool.
   3. Skip any test that asserts the ordinary preset equals a fresh solve, naming this decision; do not delete it.
   4. Then run the gate, npm test, impl-review and `flowctl done`.
+
+## The seventh answer applied (2026-10-09)
+
+The ordinary preset's rows and the browser presets are back to their pre-fn-231 values, so the family identity digest is fn-223's again. The walk digest is re-pinned, because blend sizes moved. `the_ordinary_tree_is_the_centroid_of_the_branching_species` is skipped with this decision in its `ignore` note, not deleted. `examples/centroid.rs` stays as a tool.
+
+**Its kept count no longer equals the corners' mean.** Light-neutral at 80, it keeps 1,166,278 phytomers against the corners' geometric mean of 3,559,562 (0.328). The corners are beech 2,187,240, oak 4,430,867 and spruce 4,653,767. The crowded nodes no longer count. The sizing measure is the owner's question, with `raw/ordinary/strip2-*.png` kept for them.

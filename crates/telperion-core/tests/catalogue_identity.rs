@@ -77,14 +77,13 @@
 //! two changes touching disjoint rows; every engine preset's grown tree
 //! (`space_hash`, four species at 40 and 80, seeds 1 and 7) was fn-198's
 //! to the bit (MERGE-223.md). The override and refusal digests are fn-223's.
-//! fn-231 re-pinned the family and walk digests: the engine's walk counts a
-//! fractional bud place, shedding fade and lifespan-cut unit at its share,
-//! so the size a blend is solved to moves, and the ordinary tree re-derived
-//! by `examples/centroid.rs` moves its lateral rows alone (by one factor,
-//! 1.2327); every other row of every preset is unchanged. The beech's,
+//! fn-231 re-pinned the walk digest: the engine's walk counts a fractional
+//! bud place, shedding fade and lifespan-cut unit at its share, so the size
+//! a blend is solved to moves. The family digest is fn-223's again: every
+//! preset's rows are unchanged, the ordinary tree keeping its rows though a
+//! fresh solve would move them (host, 2026-10-09; ENDS.md). The beech's,
 //! spruce's, oak's and palm's grown trees (`space_hash`) are fn-198's to
-//! the bit; the ordinary tree's grows fuller, the host's accepted change
-//! (ENDS.md).
+//! the bit.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -120,7 +119,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        12_269_513_623_412_188_978,
+        15_341_796_280_686_330_418,
         "{}",
         digest(&text)
     );
@@ -152,7 +151,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        13_218_664_344_833_670_945,
+        8_472_664_931_003_817_987,
         "{}",
         digest(&text)
     );
