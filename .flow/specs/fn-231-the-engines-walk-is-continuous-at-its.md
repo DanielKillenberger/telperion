@@ -11,7 +11,7 @@ fn-230 found the engine's walk between species (`telperion_space::blend`) jumps 
 - **R3 (proved):** a walk test at both ends (t in 1e-6..1e-2 and 1 - 1e-2..1 - 1e-6) for every pair at 40 and 80 that checks the raw engine's predicted kept and grown counts and size-weighted mass, before fn-230's size factor, converge on the exact endpoint's, alongside the walks' geometry degree test; the existing assertion that the raw jump remains (`the_size_is_neutral_at_either_end_and_continuous_off_it`) is replaced by the continuity assertion; fn-230's walk frames re-judged for visible pop at 40 and 80, strips viewed; fn-230's factor still holds.
 - **R4:** gate and npm test green; every shipped species byte-identical (t = 0 and 1 unchanged).
 
-- **R5 (cost):** the walk's solve time at the ends and inside is measured before and after; no frame slower by more than 10%.
+- **R5 (cost):** the walk's solve time at the ends and inside is measured before and after and reported; frames slower than before are carried to the blend-solve-cost spec (host, 2026-10-08).
 
 ## Boundaries
 
