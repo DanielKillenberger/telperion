@@ -54,56 +54,50 @@ fn a_preset_without_an_engine_species_carries_none() {
     }
 }
 
-/// The ordinary tree's space is the passed branching species' centroid
-/// (fn-215 R1): its shape the equal-weight mean on the space's own walk,
-/// the k-th corner a share 1/k of the way from the mean of those before,
-/// any order alike; its size the corners' geometric mean, its lateral
-/// probabilities all multiplied by one factor so its light-neutral expected
-/// kept count at 80 is theirs (host, 2026-10-08). The value file is written
-/// by `examples/centroid.rs`.
+/// The ordinary tree's space is the passed branching species' point at
+/// equal weights (fn-215 R1, fn-230 R3): the space's one blend rule,
+/// `blend::centroid`, with every corner at 80, the age its size is matched
+/// at. Its shape is the centroid of every row, any order alike; its size
+/// the corners' geometric mean, its lateral probabilities all multiplied by
+/// one factor so its light-neutral expected kept count at 80 is theirs
+/// (host, 2026-10-08). The value file is written by `examples/centroid.rs`
+/// in the order beech, oak, spruce; this reads it back in another.
 #[test]
 fn the_ordinary_tree_is_the_centroid_of_the_branching_species() {
     let corners = [
+        Preset::NorwaySpruce,
         Preset::EuropeanBeech,
         Preset::OregonWhiteOak,
-        Preset::NorwaySpruce,
-    ];
-    let centroid = |order: [usize; 3]| {
-        let mut mean = corners[order[0]].parameters();
-        for (k, &i) in order.iter().enumerate().skip(1) {
-            let corner = corners[i].parameters();
-            mean = blend::families(&mean, &corner, 1.0 / (k + 1) as f64).unwrap();
-        }
-        mean.space
-    };
+    ]
+    .map(|p| {
+        let mut corner = p.parameters();
+        corner.age = 80.0;
+        corner
+    });
+    let points: Vec<_> = corners.iter().map(|c| (c, 1.0)).collect();
+    let shape = blend::centroid(&points).unwrap().space;
     let near = |name: &str, p: f64, q: f64| {
         let close = p == q || (p - q).abs() <= 1e-9 * p.abs().max(1.0);
         assert!(close, "{name}: {p} {q}");
     };
-    let (shape, other) = (centroid([0, 1, 2]), centroid([2, 0, 1]));
     let ordinary = Preset::Ordinary.parameters().space;
-    assert_eq!(
-        (&ordinary.trunk, ordinary.light),
-        (&shape.trunk, shape.light)
+    assert_eq!(ordinary.trunk, shape.trunk);
+    near(
+        "extinction",
+        ordinary.light.extinction,
+        shape.light.extinction,
     );
-    assert_eq!(other.trunk, shape.trunk);
-    near("extinction", other.light.extinction, shape.light.extinction);
+    near("sky", ordinary.light.sky, shape.light.sky);
     let (a, b) = (ordinary.species.unwrap(), shape.species.unwrap());
-    let c = other.species.unwrap();
-    let factor = a.states[2].zones[1].lateral[9] / b.states[2].zones[1].lateral[9];
-    assert!(factor > 0.0 && factor < 1.0, "{factor}");
-    for ((x, y), z) in a.states.iter().zip(&b.states).zip(&c.states) {
-        let (mut x, mut y, mut z) = (x.clone(), y.clone(), z.clone());
-        let named = settings(&mut x).into_iter().zip(settings(&mut y));
-        for (((name, p), (_, q)), (_, r)) in named.zip(settings(&mut z)) {
-            assert_eq!(p.to_bits(), q.to_bits(), "{name}");
-            near(name, *q, *r);
+    for (x, y) in a.states.iter().zip(&b.states) {
+        let (mut x, mut y) = (x.clone(), y.clone());
+        for ((name, p), (_, q)) in settings(&mut x).into_iter().zip(settings(&mut y)) {
+            near(name, *p, *q);
         }
         for (p, q) in x.zones.iter_mut().zip(&mut y.zones) {
             let both = zone_settings(p).unwrap().into_iter();
             for ((name, p), (_, q)) in both.zip(zone_settings(q).unwrap()) {
-                let scale = if name == "zone.lateral" { factor } else { 1.0 };
-                near(name, *p, *q * scale);
+                near(name, *p, *q);
             }
         }
     }
@@ -116,11 +110,11 @@ fn the_ordinary_tree_is_the_centroid_of_the_branching_species() {
     };
     let logs: f64 = corners
         .iter()
-        .map(|p| kept(&p.parameters().space.species.unwrap()).ln())
+        .map(|c| kept(c.space.species.as_ref().unwrap()).ln())
         .sum();
     let target = (logs / 3.0).exp();
     assert!(
-        (kept(&a) / target - 1.0).abs() < 1e-6,
+        (kept(&a) / target - 1.0).abs() < 1e-9,
         "{} {target}",
         kept(&a)
     );
