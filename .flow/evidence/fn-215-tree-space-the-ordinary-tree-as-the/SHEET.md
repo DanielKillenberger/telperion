@@ -38,3 +38,24 @@ At 40 the ordinary tree stands 12.5 to 13 m tall, with an excurrent leader and m
 ## Walks (R3)
 
 Seed 1, age 40, bare, on the beech's dressing, in the fixed 30 m frame. From the ordinary tree to the beech, the oak and the spruce, at quarter steps. Height moves by degree: 12.5 to 10.1 m toward the beech, 12.5 to 13.4 to 12.4 m toward the oak, and 12.5 to 11.7 m toward the spruce. The quarter-step strips show no visible pop at the frame's scale. The steps are coarse, and no numeric walk test starts at the ordinary tree: `walks.rs` walks only the corners.
+
+## The predictor check for the host's size decision (2026-10-08)
+
+The host decided to scale the centroid's lateral probabilities until `expected_kept` at 80 equals the corners' geometric mean. That decision assumes the ordinary tree reads no light. It does: `Species::reads_light` is true for any age whose `shade_hazard`, `shade_size`, `balance_hazard` or `leaf_girth` is not zero. The oak states all four at every lived age, at 1, 1.5, 2 and 1, so the centroid carries a third of each (balance hazard 0.049 on its log scale). For such a species, `expected_kept` returns none.
+
+| Species | Expected kept at 40 | Expected kept at 80 | Time at 80 |
+|---|---|---|---|
+| European beech | 147,362 | 2,187,240 | 37 ms |
+| Oregon white oak | none (reads light) | none | |
+| Norway spruce | 1,149,893 | 4,653,767 | 62 ms |
+| Ordinary (centroid) | none (reads light) | none | |
+| Ordinary with those four rows set to 0 (probe only, not shipped) | 1,456,352 | 21,391,939 | |
+
+The predictor can therefore reach neither the target, which needs the oak, nor the tree that would be scaled. Nothing was scaled, and R1 is not amended.
+
+The friction fix, refusing up front through `foreseen`, would not have caught this tree either:
+
+- `foreseen` (`pipeline/space.rs`) runs only in Wasm, where `KEPT` is set, and checks expected kept phytomers against 4,000,000.
+- The engine's 20,000,000 budget counts grown phytomers, shed ones included.
+- `settled`, the path `executor::grow` and the stills take, does not call `foreseen` at all.
+- The ordinary tree has no expected count.
