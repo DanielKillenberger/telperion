@@ -352,8 +352,11 @@ pub fn birch() -> Species {
         )
     };
     // The short shoot: a few crowded nodes a year, its one bud carrying it
-    // on, never branching.
+    // on, never branching. It bears its leaves at its tip, "two or three
+    // leaves" (KU03 on B. pendula; SU03): three, fanned 0.6 rad either side.
     let short = PaState {
+        cluster_leaves: 3.0,
+        cluster_spread: 0.6,
         insertion: 0.8,
         internode: 0.003,
         viability: 0.92,

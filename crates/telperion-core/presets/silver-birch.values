@@ -95,7 +95,8 @@
 # puts one every 12 mm. Round 11 (owner: leaves "small and numerous ...
 # like they just fill the twigs length"): one every 60 mm, a leaf a node of
 # the strand's 0.06 m internode, so 4 to 6 a year's growth, inside the 3 to
-# 7 leaves a long shoot bears (SU03). Each short shoot keeps at least one.
+# 7 leaves a long shoot bears (SU03). Round 12: a short shoot bears no leaf
+# along its length but a cluster of three at its tip (/space/ages/14).
 /skeleton/twigs/twig/internodeLength = 0.06
 /skeleton/twigs/twig/bearingDiameter = 0.02
 
@@ -599,6 +600,8 @@
 /space/ages/14/internode = 0.003
 /space/ages/14/insertion = 0.8
 /space/ages/14/divergence = 2.5132741228718345
+/space/ages/14/clusterLeaves = 3.0
+/space/ages/14/clusterSpread = 0.6
 /space/ages/14/form/pipe = 0.0007
 /space/ages/14/zones/0/buds = 1.0
 /space/ages/14/zones/0/nodes/min = 2.0
