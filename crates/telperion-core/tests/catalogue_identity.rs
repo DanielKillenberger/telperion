@@ -64,6 +64,19 @@
 //! the bit, and with the ordinary tree read as the default family each was
 //! fn-216's. The override and refusal digests read no ordinary tree and
 //! stayed fn-216's.
+//! fn-223 re-pinned all four for the short shoots' clusters: each engine
+//! age's new neutral `cluster_leaves` and `cluster_spread`, and the five
+//! retired `/canopy/shortShoot*` rows (the beech's four dormant ones with
+//! them). With `cluster_leaves: 0.0, cluster_spread: 0.0, ` stripped from
+//! the text and the five rows put back at each family's values (the
+//! beech's, else the default's; a walk's by their old blends, its ends
+//! unchanged), the family, walk and override digests were each fn-215's
+//! to the bit. The refusal digest pairs rows by index, so the deleted
+//! rows re-paired it. When fn-223 was merged onto fn-198 (after fn-230's
+//! sized blend) the family and walk digests were re-pinned once more, the
+//! two changes touching disjoint rows; every engine preset's grown tree
+//! (`space_hash`, four species at 40 and 80, seeds 1 and 7) was fn-198's
+//! to the bit (MERGE-223.md). The override and refusal digests are fn-223's.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -99,7 +112,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        7_479_809_179_514_851_386,
+        15_341_796_280_686_330_418,
         "{}",
         digest(&text)
     );
@@ -131,7 +144,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        4_247_907_124_043_262_165,
+        10_261_846_770_402_034_553,
         "{}",
         digest(&text)
     );
@@ -156,7 +169,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        1_375_746_499_999_063_417,
+        7_934_268_765_783_179_966,
         "{}",
         digest(&text)
     );
@@ -219,7 +232,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        12_063_149_108_300_327_074,
+        1_536_851_553_539_686_348,
         "{}",
         digest(&text)
     );

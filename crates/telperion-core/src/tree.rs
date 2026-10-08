@@ -4,11 +4,13 @@
 //! Timeline nodes retain their birth identity and slot after their death year;
 //! the legacy envelope builder still compacts. Consumer reads exclude dead nodes.
 mod bloom;
+mod cluster;
 mod identity;
 mod section;
 mod shoot;
 use crate::{math::Vec3, Error, Result};
 pub use bloom::Bloom;
+pub use cluster::{cluster_key, Cluster};
 pub use identity::NodeIdentity;
 pub(crate) use identity::NodeKey;
 pub use section::{Section, SectionRing};
@@ -169,6 +171,14 @@ pub struct Tree {
     /// tree whose ages bear none, and never stored, as `sections` is.
     #[cfg_attr(feature = "json", serde(skip))]
     pub blooms: Vec<Bloom>,
+    /// The short shoots' tips, in node order (fn-223). Empty on every tree
+    /// whose ages state no cluster, and never stored, as `sections` is.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub clusters: Vec<Cluster>,
+    /// Whether each node is a short shoot's wood, which bears no leaf along
+    /// its length (fn-223). Empty where `clusters` is.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub clustered: Vec<bool>,
 }
 
 /// A 32-bit finaliser: the one the leaves' draws already use.
@@ -210,6 +220,10 @@ pub struct Attachment {
     pub fork: bool,
 }
 impl Tree {
+    /// Whether node `i` is a short shoot's wood (`clustered`).
+    pub fn is_clustered(&self, i: usize) -> bool {
+        self.clustered.get(i).copied().unwrap_or(false)
+    }
     /// Node `i`'s key (`keys`), or its index where no engine grew it.
     pub fn key(&self, i: usize) -> u32 {
         self.keys.get(i).copied().unwrap_or(i as u32)

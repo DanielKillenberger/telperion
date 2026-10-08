@@ -5,7 +5,7 @@
 //! definition of leaf-bearing wood, and it compiles with the wood surface
 //! and the placement out.
 mod fronds;
-use super::{canopy, clumping, rosette, CanopyParams, Element, TwigPlacement};
+use super::{canopy, clumping, cluster, rosette, CanopyParams, Element, TwigPlacement};
 use crate::{
     envelope::Envelope,
     math::Vec3,
@@ -14,12 +14,12 @@ use crate::{
     Error, Result,
 };
 
-/// Capability check only; `runs` still validates every parameter. Short
-/// shoots, limb clumping and a canopy without a twig layer have no plan, so
+/// Capability check only; `runs` still validates every parameter. Limb
+/// clumping and a canopy without a twig layer have no plan, so
 /// such a family takes the placed path. A rosette is planned frond by frond
 /// (`fronds`), not by runs.
 pub fn supports(p: CanopyParams, twig: Option<TwigPlacement>) -> bool {
-    twig.is_some() && p.short_shoot_spacing == 0.0 && p.limb_clumping == 0.0
+    twig.is_some() && p.limb_clumping == 0.0
 }
 
 /// A length in whole micrometres, rounded: what a run's grown wood is
@@ -172,6 +172,13 @@ pub fn runs(
             leaflets,
         });
     }
+    // The short shoots' clusters count against the same budget (fn-223).
+    for c in cluster::of(tree, &p) {
+        total = total
+            .checked_add(c.leaves * leaflets)
+            .filter(|&n| n as usize <= p.max_instances)
+            .ok_or(Error::ResourceLimit("foliage instance budget"))?;
+    }
     Ok(Some(runs))
 }
 
@@ -288,6 +295,21 @@ pub fn plan(
         }
         total += run.count * run.leaflets;
     }
+    // A cluster stands at its tip: a segment of no length there.
+    for c in cluster::of(tree, &p) {
+        let tip = &tree.nodes[c.node as usize];
+        descriptors
+            .try_reserve(1)
+            .map_err(|_| Error::ResourceLimit("foliage plan allocation"))?;
+        descriptors.push(Descriptor {
+            endpoints: [tip.position; 2],
+            radii: [tip.radius; 2],
+            count: c.leaves * rosette::leaflets(&p) as u32,
+            system: system[c.node as usize],
+            side: Vec3::ZERO,
+        });
+        total += c.leaves * rosette::leaflets(&p) as u32;
+    }
     let extent = element
         .positions
         .iter()
@@ -356,7 +378,8 @@ pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
     runs
 }
 
-/// Whether a node bears leaves: a twig, or wood within the slender bound.
+/// Whether a node bears leaves: a twig, or wood within the slender bound,
+/// never a short shoot's, which bears its leaves at its tip (fn-223).
 /// The girth and the bound are compared in whole micrometres, as both
 /// executors compute them alike (fn-212 task 10, host decision 4, as
 /// `SHORTEST` in task 8): in float32 and float64 a girth within a float
@@ -366,7 +389,9 @@ fn bearing_of(tree: &Tree, p: CanopyParams) -> impl Fn(usize) -> bool + '_ {
     move |i: usize| {
         let n = &tree.nodes[i];
         let girth = || micrometres(tree.pipe(i)[0].max(tree.pipe(i)[1]));
-        n.parent.is_some() && (n.kind == NodeKind::Twig || (slender > 0. && girth() <= slender))
+        n.parent.is_some()
+            && !tree.is_clustered(i)
+            && (n.kind == NodeKind::Twig || (slender > 0. && girth() <= slender))
     }
 }
 

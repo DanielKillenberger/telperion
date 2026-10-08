@@ -91,6 +91,19 @@ impl PaState {
                 return refuse(format!("{at}.{name}"), "a share lies in 0 to 1");
             }
         }
+        let leaves = self.cluster_leaves;
+        if !((0.0..=MAX_CLUSTER_LEAVES).contains(&leaves) && leaves.fract() == 0.0) {
+            return refuse(
+                format!("{at}.cluster_leaves"),
+                "a cluster holds 0 to 8 whole leaves",
+            );
+        }
+        if !(0.0..=FRAC_PI_2).contains(&self.cluster_spread) {
+            return refuse(
+                format!("{at}.cluster_spread"),
+                "a cluster's spread lies in 0 to pi / 2",
+            );
+        }
         if !(-1.0..=1.0).contains(&self.tolerance) {
             return refuse(format!("{at}.tolerance"), "a balance lies in -1 to 1");
         }

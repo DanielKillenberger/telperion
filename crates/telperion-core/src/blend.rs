@@ -15,8 +15,6 @@ mod size;
 /// returned unchanged. The two rows are read at one seed — the result carries
 /// `a`'s, and the caller sets the seed it wants on both before it asks.
 ///
-/// A spacing whose zero grows nothing walks as the density it stands for, so
-/// a walk from none thins in from nothing rather than arriving at its closest.
 /// Angles take the shortest path between their two bearings. Counts are
 /// rounded last, and the leaf's counts are rounded the way its own rule
 /// demands: lobes down and sections up, so a margin that is legal at both ends
@@ -201,7 +199,7 @@ fn supernatural(a: SupernaturalParams, b: SupernaturalParams, t: f64) -> Superna
 mod tests {
     use super::*;
 
-    use crate::catalogue::{degrees, density};
+    use crate::catalogue::degrees;
 
     #[test]
     fn a_walk_rounds_each_kind_of_number_the_way_its_rule_demands() {
@@ -234,12 +232,6 @@ mod tests {
             (4, 21)
         );
         assert_eq!(at(0.4).skeleton.attractors, 400);
-        // A spacing walks as its density: halfway from none to a shoot every
-        // 10 cm is one every 20, and between two spacings the harmonic mean.
-        assert_eq!(density(0.0, 0.1, 0.5), 0.2);
-        assert_eq!(density(0.1, 0.0, 1.0), 0.0);
-        assert!((density(0.1, 0.3, 0.5) - 0.15).abs() < 1e-12);
-        assert_eq!(density(0.0, 0.1, 1e-9), 1000.0);
         // An override neither row states stays the envelope's to answer.
         assert_eq!(overridden(None, None, 1.0, 2.0, 0.5), None);
         assert_eq!(overridden(None, Some(2.0), 1.0, 2.0, 0.5), Some(1.5));

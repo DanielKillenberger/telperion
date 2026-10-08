@@ -24,4 +24,5 @@ const KEY_BLOOM_ROLL = vec2<u32>(0x0b100001u, 0x00000000u);
 const KEY_FLORET = vec2<u32>(0x0b100002u, 0x00000000u);
 const KEY_FLORET_SIZE = vec2<u32>(0x00000000u, 0x00000000u);
 const KEY_FLORET_OPENING = vec2<u32>(0x00000001u, 0x00000000u);
+const KEY_CLUSTER = vec2<u32>(0x0c100000u, 0x00000000u);
 const KEY_CONTINUATION = vec2<u32>(0xffffffffu, 0xffffffffu);

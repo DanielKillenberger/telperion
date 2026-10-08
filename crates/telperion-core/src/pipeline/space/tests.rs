@@ -310,7 +310,7 @@ fn keys(structure: &Structure) -> std::collections::HashMap<(u64, usize), u64> {
 }
 
 /// Every node of an engine tree has its own identity (fn-220 R1, R2), so a
-/// draw keyed by it (short shoots, flowers) differs from one piece of wood
+/// draw keyed by it (clusters, flowers) differs from one piece of wood
 /// to the next; the identity is the key of the phytomer that made it.
 #[test]
 fn every_engine_node_has_its_own_identity() {

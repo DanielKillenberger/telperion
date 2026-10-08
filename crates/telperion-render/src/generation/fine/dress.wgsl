@@ -48,7 +48,7 @@ const AL: u32 = 8u;
 const PL: u32 = 26u;
 const PA: u32 = 2u;
 // The geometry table's PA blocks (`geometry.wgsl`).
-const GG: u32 = 38u;
+const GG: u32 = 40u;
 // `space.rs`'s constants.
 const FINEST: f32 = 2e-4;
 const SHORTEST: f32 = 1000.0;
@@ -67,10 +67,11 @@ const CA: u32 = 12u;
 // frame as laid (heading, side; y up), which a run it bears seeds from,
 // its branch (the id of its branch's first node; a branch of the structure
 // above the cut tagged `PREV`), its key (`tree::node_key`), its wood
-// as grown (`Tree::grown`): its phytomers' internodes at their scales, and
+// as grown (`Tree::grown`): its phytomers' internodes at their scales,
 // what its blooms are drawn by (fn-229): its phytomer's key (two words)
-// and its age's flowering share.
-const CV: u32 = 29u;
+// and its age's flowering share, and at a short shoot's tip its cluster's
+// spread (fn-223).
+const CV: u32 = 30u;
 const TAKEN: u32 = 1u;
 const MADE: u32 = 2u;
 // Its root is laid on the CPU (host decision 3): drawn there.
@@ -79,6 +80,11 @@ const LANDED: u32 = 4u;
 // where a run of its own starts (D4).
 const FINE: u32 = 8u;
 const SEAM: u32 = 16u;
+// A short shoot's node (fn-223), which bears no station; its tip, the
+// axis's last drawn node, carries its cluster's leaves from `LEAVES` up.
+const CLUSTERED: u32 = 32u;
+const TIP: u32 = 64u;
+const LEAVES: u32 = 8u;
 // A node of the wave before; a run begun there, its base radius carried.
 const PREV: u32 = 0x80000000u;
 const INHERITED: u32 = 0xfffffffeu;
@@ -306,6 +312,12 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
     // The wood grown since the axis's last node: the internodes merged
     // into a node are carried on to the next one drawn.
     let internode = gtab[4u + GG * ax(i, PA)];
+    // The leaves at the axis's tip and their fan (`laid.rs`, fn-223).
+    let leaves = u32(gtab[4u + GG * ax(i, PA) + 38u]);
+    var clustered = 0u;
+    if leaves > 0u {
+        clustered = CLUSTERED;
+    }
     var pending = 0.0;
     for (var k = 0u; k < s(i, S_COUNT); k++) {
         let r = li(i, k);
@@ -379,10 +391,15 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
         if !held.fine {
             seam = SEAM;
         }
-        putu(r, 6u, TAKEN | MADE | FINE | seam | flags);
+        putu(r, 6u, TAKEN | MADE | FINE | seam | clustered | flags);
         putu(r, 7u, r);
         parent = r;
         made = true;
+    }
+    // The axis's own tip keeps its cluster (`space.rs`'s `convert`).
+    if made && leaves > 0u {
+        putu(parent, 6u, getu(parent, 6u) | TIP | (leaves << LEAVES));
+        put(parent, 29u, gtab[4u + GG * ax(i, PA) + 39u]);
     }
     pda(la, 0u, taken);
     pda(la, 1u, parent);

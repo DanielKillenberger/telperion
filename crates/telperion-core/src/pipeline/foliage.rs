@@ -6,6 +6,7 @@ mod bloom;
 mod bloom_params;
 mod canopy;
 mod clumping;
+mod cluster;
 mod element;
 mod leaflet;
 mod levels;
@@ -19,8 +20,6 @@ pub mod prepared;
 mod reference;
 mod rosette;
 #[cfg(feature = "geometry")]
-mod short_shoots;
-#[cfg(feature = "geometry")]
 mod station;
 #[cfg(test)]
 use crate::envelope::{distance_to_profile, Envelope};
@@ -33,7 +32,7 @@ pub(crate) use bloom::{
 pub use bloom_params::BloomParams;
 /// Every canopy rail `place` judges, with no tree to place against.
 pub(crate) use canopy::rows as canopy_rows;
-pub use canopy::{CanopyParams, TwigPlacement, MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING};
+pub use canopy::{CanopyParams, TwigPlacement};
 pub use element::{build_element, AnatomyGeometry, Element, ElementParams, FoliageUnit};
 pub use levels::Level;
 pub use packed::{withered, Leaf, Reference, WITHERED, WORDS};
@@ -50,12 +49,6 @@ pub(crate) use reference::Reach;
 /// placing a leaf: a bad row is refused by the name `place` refuses it by.
 pub(crate) use rosette::validate as validate_canopy;
 pub use rosette::{frame, rosettes, Rosette, MAX_FRONDS, MAX_LEAFLETS};
-#[cfg(all(test, feature = "geometry"))]
-pub use short_shoots::place_short_shoots;
-#[cfg(all(test, feature = "geometry"))]
-pub use short_shoots::short_shoots;
-#[cfg(feature = "geometry")]
-pub use short_shoots::ShortShoot;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bounds {

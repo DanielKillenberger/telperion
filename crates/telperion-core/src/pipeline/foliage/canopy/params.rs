@@ -132,62 +132,12 @@ crate::catalogue::rows! {
             dial: bounded("leaf_size_variation", "how far leaf size varies leaf to leaf",
                 [0.15, 0.3]),
         },
-        /// Metres between short shoots along limb and branch wood: spurs a few
-        /// centimetres long, each ending in a cluster of leaves. Zero grows none.
-        pub short_shoot_spacing: f64 = "shortShootSpacing" "m"
-            Bounds::closed(crate::pipeline::foliage::SHORT_SHOOT_SPACING.0, crate::pipeline::foliage::SHORT_SHOOT_SPACING.1).or_zero() => [Plan, Expand] {
-            wire: 101,
-            check: input(Site::ShortShoots, 1, "short shoot spacing"),
-            note: "Above zero there is no leaf plan: leaves are placed for the field, and the \
-                GPU executor falls back.",
-            blend: Blend::Density,
-            dial: tuned("spacing", "metres between leaf clusters",
-                [0.01, 0.08], [0.01, 0.02], "authored"),
-        },
-        /// Wood thicker than this fraction of the stem's radius carries no short
-        /// shoot, and neither does twig wood or anything below the crown base.
-        pub short_shoot_radius: f64 = "shortShootRadius" "share of stem radius"
-            Bounds::closed(0.0, 1.0) => [Expand] {
-            wire: 102,
-            check: input(Site::ShortShoots, 2, "short shoot radius"),
-            applies: "`shortShootSpacing` zero",
-            dial: bounded("short_shoot_radius", "the share of the stem's radius above which wood \
-                carries no short shoot", [0.15, 0.3]),
-        },
-        /// Metres from the bark to the cluster a short shoot carries.
-        pub short_shoot_length: f64 = "shortShootLength" "m" Bounds::closed(0.0, 0.5) => [Expand] {
-            wire: 103,
-            check: input(Site::ShortShoots, 3, "short shoot length"),
-            applies: "`shortShootSpacing` zero",
-            dial: bounded("short_shoot_length", "the metres from the bark to the cluster a short \
-                shoot carries", [0.1, 0.2]),
-        },
-        /// Leaves in one short shoot's cluster, 1 to 8.
-        pub short_shoot_leaves: u32 = "shortShootLeaves" "leaves"
-            Bounds::closed(1.0, crate::pipeline::foliage::MAX_SHORT_SHOOT_LEAVES as f64) => [Expand] {
-            wire: 104,
-            check: input(Site::ShortShoots, 5, "short shoot leaves"),
-            applies: "`shortShootSpacing` zero",
-            blend: Blend::Count,
-            dial: tuned("leaves", "leaves per cluster", [2.0, 12.0], [2.0, 4.0], "authored"),
-        },
-        /// Degrees either side of its short shoot's bearing a cluster's leaves
-        /// fan across, held level: 90 is a half circle, 0 stacks them.
-        pub short_shoot_spread: f64 = "shortShootSpread" "degrees"
-            Bounds::closed(0.0, 90.0) => [Expand] {
-            wire: 105,
-            check: input(Site::ShortShoots, 4, "short shoot spread"),
-            applies: "`shortShootSpacing` zero",
-            blend: Blend::Degrees,
-            dial: bounded("short_shoot_spread", "the degrees either side of its bearing a \
-                cluster's leaves fan across", [10.0, 20.0]).span([22.5, 90.0]),
-        },
         /// How far into each limb system the gap between it and its neighbours
         /// reaches, as a share of the way from their shared boundary to the
         /// system's centre: each limb system then keeps a rounded leaf mass of its
         /// own. Zero, the neutral, thins nothing.
         pub limb_clumping: f64 = "limbClumping" "share" Bounds::closed(0.0, 1.0) => [Plan, Expand] {
-            wire: 106,
+            wire: 101,
             check: input(Site::Canopy, 12, "limb clumping"),
             note: "Above zero there is no leaf plan and leaves are thinned per limb system.",
             dial: bounded("limb_clumping", "how far the gap between neighbouring limb systems \
@@ -199,7 +149,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_clump_system_order"))]
         pub clump_system_order: u32 = "clumpSystemOrder" "order"
             Bounds::at_least(0.0) => [Plan, Expand] {
-            wire: 107,
+            wire: 102,
             note: "No upper bound is checked. The planned field assigns limb systems by it even \
                 at `limbClumping` zero.",
             blend: Blend::Count,
@@ -214,8 +164,8 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_clump_neighbours"))]
         pub clump_neighbours: u32 = "clumpNeighbours" "neighbours"
             crate::ranges::POSITIVE_COUNT.bounds() => [Expand] {
-            wire: 108,
-            check: value(Site::ShortShoots, 0, "clumpNeighbours"),
+            wire: 103,
+            check: value(Site::Clumping, 0, "clumpNeighbours"),
             applies: "`limbClumping` zero",
             blend: Blend::Count,
             dial: Dial::Excluded("An approximation budget: neighbours and cell crossings the \
@@ -227,10 +177,10 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub rosette_fronds: u32 = "rosetteFronds" "fronds"
             Bounds::closed(0.0, crate::pipeline::foliage::MAX_FRONDS as f64) => [Grow, Plan, Expand] {
-            wire: 109,
+            wire: 104,
             check: input(Site::Rosette, 18, "rosette fronds"),
             note: "Above zero the apical twigs are cleared, fronds are planned instead of runs \
-                and the rosette is placed instead of short shoots; the GPU executor falls back.",
+                and the rosette is placed instead; the GPU executor falls back.",
             blend: Blend::Count,
             dial: bounded("rosette_fronds", "fronds in the crown at each stem apex; at zero no \
                 rosette stands", [1.0, 4.0]),
@@ -239,7 +189,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_rosette_divergence"))]
         pub rosette_divergence: f64 = "rosetteDivergence" "degrees"
             Bounds::closed(-1e9, 1e9) => [Grow, Plan, Expand] {
-            wire: 110,
+            wire: 105,
             check: input(Site::Rosette, 0, "rosette divergence"),
             note: "Also the leaf bases' spiral, rosette or none.",
             blend: Blend::Degrees,
@@ -251,7 +201,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_rosette_pitch"))]
         pub rosette_pitch: f64 = "rosettePitch" "degrees"
             Bounds::closed(0.0, 180.0) => [Plan, Expand] {
-            wire: 111,
+            wire: 106,
             check: input(Site::Rosette, 1, "rosette pitch"),
             applies: "`rosetteFronds` zero",
             dial: bounded("rosette_pitch", "degrees off the axis the youngest frond stands",
@@ -265,7 +215,7 @@ crate::catalogue::rows! {
         )]
         pub rosette_pitch_spread: f64 = "rosettePitchSpread" "degrees"
             Bounds::closed(0.0, 180.0) => [Plan, Expand] {
-            wire: 112,
+            wire: 107,
             check: input(Site::Rosette, 2, "rosette pitch spread"),
             applies: "`rosetteFronds` zero",
             dial: bounded("rosette_pitch_spread", "degrees further than that the oldest frond \
@@ -276,7 +226,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub rosette_depth: f64 = "rosetteDepth" "m"
             Bounds::closed(0.0, 100.0) => [Grow, Plan, Expand] {
-            wire: 113,
+            wire: 108,
             check: input(Site::Rosette, 3, "rosette depth"),
             note: "Leaf bases start below it, rosette or none; the deepest frond sets the leaf \
                 box's reach.",
@@ -288,7 +238,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_leaflet_count"))]
         pub leaflet_count: u32 = "leafletCount" "leaflets"
             Bounds::closed(1.0, crate::pipeline::foliage::MAX_LEAFLETS as f64) => [Plan, Expand] {
-            wire: 114,
+            wire: 109,
             check: input(Site::Rosette, 20, "leaflet count"),
             note: "Leaflets group only above one and with `rachisLength` above zero; the GPU \
                 executor draws one blade a station regardless (fn-163).",
@@ -299,7 +249,7 @@ crate::catalogue::rows! {
         /// is one blade whatever the count says.
         #[cfg_attr(feature = "json", serde(default))]
         pub rachis_length: f64 = "rachisLength" "m" Bounds::closed(0.0, 1e3) => [Plan, Expand] {
-            wire: 115,
+            wire: 110,
             check: input(Site::Rosette, 4, "rachis length"),
             applies: "`leafletCount` one",
             dial: tuned("rachis_length", "metres of rachis the leaflets are strung along; at \
@@ -309,7 +259,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_leaflet_pitch"))]
         pub leaflet_pitch: f64 = "leafletPitch" "degrees"
             Bounds::closed(0.0, 90.0) => [Plan, Expand] {
-            wire: 116,
+            wire: 111,
             check: input(Site::Rosette, 5, "leaflet pitch"),
             applies: "no leaflet grouping (`leafletCount` one or `rachisLength` zero)",
             dial: bounded("leaflet_pitch", "the degrees a leaflet leaves its rachis", [3.0, 10.0]),
@@ -319,7 +269,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub rachis_arch: f64 = "rachisArch" "share of the rachis"
             Bounds::closed(-1.0, 1.0) => [Plan, Expand] {
-            wire: 117,
+            wire: 112,
             check: input(Site::Rosette, 6, "rachis arch"),
             applies: "no leaflet grouping (`leafletCount` one or `rachisLength` zero)",
             dial: bounded("rachis_arch", "how far the rachis bends out of its straight line",
@@ -330,7 +280,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub terminal_leaflet: f64 = "terminalLeaflet" "share"
             Bounds::closed(0.0, 1.0) => [Plan, Expand] {
-            wire: 118,
+            wire: 113,
             check: input(Site::Rosette, 7, "terminal leaflet"),
             applies: "no leaflet grouping (`leafletCount` one or `rachisLength` zero)",
             dial: bounded("terminal_leaflet", "how far a leaflet closes the rachis's end",
@@ -342,7 +292,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub leaf_bases: u32 = "leafBases" "bases"
             Bounds::closed(0.0, crate::pipeline::branching::MAX_LEAF_BASES as f64) => [Grow] {
-            wire: 119,
+            wire: 114,
             check: input(Site::Rosette, 21, "leaf bases"),
             growth: Growth::Ignored,
             applies: "`leafBaseLength` zero",
@@ -356,7 +306,7 @@ crate::catalogue::rows! {
         /// drawn whatever the count says.
         #[cfg_attr(feature = "json", serde(default))]
         pub leaf_base_length: f64 = "leafBaseLength" "m" Bounds::closed(0.0, 10.0) => [Grow] {
-            wire: 120,
+            wire: 115,
             check: input(Site::Rosette, 8, "leaf base length"),
             growth: Growth::Ignored,
             applies: "`leafBases` zero",
@@ -368,7 +318,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_leaf_base_radius"))]
         pub leaf_base_radius: f64 = "leafBaseRadius" "share of stem radius"
             Bounds::closed(0.0, 1.0) => [Grow] {
-            wire: 121,
+            wire: 116,
             check: input(Site::Rosette, 9, "leaf base radius"),
             growth: Growth::Ignored,
             applies: "no leaf base",
@@ -379,7 +329,7 @@ crate::catalogue::rows! {
         /// 90 square out of it, 180 turned back down.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_leaf_base_pitch"))]
         pub leaf_base_pitch: f64 = "leafBasePitch" "degrees" Bounds::closed(0.0, 180.0) => [Grow] {
-            wire: 122,
+            wire: 117,
             check: input(Site::Rosette, 10, "leaf base pitch"),
             growth: Growth::Ignored,
             applies: "no leaf base",
@@ -394,7 +344,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub leaf_base_weathering: f64 = "leafBaseWeathering" "share"
             Bounds::closed(0.0, 1.0) => [Grow] {
-            wire: 123,
+            wire: 118,
             check: input(Site::Rosette, 11, "leaf base weathering"),
             growth: Growth::Ignored,
             applies: "no leaf base",
@@ -410,7 +360,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub leaf_base_width: f64 = "leafBaseWidth" "share of the lattice cell"
             Bounds::closed(0.0, 2.0) => [Grow] {
-            wire: 124,
+            wire: 119,
             check: input(Site::Rosette, 12, "leaf base width"),
             growth: Growth::Ignored,
             applies: "no leaf base",
@@ -427,7 +377,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub leaf_base_flatness: f64 = "leafBaseFlatness" "share"
             Bounds::closed(0.0, 1.0) => [Grow] {
-            wire: 125,
+            wire: 120,
             check: input(Site::Rosette, 13, "leaf base flatness"),
             growth: Growth::Ignored,
             applies: "no leaf base, or `leafBaseWidth` zero",
@@ -441,7 +391,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub acanthophylls: u32 = "acanthophylls" "leaflets"
             Bounds::closed(0.0, crate::pipeline::foliage::MAX_LEAFLETS as f64) => [Plan, Expand] {
-            wire: 126,
+            wire: 121,
             check: input(Site::Rosette, 22, "acanthophylls"),
             applies: "`acanthophyllLength` zero, or no leaflet grouping (`leafletCount` one or \
                 `rachisLength` zero)",
@@ -454,7 +404,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_acanthophyll_length"))]
         pub acanthophyll_length: f64 = "acanthophyllLength" "share of a leaflet"
             Bounds::closed(0.0, 1.0) => [Plan, Expand] {
-            wire: 127,
+            wire: 122,
             check: input(Site::Rosette, 14, "acanthophyll length"),
             applies: "`acanthophylls` zero, or no leaflet grouping (`leafletCount` one or \
                 `rachisLength` zero)",
@@ -466,7 +416,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_acanthophyll_pitch"))]
         pub acanthophyll_pitch: f64 = "acanthophyllPitch" "degrees"
             Bounds::closed(0.0, 90.0) => [Plan, Expand] {
-            wire: 128,
+            wire: 123,
             check: input(Site::Rosette, 15, "acanthophyll pitch"),
             applies: "no spine",
             blend: Blend::Degrees,
@@ -479,7 +429,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub skirt_fronds: u32 = "skirtFronds" "fronds"
             Bounds::closed(0.0, crate::pipeline::foliage::MAX_FRONDS as f64) => [Plan, Expand] {
-            wire: 129,
+            wire: 124,
             check: input(Site::Rosette, 19, "skirt fronds"),
             applies: "`skirtLength` zero, or `rosetteFronds` zero",
             blend: Blend::Count,
@@ -490,7 +440,7 @@ crate::catalogue::rows! {
         /// collapsed straight down against the stem.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_skirt_pitch"))]
         pub skirt_pitch: f64 = "skirtPitch" "degrees" Bounds::closed(0.0, 180.0) => [Plan, Expand] {
-            wire: 130,
+            wire: 125,
             check: input(Site::Rosette, 16, "skirt pitch"),
             applies: "no dead frond",
             dial: bounded("skirt_pitch", "degrees from the axis a dead frond hangs: 90 level, \
@@ -501,7 +451,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_skirt_length"))]
         pub skirt_length: f64 = "skirtLength" "share of a living frond"
             Bounds::closed(0.0, 1.0) => [Plan, Expand] {
-            wire: 131,
+            wire: 126,
             check: input(Site::Rosette, 17, "skirt length"),
             applies: "`skirtFronds` zero, or `rosetteFronds` zero",
             dial: bounded("skirt_length", "a dead frond's length as a share of a living one's; \
@@ -511,7 +461,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(with = "crate::ranges::portable_index"))]
         pub max_instances: usize = "maxInstances" "leaves"
             Bounds::closed(1.0, usize::MAX as f64) => [Plan, Expand] {
-            wire: 132,
+            wire: 127,
             check: input(Site::Canopy, 13, "foliage instance budget"),
             growth: Growth::Differs("`usize::MAX` turns on the sparse validation interval"),
             note: "Exceeding it is an error, never fewer leaves.",
@@ -537,14 +487,7 @@ impl Default for CanopyParams {
             scatter: 18.,
             size: 1.,
             size_variation: 0.35,
-            // Neutral: no short shoot grows until a table states a spacing.
-            // The other four are a beech's spur, so a spacing alone reads.
-            short_shoot_spacing: 0.,
-            short_shoot_radius: 0.15,
-            short_shoot_length: 0.04,
-            short_shoot_leaves: 3,
-            short_shoot_spread: 45.,
-            // Neutral: every leaf the stations and the short shoots place.
+            // Neutral: every leaf the stations and the clusters place.
             limb_clumping: 0.,
             clump_system_order: crate::ranges::default_clump_system_order(),
             clump_neighbours: crate::ranges::default_clump_neighbours(),

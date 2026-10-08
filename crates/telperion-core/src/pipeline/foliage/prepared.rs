@@ -1,5 +1,5 @@
 //! Compact regular twig stations, shared by accelerated consumers without a GPU dependency.
-use super::{plan, station, CanopyParams, TwigPlacement};
+use super::{cluster, plan, station, CanopyParams, TwigPlacement};
 use crate::math::Transcendental;
 use crate::{
     envelope::Envelope,
@@ -28,6 +28,10 @@ pub struct StationSegment {
     /// The key of its run's first node (`Tree::key`): with the family's
     /// seed, the stream its leaves draw from (`tree::leaf_stream`).
     pub key: u32,
+    /// A short shoot's cluster (fn-223), its spread: `count` leaves at
+    /// the tip `endpoints` names, fanned about the heading `frame[0]`,
+    /// drawing on the tip's cluster stream (`key`).
+    pub cluster: Option<f64>,
 }
 
 /// No per-leaf positions or transforms are constructed by this preparation.
@@ -237,11 +241,34 @@ fn prepare_inner<C>(
                     frame: [tangent, normal, binormal],
                     contact,
                     key: tree.key(run.nodes[1]),
+                    cluster: None,
                 });
                 tile_first += tile_count;
             }
         }
         total_count += run.count;
+    }
+    // Each short shoot's cluster after every run (fn-223): one segment at
+    // its tip.
+    for c in cluster::of(tree, &p) {
+        let tip = c.node as usize;
+        let at = tree.nodes[tip].position;
+        let radius = tree.nodes[tip].radius;
+        segments.push(StationSegment {
+            first: total_count,
+            count: c.leaves,
+            run_station: 0,
+            phase: [0.0, 1.0],
+            endpoints: [at; 2],
+            radii: [radius; 2],
+            along: 0.0,
+            span: 0.0,
+            frame: [cluster::heading(tree, tip), Vec3::ZERO, Vec3::ZERO],
+            contact: None,
+            key: crate::tree::cluster_key(tree.key(tip)),
+            cluster: Some(c.spread),
+        });
+        total_count += c.leaves;
     }
     Ok(Some((segments, total_count, contacts)))
 }

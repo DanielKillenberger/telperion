@@ -177,22 +177,6 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .remove(trait_name)
                 .expect("the canopy publishes its lean and contact traits");
         }
-        // fn-50 adds short shoots as five canopy rows. The frozen file
-        // predates them and states none; the spacing is zero there, which
-        // grows no short shoot, so none is a geometry parameter left unsaid.
-        for row in [
-            "shortShootSpacing",
-            "shortShootRadius",
-            "shortShootLength",
-            "shortShootLeaves",
-            "shortShootSpread",
-        ] {
-            emitted["canopy"]
-                .as_object_mut()
-                .unwrap()
-                .remove(row)
-                .expect("the canopy publishes its short-shoot rows");
-        }
         // fn-109 adds the apical rosette and the pinnate grouping as ten
         // canopy rows. The frozen file predates them and states none; the
         // frond count and the rachis are zero there, which stands no rosette

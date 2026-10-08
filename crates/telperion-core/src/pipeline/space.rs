@@ -13,7 +13,9 @@
 //! it is the node's own.
 use super::GrowInput;
 use crate::math::Vec3;
-use crate::tree::{Attachment, Bloom, BudFate, Node, NodeIdentity, NodeKind, ShootState, Tree};
+use crate::tree::{
+    Attachment, Bloom, BudFate, Cluster, Node, NodeIdentity, NodeKind, ShootState, Tree,
+};
 use crate::{Error, Result};
 use telperion_space::{Origin, Request, Structure};
 
@@ -116,13 +118,15 @@ fn asked(input: GrowInput<'_>) -> Result<(&telperion_space::Species, Request)> {
 }
 
 /// Each PA's row the conversion reads: its internode length and spread
-/// (fn-222), which each node's grown wood is measured by, and the share of
-/// its nodes that flower (fn-216).
+/// (fn-222), which each node's grown wood is measured by, the share of
+/// its nodes that flower (fn-216), and the leaves at each of its axes'
+/// tips and their fan (fn-223).
 #[derive(Debug, Clone, Copy)]
 pub(super) struct PaRow {
     internode: f64,
     spread: f64,
     flowering: f64,
+    cluster: (u32, f64),
 }
 
 /// Each PA's row (`PaRow`).
@@ -132,6 +136,8 @@ fn pa_rows(species: &telperion_space::Species) -> Vec<PaRow> {
             internode: s.internode,
             spread: s.form.internode_spread,
             flowering: s.flowering,
+            // Whole, 0 to 8, by the species' own check.
+            cluster: (s.cluster_leaves as u32, s.cluster_spread),
         })
         .collect()
 }
@@ -260,7 +266,9 @@ fn joint(
 /// codominant fork of the trunk, are both stem. `rows` is each PA's row:
 /// its internode length, which each node's grown wood is measured by, and
 /// its flowering share; a drawn node of an age that flowers (none past its
-/// end) is kept as a bloom.
+/// end) is kept as a bloom. An axis of an age that states a cluster is a
+/// short shoot: each node it draws is marked, and its last drawn node, its
+/// own tip, keeps the cluster; an axis that draws no node bears none.
 fn convert(
     structure: &Structure,
     (fine, bases): (&[bool], &[(u64, f64)]),
@@ -271,6 +279,10 @@ fn convert(
     let mut attachments = Vec::new();
     let mut nodes = vec![Node::root()];
     let mut blooms = Vec::new();
+    let mut clusters = Vec::new();
+    // Each node's mark, kept only where some age states a cluster.
+    let clustering = rows.iter().any(|r| r.cluster.0 > 0);
+    let mut clustered = vec![false; usize::from(clustering)];
     // Whether each node is a fine root's.
     let mut in_root = vec![false];
     let mut frames = vec![[0.0f32; 6]];
@@ -363,7 +375,10 @@ fn convert(
         // The wood grown since the axis's last node: the internodes merged
         // into a node are carried on to the next one drawn.
         let PaRow {
-            internode, spread, ..
+            internode,
+            spread,
+            cluster,
+            ..
         } = rows[axis.pa];
         let mut pending = 0.0;
         for (place, p) in axis
@@ -438,6 +453,16 @@ fn convert(
             made = true;
             drawn[i].push(parent);
             nodes.push(node);
+            if clustering {
+                clustered.push(cluster.0 > 0);
+            }
+        }
+        if made && cluster.0 > 0 {
+            clusters.push(Cluster {
+                node: parent,
+                leaves: cluster.0,
+                spread: cluster.1,
+            });
         }
         // An axis with no drawn phytomers ends where it starts, and only a
         // whole axis is carried on.
@@ -484,9 +509,13 @@ fn convert(
         keys,
         grown: lengths,
         blooms,
+        clusters,
+        clustered,
         ..Tree::default()
     }
 }
 
+#[cfg(test)]
+mod cluster_tests;
 #[cfg(test)]
 mod tests;

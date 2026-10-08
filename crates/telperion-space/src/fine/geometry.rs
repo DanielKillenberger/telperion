@@ -39,6 +39,10 @@ pub struct PaGeometry {
     /// The share of its nodes that may flower (fn-216), which the device
     /// draws its fine roots' blooms by (fn-229).
     pub flowering: f64,
+    /// The leaves at each tip of this PA and their fan (fn-223): what the
+    /// executor that draws a fine root seats there.
+    pub cluster_leaves: f64,
+    pub cluster_spread: f64,
 }
 
 /// One zone of a PA's growth unit: its buds a node, and per PA a lateral
@@ -109,6 +113,8 @@ impl GeometryTables {
                     insertion_spread: f.insertion_spread,
                     tropism_spread: f.tropism_spread,
                     flowering: s.flowering,
+                    cluster_leaves: s.cluster_leaves,
+                    cluster_spread: s.cluster_spread,
                 }
             })
             .collect();

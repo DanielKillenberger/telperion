@@ -363,7 +363,7 @@ Where the crown starts, as a share of the height: below it the crown has no radi
 - real, share of height, [0, 1], default 0.3
 - read by grow, expand, cull; removed growth path: as the direct build
 - checked: Envelope site, rank 1, as invalid input `envelope`
-- note: `height·crownBase` is the default `trunkHeight`, the floor of the stems' bole and the lowest a short shoot grows.
+- note: `height·crownBase` is the default `trunkHeight`, the floor of the stems' bole.
 - blend: linear; dial: `crown_base` (where the crown starts, as a share of the height), window its bounds (validated bound), steps 0.15 and 0.3
 
 ### `/skeleton/envelope/spread`
@@ -831,7 +831,7 @@ The trunk's radius at the ground as a share of the tree's height, so raising it 
 - real, share of height, [0.000004, 179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000], default 0.02
 - read by grow, plan; removed growth path: as the direct build
 - checked: Radius site, rank 1, as invalid value `trunkRadius`
-- note: Also sizes the leaf box where `canopy.shootRadius` is above zero or short shoots grow.
+- note: Also sizes the leaf box where `canopy.shootRadius` is above zero.
 - blend: linear; dial: `trunk_radius` (the trunk's radius at the ground as a share of the height), window [0.000004, 0.023] (capped: ceiling capped: the generator validates only a floor here (4e-6), so there is no validated ceiling to widen to; the ceiling stays at the preset span until the generator authors one), steps 0.002 and 0.004, presets span [0.011, 0.023]
 
 ### `/radii/forkExponent`
@@ -1134,56 +1134,6 @@ How far leaf size varies leaf to leaf, as a share of that size. Raising it mixes
 - checked: Canopy site, rank 11, as invalid input `size variation`
 - blend: linear; dial: `leaf_size_variation` (how far leaf size varies leaf to leaf), window its bounds (validated bound), steps 0.15 and 0.3
 
-### `/canopy/shortShootSpacing`
-
-Metres between short shoots along limb and branch wood: spurs a few centimetres long, each ending in a cluster of leaves. Zero grows none.
-
-- real, m, 0 or [0.01, 1000], default 0
-- read by plan, expand; removed growth path: as the direct build
-- checked: ShortShoots site, rank 1, as invalid input `short shoot spacing`
-- note: Above zero there is no leaf plan: leaves are placed for the field, and the GPU executor falls back.
-- blend: as the density it spaces; dial: `spacing` (metres between leaf clusters), window [0.01, 0.08] (authored), steps 0.01 and 0.02
-
-### `/canopy/shortShootRadius`
-
-Wood thicker than this fraction of the stem's radius carries no short shoot, and neither does twig wood or anything below the crown base.
-
-- real, share of stem radius, [0, 1], default 0.15
-- read by expand; removed growth path: as the direct build
-- checked: ShortShoots site, rank 2, as invalid input `short shoot radius`
-- dormant: `shortShootSpacing` zero
-- blend: linear; dial: `short_shoot_radius` (the share of the stem's radius above which wood carries no short shoot), window its bounds (validated bound), steps 0.15 and 0.3
-
-### `/canopy/shortShootLength`
-
-Metres from the bark to the cluster a short shoot carries.
-
-- real, m, [0, 0.5], default 0.04
-- read by expand; removed growth path: as the direct build
-- checked: ShortShoots site, rank 3, as invalid input `short shoot length`
-- dormant: `shortShootSpacing` zero
-- blend: linear; dial: `short_shoot_length` (the metres from the bark to the cluster a short shoot carries), window its bounds (validated bound), steps 0.1 and 0.2
-
-### `/canopy/shortShootLeaves`
-
-Leaves in one short shoot's cluster, 1 to 8.
-
-- count (u32), leaves, [1, 8], default 3
-- read by expand; removed growth path: as the direct build
-- checked: ShortShoots site, rank 5, as invalid input `short shoot leaves`
-- dormant: `shortShootSpacing` zero
-- blend: rounded to the nearest; dial: `leaves` (leaves per cluster), window [2, 12] (authored), steps 2 and 4
-
-### `/canopy/shortShootSpread`
-
-Degrees either side of its short shoot's bearing a cluster's leaves fan across, held level: 90 is a half circle, 0 stacks them.
-
-- real, degrees, [0, 90], default 45
-- read by expand; removed growth path: as the direct build
-- checked: ShortShoots site, rank 4, as invalid input `short shoot spread`
-- dormant: `shortShootSpacing` zero
-- blend: degrees along the shorter arc; dial: `short_shoot_spread` (the degrees either side of its bearing a cluster's leaves fan across), window its bounds (validated bound), steps 10 and 20, presets span [22.5, 90]
-
 ### `/canopy/limbClumping`
 
 How far into each limb system the gap between it and its neighbours reaches, as a share of the way from their shared boundary to the system's centre: each limb system then keeps a rounded leaf mass of its own. Zero, the neutral, thins nothing.
@@ -1210,7 +1160,7 @@ Nearest neighbours and cell crossings in the clumping approximation.
 
 - count (u32), neighbours, [1, 4294967295], default 12
 - read by expand; removed growth path: as the direct build
-- checked: ShortShoots site, rank 0, as invalid value `clumpNeighbours`
+- checked: Clumping site, rank 0, as invalid value `clumpNeighbours`
 - dormant: `limbClumping` zero
 - blend: rounded to the nearest; dial: none: An approximation budget: neighbours and cell crossings the clumping search may spend (crates/telperion-core/src/foliage/placement.rs:85).
 
@@ -1221,7 +1171,7 @@ Fronds the rosette bears at the apex of each stem. At zero no rosette stands and
 - count (u32), fronds, [0, 128], default 0
 - read by grow, plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 18, as invalid input `rosette fronds`
-- note: Above zero the apical twigs are cleared, fronds are planned instead of runs and the rosette is placed instead of short shoots; the GPU executor falls back.
+- note: Above zero the apical twigs are cleared, fronds are planned instead of runs and the rosette is placed instead; the GPU executor falls back.
 - blend: rounded to the nearest; dial: `rosette_fronds` (fronds in the crown at each stem apex; at zero no rosette stands), window its bounds (validated bound), steps 1 and 4
 
 ### `/canopy/rosetteDivergence`

@@ -113,12 +113,17 @@ pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
             tangent: vector(s.frame[0], 0.0),
             normal: vector(s.frame[1], 0.0),
             binormal: vector(s.frame[2], 0.0),
-            distance: [
-                s.along as f32,
-                s.span as f32,
-                s.phase[0] as f32,
-                s.phase[1] as f32,
-            ],
+            // A cluster (fn-223) is marked by a negative span, its spread
+            // where a run's phase stands.
+            distance: match s.cluster {
+                Some(spread) => [0.0, -1.0, spread as f32, 0.0],
+                None => [
+                    s.along as f32,
+                    s.span as f32,
+                    s.phase[0] as f32,
+                    s.phase[1] as f32,
+                ],
+            },
             range: [s.first, s.count, s.run_station, s.key],
             edge: s.contact.unwrap_or([0; 4]),
         })
