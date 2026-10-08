@@ -212,3 +212,12 @@ The successor's first unit lays all four of its nodes at 0.75 and 0.5. A partial
 - The successor's rest carrying its predecessor's sub-tick.
 
 This is FINE-CONTRACT D7's grid extended by 32 bits for one reading, the laid fraction. Alternatively the owner bounds lifespan walks at the tick's resolution. Which should be built?
+
+## Host answer (2026-10-08, fifth): lifespan crossings are held at the tick's resolution
+
+No sub-tick word. A 32-bit fraction per age, carried on both executors through the successor, would be new machinery in contract A only to move a made branch from 2.5e-6 of the tree to below 1e-6. Both are invisible, and the walk is already continuous in counts, mass and geometry (docs/principles.md, "Question, delete, then optimise").
+
+- **The rule.** `branches_are_made_and_unmade_at_vanishing_size` holds a walk's crossing at 1e-6 because its bisection reaches the crossing. A lifespan cannot be bisected below one tick (2^-20 of a cycle), and the test's 1e-6 was itself one tick's size under the old rule. A lifespan walk is held at what one tick can make instead.
+- **In code.** It becomes a named list beside `ROUGH_LAYOUT` (e.g. `TICK_RESOLUTION`), with its derivation in the doc comment, as for the apical-control pair. It names `states[*].lifespan` for the walked species and holds them at 1e-5. Every other row stays at 1e-6.
+- **Who decided.** The host decided this, as it decided `ROUGH_LAYOUT`. The release PR lists it under Decisions so that the owner sees it.
+- **Then finish the task.** Merge `fn-231-cut-wip` onto the task branch. The three additions you made are accepted: woken axes are never cut, death is spread over two cycles in expectation, and the floor is above 0. Then run the shipped-species pass with strips wherever a species changes, R3 at both ends, the gate, npm test, the review and `flowctl done`.
