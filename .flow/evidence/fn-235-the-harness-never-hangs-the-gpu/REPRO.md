@@ -86,3 +86,13 @@ So 2 s needs move_on and grow_unit both out of `grow`'s body, and even
 then sits at the bound: only a split meets it. Taking one of moved_q's
 three `expq` copies out gave 13.2 against 13.8 s, inside the noise, and
 was reverted.
+
+## Host decisions (2026-10-09, second)
+
+1. **Split `move_on` and `grow_unit` out of `grow`, as their own pipelines, if the run cost holds.** The single-pipeline slimming is kept: it took `grow` from 92-145 s to 13-17 s with identical output. The measurement shows only the split brings `grow` near 2 s.
+   - **Why the extra passes are allowed:** the owner's "no extra passes" was set for the light algorithm, and nothing short of this split reaches the bound.
+   - **Condition:** the split is accepted only if the build time it adds, at 40 and 80 for beech, oak and spruce, is no more than 5 % against the slimmed single pipeline (best of 3, the same machine load stated). If it adds more, stop and report the numbers.
+   - **Output:** stays identical, and contract A and parity stay green.
+2. **No async creation for now.** With every pipeline at or under about 2 s, synchronous creation stays well under Chrome's GPU watchdog. The wgpu API gap is recorded in FRICTION.md and fn-235's report, and is not built around.
+   - **The bound:** at most 2.5 s per pipeline, which gives the measured 2.3 s its noise margin on this loaded machine. The first tree's cold build stays at 5 s or under. Rename the test to match.
+3. **Decisions 3 and 4 go ahead now,** whatever happens with point 1: the 6 GiB budget and the device-loss handling. After them come R4, R5's native checks, the gate, npm test, impl-review and `flowctl done`.
