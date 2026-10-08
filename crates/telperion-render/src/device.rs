@@ -170,6 +170,23 @@ impl Gpu {
     /// Asks the platform for a hardware device, with the adapter's own maximum
     /// buffer size so a full-detail tree fits, and timestamps when offered.
     pub async fn request(compatible_surface: Option<&wgpu::Surface<'_>>) -> Result<Self> {
+        // The adapter's own maximum buffer size, so a full-detail tree fits,
+        // and its storage binding size with it: the crown's placements are
+        // read by the selection pass and the vertex shader out of one storage
+        // buffer, and a spruce's needles are half a gigabyte of them.
+        Self::request_within(compatible_surface, |available| wgpu::Limits {
+            max_buffer_size: available.max_buffer_size,
+            max_storage_buffer_binding_size: available.max_storage_buffer_binding_size,
+            ..wgpu::Limits::default()
+        })
+        .await
+    }
+
+    /// A device held to `limits`, given what the adapter offers.
+    pub(crate) async fn request_within(
+        compatible_surface: Option<&wgpu::Surface<'_>>,
+        limits: impl FnOnce(&wgpu::Limits) -> wgpu::Limits,
+    ) -> Result<Self> {
         let instance = instance();
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -187,15 +204,7 @@ impl Gpu {
         }
 
         let available = adapter.limits();
-        // The adapter's own maximum buffer size, so a full-detail tree fits,
-        // and its storage binding size with it: the crown's placements are
-        // read by the selection pass and the vertex shader out of one storage
-        // buffer, and a spruce's needles are half a gigabyte of them.
-        let limits = wgpu::Limits {
-            max_buffer_size: available.max_buffer_size,
-            max_storage_buffer_binding_size: available.max_storage_buffer_binding_size,
-            ..wgpu::Limits::default()
-        };
+        let limits = limits(&available);
         // Ask before requesting, so a refusal names the limit rather than
         // arriving as a panic out of the validation layer.
         let mut short: Option<String> = None;

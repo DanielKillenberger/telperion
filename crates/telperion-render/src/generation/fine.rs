@@ -70,10 +70,11 @@ impl super::Generator {
         }
         let built = resident::build(gpu, self, &kit.kernels, &kit.tools, family).await;
         // What the build's regions keep is what a same-size retune needs.
-        kit.kernels.grower.trim(gpu);
+        let trimmed = kit.kernels.grower.trim(gpu);
         // A device error is the cause of any readback it failed, so it is
         // the one reported.
         super::io::errors(gpu, scopes).await?;
+        trimmed?;
         Ok(built?.prepared)
     }
 }

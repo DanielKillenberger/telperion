@@ -60,15 +60,17 @@ impl Grower {
             input.len() as u64 * 8,
             bytemuck::cast_slice(&input),
         );
-        let tables = upload(gpu, t);
+        let tables = upload(gpu, t).unwrap();
         let mut encoder = gpu.encoder(&Default::default());
-        let region = self.region(
-            gpu,
-            &mut encoder,
-            (&input, 0, n),
-            (&tables, t, span, age),
-            caps,
-        );
+        let region = self
+            .region(
+                gpu,
+                &mut encoder,
+                (&input, 0, n),
+                (&tables, t, span, age),
+                caps,
+            )
+            .unwrap();
         let Region {
             axes,
             phyts,
@@ -119,7 +121,8 @@ impl Grower {
             (&region, n, caps),
             (&offsets_buf, 2),
             (&packed_axes, &packed_phyts),
-        );
+        )
+        .unwrap();
         gpu.submit([encoder.finish()]);
         let axes = io::read(gpu, &packed_axes, axes_bytes).unwrap();
         let axes: &[u32] = bytemuck::cast_slice(&axes);

@@ -180,3 +180,21 @@ fn budget_probe() {
         );
     }
 }
+
+/// fn-212 task 11, Astra's finding 2: a device held to WebGPU's default
+/// limits cannot bind the grower's regions; the build is refused by
+/// name, never a panic.
+#[test]
+fn a_buffer_over_the_devices_limit_is_refused_by_name() {
+    let held = crate::Gpu::request_within(None, |_| wgpu::Limits::default());
+    let Some(gpu) = pollster::block_on(held).ok() else {
+        return;
+    };
+    let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    let built = gen.prepare(&family("norway-spruce", 30), Delivery::Resident);
+    match built {
+        Err(crate::RenderError::Oversize { .. }) => {}
+        other => panic!("not refused by name: {:?}", other.err()),
+    }
+}

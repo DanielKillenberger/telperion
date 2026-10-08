@@ -66,7 +66,7 @@ pub(super) fn with_dressed<R>(
     };
     let chain = ChainTables::new(&species, age).unwrap();
     let geo = GeometryTables::new(&species, age).unwrap();
-    let tables = Tables::new(gpu, Arc::new(chain), &geo);
+    let tables = Tables::new(gpu, Arc::new(chain), &geo).unwrap();
     let mut dev = Device::new(gpu, k, &tables, 1 << 16).sown_from(64);
     let (settled, _) =
         pollster::block_on(settle(&species, request, Plan::default(), &mut dev)).unwrap();
@@ -79,7 +79,7 @@ pub(super) fn with_dressed<R>(
     let landed_lineages: HashSet<u64> = landed.iter().filter_map(|&r| lineages[r]).collect();
     let fine = fine_nodes(tree, &landed_lineages);
     let d0 = std::time::Instant::now();
-    let dressed = dress(gpu, d, &dev, &stubs);
+    let dressed = dress(gpu, d, &dev, &stubs).unwrap();
     let dress_ms = d0.elapsed().as_secs_f64() * 1e3;
     let fx = Fixture {
         family,

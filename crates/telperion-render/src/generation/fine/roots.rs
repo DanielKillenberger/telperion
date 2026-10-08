@@ -70,20 +70,20 @@ pub(super) struct Tables {
 }
 
 impl Tables {
-    pub(super) fn new(gpu: &Gpu, chain: Arc<ChainTables>, geo: &GeometryTables) -> Self {
+    pub(super) fn new(gpu: &Gpu, chain: Arc<ChainTables>, geo: &GeometryTables) -> Result<Self> {
         let (table, sags) = laid::table(geo);
         let usage = wgpu::BufferUsages::STORAGE;
         let bytes = table.len() as u64 * 4;
         let data = bytemuck::cast_slice(&table);
-        let table = super::super::io::buffer(gpu, "laid table", bytes, usage, data).unwrap();
+        let table = super::super::io::buffer(gpu, "laid table", bytes, usage, data)?;
         let packed = packed(&chain, geo);
-        Self {
+        Ok(Self {
             chain,
-            uploaded: upload(gpu, &packed),
+            uploaded: upload(gpu, &packed)?,
             packed,
             table,
             sags,
-        }
+        })
     }
 }
 
@@ -159,7 +159,7 @@ pub(super) async fn grow_wave(
     let mut runs = Vec::new();
     // A level's work: its buds (none: the wave's own), the wave indices
     // they stand for, and their count.
-    let mut work: Vec<(Option<Owned>, Owned, u32)> = vec![(None, buffer(gpu, "no list", 1), n)];
+    let mut work: Vec<(Option<Owned>, Owned, u32)> = vec![(None, buffer(gpu, "no list", 1)?, n)];
     let (mut caps, mut size) = first_region(n, batch as u32);
     let mut level = 0u32;
     loop {
@@ -180,19 +180,19 @@ pub(super) async fn grow_wave(
             return Ok(runs);
         }
         let mut encoder = gpu.encoder(&Default::default());
-        work = queues
-            .into_iter()
-            .map(|(queue, count)| {
-                cost.again += count as usize;
-                let gathered = buffer(gpu, "gathered buds", u64::from(count * BW2));
-                k.steps
-                    .gather(gpu, &mut encoder, count, (&queue, buds, &gathered));
-                (Some(gathered), queue, count)
-            })
-            .collect();
+        work = Vec::with_capacity(queues.len());
+        for (queue, count) in queues {
+            cost.again += count as usize;
+            let gathered = buffer(gpu, "gathered buds", u64::from(count * BW2))?;
+            k.steps
+                .gather(gpu, &mut encoder, count, (&queue, buds, &gathered))?;
+            work.push((Some(gathered), queue, count));
+        }
         gpu.submit([encoder.finish()]);
         (caps, size, level) = (caps.times(8), (size / 8).max(64), level + 1);
-        assert!(caps.axes < 1 << 16, "a chain no region holds");
+        if caps.axes >= 1 << 16 {
+            return Err(telperion_core::Error::ResourceLimit("a chain no region holds").into());
+        }
     }
 }
 
@@ -226,30 +226,31 @@ async fn grow_run(
     let at = (&t.uploaded, &t.packed, t.chain.span, t.chain.age);
     let region = k
         .grower
-        .region(gpu, &mut encoder, (input, first, m), at, caps);
-    let runoff = buffer(gpu, "run records", u64::from(m * RW));
-    let queue = buffer(gpu, "run queue", u64::from(m));
-    let queued = buffer(gpu, "run queued", 1);
-    let sums = buffer(gpu, "run totals", 4);
+        .region(gpu, &mut encoder, (input, first, m), at, caps)?;
+    let runoff = buffer(gpu, "run records", u64::from(m * RW))?;
+    let queue = buffer(gpu, "run queue", u64::from(m))?;
+    let queued = buffer(gpu, "run queued", 1)?;
+    let sums = buffer(gpu, "run totals", 4)?;
     k.steps.record(
         gpu,
         &mut encoder,
         (m, first, level, caps.axes),
         (&region.status, &region.axes, list),
         (places, &queue, &queued, &runoff),
-    );
-    k.steps.scan(gpu, &mut encoder, (&runoff, m, RW, 3), &sums);
+    )?;
+    k.steps
+        .scan(gpu, &mut encoder, (&runoff, m, RW, 3), &sums)?;
     encoder.copy_buffer_to_buffer(&queued, 0, &sums, 12, 4);
     gpu.submit([encoder.finish()]);
     let t = totals(gpu, &sums, 4, cost).await?;
     let axes = k
         .pool
-        .take(gpu, "packed axes", u64::from(t[0]) * AXW as u64);
+        .take(gpu, "packed axes", u64::from(t[0]) * AXW as u64)?;
     let phyts = k
         .pool
-        .take(gpu, "packed phytomers", u64::from(t[1]) * PW as u64);
-    let scratch = k.pool.take(gpu, "laid scratch", u64::from(t[2]));
-    let items = buffer(gpu, "laid items", u64::from(m * IW));
+        .take(gpu, "packed phytomers", u64::from(t[1]) * PW as u64)?;
+    let scratch = k.pool.take(gpu, "laid scratch", u64::from(t[2]))?;
+    let items = buffer(gpu, "laid items", u64::from(m * IW))?;
     let mut encoder = gpu.encoder(&Default::default());
     let packed = (&*axes, &*phyts);
     k.grower.pack(
@@ -258,7 +259,7 @@ async fn grow_run(
         (&region, m, caps),
         (&*runoff, RW),
         packed,
-    );
+    )?;
     gpu.submit([encoder.finish()]);
     let run = Run {
         n: m,

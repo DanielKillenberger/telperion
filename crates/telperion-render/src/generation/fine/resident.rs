@@ -132,11 +132,13 @@ pub(super) async fn build(
     let age = family.age as u32;
     let chain = ChainTables::new(&species, age).map_err(|_| refused("chain tables"))?;
     let geo = GeometryTables::new(&species, age).map_err(|_| refused("geometry tables"))?;
-    let tables = Tables::new(gpu, Arc::new(chain), &geo);
+    let tables = Tables::new(gpu, Arc::new(chain), &geo)?;
     let mut dev = Device::new(gpu, k, &tables, 1 << 16).sown_from(64);
     let mut t = Timed::default();
     let settling = stage(gpu, &mut t.settle, async || {
-        Ok(executor::settle(family, &mut dev).await?)
+        // A device failure is reported by its own name, not the engine's words.
+        let settled = executor::settle(family, &mut dev).await;
+        settled.map_err(|e| dev.failure().unwrap_or(e.into()))
     })
     .await?;
     let part = stage(gpu, &mut t.convert, async || Ok(settling.part())).await?;
@@ -144,7 +146,7 @@ pub(super) async fn build(
     let d = &tools.dresser;
     let dressed = stage(gpu, &mut t.dress, async || {
         let stubs = stubs(part.tree(), &dev, &part.lineages, &landed);
-        Ok(dress(gpu, d, &dev, &stubs))
+        dress(gpu, d, &dev, &stubs)
     })
     .await?;
     drop(dev);
@@ -203,7 +205,7 @@ pub(super) async fn build(
     swept.nodes.destroy();
     let positions = stage(gpu, &mut t.rings, async || {
         let twist = std::f64::consts::TAU * surface.twist_rate / height;
-        let rung = tools.ringer.rings(gpu, &swept, segments, twist as f32);
+        let rung = tools.ringer.rings(gpu, &swept, segments, twist as f32)?;
         let rings = (&*rung.buffer, rung.rings, rung.vertices);
         let positions = gen.ring_vertices(rings, segments, &angular);
         rung.buffer.destroy();

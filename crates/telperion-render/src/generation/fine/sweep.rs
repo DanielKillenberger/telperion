@@ -84,10 +84,10 @@ pub(super) struct Swept {
     pub nodes: Owned,
 }
 
-fn storage(gpu: &Gpu, label: &'static str, words: u64) -> Owned {
+fn storage(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
     let usage =
         wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST;
-    io::buffer(gpu, label, words.max(4) * 4, usage, &[]).unwrap()
+    io::buffer(gpu, label, words.max(4) * 4, usage, &[])
 }
 
 /// The buffers every pass binds.
@@ -112,7 +112,7 @@ impl Sweeper {
         cfg: [u32; 8],
         rows: [[f32; 4]; 3],
         drawn: Option<&wgpu::Buffer>,
-    ) {
+    ) -> Result<()> {
         let groups = groups.unwrap_or(n.div_ceil(64)).max(1);
         let most = gpu.device.limits().max_compute_workgroups_per_dimension;
         let mut words = cfg.to_vec();
@@ -120,7 +120,7 @@ impl Sweeper {
         words[1] = groups.min(most) * 64;
         words.extend(rows.iter().flatten().map(|f| f.to_bits()));
         let usage = wgpu::BufferUsages::UNIFORM;
-        let cfg = io::buffer(gpu, "sweep cfg", 80, usage, bytemuck::cast_slice(&words)).unwrap();
+        let cfg = io::buffer(gpu, "sweep cfg", 80, usage, bytemuck::cast_slice(&words))?;
         let all = [
             &cfg,
             drawn.unwrap_or(&b.none),
@@ -134,6 +134,7 @@ impl Sweeper {
         ];
         let bind = self.pass.bind(gpu, &all);
         self.pass.run(encoder, &bind, entry, groups);
+        Ok(())
     }
 
     /// The passes recorded so far submitted, then the counts read back.
@@ -155,14 +156,14 @@ impl Sweeper {
     ) -> Result<Swept> {
         let ids = u64::from(dressed.ids);
         let mut b = Bound {
-            nodes: storage(gpu, "sweep nodes", ids * NW),
-            links: storage(gpu, "sweep links", ids * LW),
-            counts: storage(gpu, "sweep counts", 4),
-            keys: storage(gpu, "sweep keys", 2 * ids.next_power_of_two()),
-            table: storage(gpu, "sweep table", 4),
-            points: storage(gpu, "sweep points", 4),
-            clusters: storage(gpu, "sweep clusters", 4),
-            none: storage(gpu, "sweep none", 4),
+            nodes: storage(gpu, "sweep nodes", ids * NW)?,
+            links: storage(gpu, "sweep links", ids * LW)?,
+            counts: storage(gpu, "sweep counts", 4)?,
+            keys: storage(gpu, "sweep keys", 2 * ids.next_power_of_two())?,
+            table: storage(gpu, "sweep table", 4)?,
+            points: storage(gpu, "sweep points", 4)?,
+            clusters: storage(gpu, "sweep clusters", 4)?,
+            none: storage(gpu, "sweep none", 4)?,
         };
         let z = [0u32; 8];
         let mut e = gpu.encoder(&Default::default());
@@ -176,9 +177,9 @@ impl Sweeper {
                 cfg,
                 rows,
                 Some(&w.buffer),
-            );
+            )?;
         }
-        self.run((gpu, &mut e), &b, (LEAD, dressed.ids, None), z, rows, None);
+        self.run((gpu, &mut e), &b, (LEAD, dressed.ids, None), z, rows, None)?;
         for stage in 0..4 {
             let cfg = [0, 0, stage, 0, 0, 0, 0, 0];
             self.run(
@@ -188,7 +189,7 @@ impl Sweeper {
                 cfg,
                 rows,
                 None,
-            );
+            )?;
         }
         self.run(
             (gpu, &mut e),
@@ -197,13 +198,13 @@ impl Sweeper {
             z,
             rows,
             None,
-        );
+        )?;
         let runs = Self::counts(gpu, &mut e, &b).await?[0];
         let wide = runs.next_power_of_two().max(2);
         let pad = vec![u32::MAX; 2 * (wide - runs) as usize];
         gpu.queue
             .write_buffer(&b.keys, u64::from(runs) * 8, bytemuck::cast_slice(&pad));
-        self.run((gpu, &mut e), &b, (WALK, runs, None), z, rows, None);
+        self.run((gpu, &mut e), &b, (WALK, runs, None), z, rows, None)?;
         let mut k = 2;
         while k <= wide {
             let mut j = k / 2;
@@ -215,7 +216,7 @@ impl Sweeper {
                     [0, 0, j, k, 0, 0, 0, 0],
                     rows,
                     None,
-                );
+                )?;
                 j /= 2;
             }
             k *= 2;
@@ -225,7 +226,7 @@ impl Sweeper {
             gpu,
             "sweep table",
             u64::from(runs) * TW as u64 + 2 * u64::from(blocks),
-        );
+        )?;
         self.run(
             (gpu, &mut e),
             &b,
@@ -233,13 +234,13 @@ impl Sweeper {
             z,
             rows,
             None,
-        );
-        self.run((gpu, &mut e), &b, (BLOCKS, runs, Some(1)), z, rows, None);
-        self.run((gpu, &mut e), &b, (PLACE, runs, None), z, rows, None);
+        )?;
+        self.run((gpu, &mut e), &b, (BLOCKS, runs, Some(1)), z, rows, None)?;
+        self.run((gpu, &mut e), &b, (PLACE, runs, None), z, rows, None)?;
         let [_, points, clusters, _] = Self::counts(gpu, &mut e, &b).await?;
-        b.points = storage(gpu, "sweep points", u64::from(points) * PW as u64);
-        b.clusters = storage(gpu, "sweep clusters", u64::from(clusters) * KW as u64);
-        self.run((gpu, &mut e), &b, (EMIT, runs, None), z, rows, None);
+        b.points = storage(gpu, "sweep points", u64::from(points) * PW as u64)?;
+        b.clusters = storage(gpu, "sweep clusters", u64::from(clusters) * KW as u64)?;
+        self.run((gpu, &mut e), &b, (EMIT, runs, None), z, rows, None)?;
         gpu.submit([e.finish()]);
         io::complete(gpu).await?;
         for done in [&b.links, &b.counts, &b.keys, &b.none] {

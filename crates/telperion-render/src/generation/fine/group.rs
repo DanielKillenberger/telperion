@@ -11,7 +11,7 @@ use super::roots::{Cost, Kernels, Tables};
 use super::shedding::{report, table};
 use super::steps::{buffer, DESCRIBE};
 use crate::buffer::Owned;
-use crate::Gpu;
+use crate::{Gpu, Result};
 use telperion_space::{BearerFrame, Lived, RootGeometry, Vec3};
 
 /// A chain's record (`settle.wgsl`'s `CR`).
@@ -63,14 +63,14 @@ impl Group {
         (roots, nodes): (&[RootBud], Vec<usize>),
         (order, batch): (Vec<usize>, usize),
         (t, cost): (&Tables, &mut Cost),
-    ) -> crate::Result<Self> {
+    ) -> Result<Self> {
         let (waves, grown) = grow_roots((gpu, k), (roots, &order, batch), t).await?;
         cost.add(&grown);
         let fading = Clock::now();
-        let fades = table(gpu, &t.chain);
+        let fades = table(gpu, &t.chain)?;
         let living = k
             .fades
-            .living(gpu, (&waves.grown, &waves.chains), (&fades, t.chain.age));
+            .living(gpu, (&waves.grown, &waves.chains), (&fades, t.chain.age))?;
         let read = report(gpu, &living[0], roots.len(), cost).await?;
         cost.fade += fading.elapsed_ms();
         let mut lived = vec![(0, 0); roots.len()];
@@ -80,15 +80,15 @@ impl Group {
         // The laid buffers and the records, sized now: nothing more is
         // read back to size them.
         let n = roots.len() as u32;
-        let mut laid = vec![Wave::taken(&k.pool, gpu, (n, n))];
+        let mut laid = vec![Wave::taken(&k.pool, gpu, (n, n))?];
         let mut at = Vec::with_capacity(waves.chains.len());
         let mut floats = ROOT * n;
         for (w, &chains) in waves.chains.iter().enumerate() {
-            laid.push(Wave::taken(&k.pool, gpu, (waves.own[w], waves.phyts[w])));
+            laid.push(Wave::taken(&k.pool, gpu, (waves.own[w], waves.phyts[w]))?);
             at.push(floats);
             floats += CR * chains;
         }
-        let records = buffer(gpu, "settle records", u64::from(floats));
+        let records = buffer(gpu, "settle records", u64::from(floats))?;
         let attached = roots
             .iter()
             .map(|r| RootGeometry {
@@ -123,28 +123,36 @@ impl Group {
     /// Phase 2's start: each axis kept from what the structure above kept
     /// of each root (`on`, by its place), and each chain described for
     /// geometry, in its wave.
-    pub(super) fn shed(&self, (gpu, k): (&Gpu, &Kernels), on: &[u32]) {
+    pub(super) fn shed(&self, (gpu, k): (&Gpu, &Kernels), on: &[u32]) -> Result<()> {
         let usage = wgpu::BufferUsages::STORAGE;
         let bytes = (on.len().max(4) * 4) as u64;
-        let on = io::buffer(gpu, "roots kept", bytes, usage, bytemuck::cast_slice(on)).unwrap();
-        k.fades.shed(gpu, (&self.waves.grown, &self.waves.own), &on);
+        let on = io::buffer(gpu, "roots kept", bytes, usage, bytemuck::cast_slice(on))?;
+        k.fades
+            .shed(gpu, (&self.waves.grown, &self.waves.own), &on)?;
         let mut encoder = gpu.encoder(&Default::default());
         for (w, g) in self.waves.grown.iter().enumerate() {
             // Two buffers: WebGPU refuses one buffer at two writable bindings.
-            let (buds, meta) = (buffer(gpu, "no buds", 4), buffer(gpu, "no meta", 4));
+            let (buds, meta) = (buffer(gpu, "no buds", 4)?, buffer(gpu, "no meta", 4)?);
             for run in &g.runs {
                 let lay = (&*run.runoff, &*g.places, &*g.meta, &*run.items);
                 let hand = (&*run.axes, &*run.scratch, &*buds, &*meta);
                 k.steps
-                    .hand(gpu, &mut encoder, (run.n, w == 0, DESCRIBE), lay, hand);
+                    .hand(gpu, &mut encoder, (run.n, w == 0, DESCRIBE), lay, hand)?;
             }
         }
         gpu.submit([encoder.finish()]);
+        Ok(())
     }
 
     /// Runs `entry` over every wave, down from the first (`down`) or up
     /// from the deepest.
-    pub(super) fn pass(&self, (gpu, k): (&Gpu, &Kernels), t: &Tables, entry: usize, down: bool) {
+    pub(super) fn pass(
+        &self,
+        (gpu, k): (&Gpu, &Kernels),
+        t: &Tables,
+        entry: usize,
+        down: bool,
+    ) -> Result<()> {
         let mut encoder = gpu.encoder(&Default::default());
         let n = self.waves.grown.len();
         let waves: Vec<usize> = match down {
@@ -161,10 +169,11 @@ impl Group {
                 let bufs = (&*t.table, &*self.records);
                 let how = (t.chain.age, t.sags);
                 k.resolver
-                    .settle(gpu, &mut encoder, item, bufs, laid, how, at);
+                    .settle(gpu, &mut encoder, item, bufs, laid, how, at)?;
             }
         }
         gpu.submit([encoder.finish()]);
+        Ok(())
     }
 
     /// The first wave's records copied into `into` at `at` bytes; the

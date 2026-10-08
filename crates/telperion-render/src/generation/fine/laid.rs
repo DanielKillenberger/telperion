@@ -8,7 +8,7 @@
 use super::super::io;
 use super::pool::Pool;
 use crate::buffer::Owned;
-use crate::Gpu;
+use crate::{Gpu, Result};
 use telperion_space::{fixed, BearerFrame, GeometryTables, RootGeometry, Vec3};
 
 const CONTRACT_LAY: &str = include_str!("lay.wgsl");
@@ -159,13 +159,13 @@ pub(super) struct Wave {
 
 impl Wave {
     /// A wave of `axes` and `phyts` in a buffer from `pool`.
-    pub(super) fn taken(pool: &Pool, gpu: &Gpu, (axes, phyts): (u32, u32)) -> Self {
+    pub(super) fn taken(pool: &Pool, gpu: &Gpu, (axes, phyts): (u32, u32)) -> Result<Self> {
         let floats = axes as usize * AL + phyts as usize * PL;
-        Self {
-            buffer: pool.take(gpu, "fine laid", floats as u64),
+        Ok(Self {
+            buffer: pool.take(gpu, "fine laid", floats as u64)?,
             axes,
             phyts,
-        }
+        })
     }
 
     /// The word its phytomers start at.
@@ -214,7 +214,7 @@ impl Resolver {
         (prev, out): (&Wave, &Wave),
         (age, sags): (u32, bool),
         (entry, prior, mine): (usize, u32, u32),
-    ) {
+    ) -> Result<()> {
         let groups = n.div_ceil(64);
         let row = groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
         let cfg = [
@@ -228,7 +228,7 @@ impl Resolver {
             mine,
         ];
         let uniform = wgpu::BufferUsages::UNIFORM;
-        let cfg = io::buffer(gpu, "laid cfg", 32, uniform, bytemuck::cast_slice(&cfg)).unwrap();
+        let cfg = io::buffer(gpu, "laid cfg", 32, uniform, bytemuck::cast_slice(&cfg))?;
         let all = [
             &cfg,
             items,
@@ -242,5 +242,6 @@ impl Resolver {
         ];
         let bind = self.pass.bind(gpu, &all);
         self.pass.run(encoder, &bind, entry, groups);
+        Ok(())
     }
 }

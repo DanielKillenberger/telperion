@@ -49,6 +49,8 @@ pub(super) struct Device<'a> {
     roots: Vec<Vec<usize>>,
     /// Each root's group and place in it.
     places: Vec<(usize, usize)>,
+    /// The device's failure, by name, which the engine reports as words.
+    failure: Option<crate::RenderError>,
 }
 
 impl<'a> Device<'a> {
@@ -81,7 +83,22 @@ impl<'a> Device<'a> {
             groups: Vec::new(),
             roots: Vec::new(),
             places: Vec::new(),
+            failure: None,
         }
+    }
+
+    /// The failure that stopped a phase, as the device named it.
+    pub(super) fn failure(&mut self) -> Option<crate::RenderError> {
+        self.failure.take()
+    }
+
+    /// `result`, its failure kept by name and handed to the engine.
+    fn kept<T>(&mut self, result: crate::Result<T>) -> Result<T> {
+        result.map_err(|e| {
+            let words = telperion_space::Error::Executor(e.to_string());
+            self.failure.get_or_insert(e);
+            words
+        })
     }
 
     fn tables(&self) -> &Tables {
@@ -96,11 +113,12 @@ impl<'a> Device<'a> {
     }
 
     /// The tables, uploaded once built.
-    fn ready(&mut self) {
+    fn ready(&mut self) -> crate::Result<()> {
         if let Some(building) = self.building.take() {
             let (chain, geo) = building.join().expect("the tables");
-            self.built = Some(Tables::new(self.gpu, Arc::new(chain), &geo));
+            self.built = Some(Tables::new(self.gpu, Arc::new(chain), &geo)?);
         }
+        Ok(())
     }
 
     #[cfg(test)]
@@ -140,7 +158,7 @@ impl<'a> Device<'a> {
     /// `seeds` grown as one group, taken in `order`.
     async fn group(&mut self, seeds: &[&RootSeed], order: Vec<usize>) -> crate::Result<()> {
         let start = Clock::now();
-        self.ready();
+        self.ready()?;
         let roots: Vec<RootBud> = seeds
             .iter()
             .map(|s| (s.bud, [s.made.0 as f32, s.made.1 as f32], s.birth))
@@ -194,12 +212,51 @@ impl<'a> Device<'a> {
     }
 
     /// Writes each group's stubs and runs `entry` over it.
-    fn passes(&self, entry: usize, down: bool) {
+    fn passes(&self, entry: usize, down: bool) -> crate::Result<()> {
         let t = self.tables();
         for g in &self.groups {
             g.attach(self.gpu);
-            g.pass((self.gpu, self.k), t, entry, down);
+            g.pass((self.gpu, self.k), t, entry, down)?;
         }
+        Ok(())
+    }
+
+    /// Phase 2 on the device: each root's axes kept from `live`, scaled
+    /// by `scales`, thickened, and the records read back.
+    async fn girths(
+        &mut self,
+        live: &[usize],
+        scales: &[(f64, f64)],
+    ) -> crate::Result<Vec<[f32; CR as usize]>> {
+        let (gpu, k) = (self.gpu, self.k);
+        for (g, on) in self.groups.iter().zip(self.on(live)) {
+            g.shed((gpu, k), &on)?;
+        }
+        for (&r, &(base, drawn)) in live.iter().zip(scales) {
+            let a = self.attached(r);
+            a.unbent = unlaid(base * drawn);
+            a.bent = a.unbent;
+        }
+        let t = self.tables();
+        for g in &self.groups {
+            g.attach(gpu);
+            g.pass((gpu, k), t, SCALES, true)?;
+            g.pass((gpu, k), t, GIRTHS, false)?;
+        }
+        self.records().await
+    }
+
+    /// Phase 3's passes, and the levers' where the wood sags.
+    fn lays(&self) -> crate::Result<()> {
+        let t = self.tables();
+        for g in &self.groups {
+            g.attach(self.gpu);
+            g.pass((self.gpu, self.k), t, LAYS, true)?;
+            if t.sags {
+                g.pass((self.gpu, self.k), t, LEVERS, false)?;
+            }
+        }
+        Ok(())
     }
 
     fn attached(&mut self, r: usize) -> &mut telperion_space::RootGeometry {
@@ -229,11 +286,6 @@ impl Drop for Device<'_> {
     }
 }
 
-/// A device's failure as the engine reports it.
-fn failed(e: crate::RenderError) -> telperion_space::Error {
-    telperion_space::Error::Executor(e.to_string())
-}
-
 impl Roots for Device<'_> {
     /// Natively the device grows the roots made so far while the structure
     /// above the cut grows on. A browser cannot wait on its device there,
@@ -246,7 +298,8 @@ impl Roots for Device<'_> {
         }
         let start = Clock::now();
         let all: Vec<&RootSeed> = seeds.iter().collect();
-        pollster::block_on(self.group(&all, (0..all.len()).collect())).map_err(failed)?;
+        let grown = pollster::block_on(self.group(&all, (0..all.len()).collect()));
+        self.kept(grown)?;
         self.cost.sown += start.elapsed_ms();
         Ok(seeds.len())
     }
@@ -270,7 +323,8 @@ impl Roots for Device<'_> {
                     false => (0..rest.len()).collect(),
                 };
                 let group: Vec<&RootSeed> = rest.iter().map(|&r| &seeds[r]).collect();
-                self.group(&group, order).await.map_err(failed)?;
+                let grown = self.group(&group, order).await;
+                self.kept(grown)?;
                 roots.push(rest);
             }
             self.places = vec![(0, 0); seeds.len()];
@@ -304,22 +358,8 @@ impl Roots for Device<'_> {
     ) -> Step<'a, Result<Vec<f64>>> {
         Box::pin(async move {
             let start = Clock::now();
-            let (gpu, k) = (self.gpu, self.k);
-            for (g, on) in self.groups.iter().zip(self.on(live)) {
-                g.shed((gpu, k), &on);
-            }
-            for (&r, &(base, drawn)) in live.iter().zip(scales) {
-                let a = self.attached(r);
-                a.unbent = unlaid(base * drawn);
-                a.bent = a.unbent;
-            }
-            let t = self.tables();
-            for g in &self.groups {
-                g.attach(gpu);
-                g.pass((gpu, k), t, SCALES, true);
-                g.pass((gpu, k), t, GIRTHS, false);
-            }
-            let read = self.records().await.map_err(failed)?;
+            let read = self.girths(live, scales).await;
+            let read = self.kept(read)?;
             self.cost.lay += start.elapsed_ms();
             Ok(live.iter().map(|&r| f64::from(read[r][0])).collect())
         })
@@ -338,17 +378,11 @@ impl Roots for Device<'_> {
                 let a = self.attached(r);
                 (a.bearer_pa, a.unbent, a.bent) = (tree.axes[b].pa, frame, frame);
             }
-            let sags = self.tables().sags;
-            let t = self.tables();
-            for g in &self.groups {
-                g.attach(self.gpu);
-                g.pass((self.gpu, self.k), t, LAYS, true);
-                if sags {
-                    g.pass((self.gpu, self.k), t, LEVERS, false);
-                }
-            }
-            let loads = if sags {
-                let read = self.records().await.map_err(failed)?;
+            let laid = self.lays();
+            self.kept(laid)?;
+            let loads = if self.tables().sags {
+                let read = self.records().await;
+                let read = self.kept(read)?;
                 live.iter()
                     .map(|&r| {
                         let o = self.attached(r).unbent.tip;
@@ -376,8 +410,8 @@ impl Roots for Device<'_> {
             self.attached(r).bent = frame;
         }
         // Not waited for: the CPU lands its roots meanwhile (`wait`).
-        self.passes(BENDS, true);
+        let bent = self.passes(BENDS, true);
         self.cost.lay += start.elapsed_ms();
-        telperion_space::ready(Ok(()))
+        telperion_space::ready(self.kept(bent))
     }
 }

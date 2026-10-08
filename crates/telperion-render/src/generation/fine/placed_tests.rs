@@ -181,7 +181,7 @@ fn seated(
     swept.nodes.destroy();
     swept.cluster_buffer.destroy();
     let twist = std::f64::consts::TAU * surface.twist_rate / curve.height;
-    let rung = rg.rings(gpu, &swept, segments, twist as f32);
+    let rung = rg.rings(gpu, &swept, segments, twist as f32).unwrap();
     let rings = (&*rung.buffer, rung.rings, rung.vertices);
     let positions = gen.ring_vertices(rings, segments, &angular).unwrap();
     let (l, e) = (x.leaves(), x.element());

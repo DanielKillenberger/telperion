@@ -97,13 +97,13 @@ pub(super) struct Dressed {
     sums: Owned,
 }
 
-fn storage(gpu: &Gpu, label: &'static str, words: usize, data: &[u8]) -> Owned {
+fn storage(gpu: &Gpu, label: &'static str, words: usize, data: &[u8]) -> Result<Owned> {
     let usage =
         wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST;
-    io::buffer(gpu, label, (words.max(4) * 4) as u64, usage, data).unwrap()
+    io::buffer(gpu, label, (words.max(4) * 4) as u64, usage, data)
 }
 
-fn uniform(gpu: &Gpu, words: &[u32]) -> Owned {
+fn uniform(gpu: &Gpu, words: &[u32]) -> Result<Owned> {
     let usage = wgpu::BufferUsages::UNIFORM;
     io::buffer(
         gpu,
@@ -112,7 +112,6 @@ fn uniform(gpu: &Gpu, words: &[u32]) -> Owned {
         usage,
         bytemuck::cast_slice(words),
     )
-    .unwrap()
 }
 
 /// The stubs' drawn records, by the roots' places in their group, their
@@ -147,7 +146,7 @@ fn stub_records(stubs: &[Stub], base: u32) -> Vec<f32> {
 
 /// Draws every group's fine roots from `stubs` (by the tree's roots) as
 /// the pipeline's nodes, wave by wave.
-pub(super) fn dress(gpu: &Gpu, d: &Dresser, dev: &Device, stubs: &[Stub]) -> Dressed {
+pub(super) fn dress(gpu: &Gpu, d: &Dresser, dev: &Device, stubs: &[Stub]) -> Result<Dressed> {
     let mut waves = Vec::new();
     let mut ids = 0u32;
     let mut encoder = gpu.encoder(&Default::default());
@@ -165,11 +164,11 @@ pub(super) fn dress(gpu: &Gpu, d: &Dresser, dev: &Device, stubs: &[Stub]) -> Dre
             "drawn stubs",
             records.len(),
             bytemuck::cast_slice(&records),
-        )];
+        )?];
         for (w, wave) in grown.grown.iter().enumerate() {
             let (was, now) = (&laid[w], &laid[w + 1]);
             let words = now.axes as usize * CA as usize + now.phyts as usize * CV;
-            bufs.push(storage(gpu, "drawn", words, &[]));
+            bufs.push(storage(gpu, "drawn", words, &[])?);
             for run in &wave.runs {
                 let groups = run.n.div_ceil(64);
                 let most = gpu.device.limits().max_compute_workgroups_per_dimension;
@@ -183,7 +182,7 @@ pub(super) fn dress(gpu: &Gpu, d: &Dresser, dev: &Device, stubs: &[Stub]) -> Dre
                     bases[w + 1],
                     bases[w],
                 ];
-                let cfg = uniform(gpu, &cfg);
+                let cfg = uniform(gpu, &cfg)?;
                 let all = [
                     &cfg,
                     &run.items,
@@ -210,8 +209,8 @@ pub(super) fn dress(gpu: &Gpu, d: &Dresser, dev: &Device, stubs: &[Stub]) -> Dre
         }));
     }
     gpu.submit([encoder.finish()]);
-    let sums = storage(gpu, "fold sums", SUMS, bytemuck::cast_slice(&empty_sums()));
-    Dressed { waves, ids, sums }
+    let sums = storage(gpu, "fold sums", SUMS, bytemuck::cast_slice(&empty_sums()))?;
+    Ok(Dressed { waves, ids, sums })
 }
 
 /// The sums before any node is folded.
@@ -246,7 +245,7 @@ impl Dressed {
         entry: usize,
         rows: [[f32; 4]; 2],
         bound: (&wgpu::Buffer, &wgpu::Buffer),
-    ) {
+    ) -> Result<()> {
         let mut encoder = gpu.encoder(&Default::default());
         for w in self.waves.iter().filter(|w| !w.stubs && w.phyts > 0) {
             let (buffer, axes, phyts) = (&w.buffer, &w.axes, &w.phyts);
@@ -254,13 +253,14 @@ impl Dressed {
             let most = gpu.device.limits().max_compute_workgroups_per_dimension;
             let mut cfg = vec![*phyts, axes * CA, CAP, groups.min(most) * 64];
             cfg.extend(rows.iter().flatten().map(|f| f.to_bits()));
-            let cfg = uniform(gpu, &cfg);
+            let cfg = uniform(gpu, &cfg)?;
             let bind = d
                 .fold
                 .bind(gpu, &[&cfg, buffer, &self.sums, bound.0, bound.1]);
             d.fold.run(&mut encoder, &bind, entry, groups);
         }
         gpu.submit([encoder.finish()]);
+        Ok(())
     }
 
     async fn sums(&self, gpu: &Gpu) -> Result<Vec<u32>> {
@@ -272,11 +272,11 @@ impl Dressed {
     /// widest (one round trip).
     pub(super) async fn extent(&self, gpu: &Gpu, d: &Dresser) -> Result<Folds> {
         let (past, kept) = (
-            storage(gpu, "fold none", 4, &[]),
-            storage(gpu, "fold none", 4, &[]),
+            storage(gpu, "fold none", 4, &[])?,
+            storage(gpu, "fold none", 4, &[])?,
         );
         for entry in [0, 1] {
-            self.fold(gpu, d, entry, [[0.0; 4]; 2], (&past, &kept));
+            self.fold(gpu, d, entry, [[0.0; 4]; 2], (&past, &kept))?;
         }
         let s = self.sums(gpu).await?;
         let widest = (s[2] != 0).then(|| {
@@ -305,11 +305,11 @@ impl Dressed {
         terms: [f64; 4],
     ) -> Result<(Vec<f64>, (Vec3, Vec3))> {
         let (past, kept) = (
-            storage(gpu, "fold none", 4, &[]),
-            storage(gpu, "fold none", 4, &[]),
+            storage(gpu, "fold none", 4, &[])?,
+            storage(gpu, "fold none", 4, &[])?,
         );
         let rows = [shape.map(|v| v as f32), terms.map(|v| v as f32)];
-        self.fold(gpu, d, 2, rows, (&past, &kept));
+        self.fold(gpu, d, 2, rows, (&past, &kept))?;
         let s = self.sums(gpu).await?;
         let bins = s[16..]
             .iter()
@@ -329,10 +329,10 @@ impl Dressed {
         beyond: &[f64],
     ) -> Result<(Vec<Vec3>, bool)> {
         let past: Vec<f32> = beyond.iter().map(|&b| b as f32).collect();
-        let past = storage(gpu, "fold beyond", past.len(), bytemuck::cast_slice(&past));
-        let kept = storage(gpu, "fold kept", 3 * CAP as usize, &[]);
+        let past = storage(gpu, "fold beyond", past.len(), bytemuck::cast_slice(&past))?;
+        let kept = storage(gpu, "fold kept", 3 * CAP as usize, &[])?;
         let rows = [shape.map(|v| v as f32), [0.0; 4]];
-        self.fold(gpu, d, 3, rows, (&past, &kept));
+        self.fold(gpu, d, 3, rows, (&past, &kept))?;
         let n = self.sums(gpu).await?[12];
         let taken = n.min(CAP) as usize;
         let raw = io::read_async(gpu, &kept, (taken.max(1) * 12) as u64).await?;

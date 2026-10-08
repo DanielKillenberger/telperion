@@ -91,7 +91,7 @@ fn setup(
 ) -> (Vec<RealizedCase>, Tables, Vec<RootBud>) {
     let cases = realized_cases(species, request(age, seed), Plan::default()).expect("grows");
     let geo = GeometryTables::new(species, age).expect("tables");
-    let tables = Tables::new(gpu, chain.clone(), &geo);
+    let tables = Tables::new(gpu, chain.clone(), &geo).unwrap();
     let roots = cases
         .iter()
         .map(|c| (c.bud, [c.made.0 as f32, c.made.1 as f32], c.birth))
@@ -112,7 +112,7 @@ fn grown_as_on_the_cpu(gpu: &Gpu, k: &Kernels, name: &str, species: &Species, at
     let forward: Vec<usize> = (0..cases.len()).collect();
     let reverse: Vec<usize> = forward.iter().rev().copied().collect();
     let mut axes = 0;
-    let fade_table = shedding::table(gpu, &chain);
+    let fade_table = shedding::table(gpu, &chain).unwrap();
     let all = vec![1u32; cases.len()];
     let usage = wgpu::BufferUsages::STORAGE;
     let all = crate::generation::io::buffer(
@@ -138,7 +138,8 @@ fn grown_as_on_the_cpu(gpu: &Gpu, k: &Kernels, name: &str, species: &Species, at
         }
         let living = k
             .fades
-            .living(gpu, (&waves.grown, &waves.chains), (&fade_table, at.0));
+            .living(gpu, (&waves.grown, &waves.chains), (&fade_table, at.0))
+            .unwrap();
         let report =
             pollster::block_on(shedding::report(gpu, &living[0], cases.len(), &mut cost)).unwrap();
         for (wi, &r) in order.iter().enumerate() {
@@ -147,7 +148,7 @@ fn grown_as_on_the_cpu(gpu: &Gpu, k: &Kernels, name: &str, species: &Species, at
                 "{name} {at:?} root {r}: living"
             );
         }
-        k.fades.shed(gpu, (&waves.grown, &waves.own), &all);
+        k.fades.shed(gpu, (&waves.grown, &waves.own), &all).unwrap();
         let shed = readback::read(gpu, &waves.grown, cases.len());
         for (r, (c, have)) in cases.iter().zip(&shed.roots).enumerate() {
             assert_eq!(
@@ -227,7 +228,7 @@ pub(super) fn settled_against(
     let chain = ChainTables::new(species, at.0).expect("tables");
     let geo = GeometryTables::new(species, at.0).expect("tables");
     let t = std::time::Instant::now();
-    let tables = Tables::new(gpu, Arc::new(chain), &geo);
+    let tables = Tables::new(gpu, Arc::new(chain), &geo).unwrap();
     // No order given: the roots sown while the structure above the cut
     // grows, from `batch` roots on, in runs of 65,536.
     let mut dev = match order.is_empty() {

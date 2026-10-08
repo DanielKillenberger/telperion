@@ -63,10 +63,10 @@ pub(super) struct Stationer {
     pass: io::Pass,
 }
 
-fn storage(gpu: &Gpu, label: &'static str, words: u64) -> Owned {
+fn storage(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
     let usage =
         wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST;
-    io::buffer(gpu, label, words.max(4) * 4, usage, &[]).unwrap()
+    io::buffer(gpu, label, words.max(4) * 4, usage, &[])
 }
 
 impl Stationer {
@@ -87,7 +87,7 @@ impl Stationer {
         (entry, n, groups): (usize, u32, Option<u32>),
         rows: Rows,
         bufs: [&wgpu::Buffer; 7],
-    ) {
+    ) -> Result<()> {
         let groups = groups.unwrap_or(n.div_ceil(64)).max(1);
         let most = gpu.device.limits().max_compute_workgroups_per_dimension;
         let words = [
@@ -105,12 +105,12 @@ impl Stationer {
             0,
         ];
         let usage = wgpu::BufferUsages::UNIFORM;
-        let cfg = io::buffer(gpu, "stations cfg", 48, usage, bytemuck::cast_slice(&words));
-        let cfg = cfg.unwrap();
+        let cfg = io::buffer(gpu, "stations cfg", 48, usage, bytemuck::cast_slice(&words))?;
         let mut all: Vec<&wgpu::Buffer> = vec![&cfg];
         all.extend(bufs);
         let bind = self.pass.bind(gpu, &all);
         self.pass.run(e, &bind, entry, groups);
+        Ok(())
     }
 
     async fn counts(gpu: &Gpu, e: &mut crate::Encoder, counts: &wgpu::Buffer) -> Result<[u32; 4]> {
@@ -129,12 +129,12 @@ impl Stationer {
         ids: u32,
         rows: Rows,
     ) -> Result<Stationed> {
-        let st = storage(gpu, "station words", u64::from(ids) * SW);
-        let counts = storage(gpu, "station counts", 4);
-        let none = storage(gpu, "stations none", 4);
+        let st = storage(gpu, "station words", u64::from(ids) * SW)?;
+        let counts = storage(gpu, "station counts", 4)?;
+        let none = storage(gpu, "stations none", 4)?;
         let mut e = gpu.encoder(&Default::default());
-        let none_runs = storage(gpu, "station runs none", 4);
-        let owners = storage(gpu, "station owners", u64::from(ids) * 3);
+        let none_runs = storage(gpu, "station runs none", 4)?;
+        let owners = storage(gpu, "station owners", u64::from(ids) * 3)?;
         let early = |runs| {
             [
                 &*swept.nodes,
@@ -147,13 +147,13 @@ impl Stationer {
             ]
         };
         for entry in [KIDS, BEAR, OWNED] {
-            self.run((gpu, &mut e), (entry, ids, None), rows, early(&none_runs));
+            self.run((gpu, &mut e), (entry, ids, None), rows, early(&none_runs))?;
         }
         // Each root's first run, its stub's count scanned in node order.
-        let roots = storage(gpu, "station roots", 4);
-        steps.scan(gpu, &mut e, (&owners, ids, 1, 1), &roots);
-        let runs = storage(gpu, "station runs", u64::from(ids) * RW);
-        self.run((gpu, &mut e), (STARTS, ids, None), rows, early(&runs));
+        let roots = storage(gpu, "station roots", 4)?;
+        steps.scan(gpu, &mut e, (&owners, ids, 1, 1), &roots)?;
+        let runs = storage(gpu, "station runs", u64::from(ids) * RW)?;
+        self.run((gpu, &mut e), (STARTS, ids, None), rows, early(&runs))?;
         let n = Self::counts(gpu, &mut e, &counts).await?[0];
         self.run(
             (gpu, &mut e),
@@ -168,10 +168,10 @@ impl Stationer {
                 &none,
                 &owners,
             ],
-        );
+        )?;
         // The runs' first stations and segments, scanned in blocks.
         let blocks = n.div_ceil(LANES).max(1);
-        let totals = storage(gpu, "station blocks", u64::from(blocks) * 2);
+        let totals = storage(gpu, "station blocks", u64::from(blocks) * 2)?;
         for (entry, groups) in [(BASES, blocks), (BLOCKS, 1), (SPREAD, blocks)] {
             self.run(
                 (gpu, &mut e),
@@ -186,10 +186,10 @@ impl Stationer {
                     &totals,
                     &owners,
                 ],
-            );
+            )?;
         }
         let [_, stations, segments, _] = Self::counts(gpu, &mut e, &counts).await?;
-        let buffer = storage(gpu, "station segments", u64::from(segments) * GW as u64);
+        let buffer = storage(gpu, "station segments", u64::from(segments) * GW as u64)?;
         let late: [&wgpu::Buffer; 7] = [
             &swept.nodes,
             &swept.table,
@@ -199,7 +199,7 @@ impl Stationer {
             &buffer,
             &owners,
         ];
-        self.run((gpu, &mut e), (EMIT, n, None), rows, late);
+        self.run((gpu, &mut e), (EMIT, n, None), rows, late)?;
         gpu.submit([e.finish()]);
         io::complete(gpu).await?;
         Ok(Stationed {

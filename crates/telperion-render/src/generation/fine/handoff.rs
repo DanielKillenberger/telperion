@@ -105,7 +105,7 @@ impl Handoff {
             } else {
                 n.div_ceil(64).max(1)
             };
-            let cfg = self.cfg(gpu, n, groups, offsets);
+            let cfg = self.cfg(gpu, n, groups, offsets)?;
             let mut bound: Vec<&wgpu::Buffer> = vec![&cfg];
             bound.extend(all);
             let bind = self.pass.bind(gpu, &bound);
@@ -132,7 +132,7 @@ impl Handoff {
         n: u32,
         groups: u32,
         (p0, k0, twist, depth): (u32, u32, f64, f64),
-    ) -> Owned {
+    ) -> Result<Owned> {
         let most = gpu.device.limits().max_compute_workgroups_per_dimension;
         let row = groups.min(most) * 64;
         let words = [
@@ -146,7 +146,7 @@ impl Handoff {
             0,
         ];
         let usage = wgpu::BufferUsages::UNIFORM;
-        io::buffer(gpu, "handoff cfg", 32, usage, bytemuck::cast_slice(&words)).unwrap()
+        io::buffer(gpu, "handoff cfg", 32, usage, bytemuck::cast_slice(&words))
     }
 }
 

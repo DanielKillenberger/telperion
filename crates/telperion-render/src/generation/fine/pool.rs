@@ -9,7 +9,7 @@
 //! before they are written).
 use super::steps::buffer;
 use crate::buffer::Owned;
-use crate::Gpu;
+use crate::{Gpu, Result};
 use std::cell::RefCell;
 
 #[derive(Default)]
@@ -27,7 +27,7 @@ fn class(bytes: u64) -> u64 {
 impl Pool {
     /// A storage buffer of at least `words`, cleared: its class's from
     /// the pool where one is free.
-    pub(super) fn take(&self, gpu: &Gpu, label: &'static str, words: u64) -> Owned {
+    pub(super) fn take(&self, gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
         let bytes = class(words.max(4) * 4);
         let mut free = self.0.borrow_mut();
         let Some(k) = free.iter().position(|b| b.size() == bytes) else {
@@ -37,7 +37,7 @@ impl Pool {
         let mut encoder = gpu.encoder(&Default::default());
         encoder.clear_buffer(&taken, 0, None);
         gpu.submit([encoder.finish()]);
-        taken
+        Ok(taken)
     }
 
     /// Buffers a build is done with, for the next; those the last build
