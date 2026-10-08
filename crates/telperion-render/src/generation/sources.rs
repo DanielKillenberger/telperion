@@ -24,11 +24,6 @@ pub(super) fn positions() -> String {
     )
 }
 
-#[cfg(test)]
-fn position_probe() -> String {
-    include_str!("position_probe.wgsl").into()
-}
-
 /// Every pass's source by name, the fine-root executor's included.
 #[cfg(test)]
 pub(super) fn all() -> Vec<(&'static str, String)> {
@@ -36,7 +31,6 @@ pub(super) fn all() -> Vec<(&'static str, String)> {
         ("place", place()),
         ("mass", mass()),
         ("positions", positions()),
-        ("position probe", position_probe()),
     ];
     out.extend(super::fine::sources());
     out
