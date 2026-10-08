@@ -17,7 +17,7 @@ mod tests;
 
 use super::Light;
 use crate::fixed::feedback::vector::isqrt;
-use crate::fixed::{exp, exp2, log2, mul, q32, ONE32};
+use crate::fixed::{exp, exp2, log2, mul, q32, INF, ONE32};
 pub(crate) use chord::Section;
 
 /// The outline's cone sections, and the heights of its volume's rule.
@@ -60,10 +60,12 @@ pub(crate) fn quadrant(p: i64, s: i64) -> i64 {
     exp2(((i128::from(ln(rest)) << 32) / i128::from(s)) as i64)
 }
 
-/// The outline's radius at height `z`, Q32: none outside its span.
+/// The outline's radius at height `z`, Q32: none outside its span; at
+/// an end, the profile's limit there (the widest reach where the
+/// fullness puts it at that end).
 pub(crate) fn radius([base, height, reach, full, s]: [i64; 5], z: i64) -> i64 {
     let span = height - base;
-    if span <= 0 || z <= base || z >= height {
+    if span <= 0 || z < base || z > height {
         return 0;
     }
     let t = ((i128::from(z - base) << 32) / i128::from(span)) as i64;
@@ -105,7 +107,7 @@ impl Outline {
         let pi = i128::from(q32(std::f64::consts::PI));
         let volume = ((((squares * slice) >> 32) * pi) >> 32) as i64;
         let density = match volume > 0 {
-            true => ((i128::from(area) << 32) / i128::from(volume)) as i64,
+            true => ((i128::from(area) << 32) / i128::from(volume)).min(i128::from(INF)) as i64,
             false => 0,
         };
         let sky = light

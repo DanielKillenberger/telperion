@@ -6,13 +6,12 @@
 //! from the record, its split starts from the root's recorded incoming
 //! vigour (S4), and its sizes are normalised by the outline's means: no
 //! root waits on another, and nothing it grows flows back up.
-use super::build;
+use super::built;
 use super::outline::{read, size, Growth, History};
 use super::phases::links;
 use super::{Executor, Item, ITEMS};
 use crate::allocation::split;
 use crate::error::{Error, Result};
-use crate::fine::Plan;
 use crate::grow::Request;
 use crate::species::Species;
 use crate::structure::Structure;
@@ -34,14 +33,16 @@ pub struct Outlined {
 /// structure above the cut first, each fine root an expectation in it,
 /// then every root ahead from the history it recorded. Where no bud
 /// reads light the two models are one, and this is `grow`'s build.
+/// A species whose buds read light takes R3 and R4 at every extinction,
+/// none included.
 pub fn grow_outline(species: &Species, request: Request) -> Result<Outlined> {
     let clock = crate::clock::seconds;
     let started = clock();
     let Some(mut x) = Executor::outlined(species, request)? else {
-        let fine = build(species, request, Plan::default())?;
+        let (stepped, fine) = built(species, request)?;
         return Ok(Outlined {
-            roots: fine.roots.len(),
-            grown: 0,
+            roots: stepped.roots,
+            grown: stepped.fine_grown + stepped.coarse_grown,
             structure: crate::fine::lineage_order(fine.structure),
             growth: Vec::new(),
             seconds: [0.0, 0.0, 0.0, clock() - started],

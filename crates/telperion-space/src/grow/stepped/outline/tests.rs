@@ -20,16 +20,39 @@ const LIT: Light = Light {
     sky: 0.5,
 };
 
-/// Without shade no bud reads light, and R3 and R4 build today's tree.
+/// A species none of whose buds read light builds today's tree.
 #[test]
 fn where_no_bud_reads_light_the_models_are_one() {
-    let species = crate::oak();
-    let r = request(24, Light::NEUTRAL);
+    let mut species = crate::oak();
+    for s in &mut species.states {
+        (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+    }
+    let r = request(24, LIT);
     let today = crate::grow::grow(&species, r).unwrap();
     let outlined = grow_outline(&species, r).unwrap();
+    assert!(outlined.grown > 0);
     assert_eq!(
         crate::fine::digest(&outlined.structure),
         crate::fine::digest(&today)
+    );
+}
+
+/// A species whose buds read light takes R3 and R4 under no shade too,
+/// every bud at light 1: the limit of its own as extinction falls, so
+/// the least extinction contract A holds builds the same tree.
+#[test]
+fn under_no_shade_a_lit_species_is_its_own_limit() {
+    let species = crate::oak();
+    let none = grow_outline(&species, request(24, Light::NEUTRAL)).unwrap();
+    let least = Light {
+        extinction: 1e-12,
+        sky: 0.5,
+    };
+    let faint = grow_outline(&species, request(24, least)).unwrap();
+    assert!(none.roots > 0 && !none.growth.is_empty(), "R3 and R4 ran");
+    assert_eq!(
+        crate::fine::digest(&none.structure),
+        crate::fine::digest(&faint.structure)
     );
 }
 

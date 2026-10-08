@@ -208,3 +208,36 @@ fn the_fold_of_an_ellipsoid_is_its_shape() {
     assert!((reach - 3.0).abs() < 1e-6 && (full - 0.5).abs() < 1e-6);
     assert!((s - 2.0).abs() < 1e-3, "shoulder {s}");
 }
+
+/// The ends of the profile: a fullness of 0 puts the widest reach at the
+/// base, one of 1 at the top, and the sections hold it there; an
+/// overhead ray inside the narrowing cone crosses it whole.
+#[test]
+fn the_widest_reach_at_an_end_is_held() {
+    let light = Light {
+        extinction: 0.5,
+        sky: 0.0,
+    };
+    let narrowing = Outline::new([0.0, 16.0, 16.0, 0.0, 1.0].map(q32), q32(10.0), &light);
+    assert_eq!(narrowing.sections[0].r[0], q32(16.0));
+    let up = q3(0.0, 0.0, 1.0);
+    let path: i64 = (narrowing.sections.iter())
+        .map(|s| chord(s, q3(8.0, 0.0, 0.0), up))
+        .sum();
+    assert!((real(path) - 8.0).abs() < 1e-6, "{}", real(path));
+    let widening = Outline::new([0.0, 16.0, 16.0, 1.0, 1.0].map(q32), q32(10.0), &light);
+    assert_eq!(widening.sections[SECTIONS - 1].r[1], q32(16.0));
+}
+
+/// A tiny crown holding much leaf is dense, not empty: its density
+/// saturates and it shades.
+#[test]
+fn a_dense_crown_saturates_and_shades() {
+    let light = Light {
+        extinction: 0.5,
+        sky: 0.5,
+    };
+    let tiny = Outline::new([0.0, 0.001, 0.001, 0.5, 1.0].map(q32), q32(2.0), &light);
+    assert!(tiny.density > 0);
+    assert!(tiny.at(q3(0.0, 0.0, 0.0005)) < ONE32);
+}

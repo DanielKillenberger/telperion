@@ -20,7 +20,7 @@ use crate::error::{Error, Result};
 use crate::fine::Plan;
 use crate::fixed::{q32, ONE32};
 use crate::grow::partition::{Grouping, Order};
-use crate::grow::sketch::Inputs;
+use crate::grow::sketch::{Inputs, Sketch};
 use crate::grow::Grower;
 use crate::grow::{start, Options, Request};
 use crate::light::field::q;
@@ -155,12 +155,21 @@ pub(super) fn size(
 
 impl<'a> Executor<'a> {
     /// The build's executor (`build`'s cut, order and chunking) about to
-    /// grow R3 and R4's structure above; none where no bud reads light.
+    /// grow R3 and R4's structure above; none where no bud reads light,
+    /// where the two models are one.
     pub(super) fn outlined(species: &'a Species, request: Request) -> Result<Option<Self>> {
         let plan = Plan::default();
-        let (coarse, _) = start(species, request, true, Options::default())?;
-        if coarse.sketch.is_none() {
+        if !species.reads_light() {
             return Ok(None);
+        }
+        let (mut coarse, _) = start(species, request, true, Options::default())?;
+        // Under no shade every bud reads light 1 from an outline with no
+        // leaf, so the model is the limit of its own as extinction falls
+        // to none: its rough layout is grown, and nothing is skipped as
+        // certain to be shed before light reads it.
+        if coarse.sketch.is_none() {
+            coarse.sketch = Some(Sketch::new(request.light));
+            coarse.rules.lasting = vec![None; species.states.len()].into();
         }
         let predictor = Predictor::new(species, &coarse.rules.windows, request.age);
         let counts: Counts =
