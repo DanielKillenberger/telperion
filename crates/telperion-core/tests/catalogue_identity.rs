@@ -44,7 +44,11 @@
 //! new neutral `form.insertion_spread` and `form.tropism_spread`: with
 //! `, insertion_spread: 0.0, tropism_spread: 0.0` left out of the text,
 //! each was still fn-221's; no preset states the rows, and the refusal
-//! digest did not move.
+//! digest did not move. fn-215 re-pinned the family and walk digests for
+//! the ordinary tree, now the space's centroid with `/space` rows and an
+//! age of 40: with the ordinary tree read as the default family it was,
+//! each digest was still fn-224's. The refusal digest reads the default
+//! family, the ordinary tree's old rows, and did not move.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -80,7 +84,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        5_198_808_282_487_604_358,
+        6_396_264_256_824_363_664,
         "{}",
         digest(&text)
     );
@@ -112,7 +116,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        12_357_878_833_367_248_837,
+        3_916_850_146_470_771_333,
         "{}",
         digest(&text)
     );
@@ -170,7 +174,7 @@ fn answer(base: &serde_json::Value, rows: &[(&str, serde_json::Value)]) -> Strin
 
 #[test]
 fn every_refusal_is_the_refusal_it_was() {
-    let base = params::metadata(&Preset::Ordinary.parameters());
+    let base = params::metadata(&Family::default());
     let mut rows = Vec::new();
     leaves(&base, String::new(), &mut rows);
     let values: [serde_json::Value; 7] = [
