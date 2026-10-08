@@ -26,7 +26,7 @@ pub(super) const LANDED: u32 = 4;
 const TAKEN: u32 = 1;
 const PREV: u32 = 0x8000_0000;
 /// `fold.wgsl`'s sums: the folds, the widest node, the box, the kept
-/// count, then the bins.
+/// count, the widest node's id, then the bins.
 const SUMS: usize = 16 + BINS;
 /// The most crown nodes the sift hands on: the spruce at 80 keeps about
 /// 4,000 across the whole tree (CONTRACT.md §4).
@@ -71,7 +71,7 @@ impl Dresser {
     pub(super) fn new(gpu: &Gpu) -> Self {
         let dress = [true, true, true, true, true, true, false, true];
         let fold = [true, false, true, false];
-        let folds = ["extent", "widest", "crowns", "sift"];
+        let folds = ["extent", "widest", "crowns", "sift", "publish"];
         Self {
             dress: io::Pass::new(gpu, DRESS.to_string(), &dress, &["dress"]),
             fold: io::Pass::new(gpu, FOLD.to_string(), &fold, &folds),
@@ -219,6 +219,7 @@ fn empty_sums() -> Vec<u32> {
     s[0] = 0x8000_0000;
     s[1] = u32::MAX;
     s[6..9].fill(u32::MAX);
+    s[13] = u32::MAX;
     s
 }
 
@@ -275,7 +276,7 @@ impl Dressed {
             storage(gpu, "fold none", 4, &[])?,
             storage(gpu, "fold none", 4, &[])?,
         );
-        for entry in [0, 1] {
+        for entry in [0, 1, 4] {
             self.fold(gpu, d, entry, [[0.0; 4]; 2], (&past, &kept))?;
         }
         let s = self.sums(gpu).await?;
@@ -339,5 +340,34 @@ impl Dressed {
         let floats: &[f32] = bytemuck::cast_slice(&raw);
         let points = floats.chunks(3).take(taken).map(|p| v3([p[0], p[1], p[2]]));
         Ok((points.collect(), n > CAP))
+    }
+}
+
+#[cfg(test)]
+impl Dressed {
+    /// One drawn wave of `nodes` (y up), each made and its own id.
+    pub(super) fn of_nodes(gpu: &Gpu, nodes: &[[f32; 3]]) -> Result<Self> {
+        let mut records = vec![0.0f32; nodes.len() * CV];
+        for (k, (r, p)) in records.chunks_mut(CV).zip(nodes).enumerate() {
+            r[..3].copy_from_slice(p);
+            r[6] = f32::from_bits(MADE);
+            r[14] = f32::from_bits(k as u32);
+        }
+        let data = bytemuck::cast_slice(&records);
+        let buffer = storage(gpu, "drawn", records.len(), data)?;
+        let phyts = nodes.len() as u32;
+        let waves = vec![Drawn {
+            buffer,
+            axes: 0,
+            phyts,
+            base: 0,
+            stubs: false,
+        }];
+        let sums = storage(gpu, "fold sums", SUMS, bytemuck::cast_slice(&empty_sums()))?;
+        Ok(Self {
+            waves,
+            ids: phyts,
+            sums,
+        })
     }
 }

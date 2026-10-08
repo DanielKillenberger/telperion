@@ -208,3 +208,33 @@ fn dressed_at_40_and_80() {
         }
     }
 }
+
+/// fn-212 task 11, Astra's finding 3: of the nodes tied at the widest
+/// reach, one supplies every coordinate of the widest node.
+#[test]
+fn one_widest_node_supplies_all_its_coordinates() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let d = Dresser::new(&gpu);
+    let r = 2.0f32;
+    let nodes: Vec<[f32; 3]> = (0..1u32 << 16)
+        .map(|k| {
+            let y = (k % 997) as f32 * 0.01;
+            match k % 4 {
+                0 => [r, y, 0.0],
+                1 => [0.0, y, r],
+                2 => [-r, y, 0.0],
+                _ => [0.0, y, -r],
+            }
+        })
+        .collect();
+    for _ in 0..8 {
+        let dressed = Dressed::of_nodes(&gpu, &nodes).unwrap();
+        let folds = pollster::block_on(dressed.extent(&gpu, &d)).unwrap();
+        let (reach, y) = folds.widest.expect("a widest node");
+        assert_eq!(reach, f64::from(r), "the widest node's coordinates mixed");
+        // The least id among the tied: node 0, at height 0.
+        assert_eq!(y, 0.0);
+    }
+}

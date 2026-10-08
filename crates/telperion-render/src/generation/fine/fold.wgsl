@@ -30,7 +30,8 @@ const MADE: u32 = 2u;
 const LANDED: u32 = 4u;
 const BINS: u32 = 1024u;
 // `sums`: the height, the crown's lowest, the widest reach; the widest
-// node's position; the box's corners; the nodes kept; then the bins.
+// node's position; the box's corners; the nodes kept; the widest node's
+// id; then the bins.
 const HEIGHT: u32 = 0u;
 const LOW: u32 = 1u;
 const REACH: u32 = 2u;
@@ -38,6 +39,7 @@ const WIDEST: u32 = 3u;
 const LO: u32 = 6u;
 const HI: u32 = 9u;
 const KEPT: u32 = 12u;
+const WINNER: u32 = 13u;
 const BIN0: u32 = 16u;
 // A sifted node may stand this share under the bin beyond it: the
 // device's float32 way and reach against the pipeline's.
@@ -92,9 +94,29 @@ fn widest(@builtin(global_invocation_id) id: vec3<u32>) {
     if n.w < 0.0 || ord(length(n.xz)) != atomicLoad(&sums[REACH]) {
         return;
     }
+    atomicMin(&sums[WINNER], id_of(i));
+}
+
+// The widest node, one of those tied at the widest reach (the least id),
+// supplies all its coordinates (fn-212 task 11, Astra's finding 3).
+@compute @workgroup_size(64)
+fn publish(@builtin(global_invocation_id) id: vec3<u32>) {
+    let i = index(id);
+    if i >= cfg.n {
+        return;
+    }
+    let n = node(i);
+    if n.w < 0.0 || id_of(i) != atomicLoad(&sums[WINNER]) {
+        return;
+    }
     atomicStore(&sums[WIDEST], bitcast<u32>(n.x));
     atomicStore(&sums[WIDEST + 1u], bitcast<u32>(n.y));
     atomicStore(&sums[WIDEST + 2u], bitcast<u32>(n.z));
+}
+
+// Record `i`'s id, unique over the tree's drawn nodes.
+fn id_of(i: u32) -> u32 {
+    return bitcast<u32>(drawn[cfg.records + i * CV + 14u]);
 }
 
 // A crown node's way and reach share, as `crown_point`; none outside.
