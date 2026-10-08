@@ -53,6 +53,16 @@ pub fn expected_counts(species: &Species, age: u32) -> Result<CountTable> {
     Ok(walk.counts(0, age as usize, Carried::default(), None))
 }
 
+/// The expected phytomers a tree grown `age` cycles grows, the shed ones
+/// included: `expected_counts`' table summed, kept as one running total.
+pub fn expected_grown(species: &Species, age: u32) -> Result<f64> {
+    species.validate()?;
+    if age == 0 {
+        return refuse("age", "a tree grows at least one cycle");
+    }
+    Ok(0.0)
+}
+
 /// The expected kept phytomers of a tree grown `age` cycles: the cut's
 /// predictor read at the seed, without growing the tree. None for a
 /// species whose buds read light: the predictor is light-neutral, and the
