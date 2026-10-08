@@ -8,13 +8,60 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-228-the-harness-renders-white-as-white",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-228-the-harness-renders-white-as-white.1": 0
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "641c873ec2971ad6ebfccab371699bb9211d7b6ecb7bd9694e62c9fd2e11e778",
+      "backend": "codex",
+      "base_sha": "b0d1d07576443f4e00c0be57fd9e10ded8169069",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3fb1341df3bafdda5bf705414ba6b40045e0e269",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "a825b4a27e0949d8a680307f63747d73",
+      "round_consumed": true,
+      "scope": "impl:fn-228-the-harness-renders-white-as-white.1",
+      "superseded_by": null,
+      "task": "fn-228-the-harness-renders-white-as-white.1",
+      "timestamp": "2026-10-08T10:58:18.389940Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-228-the-harness-renders-white-as-white.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-228-the-harness-renders-white-as-white.1": 0
+  },
   "spec_path": ".flow/specs/fn-228-the-harness-renders-white-as-white.md",
   "status": "open",
   "title": "The harness renders white as white",
@@ -29,5 +76,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T10:30:05.388898Z"
+  "updated_at": "2026-10-08T10:58:18.392059Z"
 }
