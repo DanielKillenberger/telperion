@@ -5,7 +5,7 @@
 //! distances and turns within fn-125's screen, and their contacts naming
 //! the same rings of their runs.
 use super::dress::{Dressed, Dresser};
-use super::fixture::{with_dressed, Fixture};
+use super::fixture::{with_dressed, with_family, Fixture};
 use super::roots::{kernels, Kernels};
 use super::stations::{station_rows, Stationer, GW};
 use super::sweep::{rows, Sweeper};
@@ -276,6 +276,26 @@ fn fine_roots_are_stationed_on_the_device() {
             "{id}: counts"
         );
     }
+}
+
+/// fn-212 task 11, Astra's finding 6: a large valid divergence turns the
+/// device's stations as the pipeline's, its phase reduced before it is
+/// narrowed to float32.
+#[test]
+fn a_large_divergence_turns_the_stations_as_the_pipeline_does() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let k = kernels(&gpu);
+    let (d, sw, st) = (Dresser::new(&gpu), Sweeper::new(&gpu), Stationer::new(&gpu));
+    let mut family = telperion_core::presets::by_identity("european-beech").unwrap();
+    family.age = 30.0;
+    family.canopy.divergence = 1e9;
+    let s = with_family(&gpu, &k, &d, family, |fx, dressed| {
+        stationed(&gpu, (&sw, &st), fx, dressed)
+    });
+    assert!(s.device.2 > 0, "no stations");
+    assert!(s.phase < 1e-3, "turns apart: {}", s.phase);
 }
 
 /// The probe's fixtures at 40 and 80 (`cargo test --profile ci -p

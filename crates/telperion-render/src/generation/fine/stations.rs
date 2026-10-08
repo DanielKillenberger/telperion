@@ -224,7 +224,10 @@ pub(super) fn station_rows(x: &Expansion, segments: u32) -> Rows {
         // `plan::micrometres`: the bound as the CPU executor compares it.
         slender: (slender * 1e6 + 0.5).floor() as u32,
         internode: twig.internode_length as f32,
-        divergence: canopy.divergence.to_radians() as f32,
+        // Reduced to a turn in f64 before it is narrowed, as the CPU
+        // block's placement takes it (`data::config`; fn-212 task 11).
+        divergence: (canopy.divergence * std::f64::consts::PI / 180.0)
+            .rem_euclid(std::f64::consts::TAU) as f32,
         contact: x.seats(),
     }
 }

@@ -55,6 +55,18 @@ pub(super) fn with_dressed<R>(
     let mut family = telperion_core::presets::by_identity(id).unwrap();
     family.age = f64::from(age);
     family.skeleton.seed = seed;
+    with_family(gpu, k, d, family, then)
+}
+
+/// `family` built by the pipeline, settled and drawn on the device.
+pub(super) fn with_family<R>(
+    gpu: &Gpu,
+    k: &Kernels,
+    d: &Dresser,
+    family: Family,
+    then: impl FnOnce(&Fixture, &Dressed) -> R,
+) -> R {
+    let (age, seed) = (family.age as u32, family.skeleton.seed);
     let reference = executor::grow(&family).unwrap().expansion().unwrap();
     let tree = reference.tree();
     let species = family.space.species.clone().unwrap();
