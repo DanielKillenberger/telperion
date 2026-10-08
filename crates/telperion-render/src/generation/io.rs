@@ -347,11 +347,12 @@ pub(super) async fn errors(gpu: &Gpu, scopes: [wgpu::ErrorScopeGuard; 2]) -> Res
     let [validation, memory] = scopes;
     let memory = memory.pop().await;
     let validation = validation.pop().await;
-    if let Some(error) = memory.or(validation) {
-        return Err(self::error(error.to_string()));
-    }
+    // A lost device is the cause of every error it raised (fn-235).
     if let Some(error) = gpu.lost() {
         return Err(error);
+    }
+    if let Some(error) = memory.or(validation) {
+        return Err(self::error(error.to_string()));
     }
     Ok(())
 }

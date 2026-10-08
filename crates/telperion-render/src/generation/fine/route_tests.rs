@@ -162,6 +162,42 @@ fn a_build_over_the_budget_is_refused_and_the_drawn_tree_kept() {
     assert_eq!(after.stats.instances, before.stats.instances);
 }
 
+/// fn-235 R3: a device lost under a drawn tree is named by the next frame
+/// and the next build, and the same parameters build again, once, on a
+/// fresh adapter and device, as the page's "retry build" asks.
+#[test]
+fn a_lost_device_is_named_and_a_fresh_one_builds_the_tree_again() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let tree = family("european-beech", 12);
+    let mut renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    renderer
+        .submit_prepared(gen.prepare(&tree, Delivery::Resident).unwrap())
+        .unwrap();
+    let camera = crate::hero_pose(renderer.bounds().unwrap(), 4.0 / 3.0, crate::GROUND_REACH);
+    gpu.device.destroy();
+    let lost = |error: Option<crate::RenderError>| match error {
+        Some(e @ crate::RenderError::DeviceLost { .. }) => e.to_string(),
+        other => panic!("not named as a loss: {other:?}"),
+    };
+    let drawn = lost(crate::render(&mut renderer, &camera, 320, 240).err());
+    assert!(drawn.contains("the GPU device was lost"), "{drawn}");
+    lost(gen.prepare(&tree, Delivery::Resident).err());
+    // The retry: the lost device let go, a fresh adapter and device, the
+    // same parameters.
+    drop((gen, renderer, gpu));
+    let fresh = crate::generation::test_gpu().unwrap();
+    let mut renderer = Renderer::new(fresh, crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    renderer
+        .submit_prepared(gen.prepare(&tree, Delivery::Resident).unwrap())
+        .unwrap();
+    let still = crate::render(&mut renderer, &camera, 320, 240).unwrap();
+    assert!(still.has_subject());
+}
+
 /// fn-212 task 10, host decision 3: the device bytes a build peaks at, from
 /// a fresh generator and renderer, against the predictor's expected kept
 /// phytomers, and what stays held once its tree is drawn

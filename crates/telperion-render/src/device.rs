@@ -321,8 +321,12 @@ impl Gpu {
         }
     }
 
-    /// The device-lost error if the device has gone away, checked after a poll.
+    /// The device-lost error if the device has gone away. Natively the loss
+    /// is delivered on a poll, so one that does not wait is taken first; a
+    /// browser delivers it on its own event loop.
     pub fn lost(&self) -> Option<RenderError> {
+        #[cfg(not(target_arch = "wasm32"))]
+        let _ = self.device.poll(wgpu::PollType::Poll);
         let reason = self.lost.lock().ok()?.clone()?;
         Some(RenderError::DeviceLost { reason })
     }

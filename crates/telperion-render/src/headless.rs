@@ -81,13 +81,14 @@ impl Frame {
 pub fn render(renderer: &mut Renderer, camera: &Camera, width: u32, height: u32) -> Result<Still> {
     let frame = Frame::new(renderer, "still", (width, height));
     let mut stats = renderer.draw(camera, (width, height), frame.target());
-    // A frame's device error is the still's: it is reported, never drawn.
+    // A frame's device error is the still's: it is reported, never drawn,
+    // and a lost device is named as the cause of what it failed (fn-235).
     if let Some(detail) = renderer.frame_error() {
         let requirement = "the frame".into();
-        return Err(crate::RenderError::DeviceRefused {
+        return Err(renderer.gpu().lost().unwrap_or(RenderError::DeviceRefused {
             requirement,
             detail,
-        });
+        }));
     }
     // The wood's triangles are the device's own count: a still reads them
     // back, where a frame never waits for them (fn-208).
