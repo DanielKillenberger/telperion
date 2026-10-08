@@ -163,6 +163,8 @@ impl Gpu {
     /// deferred by the device until the work is done.
     pub fn submit<I: IntoIterator<Item = Recorded>>(&self, recorded: I) {
         let (commands, open): (Vec<_>, Vec<_>) = recorded.into_iter().map(Recorded::split).unzip();
+        #[cfg(test)]
+        crate::trace::submit();
         self.queue.submit(commands);
         drop(open);
     }

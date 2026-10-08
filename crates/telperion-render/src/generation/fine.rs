@@ -168,6 +168,8 @@ mod florets_tests;
 mod group;
 mod handoff;
 #[cfg(test)]
+mod hang_tests;
+#[cfg(test)]
 mod hostrun;
 mod laid;
 #[cfg(test)]

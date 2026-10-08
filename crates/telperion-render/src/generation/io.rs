@@ -167,6 +167,8 @@ impl Pass {
                     end_of_pass_write_index: Some(at + 1),
                 }),
         });
+        #[cfg(test)]
+        crate::trace::dispatch(&self.entries[entry], groups);
         pass.set_pipeline(&self.pipelines[entry]);
         pass.set_bind_group(0, bind, &[]);
         pass.dispatch_workgroups(groups.min(self.maximum), groups.div_ceil(self.maximum), 1);
@@ -209,6 +211,8 @@ impl PendingRead {
         _gpu.device
             .poll(wgpu::PollType::wait_indefinitely())
             .map_err(|e| error(e.to_string()))?;
+        #[cfg(test)]
+        crate::trace::waited("readback");
         self.receive
             .await
             .map_err(|e| error(e.to_string()))?
@@ -371,6 +375,8 @@ pub(super) async fn complete(gpu: &Gpu) -> Result<()> {
     gpu.device
         .poll(wgpu::PollType::wait_indefinitely())
         .map_err(|e| error(e.to_string()))?;
+    #[cfg(test)]
+    crate::trace::waited("stage");
     receive.await.map_err(|e| error(e.to_string()))?;
     if let Some(error) = gpu.lost() {
         return Err(error);

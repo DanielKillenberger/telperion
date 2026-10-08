@@ -23,6 +23,8 @@ mod shot;
 mod structure;
 mod submit;
 mod timing;
+#[cfg(test)]
+mod trace;
 mod view;
 #[cfg(target_arch = "wasm32")]
 mod web;
