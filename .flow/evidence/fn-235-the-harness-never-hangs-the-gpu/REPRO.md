@@ -96,3 +96,39 @@ was reverted.
 2. **No async creation for now.** With every pipeline at or under about 2 s, synchronous creation stays well under Chrome's GPU watchdog. The wgpu API gap is recorded in FRICTION.md and fn-235's report, and is not built around.
    - **The bound:** at most 2.5 s per pipeline, which gives the measured 2.3 s its noise margin on this loaded machine. The first tree's cold build stays at 5 s or under. Rename the test to match.
 3. **Decisions 3 and 4 go ahead now,** whatever happens with point 1: the 6 GiB budget and the device-loss handling. After them come R4, R5's native checks, the gate, npm test, impl-review and `flowctl done`.
+
+## The split's cost (task 1, 2026-10-09, after the second decisions)
+
+`grow_unit` and `move_on` sit inside each chain's sequential loop: the
+sleepers `grow_unit` lays are read by `wakes` and `asleep_from` in later
+cycles of the same chain, its phytomers by `relay_node` and the carry,
+and `move_on`'s result decides the apex loop's next step. As their own
+pipelines, every chain would have to stop before each call, keep its
+state (counters, the relay stack, the loop positions, `advance`'s
+locals) in a buffer, and resume after the other pipeline ran: one round
+of dispatches a growth unit at least.
+
+The rounds' least count, from the CPU reference's chains (seed 1):
+the most growth units in one chain is 40 (beech 40, spruce 40), 67
+(beech 80) and 80 (spruce 80); the beech at 80 dispatches `grow` 33
+times a build, the oak not at all (it builds whole on the CPU).
+
+The floor alone, measured: each `grow` region followed by `2 x age`
+dispatches of a kernel that touches one word a chain (no state kept,
+no `move_on` rounds, so less than the split would cost), warm cache,
+best of 3, twice, load average 6 to 7:
+
+| Tree | Slimmed single pipeline, ms | With the floor, ms | Added |
+|---|--:|--:|--:|
+| beech 40 | 166 / 170 | 188 / 190 | +12 to +13 % |
+| beech 80 | 657 / 653 | 734 / 728 | +11 to +12 % |
+| spruce 40 | 330 / 350 | 334 / 340 | noise |
+| spruce 80 | 1,410 / 1,407 | 1,359 / 1,486 | noise (±5 %) |
+| oak 40 | 827 / 880 | 860 / 798 | none (no `grow`) |
+| oak 80 | 10,224 / 9,968 | 10,384 / 10,226 | none (no `grow`) |
+
+The beech pays more than 5 % for the dispatches alone, before any state
+is kept, so the split fails decision 1's condition and was not built.
+`grow` stays one slimmed pipeline at 13 to 17 s cold, over the 2.5 s
+bound; `every_pipeline_within_2_5_s_and_the_first_tree_within_5_s_cold`
+stays red on it.
