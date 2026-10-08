@@ -310,7 +310,7 @@ impl Renderer {
     /// What the tree that is up is made of, as `family` states it with its
     /// supernatural group applied: its material, the group's overrides laid
     /// over it while the group is on, and the group's leaf mirrors.
-    pub fn set_family(&mut self, family: &telperion_core::presets::Family) {
+    pub fn set_family(&mut self, family: &telperion_core::Family) {
         self.set_material(family.applied().material);
         self.scene.set_reflection(family.supernatural.reflection());
     }
