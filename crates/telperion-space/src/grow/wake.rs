@@ -173,7 +173,7 @@ impl Shoot<'_, '_> {
         // Its time in its stage holds the share of the cycle it slept,
         // which its first unit lacks (`schedule.rs`).
         let line = self.made.last_mut().unwrap();
-        (line.draws.sleep, line.draws.aged) = (sleeper.sleep, spent);
+        (line.draws.sleep, line.draws.aged, line.draws.woke) = (sleeper.sleep, spent, true);
         line.units = spent;
         let apex = self.next.pop().expect("sprouted");
         self.advance(Apex { spent, ..apex }, cycle)?;

@@ -175,7 +175,7 @@ fn events_of(species: &Species, laterals: &[Vec<f64>], k: usize, steps: &[Step])
         // rule 2'), its nodes taken at their mean.
         for l in &step.lived {
             let grown = (step.i, l.weight, l.size, step.start);
-            unit_events(&mut out, species, (k, laterals), grown, &l.sleeping);
+            unit_events(&mut out, species, (k, laterals), (grown, 1.0), &l.sleeping);
             let length = scaled(whole, state.internode * l.size);
             let extent = lived_extent(state, l.size);
             let (r, back) = (
@@ -199,7 +199,7 @@ fn events_of(species: &Species, laterals: &[Vec<f64>], k: usize, steps: &[Step])
             });
         }
         let grown = (step.i, step.grown, step.size, step.start);
-        unit_events(&mut out, species, (k, laterals), grown, &step.sleeping);
+        unit_events(&mut out, species, (k, laterals), (grown, step.laid), &step.sleeping);
         relay(&mut out, step.aborted);
         if let Some(end) = step.end {
             if let Some((at, pa, onward, weight)) = end.continuation {
@@ -229,21 +229,27 @@ pub(super) fn lived_extent(state: &crate::species::PaState, size: f64) -> f64 {
 }
 
 /// A unit's events: each zone's nodes, grown `weight` of the time at
-/// `size` of a whole unit's length from `start`, the laterals they bear
-/// and the sleeping buds that wake on them.
+/// `size` of a whole unit's length from `start`, `laid` of them where a
+/// lifespan's fraction cuts the unit (fn-231), the laterals they bear and
+/// the sleeping buds that wake on them.
 fn unit_events(
     out: &mut Vec<Event>,
     species: &Species,
     (k, laterals): (usize, &[Vec<f64>]),
-    (i, weight, size, start): (usize, f64, f64, Along),
+    ((i, weight, size, start), laid): ((usize, f64, f64, Along), f64),
     sleeping: &[Vec<Event>],
 ) {
     let state = &species.states[k];
-    let counts: Vec<Count> = state.zones.iter().map(|z| Count::of(z.nodes)).collect();
+    let law = |z: &Zone| match laid < 1.0 {
+        true => Count::of_pmf(&Count::laid_pmf(&Count::pmf(z.nodes), laid)),
+        false => Count::of(z.nodes),
+    };
+    let counts: Vec<Count> = state.zones.iter().map(law).collect();
     let (starts, _) = zones(&counts);
     let internode = state.internode * size;
     for (z, (zone, lateral)) in state.zones.iter().zip(laterals).enumerate() {
-        let nodes = weight * zone.nodes.mean();
+        let mean = if laid < 1.0 { counts[z].mean() } else { zone.nodes.mean() };
+        let nodes = weight * mean;
         let start = start.then(scaled(starts[z], internode));
         let wood = counts[z].wood(start, internode).map(|w| weight * w);
         out.push(Event::Nodes {

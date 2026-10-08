@@ -205,6 +205,7 @@ fn woke(b: u32, whorl: f32) -> u32 {
         wq(a, B1, buds[b + 13u]);
     }
     wr(a, SLEEP, sleep);
+    wr(a, KIND, rd(a, KIND) | IS_WOKE);
     wr64(a, AGED, spent);
     wr64(a, UNITS, spent);
     run(Apex(a, spent), cycle);

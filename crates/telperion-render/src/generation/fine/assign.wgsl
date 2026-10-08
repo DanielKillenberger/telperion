@@ -44,6 +44,9 @@ const WOKEN_ASKS: u32 = 4u;
 // its apex all but aborted, its draws' key, its survival's and
 // abortion's bounds, the phytomers and axes its unit made and its axis's
 // phytomers before it; its Q32 survival, persistence and presence.
+// Whether its nodes grow whole, a lifespan's fraction having cut the unit
+// to its share of them (word 2, fn-231).
+const U_LAID: u32 = 2u;
 const U_CYCLE: u32 = 4u;
 const U_SHARE: u32 = 5u;
 const U_ABORTS: u32 = 6u;
@@ -441,7 +444,7 @@ fn units_q() {
         for (var q = first; q < sleepers[u + U_PHYTS + 1u]; q++) {
             let at = phyt_base + q * PW;
             let node = vec2<u32>(phyts[at + 4u], phyts[at + 5u]);
-            let scale = times_q(times_q(run, node), share);
+            let scale = times_q(times_q(run, node), select(share, one32(), sleepers[u + U_LAID] != 0u));
             phyts[at + QSCALE] = scale.x;
             phyts[at + QSCALE + 1u] = scale.y;
         }

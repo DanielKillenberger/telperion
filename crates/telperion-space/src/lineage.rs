@@ -11,7 +11,7 @@ pub mod keys;
 
 pub(crate) use keys::{
     ABORTION, CONTINUATION, DOMINANCE, DORMANT, END, ENDED, FAILED, INSERTION, INTERNODE, MOVE,
-    PLACED, RELAY, ROLL, SHED, TROPISM, VIABILITY, WANDER, ZONE,
+    LAID, PLACED, RELAY, ROLL, SHED, TROPISM, VIABILITY, WANDER, ZONE,
 };
 
 /// A hashed path from the root.
@@ -169,6 +169,26 @@ pub(crate) fn place_presence(place: Key, share: f64, window: i64) -> u64 {
     }
     let d = place.child(PLACED).draw();
     fixed::presence::of_under(threshold(share), d.0, window)
+}
+
+/// The nodes of a zone a unit cut to `share` of its cycle lays (fn-231,
+/// host 2026-10-08): the first ⌊share n⌋ of its `presences` whole, and the
+/// next where its `LAID` draw, under the zone's key `zone`, falls under the
+/// fraction left, at its presence times its lead over `window`, so it grows
+/// in from nothing as the fraction passes its draw; the rest are not laid.
+pub(crate) fn laid(presences: &mut Vec<u64>, share: f64, zone: Key, window: i64) {
+    let n = presences.len();
+    let at = share * n as f64;
+    let whole = at.floor() as usize;
+    let fraction = at - whole as f64;
+    let last = (whole < n && fraction > 0.0).then(|| {
+        let d = zone.child(whole as u64).child(LAID).draw();
+        let made = d.under(fraction);
+        let lead = fixed::presence::of_under(threshold(fraction), d.0, window);
+        made.then(|| fixed::presence::times(presences[whole], lead))
+    });
+    presences.truncate(whole);
+    presences.extend(last.flatten());
 }
 
 /// A bud's PA under `lateral` for the draw `d`; none for a bare bud. The

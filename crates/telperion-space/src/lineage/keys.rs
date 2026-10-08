@@ -64,6 +64,9 @@ pub const WANDER: u64 = u64::MAX - 13;
 /// Whether a bud place a fraction of a node's buds makes stands, under
 /// the place's key (fn-231): a making draw at that fraction's chance.
 pub const PLACED: u64 = u64::MAX - 14;
+/// Whether the node a unit cut by a lifespan's fraction lays at a
+/// fraction stands, under the node's key (fn-231).
+pub const LAID: u64 = u64::MAX - 15;
 /// Whether a bloom flowers, under its node's key (fn-216); clear of the
 /// node's places, so a flower and a bud never draw alike.
 pub const BLOOM: u64 = 0x0b10_0000;
@@ -86,7 +89,7 @@ pub const CONTINUATION: u64 = u64::MAX;
 
 /// Every key: its name, value and what it is drawn under. `ZONE` and
 /// `PLACE` stand for their spans.
-pub const ALL: [(&str, u64, Under); 25] = [
+pub const ALL: [(&str, u64, Under); 26] = [
     ("VIABILITY", VIABILITY, Under::Unit),
     ("ABORTION", ABORTION, Under::Unit),
     ("MOVE", MOVE, Under::Unit),
@@ -105,6 +108,7 @@ pub const ALL: [(&str, u64, Under); 25] = [
     ("TROPISM", TROPISM, Under::Lineage),
     ("WANDER", WANDER, Under::Node),
     ("PLACED", PLACED, Under::Place),
+    ("LAID", LAID, Under::Node),
     ("BLOOM", BLOOM, Under::Node),
     ("BLOOM_ROLL", BLOOM_ROLL, Under::Node),
     ("FLORET", FLORET, Under::Node),

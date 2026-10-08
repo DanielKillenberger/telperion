@@ -8,6 +8,7 @@ use crate::fixed::{self, presence};
 use crate::lineage::{Key, END, ENDED, FAILED, RELAY, VIABILITY};
 use crate::presence::Unit;
 use crate::schedule::Carried;
+use crate::structure::Origin;
 use crate::transcendental::Transcendental;
 
 impl Shoot<'_, '_> {
@@ -55,6 +56,12 @@ impl Shoot<'_, '_> {
         };
         let step = carried.unit(state.life(), 1);
         let share = step.share;
+        // A unit a lifespan's fraction cuts, the age's last or its
+        // successor's rest of the cycle, lays that share of each zone's
+        // nodes, whole (fn-231); every other unit all of them at its share.
+        let origin = self.axis(apex.axis).origin;
+        let successor = matches!(origin, Origin::Continuation { .. }) && draws.carried;
+        let laid = step.laid(carried.gone, (first && successor, first && draws.woke));
         // Shade raises the apex's death hazard, ln survival = ln
         // viability x light^-phi (host, 2026-10-05): near-certain survival
         // moves gently as light does, and certain survival not at all.
@@ -149,13 +156,14 @@ impl Shoot<'_, '_> {
             survive,
             persist: 1.0,
             share,
+            size: if laid.is_some() { 1.0 } else { share },
         });
         if reads.sketching {
             draws
                 .shade
                 .push([size, if reads.lights { light } else { 1.0 }]);
         }
-        self.grow_unit(apex, pa, unit, cycle)?;
+        self.grow_unit(apex, pa, unit, (cycle, laid))?;
         apex.spent += share;
         // An apex that has spent its PA's lifespan moves on; it does not
         // also abort. Its hazard counts the time its axis has grown, and
