@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-224-leaving-angles-and-turning-rates-that.md",
-  "status": "open",
+  "status": "done",
   "title": "Leaving angles and turning rates that vary axis to axis",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-07T20:22:51.927458Z"
+  "updated_at": "2026-10-08T22:38:05.836012Z"
 }
