@@ -484,3 +484,22 @@ fn a_branch_of_ages_within_one_cycle_is_shed_on_time() {
         .sum();
     assert_eq!(branch, 0.0, "the branch stands at {branch}");
 }
+
+/// A shedding delay a fraction past a whole one fades the subtrees it
+/// keeps on by that fraction, and the kept count takes them at it (fn-231):
+/// a millionth of a cycle more keeps a millionth's worth, not a cycle's.
+#[test]
+fn a_fractional_shedding_delay_keeps_by_its_fade() {
+    let kept = |more: f64| {
+        let mut beech = telperion_space::beech();
+        for s in beech.states.iter_mut().filter(|s| s.shedding.is_finite()) {
+            s.shedding += more;
+        }
+        telperion_space::expected_kept(&beech, 20).unwrap().unwrap()
+    };
+    let (whole, next, near) = (kept(0.0), kept(1.0), kept(1e-6));
+    assert!(next > whole * 1.01, "{whole} {next}: a cycle more keeps more");
+    assert!((near / whole - 1.0).abs() < 1e-5, "{whole} {near} {next}");
+    let half = kept(0.5);
+    assert!(whole < half && half < next, "{whole} {half} {next}");
+}
