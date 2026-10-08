@@ -22,3 +22,17 @@ Resolved in part (host, 2026-10-07): the gate now runs in two parts, the workspa
 - **Slowed by:** florets of a few millimetres are sub-pixel at the hero distance and draw nothing visible (1.98M florets drawn, no yellow in the crown); only a close-up shows them. Each look costs a GPU-lock round trip of 10 to 30 minutes on a busy desk.
 - **Cost:** two still rounds (about 50 minutes of wall time) to learn the size, not the mechanism, was the problem.
 - **Would remove it:** a CPU-side still or a coverage estimate (florets' projected pixels at the hero pose) printed by the build, so a size that cannot show is known before the GPU.
+
+## 2026-10-08, the bloom colours' scale is unstated
+
+- **Doing:** the beech blossom's colour after the crash.
+- **Slowed by:** the `bloomFront*`/`bloomBack*` rows read as display colours (the overlays held 0.42 to 0.92), but they are linear albedos on the leaves' scale (beech leaf 0.021). Every value above about 0.15 clips to white, so three still rounds moved nothing, and a fourth (pure red) was needed to show the rows reached the draw.
+- **Cost:** four GPU rounds, about 40 minutes.
+- **Would remove it:** the rows' doc comments and `docs/parameters.md` stating "linear albedo on the leaf rows' scale", with the leaf's value as the example.
+
+## 2026-10-08, a generated file was stale with no check
+
+- **Doing:** `npm test` for fn-220's R4.
+- **Slowed by:** it rewrote `src/browser/presets.generated.ts`, which had lacked the `/bloom` rows since e447f782. Nothing had failed on the stale file.
+- **Cost:** a few minutes and a separate commit (a9fc8a96).
+- **Would remove it:** a check that the generated catalogue is current, as the parameter reference has.
