@@ -419,3 +419,12 @@ Astra's findings are in ASTRA-REVIEW-DESIGN.md; every one is taken.
 7. **Light (P2).** The sky claim is corrected in the light spec (post-release). L2 and G1 need lighting-interface changes there.
 
 Wind (fn-15) remains a separate, unowned visual gap. It is not a release item.
+
+## 8. After task 2 (host, 2026-10-08)
+
+Task 2 left four questions. The host decides them as follows.
+
+1. **Seated-leaf trees over 64 m on the device.** The named refusal stays: an input the device cannot place fails by name, with no fallback. The beech seats no leaves, so neither of the Two Trees meets it. A local-origin position step becomes its own spec when a tall seated species needs it.
+2. **The gold rim at distance.** Task 3 fixes this. The rim's width becomes a fraction of the leaf, set in leaf space and not in pixels, and a leaf smaller than a pixel takes the area-weighted mix of blade and rim. Verified on M0's distance stills: at the whole-tree view Laurelin reads green with gold edges, not as a gold crown.
+3. **Bark rows under scale.** `shootRadius`, `matureRadius` and `matureSpan` are lengths, so S1 scales them once, where it scales the other lengths. This is done in task 3. At scale 1 the output is byte-identical.
+4. **Contact precision at large scales.** No change for release. fn-218 and fn-219 measure contact error at the scale they choose. A chosen scale whose error exceeds fn-125's screen is refused there, by name.
