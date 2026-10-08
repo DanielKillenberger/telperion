@@ -1,9 +1,11 @@
 //! Whether the scene's light is white (fn-228). A floor of stated neutral
 //! albedo is drawn under the default sun and sky from above, with a tree on
-//! it to throw a shadow, and its colour is read back in sun and in shade. A
-//! neutral surface has to come back neutral in both: a light that tints it
-//! tints every species the same way, and the rows measured off photographs
-//! no longer render as the photographs.
+//! it to throw a shadow, and its colour is read back in sun and in shade.
+//! The photographs the rows are measured off were balanced to daylight, so a
+//! neutral surface in full daylight, sun plus sky, has to come back neutral:
+//! a light that tints it tints every species the same way. Shade, the blue
+//! sky alone, is cool in those photographs too, so it is reported and not
+//! bounded (host, fn-228).
 //!
 //! The floor is the neutral object because its shader is the light and
 //! nothing else, the albedo times the ambient plus the sun, and its colour is
@@ -136,9 +138,8 @@ fn above(renderer: &Renderer) -> Camera {
     }
 }
 
-#[ignore = "fn-228 R2: red until the scene's light is corrected; the fix is the host's design call (MEASURE.md)"]
 #[test]
-fn a_neutral_floor_renders_neutral_in_sun_and_in_shade() {
+fn a_neutral_floor_renders_neutral_in_full_daylight() {
     let Some(gpu) = common::gpu() else { return };
     let tree = mesh::build(&common::ordinary()).expect("the tree grew");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
@@ -174,17 +175,13 @@ fn a_neutral_floor_renders_neutral_in_sun_and_in_shade() {
                 shade[2],
                 shade[2] / shade[1],
             );
-            if name == "default" {
-                for (place, colour) in [("sun", sun), ("shade", shade)] {
-                    if cast(colour) > TOLERANCE {
-                        failures.push(format!("albedo {albedo} in {place}: {colour:.3?}"));
-                    }
-                }
+            if name == "default" && cast(sun) > TOLERANCE {
+                failures.push(format!("albedo {albedo} in sun: {sun:.3?}"));
             }
         }
     }
     assert!(
         failures.is_empty(),
-        "the default light tints a neutral floor past {TOLERANCE}: {failures:?}"
+        "the default daylight tints a neutral floor past {TOLERANCE}: {failures:?}"
     );
 }

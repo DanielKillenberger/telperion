@@ -21,9 +21,9 @@ macro_rules! fields {
         $op! {
             ("sunAzimuth", sun_azimuth, 0.0, 360.0, 135.0, "sun azimuth"),
             ("sunElevation", sun_elevation, 0.0, 90.0, 30.0, "sun elevation"),
-            ("sunRed", sun_red, 0.0, 10.0, 3.0, "sun red"),
-            ("sunGreen", sun_green, 0.0, 10.0, 2.85, "sun green"),
-            ("sunBlue", sun_blue, 0.0, 10.0, 2.6, "sun blue"),
+            ("sunRed", sun_red, 0.0, 10.0, 3.078, "sun red"),
+            ("sunGreen", sun_green, 0.0, 10.0, 2.848, "sun green"),
+            ("sunBlue", sun_blue, 0.0, 10.0, 2.388, "sun blue"),
             ("skyZenithRed", sky_zenith_red, 0.0, 10.0, 0.18, "sky zenith red"),
             ("skyZenithGreen", sky_zenith_green, 0.0, 10.0, 0.30, "sky zenith green"),
             ("skyZenithBlue", sky_zenith_blue, 0.0, 10.0, 0.62, "sky zenith blue"),
@@ -136,6 +136,31 @@ mod tests {
         assert!(row.sky_horizon_blue > row.sky_zenith_blue);
     }
 
+    /// The default sun is tinted so the full daylight a sunlit level floor
+    /// takes, the sun at its elevation plus the sky over it, is white, as a
+    /// camera balanced to daylight sees it (host, fn-228). Shade, the sky
+    /// alone, stays cool. The sun keeps the luminance of the (3, 2.85, 2.6)
+    /// it replaced.
+    #[test]
+    fn the_default_daylight_is_white_at_the_luminance_it_had() {
+        let row = SceneRow::default();
+        let luminance = |c: [f64; 3]| 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+        let sun = [row.sun_red, row.sun_green, row.sun_blue];
+        let sky = [
+            0.5 * (row.sky_zenith_red + row.sky_horizon_red),
+            0.5 * (row.sky_zenith_green + row.sky_horizon_green),
+            0.5 * (row.sky_zenith_blue + row.sky_horizon_blue),
+        ];
+        let rise = row.sun_elevation.to_radians().sin();
+        let daylight: Vec<f64> = (0..3).map(|i| sky[i] + rise * sun[i]).collect();
+        let mean = daylight.iter().sum::<f64>() / 3.0;
+        for channel in &daylight {
+            assert!((channel / mean - 1.0).abs() < 1e-3, "daylight {daylight:?}");
+        }
+        assert!((luminance(sun) - luminance([3.0, 2.85, 2.6])).abs() < 1e-3);
+        assert!(sky[2] > sky[0], "the sky light was made grey");
+    }
+
     #[test]
     fn the_row_survives_its_own_json_in_both_directions() {
         let row = SceneRow {
@@ -145,11 +170,7 @@ mod tests {
         };
         assert_eq!(SceneRow::parse(&row.to_json()).unwrap(), row);
         let unknown = SceneRow::parse(r#"{"unknown":0}"#).unwrap_err().to_string();
-        for name in [
-            "casterStride",
-            "shadowFilterTexels",
-            "shadowNormalOffset",
-        ] {
+        for name in ["casterStride", "shadowFilterTexels", "shadowNormalOffset"] {
             assert!(row.to_json().contains(name));
             assert!(unknown.contains(name));
         }
