@@ -222,8 +222,8 @@ impl Scene {
 }
 
 /// The flowers' block (fn-216): the frame's, drawn by the same leaf shader,
-/// with the petals' two colours, no veins, no margin, no mottle and none of
-/// the leaf's mirrors, and their florets' own box.
+/// with the petals' two colours, no veins, no margin, no mottle, none of
+/// the leaf's mirrors and no canopy normal, and their florets' own box.
 fn organ(
     mut u: Uniforms,
     m: &telperion_core::material::MaterialParams,
@@ -244,6 +244,9 @@ fn organ(
     // or a metallic rim (fn-217 E2).
     u.leaf_reflection[3] = 0.0;
     u.reflectance[2] = 0.0;
+    // A petal is lit as its own surface: the normal a leaf bends toward the
+    // crown's mass would shade a flower as part of it (fn-217 F3).
+    u.canopy[0] = 0.0;
     u.leaf_box_min = colour(reference.min.x, reference.min.y, reference.min.z, 0.0);
     u.leaf_box_extent = colour(
         reference.extent.x,
@@ -281,5 +284,17 @@ mod tests {
         let o = organ(leaves, &m, telperion_core::foliage::Reference::default());
         assert_eq!((o.leaf_reflection[3], o.reflectance[2]), (0.0, 0.0));
         assert_eq!((o.reflectance[0], o.reflectance[1]), (0.1, 0.2));
+    }
+
+    /// A petal is lit as its own surface, not bent toward the crown's mass
+    /// as a leaf is (fn-217 F3): the organ's block takes no canopy normal
+    /// and keeps the leaves' wrap, transmission and sheen.
+    #[test]
+    fn a_petal_is_lit_as_a_surface_not_as_the_crown_s_mass() {
+        let mut leaves = Uniforms::zeroed();
+        leaves.canopy = [0.6, 0.3, 0.4, 0.2];
+        let m = telperion_core::material::MaterialParams::default();
+        let o = organ(leaves, &m, telperion_core::foliage::Reference::default());
+        assert_eq!(o.canopy, [0.0, 0.3, 0.4, 0.2]);
     }
 }
