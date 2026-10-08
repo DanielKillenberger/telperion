@@ -286,8 +286,9 @@ impl Stationer {
 }
 
 /// The rows the device's stations read from the pipeline's expansion, its
-/// rings `segments` vertices round; the blooms' where an age `flowers`.
-pub(super) fn station_rows(x: &Expansion, segments: u32, flowers: bool) -> Rows {
+/// rings `segments` vertices round; the blooms' `flower` rows where an age
+/// flowers (`Organ::rows`, checked before they are read).
+pub(super) fn station_rows(x: &Expansion, segments: u32, flower: Option<[[f32; 4]; 3]>) -> Rows {
     let [structural, slender] = x.bearing_bounds();
     let (twig, canopy) = (x.twig(), x.leaves().canopy);
     Rows {
@@ -303,9 +304,6 @@ pub(super) fn station_rows(x: &Expansion, segments: u32, flowers: bool) -> Rows 
             .rem_euclid(std::f64::consts::TAU) as f32,
         contact: x.seats(),
         leaves: canopy.size != 0.0,
-        flower: flowers.then(|| {
-            let (bloom, now, _) = x.bloom();
-            super::super::data::flower(&bloom, now)
-        }),
+        flower,
     }
 }

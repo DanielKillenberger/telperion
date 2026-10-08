@@ -63,14 +63,17 @@ pub(super) fn config(
     }
 }
 /// A bloom's rows as `bloom.wgsl`'s `Flower` reads them (fn-229), drawn at
-/// `now`: the florets, taper, scatter and the time of year; the window's
-/// opening, length and stagger, and the droop; the rachis, the pedicel and
-/// the stalk's spread as its sine and cosine, taken as `bloom.rs` takes them.
+/// `now`: the florets, taper, scatter and the time since the window opened
+/// (wrapped to a year in f64, so a window of any length survives the
+/// narrowing); the window's length and stagger, and the droop; the rachis,
+/// the pedicel and the stalk's spread as its sine and cosine, taken as
+/// `bloom.rs` takes them.
 pub(super) fn flower(p: &BloomParams, now: f64) -> [[f32; 4]; 3] {
     let (sin, cos) = p.spread.to_radians().sin_cos_fixed();
+    let since = (now - p.opens).rem_euclid(1.0);
     [
-        [p.florets, p.taper, p.scatter, now],
-        [p.opens, p.lasts, p.stagger, p.droop],
+        [p.florets, p.taper, p.scatter, since],
+        [p.lasts, p.stagger, p.droop, 0.0],
         [p.rachis, p.pedicel, sin, cos],
     ]
     .map(|row| row.map(|v| v as f32))

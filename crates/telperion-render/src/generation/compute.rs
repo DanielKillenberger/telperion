@@ -245,6 +245,22 @@ impl Generator {
         retained_contacts: u64,
         m: &mut Metrics,
     ) -> Result<(Owned, u64)> {
+        let mut encoder = self.gpu.encoder(&Default::default());
+        let at = (leaves, count, crown, reference);
+        let masses = self.record_mass(&mut encoder, at, retained_contacts, m)?;
+        self.gpu.submit([encoder.finish()]);
+        io::complete(&self.gpu).await?;
+        Ok(masses)
+    }
+    /// `mass`'s grid recorded into `encoder` and not submitted, so the
+    /// leaves' grid and the florets' go in one submission (fn-229).
+    pub(super) fn record_mass(
+        &self,
+        encoder: &mut wgpu::CommandEncoder,
+        (leaves, count, crown, reference): (&wgpu::Buffer, u32, Option<Bounds>, Reference),
+        retained_contacts: u64,
+        m: &mut Metrics,
+    ) -> Result<(Owned, u64)> {
         let gpu = &self.gpu;
         let Some(crown) = crown else {
             return Ok((
@@ -293,11 +309,8 @@ impl Generator {
             &[],
         )?;
         let bind = self.mass.bind(gpu, &[&config, leaves, &counts, &masses]);
-        let mut encoder = gpu.encoder(&Default::default());
-        self.mass.run(&mut encoder, &bind, 0, count.div_ceil(256));
-        self.mass.run(&mut encoder, &bind, 1, total.div_ceil(256));
-        gpu.submit([encoder.finish()]);
-        io::complete(gpu).await?;
+        self.mass.run(encoder, &bind, 0, count.div_ceil(256));
+        self.mass.run(encoder, &bind, 1, total.div_ceil(256));
         m.gpu_compute_peak_bytes = m
             .gpu_compute_peak_bytes
             .max(retained_contacts + leaves.size() + config.size() + counts.size() + masses.size());

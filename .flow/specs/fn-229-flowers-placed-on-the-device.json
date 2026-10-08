@@ -8,13 +8,91 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-229-flowers-placed-on-the-device",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-229-flowers-placed-on-the-device.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "1eb81d020f9716d0a93df17f2e4d417f7b4afd2d10e5089d2da896b50f2ad5bb",
+      "backend": "codex",
+      "base_sha": "7f781e196ed5587336d2275853689b06ef6a0e73",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d4208f295d967dec72eae5fa61f84abe",
+            "classification": "introduced",
+            "findingId": "finding-d4208f295d967dec72eae5fa61f84abe",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d67493e1c9a64508e678c34fdb1011e7",
+            "classification": "introduced",
+            "findingId": "finding-d67493e1c9a64508e678c34fdb1011e7",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-80ed7d8be5e6f8a0fc9085647d0c99ae",
+            "classification": "introduced",
+            "findingId": "finding-80ed7d8be5e6f8a0fc9085647d0c99ae",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-67cc56f09a294fd8414325901a84b66f",
+            "classification": "introduced",
+            "findingId": "finding-67cc56f09a294fd8414325901a84b66f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7c40a35d9362ef4a96d3cd8e23333b3e130671a9",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 3459,
+      "output_sha256": "0c7129ed5017c3510c0e49aed504210146d0c8eb5389e8047d84f8acacdcaaa9",
+      "reservation_id": "e143ab0dbffa4be1aa04b7780b78d34f",
+      "round_consumed": true,
+      "scope": "impl:fn-229-flowers-placed-on-the-device.1",
+      "superseded_by": null,
+      "task": "fn-229-flowers-placed-on-the-device.1",
+      "timestamp": "2026-10-08T13:12:27.950655Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-229-flowers-placed-on-the-device.1": 0
+  },
   "spec_path": ".flow/specs/fn-229-flowers-placed-on-the-device.md",
   "status": "open",
   "title": "Flowers placed on the device",
@@ -29,5 +107,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T12:04:46.745393Z"
+  "updated_at": "2026-10-08T13:12:27.953683Z"
 }

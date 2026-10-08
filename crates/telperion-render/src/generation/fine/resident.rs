@@ -21,7 +21,7 @@ use super::roots::{Kernels, Tables};
 use super::stations::{station_rows, Stationed, Stationer};
 use super::stubs::stubs;
 use super::sweep::{rows, Sweeper};
-use crate::buffer::Held;
+use crate::buffer::{Held, Owned};
 use crate::{Gpu, Result};
 use std::collections::HashSet;
 use std::sync::Arc;
@@ -208,7 +208,13 @@ pub(super) async fn build(
     .await?;
     let ids = dressed.ids;
     drop(dressed);
-    let station = station_rows(&x, segments, flowers);
+    // A flowering tree's organ, its rows checked before the stations read
+    // them (`bloom_element`'s check).
+    let organ = match flowers {
+        true => Some(Organ::of(&x)?),
+        false => None,
+    };
+    let station = station_rows(&x, segments, organ.as_ref().map(Organ::rows));
     let stationer = &tools.stationer;
     let device = stage(gpu, &mut t.stations, async || {
         stationer
@@ -236,10 +242,6 @@ pub(super) async fn build(
     // Both blocks into one leaf buffer, one mass grid over both; the
     // florets likewise, the device's in the submission of its leaves.
     let reference = x.reference();
-    let organ = match flowers {
-        true => Some(Organ::of(&x)?),
-        false => None,
-    };
     let (resident, florets) = stage(gpu, &mut t.place, async || {
         let leaves = gen.leaf_buffer(count)?;
         let (l, e) = (x.leaves(), x.element());
@@ -256,19 +258,21 @@ pub(super) async fn build(
         )?;
         // Leaves that seat on nothing read no ring positions.
         let none = io::buffer(gpu, "no ring positions", 16, usage, &[])?;
+        // Every block placed in one submission, every summary read back
+        // in one readback.
+        let mut encoder = gpu.encoder(&Default::default());
         let mut summaries = Vec::new();
         if cpu.count > 0 {
             let at = (cpu.count, &*leaves);
-            let rings = wood.as_deref().unwrap_or(&none);
-            summaries.push(gen.place_into(config, (&*segs, rings), e, at)?.0);
+            let bufs = (&*segs, wood.as_deref().unwrap_or(&none));
+            let placed = gen.record_place(&mut encoder, Placement::Leaves, config, bufs, e, at)?;
+            summaries.push(placed.0);
         }
-        let mut encoder = gpu.encoder(&Default::default());
         if device.stations > 0 {
             let counts = (device.stations, device.segments, segments);
             let config = data::config(&l, x.twig(), counts, e, reference).at(cpu.count);
             let at = (device.stations, &*leaves);
-            let rings = positions.as_deref().unwrap_or(&none);
-            let bufs = (&*device.buffer, rings);
+            let bufs = (&*device.buffer, positions.as_deref().unwrap_or(&none));
             let placed = gen.record_place(&mut encoder, Placement::Leaves, config, bufs, e, at)?;
             summaries.push(placed.0);
         }
@@ -276,24 +280,29 @@ pub(super) async fn build(
             Some(o) => o.place(gen, &mut encoder, &device)?,
             None => None,
         };
-        gpu.submit([encoder.finish()]);
+        let floret = placed.as_ref().and_then(|p| p.summary());
+        let placed_florets = floret.is_some();
+        let words = read(gpu, encoder, summaries.iter().chain(floret)).await?;
         let (mut crown, mut full) = (None, None);
-        for s in &summaries {
-            let raw = io::read_async(gpu, s, 64).await?;
-            let s: &[u32] = bytemuck::cast_slice(&raw);
+        for s in words.chunks(16).take(summaries.len()) {
             if s[1] != 0 {
                 return Err(refused("GPU foliage transform/contact/reference"));
             }
             crown = union(crown, Some(compute::bounds(s, 2)));
             full = union(full, Some(compute::bounds(s, 8)));
         }
-        let masses = gen
-            .mass(&leaves, count, crown, reference, 0, &mut m)
-            .await?;
+        // Both mass grids in one submission, which the stage waits for.
+        let mut encoder = gpu.encoder(&Default::default());
+        let at = (&*leaves, count, crown, reference);
+        let masses = gen.record_mass(&mut encoder, at, 0, &mut m)?;
         let florets = match (&organ, placed) {
-            (Some(o), Some(p)) => Some(o.resident(gen, p, &mut m).await?),
+            (Some(o), Some(p)) => {
+                let summary = placed_florets.then(|| &words[16 * summaries.len()..]);
+                Some(o.resident(gen, &mut encoder, (p, summary), &mut m)?)
+            }
             _ => None,
         };
+        gpu.submit([encoder.finish()]);
         let resident = Resident {
             leaves: Held::resident(leaves, u64::from(count) * 12, "generated foliage"),
             masses: Held::resident(masses.0, masses.1, "generated foliage masses"),
@@ -356,4 +365,23 @@ pub(super) async fn build(
         cpu_segments,
         device,
     })
+}
+
+/// The 16-word placement `summaries`, copied into one buffer in `encoder`
+/// and read back in one readback, in their order.
+async fn read<'a>(
+    gpu: &Gpu,
+    mut encoder: crate::Encoder,
+    summaries: impl Iterator<Item = &'a Owned>,
+) -> Result<Vec<u32>> {
+    let summaries: Vec<&Owned> = summaries.collect();
+    let bytes = (summaries.len() * 64) as u64;
+    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
+    let all = io::buffer(gpu, "generation summaries", bytes, usage, &[])?;
+    for (k, s) in summaries.iter().enumerate() {
+        encoder.copy_buffer_to_buffer(s, 0, &all, k as u64 * 64, 64);
+    }
+    gpu.submit([encoder.finish()]);
+    let raw = io::read_async(gpu, &all, bytes).await?;
+    Ok(bytemuck::pod_collect_to_vec(&raw))
 }

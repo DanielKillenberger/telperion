@@ -252,3 +252,34 @@ fn florets_at_80() {
     let p = parity(&gpu, &flowering(parts[0], at));
     println!("{only}: {p:?}");
 }
+
+/// Review finding: the bloom rows are checked before the device counts
+/// florets by them, so a count past the rows' bounds is refused by name
+/// instead of looping a billion times a node.
+#[test]
+fn a_bloom_out_of_bounds_is_refused_before_the_device_counts() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let mut family = flowering("european-beech", (12, 1));
+    family.bloom.florets = 1e9;
+    let (k, gen) = (kernels(&gpu), generator(&gpu));
+    let built = pollster::block_on(build(&gpu, &gen, &k, &Tools::new(&gpu), &family));
+    let error = built.err().expect("the rows are refused").to_string();
+    assert!(error.contains("bloom florets"), "{error}");
+}
+
+/// Review finding: a window a billionth of a year long flowers on the
+/// device as on the CPU; the time since it opened is taken in f64 before
+/// it is narrowed.
+#[test]
+fn a_window_of_a_billionth_of_a_year_flowers_on_the_device() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let mut family = flowering("european-beech", (12, 1));
+    (family.bloom.opens, family.bloom.lasts, family.bloom.stagger) = (0.3, 1e-9, 0.0);
+    let p = parity(&gpu, &family);
+    assert!(p.counts.1 > 0, "the device draws florets: {p:?}");
+    assert_eq!(p.counts.0 + p.counts.1, p.counts.2, "{p:?}");
+}

@@ -6,9 +6,10 @@
 // the placement places them by it, so the two never disagree on a floret.
 // It reads `contract.wgsl`'s `child` and `draw` and `lineage.wgsl`'s keys.
 
-// A bloom's rows: florets, taper, scatter and the time of year; the
-// window's opening, length and stagger, and the droop; the rachis, the
-// pedicel, and the stalk's spread as its sine and cosine.
+// A bloom's rows: florets, taper, scatter and the time since the window
+// opened (a share of the year); the window's length and stagger, and the
+// droop; the rachis, the pedicel, and the stalk's spread as its sine and
+// cosine.
 struct Flower {
     a: vec4<f32>,
     b: vec4<f32>,
@@ -43,12 +44,12 @@ fn bloom_smooth(x: f32) -> f32 {
 
 // The size the season gives a floret whose opening was drawn `u`.
 fn bloom_season(f: Flower, u: f32) -> f32 {
-    let life = f.b.y * (1.0 - 0.5 * f.b.z);
+    let life = f.b.x * (1.0 - 0.5 * f.b.y);
     if life <= 0.0 {
         return 0.0;
     }
-    let offset = u * (f.b.y - life);
-    let v = f.a.w - f.b.x - offset;
+    let offset = u * (f.b.x - life);
+    let v = f.a.w - offset;
     let x = (v - floor(v)) / life;
     if x >= 1.0 {
         return 0.0;
@@ -133,7 +134,7 @@ fn floret(f: Flower, node: vec3<f32>, held: vec3<f32>, bud: vec3<f32>, key: vec2
     let side = bloom_or(bud - heading * dot(heading, bud), bloom_perpendicular(heading));
     // The axis, laid in segments as it turns (`Axis::laid`).
     var toward = vec3<f32>(0.0, 1.0, 0.0);
-    if f.b.w >= 0.0 {
+    if f.b.z >= 0.0 {
         toward = vec3<f32>(0.0, -1.0, 0.0);
     }
     var points: array<vec3<f32>, 9>;
@@ -143,7 +144,7 @@ fn floret(f: Flower, node: vec3<f32>, held: vec3<f32>, bud: vec3<f32>, key: vec2
     for (var k = 0u; k < BLOOM_SEGMENTS; k++) {
         let along = (f32(k) + 0.5) / f32(BLOOM_SEGMENTS);
         let rest = 1.0 - along;
-        let turned = abs(f.b.w) * (1.0 - rest * rest * rest);
+        let turned = abs(f.b.z) * (1.0 - rest * rest * rest);
         tangents[k] = bloom_or(bloom_lerp(side, toward, turned), toward);
         points[k + 1u] = points[k] + tangents[k] * step;
     }

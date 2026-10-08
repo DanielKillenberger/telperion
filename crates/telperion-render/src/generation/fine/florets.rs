@@ -10,7 +10,7 @@ use super::super::{data, io, Generator, Metrics, Resident};
 use super::handoff::union;
 use super::stations::Stationed;
 use crate::buffer::{Held, Owned};
-use crate::{Gpu, Result};
+use crate::Result;
 use telperion_core::foliage::{Instances, Reference};
 use telperion_core::math::Vec3;
 use telperion_core::mesh::Foliage;
@@ -105,32 +105,34 @@ impl Organ {
         }
     }
 
-    /// The placed organ, its device block's summary read: its bounds, the
-    /// florets' origins and every vertex, and one mass grid over both.
-    pub(super) async fn resident(
+    /// The rows the device counts and places its florets by.
+    pub(super) fn rows(&self) -> [[f32; 4]; 3] {
+        self.rows
+    }
+
+    /// The placed organ, from its device block's `summary` (read with the
+    /// leaves' in one readback): its bounds, the florets' origins and every
+    /// vertex, and one mass grid over both blocks, recorded into `encoder`.
+    pub(super) fn resident(
         &self,
         gen: &Generator,
-        placed: Placed,
+        encoder: &mut wgpu::CommandEncoder,
+        (placed, summary): (Placed, Option<&[u32]>),
         m: &mut Metrics,
     ) -> Result<Resident> {
-        let gpu: &Gpu = &gen.gpu;
         let mut crown = crate::submit::crown_of(&self.cpu);
         let mut full = (self.cpu.instances.bounds(&self.cpu.element)?).map(Bounds::from);
-        if let Some(s) = &placed.summary {
-            let raw = io::read_async(gpu, s, 64).await?;
-            let s: &[u32] = bytemuck::cast_slice(&raw);
+        if let Some(s) = summary {
             if s[1] != 0 {
-                return Err(
-                    telperion_core::Error::InvalidInput("GPU floret transform/reference").into(),
-                );
+                let refused = telperion_core::Error::InvalidInput("GPU floret transform/reference");
+                return Err(refused.into());
             }
             crown = union(crown, Some(compute::bounds(s, 2)));
             full = union(full, Some(compute::bounds(s, 8)));
         }
         let (buffer, count) = (placed.buffer, placed.count);
-        let masses = gen
-            .mass(&buffer, count, crown, self.reference(), 0, m)
-            .await?;
+        let at = (&*buffer, count, crown, self.reference());
+        let masses = gen.record_mass(encoder, at, 0, m)?;
         Ok(Resident {
             leaves: Held::resident(buffer, u64::from(count) * 12, "generated florets"),
             masses: Held::resident(masses.0, masses.1, "generated floret masses"),
@@ -138,5 +140,12 @@ impl Organ {
             crown,
             full,
         })
+    }
+}
+
+impl Placed {
+    /// The device block's placement summary, none where it placed none.
+    pub(super) fn summary(&self) -> Option<&Owned> {
+        self.summary.as_ref()
     }
 }
