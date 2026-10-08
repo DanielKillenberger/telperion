@@ -4254,7 +4254,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "continuation": 0,
             "divergence": 2.5132741228718345,
             "form": {
-              "pipe": 0.0007
+              "pipe": 0.0005
             },
             "insertion": 0.8,
             "internode": 0.003,

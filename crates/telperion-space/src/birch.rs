@@ -358,6 +358,9 @@ pub fn birch() -> Species {
     // The short shoot: a few crowded nodes a year, its one bud carrying it
     // on, never branching. It bears its leaves at its tip, "two or three
     // leaves" (KU03 on B. pendula; SU03): three, fanned 0.6 rad either side.
+    // Its pipe is thin, as a brachyblast stays a millimetre or two thick:
+    // 0.0005 holds the stem's DBH to round 12's at 40 and 80 with round
+    // 13's shoots (round 14; estimated, MODEL-BIRCH.md).
     let short = PaState {
         cluster_leaves: 3.0,
         cluster_spread: 0.6,
@@ -366,7 +369,7 @@ pub fn birch() -> Species {
         viability: 0.92,
         shedding: 1.0,
         form: Form {
-            pipe: 0.0007,
+            pipe: 0.0005,
             ..Form::default()
         },
         ..state(6, 0.0, vec![zone(2, 3, &[])])
