@@ -52,7 +52,7 @@ struct Uniforms {
     fissure: vec4<f32>, // fissure RGB offsets, strength
     crest: vec4<f32>, // crest RGB offsets, strength
     bark_colour_detail: vec4<f32>, // mottle scale, mottle strength, cavity strength, sky occlusion strength
-    leaf_colour_detail: vec4<f32>, // mottle scale, mottle strength, cuticle gloss, reserved
+    leaf_colour_detail: vec4<f32>, // mottle scale, mottle strength, cuticle gloss, the margin band's area share
     margin: vec4<f32>, // RGB offsets, width
     /// The plate network: how wide one plate is across the run in metres
     /// before girth stretches it, how far it runs along, how far its face

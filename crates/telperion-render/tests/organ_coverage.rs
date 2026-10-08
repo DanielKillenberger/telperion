@@ -35,17 +35,19 @@ fn blossoming(age: f64, share: f64) -> Family {
     f
 }
 
+/// A resolved, sRGB-encoded channel value as linear coverage.
+fn linear(v: u8) -> f64 {
+    let c = f64::from(v) / 255.0;
+    if c <= 0.04045 {
+        c / 12.92
+    } else {
+        ((c + 0.055) / 1.055).powf(2.4)
+    }
+}
+
 /// The share of the frame the florets cover: the mean of the mask's
-/// resolved, sRGB-encoded green, decoded to linear.
+/// resolved green, decoded to linear.
 fn coverage(still: &Still) -> f64 {
-    let linear = |v: u8| {
-        let c = f64::from(v) / 255.0;
-        if c <= 0.04045 {
-            c / 12.92
-        } else {
-            ((c + 0.055) / 1.055).powf(2.4)
-        }
-    };
     let pixels = still.rgba.chunks(4);
     pixels.clone().map(|p| linear(p[1])).sum::<f64>() / pixels.len() as f64
 }
@@ -85,14 +87,6 @@ fn the_mask_shows_the_flowers_and_nothing_else() {
 /// target's size, in linear coverage.
 fn resolved(still: &Still, k: u32) -> Vec<f64> {
     let (w, h) = (still.width / k, still.height / k);
-    let linear = |v: u8| {
-        let c = f64::from(v) / 255.0;
-        if c <= 0.04045 {
-            c / 12.92
-        } else {
-            ((c + 0.055) / 1.055).powf(2.4)
-        }
-    };
     let mut out = vec![0.0; (w * h) as usize];
     for y in 0..still.height {
         for x in 0..still.width {
@@ -105,11 +99,18 @@ fn resolved(still: &Still, k: u32) -> Vec<f64> {
     out
 }
 
+/// Past every element's finest level: selection holds each at its finest.
+/// Levels run coarsest first, so `Forced(0)` is the coarsest.
+const FINEST: Level = Level::Forced(1_000);
+
 /// M0 (`STILLS=<dir> cargo test --profile ci -p telperion-render --test
-/// organ_coverage -- --ignored --nocapture`): the florets' coverage at the
-/// hero pose against a reference four times finer each way at the finest
-/// geometry, resolved to the target's size, with the frame's selected
-/// levels and with the finest. Writes the target and the resolved reference.
+/// organ_coverage -- --ignored --nocapture`), in two parts that each hold
+/// everything but one thing (DESIGN.md 7.4, review of task 3):
+/// - sampling: the frame at the finest geometry against a reference four
+///   times finer each way at the same geometry, resolved to the target's
+///   size, so the occluding leaves and wood are the same in both;
+/// - the organ's levels: the frame's selected levels against the finest,
+///   the leaves shrunk to specks so no leaf level moves what is hidden.
 #[test]
 #[ignore]
 fn measure_the_florets_coverage_at_the_hero_pose() {
@@ -123,52 +124,52 @@ fn measure_the_florets_coverage_at_the_hero_pose() {
         let tree = mesh::build(&f).unwrap();
         let florets = tree.organ.as_ref().map_or(0, |o| o.instances.leaves.len());
         let camera = hero_pose(tree.bounds, f64::from(w) / f64::from(h), GROUND_REACH);
-        let mut at = |level, scale: u32| {
-            renderer.submit_at(&tree, level).unwrap();
-            renderer.set_family(&f);
-            mask(&mut renderer, &camera, w * scale, h * scale)
-        };
-        let chosen = at(Level::Chosen, 1);
-        let finest = at(Level::Forced(0), 1);
-        let reference = at(Level::Forced(0), k);
+        renderer.submit_at(&tree, FINEST).unwrap();
+        renderer.set_family(&f);
+        let target = mask(&mut renderer, &camera, w, h);
+        let reference = mask(&mut renderer, &camera, w * k, h * k);
         let truth = resolved(&reference, k);
         let true_share = truth.iter().sum::<f64>() / truth.len() as f64;
-        let error = |s: &Still| {
-            let t = resolved(s, 1);
-            let abs: f64 = t.iter().zip(&truth).map(|(a, b)| (a - b).abs()).sum();
-            abs / truth.iter().sum::<f64>()
+        let mine = resolved(&target, 1);
+        let apart: f64 = mine.iter().zip(&truth).map(|(a, b)| (a - b).abs()).sum();
+        // The organ's levels, with the leaves out of the way.
+        let mut bare = f.clone();
+        (bare.element.length, bare.element.connector_length) = (0.003, 0.0005);
+        let specks = mesh::build(&bare).unwrap();
+        let mut at = |level| {
+            renderer.submit_at(&specks, level).unwrap();
+            renderer.set_family(&bare);
+            coverage(&mask(&mut renderer, &camera, w, h))
         };
+        let (chosen, finest) = (at(Level::Chosen), at(FINEST));
         println!(
-            "beech {age}: {florets} florets; coverage reference {:.5}, chosen {:.5} ({:.3} of it, \
-             per-pixel error {:.3}), finest {:.5} ({:.3}, {:.3})",
-            true_share,
-            coverage(&chosen),
-            coverage(&chosen) / true_share,
-            error(&chosen),
-            coverage(&finest),
-            coverage(&finest) / true_share,
-            error(&finest),
+            "beech {age}: {florets} florets. Sampling: reference {true_share:.5}, frame {:.5} \
+             ({:.3} of it, per-pixel error {:.3}). Levels, leaves as specks: finest {finest:.5}, \
+             selected {chosen:.5} ({:.3} of it)",
+            coverage(&target),
+            coverage(&target) / true_share,
+            apart / truth.iter().sum::<f64>(),
+            chosen / finest,
         );
-        let grey = |v: &[f64]| -> Vec<u8> {
-            v.iter()
-                .flat_map(|c| {
-                    let g = (c.clamp(0.0, 1.0).powf(1.0 / 2.2) * 255.0) as u8;
-                    [g, g, g, 255]
-                })
-                .collect()
-        };
+        let grey: Vec<u8> = truth
+            .iter()
+            .flat_map(|c| {
+                let g = (c.clamp(0.0, 1.0).powf(1.0 / 2.2) * 255.0) as u8;
+                [g, g, g, 255]
+            })
+            .collect();
         let write = |name: &str, rgba: Vec<u8>| {
             let still = Still {
                 width: w,
                 height: h,
                 rgba,
-                stats: chosen.stats,
+                stats: target.stats,
             };
             let path = format!("{dir}/m0-beech{age}-{name}.png");
             telperion_render::write_png(std::path::Path::new(&path), &still).unwrap();
         };
-        write("chosen", chosen.rgba.clone());
-        write("reference", grey(&truth));
+        write("frame", target.rgba.clone());
+        write("reference", grey);
     }
     // M1 by values: every outer age flowering, twice the florets, larger.
     for age in [20.0, 40.0] {
@@ -183,6 +184,6 @@ fn measure_the_florets_coverage_at_the_hero_pose() {
         renderer.submit_at(&tree, Level::Chosen).unwrap();
         renderer.set_family(&f);
         let share = coverage(&mask(&mut renderer, &camera, w, h));
-        println!("beech {age}, denser: {florets} florets; coverage chosen {share:.5}");
+        println!("beech {age}, denser: {florets} florets; coverage {share:.5}");
     }
 }

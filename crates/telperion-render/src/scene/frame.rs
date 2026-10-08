@@ -139,7 +139,7 @@ impl Scene {
                 m.blade_mottle_scale,
                 m.blade_mottle_strength,
                 m.cuticle_gloss,
-                0.0,
+                f64::from(self.band_shares.at(m.margin_width)),
             ),
             margin: colour(m.margin_red, m.margin_green, m.margin_blue, m.margin_width),
             plate: colour(

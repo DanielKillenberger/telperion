@@ -87,7 +87,7 @@ pub(crate) fn now(p: &BloomParams, season: Option<f64>) -> f64 {
 /// `petals` times about the floret's axis (+Y), each opened `open` degrees
 /// from it, facing out of the flower; the last petal is the count's
 /// fraction of the others' size. Its levels are the petal's, replicated,
-/// with the stamens on every level finer than their length.
+/// with the stamens on every level finer than their reach.
 pub(crate) fn element(p: &BloomParams) -> Result<Element> {
     crate::catalogue::check(BloomParams::CHECKS, p, crate::catalogue::Site::Bloom)?;
     let petal = build_element(ElementParams {
@@ -140,9 +140,10 @@ pub(crate) fn element(p: &BloomParams) -> Result<Element> {
             let indices = &petal.level_indices[range.clone()];
             e.level_indices.extend(indices.iter().map(|i| i + j * n));
         }
-        // A level keeps the stamens while its error is under their length;
-        // one that coarse already stands for their absence.
-        if level.deviation < p.stamen_length {
+        // A level keeps the stamens while its error is under their reach,
+        // the farthest a stamen's corner stands from the centre; one that
+        // coarse already stands for their absence.
+        if level.deviation < p.stamen_length.hypot(0.5 * p.stamen_width) {
             e.level_indices.extend_from_slice(&filaments);
         }
         e.levels.push(super::Level {

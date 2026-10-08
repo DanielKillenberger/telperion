@@ -16,7 +16,9 @@ use crate::{
     view::View,
 };
 
+mod band;
 mod frame;
+pub(crate) use band::BandShares;
 /// The scene row - the sun, the sky and the ground as numbers - and the room's
 /// own geometry, each beside this file rather than in it so none of the three
 /// outgrows the project's line rule.
@@ -78,7 +80,7 @@ struct Uniforms {
     fissure: [f32; 4],            // fissure RGB offsets, strength
     crest: [f32; 4],              // crest RGB offsets, strength
     bark_colour_detail: [f32; 4], // mottle scale, mottle strength, cavity strength, sky occlusion strength
-    leaf_colour_detail: [f32; 4], // mottle scale, mottle strength, cuticle gloss, reserved
+    leaf_colour_detail: [f32; 4], // mottle scale, mottle strength, cuticle gloss, the margin band's area share
     margin: [f32; 4],             // RGB offsets, width
     plate: [f32; 4],              // cell scale in metres, elongation, dome, edge lift
     bark_structure: [f32; 4],     // plate identity, directional occlusion, depth strength, reserved
@@ -123,6 +125,8 @@ pub struct Scene {
     /// everything else black, unlit. An instrument, off in every picture.
     mask: bool,
     pub(crate) section_roundness: f64,
+    /// The submitted leaf's margin band as a share of its area, by width.
+    pub(crate) band_shares: BandShares,
     /// The ellipsoid the submitted crown's placements fill, which a leaf's
     /// depth into the crown is measured against. None before a tree is up.
     crown: Option<Bounds>,
@@ -261,6 +265,7 @@ impl Scene {
             reflection: Reflection::NONE,
             mask: false,
             section_roundness: 0.0,
+            band_shares: BandShares::default(),
             crown: None,
             leaf_reference: telperion_core::foliage::Reference::default(),
             layout,

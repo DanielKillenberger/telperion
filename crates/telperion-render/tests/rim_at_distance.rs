@@ -15,7 +15,7 @@ const STEP: f64 = 0.03;
 
 /// A young beech whose leaf colour is the face's alone: no veins, mottle,
 /// grain or per-leaf variation, so the blade and the band each add to the
-/// colour linearly. The band is a tenth of the leaf.
+/// colour linearly.
 fn beech() -> Family {
     let mut f = Preset::EuropeanBeech.parameters();
     (f.age, f.skeleton.seed) = (10.0, 1);
@@ -59,35 +59,44 @@ fn band_share(renderer: &mut Renderer, m: MaterialParams, camera: &Camera, w: u3
     gained(&plain, &band) / gained(&plain, &face)
 }
 
+/// Past every element's finest level: selection holds each at its finest.
+const FINEST: Level = Level::Forced(1_000);
+
 #[test]
 fn a_leaf_under_a_pixel_takes_the_band_s_area_share_not_the_band() {
     let Some(gpu) = common::gpu() else { return };
-    let family = beech();
-    let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    // Near: one leaf, a couple of hundred pixels long, at its finest level.
-    renderer.set_view(View::Leaf);
-    renderer.submit_at(&tree, Level::Forced(0)).unwrap();
-    let close = Camera {
-        position: Vec3::new(0.0, 0.055, 0.3),
-        target: Vec3::new(0.0, 0.055, 0.0),
-        field_of_view: 38.0,
-        near: 0.001,
-        far: 2.0,
-    };
-    let near = band_share(&mut renderer, family.material, &close, 256);
-    // Far: the whole crown, eight times the hero distance, every leaf a
-    // fraction of a pixel.
-    renderer.set_view(View::Whole);
-    renderer.submit_at(&tree, Level::Chosen).unwrap();
-    let hero = hero_pose(tree.bounds, 1.0, GROUND_REACH);
-    let far_camera = Camera {
-        position: hero.target + (hero.position - hero.target) * 8.0,
-        far: hero.far * 8.0,
-        ..hero
-    };
-    let far = band_share(&mut renderer, family.material, &far_camera, 512);
-    println!("band share near {near:.3}, far {far:.3}");
-    assert!((0.05..0.2).contains(&near), "near {near}");
-    assert!((far / near - 1.0).abs() < 0.35, "near {near}, far {far}");
+    for width in [0.1, 0.5] {
+        let mut family = beech();
+        family.material.margin_width = width;
+        let tree = mesh::build(&family).unwrap();
+        // Near: one leaf, a couple of hundred pixels long, at its finest level.
+        renderer.set_view(View::Leaf);
+        renderer.submit_at(&tree, FINEST).unwrap();
+        let close = Camera {
+            position: Vec3::new(0.0, 0.055, 0.3),
+            target: Vec3::new(0.0, 0.055, 0.0),
+            field_of_view: 38.0,
+            near: 0.001,
+            far: 2.0,
+        };
+        let near = band_share(&mut renderer, family.material, &close, 256);
+        // Far: the whole crown, eight times the hero distance, every leaf a
+        // fraction of a pixel.
+        renderer.set_view(View::Whole);
+        renderer.submit_at(&tree, Level::Chosen).unwrap();
+        let hero = hero_pose(tree.bounds, 1.0, GROUND_REACH);
+        let far_camera = Camera {
+            position: hero.target + (hero.position - hero.target) * 8.0,
+            far: hero.far * 8.0,
+            ..hero
+        };
+        let far = band_share(&mut renderer, family.material, &far_camera, 512);
+        println!("width {width}: band share near {near:.3}, far {far:.3}");
+        assert!(near > width, "width {width}, near {near}");
+        assert!(
+            (far / near - 1.0).abs() < 0.2,
+            "width {width}: near {near}, far {far}"
+        );
+    }
 }

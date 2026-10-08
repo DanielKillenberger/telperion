@@ -279,8 +279,40 @@ fn stamens_stand_in_a_ring_by_degree_and_leave_the_coarse_levels() {
     );
     for (l, base) in five.levels.iter().zip(&none.levels) {
         let grown = (l.indices.end - l.indices.start) - (base.indices.end - base.indices.start);
-        let kept = if base.deviation < 0.006 { 5 * 6 } else { 0 };
+        let kept = if base.deviation < 0.006f64.hypot(0.0002) {
+            5 * 6
+        } else {
+            0
+        };
         assert_eq!((grown, l.deviation), (kept, base.deviation));
     }
     five.validate().unwrap();
+}
+
+/// A stamen as wide as it is long reaches past its length: a level drops it
+/// only where its error reaches the farthest corner (review, fn-217 task 3).
+#[test]
+fn a_wide_stamen_is_kept_to_its_reach_not_its_length() {
+    let p = BloomParams {
+        stamens: 1.0,
+        stamen_length: 1e-4,
+        stamen_width: 0.01,
+        ..raceme()
+    };
+    let e = element(&p).unwrap();
+    let base = element(&raceme()).unwrap();
+    let reach = 1e-4f64.hypot(0.005);
+    for (l, b) in e.levels.iter().zip(&base.levels) {
+        let grown = (l.indices.end - l.indices.start) - (b.indices.end - b.indices.start);
+        assert_eq!(
+            grown,
+            if b.deviation < reach { 6 } else { 0 },
+            "deviation {}",
+            b.deviation
+        );
+    }
+    assert!(base
+        .levels
+        .iter()
+        .any(|b| b.deviation > 1e-4 && b.deviation < reach));
 }

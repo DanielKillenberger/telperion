@@ -108,17 +108,17 @@ fn leaf_grain(coord: vec2<f32>, seed: vec2<f32>, pixel: vec2<f32>,
 }
 
 /// The share of a pixel's footprint on the leaf, `at` in a leaf coordinate
-/// that runs over [0, 1] with the leaf's area, that falls in the band
-/// [`low`, `high`]: the band's edges filtered over `footprint`, and where the
-/// footprint spans the whole leaf, the band's share of its area (fn-217
-/// DESIGN.md 8.2). The band is set in leaf space, never in pixels, so a leaf
-/// under a pixel takes the area-weighted mix of the face and the band.
+/// over [0, 1], that falls in the band [`low`, `high`]: the band's edges
+/// filtered over `footprint`, and where the footprint spans the whole leaf,
+/// the band's share of the coordinate, which the margin weighs to its area
+/// (fn-217 DESIGN.md 8.2). The band is set in leaf space, never in pixels.
+/// A coordinate that stands still, as a stamen's does, is wholly in or out.
 fn band(at: f32, low: f32, high: f32, footprint: f32) -> f32 {
     let half = 0.5 * max(footprint, 1e-6);
     let start = max(at - half, 0.0);
     let end = min(at + half, 1.0);
     let inside = max(min(end, high) - max(start, low), 0.0);
-    return inside / max(end - start, 1e-6);
+    return inside / max(end - start, 1e-12);
 }
 
 /// The share of the sky that reaches a leaf at `world` through the crown
@@ -179,7 +179,12 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     }
     let edge = max(abs(in.coord.y), in.coord.x);
     let width = max(pixel.x, pixel.y);
+    // The band's coordinate does not run with the leaf's area, so as the
+    // footprint grows past the leaf the share it tends to is weighed to the
+    // band's measured area share.
+    let area = u.leaf_colour_detail.w / max(u.margin.w, 1e-6);
     let margin = band(edge, 1.0 - u.margin.w, 1.0, width)
+        * mix(1.0, area, smoothstep(0.5, 2.0, width))
         * select(0.0, 1.0, u.margin.w > 0.0);
     let hue = mix(u.leaf_variation.x, u.leaf_variation.y, in.leaf.x);
     let brightness = 1.0 + mix(u.leaf_variation.z, u.leaf_variation.w, in.leaf.y);

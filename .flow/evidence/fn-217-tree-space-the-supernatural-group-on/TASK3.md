@@ -5,14 +5,16 @@ DESIGN.md sections 6, 7, 8 and 9, release half (b). The raw stills are in `raw/`
 ## What was built
 
 - **8.3, the bark's lengths under scale.** `Family::drawn_material` multiplies `shootRadius`, `matureRadius` and `matureSpan` by the group's scale, once. The renderer's `set_family` draws through it. At scale 1, and with the group off, the material is the applied one to the bit (`supernatural::tests::the_bark_s_lengths_are_drawn_at_the_group_s_scale`).
-- **8.2, the rim in leaf space.** The margin band `[1 - marginWidth, 1]` is box-filtered over the pixel's footprint on the blade and renormalised to the blade. Where the footprint spans the whole leaf, this tends to the band's area share (`foliage.wgsl`, `band`).
+- **8.2, the rim in leaf space.** The margin band `[1 - marginWidth, 1]` is box-filtered over the pixel's footprint on the blade and renormalised to the blade.
+  - The edge coordinate does not run with the blade's area. So, as the footprint grows past the leaf, the band is weighed to its area share.
+  - That share is measured once per submitted element on its finest triangles (`scene/band.rs`) and carried in `leaf_colour_detail.w`.
 - **F3.** The organ block takes no canopy normal.
 - **9.1, `/bloom/petalCurl`.** The row feeds the petal's existing curl, with its sign turned so that positive flares outward: the blade's curl bends toward its face, which looks in at the axis (the red test measured the tip crossing the axis). At 0 the element is unchanged to the byte.
 - **F1, the eye.** Four rows: `/material/bloomEye{Red,Green,Blue}`, and `bloomEyeShare`, the share of the petal's length from the base. The petals mix toward the eye colour over that share, filtered as the rim is. It applies only in the organ block, as the `bloom_eye` uniform.
 - **F2, stamens.** Three rows: `/bloom/stamens` (fractional: the last stamen grows in by the count's fraction), `stamenLength` and `stamenWidth`.
   - Each stamen is one quad from the floret's centre, leaning out half the opening and turned between the petals.
   - Its coordinate sits at the petal's base, so the eye colours it.
-  - **LOD:** a level keeps the stamens while its deviation is under their length. A level as coarse as that already stands for their absence, so the ladder and its deviations are the petal's.
+  - **LOD:** a level keeps the stamens while its deviation is under their length. Their reach is the far corner, `hypot(length, width / 2)`, after review. A level as coarse as that already stands for their absence, so the ladder and its deviations are the petal's.
   - **Cost:** 2 triangles per stamen on the levels that keep them.
 - Every new `/bloom` row has its `/supernatural/bloom` override.
 - **Organ mask.** `Renderer::set_organ_mask` is an instrument for M0. In the clay view the flowers draw white and everything else black, unlit. With the mask off, the clay room is unchanged (`organ_coverage::the_mask_shows_the_flowers_and_nothing_else`).
@@ -21,20 +23,23 @@ DESIGN.md sections 6, 7, 8 and 9, release half (b). The raw stills are in `raw/`
 
 | Claim | Run | Result |
 |---|---|---|
-| Rim at distance | `rim_at_distance` (red before the fix) | Band share near 0.059 before and 0.115 after. At eight hero distances, 0.520 before and 0.096 after. |
+| Rim at distance | `rim_at_distance` (red before each fix) | Width 0.1, before the fix: near 0.059 and far 0.520. Width 0.5, coordinate share only: near 0.709 and far 0.495. Area-weighted (review fix): width 0.1 near 0.115, far 0.117; width 0.5 near 0.709, far 0.712. |
 | Curl flares out | `bloom::tests::a_positive_curl_flares_the_petal_tips_away_from_the_axis` | Red at first: the tip went to -4.7 mm, past the axis. Green after the sign. |
 | Stamens | `bloom::tests::stamens_stand_in_a_ring_by_degree_and_leave_the_coarse_levels` | The element at 0 is unchanged. 5 stamens add 20 vertices; the sixth starts under 0.1 mm. Coarse levels drop the stamens by their length. |
 | Eye and stamens dormant, then acting | `bloom_form::the_eye_and_the_stamens_act_only_where_set` | 0 pixels change with an eye colour but no share, or a stamen size but no count. Pixels change when they are set. |
 | Catalogue | `catalogue_identity` | With the 12 new rows stripped, the family, walk and override digests are task 2's to the bit. The refusal digest re-pairs by index. |
 
-**M0** (`organ_coverage::measure_the_florets_coverage_at_the_hero_pose`): a cherry-dense beech at 960 x 720, compared with a reference four times finer at the finest geometry, resolved to size, with the same visibility.
+**M0** (`organ_coverage::measure_the_florets_coverage_at_the_hero_pose`) on a cherry-dense beech at 960 x 720. It is in two parts, and each part holds everything else fixed (corrected after review: levels run coarsest first, so the first run's `Forced(0)` was the coarsest, and the leaves changed level with the flowers).
 
-| Tree | Florets | Reference | Selected levels | Finest |
-|---|---|---|---|---|
-| beech 20 | 23,840 | 0.01824 | 0.01767 (0.969) | 0.01831 (1.004) |
-| beech 40 | 307,972 | 0.01693 | 0.01644 (0.971) | 0.01703 (1.006) |
+| Tree | Florets | Sampling: reference, 4x at the finest | Frame, the same geometry | Levels (leaves as specks): finest | Selected |
+|---|---|---|---|---|---|
+| beech 20 | 23,840 | 0.01901 | 0.01911 (1.005) | 0.02297 | 0.02120 (0.923) |
+| beech 40 | 307,972 | 0.01563 | 0.01569 (1.004) | 0.03962 | 0.03798 (0.959) |
 
-The renderer keeps 97 % of the coverage, so there is no loss for M2 to restore. **M1 (values) by the measurement.** Values do move it: flowering on every outer age with 12 florets of 20 mm petals reaches a coverage of 0.0294 (age 20) and 0.0286 (age 40), from 3 to 3.9 times the florets.
+- **Sampling.** With matching visibility, sampling loses nothing: 1.004 to 1.005 of the reference. Sub-pixel florets keep their coverage, so there is nothing for M2's alpha-to-coverage to restore.
+- **Levels.** The organ's coarse levels keep 92 to 96 % of the finest geometry's coverage.
+- **Decision: M1 (values) by the measurement.**
+- **Values do move it.** Flowering on every outer age with 12 florets of 20 mm petals gives a coverage of 0.0294 (age 20) and 0.0286 (age 40), with 3 to 3.9 times the florets.
 
 ## Stills (viewed)
 
