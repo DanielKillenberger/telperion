@@ -282,3 +282,15 @@ At 80 every pair is within 1e-5 of its end a millionth off, in all three measure
 - At 40: beech → oak at 0.25 (0.45 → 1.34 s), spruce → ordinary at 0.5 (1.40 → 3.00 s), and four frames near an end.
 
 The cause is not the predictor. These points' sizes moved, so their solve now binds on the grown count, which costs 5 to 20 times a kept prediction and is solved after the kept one. fn-230 already named this (FRICTION.md: a grown count as cheap as the kept one would remove it). Meeting R5 for these frames needs that engine work or a change to the solve, and both are outside this rule. **For the host.**
+
+## Review (codex, 2026-10-08) and two questions for the host
+
+There were three draws, five kept findings, one fix pass and one re-review. Fixed at `d02046ea`:
+- **Stepped readback** (`grow/stepped/lay.rs`) now takes a node's extent at the unit's node size, as `draw_bent` does. A fractional-lifespan oak joins `the_lit_fine_roots_on_the_device_are_the_cpus`; on the old extent it failed at cycle 7.
+- **The chain kernel** decides a cut unit's fractional node before it claims phytomer room.
+- **The identity comment** names the four unchanged species and the ordinary tree's change.
+
+The re-review verdict is **NEEDS_WORK**, with two surviving findings. Both need a host ruling:
+
+1. **The cut's quota at a node-count crossing (R2, P1).** A cut unit lays ⌊s n⌋ of the zone's n realized nodes, and n includes a node that is only now made at vanishing presence. When a walk of `zone.nodes` carries n across a whole number on a cut unit, the quota steps from 2 to 2.5, and an existing third node is laid whole. The reviewer's probe: seed 1, lifespan 0.5, one bare zone, node count 4.242236618634503 → 4.242236638634503, grown axis 2 m → 3 m. fn-192's walks miss it because their species has whole lifespans. One remedy keeps every count linear in expectation: take the quota from the realized nodes' presences, not their count, so a vanishing node adds a vanishing quota. That changes what the predictor counts (its presences are not in the closed form), so it is the host's call.
+2. **R5 (P1).** The slower frames (`Result`, "R5: cost") bind their solve on the grown count, because their sizes moved. Meeting the 10 % limit needs a cheaper grown prediction or a different solve order. Either it is built here, or R5 is deferred to a spec that owns the solve's cost. fn-230's FRICTION.md already names that work.
