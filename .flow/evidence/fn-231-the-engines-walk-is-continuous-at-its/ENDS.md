@@ -67,3 +67,14 @@ The task asked for a lived-age fade-in, and the measurement rules it out. Fading
 - **Continuity is judged by size, not count.** R3 would test the size-weighted mass (continuous today) and the geometry, not the raw counts. The engine's budget would still see 513M grown at beech → spruce 1e-6, at 80.
 
 Whichever way is chosen also has to settle the walk off the ordinary tree, which is refused near t = 0 (see the second finding above).
+
+## Host decision (2026-10-08)
+
+**Way 1, in this form: a fractional element is present at its share, and when present it is whole.**
+
+- **The rule.** Where a row's value leaves a whole number (`zone.buds`, `lifespan`, `shedding` and any other row the measurement names), the last element is present with probability equal to the fraction and grows at full size when present. The draw is keyed by its own lineage through the lineage key registry: a new key, mirrored in WGSL with its distinctness and mirror tests. The "counted whole, sized by the mean share" rule in `closed_form/events.rs` and the grower's matching rule are replaced, not kept beside it.
+- **The predictor.** The closed form counts the element at its share (weight × fraction) and sizes it whole. Expected kept and grown counts, and the expected mass, are then continuous in every such row.
+- **Why this way.** It is the botanical reading: a zone of 1.5 buds per node has half its nodes bearing two buds, not every node bearing a second, half-sized bud. It changes the tree by degree in expectation, it removes the burst of tiny subtrees rather than hiding it (way 3), and it does not move the step to the half (way 2).
+- **Lifespan below a tick.** The same rule covers walks off the ordinary tree. A lifespan of 0.3 ticks lives one tick with probability 0.3. Validation's half-tick floor drops to "above 0", and t = 1e-6 is then valid on every pair. The floor's tests are updated to the new floor; a lifespan of 0 or less is still refused by name.
+- **Shipped species.** Any shipped species with a fractional value in these rows changes. Under the generator-evolution policy (AGENTS.md), measure `space_hash`, node counts and cost for beech, spruce, oak, palm and birch, at 40 and 80, seeds 1 and 7. For every species that changed, make strips before and after, near and whole tree, and view them. Accept the change if no regression is visible, re-pin with that evidence, and list each change in the task's report. R4's "byte-identical" is read as: identical where no row is fractional.
+- **R3.** Unchanged, at both ends, on raw counts, and at 40 and 80. Per seed, a realized tree may gain one whole element where its lineage draw crosses the fraction. That is a step in one element, not a burst. The geometry degree test bounds it, and the strips judge it.
