@@ -68,8 +68,12 @@ Each tree is grown with every age flowering at 0.6 under the oak's catkin rows (
 
 ## Gate (`raw/gate-*.txt`, `raw/npm.txt`)
 
-- **Render half,** under the GPU lock, first: 193 passed, 0 failed, 31 ignored.
-  - Its first run failed `the_stations_keep_only_their_segments`: a 16-byte bloom-records buffer was kept live on every non-flowering tree. The records are now held only where a bloom keeps a floret, and the rerun is the count above.
-- **The rest of the workspace:** 1,040 passed, 0 failed, 46 ignored.
+- **Render half,** under the GPU lock, first: 195 passed, 0 failed, 31 ignored. This is the run after the review's fixes.
+  - An earlier run failed `the_stations_keep_only_their_segments`: a 16-byte bloom-records buffer was kept live on every non-flowering tree. The records are now held only where a bloom keeps a floret.
+- **Review fixes (codex: NEEDS_WORK, then SHIP).** Each has its own test:
+  - the bloom rows are checked before the stations count by them (`a_bloom_out_of_bounds_is_refused_before_the_device_counts`);
+  - the time since the window opened is wrapped in f64 before it is narrowed (`a_window_of_a_billionth_of_a_year_flowers_on_the_device`);
+  - every placement summary comes back in one readback, and both mass grids go in one submission, so the build makes fewer round trips than at the base.
+- **The rest of the workspace,** run before the review's fixes, which touched only the render crate: 1,040 passed, 0 failed, 46 ignored.
 - **`npm test`:** 13 files and 143 tests pass, and the build left the tree clean.
 - **space_hash:** not taken. No CPU tree changes: every shipped age has flowering 0, and the CPU path's conversion and bloom draws are untouched.
