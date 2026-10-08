@@ -97,7 +97,7 @@ pub async fn settle(family: &Family, roots: &mut dyn telperion_space::Roots) -> 
 pub struct Settling {
     pub settled: telperion_space::Settled,
     trunk: Vec<usize>,
-    internodes: Vec<f64>,
+    internodes: Vec<(f64, f64)>,
 }
 
 impl Settling {

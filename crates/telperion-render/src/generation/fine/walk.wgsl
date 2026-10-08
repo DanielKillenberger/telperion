@@ -194,6 +194,9 @@ fn lay_all(na: u32, bent: bool, bearer: u32, below: vec3<f32>, bearer_pa: u32, g
             wo3(at + o + 3u, st.heading);
             wo3(at + o + 6u, st.side);
             out[at + 22u] = fract(phase);
+            // Its internode's factor, which its grown wood is counted by
+            // (`dress.wgsl`).
+            out[at + 23u] = internode_factor(f, st.key);
         }
         ss3(i, S_WALK, walk.running);
         ss3(i, S_WALK + 3u, walk.across);

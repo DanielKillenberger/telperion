@@ -19,7 +19,7 @@ const SETTLE: &str = include_str!("settle.wgsl");
 const STAND: &str = include_str!("stand.wgsl");
 /// A laid axis's and phytomer's floats (`geometry.wgsl`).
 pub(super) const AL: usize = 8;
-pub(super) const PL: usize = 23;
+pub(super) const PL: usize = 24;
 /// A chain's scratch: per region axis, per region phytomer, then a status.
 #[cfg(test)]
 pub(super) const SA: u32 = 70;

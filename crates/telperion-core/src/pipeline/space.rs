@@ -72,7 +72,7 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
 pub(super) async fn settled(
     input: GrowInput<'_>,
     roots: &mut dyn telperion_space::Roots,
-) -> Result<(telperion_space::Settled, Vec<usize>, Vec<f64>)> {
+) -> Result<(telperion_space::Settled, Vec<usize>, Vec<(f64, f64)>)> {
     let (species, request) = asked(input)?;
     let plan = telperion_space::Plan::default();
     let settling = telperion_space::settle(species, request, plan, roots);
@@ -86,7 +86,7 @@ pub(super) async fn settled(
 /// shed), and the roots laid on the CPU.
 pub(super) fn part(
     settled: telperion_space::Settled,
-    (trunk, internodes): (&[usize], &[f64]),
+    (trunk, internodes): (&[usize], &[(f64, f64)]),
 ) -> (Tree, Vec<Option<u64>>, Vec<usize>) {
     let part = telperion_space::partial(settled);
     let tree = convert(
@@ -117,9 +117,12 @@ fn asked(input: GrowInput<'_>) -> Result<(&telperion_space::Species, Request)> {
     Ok((species, request))
 }
 
-/// Each PA's internode length, which each node's grown wood is measured by.
-fn internodes(species: &telperion_space::Species) -> Vec<f64> {
-    species.states.iter().map(|s| s.internode).collect()
+/// Each PA's internode length and its spread (fn-222), which each node's
+/// grown wood is measured by.
+fn internodes(species: &telperion_space::Species) -> Vec<(f64, f64)> {
+    (species.states.iter())
+        .map(|s| (s.internode, s.form.internode_spread))
+        .collect()
 }
 
 /// The refusal of a tree over the browser's ceiling.
@@ -248,7 +251,7 @@ fn joint(
 fn convert(
     structure: &Structure,
     (fine, bases): (&[bool], &[(u64, f64)]),
-    (trunk, internodes): (&[usize], &[f64]),
+    (trunk, internodes): (&[usize], &[(f64, f64)]),
 ) -> Tree {
     // Each fine root's node drawn from wood above the cut.
     let mut seams = Vec::new();
@@ -344,7 +347,7 @@ fn convert(
         let mut made = false;
         // The wood grown since the axis's last node: the internodes merged
         // into a node are carried on to the next one drawn.
-        let internode = internodes[axis.pa];
+        let (internode, spread) = internodes[axis.pa];
         let mut pending = 0.0;
         for (place, p) in axis
             .phytomers
@@ -358,7 +361,9 @@ fn convert(
             let inside =
                 along != Vec3::ZERO && (up(p.tip) - from).length() < nodes[parent as usize].radius;
             let behind = !made && ((up(p.tip) - from).dot(along) < 0.0 || inside);
-            pending += internode * p.scale;
+            // Each internode as it was laid: its scale and its spread's
+            // factor (fn-222).
+            pending += internode * p.scale * telperion_space::internode_factor(p.key(), spread);
             if behind || super::foliage::plan::micrometres(pending) < SHORTEST {
                 drawn[i].push(parent);
                 continue;

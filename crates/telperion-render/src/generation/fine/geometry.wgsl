@@ -58,7 +58,7 @@ const IS_WOKEN: u32 = 0x80000u;
 // first phytomer's index; a laid phytomer: as laid (tip, heading, side),
 // before bending, its radius, scale and rank.
 const AL: u32 = 8u;
-const PL: u32 = 23u;
+const PL: u32 = 24u;
 // The scratch: per region axis, then per region phytomer.
 const SA: u32 = 70u;
 const SP: u32 = 12u;

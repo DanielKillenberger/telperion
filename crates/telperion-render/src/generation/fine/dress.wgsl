@@ -28,7 +28,7 @@ struct Cfg {
 @group(0) @binding(6) var<storage, read> before: array<f32>;
 @group(0) @binding(7) var<storage, read_write> drawn: array<f32>;
 // The geometry table (`laid.rs`): each PA's internode, which a node's
-// grown wood is measured by.
+// grown wood is measured by, with each phytomer's factor as laid.
 @group(0) @binding(8) var<storage, read> gtab: array<f32>;
 
 const NONE: u32 = 0xffffffffu;
@@ -45,7 +45,7 @@ const S_OWN: u32 = 0u;
 const S_START: u32 = 1u;
 const S_COUNT: u32 = 2u;
 const AL: u32 = 8u;
-const PL: u32 = 23u;
+const PL: u32 = 24u;
 const PA: u32 = 2u;
 // The geometry table's PA blocks (`geometry.wgsl`).
 const GG: u32 = 25u;
@@ -312,7 +312,9 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
             break;
         }
         taken += 1u;
-        pending += internode * out[cfg.out_phyts + r * PL + 19u];
+        // Each internode as laid: its scale and its spread's factor.
+        let laid = cfg.out_phyts + r * PL;
+        pending += internode * out[laid + 19u] * out[laid + 23u];
         let pos = up(origin + tip(i, k));
         let held = node(parent);
         let d = pos - held.pos;

@@ -5,8 +5,8 @@ use super::*;
 use crate::presets::Preset;
 
 /// The young beech's grown structure, its trunk's PAs and each PA's
-/// internode.
-fn grown() -> (Structure, Vec<usize>, Vec<f64>) {
+/// internode and spread.
+fn grown() -> (Structure, Vec<usize>, Vec<(f64, f64)>) {
     let family = Preset::EuropeanBeech.parameters();
     let species = family.space.species.unwrap();
     let request = Request {
@@ -16,8 +16,81 @@ fn grown() -> (Structure, Vec<usize>, Vec<f64>) {
         light: family.space.light,
     };
     let structure = telperion_space::grow(&species, request).unwrap();
-    let internodes = species.states.iter().map(|s| s.internode).collect();
+    let internodes = internodes(&species);
     (structure, family.space.trunk, internodes)
+}
+
+/// Each node's grown wood is its internodes as they were laid (fn-212's
+/// measure under fn-222's spread): at a spread of 0.7 every node drawn
+/// after another on its axis records the laid lengths of the phytomers
+/// merged into it, each its PA's internode at its scale and own factor.
+#[test]
+fn grown_wood_is_the_internodes_as_laid_at_a_spread() {
+    let family = Preset::EuropeanBeech.parameters();
+    let mut species = family.space.species.unwrap();
+    // No wander, which turns a node about a pivot of its own and so moves
+    // its tip off its internode's length.
+    for s in &mut species.states {
+        (s.form.internode_spread, s.form.wander) = (0.7, 0.0);
+    }
+    let request = Request {
+        age: 15,
+        seed: 7,
+        budget: BUDGET,
+        light: family.space.light,
+    };
+    let structure = telperion_space::grow(&species, request).unwrap();
+    let rows = internodes(&species);
+    let tree = convert(&structure, (&[], &[]), (&family.space.trunk, &rows));
+    // Each drawn node by its key: its axis and the phytomer it is drawn
+    // at. An axis carried on into an age keeps its chain's lineage, so a
+    // key two phytomers share names neither.
+    let mut at = std::collections::HashMap::new();
+    for (a, axis) in structure.axes.iter().enumerate() {
+        for k in 0..axis.phytomers.len() {
+            let key = crate::tree::node_key(axis.lineage, k);
+            at.entry(key)
+                .and_modify(|e| *e = None)
+                .or_insert(Some((a, k)));
+        }
+    }
+    let laid = |axis: &telperion_space::Axis, k: usize| {
+        let from = k
+            .checked_sub(1)
+            .map_or(axis.base, |j| axis.phytomers[j].tip);
+        let d = axis.phytomers[k].tip;
+        ((d.x - from.x).powi(2) + (d.y - from.y).powi(2) + (d.z - from.z).powi(2)).sqrt()
+    };
+    let (mut checked, mut varied) = (0, 0);
+    for i in 1..tree.nodes.len() {
+        let parent = tree.nodes[i].parent.unwrap() as usize;
+        let here = at.get(&tree.keys[i]).copied().flatten();
+        let (Some((a, k)), Some((b, j))) = (here, at.get(&tree.keys[parent]).copied().flatten())
+        else {
+            continue;
+        };
+        if a != b || j >= k {
+            continue;
+        }
+        let axis = &structure.axes[a];
+        let arc: f64 = (j + 1..=k).map(|m| laid(axis, m)).sum();
+        let internode = species.states[axis.pa].internode;
+        let plain: f64 = (j + 1..=k)
+            .map(|m| internode * axis.phytomers[m].scale)
+            .sum();
+        let grown = tree.grown[i];
+        // The lay's lengths are Q32: a last place apart for each phytomer.
+        assert!(
+            (grown - arc).abs() <= 1e-9 * (k - j) as f64,
+            "node {i}: grown {grown} against laid {arc}"
+        );
+        checked += 1;
+        varied += usize::from((arc - plain).abs() > 1e-6 * arc);
+    }
+    assert!(
+        checked > 1000 && varied > checked / 2,
+        "{checked} nodes, {varied} varied"
+    );
 }
 
 /// `structure` reassembled with its siblings in the reverse of their

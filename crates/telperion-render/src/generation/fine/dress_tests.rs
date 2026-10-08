@@ -209,6 +209,29 @@ fn dressed_at_40_and_80() {
     }
 }
 
+/// fn-222's spread on the device: a beech at 30 whose internodes vary by
+/// 0.7 is drawn there as the pipeline draws it, each node's grown wood
+/// its internodes as laid, so the merge and its nodes are the CPU's.
+#[test]
+fn a_beech_of_varied_internodes_is_drawn_as_the_pipeline_draws_it() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let (k, d) = (kernels(&gpu), Dresser::new(&gpu));
+    let mut family = telperion_core::presets::by_identity("european-beech").unwrap();
+    (family.age, family.skeleton.seed) = (30.0, 1);
+    let species = family.space.species.as_mut().unwrap();
+    for s in &mut species.states {
+        s.form.internode_spread = 0.7;
+    }
+    let p = super::fixture::with_family(&gpu, &k, &d, family, |fx, dressed| {
+        folded(&gpu, &d, fx, dressed)
+    });
+    checked("european-beech, spread 0.7", (30, 1), &p);
+    assert_eq!(p.nodes.0, p.nodes.1, "the pipeline's nodes");
+    assert_eq!(p.strays, (0, 0, 0), "every node where the pipeline's is");
+}
+
 /// fn-212 task 11, Astra's finding 3: of the nodes tied at the widest
 /// reach, one supplies every coordinate of the widest node.
 #[test]

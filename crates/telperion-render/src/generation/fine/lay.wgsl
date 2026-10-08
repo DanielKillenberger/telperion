@@ -256,6 +256,15 @@ fn real_of(d: vec2<u32>) -> f32 {
     return (f32(d.y) * 4294967296.0 + f32(d.x)) * (1.0 / 9007199254740992.0);
 }
 
+// The factor the internode of the node keyed `key` is laid at
+// (`lineage::internode`, fn-222): 1 + spread (2u - 1), one without spread.
+fn internode_factor(f: Pa, key: vec2<u32>) -> f32 {
+    if f.internode_spread <= 0.0 {
+        return 1.0;
+    }
+    return 1.0 + f.internode_spread * (2.0 * real_of(internode_draw(key)) - 1.0);
+}
+
 // `Layer::step`: lays the next phytomer from `walk`; its own pull `bend`
 // over `total`, the pulls it carries on at scratch `lifts` (`n` of
 // them), the lever `moment` and `chord` where it sags (`sags`), and the
@@ -269,7 +278,7 @@ fn step(walk: ptr<function, Walk>, p: ptr<function, Step>, f: Pa, own: vec2<f32>
     var len = f.internode * (*p).scale;
     // The node's internode draw (fn-222), mean one.
     if f.internode_spread > 0.0 {
-        len = len * (1.0 + f.internode_spread * (2.0 * real_of(internode_draw((*p).key)) - 1.0));
+        len = len * internode_factor(f, (*p).key);
     }
     let share = gone(f.tropism * len);
     let bent = toward_elevation(running, across, f.elevation, share);

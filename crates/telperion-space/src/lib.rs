@@ -69,6 +69,7 @@ pub use grow::stepped::{
 pub use grow::subtree::Measured;
 pub use grow::{apart, grow, grow_marked, sketch, Pass, Request, Stage};
 pub use light::{bud_light, field_reads, Light};
+pub use lineage::internode_factor;
 pub use lineage::keys as lineage_keys;
 pub use oak::oak;
 pub use palm::palm;
