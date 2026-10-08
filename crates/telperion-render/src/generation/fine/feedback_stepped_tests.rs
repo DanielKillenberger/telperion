@@ -39,10 +39,13 @@ fn same(cpu: &Stepped, gpu: &Stepped, case: &str) {
 /// shed inside (2,421 thresholds, 52 shed at cut 256); its laterals
 /// straighten and erect, so relays carry pulls on; and they turn hard
 /// towards 80 degrees below the horizon, so young wood eases onto the
-/// ground and rests there.
+/// ground and rests there; its internodes, insertions and tropisms vary
+/// (fn-222, fn-224), so the device's lay reads their draws.
 fn oaks() -> [Species; 2] {
     let mut neighbour = oak();
     for s in &mut neighbour.states {
+        (s.form.internode_spread, s.form.insertion_spread) = (0.6, 0.3);
+        s.form.tropism_spread = 0.8;
         s.tolerance = 0.99;
         s.straightening = 0.4;
         s.erection = 0.3;

@@ -156,3 +156,10 @@
 - **Slowed by:** both branches took `u64::MAX - 10` as a lineage key (fn-199's `FAILED`, fn-224's `INSERTION`) and selector 17 of the contract probe, with the GPU copies spread over six WGSL files as raw words; nothing failed until a reader found them. fn-199's evidence records no `space_hash` output, so its 16 clothed hashes had to be rebuilt from its tree in a separate copy with its own `target/`.
 - **Cost:** about 15 minutes on the clash; one extra full build of the render crate for the hashes.
 - **Would remove it:** done in the merge: the lineage keys sit in one registry (`telperion_space::lineage_keys`), the selectors in another (`fine/selectors.rs`), each with a distinctness test and a WGSL mirror (`fine/lineage.wgsl`, `probe.wgsl`'s `P_*`) checked by `fine/mirror_tests.rs`. Still open: a branch that changes trees records its `space_hash` lines in its RESULT.md.
+
+## 2026-10-08 02:00, merging fn-211 (F2b, contract A) into F4: two lines of change on one helper, and a command guard
+
+- **Doing:** resolving 26 conflicted files, then porting F4's f64 layout features to contract A's fixed point.
+- **Slowed by:** both branches rewrote the decision contract's `log2` (F4 for speed, as squarings with a paired form; F2b as a polynomial that is not `const`), and F4's presence bounds build a `const` table from `log2`, so the polynomial had to be made `const` too. fn-211's evidence records no `space_hash` lines either (the rule in the entry above), so the before half was built and kept as binaries copied out of `target/` before merging. The desk's command guard refuses a shell redirect to a variable path and `rm -rf` of a variable path, which cost two re-runs with literal paths.
+- **Cost:** about 15 minutes on the two `log2`s; about 3 minutes on the guard.
+- **Would remove it:** a branch that rewrites a shared contract helper names it in its RESULT.md, so the other branch's speed work on it is seen before the merge; `space_hash` taking a revision (fn-224's entry) would remove the copied binaries.
