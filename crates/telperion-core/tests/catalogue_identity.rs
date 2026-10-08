@@ -64,6 +64,11 @@
 //! the bit, and with the ordinary tree read as the default family each was
 //! fn-216's. The override and refusal digests read no ordinary tree and
 //! stayed fn-216's.
+//! fn-217 re-pinned all four for the supernatural group (`/supernatural`):
+//! with the group stripped from each family's text and from the wire, the
+//! family, walk and override texts were each fn-215's and fn-216's to the
+//! byte, and every single-row refusal of every other row read as it did;
+//! only the refusal pairs, which pair rows by index, re-paired.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -99,7 +104,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        16_107_869_913_640_024_426,
+        5_249_597_165_643_459_300,
         "{}",
         digest(&text)
     );
@@ -131,7 +136,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        6_406_903_450_715_907_365,
+        11_432_553_802_668_524_547,
         "{}",
         digest(&text)
     );
@@ -156,7 +161,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        1_375_746_499_999_063_417,
+        15_406_529_057_358_593_657,
         "{}",
         digest(&text)
     );
@@ -219,7 +224,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        12_063_149_108_300_327_074,
+        9_920_640_247_297_317_436,
         "{}",
         digest(&text)
     );

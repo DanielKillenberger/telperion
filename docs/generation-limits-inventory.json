@@ -1594,5 +1594,11 @@
     "site": "if x > = 1 . 0 {",
     "classification": "algorithm",
     "reason": "A floret past its own stretch of the window is gone: the season, not a limit."
+  },
+  {
+    "path": "crates/telperion-core/src/supernatural.rs",
+    "site": "for k in 0 . . SupernaturalFlowering : : AGES {",
+    "classification": "algorithm",
+    "reason": "Walks the supernatural group's one flowering override per engine age along the engine's fixed age axis; it limits no tree."
   }
 ]
