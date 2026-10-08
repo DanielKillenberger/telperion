@@ -8,7 +8,9 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-226-light-read-from-the-crowns-outline-per",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-226-light-read-from-the-crowns-outline-per.2": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 2,
   "plan_review_status": "needs_work",
@@ -174,12 +176,50 @@
       "task": null,
       "timestamp": "2026-10-08T09:05:03.490084Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "8c96f3a12e07975306cdc70a95afdc37cbf300d6ce333adf8138731a8ee034cc",
+      "backend": "codex",
+      "base_sha": "caebae5edefe7f8f37c2e0b8aba5808a44a3d7a2",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6408a00572f1cad44296674f33580516e0f4976f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "323d47840c39487789aee862dad8e9c0",
+      "round_consumed": true,
+      "scope": "impl:fn-226-light-read-from-the-crowns-outline-per.2",
+      "superseded_by": null,
+      "task": "fn-226-light-read-from-the-crowns-outline-per.2",
+      "timestamp": "2026-10-08T09:44:51.116709Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-226-light-read-from-the-crowns-outline-per.2": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-226-light-read-from-the-crowns-outline-per.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-226-light-read-from-the-crowns-outline-per.md",
@@ -196,5 +236,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T09:05:17.511538Z"
+  "updated_at": "2026-10-08T09:44:51.118628Z"
 }
