@@ -21,3 +21,9 @@
 - **Slowed by:** the guard refused `git restore`, `git show <ref>:<path> >` and a `cp` whose source path sat in a shell variable. Each was redone another way (a reversed patch, Python, literal paths).
 - **Cost:** about 4 minutes.
 - **Would remove it:** a format command for the files a diff touches, without their children (for example `rustfmt --config skip_children=true` on nightly, or a repo script). The guard's rules are a local setup matter.
+
+## 2026-10-09 00:30, task 2 cut sweep: no friction worth a fix
+
+- **Doing:** the oak cut sweep in Wasm and natively, and the birch probe.
+- **Slowed by:** nothing material. The `field-oak.wasm` copy differed by one byte region from a HEAD rebuild, so the sweep used the HEAD rebuild. That cost about 1 minute.
+- **Would remove it:** recording the commit beside each scratch Wasm copy.

@@ -243,3 +243,77 @@ Natively on one core (load about 6), seed 1234's coarse build is rows 62 to 65 m
 - The roots' expectations are the closed form's light-neutral, retention-free rows, so they miss the size, girth and reach of the roots that light lets grow past their prediction. TASK4's light repair moves where a root reads its light, not what its row stands for. Whether it would close any of this gap is not measured.
 - The time gap on seed 1234 is 44 to 71 ms. Nothing measured here closes it.
 - Task 3 depends on this task and was not started.
+
+## Task 2: the cut sweep (2026-10-09)
+
+The host's hypothesis: the cut follows the light-neutral prediction, so the oak's lower spreading limbs fall below a cut of 1,024 and stand in as small subtrees, and a lower cut grows them exactly. This section measures the lit oak's coarse field as built at `433c4c86` (option 1, no light repair) at cuts 1,024, 512, 256, 128 and 64. No modelling changed.
+
+- **Wasm:** `raw/field-path/cut-sweep.sh` → `cut-sweep.jsonl`. The site's request is age 40, dials 0.08 / tuft 0.4, and n = 48, 36, 30 and 24. Each run is three repeats, one Node process per tree, at load 4.0 to 5.8. The module is `field-sweep.wasm`, rebuilt from HEAD. It has the same size as `field-oak.wasm` and differs in one byte region. The cube counts at cut 1,024 match the earlier run.
+- **Native:** `raw/native/compare` → `raw/native/cut-sweep.jsonl` and `.err`, on 4 threads.
+- **Timing method:** the same as the earlier sections, Wasm under Node with no browser. End to end is grow, query and voxelize, given as the median (min..max).
+
+### Time, memory and cubes (Wasm)
+
+0.1.4 in this sweep: seed 1234 ran 365 (344..479) ms at n = 48 and 302 (282..412) at n = 36, in 72.6 MB. Seed 5678 ran 399 (388..440) and 332 (323..370), in 115.6 MB. The site's reference is 350 to 425 ms and 73 to 116 MB.
+
+| Oak, seed, cut | grow ms | end to end n = 48 | end to end n = 36 | memory MB | cubes n = 48 (wood + foliage) | cubes n = 36 |
+|---|--:|--:|--:|--:|--:|--:|
+| 1234, full (earlier run) | 5,801 | 6,076 | | 437.8 | 3,776 + 2,652 | 1,904 + 1,343 |
+| 1234, 1024 | 346 | **410** (384..434) | 377 (351..398) | 10.8 | 1,981 + 5,007 | 967 + 2,219 |
+| 1234, 512 | 1,246 | 1,358 (1,334..1,472) | 1,312 | 54.4 | 2,295 + 4,870 | 1,082 + 2,210 |
+| 1234, 256 | 1,896 | 2,028 (2,020..2,272) | 1,986 | 96.1 | 2,440 + 2,758 | 1,122 + 1,460 |
+| 1234, 128 | 2,099 | 2,251 (2,030..2,398) | 2,207 | 96.1 | 2,462 + 2,780 | 1,149 + 1,466 |
+| 1234, 64 | 2,102 | 2,242 (2,059..2,516) | 2,205 | 96.1 | 2,474 + 2,787 | 1,153 + 1,466 |
+| 5678, full (earlier run) | 2,064 | 2,179 | | 157.7 | 2,028 + 1,702 | 1,038 + 925 |
+| 5678, 1024 | 205 | **250** (249..298) | 226 (224..264) | 10.2 | 842 + 4,374 | 378 + 1,955 |
+| 5678, 512 | 387 | 441 (428..537) | 415 (403..509) | 13.9 | 819 + 3,882 | 384 + 1,758 |
+| 5678, 256 | 673 | 740 (696..798) | 709 (673..768) | 27.3 | 1,387 + 2,018 | 582 + 1,122 |
+| 5678, 128 | 708 | 772 (692..872) | 743 (667..832) | 31.4 | 1,378 + 2,057 | 588 + 1,136 |
+| 5678, 64 | 718 | 780 (692..839) | 756 (668..813) | 31.4 | 1,382 + 2,084 | 596 + 1,152 |
+
+### Against the stepped full oak (native, age 40)
+
+The stepped tree's own values do not move with the cut. Its trunk base is 0.559 m for seed 1234 and 0.330 m for seed 5678. Its whole extent is 7.85 m and 7.19 m.
+
+| Seed, cut | trunk base, coarse (m) | stands / realized roots, section r^2.5 by lineage | stands' reach / fine roots' extent (m) | structure above: extent stepped / coarse (m) | thickest realized root below the cut: r m, kept / predicted | native coarse ms |
+|---|--:|--:|--:|--:|--:|--:|
+| 1234, 1024 | 0.309 | 0.12 | 6.26 / 7.85 | 6.43 / 6.42 | 0.217, 1,695 / 555 | 160 |
+| 1234, 512 | 0.304 | 0.12 | 6.32 / 7.85 | 7.25 / 6.60 | 0.174, 2,750 / 401 | 511 |
+| 1234, 256 | 0.329 | 0.19 | 7.66 / 7.85 | 7.74 / 7.96 | 0.087, 254 / 178 | 704 |
+| 1234, 128 | 0.331 | 0.19 | 7.74 / 7.71 | 7.85 / 8.09 | 0.063, 97 / 60 | 696 |
+| 1234, 64 | 0.333 | 0.18 | 7.75 / 7.71 | 7.85 / 8.12 | 0.063, 97 / 60 | 715 |
+| 5678, 1024 | 0.182 | 0.19 | 4.65 / 7.19 | 4.63 / 4.64 | 0.146, 5,165 / 476 | 123 |
+| 5678, 512 | 0.180 | 0.15 | 4.71 / 7.19 | 4.63 / 4.69 | 0.146, 5,165 / 476 | 177 |
+| 5678, 256 | 0.203 | 0.52 | 6.72 / 7.09 | 7.19 / 6.85 | 0.049, 320 / 178 | 255 |
+| 5678, 128 | 0.204 | 0.52 | 6.83 / 7.07 | 7.19 / 7.00 | 0.036, 149 / 101 | 280 |
+| 5678, 64 | 0.206 | 0.53 | 6.84 / 7.07 | 7.19 / 7.02 | 0.023, 61 / 48 | 279 |
+
+- At every cut, the axes above the cut match by lineage, with 2 to 13 axes unshared. The height of the structure above holds at 12.70 to 12.72 m (seed 1234) and 12.96 to 13.02 m (seed 5678).
+- The coarse tree's surplus in order 1 stays at 623 to 829 phytomers for seed 1234 and 244 to 356 for seed 5678. From cut 256 down, the deeper orders also carry a surplus for seed 1234, at 0 to 1,000 per order.
+- Below the cut, the expected phytomers stay above the realized ones at every cut: 502,577 against 313,756 for seed 1234 at cut 64, and 107,869 against 93,609 for seed 5678.
+
+### Stills
+
+`raw/field-path/oak-{1234,5678}-n{48,36}-cuts.png` hold seven panels, left to right: 0.1.4, full, then coarse at 1,024, 512, 256, 128 and 64. They are drawn as task 1's stills were. The worker viewed all four. What follows is its reading, not a verdict:
+- At 1,024 and 512, the coarse oak is the narrow, upright, densely leaved crown task 2 reported.
+- From 256 down, the long lower limbs of the full field appear: seed 1234's limb running out to the right, and the low spread of seed 5678. The silhouette and the wood pattern come close to the full field's, and the foliage cubes fall to about the full field's count.
+- 128 and 64 look the same as 256.
+- At every cut, the trunk shows narrower than the full field's.
+- Every coarse and full panel is far from 0.1.4's round, solid crown. That is the F4 oak itself, not the cut.
+
+### The silver birch
+
+The silver birch is refused at every cut and seed, including cut 0. The error is `Field core: invalid input: no engine species`, returned in 2 ms (`raw/field-path/birch-sweep.jsonl`). The birch has no `/space` row on this branch, as FIELD-PATH.md found before. 0.1.4's birch runs: seed 1234 grows in 264 ms in 59.7 MB, and seed 5678 in 269 ms in 50.6 MB.
+
+### Reading, for the host
+
+- **The reach and the limbs:** the hypothesis holds. At cut 256 or below, the roots realized past their prediction grow above the cut, and the reach closes to within 0.2 to 0.5 m.
+  - The stills gain the lower limbs.
+  - The section ratio rises from 0.12 to 0.19 for seed 1234 and from 0.19 to 0.52 for seed 5678.
+  - Nothing changes further from 256 to 64.
+- **The trunk:** it does not close. At cut 64 it is 0.333 m against 0.559 (seed 1234) and 0.206 against 0.330 (seed 5678), still about 60 % of the stepped radius. Its cause was not looked into. The thickest root left below the cut is 0.02 to 0.06 m, so the remaining gap is not in limbs below the cut (inferred).
+- **The time:** it does not hold below 1,024.
+  - Seed 1234 takes 1.3 s at 512 and 2.0 to 2.3 s from 256 down, against 0.1.4's 350 to 425 ms. Seed 5678 takes 0.44 s at 512 and 0.74 to 0.78 s from 256 down.
+  - n = 36 saves only 25 to 45 ms, because the grow dominates.
+- **The memory:** it holds at every cut. The peak is 96 MB at most, at or under 0.1.4's 73 to 116 MB.
+- No cut tested gives both the limbs and 0.1.4's time.
