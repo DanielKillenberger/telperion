@@ -43,6 +43,9 @@ impl super::Generator {
     /// pipeline, the rest on the device, nothing read back per node.
     pub(super) async fn prepare_fine(&self, family: &Family) -> Result<Prepared> {
         let gpu = &self.gpu;
+        // A browser build over its device budget is refused before it starts.
+        #[cfg(target_arch = "wasm32")]
+        budget::check(family, gpu.ledger.live(), budget::BROWSER)?;
         // The kernels are made inside the scopes, so a shader the device
         // refuses is the error reported.
         let scopes = super::io::scope(gpu);
@@ -50,7 +53,24 @@ impl super::Generator {
             kernels: roots::kernels(gpu),
             tools: resident::Tools::new(gpu),
         });
+        #[cfg(test)]
+        if self.fail_next.take() {
+            // A storage buffer the device may also map: a validation error.
+            let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::MAP_READ;
+            let refused = crate::buffer::Owned::create(
+                gpu,
+                &wgpu::BufferDescriptor {
+                    label: Some("refused"),
+                    size: 16,
+                    usage,
+                    mapped_at_creation: false,
+                },
+            );
+            drop(refused);
+        }
         let built = resident::build(gpu, self, &kit.kernels, &kit.tools, family).await;
+        // What the build's regions keep is what a same-size retune needs.
+        kit.kernels.grower.trim(gpu);
         // A device error is the cause of any readback it failed, so it is
         // the one reported.
         super::io::errors(gpu, scopes).await?;
@@ -82,6 +102,9 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
 
 #[cfg(test)]
 mod chain_tests;
+// The browser's budget is checked in a browser alone; natively it is tested.
+#[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
+mod budget;
 mod chains;
 mod device;
 #[cfg(test)]

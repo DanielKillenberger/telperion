@@ -40,7 +40,8 @@ pub(super) struct Rows {
     pub spi: u32,
     pub segments: u32,
     pub structural: f32,
-    pub slender: f32,
+    /// The slender bound in whole micrometres (`plan::micrometres`).
+    pub slender: u32,
     pub internode: f32,
     pub divergence: f32,
     pub contact: bool,
@@ -95,7 +96,7 @@ impl Stationer {
             rows.spi,
             rows.segments,
             rows.structural.to_bits(),
-            rows.slender.to_bits(),
+            rows.slender,
             rows.internode.to_bits(),
             rows.divergence.to_bits(),
             u32::from(rows.contact),
@@ -224,7 +225,8 @@ pub(super) fn station_rows(x: &Expansion, segments: u32) -> Rows {
         spi: twig.stations_per_internode,
         segments,
         structural: structural as f32,
-        slender: slender as f32,
+        // `plan::micrometres`: the bound as the CPU executor compares it.
+        slender: (slender * 1e6 + 0.5).floor() as u32,
         internode: twig.internode_length as f32,
         divergence: canopy.divergence.to_radians() as f32,
         contact: x.seats(),

@@ -117,10 +117,38 @@ pub struct Gpu {
     lost: Arc<Mutex<Option<String>>>,
     /// Buffers their owners let go, destroyed after the next submit
     /// (`Gpu::submit`, `buffer::Owned`; fn-212 task 10).
-    pub(crate) released: Arc<Mutex<Vec<wgpu::Buffer>>>,
+    pub(crate) ledger: Arc<crate::buffer::Ledger>,
 }
 
 impl Gpu {
+    /// A frame's two error scopes, out of memory and validation.
+    pub(crate) fn scopes(&self) -> [wgpu::ErrorScopeGuard; 2] {
+        [
+            self.device.push_error_scope(wgpu::ErrorFilter::Validation),
+            self.device.push_error_scope(wgpu::ErrorFilter::OutOfMemory),
+        ]
+    }
+
+    /// Pops a frame's `scopes`, the error either caught kept in `failed`:
+    /// natively at once, in a browser when the device answers.
+    pub(crate) fn watch(
+        &self,
+        scopes: [wgpu::ErrorScopeGuard; 2],
+        failed: Arc<Mutex<Option<String>>>,
+    ) {
+        let [validation, memory] = scopes;
+        let (memory, validation) = (memory.pop(), validation.pop());
+        let seen = async move {
+            if let Some(error) = memory.await.or(validation.await) {
+                *failed.lock().unwrap_or_else(|e| e.into_inner()) = Some(error.to_string());
+            }
+        };
+        #[cfg(not(target_arch = "wasm32"))]
+        pollster::block_on(seen);
+        #[cfg(target_arch = "wasm32")]
+        wasm_bindgen_futures::spawn_local(seen);
+    }
+
     /// Submits `commands`, then destroys every buffer let go since the
     /// last submit. A buffer a recorded pass binds may be let go before
     /// its encoder is submitted; its destroy waits for that submit, and a
@@ -128,7 +156,7 @@ impl Gpu {
     pub fn submit<I: IntoIterator<Item = wgpu::CommandBuffer>>(&self, commands: I) {
         self.queue.submit(commands);
         let released =
-            std::mem::take(&mut *self.released.lock().unwrap_or_else(|e| e.into_inner()));
+            std::mem::take(&mut *(self.ledger.released.lock()).unwrap_or_else(|e| e.into_inner()));
         released.iter().for_each(wgpu::Buffer::destroy);
     }
 
@@ -208,7 +236,7 @@ impl Gpu {
             source: adapter,
             instance,
             lost,
-            released: Arc::default(),
+            ledger: Arc::default(),
         })
     }
 

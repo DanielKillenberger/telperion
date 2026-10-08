@@ -253,3 +253,79 @@ For the host: the slender bound could be decided as SHORTEST was in task 8, in a
 - **`npm test`:** the catalogue check passes; vitest 143 of 143.
 
 The acceptance's "large-to-small rebuilds survive" does not hold in the browser until the budget is decided. Task 10 stays open.
+
+## Part 4: the host's decisions on part 3 (2026-10-08)
+
+### 1. Pools trim to need
+
+- **Growth regions.** The grower records the most bytes each region asks during a build, and `trim` (after every device build) replaces any larger buffer with one of that size. A same-size retune finds its regions as they were; a spruce at 1 keeps none (0 MB against 1,319 MB before).
+- **What does not shrink, and why.** The regions are sized by the run batch (65,536 chains), not by the tree, so a spruce at 12 to 80 still asks 1.1 to 1.3 GB.
+- **Kernels' pool.** It already held only the last build's buffers (`Pool::give`). After a spruce at 40 it is 20 MB.
+- Measured in `large_to_small`.
+
+### 2. A failed build never breaks the page
+
+- **The defect that broke the page.** The device's curve handoff sized its point and cluster buffers exactly. The curve's view targets bind slices of at least 256 bytes, so a tree with fewer than 8 curve points (the spruce at 1) made the targets' `measure` bind group invalid, and every frame after it failed. This was the "Invalid BindGroup measure" after the spruce at 1.
+  - Fix: `handoff.rs` rounds both buffers to 256-byte boundaries, as the curve's own buffers are.
+  - `route_tests::prepare_settles...` now draws every tree it builds. Red with the old sizing ("Binding with size 256 at offset 0 would overflow buffer size of 224"), green with the fix.
+- **A frame's errors are its own.** `Renderer::draw_with` pushes its own two error scopes and pops them (`Gpu::scopes`, `Gpu::watch`).
+  - A frame's error never lands in a build awaiting its readbacks.
+  - A frame that met one has its curve targets made again by the next frame.
+  - A still reports the frame's error by name (`render` returns it).
+- **`route_tests::a_failed_build_leaves_the_drawn_tree_drawing`.** A device build fails on an injected validation error and is reported by name. The beech at 12 drawn before it then draws the same triangles and instances, and the next build draws.
+
+### 3. The browser's budget
+
+- **What counts as held.** `buffer::Ledger` counts the bytes of every live `Owned` buffer.
+- **The peak estimate.** `route_tests::budget_probe` measured each build's peak from a fresh generator and renderer (`raw/task10/budget-probe.txt`):
+
+  | Tree | Expected kept | Peak MiB | Held after drawing MiB |
+  |---|--:|--:|--:|
+  | Spruce 12 | 30,251 | 1,761 | 1,757 |
+  | Spruce 20 | 199,595 | 2,188 | 2,184 |
+  | Spruce 40 | 1,149,893 | 3,498 | 3,494 |
+  | Spruce 60 | 2,783,975 | 4,866 | 4,861 |
+  | Spruce 80 | 4,653,767 | 4,858 to 5,479 | 3,598 to 4,540 |
+  | Beech 40 / 80 | 145,254 / 2,148,120 | 1,902 / 4,156 | 1,898 / 4,152 |
+
+  `budget::peak` joins the spruce's peaks by straight lines. The beech lies under them.
+- **The check.** Before a browser build (`fine/budget.rs`, wasm32), `held + peak(expected_kept) > 8.5 GiB` is refused by name: "the browser's device budget: ...".
+- **Where the budget comes from.** It is set from this card's outcomes in Chromium: 40 with an 80 drawn (8.04 GiB by this count) built in part 3, and 80 with a 40 drawn (8.97 GiB) ran out of memory. Recorded in `budget.rs`, with a unit test of those outcomes.
+
+**Measured** (`raw/task10/browser/budget/`; nvidia-smi peak 9.04 GB for the whole card, no OOM):
+
+| Step | Change to drawn | Outcome |
+|---|--:|---|
+| Spruce 80, fresh page | 3,370 ms | 17,436,547 leaves |
+| Second 80 (seed 7) with an 80 drawn | refused in 348 ms | "browser's device budget", the old tree drawing (viewed) |
+| Third 80 (seed 1) | refused in 327 ms | as above |
+| 40 with an 80 drawn | refused in 295 ms | held is larger in the browser than natively |
+| 80 with an 80 drawn (age dial) | refused in 326 ms | as above |
+| 80 to 12 | 796 ms | built |
+| 12 to 80 | 2,379 ms | built |
+| 80 to 1 | 428 ms | built |
+| 1 to 80 | 2,328 ms | built |
+| Timing after all of it | | valid: vegetation 37.3 ms, total 55.2 ms |
+
+- On this card a second spruce at 80 is refused while one is drawn: refused by name, never a lost page. Large-to-small and back succeed.
+- Screenshots viewed: `s80-first.png`, `s80-after-refusal.png` (the first tree, still drawn), `s80-last.png`.
+
+### 4. The slender bound in whole micrometres
+
+- **The rule.** `plan::bearing_of` (the CPU executor) and `stations.wgsl`'s `bear` compare `micrometres(max(start, radius))` against the bound in whole micrometres. The bound is handed to the device as an integer.
+- **Parity at 80** (`raw/task10/parity-80-slender.txt`):
+  - beech 80 s1: 2,474,266 of 2,474,266 leaves compared, **0 left out** (30 before);
+  - beech 80 s7: 4,294,872 compared, 0 left;
+  - spruce 80 s1: unchanged; its half-micrometre station class stays (332 leaves).
+- The trees change where a girth sits within half a micrometre of the bound: the beech at 80 s1 gains 41 leaves on both executors.
+
+### 5. The remaining frame gap
+
+The 6 % frame gap (part 3) goes to fn-176 (level of detail), as decided.
+
+### Gate (part 4)
+
+- **Render half,** under the GPU lock, first: 166 passed, 0 failed (`gate-render-4.txt`).
+- **CPU half:** 988 passed, 0 failed (`gate-cpu-4.txt`).
+- **`npm test`:** green; vitest 143 of 143.
+- `dist/telperion-render.wasm` is 2,728,728 bytes, under the raised 2,800,000.

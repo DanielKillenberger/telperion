@@ -147,6 +147,9 @@ pub struct Generator {
     /// The fine-root executor's kernels, made on the first tree that
     /// settles its fine roots on the device.
     fine: std::cell::OnceCell<fine::Kit>,
+    /// A test's device error, raised inside the next device build.
+    #[cfg(test)]
+    fail_next: std::cell::Cell<bool>,
 }
 impl Generator {
     /// Live tree buffers only; excludes textures, pipelines and driver allocations.
@@ -204,6 +207,8 @@ impl Generator {
             mass,
             positions,
             fine: std::cell::OnceCell::new(),
+            #[cfg(test)]
+            fail_next: Default::default(),
         })
     }
     #[cfg(not(target_arch = "wasm32"))]

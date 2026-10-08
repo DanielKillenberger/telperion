@@ -18,13 +18,44 @@ const ALIGNMENT: u64 = wgpu::COPY_BUFFER_ALIGNMENT;
 #[derive(Debug)]
 pub(crate) struct Owned {
     buffer: wgpu::Buffer,
-    released: std::sync::Arc<std::sync::Mutex<Vec<wgpu::Buffer>>>,
+    ledger: std::sync::Arc<Ledger>,
+}
+
+/// The device's owned buffers: those let go and not yet destroyed, and the
+/// bytes live now and at most since the peak was last read (fn-212 task
+/// 10: a browser build is checked against a stated budget).
+#[derive(Debug, Default)]
+pub(crate) struct Ledger {
+    pub(crate) released: std::sync::Mutex<Vec<wgpu::Buffer>>,
+    live: std::sync::atomic::AtomicU64,
+    peak: std::sync::atomic::AtomicU64,
+}
+
+impl Ledger {
+    /// The bytes the device's owned buffers hold now.
+    #[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
+    pub(crate) fn live(&self) -> u64 {
+        self.live.load(std::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// The most they held since the last call, which starts the next span
+    /// at what they hold now.
+    #[cfg(test)]
+    pub(crate) fn take_peak(&self) -> u64 {
+        let live = self.live();
+        self.peak
+            .swap(live, std::sync::atomic::Ordering::Relaxed)
+            .max(live)
+    }
 }
 
 impl Owned {
     pub(crate) fn new(gpu: &Gpu, buffer: wgpu::Buffer) -> Self {
-        let released = gpu.released.clone();
-        Self { buffer, released }
+        use std::sync::atomic::Ordering::Relaxed;
+        let ledger = gpu.ledger.clone();
+        let live = ledger.live.fetch_add(buffer.size(), Relaxed) + buffer.size();
+        ledger.peak.fetch_max(live, Relaxed);
+        Self { buffer, ledger }
     }
 
     pub(crate) fn create(gpu: &Gpu, descriptor: &wgpu::BufferDescriptor<'_>) -> Self {
@@ -57,7 +88,9 @@ impl std::ops::Deref for Owned {
 
 impl Drop for Owned {
     fn drop(&mut self) {
-        let mut released = self.released.lock().unwrap_or_else(|e| e.into_inner());
+        let size = self.buffer.size();
+        (self.ledger.live).fetch_sub(size, std::sync::atomic::Ordering::Relaxed);
+        let mut released = (self.ledger.released.lock()).unwrap_or_else(|e| e.into_inner());
         released.push(self.buffer.clone());
     }
 }

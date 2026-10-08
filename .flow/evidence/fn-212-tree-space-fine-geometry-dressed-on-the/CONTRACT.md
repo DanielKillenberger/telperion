@@ -260,3 +260,11 @@ Measured `tree_buffer_bytes` after the submit: 141 MB (beech 80 s1), 240 MB (bee
 3. **Spruce leaf order.** Fine stations are placed in their roots' order, structurally, with no sort pass, and the frame cost is re-measured. The beech's 30 leaves are traced now: unexplained is not a class.
 4. **Wasm size.** The owner accepted raised ceilings on the branch. The ceiling becomes the measured size plus a small margin, recorded with its reason (the fine module ships), and is flagged in TASK10.md for the PR.
 5. **The silver-birch catalogue page is regenerated** (`npm run catalogue:pages`), so `npm test` goes green.
+
+## Host decisions on task 10 part 3 (2026-10-08)
+
+1. **Pools trim to need.** After each build, the kernels' pool and the growth regions shrink to what a same-size retune of the drawn tree needs, and the excess is freed. Growth regions that never shrink are, in effect, a leak. A retune at the same size stays fast; a large-to-small change frees memory.
+2. **A failed build never breaks the page.** On "Out of Memory" or any device error, the old tree keeps drawing and the error is reported by name. The invalid bind group after a failure is a defect: it is fixed, and a native test forces a build failure and draws the next frame.
+3. **A stated budget before a browser build.** The estimated peak (from the predictor's counts) plus what is held is checked against the browser's budget. The budget is set from measurement on this card and recorded, and a build over it is refused by name. Then measured: a second spruce 80 with an 80 on screen, three in a row, and large-to-small.
+4. **The beech's slender bound is decided on the exact recorded form both sides compute**, as SHORTEST was in task 8, and the 30 leaves are shown gone.
+5. **The remaining 6 % frame gap** goes to fn-176 (level of detail), noted.

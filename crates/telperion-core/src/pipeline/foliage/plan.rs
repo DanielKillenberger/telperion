@@ -357,13 +357,16 @@ pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
 }
 
 /// Whether a node bears leaves: a twig, or wood within the slender bound.
+/// The girth and the bound are compared in whole micrometres, as both
+/// executors compute them alike (fn-212 task 10, host decision 4, as
+/// `SHORTEST` in task 8): in float32 and float64 a girth within a float
+/// step of the bound read on either side of it.
 fn bearing_of(tree: &Tree, p: CanopyParams) -> impl Fn(usize) -> bool + '_ {
-    let slender = tree.stem_radius(|i| tree.pipe(i)[1]) * p.shoot_radius;
+    let slender = micrometres(tree.stem_radius(|i| tree.pipe(i)[1]) * p.shoot_radius);
     move |i: usize| {
         let n = &tree.nodes[i];
-        n.parent.is_some()
-            && (n.kind == NodeKind::Twig
-                || (slender > 0. && tree.pipe(i)[0].max(tree.pipe(i)[1]) <= slender))
+        let girth = || micrometres(tree.pipe(i)[0].max(tree.pipe(i)[1]));
+        n.parent.is_some() && (n.kind == NodeKind::Twig || (slender > 0. && girth() <= slender))
     }
 }
 

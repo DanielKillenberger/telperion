@@ -14,10 +14,10 @@ struct Cfg {
     spi: u32,
     segments: u32,
     // A fine node's kind and bearing: `STRUCTURAL` of the root's radius
-    // and the slender bound; the twig layer's internode; the divergence in
+    // and the slender bound in whole micrometres; the twig layer's internode; the divergence in
     // radians; whether leaves are seated.
     structural: f32,
-    slender: f32,
+    slender: u32,
     internode: f32,
     divergence: f32,
     contact: u32,
@@ -121,7 +121,8 @@ fn bear(@builtin(global_invocation_id) id: vec3<u32>) {
     let radius = nodes[i * NW + 3u];
     let start = nodes[i * NW + 4u];
     let twig = radius < cfg.structural && atomicLoad(&st[i * SW]) == 0u;
-    let slender = cfg.slender > 0.0 && max(start, radius) <= cfg.slender;
+    // In whole micrometres, as the CPU executor compares them (task 10).
+    let slender = cfg.slender > 0u && micrometres(max(start, radius)) <= cfg.slender;
     if !(twig || slender) {
         return;
     }

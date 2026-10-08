@@ -111,6 +111,13 @@ impl Wood {
         self.curve.as_ref()
     }
 
+    /// The curve's view targets let go, to be made again at the next frame.
+    pub(crate) fn forget_targets(&mut self) {
+        if let Some(curve) = &mut self.curve {
+            (curve.camera, curve.sun) = (None, None);
+        }
+    }
+
     /// Draws the surface, or nothing when no tree has been submitted.
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> FrameStats {
         match &self.curve {

@@ -116,6 +116,11 @@ pub struct Renderer {
     /// What this renderer's pipelines were built to draw into, and so what its
     /// caller has to make its targets as.
     surface: Surface,
+    /// Set when a frame met a device error (a target the device could not
+    /// allocate while a build held its memory): the next frame makes its
+    /// targets again rather than drawing from invalid ones (fn-212 task 10,
+    /// host decision 2).
+    frame_failed: std::sync::Arc<std::sync::Mutex<Option<String>>>,
 }
 
 impl Renderer {
@@ -128,6 +133,12 @@ impl Renderer {
     /// The same renderer drawing at another multisample count, which is how a
     /// measurement compares counts (fn-208); one where the device does not
     /// offer it.
+    /// The device error the last frame met, if it met one: the next frame
+    /// makes its targets again.
+    pub fn frame_error(&self) -> Option<String> {
+        self.frame_failed.lock().ok()?.clone()
+    }
+
     pub fn with_samples(gpu: Gpu, colour_format: wgpu::TextureFormat, samples: u32) -> Self {
         // Asked of the device once, here, because every pipeline below has to
         // be built at the count the frame will be drawn at, and the frame's
@@ -152,6 +163,7 @@ impl Renderer {
             wood,
             foliage,
             view: View::default(),
+            frame_failed: Default::default(),
             figure: true,
             bounds: None,
             level_deviations: Vec::new(),
@@ -417,6 +429,14 @@ impl Renderer {
         target: Target<'_>,
         timed: Option<Timed<'_>>,
     ) -> FrameStats {
+        // A frame's errors are its own: its scopes keep them out of a build
+        // awaiting its readbacks meanwhile, and a frame that failed has its
+        // targets made again by the next.
+        if self.frame_error().is_some() {
+            *self.frame_failed.lock().unwrap_or_else(|e| e.into_inner()) = None;
+            self.wood.forget_targets();
+        }
+        let scopes = self.gpu.scopes();
         let light = shadow::light(self.scene.row(), self.bounds());
         self.scene
             .set_frame(&self.gpu, camera, aspect_of(viewport), &light, self.view);
@@ -506,6 +526,7 @@ impl Renderer {
             }
         };
         self.gpu.submit([encoder.finish()]);
+        self.gpu.watch(scopes, self.frame_failed.clone());
         room + vegetation
     }
 }

@@ -51,7 +51,9 @@ impl Handoff {
     pub(super) async fn hand(&self, gpu: &Gpu, cpu: &Curve, swept: &Swept) -> Result<Handed> {
         let (p0, k0) = (cpu.points.len() as u64, cpu.clusters.len() as u64);
         let (p, k) = (p0 + u64::from(swept.points), k0 + u64::from(swept.clusters));
-        let words = |n: u64, w: usize| (n * w as u64 * 4).max(4);
+        // Bytes on 256-byte boundaries, as the curve's own buffers are: its
+        // views bind slices of at least that (`curve/target.rs`).
+        let words = |n: u64, w: usize| (n * w as u64 * 4).max(256).next_multiple_of(256);
         let points = io::buffer(gpu, "curve points", words(p, POINT_WORDS), USAGE, &[]);
         let clusters = io::buffer(gpu, "curve clusters", words(k, CLUSTER_WORDS), USAGE, &[]);
         let (points, clusters) = (points?, clusters?);
