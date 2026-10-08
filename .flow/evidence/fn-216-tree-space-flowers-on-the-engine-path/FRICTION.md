@@ -36,3 +36,8 @@ Resolved in part (host, 2026-10-07): the gate now runs in two parts, the workspa
 - **Slowed by:** it rewrote `src/browser/presets.generated.ts`, which had lacked the `/bloom` rows since e447f782. Nothing had failed on the stale file.
 - **Cost:** a few minutes and a separate commit (a9fc8a96).
 - **Would remove it:** a check that the generated catalogue is current, as the parameter reference has.
+
+Fixed (host, 2026-10-08, under the 2026-09-23 rule):
+
+- **The colour scale:** the colour rows' doc comments (bark, young shoot, leaf faces, dead frond, petals, peel) and the parameter reference's header state that colours are linear reflectances on one scale, not display (sRGB) values, with the shipped ranges and the petal's working value.
+- **The stale catalogue:** `scripts/build-wasm.mjs` compares `src/browser/presets.generated.ts` to what the presets render and fails when they differ (as `parameter_reference.rs` does for `docs/parameters.md`); `TELPERION_WRITE_REFERENCE=1` rewrites it. A stale copy (the file before a9fc8a96) fails `npm run wasm:build` with exit 1; the current one passes and is left untouched.

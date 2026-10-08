@@ -13,6 +13,13 @@ lies dormant; its couplings and conflicting bounds; how a walk between two
 families moves it; and the tuning dial it offers. A deprecated row is read by
 no production stage and is kept on the wire for compatibility.
 
+Colour rows (unit `reflectance`) are linear reflectances per channel, not
+display (sRGB) values, all on one scale under one exposure: a dark broadleaf
+face is a few hundredths (the beech's leaf 0.021/0.016/0.007), a white birch
+bark 0.78/0.76/0.70. A display value typed into a leaf or petal row is ten or
+more times too bright and clips to white (fn-216: petals at 0.2 to 0.9 drew
+flat white; a white petal beside a beech's leaves is about 0.1).
+
 ## `/ (the family)`
 
 ### `/age`
@@ -1597,7 +1604,7 @@ A flat two-triangle card in place of the modelled blade: no outline, no cup or c
 
 ### `/material/barkRed`
 
-The bark's own colour, a linear reflectance per channel. Raising a channel pushes mature bark toward that colour.
+The bark's own colour, a linear reflectance per channel, not a display (sRGB) value; every colour row is on this one scale (see the reference's header). Shipped barks run 0.017 (the beech's blue) to 0.78 (the birch's white). Raising a channel pushes mature bark toward that colour.
 
 - real, reflectance, [0, 1], default 0.147
 - read by draw; removed growth path: as the direct build
@@ -1633,7 +1640,7 @@ How diffuse the bark is: 0 is a mirror, 1 is chalk.
 
 ### `/material/shootRed`
 
-The young wood's own colour, before its bark has formed. Wood thinner than `shoot_radius` takes it, and gives it up to the bark colour on a smoothstep of its radius by twice that; zero means no wood is young.
+The young wood's own colour, a linear reflectance per channel on the bark's scale, before its bark has formed. Wood thinner than `shoot_radius` takes it, and gives it up to the bark colour on a smoothstep of its radius by twice that; zero means no wood is young.
 
 - real, reflectance, [0, 1], default 0.147
 - read by draw; removed growth path: as the direct build
@@ -1672,7 +1679,7 @@ Metres. The radius below which wood is young.
 
 ### `/material/leafFrontRed`
 
-The colour of a leaf's upper face, a linear reflectance per channel. Raising a channel pushes the sunlit face toward it.
+The colour of a leaf's upper face, a linear reflectance per channel, not a display (sRGB) value. A dark broadleaf face is a few hundredths (the beech 0.021/0.016/0.007, the oak 0.021/0.048/0.021); shipped faces run 0.007 to 0.19. Raising a channel pushes the sunlit face toward it.
 
 - real, reflectance, [0, 1], default 0.068
 - read by draw; removed growth path: as the direct build
@@ -1699,7 +1706,7 @@ The blue channel of `leaf_front_red`.
 
 ### `/material/leafBackRed`
 
-The colour of a leaf's underside, shown wherever the eye sees the back of a blade. Raising a channel pushes that face toward it.
+The colour of a leaf's underside, a linear reflectance per channel on the upper face's scale (shipped: 0.011 to 0.28), shown wherever the eye sees the back of a blade. Raising a channel pushes that face toward it.
 
 - real, reflectance, [0, 1], default 0.105
 - read by draw; removed growth path: as the direct build
@@ -1726,7 +1733,7 @@ The blue channel of `leaf_back_red`.
 
 ### `/material/leafDeadRed`
 
-The colour a dead frond has aged to, both faces alike, shown only on the fronds a rosette keeps below its living crown. Raising a channel pushes the skirt toward it.
+The colour a dead frond has aged to, a linear reflectance per channel on the leaf faces' scale, both faces alike, shown only on the fronds a rosette keeps below its living crown. Raising a channel pushes the skirt toward it.
 
 - real, reflectance, [0, 1], default 0.3
 - read by draw; removed growth path: as the direct build
@@ -1756,7 +1763,7 @@ The blue channel of `leaf_dead_red`.
 
 ### `/material/bloomFrontRed`
 
-The colour of a petal's upper face, a linear reflectance per channel (fn-216): the flowers' own, drawn by the leaf shader.
+The colour of a petal's upper face, a linear reflectance per channel on the leaf faces' scale, not a display (sRGB) value (fn-216): the flowers' own, drawn by the leaf shader. A white petal beside a beech's leaves is about 0.1 a channel; past about 0.15 it clips to flat white under the hero sun whatever its value.
 
 - real, reflectance, [0, 1], default 0.82
 - read by draw; removed growth path: as the direct build
@@ -1786,7 +1793,7 @@ The blue channel of `bloom_front_red`.
 
 ### `/material/bloomBackRed`
 
-The colour of a petal's underside, a linear reflectance per channel (fn-216): the flowers' own, drawn by the leaf shader.
+The colour of a petal's underside, a linear reflectance per channel on `bloom_front_red`'s scale (fn-216): the flowers' own, drawn by the leaf shader.
 
 - real, reflectance, [0, 1], default 0.72
 - read by draw; removed growth path: as the direct build
@@ -2477,7 +2484,7 @@ How far the plate network's strips curl away: they stretch across the wood into 
 
 ### `/material/peelRed`
 
-The inner bark a peeled strip leaves showing.
+The inner bark a peeled strip leaves showing, a linear reflectance like the bark's.
 
 - real, reflectance, [0, 1], default 0
 - read by draw; removed growth path: as the direct build

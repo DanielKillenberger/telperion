@@ -4,8 +4,11 @@ use crate::catalogue::{bounded, input, tuned, Bounds, Site};
 crate::catalogue::rows! {
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct MaterialParams in "/material" {
-        /// The bark's own colour, a linear reflectance per channel. Raising a
-        /// channel pushes mature bark toward that colour.
+        /// The bark's own colour, a linear reflectance per channel, not a
+        /// display (sRGB) value; every colour row is on this one scale (see
+        /// the reference's header). Shipped barks run 0.017 (the beech's
+        /// blue) to 0.78 (the birch's white). Raising a channel pushes mature
+        /// bark toward that colour.
         pub bark_red: f64 = "barkRed" "reflectance" Bounds::closed(0.0, 1.0) => [Draw] {
             wire: 146,
             check: input(Site::Material, 73, "bark red"),
@@ -30,7 +33,8 @@ crate::catalogue::rows! {
             dial: bounded("material_bark_roughness", "how diffuse the bark is; nought is a \
                 mirror and one is chalk", [0.15, 0.3]),
         },
-        /// The young wood's own colour, before its bark has formed. Wood thinner
+        /// The young wood's own colour, a linear reflectance per channel on the
+        /// bark's scale, before its bark has formed. Wood thinner
         /// than `shoot_radius` takes it, and gives it up to the bark colour on a
         /// smoothstep of its radius by twice that; zero means no wood is young.
         pub shoot_red: f64 = "shootRed" "reflectance" Bounds::closed(0.0, 1.0) => [Draw] {
@@ -64,7 +68,10 @@ crate::catalogue::rows! {
                 as young", [0.015, 0.03]),
         },
         /// The colour of a leaf's upper face, a linear reflectance per
-        /// channel. Raising a channel pushes the sunlit face toward it.
+        /// channel, not a display (sRGB) value. A dark broadleaf face is a few
+        /// hundredths (the beech 0.021/0.016/0.007, the oak 0.021/0.048/0.021);
+        /// shipped faces run 0.007 to 0.19. Raising a channel pushes the sunlit
+        /// face toward it.
         pub leaf_front_red: f64 = "leafFrontRed" "reflectance" Bounds::closed(0.0, 1.0) => [Draw] {
             wire: 154,
             check: input(Site::Material, 81, "leaf front red"),
@@ -87,8 +94,10 @@ crate::catalogue::rows! {
             dial: bounded("material_leaf_front_blue", "the blue in the colour of a leaf's upper \
                 face", [0.015, 0.03]).span([0.0, 0.082]),
         },
-        /// The colour of a leaf's underside, shown wherever the eye sees the
-        /// back of a blade. Raising a channel pushes that face toward it.
+        /// The colour of a leaf's underside, a linear reflectance per channel on
+        /// the upper face's scale (shipped: 0.011 to 0.28), shown wherever the
+        /// eye sees the back of a blade. Raising a channel pushes that face
+        /// toward it.
         pub leaf_back_red: f64 = "leafBackRed" "reflectance" Bounds::closed(0.0, 1.0) => [Draw] {
             wire: 157,
             check: input(Site::Material, 84, "leaf back red"),
@@ -110,7 +119,8 @@ crate::catalogue::rows! {
             dial: bounded("material_leaf_back_blue", "the blue in the colour of a leaf's \
                 underside", [0.025, 0.05]).span([0.03, 0.19]),
         },
-        /// The colour a dead frond has aged to, both faces alike, shown only on
+        /// The colour a dead frond has aged to, a linear reflectance per channel
+        /// on the leaf faces' scale, both faces alike, shown only on
         /// the fronds a rosette keeps below its living crown. Raising a channel
         /// pushes the skirt toward it.
         pub leaf_dead_red: f64 = "leafDeadRed" "reflectance" Bounds::closed(0.0, 1.0) => [Draw] {
@@ -138,7 +148,10 @@ crate::catalogue::rows! {
                 aged to", [0.05, 0.1]),
         },
         /// The colour of a petal's upper face, a linear reflectance per channel
-        /// (fn-216): the flowers' own, drawn by the leaf shader.
+        /// on the leaf faces' scale, not a display (sRGB) value (fn-216): the
+        /// flowers' own, drawn by the leaf shader. A white petal beside a
+        /// beech's leaves is about 0.1 a channel; past about 0.15 it clips to
+        /// flat white under the hero sun whatever its value.
         pub bloom_front_red: f64 = "bloomFrontRed" "reflectance"
             Bounds::closed(0.0, 1.0) => [Draw] {
             wire: 266,
@@ -163,7 +176,8 @@ crate::catalogue::rows! {
             dial: crate::catalogue::FLOWERS,
         },
         /// The colour of a petal's underside, a linear reflectance per channel
-        /// (fn-216): the flowers' own, drawn by the leaf shader.
+        /// on `bloom_front_red`'s scale (fn-216): the flowers' own, drawn by the
+        /// leaf shader.
         pub bloom_back_red: f64 = "bloomBackRed" "reflectance"
             Bounds::closed(0.0, 1.0) => [Draw] {
             wire: 269,
@@ -788,7 +802,8 @@ crate::catalogue::rows! {
                 away; at zero no strip has peeled at all, and any rise switches the peel on",
                 [0.15, 0.3]),
         },
-        /// The inner bark a peeled strip leaves showing.
+        /// The inner bark a peeled strip leaves showing, a linear reflectance
+        /// like the bark's.
         pub peel_red: f64 = "peelRed" "reflectance" Bounds::closed(0.0, 1.0) => [Draw] {
             wire: 231,
             check: input(Site::Material, 52, "bark peel red"),
