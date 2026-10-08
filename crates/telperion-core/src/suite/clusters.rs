@@ -133,14 +133,15 @@ fn a_cluster_off_its_rail_is_refused_by_name() {
     }
 }
 
-/// The cost of clustering on the beech at 15 (`cargo test --profile ci
+/// The cost of clustering on the beech at 40 (`cargo test --profile ci
 /// -p telperion-core cost_of_clustering -- --ignored --nocapture`):
 /// reported, not held.
 #[test]
 #[ignore]
 fn cost_of_clustering() {
     for (leaves, spread) in [(0.0, 0.0), (3.0, 0.6)] {
-        let f = clustering(leaves, spread);
+        let mut f = clustering(leaves, spread);
+        f.age = 40.0;
         let mut best = f64::MAX;
         for _ in 0..5 {
             let t = std::time::Instant::now();

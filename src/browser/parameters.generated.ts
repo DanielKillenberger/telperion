@@ -243,16 +243,6 @@ export interface Family {
     size: number;
     /** How far leaf size varies leaf to leaf, as a share of that size. Raising it mixes larger and smaller leaves more widely. */
     sizeVariation: number;
-    /** Metres between short shoots along limb and branch wood: spurs a few centimetres long, each ending in a cluster of leaves. Zero grows none. */
-    shortShootSpacing: number;
-    /** Wood thicker than this fraction of the stem's radius carries no short shoot, and neither does twig wood or anything below the crown base. */
-    shortShootRadius: number;
-    /** Metres from the bark to the cluster a short shoot carries. */
-    shortShootLength: number;
-    /** Leaves in one short shoot's cluster, 1 to 8. */
-    shortShootLeaves: number;
-    /** Degrees either side of its short shoot's bearing a cluster's leaves fan across, held level: 90 is a half circle, 0 stacks them. */
-    shortShootSpread: number;
     /** How far into each limb system the gap between it and its neighbours reaches, as a share of the way from their shared boundary to the system's centre: each limb system then keeps a rounded leaf mass of its own. Zero, the neutral, thins nothing. */
     limbClumping: number;
     /** How deep a lateral may be and still start a limb system of its own. Raising it parts the crown into more and smaller leaf masses; it does nothing until `limb_clumping` is above zero. */
@@ -729,11 +719,6 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/canopy/scatter", kind: "real", optional: false, meaning: "The degrees a leaf may be turned at random from where it was placed. Raising it leaves the crown less combed.", unit: "degrees", low: 0, high: 90, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 90], step: 15 } },
   { path: "/canopy/size", kind: "real", optional: false, meaning: "The size every leaf is drawn at, as a multiple of the element's own dimensions. Raising it enlarges every leaf.", unit: "multiple of the element", low: 0, high: 1000, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1000], step: 0.15 } },
   { path: "/canopy/sizeVariation", kind: "real", optional: false, meaning: "How far leaf size varies leaf to leaf, as a share of that size. Raising it mixes larger and smaller leaves more widely.", unit: "share", low: 0, high: 0.9, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 0.9], step: 0.15 } },
-  { path: "/canopy/shortShootSpacing", kind: "real", optional: false, meaning: "Metres between short shoots along limb and branch wood: spurs a few centimetres long, each ending in a cluster of leaves. Zero grows none.", unit: "m", low: 0.01, high: 1000, lowOpen: false, zero: true, applies: "", reach: "mature", dial: { window: [0.01, 0.08], step: 0.01 } },
-  { path: "/canopy/shortShootRadius", kind: "real", optional: false, meaning: "Wood thicker than this fraction of the stem's radius carries no short shoot, and neither does twig wood or anything below the crown base.", unit: "share of stem radius", low: 0, high: 1, lowOpen: false, zero: false, applies: "`shortShootSpacing` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
-  { path: "/canopy/shortShootLength", kind: "real", optional: false, meaning: "Metres from the bark to the cluster a short shoot carries.", unit: "m", low: 0, high: 0.5, lowOpen: false, zero: false, applies: "`shortShootSpacing` zero", reach: "mature", dial: { window: [0, 0.5], step: 0.1 } },
-  { path: "/canopy/shortShootLeaves", kind: "count", optional: false, meaning: "Leaves in one short shoot's cluster, 1 to 8.", unit: "leaves", low: 1, high: 8, lowOpen: false, zero: false, applies: "`shortShootSpacing` zero", reach: "mature", dial: { window: [2, 12], step: 2 } },
-  { path: "/canopy/shortShootSpread", kind: "real", optional: false, meaning: "Degrees either side of its short shoot's bearing a cluster's leaves fan across, held level: 90 is a half circle, 0 stacks them.", unit: "degrees", low: 0, high: 90, lowOpen: false, zero: false, applies: "`shortShootSpacing` zero", reach: "mature", dial: { window: [0, 90], step: 10 } },
   { path: "/canopy/limbClumping", kind: "real", optional: false, meaning: "How far into each limb system the gap between it and its neighbours reaches, as a share of the way from their shared boundary to the system's centre: each limb system then keeps a rounded leaf mass of its own. Zero, the neutral, thins nothing.", unit: "share", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/canopy/clumpSystemOrder", kind: "count", optional: false, meaning: "How deep a lateral may be and still start a limb system of its own. Raising it parts the crown into more and smaller leaf masses; it does nothing until `limb_clumping` is above zero.", unit: "order", low: 0, high: Infinity, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [1, 5], step: 1 } },
   { path: "/canopy/clumpNeighbours", kind: "count", optional: false, meaning: "Nearest neighbours and cell crossings in the clumping approximation.", unit: "neighbours", low: 1, high: 4294967295, lowOpen: false, zero: false, applies: "`limbClumping` zero", reach: "mature" },

@@ -134,6 +134,8 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
 
 #[cfg(test)]
 mod chain_tests;
+#[cfg(test)]
+mod cluster_tests;
 // The browser's budget is checked in a browser alone; natively it is tested.
 #[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
 mod budget;

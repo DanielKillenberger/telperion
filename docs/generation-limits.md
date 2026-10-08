@@ -1,6 +1,6 @@
 # Generation budgets
 
-Generation honours the caller's `skeleton.growth.maxNodes` budget. Its default remains 250,000; it is no longer a ceiling on an explicitly larger budget. The valid range is 0 through `u32::MAX`, the node-index representation. Exhausting this budget still reports `node_capped`. There is no independent headroom estimate that reduces it, 4,096-unit axis truncation, or unreachable twelve-order truncation. Foliage uses `maxInstances`, checked index arithmetic and fallible reservations instead of per-axis 512 and per-wood 65,536 limits. Zero short-shoot spacing disables short shoots; positive spacing is not raised to a hidden floor.
+Generation honours the caller's `skeleton.growth.maxNodes` budget. Its default remains 250,000; it is no longer a ceiling on an explicitly larger budget. The valid range is 0 through `u32::MAX`, the node-index representation. Exhausting this budget still reports `node_capped`. There is no independent headroom estimate that reduces it, 4,096-unit axis truncation, or unreachable twelve-order truncation. Foliage uses `maxInstances`, checked index arithmetic and fallible reservations instead of per-axis 512 and per-wood 65,536 limits.
 
 Former form/work limits are now ordinary authorable, blended, serialized parameters. Defaults preserve existing valid input behaviour:
 

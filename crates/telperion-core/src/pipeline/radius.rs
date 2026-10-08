@@ -18,8 +18,7 @@ crate::catalogue::rows! {
             Bounds::closed(4e-6, f64::MAX) => [Grow, Plan] {
             wire: 74,
             check: value(Site::Radius, 1, "trunkRadius"),
-            note: "Also sizes the leaf box where `canopy.shootRadius` is above zero or short \
-                shoots grow.",
+            note: "Also sizes the leaf box where `canopy.shootRadius` is above zero.",
             dial: tuned("trunk_radius", "the trunk's radius at the ground as a share of the \
                 height",
                 [4e-06, 0.023], [0.002, 0.004], "capped").span([0.011, 0.023])

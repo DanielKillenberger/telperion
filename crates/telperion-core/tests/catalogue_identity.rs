@@ -64,6 +64,15 @@
 //! the bit, and with the ordinary tree read as the default family each was
 //! fn-216's. The override and refusal digests read no ordinary tree and
 //! stayed fn-216's.
+//! fn-223 re-pinned all four for the short shoots' clusters: each engine
+//! age's new neutral `cluster_leaves` and `cluster_spread`, and the five
+//! retired `/canopy/shortShoot*` rows (the beech's four dormant ones with
+//! them). With `cluster_leaves: 0.0, cluster_spread: 0.0, ` stripped from
+//! the text and the five rows put back at each family's values (the
+//! beech's, else the default's; a walk's by their old blends, its ends
+//! unchanged), the family, walk and override digests were each fn-215's
+//! to the bit. The refusal digest pairs rows by index, so the deleted
+//! rows re-paired it.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -99,7 +108,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        16_107_869_913_640_024_426,
+        16_505_628_211_544_797_342,
         "{}",
         digest(&text)
     );
@@ -131,7 +140,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        6_406_903_450_715_907_365,
+        11_066_511_611_635_173_183,
         "{}",
         digest(&text)
     );
@@ -156,7 +165,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        1_375_746_499_999_063_417,
+        7_934_268_765_783_179_966,
         "{}",
         digest(&text)
     );
@@ -219,7 +228,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        12_063_149_108_300_327_074,
+        1_536_851_553_539_686_348,
         "{}",
         digest(&text)
     );
