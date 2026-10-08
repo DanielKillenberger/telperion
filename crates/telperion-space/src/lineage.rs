@@ -104,6 +104,13 @@ pub(crate) fn internode(key: u64, spread: f64) -> i64 {
     ONE32 + mul(q32(spread), signed(Key(key).child(INTERNODE).draw()))
 }
 
+/// `internode` as a real factor: what a node's grown wood is counted by
+/// (the conversion's `SHORTEST` and the stations' count, fn-212), so the
+/// wood is the length its internodes were laid at.
+pub fn internode_factor(key: u64, spread: f64) -> f64 {
+    internode(key, spread) as f64 / ONE32 as f64
+}
+
 /// The insertion angle, an amount (Q32 turns), of the axis whose lineage is
 /// `lineage`, its PA's `angle` (radians) at `spread` (radians,
 /// `Form::insertion_spread`): angle + spread (2u − 1), u the axis's

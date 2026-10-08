@@ -19,6 +19,7 @@
 //! phytomers. A coarse tree is not the tree: its fine roots are their
 //! expectations, never their draws.
 use super::expansion::{settle_with, Lived, Loaded, RootSeed, Roots};
+use super::step::{now, ready, Step};
 use super::Plan;
 use crate::bounded::girth::committed_radius;
 use crate::closed_form::boundary::Rows;
@@ -82,7 +83,7 @@ pub fn grow_coarse(species: &Species, request: Request, cut: f64) -> Result<Coar
         ..Plan::default()
     };
     let context = (request, &predictor, &rules);
-    let (settled, _) = settle_with(species, context, plan, &mut expected, false)?;
+    let (settled, _) = now(settle_with(species, context, plan, &mut expected, false))?;
     let tree = settled.structure;
     let stands = settled
         .live
@@ -167,7 +168,7 @@ impl Expected<'_> {
 }
 
 impl Roots for Expected<'_> {
-    fn grow(&mut self, seeds: &[RootSeed]) -> Result<(Vec<Lived>, u64)> {
+    fn grow<'a>(&'a mut self, seeds: &'a [RootSeed]) -> Step<'a, Result<(Vec<Lived>, u64)>> {
         self.roots = seeds
             .iter()
             .map(|seed| {
@@ -186,11 +187,16 @@ impl Roots for Expected<'_> {
                 }
             })
             .collect();
-        Ok((self.roots.iter().map(|r| r.living).collect(), 0))
+        ready(Ok((self.roots.iter().map(|r| r.living).collect(), 0)))
     }
 
-    fn girth(&mut self, live: &[usize], scales: &[(f64, f64)]) -> Vec<f64> {
-        live.iter()
+    fn girth<'a>(
+        &'a mut self,
+        live: &'a [usize],
+        scales: &'a [(f64, f64)],
+    ) -> Step<'a, Result<Vec<f64>>> {
+        let radii = live
+            .iter()
             .zip(scales)
             .map(|(&k, &scales)| {
                 let scale = self.scale(&self.roots[k], scales);
@@ -204,11 +210,17 @@ impl Roots for Expected<'_> {
                 (root.scale, root.radius) = (scale, radius);
                 radius
             })
-            .collect()
+            .collect();
+        ready(Ok(radii))
     }
 
-    fn lay(&mut self, tree: &Structure, live: &[usize], bearers: &[usize]) -> Result<Vec<Loaded>> {
-        Ok(live
+    fn lay<'a>(
+        &'a mut self,
+        tree: &'a Structure,
+        live: &'a [usize],
+        bearers: &'a [usize],
+    ) -> Step<'a, Result<Vec<Loaded>>> {
+        ready(Ok(live
             .iter()
             .zip(bearers)
             .map(|(&k, &bearer)| {
@@ -238,10 +250,15 @@ impl Roots for Expected<'_> {
                 root.centre = if mass > 0.0 { along / mass } else { 0.0 };
                 (mass, base * mass + heading * along)
             })
-            .collect())
+            .collect()))
     }
 
-    fn bend(&mut self, _: &Structure, _: &[usize], _: &[usize]) -> Result<()> {
-        Ok(())
+    fn bend<'a>(
+        &'a mut self,
+        _: &'a Structure,
+        _: &'a [usize],
+        _: &'a [usize],
+    ) -> Step<'a, Result<()>> {
+        ready(Ok(()))
     }
 }

@@ -1,0 +1,13 @@
+diff --git i/crates/telperion-space/src/fine/expansion.rs w/crates/telperion-space/src/fine/expansion.rs
+index 0b4e07c5..d0a490cc 100644
+--- i/crates/telperion-space/src/fine/expansion.rs
++++ w/crates/telperion-space/src/fine/expansion.rs
+@@ -402,7 +402,7 @@ impl Stages {
+     /// Stages timed elsewhere, ending now.
+     fn add(&mut self, stages: Vec<(&'static str, f64)>) {
+         self.out.extend(stages);
+-        self.last = std::time::Instant::now();
++        self.last = crate::clock::seconds();
+     }
+ 
+     fn mark(&mut self, stage: &'static str) {

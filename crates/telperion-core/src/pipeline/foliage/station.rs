@@ -1,5 +1,6 @@
 //! One shoot's stations: where each leaf sits along the run, how far it leans
 //! off the wood, and the frame the renderer receives.
+use super::plan::{micrometres, walk};
 use super::{CanopyParams, Instances, TwigPlacement};
 use crate::math::Transcendental;
 use crate::{
@@ -20,26 +21,8 @@ pub(super) struct Run<'a> {
     pub twig: Option<TwigPlacement>,
     /// The wood's contact surface, built whenever surface contact is positive.
     pub contacts: Option<&'a AttachmentSurface<'a>>,
-}
-
-/// The points one run passes through and the distance along it to each, into
-/// scratch the caller owns; the run's own length is the last of them. The
-/// builder sweeps this walk and the count reads it, so a run is measured by
-/// one rule however many times it is read.
-pub(super) fn walk(
-    tree: &Tree,
-    nodes: &[usize],
-    points: &mut Vec<Vec3>,
-    along: &mut Vec<f64>,
-) -> f64 {
-    points.clear();
-    points.extend(nodes.iter().map(|i| tree.nodes[*i].position));
-    along.clear();
-    along.push(0.);
-    for i in 1..points.len() {
-        along.push(along[i - 1] + points[i].distance(points[i - 1]));
-    }
-    *along.last().unwrap()
+    /// Whether each node is a fine root's (`Tree::in_fine_roots`).
+    pub fine: &'a [bool],
 }
 
 pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result<()> {
@@ -50,14 +33,15 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
         params: p,
         twig,
         contacts,
+        fine,
     } = *run;
-    let (mut points, mut along) = (Vec::new(), Vec::new());
-    let length = walk(tree, nodes, &mut points, &mut along);
+    let (mut points, mut chord, mut along) = (Vec::new(), Vec::new(), Vec::new());
+    let length = walk(tree, nodes, twig, &mut points, (&mut chord, &mut along));
     let stations = stations(length, envelope, p, twig, rng)?;
     if stations.is_empty() {
         return Ok(());
     }
-    let frames = station_frames(&points, &along);
+    let frames = station_frames(&points, &chord, tree.seed_side(fine, nodes[0], nodes[1]));
     let leaflets = super::rosette::leaflets(&p);
     reserve(
         out,
@@ -136,9 +120,10 @@ fn addressable() -> f64 {
     (isize::MAX as usize / std::mem::size_of::<f64>()) as f64
 }
 
-/// How many leaves a run of this length carries: one set per internode under a
-/// twig layer, height-relative spacing plus a terminal clump without one. The
-/// builder places exactly this many and the prediction counts them, from here.
+/// How many leaves a run of this grown length (`walk`'s units) carries: one
+/// set per internode under a twig layer, height-relative spacing plus a
+/// terminal clump without one. The builder places exactly this many and the
+/// prediction counts them, from here.
 pub(super) fn station_count(
     length: f64,
     envelope: Envelope,
@@ -153,7 +138,7 @@ pub(super) fn station_count(
     }
     if let Some(t) = twig {
         let per = t.stations_per_internode as f64;
-        let internodes = (length / t.internode_length - 1e-9).ceil().max(1.);
+        let internodes = (length / micrometres(t.internode_length)).ceil().max(1.);
         if !internodes.is_finite()
             || internodes * per > p.max_instances as f64
             || internodes * per >= addressable()
@@ -172,7 +157,7 @@ pub(super) fn station_count(
     Ok(count as usize + p.clump as usize)
 }
 
-/// Distances along the run at which those leaves sit.
+/// Distances along the run at which those leaves sit, in `walk`'s units.
 fn stations(
     length: f64,
     envelope: Envelope,
@@ -194,7 +179,7 @@ fn stations(
         let per = t.stations_per_internode as usize;
         for i in 0..total / per {
             for _ in 0..per {
-                stations.push(i as f64 * t.internode_length);
+                stations.push(i as f64 * micrometres(t.internode_length));
             }
         }
         return Ok(stations);
@@ -297,13 +282,22 @@ pub(super) fn matrix(
     Ok(matrix)
 }
 
-pub(super) fn station_frames(points: &[Vec3], along: &[f64]) -> Vec<(Vec3, Vec3, Vec3)> {
-    station_frame_iter(points, along).collect()
+pub(super) fn station_frames(
+    points: &[Vec3],
+    along: &[f64],
+    seed: Option<Vec3>,
+) -> Vec<(Vec3, Vec3, Vec3)> {
+    station_frame_iter(points, along, seed).collect()
 }
 
+/// A run's station frames, transported along it from its first normal:
+/// `seed` laid across the first tangent where given (a fine root's run:
+/// its attachment's laid side, fn-212 host decision 2026-10-07), else the
+/// first tangent's `perpendicular`.
 pub(super) fn station_frame_iter<'a>(
     points: &'a [Vec3],
     along: &'a [f64],
+    seed: Option<Vec3>,
 ) -> impl Iterator<Item = (Vec3, Vec3, Vec3)> + 'a {
     let mut previous_segment = None;
     let mut previous_tangent = None;
@@ -324,7 +318,7 @@ pub(super) fn station_frame_iter<'a>(
             }
         });
         carried_normal = previous_tangent.map_or_else(
-            || tangent.perpendicular(),
+            || seed.unwrap_or_else(|| tangent.perpendicular()),
             |previous| transport_normal(carried_normal, previous, tangent),
         );
         carried_normal -= tangent * carried_normal.dot(tangent);
@@ -453,7 +447,7 @@ mod tests {
             for p in points.windows(2) {
                 along.push(along.last().unwrap() + p[1].distance(p[0]));
             }
-            let actual = station_frames(&points, &along);
+            let actual = station_frames(&points, &along, None);
             assert_eq!(actual.len(), points.len() - 1);
             let original = frames(&points);
             for segment in 0..points.len() - 1 {

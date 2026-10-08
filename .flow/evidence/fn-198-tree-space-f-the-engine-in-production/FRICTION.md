@@ -170,3 +170,34 @@
 - **Slowed by:** both branches rewrote the decision contract's `log2` (F4 for speed, as squarings with a paired form; F2b as a polynomial that is not `const`), and F4's presence bounds build a `const` table from `log2`, so the polynomial had to be made `const` too. fn-211's evidence records no `space_hash` lines either (the rule in the entry above), so the before half was built and kept as binaries copied out of `target/` before merging. The desk's command guard refuses a shell redirect to a variable path and `rm -rf` of a variable path, which cost two re-runs with literal paths.
 - **Cost:** about 15 minutes on the two `log2`s; about 3 minutes on the guard.
 - **Would remove it:** a branch that rewrites a shared contract helper names it in its RESULT.md, so the other branch's speed work on it is seen before the merge; `space_hash` taking a revision (fn-224's entry) would remove the copied binaries.
+
+## 2026-10-08 09:30, merging fn-212 into F4: hard-coded strides in a reader shader, and a shared scratch directory
+
+- **Doing:** resolving 15 conflicted files, then checking that fn-212's device readers still read F4's laid buffers.
+- **Slowed by:** `dress.wgsl` copies the laid layout as literals (`SA = 66u`, `PL = 22u`, `GG = 24u`) while F4 widened it in `laid.rs` and `geometry.wgsl` (70, 23, 25). Nothing ties the copies to `laid.rs`, so the merge compiles and only a device parity probe would catch the stride. Separately, another session wrote its own `stills.sh` into this session's scratch directory over mine (an f2b script), found only because the harness echoed the change. The desk's command guard again refused shell redirects to variable paths (three re-runs).
+- **Cost:** about 10 minutes tracing the layout; about 3 minutes on the overwritten script and the guard.
+- **Would remove it:** the laid layout's widths injected into `dress.wgsl` from `laid.rs` (as `contract()` prefixes the keys), or a mirror test like `fine/mirror_tests.rs` that reads them from the shader source; and a scratch subdirectory per dispatched agent.
+
+## 2026-10-08 11:30, the girth port's proofs: a shared card and a wait that matched itself
+
+- **Doing:** the fine GPU tests, fn-212's placement probe at spruce 80 and the native timings, under the GPU lock.
+- **Slowed by:**
+  - **A shared card.** Another process outside the lock (`bun`, 1.15 GB of device memory) left the card short. Four fine GPU tests at eight threads, the placement probe at spruce 80 (both seeds, first pass) and one timing run were refused for device memory. They needed reruns at four threads or in a quieter moment.
+  - **A wait that matched itself.** A wait loop on `pgrep -f "<the gate's command>"` matched its own command line and never ended. It was stopped by its task id.
+  - **The command guard.** It refused heredocs containing `<(` (a Rust type `Vec<(f64, f64)>`), so edits went through script files.
+- **Cost:** about 15 minutes of reruns; about 5 minutes on the wait and the guard.
+- **Would remove it:** the GPU lock taken by every process that holds the card on this desk (or a device-memory check before a GPU test binary starts); waiting on a background task's own completion rather than on `pgrep`.
+
+## 2026-10-08 13:00, merging fn-216 into F4: a before-build raced the merge, and the device path drops flowers silently
+
+- **Doing:** recording F4's 16 clothed hashes and stills before merging fn-216 (head d4e3e16c).
+- **Slowed by:** the before binaries were started in the background in the same worktree, and the merge was started beside them, so the build could have read merged sources; it was stopped, the merge aborted and the build rerun first. Then the merge compiled and every CPU test path was silent about flowers on the device path: fn-212's `resident.rs` builds its `TreeMesh` without `organ`, and once given `Expansion::organ` it draws only the blooms above the cut (beech 40 s7: 125,776 of 3,369,006 florets). Only a temporary device-against-whole probe showed it.
+- **Cost:** about 5 minutes on the race; about 10 minutes on the probe.
+- **Would remove it:** a parity test that counts organ instances on the device path against the tree grown whole (as `route_tests` counts leaves), and before-binaries built from a revision rather than the working tree (fn-224's `space_hash` taking a revision).
+
+## 2026-10-08 14:00, merging fn-216 into F4: two branches took the same wire ranks
+
+- **Doing:** the core tests after resolving the fn-216 merge.
+- **Slowed by:** fn-221 (on F4) and fn-216 each numbered their new rows from wire rank 250 and material check slot 95, by hand. The merge was textually clean in those files, and only `every_row_has_its_own_rank_on_the_wire` and `every_site_judges_its_rows_in_one_order` caught it. fn-216's 22 rows were renumbered (256 to 277, checks 101 to 106), and the references, browser metadata and identity digests were regenerated after that.
+- **Cost:** about 10 minutes, and one more round of reference regeneration.
+- **Would remove it:** wire ranks and check slots derived from declaration order, or a `next free rank` noted beside the catalogue, so two branches do not pick the same literal.

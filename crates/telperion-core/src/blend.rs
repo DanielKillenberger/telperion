@@ -9,6 +9,8 @@ use crate::{
     Error, Result,
 };
 
+mod size;
+
 /// The family at `t` between `a` and `b`, where 0 is `a` and 1 is `b`, both
 /// returned unchanged. The two rows are read at one seed — the result carries
 /// `a`'s, and the caller sets the seed it wants on both before it asks.
@@ -21,10 +23,64 @@ use crate::{
 /// is legal in between. A supernatural field that is off carries no amplitude,
 /// which is how the bias itself reads it, so a family that switches the terms
 /// on ramps up from nothing.
+///
+/// Between two engine species the rows are then shrunk to the ends' size
+/// (`size`): a two-way walk is `centroid` of the two at shares `1 - t` and
+/// `t`.
 pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
     if !t.is_finite() || !(0.0..=1.0).contains(&t) {
         return Err(Error::InvalidInput("blend parameter"));
     }
+    if t == 0.0 || t == 1.0 {
+        return mixed(a, b, t);
+    }
+    sized(mixed(a, b, t)?, &[(a, 1.0 - t), (b, t)])
+}
+
+/// The point at `shares` of `points` (fn-230, host 2026-10-08): the weighted
+/// centroid of every row, each point a share `w / W` of the way from the
+/// centroid of those before it, where `W` is their weights so far; then,
+/// between engine species, one factor on the lateral probabilities so the
+/// light-neutral predicted size at the centroid's age is the points'
+/// weighted geometric mean, shrinking only. Every row a two-way walk mixes
+/// on a continuous scale, the engine species and its size included, is the
+/// same in any order; a row of whole counts rounds at each point, so the
+/// order can move it by one.
+pub fn centroid(points: &[(&Family, f64)]) -> Result<Family> {
+    let total: f64 = points.iter().map(|(_, w)| w).sum();
+    let bad = |w: &f64| !w.is_finite() || *w < 0.0;
+    if points.iter().any(|(_, w)| bad(w)) || !(total > 0.0 && total.is_finite()) {
+        return Err(Error::InvalidInput("blend weights"));
+    }
+    // Shares, so weights near the largest double weigh as their ratios do.
+    let shares: Vec<(&Family, f64)> = points.iter().map(|&(p, w)| (p, w / total)).collect();
+    let (first, rest) = shares.split_first().expect("a positive total has a point");
+    let (mut mean, mut seen) = (first.0.clone(), first.1);
+    for &(point, share) in rest {
+        seen += share;
+        if seen > 0.0 {
+            mean = mixed(&mean, point, share / seen)?;
+        }
+    }
+    sized(mean, &shares)
+}
+
+/// The rows' point, shrunk to its ends' size where both carry a species.
+fn sized(mut f: Family, ends: &[(&Family, f64)]) -> Result<Family> {
+    let Some(shape) = f.space.species.take() else {
+        return Ok(f);
+    };
+    let ends: Vec<(&telperion_space::Species, f64)> = ends
+        .iter()
+        .filter(|(_, w)| *w > 0.0)
+        .filter_map(|(e, w)| e.space.species.as_ref().map(|s| (s, *w)))
+        .collect();
+    f.space.species = Some(size::sized(shape, &ends, f.age as u32)?);
+    Ok(f)
+}
+
+/// Every row `t` of the way from `a` to `b`, before the size is matched.
+fn mixed(a: &Family, b: &Family, t: f64) -> Result<Family> {
     if t == 0.0 {
         return Ok(a.clone());
     }

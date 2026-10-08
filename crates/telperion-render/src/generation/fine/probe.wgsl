@@ -23,6 +23,7 @@ const P_INTERNODE: u32 = 16u;
 const P_ANGLES: u32 = 17u;
 const P_FINE_SURVIVAL: u32 = 18u;
 const P_FINE_ABORTION: u32 = 19u;
+const P_Q32_FLOAT: u32 = 20u;
 
 @group(0) @binding(0) var<uniform> cfg: vec4<u32>;
 @group(0) @binding(1) var<storage, read> cases: array<vec2<u32>>;
@@ -146,6 +147,9 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         }
         case P_FINE_ABORTION: {
             r0 = abortion_fine_q(a[0], a[1].x != 0u, a[2], a[3], a[4]);
+        }
+        case P_Q32_FLOAT: {
+            r0 = q32_f(bitcast<f32>(a[0].x));
         }
         case P_AND, default: {
             r0 = and_q(a[0], a[1]);

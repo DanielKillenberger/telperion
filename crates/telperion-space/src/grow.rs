@@ -15,7 +15,6 @@ pub(crate) mod oracle;
 mod parallel;
 pub(crate) mod partition;
 pub(crate) mod realized;
-mod relay;
 mod settle;
 mod shoot;
 mod sketch;
@@ -69,8 +68,35 @@ struct Apex {
 /// N = 1,024 its own grower, run to its next synchronisation point and
 /// settled per root.
 pub fn grow(species: &Species, request: Request) -> Result<Structure> {
+    grow_marked(species, request).map(|(structure, ..)| structure)
+}
+
+/// `grow`, with each axis marked where it was grown in a fine root (fn-212
+/// D4, D5): its wood starts its own run at the seam and keeps its side's
+/// run order. A species another executor cannot hold apart (`apart`)
+/// marks none. Also each fine root's base radius as phase 2 handed it
+/// up, by its first axis's lineage.
+#[allow(clippy::type_complexity)]
+pub fn grow_marked(
+    species: &Species,
+    request: Request,
+) -> Result<(Structure, Vec<bool>, Vec<(u64, f64)>)> {
     let fine = crate::fine::grow_roots(species, request, crate::fine::Plan::default())?;
-    Ok(lineage_order(fine.structure))
+    if apart(species).is_err() {
+        let structure = lineage_order(fine.structure);
+        let marks = vec![false; structure.axes.len()];
+        return Ok((structure, marks, Vec::new()));
+    }
+    // A fine root's first axis stands in its stand-in's place; the rest of
+    // its axes are appended past `above`.
+    let mut marks: Vec<bool> = (0..fine.structure.axes.len())
+        .map(|i| i >= fine.above)
+        .collect();
+    for i in fine.roots.iter().filter_map(|r| r.at) {
+        marks[i] = true;
+    }
+    let (structure, marks) = crate::fine::lineage_order_marked(fine.structure, marks);
+    Ok((structure, marks, fine.bases))
 }
 
 /// The whole-tree engine, every axis grown in one grower: test-only, the
@@ -92,7 +118,7 @@ pub(crate) struct Options {
     pub share: usize,
     /// Whether the light work no bud reads is done as well: the rough
     /// layout where light shades but no bud reads it, and the last
-    /// cycle's layout, full lay and sweep (fn-210, lever 3).
+    /// cycle's layout and sweep (fn-210, lever 3).
     pub unread_light: bool,
     /// Whether the tree stops once settled, before its girth and lay,
     /// keeping every lateral bud made as a record (`bounded.rs`, fn-209
@@ -209,7 +235,7 @@ fn run_beside(
     stage(Stage::Pass(Pass::Windows));
     let mut advanced = Vec::new();
     for cycle in 1..=request.age {
-        // The last cycle's layout, full lay and light are read by no bud,
+        // The last cycle's layout and light are read by no bud,
         // and the final lay rewrites every place (fn-198, lever c1); only
         // `sketch` keeps them.
         let sketching = cycle < request.age || !lay || options.unread_light;
@@ -344,6 +370,23 @@ struct Grower<'a> {
     spare: shoot::Spare,
 }
 
+/// Whether the realized settle (`fine::settle`) takes `species` apart from
+/// its fine roots on another executor, and why not where it does not: its
+/// roots grow alone, which no bud that reads light does (`alone::rules`),
+/// and the device's roots carry no as-grown exchange (fn-211 task 12), so
+/// such a species is built by the stepped executor on the CPU. A recorded
+/// gap, read by the executor that would hold the roots (fn-212 task 10),
+/// never a fallback.
+pub fn apart(species: &Species) -> std::result::Result<(), &'static str> {
+    if species.reads_light() {
+        Err("its buds read light, which its roots grown alone do not carry (fn-211)")
+    } else if keeps(species) {
+        Err("its shed pipes and leaf girth read the tree as grown (fn-211 task 12)")
+    } else {
+        Ok(())
+    }
+}
+
 /// Whether any PA reads the tree as grown: its shed pipes or its leaves'
 /// girth.
 pub(crate) fn keeps(species: &Species) -> bool {
@@ -423,7 +466,7 @@ impl Grower<'_> {
     }
 
     /// One cycle: its growth, then, `sketching` where a rough layout is
-    /// grown, its layout, any re-lay and its light.
+    /// grown, its layout and its light, read on the layout's places.
     fn year(
         &mut self,
         cycle: u32,
@@ -441,10 +484,6 @@ impl Grower<'_> {
         self.sketch(cycle, advanced)?;
         stage(Stage::Pass(Pass::Sketch));
         stage(Stage::Sketched);
-        if cycle % relay::RELAY_EVERY == 0 {
-            self.relay(cycle, stage)?;
-            stage(Stage::Relaid);
-        }
         self.shade(cycle, stage);
         stage(Stage::Lit);
         Ok(())

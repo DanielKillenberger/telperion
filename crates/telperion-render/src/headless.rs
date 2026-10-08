@@ -81,6 +81,14 @@ impl Frame {
 pub fn render(renderer: &mut Renderer, camera: &Camera, width: u32, height: u32) -> Result<Still> {
     let frame = Frame::new(renderer, "still", (width, height));
     let mut stats = renderer.draw(camera, (width, height), frame.target());
+    // A frame's device error is the still's: it is reported, never drawn.
+    if let Some(detail) = renderer.frame_error() {
+        let requirement = "the frame".into();
+        return Err(crate::RenderError::DeviceRefused {
+            requirement,
+            detail,
+        });
+    }
     // The wood's triangles are the device's own count: a still reads them
     // back, where a frame never waits for them (fn-208).
     if renderer.view() != crate::View::Leaf {
@@ -95,17 +103,18 @@ pub fn render(renderer: &mut Renderer, camera: &Camera, width: u32, height: u32)
     let padded =
         tight.div_ceil(wgpu::COPY_BYTES_PER_ROW_ALIGNMENT) * wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
     let gpu = renderer.gpu();
-    let readback = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("still readback"),
-        size: u64::from(padded) * u64::from(height),
-        usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
-        mapped_at_creation: false,
+    let readback = crate::buffer::Owned::create(
+        gpu,
+        &wgpu::BufferDescriptor {
+            label: Some("still readback"),
+            size: u64::from(padded) * u64::from(height),
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        },
+    );
+    let mut encoder = gpu.encoder(&wgpu::CommandEncoderDescriptor {
+        label: Some("readback"),
     });
-    let mut encoder = gpu
-        .device
-        .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("readback"),
-        });
     encoder.copy_texture_to_buffer(
         frame.picture.as_image_copy(),
         wgpu::TexelCopyBufferInfo {
@@ -122,7 +131,7 @@ pub fn render(renderer: &mut Renderer, camera: &Camera, width: u32, height: u32)
             depth_or_array_layers: 1,
         },
     );
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
 
     let (sender, receiver) = std::sync::mpsc::channel();
     readback

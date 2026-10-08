@@ -9,38 +9,6 @@ use crate::fixed::presence::{carry, fade, q, real, times};
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
 
-/// Which axes may stand at `age` while the tree grows, before its
-/// presences are known (`grow/relay.rs`): a lateral or relay whose subtree
-/// has held no living apex for more than a cycle past its PA's delay goes,
-/// with all it bears. Its fade has then reached nothing whatever its
-/// presences, so `shed` drops no axis this keeps less than it would; the
-/// rest `shed` decides by the fade (Codex on fn-206's port).
-pub(crate) fn standing(axes: &[Axis], species: &Species, age: u32) -> Vec<bool> {
-    let mut live_until: Vec<u32> = axes
-        .iter()
-        .map(|a| a.apex_end.unwrap_or(u32::MAX))
-        .collect();
-    // Parents precede children, so one backward pass carries each subtree's
-    // last living cycle up to its root.
-    for i in (1..axes.len()).rev() {
-        let parent = axes[i].origin.parent().unwrap_or(0);
-        live_until[parent] = live_until[parent].max(live_until[i]);
-    }
-    let mut kept = vec![false; axes.len()];
-    for (i, axis) in axes.iter().enumerate() {
-        kept[i] = match axis.origin {
-            Origin::Seed => true,
-            Origin::Continuation { parent } => kept[parent],
-            Origin::Lateral { parent, .. } | Origin::Relay { parent, .. } => {
-                let delay = species.states[axis.pa].shedding;
-                let idle = f64::from(age.saturating_sub(live_until[i]));
-                kept[parent] && !(delay.is_finite() && idle > delay + 1.0)
-            }
-        };
-    }
-    kept
-}
-
 /// Per PA, the cycles past a fresh bud's birth by which every apex its
 /// subtree can grow has stopped, from the settings alone; none where no
 /// bound holds under every draw (fn-210, lever 1). An apex grows its age's

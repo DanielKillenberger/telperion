@@ -6,7 +6,7 @@
 //! bounds a view culls by and the error each coarser ring level would make.
 //! Every tree's wood is this curve, whatever grew it: the sweep's own rings
 //! are drawn from it, so there is no second path to the surface.
-use super::{angular, build::Ring, rings::Scratch, *};
+use super::{angular, build::Ring, paths::Paths, rings::Scratch, *};
 use crate::tree::Section;
 
 mod pack;
@@ -84,10 +84,22 @@ pub struct Curve {
 /// The curve of a solved tree: the sweep's samples and frames, run by run in
 /// the order the wood draws them.
 pub(crate) fn curve(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Curve> {
+    traced(tree, height, params).map(|t| t.curve)
+}
+
+/// The curve with the sweep's paths and the path each of its runs follows,
+/// which the compact rings and their contacts are read from (fn-212 R2).
+pub(crate) struct Traced {
+    pub(crate) curve: Curve,
+    pub(super) paths: Paths,
+    pub(crate) order: Vec<usize>,
+}
+
+pub(crate) fn traced(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Traced> {
     tree.validate()?;
     params.validate()?;
     crate::pipeline::surface::height(height)?;
-    let paths = paths(&tree.nodes)?;
+    let paths = paths(tree)?;
     let height = height.max(1e-6);
     let mut out = Curve {
         lobes: params.lobes,
@@ -97,7 +109,11 @@ pub(crate) fn curve(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<
         ..Curve::default()
     };
     if paths.runs.is_empty() {
-        return Ok(out);
+        return Ok(Traced {
+            curve: out,
+            paths,
+            order: Vec::new(),
+        });
     }
     tree.validate_solved()?;
     let angular = angular::samples(segments(params), params)?;
@@ -114,7 +130,9 @@ pub(crate) fn curve(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<
     let ordered = rings::rank(at, &mut scratch)?;
     out.points = reserved(paths.nodes.len() + paths.runs.len())?;
     out.runs = reserved(ordered.len())?;
+    let mut order = reserved(ordered.len())?;
     for (path_id, largest_radius) in ordered {
+        order.push(path_id);
         let section = at.section(path_id).map(|shape| {
             out.sections.push(*shape);
             out.sections.len() as u32 - 1
@@ -143,7 +161,11 @@ pub(crate) fn curve(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<
         out.clusters = made;
         out.runs.push(run);
     }
-    Ok(out)
+    Ok(Traced {
+        curve: out,
+        paths,
+        order,
+    })
 }
 
 /// A run's clusters: consecutive points, neighbours sharing an end.

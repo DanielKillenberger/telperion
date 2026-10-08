@@ -89,7 +89,7 @@ pub(super) fn rings_mode(
     } else {
         Vec::new()
     };
-    let paths = paths(&tree.nodes)?;
+    let paths = paths(tree)?;
     let mut out = Rings {
         positions: Vec::new(),
         coords: Vec::new(),
@@ -161,7 +161,8 @@ impl Scratch {
     /// Samples path `path_id`'s run and frames it.
     pub(super) fn sweep(&mut self, at: Swept, path_id: usize) -> (&[Sample], &[(Vec3, Vec3)]) {
         at.sample(path_id, &mut self.samples);
-        frames(&self.samples, &mut self.directions, &mut self.frame);
+        let seed = seed(at.tree, at.paths, &at.paths.runs[path_id]);
+        frames(&self.samples, &mut self.directions, &mut self.frame, seed);
         if let Some(shape) = at.section(path_id) {
             section::square(shape, &mut self.frame);
         }
@@ -296,7 +297,15 @@ pub(super) fn rank(at: Swept, scratch: &mut Scratch) -> Result<Vec<(usize, f64)>
         let radius = scratch.samples.iter().map(|s| s.r).fold(0.0, f64::max);
         ordered.push((path_id, radius));
     }
-    ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
+    // Each side keeps its own order, the structure above the cut first and
+    // the fine roots after it, widest first within each (fn-212 D5): no
+    // sort reaches across the seam.
+    let fine = &at.paths.fine;
+    let side = |path_id: usize| {
+        let first = at.paths.nodes[at.paths.runs[path_id].start + 1];
+        fine.get(first).copied().unwrap_or(false)
+    };
+    ordered.sort_by(|a, b| side(a.0).cmp(&side(b.0)).then(b.1.total_cmp(&a.1)));
     Ok(ordered)
 }
 
@@ -359,7 +368,7 @@ impl<'t> Resweep<'t> {
 
     fn rank(&self) -> Result<Ranked> {
         let mut r = Ranked {
-            paths: paths(&self.tree.nodes)?,
+            paths: paths(self.tree)?,
             distance: distances(self.tree)?,
             angular: angular::samples(segments(self.params), self.params)?,
             ordered: Vec::new(),

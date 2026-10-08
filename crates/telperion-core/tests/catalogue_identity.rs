@@ -45,6 +45,25 @@
 //! `, insertion_spread: 0.0, tropism_spread: 0.0` left out of the text,
 //! each was still fn-221's; no preset states the rows, and the refusal
 //! digest did not move.
+//! fn-216 re-pinned all four for the flowers: the `/bloom` rows, the six
+//! `bloom*` colour rows of the material and each engine age's `flowering`
+//! share. With those stripped from the text, the family, walk and override
+//! digests were each fn-224's to the bit (checked again when fn-216 was
+//! merged onto fn-221 and fn-224, its rows' wire ranks moved past fn-221's);
+//! the refusal digest pairs rows by index, so the new rows re-paired it.
+//! fn-215 re-pinned the family and walk digests for the ordinary tree, now
+//! the space's centroid with `/space` rows and an age of 40: with the
+//! ordinary tree read as the default family it was, each digest was still
+//! fn-224's. The refusal digest reads the default family, the ordinary
+//! tree's old rows, and did not move. fn-215 re-pinned the family and walk
+//! digests again for the ordinary tree's size, its lateral probabilities
+//! multiplied by one factor (host, 2026-10-08): with its space read as the
+//! unsized centroid, each digest was still the first fn-215 pin. When fn-215
+//! was merged onto fn-216 the family and walk digests were re-pinned once
+//! more: with the flower rows stripped from the text each was fn-215's to
+//! the bit, and with the ordinary tree read as the default family each was
+//! fn-216's. The override and refusal digests read no ordinary tree and
+//! stayed fn-216's.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -80,7 +99,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        5_198_808_282_487_604_358,
+        7_479_809_179_514_851_386,
         "{}",
         digest(&text)
     );
@@ -112,7 +131,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        12_357_878_833_367_248_837,
+        4_247_907_124_043_262_165,
         "{}",
         digest(&text)
     );
@@ -137,7 +156,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        7_614_866_996_872_996_846,
+        1_375_746_499_999_063_417,
         "{}",
         digest(&text)
     );
@@ -170,7 +189,7 @@ fn answer(base: &serde_json::Value, rows: &[(&str, serde_json::Value)]) -> Strin
 
 #[test]
 fn every_refusal_is_the_refusal_it_was() {
-    let base = params::metadata(&Preset::Ordinary.parameters());
+    let base = params::metadata(&Family::default());
     let mut rows = Vec::new();
     leaves(&base, String::new(), &mut rows);
     let values: [serde_json::Value; 7] = [
@@ -200,7 +219,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        16_530_727_032_263_983_738,
+        12_063_149_108_300_327_074,
         "{}",
         digest(&text)
     );

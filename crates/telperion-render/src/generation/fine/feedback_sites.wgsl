@@ -104,7 +104,7 @@ fn shade(l: vec2<u32>, light: vec2<u32>, phi: vec2<u32>) -> vec2<u32> {
 fn settle(fall: u32, x: vec2<u32>) -> u32 {
     let cs = sincos(fall >> 1u);
     let y = smul_shr(cs.zw, exp2_neg(x), 62u, false);
-    return atan2(y, cs.xy) << 1u;
+    return atan2_t(y, cs.xy) << 1u;
 }
 
 // `edge::tangent_ratio`.

@@ -54,6 +54,9 @@ pub struct Request {
     pub cut: u32,
     pub structure: bool,
     pub schedule: Schedule,
+    /// The time of year flowers are drawn at, as a share of the year; none
+    /// is the flowering window's middle (fn-216).
+    pub season: Option<f64>,
     /// Milliseconds from any fixed origin; stage timings are its differences.
     pub clock: fn() -> f64,
 }
@@ -67,6 +70,7 @@ impl Default for Request {
             cut: 0,
             structure: false,
             schedule: Schedule::default(),
+            season: None,
             clock,
         }
     }
@@ -158,6 +162,11 @@ pub struct Outputs {
     #[cfg(feature = "geometry")]
     pub curve: Option<surface::Curve>,
     pub leaves: Option<Leaves>,
+    /// The flowers, where the tree's ages flower and leaves were asked
+    /// for: their element and their florets (fn-216). None on every tree
+    /// that flowers nowhere.
+    #[cfg(feature = "geometry")]
+    pub organ: Option<crate::mesh::Foliage>,
     pub field: Option<Field>,
     pub structure: Option<Structure>,
     pub stages: Stages,

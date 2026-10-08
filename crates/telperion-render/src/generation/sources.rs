@@ -2,9 +2,13 @@
 //! and the CPU-side parse (`shader_tests.rs`) read the same source.
 const LEAF: &str = include_str!("../shaders/leaf.wgsl");
 
+/// The placement, its leaves' and its florets' (fn-229), which draw by
+/// the contract's keys.
 pub(super) fn place() -> String {
     format!(
-        "{LEAF}\n{}\n{}\n{}\n{}",
+        "{LEAF}\n{}\n{}\n{}\n{}\n{}\n{}",
+        super::fine::contract(),
+        bloom(),
         include_str!("order.wgsl"),
         include_str!("place.wgsl"),
         include_str!("contact.wgsl"),
@@ -12,8 +16,10 @@ pub(super) fn place() -> String {
     )
 }
 
-pub(super) fn scatter() -> String {
-    include_str!("scatter.wgsl").into()
+/// The florets as `bloom.rs` draws them (fn-229): the placement places
+/// them and the fine stations count them by the same source.
+pub(super) fn bloom() -> &'static str {
+    include_str!("bloom.wgsl")
 }
 
 pub(super) fn mass() -> String {
@@ -28,20 +34,13 @@ pub(super) fn positions() -> String {
     )
 }
 
-#[cfg(test)]
-fn position_probe() -> String {
-    include_str!("position_probe.wgsl").into()
-}
-
 /// Every pass's source by name, the fine-root executor's included.
 #[cfg(test)]
 pub(super) fn all() -> Vec<(&'static str, String)> {
     let mut out = vec![
         ("place", place()),
-        ("scatter", scatter()),
         ("mass", mass()),
         ("positions", positions()),
-        ("position probe", position_probe()),
     ];
     out.extend(super::fine::sources());
     out

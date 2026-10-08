@@ -65,6 +65,11 @@ impl Wood {
         self.curve = (!curve.clusters.is_empty()).then(|| crate::curve::CurveGpu::new(gpu, curve));
     }
 
+    /// Takes a curve already on the device (fn-212 task 7).
+    pub(crate) fn submit_on_device(&mut self, curve: crate::curve::CurveGpu) {
+        self.curve = Some(curve);
+    }
+
     /// Surfaces the wood for `viewport` whatever the frame's size, or for the
     /// frame again with `None`: a measurement override, never a production
     /// path.
@@ -104,6 +109,13 @@ impl Wood {
     /// The curve's views, where there is a curve.
     pub(crate) fn curve(&self) -> Option<&crate::curve::CurveGpu> {
         self.curve.as_ref()
+    }
+
+    /// The curve's view targets let go, to be made again at the next frame.
+    pub(crate) fn forget_targets(&mut self) {
+        if let Some(curve) = &mut self.curve {
+            (curve.camera, curve.sun) = (None, None);
+        }
     }
 
     /// Draws the surface, or nothing when no tree has been submitted.

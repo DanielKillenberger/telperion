@@ -3,10 +3,12 @@
 //! the specimen provides a cached packed layout when a consumer reads it.
 //! Timeline nodes retain their birth identity and slot after their death year;
 //! the legacy envelope builder still compacts. Consumer reads exclude dead nodes.
+mod bloom;
 mod identity;
 mod section;
 mod shoot;
 use crate::{math::Vec3, Error, Result};
+pub use bloom::Bloom;
 pub use identity::NodeIdentity;
 pub(crate) use identity::NodeKey;
 pub use section::{Section, SectionRing};
@@ -23,7 +25,8 @@ pub enum NodeKind {
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Node {
-    /// Stable birth identity, assigned by the owning specimen; never a storage index.
+    /// Stable identity, never a storage index: the scaffold specimen's birth
+    /// order, or the engine phytomer's lineage key (fn-220).
     pub identity: NodeIdentity,
     pub shoot: ShootState,
     pub position: Vec3,
@@ -128,11 +131,50 @@ pub struct Tree {
     /// `sections` is: a specimen's bytes are the ones they always were.
     #[cfg_attr(feature = "json", serde(skip))]
     pub pipe: Vec<[f64; 2]>,
+    /// Each fine root's node drawn from wood above the cut (fn-209 F1): its
+    /// first axis's first node, and any lateral its first phytomers,
+    /// merged into its bearer's node, hang there; in increasing order. The
+    /// seam its wood starts a run of its own at, and
+    /// from which all it bears keeps its own side's run order (fn-212 D4,
+    /// D5). Empty on a tree grown whole. Never stored, as `sections`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub seams: Vec<u32>,
+    /// Each fine root drawn, in the order its first axis is converted
+    /// (fn-212 task 4). Empty on a tree grown whole. Never stored, as
+    /// `seams`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub attachments: Vec<Attachment>,
+    /// Each node's wood's frame as the engine laid it, its heading and the
+    /// side its first bud faces (y up), where the engine grew the tree:
+    /// what a fine root's run seeds its frame from at its socket (fn-212,
+    /// host decision 2026-10-07). Never stored, as `seams`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub frames: Vec<[f32; 6]>,
+    /// Each node's key, from its axis's lineage and its phytomer's place
+    /// along the axis (`node_key`): what a run's leaves draw their random
+    /// values by, whatever order an executor walks the runs in (fn-212,
+    /// host decision 2026-10-07). Empty on a tree no engine grew, whose
+    /// nodes key by their index. Never stored, as `seams`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub keys: Vec<u32>,
+    /// Each node's wood as the engine grew it, in metres: the internodes
+    /// of the phytomers it draws, each its PA's length at its scale,
+    /// summed. Record data, the same on every executor, which a run's
+    /// stations are counted and split by (fn-212 D2, host decision
+    /// 2026-10-07). Empty on a tree no engine grew, whose wood is its
+    /// chord. Never stored, as `seams`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub grown: Vec<f64>,
+    /// The nodes that may flower, in node order (fn-216). Empty on every
+    /// tree whose ages bear none, and never stored, as `sections` is.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub blooms: Vec<Bloom>,
     /// The fine roots a coarse tree holds as their expected occupancy, never
     /// grown (fn-214): empty on every tree grown whole. Never stored.
     #[cfg_attr(feature = "json", serde(skip))]
     pub stands: Vec<Stand>,
 }
+
 /// A fine root of a coarse tree as its expectation (fn-214): the node it is
 /// borne on, its wood from `base` toward `tip` (twice its expected wood's
 /// centre along its heading) at its base radius, the reach about that line
@@ -147,7 +189,97 @@ pub struct Stand {
     pub reach: f64,
     pub phytomers: f64,
 }
+
+/// A 32-bit finaliser: the one the leaves' draws already use.
+pub fn mix32(z: u32) -> u32 {
+    let z = (z ^ (z >> 16)).wrapping_mul(0x21f0_aaad);
+    let z = (z ^ (z >> 15)).wrapping_mul(0x735a_2d97);
+    z ^ (z >> 15)
+}
+
+/// A node's key: its axis's lineage and its phytomer's place along the
+/// axis, mixed; the GPU executor's drawing computes the same words.
+pub fn node_key(lineage: u64, place: usize) -> u32 {
+    let low = mix32(lineage as u32);
+    let high = mix32(low ^ (lineage >> 32) as u32);
+    mix32(high ^ place as u32)
+}
+
+/// The random stream a run's leaves draw from: the family's seed and the
+/// key of the run's first node (fn-212, host decision 2026-10-07).
+pub fn leaf_stream(seed: u32, key: u32) -> u32 {
+    mix32(seed ^ 0x2c9e_1a7f ^ key)
+}
+
+/// A fine root as the conversion drew it (fn-212 task 4): the record an
+/// executor dressing the root on its own starts from.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Attachment {
+    /// Its first axis's lineage.
+    pub lineage: u64,
+    /// The node its bearer's phytomer is drawn as, which it is drawn from.
+    pub node: u32,
+    /// Its seams (`Tree::seams`): the first node its first axis draws, if
+    /// any, then any lateral that hangs from its bearer's node.
+    pub seams: Vec<u32>,
+    /// Whether it forks its bearer codominantly, read from its base radius
+    /// as phase 2 handed it up against its bearer's node's radius: what
+    /// the sweep eases its bearer's fork by, whichever executor draws the
+    /// root (fn-212 task 7, host option 3).
+    pub fork: bool,
+}
 impl Tree {
+    /// Node `i`'s key (`keys`), or its index where no engine grew it.
+    pub fn key(&self, i: usize) -> u32 {
+        self.keys.get(i).copied().unwrap_or(i as u32)
+    }
+    /// Node `i`'s grown wood (`grown`), or its chord from its parent where
+    /// no engine grew it.
+    pub fn grown_length(&self, i: usize) -> f64 {
+        self.grown.get(i).copied().unwrap_or_else(|| {
+            let n = &self.nodes[i];
+            n.parent.map_or(0.0, |p| {
+                self.nodes[p as usize].position.distance(n.position)
+            })
+        })
+    }
+    /// Whether each node is a fine root's wood: a seam, or borne by one
+    /// (fn-212 D4); all false on a tree grown whole.
+    pub(crate) fn in_fine_roots(&self) -> Vec<bool> {
+        let mut fine = vec![
+            false;
+            if self.seams.is_empty() {
+                0
+            } else {
+                self.nodes.len()
+            }
+        ];
+        if fine.is_empty() {
+            return fine;
+        }
+        for &s in &self.seams {
+            fine[s as usize] = true;
+        }
+        for i in 1..self.nodes.len() {
+            let p = self.nodes[i].parent.unwrap() as usize;
+            fine[i] |= fine[p];
+        }
+        fine
+    }
+    /// The side a fine root's bearing or sweep run seeds its frame from:
+    /// its attachment's laid side, where its first node is a fine root's.
+    pub(crate) fn seed_side(
+        &self,
+        fine: &[bool],
+        attach: usize,
+        first: usize,
+    ) -> Option<crate::math::Vec3> {
+        if !fine.get(first).copied().unwrap_or(false) {
+            return None;
+        }
+        let f = self.frames.get(attach)?.map(f64::from);
+        Some(crate::math::Vec3::new(f[3], f[4], f[5]))
+    }
     /// Node `i`'s radii as the pipe model solved them, `[start, distal]`,
     /// whatever `girthHold` drew: the radii leaf-bearing decisions read.
     pub(crate) fn pipe(&self, i: usize) -> [f64; 2] {

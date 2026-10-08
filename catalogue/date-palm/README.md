@@ -34,13 +34,13 @@
 | Wood vertices | 25494 |
 | Wood triangles | 49960 |
 | Leaf instances | 6554 |
-| Bounds min | -9.615275336070562, -0.05951957032084465, -9.39114213388595 |
-| Bounds max | 9.485560925406242, 21.45147757675003, 9.78526806421261 |
+| Bounds min | -9.562131712229048, -0.05951957032084465, -9.338465788304248 |
+| Bounds max | 9.470389010513898, 21.67818711107541, 9.774354480382435 |
 | Skeleton hash | 10022492749847320141 |
-| Placement hash | 15532558870032400110 |
+| Placement hash | 12637870747323904300 |
 | Element hash | 14216803601877991269 |
 | Leaf band | 1000 to 100000 |
-| Growth reference | 21.45147757675003 m at 40 years |
+| Growth reference | 21.67818711107541 m at 40 years |
 
 ## Reference images
 | Id | Scale | Image | Source | Observation |

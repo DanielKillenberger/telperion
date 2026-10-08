@@ -3,16 +3,14 @@
 //! needs no hand patch.
 
 /// The stages a tree passes through, reported as each ends: per cycle its
-/// growth, its rough layout, its full lay every few cycles and the sweep
-/// of its light (where light shades), then once its sizes, shedding and
+/// growth, its rough layout and the sweep of its light (where light
+/// shades), then once its sizes, shedding and
 /// girth, and its final lay. Each pass within them is reported as it
 /// ends as well (`Stage::Pass`), before its stage.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Stage {
     Grown,
     Sketched,
-    /// The full lay of the living tree, every `RELAY_EVERY` cycles.
-    Relaid,
     Lit,
     Settled,
     Laid,
@@ -35,13 +33,6 @@ pub enum Pass {
     Wake,
     /// Each cycle's rough layout.
     Sketch,
-    /// The full lay: the standing tree settled, laid, its sag's levers,
-    /// laid under sag, and its places written back.
-    RelaySettle,
-    RelayPlace,
-    RelayLevers,
-    RelaySag,
-    RelayWrite,
     /// The light: the lattice swept, and read at the buds.
     ShadeField,
     ShadeRead,

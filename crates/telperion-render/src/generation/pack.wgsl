@@ -28,10 +28,15 @@ fn rotation_word(x:vec3<f32>, y:vec3<f32>, z:vec3<f32>) -> u32 {
     }
     return word;
 }
-fn random(ordinal:u32) -> f32 {
-    var z=(config.random.x ^ 0x2c9e1a7fu)+(ordinal+1u)*0x9e3779b9u;
-    z=(z^(z>>16u))*0x21f0aaadu; z=(z^(z>>15u))*0x735a2d97u;
-    return f32(z^(z>>15u))*(1.0/4294967296.0);
+fn mix32(v:u32) -> u32 {
+    var z=v; z=(z^(z>>16u))*0x21f0aaadu; z=(z^(z>>15u))*0x735a2d97u;
+    return z^(z>>15u);
+}
+// The `ordinal`th draw of a run's stream: the family's seed and its first
+// node's key (`tree::leaf_stream`, fn-212), whatever order runs are walked.
+fn random(key:u32, ordinal:u32) -> f32 {
+    let stream=mix32(config.random.x ^ 0x2c9e1a7fu ^ key);
+    return f32(mix32(stream+(ordinal+1u)*0x9e3779b9u))*(1.0/4294967296.0);
 }
 fn rotate(v:vec3<f32>, axis:vec3<f32>, angle:f32) -> vec3<f32> {
     let c=cos(angle); let s=sin(angle);
@@ -63,14 +68,15 @@ fn station(index:u32) -> vec3<u32> {
     if dot(face,face)<=1e-12 { face=seg.tangent.xyz-axis*dot(seg.tangent.xyz,axis); }
     if dot(face,face)<=1e-12 { face=seg.normal.xyz-axis*dot(seg.normal.xyz,axis); }
     face=normalize(face); var side=normalize(cross(axis,face));
-    var draw=index*select(1u,4u,config.shape.w>0.0);
+    var draw=k*select(1u,4u,config.shape.w>0.0);
+    let key=seg.range.w;
     if config.shape.w>0.0 {
-        let z=random(draw)*2.0-1.0; let phi=random(draw+1u)*6.283185307179586;
+        let z=random(key,draw)*2.0-1.0; let phi=random(key,draw+1u)*6.283185307179586;
         let ring=sqrt(max(1.0-z*z,0.0)); let jitter=vec3<f32>(ring*cos(phi),z,ring*sin(phi));
-        let angle=config.shape.w*random(draw+2u);
+        let angle=config.shape.w*random(key,draw+2u);
         axis=rotate(axis,jitter,angle);face=rotate(face,jitter,angle);side=rotate(side,jitter,angle); draw+=3u;
     }
-    let scale=config.size.x*(1.0+config.size.y*(random(draw)*2.0-1.0));
+    let scale=config.size.x*(1.0+config.size.y*(random(key,draw)*2.0-1.0));
     if !finite(point) || !finite(axis) || !finite(face) || !finite(side) || !(scale>=0.0 && scale<=65504.0) {
         atomicOr(&summary[1],2u);
     }

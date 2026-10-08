@@ -50,6 +50,7 @@ pub fn species() -> Species {
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
@@ -81,6 +82,7 @@ pub fn species() -> Species {
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
@@ -116,6 +118,7 @@ pub fn species() -> Species {
         readiness: 1.0,
         rhythm: 1.0,
         leaf_area: 0.0,
+        flowering: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
@@ -688,9 +691,8 @@ fn shaded(name: &str, low: f64, high: f64, edit: fn(&mut Species, f64)) -> Setti
     walked
 }
 
-/// Every setting walked in leaf under the site's light, the full lay
-/// grown with the tree included (host decision 8): `leafy` first, then
-/// the setting.
+/// Every setting walked in leaf under the site's light (host decision
+/// 8): `leafy` first, then the setting.
 pub fn in_leaf(all: Vec<Setting>) -> Vec<Setting> {
     all.into_iter()
         .map(|walked| {

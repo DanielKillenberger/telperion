@@ -80,7 +80,7 @@ pub struct Select {
     pipelines: [wgpu::ComputePipeline; 3],
     compute_layout: wgpu::BindGroupLayout,
     draw_layout: wgpu::BindGroupLayout,
-    uniforms: wgpu::Buffer,
+    uniforms: crate::buffer::Owned,
     /// The leaf view: one placement at identity and a list of one, bound
     /// through the same layout as the crown and never rewritten.
     leaf: wgpu::BindGroup,
@@ -129,12 +129,15 @@ impl Select {
         let draw_layout = bind::draw_layout(gpu);
         Self {
             pipelines: bind::pipelines(gpu, &compute_layout),
-            uniforms: gpu.device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some("selection"),
-                size: size_of::<frame::Uniforms>() as u64,
-                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-                mapped_at_creation: false,
-            }),
+            uniforms: crate::buffer::Owned::create(
+                gpu,
+                &wgpu::BufferDescriptor {
+                    label: Some("selection"),
+                    size: size_of::<frame::Uniforms>() as u64,
+                    usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                },
+            ),
             leaf: bind::leaf_group(gpu, &draw_layout),
             compute_layout,
             draw_layout,

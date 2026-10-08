@@ -4,18 +4,18 @@ mod clock;
 mod compute;
 use clock::Clock;
 mod data;
-// fn-209 F1: the fine-root executor's GPU side, its decision contract so
-// far; built for its tests until the executor's shaders read it.
-#[cfg(test)]
+// fn-209 F1 and fn-212: the fine-root executor's GPU side, which settles,
+// draws and places a tree's fine roots on the device (fn-212 task 10),
+// every readback awaited, natively and in a browser (host decision 1).
 mod fine;
 mod io;
 mod positions;
+mod preparation;
 #[cfg(test)]
 mod profile;
-mod preparation;
-mod sources;
 #[cfg(any(target_arch = "wasm32", test))]
 pub(crate) mod request;
+mod sources;
 mod submit;
 mod wood;
 use crate::{buffer::Held, Gpu, Renderer, Result, Submitted};
@@ -72,7 +72,6 @@ pub struct Metrics {
     pub descriptors_ms: f64,
     pub upload_dispatch_ms: f64,
     pub placement_wait_ms: f64,
-    pub compact_ms: f64,
     pub mass_ms: f64,
     pub readback_ms: f64,
     /// Wood work including early position preparation; contains wood substage timings.
@@ -92,7 +91,6 @@ pub struct Metrics {
     pub wood_cpu_bytes: u64,
     /// GPU output capacity retained by this result, excluding the previous tree.
     pub retained_gpu_bytes: u64,
-    pub input_instances: u32,
     pub instances: u32,
     pub descriptor_cpu_bytes: u64,
     pub shared_contact_cpu_bytes: u64,
@@ -114,6 +112,12 @@ pub struct Prepared {
     identity: Arc<()>,
     mesh: TreeMesh,
     resident: Option<Resident>,
+    /// The flowers already on the device, which the submit takes in place
+    /// of `mesh.organ`'s florets (fn-229).
+    organ: Option<Resident>,
+    /// The wood's curve already on the device, which the submit takes in
+    /// place of `mesh.curve` (fn-212 task 7).
+    wood: Option<crate::curve::CurveGpu>,
     pub backend: Backend,
     pub metrics: Metrics,
 }
@@ -141,9 +145,14 @@ pub struct Generator {
     gpu: Gpu,
     identity: Arc<()>,
     place: io::Pass,
-    compact: io::Pass,
     mass: io::Pass,
     positions: Option<io::Pass>,
+    /// The fine-root executor's kernels, made on the first tree that
+    /// settles its fine roots on the device.
+    fine: std::cell::OnceCell<fine::Kit>,
+    /// A test's device error, raised inside the next device build.
+    #[cfg(test)]
+    fail_next: std::cell::Cell<bool>,
 }
 impl Generator {
     /// Live tree buffers only; excludes textures, pipelines and driver allocations.
@@ -175,14 +184,8 @@ impl Generator {
         let place = io::Pass::new(
             &gpu,
             sources::place(),
-            &[true, true, true, false, false, false],
-            &["place", "prefix"],
-        );
-        let compact = io::Pass::new(
-            &gpu,
-            sources::scatter(),
-            &[true, true, true, false],
-            &["scatter"],
+            &[true, true, true, false, false],
+            &["place", "bloom"],
         );
         let mass = io::Pass::new(
             &gpu,
@@ -204,9 +207,11 @@ impl Generator {
             identity,
             resident_allowed,
             place,
-            compact,
             mass,
             positions,
+            fine: std::cell::OnceCell::new(),
+            #[cfg(test)]
+            fail_next: Default::default(),
         })
     }
     #[cfg(not(target_arch = "wasm32"))]
@@ -275,10 +280,23 @@ mod standalone_tests;
 mod tests;
 
 #[cfg(all(test, not(target_arch = "wasm32")))]
+mod lobed_tests;
+#[cfg(all(test, not(target_arch = "wasm32")))]
 mod readback_tests;
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod release_tests;
 
 /// Match the integration tests: unavailable hardware is explicit, while a
 /// device that exists but fails for another reason still fails the test.
+/// The whole-tree GPU probes one at a time in a process (fn-212): each
+/// holds a settled tree's buffers, which beside another's outgrow the
+/// device; the harness's threads then wait here rather than fail.
+#[cfg(test)]
+fn whole_tree() -> std::sync::MutexGuard<'static, ()> {
+    static LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    LOCK.lock().unwrap_or_else(|e| e.into_inner())
+}
+
 #[cfg(test)]
 fn test_gpu() -> Option<crate::Gpu> {
     match pollster::block_on(crate::Gpu::request(None)) {

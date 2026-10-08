@@ -10,9 +10,10 @@ The spec's R1: a design proposal for flowering organs on the engine path (blosso
 - FLOWERS-DESIGN.md with options, each checked against code (file:line), and a recommendation. - No product code changed.
 
 ## Done summary
-TBD
+FLOWERS-DESIGN.md (2050651d): three options; host decisions 1-5 appended (option B; proof on the oak catkins and a beech blossom test; node identity first).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
+- Commits: 2050651d
 - Tests:
 - PRs:

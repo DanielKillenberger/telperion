@@ -60,15 +60,17 @@ impl Grower {
             input.len() as u64 * 8,
             bytemuck::cast_slice(&input),
         );
-        let tables = upload(gpu, t);
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
-        let region = self.region(
-            gpu,
-            &mut encoder,
-            (&input, 0, n),
-            (&tables, t, span, age),
-            caps,
-        );
+        let tables = upload(gpu, t).unwrap();
+        let mut encoder = gpu.encoder(&Default::default());
+        let region = self
+            .region(
+                gpu,
+                &mut encoder,
+                (&input, 0, n),
+                (&tables, t, span, age),
+                caps,
+            )
+            .unwrap();
         let Region {
             axes,
             phyts,
@@ -76,7 +78,7 @@ impl Grower {
             row,
             groups,
         } = region;
-        gpu.queue.submit([encoder.finish()]);
+        gpu.submit([encoder.finish()]);
         gpu.device
             .poll(wgpu::PollType::wait_indefinitely())
             .unwrap();
@@ -112,15 +114,16 @@ impl Grower {
             row,
             groups,
         };
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = gpu.encoder(&Default::default());
         self.pack(
             gpu,
             &mut encoder,
             (&region, n, caps),
             (&offsets_buf, 2),
             (&packed_axes, &packed_phyts),
-        );
-        gpu.queue.submit([encoder.finish()]);
+        )
+        .unwrap();
+        gpu.submit([encoder.finish()]);
         let axes = io::read(gpu, &packed_axes, axes_bytes).unwrap();
         let axes: &[u32] = bytemuck::cast_slice(&axes);
         let phyts = io::read(gpu, &packed_phyts, phyt_bytes).unwrap();

@@ -4,6 +4,7 @@ use super::{
     wood::{self, UploadedWood},
     Clock, Generator, Metrics,
 };
+use crate::buffer::Owned;
 use crate::Result;
 use telperion_core::surface::compact::CompactSurface;
 
@@ -14,11 +15,11 @@ pub(super) fn cpu_bytes(p: &CompactSurface) -> u64 {
         + p.run_table.capacity() * size_of::<telperion_core::surface::SurfaceRun>()) as u64
 }
 
-pub(super) struct PendingPositions {
+struct PendingPositions {
     surface: CompactSurface,
-    positions: wgpu::Buffer,
-    metadata: wgpu::Buffer,
-    _scratch: [wgpu::Buffer; 5],
+    positions: Owned,
+    metadata: Owned,
+    _scratch: [Owned; 5],
     read: io::PendingRead,
 }
 
@@ -34,7 +35,7 @@ impl Generator {
         }
     }
 
-    pub(super) fn begin_positions(
+    fn begin_positions(
         &self,
         p: CompactSurface,
         metrics: &mut Metrics,
@@ -45,14 +46,11 @@ impl Generator {
         }
         let limits = self.gpu.device.limits();
         let words = p.runs.len() * 4 + p.rings.len() * 2 + p.angular.len();
-        let sizes = [
-            p.vertices as u64 * 12,
-            p.vertices as u64 * 12,
-            p.vertices as u64 * 8,
-            p.indices as u64 * 4,
-            p.vertices as u64 * 4,
-            words as u64 * 4,
-        ];
+        // What the pass binds: the positions and the metadata. The ring
+        // mesh's normals, coordinates and indices are never built (nothing
+        // draws them, fn-208), so their sizes no longer refuse a tree: the
+        // spruce at 80's 2.55 GB of indices did (fn-212 R2).
+        let sizes = [p.vertices as u64 * 12, words as u64 * 4];
         let scratch_sizes = [
             p.rings.len() as u64 * 64,
             p.angular.len() as u64 * 16,
@@ -84,8 +82,8 @@ impl Generator {
             limits.max_compute_workgroups_per_dimension,
             ring_offset,
             angle_offset,
-            0,
-            0,
+            p.lobes,
+            p.depth.to_bits(),
         ];
         let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
         let make =
@@ -110,7 +108,7 @@ impl Generator {
         )?;
         let meta = make(
             "position wood metadata",
-            sizes[5],
+            sizes[1],
             storage,
             bytemuck::cast_slice(&metadata),
         )?;
@@ -138,7 +136,7 @@ impl Generator {
                 &status,
             ],
         );
-        let mut encoder = self.gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = self.gpu.encoder(&Default::default());
         if !p.rings.is_empty() {
             pass.run(&mut encoder, &bind, 0, config[0]);
             pass.run(&mut encoder, &bind, 1, config[1]);
@@ -147,7 +145,7 @@ impl Generator {
         if !p.rings.is_empty() {
             pass.run(&mut encoder, &bind, 2, config[0]);
         }
-        self.gpu.queue.submit([encoder.finish()]);
+        self.gpu.submit([encoder.finish()]);
         metrics.position_gpu_peak_bytes = [
             &uniform,
             &descriptors,
@@ -173,7 +171,7 @@ impl Generator {
         }))
     }
 
-    pub(super) async fn complete_positions(
+    async fn complete_positions(
         &self,
         pending: PendingPositions,
         metrics: &mut Metrics,
@@ -203,5 +201,77 @@ impl Generator {
             metadata: Some(meta),
             runs: p.run_table,
         }))
+    }
+}
+
+impl Generator {
+    /// The vertices of `rings` compact ring descriptors already on the
+    /// device (`[u32; 16]` words, as `compact::read` writes them, in a block
+    /// of `vertices`) around `angular`'s samples: the positions pass's `emit`
+    /// alone, what a seated leaf's contact reads (fn-212 task 6, the fine
+    /// block), each ring's outline `lobes` lobes `depth` deep.
+    pub(super) fn ring_vertices(
+        &self,
+        (descriptors, rings, vertices): (&wgpu::Buffer, u32, u32),
+        (segments, lobes, depth): (u32, u32, f32),
+        angular: &[[f32; 4]],
+    ) -> Result<Owned> {
+        let limits = self.gpu.device.limits();
+        let config = [
+            rings,
+            0,
+            segments,
+            limits.max_compute_workgroups_per_dimension,
+            0,
+            0,
+            lobes,
+            depth.to_bits(),
+        ];
+        let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
+        let make =
+            |label, size, usage, bytes: &[u8]| io::buffer(&self.gpu, label, size, usage, bytes);
+        let uniform = make(
+            "ring config",
+            32,
+            wgpu::BufferUsages::UNIFORM,
+            bytemuck::cast_slice(&config),
+        )?;
+        let bytes = std::mem::size_of_val(angular) as u64;
+        let angular = make(
+            "ring angular",
+            bytes,
+            storage,
+            bytemuck::cast_slice(angular),
+        )?;
+        let positions = make(
+            "ring positions",
+            u64::from(vertices.max(1)) * 12,
+            storage,
+            &[],
+        )?;
+        // A placeholder each: WebGPU refuses one buffer at two bindings
+        // where either is written.
+        let none = || make("ring none", 32, storage, &[]);
+        let (meta, partial, status) = (none()?, none()?, none()?);
+        let pass = self
+            .positions
+            .as_ref()
+            .expect("resident positions pipeline");
+        let all = [
+            &uniform,
+            descriptors,
+            &angular,
+            &meta,
+            &positions,
+            &partial,
+            &status,
+        ];
+        let bind = pass.bind(&self.gpu, &all);
+        let mut encoder = self.gpu.encoder(&Default::default());
+        if rings > 0 {
+            pass.run(&mut encoder, &bind, 0, rings);
+        }
+        self.gpu.submit([encoder.finish()]);
+        Ok(positions)
     }
 }

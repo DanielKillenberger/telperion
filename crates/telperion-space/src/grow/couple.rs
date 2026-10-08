@@ -6,8 +6,7 @@
 //! light-neutral) are at most the cut leaves the living apexes when its
 //! pencil is made and becomes a fine root. Every cycle it takes part in
 //! the balance, the allocation and the light as its subtree would, and
-//! its records are written; in the full re-lays it stands with its
-//! expected section and load (`couple/stand.rs`).
+//! its records are written (`couple/stand.rs`).
 use crate::transcendental::Transcendental;
 mod stand;
 
@@ -348,17 +347,6 @@ impl Grower<'_> {
             pass.fine[k].records.set_light(cycle + 1, light);
             sketch.pencils[i].light = light;
         }
-    }
-
-    /// The axes of the fine roots whose aggregates live: they stand in the
-    /// full re-lays.
-    pub(super) fn fine_standing(&self) -> Vec<usize> {
-        self.couple.as_ref().map_or_else(Vec::new, |pass| {
-            pass.living()
-                .filter(|f| f.agg.alive())
-                .map(|f| f.axis)
-                .collect()
-        })
     }
 
     /// The frame a fine root's stand-in reads: its axis's base, heading

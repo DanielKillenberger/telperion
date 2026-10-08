@@ -60,6 +60,7 @@ pub fn palm() -> Species {
         rhythm: 0.0,
         // Light and the carbon balance (fn-197), neutral.
         leaf_area: 0.0,
+        flowering: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,

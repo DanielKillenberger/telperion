@@ -25,6 +25,9 @@ pub struct StationSegment {
     pub frame: [Vec3; 3],
     /// Lower/upper ring, then first/last ring on the sweep path.
     pub contact: Option<[u32; 4]>,
+    /// The key of its run's first node (`Tree::key`): with the family's
+    /// seed, the stream its leaves draw from (`tree::leaf_stream`).
+    pub key: u32,
 }
 
 /// No per-leaf positions or transforms are constructed by this preparation.
@@ -165,8 +168,18 @@ fn prepare_inner<C>(
         None
     };
     let runs = plan::runs(tree, envelope, p, Some(twig))?.unwrap_or_default();
+    let fine = tree.in_fine_roots();
+    let (mut points, mut chord, mut along) = (Vec::new(), Vec::new(), Vec::new());
     for run in &runs {
-        let points: Vec<_> = run.nodes.iter().map(|&i| tree.nodes[i].position).collect();
+        // The chord along the run, which its frames read; its stations
+        // stand by the grown wood (`run.along`).
+        plan::walk(
+            tree,
+            &run.nodes,
+            Some(twig),
+            &mut points,
+            (&mut chord, &mut along),
+        );
         // Eight f64 rounding units cover the original multiply/divide angle
         // chain. Keep periodic tile reconstruction below 0.00025 radians of
         // extra uncertainty; larger valid requests use the reference CPU path.
@@ -177,8 +190,12 @@ fn prepare_inner<C>(
         if phase_error > 0.00025 {
             return Ok(None);
         }
-        for (segment, (tangent, normal, binormal)) in
-            station::station_frame_iter(&points, &run.along).enumerate()
+        for (segment, (tangent, normal, binormal)) in station::station_frame_iter(
+            &points,
+            &chord,
+            tree.seed_side(&fine, run.nodes[0], run.nodes[1]),
+        )
+        .enumerate()
         {
             let (first, last) = run.segment_stations(segment, twig);
             if first == last {
@@ -215,10 +232,11 @@ fn prepare_inner<C>(
                     phase: [sin, cos],
                     endpoints: [points[segment], points[segment + 1]],
                     radii: [distal.start_radius, distal.radius],
-                    along: run.along[segment],
-                    span: run.along[segment + 1] - run.along[segment],
+                    along: run.along[segment] * 1e-6,
+                    span: (run.along[segment + 1] - run.along[segment]) * 1e-6,
                     frame: [tangent, normal, binormal],
                     contact,
+                    key: tree.key(run.nodes[1]),
                 });
                 tile_first += tile_count;
             }

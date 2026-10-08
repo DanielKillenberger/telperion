@@ -109,7 +109,7 @@ describe("the slim field entry point", () => {
 
   it("refuses what the core refuses, whole", async () => {
     await expect(growField("no-such-tree", 1, { source })).rejects.toThrow("preset identity");
-    await expect(growField("ordinary", 1, { source })).rejects.toThrow("no engine species");
+    await expect(growField("silver-birch", 1, { source })).rejects.toThrow("no engine species");
     await expect(growField("european-beech", 1.5, { source })).rejects.toThrow("seed");
     await expect(growField("european-beech", 2 ** 32, { source })).rejects.toThrow("seed");
     await expect(growField("european-beech", 1, { limbOrder: -1, source })).rejects.toThrow("limbOrder");

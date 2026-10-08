@@ -53,10 +53,11 @@ pub use closed_form::{expected_counts, expected_kept};
 pub use error::{Error, Result};
 pub use fine::{
     bearer_frame, canonical, chain_cases, digest, grow_coarse, grow_roots, identities, landed,
-    lineage_order, realized_cases, root_axes, settle, survey_laid, survey_lit, BearerFrame,
-    ChainAxis, ChainBud, ChainTables, Coarse, Expanded, Fine, GeometryTables, Lived, Loaded, Order,
-    PaGeometry, PaRow, Plan, Presences, RealizedCase, RootAxes, RootGeometry, RootSeed, Roots,
-    Settled, Stand, Surveyed, UnitZone, Units, Woke, Work, ZoneGeometry,
+    lineage_order, partial, ready, realized_cases, root_axes, settle, survey_laid, survey_lit,
+    BearerFrame, ChainAxis, ChainBud, ChainTables, Coarse, Expanded, Fine, GeometryTables, Lived,
+    Loaded, Order, PaGeometry, PaRow, Partial, Plan, Presences, RealizedCase, RootAxes,
+    RootGeometry, RootSeed, Roots, Settled, Stand, Step, Surveyed, UnitZone, Units, Woke, Work,
+    ZoneGeometry,
 };
 pub use grow::couple::{grow_coupled, Split};
 pub use grow::oracle::{grow_oracle, Oracled, Read};
@@ -67,8 +68,9 @@ pub use grow::stepped::{
     grow_stepped, grow_stepped_on, Cpu, Feedback, Laid, LayJob, LayPa, Stepped,
 };
 pub use grow::subtree::Measured;
-pub use grow::{grow, sketch, Pass, Request, Stage};
+pub use grow::{apart, grow, grow_marked, sketch, Pass, Request, Stage};
 pub use light::{bud_light, field_reads, Light};
+pub use lineage::internode_factor;
 pub use lineage::keys as lineage_keys;
 pub use oak::oak;
 pub use palm::palm;

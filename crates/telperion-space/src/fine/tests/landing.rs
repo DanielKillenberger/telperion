@@ -26,8 +26,14 @@ fn routed(species: &Species, age: u32, seed: u64) -> (usize, usize, usize) {
         threads: crate::cores::available(),
         roots: Vec::new(),
     };
-    let (settled, _) =
-        settle_with(species, (request, &predictor, &rules), plan, &mut cpu, true).expect("settles");
+    let (settled, _) = crate::fine::step::now(settle_with(
+        species,
+        (request, &predictor, &rules),
+        plan,
+        &mut cpu,
+        true,
+    ))
+    .expect("settles");
     let near = settled
         .live
         .iter()
@@ -59,5 +65,39 @@ fn a_root_that_can_reach_the_ground_is_laid_on_the_cpu() {
                 "{name} {seed}: a root not routed came near the ground"
             );
         }
+    }
+}
+
+/// Task 9: a root the spare cores grew ahead lands as the executor lays
+/// its own, to the bit (`spare.rs`), on the beech, which lands its roots
+/// before bending, and the spruce, which lands most once bent.
+#[test]
+fn a_root_grown_ahead_lands_as_the_executor_lays_it() {
+    for (name, species) in [("beech", beech()), ("spruce", spruce())] {
+        let request = request(30, 1);
+        let rules = rules(&species, 30, request.budget).expect("rules");
+        let predictor = Predictor::new(&species, &rules.windows, 30);
+        let plan = Plan::default();
+        let mut cpu = Cpu {
+            species: &species,
+            rules: Some(&rules),
+            plan,
+            threads: crate::cores::available(),
+            roots: Vec::new(),
+        };
+        let at = (request, &predictor, &rules);
+        let (settled, _) = crate::fine::step::now(settle_with(&species, at, plan, &mut cpu, true))
+            .expect("settles");
+        assert!(settled.ahead > 0, "{name}: none grown ahead");
+        assert!(!settled.landed.is_empty(), "{name}: none landed");
+        for (j, root) in &settled.landed {
+            let k = settled.live[*j];
+            assert_eq!(root.axes(), cpu.roots[k].axes(), "{name}: root {k}");
+        }
+        println!(
+            "{name} 30 1: {} grown ahead, {} landed",
+            settled.ahead,
+            settled.landed.len()
+        );
     }
 }

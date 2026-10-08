@@ -37,11 +37,9 @@ struct Trip {
 /// 3 down a root; (ii) demand, 2 up (an f64) and 2 down; (iii) the
 /// normalisers, each PA's two Q64.64 sums (8 words) up and down; (iv) the
 /// lattice's Q64.64 deposits up (4 words a node) and its swept light
-/// down (2). A re-lay adds two trips a root: its section, retained pipe,
-/// mass and moment up (12 words), its bearer's frame down (24), then its
-/// load up and its bent frame down.
-fn schedule(roots: u64, pas: u64, nodes: u64, relay: bool) -> Vec<Trip> {
-    let mut trips = vec![
+/// down (2).
+fn schedule(roots: u64, pas: u64, nodes: u64) -> Vec<Trip> {
+    vec![
         Trip {
             down: 3 * roots,
             up: 3 * roots,
@@ -58,22 +56,14 @@ fn schedule(roots: u64, pas: u64, nodes: u64, relay: bool) -> Vec<Trip> {
             down: 2 * nodes,
             up: 4 * nodes,
         },
-    ];
-    if relay {
-        let frame = Trip {
-            down: 24 * roots,
-            up: 12 * roots,
-        };
-        trips.extend([frame, frame]);
-    }
-    trips
+    ]
 }
 
 struct Buffers {
-    run: wgpu::Buffer,
-    down: wgpu::Buffer,
-    up: wgpu::Buffer,
-    staging: wgpu::Buffer,
+    run: crate::buffer::Owned,
+    down: crate::buffer::Owned,
+    up: crate::buffer::Owned,
+    staging: crate::buffer::Owned,
     bind: wgpu::BindGroup,
 }
 
@@ -92,12 +82,13 @@ fn trip(gpu: &Gpu, pass: &Pass, b: &Buffers, t: Trip, salt: u32) -> Spent {
     gpu.queue
         .write_buffer(&b.down, 0, bytemuck::cast_slice(&down));
     let run = [t.up as u32, salt, 0, 0];
-    gpu.queue.write_buffer(&b.run, 0, bytemuck::cast_slice(&run));
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    gpu.queue
+        .write_buffer(&b.run, 0, bytemuck::cast_slice(&run));
+    let mut encoder = gpu.encoder(&Default::default());
     pass.run(&mut encoder, &b.bind, 0, (t.up as u32).div_ceil(64));
     let bytes = t.up * 4;
     encoder.copy_buffer_to_buffer(&b.up, 0, &b.staging, 0, bytes);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let (send, receive) = std::sync::mpsc::channel();
     b.staging
         .slice(..bytes)
@@ -163,10 +154,15 @@ fn stepping_costs() {
     println!("| Oak | Roots | Lattice nodes | Trips | Total ms | Per trip median / max ms | Submit / wait / read ms |");
     println!("|---|--:|--:|--:|--:|--:|--:|");
     // Fine roots at cut 1,024 (TASK4 PHASES.md, stepped executor's count).
-    for (age, seed, roots) in [(40u32, 1u64, 1_821u64), (40, 7, 2_937), (80, 1, 7_179), (80, 7, 17_370)] {
+    for (age, seed, roots) in [
+        (40u32, 1u64, 1_821u64),
+        (40, 7, 2_937),
+        (80, 1, 7_179),
+        (80, 7, 17_370),
+    ] {
         let nodes = nodes(age, seed);
-        let most = (0..=1)
-            .flat_map(|r| schedule(roots, pas, nodes, r == 1))
+        let most = schedule(roots, pas, nodes)
+            .into_iter()
             .map(|t| t.up.max(t.down))
             .max()
             .expect("a trip");
@@ -190,7 +186,7 @@ fn stepping_costs() {
             let started = Instant::now();
             let mut each = Vec::new();
             for cycle in 1..age {
-                for t in schedule(roots, pas, nodes, cycle % 10 == 0) {
+                for t in schedule(roots, pas, nodes) {
                     each.push(trip(&gpu, &pass, &bufs, t, cycle));
                 }
             }

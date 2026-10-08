@@ -135,7 +135,7 @@ fn sincos(t: u32) -> vec4<u32> {
 // `angle::atan2`: the lesser magnitude over the greater, the nearest
 // thirty-second's table entry and a cubic in u^2 by Horner, the octant
 // restored, to the nearest T.
-fn atan2(y0: vec2<u32>, x0: vec2<u32>) -> u32 {
+fn atan2_t(y0: vec2<u32>, x0: vec2<u32>) -> u32 {
     if is_zero(y0) {
         return select(0u, HALF, negative(x0));
     }
@@ -205,12 +205,12 @@ fn clamp_one(x: vec2<u32>) -> vec2<u32> {
 
 fn asin_t(x0: vec2<u32>) -> u32 {
     let x = clamp_one(x0);
-    return atan2(x, rest(x));
+    return atan2_t(x, rest(x));
 }
 
 fn acos_t(c0: vec2<u32>) -> u32 {
     let c = clamp_one(c0);
-    return atan2(rest(c), c);
+    return atan2_t(rest(c), c);
 }
 
 fn length3(a: vec2<u32>, b: vec2<u32>, c: vec2<u32>) -> vec2<u32> {
@@ -289,6 +289,12 @@ fn unit_w(v: array<vec4<u32>, 3>) -> Normal {
     n.c = unit_of(n);
     n.root = sub64(log2q(n.root), w(0u, bitcast<u32>(n.shift + 64)));
     return n;
+}
+
+// `lay::over` (and `geometry::over`): trunc(a 2^32 / b), as `as i64`.
+fn over(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
+    let q = xquotient(xof(shift4(ext4(a), 32u, true, false)), ext4(b)).v;
+    return vec2<u32>(q[0], q[1]);
 }
 
 // `power::log2_w`.

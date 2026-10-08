@@ -5,6 +5,7 @@
 //! CPU's to the word; the CPU's one sweep of it; the device's samples and
 //! D16 decisions are the CPU's to the word.
 use super::super::io;
+use crate::buffer::Owned;
 use crate::Gpu;
 use telperion_space::fixed::feedback::lattice::Grid;
 use telperion_space::fixed::feedback::slice::{self, Leaf, Read};
@@ -49,8 +50,8 @@ fn read_words(reads: &[Read]) -> Vec<u32> {
 struct Device<'a> {
     gpu: &'a Gpu,
     pass: io::Pass,
-    leaves: wgpu::Buffer,
-    reads: wgpu::Buffer,
+    leaves: Owned,
+    reads: Owned,
     grid: Grid,
 }
 
@@ -58,15 +59,15 @@ const STORAGE: wgpu::BufferUsages = wgpu::BufferUsages::STORAGE.union(wgpu::Buff
 
 impl Device<'_> {
     /// A buffer bound where a pass reads nothing, one a binding.
-    fn unused(&self) -> wgpu::Buffer {
+    fn unused(&self) -> Owned {
         self.buffer("slice unused", &[0; 16])
     }
 
-    fn buffer(&self, label: &'static str, bytes: &[u8]) -> wgpu::Buffer {
+    fn buffer(&self, label: &'static str, bytes: &[u8]) -> Owned {
         io::buffer(self.gpu, label, bytes.len() as u64, STORAGE, bytes).expect("a buffer")
     }
 
-    fn cfg(&self, n: u32, start: u32, capacity: u32) -> wgpu::Buffer {
+    fn cfg(&self, n: u32, start: u32, capacity: u32) -> Owned {
         let groups = n.div_ceil(64);
         let row = groups.min(
             self.gpu

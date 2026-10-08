@@ -63,12 +63,6 @@ fn v_scaled(v0: V3, s: vec2<u32>) -> V3 {
     return V3(mulq(v[0], s), mulq(v[1], s), mulq(v[2], s));
 }
 
-// `lay::over`: trunc(a 2^32 / b), as `as i64`.
-fn over(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
-    let q = xquotient(xof(shift4(ext4(a), 32u, true, false)), ext4(b)).v;
-    return vec2<u32>(q[0], q[1]);
-}
-
 // `lay::falloff`: 1 - e^-x, Q32, floored.
 fn falloff(x: vec2<u32>) -> vec2<u32> {
     return shr64(sub64(p_one(), exp2_neg(smul_shr(x, LOG2E, 62u, false))), 30u);
@@ -104,7 +98,7 @@ fn toward_elevation(d0: V3, side0: V3, elevation: vec2<u32>, share0: vec2<u32>, 
             return d;
         }
     }
-    let now = between(0u, atan2(d[2], lean));
+    let now = between(0u, atan2_t(d[2], lean));
     let to = add64(now, smul_shr(sub64(elevation, now), share, 32u, false));
     let cs = sincos(to.x);
     var o = out.c;

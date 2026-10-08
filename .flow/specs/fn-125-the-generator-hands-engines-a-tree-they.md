@@ -146,3 +146,11 @@ On master these duplicates run only on the fallback branches. The oak's and spru
 fn-190-one-growth-law-species-are-points-in-a replaces the growth stage. Whether the beech's short shoots are grown wood carrying leaves or foliage stations on existing wood is decided in fn-190-one-growth-law-species-are-points-in-a's R2 and written into both specs; this spec optimizes the station types growth produces and otherwise proceeds in parallel. [user]
 
 The contract also removes the outline-based leaf cull (`foliage.rs:255`, `place.wgsl`) and limb clumping as thinning: growth decides where leaves are, so expansion places them without culling (owner, 2026-10-03). Until fn-190's R2 lands, this spec does not invest in optimizing the cull. [user]
+
+## Flowers from fn-216 (host, 2026-10-08)
+
+fn-216 task 2 ships the flowers through one CPU step both executors take (`Expansion::organ`; host decision (a)). Two named items for this spec:
+
+- **The GPU bloom pass.** Each floret is computed on the GPU as a pure function of (bloom, index, seed), keyed by the node's lineage key (fn-220), packed into the same three words as a leaf, with its own compaction (FLOWERS-DESIGN.md section 3, "GPU"). It replaces the CPU step on the GPU executor.
+- **Flowers cast shadows.** The organ draw is not in the shadow pass yet (`telperion-render/src/lib.rs`, the shadow pass draws wood and leaves only).
+

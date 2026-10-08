@@ -56,9 +56,10 @@ const RELAYED: u32 = 3u;
 const IS_WOKEN: u32 = 0x80000u;
 // A laid axis: its base before bending and as laid, its PA, and its
 // first phytomer's index; a laid phytomer: as laid (tip, heading, side),
-// before bending, its radius, scale and rank.
+// before bending, its radius, scale and rank, its phase, its internode's
+// factor, and its key (`Phytomer::key`, two words; fn-229).
 const AL: u32 = 8u;
-const PL: u32 = 23u;
+const PL: u32 = 26u;
 // The scratch: per region axis, then per region phytomer.
 const SA: u32 = 70u;
 const SP: u32 = 12u;
@@ -81,7 +82,7 @@ const P_NODE: u32 = 1u;
 const P_LOAD: u32 = 2u;
 const P_LEVER: u32 = 6u;
 // The geometry table: a PA's block and a row.
-const GG: u32 = 25u;
+const GG: u32 = 38u;
 
 var<private> ax0: u32;
 var<private> ph0: u32;
@@ -201,7 +202,7 @@ fn pa_of(pa: u32) -> Pa {
     return Pa(gtab[b], gtab[b + 1u], gtab[b + 2u], gtab[b + 3u], gtab[b + 4u], gtab[b + 5u], gtab[b + 6u], gtab[b + 7u], gtab[b + 8u], gtab[b + 9u], gtab[b + 10u], gtab[b + 11u], gtab[b + 12u], gtab[b + 13u], gtab[b + 14u], gtab[b + 15u], gtab[b + 16u], gtab[b + 17u], gtab[b + 18u], gtab[b + 19u], gtab[b + 22u], gtab[b + 23u], gtab[b + 24u]);
 }
 
-fn ripe(years: f32, ripening: f32) -> f32 {
+fn ripe_f(years: f32, ripening: f32) -> f32 {
     if ripening <= 0.0 {
         return 1.0;
     }
@@ -212,7 +213,7 @@ fn dominance(d: f32, lineage: vec2<u32>) -> f32 {
     if d <= 0.0 {
         return 1.0;
     }
-    let held_share = pow(unit_of(child(lineage, KEY_DOMINANCE)), 4.0);
+    let held_share = pow(key_unit(child(lineage, KEY_DOMINANCE)), 4.0);
     return 1.0 - d * (1.0 - held_share);
 }
 

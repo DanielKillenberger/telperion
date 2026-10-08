@@ -6,13 +6,12 @@
 //!
 //! A partitioned run keeps each axis's own work and every bearer-to-child
 //! reduction (they read one axis and its children, in the tree's order),
-//! so those are the whole tree's arithmetic wherever the work runs. Three
+//! so those are the whole tree's arithmetic wherever the work runs. Two
 //! reductions run over the whole tree in its index order and cannot be
 //! taken from per-root totals without regrouping their sums:
 //!
 //! - **sizes**: each PA's Σp and Σp(v/p)^ψ (decision 23), phase (iii);
-//! - **leaves**: the lattice's deposits, phase (iv);
-//! - **girth**: the leaf-light girth's tree-wide mean in a re-lay.
+//! - **leaves**: the lattice's deposits, phase (iv).
 //!
 //! Each is regrouped here as a partition would group it: the structure
 //! above the cut in index order, then each fine root's own partial in its
@@ -31,7 +30,6 @@ use crate::fixed::feedback::total::Total;
 use crate::light::Field;
 use crate::species::Species;
 use crate::structure::{Structure, Vec3};
-use crate::transcendental::Transcendental;
 use std::collections::HashMap;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
@@ -50,7 +48,6 @@ pub struct Grouping {
     pub chunk: usize,
     pub sizes: bool,
     pub leaves: bool,
-    pub girth: bool,
 }
 
 /// One partitioned run: its cut and its grouping.
@@ -61,7 +58,7 @@ pub struct Run {
 }
 
 /// The phases of a cycle (DESIGN-INTERLEAVE.md, Astra change 1): balance,
-/// allocation, growth and waking, then layout, re-lay and light.
+/// allocation, growth and waking, then layout and light.
 pub const PHASES: [&str; 4] = ["balance", "allocation", "growth", "light"];
 
 /// A tree grown under probe (a): its state hashed after each phase of
@@ -190,12 +187,11 @@ pub(crate) fn hash(values: impl Iterator<Item = f64>) -> u64 {
     h.finish()
 }
 
-/// Which of the three sums a run regroups.
+/// Which of the two sums a run regroups.
 #[derive(Clone, Copy)]
 enum Which {
     Sizes,
     Leaves,
-    Girth,
 }
 
 impl Which {
@@ -203,7 +199,6 @@ impl Which {
         match self {
             Which::Sizes => g.sizes,
             Which::Leaves => g.leaves,
-            Which::Girth => g.girth,
         }
     }
 }
@@ -280,43 +275,6 @@ impl Grower<'_> {
                 .collect();
             let leaves = regroup(&self.leaves, &owner, &run.grouping);
             if Field::deposited(&leaves, tips) != reference {
-                self.differs(k, cycle, 3);
-            }
-        }
-    }
-
-    /// Each run's leaf-light girth sums for re-laid `tree` (its axes from
-    /// the grower's `from`) against the tree's own.
-    pub(super) fn check_girth(&mut self, cycle: u32, tree: &Structure, from: &[usize]) {
-        let species = self.species;
-        if species.states.iter().all(|s| s.leaf_girth == 0.0) {
-            return;
-        }
-        let runs = self.runs(Which::Girth);
-        if runs.is_empty() {
-            return;
-        }
-        let mut terms = Vec::new();
-        for (axis, &i) in tree.axes.iter().zip(from) {
-            let state = &species.states[axis.pa];
-            for p in &axis.phytomers {
-                let pipe = crate::girth::own(&state.form, p, tree.age, p.scale, 1.0);
-                let w = crate::allocation::w_of;
-                terms.push((
-                    i,
-                    vec![w(pipe), w(pipe * p.light.powf_fixed(state.leaf_girth))],
-                ));
-            }
-        }
-        let whole: Vec<_> = terms.iter().map(|(_, v)| (None, v.clone())).collect();
-        let reference = grouped(&whole, 2, None);
-        for (k, run) in runs {
-            let oracle = self.oracle.as_mut().expect("an oracle");
-            let items: Vec<_> = terms
-                .iter()
-                .map(|(i, v)| (oracle.root_at(&self.axes, *i, run.cut), v.clone()))
-                .collect();
-            if grouped(&items, 2, Some(&run.grouping)) != reference {
                 self.differs(k, cycle, 3);
             }
         }

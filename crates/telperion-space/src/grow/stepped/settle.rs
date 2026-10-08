@@ -8,7 +8,7 @@
 //! tree is the whole tree's to the bit.
 use super::{Executor, ITEMS};
 use crate::error::Result;
-use crate::fine::{assemble, settle_grown, Above, Clock, Cpu, Fine, Made, Plan, Root, Stages};
+use crate::fine::{assemble, now, settle_grown, Above, Clock, Cpu, Fine, Made, Plan, Root, Stages};
 use crate::fixed::presence::{q, real, times};
 use crate::grow::realized::Assigned;
 use crate::presence::assign;
@@ -85,7 +85,9 @@ impl Executor<'_> {
             threads,
             roots,
         };
-        let settled = settle_grown(
+        // The CPU's steps are ready at once, so the settle is driven to
+        // its end here on any target.
+        let settled = now(settle_grown(
             species,
             (request, &rules, plan, threads),
             Above { grown, seats },
@@ -93,7 +95,7 @@ impl Executor<'_> {
             &mut cpu,
             None,
             (Clock::default(), Stages::default()),
-        )?;
+        ))?;
         assemble(settled, cpu.roots, &*counts)
     }
 }

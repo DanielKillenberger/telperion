@@ -1,8 +1,7 @@
 //! The lit oak's fine roots on the GPU against the all-CPU run (fn-211
 //! task 10; Astra's review of CONTRACT-A.md, section 4, its integration
-//! proof): a small lit specimen spanning two scheduled re-lays, every
-//! grower's whole state after every phase of every cycle and every
-//! cycle's lattice compared word for word.
+//! proof): a small lit specimen, every grower's whole state after every
+//! phase of every cycle and every cycle's lattice compared word for word.
 use super::feedback_stepped::{Device, Taken};
 use telperion_space::fixed::feedback::lattice::Grid;
 use telperion_space::fixed::feedback::shed::{Lateral, Walked};
@@ -18,7 +17,6 @@ fn grouping(order: Order, chunk: usize) -> telperion_space::Grouping {
         chunk,
         sizes: true,
         leaves: true,
-        girth: true,
     }
 }
 

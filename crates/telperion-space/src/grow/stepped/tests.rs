@@ -24,7 +24,6 @@ fn grouping(order: Order, chunk: usize) -> Grouping {
         chunk,
         sizes: true,
         leaves: true,
-        girth: true,
     }
 }
 

@@ -49,7 +49,6 @@ export interface GenerationStages {
   descriptorsMs: number;
   uploadDispatchMs: number;
   placementWaitMs: number;
-  compactMs: number;
   massMs: number;
   readbackMs: number;
   woodMs: number;

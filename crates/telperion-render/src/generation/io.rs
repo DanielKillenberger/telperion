@@ -1,3 +1,4 @@
+use crate::buffer::Owned;
 use crate::{Gpu, RenderError, Result};
 
 pub(super) fn buffer(
@@ -6,7 +7,7 @@ pub(super) fn buffer(
     bytes: u64,
     usage: wgpu::BufferUsages,
     initial: &[u8],
-) -> Result<wgpu::Buffer> {
+) -> Result<Owned> {
     let size = bytes.max(16).next_multiple_of(4);
     let limits = gpu.device.limits();
     let limit = if usage.contains(wgpu::BufferUsages::STORAGE) {
@@ -23,12 +24,15 @@ pub(super) fn buffer(
             limit,
         });
     }
-    let buffer = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some(label),
-        size,
-        usage: usage | wgpu::BufferUsages::COPY_DST,
-        mapped_at_creation: false,
-    });
+    let buffer = Owned::create(
+        gpu,
+        &wgpu::BufferDescriptor {
+            label: Some(label),
+            size,
+            usage: usage | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        },
+    );
     if !initial.is_empty() {
         gpu.queue.write_buffer(&buffer, 0, initial);
     }
@@ -41,6 +45,11 @@ pub(super) struct Pass {
     maximum: u32,
     #[cfg(test)]
     entries: Vec<String>,
+    /// Which bindings the shader writes, the uniform first: WebGPU
+    /// refuses a dispatch whose writable binding shares its buffer with
+    /// any other binding, which native Vulkan lets pass (fn-212 task 10).
+    #[cfg(test)]
+    writable: Vec<bool>,
 }
 impl Pass {
     pub fn new(gpu: &Gpu, shader: String, read_only: &[bool], entries: &[&str]) -> Self {
@@ -105,9 +114,25 @@ impl Pass {
             maximum: gpu.device.limits().max_compute_workgroups_per_dimension,
             #[cfg(test)]
             entries: entries.iter().map(|e| e.to_string()).collect(),
+            #[cfg(test)]
+            writable: std::iter::once(false)
+                .chain(read_only.iter().map(|&r| !r))
+                .collect(),
         }
     }
     pub fn bind(&self, gpu: &Gpu, buffers: &[&wgpu::Buffer]) -> wgpu::BindGroup {
+        #[cfg(test)]
+        for (i, a) in buffers.iter().enumerate() {
+            for (j, b) in buffers.iter().enumerate().skip(i + 1) {
+                let written = self.writable[i] || self.writable[j];
+                assert!(
+                    !(written && a == b),
+                    "{:?}: bindings {i} and {j} share a buffer one of them writes, \
+                     which WebGPU refuses",
+                    self.entries
+                );
+            }
+        }
         gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("experimental generation"),
             layout: &self.layout,
@@ -149,7 +174,7 @@ impl Pass {
 }
 
 pub(super) struct PendingRead {
-    target: wgpu::Buffer,
+    target: crate::buffer::Owned,
     receive: futures_channel::oneshot::Receiver<std::result::Result<(), wgpu::BufferAsyncError>>,
     bytes: u64,
 }
@@ -162,9 +187,9 @@ pub(super) fn begin_read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result
         wgpu::BufferUsages::MAP_READ,
         &[],
     )?;
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     encoder.copy_buffer_to_buffer(source, 0, &target, 0, bytes);
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let (send, receive) = futures_channel::oneshot::channel();
     target
         .slice(..bytes)
@@ -256,18 +281,21 @@ pub(super) async fn read_leaves_chunked(
     let mut leaves = reserve_leaves(count)?;
     let scopes = scope(gpu);
     let result = async {
-        let target = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("bounded leaf readback"),
-            size: chunk_bytes,
-            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
+        let target = Owned::create(
+            gpu,
+            &wgpu::BufferDescriptor {
+                label: Some("bounded leaf readback"),
+                size: chunk_bytes,
+                usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            },
+        );
         let mut offset = 0;
         while offset < bytes {
             let length = chunk_bytes.min(bytes - offset);
-            let mut encoder = gpu.device.create_command_encoder(&Default::default());
+            let mut encoder = gpu.encoder(&Default::default());
             encoder.copy_buffer_to_buffer(source, offset, &target, 0, length);
-            gpu.queue.submit([encoder.finish()]);
+            gpu.submit([encoder.finish()]);
             let (send, receive) = futures_channel::oneshot::channel();
             target
                 .slice(..length)
@@ -330,8 +358,7 @@ pub(super) fn error(detail: String) -> RenderError {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(test)]
+#[cfg(all(test, not(target_arch = "wasm32")))]
 pub(super) fn read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result<Vec<u8>> {
     pollster::block_on(read_async(gpu, source, bytes))
 }

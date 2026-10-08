@@ -17,3 +17,11 @@ One species per spec (AGENTS.md); the tree-space programme (`docs/tree-space.md`
 ## Boundaries
 
 Depends on fn-198 and the flowers spec. The White Tree, Mallorn and Yggdrasil stay fn-10's.
+
+## Blossom follow-ups from fn-216 (host, 2026-10-08)
+
+fn-216 accepted its stills as an organ test (`.flow/evidence/fn-216-tree-space-flowers-on-the-engine-path/STILLS.md`). Two gaps belong to the first spec that needs a blossoming species, and to this spec at the latest, since Laurelin and Telperion are defined by their blossom:
+
+1. **Florets read as flat white scraps, not five-petal flowers,** beside the cherry corymb.
+2. **Blossom vanishes at whole-tree distance,** where a flowering cherry reads as a white mass.
+

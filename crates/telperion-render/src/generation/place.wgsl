@@ -1,13 +1,11 @@
 const FAR:f32=3.402823466e38;
 struct Config {
     counts:vec4<u32>, // stations, segments, element vertices, ring vertices per ring
-    random:vec4<u32>, // seed, stations per internode, workgroups, profile points
+    random:vec4<u32>, // seed, stations per internode, workgroups, unused
     box_min:vec4<f32>, box_extent:vec4<f32>,
     shape:vec4<f32>, // internode, divergence radians, contact, scatter radians
     lean:vec4<f32>, // forward, rise, outward, upward
-    size:vec4<f32>, // size, variation, shell, unused
-    envelope:vec4<f32>, // height, crown base, max radius, fullness
-    curve:vec4<f32>, // shoulder
+    size:vec4<f32>, // size, variation, unused, unused
 }
 struct Segment {
     a:vec4<f32>, b:vec4<f32>, tangent:vec4<f32>, normal:vec4<f32>, binormal:vec4<f32>,
@@ -17,75 +15,57 @@ struct Segment {
 @group(0) @binding(1) var<storage,read> segments:array<Segment>;
 @group(0) @binding(2) var<storage,read> rings:array<f32>;
 @group(0) @binding(3) var<storage,read> geometry:array<vec4<f32>>;
-@group(0) @binding(4) var<storage,read_write> raw:array<u32>;
-@group(0) @binding(5) var<storage,read_write> ranks:array<u32>;
-@group(0) @binding(6) var<storage,read_write> summary:array<atomic<u32>>;
+@group(0) @binding(4) var<storage,read_write> leaves:array<u32>;
+@group(0) @binding(5) var<storage,read_write> summary:array<atomic<u32>>;
 fn finite(v:vec3<f32>) -> bool { return all(abs(v)<=vec3<f32>(FAR)); }
-fn radius_at(y:f32) -> f32 {
-    let base=config.envelope.x*config.envelope.y; let span=config.envelope.x-base;
-    if span<=0.0 { return 0.0; }
-    let t=(y-base)/span; if t<=0.0 || t>=1.0 { return 0.0; }
-    var p=(t-config.envelope.w)/(1.0-config.envelope.w);
-    if t<config.envelope.w { p=1.0-t/config.envelope.w; }
-    return config.envelope.z*quadrant(p,config.curve.x);
-}
-// The core's Envelope::radius_at quadrant, (1-p^s)^(1/s): log and exp, with
-// 1-p^s kept exact near the ends by expm1's series, and a straight shoulder.
-fn quadrant(p:f32, s:f32) -> f32 {
-    if s==1.0 { return max(1.0-p,0.0); }
-    if p<=0.0 { return 1.0; }
-    let a=s*log(p); var rest=1.0-exp(a);
-    if a>-0.0625 { rest=-a*(1.0+a*(0.5+a*(1.0/6.0+a/24.0))); }
-    if rest<=0.0 { return 0.0; }
-    return exp(log(rest)/s);
-}
-fn in_shell(p:vec3<f32>) -> bool {
-    let r=length(p.xz); let shell=config.size.z;
-    if radius_at(p.y)-r<=shell { return true; }
-    let at=vec2<f32>(r,p.y);
-    for(var i=1u;i<config.random.w;i++) {
-        let a=geometry[config.counts.z+i-1u].xy; let b=geometry[config.counts.z+i].xy;
-        let delta=b-a; let norm=dot(delta,delta); var t=0.0;
-        if norm>0.0 { t=clamp(dot(at-a,delta)/norm,0.0,1.0); }
-        if distance(at,a+delta*t)<=shell { return true; }
-    }
-    return false;
-}
-var<workgroup> scan:array<u32,256>;
+// Every placed leaf is drawn, in its station's order: the shell's
+// rejection is gone (fn-198 R1, fn-212 R2).
 var<workgroup> bounds:array<f32,3072>;
 @compute @workgroup_size(256)
-fn place(@builtin(global_invocation_id) gid:vec3<u32>, @builtin(local_invocation_index) lane:u32, @builtin(workgroup_id) group:vec3<u32>, @builtin(num_workgroups) grid:vec3<u32>) {
+fn place(@builtin(local_invocation_index) lane:u32, @builtin(workgroup_id) group:vec3<u32>, @builtin(num_workgroups) grid:vec3<u32>) {
     let group_index=group.x+group.y*grid.x;
     if group_index>=config.random.z { return; }
-    let index=group_index*256u+lane; var alive=false; var words=vec3<u32>(0u);
+    let index=group_index*256u+lane;
+    var words=vec3<u32>(0u);
+    let live=index<config.counts.x;
+    if live { words=station(index); }
+    written(index,words,live,lane);
+}
+// The device's florets (fn-229), in the same submission as its leaves:
+// `segments` holds one record a bloom (`stations.wgsl`'s `blooms`), and
+// each floret is drawn as `bloom.wgsl` draws it and packed as a leaf is.
+@compute @workgroup_size(256)
+fn bloom(@builtin(local_invocation_index) lane:u32, @builtin(workgroup_id) group:vec3<u32>, @builtin(num_workgroups) grid:vec3<u32>) {
+    let group_index=group.x+group.y*grid.x;
+    if group_index>=config.random.z { return; }
+    let index=group_index*256u+lane;
+    var words=vec3<u32>(0u);
+    let live=index<config.counts.x;
+    if live { words=floret_words(index); }
+    written(index,words,live,lane);
+}
+// A placed instance written at its place, and the workgroup's bounds
+// folded: the crown's from their origins, the whole tree's from every
+// vertex.
+fn written(index:u32, words:vec3<u32>, live:bool, lane:u32) {
     var crown_min=vec3<f32>(FAR); var crown_max=vec3<f32>(-FAR);
     var full_min=vec3<f32>(FAR); var full_max=vec3<f32>(-FAR);
-    if index<config.counts.x {
-        words=station(index);
+    if live {
         let matrix=leaf_transform(words,config.box_min.xyz,config.box_extent.xyz);
         for(var v=0u;v<config.counts.z;v++) {
             let p=(matrix*vec4<f32>(geometry[v].xyz,1.0)).xyz;
             if !finite(p) { atomicOr(&summary[1],2u); }
             full_min=min(full_min,p);full_max=max(full_max,p);
-            // Bounds need all vertices even after one vertex retains the leaf.
-            if !alive { alive=in_shell(p); }
         }
-        if alive { crown_min=matrix[3].xyz;crown_max=crown_min; }
+        crown_min=matrix[3].xyz;crown_max=crown_min;
+        let at=index+config.random.w;
+        leaves[at*3u]=words.x;leaves[at*3u+1u]=words.y;leaves[at*3u+2u]=words.z;
     }
-    if !alive { full_min=vec3<f32>(FAR);full_max=vec3<f32>(-FAR); }
     for(var j=0u;j<3u;j++) {
         bounds[lane*12u+j]=crown_min[j];bounds[lane*12u+3u+j]=crown_max[j];
         bounds[lane*12u+6u+j]=full_min[j];bounds[lane*12u+9u+j]=full_max[j];
     }
-    scan[lane]=select(0u,1u,alive); workgroupBarrier();
-    for(var offset=1u;offset<256u;offset*=2u) {
-        var add=0u; if lane>=offset { add=scan[lane-offset]; }
-        workgroupBarrier();scan[lane]+=add;workgroupBarrier();
-    }
-    if index<config.counts.x {
-        ranks[index]=select(0xffffffffu,scan[lane]-1u,alive);
-        raw[index*3u]=words.x;raw[index*3u+1u]=words.y;raw[index*3u+2u]=words.z;
-    }
+    workgroupBarrier();
     for(var step=128u;step>0u;step/=2u) {
         if lane<step {
             for(var j=0u;j<12u;j++) {
@@ -96,18 +76,36 @@ fn place(@builtin(global_invocation_id) gid:vec3<u32>, @builtin(local_invocation
         workgroupBarrier();
     }
     if lane==0u {
-        atomicStore(&summary[16u+group_index],scan[255]);
         for(var j=0u;j<12u;j++) {
             if (j/3u)%2u==0u { atomicMin(&summary[2u+j],ordered(bounds[j])); }
             else { atomicMax(&summary[2u+j],ordered(bounds[j])); }
         }
     }
 }
-@compute @workgroup_size(1)
-fn prefix() {
-    var total=0u;
-    for(var group=0u;group<config.random.z;group++) {
-        let count=atomicLoad(&summary[16u+group]);atomicStore(&summary[16u+group],total);total+=count;
+// A floret's three words: its bloom's record found by its first floret
+// (the node and its bloom's growth, its parent, its bud's side, and its
+// first floret, count and key), its index among the bloom's kept florets,
+// and its transform at its size, packed against the box.
+fn floret_words(index:u32) -> vec3<u32> {
+    var lo=0u; var hi=config.counts.y;
+    while lo+1u<hi { let mid=lo+(hi-lo)/2u; if segments[mid].range.x<=index { lo=mid; } else { hi=mid; } }
+    let r=segments[lo];
+    let f=Flower(config.shape,config.lean,config.size);
+    let key=r.range.zw;
+    let ordinal=index-r.range.x;
+    var i=0u; var seen=0u; var size=0.0;
+    loop {
+        size=floret_size(f,r.a.w,key,i);
+        if floret_kept(size) { if seen==ordinal { break; } seen++; }
+        i++;
     }
-    atomicStore(&summary[0],total);
+    let fl=floret(f,r.a.xyz,r.b.xyz,r.tangent.xyz,key,i);
+    let side=cross(fl.stalk,fl.face);
+    if !finite(fl.point) || !finite(fl.stalk) || !finite(fl.face) || !(size>=0.0 && size<=65504.0) {
+        atomicOr(&summary[1],2u);
+    }
+    if any(fl.point<config.box_min.xyz) || any(fl.point>config.box_min.xyz+config.box_extent.xyz) { atomicOr(&summary[1],4u); }
+    let norm=clamp((fl.point-config.box_min.xyz)/max(config.box_extent.xyz,vec3<f32>(1e-30)),vec3<f32>(0.0),vec3<f32>(1.0));
+    let codes=vec3<u32>(floor(norm*65535.0+vec3<f32>(0.5)));
+    return vec3<u32>(rotation_word(side,fl.stalk,fl.face),codes.x|(codes.y<<16u),codes.z|(pack2x16float(vec2<f32>(0.0,size))&0xffff0000u));
 }

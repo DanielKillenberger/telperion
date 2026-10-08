@@ -169,6 +169,7 @@ pub enum Site {
     Leaf,
     LeafCounts,
     Shell,
+    Bloom,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -247,6 +248,12 @@ pub struct Tuning {
     pub unset: Option<f64>,
 }
 /// A dial that steps across the row's own bounds.
+/// No flower row is tuned until a species flowers (fn-216).
+pub const FLOWERS: Dial = Dial::Excluded(
+    "Dormant on every shipped species until one flowers; that species' spec opens its \
+     flowers to tuning (fn-216).",
+);
+
 pub const fn bounded(id: &'static str, ask: &'static str, steps: [f64; 2]) -> Dial {
     Dial::Tuned(Tuning {
         id,

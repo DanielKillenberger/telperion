@@ -247,13 +247,22 @@ fn gone(x: f32) -> f32 {
 }
 
 // A key's draw as a real in [0, 1).
-fn unit_of(key: vec2<u32>) -> f32 {
+fn key_unit(key: vec2<u32>) -> f32 {
     return real_of(draw(key));
 }
 
 // A 53-bit draw as a real in [0, 1).
 fn real_of(d: vec2<u32>) -> f32 {
     return (f32(d.y) * 4294967296.0 + f32(d.x)) * (1.0 / 9007199254740992.0);
+}
+
+// The factor the internode of the node keyed `key` is laid at
+// (`lineage::internode`, fn-222): 1 + spread (2u - 1), one without spread.
+fn internode_factor(f: Pa, key: vec2<u32>) -> f32 {
+    if f.internode_spread <= 0.0 {
+        return 1.0;
+    }
+    return 1.0 + f.internode_spread * (2.0 * real_of(internode_draw(key)) - 1.0);
 }
 
 // `Layer::step`: lays the next phytomer from `walk`; its own pull `bend`
@@ -269,7 +278,7 @@ fn step(walk: ptr<function, Walk>, p: ptr<function, Step>, f: Pa, own: vec2<f32>
     var len = f.internode * (*p).scale;
     // The node's internode draw (fn-222), mean one.
     if f.internode_spread > 0.0 {
-        len = len * (1.0 + f.internode_spread * (2.0 * real_of(internode_draw((*p).key)) - 1.0));
+        len = len * internode_factor(f, (*p).key);
     }
     let share = gone(f.tropism * len);
     let bent = toward_elevation(running, across, f.elevation, share);
@@ -282,9 +291,9 @@ fn step(walk: ptr<function, Walk>, p: ptr<function, Step>, f: Pa, own: vec2<f32>
     var u0 = 0.0;
     if f.wander > 0.0 {
         let key = child((*p).key, KEY_WANDER);
-        u0 = unit_of(child(key, w(0u, 0u)));
+        u0 = key_unit(child(key, w(0u, 0u)));
         draw0 = f.wander * (2.0 * u0 - 1.0);
-        let azimuth = TAU * unit_of(child(key, w(1u, 0u)));
+        let azimuth = TAU * key_unit(child(key, w(1u, 0u)));
         pivot = across * cos(azimuth) + cross(running, across) * sin(azimuth);
         kicked = true;
     }

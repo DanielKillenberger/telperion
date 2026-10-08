@@ -97,7 +97,7 @@ fn metrics(m: &Metrics) -> String {
         (m.gpu_positions, m.wood_prepared_cpu_bytes),
         (m.wood_metadata_cpu_bytes, m.wood_gpu_peak_bytes),
         (m.wood_backend, m.wood_fallback, m.base_cpu_bytes),
-        (m.wood_cpu_bytes, m.retained_gpu_bytes, m.input_instances),
+        (m.wood_cpu_bytes, m.retained_gpu_bytes),
         (
             m.instances,
             m.descriptor_cpu_bytes,

@@ -135,6 +135,11 @@ pub struct PaState {
     /// metres: what its leaves lend the light's lattice (`light.rs`).
     /// Neutral 0, leafless; dormant without extinction.
     pub leaf_area: f64,
+    /// The share of this PA's kept nodes that bear an inflorescence: where
+    /// a species flowers, by its architectural model (fn-216 host decision
+    /// 1). The engine grows nothing of it; the pipeline's expansion draws
+    /// the flowers. Neutral 0, flowerless.
+    pub flowering: f64,
     /// How shade raises an apex's yearly death hazard: its survival is
     /// its viability to the power light^-shade_hazard, so ln survival =
     /// ln viability times light^-φ (host, 2026-10-05). Neutral 0; dormant

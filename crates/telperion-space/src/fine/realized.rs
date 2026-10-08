@@ -19,6 +19,7 @@
 //! phytomer stands for the node the root grows on, so every pass is the
 //! whole tree's own, run on the root's axes.
 use super::expansion::{Lived, Loaded, RootSeed, Roots};
+use super::step::{ready, Step};
 use super::{each, pick, Plan, Work};
 use crate::error::Result;
 use crate::fixed::feedback::total::Total;
@@ -315,27 +316,64 @@ fn node_phytomer() -> Phytomer {
 /// The bearer as a root's tree holds it: its phytomer at `node` alone,
 /// standing on the point below it, as laid, and the phase of its
 /// phyllotaxis (`geometry::phase`).
-pub(crate) fn stub((bearer, phase): (&Axis, i64), node: usize) -> Axis {
-    let below = node
-        .checked_sub(1)
-        .map_or(bearer.base, |n| bearer.phytomers[n].tip);
-    Axis {
-        lineage: bearer.lineage,
-        pa: bearer.pa,
-        birth: bearer.birth,
-        origin: Origin::Seed,
-        vigour: 1.0,
-        blend: 1.0,
-        apex_end: None,
-        base: below,
-        heading: Vec3::default(),
-        side: Vec3::default(),
-        phytomers: vec![bearer.phytomers[node]],
-        units: Vec::new(),
-        alive: 0.0,
-        rank: 0.0,
-        sleep: 0.0,
-        phase,
+pub(crate) fn stub(bearer: (&Axis, i64), node: usize) -> Axis {
+    Stub::of(bearer, node).axis()
+}
+
+/// A root's bearer's stub as plain values (task 9): what `stub` makes its
+/// axis of, kept without one.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Stub {
+    lineage: u64,
+    pa: usize,
+    birth: u32,
+    below: Vec3,
+    phytomer: Phytomer,
+    phase: i64,
+}
+
+impl Stub {
+    /// `bearer`'s stub at its `node`, as laid, with its phyllotaxis's
+    /// `phase`.
+    pub fn of((bearer, phase): (&Axis, i64), node: usize) -> Self {
+        let below = node
+            .checked_sub(1)
+            .map_or(bearer.base, |n| bearer.phytomers[n].tip);
+        Self {
+            lineage: bearer.lineage,
+            pa: bearer.pa,
+            birth: bearer.birth,
+            below,
+            phytomer: bearer.phytomers[node],
+            phase,
+        }
+    }
+
+    /// Its lowest point: the lower of its base and its tip.
+    pub fn low(&self) -> f64 {
+        self.below.z.min(self.phytomer.tip.z)
+    }
+
+    /// The stub as a root's tree holds it (axis 0).
+    pub fn axis(&self) -> Axis {
+        Axis {
+            lineage: self.lineage,
+            pa: self.pa,
+            birth: self.birth,
+            origin: Origin::Seed,
+            vigour: 1.0,
+            blend: 1.0,
+            apex_end: None,
+            base: self.below,
+            heading: Vec3::default(),
+            side: Vec3::default(),
+            phytomers: vec![self.phytomer],
+            units: Vec::new(),
+            alive: 0.0,
+            rank: 0.0,
+            sleep: 0.0,
+            phase: self.phase,
+        }
     }
 }
 
@@ -352,39 +390,54 @@ pub(crate) struct Cpu<'s, 'r> {
 }
 
 impl Roots for Cpu<'_, '_> {
-    fn grow(&mut self, seeds: &[RootSeed]) -> Result<(Vec<Lived>, u64)> {
+    fn grow<'a>(&'a mut self, seeds: &'a [RootSeed]) -> Step<'a, Result<(Vec<Lived>, u64)>> {
         let species = self.species;
         if let Some(rules) = self.rules {
             let mut slots: Vec<&RootSeed> = seeds.iter().collect();
             let grown = each(&mut slots, self.plan, self.threads, &|_, s| {
                 Root::grow(species, rules, &s.handed)
             });
-            self.roots = grown.into_iter().collect::<Result<Vec<Root>>>()?;
+            match grown.into_iter().collect::<Result<Vec<Root>>>() {
+                Ok(roots) => self.roots = roots,
+                Err(e) => return ready(Err(e)),
+            }
         }
         let living = self.roots.iter().map(|r| (r.living.lived, r.living.alive));
         let phytomers = self.roots.iter().map(|r| r.work.grown).sum();
-        Ok((living.collect(), phytomers))
+        ready(Ok((living.collect(), phytomers)))
     }
 
-    fn girth(&mut self, live: &[usize], scales: &[(f64, f64)]) -> Vec<f64> {
+    fn girth<'a>(
+        &'a mut self,
+        live: &'a [usize],
+        scales: &'a [(f64, f64)],
+    ) -> Step<'a, Result<Vec<f64>>> {
         let species = self.species;
         let mut alive = pick(&mut self.roots, live);
         each(&mut alive, self.plan, self.threads, &|j, r| {
             r.girth(species, scales[j])
         });
-        live.iter().map(|&k| self.roots[k].radius).collect()
+        ready(Ok(live.iter().map(|&k| self.roots[k].radius).collect()))
     }
 
-    fn lay(&mut self, tree: &Structure, live: &[usize], bearers: &[usize]) -> Result<Vec<Loaded>> {
+    fn lay<'a>(
+        &'a mut self,
+        tree: &'a Structure,
+        live: &'a [usize],
+        bearers: &'a [usize],
+    ) -> Step<'a, Result<Vec<Loaded>>> {
         let species = self.species;
         let mut alive = pick(&mut self.roots, live);
         let laid = each(&mut alive, self.plan, self.threads, &|j, r| {
             let b = bearers[j];
             r.lay(species, (&tree.axes[b], phase(&tree.axes, species, b)))
         });
-        laid.into_iter().collect::<Result<()>>()?;
         let load = |k: usize| self.roots[k].load.real();
-        Ok(live.iter().map(|&k| load(k)).collect())
+        ready(
+            laid.into_iter()
+                .collect::<Result<()>>()
+                .map(|()| live.iter().map(|&k| load(k)).collect()),
+        )
     }
 
     fn grown_partials(&mut self, stands: &[(i64, f64)]) -> Result<Vec<[Total; 2]>> {
@@ -401,13 +454,18 @@ impl Roots for Cpu<'_, '_> {
         }))
     }
 
-    fn bend(&mut self, tree: &Structure, live: &[usize], bearers: &[usize]) -> Result<()> {
+    fn bend<'a>(
+        &'a mut self,
+        tree: &'a Structure,
+        live: &'a [usize],
+        bearers: &'a [usize],
+    ) -> Step<'a, Result<()>> {
         let species = self.species;
         let mut alive = pick(&mut self.roots, live);
         let bent = each(&mut alive, self.plan, self.threads, &|j, r| {
             let b = bearers[j];
             r.bend(species, (&tree.axes[b], phase(&tree.axes, species, b)))
         });
-        bent.into_iter().collect()
+        ready(bent.into_iter().collect())
     }
 }

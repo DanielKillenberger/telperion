@@ -2,6 +2,8 @@
 //! can stop a frame before it is drawn is named here, never inferred by the caller.
 use std::sync::{Arc, Mutex};
 
+use crate::encoder::{Encoder, Recorded};
+
 /// Why the renderer could not do what was asked. Each variant names the
 /// condition and carries what a reader needs to act on it.
 #[derive(Debug)]
@@ -115,12 +117,76 @@ pub struct Gpu {
     source: wgpu::Adapter,
     instance: wgpu::Instance,
     lost: Arc<Mutex<Option<String>>>,
+    /// The owned buffers, each let go destroyed once the encoders open
+    /// when it was let go have closed (`buffer::Owned`, `Encoder`).
+    pub(crate) ledger: Arc<crate::buffer::Ledger>,
 }
 
 impl Gpu {
+    /// A frame's two error scopes, out of memory and validation.
+    pub(crate) fn scopes(&self) -> [wgpu::ErrorScopeGuard; 2] {
+        [
+            self.device.push_error_scope(wgpu::ErrorFilter::Validation),
+            self.device.push_error_scope(wgpu::ErrorFilter::OutOfMemory),
+        ]
+    }
+
+    /// Pops a frame's `scopes`, the error either caught kept in `failed`:
+    /// natively at once, in a browser when the device answers.
+    pub(crate) fn watch(
+        &self,
+        scopes: [wgpu::ErrorScopeGuard; 2],
+        failed: Arc<Mutex<Option<String>>>,
+    ) {
+        let [validation, memory] = scopes;
+        let (memory, validation) = (memory.pop(), validation.pop());
+        let seen = async move {
+            if let Some(error) = memory.await.or(validation.await) {
+                *failed.lock().unwrap_or_else(|e| e.into_inner()) = Some(error.to_string());
+            }
+        };
+        #[cfg(not(target_arch = "wasm32"))]
+        pollster::block_on(seen);
+        #[cfg(target_arch = "wasm32")]
+        wasm_bindgen_futures::spawn_local(seen);
+    }
+
+    /// An encoder open on this device: a buffer let go while it is open
+    /// lives until it is submitted or dropped.
+    pub fn encoder(&self, descriptor: &wgpu::CommandEncoderDescriptor<'_>) -> Encoder {
+        Encoder::new(self.device.create_command_encoder(descriptor), &self.ledger)
+    }
+
+    /// Submits `recorded`, then closes their encoders. A buffer a recorded
+    /// pass binds may be let go before its encoder is submitted; its
+    /// destroy waits for that encoder, and a destroy after the submit is
+    /// deferred by the device until the work is done.
+    pub fn submit<I: IntoIterator<Item = Recorded>>(&self, recorded: I) {
+        let (commands, open): (Vec<_>, Vec<_>) = recorded.into_iter().map(Recorded::split).unzip();
+        self.queue.submit(commands);
+        drop(open);
+    }
+
     /// Asks the platform for a hardware device, with the adapter's own maximum
     /// buffer size so a full-detail tree fits, and timestamps when offered.
     pub async fn request(compatible_surface: Option<&wgpu::Surface<'_>>) -> Result<Self> {
+        // The adapter's own maximum buffer size, so a full-detail tree fits,
+        // and its storage binding size with it: the crown's placements are
+        // read by the selection pass and the vertex shader out of one storage
+        // buffer, and a spruce's needles are half a gigabyte of them.
+        Self::request_within(compatible_surface, |available| wgpu::Limits {
+            max_buffer_size: available.max_buffer_size,
+            max_storage_buffer_binding_size: available.max_storage_buffer_binding_size,
+            ..wgpu::Limits::default()
+        })
+        .await
+    }
+
+    /// A device held to `limits`, given what the adapter offers.
+    pub(crate) async fn request_within(
+        compatible_surface: Option<&wgpu::Surface<'_>>,
+        limits: impl FnOnce(&wgpu::Limits) -> wgpu::Limits,
+    ) -> Result<Self> {
         let instance = instance();
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -138,15 +204,7 @@ impl Gpu {
         }
 
         let available = adapter.limits();
-        // The adapter's own maximum buffer size, so a full-detail tree fits,
-        // and its storage binding size with it: the crown's placements are
-        // read by the selection pass and the vertex shader out of one storage
-        // buffer, and a spruce's needles are half a gigabyte of them.
-        let limits = wgpu::Limits {
-            max_buffer_size: available.max_buffer_size,
-            max_storage_buffer_binding_size: available.max_storage_buffer_binding_size,
-            ..wgpu::Limits::default()
-        };
+        let limits = limits(&available);
         // Ask before requesting, so a refusal names the limit rather than
         // arriving as a panic out of the validation layer.
         let mut short: Option<String> = None;
@@ -194,6 +252,7 @@ impl Gpu {
             source: adapter,
             instance,
             lost,
+            ledger: Arc::default(),
         })
     }
 

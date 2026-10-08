@@ -67,7 +67,7 @@ fn either_unresolved_axis_leaves_little_relief_and_furrows_can_close() {
             resource: output.as_entire_binding(),
         }],
     });
-    let mut encoder = gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = gpu.encoder(&Default::default());
     {
         let mut pass = encoder.begin_compute_pass(&Default::default());
         pass.set_pipeline(&pipeline);
@@ -75,7 +75,7 @@ fn either_unresolved_axis_leaves_little_relief_and_furrows_can_close() {
         pass.dispatch_workgroups(64, 1, 1);
     }
     encoder.copy_buffer_to_buffer(&output, 0, &readback, 0, output.size());
-    gpu.queue.submit([encoder.finish()]);
+    gpu.submit([encoder.finish()]);
     let (send, recv) = std::sync::mpsc::channel();
     readback
         .slice(..)
