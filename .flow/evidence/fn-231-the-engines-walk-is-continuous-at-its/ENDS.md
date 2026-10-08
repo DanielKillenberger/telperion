@@ -176,3 +176,39 @@ The successor's first unit lays all four of its nodes at 0.75 and 0.5. A partial
    - Failed units' lived parts (fn-199), relays from other causes and woken buds' first units are left as they are. Their shares come from draws, not from a row, so they cause no jump in any setting, and changing them would move every shipped species' tree before the release with no requirement asking for it.
    - Laying a share of the nodes in those units too is a separate botanical improvement. The host captures it as a post-release spec. It is not part of this task.
    - If the successor's rest of the cycle cannot be told apart from a relay's rest that arises from another cause, stop and report.
+
+## The fourth answer built, and what the tick grid does to it (2026-10-08)
+
+**Built, at `4d0a5d7e` on `fn-231-cut-wip`** (parked off the task branch for the reason below):
+- A unit a lifespan's fraction cuts lays each zone's first ⌊s n⌋ nodes by index, at full spacing. The next node is a `LAID` draw (`u64::MAX - 15`, under the node, mirrored in WGSL) that grows in from its lead over the node window (`lineage::laid`; `apex.wgsl`).
+- Which units are cut: the age's last unit, when it ends inside its cycle's room, and a successor's first unit when that successor is carried on in the cycle its age before ended in. The flags are `Draws::carried` and `IS_CARRIED`. A woken bud's growing axis is marked (`Draws::woke`, `IS_WOKE`) and never cut. Failed units' lived parts and every other relay are unchanged.
+- A unit's time share and its nodes' size are now separate fields (`Unit::size`, `U_LAID`), so the cut unit's nodes are whole while its time stays partial.
+- The closed form lays the thinned count law (`Count::laid_pmf`) in the events, the predictor and the kept tables. An age the fraction ends inside its cycle ends its axis that share into it, in expectation over that cycle and the one before (`Step::ends_at`). Without that last piece, the kept count still jumped at the spruce end (1,149,893 → 1,278,581 at one tick), because the end was read as a whole cycle.
+- The half-tick floor is gone: a lifespan above 0 grows, a unit cut to none lays nothing, and a negative lifespan is refused by name (`fine/tests/ticks.rs`).
+
+**Checked:**
+- **Lifespan tick probe at 40.** The beech age 9 moves 147,362, 147,362, 147,362 … 150,859 at half a cycle. The oak age 2 moves 457,386 … 477,550 and the spruce age 12 moves 1,149,893, 1,149,893 … 1,399,161, both by degree.
+- **Crowd probe.** At lifespan 2.25 and 2.5 the age lays 9 and 10 phytomers, all whole, and the closed form agrees.
+- **Walk ends at 40 are continuous in every pair** on kept, grown and wood (`raw/cut-40.txt`). The ordinary tree's walks now build at t = 1e-6.
+- **GPU against CPU.** Chain and realized parity pass, presences included, with a new "beech, sub-tick ages" case: unlived ages at a tenth of a tick.
+- **Space suite.** It passes but for one test.
+
+**What fails: `branches_are_made_and_unmade_at_vanishing_size` on three lifespan walks** (`cross_probe.rs.txt`):
+
+| Walk | Seed 1 | Seed 2 | Seed 3 |
+|---|---|---|---|
+| `states[0].lifespan` | 6.9e-7 | 8.9e-7 | 2.4e-7 |
+| `states[1].lifespan` | 7.8e-7 | **1.9e-6** | **2.3e-6** |
+| `states[2].lifespan` | 0 | 3.5e-7 | **2.5e-6** |
+
+(The wood of the branch a walk makes, at the bisected crossing, as a share of the tree; the bound is 1e-6.)
+
+**The cause is the tick grid.** A lifespan moves in ticks, 2^-20 of a cycle, however finely the walk bisects. Under the crowded rule, the first tick a unit exists sized its nodes at one tick, about 9.5e-7, which is why the bound is 1e-6. Under the cut rule, one tick moves the laid fraction by n·2^-20. The node grows in by the log-odds lead of a threshold that just passed its draw, over the node window, and one tick of that is about 1e-4 of presence. In seed 2's case, the node made at the crossing stands at 1.5e-4 and bears a 12-phytomer lateral, 1.9e-6 of the tree.
+
+**For the host:** one way keeps fn-192 unchanged. The lifespan's part below the tick grid would set the laid fraction finely, while time stays on ticks. That means:
+- A Q32 sub-tick word per PA beside its ticks.
+- `life()` floored rather than rounded. Whole lifespans are unchanged.
+- The fraction computed in integers on both executors.
+- The successor's rest carrying its predecessor's sub-tick.
+
+This is FINE-CONTRACT D7's grid extended by 32 bits for one reading, the laid fraction. Alternatively the owner bounds lifespan walks at the tick's resolution. Which should be built?

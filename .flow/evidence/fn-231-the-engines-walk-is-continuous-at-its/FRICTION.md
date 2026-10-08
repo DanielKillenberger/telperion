@@ -25,3 +25,13 @@
 - **Slowed:** the tick-by-tick measurement (one probe, two minutes) shows the count jumps at the first tick and is flat from 1 tick to half a cycle. The element is the partial unit, not a tick, so the instructed rule changes nothing, and it was the second round trip on the same question.
 - **Cost:** a third escalation. Places and shedding are built and committed, which is about 40 minutes of the round.
 - **Would have removed it:** the tick probe run before the ruling. It is `tick_probe.rs.txt`, and it takes under a minute.
+
+## 2026-10-08: the fourth round, the tick grid against a draw's lead
+
+- **Doing:** building the per-zone cut on both executors, the closed form and the kept tables.
+- **Slowed:** three things the rule did not name had to be found by running.
+  - The woken bud's growing axis is a continuation after slept stages, so origin alone could not tell it from a successor. It needed a flag on both executors.
+  - The kept count jumped on the death cycle. That needed `Step::ends_at`.
+  - fn-192's vanishing-size bound is tied to the tick (about 9.5e-7), which a log-odds lead over one tick of fraction overshoots.
+- **Cost:** about 2 hours, four space-suite runs, two GPU parity runs, and a fourth escalation.
+- **Would have removed it:** a probe of the rule against `branches_are_made_and_unmade_at_vanishing_size` on a lifespan walk before ruling. The crossing probe (`cross_probe.rs.txt`) takes 5 s.
