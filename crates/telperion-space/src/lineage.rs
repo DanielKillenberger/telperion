@@ -171,21 +171,21 @@ pub(crate) fn place_presence(place: Key, share: f64, window: i64) -> u64 {
     fixed::presence::of_under(threshold(share), d.0, window)
 }
 
-/// The nodes of a zone a unit cut to `share` of its cycle lays (fn-231,
-/// host 2026-10-08): the first ⌊share n⌋ of its `presences` whole, and the
-/// next where its `LAID` draw, under the zone's key `zone`, falls under the
-/// fraction left, at its presence times its lead over `window`, so it grows
-/// in from nothing as the fraction passes its draw; the rest are not laid.
-pub(crate) fn laid(presences: &mut Vec<u64>, share: f64, zone: Key, window: i64) {
-    let n = presences.len();
-    let at = share * n as f64;
-    let whole = at.floor() as usize;
-    let fraction = at - whole as f64;
-    let last = (whole < n && fraction > 0.0).then(|| {
+/// The nodes of a zone a unit a lifespan's fraction cut lays (fn-231,
+/// host 2026-10-08): of its n `presences`, the first ⌊n share / of⌋ whole,
+/// and the next where its `LAID` draw, under the zone's key `zone`, falls
+/// under the fraction left, at its presence times its lead over `window`,
+/// so it grows in from nothing as the fraction passes its draw; the rest
+/// are not laid. In whole ticks, so the device takes the same nodes.
+pub(crate) fn laid(presences: &mut Vec<u64>, cut: crate::schedule::Cut, zone: Key, window: i64) {
+    let (share, of) = (fixed::ticks(cut.share), fixed::ticks(cut.of));
+    let at = share * presences.len() as u64;
+    let (whole, left) = ((at / of) as usize, at % of);
+    let last = (left > 0 && whole < presences.len()).then(|| {
         let d = zone.child(whole as u64).child(LAID).draw();
-        let made = d.under(fraction);
-        let lead = fixed::presence::of_under(threshold(fraction), d.0, window);
-        made.then(|| fixed::presence::times(presences[whole], lead))
+        let t = ((u128::from(left) << 53).div_ceil(u128::from(of))) as u64;
+        let lead = fixed::presence::of_under(t, d.0, window);
+        (d.0 < t).then(|| fixed::presence::times(presences[whole], lead))
     });
     presences.truncate(whole);
     presences.extend(last.flatten());

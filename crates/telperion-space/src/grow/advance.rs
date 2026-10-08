@@ -156,7 +156,7 @@ impl Shoot<'_, '_> {
             survive,
             persist: 1.0,
             share,
-            size: if laid.is_some() { 1.0 } else { share },
+            size: laid.map_or(share, |c| c.of),
         });
         if reads.sketching {
             draws

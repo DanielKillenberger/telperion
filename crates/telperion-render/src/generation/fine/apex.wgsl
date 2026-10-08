@@ -4,9 +4,9 @@
 
 // A growth unit's phytomers and the laterals they bear (`grow_unit`), its
 // nodes `ticks` of a whole one's length; where a lifespan's fraction cut it
-// to `cut` ticks (TICKS: none), that share of each zone's nodes, whole,
-// the next one by its `LAID` draw (`lineage::laid`, fn-231).
-fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32, cut: u32) {
+// to `cut` ticks of `span_of` (none: 0), `cut / span_of` of each zone's
+// nodes, the next one by its `LAID` draw (`lineage::laid`, fn-231).
+fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32, cut: u32, span_of: u32) {
     let first = table[2u * pa];
     let zones = table[2u * pa + 1u];
     for (var k = 0u; k < zones; k++) {
@@ -25,12 +25,12 @@ fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32, cut: u
         let zg = zone_g(zat);
         let buds_f = gf(zg);
         let at = n * cut;
-        let whole = at >> 20u;
-        let fraction = at & (TICKS - 1u);
+        let whole = select(n, at / max(span_of, 1u), span_of != 0u);
+        let fraction = select(0u, at % max(span_of, 1u), span_of != 0u);
         for (var m = 0u; m < n; m++) {
             let j = drawn[m];
             let node_key = child(zk, w(j, 0u));
-            if cut < TICKS && (j > whole || (j == whole && fraction == 0u)) {
+            if span_of != 0u && (j > whole || (j == whole && fraction == 0u)) {
                 continue;
             }
             if n_phyts >= cfg.phyt_cap {
@@ -39,8 +39,8 @@ fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32, cut: u
             }
             let p = phyt_base + n_phyts * PW;
             var node_p = presence(node_lead(zat, d, side, j), window);
-            if cut < TICKS && j == whole {
-                let t = vec2<u32>(0u, fraction << 1u);
+            if span_of != 0u && j == whole {
+                let t = fraction_up(w(fraction, 0u), w(span_of, 0u), 53u);
                 let dl = draw(child(node_key, KEY_LAID));
                 if !lt64(dl, t) {
                     continue;
@@ -236,7 +236,7 @@ fn fail(apex_in: Apex, cycle: u32, s1: Step, gone: u32, whole: bool, keys: array
     unit_grows(u, a, true);
     wr(a, NUNITS, rd(a, NUNITS) + 1u);
     wr64(a, SHARES, add64(rd64(a, SHARES), lived));
-    grow_unit(a, pa, keys[1], cycle, lived.x, TICKS);
+    grow_unit(a, pa, keys[1], cycle, lived.x, 0u, 0u);
     unit_grows(u, a, false);
     apex.spent = add64(apex.spent, lived);
     wr(a, APEX_END, cycle + 1u);
@@ -340,14 +340,16 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
     let kind = rd(a, KIND);
     let successor = first && (kind & 0xffu) == CONTINUED && (kind & IS_CARRIED) != 0u;
     let woken = first && (kind & IS_WOKE) != 0u;
-    let last = s1.ends && share < TICKS - gone;
-    let rest = successor && gone > 0u;
-    var cut = TICKS;
-    if (last || rest) && !woken && share < TICKS {
-        cut = share;
+    // A successor's rest is cut from a whole unit; the age's last from the
+    // room its cycle leaves (`Unit::laid`).
+    var span_of = 0u;
+    if !woken && successor && gone > 0u {
+        span_of = TICKS;
+    } else if !woken && s1.ends && share < TICKS - gone {
+        span_of = TICKS - gone;
     }
     if u != NONE {
-        sleepers[u + U_LAID] = select(0u, 1u, cut < TICKS);
+        sleepers[u + U_LAID] = span_of;
     }
     if relays {
         unit_fails(u, 1u, s1.used.x);
@@ -355,7 +357,7 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
     unit_grows(u, a, true);
     wr(a, NUNITS, rd(a, NUNITS) + 1u);
     wr64(a, SHARES, add64(rd64(a, SHARES), s1.share));
-    grow_unit(a, pa, unit, cycle, select(share, TICKS, cut < TICKS), cut);
+    grow_unit(a, pa, unit, cycle, select(share, span_of, span_of != 0u), share, span_of);
     unit_grows(u, a, false);
     apex.spent = add64(apex.spent, s1.share);
     // D6.

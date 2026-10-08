@@ -245,12 +245,13 @@ fn steps_to(
             Some(_) => None,
         };
         let size = match (partial, laid) {
-            (Some(_), _) | (None, Some(_)) => 1.0,
+            (Some(_), _) => 1.0,
+            (None, Some(c)) => c.of,
             (None, None) => unit.share,
         };
-        let cut: Option<Vec<Count>> = laid.map(|s| {
+        let cut: Option<Vec<Count>> = laid.map(|c| {
             let laws = state.zones.iter().map(|z| Count::pmf(z.nodes));
-            laws.map(|p| Count::of_pmf(&Count::laid_pmf(&p, s))).collect()
+            laws.map(|p| Count::of_pmf(&Count::laid_pmf(&p, c.laid()))).collect()
         });
         let (lays, lay_starts, lay_whole) = match &cut {
             Some(c) => {
@@ -319,7 +320,7 @@ fn steps_to(
             grown: survival,
             after: survival,
             size,
-            laid: laid.unwrap_or(1.0),
+            laid: laid.map_or(1.0, |c| c.laid()),
             ends_at: match laid.is_some() && unit.ends {
                 true => unit.used.min(1.0),
                 false => 1.0,

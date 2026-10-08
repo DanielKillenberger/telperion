@@ -6,6 +6,7 @@ use super::{Apex, Certain};
 use crate::error::{Error, Result};
 use crate::fixed::{self, presence};
 use crate::lineage::{self, Key, ZONE};
+use crate::schedule::Cut;
 use crate::species::{ALONG, MAX_BUDS, MAX_NODES_PER_ZONE};
 use crate::structure::{Origin, Phytomer, Vec3};
 
@@ -17,7 +18,7 @@ impl Shoot<'_, '_> {
         apex: Apex,
         pa: usize,
         unit: Key,
-        (cycle, cut): (u32, Option<f64>),
+        (cycle, cut): (u32, Option<Cut>),
     ) -> Result<()> {
         let rules = self.rules;
         let windows = &rules.windows;
@@ -34,8 +35,8 @@ impl Shoot<'_, '_> {
             let window = fixed::decide::node_window(node_wood);
             let draw = zone_key.draw();
             lineage::node_presences(zone.nodes, draw, MAX_NODES_PER_ZONE, window, &mut leads);
-            if let Some(share) = cut {
-                lineage::laid(&mut leads, share, zone_key, window);
+            if let Some(cut) = cut {
+                lineage::laid(&mut leads, cut, zone_key, window);
             }
             nodes.clear();
             for (i, &node_presence) in leads.iter().enumerate() {
