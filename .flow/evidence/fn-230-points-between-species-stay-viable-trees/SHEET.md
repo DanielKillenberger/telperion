@@ -71,3 +71,8 @@ In `strips-40.png` and `strips-80.png`, the frames at 0.25 and 0.75 between the 
 | 1 (oak) | 4.43M | 1.94M | 1.10M |
 
 **The engine's walk jumps at its ends.** A millionth of the way from the beech to the spruce, at 40, the engine's walk (`telperion_space::blend`) is predicted at 2.89M kept against the beech's 0.15M, and it grows 2.14M against 0.11M. The same holds from the spruce (1.80M against 1.15M), from the beech toward the oak, and from the oak toward the spruce. The factor takes the jump out of the size (`space_walks.rs`, `the_size_is_neutral_at_either_end_and_continuous_off_it`), but not out of the shape. An inferred cause, not checked, which fn-231's first task checks: an age one end does not live in becomes lived, at a small lifespan, the moment the walk leaves that end.
+
+## Follow-ups
+
+- **Count rows in an N-way centroid** (Codex P2 on fn-230, declined): a family's whole-number rows round at every point of `blend::centroid`'s fold, so the order of the points can move them by one. Equal-weight families aged 40, 40 and 41 give age 40 in that order and 41 as 40, 41, 40, and the age also sets the sizing. The engine species and its size are the same in any order. An order-free N-way walk of every row kind, degrees included, is a new design.
+- **The gate's two halves:** `cargo test --profile ci -p telperion-render --no-fail-fast` under the GPU lock, then `--workspace --exclude telperion-render`. The second half needed `docs/generation-limits-inventory.json` to declare the solve's bounds.
