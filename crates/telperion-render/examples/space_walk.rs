@@ -26,6 +26,7 @@ fn preset(name: &str) -> Result<Preset, String> {
         "spruce" => Preset::NorwaySpruce,
         "oak" => Preset::OregonWhiteOak,
         "palm" => Preset::DatePalm,
+        "ordinary" => Preset::Ordinary,
         _ => return Err(format!("no species {name}")),
     })
 }

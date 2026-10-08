@@ -14,8 +14,8 @@ type Core = WebAssembly.Exports & {
 
 // The engine presets grow through the engine (fn-198); the others are
 // refused by name on both sides.
-const NONE = ['ordinary', 'telperion', 'laurelin', 'silver-birch'];
-const ENGINE = ['european-beech', 'oregon-white-oak', 'norway-spruce', 'date-palm'];
+const NONE = ['telperion', 'laurelin', 'silver-birch'];
+const ENGINE = ['european-beech', 'oregon-white-oak', 'norway-spruce', 'date-palm', 'ordinary'];
 
 async function wasmBuild(id: string): Promise<[number, Buffer]> {
   const { instance } = await WebAssembly.instantiate(
