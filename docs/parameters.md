@@ -2163,7 +2163,7 @@ How far the blotches `blade_mottle_scale` sizes vary a leaf's colour.
 
 ### `/material/marginWidth`
 
-How wide a band along the leaf's edge takes the margin colour, and what that colour is as an offset per channel. Raising the width broadens the rim around every leaf.
+How wide a band along the leaf's edge takes the margin colour, as a share of the leaf set in leaf space, and what that colour is as an offset per channel. Raising the width broadens the rim around every leaf; a leaf under a pixel takes the band's area share.
 
 - real, -, [0, 0.5], default 0
 - read by draw; removed growth path: as the direct build

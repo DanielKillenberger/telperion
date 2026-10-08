@@ -107,6 +107,20 @@ fn leaf_grain(coord: vec2<f32>, seed: vec2<f32>, pixel: vec2<f32>,
         leaf_cells(coord + cy, seed, pixel) - here);
 }
 
+/// The share of a pixel's footprint on the blade, `at` in a leaf coordinate
+/// that runs over [0, 1] with the blade's area, that falls in the band
+/// [`low`, `high`]: the band's edges filtered over `footprint`, and where the
+/// footprint spans the whole blade, the band's share of its area (fn-217
+/// DESIGN.md 8.2). The band is set in leaf space, never in pixels, so a leaf
+/// under a pixel takes the area-weighted mix of blade and band.
+fn band(at: f32, low: f32, high: f32, footprint: f32) -> f32 {
+    let half = 0.5 * max(footprint, 1e-6);
+    let start = max(at - half, 0.0);
+    let end = min(at + half, 1.0);
+    let inside = max(min(end, high) - max(start, low), 0.0);
+    return inside / max(end - start, 1e-6);
+}
+
 /// The share of the sky that reaches a leaf at `world` through the crown
 /// standing over it: the chord straight up, where an overcast sky is
 /// brightest, taken at the row's shade per crown radius. All of it at zero.
@@ -159,7 +173,7 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     }
     let edge = max(abs(in.coord.y), in.coord.x);
     let width = max(pixel.x, pixel.y);
-    let margin = smoothstep(1.0 - u.margin.w - width, 1.0 + width, edge)
+    let margin = band(edge, 1.0 - u.margin.w, 1.0, width)
         * select(0.0, 1.0, u.margin.w > 0.0);
     let hue = mix(u.leaf_variation.x, u.leaf_variation.y, in.leaf.x);
     let brightness = 1.0 + mix(u.leaf_variation.z, u.leaf_variation.w, in.leaf.y);

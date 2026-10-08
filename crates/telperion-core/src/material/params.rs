@@ -497,9 +497,10 @@ crate::catalogue::rows! {
             dial: bounded("material_blade_mottle_strength", "how far that mottling varies the \
                 blade's colour", [0.15, 0.3]),
         },
-        /// How wide a band along the leaf's edge takes the margin colour, and
-        /// what that colour is as an offset per channel. Raising the width
-        /// broadens the rim around every leaf.
+        /// How wide a band along the leaf's edge takes the margin colour, as
+        /// a share of the leaf set in leaf space, and what that colour is as
+        /// an offset per channel. Raising the width broadens the rim around
+        /// every leaf; a leaf under a pixel takes the band's area share.
         pub margin_width: f64 = "marginWidth" "-" Bounds::closed(0.0, 0.5) => [Draw] {
             wire: 192,
             check: input(Site::Material, 13, "leaf margin width"),
