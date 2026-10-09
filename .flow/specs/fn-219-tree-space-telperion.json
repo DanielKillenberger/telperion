@@ -14,7 +14,9 @@
     "fn-234-blossom-shows-from-a-distance"
   ],
   "id": "fn-219-tree-space-telperion",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-219-tree-space-telperion.1": 0
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
@@ -57,15 +59,52 @@
       "timestamp": "2026-10-09T00:58:45.508728Z",
       "tool_calls": 23,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "61ed8b78f11dc2dbe541189df969dab71bf50cf65ed2bd9e0bc7d43f604f590b",
+      "backend": "codex",
+      "base_sha": "509587219d7d4458674c661db599372825f0ebd9",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0eeb4148dfd016fa9400ae6736a4d1fda54d71c2",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 871,
+      "output_sha256": "35c5d64719d168736e6db3f06439283019e437cce76a036f194dbb191706c123",
+      "reservation_id": "14d51fb6ca0b4f0caa806e2257971310",
+      "round_consumed": true,
+      "scope": "impl:fn-219-tree-space-telperion.1",
+      "superseded_by": null,
+      "task": "fn-219-tree-space-telperion.1",
+      "timestamp": "2026-10-09T03:57:52.219630Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-219-tree-space-telperion.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-219-tree-space-telperion.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-219-tree-space-telperion.md",
@@ -82,5 +121,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T00:58:50.665484Z"
+  "updated_at": "2026-10-09T03:57:52.221519Z"
 }

@@ -27,3 +27,10 @@
 - **Hindrance:** the Wasm route refuses him (`the tree keeps more than 4,000,000 phytomers, more than a browser prepares in its 4 GB Wasm memory`, `WASM_KEPT`), so the parity and field tests fail. Probing by rebuilding the Wasm binding per age found the ceiling at 92 (93 refused). Three ceilings (Wasm 92, device memory between 110 and 120, engine budget under 160) are each met by a different failing run, the tightest one last.
 - **Cost:** about 25 minutes: four Wasm probes and a second set of value rounds at the new age.
 - **Remedy:** a native check that reports a family's foreseen kept phytomers against `WASM_KEPT` (the predictor already exists, `pipeline/space.rs::foreseen`), run by the sheet example, would have bounded his age before round 1. fn-209's fine path is noted in the code as lifting the bound.
+
+## 2026-10-09: an all-SHIP review's finalize refused its own merge plan
+
+- **Doing:** finalizing the codex impl-review fan-out, three draws all SHIP with no findings.
+- **Hindrance:** `impl-review-fanout-finalize --merge-plan` with an empty keep list failed: the correctness draw ended without a findings container (`no-findings-container`), so the plan "cannot parse draw correctness". The finalize took a hand-written `--merged-file` instead.
+- **Cost:** about 3 minutes and two extra finalize calls.
+- **Remedy:** a draw whose verdict is SHIP and whose text reports no findings could count as an empty findings list for the merge plan.
