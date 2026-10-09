@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { growField, compileField, NO_LIMB } from "./index";
 import { grid } from "./voxelize";
 import { TreeEngine, presetById, PRESETS } from "../browser/core";
@@ -50,32 +50,37 @@ describe("the slim field entry point", () => {
     engine.dispose();
   });
 
-  it("grows every shipped preset, byte for byte the main entry's field, bounds included (fn-150 R2, R3, R5)", async () => {
-    const module = await compileField(source);
-    const engine = await TreeEngine.create(readFileSync("src/browser/telperion.wasm"));
-    for (const preset of PRESETS) {
-      // One seed a preset: the slim chain's agreement is the chain's, not
-      // the seed's; the first test holds it at the beech's seed 5 as well.
-      for (const seed of [1]) {
-        const tree = await growField(preset.id, seed, { source: module });
-        const family = presetById(preset.id);
-        family.skeleton.seed = seed;
-        const field = engine.build(family, { field: true }).field!;
-        expect(field.bounds, `${preset.id} ${seed}`).toEqual(tree.bounds);
-        const g = grid(tree.bounds, 10);
-        const slim = tree.query(g.cells), full = field.query(g.cells);
-        expect(slim.flags.some(f => f & 2), `${preset.id} ${seed} foliage`).toBe(true);
-        expect(full.flags, `${preset.id} ${seed}`).toEqual(slim.flags);
-        expect(full.woodRadius).toEqual(slim.woodRadius);
-        expect(full.leaves).toEqual(slim.leaves);
-        expect(full.limbs).toEqual(slim.limbs);
-        tree.release();
-      }
-    }
-    engine.dispose();
-    // Every preset is an engine preset now (fn-213, fn-218, fn-219): eight
-    // fields, Telperion's at 92 among them, take about 65 s in Node unloaded.
-  }, 180_000);
+  /* Every shipped preset, byte for byte the main entry's field, bounds
+   * included (fn-150 R2, R3, R5): one test a preset, so each tree's two
+   * growths stand inside the timeout on their own. Eight in one test took
+   * about 65 s and timed out at 60 under load (fn-241 R2). One seed a
+   * preset: the slim chain's agreement is the chain's, not the seed's; the
+   * first test holds it at the beech's seed 5 as well. */
+  describe("grows every shipped preset, byte for byte the main entry's field", () => {
+    let module: WebAssembly.Module;
+    let engine: TreeEngine;
+    beforeAll(async () => {
+      module = await compileField(source);
+      engine = await TreeEngine.create(readFileSync("src/browser/telperion.wasm"));
+    });
+    afterAll(() => engine.dispose());
+
+    it.each(PRESETS.map(p => p.id))("%s", async id => {
+      const tree = await growField(id, 1, { source: module });
+      const family = presetById(id);
+      family.skeleton.seed = 1;
+      const field = engine.build(family, { field: true }).field!;
+      expect(field.bounds, id).toEqual(tree.bounds);
+      const g = grid(tree.bounds, 10);
+      const slim = tree.query(g.cells), full = field.query(g.cells);
+      expect(slim.flags.some(f => f & 2), `${id} foliage`).toBe(true);
+      expect(full.flags, id).toEqual(slim.flags);
+      expect(full.woodRadius).toEqual(slim.woodRadius);
+      expect(full.leaves).toEqual(slim.leaves);
+      expect(full.limbs).toEqual(slim.limbs);
+      tree.release();
+    });
+  });
 
   it("grows the date palm at every seed the owner tried (fn-150 R1)", async () => {
     const module = await compileField(source);
