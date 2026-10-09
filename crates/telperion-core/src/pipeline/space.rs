@@ -332,6 +332,10 @@ fn converted(
     let mut ends: Vec<Option<u32>> = vec![None; structure.axes.len()];
     // Each axis's drawn nodes, base first.
     let mut drawn: Vec<Vec<u32>> = vec![Vec::new(); structure.axes.len()];
+    // Each axis's relays by where they join it, and each relay's join as
+    // drawn: the node and its parent's first phytomer beyond it.
+    let joins = join::by_parent(structure);
+    let mut joined: Vec<Option<(u32, usize)>> = vec![None; structure.axes.len()];
     for (i, axis) in structure.axes.iter().enumerate() {
         let root =
             fine.get(i).copied().unwrap_or(false) && !axis.origin.parent().is_some_and(|p| fine[p]);
@@ -357,20 +361,16 @@ fn converted(
                 }
                 start.map(|&n| (n, true, false))
             }
-            // A relay from inside its parent takes the parent's run on from
-            // the node it grows from, where its wood enters the parent
-            // (`telperion_space` girth, fn-244), and the stopped module's
-            // head beyond turns aside as a lateral of its own.
-            Origin::Relay { parent, node }
-                if node + 1 < structure.axes[parent].phytomers.len() =>
-            {
-                match drawn[parent].get(node..) {
-                    Some(from) if !from.is_empty() => {
-                        aside(&mut nodes, from);
-                        Some((from[0], false, nodes[from[0] as usize].stem))
-                    }
-                    _ => None,
-                }
+            // A relay takes its parent's run on from its join, the node drawn
+            // where it joins (`telperion_space::Join`, fn-244), and the
+            // stopped module's head beyond turns aside as a lateral of its
+            // own, its stub.
+            Origin::Relay { parent, .. } if joined[i].is_some() => {
+                let (at, stub) = joined[i].expect("a join");
+                let head = drawn[parent].get(stub..).unwrap_or_default();
+                let from: Vec<u32> = std::iter::once(at).chain(head.iter().copied()).collect();
+                aside(&mut nodes, &from);
+                Some((at, false, nodes[at as usize].stem))
             }
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
                 ends[parent].map(|end| (end, false, nodes[end as usize].stem))
@@ -413,74 +413,105 @@ fn converted(
             .enumerate()
             .take_while(|(_, p)| p.radius >= FINEST)
         {
-            let from = nodes[parent as usize].position;
-            // ... and those still inside the wood of the joint, where a
-            // turn over less than the stem's radius would fold its surface.
-            let inside =
-                along != Vec3::ZERO && (up(p.tip) - from).length() < nodes[parent as usize].radius;
-            let behind = !made && ((up(p.tip) - from).dot(along) < 0.0 || inside);
             // Each internode as it was laid: its scale and its spread's
             // factor (fn-222).
-            pending += internode * p.scale * telperion_space::internode_factor(p.key(), spread);
-            if behind || super::foliage::plan::micrometres(pending) < SHORTEST {
-                drawn[i].push(parent);
-                continue;
+            let piece = internode * p.scale * telperion_space::internode_factor(p.key(), spread);
+            let here = joins[i].iter().filter(|(_, j)| j.node == place);
+            for &(c, _) in here.clone().filter(|(_, j)| j.t == 0) {
+                joined[c] = Some((parent, place));
             }
-            let mut node = Node::root();
-            // Its identity is the key of the phytomer that made it: its
-            // lineage, the same node at any age and any cut (fn-220).
-            node.identity = NodeIdentity::lineage(p.key());
-            let inherited = nodes[parent as usize].radius;
-            let first = !made;
-            node.shoot = ShootState {
-                bud_fate: if lateral && first {
-                    BudFate::Lateral
+            let inside: Vec<_> = here.filter(|(_, j)| j.t > 0 && j.t < join::ONE).collect();
+            // A span a relay joins inside is drawn above its join at the
+            // stopped module's own wood (`Join::above`).
+            let mut own = join::Draw::of(axis, place, piece);
+            for (_, j) in &inside {
+                own.radius = own.radius.min(j.above);
+            }
+            let draws = inside
+                .iter()
+                .map(|&&(c, j)| join::draw(axis, (c, &structure.axes[c]), j, piece))
+                .chain(std::iter::once(own));
+            let mut rest = piece;
+            for d in draws {
+                let piece = if d.relay.is_some() { d.piece } else { rest };
+                rest -= if d.relay.is_some() { d.piece } else { 0.0 };
+                let from = nodes[parent as usize].position;
+                // ... and those still inside the wood of the joint, where a
+                // turn over less than the stem's radius would fold its surface.
+                let inside =
+                    along != Vec3::ZERO && (d.tip - from).length() < nodes[parent as usize].radius;
+                let behind = !made && ((d.tip - from).dot(along) < 0.0 || inside);
+                pending += piece;
+                if behind || super::foliage::plan::micrometres(pending) < SHORTEST {
+                    match d.relay {
+                        Some(c) => joined[c] = Some((parent, place)),
+                        None => drawn[i].push(parent),
+                    }
+                    continue;
+                }
+                let mut node = Node::root();
+                // Its identity is the key of the phytomer that made it, or of
+                // the relay it joins: its lineage, the same node at any age and
+                // any cut (fn-220).
+                node.identity = NodeIdentity::lineage(d.identity);
+                let inherited = nodes[parent as usize].radius;
+                let first = !made;
+                node.shoot = ShootState {
+                    bud_fate: if lateral && first {
+                        BudFate::Lateral
+                    } else {
+                        BudFate::Terminal
+                    },
+                };
+                node.position = d.tip;
+                node.parent = Some(parent);
+                node.radius = d.radius;
+                node.start_radius = if lateral && first {
+                    d.radius
                 } else {
-                    BudFate::Terminal
-                },
-            };
-            node.position = up(p.tip);
-            node.parent = Some(parent);
-            node.radius = p.radius;
-            node.start_radius = if lateral && first {
-                p.radius
-            } else {
-                inherited.max(p.radius)
-            };
-            node.branch = run;
-            node.stem = stem;
-            if lateral && first {
-                node.codominant = codominance(p.radius, inherited);
-            }
-            let held = parent as usize;
-            parent = nodes.len() as u32;
-            // Every fine root's node drawn from wood above the cut starts a
-            // run of its own (D4): its first axis's first node, and a
-            // lateral its merged first phytomers hang from its bearer.
-            let grown = fine.get(i).copied().unwrap_or(false);
-            if grown && !in_root[held] {
-                seams.push(parent);
-                if let Some(a) = of_root[i] {
-                    attachments[a].seams.push(parent);
+                    inherited.max(d.radius)
+                };
+                node.branch = run;
+                node.stem = stem;
+                if lateral && first {
+                    node.codominant = codominance(d.radius, inherited);
+                }
+                let held = parent as usize;
+                parent = nodes.len() as u32;
+                // Every fine root's node drawn from wood above the cut starts
+                // a run of its own (D4): its first axis's first node, and a
+                // lateral its merged first phytomers hang from its bearer.
+                let grown = fine.get(i).copied().unwrap_or(false);
+                if grown && !in_root[held] {
+                    seams.push(parent);
+                    if let Some(a) = of_root[i] {
+                        attachments[a].seams.push(parent);
+                    }
+                }
+                in_root.push(grown);
+                let (h, s) = (up(p.heading), up(p.side));
+                frames.push([h.x, h.y, h.z, s.x, s.y, s.z].map(|v| v as f32));
+                keys.push(d.key);
+                lengths.push(std::mem::take(&mut pending));
+                if share > 0.0 && d.relay.is_none() {
+                    blooms.push(Bloom {
+                        node: parent,
+                        share,
+                        side: up(p.side),
+                    });
+                }
+                made = true;
+                match d.relay {
+                    Some(c) => joined[c] = Some((parent, place)),
+                    None => drawn[i].push(parent),
+                }
+                nodes.push(node);
+                if clustering {
+                    clustered.push(cluster.0 > 0);
                 }
             }
-            in_root.push(grown);
-            let (h, s) = (up(p.heading), up(p.side));
-            frames.push([h.x, h.y, h.z, s.x, s.y, s.z].map(|v| v as f32));
-            keys.push(crate::tree::node_key(axis.lineage, place));
-            lengths.push(std::mem::take(&mut pending));
-            if share > 0.0 {
-                blooms.push(Bloom {
-                    node: parent,
-                    share,
-                    side: up(p.side),
-                });
-            }
-            made = true;
-            drawn[i].push(parent);
-            nodes.push(node);
-            if clustering {
-                clustered.push(cluster.0 > 0);
+            for &(c, _) in joins[i].iter().filter(|(_, j)| j.node == place && j.t >= join::ONE) {
+                joined[c] = Some((parent, place + 1));
             }
         }
         if made && cluster.0 > 0 {
@@ -546,6 +577,7 @@ fn converted(
 mod cluster_tests;
 #[cfg(test)]
 mod coarse_tests;
+mod join;
 #[cfg(test)]
 mod relay_tests;
 mod stands;

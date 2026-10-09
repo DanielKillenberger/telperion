@@ -87,12 +87,15 @@ pub const CLUSTER: u64 = 0x0c10_0000;
 /// A coarse tree's stand-in answering foliage in a cell of the field,
 /// under the fine root's lineage, then the cell (fn-214).
 pub const STAND: u64 = u64::MAX - 16;
+/// A relay's join on its parent, the node the drawing inserts where it
+/// stands, under the key of the relay's first phytomer (fn-244).
+pub const JOIN: u64 = u64::MAX - 17;
 /// An axis carried on into an age, under its chain's lineage.
 pub const CONTINUATION: u64 = u64::MAX;
 
 /// Every key: its name, value and what it is drawn under. `ZONE` and
 /// `PLACE` stand for their spans.
-pub const ALL: [(&str, u64, Under); 27] = [
+pub const ALL: [(&str, u64, Under); 28] = [
     ("VIABILITY", VIABILITY, Under::Unit),
     ("ABORTION", ABORTION, Under::Unit),
     ("MOVE", MOVE, Under::Unit),
@@ -119,6 +122,7 @@ pub const ALL: [(&str, u64, Under); 27] = [
     ("FLORET_OPENING", FLORET_OPENING, Under::Floret),
     ("CLUSTER", CLUSTER, Under::Node),
     ("STAND", STAND, Under::Lineage),
+    ("JOIN", JOIN, Under::Node),
     ("CONTINUATION", CONTINUATION, Under::Lineage),
 ];
 

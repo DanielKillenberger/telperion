@@ -233,7 +233,7 @@ fn framed_q(
                 return (tip, heading, side.unwrap_or(across));
             }
             let state = &species.states[axes[parent].pa];
-            let (at, x) = stand(axes, species, parent, node);
+            let at = stand(axes, species, parent, node);
             let (heading, side) = turned(
                 (at.along, at.side),
                 at.rank,
@@ -249,17 +249,18 @@ fn framed_q(
             let side = add(scaled(across, ONE32 - b), scaled(side, b));
             let side = unit(sub(side, scaled(heading, dot(side, heading)))).unwrap_or(across);
             // Its base where it joins the parent, on the parent's wood.
-            let base = stand::at(&axes[parent], joined(&axes[parent], x, b));
+            let x = attach(axes, species, i).expect("a relay's attachment");
+            let base = stand::at(&axes[parent], x);
             (base, heading, side)
         }
     }
 }
 
-/// Where relay `i` joins its parent (fn-244 host decision 4): its stand
-/// blended towards the parent's tip by its blend along the parent, as a
-/// position in the parent's nodes, Q32 (`stand::split`). The one place a
-/// relay joins: its frame, girth, sag and the drawing read it. None for
-/// any other axis.
+/// Where relay `i` joins its parent (fn-244 host decision 4): its stand's
+/// position on the parent (`stand::position`) blended towards the parent's
+/// tip by its blend along the parent, as a position in the parent's nodes,
+/// Q32 (`stand::split`). The one place a relay joins: its base, girth, sag
+/// and the drawing read it. None for any other axis.
 pub(crate) fn attach(axes: &[Axis], species: &Species, i: usize) -> Option<i64> {
     let Origin::Relay { parent, node } = axes[i].origin else {
         return None;
@@ -269,8 +270,7 @@ pub(crate) fn attach(axes: &[Axis], species: &Species, i: usize) -> Option<i64> 
     if b == 0 {
         return Some(joined(p, 0, 0));
     }
-    let (_, x) = stand(axes, species, parent, node);
-    Some(joined(p, x, b))
+    Some(joined(p, stand::position(axes, species, parent, node), b))
 }
 
 /// Position `x` along `p` blended towards its tip by `b` (Q32).

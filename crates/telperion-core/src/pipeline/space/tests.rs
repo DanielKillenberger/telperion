@@ -311,7 +311,8 @@ fn keys(structure: &Structure) -> std::collections::HashMap<(u64, usize), u64> {
 
 /// Every node of an engine tree has its own identity (fn-220 R1, R2), so a
 /// draw keyed by it (clusters, flowers) differs from one piece of wood
-/// to the next; the identity is the key of the phytomer that made it.
+/// to the next; the identity is the key of the phytomer that made it, or a
+/// relay's join's under its first phytomer (fn-244).
 #[test]
 fn every_engine_node_has_its_own_identity() {
     let (structure, trunk, rows) = grown();
@@ -319,7 +320,9 @@ fn every_engine_node_has_its_own_identity() {
     let ids = identities(&tree);
     let distinct: std::collections::HashSet<u64> = ids.iter().copied().collect();
     assert_eq!(distinct.len(), ids.len(), "two nodes share an identity");
-    let made: std::collections::HashSet<u64> = keys(&structure).into_values().collect();
+    let joins = structure.axes.iter().filter(|a| a.joined().is_some());
+    let joins = joins.filter_map(|a| a.phytomers.first().map(|p| telperion_space::join_key(p.key())));
+    let made: std::collections::HashSet<u64> = keys(&structure).into_values().chain(joins).collect();
     assert!(
         ids.iter().all(|id| made.contains(id)),
         "not a phytomer's key"

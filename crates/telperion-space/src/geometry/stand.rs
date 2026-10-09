@@ -3,13 +3,22 @@
 //! growth unit, blended back towards the unit before by how much of the
 //! last unit has grown, its extent: each node's unit presence times its
 //! node presence times the share of its cycle the unit lived, summed, at
-//! most one. A relay grows from its parent, so only the parent's own
-//! units are read, and short of a whole one it stands back towards the
-//! parent's start (fn-244 host decision C1). Its place is kept as a
-//! position along the parent in nodes, so every blend stays on the parent's
-//! wood: the one attachment girth, sag and the drawing read (`attach`).
-//! Contract A (CONTRACT-A.md 2.4): Q32 throughout, the azimuth an amount,
-//! one floor a product.
+//! most one. Two readings of it (fn-244 host decision 4, option 1):
+//!
+//! - its frame (`stand`) reads units along the whole line of axes carried
+//!   on, as one axis, so the weight belongs to the unit and not to the axis
+//!   holding it, and a unit growing in from nothing turns no relay;
+//! - its position (`position`) reads the parent's own units alone, short
+//!   of a whole one back towards the parent's start, so the relay joins
+//!   the wood it grows from: the one attachment girth, sag and the drawing
+//!   read (`geometry::attach`).
+//!
+//! The frame keeps the line because a stop that splits a growing unit off
+//! as a new, barely present relay hands that unit to another axis: read
+//! on the parent alone, the frame of a relay standing on it would swing
+//! from the unit before to the new relay's start at that crossing, a jump
+//! fn-199's R3 walk catches (DENTS.md). Contract A (CONTRACT-A.md 2.4):
+//! Q32 throughout, the azimuth an amount, one floor a product.
 use super::q::{add, dot, q3, scaled, sub, unit, Q3};
 use super::{by_rank_q, over, phase};
 use crate::fixed::{mul, q32, ONE32};
@@ -41,59 +50,103 @@ impl Point {
 }
 
 /// Where a relay of axis `p` stands, `node` its node on `p`'s last unit
-/// (FINE-CONTRACT.md D18): `p`'s last unit at `relay_at`, blended back
-/// towards the one before by its extent, that one towards the one before
-/// it by its own, down to a whole unit or `p`'s start. Its frame, its rank
-/// the azimuth a bud there turns by, and its position along `p` in nodes,
-/// Q32 (`at`).
-pub(super) fn stand(axes: &[Axis], species: &Species, p: usize, node: usize) -> (Point, i64) {
-    let axis = &axes[p];
-    let state = &species.states[axis.pa];
-    let turn = |at: Point| Point {
-        rank: phase(axes, species, p) + by_rank_q(state.divergence, at.rank),
-        ..at
+/// (FINE-CONTRACT.md D18): the last unit of the line ending in `p` at
+/// `relay_at`, blended back towards the one before by its extent, that
+/// one towards the one before it by its own, down to a whole unit or the
+/// line's base. Its rank is the azimuth a bud there turns by.
+pub(super) fn stand(axes: &[Axis], species: &Species, p: usize, node: usize) -> Point {
+    // The units newest first, each with its point and extent, to the
+    // first grown whole.
+    let mut units: Vec<(Point, i64)> = Vec::new();
+    let mut a = p;
+    let base = loop {
+        let axis = &axes[a];
+        let state = &species.states[axis.pa];
+        let turn = |at: Point| Point {
+            rank: phase(axes, species, a) + by_rank_q(state.divergence, at.rank),
+            ..at
+        };
+        let ranges = unit_ranges(axis);
+        for (u, &(first, end)) in ranges.iter().enumerate().rev() {
+            let newest = a == p && u + 1 == ranges.len();
+            let k = if newest {
+                node.clamp(first, end - 1)
+            } else {
+                zone_node(axis, (first, end), state.relay_at)
+            };
+            let at = turn(point_in(axis, (first, end), state.relay_at, k));
+            let extent: i64 = axis.phytomers[first..end]
+                .iter()
+                .map(|q| q32(q.grown))
+                .sum();
+            units.push((at, extent.min(ONE32)));
+            if extent >= ONE32 {
+                break;
+            }
+        }
+        if units.last().is_some_and(|&(_, e)| e >= ONE32) {
+            break None;
+        }
+        match axis.carried_on() {
+            Some((parent, _)) => a = parent,
+            None => {
+                break Some(turn(Point {
+                    base: q3(axis.base),
+                    along: q3(axis.heading),
+                    side: q3(axis.side),
+                    rank: 0,
+                }))
+            }
+        }
     };
-    // The units newest first, each with its point, position and extent, to
-    // the first grown whole.
-    let mut units: Vec<(Point, i64, i64)> = Vec::new();
+    let mut point = match base {
+        Some(base) => base,
+        None => units.pop().expect("a whole unit").0,
+    };
+    while let Some((at, extent)) = units.pop() {
+        point = point.toward(at, extent);
+    }
+    point
+}
+
+/// How far along axis `p` a relay stands, `node` its node on `p`'s last
+/// unit, in `p`'s nodes, Q32 (`at`): `p`'s last unit at `relay_at`,
+/// blended back towards the one before by its extent, that one towards the
+/// one before it by its own, down to a whole unit or `p`'s start.
+pub(super) fn position(axes: &[Axis], species: &Species, p: usize, node: usize) -> i64 {
+    let axis = &axes[p];
+    let relay_at = species.states[axis.pa].relay_at;
+    // The units newest first, each with its position and extent, to the
+    // first grown whole.
+    let mut units: Vec<(i64, i64)> = Vec::new();
     let ranges = unit_ranges(axis);
     for (u, &(first, end)) in ranges.iter().enumerate().rev() {
         let k = if u + 1 == ranges.len() {
             node.clamp(first, end - 1)
         } else {
-            zone_node(axis, (first, end), state.relay_at)
+            zone_node(axis, (first, end), relay_at)
         };
-        let t = span_in(axis, (first, end), state.relay_at, k);
-        let at = turn(point_in(axis, (first, end), state.relay_at, k));
+        let x = ((k as i64) << 32) + span_in(axis, (first, end), relay_at, k);
         let extent: i64 = axis.phytomers[first..end]
             .iter()
             .map(|q| q32(q.grown))
             .sum();
-        units.push((at, ((k as i64) << 32) + t, extent.min(ONE32)));
+        units.push((x, extent.min(ONE32)));
         if extent >= ONE32 {
             break;
         }
     }
-    let (mut point, mut x) = match units.last() {
-        Some(&(_, _, e)) if e >= ONE32 => {
-            let (at, x, _) = units.pop().expect("a whole unit");
-            (at, x)
+    let mut x = match units.last() {
+        Some(&(x, e)) if e >= ONE32 => {
+            units.pop();
+            x
         }
-        _ => {
-            let start = Point {
-                base: q3(axis.base),
-                along: q3(axis.heading),
-                side: q3(axis.side),
-                rank: 0,
-            };
-            (turn(start), 0)
-        }
+        _ => 0,
     };
-    while let Some((at, to, extent)) = units.pop() {
-        point = point.toward(at, extent);
+    while let Some((to, extent)) = units.pop() {
         x += mul(to - x, extent);
     }
-    (point, x)
+    x
 }
 
 /// The point at position `x` along axis `p`, in nodes, Q32: `t` of the way
