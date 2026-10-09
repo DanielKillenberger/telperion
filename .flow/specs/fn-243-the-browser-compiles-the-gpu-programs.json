@@ -240,7 +240,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-243-the-browser-compiles-the-gpu-programs.md",
-  "status": "open",
+  "status": "done",
   "title": "The browser compiles the GPU programs in the background",
   "tracker": {
     "baseHashFlow": null,
@@ -253,5 +253,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T08:34:44.760187Z"
+  "updated_at": "2026-10-09T08:55:05.975374Z"
 }

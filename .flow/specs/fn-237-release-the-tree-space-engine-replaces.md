@@ -14,6 +14,7 @@ The owner's goal (2026-10-08/09): "replace the old generator with the new one th
 - **R5 (found on the way):** `src/field/field.test.ts` "grows every shipped preset, byte for byte the main entry's field" runs about 60 s against its 60 s timeout; it timed out under load twice (fn-217's merge at load 58, F4 after fn-234 at load ~30) and passes alone. Before the release PR, made to finish well inside its timeout (or its timeout set from a measured CI run), so CI does not flake on it.
 - **R6 (found on the way):** fn-235's cold-build test holds the first tree to 5 s besides `grow` with about 0.3 s of margin after the fn-231 merge (MERGE-235.md), so it may fail under load; before the release PR, the margin restored (MERGE-235 names one route: the lateral place threshold's logarithm from the CPU table instead of in `asks`) or the bound restated from a measured CI run.
 - **R7 (friction, obvious fix):** `cargo fmt --all --check` reports 79 unformatted spots that predate the work, so every agent's `cargo fmt -p` rewrites files it never touched (fn-235, fn-241, fn-213 FRICTION.md). Once the last open branch merges, F4 is formatted once in a commit of its own, with no other change, so no open branch inherits the conflicts.
+- **R8 (found on the way):** the render module is 3,295,462 bytes against its 2,800,000-byte ceiling (`scripts/artifact-budgets.json`, fn-243's report); measured on F4 before fn-243 to see what moved it, then brought under or the ceiling restated with the owner.
 
 ## Boundaries
 
