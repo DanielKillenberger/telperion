@@ -13,3 +13,10 @@
 - **Slowed by:** the shell guard (dcg) blocks `> $R/file` because it cannot prove where `$R` points.
 - **Cost:** one retry, under a minute.
 - **Would have removed it:** nothing in the repository; written with literal paths since. Local setup, reported only.
+
+## 2026-10-09: the wood's same-picture claim could only be checked after building it
+
+- **Doing:** step 2, the wood fix's cause and design before code.
+- **Slowed by:** whether fewer bark cells is "the same picture" is not decidable from the shader text. The only check is the bark tests, and they need the rule built. The stated design passed timing and then failed `bark_resolution`, so it was written, built, tested, measured and reverted.
+- **Cost:** about 25 minutes and two GPU test runs.
+- **Would have removed it:** a stated picture tolerance for wood changes, for example "the bark tests' bounds", decided by the host before dispatch. The stop rule would then have had a number to apply.

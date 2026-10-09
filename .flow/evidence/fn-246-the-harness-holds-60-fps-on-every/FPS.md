@@ -79,3 +79,19 @@ Bark relief is the wood's cost. Close, relief off takes the oak's wood from 31.3
 **Design.** The cell count per axis is the fewest that keep every cell's footprint inside the widest cell footprint the present rule already shades: `cells = min(present, max(1, ceil(wide * present)))`, where `present` is today's count (2, or 3 once the pixel is a ridge width wide, or 4 for chipped edges) and `wide` is the pixel in ridge widths (or twice its plate band). So a cell is never read over more than half a ridge width (a quarter for chipped edges) where the present rule reads it over at most that, and the grid is unchanged wherever the pixel is a ridge width wide or more. Nothing else in the shader changes: the same field, the same lighting per cell, the same sun walk and parallax. It is the same picture at fewer reads, within the quadrature's own stated error; the bark tests and the stills check that.
 
 **What it buys, measured with the rule in place (one run each, bare close):** oak 31.3 to 15.3 ms, spruce 9.8 to 7.9, beech 7.5 to 7.4, Telperion 29.9 to 29.7, Laurelin 31.5 to 31.4. The Two Trees' bark (a 2 mm ridge) puts one to six ridge widths in a close pixel, where the present grid is already the one the field needs, so a same-picture rule cannot make their wood cheaper. That is stated here as the limit of this fix; R3 reports what remains.
+
+## The wood fix failed its same-picture check (stopped here for the host)
+
+The rule above was built (`bark_cells` in `wood.wgsl`, a red/green test of the cell table) and put to the bark tests. `bark_resolution` compares a trunk drawn at 1600x1000 and box-reduced against the same trunk at 800x500. Under the rule the fine 1600x1000 pixels drop to one cell, and the comparison moves past its bounds:
+
+| fixture | present rule, mean / p95 (of 255) | one-cell floor (the stated rule) | two-cell floor (chipped edges only reduced) | bound, mean / p95 |
+|---|---|---|---|---|
+| oak trunk | 1.91 / 6.75 | **3.09** / 9.75 | 2.08 / 7.00 | 3.0 / 12 |
+| oak grazing | 2.40 / 7.00 | **3.29** / 9.25 | 2.64 / 7.00 | 3.0 / 12 |
+| spruce grazing | 0.89 / 2.50 | 1.00 / 2.75 | 1.46 / 4.00 | 3.0 / 12 |
+
+So the two-by-two floor is not idle quadrature: it is the bark's anti-aliasing at fine pixels, and taking it away changes the picture. The milder variant, which keeps the floor and cuts only the chipped-edge rows' 4x4 grid where the pixel is narrow, stays inside the bounds but still moves every fixture (the spruce's grazing mean by 64%). It is not the same picture either. It takes the oak's close wood from 31.3 to 18.4 ms (one run at load 24), which leaves the oak's close frame near 23 ms, about 43 fps.
+
+Neither variant touches the Two Trees' wood (29.7 and 31.4 ms bare close). Their 2 mm ridge puts one to six ridge widths in a close pixel, where the dense grid is the one the field needs. With the relief off their close wood is still 8.5 and 7.8 ms.
+
+Per the dispatch, the fix is now beyond "the shader cheaper for the same picture", so the build stops before code and goes to the host. Both variants were reverted (`177dbe4c`); the branch holds the probe and this record. Points 1 to 4 of the design (thinning, sun caching, draw on change, cached-pass timing) are not built.
