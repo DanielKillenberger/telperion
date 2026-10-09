@@ -34,3 +34,10 @@
 - Hindered: wgpu 30's public API has only the synchronous `Device::create_compute_pipeline`; the async binding exists in its private `webgpu_sys` module and is not reachable from this crate without going around wgpu.
 - Cost: 5 minutes to find; the item is not done.
 - Would remove it: a host decision on how to reach it (a raw `web_sys` call beside wgpu, or a wgpu change).
+
+## 2026-10-09, task 1: cold-compile bounds on a shared, loaded machine
+
+- Doing: holding `grow` to its 20 s cold exception and the first tree to 5 s besides it.
+- Hindered: the load average ran 7 to 40 from other agents' builds; the same `grow` source made in 12 to 45 s across runs, so the cold test passes or fails with the machine's load, not the change. `cargo fmt -p telperion-render` also rewrites three files nobody touched (an example and two integration tests) on every run.
+- Cost: about 30 minutes of repeated cold compiles; a stray-diff revert after each format.
+- Would remove it: cold-compile bounds measured on an idle machine (or the test reading the load and saying so), and the three files formatted once on master.
