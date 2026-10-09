@@ -135,3 +135,83 @@ None of it contradicts the decision. Six points do decide how part 1 gets built:
 6. **The count of 3 comes from a metamer count.** [LET] gives a short shoot "usually 3 or 4" metamers and uses 3. The beech bears one leaf per node, two-ranked ([M98]), so its leaves per short shoot are 3. That is an inference from a sourced metamer count, and it will be recorded as such. The cluster's spread angle has no source and will be marked estimated.
 
 The scope is large: an engine row, the conversion on both executors, the plan, station and placement counts, the device's stations, and parity tests.
+
+## Parts 1 and 2 built, part 3 measured (worker, 2026-10-09)
+
+### Part 1: leaves by wood age
+
+- **The row.** `PaState::leaf_years`, neutral at never. It is refused below 0 or as NaN, mixes on the `Kept` scale (halfway from never to 1 is 3), and is written `/space/ages/<k>/leafYears` (`never` is admitted, as on `shedding`).
+- **The record.** The conversion writes `Tree::leafing` on both executors. For each node it records the boundary in the node's grown wood where its merged phytomers' retention changes, and the retention before and from that boundary, each a 16-bit share. On the CPU this is `space.rs` `convert`; on the device it is `dress.wgsl`, which reads each phytomer's cycle from the laid record (`PL` 27) and each PA's first shedding age and share from the geometry table (`GG` 42).
+  - The record is empty where every age bears for ever.
+  - A node that merges three retentions gives its oldest piece the middle one, by the stated rule in `tree/leafing.rs`.
+  - Device records grow from 30 to 32 words (`CV`), and sweep nodes from 31 to 33 (`NW`).
+- **Where retention is applied.** The plan's descriptors, the count, the CPU placement, the prepared station segments, and the device's `measure` and `emit` all keep a station by its retention, compared in whole micrometres along the run.
+  - A fractional retention draws under the registry's new `RETAIN` key, by the station's ordinal along the run.
+  - A dropped station still takes its leaf's draws, so every kept leaf is bit for bit the one the tree bore for ever. The test `a_leaf_stays_only_where_its_wood_keeps_it` checks this.
+  - A segment some of whose stations shed carries its boundary, its retentions and its stream in the three spare lanes of its frame. Placement (`pack.wgsl`) walks at most 256 stations to find each leaf's ordinal.
+  - Clusters bear for as long as their shoot lives.
+  - Retention without a twig layer is refused.
+- **The beech.** `leafYears` 1 on every age. The short shoots (PA 14) bear a cluster of 3: [LET] gives three metamers per short shoot and one leaf per node, so the 3 is inferred, not quoted. The cluster's spread is 0.6 rad (estimated). Laurelin and Telperion state the same rows. The ordinary tree keeps its own rows; the centroid test that would move them is already `#[ignore]`.
+
+### Part 2: spacing
+
+- **The value.** `/skeleton/twigs/twig/internodeLength` goes from 0.006 to 0.025 on the beech, Laurelin and Telperion. That is one leaf per node of the shoot's 2.5 cm internode (estimated, fn-193 SOURCES.md).
+- **How it was chosen.** On close stills of the beech at 80 at 6, 15, 25 and 35 mm, against the two beech-shoot photographs (`TWIGS-spacing.jpg`). At 25 mm the leaves alternate along a visible thin shoot, as they do in the photographs. At 35 mm the sprays thin out.
+- **The comment.** The row's stale comment ("a leaf every 5 cm") now states the value.
+
+### Proof
+
+- **Red/green tests:**
+  - space crate (`tests/refusals.rs`, `tests/chain.rs`): refusals and the Kept-scale mix;
+  - preset rows (`tests/space_presets.rs`);
+  - the conversion's record (`pipeline/space/leafing_tests.rs`);
+  - placement (`suite/retention.rs`): the kept leaves are a subset of all leaves, bit for bit; a share of a year keeps that share within four standard errors; the plan, placement and segment counts agree;
+  - the device (`resident_tests.rs`, `the_real_path_keeps_the_stations_the_cpu_path_keeps`).
+- **CPU against device.** On the beech at 30 (seed 1), at 1 year and at 1.5 years, the device places every leaf the CPU places: 7,161 and 8,520 leaves. Every leaf is compared, none is left over, and every one lies within the screen. The neutral parity numbers did not change.
+- **Neutral identity.** It was checked against the base (`c6cd30d3`, built in its own worktree and target), on every shipped preset at seeds 1 and 7, with the presets still neutral.
+  - The CPU artifacts (`artifact_digest`) match to the bit once the new empty `leafing: []` is stripped.
+  - In `generation_digest`, these match on every preset: the pipeline's leaves, the mesh, the GPU-CPU path's instances, and the resident path's count, bounds and curve.
+  - Two things differ, and why:
+    - `pipeline.tree`: by the `leafing` field alone.
+    - The memory metrics: by the wider records.
+  - The resident path's instance digest differs from run to run at the base itself (two base runs gave `077d…` and `1d5f…`), so its leaves are compared by the parity test instead.
+  - The catalogue digests were re-pinned. With `leaf_years: inf, ` stripped and the three value files at base, each digest matched its old pin.
+- **Cost.**
+  - Device preparation time (`prepare_timing`, 3 runs each) is unchanged within noise:
+    - beech 80: 621-628 ms → 624-647 ms;
+    - Laurelin: 676-684 ms → 667-755 ms;
+    - Telperion: 864-875 ms → 858-1122 ms;
+    - spruce 40 (neutral): 477-739 ms → 461-481 ms.
+  - The first head run after the shader change compiled cold: 22.7 s, then 287 ms.
+  - Native frame time at 1920×1080 after part 1 (`headless --timing`, p50 total):
+    - Telperion: 121 ms → 101 ms (9.05M → 1.42M leaves);
+    - Laurelin: 89 ms → 75 ms;
+    - beech 40: 4.4 ms → 4.3 ms.
+  - Part 2 removes more leaves still.
+- **Leaf counts at seed 1 (before → part 1 → part 2):**
+  - beech 40: 66,155 → 39,007 → 25,113;
+  - beech 80: 2,494,405 → 586,237 → 361,315;
+  - Laurelin 80: 6,126,178 → 1,027,891 → 468,203;
+  - Telperion 92: 9,052,762 → 1,424,271 → 664,957.
+
+### The stills (viewed)
+
+The sheets are `TWIGS-beech40.jpg`, `TWIGS-spacing.jpg` and `TWIGS-after.jpg`; the full set is under `raw/before`, `raw/after-part1`, `raw/after-part2` and `raw/spacing`.
+
+- **Beech 40.** The crown is thinner, and the twigs show between the leaves. At mid, sprays carry leaves spaced along visible shoots. At close, a single spray carries a fan of leaves.
+- **Beech 80 and 92.** At mid and whole, the fine wood is now visible as a bare twig layer inside the crown, with leaves at the shoot ends and spurs. The caterpillar and fern-frond sprays are gone. The crown reads as more open than before; whether it now reads too bare is the owner's call.
+
+### Part 3 measured (no build)
+
+The Two Trees' twigs still read as branches.
+
+- **What the stills show.**
+  - Laurelin close: the leaves stand 2.5 cm apart along a shoot as thick as a finger.
+  - Laurelin mid, Telperion mid: bare, dark, branch-thick fine wood dominates. Laurelin's leaves are few beside her racemes; on Telperion the flowers carry most of the colour.
+- **The numbers** (`raw/twig_layer-after.log`), Laurelin against the beech at 80:
+  - Current-year shoots are still 2.5 times as thick and as long: median diameter 6.4-6.6 mm against 2.6 mm, median length 60 mm against 24 mm.
+  - The median seat under a leaf is 4.75 mm against 1.90 mm.
+  - Blade / seat is 19 against 46; petiole / seat is 1.9 against 4.6.
+  - Telperion against the beech at 92 is the same: shoots 5.1-6.1 mm against 2.1-2.6 mm, seat 4.56 mm against 1.90 mm.
+  - The example's "leaves per metre" now counts cluster leaves against run wood, so that line no longer gives the spacing.
+- **What follows.** Parts 1 and 2 fix the natural tree's foliage. They do not change what the uniform scale does to the finest wood: it still draws a current-year shoot of the beech at 2.4-2.5 times its thickness, beside leaves at their natural size. With most leaves now gone from that wood, the thick bare shoots are what the eye reads. The decided route (Astra's per-PA enlargement) is the host's next call.
