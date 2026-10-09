@@ -12,6 +12,7 @@ driver 610.57.04, 2026-10-09 (`hang_tests::browser_route`).
 | birch at 5, 20, 40, 80, the page's own JSON (fn-213 round 14, scratch branch only) | warm | built in 0.13 to 2.65 s |
 | birch at 20, page JSON | cold (`__GL_SHADER_DISK_CACHE=0`) | built in 108.2 s, 0.9 s of it after the first submit |
 | beech at 20, F4 | cold | built in 149.8 s; pipeline `grow` made in 144.7 s, `girths` 1.5 s, the other 55 under 0.6 s |
+| beech at 20, F4 with fn-241 (the cold-build test's report, gate run) | cold | built in 23.34 s, 4.65 s besides `grow`; every other pipeline within 2.5 s (fn-241 R3: reported, no longer bounded) |
 
 The step is not a submission: it is making the chain grower's `grow`
 compute pipeline (`chains::Grower::new`, the `zones` contract with
