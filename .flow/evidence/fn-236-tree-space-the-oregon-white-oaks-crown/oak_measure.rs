@@ -32,7 +32,10 @@ const FILE: &str = "crates/telperion-core/presets/oregon-white-oak.values";
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let list = |i: usize| -> Vec<u32> { args[i].split(',').map(|v| v.parse().unwrap()).collect() };
-    let mut text = std::fs::read_to_string(FILE).expect("the preset's value file");
+    // `OAK_VALUES` names another value file (a past round's), for timing
+    // two rounds back to back.
+    let file = std::env::var("OAK_VALUES").unwrap_or(FILE.into());
+    let mut text = std::fs::read_to_string(file).expect("the preset's value file");
     for set in &args[2..] {
         let (path, value) = set.split_once('=').expect("<path>=<value>");
         let line = format!("{path} = {value}");

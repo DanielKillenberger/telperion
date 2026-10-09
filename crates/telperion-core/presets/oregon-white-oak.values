@@ -46,10 +46,15 @@
 # Blades alternate along the shoot and lean a quarter of the
 # radial toward its tip; nothing pulls them outward or up.
 /canopy/forwardLean = 0.25
-/canopy/outward = 0.0
+/canopy/outward = 0.3
 /canopy/upward = 0.0
 /canopy/divergence = 180.0
 /canopy/sizeVariation = 0.2
+# fn-236 round 3: blades at 140 mm, the largest of FNA's 25-120(-140) mm
+# for Q. garryana, turned a little outward and scattered, so each shoot
+# closes more of the crown's surface (turn and scatter estimated).
+/canopy/size = 1.4
+/canopy/scatter = 30.0
 
 # Pale grey-brown furrowed bark; a dark glossy blade over a
 # markedly paler underside. Linear, from the frozen profile's
@@ -142,7 +147,7 @@
 # The rows the tree-space example restated for a tree that grows its own
 # shoots (fn-193 to fn-196): leaves along the grown shoots, no clusters
 # seated along slender wood.
-/canopy/shootRadius = 0.06
+/canopy/shootRadius = 0.1
 /skeleton/twigs/twig/internodeLength = 0.008
 
 # The age the harness opens the tree at (fn-198 host decision 5); the
@@ -202,7 +207,7 @@
 /space/ages/3/zones/2/buds = 3.0
 /space/ages/3/zones/2/nodes/min = 1.0
 /space/ages/3/zones/2/nodes/max = 1.0
-/space/ages/3/zones/2/lateral/6 = 0.55
+/space/ages/3/zones/2/lateral/6 = 0.8
 /space/ages/4/lifespan = 6.0
 /space/ages/4/internode = 0.05
 /space/ages/4/divergence = 2.513
@@ -357,7 +362,7 @@
 /space/ages/9/viability = 0.98
 /space/ages/9/shedding = 3.0
 /space/ages/9/internode = 0.017
-/space/ages/9/insertion = 0.8
+/space/ages/9/insertion = 1.0
 /space/ages/9/divergence = 2.513
 /space/ages/9/relay = 1.0
 /space/ages/9/relayEnded = 1.0
@@ -365,7 +370,7 @@
 /space/ages/9/epitony = 0.2
 /space/ages/9/leafArea = 0.00181
 /space/ages/9/shadeHazard = 1.0
-/space/ages/9/shadeSize = 1.5
+/space/ages/9/shadeSize = 1.0
 /space/ages/9/apicalControl = 0.45
 /space/ages/9/upkeep = 0.35
 /space/ages/9/balanceHazard = 2.0
@@ -381,13 +386,13 @@
 /space/ages/9/zones/1/buds = 1.0
 /space/ages/9/zones/1/nodes/min = 2.0
 /space/ages/9/zones/1/nodes/max = 3.0
-/space/ages/9/zones/1/lateral/13 = 0.18
+/space/ages/9/zones/1/lateral/13 = 0.35
 /space/ages/9/zones/1/lateral/14 = 0.6
 /space/ages/9/zones/2/buds = 3.0
 /space/ages/9/zones/2/nodes/min = 1.0
 /space/ages/9/zones/2/nodes/max = 1.0
 /space/ages/9/zones/2/lateral/9 = 0.02
-/space/ages/9/zones/2/lateral/13 = 0.25
+/space/ages/9/zones/2/lateral/13 = 0.1
 /space/ages/12/lifespan = 4.0
 /space/ages/12/continuation = 0.0
 /space/ages/12/viability = 0.93
@@ -397,7 +402,7 @@
 /space/ages/12/divergence = 2.513
 /space/ages/12/leafArea = 0.00181
 /space/ages/12/shadeHazard = 1.0
-/space/ages/12/shadeSize = 1.5
+/space/ages/12/shadeSize = 1.0
 /space/ages/12/apicalControl = 0.45
 /space/ages/12/upkeep = 0.35
 /space/ages/12/balanceHazard = 2.0
@@ -418,16 +423,16 @@
 /space/ages/12/zones/2/nodes/min = 1.0
 /space/ages/12/zones/2/nodes/max = 1.0
 /space/ages/12/zones/2/lateral/14 = 0.35
-/space/ages/13/lifespan = 3.0
+/space/ages/13/lifespan = 5.0
 /space/ages/13/continuation = 0.0
-/space/ages/13/viability = 0.95
+/space/ages/13/viability = 0.98
 /space/ages/13/shedding = 2.0
 /space/ages/13/internode = 0.012
 /space/ages/13/insertion = 0.8
 /space/ages/13/divergence = 2.513
 /space/ages/13/leafArea = 0.00181
 /space/ages/13/shadeHazard = 1.0
-/space/ages/13/shadeSize = 1.5
+/space/ages/13/shadeSize = 1.0
 /space/ages/13/apicalControl = 0.45
 /space/ages/13/upkeep = 0.35
 /space/ages/13/balanceHazard = 2.0
@@ -457,7 +462,7 @@
 /space/ages/14/divergence = 2.513
 /space/ages/14/leafArea = 0.00181
 /space/ages/14/shadeHazard = 1.0
-/space/ages/14/shadeSize = 1.5
+/space/ages/14/shadeSize = 1.0
 /space/ages/14/apicalControl = 0.45
 /space/ages/14/upkeep = 0.35
 /space/ages/14/balanceHazard = 2.0
