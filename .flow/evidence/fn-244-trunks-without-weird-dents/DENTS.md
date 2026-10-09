@@ -73,3 +73,36 @@ This is not a values fix. The defect is how `converted` draws a relay's stem aga
   - The gate, npm test and impl-review.
 
 Keep the task open for the owner's verdict.
+
+## Option 2 built and measured: it moves the dent, it does not remove it (2026-10-09)
+
+I built option 2 on the CPU path. It is saved as `raw/option2-lowest-entry.patch` and reverted, so the code tree is unchanged:
+
+- `telperion_space::relay_join` derives the join from `girth::relay_shares`.
+- `converted` hangs the relay there.
+- `joint` and the bud-to-joint thickening loop are deleted.
+
+**What the girth model actually says.** It splits a relay's pipe three ways:
+- `b * t` enters at the bud's node;
+- `b * (1 - t)` enters at the node below it;
+- `1 - b` enters at the parent's tip, through the stopped module's head.
+
+Trunk relays keep a blend `b` well short of one for life. Beech at seeds 42 and 7, both ages, shows `b` = 0.35, 0.47, 0.62 and 1.0, with `t` = 0.2 or 0.9. Ordinary 40-7 shows `b` = 0.09. So most of a relay's pipe often still runs up the old leader's head.
+
+**What a single drawn join therefore does.** The patch joins at the lowest entry taking a share, which is the node below the bud whenever `b > 0` and `t < 1`.
+
+- **The trunk.** Every node below the join carries the whole relay. The probe finds no rise along any trunk sampled, and the 80-year beech collars are gone.
+- **The head.** The head is turned aside at the join and carries `(1 - b) + b * t` of the relay. It is drawn as a lateral nearly as thick as the stem (beech 40-42: heads of 0.18 to 0.20 m on a 0.21 m trunk).
+- **The new defect.** The head's thick base appears as a new flange ring at the join. See `beech-40-42`, `beech-40-1`, `ordinary-40-1` and `ordinary-40-7` in `raw/sheets/ba-*-base.png`, and `raw/sheets/option2-stubs.png`.
+
+**The other rules would not help.**
+- **The largest share as the join** leaves the trunk short of the minority share below the join, which is the original dip at a smaller size.
+- **Any single node** leaves the minority share drawn in the wrong place, because the girth model spreads the pipe over the bud span and the tip while the drawing must hang the relay from one node.
+
+**Byte changes.** Oak, palm and spruce stills are byte-identical. Birch changes in 7 of 18 stills. Beech, ordinary, Laurelin and Telperion change in all of theirs.
+
+**Still open, a host design call.** Option 2 as written cannot be dent-free while `b < 1`. Two ways forward:
+- **Change the girth side.** The drawing reads the join, and the girth model enters all of a drawn relay's pipe at that join. This changes girth, sag and the device's girth.
+- **Change the drawing side.** The drawing hangs the relay at the join and draws the head as carrying only its own wood. The girth model and the drawing would then disagree on the head.
+
+**The device path.** `crates/telperion-render/src/generation/fine/dress.wgsl` has its own copy (`joint` at line 241, the thickening loop at lines 484-499). Whichever rule is chosen goes there as well. `girth.wgsl` already has `relay_span_q`.

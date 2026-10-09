@@ -15,3 +15,10 @@ The `dcg` hook refused a loop whose redirect target was built from a variable. I
 
 - **Cost:** about 3 minutes.
 - **What would remove it:** this is a local setup matter, reported and not specced.
+
+## 2026-10-09: The decision assumed a single join point, and the girth model has none
+
+While building option 2, I found that the girth model enters a relay's pipe at three places (`relay_parts`), with blends far from one on mature trunks. Any single drawn join therefore leaves a stub or a dip. I found this only after building the change and rendering every species.
+
+- **Cost:** about 25 minutes and one full still set.
+- **What would have removed it:** printing `b` and `t` for the trunk relays before the decision. That is one probe line, now in DENTS.md.
