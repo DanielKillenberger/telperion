@@ -155,7 +155,8 @@
 //! stripped from the text and the wire, the family, walk and override
 //! digests were each the last pins to the bit; the refusal digest takes the
 //! new row's refusal. The family and walk digests then take the Two Trees'
-//! leaf sizes, and Telperion's age of 88 (host: the Wasm phytomer bound).
+//! leaf sizes, and Telperion's age of 82 (host: the Wasm phytomer bound at
+//! his own seed).
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -191,7 +192,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        16_315_454_404_396_336_782,
+        17_593_895_079_179_507_410,
         "{}",
         digest(&text)
     );
@@ -223,7 +224,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        16_358_791_324_629_995_521,
+        956_567_680_733_065_544,
         "{}",
         digest(&text)
     );

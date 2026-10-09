@@ -264,15 +264,18 @@
 
 # The age the harness opens the tree at (fn-198 host decision 5); the
 # engine grows the tree to it. Telperion is the elder, an old beech older
-# than Laurelin's 80. 88 (host, fn-248): the beech's short shoots, living
-# four years, raise his expected phytomers to 3.67M at 88, a 9 % margin
-# under what his 4 GB Wasm memory prepares (WASM_KEPT, 4M); at 92 he
-# expects 4.15M and the browser refuses him. Past that, 110 drew the
+# than Laurelin's 80. 82 (host, fn-248): with the beech's short shoots
+# living four years, his tree at its own seed (42) keeps 3.77M phytomers
+# at 82, under the 3.8M that leaves a 5 % margin to what his 4 GB Wasm
+# memory prepares (WASM_KEPT, 4M); 83 keeps 3.90M and 84 4.02M. The
+# browser's bound is judged at the preset's own seed, never the mean over
+# seeds (`expected_kept`, 3.67M at 88, where seed 42 keeps more than
+# 4.3M). Past that, 110 drew the
 # heavier crown the brief asks for and passed on its own sheet; the
 # device route runs out of a 10 GB device's memory at 120, the drawn wood
 # outgrows a buffer at 140, and the engine's phytomer budget refuses 160
 # (fn-219 SHEET.md).
-/age = 88.0
+/age = 82.0
 
 # The engine species (fn-198 host decision 1): telperion_space::beech (fn-193; SOURCES.md there).
 # The envelope is derived from the grown tree (host decision 7).
