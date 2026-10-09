@@ -55,3 +55,10 @@
 - **Slowed by:** the bound is one budget (3.0 mean over the unthinned view), and the 2 px leaf thinning had already used 2.96 of it on Telperion's whole view. The card could only be fitted inside the remaining 0.04, so the fit had no room before it started. That was visible from the earlier table but only became decisive once the card was built.
 - **Cost:** about 40 minutes building, fitting and backing out the card.
 - **Would have removed it:** fitting the leaf threshold and the card together against one shared budget, or stating a budget per mechanism.
+
+## 2026-10-09: the cold-compile timing test fails when the render package runs under load
+
+- **Doing:** the final gate, `telperion-render` under the GPU lock.
+- **Slowed by:** `generation::fine::hang_tests::every_pipeline_within_2_5_s_but_grow_within_20_s_cold` measured the `grow` compile at 20.6 s and then 26.0 s against a 20 s bound, while other sessions held the load at 10 to 27 and the package's own tests ran beside it. Alone, at load 3, it passed in 23.5 s wall. The test times a CPU-bound driver compile, so it fails on a loaded machine. The change does not touch it.
+- **Cost:** one rerun, about 5 minutes. The workspace gate also no longer fits one 10-minute foreground call at this load: core took 6.9 min and space 7.5 min, so the gate ran package by package.
+- **Would have removed it:** running that test serially, or measuring the compile as CPU time rather than wall time; and a gate split that fits the foreground limit.
