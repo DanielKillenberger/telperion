@@ -5,8 +5,8 @@
 // `log2_w`, `exp2_w`, `prod_shr`, `mul_shr` and `ripe` are the feedback
 // contract's, `log2q`, `exp2q` and `mulq` the decision contract's. A
 // section's W words borrow scratch the lever pass fills later: a
-// phytomer's `P_NODE` and `P_LOAD`, an axis's `S_TIP` and `S_LOAD`, and
-// its `S_BASE`. A chain's record carries its first axis's base radius as
+// phytomer's `P_NODE` and `P_LOAD`, and an axis's `S_TIP` and `S_LOAD`.
+// A chain's record carries its first axis's base radius as
 // a float and, in its next two words, as Q32 (`records[.. + 1, 2]`,
 // which the lever pass overwrites with the load). Part of the geometry
 // kernel's shader.
@@ -82,41 +82,6 @@ fn real_q(q: vec2<u32>) -> f32 {
     return select(v, -v, neg);
 }
 
-// `geometry::relay_span` (`stand.rs`'s `span_in` on the last unit), Q32,
-// of own axis `p` for a relay at `share` (Q32) at node `k_in`.
-fn relay_span_q(p: u32, share: vec2<u32>, k_in: u32) -> vec2<u32> {
-    let n = s(p, S_COUNT);
-    if n == 0u {
-        return one32();
-    }
-    let k = min(k_in, n - 1u);
-    let last = ph(at_k(p, n - 1u), 2u);
-    var first = 0u;
-    for (var j = 0u; j < n; j++) {
-        if ph(at_k(p, j), 2u) == last {
-            first = j;
-            break;
-        }
-    }
-    var total = vec2<u32>(0u);
-    for (var j = first; j < n; j++) {
-        total = add64(total, q32_f(out[lo(p, j) + 19u]));
-    }
-    let scale = q32_f(out[lo(p, k) + 19u]);
-    if slt64(vec2<u32>(0u), total) && slt64(vec2<u32>(0u), scale) {
-        var before = vec2<u32>(0u);
-        for (var j = min(first, k); j < k; j++) {
-            before = add64(before, q32_f(out[lo(p, j) + 19u]));
-        }
-        let t = over(sub64(mulq(share, total), before), scale);
-        return smin64(smax64(t, vec2<u32>(0u)), one32());
-    } else if slt64(vec2<u32>(0u), total) {
-        return one32();
-    }
-    let f = add64(w(0u, first), mulq(share, w(0u, n - first)));
-    return smin64(smax64(sub64(f, w(0u, k)), vec2<u32>(0u)), one32());
-}
-
 // Adds section `v` borne at own axis `j`'s node `node`, or at its tip
 // beyond its nodes.
 fn borne_w(j: u32, node: u32, v: vec4<u32>) {
@@ -178,6 +143,8 @@ fn girth_realized(ch: Chain) {
             let root = radius_q(section, inverse);
             let weighed = add64(mulq(secondary, root), mulq(sub64(one32(), secondary), established));
             out[at + 18u] = real_q(weighed);
+            // The section it carries, for its relays' joins (`joins`).
+            spw(s(j, S_START) + n - 1u, section);
         }
         let radius = radius_q(add4(section, sw(j, S_BASE)), inverse);
         if j == 1u {
@@ -196,18 +163,59 @@ fn girth_realized(ch: Chain) {
             ssw(p, S_SECTION, add4(sw(p, S_SECTION), carried));
             continue;
         }
-        // `girth::relay_parts`: `b` of it where it stands, of that `t` at
-        // its node and the rest at the one before (or the base); the rest
-        // at the tip. A part at a node past the parent's goes to its tip.
-        let t = relay_span_q(p, gq(ax(p, PA), G_RELAY_AT), node);
-        let stands = split_q(carried, q32_f(axf(j, BLEND)));
-        let parts = split_q(stands[0], t);
-        borne_w(p, node, parts[0]);
-        if node == 0u {
+        // A relay's enters where it joins (`girth::thicken`, fn-244): its
+        // share at the node whose span it stands in, the rest at the node
+        // before, or below the parent's first node; past the parent's
+        // nodes, at its tip. Its section is kept for its join.
+        ssw(j, S_SECTION, carried);
+        let count = s(p, S_COUNT);
+        if count == 0u {
+            ssw(p, S_SECTION, add4(sw(p, S_SECTION), carried));
+            continue;
+        }
+        let kt = attached(j);
+        let parts = split_q(carried, kt.yz);
+        borne_w(p, kt.x, parts[0]);
+        if kt.x == 0u {
             ssw(p, S_BASE, add4(sw(p, S_BASE), parts[1]));
         } else {
-            borne_w(p, node - 1u, parts[1]);
+            borne_w(p, kt.x - 1u, parts[1]);
         }
-        ssw(p, S_SECTION, add4(sw(p, S_SECTION), stands[1]));
+    }
+    joins_realized(ch);
+}
+
+// Each relay's join (`telperion_space::Join`, fn-244): its parent's node
+// (its share stays in `S_ATTACH`, Q32), and the parent's radius there with the relay whole (below
+// the join) and without it (above), from the section the parent's node
+// carries, weighed as that node is; the node `NONE` where nothing joins.
+fn joins_realized(ch: Chain) {
+    for (var j = 2u; j < ch.na; j++) {
+        ss(j, S_JOIN, NONE);
+        let p = ax(j, PARENT);
+        let n = s(p, S_COUNT);
+        if kind_of(j) != RELAYED || s(j, S_OWN) == NONE || s(p, S_OWN) == NONE || n == 0u || s(j, S_COUNT) == 0u {
+            continue;
+        }
+        let kt = attached(j);
+        let parts = split_q(sw(j, S_SECTION), kt.yz);
+        let section = pw(s(p, S_START) + kt.x);
+        let pa = ax(p, PA);
+        let inverse = gq(pa, G_INVERSE);
+        let secondary = gq(pa, G_SECONDARY);
+        let scale = q32_f(out[lo(p, kt.x) + 19u]);
+        let first_ripe = ripe(one32(), gq(pa, G_RIPENING));
+        let established = prod_shr(gq(pa, G_PIPE), scale, first_ripe, w(1u, 0u), 64u).v.xy;
+        let below = radius_q(add4(section, parts[1]), inverse);
+        let above = radius_q(sub4(section, parts[0]), inverse);
+        let weigh = sub64(one32(), secondary);
+        ss(j, S_JOIN, kt.x);
+        ssf(j, S_JOIN + 2u, real_q(add64(mulq(secondary, below), mulq(weigh, established))));
+        ssf(j, S_JOIN + 3u, real_q(add64(mulq(secondary, above), mulq(weigh, established))));
+        // `lineage::join_key`: under the relay's first phytomer's key.
+        let first = lo(j, 0u);
+        let key = child(vec2<u32>(bitcast<u32>(out[first + 24u]), bitcast<u32>(out[first + 25u])), KEY_JOIN);
+        ss(j, S_JOIN + 4u, key.x);
+        ss(j, S_JOIN + 5u, key.y);
     }
 }

@@ -373,6 +373,7 @@ impl Stub {
             rank: 0.0,
             sleep: 0.0,
             phase: self.phase,
+            joined: None,
         }
     }
 }

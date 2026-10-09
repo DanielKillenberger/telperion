@@ -271,26 +271,26 @@ fn levers_realized(ch: Chain) {
             continue;
         }
         let p = ax(j, PARENT);
-        var w_node = 0.0;
-        let node = ax(j, NODE);
-        if kind_of(j) == RELAYED && node < s(p, S_COUNT) {
-            w_node = axf(j, BLEND);
-        }
-        if w_node > 0.0 {
-            // Spread over the span it stands in (`girth::relay_shares`).
-            let t = relay_span(p, pa_of(ax(p, PA)).relay_at, node);
-            let q = s(p, S_START) + node;
-            load_at(q, mass, moment, w_node * t);
-            if node > 0u {
-                load_at(q - 1u, mass, moment, w_node * (1.0 - t));
+        let np = s(p, S_COUNT);
+        // A relay's load enters where its wood does (`sag`, fn-244): its
+        // share at the node whose span it stands in, the rest at the node
+        // before, or below the parent's first node; a continuation's at
+        // the tip.
+        if kind_of(j) == RELAYED && np > 0u {
+            let kt = attached(j);
+            let t = real_q(vec2<u32>(kt.y, kt.z));
+            let q = s(p, S_START) + kt.x;
+            load_at(q, mass, moment, t);
+            if kt.x > 0u {
+                load_at(q - 1u, mass, moment, 1.0 - t);
             } else {
-                let w = w_node * (1.0 - t);
-                ssf(p, S_BASE, sf(p, S_BASE) + mass * w);
-                ss3(p, S_BASE + 1u, s3(p, S_BASE + 1u) + moment * w);
+                ssf(p, S_BASE, sf(p, S_BASE) + mass * (1.0 - t));
+                ss3(p, S_BASE + 1u, s3(p, S_BASE + 1u) + moment * (1.0 - t));
             }
+        } else {
+            ssf(p, S_LOAD, sf(p, S_LOAD) + mass);
+            ss3(p, S_LOAD + 1u, s3(p, S_LOAD + 1u) + moment);
         }
-        ssf(p, S_LOAD, sf(p, S_LOAD) + mass * (1.0 - w_node));
-        ss3(p, S_LOAD + 1u, s3(p, S_LOAD + 1u) + moment * (1.0 - w_node));
     }
 }
 
@@ -306,6 +306,7 @@ fn scales(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     own_axes(ch.na, ch.np);
     scale_realized(ch.na, ch.bearer, ch.root_vigour);
+    attach_all(ch.na);
 }
 
 @compute @workgroup_size(64)

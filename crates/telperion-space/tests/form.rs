@@ -148,7 +148,10 @@ fn a_lateral_leaves_from_its_parents_direction_at_its_node() {
     assert!(checked > 0);
 }
 
-/// Pipe model: a section is the sum of the sections it bears.
+/// Pipe model: a section is the sum of the sections it bears. A relay's
+/// enters where it joins its parent, by its share at the node whose span
+/// it stands in and the rest at the node before, or below the parent's
+/// first node, where it is in the section the parent hands on (fn-244).
 #[test]
 fn girth_is_the_sum_of_the_sections_carried() {
     let species = walk::species();
@@ -157,24 +160,37 @@ fn girth_is_the_sum_of_the_sections_carried() {
     for (i, axis) in tree.axes.iter().enumerate() {
         carried[i] = vec![0.0; axis.phytomers.len()];
     }
-    let mut tip = vec![0.0; tree.axes.len()];
+    let (mut tip, mut below) = (vec![0.0; tree.axes.len()], vec![0.0; tree.axes.len()]);
+    let mut joined = 0;
     for (i, axis) in tree.axes.iter().enumerate().rev() {
         let base = axis
             .phytomers
             .first()
-            .map_or(tip[i], |p| p.radius * p.radius);
-        match axis.origin {
-            Origin::Lateral { parent, node, .. } | Origin::Relay { parent, node }
-                if node < carried[parent].len() =>
-            {
+            .map_or(tip[i], |p| p.radius * p.radius)
+            + below[i];
+        match (axis.origin, axis.joined()) {
+            (Origin::Relay { parent, .. }, Some(join)) => {
+                let t = join.t as f64 / 2f64.powi(32);
+                carried[parent][join.node] += t * base;
+                match join.node.checked_sub(1) {
+                    Some(k) => carried[parent][k] += (1.0 - t) * base,
+                    None => below[parent] += (1.0 - t) * base,
+                }
+                joined += 1;
+            }
+            (Origin::Lateral { parent, node, .. }, _) if node < carried[parent].len() => {
                 carried[parent][node] += base
             }
-            Origin::Lateral { parent, .. }
-            | Origin::Relay { parent, .. }
-            | Origin::Continuation { parent } => tip[parent] += base,
-            Origin::Seed => {}
+            (
+                Origin::Lateral { parent, .. }
+                | Origin::Relay { parent, .. }
+                | Origin::Continuation { parent },
+                _,
+            ) => tip[parent] += base,
+            (Origin::Seed, _) => {}
         }
     }
+    assert!(joined > 0, "a relay joined");
     for (i, axis) in tree.axes.iter().enumerate() {
         let pipe = species.states[axis.pa].form.pipe;
         for (k, p) in axis.phytomers.iter().enumerate() {

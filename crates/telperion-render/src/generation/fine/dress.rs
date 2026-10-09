@@ -79,7 +79,9 @@ impl Dresser {
     }
 }
 
-/// A drawn wave, or a group's stubs: its buffer, its axes and records,
+/// A drawn wave, or a group's stubs: its buffer, its axes and records
+/// (`phyts`: its laid phytomers' and, past the stubs, one join record per
+/// laid axis, fn-244),
 /// and its records' first id.
 pub(super) struct Drawn {
     pub buffer: Owned,
@@ -161,9 +163,11 @@ pub(super) fn dress(
         let records = stub_records(&mine, ids);
         let mut bases = vec![ids];
         ids += mine.len() as u32;
+        // Each wave's records: its laid phytomers, then one join record
+        // per laid axis (`dress.wgsl`'s `join_rec`, fn-244).
         for w in &laid[1..] {
             bases.push(ids);
-            ids += w.phyts;
+            ids += w.phyts + w.axes;
         }
         let mut bufs = vec![storage(
             gpu,
@@ -173,7 +177,7 @@ pub(super) fn dress(
         )?];
         for (w, wave) in grown.grown.iter().enumerate() {
             let (was, now) = (&laid[w], &laid[w + 1]);
-            let words = now.axes as usize * CA as usize + now.phyts as usize * CV;
+            let words = now.axes as usize * CA as usize + (now.phyts + now.axes) as usize * CV;
             bufs.push(storage(gpu, "drawn", words, &[])?);
             for run in &wave.runs {
                 let groups = run.n.div_ceil(64);
@@ -188,7 +192,7 @@ pub(super) fn dress(
                     bases[w + 1],
                     bases[w],
                     (scale as f32).to_bits(),
-                    0,
+                    now.phyts,
                     0,
                     0,
                 ];
@@ -208,7 +212,10 @@ pub(super) fn dress(
                 d.dress.run(&mut encoder, &bind, 0, groups);
             }
         }
-        let sized = laid.iter().map(|w: &Wave| (w.axes, w.phyts));
+        let sized = laid
+            .iter()
+            .enumerate()
+            .map(|(w, l): (usize, &Wave)| (l.axes, l.phyts + if w == 0 { 0 } else { l.axes }));
         let all = bufs.into_iter().zip(sized).zip(bases).enumerate();
         waves.extend(all.map(|(w, ((buffer, (axes, phyts)), base))| Drawn {
             buffer,

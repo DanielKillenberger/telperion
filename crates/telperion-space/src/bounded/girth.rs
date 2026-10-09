@@ -24,8 +24,7 @@
 use super::Bounded;
 use crate::closed_form::boundary::Row;
 use crate::closed_form::kept::section::delta;
-use crate::geometry::relay_span;
-use crate::girth::{relay_shares, ripe, Entry};
+use crate::girth::ripe;
 use crate::grow::Record;
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
@@ -187,18 +186,19 @@ fn hand_on(
     let radius = section.powf_fixed(1.0 / species.states[axes[j].pa].form.exponent);
     let carried = |p: usize| radius.powf_fixed(species.states[axes[p].pa].form.exponent);
     match axes[j].origin {
-        Origin::Relay { parent, node } => {
+        // A relay's wood enters where it joins (`girth::thicken`, fn-244).
+        Origin::Relay { parent, .. } => {
             let section = carried(parent);
-            let relay_at = species.states[axes[parent].pa].relay_at;
-            let t = relay_span(&axes[parent], relay_at, node) as f64 / crate::fixed::ONE32 as f64;
-            for (at, share) in relay_shares(node, t, axes[j].blend) {
-                match at {
-                    Entry::Node(k) if k < at_node[parent].len() => {
-                        at_node[parent][k] += section * share
+            match crate::girth::attached(axes, species, j) {
+                Some((k, t)) => {
+                    let share = t as f64 / crate::fixed::ONE32 as f64;
+                    at_node[parent][k] += section * share;
+                    match k.checked_sub(1) {
+                        Some(n) => at_node[parent][n] += section * (1.0 - share),
+                        None => at_base[parent] += section * (1.0 - share),
                     }
-                    Entry::Base => at_base[parent] += section * share,
-                    _ => at_tip[parent] += section * share,
                 }
+                None => at_tip[parent] += section,
             }
         }
         Origin::Continuation { parent } => at_tip[parent] += carried(parent),

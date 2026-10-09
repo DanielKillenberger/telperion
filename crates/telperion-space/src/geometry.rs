@@ -28,7 +28,7 @@ pub(crate) use place::{place, place_from};
 pub(crate) use q::amount;
 use q::{add, cross, dot, q3, rotated, scaled, sub, unit, v3, Q3, UP};
 pub(crate) use single::{bud_frame, lay_one};
-pub(crate) use stand::relay_span;
+pub(crate) use stand::split;
 use stand::stand;
 
 /// The sine of the lean below which a parent has too little of an upper
@@ -248,9 +248,32 @@ fn framed_q(
                 unit(add(scaled(along, ONE32 - b), scaled(heading, b))).unwrap_or(heading);
             let side = add(scaled(across, ONE32 - b), scaled(side, b));
             let side = unit(sub(side, scaled(heading, dot(side, heading)))).unwrap_or(across);
-            (add(tip, scaled(sub(at.base, tip), b)), heading, side)
+            // Its base where it joins the parent, on the parent's wood.
+            let x = attach(axes, species, i).expect("a relay's attachment");
+            let base = stand::at(&axes[parent], x);
+            (base, heading, side)
         }
     }
+}
+
+/// Where relay `i` joins its parent (fn-244 host decision 4): its stand's
+/// place on the parent (`stand::position`) blended towards the parent's
+/// tip by its blend along the parent's scaled length, as a position in the
+/// parent's nodes, Q32 (`stand::split`). The one place a relay joins: its base, girth, sag
+/// and the drawing read it. None for any other axis.
+pub(crate) fn attach(axes: &[Axis], species: &Species, i: usize) -> Option<i64> {
+    let Origin::Relay { parent, node } = axes[i].origin else {
+        return None;
+    };
+    let b = q32(axes[i].blend);
+    let p = &axes[parent];
+    if b == 0 {
+        return Some((p.phytomers.len() as i64) << 32);
+    }
+    // Blended by scaled length, as the stand is (`stand::position`).
+    let tip = stand::total(p);
+    let at = stand::position(axes, species, parent, node);
+    Some(stand::node_x(p, tip + mul(at - tip, b)))
 }
 
 /// A lateral bud's base, heading and side on its laid bearer: `frame`'s

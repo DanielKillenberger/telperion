@@ -18,9 +18,8 @@ use crate::fixed::feedback::power::{exp2_w, log2_w};
 use crate::fixed::feedback::total::Total;
 use crate::fixed::feedback::wide::{mul_shr, prod_shr, ratio};
 use crate::fixed::{exp2, log2, mul, q32, ONE32};
-use crate::geometry::relay_span;
 use crate::species::{Form, Species};
-use crate::structure::{Origin, Phytomer, Structure};
+use crate::structure::{Axis, Join, Origin, Phytomer, Structure};
 use crate::upward::Tree;
 pub(crate) use disused::{
     above, attachments, attachments_given, bases, disused, disused_below, grown_mean,
@@ -173,9 +172,19 @@ pub(crate) fn thicken(structure: &mut Structure, species: &Species, girth: &Girt
     thicken_given(structure, species, girth, &|_| None, threads);
 }
 
+/// A relay's section as its parent takes it at the relay's attachment
+/// (`geometry::attach`): `t` of it at the node whose span it stands in,
+/// the rest at the node before (or the base), so the parent's samples
+/// move by degree as it moves along (fn-199 R4); the parts.
+pub(crate) fn joining(x: i128, t: i64) -> (i128, i128) {
+    let at = mul_shr(x, i128::from(t), 32).expect("a share of a section");
+    (at, x - at)
+}
+
 /// `thicken`, each axis `given` names standing for a subtree grown
 /// elsewhere whose base radius it gives (fn-209 F1, realized mechanics):
-/// each axis's base radius, by index.
+/// each axis's base radius, by index. Each relay gets its parent's girth
+/// where it joins (`Axis::joined`).
 pub(crate) fn thicken_given(
     structure: &mut Structure,
     species: &Species,
@@ -185,24 +194,27 @@ pub(crate) fn thicken_given(
 ) -> Vec<f64> {
     let age = structure.age;
     let mean = girth.leaf_mean.or_else(|| leaf_terms(structure, species));
+    let attached: Vec<_> = (0..structure.axes.len())
+        .map(|i| self::attached(&structure.axes, species, i))
+        .collect();
     let axes = &mut structure.axes;
     // The shed branches' pipes each axis keeps, in their order.
     let mut kept: Vec<Vec<&Disused>> = vec![Vec::new(); axes.len()];
     for d in &girth.disused {
         kept[d.axis].push(d);
     }
-    let links: Vec<(Origin, f64)> = axes.iter().map(|a| (a.origin, a.blend)).collect();
-    let parents: Vec<Option<usize>> = links.iter().map(|l| l.0.parent()).collect();
+    let links: Vec<Origin> = axes.iter().map(|a| a.origin).collect();
+    let parents: Vec<Option<usize>> = links.iter().map(|l| l.parent()).collect();
     let tree = Tree::new(&parents);
     // Section carried into each axis's phytomers by the pipes it keeps,
-    // then by its laterals, and into its tip by its continuation or
-    // relay, the last child first, as a backward pass meets them. Each
+    // then by its laterals and relays, and into its tip by its
+    // continuation, the last child first, as a backward pass meets them. Each
     // child hands on its base radius; its parent raises it to the
-    // parent's own exponent.
-    tree.upward(
+    // parent's own exponent; each relay's join is read where it stands.
+    let given_out = tree.upward(
         axes,
         threads,
-        &|i, axis, radii: &[f64], at_node: &mut Vec<i128>| {
+        &|i, axis, out: &[(f64, Vec<(usize, Join)>)], at_node: &mut Vec<i128>| {
             let state = &species.states[axis.pa];
             let form = state.form;
             let e = form.exponent;
@@ -216,30 +228,30 @@ pub(crate) fn thicken_given(
                     None => at_tip += section,
                 }
             }
+            // Each relay's node, share and parts, for its join.
+            let mut relays: Vec<(usize, usize, i64, i128, i128)> = Vec::new();
             for &c in tree.children(i) {
-                let section = section(given(c).unwrap_or(radii[c]), e);
-                match links[c].0 {
-                    Origin::Seed => {}
-                    Origin::Lateral { node, .. } => match at_node.get_mut(node) {
+                let section = section(given(c).unwrap_or(out[c].0), e);
+                match (links[c], attached[c]) {
+                    (Origin::Seed, _) => {}
+                    (Origin::Lateral { node, .. }, _) => match at_node.get_mut(node) {
                         Some(at) => *at += section,
                         None => at_tip += section,
                     },
-                    // A relay's section enters at its node as far as it stands
-                    // there, spread over its span, at the tip as far as it is
-                    // still the continuation (`relay_parts`).
-                    Origin::Relay { node, .. } => {
-                        let t = relay_span(axis, state.relay_at, node);
-                        for (at, part) in relay_parts(section, node, t, links[c].1, &split) {
-                            match at {
-                                Entry::Node(k) if k < at_node.len() => at_node[k] += part,
-                                Entry::Base => at_base += part,
-                                _ => at_tip += part,
-                            }
+                    // A relay's wood enters where it joins (fn-244).
+                    (Origin::Relay { .. }, Some((k, t))) => {
+                        let (at, below) = joining(section, t);
+                        at_node[k] += at;
+                        match k.checked_sub(1) {
+                            Some(j) => at_node[j] += below,
+                            None => at_base += below,
                         }
+                        relays.push((c, k, t, at, below));
                     }
-                    Origin::Continuation { .. } => at_tip += section,
+                    (Origin::Relay { .. } | Origin::Continuation { .. }, _) => at_tip += section,
                 }
             }
+            let mut joins = Vec::with_capacity(relays.len());
             let mut section = at_tip;
             for (k, phytomer) in axis.phytomers.iter_mut().enumerate().rev() {
                 let leaf = leaf(phytomer.light, state.leaf_girth, mean);
@@ -248,60 +260,28 @@ pub(crate) fn thicken_given(
                 // Laid down at the apex, the phytomer carried nothing but itself.
                 let established = established(&form, phytomer.scale);
                 phytomer.radius = weighed(&form, radius(section, e), established);
+                for &(c, _, t, at, below) in relays.iter().filter(|r| r.1 == k) {
+                    let weigh = |s: i128| weighed(&form, radius(s, e), established);
+                    let (below, above) = (weigh(section + below), weigh(section - at));
+                    joins.push((c, Join { node: k, t, below, above }));
+                }
             }
-            radius(section + at_base, e)
+            (radius(section + at_base, e), joins)
         },
-    )
+    );
+    for (c, join) in given_out.iter().flat_map(|o| &o.1) {
+        structure.axes[*c].joined = Some(*join);
+    }
+    given_out.into_iter().map(|o| o.0).collect()
 }
 
-/// Where on its parent a relay's pipe or load enters.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub(crate) enum Entry {
-    /// At the parent's node.
-    Node(usize),
-    /// At the parent's base, below its first node.
-    Base,
-    /// At the parent's tip, as its continuation.
-    Tip,
-}
-
-/// The shares of a relay's pipe or load that enter its parent where: `b`
-/// of it where it stands, `t` of the way along the span of node `node`
-/// (`geometry::relay_span`), so at that node by `t` and at the one before
-/// (or the base) by the rest; at the tip as far as it is still the
-/// continuation. A relay moving past a node moves its pipe by degree
-/// (fn-199 R4).
-pub(crate) fn relay_shares(node: usize, t: f64, b: f64) -> [(Entry, f64); 3] {
-    let below = node.checked_sub(1).map_or(Entry::Base, Entry::Node);
-    [
-        (Entry::Node(node), b * t),
-        (below, b * (1.0 - t)),
-        (Entry::Tip, 1.0 - b),
-    ]
-}
-
-/// `relay_shares` of an integer `x` (Contract A, 2.5): `split(x, s)`
-/// takes the share `s` (Q32) of it, floored, and leaves the rest exact,
-/// so the three parts sum to `x`. `b` of it where the relay stands, of
-/// that `t` (Q32) at node `node` and the rest at the one before (or the
-/// base); the rest at the tip.
-pub(crate) fn relay_parts<T: Copy>(
-    x: T,
-    node: usize,
-    t: i64,
-    b: f64,
-    split: &dyn Fn(T, i64) -> (T, T),
-) -> [(Entry, T); 3] {
-    let (stands, tip) = split(x, q32(b));
-    let (at, below) = split(stands, t);
-    let before = node.checked_sub(1).map_or(Entry::Base, Entry::Node);
-    [(Entry::Node(node), at), (before, below), (Entry::Tip, tip)]
-}
-
-/// A section's share `s` (Q32), floored, and the rest.
-fn split(x: i128, s: i64) -> (i128, i128) {
-    let part = mul_shr(x, i128::from(s), 32).expect("a share of a section");
-    (part, x - part)
+/// Axis `i`'s attachment as its parent's node and share, Q32
+/// (`geometry::attach`, `Join`): none for all but a relay on a parent with
+/// nodes.
+pub(crate) fn attached(axes: &[Axis], species: &Species, i: usize) -> Option<(usize, i64)> {
+    let x = crate::geometry::attach(axes, species, i)?;
+    let last = axes[axes[i].origin.parent()?].phytomers.len().checked_sub(1)?;
+    Some(crate::geometry::split(x, last))
 }
 
 /// How far a phytomer `years` old has laid down its own wood, ripening

@@ -72,7 +72,7 @@ pub use grow::stepped::{
 pub use grow::subtree::Measured;
 pub use grow::{apart, grow, grow_marked, sketch, Pass, Request, Stage};
 pub use light::{bud_light, field_reads, Light};
-pub use lineage::internode_factor;
+pub use lineage::{internode_factor, join_key};
 pub use lineage::keys as lineage_keys;
 pub use oak::oak;
 pub use palm::palm;
@@ -82,5 +82,5 @@ pub use species::{
     Form, NodeLaw, PaState, Species, Zone, BARE, MAX_BUDS, MEDIAL, SPARE, TOP, ZONES,
 };
 pub use spruce::spruce;
-pub use structure::{Axis, CountTable, Origin, Phytomer, Structure, Vec3};
+pub use structure::{Axis, CountTable, Join, Origin, Phytomer, Structure, Vec3};
 pub use transcendental::Transcendental;
