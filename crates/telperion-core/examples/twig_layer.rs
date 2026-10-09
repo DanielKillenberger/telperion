@@ -85,6 +85,82 @@ fn quantile(v: &mut [f64], q: f64) -> f64 {
     v[((v.len() - 1) as f64 * q).round() as usize]
 }
 
+/// The crown's leaf area index (fn-248): the one-sided area of every
+/// leaf over the area of the crown's projection on the ground, the convex
+/// hull of the leaves' seats. A leaf's one-sided area is its element's
+/// blade facing +Z, at its own scale squared.
+fn lai(built: &pipeline::Built) -> Result<(), String> {
+    let element = built.outputs.element.as_ref().ok_or("no element")?;
+    let leaves = &built.outputs.leaves.as_ref().ok_or("no leaves")?.instances;
+    let p = &element.positions;
+    let blade: f64 = (element.indices.chunks(3))
+        .map(|t| {
+            let [a, b, c] = [0, 1, 2].map(|k| p[t[k] as usize]);
+            let (u, v) = (b - a, c - a);
+            (0.5 * (u.x * v.y - u.y * v.x)).max(0.0)
+        })
+        .sum();
+    let r = &leaves.reference;
+    let area: f64 = leaves
+        .leaves
+        .iter()
+        .map(|l| blade * r.scale(*l).powi(2))
+        .sum();
+    let seats: Vec<(f64, f64)> = (0..leaves.len())
+        .map(|k| {
+            let q = leaves.position(k);
+            (q.x, q.z)
+        })
+        .collect();
+    let ground = hull_area(seats);
+    println!(
+        "LAI {:.2}: {} leaves of {:.1} cm2 at scale 1, {area:.0} m2 of leaf over {ground:.0} m2 of crown",
+        area / ground,
+        leaves.len(),
+        blade * 1e4
+    );
+    Ok(())
+}
+
+/// The area of the convex hull of `points` (Andrew's monotone chain).
+fn hull_area(mut points: Vec<(f64, f64)>) -> f64 {
+    points.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.total_cmp(&b.1)));
+    points.dedup();
+    if points.len() < 3 {
+        return 0.0;
+    }
+    let cross = |o: (f64, f64), a: (f64, f64), b: (f64, f64)| {
+        (a.0 - o.0) * (b.1 - o.1) - (a.1 - o.1) * (b.0 - o.0)
+    };
+    let mut hull: Vec<(f64, f64)> = Vec::new();
+    for pass in [false, true] {
+        let start = hull.len();
+        let it: Box<dyn Iterator<Item = &(f64, f64)>> = if pass {
+            Box::new(points.iter().rev())
+        } else {
+            Box::new(points.iter())
+        };
+        for &q in it {
+            while hull.len() >= start + 2
+                && cross(hull[hull.len() - 2], hull[hull.len() - 1], q) <= 0.0
+            {
+                hull.pop();
+            }
+            hull.push(q);
+        }
+        hull.pop();
+    }
+    let n = hull.len();
+    (0..n)
+        .map(|i| {
+            let (a, b) = (hull[i], hull[(i + 1) % n]);
+            a.0 * b.1 - b.0 * a.1
+        })
+        .sum::<f64>()
+        .abs()
+        / 2.0
+}
+
 fn measure(family: &Family, label: &str) -> Result<(), String> {
     let request = Request {
         leaves: true,
@@ -106,6 +182,7 @@ fn measure(family: &Family, label: &str) -> Result<(), String> {
         tree.nodes.len(),
         plan.total
     );
+    lai(&built)?;
     // The tree's size: its height and spread from its wood, and its stem's
     // radius at its base and at breast height.
     let (mut lo, mut hi) = ([f64::MAX; 3], [f64::MIN; 3]);

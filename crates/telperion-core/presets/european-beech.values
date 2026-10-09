@@ -265,9 +265,13 @@
 # The envelope is derived from the grown tree (host decision 7).
 # Deciduous (fn-248): every age's wood keeps its leaves for one year, so
 # leaves stand on the current year's shoots alone, and the short shoots
-# (age 14) bear theirs at their tips while they live: three, one for each
-# of the three metamers [LET] uniformly chose, the beech bearing one leaf
-# a node (inferred), fanned 0.6 rad either side (estimated).
+# (age 14) bear theirs at their tips while they live: four, one for each
+# metamer of [LET]'s "usually 3 or 4", the beech bearing one leaf a node
+# (inferred), fanned 0.6 rad either side (estimated). The short shoots
+# live four years (estimated, from three), which brings the crown's leaf
+# area index to 5.2 at 40 and 7.3 at 80, in the range measured in beech
+# forests (Glatthorn et al. 2017, For. Ecol. Manage.: 7.1 in primeval
+# and 7.4 in production stands on average; fn-248 TWIGS.md).
 /space/ages/2/lifespan = 9.0
 /space/ages/2/internode = 0.07
 /space/ages/2/insertion = 0.3
@@ -481,13 +485,13 @@
 /space/ages/12/zones/1/nodes/min = 2.0
 /space/ages/12/zones/1/nodes/max = 3.0
 /space/ages/12/zones/1/lateral/14 = 0.6
-/space/ages/14/lifespan = 3.0
+/space/ages/14/lifespan = 4.0
 /space/ages/14/continuation = 0.0
 /space/ages/14/viability = 0.9
 /space/ages/14/shedding = 1.0
 /space/ages/14/internode = 0.006
 /space/ages/14/insertion = 0.9
-/space/ages/14/clusterLeaves = 3.0
+/space/ages/14/clusterLeaves = 4.0
 /space/ages/14/clusterSpread = 0.6
 /space/ages/14/leafYears = 1.0
 /space/ages/14/form/pipe = 0.00095

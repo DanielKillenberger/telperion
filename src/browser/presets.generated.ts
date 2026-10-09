@@ -3594,7 +3594,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "14": {
-            "clusterLeaves": 3,
+            "clusterLeaves": 4,
             "clusterSpread": 0.6,
             "continuation": 0,
             "form": {
@@ -3603,7 +3603,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 0.9,
             "internode": 0.006,
             "leafYears": 1,
-            "lifespan": 3,
+            "lifespan": 4,
             "shedding": 1,
             "viability": 0.9,
             "zones": {
@@ -5452,7 +5452,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "14": {
-            "clusterLeaves": 3,
+            "clusterLeaves": 4,
             "clusterSpread": 0.6,
             "continuation": 0,
             "form": {
@@ -5461,7 +5461,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 0.9,
             "internode": 0.006,
             "leafYears": 1,
-            "lifespan": 3,
+            "lifespan": 4,
             "shedding": 1,
             "viability": 0.9,
             "zones": {
@@ -6239,7 +6239,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "14": {
-            "clusterLeaves": 3,
+            "clusterLeaves": 4,
             "clusterSpread": 0.6,
             "continuation": 0,
             "form": {
@@ -6248,7 +6248,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 0.9,
             "internode": 0.006,
             "leafYears": 1,
-            "lifespan": 3,
+            "lifespan": 4,
             "shedding": 1,
             "viability": 0.9,
             "zones": {

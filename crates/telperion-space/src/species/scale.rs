@@ -312,7 +312,8 @@ mod tests {
     /// to three leaves every step is a valid species, its count rising.
     #[test]
     fn a_walk_between_cluster_counts_stays_whole() {
-        let a = beech();
+        let mut a = beech();
+        a.states[14].cluster_leaves = 0.0;
         let mut b = beech();
         b.states[14].cluster_leaves = 3.0;
         let mut last = 0.0;

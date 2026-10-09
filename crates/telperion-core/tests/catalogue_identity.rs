@@ -148,7 +148,9 @@
 //! walk and override digests were each part 2's to the bit; the refusal
 //! digest takes the new rows' own refusals and re-pairs by index. The
 //! family and walk digests were re-pinned once more for Laurelin's and
-//! Telperion's coarse-age rows, their scale back at one.
+//! Telperion's coarse-age rows, their scale back at one; and again for the
+//! beech's short shoots (lifespan 4, clusters of 4), which the Two Trees
+//! share (the leaf area index).
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -184,7 +186,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        16_336_349_329_733_697_308,
+        8_288_336_263_324_112_620,
         "{}",
         digest(&text)
     );
@@ -216,7 +218,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        15_229_142_524_413_183_697,
+        7_843_666_192_139_322_573,
         "{}",
         digest(&text)
     );
