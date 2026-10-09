@@ -363,6 +363,13 @@ pub(super) async fn errors(gpu: &Gpu, scopes: [wgpu::ErrorScopeGuard; 2]) -> Res
     }
     Ok(())
 }
+/// Every program asked of `gpu` settled and `scopes` popped, the cause
+/// reported as `programs::first_cause` orders it (fn-243).
+pub(super) async fn programs_ready(gpu: &Gpu, scopes: [wgpu::ErrorScopeGuard; 2]) -> Result<()> {
+    let ready = crate::programs::ready(gpu).await;
+    let scoped = errors(gpu, scopes).await;
+    crate::programs::first_cause(gpu.lost(), ready, scoped)
+}
 pub(super) fn scope(gpu: &Gpu) -> [wgpu::ErrorScopeGuard; 2] {
     [
         gpu.device.push_error_scope(wgpu::ErrorFilter::Validation),

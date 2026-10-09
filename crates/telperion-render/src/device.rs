@@ -125,6 +125,8 @@ pub struct Gpu {
     /// The owned buffers, each let go destroyed once the encoders open
     /// when it was let go have closed (`buffer::Owned`, `Encoder`).
     pub(crate) ledger: Arc<crate::buffer::Ledger>,
+    /// The wood surfacing passes' programs, made once (`curve::passes`).
+    pub(crate) curve: Arc<std::sync::OnceLock<Vec<crate::programs::Program>>>,
     /// The programs the browser is compiling, until `programs::ready`.
     #[cfg(target_arch = "wasm32")]
     pub(crate) programs: std::rc::Rc<crate::programs::Pending>,
@@ -265,6 +267,7 @@ impl Gpu {
             instance,
             lost,
             ledger: Arc::default(),
+            curve: Arc::default(),
             #[cfg(target_arch = "wasm32")]
             programs: Default::default(),
         })

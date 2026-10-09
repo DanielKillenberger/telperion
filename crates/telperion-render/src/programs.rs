@@ -48,14 +48,19 @@ impl Program {
     }
 
     /// The pipeline. In a browser, only after `ready` settled it: every
-    /// owner of a program awaits `ready` before it dispatches.
+    /// generation pass's owner awaits `ready` before it dispatches.
     pub fn get(&self) -> &wgpu::ComputePipeline {
-        #[cfg(not(target_arch = "wasm32"))]
-        return &self.made;
-        #[cfg(target_arch = "wasm32")]
-        self.made
-            .get()
+        self.compiled()
             .expect("a GPU program dispatched before `programs::ready` settled it")
+    }
+
+    /// The pipeline, where it is compiled: always natively, in a browser
+    /// once `ready` settled it.
+    pub fn compiled(&self) -> Option<&wgpu::ComputePipeline> {
+        #[cfg(not(target_arch = "wasm32"))]
+        return Some(&self.made);
+        #[cfg(target_arch = "wasm32")]
+        self.made.get()
     }
 }
 
@@ -81,6 +86,21 @@ pub(crate) async fn ready(gpu: &Gpu) -> Result<()> {
     #[cfg(not(target_arch = "wasm32"))]
     let _ = gpu;
     Ok(())
+}
+
+/// What a preparation reports when more than one thing went wrong: a lost
+/// device first, then the program the browser refused, by name, then
+/// whatever the error scopes caught (a refused program's shader also
+/// raises a scoped validation error, which names nothing).
+pub(crate) fn first_cause(
+    lost: Option<RenderError>,
+    ready: Result<()>,
+    scoped: Result<()>,
+) -> Result<()> {
+    match lost {
+        Some(lost) => Err(lost),
+        None => ready.and(scoped),
+    }
 }
 
 /// Each compile awaited in turn. A device lost meanwhile is the error

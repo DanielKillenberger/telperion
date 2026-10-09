@@ -121,7 +121,13 @@ fn part(b: &wgpu::Buffer, offset: u64, size: u64) -> wgpu::BindingResource<'_> {
 }
 
 impl Target {
-    pub(super) fn new(gpu: &Gpu, label: &str, budget: Budget, curve: &CurveGpu) -> Self {
+    pub(super) fn new(
+        gpu: &Gpu,
+        label: &str,
+        budget: Budget,
+        curve: &CurveGpu,
+        pipelines: &[&wgpu::ComputePipeline],
+    ) -> Self {
         use wgpu::BufferUsages as U;
         let per = u64::from(curve.count.max(1)) * 16;
         let blocks = u64::from(curve.count.div_ceil(256).max(1)) * 16;
@@ -189,7 +195,7 @@ impl Target {
         };
         let groups = PASSES
             .iter()
-            .zip(&curve.pipelines)
+            .zip(pipelines)
             .map(|((entry, bindings), pipeline)| {
                 let entries: Vec<_> = bindings
                     .iter()

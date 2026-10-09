@@ -5,6 +5,7 @@ use std::{cell::RefCell, rc::Rc};
 pub(crate) struct State {
     revision: u64,
     pending: bool,
+    disposed: bool,
     pub generator: Option<Rc<Generator>>,
 }
 impl State {
@@ -13,7 +14,13 @@ impl State {
     }
     pub fn dispose(&mut self) {
         self.invalidate();
+        self.disposed = true;
         self.generator = None;
+    }
+    /// Whether the page let its renderer go: a tree request invalidates
+    /// the builds before it, never the programs a page prepared (fn-243).
+    pub fn disposed(&self) -> bool {
+        self.disposed
     }
 }
 pub(crate) struct Request {
@@ -63,5 +70,13 @@ mod tests {
         assert!(Request::begin(state.clone()).is_err());
         drop(second);
         assert!(Request::begin(state).is_ok());
+    }
+    #[test]
+    fn a_tree_request_never_marks_the_prepared_programs_disposed() {
+        let mut state = State::default();
+        state.invalidate();
+        assert!(!state.disposed());
+        state.dispose();
+        assert!(state.disposed());
     }
 }

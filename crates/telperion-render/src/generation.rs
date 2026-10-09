@@ -207,10 +207,7 @@ impl Generator {
                 &["emit", "admit", "radii", "finish"],
             )
         });
-        // A refused program is the cause; the scopes are popped either way.
-        let ready = crate::programs::ready(&gpu).await;
-        io::errors(&gpu, scopes).await?;
-        ready?;
+        io::programs_ready(&gpu, scopes).await?;
         Ok(Self {
             gpu,
             identity,

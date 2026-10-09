@@ -44,16 +44,16 @@ impl WebRenderer {
     pub fn prepare_programs(&self) -> js_sys::Promise {
         let live = self.live.clone();
         let state = self.generation.clone();
-        let begun = Request::begin(state.clone()).map_err(JsError::new);
         future_to_promise(async move {
-            let request = begun?;
             if state.borrow().generator.is_some() {
                 return Ok(JsValue::UNDEFINED);
             }
             let construction = Generator::new_async(&borrow(&live)?.renderer);
             let generator = construction.await.map_err(js_error)?;
             generator.prepare_programs().await.map_err(js_error)?;
-            request.check().map_err(JsError::new)?;
+            if state.borrow().disposed() {
+                return Err(JsError::new("the renderer is disposed").into());
+            }
             state.borrow_mut().generator = Some(Rc::new(generator));
             Ok(JsValue::UNDEFINED)
         })

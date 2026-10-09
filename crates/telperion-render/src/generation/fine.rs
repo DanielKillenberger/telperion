@@ -97,9 +97,8 @@ impl super::Generator {
     pub async fn prepare_programs(&self) -> Result<()> {
         let scopes = super::io::scope(&self.gpu);
         self.kit();
-        let ready = crate::programs::ready(&self.gpu).await;
-        super::io::errors(&self.gpu, scopes).await?;
-        ready
+        crate::curve::passes(&self.gpu);
+        super::io::programs_ready(&self.gpu, scopes).await
     }
 
     /// The fine executor's kernels and tools, made on first use.
@@ -128,8 +127,10 @@ impl super::Generator {
         let scopes = super::io::scope(gpu);
         let kit = self.kit();
         if let Err(refused) = crate::programs::ready(gpu).await {
-            super::io::errors(gpu, scopes).await?;
-            return Err(refused);
+            // The scopes popped; a lost device, then the refusal, as
+            // `programs::first_cause` orders them.
+            let _ = super::io::errors(gpu, scopes).await;
+            return Err(gpu.lost().unwrap_or(refused));
         }
         #[cfg(test)]
         if self.fail_next.take() {

@@ -5,6 +5,7 @@
 //! indirect draws read. The only wood path the renderer has. The CPU
 //! reference is telperion_core's `Curve::tessellate`.
 use crate::buffer::Owned;
+use crate::programs::Program;
 use crate::{device::Gpu, Camera};
 use telperion_core::{
     math::Vec3,
@@ -42,8 +43,45 @@ const PASSES: [(&str, &[u32]); 9] = [
     ("draws", &[0, 8, 15]),
 ];
 
+/// The passes' programs: made once a device, on its first curve or when
+/// the page prepares its programs, and shared by every tree's curve
+/// (fn-243). In a browser they compile in the background.
+pub(crate) fn passes(gpu: &Gpu) -> &[Program] {
+    gpu.curve.get_or_init(|| {
+        let module = gpu
+            .device
+            .create_shader_module(wgpu::ShaderModuleDescriptor {
+                label: Some("curve"),
+                source: wgpu::ShaderSource::Wgsl(
+                    format!(
+                        "{}\n{}\n{}",
+                        include_str!("shaders/curve.wgsl"),
+                        include_str!("shaders/curve_walk.wgsl"),
+                        include_str!("shaders/curve_emit.wgsl")
+                    )
+                    .into(),
+                ),
+            });
+        PASSES
+            .iter()
+            .map(|(entry, _)| {
+                Program::make(
+                    gpu,
+                    &wgpu::ComputePipelineDescriptor {
+                        label: Some(entry),
+                        layout: None,
+                        module: &module,
+                        entry_point: Some(entry),
+                        compilation_options: Default::default(),
+                        cache: None,
+                    },
+                )
+            })
+            .collect()
+    })
+}
+
 pub(crate) struct CurveGpu {
-    pipelines: Vec<wgpu::ComputePipeline>,
     points: Owned,
     /// Words of points the first binding holds, and the points' bytes.
     point_slice: u64,
@@ -94,39 +132,10 @@ impl CurveGpu {
         if sections.is_empty() {
             sections.push([0.0; SECTION_FLOATS]);
         }
-        let module = gpu
-            .device
-            .create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: Some("curve"),
-                source: wgpu::ShaderSource::Wgsl(
-                    format!(
-                        "{}\n{}\n{}",
-                        include_str!("shaders/curve.wgsl"),
-                        include_str!("shaders/curve_walk.wgsl"),
-                        include_str!("shaders/curve_emit.wgsl")
-                    )
-                    .into(),
-                ),
-            });
-        let pipelines = PASSES
-            .iter()
-            .map(|(entry, _)| {
-                gpu.device
-                    .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                        label: Some(entry),
-                        layout: None,
-                        module: &module,
-                        entry_point: Some(entry),
-                        compilation_options: Default::default(),
-                        cache: None,
-                    })
-            })
-            .collect();
         // A slice of whole points, on a 256-byte boundary.
         let per_slice = (BINDING / 256) * 256 / 4;
         let words = point_count * POINT_WORDS as u64;
         Self {
-            pipelines,
             points,
             point_slice: per_slice.min(words),
             point_bytes: words * 4,
@@ -181,6 +190,15 @@ impl CurveGpu {
         light: &crate::shadow::Light,
         timestamps: Option<wgpu::ComputePassTimestampWrites<'_>>,
     ) {
+        // Until the browser has compiled the passes the wood is not
+        // surfaced, so a frame draws no wood (fn-243).
+        let Some(pipelines) = passes(gpu)
+            .iter()
+            .map(Program::compiled)
+            .collect::<Option<Vec<_>>>()
+        else {
+            return;
+        };
         let pixels = u64::from(viewport.0.max(1)) * u64::from(viewport.1.max(1));
         // The sun's map is fitted to the tree, so the tree covers most of its
         // texels: the spruce asks 2.23 rings, 6.71 vertices and 18.94 ribbon
@@ -199,10 +217,16 @@ impl CurveGpu {
             |p: u64, near: f64| Budget::for_pixels(p, &limits).within(demand.at(near, ERROR));
         let wanted = [budget(pixels, nearest[0]), budget(texels, nearest[1])];
         if self.camera.as_ref().is_none_or(|t| t.budget != wanted[0]) {
-            self.camera = Some(Target::new(gpu, "curve camera", wanted[0], self));
+            self.camera = Some(Target::new(
+                gpu,
+                "curve camera",
+                wanted[0],
+                self,
+                &pipelines,
+            ));
         }
         if self.sun.as_ref().is_none_or(|t| t.budget != wanted[1]) {
-            self.sun = Some(Target::new(gpu, "curve sun", wanted[1], self));
+            self.sun = Some(Target::new(gpu, "curve sun", wanted[1], self, &pipelines));
         }
         let d = light.direction;
         let sun = Viewer {
@@ -229,7 +253,7 @@ impl CurveGpu {
         let groups = self.count.div_ceil(256).max(1);
         let row = groups.min(gpu.device.limits().max_compute_workgroups_per_dimension);
         for (t, _) in &views {
-            for (k, pipeline) in self.pipelines.iter().enumerate() {
+            for (k, pipeline) in pipelines.iter().enumerate() {
                 pass.set_pipeline(pipeline);
                 pass.set_bind_group(0, &t.groups[k], &[]);
                 match PASSES[k].0 {

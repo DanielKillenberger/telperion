@@ -1,6 +1,6 @@
 //! The browser's compiles as promises the test holds (fn-243 R4): one
 //! resolves late, one rejects, the device goes while they are pending.
-use super::settle;
+use super::{first_cause, settle};
 use crate::RenderError;
 use std::cell::{Cell, RefCell};
 use std::future::Future;
@@ -99,4 +99,30 @@ fn a_device_lost_during_preparation_is_the_error_named() {
         error.to_string().starts_with("the GPU device was lost: "),
         "{error}"
     );
+}
+
+#[test]
+fn a_lost_device_then_a_refused_program_is_reported_before_a_scoped_error() {
+    let refused = || {
+        Err(RenderError::ProgramRefused {
+            program: "grow".into(),
+            reason: "validation: the shader module is invalid".into(),
+        })
+    };
+    let scoped = || {
+        Err(RenderError::DeviceRefused {
+            requirement: "experimental generation".into(),
+            detail: "Validation Error".into(),
+        })
+    };
+    let lost = || {
+        Some(RenderError::DeviceLost {
+            reason: "Destroyed".into(),
+        })
+    };
+    let said = |result: crate::Result<()>| result.unwrap_err().to_string();
+    assert!(said(first_cause(None, refused(), scoped())).contains("`grow`"));
+    assert!(said(first_cause(lost(), refused(), scoped())).contains("was lost"));
+    assert!(said(first_cause(None, Ok(()), scoped())).contains("experimental generation"));
+    assert!(first_cause(None, Ok(()), Ok(())).is_ok());
 }
