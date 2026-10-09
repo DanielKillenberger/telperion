@@ -6,8 +6,8 @@
 //!
 //!   cargo run --profile ci -p telperion-render --example frames -- <preset> [full|relief-off|parallax-off] [view...]
 //!
-//! Views are any of whole, close, bare-whole and bare-close; all four by
-//! default.
+//! Views are any of whole, mid (half the distance), close, bare-whole and
+//! bare-close; all but mid by default.
 //! `relief-off` draws the bark with no relief (ridge scale and depth zero),
 //! `parallax-off` with its relief and no depth: the wood's shaded pass
 //! measured against itself (fn-246 R1).
@@ -46,18 +46,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     renderer.set_material(material);
     let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
     let hero = hero_pose(renderer.bounds().ok_or("no bounds")?, aspect, GROUND_REACH);
-    let close = Camera {
-        position: hero.target + (hero.position - hero.target) * 0.25,
+    let toward = |share: f64| Camera {
+        position: hero.target + (hero.position - hero.target) * share,
         ..hero
     };
+    let (mid, close) = (toward(0.5), toward(0.25));
     let mut views = Vec::new();
     for (name, view, camera) in [
         ("whole", View::Whole, hero),
+        ("mid", View::Whole, mid),
         ("close", View::Whole, close),
         ("bare-whole", View::Bare, hero),
         ("bare-close", View::Bare, close),
     ] {
-        if rest.len() > 1 && !rest[1..].iter().any(|v| v == name) {
+        let asked = |v: &String| v == name;
+        // The mid view is drawn only when named, so a default run is the
+        // four views R1 measured.
+        if (rest.len() > 1 && !rest[1..].iter().any(asked)) || (rest.len() <= 1 && name == "mid") {
             continue;
         }
         renderer.set_view(view);

@@ -422,3 +422,16 @@ A card under 4 px takes Telperion from 22 to 50 fps whole and from 19 to 35 clos
 **Stills viewed** (`raw/card-sbs.png`: truth, 2 px thinning, card under 2 px, card under 4 px; Telperion whole, Laurelin whole, Telperion mid). With the card under 4 px, Telperion's whole crown has fewer and duller white florets than the truth; that is the +4.43. Laurelin reads close to its truth. The mid view looks alike in all four.
 
 So the card's gain needs a looser bound than the leaves were given, or an owner's look at `raw/card-sbs.png`. Either is your call. The tree on the branch is as before this addition: prefiltered bark, 2 px thinning, no card.
+
+### The owner's sheet for the floret card
+
+`raw/card-owner.png` (gitignored) is a labelled sheet: Telperion and Laurelin at the whole and mid views, reference (unthinned at 4x, box-reduced), today (2 px thinning) and the card below 4 px. Each panel is the whole frame and carries its measured fps (best of 3) and its distance to the reference. The panels are also saved one by one as 1280x720 JPEGs at quality 88, with `panels.json` beside them, in `raw/card-owner/`. The card patch was applied for these renders and reverted after.
+
+The frame probe now takes a `mid` view (half the distance), used for these numbers. The mid view is slower than the whole view, because more florets are above the thinning size:
+
+| species, view | today fps | card below 4 px fps |
+|---|---|---|
+| Telperion whole | 22 | 49 |
+| Telperion mid | 12 | 34 |
+| Laurelin whole | 34 | 54 |
+| Laurelin mid | 20 | 46 |
