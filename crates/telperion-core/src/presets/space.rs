@@ -17,7 +17,8 @@
 //! A row states a setting of an age the species lives in (a lifespan above
 //! 0) that differs from an age passed through (`telperion_space::passed`);
 //! every other age is derived as the engine derives it (`canonical`). An
-//! unbounded delay is the token `never`, admitted on `shedding` alone.
+//! unbounded span is the token `never`, admitted on `shedding` and
+//! `leafYears` alone.
 //! This file is shared with the build script, which judges every shipped
 //! preset's rows as the crate compiles.
 use telperion_space::{passed, settings, zone_settings, Light, PaState, Species, Zone, AGES};
@@ -130,7 +131,7 @@ fn put(state: &mut PaState, path: &str, tail: &[&str], cell: Cell) -> Result<(),
     for (name, slot) in settings(state) {
         if camel(name) == wire {
             *slot = match (cell, name) {
-                (Cell::Never, "shedding") => f64::INFINITY,
+                (Cell::Never, "shedding" | "leaf_years") => f64::INFINITY,
                 _ => number(path, cell)?,
             };
             return Ok(());
@@ -254,7 +255,9 @@ fn zone_rows(
 fn number(path: &str, cell: Cell) -> Result<f64, String> {
     match cell {
         Cell::Number(v) if v.is_finite() => Ok(v),
-        Cell::Never => Err(format!("{path} is never only as a shedding delay")),
+        Cell::Never => Err(format!(
+            "{path} is never only as a shedding delay or a leaf's years"
+        )),
         _ => Err(format!("{path} holds a number")),
     }
 }

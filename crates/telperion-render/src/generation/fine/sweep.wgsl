@@ -39,7 +39,7 @@ struct Cfg {
 
 const NONE: u32 = 0xffffffffu;
 const CA: u32 = 12u;
-const CV: u32 = 30u;
+const CV: u32 = 32u;
 const MADE: u32 = 2u;
 const LANDED: u32 = 4u;
 const FINE: u32 = 8u;
@@ -52,9 +52,10 @@ const SEAM: u32 = 16u;
 // the run it is swept in, as a contact reads it (that run's first point,
 // its place along it and the run's place in the table, `emit`); its
 // branch, key and wood as grown; its phytomer's key (two words) and its
-// age's flowering share, which its blooms are drawn by (fn-229); and a
-// short shoot's tip's spread (fn-223).
-const NW: u32 = 31u;
+// age's flowering share, which its blooms are drawn by (fn-229); a
+// short shoot's tip's spread (fn-223); and its leaf retention (fn-248):
+// the metres of its wood before the boundary and the retentions.
+const NW: u32 = 33u;
 // A node's links: the widest start radius of its children that are not
 // codominant and of all, the first child of each so wide, whether a
 // codominant child leaves it, the points of the run it starts; then, for
@@ -147,7 +148,7 @@ fn gather(@builtin(global_invocation_id) id: vec3<u32>) {
     nodes[i * NW + 24u] = drawn[b + 23u];
     nodes[i * NW + 25u] = drawn[b + 24u];
     nodes[i * NW + 26u] = drawn[b + 25u];
-    for (var c = 0u; c < 4u; c++) {
+    for (var c = 0u; c < 6u; c++) {
         nodes[i * NW + 27u + c] = drawn[b + 26u + c];
     }
     if cfg.stubs != 0u {

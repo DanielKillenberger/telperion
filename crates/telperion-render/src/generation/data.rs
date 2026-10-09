@@ -59,7 +59,14 @@ pub(super) fn config(
             c.outward as f32,
             c.upward as f32,
         ],
-        size: [c.size as f32, c.size_variation as f32, 0.0, 0.0],
+        // The internode in whole micrometres as the CPU rounds it
+        // (`plan::micrometres`), which a segment's retention reads (fn-248).
+        size: [
+            c.size as f32,
+            c.size_variation as f32,
+            f32::from_bits((t.internode_length * 1e6 + 0.5).floor() as u32),
+            0.0,
+        ],
     }
 }
 /// A bloom's rows as `bloom.wgsl`'s `Flower` reads them (fn-229), drawn at
@@ -107,27 +114,45 @@ impl Config {
 pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
     p.segments
         .iter()
-        .map(|s| Segment {
-            a: vector(s.endpoints[0], s.radii[0]),
-            b: vector(s.endpoints[1], s.radii[1]),
-            tangent: vector(s.frame[0], 0.0),
-            normal: vector(s.frame[1], 0.0),
-            binormal: vector(s.frame[2], 0.0),
-            // A cluster (fn-223) is marked by a negative span, its spread
-            // where a run's phase stands.
-            distance: match s.cluster {
-                Some(spread) => [0.0, -1.0, spread as f32, 0.0],
-                None => [
-                    s.along as f32,
-                    s.span as f32,
-                    s.phase[0] as f32,
-                    s.phase[1] as f32,
-                ],
-            },
-            range: [s.first, s.count, s.run_station, s.key],
-            edge: s.contact.unwrap_or([0; 4]),
+        .map(|s| {
+            let retention = s.retention.unwrap_or((0, u32::MAX));
+            Segment {
+                a: vector(s.endpoints[0], s.radii[0]),
+                b: vector(s.endpoints[1], s.radii[1]),
+                // Where some of its stations shed their leaves (fn-248): the
+                // boundary in whole micrometres, the retentions before and from
+                // it, and the stream their draws take; every station keeps its
+                // leaf where the retentions are all ones.
+                tangent: worded(s.frame[0], retention.0),
+                normal: worded(s.frame[1], retention.1),
+                binormal: worded(s.frame[2], retain(s.key)),
+                // A cluster (fn-223) is marked by a negative span, its spread
+                // where a run's phase stands.
+                distance: match s.cluster {
+                    Some(spread) => [0.0, -1.0, spread as f32, 0.0],
+                    None => [
+                        s.along as f32,
+                        s.span as f32,
+                        s.phase[0] as f32,
+                        s.phase[1] as f32,
+                    ],
+                },
+                range: [s.first, s.count, s.run_station, s.key],
+                edge: s.contact.unwrap_or([0; 4]),
+            }
         })
         .collect()
+}
+
+/// A direction with a word in its fourth lane, its bits as they are.
+fn worded(v: Vec3, word: u32) -> [f32; 4] {
+    [v.x as f32, v.y as f32, v.z as f32, f32::from_bits(word)]
+}
+
+/// The stream a run's retention draws take (`tree::keeps`): its first
+/// node's key under the registry's `RETAIN`.
+fn retain(key: u32) -> u32 {
+    telperion_core::tree::mix32(key ^ telperion_space::lineage_keys::RETAIN as u32)
 }
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]

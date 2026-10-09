@@ -14,17 +14,19 @@ use crate::{beech, oak, palm, spruce, Species};
 /// merge (fn-198): contract A's ripe and the decision contract's
 /// polynomial logs move the beech's, spruce's and oak's rows at rounding
 /// level, the palm's holding.
+// fn-248 re-pinned the beech's from age 5 on: its short shoots live four
+// years, not three.
 const PINNED: [(&str, u32, u64); 40] = [
     ("beech", 1, 0x47f411f2dbf2035e),
     ("beech", 2, 0x301aa5429ed7b286),
     ("beech", 3, 0x796c3af822113e02),
-    ("beech", 5, 0x0b826e702aef527a),
-    ("beech", 8, 0xe477e89727289c01),
-    ("beech", 13, 0x58c8d1f71470851e),
-    ("beech", 21, 0x8988aa11b829e0aa),
-    ("beech", 34, 0x27dbc368f2d27c6c),
-    ("beech", 55, 0x27dfb9e33835ee3d),
-    ("beech", 80, 0xcba5cfde9d8b79b1),
+    ("beech", 5, 0x0fe72a154739e2a4),
+    ("beech", 8, 0x2295c805c6c4ee9e),
+    ("beech", 13, 0xe5c78f0c1b626baa),
+    ("beech", 21, 0xe6276d4eaa4480dc),
+    ("beech", 34, 0x645a80439f4deebf),
+    ("beech", 55, 0x61ad169fae54450c),
+    ("beech", 80, 0x25d8384f51d270e6),
     ("spruce", 1, 0xd237b64de0045cbb),
     ("spruce", 2, 0xdcd92aa357638f82),
     ("spruce", 3, 0x8aff78070a417e48),

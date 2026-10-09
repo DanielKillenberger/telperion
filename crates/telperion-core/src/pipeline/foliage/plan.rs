@@ -65,18 +65,43 @@ pub(crate) fn walk(
     *along.last().unwrap()
 }
 
+/// Whether the station at `distance` along a run under a twig layer, in
+/// whole micrometres of grown wood (`walk`), its
+/// `ordinal`th, keeps its leaf by its wood's retention (fn-248): the
+/// segment it stands on is the last that starts at or before it, as
+/// placement seats it, and the run's first node keys the draw. Every
+/// station keeps its leaf on a tree that records no retention.
+pub(crate) fn keeps(
+    tree: &Tree,
+    (nodes, along): (&[usize], &[f64]),
+    distance: f64,
+    ordinal: u32,
+) -> bool {
+    if tree.leafing.is_empty() {
+        return true;
+    }
+    // The first segment starts at 0, at or before every station.
+    let segment = along[..along.len() - 1].partition_point(|&a| a <= distance) - 1;
+    let leafing = tree.leafing(nodes[segment + 1]);
+    let q = leafing.at(distance - along[segment], micrometres(leafing.older));
+    crate::tree::keeps(q, tree.key(nodes[1]), ordinal)
+}
+
 /// One unbranched run of leaf-bearing wood under a twig layer: its nodes,
 /// attachment first, the wood grown along it to each in whole micrometres
-/// (`walk`), its station count before any cull and the
-/// leaves each station carries. The counts and ordinals are
-/// stations, which the station preparation tiles by; a placement of leaflets
-/// along a rachis multiplies the leaves, never the stations.
+/// (`walk`), its station count before any cull, the stations that keep
+/// their leaves (fn-248) and the leaves each station carries. The counts
+/// and ordinals are stations, which the station preparation tiles by; a
+/// placement of leaflets along a rachis multiplies the leaves, never the
+/// stations. An ordinal counts every station, kept or not, so a station's
+/// draws never depend on which others keep their leaves.
 #[derive(Debug)]
 pub struct Run {
     pub nodes: Vec<usize>,
     pub along: Vec<f64>,
     pub internodes: u32,
     pub count: u32,
+    pub kept: u32,
     pub leaflets: u32,
 }
 impl Run {
@@ -95,6 +120,19 @@ impl Run {
             }
         }
         lo * twig.stations_per_internode
+    }
+    /// The stations from ordinal `first` up to `last` that keep their
+    /// leaves (`keeps`).
+    pub fn kept_between(&self, tree: &Tree, twig: TwigPlacement, (first, last): (u32, u32)) -> u32 {
+        if tree.leafing.is_empty() {
+            return last - first;
+        }
+        let unit = micrometres(twig.internode_length);
+        let per = twig.stations_per_internode;
+        let wood = (&self.nodes[..], &self.along[..]);
+        (first..last)
+            .filter(|&k| keeps(tree, wood, f64::from(k / per) * unit, k))
+            .count() as u32
     }
     /// The station range one segment of the run carries.
     pub fn segment_stations(&self, segment: usize, twig: TwigPlacement) -> (u32, u32) {
@@ -159,18 +197,20 @@ pub fn runs(
         {
             return Err(Error::ResourceLimit("foliage instance budget"));
         }
-        let count = count as u32;
-        total = total
-            .checked_add(leaves as u32)
-            .filter(|&n| n as usize <= p.max_instances)
-            .ok_or(Error::ResourceLimit("foliage instance budget"))?;
-        runs.push(Run {
+        let mut run = Run {
             nodes,
             along,
             internodes: internodes as u32,
-            count,
+            count: count as u32,
+            kept: 0,
             leaflets,
-        });
+        };
+        run.kept = run.kept_between(tree, twig, (0, run.count));
+        total = total
+            .checked_add(run.kept * leaflets)
+            .filter(|&n| n as usize <= p.max_instances)
+            .ok_or(Error::ResourceLimit("foliage instance budget"))?;
+        runs.push(run);
     }
     // The short shoots' clusters count against the same budget (fn-223).
     for c in cluster::of(tree, &p) {
@@ -293,7 +333,8 @@ pub fn plan(
     for run in &runs {
         for segment in 0..run.nodes.len() - 1 {
             let (first, last) = run.segment_stations(segment, twig);
-            if first == last {
+            let kept = run.kept_between(tree, twig, (first, last));
+            if kept == 0 {
                 continue;
             }
             let distal = &tree.nodes[run.nodes[segment + 1]];
@@ -303,13 +344,13 @@ pub fn plan(
             descriptors.push(Descriptor {
                 endpoints: [tree.nodes[run.nodes[segment]].position, distal.position],
                 radii: [distal.start_radius, distal.radius],
-                count: (last - first) * run.leaflets,
+                count: kept * run.leaflets,
                 system: system[run.nodes[segment + 1]],
                 side: Vec3::ZERO,
                 stand: None,
             });
         }
-        total += run.count * run.leaflets;
+        total += run.kept * run.leaflets;
     }
     // A cluster stands at its tip: a segment of no length there.
     for c in cluster::of(tree, &p) {

@@ -60,10 +60,10 @@ const S_JOIN: u32 = 70u;
 // (`geometry.wgsl`).
 const S_ATTACH: u32 = 76u;
 const AL: u32 = 8u;
-const PL: u32 = 26u;
+const PL: u32 = 27u;
 const PA: u32 = 2u;
 // The geometry table's PA blocks (`geometry.wgsl`).
-const GG: u32 = 40u;
+const GG: u32 = 42u;
 // `space.rs`'s constants.
 const FINEST: f32 = 2e-4;
 const SHORTEST: f32 = 1000.0;
@@ -84,9 +84,11 @@ const CA: u32 = 12u;
 // above the cut tagged `PREV`), its key (`tree::node_key`), its wood
 // as grown (`Tree::grown`): its phytomers' internodes at their scales,
 // what its blooms are drawn by (fn-229): its phytomer's key (two words)
-// and its age's flowering share, and at a short shoot's tip its cluster's
-// spread (fn-223).
-const CV: u32 = 30u;
+// and its age's flowering share, at a short shoot's tip its cluster's
+// spread (fn-223), and its leaf retention (fn-248, `tree::Leafing`): the
+// metres of its grown wood before the boundary, at the scale, and the
+// retentions before and from it.
+const CV: u32 = 32u;
 const TAKEN: u32 = 1u;
 const MADE: u32 = 2u;
 // Its root is laid on the CPU (host decision 3): drawn there.
@@ -336,12 +338,47 @@ fn aside(p: u32, f0: u32, head: u32) {
     }
 }
 
+// The 16-bit retention of wood `age` years old under its PA's first age
+// that sheds and that age's share (`tree::kept_share`).
+fn retention(sheds: u32, share: u32, age: u32) -> u32 {
+    if age < sheds {
+        return 0xffffu;
+    }
+    if age == sheds {
+        return share;
+    }
+    return 0u;
+}
+
 // What drawing an axis carries from one node to the next.
 struct Walk {
     parent: u32,
     made: bool,
     run: u32,
     pending: f32,
+    // The retentions of the wood merged into the next node (`space.rs`'s
+    // `convert`, fn-248): whether none is yet, where the last change falls,
+    // the retention before it and the latest.
+    fresh: bool,
+    older: f32,
+    before: u32,
+    last: u32,
+}
+
+// The walk with wood of retention `q` about to join its pending wood.
+fn mark(w: Walk, q: u32) -> Walk {
+    var o = w;
+    if o.fresh {
+        o.older = 0.0;
+        o.before = q;
+        o.last = q;
+        o.fresh = false;
+    } else if q != o.last {
+        o.older = o.pending;
+        o.before = o.last;
+        o.last = q;
+    }
+    return o;
 }
 
 // A node of own axis `i` (`space.rs`'s `convert`, one drawn node): record
@@ -383,6 +420,9 @@ fn place(i: u32, r: u32, at: vec4<f32>, lb: u32, key: u32, bloom: bool, w: Walk,
     }
     putu(r, 24u, key);
     put(r, 25u, o.pending * cfg.scale);
+    put(r, 30u, o.older * cfg.scale);
+    putu(r, 31u, (o.before << 16u) | o.last);
+    o.fresh = true;
     o.pending = 0.0;
     if bloom {
         put(r, 26u, out[lb + 24u]);
@@ -458,7 +498,11 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
         let span = p.pos - p.up;
         along = span * (1.0 / max(length(span), 1e-12));
     }
-    var w = Walk(start, false, NONE, 0.0);
+    var w = Walk(start, false, NONE, 0.0, true, 0.0, 0u, 0u);
+    let block = 4u + GG * ax(i, PA);
+    let sheds = bitcast<u32>(gtab[block + 40u]);
+    let share = bitcast<u32>(gtab[block + 41u]);
+    let age = bitcast<u32>(gtab[1u]);
     var taken = 0u;
     // The wood grown since the axis's last node: the internodes merged
     // into a node are carried on to the next one drawn.
@@ -477,6 +521,8 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
         // Each internode as laid: its scale and its spread's factor.
         let lb = cfg.out_phyts + r * PL;
         let piece = internode * out[lb + 19u] * out[lb + 23u];
+        // Every piece of the span is this phytomer's wood (fn-248).
+        let q = retention(sheds, share, age - bitcast<u32>(out[lb + 26u]));
         var base = vec3<f32>(out[ab + 3u], out[ab + 4u], out[ab + 5u]);
         if k > 0u {
             base = tip(i, k - 1u);
@@ -503,11 +549,13 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
             let t = real_t(after);
             radius = min(radius, sfl(c, S_JOIN + 3u));
             let at = vec4<f32>(up(origin + base + (tip(i, k) - base) * t) * cfg.scale, sfl(c, S_JOIN + 2u) * cfg.scale);
+            w = mark(w, q);
             w.pending += piece * t;
             rest -= piece * t;
             let key = node_key(vec2<u32>(s(c, S_JOIN + 4u), s(c, S_JOIN + 5u)), 0u);
             w = place(i, join_rec(c), at, lb, key, false, w, along, lateral, flags);
         }
+        w = mark(w, q);
         w.pending += rest;
         let pos = up(origin + tip(i, k)) * cfg.scale;
         w = place(i, r, vec4<f32>(pos, radius * cfg.scale), lb, node_key(lineage, k), true, w, along, lateral, flags);

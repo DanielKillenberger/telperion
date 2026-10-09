@@ -673,6 +673,10 @@ export interface Family {
       /** `/bloom/stagger` while the group is on; unset, the natural row. */
       stagger?: number;
     };
+    canopy: {
+      /** `/canopy/size` while the group is on; unset, the natural row. */
+      size?: number;
+    };
     flowering: {
       /** `/space/ages/0/flowering` while the group is on; unset, the natural share. */
       age0?: number;
@@ -703,6 +707,70 @@ export interface Family {
       /** `/space/ages/13/flowering` while the group is on; unset, the natural share. */
       age13?: number;
       /** `/space/ages/14/flowering` while the group is on; unset, the natural share. */
+      age14?: number;
+    };
+    internode: {
+      /** `/space/ages/0/internode` while the group is on; unset, the natural internode length. */
+      age0?: number;
+      /** `/space/ages/1/internode` while the group is on; unset, the natural internode length. */
+      age1?: number;
+      /** `/space/ages/2/internode` while the group is on; unset, the natural internode length. */
+      age2?: number;
+      /** `/space/ages/3/internode` while the group is on; unset, the natural internode length. */
+      age3?: number;
+      /** `/space/ages/4/internode` while the group is on; unset, the natural internode length. */
+      age4?: number;
+      /** `/space/ages/5/internode` while the group is on; unset, the natural internode length. */
+      age5?: number;
+      /** `/space/ages/6/internode` while the group is on; unset, the natural internode length. */
+      age6?: number;
+      /** `/space/ages/7/internode` while the group is on; unset, the natural internode length. */
+      age7?: number;
+      /** `/space/ages/8/internode` while the group is on; unset, the natural internode length. */
+      age8?: number;
+      /** `/space/ages/9/internode` while the group is on; unset, the natural internode length. */
+      age9?: number;
+      /** `/space/ages/10/internode` while the group is on; unset, the natural internode length. */
+      age10?: number;
+      /** `/space/ages/11/internode` while the group is on; unset, the natural internode length. */
+      age11?: number;
+      /** `/space/ages/12/internode` while the group is on; unset, the natural internode length. */
+      age12?: number;
+      /** `/space/ages/13/internode` while the group is on; unset, the natural internode length. */
+      age13?: number;
+      /** `/space/ages/14/internode` while the group is on; unset, the natural internode length. */
+      age14?: number;
+    };
+    pipe: {
+      /** `/space/ages/0/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      age0?: number;
+      /** `/space/ages/1/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      age1?: number;
+      /** `/space/ages/2/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      age2?: number;
+      /** `/space/ages/3/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      age3?: number;
+      /** `/space/ages/4/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      age4?: number;
+      /** `/space/ages/5/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      age5?: number;
+      /** `/space/ages/6/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      age6?: number;
+      /** `/space/ages/7/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      age7?: number;
+      /** `/space/ages/8/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      age8?: number;
+      /** `/space/ages/9/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      age9?: number;
+      /** `/space/ages/10/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      age10?: number;
+      /** `/space/ages/11/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      age11?: number;
+      /** `/space/ages/12/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      age12?: number;
+      /** `/space/ages/13/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
+      age13?: number;
+      /** `/space/ages/14/form/pipe` while the group is on; unset, the natural pipe a phytomer adds. */
       age14?: number;
     };
   };
@@ -1056,6 +1124,7 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/supernatural/bloom/opens", kind: "real", optional: true, meaning: "`/bloom/opens` while the group is on; unset, the natural row.", unit: "share of the year", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
   { path: "/supernatural/bloom/lasts", kind: "real", optional: true, meaning: "`/bloom/lasts` while the group is on; unset, the natural row.", unit: "share of the year", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
   { path: "/supernatural/bloom/stagger", kind: "real", optional: true, meaning: "`/bloom/stagger` while the group is on; unset, the natural row.", unit: "share of the window", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/canopy/size", kind: "real", optional: true, meaning: "`/canopy/size` while the group is on; unset, the natural row.", unit: "multiple of the element", low: 0, high: 1000, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
   { path: "/supernatural/flowering/age0", kind: "real", optional: true, meaning: "`/space/ages/0/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
   { path: "/supernatural/flowering/age1", kind: "real", optional: true, meaning: "`/space/ages/1/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
   { path: "/supernatural/flowering/age2", kind: "real", optional: true, meaning: "`/space/ages/2/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
@@ -1071,4 +1140,34 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/supernatural/flowering/age12", kind: "real", optional: true, meaning: "`/space/ages/12/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
   { path: "/supernatural/flowering/age13", kind: "real", optional: true, meaning: "`/space/ages/13/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
   { path: "/supernatural/flowering/age14", kind: "real", optional: true, meaning: "`/space/ages/14/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/internode/age0", kind: "real", optional: true, meaning: "`/space/ages/0/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/internode/age1", kind: "real", optional: true, meaning: "`/space/ages/1/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/internode/age2", kind: "real", optional: true, meaning: "`/space/ages/2/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/internode/age3", kind: "real", optional: true, meaning: "`/space/ages/3/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/internode/age4", kind: "real", optional: true, meaning: "`/space/ages/4/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/internode/age5", kind: "real", optional: true, meaning: "`/space/ages/5/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/internode/age6", kind: "real", optional: true, meaning: "`/space/ages/6/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/internode/age7", kind: "real", optional: true, meaning: "`/space/ages/7/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/internode/age8", kind: "real", optional: true, meaning: "`/space/ages/8/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/internode/age9", kind: "real", optional: true, meaning: "`/space/ages/9/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/internode/age10", kind: "real", optional: true, meaning: "`/space/ages/10/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/internode/age11", kind: "real", optional: true, meaning: "`/space/ages/11/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/internode/age12", kind: "real", optional: true, meaning: "`/space/ages/12/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/internode/age13", kind: "real", optional: true, meaning: "`/space/ages/13/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/internode/age14", kind: "real", optional: true, meaning: "`/space/ages/14/internode` while the group is on; unset, the natural internode length.", unit: "m", low: 0.000001, high: 100, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/pipe/age0", kind: "real", optional: true, meaning: "`/space/ages/0/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/pipe/age1", kind: "real", optional: true, meaning: "`/space/ages/1/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/pipe/age2", kind: "real", optional: true, meaning: "`/space/ages/2/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/pipe/age3", kind: "real", optional: true, meaning: "`/space/ages/3/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/pipe/age4", kind: "real", optional: true, meaning: "`/space/ages/4/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/pipe/age5", kind: "real", optional: true, meaning: "`/space/ages/5/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/pipe/age6", kind: "real", optional: true, meaning: "`/space/ages/6/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/pipe/age7", kind: "real", optional: true, meaning: "`/space/ages/7/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/pipe/age8", kind: "real", optional: true, meaning: "`/space/ages/8/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/pipe/age9", kind: "real", optional: true, meaning: "`/space/ages/9/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/pipe/age10", kind: "real", optional: true, meaning: "`/space/ages/10/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/pipe/age11", kind: "real", optional: true, meaning: "`/space/ages/11/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/pipe/age12", kind: "real", optional: true, meaning: "`/space/ages/12/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/pipe/age13", kind: "real", optional: true, meaning: "`/space/ages/13/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/pipe/age14", kind: "real", optional: true, meaning: "`/space/ages/14/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
 ];

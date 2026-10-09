@@ -5,7 +5,7 @@ struct Config {
     box_min:vec4<f32>, box_extent:vec4<f32>,
     shape:vec4<f32>, // internode, divergence radians, contact, scatter radians
     lean:vec4<f32>, // forward, rise, outward, upward
-    size:vec4<f32>, // size, variation, unused, unused
+    size:vec4<f32>, // size, variation, internode in whole micrometres (bits), unused
 }
 struct Segment {
     a:vec4<f32>, b:vec4<f32>, tangent:vec4<f32>, normal:vec4<f32>, binormal:vec4<f32>,

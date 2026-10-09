@@ -133,6 +133,8 @@ fn scale_realized(na: u32, bearer: u32, root_vigour: f32) {
             // Its key, which its node's blooms are drawn by (fn-229).
             out[at + 24u] = bitcast<f32>(ph(p, 0u));
             out[at + 25u] = bitcast<f32>(ph(p, 1u));
+            // Its cycle, which its wood's age is read by (fn-248).
+            out[at + 26u] = bitcast<f32>(ph(p, 2u));
             reach += scale;
         }
         ssf(i, S_REACH, reach);

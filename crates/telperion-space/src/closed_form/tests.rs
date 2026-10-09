@@ -56,6 +56,7 @@ fn the_expected_length_weighs_the_expected_counts() {
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
+        leaf_years: f64::INFINITY,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,

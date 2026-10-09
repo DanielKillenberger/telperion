@@ -20,13 +20,13 @@ const GIRTH: &str = include_str!("girth.wgsl");
 const STAND: &str = include_str!("stand.wgsl");
 /// A laid axis's and phytomer's floats (`geometry.wgsl`).
 pub(super) const AL: usize = 8;
-pub(super) const PL: usize = 26;
+pub(super) const PL: usize = 27;
 /// A chain's scratch: per region axis, per region phytomer, then a status.
 #[cfg(test)]
 pub(super) const SA: u32 = 79;
 #[cfg(test)]
 pub(super) const SP: u32 = 12;
-const GG: usize = 40;
+const GG: usize = 42;
 /// `settle.wgsl`'s passes.
 pub(super) const SCALES: usize = 0;
 pub(super) const GIRTHS: usize = 1;
@@ -88,6 +88,12 @@ pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
         // `dress.wgsl` marks its clusters by.
         out[4 + GG * pa + 38] = p.cluster_leaves as f32;
         out[4 + GG * pa + 39] = p.cluster_spread as f32;
+        // The first age whose wood sheds some of its leaves and the share
+        // that age keeps (fn-248, `tree::retention`), which `dress.wgsl`
+        // records each node's retention by.
+        let (floor, share) = telperion_core::tree::retention(p.leaf_years);
+        out[4 + GG * pa + 40] = f32::from_bits(floor);
+        out[4 + GG * pa + 41] = f32::from_bits(u32::from(share));
         // The girth's values as contract A takes them (`girth.wgsl`).
         let girth = [
             p.pipe,

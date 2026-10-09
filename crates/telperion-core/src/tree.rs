@@ -6,6 +6,7 @@
 mod bloom;
 mod cluster;
 mod identity;
+mod leafing;
 mod section;
 mod shoot;
 mod stand;
@@ -14,6 +15,7 @@ pub use bloom::Bloom;
 pub use cluster::{cluster_key, Cluster};
 pub use identity::NodeIdentity;
 pub(crate) use identity::NodeKey;
+pub use leafing::{keeps, kept_share, retention, Leafing, KEEP};
 pub use section::{Section, SectionRing};
 pub use shoot::{BudFate, ShootState};
 pub use stand::{stand_key, Stand};
@@ -181,6 +183,11 @@ pub struct Tree {
     /// its length (fn-223). Empty where `clusters` is.
     #[cfg_attr(feature = "json", serde(skip))]
     pub clustered: Vec<bool>,
+    /// Each node's leaf retention by its wood's age (fn-248). Empty on
+    /// every tree whose ages bear for ever, and never stored, as
+    /// `clusters` is.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub leafing: Vec<Leafing>,
     /// The fine roots a coarse tree holds as their expected occupancy, never
     /// grown (fn-214): empty on every tree grown whole. Never stored.
     #[cfg_attr(feature = "json", serde(skip))]
@@ -229,6 +236,11 @@ impl Tree {
     /// Whether node `i` is a short shoot's wood (`clustered`).
     pub fn is_clustered(&self, i: usize) -> bool {
         self.clustered.get(i).copied().unwrap_or(false)
+    }
+    /// Node `i`'s leaf retention (`leafing`): every station kept where the
+    /// tree records none.
+    pub fn leafing(&self, i: usize) -> Leafing {
+        self.leafing.get(i).copied().unwrap_or(Leafing::ALL)
     }
     /// Node `i`'s key (`keys`), or its index where no engine grew it.
     pub fn key(&self, i: usize) -> u32 {

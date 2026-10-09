@@ -154,7 +154,7 @@ fn a_space_row_off_its_place_or_form_is_refused_by_name() {
     for (row, why) in [
         (
             ("/space/ages/2/internode", Cell::Never),
-            "/space/ages/2/internode is never only as a shedding delay",
+            "/space/ages/2/internode is never only as a shedding delay or a leaf's years",
         ),
         (
             ("/space/ages/15/lifespan", Cell::Number(1.0)),
@@ -182,4 +182,19 @@ fn a_space_row_off_its_place_or_form_is_refused_by_name() {
     let never = [life, ("/space/ages/2/shedding", Cell::Never)];
     let read = space::read(never).unwrap().species.unwrap();
     assert_eq!(read.states[2].shedding, f64::INFINITY);
+}
+
+/// fn-248: a leaf's years are a row like any other, `never` where they
+/// have no end, and both read back as they were written.
+#[test]
+fn leaf_years_read_as_a_number_or_never() {
+    let life = ("/space/ages/2/lifespan", Cell::Number(3.0));
+    for (cell, want) in [(Cell::Number(1.5), 1.5), (Cell::Never, f64::INFINITY)] {
+        let read = space::read([life, ("/space/ages/2/leafYears", cell)]).unwrap();
+        assert_eq!(read.species.as_ref().unwrap().states[2].leaf_years, want);
+        let rows = space::rows(&read).unwrap();
+        let written = rows.iter().find(|(p, _)| p == "/space/ages/2/leafYears");
+        // The neutral value is the default, so it writes no row.
+        assert_eq!(written.map(|r| r.1), want.is_finite().then_some(cell));
+    }
 }

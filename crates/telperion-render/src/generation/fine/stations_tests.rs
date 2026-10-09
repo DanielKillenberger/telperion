@@ -184,6 +184,13 @@ fn stationed(
         out.radii = out
             .radii
             .max(rel(f(g[3]), c.radii[0]).max(rel(f(g[7]), c.radii[1])));
+        // A short shoot's cluster (fn-223) stands at its tip: its heading,
+        // and its spread where a run's phase stands (`data::segments`).
+        if let Some(spread) = c.cluster {
+            out.frames = out.frames.max(angle(v(&g[8..]), c.frame[0]));
+            out.phase = out.phase.max((f(g[22]) - spread).abs());
+            continue;
+        }
         for (k, axis) in c.frame.iter().enumerate() {
             out.frames = out.frames.max(angle(v(&g[8 + 4 * k..]), *axis));
         }

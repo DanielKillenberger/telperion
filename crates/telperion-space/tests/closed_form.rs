@@ -30,6 +30,7 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
+        leaf_years: f64::INFINITY,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
@@ -498,7 +499,10 @@ fn a_fractional_shedding_delay_keeps_by_its_fade() {
         telperion_space::expected_kept(&beech, 20).unwrap().unwrap()
     };
     let (whole, next, near) = (kept(0.0), kept(1.0), kept(1e-6));
-    assert!(next > whole * 1.01, "{whole} {next}: a cycle more keeps more");
+    assert!(
+        next > whole * 1.01,
+        "{whole} {next}: a cycle more keeps more"
+    );
     assert!((near / whole - 1.0).abs() < 1e-5, "{whole} {near} {next}");
     let half = kept(0.5);
     assert!(whole < half && half < next, "{whole} {half} {next}");
