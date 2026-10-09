@@ -1,15 +1,8 @@
-//! The shapes every frame shares: how a lit shader is built, how a pass is
-//! opened over the targets, and the two pipelines a subject may be drawn
-//! through - the lit one every colour pass uses, and the depth-only one the sun
-//! writes its map with.
+//! The shapes every frame shares: how a pass is opened over the targets, and
+//! the two pipelines a subject may be drawn through - the lit one every colour
+//! pass uses, and the depth-only one the sun writes its map with. Their
+//! shaders are composed in `shaders.rs`.
 use crate::{device::Gpu, scene::DEPTH_FORMAT};
-
-/// The block, the map and the terms every lit shader is drawn under. WGSL has
-/// no include of its own, so one prelude is put in front of each shader's own
-/// stages here rather than copied into each of them.
-const PRELUDE: &str = include_str!("shaders/common.wgsl");
-const TRANSMISSION: &str = include_str!("shaders/transmission.wgsl");
-const CANOPY: &str = include_str!("shaders/canopy.wgsl");
 
 /// Samples per pixel a frame's colour and depth are drawn at where the device
 /// offers it. Four is what a WebGPU implementation that multisamples at all
@@ -88,17 +81,6 @@ pub fn attachment(
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT | copied,
         view_formats: &[],
     })
-}
-
-/// A lit shader: the prelude, then this module's own stages.
-pub fn lit_shader(gpu: &Gpu, label: &str, stages: &str) -> wgpu::ShaderModule {
-    gpu.device
-        .create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some(label),
-            source: wgpu::ShaderSource::Wgsl(
-                format!("{PRELUDE}\n{TRANSMISSION}\n{CANOPY}\n{stages}").into(),
-            ),
-        })
 }
 
 /// Whether a pipeline takes its own place in the depth buffer, or stands

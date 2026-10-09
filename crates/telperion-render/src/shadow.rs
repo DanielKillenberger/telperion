@@ -150,19 +150,7 @@ impl Shadow {
             light,
             light_group,
             light_layout,
-            module: gpu
-                .device
-                .create_shader_module(wgpu::ShaderModuleDescriptor {
-                    label: Some("shadow"),
-                    source: wgpu::ShaderSource::Wgsl(
-                        format!(
-                            "{}\n{}",
-                            include_str!("shaders/leaf.wgsl"),
-                            include_str!("shaders/shadow.wgsl")
-                        )
-                        .into(),
-                    ),
-                }),
+            module: crate::shaders::module(gpu, "shadow", crate::shaders::shadow()),
         }
     }
 

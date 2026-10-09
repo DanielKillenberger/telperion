@@ -21,6 +21,9 @@ mod programs;
 mod redraw;
 mod scene;
 mod select;
+mod shaders;
+#[cfg(test)]
+mod shader_tests;
 mod shadow;
 mod shot;
 #[cfg(not(target_arch = "wasm32"))]

@@ -48,20 +48,7 @@ const PASSES: [(&str, &[u32]); 9] = [
 /// (fn-243). In a browser they compile in the background.
 pub(crate) fn passes(gpu: &Gpu) -> &[Program] {
     gpu.curve.get_or_init(|| {
-        let module = gpu
-            .device
-            .create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: Some("curve"),
-                source: wgpu::ShaderSource::Wgsl(
-                    format!(
-                        "{}\n{}\n{}",
-                        include_str!("shaders/curve.wgsl"),
-                        include_str!("shaders/curve_walk.wgsl"),
-                        include_str!("shaders/curve_emit.wgsl")
-                    )
-                    .into(),
-                ),
-            });
+        let module = crate::shaders::module(gpu, "curve", crate::shaders::curve());
         PASSES
             .iter()
             .map(|(entry, _)| {
