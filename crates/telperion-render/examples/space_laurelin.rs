@@ -1,0 +1,127 @@
+//! Laurelin's sheet (fn-218 R2): the laurelin preset through the one
+//! pipeline and the headless renderer, with the supernatural group off (an
+//! old beech) and on (the golden tree), each at the whole-tree, mid and
+//! close views. Writes `laurelin-<age>-<seed>-<off|on>-<view>.png` and
+//! prints each tree's build cost and size.
+//!
+//!   cargo run --profile ci -p telperion-render --example space_laurelin -- <out dir> <age> [seed]
+use std::time::Instant;
+use telperion_core::{
+    math::Vec3, mesh::TreeMesh, pipeline::executor, presets::Preset, surface::Bounds,
+};
+use telperion_render::{
+    hero_pose, render, write_png, Camera, Gpu, Level, Renderer, SceneRow, View, GROUND_REACH,
+    STILL_FORMAT,
+};
+
+const SIZE: (u32, u32) = (960, 720);
+/// The still runner's sun (`space/still.rs`): behind the camera and high.
+const SUN: (f64, f64) = (115.0, 60.0);
+
+fn main() -> Result<(), String> {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let [out, age, rest @ ..] = &args[..] else {
+        return Err("usage: space_laurelin <out dir> <age> [seed]".into());
+    };
+    let age: f64 = age.parse().map_err(|e| format!("age {age}: {e}"))?;
+    let seed: u32 = rest
+        .first()
+        .map_or(Ok(1), |s| s.parse())
+        .map_err(|e| format!("seed: {e}"))?;
+    let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    for on in [false, true] {
+        let mut family = Preset::Laurelin.parameters();
+        (family.age, family.skeleton.seed) = (age, seed);
+        family.supernatural.enabled = on;
+        let started = Instant::now();
+        let grown = executor::grow(&family).map_err(|e| e.to_string())?;
+        let x = grown.expansion().map_err(|e| e.to_string())?;
+        let mesh = x.mesh().map_err(|e| e.to_string())?;
+        let ms = started.elapsed().as_secs_f64() * 1e3;
+        let b = mesh.bounds.max - mesh.bounds.min;
+        let florets = mesh.organ.as_ref().map_or(0, |o| o.instances.len());
+        let group = if on { "on" } else { "off" };
+        println!(
+            "{group}: built in {ms:.0} ms; {} nodes, {} leaves, {florets} florets; {:.1} m tall, {:.1} x {:.1} m",
+            x.tree().nodes.len(),
+            mesh.foliage_instances(),
+            b.y,
+            b.x,
+            b.z
+        );
+        let hero = hero_pose(
+            mesh.bounds,
+            f64::from(SIZE.0) / f64::from(SIZE.1),
+            GROUND_REACH,
+        );
+        let views = [
+            ("whole", hero.clone()),
+            ("mid", mid(&mesh.bounds, &hero)),
+            ("close", close(&mesh, &hero)?),
+        ];
+        for (view, camera) in &views {
+            renderer
+                .submit_at(&mesh, Level::Chosen)
+                .map_err(|e| e.to_string())?;
+            renderer.set_family(&family);
+            renderer.set_view(View::Whole);
+            renderer.set_scene(SceneRow {
+                sun_azimuth: SUN.0,
+                sun_elevation: SUN.1,
+                ..SceneRow::default()
+            });
+            let still = render(&mut renderer, camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;
+            let file = format!("{out}/laurelin-{age}-{seed}-{group}-{view}.png");
+            write_png(std::path::Path::new(&file), &still).map_err(|e| e.to_string())?;
+        }
+    }
+    Ok(())
+}
+
+/// The hero camera's horizontal heading, from the tree to the camera.
+fn toward(hero: &Camera) -> Vec3 {
+    Vec3::new(hero.position.x, 0.0, hero.position.z).normalized()
+}
+
+/// A limb's worth of crown: the crown's edge on the hero camera's side,
+/// a little over half-way up, from 0.4 of the height out.
+fn mid(bounds: &Bounds, hero: &Camera) -> Camera {
+    let t = toward(hero);
+    let height = bounds.max.y - bounds.min.y;
+    let reach = 0.5 * (bounds.max.x - bounds.min.x).max(bounds.max.z - bounds.min.z);
+    let side = Vec3::new(t.z, 0.0, -t.x);
+    let target = Vec3::Y * (0.55 * height) + t * (0.5 * reach) + side * (0.2 * reach);
+    let distance = 0.4 * height;
+    Camera {
+        position: target + t * distance + Vec3::Y * (0.1 * distance),
+        target,
+        field_of_view: 38.0,
+        near: 0.05,
+        far: 4.0 * height,
+    }
+}
+
+/// One spray close up: the outermost whole floret half-way up the crown on
+/// the camera's side, or, on a tree that flowers nowhere, the outermost
+/// leaf there, from 0.7 m.
+fn close(mesh: &TreeMesh, hero: &Camera) -> Result<Camera, String> {
+    let t = toward(hero);
+    let height = mesh.bounds.max.y - mesh.bounds.min.y;
+    let instances = &mesh.organ.as_ref().unwrap_or(&mesh.foliage).instances;
+    let r = &instances.reference;
+    let target = (instances.leaves.iter())
+        .filter(|l| r.scale(**l) > 0.6)
+        .map(|l| r.position(*l))
+        .filter(|p| (0.45..0.8).contains(&(p.y / height)))
+        .max_by(|a, b| a.dot(t).total_cmp(&b.dot(t)))
+        .ok_or("no whole floret or leaf half-way up the crown")?;
+    let distance = 0.7;
+    Ok(Camera {
+        position: target + t * distance + Vec3::Y * (0.2 * distance),
+        target,
+        field_of_view: 38.0,
+        near: 0.005,
+        far: 4.0 * height,
+    })
+}

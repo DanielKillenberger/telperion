@@ -72,9 +72,12 @@ const SWEEP_NODES: usize = 8_000;
 // moves again between the ordinary tree and the beech (fn-215).
 // fn-221's six old-bark rows are stated by no preset yet (fn-213 owns the
 // birch's), so every table leaves them at their neutral and they are held.
-// fn-217's supernatural group is off on every preset the sweep walks, and
-// no table states its rows, so they are held.
-const HELD: [&str; 158] = [
+// fn-217's supernatural group is off on every preset the sweep walks but
+// Laurelin (fn-218), which states its scale, leaves and racemes, and the
+// petals' colours: the sweep walks those. The rows she leaves unset (the
+// silver underside, the other ages' flowering, the window in the year) are
+// held.
+const HELD: [&str; 117] = [
     "/bloom/florets",
     "/bloom/rachis",
     "/bloom/droop",
@@ -95,16 +98,6 @@ const HELD: [&str; 158] = [
     "/bloom/opens",
     "/bloom/lasts",
     "/bloom/stagger",
-    "/material/bloomFrontRed",
-    "/material/bloomFrontGreen",
-    "/material/bloomFrontBlue",
-    "/material/bloomBackRed",
-    "/material/bloomBackGreen",
-    "/material/bloomBackBlue",
-    "/material/bloomEyeRed",
-    "/material/bloomEyeGreen",
-    "/material/bloomEyeBlue",
-    "/material/bloomEyeShare",
     "/canopy/clumpSystemOrder",
     "/canopy/limbClumping",
     "/canopy/rosetteFronds",
@@ -181,40 +174,10 @@ const HELD: [&str; 158] = [
     "/surface/forkSocket",
     "/surface/forkSwell",
     "/surface/radialSegments",
-    "/supernatural/enabled",
-    "/supernatural/scale",
     "/supernatural/backReflectance",
     "/supernatural/backRed",
     "/supernatural/backGreen",
     "/supernatural/backBlue",
-    "/supernatural/marginReflectance",
-    "/supernatural/roughness",
-    "/supernatural/material/leafFrontRed",
-    "/supernatural/material/leafFrontGreen",
-    "/supernatural/material/leafFrontBlue",
-    "/supernatural/material/leafBackRed",
-    "/supernatural/material/leafBackGreen",
-    "/supernatural/material/leafBackBlue",
-    "/supernatural/material/marginRed",
-    "/supernatural/material/marginGreen",
-    "/supernatural/material/marginBlue",
-    "/supernatural/bloom/florets",
-    "/supernatural/bloom/rachis",
-    "/supernatural/bloom/droop",
-    "/supernatural/bloom/pedicel",
-    "/supernatural/bloom/spread",
-    "/supernatural/bloom/taper",
-    "/supernatural/bloom/petals",
-    "/supernatural/bloom/open",
-    "/supernatural/bloom/petalLength",
-    "/supernatural/bloom/petalWidth",
-    "/supernatural/bloom/petalWidest",
-    "/supernatural/bloom/petalCup",
-    "/supernatural/bloom/petalCurl",
-    "/supernatural/bloom/stamens",
-    "/supernatural/bloom/stamenLength",
-    "/supernatural/bloom/stamenWidth",
-    "/supernatural/bloom/scatter",
     "/supernatural/bloom/opens",
     "/supernatural/bloom/lasts",
     "/supernatural/bloom/stagger",
@@ -232,7 +195,6 @@ const HELD: [&str; 158] = [
     "/supernatural/flowering/age11",
     "/supernatural/flowering/age12",
     "/supernatural/flowering/age13",
-    "/supernatural/flowering/age14",
 ];
 
 fn family(id: &str) -> Family {

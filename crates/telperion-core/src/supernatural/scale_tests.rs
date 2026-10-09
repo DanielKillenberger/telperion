@@ -137,49 +137,71 @@ fn a_scale_off_its_range_is_refused_by_the_build() {
 /// box's step.
 #[test]
 fn contact_precision_at_every_scale() {
-    use crate::foliage::RECORD_UNQUANTISED;
     for s in [0.1, 1.0, 5.0, 100.0] {
-        RECORD_UNQUANTISED.with(|r| r.set(true));
-        let request = Request {
-            leaves: true,
-            schedule: pipeline::Schedule::Serial,
-            ..Request::default()
-        };
-        let b = pipeline::build(&beech(s), request).unwrap();
-        RECORD_UNQUANTISED.with(|r| r.set(false));
-        let placed = &b.outputs.leaves.as_ref().unwrap().instances;
-        assert_eq!(placed.unquantised.len(), placed.leaves.len());
-        let step = placed.reference.step();
-        // The element's own length along its longest side, in metres at a
-        // scale of one.
-        let e = &b.outputs.element.as_ref().unwrap().positions;
-        let side = |f: fn(&crate::math::Vec3) -> f64| {
-            let (lo, hi) = e
-                .iter()
-                .map(f)
-                .fold((f64::MAX, f64::MIN), |(l, h), v| (l.min(v), h.max(v)));
-            hi - lo
-        };
-        let element = side(|p| p.x).max(side(|p| p.y)).max(side(|p| p.z));
-        let (mut worst, mut length) = (0.0f64, f64::MAX);
-        for (k, before) in placed.unquantised.iter().enumerate() {
-            let after = placed.matrix(k);
-            for (axis, step) in [step.x, step.y, step.z].into_iter().enumerate() {
-                let d = (f64::from(before[12 + axis]) - f64::from(after[12 + axis])).abs();
-                let ulp = f64::from(before[12 + axis].abs()) * f64::from(f32::EPSILON) + 1e-9;
-                assert!(
-                    d <= step / 2.0 + ulp,
-                    "{s}: leaf {k} moved {d} m on axis {axis}"
-                );
-                worst = worst.max(d);
-            }
-            length = length.min(element * placed.reference.scale(placed.leaves[k]));
-        }
-        println!(
-            "scale {s}: step {:.2e} m, worst contact error {worst:.2e} m, \
-             {:.2}% of the smallest leaf ({length:.3} m)",
-            step.length(),
-            100.0 * worst / length
-        );
+        contact(&beech(s), &format!("scale {s}"));
     }
+}
+
+/// Laurelin at her own age and scale (fn-218 R3, fn-217 8.4): the contact
+/// error of the shipped preset, held to the same half step, which is inside
+/// fn-125's screen of two steps. A build of eleven million leaves, so run by
+/// name (`--ignored`) when her values change.
+#[test]
+#[ignore = "measurement: the laurelin preset at 80, eleven million leaves"]
+fn laurelin_contact_at_her_scale() {
+    let f = Preset::Laurelin.parameters();
+    contact(
+        &f,
+        &format!("laurelin {} at scale {}", f.age, f.supernatural.scale),
+    );
+}
+
+/// Builds `f` with its leaves' transforms recorded, holds every packed
+/// position to half its box's step, and prints the worst error against the
+/// smallest leaf.
+fn contact(f: &Family, label: &str) {
+    use crate::foliage::RECORD_UNQUANTISED;
+    RECORD_UNQUANTISED.with(|r| r.set(true));
+    let request = Request {
+        leaves: true,
+        schedule: pipeline::Schedule::Serial,
+        ..Request::default()
+    };
+    let b = pipeline::build(f, request).unwrap();
+    RECORD_UNQUANTISED.with(|r| r.set(false));
+    let placed = &b.outputs.leaves.as_ref().unwrap().instances;
+    assert_eq!(placed.unquantised.len(), placed.leaves.len());
+    let step = placed.reference.step();
+    // The element's own length along its longest side, in metres at a
+    // scale of one.
+    let e = &b.outputs.element.as_ref().unwrap().positions;
+    let side = |f: fn(&crate::math::Vec3) -> f64| {
+        let (lo, hi) = e
+            .iter()
+            .map(f)
+            .fold((f64::MAX, f64::MIN), |(l, h), v| (l.min(v), h.max(v)));
+        hi - lo
+    };
+    let element = side(|p| p.x).max(side(|p| p.y)).max(side(|p| p.z));
+    let (mut worst, mut length) = (0.0f64, f64::MAX);
+    for (k, before) in placed.unquantised.iter().enumerate() {
+        let after = placed.matrix(k);
+        for (axis, step) in [step.x, step.y, step.z].into_iter().enumerate() {
+            let d = (f64::from(before[12 + axis]) - f64::from(after[12 + axis])).abs();
+            let ulp = f64::from(before[12 + axis].abs()) * f64::from(f32::EPSILON) + 1e-9;
+            assert!(
+                d <= step / 2.0 + ulp,
+                "{label}: leaf {k} moved {d} m on axis {axis}"
+            );
+            worst = worst.max(d);
+        }
+        length = length.min(element * placed.reference.scale(placed.leaves[k]));
+    }
+    println!(
+        "{label}: {} leaves, step {:.2e} m, worst contact error {worst:.2e} m, \
+         {:.2}% of the smallest leaf ({length:.3} m)",
+        placed.leaves.len(),
+        step.length(),
+        100.0 * worst / length
+    );
 }

@@ -147,17 +147,38 @@ fn a_family_with_the_group_off_draws_its_base_species_to_the_byte() {
     beech.age = 12.0;
     let mut off = beech.clone();
     off.supernatural = legendary(false);
-    let mesh = |f: &Family| {
-        let text = format!("{:?}", crate::mesh::build(f).unwrap());
-        text.bytes().fold(14695981039346656037_u64, |h, b| {
-            (h ^ u64::from(b)).wrapping_mul(1099511628211)
-        })
-    };
     let base = mesh(&beech);
     assert_eq!(mesh(&off), base);
     let mut on = off.clone();
     on.supernatural.enabled = true;
     assert_ne!(mesh(&on), base);
+}
+
+/// Laurelin with her group off is the beech (fn-218 R2): every natural row
+/// of hers is the beech preset's but her age, so at one age the two draw
+/// the same tree to the byte, and her group changes it.
+#[cfg(feature = "geometry")]
+#[test]
+fn laurelin_with_her_group_off_is_the_beech() {
+    let (mut laurelin, mut beech) = (
+        Preset::Laurelin.parameters(),
+        Preset::EuropeanBeech.parameters(),
+    );
+    (laurelin.age, beech.age) = (12.0, 12.0);
+    laurelin.supernatural.enabled = false;
+    let base = mesh(&beech);
+    assert_eq!(mesh(&laurelin), base);
+    laurelin.supernatural.enabled = true;
+    assert_ne!(mesh(&laurelin), base);
+}
+
+/// A hash of everything `f`'s mesh holds.
+#[cfg(feature = "geometry")]
+fn mesh(f: &Family) -> u64 {
+    let text = format!("{:?}", crate::mesh::build(f).unwrap());
+    text.bytes().fold(14695981039346656037_u64, |h, b| {
+        (h ^ u64::from(b)).wrapping_mul(1099511628211)
+    })
 }
 
 /// The bark's metre rows are lengths: the drawn material carries them at
