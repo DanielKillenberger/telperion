@@ -213,3 +213,23 @@ Two decisions are open for you:
 2. **The leaves.** Whether the thinning threshold may rise past a pixel (3 to 6 px) for the Two Trees.
 
 The gate, npm test and impl-review were not run, because the build stopped.
+
+## Host decision, second (2026-10-09): both answers come from the truth tool
+
+Your truth tool (`bark_truth.rs`) is the right instrument. Both open questions are settled by fitting against it, not by taste.
+
+1. **Wood: a prefilter that carries the lighting.**
+   - **Where the gap is.** The measurement shows the remaining distance comes from the lighting's nonlinearity over the relief: furrow shadowing and the crest and fissure tints, not the band averages.
+   - **What to add.** Give the band-limited relief two more terms, each a function of the faded octaves' height and slope variance:
+     - an expected furrow occlusion that darkens with the faded variance;
+     - an expected tint mix between crest and fissure.
+   - **How to fit them.** Fit their coefficients once against the truth tool on the oak and spruce fixtures, then check them on held-out fixtures: beech, birch, Telperion and Laurelin trunks, plus the 2x distance views. These are shader constants with their derivation recorded, not species rows.
+   - **Acceptance.** On every fixture the new shader must be within the existing bounds of the truth (mean ≤ 3.0, p95 bound). It must also be no farther from the truth than the present shader by more than 0.3 mean.
+   - **If it misses,** stop and report with the table. The picture then goes to the owner.
+2. **Leaves: the threshold is fitted, not fixed at one pixel.**
+   - **The reference.** The same tool renders each crown view thinned and unthinned at 4x, box-reduced. The unthinned 4x render is the truth.
+   - **The threshold.** Choose the largest threshold whose thinned 1x frame stays within a stated bound of that truth on covered pixels and mean colour, at the whole and mid views of every flowering and dense species. Use the bark tests' 3.0 mean as the starting bound, and state the one used.
+   - **Scope.** This is one rule for every species. Its value comes from that fit, not from a per-species choice.
+   - **Viewing.** Every still is viewed beside its truth.
+
+The three points already built stay as they are. Then measure every species at 60 fps. If one still falls short, report its cost per pass and stop.
