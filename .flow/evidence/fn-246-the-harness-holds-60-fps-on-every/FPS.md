@@ -388,3 +388,37 @@ The fix belongs to drawing, so it is fn-246's:
 - **The same selection pass** chooses the level by projected size, as it does for leaves. The 2 px area-kept thinning then applies on top.
 - **Fitted on the crown truth tool,** as for the leaf threshold. Choose the largest projected size for the card level that stays within the same bound of the unthinned 4x truth, at the whole and mid views of both trees. View the stills.
 - **Measure** the Two Trees again at 60 fps, whole and close.
+
+## Host addition: the floret card misses the crown bound (stopped for the host)
+
+**Built, measured and backed out** (`raw/card.patch`, gitignored). `src/card.rs` puts one square card in front of the floret's levels. Its area is the floret's one-sided petal area, about its area-weighted centre, facing across the petals' leading normal direction; a flat face seen from every direction shows half its area, as the petals do. Its deviation is the floret's bounding radius over the card threshold, so selection chooses it by projected size in the same pass, with the 2 px thinning on top. Leaves are untouched. It had two unit tests: the card's area equals the petals' area, its levels stay strictly coarser to finer, and a card that would not be coarsest is left out.
+
+**Fit against the crown truth** (`examples/crown_truth.rs`, now with a species filter; Telperion and Laurelin, whole and mid). The truth is the unthinned 4x crown with no card. The bound is the same one as for the leaves: at most 3.0 mean code values more than the unthinned, uncarded 1x view's distance. Bold breaks it.
+
+| view | unthinned, no card (distance) | 2 px thinning, no card | card under 1 px | card under 2 px | card under 4 px | card under 8 px | card under 16 px |
+|---|---|---|---|---|---|---|---|
+| telperion whole | 15.18 | +2.96 | +2.96 | **+3.53** | **+4.43** | **+4.43** | +2.96 |
+| telperion mid | 11.79 | +0.02 | +0.02 | +0.05 | +1.00 | +1.08 | +0.02 |
+| laurelin whole | 10.90 | +1.39 | +1.39 | +1.40 | +1.40 | +1.40 | +1.39 |
+| laurelin mid | 9.83 | +0.12 | +0.12 | +0.18 | +1.36 | +1.37 | +0.12 |
+
+Cards under 1 and 1.5 px change nothing: thinning has already enlarged every floret under 2 px to 2 px, so selection never reaches a card set lower. At 8 and 16 px the deviation r/S falls under the floret's own coarsest level, so the card is left out, and 16 px equals no card. The 2 px thinning alone already spends Telperion's whole-view budget (+2.96). **No card threshold fits inside the bound**: under 2 px gives +3.53, under 4 px +4.43.
+
+**What the card buys** (one run each, load about 4):
+
+| species | variant | view | runs | load | frame ms | fps | surfacing | selection | shadow | vegetation |
+|---|---|---|---|---|---|---|---|---|---|---|
+| telperion | card4.0 | whole | 1 | 4.24 | 19.83 | 50 | 2.87 | 0.43 | 0.00 | 15.87 |
+| telperion | card4.0 | close | 1 | 4.24 | 28.64 | 35 | 2.93 | 0.38 | 0.00 | 24.72 |
+| laurelin | card4.0 | whole | 1 | 5.05 | 17.92 | 56 | 2.05 | 0.28 | 0.00 | 15.05 |
+| laurelin | card4.0 | close | 1 | 5.05 | 18.81 | 53 | 2.46 | 0.24 | 0.00 | 15.59 |
+| telperion | card2.0 | whole | 1 | 4.41 | 35.91 | 28 | 2.89 | 0.43 | 0.00 | 31.92 |
+| telperion | card2.0 | close | 1 | 4.41 | 52.38 | 19 | 2.95 | 0.38 | 0.00 | 48.58 |
+| laurelin | card2.0 | whole | 1 | 4.01 | 17.93 | 56 | 2.05 | 0.28 | 0.00 | 15.06 |
+| laurelin | card2.0 | close | 1 | 4.01 | 32.09 | 31 | 2.46 | 0.24 | 0.00 | 28.87 |
+
+A card under 4 px takes Telperion from 22 to 50 fps whole and from 19 to 35 close, and Laurelin from 36 to 56 whole and from 30 to 53 close. None of the four reaches 60. Under 2 px it moves only Laurelin's whole view (36 to 56); Telperion stays at 28 whole and 19 close.
+
+**Stills viewed** (`raw/card-sbs.png`: truth, 2 px thinning, card under 2 px, card under 4 px; Telperion whole, Laurelin whole, Telperion mid). With the card under 4 px, Telperion's whole crown has fewer and duller white florets than the truth; that is the +4.43. Laurelin reads close to its truth. The mid view looks alike in all four.
+
+So the card's gain needs a looser bound than the leaves were given, or an owner's look at `raw/card-sbs.png`. Either is your call. The tree on the branch is as before this addition: prefiltered bark, 2 px thinning, no card.

@@ -6,8 +6,10 @@
 //! changes in that truth: mean and p95 code values, and the share of crown
 //! pixels each covers.
 //!
-//!   cargo run --profile ci -p telperion-render --example crown_truth -- render <dir> <scale>
-//!   cargo run --profile ci -p telperion-render --example crown_truth -- compare <truth dir> <scale> <dir>
+//!   cargo run --profile ci -p telperion-render --example crown_truth -- render <dir> <scale> [species...]
+//!   cargo run --profile ci -p telperion-render --example crown_truth -- compare <truth dir> <scale> <dir> [species...]
+//!
+//! Every shipped species by default.
 use std::path::Path;
 use telperion_core::{mesh, presets::Preset};
 use telperion_render::{hero_pose, render, Camera, Gpu, Renderer, View, GROUND_REACH, STILL_FORMAT};
@@ -34,11 +36,11 @@ fn views(renderer: &Renderer) -> [(&'static str, Camera); 2] {
     [("whole", hero), ("mid", mid)]
 }
 
-fn draw(dir: &Path, scale: u32) -> Result<(), Box<dyn std::error::Error>> {
+fn draw(dir: &Path, scale: u32, species: &[&str]) -> Result<(), Box<dyn std::error::Error>> {
     std::fs::create_dir_all(dir)?;
     let mut renderer = Renderer::new(pollster::block_on(Gpu::request(None))?, STILL_FORMAT);
     let (w, h) = (SIZE.0 * scale, SIZE.1 * scale);
-    for id in SPECIES {
+    for &id in species {
         let mut family = Preset::from_id(id).ok_or("no preset")?.parameters();
         family.skeleton.seed = 1;
         renderer.submit(&mesh::build(&family)?)?;
@@ -66,9 +68,14 @@ fn at(rgba: &[u8], width: usize, s: usize, x: usize, y: usize, c: usize) -> f64 
     f64::from(sum) / (s * s) as f64
 }
 
-fn compare(truth: &Path, scale: u32, dir: &Path) -> Result<(), Box<dyn std::error::Error>> {
+fn compare(
+    truth: &Path,
+    scale: u32,
+    dir: &Path,
+    species: &[&str],
+) -> Result<(), Box<dyn std::error::Error>> {
     let (w, h, s) = (SIZE.0 as usize, SIZE.1 as usize, scale as usize);
-    for id in SPECIES {
+    for &id in species {
         for name in ["whole", "mid"] {
             let read = |d: &Path, label: &str| std::fs::read(d.join(format!("{id}-{name}-{label}")));
             let (whole, bare) = (read(truth, "whole")?, read(truth, "bare")?);
@@ -102,11 +109,23 @@ fn compare(truth: &Path, scale: u32, dir: &Path) -> Result<(), Box<dyn std::erro
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().skip(1).collect();
+
     match &args[..] {
-        [mode, dir, scale] if mode == "render" => draw(Path::new(dir), scale.parse()?),
-        [mode, truth, scale, dir] if mode == "compare" => {
-            compare(Path::new(truth), scale.parse()?, Path::new(dir))
+        [mode, dir, scale, rest @ ..] if mode == "render" => {
+            draw(Path::new(dir), scale.parse()?, &pick(rest))
+        }
+        [mode, truth, scale, dir, rest @ ..] if mode == "compare" => {
+            compare(Path::new(truth), scale.parse()?, Path::new(dir), &pick(rest))
         }
         _ => Err("usage: crown_truth render <dir> <scale> | compare <truth dir> <scale> <dir>".into()),
+    }
+}
+
+/// The species named, or every shipped one.
+fn pick(rest: &[String]) -> Vec<&str> {
+    if rest.is_empty() {
+        SPECIES.to_vec()
+    } else {
+        rest.iter().map(String::as_str).collect()
     }
 }

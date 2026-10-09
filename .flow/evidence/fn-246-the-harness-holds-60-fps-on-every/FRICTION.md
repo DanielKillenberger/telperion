@@ -48,3 +48,10 @@
 - **Slowed by:** the system Python has no numpy (`uv run --with numpy --with scipy` worked). The shell guard refuses `rm -rf`, so the 4.2 GB of crown stills in `raw/crown-truth4` and `raw/crown-T*` stay on disk. They are gitignored.
 - **Cost:** a few minutes, plus about 5 GB of disk until removed by hand.
 - **Would have removed it:** nothing in the repository. Local setup, reported only.
+
+## 2026-10-09: the crown bound was already spent when the card arrived
+
+- **Doing:** fitting the floret card's threshold.
+- **Slowed by:** the bound is one budget (3.0 mean over the unthinned view), and the 2 px leaf thinning had already used 2.96 of it on Telperion's whole view. The card could only be fitted inside the remaining 0.04, so the fit had no room before it started. That was visible from the earlier table but only became decisive once the card was built.
+- **Cost:** about 40 minutes building, fitting and backing out the card.
+- **Would have removed it:** fitting the leaf threshold and the card together against one shared budget, or stating a budget per mechanism.
