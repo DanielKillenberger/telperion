@@ -240,7 +240,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-248-leaves-hang-on-twigs.md",
-  "status": "open",
+  "status": "done",
   "title": "Leaves hang on twigs",
   "tracker": {
     "baseHashFlow": null,
@@ -253,5 +253,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T20:47:24.140613Z"
+  "updated_at": "2026-10-09T20:48:27.957974Z"
 }
