@@ -19,11 +19,11 @@ struct Cfg {
     spi: u32,
     segments: u32,
     // A fine node's kind and bearing: `STRUCTURAL` of the root's radius
-    // and the slender bound in whole micrometres; the twig layer's internode; the divergence in
+    // and the slender bound in whole micrometres; the twig layer's internode, in whole micrometres as the CPU rounds it; the divergence in
     // radians; whether leaves are seated.
     structural: f32,
     slender: u32,
-    internode: f32,
+    unit: u32,
     divergence: f32,
     contact: u32,
     // Whether the canopy bears leaves: a tree may flower where it does not.
@@ -104,7 +104,7 @@ fn grown(i: u32) -> u32 {
 
 // The twig layer's internode.
 fn unit() -> u32 {
-    return micrometres(cfg.internode);
+    return cfg.unit;
 }
 
 fn metres(micrometres: u32) -> f32 {

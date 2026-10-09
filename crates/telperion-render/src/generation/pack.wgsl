@@ -57,7 +57,7 @@ fn fanned(heading:vec3<f32>, n:u32, spread:f32, j:u32) -> vec3<f32> {
 // (`tree::keeps`): the retention of its wood, before the segment's
 // boundary or from it, against its draw on the segment's stream.
 fn retained(seg:Segment, k:u32) -> bool {
-    let unit=u32(floor(config.shape.x*1e6+0.5));
+    let unit=bitcast<u32>(config.size.z);
     let keep=bitcast<u32>(seg.normal.w);
     var q=keep>>16u;
     if (k/config.random.y)*unit>=bitcast<u32>(seg.tangent.w) { q=keep&0xffffu; }

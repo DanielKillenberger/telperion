@@ -59,7 +59,14 @@ pub(super) fn config(
             c.outward as f32,
             c.upward as f32,
         ],
-        size: [c.size as f32, c.size_variation as f32, 0.0, 0.0],
+        // The internode in whole micrometres as the CPU rounds it
+        // (`plan::micrometres`), which a segment's retention reads (fn-248).
+        size: [
+            c.size as f32,
+            c.size_variation as f32,
+            f32::from_bits((t.internode_length * 1e6 + 0.5).floor() as u32),
+            0.0,
+        ],
     }
 }
 /// A bloom's rows as `bloom.wgsl`'s `Flower` reads them (fn-229), drawn at
