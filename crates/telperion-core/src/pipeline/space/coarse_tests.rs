@@ -24,7 +24,11 @@ fn a_coarse_tree_answers_its_fine_roots_as_occupancy() {
         let stands = &built.skeleton.tree.stands;
         assert!(!stands.is_empty(), "{preset:?}");
         let plan = built.outputs.plan.expect("a plan");
-        let spread: Vec<_> = plan.descriptors.iter().filter(|d| d.spread > 0.0).collect();
+        let spread: Vec<_> = plan
+            .descriptors
+            .iter()
+            .filter(|d| d.stand.is_some())
+            .collect();
         assert!(!spread.is_empty() && spread.len() <= stands.len());
         assert!(spread.iter().map(|d| d.count).sum::<u32>() > 0);
         let field = built.outputs.field.expect("a field");

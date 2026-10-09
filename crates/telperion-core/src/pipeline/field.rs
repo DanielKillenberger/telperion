@@ -14,6 +14,7 @@
 //! resolution-dependent sweep inflation.
 mod cuboid;
 mod index;
+mod stand;
 #[cfg(test)]
 mod stand_tests;
 use crate::{
@@ -25,12 +26,14 @@ use crate::{
 use cuboid::Cuboid;
 pub use index::IndexSnapshot;
 use index::{bounds_of, checked, cube, reserved, union, Index, Item};
+use stand::Fill;
 
 /// One cell's answer. `wood_radius` is the larger end radius of the thickest
 /// wood sweep reaching the cell, in metres, zero where no wood does.
 /// `leaves` estimates the stations in the cell before the crown-shell cull:
 /// over a grid of non-overlapping cells the estimates sum to the plan's
-/// total. `limb` is the limb system with the largest estimate in the cell,
+/// total, a coarse tree's stand-ins' in expectation above the ground
+/// (`stand.rs`). `limb` is the limb system with the largest estimate in the cell,
 /// the lower id on a tie, and `None` where no foliage reaches. On the placed
 /// path `leaves` counts the retained leaves whose box overlaps the cell and
 /// `limb` is always `None`.
@@ -125,6 +128,8 @@ struct Sweep {
     cuboid: Option<Cuboid>,
     count: f64,
     system: u32,
+    /// A coarse tree's stand-in, which answers by its expected occupancy.
+    stand: Option<Fill>,
 }
 impl Sweep {
     /// Whether the cell of `half` extent about `p` meets the record: a
@@ -242,6 +247,9 @@ impl Field {
                 cuboid,
                 count: f64::from(d.count),
                 system: d.system,
+                stand: d
+                    .stand
+                    .map(|s| Fill::of(s.key, f64::from(d.count), a, b, reach)),
             });
         }
         Ok(Self {
@@ -346,12 +354,16 @@ impl Field {
                 let mut foliage = false;
                 index.each(wood_cell, &mut |id| {
                     let s = &sweeps[id];
-                    if s.meets(center, half_extent, inflation) {
+                    if !s.meets(center, half_extent, inflation) {
+                        return;
+                    }
+                    let leaves = match &s.stand {
+                        None => Some(s.count * s.segment.share_inside(center, half_extent)),
+                        Some(stand) => stand.answer(center, half_extent),
+                    };
+                    if let Some(leaves) = leaves {
                         foliage = true;
-                        tally.add(
-                            s.system,
-                            s.count * s.segment.share_inside(center, half_extent),
-                        );
+                        tally.add(s.system, leaves);
                     }
                 });
                 Occupancy {

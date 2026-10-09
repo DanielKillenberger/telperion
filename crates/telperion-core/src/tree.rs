@@ -8,6 +8,7 @@ mod cluster;
 mod identity;
 mod section;
 mod shoot;
+mod stand;
 use crate::{math::Vec3, Error, Result};
 pub use bloom::Bloom;
 pub use cluster::{cluster_key, Cluster};
@@ -15,6 +16,7 @@ pub use identity::NodeIdentity;
 pub(crate) use identity::NodeKey;
 pub use section::{Section, SectionRing};
 pub use shoot::{BudFate, ShootState};
+pub use stand::{stand_key, Stand};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
@@ -183,21 +185,6 @@ pub struct Tree {
     /// grown (fn-214): empty on every tree grown whole. Never stored.
     #[cfg_attr(feature = "json", serde(skip))]
     pub stands: Vec<Stand>,
-}
-
-/// A fine root of a coarse tree as its expectation (fn-214): the node it is
-/// borne on, its wood from `base` toward `tip` (twice its expected wood's
-/// centre along its heading) at its base radius, the reach about that line
-/// its expected wood spreads to (the centre's distance), and its expected
-/// kept phytomers.
-#[derive(Debug, Default, Clone, Copy, PartialEq)]
-pub struct Stand {
-    pub node: u32,
-    pub base: Vec3,
-    pub tip: Vec3,
-    pub radius: f64,
-    pub reach: f64,
-    pub phytomers: f64,
 }
 
 /// A 32-bit finaliser: the one the leaves' draws already use.

@@ -4,7 +4,7 @@
 //! root whose bearer draws no node there stands for wood thinner than any
 //! drawn and is left out, as the conversion leaves that wood out.
 use super::up;
-use crate::tree::Stand;
+use crate::tree::{stand_key, Stand};
 use telperion_space::{Coarse, Origin};
 
 pub(super) fn convert(coarse: &Coarse, drawn: &[Vec<u32>]) -> Vec<Stand> {
@@ -16,6 +16,7 @@ pub(super) fn convert(coarse: &Coarse, drawn: &[Vec<u32>]) -> Vec<Stand> {
                 unreachable!("a fine root is a lateral bud")
             };
             let node = *drawn[parent].get(node)?;
+            let lineage = coarse.structure.axes[s.axis].lineage;
             Some(Stand {
                 node,
                 base: up(s.base),
@@ -23,6 +24,7 @@ pub(super) fn convert(coarse: &Coarse, drawn: &[Vec<u32>]) -> Vec<Stand> {
                 radius: s.radius,
                 reach: s.centre,
                 phytomers: s.phytomers,
+                key: stand_key(lineage),
             })
         })
         .collect()

@@ -196,10 +196,18 @@ pub struct Descriptor {
     /// oriented box: the rectangle the segment sweeps from `-side` to
     /// `side`, pushed out by its radius either way along its normal.
     pub side: Vec3,
-    /// How far past a leaf's own reach what it stands for spreads: a coarse
-    /// tree's fine root, its expected wood's reach (fn-214). Zero for every
+    /// A coarse tree's fine root standing in (fn-214); `None` for every
     /// leaf-bearing segment and leaflet.
+    pub stand: Option<Standing>,
+}
+
+/// What a stand-in adds to its descriptor: how far past a leaf's own reach
+/// it spreads (its expected wood's reach) and the key its occupancy of a
+/// cell draws under (`tree::stand_key`).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Standing {
     pub spread: f64,
+    pub key: u32,
 }
 
 /// Every descriptor of one tree under one family, with the family's reach.
@@ -226,7 +234,10 @@ impl Plan {
     /// distance of the segment: the wood's radius carried out to the seat,
     /// plus the rachis, plus the blade.
     pub fn reach(&self, d: &Descriptor) -> f64 {
-        d.radii[0].max(d.radii[1]) * self.seat + self.rachis + self.blade + d.spread
+        d.radii[0].max(d.radii[1]) * self.seat
+            + self.rachis
+            + self.blade
+            + d.stand.map_or(0.0, |s| s.spread)
     }
 }
 
@@ -295,7 +306,7 @@ pub fn plan(
                 count: (last - first) * run.leaflets,
                 system: system[run.nodes[segment + 1]],
                 side: Vec3::ZERO,
-                spread: 0.0,
+                stand: None,
             });
         }
         total += run.count * run.leaflets;
@@ -312,7 +323,7 @@ pub fn plan(
             count: c.leaves * rosette::leaflets(&p) as u32,
             system: system[c.node as usize],
             side: Vec3::ZERO,
-            spread: 0.0,
+            stand: None,
         });
         total += c.leaves * rosette::leaflets(&p) as u32;
     }
@@ -377,7 +388,10 @@ fn stands(
             count,
             system: system[s.node as usize],
             side: Vec3::ZERO,
-            spread: s.reach,
+            stand: Some(Standing {
+                spread: s.reach,
+                key: s.key,
+            }),
         });
     }
     Ok(total)

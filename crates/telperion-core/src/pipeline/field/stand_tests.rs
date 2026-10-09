@@ -4,7 +4,7 @@
 //! there, and no cell below the ground is.
 use super::Field;
 use crate::math::Vec3;
-use crate::pipeline::foliage::plan::{Descriptor, Plan};
+use crate::pipeline::foliage::plan::{Descriptor, Plan, Standing};
 use crate::tree::Tree;
 
 const CELL: f64 = 0.1;
@@ -17,7 +17,10 @@ fn stand(a: Vec3, b: Vec3, spread: f64, count: u32) -> Field {
             count,
             system: 0,
             side: Vec3::ZERO,
-            spread,
+            stand: Some(Standing {
+                spread,
+                key: 0x5eed,
+            }),
         }],
         total: count,
         blade: 0.0,
@@ -76,6 +79,12 @@ fn no_stand_in_answers_below_the_ground() {
     let count = (20.0 * capsule(r, y1 - y0) / CELL.powi(3)) as u32;
     let field = stand(Vec3::new(0.0, y0, 0.0), Vec3::new(0.0, y1, 0.0), r, count);
     let cells = inside(&field, y0, y1, r);
-    assert!(cells.iter().all(|(c, f)| c.y > 0.0 || !f), "foliage below the ground");
-    assert!(cells.iter().filter(|(c, _)| c.y > 0.0).all(|(_, f)| *f), "λ 20 fills");
+    assert!(
+        cells.iter().all(|(c, f)| c.y > 0.0 || !f),
+        "foliage below the ground"
+    );
+    assert!(
+        cells.iter().filter(|(c, _)| c.y > 0.0).all(|(_, f)| *f),
+        "λ 20 fills"
+    );
 }

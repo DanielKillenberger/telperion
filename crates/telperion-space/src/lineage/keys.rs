@@ -84,12 +84,15 @@ pub const FLORET_OPENING: u64 = 1;
 /// leaves draw by their index in it. Clear of the node's places and
 /// blooms.
 pub const CLUSTER: u64 = 0x0c10_0000;
+/// A coarse tree's stand-in answering foliage in a cell of the field,
+/// under the fine root's lineage, then the cell (fn-214).
+pub const STAND: u64 = u64::MAX - 16;
 /// An axis carried on into an age, under its chain's lineage.
 pub const CONTINUATION: u64 = u64::MAX;
 
 /// Every key: its name, value and what it is drawn under. `ZONE` and
 /// `PLACE` stand for their spans.
-pub const ALL: [(&str, u64, Under); 26] = [
+pub const ALL: [(&str, u64, Under); 27] = [
     ("VIABILITY", VIABILITY, Under::Unit),
     ("ABORTION", ABORTION, Under::Unit),
     ("MOVE", MOVE, Under::Unit),
@@ -115,6 +118,7 @@ pub const ALL: [(&str, u64, Under); 26] = [
     ("FLORET_SIZE", FLORET_SIZE, Under::Floret),
     ("FLORET_OPENING", FLORET_OPENING, Under::Floret),
     ("CLUSTER", CLUSTER, Under::Node),
+    ("STAND", STAND, Under::Lineage),
     ("CONTINUATION", CONTINUATION, Under::Lineage),
 ];
 
