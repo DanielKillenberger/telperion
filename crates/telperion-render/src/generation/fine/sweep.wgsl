@@ -329,7 +329,12 @@ fn walk(@builtin(global_invocation_id) id: vec3<u32>) {
     var w = begin(first);
     var widest = 0.0;
     var count = 0u;
+    // cap: one sample a node, and the root's.
+    let cap = arrayLength(&nodes) / NW + 1u;
     loop {
+        if count >= cap {
+            break;
+        }
         let s = sample(&w);
         widest = max(widest, s.r);
         count += 1u;
@@ -566,6 +571,7 @@ fn clusters_of(s: u32, at: u32, count: u32) {
     let lobe = r[2].z;
     var c = table[s * TW + 1u];
     var start = 0u;
+    // cap: start moves on by CLUSTER each step, to count.
     loop {
         let end = min(start + CLUSTER - 1u, count - 1u);
         var lo = centre_of(at + start);
@@ -611,6 +617,7 @@ fn ladder(out: u32, p0: u32, last: u32, twist: f32, depth: f32) {
         let step = 1u << k;
         var worst = 0.0;
         var a = 0u;
+        // cap: a moves on by step each pass, to last.
         while a < last {
             let b = min(a + step, last);
             let pa = p0 + a;

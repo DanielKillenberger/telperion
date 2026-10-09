@@ -179,7 +179,7 @@ fn every_chain_grows_on_the_gpu_as_on_the_cpu() {
 /// `cargo test --profile ci -p telperion-render chains_at_40_and_80 --
 /// --ignored --nocapture`.
 #[test]
-#[ignore = "a measurement over the old trees"]
+#[ignore = "device limits: a measurement over the old trees"]
 fn chains_at_40_and_80() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;

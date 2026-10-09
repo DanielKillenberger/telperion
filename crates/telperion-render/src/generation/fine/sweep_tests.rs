@@ -258,7 +258,7 @@ fn fine_roots_are_drawn_folded_and_swept_on_the_device() {
 /// --test-threads=1`, under
 /// the GPU lock).
 #[test]
-#[ignore]
+#[ignore = "device limits: a tree at 80 on the device"]
 fn swept_at_40_and_80() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
@@ -286,7 +286,7 @@ fn swept_at_40_and_80() {
 /// (`cargo test --profile ci -p telperion-render seed_twist_at_80 --
 /// --ignored --nocapture`).
 #[test]
-#[ignore]
+#[ignore = "device limits: a tree at 80 on the device"]
 fn seed_twist_at_80() {
     for id in ["european-beech", "norway-spruce"] {
         let mut family = telperion_core::presets::by_identity(id).unwrap();

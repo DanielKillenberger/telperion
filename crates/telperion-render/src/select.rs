@@ -160,6 +160,23 @@ impl Select {
         }
     }
 
+    /// Lets the crown's buffers go, back to the state before any crown.
+    pub(crate) fn release(&mut self) {
+        for held in [
+            &mut self.placements,
+            &mut self.masses,
+            &mut self.deviations,
+            &mut self.lists,
+            &mut self.counts,
+            &mut self.arguments,
+            &mut self.scratch,
+        ] {
+            *held = None;
+        }
+        (self.compute, self.draw) = (None, None);
+        (self.reset, self.levels, self.instances) = (Vec::new(), Vec::new(), 0);
+    }
+
     /// The layout the foliage pipeline reads its placements and its level's
     /// list through, which is the same one the bind groups here are built to.
     pub fn draw_layout(&self) -> &wgpu::BindGroupLayout {

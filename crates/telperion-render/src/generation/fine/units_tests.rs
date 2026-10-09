@@ -285,7 +285,7 @@ fn every_unit_of_the_young_trees_draws_the_cpu_s_nodes() {
 /// The same at 80, with the timings: `cargo test --profile ci -p
 /// telperion-render unit_kernel_at_80 -- --ignored --nocapture`.
 #[test]
-#[ignore = "a measurement over the old trees"]
+#[ignore = "device limits: a measurement over the old trees"]
 fn unit_kernel_at_80() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;

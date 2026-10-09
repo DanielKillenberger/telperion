@@ -65,6 +65,7 @@ export function GrowerDev() {
      still on the canvas is not the one asked for. */
   const [refused, setRefused] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
+  const [makingRoom, setMakingRoom] = useState(false);
 
   /* One device per canvas, for the canvas's whole life. React's
      development double-mount builds a stage and disposes it before the
@@ -79,9 +80,19 @@ export function GrowerDev() {
         if (cancelled) { stage.dispose(); return; }
         stageRef.current = stage;
         buildsRef.current = latestBuild(async (params: GrowerParams) => {
-          const started = performance.now();
-          const submitted = await stage.setTreeGpu(familyJson(params));
-          return { ...submitted, buildMs: performance.now() - started };
+          const family = familyJson(params);
+          /* The budget's one rule (fn-235): a tree that fits only alone
+             lets the drawn one go first, and the page says the screen is
+             empty while it builds; one that does not fit even alone
+             throws here, by name, and the drawn tree stays. */
+          setMakingRoom(stage.admission(family) === "makeRoom");
+          try {
+            const started = performance.now();
+            const submitted = await stage.setTreeGpu(family);
+            return { ...submitted, buildMs: performance.now() - started };
+          } finally {
+            setMakingRoom(false);
+          }
         });
         setReady(true);
         setBuildError(null);
@@ -365,6 +376,9 @@ export function GrowerDev() {
           </button>
         </div>
 
+        {makingRoom && <p role="status" className="gd-note">
+          the drawn tree was let go to make room under the device budget; the screen is empty while this tree builds
+        </p>}
         <p className="gd-note">
           {stats === null
             ? "building..."

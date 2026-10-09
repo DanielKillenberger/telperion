@@ -55,6 +55,7 @@ fn fanned(heading:vec3<f32>, n:u32, spread:f32, j:u32) -> vec3<f32> {
 }
 fn station(index:u32) -> vec3<u32> {
     var lo=0u; var hi=config.counts.y;
+    // cap: each step halves hi - lo, a u32, so 32 steps at most.
     while lo+1u<hi { let mid=lo+(hi-lo)/2u; if segments[mid].range.x<=index { lo=mid; } else { hi=mid; } }
     let seg=segments[lo];
     let k=seg.range.z+index-seg.range.x;

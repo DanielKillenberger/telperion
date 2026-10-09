@@ -74,6 +74,8 @@ export interface GenerationStages {
 }
 
 /** A tree adopted by the renderer; this promise does not fence a completed frame. */
+export type Admission = "beside" | "makeRoom";
+
 export interface GpuSubmitted extends Submitted {
   backend: "Gpu" | "CpuFallback";
   stages: GenerationStages;
@@ -81,6 +83,8 @@ export interface GpuSubmitted extends Submitted {
   previousTreeGpuBytes: number;
   /** Allocated live-tree GPU buffer bytes after adoption, with the same exclusions. */
   treeGpuBytes: number;
+  /** Whether the drawn tree was let go first to make room under the budget. */
+  madeRoom: boolean;
 }
 
 export interface FrameStats {
@@ -164,6 +168,11 @@ let loading: Promise<void> | undefined;
  *  disposed with the page element it belongs to. */
 export interface Renderer {
   setTree(family: string): Submitted;
+  /** What a build of this family does under the page's device budget:
+   *  builds beside the drawn tree, or lets it go first ("makeRoom"), the
+   *  screen empty while it builds. Throws the budget's own words for a tree
+   *  that does not fit even alone; the drawn tree stays. */
+  admission(family: string): Admission;
   /** Experimental GPU foliage; unsupported inputs report CpuFallback. */
   setTreeGpu(family: string): Promise<GpuSubmitted>;
   setView(view: View): void;
@@ -216,6 +225,7 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
 
   return {
     setTree: (family) => JSON.parse(renderer.setTree(family)) as Submitted,
+    admission: (family) => renderer.admission(family) as Admission,
     setTreeGpu: async (family) => {
       if (disposed) throw new Error("the renderer is disposed");
       return JSON.parse(await renderer.setTreeGpu(family)) as GpuSubmitted;

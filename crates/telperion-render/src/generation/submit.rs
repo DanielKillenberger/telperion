@@ -63,4 +63,15 @@ impl Renderer {
             bounds: mesh.bounds,
         })
     }
+
+    /// Lets the drawn tree's buffers go, so a build that fits the budget
+    /// only alone has the room (fn-235): nothing is drawn until the next
+    /// submit.
+    pub fn release_tree(&mut self) {
+        self.wood.release();
+        self.foliage.release();
+        self.organ.release();
+        self.scene.set_crown(None);
+        self.bounds = None;
+    }
 }

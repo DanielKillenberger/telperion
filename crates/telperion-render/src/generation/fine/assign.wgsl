@@ -312,11 +312,19 @@ fn take_ask(r: u32) {
                 window = window_q(wood, rate, row(a.pa, 19u + 2u * a.stake), span);
             }
             p = presence(lead_q(a.low, a.high, a.d, a.given, a.known), window);
-            // A lateral's place, a making draw over the same window (fn-231).
+            // A lateral's or a woken bud's place, a making draw over the
+            // same window (fn-231): the one `place_q` call site.
             let i = (r - units) / 2u;
-            if r >= units && (r - units) % 2u == 0u && rd(i, ASKS) == LATERAL_ASKS {
-                let place = vec2<u32>(rd(i, ASKS + 3u), rd(i, ASKS + 4u));
-                let slot = (rd(i, KIND) >> 8u) & 0xffu;
+            let placed = r >= units && (r - units) % 2u == 0u;
+            if placed && (rd(i, ASKS) == LATERAL_ASKS || rd(i, ASKS) == WOKEN_ASKS) {
+                var place = vec2<u32>(rd(i, ASKS + 3u), rd(i, ASKS + 4u));
+                var slot = (rd(i, KIND) >> 8u) & 0xffu;
+                if rd(i, ASKS) == WOKEN_ASKS {
+                    // Its pend's place key and slot (`sleep`, `wakes`).
+                    let q = rd(i, ASKS + 6u);
+                    place = vec2<u32>(sleepers[q + 12u], sleepers[q + 13u]);
+                    slot = sleepers[q + 5u];
+                }
                 p = times_q(p, place_q(rd(i, ASKS + 1u), slot, place, window));
             }
         }
@@ -381,18 +389,14 @@ fn reach_q(pa: u32, k: u32) -> vec2<u32> {
     return words[row(pa, 27u).x + k];
 }
 
-// Each axis's making draws' presences from what was taken: a woken bud's
-// place's (`sleep`, fn-231) and a lateral's reach; a relay's stop, whole
-// but for a failed unit's; the share a continuation that all but stopped
-// lacks.
+// Each axis's making draws' presences from what was taken: a lateral's
+// reach; a relay's stop, whole but for a failed unit's; the share a
+// continuation that all but stopped lacks. A place's presence is taken
+// with its ask (`take_ask`, fn-231).
 fn made_q() {
     for (var i = 0u; i < n_axes; i++) {
         let kind = rd(i, ASKS);
         let p = ASKS + 1u;
-        if kind == WOKEN_ASKS {
-            let q = rd(i, ASKS + 6u);
-            wq(i, B0, times_q(rq(i, B0), vec2<u32>(sleepers[q + 12u], sleepers[q + 13u])));
-        }
         if kind == LATERAL_ASKS {
             wq(i, B1, reach_q(rd(i, p + 1u), 0u));
         }

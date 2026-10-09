@@ -32,6 +32,11 @@ impl Wood {
         self.curve.as_ref().map_or(0, |c| c.bytes())
     }
 
+    /// Lets the curve's buffers go: nothing is drawn until the next submit.
+    pub(crate) fn release(&mut self) {
+        self.curve = None;
+    }
+
     pub fn new(
         gpu: &Gpu,
         layout: &wgpu::BindGroupLayout,

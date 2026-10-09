@@ -48,11 +48,10 @@ fn sleep(zat: u32, node_key: vec2<u32>, axis: u32, node: u32, cycle: u32) {
         // end (`Sleeper::made`): its zone and its node's cycle.
         sleepers[q + 12u] = zat;
         sleepers[q + 13u] = cycle;
-        // Its place's presence over its own draw's window (fn-231).
-        let window = words[table[zat + 13u] + cycle * table[zat + 9u] + pa];
-        let placed = place_q(zat, s, place, window);
-        sleepers[q + 10u] = placed.x;
-        sleepers[q + 14u] = placed.y;
+        // Its place, whose presence its ask takes at the chain's end
+        // (`take_ask`, fn-231): out of `grow`, whose cold make is bound.
+        sleepers[q + 10u] = place.x;
+        sleepers[q + 14u] = place.y;
         n_sleepers += 1u;
     }
 }
@@ -71,7 +70,9 @@ fn aged(pa_in: u32, slept_in: vec2<u32>) -> Aged {
     var slept = slept_in;
     var steps = 0u;
     // An age moves on only to an older one, so the stages run out.
-    while pa != NONE {
+    // cap: no more stages than the table's words.
+    let cap = arrayLength(&table);
+    while pa != NONE && steps < cap {
         let life = row(pa, 0u);
         if lt64(slept, life) {
             return Aged(pa, slept, steps);
@@ -100,7 +101,10 @@ fn wakes(cycle: u32) {
         var open: array<u32, 32>;
         var top = 1u;
         open[0] = sleepers[q + 1u];
-        while top > 0u {
+        // cap: every axis of the chain taken once.
+        var cap = cfg.axes_cap;
+        while top > 0u && cap > 0u {
+            cap -= 1u;
             top -= 1u;
             let a = open[top];
             if rd(a, SUCC) == NONE {
@@ -170,7 +174,10 @@ fn woke(b: u32, whorl: f32) -> u32 {
     var parent = 0u;
     var lineage = key;
     var stage = lived(spa);
-    while stage != pa && stage != NONE {
+    // cap: no more stages than the table's words.
+    var cap = arrayLength(&table);
+    while stage != pa && stage != NONE && cap > 0u {
+        cap -= 1u;
         if kind != CONTINUED {
             lineage = onto(key, stage);
         }
@@ -208,8 +215,10 @@ fn woke(b: u32, whorl: f32) -> u32 {
     wr(a, KIND, rd(a, KIND) | IS_WOKE);
     wr64(a, AGED, spent);
     wr64(a, UNITS, spent);
-    run(Apex(a, spent), cycle);
-    return cycle + 1u;
+    // Its apex runs in `cycle`, alone, on the cycle loop's first pass.
+    woken_run = true;
+    woken_apex = Apex(a, spent);
+    return cycle;
 }
 
 // Whether a sleeping bud still wakes in `cycle` or after.

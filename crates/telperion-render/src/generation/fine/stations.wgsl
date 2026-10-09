@@ -195,7 +195,10 @@ fn starts_run(i: u32) -> bool {
 // node that is not a fine root's.
 fn stub(i: u32) -> u32 {
     var at = i;
-    while (word(at, 9u) & FINE) != 0u {
+    // cap: the nodes; no path up is longer.
+    var cap = arrayLength(&nodes) / NW;
+    while (word(at, 9u) & FINE) != 0u && cap > 0u {
+        cap -= 1u;
         at = parent(at);
     }
     return at;
@@ -233,6 +236,7 @@ fn starts(@builtin(global_invocation_id) id: vec3<u32>) {
 fn before(distance: u32, internodes: u32) -> u32 {
     var lo = 0u;
     var hi = internodes;
+    // cap: each step halves hi - lo, a u32, so 32 steps at most.
     while lo < hi {
         let mid = lo + (hi - lo) / 2u;
         if mid * unit() < distance {
@@ -273,7 +277,12 @@ fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
     var length = grown(first);
     var n = 2u;
     var at = first;
+    // cap: the nodes; no run is longer (`cfg.n` counts runs here).
+    let cap = arrayLength(&nodes) / NW + 1u;
     loop {
+        if n > cap {
+            break;
+        }
         let c = next(at);
         if c == NONE {
             break;
@@ -539,6 +548,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
         let span = range(j, n, vec2<u32>(along, along + wood), internodes, count);
         let edge = contact(b);
         var tile = span.x;
+        // cap: tile moves on by at least one each step, to span.y.
         while tile < span.y {
             let tiles = min(span.y - tile, TILE);
             let turn = f32(tile / cfg.spi) * cfg.divergence;

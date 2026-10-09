@@ -163,7 +163,11 @@ impl Gpu {
     /// deferred by the device until the work is done.
     pub fn submit<I: IntoIterator<Item = Recorded>>(&self, recorded: I) {
         let (commands, open): (Vec<_>, Vec<_>) = recorded.into_iter().map(Recorded::split).unzip();
+        #[cfg(test)]
+        crate::trace::submit();
         self.queue.submit(commands);
+        #[cfg(test)]
+        crate::trace::ran(&self.device);
         drop(open);
     }
 
@@ -319,8 +323,12 @@ impl Gpu {
         }
     }
 
-    /// The device-lost error if the device has gone away, checked after a poll.
+    /// The device-lost error if the device has gone away. Natively the loss
+    /// is delivered on a poll, so one that does not wait is taken first; a
+    /// browser delivers it on its own event loop.
     pub fn lost(&self) -> Option<RenderError> {
+        #[cfg(not(target_arch = "wasm32"))]
+        let _ = self.device.poll(wgpu::PollType::Poll);
         let reason = self.lost.lock().ok()?.clone()?;
         Some(RenderError::DeviceLost { reason })
     }
