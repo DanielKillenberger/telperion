@@ -52,6 +52,9 @@ struct Live {
     /// readbacks are not starved behind frames (fn-212 task 10, host
     /// decision 1).
     drawing: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    /// Whether the picture changed since the last frame drew it (fn-246):
+    /// an unchanged picture is not drawn again.
+    redraw: crate::redraw::Redraw,
 }
 
 impl Live {
@@ -73,6 +76,7 @@ impl Live {
             camera,
             stats: FrameStats::default(),
             drawing: Default::default(),
+            redraw: Default::default(),
         })
     }
 
@@ -83,6 +87,7 @@ impl Live {
             return;
         }
         (self.config.width, self.config.height) = (width, height);
+        self.redraw.ask();
         // Between frames by construction: a surface texture is acquired,
         // drawn and presented inside `draw`, and never held across a call.
         self.surface
@@ -221,6 +226,7 @@ impl WebRenderer {
         // tree drawn in the last tree's colours would be nobody's family.
         let submitted = live.renderer.submit(&mesh).map_err(js_error)?;
         live.renderer.set_family(&family);
+        live.redraw.ask();
         self.generation.borrow_mut().invalidate();
         Ok(submitted_json(&submitted))
     }
@@ -234,7 +240,9 @@ impl WebRenderer {
                 View::NAMES.join(", ")
             ))
         })?;
-        self.borrow()?.renderer.set_view(view);
+        let mut live = self.borrow()?;
+        live.renderer.set_view(view);
+        live.redraw.ask();
         Ok(())
     }
 
@@ -253,7 +261,9 @@ impl WebRenderer {
     #[wasm_bindgen(js_name = setScene)]
     pub fn set_scene(&self, scene: &str) -> std::result::Result<(), JsError> {
         let row = SceneRow::parse(scene).map_err(js_error)?;
-        self.borrow()?.renderer.set_scene(row);
+        let mut live = self.borrow()?;
+        live.renderer.set_scene(row);
+        live.redraw.ask();
         Ok(())
     }
 
@@ -268,6 +278,7 @@ impl WebRenderer {
         };
         let camera = hero_pose(bounds, aspect(&live.config), GROUND_REACH);
         live.camera = camera;
+        live.redraw.ask();
         Ok(json!({
             "position": [camera.position.x, camera.position.y, camera.position.z],
             "target": [camera.target.x, camera.target.y, camera.target.z],
@@ -291,6 +302,7 @@ impl WebRenderer {
         let mut live = self.borrow()?;
         live.camera.position = Vec3::new(x, y, z);
         live.camera.target = Vec3::new(target_x, target_y, target_z);
+        live.redraw.ask();
         Ok(())
     }
 
@@ -301,7 +313,8 @@ impl WebRenderer {
         Ok(())
     }
 
-    /// Draws one frame, unless the last one's work is still on the device.
+    /// Draws one frame, when the picture changed (or the last frame failed)
+    /// and the last one's work is no longer on the device; otherwise nothing.
     /// A lost device is named, never drawn on: the page stops its frame loop
     /// on the error and rebuilds on a fresh device only when asked (fn-235).
     pub fn frame(&self) -> std::result::Result<(), JsError> {
@@ -310,10 +323,13 @@ impl WebRenderer {
             return Err(js_error(lost));
         }
         let order = std::sync::atomic::Ordering::Relaxed;
-        if live.drawing.load(order) {
+        let failed = live.renderer.frame_error().is_some();
+        if !live.redraw.due(live.drawing.load(order), failed) {
             return Ok(());
         }
         live.draw(None).map_err(js_error)?;
+        let whole = live.renderer.drew_whole();
+        live.redraw.submitted(whole);
         let drawing = live.drawing.clone();
         drawing.store(true, order);
         let queue = &live.renderer.gpu().queue;

@@ -77,6 +77,9 @@ async fn collect(
     let [camera, sun] = reports.await;
     let read = |r: Option<crate::CurveReport>| r.map(|r| (r.scale, r.overrun));
     let report = report.with_wood(read(camera), read(sun));
+    // The page's next frame draws what the page holds, not the session's
+    // last frame.
+    borrow(live)?.redraw.ask();
     if !turning {
         return Ok(report.to_json());
     }

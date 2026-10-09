@@ -16,6 +16,8 @@ mod headless;
 mod mass;
 mod pass;
 mod programs;
+#[cfg(any(test, target_arch = "wasm32"))]
+mod redraw;
 mod scene;
 mod select;
 mod shadow;
@@ -115,6 +117,9 @@ pub struct Renderer {
     organ: foliage::Foliage,
     /// What the sun's map and its wood were last drawn for (fn-246).
     sun: sun::Sun,
+    /// Whether the last frame drew all of the tree: false while the wood's
+    /// programs compile and its surfacing waits.
+    whole: bool,
     view: View,
     /// Whether the room draws its scale figure. On unless a still imitates a
     /// photograph.
@@ -176,6 +181,7 @@ impl Renderer {
             foliage,
             organ,
             sun: sun::Sun::default(),
+            whole: false,
             view: View::default(),
             frame_failed: Default::default(),
             figure: true,
@@ -384,6 +390,12 @@ impl Renderer {
         }
     }
 
+    /// Whether the last frame drew all of what is up, rather than the tree
+    /// without its wood while the wood's programs compile.
+    pub fn drew_whole(&self) -> bool {
+        self.whole
+    }
+
     /// Whether the last frame reused the sun's map and its wood rather than
     /// drawing them: nothing the sun sees had changed since they were drawn.
     pub fn shadow_cached(&self) -> bool {
@@ -526,6 +538,7 @@ impl Renderer {
             surfacing_writes,
         );
         self.sun.reused = reused;
+        self.whole = surfaced;
         if !reused {
             self.sun.drawn(surfaced.then_some(key));
         }
