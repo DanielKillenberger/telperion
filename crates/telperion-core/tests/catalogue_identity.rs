@@ -126,10 +126,13 @@
 //! more from the merged tree; the refusal digest is F4's. Every engine
 //! preset's grown tree (`space_hash`, four species at 40 and 80, seeds 1
 //! and 7) was F4's to the bit, and the birch's DBH was round 14's.
-//! When the birch, Laurelin and Telperion were merged into F4
-//! (MERGE-SPECIES.md) the family and walk digests were re-pinned from the
-//! merged tree, each species' values its own branch's; the override digest
-//! is the birch's and the refusal digest F4's.
+//! fn-236 re-pinned the family, walk and override digests for the Oregon
+//! white oak's own rows (round 3: its `/space` rows and leaf rows); no other
+//! preset's value file moved.
+//! When Laurelin, Telperion, the birch and the oak were merged into F4
+//! (MERGE-SPECIES.md) the family, walk and override digests were re-pinned
+//! from the merged tree, each species' values its own branch's; the refusal
+//! digest is F4's.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -165,7 +168,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        16_136_430_294_183_536_726,
+        2_333_297_806_083_657_236,
         "{}",
         digest(&text)
     );
@@ -197,7 +200,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        80_497_557_064_465_506,
+        17_905_568_364_190_521_403,
         "{}",
         digest(&text)
     );
@@ -222,7 +225,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        17_193_177_721_498_402_891,
+        6_556_638_518_150_561_013,
         "{}",
         digest(&text)
     );

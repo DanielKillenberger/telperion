@@ -1361,7 +1361,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leanRise": 0,
         "limbClumping": 0,
         "maxInstances": 4294967295,
-        "outward": 0,
+        "outward": 0.3,
         "rachisArch": 0,
         "rachisLength": 0,
         "rosetteDepth": 0,
@@ -1369,9 +1369,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "rosetteFronds": 0,
         "rosettePitch": 45,
         "rosettePitchSpread": 60,
-        "scatter": 18,
-        "shootRadius": 0.06,
-        "size": 1,
+        "scatter": 30,
+        "shootRadius": 0.1,
+        "size": 1.4,
         "sizeVariation": 0.2,
         "skirtFronds": 0,
         "skirtLength": 0.8,
@@ -1625,7 +1625,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "leafArea": 0.00181,
             "leafGirth": 1,
             "lifespan": 12,
-            "retained": 0.5,
             "shadeHazard": 1,
             "shadeSize": 1.5,
             "trunk": true,
@@ -1675,7 +1674,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "leafArea": 0.00181,
             "leafGirth": 1,
             "lifespan": 2,
-            "retained": 0.5,
             "shadeHazard": 1,
             "shadeSize": 1.5,
             "trunk": true,
@@ -1701,7 +1699,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 3,
                 "lateral": {
-                  "6": 0.55
+                  "6": 0.8
                 },
                 "nodes": {
                   "max": 1,
@@ -1725,8 +1723,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "internode": 0.05,
             "leafArea": 0.00181,
             "leafGirth": 1,
-            "lifespan": 19,
-            "retained": 0.5,
+            "lifespan": 6,
             "shadeHazard": 1,
             "shadeSize": 1.5,
             "trunk": true,
@@ -1782,16 +1779,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.5
             },
             "insertion": 0.5,
-            "internode": 0.045,
+            "internode": 0.035,
             "leafArea": 0.00181,
             "leafGirth": 1,
             "lifespan": 500,
             "relay": 1,
             "relayEnded": 1,
             "relayFailed": 1,
-            "retained": 0.5,
             "shadeHazard": 1,
-            "shadeSize": 1.5,
+            "shadeSize": 0.5,
             "shedding": 5,
             "straightening": 0.15,
             "upkeep": 0.35,
@@ -1816,7 +1812,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                 },
                 "lateral": {
                   "9": 0.45,
-                  "14": 0.25
+                  "14": 0.4
                 },
                 "nodes": {
                   "max": 3,
@@ -1851,7 +1847,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "epitony": 0.2,
             "form": {
               "bendLength": 1.5,
-              "elevation": 0.5,
+              "elevation": 0.9,
               "exponent": 2.6,
               "pipe": 0.004,
               "ripening": 15,
@@ -1868,9 +1864,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "relay": 1,
             "relayEnded": 1,
             "relayFailed": 1,
-            "retained": 0.5,
             "shadeHazard": 1,
-            "shadeSize": 1.5,
+            "shadeSize": 0.5,
             "shedding": 4,
             "upkeep": 0.35,
             "viability": 0.999,
@@ -1886,7 +1881,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                 "buds": 1,
                 "lateral": {
                   "9": 0.3,
-                  "14": 0.3
+                  "14": 0.5
                 },
                 "nodes": {
                   "max": 3,
@@ -1921,7 +1916,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "leafArea": 0.00181,
             "leafGirth": 1,
             "lifespan": 10,
-            "retained": 0.5,
             "shadeHazard": 1,
             "shadeSize": 1.5,
             "shedding": 3,
@@ -1971,7 +1965,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "tropism": 0.33,
               "wander": 0.4
             },
-            "insertion": 0.8,
+            "insertion": 1,
             "internode": 0.017,
             "leafArea": 0.00181,
             "leafGirth": 1,
@@ -1979,9 +1973,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "relay": 1,
             "relayEnded": 1,
             "relayFailed": 1,
-            "retained": 0.5,
             "shadeHazard": 1,
-            "shadeSize": 1.5,
+            "shadeSize": 1,
             "shedding": 3,
             "upkeep": 0.35,
             "viability": 0.98,
@@ -1996,8 +1989,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "13": 0.18,
-                  "14": 0.3
+                  "13": 0.35,
+                  "14": 0.6
                 },
                 "nodes": {
                   "max": 3,
@@ -2008,7 +2001,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                 "buds": 3,
                 "lateral": {
                   "9": 0.02,
-                  "13": 0.25
+                  "13": 0.1
                 },
                 "nodes": {
                   "max": 1,
@@ -2034,9 +2027,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "leafArea": 0.00181,
             "leafGirth": 1,
             "lifespan": 4,
-            "retained": 0.5,
             "shadeHazard": 1,
-            "shadeSize": 1.5,
+            "shadeSize": 1,
             "shedding": 2,
             "upkeep": 0.35,
             "viability": 0.93,
@@ -2086,13 +2078,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "internode": 0.012,
             "leafArea": 0.00181,
             "leafGirth": 1,
-            "lifespan": 3,
-            "retained": 0.5,
+            "lifespan": 5,
             "shadeHazard": 1,
-            "shadeSize": 1.5,
+            "shadeSize": 1,
             "shedding": 2,
             "upkeep": 0.35,
-            "viability": 0.95,
+            "viability": 0.98,
             "zones": {
               "0": {
                 "buds": 1,
@@ -2104,7 +2095,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "14": 0.4
+                  "14": 0.7
                 },
                 "nodes": {
                   "max": 3,
@@ -2129,16 +2120,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "continuation": 0,
             "divergence": 2.513,
             "form": {
-              "pipe": 0.00095
+              "pipe": 0.0006
             },
             "insertion": 0.9,
             "internode": 0.006,
             "leafArea": 0.00181,
             "leafGirth": 1,
             "lifespan": 3,
-            "retained": 0.5,
             "shadeHazard": 1,
-            "shadeSize": 1.5,
+            "shadeSize": 1,
             "shedding": 2,
             "upkeep": 0.35,
             "viability": 0.9,
