@@ -373,4 +373,4 @@ Against R1:
 | Laurelin whole (36 fps) | vegetation 25.2 (leaves and flowers about 21, wood about 4); surfacing 2.1; selection 0.28; shadow cached |
 | Laurelin close (30 fps) | vegetation 29.7 (wood about 8, leaves and flowers about 22); surfacing 2.5; selection 0.24; shadow cached |
 
-**Idle frames cost nothing**: the page does not draw while nothing changed (`src/redraw.rs` and its tests). **What the CPU and device paths build is unchanged**: no file under `generation/` or `telperion-core` changed; the changes are drawing only.
+**Idle frames cost nothing**: the page does not draw while nothing changed (`src/redraw.rs` and its tests). **What the CPU and device paths build is unchanged**: nothing in `telperion-core` changed. The one change under `generation/` is `submit.rs`, which forgets the sun cache on a new tree and hands the floret to the scene for its bounding radius. The changes are drawing only.
