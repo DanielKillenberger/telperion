@@ -228,3 +228,25 @@ This is the principle "every parameter changes the tree by degree", applied to `
   - Then the gate, npm test and impl-review.
 
 Build on the parked `fn-244-option1-wip` and bring it onto the task branch.
+
+## Before building the third decision: what an inserted join node costs (2026-10-09)
+
+I checked against the code before writing any of it. Four constraints make this a construction design question, and the host should see them first.
+
+1. **R4 reads the girth model, not the drawing.** `tests/relays.rs::radii` reads each phytomer's `radius` in the `Structure`. An inserted drawn node cannot make it pass by itself. The girth has to enter the relay's wood by degree again: `t` at its node and `1 - t` at the node below, with the blend's tip share dropped. Sag's load does the same.
+2. **The join node's two radii are not in the structure.** With that split, the phytomer the relay stands in carries `t` of the relay's wood: neither the full wood (below the join) nor none (the stub above it). The drawn join needs both radii. They come from the girth's sections and exponents, so `telperion-space` has to compute them, either recorded during `thicken` or by a public function. The conversion cannot hold a second copy of that arithmetic. With `secondary < 1` the weighing has to be undone too; only the palm has 0, and it has no relays.
+3. **Node order.** A node's parent is "strictly earlier than this node" (`tree.rs:37`), and the conversion draws a relay after its parent axis. The join sits between the parent's node below and the stub's first node, so it has to be created while the parent axis is drawn: the parent's drawing reads where its relays stand. Its identity (fn-220) cannot be a phytomer's key, because no phytomer makes it. It needs a new rule, for example the relay's lineage with a place of its own, stable across ages and cuts.
+4. **The device has one record per laid phytomer** (`dress.rs`: `phyts * CV` words; node ids are record indices). The join needs a record of its own per drawn relay. That changes the laid wave's sizes, the record layout read by `dress.wgsl`, `fold.wgsl` and the stations, and the node-for-node agreement tests.
+
+**What the build involves:**
+- the girth and sag split by `t` (CPU and device);
+- a join-radii source in `telperion-space`;
+- the join node in `converted` with an identity rule;
+- an extra record per relay on the device;
+- the tests.
+
+This is several hours. Most of it is the device's records and identity, and both need a host decision.
+
+**A cheaper variant that fails the decision's continuity.** Keep the girth's `t` split, join the relay at the node below, and draw the stub's first node at its radius without the relay. That needs no new node or record. But the join jumps one internode each time `relay_at` crosses a node, so the drawing does not move by degree. R4 itself, which reads the girth, would pass.
+
+Option 1 stays parked on `fn-244-option1-wip` (`5d01f0b3`). Its only failing test is R4.

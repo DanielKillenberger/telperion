@@ -29,3 +29,13 @@ I built option 1 across CPU and device, then ran the space suite. Only then did 
 
 - **Cost:** about 40 minutes of device work and one full still set, before the conflict was visible.
 - **What would have removed it:** a search of the tests for the rule being changed (`relay_parts`, `relay_span`) before deciding. It finds `tests/relays.rs` at once.
+
+## 2026-10-09: Each decision is taken before the code it touches is checked
+
+The third decision (insert a drawn node) assumed:
+- that R4 reads the drawing (it reads the structure's phytomer radii);
+- that a drawn node is free (the device has one record per phytomer, and node order requires the parent's drawing to create it).
+
+Checking took about 15 minutes, before any code. Over the run, three decision rounds have each found the next constraint only after the decision.
+
+- **What would remove it:** before deciding, the host asks for a 10-minute "where would this land" check of each named file: who reads the value, the record layout, and the order invariants. This is the check AGENTS.md asks for an architecture claim.
