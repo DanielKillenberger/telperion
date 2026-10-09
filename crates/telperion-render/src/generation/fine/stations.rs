@@ -60,6 +60,8 @@ pub(super) struct Rows {
     pub leaves: bool,
     /// The blooms' rows where an age flowers (`data::flower`; fn-229).
     pub flower: Option<[[f32; 4]; 3]>,
+    /// Whether some wood sheds its leaves by age (fn-248).
+    pub retains: bool,
 }
 
 pub(super) struct Stationed {
@@ -118,7 +120,7 @@ impl Stationer {
             rows.divergence.to_bits(),
             u32::from(rows.contact),
             u32::from(rows.leaves),
-            0,
+            u32::from(rows.retains),
             0,
         ];
         let flower = rows.flower.unwrap_or_default();
@@ -305,5 +307,7 @@ pub(super) fn station_rows(x: &Expansion, segments: u32, flower: Option<[[f32; 4
         contact: x.seats(),
         leaves: canopy.size != 0.0,
         flower,
+        // The part's tree records retention where any age's wood sheds.
+        retains: !x.tree().leafing.is_empty(),
     }
 }

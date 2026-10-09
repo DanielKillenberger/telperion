@@ -52,10 +52,10 @@ const S_OWN: u32 = 0u;
 const S_START: u32 = 1u;
 const S_COUNT: u32 = 2u;
 const AL: u32 = 8u;
-const PL: u32 = 26u;
+const PL: u32 = 27u;
 const PA: u32 = 2u;
 // The geometry table's PA blocks (`geometry.wgsl`).
-const GG: u32 = 40u;
+const GG: u32 = 42u;
 // `space.rs`'s constants.
 const FINEST: f32 = 2e-4;
 const SHORTEST: f32 = 1000.0;
@@ -76,9 +76,11 @@ const CA: u32 = 12u;
 // above the cut tagged `PREV`), its key (`tree::node_key`), its wood
 // as grown (`Tree::grown`): its phytomers' internodes at their scales,
 // what its blooms are drawn by (fn-229): its phytomer's key (two words)
-// and its age's flowering share, and at a short shoot's tip its cluster's
-// spread (fn-223).
-const CV: u32 = 30u;
+// and its age's flowering share, at a short shoot's tip its cluster's
+// spread (fn-223), and its leaf retention (fn-248, `tree::Leafing`): the
+// metres of its grown wood before the boundary, at the scale, and the
+// retentions before and from it.
+const CV: u32 = 32u;
 const TAKEN: u32 = 1u;
 const MADE: u32 = 2u;
 // Its root is laid on the CPU (host decision 3): drawn there.
@@ -303,6 +305,18 @@ fn aside(p: u32, j0: u32) {
     }
 }
 
+// The 16-bit retention of wood `age` years old under its PA's first age
+// that sheds and that age's share (`tree::kept_share`).
+fn retention(sheds: u32, share: u32, age: u32) -> u32 {
+    if age < sheds {
+        return 0xffffu;
+    }
+    if age == sheds {
+        return share;
+    }
+    return 0u;
+}
+
 // Own axis `i` (laid `la`) drawn from node `start`, a lateral's first
 // axis or carried on; its phytomers from `origin`.
 fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f32>, flags: u32) {
@@ -326,6 +340,17 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
         clustered = CLUSTERED;
     }
     var pending = 0.0;
+    // The retentions of the wood merged into the next node (`space.rs`'s
+    // `convert`): where the last change falls, the retention before it
+    // and the latest; none yet.
+    let block = 4u + GG * ax(i, PA);
+    let sheds = bitcast<u32>(gtab[block + 40u]);
+    let share = bitcast<u32>(gtab[block + 41u]);
+    let age = bitcast<u32>(gtab[1u]);
+    var fresh = true;
+    var older = 0.0;
+    var before = 0u;
+    var last = 0u;
     for (var k = 0u; k < s(i, S_COUNT); k++) {
         let r = li(i, k);
         let radius = out[cfg.out_phyts + r * PL + 18u];
@@ -335,6 +360,17 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
         taken += 1u;
         // Each internode as laid: its scale and its spread's factor.
         let laid = cfg.out_phyts + r * PL;
+        let q = retention(sheds, share, age - bitcast<u32>(out[laid + 26u]));
+        if fresh {
+            older = 0.0;
+            before = q;
+            last = q;
+            fresh = false;
+        } else if q != last {
+            older = pending;
+            before = last;
+            last = q;
+        }
         pending += internode * out[laid + 19u] * out[laid + 23u];
         let pos = up(origin + tip(i, k)) * cfg.scale;
         let thick = radius * cfg.scale;
@@ -368,6 +404,9 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
         }
         putu(r, 24u, node_key(vec2<u32>(ax(i, 0u), ax(i, 1u)), k));
         put(r, 25u, pending * cfg.scale);
+        put(r, 30u, older * cfg.scale);
+        putu(r, 31u, (before << 16u) | last);
+        fresh = true;
         pending = 0.0;
         put(r, 26u, out[laid + 24u]);
         put(r, 27u, out[laid + 25u]);

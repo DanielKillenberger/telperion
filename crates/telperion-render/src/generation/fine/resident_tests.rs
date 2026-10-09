@@ -365,6 +365,32 @@ fn the_real_path_matches_the_cpu_path() {
     }
 }
 
+/// fn-248: where wood sheds its leaves by age, a whole year and a share
+/// of one, the device keeps the stations the CPU keeps, each with its
+/// own ordinal's leaf.
+#[test]
+fn the_real_path_keeps_the_stations_the_cpu_path_keeps() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let (k, gen) = (kernels(&gpu), generator(&gpu));
+    for years in [1.0, 1.5] {
+        let mut f = family("european-beech", (30, 1));
+        let species = f.space.species.as_mut().unwrap();
+        for s in &mut species.states {
+            s.leaf_years = years;
+        }
+        let p = parity(&gpu, &k, &gen, &f);
+        println!("european-beech (30, 1) at {years} years: {p:?}");
+        assert_eq!(p.leaves.flags, 0, "{years}: placement flags");
+        assert_eq!(p.runs.unmatched + p.runs.missing, 0, "{years}: every run");
+        let (device, reference) = p.leaves.leaves;
+        assert_eq!(u64::from(device), reference, "{years}: leaves");
+        assert_eq!(p.leaves.left, (0, 0, 0), "{years}: every leaf compared");
+        assert_eq!(p.leaves.over.0, 0, "{years}: positions");
+    }
+}
+
 /// The parity probe at 40 and 80 (`cargo test --profile ci -p
 /// telperion-render real_path_at_80 -- --ignored --nocapture`, under the
 /// GPU lock, `PROBE=norway-spruce:80:1` for one tree a process, with

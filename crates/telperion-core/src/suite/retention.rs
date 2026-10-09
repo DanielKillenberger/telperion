@@ -60,7 +60,11 @@ fn a_share_of_a_year_keeps_that_share() {
     for share in [0.25, 0.5, 0.75] {
         let kept = (n(1.0 + share) - one) / (two - one);
         let error = (share * (1.0 - share) / (two - one)).sqrt();
-        assert!((kept - share).abs() < 4.0 * error, "{share}: {kept} of {}", two - one);
+        assert!(
+            (kept - share).abs() < 4.0 * error,
+            "{share}: {kept} of {}",
+            two - one
+        );
     }
 }
 

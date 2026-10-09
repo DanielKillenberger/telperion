@@ -73,7 +73,10 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
         (|s| s.states[0].shedding = -1.0, "states[0].shedding"),
         // fn-248: a leaf's years lie in 0 to never.
         (|s| s.states[0].leaf_years = -0.5, "states[0].leaf_years"),
-        (|s| s.states[1].leaf_years = f64::NAN, "states[1].leaf_years"),
+        (
+            |s| s.states[1].leaf_years = f64::NAN,
+            "states[1].leaf_years",
+        ),
         (|s| s.states[1].lifespan = -0.5, "states[1].lifespan"),
         (|s| s.states[0].zones.clear(), "states[0].zones"),
         (

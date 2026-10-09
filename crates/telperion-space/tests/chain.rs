@@ -174,5 +174,9 @@ fn leaf_years_mix_from_never_by_the_share_they_keep() {
     let half = telperion_space::blend(&telperion_space::beech(), &beech, 0.5).unwrap();
     assert_eq!(half.states[8].leaf_years, 3.0);
     let near = telperion_space::blend(&telperion_space::beech(), &beech, 1e-9).unwrap();
-    assert!(near.states[8].leaf_years > 1e8, "{}", near.states[8].leaf_years);
+    assert!(
+        near.states[8].leaf_years > 1e8,
+        "{}",
+        near.states[8].leaf_years
+    );
 }

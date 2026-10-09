@@ -47,9 +47,8 @@ fn each_node_keeps_the_retention_of_the_wood_it_draws() {
         let mut merged: Vec<(f64, u16)> = Vec::new();
         for p in &axis.phytomers {
             let q = kept_share(r, structure.age - p.cycle);
-            let length = row.internode
-                * p.scale
-                * telperion_space::internode_factor(p.key(), row.spread);
+            let length =
+                row.internode * p.scale * telperion_space::internode_factor(p.key(), row.spread);
             merged.push((length, q));
             let Some(&i) = node.get(&p.key()) else {
                 continue;

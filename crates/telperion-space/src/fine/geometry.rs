@@ -43,6 +43,9 @@ pub struct PaGeometry {
     /// executor that draws a fine root seats there.
     pub cluster_leaves: f64,
     pub cluster_spread: f64,
+    /// How long its wood keeps its leaves (fn-248), which the executor
+    /// stationing a fine root reads.
+    pub leaf_years: f64,
 }
 
 /// One zone of a PA's growth unit: its buds a node, and per PA a lateral
@@ -115,6 +118,7 @@ impl GeometryTables {
                     flowering: s.flowering,
                     cluster_leaves: s.cluster_leaves,
                     cluster_spread: s.cluster_spread,
+                    leaf_years: s.leaf_years,
                 }
             })
             .collect();

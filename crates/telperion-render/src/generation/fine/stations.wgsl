@@ -28,7 +28,9 @@ struct Cfg {
     contact: u32,
     // Whether the canopy bears leaves: a tree may flower where it does not.
     leaves: u32,
-    _b: u32,
+    // Whether some wood sheds its leaves by age (fn-248): every station
+    // keeps its leaf where none does.
+    retains: u32,
     _c: u32,
     // The blooms' rows (`bloom.wgsl`).
     flower: Flower,
@@ -51,7 +53,7 @@ struct Cfg {
 const OW: u32 = 3u;
 
 const NONE: u32 = 0xffffffffu;
-const NW: u32 = 31u;
+const NW: u32 = 33u;
 const TW: u32 = 4u;
 const MADE: u32 = 2u;
 const LANDED: u32 = 4u;
@@ -261,6 +263,55 @@ fn range(j: u32, nodes_n: u32, along: vec2<u32>, internodes: u32, count: u32) ->
     return vec2<u32>(first, last);
 }
 
+// The stream a run's retention draws take (`tree::keeps`): its first
+// node's key under the registry's `RETAIN`.
+fn retain(first: u32) -> u32 {
+    return mix32(word(first, 25u) ^ KEY_RETAIN.x);
+}
+
+// Where node `b`'s retention changes, in whole micrometres along its run
+// from `along`, where its wood starts (`plan::keeps`).
+fn boundary(b: u32, along: u32) -> u32 {
+    return along + micrometres(nodes[b * NW + 31u]);
+}
+
+// Whether station `k` on node `b`'s wood, which starts `along` its run,
+// keeps its leaf (`plan::keeps`).
+fn keeps(b: u32, along: u32, k: u32, stream: u32) -> bool {
+    let keep = word(b, 32u);
+    var q = keep >> 16u;
+    if (k / cfg.spi) * unit() >= boundary(b, along) {
+        q = keep & 0xffffu;
+    }
+    if q == 0xffffu {
+        return true;
+    }
+    return (mix32(stream + (k + 1u) * 0x9e3779b9u) >> 16u) < q;
+}
+
+// The stations from `from` up to `to` on node `b`'s wood that keep their
+// leaves (`plan::Run::kept_between`).
+fn kept(b: u32, along: u32, span: vec2<u32>, stream: u32) -> u32 {
+    if cfg.retains == 0u {
+        return span.y - span.x;
+    }
+    var count = 0u;
+    // cap: the span's stations, a tile's at most where it is called.
+    for (var k = span.x; k < span.y; k++) {
+        count += u32(keeps(b, along, k, stream));
+    }
+    return count;
+}
+
+// The stations a run of `length` micrometres of wood stands, before any
+// sheds its leaf: none on a run with no wood grown (`plan::runs`).
+fn internodes_of(length: u32) -> u32 {
+    if length == 0u {
+        return 0u;
+    }
+    return max((length + unit() - 1u) / unit(), 1u);
+}
+
 @compute @workgroup_size(64)
 fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
     let r = index(id);
@@ -298,22 +349,31 @@ fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
         runs[r * RW + 3u] = n;
         return;
     }
-    let internodes = max((length + unit() - 1u) / unit(), 1u);
+    let internodes = internodes_of(length);
     let count = internodes * cfg.spi;
-    // The segments' tiles, walked again.
+    // The segments' tiles, walked again: those that keep a leaf, and the
+    // leaves kept.
+    let stream = retain(first);
     var tiles = 0u;
+    var leaves = 0u;
     var b = first;
     var along = 0u;
     for (var j = 0u; j + 1u < n; j++) {
         let step = grown(b);
         let span = range(j, n, vec2<u32>(along, along + step), internodes, count);
-        if span.y > span.x {
-            tiles += (span.y - span.x + TILE - 1u) / TILE;
+        var tile = span.x;
+        // cap: tile moves on by at least one each step, to span.y.
+        while tile < span.y {
+            let end = min(tile + TILE, span.y);
+            let k = kept(b, along, vec2<u32>(tile, end), stream);
+            tiles += u32(k > 0u);
+            leaves += k;
+            tile = end;
         }
         along += step;
         b = next(b);
     }
-    runs[r * RW + 1u] = count;
+    runs[r * RW + 1u] = leaves;
     runs[r * RW + 2u] = tiles;
     runs[r * RW + 3u] = n;
 }
@@ -495,9 +555,21 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
         for (var c = 0u; c < 4u; c++) {
             segs[at + 28u + c] = 0u;
         }
+        // Every leaf of a cluster stays.
+        segs[at + 15u] = 0xffffffffu;
         return;
     }
-    let internodes = count / cfg.spi;
+    // The run's stations before any sheds its leaf: its wood walked.
+    var grown_all = 0u;
+    var w = first;
+    for (var j = 0u; j + 1u < n; j++) {
+        grown_all += grown(w);
+        w = next(w);
+    }
+    let internodes = internodes_of(grown_all);
+    let raw = internodes * cfg.spi;
+    let stream = retain(first);
+    var seen = 0u;
     let key = word(first, 25u);
     let attach = parent(first);
     let seed = vec3<f32>(nodes[attach * NW + 18u], nodes[attach * NW + 19u], nodes[attach * NW + 20u]);
@@ -545,12 +617,21 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
         }
         let bn = normalize(cross(t, nm));
         let wood = grown(b);
-        let span = range(j, n, vec2<u32>(along, along + wood), internodes, count);
+        let span = range(j, n, vec2<u32>(along, along + wood), internodes, raw);
         let edge = contact(b);
+        var keep = 0xffffffffu;
+        if cfg.retains != 0u {
+            keep = word(b, 32u);
+        }
         var tile = span.x;
         // cap: tile moves on by at least one each step, to span.y.
         while tile < span.y {
             let tiles = min(span.y - tile, TILE);
+            let leaves = kept(b, along, vec2<u32>(tile, tile + tiles), stream);
+            if leaves == 0u {
+                tile += tiles;
+                continue;
+            }
             let turn = f32(tile / cfg.spi) * cfg.divergence;
             let at = g * GW;
             put4(at, vec4<f32>(pos(a), nodes[b * NW + 4u]));
@@ -559,13 +640,19 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
             put4(at + 12u, vec4<f32>(nm, 0.0));
             put4(at + 16u, vec4<f32>(bn, 0.0));
             put4(at + 20u, vec4<f32>(metres(along), metres(wood), sin(turn), cos(turn)));
-            segs[at + 24u] = station0 + tile;
-            segs[at + 25u] = tiles;
+            segs[at + 24u] = station0 + seen;
+            segs[at + 25u] = leaves;
             segs[at + 26u] = tile;
             segs[at + 27u] = key;
             for (var c = 0u; c < 4u; c++) {
                 segs[at + 28u + c] = edge[c];
             }
+            // Where its stations may shed (`data::segments`): the boundary,
+            // the retentions and the stream.
+            segs[at + 11u] = boundary(b, along);
+            segs[at + 15u] = keep;
+            segs[at + 19u] = stream;
+            seen += leaves;
             g += 1u;
             tile += tiles;
         }

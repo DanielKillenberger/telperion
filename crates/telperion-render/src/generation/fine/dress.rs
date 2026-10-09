@@ -19,7 +19,7 @@ pub(super) const DRESS: &str = include_str!("dress.wgsl");
 pub(super) const FOLD: &str = include_str!("fold.wgsl");
 /// A drawn axis's and phytomer's floats (`dress.wgsl`).
 const CA: u32 = 12;
-pub(super) const CV: usize = 30;
+pub(super) const CV: usize = 32;
 pub(super) const CA_WORDS: usize = CA as usize;
 pub(super) const MADE: u32 = 2;
 pub(super) const LANDED: u32 = 4;
@@ -129,6 +129,8 @@ fn stub_records(stubs: &[Stub], base: u32) -> Vec<f32> {
         r[9] = f32::from_bits(k as u32);
         r[14] = f32::from_bits(base + k as u32);
         r[16] = f32::from_bits(u32::MAX);
+        // A bearer keeps every leaf: it bears no station of the device's.
+        r[31] = f32::from_bits(u32::MAX);
         let Some(node) = s.node else {
             continue;
         };
