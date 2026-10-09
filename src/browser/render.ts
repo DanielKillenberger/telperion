@@ -126,6 +126,9 @@ export interface TimingReport {
   selection_p95_ms?: number;
   shadow_p50_ms?: number;
   shadow_p95_ms?: number;
+  /** Measured frames that reused the sun's map: each costs zero in the
+   *  shadow numbers above rather than going unmeasured (fn-246). */
+  shadow_cached?: number;
   /** Three passes added frame by frame and then ranked: a frame's own cost. */
   total_p50_ms?: number;
   total_p95_ms?: number;

@@ -179,8 +179,10 @@ impl CurveGpu {
         self.points.size() + self.clusters.size() + self.sections.size() + views
     }
 
-    /// Surfaces the wood for the camera and for the sun into their budgets,
-    /// in one compute pass the timer's fourth pair stands around.
+    /// Surfaces the wood for the camera, and for the sun where `sun` asks
+    /// or its budget changed, in one compute pass the timer's fourth pair
+    /// stands around. Whether the passes ran: until the browser has compiled
+    /// them the wood is not surfaced, and a frame draws none (fn-243).
     pub(crate) fn record(
         &mut self,
         gpu: &Gpu,
@@ -188,16 +190,15 @@ impl CurveGpu {
         camera: &Camera,
         viewport: (u32, u32),
         light: &crate::shadow::Light,
+        sun: bool,
         timestamps: Option<wgpu::ComputePassTimestampWrites<'_>>,
-    ) {
-        // Until the browser has compiled the passes the wood is not
-        // surfaced, so a frame draws no wood (fn-243).
+    ) -> bool {
         let Some(pipelines) = passes(gpu)
             .iter()
             .map(Program::compiled)
             .collect::<Option<Vec<_>>>()
         else {
-            return;
+            return false;
         };
         let pixels = u64::from(viewport.0.max(1)) * u64::from(viewport.1.max(1));
         // The sun's map is fitted to the tree, so the tree covers most of its
@@ -225,11 +226,12 @@ impl CurveGpu {
                 &pipelines,
             ));
         }
-        if self.sun.as_ref().is_none_or(|t| t.budget != wanted[1]) {
+        let resized = self.sun.as_ref().is_none_or(|t| t.budget != wanted[1]);
+        if resized {
             self.sun = Some(Target::new(gpu, "curve sun", wanted[1], self, &pipelines));
         }
         let d = light.direction;
-        let sun = Viewer {
+        let sun_view = Viewer {
             eye: Vec3::ZERO,
             forward: -Vec3::new(f64::from(d[0]), f64::from(d[1]), f64::from(d[2])),
             pixels_per_metre: 1.0 / light.texel_size,
@@ -237,10 +239,10 @@ impl CurveGpu {
             orthographic: true,
             planes: Some(wide(crate::select::frame::planes(&light.view_projection))),
         };
-        let views = [
-            (self.camera.as_ref().unwrap(), camera_view),
-            (self.sun.as_ref().unwrap(), sun),
-        ];
+        let mut views = vec![(self.camera.as_ref().unwrap(), camera_view)];
+        if sun || resized {
+            views.push((self.sun.as_ref().unwrap(), sun_view));
+        }
         for (t, view) in &views {
             gpu.queue
                 .write_buffer(&t.config, 0, bytemuck::cast_slice(&self.config(t, view)));
@@ -263,6 +265,7 @@ impl CurveGpu {
                 }
             }
         }
+        true
     }
 
     fn config(&self, t: &Target, v: &Viewer) -> [u32; 52] {

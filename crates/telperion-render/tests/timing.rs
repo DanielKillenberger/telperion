@@ -125,6 +125,11 @@ fn quick() -> Vec<f64> {
         .collect()
 }
 
+/// Every frame drew the sun's map.
+fn drawn() -> Vec<bool> {
+    vec![false; 120]
+}
+
 /// The same crown drawn every frame: two levels and the bucket of leaves no
 /// level drew.
 fn frames() -> Vec<Vec<u32>> {
@@ -134,7 +139,7 @@ fn frames() -> Vec<Vec<u32>> {
 #[test]
 fn a_valid_record_carries_every_pass_the_levels_and_the_orbit() {
     let json = Report::measured(hardware(), &steady())
-        .with_passes(&steady(), &quick(), &quick(), &quick())
+        .with_passes(&steady(), &quick(), &quick(), &quick(), &drawn())
         .with_levels(&[0.004, 0.001], &frames())
         .with_casters(123, 456)
         .with_wall(&steady())
@@ -170,6 +175,7 @@ fn a_valid_record_carries_every_pass_the_levels_and_the_orbit() {
         &quick(),
         &quick(),
         &quick(),
+        &drawn(),
     );
     let (Some(pass), Some(select), Some(sun), Some(surfaced), Some(total)) = (
         report.p50_ms(),
@@ -188,6 +194,45 @@ fn a_valid_record_carries_every_pass_the_levels_and_the_orbit() {
 }
 
 #[test]
+fn a_reused_sun_map_costs_zero_and_says_so() {
+    // Frames that reused the map read a near-zero pair; they are counted as
+    // exactly zero, flagged, and the total still adds up frame by frame.
+    let mut reused = drawn();
+    reused[60..].fill(true);
+    let mut shadow = quick();
+    shadow[60..].fill(0.0);
+    let report = Report::measured(hardware(), &steady()).with_passes(
+        &steady(),
+        &quick(),
+        &shadow,
+        &quick(),
+        &reused,
+    );
+    assert_eq!(report.shadow_cached(), 60);
+    assert!(report.shadow_p95_ms().unwrap() > 0.0, "the drawn frames kept their cost");
+    assert!(report.total_p50_ms().is_some());
+    assert!(report.to_json().contains("\"shadow_cached\": 60"));
+    let all = Report::measured(hardware(), &steady()).with_passes(
+        &steady(),
+        &quick(),
+        &quick(),
+        &quick(),
+        &vec![true; 120],
+    );
+    assert_eq!((all.shadow_p50_ms(), all.shadow_p95_ms()), (Some(0.0), Some(0.0)));
+    // A zero on a frame that drew the map is still an unwritten pair.
+    let unwritten = Report::measured(hardware(), &steady()).with_passes(
+        &steady(),
+        &quick(),
+        &shadow,
+        &quick(),
+        &drawn(),
+    );
+    assert_eq!(unwritten.shadow_p50_ms(), None);
+    assert_eq!(unwritten.shadow_cached(), 0);
+}
+
+#[test]
 fn nothing_a_session_did_not_earn_reaches_a_record() {
     let mut wild = steady();
     wild[0] = f64::INFINITY;
@@ -199,7 +244,7 @@ fn nothing_a_session_did_not_earn_reaches_a_record() {
     ] {
         let name = invalid.verdict().name().to_owned();
         let json = invalid
-            .with_passes(&steady(), &quick(), &quick(), &quick())
+            .with_passes(&steady(), &quick(), &quick(), &quick(), &drawn())
             .with_levels(&[0.004, 0.001], &frames())
             .with_casters(123, 456)
             .to_json();
@@ -221,6 +266,7 @@ fn nothing_a_session_did_not_earn_reaches_a_record() {
         &vec![0.0; 120],
         &quick(),
         &quick(),
+        &drawn(),
     );
     assert_eq!(unrun.selection_p50_ms(), None);
     assert_eq!(unrun.total_p50_ms(), None);
@@ -232,6 +278,7 @@ fn nothing_a_session_did_not_earn_reaches_a_record() {
         &quick(),
         &vec![0.0; 120],
         &quick(),
+        &drawn(),
     );
     assert_eq!(unlit.shadow_p50_ms(), None);
     assert_eq!(unlit.total_p50_ms(), None);
@@ -356,8 +403,12 @@ fn a_device_session_times_the_selection_pass_and_counts_what_it_chose() {
             .selection_p50_ms()
             .expect("the selection pass was timed");
         assert!(select > 0.0, "the selection pass took {select} ms");
-        let sun = still.shadow_p50_ms().expect("the shadow pass was timed");
-        assert!(sun > 0.0, "the shadow pass took {sun} ms");
+        // The camera never moves and neither does the sun, so every measured
+        // frame reused the map the conditioning frames drew: it costs zero
+        // and says so (fn-246).
+        let sun = still.shadow_p50_ms().expect("the shadow pass was accounted");
+        assert_eq!(sun, 0.0, "a reused map cost {sun} ms");
+        assert_eq!(still.shadow_cached(), still.measured);
         // Every frame's total is that frame's three passes added, so the ranked
         // total stands at or above the ranked cost of any one of them.
         let total = still.total_p50_ms().expect("every pass together");

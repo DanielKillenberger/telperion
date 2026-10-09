@@ -13,6 +13,7 @@ impl Renderer {
             return self.submit(&prepared.mesh);
         };
         let mesh = prepared.mesh;
+        self.sun.forget();
         match prepared.wood {
             Some(curve) => self.wood.submit_on_device(curve),
             None => self.wood.submit(&self.gpu, &mesh.curve),
@@ -68,6 +69,7 @@ impl Renderer {
     /// only alone has the room (fn-235): nothing is drawn until the next
     /// submit.
     pub fn release_tree(&mut self) {
+        self.sun.forget();
         self.wood.release();
         self.foliage.release();
         self.organ.release();

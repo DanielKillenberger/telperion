@@ -1,5 +1,6 @@
-//! The sun's own view of the subject: one depth map, written once per frame
-//! from where the sun stands, that every lit pass compares against.
+//! The sun's own view of the subject: one depth map, written from where the
+//! sun stands whenever what it sees changed, that every lit pass compares
+//! against.
 //!
 //! The map is depth and nothing else - no colour target, no fragment stage -
 //! and it is fitted to what is on stage plus the shadow the sun's elevation
@@ -202,22 +203,29 @@ impl Shadow {
             .write_buffer(&self.light, 0, bytemuck::cast_slice(&uniform));
     }
 
-    /// Opens the depth-only pass over the whole map, cleared. It is opened on
-    /// every frame, whatever the view draws into it, so a timed frame always
-    /// writes its pair and a view that casts nothing reads as open ground
-    /// rather than as whatever the last frame left behind.
+    /// Opens the depth-only pass over the whole map, cleared to be drawn, or
+    /// kept as the last frame left it where `clear` is false: a timed frame
+    /// that reuses the map opens it so its pair is written all the same.
+    /// Cleared, a view that casts nothing reads as open ground rather than as
+    /// whatever the last frame left behind.
     pub fn begin<'encoder>(
         &self,
         encoder: &'encoder mut wgpu::CommandEncoder,
+        clear: bool,
         timestamps: Option<wgpu::RenderPassTimestampWrites<'_>>,
     ) -> wgpu::RenderPass<'encoder> {
+        let load = if clear {
+            wgpu::LoadOp::Clear(1.0)
+        } else {
+            wgpu::LoadOp::Load
+        };
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("shadow"),
             color_attachments: &[],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                 view: &self.view,
                 depth_ops: Some(wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(1.0),
+                    load,
                     store: wgpu::StoreOp::Store,
                 }),
                 stencil_ops: None,
