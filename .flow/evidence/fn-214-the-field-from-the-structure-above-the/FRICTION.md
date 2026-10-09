@@ -34,3 +34,10 @@
 - **Slowed by:** a struct literal F4 added (the cluster `Descriptor`) lacked this branch's new `spread` field. Git merged it cleanly, so it surfaced only at `cargo check`, and the three textual conflicts needed reading both sides by hand.
 - **Cost:** about 5 minutes.
 - **Would remove it:** `Descriptor` built through one constructor, not struct literals in several places. That is the host's call.
+
+## 2026-10-09 08:40, task 2 birch defect: restoring a scratch test under the command guard
+
+- **Doing:** reverting an ignored diagnostic test added to `coarse_tests.rs` for the measurement.
+- **Slowed by:** the guard refused `git checkout --` on the file. It was restored from `git show HEAD:` through Python, after checking that the only difference was the appended test.
+- **Cost:** about 1 minute.
+- **Would remove it:** diagnostics in a scratch crate outside the repository's sources. The `field` module's `planned` constructor is crate-private, which is why the test sat inside the core. The guard's rule is a local setup matter.

@@ -488,3 +488,54 @@ The field height is the field's bounds, which take in the stands' expected wood.
 - **Memory:** 15 to 28 MB from 1,024 to 256, and 56 to 149 MB at 128 and 64.
 - **Native structure:** it matches. The trunk is within 0.002 m, the section ratio is 0.60 to 0.70, and the reach is within 0.5 m, except 5678 at 64 (1.2 m over).
 - **The field:** it does not match. The stills and the cube counts (above) show a round, overfull crown and a field 2.5 to 9 m too tall.
+
+## Task 2: the coarse birch's field, its cause (2026-10-09)
+
+The coarse birch's field is wrong: at cut 1,024 it has 4 to 5 times the full birch's foliage cubes and stands 2.5 to 9 m too tall. The cause is the shape of each stand's foliage, a solid capsule whose radius is its expected wood's centre distance. Its leaf count is not the cause, and neither are the clusters. The stands also carry no droop, and some reach below the ground. A fix needs a decision on how a stand's foliage is shaped, so it was not built (below).
+
+**Measured, natively.** Age 40, at `94e4cc03`, cut 1,024.
+- **Sources:** an ignored scratch test in the core (`raw/native/diag_coarse_tests.rs.txt`; it was not committed, and the file is back to HEAD), and `raw/native/src/bin/shape.rs` (output in `raw/native/shape.txt`).
+- **Cell counts:** foliage cells at n = 48 on one grid over both fields' union. A cell is wood instead when its wood radius is at least 0.08 of a cell, the site's rule. Before the site's thinning.
+
+| | birch 1234 | birch 5678 | oak 1234 |
+|---|--:|--:|--:|
+| Foliage cells, full field | 4,928 | 3,525 | 11,315 |
+| Foliage cells, coarse field | 23,488 | 22,465 | 12,521 |
+| from the structure above the cut alone | 962 | 570 | 5,143 |
+| from the stands alone | 23,487 | 22,464 | 12,108 |
+| coarse, with each stand's spread at 0 (its segment and the blade's reach only) | 6,697 | 5,097 | 6,833 |
+| coarse, with each stand's spread halved | 13,828 | 12,423 | 9,585 |
+| coarse, with each stand's tip at its centre, not twice it | 13,405 | 13,033 | 10,079 |
+| Coarse foliage cells below the ground (y < 0) | 896 | 924 | 51 |
+
+**Leaves, from the plan: not the cause.**
+- **Leaf totals:** the birch's plan holds 162,175 leaves on the full tree and 145,797 on the coarse tree at 1,024, 144,724 of them on its 6,717 stands. At 256 the coarse tree holds 153,300.
+- **Phytomers:** the matched stands expect 399,382 kept phytomers against 508,564 realized (seed 1234).
+- **Clusters:** the structure above the cut holds no short shoot (0 clusters, against the full tree's 36,015), so the stand's leaves per phytomer (0.28) come from the long shoots above. Even so, the coarse total is 10 % under the full one. Clusters do not explain the bulk.
+
+**The extent, by matched lineage (birch 1234; 5678 alike).**
+
+| | realized fine root | its stand |
+|---|---|---|
+| Phytomer tip farthest from its base (realized) / capsule reach 3 × centre (stand), p50 / p90 | 0.33 / 2.11 m | 0.50 / 2.64 m |
+| Centroid distance from base, p50 / p90 | 0.20 / 1.25 m | 0.17 / 0.88 m (centre) |
+| Centroid vertical offset, p10 / p50 | −1.12 / 0.00 m | −0.09 / 0.01 m |
+| Lowest point (z) | 0.00 m (the ground) | −1.43 m |
+
+- **The fill:** a stand's reach is close to its realized root's, at 1.3 to 1.5 times. But the capsule's whole volume answers foliage, while the root's leaves are a sparse set of hanging shoots inside that volume.
+- **Why the birch and not the oak:** the birch's roots are long and sparse. Their centre is 0.88 m at p90, against the oak's 0.13 m, and the capsule's volume grows as the centre cubed. So the birch's stands fill 4.8 times its full field's foliage cells, and the oak's fill 1.1 times.
+- **The droop:** a realized birch root's centroid hangs 1.1 m below its base at p10. A stand lies along its bud's heading, which points against the realized centroid's direction for at least a tenth of the stands (cosine −0.41 at p10).
+- **The ground:** a stand's capsule is not held above the ground, and 4 % of the coarse birch's foliage cells lie below it. That accounts for the field's extra height, 2.4 m at 1,024 and 4.2 m at 256 (bounds min y). The structure's own top is the same, 17.18 m.
+
+**Why no fix was built.** No row the closed form commits carries what a stand would need to agree with its grown root:
+- how sparsely its leaves fill its reach;
+- its droop (the closed form is a count, a section, a load and a distance, with no direction);
+- the ground.
+
+Each repair is a choice of representation, and none is a matter of agreement:
+- a thinner capsule;
+- foliage answered only where a stand's expected leaves per cell pass a density;
+- a new expected displacement row for the droop;
+- a clamp at the ground.
+
+Setting the spread to 0 alone gives 1.36 and 1.45 times the full birch's cells, and 0.60 times the full oak's. It is listed as a measurement, not proposed. The host decides.
