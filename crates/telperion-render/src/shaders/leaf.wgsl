@@ -64,12 +64,15 @@ fn leaf_position(words: vec3<u32>, box_min: vec3<f32>, box_extent: vec3<f32>) ->
 }
 
 /// The size on screen, in pixels across its bounding sphere, below which a
-/// leaf or a flower is thinned (fn-246): a pixel, so a leaf is thinned only
-/// where its whole sphere fits inside one.
-const THIN_PIXELS: f32 = 1.0;
+/// leaf or a flower is thinned (fn-246). Fitted with `examples/crown_truth`:
+/// the largest of 1, 2, 3, 4 and 6 px that keeps every species' thinned
+/// whole and mid view at 1920x1080 within 3.0 mean code values of its
+/// unthinned distance to the unthinned crown drawn at 4x and box-reduced
+/// (Telperion's whole view is the binding one: +2.97 at 2 px, +9.5 at 3).
+const THIN_PIXELS: f32 = 2.0;
 
 /// The share of the organs `across` pixels wide that are drawn: all of them
-/// at a pixel and above, and below it the share whose kept organs, enlarged
+/// at THIN_PIXELS and above, and below it the share whose kept organs, enlarged
 /// by `1 / sqrt(share)`, cover the area all of them would. Continuous in
 /// size, so nothing pops as the camera moves.
 fn leaf_kept(across: f32) -> f32 {

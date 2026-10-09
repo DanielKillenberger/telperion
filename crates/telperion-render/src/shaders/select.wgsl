@@ -85,7 +85,7 @@ fn level_of(instance: u32) -> u32 {
     // the pixels a metre spans where this leaf stands.
     let depth = max(dot(centre - u.eye.xyz, u.forward.xyz), u.forward.w);
     let pixels = u.eye.w / depth;
-    // A leaf under a pixel across is drawn by a share of the crown that
+    // A leaf under THIN_PIXELS across is drawn by a share of the crown that
     // follows its size, the rest given to the unseen bucket (fn-246).
     let kept = leaf_kept(2.0 * radius * pixels);
     if leaf_draw_rank(words) >= kept {

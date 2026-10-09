@@ -1,4 +1,4 @@
-//! fn-246: leaves and flowers smaller than a pixel on screen are thinned by
+//! fn-246: leaves and flowers under two pixels on screen are thinned by
 //! a share that follows their size, and the ones kept are enlarged so the
 //! crown covers what it covered. Judged against the same crown drawn at four
 //! times the resolution, where none of it is thinned.
@@ -45,7 +45,7 @@ fn covered(whole: &Still, bare: &Still, block: u32) -> f64 {
 }
 
 #[test]
-fn a_crown_of_sub_pixel_leaves_draws_fewer_and_covers_the_same() {
+fn a_crown_of_small_leaves_draws_fewer_and_covers_the_same() {
     let Some(gpu) = common::gpu() else { return };
     let tree = mesh::build(&common::ordinary()).expect("the tree grew");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
@@ -60,17 +60,17 @@ fn a_crown_of_sub_pixel_leaves_draws_fewer_and_covers_the_same() {
         let bare = render(&mut renderer, &camera, size, size).unwrap();
         (whole, bare, crown - counts.last().unwrap())
     };
-    let (whole, bare, drawn) = pair(48);
-    let (fine_whole, fine_bare, fine_drawn) = pair(192);
+    let (whole, bare, drawn) = pair(96);
+    let (fine_whole, fine_bare, fine_drawn) = pair(384);
     let (small, large) = (covered(&whole, &bare, 1), covered(&fine_whole, &fine_bare, 4));
-    eprintln!("drawn {drawn} of {crown} at 48 px, {fine_drawn} at 192; covered {small:.4} against {large:.4}");
+    eprintln!("drawn {drawn} of {crown} at 96 px, {fine_drawn} at 384; covered {small:.4} against {large:.4}");
     assert!(
         f64::from(drawn) < 0.5 * f64::from(fine_drawn),
-        "sub-pixel leaves were not thinned: {drawn} drawn against {fine_drawn}"
+        "small leaves were not thinned: {drawn} drawn against {fine_drawn}"
     );
     assert!(
         (small - large).abs() <= 0.2 * large,
-        // Unthinned, the 48 px crown read 0.0295 against 0.0261 (13% over):
+        // Unthinned, the 96 px crown read 0.0305 against 0.0280 (9% over):
         // the bound holds thinning to that resolution gap and a little more.
         "the thinned crown covers {small:.4} of the frame against {large:.4}"
     );

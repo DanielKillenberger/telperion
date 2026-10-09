@@ -130,8 +130,9 @@ fn mask(clay: &[u8], (w, h): (u32, u32)) -> Vec<(usize, usize)> {
         .collect()
 }
 
-/// Mean and p95 code-value distance of `low` from `high` box-reduced.
-fn agreement(high: &[u8], low: &[u8], width: u32, wood: &[(usize, usize)]) -> (f64, f64) {
+/// Mean and p95 code-value distance of `low` from `high` box-reduced, and
+/// the signed mean (`low` over the truth): what an expected term can move.
+fn agreement(high: &[u8], low: &[u8], width: u32, wood: &[(usize, usize)]) -> (f64, f64, f64) {
     let (lw, hw, s) = (width as usize, (width * SCALE) as usize, SCALE as usize);
     let mut errors = Vec::with_capacity(wood.len() * 3);
     for &(x, y) in wood {
@@ -141,12 +142,15 @@ fn agreement(high: &[u8], low: &[u8], width: u32, wood: &[(usize, usize)]) -> (f
                 .map(|(dx, dy)| u32::from(high[((y * s + dy) * hw + x * s + dx) * 4 + c]))
                 .sum();
             let truth = f64::from(sum) / (s * s) as f64;
-            errors.push((truth - f64::from(low[(y * lw + x) * 4 + c])).abs());
+            errors.push(f64::from(low[(y * lw + x) * 4 + c]) - truth);
         }
     }
-    let mean = errors.iter().sum::<f64>() / errors.len().max(1) as f64;
+    let n = errors.len().max(1) as f64;
+    let bias = errors.iter().sum::<f64>() / n;
+    let mut errors: Vec<f64> = errors.iter().map(|e| e.abs()).collect();
+    let mean = errors.iter().sum::<f64>() / n;
     errors.sort_by(f64::total_cmp);
-    (mean, errors.get(errors.len() * 95 / 100).copied().unwrap_or(0.0))
+    (mean, errors.get(errors.len() * 95 / 100).copied().unwrap_or(0.0), bias)
 }
 
 fn compare(truth: &Path, dir: &Path) -> Result<(), Box<dyn std::error::Error>> {
@@ -154,10 +158,10 @@ fn compare(truth: &Path, dir: &Path) -> Result<(), Box<dyn std::error::Error>> {
         let read = |d: &Path, s: &str| std::fs::read(d.join(format!("{}-{s}", f.name)));
         let wood = mask(&read(truth, "clay")?, f.size);
         let high = read(truth, &SCALE.to_string())?;
-        let (mean, p95) = agreement(&high, &read(dir, "1")?, f.size.0, &wood);
+        let (mean, p95, bias) = agreement(&high, &read(dir, "1")?, f.size.0, &wood);
         let own = agreement(&read(dir, &SCALE.to_string())?, &read(dir, "1")?, f.size.0, &wood);
         println!(
-            "{{\"fixture\":\"{}\",\"pixels\":{},\"mean\":{mean:.3},\"p95\":{p95:.2},\"own_mean\":{:.3},\"own_p95\":{:.2}}}",
+            "{{\"fixture\":\"{}\",\"pixels\":{},\"mean\":{mean:.3},\"p95\":{p95:.2},\"bias\":{bias:.3},\"own_mean\":{:.3},\"own_p95\":{:.2}}}",
             f.name,
             wood.len(),
             own.0,
