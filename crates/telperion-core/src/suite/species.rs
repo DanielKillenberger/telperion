@@ -190,7 +190,8 @@ fn birch_identity_resolves_to_frozen_profile_and_native_anatomy() {
     assert_eq!(profile["scientific_name"], "Betula pendula");
     assert_eq!(profile["readiness"], "ready");
     let family = preset.parameters();
-    assert_eq!(family.age, 70.0);
+    // The engine grows it from 40, the age the harness opens it at (fn-213).
+    assert_eq!(family.age, 40.0);
     assert!((family.skeleton.envelope.height - 18.0).abs() < 1e-9);
     assert!(family.skeleton.habit.rise_secondary < 0.0);
     assert_eq!(family.skeleton.habit.attractor_weight, 0.0);
@@ -209,6 +210,7 @@ fn fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimen
     fixed_species("suite::species::fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens", Preset::EuropeanBeech);
 }
 
+#[ignore = "fn-213: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn fixed_birches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
     fixed_species("suite::species::fixed_birches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens", Preset::SilverBirch);

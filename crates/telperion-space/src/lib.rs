@@ -15,6 +15,7 @@
 mod allocation;
 mod alone;
 mod beech;
+mod birch;
 mod blend;
 mod bounded;
 mod chain;
@@ -46,6 +47,7 @@ mod upward;
 
 pub use alone::{field_probe, grow_alone, grow_alone_with, Alone, ChainCost, FieldProbe};
 pub use beech::beech;
+pub use birch::birch;
 pub use blend::blend;
 pub use bounded::{grow_bounded, Bounded, Expected};
 pub use chain::{passed, AGES};

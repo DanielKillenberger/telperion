@@ -1,9 +1,9 @@
 # Silver birch, Betula pendula.
 # Rows off the default family, checked against the catalogue as core compiles.
 
-# Mature open-grown Betula pendula. Envelope height is the 18 m
-# reference at 70 yr; pendulous laterals.
-/age = 70.0
+# Mature open-grown Betula pendula, grown by the engine (fn-213); the
+# habit, envelope and twig-layer rows below are today's generator's and
+# the engine reads none of them.
 /skeleton/habit/apicalDominance = 0.45
 /skeleton/habit/whorlStrength = 0.2
 /skeleton/habit/leaderInternode = 1.6
@@ -89,9 +89,14 @@
 /skeleton/twigs/twig/diameter = 0.003
 /skeleton/twigs/twig/length = 0.45
 
-# A leaf every 60 mm of shoot: two stems carry two crowns' worth of
-# shoots inside one shell, and at the single stem's 36 mm the curtain
-# closed back into a mass with no sky through it.
+# The engine tree's grown shoots carry a leaf station every 20 mm, the
+# family's default, so short shoots carry leaves and the crown stays
+# open (fn-213 round 2). Round 3 (host: a leafy mass along the strands)
+# puts one every 12 mm. Round 11 (owner: leaves "small and numerous ...
+# like they just fill the twigs length"): one every 60 mm, a leaf a node of
+# the strand's 0.06 m internode, so 4 to 6 a year's growth, inside the 3 to
+# 7 leaves a long shoot bears (SU03). Round 12: a short shoot bears no leaf
+# along its length but a cluster of three at its tip (/space/ages/14).
 /skeleton/twigs/twig/internodeLength = 0.06
 /skeleton/twigs/twig/bearingDiameter = 0.02
 
@@ -150,12 +155,17 @@
 # each margin stand for its teeth: the lobe rows cut symmetric notches,
 # not the forward-leaning double teeth the photograph shows, which are
 # fn-60's. Thirty-two stations keep the outline from reading as facets.
-/element/length = 0.055
-/element/width = 0.045
-/element/connectorLength = 0.022
+# Round 11: Flora of China (Betula pendula): "Petiole slender, 2-3 cm;
+# leaf blade triangular-ovate or rhombic-ovate, 3-7.5 x 1.5-6 cm ... base
+# truncate, broadly cuneate ... apex acuminate". A 5.0 by 3.7 cm blade
+# (the ranges' middles) varying 0.3 either way (35 to 65 mm), on a 2.5 cm
+# stalk, widest near its truncate base and drawn to an acuminate tip.
+/element/length = 0.05
+/element/width = 0.037
+/element/connectorLength = 0.025
 /element/widestAt = 0.2
 /element/baseFullness = 0.3
-/element/tipSharpness = 1.1
+/element/tipSharpness = 1.5
 /element/lobeCount = 8
 /element/lobeDepth = 0.1
 /element/axialSegments = 32
@@ -170,7 +180,7 @@
 # half of the row a leaf could not reach before.
 /canopy/upward = -0.35
 /canopy/divergence = 180.0
-/canopy/sizeVariation = 0.2
+/canopy/sizeVariation = 0.3
 /material/barkRed = 0.78
 /material/barkGreen = 0.76
 /material/barkBlue = 0.7
@@ -187,23 +197,53 @@
 # 0.066 on the exposure its trunk reads 0.78/0.78/0.71 on, R:G:B
 # 1:0.69:0.49 in its darker band. The matched still reddens a row:
 # 0.10/0.06/0.045 drew that band at 1:0.51:0.35, so the row is the
-# greyer red-brown that draws it near the photograph's. White from
-# about 4 cm across.
-/material/shootRed = 0.095
-/material/shootGreen = 0.07
-/material/shootBlue = 0.055
-/material/shootRadius = 0.01
+# greyer red-brown that draws it near the photograph's. On the engine
+# tree (fn-213 round 2, host: a birch is white on the stem and thick
+# limbs only, its fine wood dark) wood under 3 cm in radius keeps the
+# shoot colour and whitens by 6 cm.
+# Round 9 (host: the bare crown should read white limbs through a
+# grey-brown haze): code read S1's crown haze, the pixels not sky in its
+# upper crown, at sRGB 93/70/76, a purple-grey brown with blue above
+# green; the row is set to that hue, a little lighter (S3's upper crown
+# reads 127/111/107).
+/material/shootRed = 0.12
+/material/shootGreen = 0.09
+/material/shootBlue = 0.09
+/material/shootRadius = 0.03
 
 # A light, yellow-green blade, paler beneath. S-WHOLE's crown reads
 # R:G:B 1:1.38:0.79 linear in its middle band (sRGB 92/108/82); the
 # older 0.055/0.165/0.035 drew that band at 1:1.93:0.79, a bluer and
-# darker green, and the rows below draw it at 83/105/73.
-/material/leafFrontRed = 0.1
-/material/leafFrontGreen = 0.19
-/material/leafFrontBlue = 0.06
-/material/leafBackRed = 0.2
-/material/leafBackGreen = 0.28
-/material/leafBackBlue = 0.14
+# darker green, and the rows below draw it at 83/105/73. On the engine
+# tree that read bluish beside S2 (host, fn-213 sheet 1); the blade is
+# warmed towards a bright yellow-green.
+# Round 11 (owner: "weird color"): code read S2-Oslo's crown leaf pixels,
+# sRGB to linear, on the exposure its sunlit white stem reads the bark
+# rows (0.78/0.76/0.70) on, keeping only the sunlit ones (host: the
+# renderer shades again): those above the crown's median luminance,
+# clear of the shadow mode below it, 0.227/0.241/0.111 (leaf_colour.py).
+# No reference shows a leaf's underside or a backlit leaf apart from the
+# rest, so the back and the transmitted tint take the same colour.
+/material/leafFrontRed = 0.227
+/material/leafFrontGreen = 0.241
+/material/leafFrontBlue = 0.111
+/material/leafBackRed = 0.227
+/material/leafBackGreen = 0.241
+/material/leafBackBlue = 0.111
+
+# The old birch's base turns black and fissured (JRC: the bark "with
+# age darkens and develops fissures"; OSU: "with age, trunk becomes
+# mostly black"). fn-221's old bark: a near-black grey-brown, deeply
+# furrowed, taken over from 23 cm of radius to 29 cm: the 40-year stem
+# stays white above its flare, the 80-year base is black to about a
+# metre. The crest tint above
+# keeps the ridges a lighter grey on it, as in S1.
+/material/matureRed = 0.05
+/material/matureGreen = 0.048
+/material/matureBlue = 0.045
+/material/matureFurrowStrength = 0.8
+/material/matureRadius = 0.3
+/material/matureSpan = 0.07
 
 /material/hueRangeLow = -0.025
 /material/hueRangeHigh = 0.025
@@ -214,14 +254,17 @@
 # width to two and a half, so at 8 cm it holds the root flare (20 cm
 # at a quarter metre, 13 cm at one metre, 10 cm by four at seed 1)
 # and leaves the stem and every limb smooth. Long, deep furrows.
-/material/ridgeScale = 0.08
+# On the engine tree (fn-213) relief starts at 16 cm, so the 40-year
+# stem stays white and the old flare fissures.
+/material/ridgeScale = 0.16
 /material/plateScale = 0.4
 /material/roughnessDetail = 0.1
 /material/veinScale = 6.0
 /material/veinContrast = 0.8
 /material/transmissionStrength = 0.6
-/material/transmissionRed = 0.28
-/material/transmissionGreen = 0.55
+/material/transmissionRed = 0.227
+/material/transmissionGreen = 0.241
+/material/transmissionBlue = 0.111
 /material/thickness = 0.45
 /material/fissureRed = -0.44
 /material/fissureGreen = -0.44
@@ -308,3 +351,262 @@
 # shell twice over, and the photograph's birch is a light tree. Retaining
 # less than half the shell's depth is what lets the light back in.
 # The default dead colour: this table keeps no skirt to show it on.
+
+# The rows the tree-space example restated for a tree that grows its own
+# shoots (fn-193 to fn-196): leaves along the grown shoots, no clusters
+# seated along slender wood.
+/canopy/shootRadius = 0.03
+
+# Every leaf the grown shoots carry is kept, as on the other engine
+# trees: the cull's shell is the whole crown.
+/shellDepth = 1.0
+
+# The age the harness opens the tree at (fn-198 host decision 5); the
+# engine grows the tree to it.
+/age = 40.0
+
+# The engine species (fn-213): telperion_space::birch (MODEL-BIRCH.md in the spec's evidence).
+# The envelope is derived from the grown tree (fn-198 host decision 7).
+/space/ages/2/lifespan = 5.0
+/space/ages/2/internode = 0.055
+/space/ages/2/divergence = 2.5132741228718345
+/space/ages/2/form/tropism = 0.5
+/space/ages/2/form/elevation = 1.5707963267948966
+/space/ages/2/form/wander = 0.35
+/space/ages/2/form/pipe = 0.004
+/space/ages/2/form/exponent = 2.5
+/space/ages/2/form/bendLength = 6.0
+/space/ages/2/form/internodeSpread = 0.2
+/space/ages/2/zones/0/buds = 1.0
+/space/ages/2/zones/0/nodes/min = 4.0
+/space/ages/2/zones/0/nodes/max = 6.0
+/space/ages/2/zones/1/buds = 1.0
+/space/ages/2/zones/1/nodes/min = 6.0
+/space/ages/2/zones/1/nodes/max = 8.0
+/space/ages/2/zones/1/lateral/8 = 0.3
+/space/ages/2/zones/1/lateral/14 = 0.3
+/space/ages/2/zones/2/buds = 1.0
+/space/ages/2/zones/2/nodes/min = 2.0
+/space/ages/2/zones/2/nodes/max = 3.0
+/space/ages/2/zones/2/lateral/8 = 0.7
+/space/ages/3/lifespan = 9.0
+/space/ages/3/divergence = 2.5132741228718345
+/space/ages/3/form/tropism = 0.5
+/space/ages/3/form/elevation = 1.5707963267948966
+/space/ages/3/form/wander = 0.35
+/space/ages/3/form/pipe = 0.004
+/space/ages/3/form/exponent = 2.5
+/space/ages/3/form/bendLength = 6.0
+/space/ages/3/form/internodeSpread = 0.2
+/space/ages/3/zones/0/buds = 1.0
+/space/ages/3/zones/0/nodes/min = 3.0
+/space/ages/3/zones/0/nodes/max = 4.0
+/space/ages/3/zones/1/buds = 1.0
+/space/ages/3/zones/1/nodes/min = 3.0
+/space/ages/3/zones/1/nodes/max = 5.0
+/space/ages/3/zones/1/lateral/8 = 0.25
+/space/ages/3/zones/1/lateral/9 = 0.06
+/space/ages/3/zones/1/lateral/14 = 0.3
+/space/ages/3/zones/2/buds = 1.0
+/space/ages/3/zones/2/nodes/min = 2.0
+/space/ages/3/zones/2/nodes/max = 2.0
+/space/ages/3/zones/2/lateral/6 = 0.1
+/space/ages/3/zones/2/lateral/8 = 0.6
+/space/ages/3/zones/2/lateral/9 = 0.12
+/space/ages/4/lifespan = 26.0
+/space/ages/4/divergence = 2.5132741228718345
+/space/ages/4/form/tropism = 0.5
+/space/ages/4/form/elevation = 1.5707963267948966
+/space/ages/4/form/wander = 0.35
+/space/ages/4/form/pipe = 0.004
+/space/ages/4/form/exponent = 2.5
+/space/ages/4/form/bendLength = 6.0
+/space/ages/4/form/internodeSpread = 0.2
+/space/ages/4/zones/0/buds = 1.0
+/space/ages/4/zones/0/nodes/min = 3.0
+/space/ages/4/zones/0/nodes/max = 4.0
+/space/ages/4/zones/1/buds = 1.0
+/space/ages/4/zones/1/nodes/min = 3.0
+/space/ages/4/zones/1/nodes/max = 5.0
+/space/ages/4/zones/1/lateral/6 = 0.04
+/space/ages/4/zones/1/lateral/8 = 0.25
+/space/ages/4/zones/1/lateral/9 = 0.06
+/space/ages/4/zones/1/lateral/14 = 0.3
+/space/ages/4/zones/2/buds = 1.0
+/space/ages/4/zones/2/nodes/min = 2.0
+/space/ages/4/zones/2/nodes/max = 2.0
+/space/ages/4/zones/2/lateral/6 = 0.22
+/space/ages/4/zones/2/lateral/8 = 0.45
+/space/ages/4/zones/2/lateral/9 = 0.12
+/space/ages/5/lifespan = 100.0
+/space/ages/5/continuation = 0.0
+/space/ages/5/internode = 0.015
+/space/ages/5/divergence = 2.5132741228718345
+/space/ages/5/abortion = 0.8
+/space/ages/5/relay = 1.0
+/space/ages/5/relayEnded = 1.0
+/space/ages/5/relayFailed = 1.0
+/space/ages/5/relayAt = 0.6
+/space/ages/5/epitony = 0.2
+/space/ages/5/form/tropism = 0.4
+/space/ages/5/form/elevation = 1.0
+/space/ages/5/form/wander = 0.5
+/space/ages/5/form/pipe = 0.004
+/space/ages/5/form/exponent = 2.5
+/space/ages/5/form/bendLength = 6.0
+/space/ages/5/form/internodeSpread = 0.2
+/space/ages/5/zones/0/buds = 1.0
+/space/ages/5/zones/0/nodes/min = 1.0
+/space/ages/5/zones/0/nodes/max = 2.0
+/space/ages/5/zones/1/buds = 1.0
+/space/ages/5/zones/1/nodes/min = 2.0
+/space/ages/5/zones/1/nodes/max = 3.0
+/space/ages/5/zones/1/lateral/9 = 0.3
+/space/ages/5/zones/1/lateral/14 = 0.3
+/space/ages/5/zones/2/buds = 1.0
+/space/ages/5/zones/2/nodes/min = 1.0
+/space/ages/5/zones/2/nodes/max = 2.0
+/space/ages/5/zones/2/lateral/7 = 0.5
+/space/ages/5/zones/2/lateral/9 = 0.4
+/space/ages/6/lifespan = 25.0
+/space/ages/6/viability = 0.998
+/space/ages/6/shedding = 3.0
+/space/ages/6/internode = 0.055
+/space/ages/6/insertion = 0.6
+/space/ages/6/divergence = 2.5132741228718345
+/space/ages/6/abortion = 0.08
+/space/ages/6/relay = 1.0
+/space/ages/6/relayEnded = 1.0
+/space/ages/6/relayFailed = 1.0
+/space/ages/6/epitony = 0.4
+/space/ages/6/form/tropism = 0.9
+/space/ages/6/form/elevation = 1.3
+/space/ages/6/form/wander = 0.6
+/space/ages/6/form/pipe = 0.002
+/space/ages/6/form/exponent = 2.4
+/space/ages/6/form/ripening = 10.0
+/space/ages/6/form/dominance = 0.2
+/space/ages/6/form/roll = 1.2
+/space/ages/6/form/sag = 6e-5
+/space/ages/6/form/bendLength = 3.0
+/space/ages/6/form/internodeSpread = 0.7
+/space/ages/6/zones/0/buds = 1.0
+/space/ages/6/zones/0/nodes/min = 2.0
+/space/ages/6/zones/0/nodes/max = 3.0
+/space/ages/6/zones/1/buds = 1.0
+/space/ages/6/zones/1/nodes/min = 3.0
+/space/ages/6/zones/1/nodes/max = 5.0
+/space/ages/6/zones/1/lateral/7 = 0.12
+/space/ages/6/zones/1/lateral/9 = 0.15
+/space/ages/6/zones/1/lateral/14 = 0.58
+/space/ages/6/zones/2/buds = 1.0
+/space/ages/6/zones/2/nodes/min = 1.0
+/space/ages/6/zones/2/nodes/max = 2.0
+/space/ages/6/zones/2/lateral/7 = 0.45
+/space/ages/6/zones/2/lateral/9 = 0.4
+/space/ages/7/lifespan = 100.0
+/space/ages/7/continuation = 0.0
+/space/ages/7/viability = 0.995
+/space/ages/7/shedding = 2.0
+/space/ages/7/internode = 0.03
+/space/ages/7/insertion = 0.6
+/space/ages/7/divergence = 2.5132741228718345
+/space/ages/7/abortion = 0.08
+/space/ages/7/relay = 1.0
+/space/ages/7/relayEnded = 1.0
+/space/ages/7/relayFailed = 1.0
+/space/ages/7/epitony = 0.4
+/space/ages/7/form/tropism = 0.3
+/space/ages/7/form/elevation = 0.5
+/space/ages/7/form/wander = 0.6
+/space/ages/7/form/pipe = 0.002
+/space/ages/7/form/exponent = 2.4
+/space/ages/7/form/ripening = 10.0
+/space/ages/7/form/dominance = 0.2
+/space/ages/7/form/roll = 1.2
+/space/ages/7/form/sag = 8e-5
+/space/ages/7/form/bendLength = 3.0
+/space/ages/7/form/internodeSpread = 0.7
+/space/ages/7/zones/0/buds = 1.0
+/space/ages/7/zones/0/nodes/min = 1.0
+/space/ages/7/zones/0/nodes/max = 2.0
+/space/ages/7/zones/1/buds = 1.0
+/space/ages/7/zones/1/nodes/min = 3.0
+/space/ages/7/zones/1/nodes/max = 4.0
+/space/ages/7/zones/1/delay = 4.0
+/space/ages/7/zones/1/rate = 0.15
+/space/ages/7/zones/1/lateral/9 = 0.4
+/space/ages/7/zones/1/lateral/14 = 0.45
+/space/ages/7/zones/1/dormant/9 = 0.2
+/space/ages/7/zones/2/buds = 1.0
+/space/ages/7/zones/2/nodes/min = 1.0
+/space/ages/7/zones/2/nodes/max = 1.0
+/space/ages/7/zones/2/lateral/9 = 0.5
+/space/ages/8/lifespan = 14.0
+/space/ages/8/continuation = 0.0
+/space/ages/8/viability = 0.97
+/space/ages/8/shedding = 2.0
+/space/ages/8/insertion = 0.7
+/space/ages/8/divergence = 2.5132741228718345
+/space/ages/8/form/tropism = 0.5
+/space/ages/8/form/elevation = 0.8
+/space/ages/8/form/wander = 0.4
+/space/ages/8/form/pipe = 0.0012
+/space/ages/8/form/exponent = 2.2
+/space/ages/8/form/roll = 0.8
+/space/ages/8/form/sag = 0.0002
+/space/ages/8/form/internodeSpread = 0.4
+/space/ages/8/zones/0/buds = 1.0
+/space/ages/8/zones/0/nodes/min = 1.0
+/space/ages/8/zones/0/nodes/max = 2.0
+/space/ages/8/zones/1/buds = 1.0
+/space/ages/8/zones/1/nodes/min = 3.0
+/space/ages/8/zones/1/nodes/max = 4.0
+/space/ages/8/zones/1/lateral/9 = 0.4
+/space/ages/8/zones/1/lateral/14 = 0.45
+/space/ages/8/zones/2/buds = 1.0
+/space/ages/8/zones/2/nodes/min = 1.0
+/space/ages/8/zones/2/nodes/max = 1.0
+/space/ages/8/zones/2/lateral/9 = 0.5
+/space/ages/9/lifespan = 12.0
+/space/ages/9/continuation = 0.0
+/space/ages/9/viability = 0.92
+/space/ages/9/shedding = 1.0
+/space/ages/9/internode = 0.06
+/space/ages/9/insertion = 0.7
+/space/ages/9/divergence = 2.5132741228718345
+/space/ages/9/form/tropism = 3.0
+/space/ages/9/form/elevation = -1.5707963267948966
+/space/ages/9/form/wander = 0.4
+/space/ages/9/form/pipe = 0.0008
+/space/ages/9/form/roll = 1.6
+/space/ages/9/form/sag = 0.0002
+/space/ages/9/form/bendLength = 1.0
+/space/ages/9/form/internodeSpread = 0.7
+/space/ages/9/form/insertionSpread = 0.5
+/space/ages/9/form/tropismSpread = 0.6
+/space/ages/9/zones/0/buds = 1.0
+/space/ages/9/zones/0/nodes/min = 1.0
+/space/ages/9/zones/0/nodes/max = 1.0
+/space/ages/9/zones/1/buds = 1.0
+/space/ages/9/zones/1/nodes/min = 3.0
+/space/ages/9/zones/1/nodes/max = 5.0
+/space/ages/9/zones/1/lateral/9 = 0.005
+/space/ages/9/zones/1/lateral/14 = 0.845
+/space/ages/14/lifespan = 6.0
+/space/ages/14/continuation = 0.0
+/space/ages/14/viability = 0.92
+/space/ages/14/shedding = 1.0
+/space/ages/14/internode = 0.003
+/space/ages/14/insertion = 0.8
+/space/ages/14/divergence = 2.5132741228718345
+/space/ages/14/clusterLeaves = 3.0
+/space/ages/14/clusterSpread = 0.6
+/space/ages/14/form/pipe = 0.0005
+/space/ages/14/zones/0/buds = 1.0
+/space/ages/14/zones/0/nodes/min = 2.0
+/space/ages/14/zones/0/nodes/max = 3.0
+/space/ages/2/trunk = true
+/space/ages/3/trunk = true
+/space/ages/4/trunk = true
+/space/ages/5/trunk = true
