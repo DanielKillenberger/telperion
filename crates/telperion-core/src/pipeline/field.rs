@@ -229,10 +229,17 @@ impl Field {
             let cuboid = (d.side != Vec3::ZERO)
                 .then(|| Cuboid::new(a, b, d.side, reach))
                 .transpose()?;
-            let bounds = match &cuboid {
+            let mut bounds = match &cuboid {
                 Some(c) => c.bounds,
                 None => union(cube(a, reach)?, cube(b, reach)?),
             };
+            // A stand-in answers nothing below the ground (`stand.rs`).
+            if d.stand.is_some() {
+                if bounds.max.y < 0. {
+                    continue;
+                }
+                bounds.min.y = bounds.min.y.max(0.);
+            }
             items.push(Item {
                 bounds,
                 id: sweeps.len(),

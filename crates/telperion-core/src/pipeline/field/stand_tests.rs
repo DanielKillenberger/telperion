@@ -87,4 +87,9 @@ fn no_stand_in_answers_below_the_ground() {
         cells.iter().filter(|(c, _)| c.y > 0.0).all(|(_, f)| *f),
         "λ 20 fills"
     );
+    let low = field.bounds().expect("bounds").min.y;
+    assert!(
+        low >= 0.0,
+        "its foliage's bounds reach {low} below the ground"
+    );
 }
