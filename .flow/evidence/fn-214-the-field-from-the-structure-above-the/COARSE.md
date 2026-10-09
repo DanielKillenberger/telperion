@@ -539,3 +539,22 @@ Each repair is a choice of representation, and none is a matter of agreement:
 - a clamp at the ground.
 
 Setting the spread to 0 alone gives 1.36 and 1.45 times the full birch's cells, and 0.60 times the full oak's. It is listed as a measurement, not proposed. The host decides.
+
+### Host decision on the stand-ins' foliage (2026-10-09)
+
+A stand-in will answer foliage by its expected occupancy, not by its volume. The row already holds the expected leaf count, and the capsule holds the reach, so the expected number of leaves in one cell of the capsule is λ = expected leaves × cell volume / capsule volume. The full field marks a cell as foliage when a leaf stands in it, so the cell is foliage with probability 1 − e^(−λ), the Poisson chance that at least one leaf lands there.
+
+- **The draw.** It is keyed by the stand-in's lineage and the cell index through the lineage key registry: a new key, mirrored wherever the field is answered. It is deterministic, and it changes by degree, with no switch between ways of building.
+  - **What happens as λ grows:** a dense oak stand-in fills its small capsule, as it does today.
+  - **What happens as λ shrinks:** a sparse birch stand-in fills only its expected share of a large capsule.
+- **The ground.** No stand-in answers foliage below the ground. This clamps every capsule at the ground; it is not a special case.
+- **Droop.** This needs a new expected-displacement row and is left out. Measure the birch first. If the stills still read wrong after occupancy, droop becomes its own spec.
+- **Proof.**
+  - A red/green test: a stand-in's expected occupied cells equal 1 − e^(−λ) of its cells, within sampling error.
+  - The birch's and oak's foliage cell counts against their full fields at cuts 1024 and 256.
+  - The field stills, all viewed.
+  - The time.
+  - Full trees byte-identical.
+  - The full workspace gate.
+
+Still no cut is chosen and no default is changed.
