@@ -321,3 +321,12 @@ Spruce and palm grow no relays at either age.
 - confirmation that the device's contract-A geometry is in scope.
 
 No code is written.
+
+## Host answers to the pre-build read (2026-10-09)
+
+- **C1: (b), clamp to the parent.** A relay grows from its parent axis, so its attachment is clamped to the parent's own units. Where today's stand slides back onto an earlier unit of an ancestor, it now stands at the parent's first unit, i.e. the parent's start. This is simpler than attaching across axes and closer to the botany. The relays it moves (7 to 185 per tree, those whose parent's last unit is still growing in) change by design. The clamp is one rule in the resolved attachment, and both executors read it.
+- **The oak and the birch may change.** This falls under the generator-evolution policy (AGENTS.md), on the evidence of the before and after sheets, viewed, plus `space_hash` changes listed per tree. Spruce and palm stay identical.
+- **The device's geometry is in scope.** `stand.wgsl` and `walk.wgsl` read the same resolved attachment in fixed point. One rule, both executors, and contract A's parity tests stay green.
+- **Closed-form predictions stay as they are.** They are expectations built from `relay_at` and never read a grown tree. Report how far the predicted kept counts move against the realized trees after the change. If a walk or census test moves beyond its bound, stop and report.
+
+Build it.
