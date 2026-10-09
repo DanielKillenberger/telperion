@@ -139,7 +139,9 @@
 //! Laurelin and Telperion share. With `leaf_years: inf, ` stripped from the
 //! text and the three value files and `telperion_space::beech` at their
 //! fn-248 base, the family, walk, override and refusal digests were each
-//! the base's to the bit.
+//! the base's to the bit. Its part 2 re-pinned the family and walk
+//! digests for the beech's leaf spacing (`/skeleton/twigs/twig/
+//! internodeLength` 0.006 to 0.025, in the three value files alone).
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -175,7 +177,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        8_322_810_888_948_792_548,
+        16_851_217_471_594_392_088,
         "{}",
         digest(&text)
     );
@@ -207,7 +209,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        7_791_106_021_717_681_992,
+        16_155_354_335_762_346_298,
         "{}",
         digest(&text)
     );

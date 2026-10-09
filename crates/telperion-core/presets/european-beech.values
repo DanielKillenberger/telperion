@@ -56,11 +56,14 @@
 # Short shoots carry most of the leaves, so the long shoots only have
 # to spread the crown: each stands out at 40 degrees, rising with the
 # broom its limb makes, turned by the golden angle, with a leaf every
-# 5 cm. Two-ranked at 32 degrees with a leaf every 2 cm, every spray was
-# a flat frond and the crown read as a hemlock (owner and host, round 11).
+# 2.5 cm, one a node of the shoot's 2.5 cm internodes (estimated, fn-193
+# SOURCES.md), chosen on stills against photographs of beech shoots from
+# 6 mm, 15, 25 and 35 mm (fn-248). Two-ranked at 32 degrees with a leaf
+# every 2 cm, every spray was a flat frond and the crown read as a hemlock
+# (owner and host, round 11).
 /skeleton/twigs/angle = 40.0
 /skeleton/twigs/divergence = 137.5
-/skeleton/twigs/twig/internodeLength = 0.006
+/skeleton/twigs/twig/internodeLength = 0.025
 /skeleton/twigs/twig/bearingDiameter = 0.03
 
 # A trunk a little over a metre through at breast height, a third of
