@@ -173,6 +173,28 @@ fn a_row_off_its_bounds_is_refused_by_name_whether_or_not_the_group_is_on() {
     }
 }
 
+/// A natural row an override stands in for is judged as written (fn-248):
+/// switching the group off never uncovers a refused row.
+#[test]
+fn a_natural_row_under_an_override_is_still_judged() {
+    let mut f = Preset::EuropeanBeech.parameters();
+    f.supernatural.enabled = true;
+    f.supernatural.internode.set(6, 0.1);
+    f.space.species.as_mut().unwrap().states[6].internode = 0.0;
+    assert!(matches!(
+        f.validate(),
+        Err(Error::InvalidValue {
+            field: "engine",
+            ..
+        })
+    ));
+    let mut f = Preset::EuropeanBeech.parameters();
+    f.supernatural.enabled = true;
+    f.supernatural.canopy.size = Some(2.0);
+    f.canopy.size = 1000.5;
+    assert!(f.validate().is_err());
+}
+
 #[cfg(feature = "json")]
 #[test]
 fn the_group_reads_and_writes_on_the_wire_and_in_a_value_file() {
