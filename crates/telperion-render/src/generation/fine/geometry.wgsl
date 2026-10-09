@@ -61,7 +61,7 @@ const IS_WOKEN: u32 = 0x80000u;
 const AL: u32 = 8u;
 const PL: u32 = 26u;
 // The scratch: per region axis, then per region phytomer.
-const SA: u32 = 74u;
+const SA: u32 = 79u;
 const SP: u32 = 12u;
 const S_OWN: u32 = 0u;
 const S_START: u32 = 1u;
@@ -79,8 +79,13 @@ const S_FRAME: u32 = 57u;
 const S_BASE: u32 = 66u;
 // Where a relay joins its parent, as girth sets it for the drawing
 // (`telperion_space::Join`, fn-244): the node, the share along its span
-// (a float), and the parent's radius below and above the join.
+// (a float), the parent's radius below and above the join, and the join's
+// key (`lineage::join_key`, two words).
 const S_JOIN: u32 = 70u;
+// A relay's attachment (`geometry::attach`), resolved once by `scales`
+// for the passes after: its parent's node and its share of that node's
+// span, Q32 (two words); the node `NONE` on any other axis.
+const S_ATTACH: u32 = 76u;
 const P_ORDER: u32 = 0u;
 const P_NODE: u32 = 1u;
 const P_LOAD: u32 = 2u;

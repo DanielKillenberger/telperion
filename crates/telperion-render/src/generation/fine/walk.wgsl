@@ -78,19 +78,20 @@ fn frame_of(i: u32, bent: bool, bearer: u32, below: vec3<f32>, bearer_pa: u32) -
     // (`geometry::attach`, fn-244).
     var base = tip;
     if b > 0.0 {
-        base = point_on(p, attach_q(i), o);
+        base = point_on(p, i, o);
     }
     return array<vec3<f32>, 3>(base, heading, side);
 }
 
-// The point at position `x` along own axis `p` (`stand::at`): `t` of the
-// way along its node `k`'s span; its base where it has no nodes.
-fn point_on(p: u32, x: vec2<u32>, o: u32) -> vec3<f32> {
+// Where own relay `i` joins its parent `p` (`stand::at`): `t` of the way
+// along the span of `p`'s node `k` (`attached`); `p`'s base where it has
+// no nodes.
+fn point_on(p: u32, i: u32, o: u32) -> vec3<f32> {
     let n = s(p, S_COUNT);
     if n == 0u {
         return s3(p, S_FRAME);
     }
-    let kt = split_x(x, n - 1u);
+    let kt = attached(i);
     var start = s3(p, S_FRAME);
     if kt.x > 0u {
         start = o3(lo(p, kt.x - 1u) + o);

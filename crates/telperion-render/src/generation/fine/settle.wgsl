@@ -277,7 +277,7 @@ fn levers_realized(ch: Chain) {
         // before, or below the parent's first node; a continuation's at
         // the tip.
         if kind_of(j) == RELAYED && np > 0u {
-            let kt = split_x(attach_q(j), np - 1u);
+            let kt = attached(j);
             let t = real_q(vec2<u32>(kt.y, kt.z));
             let q = s(p, S_START) + kt.x;
             load_at(q, mass, moment, t);
@@ -306,6 +306,7 @@ fn scales(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     own_axes(ch.na, ch.np);
     scale_realized(ch.na, ch.bearer, ch.root_vigour);
+    attach_all(ch.na);
 }
 
 @compute @workgroup_size(64)

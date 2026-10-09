@@ -353,13 +353,11 @@ fn position_q(p: u32, node: u32) -> vec2<u32> {
     // Then each younger unit, oldest first, blended in by its extent.
     var x = base;
     var at = stop;
-    if stop == 0u {
-        at = 0u;
-    }
     // cap: at counts up to the axis's phytomers.
     while at < s(p, S_COUNT) {
         var last = at + 1u;
         let c = ph(at_k(p, at), 2u);
+        // cap: last counts up to the axis's phytomers.
         while last < s(p, S_COUNT) && ph(at_k(p, last), 2u) == c {
             last += 1u;
         }
@@ -380,6 +378,30 @@ fn attach_q(i: u32) -> vec2<u32> {
         return tip;
     }
     return add64(tip, mulq(sub64(position_q(p, ax(i, NODE)), tip), b));
+}
+
+// Each relay's attachment as its parent's node and share (`S_ATTACH`),
+// resolved once for girth, the lay and sag; `NONE` on any other axis.
+fn attach_all(na: u32) {
+    for (var j = 0u; j < na; j++) {
+        ss(j, S_ATTACH, NONE);
+        if j < 2u || kind_of(j) != RELAYED {
+            continue;
+        }
+        let n = s(ax(j, PARENT), S_COUNT);
+        if n == 0u {
+            continue;
+        }
+        let kt = split_x(attach_q(j), n - 1u);
+        ss(j, S_ATTACH, kt.x);
+        ss(j, S_ATTACH + 1u, kt.y);
+        ss(j, S_ATTACH + 2u, kt.z);
+    }
+}
+
+// Own relay `j`'s attachment as `attach_all` resolved it.
+fn attached(j: u32) -> vec3<u32> {
+    return vec3<u32>(s(j, S_ATTACH), s(j, S_ATTACH + 1u), s(j, S_ATTACH + 2u));
 }
 
 // `stand::split`: a position as its node and the share of its span, Q32;

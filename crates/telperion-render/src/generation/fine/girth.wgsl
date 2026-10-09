@@ -173,7 +173,7 @@ fn girth_realized(ch: Chain) {
             ssw(p, S_SECTION, add4(sw(p, S_SECTION), carried));
             continue;
         }
-        let kt = split_x(attach_q(j), count - 1u);
+        let kt = attached(j);
         let parts = split_q(carried, kt.yz);
         borne_w(p, kt.x, parts[0]);
         if kt.x == 0u {
@@ -194,10 +194,10 @@ fn joins_realized(ch: Chain) {
         ss(j, S_JOIN, NONE);
         let p = ax(j, PARENT);
         let n = s(p, S_COUNT);
-        if kind_of(j) != RELAYED || s(j, S_OWN) == NONE || s(p, S_OWN) == NONE || n == 0u {
+        if kind_of(j) != RELAYED || s(j, S_OWN) == NONE || s(p, S_OWN) == NONE || n == 0u || s(j, S_COUNT) == 0u {
             continue;
         }
-        let kt = split_x(attach_q(j), n - 1u);
+        let kt = attached(j);
         let parts = split_q(sw(j, S_SECTION), kt.yz);
         let section = pw(s(p, S_START) + kt.x);
         let pa = ax(p, PA);
@@ -213,5 +213,10 @@ fn joins_realized(ch: Chain) {
         ssf(j, S_JOIN + 1u, real_q(vec2<u32>(kt.y, kt.z)));
         ssf(j, S_JOIN + 2u, real_q(add64(mulq(secondary, below), mulq(weigh, established))));
         ssf(j, S_JOIN + 3u, real_q(add64(mulq(secondary, above), mulq(weigh, established))));
+        // `lineage::join_key`: under the relay's first phytomer's key.
+        let first = lo(j, 0u);
+        let key = child(vec2<u32>(bitcast<u32>(out[first + 24u]), bitcast<u32>(out[first + 25u])), KEY_JOIN);
+        ss(j, S_JOIN + 4u, key.x);
+        ss(j, S_JOIN + 5u, key.y);
     }
 }

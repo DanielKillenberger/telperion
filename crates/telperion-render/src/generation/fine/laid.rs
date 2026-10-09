@@ -23,7 +23,7 @@ pub(super) const AL: usize = 8;
 pub(super) const PL: usize = 26;
 /// A chain's scratch: per region axis, per region phytomer, then a status.
 #[cfg(test)]
-pub(super) const SA: u32 = 74;
+pub(super) const SA: u32 = 79;
 #[cfg(test)]
 pub(super) const SP: u32 = 12;
 const GG: usize = 40;
