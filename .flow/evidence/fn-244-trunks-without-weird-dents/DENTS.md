@@ -273,3 +273,51 @@ Astra's review agrees with the join node and settles the two open calls. There i
 - The gate, npm test and impl-review.
 
 On the friction entry about constraints surfacing after each decision: it is right. Before writing a decision, the host now asks the worker for a 10-minute read of every file the decision names. That is recorded for fn-237's friction review.
+
+## Decision 4, the pre-build read: two contradictions (2026-10-09)
+
+I read the attachment's files before writing code:
+- `geometry.rs` `framed_q`, `bend`, `reaches` and `phase_by`;
+- `geometry/stand.rs`;
+- `stand.wgsl` and `walk.wgsl`;
+- the girth and sag files, the bounded girth, and `closed_form/kept`.
+
+A census over the space crate's own species tables (`beech()`, `birch()`, `oak()`, `spruce()`, `palm()`), at seed 42 and ages 40 and 80, counted:
+- relays;
+- those whose blend `b` lies strictly between 0 and 1;
+- those whose parent's last growth unit is still growing in (extent below one);
+- those whose stand therefore falls on an ancestor axis.
+
+| Species, age | Relays | 0 < b < 1 | Last unit growing | Stand on an ancestor |
+|---|---|---|---|---|
+| beech 40 | 273 | 226 | 0 | 0 |
+| beech 80 | 2,444 | 1,106 | 7 | 7 |
+| birch 40 | 257 | 212 | 5 | 2 |
+| birch 80 | 2,496 | 2,143 | 27 | 10 |
+| oak 40 | 230 | 203 | 31 | 5 |
+| oak 80 | 1,180 | 1,018 | 185 | 22 |
+
+Spruce and palm grow no relays at either age.
+
+**C1. The carrier is not always the relay's parent.**
+- `stand` reads units "along the whole line of axes carried on, as one axis". When the parent's last unit is still growing in, it blends back toward the unit before, which can lie on the grandparent or further up the line. That happens to 7 relays of the beech at 80, 10 of the birch and 22 of the oak.
+- An attachment resolved there has a carrier span on an ancestor. But girth's and sag's upward pass, and both drawings, only attach a relay to its `Origin` parent.
+- **Option (a):** attach across axes. The relay's section enters the ancestor's sample, the whole parent axis becomes stub, and the drawing hangs the relay from the ancestor's run. This needs new handling in girth, sag, bounded girth, `converted` and the device.
+- **Option (b):** clamp the attachment to the parent's last unit. This changes the stand geometry for those growing relays.
+
+**C2. "Oak identical" cannot hold.**
+- The oak's `relay_at` is 1, so its relays stand at the parent's tip, and options 1 and 2 left the oak byte-identical.
+- Once the attachment includes the unit extent and blends along the carrier, every oak relay whose last unit is growing (185 at 80, 31 at 40) moves back to the unit before. That moves its girth and base too.
+- The birch also changes more widely than before: the chord blend by `b` becomes a blend along the carrier for its 2,143 partial blends at 80.
+- Spruce and palm have no relays and stay identical.
+
+**Two smaller points for the scope:**
+- **Contract-A geometry on the device.** `stand.wgsl` and `walk.wgsl` (`frame_of`) mirror `stand.rs` and `framed_q` op for op under contract A. A new attachment geometry means mirrored Q32 changes there too, on top of the device's girth, sag and dress.
+- **The closed form.** `closed_form/kept` (`path.rs`, `mass.rs`, `events.rs`) places relays in expectation from `relay_at` alone, for the size predictions. It cannot read a grown tree's attachment. I would leave it unchanged unless the host says otherwise.
+
+**Waiting for the host on:**
+- C1, option (a) or (b);
+- whether the oak and birch may change (C2);
+- confirmation that the device's contract-A geometry is in scope.
+
+No code is written.
