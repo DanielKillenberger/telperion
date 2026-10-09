@@ -45,6 +45,12 @@ pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
         words.extend(zone.sleeps.iter().map(|&s| u64::from(s)));
         let placed = words.len() as u32;
         words.extend(&zone.placed);
+        // Each fractional place's threshold's side of its lead
+        // (`zones.wgsl`, `place_q`), by the contract on the CPU (fn-241).
+        words.extend(zone.placed.iter().map(|&t| match t < 1 << 53 {
+            true => fixed::logit(t << 9) as u64,
+            false => 0,
+        }));
         let windows_asleep = words.len() as u32;
         for cycle in &zone.sleep_windows {
             words.extend(cycle.iter().map(|&w| w as u64));

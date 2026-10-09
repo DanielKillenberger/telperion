@@ -290,6 +290,32 @@ fn axis_ask(i: u32, j: u32) -> Ask {
     return no_ask();
 }
 
+// Axis `i`'s bud place as an ask under its threshold
+// (`lineage::place_presence`, fn-231): none for a whole place, whose
+// presence is whole.
+fn place_ask(i: u32) -> Ask {
+    var place = vec2<u32>(rd(i, ASKS + 3u), rd(i, ASKS + 4u));
+    var slot = (rd(i, KIND) >> 8u) & 0xffu;
+    if rd(i, ASKS) == WOKEN_ASKS {
+        // Its pend's place key and slot (`sleep`, `wakes`).
+        let q = rd(i, ASKS + 6u);
+        place = vec2<u32>(sleepers[q + 12u], sleepers[q + 13u]);
+        slot = sleepers[q + 5u];
+    }
+    let at = rd(i, ASKS + 1u);
+    var a = no_ask();
+    let t = words[table[at + 12u] + slot];
+    if !lt64(t, vec2<u32>(0u, 0x200000u)) {
+        return a;
+    }
+    a.go = true;
+    a.high = t;
+    a.d = draw(child(place, KEY_PLACED));
+    a.given = vec4<u32>(0u, 0u, words[table[at + 12u] + table[at + 4u] + slot]);
+    a.known = 2u;
+    return a;
+}
+
 // The presence the chain's growth recorded as its ask `r`: unit records'
 // first, three a unit, then the axes', two an axis, each into the unit's
 // fields or the axis's B0 and B1. No ask reads what another writes.
@@ -311,21 +337,23 @@ fn take_ask(r: u32) {
                 let rate = row(a.pa, 18u + 2u * a.stake);
                 window = window_q(wood, rate, row(a.pa, 19u + 2u * a.stake), span);
             }
-            p = presence(lead_q(a.low, a.high, a.d, a.given, a.known), window);
-            // A lateral's or a woken bud's place, a making draw over the
-            // same window (fn-231): the one `place_q` call site.
+            // The ask's lead, then a lateral's or a woken bud's place's, a
+            // making draw over the same window (fn-231): one `lead_q` and
+            // `presence` call site for both (fn-241 R3), the place's
+            // threshold's log-odds from the CPU.
             let i = (r - units) / 2u;
-            let placed = r >= units && (r - units) % 2u == 0u;
-            if placed && (rd(i, ASKS) == LATERAL_ASKS || rd(i, ASKS) == WOKEN_ASKS) {
-                var place = vec2<u32>(rd(i, ASKS + 3u), rd(i, ASKS + 4u));
-                var slot = (rd(i, KIND) >> 8u) & 0xffu;
-                if rd(i, ASKS) == WOKEN_ASKS {
-                    // Its pend's place key and slot (`sleep`, `wakes`).
-                    let q = rd(i, ASKS + 6u);
-                    place = vec2<u32>(sleepers[q + 12u], sleepers[q + 13u]);
-                    slot = sleepers[q + 5u];
+            let placed = r >= units && (r - units) % 2u == 0u
+                && (rd(i, ASKS) == LATERAL_ASKS || rd(i, ASKS) == WOKEN_ASKS);
+            var lead = a;
+            p = one32();
+            for (var k = 0u; k < 1u + u32(placed); k++) {
+                if k == 1u {
+                    lead = place_ask(i);
+                    if !lead.go {
+                        break;
+                    }
                 }
-                p = times_q(p, place_q(rd(i, ASKS + 1u), slot, place, window));
+                p = times_q(p, presence(lead_q(lead.low, lead.high, lead.d, lead.given, lead.known), window));
             }
         }
         if r < units {

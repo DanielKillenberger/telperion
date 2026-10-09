@@ -18,5 +18,6 @@ GPU process can take WebGPU away until a reboot (fn-235).
   (`generation::whole_tree`).
 - **A cold driver cache is part of the picture.** The NVIDIA driver caches
   compiled pipelines on disk; a fresh browser profile does not have them.
-  `every_pipeline_within_2_5_s_but_grow_within_20_s_and_the_first_tree_within_5_s_cold` builds
-  a first tree with the driver's cache off (`__GL_SHADER_DISK_CACHE=0`).
+  `every_pipeline_within_2_5_s_but_grow_within_20_s_cold` builds
+  a first tree with the driver's cache off (`__GL_SHADER_DISK_CACHE=0`)
+  and reports its cold total.

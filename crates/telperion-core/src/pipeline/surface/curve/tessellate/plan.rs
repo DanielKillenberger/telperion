@@ -131,7 +131,8 @@ impl Curve {
         twist * (b.along - a.along).abs() * depth.sqrt()
     }
 
-    fn lobe(&self) -> f64 {
+    /// The most a lobed ring stands out past its radius, as a factor of it.
+    pub fn lobe(&self) -> f64 {
         if self.lobes > 0 {
             1.0 + self.lobe_depth.abs()
         } else {

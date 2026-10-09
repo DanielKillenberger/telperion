@@ -1,0 +1,145 @@
+{
+  "branch_name": "fn-241-three-defects-found-on-the-way-to-the",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T03:59:19.656754Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-241-three-defects-found-on-the-way-to-the",
+  "impl_review_rounds": {
+    "fn-241-three-defects-found-on-the-way-to-the.1": 0
+  },
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T04:01:28.297446Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "ddb4548b7ffe087b881293f830176e6bad777f8fe18664ec07514f41353001a4",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5466fdbb45f99a95fa9a0ac66c8dbaec",
+            "classification": "introduced",
+            "findingId": "finding-5466fdbb45f99a95fa9a0ac66c8dbaec",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8fbd0fa78f66dc037099a6102639359459a4b0f1",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 267101,
+      "output_sha256": "9bf08f47f64dd636fcf1896094f8783292678b023bf22586e331872490739042",
+      "reservation_id": "cd6be2d7e2524920b6a560924593fd50",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T04:01:28.291794Z",
+      "tool_calls": 26,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4fad361cb10574e76582df6c37c9e8e5a31c4bb2c11ac0169c2862977f6ae646",
+      "backend": "codex",
+      "base_sha": "aab5f591073506c7aa4f1ba0d1ea584565e9f73f",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9da9b4465cd81302b9851e1748bbee54",
+            "classification": "introduced",
+            "findingId": "finding-9da9b4465cd81302b9851e1748bbee54",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9fbf033d001b454d71b29fb67e72f765",
+            "classification": "introduced",
+            "findingId": "finding-9fbf033d001b454d71b29fb67e72f765",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e621b93cdbd178b596f61755a122f9c85bb1294a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1706,
+      "output_sha256": "ee4bba980b6b7e615a3bedf23e99d6a6301fdbce3661341e2a9174c70f8963c9",
+      "reservation_id": "592a136280e34c0c8714c19833ce197c",
+      "round_consumed": true,
+      "scope": "impl:fn-241-three-defects-found-on-the-way-to-the.1",
+      "superseded_by": null,
+      "task": "fn-241-three-defects-found-on-the-way-to-the.1",
+      "timestamp": "2026-10-09T05:35:59.998526Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-241-three-defects-found-on-the-way-to-the.1": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-241-three-defects-found-on-the-way-to-the.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-241-three-defects-found-on-the-way-to-the.md",
+  "status": "done",
+  "title": "Three defects found on the way to the release",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T05:36:37.613232Z"
+}

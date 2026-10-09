@@ -83,7 +83,7 @@ impl Handoff {
         );
         let (sums, sags) = (sums?, sags?);
         let (twist, depth) = twisting(cpu);
-        let offsets = (p0 as u32, k0 as u32, twist, depth);
+        let offsets = (p0 as u32, k0 as u32, twist, depth, cpu.lobe());
         let all: [&wgpu::Buffer; 7] = [
             &swept.point_buffer,
             &swept.cluster_buffer,
@@ -131,7 +131,7 @@ impl Handoff {
         gpu: &Gpu,
         n: u32,
         groups: u32,
-        (p0, k0, twist, depth): (u32, u32, f64, f64),
+        (p0, k0, twist, depth, lobe): (u32, u32, f64, f64, f64),
     ) -> Result<Owned> {
         let most = gpu.device.limits().max_compute_workgroups_per_dimension;
         let row = groups.min(most) * 64;
@@ -142,7 +142,7 @@ impl Handoff {
             k0,
             (twist as f32).to_bits(),
             (depth as f32).to_bits(),
-            0,
+            (lobe as f32).to_bits(),
             0,
         ];
         let usage = wgpu::BufferUsages::UNIFORM;
