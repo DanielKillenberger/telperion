@@ -368,3 +368,95 @@ The jump is the clamp (C1). Where the parent's units are all still growing in, t
 1. **Keep the line walk for the stand's frame**, where it reaches an ancestor, and clamp only the position. The attachment's position on the parent would be the clamped `x`, while the frame (heading, side, rank) comes from the line as today. R3 likely holds; this is not yet run.
 2. **Clamp position and frame both**, and retire R3 for this case. That is an owner requirement, so it needs the owner's word.
 3. **Find the clamp's discontinuity and blend it in.** The cause is not yet traced past the bisection: about 30 to 60 minutes to locate.
+
+## Decision 4 built: the join node on both executors (2026-10-09)
+
+### What jumped at R3 (option 3, traced)
+
+At seed 3 the jump is at abortion −1.30412, branch `6c6a149a1d722e64`. The branch is a bud axis on the lateral `d6650740001263d7`.
+
+- **Before the crossing,** axis 921's cycle-9 unit (five phytomers at scale 0.0355, barely present) is its own last unit. The relay standing on it blends its stand back onto 921's whole cycle-8 unit.
+- **At the crossing,** a stop splits that cycle-9 unit off into a new, barely present relay (1187), and the next relay (1415) now stands on 1187.
+- **Read on 1187 alone (the clamp),** 1415's stand blends back to 1187's start instead of 921's cycle-8 unit. Its frame swings, and the lateral `d665…` on it moves 2 m.
+
+The value that switches is the fallback the stand blends from, when a stop hands the parent's growing unit to a new axis. It is not continuous in anything on the parent: the old unit's point lies on the grandparent, below the parent's start. So it cannot be blended inside a clamp to the parent.
+
+### The two-part attachment (option 1), and why
+
+`geometry/stand.rs` has two readings of the stand:
+- **`stand`, the frame.** It reads the whole line of carried-on axes as today, so the weight belongs to the unit and not to the axis holding it.
+- **`position`, where the relay joins.** It reads the parent's own units, back to the parent's start (C1). `geometry::attach` blends it towards the tip by `b`.
+
+With the clamped position and the line frame, R3 passes, R4 passes, and the position stays on the parent's wood.
+
+### What reads the attachment
+
+**CPU:**
+- the relay's base (`stand::at`);
+- girth, sag and bounded girth, which take `t` at the node whose span the relay stands in and the rest at the node before or the base;
+- girth also records `Axis::joined`: the node, `t`, the radius below and the radius above.
+- **The drawing** inserts the join while drawing the parent (`space/join.rs`). The join's identity is `JOIN` under the relay's first phytomer's key, because relays share their chain's lineage. The span above the join is drawn at `above`, and the stub turns aside from the join.
+
+**Device:**
+- `scales` resolves each relay's attachment once in Q32 (`S_ATTACH`).
+- `walk`, `girth` and `settle` read it.
+- `girth` writes the join's radii and key (`S_JOIN`).
+- `dress.wgsl` inserts a join record. Records are one per laid axis after the wave's phytomers, not one per relay: a relay's join record is its own axis's slot. That avoids a count pass, at 120 bytes per axis.
+- `KEY_JOIN` is mirrored in `lineage.wgsl`.
+- The scratch stride is 79.
+
+### Proof
+
+**Tests:**
+- fn-199 R3 and R4 pass unchanged.
+- The stem test (`relay_tests::a_stem_never_thickens_on_its_way_up`) and the stub test (`girth::tests::a_relays_wood_enters_where_it_joins_and_its_stub_carries_its_own`) were both red on base and pass now.
+- `form.rs`'s section sum and the node-identity test read the new rule.
+
+**Sheets** (`raw/sheets/ba3-*`, viewed; identity check in `raw/sheets/ba3-cmp.txt`):
+- The beech collars, the ordinary waists and terrace are gone, with no flange.
+- The crowns of the oak, birch, beech, ordinary and Two Trees differ only slightly at the bare view.
+- Palm and spruce are byte-identical. Birch is identical in 1 of 18 stills, and every other changed tree differs in all of its stills.
+
+**`space_hash`** (`clothed` hash and node count, base → fix; all-preset scratch copy of `space_hash`):
+
+| Tree | Hashes | Nodes |
+|---|---|---|
+| beech 40/1, 40/7, 80/1, 80/7 | changed | +108, +184, +1,173, +1,781 (the join nodes) |
+| oak, same four | changed | −303, −143, −1,545, −4,970 |
+| birch, same four | changed | −2, 0, +5, −15 |
+| ordinary, same four | changed | +2, +7, +62, +86 |
+| Laurelin and Telperion, same four | changed | as the beech |
+| spruce, palm | all identical | unchanged |
+
+**CPU against the device:** the render suite is green, including:
+- the realized tests, with base radii identical to the bit;
+- `dress_tests`;
+- `route_tests::the_device_path_draws_what_the_cpu_path_draws`;
+- the resident, placed, stations and sweep tests.
+
+**Sag** (length-weighted pitch in degrees; base → fix):
+- Beech limbs move by at most 0.12, and the stem pitch by at most 0.4 (40/7).
+- Ordinary moves by at most 0.04.
+- Birch moves by at most 0.05.
+
+**Closed form.** I compared each tree's kept phytomers, base against fix:
+- Every species with a prediction is unchanged: beech, birch, spruce and palm.
+- The oak, which reads light and has no prediction, moves by −328 and +27 at 80.
+- Ordinary has no prediction either, and its kept counts are unchanged.
+
+So the predicted-against-realized drift is unchanged. No walk or census bound moved.
+
+**The gate,** per package:
+
+| Package | Passed |
+|---|---|
+| core | 454 |
+| space | 222 |
+| wasm | 6 |
+| field | 7 |
+| jev | 389 |
+| render | 222 |
+
+npm test: 154 passed.
+
+**Cost.** The `girths` pipeline first compiled cold at 4.5 s, over the hang test's 2.5 s bound, while it carried the attachment twice. Resolving the attachment once in `scales` brought it back under the bound.

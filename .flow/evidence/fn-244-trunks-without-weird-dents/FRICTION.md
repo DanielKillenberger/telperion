@@ -39,3 +39,22 @@ The third decision (insert a drawn node) assumed:
 Checking took about 15 minutes, before any code. Over the run, three decision rounds have each found the next constraint only after the decision.
 
 - **What would remove it:** before deciding, the host asks for a 10-minute "where would this land" check of each named file: who reads the value, the record layout, and the order invariants. This is the check AGENTS.md asks for an architecture claim.
+
+## 2026-10-09: The command hook rejects ordinary heredocs and variable redirects
+
+Writing the device code, the `dcg` hook blocked:
+- heredocs whose WGSL contains backticks ("embedded shell launcher");
+- redirects to `$S/...` paths.
+
+I moved each edit into a script file. About 10 minutes over the build. This is local setup, reported and not specced.
+
+## 2026-10-09: A device layout change has no single place to update
+
+Widening the per-axis scratch meant editing the stride in five places:
+- `geometry.wgsl`, `dress.wgsl`, `emit.wgsl` and `record.wgsl`;
+- `laid.rs`, test-only.
+
+A missed one corrupts silently: the suite catches it, but only after a full GPU run.
+
+- **Cost:** about 5 minutes, plus one cold-compile surprise (`girths` at 4.5 s against the 2.5 s bound).
+- **What would remove it:** one generated constants block shared by the shaders, as `lineage.wgsl` is for the keys.
