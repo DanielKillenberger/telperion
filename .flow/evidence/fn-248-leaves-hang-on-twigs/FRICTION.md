@@ -16,3 +16,4 @@
 ## 2026-10-09, task 1 (density)
 
 - **One density trial ran for 15 minutes and was killed without a number.** The trial was three buds a node on Laurelin's fine ages. The CPU build grows the tree past the browser's phytomer ceiling, because a trial that runs outside the browser has no expected-count refusal. Cost: 15 minutes. What would remove it: give `twig_layer` the browser's `KEPT` ceiling so an over-ceiling trial is refused in seconds, the way the harness refuses it.
+- **The Wasm bound was set from a mean, not from the preset's own tree.** Telperion's age of 88 was chosen from `expected_kept`, a mean over seeds (3.67M). The preset grows at seed 42, which keeps 4.30M nodes at 88, so `npm test` failed again. Cost: one round of gate, npm test and write-up, about 20 minutes. What would remove it: a small check that grows each shipped preset at its own seed against `WASM_KEPT`, run before npm test, or an `expected_kept` that takes the seed.
