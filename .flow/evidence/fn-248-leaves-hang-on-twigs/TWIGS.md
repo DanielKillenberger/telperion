@@ -114,3 +114,24 @@ Proof for parts 1 and 2:
 - then the gate, npm test and impl-review.
 
 Keep the task open for the owner.
+
+## Before part 1: what the code says (worker, 2026-10-09)
+
+I read the files that part 1 touches before building anything:
+
+- the conversion, `pipeline/space.rs`;
+- the leaf plan, stations and placement: `foliage/plan.rs`, `station.rs`, `placement.rs`;
+- on the device: `dress.wgsl`, `stations.wgsl` and the draws in `pack.wgsl`;
+- the beech's PA 14 rows and their sources (fn-193 `SOURCES.md`).
+
+None of it contradicts the decision. Six points do decide how part 1 gets built:
+
+1. **Retention must reach the counts, not only the placement.** The plan's descriptors, `leaves_on`, the instance reservation and the device's `measure` all count stations "before any cull", and the field is built from those counts. If retention only removed leaves at placement, the field would count about five times the beech's real leaves. Retention therefore goes into every count as well, and the counts become the kept stations.
+2. **A dropped station keeps its draws.** Both executors draw a leaf's values from its run's stream by ordinal: the CPU's `Rng` is a Weyl counter, and the device uses `random(key, ordinal)`. If a dropped station still consumes its draws, every leaf that stays keeps its own draws and keys. Fading in then changes only the leaves it drops, and at the unbounded default nothing moves.
+3. **Mixed ages inside one node are rare but real.** In the beech at 80 (seed 1), 15,485 of 1,540,442 drawn nodes merge several phytomers, and 2,834 of them (0.18%) merge phytomers of different cycles. Each of those needs its age spans recorded: the length in whole micrometres where its age changes, plus its youngest cycle. That is two more words per node on both executors. On the device this means the 30-word conversion record (`CV`) and the 31-word sweep node (`NW`).
+   - **Rounding risk:** each span boundary is a partial sum that the CPU takes in f64 and the device in f32. Where the fn-222 spread factor applies, that sum is not an exact multiple, so on a station lying within about 1 µm of a boundary the two executors could assign different ages. The parity test will show whether this ever happens.
+4. **A fraction is drawn against a whole-number threshold.** A retention strictly between 0 and 1 falls on one age only: floor(`leaf_years`). The CPU will hand each PA that age and its retention as a Q32 threshold (decision 8), so the f32 device and the f64 CPU compare one integer. The `leaf_years` row mixes on the `Kept` scale, which already carries an unbounded value.
+5. **Short shoots already keep their tip cluster for life.** The conversion seats a cluster at a short shoot's tip whatever its age. The beech's PA 14 grows once (`continuation` 0, 3 to 5 nodes 6 mm apart) and lives 3 years, so it bears its cluster in each of those years. That is the stated rule. Setting a cluster on PA 14 also stops it bearing leaves along its 6 mm nodes in its first year.
+6. **The count of 3 comes from a metamer count.** [LET] gives a short shoot "usually 3 or 4" metamers and uses 3. The beech bears one leaf per node, two-ranked ([M98]), so its leaves per short shoot are 3. That is an inference from a sourced metamer count, and it will be recorded as such. The cluster's spread angle has no source and will be marked estimated.
+
+The scope is large: an engine row, the conversion on both executors, the plan, station and placement counts, the device's stations, and parity tests.
