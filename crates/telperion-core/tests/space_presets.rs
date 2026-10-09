@@ -15,7 +15,7 @@ use telperion_space::{
 
 /// The species each engine preset states, as the tree-space examples grew it
 /// (`crates/telperion-render/examples/space_*.rs`, BASELINE.md's oak light).
-fn engine() -> [(Preset, Species, Vec<usize>, Light); 5] {
+fn engine() -> [(Preset, Species, Vec<usize>, Light); 6] {
     let oak_light = Light {
         extinction: 0.5,
         sky: 0.5,
@@ -35,8 +35,9 @@ fn engine() -> [(Preset, Species, Vec<usize>, Light); 5] {
         ),
         (Preset::OregonWhiteOak, oak(), vec![2, 3, 4], oak_light),
         (Preset::DatePalm, palm(), vec![2], Light::NEUTRAL),
-        // Laurelin's natural base is the beech (fn-218).
+        // The Two Trees' natural base is the beech (fn-218, fn-219).
         (Preset::Laurelin, beech(), vec![2, 4, 5], Light::NEUTRAL),
+        (Preset::Telperion, beech(), vec![2, 4, 5], Light::NEUTRAL),
     ]
 }
 
@@ -51,7 +52,7 @@ fn every_engine_preset_carries_the_engines_species() {
 
 #[test]
 fn a_preset_without_an_engine_species_carries_none() {
-    for preset in [Preset::SilverBirch, Preset::Telperion] {
+    for preset in [Preset::SilverBirch] {
         assert_eq!(preset.parameters().space, Space::default(), "{preset:?}");
     }
 }

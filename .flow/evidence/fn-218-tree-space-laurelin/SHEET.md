@@ -8,7 +8,7 @@ The raw stills are in `raw/` (ignored). The final round is `raw/r8/`. Each sheet
 The stills come from this command, run from the worktree root:
 
 ```
-target/ci/examples/space_laurelin <out> 80 <seed>
+target/ci/examples/space_two_trees laurelin <out> 80 <seed>   # space_laurelin when this sheet was made
 ```
 
 I viewed every still on the final sheets: seeds 1, 7 and 42, where 42 is the preset's default seed. Astra's readings are in `astra/`.
@@ -19,7 +19,7 @@ I viewed every still on the final sheets: seeds 1, 7 and 42, where 42 is the pre
 
 **Why age 80.** At 40 the beech is a 10 m sapling (`raw/r1`). At 80 it is a broad dome 18 m tall and 19 m across, the "old beech" the brief asks for.
 
-**Off is the beech.** `supernatural::tests::laurelin_with_her_group_off_is_the_beech` shows that Laurelin with her group off hashes to the beech's mesh to the byte at the same age. With the group on, the hash differs.
+**Off is the beech.** `supernatural::tests::the_two_trees_with_the_group_off_are_the_beech` (named `laurelin_with_her_group_off_is_the_beech` when this sheet was made) shows that Laurelin with her group off hashes to the beech's mesh to the byte at the same age. With the group on, the hash differs.
 
 | Group row | Value | Why |
 |---|---|---|

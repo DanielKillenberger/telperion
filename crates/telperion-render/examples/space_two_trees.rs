@@ -1,10 +1,11 @@
-//! Laurelin's sheet (fn-218 R2): the laurelin preset through the one
-//! pipeline and the headless renderer, with the supernatural group off (an
-//! old beech) and on (the golden tree), each at the whole-tree, mid and
-//! close views. Writes `laurelin-<age>-<seed>-<off|on>-<view>.png` and
-//! prints each tree's build cost and size.
+//! The Two Trees' sheets (fn-218 R2, fn-219 R2): the laurelin or telperion
+//! preset through the one pipeline and the headless renderer, with the
+//! supernatural group off (an old beech) and on (the legendary tree), each
+//! at the whole-tree, mid and close views. Writes
+//! `<tree>-<age>-<seed>-<off|on>-<view>.png` and prints each tree's build
+//! cost and size.
 //!
-//!   cargo run --profile ci -p telperion-render --example space_laurelin -- <out dir> <age> [seed]
+//!   cargo run --profile ci -p telperion-render --example space_two_trees -- <tree> <out dir> <age> [seed]
 use std::time::Instant;
 use telperion_core::{
     math::Vec3, mesh::TreeMesh, pipeline::executor, presets::Preset, surface::Bounds,
@@ -20,8 +21,13 @@ const SUN: (f64, f64) = (115.0, 60.0);
 
 fn main() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let [out, age, rest @ ..] = &args[..] else {
-        return Err("usage: space_laurelin <out dir> <age> [seed]".into());
+    let [tree, out, age, rest @ ..] = &args[..] else {
+        return Err("usage: space_two_trees <laurelin|telperion> <out dir> <age> [seed]".into());
+    };
+    let preset = match tree.as_str() {
+        "laurelin" => Preset::Laurelin,
+        "telperion" => Preset::Telperion,
+        _ => return Err(format!("{tree} is not one of the Two Trees")),
     };
     let age: f64 = age.parse().map_err(|e| format!("age {age}: {e}"))?;
     let seed: u32 = rest
@@ -31,7 +37,7 @@ fn main() -> Result<(), String> {
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     for on in [false, true] {
-        let mut family = Preset::Laurelin.parameters();
+        let mut family = preset.parameters();
         (family.age, family.skeleton.seed) = (age, seed);
         family.supernatural.enabled = on;
         let started = Instant::now();
@@ -72,7 +78,7 @@ fn main() -> Result<(), String> {
                 ..SceneRow::default()
             });
             let still = render(&mut renderer, camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;
-            let file = format!("{out}/laurelin-{age}-{seed}-{group}-{view}.png");
+            let file = format!("{out}/{tree}-{age}-{seed}-{group}-{view}.png");
             write_png(std::path::Path::new(&file), &still).map_err(|e| e.to_string())?;
         }
     }

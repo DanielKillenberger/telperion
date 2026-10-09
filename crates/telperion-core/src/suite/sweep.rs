@@ -73,11 +73,13 @@ const SWEEP_NODES: usize = 8_000;
 // fn-221's six old-bark rows are stated by no preset yet (fn-213 owns the
 // birch's), so every table leaves them at their neutral and they are held.
 // fn-217's supernatural group is off on every preset the sweep walks but
-// Laurelin (fn-218), which states its scale, leaves and racemes, and the
-// petals' colours: the sweep walks those. The rows she leaves unset (the
-// silver underside, the other ages' flowering, the window in the year) are
-// held.
-const HELD: [&str; 117] = [
+// the Two Trees (fn-218, fn-219), which state its scale, leaves, silver
+// underside (Telperion), florets and the petals' colours: the sweep walks
+// those. The rows both leave unset (the other ages' flowering, the window
+// in the year) are held. Telperion now stands on the beech's rows (fn-219),
+// so the scaffold's envelope, growth, writhe, twig and surface rows only
+// his old table moved are held with the rest of the scaffold.
+const HELD: [&str; 149] = [
     "/bloom/florets",
     "/bloom/rachis",
     "/bloom/droop",
@@ -174,10 +176,6 @@ const HELD: [&str; 117] = [
     "/surface/forkSocket",
     "/surface/forkSwell",
     "/surface/radialSegments",
-    "/supernatural/backReflectance",
-    "/supernatural/backRed",
-    "/supernatural/backGreen",
-    "/supernatural/backBlue",
     "/supernatural/bloom/opens",
     "/supernatural/bloom/lasts",
     "/supernatural/bloom/stagger",
@@ -195,6 +193,42 @@ const HELD: [&str; 117] = [
     "/supernatural/flowering/age11",
     "/supernatural/flowering/age12",
     "/supernatural/flowering/age13",
+    "/canopy/clump",
+    "/canopy/clumpSpan",
+    "/canopy/spacing",
+    "/material/peelBlue",
+    "/material/peelCurl",
+    "/material/peelGreen",
+    "/material/peelRed",
+    "/skeleton/attractors",
+    "/skeleton/bias/supernatural/enabled",
+    "/skeleton/bias/supernatural/spiralRate",
+    "/skeleton/bias/supernatural/writheAmplitude",
+    "/skeleton/bias/supernatural/writheWavelength",
+    "/skeleton/envelope/crownBase",
+    "/skeleton/envelope/fullness",
+    "/skeleton/envelope/height",
+    "/skeleton/envelope/irregularity",
+    "/skeleton/envelope/lobeScale",
+    "/skeleton/envelope/shoulder",
+    "/skeleton/envelope/spread",
+    "/skeleton/growth/maxTurnPerStep",
+    "/skeleton/habit/codominance",
+    "/skeleton/habit/forkDivergence",
+    "/skeleton/habit/forkHeight",
+    "/skeleton/habit/forkLean",
+    "/skeleton/habit/forkLeanSpread",
+    "/skeleton/twigs/curtainClearance",
+    "/skeleton/twigs/curtainDrop",
+    "/skeleton/twigs/curtainSeparation",
+    "/skeleton/twigs/internodeFactor",
+    "/skeleton/twigs/pendulousLength",
+    "/skeleton/twigs/pendulousVariation",
+    "/skeleton/twigs/sag",
+    "/skeleton/twigs/twig/length",
+    "/surface/lobeDepth",
+    "/surface/lobes",
+    "/surface/twistRate",
 ];
 
 fn family(id: &str) -> Family {

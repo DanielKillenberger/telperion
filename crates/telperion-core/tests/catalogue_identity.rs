@@ -117,6 +117,9 @@
 //! override and refusal digests are fn-218's, and every engine preset's
 //! grown tree (`space_hash`, four species at 40 and 80, seeds 1 and 7) was
 //! F4's to the bit (MERGE-231.md, MERGE-217.md).
+//! fn-219 re-pinned the family and walk digests for Telperion's new rows:
+//! the beech's, at 110, with the supernatural group on. The override and
+//! refusal digests are unchanged.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -152,7 +155,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        7_891_060_172_919_121_741,
+        12_076_069_187_600_871_238,
         "{}",
         digest(&text)
     );
@@ -184,7 +187,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        4_122_176_118_329_417_092,
+        1_518_075_726_191_459_467,
         "{}",
         digest(&text)
     );

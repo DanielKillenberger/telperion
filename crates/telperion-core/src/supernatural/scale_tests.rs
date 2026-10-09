@@ -156,6 +156,17 @@ fn laurelin_contact_at_her_scale() {
     );
 }
 
+/// Telperion at his own age and scale (fn-219 R3), as Laurelin's above.
+#[test]
+#[ignore = "measurement: the telperion preset at 110, twenty-four million leaves"]
+fn telperion_contact_at_his_scale() {
+    let f = Preset::Telperion.parameters();
+    contact(
+        &f,
+        &format!("telperion {} at scale {}", f.age, f.supernatural.scale),
+    );
+}
+
 /// Builds `f` with its leaves' transforms recorded, holds every packed
 /// position to half its box's step, and prints the worst error against the
 /// smallest leaf.

@@ -154,22 +154,24 @@ fn a_family_with_the_group_off_draws_its_base_species_to_the_byte() {
     assert_ne!(mesh(&on), base);
 }
 
-/// Laurelin with her group off is the beech (fn-218 R2): every natural row
-/// of hers is the beech preset's but her age, so at one age the two draw
-/// the same tree to the byte, and her group changes it.
+/// Each of the Two Trees with the group off is the beech (fn-218 R2,
+/// fn-219 R2): every natural row of theirs is the beech preset's but the
+/// age, so at one age each draws the beech's tree to the byte, and the
+/// group changes it.
 #[cfg(feature = "geometry")]
 #[test]
-fn laurelin_with_her_group_off_is_the_beech() {
-    let (mut laurelin, mut beech) = (
-        Preset::Laurelin.parameters(),
-        Preset::EuropeanBeech.parameters(),
-    );
-    (laurelin.age, beech.age) = (12.0, 12.0);
-    laurelin.supernatural.enabled = false;
+fn the_two_trees_with_the_group_off_are_the_beech() {
+    let mut beech = Preset::EuropeanBeech.parameters();
+    beech.age = 12.0;
     let base = mesh(&beech);
-    assert_eq!(mesh(&laurelin), base);
-    laurelin.supernatural.enabled = true;
-    assert_ne!(mesh(&laurelin), base);
+    for preset in [Preset::Laurelin, Preset::Telperion] {
+        let mut tree = preset.parameters();
+        tree.age = 12.0;
+        tree.supernatural.enabled = false;
+        assert_eq!(mesh(&tree), base, "{preset:?}");
+        tree.supernatural.enabled = true;
+        assert_ne!(mesh(&tree), base, "{preset:?}");
+    }
 }
 
 /// A hash of everything `f`'s mesh holds.

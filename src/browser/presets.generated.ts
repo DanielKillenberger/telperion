@@ -4323,7 +4323,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
   {
     "abiId": 1,
     "family": {
-      "age": 100,
+      "age": 110,
       "bloom": {
         "droop": 0,
         "florets": 1,
@@ -4350,12 +4350,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "acanthophyllLength": 0.35,
         "acanthophyllPitch": 80,
         "acanthophylls": 0,
-        "clump": 6,
+        "clump": 5,
         "clumpNeighbours": 12,
-        "clumpSpan": 0.28,
+        "clumpSpan": 0.3,
         "clumpSystemOrder": 2,
-        "divergence": 137.508,
-        "forwardLean": 0,
+        "divergence": 180,
+        "forwardLean": 0.1,
         "leafBaseFlatness": 0,
         "leafBaseLength": 0,
         "leafBasePitch": 60,
@@ -4368,7 +4368,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leanRise": 0,
         "limbClumping": 0,
         "maxInstances": 4294967295,
-        "outward": 0.42,
+        "outward": 0,
         "rachisArch": 0,
         "rachisLength": 0,
         "rosetteDepth": 0,
@@ -4376,106 +4376,106 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "rosetteFronds": 0,
         "rosettePitch": 45,
         "rosettePitchSpread": 60,
-        "scatter": 14,
-        "shootRadius": 0,
-        "size": 1,
-        "sizeVariation": 0.28,
+        "scatter": 80,
+        "shootRadius": 0.018,
+        "size": 1.1,
+        "sizeVariation": 0.12,
         "skirtFronds": 0,
         "skirtLength": 0.8,
         "skirtPitch": 140,
-        "spacing": 0.0045,
+        "spacing": 0.006,
         "surfaceContact": 0,
         "terminalLeaflet": 0,
-        "upward": 0.55
+        "upward": 0.3
       },
       "element": {
-        "axialSegments": 5,
-        "baseFullness": 0.85,
+        "axialSegments": 8,
+        "baseFullness": 0.75,
         "card": false,
-        "connectorLength": 0.01,
+        "connectorLength": 0.008,
         "crossSegments": 2,
         "cup": 0.18,
         "curl": 0.12,
-        "length": 0.12,
+        "length": 0.08,
         "lobeCount": 0,
         "lobeDepth": 0,
         "sectionRoundness": 0,
-        "tipSharpness": 1.6,
-        "widestAt": 0.42,
-        "width": 0.06
+        "tipSharpness": 0.7,
+        "widestAt": 0.45,
+        "width": 0.05
       },
       "material": {
-        "barkBlue": 0.068,
-        "barkGrainScale": 0,
-        "barkGrainStrength": 0,
-        "barkGreen": 0.105,
-        "barkMottleScale": 0,
-        "barkMottleStrength": 0.05,
-        "barkRed": 0.147,
+        "barkBlue": 0.0165,
+        "barkGrainScale": 0.002,
+        "barkGrainStrength": 0.3,
+        "barkGreen": 0.04,
+        "barkMottleScale": 0.12,
+        "barkMottleStrength": 0.04,
+        "barkRed": 0.04,
         "barkReflectance": 0.04,
-        "barkRoughness": 0.8,
-        "bladeGrainScale": 0,
-        "bladeGrainStrength": 0,
-        "bladeMottleScale": 0,
-        "bladeMottleStrength": 0.04,
-        "bloomBackBlue": 0.64,
-        "bloomBackGreen": 0.72,
-        "bloomBackRed": 0.72,
-        "bloomEyeBlue": 0.02,
-        "bloomEyeGreen": 0.1,
-        "bloomEyeRed": 0.12,
-        "bloomEyeShare": 0,
-        "bloomFrontBlue": 0.74,
-        "bloomFrontGreen": 0.8,
-        "bloomFrontRed": 0.82,
-        "brightnessRangeHigh": 0.12,
-        "brightnessRangeLow": -0.12,
-        "canopyNormal": 0,
-        "cavityStrength": 0.2,
-        "crestBlue": 0,
-        "crestGreen": 0,
-        "crestRed": 0,
-        "crestStrength": 0.1,
-        "crownShade": 0,
-        "cuticleGloss": 0.25,
+        "barkRoughness": 0.95,
+        "bladeGrainScale": 90,
+        "bladeGrainStrength": 0.3,
+        "bladeMottleScale": 5,
+        "bladeMottleStrength": 0.1,
+        "bloomBackBlue": 0.73,
+        "bloomBackGreen": 0.68,
+        "bloomBackRed": 0.66,
+        "bloomEyeBlue": 0.58,
+        "bloomEyeGreen": 0.5,
+        "bloomEyeRed": 0.45,
+        "bloomEyeShare": 0.3,
+        "bloomFrontBlue": 0.81,
+        "bloomFrontGreen": 0.77,
+        "bloomFrontRed": 0.75,
+        "brightnessRangeHigh": 0.1,
+        "brightnessRangeLow": -0.1,
+        "canopyNormal": 0.8,
+        "cavityStrength": 0.35,
+        "crestBlue": 0.045,
+        "crestGreen": 0.055,
+        "crestRed": 0.06,
+        "crestStrength": 0,
+        "crownShade": 0.1,
+        "cuticleGloss": 0.18,
         "depthStrength": 0,
-        "diffuseTransmission": 0,
+        "diffuseTransmission": 1,
         "directionalOcclusion": 0,
-        "fissureBlue": 0,
-        "fissureGreen": 0,
-        "fissureRed": 0,
-        "fissureStrength": 0.12,
-        "furrowStrength": 1,
-        "hueRangeHigh": 0.03,
-        "hueRangeLow": -0.03,
-        "interiorDarkening": 0.5,
-        "leafBackBlue": 0.07,
-        "leafBackGreen": 0.24,
-        "leafBackRed": 0.105,
+        "fissureBlue": -0.02,
+        "fissureGreen": -0.03,
+        "fissureRed": -0.04,
+        "fissureStrength": 0,
+        "furrowStrength": 0,
+        "hueRangeHigh": 0.02,
+        "hueRangeLow": -0.02,
+        "interiorDarkening": 0.35,
+        "leafBackBlue": 0.0114,
+        "leafBackGreen": 0.0307,
+        "leafBackRed": 0.037,
         "leafDeadBlue": 0.18,
         "leafDeadGreen": 0.25,
         "leafDeadRed": 0.3,
-        "leafFrontBlue": 0.036,
-        "leafFrontGreen": 0.195,
-        "leafFrontRed": 0.068,
+        "leafFrontBlue": 0.0067,
+        "leafFrontGreen": 0.0158,
+        "leafFrontRed": 0.021,
         "leafReflectance": 0.04,
-        "leafSheen": 0,
-        "lenticelDensity": 0,
-        "lenticelLength": 0,
-        "lenticelStrength": 0,
-        "lenticelTint": 0,
-        "lichenBlue": 0,
-        "lichenCoverage": 0,
-        "lichenGreen": 0,
-        "lichenRed": 0,
-        "lichenScale": 0,
-        "lichenStrength": 0,
-        "lightWrap": 0,
-        "lobeShade": 0,
-        "marginBlue": 0,
-        "marginGreen": 0,
-        "marginRed": 0,
-        "marginWidth": 0,
+        "leafSheen": 0.08,
+        "lenticelDensity": 6,
+        "lenticelLength": 0.08,
+        "lenticelStrength": 0.1,
+        "lenticelTint": -0.3,
+        "lichenBlue": 0.76,
+        "lichenCoverage": 0.1,
+        "lichenGreen": 0.82,
+        "lichenRed": 0.8,
+        "lichenScale": 0.04,
+        "lichenStrength": 0.3,
+        "lightWrap": 0.4,
+        "lobeShade": 0.7,
+        "marginBlue": 0.008,
+        "marginGreen": 0.04,
+        "marginRed": 0.02,
+        "marginWidth": 0.04,
         "matureBlue": 0.068,
         "matureFurrowStrength": 1,
         "matureGreen": 0.105,
@@ -4497,21 +4497,21 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateElongation": 0,
         "plateFurrowWidth": 0,
         "plateIdentity": 0,
-        "plateScale": 0,
-        "ridgeScale": 0,
-        "roughnessDetail": 0,
-        "shootBlue": 0.068,
-        "shootGreen": 0.105,
-        "shootRadius": 0,
-        "shootRed": 0.147,
-        "skyOcclusionStrength": 0.2,
-        "thickness": 1,
-        "transmissionBlue": 0.1,
-        "transmissionGreen": 0.6,
-        "transmissionRed": 0.3,
-        "transmissionStrength": 0,
-        "veinContrast": 0,
-        "veinScale": 8,
+        "plateScale": 1,
+        "ridgeScale": 0.002,
+        "roughnessDetail": 0.08,
+        "shootBlue": 0.085,
+        "shootGreen": 0.13,
+        "shootRadius": 0.004,
+        "shootRed": 0.14,
+        "skyOcclusionStrength": 0.35,
+        "thickness": 0.6,
+        "transmissionBlue": 0.08,
+        "transmissionGreen": 0.5,
+        "transmissionRed": 0.22,
+        "transmissionStrength": 0.5,
+        "veinContrast": 0.4,
+        "veinScale": 7,
         "weatheringBlue": 0,
         "weatheringGreen": 0,
         "weatheringRed": 0,
@@ -4519,84 +4519,84 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       },
       "radii": {
         "forkBalance": 1,
-        "forkExponent": 2.15,
+        "forkExponent": 2.9,
         "girthFall": 2,
         "girthHold": 0,
         "lateralShare": 1,
-        "lengthTaper": 0.75,
+        "lengthTaper": 0.2,
         "maxTaperExponent": 12,
-        "trunkRadius": 0.05
+        "trunkRadius": 0.016
       },
-      "shellDepth": 0.45,
+      "shellDepth": 1,
       "skeleton": {
-        "attractors": 1600,
+        "attractors": 500,
         "bias": {
-          "gravitropism": 0.95,
-          "lean": 0.04,
+          "gravitropism": 0,
+          "lean": 0,
           "supernatural": {
-            "enabled": true,
+            "enabled": false,
             "maxWritheMagnitude": 0.9,
-            "spiralRate": 2.6,
-            "writheAmplitude": 0.11,
-            "writheWavelength": 0.34
+            "spiralRate": 0,
+            "writheAmplitude": 0,
+            "writheWavelength": 0.45
           }
         },
         "envelope": {
-          "crownBase": 0.38,
-          "fullness": 0.58,
-          "height": 148,
+          "crownBase": 0.3,
+          "fullness": 0.45,
+          "height": 24,
           "irregularity": 0,
           "lobeScale": 0.5,
-          "shoulder": 1.5,
-          "spread": 0.24
+          "shoulder": 2.2,
+          "spread": 0.3
         },
         "growth": {
-          "maxTurnPerStep": 26
+          "maxTurnPerStep": 35
         },
         "habit": {
-          "apicalDominance": 0.15,
-          "attractorWeight": 1,
+          "apicalDominance": 0.8,
+          "attractorWeight": 0,
           "codominance": 0,
-          "crookedness": 12,
+          "crookedness": 3,
           "forkDivergence": 90,
           "forkHeight": 0,
           "forkHeightSpread": 0,
           "forkLean": 26,
           "forkLeanSpread": 0,
           "forkWays": 2,
-          "lateralLengthRatio": 0.45,
+          "lateralLengthRatio": 0.65,
           "lateralOrders": 3,
-          "lateralPitch": 60,
-          "lateralSpacing": 10,
-          "lateralsPerStation": 4,
-          "leaderInternode": 10,
+          "lateralPitch": 28,
+          "lateralSpacing": 2,
+          "lateralsPerStation": 2,
+          "leaderInternode": 2.6,
           "pitchByHeight": 0,
-          "pitchVariation": 15,
+          "pitchVariation": 6,
           "raggedReach": 0,
           "reachProbeSteps": 96,
-          "risePrimary": 0.05,
+          "risePrimary": 0.1,
           "riseSecondary": 0,
-          "sheddingThreshold": 0.45,
-          "twigTipTaper": 1,
-          "whorlStrength": 0.2
+          "sheddingThreshold": 0,
+          "twigTipTaper": 0.25,
+          "whorlStrength": 0.15
         },
         "samplingAttemptsPerAttractor": 64,
-        "seed": 1,
+        "seed": 42,
         "step": 0.022,
         "twigs": {
-          "angle": 45,
+          "angle": 40,
           "angleVariation": 10,
           "curtainClearance": 0.5,
           "curtainDrop": 0,
           "curtainSeparation": 4,
           "curtainStepClearance": 0.8,
-          "divergence": 137.508,
-          "generations": 6,
+          "divergence": 137.5,
+          "generations": 2,
           "hang": 0,
-          "internodeFactor": 3.5,
+          "internodeFactor": 2.5,
           "laterals": 4,
-          "lengthRatio": 0.4,
-          "limbRadius": 0.1,
+          "lengthRatio": 0.23,
+          "limbRadius": 0.28,
           "maxDroop": 0.35,
           "maxInternodes": 32,
           "pendulousLength": 0.25,
@@ -4606,39 +4606,474 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "reach": 0.2,
           "sag": 0,
           "twig": {
-            "bearingDiameter": 0.05,
+            "bearingDiameter": 0.03,
             "diameter": 0.005,
-            "internodeLength": 0.02,
-            "length": 0.5,
+            "internodeLength": 0.006,
+            "length": 0.25,
             "stationsPerInternode": 1
           },
           "vigourVariation": 0.15
         }
       },
+      "space": {
+        "ages": {
+          "2": {
+            "abortion": 0.5,
+            "divergence": 2.4,
+            "epitony": 0.6,
+            "erection": 0.1,
+            "form": {
+              "elevation": 1.4,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "plane": 1.5707963267948966,
+              "tropism": 0.6,
+              "wander": 0.2
+            },
+            "insertion": 0.3,
+            "internode": 0.07,
+            "lifespan": 9,
+            "relay": 1,
+            "relayAt": 0.15,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "straightening": 1,
+            "trunk": true,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 4,
+                  "min": 3
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.35
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.8
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "4": {
+            "abortion": 0.3,
+            "epitony": 0.6,
+            "form": {
+              "elevation": 1.35,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "ripening": 15,
+              "roll": 1.2,
+              "tropism": 0.6,
+              "wander": 1.2
+            },
+            "insertion": 0.7,
+            "lifespan": 40,
+            "relay": 1,
+            "relayAt": 0.15,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "straightening": 1,
+            "trunk": true,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.27,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.3,
+                  "7": 0.2
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "5": {
+            "continuation": 0,
+            "divergence": 2.4,
+            "form": {
+              "elevation": 1.5707963267948966,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "plane": 1.5707963267948966,
+              "tropism": 0.3,
+              "wander": 0.2
+            },
+            "lifespan": 2,
+            "trunk": true,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.3,
+                  "7": 0.5
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "6": 0.9
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "6": {
+            "abortion": 0.3,
+            "continuation": 0,
+            "epitony": 0.6,
+            "form": {
+              "elevation": 0.3,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "ripening": 15,
+              "roll": 1.2,
+              "tropism": 0.6,
+              "wander": 1.2
+            },
+            "insertion": 0.7,
+            "lifespan": 70,
+            "relay": 1,
+            "relayAt": 0.15,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "straightening": 0.6,
+            "viability": 0.995,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.27,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "7": 0.16
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "7": {
+            "abortion": 0.35,
+            "continuation": 0,
+            "epitony": 0.6,
+            "form": {
+              "elevation": 0.2,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "ripening": 15,
+              "roll": 1.2,
+              "tropism": 0.6,
+              "wander": 1.2
+            },
+            "insertion": 0.7,
+            "lifespan": 30,
+            "relay": 1,
+            "relayAt": 0.15,
+            "relayEnded": 1,
+            "relayFailed": 1,
+            "straightening": 0.6,
+            "viability": 0.995,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.27,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "8": 0.14
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "8": {
+            "continuation": 0,
+            "form": {
+              "elevation": 0.6,
+              "exponent": 2.6,
+              "pipe": 0.008,
+              "ripening": 15,
+              "roll": 1.2,
+              "tropism": 0.25,
+              "wander": 1.2
+            },
+            "insertion": 0.7,
+            "lifespan": 25,
+            "straightening": 0.25,
+            "viability": 0.995,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.27,
+                  "14": 0.3
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.45
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "9": {
+            "form": {
+              "elevation": 0.35,
+              "pipe": 0.0009,
+              "roll": 1.2,
+              "tropism": 0.8,
+              "wander": 0.5
+            },
+            "insertion": 1,
+            "internode": 0.03,
+            "lifespan": 10,
+            "shedding": 1,
+            "viability": 0.95,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "14": 0.7
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              },
+              "2": {
+                "buds": 1,
+                "lateral": {
+                  "9": 0.08
+                },
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "3": {
+                "buds": 1,
+                "lateral": {
+                  "12": 0.65
+                },
+                "nodes": {
+                  "max": 2,
+                  "min": 1
+                }
+              }
+            }
+          },
+          "12": {
+            "continuation": 0,
+            "form": {
+              "elevation": 0.15,
+              "pipe": 0.0009,
+              "tropism": 1,
+              "wander": 1
+            },
+            "insertion": 1,
+            "internode": 0.025,
+            "lifespan": 5,
+            "shedding": 1,
+            "viability": 0.95,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 1,
+                  "min": 1
+                }
+              },
+              "1": {
+                "buds": 1,
+                "lateral": {
+                  "14": 0.6
+                },
+                "nodes": {
+                  "max": 3,
+                  "min": 2
+                }
+              }
+            }
+          },
+          "14": {
+            "continuation": 0,
+            "form": {
+              "pipe": 0.00095
+            },
+            "insertion": 0.9,
+            "internode": 0.006,
+            "lifespan": 3,
+            "shedding": 1,
+            "viability": 0.9,
+            "zones": {
+              "0": {
+                "buds": 1,
+                "nodes": {
+                  "max": 5,
+                  "min": 3
+                }
+              }
+            }
+          }
+        }
+      },
       "supernatural": {
-        "backBlue": 1,
-        "backGreen": 1,
-        "backRed": 1,
-        "backReflectance": 0,
-        "bloom": {},
-        "enabled": false,
-        "flowering": {},
+        "backBlue": 0.86,
+        "backGreen": 0.93,
+        "backRed": 0.95,
+        "backReflectance": 0.7,
+        "bloom": {
+          "droop": -1,
+          "florets": 9,
+          "open": 100,
+          "pedicel": 0.015,
+          "petalCup": 0.4,
+          "petalCurl": 0.25,
+          "petalLength": 0.031,
+          "petalWidest": 0.5,
+          "petalWidth": 0.017,
+          "petals": 5,
+          "rachis": 0.13,
+          "scatter": 0.2,
+          "spread": 70,
+          "stamenLength": 0.007,
+          "stamenWidth": 0.0004,
+          "stamens": 12,
+          "taper": 0.3
+        },
+        "enabled": true,
+        "flowering": {
+          "age14": 1
+        },
         "marginReflectance": 0,
-        "material": {},
-        "roughness": 0.3,
-        "scale": 1
+        "material": {
+          "leafBackBlue": 0.022,
+          "leafBackGreen": 0.03,
+          "leafBackRed": 0.018,
+          "leafFrontBlue": 0.007,
+          "leafFrontGreen": 0.022,
+          "leafFrontRed": 0.0055
+        },
+        "roughness": 0.12,
+        "scale": 2.2
       },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
-        "flareRadius": 2,
+        "flareRadius": 1.5,
         "forkSocket": 0.5,
         "forkSwell": 1.35,
-        "lobeDepth": 0.11,
-        "lobes": 7,
+        "lobeDepth": 0,
+        "lobes": 5,
         "radialSegments": 12,
         "socketContainment": 0.9,
-        "twistRate": 2.4
+        "twistRate": 0
       }
     },
     "id": "telperion",
