@@ -374,3 +374,17 @@ Against R1:
 | Laurelin close (30 fps) | vegetation 29.7 (wood about 8, leaves and flowers about 22); surfacing 2.5; selection 0.24; shadow cached |
 
 **Idle frames cost nothing**: the page does not draw while nothing changed (`src/redraw.rs` and its tests). **What the CPU and device paths build is unchanged**: nothing in `telperion-core` changed. The one change under `generation/` is `submit.rs`, which forgets the sun cache on a new tree and hands the floret to the scene for its bounding radius. The changes are drawing only.
+
+## Host addition (2026-10-09): florets get a far level
+
+fn-219's measurement (LEAVES.md) overturns the premise of the owner's 2a. At the whole view the Two Trees' frame is set by their florets, not their leaves:
+- Telperion: 10.4M florets, about 105 ms of 118.
+- Laurelin: 8.6M florets, about 60 ms of 73.
+
+Quadrupling leaf size moved the frame only from 8.3 to 8.4 fps. It also needs natural rows, which would give the off-state beech 18 cm leaves, not a convincing beech. So 2a is withdrawn, and the leaves stay as shipped.
+
+The fix belongs to drawing, so it is fn-246's:
+- **A far level for florets.** At its coarsest level a floret is drawn as one small card in its petals' albedo, sized to the floret's projected area. Today its coarsest level still carries every petal and stamen.
+- **The same selection pass** chooses the level by projected size, as it does for leaves. The 2 px area-kept thinning then applies on top.
+- **Fitted on the crown truth tool,** as for the leaf threshold. Choose the largest projected size for the card level that stays within the same bound of the unthinned 4x truth, at the whole and mid views of both trees. View the stills.
+- **Measure** the Two Trees again at 60 fps, whole and close.
