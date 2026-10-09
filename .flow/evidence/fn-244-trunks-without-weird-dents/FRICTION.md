@@ -58,3 +58,10 @@ A missed one corrupts silently: the suite catches it, but only after a full GPU 
 
 - **Cost:** about 5 minutes, plus one cold-compile surprise (`girths` at 4.5 s against the 2.5 s bound).
 - **What would remove it:** one generated constants block shared by the shaders, as `lineage.wgsl` is for the keys.
+
+## 2026-10-09: A wall-clock bound fails under other sessions' load
+
+The cold-compile test (`hang_tests::every_pipeline_within_2_5_s_but_grow_within_20_s_cold`) failed twice on the chain grower's `grow` pipeline: 23.8 s, then 20.2 s, against its 20 s bound. The load average was 11 to 13, from other sessions on the machine. It passed at a load average of 2.5.
+
+- **Cost:** about 15 minutes, spent ruling the change out.
+- **What would remove it:** the test reads the load before judging and reports "inconclusive" instead of failing. It could also run under the GPU lock alone.

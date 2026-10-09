@@ -460,3 +460,56 @@ So the predicted-against-realized drift is unchanged. No walk or census bound mo
 npm test: 154 passed.
 
 **Cost.** The `girths` pipeline first compiled cold at 4.5 s, over the hang test's 2.5 s bound, while it carried the attachment twice. Resolving the attachment once in `scales` brought it back under the bound.
+
+## Review and final state (2026-10-09)
+
+Codex impl-review, first round (three draws): NEEDS_WORK with three findings.
+
+| # | Finding | Severity | Outcome |
+|---|---|---|---|
+| 1 | The attachment blended in node count, so a node growing in at no length beneath a half-blended relay moved it from 1.0 m to 1.5 m | P1 | Fixed, `7d964b6b` |
+| 2 | The device decided the endpoints on a float share, so a share just below one became one | P2 | Fixed, `7d964b6b` |
+| 3 | `grow_bounded` carries the realized girth's joins after its own fit | P2 | Declined: `grow_bounded` has no consumer that converts or draws a tree. A follow-up for when one does |
+
+The fixes:
+- **#1:** `stand::position` and `geometry::attach` now blend in the parent's scaled length and convert to (node, share) last, mirrored in `stand.wgsl`. Test: `a_node_growing_in_moves_no_relays_attachment`.
+- **#2:** `dress.wgsl` takes every endpoint and order decision on the Q32 share from `S_ATTACH`. A float is used only for the position.
+
+Re-review: **SHIP**. All three findings are closed: two fixed, and the decline accepted.
+
+### After the fix
+
+The stills were re-rendered and viewed: `raw/sheets/ba4-*`, identity check in `ba4-cmp.txt`.
+- The bases are clean, with the collars, waists and terrace gone and no flange.
+- Palm and spruce are byte-identical. Birch is identical in 1 of 18 stills, and the other changed trees differ in all of theirs.
+
+`space_hash` against base, by nodes added:
+
+| Tree | Hashes | Nodes at 40/1, 40/7, 80/1, 80/7 |
+|---|---|---|
+| beech | changed | +108, +185, +1,173, +1,776 |
+| oak | changed | −304, −143, −1,550, −4,834 |
+| birch | changed | −2, +1, +5, −14 |
+| ordinary | changed | +2, +7, +61, +86 |
+| Laurelin and Telperion | changed | as the beech |
+| spruce, palm | all identical | unchanged |
+
+- **Sag:** stem and limb pitch move by at most 0.39 degrees (beech 40/7 stem). Ordinary and birch move by at most 0.05.
+- **Kept phytomers:** identical to base for every species, the oak's included, so the closed form's drift is unchanged.
+
+The gate, per package:
+
+| Package | Passed | Note |
+|---|---|---|
+| core | 454 | after the fix |
+| space | 223 | after the fix |
+| render | 222 | after the fix |
+| wasm | 6 | before the fix, not rerun |
+| field | 7 | before the fix, not rerun |
+| jev | 389 | before the fix, not rerun |
+
+npm test: 154 passed.
+
+One render rerun failed the cold-compile bound: the chain grower's `grow` pipeline took 23.8 s and then 20.2 s against its 20 s bound. The host's load average was 11 to 13 at the time. This change touches none of that pipeline's shaders; its only shared edit is one line in `lineage.wgsl`. It passed at a load average of 2.5 on the next run.
+
+The task stays open for the owner's verdict.
