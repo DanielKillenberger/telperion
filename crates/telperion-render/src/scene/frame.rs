@@ -318,7 +318,7 @@ mod tests {
         leaves.leaf_reflection = [0.9, 0.9, 0.9, 0.8];
         leaves.reflectance = [0.1, 0.2, 0.7, 0.3];
         let m = telperion_core::material::MaterialParams::default();
-        let o = organ(leaves, &m, telperion_core::foliage::Reference::default());
+        let o = organ(leaves, &m, telperion_core::foliage::Reference::default(), 0.0);
         assert_eq!((o.leaf_reflection[3], o.reflectance[2]), (0.0, 0.0));
         assert_eq!((o.reflectance[0], o.reflectance[1]), (0.1, 0.2));
     }
@@ -331,7 +331,7 @@ mod tests {
         let mut leaves = Uniforms::zeroed();
         leaves.canopy = [0.6, 0.3, 0.4, 0.2];
         let m = telperion_core::material::MaterialParams::default();
-        let o = organ(leaves, &m, telperion_core::foliage::Reference::default());
+        let o = organ(leaves, &m, telperion_core::foliage::Reference::default(), 0.0);
         assert_eq!(o.canopy, [0.0, 0.3, 0.4, 0.2]);
     }
 
@@ -347,7 +347,7 @@ mod tests {
             ..Default::default()
         };
         let leaves = Uniforms::zeroed();
-        let o = organ(leaves, &m, telperion_core::foliage::Reference::default());
+        let o = organ(leaves, &m, telperion_core::foliage::Reference::default(), 0.0);
         assert_eq!(o.bloom_eye, [0.2, 0.15, 0.05, 0.3]);
         assert_eq!(leaves.bloom_eye, [0.0; 4]);
     }
