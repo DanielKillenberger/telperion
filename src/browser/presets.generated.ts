@@ -4771,7 +4771,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
   {
     "abiId": 1,
     "family": {
-      "age": 92,
+      "age": 88,
       "bloom": {
         "droop": 0,
         "florets": 1,
