@@ -58,3 +58,18 @@ The only real trunks in `.refs/` are `fn9/quga788B.jpg` (Oregon white oak) and `
 This is not a values fix. The defect is how `converted` draws a relay's stem against where the girth model enters its pipe. The design goes to the host, and this task adds no code before then.
 
 `relay_at` is a species' botany (Troll's relay in the curvature zone), and moving it to 1.0 would only hide the defect in beech. Ordinary dents at its own `relay_at`.
+
+## Host decision (2026-10-09): one source for where a relay joins
+
+**Option 2.** The relay is drawn from the node where the girth model already adds its wood. The girth model's attachment, `relay_at` and the node it resolves to, becomes the one place that says where a relay joins its parent. The drawing, `converted`'s `Origin::Relay` branch and its last-node case, reads that attachment. It no longer picks its own "node nearest its base". The trunk below the join then already carries the relay's wood, because girth computed it. No second thickening rule is added (option 1), and no value is moved to hide the dent (`relay_at` stays).
+
+- **Both cases:** the mid-axis relay and the relay at the parent's last node.
+- **The device path:** check whether it has its own copy of this conversion. If it does, it reads the same attachment. CPU and device agree within fn-125's screen.
+- **The oak's hairline rings** (a 1-4 % step above each side branch) are the pipe model working as intended. They are not this defect, and no change is made.
+- **Proof:**
+  - A red/green test: no radius along a stem rises again just below a relay join beyond the pipe model's own step, on beech 80/42 and ordinary 80/42 and 40/42.
+  - The before and after still sheets for every species, viewed.
+  - `space_hash` changes only where relays are drawn, and each change is listed.
+  - The gate, npm test and impl-review.
+
+Keep the task open for the owner's verdict.
