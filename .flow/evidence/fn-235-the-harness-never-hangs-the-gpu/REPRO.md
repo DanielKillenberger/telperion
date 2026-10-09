@@ -144,3 +144,32 @@ stays red on it.
 3. **R2's per-submission caps are still required.** Every shader loop gets a cap derived from its inputs, and no single submission of a shipped species at 80 may run longer than 1 s on the 3080. A test asserts the caps and the measured worst submission.
 
 Then run impl-review and `flowctl done`. After that, the host asks the owner for the browser check.
+
+## R2: loop caps and the worst submission (task 1, 2026-10-09, third decisions)
+
+Every shader loop whose end the data decides (`loop`, `while`, 31 of
+them in the crate's WGSL) states its cap on its line or the line before,
+and `every_data_bound_shader_loop_states_its_cap` holds every one to it.
+Where a loop's own bound is the cap (binary searches, counted-down
+indices, isqrt's shifts, Knuth's correction) the comment names it; where
+the data alone ended it, a counter now does:
+
+| Shader | Loop | Cap | Past it |
+|---|---|---|---|
+| place | a bloom's floret scan | its florets, `ceil(f.a.x)` | summary error bit 2, refused by name |
+| apex | one apex's same-cycle run | `2 (unit_cap + axes_cap) + 2` | chain overflow 512, grown again larger, then named |
+| stand | a line up its parents, its units back | the region's axes, its phytomers | the walk ends |
+| stations | a stub's parents, a run's nodes | the nodes | the walk ends |
+| sweep | a run's samples | one a node, and the root's | the walk ends |
+| sleep | a PA's stages, a woken bud's axes | the table's words, `axes_cap` | the walk ends |
+
+Outputs unchanged: every `generation::` test green on the capped
+shaders. `grow` with the run loop's counter against without, alternated
+at load 9 to 40: 17.0 / 13.8 s and 45 / 26 s, so it costs `grow` about
+1 to 2 s cold; the 20 s exception still holds below a load of about 10.
+
+The worst submission at 80, each waited for alone
+(`every_submission_at_80_within_a_second`, a device-limits probe), RTX
+3080: beech 152 to 160 ms (`girths`), oak 96 ms, spruce 62 ms, date palm
+1 ms; all under 1 s. Twice the spruce's child exited 101 right after the
+beech's, before the test kept its words; four runs since passed.

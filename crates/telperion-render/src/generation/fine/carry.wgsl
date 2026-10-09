@@ -101,6 +101,7 @@ fn carried_q(p: u32) -> vec2<u32> {
     var path: array<u32, 32>;
     var n = 0u;
     var a = sleepers[p + 7u];
+    // cap: the path's 32 entries.
     loop {
         path[n] = a;
         n += 1u;

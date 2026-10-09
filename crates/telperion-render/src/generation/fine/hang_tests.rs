@@ -88,43 +88,15 @@ const COLD_GROW_MS: f64 = 20_000.0;
 /// GPU process.
 #[test]
 fn every_pipeline_within_2_5_s_but_grow_within_20_s_and_the_first_tree_within_5_s_cold() {
-    let mut child = std::process::Command::new(std::env::current_exe().unwrap())
-        .args(["--ignored", "--exact", "--nocapture"])
-        .arg("generation::fine::hang_tests::browser_route")
-        .env("TREE", "european-beech:20")
-        .env("TELPERION_TRACE", "1")
-        // The NVIDIA driver's own disk cache, off: a cold page's compile.
-        .env("__GL_SHADER_DISK_CACHE", "0")
-        .stderr(std::process::Stdio::piped())
-        .stdout(std::process::Stdio::piped())
-        .spawn()
-        .unwrap();
-    let read = |pipe: Box<dyn std::io::Read + Send>| {
-        std::thread::spawn(move || {
-            use std::io::BufRead;
-            std::io::BufReader::new(pipe)
-                .lines()
-                .map_while(Result::ok)
-                .collect::<Vec<_>>()
-        })
-    };
-    let stderr = read(Box::new(child.stderr.take().unwrap()));
-    let stdout = read(Box::new(child.stdout.take().unwrap()));
-    // Well past the bound, so a slow pipeline is named rather than cut off.
-    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(120);
-    let mut killed = false;
-    while child.try_wait().unwrap().is_none() {
-        if std::time::Instant::now() > deadline {
-            child.kill().unwrap();
-            killed = true;
-            break;
-        }
-        std::thread::sleep(std::time::Duration::from_millis(100));
-    }
-    let status = child.wait().unwrap();
+    // The NVIDIA driver's own disk cache, off: a cold page's compile.
+    let env = [("TELPERION_TRACE", "1"), ("__GL_SHADER_DISK_CACHE", "0")];
+    let Built {
+        status,
+        killed,
+        stderr,
+        stdout,
+    } = built("european-beech:20", &env);
     let made: Vec<(String, f64)> = stderr
-        .join()
-        .unwrap()
         .iter()
         .filter_map(|l| {
             let (_, rest) = l.split_once("] pipeline ")?;
@@ -149,7 +121,7 @@ fn every_pipeline_within_2_5_s_but_grow_within_20_s_and_the_first_tree_within_5_
         "made cold over its bound ({COLD_PIPELINE_MS} ms, {GROW} {COLD_GROW_MS} ms): {slow:?}"
     );
     let grow: f64 = made.iter().filter(|(e, _)| e == GROW).map(|m| m.1).sum();
-    let built: f64 = (stdout.join().unwrap().iter())
+    let built: f64 = (stdout.iter())
         .find_map(|l| {
             l.split_once("built in ")?
                 .1
@@ -164,6 +136,92 @@ fn every_pipeline_within_2_5_s_but_grow_within_20_s_and_the_first_tree_within_5_
         besides <= COLD_FIRST_TREE_S,
         "the first tree built cold in {built} s, {besides} s besides {GROW}"
     );
+}
+
+/// What a tree's build on the browser route, in a process of its own,
+/// left: how it ended, whether its 120 s ran out (well past every bound,
+/// so a slow step is named rather than cut off), and what it printed.
+struct Built {
+    status: std::process::ExitStatus,
+    killed: bool,
+    stderr: Vec<String>,
+    stdout: Vec<String>,
+}
+
+fn built(tree: &str, env: &[(&str, &str)]) -> Built {
+    let mut child = std::process::Command::new(std::env::current_exe().unwrap())
+        .args(["--ignored", "--exact", "--nocapture"])
+        .arg("generation::fine::hang_tests::browser_route")
+        .env("TREE", tree)
+        .envs(env.iter().copied())
+        .stderr(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .spawn()
+        .unwrap();
+    let read = |pipe: Box<dyn std::io::Read + Send>| {
+        std::thread::spawn(move || {
+            use std::io::BufRead;
+            std::io::BufReader::new(pipe)
+                .lines()
+                .map_while(Result::ok)
+                .collect::<Vec<_>>()
+        })
+    };
+    let stderr = read(Box::new(child.stderr.take().unwrap()));
+    let stdout = read(Box::new(child.stdout.take().unwrap()));
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(120);
+    let mut killed = false;
+    while child.try_wait().unwrap().is_none() {
+        if std::time::Instant::now() > deadline {
+            child.kill().unwrap();
+            killed = true;
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(100));
+    }
+    Built {
+        status: child.wait().unwrap(),
+        killed,
+        stderr: stderr.join().unwrap(),
+        stdout: stdout.join().unwrap(),
+    }
+}
+
+/// The longest one submission may hold the device (R2): well under
+/// Chrome's GPU watchdog.
+const SUBMISSION_MS: f64 = 1_000.0;
+
+/// fn-235 R2: every shipped species on the fine or whole path at 80, each
+/// submission waited for alone (`TELPERION_TRACE_WAIT`), none longer than
+/// a second. Measured 2026-10-09 on the RTX 3080: the beech's worst 152 ms
+/// (girths), the oak's 96, the spruce's 62, the date palm's 1.
+#[test]
+#[ignore = "device limits: each shipped species at 80 on the device"]
+fn every_submission_at_80_within_a_second() {
+    let env = [("TELPERION_TRACE", "1"), ("TELPERION_TRACE_WAIT", "1")];
+    for tree in [
+        "european-beech:80",
+        "norway-spruce:80",
+        "oregon-white-oak:80",
+        "date-palm:80",
+    ] {
+        let run = built(tree, &env);
+        let said: Vec<_> = run.stdout.iter().rev().take(4).collect();
+        assert!(
+            !run.killed && run.status.success(),
+            "{tree}: {} {said:?}",
+            run.status
+        );
+        let worst = (run.stderr.iter())
+            .filter_map(|l| l.split_once(" ran ")?.1.strip_suffix(" ms")?.parse().ok())
+            .fold(0.0f64, f64::max);
+        println!("{tree}: worst submission {worst:.1} ms");
+        assert!(worst > 0.0, "{tree}: no submission timed");
+        assert!(
+            worst <= SUBMISSION_MS,
+            "{tree}: a submission ran {worst} ms"
+        );
+    }
 }
 
 /// fn-235 host decision 1: the chain grower's `grow` alone, made from
@@ -222,4 +280,43 @@ fn device_limit_probes_run_only_when_asked() {
     for name in &marked {
         assert!(ignored.lines().any(|l| l == name), "{name} runs by default");
     }
+}
+
+/// fn-235 R2: every shader loop whose end the data decides (`loop`,
+/// `while`) states its cap, derived from its inputs, on its own line or
+/// the line before; a `for` states its bound in its header.
+#[test]
+fn every_data_bound_shader_loop_states_its_cap() {
+    let src = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let (mut dirs, mut loops, mut uncapped) = (vec![src], 0, Vec::new());
+    while let Some(dir) = dirs.pop() {
+        for entry in std::fs::read_dir(dir).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                dirs.push(path);
+                continue;
+            }
+            if path.extension().is_none_or(|e| e != "wgsl") {
+                continue;
+            }
+            let text = std::fs::read_to_string(&path).unwrap();
+            let lines: Vec<&str> = text.lines().collect();
+            for (k, line) in lines.iter().enumerate() {
+                let code = line.split("//").next().unwrap().trim_start();
+                if !(code.starts_with("loop {") || code.starts_with("while ")) {
+                    continue;
+                }
+                loops += 1;
+                let before = k.checked_sub(1).map_or("", |b| lines[b]);
+                if !line.contains("cap") && !before.contains("cap") {
+                    uncapped.push(format!("{}:{}", path.display(), k + 1));
+                }
+            }
+        }
+    }
+    assert!(loops > 20, "{loops} loops found");
+    assert!(
+        uncapped.is_empty(),
+        "loops with no cap stated: {uncapped:?}"
+    );
 }

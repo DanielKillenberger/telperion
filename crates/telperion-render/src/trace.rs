@@ -68,3 +68,19 @@ pub(crate) fn compiled(entry: &str, took: std::time::Duration) {
         eprintln!("[trace {at:.0} ms] pipeline {entry} made in {took:.0} ms");
     });
 }
+
+/// Where `TELPERION_TRACE_WAIT` is set too, each submission waited for
+/// alone, the queue empty before it, and its wall time logged: what one
+/// submission holds the device for (fn-235 R2).
+pub(crate) fn ran(device: &wgpu::Device) {
+    if std::env::var_os("TELPERION_TRACE_WAIT").is_none() {
+        return;
+    }
+    let started = Instant::now();
+    let _ = device.poll(wgpu::PollType::wait_indefinitely());
+    let took = started.elapsed().as_secs_f64() * 1e3;
+    with(|log| {
+        let at = ms(log);
+        eprintln!("[trace {at:.0} ms] submit {} ran {took:.1} ms", log.submits);
+    });
+}

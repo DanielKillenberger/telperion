@@ -422,7 +422,14 @@ fn relay_node(r: u32) {
 // same-cycle growth they carry on, in order.
 fn run(apex: Apex, cycle: u32) {
     var cur = Next(true, apex);
+    // cap: every step grows a unit or makes, stops or pops an axis, so the
+    // chain's regions bound them; past it the chain overflows, by name.
+    var cap = 2u * (cfg.unit_cap + cfg.axes_cap) + 2u;
     loop {
+        if cap == 0u {
+            overflow |= 512u;
+        }
+        cap -= min(cap, 1u);
         if overflow != 0u {
             break;
         }

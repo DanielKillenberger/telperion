@@ -36,6 +36,7 @@ fn sorted(zk: vec2<u32>, n: u32, drawn: ptr<function, array<u32, MOST>>) {
     for (var j = 0u; j < n; j++) {
         let o = draw(child(child(zk, w(j, 0u)), w(0u, 0u)));
         var m = j;
+        // cap: m counts down from j.
         while m > 0u && lt64(order[m - 1u], o) {
             order[m] = order[m - 1u];
             (*drawn)[m] = (*drawn)[m - 1u];

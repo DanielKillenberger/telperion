@@ -62,7 +62,9 @@ fn aged(pa_in: u32, slept_in: vec2<u32>) -> Aged {
     var slept = slept_in;
     var steps = 0u;
     // An age moves on only to an older one, so the stages run out.
-    while pa != NONE {
+    // cap: no more stages than the table's words.
+    let cap = arrayLength(&table);
+    while pa != NONE && steps < cap {
         let life = row(pa, 0u);
         if lt64(slept, life) {
             return Aged(pa, slept, steps);
@@ -91,7 +93,10 @@ fn wakes(cycle: u32) {
         var open: array<u32, 32>;
         var top = 1u;
         open[0] = sleepers[q + 1u];
-        while top > 0u {
+        // cap: every axis of the chain taken once.
+        var cap = cfg.axes_cap;
+        while top > 0u && cap > 0u {
+            cap -= 1u;
             top -= 1u;
             let a = open[top];
             if rd(a, SUCC) == NONE {
@@ -159,7 +164,10 @@ fn woke(b: u32, whorl: f32) -> u32 {
     var parent = 0u;
     var lineage = key;
     var stage = lived(spa);
-    while stage != pa && stage != NONE {
+    // cap: no more stages than the table's words.
+    var cap = arrayLength(&table);
+    while stage != pa && stage != NONE && cap > 0u {
+        cap -= 1u;
         if kind != CONTINUED {
             lineage = onto(key, stage);
         }

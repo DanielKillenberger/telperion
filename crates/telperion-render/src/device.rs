@@ -166,6 +166,8 @@ impl Gpu {
         #[cfg(test)]
         crate::trace::submit();
         self.queue.submit(commands);
+        #[cfg(test)]
+        crate::trace::ran(&self.device);
         drop(open);
     }
 
