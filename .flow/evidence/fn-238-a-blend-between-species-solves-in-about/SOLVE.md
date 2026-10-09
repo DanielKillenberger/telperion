@@ -162,3 +162,13 @@ Bold marks a frame within the bar. **Six held frames are over 1 s:** spruce → 
 - **The frames that remain are the solve's iterations on the shape**, about 0.1 to 0.2 s each for both counts. Each count makes one prediction at the ceiling, one or two for the bracket, and four to five regula falsi steps.
 - **A better first guess (route 3) would cut the steps**, but it moves kept-bound factors within the tolerance. The host decision kept it out ("exact, not a new first guess").
 - **Even with no regula falsi steps**, beech → spruce at 80, 0.5 needs about 2 × 0.21 s kept and 2 × 0.18 s grown, which is 0.8 s. With three of each it is 1.2 s (inferred from the per-call times). The cost of each shape prediction is route 4's.
+
+## Host decision (2026-10-09, second): option (c), with the frames reported
+
+Route 2 and the cached ends do most of the work. The ordinary tree's frames at 80 dropped from 13-75 s to 0.4-10 s. Frames at 40 now take 0.04-1.38 s, and frames at 80 without the ordinary tree 0.14-3.48 s. Every walk factor stays within 4e-16 of before, and every re-rendered PNG is byte-identical.
+
+The six frames that remain over 1 s spend their time on the solve's own steps. A perfect first guess would still leave beech → spruce at 80 near 1 s, so route 3 alone does not reach the bar. The remaining work goes to fn-240, alongside route 4: a cheaper kept predictor and fewer solve steps, under the same evidence rule.
+
+R3 is amended to say that every frame is measured and reported before and after, with the walk factors and stills unchanged as shown. The 1 s bar moves to fn-240.
+
+Finish with the gate, npm test, impl-review and `flowctl done`. Remove the base worktree registered at scratchpad/fn238-base with `git worktree remove`.

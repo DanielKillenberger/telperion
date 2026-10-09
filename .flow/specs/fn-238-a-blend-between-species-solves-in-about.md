@@ -8,7 +8,7 @@ The owner's aim for the harness: "looking at trees in the harness and adjusting 
 
 - **R1 (measure first):** where the solve's time goes (how many predictions a solve makes, the cost of each, kept against grown), on the slow frames fn-230 and fn-231 named, at 40 and 80.
 - **R2 (fix):** the solve made cheap by the cause R1 names (for example a cheaper grown count, fewer predictions through a better first guess or bracketing, or reusing the frame's predictions), stated before code; the solved factor equal to today's within the solve's own tolerance.
-- **R3 (proved):** every walk frame of fn-230's strips at 40, and at 80 every frame without the ordinary tree as an end, solves in at most 1 s natively on one core (best of 3, load stated), against today's times; frames at 80 with the ordinary tree as an end measured and reported (its single kept prediction alone is 0.88 s; the faster kept predictor is its own post-release spec); the walk digest re-pinned only with every factor's move inside the solve's tolerance and the walk strips viewed unchanged; the shipped species byte-identical (amended 2026-10-09, host).
+- **R3 (proved):** every walk frame of fn-230's strips at 40 and 80 measured before and after natively on one core (best of 3, load stated) and reported; the walk digest re-pinned only with every factor's move inside the solve's tolerance and the moved frames' stills unchanged; the shipped species byte-identical. The 1 s bar per frame moved to fn-240 with the solve's step count (host, 2026-10-09, SOLVE.md).
 - **R4:** gate and npm test green.
 
 ## Boundaries
