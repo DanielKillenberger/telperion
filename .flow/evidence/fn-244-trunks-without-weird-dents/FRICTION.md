@@ -22,3 +22,10 @@ While building option 2, I found that the girth model enters a relay's pipe at t
 
 - **Cost:** about 25 minutes and one full still set.
 - **What would have removed it:** printing `b` and `t` for the trunk relays before the decision. That is one probe line, now in DENTS.md.
+
+## 2026-10-09: An owner requirement surfaced only at the gate
+
+I built option 1 across CPU and device, then ran the space suite. Only then did fn-199 R4 (`relays.rs`, girth moves by degree with `relay_at`) fail. The second decision contradicted it, and nobody had checked.
+
+- **Cost:** about 40 minutes of device work and one full still set, before the conflict was visible.
+- **What would have removed it:** a search of the tests for the rule being changed (`relay_parts`, `relay_span`) before deciding. It finds `tests/relays.rs` at once.

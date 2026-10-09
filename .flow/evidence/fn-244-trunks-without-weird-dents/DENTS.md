@@ -127,3 +127,88 @@ Trunk relays keep a blend `b` well short of one for life. Beech at seeds 42 and 
 Keep the task open for the owner's verdict.
 
 On your friction note: a probe line for `b` and `t` before a decision is a good rule. It belongs in the onboarding method's "measure before building" step. The host carries it to fn-237's friction list.
+
+## Option 1 built: the dents are gone, and fn-199 R4 breaks (2026-10-09)
+
+The change is on branch `fn-244-option1-wip` (`5d01f0b3`), not on the task branch. The task branch has no code change.
+
+### What it does
+
+- **CPU:**
+  - `girth::thicken` and the bounded girth enter a relay's section at the node it grows from, the way a lateral's enters.
+  - `sag` enters a relay's load there too; see the sag measurements below.
+  - `converted` hangs the relay from that node. Its `joint` function and the bud-to-joint thickening loop are deleted.
+- **Device:**
+  - `girth.wgsl` uses `borne_w` at the node.
+  - `settle.wgsl` uses `load_at` at the node.
+  - `dress.wgsl` draws from `ax(i, NODE)`. Its `joint` and thickening loop are deleted.
+- **Now dead, and deleted:**
+  - `relay_span` and `relay_span_q`, plus the device's `relay_span`;
+  - `relay_parts`, `relay_shares`, `Entry`, `Load::split` and `split_q`;
+  - the `S_BASE` slots;
+  - `relay_at` in the device girth table.
+
+### `relay_at` and `b`
+
+Both still shape the tree, so neither row is inert:
+
+- **`relay_at`** still picks the node a relay grows from, and so the join. It also places the relay's base and frame within that node's span (`stand.rs`), and the closed-form path and mass read it (`closed_form/kept/path.rs`, `mass.rs`).
+- **`blend` (`b`)** still sets a relay's place and heading between its bud and the continuation (`geometry.rs` and `stand.rs` through `carried_on`).
+
+What they no longer do is split the relay's wood or load. Their docs say so (`species.rs`, `structure.rs`).
+
+### Red and green
+
+| Test | Base | Option 1 |
+|---|---|---|
+| `relay_tests::a_stem_never_thickens_on_its_way_up` (beech 80/42, ordinary 80/42 and 40/42) | Red: beech stem node at 1.02 m is 0.6284 m over 0.5535 m | Green |
+| `girth::tests::a_relays_wood_enters_at_its_node_and_its_stub_carries_its_own` | Red: the parent at and below the join is not the lateral's | Green |
+
+The stub-radius check is exact: the stub equals the parent with no relay, and the parent at and below the join equals the parent with a lateral there. A threshold version of the check (stub below 0.4 of the relay) was wrong. A crown relay's stub keeps its own laterals' wood (0.0365 m beside 0.0378 m).
+
+### Stills
+
+- Sheets: `raw/sheets/ba2-*.png`, all viewed.
+- Identity check: `raw/sheets/ba2-cmp.txt`.
+- Oak, palm and spruce are byte-identical.
+- Birch changes in 5 of 18 stills; beech, ordinary, Laurelin and Telperion change in all of theirs.
+- **Bases:** the beech collars, the ordinary waists and the ordinary-80-1 terrace are gone, and no flange appears.
+
+### Sag
+
+Length-weighted mean pitch of the limbs, in degrees (radius at least 5 % of the root's, non-stem):
+
+| Tree | Base | Wood at join, load split as before | Wood and load at join |
+|---|---|---|---|
+| ordinary 80/1 | 15.81 | 8.68 | 15.86 |
+| ordinary 80/7 | 22.42 | 9.72 | 22.47 |
+| ordinary 80/42 | 20.85 | 10.59 | 20.87 |
+| ordinary 40/7 | 19.91 | 18.72 | 19.92 |
+| beech 80/42 | 37.14 | 37.20 | 37.20 |
+
+- **Why the load moved too.** With only the wood moved, the stub kept the `1 - b` of the relay's load on its own wood, and the ordinary's limbs dropped 7 to 13 degrees. Moving the load with the wood puts them back within 0.05 degrees of base.
+- **Elsewhere.** Beech changes by at most 0.7 degrees (limb pitch at 40/1). Stem pitch and lean are unchanged on beech and ordinary to 0.2 degrees. Birch changes by 0.02 degrees.
+- **Host to confirm.** Moving sag's load is my reading of "one rule". The host did not name it.
+
+### The gate, per package (option 1)
+
+| Package | Result |
+|---|---|
+| `telperion-core` | 454 passed |
+| `telperion-render` | 222 passed, with the device and CPU agreement tests (trunk and grazing trunks against the box reduction) |
+| `telperion-space` | 221 passed, 1 failed |
+
+The failure is `tests/relays.rs::a_relay_moving_along_its_parent_thickens_it_by_degree`. That is fn-199 R4: walking `relay_at` moves the parent's girth by degree.
+
+- **On base,** the `t` split made the steepest step shrink twentyfold when it was refined.
+- **Now,** the relay's wood enters at one node, so crossing a node boundary moves it a whole internode at once. Seeds 1, 2 and 3 step 0.42, 0.49 and 0.36 of the thickest girth, and the step does not shrink.
+
+### For the host
+
+This is the principle "every parameter changes the tree by degree", applied to `relay_at`. It is an owner requirement, so the agent does not retire the test. Three ways forward:
+
+1. **Retire R4 for girth.** A drawn join is a node, and the wood enters there. `relay_at` changes the tree by degree in place and frame, but moves the wood a node at a time.
+2. **Draw the join where the relay stands.** The drawing adds a node at the relay's base, `t` along the span. Below it the parent carries the relay; above it, the stub. The wood then moves by degree with `relay_at`. This changes construction in `converted` and `dress.wgsl`.
+3. **Keep the `t` split of the wood between the two nodes and drop only the `1 - b` tip share.** The stub's first node then carries `b * t` of the relay. That is option 2's flange at a smaller size, so this is not recommended.
+
+`npm test`, `space_hash` and impl-review have not run, because the code is not on the task branch.
