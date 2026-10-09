@@ -67,7 +67,9 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
-        leaf_years: f64::INFINITY,
+        // Deciduous: every leaf stands on the current year's wood, its
+        // older wood bearing through its short shoots' clusters (fn-248).
+        leaf_years: 1.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
@@ -285,8 +287,13 @@ pub fn beech() -> Species {
         ..state(5, 0.0, vec![zone(1, 1, &[]), zone(2, 3, &[(SHORT, 0.6)])])
     };
     // GreenLab's PA 4: a short shoot of three to five metamers that never
-    // branches.
+    // branches. It bears its leaves at its tip while it lives (fn-248):
+    // three, one a metamer of the three [LET] uniformly chose, the beech
+    // bearing one leaf a node (inferred); fanned 0.6 rad either side
+    // (estimated).
     let short = PaState {
+        cluster_leaves: 3.0,
+        cluster_spread: 0.6,
         insertion: 0.9,
         viability: 0.9,
         shedding: 1.0,

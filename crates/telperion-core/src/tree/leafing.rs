@@ -50,7 +50,8 @@ pub fn retention(leaf_years: f64) -> (u32, u16) {
         return (u32::MAX, KEEP);
     }
     let floor = leaf_years.floor();
-    let share = ((leaf_years - floor) * 65536.0).floor().min(65535.0);
+    // A fraction below one times 2^16 stays below 2^16 in f64.
+    let share = ((leaf_years - floor) * 65536.0).floor();
     (floor as u32, share as u16)
 }
 

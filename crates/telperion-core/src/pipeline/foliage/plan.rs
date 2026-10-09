@@ -80,10 +80,8 @@ pub(crate) fn keeps(
     if tree.leafing.is_empty() {
         return true;
     }
-    let segment = along[..along.len() - 1]
-        .partition_point(|&a| a <= distance)
-        .max(1)
-        - 1;
+    // The first segment starts at 0, at or before every station.
+    let segment = along[..along.len() - 1].partition_point(|&a| a <= distance) - 1;
     let leafing = tree.leafing(nodes[segment + 1]);
     let q = leafing.at(distance - along[segment], micrometres(leafing.older));
     crate::tree::keeps(q, tree.key(nodes[1]), ordinal)

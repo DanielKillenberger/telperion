@@ -166,17 +166,16 @@ fn a_blend_mixes_a_stops_outcomes_as_shares() {
 }
 
 /// fn-248: a leaf's years mix by the share they keep, as a delay that may
-/// be infinite does: halfway from never to one year is three.
+/// be infinite does: halfway from the spruce's never to the beech's one
+/// year is three.
 #[test]
 fn leaf_years_mix_from_never_by_the_share_they_keep() {
-    let mut beech = telperion_space::beech();
-    beech.states[8].leaf_years = 1.0;
-    let half = telperion_space::blend(&telperion_space::beech(), &beech, 0.5).unwrap();
+    let (spruce, beech) = (telperion_space::spruce(), telperion_space::beech());
+    let ends = (spruce.states[8].leaf_years, beech.states[8].leaf_years);
+    assert_eq!(ends, (f64::INFINITY, 1.0));
+    let half = telperion_space::blend(&spruce, &beech, 0.5).unwrap();
     assert_eq!(half.states[8].leaf_years, 3.0);
-    let near = telperion_space::blend(&telperion_space::beech(), &beech, 1e-9).unwrap();
-    assert!(
-        near.states[8].leaf_years > 1e8,
-        "{}",
-        near.states[8].leaf_years
-    );
+    let near = telperion_space::blend(&spruce, &beech, 1e-9).unwrap();
+    let years = near.states[8].leaf_years;
+    assert!(years > 1e8, "{years}");
 }

@@ -64,7 +64,8 @@ fn a_short_shoots_cluster_stands_at_its_own_tip() {
 #[test]
 fn a_tree_of_no_cluster_carries_none() {
     let family = Preset::EuropeanBeech.parameters();
-    let species = family.space.species.unwrap();
+    let mut species = family.space.species.unwrap();
+    species.states[SHORT].cluster_leaves = 0.0;
     let request = Request {
         age: 15,
         seed: 7,

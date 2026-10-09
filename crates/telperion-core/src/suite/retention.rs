@@ -10,13 +10,15 @@ use telperion_core::{
     presets::{Family, Preset},
 };
 
-/// The beech young, every age's wood bearing for `years`.
+/// The beech young, every age's wood bearing for `years`, its short
+/// shoots bearing along their wood as its long shoots do: no cluster,
+/// which bears whatever its wood's age.
 fn retaining(years: f64) -> Family {
     let mut f = Preset::EuropeanBeech.parameters();
     f.age = 15.0;
     let species = f.space.species.as_mut().expect("an engine species");
     for s in &mut species.states {
-        s.leaf_years = years;
+        (s.leaf_years, s.cluster_leaves) = (years, 0.0);
     }
     f
 }

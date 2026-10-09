@@ -133,6 +133,13 @@
 //! (MERGE-SPECIES.md) the family, walk and override digests were re-pinned
 //! from the merged tree, each species' values its own branch's; the refusal
 //! digest is F4's.
+//! fn-248 re-pinned the family, walk and override digests for each engine
+//! age's new neutral `leaf_years` and the beech's leaf rows (`leafYears`
+//! 1 on every age, a cluster of three on its short shoots), which
+//! Laurelin and Telperion share. With `leaf_years: inf, ` stripped from the
+//! text and the three value files and `telperion_space::beech` at their
+//! fn-248 base, the family, walk, override and refusal digests were each
+//! the base's to the bit.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -168,7 +175,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        2_333_297_806_083_657_236,
+        8_322_810_888_948_792_548,
         "{}",
         digest(&text)
     );
@@ -200,7 +207,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        17_905_568_364_190_521_403,
+        7_791_106_021_717_681_992,
         "{}",
         digest(&text)
     );
@@ -225,7 +232,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        6_556_638_518_150_561_013,
+        8_542_284_750_902_576_455,
         "{}",
         digest(&text)
     );

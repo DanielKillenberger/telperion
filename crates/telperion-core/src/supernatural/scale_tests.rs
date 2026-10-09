@@ -82,8 +82,13 @@ fn the_scale_draws_the_natural_tree_enlarged() {
             mine.iter().zip(&theirs).all(|(a, t)| close(*a, t * s)),
             "{s}: the field's wood"
         );
-        // Leaves keep their spacing along the enlarged wood and their size.
-        let (count, base) = (leaves(&b) as f64, leaves(&natural) as f64);
+        // Leaves keep their spacing along the enlarged wood and their size;
+        // a short shoot's cluster keeps its count (fn-248).
+        let tips = |b: &pipeline::Built| -> f64 {
+            b.skeleton.tree.clusters.iter().map(|c| f64::from(c.leaves)).sum()
+        };
+        let count = leaves(&b) as f64 - tips(&b);
+        let base = leaves(&natural) as f64 - tips(&natural);
         if s > 1.0 {
             assert!(count > 0.5 * s * base, "{s}: {count} leaves against {base}");
         } else {
