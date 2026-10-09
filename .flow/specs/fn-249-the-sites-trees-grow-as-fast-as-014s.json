@@ -1,0 +1,80 @@
+{
+  "branch_name": "fn-249-the-sites-trees-grow-as-fast-as-014s",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T14:06:00.968544Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-249-the-sites-trees-grow-as-fast-as-014s",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T14:07:50.373308Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "22f9317de63d0086a42137fa33bbd13a1442bd5dd8a4094d2b2b8a21c5ac4de4",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ad67cc47e2bb291a5ba3919d94470945e08d4792",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 187602,
+      "output_sha256": "27a19447518ab2a7dde5722f408ee7c02dd1c921bedbd7d5496a169c73d00086",
+      "reservation_id": "709290fa750d4f3fb59ef8562218d0fb",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T14:07:50.367970Z",
+      "tool_calls": 18,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-249-the-sites-trees-grow-as-fast-as-014s.md",
+  "status": "open",
+  "title": "The site's trees grow as fast as 0.1.4's",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T14:07:56.607790Z"
+}
