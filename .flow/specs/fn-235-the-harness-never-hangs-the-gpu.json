@@ -280,7 +280,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-235-the-harness-never-hangs-the-gpu.md",
-  "status": "open",
+  "status": "done",
   "title": "The harness never hangs the GPU",
   "tracker": {
     "baseHashFlow": null,
@@ -293,5 +293,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T01:37:27.603756Z"
+  "updated_at": "2026-10-09T02:28:43.173996Z"
 }

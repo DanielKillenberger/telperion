@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-235-the-harness-never-hangs-the-gpu",
   "spec_path": ".flow/tasks/fn-235-the-harness-never-hangs-the-gpu.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Find the hang natively, bound it, and fail by name",
   "updated_at": "2026-10-08T21:48:05.617986Z"
 }
