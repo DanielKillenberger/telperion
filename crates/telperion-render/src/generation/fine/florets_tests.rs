@@ -284,3 +284,22 @@ fn a_window_of_a_billionth_of_a_year_flowers_on_the_device() {
     assert!(p.counts.1 > 0, "the device draws florets: {p:?}");
     assert_eq!(p.counts.0 + p.counts.1, p.counts.2, "{p:?}");
 }
+
+/// fn-253 R1: a shipped preset's own florets on the real path against the
+/// CPU whole tree's (`cargo test --profile ci -p telperion-render
+/// preset_florets -- --ignored --nocapture`, under the GPU lock,
+/// `PROBE=laurelin:30:1`). Reported, not held.
+#[test]
+#[ignore = "a probe: one shipped preset on the device"]
+fn preset_florets() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let only = std::env::var("PROBE").unwrap_or_else(|_| "laurelin:30:1".into());
+    let parts: Vec<&str> = only.split(':').collect();
+    let mut family = telperion_core::presets::by_identity(parts[0]).unwrap();
+    family.age = parts[1].parse().unwrap();
+    family.skeleton.seed = parts[2].parse().unwrap();
+    let p = parity(&gpu, &family);
+    println!("{only}: {p:?}");
+}
