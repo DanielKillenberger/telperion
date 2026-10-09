@@ -2,7 +2,7 @@
 use super::{
     canopy::validate,
     clumping, cluster,
-    plan::{bearing_runs, walk},
+    plan::{bearing_runs, keeps, micrometres, walk},
     rosette,
     station::{place_run, reserve_all, station_count, Run},
     CanopyParams, Instances, Reference, TwigPlacement,
@@ -52,6 +52,10 @@ fn bearing(
     twig: Option<TwigPlacement>,
 ) -> Result<bool> {
     validate(tree, envelope, p, twig)?;
+    // Retention reads stations on the twig layer's grid (fn-248).
+    if twig.is_none() && !tree.leafing.is_empty() {
+        return Err(Error::InvalidInput("leaf retention without a twig layer"));
+    }
     if tree.nodes.len() < 2 || p.size == 0. {
         return Ok(false);
     }
@@ -86,7 +90,8 @@ fn runs(tree: &Tree, p: CanopyParams, twig: Option<TwigPlacement>) -> Vec<Vec<us
     }
 }
 
-/// Leaves these runs and this family's clusters place, before any cull.
+/// Leaves these runs and this family's clusters place, before the
+/// clumping's cull: the stations that keep their leaves (fn-248).
 fn leaves_on(
     tree: &Tree,
     envelope: Envelope,
@@ -104,7 +109,17 @@ fn leaves_on(
     };
     for nodes in runs {
         let length = walk(tree, nodes, twig, &mut points, (&mut chord, &mut along));
-        total = station_count(length, envelope, p, twig)?
+        let count = station_count(length, envelope, p, twig)?;
+        let stations = match twig {
+            Some(t) if !tree.leafing.is_empty() => {
+                let (unit, per) = (micrometres(t.internode_length), t.stations_per_internode);
+                (0..count as u32)
+                    .filter(|&k| keeps(tree, (nodes, &along), f64::from(k / per) * unit, k))
+                    .count()
+            }
+            _ => count,
+        };
+        total = stations
             .checked_mul(leaflets)
             .and_then(|leaves| total.checked_add(leaves))
             .ok_or_else(overflow)?;

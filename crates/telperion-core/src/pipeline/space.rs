@@ -14,7 +14,8 @@
 use super::GrowInput;
 use crate::math::Vec3;
 use crate::tree::{
-    Attachment, Bloom, BudFate, Cluster, Node, NodeIdentity, NodeKind, ShootState, Tree,
+    kept_share, Attachment, Bloom, BudFate, Cluster, Leafing, Node, NodeIdentity, NodeKind,
+    ShootState, Tree,
 };
 use crate::{Error, Result};
 use telperion_space::{Origin, Request, Structure};
@@ -132,6 +133,9 @@ fn scaled(tree: &mut Tree, scale: f64) {
     for grown in &mut tree.grown {
         *grown *= scale;
     }
+    for leafing in &mut tree.leafing {
+        leafing.older *= scale;
+    }
     for s in &mut tree.stands {
         (s.base, s.tip) = (s.base * scale, s.tip * scale);
         (s.radius, s.reach) = (s.radius * scale, s.reach * scale);
@@ -163,14 +167,16 @@ fn asked<'a>(input: &'a GrowInput<'_>) -> Result<(&'a telperion_space::Species, 
 
 /// Each PA's row the conversion reads: its internode length and spread
 /// (fn-222), which each node's grown wood is measured by, the share of
-/// its nodes that flower (fn-216), and the leaves at each of its axes'
-/// tips and their fan (fn-223).
+/// its nodes that flower (fn-216), the leaves at each of its axes'
+/// tips and their fan (fn-223), and how long its wood keeps its leaves
+/// (fn-248, `tree::retention`).
 #[derive(Debug, Clone, Copy)]
 pub(super) struct PaRow {
     internode: f64,
     spread: f64,
     flowering: f64,
     cluster: (u32, f64),
+    retention: (u32, u16),
 }
 
 /// Each PA's row (`PaRow`).
@@ -182,6 +188,7 @@ fn pa_rows(species: &telperion_space::Species) -> Vec<PaRow> {
             flowering: s.flowering,
             // Whole, 0 to 8, by the species' own check.
             cluster: (s.cluster_leaves as u32, s.cluster_spread),
+            retention: crate::tree::retention(s.leaf_years),
         })
         .collect()
 }
@@ -337,6 +344,10 @@ fn converted(
     // Each node's mark, kept only where some age states a cluster.
     let clustering = rows.iter().any(|r| r.cluster.0 > 0);
     let mut clustered = vec![false; usize::from(clustering)];
+    // Each node's leaf retention, kept only where some age's wood sheds
+    // its leaves (fn-248).
+    let leafing_on = rows.iter().any(|r| r.retention.0 != u32::MAX);
+    let mut leafing = vec![Leafing::ALL; usize::from(leafing_on)];
     // Whether each node is a fine root's.
     let mut in_root = vec![false];
     let mut frames = vec![[0.0f32; 6]];
@@ -432,9 +443,13 @@ fn converted(
             internode,
             spread,
             cluster,
+            retention,
             ..
         } = rows[axis.pa];
         let mut pending = 0.0;
+        // The retentions of the wood merged into the next node: where the
+        // last change falls, the retention before it and the latest.
+        let mut wood: Option<(f64, u16, u16)> = None;
         for (place, p) in axis
             .phytomers
             .iter()
@@ -449,6 +464,12 @@ fn converted(
             let behind = !made && ((up(p.tip) - from).dot(along) < 0.0 || inside);
             // Each internode as it was laid: its scale and its spread's
             // factor (fn-222).
+            let q = kept_share(retention, structure.age.saturating_sub(p.cycle));
+            wood = Some(match wood {
+                Some((_, _, last)) if q != last => (pending, last, q),
+                Some(held) => held,
+                None => (0.0, q, q),
+            });
             pending += internode * p.scale * telperion_space::internode_factor(p.key(), spread);
             if behind || super::foliage::plan::micrometres(pending) < SHORTEST {
                 drawn[i].push(parent);
@@ -497,6 +518,13 @@ fn converted(
             frames.push([h.x, h.y, h.z, s.x, s.y, s.z].map(|v| v as f32));
             keys.push(crate::tree::node_key(axis.lineage, place));
             lengths.push(std::mem::take(&mut pending));
+            if leafing_on {
+                let (older, before, last) = wood.take().unwrap();
+                leafing.push(Leafing {
+                    older,
+                    keep: u32::from(before) << 16 | u32::from(last),
+                });
+            }
             if share > 0.0 {
                 blooms.push(Bloom {
                     node: parent,
@@ -565,6 +593,7 @@ fn converted(
         blooms,
         clusters,
         clustered,
+        leafing,
         ..Tree::default()
     };
     (tree, drawn)
@@ -574,6 +603,8 @@ fn converted(
 mod cluster_tests;
 #[cfg(test)]
 mod coarse_tests;
+#[cfg(test)]
+mod leafing_tests;
 mod stands;
 #[cfg(test)]
 mod tests;

@@ -1,6 +1,6 @@
 //! One shoot's stations: where each leaf sits along the run, how far it leans
 //! off the wood, and the frame the renderer receives.
-use super::plan::{micrometres, walk};
+use super::plan::{keeps, micrometres, walk};
 use super::{CanopyParams, Instances, TwigPlacement};
 use crate::math::Transcendental;
 use crate::{
@@ -43,10 +43,17 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
     }
     let frames = station_frames(&points, &chord, tree.seed_side(fine, nodes[0], nodes[1]));
     let leaflets = super::rosette::leaflets(&p);
+    // Which stations keep their leaves (fn-248); one that does not still
+    // takes its draws, into a sink, so every other leaf keeps its own.
+    let kept: Vec<bool> = (stations.iter().enumerate())
+        .map(|(k, &d)| twig.is_none() || keeps(tree, (nodes, &along), d, k as u32))
+        .collect();
+    let mut sink = Instances::new(out.reference);
     reserve(
         out,
-        stations
-            .len()
+        kept.iter()
+            .filter(|&&k| k)
+            .count()
             .checked_mul(leaflets)
             .ok_or(Error::ResourceLimit("foliage count overflow"))?,
         p,
@@ -91,6 +98,7 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
                 ))?;
             point = point * (1. - p.surface_contact) + seat * p.surface_contact;
         }
+        let into = if kept[k] { &mut *out } else { &mut sink };
         super::rosette::fan(
             point,
             axis(point, radial, tangent, p),
@@ -98,8 +106,9 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
             normal,
             p,
             rng,
-            out,
+            into,
         )?;
+        sink.leaves.clear();
     }
     Ok(())
 }

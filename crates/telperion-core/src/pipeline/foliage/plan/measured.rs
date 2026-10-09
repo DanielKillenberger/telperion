@@ -166,6 +166,7 @@ fn grown_stations_at_80() {
                     along: chord.iter().map(|c| c * 1e6).collect(),
                     internodes,
                     count: internodes * twig.stations_per_internode,
+                    kept: internodes * twig.stations_per_internode,
                     leaflets: run.leaflets,
                 };
                 before += u64::from(old.count);
