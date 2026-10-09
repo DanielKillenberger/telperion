@@ -20,3 +20,17 @@
 - **Slowed by:** whether fewer bark cells is "the same picture" is not decidable from the shader text. The only check is the bark tests, and they need the rule built. The stated design passed timing and then failed `bark_resolution`, so it was written, built, tested, measured and reverted.
 - **Cost:** about 25 minutes and two GPU test runs.
 - **Would have removed it:** a stated picture tolerance for wood changes, for example "the bark tests' bounds", decided by the host before dispatch. The stop rule would then have had a number to apply.
+
+## 2026-10-09: the bark truth had to be built before the prefilter could be judged
+
+- **Doing:** the host's prefilter decision, judged against a 4x supersampled truth.
+- **Slowed by:** no tool drew the bark test views at 4x with the geometry held, so `examples/bark_truth.rs` was written first. The resolution tests' grazing masks are CPU rasters inside the test file, so the tool uses the clay-room wood mask for every view.
+- **Cost:** about 20 minutes; each truth render is about 45 s.
+- **Would have removed it:** a shared fixture list for the bark views (camera, family, size), which the tests and the tool both read.
+
+## 2026-10-09: other sessions loaded the machine during timing
+
+- **Doing:** the interim and prefilter timing runs.
+- **Slowed by:** the load average reached 20 to 24 during some single runs (other sessions building). GPU timestamps are less affected than wall time, but those rows are one run each and are marked with their load.
+- **Cost:** no reruns yet; R3 would need best-of-3 at low load.
+- **Would have removed it:** the shared "machine busy" marker fn-185 already proposed. Local setup, reported only.

@@ -112,3 +112,104 @@ The shaded pass anti-aliases the bark by sampling it 9 to 25 times per pixel. Th
 - drawing only on change.
 
 Then measure every species again. If a species still falls short of 60 fps, report its remaining cost per pass and stop.
+
+## After the host decision: three points built, the prefilter fails its truth check (stopped for the host)
+
+### Built and committed
+
+- **Sun cache** (`0ce78c7c`). The sun's wood is surfaced and its map is drawn only when the tree, the light, the view's casters (none, wood, or wood and crown) or the caster stride changed (`src/sun.rs`). On a timed frame that reuses the map, the shadow pass is opened empty so its timestamp pair is still written. The record counts that frame as exactly zero and flags it (`shadow_cached`), distinct from an unwritten pair. `tests/sun_cache.rs` checks the reuse decision across a camera move, Whole → Bare → Whole without a rebuild, a caster-stride change, a moved sun, a ground-only edit and a new tree. It also checks that the map after Whole → Bare → Whole is the first one, byte for byte, and that a frame on the reused map is byte-identical to the drawn one. `tests/timing.rs` covers the cached contract.
+- **Draw on change** (`5194550c`). The page draws a frame only when the camera, tree, view, canvas size or scene changed (`src/redraw.rs`). A pending change survives the attempts skipped while a frame is in flight, and it clears only when a whole frame is submitted. A frame without its wood (programs still compiling) or a failed frame is drawn again. The redraw unit tests cover an idle canvas, a resize, a ground-only edit and a camera move during a frame in flight.
+- **Thinning with area kept** (`b6735ca4`). Selection drops organs under one pixel across their bounding sphere. The share kept is the square of their size in pixels, keyed by a hash of each organ's three stored words. Kept organs are drawn enlarged by the inverse square root of that share, one rule for leaves and flowers. `tests/thinning.rs` checks a 48 px crown against the same crown at 192 px, box-reduced in linear light. 7,353 of 25,772 leaves are drawn, and the crown's linear colour change reads 0.0305 against the truth's 0.0261. Unthinned, the 48 px crown read 0.0295, so thinning moved coverage by 3.4% of itself.
+
+### Per pass with the three points (one run each, the wood shader unchanged)
+
+| species | variant | view | runs | load | frame ms | fps | surfacing | selection | shadow | vegetation |
+|---|---|---|---|---|---|---|---|---|---|---|
+| ordinary | full | whole | 1 | 1.70 | 0.78 | 1283 | 0.42 | 0.01 | 0.00 | 0.14 |
+| ordinary | full | close | 1 | 1.70 | 1.06 | 939 | 0.51 | 0.01 | 0.00 | 0.39 |
+| oregon-white-oak | full | whole | 1 | 11.71 | 13.58 | 74 | 0.80 | 0.02 | 0.00 | 12.54 |
+| oregon-white-oak | full | close | 1 | 11.71 | 35.81 | 28 | 1.08 | 0.02 | 0.00 | 33.87 |
+| norway-spruce | full | whole | 1 | 14.80 | 16.66 | 60 | 2.26 | 0.22 | 0.00 | 13.83 |
+| norway-spruce | full | close | 1 | 14.80 | 14.99 | 67 | 1.21 | 0.20 | 0.00 | 13.16 |
+| european-beech | full | whole | 1 | 13.61 | 4.06 | 246 | 0.55 | 0.01 | 0.00 | 3.32 |
+| european-beech | full | close | 1 | 13.61 | 8.88 | 112 | 0.69 | 0.01 | 0.00 | 7.99 |
+| silver-birch | full | whole | 1 | 13.33 | 2.37 | 421 | 0.87 | 0.01 | 0.00 | 1.33 |
+| silver-birch | full | close | 1 | 13.33 | 4.41 | 227 | 0.97 | 0.01 | 0.00 | 3.27 |
+| date-palm | full | whole | 1 | 13.33 | 1.05 | 950 | 0.38 | 0.01 | 0.00 | 0.53 |
+| date-palm | full | close | 1 | 13.33 | 2.43 | 412 | 0.25 | 0.01 | 0.00 | 2.00 |
+| telperion | full | whole | 1 | 6.63 | 107.47 | 9 | 2.89 | 0.44 | 0.00 | 103.13 |
+| telperion | full | close | 1 | 6.63 | 74.78 | 13 | 2.95 | 0.38 | 0.00 | 70.88 |
+| laurelin | full | whole | 1 | 4.33 | 61.83 | 16 | 2.06 | 0.28 | 0.00 | 58.89 |
+| laurelin | full | close | 1 | 4.33 | 57.12 | 18 | 2.48 | 0.24 | 0.00 | 53.74 |
+
+The shadow pass now reads 0.00 on every row: the static camera reuses the map, as an orbit does. Surfacing fell by the sun's half, for example Telperion from 5.2 to 2.9 ms. Thinning barely moved the Two Trees. **Their leaves are 1 to 3 px across at the whole view, not under a pixel**: dropping only the organs under 1 px (an experiment) left every Telperion leaf drawn and removed only flowers. A pixel threshold thins their flowers, and the leaves are the cost.
+
+What a larger threshold would buy (an experiment, outside the stated rule, area kept; one run each):
+
+| species | variant | view | runs | load | frame ms | fps | surfacing | selection | shadow | vegetation |
+|---|---|---|---|---|---|---|---|---|---|---|
+| telperion | T3.0 | whole | 1 | 2.98 | 26.28 | 38 | 2.91 | 0.42 | 0.00 | 22.32 |
+| telperion | T3.0 | close | 1 | 2.98 | 75.62 | 13 | 2.97 | 0.38 | 0.00 | 69.21 |
+| laurelin | T3.0 | whole | 1 | 2.21 | 18.16 | 55 | 2.06 | 0.27 | 0.00 | 15.14 |
+| laurelin | T3.0 | close | 1 | 2.21 | 54.23 | 18 | 2.48 | 0.24 | 0.00 | 50.89 |
+| telperion | T6.0 | whole | 1 | 1.76 | 13.68 | 73 | 2.91 | 0.42 | 0.00 | 9.56 |
+| telperion | T6.0 | close | 1 | 1.76 | 52.86 | 19 | 2.97 | 0.38 | 0.00 | 48.66 |
+| laurelin | T6.0 | whole | 1 | 1.37 | 10.47 | 96 | 2.07 | 0.26 | 0.00 | 7.55 |
+| laurelin | T6.0 | close | 1 | 1.37 | 44.19 | 23 | 2.50 | 0.24 | 0.00 | 40.89 |
+
+At a 6 px threshold Telperion's whole view reaches 73 fps and Laurelin's 96. The close views stay at 19 and 23 fps, because their wood is still about 30 ms. A 6 px threshold draws each leaf as a blob a few pixels across in place of 1 to 3 px leaves, which is a change to the picture and needs your call.
+
+### The bark prefilter against ground truth
+
+Tool: `examples/bark_truth.rs`. Every bark test view (the resolution, grazing, distance and smooth-bark fixtures, plus the harness's close pose for four species at 480x270) is drawn at its size and at 4x. The wood is surfaced for the smaller size in both, so only the shading differs. The comparison is over the wood the clay room paints, eroded 4 px, in mean / p95 code values. The truth in every column is the **present** shader at 4x, box-reduced.
+
+| fixture | wood pixels | present shader | prefilter (stated design) | fade at 4 px | fade at 2 px + lost spread in the tints |
+|---|---|---|---|---|---|
+| oak-trunk | 203395 | 1.77 / 6.1 | 3.38 / 11.2 | 4.29 / 15.0 | 3.39 / 11.3 |
+| oak-grazing | 260012 | 1.28 / 4.9 | 2.20 / 7.5 | 2.31 / 8.0 | 2.20 / 7.5 |
+| spruce-grazing | 204351 | 1.97 / 8.1 | 3.33 / 11.5 | 3.57 / 12.1 | 3.33 / 11.5 |
+| oak-2x | 103188 | 2.54 / 7.7 | 5.70 / 17.0 | 8.54 / 23.9 | 5.78 / 17.2 |
+| oak-4x | 68194 | 4.90 / 23.0 | 7.14 / 24.9 | 7.21 / 25.1 | 7.20 / 24.1 |
+| beech-base | 290741 | 0.98 / 3.9 | 1.21 / 4.7 | 1.21 / 4.7 | 1.39 / 5.1 |
+| birch-bark | 130076 | 2.35 / 7.8 | 3.58 / 13.1 | 3.82 / 13.6 | 3.58 / 13.1 |
+| oak-close | 102027 | 4.50 / 20.2 | 5.34 / 21.0 | 5.49 / 21.3 | 5.34 / 20.8 |
+| spruce-close | 4523 | 11.68 / 34.9 | 12.10 / 35.0 | 12.10 / 35.0 | 12.36 / 35.0 |
+| birch-close | 4322 | 14.64 / 46.3 | 14.64 / 46.3 | 14.64 / 46.3 | 14.64 / 46.3 |
+| telperion-close | 53820 | 7.79 / 29.1 | 7.80 / 29.0 | 7.80 / 29.0 | 7.79 / 29.0 |
+
+The prefilter as specified is one cell per pixel, each band faded to its mean between 4 and 2 px of wavelength, and the plate walls' lost slope variance added to the roughness term (patch: `raw/prefilter.patch`, gitignored). **It is farther from the truth than the present shader on every fixture.** The oak trunk goes from 1.77 to 3.38 mean (bound 3.0), and the oak at 2x from 2.54 to 5.70. Two variants did no better: fading sooner (4 to 8 px) is worse, and carrying the faded height's spread into the crest and fissure tints changes nothing. Its distance to its own 4x draw is almost the same as to the truth (oak trunk 3.28), so the gap is not a bias in the band means. It is the lighting's nonlinearity over relief that one band-limited sample cannot carry: the sun walk's furrow shadow, the rectified crest and fissure tints, and the sheen over the slopes. The roughness term carries only the last of these. Per the decision, the build stopped here, before changing any test, and the shader was reverted.
+
+What the prefilter would buy, measured in the same build (bare views, one run, load about 21):
+
+| species | variant | view | runs | load | frame ms | fps | surfacing | selection | shadow | vegetation |
+|---|---|---|---|---|---|---|---|---|---|---|
+| oregon-white-oak | full | bare-whole | 1 | 23.91 | 2.69 | 371 | 0.80 | - | 0.00 | 1.51 |
+| oregon-white-oak | full | bare-close | 1 | 23.91 | 11.54 | 87 | 1.06 | - | 0.00 | 10.23 |
+| norway-spruce | full | bare-whole | 1 | 23.27 | 3.73 | 268 | 2.26 | - | 0.00 | 1.12 |
+| norway-spruce | full | bare-close | 1 | 23.27 | 4.22 | 237 | 1.21 | - | 0.00 | 2.67 |
+| european-beech | full | bare-whole | 1 | 23.27 | 1.40 | 712 | 0.55 | - | 0.00 | 0.70 |
+| european-beech | full | bare-close | 1 | 23.27 | 2.43 | 411 | 0.69 | - | 0.00 | 1.59 |
+| silver-birch | full | bare-whole | 1 | 21.97 | 1.86 | 537 | 0.86 | - | 0.00 | 0.84 |
+| silver-birch | full | bare-close | 1 | 21.97 | 4.03 | 248 | 0.96 | - | 0.00 | 2.91 |
+| telperion | full | bare-whole | 1 | 20.85 | 6.93 | 144 | 2.89 | - | 0.00 | 3.82 |
+| telperion | full | bare-close | 1 | 20.85 | 11.92 | 84 | 2.93 | - | 0.00 | 8.70 |
+| laurelin | full | bare-whole | 1 | 19.82 | 6.02 | 166 | 2.05 | - | 0.00 | 3.69 |
+| laurelin | full | bare-close | 1 | 19.82 | 10.67 | 94 | 2.47 | - | 0.00 | 7.94 |
+
+The oak's close wood drops from 31.3 to 10.2 ms and Telperion's from 29.9 to 8.7, which is about the relief-off cost. So the speed is there; the picture is not.
+
+### Where each species stands (with the three points, present wood shader)
+
+| species | whole fps | close fps | what the short view still costs |
+|---|---|---|---|
+| ordinary, beech, birch, date palm | 246 to 1283 | 112 to 939 | meets 60 |
+| oak | 74 | **28** | wood 31 ms of the 34 ms vegetation pass; surfacing 1.1 |
+| spruce | **60** (16.7 ms) | 67 | vegetation 13.8 (wood 5.3, needles 8.5); surfacing 2.3; selection 0.2 |
+| Telperion | **9** | **13** | whole: leaves about 98 ms, wood 4.7, surfacing 2.9. Close: wood about 30, leaves and flowers about 40, surfacing 3.0 |
+| Laurelin | **16** | **18** | whole: leaves about 54 ms, wood 4.6, surfacing 2.1. Close: wood about 31, leaves and flowers about 22, surfacing 2.5 |
+
+Two decisions are open for you:
+1. **The wood.** Either a prefilter that carries the lighting's nonlinearity rather than the relief's mean (the furrow shadow and tints as functions of the faded variance, which needs fitting against the truth tool), or accepting the prefilter's distance as the bark's new picture.
+2. **The leaves.** Whether the thinning threshold may rise past a pixel (3 to 6 px) for the Two Trees.
+
+The gate, npm test and impl-review were not run, because the build stopped.
