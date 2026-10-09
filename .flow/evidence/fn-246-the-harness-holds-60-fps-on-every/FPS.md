@@ -95,3 +95,20 @@ So the two-by-two floor is not idle quadrature: it is the bark's anti-aliasing a
 Neither variant touches the Two Trees' wood (29.7 and 31.4 ms bare close). Their 2 mm ridge puts one to six ridge widths in a close pixel, where the dense grid is the one the field needs. With the relief off their close wood is still 8.5 and 7.8 ms.
 
 Per the dispatch, the fix is now beyond "the shader cheaper for the same picture", so the build stops before code and goes to the host. Both variants were reverted (`177dbe4c`); the branch holds the probe and this record. Points 1 to 4 of the design (thinning, sun caching, draw on change, cached-pass timing) are not built.
+
+## Host decision (2026-10-09): prefilter the relief instead of supersampling it
+
+The shaded pass anti-aliases the bark by sampling it 9 to 25 times per pixel. The standard, cheaper answer, and the one that matches what a camera actually sees, is to band-limit the relief to the pixel's footprint:
+
+- **Fade unresolvable detail.** Every octave, or ridge scale, of the bark field whose wavelength falls below about two pixels of the footprint fades to its own average, by degree as the footprint grows.
+- **Keep the faded slopes' contribution.** The variance of the slopes those octaves carried goes into the shading roughness (Toksvig/LEAN-style), so the faded detail still darkens and spreads highlights as fine relief does, rather than going flat.
+- **One shading cell per pixel.** Where every octave is resolved, the picture is unchanged. Where they are not, the relief is the band-limited version of the same field.
+
+**The bark tests judge against ground truth, not against the old supersampler.** For each bark test view, the reference is the same frame rendered at 4× the resolution with the current shader and downsampled. The new shader must land within the existing bounds of that reference: mean ≤ 3.0 and the same p95 bound. Measure the old shader against it too, and report both. If the new shader is no closer than the old one, report that before changing any test.
+
+**The other three design points do not depend on this, so build them now:**
+- thinning by screen size with area kept;
+- sun-side caching;
+- drawing only on change.
+
+Then measure every species again. If a species still falls short of 60 fps, report its remaining cost per pass and stop.
