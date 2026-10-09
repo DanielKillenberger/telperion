@@ -215,3 +215,11 @@ The Two Trees' twigs still read as branches.
   - Telperion against the beech at 92 is the same: shoots 5.1-6.1 mm against 2.1-2.6 mm, seat 4.56 mm against 1.90 mm.
   - The example's "leaves per metre" now counts cluster leaves against run wood, so that line no longer gives the spacing.
 - **What follows.** Parts 1 and 2 fix the natural tree's foliage. They do not change what the uniform scale does to the finest wood: it still draws a current-year shoot of the beech at 2.4-2.5 times its thickness, beside leaves at their natural size. With most leaves now gone from that wood, the thick bare shoots are what the eye reads. The decided route (Astra's per-PA enlargement) is the host's next call.
+
+### Review, gate and npm test (worker, 2026-10-09)
+
+- **impl-review (codex, three draws): SHIP.** It returned two P2 findings.
+  - **#1, fixed in `e1690cf5`.** Placement recomputed the station unit from an f32 internode, while the CPU counts by an f64 one. The device's stations and placement now both take the CPU's whole-micrometre unit.
+  - **#2, declined and raised to the host.** A node that merges three ages straddling a fractional year keeps two retentions, not three. Fixing it needs a third record word, against the host's two. No shipped preset can produce such a node: the beech's `leafYears` is a whole number, and the conversion test found 2 mixed nodes of 5,224 at 1.5 years.
+- **Gate (`cargo test --profile ci --workspace --no-fail-fast`).** 141 test binaries pass. One test fails: `every_pipeline_within_2_5_s_but_grow_within_20_s_cold`, which timed the `grow` pipeline at 26.8 s against its 20 s bound while running in parallel with the suite. Run alone at this head it passes, with grow at 18.3 s. This change touches no part of `grow` beyond adding one `KEY_RETAIN` constant to `lineage.wgsl`. No base gate run was made, so whether the base fails the same way under contention is unknown (FRICTION.md).
+- **npm test.** 14 files and 154 tests pass, after `src/browser/presets.generated.ts` was regenerated for the three value files (`TELPERION_WRITE_REFERENCE=1 npm run wasm:build`).

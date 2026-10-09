@@ -3186,7 +3186,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "twig": {
             "bearingDiameter": 0.03,
             "diameter": 0.005,
-            "internodeLength": 0.006,
+            "internodeLength": 0.025,
             "length": 0.25,
             "stationsPerInternode": 1
           },
@@ -3210,6 +3210,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.3,
             "internode": 0.07,
+            "leafYears": 1,
             "lifespan": 9,
             "relay": 1,
             "relayAt": 0.15,
@@ -3260,6 +3261,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "leafYears": 1,
             "lifespan": 40,
             "relay": 1,
             "relayAt": 0.15,
@@ -3310,6 +3312,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "tropism": 0.3,
               "wander": 0.2
             },
+            "leafYears": 1,
             "lifespan": 2,
             "trunk": true,
             "zones": {
@@ -3357,6 +3360,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "leafYears": 1,
             "lifespan": 70,
             "relay": 1,
             "relayAt": 0.15,
@@ -3409,6 +3413,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "leafYears": 1,
             "lifespan": 30,
             "relay": 1,
             "relayAt": 0.15,
@@ -3459,6 +3464,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "leafYears": 1,
             "lifespan": 25,
             "straightening": 0.25,
             "viability": 0.995,
@@ -3503,6 +3509,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 1,
             "internode": 0.03,
+            "leafYears": 1,
             "lifespan": 10,
             "shedding": 1,
             "viability": 0.95,
@@ -3556,6 +3563,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 1,
             "internode": 0.025,
+            "leafYears": 1,
             "lifespan": 5,
             "shedding": 1,
             "viability": 0.95,
@@ -3580,12 +3588,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "14": {
+            "clusterLeaves": 3,
+            "clusterSpread": 0.6,
             "continuation": 0,
             "form": {
               "pipe": 0.00095
             },
             "insertion": 0.9,
             "internode": 0.006,
+            "leafYears": 1,
             "lifespan": 3,
             "shedding": 1,
             "viability": 0.9,
@@ -5027,7 +5038,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "twig": {
             "bearingDiameter": 0.03,
             "diameter": 0.005,
-            "internodeLength": 0.006,
+            "internodeLength": 0.025,
             "length": 0.25,
             "stationsPerInternode": 1
           },
@@ -5051,6 +5062,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.3,
             "internode": 0.07,
+            "leafYears": 1,
             "lifespan": 9,
             "relay": 1,
             "relayAt": 0.15,
@@ -5101,6 +5113,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "leafYears": 1,
             "lifespan": 40,
             "relay": 1,
             "relayAt": 0.15,
@@ -5151,6 +5164,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "tropism": 0.3,
               "wander": 0.2
             },
+            "leafYears": 1,
             "lifespan": 2,
             "trunk": true,
             "zones": {
@@ -5198,6 +5212,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "leafYears": 1,
             "lifespan": 70,
             "relay": 1,
             "relayAt": 0.15,
@@ -5250,6 +5265,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "leafYears": 1,
             "lifespan": 30,
             "relay": 1,
             "relayAt": 0.15,
@@ -5300,6 +5316,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "leafYears": 1,
             "lifespan": 25,
             "straightening": 0.25,
             "viability": 0.995,
@@ -5344,6 +5361,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 1,
             "internode": 0.03,
+            "leafYears": 1,
             "lifespan": 10,
             "shedding": 1,
             "viability": 0.95,
@@ -5397,6 +5415,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 1,
             "internode": 0.025,
+            "leafYears": 1,
             "lifespan": 5,
             "shedding": 1,
             "viability": 0.95,
@@ -5421,12 +5440,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "14": {
+            "clusterLeaves": 3,
+            "clusterSpread": 0.6,
             "continuation": 0,
             "form": {
               "pipe": 0.00095
             },
             "insertion": 0.9,
             "internode": 0.006,
+            "leafYears": 1,
             "lifespan": 3,
             "shedding": 1,
             "viability": 0.9,
@@ -5787,7 +5809,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "twig": {
             "bearingDiameter": 0.03,
             "diameter": 0.005,
-            "internodeLength": 0.006,
+            "internodeLength": 0.025,
             "length": 0.25,
             "stationsPerInternode": 1
           },
@@ -5811,6 +5833,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.3,
             "internode": 0.07,
+            "leafYears": 1,
             "lifespan": 9,
             "relay": 1,
             "relayAt": 0.15,
@@ -5861,6 +5884,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "leafYears": 1,
             "lifespan": 40,
             "relay": 1,
             "relayAt": 0.15,
@@ -5911,6 +5935,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "tropism": 0.3,
               "wander": 0.2
             },
+            "leafYears": 1,
             "lifespan": 2,
             "trunk": true,
             "zones": {
@@ -5958,6 +5983,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "leafYears": 1,
             "lifespan": 70,
             "relay": 1,
             "relayAt": 0.15,
@@ -6010,6 +6036,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "leafYears": 1,
             "lifespan": 30,
             "relay": 1,
             "relayAt": 0.15,
@@ -6060,6 +6087,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 1.2
             },
             "insertion": 0.7,
+            "leafYears": 1,
             "lifespan": 25,
             "straightening": 0.25,
             "viability": 0.995,
@@ -6104,6 +6132,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 1,
             "internode": 0.03,
+            "leafYears": 1,
             "lifespan": 10,
             "shedding": 1,
             "viability": 0.95,
@@ -6157,6 +6186,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 1,
             "internode": 0.025,
+            "leafYears": 1,
             "lifespan": 5,
             "shedding": 1,
             "viability": 0.95,
@@ -6181,12 +6211,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "14": {
+            "clusterLeaves": 3,
+            "clusterSpread": 0.6,
             "continuation": 0,
             "form": {
               "pipe": 0.00095
             },
             "insertion": 0.9,
             "internode": 0.006,
+            "leafYears": 1,
             "lifespan": 3,
             "shedding": 1,
             "viability": 0.9,
