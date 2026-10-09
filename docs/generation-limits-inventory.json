@@ -1630,11 +1630,5 @@
     "site": "while ga > 0 . 0 {",
     "classification": "algorithm",
     "reason": "The blend's size solve (fn-230): a bounded regula-falsi root find on the lateral factor; it limits no generated population."
-  },
-  {
-    "path": "crates/telperion-core/src/supernatural.rs",
-    "site": "for k in 0 . . SupernaturalFlowering : : AGES {",
-    "classification": "algorithm",
-    "reason": "Walks the supernatural group's one flowering override per engine age along the engine's fixed age axis; it limits no tree."
   }
 ]

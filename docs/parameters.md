@@ -3359,3 +3359,307 @@ How rough the back and the margin are as mirrors: low is a sharp glint, high a b
 - checked: Supernatural site, rank 14, as invalid input `supernatural flowering`
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
+
+## `/supernatural/internode`
+
+### `/supernatural/internode/age0`
+
+`/space/ages/0/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 0, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age1`
+
+`/space/ages/1/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 1, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age2`
+
+`/space/ages/2/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 2, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age3`
+
+`/space/ages/3/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 3, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age4`
+
+`/space/ages/4/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 4, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age5`
+
+`/space/ages/5/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 5, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age6`
+
+`/space/ages/6/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 6, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age7`
+
+`/space/ages/7/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 7, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age8`
+
+`/space/ages/8/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 8, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age9`
+
+`/space/ages/9/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 9, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age10`
+
+`/space/ages/10/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 10, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age11`
+
+`/space/ages/11/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 11, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age12`
+
+`/space/ages/12/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 12, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age13`
+
+`/space/ages/13/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 13, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/internode/age14`
+
+`/space/ages/14/internode` while the group is on; unset, the natural internode length.
+
+- optional real, m, [0.000001, 100], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 14, as invalid input `supernatural internode`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+## `/supernatural/pipe`
+
+### `/supernatural/pipe/age0`
+
+`/space/ages/0/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 0, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age1`
+
+`/space/ages/1/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 1, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age2`
+
+`/space/ages/2/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 2, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age3`
+
+`/space/ages/3/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 3, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age4`
+
+`/space/ages/4/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 4, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age5`
+
+`/space/ages/5/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 5, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age6`
+
+`/space/ages/6/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 6, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age7`
+
+`/space/ages/7/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 7, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age8`
+
+`/space/ages/8/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 8, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age9`
+
+`/space/ages/9/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 9, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age10`
+
+`/space/ages/10/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 10, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age11`
+
+`/space/ages/11/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 11, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age12`
+
+`/space/ages/12/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 12, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age13`
+
+`/space/ages/13/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 13, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
+### `/supernatural/pipe/age14`
+
+`/space/ages/14/form/pipe` while the group is on; unset, the natural pipe a phytomer adds.
+
+- optional real, m, [0, 1], default unset
+- read by grow; removed growth path: as the direct build
+- checked: Supernatural site, rank 14, as invalid input `supernatural pipe`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none

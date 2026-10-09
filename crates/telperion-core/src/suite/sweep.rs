@@ -81,7 +81,7 @@ const SWEEP_NODES: usize = 8_000;
 // with the rest of the scaffold; the birch (fn-213) moves the envelope, the
 // clump, the peel, the curtain and the twig length, so the sweep walks
 // those. Every preset is now an engine preset, so every pair is walked.
-const HELD: [&str; 136] = [
+const HELD: [&str; 137] = [
     "/bloom/florets",
     "/bloom/rachis",
     "/bloom/droop",
@@ -173,6 +173,9 @@ const HELD: [&str; 136] = [
     "/surface/forkSocket",
     "/surface/forkSwell",
     "/surface/radialSegments",
+    // fn-248: the Two Trees grow large through their coarse ages, at
+    // scale one; their twelve coarse-age rows are walked.
+    "/supernatural/scale",
     "/supernatural/bloom/opens",
     "/supernatural/bloom/lasts",
     "/supernatural/bloom/stagger",
