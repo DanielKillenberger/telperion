@@ -19,7 +19,8 @@
     "fn-241-three-defects-found-on-the-way-to-the",
     "fn-243-the-browser-compiles-the-gpu-programs",
     "fn-244-trunks-without-weird-dents",
-    "fn-246-the-harness-holds-60-fps-on-every"
+    "fn-246-the-harness-holds-60-fps-on-every",
+    "fn-248-leaves-hang-on-twigs"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -39,5 +40,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T09:21:24.770414Z"
+  "updated_at": "2026-10-09T12:09:42.254178Z"
 }
