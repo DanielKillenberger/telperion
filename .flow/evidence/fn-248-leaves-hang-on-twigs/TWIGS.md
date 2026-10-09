@@ -500,3 +500,21 @@ Its optional polish:
 **The host's call:** a younger age (80 to 84, measured at seed 42 against the actual kept count), or another seed for the preset.
 
 **Not yet run:** impl-review, and npm test again. They wait on that decision.
+
+## Telperion at 82, by his own seed (worker, 2026-10-09)
+
+**The planning rule (host).** A decision that touches the browser's phytomer bound is made from the preset's own seed (42), group on, by the phytomers its tree actually keeps. It is never made from `expected_kept`, which is a mean over seeds. The section above chose 88 from that mean; it is superseded here.
+
+**Phytomers kept at seed 42, group on** (`grow_marked`, the count `fits` refuses by):
+
+| Age | 80 | 81 | 82 | 83 | 84 | 85 | 86 |
+|---|---|---|---|---|---|---|---|
+| Kept | 3,534,309 | 3,657,571 | **3,773,761** | 3,898,349 | 4,018,104 | 4,153,257 | 4,285,300 |
+
+His age is set to **82**: the largest at or under 3.8M, a 5 % margin to `WASM_KEPT` (`be719db0`).
+
+**Telperion at 82:**
+- **Seed 1:** 45.6 m tall, 45.1 × 45.4 m across; LAI **5.83**.
+- **Seed 42:** 45.4 m tall, 51.3 × 53.4 m across; LAI **6.94**.
+- **Frame rate** (`frames.rs`, 1080p, best of 3): **96.5** fps whole, 25.4 close.
+- He now stands at Laurelin's height at 80 (45.1 m), where at 92 he stood 49 m. "The loftier" now holds only in breadth at seed 42.
