@@ -106,6 +106,29 @@ fn measure(family: &Family, label: &str) -> Result<(), String> {
         tree.nodes.len(),
         plan.total
     );
+    // The tree's size: its height and spread from its wood, and its stem's
+    // radius at its base and at breast height.
+    let (mut lo, mut hi) = ([f64::MAX; 3], [f64::MIN; 3]);
+    for n in &tree.nodes {
+        let p = [n.position.x, n.position.y, n.position.z];
+        for c in 0..3 {
+            (lo[c], hi[c]) = (lo[c].min(p[c]), hi[c].max(p[c]));
+        }
+    }
+    let breast = (tree.nodes.iter().filter(|n| n.stem))
+        .min_by(|a, b| {
+            (a.position.y - 1.3)
+                .abs()
+                .total_cmp(&(b.position.y - 1.3).abs())
+        })
+        .map_or(0.0, |n| n.radius);
+    println!(
+        "size: {:.1} m tall, {:.1} x {:.1} m; stem radius {:.3} m at the base, {breast:.3} m at 1.3 m",
+        hi[1] - lo[1],
+        hi[0] - lo[0],
+        hi[2] - lo[2],
+        tree.nodes[0].radius
+    );
 
     // The wood by order and age: nodes, metres grown, median drawn diameter.
     let top = *order.iter().max().unwrap() as usize;

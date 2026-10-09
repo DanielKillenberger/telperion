@@ -11,7 +11,10 @@ use crate::{
     foliage::{BloomParams, CanopyParams, ElementParams},
     material::MaterialParams,
     radius::RadiusParams,
-    supernatural::{Supernatural, SupernaturalBloom, SupernaturalFlowering, SupernaturalMaterial},
+    supernatural::{
+        Supernatural, SupernaturalBloom, SupernaturalFlowering, SupernaturalInternode,
+        SupernaturalMaterial, SupernaturalPipe,
+    },
     surface::SurfaceParams,
     twigs::{TwigAnatomy, TwigParams},
     Family,
@@ -136,6 +139,8 @@ groups! {
     SupernaturalMaterial: supernatural.material;
     SupernaturalBloom: supernatural.bloom;
     SupernaturalFlowering: supernatural.flowering;
+    SupernaturalInternode: supernatural.internode;
+    SupernaturalPipe: supernatural.pipe;
 }
 
 const fn find<S>(rows: &[Row<S>], path: &str) -> Option<usize> {

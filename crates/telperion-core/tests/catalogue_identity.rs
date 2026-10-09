@@ -142,6 +142,11 @@
 //! the base's to the bit. Its part 2 re-pinned the family and walk
 //! digests for the beech's leaf spacing (`/skeleton/twigs/twig/
 //! internodeLength` 0.006 to 0.025, in the three value files alone).
+//! Its part 3 re-pinned all four for the group's per-age internode and pipe
+//! overrides (`/supernatural/internode/age<k>`, `/supernatural/pipe/age<k>`):
+//! with their empty tables stripped from the text and the wire, the family,
+//! walk and override digests were each part 2's to the bit; the refusal
+//! digest takes the new rows' own refusals and re-pairs by index.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -177,7 +182,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        16_851_217_471_594_392_088,
+        4_387_717_111_125_515_632,
         "{}",
         digest(&text)
     );
@@ -209,7 +214,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        16_155_354_335_762_346_298,
+        16_522_166_025_792_163_370,
         "{}",
         digest(&text)
     );
@@ -234,7 +239,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        8_542_284_750_902_576_455,
+        15_534_132_823_607_184_593,
         "{}",
         digest(&text)
     );
@@ -297,7 +302,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        159_807_827_090_449_713,
+        17_361_867_547_988_757_821,
         "{}",
         digest(&text)
     );
