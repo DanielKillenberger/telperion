@@ -232,7 +232,8 @@ fn every_shipped_young_wood_row_crosses_the_wire_the_page_sends_unchanged() {
         );
     }
     // Only the species whose tables state young wood have any: the oak's
-    // since its round 4 (fn-195), and Laurelin's, the beech's (fn-218).
+    // since its round 4 (fn-195), and the Two Trees', the beech's (fn-218,
+    // fn-219).
     let young: Vec<_> = params::CATALOGUE
         .iter()
         .chain(params::IN_WORK)
@@ -252,6 +253,7 @@ fn every_shipped_young_wood_row_crosses_the_wire_the_page_sends_unchanged() {
             "oregon-white-oak",
             "european-beech",
             "silver-birch",
+            "telperion",
             "laurelin"
         ]
     );
@@ -280,7 +282,10 @@ fn every_shipped_canopy_row_crosses_the_wire_the_page_sends_unchanged() {
             lit.push(*id);
         }
     }
-    // Only the species whose tables state a canopy light one: Laurelin's
-    // is the beech's (fn-218).
-    assert_eq!(lit, ["european-beech", "silver-birch", "laurelin"]);
+    // Only the species whose tables state a canopy light one: the Two
+    // Trees' is the beech's (fn-218, fn-219).
+    assert_eq!(
+        lit,
+        ["european-beech", "silver-birch", "telperion", "laurelin"]
+    );
 }
