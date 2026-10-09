@@ -44,8 +44,8 @@ fn horn(f: &mut Family, curl: f64) {
         ..f.bloom
     };
     let m = &mut f.material;
-    (m.bloom_front_red, m.bloom_front_green, m.bloom_front_blue) = (0.13, 0.075, 0.008);
-    (m.bloom_back_red, m.bloom_back_green, m.bloom_back_blue) = (0.11, 0.06, 0.006);
+    (m.bloom_front_red, m.bloom_front_green, m.bloom_front_blue) = (0.85, 0.65, 0.1);
+    (m.bloom_back_red, m.bloom_back_green, m.bloom_back_blue) = (0.72, 0.55, 0.085);
 }
 
 /// A cherry's corymb (fn-216's beech blossom): white five-petal florets on
@@ -67,8 +67,8 @@ fn blossom(f: &mut Family) {
         ..f.bloom
     };
     let m = &mut f.material;
-    (m.bloom_front_red, m.bloom_front_green, m.bloom_front_blue) = (0.1, 0.097, 0.09);
-    (m.bloom_back_red, m.bloom_back_green, m.bloom_back_blue) = (0.085, 0.082, 0.076);
+    (m.bloom_front_red, m.bloom_front_green, m.bloom_front_blue) = (0.82, 0.8, 0.74);
+    (m.bloom_back_red, m.bloom_back_green, m.bloom_back_blue) = (0.72, 0.72, 0.64);
 }
 
 /// A camera `distance` out from the outermost whole floret on the hero camera's

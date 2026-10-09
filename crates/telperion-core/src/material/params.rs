@@ -200,11 +200,11 @@ crate::catalogue::rows! {
             dial: bounded("material_leaf_dead_blue", "the blue in the colour a dead frond has \
                 aged to", [0.05, 0.1]),
         },
-        /// The colour of a petal's upper face, a linear reflectance per channel
-        /// on the leaf faces' scale, not a display (sRGB) value (fn-216): the
-        /// flowers' own, drawn by the leaf shader. A white petal beside a
-        /// beech's leaves is about 0.1 a channel; past about 0.15 it clips to
-        /// flat white under the hero sun whatever its value.
+        /// The colour of a petal's upper face, a linear albedo per channel, the
+        /// same quantity as the leaf faces' and not a display (sRGB) value
+        /// (fn-216, fn-234): the flowers' own, drawn by the leaf shader, and
+        /// the colour the petal passes when lit from behind. A white petal is
+        /// about 0.8 a channel and a gold one about 0.85/0.65/0.1.
         pub bloom_front_red: f64 = "bloomFrontRed" "reflectance"
             Bounds::closed(0.0, 1.0) => [Draw] {
             wire: 267,
@@ -228,9 +228,9 @@ crate::catalogue::rows! {
             applies: "no age flowering",
             dial: crate::catalogue::FLOWERS,
         },
-        /// The colour of a petal's underside, a linear reflectance per channel
-        /// on `bloom_front_red`'s scale (fn-216): the flowers' own, drawn by the
-        /// leaf shader.
+        /// The colour of a petal's underside, a linear albedo per channel as
+        /// `bloom_front_red` is (fn-216): the flowers' own, drawn by the leaf
+        /// shader.
         pub bloom_back_red: f64 = "bloomBackRed" "reflectance"
             Bounds::closed(0.0, 1.0) => [Draw] {
             wire: 270,

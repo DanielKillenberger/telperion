@@ -16,9 +16,10 @@ no production stage and is kept on the wire for compatibility.
 Colour rows (unit `reflectance`) are linear reflectances per channel, not
 display (sRGB) values, all on one scale under one exposure: a dark broadleaf
 face is a few hundredths (the beech's leaf 0.021/0.016/0.007), a white birch
-bark 0.78/0.76/0.70. A display value typed into a leaf or petal row is ten or
-more times too bright and clips to white (fn-216: petals at 0.2 to 0.9 drew
-flat white; a white petal beside a beech's leaves is about 0.1).
+bark 0.78/0.76/0.70. A display value typed into a leaf row is ten or more
+times too bright. Petal rows are albedos on the same scale: a white petal is
+about 0.8 and draws near white at the whole-tree view, where fn-216's 0.1 drew
+grey (fn-234).
 
 ## `/ (the family)`
 
@@ -1772,7 +1773,7 @@ The blue channel of `leaf_dead_red`.
 
 ### `/material/bloomFrontRed`
 
-The colour of a petal's upper face, a linear reflectance per channel on the leaf faces' scale, not a display (sRGB) value (fn-216): the flowers' own, drawn by the leaf shader. A white petal beside a beech's leaves is about 0.1 a channel; past about 0.15 it clips to flat white under the hero sun whatever its value.
+The colour of a petal's upper face, a linear albedo per channel, the same quantity as the leaf faces' and not a display (sRGB) value (fn-216, fn-234): the flowers' own, drawn by the leaf shader, and the colour the petal passes when lit from behind. A white petal is about 0.8 a channel and a gold one about 0.85/0.65/0.1.
 
 - real, reflectance, [0, 1], default 0.82
 - read by draw; removed growth path: as the direct build
@@ -1802,7 +1803,7 @@ The blue channel of `bloom_front_red`.
 
 ### `/material/bloomBackRed`
 
-The colour of a petal's underside, a linear reflectance per channel on `bloom_front_red`'s scale (fn-216): the flowers' own, drawn by the leaf shader.
+The colour of a petal's underside, a linear albedo per channel as `bloom_front_red` is (fn-216): the flowers' own, drawn by the leaf shader.
 
 - real, reflectance, [0, 1], default 0.72
 - read by draw; removed growth path: as the direct build
