@@ -322,3 +322,86 @@ Both targets are met. Height and spread are within 10 % of today's, and the shoo
 - **Whole.** Both crowns now read as open, branchy and nearly leafless, a winter tree hung with flowers. Each tree now carries the natural beech's fine wood and leaves, within 1 % (365,167 against the beech's 361,315 at 80; 526,031 against 520,885 at 92), spread over a crown about 2.5 times as wide. That is about one sixth of the leaf density per area of crown. Under the uniform scale after parts 1 and 2 (468,203 leaves on Laurelin), the crown was already more open than before; its branch systems, 2.5 times larger, still filled more of it than the ordinary-sized ones do now. The two whole views are side by side in `raw/part3-whole-vs-part2.jpg`.
 
 **For the host before the remaining proofs.** The contact error, Astra, the gate, npm test and impl-review are held until the values are settled, because each would be spent again on any change. The size targets are met, but the crown no longer reads as a full tree. Neither the scale nor these rows add branch systems, as Astra noted; a giant crown of ordinary twigs needs more of them. Whether to accept the open crown, raise the fine ages' branching, or pursue another route is the host's design call.
+
+## After the owner's harness visit: F4 merged, the beech's leaf area index, and the Two Trees' density (worker, 2026-10-09)
+
+### F4 merged (`525d62fd`, `4aba8b5f`)
+
+- **What came in:** `fn-198-tree-space-f-the-engine-in-production` at 2329d19e, which brings fn-244 (trunks without dents), fn-246 (60 fps) and fn-249.
+- **Conflict resolved: relay joins.** fn-244 splits a phytomer's span into pieces at relay joins. Every piece is that phytomer's wood, so each takes its retention as it joins the pending wood, both in `space.rs` and in `dress.wgsl`'s walk.
+- **Checks after the merge:**
+  - spruce and palm `space_hash`, at 40 and 80, seeds 1 and 7, match fn-249's RESULT.md to the bit;
+  - the catalogue digests are unchanged by the merge;
+  - every render test passes, the retention and override parity tests among them;
+  - the generated references are regenerated.
+
+### Frame rate (fn-246's `frames.rs`, 1080p, 4x MSAA, best of 3)
+
+| Tree | fn-246 R3 final, whole / close | After the merge, whole / close | After the beech's rows below, whole / close |
+|---|---|---|---|
+| beech | 589 / 330 | 658 / 367 | 622 / 344 |
+| Laurelin | 56 / 52 | 163 / 73 | 149 / 63 |
+| Telperion | 50 / 34 | 101 / 33 | 83 / **25** |
+
+The owner's "way below 20" was the branch before fn-246 came in. Telperion's close view now falls below fn-246's 34 fps, because it carries the beech's extra short-shoot leaves; its whole view is at 83 fps.
+
+### The density target
+
+Crown leaf area index (LAI): the one-sided leaf area over the area of the crown's projection on the ground.
+
+- **The measure.** `twig_layer` sums each leaf's area: the element's blade facing +Z, at the leaf's scale squared. It divides by the convex hull of the leaves' seats.
+- **The literature.** Glatthorn et al. (2017), "Effects of forest management on stand leaf area: Comparing beech production and primeval forests in Slovakia", *Forest Ecology and Management*, optically measured LAI:
+  - primeval stands: 7.1 on average (2.8 to 11.0);
+  - production stands: 7.4 on average (4.3 to 11.2).
+- **The caveat.** These are stand values, which the crown values here are measured against. The host's 5 to 7 sits at and below those means.
+
+| Tree, seed 1 | LAI before | LAI now | Leaves | Nodes |
+|---|---|---|---|---|
+| beech 40 | 3.61 | **5.21** | 25,112 → 36,432 | 102,954 → 124,652 |
+| beech 80 | 4.97 | **7.29** | 361,332 → 529,177 | 1,541,615 → 1,938,678 |
+| beech 92 (Telperion off) | 5.12 | 7.48 | 520,878 → 763,107 | 2,266,499 → 2,844,935 |
+| Laurelin 80 | 0.89 | 1.30 | 365,213 → 533,040 | 1,542,083 → 1,939,618 |
+| Telperion 92 | 0.96 | 1.40 | 526,007 → 768,248 | 2,267,334 → 2,846,518 |
+
+### The beech's rows (`45b5bd2b`)
+
+- **The change.** The short shoots (PA 14) now bear 4 leaves where they bore 3; that is the top of [LET]'s "usually 3 or 4", read as one leaf per metamer (inferred). They now live 4 years where they lived 3 (estimated).
+  - The leaves stay on current-year wood and on the spurs' tips; there is no return to the 6 mm fringe.
+  - The beech at 80 lands at 7.29, a little over the host's 7 but inside the measured means.
+- **What else was tried.**
+  - Spur lifespan 6 with clusters of 3: 4.8 at 40, 6.9 at 80.
+  - Clusters of 4 alone: 4.6 and 6.3.
+  - Lifespan 5 with clusters of 4: 5.7 and 8.2.
+  - The ratio between age 40 and age 80 stays about 1.4 under each lever, so no setting puts both inside 5 to 7.
+- **Lateral shares.** The fine ages' lateral shares were left as they are. Branch systems already bear short shoots at 0.7 (the top of [LET]'s A24 range) and shoots at 0.6 (the top of A34's).
+- **The stills** (`TWIGS-lai-beech.jpg`, viewed). At 80 the crown is fuller than before, with leaves at the spurs among the visible twigs. At 40 the sprays carry their leaves spaced along thin shoots.
+
+### The Two Trees cannot reach that LAI within the browser's phytomer ceiling: stopped for the host
+
+With ordinary-size twigs over a crown about 2.5 times as wide, the Two Trees need about 5 times the beech's fine branch systems.
+
+**Why one table of lateral probabilities cannot do it.**
+- An age's lateral probabilities are a table per zone and per target age. Each zone's probabilities sum to at most one, and the beech's are already 0.6 to 0.7, so even raising them to one adds at most half again.
+- `readiness`, the one per-age scalar that scales them, admits at most 1, and it is 1 already.
+
+**Measured on Laurelin at 80**, with her natural rows edited for the trial only and then restored:
+
+| Fine ages 9 and 12 | LAI | Nodes | Leaves |
+|---|---|---|---|
+| as today | 1.30 | 1.94M | 533k |
+| every lateral probability at one | 2.79 | 3.63M | 1.15M |
+| two buds a node on the bearing zones | 4.15 | 5.12M | 1.70M |
+| three buds a node | not finished (over 15 min) | | |
+
+**Why this stops here.**
+- At the zone's whole range of laterals, LAI reaches 2.8.
+- Only more buds per node (`zones/<z>/buds`, a per-zone count from 1 to 6) approaches the range. At two buds it is 4.15 with 5.1M nodes, already past the browser's 4,000,000-phytomer ceiling (`pipeline/space.rs`, `OVER`).
+- Reaching 5 to 7 would take about 2.5 buds, around 7M nodes and about 2.5M leaves on Laurelin, and more on Telperion. That breaks the browser ceiling, and very likely Telperion's frame rate: his close view is already at 25 fps with 768k leaves.
+
+**What the host could decide:**
+- a lower LAI target for the Two Trees;
+- leaves larger than the beech's on the Two Trees, with fewer of them (an override of the leaf's size);
+- a `buds` override table with a ceiling the browser can hold;
+- or another route.
+
+The third table is not built.
