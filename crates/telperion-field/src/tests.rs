@@ -198,18 +198,16 @@ fn every_shipped_preset_answers_as_the_main_pipeline_does() {
     }
 }
 
-/// A cut reaches the engine through the ABI: the spruce answers a coarse
-/// field with foliage, and the oak, whose structure above a cut reads its
-/// fine roots as grown, is refused it as an invalid input.
+/// A cut reaches the engine through the ABI: the spruce, and the lit oak
+/// whose fine roots stand in its stepped executor (fn-214 task 2), each
+/// answer a coarse field with foliage.
 #[test]
-fn a_cut_grows_a_coarse_field_or_is_refused_by_name() {
-    write_species("norway-spruce");
-    assert_eq!(grow(3, FAMILY_ORDER, 1024), 0, "{}", error());
-    write_grid(12);
-    assert_eq!(query(revision()), 0, "{}", error());
-    assert!(answers().0.iter().any(|f| f & 2 != 0));
-    write_species("oregon-white-oak");
-    assert_eq!(grow(3, FAMILY_ORDER, 1024), 1);
-    assert!(error().contains("cut"), "{}", error());
-    assert_eq!(bounds_len(), 0);
+fn a_cut_grows_a_coarse_field() {
+    for id in ["norway-spruce", "oregon-white-oak"] {
+        write_species(id);
+        assert_eq!(grow(3, FAMILY_ORDER, 1024), 0, "{id}: {}", error());
+        write_grid(12);
+        assert_eq!(query(revision()), 0, "{id}: {}", error());
+        assert!(answers().0.iter().any(|f| f & 2 != 0), "{id}");
+    }
 }

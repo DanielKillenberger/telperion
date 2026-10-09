@@ -468,6 +468,18 @@
     "reason": "A leaf reach is a finite non-negative length; anything else is an invalid plan."
   },
   {
+    "path": "crates/telperion-core/src/pipeline/field.rs",
+    "site": ". max ( 0 . )",
+    "classification": "algorithm",
+    "reason": "A coarse tree's stand-in answers nothing below the ground (fn-214 host decision), so its foliage bounds stop there; the tree is not truncated."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/field/stand.rs",
+    "site": "if center . y < 0 . 0 | | half < = 0 . 0 | | self . leaves < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A stand-in answers no cell below the ground, no point query and nothing when it expects no leaves (fn-214 host decision); occupancy is a chance, not a limit."
+  },
+  {
     "path": "crates/telperion-core/src/pipeline/field/cuboid.rs",
     "site": "if breadth . is_nan ( ) | | breadth < = 0 . {",
     "classification": "parameter",
