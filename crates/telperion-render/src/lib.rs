@@ -6,6 +6,7 @@
 //! where the parameters came from.
 mod buffer;
 mod camera;
+mod card;
 mod curve;
 mod device;
 mod encoder;
@@ -170,8 +171,8 @@ impl Renderer {
         let shadow = shadow::Shadow::new(&gpu);
         let scene = scene::Scene::new(&gpu, surface, shadow.layout());
         let wood = wood::Wood::new(&gpu, scene.layout(), &shadow, surface);
-        let foliage = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface);
-        let organ = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface);
+        let foliage = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface, false);
+        let organ = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface, true);
         Self {
             identity: std::sync::Arc::new(()),
             gpu,

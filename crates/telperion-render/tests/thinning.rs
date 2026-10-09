@@ -7,6 +7,14 @@ mod common;
 use telperion_core::mesh;
 use telperion_render::{hero_pose, render, Renderer, Still, View, GROUND_REACH, STILL_FORMAT};
 
+/// How far the far florets may cover from the same florets at four times
+/// the resolution, as a share of the latter. The floret card below 4 px is
+/// the owner's decision (fn-246 FPS.md, 2026-10-09, on the labelled
+/// comparison https://claude.ai/artifact/8WwaynDsif2JekPvHDDtDi), accepted
+/// past the crown bound on his look. Measured: 25.4% with the card, 14.8%
+/// without it; the bound is the card's value plus 5 points.
+const BLOSSOM_BOUND: f64 = 0.30;
+
 /// A delivered sRGB value as linear light, the space a box average is
 /// taken in.
 fn linear(v: u8) -> f64 {
@@ -73,5 +81,60 @@ fn a_crown_of_small_leaves_draws_fewer_and_covers_the_same() {
         // Unthinned, the 96 px crown read 0.0305 against 0.0280 (9% over):
         // the bound holds thinning to that resolution gap and a little more.
         "the thinned crown covers {small:.4} of the frame against {large:.4}"
+    );
+}
+
+/// A beech whose outer ages flower with the cherry's blossom (fn-216's
+/// overlay, as `organ_coverage.rs` draws it).
+fn blossoming() -> telperion_core::Family {
+    use telperion_core::{foliage::BloomParams, presets::Preset};
+    let mut f = Preset::EuropeanBeech.parameters();
+    (f.age, f.skeleton.seed) = (20.0, 1);
+    let species = f.space.species.as_mut().unwrap();
+    for k in [12, 14] {
+        species.states[k].flowering = 1.0;
+    }
+    f.bloom = BloomParams {
+        florets: 4.0,
+        droop: 0.6,
+        pedicel: 0.03,
+        spread: 60.0,
+        open: 75.0,
+        petal_length: 0.014,
+        petal_width: 0.012,
+        petal_widest: 0.62,
+        petal_cup: 0.35,
+        scatter: 0.12,
+        ..BloomParams::default()
+    };
+    f
+}
+
+/// The share of the frame the florets cover through the organ mask, in
+/// linear light.
+fn floret_share(still: &Still) -> f64 {
+    let pixels = still.rgba.chunks(4);
+    pixels.clone().map(|p| linear(p[1])).sum::<f64>() / pixels.len() as f64
+}
+
+#[test]
+fn far_florets_drawn_as_cards_cover_what_the_florets_cover() {
+    let Some(gpu) = common::gpu() else { return };
+    let family = blossoming();
+    let tree = mesh::build(&family).expect("the tree grew");
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    renderer.submit(&tree).expect("the tree fits the device");
+    renderer.set_family(&family);
+    renderer.set_view(View::Clay);
+    renderer.set_organ_mask(true);
+    let camera = hero_pose(renderer.bounds().unwrap(), 4.0 / 3.0, GROUND_REACH);
+    let (w, h) = (320, 240);
+    renderer.pin_curve_viewport(Some((w, h)));
+    let near = floret_share(&render(&mut renderer, &camera, w * 4, h * 4).unwrap());
+    let far = floret_share(&render(&mut renderer, &camera, w, h).unwrap());
+    eprintln!("florets cover {far:.5} at {w} px against {near:.5} at four times it");
+    assert!(
+        (far - near).abs() <= BLOSSOM_BOUND * near,
+        "the far florets cover {far:.5} against {near:.5}"
     );
 }

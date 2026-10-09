@@ -35,7 +35,7 @@ fn compaction_preserves_placement_order_at_every_level() {
         (1, Level::Chosen),
     ] {
         let foliage = interleaved(instances, MAX_LEVELS);
-        selection.submit(&gpu, &foliage, forced);
+        selection.submit(&gpu, &foliage, &foliage.element, forced);
         for _ in 0..2 {
             check_compaction(&gpu, &selection, instances, MAX_LEVELS, forced);
         }
@@ -62,7 +62,7 @@ fn a_crown_past_one_dispatch_dimension_is_selected_in_order() {
         return;
     }
     let mut selection = Select::new(&gpu);
-    selection.submit(&gpu, &foliage, Level::Chosen);
+    selection.submit(&gpu, &foliage, &foliage.element, Level::Chosen);
     check_compaction(&gpu, &selection, instances, 2, Level::Chosen);
 }
 

@@ -1,0 +1,160 @@
+//! The floret's far level (fn-246): below `CARD_PIXELS` across, a floret is
+//! drawn as one card in its petals' albedo instead of every petal and
+//! stamen. The card is the renderer's own level, put in front of the core's
+//! coarsest, so generation is unchanged and selection chooses it by
+//! projected size exactly as it chooses the others.
+use std::borrow::Cow;
+use telperion_core::{
+    foliage::{Element, Level},
+    math::Vec3,
+};
+
+/// The size on screen, in pixels across the floret's bounding sphere, below
+/// which it is drawn as its card. Owner decision (fn-246 FPS.md, 2026-10-09,
+/// on the labelled comparison https://claude.ai/artifact/8WwaynDsif2JekPvHDDtDi):
+/// 4 px, which puts Telperion's whole view 4.43 mean code values over its
+/// unthinned distance to the 4x crown truth (`examples/crown_truth`), past
+/// the 3.0 bound the leaves were fitted to, accepted on the owner's look.
+pub const CARD_PIXELS: f64 = 4.0;
+
+/// The element with its card in front of its levels, or the element as it
+/// is where the card would not be the coarsest level or there is nothing
+/// to stand for.
+pub fn carded(element: &Element) -> Cow<'_, Element> {
+    let radius = f64::from(crate::select::frame::sphere(element)[3]);
+    // Selection takes a level whose deviation times the pixels a metre is
+    // under half a pixel; a deviation of r / CARD_PIXELS is that level for a
+    // floret under CARD_PIXELS across.
+    let deviation = radius / CARD_PIXELS;
+    let Some(card) = card(element) else {
+        return Cow::Borrowed(element);
+    };
+    if element.levels.first().is_none_or(|l| l.deviation >= deviation) {
+        return Cow::Borrowed(element);
+    }
+    let mut out = element.clone();
+    let base = out.positions.len() as u32;
+    out.positions.extend(card.corners);
+    if !out.coords.is_empty() {
+        out.coords.extend([0.0, -1.0, 1.0, -1.0, 1.0, 1.0, 0.0, 1.0]);
+    }
+    let quad = [0, 1, 2, 0, 2, 3].map(|i| base + i);
+    out.level_indices = quad.iter().copied().chain(element.level_indices.iter().copied()).collect();
+    out.levels = std::iter::once(Level { indices: 0..6, deviation })
+        .chain(element.levels.iter().map(|l| Level {
+            indices: l.indices.start + 6..l.indices.end + 6,
+            deviation: l.deviation,
+        }))
+        .collect();
+    Cow::Owned(out)
+}
+
+struct Card {
+    corners: [Vec3; 4],
+}
+
+/// A square of the floret's one-sided petal area, about its area-weighted
+/// centre, across the direction its faces mostly look. A flat face seen
+/// from every direction shows half its area on average, as the floret's
+/// petals do, so the card covers what the floret covers.
+fn card(element: &Element) -> Option<Card> {
+    let triangles: Vec<[Vec3; 3]> = element
+        .indices
+        .as_chunks::<3>()
+        .0
+        .iter()
+        .map(|t| t.map(|i| element.positions[i as usize]))
+        .collect();
+    let faces: Vec<(Vec3, f64, Vec3)> = triangles
+        .iter()
+        .map(|[a, b, c]| {
+            let cross = (*b - *a).cross(*c - *a);
+            (cross, cross.length() * 0.5, (*a + *b + *c) / 3.0)
+        })
+        .filter(|(_, area, _)| *area > 0.0)
+        .collect();
+    let area: f64 = faces.iter().map(|f| f.1).sum();
+    if area <= 0.0 {
+        return None;
+    }
+    let centre = faces.iter().fold(Vec3::ZERO, |s, f| s + f.2 * f.1) / area;
+    // The direction the faces mostly look, sign-free: the leading axis of
+    // their area-weighted normal scatter, by power iteration.
+    let mut axis = Vec3::Y;
+    for _ in 0..16 {
+        let next = faces.iter().fold(Vec3::ZERO, |s, (cross, _, _)| {
+            s + *cross * (cross.dot(axis) / cross.length().max(1e-12))
+        });
+        if next.length_squared() <= 0.0 {
+            break;
+        }
+        axis = next.normalized();
+    }
+    let side = if axis.cross(Vec3::Y).length_squared() > 1e-6 { Vec3::Y } else { Vec3::X };
+    let u = side.cross(axis).normalized();
+    let v = axis.cross(u);
+    let half = area.sqrt() * 0.5;
+    Some(Card {
+        corners: [(-1.0, -1.0), (1.0, -1.0), (1.0, 1.0), (-1.0, 1.0)]
+            .map(|(a, b)| centre + u * (a * half) + v * (b * half)),
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A hand floret: three petals about the origin, a coarse level of one
+    /// of them and the finest of all three.
+    fn floret() -> Element {
+        let p = |x, y, z| Vec3::new(x, y, z);
+        Element {
+            positions: vec![p(0.0, 0.0, 0.0), p(0.01, 0.0, 0.0), p(0.0, 0.01, 0.0),
+                p(-0.01, 0.0, 0.002), p(0.0, -0.01, 0.002)],
+            indices: vec![0, 1, 2, 0, 2, 3, 0, 3, 4],
+            coords: vec![0.0; 10],
+            level_indices: vec![0, 1, 2, 0, 1, 2, 0, 2, 3, 0, 3, 4],
+            levels: vec![
+                Level { indices: 0..3, deviation: 0.001 },
+                Level { indices: 3..12, deviation: 0.0 },
+            ],
+            ..Element::default()
+        }
+    }
+
+    #[test]
+    fn a_floret_gets_a_card_of_its_petal_area_in_front_of_its_levels() {
+        let element = floret();
+        let carded = carded(&element);
+        let levels = &carded.levels;
+        assert_eq!(levels.len(), element.levels.len() + 1, "no card level");
+        assert!(levels.windows(2).all(|w| w[0].deviation > w[1].deviation));
+        assert_eq!(carded.coords.len(), 2 * carded.positions.len());
+        let quad = &carded.level_indices[0..6];
+        let [a, b, c, d] = [quad[0], quad[1], quad[2], quad[5]].map(|i| carded.positions[i as usize]);
+        let card = (b - a).cross(c - a).length() * 0.5 + (c - a).cross(d - a).length() * 0.5;
+        let petals: f64 = element
+            .indices
+            .as_chunks::<3>()
+            .0
+            .iter()
+            .map(|t| {
+                let [p, q, r] = t.map(|i| element.positions[i as usize]);
+                (q - p).cross(r - p).length() * 0.5
+            })
+            .sum();
+        assert!((card - petals).abs() <= 1e-9, "{card} against {petals}");
+        assert_eq!(&carded.level_indices[6..], &element.level_indices[..]);
+        // The card faces where the petals mostly do: about +Z, two of the
+        // three petals tilted eleven degrees off it.
+        let n = (b - a).cross(c - a).normalized();
+        assert!(n.z.abs() > 0.95, "{n:?}");
+    }
+
+    #[test]
+    fn a_card_that_would_not_be_coarsest_is_left_out() {
+        let mut element = floret();
+        element.levels[0].deviation = 1.0;
+        assert!(matches!(carded(&element), Cow::Borrowed(_)));
+    }
+}

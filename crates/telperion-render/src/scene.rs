@@ -348,8 +348,10 @@ impl Scene {
         &mut self,
         organ: Option<(telperion_core::foliage::Reference, &telperion_core::foliage::Element)>,
     ) {
-        self.organ_reference =
-            organ.map(|(reference, element)| (reference, crate::select::frame::sphere(element)[3]));
+        // The radius selection judges the drawn floret by, card included.
+        self.organ_reference = organ.map(|(reference, element)| {
+            (reference, crate::select::frame::sphere(&crate::card::carded(element))[3])
+        });
     }
 
     /// Binds the flowers' block in place of the frame's, for their draw.
