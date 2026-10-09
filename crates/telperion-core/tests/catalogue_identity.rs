@@ -104,6 +104,9 @@
 //! override and refusal digests are F4's, and every engine preset's grown
 //! tree (`space_hash`, four species at 40 and 80, seeds 1 and 7) was F4's to
 //! the bit.
+//! fn-236 re-pinned the family, walk and override digests for the Oregon
+//! white oak's own rows (round 3: its `/space` rows and leaf rows); no other
+//! preset's value file moved.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -139,7 +142,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        6_657_907_224_534_109_834,
+        18_350_268_104_676_268_850,
         "{}",
         digest(&text)
     );
@@ -171,7 +174,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        4_263_024_408_501_985_780,
+        362_067_098_114_022_781,
         "{}",
         digest(&text)
     );
@@ -196,7 +199,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        17_412_911_408_925_295_970,
+        10_975_685_510_004_978_556,
         "{}",
         digest(&text)
     );

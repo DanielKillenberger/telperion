@@ -119,3 +119,7 @@ Leader 6 years, limb internode 0.035 m, ψ 0.5 on limbs and boughs, boughs ascen
 | L4 | **A dense crown on open-grown trees** | SILV: "Branch development on open-grown trees may be very dense"; "dense, rounded crowns" | T1 above |
 
 Today's leaf rows (preset, round 1): blade 100 × 75 mm (`/element/length`, `/width`), inside L1 and L2; one leaf every 8 mm of grown shoot (`/skeleton/twigs/twig/internodeLength`, the fn-193-to-196 still rows, **estimated**); leaves on wood under 6 % of the root's radius (`/canopy/shootRadius`, **estimated**); size variation 0.2, forward lean 0.25, no outward or upward turn; no cluster on any age.
+
+## Round 3 (2026-10-09)
+
+On round 1's structure with L3's leaves (140 mm blades, FNA's upper bound, L1): twigs moved to the branch systems' medial nodes at a wider angle, twigs living 5 years at 0.98, the fine orders' light share at 1.0, the fork's limbs at 0.8. All **estimated**. At 80 the three seeds read as broad, closed crowns from four azimuths (width over height 1.09 to 1.12, projected foliage gaps 0.09 to 0.11). Measures, probes, the site's field and cost are in SHEET-3.md.
