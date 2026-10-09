@@ -166,7 +166,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-234-blossom-shows-from-a-distance.md",
-  "status": "open",
+  "status": "done",
   "title": "Blossom shows from a distance",
   "tracker": {
     "baseHashFlow": null,
@@ -179,5 +179,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T00:25:55.213775Z"
+  "updated_at": "2026-10-09T00:26:36.995817Z"
 }

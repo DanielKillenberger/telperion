@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-234-blossom-shows-from-a-distance",
   "spec_path": ".flow/tasks/fn-234-blossom-shows-from-a-distance.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Measure where blossom hides, the host's design, built on both executors",
   "updated_at": "2026-10-08T23:06:29.869961Z"
 }
