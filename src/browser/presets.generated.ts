@@ -14,6 +14,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "opens": 0.3,
         "pedicel": 0.01,
         "petalCup": 0.2,
+        "petalCurl": 0,
         "petalLength": 0.012,
         "petalWidest": 0.6,
         "petalWidth": 0.009,
@@ -22,6 +23,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "scatter": 0.1,
         "spread": 60,
         "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
         "taper": 0
       },
       "canopy": {
@@ -99,6 +103,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bloomBackBlue": 0.64,
         "bloomBackGreen": 0.72,
         "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
         "bloomFrontBlue": 0.74,
         "bloomFrontGreen": 0.8,
         "bloomFrontRed": 0.82,
@@ -391,7 +399,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "8": 0.06182724199411316
+                  "8": 0.06182724199410992
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -401,7 +409,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 3,
                 "lateral": {
-                  "8": 0.21021262277998473
+                  "8": 0.2102126227799737
                 },
                 "nodes": {
                   "max": 1,
@@ -454,8 +462,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "8": 0.17311627758351683,
-                  "9": 0.08655813879175842
+                  "8": 0.17311627758350778,
+                  "9": 0.08655813879175389
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -465,8 +473,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 3,
                 "lateral": {
-                  "8": 0.3585980035658563,
-                  "9": 0.19784717438116214
+                  "8": 0.35859800356583754,
+                  "9": 0.1978471743811518
                 },
                 "nodes": {
                   "max": 1,
@@ -519,7 +527,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "8": 0.07419269039293579
+                  "8": 0.0741926903929319
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -529,7 +537,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 3,
                 "lateral": {
-                  "6": 0.13601993238704896
+                  "6": 0.13601993238704183
                 },
                 "nodes": {
                   "max": 1,
@@ -584,9 +592,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "8": 0.07419269039293579,
-                  "9": 0.16569700854422328,
-                  "14": 0.13601993238704896
+                  "8": 0.0741926903929319,
+                  "9": 0.1656970085442146,
+                  "14": 0.13601993238704183
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -596,9 +604,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 3,
                 "lateral": {
-                  "6": 0.093977407831052,
-                  "7": 0.0741926903929358,
-                  "8": 0.21021262277998473
+                  "6": 0.09397740783104709,
+                  "7": 0.07419269039293191,
+                  "8": 0.2102126227799737
                 },
                 "nodes": {
                   "max": 1,
@@ -644,8 +652,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "6": 0.07419269039293579,
-                  "7": 0.12365448398822633
+                  "6": 0.0741926903929319,
+                  "7": 0.12365448398821985
                 },
                 "nodes": {
                   "max": 2.3333333333333335,
@@ -655,7 +663,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 3,
                 "lateral": {
-                  "6": 0.2225780711788074
+                  "6": 0.22257807117879574
                 },
                 "nodes": {
                   "max": 1,
@@ -722,8 +730,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                   "9": 0.03333333333333334
                 },
                 "lateral": {
-                  "9": 0.1780624569430459,
-                  "14": 0.13601993238704896
+                  "9": 0.17806245694303657,
+                  "14": 0.13601993238704183
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -738,8 +746,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                   "9": 0.03333333333333334
                 },
                 "lateral": {
-                  "6": 0.0017311627758351685,
-                  "7": 0.05935415231434863
+                  "6": 0.0017311627758350779,
+                  "7": 0.05935415231434552
                 },
                 "nodes": {
                   "max": 1,
@@ -801,8 +809,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                 "buds": 1.3333333333333333,
                 "delay": 0.12239800905693157,
                 "lateral": {
-                  "9": 0.14096611174657803,
-                  "14": 0.14838538078587157
+                  "9": 0.14096611174657064,
+                  "14": 0.1483853807858638
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -814,8 +822,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                 "buds": 2,
                 "delay": 0.12239800905693157,
                 "lateral": {
-                  "8": 0.03462325551670337,
-                  "9": 0.07419269039293579
+                  "8": 0.03462325551670156,
+                  "9": 0.0741926903929319
                 },
                 "nodes": {
                   "max": 1,
@@ -876,10 +884,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                   "10": 0.15
                 },
                 "lateral": {
-                  "9": 0.06677342135364221,
-                  "10": 0.17311627758351683,
-                  "13": 0.07419269039293579,
-                  "14": 0.14838538078587157
+                  "9": 0.06677342135363872,
+                  "10": 0.17311627758350775,
+                  "13": 0.0741926903929319,
+                  "14": 0.1483853807858638
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -894,9 +902,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                   "10": 0.15
                 },
                 "lateral": {
-                  "9": 0.13601993238704896,
-                  "10": 0.23494351957763,
-                  "13": 0.09892358719058107
+                  "9": 0.13601993238704183,
+                  "10": 0.2349435195776177,
+                  "13": 0.0989235871905759
                 },
                 "nodes": {
                   "max": 1,
@@ -959,9 +967,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                   "10": 0.15
                 },
                 "lateral": {
-                  "10": 0.17311627758351683,
-                  "13": 0.044515614235761475,
-                  "14": 0.24730896797645266
+                  "10": 0.17311627758350775,
+                  "13": 0.04451561423575914,
+                  "14": 0.2473089679764397
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -976,9 +984,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
                   "10": 0.15
                 },
                 "lateral": {
-                  "9": 0.024730896797645268,
-                  "10": 0.23494351957763,
-                  "13": 0.061827241994113165
+                  "9": 0.024730896797643974,
+                  "10": 0.2349435195776177,
+                  "13": 0.061827241994109924
                 },
                 "nodes": {
                   "max": 1,
@@ -989,7 +997,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "3": {
                 "buds": 1,
                 "lateral": {
-                  "12": 0.16075082918469422
+                  "12": 0.1607508291846858
                 },
                 "nodes": {
                   "max": 0.6666666666666667,
@@ -1036,7 +1044,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1.3333333333333333,
                 "lateral": {
-                  "12": 0.13601993238704896
+                  "12": 0.13601993238704183
                 },
                 "nodes": {
                   "max": 2.6666666666666665,
@@ -1046,7 +1054,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 2.3333333333333335,
                 "lateral": {
-                  "12": 0.19784717438116212
+                  "12": 0.19784717438115174
                 },
                 "nodes": {
                   "max": 1,
@@ -1104,7 +1112,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 1.6666666666666667,
                 "lateral": {
-                  "12": 0.14838538078587157
+                  "12": 0.1483853807858638
                 },
                 "nodes": {
                   "max": 0.6666666666666666,
@@ -1150,7 +1158,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "14": 0.22257807117880737
+                  "14": 0.22257807117879572
                 },
                 "nodes": {
                   "max": 2,
@@ -1160,7 +1168,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 1.3333333333333333,
                 "lateral": {
-                  "14": 0.08655813879175842
+                  "14": 0.08655813879175389
                 },
                 "nodes": {
                   "max": 0.33333333333333337,
@@ -1206,7 +1214,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "1": {
                 "buds": 1,
                 "lateral": {
-                  "14": 0.09892358719058107
+                  "14": 0.0989235871905759
                 },
                 "nodes": {
                   "max": 2,
@@ -1216,7 +1224,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "2": {
                 "buds": 1.6666666666666667,
                 "lateral": {
-                  "14": 0.07419269039293579
+                  "14": 0.0741926903929319
                 },
                 "nodes": {
                   "max": 0.33333333333333337,
@@ -1275,6 +1283,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "extinction": 0.16666666666666669
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -1304,6 +1325,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "opens": 0.3,
         "pedicel": 0.01,
         "petalCup": 0.2,
+        "petalCurl": 0,
         "petalLength": 0.012,
         "petalWidest": 0.6,
         "petalWidth": 0.009,
@@ -1312,6 +1334,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "scatter": 0.1,
         "spread": 60,
         "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
         "taper": 0
       },
       "canopy": {
@@ -1389,6 +1414,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bloomBackBlue": 0.64,
         "bloomBackGreen": 0.72,
         "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
         "bloomFrontBlue": 0.74,
         "bloomFrontGreen": 0.8,
         "bloomFrontRed": 0.82,
@@ -2128,6 +2157,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "extinction": 0.5
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -2157,6 +2199,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "opens": 0.3,
         "pedicel": 0.01,
         "petalCup": 0.2,
+        "petalCurl": 0,
         "petalLength": 0.012,
         "petalWidest": 0.6,
         "petalWidth": 0.009,
@@ -2165,6 +2208,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "scatter": 0.1,
         "spread": 60,
         "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
         "taper": 0
       },
       "canopy": {
@@ -2242,6 +2288,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bloomBackBlue": 0.64,
         "bloomBackGreen": 0.72,
         "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
         "bloomFrontBlue": 0.74,
         "bloomFrontGreen": 0.8,
         "bloomFrontRed": 0.82,
@@ -2828,6 +2878,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -2857,6 +2920,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "opens": 0.3,
         "pedicel": 0.01,
         "petalCup": 0.2,
+        "petalCurl": 0,
         "petalLength": 0.012,
         "petalWidest": 0.6,
         "petalWidth": 0.009,
@@ -2865,6 +2929,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "scatter": 0.1,
         "spread": 60,
         "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
         "taper": 0
       },
       "canopy": {
@@ -2942,6 +3009,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bloomBackBlue": 0.64,
         "bloomBackGreen": 0.72,
         "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
         "bloomFrontBlue": 0.74,
         "bloomFrontGreen": 0.8,
         "bloomFrontRed": 0.82,
@@ -3540,6 +3611,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -3569,6 +3653,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "opens": 0.3,
         "pedicel": 0.01,
         "petalCup": 0.2,
+        "petalCurl": 0,
         "petalLength": 0.012,
         "petalWidest": 0.6,
         "petalWidth": 0.009,
@@ -3577,6 +3662,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "scatter": 0.1,
         "spread": 60,
         "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
         "taper": 0
       },
       "canopy": {
@@ -3654,6 +3742,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bloomBackBlue": 0.64,
         "bloomBackGreen": 0.72,
         "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
         "bloomFrontBlue": 0.74,
         "bloomFrontGreen": 0.8,
         "bloomFrontRed": 0.82,
@@ -4273,6 +4365,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -4302,6 +4407,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "opens": 0.3,
         "pedicel": 0.01,
         "petalCup": 0.2,
+        "petalCurl": 0,
         "petalLength": 0.012,
         "petalWidest": 0.6,
         "petalWidth": 0.009,
@@ -4310,6 +4416,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "scatter": 0.1,
         "spread": 60,
         "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
         "taper": 0
       },
       "canopy": {
@@ -4387,6 +4496,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bloomBackBlue": 0.64,
         "bloomBackGreen": 0.72,
         "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
         "bloomFrontBlue": 0.74,
         "bloomFrontGreen": 0.8,
         "bloomFrontRed": 0.82,
@@ -4606,6 +4719,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -4635,6 +4761,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "opens": 0.3,
         "pedicel": 0.01,
         "petalCup": 0.2,
+        "petalCurl": 0,
         "petalLength": 0.012,
         "petalWidest": 0.6,
         "petalWidth": 0.009,
@@ -4643,6 +4770,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "scatter": 0.1,
         "spread": 60,
         "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
         "taper": 0
       },
       "canopy": {
@@ -4720,6 +4850,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bloomBackBlue": 0.64,
         "bloomBackGreen": 0.72,
         "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
         "bloomFrontBlue": 0.74,
         "bloomFrontGreen": 0.8,
         "bloomFrontRed": 0.82,
@@ -4910,6 +5044,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "vigourVariation": 0.15
         }
       },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
+      },
       "surface": {
         "flareDepth": 0.004,
         "flareFalloff": 0.022,
@@ -4939,6 +5086,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "opens": 0.3,
         "pedicel": 0.01,
         "petalCup": 0.2,
+        "petalCurl": 0,
         "petalLength": 0.012,
         "petalWidest": 0.6,
         "petalWidth": 0.009,
@@ -4947,6 +5095,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "scatter": 0.1,
         "spread": 60,
         "stagger": 0.5,
+        "stamenLength": 0.008,
+        "stamenWidth": 0.0004,
+        "stamens": 0,
         "taper": 0
       },
       "canopy": {
@@ -5024,6 +5175,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bloomBackBlue": 0.64,
         "bloomBackGreen": 0.72,
         "bloomBackRed": 0.72,
+        "bloomEyeBlue": 0.02,
+        "bloomEyeGreen": 0.1,
+        "bloomEyeRed": 0.12,
+        "bloomEyeShare": 0,
         "bloomFrontBlue": 0.74,
         "bloomFrontGreen": 0.8,
         "bloomFrontRed": 0.82,
@@ -5213,6 +5368,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "vigourVariation": 0.15
         }
+      },
+      "supernatural": {
+        "backBlue": 1,
+        "backGreen": 1,
+        "backRed": 1,
+        "backReflectance": 0,
+        "bloom": {},
+        "enabled": false,
+        "flowering": {},
+        "marginReflectance": 0,
+        "material": {},
+        "roughness": 0.3,
+        "scale": 1
       },
       "surface": {
         "flareDepth": 0.004,

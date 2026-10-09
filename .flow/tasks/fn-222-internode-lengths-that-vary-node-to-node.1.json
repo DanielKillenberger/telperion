@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-222-internode-lengths-that-vary-node-to-node",
   "spec_path": ".flow/tasks/fn-222-internode-lengths-that-vary-node-to-node.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Internode length variation",
   "updated_at": "2026-10-07T13:02:42.096434Z"
 }

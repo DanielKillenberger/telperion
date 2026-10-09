@@ -106,7 +106,7 @@ fn stationed(
     let theirs = x.compact_stations(&shared).unwrap().unwrap();
     let surface = &fx.family.surface;
     let segments = surface.radial_segments.max(surface.lobes * 4);
-    let r = station_rows(x, segments);
+    let r = station_rows(x, segments, None);
     let t = std::time::Instant::now();
     let swept = pollster::block_on(sw.sweep(gpu, dressed, rows(surface, curve.height))).unwrap();
     let (device, runs) = pollster::block_on(st.stations_and_runs(
@@ -315,7 +315,7 @@ fn the_stations_keep_only_their_segments() {
         let surface = &fx.family.surface;
         let rows = rows(surface, curve.height);
         let swept = pollster::block_on(sw.sweep(&gpu, dressed, rows)).unwrap();
-        let r = station_rows(x, surface.radial_segments.max(surface.lobes * 4));
+        let r = station_rows(x, surface.radial_segments.max(surface.lobes * 4), None);
         let before = gpu.ledger.live();
         let device = pollster::block_on(st.stations(&gpu, (&swept, &steps), dressed.ids, r));
         let device = device.unwrap();
@@ -328,7 +328,7 @@ fn the_stations_keep_only_their_segments() {
 /// telperion-render stationed_at_40_and_80 -- --ignored --nocapture`,
 /// under the GPU lock).
 #[test]
-#[ignore]
+#[ignore = "device limits: a tree at 80 on the device"]
 fn stationed_at_40_and_80() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;

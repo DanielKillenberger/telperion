@@ -19,7 +19,7 @@ pub(super) const DRESS: &str = include_str!("dress.wgsl");
 pub(super) const FOLD: &str = include_str!("fold.wgsl");
 /// A drawn axis's and phytomer's floats (`dress.wgsl`).
 const CA: u32 = 12;
-pub(super) const CV: usize = 27;
+pub(super) const CV: usize = 30;
 pub(super) const CA_WORDS: usize = CA as usize;
 pub(super) const MADE: u32 = 2;
 pub(super) const LANDED: u32 = 4;
@@ -145,8 +145,14 @@ fn stub_records(stubs: &[Stub], base: u32) -> Vec<f32> {
 }
 
 /// Draws every group's fine roots from `stubs` (by the tree's roots) as
-/// the pipeline's nodes, wave by wave.
-pub(super) fn dress(gpu: &Gpu, d: &Dresser, dev: &Device, stubs: &[Stub]) -> Result<Dressed> {
+/// the pipeline's nodes, wave by wave, at `scale` times their natural
+/// size as the pipeline drew the stubs' tree (`Part::scale`).
+pub(super) fn dress(
+    gpu: &Gpu,
+    d: &Dresser,
+    dev: &Device,
+    (stubs, scale): (&[Stub], f64),
+) -> Result<Dressed> {
     let mut waves = Vec::new();
     let mut ids = 0u32;
     let mut encoder = gpu.encoder(&Default::default());
@@ -181,6 +187,10 @@ pub(super) fn dress(gpu: &Gpu, d: &Dresser, dev: &Device, stubs: &[Stub]) -> Res
                     was.axes * CA,
                     bases[w + 1],
                     bases[w],
+                    (scale as f32).to_bits(),
+                    0,
+                    0,
+                    0,
                 ];
                 let cfg = uniform(gpu, &cfg)?;
                 let all = [

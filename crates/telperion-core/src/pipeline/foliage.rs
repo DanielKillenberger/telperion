@@ -25,7 +25,10 @@ mod station;
 use crate::envelope::{distance_to_profile, Envelope};
 use crate::{math::Vec3, Error, Result};
 #[cfg(feature = "geometry")]
-pub(crate) use bloom::{element as bloom_element, place as place_blooms};
+pub(crate) use bloom::{
+    element as bloom_element, now as bloom_now, place as place_blooms, place_in as place_blooms_in,
+    reach as bloom_reach,
+};
 pub use bloom_params::BloomParams;
 /// Every canopy rail `place` judges, with no tree to place against.
 pub(crate) use canopy::rows as canopy_rows;

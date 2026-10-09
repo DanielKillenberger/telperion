@@ -279,11 +279,11 @@ impl<'a> Grower<'a> {
                     .count();
             for j in pencil.laid..end {
                 let p = &mut axis.phytomers[j];
-                p.scale = pencil.base_scale * present * draws.nodes[j] * drawn.share;
-                p.grown = present * draws.nodes[j] * drawn.share;
+                p.scale = pencil.base_scale * present * draws.nodes[j] * drawn.size;
+                p.grown = present * draws.nodes[j] * drawn.size;
                 p.size = size;
                 p.rank = pencil.rank;
-                pencil.rank += draws.nodes[j] * drawn.share;
+                pencil.rank += draws.nodes[j] * drawn.size;
                 pencil.wood += state.internode * p.scale * size;
             }
             pencil.laid = end;

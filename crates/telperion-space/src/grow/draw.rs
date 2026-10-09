@@ -373,8 +373,8 @@ pub(super) fn draw_bent(
     while pencil.units < draws.units.len() {
         let k = pencil.units;
         let drawn = draws.units[k];
-        // The share of its cycle the unit grew (`schedule.rs`).
-        let grown = q32(drawn.share);
+        // The share of a node's length its nodes grew at (`Unit::size`).
+        let grown = q32(drawn.size);
         let present = mul(q32(pencil.running), q32(drawn.survive));
         let [size, _] = draws.shade(k);
         let birth = axis.birth;

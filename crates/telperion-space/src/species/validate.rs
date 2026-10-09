@@ -24,14 +24,6 @@ impl PaState {
                 "a lifespan lies in 0 to 1000000 cycles",
             );
         }
-        // Time is whole ticks (`fixed.rs`): a lifespan is read on their
-        // grid, so one shorter than half a tick would grow as none.
-        if self.lifespan > 0.0 && self.life() == 0.0 {
-            return refuse(
-                format!("{at}.lifespan"),
-                "a lifespan is none or at least half a tick, 2^-21 cycle",
-            );
-        }
         // An age of no lifespan is passed through: it moves on, as its
         // limit of a lifespan all but none decides by its draw (Codex
         // round 7 on fn-206).

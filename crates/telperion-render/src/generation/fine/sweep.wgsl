@@ -39,7 +39,7 @@ struct Cfg {
 
 const NONE: u32 = 0xffffffffu;
 const CA: u32 = 12u;
-const CV: u32 = 27u;
+const CV: u32 = 30u;
 const MADE: u32 = 2u;
 const LANDED: u32 = 4u;
 const FINE: u32 = 8u;
@@ -51,9 +51,10 @@ const SEAM: u32 = 16u;
 // conversion numbered them; its wood's frame as laid (heading, side);
 // the run it is swept in, as a contact reads it (that run's first point,
 // its place along it and the run's place in the table, `emit`); its
-// branch, key and wood as grown, and a short shoot's tip's spread
-// (fn-223).
-const NW: u32 = 28u;
+// branch, key and wood as grown; its phytomer's key (two words) and its
+// age's flowering share, which its blooms are drawn by (fn-229); and a
+// short shoot's tip's spread (fn-223).
+const NW: u32 = 31u;
 // A node's links: the widest start radius of its children that are not
 // codominant and of all, the first child of each so wide, whether a
 // codominant child leaves it, the points of the run it starts; then, for
@@ -146,7 +147,9 @@ fn gather(@builtin(global_invocation_id) id: vec3<u32>) {
     nodes[i * NW + 24u] = drawn[b + 23u];
     nodes[i * NW + 25u] = drawn[b + 24u];
     nodes[i * NW + 26u] = drawn[b + 25u];
-    nodes[i * NW + 27u] = drawn[b + 26u];
+    for (var c = 0u; c < 4u; c++) {
+        nodes[i * NW + 27u + c] = drawn[b + 26u + c];
+    }
     if cfg.stubs != 0u {
         // A bearer's node: never a fine root's, and at its bearer.
         nodes[i * NW + 6u] = 0.0;
@@ -326,7 +329,12 @@ fn walk(@builtin(global_invocation_id) id: vec3<u32>) {
     var w = begin(first);
     var widest = 0.0;
     var count = 0u;
+    // cap: one sample a node, and the root's.
+    let cap = arrayLength(&nodes) / NW + 1u;
     loop {
+        if count >= cap {
+            break;
+        }
         let s = sample(&w);
         widest = max(widest, s.r);
         count += 1u;
@@ -563,6 +571,7 @@ fn clusters_of(s: u32, at: u32, count: u32) {
     let lobe = r[2].z;
     var c = table[s * TW + 1u];
     var start = 0u;
+    // cap: start moves on by CLUSTER each step, to count.
     loop {
         let end = min(start + CLUSTER - 1u, count - 1u);
         var lo = centre_of(at + start);
@@ -608,6 +617,7 @@ fn ladder(out: u32, p0: u32, last: u32, twist: f32, depth: f32) {
         let step = 1u << k;
         var worst = 0.0;
         var a = 0u;
+        // cap: a moves on by step each pass, to last.
         while a < last {
             let b = min(a + step, last);
             let pa = p0 + a;

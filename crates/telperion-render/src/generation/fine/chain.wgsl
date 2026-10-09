@@ -97,6 +97,12 @@ const IS_ENDED: u32 = 0x10000u;
 const IS_FAILED: u32 = 0x20000u;
 const HAS_OUTLIVED: u32 = 0x40000u;
 const IS_WOKEN: u32 = 0x80000u;
+// Carried on in the cycle the axis before it stopped in (`carry_on`), its
+// first unit the rest of that cycle (fn-231).
+const IS_CARRIED: u32 = 0x100000u;
+// The axis a sleeping bud grows in as it wakes (`woke`), its first unit
+// its waking's (fn-231).
+const IS_WOKE: u32 = 0x400000u;
 // A failed unit's relay, its first unit the rest of that cycle (fn-199 R1).
 const IS_REST: u32 = 0x200000u;
 
@@ -137,6 +143,11 @@ struct After {
 
 var<private> stack: array<After, STACK>;
 var<private> depth: u32;
+// A woken bud's own apex, which runs alone in its waking cycle (`woke`):
+// the cycle loop's first pass runs it, so `run` has one call site and the
+// driver compiles its body once (fn-235).
+var<private> woken_run: bool;
+var<private> woken_apex: Apex;
 
 fn none() -> Next {
     return Next(false, Apex(0u, vec2<u32>(0u)));
@@ -312,6 +323,7 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
     depth = 0u;
     next_half = 0u;
     n_next = 0u;
+    woken_run = false;
     let b = (cfg.first + c) * BW;
     let lineage = buds[b];
     let pa = buds[b + 1u].x;
@@ -340,23 +352,31 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
         push_next(1u, vec2<u32>(0u));
         start = birth + 1u;
     }
-    var cycles = 0u;
-    for (var cycle = start; cycle <= cfg.age; cycle++) {
-        if overflow != 0u || (n_next == 0u && !asleep_from(cycle)) {
+    for (var cycle = start; cycle <= cfg.age || woken_run; cycle++) {
+        let alone = woken_run;
+        woken_run = false;
+        if !alone && (overflow != 0u || (n_next == 0u && !asleep_from(cycle))) {
             break;
         }
         // This cycle's living apexes, in order; the next cycle's are made
         // in the other half.
         let half = next_half;
-        let count = n_next;
-        next_half = 1u - half;
-        n_next = 0u;
-        for (var k = 0u; k < count; k++) {
-            let e = live[live_base + half * cfg.live_cap + k];
-            run(Apex(e.x, e.yz), cycle);
+        let count = select(n_next, 1u, alone);
+        if !alone {
+            next_half = 1u - half;
+            n_next = 0u;
         }
-        wakes(cycle);
-        cycles += 1u;
+        for (var k = 0u; k < count; k++) {
+            var apex = woken_apex;
+            if !alone {
+                let e = live[live_base + half * cfg.live_cap + k];
+                apex = Apex(e.x, e.yz);
+            }
+            run(apex, cycle);
+        }
+        if !alone {
+            wakes(cycle);
+        }
     }
     for (var i = 0u; i < n_axes; i++) {
         if (rd(i, KIND) & 0xffu) == RELAYED {

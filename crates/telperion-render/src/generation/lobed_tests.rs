@@ -67,7 +67,7 @@ fn lobed_wood_is_laid_on_the_device_as_on_the_cpu() {
 /// The spruce at 40 and 80 (`cargo test --profile ci -p telperion-render
 /// lobed_at_40_and_80 -- --ignored --nocapture`, under the GPU lock).
 #[test]
-#[ignore]
+#[ignore = "device limits: a tree at 80 on the device"]
 fn lobed_at_40_and_80() {
     let Some(g) = generator() else {
         return;

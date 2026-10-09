@@ -19,6 +19,7 @@ pub(crate) mod boundary;
 #[cfg_attr(not(test), allow(dead_code))]
 mod envelope;
 mod events;
+mod grown;
 #[cfg_attr(not(test), allow(dead_code))]
 pub(crate) mod kept;
 pub(crate) mod predictor;
@@ -53,6 +54,25 @@ pub fn expected_counts(species: &Species, age: u32) -> Result<CountTable> {
     Ok(walk.counts(0, age as usize, Carried::default(), None))
 }
 
+/// The expected phytomers a tree grown `age` cycles grows, the shed ones
+/// included: `expected_counts`' table summed, kept as one running total.
+pub fn expected_grown(species: &Species, age: u32) -> Result<f64> {
+    species.validate()?;
+    if age == 0 {
+        return refuse("age", "a tree grows at least one cycle");
+    }
+    let laterals: Vec<Vec<Vec<f64>>> = species.states.iter().map(|s| s.laterals()).collect();
+    let windows = Windows::new(species, age);
+    let mut memo = Memo::default();
+    let mut walk = Walk {
+        species,
+        laterals: &laterals,
+        memo: &mut memo,
+        living: Living::new(species, Some(&windows)),
+    };
+    Ok(walk.grown(0, age as usize, Carried::default(), None))
+}
+
 /// The expected kept phytomers of a tree grown `age` cycles: the cut's
 /// predictor read at the seed, without growing the tree. None for a
 /// species whose buds read light: the predictor is light-neutral, and the
@@ -70,6 +90,17 @@ pub fn expected_kept(species: &Species, age: u32) -> Result<Option<f64>> {
         &Windows::new(species, age),
         age,
     )))
+}
+
+/// The expected metres of wood a tree grown `age` cycles grows, each
+/// phytomer its internode at the size of the unit it stands on: its
+/// phytomers weighted by their size (fn-231).
+pub fn expected_length(species: &Species, age: u32) -> Result<f64> {
+    species.validate()?;
+    if age == 0 {
+        return refuse("age", "a tree grows at least one cycle");
+    }
+    Ok(expected_log_lengths(species, age)[age as usize][0].exp_fixed())
 }
 
 /// A substructure: its PA, cycles, what it carries, and the law of a woken

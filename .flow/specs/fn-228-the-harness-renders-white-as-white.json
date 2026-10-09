@@ -63,7 +63,7 @@
     "impl:fn-228-the-harness-renders-white-as-white.1": 0
   },
   "spec_path": ".flow/specs/fn-228-the-harness-renders-white-as-white.md",
-  "status": "open",
+  "status": "done",
   "title": "The harness renders white as white",
   "tracker": {
     "baseHashFlow": null,
@@ -76,5 +76,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T10:59:01.544529Z"
+  "updated_at": "2026-10-08T22:38:03.557416Z"
 }

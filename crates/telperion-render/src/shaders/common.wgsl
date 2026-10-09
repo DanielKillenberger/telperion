@@ -52,7 +52,7 @@ struct Uniforms {
     fissure: vec4<f32>, // fissure RGB offsets, strength
     crest: vec4<f32>, // crest RGB offsets, strength
     bark_colour_detail: vec4<f32>, // mottle scale, mottle strength, cavity strength, sky occlusion strength
-    leaf_colour_detail: vec4<f32>, // mottle scale, mottle strength, cuticle gloss, reserved
+    leaf_colour_detail: vec4<f32>, // mottle scale, mottle strength, cuticle gloss, the margin band's area share
     margin: vec4<f32>, // RGB offsets, width
     /// The plate network: how wide one plate is across the run in metres
     /// before girth stretches it, how far it runs along, how far its face
@@ -84,7 +84,7 @@ struct Uniforms {
     peel: vec4<f32>, // RGB, curl
     /// What the bark and the cuticle mirror of the sun at normal incidence,
     /// the foot of each material's one highlight.
-    reflectance: vec4<f32>, // bark, leaf, reserved, reserved
+    reflectance: vec4<f32>, // bark, leaf, margin, the group's roughness
     /// The grain below the relief: the bark's cell size in metres and its
     /// strength, the leaf's cells per leaf length and its strength.
     grain: vec4<f32>,
@@ -96,6 +96,14 @@ struct Uniforms {
     /// radius it starts at with the span it turns over; zero leaves none old.
     mature: vec4<f32>, // RGB, furrow strength
     mature_radius: vec4<f32>, // start, span, reserved, reserved
+    /// The supernatural group's mirror on a leaf's underside: its tint and
+    /// its reflectance at normal incidence. The margin's reflectance and
+    /// both mirrors' roughness are `reflectance.zw`. Zero on every natural
+    /// leaf and on every flower.
+    leaf_reflection: vec4<f32>, // back tint RGB, back reflectance
+    /// A floret's eye: the colour its petals turn toward at their base, and
+    /// the share of their length it reaches. Zero on every leaf.
+    bloom_eye: vec4<f32>, // eye RGB, share of the petal
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;

@@ -20,7 +20,7 @@ const SIZE: (u32, u32) = (1024, 768);
 /// 3 to 15 mm between 0.4 and 0.7 of the height, the outermost first and
 /// the second a metre or more from it, each looking in from outside the
 /// crown, 0.3 m off.
-fn cameras(tree: &Tree) -> Vec<(u32, Camera)> {
+pub(super) fn cameras(tree: &Tree) -> Vec<(u32, Camera)> {
     let height = tree.nodes.iter().map(|n| n.position.y).fold(0.0, f64::max);
     let reach = |n: u32| {
         let p = tree.nodes[n as usize].position;

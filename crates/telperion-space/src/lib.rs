@@ -51,7 +51,7 @@ pub use birch::birch;
 pub use blend::blend;
 pub use bounded::{grow_bounded, Bounded, Expected};
 pub use chain::{passed, AGES};
-pub use closed_form::{expected_counts, expected_kept};
+pub use closed_form::{expected_counts, expected_grown, expected_kept, expected_length};
 pub use error::{Error, Result};
 pub use fine::{
     bearer_frame, canonical, chain_cases, digest, grow_roots, identities, landed, lineage_order,

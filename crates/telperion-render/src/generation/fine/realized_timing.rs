@@ -61,7 +61,7 @@ fn ms(a: &Apart) -> String {
 }
 
 #[test]
-#[ignore = "a measurement over the old trees"]
+#[ignore = "device limits: a measurement over the old trees"]
 fn realized_at_40_and_80() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;

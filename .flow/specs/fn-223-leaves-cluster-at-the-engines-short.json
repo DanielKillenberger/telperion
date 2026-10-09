@@ -240,7 +240,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-223-leaves-cluster-at-the-engines-short.md",
-  "status": "open",
+  "status": "done",
   "title": "Leaves cluster at the engine's short shoots",
   "tracker": {
     "baseHashFlow": null,
@@ -253,5 +253,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T14:48:30.520955Z"
+  "updated_at": "2026-10-08T22:38:02.429430Z"
 }

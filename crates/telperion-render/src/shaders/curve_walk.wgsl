@@ -131,6 +131,7 @@ fn sides(rho: f32, error: f32) -> u32 {
     let b = bend();
     if (b > 1.0) { exact = max(exact, TAU * sqrt(rho * b / (8.0 * error))); }
     var n = 3u;
+    // cap: n doubles to MOST_SIDES.
     loop {
         if (f32(n) >= exact || n >= MOST_SIDES) { break; }
         n *= 2u;
@@ -331,6 +332,7 @@ fn walk(i: u32, error: f32, write: bool, base: vec4<u32>) -> vec4<u32> {
         let step = 1u << level;
         let last = c.count - 1u;
         var ka = 0u;
+        // cap: ka moves on by step each pass, to last.
         loop {
             if (ka >= last) { break; }
             let kb = min(ka + step, last);

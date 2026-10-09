@@ -1,11 +1,160 @@
 {
   "branch_name": "fn-230-points-between-species-stay-viable-trees",
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-08T14:34:13.728257Z",
   "created_at": "2026-10-08T12:23:49.837805Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-230-points-between-species-stay-viable-trees",
+  "impl_review_rounds": {
+    "fn-230-points-between-species-stay-viable-trees.1": 0
+  },
   "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "f57365080948cfcfa97c75c1e6faef5290b6e81709c7f68cc704db01596329f1",
+      "backend": "codex",
+      "base_sha": "176271b5197b6b6025695492da535a7536ac9d6d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-fad577cdc8f8683aef2d64919eabf2bd",
+            "classification": "introduced",
+            "findingId": "finding-fad577cdc8f8683aef2d64919eabf2bd",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b4cd1acdce678e8fe13d1c9288ae74f5",
+            "classification": "introduced",
+            "findingId": "finding-b4cd1acdce678e8fe13d1c9288ae74f5",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5629f4a3d5419ae8a8a8ae4befb51445",
+            "classification": "introduced",
+            "findingId": "finding-5629f4a3d5419ae8a8a8ae4befb51445",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5c8ed3ff504f60318cc74aca147fe39e8398515f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 2635,
+      "output_sha256": "1097e109ba1d84b7b403d5ba18a70cc18b64582ed471ce7019488e8363a8591e",
+      "reservation_id": "93354a285d1f472a8d31d116a218368b",
+      "round_consumed": true,
+      "scope": "impl:fn-230-points-between-species-stay-viable-trees.1",
+      "superseded_by": null,
+      "task": "fn-230-points-between-species-stay-viable-trees.1",
+      "timestamp": "2026-10-08T14:22:06.079151Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "762f37bd0a16e8ee1560ab60b1a48d946b8ba208d73e36069128bc96039cb76a",
+      "backend": "codex",
+      "base_sha": "176271b5197b6b6025695492da535a7536ac9d6d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-fad577cdc8f8683aef2d64919eabf2bd",
+            "classification": "introduced",
+            "findingId": "finding-fad577cdc8f8683aef2d64919eabf2bd",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b4cd1acdce678e8fe13d1c9288ae74f5",
+            "classification": "introduced",
+            "findingId": "finding-b4cd1acdce678e8fe13d1c9288ae74f5",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-5629f4a3d5419ae8a8a8ae4befb51445",
+            "classification": "introduced",
+            "findingId": "finding-5629f4a3d5419ae8a8a8ae4befb51445",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-fb7ade77f9a3b327bba9cdba6f670a03",
+            "classification": "introduced",
+            "findingId": "finding-fb7ade77f9a3b327bba9cdba6f670a03",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0289de2d29af56a65fc77152958fa8c493657eb4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1635,
+      "output_sha256": "7c79ff04a0388ec50512fb835b1af964de1ae67b1e70d452e2ea89442ae2fe1f",
+      "reservation_id": "249b5c94db0a4de880cf194914a85f23",
+      "round_consumed": true,
+      "scope": "impl:fn-230-points-between-species-stay-viable-trees.1",
+      "superseded_by": null,
+      "task": "fn-230-points-between-species-stay-viable-trees.1",
+      "timestamp": "2026-10-08T14:33:09.606062Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-230-points-between-species-stay-viable-trees.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-230-points-between-species-stay-viable-trees.1": 0
+  },
   "spec_path": ".flow/specs/fn-230-points-between-species-stay-viable-trees.md",
   "status": "open",
   "title": "Points between species stay viable trees",
@@ -20,5 +169,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T12:23:49.844539Z"
+  "updated_at": "2026-10-08T14:34:13.728270Z"
 }

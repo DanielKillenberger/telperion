@@ -41,7 +41,9 @@ fn blend_of(i: u32) -> f32 {
 fn axis_phase(i: u32) -> f32 {
     var depth = 0u;
     var top = i;
-    while carries_on(top) {
+    // cap: the region's axes; a line no longer than them.
+    let cap = arrayLength(&axes) / AXW;
+    while carries_on(top) && depth < cap {
         top = ax(top, PARENT);
         depth += 1u;
     }
@@ -63,12 +65,20 @@ fn unit_back(p: u32, j: u32) -> UnitRef {
     var a = p;
     var count = j;
     var found = UnitRef(p, 0u, 0u, false);
+    // cap: the region's axes; a line no longer than them.
+    var cap = arrayLength(&axes) / AXW;
     loop {
+        if cap == 0u {
+            break;
+        }
+        cap -= 1u;
         var end = s(a, S_COUNT);
         var hit = false;
+        // cap: end counts down from the axis's phytomers.
         while end > 0u {
             let c = ph(at_k(a, end - 1u), 2u);
             var first = end - 1u;
+            // cap: first counts down from end.
             while first > 0u && ph(at_k(a, first - 1u), 2u) == c {
                 first -= 1u;
             }
@@ -206,7 +216,12 @@ fn point_toward(a: array<vec4<f32>, 3>, b: array<vec4<f32>, 3>, t: f32) -> array
 fn stand(p: u32, node: u32, o: u32) -> array<vec4<f32>, 3> {
     var n = 0u;
     var whole = false;
+    // cap: a line holds no more units than the region's phytomers.
+    let cap = arrayLength(&phyts) / PW;
     loop {
+        if n >= cap {
+            break;
+        }
         let u = unit_back(p, n);
         if !u.ok {
             break;
@@ -227,6 +242,7 @@ fn stand(p: u32, node: u32, o: u32) -> array<vec4<f32>, 3> {
         pt = array<vec4<f32>, 3>(vec4<f32>(s3(a, S_FRAME), axis_phase(a)), vec4<f32>(s3(a, S_FRAME + 3u), 0.0), vec4<f32>(s3(a, S_FRAME + 6u), 0.0));
     }
     var j = n;
+    // cap: j counts down from n.
     while j > 0u {
         j -= 1u;
         let u = unit_back(p, j);

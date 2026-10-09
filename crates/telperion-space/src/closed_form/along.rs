@@ -202,4 +202,35 @@ impl Count {
             }
         }
     }
+
+    /// The node counts a unit cut to `share` of its cycle lays of a zone
+    /// whose count law is `pmf` (`lineage::laid`, fn-231): of n nodes,
+    /// ⌊share n⌋, and one more at the chance of the fraction left.
+    pub fn laid_pmf(pmf: &[f64], share: f64) -> Vec<f64> {
+        let mut out = vec![0.0; pmf.len() + 1];
+        for (n, &p) in pmf.iter().enumerate() {
+            let at = share * n as f64;
+            let whole = at.floor();
+            let fraction = at - whole;
+            out[whole as usize] += p * (1.0 - fraction);
+            out[whole as usize + 1] += p * fraction;
+        }
+        out
+    }
+
+    /// The moments of the count law `pmf`.
+    pub fn of_pmf(pmf: &[f64]) -> Self {
+        let mut moments = [0.0; 4];
+        for (n, &p) in pmf.iter().enumerate() {
+            for (k, m) in moments.iter_mut().enumerate() {
+                *m += p * (n as f64).powi(k as i32);
+            }
+        }
+        Self(moments)
+    }
+
+    /// The node count's mean.
+    pub fn mean(&self) -> f64 {
+        self.0[1]
+    }
 }

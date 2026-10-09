@@ -81,12 +81,16 @@ impl Pass {
                 label: Some("experimental generation"),
                 entries: &bindings,
             });
+        #[cfg(test)]
+        let started = std::time::Instant::now();
         let module = gpu
             .device
             .create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some("experimental generation"),
                 source: wgpu::ShaderSource::Wgsl(shader.into()),
             });
+        #[cfg(test)]
+        crate::trace::compiled(&format!("module of {}", entries[0]), started.elapsed());
         let pipeline_layout = gpu
             .device
             .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -97,15 +101,21 @@ impl Pass {
         let pipelines = entries
             .iter()
             .map(|&entry| {
-                gpu.device
-                    .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                        label: Some(entry),
-                        layout: Some(&pipeline_layout),
-                        module: &module,
-                        entry_point: Some(entry),
-                        compilation_options: Default::default(),
-                        cache: None,
-                    })
+                #[cfg(test)]
+                let started = std::time::Instant::now();
+                let pipeline =
+                    gpu.device
+                        .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+                            label: Some(entry),
+                            layout: Some(&pipeline_layout),
+                            module: &module,
+                            entry_point: Some(entry),
+                            compilation_options: Default::default(),
+                            cache: None,
+                        });
+                #[cfg(test)]
+                crate::trace::compiled(entry, started.elapsed());
+                pipeline
             })
             .collect();
         Self {
@@ -167,6 +177,8 @@ impl Pass {
                     end_of_pass_write_index: Some(at + 1),
                 }),
         });
+        #[cfg(test)]
+        crate::trace::dispatch(&self.entries[entry], groups);
         pass.set_pipeline(&self.pipelines[entry]);
         pass.set_bind_group(0, bind, &[]);
         pass.dispatch_workgroups(groups.min(self.maximum), groups.div_ceil(self.maximum), 1);
@@ -209,6 +221,8 @@ impl PendingRead {
         _gpu.device
             .poll(wgpu::PollType::wait_indefinitely())
             .map_err(|e| error(e.to_string()))?;
+        #[cfg(test)]
+        crate::trace::waited("readback");
         self.receive
             .await
             .map_err(|e| error(e.to_string()))?
@@ -337,11 +351,12 @@ pub(super) async fn errors(gpu: &Gpu, scopes: [wgpu::ErrorScopeGuard; 2]) -> Res
     let [validation, memory] = scopes;
     let memory = memory.pop().await;
     let validation = validation.pop().await;
-    if let Some(error) = memory.or(validation) {
-        return Err(self::error(error.to_string()));
-    }
+    // A lost device is the cause of every error it raised (fn-235).
     if let Some(error) = gpu.lost() {
         return Err(error);
+    }
+    if let Some(error) = memory.or(validation) {
+        return Err(self::error(error.to_string()));
     }
     Ok(())
 }
@@ -371,6 +386,8 @@ pub(super) async fn complete(gpu: &Gpu) -> Result<()> {
     gpu.device
         .poll(wgpu::PollType::wait_indefinitely())
         .map_err(|e| error(e.to_string()))?;
+    #[cfg(test)]
+    crate::trace::waited("stage");
     receive.await.map_err(|e| error(e.to_string()))?;
     if let Some(error) = gpu.lost() {
         return Err(error);

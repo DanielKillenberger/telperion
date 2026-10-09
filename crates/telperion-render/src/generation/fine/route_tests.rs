@@ -63,7 +63,7 @@ fn a_cpu_delivery_grows_the_tree_whole() {
 /// against a fresh build's (`cargo test --profile ci -p telperion-render
 /// large_to_small -- --ignored --nocapture`, under the GPU lock).
 #[test]
-#[ignore]
+#[ignore = "device limits: a tree at 80 on the device"]
 fn large_to_small() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
@@ -133,13 +133,78 @@ fn a_failed_build_leaves_the_drawn_tree_drawing() {
         .has_subject());
 }
 
+/// fn-235 R3: a build over the device budget is refused by name before
+/// it starts, and the tree drawn keeps drawing.
+#[test]
+fn a_build_over_the_budget_is_refused_and_the_drawn_tree_kept() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let mut renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    let first = family("european-beech", 12);
+    renderer
+        .submit_prepared(gen.prepare(&first, Delivery::Resident).unwrap())
+        .unwrap();
+    let aspect = 4.0 / 3.0;
+    let camera = crate::hero_pose(renderer.bounds().unwrap(), aspect, crate::GROUND_REACH);
+    let before = crate::render(&mut renderer, &camera, 320, 240).unwrap();
+    // A budget the drawn tree all but fills.
+    gen.budget.set(Some(gpu.ledger.live() + (1 << 20)));
+    let error = gen
+        .prepare(&family("european-beech", 30), Delivery::Resident)
+        .err()
+        .expect("the build is refused");
+    assert!(error.to_string().contains("device budget"), "{error}");
+    let after = crate::render(&mut renderer, &camera, 320, 240).unwrap();
+    assert!(after.has_subject());
+    assert_eq!(after.stats.triangles, before.stats.triangles);
+    assert_eq!(after.stats.instances, before.stats.instances);
+}
+
+/// fn-235 R3: a device lost under a drawn tree is named by the next frame
+/// and the next build, and the same parameters build again, once, on a
+/// fresh adapter and device, as the page's "retry build" asks.
+#[test]
+fn a_lost_device_is_named_and_a_fresh_one_builds_the_tree_again() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let tree = family("european-beech", 12);
+    let mut renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    renderer
+        .submit_prepared(gen.prepare(&tree, Delivery::Resident).unwrap())
+        .unwrap();
+    let camera = crate::hero_pose(renderer.bounds().unwrap(), 4.0 / 3.0, crate::GROUND_REACH);
+    gpu.device.destroy();
+    let lost = |error: Option<crate::RenderError>| match error {
+        Some(e @ crate::RenderError::DeviceLost { .. }) => e.to_string(),
+        other => panic!("not named as a loss: {other:?}"),
+    };
+    let drawn = lost(crate::render(&mut renderer, &camera, 320, 240).err());
+    assert!(drawn.contains("the GPU device was lost"), "{drawn}");
+    lost(gen.prepare(&tree, Delivery::Resident).err());
+    // The retry: the lost device let go, a fresh adapter and device, the
+    // same parameters.
+    drop((gen, renderer, gpu));
+    let fresh = crate::generation::test_gpu().unwrap();
+    let mut renderer = Renderer::new(fresh, crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    renderer
+        .submit_prepared(gen.prepare(&tree, Delivery::Resident).unwrap())
+        .unwrap();
+    let still = crate::render(&mut renderer, &camera, 320, 240).unwrap();
+    assert!(still.has_subject());
+}
+
 /// fn-212 task 10, host decision 3: the device bytes a build peaks at, from
 /// a fresh generator and renderer, against the predictor's expected kept
 /// phytomers, and what stays held once its tree is drawn
 /// (`cargo test --profile ci -p telperion-render budget_probe -- --ignored
 /// --nocapture`, under the GPU lock).
 #[test]
-#[ignore]
+#[ignore = "device limits: a tree at 80 on the device"]
 fn budget_probe() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
@@ -275,12 +340,10 @@ fn the_device_path_draws_what_the_cpu_path_draws() {
     }
 }
 
-/// fn-216 merged into F4 (host, 2026-10-08): a flower is drawn from the
-/// tree the CPU converts, which a fine root dressed on the device never
-/// enters, so on the device path a flowering beech drew only the blooms
-/// above the cut (3.7 % of its florets at 40). Until the device draws its
-/// roots' flowers (fn-125), a family that flowers is refused the device
-/// path and grows whole: every floret, the same ones a CPU delivery draws.
+/// fn-229: a flowering tree comes apart, and the device draws its own
+/// roots' florets, the CPU block's beside them in one organ buffer: the
+/// resident, whole and CPU deliveries draw the same number of florets (at
+/// fn-216's merge the device path drew 1,900 of the beech's 2,643).
 #[test]
 fn a_flowering_tree_draws_every_floret_on_either_path() {
     let Some(gpu) = crate::generation::test_gpu() else {
@@ -289,20 +352,25 @@ fn a_flowering_tree_draws_every_floret_on_either_path() {
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     let mut family = family("european-beech", 12);
-    assert!(executor::apart(&family).is_ok(), "the beech comes apart");
     for s in &mut family.space.species.as_mut().unwrap().states {
         s.flowering = 0.6;
     }
     assert!(
-        executor::apart(&family).is_err(),
-        "a flowering beech is refused"
+        executor::apart(&family).is_ok(),
+        "a flowering beech comes apart"
     );
-    let florets =
-        |p: &super::super::Prepared| p.mesh.organ.as_ref().map_or(0, |o| o.instances.len());
+    let florets = |p: &super::super::Prepared| {
+        let held = p.mesh.organ.as_ref().map_or(0, |o| o.instances.len());
+        held + p.organ.as_ref().map_or(0, |o| o.count as usize)
+    };
     let resident = gen.prepare(&family, Delivery::Resident).unwrap();
     let whole = pollster::block_on(gen.prepare_whole(&family, Delivery::Resident)).unwrap();
     let cpu = gen.prepare(&family, Delivery::Cpu).unwrap();
     assert!(florets(&whole) > 0, "the beech flowers");
+    assert!(
+        resident.organ.is_some(),
+        "the device path holds its florets"
+    );
     assert_eq!(florets(&resident), florets(&whole));
     assert_eq!(florets(&cpu), florets(&whole));
 }

@@ -4,7 +4,9 @@
 //! filter. Frame-uniform assembly lives beside this file; the clay room keeps
 //! its neutral light and never reads the shadow.
 use bytemuck::{Pod, Zeroable};
-use telperion_core::{material::MaterialParams, math::Vec3, surface::Bounds};
+use telperion_core::{
+    material::MaterialParams, math::Vec3, supernatural::Reflection, surface::Bounds,
+};
 use wgpu::util::DeviceExt;
 
 use crate::{
@@ -14,7 +16,9 @@ use crate::{
     view::View,
 };
 
+mod band;
 mod frame;
+pub(crate) use band::BandShares;
 /// The scene row - the sun, the sky and the ground as numbers - and the room's
 /// own geometry, each beside this file rather than in it so none of the three
 /// outgrows the project's line rule.
@@ -76,7 +80,7 @@ struct Uniforms {
     fissure: [f32; 4],            // fissure RGB offsets, strength
     crest: [f32; 4],              // crest RGB offsets, strength
     bark_colour_detail: [f32; 4], // mottle scale, mottle strength, cavity strength, sky occlusion strength
-    leaf_colour_detail: [f32; 4], // mottle scale, mottle strength, cuticle gloss, reserved
+    leaf_colour_detail: [f32; 4], // mottle scale, mottle strength, cuticle gloss, the margin band's area share
     margin: [f32; 4],             // RGB offsets, width
     plate: [f32; 4],              // cell scale in metres, elongation, dome, edge lift
     bark_structure: [f32; 4],     // plate identity, directional occlusion, depth strength, reserved
@@ -95,6 +99,13 @@ struct Uniforms {
     leaf_dead: [f32; 4], // a withered leaf's RGB, reserved
     mature: [f32; 4], // old bark RGB, the furrow strength it takes
     mature_radius: [f32; 4], // the radius old bark starts at, the span it turns over, reserved, reserved
+    /// The supernatural group's mirror on a leaf's underside: its tint, and
+    /// its reflectance at normal incidence (fn-217 E2); the margin's
+    /// reflectance and both mirrors' roughness sit in `reflectance`.
+    leaf_reflection: [f32; 4], // back tint RGB, back reflectance
+    /// A floret's eye: the colour its petals turn toward at their base and
+    /// the share of their length it reaches (fn-217 F1); none on a leaf.
+    bloom_eye: [f32; 4], // eye RGB, share of the petal
 }
 
 /// The room and the light every pipeline draws under. Owns the one uniform
@@ -107,7 +118,15 @@ pub struct Scene {
     /// What the subject is made of, as the family stated it. It arrives with
     /// the tree and outlives nothing: a second tree brings its own row.
     material: MaterialParams,
-    pub(crate) section_roundness: f64,
+    /// The supernatural group's leaf mirrors, which arrive with the
+    /// material and are none on every natural family.
+    reflection: Reflection,
+    /// The organ mask (fn-217 M0): in the clay room, the flowers white and
+    /// everything else black, unlit. An instrument, off in every picture.
+    mask: bool,
+    section_roundness: f64,
+    /// The submitted leaf's margin band as a share of its area, by width.
+    band_shares: BandShares,
     /// The ellipsoid the submitted crown's placements fill, which a leaf's
     /// depth into the crown is measured against. None before a tree is up.
     crown: Option<Bounds>,
@@ -243,7 +262,10 @@ impl Scene {
         Self {
             row: SceneRow::default(),
             material: MaterialParams::default(),
+            reflection: Reflection::NONE,
+            mask: false,
             section_roundness: 0.0,
+            band_shares: BandShares::default(),
             crown: None,
             leaf_reference: telperion_core::foliage::Reference::default(),
             layout,
@@ -282,6 +304,24 @@ impl Scene {
     /// from rather than in the last tree's colours.
     pub fn set_material(&mut self, material: MaterialParams) {
         self.material = material;
+        self.reflection = Reflection::NONE;
+    }
+
+    /// The supernatural group's leaf mirrors for the subject that is up,
+    /// set after its material.
+    /// What the frame reads of the submitted leaf element: its section
+    /// and its margin band's area share. Every submission path sets it.
+    pub(crate) fn set_leaf(&mut self, element: &telperion_core::foliage::Element) {
+        self.section_roundness = element.section_roundness;
+        self.band_shares = BandShares::of(element);
+    }
+
+    pub fn set_mask(&mut self, on: bool) {
+        self.mask = on;
+    }
+
+    pub fn set_reflection(&mut self, reflection: Reflection) {
+        self.reflection = reflection;
     }
 
     /// The ellipsoid a leaf's depth into the crown is measured against.
@@ -315,7 +355,9 @@ impl Scene {
     /// sky at the horizon outdoors, where the sky's own triangle covers it
     /// everywhere the frame draws one.
     pub fn background(&self, view: View) -> wgpu::Color {
-        let c = if view == View::Clay {
+        let c = if self.mask {
+            [0.0, 0.0, 0.0, 1.0]
+        } else if view == View::Clay {
             linear(BACKGROUND)
         } else {
             [

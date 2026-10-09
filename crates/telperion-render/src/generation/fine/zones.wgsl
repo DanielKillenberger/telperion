@@ -36,6 +36,7 @@ fn sorted(zk: vec2<u32>, n: u32, drawn: ptr<function, array<u32, MOST>>) {
     for (var j = 0u; j < n; j++) {
         let o = draw(child(child(zk, w(j, 0u)), w(0u, 0u)));
         var m = j;
+        // cap: m counts down from j.
         while m > 0u && lt64(order[m - 1u], o) {
             order[m] = order[m - 1u];
             (*drawn)[m] = (*drawn)[m - 1u];
@@ -92,6 +93,26 @@ fn drawn_pa(start: u32, n: u32, key: vec2<u32>) -> u32 {
         }
     }
     return 0xffu;
+}
+
+// Whether bud place `s` of the zone at `at`, keyed `place`, stands: a
+// whole one always, the last a fraction makes under its threshold, by its
+// `PLACED` draw (`lineage::placed`, fn-231).
+fn stands(at: u32, s: u32, place: vec2<u32>) -> bool {
+    let t = words[table[at + 12u] + s];
+    return !lt64(t, vec2<u32>(0u, 0x200000u)) || lt64(draw(child(place, KEY_PLACED)), t);
+}
+
+// The presence, Q32, over `window` of the draw that made that place stand:
+// its lead under its threshold; a whole place's is whole
+// (`lineage::place_presence`, fn-231).
+fn place_q(at: u32, s: u32, place: vec2<u32>, window: vec2<u32>) -> vec2<u32> {
+    let t = words[table[at + 12u] + s];
+    if !lt64(t, vec2<u32>(0u, 0x200000u)) {
+        return one32();
+    }
+    let d = draw(child(place, KEY_PLACED));
+    return presence(lead_q(vec2<u32>(0u), t, d, vec4<u32>(0u), 0u), window);
 }
 
 // The PA bud place `place` drew, 0xff for a bare one.

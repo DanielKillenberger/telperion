@@ -461,6 +461,20 @@ pub fn settings() -> Vec<Setting> {
             move |s, v| s.states[pa].lifespan = v,
         ));
     }
+    // fn-231: a node count walked where a lifespan's fraction cuts a unit,
+    // the limb living six and a half cycles: its last unit lays half its
+    // zone's present nodes, and a node the law starts to make adds a
+    // vanishing share, laying no other node whole (codex on fn-231).
+    all.push(setting(
+        "states[1].zones[0].nodes.mean, lifespan 6.5".into(),
+        0.5,
+        2.5,
+        false,
+        |s, v| {
+            s.states[1].lifespan = 6.5;
+            s.states[1].zones[0].nodes = NodeLaw::Poisson { mean: v };
+        },
+    ));
     // fn-206: the twigs' shedding delay between whole cycles.
     all.push(setting(
         "states[2].shedding".into(),
@@ -697,9 +711,8 @@ fn shaded(name: &str, low: f64, high: f64, edit: fn(&mut Species, f64)) -> Setti
     walked
 }
 
-/// Every setting walked in leaf under the site's light, the full lay
-/// grown with the tree included (host decision 8): `leafy` first, then
-/// the setting.
+/// Every setting walked in leaf under the site's light (host decision
+/// 8): `leafy` first, then the setting.
 pub fn in_leaf(all: Vec<Setting>) -> Vec<Setting> {
     all.into_iter()
         .map(|walked| {

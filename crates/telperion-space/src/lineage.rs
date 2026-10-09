@@ -11,7 +11,7 @@ pub mod keys;
 
 pub(crate) use keys::{
     ABORTION, CONTINUATION, DOMINANCE, DORMANT, END, ENDED, FAILED, INSERTION, INTERNODE, MOVE,
-    RELAY, ROLL, SHED, TROPISM, VIABILITY, WANDER, ZONE,
+    LAID, PLACED, RELAY, ROLL, SHED, TROPISM, VIABILITY, WANDER, ZONE,
 };
 
 /// A hashed path from the root.
@@ -150,6 +150,57 @@ pub(crate) fn tropism(lineage: u64, spread: f64) -> i64 {
         return ONE32;
     }
     ONE32 + mul(q32(spread), signed(Key(lineage).child(TROPISM).draw()))
+}
+
+/// Whether the bud place keyed `place` stands at `share` (`Zone::share`):
+/// a whole one always, the last a fraction makes by its draw (fn-231,
+/// host decision 8), so its buds come in by count as the fraction grows.
+pub(crate) fn placed(place: Key, share: f64) -> bool {
+    share >= 1.0 || place.child(PLACED).draw().under(share)
+}
+
+/// The presence, Q32, over `window` of the draw that made the bud place
+/// keyed `place` stand at `share`: its lead under the share's threshold,
+/// as `bud_presence` settles a bud's, so a place grows in from nothing as
+/// the fraction passes its draw (fn-231); a whole place's is whole.
+pub(crate) fn place_presence(place: Key, share: f64, window: i64) -> u64 {
+    if share >= 1.0 {
+        return fixed::presence::ONE;
+    }
+    let d = place.child(PLACED).draw();
+    fixed::presence::of_under(threshold(share), d.0, window)
+}
+
+/// The nodes of a zone a unit a lifespan's fraction cut lays (fn-231,
+/// host 2026-10-08): `share / of` of its present nodes, the sum of their
+/// `presences` (Q32), so a node the law only starts to make adds a
+/// vanishing share. In index order, each node whose presence the quota
+/// still holds is laid whole, at its presence; the next, where its `LAID`
+/// draw, under the zone's key `zone`, falls under the share of it left,
+/// at its presence times that draw's lead over `window`, so it grows in
+/// from nothing; the rest are not laid. In integers, so the device takes
+/// the same nodes.
+pub(crate) fn laid(presences: &mut Vec<u64>, cut: crate::schedule::Cut, zone: Key, window: i64) {
+    let (share, of) = (fixed::ticks(cut.share) as u128, fixed::ticks(cut.of) as u128);
+    let quota = share * presences.iter().map(|&p| p as u128).sum::<u128>();
+    let mut held = 0u128;
+    for (j, &p) in presences.iter().enumerate() {
+        let p = p as u128;
+        if (held + p) * of <= quota {
+            held += p;
+            continue;
+        }
+        let left = quota - held * of;
+        let last = (left > 0).then(|| {
+            let d = zone.child(j as u64).child(LAID).draw();
+            let t = (left << 53).div_ceil(p * of) as u64;
+            let lead = fixed::presence::of_under(t, d.0, window);
+            (d.0 < t).then(|| fixed::presence::times(p as u64, lead))
+        });
+        presences.truncate(j);
+        presences.extend(last.flatten());
+        return;
+    }
 }
 
 /// A bud's PA under `lateral` for the draw `d`; none for a bare bud. The

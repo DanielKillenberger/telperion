@@ -43,7 +43,6 @@ fn main() {
                     chunk,
                     sizes: true,
                     leaves: true,
-                    girth: true,
                 });
             }
         }

@@ -293,6 +293,11 @@ impl Roots for Device<'_> {
     /// same order (host decision 1).
     #[cfg(not(target_arch = "wasm32"))]
     fn sow(&mut self, seeds: &[RootSeed]) -> Result<usize> {
+        // A test takes the browser's grouping natively (fn-235 R2).
+        #[cfg(test)]
+        if std::env::var_os("TELPERION_UNSOWN").is_some() {
+            return Ok(0);
+        }
         if !self.order.is_empty() || seeds.len() < self.least {
             return Ok(0);
         }

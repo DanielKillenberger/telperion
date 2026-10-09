@@ -260,7 +260,7 @@ impl Grower {
     }
 
     /// The bytes the regions keep between builds.
-    #[cfg(test)]
+    #[cfg(any(test, target_arch = "wasm32"))]
     pub(super) fn bytes(&self) -> u64 {
         self.pool.borrow().iter().map(|b| b.size()).sum()
     }

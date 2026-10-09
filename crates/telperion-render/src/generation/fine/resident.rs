@@ -7,18 +7,21 @@
 //! box, sweeps, stations and places them, and packs its curve after the
 //! CPU block's in the renderer's own form (decision 2); both blocks of
 //! leaves are placed into one leaf buffer, the device's at an offset, with
-//! one mass grid over both (decision 3). Only totals and summaries are
-//! read back. The submit takes these buffers as they are.
-use super::super::{compute, data, io, Backend, Clock, Generator, Metrics, Prepared, Resident};
+//! one mass grid over both (decision 3). A flowering tree's florets are
+//! handed off the same way (fn-229, `florets.rs`). Only totals and
+//! summaries are read back. The submit takes these buffers as they are.
+use super::super::compute::{self, Placement};
+use super::super::{data, io, Backend, Clock, Generator, Metrics, Prepared, Resident};
 use super::device::Device;
 use super::dress::{dress, Dresser};
+use super::florets::Organ;
 use super::handoff::{union, Handoff};
 use super::rings::Ringer;
 use super::roots::{Kernels, Tables};
 use super::stations::{station_rows, Stationed, Stationer};
 use super::stubs::stubs;
 use super::sweep::{rows, Sweeper};
-use crate::buffer::Held;
+use crate::buffer::{Held, Owned};
 use crate::{Gpu, Result};
 use std::collections::HashSet;
 use std::sync::Arc;
@@ -27,7 +30,7 @@ use telperion_core::foliage::Instances;
 use telperion_core::mesh::{Foliage, TreeMesh};
 use telperion_core::pipeline::executor::{self, beyond, bins, Expansion};
 use telperion_core::presets::Family;
-use telperion_core::surface::{Bounds, SurfaceMesh};
+use telperion_core::surface::SurfaceMesh;
 use telperion_core::Error;
 use telperion_space::{ChainTables, GeometryTables};
 
@@ -128,7 +131,11 @@ pub(super) async fn build(
     tools: &Tools,
     family: &Family,
 ) -> Result<Built> {
-    let species = (family.space.species.clone()).ok_or_else(|| refused("no engine species"))?;
+    // The species as the supernatural group applies it: its flowering is
+    // the share the conversion reads (`executor::settle`).
+    let species = family.applied().space.species.clone();
+    let species = species.ok_or_else(|| refused("no engine species"))?;
+    let flowers = species.states.iter().any(|s| s.flowering > 0.0);
     let age = family.age as u32;
     let chain = ChainTables::new(&species, age).map_err(|_| refused("chain tables"))?;
     let geo = GeometryTables::new(&species, age).map_err(|_| refused("geometry tables"))?;
@@ -146,7 +153,7 @@ pub(super) async fn build(
     let d = &tools.dresser;
     let dressed = stage(gpu, &mut t.dress, async || {
         let stubs = stubs(part.tree(), &dev, &part.lineages, &landed);
-        dress(gpu, d, &dev, &stubs)
+        dress(gpu, d, &dev, (&stubs, part.scale()))
     })
     .await?;
     drop(dev);
@@ -204,7 +211,13 @@ pub(super) async fn build(
     .await?;
     let ids = dressed.ids;
     drop(dressed);
-    let station = station_rows(&x, segments);
+    // A flowering tree's organ, its rows checked before the stations read
+    // them (`bloom_element`'s check).
+    let organ = match flowers {
+        true => Some(Organ::of(&x)?),
+        false => None,
+    };
+    let station = station_rows(&x, segments, organ.as_ref().map(Organ::rows));
     let stationer = &tools.stationer;
     let device = stage(gpu, &mut t.stations, async || {
         stationer
@@ -229,9 +242,10 @@ pub(super) async fn build(
         ),
         false => None,
     };
-    // Both blocks into one leaf buffer, one mass grid over both.
+    // Both blocks into one leaf buffer, one mass grid over both; the
+    // florets likewise, the device's in the submission of its leaves.
     let reference = x.reference();
-    let resident = stage(gpu, &mut t.place, async || {
+    let (resident, florets) = stage(gpu, &mut t.place, async || {
         let leaves = gen.leaf_buffer(count)?;
         let (l, e) = (x.leaves(), x.element());
         let counts = (cpu.count, cpu.segments.len() as u32, cpu.ring_size);
@@ -247,39 +261,59 @@ pub(super) async fn build(
         )?;
         // Leaves that seat on nothing read no ring positions.
         let none = io::buffer(gpu, "no ring positions", 16, usage, &[])?;
+        // Every block placed in one submission, every summary read back
+        // in one readback.
+        let mut encoder = gpu.encoder(&Default::default());
         let mut summaries = Vec::new();
         if cpu.count > 0 {
             let at = (cpu.count, &*leaves);
-            let rings = wood.as_deref().unwrap_or(&none);
-            summaries.push(gen.place_into(config, (&*segs, rings), e, at)?.0);
+            let bufs = (&*segs, wood.as_deref().unwrap_or(&none));
+            let placed = gen.record_place(&mut encoder, Placement::Leaves, config, bufs, e, at)?;
+            summaries.push(placed.0);
         }
         if device.stations > 0 {
             let counts = (device.stations, device.segments, segments);
             let config = data::config(&l, x.twig(), counts, e, reference).at(cpu.count);
             let at = (device.stations, &*leaves);
-            let rings = positions.as_deref().unwrap_or(&none);
-            summaries.push(gen.place_into(config, (&*device.buffer, rings), e, at)?.0);
+            let bufs = (&*device.buffer, positions.as_deref().unwrap_or(&none));
+            let placed = gen.record_place(&mut encoder, Placement::Leaves, config, bufs, e, at)?;
+            summaries.push(placed.0);
         }
+        let placed = match &organ {
+            Some(o) => o.place(gen, &mut encoder, &device)?,
+            None => None,
+        };
+        let floret = placed.as_ref().and_then(|p| p.summary());
+        let placed_florets = floret.is_some();
+        let words = read(gpu, encoder, summaries.iter().chain(floret)).await?;
         let (mut crown, mut full) = (None, None);
-        for s in &summaries {
-            let raw = io::read_async(gpu, s, 64).await?;
-            let s: &[u32] = bytemuck::cast_slice(&raw);
+        for s in words.chunks(16).take(summaries.len()) {
             if s[1] != 0 {
                 return Err(refused("GPU foliage transform/contact/reference"));
             }
             crown = union(crown, Some(compute::bounds(s, 2)));
             full = union(full, Some(compute::bounds(s, 8)));
         }
-        let masses = gen
-            .mass(&leaves, count, crown, reference, 0, &mut m)
-            .await?;
-        Ok(Resident {
+        // Both mass grids in one submission, which the stage waits for.
+        let mut encoder = gpu.encoder(&Default::default());
+        let at = (&*leaves, count, crown, reference);
+        let masses = gen.record_mass(&mut encoder, at, 0, &mut m)?;
+        let florets = match (&organ, placed) {
+            (Some(o), Some(p)) => {
+                let summary = placed_florets.then(|| &words[16 * summaries.len()..]);
+                Some(o.resident(gen, &mut encoder, (p, summary), &mut m)?)
+            }
+            _ => None,
+        };
+        gpu.submit([encoder.finish()]);
+        let resident = Resident {
             leaves: Held::resident(leaves, u64::from(count) * 12, "generated foliage"),
             masses: Held::resident(masses.0, masses.1, "generated foliage masses"),
             count,
             crown,
             full,
-        })
+        };
+        Ok((resident, florets))
     })
     .await?;
     // The ring positions served the placements alone.
@@ -292,15 +326,14 @@ pub(super) async fn build(
     for b in [&swept.point_buffer, &swept.cluster_buffer, &swept.table] {
         b.destroy();
     }
-    // The flowers of the part the CPU converted (fn-216): none, since a
-    // flowering tree is refused this path (`executor::apart`).
-    let organ = x.organ()?;
-    let flowers = match &organ {
-        Some(o) => o.instances.bounds(&o.element)?.map(Bounds::from),
-        None => None,
-    };
+    // The flowers of both blocks, on the device (fn-229).
     let bounds = union(union(curve.bounds(), handed.fine), resident.full);
-    let bounds = union(bounds, flowers).ok_or_else(|| refused("mesh has no geometry"))?;
+    let bounds = union(bounds, florets.as_ref().and_then(|f| f.full));
+    let bounds = bounds.ok_or_else(|| refused("mesh has no geometry"))?;
+    let organ = match (&organ, &florets) {
+        (Some(o), Some(_)) => Some(o.foliage()),
+        _ => None,
+    };
     let mesh = TreeMesh {
         wood: SurfaceMesh::default(),
         curve,
@@ -319,6 +352,7 @@ pub(super) async fn build(
         identity: gen.identity.clone(),
         mesh,
         resident: Some(resident),
+        organ: florets,
         wood: Some(handed.curve),
         backend: Backend::Gpu,
         metrics: m,
@@ -334,4 +368,23 @@ pub(super) async fn build(
         cpu_segments,
         device,
     })
+}
+
+/// The 16-word placement `summaries`, copied into one buffer in `encoder`
+/// and read back in one readback, in their order.
+async fn read<'a>(
+    gpu: &Gpu,
+    mut encoder: crate::Encoder,
+    summaries: impl Iterator<Item = &'a Owned>,
+) -> Result<Vec<u32>> {
+    let summaries: Vec<&Owned> = summaries.collect();
+    let bytes = (summaries.len() * 64) as u64;
+    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
+    let all = io::buffer(gpu, "generation summaries", bytes, usage, &[])?;
+    for (k, s) in summaries.iter().enumerate() {
+        encoder.copy_buffer_to_buffer(s, 0, &all, k as u64 * 64, 64);
+    }
+    gpu.submit([encoder.finish()]);
+    let raw = io::read_async(gpu, &all, bytes).await?;
+    Ok(bytemuck::pod_collect_to_vec(&raw))
 }

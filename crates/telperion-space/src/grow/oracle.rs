@@ -279,7 +279,6 @@ mod tests {
             chunk: 7,
             sizes: true,
             leaves: true,
-            girth: true,
         };
         let runs = [256.0, 1024.0].map(|cut| Run { cut, grouping });
         let probed = grow_partitioned(&species, request, &expected, &runs).unwrap();

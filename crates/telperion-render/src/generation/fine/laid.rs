@@ -20,13 +20,13 @@ const GIRTH: &str = include_str!("girth.wgsl");
 const STAND: &str = include_str!("stand.wgsl");
 /// A laid axis's and phytomer's floats (`geometry.wgsl`).
 pub(super) const AL: usize = 8;
-pub(super) const PL: usize = 24;
+pub(super) const PL: usize = 26;
 /// A chain's scratch: per region axis, per region phytomer, then a status.
 #[cfg(test)]
 pub(super) const SA: u32 = 70;
 #[cfg(test)]
 pub(super) const SP: u32 = 12;
-const GG: usize = 39;
+const GG: usize = 40;
 /// `settle.wgsl`'s passes.
 pub(super) const SCALES: usize = 0;
 pub(super) const GIRTHS: usize = 1;
@@ -86,8 +86,8 @@ pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
         out[4 + GG * pa + 24] = p.tropism_spread as f32;
         // The leaves each tip of the PA bears and their fan (fn-223), which
         // `dress.wgsl` marks its clusters by.
-        out[4 + GG * pa + 37] = p.cluster_leaves as f32;
-        out[4 + GG * pa + 38] = p.cluster_spread as f32;
+        out[4 + GG * pa + 38] = p.cluster_leaves as f32;
+        out[4 + GG * pa + 39] = p.cluster_spread as f32;
         // The girth's values as contract A takes them (`girth.wgsl`).
         let girth = [
             p.pipe,
@@ -102,6 +102,8 @@ pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
             out[4 + GG * pa + 25 + 2 * k] = f32::from_bits(q as u32);
             out[4 + GG * pa + 26 + 2 * k] = f32::from_bits((q >> 32) as u32);
         }
+        // The share of its nodes that may flower (`dress.wgsl`; fn-229).
+        out[4 + GG * pa + 37] = p.flowering as f32;
     }
     let sags = g.pas.iter().any(|p| p.sag > 0.0);
     (out, sags)

@@ -14,29 +14,26 @@ const LIT: Light = Light {
     sky: 0.5,
 };
 
-/// Every run of the matrix: three cuts, each sum alone, then all three
-/// in every order and chunking.
+/// Every run of the matrix: three cuts, each sum alone, then both in
+/// every order and chunking.
 fn matrix() -> Vec<(String, PartitionRun)> {
     let every = |order, chunk| Grouping {
         order,
         chunk,
         sizes: true,
         leaves: true,
-        girth: true,
     };
-    let one = |sizes, leaves, girth| Grouping {
+    let one = |sizes, leaves| Grouping {
         order: PartitionOrder::Forward,
         chunk: 1,
         sizes,
         leaves,
-        girth,
     };
     let mut runs = Vec::new();
     for cut in [256.0, 1024.0, 4096.0] {
         let mut add = |label: String, grouping| runs.push((label, PartitionRun { cut, grouping }));
-        add(format!("cut {cut} sizes alone"), one(true, false, false));
-        add(format!("cut {cut} leaves alone"), one(false, true, false));
-        add(format!("cut {cut} girth alone"), one(false, false, true));
+        add(format!("cut {cut} sizes alone"), one(true, false));
+        add(format!("cut {cut} leaves alone"), one(false, true));
         for order in [
             PartitionOrder::Forward,
             PartitionOrder::Reverse,

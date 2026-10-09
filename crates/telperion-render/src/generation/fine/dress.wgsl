@@ -17,6 +17,13 @@ struct Cfg {
     // drawn record of the group (`curve.wgsl`'s node ids).
     out_base: u32,
     prev_base: u32,
+    // How many times its natural size the wood is drawn (fn-217 S1), as
+    // the pipeline drew the tree above the cut: positions, radii and grown
+    // wood. Every decision of the conversion reads natural units.
+    scale: f32,
+    pad0: u32,
+    pad1: u32,
+    pad2: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -45,10 +52,10 @@ const S_OWN: u32 = 0u;
 const S_START: u32 = 1u;
 const S_COUNT: u32 = 2u;
 const AL: u32 = 8u;
-const PL: u32 = 24u;
+const PL: u32 = 26u;
 const PA: u32 = 2u;
 // The geometry table's PA blocks (`geometry.wgsl`).
-const GG: u32 = 39u;
+const GG: u32 = 40u;
 // `space.rs`'s constants.
 const FINEST: f32 = 2e-4;
 const SHORTEST: f32 = 1000.0;
@@ -68,8 +75,10 @@ const CA: u32 = 12u;
 // its branch (the id of its branch's first node; a branch of the structure
 // above the cut tagged `PREV`), its key (`tree::node_key`), its wood
 // as grown (`Tree::grown`): its phytomers' internodes at their scales,
-// and at a short shoot's tip its cluster's spread (fn-223).
-const CV: u32 = 27u;
+// what its blooms are drawn by (fn-229): its phytomer's key (two words)
+// and its age's flowering share, and at a short shoot's tip its cluster's
+// spread (fn-223).
+const CV: u32 = 30u;
 const TAKEN: u32 = 1u;
 const MADE: u32 = 2u;
 // Its root is laid on the CPU (host decision 3): drawn there.
@@ -311,7 +320,7 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
     // into a node are carried on to the next one drawn.
     let internode = gtab[4u + GG * ax(i, PA)];
     // The leaves at the axis's tip and their fan (`laid.rs`, fn-223).
-    let leaves = u32(gtab[4u + GG * ax(i, PA) + 37u]);
+    let leaves = u32(gtab[4u + GG * ax(i, PA) + 38u]);
     var clustered = 0u;
     if leaves > 0u {
         clustered = CLUSTERED;
@@ -327,7 +336,8 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
         // Each internode as laid: its scale and its spread's factor.
         let laid = cfg.out_phyts + r * PL;
         pending += internode * out[laid + 19u] * out[laid + 23u];
-        let pos = up(origin + tip(i, k));
+        let pos = up(origin + tip(i, k)) * cfg.scale;
+        let thick = radius * cfg.scale;
         let held = node(parent);
         let d = pos - held.pos;
         let inside = any(along != vec3<f32>(0.0)) && length(d) < held.radius;
@@ -341,9 +351,9 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
             continue;
         }
         let first = !made;
-        var start_radius = max(held.radius, radius);
+        var start_radius = max(held.radius, thick);
         if lateral && first {
-            start_radius = radius;
+            start_radius = thick;
         }
         if lateral {
             if first {
@@ -357,19 +367,22 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
             putu(r, 23u, held.branch);
         }
         putu(r, 24u, node_key(vec2<u32>(ax(i, 0u), ax(i, 1u)), k));
-        put(r, 25u, pending);
+        put(r, 25u, pending * cfg.scale);
         pending = 0.0;
+        put(r, 26u, out[laid + 24u]);
+        put(r, 27u, out[laid + 25u]);
+        put(r, 28u, gtab[4u + GG * ax(i, PA) + 37u]);
         put(r, 0u, pos.x);
         put(r, 1u, pos.y);
         put(r, 2u, pos.z);
-        put(r, 3u, radius);
+        put(r, 3u, thick);
         put(r, 4u, start_radius);
         put(r, 10u, held.pos.x);
         put(r, 11u, held.pos.y);
         put(r, 12u, held.pos.z);
         var codom = 0.0;
         if lateral && first {
-            codom = codominance(radius, held.radius);
+            codom = codominance(thick, held.radius);
         }
         put(r, 13u, codom);
         putu(r, 14u, cfg.out_base + r);
@@ -394,7 +407,7 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
     // The axis's own tip keeps its cluster (`space.rs`'s `convert`).
     if made && leaves > 0u {
         putu(parent, 6u, getu(parent, 6u) | TIP | (leaves << LEAVES));
-        put(parent, 26u, gtab[4u + GG * ax(i, PA) + 38u]);
+        put(parent, 29u, gtab[4u + GG * ax(i, PA) + 39u]);
     }
     pda(la, 0u, taken);
     pda(la, 1u, parent);

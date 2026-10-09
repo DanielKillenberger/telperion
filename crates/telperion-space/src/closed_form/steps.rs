@@ -52,6 +52,8 @@ pub(super) struct Grown<'s> {
     pub size: f64,
     pub grown: f64,
     pub sleeping: &'s [Vec<Event>],
+    /// The share of each zone's nodes it lays (`Step::laid`).
+    pub laid: f64,
 }
 
 impl Step {
@@ -62,6 +64,7 @@ impl Step {
             size: self.size,
             grown: self.grown,
             sleeping: &self.sleeping,
+            laid: self.laid,
         }
     }
 
@@ -72,6 +75,7 @@ impl Step {
             size: l.size,
             grown: l.weight,
             sleeping: &l.sleeping,
+            laid: 1.0,
         }
     }
 }
@@ -85,6 +89,14 @@ pub(super) struct Step {
     pub after: f64,
     /// The share of a whole unit's length its phytomers grow at.
     pub size: f64,
+    /// The share of each zone's nodes it lays, whole: below 1 where a
+    /// lifespan's fraction cuts it (`grow::advance::cut`, fn-231).
+    pub laid: f64,
+    /// The share of its cycle gone where a lifespan's fraction ends its age
+    /// inside it, 1 otherwise: the axis, ending with it, ends that share
+    /// into the cycle, which the kept tables take in expectation over the
+    /// cycle and the one before (fn-231).
+    pub ends_at: f64,
     /// Where it starts along the axis and how long it is.
     pub start: Along,
     pub length: Along,
@@ -222,16 +234,42 @@ fn steps_to(
             }
             None => 0.0,
         };
-        // A partial unit counts its phytomers whole, at its share of
-        // their length; a woken bud's first unit as before, whole.
-        let size = if partial.is_some() { 1.0 } else { unit.share };
+        // A unit a lifespan's fraction cuts lays that share of each zone's
+        // nodes, whole (fn-231); another partial unit counts its phytomers
+        // whole, at its share of their length; a woken bud's first unit as
+        // before, whole.
+        let gone = if i == 1 { carried.gone } else { 0.0 };
+        // What carries the axis on where its age ended inside the cycle:
+        // its continuation, or the relay of an age that ended.
+        let successor = i == 1 && !carried.rest;
+        let laid = match partial {
+            None => unit.laid(gone, (successor, false)),
+            Some(_) => None,
+        };
+        let size = match (partial, laid) {
+            (Some(_), _) => 1.0,
+            (None, Some(c)) => c.of,
+            (None, None) => unit.share,
+        };
+        let cut: Option<Vec<Count>> = laid.map(|c| {
+            let laws = state.zones.iter().map(|z| Count::pmf(z.nodes));
+            laws.map(|p| Count::of_pmf(&Count::laid_pmf(&p, c.laid()))).collect()
+        });
+        let (lays, lay_starts, lay_whole) = match &cut {
+            Some(c) => {
+                let (starts, whole) = zones(c);
+                (c.as_slice(), starts, whole)
+            }
+            None => (counts.as_slice(), starts.clone(), whole),
+        };
         let internode = state.internode * size;
         let mut sleeping = Vec::with_capacity(state.zones.len());
         for (z, zone) in state.zones.iter().enumerate() {
-            let nodes = survival * zone.nodes.mean();
-            let start = path.then(scaled(starts[z], internode));
+            let mean = if cut.is_some() { lays[z].mean() } else { zone.nodes.mean() };
+            let nodes = survival * mean;
+            let start = path.then(scaled(lay_starts[z], internode));
             let bearer = ((k, carried, m), i, abortion);
-            let placed = (counts[z], start, internode);
+            let placed = (lays[z], start, internode);
             let mut woken = Vec::new();
             super::events::sleeping(
                 living,
@@ -278,12 +316,17 @@ fn steps_to(
                 relay,
             });
         }
-        let length = scaled(whole, internode);
+        let length = scaled(lay_whole, internode);
         let mut step = Step {
             i,
             grown: survival,
             after: survival,
             size,
+            laid: laid.map_or(1.0, |c| c.laid()),
+            ends_at: match laid.is_some() && unit.ends {
+                true => unit.used.min(1.0),
+                false => 1.0,
+            },
             start: path,
             length,
             failed,

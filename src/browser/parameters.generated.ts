@@ -375,18 +375,26 @@ export interface Family {
     leafDeadGreen: number;
     /** The blue channel of `leaf_dead_red`. */
     leafDeadBlue: number;
-    /** The colour of a petal's upper face, a linear reflectance per channel on the leaf faces' scale, not a display (sRGB) value (fn-216): the flowers' own, drawn by the leaf shader. A white petal beside a beech's leaves is about 0.1 a channel; past about 0.15 it clips to flat white under the hero sun whatever its value. */
+    /** The colour of a petal's upper face, a linear albedo per channel, the same quantity as the leaf faces' and not a display (sRGB) value (fn-216, fn-234): the flowers' own, drawn by the leaf shader, and the colour the petal passes when lit from behind. A white petal is about 0.8 a channel and a gold one about 0.85/0.65/0.1. */
     bloomFrontRed: number;
     /** The green channel of `bloom_front_red`. */
     bloomFrontGreen: number;
     /** The blue channel of `bloom_front_red`. */
     bloomFrontBlue: number;
-    /** The colour of a petal's underside, a linear reflectance per channel on `bloom_front_red`'s scale (fn-216): the flowers' own, drawn by the leaf shader. */
+    /** The colour of a petal's underside, a linear albedo per channel as `bloom_front_red` is (fn-216): the flowers' own, drawn by the leaf shader. */
     bloomBackRed: number;
     /** The green channel of `bloom_back_red`. */
     bloomBackGreen: number;
     /** The blue channel of `bloom_back_red`. */
     bloomBackBlue: number;
+    /** A floret's eye: the colour its petals turn toward at their base, a linear reflectance on the petals' scale, and the stamens' colour. */
+    bloomEyeRed: number;
+    /** The green channel of `bloom_eye_red`. */
+    bloomEyeGreen: number;
+    /** The blue channel of `bloom_eye_red`. */
+    bloomEyeBlue: number;
+    /** How far up each petal from its base the eye reaches, as a share of the petal's length. Zero is no eye: the petal and its stamens are the petal's colour. */
+    bloomEyeShare: number;
     /** The hue offsets one leaf may take, as a fraction of the colour circle. */
     hueRangeLow: number;
     /** The upper end of the hue offsets `hue_range_low` opens. */
@@ -445,7 +453,7 @@ export interface Family {
     bladeMottleScale: number;
     /** How far the blotches `blade_mottle_scale` sizes vary a leaf's colour. */
     bladeMottleStrength: number;
-    /** How wide a band along the leaf's edge takes the margin colour, and what that colour is as an offset per channel. Raising the width broadens the rim around every leaf. */
+    /** How wide a band along the leaf's edge takes the margin colour, as a share of the leaf set in leaf space, and what that colour is as an offset per channel. Raising the width broadens the rim around every leaf; a leaf under a pixel takes the band's area share. */
     marginWidth: number;
     /** The margin colour's red channel, as an offset; `margin_width` sets its band. */
     marginRed: number;
@@ -569,6 +577,14 @@ export interface Family {
     petalWidest: number;
     /** How far a petal's margins lift out of its plane, as a share of its half-width: a cupped blossom. */
     petalCup: number;
+    /** How far a petal bends along its length, as a share of its length at the tip: positive turns the tip out, away from the floret's axis, so a narrow-opened floret flares into a horn's mouth. */
+    petalCurl: number;
+    /** Stamens in a floret, a ring of filaments standing up inside its petals. The fractional part is the last stamen's size, so a walk across counts grows one in by degree; zero is none. */
+    stamens: number;
+    /** A stamen's length in metres, from the floret's centre. */
+    stamenLength: number;
+    /** A stamen's width in metres. */
+    stamenWidth: number;
     /** How far a floret's size varies from one to the next, as a share. */
     scatter: number;
     /** Where in the year the flowering window opens, as a share of the year from its start. */
@@ -577,6 +593,118 @@ export interface Family {
     lasts: number;
     /** The share of the window the florets' openings are spread over: zero opens every floret at once. */
     stagger: number;
+  };
+  supernatural: {
+    /** Whether the legendary traits act. Off, the group reads as none: the scale is one, the reflectances zero and every override leaves its natural row as it is. */
+    enabled: boolean;
+    /** How many times its natural size the tree is drawn: every position and length of the grown wood, after the engine grew it at its natural size, so its topology is the natural tree's. Leaves and flowers keep their own size; the leaves keep their spacing along the wood. One is the natural tree. */
+    scale: number;
+    /** What a leaf's underside mirrors at normal incidence, as a metal does: the sun's glint and the sky's sheen off the back of the blade, tinted by the back tint, taken from the face's diffuse. Zero mirrors nothing and leaves the back as the natural leaf's. */
+    backReflectance: number;
+    /** The colour the underside mirrors in, a linear reflectance per channel: a metal's reflection is its colour. Silver is near white. */
+    backRed: number;
+    /** The green channel of `back_red`. */
+    backGreen: number;
+    /** The blue channel of `back_red`. */
+    backBlue: number;
+    /** What a leaf's margin band mirrors at normal incidence, on either face, tinted by the margin's colour: a metallic rim, taken from the band's diffuse. Zero mirrors nothing. */
+    marginReflectance: number;
+    /** How rough the back and the margin are as mirrors: low is a sharp glint, high a broad sheen. */
+    roughness: number;
+    material: {
+      /** `/material/leafFrontRed` while the group is on; unset, the natural row. */
+      leafFrontRed?: number;
+      /** `/material/leafFrontGreen` while the group is on; unset, the natural row. */
+      leafFrontGreen?: number;
+      /** `/material/leafFrontBlue` while the group is on; unset, the natural row. */
+      leafFrontBlue?: number;
+      /** `/material/leafBackRed` while the group is on; unset, the natural row. */
+      leafBackRed?: number;
+      /** `/material/leafBackGreen` while the group is on; unset, the natural row. */
+      leafBackGreen?: number;
+      /** `/material/leafBackBlue` while the group is on; unset, the natural row. */
+      leafBackBlue?: number;
+      /** `/material/marginRed` while the group is on; unset, the natural row. */
+      marginRed?: number;
+      /** `/material/marginGreen` while the group is on; unset, the natural row. */
+      marginGreen?: number;
+      /** `/material/marginBlue` while the group is on; unset, the natural row. */
+      marginBlue?: number;
+    };
+    bloom: {
+      /** `/bloom/florets` while the group is on; unset, the natural row. */
+      florets?: number;
+      /** `/bloom/rachis` while the group is on; unset, the natural row. */
+      rachis?: number;
+      /** `/bloom/droop` while the group is on; unset, the natural row. */
+      droop?: number;
+      /** `/bloom/pedicel` while the group is on; unset, the natural row. */
+      pedicel?: number;
+      /** `/bloom/spread` while the group is on; unset, the natural row. */
+      spread?: number;
+      /** `/bloom/taper` while the group is on; unset, the natural row. */
+      taper?: number;
+      /** `/bloom/petals` while the group is on; unset, the natural row. */
+      petals?: number;
+      /** `/bloom/open` while the group is on; unset, the natural row. */
+      open?: number;
+      /** `/bloom/petalLength` while the group is on; unset, the natural row. */
+      petalLength?: number;
+      /** `/bloom/petalWidth` while the group is on; unset, the natural row. */
+      petalWidth?: number;
+      /** `/bloom/petalWidest` while the group is on; unset, the natural row. */
+      petalWidest?: number;
+      /** `/bloom/petalCup` while the group is on; unset, the natural row. */
+      petalCup?: number;
+      /** `/bloom/petalCurl` while the group is on; unset, the natural row. */
+      petalCurl?: number;
+      /** `/bloom/stamens` while the group is on; unset, the natural row. */
+      stamens?: number;
+      /** `/bloom/stamenLength` while the group is on; unset, the natural row. */
+      stamenLength?: number;
+      /** `/bloom/stamenWidth` while the group is on; unset, the natural row. */
+      stamenWidth?: number;
+      /** `/bloom/scatter` while the group is on; unset, the natural row. */
+      scatter?: number;
+      /** `/bloom/opens` while the group is on; unset, the natural row. */
+      opens?: number;
+      /** `/bloom/lasts` while the group is on; unset, the natural row. */
+      lasts?: number;
+      /** `/bloom/stagger` while the group is on; unset, the natural row. */
+      stagger?: number;
+    };
+    flowering: {
+      /** `/space/ages/0/flowering` while the group is on; unset, the natural share. */
+      age0?: number;
+      /** `/space/ages/1/flowering` while the group is on; unset, the natural share. */
+      age1?: number;
+      /** `/space/ages/2/flowering` while the group is on; unset, the natural share. */
+      age2?: number;
+      /** `/space/ages/3/flowering` while the group is on; unset, the natural share. */
+      age3?: number;
+      /** `/space/ages/4/flowering` while the group is on; unset, the natural share. */
+      age4?: number;
+      /** `/space/ages/5/flowering` while the group is on; unset, the natural share. */
+      age5?: number;
+      /** `/space/ages/6/flowering` while the group is on; unset, the natural share. */
+      age6?: number;
+      /** `/space/ages/7/flowering` while the group is on; unset, the natural share. */
+      age7?: number;
+      /** `/space/ages/8/flowering` while the group is on; unset, the natural share. */
+      age8?: number;
+      /** `/space/ages/9/flowering` while the group is on; unset, the natural share. */
+      age9?: number;
+      /** `/space/ages/10/flowering` while the group is on; unset, the natural share. */
+      age10?: number;
+      /** `/space/ages/11/flowering` while the group is on; unset, the natural share. */
+      age11?: number;
+      /** `/space/ages/12/flowering` while the group is on; unset, the natural share. */
+      age12?: number;
+      /** `/space/ages/13/flowering` while the group is on; unset, the natural share. */
+      age13?: number;
+      /** `/space/ages/14/flowering` while the group is on; unset, the natural share. */
+      age14?: number;
+    };
   };
 }
 
@@ -783,12 +911,16 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/material/leafDeadRed", kind: "real", optional: false, meaning: "The colour a dead frond has aged to, a linear reflectance per channel on the leaf faces' scale, both faces alike, shown only on the fronds a rosette keeps below its living crown. Raising a channel pushes the skirt toward it.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no dead frond (`canopy.skirtFronds` zero)", reach: "mature", dial: { window: [0, 1], step: 0.05 } },
   { path: "/material/leafDeadGreen", kind: "real", optional: false, meaning: "The green channel of `leaf_dead_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no dead frond (`canopy.skirtFronds` zero)", reach: "mature", dial: { window: [0, 1], step: 0.05 } },
   { path: "/material/leafDeadBlue", kind: "real", optional: false, meaning: "The blue channel of `leaf_dead_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no dead frond (`canopy.skirtFronds` zero)", reach: "mature", dial: { window: [0, 1], step: 0.05 } },
-  { path: "/material/bloomFrontRed", kind: "real", optional: false, meaning: "The colour of a petal's upper face, a linear reflectance per channel on the leaf faces' scale, not a display (sRGB) value (fn-216): the flowers' own, drawn by the leaf shader. A white petal beside a beech's leaves is about 0.1 a channel; past about 0.15 it clips to flat white under the hero sun whatever its value.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/material/bloomFrontRed", kind: "real", optional: false, meaning: "The colour of a petal's upper face, a linear albedo per channel, the same quantity as the leaf faces' and not a display (sRGB) value (fn-216, fn-234): the flowers' own, drawn by the leaf shader, and the colour the petal passes when lit from behind. A white petal is about 0.8 a channel and a gold one about 0.85/0.65/0.1.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/material/bloomFrontGreen", kind: "real", optional: false, meaning: "The green channel of `bloom_front_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/material/bloomFrontBlue", kind: "real", optional: false, meaning: "The blue channel of `bloom_front_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
-  { path: "/material/bloomBackRed", kind: "real", optional: false, meaning: "The colour of a petal's underside, a linear reflectance per channel on `bloom_front_red`'s scale (fn-216): the flowers' own, drawn by the leaf shader.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/material/bloomBackRed", kind: "real", optional: false, meaning: "The colour of a petal's underside, a linear albedo per channel as `bloom_front_red` is (fn-216): the flowers' own, drawn by the leaf shader.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/material/bloomBackGreen", kind: "real", optional: false, meaning: "The green channel of `bloom_back_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/material/bloomBackBlue", kind: "real", optional: false, meaning: "The blue channel of `bloom_back_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/material/bloomEyeRed", kind: "real", optional: false, meaning: "A floret's eye: the colour its petals turn toward at their base, a linear reflectance on the petals' scale, and the stamens' colour.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering, or `bloomEyeShare` zero", reach: "mature" },
+  { path: "/material/bloomEyeGreen", kind: "real", optional: false, meaning: "The green channel of `bloom_eye_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering, or `bloomEyeShare` zero", reach: "mature" },
+  { path: "/material/bloomEyeBlue", kind: "real", optional: false, meaning: "The blue channel of `bloom_eye_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering, or `bloomEyeShare` zero", reach: "mature" },
+  { path: "/material/bloomEyeShare", kind: "real", optional: false, meaning: "How far up each petal from its base the eye reaches, as a share of the petal's length. Zero is no eye: the petal and its stamens are the petal's colour.", unit: "share of the petal", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/material/hueRangeLow", kind: "real", optional: false, meaning: "The hue offsets one leaf may take, as a fraction of the colour circle.", unit: "-", low: -0.5, high: 0.5, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [-0.5, 0], step: 0.0025 } },
   { path: "/material/hueRangeHigh", kind: "real", optional: false, meaning: "The upper end of the hue offsets `hue_range_low` opens.", unit: "-", low: -0.5, high: 0.5, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 0.5], step: 0.0025 } },
   { path: "/material/brightnessRangeLow", kind: "real", optional: false, meaning: "The brightness offsets one leaf may take, about no change at all.", unit: "-", low: -1, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [-1, 0], step: 0.015 } },
@@ -818,7 +950,7 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/material/cavityStrength", kind: "real", optional: false, meaning: "How far the hollows of the bark - furrow floors and the sockets where a limb joins - are darkened. Raising it sinks them deeper.", unit: "-", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/material/bladeMottleScale", kind: "real", optional: false, meaning: "The size of the blotches in a leaf's mottling, and how far they vary its colour. A scale of zero leaves none.", unit: "-", low: 0, high: 32, lowOpen: false, zero: false, applies: "`bladeMottleStrength` zero", reach: "mature", dial: { window: [0, 32], step: 2 } },
   { path: "/material/bladeMottleStrength", kind: "real", optional: false, meaning: "How far the blotches `blade_mottle_scale` sizes vary a leaf's colour.", unit: "-", low: 0, high: 1, lowOpen: false, zero: false, applies: "`bladeMottleScale` zero", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
-  { path: "/material/marginWidth", kind: "real", optional: false, meaning: "How wide a band along the leaf's edge takes the margin colour, and what that colour is as an offset per channel. Raising the width broadens the rim around every leaf.", unit: "-", low: 0, high: 0.5, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 0.5], step: 0.1 } },
+  { path: "/material/marginWidth", kind: "real", optional: false, meaning: "How wide a band along the leaf's edge takes the margin colour, as a share of the leaf set in leaf space, and what that colour is as an offset per channel. Raising the width broadens the rim around every leaf; a leaf under a pixel takes the band's area share.", unit: "-", low: 0, high: 0.5, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 0.5], step: 0.1 } },
   { path: "/material/marginRed", kind: "real", optional: false, meaning: "The margin colour's red channel, as an offset; `margin_width` sets its band.", unit: "offset", low: -1, high: 1, lowOpen: false, zero: false, applies: "`marginWidth` zero", reach: "mature", dial: { window: [-1, 1], step: 0.01 } },
   { path: "/material/marginGreen", kind: "real", optional: false, meaning: "The margin colour's green channel, as an offset; `margin_width` sets its band.", unit: "offset", low: -1, high: 1, lowOpen: false, zero: false, applies: "`marginWidth` zero", reach: "mature", dial: { window: [-1, 1], step: 0.015 } },
   { path: "/material/marginBlue", kind: "real", optional: false, meaning: "The margin colour's blue channel, as an offset; `margin_width` sets its band.", unit: "offset", low: -1, high: 1, lowOpen: false, zero: false, applies: "`marginWidth` zero", reach: "mature", dial: { window: [-1, 1], step: 0.0025 } },
@@ -879,8 +1011,64 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/bloom/petalWidth", kind: "real", optional: false, meaning: "A petal's greatest width in metres.", unit: "m", low: 0.0001, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/bloom/petalWidest", kind: "real", optional: false, meaning: "Where a petal is widest, as a share from its base to its tip.", unit: "share of the petal", low: 0.05, high: 0.95, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/bloom/petalCup", kind: "real", optional: false, meaning: "How far a petal's margins lift out of its plane, as a share of its half-width: a cupped blossom.", unit: "share of the half-width", low: -2, high: 2, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/petalCurl", kind: "real", optional: false, meaning: "How far a petal bends along its length, as a share of its length at the tip: positive turns the tip out, away from the floret's axis, so a narrow-opened floret flares into a horn's mouth.", unit: "share of the length", low: -2, high: 2, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/stamens", kind: "real", optional: false, meaning: "Stamens in a floret, a ring of filaments standing up inside its petals. The fractional part is the last stamen's size, so a walk across counts grows one in by degree; zero is none.", unit: "stamens", low: 0, high: 64, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/bloom/stamenLength", kind: "real", optional: false, meaning: "A stamen's length in metres, from the floret's centre.", unit: "m", low: 0.0001, high: 0.1, lowOpen: false, zero: false, applies: "no age flowering, or `stamens` zero", reach: "mature" },
+  { path: "/bloom/stamenWidth", kind: "real", optional: false, meaning: "A stamen's width in metres.", unit: "m", low: 0.00001, high: 0.01, lowOpen: false, zero: false, applies: "no age flowering, or `stamens` zero", reach: "mature" },
   { path: "/bloom/scatter", kind: "real", optional: false, meaning: "How far a floret's size varies from one to the next, as a share.", unit: "share", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/bloom/opens", kind: "real", optional: false, meaning: "Where in the year the flowering window opens, as a share of the year from its start.", unit: "share of the year", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/bloom/lasts", kind: "real", optional: false, meaning: "How long the window lasts, as a share of the year. A floret grows in and shrinks out inside it; zero flowers never.", unit: "share of the year", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
   { path: "/bloom/stagger", kind: "real", optional: false, meaning: "The share of the window the florets' openings are spread over: zero opens every floret at once.", unit: "share of the window", low: 0, high: 1, lowOpen: false, zero: false, applies: "no age flowering", reach: "mature" },
+  { path: "/supernatural/enabled", kind: "switch", optional: false, meaning: "Whether the legendary traits act. Off, the group reads as none: the scale is one, the reflectances zero and every override leaves its natural row as it is.", unit: "switch", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature" },
+  { path: "/supernatural/scale", kind: "real", optional: false, meaning: "How many times its natural size the tree is drawn: every position and length of the grown wood, after the engine grew it at its natural size, so its topology is the natural tree's. Leaves and flowers keep their own size; the leaves keep their spacing along the wood. One is the natural tree.", unit: "times the natural size", low: 0.1, high: 100, lowOpen: false, zero: false, applies: "`enabled` off", reach: "mature" },
+  { path: "/supernatural/backReflectance", kind: "real", optional: false, meaning: "What a leaf's underside mirrors at normal incidence, as a metal does: the sun's glint and the sky's sheen off the back of the blade, tinted by the back tint, taken from the face's diffuse. Zero mirrors nothing and leaves the back as the natural leaf's.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`enabled` off", reach: "mature" },
+  { path: "/supernatural/backRed", kind: "real", optional: false, meaning: "The colour the underside mirrors in, a linear reflectance per channel: a metal's reflection is its colour. Silver is near white.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`enabled` off, or `backReflectance` zero", reach: "mature" },
+  { path: "/supernatural/backGreen", kind: "real", optional: false, meaning: "The green channel of `back_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`enabled` off, or `backReflectance` zero", reach: "mature" },
+  { path: "/supernatural/backBlue", kind: "real", optional: false, meaning: "The blue channel of `back_red`.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`enabled` off, or `backReflectance` zero", reach: "mature" },
+  { path: "/supernatural/marginReflectance", kind: "real", optional: false, meaning: "What a leaf's margin band mirrors at normal incidence, on either face, tinted by the margin's colour: a metallic rim, taken from the band's diffuse. Zero mirrors nothing.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`enabled` off, or `/material/marginWidth` zero", reach: "mature" },
+  { path: "/supernatural/roughness", kind: "real", optional: false, meaning: "How rough the back and the margin are as mirrors: low is a sharp glint, high a broad sheen.", unit: "-", low: 0, high: 1, lowOpen: false, zero: false, applies: "`enabled` off, or both reflectances zero", reach: "mature" },
+  { path: "/supernatural/material/leafFrontRed", kind: "real", optional: true, meaning: "`/material/leafFrontRed` while the group is on; unset, the natural row.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/material/leafFrontGreen", kind: "real", optional: true, meaning: "`/material/leafFrontGreen` while the group is on; unset, the natural row.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/material/leafFrontBlue", kind: "real", optional: true, meaning: "`/material/leafFrontBlue` while the group is on; unset, the natural row.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/material/leafBackRed", kind: "real", optional: true, meaning: "`/material/leafBackRed` while the group is on; unset, the natural row.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/material/leafBackGreen", kind: "real", optional: true, meaning: "`/material/leafBackGreen` while the group is on; unset, the natural row.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/material/leafBackBlue", kind: "real", optional: true, meaning: "`/material/leafBackBlue` while the group is on; unset, the natural row.", unit: "reflectance", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/material/marginRed", kind: "real", optional: true, meaning: "`/material/marginRed` while the group is on; unset, the natural row.", unit: "offset", low: -1, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/material/marginGreen", kind: "real", optional: true, meaning: "`/material/marginGreen` while the group is on; unset, the natural row.", unit: "offset", low: -1, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/material/marginBlue", kind: "real", optional: true, meaning: "`/material/marginBlue` while the group is on; unset, the natural row.", unit: "offset", low: -1, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/florets", kind: "real", optional: true, meaning: "`/bloom/florets` while the group is on; unset, the natural row.", unit: "florets", low: 1, high: 64, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/rachis", kind: "real", optional: true, meaning: "`/bloom/rachis` while the group is on; unset, the natural row.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/droop", kind: "real", optional: true, meaning: "`/bloom/droop` while the group is on; unset, the natural row.", unit: "share", low: -1, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/pedicel", kind: "real", optional: true, meaning: "`/bloom/pedicel` while the group is on; unset, the natural row.", unit: "m", low: 0, high: 0.5, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/spread", kind: "real", optional: true, meaning: "`/bloom/spread` while the group is on; unset, the natural row.", unit: "degrees", low: 0, high: 180, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/taper", kind: "real", optional: true, meaning: "`/bloom/taper` while the group is on; unset, the natural row.", unit: "share", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/petals", kind: "real", optional: true, meaning: "`/bloom/petals` while the group is on; unset, the natural row.", unit: "petals", low: 1, high: 12, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/open", kind: "real", optional: true, meaning: "`/bloom/open` while the group is on; unset, the natural row.", unit: "degrees", low: 0, high: 180, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/petalLength", kind: "real", optional: true, meaning: "`/bloom/petalLength` while the group is on; unset, the natural row.", unit: "m", low: 0.0001, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/petalWidth", kind: "real", optional: true, meaning: "`/bloom/petalWidth` while the group is on; unset, the natural row.", unit: "m", low: 0.0001, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/petalWidest", kind: "real", optional: true, meaning: "`/bloom/petalWidest` while the group is on; unset, the natural row.", unit: "share of the petal", low: 0.05, high: 0.95, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/petalCup", kind: "real", optional: true, meaning: "`/bloom/petalCup` while the group is on; unset, the natural row.", unit: "share of the half-width", low: -2, high: 2, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/petalCurl", kind: "real", optional: true, meaning: "`/bloom/petalCurl` while the group is on; unset, the natural row.", unit: "share of the length", low: -2, high: 2, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/stamens", kind: "real", optional: true, meaning: "`/bloom/stamens` while the group is on; unset, the natural row.", unit: "stamens", low: 0, high: 64, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/stamenLength", kind: "real", optional: true, meaning: "`/bloom/stamenLength` while the group is on; unset, the natural row.", unit: "m", low: 0.0001, high: 0.1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/stamenWidth", kind: "real", optional: true, meaning: "`/bloom/stamenWidth` while the group is on; unset, the natural row.", unit: "m", low: 0.00001, high: 0.01, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/scatter", kind: "real", optional: true, meaning: "`/bloom/scatter` while the group is on; unset, the natural row.", unit: "share", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/opens", kind: "real", optional: true, meaning: "`/bloom/opens` while the group is on; unset, the natural row.", unit: "share of the year", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/lasts", kind: "real", optional: true, meaning: "`/bloom/lasts` while the group is on; unset, the natural row.", unit: "share of the year", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/bloom/stagger", kind: "real", optional: true, meaning: "`/bloom/stagger` while the group is on; unset, the natural row.", unit: "share of the window", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age0", kind: "real", optional: true, meaning: "`/space/ages/0/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age1", kind: "real", optional: true, meaning: "`/space/ages/1/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age2", kind: "real", optional: true, meaning: "`/space/ages/2/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age3", kind: "real", optional: true, meaning: "`/space/ages/3/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age4", kind: "real", optional: true, meaning: "`/space/ages/4/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age5", kind: "real", optional: true, meaning: "`/space/ages/5/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age6", kind: "real", optional: true, meaning: "`/space/ages/6/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age7", kind: "real", optional: true, meaning: "`/space/ages/7/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age8", kind: "real", optional: true, meaning: "`/space/ages/8/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age9", kind: "real", optional: true, meaning: "`/space/ages/9/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age10", kind: "real", optional: true, meaning: "`/space/ages/10/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age11", kind: "real", optional: true, meaning: "`/space/ages/11/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age12", kind: "real", optional: true, meaning: "`/space/ages/12/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age13", kind: "real", optional: true, meaning: "`/space/ages/13/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/flowering/age14", kind: "real", optional: true, meaning: "`/space/ages/14/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
 ];

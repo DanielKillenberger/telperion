@@ -1,8 +1,7 @@
 //! The lit oak's fine roots on the GPU against the all-CPU run (fn-211
 //! task 10; Astra's review of CONTRACT-A.md, section 4, its integration
-//! proof): a small lit specimen spanning two scheduled re-lays, every
-//! grower's whole state after every phase of every cycle and every
-//! cycle's lattice compared word for word.
+//! proof): a small lit specimen, every grower's whole state after every
+//! phase of every cycle and every cycle's lattice compared word for word.
 use super::feedback_stepped::{Device, Taken};
 use telperion_space::fixed::feedback::lattice::Grid;
 use telperion_space::fixed::feedback::shed::{Lateral, Walked};
@@ -18,7 +17,6 @@ fn grouping(order: Order, chunk: usize) -> telperion_space::Grouping {
         chunk,
         sizes: true,
         leaves: true,
-        girth: true,
     }
 }
 
@@ -41,7 +39,7 @@ fn same(cpu: &Stepped, gpu: &Stepped, case: &str) {
 /// towards 80 degrees below the horizon, so young wood eases onto the
 /// ground and rests there; its internodes, insertions and tropisms vary
 /// (fn-222, fn-224), so the device's lay reads their draws.
-fn oaks() -> [Species; 2] {
+fn oaks() -> [Species; 3] {
     let mut neighbour = oak();
     for s in &mut neighbour.states {
         (s.form.internode_spread, s.form.insertion_spread) = (0.6, 0.3);
@@ -54,7 +52,13 @@ fn oaks() -> [Species; 2] {
             s.form.tropism *= 3.0;
         }
     }
-    [oak(), neighbour]
+    // Lifespans run to fractions: units a lifespan cuts lay a share of
+    // their nodes, each whole (fn-231).
+    let mut fractional = oak();
+    for s in fractional.states.iter_mut().filter(|s| s.lifespan > 0.0) {
+        s.lifespan = s.lifespan * 1.37 + 0.29;
+    }
+    [oak(), neighbour, fractional]
 }
 
 #[test]
@@ -81,6 +85,7 @@ fn the_lit_fine_roots_on_the_device_are_the_cpus() {
             (4_096, Taken::Scrambled, true),
         ),
         (1, 256.0, (Order::Reverse, 7), (777, Taken::Reverse, true)),
+        (2, 256.0, (Order::Forward, 1), (all, Taken::Forward, false)),
         (
             1,
             1_024.0,
@@ -166,7 +171,7 @@ impl Feedback for Timed<'_> {
 /// warm (the second of two); the device's tree checked against the
 /// CPU's by every phase's digest and the tree's.
 #[test]
-#[ignore = "a timing run: the lit oak at 80, under the GPU lock"]
+#[ignore = "device limits: a timing run: the lit oak at 80, under the GPU lock"]
 fn the_lit_oak_at_80_on_the_device_timed() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;

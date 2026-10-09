@@ -163,6 +163,14 @@ fn frozen_parameters_resolve_without_default_substitution() {
             .unwrap()
             .remove("age")
             .expect("the family publishes its age");
+        // fn-217 adds the supernatural group, which the frozen file predates
+        // and states none of; off, as every natural family has it, it moves
+        // no geometry, so none is a geometry parameter left unsaid.
+        emitted
+            .as_object_mut()
+            .unwrap()
+            .remove("supernatural")
+            .expect("the family publishes its supernatural group");
         for trait_name in ["lobeCount", "lobeDepth", "sectionRoundness"] {
             emitted["element"]
                 .as_object_mut()

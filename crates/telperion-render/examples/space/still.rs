@@ -218,7 +218,7 @@ fn stills(
         renderer
             .submit_at(mesh, Level::Chosen)
             .map_err(|e| e.to_string())?;
-        renderer.set_material(family.material);
+        renderer.set_family(&family);
         renderer.set_view(view);
         renderer.set_scene(SceneRow {
             sun_azimuth: SUN.0,

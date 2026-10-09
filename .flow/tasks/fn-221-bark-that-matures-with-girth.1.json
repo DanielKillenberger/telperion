@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-221-bark-that-matures-with-girth",
   "spec_path": ".flow/tasks/fn-221-bark-that-matures-with-girth.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Mature bark blended in by radius",
   "updated_at": "2026-10-07T13:40:01.305472Z"
 }

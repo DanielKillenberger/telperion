@@ -177,9 +177,11 @@ fn isqrt(n: vec4<u32>) -> vec2<u32> {
     var num = n;
     var res = vec4<u32>(0u);
     var bit = vec4<u32>(0u, 0u, 0u, 0x40000000u);
+    // cap: bit shifts right by two from bit 126, 64 steps at most.
     while !zero4(bit) && lt4(num, bit) {
         bit = shift4(bit, 2u, false, false);
     }
+    // cap: bit shifts right by two from bit 126, 64 steps at most.
     while !zero4(bit) {
         let t = add4(res, bit);
         if !lt4(num, t) {

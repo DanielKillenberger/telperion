@@ -13,7 +13,7 @@ impl Scene {
         light: &Light,
         view: View,
     ) {
-        let m = &self.material;
+        let (m, r) = (&self.material, &self.reflection);
         let colour = |r: f64, g: f64, b: f64, w: f64| [r as f32, g as f32, b as f32, w as f32];
         let clay = linear(CLAY);
         let (right, up, forward) = axes(camera, aspect);
@@ -39,7 +39,7 @@ impl Scene {
             let half = (b.max - b.min) * 0.5;
             colour(half.x, half.y, half.z, 0.0)
         });
-        let uniforms = Uniforms {
+        let mut uniforms = Uniforms {
             view_projection: camera.view_projection(aspect),
             sky: linear(SKY_LIGHT),
             ground: linear(GROUND_LIGHT),
@@ -139,7 +139,7 @@ impl Scene {
                 m.blade_mottle_scale,
                 m.blade_mottle_strength,
                 m.cuticle_gloss,
-                0.0,
+                f64::from(self.band_shares.at(m.margin_width)),
             ),
             margin: colour(m.margin_red, m.margin_green, m.margin_blue, m.margin_width),
             plate: colour(
@@ -188,7 +188,12 @@ impl Scene {
                 m.lenticel_tint,
             ),
             peel: colour(m.peel_red, m.peel_green, m.peel_blue, m.peel_curl),
-            reflectance: colour(m.bark_reflectance, m.leaf_reflectance, 0.0, 0.0),
+            reflectance: colour(
+                m.bark_reflectance,
+                m.leaf_reflectance,
+                r.margin,
+                r.roughness,
+            ),
             grain: colour(
                 m.bark_grain_scale,
                 m.bark_grain_strength,
@@ -204,11 +209,22 @@ impl Scene {
                 m.mature_furrow_strength,
             ),
             mature_radius: colour(m.mature_radius, m.mature_span, 0.0, 0.0),
+            leaf_reflection: colour(r.back_tint[0], r.back_tint[1], r.back_tint[2], r.back),
+            bloom_eye: [0.0; 4],
         };
+        if self.mask {
+            // The clay room unlit and black: nothing but the flowers shows.
+            uniforms.clay = [0.0, 0.0, 0.0, uniforms.clay[3]];
+            (uniforms.sky, uniforms.ground) = ([0.0; 4], [0.0; 4]);
+        }
         gpu.queue
             .write_buffer(&self.uniforms, 0, bytemuck::bytes_of(&uniforms));
         if let Some(reference) = self.organ_reference.filter(|_| view != View::Leaf) {
-            let organ = organ(uniforms, m, reference);
+            let mut organ = organ(uniforms, m, reference);
+            if self.mask {
+                organ.clay = [1.0, 1.0, 1.0, organ.clay[3]];
+                (organ.sky, organ.ground) = ([1.0; 4], [1.0; 4]);
+            }
             gpu.queue
                 .write_buffer(&self.organ_uniforms, 0, bytemuck::bytes_of(&organ));
         }
@@ -216,8 +232,9 @@ impl Scene {
 }
 
 /// The flowers' block (fn-216): the frame's, drawn by the same leaf shader,
-/// with the petals' two colours, no veins, no margin and no mottle, and
-/// their florets' own box.
+/// with the petals' two colours, the front one also what they pass, no
+/// veins, no margin, no mottle, none of the leaf's mirrors and no canopy
+/// normal, their eye, and their florets' own box.
 fn organ(
     mut u: Uniforms,
     m: &telperion_core::material::MaterialParams,
@@ -231,9 +248,29 @@ fn organ(
         u.leaf_front[3],
     );
     u.leaf_back = colour(m.bloom_back_red, m.bloom_back_green, m.bloom_back_blue, 1.0);
+    // A petal passes its own colour, not the leaf's (fn-234 R2).
+    u.transmission = colour(
+        m.bloom_front_red,
+        m.bloom_front_green,
+        m.bloom_front_blue,
+        u.transmission[3],
+    );
     u.leaf_detail[1] = 0.0;
     u.leaf_colour_detail[1] = 0.0;
     u.margin[3] = 0.0;
+    // The leaf's mirrors are the leaf's: no petal takes a silver underside
+    // or a metallic rim (fn-217 E2).
+    u.leaf_reflection[3] = 0.0;
+    u.reflectance[2] = 0.0;
+    // A petal is lit as its own surface: the normal a leaf bends toward the
+    // crown's mass would shade a flower as part of it (fn-217 F3).
+    u.canopy[0] = 0.0;
+    u.bloom_eye = colour(
+        m.bloom_eye_red,
+        m.bloom_eye_green,
+        m.bloom_eye_blue,
+        m.bloom_eye_share as f32,
+    );
     u.leaf_box_min = colour(reference.min.x, reference.min.y, reference.min.z, 0.0);
     u.leaf_box_extent = colour(
         reference.extent.x,
@@ -254,4 +291,51 @@ fn axes(camera: &crate::Camera, aspect: f64) -> (Vec3, Vec3, Vec3) {
     let up = right.cross(forward);
     let tangent = (camera.field_of_view.to_radians() / 2.0).tan();
     (right * (tangent * aspect), up * tangent, forward)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// No petal takes the leaf's mirrors: the organ's block zeroes the
+    /// underside's and the margin's reflectance whatever the leaves carry.
+    #[test]
+    fn the_flowers_take_none_of_the_leaf_s_mirrors() {
+        let mut leaves = Uniforms::zeroed();
+        leaves.leaf_reflection = [0.9, 0.9, 0.9, 0.8];
+        leaves.reflectance = [0.1, 0.2, 0.7, 0.3];
+        let m = telperion_core::material::MaterialParams::default();
+        let o = organ(leaves, &m, telperion_core::foliage::Reference::default());
+        assert_eq!((o.leaf_reflection[3], o.reflectance[2]), (0.0, 0.0));
+        assert_eq!((o.reflectance[0], o.reflectance[1]), (0.1, 0.2));
+    }
+
+    /// A petal is lit as its own surface, not bent toward the crown's mass
+    /// as a leaf is (fn-217 F3): the organ's block takes no canopy normal
+    /// and keeps the leaves' wrap, transmission and sheen.
+    #[test]
+    fn a_petal_is_lit_as_a_surface_not_as_the_crown_s_mass() {
+        let mut leaves = Uniforms::zeroed();
+        leaves.canopy = [0.6, 0.3, 0.4, 0.2];
+        let m = telperion_core::material::MaterialParams::default();
+        let o = organ(leaves, &m, telperion_core::foliage::Reference::default());
+        assert_eq!(o.canopy, [0.0, 0.3, 0.4, 0.2]);
+    }
+
+    /// The eye is the flowers' alone (fn-217 F1): the organ's block carries
+    /// the material's eye colour and share, the leaves' none.
+    #[test]
+    fn the_eye_is_the_flowers_alone() {
+        let m = telperion_core::material::MaterialParams {
+            bloom_eye_red: 0.2,
+            bloom_eye_green: 0.15,
+            bloom_eye_blue: 0.05,
+            bloom_eye_share: 0.3,
+            ..Default::default()
+        };
+        let leaves = Uniforms::zeroed();
+        let o = organ(leaves, &m, telperion_core::foliage::Reference::default());
+        assert_eq!(o.bloom_eye, [0.2, 0.15, 0.05, 0.3]);
+        assert_eq!(leaves.bloom_eye, [0.0; 4]);
+    }
 }
