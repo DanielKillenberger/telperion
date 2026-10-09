@@ -93,6 +93,24 @@ describe("the slim field entry point", () => {
     }
   });
 
+  it("grows a coarse field at a cut, dormant where no root is fine (fn-214)", async () => {
+    const module = await compileField(source);
+    const spruce = await growField("norway-spruce", 3, { cut: 1024, source: module });
+    expect(spruce.query(grid(spruce.bounds, 10).cells).flags.some(f => f & 2)).toBe(true);
+    spruce.release();
+    const full = await growField("date-palm", 7, { source: module });
+    const coarse = await growField("date-palm", 7, { cut: 1024, source: module });
+    expect(coarse.bounds).toEqual(full.bounds);
+    const cells = grid(full.bounds, 10).cells;
+    expect(coarse.query(cells)).toEqual(full.query(cells));
+    full.release();
+    coarse.release();
+    const oak = await growField("oregon-white-oak", 1, { cut: 1024, source: module });
+    expect(oak.query(grid(oak.bounds, 10).cells).flags.some(f => f & 2)).toBe(true);
+    oak.release();
+    await expect(growField("norway-spruce", 1, { cut: -1, source: module })).rejects.toThrow("cut");
+  });
+
   it("refuses what the core refuses, whole", async () => {
     await expect(growField("no-such-tree", 1, { source })).rejects.toThrow("preset identity");
     await expect(growField("european-beech", 1.5, { source })).rejects.toThrow("seed");

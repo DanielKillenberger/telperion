@@ -39,14 +39,16 @@ pub(crate) struct Inputs {
 }
 
 /// The skeleton: the engine's species, the age it grows to, the seed and
-/// the supernatural group, whose scale the grown tree is drawn at. It lends
-/// the family's species for the one stage that reads it, with the group's
-/// flowering laid over it while the group is on.
+/// the cut below which a fine root stands as its expectation (fn-214; 0
+/// grows every one) and the supernatural group, whose scale the grown tree
+/// is drawn at. It lends the family's species for the one stage that reads
+/// it, with the group's flowering laid over it while the group is on.
 #[derive(Debug, Clone)]
 pub(crate) struct GrowInput<'f> {
     pub(crate) space: Cow<'f, Space>,
     pub(crate) age: f64,
     pub(crate) seed: u32,
+    pub(crate) cut: u32,
     pub(crate) supernatural: Supernatural,
 }
 
@@ -60,6 +62,7 @@ impl<'f> GrowInput<'f> {
             space,
             age: family.age,
             seed: family.skeleton.seed,
+            cut: 0,
             supernatural: family.supernatural,
         }
     }

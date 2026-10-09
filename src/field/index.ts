@@ -33,6 +33,11 @@ export interface GrowOptions {
   /** The lateral order whose systems name limbs; the family's own when left
    * out. A higher order parts the crown into more and smaller systems. */
   limbOrder?: number;
+  /** The cut, in expected kept phytomers: a fine root expected to keep no
+   * more stands in the field as its expected occupancy and is never grown,
+   * so a larger cut answers a coarser tree sooner. Left out or 0, every
+   * root is grown. A species whose buds read light is refused a cut. */
+  cut?: number;
   /** Where the slim Wasm comes from. Left out, it is fetched from
    * `telperion-field.wasm` beside this module. */
   source?: FieldSource;
@@ -41,7 +46,7 @@ interface Exports extends WebAssembly.Exports {
   memory: WebAssembly.Memory;
   species_alloc(len: number): number; species_ptr(): number;
   error_ptr(): number; error_len(): number;
-  grow(seed: number, limbOrder: number): number; revision(): number;
+  grow(seed: number, limbOrder: number, cut: number): number; revision(): number;
   bounds_ptr(): number; bounds_len(): number; release(): void;
   query_alloc(count: number): number; query_ptr(): number; query(revision: number): number;
   answer_ptr(slot: number): number; answer_len(slot: number): number;
@@ -77,10 +82,11 @@ function unsigned(value: number, what: string, limit = U32): number {
 export async function growField(species: string, seed: number, options: GrowOptions = {}): Promise<FieldTree> {
   unsigned(seed, "seed");
   const order = options.limbOrder === undefined ? FAMILY_ORDER : unsigned(options.limbOrder, "limbOrder", U32 - 1);
+  const cut = options.cut === undefined ? 0 : unsigned(options.cut, "cut");
   const id = new TextEncoder().encode(species);
   const module = await compileField(options.source);
   const { exports } = await WebAssembly.instantiate(module, {});
-  return new Tree(exports as Exports, species, seed, id, order);
+  return new Tree(exports as Exports, species, seed, id, order, cut);
 }
 class Tree implements FieldTree {
   readonly species: string;
@@ -88,13 +94,13 @@ class Tree implements FieldTree {
   readonly bounds: Bounds;
   private exports: Exports | undefined;
   private readonly revision: number;
-  constructor(e: Exports, species: string, seed: number, id: Uint8Array, order: number) {
+  constructor(e: Exports, species: string, seed: number, id: Uint8Array, order: number, cut: number) {
     this.species = species;
     this.seed = seed;
     this.exports = e;
     check(e, e.species_alloc(id.length));
     new Uint8Array(e.memory.buffer, e.species_ptr(), id.length).set(id);
-    check(e, e.grow(seed, order));
+    check(e, e.grow(seed, order, cut));
     this.revision = e.revision();
     const bounds = new Float64Array(e.memory.buffer, e.bounds_ptr(), e.bounds_len());
     if (bounds.length !== 6) throw Error("Field core: the field is empty");

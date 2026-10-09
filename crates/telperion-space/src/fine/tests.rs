@@ -6,6 +6,7 @@ use crate::grow::{whole, Request};
 use crate::light::Light;
 use crate::species::Species;
 
+mod coarse;
 mod draws;
 mod landing;
 mod realized;

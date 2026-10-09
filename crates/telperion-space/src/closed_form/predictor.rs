@@ -53,6 +53,11 @@ impl Predictor {
         Self { age: m_max, counts }
     }
 
+    /// The counts already read, by PA and the cycles from birth to `age`.
+    pub(crate) fn of(age: usize, counts: Vec<Option<f64>>) -> Self {
+        Self { age, counts }
+    }
+
     /// A lateral of `pa` made in cycle `birth`: its expected kept
     /// phytomers, none for a PA no zone draws.
     pub(crate) fn count(&self, pa: usize, birth: u32) -> Option<f64> {

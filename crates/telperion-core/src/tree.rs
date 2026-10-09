@@ -8,6 +8,7 @@ mod cluster;
 mod identity;
 mod section;
 mod shoot;
+mod stand;
 use crate::{math::Vec3, Error, Result};
 pub use bloom::Bloom;
 pub use cluster::{cluster_key, Cluster};
@@ -15,6 +16,7 @@ pub use identity::NodeIdentity;
 pub(crate) use identity::NodeKey;
 pub use section::{Section, SectionRing};
 pub use shoot::{BudFate, ShootState};
+pub use stand::{stand_key, Stand};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
@@ -179,6 +181,10 @@ pub struct Tree {
     /// its length (fn-223). Empty where `clusters` is.
     #[cfg_attr(feature = "json", serde(skip))]
     pub clustered: Vec<bool>,
+    /// The fine roots a coarse tree holds as their expected occupancy, never
+    /// grown (fn-214): empty on every tree grown whole. Never stored.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub stands: Vec<Stand>,
 }
 
 /// A 32-bit finaliser: the one the leaves' draws already use.

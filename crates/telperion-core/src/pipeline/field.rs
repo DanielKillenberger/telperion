@@ -14,6 +14,9 @@
 //! resolution-dependent sweep inflation.
 mod cuboid;
 mod index;
+mod stand;
+#[cfg(test)]
+mod stand_tests;
 use crate::{
     math::Vec3,
     pipeline::foliage::{plan::Plan, transform_point, Bounds, Element, Instances},
@@ -23,12 +26,14 @@ use crate::{
 use cuboid::Cuboid;
 pub use index::IndexSnapshot;
 use index::{bounds_of, checked, cube, reserved, union, Index, Item};
+use stand::Fill;
 
 /// One cell's answer. `wood_radius` is the larger end radius of the thickest
 /// wood sweep reaching the cell, in metres, zero where no wood does.
 /// `leaves` estimates the stations in the cell before the crown-shell cull:
 /// over a grid of non-overlapping cells the estimates sum to the plan's
-/// total. `limb` is the limb system with the largest estimate in the cell,
+/// total, a coarse tree's stand-ins' in expectation above the ground
+/// (`stand.rs`). `limb` is the limb system with the largest estimate in the cell,
 /// the lower id on a tie, and `None` where no foliage reaches. On the placed
 /// path `leaves` counts the retained leaves whose box overlaps the cell and
 /// `limb` is always `None`.
@@ -47,6 +52,9 @@ pub struct Occupancy {
 pub struct Field {
     wood: Vec<Segment>,
     wood_index: Index,
+    /// Where a coarse tree's stand-ins' wood starts in `wood`: none of it
+    /// answers below the ground (`stand.rs`).
+    standing: usize,
     foliage: Foliage,
 }
 enum Foliage {
@@ -123,6 +131,8 @@ struct Sweep {
     cuboid: Option<Cuboid>,
     count: f64,
     system: u32,
+    /// A coarse tree's stand-in, which answers by its expected occupancy.
+    stand: Option<Fill>,
 }
 impl Sweep {
     /// Whether the cell of `half` extent about `p` meets the record: a
@@ -181,7 +191,7 @@ impl Tally {
 impl Field {
     /// The placed path: foliage from retained leaves.
     pub(crate) fn new(tree: &Tree, foliage: Option<(&Instances, &Element)>) -> Result<Self> {
-        let (wood, wood_index) = Self::wood(tree)?;
+        let (wood, wood_index, standing) = Self::wood(tree)?;
         let mut leaf_items = Vec::new();
         if let Some((instances, element)) = foliage {
             instances.validate()?;
@@ -205,12 +215,13 @@ impl Field {
         Ok(Self {
             wood,
             wood_index,
+            standing,
             foliage: Foliage::Placed(Index::new(leaf_items)?),
         })
     }
     /// The planned path: foliage from the leaf plan, no leaf placed.
     pub(crate) fn planned(tree: &Tree, plan: &Plan) -> Result<Self> {
-        let (wood, wood_index) = Self::wood(tree)?;
+        let (wood, wood_index, standing) = Self::wood(tree)?;
         let mut sweeps = reserved(plan.descriptors.len())?;
         let mut items = reserved(plan.descriptors.len())?;
         for d in &plan.descriptors {
@@ -222,10 +233,17 @@ impl Field {
             let cuboid = (d.side != Vec3::ZERO)
                 .then(|| Cuboid::new(a, b, d.side, reach))
                 .transpose()?;
-            let bounds = match &cuboid {
+            let mut bounds = match &cuboid {
                 Some(c) => c.bounds,
                 None => union(cube(a, reach)?, cube(b, reach)?),
             };
+            // A stand-in answers nothing below the ground (`stand.rs`).
+            if d.stand.is_some() {
+                if bounds.max.y < 0. {
+                    continue;
+                }
+                bounds.min.y = bounds.min.y.max(0.);
+            }
             items.push(Item {
                 bounds,
                 id: sweeps.len(),
@@ -240,11 +258,15 @@ impl Field {
                 cuboid,
                 count: f64::from(d.count),
                 system: d.system,
+                stand: d
+                    .stand
+                    .map(|s| Fill::of(s.key, f64::from(d.count), a, b, reach)),
             });
         }
         Ok(Self {
             wood,
             wood_index,
+            standing,
             foliage: Foliage::Planned {
                 sweeps,
                 index: Index::new(items)?,
@@ -255,10 +277,10 @@ impl Field {
     pub fn is_planned(&self) -> bool {
         matches!(self.foliage, Foliage::Planned { .. })
     }
-    fn wood(tree: &Tree) -> Result<(Vec<Segment>, Index)> {
+    fn wood(tree: &Tree) -> Result<(Vec<Segment>, Index, usize)> {
         tree.validate_solved()?;
-        let mut wood = reserved(tree.nodes.len())?;
-        let mut wood_items = reserved(tree.nodes.len())?;
+        let mut wood = reserved(tree.nodes.len() + tree.stands.len())?;
+        let mut wood_items = reserved(tree.nodes.len() + tree.stands.len())?;
         for n in &tree.nodes {
             let a = n
                 .parent
@@ -280,7 +302,27 @@ impl Field {
                 end: n.radius,
             });
         }
-        Ok((wood, Index::new(wood_items)?))
+        // A coarse tree's fine root: its wood tapered from its base radius
+        // to none at its tip, above the ground (fn-214).
+        let standing = wood.len();
+        for s in &tree.stands {
+            let mut bounds = union(cube(s.base, s.radius)?, cube(s.tip, 0.)?);
+            if bounds.max.y < 0. {
+                continue;
+            }
+            bounds.min.y = bounds.min.y.max(0.);
+            wood_items.push(Item {
+                bounds,
+                id: wood.len(),
+            });
+            wood.push(Segment {
+                a: s.base,
+                b: s.tip,
+                start: s.radius,
+                end: 0.,
+            });
+        }
+        Ok((wood, Index::new(wood_items)?, standing))
     }
     fn foliage_index(&self) -> &Index {
         match &self.foliage {
@@ -307,6 +349,9 @@ impl Field {
         let (mut wood, mut wood_radius) = (false, 0.);
         self.wood_index.each(wood_cell, &mut |id| {
             let s = &self.wood[id];
+            if id >= self.standing && center.y < 0. {
+                return;
+            }
             if s.contains(center, inflation) {
                 wood = true;
                 wood_radius = s.start.max(s.end).max(wood_radius);
@@ -329,12 +374,16 @@ impl Field {
                 let mut foliage = false;
                 index.each(wood_cell, &mut |id| {
                     let s = &sweeps[id];
-                    if s.meets(center, half_extent, inflation) {
+                    if !s.meets(center, half_extent, inflation) {
+                        return;
+                    }
+                    let leaves = match &s.stand {
+                        None => Some(s.count * s.segment.share_inside(center, half_extent)),
+                        Some(stand) => stand.answer(center, half_extent),
+                    };
+                    if let Some(leaves) = leaves {
                         foliage = true;
-                        tally.add(
-                            s.system,
-                            s.count * s.segment.share_inside(center, half_extent),
-                        );
+                        tally.add(s.system, leaves);
                     }
                 });
                 Occupancy {

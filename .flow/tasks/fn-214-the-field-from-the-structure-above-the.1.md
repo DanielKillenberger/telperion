@@ -13,9 +13,10 @@ The spec's R1 to R4 as a probe: build the option, measure against 0.1.4 and the 
 - npm test and the gate green.
 
 ## Done summary
-TBD
+See c1-sum: the cut option built; spruce and palm pass the gate (spruce 242-249 ms and 43 MB against 0.1.4's 291-333 ms and 87 MB; renders viewed by the host); the oak waits on fn-211 (host option 1); the site keeps the full oak meanwhile.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6381e130, 3be28d3c, 62c35fd7, 7253e19f, 251399ea, a128d0b0
+- Tests: npm test, cargo test --profile ci --workspace --no-fail-fast
 - PRs:

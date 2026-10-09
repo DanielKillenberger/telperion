@@ -6,6 +6,7 @@ use super::kept::{
     Kept, Table, ALONG, COUNT, LEAVES, LEAVES_ALONG, MASS, MASS_ALONG, SECTION, SECTION2, SQUARE,
     WOOD,
 };
+use super::predictor::Predictor;
 use crate::presence::Windows;
 use crate::schedule::Carried;
 use crate::species::Species;
@@ -63,6 +64,16 @@ impl Rows {
     /// thread with a stack as deep as the age needs (`cores::deep`). The
     /// first core reads the seed's too, from the tables its rows left.
     pub fn new(species: &Species, age: u32, threads: usize) -> Self {
+        Self::read(species, age, threads, true)
+    }
+
+    /// The laterals' rows alone, the seed's left at its default: what a
+    /// coarse tree reads (fn-214), a third less work at the spruce's 40.
+    pub fn laterals(species: &Species, age: u32, threads: usize) -> Self {
+        Self::read(species, age, threads, false)
+    }
+
+    fn read(species: &Species, age: u32, threads: usize, whole: bool) -> Self {
         let m_max = age as usize;
         let borne = borne(species);
         let mut jobs: Vec<(usize, usize)> = Vec::new();
@@ -80,7 +91,7 @@ impl Rows {
             *done[k].lock().unwrap() = mine
                 .map(|&(pa, m)| ((pa, m), read(&mut kept, species, pa, m)))
                 .collect();
-            if k == 0 {
+            if k == 0 && whole {
                 let whole = kept.of(0, m_max, Carried::default(), None);
                 let reach = kept.reach_bound(0, m_max, Carried::default(), None);
                 *seed.lock().unwrap() = row(&whole, &whole, m_max, reach);
@@ -127,6 +138,13 @@ impl Rows {
             return 0.0;
         }
         curve[(at as usize).min(curve.len() - 1)]
+    }
+
+    /// The cut's predictor read off the rows: each count is the row's,
+    /// which the predictor's equals to the bit (`predictor/tests.rs`).
+    pub(crate) fn predictor(&self) -> Predictor {
+        let counts = self.rows.iter().map(|r| (r.e > 0.0).then_some(r.count));
+        Predictor::of(self.age, counts.collect())
     }
 
     /// The seed: the whole tree.

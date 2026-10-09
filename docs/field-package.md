@@ -33,6 +33,18 @@ and defaults to the family's own; a higher order parts the crown into more
 and smaller systems. The same species, seed and order answer the same bytes
 on every call and every build.
 
+`cut` (fn-214) answers a coarser tree sooner. A fine root the closed form
+expects to keep at most `cut` phytomers is never grown: the structure above
+the cut grows and settles on each root's expected living, section and load,
+and the field answers each root as a capsule from its bud along its heading,
+spread by its expected wood's reach and carrying the leaves its expected
+phytomers bear. Left out or 0, every root is grown and the field is the full
+one, byte for byte. At the spruce's 40, a cut of 1,024 grows no root of the
+tree's 1.2 million phytomers below it and answers in about the time 0.1.4
+did, in half its memory. A species whose structure above a cut reads its
+fine roots as grown (the oak, which reads light and keeps its shed pipes) is
+refused a cut by name.
+
 A query describes closed cubes: touching counts, a zero half extent is a
 point. A batch whose length is not a multiple of four, or that holds a
 non-finite centre or a negative half extent, is refused whole and answers

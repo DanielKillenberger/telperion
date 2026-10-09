@@ -23,15 +23,17 @@ impl Executor<'_> {
             let totals = item.g.totals(&rows, &[]);
             (rows, totals)
         });
-        let given: Vec<_> = (self.visit().into_iter())
+        let mut given: Vec<_> = (self.visit().into_iter())
             .map(|k| {
                 let t = &done[k].1;
                 (self.items[k].at, t.light[1], t.cost[1], t.living[1])
             })
             .collect();
+        given.extend(self.stand_totals());
         let rows = self.coarse.rows().expect("laid");
         let totals = self.coarse.totals(&rows, &given);
         let (shed, kept) = self.coarse.shed_by(cycle, &rows, &totals, None);
+        self.stand_kept(cycle, &shed, &kept);
         let pencils = &self.coarse.sketch.as_ref().expect("sketching").pencils;
         if let Some(device) = device {
             let roots = (self.items.iter().zip(done))
@@ -51,10 +53,10 @@ impl Executor<'_> {
 
     /// Phases (ii) and (iii): each item's lit presence reported to its
     /// bearer and its incoming vigour handed down; every grower's per-PA
-    /// sums merged, and every bud sized by them.
-    pub(super) fn allot(&mut self) {
+    /// sums merged, and every bud sized by them; each PA's merged sums.
+    pub(super) fn allot(&mut self) -> Vec<[i128; 2]> {
         if !self.coarse.allots() {
-            return;
+            return Vec::new();
         }
         let none = vec![(); self.items.len()];
         let done: Vec<(Links, Inputs)> = self.each(none, &|item, ()| {
@@ -70,7 +72,7 @@ impl Executor<'_> {
             .collect();
         let rows = self.coarse.rows().expect("laid");
         let mut inputs = self.coarse.inputs(&rows);
-        for &(at, lit) in &given {
+        for &(at, lit) in given.iter().chain(&self.stand_lit()) {
             inputs.lit[at] = lit;
         }
         let (incoming, got) = split(&rows.links, &inputs.lit, &inputs.lambda, None);
@@ -79,6 +81,7 @@ impl Executor<'_> {
             flat(&size_sums(got, &i.presence, &i.psi, &rows.pa, pas))
         };
         let mut total: Vec<Total> = sums(&rows, &inputs, &got);
+        self.stand_sums(&got, &mut total);
         let based: Vec<_> = (self.items.iter().zip(done))
             .map(|(i, d)| (d, incoming[i.at]))
             .collect();
@@ -99,6 +102,7 @@ impl Executor<'_> {
         };
         size(&mut self.coarse, (rows, inputs, got));
         self.each(done, &|item, d| size(&mut item.g, d));
+        factors
     }
 }
 

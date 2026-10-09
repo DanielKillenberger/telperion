@@ -57,6 +57,19 @@ const FORK_AT: f64 = 0.7;
 /// (host decision 9).
 pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     let (species, request) = asked(&input)?;
+    let rows = pa_rows(species);
+    let rows = (&input.space.trunk[..], &rows[..]);
+    // A coarse tree keeps a structure above its cut, never the tree's
+    // expected count: `fits` holds it once grown.
+    if input.cut > 0 {
+        let cut = f64::from(input.cut);
+        let coarse = telperion_space::grow_coarse(species, request, cut).map_err(engine)?;
+        fits(&coarse.structure, KEPT)?;
+        let (mut tree, drawn) = converted(&coarse.structure, (&[], &[]), rows);
+        tree.stands = stands::convert(&coarse, &drawn);
+        scaled(&mut tree, input.supernatural.scale());
+        return Ok(tree);
+    }
     foreseen(species, request.age, KEPT)?;
     // The engine returns its tree in its canonical lineage order, parents
     // first and siblings by lineage, whichever path built it (FINE-CONTRACT
@@ -65,7 +78,6 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     let (structure, fine, bases) =
         telperion_space::grow_marked(species, request).map_err(engine)?;
     fits(&structure, KEPT)?;
-    let rows = (&input.space.trunk[..], &pa_rows(species)[..]);
     let mut tree = convert(&structure, (&fine, &bases), rows);
     scaled(&mut tree, input.supernatural.scale());
     Ok(tree)
@@ -119,6 +131,10 @@ fn scaled(tree: &mut Tree, scale: f64) {
     }
     for grown in &mut tree.grown {
         *grown *= scale;
+    }
+    for s in &mut tree.stands {
+        (s.base, s.tip) = (s.base * scale, s.tip * scale);
+        (s.radius, s.reach) = (s.radius * scale, s.reach * scale);
     }
 }
 
@@ -213,7 +229,7 @@ fn engine(e: telperion_space::Error) -> Error {
 }
 
 /// The engine's z up as the pipeline's y up.
-fn up(v: telperion_space::Vec3) -> Vec3 {
+pub(super) fn up(v: telperion_space::Vec3) -> Vec3 {
     Vec3::new(v.x, v.z, -v.y)
 }
 
@@ -299,9 +315,19 @@ fn joint(
 /// own tip, keeps the cluster; an axis that draws no node bears none.
 fn convert(
     structure: &Structure,
+    marks: (&[bool], &[(u64, f64)]),
+    rows: (&[usize], &[PaRow]),
+) -> Tree {
+    converted(structure, marks, rows).0
+}
+
+/// `convert`'s tree and each axis's drawn nodes, base first: where a coarse
+/// tree's stands are borne (fn-214).
+fn converted(
+    structure: &Structure,
     (fine, bases): (&[bool], &[(u64, f64)]),
     (trunk, rows): (&[usize], &[PaRow]),
-) -> Tree {
+) -> (Tree, Vec<Vec<u32>>) {
     // Each fine root's node drawn from wood above the cut.
     let mut seams = Vec::new();
     let mut attachments = Vec::new();
@@ -528,7 +554,7 @@ fn convert(
     }
     let crossover = nodes.len();
     seams.sort_unstable();
-    Tree {
+    let tree = Tree {
         nodes,
         crossover,
         seams,
@@ -540,10 +566,14 @@ fn convert(
         clusters,
         clustered,
         ..Tree::default()
-    }
+    };
+    (tree, drawn)
 }
 
 #[cfg(test)]
 mod cluster_tests;
+#[cfg(test)]
+mod coarse_tests;
+mod stands;
 #[cfg(test)]
 mod tests;
