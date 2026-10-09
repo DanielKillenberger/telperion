@@ -174,10 +174,62 @@
       "task": "fn-248-leaves-hang-on-twigs.1",
       "timestamp": "2026-10-09T13:55:57.803775Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d665d3a8f9cea9f65ed19a66438a7afb51ea75d31ef713df9ff835dc153b3d06",
+      "backend": "codex",
+      "base_sha": "2329d19ee621f1ecc17b543583d2ce7ee8b36768",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-64408d9c306530392151531cc26d5b0a",
+            "classification": "introduced",
+            "findingId": "finding-64408d9c306530392151531cc26d5b0a",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-530eff9aeef234080181bc264a4cf48b",
+            "classification": "introduced",
+            "findingId": "finding-530eff9aeef234080181bc264a4cf48b",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "97492f0971f2ff5d01968eedc8d675fe9763c348",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1217,
+      "output_sha256": "b9df21d8bfea3a3f7cbcbf5dbb3289f0ec77f186e0c7f88d901be731cd11c7b9",
+      "reservation_id": "6868f7ed297147779e76e67cbfdcfeb9",
+      "round_consumed": true,
+      "scope": "impl:fn-248-leaves-hang-on-twigs.1",
+      "superseded_by": null,
+      "task": "fn-248-leaves-hang-on-twigs.1",
+      "timestamp": "2026-10-09T20:47:24.135346Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-248-leaves-hang-on-twigs.1": 1,
+    "impl:fn-248-leaves-hang-on-twigs.1": 2,
     "plan": 1,
     "plan#completion": 0
   },
@@ -201,5 +253,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T13:55:57.806186Z"
+  "updated_at": "2026-10-09T20:47:24.140613Z"
 }
