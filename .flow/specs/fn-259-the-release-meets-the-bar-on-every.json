@@ -1,0 +1,27 @@
+{
+  "branch_name": "fn-259-the-release-meets-the-bar-on-every",
+  "created_at": "2026-10-09T19:56:29.991755Z",
+  "depends_on_epics": [
+    "fn-257-the-sites-field-grows-only-the-detail",
+    "fn-258-a-prepared-tree-meets-masters-memory"
+  ],
+  "id": "fn-259-the-release-meets-the-bar-on-every",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-259-the-release-meets-the-bar-on-every.md",
+  "status": "open",
+  "title": "The release meets the bar on every consumer",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T19:56:39.714582Z"
+}

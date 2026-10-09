@@ -24,7 +24,9 @@
     "fn-249-the-sites-trees-grow-as-fast-as-014s",
     "fn-250-a-walk-across-ages-grows-the-tree",
     "fn-251-a-walk-never-grows-a-tree-larger-than",
-    "fn-253-flowers-hang-from-the-tree"
+    "fn-253-flowers-hang-from-the-tree",
+    "fn-259-the-release-meets-the-bar-on-every",
+    "fn-256-the-whole-grower-runs-on-the-gpu"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -44,5 +46,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T19:45:16.313913Z"
+  "updated_at": "2026-10-09T19:56:41.464906Z"
 }
