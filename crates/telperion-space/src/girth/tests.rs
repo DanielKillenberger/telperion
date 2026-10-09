@@ -204,3 +204,38 @@ fn the_leaf_mean_is_the_grown_trees_at_every_retained_share() {
         "{at_zero} against {near_zero}"
     );
 }
+
+/// A relay's wood enters its parent at the node it grows from, whatever
+/// its blend and wherever along that node's span it stands (fn-244): the
+/// parent below carries it as it would a lateral there, and the stopped
+/// module's head beyond, its stub, carries only its own wood.
+#[test]
+fn a_relays_wood_enters_at_its_node_and_its_stub_carries_its_own() {
+    let mut states = vec![state(0.0)];
+    // A share that stands the relay part-way along its node's span.
+    states[0].relay_at = 0.3;
+    let species = Species { states };
+    let with = |origin: Option<Origin>| {
+        let mut axes = vec![axis(Origin::Seed, &[0.5; 4])];
+        if let Some(origin) = origin {
+            let mut child = axis(origin, &[0.5; 3]);
+            child.blend = 0.4;
+            axes.push(child);
+        }
+        let mut t = Structure { age: 1, pas: 1, axes };
+        thicken(&mut t, &species, &Girth::default(), 1);
+        t.axes[0].phytomers.iter().map(|p| p.radius).collect::<Vec<_>>()
+    };
+    let relay = with(Some(Origin::Relay { parent: 0, node: 1 }));
+    let lateral = with(Some(Origin::Lateral {
+        parent: 0,
+        node: 1,
+        slot: 0,
+        whorl: 1.0,
+        woken: false,
+    }));
+    let alone = with(None);
+    assert_eq!(relay[..2], lateral[..2], "the parent at and below the join");
+    assert_eq!(relay[2..], alone[2..], "the stub");
+    assert!(relay[1] > alone[1]);
+}

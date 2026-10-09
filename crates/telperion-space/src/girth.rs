@@ -18,7 +18,6 @@ use crate::fixed::feedback::power::{exp2_w, log2_w};
 use crate::fixed::feedback::total::Total;
 use crate::fixed::feedback::wide::{mul_shr, prod_shr, ratio};
 use crate::fixed::{exp2, log2, mul, q32, ONE32};
-use crate::geometry::relay_span;
 use crate::species::{Form, Species};
 use crate::structure::{Origin, Phytomer, Structure};
 use crate::upward::Tree;
@@ -191,12 +190,12 @@ pub(crate) fn thicken_given(
     for d in &girth.disused {
         kept[d.axis].push(d);
     }
-    let links: Vec<(Origin, f64)> = axes.iter().map(|a| (a.origin, a.blend)).collect();
-    let parents: Vec<Option<usize>> = links.iter().map(|l| l.0.parent()).collect();
+    let links: Vec<Origin> = axes.iter().map(|a| a.origin).collect();
+    let parents: Vec<Option<usize>> = links.iter().map(|l| l.parent()).collect();
     let tree = Tree::new(&parents);
     // Section carried into each axis's phytomers by the pipes it keeps,
-    // then by its laterals, and into its tip by its continuation or
-    // relay, the last child first, as a backward pass meets them. Each
+    // then by its laterals and relays, and into its tip by its
+    // continuation, the last child first, as a backward pass meets them. Each
     // child hands on its base radius; its parent raises it to the
     // parent's own exponent.
     tree.upward(
@@ -208,7 +207,7 @@ pub(crate) fn thicken_given(
             let e = form.exponent;
             at_node.clear();
             at_node.resize(axis.phytomers.len(), 0);
-            let (mut at_tip, mut at_base) = (0i128, 0i128);
+            let mut at_tip = 0i128;
             for d in &kept[i] {
                 let section = share_of(section(d.radius, e), d.share);
                 match d.node.and_then(|n| at_node.get_mut(n)) {
@@ -218,23 +217,16 @@ pub(crate) fn thicken_given(
             }
             for &c in tree.children(i) {
                 let section = section(given(c).unwrap_or(radii[c]), e);
-                match links[c].0 {
+                match links[c] {
                     Origin::Seed => {}
-                    Origin::Lateral { node, .. } => match at_node.get_mut(node) {
-                        Some(at) => *at += section,
-                        None => at_tip += section,
-                    },
-                    // A relay's section enters at its node as far as it stands
-                    // there, spread over its span, at the tip as far as it is
-                    // still the continuation (`relay_parts`).
-                    Origin::Relay { node, .. } => {
-                        let t = relay_span(axis, state.relay_at, node);
-                        for (at, part) in relay_parts(section, node, t, links[c].1, &split) {
-                            match at {
-                                Entry::Node(k) if k < at_node.len() => at_node[k] += part,
-                                Entry::Base => at_base += part,
-                                _ => at_tip += part,
-                            }
+                    // A relay's wood enters at the node it grows from, as a
+                    // lateral's does, so its parent below carries it whole and
+                    // the stopped module's head beyond only its own; the
+                    // drawing hangs it there (fn-244 host decision).
+                    Origin::Lateral { node, .. } | Origin::Relay { node, .. } => {
+                        match at_node.get_mut(node) {
+                            Some(at) => *at += section,
+                            None => at_tip += section,
                         }
                     }
                     Origin::Continuation { .. } => at_tip += section,
@@ -249,59 +241,9 @@ pub(crate) fn thicken_given(
                 let established = established(&form, phytomer.scale);
                 phytomer.radius = weighed(&form, radius(section, e), established);
             }
-            radius(section + at_base, e)
+            radius(section, e)
         },
     )
-}
-
-/// Where on its parent a relay's pipe or load enters.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub(crate) enum Entry {
-    /// At the parent's node.
-    Node(usize),
-    /// At the parent's base, below its first node.
-    Base,
-    /// At the parent's tip, as its continuation.
-    Tip,
-}
-
-/// The shares of a relay's pipe or load that enter its parent where: `b`
-/// of it where it stands, `t` of the way along the span of node `node`
-/// (`geometry::relay_span`), so at that node by `t` and at the one before
-/// (or the base) by the rest; at the tip as far as it is still the
-/// continuation. A relay moving past a node moves its pipe by degree
-/// (fn-199 R4).
-pub(crate) fn relay_shares(node: usize, t: f64, b: f64) -> [(Entry, f64); 3] {
-    let below = node.checked_sub(1).map_or(Entry::Base, Entry::Node);
-    [
-        (Entry::Node(node), b * t),
-        (below, b * (1.0 - t)),
-        (Entry::Tip, 1.0 - b),
-    ]
-}
-
-/// `relay_shares` of an integer `x` (Contract A, 2.5): `split(x, s)`
-/// takes the share `s` (Q32) of it, floored, and leaves the rest exact,
-/// so the three parts sum to `x`. `b` of it where the relay stands, of
-/// that `t` (Q32) at node `node` and the rest at the one before (or the
-/// base); the rest at the tip.
-pub(crate) fn relay_parts<T: Copy>(
-    x: T,
-    node: usize,
-    t: i64,
-    b: f64,
-    split: &dyn Fn(T, i64) -> (T, T),
-) -> [(Entry, T); 3] {
-    let (stands, tip) = split(x, q32(b));
-    let (at, below) = split(stands, t);
-    let before = node.checked_sub(1).map_or(Entry::Base, Entry::Node);
-    [(Entry::Node(node), at), (before, below), (Entry::Tip, tip)]
-}
-
-/// A section's share `s` (Q32), floored, and the rest.
-fn split(x: i128, s: i64) -> (i128, i128) {
-    let part = mul_shr(x, i128::from(s), 32).expect("a share of a section");
-    (part, x - part)
 }
 
 /// How far a phytomer `years` old has laid down its own wood, ripening

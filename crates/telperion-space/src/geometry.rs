@@ -28,7 +28,6 @@ pub(crate) use place::{place, place_from};
 pub(crate) use q::amount;
 use q::{add, cross, dot, q3, rotated, scaled, sub, unit, v3, Q3, UP};
 pub(crate) use single::{bud_frame, lay_one};
-pub(crate) use stand::relay_span;
 use stand::stand;
 
 /// The sine of the lean below which a parent has too little of an upper

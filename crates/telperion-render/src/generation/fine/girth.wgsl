@@ -5,8 +5,8 @@
 // `log2_w`, `exp2_w`, `prod_shr`, `mul_shr` and `ripe` are the feedback
 // contract's, `log2q`, `exp2q` and `mulq` the decision contract's. A
 // section's W words borrow scratch the lever pass fills later: a
-// phytomer's `P_NODE` and `P_LOAD`, an axis's `S_TIP` and `S_LOAD`, and
-// its `S_BASE`. A chain's record carries its first axis's base radius as
+// phytomer's `P_NODE` and `P_LOAD`, and an axis's `S_TIP` and `S_LOAD`.
+// A chain's record carries its first axis's base radius as
 // a float and, in its next two words, as Q32 (`records[.. + 1, 2]`,
 // which the lever pass overwrites with the load). Part of the geometry
 // kernel's shader.
@@ -21,7 +21,6 @@ const G_EXPONENT: u32 = 27u;
 const G_INVERSE: u32 = 29u;
 const G_RIPENING: u32 = 31u;
 const G_SECONDARY: u32 = 33u;
-const G_RELAY_AT: u32 = 35u;
 
 fn gq(pa: u32, f: u32) -> vec2<u32> {
     let b = 4u + GG * pa + f;
@@ -68,53 +67,12 @@ fn radius_q(section: vec4<u32>, inverse: vec2<u32>) -> vec2<u32> {
     return exp2q(mulq(inverse, log2_w(section)));
 }
 
-// `split`: a section's share `s` (Q32), floored, and the rest.
-fn split_q(x: vec4<u32>, s: vec2<u32>) -> array<vec4<u32>, 2> {
-    let part = mul_shr(x, ext4(s), 32u).v;
-    return array<vec4<u32>, 2>(part, sub4(x, part));
-}
-
 // A Q32 as a float.
 fn real_q(q: vec2<u32>) -> f32 {
     let neg = negative(q);
     let a = select(q, neg64(q), neg);
     let v = f32(a.y) + f32(a.x) * (1.0 / 4294967296.0);
     return select(v, -v, neg);
-}
-
-// `geometry::relay_span` (`stand.rs`'s `span_in` on the last unit), Q32,
-// of own axis `p` for a relay at `share` (Q32) at node `k_in`.
-fn relay_span_q(p: u32, share: vec2<u32>, k_in: u32) -> vec2<u32> {
-    let n = s(p, S_COUNT);
-    if n == 0u {
-        return one32();
-    }
-    let k = min(k_in, n - 1u);
-    let last = ph(at_k(p, n - 1u), 2u);
-    var first = 0u;
-    for (var j = 0u; j < n; j++) {
-        if ph(at_k(p, j), 2u) == last {
-            first = j;
-            break;
-        }
-    }
-    var total = vec2<u32>(0u);
-    for (var j = first; j < n; j++) {
-        total = add64(total, q32_f(out[lo(p, j) + 19u]));
-    }
-    let scale = q32_f(out[lo(p, k) + 19u]);
-    if slt64(vec2<u32>(0u), total) && slt64(vec2<u32>(0u), scale) {
-        var before = vec2<u32>(0u);
-        for (var j = min(first, k); j < k; j++) {
-            before = add64(before, q32_f(out[lo(p, j) + 19u]));
-        }
-        let t = over(sub64(mulq(share, total), before), scale);
-        return smin64(smax64(t, vec2<u32>(0u)), one32());
-    } else if slt64(vec2<u32>(0u), total) {
-        return one32();
-    }
-    let f = add64(w(0u, first), mulq(share, w(0u, n - first)));
-    return smin64(smax64(sub64(f, w(0u, k)), vec2<u32>(0u)), one32());
 }
 
 // Adds section `v` borne at own axis `j`'s node `node`, or at its tip
@@ -134,7 +92,6 @@ fn borne_w(j: u32, node: u32, v: vec4<u32>) {
 fn girth_realized(ch: Chain) {
     for (var i = 0u; i < ch.na; i++) {
         ssw(i, S_SECTION, vec4<u32>(0u));
-        ssw(i, S_BASE, vec4<u32>(0u));
     }
     for (var p = 0u; p < ch.np; p++) {
         spw(p, vec4<u32>(0u));
@@ -179,7 +136,7 @@ fn girth_realized(ch: Chain) {
             let weighed = add64(mulq(secondary, root), mulq(sub64(one32(), secondary), established));
             out[at + 18u] = real_q(weighed);
         }
-        let radius = radius_q(add4(section, sw(j, S_BASE)), inverse);
+        let radius = radius_q(section, inverse);
         if j == 1u {
             let at = cfg.mine + CR * ch.wi;
             records[at] = real_q(radius);
@@ -196,18 +153,8 @@ fn girth_realized(ch: Chain) {
             ssw(p, S_SECTION, add4(sw(p, S_SECTION), carried));
             continue;
         }
-        // `girth::relay_parts`: `b` of it where it stands, of that `t` at
-        // its node and the rest at the one before (or the base); the rest
-        // at the tip. A part at a node past the parent's goes to its tip.
-        let t = relay_span_q(p, gq(ax(p, PA), G_RELAY_AT), node);
-        let stands = split_q(carried, q32_f(axf(j, BLEND)));
-        let parts = split_q(stands[0], t);
-        borne_w(p, node, parts[0]);
-        if node == 0u {
-            ssw(p, S_BASE, add4(sw(p, S_BASE), parts[1]));
-        } else {
-            borne_w(p, node - 1u, parts[1]);
-        }
-        ssw(p, S_SECTION, add4(sw(p, S_SECTION), stands[1]));
+        // A relay's enters at the node it grows from (`girth::thicken`,
+        // fn-244); past the parent's nodes, at its tip.
+        borne_w(p, node, carried);
     }
 }

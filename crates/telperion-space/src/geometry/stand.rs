@@ -190,12 +190,3 @@ fn span_in(p: &Axis, (first, end): (usize, usize), share: f64, k: usize) -> i64 
     }
 }
 
-/// `span_in` on axis `p`'s last unit, Q32: girth and sag take a relay's
-/// pipe and load in at the two ends of that span by it (fn-199 R4). An
-/// axis of no phytomers has no span: one.
-pub(crate) fn relay_span(p: &Axis, share: f64, k: usize) -> i64 {
-    match unit_ranges(p).last() {
-        Some(&range) => span_in(p, range, share, k.min(range.1 - 1)),
-        None => ONE32,
-    }
-}

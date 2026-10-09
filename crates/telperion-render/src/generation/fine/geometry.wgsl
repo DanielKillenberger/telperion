@@ -74,9 +74,6 @@ const S_WALK: u32 = 10u;
 const S_LIFTS: u32 = 21u;
 const S_FAR: u32 = 54u;
 const S_FRAME: u32 = 57u;
-// What a relay standing in its parent's first span hands its parent's
-// base: a section (`girths`) or a load (`levers`).
-const S_BASE: u32 = 66u;
 const P_ORDER: u32 = 0u;
 const P_NODE: u32 = 1u;
 const P_LOAD: u32 = 2u;

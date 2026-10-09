@@ -45,41 +45,6 @@ fn end_of(p: u32, o: u32) -> vec3<f32> {
     return o3(lo(p, n - 1u) + o);
 }
 
-// How far along node `k_in`'s span of own axis `p` its relay at `share`
-// of the last growth unit stands, by the unit's scaled lengths
-// (`geometry::relay_span`); 1 on an axis of no phytomers.
-fn relay_span(p: u32, share: f32, k_in: u32) -> f32 {
-    let n = s(p, S_COUNT);
-    if n == 0u {
-        return 1.0;
-    }
-    let k = min(k_in, n - 1u);
-    let last = ph(at_k(p, n - 1u), 2u);
-    var first = 0u;
-    for (var j = 0u; j < n; j++) {
-        if ph(at_k(p, j), 2u) == last {
-            first = j;
-            break;
-        }
-    }
-    var total = 0.0;
-    for (var j = first; j < n; j++) {
-        total += out[lo(p, j) + 19u];
-    }
-    let scale = out[lo(p, k) + 19u];
-    if total > 0.0 && scale > 0.0 {
-        var before = 0.0;
-        for (var j = min(first, k); j < k; j++) {
-            before += out[lo(p, j) + 19u];
-        }
-        return clamp((share * total - before) / scale, 0.0, 1.0);
-    } else if total <= 0.0 {
-        let fr = f32(first) + share * f32(n - first);
-        return clamp(fr - f32(k), 0.0, 1.0);
-    }
-    return 1.0;
-}
-
 // Own axis `i`'s base, heading and side (`geometry::frame`); the first
 // from its bearer's phytomer at `bearer` in the wave before, below it
 // `below`, of PA `bearer_pa`.

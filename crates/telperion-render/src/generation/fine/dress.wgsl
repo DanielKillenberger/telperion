@@ -236,23 +236,6 @@ fn up(v: vec3<f32>) -> vec3<f32> {
     return vec3<f32>(v.x, v.z, -v.y);
 }
 
-// The node of parent `p`'s phytomers nearest a relay's base, from `node`
-// on (`space.rs`, `joint`): the first of the nearest.
-fn joint(i: u32, p: u32, node: u32) -> u32 {
-    let a = (out_ax + s(i, S_OWN)) * AL + 3u;
-    let base = vec3<f32>(out[a], out[a + 1u], out[a + 2u]);
-    var best = node;
-    var d = 3.4e38;
-    for (var k = node; k < s(p, S_COUNT); k++) {
-        let e = length(tip(p, k) - base);
-        if e < d {
-            d = e;
-            best = k;
-        }
-    }
-    return best;
-}
-
 // The head of a stopped module, parent `p`'s drawn phytomers from
 // `j0` on, turned aside (`space.rs`, `aside`). Only this wave's nodes
 // change.
@@ -480,21 +463,12 @@ fn dress(@builtin(global_invocation_id) id: vec3<u32>) {
         let lp = out_ax + s(p, S_OWN);
         let relay = kind == RELAYED;
         if relay {
-            let bud = ax(i, NODE);
-            let j = joint(i, p, bud);
+            // From the node it grows from, where its wood enters
+            // (`space.rs`, fn-244).
+            let j = ax(i, NODE);
             if j + 1u < s(p, S_COUNT) {
                 if j >= da(lp, 0u) {
                     continue;
-                }
-                // The stem between the bud's node and the joint carries
-                // the relay too.
-                let girth = node(getu(li(p, bud), 7u)).radius;
-                for (var k = bud + 1u; k <= j; k++) {
-                    let n = getu(li(p, k), 7u);
-                    if mine(n) {
-                        put(n, 3u, max(node(n).radius, girth));
-                        put(n, 4u, max(node(n).start, girth));
-                    }
                 }
                 aside(p, j);
                 draw(i, la, getu(li(p, j), 7u), false, true, origin, flags);

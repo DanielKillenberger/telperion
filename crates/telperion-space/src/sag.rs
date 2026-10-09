@@ -15,9 +15,7 @@ use crate::fixed::feedback::vector::length;
 use crate::fixed::feedback::wide::{mul_shr, I256};
 use crate::fixed::q32;
 use crate::geometry::q::{add, q3, sub};
-use crate::geometry::relay_span;
 use crate::geometry::support_q;
-use crate::girth::{relay_parts, Entry};
 use crate::species::Species;
 use crate::structure::{Origin, Structure, Vec3};
 use crate::upward::Tree;
@@ -67,16 +65,6 @@ impl Load {
             mass: f(self.mass),
             moment: self.moment.map(f),
         }
-    }
-
-    /// Split by `b`: its floored share and the exact rest.
-    fn split(self, b: i64) -> (Load, Load) {
-        let first = self.share(b);
-        let rest = Load {
-            mass: self.mass - first.mass,
-            moment: std::array::from_fn(|k| self.moment[k] - first.moment[k]),
-        };
-        (first, rest)
     }
 }
 
@@ -217,7 +205,7 @@ pub(crate) fn gather(
             let state = &species.states[axis.pa];
             at_node.clear();
             at_node.resize(axis.phytomers.len(), Load::default());
-            let (mut at_tip, mut at_base) = (Load::default(), Load::default());
+            let mut at_tip = Load::default();
             for &(node, load) in &held[j] {
                 if let Some(at) = at_node.get_mut(node) {
                     at.add(load);
@@ -227,22 +215,12 @@ pub(crate) fn gather(
                 let (child, load) = (&axes[members[c]], given(members[c]).unwrap_or(loads[c]));
                 match child.origin {
                     Origin::Seed => {}
-                    Origin::Lateral { node, .. } => match at_node.get_mut(node) {
-                        Some(at) => at.add(load),
-                        None => at_tip.add(load),
-                    },
-                    // A relay's load enters at its node as far as it stands
-                    // there, spread over its span, at the tip as far as it is
-                    // still the continuation (`girth::relay_parts`).
-                    Origin::Relay { node, .. } => {
-                        let t = relay_span(axis, state.relay_at, node);
-                        let split = |l: Load, s: i64| l.split(s);
-                        for (at, part) in relay_parts(load, node, t, child.blend, &split) {
-                            match at {
-                                Entry::Node(k) if k < at_node.len() => at_node[k].add(part),
-                                Entry::Base => at_base.add(part),
-                                _ => at_tip.add(part),
-                            }
+                    // A relay's load enters at the node it grows from, as a
+                    // lateral's does, where its wood enters (`girth`, fn-244).
+                    Origin::Lateral { node, .. } | Origin::Relay { node, .. } => {
+                        match at_node.get_mut(node) {
+                            Some(at) => at.add(load),
+                            None => at_tip.add(load),
                         }
                     }
                     Origin::Continuation { .. } => at_tip.add(load),
@@ -288,7 +266,6 @@ pub(crate) fn gather(
                     load = load.share(support_q(base[2].min(tip[2]), r, length));
                 }
             }
-            load.add(at_base);
             load
         },
     );

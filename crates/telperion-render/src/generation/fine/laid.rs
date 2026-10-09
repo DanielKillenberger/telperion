@@ -95,7 +95,6 @@ pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
             1.0 / p.exponent,
             p.ripening,
             p.secondary,
-            p.relay_at,
         ];
         for (k, v) in girth.into_iter().enumerate() {
             let q = telperion_space::fixed::q32(v);
