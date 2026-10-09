@@ -9,9 +9,12 @@ pub(super) type Generation = Rc<RefCell<State>>;
 /// once it is let go, or not at all.
 fn admitted(
     live: &Rc<RefCell<Option<Live>>>,
+    state: &Generation,
     family: &telperion_core::presets::Family,
 ) -> std::result::Result<Admitted, JsError> {
-    Generator::admit(family, &borrow(live)?.renderer, BROWSER).map_err(js_error)
+    let generator = state.borrow().generator.clone();
+    let renderer = &borrow(live)?.renderer;
+    Generator::admit(generator.as_deref(), family, renderer, BROWSER).map_err(js_error)
 }
 
 #[wasm_bindgen]
@@ -25,7 +28,7 @@ impl WebRenderer {
         let value = serde_json::from_str(family)
             .map_err(|e| JsError::new(&format!("the parameters are not JSON: {e}")))?;
         let family = params::parse(&value).map_err(|e| js_error(e.into()))?;
-        Ok(match admitted(&self.live, &family)? {
+        Ok(match admitted(&self.live, &self.generation, &family)? {
             Admitted::Beside => "beside",
             Admitted::MakeRoom => "makeRoom",
         }
@@ -64,7 +67,7 @@ impl WebRenderer {
             };
             // The budget's one rule: beside the drawn tree, the drawn tree
             // let go first, or refused by name with it kept.
-            let made_room = admitted(&live, &family)? == Admitted::MakeRoom;
+            let made_room = admitted(&live, &state, &family)? == Admitted::MakeRoom;
             if made_room {
                 borrow(&live)?.renderer.release_tree();
             }

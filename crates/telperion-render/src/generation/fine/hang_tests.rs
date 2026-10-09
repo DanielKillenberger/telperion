@@ -187,18 +187,29 @@ fn built(tree: &str, env: &[(&str, &str)]) -> Built {
     }
 }
 
-/// The longest one submission may hold the device (R2): well under
-/// Chrome's GPU watchdog.
+/// One submission's caps (R2): the longest it may hold the device, well
+/// under Chrome's GPU watchdog, and the most generation dispatches and
+/// workgroups it may carry. The work caps are the measured envelope at
+/// 80 with a quarter's headroom (2026-10-09: 214 dispatches, the spruce's;
+/// 5,065,044 workgroups, the spruce's), so a change that grows a
+/// submission past it is seen before a browser meets it.
 const SUBMISSION_MS: f64 = 1_000.0;
+const SUBMISSION_DISPATCHES: usize = 256;
+const SUBMISSION_WORKGROUPS: u64 = 1 << 23;
 
-/// fn-235 R2: every shipped species on the fine or whole path at 80, each
-/// submission waited for alone (`TELPERION_TRACE_WAIT`), none longer than
-/// a second. Measured 2026-10-09 on the RTX 3080: the beech's worst 152 ms
-/// (girths), the oak's 96, the spruce's 62, the date palm's 1.
+/// fn-235 R2: every shipped species at 80, grouped as the browser groups
+/// its roots (`TELPERION_UNSOWN`), each submission waited for alone
+/// (`TELPERION_TRACE_WAIT`), within its caps. Measured 2026-10-09 on the
+/// RTX 3080: the oak's worst 177 ms, the beech's 160 (`girths`), the
+/// spruce's 65, the date palm's 1.
 #[test]
 #[ignore = "device limits: each shipped species at 80 on the device"]
-fn every_submission_at_80_within_a_second() {
-    let env = [("TELPERION_TRACE", "1"), ("TELPERION_TRACE_WAIT", "1")];
+fn every_submission_at_80_within_its_caps() {
+    let env = [
+        ("TELPERION_TRACE", "1"),
+        ("TELPERION_TRACE_WAIT", "1"),
+        ("TELPERION_UNSOWN", "1"),
+    ];
     for tree in [
         "european-beech:80",
         "norway-spruce:80",
@@ -215,11 +226,29 @@ fn every_submission_at_80_within_a_second() {
         let worst = (run.stderr.iter())
             .filter_map(|l| l.split_once(" ran ")?.1.strip_suffix(" ms")?.parse().ok())
             .fold(0.0f64, f64::max);
-        println!("{tree}: worst submission {worst:.1} ms");
+        // Each submission's dispatches, `entry x workgroups`, as logged.
+        let work = (run.stderr.iter())
+            .filter_map(|l| l.split_once("] submit ")?.1.split_once(": "))
+            .map(|(_, steps)| {
+                let groups = steps
+                    .split_whitespace()
+                    .map(|s| s.rsplit_once('x').unwrap().1.parse::<u64>().unwrap());
+                (steps.split_whitespace().count(), groups.sum::<u64>())
+            });
+        let (dispatches, groups) = work.fold((0, 0), |(d, g), (a, b)| (d.max(a), g.max(b)));
+        println!("{tree}: worst {worst:.1} ms, {dispatches} dispatches, {groups} workgroups");
         assert!(worst > 0.0, "{tree}: no submission timed");
         assert!(
             worst <= SUBMISSION_MS,
             "{tree}: a submission ran {worst} ms"
+        );
+        assert!(
+            dispatches <= SUBMISSION_DISPATCHES,
+            "{tree}: {dispatches} dispatches"
+        );
+        assert!(
+            groups <= SUBMISSION_WORKGROUPS,
+            "{tree}: {groups} workgroups"
         );
     }
 }

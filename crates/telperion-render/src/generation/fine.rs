@@ -62,14 +62,29 @@ impl super::Generator {
     /// Whether `family` fits the page's budget beside the tree `renderer`
     /// draws now, only once it is let go, or not at all (by name).
     #[cfg(any(test, target_arch = "wasm32"))]
-    pub fn admit(family: &Family, renderer: &crate::Renderer, budget: u64) -> Result<Admitted> {
-        let held = renderer.gpu().ledger.live();
+    /// `generator` is the page's, where it has made one yet.
+    pub fn admit(
+        generator: Option<&Self>,
+        family: &Family,
+        renderer: &crate::Renderer,
+        budget: u64,
+    ) -> Result<Admitted> {
+        let held = generator.map_or(renderer.gpu().ledger.live(), Self::held_beside_pools);
         budget::admit(family, held, Self::tree_buffer_bytes(renderer), budget)
+    }
+
+    /// The device bytes held now, less the fine executor's pools and
+    /// regions: a build reuses them, and its measured peak counts them
+    /// already, so they are not counted twice (fn-235).
+    #[cfg(any(test, target_arch = "wasm32"))]
+    fn held_beside_pools(&self) -> u64 {
+        let (pool, regions) = self.fine_pool_bytes();
+        self.gpu.ledger.live().saturating_sub(pool + regions)
     }
 
     /// The bytes the fine executor keeps on the device between builds: its
     /// kernels' pool and its grower's regions (fn-212 task 10).
-    #[cfg(test)]
+    #[cfg(any(test, target_arch = "wasm32"))]
     pub(super) fn fine_pool_bytes(&self) -> (u64, u64) {
         self.fine.get().map_or((0, 0), |kit| {
             (kit.kernels.pool.bytes(), kit.kernels.grower.bytes())
@@ -84,10 +99,10 @@ impl super::Generator {
         let gpu = &self.gpu;
         // A browser build over its device budget is refused before it starts.
         #[cfg(target_arch = "wasm32")]
-        budget::check(family, gpu.ledger.live(), budget::BROWSER)?;
+        budget::check(family, self.held_beside_pools(), budget::BROWSER)?;
         #[cfg(test)]
         if let Some(stated) = self.budget.get() {
-            budget::check(family, gpu.ledger.live(), stated)?;
+            budget::check(family, self.held_beside_pools(), stated)?;
         }
         // The kernels are made inside the scopes, so a shader the device
         // refuses is the error reported.

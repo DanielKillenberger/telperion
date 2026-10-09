@@ -17,15 +17,15 @@ fn peak(family: &telperion_core::presets::Family) -> u64 {
     super::budget::peak(kept.unwrap().unwrap())
 }
 
-/// A renderer with the beech at 12 drawn, its generator, and the bytes
-/// held with the tree's share of them.
-fn drawn() -> Option<(Renderer, Generator, u64, u64)> {
+/// A renderer with `id` at 12 drawn, its generator, and the bytes held
+/// beside the generator's pools, with the tree's share of them.
+fn drawn(id: &str) -> Option<(Renderer, Generator, u64, u64)> {
     let gpu = crate::generation::test_gpu()?;
     let mut renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
-    let prepared = gen.prepare(&family("european-beech", 12), Delivery::Resident);
+    let prepared = gen.prepare(&family(id, 12), Delivery::Resident);
     renderer.submit_prepared(prepared.unwrap()).unwrap();
-    let held = renderer.gpu().ledger.live();
+    let held = gen.held_beside_pools();
     let tree = Generator::tree_buffer_bytes(&renderer);
     Some((renderer, gen, held, tree))
 }
@@ -43,7 +43,7 @@ fn still(renderer: &mut Renderer) -> crate::Still {
 
 #[test]
 fn a_tree_that_fits_only_alone_lets_the_drawn_tree_go_first() {
-    let Some((mut renderer, gen, held, tree)) = drawn() else {
+    let Some((mut renderer, gen, held, tree)) = drawn("european-beech") else {
         return;
     };
     let next = family("european-beech", 30);
@@ -52,11 +52,11 @@ fn a_tree_that_fits_only_alone_lets_the_drawn_tree_go_first() {
     let budget = held - tree / 2 + peak(&next);
     assert!(tree > 0 && held + peak(&next) > budget, "{tree} of {held}");
     let drawn = still(&mut renderer).stats.instances;
-    let admitted = Generator::admit(&next, &renderer, budget).unwrap();
+    let admitted = Generator::admit(Some(&gen), &next, &renderer, budget).unwrap();
     assert_eq!(admitted, Admitted::MakeRoom);
     renderer.release_tree();
     assert!(
-        renderer.gpu().ledger.live() <= held - tree,
+        gen.held_beside_pools() <= held - tree,
         "the tree's buffers let go"
     );
     // The screen is empty of the tree while the next builds.
@@ -70,13 +70,13 @@ fn a_tree_that_fits_only_alone_lets_the_drawn_tree_go_first() {
 
 #[test]
 fn a_tree_that_does_not_fit_even_alone_is_refused_and_the_drawn_tree_kept() {
-    let Some((mut renderer, _gen, held, tree)) = drawn() else {
+    let Some((mut renderer, gen, held, tree)) = drawn("european-beech") else {
         return;
     };
     let next = family("european-beech", 30);
     let before = still(&mut renderer);
     let budget = held - tree + peak(&next) - 1;
-    let refused = Generator::admit(&next, &renderer, budget).unwrap_err();
+    let refused = Generator::admit(Some(&gen), &next, &renderer, budget).unwrap_err();
     assert!(
         refused
             .to_string()
@@ -86,4 +86,27 @@ fn a_tree_that_does_not_fit_even_alone_is_refused_and_the_drawn_tree_kept() {
     let after = still(&mut renderer);
     assert!(after.has_subject());
     assert_eq!(after.stats.instances, before.stats.instances);
+}
+
+/// The owner's walk the reviewers named (fn-235 review): a spruce at 12
+/// drawn, then the spruce at 80, under the page's own 6 GiB. The pools
+/// the 12 left are the 80's to reuse, so it builds, beside or alone.
+#[test]
+fn the_spruce_at_80_follows_the_spruce_at_12_under_the_page_budget() {
+    let Some((renderer, gen, held, tree)) = drawn("norway-spruce") else {
+        return;
+    };
+    let next = family("norway-spruce", 80);
+    let admitted = Generator::admit(Some(&gen), &next, &renderer, super::budget::BROWSER);
+    let (pool, regions) = gen.fine_pool_bytes();
+    let mib = |b: u64| b >> 20;
+    let said = format!(
+        "held {} MiB beside pools {} + regions {} MiB, tree {} MiB",
+        mib(held),
+        mib(pool),
+        mib(regions),
+        mib(tree)
+    );
+    assert!(admitted.is_ok(), "{said}: {admitted:?}");
+    println!("{said}: {:?}", admitted.unwrap());
 }

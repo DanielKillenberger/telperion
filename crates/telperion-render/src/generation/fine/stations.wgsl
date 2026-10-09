@@ -196,7 +196,7 @@ fn starts_run(i: u32) -> bool {
 fn stub(i: u32) -> u32 {
     var at = i;
     // cap: the nodes; no path up is longer.
-    var cap = cfg.n;
+    var cap = arrayLength(&nodes) / NW;
     while (word(at, 9u) & FINE) != 0u && cap > 0u {
         cap -= 1u;
         at = parent(at);
@@ -277,9 +277,10 @@ fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
     var length = grown(first);
     var n = 2u;
     var at = first;
-    // cap: the nodes; no run is longer.
+    // cap: the nodes; no run is longer (`cfg.n` counts runs here).
+    let cap = arrayLength(&nodes) / NW + 1u;
     loop {
-        if n > cfg.n + 1u {
+        if n > cap {
             break;
         }
         let c = next(at);

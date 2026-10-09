@@ -41,3 +41,10 @@
 - Hindered: the load average ran 7 to 40 from other agents' builds; the same `grow` source made in 12 to 45 s across runs, so the cold test passes or fails with the machine's load, not the change. `cargo fmt -p telperion-render` also rewrites three files nobody touched (an example and two integration tests) on every run.
 - Cost: about 30 minutes of repeated cold compiles; a stray-diff revert after each format.
 - Would remove it: cold-compile bounds measured on an idle machine (or the test reading the load and saying so), and the three files formatted once on master.
+
+## 2026-10-09, task 1: other agents' GPU runs beside this one
+
+- Doing: re-running `generation::fine` after the review's fixes.
+- Hindered: two runs at four test threads failed on "Not enough memory left" and "Out of Memory" while the kernel logged NVIDIA "can't alloc VA space" (66 lines in 25 minutes, and bursts at 02:31-02:36 and 03:08-03:11 too); other worktrees' GPU tests (e.g. blossom's `blossom_measure`) ran outside this session's GPU lock. The same tests one at a time passed (45 of 45).
+- Cost: about 10 minutes and two suite runs.
+- Would remove it: one GPU lock every worktree's GPU runs take, not one per session.

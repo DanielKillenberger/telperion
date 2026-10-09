@@ -169,7 +169,16 @@ at load 9 to 40: 17.0 / 13.8 s and 45 / 26 s, so it costs `grow` about
 1 to 2 s cold; the 20 s exception still holds below a load of about 10.
 
 The worst submission at 80, each waited for alone
-(`every_submission_at_80_within_a_second`, a device-limits probe), RTX
+(`every_submission_at_80_within_its_caps`, a device-limits probe), RTX
 3080: beech 152 to 160 ms (`girths`), oak 96 ms, spruce 62 ms, date palm
 1 ms; all under 1 s. Twice the spruce's child exited 101 right after the
 beech's, before the test kept its words; four runs since passed.
+
+After review (round 1): the submission test now groups the roots as the
+browser does (`TELPERION_UNSOWN`, no sowing during settlement) and also
+holds each submission to 256 generation dispatches and 2^23 workgroups
+(measured 214 and 5,065,044, the spruce's): worst 172 ms (beech), 170
+(oak), 65 (spruce), 1 (date palm). Admission now counts the generator's
+pools and regions once (the measured peak already holds them): after a
+spruce at 12, 1,176 MiB of regions and 17 MiB of pool are the 80's to
+reuse, and the spruce at 80 builds beside it under 6 GiB.
