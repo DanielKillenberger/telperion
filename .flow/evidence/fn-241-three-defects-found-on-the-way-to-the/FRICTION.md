@@ -34,3 +34,14 @@
 - **Slowed:** two of four runs failed at the spruce at 80 with `DeviceRefused { "Out of Memory" }`, a flake.
 - **Cost:** two runs, about 3 minutes.
 - **Would remove it:** a device poll after each tree is dropped, now in the test; it passed the next three runs.
+
+## 2026-10-09: R3's named route buys 0.2 s of the 1.4 s it needs
+
+- **Doing:** restoring the cold build's 1.5 s margin besides `grow` after the F4 merge.
+- **Measured** (beech at 20, cold, under the lock, two runs each):
+  - Base: 4.87 and 4.94 s besides `grow`, so 0.13 s of margin. The other pipelines total 3.9 s: `girths` 1.07, `asks` 1.07, `bends` and `lays` 0.34 each, `dress` 0.26. The build itself is 0.85 s.
+  - The named route (the place threshold's log-odds from the CPU table) takes `asks` from 1.07 to 0.99 s.
+  - One `lead_q`/`presence` call site for the ask and its place takes it to 0.87 s. Besides `grow`: 4.77 s.
+- **Slowed:** each try is a 40 s cold build under the shared lock, and the gain per inlined call site removed is a few hundred ms. Reaching 3.5 s means slimming `girths` as well (three `section_q` and two `radius_q` copies inlined).
+- **Cost:** about 15 minutes so far.
+- **Would remove it:** a per-pipeline cold-compile budget in the cold-build test, so a shader that grows its compile time is named when it lands, not when the first-tree total runs out of margin.

@@ -6,8 +6,8 @@
 // sleeps at) and `words` (each node's threshold and bound, then each
 // node's bound's `logit` or `log2` (task 8), the laterals'
 // and sleeping buds' thresholds, all ones for none, each cycle's window,
-// Q32, the waking delay and years a nat, and each cycle's gate on
-// sleeping buds).
+// Q32, the waking delay and years a nat, each cycle's gate on sleeping
+// buds, the places' thresholds and each one's `logit` (fn-241)).
 
 const MOST: u32 = 64u;
 const ZW: u32 = 14u;
@@ -101,18 +101,6 @@ fn drawn_pa(start: u32, n: u32, key: vec2<u32>) -> u32 {
 fn stands(at: u32, s: u32, place: vec2<u32>) -> bool {
     let t = words[table[at + 12u] + s];
     return !lt64(t, vec2<u32>(0u, 0x200000u)) || lt64(draw(child(place, KEY_PLACED)), t);
-}
-
-// The presence, Q32, over `window` of the draw that made that place stand:
-// its lead under its threshold; a whole place's is whole
-// (`lineage::place_presence`, fn-231).
-fn place_q(at: u32, s: u32, place: vec2<u32>, window: vec2<u32>) -> vec2<u32> {
-    let t = words[table[at + 12u] + s];
-    if !lt64(t, vec2<u32>(0u, 0x200000u)) {
-        return one32();
-    }
-    let d = draw(child(place, KEY_PLACED));
-    return presence(lead_q(vec2<u32>(0u), t, d, vec4<u32>(0u), 0u), window);
 }
 
 // The PA bud place `place` drew, 0xff for a bare one.
