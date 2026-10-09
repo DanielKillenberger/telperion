@@ -514,12 +514,26 @@
 # rows, dormant while no age flowers, which is the case with the group off.
 /supernatural/enabled = true
 
-# The elder and the loftier of the Two Trees: the beech drawn 2.4 times
-# its size, after the engine grew it, so it keeps the beech's form, 47 to
-# 50 m tall against Laurelin's 44.5. At 120 years, scales of 2.5 and 3
-# thinned the crown to twigs, because the leaves keep their natural size
-# (fn-219 SHEET.md).
-/supernatural/scale = 2.4
+# The elder and the loftier of the Two Trees (fn-248): the beech's coarse
+# ages (stem, leader, fork, limbs, boughs, spurs) grow internodes 2.6
+# times and pipes 3 times the natural ones, while the fine ages (branch
+# systems, shoots, short shoots) stay the beech's, so his shoots and the
+# wood under his leaves are the beech's own. 49 m tall and 51 m across,
+# against Laurelin's 45, as the old uniform scale of 2.4 drew him. At 120
+# years, scales of 2.5 and 3 thinned the crown to twigs, because the
+# leaves keep their natural size (fn-219 SHEET.md).
+/supernatural/internode/age2 = 0.182
+/supernatural/internode/age4 = 0.104
+/supernatural/internode/age5 = 0.104
+/supernatural/internode/age6 = 0.104
+/supernatural/internode/age7 = 0.104
+/supernatural/internode/age8 = 0.104
+/supernatural/pipe/age2 = 0.024
+/supernatural/pipe/age4 = 0.024
+/supernatural/pipe/age5 = 0.024
+/supernatural/pipe/age6 = 0.024
+/supernatural/pipe/age7 = 0.024
+/supernatural/pipe/age8 = 0.024
 
 # Leaves dark green above and shining silver beneath. Every view but the
 # close one looks up into the crown and sees mostly undersides, so the

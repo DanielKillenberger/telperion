@@ -146,7 +146,9 @@
 //! overrides (`/supernatural/internode/age<k>`, `/supernatural/pipe/age<k>`):
 //! with their empty tables stripped from the text and the wire, the family,
 //! walk and override digests were each part 2's to the bit; the refusal
-//! digest takes the new rows' own refusals and re-pairs by index.
+//! digest takes the new rows' own refusals and re-pairs by index. The
+//! family and walk digests were re-pinned once more for Laurelin's and
+//! Telperion's coarse-age rows, their scale back at one.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -182,7 +184,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        4_387_717_111_125_515_632,
+        16_336_349_329_733_697_308,
         "{}",
         digest(&text)
     );
@@ -214,7 +216,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        16_522_166_025_792_163_370,
+        15_229_142_524_413_183_697,
         "{}",
         digest(&text)
     );

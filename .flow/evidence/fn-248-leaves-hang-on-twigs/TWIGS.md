@@ -282,3 +282,43 @@ The `/space` rows are not catalogue rows. They are an indexed grammar of their o
 **One alternative, not proposed.** A generic `/supernatural/space/ages/<k>/<setting>` group that reuses the `/space` grammar would cover every setting at once. It is not a catalogue row group, though, so the wire, the blend, the dials and the harness would each need a new path. That is larger and departs from fn-217's convention.
 
 Waiting for the host's go-ahead before building.
+
+## Part 3 built: the Two Trees' size from their coarse ages (worker, 2026-10-09)
+
+**The capability (`79304adf`).**
+- **The rows.** `/supernatural/internode/age<k>` and `/supernatural/pipe/age<k>`, 30 catalogue rows on the flowering convention, laid over the engine's rows while the group is on.
+- **Tests.**
+  - With the group off, nothing is applied (`Cow::Borrowed`).
+  - An age's override moves only that age.
+  - A walk ramps each age's override in from its natural row.
+  - Rows off their bounds are refused by name (`supernatural internode`, `supernatural pipe`).
+  - The device grows the same tree as the CPU: on the beech at 30 with ages 4, 6 and 7 overridden, the tree is taller than the natural one by more than a fifth, and all 6,939 leaves are compared, each within the screen.
+  - With the empty tables stripped from the text and the wire, the family, walk and override catalogue digests were each part 2's to the bit.
+
+**The values.** Tuned with `twig_layer` against today's sizes (`raw/twig_layer-part3.log`).
+- The coarse ages are 2 (stem) and 4 to 8 (leader, fork, limbs, boughs, spurs).
+- Laurelin: internode ×2.6, pipe ×3.4.
+- Telperion: internode ×2.6, pipe ×3.0.
+- `/supernatural/scale` goes back to 1.
+- The fine ages (9 branch systems, 12 shoots, 14 short shoots) stay the beech's.
+
+| Seed 1 | Height | Spread | Stem radius at 1.3 m | Current-year shoot, median | Wood under a leaf, median |
+|---|---|---|---|---|---|
+| Laurelin today (scale 2.5) | 44.3 m | 43.1 × 47.6 m | 1.161 m | 60 mm, 6.4 mm thick | 4.75 mm |
+| Laurelin, part 3 | 44.9 m (+1 %) | 44.3 × 44.5 m (+3 %, −7 %) | 1.174 m | 24 mm, 2.6-2.9 mm | 1.90 mm |
+| Telperion today (scale 2.4) | 46.9 m | 55.4 × 51.9 m | 1.341 m | 58 mm, 5.1-6.1 mm | 4.56 mm |
+| Telperion, part 3 | 48.9 m (+4 %) | 50.7 × 51.7 m (−8 %, 0 %) | 1.298 m | 24 mm, 2.6-3.1 mm | 1.90 mm |
+| The beech at 80 / 92 | 17.7 / 19.5 m | | 0.494 / 0.594 m | 24 mm, 2.1-2.6 mm | 1.90 mm |
+
+Both targets are met. Height and spread are within 10 % of today's, and the shoots and the wood under the leaves are the beech's.
+
+**Frame time at 1080p** (`headless --timing`, p50 total):
+- Telperion: 121 ms at base → 101.5 ms.
+- Laurelin: 89 ms at base → 68.9 ms.
+- Florets dominate both draws: 8.6M and 10.4M, unchanged.
+
+**The stills, viewed** (`TWIGS-part3.jpg`, `TWIGS-part3-whole.jpg`).
+- **Close.** The twigs are now ordinary twigs: thin shoots with leaves on petioles beside the real shoot. The racemes (Laurelin) and the corymbs (Telperion) dominate the view.
+- **Whole.** Both crowns now read as open, branchy and nearly leafless, a winter tree hung with flowers. Each tree now carries the natural beech's fine wood and leaves, within 1 % (365,167 against the beech's 361,315 at 80; 526,031 against 520,885 at 92), spread over a crown about 2.5 times as wide. That is about one sixth of the leaf density per area of crown. Under the uniform scale the same branch systems were 2.5 times larger and filled the crown.
+
+**For the host before the remaining proofs.** The contact error, Astra, the gate, npm test and impl-review are held until the values are settled, because each would be spent again on any change. The size targets are met, but the crown no longer reads as a full tree. Neither the scale nor these rows add branch systems, as Astra noted; a giant crown of ordinary twigs needs more of them. Whether to accept the open crown, raise the fine ages' branching, or pursue another route is the host's design call.

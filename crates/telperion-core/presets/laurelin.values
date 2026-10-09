@@ -509,9 +509,26 @@
 # rows, dormant while no age flowers, which is the case with the group off.
 /supernatural/enabled = true
 
-# Broad and nearly as tall as Telperion: the beech drawn three times its
-# size, after the engine grew it, so it keeps the beech's form.
-/supernatural/scale = 2.5
+# Broad and nearly as tall as Telperion (fn-248): the beech's coarse ages
+# (stem, leader, fork, limbs, boughs, spurs) grow internodes 2.6 times and
+# pipes 3.4 times the natural ones, while the fine ages (branch systems,
+# shoots, short shoots) stay the beech's. The engine computes attachment
+# and girth, so her shoots and the wood under her leaves are the beech's
+# own, at 45 m tall and 44 m across, as the old uniform scale of 2.5 drew
+# her. Her natural internodes: 0.07 m on the stem, 0.04 on the others;
+# pipes 0.008.
+/supernatural/internode/age2 = 0.182
+/supernatural/internode/age4 = 0.104
+/supernatural/internode/age5 = 0.104
+/supernatural/internode/age6 = 0.104
+/supernatural/internode/age7 = 0.104
+/supernatural/internode/age8 = 0.104
+/supernatural/pipe/age2 = 0.0272
+/supernatural/pipe/age4 = 0.0272
+/supernatural/pipe/age5 = 0.0272
+/supernatural/pipe/age6 = 0.0272
+/supernatural/pipe/age7 = 0.0272
+/supernatural/pipe/age8 = 0.0272
 
 # Young green like the new-opened beech, with edges of glittering gold.
 /supernatural/material/leafFrontRed = 0.03

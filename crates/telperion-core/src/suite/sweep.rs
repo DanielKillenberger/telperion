@@ -81,7 +81,7 @@ const SWEEP_NODES: usize = 8_000;
 // with the rest of the scaffold; the birch (fn-213) moves the envelope, the
 // clump, the peel, the curtain and the twig length, so the sweep walks
 // those. Every preset is now an engine preset, so every pair is walked.
-const HELD: [&str; 148] = [
+const HELD: [&str; 136] = [
     "/bloom/florets",
     "/bloom/rachis",
     "/bloom/droop",
@@ -192,13 +192,7 @@ const HELD: [&str; 148] = [
     "/supernatural/flowering/age13",
     "/supernatural/internode/age0",
     "/supernatural/internode/age1",
-    "/supernatural/internode/age2",
     "/supernatural/internode/age3",
-    "/supernatural/internode/age4",
-    "/supernatural/internode/age5",
-    "/supernatural/internode/age6",
-    "/supernatural/internode/age7",
-    "/supernatural/internode/age8",
     "/supernatural/internode/age9",
     "/supernatural/internode/age10",
     "/supernatural/internode/age11",
@@ -207,13 +201,7 @@ const HELD: [&str; 148] = [
     "/supernatural/internode/age14",
     "/supernatural/pipe/age0",
     "/supernatural/pipe/age1",
-    "/supernatural/pipe/age2",
     "/supernatural/pipe/age3",
-    "/supernatural/pipe/age4",
-    "/supernatural/pipe/age5",
-    "/supernatural/pipe/age6",
-    "/supernatural/pipe/age7",
-    "/supernatural/pipe/age8",
     "/supernatural/pipe/age9",
     "/supernatural/pipe/age10",
     "/supernatural/pipe/age11",
