@@ -1289,6 +1289,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "backRed": 1,
         "backReflectance": 0,
         "bloom": {},
+        "canopy": {},
         "enabled": false,
         "flowering": {},
         "internode": {},
@@ -2155,6 +2156,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "backRed": 1,
         "backReflectance": 0,
         "bloom": {},
+        "canopy": {},
         "enabled": false,
         "flowering": {},
         "internode": {},
@@ -2878,6 +2880,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "backRed": 1,
         "backReflectance": 0,
         "bloom": {},
+        "canopy": {},
         "enabled": false,
         "flowering": {},
         "internode": {},
@@ -3624,6 +3627,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "backRed": 1,
         "backReflectance": 0,
         "bloom": {},
+        "canopy": {},
         "enabled": false,
         "flowering": {},
         "internode": {},
@@ -4380,6 +4384,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "backRed": 1,
         "backReflectance": 0,
         "bloom": {},
+        "canopy": {},
         "enabled": false,
         "flowering": {},
         "internode": {},
@@ -4736,6 +4741,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "backRed": 1,
         "backReflectance": 0,
         "bloom": {},
+        "canopy": {},
         "enabled": false,
         "flowering": {},
         "internode": {},
@@ -5499,6 +5505,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "stamenWidth": 0.0004,
           "stamens": 12,
           "taper": 0.3
+        },
+        "canopy": {
+          "size": 2.3
         },
         "enabled": true,
         "flowering": {
@@ -6286,6 +6295,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "stamenWidth": 0.0006,
           "stamens": 5,
           "taper": 0.35
+        },
+        "canopy": {
+          "size": 2.4
         },
         "enabled": true,
         "flowering": {

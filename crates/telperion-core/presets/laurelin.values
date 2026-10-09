@@ -533,6 +533,11 @@
 /supernatural/pipe/age6 = 0.0272
 /supernatural/pipe/age7 = 0.0272
 /supernatural/pipe/age8 = 0.0272
+# Leaves larger than the beech's (fn-248): her crown is about 2.5 times
+# as wide on the beech's own fine wood and twigs, so leaves 2.4 times the
+# element (the beech's 1.1) bring the crown's leaf area index to 6.2, in the
+# range measured in beech forests (Glatthorn et al. 2017).
+/supernatural/canopy/size = 2.4
 
 # Young green like the new-opened beech, with edges of glittering gold.
 /supernatural/material/leafFrontRed = 0.03

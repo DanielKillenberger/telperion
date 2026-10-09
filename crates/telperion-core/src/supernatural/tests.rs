@@ -36,8 +36,10 @@ pub(crate) fn legendary(enabled: bool) -> Supernatural {
 #[test]
 fn every_override_mirrors_its_natural_row() {
     let pairs: Vec<_> = mirrored().collect();
-    let declared = SupernaturalMaterial::ROWS.len() + SupernaturalBloom::ROWS.len();
-    assert_eq!((pairs.len(), declared), (29, 29));
+    let declared = SupernaturalMaterial::ROWS.len()
+        + SupernaturalBloom::ROWS.len()
+        + SupernaturalCanopy::ROWS.len();
+    assert_eq!((pairs.len(), declared), (30, 30));
     for (over, natural) in pairs {
         let (o, n) = (over.info(), natural.info());
         assert_eq!(over.path(), format!("/supernatural{}", natural.path()));
@@ -65,6 +67,7 @@ fn a_group_that_is_on_lays_each_override_over_its_natural_row() {
     assert_eq!(f.material.leaf_front_red, 0.25);
     assert_eq!(f.material.margin_red, -0.5);
     assert_eq!(f.bloom.florets, 1.0 + 0.25 * 63.0);
+    assert_eq!(f.canopy.size, 250.0);
     // A row the group does not override stays the natural one.
     assert_eq!(f.material.bark_red, beech.material.bark_red);
     let states = &f.space.species.as_ref().unwrap().states;
@@ -80,6 +83,15 @@ fn a_group_that_is_on_lays_each_override_over_its_natural_row() {
     one.supernatural.bloom.petals = Some(6.0);
     let f = one.applied();
     assert_eq!((f.bloom.petals, f.bloom.open), (6.0, one.bloom.open));
+    // The leaf's size alone moves only its own row (fn-248).
+    let mut large = Preset::EuropeanBeech.parameters();
+    large.supernatural.enabled = true;
+    large.supernatural.canopy.size = Some(2.0);
+    let f = large.applied();
+    assert_eq!(
+        (f.canopy.size, f.canopy.size_variation),
+        (2.0, large.canopy.size_variation)
+    );
     // An age's internode or pipe alone moves only its own age (fn-248).
     let mut coarse = Preset::EuropeanBeech.parameters();
     coarse.supernatural.enabled = true;
@@ -115,7 +127,9 @@ fn a_walk_from_the_group_off_ramps_up_from_the_natural_rows() {
         let natural = off.material.leaf_front_red;
         assert_eq!(g.material.leaf_front_red, Some((natural + 0.25) / 2.0));
         assert_eq!(g.flowering.get(3), Some(0.25));
-        // An age's internode and pipe walk up from the natural rows too.
+        // The leaf's size, an age's internode and its pipe walk up from the
+        // natural rows too.
+        assert_eq!(g.canopy.size, Some(linear(off.canopy.size, 250.0, 0.5)));
         let age = &off.space.species.as_ref().unwrap().states[6];
         assert_eq!(g.internode.get(6), Some(linear(age.internode, 0.2, 0.5)));
         assert_eq!(g.pipe.get(6), Some(linear(age.form.pipe, 0.01, 0.5)));
@@ -144,7 +158,12 @@ fn a_row_off_its_bounds_is_refused_by_name_whether_or_not_the_group_is_on() {
         let name = "supernatural material marginBlue";
         assert_eq!(f.validate(), Err(Error::InvalidInput(name)));
         f.supernatural.material.margin_blue = None;
-        // An age's internode and pipe off their bounds (fn-248).
+        // The leaf's size, an age's internode and pipe off their bounds
+        // (fn-248).
+        f.supernatural.canopy.size = Some(1000.5);
+        let name = "supernatural canopy size";
+        assert_eq!(f.validate(), Err(Error::InvalidInput(name)));
+        f.supernatural.canopy.size = None;
         f.supernatural.internode.set(4, 0.0);
         let name = "supernatural internode";
         assert_eq!(f.validate(), Err(Error::InvalidInput(name)));

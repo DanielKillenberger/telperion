@@ -408,7 +408,11 @@ fn the_real_path_grows_the_overridden_ages_the_cpu_path_grows() {
     // The overrides grow the limbs and boughs longer: the tree is taller.
     let tall = |f: &telperion_core::Family| {
         let x = executor::grow(f).unwrap().expansion().unwrap();
-        x.tree().nodes.iter().map(|n| n.position.y).fold(0.0, f64::max)
+        x.tree()
+            .nodes
+            .iter()
+            .map(|n| n.position.y)
+            .fold(0.0, f64::max)
     };
     let natural = tall(&family("european-beech", (30, 1)));
     assert!(tall(&f) > 1.2 * natural, "{} against {natural}", tall(&f));
@@ -420,6 +424,26 @@ fn the_real_path_grows_the_overridden_ages_the_cpu_path_grows() {
     assert_eq!(u64::from(device), reference, "leaves");
     assert_eq!(p.leaves.left, (0, 0, 0), "every leaf compared");
     assert_eq!(p.leaves.over.0, 0, "positions");
+}
+
+/// fn-248: the leaf's size overridden by the supernatural group is the
+/// size the device places, as the CPU does.
+#[test]
+fn the_real_path_places_the_overridden_leaf_size_the_cpu_path_places() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let (k, gen) = (kernels(&gpu), generator(&gpu));
+    let mut f = family("european-beech", (30, 1));
+    f.supernatural.enabled = true;
+    f.supernatural.canopy.size = Some(2.0 * f.canopy.size);
+    let p = parity(&gpu, &k, &gen, &f);
+    println!("european-beech (30, 1) larger leaves: {p:?}");
+    assert_eq!(p.leaves.flags, 0, "placement flags");
+    let (device, reference) = p.leaves.leaves;
+    assert_eq!(u64::from(device), reference, "leaves");
+    assert_eq!(p.leaves.left, (0, 0, 0), "every leaf compared");
+    assert_eq!(p.leaves.over, (0, 0, 0), "position, direction and scale");
 }
 
 /// The parity probe at 40 and 80 (`cargo test --profile ci -p

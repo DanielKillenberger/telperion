@@ -673,6 +673,10 @@ export interface Family {
       /** `/bloom/stagger` while the group is on; unset, the natural row. */
       stagger?: number;
     };
+    canopy: {
+      /** `/canopy/size` while the group is on; unset, the natural row. */
+      size?: number;
+    };
     flowering: {
       /** `/space/ages/0/flowering` while the group is on; unset, the natural share. */
       age0?: number;
@@ -1120,6 +1124,7 @@ export const PARAMETERS: readonly Parameter[] = [
   { path: "/supernatural/bloom/opens", kind: "real", optional: true, meaning: "`/bloom/opens` while the group is on; unset, the natural row.", unit: "share of the year", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
   { path: "/supernatural/bloom/lasts", kind: "real", optional: true, meaning: "`/bloom/lasts` while the group is on; unset, the natural row.", unit: "share of the year", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
   { path: "/supernatural/bloom/stagger", kind: "real", optional: true, meaning: "`/bloom/stagger` while the group is on; unset, the natural row.", unit: "share of the window", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
+  { path: "/supernatural/canopy/size", kind: "real", optional: true, meaning: "`/canopy/size` while the group is on; unset, the natural row.", unit: "multiple of the element", low: 0, high: 1000, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
   { path: "/supernatural/flowering/age0", kind: "real", optional: true, meaning: "`/space/ages/0/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
   { path: "/supernatural/flowering/age1", kind: "real", optional: true, meaning: "`/space/ages/1/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },
   { path: "/supernatural/flowering/age2", kind: "real", optional: true, meaning: "`/space/ages/2/flowering` while the group is on; unset, the natural share.", unit: "share of the age's nodes", low: 0, high: 1, lowOpen: false, zero: false, applies: "`/supernatural/enabled` off", reach: "mature" },

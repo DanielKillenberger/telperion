@@ -3208,6 +3208,18 @@ How rough the back and the margin are as mirrors: low is a sharp glint, high a b
 - dormant: `/supernatural/enabled` off
 - blend: with the rows it is coupled to; dial: none
 
+## `/supernatural/canopy`
+
+### `/supernatural/canopy/size`
+
+`/canopy/size` while the group is on; unset, the natural row.
+
+- optional real, multiple of the element, [0, 1000], default unset
+- read by plan, expand; removed growth path: as the direct build
+- checked: Supernatural site, rank 0, as invalid input `supernatural canopy size`
+- dormant: `/supernatural/enabled` off
+- blend: with the rows it is coupled to; dial: none
+
 ## `/supernatural/flowering`
 
 ### `/supernatural/flowering/age0`

@@ -150,7 +150,12 @@
 //! family and walk digests were re-pinned once more for Laurelin's and
 //! Telperion's coarse-age rows, their scale back at one; and again for the
 //! beech's short shoots (lifespan 4, clusters of 4), which the Two Trees
-//! share (the leaf area index).
+//! share (the leaf area index). The group's leaf size override
+//! (`/supernatural/canopy/size`) re-pinned all four: with its empty row
+//! stripped from the text and the wire, the family, walk and override
+//! digests were each the last pins to the bit; the refusal digest takes the
+//! new row's refusal. The family and walk digests then take the Two Trees'
+//! leaf sizes.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -186,7 +191,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        8_288_336_263_324_112_620,
+        12_369_441_481_511_188_422,
         "{}",
         digest(&text)
     );
@@ -218,7 +223,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        7_843_666_192_139_322_573,
+        14_368_435_046_122_266_772,
         "{}",
         digest(&text)
     );
@@ -243,7 +248,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        15_534_132_823_607_184_593,
+        7_411_754_593_062_895_005,
         "{}",
         digest(&text)
     );
@@ -306,7 +311,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        17_361_867_547_988_757_821,
+        3_707_872_672_972_690_781,
         "{}",
         digest(&text)
     );

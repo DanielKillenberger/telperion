@@ -12,8 +12,8 @@ use crate::{
     material::MaterialParams,
     radius::RadiusParams,
     supernatural::{
-        Supernatural, SupernaturalBloom, SupernaturalFlowering, SupernaturalInternode,
-        SupernaturalMaterial, SupernaturalPipe,
+        Supernatural, SupernaturalBloom, SupernaturalCanopy, SupernaturalFlowering,
+        SupernaturalInternode, SupernaturalMaterial, SupernaturalPipe,
     },
     surface::SurfaceParams,
     twigs::{TwigAnatomy, TwigParams},
@@ -138,6 +138,7 @@ groups! {
     Supernatural: supernatural;
     SupernaturalMaterial: supernatural.material;
     SupernaturalBloom: supernatural.bloom;
+    SupernaturalCanopy: supernatural.canopy;
     SupernaturalFlowering: supernatural.flowering;
     SupernaturalInternode: supernatural.internode;
     SupernaturalPipe: supernatural.pipe;

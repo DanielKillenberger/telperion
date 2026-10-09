@@ -13,10 +13,12 @@ use crate::catalogue::{self, input, linear, value, Blend, Bounds, Dial, Entry, S
 use crate::{Family, Result};
 use std::borrow::Cow;
 
+mod canopy;
 mod flowering;
 mod internode;
 mod overrides;
 mod pipe;
+pub use canopy::SupernaturalCanopy;
 pub use flowering::SupernaturalFlowering;
 pub use internode::SupernaturalInternode;
 pub use overrides::{SupernaturalBloom, SupernaturalMaterial};
@@ -116,6 +118,7 @@ crate::catalogue::rows! {
         },
         pub material: SupernaturalMaterial,
         pub bloom: SupernaturalBloom,
+        pub canopy: SupernaturalCanopy,
         pub flowering: SupernaturalFlowering,
         pub internode: SupernaturalInternode,
         pub pipe: SupernaturalPipe,
@@ -161,6 +164,7 @@ impl Supernatural {
         roughness: Reflection::NONE.roughness,
         material: SupernaturalMaterial::NONE,
         bloom: SupernaturalBloom::NONE,
+        canopy: SupernaturalCanopy::NONE,
         flowering: SupernaturalFlowering::NONE,
         internode: SupernaturalInternode::NONE,
         pipe: SupernaturalPipe::NONE,
@@ -201,6 +205,7 @@ impl Supernatural {
             Site::Supernatural,
         )?;
         catalogue::check(SupernaturalBloom::CHECKS, &self.bloom, Site::Supernatural)?;
+        catalogue::check(SupernaturalCanopy::CHECKS, &self.canopy, Site::Supernatural)?;
         catalogue::check(
             SupernaturalFlowering::CHECKS,
             &self.flowering,
@@ -216,11 +221,11 @@ impl Supernatural {
 }
 
 /// Each override row of a family and the natural row it stands in for:
-/// the `/material` and `/bloom` overrides by their path.
+/// the `/material`, `/bloom` and `/canopy` overrides by their path.
 fn mirrored() -> impl Iterator<Item = (Entry, Entry)> {
     catalogue::entries().filter_map(|e| {
         let natural = e.path().strip_prefix("/supernatural")?;
-        let groups = ["/material/", "/bloom/"];
+        let groups = ["/material/", "/bloom/", "/canopy/"];
         groups
             .iter()
             .any(|g| natural.starts_with(g))
@@ -285,6 +290,7 @@ impl Supernatural {
         }
         set(SupernaturalMaterial::CHECKS, &self.material)
             || set(SupernaturalBloom::CHECKS, &self.bloom)
+            || set(SupernaturalCanopy::CHECKS, &self.canopy)
             || self.flowering.shares().any(|(_, v)| v.is_some())
             || self.internode.values().any(|(_, v)| v.is_some())
             || self.pipe.values().any(|(_, v)| v.is_some())
@@ -301,6 +307,7 @@ pub(crate) fn blend(a: &Family, b: &Family, t: f64) -> Supernatural {
         enabled: a.supernatural.enabled || b.supernatural.enabled,
         material: SupernaturalMaterial::NONE,
         bloom: SupernaturalBloom::NONE,
+        canopy: SupernaturalCanopy::NONE,
         flowering: SupernaturalFlowering::NONE,
         internode: SupernaturalInternode::NONE,
         pipe: SupernaturalPipe::NONE,
