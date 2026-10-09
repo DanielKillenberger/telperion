@@ -1,11 +1,176 @@
 {
   "branch_name": "fn-251-a-walk-never-grows-a-tree-larger-than",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-09T19:06:36.252001Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-251-a-walk-never-grows-a-tree-larger-than",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T19:15:28.673286Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "cc53b836d6b5ea4994cf01280f0bd869f156aa7dc2f60e94ea12e321f3fde092",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-41727e8071265a32be40733a13d2e341",
+            "classification": "introduced",
+            "findingId": "finding-41727e8071265a32be40733a13d2e341",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4d1dc66b0fb6d9b2f45e15fa4d4ac5d4",
+            "classification": "introduced",
+            "findingId": "finding-4d1dc66b0fb6d9b2f45e15fa4d4ac5d4",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9d7dc57c4a171f2a5300d28b5de7d7b2",
+            "classification": "introduced",
+            "findingId": "finding-9d7dc57c4a171f2a5300d28b5de7d7b2",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2a8dc3215acb8e6badcbe6f9d440cd34",
+            "classification": "introduced",
+            "findingId": "finding-2a8dc3215acb8e6badcbe6f9d440cd34",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e4a278f6de40d4a5bd6824ee3938a7147efa7328",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 477714,
+      "output_sha256": "87d993dfdc09c88dd3d6f65b4cede8f9aa4f01d8b68b5d21d3bfa2873659f842",
+      "reservation_id": "fe18306d4227493688837782e662afbe",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T19:14:12.596992Z",
+      "tool_calls": 23,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "eed8e0d81d886f6f4c579df206f669f75bcf2b6f65d14e028e637e4c0c44d767",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-41727e8071265a32be40733a13d2e341",
+            "classification": "introduced",
+            "findingId": "finding-41727e8071265a32be40733a13d2e341",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4d1dc66b0fb6d9b2f45e15fa4d4ac5d4",
+            "classification": "introduced",
+            "findingId": "finding-4d1dc66b0fb6d9b2f45e15fa4d4ac5d4",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-9d7dc57c4a171f2a5300d28b5de7d7b2",
+            "classification": "introduced",
+            "findingId": "finding-9d7dc57c4a171f2a5300d28b5de7d7b2",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2a8dc3215acb8e6badcbe6f9d440cd34",
+            "classification": "introduced",
+            "findingId": "finding-2a8dc3215acb8e6badcbe6f9d440cd34",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-eb5b8424cb279f612bc2b504a551d90f",
+            "classification": "introduced",
+            "findingId": "finding-eb5b8424cb279f612bc2b504a551d90f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e4a278f6de40d4a5bd6824ee3938a7147efa7328",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1174,
+      "output_sha256": "eed50c563947069d09b8339724677a120353fbe56828126a8add6dc464973b93",
+      "reservation_id": "c5dc5b47fc0f448cbcd63bcec1d78fb6",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T19:15:28.670174Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-251-a-walk-never-grows-a-tree-larger-than.md",
   "status": "open",
   "title": "A walk never grows a tree larger than its ends",
@@ -20,5 +185,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T19:06:36.261335Z"
+  "updated_at": "2026-10-09T19:15:37.293766Z"
 }
