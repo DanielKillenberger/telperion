@@ -21,6 +21,7 @@ const G_EXPONENT: u32 = 27u;
 const G_INVERSE: u32 = 29u;
 const G_RIPENING: u32 = 31u;
 const G_SECONDARY: u32 = 33u;
+const G_RELAY_AT: u32 = 35u;
 
 fn gq(pa: u32, f: u32) -> vec2<u32> {
     let b = 4u + GG * pa + f;
@@ -67,6 +68,12 @@ fn radius_q(section: vec4<u32>, inverse: vec2<u32>) -> vec2<u32> {
     return exp2q(mulq(inverse, log2_w(section)));
 }
 
+// `split`: a section's share `s` (Q32), floored, and the rest.
+fn split_q(x: vec4<u32>, s: vec2<u32>) -> array<vec4<u32>, 2> {
+    let part = mul_shr(x, ext4(s), 32u).v;
+    return array<vec4<u32>, 2>(part, sub4(x, part));
+}
+
 // A Q32 as a float.
 fn real_q(q: vec2<u32>) -> f32 {
     let neg = negative(q);
@@ -92,6 +99,7 @@ fn borne_w(j: u32, node: u32, v: vec4<u32>) {
 fn girth_realized(ch: Chain) {
     for (var i = 0u; i < ch.na; i++) {
         ssw(i, S_SECTION, vec4<u32>(0u));
+        ssw(i, S_BASE, vec4<u32>(0u));
     }
     for (var p = 0u; p < ch.np; p++) {
         spw(p, vec4<u32>(0u));
@@ -135,8 +143,10 @@ fn girth_realized(ch: Chain) {
             let root = radius_q(section, inverse);
             let weighed = add64(mulq(secondary, root), mulq(sub64(one32(), secondary), established));
             out[at + 18u] = real_q(weighed);
+            // The section it carries, for its relays' joins (`joins`).
+            spw(s(j, S_START) + n - 1u, section);
         }
-        let radius = radius_q(section, inverse);
+        let radius = radius_q(add4(section, sw(j, S_BASE)), inverse);
         if j == 1u {
             let at = cfg.mine + CR * ch.wi;
             records[at] = real_q(radius);
@@ -153,8 +163,55 @@ fn girth_realized(ch: Chain) {
             ssw(p, S_SECTION, add4(sw(p, S_SECTION), carried));
             continue;
         }
-        // A relay's enters at the node it grows from (`girth::thicken`,
-        // fn-244); past the parent's nodes, at its tip.
-        borne_w(p, node, carried);
+        // A relay's enters where it joins (`girth::thicken`, fn-244): its
+        // share at the node whose span it stands in, the rest at the node
+        // before, or below the parent's first node; past the parent's
+        // nodes, at its tip. Its section is kept for its join.
+        ssw(j, S_SECTION, carried);
+        let count = s(p, S_COUNT);
+        if count == 0u {
+            ssw(p, S_SECTION, add4(sw(p, S_SECTION), carried));
+            continue;
+        }
+        let kt = split_x(attach_q(j), count - 1u);
+        let parts = split_q(carried, kt.yz);
+        borne_w(p, kt.x, parts[0]);
+        if kt.x == 0u {
+            ssw(p, S_BASE, add4(sw(p, S_BASE), parts[1]));
+        } else {
+            borne_w(p, kt.x - 1u, parts[1]);
+        }
+    }
+    joins_realized(ch);
+}
+
+// Each relay's join (`telperion_space::Join`, fn-244): its parent's node
+// and share, and the parent's radius there with the relay whole (below
+// the join) and without it (above), from the section the parent's node
+// carries, weighed as that node is; the node `NONE` where nothing joins.
+fn joins_realized(ch: Chain) {
+    for (var j = 2u; j < ch.na; j++) {
+        ss(j, S_JOIN, NONE);
+        let p = ax(j, PARENT);
+        let n = s(p, S_COUNT);
+        if kind_of(j) != RELAYED || s(j, S_OWN) == NONE || s(p, S_OWN) == NONE || n == 0u {
+            continue;
+        }
+        let kt = split_x(attach_q(j), n - 1u);
+        let parts = split_q(sw(j, S_SECTION), kt.yz);
+        let section = pw(s(p, S_START) + kt.x);
+        let pa = ax(p, PA);
+        let inverse = gq(pa, G_INVERSE);
+        let secondary = gq(pa, G_SECONDARY);
+        let scale = q32_f(out[lo(p, kt.x) + 19u]);
+        let first_ripe = ripe(one32(), gq(pa, G_RIPENING));
+        let established = prod_shr(gq(pa, G_PIPE), scale, first_ripe, w(1u, 0u), 64u).v.xy;
+        let below = radius_q(add4(section, parts[1]), inverse);
+        let above = radius_q(sub4(section, parts[0]), inverse);
+        let weigh = sub64(one32(), secondary);
+        ss(j, S_JOIN, kt.x);
+        ssf(j, S_JOIN + 1u, real_q(vec2<u32>(kt.y, kt.z)));
+        ssf(j, S_JOIN + 2u, real_q(add64(mulq(secondary, below), mulq(weigh, established))));
+        ssf(j, S_JOIN + 3u, real_q(add64(mulq(secondary, above), mulq(weigh, established))));
     }
 }

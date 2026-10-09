@@ -74,7 +74,29 @@ fn frame_of(i: u32, bent: bool, bearer: u32, below: vec3<f32>, bearer_pa: u32) -
     let heading = unit_or(along * (1.0 - b) + t[0] * b, t[0]);
     let sd = across * (1.0 - b) + t[1] * b;
     let side = unit_or(sd - heading * dot(sd, heading), across);
-    return array<vec3<f32>, 3>(tip + (at[0].xyz - tip) * b, heading, side);
+    // Its base where it joins the parent, on the parent's wood
+    // (`geometry::attach`, fn-244).
+    var base = tip;
+    if b > 0.0 {
+        base = point_on(p, attach_q(i), o);
+    }
+    return array<vec3<f32>, 3>(base, heading, side);
+}
+
+// The point at position `x` along own axis `p` (`stand::at`): `t` of the
+// way along its node `k`'s span; its base where it has no nodes.
+fn point_on(p: u32, x: vec2<u32>, o: u32) -> vec3<f32> {
+    let n = s(p, S_COUNT);
+    if n == 0u {
+        return s3(p, S_FRAME);
+    }
+    let kt = split_x(x, n - 1u);
+    var start = s3(p, S_FRAME);
+    if kt.x > 0u {
+        start = o3(lo(p, kt.x - 1u) + o);
+    }
+    let t = real_q(vec2<u32>(kt.y, kt.z));
+    return start + (o3(lo(p, kt.x) + o) - start) * t;
 }
 
 // The pulls relay `i` carries on from its parent `p`'s walk

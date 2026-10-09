@@ -23,7 +23,7 @@ pub(super) const AL: usize = 8;
 pub(super) const PL: usize = 26;
 /// A chain's scratch: per region axis, per region phytomer, then a status.
 #[cfg(test)]
-pub(super) const SA: u32 = 70;
+pub(super) const SA: u32 = 74;
 #[cfg(test)]
 pub(super) const SP: u32 = 12;
 const GG: usize = 40;
@@ -95,6 +95,7 @@ pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
             1.0 / p.exponent,
             p.ripening,
             p.secondary,
+            p.relay_at,
         ];
         for (k, v) in girth.into_iter().enumerate() {
             let q = telperion_space::fixed::q32(v);

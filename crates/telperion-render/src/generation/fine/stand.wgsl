@@ -250,3 +250,145 @@ fn stand(p: u32, node: u32, o: u32) -> array<vec4<f32>, 3> {
     }
     return pt;
 }
+
+// Where a relay joins its parent (`geometry::attach`, fn-244 host
+// decision 4), Q32 as the CPU resolves it: one rule for its base, girth,
+// sag and the join the drawing inserts. Positions are in the parent's
+// nodes, a 64-bit Q32 (`w(lo, hi)`, the node in the high word).
+
+// `stand::span_in`, Q32, on own axis `p`'s phytomers `first..end`.
+fn span_q(p: u32, first: u32, end: u32, share: vec2<u32>, k: u32) -> vec2<u32> {
+    var total = vec2<u32>(0u);
+    for (var j = first; j < end; j++) {
+        total = add64(total, q32_f(out[lo(p, j) + 19u]));
+    }
+    let scale = q32_f(out[lo(p, k) + 19u]);
+    if slt64(vec2<u32>(0u), total) && slt64(vec2<u32>(0u), scale) {
+        var before = vec2<u32>(0u);
+        for (var j = min(first, k); j < k; j++) {
+            before = add64(before, q32_f(out[lo(p, j) + 19u]));
+        }
+        let t = over(sub64(mulq(share, total), before), scale);
+        return smin64(smax64(t, vec2<u32>(0u)), one32());
+    } else if slt64(vec2<u32>(0u), total) {
+        return one32();
+    }
+    let f = add64(w(0u, first), mulq(share, w(0u, end - first)));
+    return smin64(smax64(sub64(f, w(0u, k)), vec2<u32>(0u)), one32());
+}
+
+// `stand::zone_node`, Q32.
+fn zone_q(p: u32, first: u32, end: u32, share: vec2<u32>) -> u32 {
+    var total = vec2<u32>(0u);
+    for (var j = first; j < end; j++) {
+        total = add64(total, q32_f(out[lo(p, j) + 19u]));
+    }
+    if !slt64(vec2<u32>(0u), total) {
+        // ceil(share n), the share Q32 and n whole: exact.
+        let k = add64(mulq(share, w(0u, end - first)), w(0xffffffffu, 0u)).y;
+        return first + clamp(k, 1u, end - first) - 1u;
+    }
+    let want = mulq(share, total);
+    var before = vec2<u32>(0u);
+    for (var j = first; j < end; j++) {
+        let q = q32_f(out[lo(p, j) + 19u]);
+        if slt64(vec2<u32>(0u), q) && !slt64(add64(before, q), want) {
+            return j;
+        }
+        before = add64(before, q);
+    }
+    return end - 1u;
+}
+
+// A unit's extent, Q32, at most one (`stand::position`).
+fn extent_q(p: u32, first: u32, end: u32) -> vec2<u32> {
+    var e = vec2<u32>(0u);
+    for (var k = first; k < end; k++) {
+        let q = at_k(p, k);
+        e = add64(e, vec2<u32>(ph(q, QSCALE), ph(q, QSCALE + 1u)));
+    }
+    return smin64(e, one32());
+}
+
+// The first phytomer of the unit of own axis `p` ending at `end`.
+fn unit_first(p: u32, end: u32) -> u32 {
+    let c = ph(at_k(p, end - 1u), 2u);
+    var first = end - 1u;
+    // cap: first counts down from end.
+    while first > 0u && ph(at_k(p, first - 1u), 2u) == c {
+        first -= 1u;
+    }
+    return first;
+}
+
+// The position in `p`'s unit `first..end`, its newest when `node` is
+// given (D18), the others by length.
+fn unit_x(p: u32, first: u32, end: u32, newest: bool, node: u32) -> vec2<u32> {
+    let share = gq(ax(p, PA), G_RELAY_AT);
+    var k = zone_q(p, first, end, share);
+    if newest {
+        k = clamp(node, first, end - 1u);
+    }
+    return add64(w(0u, k), span_q(p, first, end, share, k));
+}
+
+// `stand::position`: how far along own axis `p` a relay at its node
+// `node` stands, in `p`'s nodes, Q32: `p`'s own units only, newest first
+// down to a whole one or `p`'s start.
+fn position_q(p: u32, node: u32) -> vec2<u32> {
+    // The oldest unit read: the first whole one back, or none.
+    var end = s(p, S_COUNT);
+    var stop = 0u;
+    var base = vec2<u32>(0u);
+    // cap: end counts down from the axis's phytomers.
+    while end > 0u {
+        let first = unit_first(p, end);
+        if !slt64(extent_q(p, first, end), one32()) {
+            stop = end;
+            base = unit_x(p, first, end, end == s(p, S_COUNT), node);
+            break;
+        }
+        end = first;
+    }
+    // Then each younger unit, oldest first, blended in by its extent.
+    var x = base;
+    var at = stop;
+    if stop == 0u {
+        at = 0u;
+    }
+    // cap: at counts up to the axis's phytomers.
+    while at < s(p, S_COUNT) {
+        var last = at + 1u;
+        let c = ph(at_k(p, at), 2u);
+        while last < s(p, S_COUNT) && ph(at_k(p, last), 2u) == c {
+            last += 1u;
+        }
+        let to = unit_x(p, at, last, last == s(p, S_COUNT), node);
+        x = add64(x, mulq(sub64(to, x), extent_q(p, at, last)));
+        at = last;
+    }
+    return x;
+}
+
+// `geometry::attach`: own relay `i`'s position on its parent, blended
+// towards the parent's tip by its blend, Q32.
+fn attach_q(i: u32) -> vec2<u32> {
+    let p = ax(i, PARENT);
+    let tip = w(0u, s(p, S_COUNT));
+    let b = q32_f(axf(i, BLEND));
+    if !slt64(vec2<u32>(0u), b) {
+        return tip;
+    }
+    return add64(tip, mulq(sub64(position_q(p, ax(i, NODE)), tip), b));
+}
+
+// `stand::split`: a position as its node and the share of its span, Q32;
+// the last node's whole span at the tip and beyond.
+fn split_x(x: vec2<u32>, last: u32) -> vec3<u32> {
+    var k = 0u;
+    if !negative(x) {
+        k = min(x.y, last);
+    }
+    let t = smin64(smax64(sub64(x, w(0u, k)), vec2<u32>(0u)), one32());
+    return vec3<u32>(k, t.x, t.y);
+}

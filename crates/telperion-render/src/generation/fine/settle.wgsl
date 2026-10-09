@@ -180,6 +180,7 @@ fn levers_realized(ch: Chain) {
     for (var i = 0u; i < ch.na; i++) {
         for (var f = 0u; f < 4u; f++) {
             ssf(i, S_LOAD + f, 0.0);
+            ssf(i, S_BASE + f, 0.0);
         }
     }
     for (var p = 0u; p < ch.np; p++) {
@@ -259,6 +260,8 @@ fn levers_realized(ch: Chain) {
             mass *= held_share;
             moment *= held_share;
         }
+        mass += sf(j, S_BASE);
+        moment += s3(j, S_BASE + 1u);
         if j == 1u {
             let at = cfg.mine + CR * ch.wi;
             records[at + 1u] = mass;
@@ -268,11 +271,22 @@ fn levers_realized(ch: Chain) {
             continue;
         }
         let p = ax(j, PARENT);
-        let node = ax(j, NODE);
-        // A relay's load enters at the node it grows from, where its wood
-        // does (`sag`, fn-244); a continuation's at the tip.
-        if kind_of(j) == RELAYED && node < s(p, S_COUNT) {
-            load_at(s(p, S_START) + node, mass, moment, 1.0);
+        let np = s(p, S_COUNT);
+        // A relay's load enters where its wood does (`sag`, fn-244): its
+        // share at the node whose span it stands in, the rest at the node
+        // before, or below the parent's first node; a continuation's at
+        // the tip.
+        if kind_of(j) == RELAYED && np > 0u {
+            let kt = split_x(attach_q(j), np - 1u);
+            let t = real_q(vec2<u32>(kt.y, kt.z));
+            let q = s(p, S_START) + kt.x;
+            load_at(q, mass, moment, t);
+            if kt.x > 0u {
+                load_at(q - 1u, mass, moment, 1.0 - t);
+            } else {
+                ssf(p, S_BASE, sf(p, S_BASE) + mass * (1.0 - t));
+                ss3(p, S_BASE + 1u, s3(p, S_BASE + 1u) + moment * (1.0 - t));
+            }
         } else {
             ssf(p, S_LOAD, sf(p, S_LOAD) + mass);
             ss3(p, S_LOAD + 1u, s3(p, S_LOAD + 1u) + moment);
