@@ -223,3 +223,25 @@ The Two Trees' twigs still read as branches.
   - **#2, declined and raised to the host.** A node that merges three ages straddling a fractional year keeps two retentions, not three. Fixing it needs a third record word, against the host's two. No shipped preset can produce such a node: the beech's `leafYears` is a whole number, and the conversion test found 2 mixed nodes of 5,224 at 1.5 years.
 - **Gate (`cargo test --profile ci --workspace --no-fail-fast`).** 141 test binaries pass. One test fails: `every_pipeline_within_2_5_s_but_grow_within_20_s_cold`, which timed the `grow` pipeline at 26.8 s against its 20 s bound while running in parallel with the suite. Run alone at this head it passes, with grow at 18.3 s. This change touches no part of `grow` beyond adding one `KEY_RETAIN` constant to `lineage.wgsl`. No base gate run was made, so whether the base fails the same way under contention is unknown (FRICTION.md).
 - **npm test.** 14 files and 154 tests pass, after `src/browser/presets.generated.ts` was regenerated for the three value files (`TELPERION_WRITE_REFERENCE=1 npm run wasm:build`).
+
+## Host decision (2026-10-09): part 3, the Two Trees grow large through their own coarse ages
+
+I viewed `TWIGS-after.jpg`. The caterpillar sprays are gone and the twig layer shows. On the Two Trees, the fine wood under the leaves is still as thick as branches (the uniform scale). The beech's crown at 80 now reads more open. That is the owner's verdict to give, and it goes to the owner with these stills.
+
+**Part 3 is Astra's route.** The Two Trees reach their size through their own per-age rows: larger internodes and pipes on the coarse ages (stem, limbs, boughs) and ordinary values on the fine ages (shoots, twigs, short shoots). The one engine then computes attachment and girth. Their uniform `/supernatural/scale` goes to 1. No post-growth deformation.
+
+- **The off-state stays the ordinary old beech.** The coarse ages' enlarged rows sit in the /supernatural group, as overrides at `/supernatural` plus the natural row's path (fn-217's X2 convention). The natural rows stay the beech's.
+- **Before building, check whether the group's override mechanism already reaches the engine's per-age `/space` rows.**
+  - **If it does,** this is values only.
+  - **If it does not,** extending it to `/space` rows is the one capability change. Same convention, applied by degree, and every species is byte-identical with the group off. Report the size of that change before building it.
+- **The targets.** The Two Trees' heights and spreads stay at today's values (about 45-50 m), within 10 %. Their current-year shoots and the wood under the leaves come back to the beech's measures (about 2.6 mm and 1.9 mm).
+- **Proof:**
+  - Close and mid stills of both trees beside the beech and the real shoots, viewed.
+  - The `twig_layer` measures.
+  - Height and spread.
+  - Frame rate at 1080p.
+  - Contact error.
+  - Astra's agreement on the sheets, as for fn-218 and fn-219.
+  - Then the gate, npm test and impl-review.
+
+**The review's declined P2,** three ages merged across a fractional year: accepted as declined. No shipped preset can produce it, and it is recorded in the code's doc comment.
