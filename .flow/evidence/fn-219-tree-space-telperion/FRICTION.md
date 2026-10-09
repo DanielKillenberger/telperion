@@ -20,3 +20,10 @@
 - **Hindrance:** at the preset's default seed 42 the route refuses him (`DeviceRefused ... Out of Memory`, RTX 3080, 10 GB), and refuses the plain beech at 120 the same way; the headless stills draw through the CPU mesh and never meet that limit. Age 110 prepares at seeds 1, 7 and 42 in 5.5 to 6.9 s. The stills had to be re-rendered and re-judged at 110.
 - **Cost:** about 10 minutes and one more judging round.
 - **Remedy:** the sheet example could prepare each tree on the resident route as well and print its time, so a sheet that the harness cannot show fails in round 1.
+
+## 2026-10-09: the browser's age ceiling is learnt from npm test, after review-ready values
+
+- **Doing:** the gate's `npm test` after values settled at age 110 on stills, Astra and the device route.
+- **Hindrance:** the Wasm route refuses him (`the tree keeps more than 4,000,000 phytomers, more than a browser prepares in its 4 GB Wasm memory`, `WASM_KEPT`), so the parity and field tests fail. Probing by rebuilding the Wasm binding per age found the ceiling at 92 (93 refused). Three ceilings (Wasm 92, device memory between 110 and 120, engine budget under 160) are each met by a different failing run, the tightest one last.
+- **Cost:** about 25 minutes: four Wasm probes and a second set of value rounds at the new age.
+- **Remedy:** a native check that reports a family's foreseen kept phytomers against `WASM_KEPT` (the predictor already exists, `pipeline/space.rs::foreseen`), run by the sheet example, would have bounded his age before round 1. fn-209's fine path is noted in the code as lifting the bound.

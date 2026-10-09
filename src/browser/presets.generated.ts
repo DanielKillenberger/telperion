@@ -4323,7 +4323,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
   {
     "abiId": 1,
     "family": {
-      "age": 110,
+      "age": 92,
       "bloom": {
         "droop": 0,
         "florets": 1,
@@ -5061,7 +5061,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "leafFrontRed": 0.0055
         },
         "roughness": 0.12,
-        "scale": 2.2
+        "scale": 2.4
       },
       "surface": {
         "flareDepth": 0.004,

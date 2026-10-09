@@ -158,7 +158,7 @@ fn laurelin_contact_at_her_scale() {
 
 /// Telperion at his own age and scale (fn-219 R3), as Laurelin's above.
 #[test]
-#[ignore = "measurement: the telperion preset at 110, twenty-four million leaves"]
+#[ignore = "measurement: the telperion preset at 92, seventeen million leaves"]
 fn telperion_contact_at_his_scale() {
     let f = Preset::Telperion.parameters();
     contact(
