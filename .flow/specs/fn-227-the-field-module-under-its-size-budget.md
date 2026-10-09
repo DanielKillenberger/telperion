@@ -6,9 +6,9 @@ After fn-211 and fn-212 merged into F4, `telperion-field.wasm`, the binary kille
 
 ## Requirements
 
-- **R1 (one export per capability):** the coarse field and the full-tree field are separate exports; `telperion/field`'s binary exports the coarse field (the default the site's unchanged `growField` call gets, fn-214 task 3) and reaches no full-tree fine-root code; the full-tree field stays available as its own export in an entry that already carries the full engine (the main package), or its own subpath, decided in the plan with sizes measured.
+- **R1 (one export per capability):** the coarse field and the full-tree field are separate exports. `telperion/field`'s binary exports the coarse field only and reaches no full-tree fine-root code: `growField` there takes a cut in the supported coarse range (1 and above; its default is the one fn-214 task 3 sets), and `cut: 0` is refused by name, naming where the full tree lives, never quietly coarsened. The full-tree field moves to the main package entry (`telperion`), which already carries the full engine, as its own export; a test shows it answers byte for byte what `growField(..., { cut: 0 })` answered before the move, for every shipped preset (bounds included). The change and the migration (`cut: 0` callers move to the main entry) are stated in the package's changelog and docs (host, 2026-10-09).
 - **R2 (build):** the field entry built for size: opt-level, panic strategy and formatting footprint chosen by measurement (size and the site's call timing), and a wasm optimiser pass if it pays and can run in CI.
-- **R3 (measured):** every built artifact's size against its ceiling; the field binary at or under 632,580 bytes, or the gap reported with its breakdown for the owner; the site's call pattern (FIELD-PATH.md) end to end against 0.1.4, Wasm one thread, low load.
+- **R3 (measured):** every built artifact's size against its ceiling; the field binary at or under 632,580 bytes, the ceiling unchanged; if it cannot be reached, the work stops with the gap's breakdown for the host and the spec is not complete; the site's call pattern (FIELD-PATH.md) end to end against 0.1.4, Wasm one thread, low load.
 - **R4 (held):** CI fails a build whose artifact exceeds its ceiling (the existing budget check covering the field entry); gate and npm test green.
 
 ## Boundaries
