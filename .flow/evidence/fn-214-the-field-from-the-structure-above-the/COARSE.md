@@ -558,3 +558,78 @@ A stand-in will answer foliage by its expected occupancy, not by its volume. The
   - The full workspace gate.
 
 Still no cut is chosen and no default is changed.
+
+## Task 2: the stand-ins' occupancy, built and measured (2026-10-09)
+
+The host's decision is built.
+
+- **The red test came first:** `0658faef`, `field/stand_tests.rs`. It failed with 1.000 of 1,344 cells answering at λ 0.1, against an expected 0.095.
+- **Occupancy** (`92fd9439`):
+  - **The rule:** a stand-in's sweep answers a cell with the chance 1 − e^(−λ), where λ = leaves × cell volume / capsule volume (`field/stand.rs`).
+  - **The draw:** keyed by `tree::stand_key(lineage)`. That is the fine root's lineage under the registry's new `STAND` key (`u64::MAX − 16`, under the lineage), mirrored in `lineage.wgsl` and checked by `the_wgsl_keys_are_the_cpus`. The key is then mixed with the cell's integer coordinates.
+  - **The ground:** no stand-in answers a cell whose centre is below the ground.
+- **The bounds** (`139baa05`): a stand-in's foliage bounds stop at the ground as well. Without this, the field's bounds, which set the site's grid, still reached 2.4 to 4.2 m below the ground, and the birch's field stood 19.7 m tall at 1,024. The test asserts it.
+- **Shape of the change:**
+  - `Stand` moves to `tree/stand.rs` with its key.
+  - A descriptor's `spread` becomes `stand: Option<Standing { spread, key }>`.
+- **One addition beyond the decision text.** A cell a stand-in fills reports λ / (1 − e^(−λ)) expected leaves, the expectation given that at least one landed. It no longer reports the segment's share. This keeps the per-cell leaf estimates summing, in expectation, to the stand-ins' leaves above the ground, and no cell reports leaves without foliage. The `density` thinning rule reads this. The `tuft` rule the site uses for the oak and the birch does not.
+- **Full trees are unchanged.** The full fields of the oak (1234, 5678), the birch (1234, 5678), the spruce (1234) and the palm (1234) answer cell for cell alike at n = 48, before (`field-release.wasm`) and after (`field-fill.wasm`), bounds included (`raw/field-path/same2.mjs`, `same2.txt`). `catalogue_identity` passes unchanged.
+
+### Foliage cubes and time (Wasm under Node, the site's request, age 40)
+
+These are after the site's thinning, which keeps a fixed share of the foliage cells, so the ratios are the cells' ratios. "Before" is the release sweep (`release-sweep.jsonl`, load 1.9 to 3.2). "After" is `raw/field-path/fill-sweep.jsonl`: three repeats at load 7.7 to 18.2, so its times run about 5 % high against "before". The grid follows the field's bounds, so a field whose bounds moved is gridded more finely.
+
+| Tree, seed | cut | foliage cubes n = 48, full | before | after | after / full | n = 36 full / before / after | wood n = 48 full / after | end to end n = 48 ms, after (before) | n = 36 ms | field height m, full / before / after | memory MB |
+|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| oak 1234 | 1,024 | 4,526 | 7,126 | 7,024 | 1.55 | 2,097 / 3,148 / 3,139 | 4,116 / 3,595 | 1,613 (1,544) | 1,521 | 11.08 / 11.01 / 11.01 | 80.3 |
+| oak 1234 | 256 | 4,526 | 4,022 | 4,019 | 0.89 | 2,097 / 1,908 / 1,906 | 4,116 / 3,293 | 2,659 (2,501) | 2,572 | 11.08 / 11.04 / 11.04 | 131.9 |
+| oak 5678 | 1,024 | 5,390 | 7,156 | 7,053 | 1.31 | 2,538 / 3,153 / 3,158 | 3,930 / 2,797 | 1,227 (1,138) | 1,157 | 11 / 10.97 / 10.94 | 49.6 |
+| oak 5678 | 256 | 5,390 | 5,369 | 5,342 | 0.99 | 2,538 / 2,535 / 2,520 | 3,930 / 3,533 | 2,185 (1,870) | 2,086 | 11 / 11.03 / 10.95 | 91.8 |
+| oak 6137 | 1,024 | 5,634 | 7,247 | 7,318 | 1.30 | 2,601 / 3,184 / 3,234 | 4,441 / 2,976 | 1,063 (1,057) | 1,003 | 11.05 / 11 / 10.87 | 48.3 |
+| oak 6137 | 256 | 5,634 | 5,097 | 5,279 | 0.94 | 2,601 / 2,422 / 2,480 | 4,441 / 3,800 | 1,849 (1,796) | 1,770 | 11.05 / 11.2 / 11.01 | 92 |
+| oak 7432 | 1,024 | 5,541 | 7,799 | 7,776 | 1.40 | 2,541 / 3,418 / 3,458 | 4,518 / 3,465 | 1,342 (1,292) | 1,265 | 11.11 / 11.12 / 11.05 | 54.8 |
+| oak 7432 | 256 | 5,541 | 5,349 | 5,312 | 0.96 | 2,541 / 2,531 / 2,506 | 4,518 / 3,907 | 2,280 (2,207) | 2,185 | 11.11 / 11.18 / 11.05 | 121.7 |
+| oak 7737 | 1,024 | 4,440 | 6,166 | 6,123 | 1.38 | 2,022 / 2,727 / 2,726 | 3,587 / 2,884 | 1,143 (1,060) | 1,083 | 11.09 / 11.14 / 11.14 | 50.3 |
+| oak 7737 | 256 | 4,440 | 4,470 | 4,468 | 1.01 | 2,022 / 2,105 / 2,105 | 3,587 / 3,226 | 1,866 (1,809) | 1,787 | 11.09 / 11.15 / 11.15 | 98.6 |
+| oak 7919 | 1,024 | 5,116 | 6,875 | 6,722 | 1.31 | 2,306 / 3,037 / 3,010 | 5,356 / 3,659 | 1,666 (1,548) | 1,584 | 11.38 / 11.34 / 11.34 | 82.6 |
+| oak 7919 | 256 | 5,116 | 4,876 | 4,865 | 0.95 | 2,306 / 2,226 / 2,221 | 5,356 / 4,547 | 2,657 (2,529) | 2,532 | 11.38 / 11.35 / 11.35 | 112.3 |
+| birch 1234 | 1,024 | 2,111 | 7,519 | 4,241 | 2.01 | 1,061 / 3,204 / 2,241 | 334 / 323 | 1,133 (1,067) | 998 | 17.44 / 19.72 / 17.43 | 18.8 |
+| birch 1234 | 256 | 2,111 | 8,029 | 3,595 | 1.70 | 1,061 / 3,424 / 1,839 | 334 / 267 | 1,176 (1,174) | 1,041 | 17.44 / 21.47 / 19.28 | 28 |
+| birch 5678 | 1,024 | 1,539 | 7,189 | 3,214 | 2.09 | 779 / 3,072 / 1,878 | 258 / 262 | 926 (875) | 858 | 16.92 / 19.39 / 16.93 | 14.5 |
+| birch 5678 | 256 | 1,539 | 7,654 | 3,001 | 1.95 | 779 / 3,275 / 1,702 | 258 / 226 | 968 (911) | 893 | 16.92 / 20.77 / 18.22 | 17.1 |
+
+### Stills
+
+`raw/field-path/fill/{oak,birch}-<seed>-n{48,36}.png` hold four panels, left to right: 0.1.4, full, coarse at 1,024 and coarse at 256. The worker viewed all sixteen. What follows is its reading, not a verdict.
+- **The birch:** it is now a tall, upright crown of the full birch's height with its trunk below. It is no longer a round lump.
+  - It is wider and fuller than the full birch's narrow, open column. The full birch shows its trunk through the crown, and the coarse birch shows almost no wood inside it.
+  - At 256, the trunk is mostly hidden by low foliage.
+  - The full birch's few hanging low shoots are absent: there is no droop.
+- **The oak:** it reads as it did before this change at both cuts. Its stand-ins are dense (λ high), so they still fill their small capsules.
+
+### Reading, for the host
+
+- **The birch's bulk:**
+  - The foliage cubes fall from 3.6 to 5.0 times the full birch's to 1.7 to 2.1 times.
+  - At 1,024, the field height matches the full tree: 17.43 against 17.44 m, and 16.93 against 16.92 m.
+- **What is left of the birch's excess:**
+  - The look: wider, fuller and no droop.
+  - At 256 the field still stands 1.3 to 1.8 m too tall (19.28 and 18.22 m). That comes from the stand-ins' wood, the segment from base to tip at the base radius, which still reaches below the ground. The decision clamps the foliage capsules only, so the wood was left alone.
+  - Whether droop would close the rest is not measured. The decision makes droop its own spec if the stills still read wrong.
+- **The oak:** foliage moves by −2 % to +4 % against before, its time by noise, and its look not at all.
+- **The time:** the coarse oak runs in 1.06 to 1.67 s at 1,024 and 1.85 to 2.66 s at 256 (n = 48), and the coarse birch in 0.93 to 1.18 s. Against "before", every row is within the load difference. Occupancy is a few multiplies and one hash per stand-in a cell meets.
+
+### Gates
+
+- **The workspace gate,** run package by package because the whole does not fit one 600 s call (FRICTION.md):
+  - `telperion-core`: 452 passed, 44 ignored.
+  - `telperion-space`: 221 passed.
+  - `telperion-field`: 7 passed.
+  - `telperion-wasm`: 6 passed.
+  - `telperion-jev`: 389 passed.
+  - `telperion-render`, under the GPU lock: its integration tests 95 passed, and its library 119 of 120.
+- **The one render failure:** `every_pipeline_within_2_5_s_but_grow_within_20_s_and_the_first_tree_within_5_s_cold` made its cold `grow` pipeline in 20,132 ms against a bound of 20,000 ms while the library's tests ran four at a time. Run alone, it passed in 21.7 s.
+- **Two inherited failures, fixed:**
+  - `telperion-field`'s `a_cut_grows_a_coarse_field_or_is_refused_by_name` and `src/field/field.test.ts` still expected the oak's cut to be refused. 433c4c86 lifted that refusal (task 2's stepped stand-ins). Both now assert that the oak answers a coarse field with foliage (`79329794`, `904761c0`).
+  - The limits guard needed the two new ground sites declared in `docs/generation-limits-inventory.json`.
+- **`npm test`:** 144 of 144 passed.

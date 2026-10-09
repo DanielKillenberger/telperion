@@ -41,3 +41,10 @@
 - **Slowed by:** the guard refused `git checkout --` on the file. It was restored from `git show HEAD:` through Python, after checking that the only difference was the appended test.
 - **Cost:** about 1 minute.
 - **Would remove it:** diagnostics in a scratch crate outside the repository's sources. The `field` module's `planned` constructor is crate-private, which is why the test sat inside the core. The guard's rule is a local setup matter.
+
+## 2026-10-09 10:20, task 2 occupancy: the workspace gate does not fit one foreground call
+
+- **Doing:** running `cargo test --profile ci --workspace --no-fail-fast` as one blocking call at the end of the build, at 4 threads.
+- **Slowed by:** two runs hit the 600 s ceiling of a foreground call. The first spent most of it compiling. The second, warm and under the GPU lock, was still in `telperion-render`'s integration tests when it was cut off. The gate was then run package by package.
+- **Cost:** about 20 minutes of runs that gave no verdict.
+- **Would remove it:** a gate that fits in 10 minutes at 4 threads, or a documented split of the gate by package for agents capped at 600 s a call.
