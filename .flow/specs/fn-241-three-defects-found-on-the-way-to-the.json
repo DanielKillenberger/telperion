@@ -128,7 +128,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-241-three-defects-found-on-the-way-to-the.md",
-  "status": "open",
+  "status": "done",
   "title": "Three defects found on the way to the release",
   "tracker": {
     "baseHashFlow": null,
@@ -141,5 +141,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T05:36:00.000880Z"
+  "updated_at": "2026-10-09T05:36:37.613232Z"
 }

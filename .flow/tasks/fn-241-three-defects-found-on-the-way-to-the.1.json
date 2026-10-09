@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-241-three-defects-found-on-the-way-to-the",
   "spec_path": ".flow/tasks/fn-241-three-defects-found-on-the-way-to-the.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Below ground, the field test's time, the cold-build margin",
   "updated_at": "2026-10-09T04:01:35.244210Z"
 }
