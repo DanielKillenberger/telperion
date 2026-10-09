@@ -580,3 +580,9 @@ Telperion's close view is now above fn-246's 34 fps.
 **The host's call:** shape work on the florets, a larger scale, or accept the racemes and clusters as what reads at the mid view.
 
 **Not run:** the gate, npm test and impl-review. They wait on that call.
+
+## Owner verdicts (2026-10-09, seen in the harness)
+
+- **Telperion at 82:** "sure fine".
+- **Flower shape:** "looks good". The florets stay as `6c4d274b` set them: three times larger and fewer.
+- **Flagged:** "flowers seem placed randomly and attached to the air". This goes to a separate spec the host is capturing (drawn stalks and racemes, seated at shoot tips). fn-248 does not change the florets.
