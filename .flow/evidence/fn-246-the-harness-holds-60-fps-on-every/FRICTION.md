@@ -34,3 +34,17 @@
 - **Slowed by:** the load average reached 20 to 24 during some single runs (other sessions building). GPU timestamps are less affected than wall time, but those rows are one run each and are marked with their load.
 - **Cost:** no reruns yet; R3 would need best-of-3 at low load.
 - **Would have removed it:** the shared "machine busy" marker fn-185 already proposed. Local setup, reported only.
+
+## 2026-10-09: the crown truth's absolute bound could not be met by any threshold
+
+- **Doing:** fitting the thinning threshold against the 4x crown truth.
+- **Slowed by:** the decision set the bark tests' 3.0 mean as the starting bound, but an unthinned crown is already 2.4 to 15 code values from its 4x truth. The bound had to be restated as an increase over the unthinned distance before anything could be fitted.
+- **Cost:** about 10 minutes, and one rerun of the fit table.
+- **Would have removed it:** measuring the unthinned baseline's own distance before the bound is set. The fit now has it as its T=0 column.
+
+## 2026-10-09: no numpy for the oracle; large raw stills cannot be removed by the agent
+
+- **Doing:** the error decomposition behind the wood stop, then cleanup.
+- **Slowed by:** the system Python has no numpy (`uv run --with numpy --with scipy` worked). The shell guard refuses `rm -rf`, so the 4.2 GB of crown stills in `raw/crown-truth4` and `raw/crown-T*` stay on disk. They are gitignored.
+- **Cost:** a few minutes, plus about 5 GB of disk until removed by hand.
+- **Would have removed it:** nothing in the repository. Local setup, reported only.

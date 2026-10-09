@@ -233,3 +233,71 @@ Your truth tool (`bark_truth.rs`) is the right instrument. Both open questions a
    - **Viewing.** Every still is viewed beside its truth.
 
 The three points already built stay as they are. Then measure every species at 60 fps. If one still falls short, report its cost per pass and stop.
+
+## After the second decision: the wood terms cannot meet the acceptance; leaves fitted at 2 px (stopped for the host)
+
+### Wood: why expected-value terms cannot close the gap
+
+Before fitting the two terms, I measured what any such term could reach. `bark_truth` now also reports the signed bias, the mean of (1x minus truth). An expected occlusion or tint term driven by the faded variance can move only that part of the error: it is the same function of the footprint at every pixel of a neighbourhood. The bound below is an oracle stronger than any such term. It takes the error image, subtracts its own 9x9 local mean (every smooth bias, wherever it lies) and reports what is left (`raw/oracle.py`, numpy over the stills).
+
+| fixture | present shader: mean / bias | prefilter: mean / bias | prefilter with every 9 px bias removed (oracle) | acceptance: ≤ 3.0 and ≤ present + 0.3 |
+|---|---|---|---|---|
+| oak-trunk | 1.78 / +0.15 | 3.38 / +0.41 | **3.21** | 2.08 |
+| oak-grazing | 1.29 / +0.06 | 2.22 / -0.02 | **2.10** | 1.59 |
+| spruce-grazing | 1.97 / +0.18 | 3.32 / -0.63 | **3.06** | 2.27 |
+| oak-2x | 2.54 / -0.11 | 5.69 / +0.44 | **5.60** | 2.84 |
+| beech-base | 0.98 / -0.61 | 1.21 / -0.41 | 1.03 | 1.28 |
+| birch-bark | 2.36 / +0.58 | 3.59 / +0.57 | **3.54** | 2.66 |
+
+The prefilter's error is not bias: its signed mean is under 0.7 of a code value on every fixture. It is per-pixel sampling noise. One band-limited sample cannot see the sharp plate walls and furrow edges that the truth's 16 samples average, even where the band is resolved (λ ≥ 4 px), and that is the regime the oak trunk and the 2x view are in. Its distance to its own 4x draw is the same as to the truth's (oak trunk 3.28). Even the oracle misses the acceptance on five of six fixtures. So the occlusion and tint terms were not fitted: they would have been fitted to a gap they cannot reach. **The wood misses. Per the decision, the picture goes to the owner.**
+
+### Leaves: the threshold fitted against a 4x crown truth
+
+Tool: `examples/crown_truth.rs`. Each species is drawn at the harness whole view and at a mid view (half the distance), at 1920x1080 and, unthinned, at 4x box-reduced. The truth is that 4x draw. The comparison is over the pixels the crown changes in the truth (whole against bare, more than 8 code values), in mean code values.
+
+**The bound used.** The unthinned 1x crown is itself 2.4 to 15 code values from its own 4x truth: MSAA against supersampling over 1 to 3 px leaves. So an absolute 3.0 cannot be met by any threshold, including none. The bound used is the bark tests' 3.0 mean as an **increase**: a thinned view may be at most 3.0 mean farther from the truth than the unthinned view is. The table gives that increase per threshold; bold breaks the bound.
+
+| species | view | unthinned (T=0) | 1 px | 2 px | 3 px | 4 px | 6 px |
+|---|---|---|---|---|---|---|---|
+| date-palm | mid | 5.00 | +0.00 | +0.00 | +0.00 | +0.00 | +0.00 |
+| date-palm | whole | 9.67 | +0.00 | +0.00 | +0.00 | +0.00 | +0.00 |
+| european-beech | mid | 2.96 | +0.00 | +0.00 | +0.00 | +0.00 | +0.00 |
+| european-beech | whole | 5.39 | +0.00 | +0.00 | +0.00 | +0.00 | +0.00 |
+| laurelin | mid | 9.86 | +0.00 | +0.12 | +1.18 | +2.57 | **+5.29** |
+| laurelin | whole | 10.91 | +0.08 | +1.39 | **+4.50** | **+8.18** | **+12.92** |
+| norway-spruce | mid | 12.71 | +0.00 | +0.00 | +0.07 | +0.37 | +1.23 |
+| norway-spruce | whole | 12.17 | +0.00 | -0.01 | +0.11 | +0.39 | +1.03 |
+| ordinary | mid | 4.99 | +0.00 | +0.00 | +0.00 | +0.00 | +0.00 |
+| ordinary | whole | 7.03 | +0.00 | +0.00 | +0.00 | +0.00 | +0.00 |
+| oregon-white-oak | mid | 2.44 | +0.00 | +0.00 | +0.00 | +0.00 | +0.00 |
+| oregon-white-oak | whole | 3.47 | +0.00 | +0.00 | +0.00 | +0.00 | +0.00 |
+| silver-birch | mid | 10.34 | +0.00 | +0.00 | +0.00 | +0.00 | +0.05 |
+| silver-birch | whole | 10.47 | +0.00 | +0.00 | +0.01 | +0.60 | **+5.70** |
+| telperion | mid | 11.82 | +0.00 | +0.02 | +0.61 | +2.41 | **+9.72** |
+| telperion | whole | 15.18 | +0.03 | +2.96 | **+9.45** | **+15.30** | **+22.36** |
+
+**2 px is the fit**: the largest tried threshold within the bound on every view. Telperion's whole view binds at +2.97 (+9.5 at 3 px). It is now `THIN_PIXELS` (`5fd63ef8`), one rule for every species. Stills viewed, truth beside the unthinned, 2 px and 3 px 1x draws, crown crops of the whole view for Telperion and Laurelin (`raw/telperion-whole.png`, `raw/laurelin-whole.png`). At 2 px both crowns read as their truth in density and colour. At 3 px Laurelin's crown is a shade yellower and blotchier, which is what the table's +4.5 shows.
+
+### Where the species stand (sun cache, draw on change, 2 px thinning, present wood; one run, load 2.7 to 5.4)
+
+| species | variant | view | runs | load | frame ms | fps | surfacing | selection | shadow | vegetation |
+|---|---|---|---|---|---|---|---|---|---|---|
+| oregon-white-oak | full | whole | 1 | 2.73 | 13.58 | 74 | 0.80 | 0.02 | 0.00 | 12.29 |
+| oregon-white-oak | full | close | 1 | 2.73 | 34.60 | 29 | 1.08 | 0.02 | 0.00 | 33.75 |
+| norway-spruce | full | whole | 1 | 4.03 | 12.99 | 77 | 2.27 | 0.21 | 0.00 | 10.01 |
+| norway-spruce | full | close | 1 | 4.03 | 14.60 | 68 | 2.49 | 0.19 | 0.00 | 14.08 |
+| telperion | full | whole | 1 | 3.94 | 47.83 | 21 | 2.89 | 0.43 | 0.00 | 42.11 |
+| telperion | full | close | 1 | 3.94 | 74.47 | 13 | 2.95 | 0.38 | 0.00 | 70.25 |
+| laurelin | full | whole | 1 | 5.39 | 29.79 | 34 | 2.06 | 0.28 | 0.00 | 26.65 |
+| laurelin | full | close | 1 | 5.39 | 56.84 | 18 | 2.48 | 0.24 | 0.00 | 53.45 |
+
+Ordinary, beech, birch and date palm were at 112 fps or more before this threshold, and the threshold only removes work from them.
+
+| species | short of 60 | cost per pass in the short view |
+|---|---|---|
+| oak | close 29 fps | vegetation 33.8 ms (wood about 31, leaves about 3); surfacing 1.1; selection 0.02; shadow cached |
+| Telperion | whole 21, close 13 | whole: vegetation 42.1 (leaves and flowers about 37, wood 4.7); surfacing 2.9; selection 0.4. Close: vegetation 70.3 (wood about 30, leaves and flowers about 40); surfacing 3.0; selection 0.4 |
+| Laurelin | whole 34, close 18 | whole: vegetation 26.7 (leaves and flowers about 22, wood 4.6); surfacing 2.1; selection 0.3. Close: vegetation 53.5 (wood about 31, leaves and flowers about 22); surfacing 2.5; selection 0.2 |
+| spruce | none: 77 whole, 68 close | |
+
+So the oak's and the Two Trees' close views wait on the wood, which is the owner's picture decision. The Two Trees' whole views wait on leaves: 2 px, the most the crown truth allows, leaves them at 21 and 34 fps. The gate, npm test and impl-review were not run.
