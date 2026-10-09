@@ -100,7 +100,9 @@ describe("the slim field entry point", () => {
     expect(coarse.query(cells)).toEqual(full.query(cells));
     full.release();
     coarse.release();
-    await expect(growField("oregon-white-oak", 1, { cut: 1024, source: module })).rejects.toThrow("cut");
+    const oak = await growField("oregon-white-oak", 1, { cut: 1024, source: module });
+    expect(oak.query(grid(oak.bounds, 10).cells).flags.some(f => f & 2)).toBe(true);
+    oak.release();
     await expect(growField("norway-spruce", 1, { cut: -1, source: module })).rejects.toThrow("cut");
   });
 
