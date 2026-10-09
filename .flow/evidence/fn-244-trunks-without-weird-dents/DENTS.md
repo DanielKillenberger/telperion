@@ -330,3 +330,41 @@ No code is written.
 - **Closed-form predictions stay as they are.** They are expectations built from `relay_at` and never read a grown tree. Report how far the predicted kept counts move against the realized trees after the change. If a walk or census test moves beyond its bound, stop and report.
 
 Build it.
+
+## Decision 4 on the CPU engine: the clamp breaks fn-199 R3 (2026-10-09)
+
+On `fn-244-option1-wip`, `17f5abfd` adds the following:
+
+- **The attachment.** `geometry::attach` keeps the stand as a position along the parent, in nodes (Q32). It is clamped to the parent's own units, with the parent's start as the fallback base. It blends towards the parent's tip by `b` along the parent. The relay's base stands at that position.
+- **Girth, sag and bounded girth.** They enter a relay's whole section and load at its share `t` of the node whose span it joins, and the rest at the node below. Girth records `Axis::joined`: the node, `t`, and the radii below and above the join.
+- **The stub test, exact.** It checks four things:
+  - the samples below the span equal a lateral's whole;
+  - the samples above equal the parent alone;
+  - the span itself lies between the two;
+  - `below` and `above` equal those two radii.
+
+The space suite:
+
+| Test | Result |
+|---|---|
+| fn-199 R4 (`a_relay_moving_along_its_parent_thickens_it_by_degree`) | Passes unchanged |
+| The new stub test | Passes |
+| fn-199 R3 (`a_relay_barely_off_a_bent_limb_changes_the_tree_by_degree`) | Fails: seed 3 at abortion −1.2969, branch `6c6a149a1d722e64`. A jump of 0.0438 of the tree that refinement does not shrink. |
+| `tests/form.rs::girth_is_the_sum_of_the_sections_carried` | Fails, as expected: it re-adds sections by the old rule and needs the new one |
+
+**Bisection of R3.** Four parts of the change were switched back one at a time:
+
+| Switched back | R3 |
+|---|---|
+| The chord base in place of the base along the parent | Still fails |
+| Sag's load at the bud's node | Still fails |
+| Girth at the bud's node | Still fails |
+| All three together, keeping only the clamp | Still fails |
+| The old stand that walks the line, with the other three | Passes |
+
+The jump is the clamp (C1). Where the parent's units are all still growing in, the stand now blends from the parent's start instead of from a unit further up the line. That moves a branch by a jump at the crossing where a stop makes a relay. The host's instruction was to stop if a walk bound breaks, so I stopped here: the drawing and the device are not built.
+
+**Choices for the host:**
+1. **Keep the line walk for the stand's frame**, where it reaches an ancestor, and clamp only the position. The attachment's position on the parent would be the clamped `x`, while the frame (heading, side, rank) comes from the line as today. R3 likely holds; this is not yet run.
+2. **Clamp position and frame both**, and retire R3 for this case. That is an owner requirement, so it needs the owner's word.
+3. **Find the clamp's discontinuity and blend it in.** The cause is not yet traced past the bisection: about 30 to 60 minutes to locate.
