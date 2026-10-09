@@ -2,7 +2,11 @@
 //! says nothing of a device's free memory, so a browser build is checked
 //! before it starts: the device bytes the page's owned buffers hold now,
 //! plus the peak a build of the tree's expected size reaches, against a
-//! stated budget. A build over it is refused by name, never started.
+//! stated budget. The budget counts the tree drawn now, so one rule
+//! (fn-235 host decision, third): a build that fits beside the drawn tree
+//! builds; one that fits only once the drawn tree is let go lets it go
+//! first, the screen empty while it builds; one that does not fit even
+//! alone is refused by name, never started, and the drawn tree is kept.
 use telperion_core::presets::Family;
 
 /// The page's budget, in bytes of owned buffers (`buffer::Ledger`), 6 GiB
@@ -13,7 +17,7 @@ use telperion_core::presets::Family;
 /// One shipped tree at 80 fits in a fresh page: the spruce's measured
 /// peak is 5.35 GiB (`PEAKS`). The 8.5 GiB before it was what the card
 /// held with nothing else on it (TASK10.md, part 4).
-pub(super) const BROWSER: u64 = GIB * (10 - 3 - 1);
+pub(crate) const BROWSER: u64 = GIB * (10 - 3 - 1);
 const GIB: u64 = 1 << 30;
 
 /// A build's peak owned bytes, from a fresh generator and renderer, by
@@ -38,30 +42,55 @@ pub(super) fn peak(kept: f64) -> u64 {
     (mebibytes * f64::from(1 << 20)) as u64
 }
 
-/// Whether `family` built now fits `budget` beside the `held` bytes.
-pub(super) fn check(family: &Family, held: u64, budget: u64) -> crate::Result<()> {
+/// What a build may do under the budget.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Admitted {
+    /// It fits beside the tree drawn now.
+    Beside,
+    /// It fits once the drawn tree is let go, and only then.
+    MakeRoom,
+}
+
+/// Whether `family` built now fits `budget`: beside the `held` bytes, or
+/// only once the `drawn` tree's share of them is let go; refused by name
+/// where it fits in neither.
+pub(super) fn admit(
+    family: &Family,
+    held: u64,
+    drawn: u64,
+    budget: u64,
+) -> crate::Result<Admitted> {
     let Some(species) = family.space.species.as_ref() else {
-        return Ok(());
+        return Ok(Admitted::Beside);
     };
     let expected = telperion_space::expected_kept(species, family.age as u32);
     let Ok(Some(kept)) = expected else {
-        return Ok(());
+        return Ok(Admitted::Beside);
     };
-    if held.saturating_add(peak(kept)) > budget {
-        return Err(telperion_core::Error::ResourceLimit(
-            "the browser's device budget: the tree's expected peak and the tree \
-             drawn now exceed the 6 GiB a page may hold; draw a smaller tree first \
-             or grow it younger",
-        )
-        .into());
+    let peak = peak(kept);
+    if held.saturating_add(peak) <= budget {
+        return Ok(Admitted::Beside);
     }
-    Ok(())
+    if held.saturating_sub(drawn).saturating_add(peak) <= budget {
+        return Ok(Admitted::MakeRoom);
+    }
+    Err(telperion_core::Error::ResourceLimit(
+        "the browser's device budget: the tree's expected peak exceeds the 6 GiB \
+         a page may hold even with the drawn tree let go; grow it younger",
+    )
+    .into())
+}
+
+/// Whether `family` built now fits `budget` beside the `held` bytes, the
+/// check a build makes as it starts, after any room was made.
+pub(super) fn check(family: &Family, held: u64, budget: u64) -> crate::Result<()> {
+    // Nothing is drawn to let go: it fits beside `held` or is refused.
+    admit(family, held, 0, budget).map(|_| ())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
 
     fn spruce(age: f64) -> Family {
         let mut family = telperion_core::presets::by_identity("norway-spruce").unwrap();
@@ -77,6 +106,14 @@ mod tests {
         let fits = |age, h| check(&spruce(age), held(h), BROWSER).is_ok();
         assert!(fits(80.0, 0), "a spruce at 80 in a fresh page");
         assert!(fits(40.0, 0), "a spruce at 40 in a fresh page");
+        // Beside a drawn 12 (1,757 MiB held, the tree's share of it 1,700),
+        // an 80 fits only once the 12 is let go.
+        let admitted = |age, h: u64, d: u64| admit(&spruce(age), held(h), held(d), BROWSER);
+        assert_eq!(admitted(80.0, 1_757, 1_700).unwrap(), Admitted::MakeRoom);
+        assert_eq!(admitted(12.0, 1_757, 1_700).unwrap(), Admitted::Beside);
+        // Past the budget even alone: refused, the drawn tree kept.
+        let alone = admitted(80.0, 1_757, 0).unwrap_err().to_string();
+        assert!(alone.contains("even with the drawn tree let go"), "{alone}");
         // R5's beech at 40 and 80 likewise (the oak builds on the CPU).
         for age in [40.0, 80.0] {
             let mut beech = telperion_core::presets::by_identity("european-beech").unwrap();

@@ -1,12 +1,37 @@
 use super::*;
 use crate::generation::{
     request::{Request, State},
-    Delivery, Generator,
+    Admitted, Delivery, Generator, BROWSER,
 };
 
 pub(super) type Generation = Rc<RefCell<State>>;
+/// Whether `family` fits the page's budget beside the drawn tree, only
+/// once it is let go, or not at all.
+fn admitted(
+    live: &Rc<RefCell<Option<Live>>>,
+    family: &telperion_core::presets::Family,
+) -> std::result::Result<Admitted, JsError> {
+    Generator::admit(family, &borrow(live)?.renderer, BROWSER).map_err(js_error)
+}
+
 #[wasm_bindgen]
 impl WebRenderer {
+    /// What a build of these parameters would do under the page's budget,
+    /// asked before it starts so the page can say so while it builds:
+    /// `"beside"` the drawn tree, or `"makeRoom"`, the drawn tree let go
+    /// first and the screen empty until it is built. A tree that does not
+    /// fit even alone rejects by name (fn-235).
+    pub fn admission(&self, family: &str) -> std::result::Result<String, JsError> {
+        let value = serde_json::from_str(family)
+            .map_err(|e| JsError::new(&format!("the parameters are not JSON: {e}")))?;
+        let family = params::parse(&value).map_err(|e| js_error(e.into()))?;
+        Ok(match admitted(&self.live, &family)? {
+            Admitted::Beside => "beside",
+            Admitted::MakeRoom => "makeRoom",
+        }
+        .into())
+    }
+
     /// Experimental GPU foliage preparation. Unsupported parameters explicitly
     /// use the CPU fallback; the existing synchronous entry remains available.
     #[wasm_bindgen(js_name = setTreeGpu)]
@@ -37,6 +62,12 @@ impl WebRenderer {
                 state.borrow_mut().generator = Some(generator.clone());
                 generator
             };
+            // The budget's one rule: beside the drawn tree, the drawn tree
+            // let go first, or refused by name with it kept.
+            let made_room = admitted(&live, &family)? == Admitted::MakeRoom;
+            if made_room {
+                borrow(&live)?.renderer.release_tree();
+            }
             let prepared = generator
                 .prepare_async(&family, Delivery::Resident)
                 .await
@@ -60,6 +91,7 @@ impl WebRenderer {
             value["backend"] = json!(backend);
             value["stages"] = stages;
             value["previousTreeGpuBytes"] = json!(previous_tree_gpu_bytes);
+            value["madeRoom"] = json!(made_room);
             value["treeGpuBytes"] = json!(Generator::tree_buffer_bytes(&live.renderer));
             Ok(JsValue::from_str(&value.to_string()))
         })

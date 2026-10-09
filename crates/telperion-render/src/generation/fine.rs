@@ -54,7 +54,19 @@ pub(super) struct Kit {
     tools: resident::Tools,
 }
 
+pub use budget::Admitted;
+#[cfg(target_arch = "wasm32")]
+pub(crate) use budget::BROWSER;
+
 impl super::Generator {
+    /// Whether `family` fits the page's budget beside the tree `renderer`
+    /// draws now, only once it is let go, or not at all (by name).
+    #[cfg(any(test, target_arch = "wasm32"))]
+    pub fn admit(family: &Family, renderer: &crate::Renderer, budget: u64) -> Result<Admitted> {
+        let held = renderer.gpu().ledger.live();
+        budget::admit(family, held, Self::tree_buffer_bytes(renderer), budget)
+    }
+
     /// The bytes the fine executor keeps on the device between builds: its
     /// kernels' pool and its grower's regions (fn-212 task 10).
     #[cfg(test)]
@@ -196,6 +208,8 @@ mod resident;
 #[cfg(test)]
 mod resident_tests;
 mod rings;
+#[cfg(test)]
+mod room_tests;
 mod roots;
 #[cfg(test)]
 mod route_tests;

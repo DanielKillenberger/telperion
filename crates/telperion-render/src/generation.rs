@@ -8,6 +8,9 @@ mod data;
 // draws and places a tree's fine roots on the device (fn-212 task 10),
 // every readback awaited, natively and in a browser (host decision 1).
 mod fine;
+pub use fine::Admitted;
+#[cfg(target_arch = "wasm32")]
+pub(crate) use fine::BROWSER;
 mod io;
 mod positions;
 mod preparation;

@@ -150,6 +150,20 @@ impl Foliage {
         }
     }
 
+    /// Lets the crown's buffers go: nothing is drawn until the next submit.
+    pub(crate) fn release(&mut self) {
+        self.select.release();
+        for held in [
+            &mut self.positions,
+            &mut self.normals,
+            &mut self.coords,
+            &mut self.indices,
+        ] {
+            *held = None;
+        }
+        self.bounds = None;
+    }
+
     /// Uploads the element once with every level's triangles, and the
     /// placements selection reads. The level asked for changes what each
     /// instance draws and nothing about how many there are.
