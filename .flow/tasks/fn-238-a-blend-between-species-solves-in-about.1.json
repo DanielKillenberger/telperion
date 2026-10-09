@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-238-a-blend-between-species-solves-in-about",
   "spec_path": ".flow/tasks/fn-238-a-blend-between-species-solves-in-about.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Measure the solve, make it cheap, prove the frames",
   "updated_at": "2026-10-08T23:08:05.747119Z"
 }

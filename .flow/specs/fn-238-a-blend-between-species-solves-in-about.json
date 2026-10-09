@@ -111,7 +111,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-238-a-blend-between-species-solves-in-about.md",
-  "status": "open",
+  "status": "done",
   "title": "A blend between species solves in about a second",
   "tracker": {
     "baseHashFlow": null,
@@ -124,5 +124,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T00:56:55.614589Z"
+  "updated_at": "2026-10-09T00:57:27.219752Z"
 }
