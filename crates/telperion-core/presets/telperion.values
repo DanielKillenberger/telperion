@@ -574,23 +574,29 @@
 # out of the leaves that hid half of fn-234's blossom. White albedos
 # (fn-234) with a cool cast, a grey eye and stamens. Flowering on every
 # outer age read as hoarfrost along each shoot and doubled the build.
-/supernatural/flowering/age14 = 1.0
-/supernatural/bloom/florets = 9.0
-/supernatural/bloom/rachis = 0.13
+# Florets three times their old size (fn-248, owner): in proportion to
+# the larger leaves, the largest Astra preferred; fewer, so the share of
+# the frame they cover holds at the whole and mid views (seed 1, organ
+# mask: whole 0.319 and mid 0.162, within 1 % of the smaller florets').
+# At the mid view they do not yet read as single flowers (fn-248
+# TWIGS.md).
+/supernatural/flowering/age14 = 0.09
+/supernatural/bloom/florets = 5.0
+/supernatural/bloom/rachis = 0.39
 /supernatural/bloom/droop = -1.0
-/supernatural/bloom/pedicel = 0.015
+/supernatural/bloom/pedicel = 0.045
 /supernatural/bloom/spread = 70.0
 /supernatural/bloom/taper = 0.3
 /supernatural/bloom/petals = 5.0
 /supernatural/bloom/open = 100.0
-/supernatural/bloom/petalLength = 0.031
-/supernatural/bloom/petalWidth = 0.017
+/supernatural/bloom/petalLength = 0.093
+/supernatural/bloom/petalWidth = 0.051
 /supernatural/bloom/petalWidest = 0.5
 /supernatural/bloom/petalCup = 0.4
 /supernatural/bloom/petalCurl = 0.25
 /supernatural/bloom/stamens = 12.0
-/supernatural/bloom/stamenLength = 0.007
-/supernatural/bloom/stamenWidth = 0.0004
+/supernatural/bloom/stamenLength = 0.021
+/supernatural/bloom/stamenWidth = 0.0012
 /supernatural/bloom/scatter = 0.2
 /material/bloomFrontRed = 0.75
 /material/bloomFrontGreen = 0.77

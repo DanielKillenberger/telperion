@@ -15,7 +15,16 @@ use telperion_render::{
     STILL_FORMAT,
 };
 
-const SIZE: (u32, u32) = (960, 720);
+/// The stills' size: 960x720, or `STILL_SIZE=<w>x<h>` (fn-248's mid view
+/// at the harness's 1920x1080).
+fn size() -> Result<(u32, u32), String> {
+    let Ok(text) = std::env::var("STILL_SIZE") else {
+        return Ok((960, 720));
+    };
+    let (w, h) = text.split_once('x').ok_or("STILL_SIZE is <w>x<h>")?;
+    let n = |v: &str| v.parse::<u32>().map_err(|e| format!("STILL_SIZE: {e}"));
+    Ok((n(w)?, n(h)?))
+}
 /// The still runner's sun (`space/still.rs`): behind the camera and high.
 const SUN: (f64, f64) = (115.0, 60.0);
 
@@ -34,6 +43,7 @@ fn main() -> Result<(), String> {
         .first()
         .map_or(Ok(1), |s| s.parse())
         .map_err(|e| format!("seed: {e}"))?;
+    let size = size()?;
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     for on in [false, true] {
@@ -58,7 +68,7 @@ fn main() -> Result<(), String> {
         );
         let hero = hero_pose(
             mesh.bounds,
-            f64::from(SIZE.0) / f64::from(SIZE.1),
+            f64::from(size.0) / f64::from(size.1),
             GROUND_REACH,
         );
         let views = [
@@ -77,12 +87,40 @@ fn main() -> Result<(), String> {
                 sun_elevation: SUN.1,
                 ..SceneRow::default()
             });
-            let still = render(&mut renderer, camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;
+            let still = render(&mut renderer, camera, size.0, size.1).map_err(|e| e.to_string())?;
             let file = format!("{out}/{tree}-{age}-{seed}-{group}-{view}.png");
             write_png(std::path::Path::new(&file), &still).map_err(|e| e.to_string())?;
+            // The share of the frame the florets cover (fn-217 M0's organ
+            // mask, as `tests/organ_coverage.rs` reads it), with `COVERAGE`
+            // set (fn-248).
+            if on && std::env::var_os("COVERAGE").is_some() {
+                renderer.set_organ_mask(true);
+                let mask = render(&mut renderer, camera, size.0, size.1);
+                renderer.set_organ_mask(false);
+                let mask = mask.map_err(|e| e.to_string())?;
+                println!(
+                    "{group} {view}: florets cover {:.4} of the frame",
+                    coverage(&mask)
+                );
+            }
         }
     }
     Ok(())
+}
+
+/// The share of the frame a mask covers: the mean of its resolved green,
+/// decoded to linear (`tests/organ_coverage.rs`).
+fn coverage(still: &telperion_render::Still) -> f64 {
+    let linear = |v: u8| {
+        let c = f64::from(v) / 255.0;
+        if c <= 0.04045 {
+            c / 12.92
+        } else {
+            ((c + 0.055) / 1.055).powf(2.4)
+        }
+    };
+    let pixels = still.rgba.chunks(4);
+    pixels.clone().map(|p| linear(p[1])).sum::<f64>() / pixels.len() as f64
 }
 
 /// The hero camera's horizontal heading, from the tree to the camera.

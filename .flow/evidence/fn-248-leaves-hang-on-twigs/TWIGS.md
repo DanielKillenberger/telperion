@@ -518,3 +518,65 @@ His age is set to **82**: the largest at or under 3.8M, a 5 % margin to `WASM_KE
 - **Seed 42:** 45.4 m tall, 51.3 × 53.4 m across; LAI **6.94**.
 - **Frame rate** (`frames.rs`, 1080p, best of 3): **96.5** fps whole, 25.4 close.
 - He now stands at Laurelin's height at 80 (45.1 m), where at 92 he stood 49 m. "The loftier" now holds only in breadth at seed 42.
+
+## The Two Trees' florets (worker, 2026-10-09)
+
+**Where it stands.** The coverage and fps targets hold. The mid-view legibility the owner asked for is not reached, and Astra's last round is **DISAGREE**. Stopped for the host.
+
+**Coverage.** Coverage is the share of the frame the florets cover under the organ mask (fn-217 M0, as `tests/organ_coverage.rs` reads it). `space_two_trees` prints it with `COVERAGE=1` and renders at the harness's 1920×1080 with `STILL_SIZE=1920x1080`.
+- **Tolerance:** ±15 % relative at the whole and mid views, seed 1.
+- **Result:** all four final values are within 1 % of their before values.
+
+**Before** (2.2× leaves; florets as fn-218 and fn-219 set them):
+
+| Tree | Whole | Mid | Florets |
+|---|---|---|---|
+| Laurelin | 0.3204 | 0.1496 | 12.3M |
+| Telperion at 82 | 0.3223 | 0.1615 | 10.9M |
+
+**Trials** (scale; florets per inflorescence; flowering share of age 14):
+
+| Tree | Scale, florets, share | Whole | Mid | Florets |
+|---|---|---|---|---|
+| Laurelin | 2.4, 8, 0.21 | 0.3205 | 0.1521 | 2.11M |
+| Laurelin | **3.0, 6, 0.13** | **0.3202** | **0.1496** | **0.98M** |
+| Telperion | 2.4, 6, 0.26 | 0.3315 | 0.1948 | 2.10M |
+| Telperion | 2.4, 6, 0.12 | 0.3214 | 0.1673 | 0.97M |
+| Telperion | **3.0, 5, 0.09** | **0.3191** | **0.1622** | **0.61M** |
+| Telperion | 3.5, 4, 0.08 | 0.3179 | 0.1593 | 0.43M |
+
+- **What scales.** Petal length and width, rachis, pedicel, and stamen length and width all scale together.
+- **The count barely moves the cover.** Coverage at the whole view hardly moves with the count, because the far florets are drawn as cards (fn-246).
+
+**Frame rate** (`frames.rs`, 1080p, best of 3, whole / close):
+
+| Tree | Before | After |
+|---|---|---|
+| Telperion at 82 | 96.5 / 25.4 | **187.8 / 80.6** |
+| Laurelin | 147.6 / 57.8 | **174.8 / 77.5** |
+
+Telperion's close view is now above fn-246's 34 fps.
+
+**Astra** (`astra/florets-r1.md`, `astra/florets-r2.md`; sheets in `raw/florets/`). Each sheet carries the whole, mid and close views and a 1:1 crop of the mid view at 1080p.
+- **Round 1, at 2.4×, with Telperion also at 3.0×:**
+  - Laurelin, mid: FAIL. The racemes read; single florets read as "jagged golden marks".
+  - Telperion at 2.4×, mid: FAIL.
+  - Telperion at 3.0×, mid: "PASS, narrowly".
+  - Astra prefers 3.0×. Overall DISAGREE, on Laurelin.
+- **Round 2, both at 3.0×, seeds 1 and 7:**
+  - Laurelin, mid: FAIL. "The horn shape becomes apparent only in the close view."
+  - Telperion, mid: FAIL. Not consistent, especially at seed 7.
+  - Whole views: PASS.
+  - Close proportion: FAIL, on the leaves: "broad, flat leaves and conspicuous edge-on blades"; petiole joins unclear.
+  - Tree first: PASS.
+  - Overall DISAGREE.
+
+**My reading of the 1:1 crops** (viewed). At about 18 m, a 3.0× floret is about 15 to 20 px at 1080p. Hanging racemes and white clusters read, but a horn's mouth or five separate petals do not. Two rounds of scaling have failed, so I am questioning the idea before trying a third.
+- At this distance, legibility looks like a matter of the floret's shape, not only its size. Astra's notes point to a more flared mouth with a tapered tube, and petals that overlap less.
+- The other way is a much larger scale, about 5× or more, beyond the 2.3 to 2.4 range.
+
+**Committed as the current candidate:** both trees at 3.0×, coverage held, with the tooling in `space_two_trees` (`COVERAGE`, `STILL_SIZE`). Florets do not change growth, so Telperion's age of 82 stands.
+
+**The host's call:** shape work on the florets, a larger scale, or accept the racemes and clusters as what reads at the mid view.
+
+**Not run:** the gate, npm test and impl-review. They wait on that call.

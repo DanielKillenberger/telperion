@@ -5489,20 +5489,20 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "backReflectance": 0.7,
         "bloom": {
           "droop": -1,
-          "florets": 9,
+          "florets": 5,
           "open": 100,
-          "pedicel": 0.015,
+          "pedicel": 0.045,
           "petalCup": 0.4,
           "petalCurl": 0.25,
-          "petalLength": 0.031,
+          "petalLength": 0.093,
           "petalWidest": 0.5,
-          "petalWidth": 0.017,
+          "petalWidth": 0.051,
           "petals": 5,
-          "rachis": 0.13,
+          "rachis": 0.39,
           "scatter": 0.2,
           "spread": 70,
-          "stamenLength": 0.007,
-          "stamenWidth": 0.0004,
+          "stamenLength": 0.021,
+          "stamenWidth": 0.0012,
           "stamens": 12,
           "taper": 0.3
         },
@@ -5511,7 +5511,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         },
         "enabled": true,
         "flowering": {
-          "age14": 1
+          "age14": 0.09
         },
         "internode": {
           "age2": 0.182,
@@ -6279,20 +6279,20 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "backReflectance": 0,
         "bloom": {
           "droop": 1,
-          "florets": 14,
+          "florets": 6,
           "open": 9,
-          "pedicel": 0.008,
+          "pedicel": 0.024,
           "petalCup": 0.6,
           "petalCurl": 0.45,
-          "petalLength": 0.03,
+          "petalLength": 0.09,
           "petalWidest": 0.9,
-          "petalWidth": 0.01,
+          "petalWidth": 0.03,
           "petals": 5,
-          "rachis": 0.24,
+          "rachis": 0.72,
           "scatter": 0.1,
           "spread": 30,
-          "stamenLength": 0.016,
-          "stamenWidth": 0.0006,
+          "stamenLength": 0.048,
+          "stamenWidth": 0.0018,
           "stamens": 5,
           "taper": 0.35
         },
@@ -6301,7 +6301,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         },
         "enabled": true,
         "flowering": {
-          "age14": 0.7
+          "age14": 0.13
         },
         "internode": {
           "age2": 0.182,

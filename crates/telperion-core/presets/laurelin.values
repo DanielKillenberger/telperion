@@ -557,23 +557,29 @@
 # (fn-217 DESIGN.md 9), on seven in ten of the outermost short shoots, so
 # the crown stays green at the whole-tree view with gold through it. Amber
 # throats deepen the gold toward flame. Settled on stills (fn-218 SHEET.md).
-/supernatural/flowering/age14 = 0.7
-/supernatural/bloom/florets = 14.0
-/supernatural/bloom/rachis = 0.24
+# Florets three times their old size (fn-248, owner): in proportion to
+# the larger leaves, the largest Astra preferred; fewer, so the share of
+# the frame they cover holds at the whole and mid views (seed 1, organ
+# mask: whole 0.320 and mid 0.150, within 1 % of the smaller florets').
+# At the mid view they do not yet read as single flowers (fn-248
+# TWIGS.md).
+/supernatural/flowering/age14 = 0.13
+/supernatural/bloom/florets = 6.0
+/supernatural/bloom/rachis = 0.72
 /supernatural/bloom/droop = 1.0
-/supernatural/bloom/pedicel = 0.008
+/supernatural/bloom/pedicel = 0.024
 /supernatural/bloom/spread = 30.0
 /supernatural/bloom/taper = 0.35
 /supernatural/bloom/petals = 5.0
 /supernatural/bloom/open = 9.0
-/supernatural/bloom/petalLength = 0.03
-/supernatural/bloom/petalWidth = 0.01
+/supernatural/bloom/petalLength = 0.09
+/supernatural/bloom/petalWidth = 0.03
 /supernatural/bloom/petalWidest = 0.9
 /supernatural/bloom/petalCup = 0.6
 /supernatural/bloom/petalCurl = 0.45
 /supernatural/bloom/stamens = 5.0
-/supernatural/bloom/stamenLength = 0.016
-/supernatural/bloom/stamenWidth = 0.0006
+/supernatural/bloom/stamenLength = 0.048
+/supernatural/bloom/stamenWidth = 0.0018
 /supernatural/bloom/scatter = 0.1
 /material/bloomFrontRed = 0.75
 /material/bloomFrontGreen = 0.32
