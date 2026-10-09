@@ -123,8 +123,9 @@ pub struct Axis {
     pub vigour: f64,
     /// A relay's place between the continuation it replaces (0) and its
     /// own bud's place and heading (1): the presence of the stop that made
-    /// it. 1 for every other axis. Its place only: its wood and load enter
-    /// at its bud's node whatever its blend (fn-244).
+    /// it. 1 for every other axis. Where it joins its parent moves from the
+    /// parent's tip to its stand by it, and its wood and load enter there
+    /// whole (`geometry::attach`, fn-244).
     pub(crate) blend: f64,
     /// The cycle the apex stopped (died, ended, or changed PA); none, it lives.
     pub apex_end: Option<u32>,

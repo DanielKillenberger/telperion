@@ -117,8 +117,9 @@ pub struct PaState {
     /// Where along its stopped axis a relay bud stands, as a share of the
     /// nodes of the axis's last growth unit from their base: Troll's relay
     /// "in the curvature zone" of the module it takes over from. Neutral 1, the last node; dormant
-    /// without relays. The relay's wood and load enter that node, and the
-    /// drawing joins it there (fn-244).
+    /// without relays. Where the relay joins its parent, and so where its
+    /// wood and load enter and the drawing's join stands, follows from it
+    /// (`geometry::attach`, fn-244).
     pub relay_at: f64,
     /// How far a relay bud turns from its phyllotactic side to the upper
     /// side of its parent (epitony). Neutral 0; dormant without relays.
