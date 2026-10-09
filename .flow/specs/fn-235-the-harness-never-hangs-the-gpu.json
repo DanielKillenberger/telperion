@@ -8,7 +8,9 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-235-the-harness-never-hangs-the-gpu",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-235-the-harness-never-hangs-the-gpu.1": 0
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
@@ -120,15 +122,161 @@
       "task": null,
       "timestamp": "2026-10-08T21:47:57.545182Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "72310736193e2af1fde22a5eca748add8374356c9638974ed237464e75b258d5",
+      "backend": "codex",
+      "base_sha": "8d19611bf4ddfffaf978663935309c4d4d0a2db4",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-05df66edce470a91d221872465e7fb00",
+            "classification": "introduced",
+            "findingId": "finding-05df66edce470a91d221872465e7fb00",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0d73d50e1b570a6765aa69ec952eff59",
+            "classification": "introduced",
+            "findingId": "finding-0d73d50e1b570a6765aa69ec952eff59",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-75efcb9616c4dbb8c69c20052f264228",
+            "classification": "introduced",
+            "findingId": "finding-75efcb9616c4dbb8c69c20052f264228",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-65ec37e33399738d92bc74d1a730a923",
+            "classification": "introduced",
+            "findingId": "finding-65ec37e33399738d92bc74d1a730a923",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "dad34d533b660d9e54f1623de4d7762f9ef05243",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 3385,
+      "output_sha256": "09732f159b7f73269917a1229719fd62dad76eebaceb35520d336046f15352c3",
+      "reservation_id": "8835cd55899c4b68b3f16dd7aaac48c1",
+      "round_consumed": true,
+      "scope": "impl:fn-235-the-harness-never-hangs-the-gpu.1",
+      "superseded_by": null,
+      "task": "fn-235-the-harness-never-hangs-the-gpu.1",
+      "timestamp": "2026-10-09T01:29:18.634044Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "3e1de478c59840414d07d04d445918842935f4f94c15ceec3b2a0944b57812a1",
+      "backend": "codex",
+      "base_sha": "8d19611bf4ddfffaf978663935309c4d4d0a2db4",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-05df66edce470a91d221872465e7fb00",
+            "classification": "introduced",
+            "findingId": "finding-05df66edce470a91d221872465e7fb00",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-0d73d50e1b570a6765aa69ec952eff59",
+            "classification": "introduced",
+            "findingId": "finding-0d73d50e1b570a6765aa69ec952eff59",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-75efcb9616c4dbb8c69c20052f264228",
+            "classification": "introduced",
+            "findingId": "finding-75efcb9616c4dbb8c69c20052f264228",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-65ec37e33399738d92bc74d1a730a923",
+            "classification": "introduced",
+            "findingId": "finding-65ec37e33399738d92bc74d1a730a923",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-722c33940c5a37eb4b41e4b923ab5ffe",
+            "classification": "introduced",
+            "findingId": "finding-722c33940c5a37eb4b41e4b923ab5ffe",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2ba7566a244b9de2f845cf293ffac60bd61f4cdd",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1645,
+      "output_sha256": "127e99a81072fd4f967783d081548c95971991581d04669430ba82b7631dc480",
+      "reservation_id": "444cc8d92ffe41a1b1d236ea2f6abd38",
+      "round_consumed": true,
+      "scope": "impl:fn-235-the-harness-never-hangs-the-gpu.1",
+      "superseded_by": null,
+      "task": "fn-235-the-harness-never-hangs-the-gpu.1",
+      "timestamp": "2026-10-09T01:37:27.601183Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-235-the-harness-never-hangs-the-gpu.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-235-the-harness-never-hangs-the-gpu.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-235-the-harness-never-hangs-the-gpu.md",
@@ -145,5 +293,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T21:48:05.145465Z"
+  "updated_at": "2026-10-09T01:37:27.603756Z"
 }

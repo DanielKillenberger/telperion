@@ -4,7 +4,9 @@
 //! WebGPU's default), on one generator and renderer as the page holds
 //! them. One tree a process, under a wall-clock `timeout` that kills it,
 //! with `TELPERION_TRACE` set so the last step logged is the one that
-//! never completed: `TREE=silver-birch:20 TELPERION_TRACE=1 timeout 120
+//! never completed, and `TELPERION_UNSOWN` so its roots group as the
+//! browser groups them: `TREE=silver-birch:20 TELPERION_TRACE=1
+//! TELPERION_UNSOWN=1 timeout 120
 //! cargo test --profile ci -p telperion-render browser_route -- --ignored`.
 use super::super::{Delivery, Generator};
 use crate::{Gpu, Renderer};
@@ -153,6 +155,8 @@ fn built(tree: &str, env: &[(&str, &str)]) -> Built {
         .args(["--ignored", "--exact", "--nocapture"])
         .arg("generation::fine::hang_tests::browser_route")
         .env("TREE", tree)
+        // The browser's grouping: its roots sown none during settlement.
+        .env("TELPERION_UNSOWN", "1")
         .envs(env.iter().copied())
         .stderr(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
@@ -198,18 +202,14 @@ const SUBMISSION_DISPATCHES: usize = 256;
 const SUBMISSION_WORKGROUPS: u64 = 1 << 23;
 
 /// fn-235 R2: every shipped species at 80, grouped as the browser groups
-/// its roots (`TELPERION_UNSOWN`), each submission waited for alone
+/// its roots (`built`), each submission waited for alone
 /// (`TELPERION_TRACE_WAIT`), within its caps. Measured 2026-10-09 on the
 /// RTX 3080: the oak's worst 177 ms, the beech's 160 (`girths`), the
 /// spruce's 65, the date palm's 1.
 #[test]
 #[ignore = "device limits: each shipped species at 80 on the device"]
 fn every_submission_at_80_within_its_caps() {
-    let env = [
-        ("TELPERION_TRACE", "1"),
-        ("TELPERION_TRACE_WAIT", "1"),
-        ("TELPERION_UNSOWN", "1"),
-    ];
+    let env = [("TELPERION_TRACE", "1"), ("TELPERION_TRACE_WAIT", "1")];
     for tree in [
         "european-beech:80",
         "norway-spruce:80",
