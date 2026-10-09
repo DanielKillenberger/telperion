@@ -1,0 +1,152 @@
+{
+  "branch_name": "fn-252-a-shoot-that-reaches-the-ground-stops",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T19:38:07.385892Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-252-a-shoot-that-reaches-the-ground-stops",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 2,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-09T19:41:38.014539Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "1b0b671d1848dd69b81efba0956616636c9cdf53ce48aa85347cc2289c475335",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-4f8e16f0b61388e073f5da90b5d48e5d",
+            "classification": "introduced",
+            "findingId": "finding-4f8e16f0b61388e073f5da90b5d48e5d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1e421f8fd091d74ee66d62e3f056e9d7",
+            "classification": "introduced",
+            "findingId": "finding-1e421f8fd091d74ee66d62e3f056e9d7",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "cd4d380d33b6a02f70d6622a1293fcea9c47d57c",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 281572,
+      "output_sha256": "5ad0987cffeaf8839d81907e86f56a4461d8f18f310b1d55930cda3965cc0d76",
+      "reservation_id": "a88bdc93688c4053adf44031f4ba8b37",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T19:40:27.667553Z",
+      "tool_calls": 43,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "5937a362a2209504716c045ef567f01dc2c1725194523d871cd6cb6a2db623b6",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-4f8e16f0b61388e073f5da90b5d48e5d",
+            "classification": "introduced",
+            "findingId": "finding-4f8e16f0b61388e073f5da90b5d48e5d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-1e421f8fd091d74ee66d62e3f056e9d7",
+            "classification": "introduced",
+            "findingId": "finding-1e421f8fd091d74ee66d62e3f056e9d7",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-929eb3e6b86439b3c4a58367be83d1c0",
+            "classification": "introduced",
+            "findingId": "finding-929eb3e6b86439b3c4a58367be83d1c0",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "cd4d380d33b6a02f70d6622a1293fcea9c47d57c",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 2141,
+      "output_sha256": "8160e6628704e5e2050dcb044238c21d958dbdc4fc835788ab9d332d14653524",
+      "reservation_id": "abd4cf1814f34bcf9256e8255a4a8e75",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T19:41:38.011608Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-252-a-shoot-that-reaches-the-ground-stops.md",
+  "status": "open",
+  "title": "A shoot that reaches the ground stops there",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T19:42:09.674164Z"
+}
