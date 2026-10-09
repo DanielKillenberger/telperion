@@ -1,21 +1,20 @@
-//! The engine species as preset values (fn-198 host decision 1): each
-//! engine preset carries the engine's own species, stem ages and site
-//! light as `/space` rows, read back to the bit through the value file and
-//! the wire; the other presets carry none.
+//! The engine species as preset values (fn-198 host decision 1): every
+//! preset carries the engine's own species, stem ages and site light as
+//! `/space` rows, read back to the bit through the value file and the wire.
 use telperion_core::{
     blend, params,
     presets::{
-        space::{self, Cell, Space},
+        space::{self, Cell},
         values, Preset,
     },
 };
 use telperion_space::{
-    beech, expected_kept, oak, palm, settings, spruce, zone_settings, Light, Species,
+    beech, birch, expected_kept, oak, palm, settings, spruce, zone_settings, Light, Species,
 };
 
 /// The species each engine preset states, as the tree-space examples grew it
 /// (`crates/telperion-render/examples/space_*.rs`, BASELINE.md's oak light).
-fn engine() -> [(Preset, Species, Vec<usize>, Light); 6] {
+fn engine() -> [(Preset, Species, Vec<usize>, Light); 7] {
     let oak_light = Light {
         extinction: 0.5,
         sky: 0.5,
@@ -35,6 +34,12 @@ fn engine() -> [(Preset, Species, Vec<usize>, Light); 6] {
         ),
         (Preset::OregonWhiteOak, oak(), vec![2, 3, 4], oak_light),
         (Preset::DatePalm, palm(), vec![2], Light::NEUTRAL),
+        (
+            Preset::SilverBirch,
+            birch(),
+            vec![2, 3, 4, 5],
+            Light::NEUTRAL,
+        ),
         // The Two Trees' natural base is the beech (fn-218, fn-219).
         (Preset::Laurelin, beech(), vec![2, 4, 5], Light::NEUTRAL),
         (Preset::Telperion, beech(), vec![2, 4, 5], Light::NEUTRAL),
@@ -47,13 +52,6 @@ fn every_engine_preset_carries_the_engines_species() {
         let space = preset.parameters().space;
         assert_eq!(space.species.as_ref(), Some(&species), "{preset:?}");
         assert_eq!((space.trunk, space.light), (trunk, light), "{preset:?}");
-    }
-}
-
-#[test]
-fn a_preset_without_an_engine_species_carries_none() {
-    for preset in [Preset::SilverBirch] {
-        assert_eq!(preset.parameters().space, Space::default(), "{preset:?}");
     }
 }
 

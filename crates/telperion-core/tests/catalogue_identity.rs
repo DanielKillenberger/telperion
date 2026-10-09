@@ -120,6 +120,16 @@
 //! fn-219 re-pinned the family and walk digests for Telperion's new rows:
 //! the beech's, at 92, with the supernatural group on. The override and
 //! refusal digests are unchanged.
+//! fn-213's silver birch re-pinned the family, walk and override digests for
+//! its round-14 rows (the old-bark rows among them) on fn-223's clusters.
+//! When F4 was merged onto it (MERGE-F4.md) those three were re-pinned once
+//! more from the merged tree; the refusal digest is F4's. Every engine
+//! preset's grown tree (`space_hash`, four species at 40 and 80, seeds 1
+//! and 7) was F4's to the bit, and the birch's DBH was round 14's.
+//! When the birch, Laurelin and Telperion were merged into F4
+//! (MERGE-SPECIES.md) the family and walk digests were re-pinned from the
+//! merged tree, each species' values its own branch's; the override digest
+//! is the birch's and the refusal digest F4's.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -155,7 +165,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        6_966_383_568_448_771_732,
+        16_136_430_294_183_536_726,
         "{}",
         digest(&text)
     );
@@ -187,7 +197,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        17_611_539_037_106_778_077,
+        80_497_557_064_465_506,
         "{}",
         digest(&text)
     );
@@ -212,7 +222,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        17_412_911_408_925_295_970,
+        17_193_177_721_498_402_891,
         "{}",
         digest(&text)
     );

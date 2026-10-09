@@ -70,16 +70,18 @@ const SWEEP_NODES: usize = 8_000;
 // (the walk is refused), and the engine beech and oak no longer clump their
 // limbs: the limb clumping moved only between such pairs, so it is held. The shell depth
 // moves again between the ordinary tree and the beech (fn-215).
-// fn-221's six old-bark rows are stated by no preset yet (fn-213 owns the
-// birch's), so every table leaves them at their neutral and they are held.
-// fn-217's supernatural group is off on every preset the sweep walks but
-// the Two Trees (fn-218, fn-219), which state its scale, leaves, silver
-// underside (Telperion), florets and the petals' colours: the sweep walks
-// those. The rows both leave unset (the other ages' flowering, the window
-// in the year) are held. Telperion now stands on the beech's rows (fn-219),
-// so the scaffold's envelope, growth, writhe, twig and surface rows only
-// his old table moved are held with the rest of the scaffold.
-const HELD: [&str; 149] = [
+// fn-221's six old-bark rows are stated by the birch (fn-213), so the sweep
+// walks them.
+// fn-217's supernatural group is off on every preset but the Two Trees
+// (fn-218, fn-219), which state its scale, leaves, silver underside
+// (Telperion), florets and the petals' colours: the sweep walks those. The
+// rows both leave unset (the other ages' flowering, the window in the year)
+// are held. Telperion stands on the beech's rows (fn-219), so the scaffold's
+// growth, writhe, twig and surface rows only his old table moved are held
+// with the rest of the scaffold; the birch (fn-213) moves the envelope, the
+// clump, the peel, the curtain and the twig length, so the sweep walks
+// those. Every preset is now an engine preset, so every pair is walked.
+const HELD: [&str; 118] = [
     "/bloom/florets",
     "/bloom/rachis",
     "/bloom/droop",
@@ -128,12 +130,6 @@ const HELD: [&str; 149] = [
     "/material/leafDeadRed",
     "/material/leafDeadGreen",
     "/material/leafDeadBlue",
-    "/material/matureRed",
-    "/material/matureGreen",
-    "/material/matureBlue",
-    "/material/matureFurrowStrength",
-    "/material/matureRadius",
-    "/material/matureSpan",
     "/canopy/clumpNeighbours",
     "/surface/socketContainment",
     "/skeleton/habit/reachProbeSteps",
@@ -147,6 +143,7 @@ const HELD: [&str; 149] = [
     "/radii/girthFall",
     "/skeleton/samplingAttemptsPerAttractor",
     "/radii/maxTaperExponent",
+    "/skeleton/bias/supernatural/enabled",
     "/skeleton/bias/supernatural/maxWritheMagnitude",
     "/skeleton/twigs/maxInternodes",
     "/skeleton/twigs/maxDroop",
@@ -193,39 +190,13 @@ const HELD: [&str; 149] = [
     "/supernatural/flowering/age11",
     "/supernatural/flowering/age12",
     "/supernatural/flowering/age13",
-    "/canopy/clump",
-    "/canopy/clumpSpan",
     "/canopy/spacing",
-    "/material/peelBlue",
-    "/material/peelCurl",
-    "/material/peelGreen",
-    "/material/peelRed",
     "/skeleton/attractors",
-    "/skeleton/bias/supernatural/enabled",
     "/skeleton/bias/supernatural/spiralRate",
     "/skeleton/bias/supernatural/writheAmplitude",
     "/skeleton/bias/supernatural/writheWavelength",
-    "/skeleton/envelope/crownBase",
-    "/skeleton/envelope/fullness",
-    "/skeleton/envelope/height",
-    "/skeleton/envelope/irregularity",
-    "/skeleton/envelope/lobeScale",
-    "/skeleton/envelope/shoulder",
-    "/skeleton/envelope/spread",
     "/skeleton/growth/maxTurnPerStep",
-    "/skeleton/habit/codominance",
-    "/skeleton/habit/forkDivergence",
-    "/skeleton/habit/forkHeight",
-    "/skeleton/habit/forkLean",
-    "/skeleton/habit/forkLeanSpread",
-    "/skeleton/twigs/curtainClearance",
-    "/skeleton/twigs/curtainDrop",
-    "/skeleton/twigs/curtainSeparation",
     "/skeleton/twigs/internodeFactor",
-    "/skeleton/twigs/pendulousLength",
-    "/skeleton/twigs/pendulousVariation",
-    "/skeleton/twigs/sag",
-    "/skeleton/twigs/twig/length",
     "/surface/lobeDepth",
     "/surface/lobes",
     "/surface/twistRate",
