@@ -134,3 +134,19 @@ This is for fn-214 to choose its cut against (its coarse field still refuses the
 - **Re-pinned:** the three digests (with a line in the file's header) and the oak's ten row hashes. Re-run, both pass: `catalogue_identity` 4 of 4, `closed_form::boundary` 2 passed (`raw/gate3-repin-*.log`).
 - **Generated file:** `presets.generated.ts` regenerated with `TELPERION_WRITE_REFERENCE=1 npm run wasm:build`. All 29 hunks fall in the oak's block.
 - **`npm test`:** exits 0, 143 of 143 in 13 files (`raw/npm3.log`).
+
+## Review
+
+Codex impl-review was run against F4's tip (`e37348f0`), so the merge is not in the diff. Three reviewers returned NEEDS_WORK on one shared P2: the gap raster painted every leaf as a 0.2 m square. That is fixed in `6627b40f` and every gap number above is re-measured. The re-review returned **SHIP**. R5, the owner's verdict, stays open by design.
+
+## For the owner's verdict
+
+**Stills:**
+- `raw/compare/compare3-80.png` and `compare3-40.png`: O-WHOLE, 0.1.4, round 1 and round 3;
+- `raw/compare/r3-PF4-80.png`: round 3 at 80 from four azimuths;
+- `raw/compare/field-r3-n36.png` and `field-r3-n48.png`: the site's grids, 0.1.4 beside round 3.
+
+**Open with it:**
+- **The site at 40:** three of six grove seeds still read irregular at the site's scale.
+- **Cost:** the site's oak grows 1.8 to 3.7 times slower than round 0's and takes 650 to 780 MB.
+- **Stems:** DBH at 80 runs 1.5 to 2.7 times the derived range.

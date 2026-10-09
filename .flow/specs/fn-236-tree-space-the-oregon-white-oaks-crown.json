@@ -10,7 +10,9 @@
     "fn-198-tree-space-f-the-engine-in-production"
   ],
   "id": "fn-236-tree-space-the-oregon-white-oaks-crown",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-236-tree-space-the-oregon-white-oaks-crown.1": 0
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
@@ -190,15 +192,105 @@
       "task": null,
       "timestamp": "2026-10-08T22:27:26.130680Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ac4e5e6a381592995cd0de6f4a2b1160ad3d3e37292cba064bcc859cd7474aa2",
+      "backend": "codex",
+      "base_sha": "e37348f032f0c3961dc2f3b963f3f06accc514bd",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-aa4b5790437c7527ea2a542bf55f5830",
+            "classification": "introduced",
+            "findingId": "finding-aa4b5790437c7527ea2a542bf55f5830",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6856a84d9a55381bf73cbdf22b1c027dc03765da",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 892,
+      "output_sha256": "4c0e67b1020704ed9127d4df5dcdc553fa5aeeb1c79dfb2db3763302cc3c7167",
+      "reservation_id": "b15fc66abc3f401c963abaae8b5a1a79",
+      "round_consumed": true,
+      "scope": "impl:fn-236-tree-space-the-oregon-white-oaks-crown.1",
+      "superseded_by": null,
+      "task": "fn-236-tree-space-the-oregon-white-oaks-crown.1",
+      "timestamp": "2026-10-09T01:07:58.299851Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "90d48865b297a6240576a7b5c0dcb8d228a6c1e640a0c5aee84d0678a013c555",
+      "backend": "codex",
+      "base_sha": "e37348f032f0c3961dc2f3b963f3f06accc514bd",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-aa4b5790437c7527ea2a542bf55f5830",
+            "classification": "introduced",
+            "findingId": "finding-aa4b5790437c7527ea2a542bf55f5830",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6627b40ff726cd2a736456b93fc46b66f6e6dbfa",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1093,
+      "output_sha256": "b70a12e8b968657bc47fe03629aa7a5b3b5de3c132c9401e084b8598ed0745ac",
+      "reservation_id": "c35a6eb1b966491f8c7ed3989c3f3e8d",
+      "round_consumed": true,
+      "scope": "impl:fn-236-tree-space-the-oregon-white-oaks-crown.1",
+      "superseded_by": null,
+      "task": "fn-236-tree-space-the-oregon-white-oaks-crown.1",
+      "timestamp": "2026-10-09T01:24:03.641310Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-236-tree-space-the-oregon-white-oaks-crown.1": 1,
     "plan": 2,
     "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-236-tree-space-the-oregon-white-oaks-crown.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-236-tree-space-the-oregon-white-oaks-crown.md",
@@ -215,5 +307,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T22:28:00.587858Z"
+  "updated_at": "2026-10-09T01:24:03.643746Z"
 }
