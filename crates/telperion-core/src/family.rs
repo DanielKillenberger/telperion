@@ -84,10 +84,14 @@ impl Family {
     /// name it refuses it by, with no attractor scattered, no node grown and no leaf
     /// placed. The checks run in the order the build reaches them. A scatter
     /// that falls short of its count is left to growth: that depends on the
-    /// seed as much as on any row.
+    /// seed as much as on any row. Last, the natural material and bloom rows
+    /// an override stands in for are judged as written, so a family whose
+    /// group is on holds no row that switching it off would refuse.
     pub fn validate(&self) -> Result<()> {
         self.supernatural.validate()?;
-        self.applied().judged()
+        self.applied().judged()?;
+        self.material.validate()?;
+        crate::catalogue::check(BloomParams::CHECKS, &self.bloom, Site::Bloom)
     }
 
     /// Every row but the supernatural group's, as `validate` judges the

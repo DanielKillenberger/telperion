@@ -149,7 +149,14 @@ fn natural_bias_is_independent_of_disabled_effects() {
         natural.tree.nodes,
         generate(&p, RadiusParams::default()).unwrap().tree.nodes
     );
-    for preset in [Preset::Telperion, Preset::Laurelin] {
-        assert!(preset.parameters().skeleton.bias.supernatural.enabled);
-    }
+    // Laurelin stands on the beech's engine species (fn-218) and states none
+    // of the scaffold's bias rows, which R0 deletes (fn-217 decision 11).
+    assert!(
+        Preset::Telperion
+            .parameters()
+            .skeleton
+            .bias
+            .supernatural
+            .enabled
+    );
 }
