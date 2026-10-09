@@ -18,7 +18,8 @@
     "fn-238-a-blend-between-species-solves-in-about",
     "fn-241-three-defects-found-on-the-way-to-the",
     "fn-243-the-browser-compiles-the-gpu-programs",
-    "fn-244-trunks-without-weird-dents"
+    "fn-244-trunks-without-weird-dents",
+    "fn-246-the-harness-holds-60-fps-on-every"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -38,5 +39,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T08:55:06.474325Z"
+  "updated_at": "2026-10-09T09:21:24.770414Z"
 }
