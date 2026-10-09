@@ -66,6 +66,9 @@ export function GrowerDev() {
   const [refused, setRefused] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [makingRoom, setMakingRoom] = useState(false);
+  /* The browser compiles the GPU programs from the moment the stage
+     exists (fn-243); the first build waits on them. */
+  const [preparing, setPreparing] = useState(true);
 
   /* One device per canvas, for the canvas's whole life. React's
      development double-mount builds a stage and disposes it before the
@@ -79,6 +82,11 @@ export function GrowerDev() {
       (stage) => {
         if (cancelled) { stage.dispose(); return; }
         stageRef.current = stage;
+        setPreparing(true);
+        stage.programs.then(
+          () => { if (!cancelled) setPreparing(false); },
+          (error: unknown) => { if (!cancelled) setBuildError(String(error)); },
+        );
         buildsRef.current = latestBuild(async (params: GrowerParams) => {
           const family = familyJson(params);
           /* The budget's one rule (fn-235): a tree that fits only alone
@@ -304,6 +312,7 @@ export function GrowerDev() {
           <button className="gd-button" onClick={() => setLoadAttempt(n => n + 1)}>retry build</button>
         </div>}
         {!ready && !buildError && <p role="status" className="gd-note">Starting the renderer…</p>}
+        {ready && preparing && !buildError && <p role="status" className="gd-note">preparing GPU programs…</p>}
         <p className="gd-note">
           clay. flat grey, neutral sky, no bloom. this is the judging mode.
           drag to walk round the tree, wheel to come in.

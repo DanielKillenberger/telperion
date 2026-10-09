@@ -173,7 +173,12 @@ export interface Renderer {
    *  screen empty while it builds. Throws the budget's own words for a tree
    *  that does not fit even alone; the drawn tree stays. */
   admission(family: string): Admission;
-  /** Experimental GPU foliage; unsupported inputs report CpuFallback. */
+  /** The GPU programs every build dispatches, compiled by the browser in
+   *  the background from the moment the renderer exists. Rejects with the
+   *  program the browser refused, or the device lost meanwhile, by name. */
+  programs: Promise<void>;
+  /** Experimental GPU foliage; unsupported inputs report CpuFallback. Waits
+   *  on `programs`, and rejects with its error without building. */
   setTreeGpu(family: string): Promise<GpuSubmitted>;
   setView(view: View): void;
   /** The sun, sky and ground the next frame is drawn under. */
@@ -215,6 +220,11 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
   const renderer = (await WebRenderer.create(canvas)) as WebRenderer;
   countDevice(1);
   let disposed = false;
+  /* Compiled now, before any tree is asked for: a synchronous compile on
+     the first build held Chrome's GPU process until its watchdog ended it
+     (fn-243). A build waits here; it never compiles again. */
+  const programs = (renderer.preparePrograms() as Promise<unknown>).then(() => undefined);
+  programs.catch(() => undefined);
 
   const observer = new ResizeObserver(() => {
     if (disposed) return;
@@ -226,7 +236,9 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
   return {
     setTree: (family) => JSON.parse(renderer.setTree(family)) as Submitted,
     admission: (family) => renderer.admission(family) as Admission,
+    programs,
     setTreeGpu: async (family) => {
+      await programs;
       if (disposed) throw new Error("the renderer is disposed");
       return JSON.parse(await renderer.setTreeGpu(family)) as GpuSubmitted;
     },

@@ -16,6 +16,8 @@ pub enum RenderError {
     DeviceRefused { requirement: String, detail: String },
     /// The device went away mid-render.
     DeviceLost { reason: String },
+    /// The browser refused to compile a GPU program, in its own words.
+    ProgramRefused { program: String, reason: String },
     /// The canvas surface could not give the frame that was asked for.
     Surface(String),
     /// A buffer this tree needs is larger than the device granted.
@@ -49,6 +51,9 @@ impl std::fmt::Display for RenderError {
                 detail,
             } => write!(f, "the GPU device was refused on {requirement}: {detail}"),
             Self::DeviceLost { reason } => write!(f, "the GPU device was lost: {reason}"),
+            Self::ProgramRefused { program, reason } => {
+                write!(f, "the browser refused the GPU program `{program}`: {reason}")
+            }
             Self::Surface(detail) => write!(f, "the canvas gave no frame: {detail}"),
             Self::Oversize {
                 buffer,
@@ -120,6 +125,9 @@ pub struct Gpu {
     /// The owned buffers, each let go destroyed once the encoders open
     /// when it was let go have closed (`buffer::Owned`, `Encoder`).
     pub(crate) ledger: Arc<crate::buffer::Ledger>,
+    /// The programs the browser is compiling, until `programs::ready`.
+    #[cfg(target_arch = "wasm32")]
+    pub(crate) programs: std::rc::Rc<crate::programs::Pending>,
 }
 
 impl Gpu {
@@ -257,6 +265,8 @@ impl Gpu {
             instance,
             lost,
             ledger: Arc::default(),
+            #[cfg(target_arch = "wasm32")]
+            programs: Default::default(),
         })
     }
 

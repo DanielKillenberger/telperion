@@ -91,6 +91,25 @@ impl super::Generator {
         })
     }
 
+    /// Every program a build dispatches, compiled before one is asked for:
+    /// the page calls this as soon as its device exists, so the browser
+    /// compiles in the background and no build compiles again (fn-243 R3).
+    pub async fn prepare_programs(&self) -> Result<()> {
+        let scopes = super::io::scope(&self.gpu);
+        self.kit();
+        let ready = crate::programs::ready(&self.gpu).await;
+        super::io::errors(&self.gpu, scopes).await?;
+        ready
+    }
+
+    /// The fine executor's kernels and tools, made on first use.
+    fn kit(&self) -> &Kit {
+        self.fine.get_or_init(|| Kit {
+            kernels: roots::kernels(&self.gpu),
+            tools: resident::Tools::new(&self.gpu),
+        })
+    }
+
     /// `family` prepared resident, its fine roots settled, drawn and
     /// placed on the device (fn-212 task 10, host decision 2): the
     /// structure above the cut and the roots laid on the CPU through the
@@ -107,10 +126,11 @@ impl super::Generator {
         // The kernels are made inside the scopes, so a shader the device
         // refuses is the error reported.
         let scopes = super::io::scope(gpu);
-        let kit = self.fine.get_or_init(|| Kit {
-            kernels: roots::kernels(gpu),
-            tools: resident::Tools::new(gpu),
-        });
+        let kit = self.kit();
+        if let Err(refused) = crate::programs::ready(gpu).await {
+            super::io::errors(gpu, scopes).await?;
+            return Err(refused);
+        }
         #[cfg(test)]
         if self.fail_next.take() {
             // A storage buffer the device may also map: a validation error.

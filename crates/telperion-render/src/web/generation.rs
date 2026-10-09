@@ -35,6 +35,30 @@ impl WebRenderer {
         .into())
     }
 
+    /// Compiles every GPU program a build dispatches, as soon as the
+    /// device exists: the browser compiles them in the background, and a
+    /// build waits on this rather than compiling again (fn-243 R3). A
+    /// program the browser refuses, or a device lost meanwhile, rejects by
+    /// name, and no build starts after it.
+    #[wasm_bindgen(js_name = preparePrograms)]
+    pub fn prepare_programs(&self) -> js_sys::Promise {
+        let live = self.live.clone();
+        let state = self.generation.clone();
+        let begun = Request::begin(state.clone()).map_err(JsError::new);
+        future_to_promise(async move {
+            let request = begun?;
+            if state.borrow().generator.is_some() {
+                return Ok(JsValue::UNDEFINED);
+            }
+            let construction = Generator::new_async(&borrow(&live)?.renderer);
+            let generator = construction.await.map_err(js_error)?;
+            generator.prepare_programs().await.map_err(js_error)?;
+            request.check().map_err(JsError::new)?;
+            state.borrow_mut().generator = Some(Rc::new(generator));
+            Ok(JsValue::UNDEFINED)
+        })
+    }
+
     /// Experimental GPU foliage preparation. Unsupported parameters explicitly
     /// use the CPU fallback; the existing synchronous entry remains available.
     #[wasm_bindgen(js_name = setTreeGpu)]
@@ -52,19 +76,11 @@ impl WebRenderer {
         future_to_promise(async move {
             let (family, request) = begun?;
             request.check().map_err(JsError::new)?;
-            let cached = state.borrow().generator.clone();
-            let generator = if let Some(generator) = cached {
-                generator
-            } else {
-                let construction = {
-                    let live = borrow(&live)?;
-                    Generator::new_async(&live.renderer)
-                };
-                let generator = Rc::new(construction.await.map_err(js_error)?);
-                request.check().map_err(JsError::new)?;
-                state.borrow_mut().generator = Some(generator.clone());
-                generator
-            };
+            // A build never compiles: it runs on the programs
+            // `preparePrograms` compiled.
+            let generator = state.borrow().generator.clone().ok_or_else(|| {
+                JsError::new("the GPU programs are not prepared; await preparePrograms first")
+            })?;
             // The budget's one rule: beside the drawn tree, the drawn tree
             // let go first, or refused by name with it kept.
             let made_room = admitted(&live, &state, &family)? == Admitted::MakeRoom;

@@ -1,4 +1,5 @@
 use crate::buffer::Owned;
+use crate::programs::Program;
 use crate::{Gpu, RenderError, Result};
 
 pub(super) fn buffer(
@@ -41,7 +42,8 @@ pub(super) fn buffer(
 
 pub(super) struct Pass {
     pub layout: wgpu::BindGroupLayout,
-    pub pipelines: Vec<wgpu::ComputePipeline>,
+    /// In a browser, compiling until `programs::ready` (fn-243).
+    pipelines: Vec<Program>,
     maximum: u32,
     #[cfg(test)]
     entries: Vec<String>,
@@ -103,16 +105,17 @@ impl Pass {
             .map(|&entry| {
                 #[cfg(test)]
                 let started = std::time::Instant::now();
-                let pipeline =
-                    gpu.device
-                        .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                            label: Some(entry),
-                            layout: Some(&pipeline_layout),
-                            module: &module,
-                            entry_point: Some(entry),
-                            compilation_options: Default::default(),
-                            cache: None,
-                        });
+                let pipeline = Program::make(
+                    gpu,
+                    &wgpu::ComputePipelineDescriptor {
+                        label: Some(entry),
+                        layout: Some(&pipeline_layout),
+                        module: &module,
+                        entry_point: Some(entry),
+                        compilation_options: Default::default(),
+                        cache: None,
+                    },
+                );
                 #[cfg(test)]
                 crate::trace::compiled(entry, started.elapsed());
                 pipeline
@@ -179,7 +182,7 @@ impl Pass {
         });
         #[cfg(test)]
         crate::trace::dispatch(&self.entries[entry], groups);
-        pass.set_pipeline(&self.pipelines[entry]);
+        pass.set_pipeline(self.pipelines[entry].get());
         pass.set_bind_group(0, bind, &[]);
         pass.dispatch_workgroups(groups.min(self.maximum), groups.div_ceil(self.maximum), 1);
     }

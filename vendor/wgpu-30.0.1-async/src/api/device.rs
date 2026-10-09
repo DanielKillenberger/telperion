@@ -427,6 +427,23 @@ impl Device {
         self.inner.as_webgpu_opt().map(|wd| &wd.inner)
     }
 
+    /// Creates a [`ComputePipeline`] through the browser's
+    /// `createComputePipelineAsync`, which compiles it without holding the
+    /// browser's GPU process. The browser is asked when this is called, not
+    /// when the future is first polled. The error is the browser's rejection,
+    /// its reason and message. `None` off the WebGPU backend (telperion patch).
+    #[cfg(webgpu)]
+    pub fn create_compute_pipeline_async(
+        &self,
+        desc: &ComputePipelineDescriptor<'_>,
+    ) -> Option<impl Future<Output = Result<ComputePipeline, String>> + 'static> {
+        let pending = self
+            .inner
+            .as_webgpu_opt()?
+            .create_compute_pipeline_async(desc);
+        Some(async move { pending.await.map(|inner| ComputePipeline { inner }) })
+    }
+
     /// Creates a new [`ExternalTexture`].
     #[must_use]
     pub fn create_external_texture(

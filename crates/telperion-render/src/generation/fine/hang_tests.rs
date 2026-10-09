@@ -62,6 +62,27 @@ fn browser_route() {
     println!("{tree}: built in {built:.2} s and drawn");
 }
 
+/// fn-243 R4: the page prepares every program before its first tree, and
+/// neither a build on the fine path nor a second preparation makes one
+/// again.
+#[test]
+fn a_build_makes_no_program_the_preparation_did_not() {
+    let Some(gpu) = browser_gpu() else {
+        return;
+    };
+    let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
+    let before = crate::programs::made();
+    let gen = pollster::block_on(Generator::new_async(&renderer)).unwrap();
+    pollster::block_on(gen.prepare_programs()).unwrap();
+    let prepared = crate::programs::made();
+    assert!(prepared > before, "the preparation made no program");
+    let mut family = telperion_core::presets::by_identity("european-beech").unwrap();
+    family.age = 5.0;
+    gen.prepare(&family, Delivery::Resident).unwrap();
+    pollster::block_on(gen.prepare_programs()).unwrap();
+    assert_eq!(crate::programs::made(), prepared);
+}
+
 /// The longest a pipeline may take to make on a cold driver cache (host
 /// decisions 2, 2026-10-09): well under Chrome's GPU watchdog, which kills
 /// a GPU process that makes one for longer; 2.5 s gives the 2 s target its

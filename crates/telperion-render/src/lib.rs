@@ -15,6 +15,7 @@ pub mod generation;
 mod headless;
 mod mass;
 mod pass;
+mod programs;
 mod scene;
 mod select;
 mod shadow;

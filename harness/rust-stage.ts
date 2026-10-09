@@ -31,6 +31,9 @@ import { eyeOf, orbitOf, pan, push, turn, type Orbit } from "./orbit";
  * ------------------------------------------------------------------ */
 
 export interface Stage {
+  /** The GPU programs every build runs on, compiling in the background
+   *  since the stage was made (`Renderer.programs`). */
+  programs: Promise<void>;
   /** Replaces the tree with the one these parameters describe. Rejects with
    *  the generator's or the renderer's own message; the tree already on
    *  the canvas stays where it is. */
@@ -140,6 +143,7 @@ export async function createStage(
   canvas.addEventListener("wheel", onWheel, { passive: false });
 
   return {
+    programs: renderer.programs,
     setTreeGpu: (family) => renderer.setTreeGpu(family),
     admission: (family) => renderer.admission(family),
     scene: () => renderer.scene(),
