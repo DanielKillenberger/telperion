@@ -5,6 +5,9 @@
 //! Every function here is specified by its result; the algorithm is free.
 use super::Fault;
 
+#[cfg(test)]
+mod tests;
+
 /// A two's complement 256-bit integer, `hi 2^128 + lo`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct I256 {
@@ -104,23 +107,87 @@ impl I256 {
             return Err(Fault::Zero);
         }
         let (hi, lo) = self.magnitude();
-        let den = d.unsigned_abs();
-        let (mut r, mut q) = (0u128, (0u128, 0u128));
-        for i in (0..256).rev() {
-            let bit = if i >= 128 { hi >> (i - 128) } else { lo >> i } & 1;
-            // r < den <= 2^127, so the shift cannot lose a bit.
-            r = (r << 1) | bit;
-            if r >= den {
-                r -= den;
-                if i >= 128 {
-                    q.0 |= 1 << (i - 128);
-                } else {
-                    q.1 |= 1 << i;
-                }
+        let q = divide(limbs([lo, hi]), limbs([d.unsigned_abs(), 0]));
+        let half = |h: usize| (0..4).fold(0u128, |w, k| w | u128::from(q[4 * h + k]) << (32 * k));
+        Ok(Self::signed(self.negative() != (d < 0), (half(1), half(0))))
+    }
+}
+
+/// A 256-bit magnitude, low half first, as eight 32-bit limbs, the least
+/// significant first.
+fn limbs(x: [u128; 2]) -> [u32; 8] {
+    std::array::from_fn(|k| (x[k / 4] >> (32 * (k % 4))) as u32)
+}
+
+/// `u / v` of limbs, `v` not zero, truncated: Knuth's algorithm D (TAOCP
+/// 4.3.1, as Hacker's Delight's `divmnu`). Each quotient limb is estimated
+/// from the two leading limbs of the remainder over the normalised
+/// divisor's leading limb, corrected against its next limb, and added back
+/// once in the rare case it is still one too large. Every product and
+/// division is in 64 bits, which Wasm has natively.
+fn divide(u: [u32; 8], v: [u32; 8]) -> [u32; 8] {
+    const B: u64 = 1 << 32;
+    let len = |x: &[u32; 8]| 8 - x.iter().rev().take_while(|&&l| l == 0).count();
+    let (m, n) = (len(&u), len(&v));
+    let mut q = [0u32; 8];
+    if m < n {
+        return q;
+    }
+    if n == 1 {
+        let (d, mut r) = (u64::from(v[0]), 0u64);
+        for j in (0..m).rev() {
+            let t = (r << 32) | u64::from(u[j]);
+            (q[j], r) = ((t / d) as u32, t % d);
+        }
+        return q;
+    }
+    // Normalised: the divisor's leading limb has its top bit set.
+    let s = v[n - 1].leading_zeros();
+    let shifted = |x: &[u32], k: usize| {
+        let below = if k == 0 {
+            0
+        } else {
+            u64::from(x[k - 1]) >> (32 - s)
+        };
+        ((u64::from(x.get(k).copied().unwrap_or(0)) << s) | below) as u32
+    };
+    let vn: [u32; 8] = std::array::from_fn(|k| shifted(&v, k));
+    let mut un: [u32; 9] = std::array::from_fn(|k| shifted(&u, k));
+    let (top, next) = (u64::from(vn[n - 1]), u64::from(vn[n - 2]));
+    for j in (0..=m - n).rev() {
+        let lead = (u64::from(un[j + n]) << 32) | u64::from(un[j + n - 1]);
+        let (mut qhat, mut rhat) = (lead / top, lead % top);
+        while qhat >= B || qhat * next > (rhat << 32) | u64::from(un[j + n - 2]) {
+            qhat -= 1;
+            rhat += top;
+            if rhat >= B {
+                break;
             }
         }
-        Ok(Self::signed(self.negative() != (d < 0), q))
+        // Multiply and subtract.
+        let mut k = 0i64;
+        for i in 0..n {
+            let p = qhat * u64::from(vn[i]);
+            let t = i64::from(un[i + j]) - k - (p & 0xffff_ffff) as i64;
+            un[i + j] = t as u32;
+            k = (p >> 32) as i64 - (t >> 32);
+        }
+        let t = i64::from(un[j + n]) - k;
+        un[j + n] = t as u32;
+        q[j] = qhat as u32;
+        if t < 0 {
+            // One too large: add the divisor back.
+            q[j] = q[j].wrapping_sub(1);
+            let mut c = 0u64;
+            for i in 0..n {
+                let t = u64::from(un[i + j]) + u64::from(vn[i]) + c;
+                un[i + j] = t as u32;
+                c = t >> 32;
+            }
+            un[j + n] = un[j + n].wrapping_add(c as u32);
+        }
     }
+    q
 }
 
 /// `floor(a b / 2^n)`, exact, as an i128: a W product (`n` 64), a Q32 by

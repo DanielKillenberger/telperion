@@ -77,6 +77,9 @@ async fn collect(
     let [camera, sun] = reports.await;
     let read = |r: Option<crate::CurveReport>| r.map(|r| (r.scale, r.overrun));
     let report = report.with_wood(read(camera), read(sun));
+    // The page's next frame draws what the page holds, not the session's
+    // last frame.
+    borrow(live)?.redraw.ask();
     if !turning {
         return Ok(report.to_json());
     }
@@ -100,21 +103,24 @@ async fn sampled(
     let mut vegetation = Vec::with_capacity(MEASURED);
     let mut selection = Vec::with_capacity(MEASURED);
     let mut shadow = Vec::with_capacity(MEASURED);
+    let mut cached = Vec::with_capacity(MEASURED);
     let mut surfacing = Vec::with_capacity(MEASURED);
     for index in 0..WARMUP + MEASURED {
         // The borrow is put down before the await, so nothing holds the canvas
         // while the browser is carrying the readback.
-        {
+        let reused = {
             let mut canvas = borrow(live)?;
             canvas.camera = pose(index.saturating_sub(WARMUP) as f64 / MEASURED as f64);
             canvas.draw(Some(session.timed())).map_err(js_error)?;
             session.resolve(canvas.renderer.gpu());
-        }
+            canvas.renderer.shadow_cached()
+        };
         let [pass, select, sun, surfaced] = session.sample_ms().await.map_err(js_error)?;
         if index >= WARMUP {
             vegetation.push(pass);
             selection.push(select);
             shadow.push(sun);
+            cached.push(reused);
             surfacing.push(surfaced);
         }
     }
@@ -123,6 +129,7 @@ async fn sampled(
         &selection,
         &shadow,
         &surfacing,
+        &cached,
     ))
 }
 

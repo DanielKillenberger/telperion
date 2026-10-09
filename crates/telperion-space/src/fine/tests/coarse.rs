@@ -126,3 +126,37 @@ fn a_kept_tree_no_light_reads_is_refused() {
         refused.err()
     );
 }
+
+/// fn-249 R3: the coarse trees to the bit, every axis's frame and every
+/// phytomer and stand, as before the unbent lay left the stand-ins
+/// unframed (4b0f7b01): FNV-1a over their `Debug` text.
+#[test]
+fn the_coarse_trees_hold_their_bits() {
+    let fnv = |text: String| {
+        text.bytes().fold(0xcbf2_9ce4_8422_2325u64, |h, b| {
+            (h ^ u64::from(b)).wrapping_mul(0x0100_0000_01b3)
+        })
+    };
+    let mut got = Vec::new();
+    let lit = Request {
+        light: crate::Light {
+            extinction: 0.5,
+            sky: 0.5,
+        },
+        ..request(24, 1)
+    };
+    let trees = [
+        ("spruce", crate::spruce(), request(20, 3), 1024.0),
+        ("oak", crate::oak(), lit, 256.0),
+    ];
+    for (name, species, r, cut) in trees {
+        let c = grow_coarse(&species, r, cut).expect("grows");
+        let hash = fnv(format!("{:?} {:?}", c.structure, c.stands));
+        got.push((name, c.stands.len(), hash));
+    }
+    let pinned = [
+        ("spruce", 3588, 0x6c4d_a1d6_97a5_0785),
+        ("oak", 2638, 0x7b38_d411_fba1_2383),
+    ];
+    assert_eq!(got, pinned);
+}

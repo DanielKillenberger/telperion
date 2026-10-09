@@ -3,11 +3,22 @@
 //! growth unit, blended back towards the unit before by how much of the
 //! last unit has grown, its extent: each node's unit presence times its
 //! node presence times the share of its cycle the unit lived, summed, at
-//! most one. Units are read along the whole line of axes carried on (a
-//! relay or a continuation and the axis it carries on), as one axis, so
-//! the weight belongs to the unit and not to the axis holding it, and a
-//! unit growing in from nothing moves no relay. Contract A (CONTRACT-A.md
-//! 2.4): Q32 throughout, the azimuth an amount, one floor a product.
+//! most one. Two readings of it (fn-244 host decision 4, option 1):
+//!
+//! - its frame (`stand`) reads units along the whole line of axes carried
+//!   on, as one axis, so the weight belongs to the unit and not to the axis
+//!   holding it, and a unit growing in from nothing turns no relay;
+//! - its position (`position`) reads the parent's own units alone, short
+//!   of a whole one back towards the parent's start, so the relay joins
+//!   the wood it grows from: the one attachment girth, sag and the drawing
+//!   read (`geometry::attach`).
+//!
+//! The frame keeps the line because a stop that splits a growing unit off
+//! as a new, barely present relay hands that unit to another axis: read
+//! on the parent alone, the frame of a relay standing on it would swing
+//! from the unit before to the new relay's start at that crossing, a jump
+//! fn-199's R3 walk catches (DENTS.md). Contract A (CONTRACT-A.md 2.4):
+//! Q32 throughout, the azimuth an amount, one floor a product.
 use super::q::{add, dot, q3, scaled, sub, unit, Q3};
 use super::{by_rank_q, over, phase};
 use crate::fixed::{mul, q32, ONE32};
@@ -96,6 +107,94 @@ pub(super) fn stand(axes: &[Axis], species: &Species, p: usize, node: usize) -> 
         point = point.toward(at, extent);
     }
     point
+}
+
+/// How far along axis `p` a relay stands, `node` its node on `p`'s last
+/// unit, in `p`'s scaled length from its base, Q32 (`node_x`): `p`'s last
+/// unit at `relay_at`, blended back towards the one before by its extent,
+/// that one towards the one before it by its own, down to a whole unit or
+/// `p`'s start. Blended by length, so a node growing in from nothing
+/// moves no relay (fn-244 review).
+pub(super) fn position(axes: &[Axis], species: &Species, p: usize, node: usize) -> i64 {
+    let axis = &axes[p];
+    let relay_at = species.states[axis.pa].relay_at;
+    // The units newest first, each with its position and extent, to the
+    // first grown whole.
+    let mut units: Vec<(i64, i64)> = Vec::new();
+    let ranges = unit_ranges(axis);
+    for (u, &(first, end)) in ranges.iter().enumerate().rev() {
+        let k = if u + 1 == ranges.len() {
+            node.clamp(first, end - 1)
+        } else {
+            zone_node(axis, (first, end), relay_at)
+        };
+        let x = length_to(axis, k, span_in(axis, (first, end), relay_at, k));
+        let extent: i64 = axis.phytomers[first..end]
+            .iter()
+            .map(|q| q32(q.grown))
+            .sum();
+        units.push((x, extent.min(ONE32)));
+        if extent >= ONE32 {
+            break;
+        }
+    }
+    let mut x = match units.last() {
+        Some(&(x, e)) if e >= ONE32 => {
+            units.pop();
+            x
+        }
+        _ => 0,
+    };
+    while let Some((to, extent)) = units.pop() {
+        x += mul(to - x, extent);
+    }
+    x
+}
+
+/// The scaled length along axis `p` to `t` (Q32) of the way along its node
+/// `k`'s span, Q32.
+fn length_to(p: &Axis, k: usize, t: i64) -> i64 {
+    let before: i64 = p.phytomers[..k].iter().map(|q| q32(q.scale)).sum();
+    before + mul(t, q32(p.phytomers[k].scale))
+}
+
+/// The scaled length along axis `p`, Q32, as a position in its nodes, Q32
+/// (`split`): in the first span that reaches it, the tip past them all.
+pub(super) fn node_x(p: &Axis, length: i64) -> i64 {
+    let mut before = 0;
+    for (k, q) in p.phytomers.iter().enumerate() {
+        let scale = q32(q.scale);
+        if scale > 0 && before + scale >= length {
+            return ((k as i64) << 32) + over(length - before, scale).clamp(0, ONE32);
+        }
+        before += scale;
+    }
+    (p.phytomers.len() as i64) << 32
+}
+
+/// The scaled length of axis `p`, Q32.
+pub(super) fn total(p: &Axis) -> i64 {
+    p.phytomers.iter().map(|q| q32(q.scale)).sum()
+}
+
+/// The point at position `x` along axis `p`, in nodes, Q32: `t` of the way
+/// along the span of node `k` from node `k - 1` (or the base) to node `k`,
+/// where `x` is `k` and `t`; `p`'s base where it has no nodes.
+pub(super) fn at(p: &Axis, x: i64) -> Q3 {
+    let Some(n) = p.phytomers.len().checked_sub(1) else {
+        return q3(p.base);
+    };
+    let (k, t) = split(x, n);
+    let start = q3(if k == 0 { p.base } else { p.phytomers[k - 1].tip });
+    add(start, scaled(sub(q3(p.phytomers[k].tip), start), t))
+}
+
+/// Position `x` along an axis of last node `last`, in nodes, Q32, as its
+/// node and the share of that node's span, Q32: the last node's whole
+/// span at the tip and beyond.
+pub(crate) fn split(x: i64, last: usize) -> (usize, i64) {
+    let k = usize::try_from(x >> 32).unwrap_or(0).min(last);
+    (k, (x - ((k as i64) << 32)).clamp(0, ONE32))
 }
 
 /// `side` made square to `along`, so a bud's frame stays a frame however
@@ -187,15 +286,5 @@ fn span_in(p: &Axis, (first, end): (usize, usize), share: f64, k: usize) -> i64 
     } else {
         let f = ((first as i64) << 32) + mul(share, ((end - first) as i64) << 32);
         (f - ((k as i64) << 32)).clamp(0, ONE32)
-    }
-}
-
-/// `span_in` on axis `p`'s last unit, Q32: girth and sag take a relay's
-/// pipe and load in at the two ends of that span by it (fn-199 R4). An
-/// axis of no phytomers has no span: one.
-pub(crate) fn relay_span(p: &Axis, share: f64, k: usize) -> i64 {
-    match unit_ranges(p).last() {
-        Some(&range) => span_in(p, range, share, k.min(range.1 - 1)),
-        None => ONE32,
     }
 }

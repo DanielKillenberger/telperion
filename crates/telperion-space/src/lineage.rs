@@ -104,6 +104,14 @@ pub(crate) fn internode(key: u64, spread: f64) -> i64 {
     ONE32 + mul(q32(spread), signed(Key(key).child(INTERNODE).draw()))
 }
 
+/// The key of the node a relay joins its parent at (`keys::JOIN`), under
+/// the key of the relay's first phytomer: the drawing's identity for it,
+/// the same at any age and any cut (fn-220, fn-244). Not its lineage,
+/// which a relay shares with the chain it carries on.
+pub fn join_key(first: u64) -> u64 {
+    Key(first).child(keys::JOIN).0
+}
+
 /// `internode` as a real factor: what a node's grown wood is counted by
 /// (the conversion's `SHORTEST` and the stations' count, fn-212), so the
 /// wood is the length its internodes were laid at.

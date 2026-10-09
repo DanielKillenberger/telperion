@@ -321,6 +321,7 @@ fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
         rank: 0.0,
         sleep: 0.0,
         phase: 0,
+        joined: None,
     }
 }
 

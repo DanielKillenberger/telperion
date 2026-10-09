@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-244-trunks-without-weird-dents",
   "spec_path": ".flow/tasks/fn-244-trunks-without-weird-dents.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Find the dents, fix them, the owner's verdict",
   "updated_at": "2026-10-09T08:55:07.844391Z"
 }

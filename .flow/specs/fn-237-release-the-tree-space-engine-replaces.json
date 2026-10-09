@@ -20,7 +20,8 @@
     "fn-243-the-browser-compiles-the-gpu-programs",
     "fn-244-trunks-without-weird-dents",
     "fn-246-the-harness-holds-60-fps-on-every",
-    "fn-248-leaves-hang-on-twigs"
+    "fn-248-leaves-hang-on-twigs",
+    "fn-249-the-sites-trees-grow-as-fast-as-014s"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -40,5 +41,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T12:09:42.254178Z"
+  "updated_at": "2026-10-09T14:06:01.437627Z"
 }

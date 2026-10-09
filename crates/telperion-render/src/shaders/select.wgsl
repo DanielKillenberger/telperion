@@ -81,15 +81,23 @@ fn level_of(instance: u32) -> u32 {
             return u.levels;
         }
     }
-    if u.forced >= 0 {
-        return min(u32(u.forced), u.levels - 1u);
-    }
     // A perspective projection shrinks by depth alone, so one division gives
     // the pixels a metre spans where this leaf stands.
     let depth = max(dot(centre - u.eye.xyz, u.forward.xyz), u.forward.w);
     let pixels = u.eye.w / depth;
+    // A leaf under THIN_PIXELS across is drawn by a share of the crown that
+    // follows its size, the rest given to the unseen bucket (fn-246).
+    let kept = leaf_kept(2.0 * radius * pixels);
+    if leaf_draw_rank(words) >= kept {
+        return u.levels;
+    }
+    if u.forced >= 0 {
+        return min(u32(u.forced), u.levels - 1u);
+    }
+    // A kept leaf is drawn enlarged, and judged at the size it is drawn.
+    let drawn = scale / sqrt(kept);
     for (var level = 0u; level < u.levels; level = level + 1u) {
-        if deviations[level] * scale * pixels < THRESHOLD {
+        if deviations[level] * drawn * pixels < THRESHOLD {
             return level;
         }
     }

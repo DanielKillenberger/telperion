@@ -10,6 +10,8 @@ fn-231 measured that a partial growth unit lays every node of its unit, each sca
 - **R2:** every shipped species measured and re-judged on strips before and after, viewed; re-pinned with that evidence.
 - **R3:** gate and npm test green.
 
+- **R4 (from fn-244's review):** `grow_bounded` keeps stale join radii after fn-244's relay join; brought in line with the stepped grower's join (girth's join and stub radii) before anything converts or draws a bounded tree, with a test.
+
 ## Boundaries
 
 Depends on fn-231. Not a release item.

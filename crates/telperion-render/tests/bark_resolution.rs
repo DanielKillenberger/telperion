@@ -48,12 +48,18 @@ fn trunk_agrees_with_a_box_reduction_at_half_resolution() {
     // RGB in the delivered sRGB still, averaged by an exact 2x2 box (no
     // sharpening or registration). Three code values mean, twelve at p95:
     // enough for quantization/lighting, not the rejected sparkling edges.
+    // Re-pinned for the prefiltered bark (owner, fn-246 FPS.md "Owner
+    // decision", 2026-10-09): one shading cell a pixel, bands faded to their
+    // means. Bounds are the prefilter's measured value here plus 0.5 mean
+    // (p95 plus 2 where it passed the old 12). Distance to the present
+    // shader's 4x truth (examples/bark_truth), present / prefilter:
+    // oak trunk 1.77 / 3.38. Here the prefilter reads 3.35 (present 1.91).
     resolution::record(
         "bark_resolution_trunk",
-        &[("OregonWhiteOak 1x".into(), mean, p95, 3.0)],
+        &[("OregonWhiteOak 1x".into(), mean, p95, 3.85)],
     );
     assert!(
-        mean <= 3.0 && p95 <= 12.0,
+        mean <= 3.85 && p95 <= 12.0,
         "bark aliases across resolution: mean {mean:.6}, p95 {p95:.2}"
     );
 }
@@ -73,7 +79,18 @@ fn grazing_trunks_agree_with_a_box_reduction_at_half_resolution() {
     let Some(gpu) = common::gpu() else { return };
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let mut measurements = Vec::new();
-    for (preset, height) in [(Preset::OregonWhiteOak, 2.0), (Preset::NorwaySpruce, 0.9)] {
+    // Re-pinned for the prefiltered bark (owner, fn-246 FPS.md "Owner
+    // decision", 2026-10-09): one shading cell a pixel, bands faded to their
+    // means. Bounds are the prefilter's measured value here plus 0.5 mean
+    // (p95 plus 2 where it passed the old 12). Distance to the present
+    // shader's 4x truth (examples/bark_truth), present / prefilter:
+    // oak grazing 1.28 / 2.20, spruce grazing 1.97 / 3.33. Here the
+    // prefilter reads 4.15 and 2.27 (present 2.40 and 0.89); the spruce
+    // keeps the old 3.0.
+    for (preset, height, bound) in [
+        (Preset::OregonWhiteOak, 2.0, 4.65),
+        (Preset::NorwaySpruce, 0.9, 3.0),
+    ] {
         let mut family = preset.parameters();
         family.skeleton.seed = 7;
         let tree = mesh::build(&family).unwrap();
@@ -125,7 +142,7 @@ fn grazing_trunks_agree_with_a_box_reduction_at_half_resolution() {
             masked_agreement(&plain_high, &plain_low, &mask)
         );
         renderer.pin_curve_viewport(None);
-        measurements.push((format!("{preset:?} grazing"), mean, p95, 3.0));
+        measurements.push((format!("{preset:?} grazing"), mean, p95, bound));
     }
     resolution::record("bark_resolution_grazing", &measurements);
     assert!(

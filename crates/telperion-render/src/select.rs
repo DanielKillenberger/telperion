@@ -187,8 +187,16 @@ impl Select {
     /// deviations, and room for the lists, counters and indirect blocks one
     /// frame fills. A crown with no leaves, or an element with no levels,
     /// takes nothing at all and selects nothing.
-    pub fn submit(&mut self, gpu: &Gpu, foliage: &mesh::Foliage, level: Level) {
-        if !foliage.instances.is_empty() && !foliage.element.levels.is_empty() {
+    /// `element` is the one drawn, which is the foliage's own or the floret
+    /// with its card in front (`card.rs`).
+    pub fn submit(
+        &mut self,
+        gpu: &Gpu,
+        foliage: &mesh::Foliage,
+        element: &telperion_core::foliage::Element,
+        level: Level,
+    ) {
+        if !foliage.instances.is_empty() && !element.levels.is_empty() {
             buffer::write(
                 gpu,
                 &mut self.placements,
@@ -207,7 +215,7 @@ impl Select {
         }
         self.setup(
             gpu,
-            &foliage.element,
+            element,
             foliage.instances.reference,
             foliage.instances.len() as u32,
             level,

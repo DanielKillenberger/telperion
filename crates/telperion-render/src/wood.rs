@@ -87,7 +87,9 @@ impl Wood {
         self.smooth_on = smooth_bark(material);
     }
 
-    /// Records the frame's passes over the curve, where there is one.
+    /// Records the frame's passes over the curve, where there is one: the
+    /// camera's always, the sun's where `sun` asks. Whether the wood is
+    /// surfaced, which it is not while its programs compile.
     pub fn tessellate(
         &mut self,
         gpu: &Gpu,
@@ -95,19 +97,22 @@ impl Wood {
         camera: &crate::Camera,
         viewport: (u32, u32),
         light: &crate::shadow::Light,
+        sun: bool,
         timestamps: Option<wgpu::ComputePassTimestampWrites<'_>>,
-    ) {
+    ) -> bool {
         let viewport = self.pinned.unwrap_or(viewport);
         match &mut self.curve {
-            Some(curve) => curve.record(gpu, encoder, camera, viewport, light, timestamps),
+            Some(curve) => curve.record(gpu, encoder, camera, viewport, light, sun, timestamps),
             // A timed frame writes its pair whether or not there is wood.
-            None if timestamps.is_some() => {
-                drop(encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-                    label: Some("curve"),
-                    timestamp_writes: timestamps,
-                }))
+            None => {
+                if timestamps.is_some() {
+                    drop(encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+                        label: Some("curve"),
+                        timestamp_writes: timestamps,
+                    }));
+                }
+                true
             }
-            None => {}
         }
     }
 

@@ -21,7 +21,9 @@ struct Cfg {
     // the pipeline drew the tree above the cut: positions, radii and grown
     // wood. Every decision of the conversion reads natural units.
     scale: f32,
-    pad0: u32,
+    // This wave's laid phytomers: its joins' records follow them, one
+    // per laid axis (`join_rec`).
+    out_count: u32,
     pad1: u32,
     pad2: u32,
 }
@@ -47,10 +49,16 @@ const NODE: u32 = 6u;
 const LATERAL: u32 = 1u;
 const CONTINUED: u32 = 2u;
 const RELAYED: u32 = 3u;
-const SA: u32 = 70u;
+const SA: u32 = 79u;
 const S_OWN: u32 = 0u;
 const S_START: u32 = 1u;
 const S_COUNT: u32 = 2u;
+// A relay's join as girth set it (`geometry.wgsl`): its parent's node,
+// share, radii below and above, and its key (two words).
+const S_JOIN: u32 = 70u;
+// Its attachment: the node and its share of that node's span, Q32
+// (`geometry.wgsl`).
+const S_ATTACH: u32 = 76u;
 const AL: u32 = 8u;
 const PL: u32 = 27u;
 const PA: u32 = 2u;
@@ -102,6 +110,7 @@ var<private> ax0: u32;
 var<private> sb: u32;
 var<private> out_ax: u32;
 var<private> out_ph: u32;
+var<private> na_: u32;
 
 fn ax(i: u32, f: u32) -> u32 {
     return axes[(ax0 + i) * AXW + f];
@@ -109,6 +118,47 @@ fn ax(i: u32, f: u32) -> u32 {
 
 fn s(i: u32, f: u32) -> u32 {
     return scratch[sb + i * SA + f];
+}
+
+fn sfl(i: u32, f: u32) -> f32 {
+    return bitcast<f32>(s(i, f));
+}
+
+// Own relay `c`'s share of its join's span, Q32 (`S_ATTACH`): every
+// choice of where it joins is taken on it, as the CPU takes it.
+fn join_t(c: u32) -> vec2<u32> {
+    return vec2<u32>(s(c, S_ATTACH + 1u), s(c, S_ATTACH + 2u));
+}
+
+fn at_start(t: vec2<u32>) -> bool {
+    return t.x == 0u && t.y == 0u;
+}
+
+fn at_end(t: vec2<u32>) -> bool {
+    return t.x == 0u && t.y == 1u;
+}
+
+// Whether share `a` lies before `b`, Q32.
+fn before_t(a: vec2<u32>, b: vec2<u32>) -> bool {
+    return a.y < b.y || (a.y == b.y && a.x < b.x);
+}
+
+// A share as a float, for where it stands.
+fn real_t(t: vec2<u32>) -> f32 {
+    return f32(t.y) + f32(t.x) * (1.0 / 4294967296.0);
+}
+
+// The record of own relay `c`'s join: after the wave's phytomers, by its
+// laid axis.
+fn join_rec(c: u32) -> u32 {
+    return cfg.out_count + out_ax + s(c, S_OWN);
+}
+
+// Whether own axis `c` is a relay of own axis `i` that joins it
+// (`space/join.rs`): one that grew a phytomer, on a parent with nodes.
+fn joins(c: u32, i: u32) -> bool {
+    return ax(c, PARENT) == i && (ax(c, KIND) & 0xffu) == RELAYED && s(c, S_OWN) != NONE
+        && s(c, S_COUNT) > 0u && s(c, S_JOIN) != NONE;
 }
 
 // A node's values as the conversion reads them.
@@ -238,31 +288,13 @@ fn up(v: vec3<f32>) -> vec3<f32> {
     return vec3<f32>(v.x, v.z, -v.y);
 }
 
-// The node of parent `p`'s phytomers nearest a relay's base, from `node`
-// on (`space.rs`, `joint`): the first of the nearest.
-fn joint(i: u32, p: u32, node: u32) -> u32 {
-    let a = (out_ax + s(i, S_OWN)) * AL + 3u;
-    let base = vec3<f32>(out[a], out[a + 1u], out[a + 2u]);
-    var best = node;
-    var d = 3.4e38;
-    for (var k = node; k < s(p, S_COUNT); k++) {
-        let e = length(tip(p, k) - base);
-        if e < d {
-            d = e;
-            best = k;
-        }
-    }
-    return best;
-}
-
 // The head of a stopped module, parent `p`'s drawn phytomers from
-// `j0` on, turned aside (`space.rs`, `aside`). Only this wave's nodes
-// change.
-fn aside(p: u32, j0: u32) {
+// `head` on, turned aside from the join `f0` it carried on through
+// (`space.rs`, `aside`). Only this wave's nodes change.
+fn aside(p: u32, f0: u32, head: u32) {
     let taken = da(out_ax + s(p, S_OWN), 0u);
-    let f0 = getu(li(p, j0), 7u);
     var first_at = NONE;
-    for (var k = j0; k < taken; k++) {
+    for (var k = head; k < taken; k++) {
         if getu(li(p, k), 7u) != f0 {
             first_at = k;
             break;
@@ -282,8 +314,9 @@ fn aside(p: u32, j0: u32) {
     let carrier = node(f0).radius;
     let jp = node(f0).pos;
     var inside = true;
-    for (var k = j0 + 1u; k < taken; k++) {
-        if length(node(getu(li(p, k), 7u)).pos - jp) >= carrier {
+    for (var k = head; k < taken; k++) {
+        let n = getu(li(p, k), 7u);
+        if n != f0 && length(node(n).pos - jp) >= carrier {
             inside = false;
         }
     }
@@ -317,8 +350,147 @@ fn retention(sheds: u32, share: u32, age: u32) -> u32 {
     return 0u;
 }
 
+// What drawing an axis carries from one node to the next.
+struct Walk {
+    parent: u32,
+    made: bool,
+    run: u32,
+    pending: f32,
+    // The retentions of the wood merged into the next node (`space.rs`'s
+    // `convert`, fn-248): whether none is yet, where the last change falls,
+    // the retention before it and the latest.
+    fresh: bool,
+    older: f32,
+    before: u32,
+    last: u32,
+}
+
+// The walk with wood of retention `q` about to join its pending wood.
+fn mark(w: Walk, q: u32) -> Walk {
+    var o = w;
+    if o.fresh {
+        o.older = 0.0;
+        o.before = q;
+        o.last = q;
+        o.fresh = false;
+    } else if q != o.last {
+        o.older = o.pending;
+        o.before = o.last;
+        o.last = q;
+    }
+    return o;
+}
+
+// A node of own axis `i` (`space.rs`'s `convert`, one drawn node): record
+// `r` at `at` (position and radius, drawn units), with the frame and,
+// where `bloom`, the bloom of laid phytomer `lb`, its key and the wood
+// grown into it; merged into the node before where it lies behind it or
+// its wood is too short.
+fn place(i: u32, r: u32, at: vec4<f32>, lb: u32, key: u32, bloom: bool, w: Walk, along: vec3<f32>, lateral: bool, flags: u32) -> Walk {
+    var o = w;
+    let pos = at.xyz;
+    let thick = at.w;
+    let held = node(o.parent);
+    let d = pos - held.pos;
+    let inside = any(along != vec3<f32>(0.0)) && length(d) < held.radius;
+    let behind = !o.made && (dot(d, along) < 0.0 || inside);
+    // `SHORTEST` in whole micrometres of grown wood (`space.rs`).
+    if behind || floor(o.pending * 1e6 + 0.5) < SHORTEST {
+        putu(r, 6u, TAKEN | flags);
+        putu(r, 7u, o.parent);
+        copy(r, held);
+        putu(r, 16u, NONE);
+        return o;
+    }
+    let first = !o.made;
+    var start_radius = max(held.radius, thick);
+    if lateral && first {
+        start_radius = thick;
+    }
+    if lateral {
+        if first {
+            o.run = r;
+        }
+        putu(r, 8u, o.run);
+        putu(r, 23u, cfg.out_base + o.run);
+    } else {
+        putu(r, 8u, held.run);
+        put(r, 5u, held.base);
+        putu(r, 23u, held.branch);
+    }
+    putu(r, 24u, key);
+    put(r, 25u, o.pending * cfg.scale);
+    put(r, 30u, o.older * cfg.scale);
+    putu(r, 31u, (o.before << 16u) | o.last);
+    o.fresh = true;
+    o.pending = 0.0;
+    if bloom {
+        put(r, 26u, out[lb + 24u]);
+        put(r, 27u, out[lb + 25u]);
+        put(r, 28u, gtab[4u + GG * ax(i, PA) + 37u]);
+    }
+    put(r, 0u, pos.x);
+    put(r, 1u, pos.y);
+    put(r, 2u, pos.z);
+    put(r, 3u, thick);
+    put(r, 4u, start_radius);
+    put(r, 10u, held.pos.x);
+    put(r, 11u, held.pos.y);
+    put(r, 12u, held.pos.z);
+    var codom = 0.0;
+    if lateral && first {
+        codom = codominance(thick, held.radius);
+    }
+    put(r, 13u, codom);
+    putu(r, 14u, cfg.out_base + r);
+    put(r, 15u, held.dist + length(d));
+    putu(r, 16u, held.id);
+    let heading = up(vec3<f32>(out[lb + 3u], out[lb + 4u], out[lb + 5u]));
+    let side = up(vec3<f32>(out[lb + 6u], out[lb + 7u], out[lb + 8u]));
+    for (var c = 0u; c < 3u; c++) {
+        put(r, 17u + c, heading[c]);
+        put(r, 20u + c, side[c]);
+    }
+    var seam = 0u;
+    if !held.fine {
+        seam = SEAM;
+    }
+    var clustered = 0u;
+    if u32(gtab[4u + GG * ax(i, PA) + 38u]) > 0u {
+        clustered = CLUSTERED;
+    }
+    putu(r, 6u, TAKEN | MADE | FINE | seam | clustered | flags);
+    putu(r, 7u, r);
+    o.parent = r;
+    o.made = true;
+    return o;
+}
+
+// The next relay of own axis `i` joining inside the span of its node `k`
+// after share `after` (relay `last` at it), by share then index; `NONE`
+// past the last.
+fn next_join(i: u32, k: u32, after: vec2<u32>, last: u32) -> u32 {
+    var best = NONE;
+    var bt = vec2<u32>(0u, 2u);
+    for (var c = 2u; c < na_; c++) {
+        if !joins(c, i) || s(c, S_JOIN) != k {
+            continue;
+        }
+        let t = join_t(c);
+        let same = all(t == after);
+        let later = before_t(after, t) || (same && last != NONE && c > last);
+        let first = before_t(t, bt) || (all(t == bt) && c < best);
+        if !at_start(t) && !at_end(t) && later && first {
+            best = c;
+            bt = t;
+        }
+    }
+    return best;
+}
+
 // Own axis `i` (laid `la`) drawn from node `start`, a lateral's first
-// axis or carried on; its phytomers from `origin`.
+// axis or carried on; its phytomers from `origin`, and the joins of its
+// relays where they stand (`space/join.rs`).
 fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f32>, flags: u32) {
     var along = vec3<f32>(0.0);
     if relay {
@@ -326,130 +498,81 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
         let span = p.pos - p.up;
         along = span * (1.0 / max(length(span), 1e-12));
     }
-    var parent = start;
-    var made = false;
-    var run = NONE;
+    var w = Walk(start, false, NONE, 0.0, true, 0.0, 0u, 0u);
+    let block = 4u + GG * ax(i, PA);
+    let sheds = bitcast<u32>(gtab[block + 40u]);
+    let share = bitcast<u32>(gtab[block + 41u]);
+    let age = bitcast<u32>(gtab[1u]);
     var taken = 0u;
     // The wood grown since the axis's last node: the internodes merged
     // into a node are carried on to the next one drawn.
     let internode = gtab[4u + GG * ax(i, PA)];
     // The leaves at the axis's tip and their fan (`laid.rs`, fn-223).
     let leaves = u32(gtab[4u + GG * ax(i, PA) + 38u]);
-    var clustered = 0u;
-    if leaves > 0u {
-        clustered = CLUSTERED;
-    }
-    var pending = 0.0;
-    // The retentions of the wood merged into the next node (`space.rs`'s
-    // `convert`): where the last change falls, the retention before it
-    // and the latest; none yet.
-    let block = 4u + GG * ax(i, PA);
-    let sheds = bitcast<u32>(gtab[block + 40u]);
-    let share = bitcast<u32>(gtab[block + 41u]);
-    let age = bitcast<u32>(gtab[1u]);
-    var fresh = true;
-    var older = 0.0;
-    var before = 0u;
-    var last = 0u;
+    let lineage = vec2<u32>(ax(i, 0u), ax(i, 1u));
+    let ab = (out_ax + s(i, S_OWN)) * AL;
     for (var k = 0u; k < s(i, S_COUNT); k++) {
         let r = li(i, k);
-        let radius = out[cfg.out_phyts + r * PL + 18u];
+        var radius = out[cfg.out_phyts + r * PL + 18u];
         if !(radius >= FINEST) {
             break;
         }
         taken += 1u;
         // Each internode as laid: its scale and its spread's factor.
-        let laid = cfg.out_phyts + r * PL;
-        let q = retention(sheds, share, age - bitcast<u32>(out[laid + 26u]));
-        if fresh {
-            older = 0.0;
-            before = q;
-            last = q;
-            fresh = false;
-        } else if q != last {
-            older = pending;
-            before = last;
-            last = q;
-        }
-        pending += internode * out[laid + 19u] * out[laid + 23u];
-        let pos = up(origin + tip(i, k)) * cfg.scale;
-        let thick = radius * cfg.scale;
-        let held = node(parent);
-        let d = pos - held.pos;
-        let inside = any(along != vec3<f32>(0.0)) && length(d) < held.radius;
-        let behind = !made && (dot(d, along) < 0.0 || inside);
-        // `SHORTEST` in whole micrometres of grown wood (`space.rs`).
-        if behind || floor(pending * 1e6 + 0.5) < SHORTEST {
-            putu(r, 6u, TAKEN | flags);
-            putu(r, 7u, parent);
-            copy(r, held);
-            putu(r, 16u, NONE);
-            continue;
-        }
-        let first = !made;
-        var start_radius = max(held.radius, thick);
-        if lateral && first {
-            start_radius = thick;
-        }
-        if lateral {
-            if first {
-                run = r;
-            }
-            putu(r, 8u, run);
-            putu(r, 23u, cfg.out_base + run);
-        } else {
-            putu(r, 8u, held.run);
-            put(r, 5u, held.base);
-            putu(r, 23u, held.branch);
-        }
-        putu(r, 24u, node_key(vec2<u32>(ax(i, 0u), ax(i, 1u)), k));
-        put(r, 25u, pending * cfg.scale);
-        put(r, 30u, older * cfg.scale);
-        putu(r, 31u, (before << 16u) | last);
-        fresh = true;
-        pending = 0.0;
-        put(r, 26u, out[laid + 24u]);
-        put(r, 27u, out[laid + 25u]);
-        put(r, 28u, gtab[4u + GG * ax(i, PA) + 37u]);
-        put(r, 0u, pos.x);
-        put(r, 1u, pos.y);
-        put(r, 2u, pos.z);
-        put(r, 3u, thick);
-        put(r, 4u, start_radius);
-        put(r, 10u, held.pos.x);
-        put(r, 11u, held.pos.y);
-        put(r, 12u, held.pos.z);
-        var codom = 0.0;
-        if lateral && first {
-            codom = codominance(thick, held.radius);
-        }
-        put(r, 13u, codom);
-        putu(r, 14u, cfg.out_base + r);
-        put(r, 15u, held.dist + length(d));
-        putu(r, 16u, held.id);
         let lb = cfg.out_phyts + r * PL;
-        let heading = up(vec3<f32>(out[lb + 3u], out[lb + 4u], out[lb + 5u]));
-        let side = up(vec3<f32>(out[lb + 6u], out[lb + 7u], out[lb + 8u]));
-        for (var c = 0u; c < 3u; c++) {
-            put(r, 17u + c, heading[c]);
-            put(r, 20u + c, side[c]);
+        let piece = internode * out[lb + 19u] * out[lb + 23u];
+        // Every piece of the span is this phytomer's wood (fn-248).
+        let q = retention(sheds, share, age - bitcast<u32>(out[lb + 26u]));
+        var base = vec3<f32>(out[ab + 3u], out[ab + 4u], out[ab + 5u]);
+        if k > 0u {
+            base = tip(i, k - 1u);
         }
-        var seam = 0u;
-        if !held.fine {
-            seam = SEAM;
+        // Relays joining at the node before this span.
+        for (var c = 2u; c < na_; c++) {
+            if joins(c, i) && s(c, S_JOIN) == k && at_start(join_t(c)) {
+                putu(join_rec(c), 7u, w.parent);
+            }
         }
-        putu(r, 6u, TAKEN | MADE | FINE | seam | clustered | flags);
-        putu(r, 7u, r);
-        parent = r;
-        made = true;
+        // Then those joining inside it, each its share of the span's wood,
+        // the span above them drawn at its own wood.
+        var rest = piece;
+        var after = vec2<u32>(0u);
+        var last = NONE;
+        // cap: one join per relay of the chain.
+        for (var n = 0u; n < na_; n++) {
+            let c = next_join(i, k, after, last);
+            if c == NONE {
+                break;
+            }
+            after = join_t(c);
+            last = c;
+            let t = real_t(after);
+            radius = min(radius, sfl(c, S_JOIN + 3u));
+            let at = vec4<f32>(up(origin + base + (tip(i, k) - base) * t) * cfg.scale, sfl(c, S_JOIN + 2u) * cfg.scale);
+            w = mark(w, q);
+            w.pending += piece * t;
+            rest -= piece * t;
+            let key = node_key(vec2<u32>(s(c, S_JOIN + 4u), s(c, S_JOIN + 5u)), 0u);
+            w = place(i, join_rec(c), at, lb, key, false, w, along, lateral, flags);
+        }
+        w = mark(w, q);
+        w.pending += rest;
+        let pos = up(origin + tip(i, k)) * cfg.scale;
+        w = place(i, r, vec4<f32>(pos, radius * cfg.scale), lb, node_key(lineage, k), true, w, along, lateral, flags);
+        // Relays joining at this span's node.
+        for (var c = 2u; c < na_; c++) {
+            if joins(c, i) && s(c, S_JOIN) == k && at_end(join_t(c)) {
+                putu(join_rec(c), 7u, w.parent);
+            }
+        }
     }
     // The axis's own tip keeps its cluster (`space.rs`'s `convert`).
-    if made && leaves > 0u {
-        putu(parent, 6u, getu(parent, 6u) | TIP | (leaves << LEAVES));
-        put(parent, 29u, gtab[4u + GG * ax(i, PA) + 39u]);
+    if w.made && leaves > 0u {
+        putu(w.parent, 6u, getu(w.parent, 6u) | TIP | (leaves << LEAVES));
+        put(w.parent, 29u, gtab[4u + GG * ax(i, PA) + 39u]);
     }
     pda(la, 0u, taken);
-    pda(la, 1u, parent);
+    pda(la, 1u, w.parent);
     pda(la, 2u, u32(taken == s(i, S_COUNT)));
 }
 
@@ -481,6 +604,16 @@ fn dress(@builtin(global_invocation_id) id: vec3<u32>) {
     let held = cfg.prev_records + bearer * CV;
     let taken = (bitcast<u32>(before[held + 6u]) & TAKEN) != 0u;
     let same = bitcast<u32>(before[held + 9u]) == bearer_axis;
+    na_ = na;
+    // Each relay's join record: none drawn yet.
+    for (var i = 2u; i < na; i++) {
+        if s(i, S_OWN) != NONE {
+            let rj = join_rec(i);
+            putu(rj, 6u, 0u);
+            putu(rj, 7u, NONE);
+            putu(rj, 9u, out_ax + s(i, S_OWN));
+        }
+    }
     for (var i = 1u; i < na; i++) {
         if s(i, S_OWN) == NONE {
             continue;
@@ -518,27 +651,18 @@ fn dress(@builtin(global_invocation_id) id: vec3<u32>) {
         }
         let lp = out_ax + s(p, S_OWN);
         let relay = kind == RELAYED;
-        if relay {
-            let bud = ax(i, NODE);
-            let j = joint(i, p, bud);
-            if j + 1u < s(p, S_COUNT) {
-                if j >= da(lp, 0u) {
-                    continue;
-                }
-                // The stem between the bud's node and the joint carries
-                // the relay too.
-                let girth = node(getu(li(p, bud), 7u)).radius;
-                for (var k = bud + 1u; k <= j; k++) {
-                    let n = getu(li(p, k), 7u);
-                    if mine(n) {
-                        put(n, 3u, max(node(n).radius, girth));
-                        put(n, 4u, max(node(n).start, girth));
-                    }
-                }
-                aside(p, j);
-                draw(i, la, getu(li(p, j), 7u), false, true, origin, flags);
-                continue;
+        // A relay takes its parent's run on from its join, drawn while
+        // the parent was (`space.rs`, fn-244); the stopped module's head
+        // beyond turns aside from it, its stub.
+        if relay && joins(i, p) && getu(join_rec(i), 7u) != NONE {
+            let at = getu(join_rec(i), 7u);
+            var stub = s(i, S_JOIN);
+            if at_end(join_t(i)) {
+                stub += 1u;
             }
+            aside(p, at, stub);
+            draw(i, la, at, false, true, origin, flags);
+            continue;
         }
         if da(lp, 2u) != 0u {
             draw(i, la, da(lp, 1u), false, relay, origin, flags);
@@ -550,8 +674,11 @@ fn dress(@builtin(global_invocation_id) id: vec3<u32>) {
         if s(i, S_OWN) == NONE {
             continue;
         }
-        for (var k = 0u; k < s(i, S_COUNT); k++) {
-            let r = li(i, k);
+        for (var k = 0u; k <= s(i, S_COUNT); k++) {
+            var r = join_rec(i);
+            if k < s(i, S_COUNT) {
+                r = li(i, k);
+            }
             let run = getu(r, 8u);
             if (getu(r, 6u) & MADE) != 0u && run != INHERITED && run != NONE {
                 put(r, 5u, drawn[cfg.out_records + run * CV + 4u]);
@@ -562,8 +689,11 @@ fn dress(@builtin(global_invocation_id) id: vec3<u32>) {
         if s(i, S_OWN) == NONE {
             continue;
         }
-        for (var k = 0u; k < s(i, S_COUNT); k++) {
-            let r = li(i, k);
+        for (var k = 0u; k <= s(i, S_COUNT); k++) {
+            var r = join_rec(i);
+            if k < s(i, S_COUNT) {
+                r = li(i, k);
+            }
             let f = getu(r, 6u);
             let n = getu(r, 7u);
             if (f & TAKEN) != 0u && (f & MADE) == 0u && mine(n) {

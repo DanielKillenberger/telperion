@@ -8,7 +8,7 @@ use super::likely::before_laid;
 use super::Clock;
 use crate::closed_form::boundary::Rows;
 use crate::error::Result;
-use crate::geometry::place;
+use crate::geometry::{place, place_bearers};
 use crate::girth::{thicken_given, Girth};
 use crate::sag::{any, levers_given, Load};
 use crate::species::Species;
@@ -57,7 +57,12 @@ pub(super) async fn lay(
     hold(true);
     let radius = |i: usize| by_axis[i].map(|j: usize| radii[j]);
     thicken_given(tree, species, girth, &radius, threads);
-    place(tree, species, None, threads)?;
+    let bends = any(species);
+    if bends {
+        place_bearers(tree, species, threads)?;
+    } else {
+        place(tree, species, None, threads)?;
+    }
     landing.frame(tree, (seeds, live, bearers), (scales, &radii));
     stages.mark("thicken and place");
     // Lay on each bearer's frame, and load the tree by each root's wood;
@@ -70,7 +75,7 @@ pub(super) async fn lay(
     let at_roots = (seeds, live, bearers);
     landing.lay((seeds, live), (scales, &radii), &mut loads)?;
     stages.mark("landing, unbent");
-    if any(species) {
+    if bends {
         let load = |i: usize| by_axis[i].map(|j: usize| Load::of(loads[j].0, loads[j].1));
         let (levers, _) = levers_given(tree, species, &load, threads);
         place(tree, species, Some(&levers), threads)?;

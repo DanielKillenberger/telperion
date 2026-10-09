@@ -126,6 +126,9 @@ export interface TimingReport {
   selection_p95_ms?: number;
   shadow_p50_ms?: number;
   shadow_p95_ms?: number;
+  /** Measured frames that reused the sun's map: each costs zero in the
+   *  shadow numbers above rather than going unmeasured (fn-246). */
+  shadow_cached?: number;
   /** Three passes added frame by frame and then ranked: a frame's own cost. */
   total_p50_ms?: number;
   total_p95_ms?: number;
@@ -210,10 +213,15 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
   loading ??= init({ module_or_path: new URL("./telperion-render.wasm", import.meta.url) }).then(() => undefined);
   await loading;
 
+  /* Writing a canvas's size clears its picture even at the same value, and
+     the renderer redraws only on a change (fn-246), so an unchanged size is
+     never written. */
   const resize = (): void => {
     const ratio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
-    canvas.width = Math.max(1, Math.round((canvas.clientWidth || 1) * ratio));
-    canvas.height = Math.max(1, Math.round((canvas.clientHeight || 1) * ratio));
+    const width = Math.max(1, Math.round((canvas.clientWidth || 1) * ratio));
+    const height = Math.max(1, Math.round((canvas.clientHeight || 1) * ratio));
+    if (canvas.width !== width) canvas.width = width;
+    if (canvas.height !== height) canvas.height = height;
   };
   resize();
 

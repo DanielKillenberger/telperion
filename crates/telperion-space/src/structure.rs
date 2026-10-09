@@ -82,6 +82,11 @@ impl Axis {
     /// The axis it carries on and how far it has left that axis's line:
     /// a relay by its blend, a continuation at none, for it is a relay at
     /// blend 0 (fn-199, host 2026-10-07); none for a lateral or the seed.
+    /// Where this relay joins its parent, as its girth set it.
+    pub fn joined(&self) -> Option<Join> {
+        self.joined
+    }
+
     pub(crate) fn carried_on(&self) -> Option<(usize, f64)> {
         match self.origin {
             Origin::Relay { parent, .. } => Some((parent, self.blend)),
@@ -118,7 +123,9 @@ pub struct Axis {
     pub vigour: f64,
     /// A relay's place between the continuation it replaces (0) and its
     /// own bud's place and heading (1): the presence of the stop that made
-    /// it. 1 for every other axis.
+    /// it. 1 for every other axis. Where it joins its parent moves from the
+    /// parent's tip to its stand by it, and its wood and load enter there
+    /// whole (`geometry::attach`, fn-244).
     pub(crate) blend: f64,
     /// The cycle the apex stopped (died, ended, or changed PA); none, it lives.
     pub apex_end: Option<u32>,
@@ -145,6 +152,23 @@ pub struct Axis {
     /// axes carried on take theirs from the axes they carry on
     /// (`geometry::phase`).
     pub(crate) phase: i64,
+    /// A relay's join on its parent, where its girth set it; none on any
+    /// other axis.
+    pub(crate) joined: Option<Join>,
+}
+
+/// Where a relay joins its parent and the parent's girth there (fn-244
+/// host decision 4): the parent's node `node` whose span it stands in,
+/// `t` of the way along it from the node before (or the parent's base),
+/// Q32 (`geometry::attach`); the parent's radius just below the join,
+/// carrying the relay whole, and just above it, where the stopped
+/// module's head carries its own wood.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Join {
+    pub node: usize,
+    pub t: i64,
+    pub below: f64,
+    pub above: f64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

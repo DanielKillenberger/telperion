@@ -49,6 +49,43 @@ pub(crate) fn place_from(
     fixed: usize,
     threads: usize,
 ) -> Result<Vec<Option<Layer>>> {
+    let laid: Vec<bool> = (0..structure.axes.len()).map(|i| i >= fixed).collect();
+    place_where(structure, species, levers, &laid, threads)
+}
+
+/// The unbent lay of a tree the bent lay frames again (fn-249 R3): every
+/// axis laid as `place` lays it but the laterals that hold no wood and
+/// bear none, a fine root's stand-in among them, left as they stand. A
+/// lateral is read before the bent lay through its bearer alone; an empty
+/// continuation's base is its bearer's far tip (`sag::gather`).
+pub(crate) fn place_bearers(
+    structure: &mut Structure,
+    species: &Species,
+    threads: usize,
+) -> Result<()> {
+    let lateral = |a: &Axis| matches!(a.origin, Origin::Lateral { .. });
+    let mut laid: Vec<bool> = structure
+        .axes
+        .iter()
+        .map(|a| !a.phytomers.is_empty() || !lateral(a))
+        .collect();
+    for axis in &structure.axes {
+        if let Some(p) = axis.origin.parent() {
+            laid[p] = true;
+        }
+    }
+    place_where(structure, species, None, &laid, threads).map(|_| ())
+}
+
+/// `place` of the axes `laid` marks, the rest left as they stand. Where
+/// each laid axis's walk ended, by index; none for the rest.
+fn place_where(
+    structure: &mut Structure,
+    species: &Species,
+    levers: Option<&[Vec<Lever>]>,
+    lays: &[bool],
+    threads: usize,
+) -> Result<Vec<Option<Layer>>> {
     let n = structure.axes.len();
     let mut laid = Laid {
         layers: vec![None; n],
@@ -61,7 +98,7 @@ pub(crate) fn place_from(
     for depth in depths(structure) {
         let todo: Vec<usize> = depth
             .into_iter()
-            .filter(|&i| i >= fixed)
+            .filter(|&i| lays[i])
             .take_while(|&i| !failed.as_ref().is_some_and(|(f, _)| *f < i))
             .collect();
         let mut pieces: Vec<Vec<usize>> = todo.chunks(PIECE).map(<[usize]>::to_vec).collect();
