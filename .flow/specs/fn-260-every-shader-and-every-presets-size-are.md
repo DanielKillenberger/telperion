@@ -8,7 +8,7 @@ fn-248's FRICTION.md (2026-10-09): two WGSL locals shadowed builtins (`floor` in
 
 - **R1:** an ordinary test (no device) parses and validates every shipped WGSL module through naga, as the device would build it (the same composition, defines and entry points); a deliberately shadowed builtin in a fixture fails it.
 - **R2:** an ordinary cargo test grows each shipped preset at its own preset seed and age and checks its kept phytomers against the browser's ceiling (`WASM_KEPT`), with the margin printed; it fails before `npm test` would.
-- **R3:** both run inside the workspace gate's time budget (measured); gate and npm test green.
+- **R3:** each test finishes in under 60 s of run time (compilation excluded) under `cargo test --profile ci` on the owner's machine, measured and recorded; gate and npm test green.
 
 ## Boundaries
 
