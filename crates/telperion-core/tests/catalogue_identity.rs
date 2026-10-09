@@ -104,6 +104,11 @@
 //! override and refusal digests are F4's, and every engine preset's grown
 //! tree (`space_hash`, four species at 40 and 80, seeds 1 and 7) was F4's to
 //! the bit.
+//! fn-238 re-pinned the walk digest: the size solve reads the grown
+//! phytomers as a running total, the table's sum added in another order, so
+//! four of its frames' factors move by at most 3.9e-16 in their log, inside
+//! the solve's 1e-12 (SOLVE.md); every strip frame that moved draws to the
+//! same bytes.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -171,7 +176,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        4_263_024_408_501_985_780,
+        18_193_907_904_263_486_605,
         "{}",
         digest(&text)
     );

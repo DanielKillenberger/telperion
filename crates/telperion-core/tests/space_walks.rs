@@ -5,7 +5,7 @@
 //! weighted geometric mean of them (host, 2026-10-08). Built frames and their strips are the evidence sheet's; these
 //! tests read the prediction, which costs no growth.
 use telperion_core::{blend, presets::Preset, Family};
-use telperion_space::{expected_counts, expected_kept, Species};
+use telperion_space::{expected_grown, expected_kept, Species};
 
 /// The passed branching species and the ordinary tree (fn-230 R2).
 const BRANCHING: [Preset; 4] = [
@@ -44,8 +44,7 @@ fn kept(species: &Species, age: u32) -> f64 {
 
 /// Grown phytomers, the shed included: what the engine's budget counts.
 fn grown(species: &Species, age: u32) -> f64 {
-    let counts = expected_counts(&neutral(species), age).unwrap();
-    (0..species.states.len()).map(|pa| counts.total(pa)).sum()
+    expected_grown(&neutral(species), age).unwrap()
 }
 
 /// The point's kept and grown predictions over the ends' weighted geometric
