@@ -66,6 +66,14 @@ impl Load {
             moment: self.moment.map(f),
         }
     }
+
+    /// What is left of it once `part` is taken, exact.
+    fn less(self, part: Load) -> Load {
+        Load {
+            mass: self.mass - part.mass,
+            moment: std::array::from_fn(|k| self.moment[k] - part.moment[k]),
+        }
+    }
 }
 
 /// `p m` of a Q32 point and a W mass, W, floored: a first moment.
@@ -205,7 +213,7 @@ pub(crate) fn gather(
             let state = &species.states[axis.pa];
             at_node.clear();
             at_node.resize(axis.phytomers.len(), Load::default());
-            let mut at_tip = Load::default();
+            let (mut at_tip, mut at_base) = (Load::default(), Load::default());
             for &(node, load) in &held[j] {
                 if let Some(at) = at_node.get_mut(node) {
                     at.add(load);
@@ -215,14 +223,25 @@ pub(crate) fn gather(
                 let (child, load) = (&axes[members[c]], given(members[c]).unwrap_or(loads[c]));
                 match child.origin {
                     Origin::Seed => {}
-                    // A relay's load enters at the node it grows from, as a
-                    // lateral's does, where its wood enters (`girth`, fn-244).
-                    Origin::Lateral { node, .. } | Origin::Relay { node, .. } => {
-                        match at_node.get_mut(node) {
-                            Some(at) => at.add(load),
-                            None => at_tip.add(load),
+                    Origin::Lateral { node, .. } => match at_node.get_mut(node) {
+                        Some(at) => at.add(load),
+                        None => at_tip.add(load),
+                    },
+                    // A relay's load enters where its wood does (`girth`,
+                    // fn-244): by its share at the node whose span it
+                    // stands in, the rest at the node before (or the base).
+                    Origin::Relay { .. } => match crate::girth::attached(axes, species, members[c]) {
+                        Some((k, t)) => {
+                            let at = load.share(t);
+                            at_node[k].add(at);
+                            let below = load.less(at);
+                            match k.checked_sub(1) {
+                                Some(n) => at_node[n].add(below),
+                                None => at_base.add(below),
+                            }
                         }
-                    }
+                        None => at_tip.add(load),
+                    },
                     Origin::Continuation { .. } => at_tip.add(load),
                 }
             }
@@ -266,6 +285,7 @@ pub(crate) fn gather(
                     load = load.share(support_q(base[2].min(tip[2]), r, length));
                 }
             }
+            load.add(at_base);
             load
         },
     );

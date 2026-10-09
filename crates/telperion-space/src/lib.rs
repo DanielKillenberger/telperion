@@ -82,5 +82,5 @@ pub use species::{
     Form, NodeLaw, PaState, Species, Zone, BARE, MAX_BUDS, MEDIAL, SPARE, TOP, ZONES,
 };
 pub use spruce::spruce;
-pub use structure::{Axis, CountTable, Origin, Phytomer, Structure, Vec3};
+pub use structure::{Axis, CountTable, Join, Origin, Phytomer, Structure, Vec3};
 pub use transcendental::Transcendental;

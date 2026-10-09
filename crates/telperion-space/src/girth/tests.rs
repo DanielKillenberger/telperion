@@ -84,6 +84,7 @@ fn axis(origin: Origin, lights: &[f64]) -> Axis {
         rank: 0.0,
         sleep: 0.0,
         phase: 0,
+        joined: None,
     }
 }
 
@@ -205,17 +206,17 @@ fn the_leaf_mean_is_the_grown_trees_at_every_retained_share() {
     );
 }
 
-/// A relay's wood enters its parent at the node it grows from, whatever
-/// its blend and wherever along that node's span it stands (fn-244): the
-/// parent below carries it as it would a lateral there, and the stopped
-/// module's head beyond, its stub, carries only its own wood.
+/// A relay's wood enters its parent where it joins (fn-244): every
+/// sample below the span it stands in carries it whole, every one above
+/// carries none, and the join's radii are the parent's there with the
+/// relay whole (below) and with its stopped module's own wood (above).
 #[test]
-fn a_relays_wood_enters_at_its_node_and_its_stub_carries_its_own() {
+fn a_relays_wood_enters_where_it_joins_and_its_stub_carries_its_own() {
     let mut states = vec![state(0.0)];
-    // A share that stands the relay part-way along its node's span.
+    // A share and a blend that stand the relay part-way along a span.
     states[0].relay_at = 0.3;
     let species = Species { states };
-    let with = |origin: Option<Origin>| {
+    let grown = |origin: Option<Origin>| {
         let mut axes = vec![axis(Origin::Seed, &[0.5; 4])];
         if let Some(origin) = origin {
             let mut child = axis(origin, &[0.5; 3]);
@@ -224,18 +225,25 @@ fn a_relays_wood_enters_at_its_node_and_its_stub_carries_its_own() {
         }
         let mut t = Structure { age: 1, pas: 1, axes };
         thicken(&mut t, &species, &Girth::default(), 1);
-        t.axes[0].phytomers.iter().map(|p| p.radius).collect::<Vec<_>>()
+        t
     };
-    let relay = with(Some(Origin::Relay { parent: 0, node: 1 }));
-    let lateral = with(Some(Origin::Lateral {
+    let relay = grown(Some(Origin::Relay { parent: 0, node: 1 }));
+    let join = relay.axes[1].joined().expect("a relay's join");
+    let k = join.node;
+    assert!(join.t > 0 && join.t < ONE32, "part-way along its span");
+    let lateral = grown(Some(Origin::Lateral {
         parent: 0,
-        node: 1,
+        node: k,
         slot: 0,
         whorl: 1.0,
         woken: false,
     }));
-    let alone = with(None);
-    assert_eq!(relay[..2], lateral[..2], "the parent at and below the join");
-    assert_eq!(relay[2..], alone[2..], "the stub");
-    assert!(relay[1] > alone[1]);
+    let alone = grown(None);
+    let radii = |t: &Structure| t.axes[0].phytomers.iter().map(|p| p.radius).collect::<Vec<_>>();
+    let (relay, lateral, alone) = (radii(&relay), radii(&lateral), radii(&alone));
+    assert_eq!(relay[..k], lateral[..k], "the parent below the join");
+    assert_eq!(relay[k + 1..], alone[k + 1..], "the stub");
+    assert!(alone[k] < relay[k] && relay[k] < lateral[k], "the span by degree");
+    assert_eq!(join.below, lateral[k], "the bole below the join");
+    assert_eq!(join.above, alone[k], "the stub's first span");
 }

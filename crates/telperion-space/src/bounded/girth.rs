@@ -92,6 +92,7 @@ impl Bounded<'_> {
             || -> Vec<Vec<f64>> { axes.iter().map(|a| vec![0.0; a.phytomers.len()]).collect() };
         let mut at_node = blank();
         let mut at_tip = vec![0.0; axes.len()];
+        let mut at_base = vec![0.0; axes.len()];
         for &r in &self.chains[c].borne {
             let record = &self.records[r];
             let Origin::Lateral { parent, node, .. } = record.origin else {
@@ -112,13 +113,13 @@ impl Bounded<'_> {
                 self.leaf_mean,
                 carried,
                 &mut radii[j],
-            );
+            ) + at_base[j];
             hand_on(
                 species,
                 axes,
                 (j, first),
                 section,
-                (&mut at_node, &mut at_tip),
+                (&mut at_node, &mut at_tip, &mut at_base),
             );
         }
         fit(&mut radii[first..], self.committed(c));
@@ -177,7 +178,7 @@ fn hand_on(
     axes: &[Axis],
     (j, first): (usize, usize),
     section: f64,
-    (at_node, at_tip): (&mut [Vec<f64>], &mut [f64]),
+    (at_node, at_tip, at_base): (&mut [Vec<f64>], &mut [f64], &mut [f64]),
 ) {
     if j == first {
         return;
@@ -185,11 +186,21 @@ fn hand_on(
     let radius = section.powf_fixed(1.0 / species.states[axes[j].pa].form.exponent);
     let carried = |p: usize| radius.powf_fixed(species.states[axes[p].pa].form.exponent);
     match axes[j].origin {
-        // A relay's wood enters at the node it grows from (`girth`, fn-244).
-        Origin::Relay { parent, node } => match at_node[parent].get_mut(node) {
-            Some(at) => *at += carried(parent),
-            None => at_tip[parent] += carried(parent),
-        },
+        // A relay's wood enters where it joins (`girth::thicken`, fn-244).
+        Origin::Relay { parent, .. } => {
+            let section = carried(parent);
+            match crate::girth::attached(axes, species, j) {
+                Some((k, t)) => {
+                    let share = t as f64 / crate::fixed::ONE32 as f64;
+                    at_node[parent][k] += section * share;
+                    match k.checked_sub(1) {
+                        Some(n) => at_node[parent][n] += section * (1.0 - share),
+                        None => at_base[parent] += section * (1.0 - share),
+                    }
+                }
+                None => at_tip[parent] += section,
+            }
+        }
         Origin::Continuation { parent } => at_tip[parent] += carried(parent),
         Origin::Seed | Origin::Lateral { .. } => {}
     }
