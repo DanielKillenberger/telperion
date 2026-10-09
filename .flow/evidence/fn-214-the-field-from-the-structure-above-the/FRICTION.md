@@ -27,3 +27,10 @@
 - **Doing:** the oak cut sweep in Wasm and natively, and the birch probe.
 - **Slowed by:** nothing material. The `field-oak.wasm` copy differed by one byte region from a HEAD rebuild, so the sweep used the HEAD rebuild. That cost about 1 minute.
 - **Would remove it:** recording the commit beside each scratch Wasm copy.
+
+## 2026-10-09 07:30, task 2 release sweep: the merge's hidden conflict
+
+- **Doing:** merging F4 `aab5f591` into the coarse branch.
+- **Slowed by:** a struct literal F4 added (the cluster `Descriptor`) lacked this branch's new `spread` field. Git merged it cleanly, so it surfaced only at `cargo check`, and the three textual conflicts needed reading both sides by hand.
+- **Cost:** about 5 minutes.
+- **Would remove it:** `Descriptor` built through one constructor, not struct literals in several places. That is the host's call.

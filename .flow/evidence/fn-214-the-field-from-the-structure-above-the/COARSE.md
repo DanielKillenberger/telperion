@@ -317,3 +317,174 @@ The silver birch is refused at every cut and seed, including cut 0. The error is
   - n = 36 saves only 25 to 45 ms, because the grow dominates.
 - **The memory:** it holds at every cut. The peak is 96 MB at most, at or under 0.1.4's 73 to 116 MB.
 - No cut tested gives both the limbs and 0.1.4's time.
+
+## Task 2: the sweep on the release's oak and birch (2026-10-09)
+
+F4 at `aab5f591` (oak round 3, fn-236; the engine silver birch, fn-213 round 14) is merged as `8777bd72`.
+- **Conflicts:** three files, `input.rs`, `space.rs` and `tree.rs`, resolved by keeping both sides:
+  - `GrowInput` carries the cut and the supernatural group. It is `Clone`, no longer `Copy`.
+  - The coarse tree is scaled by the group's scale, its stands included.
+  - `Tree` keeps `stands` beside `clusters`.
+  - The cluster descriptor takes `spread: 0`.
+- **Digests:** `catalogue_identity` and `parameter_reference` pass unchanged, so no digest moved.
+- **Generated files:** `npm run wasm:build` reports the family metadata current and changes no generated file.
+
+### How this was measured
+
+The method is the same as the sections above: Wasm under Node with no browser, the family's default age of 40, and the site's dials (oak 0.08 / tuft 0.4, birch 0.08 / tuft 0.32).
+
+- **Repeats:** three, one Node process per tree, at load 1.9 to 3.2.
+- **Builds:** each tree ran as 0.1.4, as the full field (cut 0) and as the coarse field at each cut.
+- **End to end:** grow, query and voxelize, given as the median (min..max).
+- **Files:** `raw/field-path/release-sweep.sh` → `release-sweep.jsonl` (the module is `field-release.wasm`, built at `8777bd72`, 1,341,072 bytes stripped).
+- **Structure against the stepped tree:** `raw/native/compare` → `raw/native/release.jsonl` and `.err`, natively on 4 threads. Each row compares against the stepped (full) tree at the same cut. The stepped tree's realized fine roots shift slightly at cut 64, because the plan's cut partitions them.
+- **Stills:** `raw/field-path/release/{oak,birch}-<seed>-n{48,36}.png`. Each holds seven panels, left to right: 0.1.4, full, then coarse at 1,024, 512, 256, 128 and 64.
+
+### Time, memory and cubes (Wasm)
+
+| Tree, seed | build | end to end n = 48 ms | n = 36 ms | memory MB | field height m | cubes n = 48 (wood + foliage) | cubes n = 36 |
+|---|---|--:|--:|--:|--:|--:|--:|
+| oak 1234 | 0.1.4 | 333 (332..336) | 270 | 72.6 | 24.51 | 634 + 10,265 | 372 + 4,743 |
+| oak 1234 | full | 9,814 (9,680..10,075) | 9,648 | 782.3 | 11.08 | 4,116 + 4,526 | 2,099 + 2,097 |
+| oak 1234 | cut 1,024 | 1,544 (1,463..1,548) | 1,467 | 80.3 | 11.01 | 3,595 + 7,126 | 1,750 + 3,148 |
+| oak 1234 | cut 512 | 2,404 (2,340..2,493) | 2,327 | 120.1 | 11.03 | 3,193 + 3,968 | 1,566 + 1,879 |
+| oak 1234 | cut 256 | 2,501 (2,407..2,513) | 2,420 | 131.9 | 11.04 | 3,293 + 4,022 | 1,610 + 1,908 |
+| oak 1234 | cut 128 | 2,580 (2,521..2,669) | 2,497 | 144.1 | 11.04 | 3,416 + 4,104 | 1,683 + 1,936 |
+| oak 1234 | cut 64 | 5,735 (5,665..5,763) | 5,589 | 377.8 | 11.06 | 3,753 + 4,482 | 1,859 + 2,099 |
+| oak 5678 | 0.1.4 | 378 (366..396) | 316 | 115.6 | 24.09 | 649 + 10,074 | 341 + 4,618 |
+| oak 5678 | full | 7,713 (7,462..8,197) | 7,561 | 648.4 | 11 | 3,930 + 5,390 | 2,051 + 2,538 |
+| oak 5678 | cut 1,024 | 1,138 (1,090..1,158) | 1,077 | 49.6 | 10.97 | 2,775 + 7,156 | 1,327 + 3,153 |
+| oak 5678 | cut 512 | 1,777 (1,727..1,805) | 1,703 | 91.8 | 11.03 | 3,526 + 5,354 | 1,743 + 2,527 |
+| oak 5678 | cut 256 | 1,870 (1,863..1,936) | 1,786 | 91.8 | 11.03 | 3,541 + 5,369 | 1,749 + 2,535 |
+| oak 5678 | cut 128 | 1,984 (1,883..2,055) | 1,898 | 91.8 | 11.03 | 3,435 + 5,084 | 1,693 + 2,422 |
+| oak 5678 | cut 64 | 4,090 (3,966..4,241) | 3,965 | 197.6 | 11.03 | 3,763 + 5,379 | 1,930 + 2,527 |
+| oak 6137 | 0.1.4 | 386 (369..393) | 319 | 107.8 | 24.47 | 662 + 10,628 | 360 + 4,856 |
+| oak 6137 | full | 7,642 (7,556..7,927) | 7,491 | 624.3 | 11.05 | 4,441 + 5,634 | 2,286 + 2,601 |
+| oak 6137 | cut 1,024 | 1,057 (1,020..1,063) | 996 | 48.3 | 11 | 2,917 + 7,247 | 1,398 + 3,184 |
+| oak 6137 | cut 512 | 1,720 (1,649..1,752) | 1,648 | 92 | 11.2 | 3,591 + 5,044 | 1,758 + 2,396 |
+| oak 6137 | cut 256 | 1,796 (1,765..1,815) | 1,719 | 92 | 11.2 | 3,650 + 5,097 | 1,783 + 2,422 |
+| oak 6137 | cut 128 | 1,898 (1,795..1,917) | 1,813 | 92 | 11.2 | 3,747 + 5,184 | 1,808 + 2,464 |
+| oak 6137 | cut 64 | 3,832 (3,678..3,846) | 3,686 | 186.3 | 11.05 | 4,069 + 5,581 | 2,116 + 2,564 |
+| oak 7432 | 0.1.4 | 356 (356..358) | 291 | 100.6 | 23.99 | 667 + 10,504 | 361 + 4,832 |
+| oak 7432 | full | 8,641 (8,483..8,791) | 8,465 | 720.5 | 11.11 | 4,518 + 5,541 | 2,327 + 2,541 |
+| oak 7432 | cut 1,024 | 1,292 (1,272..1,305) | 1,215 | 54.8 | 11.12 | 3,406 + 7,799 | 1,621 + 3,418 |
+| oak 7432 | cut 512 | 2,046 (2,007..2,122) | 1,960 | 101 | 11.18 | 3,848 + 5,268 | 1,888 + 2,503 |
+| oak 7432 | cut 256 | 2,207 (2,102..2,225) | 2,113 | 121.7 | 11.18 | 3,863 + 5,349 | 1,913 + 2,531 |
+| oak 7432 | cut 128 | 2,346 (2,277..2,348) | 2,245 | 132.9 | 11.18 | 3,985 + 5,426 | 1,948 + 2,572 |
+| oak 7432 | cut 64 | 4,920 (4,823..4,987) | 4,763 | 286.8 | 11.08 | 4,059 + 5,565 | 2,126 + 2,559 |
+| oak 7737 | 0.1.4 | 376 (366..422) | 308 | 115.4 | 24.56 | 663 + 10,245 | 362 + 4,686 |
+| oak 7737 | full | 7,522 (7,355..7,736) | 7,358 | 623.7 | 11.09 | 3,587 + 4,440 | 1,784 + 2,022 |
+| oak 7737 | cut 1,024 | 1,060 (1,041..1,062) | 994 | 50.3 | 11.14 | 2,884 + 6,166 | 1,376 + 2,727 |
+| oak 7737 | cut 512 | 1,740 (1,657..1,756) | 1,662 | 98.6 | 11.15 | 3,221 + 4,452 | 1,562 + 2,099 |
+| oak 7737 | cut 256 | 1,809 (1,773..1,819) | 1,728 | 98.6 | 11.15 | 3,226 + 4,470 | 1,562 + 2,105 |
+| oak 7737 | cut 128 | 1,925 (1,832..1,931) | 1,841 | 98.6 | 11.15 | 3,239 + 4,435 | 1,582 + 2,076 |
+| oak 7737 | cut 64 | 3,978 (3,860..4,091) | 3,854 | 215.3 | 11.16 | 3,509 + 4,639 | 1,740 + 2,154 |
+| oak 7919 | 0.1.4 | 385 (378..388) | 318 | 107.4 | 24.52 | 596 + 10,386 | 321 + 4,761 |
+| oak 7919 | full | 9,299 (9,274..9,314) | 9,103 | 747.3 | 11.38 | 5,356 + 5,116 | 2,596 + 2,306 |
+| oak 7919 | cut 1,024 | 1,548 (1,489..1,710) | 1,466 | 82.6 | 11.34 | 3,659 + 6,875 | 1,769 + 3,037 |
+| oak 7919 | cut 512 | 2,402 (2,299..2,500) | 2,300 | 112.3 | 11.35 | 4,501 + 4,812 | 2,224 + 2,199 |
+| oak 7919 | cut 256 | 2,529 (2,504..2,703) | 2,417 | 112.3 | 11.35 | 4,547 + 4,876 | 2,252 + 2,226 |
+| oak 7919 | cut 128 | 2,693 (2,680..2,722) | 2,584 | 136.3 | 11.35 | 4,693 + 4,972 | 2,328 + 2,264 |
+| oak 7919 | cut 64 | 5,561 (5,373..6,067) | 5,379 | 291.4 | 11.38 | 4,969 + 5,212 | 2,406 + 2,382 |
+| birch 1234 | 0.1.4 | 410 (409..412) | 348 | 59.7 | 16.91 | 712 + 7,333 | 289 + 3,312 |
+| birch 1234 | full | 2,516 (2,478..2,523) | 2,493 | 315.4 | 17.44 | 334 + 2,111 | 155 + 1,061 |
+| birch 1234 | cut 1,024 | 1,067 (1,052..1,120) | 945 | 18.8 | 19.72 | 234 + 7,519 | 120 + 3,204 |
+| birch 1234 | cut 512 | 1,146 (1,101..1,160) | 999 | 28 | 19.71 | 232 + 8,623 | 120 + 3,667 |
+| birch 1234 | cut 256 | 1,174 (1,152..1,177) | 1,026 | 28 | 21.47 | 196 + 8,029 | 104 + 3,424 |
+| birch 1234 | cut 128 | 1,938 (1,905..1,945) | 1,768 | 109.9 | 23.55 | 168 + 7,792 | 85 + 3,332 |
+| birch 1234 | cut 64 | 2,391 (2,340..2,415) | 2,232 | 149.4 | 26.06 | 130 + 7,421 | 65 + 3,188 |
+| birch 5678 | 0.1.4 | 400 (392..400) | 345 | 50.6 | 16.99 | 714 + 6,812 | 317 + 3,126 |
+| birch 5678 | full | 1,500 (1,445..1,522) | 1,476 | 158.4 | 16.92 | 258 + 1,539 | 145 + 779 |
+| birch 5678 | cut 1,024 | 875 (862..904) | 810 | 14.5 | 19.39 | 203 + 7,189 | 107 + 3,072 |
+| birch 5678 | cut 512 | 933 (927..938) | 851 | 15.3 | 19.38 | 197 + 8,048 | 103 + 3,430 |
+| birch 5678 | cut 256 | 911 (904..934) | 832 | 17.1 | 20.77 | 174 + 7,654 | 82 + 3,275 |
+| birch 5678 | cut 128 | 1,364 (1,309..1,376) | 1,268 | 55.9 | 23.02 | 143 + 7,417 | 69 + 3,165 |
+| birch 5678 | cut 64 | 1,603 (1,598..1,623) | 1,507 | 77 | 26.01 | 113 + 7,730 | 59 + 3,300 |
+
+The field height is the field's bounds, which take in the stands' expected wood.
+
+### Against the stepped tree (native, age 40)
+
+| Tree, seed, cut | trunk base stepped / coarse m | stands / realized section r^2.5 | stands' reach / fine roots' extent m | structure above, extent stepped / coarse m | thickest realized root below the cut: r m (kept / predicted) |
+|---|--:|--:|--:|--:|--:|
+| oak 1234, 1,024 | 0.428 / 0.363 | 0.13 | 5.79 / 6.63 | 6.88 / 6.26 | 0.129 (4,591 / 965) |
+| oak 1234, 512 | 0.428 / 0.374 | 0.16 | 6.42 / 6.63 | 6.88 / 6.93 | 0.086 (224 / 241) |
+| oak 1234, 256 | 0.428 / 0.377 | 0.17 | 6.43 / 6.63 | 6.88 / 6.93 | 0.086 (224 / 241) |
+| oak 1234, 128 | 0.428 / 0.381 | 0.17 | 6.43 / 6.63 | 6.88 / 6.93 | 0.052 (169 / 117) |
+| oak 1234, 64 | 0.428 / 0.410 | 0.18 | 6.44 / 6.54 | 6.88 / 6.82 | 0.038 (38 / 40) |
+| oak 5678, 1,024 | 0.344 / 0.290 | 0.17 | 5.43 / 6.65 | 4.96 / 5.41 | 0.167 (11,297 / 917) |
+| oak 5678, 512 | 0.344 / 0.306 | 0.26 | 6.11 / 6.65 | 6.14 / 6.21 | 0.042 (542 / 390) |
+| oak 5678, 256 | 0.344 / 0.307 | 0.26 | 6.12 / 6.65 | 6.14 / 6.23 | 0.041 (199 / 241) |
+| oak 5678, 128 | 0.344 / 0.310 | 0.27 | 6.55 / 6.43 | 6.65 / 6.78 | 0.036 (96 / 96) |
+| oak 5678, 64 | 0.344 / 0.333 | 0.28 | 6.48 / 6.43 | 6.65 / 6.70 | 0.021 (39 / 60) |
+| oak 7919, 1,024 | 0.447 / 0.387 | 0.12 | 4.87 / 5.93 | 5.39 / 5.06 | 0.139 (3,109 / 944) |
+| oak 7919, 512 | 0.447 / 0.403 | 0.14 | 5.62 / 5.88 | 5.93 / 5.72 | 0.064 (577 / 390) |
+| oak 7919, 256 | 0.447 / 0.404 | 0.14 | 5.64 / 5.88 | 5.93 / 5.74 | 0.059 (153 / 89) |
+| oak 7919, 128 | 0.447 / 0.407 | 0.14 | 5.66 / 5.88 | 5.93 / 5.76 | 0.059 (153 / 89) |
+| oak 7919, 64 | 0.447 / 0.438 | 0.16 | 5.63 / 5.88 | 5.93 / 5.73 | 0.035 (60 / 40) |
+| oak 7737, 1,024 | 0.376 / 0.341 | 0.19 | 5.24 / 8.20 | 5.25 / 5.22 | 0.158 (3,226 / 917) |
+| oak 7737, 512 | 0.376 / 0.351 | 0.24 | 7.87 / 8.07 | 8.20 / 8.06 | 0.055 (221 / 241) |
+| oak 7737, 256 | 0.376 / 0.351 | 0.25 | 7.89 / 8.07 | 8.20 / 8.08 | 0.055 (221 / 241) |
+| oak 7737, 128 | 0.376 / 0.354 | 0.25 | 7.92 / 8.07 | 8.20 / 8.12 | 0.044 (122 / 64) |
+| oak 7737, 64 | 0.376 / 0.368 | 0.25 | 7.89 / 8.07 | 8.20 / 8.08 | 0.032 (52 / 60) |
+| oak 6137, 1,024 | 0.341 / 0.277 | 0.17 | 4.87 / 6.12 | 5.55 / 4.96 | 0.139 (5,057 / 917) |
+| oak 6137, 512 | 0.341 / 0.295 | 0.25 | 6.14 / 6.12 | 6.09 / 6.12 | 0.045 (215 / 390) |
+| oak 6137, 256 | 0.341 / 0.297 | 0.25 | 6.14 / 6.12 | 6.09 / 6.12 | 0.039 (135 / 131) |
+| oak 6137, 128 | 0.341 / 0.300 | 0.26 | 6.14 / 6.12 | 6.09 / 6.12 | 0.034 (111 / 96) |
+| oak 6137, 64 | 0.341 / 0.323 | 0.27 | 6.08 / 6.12 | 6.09 / 6.07 | 0.034 (71 / 60) |
+| oak 7432, 1,024 | 0.384 / 0.331 | 0.14 | 5.34 / 6.21 | 6.32 / 5.45 | 0.108 (2,373 / 674) |
+| oak 7432, 512 | 0.384 / 0.338 | 0.18 | 6.24 / 6.21 | 6.32 / 6.39 | 0.046 (427 / 426) |
+| oak 7432, 256 | 0.384 / 0.338 | 0.18 | 6.25 / 6.21 | 6.32 / 6.41 | 0.042 (162 / 117) |
+| oak 7432, 128 | 0.384 / 0.341 | 0.19 | 6.28 / 6.21 | 6.32 / 6.44 | 0.042 (162 / 117) |
+| oak 7432, 64 | 0.384 / 0.367 | 0.19 | 6.27 / 6.21 | 6.32 / 6.42 | 0.027 (65 / 60) |
+| birch 1234, 1,024 | 0.158 / 0.156 | 0.70 | 8.04 / 7.58 | 7.40 / 7.46 | 0.020 (1,379 / 871) |
+| birch 1234, 512 | 0.158 / 0.156 | 0.68 | 8.04 / 7.58 | 7.40 / 7.46 | 0.019 (947 / 369) |
+| birch 1234, 256 | 0.158 / 0.156 | 0.66 | 8.04 / 7.58 | 7.40 / 7.46 | 0.014 (645 / 131) |
+| birch 1234, 128 | 0.158 / 0.157 | 0.60 | 7.58 / 7.58 | 7.40 / 7.42 | 0.014 (524 / 110) |
+| birch 1234, 64 | 0.158 / 0.159 | 0.64 | 7.52 / 7.58 | 7.40 / 7.39 | 0.013 (383 / 15) |
+| birch 5678, 1,024 | 0.129 / 0.129 | 0.70 | 6.32 / 6.35 | 6.61 / 6.63 | 0.022 (1,245 / 755) |
+| birch 5678, 512 | 0.129 / 0.129 | 0.68 | 6.31 / 6.35 | 6.61 / 6.62 | 0.018 (902 / 479) |
+| birch 5678, 256 | 0.129 / 0.128 | 0.67 | 6.31 / 6.35 | 6.61 / 6.62 | 0.018 (704 / 115) |
+| birch 5678, 128 | 0.129 / 0.129 | 0.62 | 6.50 / 6.35 | 6.61 / 6.60 | 0.018 (704 / 115) |
+| birch 5678, 64 | 0.129 / 0.130 | 0.64 | 7.55 / 6.35 | 6.61 / 6.59 | 0.013 (414 / 6) |
+
+### Stills (viewed: all sixteen; the worker's reading, not a verdict)
+
+**The oak, all six seeds:**
+- Round 3's full oak is a broad, lobed crown with heavy limbs and a visible trunk. It is far from 0.1.4's round, solid crown at every seed.
+- At 1,024, the coarse oak is a more compact, upright, denser crown. It misses one or two of the full oak's long lower limbs: seed 1234's limb to the right, 7919's low limb to the right, 7432's open lower limbs.
+- From 512 down, those limbs appear, and the panels come close to the full field's silhouette and wood pattern.
+- 256 and 128 look like 512. At 64, the trunk and wood fill in a little more.
+- The panels read the same at n = 36 as at n = 48.
+
+**The birch, both seeds:**
+- The full birch is a narrow, tall column with its trunk showing.
+- The coarse birch is a different shape at every cut: a broad, round, dense mass of foliage cubes with almost no wood showing. It grows lumpier and taller as the cut falls.
+- At 1,024, its foliage at n = 48 is 7,189 to 7,519 cubes, against the full birch's 1,539 to 2,111. Its field height is 19.4 to 26.1 m, against 16.9 to 17.4 m, while the structure above the cut measures 17.2 m (seed 1234) and 16.7 m (seed 5678) natively, as in the stepped tree. The extra height and bulk is in the stands' extent: the native table shows the trunk and the section within reach. Their cause was not looked into.
+
+### Reading, for the host
+
+**The oak (round 3):**
+- **Time:** no cut is near 0.1.4.
+  - 0.1.4 runs in 333 to 386 ms at n = 48, and the full field in 7.5 to 9.8 s.
+  - The coarse field runs in 1.06 to 1.55 s at 1,024, 1.72 to 2.40 s at 512, 1.80 to 2.69 s at 256 and 128, and 3.8 to 5.7 s at 64.
+  - n = 36 saves 60 to 160 ms, because the grow dominates.
+- **Memory:** within 0.1.4's 73 to 116 MB, or under it, at 1,024 (48 to 83 MB).
+  - At 512 to 128, it reaches 92 to 144 MB.
+  - At 64, it is 186 to 378 MB.
+- **Trunk:**
+  - At 1,024, the coarse trunk is 0.81 to 0.91 of the stepped one.
+  - At 512 to 128, it is 0.87 to 0.94.
+  - At 64, it is 0.95 to 0.98.
+- **Section ratio:** it rises from 0.12–0.19 at 1,024 to 0.16–0.28 at 64.
+- **Reach:** at 1,024, the stands fall short by 0.8 to 3.0 m. From 512 down, they come within 0.3 m on five seeds. Seed 5678 needs 128.
+- **The thickest root left below the cut:** 0.11 to 0.17 m at 1,024, kept 2,373 to 11,297 phytomers against a prediction of 674 to 965. From 512 down it is 0.09 m or less.
+- **In short:** under round 3 the limbs come back at 512, not 256, and the trunk nearly closes. On this machine, the coarse oak at any cut is 3 to 15 times 0.1.4's time, while it is 5 to 8 times faster than the full field at 1,024 and 512.
+
+**The birch (fn-213 round 14) is no longer refused.**
+- **Time:**
+  - 0.1.4 runs in 400 to 410 ms, and the full field in 1.5 to 2.5 s in 158 to 315 MB.
+  - The coarse field runs in 0.88 to 1.07 s at 1,024, 0.91 to 1.17 s at 512 and 256, and 1.4 to 2.4 s at 128 and 64.
+- **Memory:** 15 to 28 MB from 1,024 to 256, and 56 to 149 MB at 128 and 64.
+- **Native structure:** it matches. The trunk is within 0.002 m, the section ratio is 0.60 to 0.70, and the reach is within 0.5 m, except 5678 at 64 (1.2 m over).
+- **The field:** it does not match. The stills and the cube counts (above) show a round, overfull crown and a field 2.5 to 9 m too tall.
