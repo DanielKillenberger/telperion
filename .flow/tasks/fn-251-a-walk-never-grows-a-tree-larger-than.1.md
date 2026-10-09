@@ -10,8 +10,8 @@ TBD
 - [ ] TBD
 
 ## Done summary
-TBD
-
+Blocked:
+Waits for fn-255 (one light-reading grower); host decisions in the spec, 2026-10-09. Measurement and red repro on branch walksize (d4cc14c4, 28b0200f).
 ## Evidence
 - Commits:
 - Tests:
