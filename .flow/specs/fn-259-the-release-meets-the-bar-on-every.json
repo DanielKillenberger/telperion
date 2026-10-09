@@ -1,14 +1,158 @@
 {
   "branch_name": "fn-259-the-release-meets-the-bar-on-every",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-09T19:56:29.991755Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-257-the-sites-field-grows-only-the-detail",
     "fn-258-a-prepared-tree-meets-masters-memory"
   ],
   "id": "fn-259-the-release-meets-the-bar-on-every",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 2,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-09T20:01:07.688494Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "e417708685c881dd98252db862db9878a1db1dac36da9433179244974c9b66a2",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e585d04b0745dc87fabe4cedb562dd82",
+            "classification": "introduced",
+            "findingId": "finding-e585d04b0745dc87fabe4cedb562dd82",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3a1a29636de7bab0aa6cd5431b7dae2d",
+            "classification": "introduced",
+            "findingId": "finding-3a1a29636de7bab0aa6cd5431b7dae2d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2daca76a130fcb4c8b3db21806fe7f5e",
+            "classification": "introduced",
+            "findingId": "finding-2daca76a130fcb4c8b3db21806fe7f5e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fcff0d60c1dc6f03230e06573a36f19eaa6d167b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 306852,
+      "output_sha256": "b72e607802cf65fade802d455fae988f48daebb210d8420481ab7d48926686bc",
+      "reservation_id": "de0443187f004e1aaac0ddac13127dc9",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T19:58:50.211311Z",
+      "tool_calls": 19,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2a2c3e9a274041585393487c665b486cb29e4d06cdf57d3acf7d0c1f978f8854",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e585d04b0745dc87fabe4cedb562dd82",
+            "classification": "introduced",
+            "findingId": "finding-e585d04b0745dc87fabe4cedb562dd82",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-3a1a29636de7bab0aa6cd5431b7dae2d",
+            "classification": "introduced",
+            "findingId": "finding-3a1a29636de7bab0aa6cd5431b7dae2d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2daca76a130fcb4c8b3db21806fe7f5e",
+            "classification": "introduced",
+            "findingId": "finding-2daca76a130fcb4c8b3db21806fe7f5e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-30af3a7f9d1e917fa65fa62398e3f344",
+            "classification": "introduced",
+            "findingId": "finding-30af3a7f9d1e917fa65fa62398e3f344",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fcff0d60c1dc6f03230e06573a36f19eaa6d167b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1590,
+      "output_sha256": "fabbbd8dcc5db80469dfafd096383e495812d8c75b712e0a99c6d0f8c9ddb588",
+      "reservation_id": "f0a8964d969f4d0c83a0b93afe8a4ed8",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T20:01:07.685760Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-259-the-release-meets-the-bar-on-every.md",
   "status": "open",
   "title": "The release meets the bar on every consumer",
@@ -23,5 +167,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T19:56:39.714582Z"
+  "updated_at": "2026-10-09T20:01:24.383374Z"
 }

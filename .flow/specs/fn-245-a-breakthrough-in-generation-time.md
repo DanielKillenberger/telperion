@@ -14,7 +14,8 @@ The owner (2026-10-09), after the release branch's harness: "build time isn't fi
 
 - **R1 (shape it first):** this is an unshaped, consequential idea; it is charted (`/flow-next:chart`) before any spec is planned: where generation time goes today per stage and per species (CPU structure above the cut, closed-form predictions, device expansion, upload), the targets that would count as a breakthrough for each goal (a retune, a forest of N trees, a site grove), and the candidate directions with their evidence, decided one at a time with the owner.
 - **R2:** the chart's decisions become their own specs.
+- **Charted (host, 2026-10-09):** the owner said yes to three pillars (one growth path for every species with light by degree, ordinary floats in place of contract A, growth on the GPU) and asked for Astra's view; Astra's architecture review is `ASTRA-ARCH.md`. Staged as fn-254 (floats) → fn-255 (one light-reading grower, CPU first, light model gated) → fn-256 (whole grower on the GPU) and fn-257 (the site's field at its resolution); fn-258 (memory and frame rate, independent) and fn-259 (release qualification).
 
 ## Boundaries
 
-Not a release item. Discovery first, no code in this spec.
+Map for fn-254..259, which are release items (the owner, 2026-10-09, on the release bar). No code in this spec.

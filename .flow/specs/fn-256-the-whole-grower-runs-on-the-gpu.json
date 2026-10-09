@@ -1,13 +1,76 @@
 {
   "branch_name": "fn-256-the-whole-grower-runs-on-the-gpu",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-09T19:56:27.499913Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-255-one-growth-law-reads-light-for-every"
   ],
   "id": "fn-256-the-whole-grower-runs-on-the-gpu",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T19:59:50.888280Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "bd12de95ee5437d369b2ba228502ebf4fe0a842a0509e6b884c78118e38b7e70",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cba7141c8de9b7f9c11d1fbc721045f4",
+            "classification": "introduced",
+            "findingId": "finding-cba7141c8de9b7f9c11d1fbc721045f4",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fcff0d60c1dc6f03230e06573a36f19eaa6d167b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 279608,
+      "output_sha256": "bfb279741ee620edaef5b932249507fadf6d3130866cfe994932d673962cee74",
+      "reservation_id": "e0cc6aa84bae483e8d0b761421ab7eb0",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T19:59:50.880722Z",
+      "tool_calls": 21,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-256-the-whole-grower-runs-on-the-gpu.md",
   "status": "open",
   "title": "The whole grower runs on the GPU",
@@ -22,5 +85,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T19:56:38.018076Z"
+  "updated_at": "2026-10-09T19:59:50.892783Z"
 }

@@ -1,13 +1,152 @@
 {
   "branch_name": "fn-255-one-growth-law-reads-light-for-every",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-09T19:56:25.789086Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-254-growth-runs-on-ordinary-floats"
   ],
   "id": "fn-255-one-growth-law-reads-light-for-every",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T20:01:00.505455Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "3c2048c08544cc46f1f03d1664057fe68e6c66acd224d7912344606727755817",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8cd85f36ea45e9abf6a5033d89e92614",
+            "classification": "introduced",
+            "findingId": "finding-8cd85f36ea45e9abf6a5033d89e92614",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-069e09d2e1f9187c6a124d05a3c29854",
+            "classification": "introduced",
+            "findingId": "finding-069e09d2e1f9187c6a124d05a3c29854",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5ab39f7c6e3aee974196beca45d33da6",
+            "classification": "introduced",
+            "findingId": "finding-5ab39f7c6e3aee974196beca45d33da6",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fcff0d60c1dc6f03230e06573a36f19eaa6d167b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 270344,
+      "output_sha256": "ca2b70f386e84e33486065cc3000181f8baaf1e39e741e855a4ab9e9b0bab899",
+      "reservation_id": "220fd0adb83a418e8133caa7c33496bf",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T19:59:39.662815Z",
+      "tool_calls": 26,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d3e020fcb595fb6fed58edbc0f2dc486d74dd350a02143147b7efcf29cd79e30",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8cd85f36ea45e9abf6a5033d89e92614",
+            "classification": "introduced",
+            "findingId": "finding-8cd85f36ea45e9abf6a5033d89e92614",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-069e09d2e1f9187c6a124d05a3c29854",
+            "classification": "introduced",
+            "findingId": "finding-069e09d2e1f9187c6a124d05a3c29854",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-5ab39f7c6e3aee974196beca45d33da6",
+            "classification": "introduced",
+            "findingId": "finding-5ab39f7c6e3aee974196beca45d33da6",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fcff0d60c1dc6f03230e06573a36f19eaa6d167b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 804,
+      "output_sha256": "2f7d9567c6700fd29eb0483f302f29a5c2d649eb87890000dbf2a9ab8ae9dd0b",
+      "reservation_id": "03863562d8ca412582eefe8e1b702539",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T20:01:00.502554Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-255-one-growth-law-reads-light-for-every.md",
   "status": "open",
   "title": "One growth law reads light for every species",
@@ -22,5 +161,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T19:56:37.395343Z"
+  "updated_at": "2026-10-09T20:01:00.506028Z"
 }

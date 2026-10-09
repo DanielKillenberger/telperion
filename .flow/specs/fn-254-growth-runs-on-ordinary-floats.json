@@ -1,11 +1,118 @@
 {
   "branch_name": "fn-254-growth-runs-on-ordinary-floats",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-09T19:56:24.526932Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-254-growth-runs-on-ordinary-floats",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T20:00:48.979662Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "fa573062a3da83412e3f4ce9a2b481679677ec45b627f7dfabc8f40a0fcef0d3",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cd8a648b5378269d01d8d2458b673c5d",
+            "classification": "introduced",
+            "findingId": "finding-cd8a648b5378269d01d8d2458b673c5d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fcff0d60c1dc6f03230e06573a36f19eaa6d167b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 406898,
+      "output_sha256": "326068c394940c7fd7c4db95209c04f11346620388bfd7a2f2aadf8feb52138c",
+      "reservation_id": "137c01966a2147bc8c62fbee776a3808",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T19:59:38.403213Z",
+      "tool_calls": 35,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "73c3f17eb7528a2b6b4b8e232675ce9e7d7af9d6a7732eacd154371981c5edd5",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cd8a648b5378269d01d8d2458b673c5d",
+            "classification": "introduced",
+            "findingId": "finding-cd8a648b5378269d01d8d2458b673c5d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fcff0d60c1dc6f03230e06573a36f19eaa6d167b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 738,
+      "output_sha256": "2113d78d2f9ace2a2cd12b5e1352154036345698b619ab1bf1f58dd1463e24fa",
+      "reservation_id": "2cc89d41da664c6c9eb99daa2b0f7699",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T20:00:48.977391Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-254-growth-runs-on-ordinary-floats.md",
   "status": "open",
   "title": "Growth runs on ordinary floats",
@@ -20,5 +127,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T19:56:24.551435Z"
+  "updated_at": "2026-10-09T20:00:48.980516Z"
 }
