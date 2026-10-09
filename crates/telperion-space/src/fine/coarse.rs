@@ -79,9 +79,9 @@ pub fn grow_coarse(species: &Species, request: Request, cut: f64) -> Result<Coar
         );
     }
     request.light.validate()?;
-    let rows = Rows::laterals(species, request.age, crate::cores::available());
+    let rows = Rows::shared_laterals(species, request.age, crate::cores::available());
     if species.reads_light() {
-        return lit(species, request, Arc::new(rows), cut);
+        return lit(species, request, rows, cut);
     }
     let rules = rules(species, request.age, request.budget)?;
     let predictor = rows.predictor();

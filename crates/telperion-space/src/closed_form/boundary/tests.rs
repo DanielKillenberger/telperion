@@ -196,3 +196,38 @@ fn dump_rows() {
         println!("    (\"{name}\", {age}, 0x{:016x}),", hash(&bits(&rows)));
     }
 }
+
+/// Every field of every row and curve, to the bit.
+fn whole(rows: &Rows) -> String {
+    format!(
+        "{:?} {:?} {:?} {}",
+        rows.rows, rows.curves, rows.seed, rows.age
+    )
+}
+
+/// fn-249 R1: a shelf reads a species' rows once per age and mode, the
+/// same rows a fresh read gives, and keeps the most recently used.
+#[test]
+fn a_shelf_reads_rows_once_and_keeps_the_latest() {
+    use super::Shelf;
+    use std::sync::Arc;
+    let oak = oak();
+    let mut varied = oak.clone();
+    varied.states[0].viability = f64::from_bits(oak.states[0].viability.to_bits() - 1);
+    let shelf = Shelf::new(3);
+    let first = shelf.rows(&oak, 9, 1, false);
+    assert!(Arc::ptr_eq(&first, &shelf.rows(&oak, 9, 4, false)));
+    assert_eq!(whole(&first), whole(&Rows::laterals(&oak, 9, 1)));
+    let seeded = shelf.rows(&oak, 9, 1, true);
+    assert_eq!(whole(&seeded), whole(&Rows::new(&oak, 9, 1)));
+    for other in [&seeded, &shelf.rows(&varied, 9, 1, false)] {
+        assert!(!Arc::ptr_eq(&first, other));
+    }
+    // A fourth key evicts the least recently used: `seeded`, not `first`,
+    // read again since.
+    assert!(Arc::ptr_eq(&first, &shelf.rows(&oak, 9, 1, false)));
+    let older = shelf.rows(&oak, 8, 1, false);
+    assert!(Arc::ptr_eq(&older, &shelf.rows(&oak, 8, 1, false)));
+    assert!(Arc::ptr_eq(&first, &shelf.rows(&oak, 9, 1, false)));
+    assert!(!Arc::ptr_eq(&seeded, &shelf.rows(&oak, 9, 1, true)));
+}

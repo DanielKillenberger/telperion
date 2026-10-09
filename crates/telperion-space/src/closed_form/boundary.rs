@@ -10,7 +10,7 @@ use super::predictor::Predictor;
 use crate::presence::Windows;
 use crate::schedule::Carried;
 use crate::species::Species;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex, PoisonError};
 
 #[cfg(test)]
 mod tests;
@@ -71,6 +71,11 @@ impl Rows {
     /// coarse tree reads (fn-214), a third less work at the spruce's 40.
     pub fn laterals(species: &Species, age: u32, threads: usize) -> Self {
         Self::read(species, age, threads, false)
+    }
+
+    /// `laterals`, read once per species and age in a process (`SHELF`).
+    pub fn shared_laterals(species: &Species, age: u32, threads: usize) -> Arc<Self> {
+        SHELF.rows(species, age, threads, false)
     }
 
     fn read(species: &Species, age: u32, threads: usize, whole: bool) -> Self {
@@ -155,6 +160,65 @@ impl Rows {
     /// The rows held, for the memory they take.
     pub fn len(&self) -> usize {
         self.rows.iter().filter(|r| r.e > 0.0).count() + 1
+    }
+}
+
+/// Rows read once and kept across trees (fn-249 R1): a row is a value of
+/// the species, its age and whether the seed's is read, so a second tree
+/// of the same species and age, at any seed, takes the rows the first
+/// read. A Wasm instance is one process, so its session keeps them.
+static SHELF: Shelf = Shelf::new(4);
+
+/// What keys a shelf's rows: the species as its `Debug` text, which prints
+/// every parameter and each f64 to the bit, its age, and the seed's mode.
+type Key = (String, u32, bool);
+
+/// The `room` most recently used rows, the most recent last.
+pub(super) struct Shelf {
+    held: Mutex<Vec<(Key, Arc<Rows>)>>,
+    room: usize,
+}
+
+impl Shelf {
+    pub(super) const fn new(room: usize) -> Self {
+        Self {
+            held: Mutex::new(Vec::new()),
+            room,
+        }
+    }
+
+    /// The rows `Rows::new` (`whole`) or `Rows::laterals` reads, read once.
+    /// The lock is not held while they are read: two trees reading the
+    /// same rows at once read them twice and keep one.
+    pub(super) fn rows(
+        &self,
+        species: &Species,
+        age: u32,
+        threads: usize,
+        whole: bool,
+    ) -> Arc<Rows> {
+        let key = (format!("{species:?}"), age, whole);
+        if let Some(rows) = self.take(&key) {
+            return rows;
+        }
+        let rows = Arc::new(Rows::read(species, age, threads, whole));
+        let mut held = self.held.lock().unwrap_or_else(PoisonError::into_inner);
+        held.retain(|(k, _)| *k != key);
+        if held.len() == self.room {
+            held.remove(0);
+        }
+        held.push((key, rows.clone()));
+        rows
+    }
+
+    /// The rows held at `key`, made the most recently used.
+    fn take(&self, key: &Key) -> Option<Arc<Rows>> {
+        let mut held = self.held.lock().unwrap_or_else(PoisonError::into_inner);
+        let at = held.iter().position(|(k, _)| k == key)?;
+        let entry = held.remove(at);
+        let rows = entry.1.clone();
+        held.push(entry);
+        Some(rows)
     }
 }
 
