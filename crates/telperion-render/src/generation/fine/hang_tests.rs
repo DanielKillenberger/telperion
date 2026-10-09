@@ -62,17 +62,16 @@ fn browser_route() {
     println!("{tree}: built in {built:.2} s and drawn");
 }
 
-/// The longest a pipeline may take to make on a cold driver cache, and
-/// the longest a page's first tree may take to build on one, every
-/// pipeline made (host decisions 2, 2026-10-09): well under Chrome's GPU
-/// watchdog, which kills a GPU process that makes one for longer; 2.5 s
-/// gives the 2 s target its noise on a loaded machine.
+/// The longest a pipeline may take to make on a cold driver cache (host
+/// decisions 2, 2026-10-09): well under Chrome's GPU watchdog, which kills
+/// a GPU process that makes one for longer; 2.5 s gives the 2 s target its
+/// noise on a loaded machine. The watchdog acts on one pipeline, never a
+/// sum, so the first tree's cold total is reported, not bounded (fn-241
+/// host decision).
 const COLD_PIPELINE_MS: f64 = 2_500.0;
-const COLD_FIRST_TREE_S: f64 = 5.0;
 
 /// The named exception (host decisions, third, 2026-10-09): the chain
-/// grower's `grow`, at most 20 s cold natively, its make time outside the
-/// first tree's 5 s. Its cost is the one body the driver inlines the apex
+/// grower's `grow`, at most 20 s cold natively. Its cost is the one body the driver inlines the apex
 /// loop into, with hundreds of inlined copies of the 64-bit arithmetic
 /// under contract A (528 of `mul32`, 380 of `shr64`); slimmed to one call
 /// site each for `run`, `grow_unit` and `abortion_after` it fell from 92 to
@@ -89,7 +88,7 @@ const COLD_GROW_MS: f64 = 20_000.0;
 /// the watchdog: the harness sat at "building..." until Chrome killed its
 /// GPU process.
 #[test]
-fn every_pipeline_within_2_5_s_but_grow_within_20_s_and_the_first_tree_within_5_s_cold() {
+fn every_pipeline_within_2_5_s_but_grow_within_20_s_cold() {
     // The NVIDIA driver's own disk cache, off: a cold page's compile.
     let env = [("TELPERION_TRACE", "1"), ("__GL_SHADER_DISK_CACHE", "0")];
     let Built {
@@ -134,10 +133,7 @@ fn every_pipeline_within_2_5_s_but_grow_within_20_s_and_the_first_tree_within_5_
         })
         .expect("the build's time");
     let besides = built - grow / 1e3;
-    assert!(
-        besides <= COLD_FIRST_TREE_S,
-        "the first tree built cold in {built} s, {besides} s besides {GROW}"
-    );
+    println!("the first tree built cold in {built:.2} s, {besides:.2} s besides {GROW}");
 }
 
 /// What a tree's build on the browser route, in a process of its own,
