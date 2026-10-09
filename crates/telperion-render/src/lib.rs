@@ -6,6 +6,7 @@
 //! where the parameters came from.
 mod buffer;
 mod camera;
+mod card;
 mod curve;
 mod device;
 mod encoder;
@@ -16,6 +17,8 @@ mod headless;
 mod mass;
 mod pass;
 mod programs;
+#[cfg(any(test, target_arch = "wasm32"))]
+mod redraw;
 mod scene;
 mod select;
 mod shadow;
@@ -23,6 +26,7 @@ mod shot;
 #[cfg(not(target_arch = "wasm32"))]
 mod structure;
 mod submit;
+mod sun;
 mod timing;
 #[cfg(test)]
 mod trace;
@@ -59,7 +63,7 @@ pub use structure::{centroid, crop_mean, measure_frame, measure_png, Structure, 
 #[cfg(not(target_arch = "wasm32"))]
 pub use timing::{orbit as measure_orbit, run as measure};
 
-use pass::{aspect_of, pass};
+use pass::pass;
 pub(crate) use pass::{depth_pipeline, pipeline, Surface};
 pub use pass::{Target, MULTISAMPLE};
 use telperion_core::{material::MaterialParams, mesh::TreeMesh, surface::Bounds};
@@ -112,6 +116,11 @@ pub struct Renderer {
     /// The flowers (fn-216): a second foliage drawn by the same shader under
     /// a colour block of their own; empty where the tree flowers nowhere.
     organ: foliage::Foliage,
+    /// What the sun's map and its wood were last drawn for (fn-246).
+    sun: sun::Sun,
+    /// Whether the last frame drew all of the tree: false while the wood's
+    /// programs compile and its surfacing waits.
+    whole: bool,
     view: View,
     /// Whether the room draws its scale figure. On unless a still imitates a
     /// photograph.
@@ -162,8 +171,8 @@ impl Renderer {
         let shadow = shadow::Shadow::new(&gpu);
         let scene = scene::Scene::new(&gpu, surface, shadow.layout());
         let wood = wood::Wood::new(&gpu, scene.layout(), &shadow, surface);
-        let foliage = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface);
-        let organ = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface);
+        let foliage = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface, false);
+        let organ = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface, true);
         Self {
             identity: std::sync::Arc::new(()),
             gpu,
@@ -172,6 +181,8 @@ impl Renderer {
             wood,
             foliage,
             organ,
+            sun: sun::Sun::default(),
+            whole: false,
             view: View::default(),
             frame_failed: Default::default(),
             figure: true,
@@ -209,6 +220,7 @@ impl Renderer {
     /// rather than sitting on the renderer, so no later frame inherits it.
     pub fn submit_at(&mut self, mesh: &TreeMesh, level: Level) -> Result<Submitted> {
         fits(&self.gpu.device.limits(), mesh)?;
+        self.sun.forget();
         self.wood.submit(&self.gpu, &mesh.curve);
         self.foliage.submit(&self.gpu, &mesh.foliage, level);
         self.submit_organ(mesh.organ.as_ref(), level);
@@ -244,7 +256,7 @@ impl Renderer {
         let organ_or_none = organ.unwrap_or(&empty);
         self.organ.submit(&self.gpu, organ_or_none, level);
         self.scene
-            .set_organ_reference(organ.map(|o| o.instances.reference));
+            .set_organ(organ.map(|o| (o.instances.reference, &o.element)));
     }
 
     /// Surfaces the wood as if every frame were `viewport` in size, so
@@ -379,6 +391,18 @@ impl Renderer {
         }
     }
 
+    /// Whether the last frame drew all of what is up, rather than the tree
+    /// without its wood while the wood's programs compile.
+    pub fn drew_whole(&self) -> bool {
+        self.whole
+    }
+
+    /// Whether the last frame reused the sun's map and its wood rather than
+    /// drawing them: nothing the sun sees had changed since they were drawn.
+    pub fn shadow_cached(&self) -> bool {
+        self.sun.reused
+    }
+
     /// Placements submitted to the sun's pass, outside the frame statistics.
     pub fn caster_instances(&self) -> u32 {
         if self.view.selects() {
@@ -476,11 +500,12 @@ impl Renderer {
         if self.frame_error().is_some() {
             *self.frame_failed.lock().unwrap_or_else(|e| e.into_inner()) = None;
             self.wood.forget_targets();
+            self.sun.forget();
         }
         let scopes = self.gpu.scopes();
         let light = shadow::light(self.scene.row(), self.bounds());
         self.scene
-            .set_frame(&self.gpu, camera, aspect_of(viewport), &light, self.view);
+            .set_frame(&self.gpu, camera, viewport, &light, self.view);
         let stride = self.scene.row().caster_stride as u32;
         self.shadow.set_light(
             &self.gpu,
@@ -501,14 +526,22 @@ impl Renderer {
         let mut encoder = self.gpu.encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("frame"),
         });
-        self.wood.tessellate(
+        // The sun's side is drawn again only when what it sees changed: its
+        // wood when the light or the tree did, its map when the casters did.
+        let key = sun::Key::new(light, self.view, stride);
+        let plan = self.sun.plan(&key);
+        let surfaced = self.wood.tessellate(
             &self.gpu,
             &mut encoder,
             camera,
             viewport,
             &light,
+            plan.surface,
             surfacing_writes,
         );
+        self.sun.drew(key, plan, surfaced);
+        self.whole = surfaced;
+        let reused = !plan.map;
         self.foliage.dispatch(
             &self.gpu,
             &mut encoder,
@@ -519,9 +552,10 @@ impl Renderer {
         );
         self.organ
             .dispatch(&self.gpu, &mut encoder, camera, viewport, self.view, None);
-        {
-            let mut pass = self.shadow.begin(&mut encoder, shadow_writes);
+        if !reused || shadow_writes.is_some() {
+            let mut pass = self.shadow.begin(&mut encoder, !reused, shadow_writes);
             match self.view {
+                _ if reused => {}
                 // One blade at the origin is judged on its own shape, with
                 // nothing above it to cast and nothing below it to catch.
                 View::Leaf => {}

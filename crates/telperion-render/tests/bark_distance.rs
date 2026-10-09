@@ -158,7 +158,9 @@ fn resolved_scales_survive_until_the_two_pixel_boundary() {
             let low = render(&mut renderer, &camera, 800, 500).unwrap();
             let (mean, p95) = resolution::masked_agreement(&high, &low, &mask);
             eprintln!("{preset:?} {distance}x resolution: {} pixels, mean {mean:.6}/255, p95 {p95:.2}/255", mask.len());
-            rows.push((format!("{preset:?} {distance}x"), mean, p95, 3.0));
+            // The prefiltered bark's bounds (see the assertion below).
+            let bound = if distance == 2 { 5.2 } else { 5.8 };
+            rows.push((format!("{preset:?} {distance}x"), mean, p95, bound));
         }
     }
     resolution::record("bark_distance", &rows);
@@ -170,9 +172,17 @@ fn resolved_scales_survive_until_the_two_pixel_boundary() {
     // 3.134, no highlight at all 3.167. fn-71 found the error a bias, the far
     // draw lighter than the near one reduced, and gave the far draw the shade
     // of the slopes its footprint lost; the oak reads 2.53 at 4x since.
+    // Re-pinned for the prefiltered bark (owner, fn-246 FPS.md "Owner
+    // decision", 2026-10-09): one shading cell a pixel, bands faded to their
+    // means. Bounds are the prefilter's measured value here plus 0.5 mean
+    // (p95 plus 2 where it passed the old 12). Distance to the present
+    // shader's 4x truth (examples/bark_truth), present / prefilter:
+    // oak 2x 2.54 / 5.70, oak 4x 4.90 / 7.14. Here the prefilter reads
+    // 4.68 / 12.0 at 2x and 5.29 / 13.25 at 4x (present under 3.0 / 12).
     for (fixture, mean, p95, bound) in &rows {
+        let tail = if fixture.ends_with("2x") { 14.0 } else { 15.25 };
         assert!(
-            mean <= bound && *p95 <= 12.0,
+            mean <= bound && *p95 <= tail,
             "distance series aliases on the {fixture}: mean {mean:.4}, p95 {p95:.2}"
         );
     }

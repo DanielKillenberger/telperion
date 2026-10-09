@@ -53,7 +53,13 @@ fn vertex(
     let base = id * LEAF_WORDS;
     let words = vec3<u32>(placements[base], placements[base + 1u], placements[base + 2u]);
     let placement = leaf_transform(words, u.leaf_box_min.xyz, u.leaf_box_extent.xyz);
-    let world = placement * vec4<f32>(position, 1.0);
+    // A leaf selection kept from a thinned share is drawn enlarged by the
+    // inverse root of that share, so the share covers what all of it would
+    // (fn-246): its size on screen from the frame's pixels a metre (eye.w)
+    // and the element's bounding radius (leaf_box_min.w).
+    let depth = max((u.view_projection * placement[3]).w, 1e-4);
+    let across = 2.0 * u.leaf_box_min.w * leaf_scale(words) * u.eye.w / depth;
+    let world = placement * vec4<f32>(position / sqrt(max(leaf_kept(across), 1e-4)), 1.0);
     let offsets = vary(id);
     var out: Varying;
     out.clip = u.view_projection * world;

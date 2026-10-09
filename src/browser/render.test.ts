@@ -72,3 +72,30 @@ it.each([
   await expect(renderer.setTreeGpu("spruce")).rejects.toThrow(message);
   expect(fake.builds).toEqual([]);
 });
+
+it("a resize notice that keeps the canvas's pixel size does not reset it (fn-246)", async () => {
+  // Writing a canvas's width or height clears its picture even at the same
+  // value, and the renderer draws only when something changed, so a reset
+  // with no new size would leave the canvas blank.
+  let notice = (): void => undefined;
+  vi.stubGlobal("ResizeObserver", class {
+    constructor(callback: () => void) { notice = callback; }
+    observe() {}
+    disconnect() {}
+  });
+  const writes: string[] = [];
+  const size = { width: 0, height: 0 };
+  const watched = {
+    clientWidth: 4,
+    clientHeight: 4,
+    get width() { return size.width; },
+    set width(v: number) { writes.push(`width=${v}`); size.width = v; },
+    get height() { return size.height; },
+    set height(v: number) { writes.push(`height=${v}`); size.height = v; },
+  } as unknown as HTMLCanvasElement;
+  fake.programs = Promise.resolve();
+  await createRenderer(watched);
+  expect(writes).toEqual(["width=4", "height=4"]);
+  notice();
+  expect(writes).toEqual(["width=4", "height=4"]);
+});

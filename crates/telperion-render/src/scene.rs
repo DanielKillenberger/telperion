@@ -125,6 +125,9 @@ pub struct Scene {
     /// everything else black, unlit. An instrument, off in every picture.
     mask: bool,
     section_roundness: f64,
+    /// The submitted leaf's bounding radius, which thinning measures its
+    /// size on screen by (fn-246).
+    leaf_radius: f32,
     /// The submitted leaf's margin band as a share of its area, by width.
     band_shares: BandShares,
     /// The ellipsoid the submitted crown's placements fill, which a leaf's
@@ -138,7 +141,8 @@ pub struct Scene {
     /// The flowers' own block (fn-216): the frame's, with the petals'
     /// colours and the box their florets were quantised against. None
     /// while no tree that flowers is up.
-    organ_reference: Option<telperion_core::foliage::Reference>,
+    /// With the box, the floret's bounding radius (fn-246).
+    organ_reference: Option<(telperion_core::foliage::Reference, f32)>,
     organ_bind_group: wgpu::BindGroup,
     organ_uniforms: crate::buffer::Owned,
     pipeline: wgpu::RenderPipeline,
@@ -265,6 +269,7 @@ impl Scene {
             reflection: Reflection::NONE,
             mask: false,
             section_roundness: 0.0,
+            leaf_radius: 0.0,
             band_shares: BandShares::default(),
             crown: None,
             leaf_reference: telperion_core::foliage::Reference::default(),
@@ -313,6 +318,7 @@ impl Scene {
     /// and its margin band's area share. Every submission path sets it.
     pub(crate) fn set_leaf(&mut self, element: &telperion_core::foliage::Element) {
         self.section_roundness = element.section_roundness;
+        self.leaf_radius = crate::select::frame::sphere(element)[3];
         self.band_shares = BandShares::of(element);
     }
 
@@ -335,10 +341,17 @@ impl Scene {
         self.leaf_reference = reference;
     }
 
-    /// The box the flowers that are up were quantised against; none where
-    /// the tree flowers nowhere, and then no organ block is written.
-    pub fn set_organ_reference(&mut self, reference: Option<telperion_core::foliage::Reference>) {
-        self.organ_reference = reference;
+    /// The box the flowers that are up were quantised against, and their
+    /// floret; none where the tree flowers nowhere, and then no organ block
+    /// is written.
+    pub fn set_organ(
+        &mut self,
+        organ: Option<(telperion_core::foliage::Reference, &telperion_core::foliage::Element)>,
+    ) {
+        // The radius selection judges the drawn floret by, card included.
+        self.organ_reference = organ.map(|(reference, element)| {
+            (reference, crate::select::frame::sphere(&crate::card::carded(element))[3])
+        });
     }
 
     /// Binds the flowers' block in place of the frame's, for their draw.

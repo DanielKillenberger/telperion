@@ -35,7 +35,7 @@ fn compaction_preserves_placement_order_at_every_level() {
         (1, Level::Chosen),
     ] {
         let foliage = interleaved(instances, MAX_LEVELS);
-        selection.submit(&gpu, &foliage, forced);
+        selection.submit(&gpu, &foliage, &foliage.element, forced);
         for _ in 0..2 {
             check_compaction(&gpu, &selection, instances, MAX_LEVELS, forced);
         }
@@ -62,7 +62,7 @@ fn a_crown_past_one_dispatch_dimension_is_selected_in_order() {
         return;
     }
     let mut selection = Select::new(&gpu);
-    selection.submit(&gpu, &foliage, Level::Chosen);
+    selection.submit(&gpu, &foliage, &foliage.element, Level::Chosen);
     check_compaction(&gpu, &selection, instances, 2, Level::Chosen);
 }
 
@@ -93,9 +93,15 @@ fn device() -> Option<Gpu> {
 fn interleaved(instances: usize, levels: usize) -> mesh::Foliage {
     use telperion_core::foliage::{Element, Instances, Level as Section};
     mesh::Foliage {
-        // A point sphere makes classification exact: every instance is one
-        // metre ahead of the eye, or behind it, and scales select the levels.
+        // A unit sphere at the origin makes classification exact: every
+        // instance is one metre ahead of the eye, or behind it, and scales
+        // select the levels. Its radius puts the smallest class at two
+        // pixels across, where nothing is thinned (fn-246).
         element: Element {
+            positions: vec![
+                telperion_core::math::Vec3::new(-1.0, 0.0, 0.0),
+                telperion_core::math::Vec3::new(1.0, 0.0, 0.0),
+            ],
             levels: (0..levels)
                 .map(|i| Section {
                     indices: 0..3,
@@ -118,7 +124,9 @@ fn interleaved(instances: usize, levels: usize) -> mesh::Foliage {
             ));
             for id in 0..instances {
                 let class = id % (levels + 1);
-                let scale = (1u32 << class) as f32;
+                // The culled class behind the eye keeps a unit scale, so its
+                // sphere stays clear of the near plane.
+                let scale = if class == levels { 1.0 } else { (1u32 << class) as f32 };
                 let mut matrix = [0.0; 16];
                 for i in [0, 5, 10] {
                     matrix[i] = scale;

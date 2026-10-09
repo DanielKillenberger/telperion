@@ -85,7 +85,9 @@ impl WebRenderer {
             // let go first, or refused by name with it kept.
             let made_room = admitted(&live, &state, &family)? == Admitted::MakeRoom;
             if made_room {
-                borrow(&live)?.renderer.release_tree();
+                let mut canvas = borrow(&live)?;
+                canvas.renderer.release_tree();
+                canvas.redraw.ask();
             }
             let prepared = generator
                 .prepare_async(&family, Delivery::Resident)
@@ -105,6 +107,7 @@ impl WebRenderer {
             let previous_tree_gpu_bytes = Generator::tree_buffer_bytes(&live.renderer);
             let submitted = live.renderer.submit_prepared(prepared).map_err(js_error)?;
             live.renderer.set_family(&family);
+            live.redraw.ask();
             let mut value: serde_json::Value =
                 serde_json::from_str(&submitted_json(&submitted)).expect("submitted JSON");
             value["backend"] = json!(backend);

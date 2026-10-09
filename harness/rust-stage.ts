@@ -98,7 +98,8 @@ export async function createStage(
 
   /* Drawing is the loop's, always: the panel never calls `frame` on the
      renderer itself, so a dial move and a camera move cost the same one
-     frame each. */
+     frame each. `frame` draws only when the picture changed, so an idle
+     canvas costs the device nothing (fn-246). */
   let handle = requestAnimationFrame(function tick(): void {
     handle = requestAnimationFrame(tick);
     if (measuring) return;
