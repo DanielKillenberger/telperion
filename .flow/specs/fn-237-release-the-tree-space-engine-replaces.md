@@ -6,6 +6,8 @@ The owner's goal (2026-10-08/09): "replace the old generator with the new one th
 
 ## Requirements
 
+- **R0 (the release bar; owner, 2026-10-09):** "I would really like to ship something that is at least as good as the previous version." Every shipped species is at least as good as master on every axis the scorecard measures (harness build time, frame rate whole and close, GPU memory, the site's per-tree time and download, and the owner's verdict on old-versus-new stills), or the part that is worse does not ship (for example the site stays on 0.1.4) until it is.
+
 - **R1:** every dependency of this spec done and merged into F4.
 - **R2:** fn-198 task 9's release checks pass (harness timing against master, the site's field against 0.1.4, sizes, docs, npm version) and the release PR is opened per docs/pr-format.md.
 - **R3:** the owner's verdict on each species and on the site's grove recorded.
