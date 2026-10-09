@@ -9,7 +9,12 @@ use telperion_space::{blend, expected_counts, expected_grown, Species};
 fn species(preset: Preset) -> Species {
     let mut s = preset.parameters().space.species.expect("an engine preset");
     for st in &mut s.states {
-        (st.shade_hazard, st.shade_size, st.balance_hazard, st.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+        (
+            st.shade_hazard,
+            st.shade_size,
+            st.balance_hazard,
+            st.leaf_girth,
+        ) = (0.0, 0.0, 0.0, 0.0);
     }
     s
 }
@@ -36,13 +41,19 @@ fn the_running_total_is_the_count_tables_sum() {
         .collect();
     let (spruce, ordinary) = (species(Preset::NorwaySpruce), species(Preset::Ordinary));
     for t in [0.25, 0.5] {
-        cases.push((format!("spruce to ordinary at {t}"), blend(&spruce, &ordinary, t).unwrap()));
+        cases.push((
+            format!("spruce to ordinary at {t}"),
+            blend(&spruce, &ordinary, t).unwrap(),
+        ));
     }
     for (name, s) in &cases {
         for age in [1, 2, 7, 40] {
             let (total, sum) = (expected_grown(s, age).unwrap(), summed(s, age));
             let off = (total.ln() - sum.ln()).abs();
-            assert!(off <= 1e-12, "{name} at {age}: {total} against {sum}, {off:e}");
+            assert!(
+                off <= 1e-12,
+                "{name} at {age}: {total} against {sum}, {off:e}"
+            );
         }
     }
 }

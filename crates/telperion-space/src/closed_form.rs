@@ -19,6 +19,7 @@ pub(crate) mod boundary;
 #[cfg_attr(not(test), allow(dead_code))]
 mod envelope;
 mod events;
+mod grown;
 #[cfg_attr(not(test), allow(dead_code))]
 pub(crate) mod kept;
 pub(crate) mod predictor;
@@ -60,7 +61,16 @@ pub fn expected_grown(species: &Species, age: u32) -> Result<f64> {
     if age == 0 {
         return refuse("age", "a tree grows at least one cycle");
     }
-    Ok(0.0)
+    let laterals: Vec<Vec<Vec<f64>>> = species.states.iter().map(|s| s.laterals()).collect();
+    let windows = Windows::new(species, age);
+    let mut memo = Memo::default();
+    let mut walk = Walk {
+        species,
+        laterals: &laterals,
+        memo: &mut memo,
+        living: Living::new(species, Some(&windows)),
+    };
+    Ok(walk.grown(0, age as usize, Carried::default(), None))
 }
 
 /// The expected kept phytomers of a tree grown `age` cycles: the cut's

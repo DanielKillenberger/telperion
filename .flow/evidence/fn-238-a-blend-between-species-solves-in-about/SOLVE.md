@@ -97,3 +97,68 @@ The brief stops the work where the fix needs a choice between ways of building, 
    - At 80, frames with the ordinary tree as an end are measured and reported. They are not held to 1 s, because a single kept prediction of the ordinary tree already costs 0.88 s.
 4. **Route 4 becomes its own post-release spec.** It is a faster kept predictor for species with fractional rows. The host captures it.
 5. **R3 is amended to match.** Then finish: the gate, npm test, impl-review and `flowctl done`.
+
+## Route 2 built (2026-10-09)
+
+**The grown count is a running total.** `telperion_space::expected_grown` adds up the grown phytomers as it goes (`closed_form/grown.rs`). It recurses the way `expected_length` does: the bud's first unit, then the rest of its axis as the same bud one cycle younger, with canonical carried keys, under the tree's windows. Each substructure is one number. Counts ignore a passed-through age's reach (counted whole), as `expected_counts` does. The size solve reads `expected_grown` in place of summing `expected_counts`' table. `expected_counts` stays for its other readers, the tests and the probes.
+- **Test:** `the_running_total_is_the_count_tables_sum` (`tests/grown_total.rs`). The running total matches the table's sum within 1e-12 in the log, for the four branching presets and two raw spruce → ordinary walks, at ages 1, 2, 7 and 40. It was red on a stub before the build (`7b593eff`).
+- **At 80** (`grown80`, a local probe): it is within 7.1e-15 in the log for every case. On the ordinary tree it takes 1.3 s against the table's 13.7 s. On the oak it takes 0.03 s against 1.8 s.
+
+**The ends are cached exactly.** `blend/size.rs`, `Count::of_end`, keeps the predictions of the 8 most recent ends.
+- The key is the count, the age and the end species' `Debug` text, which writes every number to round trip, so a different bit is a different key.
+- A walk's frames share their ends, so only the first frame of a walk predicts them.
+- The shape's own predictions are never cached.
+
+## R3: factors
+
+`walk_factors.rs.txt` dumps every frame's lateral factor, as bits, from the base (`8b64433c`, a separate worktree with its own `target/`) and from this build. It covers the walk digest's 165 frames and fn-230's strips, 18 frames each at 40 and 80. Raw output: `raw/factors-{before,after}-{digest,40,80}.txt`.
+
+| Set | Frames | Bit-identical | Moved | Largest move in ln(factor) |
+|---|---|---|---|---|
+| walk digest | 165 | 161 | 4 | 3.9e-16 |
+| strips at 40 | 18 | 14 | 4 | 5.0e-16 |
+| strips at 80 | 18 | 13 | 5 | 2.0e-15 |
+
+- **Which frames moved:** only grown-bound ones. At 40: beech → oak 0.25, beech → spruce 0.25 and 0.5, and spruce → ordinary 0.75. At 80: beech → spruce 0.5 and 0.75, and spruce → ordinary 0.25, 0.5 and 0.75.
+- **Every move is within the solve's tolerance.** The tolerance is 1e-12 in the log of the prediction, and each move is a few ulps of the factor.
+- **Refusals and unsized frames are unchanged:** 84 refusals and 18 frames without a factor, the same lines before and after.
+
+## R3: the strips
+
+The nine strip frames whose factor moved were drawn before and after (`strips.sh.txt`: `space_walk`, seed 1, under the GPU lock). Every PNG is byte-identical to its base (`cmp`). I viewed spruce → ordinary at 80, 0.5, before and after, and the sheet of all nine after frames (`raw/strips/sheet-after.png`). Each is a whole tree, drawn the same. The walk digest is re-pinned in `catalogue_identity.rs`. The family digest is unchanged, so every shipped species is byte-identical.
+
+## R3: times
+
+`walk_times.rs.txt` runs each walk's frames in order (0.25, 0.5, 0.75) in one process, as a harness walks them, so the first frame of a walk pays for its ends. There were three runs of each build, each a fresh process pinned to its own core, before and after side by side, `RAYON_NUM_THREADS=1`. The table gives the best of 3 (`raw/times-{before,after}-{1,2,3}.txt`). Load average was 3.6 at the start and 9.0 at the end, on 32 cores, with other sessions' gates running.
+
+| Walk | Age | 0.25 | 0.5 | 0.75 |
+|---|---|---|---|---|
+| beech → oak | 40 | 1.65 → **0.34** | 0.33 → **0.05** | 0.29 → **0.04** |
+| beech → spruce | 40 | 0.80 → **0.51** | 0.82 → **0.61** | 0.61 → **0.50** |
+| beech → ordinary | 40 | 1.33 → **0.77** | 1.39 → **0.63** | 1.51 → **0.69** |
+| oak → spruce | 40 | 0.43 → **0.10** | 0.47 → **0.08** | 0.51 → **0.12** |
+| oak → ordinary | 40 | 0.80 → **0.12** | 0.89 → **0.13** | 1.01 → **0.12** |
+| spruce → ordinary | 40 | 1.91 → **0.96** | 3.61 → 1.38 | 4.03 → 1.30 |
+| beech → oak | 80 | 7.75 → 1.11 | 7.29 → **0.74** | 5.85 → **0.14** |
+| beech → spruce | 80 | 2.72 → 1.81 | 5.32 → 3.48 | 5.45 → 2.73 |
+| oak → spruce | 80 | 4.32 → **0.51** | 7.64 → **0.78** | 9.16 → **0.62** |
+| beech → ordinary (reported) | 80 | 18.6 → 6.5 | 19.8 → 7.5 | 19.4 → 7.3 |
+| oak → ordinary (reported) | 80 | 13.1 → 0.40 | 14.5 → 0.52 | 14.7 → 0.91 |
+| spruce → ordinary (reported) | 80 | 74.6 → 9.8 | 66.4 → 10.1 | 58.6 → 6.8 |
+
+Bold marks a frame within the bar. **Six held frames are over 1 s:** spruce → ordinary at 40, 0.5 and 0.75; beech → oak at 80, 0.25; and beech → spruce at 80, all three.
+
+**Where their time goes now** (one run each, `one_frame`, a local probe that timed each prediction):
+
+| Frame | Kept predictions | Grown predictions |
+|---|---|---|
+| spruce → ordinary 40, 0.5 | 7, 0.68 s | 6, 0.52 s |
+| spruce → ordinary 40, 0.75 | 7, 0.60 s | 7, 0.51 s |
+| beech → oak 80, 0.25 (ends included) | 9, 0.91 s | 3, 0.11 s |
+| beech → spruce 80, 0.25 (ends included) | 9, 1.44 s | 3, 0.24 s |
+| beech → spruce 80, 0.5 | 9, 1.92 s | 6, 1.07 s |
+| beech → spruce 80, 0.75 | 7, 1.29 s | 7, 1.09 s |
+
+- **The frames that remain are the solve's iterations on the shape**, about 0.1 to 0.2 s each for both counts. Each count makes one prediction at the ceiling, one or two for the bracket, and four to five regula falsi steps.
+- **A better first guess (route 3) would cut the steps**, but it moves kept-bound factors within the tolerance. The host decision kept it out ("exact, not a new first guess").
+- **Even with no regula falsi steps**, beech → spruce at 80, 0.5 needs about 2 × 0.21 s kept and 2 × 0.18 s grown, which is 0.8 s. With three of each it is 1.2 s (inferred from the per-call times). The cost of each shape prediction is route 4's.
