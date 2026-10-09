@@ -6,7 +6,7 @@
 // 24 bits a component); `clusters` packs each cluster as
 // `packed_clusters` does (16 words), every index offset by the CPU
 // block's, and folds its part of the curve's demand (`Curve::demand`)
-// and bounds (`Curve::bounds`); `total` sums the clusters' sags into
+// and bounds (`Curve::bounds`, each ring's own extent); `total` sums the clusters' sags into
 // one partial a lane, which the host adds in float64.
 
 struct Cfg {
@@ -18,7 +18,8 @@ struct Cfg {
     // The lobes' twist (radians a metre) and depth (`Curve::twisting`).
     twist: f32,
     depth: f32,
-    _a: u32,
+    // The lobe factor of a ring's radius (`curve.rs`, `clusters`).
+    lobe: f32,
     _b: u32,
 }
 
@@ -149,17 +150,25 @@ fn pack_clusters(@builtin(global_invocation_id) id: vec3<u32>) {
     for (var k = 0u; k < 6u; k++) {
         clusters[o + 10u + k] = bitcast<u32>(fine_clusters[f + 9u + k]);
     }
+    // The sags, and the box round every ring (`CurveCluster::bounds`).
     var root = 0.0;
-    for (var p = first; p + 1u < first + count; p++) {
-        root += sqrt(sag(p, p + 1u));
+    var lo = v3(first, 0u);
+    var hi = lo;
+    for (var p = first; p < first + count; p++) {
+        if p + 1u < first + count {
+            root += sqrt(sag(p, p + 1u));
+        }
+        let n = v3(p, 5u);
+        let b = v3(p, 8u);
+        let e = sqrt(n * n + b * b) * (at(p, 3u) * cfg.lobe);
+        lo = min(lo, v3(p, 0u) - e);
+        hi = max(hi, v3(p, 0u) + e);
     }
     sags[c] = root;
     atomicAdd(&sums[0], count - 1u);
-    let centre = vec3<f32>(fine_clusters[f + 3u], fine_clusters[f + 4u], fine_clusters[f + 5u]);
-    let reach = fine_clusters[f + 6u];
     for (var k = 0u; k < 3u; k++) {
-        atomicMin(&sums[1u + k], ordered(centre[k] - reach));
-        atomicMax(&sums[4u + k], ordered(centre[k] + reach));
+        atomicMin(&sums[1u + k], ordered(lo[k]));
+        atomicMax(&sums[4u + k], ordered(hi[k]));
     }
 }
 
