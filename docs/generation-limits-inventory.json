@@ -474,6 +474,18 @@
     "reason": "A coarse tree's stand-in answers nothing below the ground (fn-214 host decision), so its foliage bounds stop there; the tree is not truncated."
   },
   {
+    "path": "crates/telperion-core/src/pipeline/field.rs",
+    "site": ". max ( 0 . )",
+    "classification": "algorithm",
+    "reason": "A coarse tree's stand-in's wood answers nothing below the ground (fn-214 host decision), so its wood bounds stop there; the tree is not truncated."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/field.rs",
+    "site": "if id > = self . standing & & center . y < 0 . {",
+    "classification": "algorithm",
+    "reason": "A stand-in's wood answers no cell below the ground (fn-214 host decision); the grown tree's wood is untouched."
+  },
+  {
     "path": "crates/telperion-core/src/pipeline/field/stand.rs",
     "site": "if center . y < 0 . 0 | | half < = 0 . 0 | | self . leaves < = 0 . 0 {",
     "classification": "algorithm",

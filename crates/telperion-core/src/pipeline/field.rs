@@ -52,6 +52,9 @@ pub struct Occupancy {
 pub struct Field {
     wood: Vec<Segment>,
     wood_index: Index,
+    /// Where a coarse tree's stand-ins' wood starts in `wood`: none of it
+    /// answers below the ground (`stand.rs`).
+    standing: usize,
     foliage: Foliage,
 }
 enum Foliage {
@@ -188,7 +191,7 @@ impl Tally {
 impl Field {
     /// The placed path: foliage from retained leaves.
     pub(crate) fn new(tree: &Tree, foliage: Option<(&Instances, &Element)>) -> Result<Self> {
-        let (wood, wood_index) = Self::wood(tree)?;
+        let (wood, wood_index, standing) = Self::wood(tree)?;
         let mut leaf_items = Vec::new();
         if let Some((instances, element)) = foliage {
             instances.validate()?;
@@ -212,12 +215,13 @@ impl Field {
         Ok(Self {
             wood,
             wood_index,
+            standing,
             foliage: Foliage::Placed(Index::new(leaf_items)?),
         })
     }
     /// The planned path: foliage from the leaf plan, no leaf placed.
     pub(crate) fn planned(tree: &Tree, plan: &Plan) -> Result<Self> {
-        let (wood, wood_index) = Self::wood(tree)?;
+        let (wood, wood_index, standing) = Self::wood(tree)?;
         let mut sweeps = reserved(plan.descriptors.len())?;
         let mut items = reserved(plan.descriptors.len())?;
         for d in &plan.descriptors {
@@ -262,6 +266,7 @@ impl Field {
         Ok(Self {
             wood,
             wood_index,
+            standing,
             foliage: Foliage::Planned {
                 sweeps,
                 index: Index::new(items)?,
@@ -272,7 +277,7 @@ impl Field {
     pub fn is_planned(&self) -> bool {
         matches!(self.foliage, Foliage::Planned { .. })
     }
-    fn wood(tree: &Tree) -> Result<(Vec<Segment>, Index)> {
+    fn wood(tree: &Tree) -> Result<(Vec<Segment>, Index, usize)> {
         tree.validate_solved()?;
         let mut wood = reserved(tree.nodes.len() + tree.stands.len())?;
         let mut wood_items = reserved(tree.nodes.len() + tree.stands.len())?;
@@ -298,9 +303,14 @@ impl Field {
             });
         }
         // A coarse tree's fine root: its wood tapered from its base radius
-        // to none at its tip (fn-214).
+        // to none at its tip, above the ground (fn-214).
+        let standing = wood.len();
         for s in &tree.stands {
-            let bounds = union(cube(s.base, s.radius)?, cube(s.tip, 0.)?);
+            let mut bounds = union(cube(s.base, s.radius)?, cube(s.tip, 0.)?);
+            if bounds.max.y < 0. {
+                continue;
+            }
+            bounds.min.y = bounds.min.y.max(0.);
             wood_items.push(Item {
                 bounds,
                 id: wood.len(),
@@ -312,7 +322,7 @@ impl Field {
                 end: 0.,
             });
         }
-        Ok((wood, Index::new(wood_items)?))
+        Ok((wood, Index::new(wood_items)?, standing))
     }
     fn foliage_index(&self) -> &Index {
         match &self.foliage {
@@ -339,6 +349,9 @@ impl Field {
         let (mut wood, mut wood_radius) = (false, 0.);
         self.wood_index.each(wood_cell, &mut |id| {
             let s = &self.wood[id];
+            if id >= self.standing && center.y < 0. {
+                return;
+            }
             if s.contains(center, inflation) {
                 wood = true;
                 wood_radius = s.start.max(s.end).max(wood_radius);
