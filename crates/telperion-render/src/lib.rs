@@ -526,23 +526,22 @@ impl Renderer {
         let mut encoder = self.gpu.encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("frame"),
         });
-        // The sun's side is drawn again only when what it sees changed.
+        // The sun's side is drawn again only when what it sees changed: its
+        // wood when the light or the tree did, its map when the casters did.
         let key = sun::Key::new(light, self.view, stride);
-        let reused = self.sun.current(&key);
+        let plan = self.sun.plan(&key);
         let surfaced = self.wood.tessellate(
             &self.gpu,
             &mut encoder,
             camera,
             viewport,
             &light,
-            !reused,
+            plan.surface,
             surfacing_writes,
         );
-        self.sun.reused = reused;
+        self.sun.drew(key, plan, surfaced);
         self.whole = surfaced;
-        if !reused {
-            self.sun.drawn(surfaced.then_some(key));
-        }
+        let reused = !plan.map;
         self.foliage.dispatch(
             &self.gpu,
             &mut encoder,

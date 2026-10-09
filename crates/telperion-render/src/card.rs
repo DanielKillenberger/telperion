@@ -18,8 +18,9 @@ use telperion_core::{
 pub const CARD_PIXELS: f64 = 4.0;
 
 /// The element with its card in front of its levels, or the element as it
-/// is where the card would not be the coarsest level or there is nothing
-/// to stand for.
+/// is where the card would not be the coarsest level, where its ladder has
+/// no room for one more (selection holds `MAX_LEVELS`), or where there is
+/// nothing to stand for.
 pub fn carded(element: &Element) -> Cow<'_, Element> {
     let radius = f64::from(crate::select::frame::sphere(element)[3]);
     // Selection takes a level whose deviation times the pixels a metre is
@@ -29,7 +30,9 @@ pub fn carded(element: &Element) -> Cow<'_, Element> {
     let Some(card) = card(element) else {
         return Cow::Borrowed(element);
     };
-    if element.levels.first().is_none_or(|l| l.deviation >= deviation) {
+    if element.levels.len() >= crate::MAX_LEVELS
+        || element.levels.first().is_none_or(|l| l.deviation >= deviation)
+    {
         return Cow::Borrowed(element);
     }
     let mut out = element.clone();
@@ -79,17 +82,30 @@ fn card(element: &Element) -> Option<Card> {
     }
     let centre = faces.iter().fold(Vec3::ZERO, |s, f| s + f.2 * f.1) / area;
     // The direction the faces mostly look, sign-free: the leading axis of
-    // their area-weighted normal scatter, by power iteration.
-    let mut axis = Vec3::Y;
-    for _ in 0..16 {
-        let next = faces.iter().fold(Vec3::ZERO, |s, (cross, _, _)| {
+    // their area-weighted normal scatter, by power iteration from each
+    // axis, the one that scatters most kept. A single start can sit in the
+    // scatter's null space (flat petals across it) and never leave it.
+    let scatter = |axis: Vec3| {
+        faces.iter().fold(Vec3::ZERO, |s, (cross, _, _)| {
             s + *cross * (cross.dot(axis) / cross.length().max(1e-12))
-        });
-        if next.length_squared() <= 0.0 {
-            break;
+        })
+    };
+    let lead = |start: Vec3| {
+        let mut axis = start;
+        for _ in 0..32 {
+            let next = scatter(axis);
+            if next.length_squared() <= 0.0 {
+                return None;
+            }
+            axis = next.normalized();
         }
-        axis = next.normalized();
-    }
+        Some((scatter(axis).dot(axis), axis))
+    };
+    let axis = [Vec3::X, Vec3::Y, Vec3::Z]
+        .into_iter()
+        .filter_map(lead)
+        .max_by(|a, b| a.0.total_cmp(&b.0))?
+        .1;
     let side = if axis.cross(Vec3::Y).length_squared() > 1e-6 { Vec3::Y } else { Vec3::X };
     let u = side.cross(axis).normalized();
     let v = axis.cross(u);
@@ -152,9 +168,36 @@ mod tests {
     }
 
     #[test]
-    fn a_card_that_would_not_be_coarsest_is_left_out() {
+    fn a_card_that_would_not_be_coarsest_or_has_no_room_is_left_out() {
         let mut element = floret();
         element.levels[0].deviation = 1.0;
         assert!(matches!(carded(&element), Cow::Borrowed(_)));
+        let mut full = floret();
+        full.levels = (0..crate::MAX_LEVELS)
+            .map(|i| Level { indices: 3..12, deviation: 1e-4 / (i + 1) as f64 })
+            .collect();
+        assert!(matches!(carded(&full), Cow::Borrowed(_)), "a seventeenth level");
+    }
+
+    #[test]
+    fn flat_petals_across_any_axis_face_their_card_along_their_normal() {
+        for flat in [0usize, 1, 2] {
+            let mut element = floret();
+            // Lay the petals flat, then turn them so they face along `flat`.
+            for p in &mut element.positions {
+                let q = Vec3::new(p.x, p.y, 0.0);
+                *p = match flat {
+                    0 => Vec3::new(0.0, q.x, q.y),
+                    1 => Vec3::new(q.y, 0.0, q.x),
+                    _ => q,
+                };
+            }
+            let carded = carded(&element);
+            let quad = &carded.level_indices[0..6];
+            let [a, b, c] = [quad[0], quad[1], quad[2]].map(|i| carded.positions[i as usize]);
+            let n = (b - a).cross(c - a).normalized();
+            let along = [n.x, n.y, n.z][flat].abs();
+            assert!(along > 0.999, "petals facing axis {flat}: card faces {n:?}");
+        }
     }
 }
