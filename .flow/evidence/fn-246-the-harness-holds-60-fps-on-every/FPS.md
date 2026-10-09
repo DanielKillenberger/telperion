@@ -312,3 +312,65 @@ For this spec, that means:
 - **Restore the prefilter** from `raw/prefilter.patch`.
 - **Re-pin the bark tests.** Set their bounds to the prefilter's measured distance to the truth, plus a stated margin. Record each fixture's truth distance for the present and the prefiltered shader beside the bounds, and cite this decision.
 - **Re-measure every species** at 60 fps, whole and close. The Two Trees are re-measured after their leaf change lands.
+
+## R3 after the owner's decision: the prefiltered bark shipped
+
+**The bark** (`00832b02`) is the prefilter from `raw/prefilter.patch`, unchanged. The bark tests are re-pinned to its measured values plus a stated margin of +0.5 mean, and +2 on p95 where it passed the old 12. The truth distances of both shaders are recorded beside each bound, citing the owner's decision. The shipped shader's distance to the present shader's 4x truth (`raw/truth-shipped.jsonl`) is the prefilter column of the earlier truth table, exactly.
+
+| test fixture | present shader, test metric | prefilter, test metric | new bound, mean / p95 | truth distance, present / prefilter |
+|---|---|---|---|---|
+| bark_resolution oak trunk | 1.91 / 6.75 | 3.35 / 10.5 | 3.85 / 12 | 1.77 / 3.38 |
+| bark_resolution oak grazing | 2.40 / 7.00 | 4.15 / 10.5 | 4.65 / 12 | 1.28 / 2.20 |
+| bark_resolution spruce grazing | 0.89 / 2.50 | 2.27 / 6.25 | 3.0 / 12 (unchanged) | 1.97 / 3.33 |
+| bark_distance oak 2x | under 3.0 / 12 | 4.68 / 12.0 | 5.2 / 14 | 2.54 / 5.70 |
+| bark_distance oak 4x | 2.53 / under 12 | 5.29 / 13.25 | 5.8 / 15.25 | 4.90 / 7.14 |
+| smooth_bark beech, birch | under 3.0 / 12 | 0.63 / 2.25, 2.08 / 7.00 | 3.0 / 12 (unchanged) | 0.98 / 1.21, 2.35 / 3.58 |
+
+**Stills viewed** (`raw/bark-sbs.png`): truth, present 1x and prefiltered 1x for the oak trunk, the oak at 2x and the harness close pose. The trunk and the close pose read as the truth, slightly softer. **At 2x the prefiltered oak trunk loses most of its furrows and reads lighter and nearly smooth**, where the truth still shows them. That is the 5.70 the table measures. It is the accepted picture by the owner's decision, and the texture bark the owner chose to follow is what restores it.
+
+### Frame rates, natively at 1920x1080 with 4x MSAA, best of 3
+
+The load in each row is the 1-minute load at the best run. Other sessions were building during the first six species (load 14 to 36); every case is GPU-bound and the timestamps are the GPU's.
+
+| species | variant | view | runs | load | frame ms | fps | surfacing | selection | shadow | vegetation |
+|---|---|---|---|---|---|---|---|---|---|---|
+| ordinary | full | whole | 3 | 14.43 | 0.70 | 1421 | 0.43 | 0.01 | 0.00 | 0.13 |
+| ordinary | full | close | 3 | 14.43 | 1.03 | 970 | 0.52 | 0.01 | 0.00 | 0.36 |
+| oregon-white-oak | full | whole | 3 | 35.94 | 4.45 | 225 | 0.81 | 0.02 | 0.00 | 3.35 |
+| oregon-white-oak | full | close | 3 | 35.94 | 14.14 | 71 | 1.08 | 0.02 | 0.00 | 12.78 |
+| norway-spruce | full | whole | 3 | 18.38 | 8.27 | 121 | 2.28 | 0.21 | 0.00 | 5.66 |
+| norway-spruce | full | close | 3 | 19.55 | 7.80 | 128 | 1.22 | 0.20 | 0.00 | 6.18 |
+| european-beech | full | whole | 3 | 17.15 | 1.72 | 582 | 0.56 | 0.01 | 0.00 | 1.00 |
+| european-beech | full | close | 3 | 16.34 | 3.04 | 330 | 0.70 | 0.01 | 0.00 | 2.20 |
+| silver-birch | full | whole | 3 | 15.35 | 2.08 | 481 | 0.88 | 0.01 | 0.00 | 1.05 |
+| silver-birch | full | close | 3 | 14.36 | 4.37 | 229 | 0.97 | 0.01 | 0.00 | 3.24 |
+| date-palm | full | whole | 3 | 14.41 | 0.66 | 1510 | 0.38 | 0.01 | 0.00 | 0.14 |
+| date-palm | full | close | 3 | 14.41 | 0.81 | 1240 | 0.26 | 0.01 | 0.00 | 0.40 |
+| telperion | full | whole | 3 | 5.38 | 45.06 | 22 | 2.89 | 0.43 | 0.00 | 41.07 |
+| telperion | full | close | 3 | 5.38 | 52.96 | 19 | 2.95 | 0.38 | 0.00 | 49.11 |
+| laurelin | full | whole | 3 | 3.93 | 28.17 | 36 | 2.05 | 0.28 | 0.00 | 25.17 |
+| laurelin | full | close | 3 | 3.93 | 32.91 | 30 | 2.48 | 0.24 | 0.00 | 29.69 |
+
+Against R1:
+
+| species | whole fps, before → after | close fps, before → after |
+|---|---|---|
+| ordinary | 842 → 1421 | 656 → 970 |
+| oak | 71 → 225 | 28 → **71** |
+| spruce | 47 → **121** | 52 → **128** |
+| beech | 218 → 582 | 106 → 330 |
+| birch | 302 → 481 | 188 → 229 |
+| date palm | 713 → 1510 | 361 → 1240 |
+| Telperion | 8 → 22 | 12 → 19 |
+| Laurelin | 11 → 36 | 16 → 30 |
+
+**Every shipped species but the Two Trees holds 60 fps whole and close.** Per the owner's decision, the Two Trees are re-measured after their larger leaves land in their own specs; their numbers are reported as they stand.
+
+| Two Trees | cost per pass, ms |
+|---|---|
+| Telperion whole (22 fps) | vegetation 41.1 (leaves and flowers about 37, wood about 4); surfacing 2.9; selection 0.43; shadow cached |
+| Telperion close (19 fps) | vegetation 49.1 (wood about 9, leaves and flowers about 40); surfacing 3.0; selection 0.38; shadow cached |
+| Laurelin whole (36 fps) | vegetation 25.2 (leaves and flowers about 21, wood about 4); surfacing 2.1; selection 0.28; shadow cached |
+| Laurelin close (30 fps) | vegetation 29.7 (wood about 8, leaves and flowers about 22); surfacing 2.5; selection 0.24; shadow cached |
+
+**Idle frames cost nothing**: the page does not draw while nothing changed (`src/redraw.rs` and its tests). **What the CPU and device paths build is unchanged**: no file under `generation/` or `telperion-core` changed; the changes are drawing only.
