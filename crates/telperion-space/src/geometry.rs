@@ -257,9 +257,9 @@ fn framed_q(
 }
 
 /// Where relay `i` joins its parent (fn-244 host decision 4): its stand's
-/// position on the parent (`stand::position`) blended towards the parent's
-/// tip by its blend along the parent, as a position in the parent's nodes,
-/// Q32 (`stand::split`). The one place a relay joins: its base, girth, sag
+/// place on the parent (`stand::position`) blended towards the parent's
+/// tip by its blend along the parent's scaled length, as a position in the
+/// parent's nodes, Q32 (`stand::split`). The one place a relay joins: its base, girth, sag
 /// and the drawing read it. None for any other axis.
 pub(crate) fn attach(axes: &[Axis], species: &Species, i: usize) -> Option<i64> {
     let Origin::Relay { parent, node } = axes[i].origin else {
@@ -268,15 +268,12 @@ pub(crate) fn attach(axes: &[Axis], species: &Species, i: usize) -> Option<i64> 
     let b = q32(axes[i].blend);
     let p = &axes[parent];
     if b == 0 {
-        return Some(joined(p, 0, 0));
+        return Some((p.phytomers.len() as i64) << 32);
     }
-    Some(joined(p, stand::position(axes, species, parent, node), b))
-}
-
-/// Position `x` along `p` blended towards its tip by `b` (Q32).
-fn joined(p: &Axis, x: i64, b: i64) -> i64 {
-    let tip = (p.phytomers.len() as i64) << 32;
-    tip + mul(x - tip, b)
+    // Blended by scaled length, as the stand is (`stand::position`).
+    let tip = stand::total(p);
+    let at = stand::position(axes, species, parent, node);
+    Some(stand::node_x(p, tip + mul(at - tip, b)))
 }
 
 /// A lateral bud's base, heading and side on its laid bearer: `frame`'s

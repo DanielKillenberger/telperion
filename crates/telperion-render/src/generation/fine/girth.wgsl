@@ -186,7 +186,7 @@ fn girth_realized(ch: Chain) {
 }
 
 // Each relay's join (`telperion_space::Join`, fn-244): its parent's node
-// and share, and the parent's radius there with the relay whole (below
+// (its share stays in `S_ATTACH`, Q32), and the parent's radius there with the relay whole (below
 // the join) and without it (above), from the section the parent's node
 // carries, weighed as that node is; the node `NONE` where nothing joins.
 fn joins_realized(ch: Chain) {
@@ -210,7 +210,6 @@ fn joins_realized(ch: Chain) {
         let above = radius_q(sub4(section, parts[0]), inverse);
         let weigh = sub64(one32(), secondary);
         ss(j, S_JOIN, kt.x);
-        ssf(j, S_JOIN + 1u, real_q(vec2<u32>(kt.y, kt.z)));
         ssf(j, S_JOIN + 2u, real_q(add64(mulq(secondary, below), mulq(weigh, established))));
         ssf(j, S_JOIN + 3u, real_q(add64(mulq(secondary, above), mulq(weigh, established))));
         // `lineage::join_key`: under the relay's first phytomer's key.

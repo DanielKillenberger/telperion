@@ -78,9 +78,9 @@ const S_FRAME: u32 = 57u;
 // base: a section (`girths`) or a load (`levers`).
 const S_BASE: u32 = 66u;
 // Where a relay joins its parent, as girth sets it for the drawing
-// (`telperion_space::Join`, fn-244): the node, the share along its span
-// (a float), the parent's radius below and above the join, and the join's
-// key (`lineage::join_key`, two words).
+// (`telperion_space::Join`, fn-244): the node (its share is the
+// attachment's, `S_ATTACH`), a word unused, the parent's radius below and
+// above the join, and the join's key (`lineage::join_key`, two words).
 const S_JOIN: u32 = 70u;
 // A relay's attachment (`geometry::attach`), resolved once by `scales`
 // for the passes after: its parent's node and its share of that node's

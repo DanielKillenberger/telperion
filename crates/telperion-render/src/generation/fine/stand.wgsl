@@ -329,12 +329,49 @@ fn unit_x(p: u32, first: u32, end: u32, newest: bool, node: u32) -> vec2<u32> {
     if newest {
         k = clamp(node, first, end - 1u);
     }
-    return add64(w(0u, k), span_q(p, first, end, share, k));
+    return length_q(p, k, span_q(p, first, end, share, k));
+}
+
+// `stand::length_to`: the scaled length along own axis `p` to `t` of the
+// way along its node `k`'s span, Q32.
+fn length_q(p: u32, k: u32, t: vec2<u32>) -> vec2<u32> {
+    var before = vec2<u32>(0u);
+    // cap: j counts up to the node.
+    for (var j = 0u; j < k; j++) {
+        before = add64(before, q32_f(out[lo(p, j) + 19u]));
+    }
+    return add64(before, mulq(t, q32_f(out[lo(p, k) + 19u])));
+}
+
+// `stand::total`: own axis `p`'s scaled length, Q32.
+fn total_q(p: u32) -> vec2<u32> {
+    var l = vec2<u32>(0u);
+    // cap: j counts up to the axis's phytomers.
+    for (var j = 0u; j < s(p, S_COUNT); j++) {
+        l = add64(l, q32_f(out[lo(p, j) + 19u]));
+    }
+    return l;
+}
+
+// `stand::node_x`: a scaled length along own axis `p` as a position in its
+// nodes, Q32: in the first span that reaches it, the tip past them all.
+fn node_xq(p: u32, length: vec2<u32>) -> vec2<u32> {
+    var before = vec2<u32>(0u);
+    // cap: k counts up to the axis's phytomers.
+    for (var k = 0u; k < s(p, S_COUNT); k++) {
+        let scale = q32_f(out[lo(p, k) + 19u]);
+        if slt64(vec2<u32>(0u), scale) && !slt64(add64(before, scale), length) {
+            let t = smin64(smax64(over(sub64(length, before), scale), vec2<u32>(0u)), one32());
+            return add64(w(0u, k), t);
+        }
+        before = add64(before, scale);
+    }
+    return w(0u, s(p, S_COUNT));
 }
 
 // `stand::position`: how far along own axis `p` a relay at its node
-// `node` stands, in `p`'s nodes, Q32: `p`'s own units only, newest first
-// down to a whole one or `p`'s start.
+// `node` stands, in `p`'s scaled length, Q32: `p`'s own units only, newest
+// first down to a whole one or `p`'s start.
 fn position_q(p: u32, node: u32) -> vec2<u32> {
     // The oldest unit read: the first whole one back, or none.
     var end = s(p, S_COUNT);
@@ -369,15 +406,16 @@ fn position_q(p: u32, node: u32) -> vec2<u32> {
 }
 
 // `geometry::attach`: own relay `i`'s position on its parent, blended
-// towards the parent's tip by its blend, Q32.
+// towards the parent's tip by its blend along the parent's scaled
+// length, in the parent's nodes, Q32.
 fn attach_q(i: u32) -> vec2<u32> {
     let p = ax(i, PARENT);
-    let tip = w(0u, s(p, S_COUNT));
     let b = q32_f(axf(i, BLEND));
     if !slt64(vec2<u32>(0u), b) {
-        return tip;
+        return w(0u, s(p, S_COUNT));
     }
-    return add64(tip, mulq(sub64(position_q(p, ax(i, NODE)), tip), b));
+    let tip = total_q(p);
+    return node_xq(p, add64(tip, mulq(sub64(position_q(p, ax(i, NODE)), tip), b)));
 }
 
 // Each relay's attachment as its parent's node and share (`S_ATTACH`),

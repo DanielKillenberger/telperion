@@ -247,3 +247,34 @@ fn a_relays_wood_enters_where_it_joins_and_its_stub_carries_its_own() {
     assert_eq!(join.below, lateral[k], "the bole below the join");
     assert_eq!(join.above, alone[k], "the stub's first span");
 }
+
+/// A node growing in from nothing beneath a half-blended relay moves the
+/// relay's attachment by nothing (fn-244 review): it is blended along the
+/// parent's scaled length, not its node count.
+#[test]
+fn a_node_growing_in_moves_no_relays_attachment() {
+    let mut states = vec![state(0.0)];
+    states[0].relay_at = 0.0;
+    let species = Species { states };
+    // Where relay 1 joins its parent of nodes at heights `tips` and scales
+    // `scales`, in space.
+    let joined = |tips: &[f64], scales: &[f64]| {
+        let mut parent = axis(Origin::Seed, &vec![0.5; tips.len()]);
+        for ((p, &z), &s) in parent.phytomers.iter_mut().zip(tips).zip(scales) {
+            (p.tip, p.scale, p.grown) = (Vec3::new(0.0, 0.0, z), s, s);
+        }
+        let mut relay = axis(Origin::Relay { parent: 0, node: 0 }, &[0.5]);
+        relay.blend = 0.5;
+        let axes = vec![parent, relay];
+        let x = crate::geometry::attach(&axes, &species, 1).expect("a relay");
+        let (k, t) = crate::geometry::split(x, tips.len() - 1);
+        let start = if k == 0 { 0.0 } else { tips[k - 1] };
+        start + (tips[k] - start) * t as f64 / ONE32 as f64
+    };
+    let two = joined(&[1.0, 2.0], &[1.0, 1.0]);
+    let grown_in = joined(&[1.0, 2.0, 2.0], &[1.0, 1.0, 0.0]);
+    let barely = joined(&[1.0, 2.0, 2.0 + 1e-6], &[1.0, 1.0, 1e-6]);
+    assert!((two - 1.0).abs() < 1e-9, "half way to the tip: {two}");
+    assert!((grown_in - two).abs() < 1e-9, "{grown_in} against {two}");
+    assert!((barely - two).abs() < 1e-5, "{barely} against {two}");
+}

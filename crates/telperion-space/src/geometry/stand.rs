@@ -110,9 +110,11 @@ pub(super) fn stand(axes: &[Axis], species: &Species, p: usize, node: usize) -> 
 }
 
 /// How far along axis `p` a relay stands, `node` its node on `p`'s last
-/// unit, in `p`'s nodes, Q32 (`at`): `p`'s last unit at `relay_at`,
-/// blended back towards the one before by its extent, that one towards the
-/// one before it by its own, down to a whole unit or `p`'s start.
+/// unit, in `p`'s scaled length from its base, Q32 (`node_x`): `p`'s last
+/// unit at `relay_at`, blended back towards the one before by its extent,
+/// that one towards the one before it by its own, down to a whole unit or
+/// `p`'s start. Blended by length, so a node growing in from nothing
+/// moves no relay (fn-244 review).
 pub(super) fn position(axes: &[Axis], species: &Species, p: usize, node: usize) -> i64 {
     let axis = &axes[p];
     let relay_at = species.states[axis.pa].relay_at;
@@ -126,7 +128,7 @@ pub(super) fn position(axes: &[Axis], species: &Species, p: usize, node: usize) 
         } else {
             zone_node(axis, (first, end), relay_at)
         };
-        let x = ((k as i64) << 32) + span_in(axis, (first, end), relay_at, k);
+        let x = length_to(axis, k, span_in(axis, (first, end), relay_at, k));
         let extent: i64 = axis.phytomers[first..end]
             .iter()
             .map(|q| q32(q.grown))
@@ -147,6 +149,32 @@ pub(super) fn position(axes: &[Axis], species: &Species, p: usize, node: usize) 
         x += mul(to - x, extent);
     }
     x
+}
+
+/// The scaled length along axis `p` to `t` (Q32) of the way along its node
+/// `k`'s span, Q32.
+fn length_to(p: &Axis, k: usize, t: i64) -> i64 {
+    let before: i64 = p.phytomers[..k].iter().map(|q| q32(q.scale)).sum();
+    before + mul(t, q32(p.phytomers[k].scale))
+}
+
+/// The scaled length along axis `p`, Q32, as a position in its nodes, Q32
+/// (`split`): in the first span that reaches it, the tip past them all.
+pub(super) fn node_x(p: &Axis, length: i64) -> i64 {
+    let mut before = 0;
+    for (k, q) in p.phytomers.iter().enumerate() {
+        let scale = q32(q.scale);
+        if scale > 0 && before + scale >= length {
+            return ((k as i64) << 32) + over(length - before, scale).clamp(0, ONE32);
+        }
+        before += scale;
+    }
+    (p.phytomers.len() as i64) << 32
+}
+
+/// The scaled length of axis `p`, Q32.
+pub(super) fn total(p: &Axis) -> i64 {
+    p.phytomers.iter().map(|q| q32(q.scale)).sum()
 }
 
 /// The point at position `x` along axis `p`, in nodes, Q32: `t` of the way

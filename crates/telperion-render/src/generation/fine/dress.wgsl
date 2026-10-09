@@ -56,6 +56,9 @@ const S_COUNT: u32 = 2u;
 // A relay's join as girth set it (`geometry.wgsl`): its parent's node,
 // share, radii below and above, and its key (two words).
 const S_JOIN: u32 = 70u;
+// Its attachment: the node and its share of that node's span, Q32
+// (`geometry.wgsl`).
+const S_ATTACH: u32 = 76u;
 const AL: u32 = 8u;
 const PL: u32 = 26u;
 const PA: u32 = 2u;
@@ -117,6 +120,30 @@ fn s(i: u32, f: u32) -> u32 {
 
 fn sfl(i: u32, f: u32) -> f32 {
     return bitcast<f32>(s(i, f));
+}
+
+// Own relay `c`'s share of its join's span, Q32 (`S_ATTACH`): every
+// choice of where it joins is taken on it, as the CPU takes it.
+fn join_t(c: u32) -> vec2<u32> {
+    return vec2<u32>(s(c, S_ATTACH + 1u), s(c, S_ATTACH + 2u));
+}
+
+fn at_start(t: vec2<u32>) -> bool {
+    return t.x == 0u && t.y == 0u;
+}
+
+fn at_end(t: vec2<u32>) -> bool {
+    return t.x == 0u && t.y == 1u;
+}
+
+// Whether share `a` lies before `b`, Q32.
+fn before_t(a: vec2<u32>, b: vec2<u32>) -> bool {
+    return a.y < b.y || (a.y == b.y && a.x < b.x);
+}
+
+// A share as a float, for where it stands.
+fn real_t(t: vec2<u32>) -> f32 {
+    return f32(t.y) + f32(t.x) * (1.0 / 4294967296.0);
 }
 
 // The record of own relay `c`'s join: after the wave's phytomers, by its
@@ -402,16 +429,18 @@ fn place(i: u32, r: u32, at: vec4<f32>, lb: u32, key: u32, bloom: bool, w: Walk,
 // The next relay of own axis `i` joining inside the span of its node `k`
 // after share `after` (relay `last` at it), by share then index; `NONE`
 // past the last.
-fn next_join(i: u32, k: u32, after: f32, last: u32) -> u32 {
+fn next_join(i: u32, k: u32, after: vec2<u32>, last: u32) -> u32 {
     var best = NONE;
-    var bt = 2.0;
+    var bt = vec2<u32>(0u, 2u);
     for (var c = 2u; c < na_; c++) {
         if !joins(c, i) || s(c, S_JOIN) != k {
             continue;
         }
-        let t = sfl(c, S_JOIN + 1u);
-        let later = t > after || (t == after && last != NONE && c > last);
-        if t > 0.0 && t < 1.0 && later && (t < bt || (t == bt && c < best)) {
+        let t = join_t(c);
+        let same = all(t == after);
+        let later = before_t(after, t) || (same && last != NONE && c > last);
+        let first = before_t(t, bt) || (all(t == bt) && c < best);
+        if !at_start(t) && !at_end(t) && later && first {
             best = c;
             bt = t;
         }
@@ -454,14 +483,14 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
         }
         // Relays joining at the node before this span.
         for (var c = 2u; c < na_; c++) {
-            if joins(c, i) && s(c, S_JOIN) == k && sfl(c, S_JOIN + 1u) <= 0.0 {
+            if joins(c, i) && s(c, S_JOIN) == k && at_start(join_t(c)) {
                 putu(join_rec(c), 7u, w.parent);
             }
         }
         // Then those joining inside it, each its share of the span's wood,
         // the span above them drawn at its own wood.
         var rest = piece;
-        var after = 0.0;
+        var after = vec2<u32>(0u);
         var last = NONE;
         // cap: one join per relay of the chain.
         for (var n = 0u; n < na_; n++) {
@@ -469,9 +498,9 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
             if c == NONE {
                 break;
             }
-            let t = sfl(c, S_JOIN + 1u);
-            after = t;
+            after = join_t(c);
             last = c;
+            let t = real_t(after);
             radius = min(radius, sfl(c, S_JOIN + 3u));
             let at = vec4<f32>(up(origin + base + (tip(i, k) - base) * t) * cfg.scale, sfl(c, S_JOIN + 2u) * cfg.scale);
             w.pending += piece * t;
@@ -484,7 +513,7 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
         w = place(i, r, vec4<f32>(pos, radius * cfg.scale), lb, node_key(lineage, k), true, w, along, lateral, flags);
         // Relays joining at this span's node.
         for (var c = 2u; c < na_; c++) {
-            if joins(c, i) && s(c, S_JOIN) == k && sfl(c, S_JOIN + 1u) >= 1.0 {
+            if joins(c, i) && s(c, S_JOIN) == k && at_end(join_t(c)) {
                 putu(join_rec(c), 7u, w.parent);
             }
         }
@@ -580,7 +609,7 @@ fn dress(@builtin(global_invocation_id) id: vec3<u32>) {
         if relay && joins(i, p) && getu(join_rec(i), 7u) != NONE {
             let at = getu(join_rec(i), 7u);
             var stub = s(i, S_JOIN);
-            if sfl(i, S_JOIN + 1u) >= 1.0 {
+            if at_end(join_t(i)) {
                 stub += 1u;
             }
             aside(p, at, stub);
