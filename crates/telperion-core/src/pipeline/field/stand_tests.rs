@@ -93,3 +93,29 @@ fn no_stand_in_answers_below_the_ground() {
         "its foliage's bounds reach {low} below the ground"
     );
 }
+
+#[test]
+fn no_stand_in_answers_wood_below_the_ground() {
+    let tree = Tree {
+        stands: vec![crate::tree::Stand {
+            base: Vec3::new(0.0, 0.5, 0.0),
+            tip: Vec3::new(0.0, -1.5, 0.0),
+            radius: 0.2,
+            ..Default::default()
+        }],
+        ..Tree::default()
+    };
+    let plan = Plan {
+        descriptors: Vec::new(),
+        total: 0,
+        blade: 0.0,
+        seat: 1.0,
+        rachis: 0.0,
+    };
+    let field = Field::planned(&tree, &plan).expect("a field");
+    let wood = |y: f64| field.query(Vec3::new(0.0, y, 0.0), 0.05).unwrap().wood;
+    assert!(wood(0.3), "its wood above the ground answers");
+    assert!(!wood(-0.3) && !wood(-1.0), "wood below the ground");
+    let low = field.bounds().expect("bounds").min.y;
+    assert!(low >= 0.0, "its wood's bounds reach {low} below the ground");
+}
