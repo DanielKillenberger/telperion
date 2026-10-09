@@ -23,24 +23,25 @@ Round 3 follows the host's decisions after the leaf rounds (SHEET-2.md) and Astr
 - **Gaps:** in each grid row, the share of the outline's cells (leftmost to rightmost covered cell) that no leaf covers; the mean of the 8 views.
 - **Stills:** the hero shot with the tree turned 0, 90, 180 and 270°, camera and sun turned together.
 - **Source:** the value file is read from disk, so a probe needs no rebuild.
+- **Corrected after review (2026-10-09):** the first version painted every leaf as a 0.2 m square on a 0.1 m grid, which closed real gaps (impl-review finding, three reviewers). Every gap number on this sheet comes from the corrected raster: each leaf covers the 2 cm cells its own square overlaps, re-measured with `OAK_NO_STILLS=1` (`raw/views-g-<tag>.jsonl`). The ranking of the probes is unchanged: round 3 has the fewest gaps at every seed.
 
 ## Probes at 80 (`raw/views-<tag>.jsonl`, stills `raw/views-<tag>/`), seeds 1 / 7 / 42
 
 | Probe | Change, on round 1 + L3 unless named | Width / height | Gaps | Nodes |
 |---|---|---|---|---|
-| r1 | round 1, leaves as before | 0.92 / 1.15 / 1.14 | 0.173 / 0.124 / 0.183 | 677,910 / 1,493,410 / 753,114 |
-| L3 | the L3 leaves | 0.92 / 1.15 / 1.14 | 0.159 / 0.118 / 0.176 | as r1 |
-| Ra | limb reserves released at delay 2, rate 0.2 | 0.85 / 1.15 / 1.19 | 0.156 / 0.113 / 0.178 | 673,288 / 1,509,761 / 765,956 |
-| Rb | Ra + bough reserves 0.1, delay 2, rate 0.2 | 0.96 / 1.20 / 1.30 | 0.160 / 0.135 / 0.167 | 761,972 / 1,558,639 / 825,178 |
-| Rc | limb reserves 0.4, delay 2, rate 0.2 | 0.95 / 1.25 / 1.31 | 0.160 / 0.130 / 0.174 | 695,637 / 1,500,746 / 799,549 |
-| F | fine ψ 0.5 | 0.79 / 0.97 / 1.05 | 0.202 / 0.121 / 0.157 | 703,746 / 1,805,189 / 797,325 |
-| P | placement: twigs medial, insertion 1.0, twigs 5 years at 0.98 | 0.87 / 1.26 / 1.19 | 0.125 / 0.138 / 0.111 | 843,437 / 1,689,695 / 957,953 |
-| P2 | P without the insertion | 0.84 / 1.39 / 1.25 | 0.159 / 0.152 / 0.128 | |
-| P3 | P2 + short shoots on the basal nodes | 1.04 / 1.41 / 1.32 | 0.185 / 0.149 / 0.153 | |
-| PF | P + fine ψ 0.5 | 0.78 / 0.94 / 1.01 | 0.161 / 0.115 / 0.135 | 905,152 / 2,147,914 / 1,051,749 |
-| PF2 | P + fine ψ 1.0 | 0.81 / 1.17 / 1.02 | 0.129 / 0.107 / 0.108 | 879,023 / 2,023,838 / 1,020,331 |
-| PF3 | PF + limb elevation 0.95, insertion 0.6 | 0.80 / 1.01 / 1.06 | 0.160 / 0.129 / 0.153 | |
-| **PF4 = round 3** | PF2 + fork limbs 0.8 | **1.09 / 1.14 / 1.08** | **0.107 / 0.102 / 0.090** | 1,407,033 / 2,197,974 / 1,166,095 |
+| r1 | round 1, leaves as before | 0.92 / 1.15 / 1.14 | 0.317 / 0.228 / 0.301 | 677,910 / 1,493,410 / 753,114 |
+| L3 | the L3 leaves | 0.92 / 1.15 / 1.14 | 0.251 / 0.185 / 0.251 | as r1 |
+| Ra | limb reserves released at delay 2, rate 0.2 | 0.85 / 1.15 / 1.19 | 0.252 / 0.181 / 0.254 | 673,288 / 1,509,761 / 765,956 |
+| Rb | Ra + bough reserves 0.1, delay 2, rate 0.2 | 0.96 / 1.20 / 1.30 | 0.243 / 0.203 / 0.244 | 761,972 / 1,558,639 / 825,178 |
+| Rc | limb reserves 0.4, delay 2, rate 0.2 | 0.95 / 1.25 / 1.31 | 0.257 / 0.199 / 0.251 | 695,637 / 1,500,746 / 799,549 |
+| F | fine ψ 0.5 | 0.79 / 0.97 / 1.05 | 0.292 / 0.181 / 0.237 | 703,746 / 1,805,189 / 797,325 |
+| P | placement: twigs medial, insertion 1.0, twigs 5 years at 0.98 | 0.87 / 1.26 / 1.19 | 0.204 / 0.209 / 0.179 | 843,437 / 1,689,695 / 957,953 |
+| P2 | P without the insertion | 0.84 / 1.39 / 1.25 | 0.242 / 0.224 / 0.196 | |
+| P3 | P2 + short shoots on the basal nodes | 1.04 / 1.41 / 1.32 | 0.268 / 0.227 / 0.222 | |
+| PF | P + fine ψ 0.5 | 0.78 / 0.94 / 1.01 | 0.237 / 0.168 / 0.196 | 905,152 / 2,147,914 / 1,051,749 |
+| PF2 | P + fine ψ 1.0 | 0.81 / 1.17 / 1.02 | 0.203 / 0.162 / 0.170 | 879,023 / 2,023,838 / 1,020,331 |
+| PF3 | PF + limb elevation 0.95, insertion 0.6 | 0.80 / 1.01 / 1.06 | 0.236 / 0.187 / 0.216 | |
+| **PF4 = round 3** | PF2 + fork limbs 0.8 | **1.09 / 1.14 / 1.08** | **0.158 / 0.156 / 0.143** | 1,407,033 / 2,197,974 / 1,166,095 |
 
 **Sheets viewed:**
 - `raw/compare/r3-P-80.png`, `r3-PF-80.png`, `r3-PF2-80.png`, `r3-PF4-80.png`: four azimuths per seed;
@@ -60,7 +61,7 @@ Round 3 follows the host's decisions after the leaf rounds (SHEET-2.md) and Astr
 | Crown width, m | 8.9 / 10.1 / 9.5 | 18.0 / 23.0 / 18.5 | 6–11; 10–20 |
 | Width / height | 0.84 / 0.92 / 0.96 | 1.11 / 1.12 / 1.09 | 1.0–1.3 |
 | Crown base, m | 2.1 / 4.1 / 2.4 | 7.0 / 5.5 / 6.8 | low |
-| Projected foliage gaps | 0.160 / 0.124 / 0.142 | 0.107 / 0.102 / 0.090 | |
+| Projected foliage gaps | 0.257 / 0.204 / 0.250 | 0.158 / 0.156 / 0.143 | |
 | DBH, cm | 58 / 74 / 59 | 120 / 221 / 120 | 20–41; 41–81 |
 | Nodes | 280,342 / 371,391 / 284,467 | 1,407,033 / 2,197,974 / 1,166,095 | |
 | Leaves | 343,180 / 523,138 / 350,320 | 1,755,000 / 3,424,929 / 1,486,800 | |

@@ -14,9 +14,11 @@
 //!   light is the hero's): `<out>/oak-<age>-<seed>-az<deg>.png`.
 //! - `gaps`: in side views at 8 azimuths, each leaf drawn as a square of
 //!   0.6 times its blade's length (the element's length times the canopy's
-//!   size) on a 0.1 m grid; in each grid row the outline runs from the
-//!   leftmost to the rightmost covered cell, and gaps is the share of
-//!   outline cells no leaf covers, the mean of the 8 views.
+//!   size) on a 0.02 m grid, covering the cells its square overlaps; in
+//!   each grid row the outline runs from the leftmost to the rightmost
+//!   covered cell, and gaps is the share of outline cells no leaf covers,
+//!   the mean of the 8 views.
+//! - With `OAK_NO_STILLS` set, only the measures are taken (no GPU).
 //! - `wh`: the leaves' mean horizontal extent over the tree's height.
 use std::time::Instant;
 use telperion_core::{math::Vec3, pipeline::executor, presets::values, Family};
@@ -48,8 +50,13 @@ fn main() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let list = |i: usize| -> Vec<u32> { args[i].split(',').map(|v| v.parse().unwrap()).collect() };
     let (out, base) = (&args[0], family(&args[3..]));
-    let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
-    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    let mut renderer = match std::env::var_os("OAK_NO_STILLS") {
+        Some(_) => None,
+        None => {
+            let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
+            Some(Renderer::new(gpu, STILL_FORMAT))
+        }
+    };
     for &age in &list(1) {
         for &seed in &list(2) {
             let mut f = base.clone();
@@ -77,8 +84,12 @@ fn main() -> Result<(), String> {
                 leaves.len(),
                 width / height
             );
+            if std::env::var_os("OAK_NO_STILLS").is_some() {
+                continue;
+            }
             let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
             let hero = hero_pose(mesh.bounds, aspect, GROUND_REACH);
+            let renderer = renderer.as_mut().expect("a renderer when stills are drawn");
             for turn in [0.0f64, 90.0, 180.0, 270.0] {
                 let camera = turned(&hero, turn);
                 renderer.submit_at(&mesh, Level::Chosen).map_err(|e| e.to_string())?;
@@ -89,7 +100,7 @@ fn main() -> Result<(), String> {
                     sun_elevation: SUN.1,
                     ..SceneRow::default()
                 });
-                let still = render(&mut renderer, &camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;
+                let still = render(renderer, &camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;
                 let file = format!("{out}/oak-{age}-{seed}-az{turn:.0}.png");
                 write_png(std::path::Path::new(&file), &still).map_err(|e| e.to_string())?;
             }
@@ -111,24 +122,35 @@ fn turned(hero: &Camera, degrees: f64) -> Camera {
 
 /// The share of the foliage outline no leaf covers, seen from `azimuth`.
 fn gap_share(points: &[Vec3], azimuth: f64, side: f64) -> f64 {
-    use std::collections::{BTreeMap, HashSet};
-    const CELL: f64 = 0.1;
+    const CELL: f64 = 0.02;
     let (s, c) = azimuth.to_radians().sin_cos();
-    let half = (side / 2.0 / CELL).ceil() as i64;
-    let mut cells = HashSet::new();
-    for p in points {
-        let (u, v) = (((p.x * c - p.z * s) / CELL) as i64, (p.y / CELL) as i64);
-        for du in -half..half.max(1) {
-            for dv in -half..half.max(1) {
-                cells.insert((u + du, v + dv));
+    let projected: Vec<(f64, f64)> = points.iter().map(|p| (p.x * c - p.z * s, p.y)).collect();
+    let (u0, v0) = projected.iter().fold((f64::MAX, f64::MAX), |(a, b), p| (a.min(p.0), b.min(p.1)));
+    let (u1, v1) = projected.iter().fold((f64::MIN, f64::MIN), |(a, b), p| (a.max(p.0), b.max(p.1)));
+    let (u0, v0) = (u0 - side, v0 - side);
+    let width = ((u1 + side - u0) / CELL).ceil() as usize + 1;
+    let height = ((v1 + side - v0) / CELL).ceil() as usize + 1;
+    // The cells a square of `side` centred at `at` overlaps, along one axis
+    // whose grid starts at `origin`.
+    let span = |at: f64, origin: f64| {
+        let lo = ((at - side / 2.0 - origin) / CELL).floor() as usize;
+        let hi = ((at + side / 2.0 - origin) / CELL).ceil() as usize;
+        lo..hi
+    };
+    let mut covered = vec![false; width * height];
+    for &(u, v) in &projected {
+        for row in span(v, v0) {
+            for col in span(u, u0) {
+                covered[row * width + col] = true;
             }
         }
     }
-    let mut rows: BTreeMap<i64, (i64, i64)> = BTreeMap::new();
-    for &(u, v) in &cells {
-        let r = rows.entry(v).or_insert((u, u));
-        *r = (r.0.min(u), r.1.max(u));
+    let (mut inside, mut filled) = (0usize, 0usize);
+    for row in covered.chunks(width) {
+        if let (Some(a), Some(b)) = (row.iter().position(|&x| x), row.iter().rposition(|&x| x)) {
+            inside += b - a + 1;
+            filled += row[a..=b].iter().filter(|&&x| x).count();
+        }
     }
-    let outline: i64 = rows.values().map(|(a, b)| b - a + 1).sum();
-    1.0 - cells.len() as f64 / outline as f64
+    1.0 - filled as f64 / inside as f64
 }

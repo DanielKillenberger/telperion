@@ -5,6 +5,7 @@
 #   .flow/evidence/fn-236-tree-space-the-oregon-white-oaks-crown/views.sh <tag> [<ages> <seeds> [<path>=<value>...]]
 # Copies oak_views.rs into telperion-render's examples for the run, removes
 # it after; stills in raw/views-<tag>/, measures in raw/views-<tag>.jsonl.
+# OAK_NO_STILLS=1 takes the measures alone, without the GPU.
 set -e
 tag=$1
 ages=${2:-80}
@@ -18,6 +19,8 @@ mkdir -p "$here/raw/views-$tag"
 cp "$here/oak_views.rs" "$example"
 trap 'rm -f "$example"' EXIT
 cargo build -q --profile ci -p telperion-render --example oak_views 2>"$here/raw/views-$tag/build.log"
-flock -w 1800 "$lock" target/ci/examples/oak_views "$here/raw/views-$tag" "$ages" "$seeds" "$@" \
+# With OAK_NO_STILLS set the run takes measures only and needs no GPU lock.
+run=(target/ci/examples/oak_views "$here/raw/views-$tag" "$ages" "$seeds" "$@")
+if [ -n "$OAK_NO_STILLS" ]; then "${run[@]}"; else flock -w 1800 "$lock" "${run[@]}"; fi \
   >"$here/raw/views-$tag.jsonl"
 cat "$here/raw/views-$tag.jsonl"

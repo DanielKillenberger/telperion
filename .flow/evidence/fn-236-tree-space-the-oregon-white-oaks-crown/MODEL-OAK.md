@@ -122,4 +122,4 @@ Today's leaf rows (preset, round 1): blade 100 × 75 mm (`/element/length`, `/wi
 
 ## Round 3 (2026-10-09)
 
-On round 1's structure with L3's leaves (140 mm blades, FNA's upper bound, L1): twigs moved to the branch systems' medial nodes at a wider angle, twigs living 5 years at 0.98, the fine orders' light share at 1.0, the fork's limbs at 0.8. All **estimated**. At 80 the three seeds read as broad, closed crowns from four azimuths (width over height 1.09 to 1.12, projected foliage gaps 0.09 to 0.11). Measures, probes, the site's field and cost are in SHEET-3.md.
+On round 1's structure with L3's leaves (140 mm blades, FNA's upper bound, L1): twigs moved to the branch systems' medial nodes at a wider angle, twigs living 5 years at 0.98, the fine orders' light share at 1.0, the fork's limbs at 0.8. All **estimated**. At 80 the three seeds read as broad, closed crowns from four azimuths (width over height 1.09 to 1.12, projected foliage gaps 0.14 to 0.16, against 0.23 to 0.32 for round 1). Measures, probes, the site's field and cost are in SHEET-3.md.
