@@ -129,8 +129,8 @@ impl Grid {
 
     /// The corners about `at`: each node's index (none outside) and weight.
     pub fn corners(&self, at: [i64; 3]) -> [(Option<usize>, u64); 8] {
-        let (n, t): (Vec<i64>, Vec<u64>) = at.iter().map(|&x| node(x)).unzip();
-        let w = weights([t[0], t[1], t[2]]);
+        let (n, t) = (at.map(|x| node(x).0), at.map(|x| node(x).1));
+        let w = weights(t);
         std::array::from_fn(|c| {
             let up = |a: usize| n[a] + ((c >> a) & 1) as i64;
             (self.index([up(0), up(1), up(2)]), w[c])
