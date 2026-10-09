@@ -405,3 +405,56 @@ With ordinary-size twigs over a crown about 2.5 times as wide, the Two Trees nee
 - or another route.
 
 The third table is not built.
+
+## The Two Trees' leaf size (worker, 2026-10-09)
+
+**The capability (`1bd9ad9d`).** `/supernatural/canopy/size` mirrors `/canopy/size` through `mirrored()`, the same way `/material` and `/bloom` are mirrored.
+
+**Its tests:**
+- With the group off, nothing is applied.
+- The override changes only its own row; the size variation stays.
+- A walk ramps it in from the natural row.
+- A value of 1000.5 is refused by name.
+- The device places the leaf size the CPU places: on the beech at 30 with the leaves doubled, all 9,645 leaves are compared, with no position, direction or scale over the bound.
+- With the empty row stripped from the text and the wire, the family, walk and override catalogue digests match the last pins to the bit.
+
+**The values.** Laurelin's leaves are 2.4 times the element and Telperion's 2.3, against the beech's 1.1. Their twigs, spacing and node counts stay the beech's.
+
+**LAI, seed 1:**
+- Laurelin: 1.30 → **6.19**
+- Telperion: 1.40 → **6.12**
+
+**Frame rate** (`frames.rs`, 1080p, best of 3, whole / close):
+- Telperion: 81.6 / 24.4
+- Laurelin: 147.6 / 57.8
+- beech: 613.8 / 339.4
+
+Both whole views are above 30. Telperion's close view stays below fn-246's 34.
+
+**The stills (viewed, `TWIGS-size.jpg`).**
+- Both crowns are fuller.
+- Close up, the leaves are large and sit on ordinary thin twigs.
+- Laurelin's racemes and Telperion's corymbs stay prominent.
+- Telperion's whole view still reads somewhat open: his blue-grey leaves are against the sky.
+
+### Stopped: Telperion at 92 is over the Wasm phytomer ceiling
+
+`npm test` fails on Telperion:
+- `harness/parity.test.ts`, native/wasm node buffers byte-identical: telperion;
+- `src/field/field.test.ts`, the slim field entry point grows every shipped preset: telperion.
+
+The message is "the tree keeps more than 4,000,000 phytomers, more than a browser prepares in its 4 GB Wasm memory; grow it younger". The cause is the beech's short shoots living four years, not the leaf size: the size changes no node.
+
+Telperion's expected phytomers by age (`telperion_space::expected_kept`):
+
+| Age | 84 | 86 | 88 | 90 | 92 |
+|---|---|---|---|---|---|
+| Expected phytomers | 3.20M | 3.43M | 3.67M | 3.91M | 4.15M |
+
+At 92 he was within the ceiling before that change: fn-219 moved him from 110 to 92 for exactly this bound. Laurelin at 80 expects 2.75M, which is within it.
+
+The device route (the harness) lifts the ceiling and grows him: seed 7 has 4.9M nodes. Only the Wasm CPU route refuses.
+
+**The host's call:** Telperion's age (90 holds at 3.91M), his short shoots' lifespan, or the beech's spur change itself.
+
+**Not yet run:** Astra (the sheets are in `raw/after-size/*-seed{1,7}.jpg`), the gate and impl-review. They wait on that decision.
