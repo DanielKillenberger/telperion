@@ -250,3 +250,26 @@ This is several hours. Most of it is the device's records and identity, and both
 **A cheaper variant that fails the decision's continuity.** Keep the girth's `t` split, join the relay at the node below, and draw the stub's first node at its radius without the relay. That needs no new node or record. But the join jumps one internode each time `relay_at` crosses a node, so the drawing does not move by degree. R4 itself, which reads the girth, would pass.
 
 Option 1 stays parked on `fn-244-option1-wip` (`5d01f0b3`). Its only failing test is R4.
+
+## Host decision, fourth (2026-10-09): one resolved attachment, the full build (Astra, ASTRA-JOIN.md)
+
+Astra's review agrees with the join node and settles the two open calls. There is no existing between-node attachment to reuse, so the node is the simplest design that meets all the constraints.
+
+1. **One attachment, resolved once in `telperion-space`.** It is a carrier span plus a fraction along it, built from `relay_at`, the unit extent and `b`, with the blend along the carrier. Geometry, girth, sag and the drawing all read it, and nothing else decides where a relay joins.
+2. **Girth and sag project the relay's whole section and load onto the two neighbouring phytomer samples by that fraction.** That keeps per-phytomer radii continuous, so fn-199's R4 holds. Girth also supplies the join radius (the full bole below) and the stub radius (the old head's own wood). Both come from its own arithmetic, before secondary-growth weighting, as one function the drawing calls. No second copy of the arithmetic.
+3. **The drawing inserts one ordinary node at the attachment,** while the parent axis is drawn, so the parent-before-child order holds. The bole runs on into the relay, and the old head starts from the stub radius with any laterals it bears.
+   - **Its identity:** the relay's lineage under a new registry key (`JOIN`), mirrored in WGSL. That keeps it stable across ages and cuts (fn-220).
+4. **The device mirrors this rule.**
+   - **Records:** one extra record per relay, sized from the relay count known after topology.
+   - **Layout:** `dress.wgsl`, `fold.wgsl` and the stations read the new layout.
+   - **Tests:** the node-for-node CPU-against-device tests are updated to include join nodes.
+
+**Proof:**
+- fn-199's R4 passes unchanged.
+- The no-upward-thickening and stub tests pass.
+- The sheets are viewed.
+- `space_hash` changes are listed, with oak, palm and spruce identical.
+- CPU and device agree within fn-125's screen.
+- The gate, npm test and impl-review.
+
+On the friction entry about constraints surfacing after each decision: it is right. Before writing a decision, the host now asks the worker for a 10-minute read of every file the decision names. That is recorded for fn-237's friction review.
