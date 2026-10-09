@@ -106,27 +106,33 @@ fn ground_stills() {
     let dir = std::path::PathBuf::from(std::env::var("STILLS").expect("STILLS=<dir>"));
     std::fs::create_dir_all(&dir).unwrap();
     let runs: usize = std::env::var("RUNS").map_or(3, |r| r.parse().unwrap());
-    let k = kernels(&gpu);
-    let tools = Tools::new(&gpu);
     for id in &SHIPPED[..3] {
         for age in [40.0, 80.0] {
             let family = family(id, age);
+            let mut renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+            let prepared = Generator::new(&renderer)
+                .unwrap()
+                .prepare(&family, Delivery::Resident)
+                .unwrap();
+            let b = prepared.bounds();
+            renderer.submit_prepared(prepared).unwrap();
+            renderer.set_family(&family);
+            let camera = hero_pose(b, 16.0 / 9.0, GROUND_REACH);
+            let still = render(&mut renderer, &camera, 960, 540).unwrap();
+            write_png(&dir.join(format!("{id}-{age}.png")), &still).unwrap();
+            println!("{id} {age}: box {:?}", corners(b));
+            drop(renderer);
+            // The species the fine roots' chain grows: the CPU curve's and
+            // the handoff's milliseconds, each stage waited for.
             let mut times = Vec::new();
-            for run in 0..runs {
-                let mut renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+            let (k, tools) = (kernels(&gpu), Tools::new(&gpu));
+            for _ in 0..runs {
+                let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
                 let gen = Generator::new(&renderer).unwrap();
-                let built = pollster::block_on(build(&gpu, &gen, &k, &tools, &family)).unwrap();
-                times.push((built.timed.cpu, built.timed.handoff));
-                if run > 0 {
-                    continue;
+                match pollster::block_on(build(&gpu, &gen, &k, &tools, &family)) {
+                    Ok(built) => times.push((built.timed.cpu, built.timed.handoff)),
+                    Err(_) => break,
                 }
-                let b = built.prepared.bounds();
-                renderer.submit_prepared(built.prepared).unwrap();
-                renderer.set_family(&family);
-                let camera = hero_pose(b, 16.0 / 9.0, GROUND_REACH);
-                let still = render(&mut renderer, &camera, 960, 540).unwrap();
-                write_png(&dir.join(format!("{id}-{age}.png")), &still).unwrap();
-                println!("{id} {age}: box {:?}", corners(b));
             }
             println!("{id} {age}: (cpu ms, handoff ms) {times:?}");
         }

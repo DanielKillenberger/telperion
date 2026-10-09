@@ -237,7 +237,8 @@ fn clusters(curve: &Curve, index: u32, run: &CurveRun, out: &mut Vec<CurveCluste
 /// `sqrt(normal_k² + binormal_k²)`.
 fn ring_extent(p: &CurvePoint) -> Vec3 {
     let (n, b) = (p.normal, p.binormal);
-    Vec3::new(n.x.hypot(b.x), n.y.hypot(b.y), n.z.hypot(b.z))
+    let e = |n: f64, b: f64| (n * n + b * b).sqrt();
+    Vec3::new(e(n.x, b.x), e(n.y, b.y), e(n.z, b.z))
 }
 
 impl Curve {
