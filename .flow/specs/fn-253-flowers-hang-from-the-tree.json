@@ -1,0 +1,133 @@
+{
+  "branch_name": "fn-253-flowers-hang-from-the-tree",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T19:45:14.719192Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-253-flowers-hang-from-the-tree",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T19:48:09.417451Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "ab598fb27cdf7050c6977c03b19c8577568474dac9c9b5254b9e1e4f97cf847a",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d7d69a1fca778c1cd6c58fb691e873e9",
+            "classification": "introduced",
+            "findingId": "finding-d7d69a1fca778c1cd6c58fb691e873e9",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d40db0018cc2c5b5e8081bace76e93f89bd2f868",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 375644,
+      "output_sha256": "9508233eac44134fbaf8cab93d49538ca5fb9849243a0ba3e44f861a4b8420d0",
+      "reservation_id": "875b2db082d2478e83bb9ba13b7de437",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T19:47:20.299291Z",
+      "tool_calls": 18,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b632b06cfdfbbbd0b5f12069df7519958fe821ae0d8c3ed8e155f9b7db514451",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d7d69a1fca778c1cd6c58fb691e873e9",
+            "classification": "introduced",
+            "findingId": "finding-d7d69a1fca778c1cd6c58fb691e873e9",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d40db0018cc2c5b5e8081bace76e93f89bd2f868",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 692,
+      "output_sha256": "70e56b0ffb64799105c513fa25378c3f7026544e2b2440f1fb610cd3af40378a",
+      "reservation_id": "6396281594934a4f86c788840fc9aea7",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T19:48:09.414354Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-253-flowers-hang-from-the-tree.md",
+  "status": "open",
+  "title": "Flowers hang from the tree",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T19:48:14.951701Z"
+}
