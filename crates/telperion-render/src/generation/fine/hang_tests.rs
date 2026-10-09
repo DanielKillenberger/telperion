@@ -47,9 +47,10 @@ fn browser_route() {
             family
         }
     };
-    // From the generator's making, as a page's first tree pays it.
-    let t = std::time::Instant::now();
+    // From the generator's making, as a page's first tree pays it: the
+    // renderer is the page's, made before its "building...".
     let mut renderer = Renderer::new(gpu, crate::STILL_FORMAT);
+    let t = std::time::Instant::now();
     let gen = pollster::block_on(Generator::new_async(&renderer)).unwrap();
     let prepared = gen.prepare(&family, Delivery::Resident).unwrap();
     let built = t.elapsed().as_secs_f64();
@@ -67,13 +68,26 @@ fn browser_route() {
 const COLD_PIPELINE_MS: f64 = 2_500.0;
 const COLD_FIRST_TREE_S: f64 = 5.0;
 
+/// The named exception (host decisions, third, 2026-10-09): the chain
+/// grower's `grow`, at most 20 s cold natively, its make time outside the
+/// first tree's 5 s. Its cost is the one body the driver inlines the apex
+/// loop into, with hundreds of inlined copies of the 64-bit arithmetic
+/// under contract A (528 of `mul32`, 380 of `shr64`); slimmed to one call
+/// site each for `run`, `grow_unit` and `abortion_after` it fell from 92 to
+/// 145 s to 13 to 17 s, and splitting `grow_unit` and `move_on` into their
+/// own pipelines would add 11 to 13 % to the beech's build before keeping
+/// any state (REPRO.md). The owner's cold-profile browser check decides
+/// whether Chrome's own translator stays under its watchdog.
+const GROW: &str = "grow";
+const COLD_GROW_MS: f64 = 20_000.0;
+
 /// fn-235 R1: a page's first tree, the beech at 20 on the fine path,
 /// built in a process of its own on a cold driver cache. The chain
 /// grower's `grow` took 145 s on the RTX 3080 (2026-10-09), long past
 /// the watchdog: the harness sat at "building..." until Chrome killed its
 /// GPU process.
 #[test]
-fn every_pipeline_within_2_5_s_and_the_first_tree_within_5_s_cold() {
+fn every_pipeline_within_2_5_s_but_grow_within_20_s_and_the_first_tree_within_5_s_cold() {
     let mut child = std::process::Command::new(std::env::current_exe().unwrap())
         .args(["--ignored", "--exact", "--nocapture"])
         .arg("generation::fine::hang_tests::browser_route")
@@ -124,15 +138,17 @@ fn every_pipeline_within_2_5_s_and_the_first_tree_within_5_s_cold() {
         "a pipeline was still being made at 120 s, after {last:?}"
     );
     assert!(status.success(), "the build failed: {status}");
-    let slow: Vec<_> = made
-        .iter()
-        .filter(|(_, ms)| *ms > COLD_PIPELINE_MS)
-        .collect();
+    let bound = |entry: &str| match entry {
+        GROW => COLD_GROW_MS,
+        _ => COLD_PIPELINE_MS,
+    };
+    let slow: Vec<_> = made.iter().filter(|(e, ms)| *ms > bound(e)).collect();
     assert!(!made.is_empty(), "no pipeline was made");
     assert!(
         slow.is_empty(),
-        "made cold over {COLD_PIPELINE_MS} ms: {slow:?}"
+        "made cold over its bound ({COLD_PIPELINE_MS} ms, {GROW} {COLD_GROW_MS} ms): {slow:?}"
     );
+    let grow: f64 = made.iter().filter(|(e, _)| e == GROW).map(|m| m.1).sum();
     let built: f64 = (stdout.join().unwrap().iter())
         .find_map(|l| {
             l.split_once("built in ")?
@@ -143,9 +159,10 @@ fn every_pipeline_within_2_5_s_and_the_first_tree_within_5_s_cold() {
                 .ok()
         })
         .expect("the build's time");
+    let besides = built - grow / 1e3;
     assert!(
-        built <= COLD_FIRST_TREE_S,
-        "the first tree built cold in {built} s"
+        besides <= COLD_FIRST_TREE_S,
+        "the first tree built cold in {built} s, {besides} s besides {GROW}"
     );
 }
 

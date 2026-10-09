@@ -81,12 +81,16 @@ impl Pass {
                 label: Some("experimental generation"),
                 entries: &bindings,
             });
+        #[cfg(test)]
+        let started = std::time::Instant::now();
         let module = gpu
             .device
             .create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some("experimental generation"),
                 source: wgpu::ShaderSource::Wgsl(shader.into()),
             });
+        #[cfg(test)]
+        crate::trace::compiled(&format!("module of {}", entries[0]), started.elapsed());
         let pipeline_layout = gpu
             .device
             .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -99,16 +103,16 @@ impl Pass {
             .map(|&entry| {
                 #[cfg(test)]
                 let started = std::time::Instant::now();
-                let pipeline = gpu
-                    .device
-                    .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                        label: Some(entry),
-                        layout: Some(&pipeline_layout),
-                        module: &module,
-                        entry_point: Some(entry),
-                        compilation_options: Default::default(),
-                        cache: None,
-                    });
+                let pipeline =
+                    gpu.device
+                        .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+                            label: Some(entry),
+                            layout: Some(&pipeline_layout),
+                            module: &module,
+                            entry_point: Some(entry),
+                            compilation_options: Default::default(),
+                            cache: None,
+                        });
                 #[cfg(test)]
                 crate::trace::compiled(entry, started.elapsed());
                 pipeline
