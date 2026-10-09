@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-251-a-walk-never-grows-a-tree-larger-than",
+  "created_at": "2026-10-09T19:06:36.252001Z",
+  "depends_on_epics": [],
+  "id": "fn-251-a-walk-never-grows-a-tree-larger-than",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-251-a-walk-never-grows-a-tree-larger-than.md",
+  "status": "open",
+  "title": "A walk never grows a tree larger than its ends",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T19:06:36.261335Z"
+}

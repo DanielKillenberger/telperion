@@ -1,0 +1,84 @@
+{
+  "branch_name": "fn-250-a-walk-across-ages-grows-the-tree",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T17:16:11.887735Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-250-a-walk-across-ages-grows-the-tree",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-09T17:18:23.451301Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "7c2a40d8cd5ae4c34caaba5c8f94ea2af433da6dd03310b8495e8f3fc824cbce",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-acb800c5f57092523b5c0f1a16dc6abb",
+            "classification": "introduced",
+            "findingId": "finding-acb800c5f57092523b5c0f1a16dc6abb",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d1b1efa999f019441f7ee78fd7494ea534c9364b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 293606,
+      "output_sha256": "8419fdef6f9266923a63649485eb5dc1b958a5e7ae7258d4e4f14bc2cdc10b35",
+      "reservation_id": "216350d28bc341af9a724550d67c53e8",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T17:18:23.443729Z",
+      "tool_calls": 23,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-250-a-walk-across-ages-grows-the-tree.md",
+  "status": "open",
+  "title": "A walk across ages grows the tree",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T17:18:23.455008Z"
+}
