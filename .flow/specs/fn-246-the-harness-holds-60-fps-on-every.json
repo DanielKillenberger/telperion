@@ -304,7 +304,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-246-the-harness-holds-60-fps-on-every.md",
-  "status": "open",
+  "status": "done",
   "title": "The harness holds 60 fps on every shipped tree",
   "tracker": {
     "baseHashFlow": null,
@@ -317,5 +317,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T13:18:28.266471Z"
+  "updated_at": "2026-10-09T13:19:28.895881Z"
 }
