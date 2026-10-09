@@ -164,7 +164,7 @@
     "impl:fn-229-flowers-placed-on-the-device.1": 0
   },
   "spec_path": ".flow/specs/fn-229-flowers-placed-on-the-device.md",
-  "status": "open",
+  "status": "done",
   "title": "Flowers placed on the device",
   "tracker": {
     "baseHashFlow": null,
@@ -177,5 +177,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T13:40:18.801559Z"
+  "updated_at": "2026-10-08T22:38:02.985062Z"
 }

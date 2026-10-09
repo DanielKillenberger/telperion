@@ -18,6 +18,9 @@ use crate::transcendental::Transcendental;
 pub enum Scale {
     /// By its value: an angle, a probability, a share or a count.
     Linear,
+    /// By its value, rounded to the nearest whole: a count that only
+    /// whole values state (fn-223's cluster leaves).
+    Whole,
     /// By the log of its value above `floor`: a positive magnitude.
     Log { floor: f64 },
     /// By the share 1 / (1 + value) it keeps: a delay that may be infinite.
@@ -27,7 +30,7 @@ pub enum Scale {
     Outcome,
 }
 
-use Scale::{Kept, Linear, Log, Outcome};
+use Scale::{Kept, Linear, Log, Outcome, Whole};
 
 /// A stop's outcomes, by the settings that give them: the chance it
 /// stops (abortion) or carries on (the others), and the relay's share of
@@ -64,6 +67,9 @@ pub const SCALES: &[(&str, Scale)] = &[
     ("leaf_area", Log { floor: 1e-4 }),
     // fn-216: a share of nodes, by value.
     ("flowering", Linear),
+    // fn-223: a whole count of leaves, and an angle, by value.
+    ("cluster_leaves", Whole),
+    ("cluster_spread", Linear),
     ("shade_hazard", Linear),
     ("shade_size", Linear),
     ("apical_control", Linear),
@@ -114,6 +120,7 @@ impl Scale {
         let lerp = |x: f64, y: f64| x + (y - x) * t;
         match self {
             Linear | Outcome => lerp(a, b),
+            Whole => lerp(a, b).round(),
             // Never below the lesser end, which rounding could leave.
             Log { floor } => {
                 let mixed =
@@ -158,6 +165,8 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         straightening,
         leaf_area,
         flowering,
+        cluster_leaves,
+        cluster_spread,
         shade_hazard,
         shade_size,
         apical_control,
@@ -206,6 +215,8 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         ("straightening", straightening),
         ("leaf_area", leaf_area),
         ("flowering", flowering),
+        ("cluster_leaves", cluster_leaves),
+        ("cluster_spread", cluster_spread),
         ("shade_hazard", shade_hazard),
         ("shade_size", shade_size),
         ("apical_control", apical_control),
@@ -291,5 +302,22 @@ mod tests {
         let mid = scale("form.pipe").unwrap().mix(a, b, 0.5);
         assert!((mid - ((a + 1e-5) * (b + 1e-5)).sqrt() + 1e-5).abs() < 1e-12);
         assert!(mid < (a + b) / 2.0 / 5.0, "{mid}");
+    }
+
+    /// A walk between whole cluster counts stays whole (fn-223): from none
+    /// to three leaves every step is a valid species, its count rising.
+    #[test]
+    fn a_walk_between_cluster_counts_stays_whole() {
+        let a = beech();
+        let mut b = beech();
+        b.states[14].cluster_leaves = 3.0;
+        let mut last = 0.0;
+        for k in 0..=20 {
+            let walked = crate::blend(&a, &b, f64::from(k) / 20.0).unwrap();
+            let n = walked.states[14].cluster_leaves;
+            assert!(n.fract() == 0.0 && n >= last, "{n} after {last}");
+            last = n;
+        }
+        assert_eq!(last, 3.0);
     }
 }

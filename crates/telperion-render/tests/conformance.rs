@@ -111,7 +111,7 @@ fn draws(
     renderer: &mut Renderer,
     value: &Value,
     size: u32,
-) -> Result<(Submitted, FrameStats), telperion_core::Error> {
+) -> Result<(Submitted, FrameStats, usize), telperion_core::Error> {
     let family = params::parse(value)?;
     let tree = mesh::build(&family)?;
     let submitted = renderer
@@ -123,15 +123,20 @@ fn draws(
         still.has_subject(),
         "the still is one flat colour: not even the room was drawn"
     );
-    Ok((submitted, still.stats))
+    Ok((submitted, still.stats, florets(&tree)))
+}
+
+/// The florets a tree's flowers place, drawn as instances beside its leaves.
+fn florets(tree: &mesh::TreeMesh) -> usize {
+    tree.organ.as_ref().map_or(0, |o| o.instances.len())
 }
 
 /// The room is always in the frame, so a still that is not flat proves nothing
 /// about the tree. What the tree itself drew is in the frame statistics: its
-/// wood and its whole crown. (A frame's triangles no longer exceed the CPU
+/// wood and its whole crown, the leaves and any florets. (A frame's triangles no longer exceed the CPU
 /// wood's: the GPU surfaces the wood's curve at the screen's error, fn-208,
 /// and an engine tree's fine wood outnumbers what a small view draws.)
-fn drew_the_tree(id: &str, submitted: &Submitted, stats: &FrameStats) {
+fn drew_the_tree(id: &str, submitted: &Submitted, florets: usize, stats: &FrameStats) {
     assert!(
         submitted.wood_triangles > 0 && submitted.foliage_instances > 0,
         "{id} generated {} wood triangles and {} placements: there is no tree to draw",
@@ -139,7 +144,8 @@ fn drew_the_tree(id: &str, submitted: &Submitted, stats: &FrameStats) {
         submitted.foliage_instances
     );
     assert_eq!(
-        stats.instances, submitted.foliage_instances as u32,
+        stats.instances,
+        (submitted.foliage_instances + florets) as u32,
         "{id} drew a different crown from the one it submitted"
     );
 }
@@ -164,7 +170,7 @@ fn every_shipped_family_renders_through_the_one_path() {
             still.has_subject(),
             "{id} came out as flat background: nothing of it was drawn"
         );
-        drew_the_tree(id, &submitted, &still.stats);
+        drew_the_tree(id, &submitted, florets(&tree), &still.stats);
     }
 }
 
@@ -190,7 +196,7 @@ fn parameter_sets_nobody_wrote_by_hand_render_the_same_way() {
         match draws(&mut renderer, &value, 96) {
             // A set the generator will not have is refused, never drawn blank.
             Err(_) => refused += 1,
-            Ok((submitted, stats)) => {
+            Ok((submitted, stats, florets)) => {
                 // A jitter can also land on a family with nothing to hang a
                 // leaf on: a three metre envelope carrying a third of itself as
                 // bare trunk, over a twig anatomy whose wood never thins to the
@@ -204,7 +210,8 @@ fn parameter_sets_nobody_wrote_by_hand_render_the_same_way() {
                     leafless += 1;
                     continue;
                 }
-                drew_the_tree(&format!("set {attempts} from {id}"), &submitted, &stats);
+                let set = format!("set {attempts} from {id}");
+                drew_the_tree(&set, &submitted, florets, &stats);
                 rendered += 1;
             }
         }

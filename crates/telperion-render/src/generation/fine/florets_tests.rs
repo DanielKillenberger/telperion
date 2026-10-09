@@ -76,6 +76,7 @@ pub(super) fn flowering(id: &str, (age, seed): (u32, u32)) -> Family {
         opens: 0.3,
         lasts: 0.08,
         stagger: 0.3,
+        ..BloomParams::default()
     };
     family
 }
@@ -241,7 +242,7 @@ fn florets_on_the_device_match_the_whole_tree() {
 /// telperion-render florets_at_80 -- --ignored --nocapture`, under the GPU
 /// lock, `PROBE=norway-spruce:80:1`, one tree a process). Reported, not held.
 #[test]
-#[ignore]
+#[ignore = "device limits: a tree at 80 on the device"]
 fn florets_at_80() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;

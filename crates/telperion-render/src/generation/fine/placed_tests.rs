@@ -80,13 +80,25 @@ pub(super) fn reference(
         })
         .collect();
     let mut m = Metrics::default();
-    let wood = pollster::block_on(gen.emit_positions(shared.into_surface(), &mut m));
-    let wood = wood.unwrap().expect("the reference's ring positions");
+    // Leaves that seat on nothing read no ring positions, as on the real
+    // path (`resident.rs`).
+    let rings = match x.seats() {
+        true => {
+            let wood = pollster::block_on(gen.emit_positions(shared.into_surface(), &mut m));
+            wood.unwrap()
+                .expect("the reference's ring positions")
+                .positions
+        }
+        false => {
+            let usage = wgpu::BufferUsages::STORAGE;
+            io::buffer(&gen.gpu, "no ring positions", 16, usage, &[]).unwrap()
+        }
+    };
     let p = PreparedStations {
         segments: theirs.segments,
         count: theirs.count,
         ring_size: theirs.ring_size,
-        rings: crate::buffer::Lent::Borrowed(&wood.positions),
+        rings: crate::buffer::Lent::Borrowed(&rings),
     };
     let (l, e) = (x.leaves(), x.element());
     let r = pollster::block_on(gen.compute_buffer_async(p, &l, x.twig(), e, x.reference(), &mut m));
@@ -480,7 +492,7 @@ fn fine_roots_are_seated_on_the_device() {
 /// telperion-render seated_at_40_and_80 -- --ignored --nocapture`, under
 /// the GPU lock). Reported, not held.
 #[test]
-#[ignore]
+#[ignore = "device limits: a tree at 80 on the device"]
 fn seated_at_40_and_80() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;

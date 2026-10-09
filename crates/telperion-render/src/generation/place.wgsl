@@ -88,13 +88,17 @@ fn written(index:u32, words:vec3<u32>, live:bool, lane:u32) {
 // and its transform at its size, packed against the box.
 fn floret_words(index:u32) -> vec3<u32> {
     var lo=0u; var hi=config.counts.y;
+    // cap: each step halves hi - lo, a u32, so 32 steps at most.
     while lo+1u<hi { let mid=lo+(hi-lo)/2u; if segments[mid].range.x<=index { lo=mid; } else { hi=mid; } }
     let r=segments[lo];
     let f=Flower(config.shape,config.lean,config.size);
     let key=r.range.zw;
     let ordinal=index-r.range.x;
     var i=0u; var seen=0u; var size=0.0;
+    // cap: the bloom's florets; past them the record is wrong, named.
+    let cap=u32(ceil(f.a.x));
     loop {
+        if i>=cap { atomicOr(&summary[1],2u); break; }
         size=floret_size(f,r.a.w,key,i);
         if floret_kept(size) { if seen==ordinal { break; } seen++; }
         i++;

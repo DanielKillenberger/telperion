@@ -10,7 +10,8 @@
 //! date palm, whose size is in fronds and not laterals, can come out smaller
 //! than either end. Light only removes growth, so the light-neutral counts
 //! bound a lit tree's from above.
-use telperion_space::{expected_counts, expected_kept, Species};
+use std::sync::Mutex;
+use telperion_space::{expected_grown, expected_kept, Species};
 
 use crate::{Error, Result};
 
@@ -20,8 +21,49 @@ const STEPS: usize = 64;
 /// The solve stops when the prediction is the target to this share.
 const TOLERANCE: f64 = 1e-12;
 
-/// A light-neutral predicted count of a species at an age.
-type Count = fn(&Species, u32) -> Result<f64>;
+/// The light-neutral predicted counts the size is matched on.
+#[derive(Clone, Copy, PartialEq)]
+enum Count {
+    Kept,
+    Grown,
+}
+
+impl Count {
+    fn of(self, species: &Species, age: u32) -> Result<f64> {
+        match self {
+            Count::Kept => kept(species, age),
+            Count::Grown => grown(species, age),
+        }
+    }
+
+    /// `of` an end of a walk: the same at every frame, so it is taken from
+    /// the ends a recent frame predicted, keyed by the species' every bit
+    /// (its `Debug`, which writes each number to round trip) and the age.
+    fn of_end(self, end: &Species, age: u32) -> Result<f64> {
+        let key = (self, age, format!("{end:?}"));
+        let lock = || ENDS.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        if let Some(&(.., n)) = lock()
+            .iter()
+            .find(|(c, a, k, _)| (*c, *a, k) == (key.0, key.1, &key.2))
+        {
+            return Ok(n);
+        }
+        let n = self.of(end, age)?;
+        let mut ends = lock();
+        if ends.len() == ENDS_HELD {
+            ends.remove(0);
+        }
+        ends.push((key.0, key.1, key.2, n));
+        Ok(n)
+    }
+}
+
+/// Ends' predictions held: both counts of a walk's two ends, and of the
+/// walk before it.
+const ENDS_HELD: usize = 8;
+
+/// Recently predicted ends, oldest first.
+static ENDS: Mutex<Vec<(Count, u32, String, f64)>> = Mutex::new(Vec::new());
 
 /// `shape` shrunk so neither its light-neutral expected kept nor grown
 /// phytomers at `age` pass the geometric mean of `ends`' weighted by their
@@ -32,8 +74,8 @@ pub fn sized(shape: Species, ends: &[(&Species, f64)], age: u32) -> Result<Speci
     if age == 0 {
         return Ok(shape);
     }
-    let kept = factor(&shape, ends, age, kept, 1.0)?;
-    let factor = factor(&shape, ends, age, grown, kept)?;
+    let kept = factor(&shape, ends, age, Count::Kept, 1.0)?;
+    let factor = factor(&shape, ends, age, Count::Grown, kept)?;
     Ok(if factor < 1.0 {
         scaled(&shape, factor)
     } else {
@@ -56,11 +98,11 @@ fn factor(
     }
     let (mut logs, mut total) = (0.0, 0.0);
     for &(end, share) in ends.iter().filter(|(_, share)| *share > 0.0) {
-        logs += share * count(end, age)?.ln();
+        logs += share * count.of_end(end, age)?.ln();
         total += share;
     }
     let target = logs / total;
-    let at = |x: f64| -> Result<f64> { Ok(count(&scaled(shape, x.exp()), age)?.ln() - target) };
+    let at = |x: f64| -> Result<f64> { Ok(count.of(&scaled(shape, x.exp()), age)?.ln() - target) };
     let top = ceiling.ln();
     let high = at(top)?;
     if high <= 0.0 {
@@ -122,8 +164,7 @@ fn kept(species: &Species, age: u32) -> Result<f64> {
 /// The species' expected grown phytomers at `age`, the shed ones included,
 /// with its light rows at 0.
 fn grown(species: &Species, age: u32) -> Result<f64> {
-    let counts = expected_counts(&neutral(species), age).map_err(refused)?;
-    Ok((0..species.states.len()).map(|pa| counts.total(pa)).sum())
+    expected_grown(&neutral(species), age).map_err(refused)
 }
 
 const REFUSED: Error = Error::InvalidInput("the predicted size of a blend");

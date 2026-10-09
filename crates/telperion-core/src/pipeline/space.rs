@@ -13,7 +13,9 @@
 //! it is the node's own.
 use super::GrowInput;
 use crate::math::Vec3;
-use crate::tree::{Attachment, Bloom, BudFate, Node, NodeIdentity, NodeKind, ShootState, Tree};
+use crate::tree::{
+    Attachment, Bloom, BudFate, Cluster, Node, NodeIdentity, NodeKind, ShootState, Tree,
+};
 use crate::{Error, Result};
 use telperion_space::{Origin, Request, Structure};
 
@@ -54,7 +56,7 @@ const FORK_AT: f64 = 0.7;
 /// with no engine species is refused by name, never grown another way
 /// (host decision 9).
 pub(super) fn grow(input: GrowInput) -> Result<Tree> {
-    let (species, request) = asked(input)?;
+    let (species, request) = asked(&input)?;
     let rows = pa_rows(species);
     let rows = (&input.space.trunk[..], &rows[..]);
     // A coarse tree keeps a structure above its cut, never the tree's
@@ -65,6 +67,7 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
         fits(&coarse.structure, KEPT)?;
         let (mut tree, drawn) = converted(&coarse.structure, (&[], &[]), rows);
         tree.stands = stands::convert(&coarse, &drawn);
+        scaled(&mut tree, input.supernatural.scale());
         return Ok(tree);
     }
     foreseen(species, request.age, KEPT)?;
@@ -75,39 +78,71 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     let (structure, fine, bases) =
         telperion_space::grow_marked(species, request).map_err(engine)?;
     fits(&structure, KEPT)?;
-    Ok(convert(&structure, (&fine, &bases), rows))
+    let mut tree = convert(&structure, (&fine, &bases), rows);
+    scaled(&mut tree, input.supernatural.scale());
+    Ok(tree)
 }
 
 /// The family's species settled with its fine roots grown and laid by
-/// `roots` (fn-212 task 7, host decision 1), and the rows its conversion
-/// reads: the trunk's PAs and each PA's internode. Never on the browser's
-/// ceiling: the executor holding the roots is what lifts it.
+/// `roots` (fn-212 task 7, host decision 1), and what its conversion
+/// reads: the trunk's PAs, each PA's row and the scale the tree is drawn
+/// at. Never on the browser's ceiling: the executor holding the roots is
+/// what lifts it.
 pub(super) async fn settled(
     input: GrowInput<'_>,
     roots: &mut dyn telperion_space::Roots,
-) -> Result<(telperion_space::Settled, Vec<usize>, Vec<PaRow>)> {
-    let (species, request) = asked(input)?;
+) -> Result<(telperion_space::Settled, Vec<usize>, Vec<PaRow>, f64)> {
+    let (species, request) = asked(&input)?;
     let plan = telperion_space::Plan::default();
     let settling = telperion_space::settle(species, request, plan, roots);
     let (settled, _) = settling.await.map_err(engine)?;
-    Ok((settled, input.space.trunk.clone(), pa_rows(species)))
+    let scale = input.supernatural.scale();
+    Ok((settled, input.space.trunk.clone(), pa_rows(species), scale))
 }
 
 /// `settled`'s structure above the cut and its roots laid on the CPU
 /// converted by the one conversion, each other root's attachment recorded
 /// and none of its wood drawn; each root's first axis's lineage (none:
-/// shed), and the roots laid on the CPU.
+/// shed), and the roots laid on the CPU; the tree drawn at `scale`.
 pub(super) fn part(
     settled: telperion_space::Settled,
     (trunk, rows): (&[usize], &[PaRow]),
+    scale: f64,
 ) -> (Tree, Vec<Option<u64>>, Vec<usize>) {
     let part = telperion_space::partial(settled);
-    let tree = convert(&part.structure, (&part.fine, &part.bases), (trunk, rows));
+    let mut tree = convert(&part.structure, (&part.fine, &part.bases), (trunk, rows));
+    scaled(&mut tree, scale);
     (tree, part.lineages, part.grounded)
 }
 
-/// The family's engine species and the request it grows by.
-fn asked(input: GrowInput<'_>) -> Result<(&telperion_space::Species, Request)> {
+/// The converted tree drawn at `scale` times its natural size (fn-217
+/// S1): every position and length once, and no orientation. The engine
+/// grew it, and the conversion took every decision of its topology, at the
+/// natural size, so the tree is the natural one enlarged.
+fn scaled(tree: &mut Tree, scale: f64) {
+    if scale == 1.0 {
+        return;
+    }
+    for n in &mut tree.nodes {
+        n.position = n.position * scale;
+        n.radius *= scale;
+        n.start_radius *= scale;
+        n.base_radius *= scale;
+    }
+    for grown in &mut tree.grown {
+        *grown *= scale;
+    }
+    for s in &mut tree.stands {
+        (s.base, s.tip) = (s.base * scale, s.tip * scale);
+        (s.radius, s.reach) = (s.radius * scale, s.reach * scale);
+    }
+}
+
+/// The family's engine species and the request it grows by. The
+/// supernatural group's rows are judged here, whether or not it is on: the
+/// conversion reads its scale.
+fn asked<'a>(input: &'a GrowInput<'_>) -> Result<(&'a telperion_space::Species, Request)> {
+    input.supernatural.validate()?;
     let species = (input.space.species.as_ref()).ok_or(Error::InvalidInput("no engine species"))?;
     let age = input.age;
     if age.fract() != 0.0 || !(0.0..=f64::from(u32::MAX)).contains(&age) {
@@ -127,13 +162,15 @@ fn asked(input: GrowInput<'_>) -> Result<(&telperion_space::Species, Request)> {
 }
 
 /// Each PA's row the conversion reads: its internode length and spread
-/// (fn-222), which each node's grown wood is measured by, and the share of
-/// its nodes that flower (fn-216).
+/// (fn-222), which each node's grown wood is measured by, the share of
+/// its nodes that flower (fn-216), and the leaves at each of its axes'
+/// tips and their fan (fn-223).
 #[derive(Debug, Clone, Copy)]
 pub(super) struct PaRow {
     internode: f64,
     spread: f64,
     flowering: f64,
+    cluster: (u32, f64),
 }
 
 /// Each PA's row (`PaRow`).
@@ -143,6 +180,8 @@ fn pa_rows(species: &telperion_space::Species) -> Vec<PaRow> {
             internode: s.internode,
             spread: s.form.internode_spread,
             flowering: s.flowering,
+            // Whole, 0 to 8, by the species' own check.
+            cluster: (s.cluster_leaves as u32, s.cluster_spread),
         })
         .collect()
 }
@@ -271,7 +310,9 @@ fn joint(
 /// codominant fork of the trunk, are both stem. `rows` is each PA's row:
 /// its internode length, which each node's grown wood is measured by, and
 /// its flowering share; a drawn node of an age that flowers (none past its
-/// end) is kept as a bloom.
+/// end) is kept as a bloom. An axis of an age that states a cluster is a
+/// short shoot: each node it draws is marked, and its last drawn node, its
+/// own tip, keeps the cluster; an axis that draws no node bears none.
 fn convert(
     structure: &Structure,
     marks: (&[bool], &[(u64, f64)]),
@@ -292,6 +333,10 @@ fn converted(
     let mut attachments = Vec::new();
     let mut nodes = vec![Node::root()];
     let mut blooms = Vec::new();
+    let mut clusters = Vec::new();
+    // Each node's mark, kept only where some age states a cluster.
+    let clustering = rows.iter().any(|r| r.cluster.0 > 0);
+    let mut clustered = vec![false; usize::from(clustering)];
     // Whether each node is a fine root's.
     let mut in_root = vec![false];
     let mut frames = vec![[0.0f32; 6]];
@@ -384,7 +429,10 @@ fn converted(
         // The wood grown since the axis's last node: the internodes merged
         // into a node are carried on to the next one drawn.
         let PaRow {
-            internode, spread, ..
+            internode,
+            spread,
+            cluster,
+            ..
         } = rows[axis.pa];
         let mut pending = 0.0;
         for (place, p) in axis
@@ -459,6 +507,16 @@ fn converted(
             made = true;
             drawn[i].push(parent);
             nodes.push(node);
+            if clustering {
+                clustered.push(cluster.0 > 0);
+            }
+        }
+        if made && cluster.0 > 0 {
+            clusters.push(Cluster {
+                node: parent,
+                leaves: cluster.0,
+                spread: cluster.1,
+            });
         }
         // An axis with no drawn phytomers ends where it starts, and only a
         // whole axis is carried on.
@@ -505,11 +563,15 @@ fn converted(
         keys,
         grown: lengths,
         blooms,
+        clusters,
+        clustered,
         ..Tree::default()
     };
     (tree, drawn)
 }
 
+#[cfg(test)]
+mod cluster_tests;
 #[cfg(test)]
 mod coarse_tests;
 mod stands;

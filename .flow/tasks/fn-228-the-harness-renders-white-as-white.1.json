@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-228-the-harness-renders-white-as-white",
   "spec_path": ".flow/tasks/fn-228-the-harness-renders-white-as-white.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement the harness renders white as white",
   "updated_at": "2026-10-08T10:24:44.033114Z"
 }

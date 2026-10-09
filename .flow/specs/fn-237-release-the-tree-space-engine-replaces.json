@@ -1,0 +1,39 @@
+{
+  "branch_name": "fn-237-release-the-tree-space-engine-replaces",
+  "created_at": "2026-10-08T22:24:43.589884Z",
+  "depends_on_epics": [
+    "fn-198-tree-space-f-the-engine-in-production",
+    "fn-213-tree-space-the-silver-birch-as-a-point",
+    "fn-214-the-field-from-the-structure-above-the",
+    "fn-217-tree-space-the-supernatural-group-on",
+    "fn-218-tree-space-laurelin",
+    "fn-219-tree-space-telperion",
+    "fn-223-leaves-cluster-at-the-engines-short",
+    "fn-226-light-read-from-the-crowns-outline-per",
+    "fn-227-the-field-module-under-its-size-budget",
+    "fn-231-the-engines-walk-is-continuous-at-its",
+    "fn-234-blossom-shows-from-a-distance",
+    "fn-235-the-harness-never-hangs-the-gpu",
+    "fn-236-tree-space-the-oregon-white-oaks-crown",
+    "fn-238-a-blend-between-species-solves-in-about"
+  ],
+  "id": "fn-237-release-the-tree-space-engine-replaces",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-237-release-the-tree-space-engine-replaces.md",
+  "status": "open",
+  "title": "Release: the tree-space engine replaces 0.1.4, everywhere",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T02:29:19.038891Z"
+}

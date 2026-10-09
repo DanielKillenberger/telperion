@@ -8,6 +8,9 @@ mod data;
 // draws and places a tree's fine roots on the device (fn-212 task 10),
 // every readback awaited, natively and in a browser (host decision 1).
 mod fine;
+pub use fine::Admitted;
+#[cfg(target_arch = "wasm32")]
+pub(crate) use fine::BROWSER;
 mod io;
 mod positions;
 mod preparation;
@@ -153,6 +156,9 @@ pub struct Generator {
     /// A test's device error, raised inside the next device build.
     #[cfg(test)]
     fail_next: std::cell::Cell<bool>,
+    /// A test's device budget, held to as a browser holds to its own.
+    #[cfg(test)]
+    budget: std::cell::Cell<Option<u64>>,
 }
 impl Generator {
     /// Live tree buffers only; excludes textures, pipelines and driver allocations.
@@ -212,6 +218,8 @@ impl Generator {
             fine: std::cell::OnceCell::new(),
             #[cfg(test)]
             fail_next: Default::default(),
+            #[cfg(test)]
+            budget: Default::default(),
         })
     }
     #[cfg(not(target_arch = "wasm32"))]

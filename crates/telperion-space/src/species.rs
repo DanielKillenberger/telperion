@@ -54,6 +54,8 @@ const MAX_BEND_LENGTH: f64 = 1_000.0;
 const MAX_LEAF_AREA: f64 = 1.0;
 /// The steepest response of a hazard or a size to shade.
 const MAX_SHADE: f64 = 10.0;
+/// The most leaves one short shoot's cluster carries (fn-223).
+pub const MAX_CLUSTER_LEAVES: f64 = 8.0;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Species {
@@ -140,6 +142,15 @@ pub struct PaState {
     /// 1). The engine grows nothing of it; the pipeline's expansion draws
     /// the flowers. Neutral 0, flowerless.
     pub flowering: f64,
+    /// Whole leaves at the tip of each axis of this PA, which then bears
+    /// no leaf along its length: a short shoot's cluster (fn-223). The
+    /// engine grows nothing of it; the pipeline's expansion seats the
+    /// leaves. Neutral 0, leaves along the shoot as before.
+    pub cluster_leaves: f64,
+    /// Radians either side of its tip's level bearing a cluster's leaves
+    /// fan across: pi / 2 is a half circle, 0 stacks them. Dormant without
+    /// `cluster_leaves`.
+    pub cluster_spread: f64,
     /// How shade raises an apex's yearly death hazard: its survival is
     /// its viability to the power light^-shade_hazard, so ln survival =
     /// ln viability times light^-φ (host, 2026-10-05). Neutral 0; dormant
@@ -501,9 +512,16 @@ impl Zone {
         self.buds.ceil() as usize
     }
 
-    /// The share of bud place `slot`: 1 for a whole one, the fraction of
-    /// `buds` for the last.
+    /// The chance bud place `slot` stands: 1 for a whole one, the fraction
+    /// of `buds` for the last, a making draw (fn-231).
     pub(crate) fn share(&self, slot: usize) -> f64 {
         (self.buds - slot as f64).min(1.0)
+    }
+
+    /// Its whole bud places a node, and the chance the last, a fraction,
+    /// stands: none where every place is whole.
+    pub(crate) fn whole_places(&self) -> (i32, f64) {
+        let whole = self.buds.floor();
+        (whole as i32, self.buds - whole)
     }
 }

@@ -51,6 +51,8 @@ pub fn species() -> Species {
         rhythm: 1.0,
         leaf_area: 0.0,
         flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
@@ -83,6 +85,8 @@ pub fn species() -> Species {
         rhythm: 1.0,
         leaf_area: 0.0,
         flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
@@ -119,6 +123,8 @@ pub fn species() -> Species {
         rhythm: 1.0,
         leaf_area: 0.0,
         flowering: 0.0,
+        cluster_leaves: 0.0,
+        cluster_spread: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
@@ -455,6 +461,20 @@ pub fn settings() -> Vec<Setting> {
             move |s, v| s.states[pa].lifespan = v,
         ));
     }
+    // fn-231: a node count walked where a lifespan's fraction cuts a unit,
+    // the limb living six and a half cycles: its last unit lays half its
+    // zone's present nodes, and a node the law starts to make adds a
+    // vanishing share, laying no other node whole (codex on fn-231).
+    all.push(setting(
+        "states[1].zones[0].nodes.mean, lifespan 6.5".into(),
+        0.5,
+        2.5,
+        false,
+        |s, v| {
+            s.states[1].lifespan = 6.5;
+            s.states[1].zones[0].nodes = NodeLaw::Poisson { mean: v };
+        },
+    ));
     // fn-206: the twigs' shedding delay between whole cycles.
     all.push(setting(
         "states[2].shedding".into(),

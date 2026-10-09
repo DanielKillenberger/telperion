@@ -86,7 +86,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub pitch_by_height: f64 = "pitchByHeight" "degrees"
             Bounds::closed(-180.0, 180.0) => [Grow] {
-            wire: 242,
+            wire: 237,
             check: value(Site::Habit, 21, "pitchByHeight"),
             applies: "needs `lateralOrders` of one or more",
             note: "The crown runs from `trunkHeight` to the envelope's height; the pitch it adds \
@@ -102,7 +102,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub ragged_reach: f64 = "raggedReach" "share of the room"
             Bounds::closed(0.0, 1.0) => [Grow] {
-            wire: 243,
+            wire: 238,
             check: value(Site::Habit, 22, "raggedReach"),
             applies: "needs `lateralOrders` of one or more: only first-order laterals probe \
                 their room",
@@ -276,7 +276,7 @@ crate::catalogue::rows! {
         /// primary leans by what `forkLeanSpread` leaves it of this.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_fork_lean"))]
         pub fork_lean: f64 = "forkLean" "degrees" Bounds::closed(0.0, 45.0) => [Grow] {
-            wire: 244,
+            wire: 239,
             check: input(Site::Habit, 23, "fork lean"),
             applies: "`codominance` zero",
             note: "Defaults to 26 so that `codominance` builds on its own: fn-170's plane \
@@ -292,7 +292,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub fork_lean_spread: f64 = "forkLeanSpread" "share"
             Bounds::closed(0.0, 1.0) => [Grow] {
-            wire: 245,
+            wire: 240,
             check: input(Site::Habit, 24, "fork lean spread"),
             applies: "`codominance` zero, or `forkLean` zero",
             note: "Replaces `stemLeanSpread`.",

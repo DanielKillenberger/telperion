@@ -195,3 +195,124 @@ fn every_floret_packs_inside_its_box() {
         assert!(d < 1e-3, "floret {i} moved {d} in packing");
     }
 }
+
+/// A positive petal curl flares the tips away from the floret's axis, the
+/// way a horn's mouth opens (DESIGN.md 9.1); zero is today's petal.
+#[test]
+fn a_positive_curl_flares_the_petal_tips_away_from_the_axis() {
+    let at = |petal_curl| {
+        let p = BloomParams {
+            open: 20.0,
+            petal_curl,
+            ..raceme()
+        };
+        element(&p).unwrap()
+    };
+    let flat = at(0.0);
+    assert_eq!(
+        format!("{flat:?}"),
+        format!("{:?}", element(&raceme_open(20.0)).unwrap())
+    );
+    // The first petal's tip: of its vertices, the farthest from the base.
+    let n = flat.positions.len() / 5;
+    let tip = (0..n)
+        .max_by(|&a, &b| {
+            flat.positions[a]
+                .length()
+                .total_cmp(&flat.positions[b].length())
+        })
+        .unwrap();
+    // The first petal opens toward +X, so its tip's x is how far out it is.
+    let reach = |e: &Element| e.positions[tip].x;
+    let (out, flat_out) = (reach(&at(0.8)), reach(&flat));
+    assert!(out > 1.5 * flat_out, "flared {out}, flat {flat_out}");
+    assert!(reach(&at(-0.8)) < reach(&flat));
+}
+
+fn raceme_open(open: f64) -> BloomParams {
+    BloomParams { open, ..raceme() }
+}
+
+/// Stamens (fn-217 F2): a ring of filaments, each one quad from the
+/// floret's centre, coloured as the eye by their coordinates; none at zero,
+/// the last grown in by the count's fraction, and dropped at a level whose
+/// deviation reaches their length.
+#[test]
+fn stamens_stand_in_a_ring_by_degree_and_leave_the_coarse_levels() {
+    let at = |stamens| {
+        let p = BloomParams {
+            stamens,
+            stamen_length: 0.006,
+            stamen_width: 0.0004,
+            ..raceme()
+        };
+        element(&p).unwrap()
+    };
+    let none = at(0.0);
+    assert_eq!(
+        format!("{none:?}"),
+        format!("{:?}", element(&raceme()).unwrap())
+    );
+    let five = at(5.0);
+    let (petals, added) = (
+        none.positions.len(),
+        five.positions.len() - none.positions.len(),
+    );
+    assert_eq!(added, 5 * 4);
+    let ring = &five.positions[petals..];
+    let reach = ring.iter().map(|v| v.length()).fold(0.0, f64::max);
+    assert!((reach - 0.006).abs() < 1e-4, "reach {reach}");
+    assert!(five.coords[2 * petals..].chunks(2).all(|c| c[0] == 0.0));
+    // A sixth grows in from nothing.
+    let more = at(5.001);
+    let sixth = &more.positions[petals + 20..];
+    assert!(
+        sixth.iter().all(|v| v.length() < 1e-4),
+        "the sixth stamen popped"
+    );
+    // The finest level keeps them; a level as coarse as a stamen is long
+    // drops them, and the ladder still narrows to the finest.
+    let finest = five.levels.last().unwrap();
+    assert_eq!(
+        &five.level_indices[finest.indices.start as usize..],
+        &five.indices[..]
+    );
+    for (l, base) in five.levels.iter().zip(&none.levels) {
+        let grown = (l.indices.end - l.indices.start) - (base.indices.end - base.indices.start);
+        let kept = if base.deviation < 0.006f64.hypot(0.0002) {
+            5 * 6
+        } else {
+            0
+        };
+        assert_eq!((grown, l.deviation), (kept, base.deviation));
+    }
+    five.validate().unwrap();
+}
+
+/// A stamen as wide as it is long reaches past its length: a level drops it
+/// only where its error reaches the farthest corner (review, fn-217 task 3).
+#[test]
+fn a_wide_stamen_is_kept_to_its_reach_not_its_length() {
+    let p = BloomParams {
+        stamens: 1.0,
+        stamen_length: 1e-4,
+        stamen_width: 0.01,
+        ..raceme()
+    };
+    let e = element(&p).unwrap();
+    let base = element(&raceme()).unwrap();
+    let reach = 1e-4f64.hypot(0.005);
+    for (l, b) in e.levels.iter().zip(&base.levels) {
+        let grown = (l.indices.end - l.indices.start) - (b.indices.end - b.indices.start);
+        assert_eq!(
+            grown,
+            if b.deviation < reach { 6 } else { 0 },
+            "deviation {}",
+            b.deviation
+        );
+    }
+    assert!(base
+        .levels
+        .iter()
+        .any(|b| b.deviation > 1e-4 && b.deviation < reach));
+}

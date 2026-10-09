@@ -67,13 +67,21 @@ const SWEEP_NODES: usize = 8_000;
 // fn-120's three skirt rows and its dead colour are the palm's too, held for
 // the same reason, and so are fn-144's two lattice rows.
 // fn-198 walks no pair of one preset with an engine species and one without
-// (the walk is refused), and the engine beech and oak no longer seat short
-// shoots or clump their limbs: the short shoots' spacing and the limb
-// clumping moved only between such pairs, so they are held. The shell depth
+// (the walk is refused), and the engine beech and oak no longer clump their
+// limbs: the limb clumping moved only between such pairs, so it is held. The shell depth
 // moves again between the ordinary tree and the beech (fn-215).
-// fn-221's six old-bark rows are stated by no preset yet (fn-213 owns the
-// birch's), so every table leaves them at their neutral and they are held.
-const HELD: [&str; 99] = [
+// fn-221's six old-bark rows are stated by the birch (fn-213), so the sweep
+// walks them.
+// fn-217's supernatural group is off on every preset but the Two Trees
+// (fn-218, fn-219), which state its scale, leaves, silver underside
+// (Telperion), florets and the petals' colours: the sweep walks those. The
+// rows both leave unset (the other ages' flowering, the window in the year)
+// are held. Telperion stands on the beech's rows (fn-219), so the scaffold's
+// growth, writhe, twig and surface rows only his old table moved are held
+// with the rest of the scaffold; the birch (fn-213) moves the envelope, the
+// clump, the peel, the curtain and the twig length, so the sweep walks
+// those. Every preset is now an engine preset, so every pair is walked.
+const HELD: [&str; 118] = [
     "/bloom/florets",
     "/bloom/rachis",
     "/bloom/droop",
@@ -86,19 +94,16 @@ const HELD: [&str; 99] = [
     "/bloom/petalWidth",
     "/bloom/petalWidest",
     "/bloom/petalCup",
+    "/bloom/petalCurl",
+    "/bloom/stamens",
+    "/bloom/stamenLength",
+    "/bloom/stamenWidth",
     "/bloom/scatter",
     "/bloom/opens",
     "/bloom/lasts",
     "/bloom/stagger",
-    "/material/bloomFrontRed",
-    "/material/bloomFrontGreen",
-    "/material/bloomFrontBlue",
-    "/material/bloomBackRed",
-    "/material/bloomBackGreen",
-    "/material/bloomBackBlue",
     "/canopy/clumpSystemOrder",
     "/canopy/limbClumping",
-    "/canopy/shortShootSpacing",
     "/canopy/rosetteFronds",
     "/canopy/rosetteDivergence",
     "/canopy/rosettePitch",
@@ -125,12 +130,6 @@ const HELD: [&str; 99] = [
     "/material/leafDeadRed",
     "/material/leafDeadGreen",
     "/material/leafDeadBlue",
-    "/material/matureRed",
-    "/material/matureGreen",
-    "/material/matureBlue",
-    "/material/matureFurrowStrength",
-    "/material/matureRadius",
-    "/material/matureSpan",
     "/canopy/clumpNeighbours",
     "/surface/socketContainment",
     "/skeleton/habit/reachProbeSteps",
@@ -144,6 +143,7 @@ const HELD: [&str; 99] = [
     "/radii/girthFall",
     "/skeleton/samplingAttemptsPerAttractor",
     "/radii/maxTaperExponent",
+    "/skeleton/bias/supernatural/enabled",
     "/skeleton/bias/supernatural/maxWritheMagnitude",
     "/skeleton/twigs/maxInternodes",
     "/skeleton/twigs/maxDroop",
@@ -173,6 +173,33 @@ const HELD: [&str; 99] = [
     "/surface/forkSocket",
     "/surface/forkSwell",
     "/surface/radialSegments",
+    "/supernatural/bloom/opens",
+    "/supernatural/bloom/lasts",
+    "/supernatural/bloom/stagger",
+    "/supernatural/flowering/age0",
+    "/supernatural/flowering/age1",
+    "/supernatural/flowering/age2",
+    "/supernatural/flowering/age3",
+    "/supernatural/flowering/age4",
+    "/supernatural/flowering/age5",
+    "/supernatural/flowering/age6",
+    "/supernatural/flowering/age7",
+    "/supernatural/flowering/age8",
+    "/supernatural/flowering/age9",
+    "/supernatural/flowering/age10",
+    "/supernatural/flowering/age11",
+    "/supernatural/flowering/age12",
+    "/supernatural/flowering/age13",
+    "/canopy/spacing",
+    "/skeleton/attractors",
+    "/skeleton/bias/supernatural/spiralRate",
+    "/skeleton/bias/supernatural/writheAmplitude",
+    "/skeleton/bias/supernatural/writheWavelength",
+    "/skeleton/growth/maxTurnPerStep",
+    "/skeleton/twigs/internodeFactor",
+    "/surface/lobeDepth",
+    "/surface/lobes",
+    "/surface/twistRate",
 ];
 
 fn family(id: &str) -> Family {

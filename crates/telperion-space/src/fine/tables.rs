@@ -4,7 +4,6 @@
 //! D3 and D18's node presences), so the kernel draws a unit's nodes, their
 //! order and their buds as `grow_unit` does.
 use crate::error::Result;
-use crate::fixed::presence::q;
 use crate::fixed::{grid, q32, q62, ticks};
 use crate::grow::alone::rules;
 use crate::grow::node_wood;
@@ -48,8 +47,9 @@ pub struct UnitZone {
     /// Per cycle, whether a node grown then may hold a sleeping bud that
     /// is expected to grow: `grow_unit`'s gate on `sleep`.
     pub sleeps: Vec<bool>,
-    /// Host decision 8: each bud place's share, Q32 (`Zone::share`), and
-    /// per cycle and PA a sleeping bud's window, Q32 (`decide::node`).
+    /// Each bud place's threshold, under which its `PLACED` draw makes it
+    /// stand (`lineage::placed`, fn-231), and per cycle and PA a sleeping
+    /// bud's window, Q32 (`decide::node`).
     pub placed: Vec<u64>,
     pub sleep_windows: Vec<Vec<i64>>,
 }
@@ -110,7 +110,7 @@ impl Units {
                             dormant,
                             wake,
                             sleeps,
-                            placed: (0..zone.places()).map(|k| q(zone.share(k))).collect(),
+                            placed: (0..zone.places()).map(|k| threshold(zone.share(k))).collect(),
                             sleep_windows,
                         }
                     })

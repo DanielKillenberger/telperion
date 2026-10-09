@@ -10,7 +10,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-216-tree-space-flowers-on-the-engine-path.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space: flowers on the engine path",
   "tracker": {
     "baseHashFlow": null,
@@ -23,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-07T08:45:39.084948Z"
+  "updated_at": "2026-10-08T22:38:04.688646Z"
 }

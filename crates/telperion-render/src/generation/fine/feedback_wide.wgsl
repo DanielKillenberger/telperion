@@ -191,10 +191,12 @@ fn xquotient(a: X, d: vec4<u32>) -> R8 {
         v[k] = (den[k / 2u] >> (16u * (k % 2u))) & 0xffffu;
     }
     var n = 8u;
-    while v[n - 1u] == 0u {
+    // cap: n stops at the one digit a nonzero divisor keeps.
+    while n > 1u && v[n - 1u] == 0u {
         n--;
     }
     var len = 16u;
+    // cap: len counts down from 16.
     while len > 0u && u[len - 1u] == 0u {
         len--;
     }
@@ -253,6 +255,8 @@ fn long_quotient(u_in: array<u32, 17>, v_in: array<u32, 8>, len: u32, n: u32) ->
         let head = (u[lo + n] << 16u) | u[lo + n - 1u];
         var qhat = head / top;
         var rhat = head - qhat * top;
+        // Knuth's D3: rhat grows by top >= 2^15 a step and ends it at
+        // 2^16. cap: qhat is corrected at most twice.
         loop {
             if qhat < 0x10000u && qhat * next <= ((rhat << 16u) | u[lo + n - 2u]) {
                 break;

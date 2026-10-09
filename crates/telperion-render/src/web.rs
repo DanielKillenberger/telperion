@@ -220,7 +220,7 @@ impl WebRenderer {
         // The material rides with the tree: these parameters state both, and a
         // tree drawn in the last tree's colours would be nobody's family.
         let submitted = live.renderer.submit(&mesh).map_err(js_error)?;
-        live.renderer.set_material(family.material);
+        live.renderer.set_family(&family);
         self.generation.borrow_mut().invalidate();
         Ok(submitted_json(&submitted))
     }
@@ -302,8 +302,13 @@ impl WebRenderer {
     }
 
     /// Draws one frame, unless the last one's work is still on the device.
+    /// A lost device is named, never drawn on: the page stops its frame loop
+    /// on the error and rebuilds on a fresh device only when asked (fn-235).
     pub fn frame(&self) -> std::result::Result<(), JsError> {
         let mut live = self.borrow()?;
+        if let Some(lost) = live.renderer.gpu().lost() {
+            return Err(js_error(lost));
+        }
         let order = std::sync::atomic::Ordering::Relaxed;
         if live.drawing.load(order) {
             return Ok(());

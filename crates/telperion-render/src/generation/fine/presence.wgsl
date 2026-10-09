@@ -83,7 +83,7 @@ fn push_unit(axis: u32, k: u32) -> u32 {
         return NONE;
     }
     let u = unit_base + n_units * UW;
-    for (var f = 4u; f < UW; f++) {
+    for (var f = 2u; f < UW; f++) {
         sleepers[u + f] = 0u;
     }
     sleepers[u] = axis;

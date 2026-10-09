@@ -34,7 +34,7 @@ impl Sleeper {
     /// bud as it wakes, `carried` there and reaching its stage by `reach`:
     /// its own draw's, by its place's share, and its bearer's carrying.
     pub fn made(&self, carried: f64, reach: f64) -> [f64; 2] {
-        [times(self.own, q(self.placed)), times(q(carried), q(reach))].map(real)
+        [self.own, times(q(carried), q(reach))].map(real)
     }
 }
 
@@ -48,12 +48,10 @@ pub(crate) struct Sleeper {
     pub slot: u8,
     pub whorl: f64,
     pub pa: usize,
-    /// Its lineage, its own draw's presence, Q32, over the window of the
-    /// expected wood it decides, and the share its bud place stands at (1
-    /// for a whole place).
+    /// Its lineage, and its own draw's and its place's presence, Q32, over
+    /// the window of the expected wood it decides.
     pub key: u64,
     pub own: u64,
-    pub placed: f64,
     /// The share of its first cycle it still slept, and the whole years
     /// before it, which it aged through.
     pub sleep: f64,
@@ -80,6 +78,7 @@ pub(crate) fn draw(
         return None;
     }
     let whole = years.floor();
+    let window = node_window(woods[pa]);
     let sleeper = Sleeper {
         parent,
         node,
@@ -88,8 +87,10 @@ pub(crate) fn draw(
         whorl: zone.buds,
         pa,
         key: key.0,
-        own: lineage::bud_presence(&zone.dormant, pa, key.draw(), node_window(woods[pa])),
-        placed: 1.0,
+        own: times(
+            lineage::bud_presence(&zone.dormant, pa, key.draw(), window),
+            lineage::place_presence(place, zone.share(usize::from(slot)), window),
+        ),
         sleep: years - whole,
         slept: whole as u32,
     };

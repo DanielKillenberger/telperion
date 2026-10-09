@@ -26,7 +26,7 @@ pub(super) const PL: usize = 26;
 pub(super) const SA: u32 = 70;
 #[cfg(test)]
 pub(super) const SP: u32 = 12;
-const GG: usize = 38;
+const GG: usize = 40;
 /// `settle.wgsl`'s passes.
 pub(super) const SCALES: usize = 0;
 pub(super) const GIRTHS: usize = 1;
@@ -84,6 +84,10 @@ pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
         out[4 + GG * pa + 22] = p.internode_spread as f32;
         out[4 + GG * pa + 23] = p.insertion_spread as f32;
         out[4 + GG * pa + 24] = p.tropism_spread as f32;
+        // The leaves each tip of the PA bears and their fan (fn-223), which
+        // `dress.wgsl` marks its clusters by.
+        out[4 + GG * pa + 38] = p.cluster_leaves as f32;
+        out[4 + GG * pa + 39] = p.cluster_spread as f32;
         // The girth's values as contract A takes them (`girth.wgsl`).
         let girth = [
             p.pipe,

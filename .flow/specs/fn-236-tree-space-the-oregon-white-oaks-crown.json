@@ -1,0 +1,311 @@
+{
+  "branch_name": "fn-236-tree-space-the-oregon-white-oaks-crown",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-08T22:18:40.150954Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-198-tree-space-f-the-engine-in-production"
+  ],
+  "id": "fn-236-tree-space-the-oregon-white-oaks-crown",
+  "impl_review_rounds": {
+    "fn-236-tree-space-the-oregon-white-oaks-crown.1": 0
+  },
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-08T22:27:26.133065Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "3f28d76587798e1faf42ca1ef95b22ea4d4d92c7df5bcc8172dc2db87ec7ee7d",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8da04a660a29759d54755c2e0cae9a5b",
+            "classification": "introduced",
+            "findingId": "finding-8da04a660a29759d54755c2e0cae9a5b",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b182ffdc58b8cfd0a07b4d29747ce457",
+            "classification": "introduced",
+            "findingId": "finding-b182ffdc58b8cfd0a07b4d29747ce457",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "79c8fe1a79d71e57ede2d823e608513ddb41f8c9",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 631337,
+      "output_sha256": "df1935c0c232ea7df0bf304bee802387082deb0a745d2aeba37c55ca661bf994",
+      "reservation_id": "5b3cc33c18ac4d8490b1cca6d2c37511",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T22:20:28.332541Z",
+      "tool_calls": 26,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "7c232e952ce94d24d8e60e9d18cd9589e89aab3c24d7515770d432eb7bd0ee49",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8da04a660a29759d54755c2e0cae9a5b",
+            "classification": "introduced",
+            "findingId": "finding-8da04a660a29759d54755c2e0cae9a5b",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b182ffdc58b8cfd0a07b4d29747ce457",
+            "classification": "introduced",
+            "findingId": "finding-b182ffdc58b8cfd0a07b4d29747ce457",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ee2370b220389618f94de61038a22f5b",
+            "classification": "introduced",
+            "findingId": "finding-ee2370b220389618f94de61038a22f5b",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "79c8fe1a79d71e57ede2d823e608513ddb41f8c9",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1679,
+      "output_sha256": "67cacbc935cf535ce047b7945d59e6699dd7ffd590ede0e7508bb7d74649b49b",
+      "reservation_id": "aab6f49222534a1ab5582023e84a143d",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T22:21:28.440985Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "38e87d9469e878e43917e6273b26e21065f70816ed4d1434315ddac6e951b13d",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8da04a660a29759d54755c2e0cae9a5b",
+            "classification": "introduced",
+            "findingId": "finding-8da04a660a29759d54755c2e0cae9a5b",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b182ffdc58b8cfd0a07b4d29747ce457",
+            "classification": "introduced",
+            "findingId": "finding-b182ffdc58b8cfd0a07b4d29747ce457",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ee2370b220389618f94de61038a22f5b",
+            "classification": "introduced",
+            "findingId": "finding-ee2370b220389618f94de61038a22f5b",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "52a660649439d08fa1b1b529b1985be92b5d5a5b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 912,
+      "output_sha256": "28418d65384d36ac416ab49070b87ad50d4c52d136c2e5ce8766085997fe43c3",
+      "reservation_id": "e36c5ec6510b46c6be1bb6e1cb913602",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T22:27:26.130680Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ac4e5e6a381592995cd0de6f4a2b1160ad3d3e37292cba064bcc859cd7474aa2",
+      "backend": "codex",
+      "base_sha": "e37348f032f0c3961dc2f3b963f3f06accc514bd",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-aa4b5790437c7527ea2a542bf55f5830",
+            "classification": "introduced",
+            "findingId": "finding-aa4b5790437c7527ea2a542bf55f5830",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6856a84d9a55381bf73cbdf22b1c027dc03765da",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 892,
+      "output_sha256": "4c0e67b1020704ed9127d4df5dcdc553fa5aeeb1c79dfb2db3763302cc3c7167",
+      "reservation_id": "b15fc66abc3f401c963abaae8b5a1a79",
+      "round_consumed": true,
+      "scope": "impl:fn-236-tree-space-the-oregon-white-oaks-crown.1",
+      "superseded_by": null,
+      "task": "fn-236-tree-space-the-oregon-white-oaks-crown.1",
+      "timestamp": "2026-10-09T01:07:58.299851Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "90d48865b297a6240576a7b5c0dcb8d228a6c1e640a0c5aee84d0678a013c555",
+      "backend": "codex",
+      "base_sha": "e37348f032f0c3961dc2f3b963f3f06accc514bd",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-aa4b5790437c7527ea2a542bf55f5830",
+            "classification": "introduced",
+            "findingId": "finding-aa4b5790437c7527ea2a542bf55f5830",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6627b40ff726cd2a736456b93fc46b66f6e6dbfa",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1093,
+      "output_sha256": "b70a12e8b968657bc47fe03629aa7a5b3b5de3c132c9401e084b8598ed0745ac",
+      "reservation_id": "c35a6eb1b966491f8c7ed3989c3f3e8d",
+      "round_consumed": true,
+      "scope": "impl:fn-236-tree-space-the-oregon-white-oaks-crown.1",
+      "superseded_by": null,
+      "task": "fn-236-tree-space-the-oregon-white-oaks-crown.1",
+      "timestamp": "2026-10-09T01:24:03.641310Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-236-tree-space-the-oregon-white-oaks-crown.1": 1,
+    "plan": 2,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-236-tree-space-the-oregon-white-oaks-crown.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-236-tree-space-the-oregon-white-oaks-crown.md",
+  "status": "open",
+  "title": "Tree space: the Oregon white oak's crown reads as an open-grown oak",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T01:24:03.643746Z"
+}

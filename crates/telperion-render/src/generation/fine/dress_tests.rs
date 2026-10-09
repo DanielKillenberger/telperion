@@ -187,7 +187,7 @@ pub(super) fn checked(name: &str, at: (u32, u32), p: &Probe) {
 /// (`cargo test --profile ci -p telperion-render dressed_at_40_and_80 --
 /// --ignored --nocapture`, under the GPU lock).
 #[test]
-#[ignore]
+#[ignore = "device limits: a tree at 80 on the device"]
 fn dressed_at_40_and_80() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;

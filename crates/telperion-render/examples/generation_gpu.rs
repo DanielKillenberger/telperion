@@ -113,7 +113,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let delivery = Instant::now();
         if render_mode {
             let renderer = renderer.as_mut().unwrap();
-            renderer.set_material(family.material);
+            renderer.set_family(&family);
             if let Some(p) = prepared {
                 renderer.submit_prepared(p)?;
             } else {

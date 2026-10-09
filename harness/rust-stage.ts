@@ -1,4 +1,5 @@
 import {
+  type Admission,
   createRenderer,
   type FrameStats,
   type Renderer,
@@ -34,6 +35,8 @@ export interface Stage {
    *  the generator's or the renderer's own message; the tree already on
    *  the canvas stays where it is. */
   setTreeGpu(family: string): Promise<Submitted>;
+  /** What the build does under the page's device budget (`Renderer.admission`). */
+  admission(family: string): Admission;
   setView(view: View): void;
   /** The sun, sky and ground the renderer is drawing under, its own default
    *  until something sets another. */
@@ -138,6 +141,7 @@ export async function createStage(
 
   return {
     setTreeGpu: (family) => renderer.setTreeGpu(family),
+    admission: (family) => renderer.admission(family),
     scene: () => renderer.scene(),
     setScene: (row) => { renderer.setScene(row); },
     setView: (view) => {

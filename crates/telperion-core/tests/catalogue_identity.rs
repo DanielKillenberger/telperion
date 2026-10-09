@@ -64,6 +64,75 @@
 //! the bit, and with the ordinary tree read as the default family each was
 //! fn-216's. The override and refusal digests read no ordinary tree and
 //! stayed fn-216's.
+//! fn-223 re-pinned all four for the short shoots' clusters: each engine
+//! age's new neutral `cluster_leaves` and `cluster_spread`, and the five
+//! retired `/canopy/shortShoot*` rows (the beech's four dormant ones with
+//! them). With `cluster_leaves: 0.0, cluster_spread: 0.0, ` stripped from
+//! the text and the five rows put back at each family's values (the
+//! beech's, else the default's; a walk's by their old blends, its ends
+//! unchanged), the family, walk and override digests were each fn-215's
+//! to the bit. The refusal digest pairs rows by index, so the deleted
+//! rows re-paired it. When fn-223 was merged onto fn-198 (after fn-230's
+//! sized blend) the family and walk digests were re-pinned once more, the
+//! two changes touching disjoint rows; every engine preset's grown tree
+//! (`space_hash`, four species at 40 and 80, seeds 1 and 7) was fn-198's
+//! to the bit (MERGE-223.md). The override and refusal digests are fn-223's.
+//! fn-217 re-pinned all four for the supernatural group (`/supernatural`):
+//! with the group stripped from each family's text and from the wire, the
+//! family, walk and override texts were each fn-215's and fn-216's to the
+//! byte, and every single-row refusal of every other row read as it did;
+//! only the refusal pairs, which pair rows by index, re-paired.
+//! fn-217 task 3 re-pinned all four for the floret's rows: `/bloom/petalCurl`,
+//! `stamens`, `stamenLength`, `stamenWidth`, their `/supernatural/bloom`
+//! overrides and the material's four `bloomEye*` rows. With those stripped
+//! from the text and the wire, the family, walk and override digests were
+//! each task 2's to the bit; the refusal digest takes the new rows' own
+//! refusals and re-pairs by index.
+//! When fn-217 was merged onto fn-198 (MERGE-217.md) all four were
+//! re-pinned once more: fn-217's rows and F4's are disjoint, and every
+//! engine preset's grown tree (`space_hash`, four species at 40 and 80,
+//! seeds 1 and 7) was F4's to the bit with the group present and off.
+//! fn-231 re-pinned the walk digest: the engine's walk counts a fractional
+//! bud place, shedding fade and lifespan-cut unit at its share, so the size
+//! a blend is solved to moves. The family digest is fn-223's again: every
+//! preset's rows are unchanged, the ordinary tree keeping its rows though a
+//! fresh solve would move them (host, 2026-10-09; ENDS.md). The beech's,
+//! spruce's, oak's and palm's grown trees (`space_hash`) are fn-198's to
+//! the bit.
+//! When fn-231 was merged onto fn-198 (MERGE-231.md) the walk digest was
+//! re-pinned once more, for fn-231's walk over F4's rows; the family,
+//! override and refusal digests are F4's, and every engine preset's grown
+//! tree (`space_hash`, four species at 40 and 80, seeds 1 and 7) was F4's to
+//! the bit.
+//! fn-218 re-pinned the family and walk digests for Laurelin's new rows: the
+//! beech's, at 80, with the supernatural group on. The override and refusal
+//! digests are unchanged.
+//! fn-238 re-pinned the walk digest: the size solve reads the grown
+//! phytomers as a running total, the table's sum added in another order, so
+//! four of its frames' factors move by at most 3.9e-16 in their log, inside
+//! the solve's 1e-12 (SOLVE.md); every strip frame that moved draws to the
+//! same bytes.
+//! When F4 (with fn-238) was merged onto fn-219 the walk digest was
+//! re-pinned once more, for fn-238's solve over fn-218's rows; the family,
+//! override and refusal digests are fn-218's, and every engine preset's
+//! grown tree (`space_hash`, four species at 40 and 80, seeds 1 and 7) was
+//! F4's to the bit (MERGE-231.md, MERGE-217.md).
+//! fn-219 re-pinned the family and walk digests for Telperion's new rows:
+//! the beech's, at 92, with the supernatural group on. The override and
+//! refusal digests are unchanged.
+//! fn-213's silver birch re-pinned the family, walk and override digests for
+//! its round-14 rows (the old-bark rows among them) on fn-223's clusters.
+//! When F4 was merged onto it (MERGE-F4.md) those three were re-pinned once
+//! more from the merged tree; the refusal digest is F4's. Every engine
+//! preset's grown tree (`space_hash`, four species at 40 and 80, seeds 1
+//! and 7) was F4's to the bit, and the birch's DBH was round 14's.
+//! fn-236 re-pinned the family, walk and override digests for the Oregon
+//! white oak's own rows (round 3: its `/space` rows and leaf rows); no other
+//! preset's value file moved.
+//! When Laurelin, Telperion, the birch and the oak were merged into F4
+//! (MERGE-SPECIES.md) the family, walk and override digests were re-pinned
+//! from the merged tree, each species' values its own branch's; the refusal
+//! digest is F4's.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -99,7 +168,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        7_479_809_179_514_851_386,
+        2_333_297_806_083_657_236,
         "{}",
         digest(&text)
     );
@@ -131,7 +200,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        4_247_907_124_043_262_165,
+        17_905_568_364_190_521_403,
         "{}",
         digest(&text)
     );
@@ -156,7 +225,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        1_375_746_499_999_063_417,
+        6_556_638_518_150_561_013,
         "{}",
         digest(&text)
     );
@@ -219,7 +288,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        12_063_149_108_300_327_074,
+        159_807_827_090_449_713,
         "{}",
         digest(&text)
     );

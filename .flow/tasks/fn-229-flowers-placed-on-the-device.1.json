@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-229-flowers-placed-on-the-device",
   "spec_path": ".flow/tasks/fn-229-flowers-placed-on-the-device.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement flowers placed on the device",
   "updated_at": "2026-10-08T12:04:47.255385Z"
 }

@@ -174,6 +174,13 @@ pub(crate) struct Draws {
     /// A failed unit's relay, whose first unit grows the rest of the cycle
     /// the unit failed in, drawn apart from it (fn-199 R1).
     pub rest: bool,
+    /// Carried on in the cycle the axis before it stopped in, growing the
+    /// rest of it (`Shoot::carry_on`): where its age ended there, a rest a
+    /// lifespan's fraction cuts (fn-231).
+    pub carried: bool,
+    /// The axis a sleeping bud grows in as it wakes (`Shoot::woke`), whose
+    /// first unit its waking draws and no lifespan's fraction cuts.
+    pub woke: bool,
     /// What its first unit holds below its ticks, in 2^-32 of a cycle:
     /// the part of a tick its failed unit's lived time was rounded up by
     /// (fn-199 B2).
@@ -200,6 +207,10 @@ pub(crate) struct Unit {
     pub persist: f64,
     /// The share of its cycle it grew (`schedule.rs`).
     pub share: f64,
+    /// The share of a whole node's length its nodes grow at: its share,
+    /// or whole where a lifespan's fraction cut it and it laid that share
+    /// of its nodes instead (fn-231).
+    pub size: f64,
 }
 
 impl Draws {
@@ -314,12 +325,13 @@ fn assign_one(axis: &mut Axis, draws: &Draws, living: Option<f64>) -> f64 {
         presences.push(real(times(running, grown)));
         let [size, light] = draws.shade(k);
         while j < axis.phytomers.len() && (axis.phytomers[j].cycle - birth - 1) as usize == k {
-            axis.phytomers[j].scale = real(times(times(running, q(draws.nodes[j])), grown));
+            let laid = q(unit.size);
+            axis.phytomers[j].scale = real(times(times(running, q(draws.nodes[j])), laid));
             axis.phytomers[j].grown = axis.phytomers[j].scale;
             axis.phytomers[j].size = size;
             axis.phytomers[j].light = light;
             axis.phytomers[j].rank = rank;
-            rank += draws.nodes[j] * unit.share;
+            rank += draws.nodes[j] * unit.size;
             j += 1;
         }
         running = times(running, q(unit.persist));

@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-226-light-read-from-the-crowns-outline-per",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "needs_work",
+  "completion_reviewed_at": "2026-10-08T18:40:39.845755Z",
   "created_at": "2026-10-08T08:14:39.561611Z",
   "default_impl": null,
   "default_review": null,
@@ -408,22 +408,122 @@
       "task": "fn-226-light-read-from-the-crowns-outline-per.4",
       "timestamp": "2026-10-08T12:30:25.439695Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "25edfff7ace376e9c1c7e1fe0c485a168fa2ac237c6a983462e66ceb96b86f95",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d30e9b7be589813b829ddb40822717ba",
+            "classification": "introduced",
+            "findingId": "finding-d30e9b7be589813b829ddb40822717ba",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "b3fd236d560824dd8ac9c8e500f10c687fcad712",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 592287,
+      "output_sha256": "df4180f6ffd7bc43b78d8ee5af65e4bfa87067ca7f5f3243f00286dc0fdcedee",
+      "reservation_id": "7d56d2cc2ae443758d04817624834a3b",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T18:39:01.865561Z",
+      "tool_calls": 25,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "126dd8c70c7be5732bb48284d8766f8ac762354f05d714bc676e8e5e726642a8",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d30e9b7be589813b829ddb40822717ba",
+            "classification": "introduced",
+            "findingId": "finding-d30e9b7be589813b829ddb40822717ba",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-5f9eb51fb1a709d499bf7bf323efdb40",
+            "classification": "introduced",
+            "findingId": "finding-5f9eb51fb1a709d499bf7bf323efdb40",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "e13ea88af2ae2da8a0f297d984ce1620d1c5c4b8",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 2608,
+      "output_sha256": "3b1731d9465f55147a49be206db329079b72ca2007c16be860f2eb821ac4b78c",
+      "reservation_id": "39189851e2c14d2fb29d3c2e7f41c188",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T18:40:39.842601Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-226-light-read-from-the-crowns-outline-per.2": 1,
-    "impl:fn-226-light-read-from-the-crowns-outline-per.4": 1
+    "impl:fn-226-light-read-from-the-crowns-outline-per.4": 1,
+    "plan": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-226-light-read-from-the-crowns-outline-per.2": 0,
     "impl:fn-226-light-read-from-the-crowns-outline-per.3": 0,
     "impl:fn-226-light-read-from-the-crowns-outline-per.4": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-226-light-read-from-the-crowns-outline-per.md",
-  "status": "open",
+  "status": "done",
   "title": "Light read from the crown's outline, per bud",
   "tracker": {
     "baseHashFlow": null,
@@ -436,5 +536,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T12:30:25.441878Z"
+  "updated_at": "2026-10-08T23:04:28.917174Z"
 }

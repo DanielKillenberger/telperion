@@ -163,6 +163,14 @@ fn frozen_parameters_resolve_without_default_substitution() {
             .unwrap()
             .remove("age")
             .expect("the family publishes its age");
+        // fn-217 adds the supernatural group, which the frozen file predates
+        // and states none of; off, as every natural family has it, it moves
+        // no geometry, so none is a geometry parameter left unsaid.
+        emitted
+            .as_object_mut()
+            .unwrap()
+            .remove("supernatural")
+            .expect("the family publishes its supernatural group");
         for trait_name in ["lobeCount", "lobeDepth", "sectionRoundness"] {
             emitted["element"]
                 .as_object_mut()
@@ -176,22 +184,6 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .unwrap()
                 .remove(trait_name)
                 .expect("the canopy publishes its lean and contact traits");
-        }
-        // fn-50 adds short shoots as five canopy rows. The frozen file
-        // predates them and states none; the spacing is zero there, which
-        // grows no short shoot, so none is a geometry parameter left unsaid.
-        for row in [
-            "shortShootSpacing",
-            "shortShootRadius",
-            "shortShootLength",
-            "shortShootLeaves",
-            "shortShootSpread",
-        ] {
-            emitted["canopy"]
-                .as_object_mut()
-                .unwrap()
-                .remove(row)
-                .expect("the canopy publishes its short-shoot rows");
         }
         // fn-109 adds the apical rosette and the pinnate grouping as ten
         // canopy rows. The frozen file predates them and states none; the

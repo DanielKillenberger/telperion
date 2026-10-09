@@ -60,6 +60,7 @@ pub struct Part {
     tree: Tree,
     pub lineages: Vec<Option<u64>>,
     pub grounded: Vec<usize>,
+    scale: f64,
 }
 
 /// Whether `family`'s fine roots settle on another executor (`settle`),
@@ -84,11 +85,12 @@ pub fn apart(family: &Family) -> std::result::Result<(), &'static str> {
 /// `Settling::part` converts. Each of the executor's phases is awaited
 /// (fn-212 task 10): natively the caller blocks on it, a browser awaits.
 pub async fn settle(family: &Family, roots: &mut dyn telperion_space::Roots) -> Result<Settling> {
-    let (settled, trunk, rows) = super::space::settled(GrowInput::of(family), roots).await?;
+    let (settled, trunk, rows, scale) = super::space::settled(GrowInput::of(family), roots).await?;
     Ok(Settling {
         settled,
         trunk,
         rows,
+        scale,
     })
 }
 
@@ -98,17 +100,19 @@ pub struct Settling {
     pub settled: telperion_space::Settled,
     trunk: Vec<usize>,
     rows: Vec<super::space::PaRow>,
+    scale: f64,
 }
 
 impl Settling {
     /// The part of the tree the pipeline converts.
     pub fn part(self) -> Part {
         let rows = (&self.trunk[..], &self.rows[..]);
-        let (tree, lineages, grounded) = super::space::part(self.settled, rows);
+        let (tree, lineages, grounded) = super::space::part(self.settled, rows, self.scale);
         Part {
             tree,
             lineages,
             grounded,
+            scale: self.scale,
         }
     }
 }
@@ -116,6 +120,11 @@ impl Settling {
 impl Part {
     pub fn tree(&self) -> &Tree {
         &self.tree
+    }
+    /// The scale this part was drawn at (fn-217 S1), which the executor
+    /// draws its own roots' wood at too.
+    pub fn scale(&self) -> f64 {
+        self.scale
     }
     /// The whole-tree folds over this part's nodes.
     pub fn folds(&self) -> Folds {

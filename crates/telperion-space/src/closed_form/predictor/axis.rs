@@ -2,6 +2,7 @@
 //! `kept/ends.rs`, the same operations in the same order on the two
 //! columns the count reads).
 use super::{both, maybe, times, whole, Bud, Ended, Parts, Table, Walk, ZoneParts, NONE};
+use crate::closed_form::along::Count;
 use crate::closed_form::events::Event;
 use crate::closed_form::kept::tilts;
 use crate::closed_form::steps::{End, Relay, Step};
@@ -41,7 +42,7 @@ impl Walk<'_> {
         end(step.failed, step.i - 1, NONE_RUN, NONE);
         for (l, table) in step.lived.iter().zip(&parts.lived) {
             let grown = (l.weight, &l.sleeping[..]);
-            let run = times(NONE_RUN, self.unit(k, (step.i, grown), &parts.zones, t));
+            let run = times(NONE_RUN, self.unit(k, (step.i, grown), (&parts.zones, 1.0), t));
             let child = whole(table.as_deref().expect("built"), t - l.relay.at as i64);
             end(
                 l.weight,
@@ -51,7 +52,8 @@ impl Walk<'_> {
             );
         }
         let grown = (step.grown, &step.sleeping[..]);
-        let run = times(NONE_RUN, self.unit(k, (step.i, grown), &parts.zones, t));
+        let zones = (&parts.zones[..], step.laid);
+        let run = times(NONE_RUN, self.unit(k, (step.i, grown), zones, t));
         match &step.end {
             None => {
                 let aborted = step.grown - step.after;
@@ -65,19 +67,29 @@ impl Walk<'_> {
             }
             Some(stop) => {
                 let e = age_end(stop, step.grown, parts, t);
-                end(step.grown, step.i, run, e);
+                // An age a lifespan's fraction ends inside its cycle ends
+                // its axis that share into it: in expectation, at its own
+                // cycle and the one before (`Step::ends_at`, fn-231).
+                let u = step.ends_at;
+                if u < 1.0 {
+                    end(step.grown * u, step.i, run, e);
+                    end(step.grown * (1.0 - u), step.i - 1, run, e);
+                } else {
+                    end(step.grown, step.i, run, e);
+                }
             }
         }
         (a, n)
     }
 
-    /// Unit `i`, grown with chance `grown` and bearing `sleeping`: its
-    /// factor and its phytomers on it.
+    /// Unit `i`, grown with chance `grown` and bearing `sleeping`, laying
+    /// `laid` of each zone's nodes (`Step::laid`): its factor and its
+    /// phytomers on it.
     fn unit(
         &self,
         k: usize,
         (i, (grown, sleeping)): (usize, (f64, &[Vec<Event>])),
-        zones: &[ZoneParts],
+        (zones, laid): (&[ZoneParts], f64),
         t: i64,
     ) -> Ended {
         let state = &self.species.states[k];
@@ -88,11 +100,18 @@ impl Walk<'_> {
             for (_, p, table) in &zp.laterals {
                 phi += p * (table.at(t - i as i64).0 - 1.0);
             }
-            let places = zone.places() as i32;
-            let f = phi.powi(places);
-            let (g, tilted, replaced) = tilts(&self.pmfs[k][zp.z], f, zone);
+            // Each whole place a factor phi; the last, a fraction `s`
+            // stands at, 1 + s (phi - 1) (fn-231).
+            let (whole, s) = zone.whole_places();
+            let psi = 1.0 + s * (phi - 1.0);
+            let f = if s > 0.0 { phi.powi(whole) * psi } else { phi.powi(whole) };
+            let pmf = &self.pmfs[k][zp.z];
+            let (g, tilted, replaced) = match laid < 1.0 {
+                true => tilts(&Count::laid_pmf(pmf, laid), f, zone),
+                false => tilts(pmf, f, zone),
+            };
             let mut h = tilted.moments().0 * g;
-            let others = phi.powi(places - 1);
+            let others = phi.powi(whole - 1);
             let n1 = replaced.moments().0;
             let mut low = 0.0;
             for (j, &p) in self.laterals[k][zp.z].iter().enumerate() {
@@ -104,12 +123,19 @@ impl Walk<'_> {
                 let Some(c) = table.at(t - i as i64).1 else {
                     continue;
                 };
-                // Place 0's buds, then one a node on every other place.
-                let mut buds = n1 * (band.1 - band.0);
-                for _ in 1..zone.places() {
-                    buds += n1 * p;
+                // Place 0's buds, then one a node on every other place;
+                // the last, a fraction's, apart.
+                let place = |slot: usize| n1 * if slot == 0 { band.1 - band.0 } else { p };
+                if whole > 0 {
+                    let mut buds = place(0);
+                    for slot in 1..whole as usize {
+                        buds += place(slot);
+                    }
+                    h += if s > 0.0 { others * psi } else { others } * (buds * c);
                 }
-                h += others * (buds * c);
+                if s > 0.0 {
+                    h += phi.powi(whole) * (s * place(whole as usize) * c);
+                }
             }
             run = times(run, (g, h));
             for (event, table) in sleeping[zp.z].iter().zip(&zp.woken) {

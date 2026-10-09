@@ -61,6 +61,12 @@ pub const TROPISM: u64 = u64::MAX - 12;
 /// A node's wander, under its node's key: apart from its places, so its
 /// wander and its placement are drawn apart (host, 2026-10-07).
 pub const WANDER: u64 = u64::MAX - 13;
+/// Whether a bud place a fraction of a node's buds makes stands, under
+/// the place's key (fn-231): a making draw at that fraction's chance.
+pub const PLACED: u64 = u64::MAX - 14;
+/// Whether the node a unit cut by a lifespan's fraction lays at a
+/// fraction stands, under the node's key (fn-231).
+pub const LAID: u64 = u64::MAX - 15;
 /// Whether a bloom flowers, under its node's key (fn-216); clear of the
 /// node's places, so a flower and a bud never draw alike.
 pub const BLOOM: u64 = 0x0b10_0000;
@@ -74,12 +80,16 @@ pub const FLORET: u64 = 0x0b10_0002;
 /// floret's key (fn-216).
 pub const FLORET_SIZE: u64 = 0;
 pub const FLORET_OPENING: u64 = 1;
+/// A short shoot's cluster, under its tip node's key (fn-223); its
+/// leaves draw by their index in it. Clear of the node's places and
+/// blooms.
+pub const CLUSTER: u64 = 0x0c10_0000;
 /// An axis carried on into an age, under its chain's lineage.
 pub const CONTINUATION: u64 = u64::MAX;
 
 /// Every key: its name, value and what it is drawn under. `ZONE` and
 /// `PLACE` stand for their spans.
-pub const ALL: [(&str, u64, Under); 23] = [
+pub const ALL: [(&str, u64, Under); 26] = [
     ("VIABILITY", VIABILITY, Under::Unit),
     ("ABORTION", ABORTION, Under::Unit),
     ("MOVE", MOVE, Under::Unit),
@@ -97,11 +107,14 @@ pub const ALL: [(&str, u64, Under); 23] = [
     ("INSERTION", INSERTION, Under::Lineage),
     ("TROPISM", TROPISM, Under::Lineage),
     ("WANDER", WANDER, Under::Node),
+    ("PLACED", PLACED, Under::Place),
+    ("LAID", LAID, Under::Node),
     ("BLOOM", BLOOM, Under::Node),
     ("BLOOM_ROLL", BLOOM_ROLL, Under::Node),
     ("FLORET", FLORET, Under::Node),
     ("FLORET_SIZE", FLORET_SIZE, Under::Floret),
     ("FLORET_OPENING", FLORET_OPENING, Under::Floret),
+    ("CLUSTER", CLUSTER, Under::Node),
     ("CONTINUATION", CONTINUATION, Under::Lineage),
 ];
 

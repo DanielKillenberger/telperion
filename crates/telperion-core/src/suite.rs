@@ -6,6 +6,8 @@
 mod catalogue;
 #[path = "suite/clump.rs"]
 mod clump;
+#[path = "suite/clusters.rs"]
+mod clusters;
 #[path = "suite/codominance.rs"]
 mod codominance;
 #[path = "suite/colonization.rs"]
@@ -60,8 +62,6 @@ mod pendulous;
 mod rosette;
 #[path = "suite/sag.rs"]
 mod sag;
-#[path = "suite/short_shoots.rs"]
-mod short_shoots;
 #[path = "suite/skirt.rs"]
 mod skirt;
 #[path = "suite/species.rs"]

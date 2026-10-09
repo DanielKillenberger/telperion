@@ -10,7 +10,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-212-tree-space-fine-geometry-dressed-on-the.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space: fine geometry dressed on the device",
   "tracker": {
     "baseHashFlow": null,
@@ -23,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-07T07:36:39.963414Z"
+  "updated_at": "2026-10-08T22:38:05.265268Z"
 }

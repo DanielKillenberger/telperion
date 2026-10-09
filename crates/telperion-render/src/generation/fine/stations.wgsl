@@ -6,10 +6,12 @@
 // carried along the run from its attachment's side (host decision,
 // 2026-10-07), tiles of 256 stations, contact rings read from the run the
 // curve swept each node in. A segment's leaves draw by its run's first
-// node's key, so the runs may be numbered in any order. Each fine node's
-// florets are counted beside its runs and scanned with them, and each
-// bloom that keeps one is written as a record placement reads (fn-229,
-// `blooms`).
+// node's key, so the runs may be numbered in any order. A short shoot's
+// tip is a run of its own (fn-223): one segment of its cluster's leaves,
+// drawing on the tip's cluster stream, and its wood bears no station.
+// Each fine node's florets are counted beside its runs and scanned with
+// them, and each bloom that keeps one is written as a record placement
+// reads (fn-229, `blooms`).
 
 struct Cfg {
     n: u32,
@@ -49,12 +51,17 @@ struct Cfg {
 const OW: u32 = 3u;
 
 const NONE: u32 = 0xffffffffu;
-const NW: u32 = 30u;
+const NW: u32 = 31u;
 const TW: u32 = 4u;
 const MADE: u32 = 2u;
 const LANDED: u32 = 4u;
 const FINE: u32 = 8u;
 const SEAM: u32 = 16u;
+// A short shoot's node and its tip, its leaves from `LEAVES` up
+// (`dress.wgsl`).
+const CLUSTERED: u32 = 32u;
+const TIP: u32 = 64u;
+const LEAVES: u32 = 8u;
 // A node's station words: its children, its bearing children that are not
 // seams and the last of them, and whether it bears.
 const SW: u32 = 4u;
@@ -112,6 +119,20 @@ fn bears(i: u32) -> bool {
     return fine(i) && atomicLoad(&st[i * SW + 3u]) != 0u;
 }
 
+// A short shoot's tip the device seats a cluster at.
+// None where the canopy bears no leaves, though the tree may flower.
+fn tip(i: u32) -> bool {
+    return cfg.leaves != 0u && fine(i) && (word(i, 9u) & TIP) != 0u;
+}
+
+// The 32-bit finaliser (`tree::mix32`).
+fn mix32(v: u32) -> u32 {
+    var z = v;
+    z = (z ^ (z >> 16u)) * 0x21f0aaadu;
+    z = (z ^ (z >> 15u)) * 0x735a2d97u;
+    return z ^ (z >> 15u);
+}
+
 @compute @workgroup_size(64)
 fn kids(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = index(id);
@@ -129,6 +150,10 @@ fn bear(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     let radius = nodes[i * NW + 3u];
     let start = nodes[i * NW + 4u];
+    // A short shoot bears its leaves at its tip alone.
+    if (word(i, 9u) & CLUSTERED) != 0u {
+        return;
+    }
     let twig = radius < cfg.structural && atomicLoad(&st[i * SW]) == 0u;
     // In whole micrometres, as the CPU executor compares them (task 10).
     let slender = cfg.slender > 0u && micrometres(max(start, radius)) <= cfg.slender;
@@ -161,16 +186,19 @@ fn next(at: u32) -> u32 {
     return NONE;
 }
 
-// Whether node `i` starts a bearing run.
+// Whether node `i` starts a bearing run, or is a tip's.
 fn starts_run(i: u32) -> bool {
-    return bears(i) && !continues(parent(i), i);
+    return (bears(i) && !continues(parent(i), i)) || tip(i);
 }
 
 // The stub a fine node's root is drawn from: up its parents to the first
 // node that is not a fine root's.
 fn stub(i: u32) -> u32 {
     var at = i;
-    while (word(at, 9u) & FINE) != 0u {
+    // cap: the nodes; no path up is longer.
+    var cap = arrayLength(&nodes) / NW;
+    while (word(at, 9u) & FINE) != 0u && cap > 0u {
+        cap -= 1u;
         at = parent(at);
     }
     return at;
@@ -208,6 +236,7 @@ fn starts(@builtin(global_invocation_id) id: vec3<u32>) {
 fn before(distance: u32, internodes: u32) -> u32 {
     var lo = 0u;
     var hi = internodes;
+    // cap: each step halves hi - lo, a u32, so 32 steps at most.
     while lo < hi {
         let mid = lo + (hi - lo) / 2u;
         if mid * unit() < distance {
@@ -239,10 +268,21 @@ fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     let first = runs[r * RW];
+    if tip(first) {
+        runs[r * RW + 1u] = word(first, 9u) >> LEAVES;
+        runs[r * RW + 2u] = 1u;
+        runs[r * RW + 3u] = 2u;
+        return;
+    }
     var length = grown(first);
     var n = 2u;
     var at = first;
+    // cap: the nodes; no run is longer (`cfg.n` counts runs here).
+    let cap = arrayLength(&nodes) / NW + 1u;
     loop {
+        if n > cap {
+            break;
+        }
         let c = next(at);
         if c == NONE {
             break;
@@ -432,6 +472,31 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
     let n = runs[r * RW + 3u];
     let station0 = runs[r * RW + 4u];
     var g = runs[r * RW + 5u];
+    if tip(first) {
+        // `prepared::prepare_inner`'s cluster segment.
+        let at = g * GW;
+        let p = pos(first);
+        let radius = nodes[first * NW + 3u];
+        let h = vec3<f32>(nodes[first * NW + 15u], nodes[first * NW + 16u], nodes[first * NW + 17u]);
+        var heading = vec3<f32>(0.0, 1.0, 0.0);
+        if dot(h, h) > 1e-24 {
+            heading = normalize(h);
+        }
+        put4(at, vec4<f32>(p, radius));
+        put4(at + 4u, vec4<f32>(p, radius));
+        put4(at + 8u, vec4<f32>(heading, 0.0));
+        put4(at + 12u, vec4<f32>(0.0));
+        put4(at + 16u, vec4<f32>(0.0));
+        put4(at + 20u, vec4<f32>(0.0, -1.0, nodes[first * NW + 30u], 0.0));
+        segs[at + 24u] = station0;
+        segs[at + 25u] = count;
+        segs[at + 26u] = 0u;
+        segs[at + 27u] = mix32(word(first, 25u) ^ KEY_CLUSTER.x);
+        for (var c = 0u; c < 4u; c++) {
+            segs[at + 28u + c] = 0u;
+        }
+        return;
+    }
     let internodes = count / cfg.spi;
     let key = word(first, 25u);
     let attach = parent(first);
@@ -483,6 +548,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
         let span = range(j, n, vec2<u32>(along, along + wood), internodes, count);
         let edge = contact(b);
         var tile = span.x;
+        // cap: tile moves on by at least one each step, to span.y.
         while tile < span.y {
             let tiles = min(span.y - tile, TILE);
             let turn = f32(tile / cfg.spi) * cfg.divergence;

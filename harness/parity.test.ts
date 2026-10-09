@@ -12,10 +12,17 @@ type Core = WebAssembly.Exports & {
   buffer_len: (slot: number) => number;
 };
 
-// The engine presets grow through the engine (fn-198); the others are
-// refused by name on both sides.
-const NONE = ['telperion', 'laurelin', 'silver-birch'];
-const ENGINE = ['european-beech', 'oregon-white-oak', 'norway-spruce', 'date-palm', 'ordinary'];
+// Every preset grows through the engine (fn-198, fn-213, fn-218, fn-219).
+const ENGINE = [
+  'european-beech',
+  'oregon-white-oak',
+  'norway-spruce',
+  'date-palm',
+  'silver-birch',
+  'ordinary',
+  'laurelin',
+  'telperion',
+];
 
 async function wasmBuild(id: string): Promise<[number, Buffer]> {
   const { instance } = await WebAssembly.instantiate(
@@ -28,14 +35,6 @@ async function wasmBuild(id: string): Promise<[number, Buffer]> {
   if (status !== 0) return [status, Buffer.alloc(0)];
   return [0, Buffer.concat([6, 7].map(slot => Buffer.from(new Uint8Array(
     core.memory.buffer, core.buffer_ptr(slot), core.buffer_len(slot) * (slot === 6 ? 8 : 4)))))];
-}
-
-for (const id of NONE) {
-  test(`native/wasm refuse a preset with no engine species: ${id}`, async () => {
-    const [status] = await wasmBuild(id);
-    expect(status).not.toBe(0);
-    expect(() => execFileSync('target/release/examples/node_buffer', [id], { stdio: 'pipe' })).toThrow();
-  }, 120_000);
 }
 
 // The engine's transcendentals are the pinned libm the core reads (fn-11;

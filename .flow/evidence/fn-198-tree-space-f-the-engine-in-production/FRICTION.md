@@ -201,3 +201,17 @@
 - **Slowed by:** fn-221 (on F4) and fn-216 each numbered their new rows from wire rank 250 and material check slot 95, by hand. The merge was textually clean in those files, and only `every_row_has_its_own_rank_on_the_wire` and `every_site_judges_its_rows_in_one_order` caught it. fn-216's 22 rows were renumbered (256 to 277, checks 101 to 106), and the references, browser metadata and identity digests were regenerated after that.
 - **Cost:** about 10 minutes, and one more round of reference regeneration.
 - **Would remove it:** wire ranks and check slots derived from declaration order, or a `next free rank` noted beside the catalogue, so two branches do not pick the same literal.
+
+## 2026-10-08 22:45, merging fn-217 into F4: hand-numbered wire ranks again
+
+- **Doing:** the first workspace gate after resolving the fn-217 merge.
+- **Slowed by:** the fn-216 entry above, recurring the other way round. fn-217 numbered its 60 rows from wire rank 278. F4 (fn-223) retired five rows and compacted the ranks to 273. The merge was clean in all five files, so only `every_row_has_its_own_rank_on_the_wire` caught it, after a full gate run. The 60 ranks were shifted down by five, and all three gates were run a second time.
+- **Cost:** one extra pass of all three gates, about 35 minutes of wall time.
+- **Would remove it:** the remedy in the fn-216 entry: wire ranks derived from declaration order rather than literals. This is the second merge in a day that this would have spared.
+
+## 2026-10-09 04:00, merging fn-235 into F4: `grow`'s cold make has no per-change check
+
+- **Doing:** checking fn-235's cold-build bound on the merged tree.
+- **Slowed by:** the merge was textually small, but fn-231's fractional draws had added two `lead_q` copies (four `log2q` each) to `grow`'s inlined body, which took its cold make from 11.7 s (fn-235 alone) to 21.4 s. Nothing on either branch measured `grow`'s make, so it showed only at the merge. Finding the cost took 20 cold probes (`make_grow` with `GROW_WGSL` variants), and the driver's optimiser is not monotone, so two plausible slimmings made it slower.
+- **Cost:** about 45 minutes and two render-gate runs.
+- **Would remove it:** the cold-build test on every branch that touches a `grow` kernel, or a WGSL lint that counts `log2q` and `lead_q` sites reachable from `grow`, so the cost lands on the branch that adds it.

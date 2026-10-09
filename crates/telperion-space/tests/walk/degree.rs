@@ -23,6 +23,35 @@ pub const ROUGH_LAYOUT: [(&str, f64); 2] = [
     ("light: states[1].apical_control", 33.0),
 ];
 
+/// The walks whose made branches are held at the crossing to their own
+/// share of the tree (fn-231, host decision 2026-10-08): a lifespan's.
+/// The crossing is bisected to where a branch is made, and elsewhere its
+/// wood there is at most `VANISHING`. A lifespan is read on the tick grid
+/// (2^-20 of a cycle), so no bisection reaches below one tick, and the
+/// unit a lifespan's fraction cuts lays its next node by a draw whose lead
+/// one tick moves by about n 2^-20 over the node window: a node made at the
+/// crossing stands at about 1e-4 and its lateral at up to 2.5e-6 of the
+/// tree (ENDS.md, "The fourth answer built"). One tick's branch is held at
+/// 1e-5; under the crowded nodes before, one tick sized it at 9.5e-7, which
+/// `VANISHING` held.
+pub const TICK_RESOLUTION: [(&str, f64); 3] = [
+    ("states[0].lifespan", 1e-5),
+    ("states[1].lifespan", 1e-5),
+    ("states[2].lifespan", 1e-5),
+];
+
+/// A made branch's share of the tree at its crossing: at most this, but
+/// for `TICK_RESOLUTION`.
+pub const VANISHING: f64 = 1e-6;
+
+/// The share of the tree a walk's made branch may hold at its crossing.
+pub fn vanishing(name: &str) -> f64 {
+    TICK_RESOLUTION
+        .iter()
+        .find(|(walk, _)| *walk == name)
+        .map_or(VANISHING, |&(_, bound)| bound)
+}
+
 /// The bound a walk's steepest step is held to: `MULTIPLE`, but for the
 /// named exceptions.
 pub fn bound(name: &str) -> f64 {

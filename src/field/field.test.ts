@@ -54,11 +54,6 @@ describe("the slim field entry point", () => {
     const module = await compileField(source);
     const engine = await TreeEngine.create(readFileSync("src/browser/telperion.wasm"));
     for (const preset of PRESETS) {
-      // A preset with no engine species is refused by name (fn-198).
-      if (presetById(preset.id).space === undefined) {
-        await expect(growField(preset.id, 1, { source: module })).rejects.toThrow("no engine species");
-        continue;
-      }
       // One seed a preset: the slim chain's agreement is the chain's, not
       // the seed's; the first test holds it at the beech's seed 5 as well.
       for (const seed of [1]) {
@@ -78,7 +73,9 @@ describe("the slim field entry point", () => {
       }
     }
     engine.dispose();
-  });
+    // Every preset is an engine preset now (fn-213, fn-218, fn-219): eight
+    // fields, Telperion's at 92 among them, take about 65 s in Node unloaded.
+  }, 180_000);
 
   it("grows the date palm at every seed the owner tried (fn-150 R1)", async () => {
     const module = await compileField(source);
@@ -109,7 +106,6 @@ describe("the slim field entry point", () => {
 
   it("refuses what the core refuses, whole", async () => {
     await expect(growField("no-such-tree", 1, { source })).rejects.toThrow("preset identity");
-    await expect(growField("silver-birch", 1, { source })).rejects.toThrow("no engine species");
     await expect(growField("european-beech", 1.5, { source })).rejects.toThrow("seed");
     await expect(growField("european-beech", 2 ** 32, { source })).rejects.toThrow("seed");
     await expect(growField("european-beech", 1, { limbOrder: -1, source })).rejects.toThrow("limbOrder");

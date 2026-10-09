@@ -44,7 +44,7 @@ impl Pool {
     /// left and this one did not take are let go, so the pool holds one
     /// build's buffers at most.
     /// The bytes the pool keeps between builds.
-    #[cfg(test)]
+    #[cfg(any(test, target_arch = "wasm32"))]
     pub(super) fn bytes(&self) -> u64 {
         self.0.borrow().iter().map(|b| b.size()).sum()
     }

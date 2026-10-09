@@ -198,9 +198,10 @@ fn a_shell_with_an_amplitude_is_not_the_smooth_shell() {
 
 #[test]
 fn a_blend_walks_the_amplitude_and_the_wavelength() {
-    // Two presets the engine does not grow: a walk from one with an engine
-    // species to one without is refused (fn-198).
-    let mut a = Preset::Telperion.parameters();
+    // The birch walked to itself with the two rows apart: a walk between
+    // two engine species solves its size and walks the envelope rows as
+    // any other row.
+    let mut a = Preset::SilverBirch.parameters();
     let mut b = Preset::SilverBirch.parameters();
     a.skeleton.envelope.irregularity = 0.1;
     a.skeleton.envelope.lobe_scale = 0.2;

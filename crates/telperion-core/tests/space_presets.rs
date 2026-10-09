@@ -1,21 +1,20 @@
-//! The engine species as preset values (fn-198 host decision 1): each of the
-//! four engine presets carries the engine's own species, stem ages and site
-//! light as `/space` rows, read back to the bit through the value file and
-//! the wire; the other presets carry none.
+//! The engine species as preset values (fn-198 host decision 1): every
+//! preset carries the engine's own species, stem ages and site light as
+//! `/space` rows, read back to the bit through the value file and the wire.
 use telperion_core::{
     blend, params,
     presets::{
-        space::{self, Cell, Space},
+        space::{self, Cell},
         values, Preset,
     },
 };
 use telperion_space::{
-    beech, expected_kept, oak, palm, settings, spruce, zone_settings, Light, Species,
+    beech, birch, expected_kept, oak, palm, settings, spruce, zone_settings, Light, Species,
 };
 
 /// The species each engine preset states, as the tree-space examples grew it
 /// (`crates/telperion-render/examples/space_*.rs`, BASELINE.md's oak light).
-fn engine() -> [(Preset, Species, Vec<usize>, Light); 4] {
+fn engine() -> [(Preset, Species, Vec<usize>, Light); 7] {
     let oak_light = Light {
         extinction: 0.5,
         sky: 0.5,
@@ -35,6 +34,15 @@ fn engine() -> [(Preset, Species, Vec<usize>, Light); 4] {
         ),
         (Preset::OregonWhiteOak, oak(), vec![2, 3, 4], oak_light),
         (Preset::DatePalm, palm(), vec![2], Light::NEUTRAL),
+        (
+            Preset::SilverBirch,
+            birch(),
+            vec![2, 3, 4, 5],
+            Light::NEUTRAL,
+        ),
+        // The Two Trees' natural base is the beech (fn-218, fn-219).
+        (Preset::Laurelin, beech(), vec![2, 4, 5], Light::NEUTRAL),
+        (Preset::Telperion, beech(), vec![2, 4, 5], Light::NEUTRAL),
     ]
 }
 
@@ -47,13 +55,6 @@ fn every_engine_preset_carries_the_engines_species() {
     }
 }
 
-#[test]
-fn a_preset_without_an_engine_species_carries_none() {
-    for preset in [Preset::SilverBirch, Preset::Telperion, Preset::Laurelin] {
-        assert_eq!(preset.parameters().space, Space::default(), "{preset:?}");
-    }
-}
-
 /// The ordinary tree's space is the passed branching species' point at
 /// equal weights (fn-215 R1, fn-230 R3): the space's one blend rule,
 /// `blend::centroid`, with every corner at 80, the age its size is matched
@@ -63,6 +64,9 @@ fn a_preset_without_an_engine_species_carries_none() {
 /// (host, 2026-10-08). The value file is written by `examples/centroid.rs`
 /// in the order beech, oak, spruce; this reads it back in another.
 #[test]
+#[ignore = "fn-231 (host, 2026-10-09): the ordinary tree keeps its pre-fn-231 rows; \
+            a fresh solve on the continuous walk reads as a hedge at 80, so its sizing \
+            measure is the owner's question (ENDS.md, seventh answer)"]
 fn the_ordinary_tree_is_the_centroid_of_the_branching_species() {
     let corners = [
         Preset::NorwaySpruce,

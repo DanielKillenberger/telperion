@@ -24,14 +24,6 @@ impl PaState {
                 "a lifespan lies in 0 to 1000000 cycles",
             );
         }
-        // Time is whole ticks (`fixed.rs`): a lifespan is read on their
-        // grid, so one shorter than half a tick would grow as none.
-        if self.lifespan > 0.0 && self.life() == 0.0 {
-            return refuse(
-                format!("{at}.lifespan"),
-                "a lifespan is none or at least half a tick, 2^-21 cycle",
-            );
-        }
         // An age of no lifespan is passed through: it moves on, as its
         // limit of a lifespan all but none decides by its draw (Codex
         // round 7 on fn-206).
@@ -90,6 +82,19 @@ impl PaState {
             if !(0.0..=1.0).contains(&value) {
                 return refuse(format!("{at}.{name}"), "a share lies in 0 to 1");
             }
+        }
+        let leaves = self.cluster_leaves;
+        if !((0.0..=MAX_CLUSTER_LEAVES).contains(&leaves) && leaves.fract() == 0.0) {
+            return refuse(
+                format!("{at}.cluster_leaves"),
+                "a cluster holds 0 to 8 whole leaves",
+            );
+        }
+        if !(0.0..=FRAC_PI_2).contains(&self.cluster_spread) {
+            return refuse(
+                format!("{at}.cluster_spread"),
+                "a cluster's spread lies in 0 to pi / 2",
+            );
         }
         if !(-1.0..=1.0).contains(&self.tolerance) {
             return refuse(format!("{at}.tolerance"), "a balance lies in -1 to 1");

@@ -118,7 +118,7 @@
     "impl:fn-215-tree-space-the-ordinary-tree-as-the.1": 0
   },
   "spec_path": ".flow/specs/fn-215-tree-space-the-ordinary-tree-as-the.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space: the ordinary tree as the space's centroid",
   "tracker": {
     "baseHashFlow": null,
@@ -131,5 +131,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T12:25:33.888596Z"
+  "updated_at": "2026-10-08T22:38:04.151657Z"
 }
