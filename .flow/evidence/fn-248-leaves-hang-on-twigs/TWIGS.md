@@ -91,3 +91,26 @@ I viewed `TWIGS-sheet.jpg`. The engine's shoots carry a solid fringe of leaves, 
    - **At scale 1** the output is byte-identical.
 
 Order of work: build part 3 first and measure, then parts 1 and 2. Stills follow each part.
+
+## Host decision (2026-10-09), after Astra's review (ASTRA-TWIGS.md)
+
+Astra's order is adopted: fix the natural tree's foliage first, then measure whether the scale still needs work. "Question, delete, then optimise."
+
+1. **Leaf retention by wood age.**
+   - **The rule:** eligibility is today's radius rule × retention, where retention = clamp(`leaf_years` − wood age, 0, 1). It never switches between ways of building.
+   - **The default:** with `leaf_years` unbounded, retention is 1 everywhere, and station positions, keys and draws are byte-identical.
+   - **Wood age:** each phytomer's birth cycle is carried through conversion on both executors, as eligible spans or a per-station retention. Merged phytomers keep each span's own age, so a station takes the age of the wood it actually sits on.
+   - **Fractional retention:** a station is kept by a lineage-keyed draw against its retention, and it fades in by degree the way making draws do (decision 8).
+   - **The beech's old wood:** it carries its leaves on its existing short-shoot PA 14, through `cluster_leaves`. The cluster count is a sourced whole value; a stopped short-shoot tip keeps its cluster while it lives, and that rule is stated.
+2. **Spacing.** This is a preset change, not a new mechanism. Correct the stale "5 cm" comment. Choose the value on stills against the reference shoots, after part 1 lands. Candidates are 2-4 cm, sourced or marked estimated.
+3. **The scale.** Measure after parts 1 and 2. If the Two Trees' twigs still read as branches, the route is Astra's cleaner candidate: the Two Trees enlarge through their own per-PA geometry, with coarse PAs' internodes and pipes larger and fine PAs at ordinary size, and the one engine computes the rest. That revises fn-217's uniform scale for them and goes through the host first. No post-growth deformation is built.
+
+Proof for parts 1 and 2:
+- red/green tests;
+- byte identity at neutral values (`space_hash` and stills for every other species);
+- CPU and device agreement on the stations;
+- the beech, Laurelin and Telperion stills before and after, viewed beside the reference shoots;
+- the cost;
+- then the gate, npm test and impl-review.
+
+Keep the task open for the owner.
