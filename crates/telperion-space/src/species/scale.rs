@@ -70,6 +70,8 @@ pub const SCALES: &[(&str, Scale)] = &[
     // fn-223: a whole count of leaves, and an angle, by value.
     ("cluster_leaves", Whole),
     ("cluster_spread", Linear),
+    // fn-248: a span of years that may be infinite, by the share it keeps.
+    ("leaf_years", Kept),
     ("shade_hazard", Linear),
     ("shade_size", Linear),
     ("apical_control", Linear),
@@ -167,6 +169,7 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         flowering,
         cluster_leaves,
         cluster_spread,
+        leaf_years,
         shade_hazard,
         shade_size,
         apical_control,
@@ -217,6 +220,7 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         ("flowering", flowering),
         ("cluster_leaves", cluster_leaves),
         ("cluster_spread", cluster_spread),
+        ("leaf_years", leaf_years),
         ("shade_hazard", shade_hazard),
         ("shade_size", shade_size),
         ("apical_control", apical_control),

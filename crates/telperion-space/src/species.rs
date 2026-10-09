@@ -151,6 +151,15 @@ pub struct PaState {
     /// fan across: pi / 2 is a half circle, 0 stacks them. Dormant without
     /// `cluster_leaves`.
     pub cluster_spread: f64,
+    /// How many years a phytomer of this PA bears its leaf: a station on
+    /// wood `age` years old (0 the current year's) keeps its leaf by its
+    /// retention clamp(leaf_years - age, 0, 1), on top of the slender
+    /// wood the canopy bears on (fn-248). Fractional, the one age it
+    /// splits keeps that share of its stations by a keyed draw. The
+    /// engine grows nothing of it; the pipeline's expansion reads it.
+    /// Neutral infinite, every age bears; a short shoot's cluster bears
+    /// while its shoot lives.
+    pub leaf_years: f64,
     /// How shade raises an apex's yearly death hazard: its survival is
     /// its viability to the power light^-shade_hazard, so ln survival =
     /// ln viability times light^-φ (host, 2026-10-05). Neutral 0; dormant

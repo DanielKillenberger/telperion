@@ -96,6 +96,12 @@ impl PaState {
                 "a cluster's spread lies in 0 to pi / 2",
             );
         }
+        if !(self.leaf_years >= 0.0) {
+            return refuse(
+                format!("{at}.leaf_years"),
+                "a leaf's years lie in 0 to never",
+            );
+        }
         if !(-1.0..=1.0).contains(&self.tolerance) {
             return refuse(format!("{at}.tolerance"), "a balance lies in -1 to 1");
         }
