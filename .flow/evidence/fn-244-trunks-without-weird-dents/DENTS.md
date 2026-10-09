@@ -212,3 +212,19 @@ This is the principle "every parameter changes the tree by degree", applied to `
 3. **Keep the `t` split of the wood between the two nodes and drop only the `1 - b` tip share.** The stub's first node then carries `b * t` of the relay. That is option 2's flange at a smaller size, so this is not recommended.
 
 `npm test`, `space_hash` and impl-review have not run, because the code is not on the task branch.
+
+## Host decision, third (2026-10-09): the join stands where the relay stands
+
+**Option 2.** The drawing gains a node at the relay's own position along the span, the point `relay_at` and `b` already place it. Below that node the parent carries the relay's wood and load; the stub above carries only its own. As `relay_at` moves, the join moves with it continuously, so fn-199's R4 (the owner's by-degree rule) holds and no requirement is retired.
+
+- **Both executors build the drawing this way:** `converted` on the CPU and `dress.wgsl` on the device. The inserted node is an ordinary drawn node, interpolated along the span the way every other one is.
+- **Sag's load moves with the wood to the join, on both executors. Confirmed.** The ordinary's limbs back within 0.05° of base show the load belongs there.
+- **Proof:**
+  - fn-199's `a_relay_moving_along_its_parent_thickens_it_by_degree` passes unchanged.
+  - The no-thickening-upward and stub tests pass.
+  - The sheets are viewed.
+  - `space_hash` changes are listed; oak, palm and spruce stay identical.
+  - CPU and device agree.
+  - Then the gate, npm test and impl-review.
+
+Build on the parked `fn-244-option1-wip` and bring it onto the task branch.
