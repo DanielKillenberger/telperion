@@ -232,12 +232,6 @@ fn bark_light(n: vec3<f32>, height: f32, spread: f32, world: vec3<f32>, shadow: 
         + sun * mirrored.x * mirrored.y * cavity_weight) * contact;
 }
 
-// How many shading cells a side a pixel `wide` ridge widths across is read
-// as: two, three once it spans a ridge, four under chipped edges.
-fn bark_cells(wide: vec2<f32>, chipped: bool) -> vec2<i32> {
-    return select(select(vec2(2), vec2(3), wide >= vec2(1.0)), vec2(4), chipped);
-}
-
 @fragment
 fn fragment(in: Varying) -> @location(0) vec4<f32> {
     let base_normal = normalize(in.normal);
@@ -325,7 +319,8 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     let wide = max(pixel, 2.0 * plate_band);
     // The authored chipped-edge profile uses denser quadrature. Enabling
     // lichen or lenticels does not change this physical material decision.
-    let cells = bark_cells(wide, u.plate_profile.x > 0.0);
+    let cells = select(select(vec2(2), vec2(3), wide >= vec2(1.0)),
+        vec2(4), u.plate_profile.x > 0.0);
     let cell_footprint = footprint / max(vec2<f32>(cells), wide);
     let cell_pixel = pixel / max(vec2<f32>(cells), wide);
     // Wood whose pixel spans six ridge widths or three plates reads its
