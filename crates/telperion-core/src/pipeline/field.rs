@@ -14,6 +14,8 @@
 //! resolution-dependent sweep inflation.
 mod cuboid;
 mod index;
+#[cfg(test)]
+mod stand_tests;
 use crate::{
     math::Vec3,
     pipeline::foliage::{plan::Plan, transform_point, Bounds, Element, Instances},
