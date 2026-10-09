@@ -1,0 +1,133 @@
+{
+  "branch_name": "fn-243-the-browser-compiles-the-gpu-programs",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T07:38:40.814467Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-243-the-browser-compiles-the-gpu-programs",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T07:42:31.362580Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "c4c2c5bb68f805c051ca1ee4521c3bc281aef1f2098a22e1c10ea8d6dd5759d1",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-218602fd468de1d0746970bbd5688c0a",
+            "classification": "introduced",
+            "findingId": "finding-218602fd468de1d0746970bbd5688c0a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c5391c89700644ffee511ce94ef78b6d89651828",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 327960,
+      "output_sha256": "e8d4acbed353581c995d9005abbce1552e2eb0f84023d15f902c62e989203e2d",
+      "reservation_id": "3ea0837f0de34b77aac05c1da2ecdd6f",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T07:41:51.763762Z",
+      "tool_calls": 24,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "355beca3b9cee33b7f72407bea5fd80d3a3b1726bca611dc27118cbf16f3d627",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-218602fd468de1d0746970bbd5688c0a",
+            "classification": "introduced",
+            "findingId": "finding-218602fd468de1d0746970bbd5688c0a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c5391c89700644ffee511ce94ef78b6d89651828",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 768,
+      "output_sha256": "1472983fe0a8e5bcc369f5739f9acb7c3691955723f5202c9797ab7526c97b03",
+      "reservation_id": "5e0c0c6ee3fc4e198df47e428b4773d7",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T07:42:31.360351Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-243-the-browser-compiles-the-gpu-programs.md",
+  "status": "open",
+  "title": "The browser compiles the GPU programs in the background",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T07:42:41.273887Z"
+}

@@ -16,7 +16,8 @@
     "fn-235-the-harness-never-hangs-the-gpu",
     "fn-236-tree-space-the-oregon-white-oaks-crown",
     "fn-238-a-blend-between-species-solves-in-about",
-    "fn-241-three-defects-found-on-the-way-to-the"
+    "fn-241-three-defects-found-on-the-way-to-the",
+    "fn-243-the-browser-compiles-the-gpu-programs"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -36,5 +37,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T05:36:47.497310Z"
+  "updated_at": "2026-10-09T07:38:41.253967Z"
 }
