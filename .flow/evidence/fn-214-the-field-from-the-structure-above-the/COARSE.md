@@ -633,3 +633,42 @@ These are after the site's thinning, which keeps a fixed share of the foliage ce
   - `telperion-field`'s `a_cut_grows_a_coarse_field_or_is_refused_by_name` and `src/field/field.test.ts` still expected the oak's cut to be refused. 433c4c86 lifted that refusal (task 2's stepped stand-ins). Both now assert that the oak answers a coarse field with foliage (`79329794`, `904761c0`).
   - The limits guard needed the two new ground sites declared in `docs/generation-limits-inventory.json`.
 - **`npm test`:** 144 of 144 passed.
+
+## Task 2: the ground rule for the stand-ins' wood, and F4 at 5ddbd585 (2026-10-09)
+
+**The wood.**
+- **The red test came first** (`c3ae1ba4`, `no_stand_in_answers_wood_below_the_ground`): a stand-in's wood answered at y = −0.3 and −1.0.
+- **The rule, extended** (`67e33263`):
+  - No stand-in's wood segment answers a cell whose centre is below the ground.
+  - Its wood bounds stop at the ground, and a segment wholly below it is left out.
+  - The two new sites are declared in the limits inventory.
+- **Full fields:** identical cell for cell at n = 48 against `field-release.wasm` (oak and birch, 1234 and 5678).
+- **The birch's field height** (`raw/field-path/ground.jsonl`, against the full tree's 17.44 and 16.92 m):
+
+| Birch, seed | cut 1,024 | cut 256 |
+|---|--:|--:|
+| 1234 | 17.43 m | 17.43 m (19.28 before) |
+| 5678 | 16.93 m | 16.92 m (18.22 before) |
+
+- **The finer grid at 256:** with its bounds back at the ground, the birch at 256 is gridded more finely. Its foliage at n = 48 is 4,458 and 3,397 cubes, 2.1 and 2.2 times the full birch's.
+
+**The merge.** F4 at `5ddbd585` (fn-241's amended cold-build test, and the fine box from ring extents) is merged as `c062f7e5`.
+- **Conflicts:** none.
+- **Digests:** `catalogue_identity` and `parameter_reference` pass on the merged tree, so no digest moved.
+- **Generated files:** `npm run wasm:build` reports the family metadata current, and `TELPERION_WRITE_REFERENCE=1` rewrote nothing.
+
+**The gate on `c062f7e5`.** Each run is foreground with `timeout`. The whole suite does not fit one call, so it ran package by package (FRICTION.md, 10:20):
+
+| Run | Result |
+|---|---|
+| `telperion-render`, library, under the GPU lock | 121 passed, 32 ignored |
+| `telperion-render`, all test targets, under the GPU lock | 216 passed, 41 ignored; the cold-build test passed |
+| `telperion-render` doctests | none |
+| `telperion-core` | 453 passed, 44 ignored |
+| `telperion-space` | 221 passed, 5 ignored |
+| `telperion-jev` | 389 passed, 1 ignored |
+| `telperion-field` | 7 passed |
+| `telperion-wasm` | 6 passed |
+| `npm test` | 151 of 151 passed |
+
+All green.
