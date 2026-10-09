@@ -107,6 +107,16 @@
 //! fn-218 re-pinned the family and walk digests for Laurelin's new rows: the
 //! beech's, at 80, with the supernatural group on. The override and refusal
 //! digests are unchanged.
+//! fn-238 re-pinned the walk digest: the size solve reads the grown
+//! phytomers as a running total, the table's sum added in another order, so
+//! four of its frames' factors move by at most 3.9e-16 in their log, inside
+//! the solve's 1e-12 (SOLVE.md); every strip frame that moved draws to the
+//! same bytes.
+//! When F4 (with fn-238) was merged onto fn-219 the walk digest was
+//! re-pinned once more, for fn-238's solve over fn-218's rows; the family,
+//! override and refusal digests are fn-218's, and every engine preset's
+//! grown tree (`space_hash`, four species at 40 and 80, seeds 1 and 7) was
+//! F4's to the bit (MERGE-231.md, MERGE-217.md).
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -174,7 +184,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        6_900_362_327_311_276_930,
+        4_122_176_118_329_417_092,
         "{}",
         digest(&text)
     );
