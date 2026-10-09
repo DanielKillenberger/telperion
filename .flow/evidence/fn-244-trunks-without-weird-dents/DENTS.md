@@ -106,3 +106,24 @@ Trunk relays keep a blend `b` well short of one for life. Beech at seeds 42 and 
 - **Change the drawing side.** The drawing hangs the relay at the join and draws the head as carrying only its own wood. The girth model and the drawing would then disagree on the head.
 
 **The device path.** `crates/telperion-render/src/generation/fine/dress.wgsl` has its own copy (`joint` at line 241, the thickening loop at lines 484-499). Whichever rule is chosen goes there as well. `girth.wgsl` already has `relay_span_q`.
+
+## Host decision, second (2026-10-09): change girth, so a relay's wood enters at its join
+
+**Option 1.** Botanically, a relay's conducting pipes reach the parent axis through the node it grows from, and then run down the stem below. They do not pass through the old leader's tip, which becomes a stub carrying only its own wood. The girth model's split, which sends `1 - b` of the relay's wood to the old leader's tip, is the one rule out of step with that, and the dents follow from it. So the fix goes where the cause is, and girth and drawing stay one source (option 2 would make them disagree about the stub).
+
+1. **Girth:** a drawn relay's wood enters the parent at its join. The node below carries it, and the stub carries its own wood only. Apply the same rule in the device's girth shader, and in `dress.wgsl`'s `joint` and thickening loop, so CPU and device stay one rule.
+2. **The drawing:** it joins at that node, as option 2 built. Reuse the saved patch.
+3. **`relay_at` and the blend `b`:** state what each still means once the wood enters at the join.
+   - **If either becomes inert,** say so with a test. It is retired only on the host's word, by name in the report. Do not keep a row that does nothing.
+   - **If either still shapes something real,** such as where along the parent's last unit the join sits, keep it and document it.
+4. **Sag and everything else that reads girth:** these change by design. Measure the change on the beech and the ordinary tree (sag of the trunk and limbs at 40 and 80).
+5. **Proof:**
+   - The red/green test from before, with no rise along a stem below or above a join, plus a stub-radius check.
+   - Before/after sheets for every species, viewed.
+   - `space_hash` changes listed for every tree with relays. Oak, palm and spruce stay identical.
+   - CPU and device agree within fn-125's screen.
+   - The gate, npm test and impl-review.
+
+Keep the task open for the owner's verdict.
+
+On your friction note: a probe line for `b` and `t` before a decision is a good rule. It belongs in the onboarding method's "measure before building" step. The host carries it to fn-237's friction list.
