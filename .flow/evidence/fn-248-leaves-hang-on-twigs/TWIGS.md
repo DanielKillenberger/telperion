@@ -77,3 +77,17 @@ For reference, these are typical values for a real beech shoot. They are not mea
 ## Not done here (the host's call)
 
 The fix's design, as the task asked: how the scale should apply to the finest orders, whether the station spacing goes back toward 5 cm or becomes age-bound, and whether leaves leave the older wood (for example through clusters on short shoots). The spec's sweep of the other species at 40 and 80 (seeds 1, 7 and 42) was not run either: the task asked to stop after the Two Trees. The example measures any engine preset as it stands.
+
+## Host design (2026-10-09), before Astra's review
+
+I viewed `TWIGS-sheet.jpg`. The engine's shoots carry a solid fringe of leaves, like caterpillars or fern fronds. The real beech shoots carry leaves 2-4 cm apart, alternating on thin twigs, each on a visible petiole. The scale makes the twigs read as branches. Three parts, each by degree:
+
+1. **Leaves follow wood age, not wood radius.** A per-PA engine row, `leaf_years`, sets how many years a phytomer bears its leaf: 1 means current-year wood only, and fractional values blend by degree. At the default (unbounded), today's radius rule decides, and every other species stays byte-identical.
+   - **The beech:** `leaf_years` = 1. Its spurs (short shoots) carry the leaves on older wood through fn-223's clusters: `cluster_leaves` 2-3, sourced in the beech's model.
+2. **Spacing is the beech's own.** Long-shoot leaf spacing goes back toward the sourced 2-4 cm. The `internodeLength` row's own comment says 5 cm. Round 11's "hemlock" reading came from leaves on every wood age, which part 1 removes. Set the value on stills against the reference shoots.
+3. **The scale fades on the finest wood.** A giant tree carries more orders of ordinary twigs, not giant twigs.
+   - **The rule:** each node's scale factor falls continuously from `s`, on wood thicker than a stated natural radius (about 2 cm), to 1 on the current-year shoot's natural radius. It is a function of the node's natural radius, applied to its own length and radius relative to its parent's attachment, so the tree stays connected.
+   - **Executors:** CPU (`scaled()`) and device (`dress.wgsl`) apply one rule.
+   - **At scale 1** the output is byte-identical.
+
+Order of work: build part 3 first and measure, then parts 1 and 2. Stills follow each part.
