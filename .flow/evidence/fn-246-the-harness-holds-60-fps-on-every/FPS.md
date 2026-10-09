@@ -435,3 +435,58 @@ The frame probe now takes a `mid` view (half the distance), used for these numbe
 | Telperion mid | 12 | 34 |
 | Laurelin whole | 34 | 54 |
 | Laurelin mid | 20 | 46 |
+
+## Owner decision (2026-10-09): the floret card below 4 px
+
+The owner, after viewing the labelled comparison page (https://claude.ai/artifact/8WwaynDsif2JekPvHDDtDi): "I see almost no difference from reference even vs the card implementation." So the card below 4 px ships (`a2797a85`). Its crown distance on Telperion's whole view, +4.43 mean against the 3.0 bound, is accepted on the owner's visual verdict. `CARD_PIXELS` and the new floret test cite the decision.
+
+**The crown test.** `tests/thinning.rs` gains `far_florets_drawn_as_cards_cover_what_the_florets_cover`. It draws a flowering beech's floret mask at 320x240 and at 4x, with the geometry held, and compares the covered share. Measured: 25.4% over the 4x share with the card, 14.8% without it. The bound is the card's value plus 5 points, 30%.
+
+## R3 final: every species, natively at 1920x1080 with 4x MSAA, best of 3
+
+Prefiltered bark, sun cache, draw on change, 2 px thinning and the floret card. Other sessions were building, so the load at the best run was 4 to 15. Every case is GPU-bound and the pass times are GPU timestamps.
+
+| species | variant | view | runs | load | frame ms | fps | surfacing | selection | shadow | vegetation |
+|---|---|---|---|---|---|---|---|---|---|---|
+| ordinary | full | whole | 3 | 14.78 | 0.70 | 1437 | 0.42 | 0.01 | 0.00 | 0.12 |
+| ordinary | full | close | 3 | 14.78 | 1.00 | 1001 | 0.51 | 0.01 | 0.00 | 0.36 |
+| oregon-white-oak | full | whole | 3 | 12.10 | 4.27 | 234 | 0.80 | 0.02 | 0.00 | 3.31 |
+| oregon-white-oak | full | close | 3 | 11.01 | 13.89 | 72 | 1.06 | 0.02 | 0.00 | 12.65 |
+| norway-spruce | full | whole | 3 | 10.55 | 8.22 | 122 | 2.26 | 0.21 | 0.00 | 5.59 |
+| norway-spruce | full | close | 3 | 10.77 | 7.67 | 130 | 1.21 | 0.19 | 0.00 | 6.12 |
+| european-beech | full | whole | 3 | 12.43 | 1.70 | 589 | 0.55 | 0.01 | 0.00 | 0.99 |
+| european-beech | full | close | 3 | 12.43 | 3.03 | 330 | 0.69 | 0.01 | 0.00 | 2.16 |
+| silver-birch | full | whole | 3 | 11.60 | 2.06 | 486 | 0.87 | 0.01 | 0.00 | 1.04 |
+| silver-birch | full | close | 3 | 11.60 | 4.34 | 230 | 0.97 | 0.01 | 0.00 | 3.23 |
+| date-palm | full | whole | 3 | 11.47 | 0.65 | 1529 | 0.38 | 0.01 | 0.00 | 0.14 |
+| date-palm | full | close | 3 | 11.60 | 0.79 | 1260 | 0.25 | 0.01 | 0.00 | 0.40 |
+| telperion | full | whole | 3 | 9.79 | 20.15 | 50 | 2.91 | 0.43 | 0.00 | 16.15 |
+| telperion | full | close | 3 | 9.79 | 29.16 | 34 | 2.96 | 0.38 | 0.00 | 25.02 |
+| laurelin | full | whole | 3 | 4.43 | 18.01 | 56 | 2.06 | 0.28 | 0.00 | 15.34 |
+| laurelin | full | close | 3 | 4.69 | 19.09 | 52 | 2.48 | 0.24 | 0.00 | 15.72 |
+
+| species | whole fps, R1 → now | close fps, R1 → now |
+|---|---|---|
+| ordinary | 842 → 1437 | 656 → 1001 |
+| oak | 71 → 234 | 28 → **72** |
+| spruce | 47 → **122** | 52 → **130** |
+| beech | 218 → 589 | 106 → 330 |
+| birch | 302 → 486 | 188 → 230 |
+| date palm | 713 → 1529 | 361 → 1260 |
+| Telperion | 8 → 50 | 12 → 34 |
+| Laurelin | 11 → 56 | 16 → 52 |
+
+**Every shipped species but the Two Trees holds 60 fps whole and close.** Per the owner, the Two Trees stay below 60 for now:
+
+| Two Trees | cost per pass, ms |
+|---|---|
+| Telperion whole, 50 fps | vegetation 16.2 (leaves and florets most of it, wood about 4); surfacing 2.9; selection 0.43; shadow cached |
+| Telperion close, 34 fps | vegetation 25.0 (wood about 9, leaves and florets about 16); surfacing 3.0; selection 0.38 |
+| Laurelin whole, 56 fps | vegetation 15.3; surfacing 2.1; selection 0.28 |
+| Laurelin close, 52 fps | vegetation 15.7 (wood about 8); surfacing 2.5; selection 0.24 |
+
+**Follow-ups after the release:**
+- Cluster cards, one card for a whole cluster of florets at distance, for the Two Trees' remaining floret cost (host).
+- Texture bark computed at build time, mipmapped and hardware-filtered, which restores the furrows the prefilter flattens at 2x (owner's (c)).
+
+Idle frames cost nothing (`src/redraw.rs`). Generation is unchanged: nothing in `telperion-core` changed, and `generation/submit.rs` only forgets the sun cache on a new tree and hands the floret to the scene.
