@@ -245,3 +245,40 @@ I viewed `TWIGS-after.jpg`. The caterpillar sprays are gone and the twig layer s
   - Then the gate, npm test and impl-review.
 
 **The review's declined P2,** three ages merged across a fractional year: accepted as declined. No shipped preset can produce it, and it is recorded in the code's doc comment.
+
+## Before part 3: the override does not reach `/space` rows (worker, 2026-10-09)
+
+**What the code does today.** `Family::applied` (`supernatural.rs`) lays down two kinds of override:
+
+- **Mirrored rows.** `mirrored()` admits only overrides whose natural row is a catalogue row under `/material/` or `/bloom/`.
+- **Flowering.** The one per-age engine override is hand-written: `SupernaturalFlowering` (`supernatural/flowering.rs`, 189 lines) declares 15 catalogue rows, `/supernatural/flowering/age0` to `age14`, each with a wire number. `applied()` writes them into `species.states[k].flowering`, and `blend()` walks them by hand.
+
+The `/space` rows are not catalogue rows. They are an indexed grammar of their own (`presets/space.rs`). So no `/supernatural/space/...` override exists, and the group cannot reach `internode` or `form.pipe` today.
+
+**The change it needs, sized on the flowering precedent:**
+
+- **Two more override tables.** `/supernatural/internode/age<k>` and `/supernatural/pipe/age<k>` give 30 catalogue rows across the 15 ages. Each row is `Option<f64>`, blends as `Coupled`, has the dial `Derived`, carries the engine's own bounds, and takes a wire number from 333 on. That is about 380 lines of row declarations in two new files, split to stay under 400 lines each.
+- **Wiring, about 40 lines in `supernatural.rs`:**
+  - `applied()` writes the set ages into `states[k].internode` and `states[k].form.pipe`;
+  - `overrides()` and `validate()` include the new tables;
+  - `blend()` walks them as it walks flowering;
+  - `catalogue/mount.rs` mounts them.
+- **Both executors need nothing new.** The pipeline already grows from the applied species: the CPU through `pipeline/space.rs`, and the device through `GeometryTables::new` on the same species, as the flowering override already does.
+- **Pins and generated files:**
+  - catalogue identity re-pin (with the group off, every natural species byte-identical);
+  - the `suite/sweep.rs` list of rows the walks leave unset;
+  - `docs/parameters.md` and `src/browser/parameters.generated.ts`, regenerated;
+  - the jev dial table, if it counts rows.
+- **Tests.**
+  - With the group off, every species is byte-identical.
+  - An override replaces only its own age.
+  - A walk ramps the override in from the natural row.
+  - Out-of-bounds values are refused by name.
+  - CPU and device agree on a tree with an override.
+- **Then the values.** The coarse ages (2, 4 to 8) get larger internodes and pipes on Laurelin and Telperion, `/supernatural/scale` goes to 1, and the values are tuned to the height, spread and shoot targets on stills.
+
+**Estimate:** about 600 to 700 changed lines including tests, all in the catalogue's existing pattern. Nothing new is added to the WGSL shaders.
+
+**One alternative, not proposed.** A generic `/supernatural/space/ages/<k>/<setting>` group that reuses the `/space` grammar would cover every setting at once. It is not a catalogue row group, though, so the wire, the blend, the dials and the harness would each need a new path. That is larger and departs from fn-217's convention.
+
+Waiting for the host's go-ahead before building.
