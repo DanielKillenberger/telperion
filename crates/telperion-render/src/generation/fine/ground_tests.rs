@@ -46,14 +46,26 @@ fn leaf_reach(mesh: &telperion_core::mesh::TreeMesh) -> f64 {
 }
 
 #[test]
-fn the_fine_path_stands_where_mesh_build_does() {
+fn the_fine_path_stands_where_mesh_build_does_at_40() {
+    stands_where_mesh_build_does(40.0);
+}
+
+/// The same at 80, where the spruce's build takes the device toward its
+/// limits beside the default suite's other tests (docs/gpu-tests.md).
+#[test]
+#[ignore = "device limits: every shipped species at 80 on the device"]
+fn the_fine_path_stands_where_mesh_build_does_at_80() {
+    stands_where_mesh_build_does(80.0);
+}
+
+fn stands_where_mesh_build_does(age: f64) {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
     };
     let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     for id in SHIPPED {
-        for age in [40.0, 80.0] {
+        {
             let family = family(id, age);
             let mesh = telperion_core::mesh::build(&family).unwrap();
             let built = corners(mesh.bounds);

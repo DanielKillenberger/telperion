@@ -45,3 +45,11 @@
 - **Slowed:** each try is a 40 s cold build under the shared lock, and the gain per inlined call site removed is a few hundred ms. Reaching 3.5 s means slimming `girths` as well (three `section_q` and two `radius_q` copies inlined).
 - **Cost:** about 15 minutes so far.
 - **Would remove it:** a per-pipeline cold-compile budget in the cold-build test, so a shader that grows its compile time is named when it lands, not when the first-tree total runs out of margin.
+
+## 2026-10-09: the R1 test at 80 ran out of device memory in the gate
+
+- **Doing:** the render half of the gate, with four test threads on the device.
+- **Slowed:** `the_fine_path_stands_where_mesh_build_does` failed at the spruce at 80 with "Out of Memory" beside the other tests. docs/gpu-tests.md already says a tree at 80 on the device is a device-limits probe. I had not checked that before adding the test to the default suite.
+- **Cost:** one render-half gate run, about 5 minutes.
+- **Fix:** the test is split. The trees at 40 run by default; the trees at 80 are `#[ignore = "device limits: ..."]` and pass alone under the lock (`raw/r1-at-80.log`).
+- **Would remove it:** `device_limit_probes_run_only_when_asked` could also flag a default test that names age 80.0, not only check the marked ones.
