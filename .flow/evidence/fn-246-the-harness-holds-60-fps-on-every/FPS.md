@@ -301,3 +301,14 @@ Ordinary, beech, birch and date palm were at 112 fps or more before this thresho
 | spruce | none: 77 whole, 68 close | |
 
 So the oak's and the Two Trees' close views wait on the wood, which is the owner's picture decision. The Two Trees' whole views wait on leaves: 2 px, the most the crown truth allows, leaves them at 21 and 34 fps. The gate, npm test and impl-review were not run.
+
+## Owner decision (2026-10-09)
+
+The owner chose from the host's options:
+- On the wood, "b and c sound sgood". (b): the prefiltered bark ships in this release. Its measured distance to the 4x truth is its accepted picture. (c): bark computed into a texture when each tree is built, at runtime, mipmapped and filtered by the hardware, follows after the release as its own spec.
+- On the Two Trees' leaves, "2a is gud". Laurelin and Telperion get larger leaves, so they carry fewer of them. That is a values change in their own specs, judged on stills.
+
+For this spec, that means:
+- **Restore the prefilter** from `raw/prefilter.patch`.
+- **Re-pin the bark tests.** Set their bounds to the prefilter's measured distance to the truth, plus a stated margin. Record each fixture's truth distance for the present and the prefiltered shader beside the bounds, and cite this decision.
+- **Re-measure every species** at 60 fps, whole and close. The Two Trees are re-measured after their leaf change lands.
