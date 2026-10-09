@@ -458,3 +458,45 @@ The device route (the harness) lifts the ceiling and grows him: seed 7 has 4.9M 
 **The host's call:** Telperion's age (90 holds at 3.91M), his short shoots' lifespan, or the beech's spur change itself.
 
 **Not yet run:** Astra (the sheets are in `raw/after-size/*-seed{1,7}.jpg`), the gate and impl-review. They wait on that decision.
+
+## Telperion at 88 (worker, 2026-10-09)
+
+**Telperion at 88 (`4ebaae72`, seed 1).**
+- Size: 48.1 m tall, 49.8 × 49.6 m across.
+- LAI: **6.08** with the group on; 7.30 off.
+- Frame rate (`frames.rs`, 1080p, best of 3): **90.8** fps whole, 25.8 close.
+
+**Astra's reading** (`astra/size-r1.md`, prompt in `astra/size-r1-prompt.txt`). The sheets are both trees at seeds 1 and 7, group off and on, at whole, mid and close views, with the real shoot. The verdict is **AGREE**:
+- off: PASS
+- on: PASS ("large leaves attached through slender petioles to thin shoots")
+- twigs: PASS
+- tree first, legendary second: PASS
+
+Its optional polish:
+- softer twig kinks;
+- more varied leaf curvature;
+- Telperion's faceted white clusters.
+
+**The gate (`cargo test --profile ci --workspace --no-fail-fast`).**
+- 143 test binaries pass, the cold-compile test among them.
+- One failure, now fixed in `3a2af78b`: `every_row_past_its_bound_is_refused_on_every_family`. The leaf size override hid a natural `/canopy/size` past its bound from `Family::validate`.
+- `Family::validate` now judges the natural canopy rows and the engine species as written, as it already judged the material and bloom rows. A new test, `a_natural_row_under_an_override_is_still_judged`, is red without that change.
+
+### Stopped: Telperion at 88 is still over the Wasm ceiling at the preset's own seed
+
+`npm test` fails one test: `harness/parity.test.ts`, native/wasm node buffers byte-identical: telperion. The Wasm build returns status 2 (resource limit). The slim field test now passes.
+
+- **Why the prediction missed.** The expected count (3.67M at 88) is a mean over seeds. The preset grows at its own seed, 42, which grows a heavier tree.
+- **Telperion at seed 42, group on:**
+
+| Age | Drawn nodes | LAI |
+|---|---|---|
+| 88 | 4.30M | 6.99 |
+| 84 | 3.80M | 6.99 |
+| 80 | 3.33M | 6.91 |
+
+- The browser counts phytomers, which are at least as many as the drawn nodes. So at 88 he is over 4M at seed 42, and 84 may still be too close.
+
+**The host's call:** a younger age (80 to 84, measured at seed 42 against the actual kept count), or another seed for the preset.
+
+**Not yet run:** impl-review, and npm test again. They wait on that decision.
