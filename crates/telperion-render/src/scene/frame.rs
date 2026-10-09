@@ -9,10 +9,17 @@ impl Scene {
         &self,
         gpu: &Gpu,
         camera: &crate::Camera,
-        aspect: f64,
+        viewport: (u32, u32),
         light: &Light,
         view: View,
     ) {
+        let aspect = crate::pass::aspect_of(viewport);
+        // The pixels a metre spans at a metre, which thinning sizes a leaf
+        // on screen by, as selection does (fn-246).
+        let pixels = crate::select::frame::pixels_per_metre(
+            f64::from(viewport.1.max(1)),
+            camera.field_of_view,
+        );
         let (m, r) = (&self.material, &self.reflection);
         let colour = |r: f64, g: f64, b: f64, w: f64| [r as f32, g as f32, b as f32, w as f32];
         let clay = linear(CLAY);
@@ -64,7 +71,7 @@ impl Scene {
             ],
             sun: colour(self.row.sun_red, self.row.sun_green, self.row.sun_blue, 1.0),
             sun_direction: light.direction,
-            eye: colour(camera.position.x, camera.position.y, camera.position.z, 1.0),
+            eye: colour(camera.position.x, camera.position.y, camera.position.z, pixels),
             ray_right: colour(right.x, right.y, right.z, 0.0),
             ray_up: colour(up.x, up.y, up.z, 0.0),
             ray_forward: colour(forward.x, forward.y, forward.z, 0.0),
@@ -120,7 +127,12 @@ impl Scene {
             ],
             crown_centre: centre,
             crown_radii: radii,
-            leaf_box_min: colour(leaf_box.min.x, leaf_box.min.y, leaf_box.min.z, 0.0),
+            leaf_box_min: colour(
+                leaf_box.min.x,
+                leaf_box.min.y,
+                leaf_box.min.z,
+                f64::from(self.leaf_radius),
+            ),
             leaf_box_extent: colour(leaf_box.extent.x, leaf_box.extent.y, leaf_box.extent.z, 0.0),
             fissure: colour(
                 m.fissure_red,
@@ -219,8 +231,8 @@ impl Scene {
         }
         gpu.queue
             .write_buffer(&self.uniforms, 0, bytemuck::bytes_of(&uniforms));
-        if let Some(reference) = self.organ_reference.filter(|_| view != View::Leaf) {
-            let mut organ = organ(uniforms, m, reference);
+        if let Some((reference, radius)) = self.organ_reference.filter(|_| view != View::Leaf) {
+            let mut organ = organ(uniforms, m, reference, radius);
             if self.mask {
                 organ.clay = [1.0, 1.0, 1.0, organ.clay[3]];
                 (organ.sky, organ.ground) = ([1.0; 4], [1.0; 4]);
@@ -239,6 +251,7 @@ fn organ(
     mut u: Uniforms,
     m: &telperion_core::material::MaterialParams,
     reference: telperion_core::foliage::Reference,
+    radius: f32,
 ) -> Uniforms {
     let colour = |r: f64, g: f64, b: f64, w: f32| [r as f32, g as f32, b as f32, w];
     u.leaf_front = colour(
@@ -271,7 +284,7 @@ fn organ(
         m.bloom_eye_blue,
         m.bloom_eye_share as f32,
     );
-    u.leaf_box_min = colour(reference.min.x, reference.min.y, reference.min.z, 0.0);
+    u.leaf_box_min = colour(reference.min.x, reference.min.y, reference.min.z, radius);
     u.leaf_box_extent = colour(
         reference.extent.x,
         reference.extent.y,

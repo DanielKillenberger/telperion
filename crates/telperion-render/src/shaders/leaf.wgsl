@@ -63,6 +63,33 @@ fn leaf_position(words: vec3<u32>, box_min: vec3<f32>, box_extent: vec3<f32>) ->
     return box_min + box_extent * vec3<f32>(xy.x, xy.y, z);
 }
 
+/// The size on screen, in pixels across its bounding sphere, below which a
+/// leaf or a flower is thinned (fn-246): a pixel, so a leaf is thinned only
+/// where its whole sphere fits inside one.
+const THIN_PIXELS: f32 = 1.0;
+
+/// The share of the organs `across` pixels wide that are drawn: all of them
+/// at a pixel and above, and below it the share whose kept organs, enlarged
+/// by `1 / sqrt(share)`, cover the area all of them would. Continuous in
+/// size, so nothing pops as the camera moves.
+fn leaf_kept(across: f32) -> f32 {
+    let r = clamp(across / THIN_PIXELS, 0.0, 1.0);
+    return r * r;
+}
+
+/// A number in [0, 1) that is the organ's own: a hash of its stored words,
+/// so the same organs stay drawn from frame to frame and a smaller share is
+/// always a subset of a larger one.
+fn leaf_draw_rank(words: vec3<u32>) -> f32 {
+    var h = words.x * 747796405u + 2891336453u;
+    h = (h ^ words.y) * 747796405u + 2891336453u;
+    h = (h ^ words.z) * 277803737u;
+    h = h ^ (h >> 16u);
+    h = h * 2246822519u;
+    h = h ^ (h >> 13u);
+    return f32(h >> 8u) / 16777216.0;
+}
+
 /// The whole transform three words stand for, column-major, as the sixteen
 /// floats the core used to write were.
 fn leaf_transform(words: vec3<u32>, box_min: vec3<f32>, box_extent: vec3<f32>) -> mat4x4<f32> {

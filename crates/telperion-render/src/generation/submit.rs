@@ -39,7 +39,7 @@ impl Renderer {
                     placements,
                     organ.masses,
                 );
-                self.scene.set_organ_reference(Some(reference));
+                self.scene.set_organ(Some((reference, &o.element)));
             }
             (_, organ) => self.submit_organ(organ, crate::Level::default()),
         }

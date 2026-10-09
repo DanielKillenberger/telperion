@@ -62,7 +62,7 @@ pub use structure::{centroid, crop_mean, measure_frame, measure_png, Structure, 
 #[cfg(not(target_arch = "wasm32"))]
 pub use timing::{orbit as measure_orbit, run as measure};
 
-use pass::{aspect_of, pass};
+use pass::pass;
 pub(crate) use pass::{depth_pipeline, pipeline, Surface};
 pub use pass::{Target, MULTISAMPLE};
 use telperion_core::{material::MaterialParams, mesh::TreeMesh, surface::Bounds};
@@ -255,7 +255,7 @@ impl Renderer {
         let organ_or_none = organ.unwrap_or(&empty);
         self.organ.submit(&self.gpu, organ_or_none, level);
         self.scene
-            .set_organ_reference(organ.map(|o| o.instances.reference));
+            .set_organ(organ.map(|o| (o.instances.reference, &o.element)));
     }
 
     /// Surfaces the wood as if every frame were `viewport` in size, so
@@ -504,7 +504,7 @@ impl Renderer {
         let scopes = self.gpu.scopes();
         let light = shadow::light(self.scene.row(), self.bounds());
         self.scene
-            .set_frame(&self.gpu, camera, aspect_of(viewport), &light, self.view);
+            .set_frame(&self.gpu, camera, viewport, &light, self.view);
         let stride = self.scene.row().caster_stride as u32;
         self.shadow.set_light(
             &self.gpu,
