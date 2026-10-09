@@ -586,3 +586,21 @@ Telperion's close view is now above fn-246's 34 fps.
 - **Telperion at 82:** "sure fine".
 - **Flower shape:** "looks good". The florets stay as `6c4d274b` set them: three times larger and fewer.
 - **Flagged:** "flowers seem placed randomly and attached to the air". This goes to a separate spec the host is capturing (drawn stalks and racemes, seated at shoot tips). fn-248 does not change the florets.
+
+## Final gate, npm test and review (worker, 2026-10-09)
+
+**The gate, run package by package.** `cargo test --profile ci --no-fail-fast` on each of the six packages, with the render package under the GPU lock.
+- `telperion-core`, `telperion-space`, `telperion-field`, `telperion-wasm` and `telperion-jev`: green.
+- `telperion-render`: 138 of 139 lib tests pass, and the other render test binaries pass. The one failure is `every_pipeline_within_2_5_s_but_grow_within_20_s_cold`.
+  - The cold `grow` pipeline compiled in 25.7 s against its 20 s bound, and 23.0 s when run alone.
+  - The machine's load average was 18 to 21 from other sessions' builds.
+  - The same test passed in the full workspace gate after the validate fix (144 binaries green, load lower). It passed alone at 18.3 s earlier in the day.
+  - This task does not touch the `grow` pipeline beyond one `KEY_RETAIN` constant in `lineage.wgsl`. Recorded as inconclusive under load, not as a pass.
+
+**npm test:** 14 files, 155 tests, green.
+
+**impl-review (codex, three draws), on the task's whole diff on top of F4 (2329d19e...HEAD): SHIP.**
+- Two P2 findings, both in the `twig_layer` measurement tool, both fixed:
+  - Its blade and petiole lines read the natural leaf size, not the size the group applies.
+  - Its leaf spacing counted the spurs' tip clusters against run wood.
+- No finding on the generator, the overrides or the presets.

@@ -255,7 +255,9 @@ fn measure(family: &Family, label: &str) -> Result<(), String> {
         .collect();
     let mut by = [[0u64; 3]; RADII.len()];
     let (mut seated, mut missing) = (Vec::new(), 0u64);
-    let mut bearing = 0.0;
+    // The bearing wood's chord and the leaves along it: a cluster's
+    // descriptor stands at its tip, on no length.
+    let (mut bearing, mut along) = (0.0, 0u64);
     for d in &plan.descriptors {
         let p = d.endpoints[1];
         let Some(&i) = at.get(&[p.x.to_bits(), p.y.to_bits(), p.z.to_bits()]) else {
@@ -269,7 +271,9 @@ fn measure(family: &Family, label: &str) -> Result<(), String> {
             age_class(age[i])
         };
         by[radius_class(mm)][a] += u64::from(d.count);
-        bearing += d.endpoints[0].distance(d.endpoints[1]);
+        let chord = d.endpoints[0].distance(d.endpoints[1]);
+        bearing += chord;
+        along += if chord > 0.0 { u64::from(d.count) } else { 0 };
         seated.extend(std::iter::repeat(2.0 * mm).take(d.count as usize));
     }
     println!("leaves: radius mm <= | age 0 | 1-3 | 4+  ({missing} not matched to a node)");
@@ -279,10 +283,11 @@ fn measure(family: &Family, label: &str) -> Result<(), String> {
         }
     }
 
-    // The leaf against its wood.
-    let leaf = family.element.length * family.canopy.size;
-    let petiole = family.element.connector_length * family.canopy.size;
-    let total: f64 = seated.len() as f64;
+    // The leaf against its wood, at the size the group applies.
+    let size = family.applied().canopy.size;
+    let leaf = family.element.length * size;
+    let petiole = family.element.connector_length * size;
+    let total = along as f64;
     let d50 = median(&mut seated);
     println!(
         "leaf blade {:.0} mm, petiole {:.1} mm; seat diameter p10 {:.2} median {d50:.2} p90 {:.2} mm; blade / seat diameter {:.0}; petiole / seat diameter {:.1}",
@@ -294,7 +299,7 @@ fn measure(family: &Family, label: &str) -> Result<(), String> {
         petiole * 1e3 / d50
     );
     println!(
-        "bearing wood {:.0} m (chord), {:.1} leaves per metre, one every {:.1} mm",
+        "bearing wood {:.0} m (chord), {:.1} leaves per metre along it (clusters apart), one every {:.1} mm",
         bearing,
         total / bearing,
         1e3 * bearing / total
