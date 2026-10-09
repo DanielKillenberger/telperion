@@ -196,7 +196,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-244-trunks-without-weird-dents.md",
-  "status": "open",
+  "status": "done",
   "title": "Trunks without weird dents",
   "tracker": {
     "baseHashFlow": null,
@@ -209,5 +209,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T12:53:25.482552Z"
+  "updated_at": "2026-10-09T13:42:44.261835Z"
 }
