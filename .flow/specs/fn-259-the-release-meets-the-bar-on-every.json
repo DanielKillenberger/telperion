@@ -13,9 +13,9 @@
   "id": "fn-259-the-release-meets-the-bar-on-every",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 2,
-  "plan_review_status": "needs_work",
-  "plan_reviewed_at": "2026-10-09T20:01:07.688494Z",
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T20:06:21.134731Z",
   "review_attempts": [
     {
       "artifact_sha256": "e417708685c881dd98252db862db9878a1db1dac36da9433179244974c9b66a2",
@@ -145,9 +145,80 @@
       "task": null,
       "timestamp": "2026-10-09T20:01:07.685760Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "0c7e43f0f54449875100969e0f07951fe377732d0e7cadd02d480ffbaf62600d",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e585d04b0745dc87fabe4cedb562dd82",
+            "classification": "introduced",
+            "findingId": "finding-e585d04b0745dc87fabe4cedb562dd82",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-3a1a29636de7bab0aa6cd5431b7dae2d",
+            "classification": "introduced",
+            "findingId": "finding-3a1a29636de7bab0aa6cd5431b7dae2d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2daca76a130fcb4c8b3db21806fe7f5e",
+            "classification": "introduced",
+            "findingId": "finding-2daca76a130fcb4c8b3db21806fe7f5e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-30af3a7f9d1e917fa65fa62398e3f344",
+            "classification": "introduced",
+            "findingId": "finding-30af3a7f9d1e917fa65fa62398e3f344",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "59e627e7d87c39cd959c7231b534a4d9ddb738ee",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 751,
+      "output_sha256": "41ea7aaaa35843bb5d449396c0487fd2e7d4a35ab1063d4568c6ebca1bb9ea7b",
+      "reservation_id": "f165be046ffc451bac1056cd881d8e5a",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T20:06:21.130662Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "plan": 2,
+    "plan#completion": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -167,5 +238,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T20:01:24.383374Z"
+  "updated_at": "2026-10-10T22:30:53.753771Z"
 }

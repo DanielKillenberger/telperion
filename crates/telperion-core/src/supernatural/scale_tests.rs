@@ -82,8 +82,13 @@ fn the_scale_draws_the_natural_tree_enlarged() {
             mine.iter().zip(&theirs).all(|(a, t)| close(*a, t * s)),
             "{s}: the field's wood"
         );
-        // Leaves keep their spacing along the enlarged wood and their size.
-        let (count, base) = (leaves(&b) as f64, leaves(&natural) as f64);
+        // Leaves keep their spacing along the enlarged wood and their size;
+        // a short shoot's cluster keeps its count (fn-248).
+        let tips = |b: &pipeline::Built| -> f64 {
+            b.skeleton.tree.clusters.iter().map(|c| f64::from(c.leaves)).sum()
+        };
+        let count = leaves(&b) as f64 - tips(&b);
+        let base = leaves(&natural) as f64 - tips(&natural);
         if s > 1.0 {
             assert!(count > 0.5 * s * base, "{s}: {count} leaves against {base}");
         } else {
@@ -158,7 +163,7 @@ fn laurelin_contact_at_her_scale() {
 
 /// Telperion at his own age and scale (fn-219 R3), as Laurelin's above.
 #[test]
-#[ignore = "measurement: the telperion preset at 92, seventeen million leaves"]
+#[ignore = "measurement: the telperion preset at his own age"]
 fn telperion_contact_at_his_scale() {
     let f = Preset::Telperion.parameters();
     contact(

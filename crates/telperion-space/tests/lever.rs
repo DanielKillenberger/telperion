@@ -56,6 +56,7 @@ fn grown(height: f64, sag: f64, seed: u64, bough: Bough, twigs: (f64, f64)) -> S
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
+        leaf_years: f64::INFINITY,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,

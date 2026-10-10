@@ -52,7 +52,10 @@ pub(super) struct Rows {
     pub structural: f32,
     /// The slender bound in whole micrometres (`plan::micrometres`).
     pub slender: u32,
-    pub internode: f32,
+    /// The twig layer's internode in whole micrometres, as the CPU
+    /// executor rounds it (`plan::micrometres`), which the stations and
+    /// placement count by (fn-248).
+    pub unit: u32,
     pub divergence: f32,
     pub contact: bool,
     /// Whether the canopy bears leaves at all: none of zero size, as the
@@ -60,6 +63,8 @@ pub(super) struct Rows {
     pub leaves: bool,
     /// The blooms' rows where an age flowers (`data::flower`; fn-229).
     pub flower: Option<[[f32; 4]; 3]>,
+    /// Whether some wood sheds its leaves by age (fn-248).
+    pub retains: bool,
 }
 
 pub(super) struct Stationed {
@@ -114,11 +119,11 @@ impl Stationer {
             rows.segments,
             rows.structural.to_bits(),
             rows.slender,
-            rows.internode.to_bits(),
+            rows.unit,
             rows.divergence.to_bits(),
             u32::from(rows.contact),
             u32::from(rows.leaves),
-            0,
+            u32::from(rows.retains),
             0,
         ];
         let flower = rows.flower.unwrap_or_default();
@@ -297,7 +302,7 @@ pub(super) fn station_rows(x: &Expansion, segments: u32, flower: Option<[[f32; 4
         structural: structural as f32,
         // `plan::micrometres`: the bound as the CPU executor compares it.
         slender: (slender * 1e6 + 0.5).floor() as u32,
-        internode: twig.internode_length as f32,
+        unit: (twig.internode_length * 1e6 + 0.5).floor() as u32,
         // Reduced to a turn in f64 before it is narrowed, as the CPU
         // block's placement takes it (`data::config`; fn-212 task 11).
         divergence: (canopy.divergence * std::f64::consts::PI / 180.0)
@@ -305,5 +310,7 @@ pub(super) fn station_rows(x: &Expansion, segments: u32, flower: Option<[[f32; 4
         contact: x.seats(),
         leaves: canopy.size != 0.0,
         flower,
+        // The part's tree records retention where any age's wood sheds.
+        retains: !x.tree().leafing.is_empty(),
     }
 }

@@ -34,9 +34,10 @@ fn no_wood_reaches_past_the_extent_bound() {
                     // The layout is f32 (fn-254): a reach holds its bound to a
                     // few of f32's last places, summed over its walk, and to
                     // the f32 places of the positions it is read from (over
-                    // 101,271 laterals: at most 2.2e-6 relative on a 1.35 m
-                    // bound, 9.8e-7 m on a 5 mm one).
-                    reached[i] <= bound * (1.0 + 1e-5) + 2e-6,
+                    // 101,528 laterals on fn-248's beech: at most 3.0e-6 m
+                    // past, 2.2e-6 relative on a 1.35 m bound and 2.1e-6 m
+                    // on a 0.8 mm one).
+                    reached[i] <= bound * (1.0 + 1e-5) + 4e-6,
                     "axis {i} (PA {}, born {}) reaches {} past its bound {bound}",
                     axis.pa,
                     axis.birth,

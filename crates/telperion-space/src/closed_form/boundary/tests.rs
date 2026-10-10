@@ -16,17 +16,20 @@ use crate::{beech, oak, palm, spruce, Species};
 /// level, the palm's holding; re-pinned by fn-254: the growth contract in
 /// f32 moves 7,734 of 125,640 fields, by at most 2.9e-7 relative (E[S²]
 /// of the oak's first age), kept, reach and e to the bit.
+// fn-248 re-pinned the beech's from age 5 on: its short shoots live four
+// years, not three. Re-taken at fn-254's merge on its floats: those seven
+// alone moved, every other row holding fn-254's f32 pin to the bit.
 const PINNED: [(&str, u32, u64); 40] = [
     ("beech", 1, 0x744ad9d4c38baff6),
     ("beech", 2, 0xd9f87b741891c18c),
     ("beech", 3, 0xd3d7e320ab50986a),
-    ("beech", 5, 0xb3460df6bd0ca2cb),
-    ("beech", 8, 0xd5fd5accd6cc57f0),
-    ("beech", 13, 0xd8863ae739fc72a2),
-    ("beech", 21, 0x3264427417fa3320),
-    ("beech", 34, 0x2da687c5e76cd5dc),
-    ("beech", 55, 0x2a0969346ba3753b),
-    ("beech", 80, 0xf9482802a845164f),
+    ("beech", 5, 0xa25780f4606665e1),
+    ("beech", 8, 0x43868d5a16f4f5e6),
+    ("beech", 13, 0xc15c3e16c911ad80),
+    ("beech", 21, 0x2e6e97941a820b8f),
+    ("beech", 34, 0x25d4b089f88103ef),
+    ("beech", 55, 0x7fbaa3b3b032c06d),
+    ("beech", 80, 0xb2611e6c03bc5cd5),
     ("spruce", 1, 0xac6954d6503540ef),
     ("spruce", 2, 0x888227367b6eebbf),
     ("spruce", 3, 0x7c582f520c81ba87),

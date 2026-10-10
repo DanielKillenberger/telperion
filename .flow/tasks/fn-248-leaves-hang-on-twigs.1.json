@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-248-leaves-hang-on-twigs",
   "spec_path": ".flow/tasks/fn-248-leaves-hang-on-twigs.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Why the Two Trees' leaves sit on branches, then the fix",
   "updated_at": "2026-10-09T12:13:19.111447Z"
 }

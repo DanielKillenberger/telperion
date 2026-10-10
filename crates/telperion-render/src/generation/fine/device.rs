@@ -277,15 +277,6 @@ impl<'a> Device<'a> {
     }
 }
 
-/// The pooled buffers go back for the next build (`pool.rs`).
-impl Drop for Device<'_> {
-    fn drop(&mut self) {
-        for g in std::mem::take(&mut self.groups) {
-            self.k.pool.give(g.buffers());
-        }
-    }
-}
-
 impl Roots for Device<'_> {
     /// Natively the device grows the roots made so far while the structure
     /// above the cut grows on. A browser cannot wait on its device there,

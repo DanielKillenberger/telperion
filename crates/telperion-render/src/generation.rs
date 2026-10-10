@@ -18,7 +18,7 @@ mod preparation;
 mod profile;
 #[cfg(any(target_arch = "wasm32", test))]
 pub(crate) mod request;
-mod sources;
+pub(crate) mod sources;
 mod submit;
 mod wood;
 use crate::{buffer::Held, Gpu, Renderer, Result, Submitted};
@@ -280,8 +280,6 @@ fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
         (a, b) => a.or(b),
     }
 }
-#[cfg(test)]
-mod shader_tests;
 #[cfg(test)]
 mod standalone_tests;
 #[cfg(test)]

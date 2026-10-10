@@ -81,7 +81,7 @@ const SWEEP_NODES: usize = 8_000;
 // with the rest of the scaffold; the birch (fn-213) moves the envelope, the
 // clump, the peel, the curtain and the twig length, so the sweep walks
 // those. Every preset is now an engine preset, so every pair is walked.
-const HELD: [&str; 118] = [
+const HELD: [&str; 137] = [
     "/bloom/florets",
     "/bloom/rachis",
     "/bloom/droop",
@@ -173,6 +173,9 @@ const HELD: [&str; 118] = [
     "/surface/forkSocket",
     "/surface/forkSwell",
     "/surface/radialSegments",
+    // fn-248: the Two Trees grow large through their coarse ages, at
+    // scale one; their twelve coarse-age rows are walked.
+    "/supernatural/scale",
     "/supernatural/bloom/opens",
     "/supernatural/bloom/lasts",
     "/supernatural/bloom/stagger",
@@ -190,6 +193,24 @@ const HELD: [&str; 118] = [
     "/supernatural/flowering/age11",
     "/supernatural/flowering/age12",
     "/supernatural/flowering/age13",
+    "/supernatural/internode/age0",
+    "/supernatural/internode/age1",
+    "/supernatural/internode/age3",
+    "/supernatural/internode/age9",
+    "/supernatural/internode/age10",
+    "/supernatural/internode/age11",
+    "/supernatural/internode/age12",
+    "/supernatural/internode/age13",
+    "/supernatural/internode/age14",
+    "/supernatural/pipe/age0",
+    "/supernatural/pipe/age1",
+    "/supernatural/pipe/age3",
+    "/supernatural/pipe/age9",
+    "/supernatural/pipe/age10",
+    "/supernatural/pipe/age11",
+    "/supernatural/pipe/age12",
+    "/supernatural/pipe/age13",
+    "/supernatural/pipe/age14",
     "/canopy/spacing",
     "/skeleton/attractors",
     "/skeleton/bias/supernatural/spiralRate",

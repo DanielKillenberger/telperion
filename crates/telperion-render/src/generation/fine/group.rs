@@ -81,11 +81,11 @@ impl Group {
         // The laid buffers and the records, sized now: nothing more is
         // read back to size them.
         let n = roots.len() as u32;
-        let mut laid = vec![Wave::taken(&k.pool, gpu, (n, n))?];
+        let mut laid = vec![Wave::new(gpu, (n, n))?];
         let mut at = Vec::with_capacity(waves.chains.len());
         let mut floats = ROOT * n;
         for (w, &chains) in waves.chains.iter().enumerate() {
-            laid.push(Wave::taken(&k.pool, gpu, (waves.own[w], waves.phyts[w]))?);
+            laid.push(Wave::new(gpu, (waves.own[w], waves.phyts[w]))?);
             at.push(floats);
             floats += CR * chains;
         }
@@ -202,12 +202,5 @@ impl Group {
             out[r].copy_from_slice(&floats[wi * cr..][..cr]);
         }
         out
-    }
-
-    /// Its pooled buffers, for the next build (`pool.rs`).
-    pub(super) fn buffers(self) -> impl Iterator<Item = Owned> {
-        let runs = self.waves.grown.into_iter().flat_map(|g| g.runs);
-        let packed = runs.flat_map(|r| [r.axes, r.phyts, r.scratch]);
-        packed.chain(self.laid.into_iter().map(|w| w.buffer))
     }
 }

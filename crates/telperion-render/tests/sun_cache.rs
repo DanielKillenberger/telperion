@@ -24,6 +24,11 @@ fn the_sun_is_drawn_again_only_when_what_it_sees_changed() {
 
     let (cached, whole, map) = frame(&mut renderer, View::Whole, &hero);
     assert!(!cached, "the first frame had no map to reuse");
+    // The views' budgets settle on what the first frames asked (fn-258),
+    // which draws the sun once more with its new budget.
+    for _ in 0..3 {
+        frame(&mut renderer, View::Whole, &hero);
+    }
     assert!(frame(&mut renderer, View::Whole, &moved).0, "a camera move redrew the sun");
     let (cached, _, bare_map) = frame(&mut renderer, View::Bare, &hero);
     assert!(!cached, "the bare view reused the crown's casters");
@@ -59,4 +64,28 @@ fn the_sun_is_drawn_again_only_when_what_it_sees_changed() {
     assert!(frame(&mut renderer, View::Whole, &hero).0, "the ground's colour redrew the sun");
     renderer.submit(&tree).unwrap();
     assert!(!frame(&mut renderer, View::Whole, &hero).0, "a new tree reused the map");
+}
+
+/// fn-258: the sun's wood shares its buffers with the camera's and its
+/// budget settles on what it asked, so the sun's view is made again after
+/// the first frames; it is surfaced again with its map, and the map's
+/// casters stay counted, frame after frame.
+#[test]
+fn a_remade_sun_view_keeps_the_maps_casters_counted() {
+    let Some(gpu) = common::gpu() else { return };
+    let tree = mesh::build(&common::ordinary()).expect("the tree grew");
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    renderer.submit(&tree).expect("the tree fits the device");
+    let hero = hero_pose(renderer.bounds().unwrap(), 1.5, GROUND_REACH);
+    render(&mut renderer, &hero, 96, 64).expect("the frame was drawn");
+    let casters = renderer.caster_triangles();
+    assert!(casters > 0, "the sun drew no wood");
+    for _ in 0..4 {
+        render(&mut renderer, &hero, 96, 64).expect("the frame was drawn");
+        assert_eq!(
+            renderer.caster_triangles(),
+            casters,
+            "a remade sun view lost the map's casters"
+        );
+    }
 }

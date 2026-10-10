@@ -53,12 +53,31 @@ fn fanned(heading:vec3<f32>, n:u32, spread:f32, j:u32) -> vec3<f32> {
     if n>1u { across=spread*(2.0*f32(j)/f32(n-1u)-1.0); }
     return rotate(bearing,vec3<f32>(0.0,1.0,0.0),across);
 }
+// Whether station `k` of a segment that may shed keeps its leaf
+// (`tree::keeps`): the retention of its wood, before the segment's
+// boundary or from it, against its draw on the segment's stream.
+fn retained(seg:Segment, k:u32) -> bool {
+    let unit=bitcast<u32>(config.size.z);
+    let keep=bitcast<u32>(seg.normal.w);
+    var q=keep>>16u;
+    if (k/config.random.y)*unit>=bitcast<u32>(seg.tangent.w) { q=keep&0xffffu; }
+    if q==0xffffu { return true; }
+    let stream=bitcast<u32>(seg.binormal.w);
+    return (mix32(stream+(k+1u)*0x9e3779b9u)>>16u)<q;
+}
 fn station(index:u32) -> vec3<u32> {
     var lo=0u; var hi=config.counts.y;
     // cap: each step halves hi - lo, a u32, so 32 steps at most.
     while lo+1u<hi { let mid=lo+(hi-lo)/2u; if segments[mid].range.x<=index { lo=mid; } else { hi=mid; } }
     let seg=segments[lo];
-    let k=seg.range.z+index-seg.range.x;
+    var k=seg.range.z+index-seg.range.x;
+    // A segment some of whose stations shed their leaves (fn-248): the
+    // leaf's station is the kept one its place among them names.
+    if bitcast<u32>(seg.normal.w)!=0xffffffffu {
+        var left=index-seg.range.x; k=seg.range.z;
+        // cap: a tile holds 256 stations, so 256 steps at most.
+        loop { if retained(seg,k) { if left==0u { break; } left-=1u; } k+=1u; }
+    }
     var radial:vec3<f32>; var point:vec3<f32>; let tangent=seg.tangent.xyz; var normal=seg.normal.xyz;
     if seg.distance.y<0.0 {
         // A cluster at its tip, on the tip's own stream.

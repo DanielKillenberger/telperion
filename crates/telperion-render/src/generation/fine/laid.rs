@@ -6,7 +6,6 @@
 //! own, metres from its bearer's node as laid before bending and as laid;
 //! `origins` holds those nodes' heights, which the ground is read from.
 use super::super::io;
-use super::pool::Pool;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 use telperion_space::{BearerFrame, GeometryTables, RootGeometry, Vec3};
@@ -20,13 +19,13 @@ const GIRTH: &str = include_str!("girth.wgsl");
 const STAND: &str = include_str!("stand.wgsl");
 /// A laid axis's and phytomer's floats (`geometry.wgsl`).
 pub(super) const AL: usize = 8;
-pub(super) const PL: usize = 26;
+pub(super) const PL: usize = 27;
 /// A chain's scratch: per region axis, per region phytomer, then a status.
 #[cfg(test)]
 pub(super) const SA: u32 = 79;
 #[cfg(test)]
 pub(super) const SP: u32 = 12;
-const GG: usize = 40;
+const GG: usize = 42;
 /// `settle.wgsl`'s passes.
 pub(super) const SCALES: usize = 0;
 pub(super) const GIRTHS: usize = 1;
@@ -86,6 +85,12 @@ pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
         // `dress.wgsl` marks its clusters by.
         out[4 + GG * pa + 38] = p.cluster_leaves as f32;
         out[4 + GG * pa + 39] = p.cluster_spread as f32;
+        // The first age whose wood sheds some of its leaves and the share
+        // that age keeps (fn-248, `tree::retention`), which `dress.wgsl`
+        // records each node's retention by.
+        let (floor, share) = telperion_core::tree::retention(p.leaf_years);
+        out[4 + GG * pa + 40] = f32::from_bits(floor);
+        out[4 + GG * pa + 41] = f32::from_bits(u32::from(share));
         // The girth's values (`girth.wgsl`), each its own f32, the
         // reciprocal exponent taken once as the CPU takes it.
         let girth = [
@@ -168,11 +173,11 @@ pub(super) struct Wave {
 }
 
 impl Wave {
-    /// A wave of `axes` and `phyts` in a buffer from `pool`.
-    pub(super) fn taken(pool: &Pool, gpu: &Gpu, (axes, phyts): (u32, u32)) -> Result<Self> {
+    /// A wave of `axes` and `phyts` in a buffer of its own.
+    pub(super) fn new(gpu: &Gpu, (axes, phyts): (u32, u32)) -> Result<Self> {
         let floats = axes as usize * AL + phyts as usize * PL;
         Ok(Self {
-            buffer: pool.take(gpu, "fine laid", floats as u64)?,
+            buffer: super::steps::buffer(gpu, "fine laid", floats as u64)?,
             axes,
             phyts,
         })

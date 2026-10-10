@@ -87,13 +87,12 @@ fn large_to_small() {
         let ms = t.elapsed().as_secs_f64() * 1e3;
         let leaves = prepared.count();
         renderer.submit_prepared(prepared).unwrap();
-        let (pool, regions) = gen.fine_pool_bytes();
         let tree = Generator::tree_buffer_bytes(&renderer);
+        let held = gen.gpu.ledger.live();
         println!(
-            "spruce {age}: {} leaves in {ms:.0} ms; kept: pool {} MB, regions {} MB, tree {} MB",
+            "spruce {age}: {} leaves in {ms:.0} ms; held {} MB, tree {} MB",
             leaves,
-            pool >> 20,
-            regions >> 20,
+            held >> 20,
             tree >> 20
         );
     }

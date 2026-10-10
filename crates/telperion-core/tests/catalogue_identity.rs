@@ -133,6 +133,30 @@
 //! (MERGE-SPECIES.md) the family, walk and override digests were re-pinned
 //! from the merged tree, each species' values its own branch's; the refusal
 //! digest is F4's.
+//! fn-248 re-pinned the family, walk and override digests for each engine
+//! age's new neutral `leaf_years` and the beech's leaf rows (`leafYears`
+//! 1 on every age, a cluster of three on its short shoots), which
+//! Laurelin and Telperion share. With `leaf_years: inf, ` stripped from the
+//! text and the three value files and `telperion_space::beech` at their
+//! fn-248 base, the family, walk, override and refusal digests were each
+//! the base's to the bit. Its part 2 re-pinned the family and walk
+//! digests for the beech's leaf spacing (`/skeleton/twigs/twig/
+//! internodeLength` 0.006 to 0.025, in the three value files alone).
+//! Its part 3 re-pinned all four for the group's per-age internode and pipe
+//! overrides (`/supernatural/internode/age<k>`, `/supernatural/pipe/age<k>`):
+//! with their empty tables stripped from the text and the wire, the family,
+//! walk and override digests were each part 2's to the bit; the refusal
+//! digest takes the new rows' own refusals and re-pairs by index. The
+//! family and walk digests were re-pinned once more for Laurelin's and
+//! Telperion's coarse-age rows, their scale back at one; and again for the
+//! beech's short shoots (lifespan 4, clusters of 4), which the Two Trees
+//! share (the leaf area index). The group's leaf size override
+//! (`/supernatural/canopy/size`) re-pinned all four: with its empty row
+//! stripped from the text and the wire, the family, walk and override
+//! digests were each the last pins to the bit; the refusal digest takes the
+//! new row's refusal. The family and walk digests then take the Two Trees'
+//! leaf sizes, and Telperion's age of 82 (host: the Wasm phytomer bound at
+//! his own seed), and their florets three times larger and fewer.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -168,7 +192,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        2_333_297_806_083_657_236,
+        4_197_618_131_262_880_266,
         "{}",
         digest(&text)
     );
@@ -200,7 +224,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        17_905_568_364_190_521_403,
+        4_334_758_664_145_471_811,
         "{}",
         digest(&text)
     );
@@ -225,7 +249,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        6_556_638_518_150_561_013,
+        7_411_754_593_062_895_005,
         "{}",
         digest(&text)
     );
@@ -288,7 +312,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        159_807_827_090_449_713,
+        3_707_872_672_972_690_781,
         "{}",
         digest(&text)
     );

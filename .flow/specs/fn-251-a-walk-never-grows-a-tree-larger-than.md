@@ -11,6 +11,14 @@ Found by the teaser session (2026-10-09) on F4 d1b1efa9: the oak → birch walk 
 - **R2 (fixed):** every frame of a walk between two shipped species at 40 and 80 meets the oracle above and never fails on the budget; the fix by the cause R1 names, stated before code, by degree, both executors.
 - **R3 (proved):** a sweep of every pair of shipped branching species and the date palm (oak, birch, beech, spruce, ordinary, palm; the palm's size is its fronds, `a_walk_to_the_palm_is_never_grown_to_its_ends_size`) at 40 and 80, seeds 1, 7 and 42, at fine t near both ends and in between, every frame meeting the oracle; fn-230/fn-231 tests and the walk digest held or re-pinned with evidence; gate and npm test green.
 
+## Decisions (host, 2026-10-09, on R1/R1b's measurement, walksize `WALKS.md`)
+
+- **Cause:** light, not the size solve. Only the oak reads light today; the walk mixes its extinction (0.5 → 0) and its light-response rows toward the birch's zeros, so a frame is shaded less and responds less, and grows toward the oak's unshaded size (37.3M predicted, 17.2M grown at its own light; 22.6M at extinction 0.25). The size factor (0.996 there) solves on light-neutral counts and cannot see it.
+- **Natural-scale rows are rejected on evidence:** 10 of 45 frames met the oracle against 30 for linear rows with the size factor, and they undershoot by two orders (beech → spruce at 80, t = 0.5: 0.01M against ends of 1.61M and 4.78M). The owner's "cleaner design" was taken on the premise that it would keep frames within their ends; it does not. Linear rows and the size factor stay.
+- **fn-250's age walk did not reproduce** (each frame equals the oak grown at that age); fn-250 needs nothing.
+- **The light half waits for fn-255:** once every species reads light by degree, the oak/birch asymmetry that drives this is gone and the size solve's counts can be read at the frame's light. The oracle stays as written (ends at the frame's light). R2/R3 are re-measured on fn-255's grower; until then the oak → birch frames past the budget fail with the named budget error, never a fallback. The red repro test stays on the walksize branch (`d4cc14c4`), unmerged.
+- **R3's sweep cost** (4 growths a frame, 35-110 s at 80) is cut to the frames R1b used plus the repro when re-run, unless the measurement shows a new failing pair.
+
 ## Boundaries
 
 The walk's sizing. Release map item.

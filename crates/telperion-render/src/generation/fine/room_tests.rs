@@ -17,15 +17,15 @@ fn peak(family: &telperion_core::presets::Family) -> u64 {
     super::budget::peak(kept.unwrap().unwrap())
 }
 
-/// A renderer with `id` at 12 drawn, its generator, and the bytes held
-/// beside the generator's pools, with the tree's share of them.
+/// A renderer with `id` at 12 drawn, its generator, and the bytes the
+/// device holds, with the tree's share of them.
 fn drawn(id: &str) -> Option<(Renderer, Generator, u64, u64)> {
     let gpu = crate::generation::test_gpu()?;
     let mut renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     let prepared = gen.prepare(&family(id, 12), Delivery::Resident);
     renderer.submit_prepared(prepared.unwrap()).unwrap();
-    let held = gen.held_beside_pools();
+    let held = gen.gpu.ledger.live();
     let tree = Generator::tree_buffer_bytes(&renderer);
     Some((renderer, gen, held, tree))
 }
@@ -52,11 +52,11 @@ fn a_tree_that_fits_only_alone_lets_the_drawn_tree_go_first() {
     let budget = held - tree / 2 + peak(&next);
     assert!(tree > 0 && held + peak(&next) > budget, "{tree} of {held}");
     let drawn = still(&mut renderer).stats.instances;
-    let admitted = Generator::admit(Some(&gen), &next, &renderer, budget).unwrap();
+    let admitted = Generator::admit(&next, &renderer, budget).unwrap();
     assert_eq!(admitted, Admitted::MakeRoom);
     renderer.release_tree();
     assert!(
-        gen.held_beside_pools() <= held - tree,
+        gen.gpu.ledger.live() <= held - tree,
         "the tree's buffers let go"
     );
     // The screen is empty of the tree while the next builds.
@@ -70,13 +70,13 @@ fn a_tree_that_fits_only_alone_lets_the_drawn_tree_go_first() {
 
 #[test]
 fn a_tree_that_does_not_fit_even_alone_is_refused_and_the_drawn_tree_kept() {
-    let Some((mut renderer, gen, held, tree)) = drawn("european-beech") else {
+    let Some((mut renderer, _gen, held, tree)) = drawn("european-beech") else {
         return;
     };
     let next = family("european-beech", 30);
     let before = still(&mut renderer);
     let budget = held - tree + peak(&next) - 1;
-    let refused = Generator::admit(Some(&gen), &next, &renderer, budget).unwrap_err();
+    let refused = Generator::admit(&next, &renderer, budget).unwrap_err();
     assert!(
         refused
             .to_string()
@@ -89,24 +89,39 @@ fn a_tree_that_does_not_fit_even_alone_is_refused_and_the_drawn_tree_kept() {
 }
 
 /// The owner's walk the reviewers named (fn-235 review): a spruce at 12
-/// drawn, then the spruce at 80, under the page's own 6 GiB. The pools
-/// the 12 left are the 80's to reuse, so it builds, beside or alone.
+/// drawn, then the spruce at 80, under the page's own 6 GiB: it builds,
+/// beside or alone.
 #[test]
 fn the_spruce_at_80_follows_the_spruce_at_12_under_the_page_budget() {
-    let Some((renderer, gen, held, tree)) = drawn("norway-spruce") else {
+    let Some((renderer, _gen, held, tree)) = drawn("norway-spruce") else {
         return;
     };
     let next = family("norway-spruce", 80);
-    let admitted = Generator::admit(Some(&gen), &next, &renderer, super::budget::BROWSER);
-    let (pool, regions) = gen.fine_pool_bytes();
-    let mib = |b: u64| b >> 20;
-    let said = format!(
-        "held {} MiB beside pools {} + regions {} MiB, tree {} MiB",
-        mib(held),
-        mib(pool),
-        mib(regions),
-        mib(tree)
-    );
+    let admitted = Generator::admit(&next, &renderer, super::budget::BROWSER);
+    let said = format!("held {} MiB, tree {} MiB", held >> 20, tree >> 20);
     assert!(admitted.is_ok(), "{said}: {admitted:?}");
     println!("{said}: {:?}", admitted.unwrap());
+}
+
+/// fn-258 R2: a build's growth scratch and geometry scratch are let go
+/// when it is done. Once the drawn tree is released too, the device holds
+/// what it held before the build.
+#[test]
+fn a_build_keeps_nothing_on_the_device_once_it_is_done() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let mut renderer = Renderer::new(gpu, crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    pollster::block_on(gen.prepare_programs()).unwrap();
+    let before = gen.gpu.ledger.live();
+    let prepared = gen.prepare(&family("norway-spruce", 12), Delivery::Resident);
+    renderer.submit_prepared(prepared.unwrap()).unwrap();
+    renderer.release_tree();
+    let after = gen.gpu.ledger.live();
+    assert!(
+        after <= before,
+        "the build kept {} KiB on the device",
+        (after - before) >> 10
+    );
 }

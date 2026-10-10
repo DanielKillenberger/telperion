@@ -5,16 +5,24 @@
 //! and the leaf's back and margin reflectance), and each override stands in
 //! for the natural row it mirrors. An override's path is the natural row's
 //! with `/supernatural` in front; the flowering share of age `k`, a `/space`
-//! row, is overridden at `/supernatural/flowering/age<k>`. An unset
-//! override leaves its natural row as it is.
+//! row, is overridden at `/supernatural/flowering/age<k>`, and its
+//! internode and pipe at `/supernatural/internode/age<k>` and
+//! `/supernatural/pipe/age<k>` (fn-248). An unset override leaves its
+//! natural row as it is.
 use crate::catalogue::{self, input, linear, value, Blend, Bounds, Dial, Entry, Site};
 use crate::{Family, Result};
 use std::borrow::Cow;
 
+mod canopy;
 mod flowering;
+mod internode;
 mod overrides;
+mod pipe;
+pub use canopy::SupernaturalCanopy;
 pub use flowering::SupernaturalFlowering;
+pub use internode::SupernaturalInternode;
 pub use overrides::{SupernaturalBloom, SupernaturalMaterial};
+pub use pipe::SupernaturalPipe;
 
 /// No legendary row is tuned until a legendary species is onboarded.
 const LEGENDARY: Dial = Dial::Excluded(
@@ -110,7 +118,10 @@ crate::catalogue::rows! {
         },
         pub material: SupernaturalMaterial,
         pub bloom: SupernaturalBloom,
+        pub canopy: SupernaturalCanopy,
         pub flowering: SupernaturalFlowering,
+        pub internode: SupernaturalInternode,
+        pub pipe: SupernaturalPipe,
     }
 }
 
@@ -153,7 +164,10 @@ impl Supernatural {
         roughness: Reflection::NONE.roughness,
         material: SupernaturalMaterial::NONE,
         bloom: SupernaturalBloom::NONE,
+        canopy: SupernaturalCanopy::NONE,
         flowering: SupernaturalFlowering::NONE,
+        internode: SupernaturalInternode::NONE,
+        pipe: SupernaturalPipe::NONE,
     };
 
     /// What the group applies: itself while enabled, none while off.
@@ -191,20 +205,27 @@ impl Supernatural {
             Site::Supernatural,
         )?;
         catalogue::check(SupernaturalBloom::CHECKS, &self.bloom, Site::Supernatural)?;
+        catalogue::check(SupernaturalCanopy::CHECKS, &self.canopy, Site::Supernatural)?;
         catalogue::check(
             SupernaturalFlowering::CHECKS,
             &self.flowering,
             Site::Supernatural,
-        )
+        )?;
+        catalogue::check(
+            SupernaturalInternode::CHECKS,
+            &self.internode,
+            Site::Supernatural,
+        )?;
+        catalogue::check(SupernaturalPipe::CHECKS, &self.pipe, Site::Supernatural)
     }
 }
 
 /// Each override row of a family and the natural row it stands in for:
-/// the `/material` and `/bloom` overrides by their path.
+/// the `/material`, `/bloom` and `/canopy` overrides by their path.
 fn mirrored() -> impl Iterator<Item = (Entry, Entry)> {
     catalogue::entries().filter_map(|e| {
         let natural = e.path().strip_prefix("/supernatural")?;
-        let groups = ["/material/", "/bloom/"];
+        let groups = ["/material/", "/bloom/", "/canopy/"];
         groups
             .iter()
             .any(|g| natural.starts_with(g))
@@ -234,6 +255,16 @@ impl Family {
                     state.flowering = v;
                 }
             }
+            for (k, length) in g.internode.values() {
+                if let (Some(v), Some(state)) = (length, species.states.get_mut(k)) {
+                    state.internode = v;
+                }
+            }
+            for (k, pipe) in g.pipe.values() {
+                if let (Some(v), Some(state)) = (pipe, species.states.get_mut(k)) {
+                    state.form.pipe = v;
+                }
+            }
         }
         Cow::Owned(f)
     }
@@ -259,7 +290,10 @@ impl Supernatural {
         }
         set(SupernaturalMaterial::CHECKS, &self.material)
             || set(SupernaturalBloom::CHECKS, &self.bloom)
+            || set(SupernaturalCanopy::CHECKS, &self.canopy)
             || self.flowering.shares().any(|(_, v)| v.is_some())
+            || self.internode.values().any(|(_, v)| v.is_some())
+            || self.pipe.values().any(|(_, v)| v.is_some())
     }
 }
 
@@ -273,7 +307,10 @@ pub(crate) fn blend(a: &Family, b: &Family, t: f64) -> Supernatural {
         enabled: a.supernatural.enabled || b.supernatural.enabled,
         material: SupernaturalMaterial::NONE,
         bloom: SupernaturalBloom::NONE,
+        canopy: SupernaturalCanopy::NONE,
         flowering: SupernaturalFlowering::NONE,
+        internode: SupernaturalInternode::NONE,
+        pipe: SupernaturalPipe::NONE,
         ..from
     };
     let rows = [
@@ -309,24 +346,47 @@ pub(crate) fn blend(a: &Family, b: &Family, t: f64) -> Supernatural {
             at.set(&mut f).put(linear(x, y, t));
         }
     }
-    let share = |x: &Family, k: usize| {
-        let natural = x
-            .space
-            .species
-            .as_ref()
-            .and_then(|s| s.states.get(k))
-            .map(|s| s.flowering);
-        let applied = x
-            .supernatural
-            .enabled
-            .then(|| x.supernatural.flowering.get(k))
-            .flatten();
-        (applied.is_some(), applied.or(natural))
+    // Each age's override walks from what each side applies: the natural
+    // row on a side that sets none.
+    type Age = fn(&Supernatural, usize) -> Option<f64>;
+    let by_age =
+        |x: &Family, k: usize, over: Age, natural: fn(&telperion_space::PaState) -> f64| {
+            let row = x
+                .space
+                .species
+                .as_ref()
+                .and_then(|s| s.states.get(k))
+                .map(natural);
+            let applied = x
+                .supernatural
+                .enabled
+                .then(|| over(&x.supernatural, k))
+                .flatten();
+            (applied.is_some(), applied.or(row))
+        };
+    let walked = |over: Age, natural: fn(&telperion_space::PaState) -> f64| {
+        (0..SupernaturalFlowering::AGES).map(move |k| {
+            let ((sa, va), (sb, vb)) = (by_age(a, k, over, natural), by_age(b, k, over, natural));
+            match (sa || sb, va, vb) {
+                (true, Some(x), Some(y)) => Some(linear(x, y, t)),
+                _ => None,
+            }
+        })
     };
-    for k in 0..SupernaturalFlowering::AGES {
-        let ((sa, va), (sb, vb)) = (share(a, k), share(b, k));
-        if let (true, Some(x), Some(y)) = (sa || sb, va, vb) {
-            f.supernatural.flowering.set(k, linear(x, y, t));
+    let flowering = walked(|g, k| g.flowering.get(k), |s| s.flowering);
+    for (k, v) in flowering.enumerate() {
+        if let Some(v) = v {
+            f.supernatural.flowering.set(k, v);
+        }
+    }
+    for (k, v) in walked(|g, k| g.internode.get(k), |s| s.internode).enumerate() {
+        if let Some(v) = v {
+            f.supernatural.internode.set(k, v);
+        }
+    }
+    for (k, v) in walked(|g, k| g.pipe.get(k), |s| s.form.pipe).enumerate() {
+        if let Some(v) = v {
+            f.supernatural.pipe.set(k, v);
         }
     }
     f.supernatural

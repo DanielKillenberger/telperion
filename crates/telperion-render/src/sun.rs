@@ -1,8 +1,8 @@
-//! What the sun's side of a frame was last drawn for (fn-246). Its wood,
-//! surfaced for the map, depends on the tree and the light; the map itself
-//! also on the view's casters and the caster stride. Neither depends on the
-//! camera, so a frame that changes none of them reuses both, and a frame
-//! that changes only the casters redraws the map over the same wood.
+//! What the sun's map was last drawn for (fn-246): the light, the view's
+//! casters and the caster stride. None of them depends on the camera, so a
+//! frame that changes none of them reuses the map. The sun's wood is
+//! surfaced into the buffers the camera's is written over in the same frame
+//! (fn-258), so a map drawn again surfaces it again.
 use crate::{shadow::Light, View};
 
 /// What stands between the sun and the ground in a view: nothing in the
@@ -44,51 +44,32 @@ impl Key {
     }
 }
 
-/// What a frame has to draw of the sun's side.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) struct Plan {
-    /// Surface the wood for the sun again.
-    pub(crate) surface: bool,
-    /// Draw the map again.
-    pub(crate) map: bool,
-}
-
-/// The light the sun's wood was surfaced for and the key the map on the
-/// device was drawn for, each where it is current, and whether the last
-/// frame reused the map.
+/// The key the map on the device was drawn for, where it is current, and
+/// whether the last frame reused it.
 #[derive(Debug, Default)]
 pub(crate) struct Sun {
-    surfaced: Option<Light>,
     drawn: Option<Key>,
     pub(crate) reused: bool,
 }
 
 impl Sun {
-    /// What a frame under `key` draws. New wood is drawn into a new map.
-    pub(crate) fn plan(&self, key: &Key) -> Plan {
-        let surface = self.surfaced != Some(key.light);
-        Plan {
-            surface,
-            map: surface || self.drawn.as_ref() != Some(key),
-        }
+    /// Whether a frame under `key` draws the map, and the sun's wood with
+    /// it, again.
+    pub(crate) fn plan(&self, key: &Key) -> bool {
+        self.drawn.as_ref() != Some(key)
     }
 
-    /// The frame drew what `plan` asked under `key`; `whole` is false where
-    /// it could not surface the wood (its programs still compiling), and
-    /// then nothing it drew is current.
-    pub(crate) fn drew(&mut self, key: Key, plan: Plan, whole: bool) {
-        self.reused = !plan.map;
-        if !whole {
-            self.forget();
-            return;
-        }
-        self.surfaced = Some(key.light);
-        self.drawn = Some(key);
+    /// The frame drew the map where `map` asked under `key`; `whole` is
+    /// false where it could not surface the wood (its programs still
+    /// compiling), and then the map it drew is not current.
+    pub(crate) fn drew(&mut self, key: Key, map: bool, whole: bool) {
+        self.reused = !map;
+        self.drawn = whole.then_some(key);
     }
 
     /// A new tree, a released one or a failed frame: nothing is current.
     pub(crate) fn forget(&mut self) {
-        (self.surfaced, self.drawn) = (None, None);
+        self.drawn = None;
     }
 }
 
@@ -104,37 +85,35 @@ mod tests {
         crate::shadow::light(&row, None)
     }
 
-    /// Draws a frame under `key` the way the renderer does and returns the
-    /// plan it followed.
-    fn frame(sun: &mut Sun, key: Key) -> Plan {
-        let plan = sun.plan(&key);
-        sun.drew(key, plan, true);
-        plan
+    /// Draws a frame under `key` the way the renderer does and returns
+    /// whether it drew the map.
+    fn frame(sun: &mut Sun, key: Key) -> bool {
+        let map = sun.plan(&key);
+        sun.drew(key, map, true);
+        map
     }
 
     #[test]
-    fn the_casters_redraw_the_map_over_the_same_wood_and_the_light_redraws_both() {
+    fn the_map_is_drawn_again_when_the_light_the_casters_or_the_stride_change() {
         let mut sun = Sun::default();
-        let (whole, both) = (Key::new(light(30.0), View::Whole, 4), Plan { surface: true, map: true });
-        assert_eq!(frame(&mut sun, whole), both);
-        let none = Plan { surface: false, map: false };
-        assert_eq!(frame(&mut sun, whole), none);
+        let whole = Key::new(light(30.0), View::Whole, 4);
+        assert!(frame(&mut sun, whole));
+        assert!(!frame(&mut sun, whole));
         assert!(sun.reused);
-        let map = Plan { surface: false, map: true };
-        assert_eq!(frame(&mut sun, Key::new(light(30.0), View::Bare, 4)), map);
-        assert_eq!(frame(&mut sun, whole), map);
-        assert_eq!(frame(&mut sun, Key::new(light(30.0), View::Whole, 9)), map);
-        assert_eq!(frame(&mut sun, Key::new(light(200.0), View::Whole, 9)), both);
+        assert!(frame(&mut sun, Key::new(light(30.0), View::Bare, 4)));
+        assert!(frame(&mut sun, whole));
+        assert!(frame(&mut sun, Key::new(light(30.0), View::Whole, 9)));
+        assert!(frame(&mut sun, Key::new(light(200.0), View::Whole, 9)));
         sun.forget();
-        assert_eq!(sun.plan(&whole), both);
+        assert!(sun.plan(&whole));
     }
 
     #[test]
     fn a_frame_without_its_wood_leaves_nothing_current() {
         let mut sun = Sun::default();
         let key = Key::new(light(30.0), View::Whole, 4);
-        let plan = sun.plan(&key);
-        sun.drew(key, plan, false);
-        assert_eq!(sun.plan(&key), Plan { surface: true, map: true });
+        let map = sun.plan(&key);
+        sun.drew(key, map, false);
+        assert!(sun.plan(&key));
     }
 }

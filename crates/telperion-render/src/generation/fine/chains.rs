@@ -211,9 +211,6 @@ pub(super) struct Grower {
     /// one left (task 8: a fresh 1.4 GB a run cost 30 ms of allocation and
     /// clearing, three times the run's kernels).
     pool: RefCell<Vec<Owned>>,
-    /// The most bytes this build asked of each region (fn-212 task 10, host
-    /// decision 1): what the pool is trimmed to once the build is done.
-    asked: RefCell<[u64; 5]>,
 }
 
 /// The regions' labels.
@@ -237,39 +234,18 @@ impl Grower {
                 &["pack"],
             ),
             pool: RefCell::new(Vec::new()),
-            asked: RefCell::default(),
         }
     }
 
-    /// The regions trimmed to what this build asked, the excess freed: a
-    /// retune at the same size takes them as they are, a smaller tree
-    /// keeps no larger tree's.
-    pub(super) fn trim(&self, gpu: &Gpu) -> Result<()> {
-        let asked = std::mem::take(&mut *self.asked.borrow_mut());
-        let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-        let mut pool = self.pool.borrow_mut();
-        for (k, b) in pool.iter_mut().enumerate() {
-            let wanted = asked[k].max(16).next_multiple_of(4);
-            if b.size() > wanted {
-                *b = io::buffer(gpu, LABELS[k], wanted, storage, &[])?;
-            }
-        }
-        Ok(())
-    }
-
-    /// The bytes the regions keep between builds.
-    #[cfg(any(test, target_arch = "wasm32"))]
-    pub(super) fn bytes(&self) -> u64 {
-        self.pool.borrow().iter().map(|b| b.size()).sum()
+    /// The regions let go once a build is done: growth scratch no frame
+    /// reads (fn-258 R2). The next build makes them again.
+    pub(super) fn release(&self) {
+        self.pool.borrow_mut().clear();
     }
 
     /// The region's five buffers of at least `bytes` each, reused where
     /// the pool's are large enough.
     fn buffers(&self, gpu: &Gpu, bytes: [u64; 5]) -> Result<[wgpu::Buffer; 5]> {
-        let mut asked = self.asked.borrow_mut();
-        for (a, &n) in asked.iter_mut().zip(&bytes) {
-            *a = (*a).max(n);
-        }
         // Each buffer only grows: a run's regions are as many chains of
         // larger caps or more of smaller ones, and its status a word a
         // chain whatever the caps, so replacing all five at once lets two

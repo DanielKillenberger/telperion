@@ -10,6 +10,8 @@ The last fn-245 stage, and the check fn-237 rests on. The owner's bar (fn-237 R0
 - **R2 (obsolete code gone):** contract A, the stepped light executor, the lattice, the fine-root cut and any grower or predictor the stages replaced are absent from the shipped artifacts, shown by a content and reachability audit of every shipped module and embedded shader; artifact sizes reported separately.
 - **R3 (owner):** old-versus-new stills of every shipped species and of the site's grove, with the owner's visual verdict on each whether or not its performance passes; each remaining regression (download included) named with its measured size and the fidelity gain offered for it; the owner's verdict per item.
 
+- **R4 (friction, fn-258 FRICTION.md):** the scorecard's tooling gets a one-build mode for rows that only need memory (fn-258's same-age sweep spent about 80 minutes on four builds a row) and a pixel-difference helper that counts differing pixels (ImageMagick 7's `compare -metric AE` is intensity-weighted and understated a difference 100×); the sweep runs with no other session holding the GPU, its free device memory recorded per row.
+
 ## Boundaries
 
 Qualification only; fixes go to their own specs. Depends on stages 4 and 5. Release item for fn-237.

@@ -5,17 +5,24 @@ use crate::{
     envelope::Envelope,
     math::Vec3,
     pipeline::surface::{AttachmentSurface, SurfaceParams},
-    tree::Tree,
+    tree::{Leafing, Tree},
     Error, Result,
 };
 
 /// A contiguous range of stations on one swept wood segment. Ordinals refer
 /// to the uncullled stream, so scheduling never changes random draws.
+/// `count` leaves stand on it from leaf `first`: its stations from
+/// ordinal `run_station` that keep their leaves.
 #[derive(Debug)]
 pub struct StationSegment {
     pub first: u32,
     pub count: u32,
     pub run_station: u32,
+    /// Where some of its stations shed their leaves (fn-248): the boundary
+    /// along the run in whole micrometres and the retentions before and
+    /// from it (`tree::Leafing`), which a placement walks its stations by
+    /// to find each leaf's ordinal. `None` where every station keeps one.
+    pub retention: Option<(u32, u32)>,
     /// Sine/cosine of the first internode turn, evaluated before f32 narrowing.
     pub phase: [f64; 2],
     pub endpoints: [Vec3; 2],
@@ -175,6 +182,8 @@ fn prepare_inner<C>(
     let fine = tree.in_fine_roots();
     let (mut points, mut chord, mut along) = (Vec::new(), Vec::new(), Vec::new());
     for run in &runs {
+        // The leaves this run's tiles before the next one keep.
+        let mut seen = 0u32;
         // The chord along the run, which its frames read; its stations
         // stand by the grown wood (`run.along`).
         plan::walk(
@@ -202,7 +211,7 @@ fn prepare_inner<C>(
         .enumerate()
         {
             let (first, last) = run.segment_stations(segment, twig);
-            if first == last {
+            if run.kept_between(tree, twig, (first, last)) == 0 {
                 continue;
             }
             let nodes = &run.nodes;
@@ -221,18 +230,31 @@ fn prepare_inner<C>(
                     Ok(indices)
                 })
                 .transpose()?;
+            let leafing = tree.leafing(nodes[segment + 1]);
+            let retention = (leafing != Leafing::ALL).then(|| {
+                let boundary = run.along[segment] + plan::micrometres(leafing.older);
+                (boundary as u32, leafing.keep)
+            });
             let mut tile_first = first;
             while tile_first < last {
                 let tile_count = (last - tile_first).min(256);
+                let kept = run.kept_between(tree, twig, (tile_first, tile_first + tile_count));
+                let before = seen;
+                seen += kept;
+                if kept == 0 {
+                    tile_first += tile_count;
+                    continue;
+                }
                 let turn = (tile_first / twig.stations_per_internode) as f64
                     * p.divergence
                     * std::f64::consts::PI
                     / 180.0;
                 let (sin, cos) = turn.sin_cos_fixed();
                 segments.push(StationSegment {
-                    first: total_count + tile_first,
-                    count: tile_count,
+                    first: total_count + before,
+                    count: kept,
                     run_station: tile_first,
+                    retention,
                     phase: [sin, cos],
                     endpoints: [points[segment], points[segment + 1]],
                     radii: [distal.start_radius, distal.radius],
@@ -246,7 +268,7 @@ fn prepare_inner<C>(
                 tile_first += tile_count;
             }
         }
-        total_count += run.count;
+        total_count += run.kept;
     }
     // Each short shoot's cluster after every run (fn-223): one segment at
     // its tip.
@@ -258,6 +280,7 @@ fn prepare_inner<C>(
             first: total_count,
             count: c.leaves,
             run_station: 0,
+            retention: None,
             phase: [0.0, 1.0],
             endpoints: [at; 2],
             radii: [radius; 2],

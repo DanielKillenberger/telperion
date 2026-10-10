@@ -1,0 +1,88 @@
+{
+  "branch_name": "fn-261-the-same-binary-draws-the-same-leaves",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-10T21:20:47.380920Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-261-the-same-binary-draws-the-same-leaves",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-10T21:22:36.988487Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "cb6884b7c6cb6a44d5d664cdbf54d7a444d9fc84052c61bcee7b8c0d93480d4c",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b81a4f355fe0e05e8864a106cad9d531",
+            "classification": "introduced",
+            "findingId": "finding-b81a4f355fe0e05e8864a106cad9d531",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "03eb20ed8157fcacff66ae1af737549a74f2308b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1454806,
+      "output_sha256": "e7ae459659617b823d788a3b723863460b8f27dafc3caef3be3286393cef33e0",
+      "reservation_id": "61ce1fcf755341c7b18c13b5e1cb3c24",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-10T21:22:36.923080Z",
+      "tool_calls": 30,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-261-the-same-binary-draws-the-same-leaves.md",
+  "status": "open",
+  "title": "The same binary draws the same leaves every run",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-10T21:22:43.379423Z"
+}
