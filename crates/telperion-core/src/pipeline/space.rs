@@ -605,6 +605,8 @@ fn converted(
 }
 
 #[cfg(test)]
+mod ceiling_tests;
+#[cfg(test)]
 mod cluster_tests;
 #[cfg(test)]
 mod coarse_tests;

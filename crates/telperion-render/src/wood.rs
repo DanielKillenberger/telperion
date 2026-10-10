@@ -4,9 +4,6 @@ use telperion_core::{material::MaterialParams, surface::Curve};
 
 use crate::{device::Gpu, FrameStats};
 
-/// The switch the wood stages are built on, as the shader states it.
-const SMOOTH_ON: &str = "const SMOOTH_BARK: bool = true;";
-
 /// Whether a material draws any of smooth bark's terms: lichen, lenticels or
 /// a peeling strip. One that draws none is drawn by the pipeline without them.
 pub fn smooth_bark(m: &MaterialParams) -> bool {
@@ -43,20 +40,8 @@ impl Wood {
         shadow: &crate::shadow::Shadow,
         surface: crate::pass::Surface,
     ) -> Self {
-        let stages = format!(
-            "{}\n{}\n{}\n{}",
-            include_str!("shaders/bark.wgsl"),
-            include_str!("shaders/plates.wgsl"),
-            include_str!("shaders/smooth.wgsl"),
-            include_str!("shaders/wood.wgsl")
-        );
-        assert!(
-            stages.contains(SMOOTH_ON),
-            "the wood stages lost their switch"
-        );
-        let plain = stages.replace(SMOOTH_ON, "const SMOOTH_BARK: bool = false;");
-        let shader = crate::pass::lit_shader(gpu, "wood", &plain);
-        let smooth = crate::pass::lit_shader(gpu, "smooth wood", &stages);
+        let shader = crate::shaders::module(gpu, "wood", crate::shaders::wood(false));
+        let smooth = crate::shaders::module(gpu, "smooth wood", crate::shaders::wood(true));
         Self {
             smooth_on: false,
             pinned: None,

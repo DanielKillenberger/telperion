@@ -11,7 +11,8 @@ use wgpu::util::DeviceExt;
 
 use crate::{
     device::Gpu,
-    pass::{lit_shader, Depth, Surface},
+    pass::{Depth, Surface},
+    shaders,
     shadow::Light,
     view::View,
 };
@@ -234,7 +235,7 @@ impl Scene {
             }],
         });
 
-        let shader = lit_shader(gpu, "scene", include_str!("shaders/scene.wgsl"));
+        let shader = shaders::module(gpu, "scene", shaders::scene());
         // The room takes no selection, so the group between the light and the
         // shadow map is a hole in its layout rather than a group it binds.
         let groups = [Some(&layout), None, Some(shadow)];
@@ -256,7 +257,7 @@ impl Scene {
         let sky = crate::pipeline(
             gpu,
             &groups,
-            &lit_shader(gpu, "sky", include_str!("shaders/sky.wgsl")),
+            &shaders::module(gpu, "sky", shaders::sky()),
             surface,
             &[],
             Depth::Behind,

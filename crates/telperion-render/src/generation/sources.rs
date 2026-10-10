@@ -1,5 +1,5 @@
 //! The generation passes' WGSL, each composed once here, so the passes
-//! and the CPU-side parse (`shader_tests.rs`) read the same source.
+//! and the CPU-side parse (`crate::shader_tests`) read the same source.
 const LEAF: &str = include_str!("../shaders/leaf.wgsl");
 
 /// The placement, its leaves' and its florets' (fn-229), which draw by
@@ -36,7 +36,7 @@ pub(super) fn positions() -> String {
 
 /// Every pass's source by name, the fine-root executor's included.
 #[cfg(test)]
-pub(super) fn all() -> Vec<(&'static str, String)> {
+pub(crate) fn all() -> Vec<(&'static str, String)> {
     let mut out = vec![
         ("place", place()),
         ("mass", mass()),
