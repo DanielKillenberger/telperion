@@ -57,9 +57,11 @@ impl Organ {
     ) -> Result<Option<Placed>> {
         let gpu = &gen.gpu;
         let cpu = self.cpu.instances.len() as u32;
-        let count = cpu
-            .checked_add(stationed.florets)
-            .ok_or(telperion_core::Error::ResourceLimit("floret budget"))?;
+        // The device's florets, then one rachis a bloom (fn-253).
+        let budget = telperion_core::Error::ResourceLimit("floret budget");
+        let rachises = data::rachises(self.rows, stationed.blooms);
+        let device = (stationed.florets.checked_add(rachises)).ok_or(budget.clone())?;
+        let count = cpu.checked_add(device).ok_or(budget)?;
         if count == 0 {
             return Ok(None);
         }
@@ -78,7 +80,7 @@ impl Organ {
             let config = data::florets(self.rows, counts, &self.cpu.element, self.reference());
             // No ring is read: the bindings take the records again.
             let records = (&**records, &**records);
-            let at = (stationed.florets, &*buffer);
+            let at = (device, &*buffer);
             let config = config.at(cpu);
             let e = &self.cpu.element;
             let placed = gen.record_place(encoder, Placement::Florets, config, records, e, at)?;

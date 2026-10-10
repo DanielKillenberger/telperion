@@ -409,7 +409,7 @@ fn converted(
             _ => Vec3::ZERO,
         };
         let mut made = false;
-        let mut tip = None;
+        let mut own_tip = false;
         // The wood grown since the axis's last node: the internodes merged
         // into a node are carried on to the next one drawn.
         let PaRow {
@@ -524,9 +524,9 @@ fn converted(
                         keep: u32::from(before) << 16 | u32::from(last),
                     });
                 }
-                // The tip a bloom may stand at: the last node the axis
-                // draws from its own wood, with its bud's side (fn-253).
-                tip = d.relay.is_none().then(|| up(p.side));
+                // Whether the axis's last node is drawn from its own wood,
+                // where its bloom may stand (fn-253).
+                own_tip = d.relay.is_none();
                 made = true;
                 match d.relay {
                     Some(c) => joined[c] = Some((parent, place)),
@@ -543,11 +543,10 @@ fn converted(
         }
         // A flowering age's inflorescence stands at its axis's tip, as its
         // cluster does (fn-253): where the shoot ends, never along it.
-        if let (true, Some(side)) = (made && share > 0.0, tip) {
+        if made && own_tip && share > 0.0 {
             blooms.push(Bloom {
                 node: parent,
                 share,
-                side,
             });
         }
         if made && cluster.0 > 0 {

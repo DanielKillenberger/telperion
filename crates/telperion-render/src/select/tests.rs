@@ -182,3 +182,48 @@ fn check_compaction(gpu: &Gpu, selection: &Select, instances: usize, levels: usi
         }
     }
 }
+
+/// fn-253: an organ's rachis is never thinned, since the florets it holds
+/// would hang in the air: at a size thinning drops every floret, every
+/// rachis in the frame still stands in the coarsest level, and a rachis
+/// behind the eye is still culled. On the leaves, the same bit is a
+/// withered leaf and thins as any leaf does.
+#[test]
+fn a_rachis_is_culled_but_never_thinned() {
+    use telperion_core::foliage::WITHERED;
+    let Some(gpu) = device() else { return };
+    let mut foliage = interleaved(4_000, 2);
+    for (id, leaf) in foliage.instances.leaves.iter_mut().enumerate() {
+        // A hundredth of a pixel across: thinning keeps none of them.
+        leaf[2] = (leaf[2] & 0xffff) | (u32::from(half(1e-4)) << 16);
+        if id % 2 == 0 {
+            leaf[2] |= WITHERED;
+        }
+    }
+    let ahead = |id: usize| id % 3 != 2;
+    let mut selection = Select::new(&gpu);
+    selection.submit(&gpu, &foliage, &foliage.element, Level::Chosen);
+    for (rachis, kept) in [(0.5, (0..4_000).filter(|&id| id % 2 == 0 && ahead(id)).count()), (0.0, 0)] {
+        selection.set_rachis(rachis);
+        let camera = Camera {
+            position: telperion_core::math::Vec3::ZERO,
+            target: telperion_core::math::Vec3::new(0.0, 0.0, -1.0),
+            field_of_view: 90.0,
+            near: 0.1,
+            far: 10.0,
+        };
+        let mut encoder = gpu.encoder(&Default::default());
+        selection.dispatch(&gpu, &mut encoder, &camera, (2, 2), true, None);
+        gpu.submit([encoder.finish()]);
+        let counts = selection.counted(&gpu).expect("counts read back");
+        assert_eq!(counts[0] as usize, kept, "rachis {rachis}");
+        assert_eq!(counts[1], 0, "rachis {rachis}: a floret this small kept");
+    }
+}
+
+/// `v` as the half float a placement's scale is stored in.
+fn half(v: f32) -> u16 {
+    let bits = v.to_bits();
+    let exponent = ((bits >> 23) & 0xff) as i32 - 127 + 15;
+    ((exponent as u32) << 10 | ((bits >> 13) & 0x3ff)) as u16
+}

@@ -26,6 +26,8 @@ struct Selection {
     stride: u32,
     // The level every leaf in the frame is held at, or -1 to choose one.
     forced: i32,
+    // The rachis's length on the organ (fn-253), zero on the leaves.
+    stalk: vec4<f32>,
 };
 
 @group(0) @binding(0) var<uniform> u: Selection;
@@ -72,6 +74,18 @@ fn level_of(instance: u32) -> u32 {
     // The placement scales the element, and the scale is a word of its own
     // now: the sphere the leaf stands in and the deviation it is judged on
     // both read it directly rather than measuring a column to find it.
+    // An organ's rachis (fn-253) reaches its length from its seat and is
+    // never thinned, the florets it holds would hang in the air: it stands
+    // in the coarsest level, the fewest petal vertices its draw discards.
+    if (u.stalk.x > 0.0 && leaf_withered(words)) {
+        let seat = leaf_position(words, u.box_min.xyz, u.box_extent.xyz);
+        for (var plane = 0u; plane < 6u; plane = plane + 1u) {
+            if dot(u.planes[plane].xyz, seat) + u.planes[plane].w < -u.stalk.x {
+                return u.levels;
+            }
+        }
+        return 0u;
+    }
     let scale = leaf_scale(words);
     let centre = leaf_position(words, u.box_min.xyz, u.box_extent.xyz)
         + leaf_rotation(words.x) * (u.sphere.xyz * scale);

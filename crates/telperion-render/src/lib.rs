@@ -328,6 +328,7 @@ impl Renderer {
     pub fn set_material(&mut self, material: MaterialParams) {
         self.wood.set_material(&material);
         self.scene.set_material(material);
+        self.organ.set_rachis(0.0);
     }
 
     /// What the tree that is up is made of, as `family` states it with its
@@ -337,6 +338,12 @@ impl Renderer {
     pub fn set_family(&mut self, family: &telperion_core::Family) {
         self.set_material(family.drawn_material());
         self.scene.set_reflection(family.supernatural.reflection());
+        // The flowers' stalks (fn-253): the rachis and its droop, the
+        // stamen's half width, and the pedicel.
+        let p = &family.applied().bloom;
+        let stalk = [p.rachis, p.droop, 0.5 * p.stamen_width, p.pedicel].map(|v| v as f32);
+        self.scene.set_stalk(stalk);
+        self.organ.set_rachis(stalk[0]);
     }
 
     /// Puts the sun somewhere else and paints the sky and the ground with it.

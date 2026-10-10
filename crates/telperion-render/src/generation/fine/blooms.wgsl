@@ -31,8 +31,9 @@ fn florets(@builtin(global_invocation_id) id: vec3<u32>) {
 }
 
 // Each bloom that keeps a floret as placement reads it (`place.wgsl`'s
-// `floret_words`), at its record: its node and its bloom's growth, its
-// parent, its bud's side, and its first floret, count and key (fn-229).
+// `floret_words` and `rachis_words`), at its record: its node and its
+// bloom's growth, its parent and the node's radius, which its rachis
+// tapers from (fn-253), and its first floret, count and key (fn-229).
 // `segs` is the records; the florets' and records' totals are in `counts`.
 @compute @workgroup_size(64)
 fn blooms(@builtin(global_invocation_id) id: vec3<u32>) {
@@ -53,8 +54,7 @@ fn blooms(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     let at = record * GW;
     put4(at, vec4<f32>(pos(i), grown_bloom(i)));
-    put4(at + 4u, vec4<f32>(pos(parent(i)), 0.0));
-    put4(at + 8u, vec4<f32>(nodes[i * NW + 18u], nodes[i * NW + 19u], nodes[i * NW + 20u], 0.0));
+    put4(at + 4u, vec4<f32>(pos(parent(i)), nodes[i * NW + 3u]));
     segs[at + 24u] = first;
     segs[at + 25u] = end - first;
     segs[at + 26u] = key(i).x;

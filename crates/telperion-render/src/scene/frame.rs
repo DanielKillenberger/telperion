@@ -223,6 +223,7 @@ impl Scene {
             mature_radius: colour(m.mature_radius, m.mature_span, 0.0, 0.0),
             leaf_reflection: colour(r.back_tint[0], r.back_tint[1], r.back_tint[2], r.back),
             bloom_eye: [0.0; 4],
+            stalk: [0.0; 4],
         };
         if self.mask {
             // The clay room unlit and black: nothing but the flowers shows.
@@ -233,6 +234,7 @@ impl Scene {
             .write_buffer(&self.uniforms, 0, bytemuck::bytes_of(&uniforms));
         if let Some((reference, radius)) = self.organ_reference.filter(|_| view != View::Leaf) {
             let mut organ = organ(uniforms, m, reference, radius);
+            organ.stalk = self.stalk;
             if self.mask {
                 organ.clay = [1.0, 1.0, 1.0, organ.clay[3]];
                 (organ.sky, organ.ground) = ([1.0; 4], [1.0; 4]);

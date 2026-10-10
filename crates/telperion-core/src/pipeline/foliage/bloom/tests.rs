@@ -3,7 +3,12 @@
 use super::*;
 use crate::tree::{Node, NodeIdentity};
 
-/// A stem of `count` nodes a metre apart, each a bloom of `share` facing +X.
+/// A floret's transform before packing.
+type Matrix = [f32; 16];
+/// The vertices of the element's two stalks (`stalk.rs`).
+const STALKS: usize = (SIDES * (2 + RINGS)) as usize;
+
+/// A stem of `count` nodes a metre apart, each a tip bloom of `share`.
 fn stem(count: u32, share: f64) -> Tree {
     let mut nodes = vec![Node::root()];
     let mut blooms = Vec::new();
@@ -13,11 +18,7 @@ fn stem(count: u32, share: f64) -> Tree {
         node.parent = Some(i - 1);
         node.identity = NodeIdentity::lineage(child(7, u64::from(i)));
         nodes.push(node);
-        blooms.push(Bloom {
-            node: i,
-            share,
-            side: Vec3::X,
-        });
+        blooms.push(Bloom { node: i, share });
     }
     Tree {
         nodes,
@@ -38,8 +39,8 @@ fn raceme() -> BloomParams {
     }
 }
 
-/// Each bloom's florets as transforms, before packing.
-fn florets(tree: &Tree, p: &BloomParams, season: Option<f64>) -> Vec<Vec<Matrix>> {
+/// Each bloom's instances, before packing: its florets, then its rachis.
+fn instances(tree: &Tree, p: &BloomParams, season: Option<f64>) -> Vec<Vec<([f32; 16], bool)>> {
     let now = now(p, season);
     tree.blooms
         .iter()
@@ -48,6 +49,13 @@ fn florets(tree: &Tree, p: &BloomParams, season: Option<f64>) -> Vec<Vec<Matrix>
             inflorescence(tree, b, p, now, &mut out).unwrap();
             out
         })
+        .collect()
+}
+
+/// Each bloom's florets as transforms, before packing.
+fn florets(tree: &Tree, p: &BloomParams, season: Option<f64>) -> Vec<Vec<Matrix>> {
+    (instances(tree, p, season).into_iter())
+        .map(|b| b.into_iter().filter(|(_, r)| !r).map(|(m, _)| m).collect())
         .collect()
 }
 
@@ -142,8 +150,8 @@ fn a_walk_across_the_petal_count_has_no_pop() {
     let at = |petals| element(&BloomParams { petals, ..raceme() }).unwrap();
     let five = at(5.0);
     let more = at(5.001);
-    let n = five.positions.len() / 5;
-    assert_eq!(more.positions.len(), 6 * n);
+    let n = (five.positions.len() - STALKS) / 5;
+    assert_eq!(more.positions.len(), 6 * n + STALKS);
     let far = |a: &[Vec3], b: &[Vec3]| {
         a.iter()
             .zip(b)
@@ -187,12 +195,13 @@ fn the_season_scales_florets_in_and_out() {
 fn every_floret_packs_inside_its_box() {
     let tree = stem(5, 1.0);
     let packed = place(&tree, &raceme(), None).unwrap();
-    assert_eq!(packed.len(), 20);
-    let all = florets(&tree, &raceme(), None).concat();
-    for (i, m) in all.iter().enumerate() {
+    assert_eq!(packed.len(), 25, "four florets and a rachis a bloom");
+    let all = instances(&tree, &raceme(), None).concat();
+    for (i, (m, rachis)) in all.iter().enumerate() {
+        assert_eq!(packed.leaves[i][2] & RACHIS != 0, *rachis, "instance {i}");
         let at = packed.position(i);
         let d = Vec3::new(m[12] as f64, m[13] as f64, m[14] as f64).distance(at);
-        assert!(d < 1e-3, "floret {i} moved {d} in packing");
+        assert!(d < 1e-3, "instance {i} moved {d} in packing");
     }
 }
 
@@ -255,14 +264,15 @@ fn stamens_stand_in_a_ring_by_degree_and_leave_the_coarse_levels() {
     );
     let five = at(5.0);
     let (petals, added) = (
-        none.positions.len(),
+        none.positions.len() - STALKS,
         five.positions.len() - none.positions.len(),
     );
     assert_eq!(added, 5 * 4);
-    let ring = &five.positions[petals..];
+    let ring = &five.positions[petals..petals + 20];
     let reach = ring.iter().map(|v| v.length()).fold(0.0, f64::max);
     assert!((reach - 0.006).abs() < 1e-4, "reach {reach}");
-    assert!(five.coords[2 * petals..].chunks(2).all(|c| c[0] == 0.0));
+    let stamens = 2 * petals..2 * (petals + 20);
+    assert!(five.coords[stamens].chunks(2).all(|c| c[0] == 0.0));
     // A sixth grows in from nothing.
     let more = at(5.001);
     let sixth = &more.positions[petals + 20..];
@@ -315,4 +325,80 @@ fn a_wide_stamen_is_kept_to_its_reach_not_its_length() {
         .levels
         .iter()
         .any(|b| b.deviation > 1e-4 && b.deviation < reach));
+}
+
+/// fn-253: a terminal raceme leaves its tip along the shoot, and its droop
+/// then bends it. On a stem growing up, unbent, the florets stand on the
+/// shoot's own line above the tip; hanging, the raceme ends below it.
+#[test]
+fn a_raceme_continues_its_shoot_from_the_tip() {
+    let tree = stem(1, 1.0);
+    let tip = tree.nodes[1].position;
+    let at = |droop| {
+        let p = BloomParams {
+            droop,
+            spread: 0.0,
+            ..raceme()
+        };
+        florets(&tree, &p, None).remove(0)
+    };
+    let y = |m: &Matrix| f64::from(m[13]) - tip.y;
+    let off = |m: &Matrix| f64::from(m[12]).hypot(f64::from(m[14]));
+    let straight = at(0.0);
+    assert!(straight.iter().all(|m| y(m) > 0.0 && off(m) < 1e-6));
+    let hanging = at(1.0);
+    assert!(y(hanging.last().unwrap()) < 0.0, "the raceme hangs");
+}
+
+/// fn-253: each inflorescence that keeps a floret carries one rachis
+/// instance at its tip, along the shoot, its scale the seat's radius; none
+/// where the rachis is zero or no floret is kept.
+#[test]
+fn a_rachis_stands_at_each_flowering_tip() {
+    let mut tree = stem(3, 1.0);
+    for (i, n) in tree.nodes.iter_mut().enumerate() {
+        n.radius = 0.001 * i as f64;
+    }
+    let p = raceme();
+    let blooms = instances(&tree, &p, None);
+    for (b, out) in tree.blooms.iter().zip(&blooms) {
+        let rachises: Vec<_> = out.iter().filter(|(_, r)| *r).collect();
+        assert_eq!((rachises.len(), out.last().unwrap().1), (1, true));
+        let (m, _) = rachises[0];
+        let node = &tree.nodes[b.node as usize];
+        let at = Vec3::new(m[12].into(), m[13].into(), m[14].into());
+        assert!(at.distance(node.position) < 1e-6);
+        let axis = Vec3::new(m[4].into(), m[5].into(), m[6].into());
+        assert!((axis.length() - node.radius).abs() < 1e-9);
+        assert!(axis.normalized().dot(Vec3::Y) > 1.0 - 1e-9, "along the shoot");
+    }
+    let none = |p: &BloomParams, season| {
+        instances(&tree, p, season)
+            .concat()
+            .iter()
+            .all(|(_, r)| !r)
+    };
+    assert!(none(&BloomParams { rachis: 0.0, ..p }, None), "no rachis");
+    assert!(none(&p, Some(p.opens + 0.5)), "no floret, no rachis");
+}
+
+/// fn-253: the element's stalks stand within a micrometre of its origin,
+/// named by their coordinate, so no bound of the floret reads them, and
+/// every level draws them.
+#[test]
+fn the_stalks_stand_at_the_origin_in_every_level() {
+    let e = element(&raceme()).unwrap();
+    let first = e.positions.len() - STALKS;
+    assert!(e.positions[first..].iter().all(|v| v.length() < 2e-6));
+    let kinds: Vec<f32> = e.coords[2 * first..].iter().step_by(2).copied().collect();
+    let pedicel = (SIDES * 2) as usize;
+    assert!(kinds[..pedicel].iter().all(|k| *k == PEDICEL));
+    assert!(kinds[pedicel..].iter().all(|k| *k == RACHIS_VERTEX));
+    let stalk = |i: &u32| *i as usize >= first;
+    let triangles = e.indices.iter().filter(|i| stalk(i)).count();
+    assert_eq!(triangles, 6 * SIDES as usize * (1 + RINGS as usize - 1));
+    for l in &e.levels {
+        let level = &e.level_indices[l.indices.start as usize..l.indices.end as usize];
+        assert_eq!(level.iter().filter(|i| stalk(i)).count(), triangles);
+    }
 }

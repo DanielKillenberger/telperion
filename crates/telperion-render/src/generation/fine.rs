@@ -230,6 +230,8 @@ mod handoff;
 #[cfg(test)]
 mod hang_tests;
 #[cfg(test)]
+mod stalk_tests;
+#[cfg(test)]
 mod hostrun;
 mod laid;
 #[cfg(test)]

@@ -102,3 +102,17 @@ The owner's "placed randomly and attached to the air" is both causes on record, 
 4. **Telperion's density at a share of 1** (R2 above) is the owner's look to judge. Laurelin's reads as before.
 
 Not run yet: R4's stills, test, timing, Astra, the gate, npm test and impl-review. They wait on R3.
+
+## Host decisions on R3 (2026-10-10)
+
+1. **The representation is accepted.**
+   - **The pedicel** is part of the floret organ, at a fixed width and length in metres. It never scales or enlarges with the floret. Its ends are the rachis point and the floret's base after every transform the floret gets.
+   - **The rachis** is one instance per inflorescence, laid along the curved axis the florets already sit on.
+   - **The draw.** Both use the existing flower draw.
+   - **Thinning.** The rachis is exempt from thinning, a scoped exception to fn-246's rule that is the stalk invariant's consequence: a thinned rachis would leave kept florets in the air. Its instance count and measured frame cost are recorded. If the cost is more than about 2 % of frame time at the whole, mid or close view, the build stops and reports.
+2. **No new rows** (one parameter set; delete before adding).
+   - The rachis width is the seat's twig radius at the shoot tip, tapered to the stamen width at its far end.
+   - The pedicel width is the stamen width.
+   - The colour is the shoot's own wood colour.
+3. **A terminal raceme continues the shoot's direction at its tip,** and the existing droop bends it, so Laurelin's racemes still hang. Lateral seating no longer exists after R2, so the departure along the bud's side is deleted.
+4. **Telperion's density:** the host puts the stills to the owner; the share stays at 1.

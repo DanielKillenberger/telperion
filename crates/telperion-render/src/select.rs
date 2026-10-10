@@ -105,6 +105,8 @@ pub struct Select {
     sphere: [f32; 4],
     /// The box the submitted crown's positions were quantised against.
     reference: telperion_core::foliage::Reference,
+    /// The organ's rachis length (`frame::Uniforms::stalk`); zero on leaves.
+    rachis: f32,
 }
 
 impl Select {
@@ -156,8 +158,15 @@ impl Select {
             stride: 0,
             forced: Level::default(),
             sphere: [0.0; 4],
+            rachis: 0.0,
             reference: telperion_core::foliage::Reference::default(),
         }
+    }
+
+    /// The organ's rachis length (fn-253), which its rachis instances are
+    /// culled by; zero on the leaves, where no instance is a rachis.
+    pub(crate) fn set_rachis(&mut self, rachis: f32) {
+        self.rachis = rachis;
     }
 
     /// Lets the crown's buffers go, back to the state before any crown.
@@ -415,6 +424,7 @@ impl Select {
                 Level::Chosen => -1,
                 Level::Forced(level) => level as i32,
             },
+            stalk: [self.rachis, 0.0, 0.0, 0.0],
         }
     }
 

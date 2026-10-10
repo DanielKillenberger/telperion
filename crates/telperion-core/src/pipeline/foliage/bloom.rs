@@ -1,9 +1,10 @@
 //! Flowers (fn-216, option B; FLOWERS-DESIGN.md, host decisions 1 to 4).
-//! The engine's ages say which nodes may flower (`Tree::blooms`); here each
-//! one draws whether it does and what grows there. An inflorescence is an
-//! axis of florets that leaves the bud's side and turns toward hanging or
-//! standing by its droop; each floret stands on a stalk off the axis and is
-//! one instance of the organ element, its petals turned about it. Every
+//! The engine's ages say which shoot tips may flower (`Tree::blooms`); here
+//! each one draws whether it does and what grows there. An inflorescence is
+//! an axis of florets that continues its shoot from the tip and turns toward
+//! hanging or standing by its droop (fn-253); each floret stands on a stalk
+//! off the axis and is one instance of the organ element, its petals turned
+//! about it, and the axis is one more instance, its rachis (`stalk.rs`). Every
 //! draw is keyed by the bearing node's lineage and the floret's index, so a
 //! floret is a pure function of (bloom, index, seed) and a twig added
 //! anywhere moves none. Every row acts by degree: presence grows in past
@@ -32,6 +33,9 @@ const WINDOW: f64 = 0.1;
 const GROW: f64 = 0.25;
 /// The segments the axis is laid in as it turns.
 const SEGMENTS: usize = 8;
+/// The scale's sign bit marks the organ's rachis instances, as it marks a
+/// withered leaf: no flower withers.
+pub(crate) const RACHIS: u32 = super::packed::WITHERED;
 /// The least size a floret is drawn at, as a share of its full size: below
 /// it a floret stands under a hundredth of a millimetre and is dropped.
 const LEAST: f64 = 1e-3;
@@ -133,6 +137,7 @@ pub(crate) fn element(p: &BloomParams) -> Result<Element> {
         e.indices.extend(petal.indices.iter().map(|i| i + offset));
     }
     let filaments = stamens(p, &mut e);
+    let stalks = stalk::append(&mut e);
     for level in &petal.levels {
         let start = e.level_indices.len() as u32;
         let range = level.indices.start as usize..level.indices.end as usize;
@@ -146,6 +151,9 @@ pub(crate) fn element(p: &BloomParams) -> Result<Element> {
         if level.deviation < p.stamen_length.hypot(0.5 * p.stamen_width) {
             e.level_indices.extend_from_slice(&filaments);
         }
+        // Every level draws the stalks: a floret drawn at all hangs from
+        // its wood (fn-253).
+        e.level_indices.extend_from_slice(&stalks);
         e.levels.push(super::Level {
             indices: start..e.level_indices.len() as u32,
             deviation: level.deviation,
@@ -189,8 +197,9 @@ fn stamens(p: &BloomParams, e: &mut Element) -> Vec<u32> {
     indices
 }
 
-/// One floret's transform before packing: where it stands and its frame.
-type Matrix = [f32; 16];
+/// One instance's transform before packing: where it stands and its
+/// frame, and whether it is a rachis.
+type Matrix = ([f32; 16], bool);
 
 /// Every flowering node's inflorescence, packed against a box of its own.
 pub(crate) fn place(tree: &Tree, p: &BloomParams, season: Option<f64>) -> Result<Instances> {
@@ -226,15 +235,18 @@ fn matrices(tree: &Tree, p: &BloomParams, season: Option<f64>) -> Result<Vec<Mat
 
 fn packed(matrices: &[Matrix], reference: Reference) -> Instances {
     let mut instances = Instances::new(reference);
-    for m in matrices {
+    for (m, rachis) in matrices {
         instances.push(m);
+        if *rachis {
+            instances.leaves.last_mut().expect("just pushed")[2] |= RACHIS;
+        }
     }
     instances
 }
 
 /// The box every floret stands in, a petal's reach round their positions.
 fn reference(matrices: &[Matrix], p: &BloomParams) -> Reference {
-    let at = |m: &Matrix| Vec3::new(m[12] as f64, m[13] as f64, m[14] as f64);
+    let at = |(m, _): &Matrix| Vec3::new(m[12] as f64, m[13] as f64, m[14] as f64);
     let first = matrices.first().map_or(Vec3::ZERO, at);
     let (lo, hi) = matrices.iter().map(at).fold((first, first), |(lo, hi), v| {
         (
@@ -264,9 +276,8 @@ fn inflorescence(
         .parent
         .map_or(node.position, |q| tree.nodes[q as usize].position);
     let heading = or(node.position - from, Vec3::Y);
-    let side = bloom.side - heading * heading.dot(bloom.side);
-    let side = or(side, heading.perpendicular());
-    let axis = Axis::laid(node.position, side, p);
+    let axis = Axis::laid(node.position, heading, p);
+    let first = out.len();
     let roll = TAU * unit(key, ROLL);
     let count = p.florets.ceil() as usize;
     for i in 0..count {
@@ -291,29 +302,35 @@ fn inflorescence(
         let stalk = or(tangent * c + radial * s, tangent);
         let point = at + stalk * p.pedicel;
         let face = or(radial.cross(stalk), stalk.perpendicular());
-        out.push(matrix(point, stalk, face, size)?);
+        out.push((matrix(point, stalk, face, size)?, false));
+    }
+    // The rachis the florets stand on, where any does: at the tip along the
+    // shoot, its scale the seat's radius the rachis tapers from.
+    if out.len() > first && p.rachis > 0.0 {
+        let face = heading.perpendicular();
+        out.push((matrix(node.position, heading, face, node.radius)?, true));
     }
     Ok(())
 }
 
-/// The inflorescence's axis: a polyline from the node that leaves along the
-/// bud's side and turns toward hanging (droop 1) or standing (droop -1).
+/// The inflorescence's axis: a polyline from the tip that leaves along the
+/// shoot and turns toward hanging (droop 1) or standing (droop -1).
 struct Axis {
     points: [Vec3; SEGMENTS + 1],
     tangents: [Vec3; SEGMENTS],
 }
 
 impl Axis {
-    fn laid(base: Vec3, side: Vec3, p: &BloomParams) -> Self {
+    fn laid(base: Vec3, heading: Vec3, p: &BloomParams) -> Self {
         let toward = if p.droop >= 0.0 { -Vec3::Y } else { Vec3::Y };
         let mut points = [base; SEGMENTS + 1];
-        let mut tangents = [side; SEGMENTS];
+        let mut tangents = [heading; SEGMENTS];
         let step = p.rachis / SEGMENTS as f64;
         for k in 0..SEGMENTS {
             let along = (k as f64 + 0.5) / SEGMENTS as f64;
             // Most of the turn is taken near the base, as a catkin hangs.
             let turned = p.droop.abs() * (1.0 - (1.0 - along).powi(3));
-            tangents[k] = or(side.lerp(toward, turned), toward);
+            tangents[k] = or(heading.lerp(toward, turned), toward);
             points[k + 1] = points[k] + tangents[k] * step;
         }
         Self { points, tangents }
@@ -335,7 +352,7 @@ impl Axis {
 
 /// A floret's transform: its axis along the stalk, its first petal's face
 /// toward `face`, at `size` of the element.
-fn matrix(point: Vec3, axis: Vec3, face: Vec3, size: f64) -> Result<Matrix> {
+fn matrix(point: Vec3, axis: Vec3, face: Vec3, size: f64) -> Result<[f32; 16]> {
     let side = axis.cross(face);
     let m = [
         side.x * size,
@@ -362,5 +379,8 @@ fn matrix(point: Vec3, axis: Vec3, face: Vec3, size: f64) -> Result<Matrix> {
     Ok(m)
 }
 
+mod stalk;
+#[cfg(test)]
+use stalk::{PEDICEL, RACHIS as RACHIS_VERTEX, RINGS, SIDES};
 #[cfg(test)]
 mod tests;

@@ -1,7 +1,7 @@
 //! The Two Trees' sheets (fn-218 R2, fn-219 R2): the laurelin or telperion
 //! preset through the one pipeline and the headless renderer, with the
 //! supernatural group off (an old beech) and on (the legendary tree), each
-//! at the whole-tree, mid and close views. Writes
+//! at the whole-tree, mid, close and near views. Writes
 //! `<tree>-<age>-<seed>-<off|on>-<view>.png` and prints each tree's build
 //! cost and size.
 //!
@@ -80,7 +80,9 @@ fn main() -> Result<(), String> {
         let views = [
             ("whole", hero.clone()),
             ("mid", mid(&mesh.bounds, &hero)),
-            ("close", close(&mesh, &hero)?),
+            ("close", close(&mesh, &hero, 0.7)?),
+            // A raceme's stalks at hand's length (fn-253).
+            ("near", close(&mesh, &hero, 0.25)?),
         ];
         for (view, camera) in &views {
             renderer
@@ -154,8 +156,8 @@ fn mid(bounds: &Bounds, hero: &Camera) -> Camera {
 
 /// One spray close up: the outermost whole floret half-way up the crown on
 /// the camera's side, or, on a tree that flowers nowhere, the outermost
-/// leaf there, from 0.7 m.
-fn close(mesh: &TreeMesh, hero: &Camera) -> Result<Camera, String> {
+/// leaf there, from `distance` metres.
+fn close(mesh: &TreeMesh, hero: &Camera, distance: f64) -> Result<Camera, String> {
     let t = toward(hero);
     let height = mesh.bounds.max.y - mesh.bounds.min.y;
     let instances = &mesh.organ.as_ref().unwrap_or(&mesh.foliage).instances;
@@ -166,7 +168,6 @@ fn close(mesh: &TreeMesh, hero: &Camera) -> Result<Camera, String> {
         .filter(|p| (0.45..0.8).contains(&(p.y / height)))
         .max_by(|a, b| a.dot(t).total_cmp(&b.dot(t)))
         .ok_or("no whole floret or leaf half-way up the crown")?;
-    let distance = 0.7;
     Ok(Camera {
         position: target + t * distance + Vec3::Y * (0.2 * distance),
         target,

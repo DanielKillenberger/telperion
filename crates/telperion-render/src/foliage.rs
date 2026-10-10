@@ -182,6 +182,12 @@ impl Foliage {
     /// Uploads the element once with every level's triangles, and the
     /// placements selection reads. The level asked for changes what each
     /// instance draws and nothing about how many there are.
+    /// The rachis length its rachis instances are culled by (fn-253): the
+    /// organ's, zero on the leaves.
+    pub(crate) fn set_rachis(&mut self, rachis: f32) {
+        self.select.set_rachis(rachis);
+    }
+
     pub fn submit(&mut self, gpu: &Gpu, foliage: &mesh::Foliage, level: Level) {
         let element = self.drawn(&foliage.element);
         self.select.submit(gpu, foliage, &element, level);
