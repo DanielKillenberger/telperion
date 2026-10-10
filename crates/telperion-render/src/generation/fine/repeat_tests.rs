@@ -87,9 +87,16 @@ fn every_device_preset_builds_the_same_leaves_each_time() {
         };
         for k in 1..repeats {
             let again = snapshot(&family).unwrap();
-            assert_eq!(differing(&first, &again), Vec::<&str>::new(), "{id}: build {k}");
+            assert_eq!(
+                differing(&first, &again),
+                Vec::<&str>::new(),
+                "{id}: build {k}"
+            );
         }
-        println!("{id}: {repeats} builds alike, {} leaves", first.leaves.len());
+        println!(
+            "{id}: {repeats} builds alike, {} leaves",
+            first.leaves.len()
+        );
         grown += 1;
     }
     assert!(grown > 1, "the device grows {grown} presets");

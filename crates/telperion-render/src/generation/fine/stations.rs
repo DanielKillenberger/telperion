@@ -226,7 +226,15 @@ impl Stationer {
             .write_buffer(&keys, u64::from(n) * 8, bytemuck::cast_slice(&pad));
         self.sorter.sort(gpu, &mut e, &keys, n)?;
         let runs = storage(gpu, "station runs", u64::from(ids) * RW)?;
-        let sorted = [&*swept.nodes, &swept.table, &st, &runs, &counts, &keys, &owners];
+        let sorted = [
+            &*swept.nodes,
+            &swept.table,
+            &st,
+            &runs,
+            &counts,
+            &keys,
+            &owners,
+        ];
         self.run((gpu, &mut e), (STARTS, n, None), rows, sorted)?;
         self.run(
             (gpu, &mut e),
