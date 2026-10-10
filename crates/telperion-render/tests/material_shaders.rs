@@ -14,6 +14,15 @@ fn production_material_stages_validate_with_uniform_derivatives() {
         include_str!("../src/shaders/smooth.wgsl"),
     ]
     .join("\n");
+    // The crown's stage decodes a placement, and the organ's finds its
+    // inflorescence and lays its stalks (fn-253), so it is validated with
+    // all three in front of it, exactly as the pipeline builds it.
+    let crown = [
+        include_str!("../src/shaders/leaf.wgsl"),
+        include_str!("../src/shaders/unit.wgsl"),
+        include_str!("../src/shaders/stalk.wgsl"),
+    ]
+    .join("\n");
     for (name, detail, stage) in [
         (
             "wood",
@@ -22,9 +31,7 @@ fn production_material_stages_validate_with_uniform_derivatives() {
         ),
         (
             "foliage",
-            // The crown's stage decodes a placement, so it is validated with
-            // the decoder in front of it, exactly as the pipeline builds it.
-            include_str!("../src/shaders/leaf.wgsl"),
+            crown.as_str(),
             include_str!("../src/shaders/foliage.wgsl"),
         ),
     ] {
