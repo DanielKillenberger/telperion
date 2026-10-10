@@ -5511,7 +5511,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         },
         "enabled": true,
         "flowering": {
-          "age14": 1
+          "age14": 0.3
         },
         "internode": {
           "age2": 0.182,

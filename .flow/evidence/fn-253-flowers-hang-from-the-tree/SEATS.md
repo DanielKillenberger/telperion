@@ -449,3 +449,14 @@ Follow-ups (host): measure whether Telperion's leaves were dropped or only hidde
 - **The look.** At 0.3 the candles stand apart, with leaves between them, and single flowers read at the close view. At 0.5 the clusters begin to merge at the mid view. At 1 the mid view is mostly white.
 - **Seed 42 is not seed 1.** The preset's own seed grows the larger tree, so every rate here is below the seed-1 figures above.
 - **The host picks the share.** Telperion's value file is unchanged until then.
+
+## Telperion's share set to 0.3 (host, 2026-10-11)
+
+- **The decision.** The host picked 0.3 from `STALKS-telperion-share.jpg`: the candles stand apart with leaves between them, which answers the owner's "can barely make out individual flowers". The owner gets the final look in the harness.
+- **What changed.** Only `telperion.values` moved: `/supernatural/flowering/age14` from 1 to 0.3, its comment stating why. Laurelin stays at 1.
+- **Pins and generated files.** The catalogue's family and walk digests are re-pinned for that one row, and `src/browser/presets.generated.ts` is regenerated.
+- **Tests.** `telperion-core` (the catalogue identity among them), the render conformance test and `npm test` (14 files, 155 tests) are green.
+
+**The leaves, recorded for the owner's "leaves seem to be missing?".** They were hidden, not dropped. Telperion at 82, seed 42 keeps 980,082 leaves and 209,747 tip clusters on the base and on the head alike. With his flowers off the two builds draw the same frames. Every tip that bears an inflorescence keeps its leaf cluster. At a share of 1 the florets covered about twice the frame they did before fn-253, standing at the crown's surface, and the leaves showing fell by 39 % (whole view) and 40 % (mid view); see "Follow-up 1" above.
+
+**For fn-259.** Telperion's mid view at seed 42 runs under 60 fps even at 0.3: 49.2 fps (whole 115.1, close 54.5; `raw/share/frames-0.3.log`, 1080p, best of 3).

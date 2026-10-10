@@ -160,7 +160,8 @@
 //! fn-253 re-pinned the family and walk digests for the Two Trees'
 //! flowering share of 1 (`/supernatural/flowering/age14`, 0.13 and 0.09
 //! before): with those two rows at their old values, all four digests were
-//! the last pins to the bit.
+//! the last pins to the bit. They were re-pinned again for Telperion's
+//! share of 0.3 (host), the one row that moved.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -196,7 +197,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        17_704_950_299_564_102_240,
+        6_431_025_471_672_625_648,
         "{}",
         digest(&text)
     );
@@ -228,7 +229,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        6_513_672_061_881_310_499,
+        17_957_343_875_375_134_232,
         "{}",
         digest(&text)
     );
