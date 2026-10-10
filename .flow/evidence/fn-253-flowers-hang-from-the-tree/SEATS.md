@@ -116,3 +116,65 @@ Not run yet: R4's stills, test, timing, Astra, the gate, npm test and impl-revie
    - The colour is the shoot's own wood colour.
 3. **A terminal raceme continues the shoot's direction at its tip,** and the existing droop bends it, so Laurelin's racemes still hang. Lateral seating no longer exists after R2, so the departure along the bud's side is deleted.
 4. **Telperion's density:** the host puts the stills to the owner; the share stays at 1.
+
+## R3 built; R4 stopped on the rachis's cost (worker, 2026-10-10)
+
+### What is built
+
+- **The element** (`bloom/stalk.rs`). The organ element gains a pedicel tube (two rings) and a rachis tube (nine rings, one at each of the axis's points), each three-sided. Their vertices stand within a micrometre of the origin, so no bound, sphere or deviation of the floret reads them; the surface coordinate names each one (x is -1 for the pedicel, -2 for the rachis; y is its ring times three plus its side).
+- **The levels.** The pedicel is in every floret level, the card included (`card.rs`). The rachis is a level of its own in front of the floret's, at a deviation of 1e30, so no floret is ever drawn at it.
+- **The rachis instance.** One per inflorescence that keeps a floret and has a rachis above zero, on both executors (`bloom.rs` `inflorescence`; `place.wgsl` `rachis_words` after the device's florets). It stands at the tip along the shoot, with the scale's sign bit set (the organ has no withered flower) and the scale holding the seat's radius.
+- **The vertex stage** (`foliage.wgsl`). It lays the pedicel from the floret's base, back a pedicel's length along the floret's own axis to its seat on the rachis. It lays the rachis from the instance by `Axis::laid`'s rule: the shoot's heading turned toward hanging or standing by the droop, in the plane it turns in, tapering from the seat's radius to half the stamen width. A floret's rachis vertices, and a rachis instance's other vertices, fold to a point outside the frame. A stalk is lit in the shoot's colour, with nothing passed through or mirrored.
+- **Selection** (`select.wgsl`). A rachis is culled by its length from its seat, never thinned, and placed in the rachis level.
+- **Direction.** The axis leaves the tip along the shoot's heading on both executors; `Bloom.side` is deleted.
+- **The rows read, none added:** `/bloom/rachis`, `/bloom/droop`, `/bloom/pedicel` and `/bloom/stamenWidth` (the stalks' half width at the far end, and the pedicel's), through `/supernatural/bloom/*` while the group is on; the seat node's drawn radius; `/material/shootRed`, `shootGreen` and `shootBlue` for the colour (the frame block's `shoot`). They reach the renderer through `Renderer::set_family`.
+
+### The invariant, tested
+
+- `stalk_tests::every_drawn_floret_hangs_from_wood_through_its_stalk` decodes each executor's organ words (Laurelin at 30, seed 1, a stagger of 1, so 11,701 of 12,294 florets are drawn below full size). Every floret's pedicel seat stands within the rachis tube or at most 0.32 mm outside it, against two position codes (0.79 mm); every rachis stands within 0.20 mm of a flowering tip. The device and the CPU agree: 12,294 florets and 2,072 rachises on each side. With the rachis at zero, no rachis is drawn and every seat is inside its tip's wood.
+- `select::tests::a_rachis_is_culled_but_never_thinned`: at a size where thinning drops every floret, every rachis in the frame is kept, and one behind the eye is culled.
+- `card::tests::the_card_level_keeps_the_stalks`; the core tests `a_rachis_stands_at_each_flowering_tip`, `a_raceme_continues_its_shoot_from_the_tip` and `the_stalks_stand_at_the_origin_in_every_level`.
+- The device floret parity tests pass, with the rachises among the instances matched (beech at 30: 57,130).
+
+### Two defects found by looking
+
+1. **The card hid the rachis.** fn-246's card level carried the card's quad alone, and selection puts a rachis in the coarsest level, so no rachis was drawn. The words-level test cannot see the renderer's levels. A full-resolution crop showed pedicels ending in the air. Fixed: the card keeps the pedicel, and the rachis has its own level.
+2. **The stills example's coverage measured the picture.** `COVERAGE` drew the organ mask in the whole view, where the mask does nothing. It now draws it in the clay room. The real whole-view coverage is 0.061 (Laurelin) and 0.061 (Telperion), against the 0.32 the broken measure reported. fn-248's "coverage held within 1 %" and R2's coverage figures above were taken on the broken measure (FRICTION.md).
+
+### The rachis's cost: past the host's bound, stopped
+
+`frames.rs`, 1080p, best of 3, GPU total p50 in ms. "No rachis" is the same tree with `/supernatural/bloom/rachis` at 0 (`frames <tree> no-rachis`): the florets sit on their tips, and no rachis instance is drawn. Raw: `raw/frames-r3d.log`.
+
+| | whole | mid | close |
+|---|---|---|---|
+| Laurelin, with rachis | 6.86 (141.6 fps) | 14.15 (69.6) | 13.21 (74.4) |
+| Laurelin, no rachis | 5.89 (164.7) | 13.26 (74.3) | 12.68 (77.6) |
+| **Rachis cost** | **+0.97 (16.5 %)** | **+0.88 (6.7 %)** | **+0.52 (4.1 %)** |
+| Telperion, with rachis | 8.15 (119.9) | 15.85 (62.3) | 13.94 (70.3) |
+| Telperion, no rachis | 7.28 (133.9) | 15.59 (63.3) | 13.84 (71.2) |
+| **Rachis cost** | **+0.87 (11.9 %)** | **+0.27 (1.7 %)** | **+0.10 (0.7 %)** |
+
+- **Instances.** 114,488 rachises on Laurelin and 122,312 on Telperion (seed 1), each 48 triangles over 27 vertices, never thinned. At the whole view most are thinner than a pixel and still rasterised.
+- **Against fn-248** (whole / close): Laurelin 174.8 / 77.5 → 141.6 / 74.4; Telperion 187.8 / 80.6 → 119.9 / 70.3. Telperion's drop is mostly R2's share of 1 (at a share of 0.1, with the stalks before the rachis level: 195 / 98 / 90 fps whole / mid / close, `raw/frames-r3-share01.log`). Every view stays above fn-246's 60 fps; Telperion's mid view sits at 62.
+- **The pedicel at the card level** also costs: with no rachis, Laurelin's whole view is 5.89 ms against 5.49 ms before the card carried it (+7 %).
+
+**The host's call.** Candidates the measurement suggests, none built:
+- a rachis level ladder by projected size, still never thinned: a two-sided ribbon of two to four segments under a few pixels across, in place of 48 triangles;
+- thinning the rachis and its florets together, by a rank all of an inflorescence shares;
+- accepting the cost.
+
+### Astra, round 1 (on stills taken before the card fix; `raw/astra/stalks-r1.md`)
+
+DISAGREE.
+- Mid arrangement: PASS ("repeated hanging racemes … sprays at shoot ends").
+- Close attachment: FAIL ("cannot consistently trace individual florets through a visible pedicel and rachis"). Those stills were taken while the card hid every rachis.
+- Telperion's white "now reads too heavy compared with before".
+- The trees: PASS.
+
+The raceme view (`raw/r3d/*-raceme.png`) now shows each rachis and its pedicels. Astra has not seen it; a second round waits on the cost decision.
+
+### The stills (viewed)
+
+`STALKS-laurelin.jpg` and `STALKS-telperion.jpg`, at the whole, mid, close and raceme views (1920×1080 sources in `raw/r3d/`).
+- **Laurelin.** Her racemes hang as golden chains from the shoot tips; at the raceme view each horn hangs on its pedicel from a thin dark rachis that leaves the twig.
+- **Telperion.** His candles stand upright from the tips on a thin rachis, five florets on each; at the mid and whole views the white is heavy.

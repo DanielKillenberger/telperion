@@ -138,6 +138,11 @@ pub(crate) fn element(p: &BloomParams) -> Result<Element> {
     }
     let filaments = stamens(p, &mut e);
     let stalks = stalk::append(&mut e);
+    e.level_indices.extend_from_slice(&stalks.rachis);
+    e.levels.push(super::Level {
+        indices: 0..stalks.rachis.len() as u32,
+        deviation: stalk::RACHIS_LEVEL,
+    });
     for level in &petal.levels {
         let start = e.level_indices.len() as u32;
         let range = level.indices.start as usize..level.indices.end as usize;
@@ -151,9 +156,9 @@ pub(crate) fn element(p: &BloomParams) -> Result<Element> {
         if level.deviation < p.stamen_length.hypot(0.5 * p.stamen_width) {
             e.level_indices.extend_from_slice(&filaments);
         }
-        // Every level draws the stalks: a floret drawn at all hangs from
-        // its wood (fn-253).
-        e.level_indices.extend_from_slice(&stalks);
+        // Every level draws the pedicel: a floret drawn at all hangs from
+        // its rachis (fn-253).
+        e.level_indices.extend_from_slice(&stalks.pedicel);
         e.levels.push(super::Level {
             indices: start..e.level_indices.len() as u32,
             deviation: level.deviation,
@@ -381,6 +386,6 @@ fn matrix(point: Vec3, axis: Vec3, face: Vec3, size: f64) -> Result<[f32; 16]> {
 
 mod stalk;
 #[cfg(test)]
-use stalk::{PEDICEL, RACHIS as RACHIS_VERTEX, RINGS, SIDES};
+use stalk::{PEDICEL, RACHIS as RACHIS_VERTEX, RACHIS_LEVEL, RINGS, SIDES};
 #[cfg(test)]
 mod tests;

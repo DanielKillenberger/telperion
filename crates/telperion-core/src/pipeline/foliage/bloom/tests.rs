@@ -383,8 +383,9 @@ fn a_rachis_stands_at_each_flowering_tip() {
 }
 
 /// fn-253: the element's stalks stand within a micrometre of its origin,
-/// named by their coordinate, so no bound of the floret reads them, and
-/// every level draws them.
+/// named by their coordinate, so no bound of the floret reads them; every
+/// floret level draws the pedicel, and the rachis is a level of its own in
+/// front of them.
 #[test]
 fn the_stalks_stand_at_the_origin_in_every_level() {
     let e = element(&raceme()).unwrap();
@@ -394,11 +395,19 @@ fn the_stalks_stand_at_the_origin_in_every_level() {
     let pedicel = (SIDES * 2) as usize;
     assert!(kinds[..pedicel].iter().all(|k| *k == PEDICEL));
     assert!(kinds[pedicel..].iter().all(|k| *k == RACHIS_VERTEX));
-    let stalk = |i: &u32| *i as usize >= first;
-    let triangles = e.indices.iter().filter(|i| stalk(i)).count();
-    assert_eq!(triangles, 6 * SIDES as usize * (1 + RINGS as usize - 1));
-    for l in &e.levels {
-        let level = &e.level_indices[l.indices.start as usize..l.indices.end as usize];
-        assert_eq!(level.iter().filter(|i| stalk(i)).count(), triangles);
+    let rachis = first + pedicel;
+    let level = |l: &crate::pipeline::foliage::Level| {
+        e.level_indices[l.indices.start as usize..l.indices.end as usize].to_vec()
+    };
+    let (front, florets) = e.levels.split_first().unwrap();
+    assert_eq!(front.deviation, RACHIS_LEVEL);
+    let tube = 6 * SIDES as usize * (RINGS as usize - 1);
+    assert_eq!(level(front).len(), tube);
+    assert!(level(front).iter().all(|&i| i as usize >= rachis));
+    let pedicels = |v: &[u32]| v.iter().filter(|&&i| (first..rachis).contains(&(i as usize))).count();
+    for l in florets {
+        assert_eq!(pedicels(&level(l)), 6 * SIDES as usize);
+        assert!(level(l).iter().all(|&i| (i as usize) < rachis));
     }
+    assert!(e.indices.iter().all(|&i| (i as usize) < rachis));
 }

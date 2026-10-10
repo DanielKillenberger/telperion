@@ -9,6 +9,11 @@
 //! floret reads it; its surface coordinate names it instead: `x` its kind,
 //! `y` its ring along the stalk times `SIDES` plus its side. The organ's
 //! vertex stage lays it from the instance (`foliage.wgsl`).
+//!
+//! A floret's pedicel is in each of its levels. The rachis is drawn by its
+//! own instance alone, so its tube is a level of its own in front of the
+//! floret's, at a deviation no floret is ever drawn at (`RACHIS_LEVEL`):
+//! no floret runs the rachis's vertices, nor a rachis the petals'.
 use super::super::Element;
 use crate::math::{Transcendental, Vec3};
 use std::f64::consts::TAU;
@@ -23,15 +28,25 @@ pub const PEDICEL: f32 = -1.0;
 pub const RACHIS: f32 = -2.0;
 /// The size a stalk's vertices stand at in the element, in metres.
 const TINY: f64 = 1e-6;
+/// The rachis level's deviation: past any a floret's size on screen meets,
+/// so selection gives it only the rachis instances it places there.
+pub const RACHIS_LEVEL: f64 = 1e30;
 
-/// The stalks appended to `e`: one pedicel's tube and one rachis's, at the
-/// origin. Returns their triangles, which every level draws.
-pub(super) fn append(e: &mut Element) -> Vec<u32> {
-    let mut indices = tube(e, PEDICEL, &[0, RINGS - 1]);
+/// The stalks' triangles: the pedicel's, in every floret level and in the
+/// element's own, and the rachis's, its level alone.
+pub(super) struct Stalks {
+    pub pedicel: Vec<u32>,
+    pub rachis: Vec<u32>,
+}
+
+/// The stalks appended to `e`: one pedicel's tube, among its triangles,
+/// and one rachis's, at the origin.
+pub(super) fn append(e: &mut Element) -> Stalks {
+    let pedicel = tube(e, PEDICEL, &[0, RINGS - 1]);
+    e.indices.extend_from_slice(&pedicel);
     let rings: Vec<u32> = (0..RINGS).collect();
-    indices.extend(tube(e, RACHIS, &rings));
-    e.indices.extend_from_slice(&indices);
-    indices
+    let rachis = tube(e, RACHIS, &rings);
+    Stalks { pedicel, rachis }
 }
 
 /// A tube of `SIDES` sides through `rings`, its vertices named `kind`.
