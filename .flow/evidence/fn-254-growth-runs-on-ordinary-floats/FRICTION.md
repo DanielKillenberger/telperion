@@ -25,3 +25,9 @@
   - Separately, the session's temp directory hit its disk quota (EDQUOT) during a base build, and a command's output was lost.
 - **Cost:** about 15 minutes and one extra build of the base outside `/tmp`.
 - **Would remove it:** for a spec on an F branch, the R5 wording "beside the base's", and a scratch location outside the tmpfs quota for second builds.
+
+## 2026-10-11, task 1: merging F4 leaves one owner-derived bound on its edge
+- **Doing:** the gate on the merge of F4 (`3cb7793a`) into fn-254.
+- **Hindered:** `thinning::far_florets_drawn_as_cards_cover_what_the_florets_cover` fails. Its bound, `BLOSSOM_BOUND` = 0.30, is the measured 25.4% plus 5 points under the owner's floret-card decision (fn-246). The F4 tip passes at 29.8% (0.02714 against 0.02091); fn-248's tree change had already moved it from 25.4%. With the floats on top it reads 30.5% (0.02728 against 0.02091). The fn-254 branch passed alone. Re-baselining a bound the owner's decision set is not mine to make.
+- **Cost:** about 20 minutes, including one build of the F4 tip to confirm where the failure comes from.
+- **Would remove it:** a bound that records its own drift. Alternatively, re-taking it at "measured plus 5 points" whenever the tree moves under it, as AGENTS.md "Generator evolution" allows with evidence.
