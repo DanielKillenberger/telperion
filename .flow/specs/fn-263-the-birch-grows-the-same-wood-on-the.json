@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-263-the-birch-grows-the-same-wood-on-the",
+  "created_at": "2026-10-10T22:35:13.288851Z",
+  "depends_on_epics": [],
+  "id": "fn-263-the-birch-grows-the-same-wood-on-the",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-263-the-birch-grows-the-same-wood-on-the.md",
+  "status": "open",
+  "title": "The birch grows the same wood on the device as on the CPU",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-10T22:35:13.301242Z"
+}

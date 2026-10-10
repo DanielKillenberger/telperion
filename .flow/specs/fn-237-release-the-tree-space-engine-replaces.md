@@ -21,6 +21,8 @@ The owner's goal (2026-10-08/09): "replace the old generator with the new one th
 
 - **R10 (friction, obvious fix; fn-260 FRICTION.md):** `telperion-jev`'s replay test needs a `telperion-core` example already built, so it fails when the gate runs package by package in the documented order; before the release PR it builds what it needs itself (or the dependency is declared so cargo builds it), and the package-by-package gate passes from a clean target.
 
+- **R11 (found on the way, fn-254):** the catalogue's pinned values for the beech, spruce, oak and birch no longer match the engine (up to 4.8 m apart) and no test reads them; before the release PR they are either read by a test and re-pinned with evidence, or deleted (docs/principles.md, "Question, delete, then optimise").
+
 ## Boundaries
 
 Map only. Post-release: fn-232, fn-233.
