@@ -265,3 +265,34 @@ The host accepts the rachis's cost at the whole view: +2.9 % on Laurelin and +4.
 
 - **Against the accepted build.** The rachis build is where the host accepted it: Laurelin's whole view is 5.522 ms against 5.571, Telperion's 7.023 against 6.971.
 - **Against "no rachis".** The comparison reads +5.3 % and +5.2 % at the whole view. Its reference moved between runs (Laurelin 5.413 → 5.242 ms), within the ±3 % noted above.
+
+## The gate, npm test and review (worker, 2026-10-10)
+
+- **impl-review (codex).** Round 1, three reviewers: NEEDS_WORK (above, fixed in `d4388608`). Round 2, one reviewer: **SHIP**, all prior findings fixed.
+- **npm test:** 14 files and 155 tests, green.
+- **Gate, package by package** (`cargo test --profile ci --no-fail-fast`).
+  - Green: `telperion-core`, `-space`, `-field`, `-wasm` and `-jev`.
+  - `telperion-render`: green but for two tests, and the cold-compile test passed.
+- **Fixed on the way.**
+  - `material_shaders` now builds the organ's shader as `foliage.rs` does.
+  - `bloom_form`: the stamen width is no longer dormant at no stamens, by the host's decision that the pedicel takes it.
+  - The catalogue identity re-pin (the share): at the old shares all four digests were the last pins.
+  - The petal walk counts one petal beside the stalks.
+  - The generation-limits inventory classifies the stalk tube's loop.
+
+**Two render tests red, both caused by R2's tip seating, before any stalk code.** Checked by building the R2 commit `80f3ac29` in its own worktree and target:
+
+| Test | Bound | At R2 (`80f3ac29`) | Now |
+|---|---|---|---|
+| `thinning::far_florets_drawn_as_cards_cover_what_the_florets_cover` (fn-246's card) | far within 30 % of near | 0.00669 against 0.00486 (+38 %) | 0.00661 against 0.00476 (+39 %) |
+| `blossom_parity::the_flowering_tree_draws_alike_on_both_executors` (fn-234) | coverage within 1 % | CPU 0.01825, device 0.01844 (1.05 %) | CPU 0.01913, device 0.01963 (2.6 %) |
+
+- **The fixtures.** Both are beeches flowering on their outer ages with no rachis (rachis 0), so no stalk instance and no unit thinning act on them. Tip seating left them with about a tenth of their florets, at the tips.
+- **The card test.** fn-246's card, accepted on the owner's look at +25 % on along-shoot florets, now overstates coverage by 38 to 39 % on florets at the tips.
+- **The parity test.** The executors drew 1.05 % apart at R2, and 2.6 % with the stalks. The pedicels drawn on both (0.4 mm wide in this fixture) widened it; the cause of the difference was not found.
+- **The host's call.** Both bounds were set on the old seating:
+  - re-fixture the tests for tip-seated flowers;
+  - set the bounds again on the new seating;
+  - or treat the card's larger error as a finding.
+
+`flowctl done` waits on that call.
