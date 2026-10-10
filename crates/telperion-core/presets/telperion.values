@@ -570,7 +570,7 @@
 /supernatural/roughness = 0.12
 
 # Countless white-silver blossoms over the outer crown: upright candles of
-# nine open five-petalled florets on every outermost short shoot, standing
+# five open five-petalled florets at every short shoot's tip, standing
 # out of the leaves that hid half of fn-234's blossom. White albedos
 # (fn-234) with a cool cast, a grey eye and stamens. Flowering on every
 # outer age read as hoarfrost along each shoot and doubled the build.
@@ -580,7 +580,10 @@
 # mask: whole 0.319 and mid 0.162, within 1 % of the smaller florets').
 # At the mid view they do not yet read as single flowers (fn-248
 # TWIGS.md).
-/supernatural/flowering/age14 = 0.09
+# Each inflorescence stands at its short shoot's tip (fn-253), at most
+# one a shoot, so every tip flowers: that seats as many inflorescences
+# as the share along the shoots did, or as near as the tips allow.
+/supernatural/flowering/age14 = 1.0
 /supernatural/bloom/florets = 5.0
 /supernatural/bloom/rachis = 0.39
 /supernatural/bloom/droop = -1.0

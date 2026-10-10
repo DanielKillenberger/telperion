@@ -50,6 +50,12 @@ fn main() -> Result<(), String> {
         let mut family = preset.parameters();
         (family.age, family.skeleton.seed) = (age, seed);
         family.supernatural.enabled = on;
+        // A trial flowering share for the short shoots, `FLOWERING=<share>`
+        // (fn-253), in place of the preset's.
+        if let Ok(share) = std::env::var("FLOWERING") {
+            let share = share.parse().map_err(|e| format!("FLOWERING: {e}"))?;
+            family.supernatural.flowering.age14 = Some(share);
+        }
         let started = Instant::now();
         let grown = executor::grow(&family).map_err(|e| e.to_string())?;
         let x = grown.expansion().map_err(|e| e.to_string())?;
