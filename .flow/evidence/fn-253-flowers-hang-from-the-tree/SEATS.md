@@ -244,3 +244,24 @@ The host accepts the rachis's cost at the whole view: +2.9 % on Laurelin and +4.
 - Plausible stalks, not extra branches: PASS ("Laurelin's longest exposed sections look slightly ruler-straight").
 - Convincing trees: PASS.
 - Optional polish: a little more continuous curvature in Laurelin's long rachises; a Telperion view with one whole twig–rachis–pedicel junction clear of leaves.
+
+## impl-review round 1 (codex, three reviewers): NEEDS_WORK, fixed (worker, 2026-10-10)
+
+1. **P1: the coarse rachis ribbons left pedicels off the drawn rachis.** All three reviewers found it. The ribbons over two and four segments skip axis points, while every pedicel is seated on the eight-segment axis: 36 to 113 mm apart on a Laurelin-sized rachis. The connectivity test checked the axis, not the level drawn.
+   - **Fix.** The rachis has four levels: ribbons over two, four and eight segments, then the tube. Selection gives a rachis under three pixels wide the coarsest ribbon whose chords stand under half a pixel off its axis (`unit.wgsl` `rachis_error`), the rule every level is chosen by.
+   - **Test.** `select::tests::a_thin_rachis_takes_the_coarsest_ribbon_true_to_its_axis`.
+   - **Cost.** An eight-segment ribbon for every thin rachis cost +8.4 % and +6.7 % at the whole view (`raw/frames-r3f.log`). The error rule is used instead.
+2. **P2: forced levels crossed the two kinds' ladders.** Forcing the finest level hid the rachises, and forcing level 0 hid the florets. A forced level is now held within each kind's ladder. Test: `select::tests::a_forced_level_stays_within_each_kind_s_ladder`.
+3. **P2: culling ignored the unit's enlargement.** An organ unit is now culled whole, by its sphere once enlarged.
+
+**Frame time after the fixes** (GPU p50 ms, best of 3; `raw/frames-r3g.log`):
+
+| | whole | mid | close |
+|---|---|---|---|
+| Laurelin | 5.522 (171.0 fps) | 13.456 (72.6) | 13.094 (74.8) |
+| Laurelin, no rachis | 5.242 (184.4) | 13.457 (73.2) | 12.970 (76.0) |
+| Telperion | 7.023 (136.2) | 15.897 (61.6) | 14.099 (69.8) |
+| Telperion, no rachis | 6.676 (145.7) | 15.653 (63.1) | 13.872 (70.9) |
+
+- **Against the accepted build.** The rachis build is where the host accepted it: Laurelin's whole view is 5.522 ms against 5.571, Telperion's 7.023 against 6.971.
+- **Against "no rachis".** The comparison reads +5.3 % and +5.2 % at the whole view. Its reference moved between runs (Laurelin 5.413 → 5.242 ms), within the ±3 % noted above.

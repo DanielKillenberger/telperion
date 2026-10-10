@@ -26,7 +26,9 @@ struct Selection {
     stride: u32,
     // The level every leaf in the frame is held at, or -1 to choose one.
     forced: i32,
-    // The rachis's length on the organ (fn-253), zero on the leaves.
+    // The rachis's and the pedicel's lengths on the organ (fn-253), how
+    // many levels, coarsest first, are the rachis's, and its droop; zero on
+    // the leaves.
     stalk: vec4<f32>,
 };
 
@@ -73,8 +75,11 @@ fn level_of(instance: u32) -> u32 {
     let words = vec3<u32>(placements[base], placements[base + 1u], placements[base + 2u]);
     // An organ's inflorescence (fn-253) is thinned as one, by its size from
     // its seat, so no floret is kept without the rachis it hangs from.
+    // It is culled whole too, by the sphere it is drawn in once enlarged.
     var kept = 1.0;
-    if (u.stalk.x > 0.0) {
+    let unit = u.stalk.x > 0.0;
+    let stems = u32(u.stalk.z);
+    if (unit) {
         let r = unit_rachis(instance);
         let rachis = unit_words(r);
         let seat = leaf_position(rachis, u.box_min.xyz, u.box_extent.xyz);
@@ -84,8 +89,16 @@ fn level_of(instance: u32) -> u32 {
         if leaf_draw_rank(rachis) >= kept {
             return u.levels;
         }
+        for (var plane = 0u; plane < 6u; plane = plane + 1u) {
+            if dot(u.planes[plane].xyz, seat) + u.planes[plane].w < -reach / sqrt(kept) {
+                return u.levels;
+            }
+        }
         if r == instance {
-            return rachis_level(seat, reach, 2.0 * leaf_scale(rachis) / sqrt(kept) * u.eye.w / at);
+            // Pixels a metre of the enlarged unit spans at its seat.
+            let pixels = u.eye.w / at / sqrt(kept);
+            let heading = leaf_rotation(rachis.x)[1];
+            return rachis_level(stems, seat, heading, 2.0 * leaf_scale(rachis) * pixels, pixels);
         }
     }
     // The placement scales the element, and the scale is a word of its own
@@ -96,7 +109,7 @@ fn level_of(instance: u32) -> u32 {
         + leaf_rotation(words.x) * (u.sphere.xyz * scale);
     let radius = u.sphere.w * scale;
     for (var plane = 0u; plane < 6u; plane = plane + 1u) {
-        if dot(u.planes[plane].xyz, centre) + u.planes[plane].w < -radius {
+        if !unit && dot(u.planes[plane].xyz, centre) + u.planes[plane].w < -radius {
             return u.levels;
         }
     }
@@ -113,8 +126,10 @@ fn level_of(instance: u32) -> u32 {
             return u.levels;
         }
     }
+    // A forced level is held within the floret's own ladder, behind the
+    // rachis's levels.
     if u.forced >= 0 {
-        return min(u32(u.forced), u.levels - 1u);
+        return clamp(u32(u.forced), stems, u.levels - 1u);
     }
     // A kept leaf is drawn enlarged, and judged at the size it is drawn.
     let drawn = scale / sqrt(kept);
@@ -128,27 +143,27 @@ fn level_of(instance: u32) -> u32 {
     return u.levels - 1u;
 }
 
-/// A rachis seated at `seat` and `reach` long, its seat `width` pixels
-/// thick: culled out of the frame, else its ribbon over two segments under
-/// a pixel thick, over four under three, and its tube above (`stalk.rs`,
-/// the element's first three levels).
-fn rachis_level(seat: vec3<f32>, reach: f32, width: f32) -> u32 {
-    for (var plane = 0u; plane < 6u; plane = plane + 1u) {
-        if dot(u.planes[plane].xyz, seat) + u.planes[plane].w < -reach {
-            return u.levels;
-        }
-    }
+/// A rachis's level among the first `stems` (`stalk.rs`): a forced one held
+/// within them; its tube where its seat is three pixels thick or more;
+/// below, the coarsest ribbon whose chords stand under half a pixel off the
+/// axis the pedicels are seated on, `pixels` a metre.
+fn rachis_level(stems: u32, seat: vec3<f32>, heading: vec3<f32>, width: f32, pixels: f32) -> u32 {
+    let finest = max(stems, 1u) - 1u;
     if u.forced >= 0 {
-        return min(u32(u.forced), u.levels - 1u);
+        return min(u32(u.forced), finest);
     }
-    // The entry point is `select`, so the builtin is out of reach here.
-    if width < 1.0 {
-        return 0u;
+    if width >= 3.0 || finest == 0u {
+        return finest;
     }
-    if width < 3.0 {
-        return 1u;
+    // The ribbons join every fourth ring, every second, then every one.
+    var stride = 4u;
+    for (var level = 0u; level + 1u < finest; level++) {
+        if rachis_error(seat, heading, u.stalk.x, u.stalk.w, stride) * pixels < THRESHOLD {
+            return level;
+        }
+        stride /= 2u;
     }
-    return 2u;
+    return finest - 1u;
 }
 
 /// The leaf a thread of a per-leaf pass stands for. A crown past one

@@ -3,7 +3,8 @@
 //! vertex stage reads them (`foliage.wgsl`'s `pedicel_vertex` and
 //! `rachis_vertex`): a floret's pedicel seat is its base a pedicel back
 //! along its axis, and must lie inside its own rachis's tube, laid from
-//! the rachis instance by `bloom.rs`'s axis; its own rachis is the first
+//! the rachis instance by `bloom.rs`'s axis, which every rachis level runs
+//! through ring by ring (`stalk.rs`); its own rachis is the first
 //! marked instance after it in its run, as selection and the draw find it
 //! (`unit.wgsl`); each rachis must stand on a shoot tip of the tree. With
 //! the rachis at zero, the seat is the tip itself.

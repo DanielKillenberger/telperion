@@ -32,7 +32,7 @@ pub fn carded(element: &Element) -> Cow<'_, Element> {
     };
     // A flower's rachis levels stand in front of its florets' (fn-253);
     // the card goes in front of the florets'.
-    let front = element.levels.iter().take_while(|l| rachis(element, l)).count();
+    let front = rachis_levels(element);
     if element.levels.len() >= crate::MAX_LEVELS
         || element.levels.get(front).is_none_or(|l| l.deviation >= deviation)
     {
@@ -53,9 +53,16 @@ pub fn carded(element: &Element) -> Cow<'_, Element> {
     Cow::Owned(out)
 }
 
+/// How many of `element`'s levels, from the coarsest, are a flower's
+/// rachis's alone (fn-253): none on a leaf.
+pub(crate) fn rachis_levels(element: &Element) -> usize {
+    element.levels.iter().take_while(|l| rachis(element, l)).count()
+}
+
 /// Whether `level` draws stalk triangles alone: a flower's rachis's.
 fn rachis(element: &Element, level: &Level) -> bool {
-    let indices = &element.level_indices[level.indices.start as usize..level.indices.end as usize];
+    let range = level.indices.start as usize..level.indices.end as usize;
+    let indices = element.level_indices.get(range).unwrap_or_default();
     !indices.is_empty() && indices.iter().all(|&i| stalk(element, i))
 }
 

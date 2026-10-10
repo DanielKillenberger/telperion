@@ -10,50 +10,15 @@ struct Stalk {
     normal: vec3<f32>,
 }
 
-// `Vec3::perpendicular`.
-fn stalk_perpendicular(v: vec3<f32>) -> vec3<f32> {
-    let a = abs(v);
-    var reference = vec3<f32>(0.0, 0.0, 1.0);
-    if a.x <= a.y && a.x <= a.z {
-        reference = vec3<f32>(1.0, 0.0, 0.0);
-    } else if a.y <= a.z {
-        reference = vec3<f32>(0.0, 1.0, 0.0);
-    }
-    return normalize(cross(reference, v));
-}
-
-// A unit vector, or `fallback` where `v` has no length (`bloom.rs`'s `or`).
-fn stalk_or(v: vec3<f32>, fallback: vec3<f32>) -> vec3<f32> {
-    if dot(v, v) > 1e-24 {
-        return normalize(v);
-    }
-    return fallback;
-}
-
-// The axis's tangent along segment `k` (`bloom.rs`'s `Axis::laid`): the
-// shoot's heading turned toward hanging or standing by the droop.
-fn rachis_tangent(heading: vec3<f32>, toward: vec3<f32>, k: f32) -> vec3<f32> {
-    let rest = 1.0 - (k + 0.5) / STALK_SEGMENTS;
-    let turned = abs(u.stalk.y) * (1.0 - rest * rest * rest);
-    return stalk_or(heading + (toward - heading) * turned, toward);
-}
-
 // A rachis vertex at `ring`, `side` of the rachis that stands at `seat`
 // along `heading`, `radius` thick there and the stamen's half width at its
 // end: the axis's points in the plane its heading turns in. A ribbon's two
 // sides are its edges, turned to face the eye.
 fn rachis_vertex(seat: vec3<f32>, heading: vec3<f32>, radius: f32, ring: u32, side: u32, ribbon: bool) -> Stalk {
-    var toward = vec3<f32>(0.0, 1.0, 0.0);
-    if u.stalk.y >= 0.0 {
-        toward = vec3<f32>(0.0, -1.0, 0.0);
-    }
-    let step = u.stalk.x / STALK_SEGMENTS;
-    var at = seat;
-    for (var k = 0u; k < ring; k++) {
-        at += rachis_tangent(heading, toward, f32(k)) * step;
-    }
-    let before = rachis_tangent(heading, toward, f32(max(ring, 1u) - 1u));
-    let after = rachis_tangent(heading, toward, f32(min(ring, 7u)));
+    let toward = rachis_toward(u.stalk.y);
+    let at = rachis_point(seat, heading, u.stalk.x, u.stalk.y, ring);
+    let before = rachis_tangent(heading, u.stalk.y, max(ring, 1u) - 1u);
+    let after = rachis_tangent(heading, u.stalk.y, min(ring, AXIS_SEGMENTS - 1u));
     let tangent = stalk_or(before + after, after);
     // The axis turns in one plane, so its binormal holds along it and no
     // ring twists against the next.

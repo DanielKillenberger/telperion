@@ -13,9 +13,12 @@
 //! A floret's pedicel is in each of its levels. The rachis is drawn by its
 //! own instance alone, so its levels stand in front of the floret's, at
 //! deviations no floret is ever drawn at (`RACHIS_LEVEL`), coarsest first:
-//! a ribbon facing the eye over two of the axis's segments, then over
-//! four, then the whole tube; selection picks one by the rachis's width on
-//! screen. No floret runs the rachis's vertices, nor a rachis the petals'.
+//! a ribbon facing the eye over two of the axis's segments, over four and
+//! over all eight, then the tube. Selection gives a rachis under three
+//! pixels wide the coarsest ribbon whose chords stand under half a pixel
+//! off the axis the pedicels are seated on, as every level is chosen by
+//! its error, and the tube above. No floret runs the rachis's vertices,
+//! nor a rachis the petals'.
 use super::super::Element;
 use crate::math::{Transcendental, Vec3};
 use std::f64::consts::TAU;
@@ -37,7 +40,7 @@ const TINY: f64 = 1e-6;
 /// gives them only the rachis instances it places there.
 pub const RACHIS_LEVEL: f64 = 1e30;
 /// The rachis's levels.
-pub const RACHIS_LEVELS: usize = 3;
+pub const RACHIS_LEVELS: usize = 4;
 
 /// The stalks' triangles: the pedicel's, in every floret level and in the
 /// element's own, and the rachis's levels, coarsest first.
@@ -55,6 +58,7 @@ pub(super) fn append(e: &mut Element) -> Stalks {
     let rachis = [
         tube(e, (RIBBON, 2), &[0, 4, 8]),
         tube(e, (RIBBON, 2), &[0, 2, 4, 6, 8]),
+        tube(e, (RIBBON, 2), &rings),
         tube(e, (RACHIS, SIDES), &rings),
     ];
     Stalks { pedicel, rachis }

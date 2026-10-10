@@ -342,7 +342,7 @@ impl Renderer {
         let p = &family.applied().bloom;
         let stalk = [p.rachis, p.droop, 0.5 * p.stamen_width, p.pedicel].map(|v| v as f32);
         self.scene.set_stalk(stalk);
-        self.organ.set_stalk(stalk[0], stalk[3]);
+        self.organ.set_stalk(stalk[0], stalk[3], stalk[1]);
     }
 
     /// Puts the sun somewhere else and paints the sky and the ground with it.

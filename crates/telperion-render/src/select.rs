@@ -105,9 +105,11 @@ pub struct Select {
     sphere: [f32; 4],
     /// The box the submitted crown's positions were quantised against.
     reference: telperion_core::foliage::Reference,
-    /// The organ's rachis and pedicel lengths (`frame::Uniforms::stalk`);
-    /// zero on leaves.
-    stalk: [f32; 2],
+    /// The organ's rachis and pedicel lengths and the rachis's droop
+    /// (`frame::Uniforms::stalk`); zero on leaves.
+    stalk: [f32; 3],
+    /// How many of the element's levels, coarsest first, are the rachis's.
+    rachis_levels: u32,
 }
 
 impl Select {
@@ -159,15 +161,17 @@ impl Select {
             stride: 0,
             forced: Level::default(),
             sphere: [0.0; 4],
-            stalk: [0.0; 2],
+            stalk: [0.0; 3],
+            rachis_levels: 0,
             reference: telperion_core::foliage::Reference::default(),
         }
     }
 
-    /// The organ's rachis and pedicel lengths (fn-253), which size its
-    /// inflorescences; zero on the leaves, where no instance is a rachis.
-    pub(crate) fn set_stalk(&mut self, rachis: f32, pedicel: f32) {
-        self.stalk = [rachis, pedicel];
+    /// The organ's rachis and pedicel lengths, which size its
+    /// inflorescences, and the rachis's droop, which lays it (fn-253); zero
+    /// on the leaves, where no instance is a rachis.
+    pub(crate) fn set_stalk(&mut self, rachis: f32, pedicel: f32, droop: f32) {
+        self.stalk = [rachis, pedicel, droop];
     }
 
     /// Lets the crown's buffers go, back to the state before any crown.
@@ -260,6 +264,7 @@ impl Select {
         self.reference = reference;
         self.levels = element.levels.iter().map(|l| l.indices.clone()).collect();
         self.sphere = frame::sphere(element);
+        self.rachis_levels = crate::card::rachis_levels(element) as u32;
         let sizes = sizes(
             self.instances as usize,
             self.levels.len(),
@@ -425,7 +430,7 @@ impl Select {
                 Level::Chosen => -1,
                 Level::Forced(level) => level as i32,
             },
-            stalk: [self.stalk[0], self.stalk[1], 0.0, 0.0],
+            stalk: [self.stalk[0], self.stalk[1], self.rachis_levels as f32, self.stalk[2]],
         }
     }
 
