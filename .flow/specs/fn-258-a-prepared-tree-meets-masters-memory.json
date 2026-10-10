@@ -299,7 +299,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-258-a-prepared-tree-meets-masters-memory.md",
-  "status": "open",
+  "status": "done",
   "title": "A prepared tree meets master's memory and frame rate",
   "tracker": {
     "baseHashFlow": null,
@@ -312,5 +312,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T22:30:11.583633Z"
+  "updated_at": "2026-10-10T22:30:53.217571Z"
 }
