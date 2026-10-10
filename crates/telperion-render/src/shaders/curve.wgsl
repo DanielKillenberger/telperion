@@ -111,12 +111,18 @@ fn measure_at(i: u32, s: u32) {
 }
 
 // The finest scale first: in every view measured it fits (fn-258), and
-// the coarser scales are measured only where it does not.
+// the coarser scales are measured only where it does not. Each cluster's
+// counts at it are kept, which the count pass reuses where it is chosen.
 @compute @workgroup_size(256)
 fn measure(@builtin(workgroup_id) group: vec3<u32>, @builtin(local_invocation_index) local: u32) {
     let i = index_of(group, local);
-    if (i >= cfg.clusters || !visible(i)) { return; }
-    measure_at(i, 0u);
+    if (i >= cfg.clusters) { return; }
+    var n = vec4(0u);
+    if (visible(i)) {
+        n = walk(i, cfg.error, false, vec4(0u));
+        for (var k = 0u; k < 4u; k++) { atomicAdd(&totals[k], n[k]); }
+    }
+    counts[i] = n;
 }
 
 fn counted(s: u32) -> vec4<u32> {
@@ -159,7 +165,8 @@ fn choose_coarse() {
 @compute @workgroup_size(256)
 fn count(@builtin(workgroup_id) group: vec3<u32>, @builtin(local_invocation_index) local: u32) {
     let i = index_of(group, local);
-    if (i >= cfg.clusters) { return; }
+    // The finest scale chosen: the measure pass counted it already.
+    if (i >= cfg.clusters || atomicLoad(&totals[DECIDED]) == 1u) { return; }
     var n = vec4(0u);
     if (visible(i)) {
         n = walk(i, cfg.error * scale(atomicLoad(&totals[CHOSEN])), false, vec4(0u));

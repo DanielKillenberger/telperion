@@ -32,7 +32,7 @@ pub const BINDING: u64 = 128 << 20;
 
 /// The passes, in order, and the bindings each reads.
 const PASSES: [(&str, &[u32]); 11] = [
-    ("measure", &[0, 1, 2, 3, 8, 9, 12]),
+    ("measure", &[0, 1, 2, 3, 5, 8, 9, 12]),
     ("choose", &[0, 8, 15]),
     ("measure_coarse", &[0, 1, 2, 3, 8, 9, 12]),
     ("choose_coarse", &[0, 8]),
