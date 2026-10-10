@@ -5,7 +5,7 @@ MiB = 2**20
 GROUPS = {
     "targets": lambda n: n in ("probe", "probe depth", "probe resolve", "shadow map"),
     "wgpu": lambda n: n.startswith("(wgpu internal)"),
-    "curve budgets": lambda n: n in ("curve camera", "curve sun"),
+    "curve budgets": lambda n: n in ("curve camera", "curve sun", "curve counts", "curve offsets", "curve blocks", "curve records", "curve vertices", "curve indices"),
     "curve data": lambda n: n in ("curve points", "curve clusters", "curve sections"),
     "old wood": lambda n: "wood" in n,
     "foliage": lambda n: "foliage" in n or "leaf" in n or n in ("selection",),

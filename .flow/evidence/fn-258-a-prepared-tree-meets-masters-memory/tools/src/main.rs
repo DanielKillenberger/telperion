@@ -10,7 +10,7 @@ use std::time::Instant;
 use telperion_core::presets::Preset;
 use telperion_render::{
     generation::{Delivery, Generator},
-    hero_pose, measure, render, write_png, Camera, Frame, Gpu, Renderer, View, GROUND_REACH,
+    hero_pose, measure, measure_orbit, render, write_png, Camera, Frame, Gpu, Renderer, View, GROUND_REACH,
     STILL_FORMAT,
 };
 
@@ -78,6 +78,33 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             write_png(&path, &still)?;
         }
         println!("{{\"version\":\"{VERSION}\",\"preset\":\"{id}\",\"seed\":{seed},\"age\":{}}}", family.age);
+        return Ok(());
+    }
+    if args.iter().any(|a| a == "--orbit") {
+        let hero = hero_pose(renderer.bounds().ok_or("no bounds")?, aspect, GROUND_REACH);
+        let mut rows = Vec::new();
+        for (name, camera) in views(hero) {
+            let r = measure_orbit(&mut renderer, &camera, SIZE, frame.target())?;
+            #[cfg(feature = "f4")]
+            let surfacing = r.surfacing_p50_ms();
+            #[cfg(not(feature = "f4"))]
+            let surfacing: Option<f64> = None;
+            rows.push(format!(
+                "\"{name}\":{{\"verdict\":\"{}\",\"vegetation\":{},\"selection\":{},\"shadow\":{},\"surfacing\":{},\"total\":{},\"wall\":{}}}",
+                r.verdict().name(),
+                opt(r.p50_ms()),
+                opt(r.selection_p50_ms()),
+                opt(r.shadow_p50_ms()),
+                opt(surfacing),
+                opt(r.total_p50_ms()),
+                opt(r.wall_p50_ms()),
+            ));
+        }
+        println!(
+            "{{\"version\":\"{VERSION}\",\"preset\":\"{id}\",\"seed\":{seed},\"age\":{},\"orbit\":{{{}}}}}",
+            family.age,
+            rows.join(",")
+        );
         return Ok(());
     }
     let mut builds = Vec::new();
