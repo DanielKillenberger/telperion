@@ -477,6 +477,23 @@ impl Select {
     /// first, and the leaves no level drew. Reading it stalls on the device,
     /// so it is a check and a record, never a per-frame call.
     #[cfg(not(target_arch = "wasm32"))]
+    /// Each instance's level as the last dispatch chose it, or `None` for
+    /// one it gave to the unseen bucket: the lists read back (fn-253).
+    #[cfg(test)]
+    pub(crate) fn chosen(&self, gpu: &Gpu) -> Vec<Option<u32>> {
+        let counts = self.counted(gpu).expect("counts read back");
+        let bytes = buffer::read(gpu, self.lists.as_ref().unwrap()).expect("lists read back");
+        let words: Vec<u32> = (bytes.as_chunks::<4>().0.iter()).map(|w| u32::from_ne_bytes(*w)).collect();
+        let mut out = vec![None; self.instances as usize];
+        for (level, &count) in counts.iter().enumerate().take(self.levels.len()) {
+            let start = level * self.stride as usize / size_of::<u32>();
+            for &id in &words[start..start + count as usize] {
+                out[id as usize] = Some(level as u32);
+            }
+        }
+        out
+    }
+
     pub fn counted(&self, gpu: &Gpu) -> Option<Vec<u32>> {
         let bytes = buffer::read(gpu, self.counts.as_ref()?)?;
         Some(

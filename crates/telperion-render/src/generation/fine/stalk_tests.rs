@@ -20,6 +20,7 @@ use telperion_core::math::Vec3;
 use telperion_core::pipeline::executor;
 use telperion_core::presets::Family;
 use telperion_core::tree::Tree;
+use crate::{select::{frame, Level, Select}, Camera};
 
 /// `bloom.rs`'s axis segments.
 const SEGMENTS: usize = 8;
@@ -137,22 +138,39 @@ fn hung(words: &[Leaf], r: Reference, tree: &Tree, p: &BloomParams) -> Hung {
     out
 }
 
-/// `family` built on the real path and as the CPU whole tree: each one's
-/// organ hung from the tree.
-fn both(gpu: &Gpu, family: &Family) -> (Hung, Hung, Reference) {
+/// Both executors' organ words for `family`, packed against one box: the
+/// real path's, then the CPU whole tree's, with the tree and the element.
+struct Organs {
+    device: Vec<Leaf>,
+    cpu: Vec<Leaf>,
+    reference: Reference,
+    tree: Tree,
+    bloom: BloomParams,
+    element: telperion_core::foliage::Element,
+}
+
+fn organs(gpu: &Gpu, family: &Family) -> Organs {
     let make = Generator::create(gpu.clone(), std::sync::Arc::new(()), true);
     let gen = pollster::block_on(make).unwrap();
     let k = kernels(gpu);
     let built = pollster::block_on(build(gpu, &gen, &k, &Tools::new(gpu), family)).unwrap();
     let organ = built.prepared.organ.as_ref().expect("the tree flowers");
-    let r = (built.prepared.mesh.organ.as_ref().unwrap().instances).reference;
-    let mine = pollster::block_on(io::read_leaves_async(gpu, organ.leaves.buffer(), organ.count));
-    let mine = mine.unwrap();
+    let reference = (built.prepared.mesh.organ.as_ref().unwrap().instances).reference;
+    let device = pollster::block_on(io::read_leaves_async(gpu, organ.leaves.buffer(), organ.count));
+    let device = device.unwrap();
     drop(built);
     let x = executor::grow(family).unwrap().expansion().unwrap();
-    let (p, _, _) = x.bloom();
-    let theirs = x.organ_in(r).unwrap().instances.leaves;
-    (hung(&mine, r, x.tree(), &p), hung(&theirs, r, x.tree(), &p), r)
+    let (bloom, _, _) = x.bloom();
+    let cpu = x.organ_in(reference).unwrap();
+    Organs { device, cpu: cpu.instances.leaves, reference, tree: x.tree().clone(), bloom, element: cpu.element }
+}
+
+/// `family` built on the real path and as the CPU whole tree: each one's
+/// organ hung from the tree.
+fn both(gpu: &Gpu, family: &Family) -> (Hung, Hung, Reference) {
+    let o = organs(gpu, family);
+    let (r, p) = (o.reference, &o.bloom);
+    (hung(&o.device, r, &o.tree, p), hung(&o.cpu, r, &o.tree, p), r)
 }
 
 /// Laurelin young, her florets opening one after another, at her own rows
@@ -186,4 +204,126 @@ fn every_drawn_floret_hangs_from_wood_through_its_stalk() {
             assert!(cpu.rachises > 100);
         }
     }
+}
+
+/// What selection drew of one executor's organ from one camera.
+#[derive(Debug, Default)]
+struct Drawn {
+    /// Inflorescences kept and dropped whole.
+    kept: usize,
+    dropped: usize,
+    /// Florets drawn at a floret level, and at the card.
+    florets: usize,
+    carded: usize,
+    /// Drawn florets whose rachis was not drawn.
+    stranded: usize,
+    /// The farthest a drawn floret's pedicel seat stands outside the
+    /// rachis level its rachis was drawn at, in pixels, past two codes.
+    off: f64,
+}
+
+/// `words` as selection draws them from `camera` in a `size`d frame: each
+/// drawn floret checked against its run's rachis at the level chosen for
+/// it, its ribbon's chords or its tube (`stalk.rs`).
+fn drawn(gpu: &Gpu, o: &Organs, words: &[Leaf], camera: &Camera, size: (u32, u32)) -> Drawn {
+    let element = crate::card::carded(&o.element).into_owned();
+    let stems = crate::card::rachis_levels(&element);
+    let mut instances = telperion_core::foliage::Instances::new(o.reference);
+    instances.leaves = words.to_vec();
+    let foliage = telperion_core::mesh::Foliage { element: element.clone(), instances };
+    let mut selection = Select::new(gpu);
+    selection.submit(gpu, &foliage, &element, Level::Chosen);
+    let p = &o.bloom;
+    selection.set_stalk(p.rachis as f32, p.pedicel as f32, p.droop as f32);
+    let mut encoder = gpu.encoder(&Default::default());
+    selection.dispatch(gpu, &mut encoder, camera, size, true, None);
+    gpu.submit([encoder.finish()]);
+    let chosen = selection.chosen(gpu);
+    let r = o.reference;
+    let ppm = frame::pixels_per_metre(f64::from(size.1), camera.field_of_view);
+    let forward = (camera.target - camera.position).normalized();
+    let codes = 2.0 * r.step().length();
+    let end = 0.5 * p.stamen_width;
+    let mut out = Drawn::default();
+    let mut run: Vec<usize> = Vec::new();
+    for (i, w) in words.iter().enumerate() {
+        if w[2] & WITHERED == 0 {
+            run.push(i);
+            continue;
+        }
+        let rachis = chosen[i];
+        let drawn: Vec<usize> = run.drain(..).filter(|&f| chosen[f].is_some()).collect();
+        match rachis {
+            Some(_) => out.kept += 1,
+            None if drawn.is_empty() => out.dropped += 1,
+            None => out.stranded += drawn.len(),
+        }
+        let Some(level) = rachis else { continue };
+        let m = r.unpack(*w);
+        let (seat, heading) = (column(&m, 3), column(&m, 1));
+        let full = axis(seat, heading.normalized(), p);
+        // The chosen level's rings: every fourth, second, or every one.
+        let stride = [4, 2, 1, 1][(level as usize).min(3)];
+        let mut points = [seat; SEGMENTS + 1];
+        for (k, q) in points.iter_mut().enumerate() {
+            *q = full[(k / stride) * stride];
+            if k % stride != 0 {
+                let (a, b) = (full[(k / stride) * stride], full[((k / stride) + 1) * stride]);
+                *q = a + (b - a) * ((k % stride) as f64 / stride as f64);
+            }
+        }
+        let depth = (seat - camera.position).dot(forward).max(camera.near);
+        for f in drawn {
+            if chosen[f] == Some(stems as u32) {
+                out.carded += 1;
+                continue;
+            }
+            out.florets += 1;
+            let fm = r.unpack(words[f]);
+            let along = column(&fm, 1);
+            let q = column(&fm, 3) - along.normalized() * p.pedicel;
+            let gap = outside(q, &points, heading.length(), end) - codes;
+            out.off = out.off.max(gap * ppm / depth);
+        }
+    }
+    out
+}
+
+/// fn-253 R4 (review): every floret selection draws hangs from its
+/// rachis as drawn, on both executors, with thinning active: from the hero
+/// camera and from six times as far in a small frame, where thinning keeps a share of the
+/// inflorescences and drops the rest whole; each drawn floret's rachis is
+/// drawn, and its pedicel's seat stands within half a pixel of the level
+/// its rachis was given.
+#[test]
+fn every_drawn_floret_hangs_from_its_drawn_rachis() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let mut family = telperion_core::presets::Preset::Laurelin.parameters();
+    (family.age, family.skeleton.seed) = (30.0, 1);
+    family.supernatural.bloom.stagger = Some(1.0);
+    let o = organs(&gpu, &family);
+    let corner = |pick: fn(f64, f64) -> f64, from: f64| {
+        let v = o.tree.nodes.iter().map(|n| n.position);
+        v.fold(Vec3::new(from, from, from), |a, b| Vec3::new(pick(a.x, b.x), pick(a.y, b.y), pick(a.z, b.z)))
+    };
+    let (lo, hi) = (corner(f64::min, f64::MAX), corner(f64::max, f64::MIN));
+    let size = (960, 720);
+    let bounds = telperion_core::surface::Bounds { min: lo, max: hi };
+    let hero = crate::hero_pose(bounds, 960.0 / 720.0, crate::GROUND_REACH);
+    let far = Camera { position: hero.target + (hero.position - hero.target) * 6.0, far: 10.0 * hero.far, ..hero.clone() };
+    // Far, a 96-line frame puts a whole raceme under thinning's 2 px.
+    let small = (96, 72);
+    for (view, camera, size) in [("hero", &hero, size), ("far", &far, small)] {
+        for (name, words) in [("device", &o.device), ("cpu", &o.cpu)] {
+            let d = drawn(&gpu, &o, words, camera, size);
+            println!("{view} {name}: {d:?}");
+            assert_eq!(d.stranded, 0, "{view} {name}: a floret drawn without its rachis");
+            assert!(d.off <= 0.5, "{view} {name}: a pedicel {} px off its drawn rachis", d.off);
+            assert!(d.kept > 0, "{view} {name}: {d:?}");
+        }
+    }
+    let d = drawn(&gpu, &o, &o.cpu, &far, small);
+    assert!(d.dropped > 0, "thinning dropped no inflorescence: {d:?}");
 }

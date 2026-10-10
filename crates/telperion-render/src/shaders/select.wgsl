@@ -89,8 +89,12 @@ fn level_of(instance: u32) -> u32 {
         if leaf_draw_rank(rachis) >= kept {
             return u.levels;
         }
+        // Culled by all it can reach: a floret's sphere stands off its
+        // base, and a floret is at most twice its element (`bloom.rs`, a
+        // scatter of at most one).
+        let bound = u.stalk.x + u.stalk.y + length(u.sphere.xyz) + 2.0 * u.sphere.w;
         for (var plane = 0u; plane < 6u; plane = plane + 1u) {
-            if dot(u.planes[plane].xyz, seat) + u.planes[plane].w < -reach / sqrt(kept) {
+            if dot(u.planes[plane].xyz, seat) + u.planes[plane].w < -bound / sqrt(kept) {
                 return u.levels;
             }
         }
