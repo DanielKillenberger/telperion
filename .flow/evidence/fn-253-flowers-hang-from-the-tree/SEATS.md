@@ -296,3 +296,47 @@ The host accepts the rachis's cost at the whole view: +2.9 % on Laurelin and +4.
   - or treat the card's larger error as a finding.
 
 `flowctl done` waits on that call.
+
+## The two reds after the host's decisions (worker, 2026-10-10)
+
+### Parity: the cause found and fixed (`513c6175`)
+
+The parity test's own cherry fixture, measured CPU against device:
+- **The pedicels drawn invisible** (stamen width 1e-5): still 2.7 % apart, so drawing the pedicels is not the cause.
+- **The pedicel's length at zero:** 0.9 % apart, so it follows where the florets stand.
+- **The florets themselves:** 60,437 of 60,438 match exactly or within fn-125's screen, one unmatched on each side.
+- **The CPU florets packed against the device's box:** 0.36 % apart. That is the cause.
+
+**The cause.** The CPU mesh path packed florets against their own box; the device packs them against the leaves' box padded by a floret's reach. Thinning ranks an organ by a hash of its packed words, so the two paths kept different random subsets. With tip seating's tenth of the florets, the sampling noise rose past the 1 % bound.
+
+**The fix.** One packing box on both executors, `foliage::bloom_box` (the leaves' box padded by the reach), used by `mesh::build`, `Expansion::organ` and the device's `Organ::of`. The test passes: CPU 0.01969 against device 0.01963 (0.3 %). Core is green on it.
+
+### The per-inflorescence card: built, and it misses the bound (branch `fn-253-unit-card-trial`, `9139e9b3`)
+
+**As decided.**
+- One card per inflorescence once its florets fall under 4 px across. The anchor (the rachis instance, now standing even where the rachis has no length) draws it, and the florets draw nothing.
+- **For a raceme:** a camera-facing quad on the chord from its first floret's seat to its last, a floret's radius past each end, a floret's diameter wide (the floret's bounding sphere).
+- **For a rachis-less cluster:** a disc of radius pedicel plus the floret's radius.
+- No pedicel at the card level, no empirical factor and no new row.
+
+**Measured.**
+
+| | far, at 1× | at 4× | far over 4× | bound |
+|---|---|---|---|---|
+| fn-246's fixture (`thinning`, rachis-less clusters: the disc) | 0.02759 | 0.01196 | +131 % | 30 % |
+| same, per-floret card (now) | 0.00661 | 0.00476 | +39 % | 30 % |
+| Laurelin whole, 960×720 against 3840×2880 (the quad) | 0.1310 | 0.0597 | +119 % | |
+| Telperion whole | 0.1273 | 0.0682 | +87 % | |
+
+- **The mid views** agree within 4 to 7 % at both sizes.
+- **The 4× renders** still draw many florets under 4 px as cards, so they bound the true coverage from above.
+- **Why it overstates.** A full quad or disc paints the whole span its florets stand in, where the florets cover a part of it. Laurelin's horns are far narrower than their bounding sphere, and Telperion's florets do not fill their candle.
+- **The stills** (`raw/card-whole-sheet.jpg`, viewed; top row with the card, bottom row without). Laurelin's crown turns a pinkish grey (the card takes the petal's front colour at mid-petal and none of the gold the horns show). Telperion's white turns to large blobs.
+- **Frame time with the card** (GPU p50, best of 3; `raw/frames-card.log`):
+
+| | whole | mid | close |
+|---|---|---|---|
+| Laurelin | 4.93 ms (was 5.52) | 14.66 (13.46) | 13.14 (13.09) |
+| Telperion | 8.39 ms (was 7.02) | 16.00 (15.90) | 13.98 (14.10) |
+
+Per the decision, stopped with the numbers. The trial is kept on its own branch; the task branch stays at the parity fix, with fn-246's per-floret card (+39 %).
