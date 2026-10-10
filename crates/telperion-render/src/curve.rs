@@ -231,7 +231,7 @@ impl CurveGpu {
         for f in &mut self.feedback {
             f.read();
         }
-        let held = |b: Budget, f: &Feedback| f.capacity().map_or(b, |c| b.within(c));
+        let held = |b: Budget, f: &Feedback| b.within(f.capacity());
         let wanted = [
             held(budget(pixels, nearest[0]), &self.feedback[0]),
             held(budget(texels, nearest[1]), &self.feedback[1]),

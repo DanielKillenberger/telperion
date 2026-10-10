@@ -27,8 +27,10 @@ pub(super) struct Feedback {
     staging: Owned,
     copy: Copy,
     mapped: Arc<Mutex<Option<bool>>>,
-    /// Rings, vertices, tube and ribbon indices the budget holds at most.
-    capacity: Option<[u64; 4]>,
+    /// Rings, vertices, tube and ribbon indices the budget holds at most;
+    /// a kind no view has asked for yet is held to nothing less than the
+    /// whole budget.
+    capacity: [Option<u64>; 4],
 }
 
 impl Feedback {
@@ -45,14 +47,14 @@ impl Feedback {
             ),
             copy: Copy::Idle,
             mapped: Arc::default(),
-            capacity: None,
+            capacity: [None; 4],
         }
     }
 
-    /// The capacity the budget is held to; none before the first reading,
-    /// when the view's whole budget stands.
-    pub(super) fn capacity(&self) -> Option<[u64; 4]> {
-        self.capacity
+    /// The most of each kind the budget is held to: the whole budget for
+    /// a kind no reading has seen.
+    pub(super) fn capacity(&self) -> [u64; 4] {
+        self.capacity.map(|c| c.unwrap_or(u64::MAX))
     }
 
     /// Copies the finest scale's counts out of `totals` after the passes,
@@ -98,25 +100,18 @@ impl Feedback {
     }
 }
 
-/// `capacity` grown to hold `demand` with headroom wherever the demand is
-/// past it; the first reading of a view that saw the tree sets it. A view
-/// that saw none of it (no ring) says nothing of what the tree will ask, so
-/// it leaves the capacity as it was: until a view sees the tree its whole
-/// budget stands, and the tree brought on screen never lacks its wood.
-fn grow(capacity: Option<[u64; 4]>, demand: [u64; 4]) -> Option<[u64; 4]> {
+/// `capacity` grown to hold `demand` with headroom, kind by kind: a kind
+/// is set by the first reading that asks for any of it and grows wherever
+/// a later one asks past it. A kind no view has asked for says nothing of
+/// what the next view will ask, so it stays unset and its whole budget
+/// stands: a far view of ribbons alone leaves the tubes their room, and a
+/// tree opened off screen its wood (Codex and Astra, fn-258).
+fn grow(capacity: [Option<u64>; 4], demand: [u64; 4]) -> [Option<u64>; 4] {
     let roomy = |d: u64| (d as f64 * HEADROOM).ceil() as u64;
-    if demand[0] == 0 {
-        return capacity;
-    }
-    Some(match capacity {
-        None => demand.map(roomy),
-        Some(c) => std::array::from_fn(|k| {
-            if demand[k] > c[k] {
-                roomy(demand[k])
-            } else {
-                c[k]
-            }
-        }),
+    std::array::from_fn(|k| match capacity[k] {
+        _ if demand[k] == 0 => capacity[k],
+        Some(c) if demand[k] <= c => Some(c),
+        _ => Some(roomy(demand[k])),
     })
 }
 
@@ -126,25 +121,21 @@ mod tests {
 
     #[test]
     fn the_capacity_opens_a_quarter_above_the_view_and_only_grows() {
-        let opened = grow(None, [100, 400, 0, 80]).unwrap();
-        assert_eq!(opened, [125, 500, 0, 100]);
-        assert_eq!(
-            grow(Some(opened), [10, 40, 0, 8]),
-            Some(opened),
-            "it shrank"
-        );
-        assert_eq!(
-            grow(Some(opened), [120, 600, 4, 80]),
-            Some([125, 750, 5, 100])
-        );
+        let opened = grow([None; 4], [100, 400, 8, 80]);
+        assert_eq!(opened, [Some(125), Some(500), Some(10), Some(100)]);
+        assert_eq!(grow(opened, [10, 40, 1, 8]), opened, "it shrank");
+        let grown = [Some(125), Some(750), Some(10), Some(100)];
+        assert_eq!(grow(opened, [120, 600, 4, 80]), grown);
     }
 
-    /// Astra (fn-258): a tree opened off screen learned a capacity of
-    /// nothing, and brought on screen drew no wood until it grew.
+    /// Astra and Codex (fn-258): a kind no view had asked for learned a
+    /// capacity of nothing, and the view that first asked for it left its
+    /// wood out until the budget grew.
     #[test]
-    fn a_view_that_sees_none_of_the_tree_leaves_the_capacity_as_it_was() {
-        assert_eq!(grow(None, [0; 4]), None, "an empty view set the capacity");
-        let opened = Some([125, 500, 0, 100]);
-        assert_eq!(grow(opened, [0; 4]), opened);
+    fn a_kind_no_view_asked_for_keeps_its_whole_budget() {
+        assert_eq!(grow([None; 4], [0; 4]), [None; 4], "an empty view set it");
+        let far = grow([None; 4], [100, 400, 0, 80]);
+        assert_eq!(far[2], None, "ribbons alone took the tubes' room");
+        assert_eq!(grow(far, [100, 400, 30, 80])[2], Some(38));
     }
 }
