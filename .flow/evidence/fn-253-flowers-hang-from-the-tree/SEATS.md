@@ -412,3 +412,11 @@ The host's rule: enlarge the fixture until the figure's spread over three packin
 - `telperion-core`: green on the packing-box fix.
 - `-space`, `-field`, `-wasm` and `-jev`: green earlier, their code unchanged since.
 - `npm test`: 14 files and 155 tests, green.
+
+## The owner's verdicts (2026-10-11, viewed in the harness)
+
+- Stalks: "yes the flowers lok like they are attached".
+- Laurelin: "laurelin looks pretty good".
+- Telperion: "i think the density is a little much can barely make out individual flowers. Also leaves seem to be missing? but it's pretty good."
+
+Follow-ups (host): measure whether Telperion's leaves were dropped or only hidden, and render his flowering share at 0.3 and 0.5 beside 1 for the host to pick.
