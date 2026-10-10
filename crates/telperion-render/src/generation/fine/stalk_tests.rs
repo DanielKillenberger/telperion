@@ -218,7 +218,8 @@ struct Drawn {
     /// Drawn florets whose rachis was not drawn.
     stranded: usize,
     /// The farthest a drawn floret's pedicel seat stands outside the
-    /// rachis level its rachis was drawn at, in pixels, past two codes.
+    /// rachis level its rachis was drawn at, in pixels, past two codes,
+    /// once the unit is enlarged about its seat as the draw enlarges it.
     off: f64,
 }
 
@@ -227,6 +228,7 @@ struct Drawn {
 /// it, its ribbon's chords or its tube (`stalk.rs`).
 fn drawn(gpu: &Gpu, o: &Organs, words: &[Leaf], camera: &Camera, size: (u32, u32)) -> Drawn {
     let element = crate::card::carded(&o.element).into_owned();
+    let sphere = frame::sphere(&element);
     let stems = crate::card::rachis_levels(&element);
     let mut instances = telperion_core::foliage::Instances::new(o.reference);
     instances.leaves = words.to_vec();
@@ -273,6 +275,12 @@ fn drawn(gpu: &Gpu, o: &Organs, words: &[Leaf], camera: &Camera, size: (u32, u32
             }
         }
         let depth = (seat - camera.position).dot(forward).max(camera.near);
+        // The unit's kept share and the enlargement the draw gives it about
+        // its seat (`select.wgsl`, `foliage.wgsl`): every length from the
+        // seat, a gap among them, grows by its inverse root.
+        let reach = p.rachis + p.pedicel + f64::from(sphere[3]);
+        let kept = (reach * ppm / depth).clamp(0.0, 1.0).powi(2);
+        let grown = 1.0 / kept.max(1e-4).sqrt();
         for f in drawn {
             if chosen[f] == Some(stems as u32) {
                 out.carded += 1;
@@ -283,7 +291,7 @@ fn drawn(gpu: &Gpu, o: &Organs, words: &[Leaf], camera: &Camera, size: (u32, u32
             let along = column(&fm, 1);
             let q = column(&fm, 3) - along.normalized() * p.pedicel;
             let gap = outside(q, &points, heading.length(), end) - codes;
-            out.off = out.off.max(gap * ppm / depth);
+            out.off = out.off.max(gap * grown * ppm / depth);
         }
     }
     out
@@ -322,6 +330,14 @@ fn every_drawn_floret_hangs_from_its_drawn_rachis() {
             assert_eq!(d.stranded, 0, "{view} {name}: a floret drawn without its rachis");
             assert!(d.off <= 0.5, "{view} {name}: a pedicel {} px off its drawn rachis", d.off);
             assert!(d.kept > 0, "{view} {name}: {d:?}");
+            // Thinned, a unit is under 2 px across, so each floret in it,
+            // enlarged, is under 4 px and drawn as its card, which has no
+            // pedicel (host): far, every drawn floret is a card; near,
+            // pedicels are checked.
+            match view {
+                "far" => assert_eq!(d.florets, 0, "{view} {name}: {d:?}"),
+                _ => assert!(d.florets > 1000, "{view} {name}: {d:?}"),
+            }
         }
     }
     let d = drawn(&gpu, &o, &o.cpu, &far, small);

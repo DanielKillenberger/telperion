@@ -473,10 +473,6 @@ impl Select {
         Some(self.placements.as_ref()?.region())
     }
 
-    /// What the last frame's pass counted: one entry per level, coarsest
-    /// first, and the leaves no level drew. Reading it stalls on the device,
-    /// so it is a check and a record, never a per-frame call.
-    #[cfg(not(target_arch = "wasm32"))]
     /// Each instance's level as the last dispatch chose it, or `None` for
     /// one it gave to the unseen bucket: the lists read back (fn-253).
     #[cfg(test)]
@@ -494,6 +490,10 @@ impl Select {
         out
     }
 
+    /// What the last frame's pass counted: one entry per level, coarsest
+    /// first, and the leaves no level drew. Reading it stalls on the device,
+    /// so it is a check and a record, never a per-frame call.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn counted(&self, gpu: &Gpu) -> Option<Vec<u32>> {
         let bytes = buffer::read(gpu, self.counts.as_ref()?)?;
         Some(

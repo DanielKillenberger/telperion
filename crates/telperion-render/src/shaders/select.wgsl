@@ -91,8 +91,8 @@ fn level_of(instance: u32) -> u32 {
         }
         // Culled by all it can reach: a floret's sphere stands off its
         // base, and a floret is at most twice its element (`bloom.rs`, a
-        // scatter of at most one).
-        let bound = u.stalk.x + u.stalk.y + length(u.sphere.xyz) + 2.0 * u.sphere.w;
+        // scatter of at most one), offset and radius alike.
+        let bound = u.stalk.x + u.stalk.y + 2.0 * (length(u.sphere.xyz) + u.sphere.w);
         for (var plane = 0u; plane < 6u; plane = plane + 1u) {
             if dot(u.planes[plane].xyz, seat) + u.planes[plane].w < -bound / sqrt(kept) {
                 return u.levels;
