@@ -250,6 +250,8 @@ mod realized_tests;
 mod realized_timing;
 mod resident;
 #[cfg(test)]
+mod repeat_tests;
+#[cfg(test)]
 mod resident_tests;
 mod rings;
 #[cfg(test)]
