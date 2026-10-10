@@ -80,6 +80,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("{{\"version\":\"{VERSION}\",\"preset\":\"{id}\",\"seed\":{seed},\"age\":{}}}", family.age);
         return Ok(());
     }
+    #[cfg(feature = "f4")]
+    if let Some(dir) = flag("--lod") {
+        return lod(&mut renderer, &family, aspect, &dir);
+    }
     if args.iter().any(|a| a == "--orbit") {
         let hero = hero_pose(renderer.bounds().ok_or("no bounds")?, aspect, GROUND_REACH);
         let mut rows = Vec::new();
@@ -110,6 +114,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut builds = Vec::new();
     for _ in 0..ROUNDS {
         builds.push(build(&mut renderer)?);
+    }
+    // A few frames at the hero pose, as a page shows the tree: the view's
+    // budget settles on what it asked (fn-258).
+    {
+        let hero = hero_pose(renderer.bounds().ok_or("no bounds")?, aspect, GROUND_REACH);
+        for _ in 0..4 {
+            renderer.draw(&hero, SIZE, frame.target());
+            wait(&renderer);
+        }
     }
     let resident = allocations(&renderer);
     let rss_before_trim = status_mb("VmRSS:");
@@ -188,6 +201,68 @@ fn curve(r: Option<telperion_render::CurveReport>) -> String {
             r.scale, r.overrun, r.vertices, r.tube_triangles, r.ribbon_triangles, r.demand, r.budget
         )
     })
+}
+
+/// fn-258: frames drawn coarser than their finest scale, over a turn at
+/// each view and a fast zoom from whole to close, each frame drawn and its
+/// report read; the first coarser frame and the one after it are saved.
+#[cfg(feature = "f4")]
+fn lod(
+    renderer: &mut Renderer,
+    family: &telperion_core::Family,
+    aspect: f64,
+    dir: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    use telperion_render::orbit_pose;
+    let hero = hero_pose(renderer.bounds().ok_or("no bounds")?, aspect, GROUND_REACH);
+    let views = views(hero);
+    let mut runs: Vec<(String, Vec<Camera>)> = views
+        .iter()
+        .map(|(name, c)| {
+            let turn = (0..120).map(|i| orbit_pose(c, f64::from(i) / 120.0)).collect();
+            (format!("orbit-{name}"), turn)
+        })
+        .collect();
+    let zoom = (0..30)
+        .map(|i| {
+            let share = 1.0 - 0.75 * f64::from(i) / 29.0;
+            Camera {
+                position: hero.target + (hero.position - hero.target) * share,
+                ..hero
+            }
+        })
+        .collect();
+    runs.insert(0, ("zoom".into(), zoom));
+    let mut rows = Vec::new();
+    let mut saved = 0;
+    for (name, cameras) in runs {
+        // Each run opens on a fresh renderer state: the first frame of the run.
+        let mut coarser = Vec::new();
+        for (i, camera) in cameras.iter().enumerate() {
+            let still = render(renderer, camera, SIZE.0, SIZE.1)?;
+            let r = renderer.curve_report().ok_or("no curve")?;
+            if r.scale > 1.0 || r.overrun != 0 {
+                coarser.push(format!("[{i},{},{}]", r.scale, r.overrun));
+                if saved < 2 {
+                    let id = family.age;
+                    let at = |tag: &str| std::path::PathBuf::from(dir).join(format!("lod-{name}-{i}-{tag}-{id}.png"));
+                    write_png(&at("coarse"), &still)?;
+                    let next = render(renderer, camera, SIZE.0, SIZE.1)?;
+                    let r2 = renderer.curve_report().ok_or("no curve")?;
+                    write_png(&at(&format!("next-scale{}", r2.scale)), &next)?;
+                    saved += 1;
+                }
+            }
+        }
+        rows.push(format!("\"{name}\":{{\"frames\":{},\"coarser\":[{}]}}", cameras.len(), coarser.join(",")));
+    }
+    println!(
+        "{{\"version\":\"{VERSION}\",\"age\":{},\"tree_buffer_bytes\":{},\"lod\":{{{}}}}}",
+        family.age,
+        Generator::tree_buffer_bytes(renderer),
+        rows.join(",")
+    );
+    Ok(())
 }
 
 extern "C" {

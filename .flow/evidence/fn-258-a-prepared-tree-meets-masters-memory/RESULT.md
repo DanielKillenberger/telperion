@@ -1,134 +1,136 @@
 # fn-258 R2 and R3: the cuts and where F4 stands against master
 
-Measured 2026-10-10 on the fn-258 branch at d2566b5c against master at ebd2e37b, with the probe and protocol of `BYTES.md` (same machine, lock, resolution and MSAA), seeds 1 and 42. Raw rows: `raw/r3.jsonl` (sweep), `raw/orbit.jsonl` (motion), `raw/cut*.jsonl` (each cut).
+Measured 2026-10-10 on the fn-258 branch at 2b8615a7 (bebf8a17 changes only a view that sees none of the tree) against master at ebd2e37b, with the probe and protocol of `BYTES.md` (same machine, lock, resolution and MSAA; the probe now draws four frames at the hero pose before it reads memory, as a page shows the tree), seeds 1 and 42. Raw rows: `raw/r3c.jsonl` (sweep: master's rows from the first R3 sweep, F4's after the last cut), `raw/orbit-c.jsonl` (motion), `raw/lod.jsonl` (coarser frames), `raw/cut*.jsonl` (each cut).
 
-**Verdict: R3 is not met.** After the cuts, F4 holds more GPU memory than master on every preset at the product default age (the beech by 4 %, the rest by 21 % to 3.9×), and draws slower frames for the ordinary (whole view, seed 1 by 10 %, seed 42 by 65 %), Laurelin and Telperion (2.4-46×). The rest needs the owner: one level-of-detail choice and the trades in "Remaining losses".
+**Where it stands.** After the five cuts F4 holds less GPU memory than master for the beech, and its tree buffers are smaller than master's for the beech, the oak and the birch. It holds more for the other presets: the palm and the ordinary by the 102 MB of compiled programs, the rest by up to 3.3×. It draws faster frames than master for the five real species and the palm. The ordinary is 8 % slower at the hero view at seed 1 and 57 % at seed 42; Laurelin and Telperion are 2.4-46× slower. The host's decision (2026-10-10): these remaining losses are the owner's, weighed in fn-259's qualification; fn-258 closes on code and evidence.
 
 ## R2: the cuts
 
-Each cut names the consumer it checked; none changes what is drawn. The palm's and the oak's stills are byte-identical before and after every cut. The spruce's and Telperion's stills differ by as much as two runs of the same binary differ (0.08-0.16 % of pixels, all on leaves, `stills/` in the scratch); they were viewed side by side.
+Each cut names the consumer it checked. Cuts 1 to 4 change nothing drawn: the palm's and the oak's stills are byte-identical across them, and the spruce's and Telperion's close stills differ from before the cuts in as many pixels as two runs of the same binary differ (any channel changed: spruce 16.7 % against 15.4 %, Telperion 13.8 % against 14.6 %; by more than 8/255: 1.0 % against 0.9 %, 1.8 % against 1.9 %), all on leaves, viewed side by side. Cut 5 is the level-of-detail choice the host made.
 
-1. **Growth scratch and the pool retired after preparation** (1b0e7c66). The grower's regions (`chain *`, 1.2-1.4 GB) and the pool of the last build's geometry scratch (`laid scratch`, `fine laid`, `packed *`, up to 1.7 GB) were kept for the next build. Consumer checked: the next build's grower and fine roots, the only readers. The regions are released after the build, the pool is deleted, and admission counts the ledger's live bytes. Test: `a_build_keeps_nothing_on_the_device_once_it_is_done` (red with the release removed: 1.15 GiB kept). Cost: a retune allocates them again.
-2. **One set of surfacing buffers for both views** (a371641e). The sun's records, vertices and indices (48-689 MiB) were kept beside the camera's. Consumer checked: the shadow pass, the only reader of the sun's output, in the frame that surfaces it. A frame that redraws the map now surfaces the sun's view, draws the map, then surfaces the camera's into the same buffers. The map is drawn again only with its wood; the sun's surfacing is timed inside the shadow pair.
-3. **Coarser scales measured only when the finest overruns** (7e44ba29). Consumer checked: `choose`, which read all four scales' totals and picked the finest that fits. The finest is measured first and the coarser scales are dispatched indirectly only where it does not fit. Test: `a_view_past_its_finest_scale_is_drawn_at_the_coarser_scale_that_fits` holds a scale-8 view to the CPU reference.
-4. **The count pass reuses the measure pass's counts** (d2566b5c). Consumer checked: the scan and rings passes, which read `counts`. Where the finest scale is chosen, the measure pass already walked every cluster at it and now keeps each cluster's counts.
+1. **Growth scratch and the pool retired after preparation** (1b0e7c66). The grower's regions (`chain *`, 1.2-1.4 GB) and the pool of the last build's geometry scratch (`laid scratch`, `fine laid`, `packed *`, up to 1.7 GB) were kept for the next build. Consumer checked: the next build's grower and fine roots, the only readers. Test: `a_build_keeps_nothing_on_the_device_once_it_is_done` (red with the release removed: 1.15 GiB kept). Cost: a retune allocates them again.
+2. **One set of surfacing buffers for both views** (a371641e, fixed in 000b5c75). The sun's records, vertices and indices (48-689 MiB) were kept beside the camera's. Consumer checked: the shadow pass, the only reader of the sun's output, in the frame that surfaces it. A frame that redraws the map surfaces the sun's view, draws the map, then surfaces the camera's into the same buffers; a remade sun view redraws its map (test: `a_remade_sun_view_keeps_the_maps_casters_counted`, red without the redraw).
+3. **Coarser scales measured only when the finest overruns** (7e44ba29). Consumer checked: `choose`. Test: `a_view_past_its_finest_scale_is_drawn_at_the_coarser_scale_that_fits` holds a scale-8 view to the CPU reference.
+4. **The count pass reuses the measure pass's counts** (d2566b5c). Consumer checked: the scan and rings passes, which read `counts`.
+5. **Each view's budget grows from what it asked** (2b8615a7; host decision 2026-10-10). Consumer checked: `choose`, which draws a view past its budget at the finest scale that fits. Each view's budget is held to a capacity set from the demand its passes measured at the finest scale, read back a frame late, a quarter above it, and grown, never shrunk, when a later view asks more; until the first reading of a view that sees the tree, the whole budget stands (Astra's review: a tree opened off screen otherwise learned a capacity of nothing and drew no wood when brought on). Tests: `the_capacity_opens_a_quarter_above_the_view_and_only_grows`, `a_view_that_sees_none_of_the_tree_leaves_the_capacity_as_it_was`, `a_remade_sun_view_keeps_the_maps_casters_counted`. A resize to a lower resolution also asks more ribbon indices, and draws one coarser frame while the budget grows: the trunk-resolution and grain tests now compare the second frame of each view.
 
-Not taken: the native allocator hint `MemoryHints::MemoryUsage`, which returned 0.7-1.0 GB of reserved blocks (Telperion 2,123 to 1,384 MB, the palm to 482 MB, under master) but slowed the spruce's vegetation pass by 24 % in two runs (`raw/hints*.jsonl`). It is native only; a browser allocates on its own.
+Not taken (host, 2026-10-10): the native allocator hint `MemoryHints::MemoryUsage`, which returned 0.7-1.0 GB of reserved blocks but slowed the spruce's vegetation pass by 24 % (`raw/hints*.jsonl`); native only.
 
-What the cuts saved, seed 1, each tree at the same age before and after:
+### Frames drawn coarser (cut 5)
 
-| Tree, age | GPU process MB before → after | allocated MiB before → after | surfacing ms whole/mid/close before → after | retune build ms before → after |
-|---|--:|--:|--:|--:|
-| date-palm, 40 | 839 → 583 | 185 → 137 | 0.38/0.18/0.25 → 0.25/0.17/0.24 | 6 → 6 |
-| date-palm, 100 | 837 → 581 | 247 → 176 | 0.36/0.15/0.20 → 0.23/0.14/0.20 | 8 → 7 |
-| ordinary, 40 | 1607 → 839 | 754 → 444 | 0.43/0.52/0.53 → 0.29/0.37/0.38 | 553 → 536 |
-| ordinary, 100 | 1865 → 1353 | 1383 → 876 | 1.29/1.61/2.02 → 0.89/1.14/1.53 | 16471 → 19787 |
-| norway-spruce, 40 | 3823 → 2123 | 2929 → 1027 | 2.26/1.84/1.20 → 1.79/1.47/0.97 | 398 → 448 |
-| silver-birch, 40 | 3171 → 1609 | 2382 → 571 | 0.87/0.94/0.96 → 0.67/0.74/0.74 | 767 → 741 |
-| silver-birch, 70 | 4847 → 1865 | 3240 → 984 | 2.12/2.48/2.32 → 1.86/2.19/2.02 | 2037 → 2044 |
-| oregon-white-oak, 40 | 1609 → 1353 | 838 → 500 | 0.81/1.04/1.09 → 0.64/0.85/0.87 | 1527 → 1362 |
-| oregon-white-oak, 100 | 2377 → 1609 | 1591 → 1007 | 2.79/3.80/2.12 → 2.05/2.82/1.52 | 25401 → 30677 |
-| european-beech, 40 | 2799 → 1097 | 2200 → 450 | 0.57/0.69/0.74 → 0.41/0.51/0.56 | 167 → 300 |
-| laurelin, 80 | 4847 → 1611 | 3854 → 976 | 1.70/2.14/2.13 → 1.37/1.82/1.80 | 546 → 632 |
-| laurelin, 100 | 5871 → 1867 | 4872 → 1081 | 2.61/3.29/3.40 → 2.21/2.90/2.97 | 971 → 987 |
-| telperion, 82 | 4849 → 2121 | 3926 → 966 | 1.73/2.22/2.15 → 1.40/1.89/1.82 | 587 → 652 |
-| telperion, 100 | 5873 → 1867 | 4840 → 1049 | 2.57/3.23/3.24 → 2.15/2.86/2.83 | 897 → 1021 |
+Each frame drawn and its report read, seed 1, default age, a fresh tree per preset: a fast zoom from the hero pose to a quarter of its distance in 30 frames, then a full turn of 120 frames at the whole, mid and close distances. Every coarser frame was at scale 2 with no cluster left out. None was at the hero pose: the zoom's first frame and the whole turn drew none.
 
-Retune builds moved by -165 to +133 ms at default age; the ordinary and the oak at 100 were 3-5 s slower, under load averages of 5-8.
+| Tree | age | zoom | turn, whole | turn, mid | turn, close |
+|---|--:|--:|--:|--:|--:|
+| palm | 40 | 0 of 30 | 0 of 120 | 0 of 120 | 0 of 120 |
+| ordinary | 40 | 8 of 30 | 0 of 120 | 0 of 120 | 0 of 120 |
+| spruce | 40 | 4 of 30 | 0 of 120 | 0 of 120 | 1 of 120 |
+| birch | 40 | 9 of 30 | 0 of 120 | 0 of 120 | 4 of 120 |
+| oak | 40 | 4 of 30 | 0 of 120 | 0 of 120 | 0 of 120 |
+| beech | 40 | 6 of 30 | 0 of 120 | 0 of 120 | 2 of 120 |
+| Laurelin | 80 | 7 of 30 | 0 of 120 | 0 of 120 | 1 of 120 |
+| Telperion | 82 | 7 of 30 | 0 of 120 | 0 of 120 | 1 of 120 |
+
+Stills viewed: Telperion's zoom frames 7 and 12 at scale 2 beside the next frame at scale 1 of the same camera, whole and in a 640×480 crop of the trunk and limbs at full resolution. They are indistinguishable to the eye. Measured over the whole 1920×1080 frames (two frames of one tree in one process, so no run-to-run leaf variation): 4.7 and 6.3 % of pixels change in any channel, 1.1 and 1.2 % by more than 8/255. This is one sampled zoom and turn per preset, not a bound on every camera history, and the probe's blocking readbacks deliver each reading by the next frame; a browser's arrives when its queue does.
+
+### What the cuts saved
+
+Seed 1, each tree at the same age before the cuts (`BYTES.md`) and after all five:
+
+| Tree, age | GPU process MB before → after | allocated MiB before → after | tree buffers MiB before → after | surfacing ms whole/mid/close before → after | retune build ms before → after |
+|---|--:|--:|--:|--:|--:|
+| date-palm, 40 | 839 → 583 | 185 → 81 | 106 → 2 | 0.38/0.18/0.25 → 0.26/0.17/0.26 | 6 → 5 |
+| date-palm, 100 | 837 → 581 | 247 → 80 | 168 → 2 | 0.36/0.15/0.20 → 0.26/0.15/0.20 | 8 → 7 |
+| ordinary, 40 | 1607 → 583 | 754 → 93 | 675 → 14 | 0.43/0.52/0.53 → 0.29/0.37/0.38 | 553 → 482 |
+| ordinary, 100 | 1865 → 1097 | 1383 → 238 | 1304 → 159 | 1.29/1.61/2.02 → 0.90/1.16/1.56 | 16471 → 14160 |
+| norway-spruce, 40 | 3823 → 1611 | 2929 → 507 | 1445 → 429 | 2.26/1.84/1.20 → 1.78/1.47/0.96 | 398 → 414 |
+| silver-birch, 40 | 3171 → 1353 | 2382 → 150 | 850 → 71 | 0.87/0.94/0.96 → 0.67/0.73/0.74 | 767 → 724 |
+| silver-birch, 70 | 4847 → 1355 | 3240 → 438 | 1556 → 359 | 2.12/2.48/2.32 → 1.77/2.11/1.98 | 2037 → 1971 |
+| oregon-white-oak, 40 | 1609 → 1097 | 838 → 153 | 759 → 75 | 0.81/1.04/1.09 → 0.64/0.85/0.88 | 1527 → 1239 |
+| oregon-white-oak, 100 | 2377 → 1353 | 1591 → 497 | 1512 → 418 | 2.79/3.80/2.12 → 2.06/2.84/1.50 | 25401 → 21777 |
+| european-beech, 40 | 2799 → 841 | 2200 → 102 | 686 → 24 | 0.57/0.69/0.74 → 0.41/0.50/0.55 | 167 → 301 |
+| laurelin, 80 | 4847 → 1099 | 3854 → 348 | 1444 → 234 | 1.70/2.14/2.13 → 1.37/1.82/1.80 | 546 → 620 |
+| laurelin, 100 | 5871 → 1355 | 4872 → 557 | 1627 → 415 | 2.61/3.29/3.40 → 2.21/2.90/2.98 | 971 → 967 |
+| telperion, 82 | 4849 → 1355 | 3926 → 345 | 1470 → 248 | 1.73/2.22/2.15 → 1.40/1.88/1.82 | 587 → 643 |
+| telperion, 100 | 5873 → 1099 | 4840 → 522 | 1627 → 412 | 2.57/3.23/3.24 → 2.15/2.86/2.83 | 897 → 986 |
 
 ## R3: against master, at the default age and at master's age
 
-Bold is worse than master. "Frame ms" is wall clock per pipelined frame, camera still (best of three rounds of 120). "Orbit total" is the median GPU time of the three tree passes over a full turn at the hero pose (the motion protocol, `measure_orbit`), seed 1. Peak RSS is the CPU high-water mark over five builds. The first block is each version at its own default age; the second is F4 at master's age. Rows marked refused: F4's preparation ran out of device memory while other sessions held 1.6-4.5 GB of the 10 GB card.
+Bold is worse than master. "Frame ms" is wall clock per pipelined frame, camera still (best of three rounds of 120). "Orbit total" is the median GPU time of the three tree passes over a full turn at the hero pose (`measure_orbit`), seed 1. Peak RSS is the CPU high-water mark over five builds. The first block is each version at its own default age; the second is F4 at master's age.
+
+The three refused rows were retried once after cut 5: the spruce at 100 (both seeds) and the beech at 120 (seed 42) still ran out of device memory in F4's preparation, with 1,751 MiB of the 10,240 MiB card held by other processes at the time. They stay refused.
 
 | Tree | seed | ages old/new | GPU process MB old→new | tree buffers MiB old→new | frame ms whole old→new | mid | close | orbit total ms whole old→new | peak RSS MB old→new |
 |---|--:|---|--:|--:|--:|--:|--:|--:|--:|
-| beech | 1 | 120/40 | 1059→**1097** | 558→371 | 16.17→1.47 | 68.99→2.34 | 131.94→2.79 | 16.63→1.37 | 912→413 |
-| beech | 42 | 120/40 | 1059→**1097** | 531→428 | 14.63→2.72 | 58.49→4.69 | 123.36→4.64 | - | 883→429 |
-| oak | 1 | 100/40 | 739→**1353** | 243→**421** | 16.35→4.17 | 29.07→9.93 | 25.38→13.81 | 16.63→3.90 | 347→**906** |
-| oak | 42 | 100/40 | 995→**1353** | 271→**423** | 16.44→4.67 | 33.11→11.63 | 32.25→15.68 | - | 349→**942** |
-| spruce | 1 | 100/40 | 1251→**2123** | 398→**949** | 23.06→6.60 | 22.88→9.10 | 13.20→6.93 | 22.96→6.61 | 348→**596** |
-| spruce | 42 | 100/40 | 1251→**1867** | 382→**955** | 18.41→7.91 | 18.46→10.37 | 12.02→7.84 | - | 347→**529** |
-| birch | 1 | 70/40 | 739→**1609** | 144→**493** | 7.92→1.85 | 24.44→3.01 | 38.45→4.11 | 8.22→1.86 | 352→**470** |
-| birch | 42 | 70/40 | 739→**1609** | 147→**518** | 8.44→2.20 | 25.58→4.14 | 34.32→6.75 | - | 348→**464** |
-| palm | 1 | 100/40 | 483→**583** | 1→**58** | 0.80→0.52 | 1.61→0.59 | 2.20→0.78 | 0.77→0.41 | 337→**345** |
-| palm | 42 | 100/40 | 483→**583** | 1→**58** | 0.79→0.55 | 1.64→0.62 | 2.17→0.78 | - | 339→**350** |
-| ordinary | 1 | 100/40 | 481→**839** | 19→**366** | 0.51→**0.56** | 0.74→0.73 | 0.89→0.88 | 0.39→**0.48** | 329→**373** |
-| ordinary | 42 | 100/40 | 481→**1095** | 15→**390** | 0.46→**0.76** | 0.62→**1.00** | 0.63→**1.10** | - | 325→**467** |
-| Laurelin | 1 | 100/80 | 483→**1611** | 76→**862** | 1.33→**5.17** | 1.63→**11.38** | 1.30→**12.26** | 1.33→**5.03** | 335→**474** |
-| Laurelin | 42 | 100/80 | 739→**1867** | 196→**930** | 3.42→**8.35** | 3.85→**21.32** | 2.86→**18.91** | - | 353→**503** |
-| Telperion | 1 | 100/82 | 739→**2121** | 175→**869** | 1.91→**5.31** | 1.61→**11.07** | 1.65→**12.26** | 1.79→**5.18** | 344→**466** |
-| Telperion | 42 | 100/82 | 481→**1867** | 42→**941** | 0.69→**8.29** | 0.54→**20.93** | 0.41→**18.87** | - | 323→**501** |
+| beech | 1 | 120/40 | 1059→841 | 558→24 | 16.17→1.47 | 68.99→2.31 | 131.94→2.76 | 16.63→1.35 | 912→417 |
+| beech | 42 | 120/40 | 1059→841 | 531→66 | 14.63→2.72 | 58.49→4.68 | 123.36→4.60 | - | 883→427 |
+| oak | 1 | 100/40 | 739→**1097** | 243→75 | 16.35→4.16 | 29.07→9.95 | 25.38→13.86 | 16.63→3.90 | 347→**911** |
+| oak | 42 | 100/40 | 995→**1097** | 271→79 | 16.44→4.62 | 33.11→11.52 | 32.25→15.58 | - | 349→**956** |
+| spruce | 1 | 100/40 | 1251→**1611** | 398→**429** | 23.06→6.61 | 22.88→9.08 | 13.20→6.91 | 22.96→6.60 | 348→**607** |
+| spruce | 42 | 100/40 | 1251→**1355** | 382→**435** | 18.41→7.85 | 18.46→10.30 | 12.02→7.77 | - | 347→**536** |
+| birch | 1 | 70/40 | 739→**1353** | 144→71 | 7.92→1.86 | 24.44→3.01 | 38.45→4.09 | 8.22→1.85 | 352→**464** |
+| birch | 42 | 70/40 | 739→**1097** | 147→85 | 8.44→2.28 | 25.58→4.10 | 34.32→6.70 | - | 348→**475** |
+| palm | 1 | 100/40 | 483→**583** | 1→**2** | 0.80→0.57 | 1.61→0.58 | 2.20→0.78 | 0.77→0.44 | 337→**358** |
+| palm | 42 | 100/40 | 483→**583** | 1→**2** | 0.79→0.53 | 1.64→0.61 | 2.17→0.78 | - | 339→**356** |
+| ordinary | 1 | 100/40 | 481→**583** | 19→14 | 0.51→**0.55** | 0.74→0.73 | 0.89→0.86 | 0.39→**0.48** | 329→**399** |
+| ordinary | 42 | 100/40 | 481→**583** | 15→**27** | 0.46→**0.72** | 0.62→**0.98** | 0.63→**1.08** | - | 325→**482** |
+| Laurelin | 1 | 100/80 | 483→**1099** | 76→**234** | 1.33→**5.20** | 1.63→**11.37** | 1.30→**12.28** | 1.33→**5.03** | 335→**470** |
+| Laurelin | 42 | 100/80 | 739→**1355** | 196→**409** | 3.42→**8.38** | 3.85→**21.41** | 2.86→**19.07** | - | 353→**501** |
+| Telperion | 1 | 100/82 | 739→**1355** | 175→**248** | 1.91→**5.06** | 1.61→**11.46** | 1.65→**12.21** | 1.79→**5.18** | 344→**480** |
+| Telperion | 42 | 100/82 | 481→**1611** | 42→**433** | 0.69→**8.34** | 0.54→**20.98** | 0.41→**18.92** | - | 323→**490** |
 | | | | | | | | | | |
-| beech | 1 | 120/120 | 1059→**1867** | 558→**1010** | 16.17→12.01 | 68.99→19.50 | 131.94→20.71 | - | 912→679 |
+| beech | 1 | 120/120 | 1059→**1867** | 558→**732** | 16.17→11.96 | 68.99→19.46 | 131.94→20.70 | - | 912→707 |
 | beech | 42 | 120/120 | refused (device memory) | | | | | | |
-| oak | 1 | 100/100 | 739→**1609** | 243→**929** | 16.35→11.92 | 29.07→22.20 | 25.38→19.64 | - | 347→**9004** |
-| oak | 42 | 100/100 | 995→**1673** | 271→**884** | 16.44→10.24 | 33.11→20.79 | 32.25→21.46 | - | 349→**7646** |
+| oak | 1 | 100/100 | 739→**1353** | 243→**418** | 16.35→11.96 | 29.07→22.24 | 25.38→19.62 | - | 347→**9150** |
+| oak | 42 | 100/100 | 995→**1417** | 271→**364** | 16.44→10.22 | 33.11→20.74 | 32.25→21.41 | - | 349→**7668** |
 | spruce | 1 | 100/100 | refused (device memory) | | | | | | |
 | spruce | 42 | 100/100 | refused (device memory) | | | | | | |
-| birch | 1 | 70/70 | 739→**1865** | 144→**906** | 7.92→5.96 | 24.44→8.84 | 38.45→13.59 | - | 352→**933** |
-| birch | 42 | 70/70 | 739→**1609** | 147→**925** | 8.44→6.31 | 25.58→9.89 | 34.32→17.49 | - | 348→**1001** |
-| palm | 1 | 100/100 | 483→**581** | 1→**97** | 0.80→0.48 | 1.61→0.35 | 2.20→0.41 | - | 337→336 |
-| palm | 42 | 100/100 | 483→**581** | 1→**97** | 0.79→0.45 | 1.64→0.36 | 2.17→0.42 | - | 339→334 |
-| ordinary | 1 | 100/100 | 481→**1353** | 19→**797** | 0.51→**1.64** | 0.74→**2.31** | 0.89→**3.19** | - | 329→**3688** |
-| ordinary | 42 | 100/100 | 481→**1865** | 15→**876** | 0.46→**2.66** | 0.62→**4.13** | 0.63→**5.81** | - | 325→**6502** |
-| Laurelin | 1 | 100/100 | 483→**1867** | 76→**939** | 1.33→**8.07** | 1.63→**15.05** | 1.30→**17.04** | - | 335→**516** |
-| Laurelin | 42 | 100/100 | 739→**1867** | 196→**1036** | 3.42→**13.01** | 3.85→**30.65** | 2.86→**23.00** | - | 353→**566** |
-| Telperion | 1 | 100/100 | 739→**1867** | 175→**939** | 1.91→**7.37** | 1.61→**14.33** | 1.65→**16.28** | - | 344→**535** |
-| Telperion | 42 | 100/100 | 481→**1867** | 42→**1036** | 0.69→**10.96** | 0.54→**27.64** | 0.41→**22.40** | - | 323→**573** |
+| birch | 1 | 70/70 | 739→**1355** | 144→**359** | 7.92→5.40 | 24.44→8.35 | 38.45→13.48 | - | 352→**871** |
+| birch | 42 | 70/70 | 739→**1353** | 147→**416** | 8.44→6.26 | 25.58→9.81 | 34.32→17.38 | - | 348→**987** |
+| palm | 1 | 100/100 | 483→**581** | 1→**2** | 0.80→0.47 | 1.61→0.36 | 2.20→0.41 | - | 337→**339** |
+| palm | 42 | 100/100 | 483→**581** | 1→**2** | 0.79→0.44 | 1.64→0.37 | 2.17→0.41 | - | 339→335 |
+| ordinary | 1 | 100/100 | 481→**1097** | 19→**159** | 0.51→**1.64** | 0.74→**2.31** | 0.89→**3.22** | - | 329→**3579** |
+| ordinary | 42 | 100/100 | 481→**1353** | 15→**283** | 0.46→**2.66** | 0.62→**4.12** | 0.63→**5.80** | - | 325→**6255** |
+| Laurelin | 1 | 100/100 | 483→**1355** | 76→**415** | 1.33→**8.09** | 1.63→**15.03** | 1.30→**17.14** | - | 335→**563** |
+| Laurelin | 42 | 100/100 | 739→**1867** | 196→**667** | 3.42→**13.11** | 3.85→**30.87** | 2.86→**23.00** | - | 353→**571** |
+| Telperion | 1 | 100/100 | 739→**1099** | 175→**412** | 1.91→**7.37** | 1.61→**15.31** | 1.65→**17.34** | - | 344→**572** |
+| Telperion | 42 | 100/100 | 481→**1867** | 42→**661** | 0.69→**11.10** | 0.54→**27.85** | 0.41→**22.47** | - | 323→**669** |
 | | | | | | | | | | |
 
-Orbit, all three views, seed 1 (GPU total ms, old → new): ordinary 0.39/0.64/0.64 → 0.48/0.65/0.74; Laurelin 1.33/1.56/1.15 → 5.03/11.47/11.91; Telperion 1.79/1.47/1.37 → 5.18/10.89/11.73. Every other preset is faster in motion than master at every view.
+Orbit, all three views, seed 1 (GPU total ms, master → F4): see `raw/orbit-c.jsonl`. The ordinary, Laurelin and Telperion stay slower in motion; every other preset is faster at every view.
 
-## The level-of-detail choice (needs the owner)
+## Remaining losses, for the owner (fn-259)
 
-What remains of F4's tree buffers is the camera's surfacing budget: 58-776 MiB, sized for the most any view could ask (every ring at 384 sides, capped by the screen's pixels and two 128 MiB bindings). The hero, mid and close views ask far less. A budget sized from the largest demand those three views measured, with a quarter's headroom, would hold:
-
-| Tree | age | shared now MiB | largest measured demand ×1.25, MiB | share of now |
-|---|--:|--:|--:|--:|
-| date-palm | 40 | 58 | 2 | 3% |
-| date-palm | 100 | 97 | 1 | 1% |
-| ordinary | 40 | 362 | 17 | 5% |
-| ordinary | 100 | 736 | 137 | 19% |
-| norway-spruce | 40 | 746 | 228 | 31% |
-| silver-birch | 40 | 469 | 54 | 11% |
-| silver-birch | 70 | 768 | 267 | 35% |
-| oregon-white-oak | 40 | 394 | 66 | 17% |
-| oregon-white-oak | 100 | 737 | 273 | 37% |
-| european-beech | 40 | 365 | 24 | 7% |
-| european-beech | 120 | 768 | 742 | 97% |
-| laurelin | 80 | 768 | 179 | 23% |
-| laurelin | 100 | 768 | 293 | 38% |
-| telperion | 82 | 768 | 189 | 25% |
-| telperion | 100 | 768 | 289 | 38% |
-
-That would cut 62-99 % of the budget at default age. It is a level-of-detail choice: a view that asks more than the budget, nearer or wider than the three measured, is drawn at a coarser error scale, or waits a frame for a larger budget. I have not built it.
-
-## Remaining losses, measured, with what each buys
-
-At the default age, both seeds, unless stated:
+At the default age, both seeds:
 
 | Loss against master | Size | What it buys |
 |---|---|---|
-| Camera surfacing budget | 58-776 MiB of tree buffers | The wood never drawn coarser at any view, however close |
-| Surfacing pass every frame | 0.17-3.71 ms over both seeds and the three views (seed 1 before the cuts: 0.18-2.26) | Wood detail chosen per view at half a pixel's error; master tessellated once at a fixed detail |
-| Two Trees' vegetation pass | 3.6-17.5 ms against master's 0.23-3.28 | F4's full flowering crowns, where master drew bare contorted limbs (scorecard stills) |
-| Compiled programs | about 100 MB of driver memory before any tree | No compile at the first build (fn-243 compiles them at page load) |
-| Native allocator blocks | 0.3-1.1 GB reserved above what is allocated (`nvidia-smi` counts them) | Frame time: the `MemoryUsage` hint frees them and costs the spruce 24 % of its vegetation pass |
-| Peak CPU at master's age | oak at 100: 7.6-9.0 GB; ordinary at 100: 3.7-6.5 GB (master: 0.33-0.35 GB) | Nothing drawn: the preparation's working set. In a browser a Wasm memory keeps its peak |
-| Peak device memory at master's age | the spruce at 100 (both seeds) and the beech at 120 (seed 42) could not be prepared on a 10 GB card shared with other sessions | Same as above |
-| Retune build | +0-140 ms where the fine executor grows the tree | The 1.2-3.1 GB the cut retired |
-
-## Not done
-
-- Astra's agreement (R3) has not been asked.
-- Motion was measured, not viewed: the agent rules forbid opening videos and frame sequences.
-- `docs/` and the harness are unchanged; no shipped preset or default was touched.
+| Surfacing pass every frame | 0.15-3.7 ms over the presets and views | Wood detail chosen per view at half a pixel's error; master tessellated once at a fixed detail |
+| Two Trees' vegetation pass | 3.5-17.5 ms against master's 0.23-3.28 | F4's full flowering crowns, where master drew bare contorted limbs (scorecard stills) |
+| Compiled programs | about 100 MB of driver memory before any tree; the palm and the ordinary sit 100 MB over master for it | No compile at the first build (fn-243 compiles them at page load) |
+| View budgets | 1.5-268 MiB of the views' buffers within 2-435 MiB of tree buffers; the tree buffers are more than master's on the palm, the spruce, Laurelin, Telperion and the ordinary at seed 42 | Up to 9 of 30 frames of a fast zoom and 4 of 120 of a close turn drawn at scale 2 for a frame; none at the hero pose |
+| Native allocator blocks | reserved above allocated, which `nvidia-smi` counts: F4 407-1,130 MiB, master 112-819 MiB | Frame time: the `MemoryUsage` hint frees them and costs the spruce 24 % of its vegetation pass (not taken) |
+| Peak CPU at master's age | oak at 100: 7.7-9.2 GB; ordinary at 100: 3.6-6.3 GB (master: 0.33-0.35 GB) | Nothing drawn: the preparation's working set (fn-255/fn-256) |
+| Preparation at master's age | the spruce at 100 and the beech at 120 (seed 42) refused on a 10 GB card with 1.75 GB held by others | Same as above |
+| Retune build | up to +134 ms where the fine executor grows the tree | The 1.2-3.1 GB cut 1 retired |
 
 ## Gate
 
-Run once at the end, 2026-10-10, at d2566b5c plus this evidence:
+First run, 2026-10-10, at d2566b5c, before the review fix and cut 5:
 
 - `cargo test --profile ci -p telperion-render --no-fail-fast` under the GPU lock (4 test threads): 49 result lines, one red, `every_pipeline_within_2_5_s_but_grow_within_20_s_cold` (grow 25.6 s against 20 s; fn-237 R9). Run alone once: green, 22.8 s.
 - `cargo test --profile ci --no-fail-fast` package by package, `telperion-core`, `-space`, `-field`, `-wasm`, `-jev`: all green.
 - `npm test`: 14 files, 155 tests, green.
 - `cargo check -p telperion-render -p telperion-wasm --target wasm32-unknown-unknown`: clean.
+
+Final run, 2026-10-11, at bebf8a17 (after the review fix and cut 5):
+
+- `cargo test --profile ci -p telperion-render --no-fail-fast` under the GPU lock (4 test threads): 49 result lines, one red, `every_pipeline_within_2_5_s_but_grow_within_20_s_cold` (`girths` 2.68 s against 2.5 s; fn-237 R9). Run alone once, at a load average of 6: red again, `grow` 20.6 s against 20 s. Neither kernel is one fn-258 changed.
+- `npm test`: 14 files, 155 tests, green.
+- `cargo check -p telperion-render -p telperion-wasm --target wasm32-unknown-unknown`: clean.
+- The other packages were not re-run: no fn-258 change since the first run touches them.
+
+## Astra
+
+`gpt-6-astra`, high effort, read-only, on RESULT.md, BYTES.md, the code diff and the six stills in `raw/stills/`. First reading (`raw/astra-result.md`): cuts 1-4 sound with their consumers named, the stills show no perceptible change, cut 5's scale-2 frames indistinguishable, the main table regenerated from the raw rows and matching; DISAGREE on one code blocker (a tree opened off screen learned a capacity of nothing) and four evidence corrections. All five fixed in bebf8a17 and this file. Follow-up (`raw/astra-result-2.md`): blocker and corrections resolved, nothing further to block on: **AGREE WITH NOTES**, the note being this final gate.
+

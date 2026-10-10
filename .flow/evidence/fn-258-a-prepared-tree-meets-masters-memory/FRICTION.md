@@ -9,3 +9,8 @@
 - **Leaf stills of the fine-executor trees are not repeatable run to run** (spruce, Telperion: 0.08-0.16 % of pixels differ between two runs of the same binary), so a cut that should change nothing could not be proved byte-identical on them and was held to the repeat noise instead. Cost: about 6 minutes and two extra GPU runs. What would remove it: a repeatable fine executor, or a stated tolerance for its stills.
 - **The scratch `/tmp` hit its quota while linking the probe** (`Disk quota exceeded`, linker SIGBUS); a retry linked. Cost: 2 minutes. Local setup, reported and not specced.
 - **The R3 sweep took about 55 minutes for 48 rows**, again mostly the same-age builds (oak at 100: 25-31 s a build, four builds a row). What would remove it: the one-build flag named above.
+
+## 2026-10-11, task 1, after the host's decisions
+
+- **The cold-compile test was red alone too at a load average of 6** (`grow` 20.6 s against 20 s), where an earlier lone run at 3.4 passed. The bound sits within a few percent of what this machine takes under other sessions' load. Cost: one extra locked GPU run, about 1 minute. What would remove it: fn-237 R9.
+- **ImageMagick 7's `compare -metric AE` reported an intensity-weighted figure, not a count of differing pixels**, so RESULT.md first stated a pixel difference 100× too small; Astra caught it. Cost: about 5 minutes and one correction pass. What would remove it: a pixel-difference helper in the evidence tools that states its metric.
