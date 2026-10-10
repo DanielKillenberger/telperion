@@ -6,10 +6,11 @@ fn-258's FRICTION.md and RESULT.md (2026-10-10): on the fine-executor trees (spr
 
 ## Requirements
 
-- **R1 (repro first):** a standalone test that builds the spruce at its default age and seed twice in fresh contexts and compares the prepared leaf instances (and the grown tree) byte for byte; red on F4. Then the first stage whose output differs, named and checked against the code.
+- **R1 (repro first):** a standalone test that builds the spruce at its default age and seed twice in fresh contexts and compares the prepared leaf instances and drawn segments byte for byte; red on F4. The device-grown node table's numbering is out of scope: it moved to fn-256 R2 (host, 2026-10-11) with `.flow/evidence/fn-261-the-same-binary-draws-the-same-leaves/grown-probe-and-queue-experiment.patch` as its check. Then the first stage whose output differs, named and checked against the code.
 - **R2 (fixed):** that stage made order-independent (deterministic prefix allocation or a stable sort by lineage key, never a float atomic), on the device; the test green over 10 repeats on every fine-executor preset; frame time and build time before and after.
 - **R3 (proved):** two stills of the same view byte-identical for every shipped preset; gate and npm test green.
 
 ## Boundaries
 
 Repeatability within one executor. Cross-executor agreement is fn-254's.
+

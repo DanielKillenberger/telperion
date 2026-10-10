@@ -8,10 +8,12 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-261-the-same-binary-draws-the-same-leaves",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-261-the-same-binary-draws-the-same-leaves.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "ship",
+  "plan_review_status": "stale",
   "plan_reviewed_at": "2026-10-10T21:22:36.988487Z",
   "ready": true,
   "review_attempts": [
@@ -59,19 +61,109 @@
       "timestamp": "2026-10-10T21:22:36.923080Z",
       "tool_calls": 30,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "f6418da9b6bc7e5e732c256f2ae968044f0aa76f477964239d6381df92bd6739",
+      "backend": "codex",
+      "base_sha": "93579bf9353daaa53df005dbffc1fe2fa6efdac9",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1d6dd67cfebaffa1389096d9c7db0d93",
+            "classification": "introduced",
+            "findingId": "finding-1d6dd67cfebaffa1389096d9c7db0d93",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5603259f6c5805126ff3ff5b281c24430fe9afb1",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1177,
+      "output_sha256": "07f6813dca4d53adcff2b5a686d3543cf332610bb5aa3930b2622fb979ea1b85",
+      "reservation_id": "97b3ec84f2a248d899f20325bb0c098e",
+      "round_consumed": true,
+      "scope": "impl:fn-261-the-same-binary-draws-the-same-leaves.1",
+      "superseded_by": null,
+      "task": "fn-261-the-same-binary-draws-the-same-leaves.1",
+      "timestamp": "2026-10-10T23:31:59.909170Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "aa1b548af4f884db1b9b01a06352fb8ceb76b45cd0d2c5a12d0cacff02a358a0",
+      "backend": "codex",
+      "base_sha": "93579bf9353daaa53df005dbffc1fe2fa6efdac9",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1d6dd67cfebaffa1389096d9c7db0d93",
+            "classification": "introduced",
+            "findingId": "finding-1d6dd67cfebaffa1389096d9c7db0d93",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "withdrawn"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d5eb9f2fdd88127dce48a0a5d9b084e32d191bae",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1051,
+      "output_sha256": "5b99dbc96e3518cf611b347c992dacf294f10c02cd82e05d4bf49a13bc76ebe0",
+      "reservation_id": "da1814537c5e4995a7534dc0209d958d",
+      "round_consumed": true,
+      "scope": "impl:fn-261-the-same-binary-draws-the-same-leaves.1",
+      "superseded_by": null,
+      "task": "fn-261-the-same-binary-draws-the-same-leaves.1",
+      "timestamp": "2026-10-10T23:41:59.508121Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-261-the-same-binary-draws-the-same-leaves.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-261-the-same-binary-draws-the-same-leaves.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-261-the-same-binary-draws-the-same-leaves.md",
-  "status": "open",
+  "status": "done",
   "title": "The same binary draws the same leaves every run",
   "tracker": {
     "baseHashFlow": null,
@@ -84,5 +176,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T21:22:43.379423Z"
+  "updated_at": "2026-10-10T23:42:40.997371Z"
 }

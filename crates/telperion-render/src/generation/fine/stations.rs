@@ -4,6 +4,7 @@
 //! layout (`data.rs`), from the nodes and curve `sweep.wgsl` left. Only
 //! totals are read back: the runs, then the stations and segments.
 use super::super::io;
+use super::sort::Sorter;
 use super::steps::Steps;
 use super::sweep::Swept;
 use crate::buffer::Owned;
@@ -24,12 +25,12 @@ const BASES: usize = 4;
 const EMIT: usize = 5;
 const BLOCKS: usize = 6;
 const SPREAD: usize = 7;
-const OWNED: usize = 8;
+const KEYS: usize = 8;
 const FLORETS: usize = 9;
 const BLOOMS: usize = 10;
 /// A node's owned words, scanned together (`stations.wgsl`'s `OW`): its
-/// root's runs, its florets and its bloom's record (fn-229).
-const OW: u32 = 3;
+/// florets and its bloom's record (fn-229).
+const OW: u32 = 2;
 /// Runs a workgroup of the bases' scan takes.
 const LANES: u32 = 256;
 
@@ -82,6 +83,7 @@ pub(super) struct Stationed {
 
 pub(super) struct Stationer {
     pass: io::Pass,
+    sorter: Sorter,
 }
 
 fn storage(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
@@ -94,11 +96,12 @@ impl Stationer {
     pub(super) fn new(gpu: &Gpu) -> Self {
         let read = [true, true, false, false, false, false, false];
         let entries = [
-            "kids", "bear", "starts", "measure", "bases", "emit", "blocks", "spread", "owned",
+            "kids", "bear", "starts", "measure", "bases", "emit", "blocks", "spread", "keys",
             "florets", "blooms",
         ];
         Self {
             pass: io::Pass::new(gpu, source(), &read, &entries),
+            sorter: Sorter::new(gpu),
         }
     }
 
@@ -186,7 +189,7 @@ impl Stationer {
         let none = storage(gpu, "stations none", 4)?;
         let mut e = gpu.encoder(&Default::default());
         let none_runs = storage(gpu, "station runs none", 4)?;
-        let owners = storage(gpu, "station owners", u64::from(ids) * u64::from(OW + 2))?;
+        let owners = storage(gpu, "station owners", u64::from(ids) * u64::from(OW))?;
         let early = |runs| {
             [
                 &*swept.nodes,
@@ -200,21 +203,39 @@ impl Stationer {
         };
         let flowers = rows.flower.is_some();
         let early_entries: &[usize] = match flowers {
-            true => &[KIDS, BEAR, OWNED, FLORETS],
-            false => &[KIDS, BEAR, OWNED],
+            true => &[KIDS, BEAR, FLORETS],
+            false => &[KIDS, BEAR],
         };
         for &entry in early_entries {
             self.run((gpu, &mut e), (entry, ids, None), rows, early(&none_runs))?;
         }
-        // Each root's first run, its stub's count scanned in node order,
-        // and each node's first floret and record beside it; their totals
-        // read back with the runs' (fn-229).
-        let roots = storage(gpu, "station roots", 4)?;
-        steps.scan(gpu, &mut e, (&owners, ids, OW, OW), &roots)?;
-        e.copy_buffer_to_buffer(&roots, 4, &counts, 16, 8);
-        let runs = storage(gpu, "station runs", u64::from(ids) * RW)?;
-        self.run((gpu, &mut e), (STARTS, ids, None), rows, early(&runs))?;
+        // Each node's first floret and record, scanned in node order; their
+        // totals read back with the runs' count (fn-229).
+        let totals = storage(gpu, "station owned totals", 4)?;
+        steps.scan(gpu, &mut e, (&owners, ids, OW, OW), &totals)?;
+        e.copy_buffer_to_buffer(&totals, 0, &counts, 16, 8);
+        // Each run's key, a pair a run: room for their count rounded up to
+        // a power of two, as the sort takes them.
+        let keys = storage(gpu, "station keys", 2 * u64::from(ids.next_power_of_two()))?;
+        self.run((gpu, &mut e), (KEYS, ids, None), rows, early(&keys))?;
         let [n, _, _, _, florets, blooms, ..] = Self::counts(gpu, &mut e, &counts).await?;
+        // The runs numbered by their keys (fn-261): those past the count
+        // sort last.
+        let pad = vec![u32::MAX; 2 * (n.next_power_of_two() - n) as usize];
+        gpu.queue
+            .write_buffer(&keys, u64::from(n) * 8, bytemuck::cast_slice(&pad));
+        self.sorter.sort(gpu, &mut e, &keys, n)?;
+        let runs = storage(gpu, "station runs", u64::from(ids) * RW)?;
+        let sorted = [
+            &*swept.nodes,
+            &swept.table,
+            &st,
+            &runs,
+            &counts,
+            &keys,
+            &owners,
+        ];
+        self.run((gpu, &mut e), (STARTS, n, None), rows, sorted)?;
         self.run(
             (gpu, &mut e),
             (MEASURE, n, None),
