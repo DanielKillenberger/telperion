@@ -138,7 +138,7 @@ impl Shoot<'_, '_> {
         // Its presence on its survival's own threshold (host decision
         // 8), and its subtrees' survival of shedding on their balance.
         let stake = stop_stake(state.relay_failed);
-        let window = self.windows().window_q((pa, cycle, None), stake);
+        let window = self.windows().window((pa, cycle, None), stake);
         let survive = presence::of_under(survives, d.0, window);
         // An apex that all but failed carries on as itself and as the
         // relay it would have had, as one that all but aborted does (host

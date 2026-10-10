@@ -2,7 +2,7 @@
 //! fn-254): its lever carried from its first lay's frame to its frame now
 //! by the rotation the two frames make, its room unwrapped as an amount,
 //! and its turn (`sag::turn`).
-use super::lay::{support_q, HANG};
+use super::lay::{support, HANG};
 use super::q::{add, amount, atan2, between, cross, dot, q3, scaled, sub, unit, Q3};
 use crate::contract::INF;
 use crate::sag::{held, log2_q, torque, turn, unit_w, Lever};
@@ -62,7 +62,7 @@ pub(super) fn sag_angle(
     let angle = if trunk {
         angle
     } else {
-        angle * support_q(tip[2], radius, length)
+        angle * support(tip[2], radius, length)
     };
     Some((pivot, angle))
 }

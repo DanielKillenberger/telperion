@@ -288,7 +288,7 @@ impl Layer {
         // straight down.
         let radius = phytomer.radius as f32;
         if !trunk && direction[2] < 0.0 {
-            let ease = support_q(tip[2], radius, length);
+            let ease = support(tip[2], radius, length);
             if ease < 1.0 {
                 if let Some(unit) = unit([direction[0], direction[1], direction[2] * ease]) {
                     direction = unit;
@@ -365,7 +365,7 @@ pub(crate) fn ground_zone(radius: f64, length: f64) -> f64 {
 /// free of the ground: one above its landing zone (a few radii and
 /// `LANDING` internodes), easing with the square root of its height to
 /// none on the ground.
-pub(crate) fn support_q(z: f32, radius: f32, length: f32) -> f32 {
+pub(crate) fn support(z: f32, radius: f32, length: f32) -> f32 {
     let zone = CONTACT as f32 * radius + LANDING as f32 * length;
     if z >= zone {
         return 1.0;

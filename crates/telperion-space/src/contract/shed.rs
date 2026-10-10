@@ -8,7 +8,7 @@ use super::{fails, threshold};
 
 /// One lateral's balance inputs: its collected light `q` and cost `c`, its
 /// memory, its PA's hazard and tolerance, its 53-bit draw, its window
-/// (`Windows::window_q` at the cycle, stake one) and its bearer's kept
+/// (`Windows::window` at the cycle, stake one) and its bearer's kept
 /// share.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Bud {

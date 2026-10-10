@@ -12,7 +12,7 @@
 //! the first-order large-deflection correction). Growth never reads it
 //! back.
 use crate::geometry::q::{add, length, q3, scaled, sub};
-use crate::geometry::support_q;
+use crate::geometry::support;
 use crate::species::Species;
 use crate::structure::{Origin, Structure, Vec3};
 use crate::upward::Tree;
@@ -260,7 +260,7 @@ pub(crate) fn gather(
                 // Wood resting on the ground is carried by it: it adds no
                 // lever to the wood before it (host, 2026-10-05).
                 if !trunk[i] {
-                    load = load.share(support_q(base[2].min(tip[2]), r, length));
+                    load = load.share(support(base[2].min(tip[2]), r, length));
                 }
             }
             load.add(at_base);

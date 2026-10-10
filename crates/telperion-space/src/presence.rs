@@ -138,7 +138,7 @@ impl Windows {
     /// The window of a draw deciding `stake` of the wood a bud of `pa` is
     /// expected to grow from `cycle` on, or from `used` of the way through
     /// it (host decision 8, `contract::presence`).
-    pub fn window_q(&self, (pa, cycle, used): (usize, u32, Option<f64>), stake: f64) -> f32 {
+    pub fn window(&self, (pa, cycle, used): (usize, u32, Option<f64>), stake: f64) -> f32 {
         use crate::contract::{presence, ticks};
         let log = |c: u32| crate::contract::log32(self.log_wood(pa, c));
         let wood = match used {

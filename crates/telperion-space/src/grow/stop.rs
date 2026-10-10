@@ -162,7 +162,7 @@ impl Shoot<'_, '_> {
         // presence (host decision 8).
         let state = &self.species().states[pa];
         let at = (pa, cycle + 1, None);
-        let window = self.windows().window_q(at, stop_stake(state.relay));
+        let window = self.windows().window(at, stop_stake(state.relay));
         let faded = presence::of_over(aborts, d.0, window);
         let relayed = self.relayed(state.relay, decide, at);
         Ok(presence::real(
@@ -233,7 +233,7 @@ impl Shoot<'_, '_> {
         }
         let d = unit.child(RELAY).draw();
         if d.under(relay) {
-            presence::of_under(threshold(relay), d.0, self.windows().window_q(at, 1.0))
+            presence::of_under(threshold(relay), d.0, self.windows().window(at, 1.0))
         } else {
             0.0
         }
@@ -273,7 +273,7 @@ impl Shoot<'_, '_> {
             // as well (host decision 11), and a failed unit's relay is
             // grown by `fail`, never here. A presence (host decision 8).
             debug_assert!(why != Stop::Failed, "a failed unit's relay grows in `fail`");
-            let made = presence::of_under(threshold(relay), d.0, windows.window_q(at, 1.0));
+            let made = presence::of_under(threshold(relay), d.0, windows.window(at, 1.0));
             let made = [presence::ONE, made].map(presence::real);
             // The relay moves over the widest window: its move is a growth
             // unit's length whatever wood it carries.

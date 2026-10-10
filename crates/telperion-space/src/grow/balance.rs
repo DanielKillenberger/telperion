@@ -134,7 +134,7 @@ impl Grower<'_> {
                 .draw();
             // D16 (CONTRACT-A.md 2.7): the window is the presences' at
             // the cycle, stake one.
-            let window = self.rules.windows.window_q((pa[i], cycle, None), 1.0);
+            let window = self.rules.windows.window((pa[i], cycle, None), 1.0);
             let bud = Bud {
                 q: light[i],
                 c: cost[i],
