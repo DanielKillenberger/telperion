@@ -9,6 +9,7 @@ fn-245's third stage. Today the CPU grows structure above a fine-root cut and th
 - **R1 (one executor per context):** the executor is chosen when the build context is created, never per species; every axis belongs to the device grower; no per-cycle CPU botanical work. A GPU capacity failure returns a named error and is never rebuilt on the CPU.
 - **R2 (scheduling never changes the tree):** buds and axes in compact arrays with stable parent/child ranges; queues, totals and indirect dispatch arguments stay resident; block size and scheduling changes yield the canonical tree (fn-245 stage 1 R4 check 1).
 - **R3 (deletions):** the fine-root execution cut (`fine.rs:6`) and, if no other consumer remains, `closed_form/predictor.rs`; capacity comes from checked counts and bounded allocation, never an expectation used as a hard bound. The unbent-before-bent frame dependency (`fine/lay.rs:58`) is kept.
+- **R3a (CPU peak, from fn-258 RESULT.md):** the oak at 100 peaks at 9.0 GB of CPU memory during preparation against master's 0.35 GB (7.6 GB at seed 42; the ordinary at 100, 6.5 GB). The peak during preparation is measured per preset and brought to or under master's, or the remainder named for the owner.
 - **R4 (proved):** CPU-GPU agreement (stage 1 R4 check 4) on every preset; build time per preset including preparation, transfers and device completion, beside master and the current branch; cold compile time; stills viewed; Astra's agreement; gate and npm test green.
 
 ## Boundaries
