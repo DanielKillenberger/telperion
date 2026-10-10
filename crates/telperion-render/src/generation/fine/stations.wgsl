@@ -6,7 +6,10 @@
 // carried along the run from its attachment's side (host decision,
 // 2026-10-07), tiles of 256 stations, contact rings read from the run the
 // curve swept each node in. A segment's leaves draw by its run's first
-// node's key, so the runs may be numbered in any order. A short shoot's
+// node's key, but the renderer varies each leaf by its place in the leaf
+// buffer, so the runs are numbered by a key, never by the order the
+// device runs its threads (fn-261): a root's runs together, the roots in
+// their stubs' order, a root's runs in their first nodes'. A short shoot's
 // tip is a run of its own (fn-223): one segment of its cluster's leaves,
 // drawing on the tip's cluster stream, and its wood bears no station.
 // Each fine node's florets are counted beside its runs and scanned with
@@ -43,14 +46,11 @@ struct Cfg {
 @group(0) @binding(4) var<storage, read_write> runs: array<u32>;
 @group(0) @binding(5) var<storage, read_write> counts: array<atomic<u32>>;
 @group(0) @binding(6) var<storage, read_write> segs: array<u32>;
-// Each node's `OW` words, scanned together: the bearing runs of the fine
-// root whose stub it is (counted, then scanned into each root's first
-// run), its florets and whether it keeps a bloom (counted, then scanned
-// into its first floret and its record; fn-229); then each run's first
-// node's stub and its rank among its root's runs (task 10, host decision
-// 3: a root's runs, and so its leaves, are numbered together).
+// Each node's `OW` words, scanned together: its florets and whether it
+// keeps a bloom (counted, then scanned into its first floret and its
+// record; fn-229).
 @group(0) @binding(7) var<storage, read_write> owners: array<atomic<u32>>;
-const OW: u32 = 3u;
+const OW: u32 = 2u;
 
 const NONE: u32 = 0xffffffffu;
 const NW: u32 = 33u;
@@ -206,30 +206,29 @@ fn stub(i: u32) -> u32 {
     return at;
 }
 
-// Each run counted on its root's stub, its rank among the root's runs kept.
+// Each run's key, its root's stub then its first node, in `runs` (bound
+// as the keys), a pair a run in whatever order the threads take; the runs
+// counted. The keys are sorted before `starts` numbers the runs by them.
 @compute @workgroup_size(64)
-fn owned(@builtin(global_invocation_id) id: vec3<u32>) {
+fn keys(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = index(id);
     if i >= cfg.n || !starts_run(i) {
         return;
     }
-    let s = stub(i);
-    atomicStore(&owners[OW * cfg.n + i], s);
-    atomicStore(&owners[(OW + 1u) * cfg.n + i], atomicAdd(&owners[s * OW], 1u));
+    let k = atomicAdd(&counts[0], 1u);
+    runs[2u * k] = stub(i);
+    runs[2u * k + 1u] = i;
 }
 
-// Each run at its root's first run plus its rank: a root's runs together,
-// the roots in their stubs' order.
+// Each run at its place among the sorted keys, in `segs` (bound as the
+// keys).
 @compute @workgroup_size(64)
 fn starts(@builtin(global_invocation_id) id: vec3<u32>) {
-    let i = index(id);
-    if i >= cfg.n || !starts_run(i) {
+    let r = index(id);
+    if r >= cfg.n {
         return;
     }
-    let s = atomicLoad(&owners[OW * cfg.n + i]);
-    let r = atomicLoad(&owners[s * OW]) + atomicLoad(&owners[(OW + 1u) * cfg.n + i]);
-    atomicAdd(&counts[0], 1u);
-    runs[r * RW] = i;
+    runs[r * RW] = segs[2u * r + 1u];
 }
 
 // Stations standing before `distance` micrometres along a run of

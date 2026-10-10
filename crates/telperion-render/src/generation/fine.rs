@@ -153,6 +153,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
         ("fine dress", dress::DRESS.to_string()),
         ("fine fold", dress::FOLD.to_string()),
         ("fine sweep", sweep::source()),
+        ("fine sort", sort::SORT.to_string()),
         ("fine stations", stations::source()),
         ("fine rings", rings::source()),
         ("fine handoff", handoff::source()),
@@ -227,6 +228,8 @@ mod realized_tests;
 mod realized_timing;
 mod resident;
 #[cfg(test)]
+mod repeat_tests;
+#[cfg(test)]
 mod resident_tests;
 mod rings;
 #[cfg(test)]
@@ -239,6 +242,7 @@ mod seam_stills;
 #[cfg(test)]
 mod selectors;
 mod shedding;
+mod sort;
 #[cfg(test)]
 mod speed_tests;
 mod stations;
