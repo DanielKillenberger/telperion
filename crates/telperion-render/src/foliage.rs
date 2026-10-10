@@ -116,8 +116,10 @@ impl Foliage {
             gpu,
             "foliage",
             &format!(
-                "{}\n{}",
+                "{}\n{}\n{}\n{}",
                 include_str!("shaders/leaf.wgsl"),
+                include_str!("shaders/unit.wgsl"),
+                include_str!("shaders/stalk.wgsl"),
                 include_str!("shaders/foliage.wgsl")
             ),
         );
@@ -182,10 +184,10 @@ impl Foliage {
     /// Uploads the element once with every level's triangles, and the
     /// placements selection reads. The level asked for changes what each
     /// instance draws and nothing about how many there are.
-    /// The rachis length its rachis instances are culled by (fn-253): the
-    /// organ's, zero on the leaves.
-    pub(crate) fn set_rachis(&mut self, rachis: f32) {
-        self.select.set_rachis(rachis);
+    /// The rachis and pedicel lengths its inflorescences are sized by
+    /// (fn-253): the organ's, zero on the leaves.
+    pub(crate) fn set_stalk(&mut self, rachis: f32, pedicel: f32) {
+        self.select.set_stalk(rachis, pedicel);
     }
 
     pub fn submit(&mut self, gpu: &Gpu, foliage: &mesh::Foliage, level: Level) {

@@ -1,6 +1,6 @@
 const FAR:f32=3.402823466e38;
 struct Config {
-    counts:vec4<u32>, // stations, segments, element vertices, ring vertices per ring (a bloom's: its florets)
+    counts:vec4<u32>, // stations, segments, element vertices, ring vertices per ring
     random:vec4<u32>, // seed, stations per internode, workgroups, unused
     box_min:vec4<f32>, box_extent:vec4<f32>,
     shape:vec4<f32>, // internode, divergence radians, contact, scatter radians
@@ -34,7 +34,8 @@ fn place(@builtin(local_invocation_index) lane:u32, @builtin(workgroup_id) group
 // The device's florets (fn-229), in the same submission as its leaves:
 // `segments` holds one record a bloom (`stations.wgsl`'s `blooms`), and
 // each floret is drawn as `bloom.wgsl` draws it and packed as a leaf is.
-// After the florets, one rachis a bloom where the rachis is drawn (fn-253).
+// A bloom's florets are followed by its rachis where the rachis is drawn
+// (fn-253), so one inflorescence's instances stand in a run.
 @compute @workgroup_size(256)
 fn bloom(@builtin(local_invocation_index) lane:u32, @builtin(workgroup_id) group:vec3<u32>, @builtin(num_workgroups) grid:vec3<u32>) {
     let group_index=group.x+group.y*grid.x;
@@ -42,9 +43,7 @@ fn bloom(@builtin(local_invocation_index) lane:u32, @builtin(workgroup_id) group
     let index=group_index*256u+lane;
     var words=vec3<u32>(0u);
     let live=index<config.counts.x;
-    if live {
-        if index<config.counts.w { words=floret_words(index); } else { words=rachis_words(index-config.counts.w); }
-    }
+    if live { words=floret_words(index); }
     written(index,words,live,lane);
 }
 // A placed instance written at its place, and the workgroup's bounds
@@ -97,6 +96,7 @@ fn floret_words(index:u32) -> vec3<u32> {
     let f=Flower(config.shape,config.lean,config.size);
     let key=r.range.zw;
     let ordinal=index-r.range.x;
+    if f.c.x>0.0 && ordinal+1u==r.range.y { return rachis_words(lo); }
     var i=0u; var seen=0u; var size=0.0;
     // cap: the bloom's florets; past them the record is wrong, named.
     let cap=u32(ceil(f.a.x));
@@ -116,8 +116,9 @@ fn floret_words(index:u32) -> vec3<u32> {
     let codes=vec3<u32>(floor(norm*65535.0+vec3<f32>(0.5)));
     return vec3<u32>(rotation_word(side,fl.stalk,fl.face),codes.x|(codes.y<<16u),codes.z|(pack2x16float(vec2<f32>(0.0,size))&0xffff0000u));
 }
-// Bloom `j`'s rachis (`bloom.rs`'s `inflorescence`): at its tip, along the
-// shoot, its scale the tip's radius, the scale's sign bit marking it.
+// Bloom `j`'s rachis, after its florets (`bloom.rs`'s `inflorescence`): at
+// its tip, along the shoot, its scale the tip's radius, the scale's sign
+// bit marking it.
 fn rachis_words(j:u32) -> vec3<u32> {
     let r=segments[j];
     let heading=bloom_or(r.a.xyz-r.b.xyz,vec3<f32>(0.0,1.0,0.0));

@@ -31,83 +31,6 @@ struct Varying {
     @location(6) @interpolate(flat) stalk: f32,
 };
 
-// A flower's stalks (fn-253, `bloom/stalk.rs`): a stalk vertex's surface
-// coordinate is its kind, then its ring times `STALK_SIDES` plus its side.
-const STALK_SIDES: u32 = 3u;
-const STALK_SEGMENTS: f32 = 8.0;
-const STALK_TAU: f32 = 6.283185307179586;
-
-// Where a stalk vertex stands and which way its surface faces.
-struct Stalk {
-    at: vec3<f32>,
-    normal: vec3<f32>,
-}
-
-// `Vec3::perpendicular`.
-fn stalk_perpendicular(v: vec3<f32>) -> vec3<f32> {
-    let a = abs(v);
-    var reference = vec3<f32>(0.0, 0.0, 1.0);
-    if a.x <= a.y && a.x <= a.z {
-        reference = vec3<f32>(1.0, 0.0, 0.0);
-    } else if a.y <= a.z {
-        reference = vec3<f32>(0.0, 1.0, 0.0);
-    }
-    return normalize(cross(reference, v));
-}
-
-// A unit vector, or `fallback` where `v` has no length (`bloom.rs`'s `or`).
-fn stalk_or(v: vec3<f32>, fallback: vec3<f32>) -> vec3<f32> {
-    if dot(v, v) > 1e-24 {
-        return normalize(v);
-    }
-    return fallback;
-}
-
-// The axis's tangent along segment `k` (`bloom.rs`'s `Axis::laid`): the
-// shoot's heading turned toward hanging or standing by the droop.
-fn rachis_tangent(heading: vec3<f32>, toward: vec3<f32>, k: f32) -> vec3<f32> {
-    let rest = 1.0 - (k + 0.5) / STALK_SEGMENTS;
-    let turned = abs(u.stalk.y) * (1.0 - rest * rest * rest);
-    return stalk_or(heading + (toward - heading) * turned, toward);
-}
-
-// A rachis vertex at `ring`, `side` of the rachis that stands at `seat`
-// along `heading`, `radius` thick there and the stamen's half width at its
-// end: the axis's points in the plane its heading turns in.
-fn rachis_vertex(seat: vec3<f32>, heading: vec3<f32>, radius: f32, ring: u32, side: u32) -> Stalk {
-    var toward = vec3<f32>(0.0, 1.0, 0.0);
-    if u.stalk.y >= 0.0 {
-        toward = vec3<f32>(0.0, -1.0, 0.0);
-    }
-    let step = u.stalk.x / STALK_SEGMENTS;
-    var at = seat;
-    for (var k = 0u; k < ring; k++) {
-        at += rachis_tangent(heading, toward, f32(k)) * step;
-    }
-    let before = rachis_tangent(heading, toward, f32(max(ring, 1u) - 1u));
-    let after = rachis_tangent(heading, toward, f32(min(ring, 7u)));
-    let tangent = stalk_or(before + after, after);
-    // The axis turns in one plane, so its binormal holds along it and no
-    // ring twists against the next.
-    let binormal = stalk_or(cross(heading, toward), stalk_perpendicular(tangent));
-    let across = normalize(cross(tangent, binormal));
-    let turn = STALK_TAU * f32(side) / f32(STALK_SIDES);
-    let out = binormal * cos(turn) + across * sin(turn);
-    let along = f32(ring) / STALK_SEGMENTS;
-    return Stalk(at + out * mix(radius, u.stalk.z, along), out);
-}
-
-// A pedicel vertex at `ring`, `side` under the floret whose base and frame
-// are `base` and `frame`: from its seat on the rachis, a pedicel's length
-// back along the floret's axis, to the base, the stamen's width round.
-fn pedicel_vertex(base: vec3<f32>, frame: mat3x3<f32>, ring: u32, side: u32) -> Stalk {
-    let turn = STALK_TAU * f32(side) / f32(STALK_SIDES);
-    let out = frame[0] * cos(turn) + frame[2] * sin(turn);
-    let along = f32(ring) / STALK_SEGMENTS;
-    let at = base - frame[1] * (u.stalk.w * (1.0 - along));
-    return Stalk(at + out * u.stalk.z, out);
-}
-
 /// The depth in its own mass of the cell a placement stands in. A grid of no
 /// cells, as the leaf view binds, reads none.
 fn mass_depth(at: vec3<f32>) -> f32 {
@@ -135,10 +58,18 @@ fn vertex(
     // A leaf selection kept from a thinned share is drawn enlarged by the
     // inverse root of that share, so the share covers what all of it would
     // (fn-246): its size on screen from the frame's pixels a metre (eye.w)
-    // and the element's bounding radius (leaf_box_min.w).
-    let depth = max((u.view_projection * placement[3]).w, 1e-4);
-    let across = 2.0 * u.leaf_box_min.w * leaf_scale(words) * u.eye.w / depth;
-    var world = placement * vec4<f32>(position / sqrt(max(leaf_kept(across), 1e-4)), 1.0);
+    // and the element's bounding radius (leaf_box_min.w). An organ's
+    // inflorescence is thinned and enlarged as one, about its seat (fn-253).
+    let organ = u.stalk.x > 0.0;
+    var centre = placement[3].xyz;
+    var reach = u.leaf_box_min.w * leaf_scale(words);
+    if (organ) {
+        centre = unit_seat(unit_rachis(id), u.leaf_box_min.xyz, u.leaf_box_extent.xyz);
+        reach = u.stalk.x + u.stalk.w + u.leaf_box_min.w;
+    }
+    let depth = max((u.view_projection * vec4<f32>(centre, 1.0)).w, 1e-4);
+    let kept = sqrt(max(leaf_kept(2.0 * reach * u.eye.w / depth), 1e-4));
+    var world = placement * vec4<f32>(position / select(kept, 1.0, organ), 1.0);
     var facing = (placement * vec4<f32>(normal, 0.0)).xyz;
     // A flower's stalks (fn-253) run between ends no transform of the
     // floret moves, at widths in metres: laid from the instance, never
@@ -154,13 +85,16 @@ fn vertex(
     let frame = leaf_rotation(words.x);
     let folded = rachis != (kind < -1.5);
     if (stalk && kind < -1.5) {
-        let s = rachis_vertex(placement[3].xyz, frame[1], leaf_scale(words), ring, side);
+        let s = rachis_vertex(placement[3].xyz, frame[1], leaf_scale(words), ring, side, kind < -2.5);
         world = vec4<f32>(s.at, 1.0);
         facing = s.normal;
     } else if (stalk) {
         let s = pedicel_vertex(placement[3].xyz, frame, ring, side);
         world = vec4<f32>(s.at, 1.0);
         facing = s.normal;
+    }
+    if (organ) {
+        world = vec4<f32>(centre + (world.xyz - centre) / kept, 1.0);
     }
     let offsets = vary(id);
     var out: Varying;

@@ -183,8 +183,9 @@ pub fn pipelines(gpu: &Gpu, bind: &wgpu::BindGroupLayout) -> [wgpu::ComputePipel
             label: Some("select"),
             source: wgpu::ShaderSource::Wgsl(
                 format!(
-                    "{}\n{}",
+                    "{}\n{}\n{}",
                     include_str!("../shaders/leaf.wgsl"),
+                    include_str!("../shaders/unit.wgsl"),
                     include_str!("../shaders/select.wgsl")
                 )
                 .into(),

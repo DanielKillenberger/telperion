@@ -85,33 +85,23 @@ pub(super) fn flower(p: &BloomParams, now: f64) -> [[f32; 4]; 3] {
     ]
     .map(|row| row.map(|v| v as f32))
 }
-/// The florets' rows: `count` florets of `records` blooms, the organ
-/// element `e`, packed against `r` (fn-229), then one rachis a bloom where
-/// the rachis is drawn (fn-253, `rachises`).
+/// The florets' rows: `count` instances of `records` blooms, each bloom's
+/// florets then its rachis (fn-253), the organ element `e`, packed against
+/// `r` (fn-229).
 pub(super) fn florets(
     rows: [[f32; 4]; 3],
     (count, records): (u32, u32),
     e: &Element,
     r: Reference,
 ) -> Config {
-    let all = count + rachises(rows, records);
     Config {
-        counts: [all, records, e.positions.len() as u32, count],
-        random: [0, 0, all.div_ceil(256), 0],
+        counts: [count, records, e.positions.len() as u32, 0],
+        random: [0, 0, count.div_ceil(256), 0],
         box_min: vector(r.min, 0.0),
         box_extent: vector(r.extent, 0.0),
         shape: rows[0],
         lean: rows[1],
         size: rows[2],
-    }
-}
-/// The rachis instances `records` blooms place by `rows`: one each, none
-/// where the rachis is zero (fn-253).
-pub(super) fn rachises(rows: [[f32; 4]; 3], records: u32) -> u32 {
-    if rows[2][0] > 0.0 {
-        records
-    } else {
-        0
     }
 }
 impl Config {

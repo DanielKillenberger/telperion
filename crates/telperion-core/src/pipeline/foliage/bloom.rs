@@ -138,11 +138,14 @@ pub(crate) fn element(p: &BloomParams) -> Result<Element> {
     }
     let filaments = stamens(p, &mut e);
     let stalks = stalk::append(&mut e);
-    e.level_indices.extend_from_slice(&stalks.rachis);
-    e.levels.push(super::Level {
-        indices: 0..stalks.rachis.len() as u32,
-        deviation: stalk::RACHIS_LEVEL,
-    });
+    let mut deviation = stalk::RACHIS_LEVEL;
+    for level in &stalks.rachis {
+        let start = e.level_indices.len() as u32;
+        e.level_indices.extend_from_slice(level);
+        let indices = start..e.level_indices.len() as u32;
+        e.levels.push(super::Level { indices, deviation });
+        deviation *= 0.1;
+    }
     for level in &petal.levels {
         let start = e.level_indices.len() as u32;
         let range = level.indices.start as usize..level.indices.end as usize;
@@ -386,6 +389,6 @@ fn matrix(point: Vec3, axis: Vec3, face: Vec3, size: f64) -> Result<[f32; 16]> {
 
 mod stalk;
 #[cfg(test)]
-use stalk::{PEDICEL, RACHIS as RACHIS_VERTEX, RACHIS_LEVEL, RINGS, SIDES};
+use stalk::{PEDICEL, RACHIS as RACHIS_VERTEX, RACHIS_LEVEL, RACHIS_LEVELS, RIBBON, RINGS, SIDES};
 #[cfg(test)]
 mod tests;

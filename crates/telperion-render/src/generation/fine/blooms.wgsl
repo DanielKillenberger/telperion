@@ -18,14 +18,19 @@ fn grown_bloom(i: u32) -> f32 {
     return bloom_grown(share, key(i));
 }
 
-// Each fine node's florets, and whether it keeps a bloom (fn-229).
+// Each fine node's florets, then its rachis where it keeps a floret and
+// its rachis is drawn (fn-253): one inflorescence's instances in a run,
+// and whether it keeps a bloom (fn-229).
 @compute @workgroup_size(64)
 fn florets(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = index(id);
     if i >= cfg.n || !fine(i) {
         return;
     }
-    let n = floret_count(cfg.flower, grown_bloom(i), key(i));
+    var n = floret_count(cfg.flower, grown_bloom(i), key(i));
+    if n > 0u && cfg.flower.c.x > 0.0 {
+        n += 1u;
+    }
     atomicStore(&owners[i * OW + 1u], n);
     atomicStore(&owners[i * OW + 2u], u32(n > 0u));
 }

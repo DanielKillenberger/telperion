@@ -2,9 +2,11 @@
 //! both executors. Each executor's organ words are decoded as the organ's
 //! vertex stage reads them (`foliage.wgsl`'s `pedicel_vertex` and
 //! `rachis_vertex`): a floret's pedicel seat is its base a pedicel back
-//! along its axis, and must lie inside its rachis's tube, laid from the
-//! rachis instance by `bloom.rs`'s axis; each rachis must stand on a shoot
-//! tip of the tree. With the rachis at zero, the seat is the tip itself.
+//! along its axis, and must lie inside its own rachis's tube, laid from
+//! the rachis instance by `bloom.rs`'s axis; its own rachis is the first
+//! marked instance after it in its run, as selection and the draw find it
+//! (`unit.wgsl`); each rachis must stand on a shoot tip of the tree. With
+//! the rachis at zero, the seat is the tip itself.
 //! The trees carry non-unit floret sizes (taper, scatter) and, at a
 //! stagger of one, florets the season has grown only part way or dropped.
 use super::resident::{build, Tools};
@@ -95,43 +97,42 @@ fn hung(words: &[Leaf], r: Reference, tree: &Tree, p: &BloomParams) -> Hung {
         let i = b.node as usize;
         tips.entry(key(tree.nodes[i].position)).or_default().push(i);
     }
-    let mut racks: HashMap<_, Vec<usize>> = HashMap::new();
-    let mut laid = Vec::new();
     let end = 0.5 * p.stamen_width;
-    for w in words.iter().filter(|w| w[2] & WITHERED != 0) {
+    // Each floret waits for the rachis that closes its run.
+    let mut run: Vec<Vec3> = Vec::new();
+    for w in words {
         let m = r.unpack(*w);
+        if w[2] & WITHERED == 0 {
+            let along = column(&m, 1);
+            out.partial += usize::from(along.length() < 0.99);
+            out.florets += 1;
+            let seat = column(&m, 3) - along.normalized() * p.pedicel;
+            if p.rachis > 0.0 {
+                run.push(seat);
+                continue;
+            }
+            let gap = (near(&tips, seat).iter())
+                .map(|&i| tree.nodes[i].position.distance(seat) - tree.nodes[i].radius)
+                .fold(f64::INFINITY, f64::min);
+            match gap.is_finite() {
+                true => out.outside = out.outside.max(gap),
+                false => out.loose += 1,
+            }
+            continue;
+        }
         let seat = column(&m, 3);
         let heading = column(&m, 1);
-        let radius = heading.length();
         let tip = (near(&tips, seat).iter())
             .map(|&i| tree.nodes[i].position.distance(seat))
             .fold(f64::INFINITY, f64::min);
         out.seat = out.seat.max(tip);
-        racks.entry(key(seat)).or_default().push(laid.len());
-        laid.push((axis(seat, heading.normalized(), p), radius));
         out.rachises += 1;
-    }
-    for w in words.iter().filter(|w| w[2] & WITHERED == 0) {
-        let m = r.unpack(*w);
-        let along = column(&m, 1);
-        out.partial += usize::from(along.length() < 0.99);
-        let seat = column(&m, 3) - along.normalized() * p.pedicel;
-        out.florets += 1;
-        let gap = if p.rachis > 0.0 {
-            (near(&racks, seat).iter())
-                .map(|&k| outside(seat, &laid[k].0, laid[k].1, end))
-                .fold(f64::INFINITY, f64::min)
-        } else {
-            (near(&tips, seat).iter())
-                .map(|&i| tree.nodes[i].position.distance(seat) - tree.nodes[i].radius)
-                .fold(f64::INFINITY, f64::min)
-        };
-        if gap.is_finite() {
-            out.outside = out.outside.max(gap);
-        } else {
-            out.loose += 1;
+        let points = axis(seat, heading.normalized(), p);
+        for q in run.drain(..) {
+            out.outside = out.outside.max(outside(q, &points, heading.length(), end));
         }
     }
+    out.loose += run.len();
     out
 }
 

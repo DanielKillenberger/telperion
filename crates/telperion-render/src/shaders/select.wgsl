@@ -71,21 +71,26 @@ fn group_slot(level: u32, group: u32) -> u32 {
 fn level_of(instance: u32) -> u32 {
     let base = instance * LEAF_WORDS;
     let words = vec3<u32>(placements[base], placements[base + 1u], placements[base + 2u]);
+    // An organ's inflorescence (fn-253) is thinned as one, by its size from
+    // its seat, so no floret is kept without the rachis it hangs from.
+    var kept = 1.0;
+    if (u.stalk.x > 0.0) {
+        let r = unit_rachis(instance);
+        let rachis = unit_words(r);
+        let seat = leaf_position(rachis, u.box_min.xyz, u.box_extent.xyz);
+        let reach = u.stalk.x + u.stalk.y + u.sphere.w;
+        let at = max(dot(seat - u.eye.xyz, u.forward.xyz), u.forward.w);
+        kept = leaf_kept(2.0 * reach * u.eye.w / at);
+        if leaf_draw_rank(rachis) >= kept {
+            return u.levels;
+        }
+        if r == instance {
+            return rachis_level(seat, reach, 2.0 * leaf_scale(rachis) / sqrt(kept) * u.eye.w / at);
+        }
+    }
     // The placement scales the element, and the scale is a word of its own
     // now: the sphere the leaf stands in and the deviation it is judged on
     // both read it directly rather than measuring a column to find it.
-    // An organ's rachis (fn-253) reaches its length from its seat and is
-    // never thinned, the florets it holds would hang in the air: it stands
-    // in the coarsest level, the fewest petal vertices its draw discards.
-    if (u.stalk.x > 0.0 && leaf_withered(words)) {
-        let seat = leaf_position(words, u.box_min.xyz, u.box_extent.xyz);
-        for (var plane = 0u; plane < 6u; plane = plane + 1u) {
-            if dot(u.planes[plane].xyz, seat) + u.planes[plane].w < -u.stalk.x {
-                return u.levels;
-            }
-        }
-        return 0u;
-    }
     let scale = leaf_scale(words);
     let centre = leaf_position(words, u.box_min.xyz, u.box_extent.xyz)
         + leaf_rotation(words.x) * (u.sphere.xyz * scale);
@@ -100,10 +105,13 @@ fn level_of(instance: u32) -> u32 {
     let depth = max(dot(centre - u.eye.xyz, u.forward.xyz), u.forward.w);
     let pixels = u.eye.w / depth;
     // A leaf under THIN_PIXELS across is drawn by a share of the crown that
-    // follows its size, the rest given to the unseen bucket (fn-246).
-    let kept = leaf_kept(2.0 * radius * pixels);
-    if leaf_draw_rank(words) >= kept {
-        return u.levels;
+    // follows its size, the rest given to the unseen bucket (fn-246); a
+    // floret by its inflorescence's, above.
+    if (u.stalk.x <= 0.0) {
+        kept = leaf_kept(2.0 * radius * pixels);
+        if leaf_draw_rank(words) >= kept {
+            return u.levels;
+        }
     }
     if u.forced >= 0 {
         return min(u32(u.forced), u.levels - 1u);
@@ -118,6 +126,29 @@ fn level_of(instance: u32) -> u32 {
     // The finest level is the element itself at deviation zero, so the loop
     // above always answers; this is what the compiler needs to hear.
     return u.levels - 1u;
+}
+
+/// A rachis seated at `seat` and `reach` long, its seat `width` pixels
+/// thick: culled out of the frame, else its ribbon over two segments under
+/// a pixel thick, over four under three, and its tube above (`stalk.rs`,
+/// the element's first three levels).
+fn rachis_level(seat: vec3<f32>, reach: f32, width: f32) -> u32 {
+    for (var plane = 0u; plane < 6u; plane = plane + 1u) {
+        if dot(u.planes[plane].xyz, seat) + u.planes[plane].w < -reach {
+            return u.levels;
+        }
+    }
+    if u.forced >= 0 {
+        return min(u32(u.forced), u.levels - 1u);
+    }
+    // The entry point is `select`, so the builtin is out of reach here.
+    if width < 1.0 {
+        return 0u;
+    }
+    if width < 3.0 {
+        return 1u;
+    }
+    return 2u;
 }
 
 /// The leaf a thread of a per-leaf pass stands for. A crown past one

@@ -24,8 +24,8 @@ pub struct Uniforms {
     pub levels: u32,
     pub stride: u32,
     pub forced: i32,
-    /// The rachis's length on the organ (fn-253): its instances' reach,
-    /// which they are culled by and never thinned. Zero on the leaves.
+    /// The rachis's and the pedicel's lengths on the organ (fn-253), which
+    /// size an inflorescence thinned as one. Zero on the leaves.
     pub stalk: [f32; 4],
 }
 

@@ -30,9 +30,9 @@ pub fn carded(element: &Element) -> Cow<'_, Element> {
     let Some(card) = card(element) else {
         return Cow::Borrowed(element);
     };
-    // A flower's rachis level stands in front of its florets' (fn-253);
+    // A flower's rachis levels stand in front of its florets' (fn-253);
     // the card goes in front of the florets'.
-    let front = usize::from(element.levels.first().is_some_and(|l| rachis(element, l)));
+    let front = element.levels.iter().take_while(|l| rachis(element, l)).count();
     if element.levels.len() >= crate::MAX_LEVELS
         || element.levels.get(front).is_none_or(|l| l.deviation >= deviation)
     {
@@ -44,17 +44,16 @@ pub fn carded(element: &Element) -> Cow<'_, Element> {
     if !out.coords.is_empty() {
         out.coords.extend([0.0, -1.0, 1.0, -1.0, 1.0, 1.0, 0.0, 1.0]);
     }
-    // The card stands for the petals and stamens; the pedicel it hangs from
-    // is drawn at every floret level (fn-253).
+    // The card is a patch of colour, not a floret: under CARD_PIXELS its
+    // pedicel is far below a pixel and is not drawn (fn-253).
     let at = out.level_indices.len() as u32;
     out.level_indices.extend([0, 1, 2, 0, 2, 3].map(|i| base + i));
-    out.level_indices.extend(stalks(element));
     let indices = at..out.level_indices.len() as u32;
     out.levels.insert(front, Level { indices, deviation });
     Cow::Owned(out)
 }
 
-/// Whether `level` draws stalk triangles alone: a flower's rachis.
+/// Whether `level` draws stalk triangles alone: a flower's rachis's.
 fn rachis(element: &Element, level: &Level) -> bool {
     let indices = &element.level_indices[level.indices.start as usize..level.indices.end as usize];
     !indices.is_empty() && indices.iter().all(|&i| stalk(element, i))
@@ -64,15 +63,6 @@ fn rachis(element: &Element, level: &Level) -> bool {
 /// below zero (`bloom/stalk.rs`).
 fn stalk(element: &Element, i: u32) -> bool {
     element.coords.get(2 * i as usize).is_some_and(|x| *x < 0.0)
-}
-
-/// The element's own stalk triangles: a flower's pedicel.
-fn stalks(element: &Element) -> Vec<u32> {
-    (element.indices.as_chunks::<3>().0.iter())
-        .filter(|t| t.iter().all(|&i| stalk(element, i)))
-        .flatten()
-        .copied()
-        .collect()
 }
 
 struct Card {
@@ -228,11 +218,11 @@ mod tests {
         }
     }
 
-    /// fn-253: a floret's stalks are drawn at its card's level as at every
-    /// other, so a floret drawn as a card still hangs from its rachis, and
-    /// a rachis, drawn at the coarsest level, is drawn at all.
+    /// fn-253: the card goes behind a flower's rachis levels, which stay
+    /// in front, and is its quad alone: under CARD_PIXELS the pedicel is
+    /// not drawn.
     #[test]
-    fn the_card_level_keeps_the_stalks() {
+    fn the_card_follows_the_rachis_levels_and_drops_the_pedicel() {
         let mut e = floret();
         let p = |x, y, z| Vec3::new(x, y, z) * 1e-6;
         e.positions.extend([p(1.0, 0.0, 0.0), p(0.0, 1.0, 0.0), p(0.0, 0.0, 1.0)]);
@@ -240,23 +230,16 @@ mod tests {
         e.indices.extend([5, 6, 7]);
         e.level_indices.extend([5, 6, 7]);
         e.levels[1].indices.end += 3;
+        e.positions.extend([p(2.0, 0.0, 0.0), p(0.0, 2.0, 0.0), p(0.0, 0.0, 2.0)]);
+        e.coords.extend([-2.0, 0.0, -2.0, 1.0, -2.0, 2.0]);
+        let at = e.level_indices.len() as u32;
+        e.level_indices.extend([8, 9, 10, 8, 10, 9]);
+        e.levels.insert(0, Level { indices: at + 3..at + 6, deviation: 1e29 });
+        e.levels.insert(0, Level { indices: at..at + 3, deviation: 1e30 });
         let carded = carded(&e);
-        let card = carded.levels[0].indices.clone();
-        let level = &carded.level_indices[card.start as usize..card.end as usize];
-        assert_eq!(level.len(), 9, "the card and the stalk");
-        assert_eq!(&level[6..], &[5, 6, 7]);
-        assert_eq!(carded.levels.len(), e.levels.len() + 1);
-        // A rachis level in front stays in front, and the card follows it.
-        let mut r = e.clone();
-        r.positions.extend([Vec3::X * 1e-6, Vec3::Y * 1e-6, Vec3::Z * 1e-6]);
-        r.coords.extend([-2.0, 0.0, -2.0, 1.0, -2.0, 2.0]);
-        let at = r.level_indices.len() as u32;
-        r.level_indices.extend([8, 9, 10]);
-        r.levels.insert(0, Level { indices: at..at + 3, deviation: 1e30 });
-        let behind = super::carded(&r);
-        assert_eq!(behind.levels[0], r.levels[0], "the rachis level first");
-        let card = behind.levels[1].indices.clone();
-        let level = &behind.level_indices[card.start as usize..card.end as usize];
-        assert_eq!(&level[6..], &[5, 6, 7], "the card keeps the pedicel alone");
+        assert_eq!(&carded.levels[..2], &e.levels[..2], "the rachis levels first");
+        let card = carded.levels[2].indices.clone();
+        assert_eq!(card.len(), 6, "the quad alone");
+        assert_eq!(&carded.levels[3..], &e.levels[2..]);
     }
 }

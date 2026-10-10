@@ -183,42 +183,57 @@ fn check_compaction(gpu: &Gpu, selection: &Select, instances: usize, levels: usi
     }
 }
 
-/// fn-253: an organ's rachis is never thinned, since the florets it holds
-/// would hang in the air: at a size thinning drops every floret, every
-/// rachis in the frame still stands in the coarsest level, and a rachis
-/// behind the eye is still culled. On the leaves, the same bit is a
-/// withered leaf and thins as any leaf does.
+/// fn-253: an organ's inflorescence is thinned as one. Its florets, then
+/// its rachis, stand in a run; at a size thinning keeps a share of, every
+/// unit is kept or dropped whole, by its rachis's rank, and some of each.
+/// On the leaves (no stalk), the rachis's mark is a withered leaf's and
+/// each thins on its own.
 #[test]
-fn a_rachis_is_culled_but_never_thinned() {
+fn an_inflorescence_is_kept_or_dropped_whole() {
     use telperion_core::foliage::WITHERED;
     let Some(gpu) = device() else { return };
-    let mut foliage = interleaved(4_000, 2);
+    let mut foliage = interleaved(4_000, 4);
     for (id, leaf) in foliage.instances.leaves.iter_mut().enumerate() {
-        // A hundredth of a pixel across: thinning keeps none of them.
-        leaf[2] = (leaf[2] & 0xffff) | (u32::from(half(1e-4)) << 16);
-        if id % 2 == 0 {
+        // Every instance a metre ahead at unit scale, each unit turned its
+        // own way so its rachis ranks apart from the others.
+        leaf[0] = (id / 4) as u32 * 2_654_435_761 % (1 << 30);
+        leaf[1] = 0;
+        leaf[2] = u32::from(half(1.0)) << 16;
+        if id % 4 == 3 {
             leaf[2] |= WITHERED;
         }
     }
-    let ahead = |id: usize| id % 3 != 2;
     let mut selection = Select::new(&gpu);
     selection.submit(&gpu, &foliage, &foliage.element, Level::Chosen);
-    for (rachis, kept) in [(0.5, (0..4_000).filter(|&id| id % 2 == 0 && ahead(id)).count()), (0.0, 0)] {
-        selection.set_rachis(rachis);
-        let camera = Camera {
-            position: telperion_core::math::Vec3::ZERO,
-            target: telperion_core::math::Vec3::new(0.0, 0.0, -1.0),
-            field_of_view: 90.0,
-            near: 0.1,
-            far: 10.0,
-        };
-        let mut encoder = gpu.encoder(&Default::default());
-        selection.dispatch(&gpu, &mut encoder, &camera, (2, 2), true, None);
-        gpu.submit([encoder.finish()]);
-        let counts = selection.counted(&gpu).expect("counts read back");
-        assert_eq!(counts[0] as usize, kept, "rachis {rachis}");
-        assert_eq!(counts[1], 0, "rachis {rachis}: a floret this small kept");
+    selection.set_stalk(1e-4, 0.0);
+    let camera = Camera {
+        position: telperion_core::math::Vec3::ZERO,
+        target: telperion_core::math::Vec3::new(0.0, 0.0, -1.0),
+        // A metre spans 0.58 px a metre ahead: a unit of reach 1 keeps a third.
+        field_of_view: 120.0,
+        near: 0.1,
+        far: 10.0,
+    };
+    let mut encoder = gpu.encoder(&Default::default());
+    selection.dispatch(&gpu, &mut encoder, &camera, (2, 2), true, None);
+    gpu.submit([encoder.finish()]);
+    let counts = selection.counted(&gpu).expect("counts read back");
+    let bytes = buffer::read(&gpu, selection.lists.as_ref().unwrap()).expect("lists read back");
+    let words: Vec<u32> = (bytes.as_chunks::<4>().0.iter()).map(|w| u32::from_ne_bytes(*w)).collect();
+    let mut chosen = vec![4u32; 4_000];
+    for (level, &count) in counts.iter().enumerate().take(4) {
+        let start = level * selection.stride as usize / size_of::<u32>();
+        for &id in &words[start..start + count as usize] {
+            chosen[id as usize] = level as u32;
+        }
     }
+    let mut kept = 0;
+    for unit in chosen.chunks(4) {
+        let drawn: Vec<bool> = unit.iter().map(|&c| c < 4).collect();
+        assert!(drawn.iter().all(|&d| d == drawn[0]), "a unit split: {unit:?}");
+        kept += usize::from(drawn[0]);
+    }
+    assert!((200..800).contains(&kept), "{kept} of 1000 units kept");
 }
 
 /// `v` as the half float a placement's scale is stored in.

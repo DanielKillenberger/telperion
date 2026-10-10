@@ -178,3 +178,43 @@ The raceme view (`raw/r3d/*-raceme.png`) now shows each rachis and its pedicels.
 `STALKS-laurelin.jpg` and `STALKS-telperion.jpg`, at the whole, mid, close and raceme views (1920×1080 sources in `raw/r3d/`).
 - **Laurelin.** Her racemes hang as golden chains from the shoot tips; at the raceme view each horn hangs on its pedicel from a thin dark rachis that leaves the twig.
 - **Telperion.** His candles stand upright from the tips on a thin rachis, five florets on each; at the mid and whole views the white is heavy.
+
+## Host decision on the cost, and what it measured (2026-10-10)
+
+**The decision.**
+- Each inflorescence is thinned as one unit under fn-246's single rule: the rachis and its florets are kept or dropped together, by the whole inflorescence's projected size, and a kept unit is enlarged as fn-246 enlarges any kept organ. This replaces the "rachis never thinned" exception.
+- At the card level the pedicel is dropped.
+- The rachis keeps levels by its projected width.
+- Target: within about 2 % of "no rachis" at every view; otherwise report and stop.
+- Telperion's share stays 1; the rachis colour stays the shoot's.
+
+**Built.**
+- **One run per unit.** An inflorescence's florets then its rachis stand in one run on both executors. The CPU already places them so. The device now counts one more instance per bloom and places the rachis last in its record's run; the separate rachis block is deleted.
+- **Finding the unit** (`shaders/unit.wgsl`). Selection and the organ's draw find a floret's rachis as the first marked instance after it (at most 65).
+- **Selection** (`select.wgsl`). The unit's size is the rachis plus the pedicel plus the floret's radius, from the rachis's seat. Its rank is the rachis's, and every member takes the unit's kept share. A rachis takes its level by its width on screen: a ribbon facing the eye over two segments under 1 px, over four under 3 px, and the tube above.
+- **The draw** (`foliage.wgsl`, `stalk.wgsl`). A kept unit is enlarged about its seat as a whole, so stalks and florets stay joined. Leaves keep their exact arithmetic.
+- **The card** (`card.rs`). It is its quad alone again, behind the rachis's three levels.
+- **Tests.**
+  - `select::tests::an_inflorescence_is_kept_or_dropped_whole`: 1,000 units of three florets and a rachis, at a size that keeps a third of them; no unit splits, and between 200 and 800 are kept.
+  - `stalk_tests` now checks each floret against its own run's rachis, as the shaders find it. Same numbers as before: 12,294 florets and 2,072 rachises on both executors, at most 0.32 mm off the tube.
+  - `card::tests::the_card_follows_the_rachis_levels_and_drops_the_pedicel`; the core's `the_stalks_stand_at_the_origin_in_their_levels`.
+
+**Measured** (`frames.rs`, 1080p, best of 3, GPU total p50 in ms; `raw/frames-r3e.log`):
+
+| | whole | mid | close |
+|---|---|---|---|
+| Laurelin, with rachis | 5.571 (173.4 fps) | 13.487 (72.9) | 12.830 (76.7) |
+| Laurelin, no rachis | 5.413 (178.0) | 13.380 (73.7) | 12.785 (77.1) |
+| **Δ** | **+0.158 (+2.9 %)** | +0.107 (+0.8 %) | +0.045 (+0.4 %) |
+| Telperion, with rachis | 6.971 (139.7) | 14.841 (66.4) | 13.387 (73.4) |
+| Telperion, no rachis | 6.696 (145.6) | 15.361 (64.3) | 13.719 (71.9) |
+| **Δ** | **+0.275 (+4.1 %)** | −0.520 (−3.4 %) | −0.332 (−2.4 %) |
+| fn-248 (whole / close) | Laurelin 174.8 / 77.5 | | Telperion 187.8 / 80.6 |
+
+- **Against "no rachis".** The mid and close views are within the target. The whole views are not: +2.9 % and +4.1 %.
+- **How exact the comparison is.** The "no rachis" tree is not the same picture: its florets sit on their tips and thin one by one. That is why Telperion's mid and close views come out faster with the rachis (unit thinning drops more florets there). The comparison carries about ±3 % of its own.
+- **Against fn-248.** Laurelin is back to fn-248's rate (173.4 / 76.7 against 174.8 / 77.5). Telperion's whole view is at 139.7 against 187.8, which is the share of 1 (measured above: 195 fps at a share of 0.1).
+
+**An experiment, reverted: no rachis under half a pixel wide.** Read as "it draws only where it covers a pixel", selection would give a rachis under 0.5 px wide nothing to draw. The whole views then measure 5.425 ms on Laurelin (+0.2 % over no rachis) and 6.779 ms on Telperion (+1.2 %), inside the target (`raw/frames-r3e-subpixel.log`). But a floret of a kept unit can then be drawn while its rachis is not. At that distance the floret is a few pixels and its rachis under half of one, yet that breaks the stalk invariant as R3 states it. That is the host's call, so it is not built.
+
+Stopped here, per the decision. Astra round 2, the gate, npm test, impl-review and `done` wait on it.

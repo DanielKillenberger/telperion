@@ -5,8 +5,9 @@ use crate::tree::{Node, NodeIdentity};
 
 /// A floret's transform before packing.
 type Matrix = [f32; 16];
-/// The vertices of the element's two stalks (`stalk.rs`).
-const STALKS: usize = (SIDES * (2 + RINGS)) as usize;
+/// The vertices of the element's stalks (`stalk.rs`): the pedicel, the
+/// rachis's two ribbons (three rings and five) and its tube.
+const STALKS: usize = (SIDES * (2 + RINGS) + 2 * (3 + 5)) as usize;
 
 /// A stem of `count` nodes a metre apart, each a tip bloom of `share`.
 fn stem(count: u32, share: f64) -> Tree {
@@ -384,30 +385,34 @@ fn a_rachis_stands_at_each_flowering_tip() {
 
 /// fn-253: the element's stalks stand within a micrometre of its origin,
 /// named by their coordinate, so no bound of the floret reads them; every
-/// floret level draws the pedicel, and the rachis is a level of its own in
-/// front of them.
+/// floret level draws the pedicel, and the rachis's ribbons and tube are
+/// levels of their own in front of them, coarsest first.
 #[test]
-fn the_stalks_stand_at_the_origin_in_every_level() {
+fn the_stalks_stand_at_the_origin_in_their_levels() {
     let e = element(&raceme()).unwrap();
     let first = e.positions.len() - STALKS;
     assert!(e.positions[first..].iter().all(|v| v.length() < 2e-6));
     let kinds: Vec<f32> = e.coords[2 * first..].iter().step_by(2).copied().collect();
     let pedicel = (SIDES * 2) as usize;
     assert!(kinds[..pedicel].iter().all(|k| *k == PEDICEL));
-    assert!(kinds[pedicel..].iter().all(|k| *k == RACHIS_VERTEX));
+    assert!(kinds[pedicel..pedicel + 16].iter().all(|k| *k == RIBBON));
+    assert!(kinds[pedicel + 16..].iter().all(|k| *k == RACHIS_VERTEX));
     let rachis = first + pedicel;
     let level = |l: &crate::pipeline::foliage::Level| {
         e.level_indices[l.indices.start as usize..l.indices.end as usize].to_vec()
     };
-    let (front, florets) = e.levels.split_first().unwrap();
-    assert_eq!(front.deviation, RACHIS_LEVEL);
-    let tube = 6 * SIDES as usize * (RINGS as usize - 1);
-    assert_eq!(level(front).len(), tube);
-    assert!(level(front).iter().all(|&i| i as usize >= rachis));
+    let (front, florets) = e.levels.split_at(RACHIS_LEVELS);
+    let triangles: Vec<usize> = front.iter().map(|l| level(l).len() / 3).collect();
+    assert_eq!(triangles, [4, 8, 2 * SIDES as usize * (RINGS as usize - 1)]);
+    assert_eq!(front[0].deviation, RACHIS_LEVEL);
+    for l in front {
+        assert!(level(l).iter().all(|&i| i as usize >= rachis));
+    }
     let pedicels = |v: &[u32]| v.iter().filter(|&&i| (first..rachis).contains(&(i as usize))).count();
     for l in florets {
         assert_eq!(pedicels(&level(l)), 6 * SIDES as usize);
         assert!(level(l).iter().all(|&i| (i as usize) < rachis));
     }
     assert!(e.indices.iter().all(|&i| (i as usize) < rachis));
+    e.validate().unwrap();
 }
