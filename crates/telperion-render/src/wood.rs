@@ -93,13 +93,13 @@ impl Wood {
     /// Records `side`'s passes over the curve as the last `fit` sized
     /// them. A timed frame writes its pair whether or not there is wood.
     pub(crate) fn surface(
-        &self,
+        &mut self,
         gpu: &Gpu,
         encoder: &mut wgpu::CommandEncoder,
         side: crate::curve::Side,
         timestamps: Option<wgpu::ComputePassTimestampWrites<'_>>,
     ) {
-        match &self.curve {
+        match &mut self.curve {
             Some(curve) => curve.surface(gpu, encoder, side, timestamps),
             None if timestamps.is_some() => {
                 drop(encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
@@ -108,6 +108,13 @@ impl Wood {
                 }));
             }
             None => {}
+        }
+    }
+
+    /// The frame that surfaced the curve is submitted: its demand is read.
+    pub(crate) fn submitted(&mut self) {
+        if let Some(curve) = &mut self.curve {
+            curve.submitted();
         }
     }
 

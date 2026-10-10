@@ -625,6 +625,7 @@ impl Renderer {
             }
         };
         self.gpu.submit([encoder.finish()]);
+        self.wood.submitted();
         self.gpu.watch(scopes, self.frame_failed.clone());
         room + vegetation
     }

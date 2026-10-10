@@ -13,8 +13,10 @@ use telperion_core::{
 };
 
 mod draw;
+mod feedback;
 mod target;
 pub(crate) use draw::CurveDraw;
+use feedback::Feedback;
 pub use target::{Budget, CurveReport};
 use target::{Shared, Target};
 
@@ -88,6 +90,9 @@ pub(crate) struct CurveGpu {
     pub(crate) sun: Option<Target>,
     /// What each view is surfaced from this frame, camera then sun.
     views: Option<[Viewer; 2]>,
+    /// What each view asked, camera then sun, and the capacity its
+    /// budget is held to.
+    feedback: [Feedback; 2],
 }
 
 /// The view a compute pass surfaces the wood for.
@@ -154,6 +159,7 @@ impl CurveGpu {
             camera: None,
             sun: None,
             views: None,
+            feedback: [Feedback::new(gpu), Feedback::new(gpu)],
         }
     }
 
@@ -221,7 +227,15 @@ impl CurveGpu {
         let (demand, limits) = (self.demand, gpu.device.limits());
         let budget =
             |p: u64, near: f64| Budget::for_pixels(p, &limits).within(demand.at(near, ERROR));
-        let wanted = [budget(pixels, nearest[0]), budget(texels, nearest[1])];
+        // Each held to the capacity its own demand grew to, once read.
+        for f in &mut self.feedback {
+            f.read();
+        }
+        let held = |b: Budget, f: &Feedback| f.capacity().map_or(b, |c| b.within(c));
+        let wanted = [
+            held(budget(pixels, nearest[0]), &self.feedback[0]),
+            held(budget(texels, nearest[1]), &self.feedback[1]),
+        ];
         if self.shared.as_ref().is_none_or(|s| !s.fits(wanted)) {
             self.forget();
             self.shared = Some(Shared::new(gpu, self, wanted));
@@ -254,7 +268,7 @@ impl CurveGpu {
     /// the sun's view, draws its map, and only then the camera's: the two
     /// write the same buffers.
     pub(crate) fn surface(
-        &self,
+        &mut self,
         gpu: &Gpu,
         encoder: &mut wgpu::CommandEncoder,
         side: Side,
@@ -263,9 +277,9 @@ impl CurveGpu {
         let (Some(pipelines), Some(views)) = (compiled(gpu), &self.views) else {
             return;
         };
-        let (target, view) = match side {
-            Side::Camera => (&self.camera, &views[0]),
-            Side::Sun => (&self.sun, &views[1]),
+        let (target, view, k) = match side {
+            Side::Camera => (&self.camera, &views[0], 0),
+            Side::Sun => (&self.sun, &views[1], 1),
         };
         let t = target.as_ref().expect("fitted with its views");
         gpu.queue
@@ -288,6 +302,17 @@ impl CurveGpu {
                 "measure_coarse" => pass.dispatch_workgroups_indirect(&t.args, 52),
                 _ => pass.dispatch_workgroups(row, groups.div_ceil(row), 1),
             }
+        }
+        drop(pass);
+        let totals = (*t.totals).clone();
+        self.feedback[k].copy(encoder, &totals);
+    }
+
+    /// Maps the demand each view's passes copied, once the frame that
+    /// copied it is submitted.
+    pub(crate) fn submitted(&mut self) {
+        for f in &mut self.feedback {
+            f.map();
         }
     }
 
