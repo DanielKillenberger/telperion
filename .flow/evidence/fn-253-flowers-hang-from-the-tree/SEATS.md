@@ -420,3 +420,32 @@ The host's rule: enlarge the fixture until the figure's spread over three packin
 - Telperion: "i think the density is a little much can barely make out individual flowers. Also leaves seem to be missing? but it's pretty good."
 
 Follow-ups (host): measure whether Telperion's leaves were dropped or only hidden, and render his flowering share at 0.3 and 0.5 beside 1 for the host to pick.
+
+## Follow-up 1: Telperion's leaves are hidden, not dropped (worker, 2026-10-11)
+
+**The instrument.** `examples/leaf_share.rs` builds a preset and draws three views: whole, mid and close (the same cameras as `space_two_trees`). For each view it counts the share of the frame the crown changes over the bare wood, the share the florets cover under the organ mask, and the crown's pixels no floret covers: the leaves that show. It ran on the base (`750460d3`, in its own worktree and target) and on the head. Raw: `raw/leaf_share.log`.
+
+**Telperion at 82, seed 42:**
+
+| | leaves | tip clusters | whole: florets / leaves showing | mid | close |
+|---|---|---|---|---|---|
+| base | 980,082 | 209,747 | 0.085 / 0.176 | 0.156 / 0.457 | 0.262 / 0.642 |
+| head (share 1) | 980,082 | 209,747 | 0.165 / 0.107 | 0.372 / 0.274 | 0.426 / 0.437 |
+| either, no flowers | 980,082 | 209,747 | 0 / 0.252 | 0 / 0.587 | 0 / 0.814 |
+
+- **No leaf was dropped.** The leaf and cluster counts are the base's, and with the flowers off the two builds draw the same frames. Every tip that bears an inflorescence keeps its fn-223 cluster: the conversion seats both at the axis's last node, independently. On the device, the gate's leaf parity tests showed it placing the leaves the CPU places.
+- **They are hidden.** At a share of 1 the florets cover about twice what they did, and they stand at the crown's surface. The leaves that show fall by 39 % at the whole view and 40 % at the mid view. (The close camera aims at a floret, so it differs between the builds.)
+
+## Follow-up 2: Telperion's flowering share at 0.3, 0.5 and 1 (seed 42), for the host
+
+`STALKS-telperion-share.jpg` (viewed): one row per share, mid and close views at 1920×1080 (sources in `raw/share/<share>/`). Frame rates are `frames.rs`'s best of 3 at 1080p and seed 42 (`raw/share/frames-<share>.log`):
+
+| share | florets and anchors | whole | mid | close |
+|---|---|---|---|---|
+| 0.3 | 420,016 | 115.1 fps | 49.2 | 54.5 |
+| 0.5 | 700,699 | 99.9 | 41.6 | 49.5 |
+| 1 | 1,258,482 | 81.9 | 33.9 | 43.0 |
+
+- **The look.** At 0.3 the candles stand apart, with leaves between them, and single flowers read at the close view. At 0.5 the clusters begin to merge at the mid view. At 1 the mid view is mostly white.
+- **Seed 42 is not seed 1.** The preset's own seed grows the larger tree, so every rate here is below the seed-1 figures above.
+- **The host picks the share.** Telperion's value file is unchanged until then.

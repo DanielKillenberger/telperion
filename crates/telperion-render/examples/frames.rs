@@ -12,7 +12,8 @@
 //! `parallax-off` with its relief and no depth: the wood's shaded pass
 //! measured against itself (fn-246 R1). `no-rachis` grows the flowers with
 //! no rachis, the florets on their tips: what the rachises cost (fn-253).
-//! `FLOWERING=<share>` sets a trial share for the short shoots.
+//! `FLOWERING=<share>` sets a trial share for the short shoots, `SEED` a
+//! seed in place of 1.
 use std::time::Instant;
 use telperion_core::presets::Preset;
 use telperion_render::{
@@ -31,6 +32,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let variant = rest.first().map_or("full", String::as_str);
     let mut family = Preset::from_id(id).ok_or("no preset")?.parameters();
     family.skeleton.seed = 1;
+    // A trial seed, `SEED=<seed>` (fn-253).
+    if let Ok(seed) = std::env::var("SEED") {
+        family.skeleton.seed = seed.parse()?;
+    }
     if variant == "no-rachis" {
         family.supernatural.bloom.rachis = Some(0.0);
     }
