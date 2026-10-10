@@ -356,3 +356,17 @@ Per the decision, stopped with the numbers. The trial is kept on its own branch;
 **The pairs for the owner** (viewed): `STALKS-laurelin-whole-reference.jpg` and `STALKS-telperion-whole-reference.jpg`.
 - **What each holds:** the whole view at 1920×1080 as the harness draws it, beside the same frame drawn at 4× and box-reduced in linear light (`examples/crown_truth`, raw in `raw/truth/`).
 - **What they show:** Laurelin's gold reads denser and brighter in the live frame than in the reference; Telperion's white reads close, the live frame a little whiter.
+
+## The render gate on the restated bound (worker, 2026-10-10)
+
+`npm test` is green (14 files, 155 tests), and every render test passes but one: the card test reads **0.00699 against 0.00477, +46.5 %**, against the restated 45 % (`raw/gate-render-3.log`).
+
+| Build | far | 4× | over |
+|---|---|---|---|
+| R2 (`80f3ac29`) | 0.00669 | 0.00486 | +38 % |
+| Before the packing-box fix | 0.00661 | 0.00476 | +39 % |
+| After it (`513c6175`) | 0.00699 | 0.00477 | +46.5 % |
+
+**The reason.** The packing-box fix changed nothing but the box the CPU path packs florets against. That changes each floret's words, and so the random subset thinning keeps (the same mechanism as the parity drift). With tip seating's fewer florets, the card test's figure moves by about 7 points on that alone. The bound sits inside the measurement's own noise.
+
+Stopped for the host's call on the bound. The codex re-review and `flowctl done` wait on it.
