@@ -17,3 +17,11 @@
 - Hindered: neither failure is a defect a code change resolves. The refinement asks for continuity at 1/262144 of a sky step and 1/32768 of a sag step. Below that scale the f32 tree is flat between some adjacent inputs and jumps between others. On sag, one step of the setting moves a branch by 5.5e-4 of the tree's height, while 12 of the 16 finer samples are identical. On sky, rounding noise is amplified about 300-fold through the light sums and the balance memory, and it flips one subtree's shed decision (axis `760add40`, `t` crossing `d`). It took instrumented tree diffs to tell this apart from a real switch in the code.
 - Cost: about 3 hours of probes and roughly 25 compile-and-run cycles.
 - Would remove it: a decision from the host on how deep the walk refinement goes, or how much noise it tolerates, under f32 (it is set by host decision 9 of 2026-10-05). Alternatively, a refine that stops once its sub-step reaches the setting's own f32 resolution.
+
+## 2026-10-10, task 1: stills "beside master's" compare two generators
+- **Doing:** R5's whole/mid/close stills beside master's.
+- **Hindered:**
+  - Master (`ebd2e37b`) still draws the pre-engine tree, so a sheet beside master's cannot show what the floats changed. I rendered and viewed a third set from the base (`59e627e7`) to isolate them.
+  - Separately, the session's temp directory hit its disk quota (EDQUOT) during a base build, and a command's output was lost.
+- **Cost:** about 15 minutes and one extra build of the base outside `/tmp`.
+- **Would remove it:** for a spec on an F branch, the R5 wording "beside the base's", and a scratch location outside the tmpfs quota for second builds.
