@@ -29,3 +29,25 @@ Two other atomic slot allocations sit upstream: the grower's overflow queue (`re
 ## The fix (R2)
 
 The runs are numbered by a key: `keys` writes each run's (stub, first node) at a slot the count hands out, a bitonic sort orders them (`sort.wgsl`, one integer comparison, no float, no atomic), and `starts` numbers the runs in the sorted order. A root's runs stay together and the roots in their stubs' order, as host decision 3 set; within a root the runs are in their first nodes' order. The `owned` pass and its two words a node are gone.
+
+## R2: green, and what it costs
+
+`every_device_preset_builds_the_same_leaves_each_time` takes every shipped preset that `executor::apart` sends to the device (the spruce, beech, birch, Telperion and Laurelin) at its default age and seed. With `REPEATS=10` each was built ten times in fresh contexts, and every build matched the first byte for byte in tree, segments, leaves and masses (72 s under the GPU lock). The gate runs it with two builds. The ten builds also check the node numbering: the keys use node indices, so an unstable numbering would have made this test fail.
+
+Timings: native, RTX 3080, `RAYON_NUM_THREADS=4`, other sessions' load at about 4. Before and after were run alternately, three rounds each, and the medians are below (`raw/timing.jsonl`, `raw/stage.txt`).
+
+| | Before | After |
+|---|--:|--:|
+| Spruce at 40: stations stage (ms, six builds each) | 9.6-10.8 | 13.4-23.2 |
+| Spruce at 40: whole build, `prepare_timing` (ms) | 20,867 | 22,753 |
+| Telperion at 82: whole build (ms) | 27,263 | 22,790 |
+| Spruce frame, whole / close / bare-whole / bare-close (ms) | 8.51 / 8.08 / 3.36 / 3.96 | 8.41 / 8.06 / 3.36 / 3.96 |
+| Telperion frame, whole / close / bare-whole / bare-close (ms) | 5.33 / 12.31 / 4.13 / 8.94 | 5.19 / 12.21 / 4.13 / 8.96 |
+
+The sort adds about 3.5 ms to the stations stage at the least: 171 dispatches over the spruce's runs, each with its own uniform and bind group. A whole build takes 20-27 s, and its run-to-run noise of ±3 s hides that cost. Frame time is unchanged or a little lower, since a root's runs now follow node order.
+
+## R3: stills
+
+For every one of the eight shipped presets, `generation_gpu <id> gpu-render` (resident delivery, hero pose, 1280×720, `GENERATION_CAPTURE`) was run twice, each run its own process under the GPU lock. All eight pairs are byte-identical PNGs. As a control, the pre-fix binary (b0a613c3) drew two spruce stills that differ in 31,574 pixels in some channel and in 2,533 by more than 8/255, out of 921,600. Pixel counts come from a thresholded difference image, not from `compare -metric AE`.
+
+Before the fix against after it, the spruce differs in 53,384 pixels in some channel and in 5,725 by more than 8/255. These are the leaves taking other indices and so other variations. Viewed side by side, whole and as a crop of the upper crown, the two cannot be told apart (`raw/side.png`, `raw/crop.png`).
