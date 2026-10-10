@@ -6,6 +6,14 @@ use resolution::masked_agreement;
 use telperion_core::{math::Vec3, mesh, presets::Preset};
 use telperion_render::{render, Camera, Renderer, Still, View, STILL_FORMAT};
 
+/// A still of a view whose wood budget has settled: a view that asks more
+/// than the budget holds draws coarser for one frame while it grows
+/// (fn-258), so the still is the second frame.
+fn settled(renderer: &mut Renderer, camera: &Camera, width: u32, height: u32) -> Still {
+    render(renderer, camera, width, height).unwrap();
+    render(renderer, camera, width, height).unwrap()
+}
+
 #[test]
 fn trunk_agrees_with_a_box_reduction_at_half_resolution() {
     let Some(gpu) = common::gpu() else { return };
@@ -23,9 +31,9 @@ fn trunk_agrees_with_a_box_reduction_at_half_resolution() {
         near: 0.01,
         far: 1000.0,
     };
-    let high = render(&mut renderer, &camera, 1600, 1000).unwrap();
-    let low = render(&mut renderer, &camera, 800, 500).unwrap();
-    let again = render(&mut renderer, &camera, 800, 500).unwrap();
+    let high = settled(&mut renderer, &camera, 1600, 1000);
+    let low = settled(&mut renderer, &camera, 800, 500);
+    let again = settled(&mut renderer, &camera, 800, 500);
     let worst = low
         .rgba
         .iter()
@@ -39,8 +47,8 @@ fn trunk_agrees_with_a_box_reduction_at_half_resolution() {
     eprintln!("trunk resolution agreement: mean {mean:.6}/255, p95 {p95:.2}/255");
     family.material.ridge_scale = 0.0;
     renderer.set_material(family.material);
-    let plain_high = render(&mut renderer, &camera, 1600, 1000).unwrap();
-    let plain_low = render(&mut renderer, &camera, 800, 500).unwrap();
+    let plain_high = settled(&mut renderer, &camera, 1600, 1000);
+    let plain_low = settled(&mut renderer, &camera, 800, 500);
     eprintln!(
         "plain trunk diagnostic (mean, p95): {:?}",
         agreement(&plain_high, &plain_low)
@@ -120,9 +128,9 @@ fn grazing_trunks_agree_with_a_box_reduction_at_half_resolution() {
         // so the shading is compared over the same triangles (host decision
         // 22): this is a test of the bark under a box reduction.
         renderer.pin_curve_viewport(Some((1600, 1000)));
-        let high = render(&mut renderer, &camera, 1600, 1000).unwrap();
-        let low = render(&mut renderer, &camera, 800, 500).unwrap();
-        let again = render(&mut renderer, &camera, 800, 500).unwrap();
+        let high = settled(&mut renderer, &camera, 1600, 1000);
+        let low = settled(&mut renderer, &camera, 800, 500);
+        let again = settled(&mut renderer, &camera, 800, 500);
         let worst = low
             .rgba
             .iter()
@@ -135,8 +143,8 @@ fn grazing_trunks_agree_with_a_box_reduction_at_half_resolution() {
         eprintln!("{preset:?} grazing: {} pixels, mean {mean:.6}/255, p95 {p95:.2}/255, redraw worst {worst}/255", mask.len());
         family.material.ridge_scale = 0.0;
         renderer.set_material(family.material);
-        let plain_high = render(&mut renderer, &camera, 1600, 1000).unwrap();
-        let plain_low = render(&mut renderer, &camera, 800, 500).unwrap();
+        let plain_high = settled(&mut renderer, &camera, 1600, 1000);
+        let plain_low = settled(&mut renderer, &camera, 800, 500);
         eprintln!(
             "{preset:?} plain grazing: {:?}",
             masked_agreement(&plain_high, &plain_low, &mask)

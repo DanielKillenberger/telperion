@@ -94,15 +94,21 @@ impl Feedback {
             }
         };
         self.staging.unmap();
-        self.capacity = Some(grow(self.capacity, words.map(u64::from)));
+        self.capacity = grow(self.capacity, words.map(u64::from));
     }
 }
 
 /// `capacity` grown to hold `demand` with headroom wherever the demand is
-/// past it; the first reading sets it.
-fn grow(capacity: Option<[u64; 4]>, demand: [u64; 4]) -> [u64; 4] {
+/// past it; the first reading of a view that saw the tree sets it. A view
+/// that saw none of it (no ring) says nothing of what the tree will ask, so
+/// it leaves the capacity as it was: until a view sees the tree its whole
+/// budget stands, and the tree brought on screen never lacks its wood.
+fn grow(capacity: Option<[u64; 4]>, demand: [u64; 4]) -> Option<[u64; 4]> {
     let roomy = |d: u64| (d as f64 * HEADROOM).ceil() as u64;
-    match capacity {
+    if demand[0] == 0 {
+        return capacity;
+    }
+    Some(match capacity {
         None => demand.map(roomy),
         Some(c) => std::array::from_fn(|k| {
             if demand[k] > c[k] {
@@ -111,7 +117,7 @@ fn grow(capacity: Option<[u64; 4]>, demand: [u64; 4]) -> [u64; 4] {
                 c[k]
             }
         }),
-    }
+    })
 }
 
 #[cfg(test)]
@@ -120,9 +126,25 @@ mod tests {
 
     #[test]
     fn the_capacity_opens_a_quarter_above_the_view_and_only_grows() {
-        let opened = grow(None, [100, 400, 0, 80]);
+        let opened = grow(None, [100, 400, 0, 80]).unwrap();
         assert_eq!(opened, [125, 500, 0, 100]);
-        assert_eq!(grow(Some(opened), [10, 40, 0, 8]), opened, "it shrank");
-        assert_eq!(grow(Some(opened), [120, 600, 4, 80]), [125, 750, 5, 100]);
+        assert_eq!(
+            grow(Some(opened), [10, 40, 0, 8]),
+            Some(opened),
+            "it shrank"
+        );
+        assert_eq!(
+            grow(Some(opened), [120, 600, 4, 80]),
+            Some([125, 750, 5, 100])
+        );
+    }
+
+    /// Astra (fn-258): a tree opened off screen learned a capacity of
+    /// nothing, and brought on screen drew no wood until it grew.
+    #[test]
+    fn a_view_that_sees_none_of_the_tree_leaves_the_capacity_as_it_was() {
+        assert_eq!(grow(None, [0; 4]), None, "an empty view set the capacity");
+        let opened = Some([125, 500, 0, 100]);
+        assert_eq!(grow(opened, [0; 4]), opened);
     }
 }
