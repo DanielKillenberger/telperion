@@ -54,7 +54,7 @@ Before the fix against after it, the spruce differs in 53,384 pixels in some cha
 
 ## Open: the device-grown nodes are not numbered the same run to run
 
-The codex review (round 1, all three reviewers) found that R1's "grown tree" check compared only the pipeline's part (`expansion.tree()`), never the device-grown nodes. A probe read the sweep's node table (`swept.nodes`, every device node, 33 words each) back before its release and compared it byte for byte. The patch is `raw/grown-probe-and-queue-experiment.patch` and is not committed. Over 6-build runs:
+The codex review (round 1, all three reviewers) found that R1's "grown tree" check compared only the pipeline's part (`expansion.tree()`), never the device-grown nodes. A probe read the sweep's node table (`swept.nodes`, every device node, 33 words each) back before its release and compared it byte for byte. The patch is `grown-probe-and-queue-experiment.patch` and is not committed. Over 6-build runs:
 
 - The spruce, birch and Telperion matched in every build.
 - The beech failed intermittently: about 390,000 of its 391,673 node slots differed, with the same count of live nodes in each build. The leaves, segments, masses and stills stayed identical.
@@ -62,4 +62,4 @@ The codex review (round 1, all three reviewers) found that R1's "grown tree" che
 
 Experiment (not kept): the beech queues chains that outgrow their region (`record.wgsl`, `queue[atomicAdd(&queued[0], 1u)]`; 44 and 5 chains at level 0). The regrown chains are numbered in queue order. With the queue sorted into wave order before `gather`, the beech matched across 12 builds, but Laurelin still did not. Growth therefore has at least one more source of order beyond the queue, still unnamed.
 
-This lies in growth (`roots.rs`, `record.wgsl`, and whatever else numbers Laurelin's nodes), which fn-254 is rewriting. It is outside the stage this task fixed, so it is handed to the host as NEEDS_HUMAN.
+This lies in growth (`roots.rs`, `record.wgsl`, and whatever else numbers Laurelin's nodes), which fn-256 rewrites. It is outside the stage this task fixed, so it went to the host. Host decision (2026-10-11): fn-261 closes on the leaves and segments; the node table's numbering moved to fn-256 R2, with this patch as its check.
