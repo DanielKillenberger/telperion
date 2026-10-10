@@ -317,7 +317,6 @@ impl Scene {
     pub fn set_material(&mut self, material: MaterialParams) {
         self.material = material;
         self.reflection = Reflection::NONE;
-        self.stalk = [0.0; 4];
     }
 
     /// The flowers' stalks for the subject that is up, set after its

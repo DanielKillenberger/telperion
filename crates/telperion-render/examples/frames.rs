@@ -4,13 +4,15 @@
 //! the hero pose ("whole") and the same pose at a quarter of the distance
 //! ("close"), each in the whole and the bare view. Prints one JSON line.
 //!
-//!   cargo run --profile ci -p telperion-render --example frames -- <preset> [full|relief-off|parallax-off] [view...]
+//!   cargo run --profile ci -p telperion-render --example frames -- <preset> [full|relief-off|parallax-off|no-rachis] [view...]
 //!
 //! Views are any of whole, mid (half the distance), close, bare-whole and
 //! bare-close; all but mid by default.
 //! `relief-off` draws the bark with no relief (ridge scale and depth zero),
 //! `parallax-off` with its relief and no depth: the wood's shaded pass
-//! measured against itself (fn-246 R1).
+//! measured against itself (fn-246 R1). `no-rachis` grows the flowers with
+//! no rachis, the florets on their tips: what the rachises cost (fn-253).
+//! `FLOWERING=<share>` sets a trial share for the short shoots.
 use std::time::Instant;
 use telperion_core::presets::Preset;
 use telperion_render::{
@@ -24,11 +26,18 @@ const PIPELINED: u32 = 120;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let [id, rest @ ..] = &args[..] else {
-        return Err("usage: frames <preset> [full|relief-off|parallax-off] [view...]".into());
+        return Err("usage: frames <preset> [full|relief-off|parallax-off|no-rachis] [view...]".into());
     };
     let variant = rest.first().map_or("full", String::as_str);
     let mut family = Preset::from_id(id).ok_or("no preset")?.parameters();
     family.skeleton.seed = 1;
+    if variant == "no-rachis" {
+        family.supernatural.bloom.rachis = Some(0.0);
+    }
+    // A trial flowering share for the short shoots (fn-253).
+    if let Ok(share) = std::env::var("FLOWERING") {
+        family.supernatural.flowering.age14 = Some(share.parse()?);
+    }
     let mut renderer = Renderer::new(pollster::block_on(Gpu::request(None))?, STILL_FORMAT);
     let generator = Generator::new(&renderer)?;
     pollster::block_on(generator.prepare_programs())?;
@@ -38,7 +47,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     renderer.set_family(&family);
     let mut material = family.drawn_material();
     match variant {
-        "full" => {}
+        "full" | "no-rachis" => {}
         "relief-off" => (material.ridge_scale, material.depth_strength) = (0.0, 0.0),
         "parallax-off" => material.depth_strength = 0.0,
         other => return Err(format!("no variant {other}").into()),

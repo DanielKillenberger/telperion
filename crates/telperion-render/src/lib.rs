@@ -328,7 +328,6 @@ impl Renderer {
     pub fn set_material(&mut self, material: MaterialParams) {
         self.wood.set_material(&material);
         self.scene.set_material(material);
-        self.organ.set_rachis(0.0);
     }
 
     /// What the tree that is up is made of, as `family` states it with its
