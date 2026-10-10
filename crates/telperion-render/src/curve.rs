@@ -190,19 +190,20 @@ impl CurveGpu {
 
     /// Fits both views to this frame: the camera's budget from its screen
     /// and the sun's from its map, the buffers they share as large as the
-    /// larger asks. Whether the passes can run: until the browser has
+    /// larger asks. `None` until the passes can run: until the browser has
     /// compiled them the wood is not surfaced, and a frame draws none
-    /// (fn-243).
+    /// (fn-243). Otherwise whether the sun's view was made again, and so
+    /// holds nothing until it is surfaced again with its map.
     pub(crate) fn fit(
         &mut self,
         gpu: &Gpu,
         camera: &Camera,
         viewport: (u32, u32),
         light: &crate::shadow::Light,
-    ) -> bool {
+    ) -> Option<bool> {
         let Some(pipelines) = compiled(gpu) else {
             self.views = None;
-            return false;
+            return None;
         };
         let pixels = u64::from(viewport.0.max(1)) * u64::from(viewport.1.max(1));
         // The sun's map is fitted to the tree, so the tree covers most of its
@@ -232,6 +233,7 @@ impl CurveGpu {
         };
         let camera_target = made(&self.camera, "curve camera", wanted[0]);
         let sun_target = made(&self.sun, "curve sun", wanted[1]);
+        let remade = sun_target.is_some();
         self.camera = camera_target.or(self.camera.take());
         self.sun = sun_target.or(self.sun.take());
         let d = light.direction;
@@ -244,7 +246,7 @@ impl CurveGpu {
             planes: Some(wide(crate::select::frame::planes(&light.view_projection))),
         };
         self.views = Some([camera_view, sun_view]);
-        true
+        Some(remade)
     }
 
     /// Surfaces the wood for `side` in one compute pass, which `timestamps`

@@ -72,20 +72,22 @@ impl Wood {
         self.smooth_on = smooth_bark(material);
     }
 
-    /// Fits the curve's views to this frame, where there is a curve.
-    /// Whether the wood can be surfaced, which it cannot while its programs
-    /// compile; with no curve there is nothing to wait for.
+    /// Fits the curve's views to this frame, where there is a curve:
+    /// `None` while its programs compile, otherwise whether the sun's view
+    /// was made again (`CurveGpu::fit`). With no curve there is nothing to
+    /// wait for and nothing made.
     pub fn fit(
         &mut self,
         gpu: &Gpu,
         camera: &crate::Camera,
         viewport: (u32, u32),
         light: &crate::shadow::Light,
-    ) -> bool {
+    ) -> Option<bool> {
         let viewport = self.pinned.unwrap_or(viewport);
-        self.curve
-            .as_mut()
-            .is_none_or(|curve| curve.fit(gpu, camera, viewport, light))
+        match &mut self.curve {
+            Some(curve) => curve.fit(gpu, camera, viewport, light),
+            None => Some(false),
+        }
     }
 
     /// Records `side`'s passes over the curve as the last `fit` sized

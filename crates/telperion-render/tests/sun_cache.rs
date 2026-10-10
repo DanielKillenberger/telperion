@@ -60,3 +60,29 @@ fn the_sun_is_drawn_again_only_when_what_it_sees_changed() {
     renderer.submit(&tree).unwrap();
     assert!(!frame(&mut renderer, View::Whole, &hero).0, "a new tree reused the map");
 }
+
+/// fn-258: the sun's wood shares its buffers with the camera's, so a
+/// resize that makes them again surfaces the sun again with its map: the
+/// map's casters are still counted after the resize.
+#[test]
+fn a_resize_that_remakes_the_shared_buffers_keeps_the_suns_casters_counted() {
+    let Some(gpu) = common::gpu() else { return };
+    let tree = mesh::build(&common::ordinary()).expect("the tree grew");
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    renderer.submit(&tree).expect("the tree fits the device");
+    let hero = hero_pose(renderer.bounds().unwrap(), 1.5, GROUND_REACH);
+    render(&mut renderer, &hero, 96, 64).expect("the frame was drawn");
+    let (budget, casters) = (renderer.curve_bytes(), renderer.caster_triangles());
+    assert!(casters > 0, "the sun drew no wood");
+    // A screen larger than the sun's map asks more than the sun does.
+    render(&mut renderer, &hero, 3072, 2048).expect("the resized frame was drawn");
+    assert!(
+        renderer.curve_bytes() > budget,
+        "the resize kept the shared buffers"
+    );
+    assert_eq!(
+        renderer.caster_triangles(),
+        casters,
+        "the resize lost the sun's casters"
+    );
+}

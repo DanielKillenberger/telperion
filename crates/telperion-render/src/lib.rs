@@ -533,8 +533,13 @@ impl Renderer {
         // (fn-246), its wood surfaced into the buffers the camera's is
         // written over after the map is drawn (fn-258).
         let key = sun::Key::new(light, self.view, stride);
+        let fitted = self.wood.fit(&self.gpu, camera, viewport, &light);
+        if fitted == Some(true) {
+            // The sun's view was made again empty: its map is drawn again.
+            self.sun.forget();
+        }
         let map = self.sun.plan(&key);
-        let surfaced = self.wood.fit(&self.gpu, camera, viewport, &light);
+        let surfaced = fitted.is_some();
         self.sun.drew(key, map, surfaced);
         self.whole = surfaced;
         self.foliage.dispatch(

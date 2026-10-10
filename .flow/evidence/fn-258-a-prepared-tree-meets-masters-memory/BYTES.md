@@ -153,3 +153,35 @@ What the frame table says:
 | Measure scale 1 first, the coarser scales only when it overruns | none; 1-3 of 6 cluster walks a frame | No: the same scale is chosen |
 | A smaller camera budget than the worst view could ask | most of the camera budget | **Yes**: a view past it is drawn coarser. A level-of-detail choice for the owner |
 | Programs compiled only when a tree needs them | about 100 MB | No, but it reverses fn-243's compile at page load |
+
+## CPU memory by owner (added after review)
+
+Taken from the R3 sweep (`RESULT.md`, `raw/r3.jsonl`, seed 1, F4 after the cuts; master unchanged). After the builds the probe read `VmRSS`, called `malloc_trim(0)` and read it again. What `malloc_trim` returns is freed heap glibc kept; what stays is live. Checked against code: after `submit_prepared` the renderer keeps no CPU copy of the wood or the placed leaves (`Prepared` is consumed; they live on the device), only the one leaf's element, the bounds and the level tolerances (`generation/submit.rs`), so F4's live CPU is the process (driver, programs, the generator's kit and tables), and its peak is the preparation's working set: the skeleton, the fine roots' CPU half and the meshes it builds, all dropped when the build returns. No CPU pool or scratch outlives a build.
+
+| Tree | Version, age | RSS after the builds MB | live after `malloc_trim` MB | freed heap glibc kept MB | peak (preparation working set) MB |
+|---|---|--:|--:|--:|--:|
+| date-palm | old 100 | 135 | 134 | 1 | 337 |
+| date-palm | new 40 | 160 | 160 | 0 | 345 |
+| date-palm | new 100 | 162 | 161 | 1 | 336 |
+| ordinary | old 100 | 218 | 199 | 19 | 329 |
+| ordinary | new 40 | 352 | 250 | 102 | 373 |
+| ordinary | new 100 | 3404 | 310 | 3094 | 3688 |
+| norway-spruce | old 100 | 222 | 199 | 23 | 348 |
+| norway-spruce | new 40 | 600 | 414 | 186 | 596 |
+| silver-birch | old 70 | 246 | 200 | 46 | 352 |
+| silver-birch | new 40 | 368 | 327 | 41 | 470 |
+| silver-birch | new 70 | 867 | 515 | 352 | 933 |
+| oregon-white-oak | old 100 | 211 | 200 | 11 | 347 |
+| oregon-white-oak | new 40 | 834 | 297 | 537 | 906 |
+| oregon-white-oak | new 100 | 8017 | 197 | 7820 | 9004 |
+| european-beech | old 120 | 324 | 273 | 51 | 912 |
+| european-beech | new 40 | 278 | 274 | 4 | 413 |
+| european-beech | new 120 | 597 | 376 | 221 | 679 |
+| laurelin | old 100 | 204 | 199 | 5 | 335 |
+| laurelin | new 80 | 365 | 310 | 55 | 474 |
+| laurelin | new 100 | 417 | 353 | 64 | 516 |
+| telperion | old 100 | 261 | 200 | 61 | 344 |
+| telperion | new 82 | 359 | 307 | 52 | 466 |
+| telperion | new 100 | 449 | 376 | 73 | 535 |
+
+The live CPU F4 holds after a build is 0-215 MB above master's at default age (the spruce the most, 414 against 199). The rest of the gap is the working set: the oak at 100 peaks at 9.0 GB and keeps 7.8 GB of freed heap until trimmed; in a browser a Wasm memory keeps its peak.
