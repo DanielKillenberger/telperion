@@ -340,3 +340,19 @@ The parity test's own cherry fixture, measured CPU against device:
 | Telperion | 8.39 ms (was 7.02) | 16.00 (15.90) | 13.98 (14.10) |
 
 Per the decision, stopped with the numbers. The trial is kept on its own branch; the task branch stays at the parity fix, with fn-246's per-floret card (+39 %).
+
+## Host decision: fn-246's floret card stays, its bound restated (2026-10-10)
+
+**The decision.**
+- The unit card is rejected on its measurement: +87 to +131 % against the 4× render. Branch `fn-253-unit-card-trial` stays unmerged as evidence.
+- fn-246's per-floret card stays. The owner accepted it by eye against the 4× reference ("almost no difference from reference").
+- Its error moved from +25 % to +39 % only because tip seating clusters the florets, so they overlap.
+
+**`tests/thinning.rs`'s bound** goes from 30 % to 45 %:
+- the card measures +38 % on the R2 commit and +39 % now, on tip-seated florets;
+- the bound is that plus about 5 points, as fn-246 set it;
+- the owner's eye against the 4× reference is the real gate. The comment states each of these.
+
+**The pairs for the owner** (viewed): `STALKS-laurelin-whole-reference.jpg` and `STALKS-telperion-whole-reference.jpg`.
+- **What each holds:** the whole view at 1920×1080 as the harness draws it, beside the same frame drawn at 4× and box-reduced in linear light (`examples/crown_truth`, raw in `raw/truth/`).
+- **What they show:** Laurelin's gold reads denser and brighter in the live frame than in the reference; Telperion's white reads close, the live frame a little whiter.

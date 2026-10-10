@@ -12,8 +12,13 @@ use telperion_render::{hero_pose, render, Renderer, Still, View, GROUND_REACH, S
 /// the owner's decision (fn-246 FPS.md, 2026-10-09, on the labelled
 /// comparison https://claude.ai/artifact/8WwaynDsif2JekPvHDDtDi), accepted
 /// past the crown bound on his look. Measured: 25.4% with the card, 14.8%
-/// without it; the bound is the card's value plus 5 points.
-const BLOSSOM_BOUND: f64 = 0.30;
+/// without it; the bound was the card's value plus 5 points. Seated at the
+/// shoots' tips (fn-253) the florets cluster and overlap, and the card
+/// measures 38 to 39%; the bound is restated at that plus about 5 points
+/// (host, 2026-10-10). A card per inflorescence was tried and measured 87
+/// to 131% (fn-253 SEATS.md), so the floret's card stays, and the owner's
+/// eye against the 4x reference is the gate this number stands behind.
+const BLOSSOM_BOUND: f64 = 0.45;
 
 /// A delivered sRGB value as linear light, the space a box average is
 /// taken in.
