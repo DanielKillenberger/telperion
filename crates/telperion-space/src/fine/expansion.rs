@@ -14,8 +14,7 @@ use super::{Clock, Plan};
 use crate::closed_form::boundary::Rows;
 use crate::closed_form::predictor::Predictor;
 use crate::error::{refuse, Error, Result};
-use crate::fixed::feedback::total::Total;
-use crate::fixed::presence::{q, times};
+use crate::contract::presence::{q, times};
 use crate::geometry::scale;
 use crate::girth::Girth;
 use crate::grow::alone::Bud;
@@ -26,9 +25,9 @@ use crate::species::Species;
 use crate::structure::{Origin, Structure, Vec3};
 
 /// A subtree's living as its bearer's fade reads it: the last time
-/// anything in it lived (Q32.32 cycles) and its most present living
-/// apex (Q32).
-pub type Lived = (u64, u64);
+/// anything in it lived (cycles after its birth) and its most present
+/// living apex.
+pub type Lived = (f32, f32);
 
 /// A root's load at its base: its mass and its first moment, in the
 /// tree's frame.
@@ -36,11 +35,11 @@ pub type Loaded = (f64, Vec3);
 
 /// A fine root as an executor takes it: its bud, its first axis's
 /// vigour as made and its node's buds a whorl, and the presences of the
-/// draws that made its first axis (Q32), as its own grower takes them.
+/// draws that made its first axis, as its own grower takes them.
 pub struct RootSeed {
     pub bud: super::ChainBud,
     pub made: (f64, f64),
-    pub birth: [u64; 2],
+    pub birth: [f32; 2],
     pub(crate) handed: Handed,
 }
 
@@ -68,7 +67,7 @@ pub trait Roots {
     /// `leaf_girth`; host decision on fn-211 task 12, PHASES.md): down,
     /// each root's bearer's base and its node's drawn scale as grown
     /// (Q32, real), by root; up, each one's leaf partials as grown.
-    fn grown_partials(&mut self, _stands: &[(i64, f64)]) -> Result<Vec<[Total; 2]>> {
+    fn grown_partials(&mut self, _stands: &[(f32, f64)]) -> Result<Vec<[f32; 2]>> {
         refuse(
             "retained",
             "this executor's roots do not carry the as-grown exchange (fn-211 task 12)",
@@ -77,7 +76,7 @@ pub trait Roots {
     /// The exchange's second half: down, the tree's leaf mean and each
     /// root's bearers' fades at its base (Q32), by root; up, each one's
     /// base radius as grown, its own shed pipes kept for phase 2.
-    fn grown_radii(&mut self, _mean: Option<f64>, _above: &[i64]) -> Result<Vec<f64>> {
+    fn grown_radii(&mut self, _mean: Option<f64>, _above: &[f32]) -> Result<Vec<f64>> {
         refuse(
             "retained",
             "this executor's roots do not carry the as-grown exchange (fn-211 task 12)",
@@ -539,7 +538,7 @@ fn whorl(bud: &Bud) -> f64 {
 /// The presences of the draws that made `bud`'s first axis: a lateral's
 /// as its bearer made it; a woken bud's own draw's, and its carrying and
 /// reach times what its bearer kept of it.
-pub(crate) fn birth(bud: &Bud) -> [u64; 2] {
+pub(crate) fn birth(bud: &Bud) -> [f32; 2] {
     match bud.wake {
         None => bud.draws.birth.map(q),
         Some((p, kept)) => {

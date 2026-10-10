@@ -54,13 +54,13 @@ pub struct Alone<'s> {
 /// A chain to grow: the bud it grows from (none: the seed's), its
 /// bearer's index among the axes kept, its bud's record, its order, and
 /// its bearer's shedding context (`shed.rs`): the chance its bearer's other
-/// buds all died, as `-log2` in Q32 (`fixed.rs`).
+/// buds all died, as `-log2` (`contract.rs`).
 pub(crate) struct Item {
     pub bud: Option<Bud>,
     pub bearer: usize,
     pub record: Option<usize>,
     pub order: usize,
-    pub context: Option<i64>,
+    pub context: Option<f32>,
 }
 
 /// What growing chains alone leaves: the axes kept, every bud made on a
@@ -130,10 +130,10 @@ pub(crate) type Observe<'o> = &'o mut dyn FnMut(Seen);
 /// One chain as `Observe` sees it.
 pub(crate) struct Seen<'a> {
     pub bud: Option<&'a Bud>,
-    pub context: Option<i64>,
+    pub context: Option<f32>,
     pub chain: &'a Chain,
     pub kept: &'a [bool],
-    pub contexts: &'a [Option<i64>],
+    pub contexts: &'a [Option<f32>],
 }
 
 /// Grows chains breadth first from `start` (the axes and records held

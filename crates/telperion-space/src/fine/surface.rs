@@ -1,14 +1,14 @@
 //! The GPU executor's surface for a chain's growth (fn-209 F1, task 2): a
-//! species point's per-PA rows, as integers on the contract's fixed point
-//! (`fixed.rs`), every chain of a tree as the executor takes it (its bud),
+//! species point's per-PA rows, as the contract's thresholds, ticks and
+//! f32 values (`contract.rs`), every chain of a tree as the executor takes it (its bud),
 //! and its topology as the CPU reference executor grows it, which the
 //! executor's tests hold the GPU's against.
 use super::tables::Units;
 use crate::alone::{chains, seed_item, Seen};
 use crate::bounded::Expected;
 use crate::error::Result;
-use crate::fixed::presence::q;
-use crate::fixed::{neg_log2, q32, q62, ticks, INF};
+use crate::contract::presence::q;
+use crate::contract::{neg_log2, ticks, INF};
 use crate::grow::alone::{rules, Bud, Chain};
 use crate::grow::Request;
 use crate::lineage::{threshold, Key};
@@ -26,32 +26,32 @@ pub struct PaRow {
     /// The age a bud of it grows in (`Species::lived`).
     pub lived: Option<usize>,
     /// D5: a whole unit's threshold, and `-log2` for a share.
-    pub viability: (u64, i64),
+    pub viability: (u64, f32),
     /// D6: none where it never aborts; else a whole, unrising unit's
-    /// threshold, `-log2 (1 - a)`, and the rise (Q32) where it rises.
-    pub abortion: Option<(u64, i64, Option<i64>)>,
+    /// threshold, `-log2 (1 - a)`, and the rise where it rises.
+    pub abortion: Option<(u64, f32, Option<f32>)>,
     /// D9: the relay thresholds of a stop by abortion, end and failure.
     pub relay: [u64; 3],
-    /// D8 and D10: the age it moves on to, the move's threshold and Q62
-    /// chance, and its window's rate and floor (Q32) at its stake.
-    pub successor: Option<(usize, u64, u64)>,
-    pub moved: (i64, i64),
-    /// D14: its shedding delay plus a cycle (Q32), where it sheds, and
-    /// the bound on its subtree's life (Q32), where it has one.
-    pub delay: Option<i64>,
-    pub lasting: Option<i64>,
-    /// D18: where along its last unit a relay of it stands (Q32).
-    pub relay_at: u64,
-    /// Host decision 8, Q32: the window's rate and floor at stake 1, at
+    /// D8 and D10: the age it moves on to, the move's threshold and
+    /// chance, and its window's rate and floor at its stake.
+    pub successor: Option<(usize, u64, f32)>,
+    pub moved: (f32, f32),
+    /// D14: its shedding delay plus a cycle, where it sheds, and the bound
+    /// on its subtree's life, where it has one, in cycles.
+    pub delay: Option<f32>,
+    pub lasting: Option<f32>,
+    /// D18: where along its last unit a relay of it stands.
+    pub relay_at: f32,
+    /// Host decision 8: the window's rate and floor at stake 1, at
     /// a failed unit's (1 - relay_failed) and at an abortion's (1 -
     /// relay); its successor's chance and its ended age's relay
     /// (`Grower::living`); each stage's reach from a bud of it, its own
     /// first (`Species::lived`, `dormant::aged`); and its fade's delay
     /// plus a cycle (`shed.rs`).
-    pub stakes: [(i64, i64); 3],
-    pub living: (u64, u64),
-    pub reaches: Vec<u64>,
-    pub fade_delay: u64,
+    pub stakes: [(f32, f32); 3],
+    pub living: (f32, f32),
+    pub reaches: Vec<f32>,
+    pub fade_delay: f32,
 }
 
 /// A species point's tables for a chain's growth.
@@ -60,10 +60,10 @@ pub struct ChainTables {
     pub pas: Vec<PaRow>,
     pub units: Units,
     /// Per PA, per cycle from 0 to the age plus one, the log of the wood
-    /// a bud of it is expected to grow from then (Q32; `-INF` for none).
-    pub log_woods: Vec<Vec<i64>>,
-    /// The widest window (Q32).
-    pub span: i64,
+    /// a bud of it is expected to grow from then (`-INF` for none).
+    pub log_woods: Vec<Vec<f32>>,
+    /// The widest window.
+    pub span: f32,
     pub age: u32,
 }
 
@@ -75,11 +75,11 @@ impl ChainTables {
         let pas = (0..species.states.len())
             .map(|pa| {
                 let s = &species.states[pa];
-                let rises = s.rises().then(|| q32(s.abortion_rise));
+                let rises = s.rises().then(|| s.abortion_rise as f32);
                 let abortion = (s.abortion > 0.0).then(|| {
                     (
                         threshold(s.abortion),
-                        neg_log2(q62(1.0 - s.abortion)),
+                        neg_log2((1.0 - s.abortion) as f32),
                         rises,
                     )
                 });
@@ -88,18 +88,18 @@ impl ChainTables {
                     life: ticks(s.life()),
                     lives: s.lifespan > 0.0,
                     lived: species.lived(pa).map(|l| l.0),
-                    viability: (threshold(s.viability), neg_log2(q62(s.viability))),
+                    viability: (threshold(s.viability), neg_log2(s.viability as f32)),
                     abortion,
                     relay: [s.relay, s.relay_ended, s.relay_failed].map(threshold),
                     successor: species
                         .successor(pa)
-                        .map(|(next, go)| (next, threshold(go), q62(go))),
-                    moved: (q32(RATE * stake), q32(FLOOR * stake)),
-                    delay: s.shedding.is_finite().then(|| q32(s.shedding + 1.0)),
-                    lasting: rules.lasting[pa].map(q32),
-                    relay_at: q32(s.relay_at.clamp(0.0, 1.0)) as u64,
+                        .map(|(next, go)| (next, threshold(go), go as f32)),
+                    moved: ((RATE * stake) as f32, (FLOOR * stake) as f32),
+                    delay: s.shedding.is_finite().then(|| (s.shedding + 1.0) as f32),
+                    lasting: rules.lasting[pa].map(|l| l as f32),
+                    relay_at: s.relay_at.clamp(0.0, 1.0) as f32,
                     stakes: [1.0, 1.0 - s.relay_failed, 1.0 - s.relay]
-                        .map(|stake| (q32(RATE * stake), q32(FLOOR * stake))),
+                        .map(|stake| ((RATE * stake) as f32, (FLOOR * stake) as f32)),
                     living: (
                         q(species.successor(pa).map_or(0.0, |(_, go)| go)),
                         q(s.relay_ended),
@@ -108,7 +108,7 @@ impl ChainTables {
                     fade_delay: if s.shedding.is_finite() {
                         q(s.shedding + 1.0)
                     } else {
-                        0
+                        0.0
                     },
                 }
             })
@@ -119,7 +119,7 @@ impl ChainTables {
                 (0..=age + 1)
                     .map(|c| match c {
                         0 => -INF,
-                        _ => q32(rules.windows.log_wood(pa, c)),
+                        _ => crate::contract::log32(rules.windows.log_wood(pa, c)),
                     })
                     .collect()
             })
@@ -128,15 +128,15 @@ impl ChainTables {
             pas,
             units: Units::new(species, age)?,
             log_woods,
-            span: q32(SPAN),
+            span: SPAN as f32,
             age,
         })
     }
 }
 
-/// Each stage a bud of `pa` reaches, its reach Q32: the age it grows in
+/// Each stage a bud of `pa` reaches, its reach: the age it grows in
 /// and each it moves on to (`dormant::aged`'s walk, its products real).
-fn reaches(species: &Species, pa: usize) -> Vec<u64> {
+fn reaches(species: &Species, pa: usize) -> Vec<f32> {
     let mut out = Vec::new();
     let Some((mut at, mut reach)) = species.lived(pa) else {
         return out;
@@ -163,13 +163,13 @@ pub struct ChainBud {
     pub slot: u8,
     /// The lineage its chain of ages began from.
     pub root: u64,
-    /// Its horizon (Q32; `-INF` for none).
-    pub horizon: i64,
+    /// Its horizon, in cycles (`-INF` for none).
+    pub horizon: f32,
     /// Where it slept and woke, for a bud that woke.
     pub woke: Option<Woke>,
     /// Its bearer's shedding context (D15), where its keeping is
     /// conditioned on it.
-    pub context: Option<i64>,
+    pub context: Option<f32>,
 }
 
 /// A woken bud's waking (`ChainBud::woke`): the sleeping bud's key and
@@ -193,7 +193,7 @@ pub type Case = (ChainBud, Vec<ChainAxis>);
 /// bearer), how it stands there, its lineage, PA and birth, where its
 /// apex stopped, and its phytomers' cycles and keys. Borne laterals are
 /// axes of no phytomers.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ChainAxis {
     pub parent: Option<usize>,
     /// 0 seed, 1 lateral, 2 continuation, 3 relay.
@@ -211,7 +211,7 @@ pub struct ChainAxis {
     /// D15: whether the chain keeps it (its own axes), and, for a bud it
     /// bears, the context its own chain's keeping is conditioned on.
     pub kept: bool,
-    pub context: Option<i64>,
+    pub context: Option<f32>,
 }
 
 /// Every chain of `species`'s tree grown alone as the CPU reference grows
@@ -234,7 +234,7 @@ pub fn chain_cases(species: &Species, request: Request) -> Result<Vec<Case>> {
 }
 
 pub(super) fn input(species: &Species, seed: u64, bud: Option<&Bud>) -> ChainBud {
-    let horizon = |h: f64| if h.is_finite() { q32(h) } else { -INF };
+    let horizon = |h: f64| if h.is_finite() { h as f32 } else { -INF };
     match bud {
         None => {
             let key = Key::root(seed);
@@ -279,7 +279,7 @@ pub(super) fn input(species: &Species, seed: u64, bud: Option<&Bud>) -> ChainBud
     }
 }
 
-fn topology(chain: &Chain, kept: &[bool], contexts: &[Option<i64>]) -> Vec<ChainAxis> {
+fn topology(chain: &Chain, kept: &[bool], contexts: &[Option<f32>]) -> Vec<ChainAxis> {
     let root = chain.root;
     let woken = chain.buds.iter().filter(|b| b.woken()).map(|b| &b.axis);
     // Each bud's context by its axis: the laterals in the chain's order,

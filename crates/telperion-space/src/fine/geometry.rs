@@ -151,7 +151,7 @@ pub struct BearerFrame {
     pub rank: f64,
     pub scale: f64,
     pub size: f64,
-    pub phase: i64,
+    pub phase: f32,
 }
 
 /// A fine root's attachment as its geometry reads it: its bud's vigour as

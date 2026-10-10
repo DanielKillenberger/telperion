@@ -4,7 +4,7 @@
 use super::shoot::{Rules, Shoot};
 use super::{Apex, Certain};
 use crate::error::{Error, Result};
-use crate::fixed::{self, presence};
+use crate::contract::{decide, presence};
 use crate::lineage::{self, Key, ZONE};
 use crate::schedule::Cut;
 use crate::species::{ALONG, MAX_BUDS, MAX_NODES_PER_ZONE};
@@ -32,7 +32,7 @@ impl Shoot<'_, '_> {
             let mut sleeping = std::mem::take(&mut self.sleeping);
             let node_wood = node_wood(rules, (pa, z), cycle, &mut sleeping);
             // Each node's presence, Q32 (D18 reads it).
-            let window = fixed::decide::node_window(node_wood);
+            let window = decide::node_window(node_wood);
             let draw = zone_key.draw();
             lineage::node_presences(zone.nodes, draw, MAX_NODES_PER_ZONE, window, &mut leads);
             if let Some(cut) = cut {
@@ -82,7 +82,7 @@ impl Shoot<'_, '_> {
                     light: 1.0,
                     grown: 0.0,
                 });
-                let node_presence = fixed::real(node_presence);
+                let node_presence = presence::real(node_presence);
                 self.draws_mut(apex.axis).nodes.push(node_presence);
                 for (slot, bud) in buds[..zone.places()].iter().enumerate() {
                     let Some((drawn_pa, d)) = *bud else {
@@ -115,8 +115,8 @@ impl Shoot<'_, '_> {
                     let lead = lineage::bud_presence(lateral, drawn_pa, d, window);
                     let placed = lineage::place_presence(key, zone.share(slot), window);
                     let made = [
-                        fixed::real(presence::times(lead, placed)),
-                        fixed::real(presence::q(reach)),
+                        presence::real(presence::times(lead, placed)),
+                        presence::real(presence::q(reach)),
                     ];
                     self.sprout(key, lateral_pa, cycle, origin, made);
                 }

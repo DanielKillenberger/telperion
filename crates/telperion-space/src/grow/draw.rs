@@ -8,18 +8,12 @@ use super::sketch::Pencil;
 use super::Grower;
 use crate::cores::{map, picked, PIECE};
 use crate::error::{Error, Result};
-use crate::fixed::feedback::wide::prod_shr;
-use crate::fixed::{mul, q32, ONE32};
 use crate::geometry::{bend, dominance, frame, Layer};
 
 use crate::presence::{relay_node, Draws};
 use crate::species::Species;
 use crate::structure::{Axis, Origin, Vec3};
 
-/// A Q32 as its exact real.
-fn real(q: i64) -> f64 {
-    q as f64 / ONE32 as f64
-}
 
 /// A new axis's frame: base, heading and side.
 type Framed = (Vec3, Vec3, Vec3);
@@ -305,20 +299,20 @@ fn pencil<'p>(
         }
         None => Vec::new(),
     };
-    // Contract A (CONTRACT-A.md 2.4): every factor Q32, one floor each.
-    let made = mul(q32(draws[i].birth[0]), q32(draws[i].birth[1]));
+    // Every factor an f32, in this order.
+    let made = draws[i].birth[0] as f32 * draws[i].birth[1] as f32;
     let curve = match axis.origin {
         Origin::Continuation { parent } | Origin::Relay { parent, .. } => of(parent).layer.curve(),
         _ => Vec3::default(),
     };
     let (inherited, vigour, trunk) = match axis.origin {
-        Origin::Seed => (ONE32, made, true),
+        Origin::Seed => (1.0, made, true),
         Origin::Lateral { parent, node, .. } => {
-            (q32(axes[parent].phytomers[node].scale), made, false)
+            (axes[parent].phytomers[node].scale as f32, made, false)
         }
         Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
             let p = of(parent);
-            (q32(p.base_scale), mul(q32(p.running), made), p.trunk)
+            (p.base_scale as f32, p.running as f32 * made, p.trunk)
         }
     };
     let share = match axis.origin {
@@ -329,7 +323,7 @@ fn pencil<'p>(
     let turning = crate::lineage::tropism(axis.lineage, spread);
     let pencil = Pencil {
         layer: Layer::bent(framed, curve, turning).inheriting(handed),
-        base_scale: real(mul(mul(inherited, vigour), q32(share))),
+        base_scale: f64::from(inherited * vigour * share as f32),
         running: 1.0,
         rank: 0.0,
         units: 0,
@@ -374,8 +368,8 @@ pub(super) fn draw_bent(
         let k = pencil.units;
         let drawn = draws.units[k];
         // The share of a node's length its nodes grew at (`Unit::size`).
-        let grown = q32(drawn.size);
-        let present = mul(q32(pencil.running), q32(drawn.survive));
+        let grown = drawn.size as f32;
+        let present = pencil.running as f32 * drawn.survive as f32;
         let [size, _] = draws.shade(k);
         let birth = axis.birth;
         let unit = |p: &crate::structure::Phytomer| (p.cycle - birth - 1) as usize == k;
@@ -387,35 +381,34 @@ pub(super) fn draw_bent(
         for j in pencil.laid..end {
             let p = &mut axis.phytomers[j];
             // Unsized: what it bears inherits its scale without its size.
-            let node = q32(draws.nodes[j]);
-            let factors = [q32(pencil.base_scale), present, node, grown];
-            p.scale = real(prod_shr(factors, 96).expect("a scale inside Q32"));
-            // How much of a node it is (`stand`): one floor, as its scale.
-            p.grown = real(prod_shr([present, node, grown, 1], 64).expect("a node's extent"));
+            let node = draws.nodes[j] as f32;
+            p.scale = f64::from(pencil.base_scale as f32 * present * node * grown);
+            // How much of a node it is (`stand`), as its scale.
+            p.grown = f64::from(present * node * grown);
             p.size = size;
             p.rank = pencil.rank;
-            pencil.rank = real(q32(pencil.rank) + mul(node, grown));
+            pencil.rank = f64::from(pencil.rank as f32 + node * grown);
         }
-        let total = q32(pencil.layer.run())
+        let total = pencil.layer.run() as f32
             + axis.phytomers[pencil.laid..end]
                 .iter()
-                .map(|p| mul(q32(p.scale), q32(p.size)))
-                .sum::<i64>();
-        let total = real(total);
+                .map(|p| p.scale as f32 * p.size as f32)
+                .sum::<f32>();
+        let total = f64::from(total);
         for j in pencil.laid..end {
             let p = &mut axis.phytomers[j];
             // Laid at its size, then left unsized for what it bears.
             let bare = p.scale;
-            p.scale = real(mul(q32(bare), q32(p.size)));
+            p.scale = f64::from(bare as f32 * p.size as f32);
             pencil
                 .layer
                 .step(p, state, (bent, total), None, pencil.trunk)
                 .map_err(|s| s.error(i, axis.pa, axis.birth, axis.base.z))?;
-            pencil.wood = real(q32(pencil.wood) + mul(q32(state.internode), q32(p.scale)));
+            pencil.wood = f64::from(pencil.wood as f32 + state.internode as f32 * p.scale as f32);
             p.scale = bare;
         }
         pencil.laid = end;
-        pencil.running = real(mul(present, q32(drawn.persist)));
+        pencil.running = f64::from(present * drawn.persist as f32);
         pencil.units += 1;
     }
     axis.rank = pencil.rank;

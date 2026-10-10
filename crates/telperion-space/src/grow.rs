@@ -30,7 +30,7 @@ mod wake;
 use crate::dormant::{Sleeper, Woken};
 use crate::error::{refuse, Error, Result};
 use crate::fine::lineage_order;
-use crate::fixed::presence::{q, real, times, ONE};
+use crate::contract::presence::{q, real, times, ONE};
 use crate::light::Light;
 use crate::lineage::Key;
 use crate::presence::{Draws, Windows};
@@ -320,7 +320,7 @@ fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
         alive: 0.0,
         rank: 0.0,
         sleep: 0.0,
-        phase: 0,
+        phase: 0.0,
         joined: None,
     }
 }

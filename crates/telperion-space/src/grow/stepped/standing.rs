@@ -7,7 +7,7 @@ use super::{Counts, Executor, Keep};
 use crate::closed_form::boundary::Rows;
 use crate::error::{refuse, Result};
 use crate::fine::{Made, Plan};
-use crate::fixed::presence::{q, real, times};
+use crate::contract::presence::{q, real, times};
 use crate::grow::partition::{Grouping, Order};
 use crate::grow::realized::Assigned;
 use crate::grow::{start, Options, Request, Rules};
@@ -58,7 +58,7 @@ pub(crate) fn stand(
         roots: Vec::new(),
     });
     for cycle in 1..=request.age {
-        x.cycle(cycle, None)?;
+        x.cycle(cycle)?;
     }
     Ok(x.standing())
 }

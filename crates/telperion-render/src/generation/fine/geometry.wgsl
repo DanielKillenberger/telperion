@@ -47,7 +47,6 @@ const SLEEP: u32 = 19u;
 const NPHYT: u32 = 24u;
 const SHED_FLAGS: u32 = 28u;
 const RANKF: u32 = 34u;
-const RANK_HI: u32 = 39u;
 const BLEND: u32 = 35u;
 const WHORL: u32 = 37u;
 const LATERAL: u32 = 1u;
@@ -84,7 +83,7 @@ const S_BASE: u32 = 66u;
 const S_JOIN: u32 = 70u;
 // A relay's attachment (`geometry::attach`), resolved once by `scales`
 // for the passes after: its parent's node and its share of that node's
-// span, Q32 (two words); the node `NONE` on any other axis.
+// span (an f32); the node `NONE` on any other axis.
 const S_ATTACH: u32 = 76u;
 const P_ORDER: u32 = 0u;
 const P_NODE: u32 = 1u;
@@ -174,30 +173,23 @@ fn p3(at: u32) -> vec3<f32> {
     return vec3<f32>(prev[at], prev[at + 1u], prev[at + 2u]);
 }
 
-// A Q52 rank's turn of phyllotaxis under a divergence of `d` turns
-// (Q60): its fraction of a whole turn, the whole turns dropped exactly.
-fn turns(rank: vec2<u32>, d: vec2<u32>) -> f32 {
-    let p = mul128(rank, d);
-    let q = (p.z >> 16u) | (p.w << 16u);
-    return f32(q) * (1.0 / 4294967296.0);
+// A rank's turn of phyllotaxis under a divergence of `d` turns: its
+// fraction of a whole turn.
+fn turns(rank: f32, d: f32) -> f32 {
+    return fract(rank * d);
 }
 
-fn rank_of(at: u32) -> vec2<u32> {
-    return vec2<u32>(bitcast<u32>(out[at + 20u]), bitcast<u32>(out[at + 21u]));
+fn rank_of(at: u32) -> f32 {
+    return out[at + 20u];
 }
 
-fn rank_f(r: vec2<u32>) -> f32 {
-    return (f32(r.y) * 4294967296.0 + f32(r.x)) * (1.0 / 4503599627370496.0);
+fn axis_rank(i: u32) -> f32 {
+    return bitcast<f32>(ax(i, RANKF));
 }
 
-fn axis_rank(i: u32) -> vec2<u32> {
-    return vec2<u32>(ax(i, RANKF), ax(i, RANK_HI));
-}
-
-// A PA's divergence in turns, Q60.
-fn divergence_q(pa: u32) -> vec2<u32> {
-    let b = 4u + GG * pa;
-    return vec2<u32>(bitcast<u32>(gtab[b + 20u]), bitcast<u32>(gtab[b + 21u]));
+// A PA's divergence in turns.
+fn divergence_f(pa: u32) -> f32 {
+    return gtab[4u + GG * pa + 20u];
 }
 
 // The pull carried at scratch `at`'s `k`th place.
@@ -222,7 +214,8 @@ fn dominance(d: f32, lineage: vec2<u32>) -> f32 {
     if d <= 0.0 {
         return 1.0;
     }
-    let held_share = pow(key_unit(child(lineage, KEY_DOMINANCE)), 4.0);
+    let u = key_unit(child(lineage, KEY_DOMINANCE));
+    let held_share = u * u * u * u;
     return 1.0 - d * (1.0 - held_share);
 }
 

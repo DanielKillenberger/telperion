@@ -15,7 +15,7 @@ use super::realized::{RootBud, Waves};
 use super::roots::{Cost, Kernels, Tables};
 use crate::Gpu;
 use std::sync::Arc;
-use telperion_space::fixed::presence::times;
+use telperion_space::contract::presence::times;
 use telperion_space::{
     bearer_frame, ChainTables, GeometryTables, Lived, Loaded, Result, RootSeed, Roots, Step,
     Structure, Vec3,
@@ -366,12 +366,8 @@ impl Roots for Device<'_> {
             let read = self.girths(live, scales).await;
             let read = self.kept(read)?;
             self.cost.lay += start.elapsed_ms();
-            // Each base radius as contract A's girth left it, Q32.
-            let q32 = |r: &[f32; CR as usize]| {
-                let q = u64::from(r[1].to_bits()) | (u64::from(r[2].to_bits()) << 32);
-                q as i64 as f64 / (1u64 << 32) as f64
-            };
-            Ok(live.iter().map(|&r| q32(&read[r])).collect())
+            // Each base radius as the girth left it.
+            Ok(live.iter().map(|&r| f64::from(read[r][1])).collect())
         })
     }
 

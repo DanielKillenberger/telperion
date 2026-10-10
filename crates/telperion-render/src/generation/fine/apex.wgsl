@@ -11,60 +11,29 @@ struct Laid {
     t: vec2<u32>,
 }
 
-fn laid_nodes(zat: u32, d: vec2<u32>, side: vec2<u32>, n: u32, window: vec2<u32>, cut: u32, span_of: u32) -> Laid {
+fn laid_nodes(zat: u32, d: vec2<u32>, n: u32, window: f32, cut: u32, span_of: u32) -> Laid {
     if span_of == 0u {
         return Laid(n, vec2<u32>(0u));
     }
-    var sum = vec2<u32>(0u);
+    var sum = 0.0;
     for (var j = 0u; j < n; j++) {
-        sum = add64(sum, presence(node_lead(zat, d, side, j), window));
+        sum += presence(node_lead(zat, d, j), window);
     }
-    let quota = mul64(w(cut, 0u), sum);
-    let span = w(span_of, 0u);
-    var held = vec2<u32>(0u);
+    let quota = f32(cut) / f32(span_of) * sum;
+    var held = 0.0;
     for (var j = 0u; j < n; j++) {
-        let p = presence(node_lead(zat, d, side, j), window);
-        if !lt64(quota, mul64(add64(held, p), span)) {
-            held = add64(held, p);
+        let p = presence(node_lead(zat, d, j), window);
+        if held + p <= quota {
+            held += p;
             continue;
         }
-        let left = sub64(quota, mul64(held, span));
-        if is_zero(left) {
+        let left = quota - held;
+        if left <= 0.0 {
             return Laid(j, vec2<u32>(0u));
         }
-        return Laid(j, fraction_up(left, mul64(p, span), 53u));
+        return Laid(j, threshold(left / p));
     }
     return Laid(n, vec2<u32>(0u));
-}
-
-// `lead_q(0, t, d, ..)`, to the word: the log-odds of the bound `t`
-// less the draw `d`'s, its four `log2q` from one call site, so `grow`
-// inlines the logarithm once (fn-235's cold make; MERGE-235.md).
-fn under_lead(t: vec2<u32>, d: vec2<u32>) -> vec2<u32> {
-    if !lt64(t, w(0u, 0x200000u)) || is_zero(d) {
-        return inf();
-    }
-    // `logit(t << 9)`, then `logit_draw(d)`: each `ln_ratio`.
-    var r = array<vec2<u32>, 2>();
-    for (var k = 0u; k < 2u; k++) {
-        let top = select(p_one(), w(0u, 0x200000u), k == 1u);
-        let x = select(shl64(t, 9u), d, k == 1u);
-        let y = sub64(top, min64(x, top));
-        if is_zero(x) {
-            r[k] = neg64(inf());
-            continue;
-        }
-        if is_zero(y) {
-            r[k] = inf();
-            continue;
-        }
-        var lg = array<vec2<u32>, 2>();
-        for (var m = 0u; m < 2u; m++) {
-            lg[m] = log2q(select(x, y, m == 1u));
-        }
-        r[k] = smul_shr(sub64(lg[0], lg[1]), LN2, 62u, false);
-    }
-    return sub64(r[0], r[1]);
 }
 
 // A growth unit's phytomers and the laterals they bear (`grow_unit`), its
@@ -79,31 +48,30 @@ fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32, cut: u
         let zk = zone_key(unit, zat);
         let d = draw(zk);
         let n = zone_count(zat, d);
-        let side = zone_side(zat, d, n);
         if n > MOST {
             overflow |= 8u;
             return;
         }
         var drawn: array<u32, MOST>;
         sorted(zk, n, &drawn);
-        let window = words[table[zat + 7u] + cycle];
+        let window = fw(table[zat + 7u] + cycle);
         let zg = zone_g(zat);
         let buds_f = gf(zg);
-        let laid = laid_nodes(zat, d, side, n, window, cut, span_of);
+        let laid = laid_nodes(zat, d, n, window, cut, span_of);
         for (var m = 0u; m < n; m++) {
             let j = drawn[m];
             let node_key = child(zk, w(j, 0u));
             if j > laid.last || (j == laid.last && is_zero(laid.t)) {
                 continue;
             }
-            var node_p = presence(node_lead(zat, d, side, j), window);
+            var node_p = presence(node_lead(zat, d, j), window);
             if j == laid.last {
                 let t = laid.t;
                 let dl = draw(child(node_key, KEY_LAID));
                 if !lt64(dl, t) {
                     continue;
                 }
-                node_p = times_q(node_p, presence(under_lead(t, dl), window));
+                node_p *= presence(lead(vec2<u32>(0u), t, dl), window);
             }
             if n_phyts >= cfg.phyt_cap {
                 overflow |= 2u;
@@ -114,15 +82,13 @@ fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32, cut: u
             phyts[p + 1u] = node_key.y;
             phyts[p + 2u] = cycle;
             phyts[p + 3u] = axis;
-            phyts[p + 4u] = node_p.x;
-            phyts[p + 5u] = node_p.y;
+            phyts[p + 4u] = bitcast<u32>(node_p);
+            phyts[p + 5u] = 0u;
             // Its rank by presence (`presence::assign_one`).
-            let rank = vec2<u32>(rd(axis, RANKF), rd(axis, RANK_HI));
-            phyts[p + PRANK] = rank.x;
-            phyts[p + PRANK + 1u] = rank.y;
-            let next = add64(rank, mul64(node_p, w(ticks, 0u)));
-            wr(axis, RANKF, next.x);
-            wr(axis, RANK_HI, next.y);
+            let rank = rf(axis, RANKF);
+            phyts[p + PRANK] = bitcast<u32>(rank);
+            phyts[p + PRANK + 1u] = 0u;
+            wf(axis, RANKF, rank + node_p * (f32(ticks) * pow2(-20)));
             n_phyts += 1u;
             let node = rd(axis, NPHYT);
             wr(axis, NPHYT, node + 1u);
@@ -144,7 +110,7 @@ fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32, cut: u
                 if at != NONE {
                     // Its node's buds a whorl, and its draws' presences as
                     // made, Q32, at the chain's end (`assign.wgsl`).
-                    wrf(at, WHORL, buds_f);
+                    wf(at, WHORL, buds_f);
                     ask(at, vec4<u32>(LATERAL_ASKS, zat, drew, place.x), vec4<u32>(place.y, 0u, 0u, 0u));
                 }
             }
@@ -237,16 +203,15 @@ fn move_on(apex: Apex, key: vec2<u32>, cycle: u32, used: vec2<u32>) -> Next {
     let pa = rd(a, PA);
     let next = successor(pa);
     if next == NONE {
-        return stop(apex, cycle, used, key, apex.spent, ENDS, true, 0u, HUGE, vec2<u32>(0u));
+        return stop(apex, cycle, used, key, apex.spent, ENDS, true, 0u, INF, vec2<u32>(0u));
     }
     let d = draw(child(key, KEY_MOVE));
     if !lt64(d, row(pa, 9u)) {
-        let stopped = above_t(d, row(pa, 9u));
+        let stopped = lead(row(pa, 9u), ONE53, d);
         return stop(apex, cycle, used, key, apex.spent, ENDS, true, 0u, stopped, vec2<u32>(0u));
     }
-    let woods = array<vec2<u32>, 2>(log_wood(next, cycle), log_wood(next, cycle + 1u));
-    let span = w(cfg.span_lo, cfg.span_hi);
-    let made = moved_q(row(pa, 10u), d, woods[0], woods[1], used, row(pa, 11u), row(pa, 12u), span);
+    let span = bitcast<f32>(cfg.span);
+    let made = moved(fr(pa, 10u), d, log_wood(next, cycle), log_wood(next, cycle + 1u), used, fr(pa, 11u), fr(pa, 12u), span);
     let h = horizon_of(next, CONTINUED, a);
     let c = push_axis(onto(rd64(a, ROOT), next), next, cycle, CONTINUED, a, 0u, rd64(a, ROOT), h, vec2<u32>(0u));
     if c == NONE {
@@ -275,9 +240,9 @@ fn move_on(apex: Apex, key: vec2<u32>, cycle: u32, used: vec2<u32>) -> Next {
 fn relay_after(f: After, cycle: u32) -> Next {
     let pa = rd(f.apex.axis, PA);
     let t = row(pa, 7u);
-    if lt64(f.made, one32()) && !is_zero(t) && lt64(draw(child(f.key, KEY_RELAY)), t) {
+    if f.made < 1.0 && !is_zero(t) && lt64(draw(child(f.key, KEY_RELAY)), t) {
         wr64(f.apex.axis, UNITS, f.apex.spent);
-        let asks = array<vec4<u32>, 2>(vec4<u32>(AFTER_ASKS, f.key.x, f.key.y, cycle), vec4<u32>(f.used.x, f.made.x, f.made.y, 0u));
+        let asks = array<vec4<u32>, 2>(vec4<u32>(AFTER_ASKS, f.key.x, f.key.y, cycle), vec4<u32>(f.used.x, bitcast<u32>(f.made), 0u, 0u));
         return relay_bud(f.apex, cycle, f.used, f.apex.spent, ENDS, true, 0u, 0.0, asks);
     }
     return none();
@@ -298,7 +263,7 @@ fn fail(apex_in: Apex, cycle: u32, gone: u32, whole: bool, key: vec2<u32>, dv: v
     wr(a, APEX_END, cycle + 1u);
     wr(a, KIND, rd(a, KIND) | IS_FAILED);
     wr64(a, UNITS, apex.spent);
-    let blend = clamp(above_t(dv, survives) / SPAN_F, 0.0, 1.0);
+    let blend = clamp(lead(survives, ONE53, dv) / SPAN_F, 0.0, 1.0);
     let used = add64(w(gone, 0u), lived);
     let asks = array<vec4<u32>, 2>(vec4<u32>(RELAY_ASKS, FAILED, key.x, key.y), vec4<u32>(cycle, used.x, 0u, 0u));
     if !is_zero(aborts) {
@@ -311,7 +276,7 @@ fn fail(apex_in: Apex, cycle: u32, gone: u32, whole: bool, key: vec2<u32>, dv: v
                 return none();
             }
             wr(r, APEX_END, cycle + 1u);
-            let stopped = below_t(da, aborts);
+            let stopped = lead(vec2<u32>(0u), aborts, da);
             return stop(Apex(r, apex.spent), cycle, used, key, apex.spent, ABORTED, whole, below, stopped, aborts);
         }
         unit_persists(u, aborts);
@@ -329,7 +294,7 @@ fn abortion_after(pa: u32, grown: vec2<u32>, exposure: vec2<u32>) -> vec2<u32> {
     if (f & 4u) == 0u && !lt64(exposure, shl64(ticks_whole(), 12u)) {
         return row(pa, 3u);
     }
-    return abortion_fine_q(row(pa, 4u), (f & 4u) != 0u, row(pa, 5u), unsigned_ticks(grown), exposure);
+    return abortion_fine(fr(pa, 4u), (f & 4u) != 0u, fr(pa, 5u), unsigned_ticks(grown), exposure);
 }
 
 // One living apex's growth unit in `cycle` (`advance`).
@@ -359,7 +324,7 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
     let below = w(select(0u, rd(a, BELOW), first), 0u);
     var survives = row(pa, 1u);
     if lt64(unsigned_ticks(s1.share), ticks_whole()) {
-        survives = survival_fine_q(row(pa, 2u), add64(shl64(unsigned_ticks(s1.share), 12u), below));
+        survives = survival_fine(fr(pa, 2u), add64(shl64(unsigned_ticks(s1.share), 12u), below));
     }
     let dv = draw(child(decide, KEY_VIABILITY));
     // A failure's relay, where its draw makes one (D9).
@@ -372,7 +337,7 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
     if !lt64(dv, survives) && !failing && !nested {
         wr(a, APEX_END, cycle);
         wr(a, KIND, rd(a, KIND) | IS_FAILED);
-        let stopped = above_t(dv, survives);
+        let stopped = lead(survives, ONE53, dv);
         let spent = add64(apex.spent, s1.share);
         return stop(apex, cycle, ticks_whole(), decide, spent, FAILED, false, 0u, stopped, survives);
     }
@@ -381,8 +346,8 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
     var lived = vec2<u32>(0u);
     var lived_below = 0u;
     if failing {
-        lived = lived_q(row(pa, 2u), unsigned_ticks(s1.share), dv);
-        lived_below = sub64(shl64(lived, 12u), lived_fine_q(row(pa, 2u), unsigned_ticks(s1.share), dv)).x;
+        lived = lived_ticks(fr(pa, 2u), unsigned_ticks(s1.share), dv);
+        lived_below = sub64(shl64(lived, 12u), lived_fine(fr(pa, 2u), unsigned_ticks(s1.share), dv)).x;
         share = lived;
     }
     let grows = select(unsigned_ticks(s1.share).x, lived.x, failing);
@@ -434,7 +399,7 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
         let da = draw(child(decide, KEY_ABORTION));
         if lt64(da, aborts) {
             wr(a, APEX_END, cycle + 1u);
-            let stopped = below_t(da, aborts);
+            let stopped = lead(vec2<u32>(0u), aborts, da);
             return stop(apex, cycle, ticks_whole(), decide, apex.spent, ABORTED, false, 0u, stopped, aborts);
         }
         // An apex that all but aborted carries on as itself and as the
@@ -471,7 +436,7 @@ fn relay_node(r: u32) {
         return;
     }
     // The unit's presences, the index of its first node on the axis.
-    var total = vec4<u32>(0u);
+    var total = 0.0;
     var first = 0u;
     var seen = 0u;
     var started = false;
@@ -485,36 +450,31 @@ fn relay_node(r: u32) {
                 first = seen;
                 started = true;
             }
-            total = add128(total, vec2<u32>(phyts[q + 4u], phyts[q + 5u]));
+            total += bitcast<f32>(phyts[q + 4u]);
         }
         seen += 1u;
     }
-    let share = row(rd(p, PA), 16u);
+    let share = fr(rd(p, PA), 16u);
     let len = count - first;
-    if is_zero(total.xy) && total.z == 0u {
-        let f = mul64(share, w(len, 0u));
-        let k = f.y + select(1u, 0u, f.x == 0u);
+    if !(total > 0.0) {
+        let k = u32(ceil(share * f32(len)));
         wr(r, NODE, first + clamp(k, 1u, len) - 1u);
         return;
     }
-    let goal = mul128(share, total.xy);
-    var before = vec2<u32>(0u);
+    let goal = share * total;
+    var before = 0.0;
     var j = 0u;
     for (var k = 0u; k < n_phyts; k++) {
         let q = phyt_base + k * PW;
         if phyts[q + 3u] != p || phyts[q + 2u] != last {
             continue;
         }
-        let pr = vec2<u32>(phyts[q + 4u], phyts[q + 5u]);
-        let reach = add64(before, pr);
-        let r4 = vec4<u32>(0u, reach.x, reach.y, 0u);
-        let ge = r4.w > goal.w || (r4.w == goal.w && (r4.z > goal.z
-            || (r4.z == goal.z && (r4.y > goal.y || (r4.y == goal.y && r4.x >= goal.x)))));
-        if !is_zero(pr) && ge {
+        let pr = bitcast<f32>(phyts[q + 4u]);
+        if pr > 0.0 && before + pr >= goal {
             wr(r, NODE, first + j);
             return;
         }
-        before = reach;
+        before += pr;
         j += 1u;
     }
     wr(r, NODE, count - 1u);

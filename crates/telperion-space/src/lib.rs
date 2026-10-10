@@ -22,11 +22,11 @@ mod chain;
 mod clock;
 mod closed_form;
 mod cores;
+pub mod contract;
 mod couple;
 mod dormant;
 mod error;
 mod fine;
-pub mod fixed;
 mod geometry;
 mod girth;
 mod grow;
@@ -66,9 +66,7 @@ pub use grow::oracle::{grow_oracle, Oracled, Read};
 pub use grow::partition::{
     grow_partitioned, Grouping, Order as PartitionOrder, Partitioned, Run as PartitionRun, PHASES,
 };
-pub use grow::stepped::{
-    grow_stepped, grow_stepped_on, Cpu, Feedback, Laid, LayJob, LayPa, Stepped,
-};
+pub use grow::stepped::{grow_stepped, Stepped};
 pub use grow::subtree::Measured;
 pub use grow::{apart, grow, grow_marked, sketch, Pass, Request, Stage};
 pub use light::{bud_light, field_reads, Light};

@@ -10,23 +10,23 @@ use super::surface::input;
 use super::{ChainAxis, ChainBud, Plan};
 use crate::bounded::Expected;
 use crate::error::Result;
-use crate::fixed::presence::q;
+use crate::contract::presence::q;
 use crate::grow::alone::rules;
 use crate::grow::realized::{above, root, Hands};
 use crate::grow::Request;
 use crate::species::Species;
 use crate::structure::{Axis, Origin, Vec3};
 
-/// One axis's presences as its fades read them, Q32: its vigour, each
+/// One axis's presences as its fades read them: its vigour, each
 /// growth unit's presence, each phytomer's scale by presence, its living
 /// apex's presence and the share of its first cycle gone.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Presences {
-    pub vigour: u64,
-    pub units: Vec<u64>,
-    pub scales: Vec<u64>,
-    pub alive: u64,
-    pub sleep: u64,
+    pub vigour: f32,
+    pub units: Vec<f32>,
+    pub scales: Vec<f32>,
+    pub alive: f32,
+    pub sleep: f32,
 }
 
 /// A fine root as the realized CPU executor grows it.
@@ -35,9 +35,9 @@ pub struct RealizedCase {
     pub bud: ChainBud,
     /// Its first axis's vigour as made and its node's buds a whorl.
     pub made: (f64, f64),
-    /// The presences of the draws that made its first axis, Q32, as its
-    /// own grower takes them (`grow::alone::start`).
-    pub birth: [u64; 2],
+    /// The presences of the draws that made its first axis, as its own
+    /// grower takes them (`grow::alone::start`).
+    pub birth: [f32; 2],
     /// Its axes as grown and assigned, before shedding, its first axis's
     /// parent none and the rest numbered among the root's.
     pub grown: Vec<ChainAxis>,
@@ -45,8 +45,8 @@ pub struct RealizedCase {
     /// Its axes kept by its own subtree's shedding (none where its first
     /// axis is shed).
     pub kept: Vec<ChainAxis>,
-    /// Its subtree's living as reported up: lived (Q32.32), alive (Q32).
-    pub living: (u64, u64),
+    /// Its subtree's living as reported up: lived (cycles), alive.
+    pub living: (f32, f32),
 }
 
 /// Every fine root of `species` grown at `request` above `plan`'s cut,

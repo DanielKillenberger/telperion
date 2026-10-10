@@ -1,22 +1,20 @@
-// Presences as Q32 integers on the GPU chain grower (fn-209 F1 task 6;
-// host decision 8): every presence a fade reads, bit for bit the CPU's
-// (`fixed::presence`, `presence::assign_one`, `dormant.rs`). No decision
-// reads one, so growth records only what each is taken from (its
-// draw's key, its bounds, its wood), and the chain's end takes them all
-// in one loop through one call of the contract's leads and windows: the
-// driver's compiler inlines a 128-bit `log2` and `exp2` once, not at
-// every site (FRICTION.md). The asks are taken by their own pass, a few
-// threads a chain, and the products then run in the grower's order, a
-// thread a chain (task 8).
+// Presences on the GPU chain grower (fn-209 F1 task 6; host decision 8,
+// fn-254): every presence a fade reads, by the CPU's operations
+// (`contract::presence`, `presence::assign_one`, `dormant.rs`). No
+// decision reads one, so growth records only what each is taken from (its
+// draw's key, its bounds, its wood), and the chain's end takes them all.
+// The asks are taken by their own pass, a few threads a chain, and the
+// products then run in the grower's order, a thread a chain (task 8).
 // Part of `chain.wgsl`'s shader; the f32 presences (`presence.wgsl`)
 // still size geometry alongside.
 
-// An axis's Q32 fields, two words each: the draws that made it, its
-// running survival, how much its apex lives on (where `IS_ALIVE`), its
-// vigour, its end's presence, its living apex's, its growth units'
-// presences summed and its last one's, its parent's time to its birth
-// (Q32.32) and the whole cycles past it, and, for a lateral, its node's
-// scale; then what its making draws' presences are taken from.
+// An axis's presence fields, an f32 in the first of two words each: the
+// draws that made it, its running survival, how much its apex lives on
+// (where `IS_ALIVE`), its vigour, its end's presence, its living apex's,
+// its growth units' presences summed and its last one's, its parent's
+// time to its birth (cycles) and the whole cycles past it, and, for a
+// lateral, its node's scale; then what its making draws' presences are
+// taken from.
 const B0: u32 = 40u;
 const B1: u32 = 42u;
 const QRUN: u32 = 44u;
@@ -31,7 +29,7 @@ const GAP: u32 = 60u;
 const NSCALE: u32 = 68u;
 const ASKS: u32 = 72u;
 const IS_ALIVE: u32 = 0x100000u;
-// A phytomer's scale by presence, Q32.
+// A phytomer's scale by presence.
 const QSCALE: u32 = 9u;
 // What an axis's making draws' presences are taken from: none (given
 // as made), a lateral's PA draw, a relay's stop and relay, the relay of
@@ -43,7 +41,7 @@ const WOKEN_ASKS: u32 = 4u;
 // A unit record's fields from word 4: its cycle, share (ticks), whether
 // its apex all but aborted, its draws' key, its survival's and
 // abortion's bounds, the phytomers and axes its unit made and its axis's
-// phytomers before it; its Q32 survival, persistence and presence.
+// phytomers before it; its survival, persistence and presence.
 // Where a lifespan's fraction cut the unit, the ticks it was cut from,
 // which its nodes grow at; none otherwise (word 2, fn-231).
 const U_LAID: u32 = 2u;
@@ -61,7 +59,7 @@ const QPERS: u32 = 20u;
 const QUNIT: u32 = 22u;
 // Whether its apex all but failed (1) or failed (2) with a relay to take
 // it over, the share of its cycle gone at the unit's end (ticks), and that
-// relay's Q32 presence (fn-199 R1).
+// relay's presence (fn-199 R1).
 const U_FAILS: u32 = 24u;
 const U_USED: u32 = 25u;
 const QRELAY: u32 = 26u;
@@ -74,26 +72,35 @@ const FAIL_STAKE: u32 = 1u;
 const ABORT_STAKE: u32 = 2u;
 const NEVER53 = vec2<u32>(0u, 0x200000u);
 
-fn rq(i: u32, f: u32) -> vec2<u32> {
-    return rd64(i, f);
+fn rq(i: u32, f: u32) -> f32 {
+    return rf(i, f);
 }
 
-fn wq(i: u32, f: u32, v: vec2<u32>) {
-    wr64(i, f, v);
+fn wq(i: u32, f: u32, v: f32) {
+    wf(i, f, v);
 }
 
-fn unit_q(u: u32, f: u32) -> vec2<u32> {
+fn unit_q(u: u32, f: u32) -> f32 {
+    return bitcast<f32>(sleepers[u + f]);
+}
+
+fn set_unit_q(u: u32, f: u32, v: f32) {
+    sleepers[u + f] = bitcast<u32>(v);
+}
+
+// The key or bound a unit records, in two words.
+fn unit_w(u: u32, f: u32) -> vec2<u32> {
     return vec2<u32>(sleepers[u + f], sleepers[u + f + 1u]);
 }
 
-fn set_unit_q(u: u32, f: u32, v: vec2<u32>) {
+fn set_unit_w(u: u32, f: u32, v: vec2<u32>) {
     sleepers[u + f] = v.x;
     sleepers[u + f + 1u] = v.y;
 }
 
-// A share of a cycle in ticks, as a Q32 presence (`q` of a grid time).
-fn ticks_q(t: vec2<u32>) -> vec2<u32> {
-    return shl64(t, 12u);
+// A share of a cycle in ticks, as a presence (`q` of a grid time).
+fn ticks_q(t: vec2<u32>) -> f32 {
+    return to_f32(t) * pow2(-20);
 }
 
 // Records what axis `i`'s making draws' presences are taken from.
@@ -111,8 +118,8 @@ fn unit_asks(u: u32, cycle: u32, share: u32, key: vec2<u32>, survives: vec2<u32>
     }
     sleepers[u + U_CYCLE] = cycle;
     sleepers[u + U_SHARE] = share;
-    set_unit_q(u, U_KEY, key);
-    set_unit_q(u, U_SURVIVES, survives);
+    set_unit_w(u, U_KEY, key);
+    set_unit_w(u, U_SURVIVES, survives);
 }
 
 // Records where unit `u` of `a` begins (`start`) or ends: the phytomers
@@ -145,13 +152,12 @@ fn unit_persists(u: u32, aborts: vec2<u32>) {
         return;
     }
     sleepers[u + U_ABORTS] = 1u;
-    set_unit_q(u, U_BOUND, aborts);
+    set_unit_w(u, U_BOUND, aborts);
 }
 
 // A presence to take: its draw `d` past the lower bound `low` and under
 // the upper `high` (none: 0 and 2^53), over the window of PA `pa`'s wood
-// from `cycle` (`used` ticks through it) at `stake`, or over `window`;
-// and the bounds' own log-odds where a table gives them (`lead_q`).
+// from `cycle` (`used` ticks through it) at `stake`, or over `window`.
 struct Ask {
     go: bool,
     low: vec2<u32>,
@@ -161,38 +167,16 @@ struct Ask {
     cycle: u32,
     used: u32,
     stake: u32,
-    window: vec2<u32>,
+    window: f32,
     wood: bool,
-    given: vec4<u32>,
-    known: u32,
 }
 
 fn no_ask() -> Ask {
-    return Ask(false, vec2<u32>(0u), NEVER53, vec2<u32>(0u), 0u, 0u, 0u, 0u, vec2<u32>(0u), false, vec4<u32>(0u), 0u);
+    return Ask(false, vec2<u32>(0u), NEVER53, vec2<u32>(0u), 0u, 0u, 0u, 0u, 0.0, false);
 }
 
 fn wood_ask(low: vec2<u32>, high: vec2<u32>, d: vec2<u32>, pa: u32, cycle: u32, used: u32, stake: u32) -> Ask {
-    return Ask(true, low, high, d, pa, cycle, used, stake, vec2<u32>(0u), true, vec4<u32>(0u), 0u);
-}
-
-// The PA rows' log-odds of their thresholds (`chains.rs`): the whole
-// unit's survival, then each relay's.
-const ROW_LOGITS: u32 = 28u;
-
-// `a` with its upper bound's log-odds `own`.
-fn high_known(a_in: Ask, own: vec2<u32>) -> Ask {
-    var a = a_in;
-    a.given = vec4<u32>(0u, 0u, own);
-    a.known = 2u;
-    return a;
-}
-
-// `a` with both bounds' log-odds from the geometry tables at `at`.
-fn both_known(a_in: Ask, at: u32) -> Ask {
-    var a = a_in;
-    a.given = vec4<u32>(words[at], words[at + 1u]);
-    a.known = 3u;
-    return a;
+    return Ask(true, low, high, d, pa, cycle, used, stake, 0.0, true);
 }
 
 // Unit `u`'s ask `j`: its survival (`advance`), then, where its apex all
@@ -201,42 +185,35 @@ fn both_known(a_in: Ask, at: u32) -> Ask {
 fn unit_ask(u: u32, j: u32) -> Ask {
     let pa = rd(sleepers[u], PA);
     let cycle = sleepers[u + U_CYCLE];
-    let key = unit_q(u, U_KEY);
+    let key = unit_w(u, U_KEY);
     let fails = sleepers[u + U_FAILS];
     if j == 3u {
         if fails == 0u {
             return no_ask();
         }
         let d = draw(child(key, KEY_RELAY));
-        let a = wood_ask(vec2<u32>(0u), row(pa, 6u + FAILED), d, pa, cycle, sleepers[u + U_USED], WHOLE_STAKE);
-        return high_known(a, row(pa, ROW_LOGITS + 1u + FAILED));
+        return wood_ask(vec2<u32>(0u), row(pa, 6u + FAILED), d, pa, cycle, sleepers[u + U_USED], WHOLE_STAKE);
     }
     if j == 0u && fails == 2u {
         return no_ask();
     }
     if j == 0u {
         let d = draw(child(key, KEY_VIABILITY));
-        let survives = unit_q(u, U_SURVIVES);
-        let a = wood_ask(vec2<u32>(0u), survives, d, pa, cycle, 0u, FAIL_STAKE);
-        if all(survives == row(pa, 1u)) {
-            return high_known(a, row(pa, ROW_LOGITS));
-        }
-        return a;
+        return wood_ask(vec2<u32>(0u), unit_w(u, U_SURVIVES), d, pa, cycle, 0u, FAIL_STAKE);
     }
     if sleepers[u + U_ABORTS] == 0u {
         return no_ask();
     }
     if j == 1u {
         let d = draw(child(key, KEY_ABORTION));
-        return wood_ask(unit_q(u, U_BOUND), NEVER53, d, pa, cycle + 1u, 0u, ABORT_STAKE);
+        return wood_ask(unit_w(u, U_BOUND), NEVER53, d, pa, cycle + 1u, 0u, ABORT_STAKE);
     }
     let t = row(pa, 6u + ABORTED);
     let d = draw(child(key, KEY_RELAY));
     if is_zero(t) || !lt64(d, t) {
         return no_ask();
     }
-    let a = wood_ask(vec2<u32>(0u), t, d, pa, cycle + 1u, 0u, WHOLE_STAKE);
-    return high_known(a, row(pa, ROW_LOGITS + 1u + ABORTED));
+    return wood_ask(vec2<u32>(0u), t, d, pa, cycle + 1u, 0u, WHOLE_STAKE);
 }
 
 // Axis `i`'s ask `j`: the presence of its first (0) or second (1)
@@ -251,8 +228,7 @@ fn axis_ask(i: u32, j: u32) -> Ask {
         let zg = zone_g(zat);
         let at = cfg.geo + gu(zg + 1u) + 2u * drew;
         let d = draw(vec2<u32>(rd(i, p + 2u), rd(i, p + 3u)));
-        let a = wood_ask(words[at], words[at + 1u], d, pa, rd(i, BIRTH) + 1u, 0u, WHOLE_STAKE);
-        return both_known(a, cfg.geo + gu(zg + 3u) + 2u * drew);
+        return wood_ask(words[at], words[at + 1u], d, pa, rd(i, BIRTH) + 1u, 0u, WHOLE_STAKE);
     }
     if kind == RELAY_ASKS {
         let why = rd(i, p);
@@ -265,14 +241,12 @@ fn axis_ask(i: u32, j: u32) -> Ask {
             return no_ask();
         }
         let d = draw(child(key, KEY_RELAY));
-        let a = wood_ask(vec2<u32>(0u), row(pa, 6u + why), d, pa, cycle, used, WHOLE_STAKE);
-        return high_known(a, row(pa, ROW_LOGITS + 1u + why));
+        return wood_ask(vec2<u32>(0u), row(pa, 6u + why), d, pa, cycle, used, WHOLE_STAKE);
     }
     if kind == AFTER_ASKS && j == 1u {
         let key = vec2<u32>(rd(i, p), rd(i, p + 1u));
         let d = draw(child(key, KEY_RELAY));
-        let a = wood_ask(vec2<u32>(0u), row(pa, 6u + ENDS), d, pa, rd(i, p + 2u), rd(i, p + 3u), WHOLE_STAKE);
-        return high_known(a, row(pa, ROW_LOGITS + 1u + ENDS));
+        return wood_ask(vec2<u32>(0u), row(pa, 6u + ENDS), d, pa, rd(i, p + 2u), rd(i, p + 3u), WHOLE_STAKE);
     }
     if kind == WOKEN_ASKS && j == 0u {
         let zat = rd(i, p);
@@ -281,11 +255,8 @@ fn axis_ask(i: u32, j: u32) -> Ask {
         let at = cfg.geo + gu(zg + 2u) + 2u * spa;
         let d = draw(vec2<u32>(rd(i, p + 3u), rd(i, p + 4u)));
         let npa = table[zat + 9u];
-        let window = words[table[zat + 13u] + rd(i, p + 1u) * npa + spa];
-        let a = Ask(true, words[at], words[at + 1u], d, 0u, 0u, 0u, 0u, window, false, vec4<u32>(0u), 0u);
-        // The dormant bounds' log-odds follow the laterals'.
-        let laterals = gu(zg + 2u) - gu(zg + 1u);
-        return both_known(a, cfg.geo + gu(zg + 3u) + laterals + 2u * spa);
+        let window = fw(table[zat + 13u] + rd(i, p + 1u) * npa + spa);
+        return Ask(true, words[at], words[at + 1u], d, 0u, 0u, 0u, 0u, window, false);
     }
     return no_ask();
 }
@@ -311,8 +282,6 @@ fn place_ask(i: u32) -> Ask {
     a.go = true;
     a.high = t;
     a.d = draw(child(place, KEY_PLACED));
-    a.given = vec4<u32>(0u, 0u, words[table[at + 12u] + table[at + 4u] + slot]);
-    a.known = 2u;
     return a;
 }
 
@@ -328,32 +297,31 @@ fn take_ask(r: u32) {
         } else {
             a = axis_ask((r - units) / 2u, (r - units) % 2u);
         }
-        var p = vec2<u32>(0u);
+        var p = 0.0;
         if a.go {
             var window = a.window;
             if a.wood {
-                let wood = wood_at_q(log_wood(a.pa, a.cycle), log_wood(a.pa, a.cycle + 1u), w(a.used, 0u));
-                let span = w(cfg.span_lo, cfg.span_hi);
-                let rate = row(a.pa, 18u + 2u * a.stake);
-                window = window_q(wood, rate, row(a.pa, 19u + 2u * a.stake), span);
+                let wood = wood_at(log_wood(a.pa, a.cycle), log_wood(a.pa, a.cycle + 1u), w(a.used, 0u));
+                let span = bitcast<f32>(cfg.span);
+                let rate = fr(a.pa, 18u + 2u * a.stake);
+                window = clamp(rate * wood, fr(a.pa, 19u + 2u * a.stake), span);
             }
             // The ask's lead, then a lateral's or a woken bud's place's, a
-            // making draw over the same window (fn-231): one `lead_q` and
-            // `presence` call site for both (fn-241 R3), the place's
-            // threshold's log-odds from the CPU.
+            // making draw over the same window (fn-231): one `lead` and
+            // `presence` call site for both (fn-241 R3).
             let i = (r - units) / 2u;
             let placed = r >= units && (r - units) % 2u == 0u
                 && (rd(i, ASKS) == LATERAL_ASKS || rd(i, ASKS) == WOKEN_ASKS);
-            var lead = a;
-            p = one32();
+            var by = a;
+            p = 1.0;
             for (var k = 0u; k < 1u + u32(placed); k++) {
                 if k == 1u {
-                    lead = place_ask(i);
-                    if !lead.go {
+                    by = place_ask(i);
+                    if !by.go {
                         break;
                     }
                 }
-                p = times_q(p, presence(lead_q(lead.low, lead.high, lead.d, lead.given, lead.known), window));
+                p *= presence(lead(by.low, by.high, by.d), window);
             }
         }
         if r < units {
@@ -413,8 +381,8 @@ fn assign(@builtin(global_invocation_id) id: vec3<u32>) {
 }
 
 // Stage `k` a bud of `pa` reaches, its reach (`PaRow::reaches`).
-fn reach_q(pa: u32, k: u32) -> vec2<u32> {
-    return words[row(pa, 27u).x + k];
+fn reach_q(pa: u32, k: u32) -> f32 {
+    return fw(row(pa, 27u).x + k);
 }
 
 // Each axis's making draws' presences from what was taken: a lateral's
@@ -429,13 +397,13 @@ fn made_q() {
             wq(i, B1, reach_q(rd(i, p + 1u), 0u));
         }
         if kind == RELAY_ASKS {
-            wq(i, B0, one32());
+            wq(i, B0, 1.0);
         }
         if kind == RELAY_ASKS && rd(i, p) == FAILED {
-            wq(i, B1, one32());
+            wq(i, B1, 1.0);
         }
         if kind == AFTER_ASKS {
-            wq(i, B0, sub64(one32(), vec2<u32>(rd(i, p + 4u), rd(i, p + 5u))));
+            wq(i, B0, 1.0 - rf(i, p + 4u));
         }
     }
 }
@@ -449,9 +417,9 @@ fn units_q() {
         if sleepers[u + U_ABORTS] != 0u {
             let relayed = unit_q(u, QUNIT);
             let faded = unit_q(u, QPERS);
-            set_unit_q(u, QPERS, add64(relayed, times_q(sub64(one32(), relayed), faded)));
+            set_unit_q(u, QPERS, relayed + (1.0 - relayed) * faded);
         } else {
-            set_unit_q(u, QPERS, one32());
+            set_unit_q(u, QPERS, 1.0);
         }
         let a = sleepers[u];
         // An apex that all but failed carries on as itself and as its
@@ -459,39 +427,39 @@ fn units_q() {
         var survive = unit_q(u, QSURV);
         let relayed = unit_q(u, QRELAY);
         if sleepers[u + U_FAILS] == 1u {
-            survive = add64(relayed, times_q(sub64(one32(), relayed), survive));
+            survive = relayed + (1.0 - relayed) * survive;
         } else if sleepers[u + U_FAILS] == 2u {
             survive = relayed;
         }
         // What a woken bud's keeping reads (`woken_kept_q`), as the CPU's
         // unit holds it.
         set_unit_q(u, QSURV, survive);
-        let run = times_q(rq(a, QRUN), survive);
+        let run = rq(a, QRUN) * survive;
         let share = ticks_q(w(sleepers[u + U_SHARE], 0u));
-        let unit = times_q(run, share);
+        let unit = run * share;
         set_unit_q(u, QUNIT, unit);
-        wq(a, QGROWN, add64(rq(a, QGROWN), unit));
+        wq(a, QGROWN, rq(a, QGROWN) + unit);
         wq(a, QLAST, unit);
         let first = sleepers[u + U_PHYTS];
         for (var q = first; q < sleepers[u + U_PHYTS + 1u]; q++) {
             let at = phyt_base + q * PW;
-            let node = vec2<u32>(phyts[at + 4u], phyts[at + 5u]);
+            let node = bitcast<f32>(phyts[at + 4u]);
             let span_of = sleepers[u + U_LAID];
-            let scale = times_q(times_q(run, node), select(share, ticks_q(w(span_of, 0u)), span_of != 0u));
-            phyts[at + QSCALE] = scale.x;
-            phyts[at + QSCALE + 1u] = scale.y;
+            let scale = run * node * select(share, ticks_q(w(span_of, 0u)), span_of != 0u);
+            phyts[at + QSCALE] = bitcast<u32>(scale);
+            phyts[at + QSCALE + 1u] = 0u;
         }
-        let before = add64(ticks_q(w(rd(a, SLEEP), 0u)), rq(a, QGROWN));
+        let before = ticks_q(w(rd(a, SLEEP), 0u)) + rq(a, QGROWN);
         for (var l = sleepers[u + U_AXES]; l < sleepers[u + U_AXES + 1u]; l++) {
             wq(l, BEFORE, before);
             let at = phyt_base + (first + rd(l, NODE) - sleepers[u + U_BEFORE]) * PW;
-            wq(l, NSCALE, vec2<u32>(phyts[at + QSCALE], phyts[at + QSCALE + 1u]));
+            wq(l, NSCALE, bitcast<f32>(phyts[at + QSCALE]));
         }
-        wq(a, QRUN, times_q(run, unit_q(u, QPERS)));
+        wq(a, QRUN, run * unit_q(u, QPERS));
     }
 }
 
-// Every Q32 presence of the chain, once it has grown and its asks are
+// Every presence of the chain, once it has grown and its asks are
 // taken (`asks`): the products in the grower's order, each woken bud's carrying, and
 // each axis's vigour, end and living apex's presence and its parent's
 // time to its birth (`presence::assign`).
@@ -502,22 +470,22 @@ fn assign_q() {
         if rd(i, ASKS) == WOKEN_ASKS {
             let p = rd(i, ASKS + 6u);
             let reach = reach_q(sleepers[p + 2u], sleepers[p + 18u]);
-            wq(i, B1, times_q(times_q(carried_q(p), reach), woken_kept_q(p)));
+            wq(i, B1, carried_q(p) * reach * woken_kept_q(p));
         }
     }
     for (var i = 0u; i < n_axes; i++) {
-        let made = times_q(rq(i, B0), rq(i, B1));
+        let made = rq(i, B0) * rq(i, B1);
         let run = rq(i, QRUN);
         wq(i, QEND, run);
         let kind = rd(i, KIND) & 0xffu;
         if kind == CONTINUED || kind == RELAYED {
-            wq(i, QVIG, times_q(rq(rd(i, PARENT), QEND), made));
+            wq(i, QVIG, rq(rd(i, PARENT), QEND) * made);
         } else {
             wq(i, QVIG, made);
         }
-        var alive = vec2<u32>(0u);
+        var alive = 0.0;
         if (rd(i, KIND) & IS_ALIVE) != 0u {
-            alive = times_q(run, rq(i, QLIVING));
+            alive = run * rq(i, QLIVING);
         }
         wq(i, QALIVE, alive);
         // A lateral the chain grew was given its time and its node's

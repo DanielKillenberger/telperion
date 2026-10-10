@@ -191,7 +191,7 @@ fn hand_on(
             let section = carried(parent);
             match crate::girth::attached(axes, species, j) {
                 Some((k, t)) => {
-                    let share = t as f64 / crate::fixed::ONE32 as f64;
+                    let share = f64::from(t);
                     at_node[parent][k] += section * share;
                     match k.checked_sub(1) {
                         Some(n) => at_node[parent][n] += section * (1.0 - share),

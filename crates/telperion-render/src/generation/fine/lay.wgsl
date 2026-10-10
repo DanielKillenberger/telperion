@@ -251,9 +251,10 @@ fn key_unit(key: vec2<u32>) -> f32 {
     return real_of(draw(key));
 }
 
-// A 53-bit draw as a real in [0, 1).
+// A 53-bit draw's uniform as the CPU's geometry reads it
+// (`lineage::unit`): its top 24 bits, exact in [0, 1).
 fn real_of(d: vec2<u32>) -> f32 {
-    return (f32(d.y) * 4294967296.0 + f32(d.x)) * (1.0 / 9007199254740992.0);
+    return f32(shr64(d, 29u).x) * (1.0 / 16777216.0);
 }
 
 // The factor the internode of the node keyed `key` is laid at

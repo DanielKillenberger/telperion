@@ -5,7 +5,7 @@
 use super::shoot::Shoot;
 use super::{stop_stake, Apex};
 use crate::error::Result;
-use crate::fixed::{self, presence};
+use crate::contract::{self, presence};
 use crate::lineage::{threshold, Key, ABORTION, MOVE, RELAY};
 use crate::presence::Unit;
 use crate::presence::SPAN;
@@ -48,7 +48,7 @@ impl Shoot<'_, '_> {
             return self.stop(
                 apex,
                 (cycle, used),
-                fixed::INF,
+                contract::INF,
                 unit,
                 apex.spent,
                 (Stop::Ended, true, 0),
@@ -63,21 +63,21 @@ impl Shoot<'_, '_> {
         // Its presence decides whether it also grows its relay, so it is
         // the contract's (FINE-CONTRACT.md D10).
         let stake = stop_stake(state.relay_ended);
-        let made = fixed::decide::moved(windows, (next, cycle, used), go, d, stake);
+        let made = contract::decide::moved(windows, (next, cycle, used), go, d, stake);
         let key = Key(self.root(apex.axis)).onto(next);
         let origin = Origin::Continuation { parent: apex.axis };
         let at = self.len();
         self.successor_mut(apex.axis).push(at);
-        self.sprout(key, next, cycle, origin, [fixed::real(made), 1.0]);
+        self.sprout(key, next, cycle, origin, [presence::real(made), 1.0]);
         self.carry_on(cycle, used)?;
         // An apex that all but stopped also grows the relay it would have
         // had, at the share its continuation lacks (host decision 11),
         // where its relay draw makes one (D9's integer test).
         let relay = state.relay_ended;
-        if made < fixed::ONE32 as u64 && relay > 0.0 && unit.child(RELAY).draw().under(relay) {
+        if made < presence::ONE && relay > 0.0 && unit.child(RELAY).draw().under(relay) {
             let relayed = self.relayed(relay, unit, (pa, cycle, Some(used)));
             *self.units_mut(apex.axis) = apex.spent;
-            let made = [1.0 - fixed::real(made), fixed::real(relayed)];
+            let made = [1.0 - presence::real(made), presence::real(relayed)];
             self.relay_bud(
                 apex,
                 (cycle, used),
@@ -99,15 +99,15 @@ impl Shoot<'_, '_> {
         &mut self,
         mut apex: Apex,
         (cycle, gone, whole): (u32, f64, bool),
-        (lived, below, relayed, stopped): (f64, u64, u64, i64),
+        (lived, below, relayed, stopped): (f64, u64, f32, f32),
         (pa, unit, decide): (usize, Key, Key),
-        after: std::result::Result<f64, i64>,
+        after: std::result::Result<f64, f32>,
     ) -> Result<()> {
         let survive = presence::times(relayed, presence::q(self.kept(apex.axis)));
         let (size, light, reads) = (self.size(apex.axis), self.light(apex.axis), self.reads);
         let draws = self.draws_mut(apex.axis);
         draws.units.push(Unit {
-            survive: fixed::real(survive),
+            survive: presence::real(survive),
             persist: after.unwrap_or(1.0),
             share: lived,
             size: lived,
@@ -122,7 +122,7 @@ impl Shoot<'_, '_> {
         apex.spent += lived;
         self.axis_mut(apex.axis).apex_end = Some(cycle);
         *self.units_mut(apex.axis) = apex.spent;
-        let blend = fixed::real(presence::of(stopped, fixed::q32(SPAN)));
+        let blend = presence::real(presence::of(stopped, SPAN as f32));
         let used = (cycle, gone + lived);
         let made = (blend, Stop::Failed, whole, below);
         let Err(lead) = after else {
@@ -147,7 +147,7 @@ impl Shoot<'_, '_> {
         decide: Key,
         (pa, cycle): (usize, u32),
         aborts: u64,
-    ) -> std::result::Result<f64, i64> {
+    ) -> std::result::Result<f64, f32> {
         if aborts == 0 {
             return Ok(1.0);
         }
@@ -165,7 +165,7 @@ impl Shoot<'_, '_> {
         let window = self.windows().window_q(at, stop_stake(state.relay));
         let faded = presence::of_over(aborts, d.0, window);
         let relayed = self.relayed(state.relay, decide, at);
-        Ok(fixed::real(
+        Ok(presence::real(
             relayed + presence::times(presence::ONE - relayed, faded),
         ))
     }
@@ -227,15 +227,15 @@ impl Shoot<'_, '_> {
     /// The presence of the relay a stop in the growth unit keyed `unit`
     /// would have, Q32 (host decision 8): none where its PA relays none
     /// or the draw fails.
-    pub(super) fn relayed(&self, relay: f64, unit: Key, at: (usize, u32, Option<f64>)) -> u64 {
+    pub(super) fn relayed(&self, relay: f64, unit: Key, at: (usize, u32, Option<f64>)) -> f32 {
         if relay <= 0.0 {
-            return 0;
+            return 0.0;
         }
         let d = unit.child(RELAY).draw();
         if d.under(relay) {
             presence::of_under(threshold(relay), d.0, self.windows().window_q(at, 1.0))
         } else {
-            0
+            0.0
         }
     }
 
@@ -251,7 +251,7 @@ impl Shoot<'_, '_> {
         &mut self,
         apex: Apex,
         (cycle, used): (u32, f64),
-        stopped: i64,
+        stopped: f32,
         unit: Key,
         spent: f64,
         (why, whole, below): (Stop, bool, u64),
@@ -274,10 +274,10 @@ impl Shoot<'_, '_> {
             // grown by `fail`, never here. A Q32 presence (host decision 8).
             debug_assert!(why != Stop::Failed, "a failed unit's relay grows in `fail`");
             let made = presence::of_under(threshold(relay), d.0, windows.window_q(at, 1.0));
-            let made = [presence::ONE, made].map(fixed::real);
+            let made = [presence::ONE, made].map(presence::real);
             // The relay moves over the widest window: its move is a growth
             // unit's length whatever wood it carries.
-            let blend = fixed::real(presence::of(stopped, fixed::q32(SPAN)));
+            let blend = presence::real(presence::of(stopped, SPAN as f32));
             return self.relay_bud(
                 apex,
                 (cycle, used),

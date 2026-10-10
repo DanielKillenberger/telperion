@@ -4,7 +4,7 @@ use super::shoot::Shoot;
 use super::stop::Stop;
 use super::{stop_stake, Apex};
 use crate::error::Result;
-use crate::fixed::{self, presence};
+use crate::contract::{self, presence};
 use crate::lineage::{Key, END, ENDED, FAILED, RELAY, VIABILITY};
 use crate::presence::Unit;
 use crate::schedule::Carried;
@@ -83,7 +83,7 @@ impl Shoot<'_, '_> {
         } else {
             0
         };
-        let survives = fixed::decide::survival(viability, share, below);
+        let survives = contract::decide::survival(viability, share, below);
         let d = decide.child(VIABILITY).draw();
         // A failure's relay, where its draw makes one (D9's integer test),
         // and its presence over the unit's cycle (host decision 8).
@@ -97,8 +97,8 @@ impl Shoot<'_, '_> {
         let nested = first && self.draws(apex.axis).rest && relays;
         if d.0 >= survives && relays && !nested {
             let relayed = relayed();
-            let lived = fixed::real(fixed::decide::lived(viability, share, d) << 12);
-            let below = fixed::decide::lived_rest(viability, share, d);
+            let lived = contract::decide::lived(viability, share, d) as f64 / contract::CYCLE;
+            let below = contract::decide::lived_rest(viability, share, d);
             let stopped = presence::over(survives, d.0);
             // The lived part takes the unit's abortion draw over the share
             // it lived and the next unit's (fn-199, host decision C1).
@@ -108,7 +108,7 @@ impl Shoot<'_, '_> {
             let aborts = if step.ends {
                 0
             } else {
-                fixed::decide::abortion(state, grown, (lived.min(next), 0))
+                contract::decide::abortion(state, grown, (lived.min(next), 0))
             };
             let after = self.persists(decide, (pa, cycle), aborts);
             return self.fail(
@@ -150,7 +150,7 @@ impl Shoot<'_, '_> {
             survive
         };
         let survive = presence::times(survive, presence::q(self.kept(apex.axis)));
-        let survive = fixed::real(survive);
+        let survive = presence::real(survive);
         let (size, reads) = (self.size(apex.axis), self.reads);
         let draws = self.draws_mut(apex.axis);
         draws.units.push(Unit {
@@ -173,13 +173,13 @@ impl Shoot<'_, '_> {
         let draws = self.draws(apex.axis);
         let grown = draws.aged + draws.grown();
         let next = carried.unit(state.life(), 2).share;
-        let fine = |s: f64| fixed::ticks(s) << 12;
+        let fine = |s: f64| contract::ticks(s) << 12;
         let exposure = if fine(share) + below <= fine(next) {
             (share, below)
         } else {
             (next, 0)
         };
-        let aborts = fixed::decide::abortion(state, grown, exposure);
+        let aborts = contract::decide::abortion(state, grown, exposure);
         if !step.ends {
             match self.persists(decide, (pa, cycle), aborts) {
                 Err(lead) => {

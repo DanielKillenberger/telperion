@@ -1,10 +1,11 @@
 //! A growth unit's tables (fn-209 F1, task 2): what the GPU executor's
 //! unit kernel reads, computed once per species point on the CPU from the
-//! grower's own rules and handed to it as integers (FINE-CONTRACT.md D2,
+//! grower's own rules and handed to it as thresholds and f32 values
+//! (FINE-CONTRACT.md D2,
 //! D3 and D18's node presences), so the kernel draws a unit's nodes, their
 //! order and their buds as `grow_unit` does.
 use crate::error::Result;
-use crate::fixed::{grid, q32, q62, ticks};
+use crate::contract::{grid, ticks};
 use crate::grow::alone::rules;
 use crate::grow::node_wood;
 use crate::lineage::{threshold, ONE};
@@ -29,29 +30,29 @@ pub struct UnitZone {
     /// Node `j` stands while the zone's draw is at or above
     /// `thresholds[j]` and every one before it (D2).
     pub thresholds: Vec<u64>,
-    /// Node `j`'s bound, Q62, its lead's (D18).
-    pub bounds: Vec<u64>,
+    /// Node `j`'s bound, its lead's (D18).
+    pub bounds: Vec<f32>,
     /// A node's bud places.
     pub places: usize,
     /// Per PA, the threshold of the running sum of the zone's lateral
     /// probabilities, or none where the PA's own probability is none (D3).
     pub laterals: Vec<Option<u64>>,
-    /// Per cycle, from 0 to the tree's age, a node's window, Q32.
-    pub windows: Vec<i64>,
+    /// Per cycle, from 0 to the tree's age, a node's window.
+    pub windows: Vec<f32>,
     /// Per PA, the threshold of the running sum of the zone's sleeping-bud
     /// probabilities, or none (D3, `dormant::draw`).
     pub dormant: Vec<Option<u64>>,
-    /// A sleeping bud's delay in ticks and its years a nat (Q32), where
-    /// it wakes at all (D11).
-    pub wake: Option<(u64, i64)>,
+    /// A sleeping bud's delay in ticks and its years a nat, where it
+    /// wakes at all (D11).
+    pub wake: Option<(u64, f32)>,
     /// Per cycle, whether a node grown then may hold a sleeping bud that
     /// is expected to grow: `grow_unit`'s gate on `sleep`.
     pub sleeps: Vec<bool>,
     /// Each bud place's threshold, under which its `PLACED` draw makes it
     /// stand (`lineage::placed`, fn-231), and per cycle and PA a sleeping
-    /// bud's window, Q32 (`decide::node`).
+    /// bud's window (`decide::node_window`).
     pub placed: Vec<u64>,
-    pub sleep_windows: Vec<Vec<i64>>,
+    pub sleep_windows: Vec<Vec<f32>>,
 }
 
 impl Units {
@@ -77,7 +78,7 @@ impl Units {
                                 (p > 0.0).then(|| threshold(high))
                             })
                             .collect();
-                        let window = |wood: f64| q32((RATE * wood).clamp(FLOOR, SPAN));
+                        let window = |wood: f64| (RATE * wood).clamp(FLOOR, SPAN) as f32;
                         let mut sleep_windows = Vec::new();
                         let (windows, sleeps) = (0..=age)
                             .map(|cycle| {
@@ -98,7 +99,7 @@ impl Units {
                             })
                             .collect();
                         let wake = (zone.rate > 0.0)
-                            .then(|| (ticks(grid(zone.delay)), q32(1.0 / zone.rate)));
+                            .then(|| (ticks(grid(zone.delay)), (1.0 / zone.rate) as f32));
                         UnitZone {
                             zone: z,
                             poisson,
@@ -122,7 +123,7 @@ impl Units {
 }
 
 /// A node law's thresholds and bounds, as `lineage::nodes` walks them.
-fn law(law: NodeLaw) -> (bool, Vec<u64>, Vec<u64>) {
+fn law(law: NodeLaw) -> (bool, Vec<u64>, Vec<f32>) {
     let (mut thresholds, mut bounds) = (Vec::new(), Vec::new());
     match law {
         NodeLaw::Uniform { min, max } => {
@@ -130,7 +131,7 @@ fn law(law: NodeLaw) -> (bool, Vec<u64>, Vec<u64>) {
             for j in 0..(max.ceil() as u32).min(MAX_NODES_PER_ZONE) {
                 let bound = (f64::from(j) - min + 1.0) / span;
                 thresholds.push(threshold(bound));
-                bounds.push(q62(bound));
+                bounds.push(bound as f32);
             }
             (false, thresholds, bounds)
         }
@@ -140,7 +141,7 @@ fn law(law: NodeLaw) -> (bool, Vec<u64>, Vec<u64>) {
             for k in 0..MAX_NODES_PER_ZONE {
                 let t = threshold(cumulative);
                 thresholds.push(t);
-                bounds.push(q62(cumulative));
+                bounds.push(cumulative as f32);
                 // No draw passes a certain bound: the count ends here.
                 if t >= ONE {
                     break;

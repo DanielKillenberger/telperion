@@ -13,11 +13,7 @@
 //! bearer (`retained`; Shinozaki's disused pipes; `girth/disused.rs`).
 mod disused;
 
-use crate::fixed::feedback::edge;
-use crate::fixed::feedback::power::{exp2_w, log2_w};
-use crate::fixed::feedback::total::Total;
-use crate::fixed::feedback::wide::{mul_shr, prod_shr, ratio};
-use crate::fixed::{exp2, log2, mul, q32, ONE32};
+use crate::contract::{exp2, log2};
 use crate::species::{Form, Species};
 use crate::structure::{Axis, Join, Origin, Phytomer, Structure};
 use crate::upward::Tree;
@@ -37,99 +33,80 @@ pub(crate) struct Disused {
     pub share: f64,
 }
 
-/// A Q32 as its exact real.
-fn real(q: i64) -> f64 {
-    q as f64 / ONE32 as f64
-}
-
-/// The log2 of a positive Q32, Q32 (CONTRACT-A.md 2.3).
-fn log2_q(x: i64) -> i64 {
-    log2(x as u64) - (32 << 32)
-}
-
-/// A phytomer's own pipe: its PA's, by its scale, ripened, by `leaf`; one
-/// rounding of the four (contract A, 2.5).
+/// A phytomer's own pipe: its PA's, by its scale, ripened, by `leaf`.
 pub(crate) fn own(form: &Form, phytomer: &Phytomer, age: u32, scale: f64, leaf: f64) -> f64 {
-    let years = i64::from(age.saturating_sub(phytomer.cycle) + 1) << 32;
-    let ripe = edge::ripe(years, q32(form.ripening));
-    let f = [q32(form.pipe), q32(scale), ripe, q32(leaf)];
-    real(prod_shr(f, 96).expect("a pipe inside Q32"))
+    let years = (age.saturating_sub(phytomer.cycle) + 1) as f32;
+    let ripe = ripened(years, form.ripening as f32);
+    f64::from(form.pipe as f32 * scale as f32 * ripe * leaf as f32)
 }
 
 /// The pipe a phytomer was established with: its PA's, by its scale,
-/// ripened over its first year; one rounding.
+/// ripened over its first year.
 pub(crate) fn established(form: &Form, scale: f64) -> f64 {
-    let ripe = edge::ripe(ONE32, q32(form.ripening));
-    let f = [q32(form.pipe), q32(scale), ripe, 1];
-    real(prod_shr(f, 64).expect("a pipe inside Q32"))
+    let ripe = ripened(1.0, form.ripening as f32);
+    f64::from(form.pipe as f32 * scale as f32 * ripe)
 }
 
-/// A radius's section at exponent `e`, in W: `2^(e log2 r)`, none for no
-/// radius.
-pub(crate) fn section(radius: f64, e: f64) -> i128 {
-    let r = q32(radius);
-    if r <= 0 {
-        return 0;
+/// `min(years / ripening, 1)`: one where the ripening is none or less.
+fn ripened(years: f32, ripening: f32) -> f32 {
+    if ripening <= 0.0 {
+        return 1.0;
     }
-    exp2_w(mul(q32(e), log2_q(r))).expect("a section inside W") as i128
+    (years / ripening).min(1.0)
+}
+
+/// A radius's section at exponent `e`: `2^(e log2 r)`, none for no radius.
+pub(crate) fn section(radius: f64, e: f64) -> f32 {
+    let r = radius as f32;
+    if r <= 0.0 {
+        return 0.0;
+    }
+    exp2(e as f32 * log2(r))
 }
 
 /// A section's radius at exponent `e`: `2^(log2 s / e)`, the reciprocal
-/// `1/e` its own Q32 (CONTRACT-A.md 2.2); none for no section.
-pub(crate) fn radius(section: i128, e: f64) -> f64 {
-    if section <= 0 {
+/// `1/e` taken once; none for no section.
+pub(crate) fn radius(section: f32, e: f64) -> f64 {
+    if section <= 0.0 {
         return 0.0;
     }
-    real(exp2(mul(q32(1.0 / e), log2_w(section as u128))))
+    f64::from(exp2((1.0 / e) as f32 * log2(section)))
 }
 
-/// `s root + (1 - s) established`, Q32: secondary growth's share.
+/// `s root + (1 - s) established`: secondary growth's share.
 fn weighed(form: &Form, root: f64, established: f64) -> f64 {
-    let s = q32(form.secondary);
-    real(mul(s, q32(root)) + mul(ONE32 - s, q32(established)))
+    let s = form.secondary as f32;
+    f64::from(s * root as f32 + (1.0 - s) * established as f32)
 }
 
-/// `x b`, floored, of a W section and a Q32 share.
-fn share_of(x: i128, b: f64) -> i128 {
-    mul_shr(x, i128::from(q32(b)), 32).expect("a share of a section")
-}
-
-/// A phytomer's light term, light^χ (Q32), whole at χ none.
-pub(crate) fn lit(light: f64, chi: f64) -> i64 {
-    let (l, chi) = (q32(light), q32(chi));
-    if chi == 0 {
-        return ONE32;
+/// A phytomer's light term, light^χ, whole at χ none.
+pub(crate) fn lit(light: f64, chi: f64) -> f32 {
+    let (l, chi) = (light as f32, chi as f32);
+    if chi == 0.0 {
+        return 1.0;
     }
-    if l <= 0 {
-        return 0;
+    if l <= 0.0 {
+        return 0.0;
     }
-    exp2(mul(chi, log2_q(l)))
+    exp2(chi * log2(l))
 }
 
 /// A phytomer's leaf factor: its light term times the tree's mean.
 pub(crate) fn leaf(light: f64, chi: f64, mean: Option<f64>) -> f64 {
-    mean.map_or(1.0, |m| real(mul(lit(light, chi), q32(m))))
+    mean.map_or(1.0, |m| f64::from(lit(light, chi) * m as f32))
 }
 
-/// The tree's pipe-weighted mean from its exact sums, `Σpipe /
-/// Σpipe light^χ` (W over W, to Q32); none where the weighted sum is.
-pub(crate) fn mean_of(total: Total, weighted: Total) -> Option<f64> {
-    let (t, w) = (total.get(), weighted.get());
-    let (t, w) = (
-        t.expect("a pipe sum inside W"),
-        w.expect("a pipe sum inside W"),
-    );
-    (w > 0).then(|| {
-        let q = ratio(t, w, 32).expect("a mean");
-        real(i64::try_from(q).expect("a mean inside Q32"))
-    })
+/// The tree's pipe-weighted mean from its sums, `Σpipe / Σpipe light^χ`;
+/// none where the weighted sum is.
+pub(crate) fn mean_of(total: f32, weighted: f32) -> Option<f64> {
+    (weighted > 0.0).then(|| f64::from(total / weighted))
 }
 
-/// A pipe's two terms for the mean: the pipe in W, and the pipe by its
-/// light term (Q64, W).
-pub(crate) fn terms(pipe: f64, light: f64, chi: f64) -> (i128, i128) {
-    let p = i128::from(q32(pipe));
-    (p << 32, p * i128::from(lit(light, chi)))
+/// A pipe's two terms for the mean: the pipe, and the pipe by its light
+/// term.
+pub(crate) fn terms(pipe: f64, light: f64, chi: f64) -> (f32, f32) {
+    let p = pipe as f32;
+    (p, p * lit(light, chi))
 }
 
 /// Each PA's light term for each phytomer, (light)^χ, and the factor
@@ -139,15 +116,15 @@ pub(super) fn leaf_terms(structure: &Structure, species: &Species) -> Option<f64
     if species.states.iter().all(|s| s.leaf_girth == 0.0) {
         return None;
     }
-    // Exact and order-free (contract A, 2.3).
-    let (mut total, mut weighted) = (Total::default(), Total::default());
+    // Summed in the order the axes and their phytomers stand.
+    let (mut total, mut weighted) = (0.0, 0.0);
     for axis in &structure.axes {
         let state = &species.states[axis.pa];
         for p in &axis.phytomers {
             let pipe = own(&state.form, p, structure.age, p.scale, 1.0);
             let (a, b) = terms(pipe, p.light, state.leaf_girth);
-            total.add(a);
-            weighted.add(b);
+            total += a;
+            weighted += b;
         }
     }
     mean_of(total, weighted)
@@ -176,8 +153,8 @@ pub(crate) fn thicken(structure: &mut Structure, species: &Species, girth: &Girt
 /// (`geometry::attach`): `t` of it at the node whose span it stands in,
 /// the rest at the node before (or the base), so the parent's samples
 /// move by degree as it moves along (fn-199 R4); the parts.
-pub(crate) fn joining(x: i128, t: i64) -> (i128, i128) {
-    let at = mul_shr(x, i128::from(t), 32).expect("a share of a section");
+pub(crate) fn joining(x: f32, t: f32) -> (f32, f32) {
+    let at = x * t;
     (at, x - at)
 }
 
@@ -214,22 +191,22 @@ pub(crate) fn thicken_given(
     let given_out = tree.upward(
         axes,
         threads,
-        &|i, axis, out: &[(f64, Vec<(usize, Join)>)], at_node: &mut Vec<i128>| {
+        &|i, axis, out: &[(f64, Vec<(usize, Join)>)], at_node: &mut Vec<f32>| {
             let state = &species.states[axis.pa];
             let form = state.form;
             let e = form.exponent;
             at_node.clear();
-            at_node.resize(axis.phytomers.len(), 0);
-            let (mut at_tip, mut at_base) = (0i128, 0i128);
+            at_node.resize(axis.phytomers.len(), 0.0);
+            let (mut at_tip, mut at_base) = (0.0f32, 0.0f32);
             for d in &kept[i] {
-                let section = share_of(section(d.radius, e), d.share);
+                let section = section(d.radius, e) * d.share as f32;
                 match d.node.and_then(|n| at_node.get_mut(n)) {
                     Some(at) => *at += section,
                     None => at_tip += section,
                 }
             }
             // Each relay's node, share and parts, for its join.
-            let mut relays: Vec<(usize, usize, i64, i128, i128)> = Vec::new();
+            let mut relays: Vec<(usize, usize, f32, f32, f32)> = Vec::new();
             for &c in tree.children(i) {
                 let section = section(given(c).unwrap_or(out[c].0), e);
                 match (links[c], attached[c]) {
@@ -261,7 +238,7 @@ pub(crate) fn thicken_given(
                 let established = established(&form, phytomer.scale);
                 phytomer.radius = weighed(&form, radius(section, e), established);
                 for &(c, _, t, at, below) in relays.iter().filter(|r| r.1 == k) {
-                    let weigh = |s: i128| weighed(&form, radius(s, e), established);
+                    let weigh = |s: f32| weighed(&form, radius(s, e), established);
                     let (below, above) = (weigh(section + below), weigh(section - at));
                     joins.push((c, Join { node: k, t, below, above }));
                 }
@@ -275,20 +252,19 @@ pub(crate) fn thicken_given(
     given_out.into_iter().map(|o| o.0).collect()
 }
 
-/// Axis `i`'s attachment as its parent's node and share, Q32
+/// Axis `i`'s attachment as its parent's node and share
 /// (`geometry::attach`, `Join`): none for all but a relay on a parent with
 /// nodes.
-pub(crate) fn attached(axes: &[Axis], species: &Species, i: usize) -> Option<(usize, i64)> {
+pub(crate) fn attached(axes: &[Axis], species: &Species, i: usize) -> Option<(usize, f32)> {
     let x = crate::geometry::attach(axes, species, i)?;
     let last = axes[axes[i].origin.parent()?].phytomers.len().checked_sub(1)?;
     Some(crate::geometry::split(x, last))
 }
 
 /// How far a phytomer `years` old has laid down its own wood, ripening
-/// over `ripening` years: whole at once where `ripening` is none or less
-/// (`edge::ripe`, Q32).
+/// over `ripening` years: whole at once where `ripening` is none or less.
 pub(crate) fn ripe(years: f64, ripening: f64) -> f64 {
-    real(edge::ripe(q32(years), q32(ripening)))
+    f64::from(ripened(years as f32, ripening as f32))
 }
 
 #[cfg(test)]

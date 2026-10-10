@@ -1,6 +1,5 @@
 //! Sag's turn against today's f64 form (fn-211 task 9).
 use super::*;
-use crate::fixed::feedback::vector::unit_w;
 use std::f64::consts::PI;
 fn old(lever: Vec3, cap: f64, sag: f64, radius: f64, length: f64) -> f64 {
     let reach = lever.length();
@@ -30,11 +29,10 @@ fn old(lever: Vec3, cap: f64, sag: f64, radius: f64, length: f64) -> f64 {
     }
     start - settle(fall, left)
 }
-/// Random levers, caps, stiffnesses and lengths: the turn is today's to
-/// within 1e-4 rad (the largest where a phytomer a few micrometres long
-/// meets Q32's resolution of a length).
+/// Random levers, caps, stiffnesses and lengths: the turn in f32 is the
+/// f64 form's to within 1e-4 rad.
 #[test]
-fn the_turn_is_its_real_to_q32() {
+fn the_turn_is_its_real_to_f32() {
     let mut seed = 99u64;
     let mut r = || {
         seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
@@ -50,7 +48,7 @@ fn the_turn_is_its_real_to_q32() {
         let want = old(l, cap, sag, radius, length);
         let lw = Load::of(0.0, l).moment;
         let capw = unit_w(torque(Load::of(0.0, Vec3::new(l.x, l.y, 0.0) * (cap / t)).moment)).1;
-        let got = turn(lw, capw, sag, radius, length) as f64 / 4294967296.0 * std::f64::consts::TAU;
+        let got = f64::from(turn(lw, capw, sag, radius, length)) * std::f64::consts::TAU;
         let d = (got - want).abs();
         if d > worst.0 {
             worst = (d, format!("{l:?} cap {cap} sag {sag} r {radius} len {length}: {got} vs {want}"));

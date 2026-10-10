@@ -17,8 +17,8 @@ struct Cfg {
     live_cap: u32,
     rows: u32,
     age: u32,
-    span_lo: u32,
-    span_hi: u32,
+    span: u32,
+    pad0: u32,
     sleep_cap: u32,
     pend_cap: u32,
     geo: u32,
@@ -81,15 +81,13 @@ const NPHYT: u32 = 24u;
 // What a failed unit's relay's first unit holds below its ticks, in 2^-32
 // of a cycle (fn-199 B2).
 const BELOW: u32 = 25u;
-// Its relay's blend and its node's buds a whorl (f32, `presence.wgsl`);
-// its rank, Q52 in two words (34, 39): a node's presence (Q32) times its
-// unit's share (ticks), summed exactly, so its phyllotaxis turns as the
-// CPU's does however many nodes it holds.
+// Its relay's blend and its node's buds a whorl (`presence.wgsl`); its
+// rank: its nodes' presences times their units' shares, summed in order,
+// as the CPU's (`presence::assign_one`).
 const RANKF: u32 = 34u;
-const RANK_HI: u32 = 39u;
 const BLEND: u32 = 35u;
 const WHORL: u32 = 37u;
-// A phytomer's rank (Q52, two words).
+// A phytomer's rank.
 const PRANK: u32 = 7u;
 
 // The KIND word's flags.
@@ -137,7 +135,7 @@ struct Next {
 struct After {
     apex: Apex,
     used: vec2<u32>,
-    made: vec2<u32>,
+    made: f32,
     key: vec2<u32>,
 }
 
@@ -174,6 +172,14 @@ fn wr64(i: u32, f: u32, v: vec2<u32>) {
     axes[at(i, f + 1u)] = v.y;
 }
 
+fn rf(i: u32, f: u32) -> f32 {
+    return bitcast<f32>(rd(i, f));
+}
+
+fn wf(i: u32, f: u32, v: f32) {
+    wr(i, f, bitcast<u32>(v));
+}
+
 // PA `pa`'s row: its flags word, and its words from `k`.
 fn flags(pa: u32) -> u32 {
     return table[cfg.rows + 4u * pa];
@@ -191,12 +197,13 @@ fn row(pa: u32, k: u32) -> vec2<u32> {
     return words[table[cfg.rows + 4u * pa + 3u] + k];
 }
 
-fn log_wood(pa: u32, cycle: u32) -> vec2<u32> {
-    return words[row(pa, 15u).x + cycle];
+// The f32 word `k` of PA `pa`'s row.
+fn fr(pa: u32, k: u32) -> f32 {
+    return bitcast<f32>(row(pa, k).x);
 }
 
-fn q32_whole(n: u32) -> vec2<u32> {
-    return w(0u, n);
+fn log_wood(pa: u32, cycle: u32) -> f32 {
+    return fw(row(pa, 15u).x + cycle);
 }
 
 fn ticks_whole() -> vec2<u32> {
@@ -204,7 +211,7 @@ fn ticks_whole() -> vec2<u32> {
 }
 
 // A new axis; its index, or none where the region is full.
-fn push_axis(lineage: vec2<u32>, pa: u32, birth: u32, kind: u32, parent: u32, node: u32, root: vec2<u32>, horizon: vec2<u32>, units: vec2<u32>) -> u32 {
+fn push_axis(lineage: vec2<u32>, pa: u32, birth: u32, kind: u32, parent: u32, node: u32, root: vec2<u32>, horizon: f32, units: vec2<u32>) -> u32 {
     if n_axes >= cfg.axes_cap {
         overflow |= 1u;
         return NONE;
@@ -221,7 +228,7 @@ fn push_axis(lineage: vec2<u32>, pa: u32, birth: u32, kind: u32, parent: u32, no
     wr(i, PARENT, parent);
     wr(i, NODE, node);
     wr64(i, ROOT, root);
-    wr64(i, HORIZON, horizon);
+    wf(i, HORIZON, horizon);
     wr64(i, UNITS, units);
     wr(i, SUCC, NONE);
     wr(i, SUCC + 1u, NONE);
@@ -246,11 +253,12 @@ fn push_next(axis: u32, spent: vec2<u32>) {
     n_next += 1u;
 }
 
-// The horizon of a new axis of `pa` standing on `parent` as `kind`.
-fn horizon_of(pa: u32, kind: u32, parent: u32) -> vec2<u32> {
-    let h = rd64(parent, HORIZON);
+// The horizon of a new axis of `pa` standing on `parent` as `kind`, in
+// cycles.
+fn horizon_of(pa: u32, kind: u32, parent: u32) -> f32 {
+    let h = rf(parent, HORIZON);
     if (kind == LATERAL || kind == RELAYED) && (flags(pa) & 16u) != 0u {
-        return smax64(h, row(pa, 13u));
+        return max(h, fr(pa, 13u));
     }
     return h;
 }
@@ -261,9 +269,8 @@ fn shed_certain(pa: u32, cycle: u32, parent: u32) -> bool {
     if (flags(pa) & 48u) != 48u {
         return false;
     }
-    let h = smax64(rd64(parent, HORIZON), row(pa, 13u));
-    let bound = sub64(q32_whole(cfg.age), add64(q32_whole(cycle), row(pa, 14u)));
-    return !slt64(bound, h);
+    let h = max(rf(parent, HORIZON), fr(pa, 13u));
+    return h <= f32(cfg.age) - (f32(cycle) + fr(pa, 14u));
 }
 
 // Unit `i` (1 or 2) of a bud carrying `spent` ticks, `gone` of its first
@@ -333,7 +340,7 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
     let woken = (buds[b + 5u].x & 1u) != 0u;
     let slot = buds[b + 5u].y;
     let root = buds[b + 3u];
-    let horizon = buds[b + 4u];
+    let horizon = bitcast<f32>(buds[b + 4u].x);
     let whorl = bitcast<f32>(buds[b + 11u].y);
     var start = 1u;
     if seed {
@@ -344,11 +351,11 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
         push_axis(vec2<u32>(0u), pa, 0u, STUB, NONE, 0u, vec2<u32>(0u), horizon, vec2<u32>(0u));
         start = woke(b, whorl);
     } else {
-        push_axis(vec2<u32>(0u), pa, 0u, STUB, NONE, 0u, vec2<u32>(0u), neg64(inf()), vec2<u32>(0u));
+        push_axis(vec2<u32>(0u), pa, 0u, STUB, NONE, 0u, vec2<u32>(0u), -INF, vec2<u32>(0u));
         push_axis(lineage, pa, birth, LATERAL | (slot << 8u), 0u, node, root, horizon, vec2<u32>(0u));
-        wrf(1u, WHORL, whorl);
-        wq(1u, B0, buds[b + 12u]);
-        wq(1u, B1, buds[b + 13u]);
+        wf(1u, WHORL, whorl);
+        wq(1u, B0, bitcast<f32>(buds[b + 12u].x));
+        wq(1u, B1, bitcast<f32>(buds[b + 13u].x));
         push_next(1u, vec2<u32>(0u));
         start = birth + 1u;
     }
@@ -394,7 +401,7 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
         let key = vec2<u32>(sleepers[p], sleepers[p + 1u]);
         let first = lived(sleepers[p + 2u]);
         let kind = LATERAL | IS_WOKEN | (sleepers[p + 5u] << 8u);
-        let at = push_axis(onto(key, first), first, sleepers[p + 6u] - 1u, kind, sleepers[p + 3u], sleepers[p + 4u], key, vec2<u32>(0u), vec2<u32>(0u));
+        let at = push_axis(onto(key, first), first, sleepers[p + 6u] - 1u, kind, sleepers[p + 3u], sleepers[p + 4u], key, 0.0, vec2<u32>(0u));
         if at == NONE {
             break;
         }
@@ -405,9 +412,9 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
         wr(at, ENDED_RELAYS, sleepers[p + 9u]);
         wr64(at, UNITS, vec2<u32>(sleepers[p + 10u], sleepers[p + 11u]));
         wr(at, 31u, sleepers[p + 2u]);
-        wr64(at, HORIZON, rd64(sleepers[p + 3u], HORIZON));
+        wf(at, HORIZON, rf(sleepers[p + 3u], HORIZON));
         wr(at, WHORL, sleepers[p + 16u]);
-        // The same, Q32 (host decision 8), at the chain's end.
+        // The same (host decision 8), at the chain's end.
         ask(at, vec4<u32>(WOKEN_ASKS, sleepers[p + 19u], sleepers[p + 20u], sleepers[p + 2u]), vec4<u32>(sleepers[p], sleepers[p + 1u], p, 0u));
     }
     // Its units' count, for the asks and assignment passes (`assign.wgsl`),

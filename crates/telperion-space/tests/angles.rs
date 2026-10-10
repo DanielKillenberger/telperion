@@ -4,7 +4,7 @@
 //! own lineage draw: the tree's topology and scales are the same to the
 //! bit at any spread, each angle is the one its draw keys, and at none
 //! every tree is the one it was.
-use telperion_space::fixed::{insertion_draw, tropism_draw};
+use telperion_space::contract::{insertion_draw, tropism_draw};
 use telperion_space::{beech, grow, oak, Light, Origin, Request, Species, Structure};
 
 fn request(age: u32, seed: u64) -> Request {
@@ -25,9 +25,10 @@ fn spread(species: &Species, (insertion, tropism): (f64, f64)) -> Species {
     s
 }
 
-/// A 53-bit draw as a real in [0, 1).
+/// A 53-bit draw as the real in [0, 1) its geometry reads: its top 24
+/// bits (`lineage::unit`).
 fn unit(bits: u64) -> f64 {
-    bits as f64 / (1u64 << 53) as f64
+    (bits >> 29) as f64 / (1u64 << 24) as f64
 }
 
 /// The same nodes, keys and scales, to the bit.

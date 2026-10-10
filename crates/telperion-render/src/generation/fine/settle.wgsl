@@ -69,8 +69,7 @@ fn begin(c: u32) -> Chain {
     // down from its seed.
     var root_vigour = -1.0;
     if stub {
-        let made = vec2<u32>(bitcast<u32>(records[RR * root + 2u]), bitcast<u32>(records[RR * root + 3u]));
-        root_vigour = qf(made.x, made.y);
+        root_vigour = records[RR * root + 2u];
     }
     status = 0u;
     if na > 0u {
@@ -87,20 +86,20 @@ fn chain_id(id: vec3<u32>) -> u32 {
     return id.x + id.y * cfg.row;
 }
 
-// A Q32 presence as a real.
-fn qf(lo: u32, hi: u32) -> f32 {
-    return f32(hi) + f32(lo) * (1.0 / 4294967296.0);
+// An axis's presence field `f` (`assign.wgsl`).
+fn qf(i: u32, f: u32) -> f32 {
+    return bitcast<f32>(ax(i, f));
 }
 
 // An axis's vigour as shed sizes it: its presences' times its fade.
 fn vigour_of(i: u32) -> f32 {
-    return qf(ax(i, QVIG), ax(i, QVIG + 1u)) * qf(ax(i, FADE), ax(i, FADE + 1u));
+    return qf(i, QVIG) * qf(i, FADE);
 }
 
 // A root's first axis's vigour as shed sizes it: its seed's times its
 // fade.
 fn root_vigour_of(made: f32) -> f32 {
-    return made * qf(ax(1u, FADE), ax(1u, FADE + 1u));
+    return made * qf(1u, FADE);
 }
 
 // Each own axis's base scale, from its bearer's (`geometry::scale`), and
@@ -126,10 +125,10 @@ fn scale_realized(na: u32, bearer: u32, root_vigour: f32) {
         for (var k = 0u; k < s(i, S_COUNT); k++) {
             let p = at_k(i, k);
             let at = lo(i, k);
-            let scale = qf(ph(p, QSCALE), ph(p, QSCALE + 1u)) * base;
+            let scale = bitcast<f32>(ph(p, QSCALE)) * base;
             out[at + 19u] = scale;
             out[at + 20u] = bitcast<f32>(ph(p, 7u));
-            out[at + 21u] = bitcast<f32>(ph(p, 8u));
+            out[at + 21u] = 0.0;
             // Its key, which its node's blooms are drawn by (fn-229).
             out[at + 24u] = bitcast<f32>(ph(p, 0u));
             out[at + 25u] = bitcast<f32>(ph(p, 1u));
@@ -278,10 +277,10 @@ fn levers_realized(ch: Chain) {
         // the tip.
         if kind_of(j) == RELAYED && np > 0u {
             let kt = attached(j);
-            let t = real_q(vec2<u32>(kt.y, kt.z));
-            let q = s(p, S_START) + kt.x;
+            let t = kt.t;
+            let q = s(p, S_START) + kt.k;
             load_at(q, mass, moment, t);
-            if kt.x > 0u {
+            if kt.k > 0u {
                 load_at(q - 1u, mass, moment, 1.0 - t);
             } else {
                 ssf(p, S_BASE, sf(p, S_BASE) + mass * (1.0 - t));

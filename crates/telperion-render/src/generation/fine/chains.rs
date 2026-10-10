@@ -3,13 +3,13 @@
 //! a dispatch of chains in regions, and their axes packed and read back
 //! (`pack.wgsl`) as `telperion_space::chain_cases` gives the CPU's.
 use super::super::io;
-use super::units::pack;
+use super::units::{f, pack};
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 use std::cell::RefCell;
 #[cfg(test)]
 use telperion_space::ChainAxis;
-use telperion_space::{fixed, ChainBud, ChainTables, GeometryTables, Woke};
+use telperion_space::{ChainBud, ChainTables, GeometryTables, Woke};
 
 const CHAIN: &str = include_str!("chain.wgsl");
 const APEX: &str = include_str!("apex.wgsl");
@@ -69,50 +69,47 @@ pub(super) fn packed(t: &ChainTables, g: &GeometryTables) -> Packed {
             | u32::from(r.successor.is_some()) << 3
             | u32::from(r.delay.is_some()) << 4
             | u32::from(r.lasting.is_some()) << 5;
-        let (a_thr, a_log, rise) = r.abortion.unwrap_or((0, 0, None));
-        let (next, go, go62) = r
+        let (a_thr, a_log, rise) = r.abortion.unwrap_or((0, 0.0, None));
+        let (next, go, chance) = r
             .successor
-            .map_or((NONE, 0, 0), |(n, g, q)| (n as u32, g, q));
+            .map_or((NONE, 0, 0.0), |(n, g, q)| (n as u32, g, q));
         table.extend([flags, r.lived.map_or(NONE, |l| l as u32), next, at]);
+        // Thresholds and ticks whole, every other value an f32 (`fr`).
         words.extend([
             r.life,
             r.viability.0,
-            r.viability.1 as u64,
+            f(r.viability.1),
             a_thr,
-            a_log as u64,
-            rise.unwrap_or(0) as u64,
+            f(a_log),
+            f(rise.unwrap_or(0.0)),
             r.relay[0],
             r.relay[1],
             r.relay[2],
             go,
-            go62,
-            r.moved.0 as u64,
-            r.moved.1 as u64,
-            r.delay.unwrap_or(0) as u64,
-            r.lasting.unwrap_or(0) as u64,
+            f(chance),
+            f(r.moved.0),
+            f(r.moved.1),
+            f(r.delay.unwrap_or(0.0)),
+            f(r.lasting.unwrap_or(0.0)),
             0, // the log woods' offset, set below
-            r.relay_at,
+            f(r.relay_at),
             0,
         ]);
         // Host decision 8's presences (`assign.wgsl`), from word 18.
         for (rate, floor) in r.stakes {
-            words.extend([rate as u64, floor as u64]);
+            words.extend([f(rate), f(floor)]);
         }
-        words.extend([r.living.0, r.living.1, r.fade_delay, 0]);
-        // The thresholds' log-odds, from word 28 (`assign.wgsl`'s
-        // `ROW_LOGITS`, task 8): the whole unit's survival, each relay's.
-        words.push(fixed::logit(r.viability.0 << 9) as u64);
-        words.extend(r.relay.map(|t| fixed::logit(t << 9) as u64));
+        words.extend([f(r.living.0), f(r.living.1), f(r.fade_delay), 0]);
         woods.push((at as usize + 15, pa));
         reaches.push((at as usize + 27, pa));
     }
     for (slot, pa) in reaches {
         words[slot] = words.len() as u64;
-        words.extend(&t.pas[pa].reaches);
+        words.extend(t.pas[pa].reaches.iter().map(|&r| f(r)));
     }
     for (slot, pa) in woods {
         words[slot] = words.len() as u64;
-        words.extend(t.log_woods[pa].iter().map(|&l| l as u64));
+        words.extend(t.log_woods[pa].iter().map(|&l| f(l)));
     }
     let geo = words.len() as u32;
     words.extend(super::laid::presences(g));
@@ -124,8 +121,9 @@ pub(super) fn packed(t: &ChainTables, g: &GeometryTables) -> Packed {
 pub(super) type Packed = (Vec<u32>, Vec<u64>, [u32; 2]);
 
 /// A bud's words: its record, its vigour as made and its node's buds a
-/// whorl (f32), and its making draws' presences (Q32, host decision 8).
-pub(super) fn bud_words(b: &ChainBud, made: [f32; 2], birth: [u64; 2]) -> [u64; 14] {
+/// whorl, and its making draws' presences (host decision 8), each f32 in
+/// a word's low half.
+pub(super) fn bud_words(b: &ChainBud, made: [f32; 2], birth: [f32; 2]) -> [u64; 14] {
     let pair = |lo: u32, hi: u32| u64::from(lo) | u64::from(hi) << 32;
     let w = b.woke.unwrap_or(Woke {
         key: 0,
@@ -140,7 +138,7 @@ pub(super) fn bud_words(b: &ChainBud, made: [f32; 2], birth: [u64; 2]) -> [u64; 
         pair(b.pa as u32, b.birth),
         pair(u32::from(b.seed), b.node as u32),
         b.root,
-        b.horizon as u64,
+        f(b.horizon),
         pair(
             u32::from(b.woke.is_some()) | u32::from(b.context.is_some()) << 1,
             u32::from(b.slot),
@@ -149,10 +147,10 @@ pub(super) fn bud_words(b: &ChainBud, made: [f32; 2], birth: [u64; 2]) -> [u64; 
         pair(w.pa as u32, w.stage as u32),
         w.spent,
         pair(w.sleep as u32, w.cycle),
-        b.context.unwrap_or(0) as u64,
+        f(b.context.unwrap_or(0.0)),
         pair(made[0].to_bits(), made[1].to_bits()),
-        birth[0],
-        birth[1],
+        f(birth[0]),
+        f(birth[1]),
     ]
 }
 
@@ -297,12 +295,11 @@ impl Grower {
         gpu: &Gpu,
         encoder: &mut wgpu::CommandEncoder,
         (input, first, n): (&wgpu::Buffer, u32, u32),
-        (tables, t, span, age): (&Uploaded, &Packed, i64, u32),
+        (tables, t, span, age): (&Uploaded, &Packed, f32, u32),
         caps: Caps,
     ) -> Result<Region> {
         let groups = n.div_ceil(64);
         let row = groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
-        let (lo, hi) = (span as u32, (span >> 32) as u32);
         // The asks' pass: `assign.wgsl`'s `LANES` threads a chain.
         let ask_groups = (n * ASK_LANES).div_ceil(64);
         let ask_row = ask_groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
@@ -314,8 +311,8 @@ impl Grower {
             caps.live,
             t.2[0],
             age,
-            lo,
-            hi,
+            span.to_bits(),
+            0,
             caps.sleepers,
             caps.woken,
             t.2[1],
@@ -423,7 +420,7 @@ pub(super) fn topology(bud: &ChainBud, axes: &[u32], phyts: &[u32]) -> Vec<Chain
                 apex_end: word(i, 7).checked_sub(1),
                 phytomers: Vec::new(),
                 kept: word(i, 28) & 1 != 0,
-                context: (word(i, 28) & 2 != 0).then(|| wide(i, 29) as i64),
+                context: (word(i, 28) & 2 != 0).then(|| f32::from_bits(word(i, 29))),
             }
         })
         .collect();

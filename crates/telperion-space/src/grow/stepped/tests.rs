@@ -43,7 +43,7 @@ fn each_grower_keeps_the_whole_trees_living_order() {
         whole
             .year(cycle, cycle < r.age, &mut advanced, &mut |_| {})
             .unwrap();
-        x.cycle(cycle, None).unwrap();
+        x.cycle(cycle).unwrap();
         let lineage = |g: &Grower, a: &super::super::Apex| g.axes[a.axis].lineage;
         let mut at = HashMap::new();
         for (k, a) in whole.live.iter().enumerate() {
@@ -89,39 +89,5 @@ fn the_stepped_tree_is_the_whole_tree() {
             assert_eq!(s.phases, whole.phases, "{order:?}");
             assert_eq!(crate::fine::digest(&s.structure), want, "{order:?}");
         }
-    }
-}
-
-/// fn-211 task 10: the fine roots' D16, deposits and reads through the
-/// device interface, on the CPU's own, leave every grower's whole state
-/// after every phase, and every cycle's lattice, the all-CPU run's.
-#[test]
-fn the_feedback_interface_keeps_every_phase_whole() {
-    let species = crate::oak();
-    let r = request(24, 7);
-    let expected = Expected::new(&species, r.age, 0);
-    let mut first: Option<Vec<[u64; 4]>> = None;
-    for (order, chunk) in [(Order::Forward, 1), (Order::Shuffled(3), 7)] {
-        let at = (&expected, 256.0, grouping(order, chunk));
-        let started = std::time::Instant::now();
-        let cpu = grow_stepped_on(&species, r, at, None, true).unwrap();
-        let took = started.elapsed();
-        let on = grow_stepped_on(&species, r, at, Some(&mut Cpu), true).unwrap();
-        eprintln!(
-            "{order:?}: {} roots, {} states, {} lattices, {took:?}",
-            cpu.roots,
-            cpu.states.len(),
-            cpu.lattices.len()
-        );
-        assert!(cpu.roots > 10 && cpu.lattices.len() + 1 == r.age as usize);
-        assert_eq!(on.phases, cpu.phases, "{order:?}");
-        assert_eq!(on.states, cpu.states, "{order:?}");
-        assert_eq!(on.lattices, cpu.lattices, "{order:?}");
-        // Each grower's state is its own whatever order the items take.
-        assert_eq!(&cpu.states, first.get_or_insert(cpu.states.clone()));
-        assert_eq!(
-            crate::fine::digest(&on.structure),
-            crate::fine::digest(&cpu.structure)
-        );
     }
 }

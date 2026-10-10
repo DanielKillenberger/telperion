@@ -21,7 +21,7 @@ fn sleep(zat: u32, node_key: vec2<u32>, axis: u32, node: u32, cycle: u32) {
         if pa == 0xffu {
             continue;
         }
-        let years = wake_q(words[waking], words[waking + 1u], draw(child(key, KEY_DORMANT)));
+        let years = wake_ticks(words[waking], fw(waking + 1u), draw(child(key, KEY_DORMANT)));
         if !lt64(years, shl64(w(cfg.age - cycle, 0u), 20u)) {
             continue;
         }
@@ -44,7 +44,7 @@ fn sleep(zat: u32, node_key: vec2<u32>, axis: u32, node: u32, cycle: u32) {
         // `Shoot::woke`).
         sleepers[q + 9u] = rd(axis, NUNITS) - 1u;
         sleepers[q + 11u] = bitcast<u32>(buds_f);
-        // Where its own draw's Q32 presence is read from at the chain's
+        // Where its own draw's presence is read from at the chain's
         // end (`Sleeper::made`): its zone and its node's cycle.
         sleepers[q + 12u] = zat;
         sleepers[q + 13u] = cycle;
@@ -61,7 +61,7 @@ fn sleep(zat: u32, node_key: vec2<u32>, axis: u32, node: u32, cycle: u32) {
 struct Aged {
     pa: u32,
     slept: vec2<u32>,
-    // The stages it moved on, which index its reach, Q32.
+    // The stages it moved on, which index its reach.
     steps: u32,
 }
 
@@ -86,7 +86,7 @@ fn aged(pa_in: u32, slept_in: vec2<u32>) -> Aged {
 
 // The sleeping buds that wake in `cycle`: a bud on every axis that
 // carries their bearer on (`borne_wakes`, `dormant::carried`); what
-// carried it there is taken, Q32, at the chain's end (`assign.wgsl`).
+// carried it there is taken at the chain's end (`assign.wgsl`).
 fn wakes(cycle: u32) {
     for (var k = 0u; k < n_sleepers; k++) {
         let q = sleep_base + k * SW;
@@ -131,7 +131,7 @@ fn wakes(cycle: u32) {
                     sleepers[p + 11u] = stage.slept.y;
                     sleepers[p + 14u] = rd(a, NUNITS);
                     sleepers[p + 16u] = sleepers[q + 11u];
-                    // What its Q32 presences are read from at the chain's
+                    // What its presences are read from at the chain's
                     // end: its node's unit, the stages it moved on, its
                     // zone and its node's cycle.
                     sleepers[p + 17u] = sleepers[q + 9u];
@@ -187,9 +187,9 @@ fn woke(b: u32, whorl: f32) -> u32 {
             return cycle + 1u;
         }
         if kind != CONTINUED {
-            wrf(at, WHORL, whorl);
-            wq(at, B0, buds[b + 12u]);
-            wq(at, B1, buds[b + 13u]);
+            wf(at, WHORL, whorl);
+            wq(at, B0, bitcast<f32>(buds[b + 12u].x));
+            wq(at, B1, bitcast<f32>(buds[b + 13u].x));
         }
         wr(at, APEX_END, cycle);
         stage = successor(stage);
@@ -207,9 +207,9 @@ fn woke(b: u32, whorl: f32) -> u32 {
         return cycle + 1u;
     }
     if kind != CONTINUED {
-        wrf(a, WHORL, whorl);
-        wq(a, B0, buds[b + 12u]);
-        wq(a, B1, buds[b + 13u]);
+        wf(a, WHORL, whorl);
+        wq(a, B0, bitcast<f32>(buds[b + 12u].x));
+        wq(a, B1, bitcast<f32>(buds[b + 13u].x));
     }
     wr(a, SLEEP, sleep);
     wr(a, KIND, rd(a, KIND) | IS_WOKE);

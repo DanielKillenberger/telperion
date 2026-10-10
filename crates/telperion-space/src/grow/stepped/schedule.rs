@@ -78,12 +78,6 @@ impl Executor<'_> {
         if k != 2 {
             self.phases[c][k] = d.finish(k);
         }
-        if self.keep == super::Keep::States {
-            if self.states.len() <= c {
-                self.states.resize(c + 1, [0; 4]);
-            }
-            self.states[c][k] = self.state();
-        }
     }
 
     /// Each cycle's growth digest, once every item has run: the coarse

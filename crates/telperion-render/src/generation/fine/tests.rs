@@ -1,12 +1,15 @@
-//! The contract's mirror against the CPU's (fn-209 F1, R1): every function
-//! of `telperion_space::fixed` and the integer forms of `fixed::decide`,
-//! on the GPU and the CPU, over a quarter of a million cases each, the
-//! threshold-adjacent and saturating ones among them, give the same bits.
+//! The contract's mirror against the CPU's (fn-254, after fn-209 F1 R1):
+//! every function of `telperion_space::contract`, on the GPU and the CPU,
+//! over a quarter of a million cases each, endpoints and sentinels among
+//! them. The discrete contracts (keys, draws, integer conversions,
+//! thresholds of the same f32) give the same bits (R4, check 2); the f32
+//! arithmetic agrees within the units in the last place `Tolerance`
+//! states, measured on the RTX 3080 (fn-254 R4, check 4).
 use super::super::io;
 use super::selectors::{Selector, Selector as S, ALL};
 use crate::Gpu;
 use std::time::Instant;
-use telperion_space::fixed::{self as fx, decide, presence as pr};
+use telperion_space::contract::{self as c, decide, presence as pr};
 
 const CASES: usize = 1 << 18;
 const PROBE: &str = include_str!("probe.wgsl");
@@ -23,35 +26,49 @@ impl Cases {
         z ^ (z >> 31)
     }
     /// Uniform in [lo, hi], with its ends and their neighbours often.
-    fn within(&mut self, lo: i64, hi: i64) -> i64 {
-        let span = (hi as i128 - lo as i128 + 1) as u128;
+    fn within(&mut self, lo: u64, hi: u64) -> u64 {
         match self.next() % 16 {
             0 => lo,
             1 => hi,
             2 => (lo + 1).min(hi),
             3 => (hi - 1).max(lo),
-            _ => (lo as i128 + (u128::from(self.next()) % span) as i128) as i64,
+            _ => lo + self.next() % (hi - lo + 1),
         }
     }
     fn draw(&mut self) -> u64 {
-        self.within(0, (1 << 53) - 1) as u64
+        self.within(0, c::ONE - 1)
     }
-    fn chance(&mut self) -> u64 {
-        self.within(0, fx::P_ONE as i64) as u64
-    }
-    fn log(&mut self, most: i64) -> i64 {
-        if self.next().is_multiple_of(8) {
-            fx::INF
-        } else {
-            self.within(0, most)
+    /// A real in [0, 1], its ends and tiny and near-whole ones often.
+    fn unit(&mut self) -> f32 {
+        let u = (self.next() >> 40) as f32 / (1u64 << 24) as f32;
+        match self.next() % 8 {
+            0 => 0.0,
+            1 => 1.0,
+            2 => u * 1e-6,
+            3 => 1.0 - u * 1e-6,
+            _ => u,
         }
+    }
+    /// A `-log2` chance: none, unbounded, or up to `most`.
+    fn log(&mut self, most: f32) -> f32 {
+        match self.next() % 8 {
+            0 => c::INF,
+            1 => 0.0,
+            _ => self.unit() * most,
+        }
+    }
+    fn real(&mut self, lo: f32, hi: f32) -> f32 {
+        lo + self.unit() * (hi - lo)
     }
 }
 
-const Q: i64 = fx::ONE32;
+/// An f32 as a probe word.
+fn w(x: f32) -> u64 {
+    u64::from(x.to_bits())
+}
 
 /// Selector `s`'s cases, and the presences the relay cases read.
-fn cases(s: Selector, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
+fn cases(s: Selector, rng: &mut Cases, presences: &mut Vec<f32>) -> Vec<[u64; 8]> {
     (0..CASES)
         .map(|_| {
             let mut a = [0u64; 8];
@@ -59,205 +76,86 @@ fn cases(s: Selector, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]
                 S::ChildDraw | S::Internode | S::Angles => {
                     a[..2].copy_from_slice(&[rng.next(), rng.next()])
                 }
-                S::Log2 => {
+                S::Convert => {
                     a[0] = rng.next() >> (rng.next() % 64);
-                    a[1] = rng.within(-(1 << 40), 70 * Q) as u64;
-                    // The polynomials' table edges (host decision,
-                    // 2026-10-07): a mantissa's sixty-fourths and a
-                    // fraction's, and their neighbours.
-                    if rng.next().is_multiple_of(4) {
-                        let (j, d) = (rng.next() % 64, rng.next() % 3);
-                        let edge = (1u64 << 62) + (j << 56) + d - 1;
-                        a[0] = edge >> (rng.next() % 62);
-                        let whole = (rng.next() % 70) << 32;
-                        a[1] = (whole + (j << 26) + d).wrapping_sub(1);
-                    }
+                    a[1] = w(rng.real(0.0, 1.0) * 2f32.powi((rng.next() % 62) as i32));
                 }
-                S::Exp2 => {
-                    a[0] = rng.within(-70 * Q, 70 * Q) as u64;
-                    a[1] = rng.next() >> (rng.next() % 64);
-                }
-                S::LnRatio => {
-                    a[0] = rng.next() >> (rng.next() % 64);
-                    a[1] = rng.next() >> (rng.next() % 64);
-                    a[2] = rng.within(-fx::INF, 50 * Q) as u64;
-                }
-                S::MulPresence => {
-                    a[0] = rng.within(-fx::INF, fx::INF) as u64;
-                    a[1] = rng.within(-(1 << 40), 1 << 40) as u64;
-                    a[2] = if rng.next().is_multiple_of(8) {
-                        fx::INF
-                    } else {
-                        rng.within(-(1 << 40), 1 << 45)
-                    } as u64;
-                    a[3] = rng.within(-(1 << 10), 1 << 45) as u64;
-                }
-                S::Survival => {
-                    a[0] = rng.log(70 * Q) as u64;
-                    a[1] = rng.within(0, 1 << 21) as u64;
-                }
-                S::FineSurvival => {
-                    // fn-199 B2: shares finer than a tick.
-                    a[0] = rng.log(70 * Q) as u64;
-                    a[1] = rng.within(0, (1 << 33) + 1) as u64;
-                    a[5] = match rng.next() % 8 {
-                        0 => 0,
-                        1 => fx::INF as u64,
-                        _ => rng.log(60 * Q) as u64,
+                S::Threshold | S::Logs | S::Logit => {
+                    a[0] = w(rng.unit());
+                    a[1] = match s {
+                        S::Logit => rng.draw(),
+                        _ => w(rng.log(70.0)),
                     };
-                    a[6] = rng.within(0, (1 << 20) + 1) as u64;
+                }
+                S::Survival | S::Abortion | S::Lived => {
+                    a[0] = w(rng.log(8.0));
+                    a[1] = rng.within(0, 1) ;
+                    a[2] = w(rng.real(-4.0, 4.0));
+                    a[3] = rng.within(0, 120 << 20);
+                    a[4] = rng.within(0, 1 << 32);
+                    a[5] = w(rng.log(8.0));
+                    a[6] = rng.within(0, 1 << 20);
                     a[7] = rng.draw();
-                }
-                S::Q32Float => {
-                    // A positive float from 2^-40 to 2^30 (a scale), its
-                    // Q32 tie a quarter of the time; zero now and then.
-                    let exponent = 87 + rng.next() % 71;
-                    let mantissa = rng.next() & 0x7f_ffff;
-                    let mut bits = ((exponent << 23) | mantissa) as u32;
-                    if rng.next().is_multiple_of(4) {
-                        // (2j + 1) 2^-33, exact in a float: a half at Q32.
-                        let odd = ((rng.next() % (1 << 23)) * 2 + 1) as f32;
-                        bits = (odd * (0.5f32).powi(33)).to_bits();
+                    if s == S::Survival {
+                        a[1] = a[4];
                     }
-                    if rng.next().is_multiple_of(16) {
-                        bits = 0;
-                    }
-                    a[0] = u64::from(bits);
-                }
-                S::FineAbortion => {
-                    a[0] = rng.log(60 * Q) as u64;
-                    a[1] = rng.next() % 2;
-                    a[2] = rng.within(-4 * Q, 4 * Q) as u64;
-                    a[3] = rng.within(0, 4096 << 20) as u64;
-                    a[4] = rng.within(0, (1 << 32) + 4096) as u64;
-                }
-                S::Abortion => {
-                    a[0] = rng.log(60 * Q) as u64;
-                    a[1] = rng.next() % 2;
-                    a[2] = rng.within(-4 * Q, 4 * Q) as u64;
-                    a[3] = rng.within(0, 4096 << 20) as u64;
-                    a[4] = rng.within(0, 1 << 20) as u64;
-                    // D5's lived time (fn-199 R1), at the edges too.
-                    a[5] = match rng.next() % 8 {
-                        0 => 0,
-                        1 => fx::INF as u64,
-                        _ => rng.log(60 * Q) as u64,
-                    };
-                    a[6] = rng.within(0, (1 << 20) + 1) as u64;
-                    a[7] = rng.draw();
                 }
                 S::Moved => {
-                    let stake = rng.within(0, 1 << 20) as f64 / f64::from(1 << 20);
-                    let wood = |rng: &mut Cases| match rng.next() % 6 {
-                        0 => -fx::INF,
-                        _ => rng.within(-30 * Q, Q),
-                    };
-                    a[0] = rng.chance();
+                    a[0] = w(rng.unit());
                     a[1] = rng.draw();
-                    a[2] = wood(rng) as u64;
-                    a[3] = wood(rng) as u64;
-                    a[4] = rng.within(0, 1 << 20) as u64;
-                    a[5] = fx::q32(6.0 * stake) as u64;
-                    a[6] = fx::q32(0.05 * stake) as u64;
-                    a[7] = fx::q32(2.0) as u64;
+                    a[2] = w(if rng.next() % 8 == 0 { -c::INF } else { rng.real(-30.0, 0.0) });
+                    a[3] = w(if rng.next() % 8 == 0 { -c::INF } else { rng.real(-30.0, 0.0) });
+                    a[4] = rng.within(0, 1 << 20);
+                    a[5] = w(rng.real(0.0, 6.0));
+                    a[6] = w(rng.real(0.0, 0.05));
+                    a[7] = w(rng.real(0.05, 2.0));
                 }
-                S::Past => a[..2].copy_from_slice(&[rng.draw(), rng.chance()]),
+                S::Past => {
+                    a[0] = rng.draw();
+                    a[1] = w(rng.unit());
+                }
                 S::Wake => {
-                    a[0] = rng.within(0, 1 << 24) as u64;
-                    a[1] = fx::q32(1.0 / (0.01 + rng.within(0, 1000) as f64 / 100.0)) as u64;
+                    a[0] = rng.within(0, 40 << 20);
+                    a[1] = w(rng.real(0.0, 100.0));
                     a[2] = rng.draw();
-                    a[3] = rng.log(70 * Q) as u64;
-                    a[4] = rng.next() % 2;
-                    a[5] = rng.log(70 * Q) as u64;
-                    a[6] = rng.draw();
-                }
-                S::And => {
-                    a[..2].copy_from_slice(&[rng.log(fx::INF) as u64, rng.log(fx::INF) as u64])
-                }
-                S::UnderOver => {
-                    let t = match rng.next() % 8 {
-                        0 => 0,
-                        1 => 1 << 53,
-                        _ => rng.draw(),
-                    };
-                    a[0] = t;
-                    a[1] = match rng.next() % 4 {
-                        0 => 0,
-                        1 => t.saturating_sub(rng.next() % 4),
-                        2 => t + rng.next() % 4,
-                        _ => rng.draw(),
-                    };
-                }
-                S::Times => {
-                    let wood = |rng: &mut Cases| match rng.next() % 6 {
-                        0 => -fx::INF,
-                        _ => rng.within(-30 * Q, Q),
-                    };
-                    let stake = rng.within(0, 1 << 20) as f64 / f64::from(1 << 20);
-                    a[0] = rng.within(0, Q + 1) as u64;
-                    a[1] = rng.within(0, 1 << 44) as u64;
-                    a[2] = wood(rng) as u64;
-                    a[3] = wood(rng) as u64;
-                    a[4] = rng.within(0, 1 << 20) as u64;
-                    a[5] = fx::q32(6.0 * stake) as u64;
-                    a[6] = fx::q32(0.05 * stake) as u64;
-                    a[7] = fx::q32(2.0) as u64;
                 }
                 S::Lead => {
-                    let d = match rng.next() % 8 {
-                        0 => 0,
-                        _ => rng.draw(),
-                    };
-                    let near = |rng: &mut Cases| match rng.next() % 4 {
-                        0 => d.saturating_sub(rng.next() % 4),
-                        1 => d + rng.next() % 4,
-                        _ => rng.draw(),
-                    };
-                    a[0] = match rng.next() % 4 {
-                        0 => 0,
-                        _ => near(rng),
-                    };
-                    a[1] = match rng.next() % 4 {
-                        0 => 1 << 53,
-                        _ => near(rng),
-                    };
-                    a[2] = d;
-                    // Each bound's log-odds given or not; a value not
-                    // given is noise the lead must not read.
-                    a[3] = rng.next() % 4;
-                    a[4] = match a[3] & 1 {
-                        0 => rng.next(),
-                        _ => fx::logit(a[0] << 9) as u64,
-                    };
-                    a[5] = match a[3] & 2 {
-                        0 => rng.next(),
-                        _ => fx::logit(a[1] << 9) as u64,
-                    };
+                    let (x, y) = (rng.draw(), rng.draw());
+                    a[0] = if rng.next() % 4 == 0 { 0 } else { x.min(y) };
+                    a[1] = if rng.next() % 4 == 0 { c::ONE } else { x.max(y) };
+                    a[2] = rng.draw();
+                }
+                S::Window => {
+                    a[0] = w(if rng.next() % 8 == 0 { c::INF } else { rng.real(-4.0, 4.0) });
+                    a[1] = w(rng.real(0.0, 2.0));
+                    a[2] = w(if rng.next() % 8 == 0 { -c::INF } else { rng.real(-30.0, 0.0) });
+                    a[3] = w(if rng.next() % 8 == 0 { -c::INF } else { rng.real(-30.0, 0.0) });
+                    a[4] = rng.within(0, 1 << 20);
+                    a[5] = w(rng.real(0.0, 6.0));
+                    a[6] = w(rng.real(0.0, 0.05));
+                    a[7] = w(rng.real(0.05, 2.0));
                 }
                 S::Carry => {
-                    let age = rng.within(1, 4096) as u64;
-                    a[0] = rng.within(0, 1 << 44) as u64;
-                    a[1] = rng.within(0, Q + 1) as u64;
-                    a[2] = (age << 32) | rng.within(0, 100) as u64;
-                    a[3] = rng.within(0, 1 << 44) as u64;
-                    a[4] = rng.within(0, 1 << 40) as u64;
-                    a[5] = rng.within(0, age as i64 + 1) as u64;
-                    a[6] = rng.within(0, (age as i64) << 32) as u64;
-                    a[7] = match rng.next() % 3 {
-                        0 => 0,
-                        _ => rng.within(0, 2 * Q) as u64,
-                    };
+                    let (birth, age) = (rng.within(0, 80), rng.within(0, 80));
+                    a[0] = w(rng.real(0.0, 80.0));
+                    a[1] = w(rng.unit());
+                    a[2] = rng.within(0, 80) | age << 32;
+                    a[3] = w(rng.real(0.0, 80.0));
+                    a[4] = w(rng.real(0.0, 40.0));
+                    a[5] = birth;
+                    a[6] = w(rng.real(0.0, 80.0));
+                    a[7] = w(rng.unit());
                 }
-                _ => {
-                    let len = 1 + rng.next() % 12;
+                S::RelayNode => {
+                    let len = rng.within(1, 40);
                     a[0] = presences.len() as u64;
                     a[1] = len;
-                    a[2] = rng.within(0, Q) as u64;
+                    a[2] = w(rng.unit());
                     for _ in 0..len {
                         presences.push(match rng.next() % 4 {
-                            0 => 0,
-                            1 => Q as u64,
-                            _ => rng.within(0, Q) as u64,
+                            0 => 0.0,
+                            1 => 1.0,
+                            _ => rng.unit(),
                         });
                     }
                 }
@@ -268,67 +166,102 @@ fn cases(s: Selector, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]
 }
 
 /// The CPU's results for one case.
-fn expected(s: Selector, a: &[u64; 8], presences: &[u64]) -> [u64; 2] {
-    let i = |k: usize| a[k] as i64;
+fn expected(s: Selector, a: &[u64; 8], presences: &[f32]) -> [u64; 2] {
+    let f = |k: usize| f32::from_bits(a[k] as u32);
     match s {
-        S::ChildDraw => [fx::child(a[0], a[1]), fx::draw(a[0])],
-        S::Log2 => [fx::log2(a[0]) as u64, fx::exp2_neg(i(1))],
-        S::Exp2 => [fx::exp2(i(0)) as u64, fx::neg_log2(a[1]) as u64],
-        S::LnRatio => [fx::ln_ratio(a[0], a[1]) as u64, fx::exp(i(2)) as u64],
-        S::MulPresence => [fx::mul(i(0), i(1)) as u64, fx::presence(i(2), i(3))],
-        S::Survival => [
-            decide::survival_q(i(0), a[1]),
-            fx::scaled(i(0), a[1]) as u64,
-        ],
+        S::ChildDraw => [c::child(a[0], a[1]), c::draw(a[0])],
+        S::Internode => [c::internode_draw(a[0]), 0],
+        S::Angles => [c::insertion_draw(a[0]), c::tropism_draw(a[0])],
+        S::Convert => [w(a[0] as f32), f(1) as u64],
+        S::Threshold => [c::threshold(f(0)), (f64::from(f(0)) * c::ONE as f64) as u64],
+        S::Logs => [w(c::neg_log2(f(0))), w(c::prob(f(1)))],
+        S::Logit => [w(c::logit(f(0))), w(c::logit53(a[1]))],
+        S::Survival => [decide::survival_fine(f(0), a[1]), w(c::scaled(f(0), a[1]))],
         S::Abortion => [
-            decide::abortion_q(i(0), (a[1] != 0).then(|| i(2)), a[3], a[4]),
-            decide::lived_q(i(5), a[6], a[7]),
+            decide::abortion_fine(f(0), (a[1] != 0).then(|| f(2)), a[3], a[4]),
+            decide::lived_ticks(f(5), a[6], a[7]),
         ],
-        S::Moved => {
-            let window = (i(5), i(6), i(7));
-            [decide::moved_q(a[0], a[1], (i(2), i(3)), a[4], window), 0]
-        }
-        S::Past => [
-            decide::past_q(a[0], a[1]) as u64,
-            decide::above_q(a[0], a[1]) as u64,
-        ],
-        S::Wake => [
-            decide::wake_q(a[0], i(1), a[2]).unwrap_or(u64::MAX),
-            u64::from(decide::kept(i(3), (a[4] != 0).then(|| i(5)), a[6])),
-        ],
-        S::And => [decide::and(i(0), i(1)) as u64, 0],
-        S::UnderOver => [pr::under(a[0], a[1]) as u64, pr::over(a[0], a[1]) as u64],
-        S::Times => {
-            let wood = pr::wood_at((i(2), i(3)), a[4]);
-            [
-                pr::times(a[0], a[1]),
-                pr::window(wood, (i(5), i(6), i(7))) as u64,
-            ]
-        }
-        S::Carry => {
-            let (gap, age) = (a[2] & 0xffff_ffff, (a[2] >> 32) as u32);
-            [
-                pr::carry(a[0], a[1], gap, a[3]),
-                pr::fade(a[4], a[5] as u32, (a[6], a[7]), age),
-            ]
-        }
-        S::Lead => [pr::over(a[0], a[2]).min(pr::under(a[1], a[2])) as u64, 0],
-        S::Internode => [fx::internode_draw(a[0]), 0],
-        S::Angles => [fx::insertion_draw(a[0]), fx::tropism_draw(a[0])],
-        S::FineSurvival => [
-            decide::survival_fine_q(i(0), a[1]),
-            decide::lived_fine_q(i(5), a[6], a[7]),
-        ],
-        S::FineAbortion => [
-            decide::abortion_fine_q(i(0), (a[1] != 0).then(|| i(2)), a[3], a[4]),
+        S::Lived => [decide::lived_fine(f(5), a[6], a[7]), w(decide::draw_log2(a[7]))],
+        S::Moved => [
+            w(decide::moved_f(f(0), a[1], (f(2), f(3)), a[4], (f(5), f(6), f(7)))),
             0,
         ],
-        S::Q32Float => [fx::q32(f64::from(f32::from_bits(a[0] as u32))) as u64, 0],
+        S::Past => [w(decide::past(a[0], f(1))), w(decide::above(a[0], f(1)))],
+        S::Wake => [decide::wake_ticks(a[0], f(1), a[2]).unwrap_or(u64::MAX), 0],
+        S::Lead => [w(pr::over(a[0], a[2]).min(pr::under(a[1], a[2]))), 0],
+        S::Window => {
+            let wood = pr::wood_at((f(2), f(3)), a[4]);
+            [w(pr::window(wood, (f(5), f(6), f(7)))), w(c::presence(f(0), f(1)))]
+        }
+        S::Carry => {
+            let (gap, age) = ((a[2] & 0xffff_ffff) as u32, (a[2] >> 32) as u32);
+            [
+                w(pr::carry(f(0), f(1), gap, f(3))),
+                w(pr::fade(f(4), a[5] as u32, (f(6), f(7)), age)),
+            ]
+        }
         S::RelayNode => {
             let unit = &presences[a[0] as usize..(a[0] + a[1]) as usize];
-            [decide::relay_node_q(unit, 0, unit.len(), a[2]) as u64, 0]
+            [decide::relay_node_f(unit, 0, unit.len(), f(2)) as u64, 0]
         }
     }
+}
+
+/// How two results of one function may differ.
+#[derive(Debug, Clone, Copy)]
+enum Tolerance {
+    /// To the bit.
+    Exact,
+    /// Two f32 within `2^-e + REL |x|` of each other.
+    Near(i32),
+    /// Two draw thresholds whose chances are `Near`.
+    Chance,
+    /// Two counts of ticks or of 2^-32 of a cycle within this many.
+    Count(u64),
+}
+
+/// What each selector's two results are held to.
+fn tolerance(s: Selector) -> [Tolerance; 2] {
+    use Tolerance::*;
+    match s {
+        S::ChildDraw | S::Internode | S::Angles | S::Convert | S::Threshold => [Exact; 2],
+        S::Logs | S::Logit | S::Past | S::Window | S::Carry => [Near(ABS); 2],
+        S::Survival => [Chance, Near(ABS)],
+        S::Abortion => [Chance, Count(1)],
+        S::Lived => [Count(1 << 12), Near(ABS)],
+        S::Lead => [Near(ABS), Exact],
+        // A presence is a lead over a window as narrow as 1/20: a lead's
+        // two log-odds of up to 37 each, apart by their last places,
+        // twenty times over.
+        S::Moved => [Near(14), Exact],
+        S::Wake => [Count(WAKE), Exact],
+        S::RelayNode => [Exact; 2],
+    }
+}
+
+/// How far two executors' f32 results may differ by the same operations
+/// (the device's division within 2.5 units in the last place, its sums
+/// and products fused or not): twice the most measured over the probe's
+/// cases on the RTX 3080, to a power of two (fn-254 R4; `PROBE.md`), its
+/// absolute part `2^-ABS`.
+const ABS: i32 = 20;
+const REL: f64 = 1.0 / (1u64 << 17) as f64;
+/// The ticks a waking time may differ by: twice the most measured.
+const WAKE: u64 = 1 << 8;
+
+/// How far apart two results are, as a share of what `t` allows, and
+/// whether that is within it.
+fn apart(t: Tolerance, cpu: u64, gpu: u64) -> (f64, bool) {
+    let near = |e: i32, a: f64, b: f64| (a - b).abs() / (2f64.powi(-e) + REL * a.abs().max(b.abs()));
+    let real = |x: u64| f64::from(f32::from_bits(x as u32));
+    let chance = |t: u64| t as f64 / c::ONE as f64;
+    let d = match t {
+        Tolerance::Exact => f64::from(u8::from(cpu != gpu)),
+        Tolerance::Near(e) => near(e, real(cpu), real(gpu)),
+        Tolerance::Chance => near(ABS, chance(cpu), chance(gpu)),
+        Tolerance::Count(n) => cpu.abs_diff(gpu) as f64 / n as f64,
+    };
+    (d, d <= 1.0)
 }
 
 /// The contract probe's WGSL.
@@ -354,7 +287,7 @@ impl Kernel {
         gpu: &Gpu,
         s: Selector,
         cases: &[[u64; 8]],
-        presences: &[u64],
+        presences: &[f32],
     ) -> (Vec<[u64; 2]>, f64) {
         let start = Instant::now();
         let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
@@ -375,7 +308,7 @@ impl Kernel {
         let held = io::buffer(
             gpu,
             "contract presences",
-            presences.len() as u64 * 8,
+            (presences.len() as u64 * 4).max(16),
             storage,
             bytemuck::cast_slice(presences),
         )
@@ -396,7 +329,7 @@ impl Kernel {
     }
 }
 
-fn selector(s: Selector) -> (Vec<[u64; 8]>, Vec<u64>) {
+fn selector(s: Selector) -> (Vec<[u64; 8]>, Vec<f32>) {
     let mut presences = Vec::new();
     let cases = cases(s, &mut Cases(0x5eed + s as u64), &mut presences);
     (cases, presences)
@@ -408,27 +341,33 @@ fn the_gpu_takes_every_decision_the_cpu_does() {
         return;
     };
     let probe = Kernel::new(&gpu);
+    let mut failed = Vec::new();
     for (s, _, _) in ALL {
         let (cases, presences) = selector(s);
         let (got, _) = probe.run(&gpu, s, &cases, &presences);
-        let mut wrong = 0;
+        let held = tolerance(s);
+        let (mut most, mut wrong) = ([0f64; 2], [0usize; 2]);
         for (a, g) in cases.iter().zip(&got) {
             let want = expected(s, a, &presences);
-            if want != *g {
-                if wrong < 5 {
-                    eprintln!("{}: {a:x?}: cpu {want:x?} gpu {g:x?}", s.name());
+            for k in 0..2 {
+                let (d, ok) = apart(held[k], want[k], g[k]);
+                most[k] = most[k].max(d);
+                if !ok {
+                    if wrong[k] < 3 {
+                        eprintln!("{}[{k}]: {a:x?}: cpu {:x} gpu {:x}", s.name(), want[k], g[k]);
+                    }
+                    wrong[k] += 1;
                 }
-                wrong += 1;
             }
         }
-        assert_eq!(
-            wrong,
-            0,
-            "{}: {wrong} of {} cases differ",
-            s.name(),
-            cases.len()
-        );
+        println!("{}: most apart, of its bound {most:.3?}", s.name());
+        for k in 0..2 {
+            if wrong[k] > 0 {
+                failed.push(format!("{}[{k}]: {} of {} cases", s.name(), wrong[k], cases.len()));
+            }
+        }
     }
+    assert!(failed.is_empty(), "past their tolerance: {failed:?}");
 }
 
 /// The contract's cost per case on the GPU (upload to readback, cold and

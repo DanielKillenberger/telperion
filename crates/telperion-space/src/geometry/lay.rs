@@ -1,13 +1,10 @@
 //! Laying an axis's internodes, one phytomer at a time: the final lay
 //! walks an axis from its base, and the rough layout grown with the tree
 //! (fn-197) carries the same walk on as each growth unit grows.
-use super::q::{self, add, amount, carry, cross, dot, q3, scaled, sub, turned_by, unit, v3, Q3};
-use crate::fixed::feedback::angle::{atan2, between, sincos, turns, wrap};
-use crate::fixed::feedback::lattice::REACH;
-use crate::fixed::feedback::vector::isqrt;
-use crate::fixed::feedback::wide::prod_shr;
-use crate::fixed::{exp2_neg, mul, q32, LOG2E, ONE32, P_ONE};
-use crate::lineage::{internode, tropism, Key, WANDER};
+use super::q::{self, add, amount, atan2, between, carry, cross, dot, q3, scaled, sincos, sub};
+use super::q::{turned_by, turns, unit, v3, Q3};
+use crate::contract::{exp2, fails};
+use crate::lineage::{internode, signed, tropism, unit as uniform, Key, WANDER};
 use crate::sag::Lever;
 use crate::species::PaState;
 use crate::structure::{Axis, Phytomer, Vec3};
@@ -26,26 +23,27 @@ pub(super) const HANG: f64 = 0.15;
 const LANDING: f64 = 6.0;
 /// Wood this far below the ground plane is rounding, not wood below it.
 pub(crate) const GROUND_TOLERANCE: f64 = 1e-9;
-/// The same in Q32, floored (CONTRACT-A.md 2.4).
-const GROUND_TOLERANCE_Q: i64 = 4;
+/// The positions a walk may reach, a coordinate below 2^12 m: far past any
+/// tree, and a refusal by name past it (CONTRACT-A.md 2.2).
+const REACH: f32 = 4096.0;
 
 /// Where a walk along an axis stands: its running direction and side,
 /// its tip, the scaled length it has run, how far its heading lets a bend
 /// pull it up, and its wander's curvature (fn-207): a vector square to the
 /// running direction, in radians per metre, the pivot its turns go about.
-/// Contract A (CONTRACT-A.md 2.4): every field is Q32 and every step one
-/// fixed-point walk, the rough layout's and the final lay's alike.
+/// Every field is f32 and every step one walk, the rough layout's and the
+/// final lay's alike (fn-254).
 #[derive(Debug, Clone)]
 pub(crate) struct Layer {
     running: Q3,
     across: Q3,
     tip: Q3,
-    run: i64,
-    pull: i64,
+    run: f32,
+    pull: f32,
     curve: Q3,
-    /// The axis's own tropism over its PA's, Q32, as its lineage draws it
+    /// The axis's own tropism over its PA's, as its lineage draws it
     /// (fn-224; `lineage::tropism`).
-    turning: i64,
+    turning: f32,
     /// The pulls a relay carries on from the axis it replaces, as far as
     /// it is still that axis's continuation (fn-206).
     inherited: Vec<Lift>,
@@ -53,13 +51,13 @@ pub(crate) struct Layer {
 
 /// A pull of an axis's internodes towards the vertical: `bend` at `offset`
 /// along the scaled length it fades over, to none at `total`, weakened by
-/// `pull` as the heading it was taken from turns down. Q32.
+/// `pull` as the heading it was taken from turns down.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Lift {
-    bend: i64,
-    pull: i64,
-    total: i64,
-    offset: i64,
+    bend: f32,
+    pull: f32,
+    total: f32,
+    offset: f32,
 }
 
 /// Why a walk stopped: the trunk would reach below the ground by this
@@ -100,15 +98,15 @@ impl Layer {
     /// `curve`, its bearer's curvature, made square to its heading: a
     /// continuation or relay keeps bending as its bearer did, and a
     /// lateral starts afresh from none. Its tropism is its PA's times
-    /// `turning` (Q32), the axis's own draw (`lineage::tropism`).
-    pub fn bent((base, heading, side): (Vec3, Vec3, Vec3), curve: Vec3, turning: i64) -> Self {
+    /// `turning`, the axis's own draw (`lineage::tropism`).
+    pub fn bent((base, heading, side): (Vec3, Vec3, Vec3), curve: Vec3, turning: f32) -> Self {
         let (heading, curve) = (q3(heading), q3(curve));
         Self {
             running: heading,
             across: q3(side),
             tip: q3(base),
-            run: 0,
-            pull: (ONE32 + heading[2]) >> 1,
+            run: 0.0,
+            pull: (1.0 + heading[2]) * 0.5,
             curve: sub(curve, scaled(heading, dot(curve, heading))),
             turning,
             inherited: Vec::new(),
@@ -133,69 +131,28 @@ impl Layer {
     /// reach `total`, and those it carries, each as far as the relay is
     /// still the continuation and on from the axis's scaled length.
     pub fn handed(&self, (bend, total): (f64, f64), blend: f64) -> Vec<Lift> {
-        let w = ONE32 - q32(blend);
+        let w = 1.0 - blend as f32;
         // A relay that has left the axis's line carries on none of it.
-        if w <= 0 {
+        if w <= 0.0 {
             return Vec::new();
         }
         let own = Lift {
-            bend: q32(bend),
+            bend: bend as f32,
             pull: self.pull,
-            total: q32(total),
-            offset: 0,
+            total: total as f32,
+            offset: 0.0,
         };
         std::iter::once(own)
             .chain(self.inherited.iter().copied())
             .map(|lift| Lift {
-                bend: mul(lift.bend, w),
+                bend: lift.bend * w,
                 offset: lift.offset + self.run,
                 ..lift
             })
             // A pull of none, or one already faded past its reach, pulls
             // nothing on.
-            .filter(|lift| lift.bend > 0 && lift.offset < lift.total)
+            .filter(|lift| lift.bend > 0.0 && lift.offset < lift.total)
             .collect()
-    }
-
-    /// The walk as words for a second executor (fn-211 task 10): its
-    /// running direction, side, tip, run, pull and curvature, and the
-    /// pulls it carries on as `[bend, pull, total, offset]`.
-    pub(crate) fn words(&self) -> ([i64; 14], Vec<[i64; 4]>) {
-        let [r, a, t, c] = [self.running, self.across, self.tip, self.curve];
-        let w = [
-            r[0], r[1], r[2], a[0], a[1], a[2], t[0], t[1], t[2], self.run, self.pull, c[0], c[1],
-            c[2],
-        ];
-        let lifts = self.inherited.iter();
-        (
-            w,
-            lifts.map(|l| [l.bend, l.pull, l.total, l.offset]).collect(),
-        )
-    }
-
-    /// The axis's own tropism over its PA's, Q32 (`bent`).
-    pub(crate) fn turning(&self) -> i64 {
-        self.turning
-    }
-
-    /// The walk from its words, the axis's tropism `turning` (`bent`).
-    pub(crate) fn of_words(w: &[i64; 14], lifts: &[[i64; 4]], turning: i64) -> Self {
-        let lift = |l: &[i64; 4]| Lift {
-            bend: l[0],
-            pull: l[1],
-            total: l[2],
-            offset: l[3],
-        };
-        Self {
-            running: [w[0], w[1], w[2]],
-            across: [w[3], w[4], w[5]],
-            tip: [w[6], w[7], w[8]],
-            run: w[9],
-            pull: w[10],
-            curve: [w[11], w[12], w[13]],
-            turning,
-            inherited: lifts.iter().map(lift).collect(),
-        }
     }
 
     /// The wander's curvature where the walk stands.
@@ -205,7 +162,7 @@ impl Layer {
 
     /// The scaled length laid so far.
     pub fn run(&self) -> f64 {
-        self.run as f64 / ONE32 as f64
+        f64::from(self.run)
     }
 
     /// Lays the next phytomer. A running direction bends towards the PA's
@@ -231,13 +188,13 @@ impl Layer {
             self.pull,
             self.curve,
         );
-        let scale = q32(phytomer.scale);
+        let scale = phytomer.scale as f32;
         // Its internode varies node to node by its own draw (fn-222), and
-        // its tropism axis to axis (fn-224): each one product, one floor
-        // (CONTRACT-A.md 2.3), the plain product's bits without spread.
+        // its tropism axis to axis (fn-224), the plain product without
+        // spread.
         let varied = internode(phytomer.key, form.internode_spread);
-        let length = prod_shr([q32(state.internode), scale, varied, 1], 64).expect("a length");
-        let tropic = prod_shr([q32(form.tropism), self.turning, length, 1], 64).expect("a tropism");
+        let length = state.internode as f32 * scale * varied;
+        let tropic = form.tropism as f32 * self.turning * length;
         let share = falloff(tropic);
         let bent = toward_elevation(running, across, amount(form.elevation), share);
         // Carried by the least rotation from the old running direction to
@@ -251,10 +208,10 @@ impl Layer {
         // none without wander.
         let kick = (form.wander > 0.0).then(|| {
             let key = Key(phytomer.key).child(WANDER);
-            // 2u - 1 of the draw's top 32 bits, and its azimuth as a T.
-            let signed = ((key.child(0).draw().0 >> 21) as i64) * 2 - ONE32;
-            let draw = mul(q32(form.wander), signed);
-            let (cos, sin) = sincos((key.child(1).draw().0 >> 21) as u32);
+            // 2u - 1 of the draw's uniform, and its azimuth in turns.
+            let signed = signed(key.child(0).draw());
+            let draw = form.wander as f32 * signed;
+            let (cos, sin) = sincos(uniform(key.child(1).draw()));
             let pivot = add(scaled(across, cos), scaled(cross(running, across), sin));
             (signed, draw, pivot)
         });
@@ -263,13 +220,13 @@ impl Layer {
             // the node's draw, its stationary spread the draw's; the turn
             // is the curvature over the internode (fn-207). An inherited
             // curvature relaxes on without wander.
-            let keep = falloff_keep(over(length, q32(form.bend_length)));
+            let keep = falloff_keep(length / form.bend_length as f32);
             curve = scaled(curve, keep);
             if let Some((_, draw, pivot)) = kick {
-                curve = add(curve, scaled(pivot, mul(draw, rest(keep))));
+                curve = add(curve, scaled(pivot, draw * rest(keep)));
             }
             curve = sub(curve, scaled(running, dot(curve, running)));
-            let angle = turns(mul(q::length(curve), length));
+            let angle = turns(q::length(curve) * length);
             if let Some(axis) = unit(curve) {
                 let t = q::turn(axis, angle);
                 running = turned_by(running, &t);
@@ -278,13 +235,13 @@ impl Layer {
         } else if let Some((signed, draw, pivot)) = kick {
             // No memory: the node's own turn, as wander always drew it,
             // and the curvature it leaves a continuation is that turn's.
-            let angle = turns(mul(mul(q32(form.wander), length), signed));
+            let angle = turns(form.wander as f32 * length * signed);
             let t = q::turn(pivot, angle);
             running = turned_by(running, &t);
             across = turned_by(across, &t);
             curve = scaled(pivot, draw);
         } else {
-            curve = [0; 3];
+            curve = [0.0; 3];
         }
         // Sag: the beam's curvature, its moment over its stiffness, turns
         // the axis down about the torque's axis (`sag_angle`).
@@ -301,26 +258,26 @@ impl Layer {
         // Its own pull, and those it carries on from the axis it relays,
         // each fading over its reach (fn-206).
         let own = Lift {
-            bend: q32(bend),
+            bend: bend as f32,
             pull,
-            total: q32(total),
-            offset: 0,
+            total: total as f32,
+            offset: 0.0,
         };
-        let (mut lift, mut up) = (0i64, 0i64);
+        let (mut lift, mut up) = (0.0f32, 0.0f32);
         for l in std::iter::once(&own).chain(&self.inherited) {
-            let along = if l.total > 0 {
-                over(l.offset + run + scale / 2, l.total)
+            let along = if l.total > 0.0 {
+                (l.offset + run + scale * 0.5) / l.total
             } else {
-                ONE32
+                1.0
             };
-            let here = mul(l.bend, (ONE32 - along).max(0));
+            let here = l.bend * (1.0 - along).max(0.0);
             lift += here;
-            up += mul(here, l.pull);
+            up += here * l.pull;
         }
         run += scale;
-        let blend = add(scaled(running, ONE32 - lift), [0, 0, up]);
+        let blend = add(scaled(running, 1.0 - lift), [0.0, 0.0, up]);
         let mut direction = match unit(blend) {
-            Some(unit) if lift > 0 => unit,
+            Some(unit) if lift > 0.0 => unit,
             _ => running,
         };
         // Landing: within a few radii of the ground, and `LANDING`
@@ -329,25 +286,25 @@ impl Layer {
         // which is reached in a finite run; its lean is kept, never
         // normalised on its own, so a step near straight down stays near
         // straight down.
-        let radius = q32(phytomer.radius);
-        if !trunk && direction[2] < 0 {
+        let radius = phytomer.radius as f32;
+        if !trunk && direction[2] < 0.0 {
             let ease = support_q(tip[2], radius, length);
-            if ease < ONE32 {
-                if let Some(unit) = unit([direction[0], direction[1], mul(direction[2], ease)]) {
+            if ease < 1.0 {
+                if let Some(unit) = unit([direction[0], direction[1], direction[2] * ease]) {
                     direction = unit;
                 }
             }
         }
         let mut next = add(tip, scaled(direction, length));
-        if next.iter().any(|c| c.unsigned_abs() >= REACH as u64) {
+        if next.iter().any(|c| c.abs() >= REACH) {
             return Err(Stop::Beyond);
         }
-        if next[2] < -GROUND_TOLERANCE_Q && trunk {
-            return Err(Stop::Below(-(next[2] as f64) / ONE32 as f64));
+        if f64::from(next[2]) < -GROUND_TOLERANCE && trunk {
+            return Err(Stop::Below(-f64::from(next[2])));
         }
         // Resting: wood a step would take below the ground stays on it.
-        if !trunk && next[2] < 0 {
-            next[2] = 0;
+        if !trunk && next[2] < 0.0 {
+            next[2] = 0.0;
             if let Some(unit) = unit(sub(next, tip)) {
                 direction = unit;
             }
@@ -362,26 +319,20 @@ impl Layer {
     }
 }
 
-/// `trunc(a 2^32 / b)` of Q32 values, Q32.
-fn over(a: i64, b: i64) -> i64 {
-    ((i128::from(a) << 32) / i128::from(b)) as i64
+/// `1 - e^-x` (natural): the contract's `fails` of its log2.
+fn falloff(x: f32) -> f32 {
+    fails(x * std::f32::consts::LOG2_E)
 }
 
-/// `1 - e^-x` of a Q32 `x` (natural), Q32: `P_ONE - 2^-(x log2 e)` in
-/// Q62, then floored to Q32.
-fn falloff(x: i64) -> i64 {
-    ((P_ONE - exp2_neg(((i128::from(x) * LOG2E) >> 62) as i64)) >> 30) as i64
+/// `e^-x`.
+fn falloff_keep(x: f32) -> f32 {
+    exp2(-x * std::f32::consts::LOG2_E)
 }
 
-/// `e^-x` of a Q32 `x`, Q32, floored.
-fn falloff_keep(x: i64) -> i64 {
-    (exp2_neg(((i128::from(x) * LOG2E) >> 62) as i64) >> 30) as i64
-}
-
-/// `sqrt(1 - k^2)` of a Q32 `k` in [0, 1], Q32, floored.
-fn rest(k: i64) -> i64 {
-    let k = u128::from(k.clamp(0, ONE32).unsigned_abs());
-    isqrt((1u128 << 64) - k * k) as i64
+/// `sqrt(1 - k^2)` of a `k` in [0, 1].
+fn rest(k: f32) -> f32 {
+    let k = k.clamp(0.0, 1.0);
+    (1.0 - k * k).sqrt()
 }
 
 /// Lays the axis's internodes from its base frame, phytomer by
@@ -410,41 +361,40 @@ pub(crate) fn ground_zone(radius: f64, length: f64) -> f64 {
     CONTACT * radius + LANDING * length
 }
 
-/// How far wood at height `z`, `radius` thick and `length` long (Q32),
-/// stands free of the ground: one above its landing zone (a few radii and
+/// How far wood at height `z`, `radius` thick and `length` long, stands
+/// free of the ground: one above its landing zone (a few radii and
 /// `LANDING` internodes), easing with the square root of its height to
-/// none on the ground: `isqrt` of the Q32 quotient `max(z, 0) / zone`
-/// shifted to Q64 (CONTRACT-A.md 2.4).
-pub(crate) fn support_q(z: i64, radius: i64, length: i64) -> i64 {
-    let zone = CONTACT as i64 * radius + LANDING as i64 * length;
+/// none on the ground.
+pub(crate) fn support_q(z: f32, radius: f32, length: f32) -> f32 {
+    let zone = CONTACT as f32 * radius + LANDING as f32 * length;
     if z >= zone {
-        return ONE32;
+        return 1.0;
     }
-    isqrt((over(z.max(0), zone) as u128) << 32) as i64
+    (z.max(0.0) / zone).sqrt()
 }
 
-/// The cone about straight down as the sine its lean is held to, Q32:
-/// a per-request constant a second executor is handed.
-pub(crate) fn cone() -> i64 {
-    q32(DOWNWARD.sin_fixed())
+/// The cone about straight down as the sine its lean is held to: a
+/// per-request constant a second executor is handed.
+fn cone() -> f32 {
+    DOWNWARD.sin_fixed() as f32
 }
 
-/// `direction` turned in its vertical plane by `share` (Q32) of its gap
+/// `direction` turned in its vertical plane by `share` of its gap
 /// to the amount `elevation`. A vertical direction turns towards its side.
 /// Within `DOWNWARD` of straight down the turn weakens with the
 /// direction's lean, to nothing at straight down, as gravitropism's sine
 /// law has it: no side can be chosen continuously for every lean in a
 /// cone, so a direction swept through straight down turns by degree only
 /// if the turn vanishes there.
-pub(super) fn toward_elevation(direction: Q3, side: Q3, elevation: i64, share: i64) -> Q3 {
-    if share <= 0 {
+pub(super) fn toward_elevation(direction: Q3, side: Q3, elevation: f32, share: f32) -> Q3 {
+    if share <= 0.0 {
         return direction;
     }
-    let level = |v: Q3| unit([v[0], v[1], 0]);
-    let lean = q::length([direction[0], direction[1], 0]);
+    let level = |v: Q3| unit([v[0], v[1], 0.0]);
+    let lean = q::length([direction[0], direction[1], 0.0]);
     let cone = cone();
-    let share = if direction[2] < 0 && lean < cone {
-        ((i128::from(share) * i128::from(lean)) / i128::from(cone)) as i64
+    let share = if direction[2] < 0.0 && lean < cone {
+        share * lean / cone
     } else {
         share
     };
@@ -453,8 +403,8 @@ pub(super) fn toward_elevation(direction: Q3, side: Q3, elevation: i64, share: i
     };
     // Its elevation from its own height and lean (host decision,
     // 2026-10-07: the lean already taken, no second root).
-    let now = between(0, atan2(direction[2], lean));
-    let to = now + ((i128::from(elevation - now) * i128::from(share)) >> 32) as i64;
-    let (cos, sin) = sincos(wrap(to));
+    let now = between(0.0, atan2(direction[2], lean));
+    let to = now + (elevation - now) * share;
+    let (cos, sin) = sincos(to);
     add(scaled(out, cos), scaled(q::UP, sin))
 }

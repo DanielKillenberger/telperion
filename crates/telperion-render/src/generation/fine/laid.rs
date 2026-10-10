@@ -9,7 +9,7 @@ use super::super::io;
 use super::pool::Pool;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
-use telperion_space::{fixed, BearerFrame, GeometryTables, RootGeometry, Vec3};
+use telperion_space::{BearerFrame, GeometryTables, RootGeometry, Vec3};
 
 const CONTRACT_LAY: &str = include_str!("lay.wgsl");
 const GEOMETRY: &str = include_str!("geometry.wgsl");
@@ -38,7 +38,7 @@ pub(super) const BENDS: usize = 4;
 pub(super) fn source() -> String {
     format!(
         "{}\n{CONTRACT_LAY}\n{GEOMETRY}\n{RESOLVE}\n{WALK}\n{STAND}\n{SETTLE}\n{GIRTH}",
-        super::fixed_point()
+        super::contract()
     )
 }
 
@@ -78,9 +78,7 @@ pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
         for (k, v) in block.iter().enumerate() {
             out[4 + GG * pa + k] = *v as f32;
         }
-        let [lo, hi] = q(p.divergence / std::f64::consts::TAU, 60);
-        out[4 + GG * pa + 20] = f32::from_bits(lo);
-        out[4 + GG * pa + 21] = f32::from_bits(hi);
+        out[4 + GG * pa + 20] = (p.divergence / std::f64::consts::TAU) as f32;
         out[4 + GG * pa + 22] = p.internode_spread as f32;
         out[4 + GG * pa + 23] = p.insertion_spread as f32;
         out[4 + GG * pa + 24] = p.tropism_spread as f32;
@@ -88,7 +86,8 @@ pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
         // `dress.wgsl` marks its clusters by.
         out[4 + GG * pa + 38] = p.cluster_leaves as f32;
         out[4 + GG * pa + 39] = p.cluster_spread as f32;
-        // The girth's values as contract A takes them (`girth.wgsl`).
+        // The girth's values (`girth.wgsl`), each its own f32, the
+        // reciprocal exponent taken once as the CPU takes it.
         let girth = [
             p.pipe,
             p.exponent,
@@ -98,21 +97,13 @@ pub(super) fn table(g: &GeometryTables) -> (Vec<f32>, bool) {
             p.relay_at,
         ];
         for (k, v) in girth.into_iter().enumerate() {
-            let q = telperion_space::fixed::q32(v);
-            out[4 + GG * pa + 25 + 2 * k] = f32::from_bits(q as u32);
-            out[4 + GG * pa + 26 + 2 * k] = f32::from_bits((q >> 32) as u32);
+            out[4 + GG * pa + 25 + 2 * k] = v as f32;
         }
         // The share of its nodes that may flower (`dress.wgsl`; fn-229).
         out[4 + GG * pa + 37] = p.flowering as f32;
     }
     let sags = g.pas.iter().any(|p| p.sag > 0.0);
     (out, sags)
-}
-
-/// `x` in fixed point of `bits` fraction bits, as two words.
-fn q(x: f64, bits: i32) -> [u32; 2] {
-    let v = (x * 2f64.powi(bits)).round() as u64;
-    [v as u32, (v >> 32) as u32]
 }
 
 /// An f32 for the tables, in a word's low half.
@@ -128,27 +119,22 @@ pub(super) fn presences(g: &GeometryTables) -> Vec<u64> {
     let npas = g.pas.len();
     let zones: usize = g.zones.iter().map(Vec::len).sum();
     let mut out = vec![npas as u64, 2];
-    out.resize(2 + 4 * zones, 0);
+    out.resize(2 + 3 * zones, 0);
     for (z, zone) in g.zones.iter().flatten().enumerate() {
-        let at = 2 + 4 * z;
+        let at = 2 + 3 * z;
         out[at] = f(zone.buds);
         out[at + 1] = out.len() as u64;
         out.extend(zone.laterals.iter().flatten());
         out[at + 2] = out.len() as u64;
         out.extend(zone.dormant.iter().flatten());
-        // Each bound's log-odds, the laterals' then the dormant's, for the
-        // asks (`assign.wgsl`, task 8).
-        out[at + 3] = out.len() as u64;
-        let logits = zone.laterals.iter().chain(&zone.dormant).flatten();
-        out.extend(logits.map(|&t| fixed::logit(t << 9) as u64));
     }
     out
 }
 
 /// The first wave's bearers: each root's attachment as a laid axis of one
 /// phytomer, in its own positions; and each root's origins' heights and
-/// its first axis's vigour (`made`, Q32, two words).
-pub(super) fn stubs(roots: &[RootGeometry], made: &[u64]) -> (Vec<f32>, Vec<f32>) {
+/// its first axis's vigour (`made`, then a word unused).
+pub(super) fn stubs(roots: &[RootGeometry], made: &[f32]) -> (Vec<f32>, Vec<f32>) {
     let mut out = vec![0.0f32; roots.len() * (AL + PL)];
     let phyts = roots.len() * AL;
     let mut origins = Vec::with_capacity(4 * roots.len());
@@ -166,13 +152,10 @@ pub(super) fn stubs(roots: &[RootGeometry], made: &[u64]) -> (Vec<f32>, Vec<f32>
         p[12..15].copy_from_slice(&v(r.unbent.heading));
         p[15..18].copy_from_slice(&v(r.unbent.side));
         p[19] = r.unbent.scale as f32;
-        let [lo, hi] = q(r.unbent.rank, 52);
-        p[20] = f32::from_bits(lo);
-        p[21] = f32::from_bits(hi);
+        p[20] = r.unbent.rank as f32;
         // The phase of its axis's phyllotaxis, in turns (fn-199).
         p[22] = (r.unbent.phase as f64 / (1u64 << 32) as f64).rem_euclid(1.0) as f32;
-        let [lo, hi] = [made[k] as u32, (made[k] >> 32) as u32].map(f32::from_bits);
-        origins.extend([r.unbent.tip.z as f32, r.bent.tip.z as f32, lo, hi]);
+        origins.extend([r.unbent.tip.z as f32, r.bent.tip.z as f32, made[k], 0.0]);
     }
     (out, origins)
 }
