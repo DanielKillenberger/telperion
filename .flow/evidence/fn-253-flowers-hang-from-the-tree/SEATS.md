@@ -47,3 +47,58 @@ The owner's "placed randomly and attached to the air" is both causes on record, 
 2. **In the air:** every floret hangs 5 to 39 cm from its wood (median 17 cm on Laurelin, 12 cm on Telperion) with nothing drawn between them.
 
 **One consequence for R2's values.** Tip seating caps the inflorescences at one per short shoot: 114,488 tips on Laurelin at seed 1 against today's 163,472 flowering seats, so even a share of 1 seats 70 % of today's inflorescences. Holding the florets' coverage (fn-248 held it within 1 %) then takes the share up near 1, and possibly more florets per inflorescence; that is measured on the organ mask after R2 lands.
+
+## R2: seated at the tips (worker, 2026-10-10)
+
+**The rule (`80f3ac29`).** An axis of an age that flowers bears one inflorescence at its tip: its last node drawn from its own wood, the node fn-223 seats a cluster on. The age's share draws which tips flower, by the same presence draw, keyed by the tip's lineage. Nothing new is a row.
+- **CPU.** `pipeline/space.rs` `converted` keeps the tip and its bud's side while it draws, and pushes the bloom after the axis's last phytomer, beside its cluster. A tip drawn at a relay's join bears none, as before no relay node did.
+- **Device.** `dress.wgsl` `place` writes no share on the nodes along the axis; `draw` writes the age's share on the tip when the tip came from the axis's own wood.
+- **Neutral.** Only Laurelin and Telperion flower among the shipped presets, and only with the group on, so every other tree, and both with the group off, draws no bloom before or after.
+
+**Tests.**
+- `space::bloom_tests::a_flowering_axis_bears_its_bloom_at_its_own_tip` (beech at 15, seed 7, shoots at 0.4 and short shoots at 0.7): one bloom per flowering axis, at its tip, at its age's share and with its last phytomer's side. Red on the base rule (4,958 blooms against 500 tips), green after.
+- The device against the CPU (`florets_tests`, under the GPU lock): the beech and the spruce at 30 flowering on every age match with none unmatched (55,160 and 2,284,952 florets); Laurelin at 30 matches all 1,836. The cluster parity test passes.
+
+**The values (`09835ae0`).** `/supernatural/flowering/age14` goes to 1 on both trees: every short shoot's tip flowers.
+- **Why 1.** Tip seating caps the inflorescences at one per short shoot. At seed 1 that is 114,488 on Laurelin against the 163,472 fn-248's share seated along the shoots, and 122,312 on Telperion against 121,494. A share of 1 holds the count as near the owner-approved build as the tips allow.
+- **The organ-mask coverage cannot choose it.** With the preset shares the florets fell from 979,974 to 99,916 on Laurelin, and the mask's coverage moved from 0.320 to 0.333 (whole) and 0.150 to 0.166 (mid); at a share of 1 it reads 0.335 and 0.172. It does not follow the floret count (fn-248 saw the same), so it is reported, not used (`raw/coverage-r2.log`).
+- **The stills (viewed: `raw/laurelin-mid-share.jpg`, `raw/telperion-mid-share.jpg`, beside fn-248's `raw/florets/*-1.jpg` in its own worktree).** At the old shares the flowers almost vanish at the mid view. At 1, Laurelin's racemes read about as dense as fn-248's mid view. Telperion's white clusters read heavier than fn-248's, because they now stand at the crown's surface rather than along the spurs inside it; that is the owner's call (open item 4).
+- After: Laurelin 686,928 florets (seed 1), Telperion 611,560.
+
+## R3: the design, stated before code (worker, 2026-10-10): stopped for the host
+
+### What the code fixes
+
+- **A floret's base is its element's origin.** `Element` stands "attachment at origin, axis +Y"; the petals start on a connector from the origin. `bloom.rs` `matrix` and `bloom.wgsl` `floret` put the floret's translation at `at + stalk * pedicel` and its +Y axis along the stalk. Every size the floret takes (growth, presence, season, taper, scatter) scales the matrix about that origin. fn-246's thinning enlargement divides the element position by `sqrt(kept)` in `foliage.wgsl`, also about the origin. So the floret's base already stays put under every transform the invariant lists. The stalk's two ends are therefore known after them: the floret end is the instance's translation; the seat end is `translation - axis * pedicel`, which is `at` on the rachis.
+- **One draw is one element.** The organ is a `Foliage` (`lib.rs`): one element, one instance list, one indexed draw per level, the level chosen per instance by `select.wgsl`. Every instance draws the whole element's level.
+- **An instance is three words.** It holds the rotation, the position over the box, and the scale as a half float whose sign bit marks a withered leaf (`leaf.wgsl`). No organ withers, so that bit is free on the organ.
+- **Thinning ranks each instance by a hash of its own three words** (`leaf_draw_rank`). Nothing ties one instance's draw to another's.
+
+### The representation proposed
+
+**The pedicel is the floret's own; the rachis is one instance of its own per inflorescence. Both kinds share the organ element and its one draw.**
+
+1. **The pedicel, in the floret's instance.** The organ element gains a thin stalk: a prism of unit length along -Y below the origin, its vertices marked. The organ's vertex stage places a stalk vertex at `base + R * (x * w, y * pedicel, z * w)`, where R is the instance's rotation without its scale, and `pedicel` and `w` are the tree's own values in metres. The stalk's length and width are therefore never scaled with the floret or enlarged by thinning. Its floret end is the floret's base after every transform; its seat end is `at` on the rachis. It is ranked and leveled with its floret, so a drawn floret always has its pedicel.
+2. **The rachis, one instance per inflorescence.** The instance stands at the seat node with +Y along the bud's side, carrying the organ's free sign bit. Its vertex stage lays the axis per vertex as `Axis::laid` does (eight segments, turned by the droop toward hanging or standing, `rachis / 8` a step), so the florets' seats lie on it.
+   - Emitted only where the inflorescence keeps a floret. Dormant where the rachis is 0: none is emitted, and the pedicels stand on the node itself.
+   - **Never thinned.** Thinning ranks each instance by its own words, so a thinned rachis would strand kept florets. Unthinned, every drawn floret reaches the wood: floret, its own pedicel, the rachis, the node.
+   - **Count:** one per flowering inflorescence (Laurelin 114,488 and Telperion 122,312 at seed 1), against 687k and 612k florets.
+3. **Both executors.** The CPU (`bloom.rs`) and the device (`blooms.wgsl` and `place.wgsl`) each append the rachis instances after the florets, from the same records they place florets from. The vertex stage is shared, so the stalks are drawn identically.
+4. **The cost.** One element means a rachis instance runs the petals' vertices collapsed, and a floret instance runs the rachis's. Frame time is measured against fn-248's (whole / close at 1080p: Laurelin 174.8 / 77.5, Telperion 187.8 / 80.6 fps).
+
+### Representations considered and set aside
+
+- **Every stalk an instance of its own** (a pedicel per floret, eight straight rachis segments per inflorescence): no curve in the shader, but about 1.6M more instances on Laurelin. The pedicels would be thinned apart from their florets unless they too are exempted.
+- **The floret carrying its whole path from the node** (the instance at the node, its index in the words): each floret is connected on its own, and thinning could act per inflorescence. But three words leave no room for the index (up to six bits). Selection, the shadow pass and the own-mass grid would also all read the node as the floret's position.
+- **A second element and draw for the stalks:** it leaves the spec's "one draw".
+
+### The host's calls before R3 is built
+
+1. **The representation above**, including the rachis left out of thinning. That departs from fn-246's one thinning rule for leaves and flowers.
+2. **The stalk's width and colour: no row exists for either.**
+   - **New bloom rows** (`/bloom/stalkWidth` and a stalk colour): the catalogue's whole path, from wire numbers and the supernatural mirror to the docs and generated files.
+   - **Derived from rows that exist:** for example, the width from `stamenWidth` and the colour from the shoot's material colour or the bloom's back colour.
+3. **Which way a tip's raceme leaves.** It now stands at the shoot's tip but still leaves along the bud's side, as an axillary one did, then turns by its droop. A terminal raceme might instead continue the shoot's heading. The choice changes both executors' placement.
+4. **Telperion's density at a share of 1** (R2 above) is the owner's look to judge. Laurelin's reads as before.
+
+Not run yet: R4's stills, test, timing, Astra, the gate, npm test and impl-review. They wait on R3.
