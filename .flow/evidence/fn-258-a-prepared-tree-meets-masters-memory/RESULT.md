@@ -123,3 +123,12 @@ At the default age, both seeds, unless stated:
 - Astra's agreement (R3) has not been asked.
 - Motion was measured, not viewed: the agent rules forbid opening videos and frame sequences.
 - `docs/` and the harness are unchanged; no shipped preset or default was touched.
+
+## Gate
+
+Run once at the end, 2026-10-10, at d2566b5c plus this evidence:
+
+- `cargo test --profile ci -p telperion-render --no-fail-fast` under the GPU lock (4 test threads): 49 result lines, one red, `every_pipeline_within_2_5_s_but_grow_within_20_s_cold` (grow 25.6 s against 20 s; fn-237 R9). Run alone once: green, 22.8 s.
+- `cargo test --profile ci --no-fail-fast` package by package, `telperion-core`, `-space`, `-field`, `-wasm`, `-jev`: all green.
+- `npm test`: 14 files, 155 tests, green.
+- `cargo check -p telperion-render -p telperion-wasm --target wasm32-unknown-unknown`: clean.
