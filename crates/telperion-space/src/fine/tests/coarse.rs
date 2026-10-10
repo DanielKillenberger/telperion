@@ -154,9 +154,12 @@ fn the_coarse_trees_hold_their_bits() {
         let hash = fnv(format!("{:?} {:?}", c.structure, c.stands));
         got.push((name, c.stands.len(), hash));
     }
+    // Re-pinned by fn-254: against contract A's trees the f32 ones keep
+    // every stand and node, tips within 8.9e-6 of the height, scales
+    // 1.5e-5, radii 2.3e-6 of the thickest.
     let pinned = [
-        ("spruce", 3588, 0x6c4d_a1d6_97a5_0785),
-        ("oak", 2638, 0x7b38_d411_fba1_2383),
+        ("spruce", 3588, 0x1072_4a66_4a5e_8354),
+        ("oak", 2638, 0xa068_9688_e936_8507),
     ];
     assert_eq!(got, pinned);
 }

@@ -179,8 +179,10 @@ fn the_jump_check_sees_a_switch() {
     let switch = walk::setting("states[1].lifespan".into(), 0.0, 1.0, false, |s, v| {
         s.states[1].lifespan = if v < 0.5 { 5.0 } else { 6.0 }
     });
-    let changes = refine(&switch, 1, 0.5 - 1.0 / f64::from(STEPS), 0.5, 3, 8);
+    let refined = refine(&switch, 1, 0.5 - 1.0 / f64::from(STEPS), 0.5, 3, 8);
+    let changes = &refined.changes;
     assert!(changes[3] > changes[0] / 2.0, "{changes:?}");
+    assert!(refined.jumps(&switch, 1, 20.0).0, "a switch stands above the noise floor");
 }
 
 /// A stem that all but stopped grows on as itself and as the relay it

@@ -202,7 +202,11 @@ impl Setting {
 
     /// The tree's shape at walk coordinate `x`.
     pub fn shape(&self, x: f64, seed: u64) -> Shape {
-        let value = self.value(x);
+        self.shape_at(self.value(x), seed)
+    }
+
+    /// The tree's shape at the setting's `value`.
+    pub fn shape_at(&self, value: f64, seed: u64) -> Shape {
         let tree = lit(&self.at(value), (self.light)(value), seed)
             .unwrap_or_else(|e| panic!("{} at {value}, seed {seed}: {e}", self.name));
         Shape::of(&tree)
