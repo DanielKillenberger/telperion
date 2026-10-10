@@ -250,3 +250,30 @@ fn a_leaf_or_a_read_moving_across_a_cell_changes_the_light_by_degree() {
         "a 1 mm step moved the light by {worst}"
     );
 }
+
+/// A fully shaded sample stays at nothing: the corners' f32 weights may
+/// sum a place over one, and the light is never read below nothing or
+/// above one (fn-254 review, its three points and a sweep of the cell).
+#[test]
+fn a_shaded_sample_is_never_below_nothing() {
+    let corners: Vec<(Vec3, f64)> = (0..8)
+        .map(|c| {
+            let at = |a: usize| if (c >> a) & 1 == 1 { 0.5 } else { 0.0 };
+            (Vec3::new(at(0), at(1), at(2)), 1e3)
+        })
+        .collect();
+    let f = field(&corners, &[], &one(Vec3::new(0.0, 0.0, 1.0)));
+    let given = [
+        Vec3::new(0.4396865964, 0.02739467844, 0.1894081980),
+        Vec3::new(0.01489860937, 0.10931898654, 0.25267764926),
+        Vec3::new(0.2360713630914688, 0.050350602716207504, 0.21708591282367706),
+    ];
+    let swept = (0..4096).map(|k| {
+        let u = |s: u32| f64::from((k * s) % 997) / 997.0 * 0.5;
+        Vec3::new(u(13), u(31), u(71))
+    });
+    for at in given.into_iter().chain(swept) {
+        let light = f.at(at);
+        assert!((0.0..=1.0).contains(&light), "{at:?}: {light:e}");
+    }
+}

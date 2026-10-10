@@ -75,18 +75,25 @@ pub(crate) fn split(
         if links[i].parent.is_none() {
             incoming[i] = base.map_or(sub[i], |b| b as f32);
         }
-        let (mut v, mut above) = (incoming[i], sub[i]);
-        if v <= 0.0 || above <= 0.0 {
+        let mut v = incoming[i];
+        if v <= 0.0 || sub[i] <= 0.0 {
             continue;
         }
         let l = lambda[i] as f32;
         let mine = &kids[start[i]..start[i + 1]];
+        // What stands above each child on the axis, summed from the tip
+        // down, never the total less what branched off: in f32 a faint
+        // continuation would round away against a bright lateral (fn-254).
+        let mut rest = vec![own[i]; mine.len() + 1];
+        for j in (0..mine.len()).rev() {
+            rest[j] = rest[j + 1] + sub[mine[j].2];
+        }
         let mut k = 0;
         while k < mine.len() && mine[k].1 != TIP {
             let node = mine[k].1;
             let end = k + mine[k..].iter().take_while(|c| c.1 == node).count();
             let lateral: f32 = mine[k..end].iter().map(|c| sub[c.2]).sum();
-            let main = (above - lateral).max(0.0);
+            let main = rest[end];
             let split = l * main + (1.0 - l) * lateral;
             if split > 0.0 {
                 for c in &mine[k..end] {
@@ -94,9 +101,9 @@ pub(crate) fn split(
                 }
                 v = v * l * main / split;
             }
-            above = main;
             k = end;
         }
+        let above = rest[k];
         // At the tip the axis's own bud and what carries it on share what
         // is left by their light.
         if above > 0.0 {

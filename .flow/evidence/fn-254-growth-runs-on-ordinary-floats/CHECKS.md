@@ -43,7 +43,14 @@ Relative radius gaps reach 3.9e-2. All of them sit on roots thinner than a micro
 
 **Root presences and livings (25 years, seeds 1 and 7; beech, spruce, oak unlit, fractional buds):** at most 1.5e-4, against a bound of 3e-4. Base radii at 30 differ by at most 8.8e-5 relative, against a bound of 2e-4.
 
-**Leaf area** is a function of these scales, which agree within the presence bound.
+**Leaf area.** `resident_tests::every_gpu_preset_seats_its_leaves_as_the_cpu_path_does` covers the five GPU presets at 30, seed 42. The device's leaves are compared with the CPU path's by key and station. Every leaf matches, the counts are equal, and no leaf's scale is apart. On the silver birch, 42,548 leaves stand apart in place and 5,673 in direction; they follow the birch's pre-existing wood gap.
+
+**Review fixes:**
+- **Allocation:** the main axis's light is summed from the tip down, so a faint continuation is not rounded away under full apical control.
+- **Survival:** a survival chance under a half keeps its own threshold on both executors.
+- **Light:** the light sample is summed corner by corner and held to [0, 1].
+
+Each fix has a regression test.
 
 **On the CPU, deferred to fn-256 (R4a):**
 - ordinary and oregon-white-oak, because they read light;

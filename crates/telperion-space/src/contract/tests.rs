@@ -63,6 +63,17 @@ fn the_contracts_log_and_power_are_their_reals() {
     assert!(log < 4e-7 && power < 4e-7 && fail < 4e-7, "{log:e} {power:e} {fail:e}");
 }
 
+/// A small chance of surviving keeps its bits: 2^-52 a cycle over half a
+/// cycle is 2^-26, whose threshold is 2^27 (fn-254 review); and the two
+/// forms meet at a half.
+#[test]
+fn a_small_survival_keeps_its_threshold() {
+    use super::decide::survival_fine;
+    assert_eq!(survival_fine(52.0, 1 << 31), 1 << 27);
+    assert_eq!(survival_fine(1.0, 1 << 32), 1 << 52);
+    assert_eq!(survival_fine(2.0, 1 << 31), 1 << 52);
+}
+
 #[test]
 fn a_lived_time_rounds_up_to_a_tick_past_its_fine_part() {
     let mut next = cases(3);

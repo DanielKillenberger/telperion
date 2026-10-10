@@ -156,10 +156,11 @@ fn the_coarse_trees_hold_their_bits() {
     }
     // Re-pinned by fn-254: against contract A's trees the f32 ones keep
     // every stand and node, tips within 8.9e-6 of the height, scales
-    // 1.5e-5, radii 2.3e-6 of the thickest.
+    // 1.5e-5, radii 2.3e-6 of the thickest; the oak re-taken once more
+    // for the review's tip-down allocation and bounded light sample.
     let pinned = [
         ("spruce", 3588, 0x1072_4a66_4a5e_8354),
-        ("oak", 2638, 0xa068_9688_e936_8507),
+        ("oak", 2638, 0xdd7c_f869_ff8a_b6c3),
     ];
     assert_eq!(got, pinned);
 }

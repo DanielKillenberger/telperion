@@ -365,6 +365,36 @@ fn the_real_path_matches_the_cpu_path() {
     }
 }
 
+/// fn-254 R4 check 4, leaf area: every shipped GPU preset at 30 on the
+/// real path, its leaves against the CPU path's by key and station: as
+/// many, and none apart in place, direction or scale past the screen.
+/// Measured: every leaf of all five matched, none apart in scale; the
+/// birch's 42,548 apart in place and 5,673 in direction ride its wood's
+/// gap.
+#[test]
+fn every_gpu_preset_seats_its_leaves_as_the_cpu_path_does() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let (k, gen) = (kernels(&gpu), generator(&gpu));
+    for id in ["european-beech", "norway-spruce", "silver-birch", "telperion", "laurelin"] {
+        let p = parity(&gpu, &k, &gen, &family(id, (30, 42)));
+        let l = &p.leaves;
+        println!(
+            "{id} (30, 42): {} of {} leaves, {} compared, left {:?}, over {:?}, flags {}",
+            l.leaves.0, l.leaves.1, l.compared, l.left, l.over, l.flags
+        );
+        assert_eq!(l.leaves.0 as u64, l.leaves.1, "{id}: as many leaves");
+        assert_eq!((l.compared, l.left), (l.leaves.1, (0, 0, 0)), "{id}: every leaf compared");
+        assert_eq!(l.flags, 0, "{id}: placement flags");
+        // No leaf's scale apart: the leaf area agrees leaf by leaf. The
+        // birch's places and directions stand apart with its wood, whose
+        // gap predates the floats (`preset_agree_tests::BIRCH`).
+        let over = if id == "silver-birch" { (0, 0) } else { (l.over.0, l.over.1) };
+        assert_eq!((over, l.over.2), ((0, 0), 0), "{id}: leaves apart {:?}", l.over);
+    }
+}
+
 /// The parity probe at 40 and 80 (`cargo test --profile ci -p
 /// telperion-render real_path_at_80 -- --ignored --nocapture`, under the
 /// GPU lock, `PROBE=norway-spruce:80:1` for one tree a process, with

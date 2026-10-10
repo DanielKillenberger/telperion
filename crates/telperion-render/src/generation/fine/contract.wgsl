@@ -240,9 +240,14 @@ fn draw_log2(d: vec2<u32>) -> f32 {
     return neg_log2(to_f32(d) * pow2(-53));
 }
 
-// D5: the threshold of `2^-x` as the complement of its failure's.
+// D5: the threshold of `2^-x`, as the complement of its failure's where
+// survival is likelier than not, as its own where not.
 fn survival_fine(l: f32, share: vec2<u32>) -> vec2<u32> {
-    return sub64(ONE53, scaled53(fails(scaled(l, share)), false));
+    let x = scaled(l, share);
+    if x >= 1.0 {
+        return threshold(prob(x));
+    }
+    return sub64(ONE53, scaled53(fails(x), false));
 }
 
 // D6 over an exposure in 2^-32 of a cycle; `rises` false where the

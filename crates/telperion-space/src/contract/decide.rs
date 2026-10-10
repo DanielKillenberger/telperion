@@ -24,11 +24,17 @@ pub(crate) fn survival(p: f64, share: f64, rest: u64) -> u64 {
 }
 
 /// D5 over a share in 2^-32 of a cycle (fn-199 B2): a survival of `-log2`
-/// chance `l` a cycle. The threshold of `2^-x` taken as the complement of
-/// its failure's, `2^53 - floor(fails(x) 2^53)`, which is `ceil(2^-x
-/// 2^53)` with every bit of a small chance of failing kept.
+/// chance `l` a cycle. The threshold of `2^-x`, `ceil(2^-x 2^53)`: where
+/// survival is likelier than not, the complement of its failure's,
+/// `2^53 - floor(fails(x) 2^53)`, so every bit of a small chance of
+/// failing is kept; where not, `2^-x`'s own, so every bit of a small
+/// chance of surviving is (fn-254 review). The two meet at a half.
 pub fn survival_fine(l: f32, share: u64) -> u64 {
-    ONE - floor53(fails(scaled(l, share)))
+    let x = scaled(l, share);
+    if x >= 1.0 {
+        return threshold(prob(x));
+    }
+    ONE - floor53(fails(x))
 }
 
 /// `-log2` of a draw's uniform, `d / 2^53`: `INF` for none.

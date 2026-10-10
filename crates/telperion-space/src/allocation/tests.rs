@@ -75,6 +75,18 @@ fn the_trees_vigour_is_conserved_at_every_lambda() {
 
 /// λ = 0.5 is the unbiased split: every bud's vigour is its own light, so
 /// a bud's size against a uniformly lit tree is its light alone.
+/// A faint continuation beside a bright lateral under full apical control
+/// keeps the vigour: its light is summed from the tip down, never rounded
+/// away against the lateral's (fn-254 review).
+#[test]
+fn full_control_keeps_the_vigour_of_a_faint_continuation() {
+    let links = [link(None, 0), link(Some(0), 0)];
+    let v = vigours(&links, &[1e-8, 1.0], &[1.0, 1.0]);
+    let sum: f64 = v.iter().sum();
+    assert!((sum - (1.0 + 1e-8)).abs() < F32_FEW, "{v:?}");
+    assert!(v[0] > 0.9, "the continuation takes the vigour: {v:?}");
+}
+
 #[test]
 fn an_unbiased_split_gives_every_bud_its_own_light() {
     let (links, own) = tree();

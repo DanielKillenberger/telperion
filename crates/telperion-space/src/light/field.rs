@@ -137,16 +137,18 @@ impl Field {
     }
 
     /// The light at `at`: its corners inside the box by their nodes' light,
-    /// the rest of the weight by the open sky's one.
+    /// those outside by the open sky's one. Each corner's weight is taken
+    /// as it stands, never as one less the rest, and the f32 weights may
+    /// sum a place over one, so the light is held to nothing to one
+    /// (fn-254 review).
     pub fn at(&self, at: Vec3) -> f64 {
-        let (mut sum, mut inside) = (0.0f32, 0.0f32);
-        for (i, w) in self.grid.corners(at) {
-            if let Some(i) = i {
-                sum += w * self.light[i];
-                inside += w;
-            }
-        }
-        f64::from(sum + (1.0 - inside))
+        let sum: f32 = self
+            .grid
+            .corners(at)
+            .into_iter()
+            .map(|(i, w)| w * i.map_or(1.0, |i| self.light[i]))
+            .sum();
+        f64::from(sum.clamp(0.0, 1.0))
     }
 
     pub(super) fn spanning(points: impl Iterator<Item = Vec3>) -> Self {
