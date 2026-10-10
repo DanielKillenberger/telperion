@@ -6,7 +6,6 @@
 //! decision 6); nothing per chain or per node does.
 use super::chains::{packed, upload, Caps, Grower, Packed, Uploaded, AXW, PW};
 use super::laid::{self, Resolver};
-use super::pool::Pool;
 use super::shedding::Fades;
 use super::steps::{buffer, Steps, BW2, IW, RW};
 use crate::buffer::Owned;
@@ -96,7 +95,6 @@ pub(super) struct Kernels {
     pub steps: Steps,
     pub resolver: Resolver,
     pub fades: Fades,
-    pub pool: Pool,
     /// Held while the kernels live: their pool keeps a settled tree's
     /// buffers, so whole-tree tests take the device one at a time
     /// (`whole_tree`).
@@ -110,7 +108,6 @@ pub(super) fn kernels(gpu: &Gpu) -> Kernels {
         steps: Steps::new(gpu),
         resolver: Resolver::new(gpu),
         fades: Fades::new(gpu),
-        pool: Pool::default(),
         #[cfg(test)]
         _one: crate::generation::whole_tree(),
     }
@@ -246,13 +243,9 @@ async fn grow_run(
     encoder.copy_buffer_to_buffer(&queued, 0, &sums, 12, 4);
     gpu.submit([encoder.finish()]);
     let t = totals(gpu, &sums, 4, cost).await?;
-    let axes = k
-        .pool
-        .take(gpu, "packed axes", u64::from(t[0]) * AXW as u64)?;
-    let phyts = k
-        .pool
-        .take(gpu, "packed phytomers", u64::from(t[1]) * PW as u64)?;
-    let scratch = k.pool.take(gpu, "laid scratch", u64::from(t[2]))?;
+    let axes = buffer(gpu, "packed axes", u64::from(t[0]) * AXW as u64)?;
+    let phyts = buffer(gpu, "packed phytomers", u64::from(t[1]) * PW as u64)?;
+    let scratch = buffer(gpu, "laid scratch", u64::from(t[2]))?;
     let items = buffer(gpu, "laid items", u64::from(m * IW))?;
     let mut encoder = gpu.encoder(&Default::default());
     let packed = (&*axes, &*phyts);

@@ -1,10 +1,11 @@
 // The wood surfaced from its curve on the GPU (fn-208, host decisions 2, 4,
 // 14 and 16 to 21): the same function as telperion_core's `Curve::tessellate`,
-// cluster by cluster, in its order and layout. A pass measures each budget
-// scale, one chooses the finest that fits, one counts each cluster at it,
-// three scan the counts into offsets, one walks each cluster into ring
-// records, one writes every ring's vertices and indices, one thread a ring,
-// and one writes the indirect draws.
+// cluster by cluster, in its order and layout. A pass measures the finest
+// scale and one chooses it where it fits; only where it does not, a pass
+// measures the coarser scales and one chooses among them. One counts each
+// cluster at the scale chosen, three scan the counts into offsets, one walks
+// each cluster into ring records, one writes every ring's vertices and
+// indices, one thread a ring, and one writes the indirect draws.
 //
 // Every buffer larger than a storage binding may hold is bound in slices:
 // the points, the ring records, the vertices and the indices in two each,
@@ -65,11 +66,13 @@ const VERTEX_FLOATS: u32 = 9u;
 const RECORD_WORDS: u32 = 22u;
 // totals: [scale * 4 + k] the four counts (rings, vertices, tube indices,
 // ribbon indices) at each of the four scales; 16 the scale chosen; 17
-// overrun bits (1 no scale fits, 2 a cluster was left out); 20..23 the
+// overrun bits (1 no scale fits, 2 a cluster was left out); 18 whether the
+// finest scale fitted; 20..23 the
 // counts at the chosen scale; 24..26 the ends written (vertices, tube
 // indices, ribbon indices).
 const CHOSEN: u32 = 16u;
 const OVERRUN: u32 = 17u;
+const DECIDED: u32 = 18u;
 const CHOSEN_COUNTS: u32 = 20u;
 const ENDS: u32 = 24u;
 
@@ -101,22 +104,56 @@ fn fits(n: vec4<u32>) -> bool {
         && n.w <= cfg.ribbon_budget;
 }
 
+// Each visible cluster's counts at `s`, added to the scale's totals.
+fn measure_at(i: u32, s: u32) {
+    let n = walk(i, cfg.error * scale(s), false, vec4(0u));
+    for (var k = 0u; k < 4u; k++) { atomicAdd(&totals[s * 4u + k], n[k]); }
+}
+
+// The finest scale first: in every view measured it fits (fn-258), and
+// the coarser scales are measured only where it does not. Each cluster's
+// counts at it are kept, which the count pass reuses where it is chosen.
 @compute @workgroup_size(256)
 fn measure(@builtin(workgroup_id) group: vec3<u32>, @builtin(local_invocation_index) local: u32) {
     let i = index_of(group, local);
-    if (i >= cfg.clusters || !visible(i)) { return; }
-    for (var s = 0u; s < 4u; s++) {
-        let n = walk(i, cfg.error * scale(s), false, vec4(0u));
-        for (var k = 0u; k < 4u; k++) { atomicAdd(&totals[s * 4u + k], n[k]); }
+    if (i >= cfg.clusters) { return; }
+    var n = vec4(0u);
+    if (visible(i)) {
+        n = walk(i, cfg.error, false, vec4(0u));
+        for (var k = 0u; k < 4u; k++) { atomicAdd(&totals[k], n[k]); }
     }
+    counts[i] = n;
+}
+
+fn counted(s: u32) -> vec4<u32> {
+    return vec4(atomicLoad(&totals[s * 4u]), atomicLoad(&totals[s * 4u + 1u]),
+        atomicLoad(&totals[s * 4u + 2u]), atomicLoad(&totals[s * 4u + 3u]));
+}
+
+// The finest scale where it fits; otherwise the coarser scales' measure
+// is dispatched, every cluster again.
+@compute @workgroup_size(1)
+fn choose() {
+    let fine = fits(counted(0u));
+    atomicStore(&totals[DECIDED], u32(fine));
+    args[13] = select(cfg.row, 0u, fine);
+    args[14] = select((cfg.blocks + cfg.row - 1u) / cfg.row, 0u, fine);
+    args[15] = 1u;
+}
+
+@compute @workgroup_size(256)
+fn measure_coarse(@builtin(workgroup_id) group: vec3<u32>,
+    @builtin(local_invocation_index) local: u32) {
+    let i = index_of(group, local);
+    if (i >= cfg.clusters || !visible(i)) { return; }
+    for (var s = 1u; s < 4u; s++) { measure_at(i, s); }
 }
 
 @compute @workgroup_size(1)
-fn choose() {
-    for (var s = 0u; s < 4u; s++) {
-        let n = vec4(atomicLoad(&totals[s * 4u]), atomicLoad(&totals[s * 4u + 1u]),
-            atomicLoad(&totals[s * 4u + 2u]), atomicLoad(&totals[s * 4u + 3u]));
-        if (fits(n)) {
+fn choose_coarse() {
+    if (atomicLoad(&totals[DECIDED]) == 1u) { return; }
+    for (var s = 1u; s < 4u; s++) {
+        if (fits(counted(s))) {
             atomicStore(&totals[CHOSEN], s);
             return;
         }
@@ -128,7 +165,8 @@ fn choose() {
 @compute @workgroup_size(256)
 fn count(@builtin(workgroup_id) group: vec3<u32>, @builtin(local_invocation_index) local: u32) {
     let i = index_of(group, local);
-    if (i >= cfg.clusters) { return; }
+    // The finest scale chosen: the measure pass counted it already.
+    if (i >= cfg.clusters || atomicLoad(&totals[DECIDED]) == 1u) { return; }
     var n = vec4(0u);
     if (visible(i)) {
         n = walk(i, cfg.error * scale(atomicLoad(&totals[CHOSEN])), false, vec4(0u));
