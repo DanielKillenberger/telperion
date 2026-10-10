@@ -218,3 +218,29 @@ The raceme view (`raw/r3d/*-raceme.png`) now shows each rachis and its pedicels.
 **An experiment, reverted: no rachis under half a pixel wide.** Read as "it draws only where it covers a pixel", selection would give a rachis under 0.5 px wide nothing to draw. The whole views then measure 5.425 ms on Laurelin (+0.2 % over no rachis) and 6.779 ms on Telperion (+1.2 %), inside the target (`raw/frames-r3e-subpixel.log`). But a floret of a kept unit can then be drawn while its rachis is not. At that distance the floret is a few pixels and its rachis under half of one, yet that breaks the stalk invariant as R3 states it. That is the host's call, so it is not built.
 
 Stopped here, per the decision. Astra round 2, the gate, npm test, impl-review and `done` wait on it.
+
+## Host decision: the cost accepted (2026-10-10)
+
+The host accepts the rachis's cost at the whole view: +2.9 % on Laurelin and +4.1 % on Telperion against "no rachis" (table above; `raw/frames-r3e.log`).
+- **The bound.** About 2 % was the host's bound, not the owner's, and the comparison carries about ±3 % of its own.
+- **Against fn-248.** Laurelin is back level with fn-248: 173.4 / 76.7 fps whole / close, against 174.8 / 77.5.
+- **The invariant** stays exactly as written. No sub-pixel rachis cutoff is built.
+- **Telperion's share of 1** stays pending with the owner.
+
+| GPU ms (fps) | whole | mid | close |
+|---|---|---|---|
+| Laurelin | 5.571 (173.4), +2.9 % | 13.487 (72.9), +0.8 % | 12.830 (76.7), +0.4 % |
+| Telperion | 6.971 (139.7), +4.1 % | 14.841 (66.4), −3.4 % | 13.387 (73.4), −2.4 % |
+
+## R4: the sheets and Astra round 2 (worker, 2026-10-10)
+
+**The owner's sheets, on the unit-thinned build (viewed).** `STALKS-laurelin.jpg` and `STALKS-telperion.jpg`, at the whole, mid, close and raceme views (seed 1, 1920×1080 sources in `raw/r3e/`).
+- **Laurelin.** Her racemes hang from the shoot tips as golden chains; at the raceme view each horn hangs on its pedicel from a thin rachis that leaves the twig.
+- **Telperion.** His candles stand on their rachis at the tips. His white is heavy at the whole and mid views, which is pending with the owner.
+
+**Astra round 2** (`raw/astra/stalks-r2.md`; prompt `stalks-r2-prompt.txt`; sheets `laurelin-r2.jpg` and `telperion-r2.jpg`: mid view, raceme view and its 1:1 crop). **AGREE.**
+- Florets traced through pedicel and rachis to the twig: PASS (Telperion's route partly behind leaves).
+- Racemes and candles at the shoot ends: PASS.
+- Plausible stalks, not extra branches: PASS ("Laurelin's longest exposed sections look slightly ruler-straight").
+- Convincing trees: PASS.
+- Optional polish: a little more continuous curvature in Laurelin's long rachises; a Telperion view with one whole twig–rachis–pedicel junction clear of leaves.
