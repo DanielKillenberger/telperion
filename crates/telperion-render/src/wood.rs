@@ -72,32 +72,40 @@ impl Wood {
         self.smooth_on = smooth_bark(material);
     }
 
-    /// Records the frame's passes over the curve, where there is one: the
-    /// camera's always, the sun's where `sun` asks. Whether the wood is
-    /// surfaced, which it is not while its programs compile.
-    pub fn tessellate(
+    /// Fits the curve's views to this frame, where there is a curve.
+    /// Whether the wood can be surfaced, which it cannot while its programs
+    /// compile; with no curve there is nothing to wait for.
+    pub fn fit(
         &mut self,
         gpu: &Gpu,
-        encoder: &mut wgpu::CommandEncoder,
         camera: &crate::Camera,
         viewport: (u32, u32),
         light: &crate::shadow::Light,
-        sun: bool,
-        timestamps: Option<wgpu::ComputePassTimestampWrites<'_>>,
     ) -> bool {
         let viewport = self.pinned.unwrap_or(viewport);
-        match &mut self.curve {
-            Some(curve) => curve.record(gpu, encoder, camera, viewport, light, sun, timestamps),
-            // A timed frame writes its pair whether or not there is wood.
-            None => {
-                if timestamps.is_some() {
-                    drop(encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-                        label: Some("curve"),
-                        timestamp_writes: timestamps,
-                    }));
-                }
-                true
+        self.curve
+            .as_mut()
+            .is_none_or(|curve| curve.fit(gpu, camera, viewport, light))
+    }
+
+    /// Records `side`'s passes over the curve as the last `fit` sized
+    /// them. A timed frame writes its pair whether or not there is wood.
+    pub(crate) fn surface(
+        &self,
+        gpu: &Gpu,
+        encoder: &mut wgpu::CommandEncoder,
+        side: crate::curve::Side,
+        timestamps: Option<wgpu::ComputePassTimestampWrites<'_>>,
+    ) {
+        match &self.curve {
+            Some(curve) => curve.surface(gpu, encoder, side, timestamps),
+            None if timestamps.is_some() => {
+                drop(encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+                    label: Some("curve"),
+                    timestamp_writes: timestamps,
+                }));
             }
+            None => {}
         }
     }
 
@@ -109,7 +117,7 @@ impl Wood {
     /// The curve's view targets let go, to be made again at the next frame.
     pub(crate) fn forget_targets(&mut self) {
         if let Some(curve) = &mut self.curve {
-            (curve.camera, curve.sun) = (None, None);
+            curve.forget();
         }
     }
 

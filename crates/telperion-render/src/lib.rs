@@ -529,22 +529,14 @@ impl Renderer {
         let mut encoder = self.gpu.encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("frame"),
         });
-        // The sun's side is drawn again only when what it sees changed: its
-        // wood when the light or the tree did, its map when the casters did.
+        // The sun's side is drawn again only when what it sees changed
+        // (fn-246), its wood surfaced into the buffers the camera's is
+        // written over after the map is drawn (fn-258).
         let key = sun::Key::new(light, self.view, stride);
-        let plan = self.sun.plan(&key);
-        let surfaced = self.wood.tessellate(
-            &self.gpu,
-            &mut encoder,
-            camera,
-            viewport,
-            &light,
-            plan.surface,
-            surfacing_writes,
-        );
-        self.sun.drew(key, plan, surfaced);
+        let map = self.sun.plan(&key);
+        let surfaced = self.wood.fit(&self.gpu, camera, viewport, &light);
+        self.sun.drew(key, map, surfaced);
         self.whole = surfaced;
-        let reused = !plan.map;
         self.foliage.dispatch(
             &self.gpu,
             &mut encoder,
@@ -555,10 +547,25 @@ impl Renderer {
         );
         self.organ
             .dispatch(&self.gpu, &mut encoder, camera, viewport, self.view, None);
-        if !reused || shadow_writes.is_some() {
-            let mut pass = self.shadow.begin(&mut encoder, !reused, shadow_writes);
+        if map || shadow_writes.is_some() {
+            // The sun's surfacing is the sun's cost: a timed frame's shadow
+            // pair opens before it and closes after the map.
+            let casts = map && !matches!(self.view, View::Leaf);
+            let (mut sun_writes, mut shadow_writes) = (None, shadow_writes);
+            if let (true, Some(w)) = (casts, shadow_writes.as_mut()) {
+                sun_writes = Some(wgpu::ComputePassTimestampWrites {
+                    query_set: w.query_set,
+                    beginning_of_pass_write_index: w.beginning_of_pass_write_index.take(),
+                    end_of_pass_write_index: None,
+                });
+            }
+            if casts {
+                self.wood
+                    .surface(&self.gpu, &mut encoder, curve::Side::Sun, sun_writes);
+            }
+            let mut pass = self.shadow.begin(&mut encoder, map, shadow_writes);
             match self.view {
-                _ if reused => {}
+                _ if !map => {}
                 // One blade at the origin is judged on its own shape, with
                 // nothing above it to cast and nothing below it to catch.
                 View::Leaf => {}
@@ -571,6 +578,12 @@ impl Renderer {
                 }
             }
         }
+        self.wood.surface(
+            &self.gpu,
+            &mut encoder,
+            curve::Side::Camera,
+            surfacing_writes,
+        );
         let room = {
             // The room clears the targets and the vegetation draws into them
             // after it, so the samples stay where they are until the last pass
