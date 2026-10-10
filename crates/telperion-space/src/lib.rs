@@ -29,6 +29,7 @@ mod dormant;
 mod error;
 mod fine;
 mod geometry;
+pub mod invariants;
 mod girth;
 mod grow;
 mod light;

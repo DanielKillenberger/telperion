@@ -184,6 +184,8 @@ mod florets;
 #[cfg(test)]
 mod florets_tests;
 #[cfg(test)]
+mod preset_agree_tests;
+#[cfg(test)]
 mod ground_tests;
 mod group;
 mod handoff;

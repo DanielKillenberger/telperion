@@ -242,6 +242,8 @@ pub(super) struct Apart {
     pub most: f64,
     pub squares: f64,
     pub radius: f64,
+    /// The most a radius stands apart (m).
+    pub radius_m: f64,
     pub digest: u64,
     pub statuses: u32,
     pub cost: Cost,
@@ -255,6 +257,17 @@ pub(super) struct Apart {
     pub landed_most: f64,
     /// The groups the roots grew in (task 9).
     pub groups: usize,
+    /// The device-grown wood's crown, its height and spread from the
+    /// trunk's foot, on the CPU and on the device (fn-254 check 4).
+    pub crown: [(f64, f64); 2],
+}
+
+impl Apart {
+    /// How far the device's crown stands from the CPU's (m).
+    pub(super) fn crown_apart(&self) -> f64 {
+        let [(h, s), (g, t)] = self.crown;
+        (h - g).abs().max((s - t).abs())
+    }
 }
 
 impl Apart {
@@ -347,6 +360,11 @@ pub(super) fn settled_against(
                     p[2] as f64 - want.z,
                 ];
                 let e = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
+                let at = [p[0] as f64 + origin.x, p[1] as f64 + origin.y, p[2] as f64 + origin.z];
+                for (c, (x, y, z)) in [(tip.x, tip.y, tip.z), (at[0], at[1], at[2])].iter().enumerate() {
+                    let crown = &mut apart.crown[c];
+                    *crown = (crown.0.max(*z), crown.1.max(x.hypot(*y)));
+                }
                 assert!(e.is_finite(), "root {r}: {p:?}");
                 if e > apart.most {
                     apart.worst = (r, w, n, want.length(), radius);
@@ -354,6 +372,7 @@ pub(super) fn settled_against(
                 apart.most = apart.most.max(e);
                 apart.squares += e * e;
                 apart.phytomers += 1;
+                apart.radius_m = apart.radius_m.max((f64::from(p[18]) - radius).abs());
                 let dr = (f64::from(p[18]) - radius).abs() / radius.max(1e-9);
                 apart.radius = apart.radius.max(dr);
             }

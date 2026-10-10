@@ -580,6 +580,8 @@ mod coarse_tests;
 mod join;
 #[cfg(test)]
 mod relay_tests;
+#[cfg(test)]
+mod repeat_tests;
 mod stands;
 #[cfg(test)]
 mod tests;
