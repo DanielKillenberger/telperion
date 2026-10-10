@@ -6,7 +6,7 @@
 //! decides alone (a whole unit's survival, a hazard that neither rises nor
 //! runs over part of a cycle), the threshold is the setting's own, as D1
 //! gives it.
-use super::{exp2, fails, floor53, ln, ln_of, log2, logit53, logit_of, neg_log2, neg_log2_of};
+use super::{exp2, fails, floor53, ln, ln_of, log2, logit53, logit_of, neg_ln1m, neg_log2, neg_log2_of};
 use super::{presence, prob, scaled};
 use super::{threshold, ticks, CYCLE, INF, ONE};
 use crate::lineage::{self, Draw};
@@ -37,8 +37,13 @@ pub fn survival_fine(l: f32, share: u64) -> u64 {
     ONE - floor53(fails(x))
 }
 
-/// `-log2` of a draw's uniform, `d / 2^53`: `INF` for none.
+/// `-log2` of a draw's uniform, `d / 2^53`: `INF` for none. Near one it
+/// is taken from the uniform's distance from one, which the uniform
+/// itself would round away (fn-254 review).
 pub fn draw_log2(d: u64) -> f32 {
+    if d > ONE / 2 {
+        return neg_ln1m((ONE - d) as f32 * (1.0 / ONE as f32)) * std::f32::consts::LOG2_E;
+    }
     neg_log2(d as f32 * (1.0 / ONE as f32))
 }
 
@@ -214,8 +219,8 @@ pub(crate) fn wake(zone: &Zone, d: Draw) -> f64 {
 /// D11 on the executors' values: `delay` ticks, `per` years a nat; the
 /// waking time in ticks, the wait floored to a tick, none past any age.
 pub fn wake_ticks(delay: u64, per: f32, d: u64) -> Option<u64> {
-    // -ln(1 - u), its complement's count rounded once.
-    let nats = -ln((ONE - d) as f32 * (1.0 / ONE as f32));
+    // -ln(1 - u), a small uniform kept whole (fn-254 review).
+    let nats = neg_ln1m(d as f32 * (1.0 / ONE as f32));
     let wait = nats * per * CYCLE as f32;
     (wait < 4_611_686_018_427_387_904.0).then(|| delay + wait as u64)
 }
@@ -224,20 +229,23 @@ pub fn wake_ticks(delay: u64, per: f32, d: u64) -> Option<u64> {
 /// threshold with `-log2` chance `dead` (summed over them, in any order),
 /// conditioned for the chain's first axis on its bearer having been kept on
 /// its other buds' chances alone, all dead with `-log2` chance `context`:
-/// kept unless `d` falls under `1 - lives`.
+/// kept unless `d` falls under the chance all die. Conditioned, that is
+/// `2^-dead (1 - 2^-r) / (1 - 2^-(dead + r))`, each factor taken whole so
+/// no difference of near-equal chances rounds it away (fn-254 review);
+/// none where nothing could die.
 pub fn kept(dead: f32, context: Option<f32>, d: u64) -> bool {
-    let mut lives = fails(dead);
-    let dead = prob(dead);
-    if let Some(r) = context {
-        // lives / (1 - dead r), and whole where nothing is left to divide.
-        let rest = 1.0 - dead * prob(r);
-        lives = if rest <= 0.0 {
-            1.0
-        } else {
-            (lives / rest).min(1.0)
-        };
-    }
-    d >= threshold(1.0 - lives)
+    let all_die = match context {
+        None => prob(dead),
+        Some(r) => {
+            let rest = fails(and(dead, r));
+            if rest <= 0.0 {
+                0.0
+            } else {
+                (prob(dead) * fails(r) / rest).min(1.0)
+            }
+        }
+    };
+    d >= threshold(all_die)
 }
 
 /// `-log2` of a chance, for a sum: `INF` for none.

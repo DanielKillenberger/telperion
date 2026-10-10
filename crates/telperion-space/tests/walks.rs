@@ -6,7 +6,7 @@
 mod walk;
 use std::sync::OnceLock;
 use walk::degree::{
-    bound, by_degree, judge, named, vanishing, walks, Walks, MULTIPLE, ROUGH_LAYOUT,
+    bound, by_degree, judge, named, vanishing, walks, Walks, MULTIPLE, REFINE, ROUGH_LAYOUT,
     TICK_RESOLUTION,
 };
 use walk::{
@@ -182,7 +182,12 @@ fn the_jump_check_sees_a_switch() {
     let refined = refine(&switch, 1, 0.5 - 1.0 / f64::from(STEPS), 0.5, 3, 8);
     let changes = &refined.changes;
     assert!(changes[3] > changes[0] / 2.0, "{changes:?}");
-    assert!(refined.jumps(&switch, 1, 20.0).0, "a switch stands above the noise floor");
+    // At the walks' own depth the refinement ends within f32 places of the
+    // switch, and the floor, taken outside the last sub-step, still does
+    // not hide it (fn-254 review).
+    let deep = refine(&switch, 1, 0.5 - 1.0 / f64::from(STEPS), 0.5, REFINE, 8);
+    let (jumps, floor) = deep.jumps(&switch, 1, 20.0);
+    assert!(jumps, "a switch stands above the noise floor: {:?}, {floor:?}", deep.changes);
 }
 
 /// A stem that all but stopped grows on as itself and as the relay it

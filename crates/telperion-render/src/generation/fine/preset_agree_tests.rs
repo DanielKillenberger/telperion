@@ -12,14 +12,16 @@ use telperion_space::{grow_roots, root_axes, Plan};
 
 /// How far the device's wood may stand from the CPU's (m): a tip at most
 /// and in RMS, a radius, and the crown's height and spread. Measured over
-/// the shipped GPU presets at their own ages and seeds (fn-254): tips
-/// 3.9e-4 at most (laurelin) and 1.2e-5 RMS (telperion), radii 5.3e-7,
-/// crowns 7.3e-6; bound at about twice. Relative radius gaps reach 3.9e-2,
-/// all on roots under a micrometre thick, so a radius is held in metres.
+/// the shipped GPU presets at their own ages and seeds, Telperion's and
+/// Laurelin's supernatural overrides applied as production grows them
+/// (fn-254, on F4 after fn-248): tips 8.8e-4 at most (telperion) and
+/// 1.8e-5 RMS (laurelin), radii 8.5e-7, crowns 2.6e-6; bound at about
+/// twice. Relative radius gaps reach 3.9e-2, all on roots under a
+/// micrometre thick, so a radius is held in metres.
 const BOUND: Bound = Bound {
-    most: 8e-4,
-    rms: 2.5e-5,
-    radius: 1e-6,
+    most: 1.75e-3,
+    rms: 3.5e-5,
+    radius: 2e-6,
     crown: 1.5e-5,
 };
 
@@ -63,7 +65,9 @@ fn every_gpu_preset_grows_on_the_device_as_on_the_cpu() {
             println!("{id}: on the CPU ({why}); its checks deferred to fn-256");
             continue;
         }
-        let species = family.space.species.clone().unwrap();
+        // The species as production grows it: its supernatural overrides
+        // applied (fn-254 review).
+        let species = family.applied().space.species.clone().unwrap();
         let at = (family.age.round() as u32, u64::from(family.skeleton.seed));
         let plan = Plan::default();
         let cpu = grow_roots(&species, super::realized_tests::request(at.0, at.1), plan).unwrap();

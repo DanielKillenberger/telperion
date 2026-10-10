@@ -85,3 +85,21 @@ fn a_lived_time_rounds_up_to_a_tick_past_its_fine_part() {
         assert!(whole <= share);
     }
 }
+
+/// Chances near certainty keep their distance from it (fn-254 review): a
+/// draw a hair under one lives half its cycle, two near-certain chances
+/// conditioned on each other shed half the time, and a small uniform
+/// waits its own long time.
+#[test]
+fn near_certain_chances_keep_their_distance() {
+    use super::decide::{kept, lived_ticks, wake_ticks};
+    let cycle = 1u64 << 20;
+    let l = neg_log2_of(0.999_999_99);
+    let lived = lived_ticks(l, cycle, 9_007_199_209_704_996);
+    assert!((cycle * 2 / 5..=cycle * 3 / 5).contains(&lived), "{lived} of {cycle}");
+    let (dead, context) = (neg_log2_of(1.0 - 1e-8), Some(neg_log2_of(1.0 - 1e-8)));
+    assert!(!kept(dead, context, ONE / 4), "half shed: under a quarter is shed");
+    assert!(kept(dead, context, ONE * 3 / 4), "half shed: over three quarters is kept");
+    let wait = wake_ticks(0, 5e8, 45_035_996).unwrap() as f64 / cycle as f64;
+    assert!((wait - 2.5).abs() < 0.01, "{wait} years");
+}

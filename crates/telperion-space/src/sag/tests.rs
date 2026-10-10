@@ -39,9 +39,15 @@ fn the_turn_is_its_real_to_f32() {
         (seed >> 11) as f64 / (1u64 << 53) as f64
     };
     let mut worst = (0.0f64, String::new());
-    for _ in 0..200000 {
+    // Near upright first (fn-254 review: a lever a hair off vertical once
+    // wrapped to minus a half turn and turned three radians), then random.
+    let upright = [Vec3::new(1e-4, 0.0, 1.0), Vec3::new(0.0, 1e-7, 2.0), Vec3::new(3e-3, -2e-3, 0.5)];
+    for k in 0..200000 {
         let mag = 10f64.powf(r() * 8.0 - 6.0);
-        let l = Vec3::new(r() * 2.0 - 1.0, r() * 2.0 - 1.0, r() * 2.0 - 1.0) * mag;
+        let l = match upright.get(k) {
+            Some(&l) => l,
+            None => Vec3::new(r() * 2.0 - 1.0, r() * 2.0 - 1.0, r() * 2.0 - 1.0) * mag,
+        };
         let t = Vec3::new(-l.y, l.x, 0.0).length();
         let cap = t * (0.2 + r());
         let (sag, radius, length) = (10f64.powf(r() * 4.0 - 8.0), 10f64.powf(r() * 2.0 - 3.0), r() * 0.5);

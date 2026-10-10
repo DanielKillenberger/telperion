@@ -159,7 +159,9 @@ fn sag_turn(lever: vec3<f32>, cap: f32, sag: f32, radius: f32, len: f32) -> f32 
     }
     let r2 = radius * radius;
     let c = sag / (r2 * r2);
-    let start = acos(clamp(-lever.z / reach, -1.0, 1.0));
+    // By its sine and cosine, as `sag::turn` takes it: a small lean near
+    // upright keeps its size.
+    let start = atan2(length(lever.xy), -lever.z);
     let low = asin(min(cap / reach, 1.0));
     let high = PI - low;
     var fall = start;

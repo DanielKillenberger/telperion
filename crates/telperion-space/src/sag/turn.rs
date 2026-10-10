@@ -3,7 +3,7 @@
 //! and amounts in turns.
 use super::W3;
 use crate::contract::{exp2, log2, INF};
-use crate::geometry::q::{acos, asin, atan2, between, radians, sincos, turns, unit};
+use crate::geometry::q::{asin, atan2, between, radians, sincos, turns, unit};
 use crate::transcendental::Transcendental;
 
 /// The torque gravity puts on a `lever`: `(S - W e) × (-z)`, horizontal,
@@ -98,7 +98,10 @@ pub(crate) fn turn(lever: W3, cap: f32, sag: f64, radius: f64, length: f64) -> f
     }
     // The PA's sag enters as its log, converted once.
     let c = sag.log2_fixed() as f32 - 4.0 * log2_q(r);
-    let start = between(0.0, acos(-u[2]));
+    // The fall from hanging, in [0, 1/2] turn: by its sine and cosine, so
+    // an upright lever is a half turn and never wraps to minus one, and a
+    // small lean near upright keeps its size (fn-254 review).
+    let start = atan2(u[0].hypot(u[1]), -u[2]);
     let low = between(0.0, asin(exp2((cap - reach).min(0.0))));
     let high = 0.5 - low;
     // `fall` settled over `s` metres: 2 atan(tan(fall / 2) e^(-c reach s)).

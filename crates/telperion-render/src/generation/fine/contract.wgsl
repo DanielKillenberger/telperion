@@ -237,7 +237,28 @@ fn logit53(d: vec2<u32>) -> f32 {
 
 // `-log2` of a draw's uniform.
 fn draw_log2(d: vec2<u32>) -> f32 {
+    if lt64(vec2<u32>(0u, 0x100000u), d) {
+        return neg_ln1m(to_f32(sub64(ONE53, d)) * pow2(-53)) * 1.442695;
+    }
     return neg_log2(to_f32(d) * pow2(-53));
+}
+
+// `-ln(1 - x)`: under 1/8 its series, so a small `x` keeps every bit.
+fn neg_ln1m(x: f32) -> f32 {
+    if !(x > 0.0) {
+        return 0.0;
+    }
+    if x >= 1.0 {
+        return INF;
+    }
+    if x < 0.125 {
+        var sum = 0.0;
+        for (var k = 9; k >= 1; k--) {
+            sum = sum * x + 1.0 / f32(k);
+        }
+        return sum * x;
+    }
+    return -lnc(1.0 - x);
 }
 
 // D5: the threshold of `2^-x`, as the complement of its failure's where
@@ -371,7 +392,7 @@ fn above(d: vec2<u32>, own: f32) -> f32 {
 
 // D11: the waking ticks, or all ones where it never wakes.
 fn wake_ticks(delay: vec2<u32>, per: f32, d: vec2<u32>) -> vec2<u32> {
-    let nats = -lnc(to_f32(sub64(ONE53, d)) * pow2(-53));
+    let nats = neg_ln1m(to_f32(d) * pow2(-53));
     let wait = nats * per * pow2(20);
     if !(wait < pow2(62)) {
         return vec2<u32>(0xffffffffu);

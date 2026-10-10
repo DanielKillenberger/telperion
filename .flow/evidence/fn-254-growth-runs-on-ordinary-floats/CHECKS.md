@@ -72,3 +72,37 @@ The beech and the spruce match to the bit.
 - **Boundary rows:** against contract A, 7,734 of 125,640 fields move, by at most 2.9e-7 relative.
 - **Coarse trees:** every stand and node is kept. Tips move at most 8.9e-6 of the height, scales 1.5e-5.
 - **Extent bound:** reach exceeds the bound by at most 2.2e-6 relative (1.35 m bound) and 9.8e-7 m (5 mm bound), over 101,271 laterals.
+
+## After the merge into F4 (`3cb7793a`) and its review
+
+**Telperion and Laurelin are now measured as production grows them, with their supernatural overrides applied.** Before, the agreement test and the repeatability test read the unapplied species (merge review).
+
+| Preset | Phytomers | Tip most (m) | Tip RMS (m) | Radius (m) | Crown apart (m) |
+|---|---|---|---|---|---|
+| telperion 82 | 3,689,822 | 8.75e-4 | 1.73e-5 | 5.7e-7 | 8.4e-7 |
+| laurelin 80 | 3,456,235 | 8.31e-4 | 1.76e-5 | 8.5e-7 | 2.6e-6 |
+| european-beech 40 | 318,766 | 3.9e-5 | 2.9e-6 | 2.4e-7 | 5.4e-7 |
+
+The other presets are unchanged.
+
+**New bounds:**
+- tip most 1.75e-3 m;
+- tip RMS 3.5e-5 m;
+- radius 2e-6 m;
+- crown 1.5e-5 m.
+
+**Birch leaves:** 42,546 of 60,084 leaves stand apart in place and 5,668 in direction, against bounds of 47,000 and 6,300. The birch's other leaf checks stay exact.
+
+**Correction to check 2:** the device probe holds the discrete selectors exact (keys, draws, counts). Its time selectors are held to measured tolerances instead, not exactly:
+- lived time within one tick;
+- fine time within 4,096 fine units;
+- waking within 256 ticks.
+
+They sit at f32 resolution of the lived and waking times (`fine/tests.rs`).
+
+**Fixed by the merge review:**
+- A lever a hair off upright wrapped to minus a half turn. The fall is now taken by its sine and cosine, on the CPU and the device.
+- A draw near one lost its lived time.
+- Two near-certain chances conditioned on each other never shed.
+- A small uniform's wait to wake rounded to none.
+- The walk's noise floor measured across the jump it was judging. It is now taken outside the last sub-step, and the switch is still caught at full depth.

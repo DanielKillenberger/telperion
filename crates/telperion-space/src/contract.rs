@@ -202,6 +202,26 @@ pub fn fails(l: f32) -> f32 {
     1.0 - exp2(-l)
 }
 
+/// `-ln(1 - x)` for `x` in [0, 1): under 1/8 its series to the ninth
+/// power, so a small `x` keeps every bit (fn-254 review: `1 - x` would
+/// round it away); past it, the log of the difference.
+pub fn neg_ln1m(x: f32) -> f32 {
+    if !(x > 0.0) {
+        return 0.0;
+    }
+    if x >= 1.0 {
+        return INF;
+    }
+    if x < 0.125 {
+        let mut sum = 0.0f32;
+        for k in (1..=9).rev() {
+            sum = sum * x + 1.0 / k as f32;
+        }
+        return sum * x;
+    }
+    -ln(1.0 - x)
+}
+
 /// `floor(p · 2^53)` for an f32 `p` in [0, 1]: exact.
 pub fn floor53(p: f32) -> u64 {
     (f64::from(p) * ONE as f64) as u64

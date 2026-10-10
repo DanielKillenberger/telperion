@@ -5,7 +5,9 @@ use super::*;
 use crate::presets::{by_identity, CATALOGUE};
 
 fn grown(family: &crate::Family) -> telperion_space::Structure {
-    let species = family.space.species.clone().unwrap();
+    // The species as production grows it: its supernatural overrides
+    // applied (fn-254 review).
+    let species = family.applied().space.species.clone().unwrap();
     let request = Request {
         age: family.age.round() as u32,
         seed: u64::from(family.skeleton.seed),

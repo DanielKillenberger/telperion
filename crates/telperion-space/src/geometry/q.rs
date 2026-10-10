@@ -116,11 +116,6 @@ pub(crate) fn asin(x: f32) -> f32 {
     x.clamp(-1.0, 1.0).asin_fixed() / TAU
 }
 
-/// `acos c`, clamped, in turns.
-pub(crate) fn acos(c: f32) -> f32 {
-    c.clamp(-1.0, 1.0).acos_fixed() / TAU
-}
-
 /// An amount in radians.
 pub(crate) fn radians(turns: f32) -> f32 {
     turns * TAU

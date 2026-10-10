@@ -173,15 +173,17 @@ pub fn walk(setting: &Setting, seed: u64) -> Vec<Step> {
 /// reading of decision 9).
 pub const ULPS: u32 = 16;
 
-/// The setting's values `k` f32 places either side of `value`, for `k` up
-/// to `ULPS`, within the walk's range.
-fn nudged(setting: &Setting, value: f64) -> Vec<f64> {
+/// The setting's values `k` f32 places from `value` away from the
+/// sub-step (`up`: above it), for `k` up to `ULPS`, within the walk's
+/// range: a floor taken outside the sub-step never measures the jump it
+/// is asked about (fn-254 review).
+fn nudged(setting: &Setting, value: f64, up: bool) -> Vec<f64> {
     let (lo, hi) = (setting.low.min(setting.high), setting.low.max(setting.high));
     let mut out = Vec::new();
-    let (mut up, mut down) = (value as f32, value as f32);
+    let mut at = value as f32;
     for _ in 0..ULPS {
-        (up, down) = (up.next_up(), down.next_down());
-        out.extend([f64::from(up), f64::from(down)]);
+        at = if up { at.next_up() } else { at.next_down() };
+        out.push(f64::from(at));
     }
     out.retain(|v| (lo..=hi).contains(v));
     out
@@ -205,14 +207,19 @@ pub struct Refined {
 
 impl Refined {
     /// The noise floor where the refinement ended: the largest change the
-    /// tree makes as its setting is nudged by up to `ULPS` f32 places.
+    /// tree makes as its setting is nudged by up to `ULPS` f32 places from
+    /// either end of the last sub-step, away from it.
     pub fn floor(&self, setting: &Setting, seed: u64) -> f64 {
-        let value = setting.value(self.from);
-        let at = setting.shape_at(value, seed);
-        nudged(setting, value)
-            .into_iter()
-            .map(|v| change(&at, &setting.shape_at(v, seed)).0)
-            .fold(0.0, f64::max)
+        let (a, b) = (setting.value(self.from), setting.value(self.to));
+        let (low, high) = (a.min(b), a.max(b));
+        let mut floor = 0.0f64;
+        for (value, up) in [(low, false), (high, true)] {
+            let at = setting.shape_at(value, seed);
+            for v in nudged(setting, value, up) {
+                floor = floor.max(change(&at, &setting.shape_at(v, seed)).0);
+            }
+        }
+        floor
     }
 
     /// Whether the steepest change is a jump: it did not shrink `shrink`
