@@ -123,14 +123,14 @@ First run, 2026-10-10, at d2566b5c, before the review fix and cut 5:
 - `npm test`: 14 files, 155 tests, green.
 - `cargo check -p telperion-render -p telperion-wasm --target wasm32-unknown-unknown`: clean.
 
-Final run, 2026-10-11, at bebf8a17 (after the review fix and cut 5):
+Final run, 2026-10-11, at 1ba16e21 (after every code change):
 
-- `cargo test --profile ci -p telperion-render --no-fail-fast` under the GPU lock (4 test threads): 49 result lines, one red, `every_pipeline_within_2_5_s_but_grow_within_20_s_cold` (`girths` 2.68 s against 2.5 s; fn-237 R9). Run alone once, at a load average of 6: red again, `grow` 20.6 s against 20 s. Neither kernel is one fn-258 changed.
+- `cargo test --profile ci -p telperion-render --no-fail-fast` under the GPU lock (4 test threads): 49 result lines, all green, the cold-compile test included. (At bebf8a17 the same run had the cold-compile test red, `girths` 2.68 s against 2.5 s, and red again alone at a load average of 6, `grow` 20.6 s against 20 s; fn-237 R9, kernels fn-258 did not change.)
 - `npm test`: 14 files, 155 tests, green.
-- `cargo check -p telperion-render -p telperion-wasm --target wasm32-unknown-unknown`: clean.
+- `cargo check -p telperion-render --target wasm32-unknown-unknown`: clean.
 - The other packages were not re-run: no fn-258 change since the first run touches them.
 
 ## Astra
 
-`gpt-6-astra`, high effort, read-only, on RESULT.md, BYTES.md, the code diff and the six stills in `raw/stills/`. First reading (`raw/astra-result.md`): cuts 1-4 sound with their consumers named, the stills show no perceptible change, cut 5's scale-2 frames indistinguishable, the main table regenerated from the raw rows and matching; DISAGREE on one code blocker (a tree opened off screen learned a capacity of nothing) and four evidence corrections. All five fixed in bebf8a17 and this file. Follow-up (`raw/astra-result-2.md`): blocker and corrections resolved, nothing further to block on: **AGREE WITH NOTES**, the note being this final gate.
+`gpt-6-astra`, high effort, read-only, on RESULT.md, BYTES.md, the code diff and the six stills in `raw/stills/`. First reading (`raw/astra-result.md`): cuts 1-4 sound with their consumers named, the stills show no perceptible change, cut 5's scale-2 frames indistinguishable, the main table regenerated from the raw rows and matching; DISAGREE on one code blocker (a tree opened off screen learned a capacity of nothing) and four evidence corrections. All five fixed in bebf8a17 and this file; Codex's later re-review found the same class of defect for one kind of wood (a far view of ribbons alone), fixed in 1ba16e21. Follow-up (`raw/astra-result-2.md`): blocker and corrections resolved, nothing further to block on: **AGREE WITH NOTES**, the note being this final gate.
 
