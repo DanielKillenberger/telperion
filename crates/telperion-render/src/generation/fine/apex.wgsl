@@ -109,7 +109,7 @@ fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32, ticks: u32, cut: u
                 let at = push_axis(onto(place, lpa), lpa, cycle, LATERAL | (s << 8u), axis, node, place, h, vec2<u32>(0u));
                 if at != NONE {
                     // Its node's buds a whorl, and its draws' presences as
-                    // made, Q32, at the chain's end (`assign.wgsl`).
+                    // made, at the chain's end (`assign.wgsl`).
                     wf(at, WHORL, buds_f);
                     ask(at, vec4<u32>(LATERAL_ASKS, zat, drew, place.x), vec4<u32>(place.y, 0u, 0u, 0u));
                 }
@@ -188,7 +188,7 @@ fn stop(apex: Apex, cycle: u32, used: vec2<u32>, key: vec2<u32>, spent: vec2<u32
     if lt64(d, t) {
         // It stands between the axis's line and its own bud by the
         // stop's lead over the widest window (`stop`); its presences,
-        // Q32, at the chain's end, a failed unit's past its survival's
+        // at the chain's end, a failed unit's past its survival's
         // bound.
         let blend = clamp(stopped / SPAN_F, 0.0, 1.0);
         let asks = array<vec4<u32>, 2>(vec4<u32>(RELAY_ASKS, why, key.x, key.y), vec4<u32>(cycle, used.x, bound.x, bound.y));
@@ -351,7 +351,7 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
         share = lived;
     }
     let grows = select(unsigned_ticks(s1.share).x, lived.x, failing);
-    // Its survival's presence, Q32, at the chain's end (`assign.wgsl`).
+    // Its survival's presence, at the chain's end (`assign.wgsl`).
     let u = push_unit(a, rd(a, NUNITS));
     unit_asks(u, cycle, grows, decide, survives);
     // A unit a lifespan's fraction cuts, the age's last or a successor's
@@ -404,7 +404,7 @@ fn advance(apex_in: Apex, cycle: u32) -> Next {
         }
         // An apex that all but aborted carries on as itself and as the
         // relay it would have had (host decision 11): its persistence,
-        // Q32, at the chain's end.
+        // at the chain's end.
         unit_persists(u, aborts);
     }
     if !s1.ends {

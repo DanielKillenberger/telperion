@@ -154,7 +154,7 @@ pub(super) fn stubs(roots: &[RootGeometry], made: &[f32]) -> (Vec<f32>, Vec<f32>
         p[19] = r.unbent.scale as f32;
         p[20] = r.unbent.rank as f32;
         // The phase of its axis's phyllotaxis, in turns (fn-199).
-        p[22] = (r.unbent.phase as f64 / (1u64 << 32) as f64).rem_euclid(1.0) as f32;
+        p[22] = r.unbent.phase.rem_euclid(1.0);
         origins.extend([r.unbent.tip.z as f32, r.bent.tip.z as f32, made[k], 0.0]);
     }
     (out, origins)

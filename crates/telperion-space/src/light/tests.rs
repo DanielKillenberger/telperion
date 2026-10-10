@@ -69,10 +69,10 @@ fn a_leaf_slab_transmits_exp_of_minus_k_l_along_every_direction() {
             let lai = density * (top - at.z);
             let expected = (-K * lai / toward.z).exp_fixed();
             let got = f.at(at);
-            // Contract A: areas enter as Q32 and light is read in Q32, so
-            // the law holds to a few units of Q32's last place.
+            // Areas enter and light is read in f32 (fn-254), so the law
+            // holds to a few units of f32's last place.
             assert!(
-                (got - expected).abs() < 1e-8,
+                (got - expected).abs() < 1e-6,
                 "toward {toward:?}, depth {}: {got} against {expected}",
                 top - at.z
             );

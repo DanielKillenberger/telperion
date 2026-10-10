@@ -497,7 +497,8 @@ impl Grower<'_> {
     fn living(&self, apex: Apex) -> f64 {
         let pa = self.axes[apex.axis].pa;
         let state = &self.species.states[pa];
-        // Q32, floored in turn (host decision 8); the times on the grid.
+        // In f32, each product in turn (host decision 8); the times on the
+        // grid.
         let left = q((state.life() - apex.spent).clamp(0.0, 1.0));
         let go = q(self.species.successor(pa).map_or(0.0, |(_, go)| go));
         let on = go + times(ONE - go, q(state.relay_ended));

@@ -102,7 +102,7 @@ impl Grower<'_> {
         self.shed_walked(cycle, &walked)
     }
 
-    /// What D16's walk reads of each laid axis (contract A, 2.7): its
+    /// What D16's walk reads of each laid axis (CONTRACT-A.md 2.7): its
     /// bearer, whether it is a living lateral, and its balance's inputs.
     pub(super) fn laterals(
         &self,

@@ -2,7 +2,7 @@
 //! 6): every fine root of a tree as the realized CPU executor grows it
 //! (`realized.rs`), with its bud as the executor takes it, its axes as
 //! grown and assigned before any shedding, the presences its fades read
-//! (Q32, host decision 8), its axes kept by its own subtree's shedding,
+//! (host decision 8), its axes kept by its own subtree's shedding,
 //! and the living it reports up. The executor's tests hold the GPU's
 //! against these.
 use super::realized::Root;

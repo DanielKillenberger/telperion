@@ -7,17 +7,17 @@
 // cut settling between the phases. Each pass is the whole tree's own on
 // the chain's axes (`geometry::scale`, `girth::thicken_given`,
 // `geometry::place_from`, `sag::gather`), in f32 but the girth, which is
-// contract A's fixed point (`girth.wgsl`). Part of the geometry kernel's
+// the contract's f32 (`girth.wgsl`). Part of the geometry kernel's
 // shader.
 
 // A chain's record in `records`: its first axis's base radius, then its
 // load at its base (mass and first moment, positions the root's own).
 const CR: u32 = 5u;
 // A root's record, before the chains': its origins' heights, then its
-// first axis's vigour, Q32, as its seed hands it (task 9: a woken root's
+// first axis's vigour, as its seed hands it (task 9: a woken root's
 // as its bearer kept it, known once the structure above has grown).
 const RR: u32 = 4u;
-// The grower's Q32 fields (`assign.wgsl`, `fades.wgsl`).
+// The grower's presence fields (`assign.wgsl`, `fades.wgsl`).
 const QVIG: u32 = 48u;
 const FADE: u32 = 66u;
 const QSCALE: u32 = 9u;

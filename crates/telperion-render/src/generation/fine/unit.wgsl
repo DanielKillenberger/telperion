@@ -1,13 +1,13 @@
 // A growth unit's nodes on the GPU (fn-209 F1, task 2): `grow_unit`'s
 // draws for each unit a fine root grows, from `telperion_space::Units`'
 // tables. `count` sizes each unit's nodes; `emit` writes them in their
-// order along the unit, each with its key, its presence (Q32, D18) and
+// order along the unit, each with its key, its presence (D18) and
 // the PA each bud place drew (D3), 0xff for a bare place.
 //
 // `table` holds each PA's (first zone, zones) and then each zone's eight
 // words: zone, poisson, nodes, law at, places, laterals at, PAs, windows
 // at; `words` holds the laws (threshold, bound per node), the laterals'
-// thresholds (all ones for none) and the windows (Q32 per cycle).
+// thresholds (all ones for none) and the windows (per cycle).
 
 @group(0) @binding(0) var<uniform> cfg: vec4<u32>;
 @group(0) @binding(1) var<storage, read> units: array<vec4<u32>>;

@@ -138,7 +138,8 @@ fn the_envelope_is_a_deterministic_trees_wood() {
             ("square", ours.square, formula.square),
         ] {
             assert!(
-                (a - b).abs() <= 1e-9 * b.abs().max(1.0),
+                // The tree grows in f32 (fn-254): a few of its last places.
+                (a - b).abs() <= 1e-6 * b.abs().max(1.0),
                 "age {age} {what}: {a} vs {b}"
             );
         }

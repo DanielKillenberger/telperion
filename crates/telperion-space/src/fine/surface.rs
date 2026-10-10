@@ -8,7 +8,7 @@ use crate::alone::{chains, seed_item, Seen};
 use crate::bounded::Expected;
 use crate::error::Result;
 use crate::contract::presence::q;
-use crate::contract::{neg_log2, ticks, INF};
+use crate::contract::{logit_of, neg_log2_of, ticks, INF};
 use crate::grow::alone::{rules, Bud, Chain};
 use crate::grow::Request;
 use crate::lineage::{threshold, Key};
@@ -32,8 +32,9 @@ pub struct PaRow {
     pub abortion: Option<(u64, f32, Option<f32>)>,
     /// D9: the relay thresholds of a stop by abortion, end and failure.
     pub relay: [u64; 3],
-    /// D8 and D10: the age it moves on to, the move's threshold and
-    /// chance, and its window's rate and floor at its stake.
+    /// D8 and D10: the age it moves on to, the move's threshold and the
+    /// log-odds of its chance (`logit_of`), and its window's rate and floor
+    /// at its stake.
     pub successor: Option<(usize, u64, f32)>,
     pub moved: (f32, f32),
     /// D14: its shedding delay plus a cycle, where it sheds, and the bound
@@ -79,7 +80,7 @@ impl ChainTables {
                 let abortion = (s.abortion > 0.0).then(|| {
                     (
                         threshold(s.abortion),
-                        neg_log2((1.0 - s.abortion) as f32),
+                        neg_log2_of(1.0 - s.abortion),
                         rises,
                     )
                 });
@@ -88,12 +89,12 @@ impl ChainTables {
                     life: ticks(s.life()),
                     lives: s.lifespan > 0.0,
                     lived: species.lived(pa).map(|l| l.0),
-                    viability: (threshold(s.viability), neg_log2(s.viability as f32)),
+                    viability: (threshold(s.viability), neg_log2_of(s.viability)),
                     abortion,
                     relay: [s.relay, s.relay_ended, s.relay_failed].map(threshold),
                     successor: species
                         .successor(pa)
-                        .map(|(next, go)| (next, threshold(go), go as f32)),
+                        .map(|(next, go)| (next, threshold(go), logit_of(go))),
                     moved: ((RATE * stake) as f32, (FLOOR * stake) as f32),
                     delay: s.shedding.is_finite().then(|| (s.shedding + 1.0) as f32),
                     lasting: rules.lasting[pa].map(|l| l as f32),

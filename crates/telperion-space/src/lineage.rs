@@ -169,7 +169,7 @@ pub(crate) fn placed(place: Key, share: f64) -> bool {
     share >= 1.0 || place.child(PLACED).draw().under(share)
 }
 
-/// The presence, Q32, over `window` of the draw that made the bud place
+/// The presence over `window` of the draw that made the bud place
 /// keyed `place` stand at `share`: its lead under the share's threshold,
 /// as `bud_presence` settles a bud's, so a place grows in from nothing as
 /// the fraction passes its draw (fn-231); a whole place's is whole.
@@ -227,7 +227,7 @@ pub(crate) fn bud(lateral: &[f64], d: Draw) -> Option<usize> {
     None
 }
 
-/// The presence, Q32, over `window` of the draw `d` that made a bud of
+/// The presence over `window` of the draw `d` that made a bud of
 /// `pa` under `lateral`: its lead past the nearer bound of the PA's run of
 /// draws, in log-odds on the bounds' thresholds (host decision 8), over
 /// the window. The lesser of the two bounds' presences (a presence rises
@@ -261,8 +261,8 @@ pub(crate) fn nodes(law: NodeLaw, d: Draw, cap: u32, leads: &mut Vec<f32>) {
     leads.clear();
     walk(law, d, cap, |past| {
         leads.push(match past {
-            Past::Uniform(bound) => decide::past(d.0, bound as f32),
-            Past::Poisson(bound) => decide::above(d.0, bound as f32),
+            Past::Uniform(bound) => decide::past(d.0, contract::ln_of(bound)),
+            Past::Poisson(bound) => decide::above(d.0, contract::logit_of(bound)),
         })
     });
 }

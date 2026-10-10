@@ -66,7 +66,7 @@ pub trait Roots {
     /// The exchange where any PA keeps its tree as grown (`retained`,
     /// `leaf_girth`; host decision on fn-211 task 12, PHASES.md): down,
     /// each root's bearer's base and its node's drawn scale as grown
-    /// (Q32, real), by root; up, each one's leaf partials as grown.
+    /// by root; up, each one's leaf partials as grown.
     fn grown_partials(&mut self, _stands: &[(f32, f64)]) -> Result<Vec<[f32; 2]>> {
         refuse(
             "retained",
@@ -74,7 +74,7 @@ pub trait Roots {
         )
     }
     /// The exchange's second half: down, the tree's leaf mean and each
-    /// root's bearers' fades at its base (Q32), by root; up, each one's
+    /// root's bearers' fades at its base, by root; up, each one's
     /// base radius as grown, its own shed pipes kept for phase 2.
     fn grown_radii(&mut self, _mean: Option<f64>, _above: &[f32]) -> Result<Vec<f64>> {
         refuse(

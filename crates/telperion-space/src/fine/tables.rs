@@ -5,7 +5,7 @@
 //! D3 and D18's node presences), so the kernel draws a unit's nodes, their
 //! order and their buds as `grow_unit` does.
 use crate::error::Result;
-use crate::contract::{grid, ticks};
+use crate::contract::{grid, ln_of, logit_of, ticks};
 use crate::grow::alone::rules;
 use crate::grow::node_wood;
 use crate::lineage::{threshold, ONE};
@@ -30,7 +30,8 @@ pub struct UnitZone {
     /// Node `j` stands while the zone's draw is at or above
     /// `thresholds[j]` and every one before it (D2).
     pub thresholds: Vec<u64>,
-    /// Node `j`'s bound, its lead's (D18).
+    /// Node `j`'s bound's own side of its lead (D18): its log-odds under a
+    /// Poisson law, its log under a uniform one, taken in f64.
     pub bounds: Vec<f32>,
     /// A node's bud places.
     pub places: usize,
@@ -131,7 +132,7 @@ fn law(law: NodeLaw) -> (bool, Vec<u64>, Vec<f32>) {
             for j in 0..(max.ceil() as u32).min(MAX_NODES_PER_ZONE) {
                 let bound = (f64::from(j) - min + 1.0) / span;
                 thresholds.push(threshold(bound));
-                bounds.push(bound as f32);
+                bounds.push(ln_of(bound));
             }
             (false, thresholds, bounds)
         }
@@ -141,7 +142,7 @@ fn law(law: NodeLaw) -> (bool, Vec<u64>, Vec<f32>) {
             for k in 0..MAX_NODES_PER_ZONE {
                 let t = threshold(cumulative);
                 thresholds.push(t);
-                bounds.push(cumulative as f32);
+                bounds.push(logit_of(cumulative));
                 // No draw passes a certain bound: the count ends here.
                 if t >= ONE {
                     break;

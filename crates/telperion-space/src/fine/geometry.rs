@@ -140,7 +140,7 @@ impl GeometryTables {
 
 /// The bearer's laid frame at a fine root's node: the point below the
 /// node, its tip, heading and side, its phytomer's rank, scale and size,
-/// and the phase of its axis's phyllotaxis, an amount (Q32 turns;
+/// and the phase of its axis's phyllotaxis, an amount (turns;
 /// `geometry::phase`, fn-199).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BearerFrame {

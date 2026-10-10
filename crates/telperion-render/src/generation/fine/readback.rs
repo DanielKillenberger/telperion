@@ -12,7 +12,7 @@ use telperion_space::{ChainAxis, ChainBud, Presences};
 
 pub(super) struct Read {
     pub roots: Vec<Vec<ChainAxis>>,
-    /// Each kept axis's Q32 presences (`assign.wgsl`), as `roots`.
+    /// Each kept axis's presences (`assign.wgsl`), as `roots`.
     pub presences: Vec<Vec<Presences>>,
     pub laid: Vec<Vec<(usize, u32)>>,
     pub statuses: u32,

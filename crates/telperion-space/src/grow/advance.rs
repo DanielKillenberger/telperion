@@ -135,7 +135,7 @@ impl Shoot<'_, '_> {
             )?;
             return Ok(());
         }
-        // Its presence on its survival's own threshold, Q32 (host decision
+        // Its presence on its survival's own threshold (host decision
         // 8), and its subtrees' survival of shedding on their balance.
         let stake = stop_stake(state.relay_failed);
         let window = self.windows().window_q((pa, cycle, None), stake);

@@ -51,14 +51,15 @@ fn fw(i: u32) -> f32 {
     return bitcast<f32>(words[i].x);
 }
 
-// Node `j`'s lead past its bound, for the zone's draw `d` (D18's input):
-// `above(d, bound)` under a Poisson law, `past(d, bound)` under a uniform.
+// Node `j`'s lead past its bound, for the zone's draw `d` (D18's input),
+// from the bound's own side the CPU took (`Units`): `above` under a
+// Poisson law, `past` under a uniform.
 fn node_lead(at: u32, d: vec2<u32>, j: u32) -> f32 {
-    let bound = fw(table[at + 3u] + 2u * j + 1u);
+    let own = fw(table[at + 3u] + 2u * j + 1u);
     if table[at + 1u] != 0u {
-        return above(d, bound);
+        return above(d, own);
     }
-    return past(d, bound);
+    return past(d, own);
 }
 
 // The PA a draw keyed `key` gives under the thresholds at `start`, `n`

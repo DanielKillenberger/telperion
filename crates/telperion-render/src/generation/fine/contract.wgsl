@@ -274,12 +274,12 @@ fn window(wood: f32, rate: f32, lo: f32, hi: f32) -> f32 {
     return clamp(rate * wood, lo, hi);
 }
 
-// D10.
+// D10, `go` the log-odds of the move's chance.
 fn moved(go: f32, d: vec2<u32>, a: f32, b: f32, used: vec2<u32>, rate: f32, lo: f32, hi: f32) -> f32 {
-    if go >= 1.0 || is_zero(d) {
+    if go >= INF || is_zero(d) {
         return 1.0;
     }
-    let lead = logit(go) - logit53(d);
+    let lead = go - logit53(d);
     return presence(lead, window(wood_at(a, b, used), rate, lo, hi));
 }
 
@@ -345,23 +345,23 @@ fn fade(delay: f32, birth: u32, lived: f32, alive: f32, age: u32) -> f32 {
     return clamp(delay - idle, min(alive, 1.0), 1.0);
 }
 
-// A node's lead past a uniform law's bound: `ln u - ln bound`.
-fn past(d: vec2<u32>, bound: f32) -> f32 {
-    if !(bound > 0.0) {
+// A node's lead past a uniform law's bound of log `own`: `ln u - own`.
+fn past(d: vec2<u32>, own: f32) -> f32 {
+    if own <= -INF {
         return INF;
     }
     if is_zero(d) {
         return -INF;
     }
-    return lnc(to_f32(d) * pow2(-53) / bound);
+    return lnc(to_f32(d) * pow2(-53)) - own;
 }
 
-// A node's lead past a Poisson law's cumulative bound, in log-odds.
-fn above(d: vec2<u32>, bound: f32) -> f32 {
-    if !(bound > 0.0) {
+// A node's lead past a Poisson law's cumulative bound of log-odds `own`.
+fn above(d: vec2<u32>, own: f32) -> f32 {
+    if own <= -INF {
         return INF;
     }
-    return logit53(d) - logit(bound);
+    return logit53(d) - own;
 }
 
 // D11: the waking ticks, or all ones where it never wakes.

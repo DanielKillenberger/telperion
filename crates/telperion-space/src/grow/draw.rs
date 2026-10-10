@@ -382,9 +382,13 @@ pub(super) fn draw_bent(
             let p = &mut axis.phytomers[j];
             // Unsized: what it bears inherits its scale without its size.
             let node = draws.nodes[j] as f32;
-            p.scale = f64::from(pencil.base_scale as f32 * present * node * grown);
-            // How much of a node it is (`stand`), as its scale.
-            p.grown = f64::from(present * node * grown);
+            // How much of a node it is (`stand`), then its scale: by its
+            // base's, in the order the final lay takes them
+            // (`presence::assign_one`, `geometry::scale`), so the two lay
+            // the same phytomer alike.
+            let grew = present * node * grown;
+            p.scale = f64::from(grew * pencil.base_scale as f32);
+            p.grown = f64::from(grew);
             p.size = size;
             p.rank = pencil.rank;
             pencil.rank = f64::from(pencil.rank as f32 + node * grown);

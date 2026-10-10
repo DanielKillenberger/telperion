@@ -31,7 +31,7 @@ impl Shoot<'_, '_> {
             let lateral = &rules.laterals[pa][z];
             let mut sleeping = std::mem::take(&mut self.sleeping);
             let node_wood = node_wood(rules, (pa, z), cycle, &mut sleeping);
-            // Each node's presence, Q32 (D18 reads it).
+            // Each node's presence (D18 reads it).
             let window = decide::node_window(node_wood);
             let draw = zone_key.draw();
             lineage::node_presences(zone.nodes, draw, MAX_NODES_PER_ZONE, window, &mut leads);
@@ -110,7 +110,7 @@ impl Shoot<'_, '_> {
                         woken: false,
                     };
                     let key = zone_key.child(drawn).child(slot as u64);
-                    // Host decision 8: the made presences, Q32.
+                    // Host decision 8: the made presences.
                     let window = windows.window_q((lateral_pa, cycle + 1, None), 1.0);
                     let lead = lineage::bud_presence(lateral, drawn_pa, d, window);
                     let placed = lineage::place_presence(key, zone.share(slot), window);

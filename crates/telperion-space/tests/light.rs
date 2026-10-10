@@ -79,8 +79,11 @@ fn without_what_later_years_add_the_rough_layout_is_the_final_one() {
     let laid = grow(&species, lit).unwrap();
     let rough = sketch(&species, lit).unwrap();
     let worst = deviation(&laid, &rough, 0.5);
+    // The layout is f32 (fn-254): the two walks part by a last place of a
+    // position (2.4e-7 m at 3 m), which the walk carries on (1.8e-5 m the
+    // most measured).
     assert!(
-        worst < 1e-9,
+        worst < 1e-4,
         "a phytomer above 0.5 m stands {worst} m from its final place"
     );
 }

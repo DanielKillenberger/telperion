@@ -101,7 +101,8 @@ fn cases(s: Selector, rng: &mut Cases, presences: &mut Vec<f32>) -> Vec<[u64; 8]
                     }
                 }
                 S::Moved => {
-                    a[0] = w(rng.unit());
+                    // The move's log-odds, certain one time in eight.
+                    a[0] = w(if rng.next() % 8 == 0 { c::INF } else { rng.real(-20.0, 20.0) });
                     a[1] = rng.draw();
                     a[2] = w(if rng.next() % 8 == 0 { -c::INF } else { rng.real(-30.0, 0.0) });
                     a[3] = w(if rng.next() % 8 == 0 { -c::INF } else { rng.real(-30.0, 0.0) });
@@ -111,8 +112,10 @@ fn cases(s: Selector, rng: &mut Cases, presences: &mut Vec<f32>) -> Vec<[u64; 8]
                     a[7] = w(rng.real(0.05, 2.0));
                 }
                 S::Past => {
+                    // The bound's own side: a log or log-odds, none one time
+                    // in eight.
                     a[0] = rng.draw();
-                    a[1] = w(rng.unit());
+                    a[1] = w(if rng.next() % 8 == 0 { -c::INF } else { rng.real(-30.0, 10.0) });
                 }
                 S::Wake => {
                     a[0] = rng.within(0, 40 << 20);

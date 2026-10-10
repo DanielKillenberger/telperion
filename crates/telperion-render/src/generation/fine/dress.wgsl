@@ -56,7 +56,7 @@ const S_COUNT: u32 = 2u;
 // A relay's join as girth set it (`geometry.wgsl`): its parent's node,
 // share, radii below and above, and its key (two words).
 const S_JOIN: u32 = 70u;
-// Its attachment: the node and its share of that node's span, Q32
+// Its attachment: the node and its share of that node's span
 // (`geometry.wgsl`).
 const S_ATTACH: u32 = 76u;
 const AL: u32 = 8u;

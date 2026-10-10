@@ -158,7 +158,7 @@ impl Shoot<'_, '_> {
         // An apex that all but aborted carries on as itself and as the
         // relay it would have had, which at the bound is laid as its
         // continuation and draws what it would: the two sum, so no stop
-        // near its bound fades the stem (host decision 11), each a Q32
+        // near its bound fades the stem (host decision 11), each a
         // presence (host decision 8).
         let state = &self.species().states[pa];
         let at = (pa, cycle + 1, None);
@@ -225,7 +225,7 @@ impl Shoot<'_, '_> {
     }
 
     /// The presence of the relay a stop in the growth unit keyed `unit`
-    /// would have, Q32 (host decision 8): none where its PA relays none
+    /// would have (host decision 8): none where its PA relays none
     /// or the draw fails.
     pub(super) fn relayed(&self, relay: f64, unit: Key, at: (usize, u32, Option<f64>)) -> f32 {
         if relay <= 0.0 {
@@ -271,7 +271,7 @@ impl Shoot<'_, '_> {
             let at = (axis.pa, cycle, Some(used));
             // A stop is whole: the apex that all but stopped grew its relay
             // as well (host decision 11), and a failed unit's relay is
-            // grown by `fail`, never here. A Q32 presence (host decision 8).
+            // grown by `fail`, never here. A presence (host decision 8).
             debug_assert!(why != Stop::Failed, "a failed unit's relay grows in `fail`");
             let made = presence::of_under(threshold(relay), d.0, windows.window_q(at, 1.0));
             let made = [presence::ONE, made].map(presence::real);

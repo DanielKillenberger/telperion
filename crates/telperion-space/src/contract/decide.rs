@@ -6,7 +6,8 @@
 //! decides alone (a whole unit's survival, a hazard that neither rises nor
 //! runs over part of a cycle), the threshold is the setting's own, as D1
 //! gives it.
-use super::{exp2, fails, floor53, ln, log2, logit, logit53, neg_log2, presence, prob, scaled};
+use super::{exp2, fails, floor53, ln, ln_of, log2, logit53, logit_of, neg_log2, neg_log2_of};
+use super::{presence, prob, scaled};
 use super::{threshold, ticks, CYCLE, INF, ONE};
 use crate::lineage::{self, Draw};
 use crate::presence::{Windows, FLOOR, RATE, SPAN};
@@ -19,7 +20,7 @@ pub(crate) fn survival(p: f64, share: f64, rest: u64) -> u64 {
     if share >= 1.0 {
         return lineage::threshold(p);
     }
-    survival_fine(neg_log2(p as f32), (ticks(share) << 12) + rest)
+    survival_fine(neg_log2_of(p), (ticks(share) << 12) + rest)
 }
 
 /// D5 over a share in 2^-32 of a cycle (fn-199 B2): a survival of `-log2`
@@ -40,7 +41,7 @@ pub fn draw_log2(d: u64) -> f32 {
 /// cycle, in ticks: `v^t = u` gives `t = log2 u / log2 p`, at most the
 /// unit's share, so a draw at the survival's bound lives it whole.
 pub(crate) fn lived(p: f64, share: f64, d: Draw) -> u64 {
-    lived_ticks(neg_log2(p as f32), ticks(share.min(1.0)), d.0)
+    lived_ticks(neg_log2_of(p), ticks(share.min(1.0)), d.0)
 }
 
 /// The cycles lived, `-log2(d / 2^53) / l`, where under a whole cycle:
@@ -88,7 +89,7 @@ pub fn lived_fine(l: f32, share: u64, d: u64) -> u64 {
 /// The rest below a tick of a failed unit's relay's first unit: what
 /// `lived_ticks` rounds `lived_fine` up by, in 2^-32 of a cycle.
 pub(crate) fn lived_rest(p: f64, share: f64, d: Draw) -> u64 {
-    let (l, share) = (neg_log2(p as f32), ticks(share.min(1.0)));
+    let (l, share) = (neg_log2_of(p), ticks(share.min(1.0)));
     (lived_ticks(l, share, d.0) << 12) - lived_fine(l, share, d.0)
 }
 
@@ -106,7 +107,7 @@ pub(crate) fn abortion(state: &PaState, grown: f64, (exposure, rest): (f64, u64)
         return lineage::threshold(a);
     }
     let rise = state.rises().then(|| state.abortion_rise as f32);
-    abortion_fine(neg_log2((1.0 - a) as f32), rise, ticks(grown), exposure)
+    abortion_fine(neg_log2_of(1.0 - a), rise, ticks(grown), exposure)
 }
 
 /// D6 over an exposure in 2^-32 of a cycle (fn-199 B2): persistence of
@@ -138,17 +139,18 @@ pub(crate) fn moved(
 ) -> f32 {
     let log = |c: u32| super::log32(windows.log_wood(pa, c));
     let window = ((RATE * stake) as f32, (FLOOR * stake) as f32, SPAN as f32);
-    moved_f(go as f32, d.0, (log(cycle), log(cycle + 1)), ticks(used), window)
+    moved_f(logit_of(go), d.0, (log(cycle), log(cycle + 1)), ticks(used), window)
 }
 
-/// D10 on the executors' values: `go`; the logs of the wood at the cycle
-/// and the next (`-INF` for none); `used` ticks; the window's rate, floor
-/// and span, the first two scaled by the stake.
+/// D10 on the executors' values: the log-odds of `go` (`logit_of`); the
+/// logs of the wood at the cycle and the next (`-INF` for none); `used`
+/// ticks; the window's rate, floor and span, the first two scaled by the
+/// stake.
 pub fn moved_f(go: f32, d: u64, woods: (f32, f32), used: u64, window: (f32, f32, f32)) -> f32 {
-    if go >= 1.0 || d == 0 {
+    if go >= INF || d == 0 {
         return 1.0;
     }
-    let lead = logit(go) - logit53(d);
+    let lead = go - logit53(d);
     let (rate, floor, span) = window;
     let wood = super::presence::wood_at(woods, used);
     presence(lead, (rate * wood).clamp(floor, span))
@@ -160,35 +162,35 @@ pub(crate) fn node_window(wood: f64) -> f32 {
     (RATE * wood).clamp(FLOOR, SPAN) as f32
 }
 
-/// A node's lead past a uniform law's `bound`: `ln u - ln bound`, `u` the
-/// draw's uniform; unbounded for a bound of none.
-pub fn past(d: u64, bound: f32) -> f32 {
-    if !(bound > 0.0) {
+/// A node's lead past a uniform law's bound of log `own` (`ln_of`): `ln u
+/// - ln bound`, `u` the draw's uniform; unbounded for a bound of none.
+pub fn past(d: u64, own: f32) -> f32 {
+    if own <= -INF {
         return INF;
     }
     if d == 0 {
         return -INF;
     }
-    ln(d as f32 * (1.0 / ONE as f32) / bound)
+    ln(d as f32 * (1.0 / ONE as f32)) - own
 }
 
-/// A node's lead past a Poisson law's cumulative `bound`, in log-odds;
-/// unbounded for a bound of none.
-pub fn above(d: u64, bound: f32) -> f32 {
-    if !(bound > 0.0) {
+/// A node's lead past a Poisson law's cumulative bound of log-odds `own`
+/// (`logit_of`); unbounded for a bound of none.
+pub fn above(d: u64, own: f32) -> f32 {
+    if own <= -INF {
         return INF;
     }
-    logit53(d) - logit(bound)
+    logit53(d) - own
 }
 
 /// A uniform law's node's presence over `window`.
 pub(crate) fn node_past(d: Draw, bound: f64, window: f32) -> f32 {
-    presence(past(d.0, bound as f32), window)
+    presence(past(d.0, ln_of(bound)), window)
 }
 
 /// A Poisson law's node's presence over `window`.
 pub(crate) fn node_above(d: Draw, bound: f64, window: f32) -> f32 {
-    presence(above(d.0, bound as f32), window)
+    presence(above(d.0, logit_of(bound)), window)
 }
 
 /// D11: the years after its node grew that a sleeping bud wakes, on the
@@ -234,7 +236,7 @@ pub fn kept(dead: f32, context: Option<f32>, d: u64) -> bool {
 
 /// `-log2` of a chance, for a sum: `INF` for none.
 pub(crate) fn neg_log(p: f64) -> f32 {
-    neg_log2(p as f32)
+    neg_log2_of(p)
 }
 
 /// The sum of two `-log2` chances: their product's.

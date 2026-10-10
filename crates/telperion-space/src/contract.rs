@@ -134,6 +134,44 @@ pub fn neg_log2(p: f32) -> f32 {
     -log2(p)
 }
 
+/// `-log2 p` of a chance the CPU holds in f64 (a species' setting, or one
+/// it computes from them): its log taken before it is rounded to f32, so a
+/// chance near one keeps its distance from one, which an f32 of the chance
+/// itself would round away (fn-254: an apex's shaded survival stepped by
+/// percents as light moved by parts in a billion).
+pub fn neg_log2_of(p: f64) -> f32 {
+    if !(p > 0.0) {
+        return INF;
+    }
+    if p >= 1.0 {
+        return 0.0;
+    }
+    use crate::transcendental::Transcendental;
+    (-p.log2_fixed()) as f32
+}
+
+/// The log-odds of a chance the CPU holds in f64, taken before it is
+/// rounded (as `neg_log2_of`): `-INF` for none, `INF` for one.
+pub fn logit_of(p: f64) -> f32 {
+    if !(p > 0.0) {
+        return -INF;
+    }
+    if p >= 1.0 {
+        return INF;
+    }
+    use crate::transcendental::Transcendental;
+    (p / (1.0 - p)).ln_fixed() as f32
+}
+
+/// `ln p` of a chance the CPU holds in f64: `-INF` for none.
+pub fn ln_of(p: f64) -> f32 {
+    if !(p > 0.0) {
+        return -INF;
+    }
+    use crate::transcendental::Transcendental;
+    p.ln_fixed() as f32
+}
+
 /// The probability `2^-l` of a `-log2`: one for none or less, none for
 /// `INF`.
 pub fn prob(l: f32) -> f32 {

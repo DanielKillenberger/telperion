@@ -31,9 +31,9 @@ fn no_wood_reaches_past_the_extent_bound() {
                 let m = (age - axis.birth) as usize;
                 let bound = kept.reach_bound(axis.pa, m, Carried::default(), None) * base;
                 assert!(
-                    // Contract A lays in Q32: a reach holds its bound to Q32's last
-                    // places, summed over its walk (1e-8), where f64 held 1e-9.
-                    reached[i] <= bound * (1.0 + 1e-8) + 1e-8,
+                    // The layout is f32 (fn-254): a reach holds its bound to a
+                    // few of f32's last places, summed over its walk.
+                    reached[i] <= bound * (1.0 + 1e-5) + 1e-7,
                     "axis {i} (PA {}, born {}) reaches {} past its bound {bound}",
                     axis.pa,
                     axis.birth,
