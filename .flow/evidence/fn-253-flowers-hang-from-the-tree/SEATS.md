@@ -370,3 +370,20 @@ Per the decision, stopped with the numbers. The trial is kept on its own branch;
 **The reason.** The packing-box fix changed nothing but the box the CPU path packs florets against. That changes each floret's words, and so the random subset thinning keeps (the same mechanism as the parity drift). With tip seating's fewer florets, the card test's figure moves by about 7 points on that alone. The bound sits inside the measurement's own noise.
 
 Stopped for the host's call on the bound. The codex re-review and `flowctl done` wait on it.
+
+## The card test measured above its noise (worker, 2026-10-10, under the host's rule)
+
+The host's rule: enlarge the fixture until the figure's spread over three packing variants is under 3 points, then set the bound at the measured value plus 10, with the test under 60 s.
+
+**Packing variants.** The same tree's florets repacked against the shipped box and against it padded by 1 and 2 m. Only the box moves, and with it which florets thinning keeps. Far coverage over the 4× render (`raw/card-spread.log`):
+
+| Fixture | shipped box | +1 m | +2 m | spread |
+|---|---|---|---|---|
+| beech at 20 (the old fixture) | +46.5 % | +43.6 % | +31.2 % | 15.3 points |
+| **beech at 40** | **+30.1 %** | +27.6 % | +28.4 % | **2.5 points** |
+| beech at 60 | +12.9 % | +12.7 % | +13.9 % | 1.2 points |
+
+- **Over three seeds** (the trees themselves differ), the spread stays wider: at 20, +46.5 / +46.4 / +30.4 %; at 40, +30.1 / +24.8 / +21.9 %; at 60, +12.9 / +21.7 / +13.5 %.
+- **The fixture** goes to the beech at 40, the smallest under 3 points.
+- **The bound** is +30.1 % plus 10 points: **40 %**. The test reads 0.01207 against 0.00928 (+30.1 %) and passes. Both tests in `tests/thinning.rs` run in 0.96 s.
+- **The gate.** Since `gate-render-3.log` only this test file changed; every other render test passed there.
