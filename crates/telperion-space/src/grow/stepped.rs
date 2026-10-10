@@ -20,7 +20,8 @@
 //!    coarse grower splits its vigour with it at the placeholder and hands
 //!    down the root's incoming vigour, which the item splits inside.
 //! 3. **(iii) normalisers**: every grower's per-PA partials merge in the
-//!    grouping's order and every grower sizes its buds by them.
+//!    items' order, whatever order they ran in, and every grower sizes its
+//!    buds by them.
 //! 4. **(iv)** each grower grows, wakes and lays its own; new roots are
 //!    handed over; every grower's leaves are deposited into one lattice
 //!    where its rough layout put them, and each reads its own buds.
@@ -36,8 +37,7 @@ mod settle;
 mod standing;
 mod stands;
 
-use super::partition::Order;
-use super::partition::{ordered, Digest, Grouping};
+use super::partition::Digest;
 use super::{start, Grower, Options, Request};
 use crate::bounded::Expected;
 use crate::closed_form::predictor::Predictor;
@@ -65,17 +65,10 @@ pub struct Stepped {
     pub settle: f64,
 }
 
-/// Grows `species` with every fine root at `cut` its own grower, the
-/// items visited and their partials merged in `grouping`'s order and
-/// chunks.
-pub fn grow_stepped(
-    species: &Species,
-    request: Request,
-    expected: &Expected,
-    cut: f64,
-    grouping: Grouping,
-) -> Result<Stepped> {
-    let at = (Some(counts(expected)), cut, grouping);
+/// Grows `species` with every fine root at `cut` its own grower, their
+/// partials merged and their leaves deposited in the items' order.
+pub fn grow_stepped(species: &Species, request: Request, expected: &Expected, cut: f64) -> Result<Stepped> {
+    let at = (Some(counts(expected)), cut);
     run(species, request, at, Keep::Digests)
 }
 
@@ -83,18 +76,7 @@ pub fn grow_stepped(
 /// at the cut its own grower, the cut read from the predictor's counts
 /// (fn-209 host decision 9), the items visited forward.
 pub(crate) fn build(species: &Species, request: Request, plan: Plan) -> Result<Fine> {
-    let order = match plan.order {
-        crate::fine::Order::Forward => Order::Forward,
-        crate::fine::Order::Reverse => Order::Reverse,
-        crate::fine::Order::Shuffled(seed) => Order::Shuffled(seed),
-    };
-    let grouping = Grouping {
-        order,
-        chunk: plan.chunk,
-        sizes: true,
-        leaves: true,
-    };
-    let at = (None, plan.cut, grouping);
+    let at = (None, plan.cut);
     Ok(run_with(species, request, at, plan, Keep::Tree)?.1)
 }
 
@@ -118,10 +100,9 @@ fn counts(expected: &Expected) -> Counts {
 fn run(
     species: &Species,
     request: Request,
-    (counts, cut, grouping): (Option<Counts>, f64, Grouping),
+    at: (Option<Counts>, f64),
     keep: Keep,
 ) -> Result<Stepped> {
-    let at = (counts, cut, grouping);
     let (mut stepped, fine) = run_with(species, request, at, Plan::default(), keep)?;
     stepped.structure = fine.structure;
     Ok(stepped)
@@ -132,7 +113,7 @@ fn run(
 fn run_with(
     species: &Species,
     request: Request,
-    (counts, cut, grouping): (Option<Counts>, f64, Grouping),
+    (counts, cut): (Option<Counts>, f64),
     plan: Plan,
     keep: Keep,
 ) -> Result<(Stepped, Fine)> {
@@ -146,7 +127,7 @@ fn run_with(
         // A PA no zone draws makes no bud: none is ever fine.
         Arc::new(move |pa, birth| predictor.count(pa, birth).unwrap_or(f64::INFINITY))
     });
-    let mut x = Executor::new(coarse, (counts, cut, grouping), request, keep);
+    let mut x = Executor::new(coarse, (counts, cut), request, keep);
     x.plan = plan;
     x.hand_buds();
     let mut years = Vec::with_capacity(request.age as usize);
@@ -199,7 +180,6 @@ pub(super) struct Executor<'a> {
     pub items: Vec<Item<'a>>,
     pub counts: Counts,
     pub cut: f64,
-    pub grouping: Grouping,
     pub request: Request,
     pub phases: Vec<[u64; 4]>,
     pub keep: Keep,
@@ -226,10 +206,10 @@ pub(super) struct Executor<'a> {
 
 impl<'a> Executor<'a> {
     /// An executor about to grow `coarse`'s first cycle, its roots at
-    /// `cut` by `rows`, visited in `grouping`'s order.
+    /// `cut` by `rows`.
     pub(super) fn new(
         coarse: Grower<'a>,
-        (counts, cut, grouping): (Counts, f64, Grouping),
+        (counts, cut): (Counts, f64),
         request: Request,
         keep: Keep,
     ) -> Self {
@@ -238,7 +218,6 @@ impl<'a> Executor<'a> {
             items: Vec::new(),
             counts,
             cut,
-            grouping,
             request,
             phases: Vec::new(),
             keep,
@@ -253,11 +232,6 @@ impl<'a> Executor<'a> {
             plan: Plan::default(),
             stands: None,
         }
-    }
-
-    /// The items in the order they are visited and merged.
-    pub(super) fn visit(&self) -> Vec<usize> {
-        ordered((0..self.items.len()).collect(), self.grouping.order)
     }
 
     fn cycle(&mut self, cycle: u32) -> Result<()> {

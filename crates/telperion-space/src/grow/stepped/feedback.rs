@@ -7,10 +7,11 @@ use crate::structure::Vec3;
 
 impl Executor<'_> {
     /// Every grower's leaves, the coarse grower's first and then the items'
-    /// in the order they are visited, into one lattice, swept once; each
-    /// grower reads its own buds and each standing root its centroid.
+    /// in their own order, whatever order the plan ran them in, into one
+    /// lattice, swept once; each grower reads its own buds and each
+    /// standing root its centroid.
     pub(super) fn shade(&mut self, cycle: u32) {
-        let order = self.visit();
+        let order = 0..self.items.len();
         let threads = self.coarse.threads;
         let light = self.coarse.sketch.as_ref().expect("sketching").light;
         let growers: Vec<usize> = std::iter::once(usize::MAX).chain(order).collect();

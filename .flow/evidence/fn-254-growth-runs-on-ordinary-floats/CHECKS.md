@@ -5,7 +5,10 @@ All figures below were measured on this branch (f32), with `cargo test --profile
 ## 1. Repeatability within an executor
 - **CPU:** `telperion-core` `repeat_tests::every_preset_grows_the_same_tree_again_and_on_any_cores` covers all 8 shipped presets. Each is built three times: on 4 cores, again on 4 cores, and on 1 core. The three `Structure`s are equal to the bit.
 - **Closed-form rows:** the boundary rows are pinned on 1 and on 4 threads.
+- **Stepped executor and build:** its items' partials are merged, and their leaves deposited, in the items' own order, whatever order and chunks the plan ran them in. Before, the review and Astra found that a shuffled or chunked plan regrouped the f32 sums. The build is now the same tree to the bit forward in 1s, reversed in 64s and shuffled in 7s (`the_build_is_the_same_in_any_order_and_chunks`). It is also the same on one core and four, every phase digest included (`the_stepped_tree_is_the_whole_tree`). The partition probe (`grow_partitioned`) keeps its deliberate regroupings, because they are its subject.
 - **Device:** `every_root_settles_on_the_gpu_as_on_the_cpu` settles a tree four times: a fresh `Device` each time, sown or ordered, forward and reverse, in batches of 4,096, 777 and 64. All four give the same geometry digest. `every_root_grows_whole_on_the_gpu_as_on_the_cpu` grows three orders on reused tables.
+
+**Kept in f64 (Astra):** the light sweep's optical depth and transmission (`light.rs`, `swept_all`). This is CPU preparation, R1 inventories it, and its result is rounded to f32 where growth reads it.
 
 ## 2. Exact discrete contracts
 - **Draw thresholds:** `contract::tests` checks that a draw falls under an f32 chance exactly as its real uniform does, over 10^6 cases with endpoints named. `floor53` is exact.

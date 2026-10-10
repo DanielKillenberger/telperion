@@ -6,9 +6,8 @@ use super::stands::{Stands, Stood};
 use super::{Counts, Executor, Keep};
 use crate::closed_form::boundary::Rows;
 use crate::error::{refuse, Result};
-use crate::fine::{Made, Plan};
+use crate::fine::Made;
 use crate::contract::presence::{q, real, times};
-use crate::grow::partition::{Grouping, Order};
 use crate::grow::realized::Assigned;
 use crate::grow::{start, Options, Request, Rules};
 use crate::species::Species;
@@ -40,13 +39,7 @@ pub(crate) fn stand(
         let rows = rows.clone();
         Arc::new(move |pa, birth| rows.lateral(pa, birth).count)
     };
-    let grouping = Grouping {
-        order: Order::Forward,
-        chunk: Plan::default().chunk,
-        sizes: true,
-        leaves: true,
-    };
-    let mut x = Executor::new(coarse, (counts, cut, grouping), request, Keep::Tree);
+    let mut x = Executor::new(coarse, (counts, cut), request, Keep::Tree);
     if x.reach(1) >= request.age {
         return refuse(
             "cut",

@@ -4,10 +4,8 @@
 use super::Executor;
 use crate::allocation::{size_sums, sized, split, subtotals};
 use crate::grow::balance::Totals;
-use crate::grow::partition::merge;
 use crate::grow::sketch::{Inputs, Rows as Links};
 use crate::grow::Grower;
-use std::collections::HashMap;
 
 impl Executor<'_> {
     /// Phase (i): each item's totals at its root reported to its bearer,
@@ -22,7 +20,7 @@ impl Executor<'_> {
             let totals = item.g.totals(&rows, &[]);
             (rows, totals)
         });
-        let mut given: Vec<_> = (self.visit().into_iter())
+        let mut given: Vec<_> = (0..self.items.len())
             .map(|k| {
                 let t = &done[k].1;
                 (self.items[k].at, t.light[1], t.cost[1], t.living[1])
@@ -57,7 +55,7 @@ impl Executor<'_> {
             let inputs = item.g.inputs(&rows);
             (rows, inputs)
         });
-        let given: Vec<_> = (self.visit().into_iter())
+        let given: Vec<_> = (0..self.items.len())
             .map(|k| {
                 let (r, i) = &done[k];
                 (self.items[k].at, subtotals(&r.links, &i.lit)[1])
@@ -83,9 +81,15 @@ impl Executor<'_> {
             let partial = sums(&r, &i, &got);
             ((r, i, got), partial)
         });
+        // Each item's partial added in the items' order, whatever order and
+        // chunks the plan ran them in: one executor's tree is the same under
+        // any schedule (fn-254 R4 check 1; the review and Astra).
         let (done, partials): (Vec<_>, Vec<_>) = split_up.into_iter().unzip();
-        let partial: HashMap<usize, Vec<f32>> = partials.into_iter().enumerate().collect();
-        merge(&mut total, &partial, &self.grouping);
+        for partial in &partials {
+            for (t, &x) in total.iter_mut().zip(partial) {
+                *t += x;
+            }
+        }
         let factors: Vec<[f32; 2]> = total.chunks(2).map(|s| [s[0], s[1]]).collect();
         let size = |g: &mut Grower, (rows, i, got): (Links, Inputs, Vec<f64>)| {
             g.set_sizes(&sized(&got, &i.presence, &i.psi, &rows.pa, &factors));
