@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-261-the-same-binary-draws-the-same-leaves",
   "impl_review_rounds": {
-    "fn-261-the-same-binary-draws-the-same-leaves.1": 1
+    "fn-261-the-same-binary-draws-the-same-leaves.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -105,9 +105,54 @@
       "task": "fn-261-the-same-binary-draws-the-same-leaves.1",
       "timestamp": "2026-10-10T23:31:59.909170Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "aa1b548af4f884db1b9b01a06352fb8ceb76b45cd0d2c5a12d0cacff02a358a0",
+      "backend": "codex",
+      "base_sha": "93579bf9353daaa53df005dbffc1fe2fa6efdac9",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1d6dd67cfebaffa1389096d9c7db0d93",
+            "classification": "introduced",
+            "findingId": "finding-1d6dd67cfebaffa1389096d9c7db0d93",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "withdrawn"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d5eb9f2fdd88127dce48a0a5d9b084e32d191bae",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1051,
+      "output_sha256": "5b99dbc96e3518cf611b347c992dacf294f10c02cd82e05d4bf49a13bc76ebe0",
+      "reservation_id": "da1814537c5e4995a7534dc0209d958d",
+      "round_consumed": true,
+      "scope": "impl:fn-261-the-same-binary-draws-the-same-leaves.1",
+      "superseded_by": null,
+      "task": "fn-261-the-same-binary-draws-the-same-leaves.1",
+      "timestamp": "2026-10-10T23:41:59.508121Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-261-the-same-binary-draws-the-same-leaves.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -131,5 +176,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T23:41:07.304977Z"
+  "updated_at": "2026-10-10T23:41:59.510207Z"
 }
