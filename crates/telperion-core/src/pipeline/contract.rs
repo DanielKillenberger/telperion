@@ -34,6 +34,8 @@ pub mod foliage {
         ElementParams, FoliageUnit, Instances, Leaf, Level, Reference, Rosette, TwigPlacement,
         MAX_FRONDS, MAX_LEAFLETS, WITHERED, WORDS,
     };
+    #[cfg(feature = "geometry")]
+    pub use crate::pipeline::foliage::bloom_box;
     pub mod plan {
         #[cfg(test)]
         pub use crate::pipeline::foliage::plan::*;

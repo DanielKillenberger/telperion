@@ -12,7 +12,6 @@ use super::stations::Stationed;
 use crate::buffer::{Held, Owned};
 use crate::Result;
 use telperion_core::foliage::{Instances, Reference};
-use telperion_core::math::Vec3;
 use telperion_core::mesh::Foliage;
 use telperion_core::pipeline::executor::Expansion;
 use telperion_core::surface::Bounds;
@@ -36,10 +35,8 @@ impl Organ {
     /// The organ of `x`'s part, packed against the whole tree's leaf box
     /// padded by a floret's reach.
     pub(super) fn of(x: &Expansion) -> Result<Self> {
-        let (bloom, now, reach) = x.bloom();
-        let leaf = x.reference();
-        let pad = Vec3::new(reach, reach, reach);
-        let within = Reference::spanning(leaf.min - pad, leaf.min + leaf.extent + pad);
+        let (bloom, now, _) = x.bloom();
+        let within = telperion_core::foliage::bloom_box(x.reference(), &bloom);
         Ok(Self {
             cpu: x.organ_in(within)?,
             rows: data::flower(&bloom, now),

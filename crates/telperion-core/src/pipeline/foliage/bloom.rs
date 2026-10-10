@@ -232,6 +232,15 @@ pub(crate) fn reach(p: &BloomParams) -> f64 {
     p.rachis + p.pedicel
 }
 
+/// The box every executor packs a tree's florets against: its leaves' box
+/// padded by a floret's reach. One box on both executors gives each floret
+/// the same words, so thinning, which ranks an organ by its words, keeps
+/// the same florets on both (fn-253).
+pub fn packing_box(leaf: Reference, p: &BloomParams) -> Reference {
+    let pad = Vec3::new(1.0, 1.0, 1.0) * reach(p);
+    Reference::spanning(leaf.min - pad, leaf.min + leaf.extent + pad)
+}
+
 fn matrices(tree: &Tree, p: &BloomParams, season: Option<f64>) -> Result<Vec<Matrix>> {
     let now = now(p, season);
     let mut matrices = Vec::new();
