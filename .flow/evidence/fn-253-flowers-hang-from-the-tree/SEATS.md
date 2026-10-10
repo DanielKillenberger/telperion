@@ -387,3 +387,28 @@ The host's rule: enlarge the fixture until the figure's spread over three packin
 - **The fixture** goes to the beech at 40, the smallest under 3 points.
 - **The bound** is +30.1 % plus 10 points: **40 %**. The test reads 0.01207 against 0.00928 (+30.1 %) and passes. Both tests in `tests/thinning.rs` run in 0.96 s.
 - **The gate.** Since `gate-render-3.log` only this test file changed; every other render test passed there.
+
+## impl-review and the final gate (worker, 2026-10-11)
+
+**impl-review (codex).**
+- **The fresh round** (the receipt was rotated as stale) was NEEDS_WORK, with two findings:
+  - the unit's culling bound left out the floret's offset and scale;
+  - the attachment test did not go through selection with thinning active.
+- **The fix round** (`4b63df0d`) brought a third finding: the `chosen()` accessor had moved `counted()`'s native-only attribute, breaking the Wasm build.
+- **All three fixed in `1d373383`:**
+  - the bound now doubles the offset and the radius;
+  - the attachment test measures after the unit's enlargement;
+  - the attribute is restored, and `cargo check --target wasm32-unknown-unknown` passes.
+- **One part declined, with its reason:** pedicel checks in the thinned view. A thinned unit's florets are all cards, which carry no pedicel by the host's decision; the test asserts that instead.
+- **The round cap** was reached and reset per the owner's standing rule (memory `reset-review-round-caps-without-asking-2026-10-09`).
+- **The re-review: SHIP.**
+
+**The new R4 test.** `every_drawn_floret_hangs_from_its_drawn_rachis` runs on both executors through selection.
+- **The hero view:** 2,072 inflorescences kept; 1,484 florets drawn at a floret level, each pedicel at most 0.45 px off its rachis's chosen level once enlarged; none drawn without its rachis.
+- **Six times as far** in a 96-line frame: thinning keeps 317 and drops 1,755 inflorescences whole on the device (325 and 1,747 on the CPU), and every drawn floret there is a card.
+
+**The final gate.**
+- `telperion-render`: every test target green, the cold-compile test among them (`raw/gate-render-4.log`).
+- `telperion-core`: green on the packing-box fix.
+- `-space`, `-field`, `-wasm` and `-jev`: green earlier, their code unchanged since.
+- `npm test`: 14 files and 155 tests, green.
