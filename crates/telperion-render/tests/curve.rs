@@ -163,3 +163,32 @@ fn the_second_slices_hold_what_the_first_could_not() {
     let (size, close, report) = crossed.expect("no view reached the second slices at scale 1");
     println!("{}", compare(&renderer, &curve, &close, size, report.scale));
 }
+
+/// A view whose finest scale does not fit its budget measures the coarser
+/// scales only then (fn-258), and draws the coarsest that fits as the
+/// reference draws it at that scale.
+#[test]
+fn a_view_past_its_finest_scale_is_drawn_at_the_coarser_scale_that_fits() {
+    let Some(gpu) = gpu() else { return };
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    let (mesh, curve) = tree("ordinary");
+    renderer.submit(&mesh).unwrap();
+    let coarser = (40..=96).step_by(2).find_map(|width| {
+        let size = (width, width * 3 / 4);
+        let aspect = f64::from(size.0) / f64::from(size.1);
+        let hero = hero_pose(mesh.bounds, aspect, GROUND_REACH);
+        let close = Camera {
+            position: hero.target + (hero.position - hero.target) * 0.15,
+            ..hero
+        };
+        render(&mut renderer, &close, size.0, size.1).unwrap();
+        let report = renderer.curve_report().unwrap();
+        (report.scale > 1.0 && report.overrun == 0).then_some((size, close, report))
+    });
+    let (size, close, report) = coarser.expect("no view chose a coarser scale that fits");
+    println!(
+        "{size:?}: scale {}, {}",
+        report.scale,
+        compare(&renderer, &curve, &close, size, report.scale)
+    );
+}

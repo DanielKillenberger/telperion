@@ -31,9 +31,11 @@ pub const ERROR: f64 = 0.5;
 pub const BINDING: u64 = 128 << 20;
 
 /// The passes, in order, and the bindings each reads.
-const PASSES: [(&str, &[u32]); 9] = [
+const PASSES: [(&str, &[u32]); 11] = [
     ("measure", &[0, 1, 2, 3, 8, 9, 12]),
-    ("choose", &[0, 8]),
+    ("choose", &[0, 8, 15]),
+    ("measure_coarse", &[0, 1, 2, 3, 8, 9, 12]),
+    ("choose_coarse", &[0, 8]),
     ("count", &[0, 1, 2, 3, 5, 8, 9, 12]),
     ("scan_local", &[0, 5, 6, 7]),
     ("scan_blocks", &[0, 7, 8, 15]),
@@ -277,8 +279,11 @@ impl CurveGpu {
             pass.set_pipeline(pipeline);
             pass.set_bind_group(0, &t.groups[k], &[]);
             match PASSES[k].0 {
-                "choose" | "draws" | "scan_blocks" => pass.dispatch_workgroups(1, 1, 1),
+                "choose" | "choose_coarse" | "draws" | "scan_blocks" => {
+                    pass.dispatch_workgroups(1, 1, 1)
+                }
                 "emit" => pass.dispatch_workgroups_indirect(&t.args, 40),
+                "measure_coarse" => pass.dispatch_workgroups_indirect(&t.args, 52),
                 _ => pass.dispatch_workgroups(row, groups.div_ceil(row), 1),
             }
         }
