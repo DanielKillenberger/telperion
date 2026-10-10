@@ -110,7 +110,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-260-every-shader-and-every-presets-size-are.md",
-  "status": "open",
+  "status": "done",
   "title": "Every shader and every preset's size are checked without a device",
   "tracker": {
     "baseHashFlow": null,
@@ -123,5 +123,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T18:52:54.567733Z"
+  "updated_at": "2026-10-10T18:53:55.846746Z"
 }

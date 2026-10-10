@@ -19,6 +19,8 @@ The owner's goal (2026-10-08/09): "replace the old generator with the new one th
 - **R8 (found on the way):** the render module is 3,295,462 bytes against its 2,800,000-byte ceiling (`scripts/artifact-budgets.json`, fn-243's report); measured on F4 before fn-243 to see what moved it, then brought under or the ceiling restated with the owner.
 - **R9 (found on the way):** fn-235's cold-build test times `grow`'s compile against its 20 s exception, and failed at 20.6-26.0 s under load from other sessions (fn-246 FRICTION.md) while passing alone; a compile time measures the machine's load as much as the shader. Before the release PR, the test runs as an on-demand probe (like the device-limit probes, `docs/gpu-tests.md`) in the release checks on a quiet machine, and the default suite keeps a load-independent guard (the shader's size or call-site count) instead.
 
+- **R10 (friction, obvious fix; fn-260 FRICTION.md):** `telperion-jev`'s replay test needs a `telperion-core` example already built, so it fails when the gate runs package by package in the documented order; before the release PR it builds what it needs itself (or the dependency is declared so cargo builds it), and the package-by-package gate passes from a clean target.
+
 ## Boundaries
 
 Map only. Post-release: fn-232, fn-233.
