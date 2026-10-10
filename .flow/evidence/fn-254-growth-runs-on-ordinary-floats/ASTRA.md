@@ -16,4 +16,4 @@ Astra disagreed on one point: the stepped executor's reductions depended on the 
 `ASTRA: AGREE`
 
 ## Review round cap reset (2026-10-11)
-The codex review hit its round cap (2 of 2) after the root-order fix. The coordinator cleared the reset under the owner's standing rule (`knowledge/conventions/reset-review-round-caps-without-asking-2026-10-09`): every remaining finding was fixed, and Astra agreed. `flowctl spec reset-review-rounds fn-254-growth-runs-on-ordinary-floats` was run, followed by a fresh re-review on base `59e627e7`.
+The codex review hit its round cap (2 of 2) after the root-order fix. The coordinator cleared the reset under the owner's standing rule (`knowledge/conventions/reset-review-round-caps-without-asking-2026-10-09`): every remaining finding was fixed, and Astra agreed. `flowctl spec reset-review-rounds fn-254-growth-runs-on-ordinary-floats`, then the same with `--task fn-254-growth-runs-on-ordinary-floats.1` for the task's impl-review counter, was run, followed by a fresh re-review on base `59e627e7`.

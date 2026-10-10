@@ -8,9 +8,7 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-254-growth-runs-on-ordinary-floats",
-  "impl_review_rounds": {
-    "fn-254-growth-runs-on-ordinary-floats.1": 2
-  },
+  "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -268,6 +266,7 @@
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-254-growth-runs-on-ordinary-floats.1": 1,
     "plan": 2,
     "plan#completion": 1
   },
@@ -291,5 +290,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T22:33:13.864688Z"
+  "updated_at": "2026-10-10T22:33:25.589673Z"
 }
