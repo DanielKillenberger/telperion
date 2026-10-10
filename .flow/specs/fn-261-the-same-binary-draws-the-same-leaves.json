@@ -163,7 +163,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-261-the-same-binary-draws-the-same-leaves.md",
-  "status": "open",
+  "status": "done",
   "title": "The same binary draws the same leaves every run",
   "tracker": {
     "baseHashFlow": null,
@@ -176,5 +176,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T23:41:59.510207Z"
+  "updated_at": "2026-10-10T23:42:40.997371Z"
 }

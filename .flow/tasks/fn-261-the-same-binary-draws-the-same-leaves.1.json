@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-261-the-same-binary-draws-the-same-leaves",
   "spec_path": ".flow/tasks/fn-261-the-same-binary-draws-the-same-leaves.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Leaves repeat run to run",
   "updated_at": "2026-10-10T21:22:42.472281Z"
 }

@@ -23,6 +23,8 @@ The owner's goal (2026-10-08/09): "replace the old generator with the new one th
 
 - **R11 (found on the way, fn-254):** the catalogue's pinned values for the beech, spruce, oak and birch no longer match the engine (up to 4.8 m apart) and no test reads them; before the release PR they are either read by a test and re-pinned with evidence, or deleted (docs/principles.md, "Question, delete, then optimise").
 
+- **R12 (friction, obvious fix; fn-261 FRICTION.md):** a render test that takes `generation::whole_tree()` and then calls into `roots::kernels` deadlocks on the same non-reentrant test mutex (`_one`) and holds the GPU lock for its timeout (10 minutes lost in fn-261); before the release PR, the guard is taken in one place, so a test cannot take it twice, or a second take fails at once with a message naming the guard.
+
 ## Boundaries
 
 Map only. Post-release: fn-232, fn-233.
