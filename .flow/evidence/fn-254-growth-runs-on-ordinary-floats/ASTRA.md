@@ -14,3 +14,6 @@ Astra disagreed on one point: the stepped executor's reductions depended on the 
 > Commit `2666c211` resolves my disagreement. Stepped partials now accumulate in stable item order, and leaves enter the lattice in that same order. `cores::pinned` preserves result order, so worker completion cannot regroup the sums. [...] I see no remaining architecture blocker to closing fn-254.
 
 `ASTRA: AGREE`
+
+## Review round cap reset (2026-10-11)
+The codex review hit its round cap (2 of 2) after the root-order fix. The coordinator cleared the reset under the owner's standing rule (`knowledge/conventions/reset-review-round-caps-without-asking-2026-10-09`): every remaining finding was fixed, and Astra agreed. `flowctl spec reset-review-rounds fn-254-growth-runs-on-ordinary-floats` was run, followed by a fresh re-review on base `59e627e7`.

@@ -268,8 +268,8 @@
     }
   ],
   "review_hash_epoch": {
-    "plan": 1,
-    "plan#completion": 0
+    "plan": 2,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -291,5 +291,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T22:01:25.703685Z"
+  "updated_at": "2026-10-10T22:33:13.864688Z"
 }
