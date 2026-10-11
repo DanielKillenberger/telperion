@@ -26,7 +26,6 @@ use super::oracle::{Oracle, Read};
 use super::{run_beside, Beside, Grower, Options, Request};
 use crate::bounded::Expected;
 use crate::error::Result;
-use crate::fixed::feedback::total::Total;
 use crate::light::Field;
 use crate::species::Species;
 use crate::structure::{Structure, Vec3};
@@ -116,17 +115,17 @@ pub(crate) fn ordered(mut roots: Vec<usize>, order: Order) -> Vec<usize> {
 
 /// Merges per-root partials into `total` as the grouping takes them:
 /// the roots in its order, `chunk` partials at a time.
-pub(crate) fn merge(total: &mut [Total], partial: &HashMap<usize, Vec<Total>>, g: &Grouping) {
+pub(crate) fn merge(total: &mut [f32], partial: &HashMap<usize, Vec<f32>>, g: &Grouping) {
     let roots = ordered(partial.keys().copied().collect(), g.order);
     for chunk in roots.chunks(g.chunk.max(1)) {
-        let mut sum = vec![Total::default(); total.len()];
+        let mut sum = vec![0.0f32; total.len()];
         for r in chunk {
             for (s, &x) in sum.iter_mut().zip(&partial[r]) {
-                s.merge(x);
+                *s += x;
             }
         }
         for (t, s) in total.iter_mut().zip(sum) {
-            t.merge(s);
+            *t += s;
         }
     }
 }
@@ -135,21 +134,19 @@ pub(crate) fn merge(total: &mut [Total], partial: &HashMap<usize, Vec<Total>>, g
 /// or a fine root, as the grouping takes them (none: in the items' order,
 /// whole): the structure's in order, then each root's partial.
 pub(crate) fn grouped(
-    items: &[(Option<usize>, Vec<i128>)],
+    items: &[(Option<usize>, Vec<f32>)],
     n: usize,
     g: Option<&Grouping>,
-) -> Vec<Total> {
-    let mut total = vec![Total::default(); n];
-    let mut partial: HashMap<usize, Vec<Total>> = HashMap::new();
+) -> Vec<f32> {
+    let mut total = vec![0.0f32; n];
+    let mut partial: HashMap<usize, Vec<f32>> = HashMap::new();
     for (root, v) in items {
         let into = match (root, g) {
-            (Some(r), Some(_)) => partial
-                .entry(*r)
-                .or_insert_with(|| vec![Total::default(); n]),
+            (Some(r), Some(_)) => partial.entry(*r).or_insert_with(|| vec![0.0; n]),
             _ => &mut total,
         };
         for (t, &x) in into.iter_mut().zip(v) {
-            t.add(x);
+            *t += x;
         }
     }
     if let Some(g) = g {
@@ -231,17 +228,17 @@ impl Grower<'_> {
             return;
         }
         let pas = self.species.states.len();
-        let q = crate::fixed::q32;
-        let terms: Vec<(usize, Vec<i128>)> = (0..got.len())
-            .filter(|&i| q(presence[i]) > 0)
+        let q = |x: f64| x as f32;
+        let terms: Vec<(usize, Vec<f32>)> = (0..got.len())
+            .filter(|&i| q(presence[i]) > 0.0)
             .map(|i| {
                 let (p, d) = (
                     q(presence[i]),
                     crate::allocation::drawn(q(got[i]), q(presence[i]), q(psi[i])),
                 );
-                let mut v = vec![0; 2 * pas];
-                v[2 * pa[i]] = i128::from(p) << 32;
-                v[2 * pa[i] + 1] = i128::from(d) * i128::from(p);
+                let mut v = vec![0.0; 2 * pas];
+                v[2 * pa[i]] = p;
+                v[2 * pa[i] + 1] = d * p;
                 (i, v)
             })
             .collect();

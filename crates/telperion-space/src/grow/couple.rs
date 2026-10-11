@@ -188,7 +188,7 @@ impl Grower<'_> {
 
     /// Each living fine root's light, upkeep and whether it lives, for
     /// the balance: `(axis, light, cost, living)`.
-    pub(super) fn fine_balance(&self, sketch: &Sketch) -> Vec<(usize, i64, i64, bool)> {
+    pub(super) fn fine_balance(&self, sketch: &Sketch) -> Vec<(usize, f32, f32, bool)> {
         let Some(pass) = self.couple.as_ref() else {
             return Vec::new();
         };
@@ -197,11 +197,10 @@ impl Grower<'_> {
                 let living = f.agg.living();
                 let upkeep = self.species.states[f.pa].upkeep;
                 let light = f.scale * living * sketch.pencils[f.axis].light;
-                let q = crate::fixed::q32;
                 (
                     f.axis,
-                    q(light),
-                    q(upkeep * f.scale * f.agg.wood),
+                    light as f32,
+                    (upkeep * f.scale * f.agg.wood) as f32,
                     living > 0.0,
                 )
             })
@@ -248,15 +247,12 @@ impl Grower<'_> {
         cycle: u32,
         got: &[f64],
         (presence, psi, pa): (&[f64], &[f64], &[usize]),
-    ) -> Vec<[i128; 2]> {
+    ) -> Vec<[f32; 2]> {
         let species = self.species;
         let pas = species.states.len();
         let mut acc = crate::allocation::size_sums(got, presence, psi, pa, pas);
-        let value = |acc: &[[crate::fixed::feedback::total::Total; 2]]| -> Vec<[i128; 2]> {
-            acc.iter().map(crate::allocation::factors).collect()
-        };
         let (Some(pass), Some(sketch)) = (self.couple.as_mut(), self.sketch.as_ref()) else {
-            return value(&acc);
+            return acc;
         };
         let mut by_pa = vec![0.0; pas];
         for f in pass.fine.iter_mut().filter(|f| !f.dead) {
@@ -275,17 +271,17 @@ impl Grower<'_> {
             by_pa.iter_mut().for_each(|x| *x = 0.0);
             f.agg.living_by_pa(f.scale * p.kept, &mut by_pa);
             for (g, &pg) in by_pa.iter().enumerate().filter(|(_, &pg)| pg > 0.0) {
-                let (q, one) = (crate::fixed::q32, crate::fixed::ONE32);
-                let p = q(pg);
-                let d = crate::allocation::drawn(q(f.ratio), one, q(species.states[g].shade_size));
-                acc[g][0].add(i128::from(p) << 32);
-                acc[g][1].add(i128::from(d) * i128::from(p));
+                let p = pg as f32;
+                let psi = species.states[g].shade_size as f32;
+                let d = crate::allocation::drawn(f.ratio as f32, 1.0, psi);
+                acc[g][0] += p;
+                acc[g][1] += d * p;
             }
         }
-        let sums = value(&acc);
+        let sums = acc;
         let means = sums.iter().map(|&[t, w]| {
-            if t > 0 && w > 0 {
-                w as f64 / t as f64
+            if t > 0.0 && w > 0.0 {
+                f64::from(w / t)
             } else {
                 1.0
             }
@@ -376,7 +372,8 @@ mod tests {
         }
     }
 
-    /// With no bud below the cut the pass is today's tree to the bit.
+    /// With no bud below the cut the pass is today's tree, by lineage
+    /// (fn-254: its sums group apart, so not to the bit).
     #[test]
     fn a_pass_with_no_fine_root_is_todays_tree() {
         let species = crate::oak();
@@ -385,7 +382,8 @@ mod tests {
         let (tree, m) = grow_coupled(&species, r, &expected, (-1.0, Split::Recorded)).unwrap();
         assert_eq!(m.fine, 0);
         let today = grow(&species, r).unwrap();
-        assert_eq!(crate::fine::digest(&tree), crate::fine::digest(&today));
+        let agree = crate::agree::agreement(&today, &tree);
+        assert!(agree.within(&crate::agree::PATHS), "{agree:?}");
     }
 
     /// Below the cut, fine roots are taken, recorded and grown back: the

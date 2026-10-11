@@ -461,9 +461,9 @@ impl PaState {
     }
 
     /// Its lifespan as the grower and the closed form read it: on the
-    /// tick grid (`fixed.rs`, FINE-CONTRACT.md D7).
+    /// tick grid (`contract.rs`, FINE-CONTRACT.md D7).
     pub(crate) fn life(&self) -> f64 {
-        crate::fixed::grid(self.lifespan)
+        crate::contract::grid(self.lifespan)
     }
 
     /// The probability the apex aborts after a growth unit that ends `t`

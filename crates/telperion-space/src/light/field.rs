@@ -1,26 +1,104 @@
-//! The light lattice on contract A (fn-211 task 9, CONTRACT-A.md 2.6):
-//! every leaf's Q32 tip and area deposited in W at its eight corners
-//! (`fixed::feedback::lattice`), the one f64 sweep run on the lattice and
-//! its light rounded once to Q32, and every read sampled in integers. A
-//! point or an area enters as the Q32 it holds exactly (or the nearest,
-//! for a value not yet on the grid); a read returns the exact real of its
-//! Q32 light.
+//! The light lattice (fn-211 task 9, CONTRACT-A.md 2.6; in f32 since
+//! fn-254): every leaf's tip and area deposited at its eight corners, the
+//! one sweep run on the lattice and its light rounded once to f32, and
+//! every read sampled from it.
+//!
+//! - **Nodes** are 0.5 m apart: a coordinate's node is the floor of twice
+//!   it, and its fraction what is left.
+//! - **Corner weights** are the trilinear products of the three fractions.
+//! - **Deposits** are summed in the leaves' order, so a lattice is the same
+//!   for the same leaves in the same order.
+//! - **The domain** is every coordinate below 2^12 m and a box of at most
+//!   2^28 nodes, refused by name past them (CONTRACT-A.md 2.2).
 use super::CELL;
-use crate::fixed::feedback::lattice::{rounded, Grid};
-use crate::fixed::{q32, ONE32};
 use crate::structure::Vec3;
+
+/// The position domain: every coordinate below 2^12 m.
+const REACH: f32 = 4096.0;
+/// The nodes a box holds.
+const NODES: u64 = 1 << 28;
 
 /// A lattice of light: leaf area deposited, swept from the sky, read.
 pub(crate) struct Field {
     grid: Grid,
-    /// Leaf area density at each node, W, then the light there, Q32.
-    density: Vec<u128>,
-    light: Vec<i64>,
+    /// Leaf area density at each node (8 area w a deposit: density over a
+    /// 1/8 m^3 cell), then the light there.
+    density: Vec<f32>,
+    light: Vec<f32>,
 }
 
-/// A point as Q32.
-pub(crate) fn q(p: Vec3) -> [i64; 3] {
-    [q32(p.x), q32(p.y), q32(p.z)]
+/// The box of nodes a lattice spans.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Grid {
+    pub low: [i32; 3],
+    pub size: [u32; 3],
+}
+
+/// A coordinate's node and its fraction of the way to the next.
+fn node(x: f32) -> (i32, f32) {
+    let s = x / CELL as f32;
+    let n = s.floor();
+    (n as i32, s - n)
+}
+
+impl Grid {
+    /// The box holding every point's eight corners: from the least node to
+    /// the greatest plus one on each axis; one node at the origin for none.
+    pub(super) fn spanning(points: impl Iterator<Item = Vec3>) -> Self {
+        let (mut low, mut high) = ([i32::MAX; 3], [i32::MIN; 3]);
+        for p in points {
+            let p = [p.x as f32, p.y as f32, p.z as f32];
+            for a in 0..3 {
+                assert!(p[a].abs() < REACH, "positions inside the contract's domain");
+                let n = node(p[a]).0;
+                low[a] = low[a].min(n);
+                high[a] = high[a].max(n + 1);
+            }
+        }
+        if low[0] > high[0] {
+            (low, high) = ([0; 3], [0; 3]);
+        }
+        let size = [0, 1, 2].map(|a| (high[a] - low[a] + 1) as u32);
+        let nodes: u64 = size.iter().map(|&s| u64::from(s)).product();
+        assert!(nodes <= NODES, "a lattice inside the contract's domain");
+        Self { low, size }
+    }
+
+    fn nodes(&self) -> usize {
+        self.size.iter().map(|&s| s as usize).product()
+    }
+
+    /// A node's index, x fastest; none outside the box.
+    fn index(&self, n: [i32; 3]) -> Option<usize> {
+        let mut at = [0usize; 3];
+        for a in 0..3 {
+            let k = n[a] - self.low[a];
+            if k < 0 || k as u32 >= self.size[a] {
+                return None;
+            }
+            at[a] = k as usize;
+        }
+        let [sx, sy, _] = self.size.map(|s| s as usize);
+        Some((at[2] * sy + at[1]) * sx + at[0])
+    }
+
+    /// The corners about `at`: each node's index (none outside) and weight;
+    /// corner `c` is upper on axis `a` where bit `a` of `c` is set.
+    fn corners(&self, at: Vec3) -> [(Option<usize>, f32); 8] {
+        let split = [at.x, at.y, at.z].map(|x| node(x as f32));
+        std::array::from_fn(|c| {
+            let upper = |a: usize| (c >> a) & 1 == 1;
+            let n = std::array::from_fn(|a| split[a].0 + i32::from(upper(a)));
+            let w = (0..3).fold(1.0, |w, a| {
+                w * if upper(a) {
+                    split[a].1
+                } else {
+                    1.0 - split[a].1
+                }
+            });
+            (self.index(n), w)
+        })
+    }
 }
 
 impl Field {
@@ -38,44 +116,19 @@ impl Field {
         reads: &[Vec3],
         threads: usize,
     ) -> Self {
-        let mut field = Self::spanning(
-            leaves.iter().map(|l| l.0).chain(reads.iter().copied()),
-            CELL,
-        );
+        let mut field = Self::spanning(leaves.iter().map(|l| l.0).chain(reads.iter().copied()));
         field.deposit_all(leaves);
         field.sweep(light.extinction, &light.directions(), threads);
         field
     }
 
     /// The lattice `leaves` deposit in the box spanning them and `reads`,
-    /// before any sweep (probe (a): any grouping of the leaves gives it).
-    pub(crate) fn deposited(leaves: &[(Vec3, f64)], reads: &[Vec3]) -> Vec<u128> {
+    /// before any sweep.
+    pub(crate) fn deposited(leaves: &[(Vec3, f64)], reads: &[Vec3]) -> Vec<f32> {
         let points = leaves.iter().map(|l| l.0).chain(reads.iter().copied());
-        let mut field = Self::spanning(points, CELL);
+        let mut field = Self::spanning(points);
         field.deposit_all(leaves);
         field.density
-    }
-
-    /// The field of a lattice already deposited on `grid` (fn-211 task
-    /// 10: its leaves deposited by more than one executor), swept.
-    pub(crate) fn of_lattice(
-        light: &super::Light,
-        grid: Grid,
-        density: Vec<u128>,
-        threads: usize,
-    ) -> Self {
-        let mut field = Self {
-            grid,
-            density,
-            light: vec![ONE32; grid.nodes()],
-        };
-        field.sweep(light.extinction, &light.directions(), threads);
-        field
-    }
-
-    /// Its box, its W densities and its Q32 light.
-    pub(crate) fn parts(&self) -> (&Grid, &[u128], &[i64]) {
-        (&self.grid, &self.density, &self.light)
     }
 
     /// The nodes it holds.
@@ -83,41 +136,50 @@ impl Field {
         self.grid.nodes()
     }
 
-    /// The light at `at`: its corners' trilinear weights in Q62, the
-    /// weight outside the box under the open sky's one, floored to Q32.
+    /// The light at `at`: its corners inside the box by their nodes' light,
+    /// those outside by the open sky's one. Each corner's weight is taken
+    /// as it stands, never as one less the rest, and the f32 weights may
+    /// sum a place over one, so the light is held to nothing to one
+    /// (fn-254 review).
     pub fn at(&self, at: Vec3) -> f64 {
-        self.grid.sample(&self.light, q(at)) as f64 / ONE32 as f64
+        let sum: f32 = self
+            .grid
+            .corners(at)
+            .into_iter()
+            .map(|(i, w)| w * i.map_or(1.0, |i| self.light[i]))
+            .sum();
+        f64::from(sum.clamp(0.0, 1.0))
     }
 
-    /// The box at the contract's 0.5 m. The layout keeps every position
-    /// inside the contract's domain (CONTRACT-A.md 2.2).
-    pub(super) fn spanning(points: impl Iterator<Item = Vec3>, cell: f64) -> Self {
-        assert_eq!(cell, CELL, "the lattice's nodes are 0.5 m apart");
-        let grid = Grid::spanning(points.map(q)).expect("positions inside the contract's domain");
+    pub(super) fn spanning(points: impl Iterator<Item = Vec3>) -> Self {
+        let grid = Grid::spanning(points);
         Self {
             grid,
-            density: vec![0; grid.nodes()],
-            light: vec![ONE32; grid.nodes()],
+            density: vec![0.0; grid.nodes()],
+            light: vec![1.0; grid.nodes()],
         }
     }
 
-    /// Every leaf's area deposited in integers: any order or grouping of
-    /// the leaves gives the same lattice.
+    /// Every leaf's area deposited at its corners, in the leaves' order.
     pub(super) fn deposit_all(&mut self, leaves: &[(Vec3, f64)]) {
         for &(at, area) in leaves {
-            self.grid
-                .deposit(&mut self.density, q(at), q32(area))
-                .expect("a leaf's area inside the contract's bound");
+            let area = area as f32;
+            assert!(area >= 0.0, "a leaf's area inside the contract's bound");
+            for (i, w) in self.grid.corners(at) {
+                let i = i.expect("a leaf inside its box");
+                self.density[i] += 8.0 * area * w;
+            }
         }
     }
 
-    /// The one f64 sweep (`super::swept_w`), its light rounded once to Q32.
+    /// The one sweep (`super::swept`), its light rounded once to f32.
     pub(super) fn sweep(&mut self, extinction: f64, directions: &[(Vec3, f64)], threads: usize) {
         if extinction <= 0.0 {
             return;
         }
         let size = self.grid.size.map(|s| s as usize);
-        let light = super::swept_w(extinction, directions, size, &self.density, threads);
-        self.light = light.into_iter().map(rounded).collect();
+        let density: Vec<f64> = self.density.iter().map(|&d| f64::from(d)).collect();
+        let light = super::swept_all(extinction, directions, size, &density, threads);
+        self.light = light.into_iter().map(|l| l.clamp(0.0, 1.0) as f32).collect();
     }
 }

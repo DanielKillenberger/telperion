@@ -1,19 +1,16 @@
 //! Phases (i) to (iii) across the cut (PHASES.md): each item's totals
 //! and lit presence reported to its bearer, the coarse grower's decisions
 //! and vigour handed down, every grower's per-PA sums merged.
-use super::{Executor, Feedback};
+use super::Executor;
 use crate::allocation::{size_sums, sized, split, subtotals};
-use crate::fixed::feedback::total::Total;
 use crate::grow::balance::Totals;
-use crate::grow::partition::merge;
 use crate::grow::sketch::{Inputs, Rows as Links};
 use crate::grow::Grower;
-use std::collections::HashMap;
 
 impl Executor<'_> {
     /// Phase (i): each item's totals at its root reported to its bearer,
     /// the coarse grower's decisions at each placeholder handed down.
-    pub(super) fn balance(&mut self, cycle: u32, device: Option<&mut dyn Feedback>) {
+    pub(super) fn balance(&mut self, cycle: u32) {
         if !self.coarse.balances() {
             return;
         }
@@ -23,7 +20,7 @@ impl Executor<'_> {
             let totals = item.g.totals(&rows, &[]);
             (rows, totals)
         });
-        let mut given: Vec<_> = (self.visit().into_iter())
+        let mut given: Vec<_> = (0..self.items.len())
             .map(|k| {
                 let t = &done[k].1;
                 (self.items[k].at, t.light[1], t.cost[1], t.living[1])
@@ -35,12 +32,6 @@ impl Executor<'_> {
         let (shed, kept) = self.coarse.shed_by(cycle, &rows, &totals, None);
         self.stand_kept(cycle, &shed, &kept);
         let pencils = &self.coarse.sketch.as_ref().expect("sketching").pencils;
-        if let Some(device) = device {
-            let roots = (self.items.iter().zip(done))
-                .map(|(i, d)| (d.1, (shed[i.at], kept[i.at], pencils[i.at].memory)))
-                .collect();
-            return self.shed_on(cycle, device, roots);
-        }
         let decided: Vec<_> = (self.items.iter().zip(done))
             .map(|(i, d)| (d, (shed[i.at], kept[i.at], pencils[i.at].memory)))
             .collect();
@@ -54,7 +45,7 @@ impl Executor<'_> {
     /// Phases (ii) and (iii): each item's lit presence reported to its
     /// bearer and its incoming vigour handed down; every grower's per-PA
     /// sums merged, and every bud sized by them; each PA's merged sums.
-    pub(super) fn allot(&mut self) -> Vec<[i128; 2]> {
+    pub(super) fn allot(&mut self) -> Vec<[f32; 2]> {
         if !self.coarse.allots() {
             return Vec::new();
         }
@@ -64,7 +55,7 @@ impl Executor<'_> {
             let inputs = item.g.inputs(&rows);
             (rows, inputs)
         });
-        let given: Vec<_> = (self.visit().into_iter())
+        let given: Vec<_> = (0..self.items.len())
             .map(|k| {
                 let (r, i) = &done[k];
                 (self.items[k].at, subtotals(&r.links, &i.lit)[1])
@@ -80,7 +71,7 @@ impl Executor<'_> {
         let sums = move |rows: &Links, i: &Inputs, got: &[f64]| {
             flat(&size_sums(got, &i.presence, &i.psi, &rows.pa, pas))
         };
-        let mut total: Vec<Total> = sums(&rows, &inputs, &got);
+        let mut total: Vec<f32> = sums(&rows, &inputs, &got);
         self.stand_sums(&got, &mut total);
         let based: Vec<_> = (self.items.iter().zip(done))
             .map(|(i, d)| (d, incoming[i.at]))
@@ -90,13 +81,16 @@ impl Executor<'_> {
             let partial = sums(&r, &i, &got);
             ((r, i, got), partial)
         });
+        // Each item's partial added in the items' order, whatever order and
+        // chunks the plan ran them in: one executor's tree is the same under
+        // any schedule (fn-254 R4 check 1; the review and Astra).
         let (done, partials): (Vec<_>, Vec<_>) = split_up.into_iter().unzip();
-        let partial: HashMap<usize, Vec<Total>> = partials.into_iter().enumerate().collect();
-        merge(&mut total, &partial, &self.grouping);
-        let factors: Vec<[i128; 2]> = total
-            .chunks(2)
-            .map(|s| crate::allocation::factors(&[s[0], s[1]]))
-            .collect();
+        for partial in &partials {
+            for (t, &x) in total.iter_mut().zip(partial) {
+                *t += x;
+            }
+        }
+        let factors: Vec<[f32; 2]> = total.chunks(2).map(|s| [s[0], s[1]]).collect();
         let size = |g: &mut Grower, (rows, i, got): (Links, Inputs, Vec<f64>)| {
             g.set_sizes(&sized(&got, &i.presence, &i.psi, &rows.pa, &factors));
         };
@@ -113,6 +107,6 @@ pub(super) fn links(g: &Grower) -> Links {
     rows
 }
 
-fn flat(sums: &[[Total; 2]]) -> Vec<Total> {
+fn flat(sums: &[[f32; 2]]) -> Vec<f32> {
     sums.iter().flatten().copied().collect()
 }

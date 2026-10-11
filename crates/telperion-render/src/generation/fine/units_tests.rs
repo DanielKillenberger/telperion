@@ -56,12 +56,12 @@ fn grown(tree: &Structure) -> Vec<Grown> {
 /// `lineage::FAILED`: the one its first node's key descends from, through
 /// a zone (`lineage::ZONE` + z) and the node's draw index.
 fn unit_key(lineage: u64, cycle: u32, node: u64) -> u64 {
-    use telperion_space::fixed;
+    use telperion_space::contract;
     use telperion_space::lineage_keys::{FAILED, ZONE};
-    let unit = fixed::child(lineage, u64::from(cycle));
-    let apart = fixed::child(unit, FAILED);
+    let unit = contract::child(lineage, u64::from(cycle));
+    let apart = contract::child(unit, FAILED);
     let holds = |key: u64| {
-        (0..4).any(|z| (0..256).any(|j| fixed::child(fixed::child(key, ZONE + z), j) == node))
+        (0..4).any(|z| (0..256).any(|j| contract::child(contract::child(key, ZONE + z), j) == node))
     };
     if holds(unit) {
         unit

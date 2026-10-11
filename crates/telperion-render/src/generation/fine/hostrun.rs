@@ -29,7 +29,7 @@ impl Grower {
         gpu: &Gpu,
         buds: (&[ChainBud], &[[f32; 2]]),
         t: &Packed,
-        at: (i64, u32),
+        at: (f32, u32),
         caps: Caps,
     ) -> (Grown, f64, f64) {
         let run = self.run_kept(gpu, buds, t, at, caps);
@@ -42,7 +42,7 @@ impl Grower {
         gpu: &Gpu,
         (buds, made): (&[ChainBud], &[[f32; 2]]),
         t: &Packed,
-        (span, age): (i64, u32),
+        (span, age): (f32, u32),
         caps: Caps,
     ) -> Run {
         let start = Instant::now();
@@ -51,7 +51,7 @@ impl Grower {
         let input: Vec<u64> = buds
             .iter()
             .zip(made)
-            .flat_map(|(b, &m)| bud_words(b, m, [1 << 32; 2]))
+            .flat_map(|(b, &m)| bud_words(b, m, [1.0; 2]))
             .collect();
         let b =
             |label, bytes: u64, data: &[u8]| io::buffer(gpu, label, bytes, storage, data).unwrap();

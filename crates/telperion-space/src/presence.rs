@@ -8,8 +8,7 @@
 //! that grew, a branch made anywhere moves no other draw's window.
 use crate::closed_form::expected_log_lengths;
 use crate::dormant::wakes_in;
-use crate::fixed;
-use crate::fixed::presence::{q, real, times, ONE};
+use crate::contract::presence::{q, real, times, ONE};
 use crate::species::{Species, Zone};
 use crate::structure::{Axis, Origin};
 use crate::transcendental::Transcendental;
@@ -23,6 +22,11 @@ pub const SPAN: f64 = 2.0;
 /// The narrowest window, in log-odds: a twig's.
 pub const FLOOR: f64 = 0.05;
 
+/// A log as the executors hold it (`contract::log32`), none as nothing.
+fn contract_log(log: f64) -> f32 {
+    crate::contract::log32(log)
+}
+
 /// The expected wood each draw decides, as a share of the whole tree's.
 /// Its tables are shared: every fine root's grower holds the tree's
 /// (`Rules`), and a copy of them a root cost most of a root's growth in
@@ -33,22 +37,21 @@ pub(crate) struct Windows {
     expected: Arc<Vec<Vec<f64>>>,
     /// The log of the whole tree's expected metres.
     whole: f64,
-    /// woods[m][k]: `expected[m][k]`'s share of the whole tree, Q32, by
-    /// the contract's `exp` (host decision 8): taken once a tree, not
-    /// once a draw.
-    woods: Arc<Vec<Vec<i64>>>,
+    /// woods[m][k]: `expected[m][k]`'s share of the whole tree, as the
+    /// executors read it (host decision 8): taken once a tree, not once a
+    /// draw.
+    woods: Arc<Vec<Vec<f32>>>,
     age: u32,
 }
 
 impl Windows {
     pub fn new(species: &Species, age: u32) -> Self {
-        use crate::fixed::{exp, q32};
         let expected = expected_log_lengths(species, age);
         let whole = expected[age as usize][0];
         // A wood of none stays none: its log less a finite one is -inf.
         let woods = expected
             .iter()
-            .map(|row| row.iter().map(|&log| exp(q32(log - whole))).collect())
+            .map(|row| row.iter().map(|&log| crate::contract::exp(contract_log(log - whole))).collect())
             .collect();
         Self {
             expected: Arc::new(expected),
@@ -132,17 +135,17 @@ impl Windows {
         metres * (-self.whole).exp_fixed()
     }
 
-    /// The window, Q32, of a draw deciding `stake` of the wood a bud of
-    /// `pa` is expected to grow from `cycle` on, or from `used` of the way
-    /// through it (host decision 8, `fixed::presence`).
-    pub fn window_q(&self, (pa, cycle, used): (usize, u32, Option<f64>), stake: f64) -> i64 {
-        use crate::fixed::{presence, q32, ticks};
-        let log = |c: u32| q32(self.log_wood(pa, c));
+    /// The window of a draw deciding `stake` of the wood a bud of `pa` is
+    /// expected to grow from `cycle` on, or from `used` of the way through
+    /// it (host decision 8, `contract::presence`).
+    pub fn window(&self, (pa, cycle, used): (usize, u32, Option<f64>), stake: f64) -> f32 {
+        use crate::contract::{presence, ticks};
+        let log = |c: u32| crate::contract::log32(self.log_wood(pa, c));
         let wood = match used {
             None => self.woods[(self.age + 1).saturating_sub(cycle) as usize][pa],
             Some(used) => presence::wood_at((log(cycle), log(cycle + 1)), ticks(used)),
         };
-        let window = (q32(RATE * stake), q32(FLOOR * stake), q32(SPAN));
+        let window = ((RATE * stake) as f32, (FLOOR * stake) as f32, SPAN as f32);
         presence::window(wood, window)
     }
 }
@@ -302,16 +305,13 @@ pub(crate) fn relay_node(p: &Axis, draws: &Draws, share: f64) -> usize {
         .iter()
         .position(|q| q.cycle == last)
         .unwrap_or(0);
-    // Each presence is a Q32 fixed point held exactly in its real.
-    let presences: Vec<u64> = draws.nodes[first..n]
-        .iter()
-        .map(|&x| (x * fixed::ONE32 as f64) as u64)
-        .collect();
-    fixed::decide::relay_node(&presences, first, n, share)
+    // Each presence is an f32 held exactly in its real.
+    let presences: Vec<f32> = draws.nodes[first..n].iter().map(|&x| x as f32).collect();
+    crate::contract::decide::relay_node(&presences, first, n, share)
 }
 
 /// Assigns one axis's presences from its draws: its end's presence.
-/// Every presence a fade reads is Q32, each product floored in turn (host
+/// Every presence a fade reads is an f32, each product taken in turn (host
 /// decision 8); the ranks stay real, which geometry alone reads.
 fn assign_one(axis: &mut Axis, draws: &Draws, living: Option<f64>) -> f64 {
     let birth = axis.birth;

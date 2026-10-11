@@ -1,15 +1,12 @@
 //! fn-211.4, probe (a) through the stepped executor: every fine root at a
 //! cut grown by its own grower beside the coarse one, compared with the
-//! whole tree after every phase of every cycle, varied over cut, the
-//! order items are visited and merged in, and their chunking.
+//! whole tree after every phase of every cycle, varied over cut (the
+//! items merge in their own order since fn-254).
 //!
-//!   cargo run --profile ci -p telperion-space --example stepped -- [ages] [seeds] [species] [cuts] [full]
-//!
-//! `full` runs every order with every chunking; otherwise each order
-//! once, each with another chunking.
+//!   cargo run --profile ci -p telperion-space --example stepped -- [ages] [seeds] [species] [cuts]
 use telperion_space::{
-    beech, digest, grow_partitioned, grow_stepped, oak, spruce, Expected, Grouping, Light,
-    PartitionOrder, Request, Species, PHASES,
+    beech, digest, grow_partitioned, grow_stepped, oak, spruce, Expected, Light,
+    Request, Species, PHASES,
 };
 
 const LIT: Light = Light {
@@ -28,25 +25,6 @@ fn main() {
     };
     let (ages, seeds, cuts) = (list(0, "40,80"), list(1, "1,7"), list(3, "256,1024,4096"));
     let only = arg(2, "oak,unlitoak,beech,spruce");
-    let full = arg(4, "") == "full";
-    let orders = [
-        PartitionOrder::Forward,
-        PartitionOrder::Reverse,
-        PartitionOrder::Shuffled(3),
-    ];
-    let mut groupings = Vec::new();
-    for (k, order) in orders.into_iter().enumerate() {
-        for (c, chunk) in [1, 7, 64].into_iter().enumerate() {
-            if full || k == c {
-                groupings.push(Grouping {
-                    order,
-                    chunk,
-                    sizes: true,
-                    leaves: true,
-                });
-            }
-        }
-    }
     // The unlit oak's roots run ahead between synchronisation points;
     // the lit oak's step every cycle (fn-211 task 12).
     let all: [(&str, fn() -> Species, Light); 4] = [
@@ -73,9 +51,9 @@ fn main() {
                 let want = digest(&whole.structure);
                 println!("{name} {age} s{seed}: the whole tree in {took:.1} s");
                 for &cut in &cuts {
-                    for g in &groupings {
+                    {
                         let started = std::time::Instant::now();
-                        let s = grow_stepped(&species, request, &expected, cut, *g).expect("grows");
+                        let s = grow_stepped(&species, request, &expected, cut).expect("grows");
                         let took = started.elapsed().as_secs_f64();
                         assert_eq!(s.phases.len(), whole.phases.len(), "every cycle hashed");
                         let first = whole.phases.iter().zip(&s.phases).enumerate().find_map(
@@ -83,9 +61,7 @@ fn main() {
                         );
                         let all = s.fine_grown + s.coarse_grown;
                         println!(
-                            "{name} {age} s{seed} cut {cut} {:?} chunk {}: {}; {} cycles compared; tree {}; {} fine roots growing {} of {all} phytomers ({:.1} %); {took:.1} s",
-                            g.order,
-                            g.chunk,
+                            "{name} {age} s{seed} cut {cut}: {}; {} cycles compared; tree {}; {} fine roots growing {} of {all} phytomers ({:.1} %); {took:.1} s",
                             first.map_or("every phase identical".into(), |(c, ph)| {
                                 format!("first difference cycle {c}, {ph}")
                             }),

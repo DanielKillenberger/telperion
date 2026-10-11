@@ -33,8 +33,11 @@ fn a_stem_never_thickens_on_its_way_up() {
         for (i, n) in tree.nodes.iter().enumerate().skip(2) {
             let p = &tree.nodes[n.parent.unwrap() as usize];
             if n.stem && p.stem {
+                // The girth is f32 (fn-254): a node may stand an f32 place
+                // over the one below (1.0e-7 relative, one node of these
+                // three trees), never a dent's worth.
                 assert!(
-                    n.radius <= p.radius,
+                    n.radius <= p.radius * (1.0 + 2.5e-7),
                     "{preset:?} {age}/{seed}: stem node {i} at {:.2} m is {:.4} m over {:.4} m below",
                     n.position.y,
                     n.radius,

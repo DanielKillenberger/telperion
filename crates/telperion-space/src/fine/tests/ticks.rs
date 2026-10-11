@@ -2,7 +2,7 @@
 //! read on the tick grid, a sleeping bud wakes on it, and a lifespan too
 //! short for the grid grows its age's unit cut to none (fn-231).
 use super::request;
-use crate::fixed::CYCLE;
+use crate::contract::CYCLE;
 use crate::{grow, spruce};
 
 #[test]

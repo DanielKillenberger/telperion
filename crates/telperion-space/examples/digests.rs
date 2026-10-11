@@ -6,8 +6,8 @@
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::Instant;
 use telperion_space::{
-    beech, digest, grow, grow_stepped, oak, palm, spruce, Expected, Grouping, Light,
-    PartitionOrder, Request, Structure,
+    beech, digest, grow, grow_stepped, oak, palm, spruce, Expected, Light,
+    Request, Structure,
 };
 
 /// The sorted lineage identities, each with its axis's phytomer count.
@@ -60,12 +60,6 @@ fn main() {
             }
         }
     }
-    let grouping = Grouping {
-        order: PartitionOrder::Forward,
-        chunk: 1,
-        sizes: true,
-        leaves: true,
-    };
     let s = oak();
     for age in [40, 80] {
         let expected = Expected::new(&s, age, 0);
@@ -77,7 +71,7 @@ fn main() {
                 budget: 20_000_000,
                 light: lights[1],
             };
-            let tree = grow_stepped(&s, request, &expected, 1024.0, grouping).expect("grows");
+            let tree = grow_stepped(&s, request, &expected, 1024.0).expect("grows");
             let tree = tree.structure;
             println!(
                 "oak-stepped {age} {seed} 0.5: {:016x} {:016x} {} {:.2}s",

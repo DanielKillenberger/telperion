@@ -165,9 +165,11 @@ fn census_of_r1_and_r3_over_fifty_seeds() {
                             let mut steps = walk::walk(walked, seed);
                             steps.sort_by(|a, b| b.slope.total_cmp(&a.slope));
                             for step in steps.iter().take(3).filter(|s| s.slope > 0.0) {
-                                let c = walk::refine(walked, seed, step.from, step.to, REFINE, 8);
-                                let (first, last) = (c[0], c[REFINE as usize]);
-                                if last > first / 20.0 {
+                                let refined = walk::refine(walked, seed, step.from, step.to, REFINE, 8);
+                                let (jumps, _) = refined.jumps(walked, seed, 20.0);
+                                let c = &refined.changes;
+                                let (first, last) = (c[0], *c.last().unwrap());
+                                if jumps {
                                     out.push(format!(
                                         "CENSUS {} seed {seed} {:.4}..{:.4}: {last:.3e} of the tree, from {first:.3e}, slope {:.1}, in {}",
                                         walked.name, step.from, step.to, step.slope, step.what

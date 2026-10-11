@@ -9,7 +9,7 @@
 use super::{Executor, ITEMS};
 use crate::error::Result;
 use crate::fine::{assemble, now, settle_grown, Above, Clock, Cpu, Fine, Made, Plan, Root, Stages};
-use crate::fixed::presence::{q, real, times};
+use crate::contract::presence::{q, real, times};
 use crate::grow::realized::Assigned;
 use crate::presence::assign;
 

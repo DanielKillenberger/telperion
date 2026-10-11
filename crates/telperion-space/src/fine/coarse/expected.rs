@@ -6,8 +6,7 @@ use super::super::step::{ready, Step};
 use crate::bounded::girth::committed_radius;
 use crate::closed_form::boundary::{Row, Rows};
 use crate::error::Result;
-use crate::fixed::feedback::total::Total;
-use crate::fixed::presence::{fade, q, real};
+use crate::contract::presence::{fade, q, real};
 use crate::geometry::{bud_frame, dominance};
 use crate::girth::{leaf, terms};
 use crate::grow::stepped::Stood;
@@ -62,7 +61,7 @@ impl<'a> Expected<'a> {
             .map(|s| {
                 let a = &s.axis;
                 let living = match s.died {
-                    Some(d) => (q(f64::from(d.saturating_sub(a.birth))), 0),
+                    Some(d) => (q(f64::from(d.saturating_sub(a.birth))), 0.0),
                     None => self.living(a.pa, a.birth),
                 };
                 let mut root = self.root(a.pa, a.birth, a.lineage, a.origin, a.vigour);
@@ -105,7 +104,7 @@ impl<'a> Expected<'a> {
         if kept > 0.0 {
             (q(f64::from(self.age - birth)), q(kept.min(1.0)))
         } else {
-            (0, 0)
+            (0.0, 0.0)
         }
     }
 
@@ -165,19 +164,16 @@ impl Roots for Expected<'_> {
     /// Each root's leaf partials as grown: its pipes at its base scale as
     /// grown, by the light it last read. That scale is kept for its
     /// radius as grown, until phase 2 fades it.
-    fn grown_partials(&mut self, stands: &[(i64, f64)]) -> Result<Vec<[Total; 2]>> {
+    fn grown_partials(&mut self, stands: &[(f32, f64)]) -> Result<Vec<[f32; 2]>> {
         let mut out = Vec::with_capacity(self.roots.len());
         for (k, &(base, drawn)) in stands.iter().enumerate() {
-            let base = base as f64 / crate::fixed::ONE32 as f64;
+            let base = f64::from(base);
             let s = self.grown(&self.roots[k], (base, drawn));
             let root = &mut self.roots[k];
             root.scale = s;
             let chi = self.species.states[root.pa].leaf_girth;
             let (pipe, lit) = terms(s * root.pipes, root.light, chi);
-            let (mut total, mut weighted) = (Total::default(), Total::default());
-            total.add(pipe);
-            weighted.add(lit);
-            out.push([total, weighted]);
+            out.push([pipe, lit]);
         }
         Ok(out)
     }
@@ -186,7 +182,7 @@ impl Roots for Expected<'_> {
     /// kept), from its row's sections before its own fade, under the
     /// tree's mean; the mean kept for phase 2.
     /// Its shed pipes are its row's, never kept apart.
-    fn grown_radii(&mut self, mean: Option<f64>, _above: &[i64]) -> Result<Vec<f64>> {
+    fn grown_radii(&mut self, mean: Option<f64>, _above: &[f32]) -> Result<Vec<f64>> {
         self.mean = mean;
         let one = |root: &Root| {
             let row = self.rows.lateral(root.pa, root.birth);

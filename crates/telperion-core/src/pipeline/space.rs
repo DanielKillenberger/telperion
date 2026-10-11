@@ -435,10 +435,10 @@ fn converted(
             let q = kept_share(retention, structure.age.saturating_sub(p.cycle));
             let piece = internode * p.scale * telperion_space::internode_factor(p.key(), spread);
             let here = joins[i].iter().filter(|(_, j)| j.node == place);
-            for &(c, _) in here.clone().filter(|(_, j)| j.t == 0) {
+            for &(c, _) in here.clone().filter(|(_, j)| j.t <= 0.0) {
                 joined[c] = Some((parent, place));
             }
-            let inside: Vec<_> = here.filter(|(_, j)| j.t > 0 && j.t < join::ONE).collect();
+            let inside: Vec<_> = here.filter(|(_, j)| j.t > 0.0 && j.t < join::ONE).collect();
             // A span a relay joins inside is drawn above its join at the
             // stopped module's own wood (`Join::above`).
             let mut own = join::Draw::of(axis, place, piece);
@@ -615,6 +615,8 @@ mod leafing_tests;
 mod join;
 #[cfg(test)]
 mod relay_tests;
+#[cfg(test)]
+mod repeat_tests;
 mod stands;
 #[cfg(test)]
 mod tests;

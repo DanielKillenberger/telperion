@@ -32,9 +32,9 @@ pub(super) struct Group {
     /// Each root's attachment as the stubs take it, and its node.
     pub attached: Vec<RootGeometry>,
     pub nodes: Vec<usize>,
-    /// Each root's first axis's vigour (Q32), by its place: its seed's
-    /// as `grow` hands it (task 9).
-    pub made: Vec<u64>,
+    /// Each root's first axis's vigour, by its place: its seed's as
+    /// `grow` hands it (task 9).
+    pub made: Vec<f32>,
     /// The group's roots in the order the device took them (by their
     /// place in the group), and each one's living, by its place.
     order: Vec<usize>,
@@ -51,7 +51,7 @@ pub(super) fn unlaid(scale: f64) -> BearerFrame {
         rank: 0.0,
         scale,
         size: 1.0,
-        phase: 0,
+        phase: 0.0,
     }
 }
 
@@ -74,7 +74,7 @@ impl Group {
             .living(gpu, (&waves.grown, &waves.chains), (&fades, t.chain.age))?;
         let read = report(gpu, &living[0], roots.len(), cost).await?;
         cost.fade += fading.elapsed_ms();
-        let mut lived = vec![(0, 0); roots.len()];
+        let mut lived = vec![(0.0, 0.0); roots.len()];
         for (wi, &r) in order.iter().enumerate() {
             lived[r] = read[wi];
         }
@@ -107,7 +107,7 @@ impl Group {
             at,
             attached,
             nodes,
-            made: vec![0; roots.len()],
+            made: vec![0.0; roots.len()],
             order,
             lived,
         })

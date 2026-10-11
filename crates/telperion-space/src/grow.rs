@@ -30,7 +30,7 @@ mod wake;
 use crate::dormant::{Sleeper, Woken};
 use crate::error::{refuse, Error, Result};
 use crate::fine::lineage_order;
-use crate::fixed::presence::{q, real, times, ONE};
+use crate::contract::presence::{q, real, times, ONE};
 use crate::light::Light;
 use crate::lineage::Key;
 use crate::presence::{Draws, Windows};
@@ -320,7 +320,7 @@ fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
         alive: 0.0,
         rank: 0.0,
         sleep: 0.0,
-        phase: 0,
+        phase: 0.0,
         joined: None,
     }
 }
@@ -497,7 +497,8 @@ impl Grower<'_> {
     fn living(&self, apex: Apex) -> f64 {
         let pa = self.axes[apex.axis].pa;
         let state = &self.species.states[pa];
-        // Q32, floored in turn (host decision 8); the times on the grid.
+        // In f32, each product in turn (host decision 8); the times on the
+        // grid.
         let left = q((state.life() - apex.spent).clamp(0.0, 1.0));
         let go = q(self.species.successor(pa).map_or(0.0, |(_, go)| go));
         let on = go + times(ONE - go, q(state.relay_ended));

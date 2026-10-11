@@ -1,7 +1,8 @@
 //! The fine-root executor's GPU side (fn-209 F1): the decision contract
-//! in WGSL, `telperion_space::fixed` word for word (FINE-CONTRACT.md, host
-//! decision 1), which every fine-root shader begins with, so a decision
-//! the GPU takes is the CPU reference executor's to the bit.
+//! in WGSL, `telperion_space::contract` by the same f32 operations
+//! (fn-254), which every fine-root shader begins with, so a decision the
+//! GPU takes is the CPU reference executor's but where two reals stand
+//! within their last places of its bound.
 use super::Prepared;
 use crate::Result;
 use telperion_core::presets::Family;
@@ -10,36 +11,11 @@ const WIDE: &str = include_str!("fine/wide.wgsl");
 const KEYS: &str = include_str!("fine/lineage.wgsl");
 const CONTRACT: &str = include_str!("fine/contract.wgsl");
 const ZONES: &str = include_str!("fine/zones.wgsl");
-const FEEDBACK_WIDE: &str = include_str!("fine/feedback_wide.wgsl");
-const FEEDBACK: &str = include_str!("fine/feedback.wgsl");
-const FEEDBACK_SITES: &str = include_str!("fine/feedback_sites.wgsl");
-#[cfg(test)]
-const FEEDBACK_TURN: &str = include_str!("fine/feedback_turn.wgsl");
 
 /// The contract's WGSL: its wide words, its lineage keys, then its
 /// arithmetic.
 pub(super) fn contract() -> String {
     format!("{WIDE}\n{KEYS}\n{CONTRACT}")
-}
-
-/// The decision contract and the feedback contract's wide words, powers
-/// and ripening (fn-211 task 8, CONTRACT-A.md): what the fine roots'
-/// girth takes contract A's fixed point from (host, 2026-10-08).
-pub(super) fn fixed_point() -> String {
-    format!(
-        "{}\n{FEEDBACK_WIDE}\n{FEEDBACK}\n{FEEDBACK_SITES}",
-        contract()
-    )
-}
-
-/// The decision contract and the feedback contract (fn-211 task 8,
-/// CONTRACT-A.md): `telperion_space::fixed::feedback` word for word.
-#[cfg(test)]
-pub(super) fn feedback() -> String {
-    format!(
-        "{}\n{FEEDBACK_WIDE}\n{FEEDBACK}\n{FEEDBACK_TURN}\n{FEEDBACK_SITES}",
-        contract()
-    )
 }
 
 /// The contract and a growth unit's zones, for a shader that binds the
@@ -141,10 +117,6 @@ impl super::Generator {
 pub(super) fn sources() -> Vec<(&'static str, String)> {
     vec![
         ("fine contract probe", tests::source()),
-        ("feedback probe", feedback_tests::source()),
-        ("feedback slice", feedback_slice::source()),
-        ("feedback stepped", feedback_stepped::source()),
-        ("feedback lay", feedback_stepped::lay_source()),
         ("fine unit", units_tests::source()),
         ("fine chain grower", chains::source()),
         ("fine pack", chains::pack_source()),
@@ -184,24 +156,14 @@ mod dress;
 #[cfg(test)]
 mod dress_tests;
 #[cfg(test)]
-mod feedback_cases;
-#[cfg(test)]
-mod feedback_quotient;
-#[cfg(test)]
-mod feedback_slice;
-#[cfg(test)]
-mod feedback_stepped;
-#[cfg(test)]
-mod feedback_stepped_tests;
-#[cfg(test)]
-mod feedback_tests;
-#[cfg(test)]
 mod fixture;
 #[cfg(test)]
 mod floret_stills;
 mod florets;
 #[cfg(test)]
 mod florets_tests;
+#[cfg(test)]
+mod preset_agree_tests;
 #[cfg(test)]
 mod ground_tests;
 mod group;

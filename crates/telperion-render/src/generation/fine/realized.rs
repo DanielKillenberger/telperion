@@ -12,8 +12,8 @@ use telperion_space::ChainBud;
 
 /// A root as the device takes it: its bud, its first axis's vigour as
 /// made and its node's buds a whorl (f32), and its making draws'
-/// presences (Q32).
-pub(super) type RootBud = (ChainBud, [f32; 2], [u64; 2]);
+/// presences.
+pub(super) type RootBud = (ChainBud, [f32; 2], [f32; 2]);
 
 /// The waves as the device keeps them, and each one's chains, own axes
 /// and their phytomers.

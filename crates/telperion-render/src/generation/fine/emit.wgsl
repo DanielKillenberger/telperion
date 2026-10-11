@@ -91,7 +91,7 @@ fn put_bud(a: u32, k: u32, root: u32, bearer: u32) {
     next_buds[b + 21u] = 0u;
     next_buds[b + 22u] = axes[a + 36u];
     next_buds[b + 23u] = axes[a + 37u];
-    // Its making draws' presences, Q32 (`assign.wgsl`'s B0 and B1).
+    // Its making draws' presences (`assign.wgsl`'s B0 and B1).
     for (var f = 0u; f < 4u; f++) {
         next_buds[b + 24u + f] = axes[a + 40u + f];
     }

@@ -84,7 +84,7 @@ fn axis(origin: Origin, lights: &[f64]) -> Axis {
         alive: 1.0,
         rank: 0.0,
         sleep: 0.0,
-        phase: 0,
+        phase: 0.0,
         joined: None,
     }
 }
@@ -134,8 +134,8 @@ fn the_leaf_term_keeps_the_trees_pipe_and_thickens_the_lit_limb() {
     thicken(&mut a, &neutral, &Girth::default(), 1);
     thicken(&mut b, &leafy, &Girth::default(), 1);
     let (ta, tb) = (own_total(&a, &neutral), own_total(&b, &leafy));
-    // Contract A: the mean is a W quotient and each pipe one floor, so
-    // the tree's pipe holds to Q32's last places summed (1e-6 relative).
+    // The mean and each pipe are f32 (fn-254), so the tree's pipe holds
+    // to f32's last places summed (1e-6 relative).
     assert!((ta - tb).abs() < 1e-6 * ta, "own pipe {ta} against {tb}");
     assert_eq!(a.axes[1].phytomers[0].radius, a.axes[2].phytomers[0].radius);
     assert!(b.axes[1].phytomers[0].radius > a.axes[1].phytomers[0].radius);
@@ -231,7 +231,7 @@ fn a_relays_wood_enters_where_it_joins_and_its_stub_carries_its_own() {
     let relay = grown(Some(Origin::Relay { parent: 0, node: 1 }));
     let join = relay.axes[1].joined().expect("a relay's join");
     let k = join.node;
-    assert!(join.t > 0 && join.t < ONE32, "part-way along its span");
+    assert!(join.t > 0.0 && join.t < 1.0, "part-way along its span");
     let lateral = grown(Some(Origin::Lateral {
         parent: 0,
         node: k,
@@ -270,7 +270,7 @@ fn a_node_growing_in_moves_no_relays_attachment() {
         let x = crate::geometry::attach(&axes, &species, 1).expect("a relay");
         let (k, t) = crate::geometry::split(x, tips.len() - 1);
         let start = if k == 0 { 0.0 } else { tips[k - 1] };
-        start + (tips[k] - start) * t as f64 / ONE32 as f64
+        start + (tips[k] - start) * f64::from(t)
     };
     let two = joined(&[1.0, 2.0], &[1.0, 1.0]);
     let grown_in = joined(&[1.0, 2.0, 2.0], &[1.0, 1.0, 0.0]);

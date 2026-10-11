@@ -365,6 +365,45 @@ fn the_real_path_matches_the_cpu_path() {
     }
 }
 
+/// fn-254 R4 check 4, leaf area: every shipped GPU preset at 30 on the
+/// real path, its leaves against the CPU path's by key and station: as
+/// many, and none apart in place, direction or scale past the screen.
+/// Measured: every leaf of all five matched, none apart in scale; the
+/// birch's 42,548 apart in place and 5,673 in direction ride its wood's
+/// gap.
+/// The birch's leaves apart in place and in direction, of 60,084, with
+/// its wood's gap: measured 42,548 and 5,673, bound at about a tenth more.
+const BIRCH_LEAVES: (u64, u64) = (47_000, 6_300);
+
+#[test]
+fn every_gpu_preset_seats_its_leaves_as_the_cpu_path_does() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let (k, gen) = (kernels(&gpu), generator(&gpu));
+    for id in ["european-beech", "norway-spruce", "silver-birch", "telperion", "laurelin"] {
+        let p = parity(&gpu, &k, &gen, &family(id, (30, 42)));
+        let l = &p.leaves;
+        println!(
+            "{id} (30, 42): {} of {} leaves, {} compared, left {:?}, over {:?}, flags {}",
+            l.leaves.0, l.leaves.1, l.compared, l.left, l.over, l.flags
+        );
+        assert_eq!(l.leaves.0 as u64, l.leaves.1, "{id}: as many leaves");
+        assert_eq!((l.compared, l.left), (l.leaves.1, (0, 0, 0)), "{id}: every leaf compared");
+        assert_eq!(l.flags, 0, "{id}: placement flags");
+        // No leaf's scale apart: the leaf area agrees leaf by leaf. The
+        // birch's places and directions stand apart with its wood, whose
+        // gap predates the floats (`preset_agree_tests::BIRCH`): held to
+        // what was measured, so a regression still shows.
+        let most = if id == "silver-birch" { BIRCH_LEAVES } else { (0, 0) };
+        assert!(
+            l.over.0 <= most.0 && l.over.1 <= most.1 && l.over.2 == 0,
+            "{id}: leaves apart {:?}",
+            l.over
+        );
+    }
+}
+
 /// fn-248: where wood sheds its leaves by age, a whole year and a share
 /// of one, the device keeps the stations the CPU keeps, each with its
 /// own ordinal's leaf.

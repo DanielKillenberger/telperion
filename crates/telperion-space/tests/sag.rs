@@ -302,8 +302,12 @@ fn landing_on_the_ground_walks_by_degree() {
     assert!(worst.slope < 30.0, "{} in {}", worst.slope, worst.what);
     // Landing's steepest step is steep, not a jump: split finer it shrinks
     // eightfold a level once its split resolves the landing (five levels).
-    let changes = walk::refine(&setting, 1, worst.from, worst.to, 5, 8);
-    assert!(changes[5] < changes[0] / 100.0, "a jump: {changes:?}");
+    // Under f32 (fn-254) it stops at the setting's own resolution, where a
+    // change no more than four times the noise floor is the arithmetic's.
+    let refined = walk::refine(&setting, 1, worst.from, worst.to, 5, 8);
+    let (jumps, floor) = refined.jumps(&setting, 1, 100.0);
+    println!("landing: changes {:?}, noise floor {floor:?}", refined.changes);
+    assert!(!jumps, "a jump: {:?}, floor {floor:?}", refined.changes);
 }
 
 /// A vertical trunk bearing a one-sided load bends towards it: a moment

@@ -12,6 +12,7 @@
 //! the bud's path from the root, and every element a draw makes grows in
 //! from nothing as a setting passes the draw, so a walk of any setting at a
 //! fixed seed changes the tree by degree.
+pub mod agree;
 mod allocation;
 mod alone;
 mod beech;
@@ -22,12 +23,13 @@ mod chain;
 mod clock;
 mod closed_form;
 mod cores;
+pub mod contract;
 mod couple;
 mod dormant;
 mod error;
 mod fine;
-pub mod fixed;
 mod geometry;
+pub mod invariants;
 mod girth;
 mod grow;
 mod light;
@@ -66,9 +68,7 @@ pub use grow::oracle::{grow_oracle, Oracled, Read};
 pub use grow::partition::{
     grow_partitioned, Grouping, Order as PartitionOrder, Partitioned, Run as PartitionRun, PHASES,
 };
-pub use grow::stepped::{
-    grow_stepped, grow_stepped_on, Cpu, Feedback, Laid, LayJob, LayPa, Stepped,
-};
+pub use grow::stepped::{grow_stepped, Stepped};
 pub use grow::subtree::Measured;
 pub use grow::{apart, grow, grow_marked, sketch, Pass, Request, Stage};
 pub use light::{bud_light, field_reads, Light};

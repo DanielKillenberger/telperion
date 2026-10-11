@@ -22,7 +22,6 @@ use super::expansion::{Lived, Loaded, RootSeed, Roots};
 use super::step::{ready, Step};
 use super::{each, pick, Plan, Work};
 use crate::error::Result;
-use crate::fixed::feedback::total::Total;
 use crate::geometry::{phase, place_from, scale};
 use crate::girth::{attachments_given, disused_below, leaf_partials, thicken_given, Girth, Stand};
 use crate::grow::realized::{self, Handed};
@@ -84,7 +83,7 @@ struct AsGrown {
     axes: Vec<Axis>,
     index: Vec<usize>,
     fade: Vec<f64>,
-    stand: (i64, f64),
+    stand: (f32, f64),
 }
 
 impl Root {
@@ -138,7 +137,7 @@ impl Root {
                 axes,
                 index: shed.index.clone(),
                 fade: shed.fade.clone(),
-                stand: (0, 0.0),
+                stand: (0.0, 0.0),
             })
         });
         let tree = Structure {
@@ -195,9 +194,9 @@ impl Root {
     }
 
     /// The exchange's first half (fn-211 task 12; PHASES.md, the settle):
-    /// down, its bearer's base and its node's drawn scale as grown (Q32,
-    /// real); up, its subtree's leaf partials as grown.
-    pub fn partials(&mut self, species: &Species, stand: (i64, f64)) -> [Total; 2] {
+    /// down, its bearer's base and its node's drawn scale as grown; up,
+    /// its subtree's leaf partials as grown.
+    pub fn partials(&mut self, species: &Species, stand: (f32, f64)) -> [f32; 2] {
         let age = self.tree.age;
         let g = self.grown.as_mut().expect("a tree kept as grown");
         g.stand = stand;
@@ -208,14 +207,14 @@ impl Root {
         };
         match species.states.iter().any(|s| s.leaf_girth > 0.0) {
             true => leaf_partials(&g.axes, species, (age, 1), from),
-            false => [Total::default(); 2],
+            false => [0.0; 2],
         }
     }
 
     /// The exchange's second half: down, the tree's leaf mean and its
-    /// bearers' fades at its base (Q32); its own shed pipes kept; up, its
-    /// base radius as grown.
-    pub fn attach(&mut self, species: &Species, mean: Option<f64>, above: i64) -> f64 {
+    /// bearers' fades at its base; its own shed pipes kept; up, its base
+    /// radius as grown.
+    pub fn attach(&mut self, species: &Species, mean: Option<f64>, above: f32) -> f64 {
         let age = self.tree.age;
         let g = self.grown.as_ref().expect("a tree kept as grown");
         let from = Stand {
@@ -235,7 +234,7 @@ impl Root {
 
     /// Phase 3: laid from its bearer's laid frame at its node, and its
     /// levers gathered where any PA sags.
-    pub fn lay(&mut self, species: &Species, bearer: (&Axis, i64)) -> Result<()> {
+    pub fn lay(&mut self, species: &Species, bearer: (&Axis, f32)) -> Result<()> {
         self.lay_on(species, stub(bearer, self.node))
     }
 
@@ -256,7 +255,7 @@ impl Root {
     /// Phase 4: laid again under its levers from its bearer's frame as
     /// laid under sag, each phytomer's lever turned from its first lay's
     /// frame.
-    pub fn bend(&mut self, species: &Species, bearer: (&Axis, i64)) -> Result<()> {
+    pub fn bend(&mut self, species: &Species, bearer: (&Axis, f32)) -> Result<()> {
         self.bend_on(species, stub(bearer, self.node))
     }
 
@@ -316,7 +315,7 @@ fn node_phytomer() -> Phytomer {
 /// The bearer as a root's tree holds it: its phytomer at `node` alone,
 /// standing on the point below it, as laid, and the phase of its
 /// phyllotaxis (`geometry::phase`).
-pub(crate) fn stub(bearer: (&Axis, i64), node: usize) -> Axis {
+pub(crate) fn stub(bearer: (&Axis, f32), node: usize) -> Axis {
     Stub::of(bearer, node).axis()
 }
 
@@ -329,13 +328,13 @@ pub(crate) struct Stub {
     birth: u32,
     below: Vec3,
     phytomer: Phytomer,
-    phase: i64,
+    phase: f32,
 }
 
 impl Stub {
     /// `bearer`'s stub at its `node`, as laid, with its phyllotaxis's
     /// `phase`.
-    pub fn of((bearer, phase): (&Axis, i64), node: usize) -> Self {
+    pub fn of((bearer, phase): (&Axis, f32), node: usize) -> Self {
         let below = node
             .checked_sub(1)
             .map_or(bearer.base, |n| bearer.phytomers[n].tip);
@@ -441,14 +440,14 @@ impl Roots for Cpu<'_, '_> {
         )
     }
 
-    fn grown_partials(&mut self, stands: &[(i64, f64)]) -> Result<Vec<[Total; 2]>> {
+    fn grown_partials(&mut self, stands: &[(f32, f64)]) -> Result<Vec<[f32; 2]>> {
         let species = self.species;
         Ok(each(&mut self.roots, self.plan, self.threads, &|k, r| {
             r.partials(species, stands[k])
         }))
     }
 
-    fn grown_radii(&mut self, mean: Option<f64>, above: &[i64]) -> Result<Vec<f64>> {
+    fn grown_radii(&mut self, mean: Option<f64>, above: &[f32]) -> Result<Vec<f64>> {
         let species = self.species;
         Ok(each(&mut self.roots, self.plan, self.threads, &|k, r| {
             r.attach(species, mean, above[k])

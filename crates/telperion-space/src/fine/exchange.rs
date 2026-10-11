@@ -5,11 +5,9 @@
 //! node's drawn scale handed down; the tree's mean comes down with each
 //! root's bearers' fades at its base, and each root reports up its base
 //! radius as grown, keeping its own shed pipes for phase 2. The partials
-//! are exact and order-free (`fixed::sum`), so the mean is the whole
-//! tree's whatever the roots' order.
+//! merge in the roots' order, after the structure's.
 use super::expansion::Roots;
 use crate::error::Result;
-use crate::fixed::ONE32;
 use crate::girth::{above, attachments_given, bases, disused, grown_mean, leaf_partials};
 use crate::girth::{Girth, Stand};
 use crate::shed::Shed;
@@ -27,7 +25,7 @@ pub(super) fn partials(
     roots: &mut dyn Roots,
 ) -> Result<Option<f64>> {
     let base = bases(axes, species, None);
-    let stands: Vec<(i64, f64)> = seats
+    let stands: Vec<(f32, f64)> = seats
         .iter()
         .map(|&(at, node)| {
             let b = axes[at].origin.parent().expect("a root is borne");
@@ -40,8 +38,8 @@ pub(super) fn partials(
     }
     let [mut total, mut weighted] = leaf_partials(axes, species, (age, threads), Stand::WHOLE);
     for [t, w] in parts {
-        total.merge(t);
-        weighted.merge(w);
+        total += t;
+        weighted += w;
     }
     Ok(Some(grown_mean([total, weighted])))
 }
@@ -57,8 +55,8 @@ pub(super) fn attach(
     roots: &mut dyn Roots,
 ) -> Result<Girth> {
     let parents: Vec<Option<usize>> = axes.iter().map(|a| a.origin.parent()).collect();
-    let above = above(&parents, &shed.fade, ONE32);
-    let at_roots: Vec<i64> = seats.iter().map(|&(at, _)| above[at]).collect();
+    let above = above(&parents, &shed.fade, 1.0);
+    let at_roots: Vec<f32> = seats.iter().map(|&(at, _)| above[at]).collect();
     let radii = roots.grown_radii(mean, &at_roots)?;
     let given = |i: usize| stood[i].map(|k: usize| radii[k]);
     let grown = attachments_given(axes, species, (age, threads), (Stand::WHOLE, mean), &given);

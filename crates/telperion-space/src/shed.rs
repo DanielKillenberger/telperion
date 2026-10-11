@@ -5,7 +5,7 @@
 //! shrinks away before it is shed; it is dropped once its fade reaches
 //! nothing, which for whole presences and delays is the cycle GreenLab
 //! drops it in (fn-206).
-use crate::fixed::presence::{carry, fade, q, real, times};
+use crate::contract::presence::{carry, fade, q, real, times};
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
 
@@ -68,12 +68,12 @@ pub(crate) fn shed(axes: Vec<Axis>, species: &Species, age: u32) -> Shed {
 
 /// A subtree's living as its bearer's fade reads it (fn-209 F1, realized
 /// mechanics): the last time anything in it lived, from its birth, in
-/// presence-weighted cycles (Q32.32), and the presence of its most present
-/// living apex (Q32; host decision 8).
+/// presence-weighted cycles, and the presence of its most present living
+/// apex (host decision 8).
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub(crate) struct Living {
-    pub lived: u64,
-    pub alive: u64,
+    pub lived: f32,
+    pub alive: f32,
 }
 
 /// What stands in for an axis whose subtree is grown elsewhere: its
@@ -145,13 +145,13 @@ fn fades(
         return (vec![1.0; axes.len()], Living::default());
     }
     // grown[at[a] + k]: the presence of axis a's first k growth units,
-    // Q32 (host decision 8: every sum a fade reads is an integer).
+    // summed in order (host decision 8).
     let mut at = Vec::with_capacity(axes.len());
-    let mut grown: Vec<u64> = Vec::new();
+    let mut grown: Vec<f32> = Vec::new();
     for a in axes {
         at.push(grown.len());
-        grown.push(0);
-        let mut sum = 0;
+        grown.push(0.0);
+        let mut sum = 0.0;
         for &p in &a.units {
             sum += q(p);
             grown.push(sum);
@@ -168,14 +168,14 @@ fn fades(
     // theirs. That carry never lowers a larger time below a smaller, its
     // weights being no less than nothing, so the most carried up is the
     // carry of the most, and children follow their parents: one backward
-    // pass (fn-211). Times are Q32.32 cycles, presences Q32, each product
-    // floored, so the pass is exact and order-free.
-    let mut lived: Vec<u64> = axes
+    // pass (fn-211). Its maxima are order-free; each sum is taken in the
+    // order the axes stand.
+    let mut lived: Vec<f32> = axes
         .iter()
         .enumerate()
         .map(|(i, a)| q(a.sleep) + grown[at[i] + a.units.len()])
         .collect();
-    let mut alive: Vec<u64> = axes.iter().map(|a| q(a.alive)).collect();
+    let mut alive: Vec<f32> = axes.iter().map(|a| q(a.alive)).collect();
     for (i, (lived, alive)) in lived.iter_mut().zip(&mut alive).enumerate() {
         if let Some(g) = given(i) {
             (*lived, *alive) = (g.lived, g.alive);
@@ -193,13 +193,13 @@ fn fades(
         let units = (link.birth.saturating_sub(p.birth) as usize).min(p.units.len());
         // A relay made the cycle its parent died starts a cycle after
         // the parent's last growth unit.
-        let gap = u64::from(link.birth - p.birth) - units as u64;
+        let gap = link.birth - p.birth - units as u32;
         // The parent's own time to the child's birth: from its share of
         // its first cycle gone, through its units before the child; none
         // where the child carries it on in the cycle it began, whose own
         // share gone already holds the parent's (Codex on fn-206's port).
         let before = if units == 0 {
-            0
+            0.0
         } else {
             q(p.sleep) + grown[at[parent] + units]
         };
@@ -213,7 +213,7 @@ fn fades(
     });
     // A living subtree is never drawn smaller than its living apex; an apex
     // that light grew past whole (`allocation.rs`) keeps it whole. Shed
-    // where the fade is none (D17): an integer test.
+    // where the fade is none (D17).
     let faded = axes
         .iter()
         .zip(lived.iter().zip(&alive))

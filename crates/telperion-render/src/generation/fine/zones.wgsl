@@ -1,14 +1,13 @@
 // A growth unit's zones (fn-209 F1, task 2): `grow_unit`'s draws from the
 // unit tables (`telperion_space::Units`), shared by the unit kernel and the
 // chain grower. Each shader declares `table` (each PA's first zone and
-// zones, then each zone's twelve words: zone, poisson, nodes, law at,
+// zones, then each zone's fourteen words: zone, poisson, nodes, law at,
 // places, laterals at, PAs, windows at, sleeping buds at, PAs, waking at,
-// sleeps at) and `words` (each node's threshold and bound, then each
-// node's bound's `logit` or `log2` (task 8), the laterals'
-// and sleeping buds' thresholds, all ones for none, each cycle's window,
-// Q32, the waking delay and years a nat, each cycle's gate on sleeping
-// buds, the places' thresholds and each one's `logit` (fn-241)).
-
+// sleeps at, places at, sleeping windows at) and `words` (each node's
+// threshold and bound, the laterals' and sleeping buds' thresholds, all
+// ones for none, each cycle's window, the waking delay in ticks and years
+// a nat, each cycle's gate on sleeping buds, the places' thresholds, each
+// cycle's sleeping buds' windows). An f32 sits in its word's low half.
 const MOST: u32 = 64u;
 const ZW: u32 = 14u;
 const NONE: u32 = 0xffffffffu;
@@ -47,39 +46,20 @@ fn sorted(zk: vec2<u32>, n: u32, drawn: ptr<function, array<u32, MOST>>) {
     }
 }
 
-// The zone's draw's side of every node's lead, taken once a zone (task
-// 8): its log-odds where the bounds are upper (`above_q`), its `log2`
-// where they are lower (`past_q`); none for a draw of none or a zone
-// that drew no node.
-fn zone_side(at: u32, d: vec2<u32>, n: u32) -> vec2<u32> {
-    if n == 0u {
-        return vec2<u32>(0u);
-    }
-    if table[at + 1u] != 0u {
-        return logit_draw(d);
-    }
-    if is_zero(d) {
-        return vec2<u32>(0u);
-    }
-    return log2q(shl64(d, 9u));
+// The f32 a word holds.
+fn fw(i: u32) -> f32 {
+    return bitcast<f32>(words[i].x);
 }
 
-// Node `j`'s lead past its bound, for the zone's draw `d` and its side
-// (D18's input): `above_q(d, bound)` or `past_q(d, bound)` to the word.
-fn node_lead(at: u32, d: vec2<u32>, side: vec2<u32>, j: u32) -> vec2<u32> {
-    let bound = words[table[at + 3u] + 2u * j + 1u];
-    if is_zero(bound) {
-        return inf();
-    }
-    // The bound's own side, from the CPU (`units.rs`): its logit or log2.
-    let own = words[table[at + 3u] + 2u * table[at + 2u] + j];
+// Node `j`'s lead past its bound, for the zone's draw `d` (D18's input),
+// from the bound's own side the CPU took (`Units`): `above` under a
+// Poisson law, `past` under a uniform.
+fn node_lead(at: u32, d: vec2<u32>, j: u32) -> f32 {
+    let own = fw(table[at + 3u] + 2u * j + 1u);
     if table[at + 1u] != 0u {
-        return sub64(side, own);
+        return above(d, own);
     }
-    if is_zero(d) {
-        return neg64(inf());
-    }
-    return smul_shr(sub64(side, own), LN2, 62u, false);
+    return past(d, own);
 }
 
 // The PA a draw keyed `key` gives under the thresholds at `start`, `n`

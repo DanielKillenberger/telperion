@@ -127,11 +127,21 @@ pub fn judge(all: &[Setting], walked: &Walks) -> Vec<String> {
         // in over as little as a 2000th of one, where its log-odds lead
         // runs fastest (fn-206, bisected): a slope there, not a jump.
         for (seed, step) in steps.iter().take(3).filter(|(_, s)| s.slope > 0.0) {
-            let changes = refine(setting, *seed, step.from, step.to, REFINE, 8);
-            let (first, last) = (changes[0], changes[REFINE as usize]);
-            if last > first / 20.0 {
+            // Under f32 (fn-254) a refinement stops at the setting's own
+            // resolution, and a change no more than four times the noise
+            // floor there is the arithmetic's, not the model's.
+            let refined = refine(setting, *seed, step.from, step.to, REFINE, 8);
+            let (jumps, floor) = refined.jumps(setting, *seed, 20.0);
+            let changes = &refined.changes;
+            if let Some(floor) = floor {
+                println!(
+                    "{} seed {seed} at {:.4}: noise floor {floor:.3e} over {} f32 places, changes {changes:?}",
+                    setting.name, step.to, super::measure::ULPS
+                );
+            }
+            if jumps {
                 failed.push(format!(
-                    "{} seed {seed} at {:.4}: a jump ({changes:?})",
+                    "{} seed {seed} at {:.4}: a jump ({changes:?}, floor {floor:?})",
                     setting.name, step.to
                 ));
             }

@@ -21,13 +21,13 @@ fn insertion_of(r: u32, f: Pa) -> f32 {
 // laid index) of rank `rank` on an axis of phase `phase` (turns), below
 // it `below`, for region axis `r`; turned up by
 // `epitony` (`geometry::frame`'s lateral, `bud_frame`).
-fn lateral_frame(r: u32, bearer_pa: u32, at: array<vec3<f32>, 3>, rank: vec2<u32>, phase: f32, below: vec3<f32>) -> array<vec3<f32>, 3> {
+fn lateral_frame(r: u32, bearer_pa: u32, at: array<vec3<f32>, 3>, rank: f32, phase: f32, below: vec3<f32>) -> array<vec3<f32>, 3> {
     let f = pa_of(ax(r, PA));
     let fp = pa_of(bearer_pa);
     let roll = f.roll * (2.0 * key_unit(child(lineage_of(r), KEY_ROLL)) - 1.0);
     let slot = f32((ax(r, KIND) >> 8u) & 0xffu);
     // Its bearer's phyllotaxis runs on from its axis's phase (fn-199).
-    let azimuth = TAU * (phase + turns(rank, divergence_q(bearer_pa))) + TAU * slot / axf(r, WHORL) + roll;
+    let azimuth = TAU * (phase + turns(rank, divergence_f(bearer_pa))) + TAU * slot / axf(r, WHORL) + roll;
     let t = turned(at[1], at[2], azimuth, insertion_of(r, f), fp.plane, 0.0);
     var base = at[0];
     if (ax(r, KIND) & IS_WOKEN) != 0u {
@@ -52,8 +52,7 @@ fn frame_of(i: u32, bent: bool, bearer: u32, below: vec3<f32>, bearer_pa: u32) -
     let o = field(bent);
     if i == 1u {
         let at = array<vec3<f32>, 3>(p3(bearer + o), p3(bearer + o + 3u), p3(bearer + o + 6u));
-        let rank = vec2<u32>(bitcast<u32>(prev[bearer + 20u]), bitcast<u32>(prev[bearer + 21u]));
-        return lateral_frame(i, bearer_pa, at, rank, prev[bearer + 22u], below);
+        return lateral_frame(i, bearer_pa, at, prev[bearer + 20u], prev[bearer + 22u], below);
     }
     // An axis carried on, a continuation at blend 0 (fn-199, host
     // 2026-10-07): from the line's stand (`stand.wgsl`) by its blend, the
@@ -93,11 +92,10 @@ fn point_on(p: u32, i: u32, o: u32) -> vec3<f32> {
     }
     let kt = attached(i);
     var start = s3(p, S_FRAME);
-    if kt.x > 0u {
-        start = o3(lo(p, kt.x - 1u) + o);
+    if kt.k > 0u {
+        start = o3(lo(p, kt.k - 1u) + o);
     }
-    let t = real_q(vec2<u32>(kt.y, kt.z));
-    return start + (o3(lo(p, kt.x) + o) - start) * t;
+    return start + (o3(lo(p, kt.k) + o) - start) * kt.t;
 }
 
 // The pulls relay `i` carries on from its parent `p`'s walk

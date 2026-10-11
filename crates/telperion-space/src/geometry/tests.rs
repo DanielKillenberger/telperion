@@ -2,7 +2,6 @@
 //! vertical turns by degree, never flipping from one side to the other.
 use super::lay::toward_elevation;
 use super::q::{amount, q3, v3};
-use crate::fixed::q32;
 use crate::structure::Vec3;
 use crate::transcendental::Transcendental;
 
@@ -17,7 +16,7 @@ fn a_direction_swept_through_straight_down_turns_by_degree() {
             q3(direction),
             q3(side),
             amount(0.4),
-            q32(0.3),
+            0.3,
         ))
     };
     let steps = 2_000;
@@ -33,14 +32,12 @@ fn a_direction_swept_through_straight_down_turns_by_degree() {
     assert!(worst < 0.01, "one step moves the turn by {worst}");
 }
 
-/// The layout's fixed-point primitives (contract A, CONTRACT-A.md 2.3 and
-/// 2.4) against their f64 forms on random unit vectors and angles: each
-/// within a few units of Q32's last place. Rodrigues' third term once
-/// shifted by 128 where 96 was right, and this caught it.
+/// The layout's f32 primitives (fn-254, after CONTRACT-A.md 2.3 and 2.4)
+/// against their f64 forms on random unit vectors and angles: each within
+/// a few units of f32's last place.
 #[test]
-fn the_layouts_primitives_are_their_reals_to_q32() {
+fn the_layouts_primitives_are_their_reals_to_f32() {
     use super::q::*;
-    use crate::fixed::{q32, ONE32};
     fn rot(v: Vec3, p: Vec3, a: f64) -> Vec3 {
         let (s, c) = a.sin_cos();
         v * c + p.cross(v) * s + p * (p.dot(v) * (1.0 - c))
@@ -62,13 +59,14 @@ fn the_layouts_primitives_are_their_reals_to_q32() {
         worst[0] = worst[0].max((got - want).length());
         let u = unit(q3(v)).unwrap();
         worst[1] = worst[1].max((v3(u) - v).length());
-        let d = dot(q3(v), q3(p)) as f64 / ONE32 as f64;
+        let d = f64::from(dot(q3(v), q3(p)));
         worst[2] = worst[2].max((d - v.dot(p)).abs());
         let c = v3(cross(q3(v), q3(p)));
         worst[3] = worst[3].max((c - v.cross(p)).length());
     }
+    println!("rotated, unit, dot, cross: {worst:?}");
     assert!(
-        worst.iter().all(|&w| w < 1e-8),
+        worst.iter().all(|&w| w < F32),
         "rotated, unit, dot, cross: {worst:?}"
     );
     // turned and toward_elevation against today's f64 forms.
@@ -115,7 +113,7 @@ fn the_layouts_primitives_are_their_reals_to_q32() {
             amount(az),
             amount(an),
             amount(pl),
-            q32(ep),
+            ep as f32,
         );
         wt = wt.max((v3(hq) - h).length()).max((v3(sq) - s).length());
         let (el, sh) = (r(), r().abs());
@@ -124,12 +122,17 @@ fn the_layouts_primitives_are_their_reals_to_q32() {
             q3(along),
             q3(side),
             amount(el),
-            q32(sh),
+            sh as f32,
         ));
         we = we.max((eq - e).length());
     }
+    println!("turned {wt:e}, toward_elevation {we:e}");
     assert!(
-        wt < 1e-8 && we < 1e-8,
+        wt < F32 && we < F32,
         "turned {wt:e}, toward_elevation {we:e}"
     );
 }
+
+/// What the f32 primitives may differ from their f64 forms by over unit
+/// vectors and angles of a few radians: a few units in f32's last place.
+const F32: f64 = 1e-5;
