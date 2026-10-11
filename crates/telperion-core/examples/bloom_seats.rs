@@ -158,9 +158,9 @@ fn measure(family: &Family) -> Result<(), String> {
     }
 
     // Each drawn floret against its nearest flowering seat: the span from
-    // the seat's wood surface to the floret's base, which no geometry
-    // draws (`bloom.rs` places along the rachis and pedicel, and the organ
-    // element is petals and stamens alone).
+    // the seat's wood surface to the floret's base, which the rachis and
+    // the pedicel span where they are drawn (fn-253). A rachis instance,
+    // marked by the scale's sign bit, is counted apart.
     let Some(organ) = built.outputs.organ.as_ref() else {
         println!("no organ drawn");
         return Ok(());
@@ -176,7 +176,9 @@ fn measure(family: &Family) -> Result<(), String> {
     }
     let instances = &organ.instances;
     let (mut gaps, mut far) = (Vec::with_capacity(instances.len()), 0usize);
-    for k in 0..instances.len() {
+    let rachis = |k: usize| telperion_core::foliage::withered(instances.leaves[k]);
+    let rachises = (0..instances.len()).filter(|&k| rachis(k)).count();
+    for k in (0..instances.len()).filter(|&k| !rachis(k)) {
         let q = instances.position(k);
         let (x, y, z) = at(q);
         let mut best = f64::INFINITY;
@@ -198,8 +200,9 @@ fn measure(family: &Family) -> Result<(), String> {
     }
     println!(
         "{} florets drawn; gap from the seat's wood to the floret base mm p10/median/p90 {} \
-         ({far} with no seat within a reach); drawn connecting geometry: none",
-        instances.len(),
+         ({far} with no seat within a reach); {rachises} rachis instances drawn, the stalks \
+         spanning the gap where any",
+        instances.len() - rachises,
         quantiles(&mut gaps)
     );
     Ok(())
