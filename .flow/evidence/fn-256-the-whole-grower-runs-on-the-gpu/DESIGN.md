@@ -18,6 +18,7 @@ The node table must be byte-identical over fresh contexts and block sizes (R2, R
 
 Everything is resident, one storage buffer per column (SoA).
 
+- **Grouped, as built (2026-10-11, CYCLE.md).** WebGPU allows 8 storage bindings a stage, and this adapter's largest binding is 2 GiB. So the columns are grouped into a few buffers, each column contiguous within its buffer, and the phytomer columns are split across two buffers. The rule that matters holds: no record-per-phytomer buffer.
 - **Why one column per field:** a column of 18.2M phytomers × 4 B is 73 MB, under WebGPU's default 128 MB binding limit. One record-per-phytomer buffer would not be.
 - **Capacity:** each arena has a capacity and a count. Section 5 says how the capacities are set and grown.
 
