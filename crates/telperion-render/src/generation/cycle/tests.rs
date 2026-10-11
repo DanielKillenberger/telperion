@@ -84,7 +84,10 @@ fn replay(
 
 fn device() -> Option<(Gpu, Kernels)> {
     let gpu = super::super::test_gpu()?;
+    let started = std::time::Instant::now();
     let k = Kernels::new(&gpu);
+    gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("compiled");
+    println!("compile: {:.2} s", started.elapsed().as_secs_f64());
     Some((gpu, k))
 }
 

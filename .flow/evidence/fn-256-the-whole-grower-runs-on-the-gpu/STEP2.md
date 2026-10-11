@@ -38,4 +38,10 @@
    - **Holding every site to the CPU's order** makes all 15 captures exact in every word: `exact-units.patch` and `exact-layout.patch`. It costs about +35% on units and +50% on layout, about 170 ms on Telperion's build.
    - **The marker functions are committed as plain operations,** so either choice is a small change.
    - **The choice:** the guards (integers and trees exact; a cost of about 170 ms on Telperion), or COUNCIL.md's tolerance (the device's trees then agree with the CPU's by lineage within a measured rate of unmatched axes, as fn-255's table does for f32 order).
-2. **Cold compile.** The layout's six entries compile in 3.2 s cold. The units module's first young run took 348 s before its heavy steps were given one call site each; after that the whole run took 38 s, its cold compile not yet isolated. The spike's cycle kernels compiled in 0.35 s. Cold compile is outside the warm budget, but the site (fn-257) measures it against 0.1.4's 273 ms. Isolating it with the driver's disk cache off is next.
+2. **Cold compile.** Measured with the units test's own timer around `Kernels::new`, through to the device's completion.
+   - **The units module:** 37.4 to 37.7 s cold.
+   - **The layout's six entries:** 3.2 s cold.
+   - **Warm:** 0.02 s from the driver's cache, but only once the cache can hold the module. At the driver's default size this machine's cache is full (1.1 GB): a second run compiled again in 37.6 s, and with `__GL_SHADER_DISK_CACHE_SIZE` raised it took 0.02 s.
+   - **Beside F4:** F4's shipped chain grower makes cold in 13.2 to 16.7 s (fn-235 REPRO.md). The spike's hierarchy and light kernels made in 0.35 s.
+   - **Where the cost lies:** in the same place fn-235 found it, the inlined 64-bit emulation in the one body the driver compiles. fn-235's bisection method applies.
+   - **Whether this is acceptable** for the site (fn-257, against 0.1.4's 273 ms) and the app is the host's call. Cutting it is engineering on the units' kernel shape: more and smaller entries, or fewer inlined 64-bit operations.

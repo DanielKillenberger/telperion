@@ -53,3 +53,9 @@
 - **Hindered:** the comparison names columns, not the operation that rounded. Each of the last three causes needed a hand-written readback of the device's intermediates: dominance's `held` fused across a variable, `(tip + d len) - tip` simplified to `d len`, and the contract's `exp2c`. Each took a 1 to 2 minute rebuild and GPU run.
 - **Cost:** about 15 minutes, five runs.
 - **Would remove it:** UNITS.md's test switch (a kernel recording its intermediates beside its outputs), which applies to the layout as well.
+
+## 2026-10-11, task 2: the driver's cache does not hold the units module
+- **Doing:** isolating the units module's cold compile, by timing a cold run and then a warm one.
+- **Hindered:** both took 37 s. The NVIDIA disk cache under `~/.cache/nvidia/GLCache` is full at 1.1 GB, at the driver's default size, so the second run compiled again. Only `__GL_SHADER_DISK_CACHE_SIZE=8000000000` made the warm run 0.02 s. The dcg hook also refused re-running into an existing log file; each run needed a new name.
+- **Cost:** about 5 minutes and two 38 s GPU runs.
+- **Would remove it:** a larger driver cache on this machine (local setup, not a repository change).
