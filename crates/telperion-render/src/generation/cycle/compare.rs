@@ -3,7 +3,7 @@
 //! sleeping buds by the cycle they wake in, the living apexes and the
 //! woken buds in order, and the phytomers grown. Every word is compared
 //! exactly; a mismatch is counted by field and its first row named.
-use super::columns::{Cap, Caps, Columns, SLEEPERS, TALLY, UNITS, WOKEN};
+use super::columns::{Cap, Caps, Columns, SLEEPERS, TALLY, WOKEN};
 use super::device::{Run, T_LIST, T_UNITS, T_UNITS_B, T_WAKE, T_WAKE_B};
 use crate::{Gpu, Result};
 
@@ -11,7 +11,8 @@ use crate::{Gpu, Result};
 pub(super) struct Readback {
     pub caps: Caps,
     pub axes: Vec<u32>,
-    pub arena: Vec<u32>,
+    pub units: Vec<u32>,
+    pub phyts: Vec<u32>,
     pub lists: Vec<u32>,
 }
 
@@ -25,7 +26,8 @@ impl Run {
         Ok(Readback {
             caps: self.caps,
             axes: words(gpu, &self.axes)?,
-            arena: words(gpu, &self.arena)?,
+            units: words(gpu, &self.units)?,
+            phyts: words(gpu, &self.phyts)?,
             lists: words(gpu, &self.lists)?,
         })
     }
@@ -205,7 +207,7 @@ fn axes(a: &mut Agreement, c: &Cap, out: &Readback, n: u32) {
 
 fn units(a: &mut Agreement, c: &Cap, cols: &Columns, out: &Readback, m: Made) {
     let rows = cols.units..(cols.units + m.units).min(out.caps.units);
-    let col = |k: usize| out.col(&out.arena, out.caps.units, k, rows.clone());
+    let col = |k: usize| out.col(&out.units, out.caps.units, k, rows.clone());
     let order = by_key(&col(0));
     let dev = |k: usize| pick(&col(k), &order);
     let cpu = |name: &str| c.u32s(&format!("out_unit_{name}"));
@@ -222,10 +224,8 @@ fn units(a: &mut Agreement, c: &Cap, cols: &Columns, out: &Readback, m: Made) {
 }
 
 fn phytomers(a: &mut Agreement, c: &Cap, out: &Readback, m: Made) {
-    let at = UNITS * out.caps.units as usize;
-    let arena = &out.arena[at..];
     let rows = 0..m.phyts.min(out.caps.phyts);
-    let col = |k: usize| out.col(arena, out.caps.phyts, k, rows.clone());
+    let col = |k: usize| out.col(&out.phyts, out.caps.phyts, k, rows.clone());
     let order = by_key(&col(2));
     let dev = |k: usize| pick(&col(k), &order);
     let key: Vec<u32> = dev(0)

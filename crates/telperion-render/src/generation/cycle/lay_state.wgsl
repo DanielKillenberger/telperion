@@ -1,5 +1,5 @@
 // fn-256 task 2: the layout's reads and writes of the one resident state
-// (`state.rs`): an axis's columns, a phytomer's in the arena, a pencil's,
+// (`state.rs`): an axis's columns, a phytomer's, a pencil's,
 // a unit's record, and an axis's phytomer found through its units'
 // records. Part of the layout's shader.
 
@@ -34,7 +34,10 @@ fn lineage_of(i: u32) -> vec2<u32> {
 }
 
 fn ph(r: u32, c: u32) -> u32 {
-    return arena[cfg.phyt_at + c * cfg.phyts + r];
+    if c < PH_LAID {
+        return grown[c * cfg.phyts + r];
+    }
+    return laid[(c - PH_LAID) * cfg.phyts + r];
 }
 
 fn phf(r: u32, c: u32) -> f32 {
@@ -46,7 +49,7 @@ fn ph3(r: u32, c: u32) -> vec3<f32> {
 }
 
 fn set_ph(r: u32, c: u32, v: f32) {
-    arena[cfg.phyt_at + c * cfg.phyts + r] = bitcast<u32>(v);
+    laid[(c - PH_LAID) * cfg.phyts + r] = bitcast<u32>(v);
 }
 
 fn set_ph3(r: u32, c: u32, v: vec3<f32>) {
@@ -86,7 +89,7 @@ fn fm(pa: u32, k: u32) -> f32 {
 }
 
 fn unit_word(r: u32, c: u32) -> u32 {
-    return arena[c * cfg.units + r];
+    return units[c * cfg.units + r];
 }
 
 // A unit's survival and persistence, the share of a node's length its

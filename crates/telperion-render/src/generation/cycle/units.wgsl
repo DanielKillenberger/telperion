@@ -13,14 +13,14 @@ fn index(id: vec3<u32>) -> u32 {
 // The apex's counts, its fault in the second record.
 fn put_counts(i: u32) {
     let a = 4u * i;
-    counts_a[a] = n_axes;
-    counts_a[a + 1u] = n_phyts;
-    counts_a[a + 2u] = n_units;
-    counts_a[a + 3u] = n_sleep;
-    counts_b[a] = n_next;
-    counts_b[a + 1u] = n_woken;
-    counts_b[a + 2u] = fault;
-    counts_b[a + 3u] = 0u;
+    counts[a] = n_axes;
+    counts[a + 1u] = n_phyts;
+    counts[a + 2u] = n_units;
+    counts[a + 3u] = n_sleep;
+    counts[cfg.b_at + a] = n_next;
+    counts[cfg.b_at + a + 1u] = n_woken;
+    counts[cfg.b_at + a + 2u] = fault;
+    counts[cfg.b_at + a + 3u] = 0u;
 }
 
 // Where record `i`'s appends go: past the tree's records before the
@@ -37,12 +37,12 @@ fn bases(i: u32, emit: bool, after: bool) {
     base_next = next;
     base_woken = cfg.woken_before;
     if emit {
-        base_axes += counts_a[a];
-        base_phyts += counts_a[a + 1u];
-        base_units += counts_a[a + 2u];
-        base_sleep += counts_a[a + 3u];
-        base_next += counts_b[a];
-        base_woken += counts_b[a + 1u];
+        base_axes += counts[a];
+        base_phyts += counts[a + 1u];
+        base_units += counts[a + 2u];
+        base_sleep += counts[a + 3u];
+        base_next += counts[cfg.b_at + a];
+        base_woken += counts[cfg.b_at + a + 1u];
     }
 }
 

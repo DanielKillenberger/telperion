@@ -27,6 +27,11 @@ struct Cfg {
     chunk: u32,
     // A word the driver cannot see is zero (`exact.wgsl`).
     zero: u32,
+    // The first item of this dispatch's range of its list.
+    base: u32,
+    pad1: u32,
+    pad2: u32,
+    pad3: u32,
     // Per direction: x/z, y/z, extinction CELL/z and its share, as f64s,
     // two to a row.
     dir: array<vec4<u32>, 18>,
@@ -73,7 +78,7 @@ fn twice(x: vec2<u32>) -> vec2<u32> {
 }
 
 fn invocation(id: vec3<u32>) -> u32 {
-    return id.x + id.y * C.row;
+    return C.base + id.x + id.y * C.row;
 }
 
 @compute @workgroup_size(64)
@@ -183,8 +188,7 @@ fn quanta_of(area: u32, w: u32) -> vec2<u32> {
 
 @compute @workgroup_size(64)
 fn deposit_main(@builtin(global_invocation_id) id: vec3<u32>) {
-    // A dispatch deposits a range of the leaves from its `chunk`th.
-    let k = C.chunk + invocation(id);
+    let k = invocation(id);
     if k >= C.leaves || !standing() {
         return;
     }

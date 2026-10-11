@@ -5,7 +5,7 @@
 //! living apexes, the pencils and the phytomers grown.
 use super::build::Build;
 use super::columns::Cap;
-use super::state::{State, A_HEAD, A_LAYOUT, PENCILS, U_COUNT, U_FIRST, U_NEXT};
+use super::state::{State, A_HEAD, A_LAYOUT, GROWN, PENCILS, U_COUNT, U_FIRST, U_NEXT};
 use crate::{Gpu, Result};
 
 /// How a column's words read: an integer, two words of one, an f32, or
@@ -114,6 +114,8 @@ pub(super) const UNIT_COLUMNS: [(&str, usize, Kind); 7] = [
     ("unit shade size", 5, Kind::F64),
     ("unit shade light", 7, Kind::F64),
 ];
+/// The phytomers' columns by name: below `GROWN` the units' (`grown`),
+/// from it the layout's (`laid`).
 pub(super) const PHYT_COLUMNS: [(&str, usize, Kind); 15] = [
     ("phytomer axis", 2, Kind::U32),
     ("phytomer key", 0, Kind::U64),
@@ -192,7 +194,7 @@ impl Build {
     pub(super) fn snapshot(&self, gpu: &Gpu, cycle: u32) -> Result<Snapshot> {
         let s: &State = &self.state;
         let (c, h) = (s.caps, self.held);
-        let (axes, arena, pencils, lists) = (words(gpu, &s.axes)?, words(gpu, &s.arena)?, words(gpu, &s.pencils)?, words(gpu, &s.lists)?);
+        let (axes, units_words, pencils, lists) = (words(gpu, &s.axes)?, words(gpu, &s.units)?, words(gpu, &s.pencils)?, words(gpu, &s.lists)?);
         let mut out = Snapshot { grown: self.grown, ..Snapshot::default() };
         let n = h.axes as usize;
         let ax = |k: u64, i: usize| axes[k as usize * c.axes as usize + i];
@@ -206,29 +208,33 @@ impl Build {
         out.axes.axis = (0..n as u32).collect();
         out.lineage = (0..n).map(|i| u64::from(ax(6, i)) | u64::from(ax(7, i)) << 32).collect();
         // Each axis's units in order, and their phytomers.
-        let unit = |k: u64, r: usize| arena[k as usize * c.units as usize + r];
-        let (mut units, mut phyts) = (Vec::new(), Vec::new());
+        let unit = |k: u64, r: usize| units_words[k as usize * c.units as usize + r];
+        let (mut rows, mut phyts) = (Vec::new(), Vec::new());
         for i in 0..n {
             let mut r = ax(A_HEAD, i);
             // cap: the axis's units.
             while r != u32::MAX {
                 let r_ = r as usize;
-                units.push(r_);
+                rows.push(r_);
                 let first = unit(U_FIRST, r_) as usize;
                 phyts.extend(first..first + unit(U_COUNT, r_) as usize);
                 r = unit(U_NEXT, r_);
             }
         }
         for (name, k, kind) in UNIT_COLUMNS {
-            out.units.push(name, kind, gather(&arena, (0, c.units as usize, k), kind, &units));
+            out.units.push(name, kind, gather(&units_words, (0, c.units as usize, k), kind, &rows));
         }
         out.units.axis = out.units.fields[0].words.clone();
-        let phyt_at = c.phyt_at() as usize;
+        let (grown, laid) = (words(gpu, &s.grown)?, words(gpu, &s.laid)?);
+        let phyt = |k: usize, kind| match k < GROWN as usize {
+            true => gather(&grown, (0, c.phyts as usize, k), kind, &phyts),
+            false => gather(&laid, (0, c.phyts as usize, k - GROWN as usize), kind, &phyts),
+        };
         for (name, k, kind) in PHYT_COLUMNS {
-            out.phyts.push(name, kind, gather(&arena, (phyt_at, c.phyts as usize, k), kind, &phyts));
+            out.phyts.push(name, kind, phyt(k, kind));
         }
         for (name, k) in PHYT_TAIL {
-            out.phyts.push(name, Kind::F32, gather(&arena, (phyt_at, c.phyts as usize, k), Kind::F32, &phyts));
+            out.phyts.push(name, Kind::F32, phyt(k, Kind::F32));
         }
         out.phyts.axis = out.phyts.fields[0].words.clone();
         self.lists_snapshot(&mut out, &lists, cycle);

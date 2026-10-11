@@ -41,11 +41,13 @@ struct Cfg {
 @group(0) @binding(0) var<uniform> cfg: Cfg;
 @group(0) @binding(1) var<storage, read_write> axes: array<u32>;
 @group(0) @binding(2) var<storage, read_write> pencils: array<u32>;
-@group(0) @binding(3) var<storage, read_write> arena: array<u32>;
-@group(0) @binding(4) var<storage, read_write> lists: array<u32>;
-@group(0) @binding(5) var<storage, read_write> live: array<u32>;
-@group(0) @binding(6) var<storage, read_write> aux: array<u32>;
-@group(0) @binding(7) var<storage, read_write> aux2: array<u32>;
+@group(0) @binding(3) var<storage, read_write> units: array<u32>;
+// The phytomers' columns the layout writes (`state.rs`'s `laid`).
+@group(0) @binding(4) var<storage, read_write> laid: array<u32>;
+@group(0) @binding(5) var<storage, read_write> lists: array<u32>;
+@group(0) @binding(6) var<storage, read_write> live: array<u32>;
+@group(0) @binding(7) var<storage, read_write> aux: array<u32>;
+@group(0) @binding(8) var<storage, read_write> aux2: array<u32>;
 
 const NONE: u32 = 0xffffffffu;
 // The axes' columns read here (`state.rs`).
@@ -68,10 +70,10 @@ const LAYOUT_COLUMNS: u32 = 16u;
 const U_PREV: u32 = 9u;
 const U_FIRST: u32 = 11u;
 const U_COUNT: u32 = 12u;
-const PH_TIP: u32 = 5u;
-const PH_SCALE: u32 = 14u;
-const PH_SIZE: u32 = 16u;
-const PH_AREA: u32 = 18u;
+const PH_TIP: u32 = 0u;
+const PH_SCALE: u32 = 9u;
+const PH_SIZE: u32 = 11u;
+const PH_AREA: u32 = 13u;
 // A pencil's scalars the balance and the units read.
 const P_BASE_SCALE: u32 = 48u;
 const P_GOING: u32 = 49u;
@@ -248,17 +250,17 @@ fn grew_gather_main(@builtin(global_invocation_id) id: vec3<u32>) {
 fn tip_of(a: u32) -> vec3<f32> {
     var r = ax(a, A_TAIL);
     // cap: the axis's units.
-    while r != NONE && arena[U_COUNT * cfg.units + r] == 0u {
-        r = arena[U_PREV * cfg.units + r];
+    while r != NONE && units[U_COUNT * cfg.units + r] == 0u {
+        r = units[U_PREV * cfg.units + r];
     }
     if r == NONE {
         let b = A_BASE;
         return vec3<f32>(bitcast<f32>(ax(a, b)), bitcast<f32>(ax(a, b + 1u)), bitcast<f32>(ax(a, b + 2u)));
     }
-    let p = arena[U_FIRST * cfg.units + r] + arena[U_COUNT * cfg.units + r] - 1u;
-    let at = cfg.phyt_at + PH_TIP * cfg.phyts + p;
+    let p = units[U_FIRST * cfg.units + r] + units[U_COUNT * cfg.units + r] - 1u;
+    let at = PH_TIP * cfg.phyts + p;
     let s = cfg.phyts;
-    return vec3<f32>(bitcast<f32>(arena[at]), bitcast<f32>(arena[at + s]), bitcast<f32>(arena[at + 2u * s]));
+    return vec3<f32>(bitcast<f32>(laid[at]), bitcast<f32>(laid[at + s]), bitcast<f32>(laid[at + 2u * s]));
 }
 
 // The light's points (`light.wgsl`): the cycle's leaves (x, y, z, area),
@@ -272,10 +274,10 @@ fn points_main(@builtin(global_invocation_id) id: vec3<u32>) {
     var p = vec4<f32>(0.0);
     if k < cfg.leaves {
         let r = cfg.first + k;
-        let at = cfg.phyt_at + PH_TIP * cfg.phyts + r;
+        let at = PH_TIP * cfg.phyts + r;
         let s = cfg.phyts;
-        let area = arena[cfg.phyt_at + PH_AREA * cfg.phyts + r];
-        p = vec4<f32>(bitcast<f32>(arena[at]), bitcast<f32>(arena[at + s]), bitcast<f32>(arena[at + 2u * s]), bitcast<f32>(area));
+        let area = laid[PH_AREA * cfg.phyts + r];
+        p = vec4<f32>(bitcast<f32>(laid[at]), bitcast<f32>(laid[at + s]), bitcast<f32>(laid[at + 2u * s]), bitcast<f32>(area));
     } else {
         p = vec4<f32>(tip_of(lists[cfg.next_at + k - cfg.leaves]), 0.0);
     }
@@ -316,6 +318,6 @@ fn fresh_main(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     let r = cfg.first + k;
-    arena[cfg.phyt_at + PH_SCALE * cfg.phyts + r] = bitcast<u32>(1.0);
-    arena[cfg.phyt_at + PH_SIZE * cfg.phyts + r] = bitcast<u32>(1.0);
+    laid[PH_SCALE * cfg.phyts + r] = bitcast<u32>(1.0);
+    laid[PH_SIZE * cfg.phyts + r] = bitcast<u32>(1.0);
 }

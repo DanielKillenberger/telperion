@@ -40,7 +40,7 @@ pub(super) struct Kernels {
 impl Kernels {
     pub(super) fn new(gpu: &Gpu) -> Self {
         Self {
-            pass: io::Pass::new(gpu, source(), &[false; 7], &ENTRIES),
+            pass: io::Pass::new(gpu, source(), &[false; 8], &ENTRIES),
         }
     }
 }

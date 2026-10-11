@@ -134,8 +134,7 @@ pub(super) struct Build {
     /// The units' inputs and counts, the glue's flags, a spare binding,
     /// and the grown axes' scan's total and sums.
     pub inputs: Owned,
-    pub counts_a: Owned,
-    pub counts_b: Owned,
+    pub counts: Owned,
     pub flags: Owned,
     pub spare: Owned,
     pub scan_tally: Owned,
@@ -153,7 +152,7 @@ impl Build {
         let mut light = Light::new(gpu, &Cap(c))?;
         light.ensure(gpu, lit, nodes)?;
         let s = caps.axes;
-        let n = u64::from(caps.next.max(caps.sleepers).max(1));
+
         let build = Self {
             hier: Hierarchy::new(gpu, s, block_cap)?,
             sums: Sums::alloc(gpu, s, caps.next, t.pas)?,
@@ -161,8 +160,7 @@ impl Build {
             light,
             layout: Layout::new(gpu, &t.form, s)?,
             inputs: zeroed(gpu, "cycle inputs", 2 * u64::from(caps.next) + 6 * u64::from(s))?,
-            counts_a: zeroed(gpu, "cycle counts", 4 * n)?,
-            counts_b: zeroed(gpu, "cycle counts b", 4 * n)?,
+            counts: zeroed(gpu, "cycle counts", 2 * u64::from(device::b_at(caps.next.max(caps.sleepers))))?,
             flags: zeroed(gpu, "cycle flags", 2 * u64::from(s))?,
             spare: zeroed(gpu, "cycle spare", 4)?,
             scan_tally: zeroed(gpu, "cycle scan tally", 64)?,
@@ -177,26 +175,49 @@ impl Build {
     }
 
     /// The seed recorded, the census set as `Grower::seeded` leaves it.
-    pub(super) fn seeded(&self, gpu: &Gpu, kit: &Kit, (plan, phases): (&Plan, &Phases)) {
+    pub(super) fn seeded(&self, gpu: &Gpu, kit: &Kit, (plan, phases): (&Plan, &Phases)) -> Vec<&'static str> {
         let mut census = vec![0u32; c::WORDS];
         (census[c::AXES], census[c::NEXT]) = (1, 1);
         gpu.queue.write_buffer(&plan.census, 0, bytemuck::cast_slice(&census));
         let mut e = gpu.encoder(&Default::default());
-        record(kit, plan, &mut e, &phases.seed);
+        let mut stamped = Vec::new();
+        record(kit, plan, &mut e, &phases.seed, &mut stamped);
         gpu.submit([e.finish()]);
+        stamped
     }
 
     /// Cycle `cycle` recorded and submitted, its census sent back late.
-    pub(super) fn submit(&self, gpu: &Gpu, (kit, t): (&Kit, &Tables), (plan, phases): (&Plan, &Phases), (late, cycle): (&mut Late, u32)) {
+    pub(super) fn submit(&self, gpu: &Gpu, (kit, t): (&Kit, &Tables), (plan, phases): (&Plan, &Phases), (late, cycle): (&mut Late, u32)) -> Vec<&'static str> {
         gpu.queue.write_buffer(&plan.census, 4 * c::CYCLE as u64, bytemuck::bytes_of(&cycle));
         gpu.queue.write_buffer(&self.sums.rows, 0, bytemuck::cast_slice(&t.rows_at(cycle)));
         let mut e = gpu.encoder(&Default::default());
+        let mut stamped = Vec::new();
         for steps in phases.cycle(cycle, t.age) {
-            record(kit, plan, &mut e, steps);
+            record(kit, plan, &mut e, steps, &mut stamped);
         }
         late.copy(&mut e, plan, cycle);
         gpu.submit([e.finish()]);
         late.send(gpu, cycle);
+        stamped
+    }
+
+    /// The bytes the build holds resident (the state, the hierarchy's
+    /// lists and shape, the tables) and as scratch (every buffer a cycle
+    /// writes before it reads).
+    pub(super) fn bytes(&self, t: &Tables) -> (u64, u64) {
+        let size = |b: &[&Owned]| b.iter().map(|b| b.size()).sum::<u64>();
+        let h = &self.hier;
+        let resident = self.state.bytes() + size(&[&h.shape, &h.counts, &h.lists[0], &h.lists[1], &h.tally, &t.table, &t.words]);
+        let m = &self.sums;
+        let mut scratch = size(&[&h.bucket, &h.sums, &m.sums, &m.live, &m.norm, &m.tally, &m.rows, &m.scan_sums, &self.tree]);
+        scratch += size(&[&self.inputs, &self.counts, &self.flags, &self.spare, &self.scan_tally, &self.scan_sums]);
+        let (lit, swept) = self.light.bytes();
+        (resident, scratch + lit + swept + self.layout.bytes())
+    }
+
+    /// Where the units' second count records start in `counts`.
+    pub(super) fn b_at(&self) -> u32 {
+        device::b_at(self.state.caps.next.max(self.state.caps.sleepers))
     }
 
     /// The state's counts from the census.

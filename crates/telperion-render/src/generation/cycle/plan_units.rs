@@ -25,7 +25,7 @@ impl Build {
         let s = self.state.caps;
         vec![
             0, MAXX * 64, 0, t.age, emit, wake, t.lights, 0, s.axes, s.units, s.phyts, s.sleepers, s.next, s.woken,
-            s.sleepers, 0, s.phyt_at(), s.sleep_at(), s.next_at(), s.woken_at(), s.list_at(), 0, 0, 0, 0, 0, t.rows,
+            s.sleepers, 0, self.b_at(), s.sleep_at(), s.next_at(), s.woken_at(), s.list_at(), 0, 0, 0, 0, 0, t.rows,
             t.whorls, 0, base, t.seed as u32, (t.seed >> 32) as u32,
         ]
     }
@@ -53,19 +53,19 @@ impl Build {
 
     fn units_bind(&self, b: &Builder, kit: &Kit, t: &Tables, slot: u32) -> wgpu::BindGroup {
         let s = &self.state;
-        let rest = [&*t.table, &t.words, &self.inputs, &s.axes, &s.arena, &s.lists, &self.counts_a, &self.counts_b];
+        let rest = [&*t.table, &t.words, &self.inputs, &s.axes, &s.units, &s.grown, &s.lists, &self.counts];
         b.bind(&kit.units.cycle, slot, &rest)
     }
 
     /// The cycle's units and wake, recorded.
-    pub(super) fn plan_units(&self, b: &mut Builder, kit: &Kit, t: &Tables, range: u32) -> Result<Vec<Fine>> {
+    pub(super) fn plan_units(&self, b: &mut Builder, kit: &Kit, t: &Tables, (ranges, range): (u32, u32)) -> Result<Vec<Fine>> {
         b.point();
         let live = E::At(c::LIVE);
         let laid = E::At(c::LAID0);
         let w = glue::Words { n: 0, live_stride: self.sums.live_stride, ..glue::Words::default() };
         let inputs = [(0, live.clone().max(laid.clone())), (3, laid.clone()), (13, laid.gt(E::C(0)).sel(E::C(0), E::C(1))), (14, live.clone())];
         self.glue_step(b, kit, (glue::INPUTS, &self.inputs, &self.spare), w, &inputs);
-        let ranges = self.state.caps.next.div_ceil(range).max(1);
+        b.flag(Flag::UnitRanges, live.clone().gt(E::C(ranges * range)));
         let mut binds = Vec::new();
         for emit in 0..2 {
             for r in 0..ranges {
@@ -90,19 +90,20 @@ impl Build {
         let lists = &self.state.lists;
         let (n_live, n_sleep) = (self.state.caps.next, self.state.caps.sleepers);
         let scan = (&kit.units.scan, PassId::UnitScan);
+        let (a, b_at) = ((&self.counts, 0), (&self.counts, self.b_at()));
         let mut held = vec![
-            fine(b, scan, &self.counts_a, (live.clone(), n_live, 4, 4), (lists, T_UNITS as u64))?,
-            fine(b, scan, &self.counts_b, (live.clone(), n_live, 4, 4), (lists, T_UNITS_B as u64))?,
+            fine(b, scan, a, (live.clone(), n_live, 4, 4), (lists, T_UNITS as u64))?,
+            fine(b, scan, b_at, (live.clone(), n_live, 4, 4), (lists, T_UNITS_B as u64))?,
         ];
         for (bind, size) in emitted {
             b.dispatch(unit(CYCLE), bind.clone(), *size);
         }
         b.dispatch(unit(FLAG), wake[0].0.clone(), wake[0].1);
-        held.push(fine(b, scan, &self.counts_a, (sleepers.clone(), n_sleep, 4, 1), (lists, T_LIST as u64))?);
+        held.push(fine(b, scan, a, (sleepers.clone(), n_sleep, 4, 1), (lists, T_LIST as u64))?);
         b.dispatch(unit(GATHER), wake[0].0.clone(), wake[0].1);
         b.dispatch(unit(CYCLE), wake[0].0.clone(), wake[0].1);
-        held.push(fine(b, scan, &self.counts_a, (sleepers.clone(), n_sleep, 4, 4), (lists, T_WAKE as u64))?);
-        held.push(fine(b, scan, &self.counts_b, (sleepers, n_sleep, 4, 4), (lists, T_WAKE_B as u64))?);
+        held.push(fine(b, scan, a, (sleepers.clone(), n_sleep, 4, 4), (lists, T_WAKE as u64))?);
+        held.push(fine(b, scan, b_at, (sleepers, n_sleep, 4, 4), (lists, T_WAKE_B as u64))?);
         b.dispatch(unit(CYCLE), wake[1].0.clone(), wake[1].1);
         b.tally(lists, 0, c::MADE, 4 * 24);
         self.plan_made(b, kit, t);

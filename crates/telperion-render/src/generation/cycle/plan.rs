@@ -42,7 +42,8 @@ pub(super) enum Size {
 }
 
 pub(super) enum Step {
-    Dispatch { pass: PassId, entry: usize, bind: wgpu::BindGroup, size: Size },
+    /// A dispatch, and the phase its time is counted in.
+    Dispatch { pass: PassId, entry: usize, bind: wgpu::BindGroup, size: Size, phase: &'static str },
     Copy { from: wgpu::Buffer, at: u64, to: wgpu::Buffer, to_at: u64, bytes: u64 },
     Clear { buffer: wgpu::Buffer, at: u64, bytes: Option<u64> },
     Point(usize),
@@ -79,6 +80,8 @@ pub(super) struct Builder<'g> {
     progs: Vec<Vec<u32>>,
     entries: u32,
     steps: Vec<Step>,
+    /// The phase the dispatches recorded next are counted in.
+    pub phase: &'static str,
 }
 
 impl<'g> Builder<'g> {
@@ -94,7 +97,7 @@ impl<'g> Builder<'g> {
             code: storage(gpu, "plan code", 4, none, &[])?,
             points: Vec::new(),
         };
-        Ok(Self { gpu, plan, image: Vec::new(), progs: Vec::new(), entries: 0, steps: Vec::new() })
+        Ok(Self { gpu, plan, image: Vec::new(), progs: Vec::new(), entries: 0, steps: Vec::new(), phase: "start" })
     }
 
     /// A new point: the programs and slots that follow run and fill there.
@@ -164,7 +167,7 @@ impl<'g> Builder<'g> {
     }
 
     pub(super) fn dispatch(&mut self, (pass, entry): (PassId, usize), bind: wgpu::BindGroup, size: Size) {
-        self.steps.push(Step::Dispatch { pass, entry, bind, size });
+        self.steps.push(Step::Dispatch { pass, entry, bind, size, phase: self.phase });
     }
 
     /// `bytes` of `from` at `at` into the census at word `w`.
@@ -205,8 +208,9 @@ impl<'g> Builder<'g> {
 }
 
 impl Plan {
-    /// Point `k` run: its programs, then its slots into the uniforms.
-    pub(super) fn run_point(&self, vm: &super::vm::Kernels, e: &mut wgpu::CommandEncoder, k: usize) {
+    /// Point `k` run: its programs, then its slots into the uniforms;
+    /// whether it dispatched.
+    pub(super) fn run_point(&self, vm: &super::vm::Kernels, e: &mut wgpu::CommandEncoder, k: usize) -> bool {
         let p = &self.points[k];
         if p.n > 0 {
             vm.pass.run(e, p.bind.as_ref().expect("finished"), 0, p.n.div_ceil(64));
@@ -216,5 +220,6 @@ impl Plan {
             let bytes = u64::from((p.slots.1 - p.slots.0) * SLOT_WORDS) * 4;
             e.copy_buffer_to_buffer(&self.cfgs, at, &self.uniforms, at, bytes);
         }
+        p.n > 0
     }
 }

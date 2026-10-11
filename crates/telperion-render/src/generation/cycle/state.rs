@@ -5,9 +5,11 @@
 //! - **axes:** the units' columns (`arena.wgsl`'s `A_`, then its head),
 //!   then the layout's (`lay_state.wgsl`): whorl, blend and birth draws as
 //!   the f32s it reads, phase, rank, base, heading, side and faults.
-//! - **arena:** the units' records (`U_`), then from `phyt_at` the
-//!   phytomers: key, axis, cycle, node presence, tip, heading, side,
-//!   scale, grown, size, rank and leaf area.
+//! - **units:** the units' records (`U_`).
+//! - **grown:** the phytomers' columns the units write: key, axis, cycle,
+//!   node presence.
+//! - **laid:** the phytomers' columns the layout writes: tip, heading,
+//!   side, scale, grown, size, rank and leaf area.
 //! - **pencils:** a pencil an axis (`layout.wgsl`'s `P_`), its light,
 //!   size, memory and kept share last.
 //! - **lists:** the units' tally, the sleeping buds, the living apexes
@@ -15,7 +17,8 @@
 //!
 //! The binding count WebGPU allows a stage (8) keeps the columns in these
 //! few buffers rather than one buffer a column; each column is still
-//! contiguous.
+//! contiguous. The phytomers' columns are two buffers so that neither
+//! passes the adapter's largest storage binding (2 GiB on this device).
 use super::super::io;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
@@ -23,7 +26,8 @@ use crate::{Gpu, Result};
 /// The columns of each table.
 pub(super) const AXES: u64 = 51;
 pub(super) const UNITS: u64 = 13;
-pub(super) const PHYTS: u64 = 19;
+pub(super) const GROWN: u64 = 5;
+pub(super) const LAID: u64 = 14;
 pub(super) const PENCILS: u64 = 59;
 pub(super) const SLEEPERS: u64 = 14;
 pub(super) const WOKEN: u64 = 5;
@@ -53,10 +57,6 @@ pub(super) struct Caps {
 }
 
 impl Caps {
-    pub(super) fn phyt_at(&self) -> u32 {
-        (UNITS * u64::from(self.units)) as u32
-    }
-
     pub(super) fn sleep_at(&self) -> u32 {
         TALLY as u32
     }
@@ -71,10 +71,6 @@ impl Caps {
 
     pub(super) fn list_at(&self) -> u32 {
         self.woken_at() + (WOKEN * u64::from(self.woken)) as u32
-    }
-
-    fn arena_words(&self) -> u64 {
-        u64::from(self.phyt_at()) + PHYTS * u64::from(self.phyts)
     }
 
     fn list_words(&self) -> u64 {
@@ -97,7 +93,9 @@ pub(super) struct Held {
 pub(super) struct State {
     pub caps: Caps,
     pub axes: Owned,
-    pub arena: Owned,
+    pub units: Owned,
+    pub grown: Owned,
+    pub laid: Owned,
     pub pencils: Owned,
     pub lists: Owned,
 }
@@ -109,19 +107,28 @@ fn zeroed(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
 
 impl State {
     pub(super) fn new(gpu: &Gpu, caps: Caps) -> Result<Self> {
-        let axes_words = AXES * u64::from(caps.axes);
+        let w = Self::words(caps);
         Ok(Self {
             caps,
-            axes: zeroed(gpu, "cycle state axes", axes_words)?,
-            arena: zeroed(gpu, "cycle state arena", caps.arena_words())?,
-            pencils: zeroed(gpu, "cycle state pencils", PENCILS * u64::from(caps.axes))?,
-            lists: zeroed(gpu, "cycle state lists", caps.list_words())?,
+            axes: zeroed(gpu, "cycle state axes", w[0])?,
+            pencils: zeroed(gpu, "cycle state pencils", w[1])?,
+            units: zeroed(gpu, "cycle state units", w[2])?,
+            grown: zeroed(gpu, "cycle state phytomers grown", w[3])?,
+            laid: zeroed(gpu, "cycle state phytomers laid", w[4])?,
+            lists: zeroed(gpu, "cycle state lists", w[5])?,
         })
+    }
+
+    /// The words of each buffer at `caps`: axes, pencils, units, the
+    /// phytomers' grown and laid columns, the lists.
+    pub(super) fn words(caps: Caps) -> [u64; 6] {
+        let (a, p) = (u64::from(caps.axes), u64::from(caps.phyts));
+        [AXES * a, PENCILS * a, UNITS * u64::from(caps.units), GROWN * p, LAID * p, caps.list_words()]
     }
 
     /// The bytes the state holds.
     pub(super) fn bytes(&self) -> u64 {
-        [&self.axes, &self.arena, &self.pencils, &self.lists]
+        [&self.axes, &self.units, &self.grown, &self.laid, &self.pencils, &self.lists]
             .iter()
             .map(|b| b.size())
             .sum()

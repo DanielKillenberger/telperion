@@ -161,9 +161,13 @@ impl Run {
             most * 64,
             0,
             0,
+            0,
+            0,
+            0,
+            0,
         ];
         cfg.extend(&lit.dirs);
-        cfg.resize(8 + 8 * DIRECTIONS, 0);
+        cfg.resize(12 + 8 * DIRECTIONS, 0);
         let uniform = wgpu::BufferUsages::UNIFORM;
         let chunks = super::light_program::sweep_dispatches(lit.size);
         let mut cfgs = Vec::new();

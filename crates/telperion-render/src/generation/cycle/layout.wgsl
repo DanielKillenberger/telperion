@@ -5,9 +5,9 @@
 // by a flag, a scan and a gather, framed (`frame`) and laid (`draw`).
 // The state is the cycle's one resident state (`state.rs`): the axes'
 // columns the units write and the layout's beside them, the units'
-// records and the phytomers in one arena, the pencils by axis. An index
-// is the CPU's. An axis's phytomers are found through its units' records
-// (`prow`), each unit's phytomers contiguous.
+// records, the phytomers' columns the units write and the layout's, the
+// pencils by axis. An index is the CPU's. An axis's phytomers are found
+// through its units' records (`prow`), each unit's phytomers contiguous.
 
 struct Cfg {
     n: u32,
@@ -34,11 +34,13 @@ struct Cfg {
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
 @group(0) @binding(1) var<storage, read> form: array<f32>;
-@group(0) @binding(2) var<storage, read_write> arena: array<u32>;
-@group(0) @binding(3) var<storage, read_write> axes: array<u32>;
-@group(0) @binding(4) var<storage, read_write> pencils: array<u32>;
-@group(0) @binding(5) var<storage, read_write> lists: array<u32>;
-@group(0) @binding(6) var<storage, read_write> counts: array<u32>;
+@group(0) @binding(2) var<storage, read> units: array<u32>;
+@group(0) @binding(3) var<storage, read> grown: array<u32>;
+@group(0) @binding(4) var<storage, read_write> laid: array<u32>;
+@group(0) @binding(5) var<storage, read_write> axes: array<u32>;
+@group(0) @binding(6) var<storage, read_write> pencils: array<u32>;
+@group(0) @binding(7) var<storage, read_write> lists: array<u32>;
+@group(0) @binding(8) var<storage, read_write> counts: array<u32>;
 
 const NONE: u32 = 0xffffffffu;
 const TICKS: f32 = 1048576.0;
@@ -69,7 +71,9 @@ const A_BASE: u32 = 41u;
 const A_HEADING: u32 = 44u;
 const A_SIDE: u32 = 47u;
 const A_FAULT: u32 = 50u;
-// A phytomer's.
+// A phytomer's: the units' (`grown`), then from `PH_LAID` the layout's
+// (`laid`).
+const PH_LAID: u32 = 5u;
 const PH_KEY: u32 = 0u;
 const PH_CYCLE: u32 = 3u;
 const PH_NODE: u32 = 4u;

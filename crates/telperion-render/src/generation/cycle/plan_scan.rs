@@ -29,7 +29,7 @@ pub(super) struct Fine {
 pub(super) fn fine(
     b: &mut Builder,
     (pass, id): (&io::Pass, PassId),
-    data: &Owned,
+    (data, at): (&Owned, u32),
     (n, cap, stride, fields): (E, u32, u32, u32),
     (to, w): (&wgpu::Buffer, u64),
 ) -> Result<Fine> {
@@ -40,9 +40,9 @@ pub(super) fn fine(
     b.set(slot, 3, n.clone().div(E::C(SPAN)));
     let blocks = b.groups(n.clone().div(E::C(SPAN)).div(E::C(64)));
     let spread = b.groups(n.div(E::C(64)));
-    let bind = |b: &Builder| b.bind(pass, slot, &[data, &sums, &totals]);
+    let data_bytes = data.size() - 4 * u64::from(at);
     for (entry, size) in [(0, blocks), (1, Size::Direct(1)), (2, spread)] {
-        let bound = bind(b);
+        let bound = slice_bind(b, pass, slot, (data, 4 * u64::from(at), data_bytes), &[whole(&sums), whole(&totals)]);
         b.dispatch((id, entry), bound, size);
     }
     b.step(Step::Copy { from: (*totals).clone(), at: 0, to: to.clone(), to_at: 4 * w, bytes: 16 });
@@ -89,7 +89,8 @@ pub(super) fn levelled(
         let up = b.groups(exists(l).sel(size(l).div(E::C(SPAN)).max(E::C(1)), E::C(0)));
         let down = b.groups(top(l).sel(E::C(0), size(l).div(E::C(64))));
         let data_bytes = 4 * u64::from(cap.max(1));
-        binds.push((slice_bind(b, pass, slot, (data, 4 * at, data_bytes), sums, (tally, 4 * to)), up, down));
+        let rest = [whole(sums), Slice(tally, 4 * to, Some(256))];
+        binds.push((slice_bind(b, pass, slot, (data, 4 * at, data_bytes), &rest), up, down));
     }
     for (bind, up, _) in &binds {
         b.dispatch((PassId::HierScan, 0), bind.clone(), *up);
@@ -99,21 +100,24 @@ pub(super) fn levelled(
     }
 }
 
-/// A scan level's bind: its slot, a slice of the data, the sums and the
-/// tally's 256 bytes from its total.
-fn slice_bind(b: &Builder, pass: &io::Pass, slot: u32, (data, at, bytes): (&Owned, u64, u64), sums: &Owned, (tally, to): (&Owned, u64)) -> wgpu::BindGroup {
+/// A buffer bound from a byte offset for a size, or to its end.
+struct Slice<'a>(&'a wgpu::Buffer, u64, Option<u64>);
+
+fn whole(b: &wgpu::Buffer) -> Slice<'_> {
+    Slice(b, 0, None)
+}
+
+/// A scan's bind: its slot, a slice of the data, then `rest`.
+fn slice_bind(b: &Builder, pass: &io::Pass, slot: u32, (data, at, bytes): (&Owned, u64, u64), rest: &[Slice]) -> wgpu::BindGroup {
     fn slice(binding: u32, buffer: &wgpu::Buffer, offset: u64, size: u64) -> wgpu::BindGroupEntry<'_> {
         wgpu::BindGroupEntry {
             binding,
             resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding { buffer, offset, size: std::num::NonZeroU64::new(size) }),
         }
     }
-    let uniform = &b.plan.uniforms;
-    let entries = [
-        slice(0, uniform, u64::from(slot) * SLOT_BYTES, SLOT_BYTES),
-        slice(1, data, at, bytes),
-        slice(2, sums, 0, sums.size()),
-        slice(3, tally, to, 256),
-    ];
+    let mut entries = vec![slice(0, &b.plan.uniforms, u64::from(slot) * SLOT_BYTES, SLOT_BYTES), slice(1, data, at, bytes)];
+    for (k, s) in rest.iter().enumerate() {
+        entries.push(slice(k as u32 + 2, s.0, s.1, s.2.unwrap_or(s.0.size() - s.1)));
+    }
     b.gpu.device.create_bind_group(&wgpu::BindGroupDescriptor { label: Some("plan scan"), layout: &pass.layout, entries: &entries })
 }

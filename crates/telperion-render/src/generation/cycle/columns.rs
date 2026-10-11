@@ -143,11 +143,9 @@ impl Columns {
         laid_out(&self.axis_cols, cap)
     }
 
-    /// The units' columns, then the phytomers' (none before the cycle).
-    pub fn arena_at(&self, caps: Caps) -> Vec<u32> {
-        let mut out = laid_out(&self.unit_cols, caps.units);
-        out.resize(out.len() + PHYTS * caps.phyts as usize, 0);
-        out
+    /// The units' columns.
+    pub fn units_at(&self, caps: Caps) -> Vec<u32> {
+        laid_out(&self.unit_cols, caps.units)
     }
 
     /// The tally, the sleeping buds' columns, the living apexes', the

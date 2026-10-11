@@ -32,7 +32,7 @@ pub(super) struct Kernels {
 
 impl Kernels {
     pub(super) fn new(gpu: &Gpu, arith: super::Arith) -> Self {
-        let mut reads = vec![true];
+        let mut reads = vec![true; 3];
         reads.extend([false; 5]);
         let entries = [
             "draw_main",

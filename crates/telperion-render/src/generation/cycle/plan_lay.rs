@@ -22,12 +22,16 @@ pub(super) struct LayBounds {
     pub generations: u32,
     pub sweeps: u32,
     pub deposits: u32,
+    /// The draw's dispatches over the grown axes, and the light's over
+    /// its lattice, at most.
+    pub draws: u32,
+    pub lights: u32,
 }
 
 impl Build {
     fn lay_slot(&self, b: &mut Builder, (n, listed, generation, base): (E, u32, u32, u32)) -> u32 {
         let s = self.state.caps;
-        let slot = b.slot(&[0, MAXX * 64, 0, 0, s.axes, s.phyts, s.units, 0, listed, generation, 0, 0, s.phyt_at(), base]);
+        let slot = b.slot(&[0, MAXX * 64, 0, 0, s.axes, s.phyts, s.units, 0, listed, generation, 0, 0, 0, base]);
         let first = E::At(c::LAID0);
         let new = E::At(c::AXES).sub(first.clone());
         for (w, e) in [(0, n), (2, E::At(c::CYCLE)), (3, first), (7, new), (11, E::At(c::GREW))] {
@@ -38,7 +42,7 @@ impl Build {
 
     fn lay_bind(&self, b: &Builder, kit: &Kit, slot: u32) -> wgpu::BindGroup {
         let (s, l) = (&self.state, &self.layout);
-        b.bind(&kit.layout.layout, slot, &[&l.form, &s.arena, &s.axes, &s.pencils, &l.lists, &l.counts])
+        b.bind(&kit.layout.layout, slot, &[&l.form, &s.units, &s.grown, &s.laid, &s.axes, &s.pencils, &l.lists, &l.counts])
     }
 
     /// The cycle's layout, recorded.
@@ -59,7 +63,7 @@ impl Build {
         let grew = E::At(c::GREW);
         let new = E::At(c::AXES).sub(E::At(c::LAID0));
         let lay = |k| (PassId::Layout, k);
-        for r in 0..s.div_ceil(range).max(1) {
+        for r in 0..bound.draws {
             let slot = self.lay_slot(b, (grew.clone(), 0, 0, r * range));
             let left = grew.clone().sub(E::C(r * range)).min(E::C(range));
             let size = b.groups(left.div(E::C(64)));
@@ -77,7 +81,7 @@ impl Build {
             let bind = self.lay_bind(b, kit, slot);
             b.dispatch(lay(ld::FLAG), bind.clone(), over_new);
             let lists = &self.layout.lists;
-            held.push(fine(b, (&kit.layout.scan, PassId::LayScan), &self.layout.counts, (new.clone(), s, 1, 1), (lists, 0))?);
+            held.push(fine(b, (&kit.layout.scan, PassId::LayScan), (&self.layout.counts, 0), (new.clone(), s, 1, 1), (lists, 0))?);
             for entry in [ld::GATHER, ld::FRAME, ld::DRAW] {
                 b.dispatch(lay(entry), bind.clone(), over_new);
             }
@@ -88,51 +92,70 @@ impl Build {
         let deeper = (bound.generations as usize..DEEP as usize).fold(E::C(0), |a, g| a.max(E::At(c::LAY_DEEP + g)));
         b.flag(Flag::LayGenerations, deeper);
         b.flag(Flag::LayFault, E::At(c::LAY_FAULT));
-        b.flag(Flag::DrawRanges, E::At(c::GREW).gt(E::C(s.div_ceil(range).max(1) * range)));
+        b.flag(Flag::DrawRanges, E::At(c::GREW).gt(E::C(bound.draws * range)));
         Ok(held)
     }
 
     /// The cycle's light, recorded.
-    pub(super) fn plan_light(&self, b: &mut Builder, kit: &Kit, (bound, range): (LayBounds, u32)) {
+    pub(super) fn plan_light(&self, b: &mut Builder, kit: &Kit, (bound, ranges): (LayBounds, super::build_plan::Ranges)) {
         let l = &self.light;
         let leaves = E::At(c::PHYTS).sub(E::At(c::PHYTS0));
         let tips = E::At(c::NEXT);
         let w = glue::Words { live_stride: self.sums.live_stride, ..glue::Words::default() };
         let points = [(0, leaves.clone().add(tips.clone())), (11, E::At(c::PHYTS0)), (12, leaves.clone())];
         self.glue_step(b, kit, (glue::POINTS, &l.points, &self.spare), w, &points);
-        let slot = |b: &mut Builder, chunk: u32| {
+        let slot = |b: &mut Builder, chunk: (u32, u32)| {
             let slot = b.slot(&l.words(chunk));
             b.set(slot, 0, leaves.clone());
             b.set(slot, 1, tips.clone());
             b.bind(&kit.light.pass, slot, &l.buffers())
         };
-        let main = slot(b, 0);
+        let main = slot(b, (0, 0));
         let light = |k| (PassId::Light, k);
         let span = b.groups(leaves.clone().add(tips.clone()).div(E::C(64)));
         b.step(Step::Copy { from: (*l.start).clone(), at: 0, to: (*l.state).clone(), to_at: 0, bytes: 32 });
         b.step(Step::Clear { buffer: (*l.quanta).clone(), at: 0, bytes: None });
         b.dispatch(light(0), main.clone(), span);
         b.dispatch(light(1), main.clone(), Size::Direct(1));
+        let range = ranges.deposit;
         for r in 0..bound.deposits {
-            let bind = slot(b, r * range);
+            let bind = slot(b, (0, r * range));
             let left = leaves.clone().sub(E::C(r * range)).min(E::C(range));
             let size = b.groups(left.div(E::C(64)));
             b.dispatch(light(2), bind, size);
         }
-        let (cap, dirs) = (l.nodes_cap, l.n_dirs);
-        let over = |n: u32| Size::Direct(n.div_ceil(64).max(1));
-        b.dispatch(light(3), main.clone(), over(cap));
-        b.dispatch(light(4), main.clone(), over(dirs * cap));
-        b.dispatch(light(5), main.clone(), over(dirs * cap));
+        b.tally(&l.grid, 0, c::GRID, 32);
+        b.point();
+        let dirs = l.n_dirs;
+        let nodes = E::At(c::GRID + 6);
+        let columns = E::At(c::GRID + 3).mul(E::At(c::GRID + 4)).mul(E::C(dirs));
+        let paths = nodes.clone().mul(E::C(dirs));
+        let mut lattice = Vec::new();
+        for (entry, count, range) in [(3, nodes.clone(), ranges.nodes), (4, columns, ranges.paths), (5, paths, ranges.paths)] {
+            lattice.push((entry, count, range));
+        }
+        // One flag program a point a word: the programs run at once.
+        let past = lattice.iter().fold(E::C(0), |a, (_, n, r)| a.max(n.clone().gt(E::C(bound.lights * r))));
+        b.flag(Flag::LightRanges, past);
+        let ranged = |b: &mut Builder, (entry, count, range): (usize, E, u32)| {
+            for r in 0..bound.lights {
+                let bind = slot(b, (0, r * range));
+                let left = count.clone().sub(E::C(r * range)).min(E::C(range));
+                let size = b.groups(left.div(E::C(64)));
+                b.dispatch(light(entry), bind, size);
+            }
+        };
+        for job in lattice {
+            ranged(b, job);
+        }
         for k in 0..bound.sweeps {
-            let bind = slot(b, k);
+            let bind = slot(b, (k, 0));
             b.dispatch(light(6), bind, Size::Direct(dirs.max(1)));
         }
-        b.dispatch(light(7), main.clone(), over(cap));
+        ranged(b, (7, nodes, ranges.nodes));
         let read = b.groups(tips.clone().div(E::C(64)));
         b.dispatch(light(8), main, read);
         self.glue_step(b, kit, (glue::LIT, &l.reads, &self.spare), w, &[(0, tips)]);
-        b.tally(&l.grid, 0, c::GRID, 32);
         b.tally(&l.state, 24, c::LIGHT_ERRORS, 4);
         b.point();
         b.flag(Flag::LightErrors, E::At(c::LIGHT_ERRORS));

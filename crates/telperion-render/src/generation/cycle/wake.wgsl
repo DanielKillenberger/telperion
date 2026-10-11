@@ -11,10 +11,10 @@ fn flag(@builtin(global_invocation_id) id: vec3<u32>) {
     if i >= cfg.n {
         return;
     }
-    counts_a[4u * i] = select(0u, 1u, sleeper(i, S_WAKE) == cfg.cycle);
-    counts_a[4u * i + 1u] = 0u;
-    counts_a[4u * i + 2u] = 0u;
-    counts_a[4u * i + 3u] = 0u;
+    counts[4u * i] = select(0u, 1u, sleeper(i, S_WAKE) == cfg.cycle);
+    counts[4u * i + 1u] = 0u;
+    counts[4u * i + 2u] = 0u;
+    counts[4u * i + 3u] = 0u;
 }
 
 @compute @workgroup_size(64)
@@ -23,7 +23,7 @@ fn gather(@builtin(global_invocation_id) id: vec3<u32>) {
     if i >= cfg.n || sleeper(i, S_WAKE) != cfg.cycle {
         return;
     }
-    lists[cfg.list_at + counts_a[4u * i]] = i;
+    lists[cfg.list_at + counts[4u * i]] = i;
 }
 
 // The stage a bud of `pa` that slept `slept` ticks wakes in, its time

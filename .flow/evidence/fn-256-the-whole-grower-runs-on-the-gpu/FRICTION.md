@@ -89,3 +89,15 @@
 - **Hindered:** the wording chained each spill to the last, which makes every block its own level; it showed only when the young test's cap-64 run crashed on a level bound. A host simulation of the rule on the captures (about 20 s) settled it, and settled the sibling rule before building.
 - **Cost:** about 20 minutes of device code for the chained rule, mostly reused.
 - **Would remove it:** simulating a block rule on the host over the busy captures before it is written into DESIGN.md.
+
+## 2026-10-11, task 2 (whole grower): the adapter's 2 GiB storage binding
+- **Doing:** the first whole-build measurement at the presets' default ages.
+- **Hindered:** Laurelin 80 ran out of device memory, and the units' and phytomers' arena would have passed the adapter's largest storage binding (2,147,483,644 bytes on this RTX 3080 under Vulkan) at Telperion's 18.2M phytomers. The arena became three buffers (units, the phytomers' columns the units write, those the layout writes), and a move now makes anew only the tables whose rows grew. DESIGN.md section 1's one buffer a column is not possible under WebGPU's 8 storage bindings a stage.
+- **Cost:** about 40 minutes and two measurement runs.
+- **Would remove it:** the binding limit named beside the 128 MB default in DESIGN.md section 1.
+
+## 2026-10-11, task 2 (whole grower): two flag programs on one word in one point
+- **Doing:** cutting the light's lattice dispatches into ranges.
+- **Hindered:** the determinism test differed at small ranges. The four lattice kinds each wrote the same overrun flag with `max(flag, cond)` in one point, where the programs run at once, so the last writer's 0 hid the overrun. Found by tracing the moves cycle by cycle (four runs).
+- **Cost:** about 25 minutes.
+- **Would remove it:** a check in the plan's builder that no census word is written twice in a point (not added: one case, now folded).

@@ -35,34 +35,48 @@ impl Sizes {
         Self { caps, points: 16384, tips: 4096, nodes: 4096, bounds: Bounds::default(), block_cap: super::hier_build::CAP }
     }
 
-    fn lit(&self) -> (Lit, u32) {
+    pub(super) fn lit(&self) -> (Lit, u32) {
         (Lit { leaves: self.points - self.tips.min(self.points), tips: self.tips }, self.nodes)
     }
 }
 
-/// How a build grew: begun again, and moved into larger tables.
-#[derive(Debug, Clone, Copy, Default)]
+/// How a build grew: begun again, moved into larger tables, and the
+/// phase of each dispatch it recorded, in order.
+#[derive(Debug, Clone, Default)]
 pub(super) struct Grew {
     pub again: u32,
     pub moves: u32,
+    pub stamped: Vec<&'static str>,
+    /// Why it began again: each time's flags and the cycle read.
+    pub why: Vec<(u32, Vec<Flag>)>,
 }
 
 fn twice(have: u32, count: u32) -> u32 {
     have.max(count).saturating_mul(2)
 }
 
+/// Whether `flag` names a fault (or the budget) rather than a size.
+fn fault(flag: Flag) -> bool {
+    matches!(flag, Flag::Budget | Flag::UnitFaults | Flag::HierFault | Flag::LayFault | Flag::Collapsed)
+}
+
 /// `s` raised for every flag in `flags`, from `census`; refused where a
-/// flag names a fault or the budget.
+/// flag names a fault or the budget and no size passed (a size passed
+/// can fault what reads past it).
 fn raised(mut s: Sizes, flags: &[(Flag, u32)], census: &[u32]) -> Result<Sizes> {
     let refused = |what: String| super::super::io::error(what);
-    for &(flag, value) in flags {
+    let sized = flags.iter().any(|f| !fault(f.0) && !(f.0 == Flag::LightErrors && f.1 != 4));
+    for &(flag, value) in flags.iter().filter(|f| !(sized && fault(f.0))) {
         let (caps, b) = (&mut s.caps, &mut s.bounds);
         match flag {
-            Flag::Axes | Flag::DrawRanges => caps.axes = twice(caps.axes, census[c::AXES]).next_multiple_of(64),
+            Flag::Axes => caps.axes = twice(caps.axes, census[c::AXES]).next_multiple_of(64),
+            Flag::DrawRanges => b.lay.draws = census[c::GREW].div_ceil(b.ranges.draw) + 1,
+            Flag::UnitRanges => b.units = census[c::LIVE].div_ceil(b.ranges.units) + 1,
+            Flag::LightRanges => b.lay.lights *= 2,
             Flag::Units => caps.units = twice(caps.units, census[c::UNITS]),
             Flag::Phyts => caps.phyts = twice(caps.phyts, census[c::PHYTS]),
             Flag::Sleepers => caps.sleepers = twice(caps.sleepers, census[c::SLEEPERS]),
-            Flag::Next | Flag::UnitRanges => caps.next = twice(caps.next, census[c::NEXT]).next_multiple_of(64),
+            Flag::Next => caps.next = twice(caps.next, census[c::NEXT]).next_multiple_of(64),
             Flag::Woken => caps.woken = twice(caps.woken, census[c::WOKEN]),
             Flag::HierGens => b.hier.gens = twice(b.hier.gens, census[c::GENS]),
             Flag::HierPasses => b.hier.passes *= 2,
@@ -104,13 +118,22 @@ fn ahead(s: Sizes, read: &[u32], prev: Option<&[u32]>) -> Option<Sizes> {
     caps.units = fit(caps.units, ahead(c::UNITS, read[c::UNITS]));
     caps.phyts = fit(caps.phyts, ahead(c::PHYTS, read[c::PHYTS]));
     caps.sleepers = fit(caps.sleepers, ahead(c::SLEEPERS, read[c::SLEEPERS]));
-    caps.next = fit(caps.next, ahead(c::NEXT, read[c::NEXT])).next_multiple_of(64);
+    // The living after a cycle are at most those before and the cycle's
+    // new axes, which grow as the axes do.
+    let born = read[c::AXES] - read[c::AXES0];
+    let next = read[c::NEXT] + 2 * ahead(c::AXES, born);
+    caps.next = fit(caps.next, next.max(ahead(c::NEXT, read[c::NEXT]))).next_multiple_of(64);
     caps.woken = fit(caps.woken, ahead(c::WOKEN, read[c::WOKEN]));
     let lit = ahead(c::PHYTS, leaves(read));
     n.tips = fit(n.tips, ahead(c::NEXT, read[c::NEXT]));
     n.points = fit(n.points, lit + n.tips);
     n.nodes = fit(n.nodes, 2 * read[c::GRID + 6]);
     let b = &mut n.bounds;
+    b.units = b.units.max(next.div_ceil(b.ranges.units));
+    b.lay.draws = b.lay.draws.max(next.div_ceil(b.ranges.draw));
+    // The lattice's nodes, and over the sky's nine directions at most.
+    let nodes = 2 * read[c::GRID + 6];
+    b.lay.lights = b.lay.lights.max((9 * nodes).div_ceil(b.ranges.paths).max(nodes.div_ceil(b.ranges.nodes)));
     b.lay.deposits = b.lay.deposits.max(lit.div_ceil(b.ranges.deposit));
     b.lay.sweeps = b.lay.sweeps.max(sweeps(read) + 2);
     b.hier.levels = b.hier.levels.max((read[c::LEVELS] + 3).min(63));
@@ -127,31 +150,34 @@ pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut size
         grew.again = again;
         let mut b = Build::new(gpu, t, (tables, sizes.caps, sizes.block_cap), sizes.lit())?;
         let mut run = b.plan(gpu, kit, t, sizes.bounds)?;
-        b.seeded(gpu, kit, (&run.0, &run.1));
+        grew.stamped = b.seeded(gpu, kit, (&run.0, &run.1));
         let (mut late, mut prev) = (Late::new(gpu)?, None::<Vec<u32>>);
         for cycle in 1..=upto {
-            b.submit(gpu, (kit, t), (&run.0, &run.1), (&mut late, cycle));
+            let stamped = b.submit(gpu, (kit, t), (&run.0, &run.1), (&mut late, cycle));
+            grew.stamped.extend(stamped);
             if cycle == 1 {
                 continue;
             }
             let read = late.take(gpu, cycle - 1)?;
             if !c::raised(&read).is_empty() {
+                grew.why.push((cycle - 1, c::raised(&read).iter().map(|f| f.0).collect()));
                 sizes = raised(sizes, &c::raised(&read), &read)?;
                 continue 'begin;
             }
             if let Some(next) = ahead(sizes, &read, prev.as_deref()) {
-                let moved = Build::new(gpu, t, (tables, next.caps, next.block_cap), next.lit())?;
-                let plan = moved.plan(gpu, kit, t, next.bounds)?;
+                b = b.moved(gpu, (t, tables), (sizes, next))?;
+                let plan = b.plan(gpu, kit, t, next.bounds)?;
                 let mut e = gpu.encoder(&Default::default());
-                b.move_into(&mut e, &moved, (&run.0.census, &plan.0.census));
+                e.copy_buffer_to_buffer(&run.0.census, 0, &plan.0.census, 0, run.0.census.size());
                 gpu.submit([e.finish()]);
-                (b, run, sizes) = (moved, plan, next);
+                (run, sizes) = (plan, next);
                 grew.moves += 1;
             }
             prev = Some(read);
         }
         let read = late.take(gpu, upto)?;
         if !c::raised(&read).is_empty() {
+            grew.why.push((upto, c::raised(&read).iter().map(|f| f.0).collect()));
             sizes = raised(sizes, &c::raised(&read), &read)?;
             continue;
         }

@@ -23,7 +23,8 @@ struct Cfg {
     woken_cap: u32,
     list_cap: u32,
     pencils: u32,
-    phyt_at: u32,
+    // Where the second record of each count starts in `counts`.
+    b_at: u32,
     sleep_at: u32,
     next_at: u32,
     woken_at: u32,
@@ -49,10 +50,11 @@ struct Cfg {
 @group(0) @binding(2) var<storage, read> words: array<vec2<u32>>;
 @group(0) @binding(3) var<storage, read> inputs: array<u32>;
 @group(0) @binding(4) var<storage, read_write> axes: array<u32>;
-@group(0) @binding(5) var<storage, read_write> arena: array<u32>;
-@group(0) @binding(6) var<storage, read_write> lists: array<u32>;
-@group(0) @binding(7) var<storage, read_write> counts_a: array<u32>;
-@group(0) @binding(8) var<storage, read_write> counts_b: array<u32>;
+@group(0) @binding(5) var<storage, read_write> units: array<u32>;
+@group(0) @binding(6) var<storage, read_write> phyts: array<u32>;
+@group(0) @binding(7) var<storage, read_write> lists: array<u32>;
+// Each invocation's two count records, the second from `cfg.b_at`.
+@group(0) @binding(8) var<storage, read_write> counts: array<u32>;
 
 const TICKS: u32 = 0x100000u;
 
@@ -160,15 +162,15 @@ fn set_ax(i: u32, f: u32, v: u32) {
 }
 
 fn unit(r: u32, f: u32) -> u32 {
-    return arena[f * cfg.units_cap + r];
+    return units[f * cfg.units_cap + r];
 }
 
 fn set_unit(r: u32, f: u32, v: u32) {
-    arena[f * cfg.units_cap + r] = v;
+    units[f * cfg.units_cap + r] = v;
 }
 
 fn set_phyt(p: u32, f: u32, v: u32) {
-    arena[cfg.phyt_at + f * cfg.phyts_cap + p] = v;
+    phyts[f * cfg.phyts_cap + p] = v;
 }
 
 fn sleeper(s: u32, f: u32) -> u32 {

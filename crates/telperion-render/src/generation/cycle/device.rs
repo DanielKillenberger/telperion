@@ -4,7 +4,7 @@
 //! dispatch is its own compute pass (`io::Pass::run`), so a profile
 //! stamps each; only the scans' totals move, by copies into the tally.
 use super::super::io;
-use super::columns::{Caps, Columns, SLEEPERS, TALLY, UNITS, WOKEN};
+use super::columns::{Caps, Columns, PHYTS, SLEEPERS, TALLY, WOKEN};
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
@@ -90,9 +90,10 @@ pub(super) struct Scan {
 pub(super) struct Run {
     pub caps: Caps,
     pub axes: Owned,
-    pub arena: Owned,
+    pub units: Owned,
+    pub phyts: Owned,
     pub lists: Owned,
-    start: [Owned; 3],
+    start: [Owned; 4],
     /// The units counted and emitted, then the wake: each over its rows.
     binds: Vec<(u32, wgpu::BindGroup)>,
     scans: Vec<Scan>,
@@ -108,21 +109,22 @@ impl Run {
     pub(super) fn new(gpu: &Gpu, k: &Kernels, cols: &Columns, caps: Caps) -> Result<Self> {
         let start = [
             storage(gpu, "cycle axes start", &cols.axes_at(caps.axes))?,
-            storage(gpu, "cycle arena start", &cols.arena_at(caps))?,
+            storage(gpu, "cycle units start", &cols.units_at(caps))?,
+            zeroed(gpu, "cycle phytomers start", PHYTS as u64 * u64::from(caps.phyts))?,
             storage(gpu, "cycle lists start", &cols.lists_at(caps))?,
         ];
         let work = |b: &Owned, label| zeroed(gpu, label, b.size() / 4);
-        let (axes, arena, lists) = (
+        let (axes, units, phyts, lists) = (
             work(&start[0], "cycle axes")?,
-            work(&start[1], "cycle arena")?,
-            work(&start[2], "cycle lists")?,
+            work(&start[1], "cycle units")?,
+            work(&start[2], "cycle phytomers")?,
+            work(&start[3], "cycle lists")?,
         );
         let table = storage(gpu, "cycle table", &cols.table)?;
         let words = storage(gpu, "cycle words", bytemuck::cast_slice(&cols.words))?;
         let inputs = storage(gpu, "cycle inputs", &cols.inputs)?;
-        let n = cols.live.max(cols.sleepers).max(1);
-        let counts_a = zeroed(gpu, "cycle counts", u64::from(n) * 4)?;
-        let counts_b = zeroed(gpu, "cycle counts b", u64::from(n) * 4)?;
+        let b_at = b_at(cols.live.max(cols.sleepers));
+        let counts = zeroed(gpu, "cycle counts", 2 * u64::from(b_at))?;
         let mut held = vec![table, words, inputs];
         let mut binds = Vec::new();
         let jobs = [
@@ -132,34 +134,35 @@ impl Run {
             (cols.sleepers, 1, 1),
         ];
         for (n, emit, wake) in jobs {
-            let words = config(gpu, cols, caps, (n, emit, wake));
+            let words = config(gpu, cols, (caps, b_at), (n, emit, wake));
             let usage = wgpu::BufferUsages::UNIFORM;
             let c = io::buffer(gpu, "cycle cfg", 128, usage, bytemuck::cast_slice(&words))?;
             let all = [
-                &*c, &held[0], &held[1], &held[2], &axes, &arena, &lists, &counts_a, &counts_b,
+                &*c, &held[0], &held[1], &held[2], &axes, &units, &phyts, &lists, &counts,
             ];
             binds.push((n, k.cycle.bind(gpu, &all)));
             held.push(c);
         }
         let mut scans = Vec::new();
-        for (data, n, fields, to) in [
-            (&counts_a, cols.live, 4, T_UNITS),
-            (&counts_b, cols.live, 4, T_UNITS_B),
-            (&counts_a, cols.sleepers, 1, T_LIST),
-            (&counts_a, cols.sleepers, 4, T_WAKE),
-            (&counts_b, cols.sleepers, 4, T_WAKE_B),
+        for (at, n, fields, to) in [
+            (0, cols.live, 4, T_UNITS),
+            (b_at, cols.live, 4, T_UNITS_B),
+            (0, cols.sleepers, 1, T_LIST),
+            (0, cols.sleepers, 4, T_WAKE),
+            (b_at, cols.sleepers, 4, T_WAKE_B),
         ] {
-            scans.push(scan(gpu, &k.scan, (data, n, fields), to)?);
+            scans.push(scan_at(gpu, &k.scan, (&counts, at, n, 4, fields), to)?);
         }
         let size = |b: &[&Owned]| b.iter().map(|b| b.size()).sum::<u64>();
-        let resident = size(&[&axes, &arena, &lists, &held[0], &held[1], &held[2]]);
+        let resident = size(&[&axes, &units, &phyts, &lists, &held[0], &held[1], &held[2]]);
         let sums: Vec<&Owned> = scans.iter().flat_map(|s| [&s._sums, &s.totals]).collect();
-        let scratch = size(&[&counts_a, &counts_b]) + size(&sums);
-        held.extend([counts_a, counts_b]);
+        let scratch = size(&[&counts]) + size(&sums);
+        held.push(counts);
         Ok(Self {
             caps,
             axes,
-            arena,
+            units,
+            phyts,
             lists,
             start,
             binds,
@@ -175,7 +178,7 @@ impl Run {
         for (from, to) in self
             .start
             .iter()
-            .zip([&self.axes, &self.arena, &self.lists])
+            .zip([&self.axes, &self.units, &self.phyts, &self.lists])
         {
             encoder.copy_buffer_to_buffer(from, 0, to, 0, from.size());
         }
@@ -213,12 +216,9 @@ pub(super) fn record_scans(pass: &io::Pass, encoder: &mut wgpu::CommandEncoder, 
 }
 
 /// A scan's pass over `n` records 4 words apart, its first `fields`.
-pub(super) fn scan(gpu: &Gpu, pass: &io::Pass, (data, n, fields): (&Owned, u32, u32), to: usize) -> Result<Scan> {
-    scan_strided(gpu, pass, (data, n, 4, fields), to)
-}
-
-/// A scan over `n` records `stride` words apart, their first `fields`.
-pub(super) fn scan_strided(gpu: &Gpu, pass: &io::Pass, (data, n, stride, fields): (&Owned, u32, u32, u32), to: usize) -> Result<Scan> {
+/// A scan over `n` records `stride` words apart from word `at` (a
+/// multiple of 64), their first `fields`.
+pub(super) fn scan_at(gpu: &Gpu, pass: &io::Pass, (data, at, n, stride, fields): (&Owned, u32, u32, u32, u32), to: usize) -> Result<Scan> {
     let blocks = n.div_ceil(256);
     let (groups, row) = row(gpu, n);
     let words = [n, stride, fields, blocks, row, 0, 0, 0];
@@ -231,7 +231,12 @@ pub(super) fn scan_strided(gpu: &Gpu, pass: &io::Pass, (data, n, stride, fields)
     )?;
     let sums = zeroed(gpu, "scan sums", u64::from(blocks.max(1)) * 4)?;
     let totals = zeroed(gpu, "scan totals", 4)?;
-    let bind = pass.bind(gpu, &[&cfg, data, &sums, &totals]);
+    fn slice(binding: u32, buffer: &wgpu::Buffer, offset: u64) -> wgpu::BindGroupEntry<'_> {
+        let size = std::num::NonZeroU64::new(buffer.size() - offset);
+        wgpu::BindGroupEntry { binding, resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding { buffer, offset, size }) }
+    }
+    let entries = [slice(0, &cfg, 0), slice(1, data, 4 * u64::from(at)), slice(2, &sums, 0), slice(3, &totals, 0)];
+    let bind = gpu.device.create_bind_group(&wgpu::BindGroupDescriptor { label: Some("cycle scan"), layout: &pass.layout, entries: &entries });
     Ok(Scan {
         bind,
         totals,
@@ -243,10 +248,15 @@ pub(super) fn scan_strided(gpu: &Gpu, pass: &io::Pass, (data, n, stride, fields)
     })
 }
 
+/// Where the counts' second records start for `n` invocations: a multiple
+/// of 64 words, so a scan binds them at 256 bytes.
+pub(super) fn b_at(n: u32) -> u32 {
+    (4 * n.max(1)).next_multiple_of(64)
+}
+
 /// The kernels' uniform (`arena.wgsl`'s `Cfg`) over `n` invocations,
 /// emitting or counting, in the units or the wake.
-fn config(gpu: &Gpu, cols: &Columns, caps: Caps, (n, emit, wake): (u32, u32, u32)) -> [u32; 32] {
-    let phyt_at = UNITS as u32 * caps.units;
+fn config(gpu: &Gpu, cols: &Columns, (caps, b_at): (Caps, u32), (n, emit, wake): (u32, u32, u32)) -> [u32; 32] {
     let sleep_at = TALLY as u32;
     let next_at = sleep_at + SLEEPERS as u32 * caps.sleepers;
     let woken_at = next_at + 2 * caps.next;
@@ -268,7 +278,7 @@ fn config(gpu: &Gpu, cols: &Columns, caps: Caps, (n, emit, wake): (u32, u32, u32
         caps.woken,
         cols.sleepers.max(1),
         cols.pencils,
-        phyt_at,
+        b_at,
         sleep_at,
         next_at,
         woken_at,
