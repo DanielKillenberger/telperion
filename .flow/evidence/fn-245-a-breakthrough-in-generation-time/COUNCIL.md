@@ -66,3 +66,10 @@ Chrome 154, RTX 3080, Linux (fn-257 probe, runs 1 and 2):
 - Chrome rejected what naga accepted: a NaN constant from `bitcast`, a barrier under a loop bound Tint calls non-uniform, and 17 storage buffers in one stage against 16.
 
 Host decisions: the cycle uses direct dispatches only, with host-known workgroup counts and in-shader guards; at most 16 storage buffers a stage (8 where cheap); Tint's constant and uniformity rules are design rules.
+
+## fn-256 task 2 rulings (host, 2026-10-12)
+
+- "Integers exact" means identity integers (lineage keys, canonical order, slot allocation, births, host-read counts). Decisions computed from floats may differ between executors within the lineage agreement tolerances (fn-254 R4 check 4); the device runs plain f32 arithmetic, with no exact mode (it cost 34% GPU time and a 96 s cold compile) and no subnormal emulation.
+- Cold compile of the whole cycle is a budget: under 2 s native with the disk cache off (the units module was 37.7 s), then measured in Chrome by the owner's probe.
+- Every float reduction, the settle's leaf mean included, is the canonical blocked reduction on both executors.
+- The device refuses trees of 2,048 cycles or more by name.
