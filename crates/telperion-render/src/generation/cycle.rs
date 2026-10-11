@@ -30,6 +30,7 @@ mod plan_lay;
 mod plan_scan;
 mod plan_units;
 mod settle_device;
+mod settle_place;
 mod settle_read;
 mod settle_run;
 mod state;
@@ -213,5 +214,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
     }
     out.push(("cycle settle", settle_device::source(Arith::Plain)));
     out.push(("cycle settle, exact", settle_device::source(Arith::Exact)));
+    out.push(("cycle settle place", settle_device::place_source(Arith::Plain)));
+    out.push(("cycle settle place, exact", settle_device::place_source(Arith::Exact)));
     out
 }

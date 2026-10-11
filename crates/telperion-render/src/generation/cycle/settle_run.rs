@@ -10,6 +10,7 @@ use super::hier_scan::{read_words, sums_words, uniform, widest, Scan};
 use super::settle_device::{self as d, Kernels, Layout, Table};
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
+use telperion_space::SettleTo;
 
 /// The uniform's words (`settle_cols.wgsl`'s `Cfg`).
 mod w {
@@ -45,6 +46,7 @@ pub(super) struct Settled {
     pub work: Owned,
     pub atom: Owned,
     pub nt: Owned,
+    pub pw: Owned,
     /// The kept depths' first final indices, and whether the tree
     /// collapsed.
     pub kept_starts: Vec<u32>,
@@ -103,7 +105,7 @@ impl Rec<'_> {
 }
 
 /// A buffer of `words` the settle writes, copies into and reads back.
-fn zeroed(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
+pub(super) fn zeroed(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::COPY_DST;
     super::super::io::buffer(gpu, label, words.max(4) * 4, usage, &[])
 }
@@ -114,9 +116,9 @@ enum Data {
     Atom,
 }
 
-/// The settle of the build `b` grew, each PA's constants `pa`
-/// (`grow_capture_settle_tables`).
-pub(super) fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), b: &Build, t: &Tables, pa: &[u32]) -> Result<Settled> {
+/// The settle of the build `b` grew, as far as `to`, each PA's constants
+/// `pa` (`grow_capture_settle_tables`).
+pub(super) fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Build, &Tables), (pa, to): (&[u32], SettleTo)) -> Result<Settled> {
     let h = b.held;
     let layout = Layout::new(h.axes, h.phyts, h.units, h.next.max(h.woken), t.pas);
     let flags = flags(pa);
@@ -156,7 +158,12 @@ pub(super) fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), b: &Build, t: &Table
     if !collapsed {
         order(&mut r, &layout, &table, &kept_starts)?;
     }
-    Ok(Settled { layout, table, work: r.work, atom: r.atom, nt: r.nt, kept_starts, collapsed, flags, stamped: r.stamped })
+    let pw = zeroed(gpu, "settle place", 4)?;
+    let mut s = Settled { layout, table, work: r.work, atom: r.atom, nt: r.nt, pw, kept_starts, collapsed, flags, stamped: r.stamped };
+    if !collapsed && to != SettleTo::Shed {
+        super::settle_place::thicken(gpu, k, b, t, &mut s)?;
+    }
+    Ok(s)
 }
 
 /// The first submission: the lists and the shape, each axis's depth,

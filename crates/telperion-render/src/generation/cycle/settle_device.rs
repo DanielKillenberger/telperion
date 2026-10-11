@@ -6,12 +6,16 @@ use super::super::io;
 use super::Arith;
 use crate::Gpu;
 
+const SHARED: &str = include_str!("settle_shared.wgsl");
 const COLS: &str = include_str!("settle_cols.wgsl");
 const TREE: &str = include_str!("settle_tree.wgsl");
 const ASSIGN: &str = include_str!("settle_assign.wgsl");
 const SWEEP: &str = include_str!("settle_sweep.wgsl");
 const ORDER: &str = include_str!("settle_order.wgsl");
 const COMPACT: &str = include_str!("settle_compact.wgsl");
+const STATE: &str = include_str!("settle_state.wgsl");
+const THICK: &str = include_str!("settle_thick.wgsl");
+const REAL: &str = include_str!("real.wgsl");
 
 /// The entries, by their place in `ENTRIES`.
 pub(super) const ENTRIES: [&str; 18] = [
@@ -67,7 +71,7 @@ pub(super) const WU_COLS: u32 = 3;
 pub(super) const WF_PSTART: u32 = 1;
 pub(super) const WF_USTART: u32 = 2;
 pub(super) const WF_SCAN: u32 = 5;
-pub(super) const WF_COLS: u32 = 6;
+pub(super) const WF_COLS: u32 = 7;
 pub(super) const WL_COLS: u32 = 7;
 /// Each PA's constants from work's word `K_AT`, sixteen a PA.
 pub(super) const K_AT: u32 = 64;
@@ -84,19 +88,49 @@ pub(super) const T_DFILL: u32 = T_DCOUNT + DMAX + 64;
 pub(super) const T_KDCOUNT: u32 = T_DFILL + DMAX;
 pub(super) const T_KCOUNT: u32 = T_KDCOUNT + DMAX;
 /// The node table's axis columns and phytomer columns.
-pub(super) const NA_COLS: u32 = 40;
-pub(super) const NP_COLS: u32 = 21;
+pub(super) const NA_COLS: u32 = 41;
+pub(super) const NP_COLS: u32 = 22;
+/// The place's columns per kept axis (`settle_state.wgsl`'s `Y_`), and
+/// its fault word in `atom`.
+pub(super) const Y_COLS: u32 = 56;
+pub(super) const T_PLACE: usize = 5;
 
-/// The settle's module, built under one arithmetic.
+/// The place module's entries.
+pub(super) const PLACE_ENTRIES: [&str; 3] = ["scale_main", "attach_main", "thick_main"];
+pub(super) const SCALE: usize = 0;
+pub(super) const ATTACH: usize = 1;
+pub(super) const THICK_E: usize = 2;
+
+/// The settle's modules, built under one arithmetic: the shed and order
+/// over the grown tree, and the place over the node table.
 pub(super) struct Kernels {
     pub pass: io::Pass,
+    pub place: io::Pass,
 }
 
 impl Kernels {
     pub(super) fn new(gpu: &Gpu, arith: Arith) -> Self {
         let reads = [true, true, true, false, false, false];
-        Self { pass: io::Pass::new(gpu, source(arith), &reads, &ENTRIES) }
+        let place = [true, true, false, false, false];
+        Self {
+            pass: io::Pass::new(gpu, source(arith), &reads, &ENTRIES),
+            place: io::Pass::new(gpu, place_source(arith), &place, &PLACE_ENTRIES),
+        }
     }
+}
+
+/// The place's WGSL: the contract and the marked root, the reals, the
+/// settle's words, the node table under the layout's names, the layout's
+/// vectors, angles and stand, then the place's passes.
+pub(super) fn place_source(arith: Arith) -> String {
+    format!(
+        "{}\n{}\n{REAL}\n{SHARED}\n{STATE}\n{}\n{}\n{}\n{THICK}",
+        super::super::fine::contract_with(arith.marks()),
+        arith.root(),
+        super::Q,
+        super::SINCOS,
+        super::LAY_STAND
+    )
 }
 
 /// The settle's WGSL: the contract, the reals, the software f64 (its
@@ -104,12 +138,11 @@ impl Kernels {
 /// and passes.
 pub(super) fn source(arith: Arith) -> String {
     const SOFT64: &str = include_str!("soft64.wgsl");
-    const REAL: &str = include_str!("real.wgsl");
     let start = SOFT64.find("fn mul32(").expect("soft64's word product");
     let end = start + SOFT64[start..].find("\n}\n").expect("its end") + 3;
     let soft = format!("{}{}", &SOFT64[..start], &SOFT64[end..]);
     format!(
-        "{}\n{REAL}\n{soft}\n{COLS}\n{TREE}\n{ASSIGN}\n{SWEEP}\n{ORDER}\n{COMPACT}",
+        "{}\n{REAL}\n{soft}\n{SHARED}\n{COLS}\n{TREE}\n{ASSIGN}\n{SWEEP}\n{ORDER}\n{COMPACT}",
         super::super::fine::contract_with(arith.marks())
     )
 }

@@ -25,6 +25,10 @@ const NA_USTART: u32 = 20u;
 const NA_PHYTS: u32 = 21u;
 const NA_PSTART: u32 = 22u;
 const NA_GROWN: u32 = 23u;
+// The f32s the lay reads of the f64s held (`as f32`): rank, blend, whorl.
+const NA_RANK32: u32 = 38u;
+const NA_BLEND32: u32 = 39u;
+const NA_WHORL32: u32 = 40u;
 // The phytomers' columns, `cfg.skp` rows apart from `cfg.at_np`.
 const NP_CYCLE: u32 = 0u;
 const NP_KEY: u32 = 1u;
@@ -33,6 +37,7 @@ const NP_SIZE: u32 = 5u;
 const NP_LIGHT: u32 = 7u;
 const NP_GROWN: u32 = 9u;
 const NP_SCALE: u32 = 10u;
+const NP_RANK32: u32 = 21u;
 
 fn set_na(c: u32, f: u32, v: u32) {
     nt[c * cfg.sk + f] = v;
@@ -90,6 +95,10 @@ fn compact_main(@builtin(global_invocation_id) id: vec3<u32>) {
     set_na(NA_END, f, ax(g, A_END));
     set_na64(NA_VIGOUR, f, f64_mul(real64(waf(W_VIG, g)), real64(waf(W_FADE, g))));
     set_na64(NA_BLEND, f, ax64(g, A_BLEND));
+    set_na(NA_BLEND32, f, bitcast<u32>(single(ax64(g, A_BLEND))));
+    if kind == LATERAL {
+        set_na(NA_WHORL32, f, bitcast<u32>(single(ax64(g, A_WHORL))));
+    }
     set_na(NA_ALIVE, f, wa(W_ALIVEQ, g));
     set_na(NA_SLEEP, f, ax(g, A_SLEEP));
     set_na(NA_PHASE, f, ax(g, A_PHASE));
@@ -115,6 +124,7 @@ fn compact_main(@builtin(global_invocation_id) id: vec3<u32>) {
         set_np(NP_CYCLE, at, phyt(row, P_CYCLE));
         set_np64(NP_KEY, at, vec2<u32>(phyt(row, P_KEY), phyt(row, P_KEY + 1u)));
         set_np64(NP_RANK, at, rank);
+        set_np(NP_RANK32, at, bitcast<u32>(single(rank)));
         set_np64(NP_SIZE, at, vec2<u32>(unit(r, U_SHADE), unit(r, U_SHADE + 1u)));
         set_np64(NP_LIGHT, at, vec2<u32>(unit(r, U_SHADE + 2u), unit(r, U_SHADE + 3u)));
         let scale = wp(WP_SCALE, ps + j);
@@ -124,4 +134,5 @@ fn compact_main(@builtin(global_invocation_id) id: vec3<u32>) {
         rank = f64_add(rank, f64_mul(node, real64(tick_q(unit(r, U_SIZE)))));
     }
     set_na64(NA_RANK, f, rank);
+    set_na(NA_RANK32, f, bitcast<u32>(single(rank)));
 }

@@ -11,6 +11,7 @@ use super::settle_device as d;
 use super::settle_run::Settled;
 use super::state::State;
 use crate::{Gpu, Result};
+use telperion_space::SettleTo;
 
 /// The values beside the tables.
 #[derive(Debug, Default, PartialEq)]
@@ -19,6 +20,8 @@ pub(super) struct Beside {
     pub leaf_mean: Vec<u64>,
     pub disused: Vec<u64>,
     pub error: Vec<u32>,
+    /// Each relay's join (`Axis::joined`), from the thickening on.
+    pub joined: Vec<u64>,
 }
 
 /// The axes' columns a step compares: name, the node table's column
@@ -75,8 +78,8 @@ fn owners(counts: &[u32]) -> Vec<u32> {
 }
 
 impl Settled {
-    /// The device's settled tree and what lies beside it.
-    pub(super) fn snapshot(&self, gpu: &Gpu, state: &State) -> Result<(Snapshot, Beside)> {
+    /// The device's settled tree as far as `to` and what lies beside it.
+    pub(super) fn snapshot(&self, gpu: &Gpu, state: &State, to: SettleTo) -> Result<(Snapshot, Beside)> {
         let mut beside = Beside { error: vec![u32::from(self.collapsed), u32::MAX], ..Beside::default() };
         if self.collapsed {
             return Ok((Snapshot::default(), beside));
@@ -110,6 +113,11 @@ impl Settled {
             s.phyts.fields.push(field(name, kind, words));
         }
         s.phyts.axis = owners(&col(21, Kind::U32));
+        if to != SettleTo::Shed {
+            let at = (t.at_np + 11 * t.skp) as usize;
+            s.phyts.fields.push(field("radius", Kind::F32, nt[at..at + p].to_vec()));
+            beside.joined = joins(&(33..38).map(|c| col(c, Kind::U32)).collect::<Vec<_>>());
+        }
         beside.index = read_words(gpu, &self.work, l.a(d::W_FINAL, 0), u64::from(l.n))?;
         let mean = read_words(gpu, &self.atom, d::T_LEAF as u64 + 2, 1)?[0];
         let has = self.flags & 3 == 3;
@@ -139,8 +147,21 @@ impl Settled {
     }
 }
 
-/// The CPU's settled tree from its capture, in the same columns.
-pub(super) fn cpu_settled(c: &Cap) -> (Snapshot, Beside) {
+/// Each axis's join as the capture holds it: whether it has one, its
+/// node, its share's bits, and its radii below and above as f64 bits.
+fn joins(cols: &[Vec<u32>]) -> Vec<u64> {
+    let real = |x: u32| f64::from(f32::from_bits(x)).to_bits();
+    (0..cols[0].len())
+        .flat_map(|f| match cols[0][f] {
+            0 => [0; 5],
+            _ => [1, u64::from(cols[1][f]), u64::from(cols[2][f]), real(cols[3][f]), real(cols[4][f])],
+        })
+        .collect()
+}
+
+/// The CPU's settled tree from its capture as far as `to`, in the same
+/// columns.
+pub(super) fn cpu_settled(c: &Cap, to: SettleTo) -> (Snapshot, Beside) {
     let error = c.u32s("s_error");
     let mut beside = Beside { error: error.clone(), ..Beside::default() };
     if error[0] != 0 {
@@ -166,6 +187,10 @@ pub(super) fn cpu_settled(c: &Cap) -> (Snapshot, Beside) {
         s.phyts.fields.push(Field { name: name.into(), kind, words: words(&format!("ph_{name}"), kind) });
     }
     s.phyts.axis = owners(&c.u32s("s_phyt_n"));
+    if to != SettleTo::Shed {
+        s.phyts.fields.push(Field { name: "radius".into(), kind: Kind::F64, words: words("ph_radius", Kind::F64) });
+        beside.joined = c.u64s("s_joined");
+    }
     beside.index = c.u32s("s_index");
     beside.leaf_mean = c.u64s("s_leaf_mean");
     beside.disused = c.u64s("s_disused");
@@ -178,4 +203,5 @@ pub(super) fn beside_agree(a: &mut super::compare::Agreement, dev: &Beside, cpu:
     a.eq("grown index", &dev.index, &cpu.index);
     a.eq("leaf mean", &dev.leaf_mean, &cpu.leaf_mean);
     a.eq("disused", &dev.disused, &cpu.disused);
+    a.eq("joined", &dev.joined, &cpu.joined);
 }

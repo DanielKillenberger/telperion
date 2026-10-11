@@ -260,7 +260,8 @@ fn keep_main(@builtin(global_invocation_id) id: vec3<u32>) {
         taken = 1.0 - fade;
     }
     if taken > 0.0 {
-        set_wa(W_DON, i, 1u);
+        // 1 at a lateral's node, 2 at the bearer's tip.
+        set_wa(W_DON, i, select(2u, 1u, kind == LATERAL));
         set_waf(W_DR, i, apart(waf(W_RADIUS, i) * above));
         set_waf(W_DS, i, apart(kpaf(pa, K_RETAINED) * taken));
     }

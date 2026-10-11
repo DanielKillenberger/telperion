@@ -101,4 +101,5 @@ fn place_main(@builtin(global_invocation_id) id: vec3<u32>) {
         set_wf(WF_KBI, first + n - 1u - a, at);
         a += 1u;
     }
+    set_wf(WF_KC, f, n);
 }
