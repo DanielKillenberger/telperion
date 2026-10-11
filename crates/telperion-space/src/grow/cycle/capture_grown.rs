@@ -51,7 +51,8 @@ pub fn grow_capture_grown_at(species: &Species, request: Request, cycle: u32) ->
 /// from a grower set up as `run` sets it up, before its first cycle: the
 /// units' (`capture_tables`), the layout's form and globals, each PA's
 /// balance and allotment constants (upkeep, balance hazard, tolerance,
-/// apical control, ψ), and the light's directions and extinction.
+/// apical control, ψ), the light's directions and extinction, and the
+/// settle's and retirement's per-PA constants (`settle_pa`).
 pub fn grow_capture_tables(species: &Species, request: Request) -> Result<Capture> {
     let (mut g, _) = start(species, request, true, Options::default())?;
     (g.one, g.rules.one) = (true, true);
@@ -68,6 +69,7 @@ pub fn grow_capture_tables(species: &Species, request: Request) -> Result<Captur
         .collect();
     c.f32s("hier_pa", &pa);
     g.capture_light_inputs(&mut c);
+    c.u32s("settle_pa", &super::capture_settled::settle_rows(species));
     Ok(c)
 }
 

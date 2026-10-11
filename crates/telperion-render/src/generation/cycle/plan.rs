@@ -34,6 +34,7 @@ pub(super) enum PassId {
     HierScan,
     Light,
     Glue,
+    Retire,
 }
 
 #[derive(Debug, Clone, Copy)]

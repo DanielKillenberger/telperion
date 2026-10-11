@@ -27,9 +27,11 @@ mod light_device;
 mod light_program;
 mod plan;
 mod plan_hier;
+mod plan_retire;
 mod plan_lay;
 mod plan_scan;
 mod plan_units;
+mod retire_device;
 mod settle_device;
 mod settle_place;
 mod settle_read;
@@ -53,6 +55,8 @@ mod hier_tests;
 mod lay_math_tests;
 #[cfg(test)]
 mod light_tests;
+#[cfg(test)]
+mod retire_tests;
 #[cfg(test)]
 mod settle_det_tests;
 #[cfg(test)]
@@ -227,5 +231,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
     out.push(("cycle settle, exact", settle_device::source(Arith::Exact)));
     out.push(("cycle settle place", settle_device::place_source(Arith::Plain)));
     out.push(("cycle settle place, exact", settle_device::place_source(Arith::Exact)));
+    out.push(("cycle retirement", retire_device::source(Arith::Plain)));
+    out.push(("cycle retirement, exact", retire_device::source(Arith::Exact)));
     out
 }

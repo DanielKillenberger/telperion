@@ -147,6 +147,9 @@ impl Build {
         b.phase = "balance and allotment";
         for (parity, phase) in hier.iter_mut().enumerate() {
             self.plan_step(&mut b, kit, bounds.hier, parity);
+            b.phase = "retirement";
+            self.plan_retire(&mut b, kit, t, bounds.hier, 1 - parity);
+            b.phase = "balance and allotment";
             self.plan_sums(&mut b, kit, t, bounds.hier, 1 - parity);
             *phase = b.take();
         }

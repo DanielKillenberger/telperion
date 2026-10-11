@@ -226,6 +226,12 @@ fn ticks(t: f64) -> u32 {
 /// dominance, its sag's log2, eight words a PA.
 pub fn grow_capture_settle_tables(species: &Species) -> Capture {
     let mut c = Capture { arrays: Vec::new() };
+    c.u32s("settle_pa", &settle_rows(species));
+    c
+}
+
+/// `grow_capture_settle_tables`'s rows.
+pub(super) fn settle_rows(species: &Species) -> Vec<u32> {
     let mut rows = Vec::new();
     for (pa, s) in species.states.iter().enumerate() {
         let life = (grid(s.life()) * crate::contract::CYCLE).min(f64::from(u32::MAX)) as u32;
@@ -248,8 +254,7 @@ pub fn grow_capture_settle_tables(species: &Species) -> Capture {
         let sag = if f.sag > 0.0 { f.sag.log2_fixed() as f32 } else { 0.0 };
         rows.extend([f.secondary as f32, f.dominance as f32, sag, 0.0].map(f32::to_bits));
     }
-    c.u32s("settle_pa", &rows);
-    c
+    rows
 }
 
 /// Sag's turn (`sag::turn`) of a phytomer `radius` thick and `length`
@@ -268,4 +273,29 @@ pub fn grow_cycle_is_the_reference(species: &Species, request: Request) -> Resul
     let retired = cycled.census.map_or(0, |c| c.retired);
     let reference = super::run(species, request, false, Working::reference())?;
     Ok((cycled.structure == reference.structure, retired))
+}
+
+/// Every retirement verdict `grow_cycle` takes, in its order
+/// (`r_log`: the subtree's root, the cycle, waited 0, kept 1 or retired
+/// 2, its living's lived and alive bits), and the phytomers each cycle
+/// ends holding (`r_held`): what the device's retirement is held to.
+pub fn grow_capture_retired(species: &Species, request: Request) -> Result<Capture> {
+    let (mut g, _) = start(species, request, true, Options::default())?;
+    (g.one, g.rules.one) = (true, true);
+    g.working = Some(Box::default());
+    g.sketch.get_or_insert_with(|| Sketch::new(request.light));
+    g.rules.lasting = vec![None; species.states.len()].into();
+    let (mut advanced, mut held) = (Vec::new(), Vec::new());
+    for c in 1..=request.age {
+        g.year(c, c < request.age, &mut advanced, &mut |_| {})?;
+        held.push(g.axes.iter().map(|a| a.phytomers.len() as u32).sum::<u32>());
+    }
+    let mut c = Capture { arrays: Vec::new() };
+    let log = &g.working.as_ref().expect("a working set").retirement().log;
+    let words: Vec<u32> = (log.iter())
+        .flat_map(|&(root, cycle, kind, l)| [root as u32, cycle, u32::from(kind), l.lived.to_bits(), l.alive.to_bits()])
+        .collect();
+    c.u32s("r_log", &words);
+    c.u32s("r_held", &held);
+    Ok(c)
 }

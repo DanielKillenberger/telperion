@@ -97,6 +97,7 @@ impl Build {
         let (s, axes) = (n.axes, o.axes != n.axes);
         let state = self.state.moved(gpu, &mut e, n)?;
         let hier = self.hier.moved(gpu, &mut e, s)?;
+        let retire = self.retire.moved(gpu, &mut e, s)?;
         gpu.submit([e.finish()]);
         let live = axes || o.next != n.next;
         let lit = (now.points, now.tips, now.nodes) != (next.points, next.tips, next.nodes);
@@ -123,6 +124,7 @@ impl Build {
             scan_tally: self.scan_tally,
             state,
             hier,
+            retire,
             light,
             held: self.held,
             laid: self.laid,

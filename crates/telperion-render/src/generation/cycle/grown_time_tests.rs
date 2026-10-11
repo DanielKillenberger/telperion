@@ -45,7 +45,10 @@ fn compiled(gpu: &Gpu, arith: Arith) -> Kit {
     let s = Instant::now();
     let (glue, vm) = (glue::Kernels::new(gpu), vm::Kernels::new(gpu));
     timed("glue and sizing", s);
-    Kit { units, layout, hier, light, glue, vm }
+    let s = Instant::now();
+    let retire = super::retire_device::Kernels::new(gpu, arith);
+    timed("retirement", s);
+    Kit { units, layout, hier, light, glue, vm, retire }
 }
 
 /// One preset's build: sized from the least, then built again at those

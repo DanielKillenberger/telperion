@@ -33,6 +33,7 @@ pub(super) struct Kit {
     pub light: light_device::Kernels,
     pub glue: glue::Kernels,
     pub vm: vm::Kernels,
+    pub retire: super::retire_device::Kernels,
 }
 
 impl Kit {
@@ -44,6 +45,7 @@ impl Kit {
             light: light_device::Kernels::new(gpu, arith),
             glue: glue::Kernels::new(gpu),
             vm: vm::Kernels::new(gpu),
+            retire: super::retire_device::Kernels::new(gpu, arith),
         }
     }
 
@@ -56,6 +58,7 @@ impl Kit {
             PassId::HierScan => &self.hier.scan,
             PassId::Light => &self.light.pass,
             PassId::Glue => &self.glue.pass,
+            PassId::Retire => &self.retire.pass,
         }
     }
 }
@@ -71,6 +74,8 @@ pub(super) struct Tables {
     pub rows: u32,
     pub whorls: u32,
     pub pas: u32,
+    /// Each PA's settle and retirement constants (`settle_pa`).
+    pub settle_pa: Vec<u32>,
     pub table: Owned,
     pub words: Owned,
     pub form: Vec<f32>,
@@ -99,6 +104,7 @@ impl Tables {
             rows,
             whorls,
             pas,
+            settle_pa: cap.u32s("settle_pa"),
             table: upload("cycle table", bytemuck::cast_slice(&table))?,
             words: upload("cycle words", bytemuck::cast_slice(&words))?,
             form,
@@ -131,6 +137,8 @@ pub(super) struct Build {
     pub tree: Owned,
     pub light: Light,
     pub layout: Layout,
+    /// Retirement's columns and verdicts (DESIGN.md section 6).
+    pub retire: super::retire_device::Retire,
     /// The units' inputs and counts, the glue's flags, a spare binding,
     /// and the grown axes' scan's total and sums.
     pub inputs: Owned,
@@ -159,6 +167,7 @@ impl Build {
             tree: zeroed(gpu, "cycle tree", u64::from(super::hier_columns::TREE as u32 * s))?,
             light,
             layout: Layout::new(gpu, &t.form, s)?,
+            retire: super::retire_device::Retire::new(gpu, s, &t.settle_pa)?,
             inputs: zeroed(gpu, "cycle inputs", 2 * u64::from(caps.next) + 6 * u64::from(s))?,
             counts: zeroed(gpu, "cycle counts", 2 * u64::from(device::b_at(caps.next.max(caps.sleepers))))?,
             flags: zeroed(gpu, "cycle flags", 2 * u64::from(s))?,
@@ -220,7 +229,7 @@ impl Build {
     pub(super) fn bytes(&self, t: &Tables) -> (u64, u64) {
         let size = |b: &[&Owned]| b.iter().map(|b| b.size()).sum::<u64>();
         let h = &self.hier;
-        let resident = self.state.bytes() + size(&[&h.shape, &h.counts, &h.lists[0], &h.lists[1], &h.tally, &t.table, &t.words]);
+        let resident = self.state.bytes() + self.retire.bytes() + size(&[&h.shape, &h.counts, &h.lists[0], &h.lists[1], &h.tally, &t.table, &t.words]);
         let m = &self.sums;
         let mut scratch = size(&[&h.bucket, &h.sums, &m.sums, &m.live, &m.norm, &m.tally, &m.rows, &m.scan_sums, &self.tree]);
         scratch += size(&[&self.inputs, &self.counts, &self.flags, &self.spare, &self.scan_tally, &self.scan_sums]);

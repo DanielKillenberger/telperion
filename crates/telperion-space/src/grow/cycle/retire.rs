@@ -55,6 +55,10 @@ pub(in crate::grow) struct Retirement {
     seen: usize,
     /// Closed subtrees waiting on a woken bud's kept share.
     pending: Vec<usize>,
+    /// Every verdict in the order taken: the subtree's root, the cycle,
+    /// waited (0), kept (1) or retired (2), and its living (none where it
+    /// waited), for the device's retirement to be held to (fn-256).
+    pub log: Vec<(usize, u32, u8, Living)>,
 }
 
 impl Retirement {
@@ -135,6 +139,12 @@ impl Grower<'_> {
         let wr = &w;
         let verdicts = crate::cores::map(todo.clone(), 16, self.threads, &|_, c| evaluate(&tree, wr, c));
         for (c, verdict) in todo.into_iter().zip(verdicts) {
+            let logged = match &verdict {
+                Verdict::Wait => (0, Living::default()),
+                Verdict::Kept(l) => (1, *l),
+                Verdict::Retired(l, _) => (2, *l),
+            };
+            w.retire.log.push((c, cycle, logged.0, logged.1));
             match verdict {
                 Verdict::Wait => w.retire.pending.push(c),
                 Verdict::Kept(living) => w.retire.fate[c] = Fate::Kept(living),
