@@ -149,7 +149,7 @@ fn sleep(zat: u32, node_key: vec2<u32>, s: u32, node: u32, rec: u32, cycle: u32,
         if pa == 0xffu {
             continue;
         }
-        let years = wake_ticks(words[waking], fw(waking + 1u), draw(child(key, KEY_DORMANT)));
+        let years = wake_ticks_held(words[waking], fw(waking + 1u), draw(child(key, KEY_DORMANT)));
         if !lt64(years, shl64(w(cfg.age - cycle, 0u), 20u)) {
             continue;
         }

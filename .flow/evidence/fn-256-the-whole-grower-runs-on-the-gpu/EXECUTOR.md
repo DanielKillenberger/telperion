@@ -144,7 +144,34 @@ Plain build, retirement on, laid tree at each preset's default age, seed 42. It 
 | laurelin 80 | 350,255 | 839,538 | 3,534,309 |
 | telperion 82 | 373,607 | 896,091 | 3,773,761 |
 
-**Integer fields: all equal on matched axes except `sleep`.** That holds for kind, parent, node, whorl, lineage, PA, birth, apex end, unit and phytomer counts, and each phytomer's cycle and key. `sleep` is a tick count (2^-20 cycle) quantised from a float. It differs on 1 axis on the beech, 261 on the oak at 40, 177 on the spruce, 24 on the birch, 12 on the ordinary, and 2 each on Laurelin and Telperion; the palm has none.
+**Integer fields: all equal on matched axes except `sleep`.** That holds for kind, parent, node, whorl, lineage, PA, birth, apex end, unit and phytomer counts, and each phytomer's cycle and key. `sleep` is a tick count (2^-20 cycle) quantised from a float. It differs on 1 axis on the beech, 261 on the oak at 40, 177 on the spruce, 24 on the birch, 12 on the ordinary, and 2 each on Laurelin and Telperion; the palm has none. 
+
+**After the held sites (2026-10-12, DESIGN.md section 8).** The wake's ticks, a failed unit's lived ticks and its part below a tick, the shade, and the survival and abortion thresholds are now held to the CPU's order in both arithmetics (`cycle/held.rs`). Rerun one preset a process:
+
+| Preset | `sleep` differs, before → after |
+|---|--:|
+| Beech | 1 → 0 |
+| Oak at 40 | 261 → 249 |
+| Birch | 24 → 0 |
+| Ordinary | 12 → 2 |
+| Palm | 0 → 0 |
+| Spruce | not rerun |
+| Laurelin | not rerun |
+| Telperion | not rerun |
+
+The spruce, Laurelin and Telperion could not be rerun: the GPU ran out of memory with a game holding 6.2 GiB.
+
+**Where the oak's differences come from.** All 249 are relays (kind 3) of PA 9, off by 1 or 2 ticks. They are not held sites. Swapping single modules to exact while the rest stay plain gives:
+
+| Modules exact | `sleep` differs |
+|---|--:|
+| Units alone | 228 |
+| Light, hierarchy and layout | 193 |
+| Units and hierarchy | 240 |
+| Units and light | 236 |
+| Units, light, hierarchy and layout | 0 |
+
+So the relay's lived ticks are floored from the shaded viability, whose light and sizes are plain geometry floats. That is the float input, not the operation, so it lies outside the rule's narrow reading. Holding it means building the growth's light, layout and hierarchy exact: open, for the host.
 
 **Float fields.** Below are the absolute differences, max and p99, over matched rows (tips and positions in metres; scale and radius in their own units). The relative differences are in the raw files. For coordinates and unit-vector components near zero the relative figure runs to 1 or 2 and says nothing, so read the absolute column there.
 

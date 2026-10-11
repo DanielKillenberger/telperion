@@ -95,14 +95,16 @@ fn young_trees_grow_on_the_device_as_on_the_cpu() {
 
 /// Built plain (`Arith::Plain`, COUNCIL.md's tolerance standard), the
 /// same trees: the first cycle and field where each parts from the CPU's,
-/// and at its age the agreement by lineage. Reported, not bounded: only
-/// that every build completes is held.
+/// and at its age the agreement by lineage. Floats are reported; every
+/// axis is matched and every integer field of the matched rows equals
+/// the CPU's (DESIGN.md section 8).
 #[test]
 fn young_trees_built_plain_are_reported() {
     let _held = super::super::whole_tree();
     let Some((gpu, kit)) = device(Arith::Plain) else {
         return;
     };
+    let mut parted = Vec::new();
     for (preset, name, age) in YOUNG {
         let g = grown(preset, age, 42);
         let last = telperion_space::grow_capture_grown(&g.species, g.request).expect("the CPU's tree");
@@ -125,6 +127,14 @@ fn young_trees_built_plain_are_reported() {
         let cpu = cpu_snapshot(&Cap(&last));
         println!("{name} {age}: first parts at {}", first.as_deref().unwrap_or("none"));
         println!("{name} {age}: an integer first parts at {}", whole.as_deref().unwrap_or("none"));
-        println!("{}", by_lineage(&dev, &cpu).report());
+        let matched = by_lineage(&dev, &cpu);
+        println!("{}", matched.report());
+        let ints = super::grown::integer_fields(&dev);
+        let apart = matched.fields.iter().filter(|m| m.differ > 0 && ints.contains(&m.name)).map(|m| m.name.clone());
+        parted.extend(apart.map(|f| format!("{name}: {f}")));
+        if matched.unmatched != (0, 0) {
+            parted.push(format!("{name}: unmatched axes {:?}", matched.unmatched));
+        }
     }
+    assert!(parted.is_empty(), "integers apart from the CPU's: {parted:?}");
 }

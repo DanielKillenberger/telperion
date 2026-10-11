@@ -47,7 +47,7 @@ fn shaded(v: f32, phi: f32, light: f32) -> f32 {
         return select(0.0, v, v >= 1.0);
     }
     if phi > 0.0 && light < 1.0 {
-        return exp2c(log2c(v) * exp2c(-phi * log2c(light)));
+        return exp2c_held(log2c_held(v) * exp2c_held(-phi * log2c_held(light)));
     }
     return v;
 }
@@ -58,7 +58,7 @@ fn survival32(p: f32, share: i32, rest: u32) -> vec2<u32> {
     if share >= i32(TICKS) {
         return threshold(p);
     }
-    return survival_fine(neg_log2(p), add64(shl64(w(ticks_of(share), 0u), 12u), w(rest, 0u)));
+    return survival_fine_held(neg_log2_held(p), add64(shl64(w(ticks_of(share), 0u), 12u), w(rest, 0u)));
 }
 
 // D6 (`decide::abortion`): after a unit that ends `grown` ticks of its
@@ -72,7 +72,7 @@ fn abortion(pa: u32, grown: u32, exposure: vec2<u32>) -> vec2<u32> {
     if !rises && !lt64(exposure, w(0u, 1u)) {
         return prow(pa, R_ABORT);
     }
-    return abortion_fine(prow_f(pa, R_ABORT_L), rises, prow_f(pa, R_RISE), w(grown, 0u), exposure);
+    return abortion_fine_held(prow_f(pa, R_ABORT_L), rises, prow_f(pa, R_RISE), w(grown, 0u), exposure);
 }
 
 // The presence of the relay of a stop decided by `key`, under threshold
@@ -228,10 +228,10 @@ fn advance(apex_in: Apex, cycle: u32) -> Op {
     var survive = 0.0;
     if dies {
         let r = relayed(t_failed, decide, window_whole(pa, cycle, u32(st.used)));
-        let l = neg_log2(v);
+        let l = neg_log2_held(v);
         let unit_share = min64(w(share, 0u), w(TICKS, 0u));
-        let lived = lived_ticks(l, unit_share, d).x;
-        let lived_below = sub64(shl64(w(lived, 0u), 12u), lived_fine(l, unit_share, d)).x;
+        let lived = lived_ticks_held(l, unit_share, d).x;
+        let lived_below = sub64(shl64(w(lived, 0u), 12u), lived_fine_held(l, unit_share, d)).x;
         let grown = fr(s, A_AGED) + fr(s, A_GROWN) + lived;
         let next = step(apex.spent, gone, whole, life(pa), 2u).share;
         var aborts = vec2<u32>(0u);

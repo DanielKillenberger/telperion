@@ -12,6 +12,7 @@ mod columns;
 mod compare;
 mod device;
 mod gate;
+mod held;
 mod given;
 mod glue;
 mod grown;
@@ -126,7 +127,8 @@ pub(super) enum Arith {
 }
 
 const ARITH: &str = include_str!("fine/arith.wgsl");
-const EXACT: &str = include_str!("cycle/exact.wgsl");
+const HELD: &str = include_str!("cycle/held.wgsl");
+const EXACT: &str = concat!(include_str!("cycle/held.wgsl"), "\n", include_str!("cycle/exact.wgsl"));
 const EXACT_SQRT: &str = include_str!("cycle/exact_sqrt.wgsl");
 const PLAIN_SQRT: &str = "fn exact_sqrt(x: f32) -> f32 {\n    return sqrt(x);\n}\n";
 
@@ -149,12 +151,15 @@ impl Arith {
 }
 
 /// The units' and the wake's WGSL: the contract and the zones
-/// (`fine::zones`), then the cycle's state, its reals, an invocation's
+/// (`fine::zones`), the held arithmetic and the contract's held copies
+/// (`held.rs`), then the cycle's state, its reals, an invocation's
 /// frames, the advance, the stops, the unit, and the entries.
 pub(super) fn source(arith: Arith) -> String {
     format!(
-        "{}\n{ARENA}\n{REAL}\n{FRAME}\n{ADVANCE}\n{STOP}\n{GROW}\n{UNITS}\n{WAKE}",
-        super::fine::zones_with(arith.marks())
+        "{}\n{}\n{}\n{ARENA}\n{REAL}\n{FRAME}\n{ADVANCE}\n{STOP}\n{GROW}\n{UNITS}\n{WAKE}",
+        super::fine::zones_with(arith.marks()),
+        if arith == Arith::Plain { HELD } else { "" },
+        held::source()
     )
 }
 
