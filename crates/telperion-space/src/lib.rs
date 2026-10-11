@@ -70,7 +70,7 @@ pub use grow::partition::{
 };
 pub use grow::stepped::{grow_build, grow_stepped, Stepped};
 pub use grow::subtree::Measured;
-pub use grow::cycle::{grow_census, grow_cycle, Census, Cycle, Cycled, Deposit};
+pub use grow::cycle::{grow_census, grow_cycle, Census, Cycle, Cycled};
 pub use grow::{apart, grow, grow_marked, sketch, Pass, Request, Stage};
 pub use light::{bud_light, field_reads, Light};
 pub use lineage::{internode_factor, join_key};

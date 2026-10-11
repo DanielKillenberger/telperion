@@ -17,7 +17,7 @@ fn request(age: u32, seed: u64, extinction: f64) -> Request {
 /// The one cycle with every axis open and none retired: the reference
 /// its working set and its retirement are held to.
 fn reference(species: &Species, r: Request) -> Structure {
-    run(species, r, Deposit::Quantised, None, Working::reference()).unwrap().structure
+    run(species, r, false, Working::reference()).unwrap().structure
 }
 
 /// The working set's frozen subtrees and the subtrees retired as the tree
@@ -29,7 +29,7 @@ fn reference(species: &Species, r: Request) -> Structure {
 fn the_working_set_and_retirement_leave_the_tree_as_it_was() {
     for (species, k) in [(crate::oak(), 0.5), (crate::spruce(), 0.0), (crate::beech(), 0.0)] {
         let r = request(40, 7, k);
-        let cycled = grow_census(&species, r, Deposit::Quantised, false).unwrap();
+        let cycled = grow_census(&species, r).unwrap();
         let retired = cycled.census.expect("a census").retired;
         assert!(retired > 100, "{retired} retired");
         assert!(cycled.structure == reference(&species, r), "{retired} retired");
@@ -38,22 +38,20 @@ fn the_working_set_and_retirement_leave_the_tree_as_it_was() {
 
 /// At zero and arbitrarily near zero the same code runs: the tree at no
 /// extinction is the tree at 1e-30, and with no response to shade the
-/// tree with 1e-30 of it, on either deposit.
+/// tree with 1e-30 of it.
 #[test]
 fn zero_and_near_zero_grow_the_same_tree() {
     let species = crate::oak();
-    for deposit in [Deposit::F32, Deposit::Quantised] {
-        let tree = |s: &Species, k: f64| grow_cycle(s, request(16, 3, k), deposit).unwrap().structure;
-        assert!(tree(&species, 0.0) == tree(&species, 1e-30), "{deposit:?}: extinction");
-        let response = |v: f64| {
-            let mut s = species.clone();
-            for state in &mut s.states {
-                (state.shade_hazard, state.shade_size, state.balance_hazard) = (v, v, v);
-            }
-            s
-        };
-        assert!(tree(&response(0.0), 0.5) == tree(&response(1e-30), 0.5), "{deposit:?}: response");
-    }
+    let tree = |s: &Species, k: f64| grow_cycle(s, request(16, 3, k)).unwrap().structure;
+    assert!(tree(&species, 0.0) == tree(&species, 1e-30), "extinction");
+    let response = |v: f64| {
+        let mut s = species.clone();
+        for state in &mut s.states {
+            (state.shade_hazard, state.shade_size, state.balance_hazard) = (v, v, v);
+        }
+        s
+    };
+    assert!(tree(&response(0.0), 0.5) == tree(&response(1e-30), 0.5), "response");
 }
 
 /// The quantised deposit is the same lattice in any order of the leaves,
@@ -101,7 +99,7 @@ fn agreement_with_todays_tree() {
         for (age, seed) in [(24, 7), (40, 1)] {
             let r = request(age, seed, k);
             let today = crate::grow::whole(&species, r).unwrap();
-            let cycled = grow_cycle(&species, r, Deposit::Quantised).unwrap();
+            let cycled = grow_cycle(&species, r).unwrap();
             let a = crate::agree::agreement(&today, &cycled.structure);
             eprintln!("AGREE {name} {age} {seed}: {a:?}");
         }

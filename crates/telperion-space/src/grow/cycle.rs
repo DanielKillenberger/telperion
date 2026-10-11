@@ -3,12 +3,9 @@
 //! every light: the rough layout and the light read, the balance and the
 //! allotment, each zero setting a neutral term in them, never another way
 //! of building. Light is the lattice for every species (COUNCIL.md,
-//! 2026-10-11); its deposit is today's f32 sum or the quantised integer
-//! one COUNCIL.md's early test 2 measures. Allocation is
-//! `allocation::sizes` throughout (R2).
-//!
-//! An experiment behind its own entry point until the council's early
-//! tests decide the next step: `grow` never builds one.
+//! 2026-10-11), its leaves deposited as integer quanta (`Field::quantised`,
+//! the host's adoption of early test 2). Allocation is `allocation::sizes`
+//! throughout (R2). `grow` builds every tree through it (R3b).
 mod census;
 mod passes;
 mod retire;
@@ -24,16 +21,6 @@ use crate::light::Field;
 use crate::species::Species;
 use crate::structure::{Structure, Vec3};
 
-/// How the cycle's leaves are deposited on the lattice.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum Deposit {
-    /// Today's: each corner's f32 weighted area summed in the leaves' order.
-    #[default]
-    F32,
-    /// Integer quanta of 2^-20 m², a u32 a node, overflow refused by name.
-    Quantised,
-}
-
 /// A tree grown through the one cycle: the tree, the phytomers grown for
 /// it (the shed ones included), the seconds the build and its light took,
 /// and the census, where one was taken.
@@ -45,17 +32,15 @@ pub struct Cycled {
     pub census: Option<Census>,
 }
 
-/// Grows `species` through the one cycle, its leaves deposited by
-/// `deposit`.
-pub fn grow_cycle(species: &Species, request: Request, deposit: Deposit) -> Result<Cycled> {
-    run(species, request, deposit, None, Working::default())
+/// Grows `species` through the one cycle.
+pub fn grow_cycle(species: &Species, request: Request) -> Result<Cycled> {
+    run(species, request, false, Working::default())
 }
 
-/// `grow_cycle`, with its census taken (COUNCIL.md's early tests 1 and 2):
-/// each cycle's records, lattice and phase seconds, and, with `beside`,
-/// the other deposit read beside the one growth uses.
-pub fn grow_census(species: &Species, request: Request, deposit: Deposit, beside: bool) -> Result<Cycled> {
-    run(species, request, deposit, Some(beside), Working::default())
+/// `grow_cycle`, with its census taken (COUNCIL.md's early test 1): each
+/// cycle's records, lattice and phase seconds.
+pub fn grow_census(species: &Species, request: Request) -> Result<Cycled> {
+    run(species, request, true, Working::default())
 }
 
 /// The one cycle, its working set as `working` begins it (the tests'
@@ -63,19 +48,18 @@ pub fn grow_census(species: &Species, request: Request, deposit: Deposit, beside
 fn run(
     species: &Species,
     request: Request,
-    deposit: Deposit,
-    census: Option<bool>,
+    census: bool,
     working: Working,
 ) -> Result<Cycled> {
     let started = crate::clock::seconds();
     let (mut g, keeps) = start(species, request, true, Options::default())?;
-    (g.one, g.deposit, g.rules.one) = (true, deposit, true);
+    (g.one, g.rules.one) = (true, true);
     g.working = Some(Box::new(working));
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));
     // Every lateral is grown: while it lives its leaves shade.
     g.rules.lasting = vec![None; species.states.len()].into();
-    if let Some(beside) = census {
-        g.census = Some(Box::new(Census::new(beside)));
+    if census {
+        g.census = Some(Box::default());
     }
     let (mut advanced, mut phases) = (Vec::new(), Phases::new());
     let mut clock = crate::clock::seconds();
@@ -118,40 +102,18 @@ fn tick(phases: &mut Phases, clock: &mut f64, stage: Stage) {
 
 impl Grower<'_> {
     /// The light at each of `tips` from the cycle's leaves on the lattice,
-    /// deposited by the grower's deposit; with a census, the lattice
-    /// recorded and the other deposit read beside.
+    /// deposited as integer quanta; with a census, the lattice recorded.
     pub(super) fn read_light(&mut self, tips: &[Vec3]) -> Result<Vec<f64>> {
         let started = crate::clock::seconds();
-        let field = self.field(self.deposit, tips)?;
-        let read = self.sample(&field, tips);
-        self.light_seconds += crate::clock::seconds() - started;
-        if let Some(mut census) = self.census.take() {
-            let other = match self.deposit {
-                Deposit::F32 => Deposit::Quantised,
-                Deposit::Quantised => Deposit::F32,
-            };
-            let beside = match census.beside {
-                true => self.sample(&self.field(other, tips)?, tips),
-                false => read.clone(),
-            };
-            census.lattice(&field, self.leaves.len(), &read, &beside);
-            self.census = Some(census);
-        }
-        Ok(read)
-    }
-
-    fn field(&self, deposit: Deposit, tips: &[Vec3]) -> Result<Field> {
         let light = self.sketch.as_ref().expect("sketching").light;
-        match deposit {
-            Deposit::F32 => Ok(Field::on(&light, &self.leaves, tips, self.threads)),
-            Deposit::Quantised => Field::quantised(&light, &self.leaves, tips, self.threads),
-        }
-    }
-
-    fn sample(&self, field: &Field, tips: &[Vec3]) -> Vec<f64> {
+        let field = Field::quantised(&light, &self.leaves, tips, self.threads)?;
         let mut read = vec![0.0; tips.len()];
         crate::cores::fill(&mut read, 1 << 10, self.threads, &|k| field.at(tips[k]));
-        read
+        self.light_seconds += crate::clock::seconds() - started;
+        if let Some(census) = self.census.as_mut() {
+            census.lattice(&field, self.leaves.len());
+        }
+        Ok(read)
     }
 
     /// The census's records at the end of `cycle`.

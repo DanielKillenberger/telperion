@@ -161,7 +161,6 @@ pub(super) fn start<'a>(
         handed: Vec::new(),
         spare: Default::default(),
         one: false,
-        deposit: super::cycle::Deposit::F32,
         light_seconds: 0.0,
         census: None,
         working: None,

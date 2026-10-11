@@ -372,9 +372,8 @@ struct Grower<'a> {
     /// The lists a cycle's share fills, kept for the next.
     spare: shoot::Spare,
     /// fn-255's one cycle: every phase run for every species (`cycle.rs`),
-    /// its leaves' deposit, the seconds the light took, and its census.
+    /// the seconds the light took, and its census.
     one: bool,
-    deposit: cycle::Deposit,
     light_seconds: f64,
     census: Option<Box<cycle::Census>>,
     working: Option<Box<cycle::Working>>,
@@ -450,7 +449,6 @@ impl<'a> Grower<'a> {
             couple: None,
             fine: None,
             one: false,
-            deposit: cycle::Deposit::F32,
             light_seconds: 0.0,
             census: None,
             working: None,

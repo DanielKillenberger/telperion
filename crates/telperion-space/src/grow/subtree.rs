@@ -206,7 +206,6 @@ impl<'a> Grower<'a> {
             couple: None,
             fine: None,
             one: false,
-            deposit: super::cycle::Deposit::F32,
             light_seconds: 0.0,
             census: None,
             working: None,

@@ -1,7 +1,6 @@
 //! COUNCIL.md's early tests 1 and 2 on the one cycle: what each cycle
 //! holds (active apexes against the axes and phytomers kept as history),
-//! the lattice it deposits (its box and the nodes a leaf reached), how far
-//! the other deposit's light lies from the one growth reads, every
+//! the lattice it deposits (its box and the nodes a leaf reached), every
 //! stage's seconds, and the shape of the grown hierarchy (each axis's
 //! ancestors and attachments).
 use super::super::Apex;
@@ -24,15 +23,13 @@ pub struct Census {
     /// over the axes that bear any: p50, p99 and most; and the grown axes.
     pub attachments: [u32; 3],
     pub axes: usize,
-    /// Whether the other deposit is read beside the one growth uses.
-    pub beside: bool,
     /// The subtrees retired as the tree grew.
     pub retired: usize,
     depth: Vec<u32>,
     lattice: Option<Cycle>,
 }
 
-/// One cycle's records, lattice and the deposits' difference.
+/// One cycle's records and lattice.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Cycle {
     pub cycle: u32,
@@ -43,37 +40,18 @@ pub struct Cycle {
     pub size: [u32; 3],
     pub nodes: usize,
     pub occupied: usize,
-    /// Buds read, the largest and summed size of the other deposit's
-    /// light less this one's, and the buds where it differs at all.
-    pub buds: usize,
-    pub most: f64,
-    pub sum: f64,
-    pub differ: usize,
 }
 
 impl Census {
-    /// A census, the other deposit read beside or not.
-    pub(in crate::grow) fn new(beside: bool) -> Self {
-        Self { beside, ..Self::default() }
-    }
-
-    /// The cycle's lattice, its leaves, and its light at the buds beside
-    /// the other deposit's.
-    pub(in crate::grow) fn lattice(&mut self, field: &Field, leaves: usize, read: &[f64], other: &[f64]) {
-        let mut c = Cycle {
+    /// The cycle's lattice and its leaves.
+    pub(in crate::grow) fn lattice(&mut self, field: &Field, leaves: usize) {
+        self.lattice = Some(Cycle {
             leaves,
             size: field.size(),
             nodes: field.nodes(),
             occupied: field.occupied(),
-            buds: read.len(),
             ..Cycle::default()
-        };
-        for (a, b) in read.iter().zip(other) {
-            let d = (b - a).abs();
-            (c.most, c.sum) = (c.most.max(d), c.sum + d);
-            c.differ += usize::from(d > 0.0);
-        }
-        self.lattice = Some(c);
+        });
     }
 
     /// The records at the end of `cycle`.

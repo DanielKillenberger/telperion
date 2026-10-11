@@ -34,3 +34,9 @@
 - **Hindered:** `samply` needs `perf_event_paranoid` at 1 or below (it is 2) and there is no sudo, so the cost is read from the grower's stage timers and a throwaway floor probe instead of a profile.
 - **Cost:** about 10 minutes; the per-unit cause stays inferred.
 - **Would remove it:** `kernel.perf_event_paranoid = 1` on the owner's machine (local setup, not a repository change).
+
+## 2026-10-11, task 1: R3b's production switch tried against the whole gate
+- **Doing:** routing `telperion_space::grow` through the one cycle as R3b's first deletion.
+- **Hindered:** the render gate's resident-against-CPU checks compare the device's fine roots with the CPU build, so any change to the CPU build fails them (14 render tests, 6 space and core tests). This only surfaced in a full gate run, since no focused command covers "everything holding `grow` to another executor".
+- **Cost:** about 30 minutes (one gate run of both halves, the revert, R3B.md rewritten).
+- **Would remove it:** a named list, kept in the space crate's docs or a test module, of the tests that hold `grow` to another executor, so a change to `grow` knows its reach before the gate.

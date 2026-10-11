@@ -4,15 +4,12 @@
 //!   three builds, one a process so each has its own peak memory: F4's
 //!   build with laterals certain to be shed skipped (today) or grown, and
 //!   the one cycle with its census.
-//! - `deposit <preset> <age> <seed>`: the quantised deposit against f32,
-//!   first read beside it on the same leaves and buds every cycle, then
-//!   driving growth.
 //!
 //!   cargo run --profile ci -p telperion-core --example early -- three norway-spruce default 42 cycle
 use std::time::Instant;
 use telperion_core::presets::Preset;
 use telperion_space::{
-    agree, grow_build, grow_census, grow_cycle, Census, Deposit, Light, Request, Species, Structure,
+    grow_build, grow_census, Census, Light, Request, Species, Structure,
 };
 
 const PRESETS: [(Preset, &str); 8] = [
@@ -35,8 +32,7 @@ fn main() {
     println!("{} age {age} seed {seed}", args[1]);
     match args[0].as_str() {
         "three" => three(&species, r, &args[4]),
-        "deposit" => deposit(&species, r),
-        _ => panic!("three or deposit"),
+        _ => panic!("three"),
     }
 }
 
@@ -49,7 +45,7 @@ fn preset(name: &str) -> (Species, Light, f64) {
 fn three(species: &Species, r: Request, which: &str) {
     let started = Instant::now();
     if which == "cycle" {
-        match grow_census(species, r, Deposit::Quantised, false) {
+        match grow_census(species, r) {
             Ok(c) => {
                 tree("cycle", &c.structure, c.grown, c.seconds);
                 census(&c.census.expect("a census"));
@@ -123,31 +119,4 @@ fn census(c: &Census) {
             100.0 * occupied as f64 / n as f64
         );
     }
-}
-
-fn deposit(species: &Species, r: Request) {
-    let frozen = grow_census(species, r, Deposit::F32, true).unwrap();
-    let c = frozen.census.expect("a census");
-    let (mut buds, mut sum, mut most, mut differ) = (0usize, 0.0, 0.0f64, 0usize);
-    for k in &c.cycles {
-        (buds, sum, most, differ) = (buds + k.buds, sum + k.sum, most.max(k.most), differ + k.differ);
-    }
-    println!(
-        "  frozen (f32 drives growth, quantised read beside): {buds} buds, mean |diff| {:.2e}, most {most:.2e}, buds differing {differ} ({:.2}%)",
-        sum / buds.max(1) as f64, 100.0 * differ as f64 / buds.max(1) as f64
-    );
-    for k in c.cycles.iter().filter(|k| k.buds > 0 && k.most > 0.0).take(3) {
-        println!("    cycle {}: {} buds, most {:.2e}, differing {}", k.cycle, k.buds, k.most, k.differ);
-    }
-    let quantised = grow_cycle(species, r, Deposit::Quantised).unwrap();
-    for (label, s, g) in [("f32", &frozen.structure, frozen.grown), ("quantised", &quantised.structure, quantised.grown)] {
-        tree(label, s, g, f64::NAN);
-    }
-    let a = agree::agreement(&frozen.structure, &quantised.structure);
-    println!("  through feedback: identical {}; within agree::PATHS {}; {a:?}", frozen.structure == quantised.structure, a.within(&agree::PATHS));
-    // The same measure between two f32 builds that differ only in their
-    // sums' order: F4's build against the cycle.
-    let (f4, ..) = telperion_space::grow_marked(species, r).unwrap();
-    let b = agree::agreement(&f4, &frozen.structure);
-    println!("  F4's build against the f32 cycle: identical {}; within agree::PATHS {}; {b:?}", f4 == frozen.structure, b.within(&agree::PATHS));
 }
