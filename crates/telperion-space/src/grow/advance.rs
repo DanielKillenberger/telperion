@@ -67,13 +67,15 @@ impl Shoot<'_, '_> {
         // viability x light^-phi (host, 2026-10-05): near-certain survival
         // moves gently as light does, and certain survival not at all.
         let light = self.light(apex.axis);
-        let viability = if state.shade_hazard > 0.0 && light < 1.0 {
-            state
+        let viability = match self.rules.one {
+            // The table's f32, shaded as the device shades it.
+            true => f64::from(contract::decide::shaded(state.viability as f32, state.shade_hazard as f32, light as f32)),
+            false if state.shade_hazard > 0.0 && light < 1.0 => state
                 .viability
-                .powf_fixed(light.powf_fixed(-state.shade_hazard))
-        } else {
-            state.viability
+                .powf_fixed(light.powf_fixed(-state.shade_hazard)),
+            false => state.viability,
         };
+        let one = self.rules.one;
         // Decided on the contract's threshold (FINE-CONTRACT.md D5); the
         // real survival sizes the unit's presence.
         // A failed unit's relay's first unit holds a part of a tick more
@@ -83,7 +85,10 @@ impl Shoot<'_, '_> {
         } else {
             0
         };
-        let survives = contract::decide::survival(viability, share, below);
+        let survives = match one {
+            true => contract::decide::survival32(viability as f32, share, below),
+            false => contract::decide::survival(viability, share, below),
+        };
         let d = decide.child(VIABILITY).draw();
         // A failure's relay, where its draw makes one (D9's integer test),
         // and its presence over the unit's cycle (host decision 8).
@@ -97,8 +102,12 @@ impl Shoot<'_, '_> {
         let nested = first && self.draws(apex.axis).rest && relays;
         if d.0 >= survives && relays && !nested {
             let relayed = relayed();
-            let lived = contract::decide::lived(viability, share, d) as f64 / contract::CYCLE;
-            let below = contract::decide::lived_rest(viability, share, d);
+            let l = match one {
+                true => contract::neg_log2(viability as f32),
+                false => contract::neg_log2_of(viability),
+            };
+            let lived = contract::decide::lived_at(l, share, d) as f64 / contract::CYCLE;
+            let below = contract::decide::lived_rest_at(l, share, d);
             let stopped = presence::over(survives, d.0);
             // The lived part takes the unit's abortion draw over the share
             // it lived and the next unit's (fn-199, host decision C1).

@@ -1,5 +1,5 @@
 {
-  "branch_name": "fn-257-the-sites-field-grows-only-the-detail",
+  "branch_name": "fn-257-the-site-grows-its-trees-on-the-device",
   "completion_review_status": "unknown",
   "completion_reviewed_at": null,
   "created_at": "2026-10-09T19:56:28.426262Z",
@@ -7,14 +7,15 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-255-one-growth-law-reads-light-for-every"
+    "fn-255-one-growth-law-reads-light-for-every",
+    "fn-256-the-whole-grower-runs-on-the-gpu"
   ],
-  "id": "fn-257-the-sites-field-grows-only-the-detail",
+  "id": "fn-257-the-site-grows-its-trees-on-the-device",
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-10-09T20:06:23.784312Z",
+  "plan_reviewed_at": "2026-10-11T11:05:16.893618Z",
   "review_attempts": [
     {
       "artifact_sha256": "94ee9c483bf833b629cb8cc0e96ed8138b03782c141687117956991234822301",
@@ -212,10 +213,147 @@
       "task": null,
       "timestamp": "2026-10-09T20:06:23.780765Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "29031261e8a2bf3b8a705088ff80f94675b1b64416c2f779fb12837ff8f5ad10",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d3718d3754f1e7d2e278887dc4c2c459",
+            "classification": "introduced",
+            "findingId": "finding-d3718d3754f1e7d2e278887dc4c2c459",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2d36338a30f844af8f4839f5170220bc",
+            "classification": "introduced",
+            "findingId": "finding-2d36338a30f844af8f4839f5170220bc",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0d45f9e98d725ebdb1713841df4cc34a",
+            "classification": "introduced",
+            "findingId": "finding-0d45f9e98d725ebdb1713841df4cc34a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-677537a1d6b5d80421ae6b74fee3e9be",
+            "classification": "introduced",
+            "findingId": "finding-677537a1d6b5d80421ae6b74fee3e9be",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "f16a84d9bf14748c05ce8eb6d716c5ef94604a24",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 265834,
+      "output_sha256": "a92aed05fcb281c371c8ddede87416ecd3d06983fc025fbd06b807e89e7cbcc4",
+      "reservation_id": "3950595a2a6d42c6847e53f178d6f91f",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-11T11:04:07.002100Z",
+      "tool_calls": 39,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "f02a0345ba899de26aab7541c15c15414b4bc009348a1fa326405b6df0437f1f",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d3718d3754f1e7d2e278887dc4c2c459",
+            "classification": "introduced",
+            "findingId": "finding-d3718d3754f1e7d2e278887dc4c2c459",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2d36338a30f844af8f4839f5170220bc",
+            "classification": "introduced",
+            "findingId": "finding-2d36338a30f844af8f4839f5170220bc",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-0d45f9e98d725ebdb1713841df4cc34a",
+            "classification": "introduced",
+            "findingId": "finding-0d45f9e98d725ebdb1713841df4cc34a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-677537a1d6b5d80421ae6b74fee3e9be",
+            "classification": "introduced",
+            "findingId": "finding-677537a1d6b5d80421ae6b74fee3e9be",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "ecb3b5da01338697894c204ef946e873428900e4",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1100,
+      "output_sha256": "418a63c5fd4e2cb8cae2e724b4354823ffbf2ca3b9010432c0d5dd2296199b7a",
+      "reservation_id": "cc18c965803645c1a4c9040dfe839818",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-11T11:05:16.885048Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "plan": 2,
+    "plan": 3,
     "plan#completion": 1
   },
   "review_pending_rounds": {},
@@ -223,9 +361,9 @@
   "review_transport_failures": {
     "plan": 0
   },
-  "spec_path": ".flow/specs/fn-257-the-sites-field-grows-only-the-detail.md",
+  "spec_path": ".flow/specs/fn-257-the-site-grows-its-trees-on-the-device.md",
   "status": "open",
-  "title": "The site's field grows only the detail it can show",
+  "title": "The site grows its trees on the device",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -237,5 +375,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-11T08:59:52.996806Z"
+  "updated_at": "2026-10-11T11:05:16.901604Z"
 }

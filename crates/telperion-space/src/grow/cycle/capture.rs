@@ -3,11 +3,8 @@
 //! replay on the device. The light at the last cycle that reads it (the
 //! tree's age less one); the hierarchy, normalisation and fate at the
 //! tree's age, the busiest. An experiment entry point, wired into nothing.
-use super::super::sketch::Inputs;
 use super::super::{start, Grower, Options, Request};
-use super::Deposit;
-use crate::allocation::{size_sums, sized, split, TIP};
-use crate::contract::shed::walk;
+use crate::allocation::TIP;
 use crate::contract::{decide, ticks};
 use crate::error::{refuse, Result};
 use crate::light::Field;
@@ -15,7 +12,6 @@ use crate::lineage::{Key, ENDED, FAILED, VIABILITY};
 use crate::schedule::Carried;
 use crate::species::Species;
 use crate::structure::Origin;
-use crate::transcendental::Transcendental;
 
 /// The captured arrays, by name, each a kind and its little-endian bytes.
 pub struct Capture {
@@ -61,14 +57,15 @@ impl Capture {
     }
 }
 
-/// Grows `species` through the one cycle with the quantised deposit and
+/// Grows `species` through the one cycle as `grow_cycle` does and
 /// captures its busy cycle, the tree's age; refused below age 2.
 pub fn grow_capture(species: &Species, request: Request) -> Result<Capture> {
     if request.age < 2 {
         return refuse("age", "a capture reads the light of the cycle before");
     }
     let (mut g, _) = start(species, request, true, Options::default())?;
-    (g.one, g.deposit) = (true, Deposit::Quantised);
+    (g.one, g.rules.one) = (true, true);
+    g.working = Some(Box::default());
     g.sketch
         .get_or_insert_with(|| super::super::sketch::Sketch::new(request.light));
     g.rules.lasting = vec![None; species.states.len()].into();
@@ -129,31 +126,32 @@ impl Grower<'_> {
         Ok(())
     }
 
-    /// The tree's age: balance totals, shedding, surviving allocation,
-    /// the vigour split, the normalisation, then each surviving apex's
-    /// survival and the axes it bears, as `step` takes them.
+    /// The tree's age through fn-255's passes: the working set opened and
+    /// retired, its balance (totals, shedding, memory, kept shares), its
+    /// allotment (split and sizes), then each surviving apex's survival
+    /// and the axes it bears, as `step` takes them.
     fn capture_cycle(&mut self, cycle: u32, c: &mut Capture) -> Result<()> {
         assert!(self.fine.is_none() && self.couple.is_none() && self.oracle.is_none());
-        let rows = self.rows().expect("a laid tree");
-        let n = rows.links.len();
-        let sketch = self.sketch.as_ref().expect("sketching");
-        let p = |g: &dyn Fn(&super::super::sketch::Pencil) -> f64| -> Vec<f32> {
-            sketch.pencils.iter().map(|x| g(x) as f32).collect()
-        };
+        self.open(cycle);
+        self.retire(cycle);
+        let w = self.working.as_ref().expect("a working set");
+        let n = w.links.len();
         let none = u32::MAX;
-        let parent: Vec<u32> = rows
-            .links
-            .iter()
-            .map(|l| l.parent.map_or(none, |p| p as u32))
-            .collect();
-        let node: Vec<u32> = rows
-            .links
-            .iter()
+        let parent: Vec<u32> = w.links.iter().map(|l| l.parent.map_or(none, |p| p as u32)).collect();
+        let node: Vec<u32> = (w.links.iter())
             .map(|l| if l.node == TIP { none } else { l.node as u32 })
             .collect();
         c.u32s("parent", &parent);
         c.u32s("node", &node);
-        c.u32s("pa", &rows.pa.iter().map(|&x| x as u32).collect::<Vec<_>>());
+        c.u32s("pa", &w.pa.iter().map(|&x| x as u32).collect::<Vec<_>>());
+        let list: Vec<u32> = w.list.iter().map(|&i| i as u32).collect();
+        c.u32s("open", &list);
+        let order = w.order();
+        c.u32s("open_order", &order);
+        let sketch = self.sketch.as_ref().expect("sketching");
+        let p = |g: &dyn Fn(&super::super::sketch::Pencil) -> f64| -> Vec<f32> {
+            sketch.pencils[..n].iter().map(|x| g(x) as f32).collect()
+        };
         c.f32s("base_scale", &p(&|x| x.base_scale));
         c.f32s("running", &p(&|x| x.running));
         c.f32s("light", &p(&|x| x.light));
@@ -177,72 +175,38 @@ impl Grower<'_> {
             .collect();
         c.f32s("pa_window", &windows);
         c.u32s("cycle", &[cycle]);
-        let live: Vec<u32> = self
-            .live
-            .iter()
-            .filter(|a| a.axis < n)
-            .map(|a| a.axis as u32)
-            .collect();
+        let live: Vec<u32> = (self.live.iter()).filter(|a| a.axis < n).map(|a| a.axis as u32).collect();
         c.u32s("live", &live);
-        // Balance totals and the shedding walk.
-        let totals = self.totals(&rows, &[]);
-        c.f32s("cpu_total_light", &totals.light);
-        c.f32s("cpu_total_cost", &totals.cost);
-        c.u32s(
-            "cpu_living",
-            &totals.living.iter().map(|&b| b as u32).collect::<Vec<_>>(),
-        );
-        let laterals = self.laterals(cycle, &rows, &totals);
-        let walked = walk(&laterals, None);
-        let draws: Vec<u64> = laterals.iter().map(|l| l.bud.draw).collect();
-        c.u64s("cpu_shed_draw", &draws);
-        c.u32s(
-            "cpu_shed",
-            &walked.iter().map(|w| w.shed as u32).collect::<Vec<_>>(),
-        );
-        c.f32s(
-            "cpu_kept",
-            &walked.iter().map(|w| w.kept).collect::<Vec<_>>(),
-        );
-        c.f32s(
-            "cpu_memory",
-            &walked
-                .iter()
-                .map(|w| w.memory.unwrap_or(f32::NAN))
-                .collect::<Vec<_>>(),
-        );
-        self.shed_walked(cycle, &walked);
-        // Allocation, the split and the normalisation.
-        let Inputs {
-            lambda,
-            lit,
-            presence,
-            psi,
-        } = self.inputs(&rows);
-        let (incoming, bud) = split(&rows.links, &lit, &lambda, None);
-        let groups = states.len();
-        let sums = size_sums(&bud, &presence, &psi, &rows.pa, groups);
-        let sizes = sized(&bud, &presence, &psi, &rows.pa, &sums);
-        let f = |v: &[f64]| v.iter().map(|&x| x as f32).collect::<Vec<_>>();
-        c.f32s("cpu_lit", &f(&lit));
-        c.f32s("cpu_presence", &f(&presence));
-        c.f32s("cpu_incoming", &f(&incoming));
-        c.f32s("cpu_bud", &f(&bud));
-        c.f32s(
-            "cpu_sums",
-            &sums.iter().flatten().copied().collect::<Vec<_>>(),
-        );
-        c.f32s("cpu_sizes", &f(&sizes));
-        let sub = crate::allocation::subtotals(&rows.links, &lit);
-        c.f32s("cpu_sub", &f(&sub));
-        self.allot(Some(&rows), cycle);
+        // The balance over the working set: totals, the walk, memory and
+        // each surviving apex's kept share.
+        self.balance_one(cycle);
+        let w = self.working.as_ref().expect("a working set");
+        let at = |v: &[f32]| -> Vec<f32> { w.list.iter().map(|&i| v[i]).collect() };
+        c.f32s("cpu_total_light", &at(&w.light));
+        c.f32s("cpu_total_cost", &at(&w.cost));
+        let living: Vec<u32> = w.list.iter().map(|&i| w.living[i] as u32).collect();
+        c.u32s("cpu_living", &living);
         let sketch = self.sketch.as_ref().expect("sketching");
-        for a in self.live.iter().filter(|a| a.axis < n) {
-            assert_eq!(
-                sketch.pencils[a.axis].size, sizes[a.axis],
-                "the capture's sizes are the allotment's"
-            );
-        }
+        let survived: std::collections::HashSet<usize> = self.live.iter().map(|a| a.axis).collect();
+        let shed: Vec<u32> = live.iter().map(|&i| !survived.contains(&(i as usize)) as u32).collect();
+        c.u32s("cpu_shed", &shed);
+        let kept: Vec<f32> = live.iter().map(|&i| sketch.pencils[i as usize].kept as f32).collect();
+        c.f32s("cpu_kept", &kept);
+        let memory: Vec<f32> = w.list.iter().map(|&i| sketch.pencils[i].memory as f32).collect();
+        c.f32s("cpu_memory", &memory);
+        // The allotment: the split over the open axes, then the sizes.
+        self.allot_one();
+        let w = self.working.as_ref().expect("a working set");
+        let at = |v: &[f32]| -> Vec<f32> { w.list.iter().map(|&i| v[i]).collect() };
+        c.f32s("cpu_sub", &at(&w.sub));
+        c.f32s("cpu_incoming", &at(&w.incoming));
+        c.f32s("cpu_bud", &at(&w.bud));
+        let sketch = self.sketch.as_ref().expect("sketching");
+        let sizes: Vec<f32> = (self.live.iter())
+            .filter(|a| a.axis < n)
+            .map(|a| sketch.pencils[a.axis].size as f32)
+            .collect();
+        c.f32s("cpu_sizes", &sizes);
         self.capture_fate(cycle, c)
     }
 
@@ -280,13 +244,8 @@ impl Grower<'_> {
                 .as_ref()
                 .and_then(|k| k.pencils.get(i))
                 .map_or(1.0, |p| p.light);
-            let viability = if state.shade_hazard > 0.0 && l < 1.0 {
-                state
-                    .viability
-                    .powf_fixed(l.powf_fixed(-state.shade_hazard))
-            } else {
-                state.viability
-            };
+            // The table's f32, shaded as the device shades it (`advance`).
+            let viability = decide::shaded(state.viability as f32, state.shade_hazard as f32, l as f32);
             axis.push(i as u32);
             pas.push(self.axes[i].pa as u32);
             key.push(decide_key.0);
@@ -296,7 +255,7 @@ impl Grower<'_> {
                 (ticks(s) << 12) + below
             });
             light.push(l as f32);
-            threshold.push(decide::survival(viability, s, below));
+            threshold.push(decide::survival32(viability, s, below));
             draw.push(decide_key.child(VIABILITY).draw().0);
         }
         c.u32s("fate_axis", &axis);

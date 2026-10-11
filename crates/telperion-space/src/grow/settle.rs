@@ -4,10 +4,10 @@ use super::{Grower, Grown, Options, Pass, Record, Request, Stage};
 use crate::error::{Error, Result};
 use crate::contract::presence::{q, real, times};
 use crate::geometry::{place, scale};
-use crate::girth::{attachments, disused, thicken, Girth};
+use crate::girth::{attachments, attachments_past, disused, thicken, Girth};
 use crate::presence::assign;
 use crate::sag;
-use crate::shed::shed;
+use crate::shed::{shed, shed_past};
 use crate::structure::{Origin, Structure};
 
 impl Grower<'_> {
@@ -20,7 +20,12 @@ impl Grower<'_> {
             let draws = &mut self.draws[apex.axis];
             (draws.alive, draws.living) = (true, living);
         }
+        let retired = self.working.as_ref().map(|w| w.retirement());
         for woken in &self.woken {
+            // A bud inside a retired subtree was taken with it.
+            if retired.is_some_and(|r| r.inside(woken.axis)) {
+                continue;
+            }
             let kept = woken.kept(&self.axes, &self.draws, &self.successor, age);
             let made = &mut self.draws[woken.axis].birth[1];
             *made = real(times(q(*made), q(kept)));
@@ -50,9 +55,22 @@ impl Grower<'_> {
         // its leaves: what each shed branch had laid down, and the one
         // population the leaf term's mean is taken over at any retained
         // share.
-        let grown = keeps.then(|| attachments(&self.axes, species, request.age, threads));
+        let grown = keeps.then(|| match self.working.as_ref() {
+            Some(w) => {
+                let r = w.retirement();
+                attachments_past(&self.axes, species, (request.age, threads), &|i| r.record(i))
+            }
+            None => attachments(&self.axes, species, request.age, threads),
+        });
         stage(Stage::Pass(Pass::Attachments));
-        let shed = shed(self.axes, species, request.age);
+        let shed = match self.working.take() {
+            Some(w) => {
+                let r = w.retirement();
+                let (given, gone) = (|i| r.root(i), |i| r.inside(i));
+                shed_past(self.axes, species, request.age, (&given, &gone), None).0
+            }
+            None => shed(self.axes, species, request.age),
+        };
         stage(Stage::Pass(Pass::Shed));
         let records = kept_records(made, &shed.index);
         let girth = grown.map_or_else(Girth::default, |g| disused(&g, &shed, species));

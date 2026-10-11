@@ -7,7 +7,7 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-257-the-sites-field-grows-only-the-detail",
+    "fn-257-the-site-grows-its-trees-on-the-device",
     "fn-258-a-prepared-tree-meets-masters-memory"
   ],
   "id": "fn-259-the-release-meets-the-bar-on-every",
@@ -238,5 +238,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T22:30:53.753771Z"
+  "updated_at": "2026-10-11T11:01:31.860504Z"
 }

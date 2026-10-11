@@ -108,6 +108,7 @@ pub(crate) fn rules<'a>(species: &'a Species, age: u32, budget: u32) -> Result<R
         grown: 0,
         alone: true,
         hands: None,
+        one: false,
     })
 }
 
@@ -160,9 +161,9 @@ pub(super) fn start<'a>(
         handed: Vec::new(),
         spare: Default::default(),
         one: false,
-        deposit: super::cycle::Deposit::F32,
         light_seconds: 0.0,
         census: None,
+        working: None,
     };
     let (from, root) = match bud {
         None => {
