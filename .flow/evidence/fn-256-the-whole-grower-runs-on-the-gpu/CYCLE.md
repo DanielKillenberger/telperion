@@ -281,3 +281,50 @@ This is native on the RTX 3080 with `__GL_SHADER_DISK_CACHE=0`, each module made
 - **The split:** a resumable apex machine across small kernels. Each operation (survival and decision, the zones and their nodes, the sleepers, a stop, a relay, a move, the wake) becomes its own entry. The machine's state between them (frames, the operation and its stack, the append counts) moves to buffers, and it runs in rounds until no apex has an operation left. The count and emit passes run the same way.
 - **The other modules:** the settle's `walk_main` (15 s) and `frame_main` (2 s), and the layout's `frame_main` and `draw_main` (4.5 s together), need the same treatment.
 - **Open:** that is a design call beyond DESIGN.md, so it is for the host before it is built. It also adds dispatches a cycle, against the dispatch budget.
+
+## Units as small kernels (2026-10-12, DESIGN.md section 10)
+
+A job is one living apex, or one waking bud, with its state in `counts` (`job.wgsl`). It runs in rounds of small entries:
+- **Decide:** the decision, a failing unit's stop, a living or dying unit appended, a dying unit's abortion.
+- **Zones:** nodes laid, then ordered; laterals and sleeping buds counted.
+- **Writes:** phytomers, laterals, the laterals' two presences, sleeping buds and their presences.
+- **After the unit:** grown, move, moved, stop, relay, ended.
+- **Around them:** init, woke and close.
+
+Records keep the CPU's order: apex place, step, zone, node rank, slot. The cycle suite holds to the ruled standard, and determinism holds byte for byte.
+
+**Units entries, cold** (`raw/units-entries-1.txt`):
+- **Over 0.2 s:** dies 0.22.
+- **0.2 s:** laterals.
+- **0.17 to 0.19 s:** grown, sleepers, made, placed, dormant, woke, lived, phyts.
+- **0.12 to 0.16 s:** nodes, decide, relay, unit, zone, ended, asleep.
+- **0.11 s or less:** the other 9 entries.
+
+The 27 entries sum to 3.3 s, from 43.7 s in one entry.
+
+**Other modules' entries, cold** (`raw/entries-other-1.txt`):
+- **Light:** every entry at most 0.17 s.
+- **Settle shed and order:** every entry at most 0.10 s.
+- **Place:** every entry at most 0.07 s except `frame_main` 1.78 s and `walk_main` 14.84 s.
+- **Layout:** `frame_main` 2.36 s and `draw_main` 1.38 s; the others at most 0.04 s.
+- **Hierarchy:** 0.34 s as a module.
+
+**The cycle made cold** (`the_cycle_is_made_cold`, cache off, one way a process):
+
+| How | Cold, s |
+|---|--:|
+| (a) One module after another | 23.6 (units 3.0, layout 3.9, settle 15.2, light 0.9, hierarchy 0.3, the rest 0.3) |
+| (b) Every module at once, a thread each | 16.7, held up by the settle's walk |
+| The units' 27 entries at once, a thread each | 0.43, against 3.0 in sequence |
+
+Created entry by entry and concurrently, the cycle's cold wall would be about its largest entry once the four walk entries are cut.
+
+**The run cost** (`budgeted_builds_are_timed`, plain, 65,536 jobs a range, `raw/phases-timed-2.txt`):
+
+| Build | Units and wake | Dispatches a build (a cycle) | Unstamped wall |
+|---|--:|--:|--:|
+| Telperion 82 | 272.7 ms in 34,742 dispatches (was 360.6 ms) | 62,700 (765) | 1.158 s |
+| Oak 80, seed 1 | 228.3 ms | 56,131 (702) | 1.031 s |
+| Beech 40 | 46.5 ms | 21,278 (532) | 0.179 s |
+
+The dispatches are over the Chrome budget of about 340 a cycle. A round runs about 20 entries in each of the count and emit passes, every round recorded whether or not any job needs it.
