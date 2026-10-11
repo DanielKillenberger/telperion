@@ -51,3 +51,9 @@ Where they differ, the host takes both as ordered next steps:
 - **Table audit (Astra):** behaviour-preserving removal of table work no site consumer reads (the copied extinction curves, the reach bound the coarse settle disables), the rows actually read counted per seed, demand-driven rows measured against eager on cold oak, birch and ordinary; outputs unchanged. Stop optimising tables when the savings cannot close the budget; cheaper tables are never fidelity acceptance.
 
 To the owner: whether the site may grow on the device (WebGPU), the only route on which it draws the same tree as the harness (fn-256's spike: cycle kernels compile cold in about 0.35 s; units and layout on the device unreplayed); whether the oak's 1.1-1.7× of 0.1.4 is "slightly less"; whether the ordinary ships on the site (its rows alone are 11.5 s).
+
+## The owner's answers (2026-10-11) and early test 5
+
+Early test 5 (fn-257 TEST5.md): what the site draws from the stands costs 1.7-3.4× 0.1.4 for the oak at a 0.32 m cut and 2.2-3.8× for the birch at every cut; the expanded CPU tree 2.3-3.7 s. The table audit (TABLES.md): demand-driven rows would bring the birch's rows near budget and the ordinary under 0.1.4, but cannot close the oak's.
+
+The owner: "Yes, WebGPU on the site"; the oak "Must match 0.1.4"; the ordinary "Yes, it must ship". So the coarse-record route is closed and fn-257 is re-scoped: the site grows the full tree on the device through fn-256's executor, voxelised at its cell; stands, tables and predictor go where no other consumer remains; a browser without WebGPU gets a named error, never a CPU fallback. Its first measurement is a probe page the owner opens (device creation and cold compile against 0.1.4's 273 ms).
