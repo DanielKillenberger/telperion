@@ -2,15 +2,16 @@
 //! axis's children in order, every integer and every f32 the CPU takes
 //! at an open axis, each pencil's memory, kept share and size, the apexes
 //! shed and the living after. The blocks are checked against their rules
-//! (connected, at most `cap`, levels and local depths), which no CPU
+//! (at most `cap`, spills, levels and depths), which no CPU
 //! holds.
 use super::compare::Agreement;
-use super::hier_build::{Hierarchy, LISTS, SHAPE, read_words};
+use super::hier_build::{Hierarchy, LISTS, SHAPE};
 use super::hier_columns::{Cpu, Hier};
 use super::hier_device::{
     LIVE, S_BUD, S_COST, S_GONE, S_INCOMING, S_KEPT, S_LIGHT, S_LIVING, S_MEMORY, S_SIZE, S_SUB,
     SUMS, Sums, V_OUT,
 };
+use super::hier_scan::read_words;
 use crate::{Gpu, Result};
 
 /// The hierarchy as the device left it: its current lists and shape.
@@ -139,38 +140,47 @@ pub(super) fn words(out: &Out) -> Vec<u32> {
     all
 }
 
-/// The blocks' rules broken, each named: every axis in a block of at most
-/// `cap`, joined to its bearer's at one local depth below it or opening
-/// one a level below its bearer's; each block's members by local depth
-/// then index; each level's blocks in index order; each depth its
-/// bearer's plus one.
+/// The blocks' rules broken, each named: every axis in its bearer's
+/// block or in a spill of it, a block of at most `cap`; each spill a
+/// level below the block it spills from, each block's open spill one of
+/// its own; each block's members by depth then index; each level's
+/// blocks in index order; each depth its bearer's plus one.
 pub(super) fn blocks(h: &Hierarchy, shape: &Shape, tree: &[u32], n: usize) -> Vec<String> {
     let parent = &tree[..n];
-    let (depth, block, local, level) = (shape.col(0), shape.col(1), shape.col(2), shape.col(4));
+    let (depth, block, spill) = (shape.col(0), shape.col(1), shape.col(2));
+    let (level, from) = (shape.col(4), shape.col(5));
+    let count = h.blocks as usize;
     let mut broken = Vec::new();
-    let mut size = vec![0u32; h.blocks as usize];
+    for b in 0..count {
+        let f = from[b] as usize;
+        let ok = match (b, from[b] == u32::MAX) {
+            (0, true) => level[0] == 0,
+            (_, false) => f < count && level[b] == level[f] + 1,
+            _ => false,
+        };
+        let open = spill[b] == u32::MAX || from[spill[b] as usize] as usize == b;
+        if !ok || !open {
+            broken.push(format!("block {b}: from {f}, level {}", level[b]));
+        }
+    }
+    let mut size = vec![0u32; count];
     for i in 0..n {
         let b = block[i] as usize;
-        if b >= size.len() {
-            broken.push(format!("axis {i}: block {b} of {}", size.len()));
+        if b >= count {
+            broken.push(format!("axis {i}: block {b} of {count}"));
             continue;
         }
         size[b] += 1;
         let p = parent[i] as usize;
-        let ok = match (parent[i] == u32::MAX, local[i]) {
-            (true, l) => l == 0 && depth[i] == 0 && level[b] == 0,
-            (false, 0) => {
-                block[p] as usize != b
-                    && level[b] == level[block[p] as usize] + 1
-                    && depth[i] == depth[p] + 1
+        let ok = match parent[i] == u32::MAX {
+            true => depth[i] == 0 && b == 0,
+            false => {
+                let own = block[p] as usize;
+                depth[i] == depth[p] + 1 && (b == own || from[b] as usize == own)
             }
-            (false, l) => block[p] as usize == b && l == local[p] + 1 && depth[i] == depth[p] + 1,
         };
         if !ok {
-            broken.push(format!(
-                "axis {i}: block {b}, local {}, depth {}",
-                local[i], depth[i]
-            ));
+            broken.push(format!("axis {i}: block {b}, depth {}", depth[i]));
         }
     }
     if let Some(b) = size.iter().position(|&s| s == 0 || s > h.cap) {
@@ -181,7 +191,7 @@ pub(super) fn blocks(h: &Hierarchy, shape: &Shape, tree: &[u32], n: usize) -> Ve
         let run = &members[ms[b] as usize..ms[b + 1] as usize];
         let ordered = run
             .windows(2)
-            .all(|w| (local[w[0] as usize], w[0]) < (local[w[1] as usize], w[1]));
+            .all(|w| (depth[w[0] as usize], w[0]) < (depth[w[1] as usize], w[1]));
         if run.len() != size[b] as usize
             || !ordered
             || run.iter().any(|&m| block[m as usize] as usize != b)

@@ -4,10 +4,12 @@
 use super::super::io;
 use super::columns::Cap;
 use super::compare::Agreement;
-use super::hier_build::{Hierarchy, Kernels, Plan, zeroed};
+use super::hier_build::{Hierarchy, Kernels};
 use super::hier_columns::{Cpu, Hier};
 use super::hier_compare::{blocks, children, compare, words};
 use super::hier_device::Sums;
+use super::hier_plan::Plan;
+use super::hier_scan::zeroed;
 use crate::Gpu;
 use crate::buffer::Owned;
 use telperion_core::presets::Preset;
@@ -132,7 +134,7 @@ fn replay(gpu: &Gpu, k: &Kernels, name: &str, c: &Capture) -> Replay {
         h.levels,
         once.blocks,
         once.levels,
-        h.gens.len()
+        h.passes.len()
     );
     println!("{}{}{}", structure.report(), ints.report(), reals.report());
     Replay {
@@ -220,13 +222,13 @@ fn median(mut v: Vec<f64>) -> f64 {
 }
 
 /// Each entry's median ms, the first to last, and the longest dispatch.
-type Times = (Vec<(String, f64)>, f64, (String, f64));
+type Times = (Vec<(String, f64, f64)>, f64, (String, f64));
 
 /// Nine runs of the last step and the sums, each pass stamped: each
-/// entry's median ms in the order first run, the first to last, and the
-/// longest dispatch.
+/// entry's median ms and its longest dispatch's, in the order first run;
+/// the first to last; and the longest dispatch of any run.
 fn timed(gpu: &Gpu, run: &dyn Fn(&mut wgpu::CommandEncoder)) -> Times {
-    let mut each: Vec<(String, Vec<f64>)> = Vec::new();
+    let mut each: Vec<(String, Vec<f64>, Vec<f64>)> = Vec::new();
     let (mut whole, mut longest) = (Vec::new(), (String::new(), 0.0));
     for _ in 0..9 {
         assert!(super::super::profile::start(gpu), "timestamps");
@@ -234,27 +236,32 @@ fn timed(gpu: &Gpu, run: &dyn Fn(&mut wgpu::CommandEncoder)) -> Times {
         run(&mut e);
         gpu.submit([e.finish()]);
         let stamps = super::super::profile::finish(gpu);
-        let mut sums: Vec<(String, f64)> = Vec::new();
+        let mut sums: Vec<(String, f64, f64)> = Vec::new();
         for (entry, begin, end) in &stamps {
             let ms = (end - begin) * 1e-6;
             if ms > longest.1 {
                 longest = (entry.clone(), ms);
             }
             match sums.iter_mut().find(|p| &p.0 == entry) {
-                Some(p) => p.1 += ms,
-                None => sums.push((entry.clone(), ms)),
+                Some(p) => (p.1, p.2) = (p.1 + ms, p.2.max(ms)),
+                None => sums.push((entry.clone(), ms, ms)),
             }
         }
         whole.push((stamps[stamps.len() - 1].2 - stamps[0].1) * 1e-6);
-        for (entry, ms) in sums {
+        for (entry, ms, most) in sums {
             match each.iter_mut().find(|p| p.0 == entry) {
-                Some(p) => p.1.push(ms),
-                None => each.push((entry, vec![ms])),
+                Some(p) => {
+                    p.1.push(ms);
+                    p.2.push(most);
+                }
+                None => each.push((entry, vec![ms], vec![most])),
             }
         }
     }
     (
-        each.into_iter().map(|(p, v)| (p, median(v))).collect(),
+        each.into_iter()
+            .map(|(p, v, m)| (p, median(v), median(m)))
+            .collect(),
         median(whole),
         longest,
     )
@@ -293,7 +300,8 @@ fn busy(gpu: &Gpu, k: &Kernels, name: &str, c: &Capture) -> bool {
     );
     let after = (h.parity, h.built, h.blocks, h.levels);
     (h.parity, h.built, h.blocks, h.levels) = before;
-    let gens = *h.gens.last().expect("a step");
+    let passes = h.passes.last().expect("a step").clone();
+    let gens = passes.len() as u32;
     let plan = Plan::new(gpu, k, &h, &tree, (*last, gens)).expect("a plan");
     (h.parity, h.built, h.blocks, h.levels) = after;
     let targets = [&h.shape, &h.counts, &h.lists[before.0], &h.tally];
@@ -301,15 +309,14 @@ fn busy(gpu: &Gpu, k: &Kernels, name: &str, c: &Capture) -> bool {
         for (from, to) in start.iter().zip(targets) {
             e.copy_buffer_to_buffer(from, 0, to, 0, from.size());
         }
-        plan.head(&h, k, e);
-        plan.tail(&h, k, e);
+        plan.record(&h, k, e, &passes);
         sums.record(k, &tree, e);
     };
     let (times, whole, longest) = timed(gpu, &run);
-    let dispatches = plan.dispatches() + sums.dispatches();
+    let dispatches = plan.dispatches(&passes) + sums.dispatches();
     println!(
         "{name}: {dispatches} dispatches ({} the step's, {gens} generations, {} new axes), {} block levels, {} blocks, {} living apexes; longest {} at {:.3} ms; scratch {:.1} MB",
-        plan.dispatches(),
+        plan.dispatches(&passes),
         *last - plan.n_old(),
         h.levels,
         h.blocks,
@@ -318,8 +325,8 @@ fn busy(gpu: &Gpu, k: &Kernels, name: &str, c: &Capture) -> bool {
         longest.1,
         (h.scratch() + sums.scratch()) as f64 / 1e6
     );
-    for (entry, ms) in times {
-        println!("{name}: {entry:>18} {ms:8.3} ms");
+    for (entry, ms, most) in times {
+        println!("{name}: {entry:>18} {ms:8.3} ms, longest {most:6.3} ms");
     }
     println!("{name}: {:>18} {whole:8.3} ms", "first to last");
     agreement.exact() && ints.exact() && reals.exact()

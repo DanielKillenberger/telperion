@@ -94,10 +94,10 @@ fn split(i: u32) {
 @compute @workgroup_size(64)
 fn split_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
     let run = open_block(wid, lid);
-    if run.w == 0u {
+    if run.y == run.x {
         return;
     }
-    for (var d = 0u; d <= run.z; d++) {
+    for (var d = run.z; d <= run.w; d++) {
         let span = depth_span(run, d, lid);
         for (var k = span.x + lid; k < span.y; k += WG) {
             split(lists[ls(R_MEMBERS, k)]);

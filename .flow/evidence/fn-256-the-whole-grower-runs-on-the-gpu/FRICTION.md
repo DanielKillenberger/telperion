@@ -83,3 +83,9 @@
 - **Hindered:** I registered them before their files existed, which broke the light worker's build for some minutes (their entry above).
 - **Cost:** their wait and one build.
 - **Would remove it:** registering a module in a shared file only in the same edit that creates it.
+
+## 2026-10-11, task 2 (hierarchy): a spill rule's shape found only by building it
+- **Doing:** building DESIGN.md section 3's first spill wording on the device.
+- **Hindered:** the wording chained each spill to the last, which makes every block its own level; it showed only when the young test's cap-64 run crashed on a level bound. A host simulation of the rule on the captures (about 20 s) settled it, and settled the sibling rule before building.
+- **Cost:** about 20 minutes of device code for the chained rule, mostly reused.
+- **Would remove it:** simulating a block rule on the host over the busy captures before it is written into DESIGN.md.

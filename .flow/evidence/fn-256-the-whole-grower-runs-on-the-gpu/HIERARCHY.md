@@ -6,19 +6,45 @@ DESIGN.md sections 1.6, 2 (steps 1, 2 and 5), 3 and 4. This file records what ra
 
 - **Device:** NVIDIA GeForce RTX 3080, Vulkan, native wgpu, through `crate::Gpu`, as UNITS.md.
 - **Capture:** `telperion_space::grow_capture_hierarchy_at` (`grow/cycle/capture_hierarchy.rs`) grows the one cycle to the captured cycle, recording the axes laid at each cycle's start. It takes each laid axis's bearer, node, PA, lineage and pencil, the living apexes and each PA's row, then runs `open`, `retire`, `balance_one` and `allot_one` and takes what they leave: each axis's children in `Working::children`'s order, the open axes and their sums, each pencil's memory, kept share and size, the apexes shed and the living after.
-- **Replay:** `generation/cycle/hier_*.rs` and `hier_*.wgsl`, test-only, registered with the naga check as "cycle hierarchy build" and "cycle hierarchy sums".
-- **The build** (`hier_build.wgsl`, `hier_blocks.wgsl`) takes in one cycle's laid axes at a time:
+- **Replay:** `generation/cycle/hier_*.rs` and `hier_*.wgsl`, test-only, registered with the naga check as "cycle hierarchy build", "cycle hierarchy sums" and "cycle hierarchy scan".
+- **The build** (`hier_build.wgsl`, `hier_blocks.wgsl`, `hier_members.wgsl`) takes in one cycle's laid axes at a time:
   - Depth and generation, then the children: counted onto their bearers by atomic adds, scanned, placed in a bucket, sorted by (node, index) and merged with the old run at its new start, into the second list.
-  - Blocks, one round per generation in the cycle: joiners counted per block, an axis joins its bearer's block while it holds fewer than `cap` (the round's lowest indices first; a block that fills ranks its joiners by index), otherwise it opens a block one level below its bearer's. Openers are numbered by a scan in index order.
-  - Each block's members by (local depth, index), and each level's blocks by index (a workgroup scan per level), merged the same way.
-  - No index comes from an atomic slot. An atomic places a record in a bucket only for the sort that follows.
+  - Blocks by DESIGN.md section 3's revised rule (sibling spills, commit d8388e42e), one generation of the cycle at a time, in placing passes:
+    - A waiting axis targets its bearer's block while it has room, else that block's open spill while it has room.
+    - A target's waiters join it in index order up to `cap`; the rest wait for the next pass.
+    - Where both are full, the block's waiters fill fresh spills of it in index order, `cap` each, a level below it; the last becomes its open spill.
+    - Openers are numbered by a scan in index order. Ranks in index order are counted over each target's waiters.
+    - Two or three passes a generation on the busy cycles. The host reads back the waiting count after each pass.
+  - Each block's members by (depth, index): the new members are ranked within their block, then old and new members find their places by a binary search of the other run, all in flat dispatches. Each level's blocks are merged by index (a workgroup scan per level).
+  - No index comes from an atomic slot. An atomic places a record in a bucket only for the rank or sort that follows.
   - The host reads back the generation count after the depth pass and the blocks per level at the step's end, the small reads DESIGN.md section 5 allows, to size the dispatches.
+- **The scan** (`hier_scan.wgsl`): an exclusive prefix sum in levels of 256 words, a workgroup each, up then down. It replaces `fine/scan.wgsl`'s one-invocation spine in the hierarchy, and `fine/scan.wgsl` is unchanged.
 - **The sums** (`hier_cycle.wgsl`, `hier_sweep.wgsl`, `hier_split.wgsl`) run over the whole tree:
-  - Bottom-up: one workgroup per block, local depths deepest first, a barrier between them; levels deepest first. Top-down: the reverse.
+  - Bottom-up: one workgroup per block, looping the block's depths (its first member's to its last's) deepest first, a barrier between them; levels deepest first. Top-down: the reverse.
+  - A block's least and greatest depths are read from its sorted run's ends. DESIGN.md keeps them as order-free min/max; the values are the same.
   - The passes: mark, totals, walk (draws keyed as `passes.rs` keys them), shed (flag, scan, compact), presence, sub (with growing buds counted), split (with each growing bud's preorder place written to the order), the normaliser's blocks of 1,024 per PA, their sum in order, then sizes.
 - **The f64 products:** presence and lit presence (`base_scale × running × kept`, then times the light) are formed in `hier_real.wgsl` as 106-bit integer products rounded to 53 bits. `the_allotments_products_are_the_cpus` finds 0 of 1,048,576 products, and 0 of their f32s, differing from the CPU's.
 - **Sites marked:** every product an add takes is written `hm` and every quotient `hdiv`, plain operations, as `q.wgsl` marks the layout's.
-- **Logs:** `raw/hier-young-1.txt`, `raw/hier-busy-1.txt`, `raw/hier-young-cold.txt`; the experiment `raw/hier-young-exact-2.txt` and `-3.txt`.
+- **Logs:**
+  - Under the first block rule: `raw/hier-young-1.txt`, `raw/hier-busy-1.txt`, `raw/hier-young-cold.txt`; the experiment `raw/hier-young-exact-2.txt` and `-3.txt`.
+  - Under sibling spills: `raw/hier-spill-young-5.txt` and `raw/hier-spill-busy-1.txt`.
+  - The host simulations: `raw/hier-spill-probe-1.txt` (the chained wording) and `-2.txt` (sibling spills).
+
+## Blocks: the rules measured
+
+The rule was simulated on the host first: sequentially, each cycle's new axes by generation and then index order, from the captures' parents and laid counts.
+
+| Rule | Tree | Cap 64 | Cap 256 | Cap 1,024 | Cap 4,096 |
+|---|---|--:|--:|--:|--:|
+| **Sibling spills** (blocks / levels / axes a block) | Telperion 82 | 30,932 / 34 / 47.3 | 7,886 / 25 / 185.6 | 2,005 / 20 / 730.1 | 510 / 17 / 2,870.4 |
+| | Oak 80, seed 1 | 30,352 / 23 / 48.5 | 7,892 / 19 / 186.7 | 1,993 / 17 / 739.2 | 513 / 15 / 2,871.7 |
+| Chained spills (first wording), blocks = levels | Telperion 82 | 22,874 | 5,719 | 1,430 | 358 |
+| | Oak 80, seed 1 | 23,019 | 5,755 | 1,439 | 360 |
+| A block per overflowing child (first rule), device | Telperion 82 | | | 166,539 / 6 | |
+| | Oak 80, seed 1 | | | 161,263 / 7 | |
+
+- **The device under sibling spills, at cap 1,024:** Telperion 2,005 blocks on 20 levels, the oak 1,993 on 17. Both equal the simulation.
+- **The young trees at cap 1,024:** oak 30 at 30 has 89 blocks on 6 levels (88 on 7 built at once); the spruce has 39 on 5.
 
 ## Agreement
 
@@ -26,9 +52,9 @@ DESIGN.md sections 1.6, 2 (steps 1, 2 and 5), 3 and 4. This file records what ra
 
 **Exact on every capture, the busy ones included:**
 - **Children:** every axis's children, in the CPU's order.
-- **The blocks' rules:** connected, at most `cap`, local depths and levels consistent, members and level lists ordered, every block listed once.
+- **The blocks' rules:** at most `cap`; every axis in its bearer's block or a spill of it; each spill a level below the block it spills from; each open spill one of its block's own; depths, members and level lists ordered; every block listed once.
 - **Built at once against cycle by cycle:** the children are identical.
-  - The blocks differ: the oak 30 has 15,496 blocks at once against 7,495 cycle by cycle, because the rounds follow generations.
+  - The blocks differ (oak 30 at 30: 88 blocks at once, 89 cycle by cycle), because the placing follows generations.
   - Every sums word is still identical.
 - **Caps 64, 256, 1,024 and 4,096:** every word of the sums and the living after is identical.
 - **Integers:** living at the open axes, the apexes shed, the living after with their times.
@@ -67,34 +93,42 @@ Incoming and bud are compared at the open axes. Memory and size are compared at 
 
 ## Timing: the busy cycle, median of 9 (GPU ms in stamped passes)
 
-The run restores the state before the last step by unstamped copies. It then records the last build step and the sums in one submission.
+The run restores the state before the last step by unstamped copies. It then records the last build step and the sums in one submission. This is under sibling spills, at cap 1,024. "Longest" is the median over runs of an entry's longest single dispatch.
 
-| | Telperion 82, seed 42 | oregon-white-oak 80, seed 1 |
-|---|--:|--:|
-| Laid axes / new in the step | 1,463,911 / 67,430 | 1,473,173 / 58,504 |
-| Living apexes | 233,233 | 132,098 |
-| Generations in the step | 2 | 3 |
-| Blocks / block levels (cap 1,024) | 166,539 / 6 | 161,263 / 7 |
-| Dispatches (the step's / the sums') | 73 (39 / 34) | 88 (50 / 38) |
-| **Build:** children (place, merge) | 0.12 | 0.12 |
-| **Build:** blocks (depth, rounds) | 0.08 | 0.09 |
-| **Build:** members (count, place, merge) | 1.67 | 2.51 |
-| **Build:** levels merge | 0.42 | 0.33 |
-| **Scans,** build's and the living's (blocks, spine, spread) | 0.90 + 2.63 + 0.05 | 1.07 + 2.68 + 0.06 |
-| **Sums:** totals / walk | 1.62 / 0.94 | 1.56 / 0.84 |
-| **Sums:** sub / split | 1.31 / 2.29 | 1.29 / 2.16 |
-| **Sums:** normaliser (partials, combine) | 0.32 | 0.44 |
-| **Sums:** per apex (mark, shed, compact, presence, sizes) | 0.07 | 0.04 |
-| **First stamp to last** | **12.95** | **13.83** |
-| Longest dispatch | `member_merge_main`, 1.80 | `member_merge_main`, 2.78 |
-| Scratch (the build's counts, buckets, second list, sums, living, normaliser) | 229.2 MB | 227.7 MB |
+| | Telperion 82, seed 42 | | oregon-white-oak 80, seed 1 | |
+|---|--:|--:|--:|--:|
+| | **Total** | **Longest** | **Total** | **Longest** |
+| Laid axes / new in the step | 1,463,911 / 67,430 | | 1,473,173 / 58,504 | |
+| Living apexes | 233,233 | | 132,098 | |
+| Generations / placing passes | 2 / 3 | | 3 / 4 | |
+| Blocks / block levels | 2,005 / 20 | | 1,993 / 17 | |
+| Dispatches (the step's / the sums') | 163 (71 / 92) | | 149 (69 / 80) | |
+| **Build:** children (place, merge) | 0.13 | 0.12 | 0.13 | 0.12 |
+| **Build:** depth and placing passes | 0.16 | 0.04 | 0.19 | 0.05 |
+| **Build:** members (count, place, rank, old, new, starts) | 0.16 | 0.06 | 0.18 | 0.08 |
+| **Build:** levels merge | 0.01 | 0.01 | 0.01 | 0.01 |
+| **Scans,** all (up, down) | 0.20 | 0.02 | 0.18 | 0.02 |
+| **Sums:** totals | 3.95 | 0.27 | 2.79 | 0.26 |
+| **Sums:** walk | 2.04 | 0.15 | 1.17 | 0.09 |
+| **Sums:** sub | 3.39 | 0.23 | 2.38 | 0.23 |
+| **Sums:** split | 6.74 | **0.49** | 4.31 | **0.45** |
+| **Sums:** normaliser (partials, combine) | 0.34 | 0.30 | 0.47 | 0.44 |
+| **Sums:** per apex (mark, shed, compact, presence, sizes) | 0.07 | 0.02 | 0.05 | 0.02 |
+| **First stamp to last** | **18.29** | | **12.88** | |
+| Longest dispatch | `split_main`, 0.50 | | `split_main`, 0.45 | |
+| Scratch | 258.4 MB | | 257.1 MB | |
 
-- **The scans' spine** (one invocation over the blocks of 256) is 2.6 ms of the busy cycle, as UNITS.md found for the units.
-- **The members' merge** is one invocation per block. Its longest thread sorts and merges a full block's run.
-- **The blocks:** DESIGN.md section 3's rule (join the bearer's block, else open one) gives about 28 times the spike's blocks at cap 1,024 (166,539 against 5,961), averaging about 9 axes a block. The sums' four sweeps take 6.1 ms here against the spike's B schedule's 4.2 ms.
-- **Compile:** both modules and the scan in 0.31 s cold (`__GL_SHADER_DISK_CACHE=0`), 0.01 s from the driver's cache.
+Against the first rule's run (same trees, cap 1,024):
+- **Longest dispatch:** 0.50 / 0.45 ms against 1.80 / 2.78 ms (`member_merge_main`, now gone).
+- **Scans:** 0.20 ms against 3.58 ms.
+- **Members:** 0.16 ms against 1.67 ms.
+- **The four sweeps** take longer: 16.1 / 10.7 ms against 6.1 / 5.8 ms. The cycle is 18.3 ms against 13.0 on Telperion, and 12.9 ms against 13.8 on the oak.
+  - About 2,000 blocks on about 20 levels give each sweep dispatch about 100 workgroups of 64 lanes. Each loops its block's depths (a range up to some tens) with a barrier per depth.
+  - The first rule's 166k small blocks gave many more workgroups and shorter loops.
+  - Whether to change the sweeps (wider workgroups, or a level split by depth range) is not judged here.
+- **Compile:** the three modules in 0.28 s on the first run of the new sources, 0.01 s from the driver's cache. A cold run with the cache off was not repeated for this version (0.31 s before).
 
 ## Open, for the host
 
 1. **The f32 contract,** as STEP2.md call 1. Every integer, order and flag agrees here. Incoming, bud, memory and size agree only with the sites held to the CPU's order.
-2. **The block rule's shape.** Incremental joining as DESIGN.md section 3 has it yields many small blocks. Whether that matters beside the scans' spine and the members' merge is not judged here.
+2. **The sweeps under sibling spills** are now the cycle's cost: 16.1 ms of 18.3 on Telperion. Every dispatch is under 0.5 ms.

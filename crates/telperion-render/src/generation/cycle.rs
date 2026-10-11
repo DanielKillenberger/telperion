@@ -9,6 +9,8 @@ mod hier_build;
 mod hier_columns;
 mod hier_compare;
 mod hier_device;
+mod hier_plan;
+mod hier_scan;
 mod lay_columns;
 mod lay_compare;
 mod lay_device;
@@ -47,6 +49,8 @@ const LAY_FRAME: &str = include_str!("cycle/lay_frame.wgsl");
 const HIER_COLS: &str = include_str!("cycle/hier_cols.wgsl");
 const HIER_BUILD: &str = include_str!("cycle/hier_build.wgsl");
 const HIER_BLOCKS: &str = include_str!("cycle/hier_blocks.wgsl");
+const HIER_MEMBERS: &str = include_str!("cycle/hier_members.wgsl");
+const HIER_SCAN: &str = include_str!("cycle/hier_scan.wgsl");
 const HIER_REAL: &str = include_str!("cycle/hier_real.wgsl");
 const HIER_CYCLE: &str = include_str!("cycle/hier_cycle.wgsl");
 const HIER_SWEEP: &str = include_str!("cycle/hier_sweep.wgsl");
@@ -84,9 +88,14 @@ pub(super) fn light_source() -> String {
 }
 
 /// The hierarchy's build (DESIGN.md sections 3 and 4): its columns, the
-/// children's and members' lists, then the blocks.
+/// children's lists, the blocks, then the members' and levels' lists.
 pub(super) fn hier_build_source() -> String {
-    format!("{HIER_COLS}\n{HIER_BUILD}\n{HIER_BLOCKS}")
+    format!("{HIER_COLS}\n{HIER_BUILD}\n{HIER_BLOCKS}\n{HIER_MEMBERS}")
+}
+
+/// The hierarchy's exclusive scan, in levels.
+pub(super) fn hier_scan_source() -> String {
+    HIER_SCAN.to_string()
 }
 
 /// The balance and allotment over the hierarchy (DESIGN.md section 2,

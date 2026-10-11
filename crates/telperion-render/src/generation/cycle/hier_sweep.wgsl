@@ -1,6 +1,7 @@
 // fn-256 task 2 (DESIGN.md section 3): the sums by block level, a
-// workgroup a block of `cfg.level`, its members by local depth, deepest
-// first upward and shallowest first downward, a barrier between depths.
+// workgroup a block of `cfg.level`, its members by depth over the block's
+// range of depths, deepest first upward and shallowest first downward, a
+// barrier between depths.
 // Each axis takes its children in fn-255's order, so any schedule that
 // finishes them first gives the CPU's sums: the bottom-up `totals` and
 // `sub`, the top-down `walk` and `split`.
@@ -8,8 +9,9 @@
 var<workgroup> w_run: vec4<u32>;
 var<workgroup> w_span: vec2<u32>;
 
-// The workgroup's block: its members' first and end, its deepest local
-// depth, and whether there is one.
+// The workgroup's block: its members' first and end, and its least and
+// greatest depth (its first member's and its last's); an empty run where
+// there is none.
 fn open_block(wid: vec3<u32>, lid: u32) -> vec4<u32> {
     if lid == 0u {
         let first = lists[ls(R_LVL_START, cfg.level)];
@@ -19,20 +21,21 @@ fn open_block(wid: vec3<u32>, lid: u32) -> vec4<u32> {
             let b = lists[ls(R_LVL_BLOCKS, k)];
             let ms = lists[ls(R_MEM_START, b)];
             let me = lists[ls(R_MEM_START, b + 1u)];
-            run = vec4<u32>(ms, me, shape[at(H_LOCAL, lists[ls(R_MEMBERS, me - 1u)])], 1u);
+            let least = shape[at(H_DEPTH, lists[ls(R_MEMBERS, ms)])];
+            run = vec4<u32>(ms, me, least, shape[at(H_DEPTH, lists[ls(R_MEMBERS, me - 1u)])]);
         }
         w_run = run;
     }
     return workgroupUniformLoad(&w_run);
 }
 
-// The first of the block's members at local depth `d` or below.
+// The first of the block's members at depth `d` or below.
 fn lower(run: vec4<u32>, d: u32) -> u32 {
     var lo = run.x;
     var hi = run.y;
     for (var step = 0u; step < 32u && lo < hi; step++) {
         let mid = lo + (hi - lo) / 2u;
-        if shape[at(H_LOCAL, lists[ls(R_MEMBERS, mid)])] < d {
+        if shape[at(H_DEPTH, lists[ls(R_MEMBERS, mid)])] < d {
             lo = mid + 1u;
         } else {
             hi = mid;
@@ -41,7 +44,7 @@ fn lower(run: vec4<u32>, d: u32) -> u32 {
     return lo;
 }
 
-// The block's members at local depth `d`.
+// The block's members at depth `d`.
 fn depth_span(run: vec4<u32>, d: u32, lid: u32) -> vec2<u32> {
     if lid == 0u {
         w_span = vec2<u32>(lower(run, d), lower(run, d + 1u));
@@ -78,11 +81,11 @@ fn totals(i: u32) {
 @compute @workgroup_size(64)
 fn totals_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
     let run = open_block(wid, lid);
-    if run.w == 0u {
+    if run.y == run.x {
         return;
     }
-    for (var h = 0u; h <= run.z; h++) {
-        let span = depth_span(run, run.z - h, lid);
+    for (var h = 0u; h <= run.w - run.z; h++) {
+        let span = depth_span(run, run.w - h, lid);
         for (var k = span.x + lid; k < span.y; k += WG) {
             totals(lists[ls(R_MEMBERS, k)]);
         }
@@ -143,10 +146,10 @@ fn walk(i: u32) {
 @compute @workgroup_size(64)
 fn walk_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
     let run = open_block(wid, lid);
-    if run.w == 0u {
+    if run.y == run.x {
         return;
     }
-    for (var d = 0u; d <= run.z; d++) {
+    for (var d = run.z; d <= run.w; d++) {
         let span = depth_span(run, d, lid);
         for (var k = span.x + lid; k < span.y; k += WG) {
             walk(lists[ls(R_MEMBERS, k)]);
@@ -174,11 +177,11 @@ fn sub(i: u32) {
 @compute @workgroup_size(64)
 fn sub_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
     let run = open_block(wid, lid);
-    if run.w == 0u {
+    if run.y == run.x {
         return;
     }
-    for (var h = 0u; h <= run.z; h++) {
-        let span = depth_span(run, run.z - h, lid);
+    for (var h = 0u; h <= run.w - run.z; h++) {
+        let span = depth_span(run, run.w - h, lid);
         for (var k = span.x + lid; k < span.y; k += WG) {
             sub(lists[ls(R_MEMBERS, k)]);
         }

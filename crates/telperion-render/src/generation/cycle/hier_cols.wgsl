@@ -20,17 +20,19 @@ const T_KEPT: u32 = 11u;
 const T_MEMORY: u32 = 12u;
 const T_SIZE: u32 = 13u;
 
-// The shape, per axis: its depth, block, depth in its block and
-// generation in its cycle; per block, its level.
+// The shape, per axis: its depth, block and generation in its cycle; per
+// block, its open spill (`NONE` until it opens one), its level, and the
+// full block it spills from (`NONE` for the root's).
 const H_DEPTH: u32 = 0u;
 const H_BLOCK: u32 = 1u;
-const H_LOCAL: u32 = 2u;
+const H_SPILL: u32 = 2u;
 const H_GEN: u32 = 3u;
 const H_LEVEL: u32 = 4u;
+const H_FROM: u32 = 5u;
 
 // The ordered lists (`cur`, `next`), `stride + 64` rows a column: each
 // axis's children (a start per axis, then the children), each block's
-// members by local depth, each level's blocks.
+// members by depth, each level's blocks.
 const R_KID_START: u32 = 0u;
 const R_KIDS: u32 = 1u;
 const R_MEM_START: u32 = 2u;

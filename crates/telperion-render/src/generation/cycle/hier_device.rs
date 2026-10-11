@@ -6,8 +6,9 @@
 //! and the sizes. Each dispatch is its own stamped pass; the living
 //! after the balance reach their kernels through the scan's total.
 use super::super::io;
-use super::hier_build::{Hierarchy, Kernels, Scan, uniform, widest, zeroed};
+use super::hier_build::{Hierarchy, Kernels};
 use super::hier_columns::{Hier, stride};
+use super::hier_scan::{Scan, sums_words, uniform, widest, zeroed};
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
@@ -115,14 +116,10 @@ impl Sums {
             N_ORDER + s + 2 * blocks * u64::from(hier.pas),
         )?;
         let tally = zeroed(gpu, "hierarchy sums tally", TALLY)?;
-        let scan_sums = zeroed(
-            gpu,
-            "hierarchy sums scan",
-            4 * u64::from(live_n.div_ceil(256)),
-        )?;
+        let scan_sums = zeroed(gpu, "hierarchy sums scan", sums_words(live_n))?;
         let flags = Scan::new(
             gpu,
-            k,
+            &k.scan,
             (&live, V_FLAG * u64::from(live_stride), live_n),
             &scan_sums,
             (&tally, 0),
@@ -192,7 +189,7 @@ impl Sums {
             k.sums.run(e, &self.binds[l], WALK, self.level_sizes[l]);
         }
         k.sums.run(e, base, SHED, apexes);
-        self.flags.record(k, e);
+        self.flags.record(&k.scan, e);
         k.sums.run(e, base, COMPACT, apexes);
         k.sums.run(e, base, PRESENCE, apexes);
         for l in (0..levels).rev() {
@@ -209,7 +206,7 @@ impl Sums {
 
     /// The dispatches `record` makes.
     pub(super) fn dispatches(&self) -> usize {
-        4 * self.level_sizes.len() + 10
+        4 * self.level_sizes.len() + 7 + self.flags.dispatches()
     }
 
     /// The bytes the sums hold beyond the tree: their columns, the living,
