@@ -161,7 +161,7 @@ fn grow_one(
         g.step(cycle, quiet)?;
         if cycle < age {
             g.sketch(cycle, &advanced)?;
-            g.shade(cycle, quiet);
+            g.shade(cycle, quiet)?;
         }
     }
     Ok(Grown {
@@ -206,10 +206,9 @@ impl<'a> Grower<'a> {
             couple: None,
             fine: None,
             one: false,
-            model: super::cycle::Model::Lattice,
-            owners: Vec::new(),
+            deposit: super::cycle::Deposit::F32,
             light_seconds: 0.0,
-            probe: None,
+            census: None,
         }
     }
 

@@ -22,3 +22,9 @@
 - **Hindered:** the dcg hook refuses `>` to a path held in a shell variable (literal paths only); `/usr/bin/time` is absent (peak memory via a Python wrapper); system Python has no numpy (ran the sheet through `uv run --with numpy`).
 - **Cost:** about 5 minutes in all.
 - **Would remove it:** local setup, not a repository change.
+
+## 2026-10-11, task 1: restoring a throwaway patch reverted my own edits
+- **Doing:** reverting the throwaway stills route in `grow.rs` with `git checkout` after building the renderer for early test 2.
+- **Hindered:** `grow.rs` also held uncommitted edits of this step (the deposit and census fields), which the checkout discarded; the next test build failed on 16 errors. The results were from binaries built before the revert; re-applied and checked that the rebuilt code reproduces them.
+- **Cost:** about 5 minutes.
+- **Would remove it:** apply throwaway patches only on a committed tree, or reverse them with `git apply -R` of the saved patch.

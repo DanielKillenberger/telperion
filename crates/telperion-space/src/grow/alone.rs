@@ -160,10 +160,9 @@ pub(super) fn start<'a>(
         handed: Vec::new(),
         spare: Default::default(),
         one: false,
-        model: super::cycle::Model::Lattice,
-        owners: Vec::new(),
+        deposit: super::cycle::Deposit::F32,
         light_seconds: 0.0,
-        probe: None,
+        census: None,
     };
     let (from, root) = match bud {
         None => {

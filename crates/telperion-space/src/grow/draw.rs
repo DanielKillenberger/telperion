@@ -248,16 +248,11 @@ impl Grower<'_> {
         if let Some(o) = owners.as_mut() {
             o.clear();
         }
-        let mut tagged = std::mem::take(&mut self.owners);
-        tagged.clear();
         for (i, from, to) in laid.chain(made) {
             let axis = &self.axes[i];
             let area = species.states[axis.pa].leaf_area;
             for p in &axis.phytomers[from..to] {
                 leaves.push((p.tip, crate::light::leaf_area(p.scale, p.size, area)));
-            }
-            if self.one {
-                tagged.extend(std::iter::repeat_n(i, to - from));
             }
             if let Some(o) = owners.as_mut() {
                 o.extend(std::iter::repeat_n(i, to - from));
@@ -270,7 +265,6 @@ impl Grower<'_> {
             .pencils
             .extend(fresh.into_iter().map(|p| p.expect("drawn")));
         self.leaves = leaves;
-        self.owners = tagged;
         self.sketch = Some(sketch);
         Ok(())
     }

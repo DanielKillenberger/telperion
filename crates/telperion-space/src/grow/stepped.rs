@@ -38,7 +38,7 @@ mod standing;
 mod stands;
 
 use super::partition::Digest;
-use super::{start, Grower, Options, Request};
+use super::{start, Certain, Grower, Options, Request};
 use crate::bounded::Expected;
 use crate::closed_form::predictor::Predictor;
 use crate::error::{Error, Result};
@@ -77,7 +77,18 @@ pub fn grow_stepped(species: &Species, request: Request, expected: &Expected, cu
 /// (fn-209 host decision 9), the items visited forward.
 pub(crate) fn build(species: &Species, request: Request, plan: Plan) -> Result<Fine> {
     let at = (None, plan.cut);
-    Ok(run_with(species, request, at, plan, Keep::Tree)?.1)
+    Ok(run_with(species, request, at, plan, (Keep::Tree, Certain::Skip))?.1)
+}
+
+/// COUNCIL.md's early test 1: the build, its laterals certain to be shed
+/// skipped as today (`grow == false`) or grown, with its cycles' and
+/// settle's seconds and the phytomers each side of the cut grew.
+pub fn grow_build(species: &Species, request: Request, grow: bool) -> Result<Stepped> {
+    let certain = if grow { Certain::Grow } else { Certain::Skip };
+    let plan = Plan::default();
+    let (mut stepped, fine) = run_with(species, request, (None, plan.cut), plan, (Keep::Tree, certain))?;
+    stepped.structure = crate::fine::lineage_order(fine.structure);
+    Ok(stepped)
 }
 
 /// What a run keeps beside its tree: nothing (the build), or each phase's
@@ -103,7 +114,7 @@ fn run(
     at: (Option<Counts>, f64),
     keep: Keep,
 ) -> Result<Stepped> {
-    let (mut stepped, fine) = run_with(species, request, at, Plan::default(), keep)?;
+    let (mut stepped, fine) = run_with(species, request, at, Plan::default(), (keep, Certain::Skip))?;
     stepped.structure = fine.structure;
     Ok(stepped)
 }
@@ -115,9 +126,13 @@ fn run_with(
     request: Request,
     (counts, cut): (Option<Counts>, f64),
     plan: Plan,
-    keep: Keep,
+    (keep, certain): (Keep, Certain),
 ) -> Result<(Stepped, Fine)> {
-    let (mut coarse, _) = start(species, request, true, Options::default())?;
+    let options = Options {
+        certain,
+        ..Options::default()
+    };
+    let (mut coarse, _) = start(species, request, true, options)?;
     if plan.threads > 0 {
         coarse.threads = plan.threads;
     }

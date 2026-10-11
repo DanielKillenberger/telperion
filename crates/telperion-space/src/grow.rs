@@ -371,13 +371,11 @@ struct Grower<'a> {
     /// The lists a cycle's share fills, kept for the next.
     spare: shoot::Spare,
     /// fn-255's one cycle: every phase run for every species (`cycle.rs`),
-    /// the light read by `model`, the axis that laid each of the cycle's
-    /// leaves, the seconds the light took, and the candidates read beside.
+    /// its leaves' deposit, the seconds the light took, and its census.
     one: bool,
-    model: cycle::Model,
-    owners: Vec<usize>,
+    deposit: cycle::Deposit,
     light_seconds: f64,
-    probe: Option<Box<cycle::Probe>>,
+    census: Option<Box<cycle::Census>>,
 }
 
 /// Whether the realized settle (`fine::settle`) takes `species` apart from
@@ -450,10 +448,9 @@ impl<'a> Grower<'a> {
             couple: None,
             fine: None,
             one: false,
-            model: cycle::Model::Lattice,
-            owners: Vec::new(),
+            deposit: cycle::Deposit::F32,
             light_seconds: 0.0,
-            probe: None,
+            census: None,
         })
     }
 }
@@ -499,7 +496,7 @@ impl Grower<'_> {
         self.sketch(cycle, advanced)?;
         stage(Stage::Pass(Pass::Sketch));
         stage(Stage::Sketched);
-        self.shade(cycle, stage);
+        self.shade(cycle, stage)?;
         stage(Stage::Lit);
         Ok(())
     }

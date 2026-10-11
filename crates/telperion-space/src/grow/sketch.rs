@@ -82,7 +82,7 @@ impl Grower<'_> {
     /// living apex's tip; in the coupling pass, every fine root's stand-in
     /// leaves cast too and each root reads its light at its centroid; in a
     /// fine subtree, every bud reads its root's record.
-    pub(super) fn shade(&mut self, cycle: u32, report: &mut dyn FnMut(Stage)) {
+    pub(super) fn shade(&mut self, cycle: u32, report: &mut dyn FnMut(Stage)) -> crate::error::Result<()> {
         let mut sketch = self.sketch.take().expect("sketching");
         if let Some(reads) = self.fine.as_ref() {
             let light = reads.records.light(cycle + 1);
@@ -90,7 +90,7 @@ impl Grower<'_> {
                 sketch.pencils[apex.axis].light = light;
             }
             self.sketch = Some(sketch);
-            return;
+            return Ok(());
         }
         let mut tips: Vec<Vec3> = self.live.iter().map(|a| self.tip(a.axis)).collect();
         let fine = self.fine_leaves(cycle);
@@ -102,7 +102,7 @@ impl Grower<'_> {
         self.check_leaves(cycle, &tips);
         let mut read = if self.one {
             self.sketch = Some(sketch);
-            let read = self.read_light(&tips);
+            let read = self.read_light(&tips)?;
             sketch = self.sketch.take().expect("sketching");
             read
         } else {
@@ -134,6 +134,7 @@ impl Grower<'_> {
         self.leaves.truncate(own);
         self.hash_phase(cycle, 3);
         report(Stage::Pass(Pass::ShadeRead));
+        Ok(())
     }
 
     /// Each laid axis's link and PA, gathered on every core, so the

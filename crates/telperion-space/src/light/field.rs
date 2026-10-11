@@ -11,12 +11,15 @@
 //! - **The domain** is every coordinate below 2^12 m and a box of at most
 //!   2^28 nodes, refused by name past them (CONTRACT-A.md 2.2).
 use super::CELL;
+use crate::error::{refuse, Result};
 use crate::structure::Vec3;
 
 /// The position domain: every coordinate below 2^12 m.
 const REACH: f32 = 4096.0;
 /// The nodes a box holds.
 const NODES: u64 = 1 << 28;
+/// The quantised deposit's unit of weighted leaf area: 2^-20 m².
+pub(crate) const QUANTUM: f64 = 1.0 / 1_048_576.0;
 
 /// A lattice of light: leaf area deposited, swept from the sky, read.
 pub(crate) struct Field {
@@ -131,9 +134,51 @@ impl Field {
         field.density
     }
 
+    /// `on`, its leaves deposited as integer quanta of `QUANTUM` m² of
+    /// weighted area, a u32 a node (COUNCIL.md's early test 2): the sum is
+    /// the same in any order, as device atomics would make it. A node past
+    /// its u32 is refused by name, never wrapped.
+    pub fn quantised(
+        light: &super::Light,
+        leaves: &[(Vec3, f64)],
+        reads: &[Vec3],
+        threads: usize,
+    ) -> Result<Self> {
+        let mut field = Self::spanning(leaves.iter().map(|l| l.0).chain(reads.iter().copied()));
+        let mut quanta = vec![0u32; field.grid.nodes()];
+        for &(at, area) in leaves {
+            let area = area as f32;
+            assert!(area >= 0.0, "a leaf's area inside the contract's bound");
+            for (i, w) in field.grid.corners(at) {
+                let i = i.expect("a leaf inside its box");
+                let q = (f64::from(area) * f64::from(w) / QUANTUM).round();
+                let sum = (q <= f64::from(u32::MAX)).then(|| quanta[i].checked_add(q as u32)).flatten();
+                let Some(sum) = sum else {
+                    return refuse("light.deposit", "a lattice node holds at most 2^32 quanta of 2^-20 m² of leaf area");
+                };
+                quanta[i] = sum;
+            }
+        }
+        for (d, &q) in field.density.iter_mut().zip(&quanta) {
+            *d = (8.0 * f64::from(q) * QUANTUM) as f32;
+        }
+        field.sweep(light.extinction, &light.directions(), threads);
+        Ok(field)
+    }
+
     /// The nodes it holds.
     pub fn nodes(&self) -> usize {
         self.grid.nodes()
+    }
+
+    /// Its box's nodes on each axis.
+    pub fn size(&self) -> [u32; 3] {
+        self.grid.size
+    }
+
+    /// The nodes any leaf area reached.
+    pub fn occupied(&self) -> usize {
+        self.density.iter().filter(|&&d| d > 0.0).count()
     }
 
     /// The light at `at`: its corners inside the box by their nodes' light,

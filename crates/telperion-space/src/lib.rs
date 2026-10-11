@@ -68,11 +68,10 @@ pub use grow::oracle::{grow_oracle, Oracled, Read};
 pub use grow::partition::{
     grow_partitioned, Grouping, Order as PartitionOrder, Partitioned, Run as PartitionRun, PHASES,
 };
-pub use grow::stepped::{grow_stepped, Stepped};
+pub use grow::stepped::{grow_build, grow_stepped, Stepped};
 pub use grow::subtree::Measured;
-pub use grow::cycle::{grow_cycle, trace_cycle, Cycled, Measure, Model, Probe, Traced};
+pub use grow::cycle::{grow_census, grow_cycle, Census, Cycle, Cycled, Deposit};
 pub use grow::{apart, grow, grow_marked, sketch, Pass, Request, Stage};
-pub use light::volumes::Candidate;
 pub use light::{bud_light, field_reads, Light};
 pub use lineage::{internode_factor, join_key};
 pub use lineage::keys as lineage_keys;
