@@ -1,8 +1,9 @@
 // fn-256 task 2 (SETTLE-PLAN.md S3, S5 and S6): the settled tree laid
 // (`geometry::place`), a depth at a time from the seed: each axis framed
 // on its laid parent (`framed`), its pull and the pulls it carries on,
-// then walked phytomer by phytomer (`Layer::step`), its girth read where
-// it meets the ground and, on the sag's lay, its levers. An axis that
+// then walked phytomer by phytomer (`Layer::step`), a bounded run of
+// them a dispatch, its girth read where it meets the ground and, on the
+// sag's lay, its levers. An axis that
 // cannot be laid gives its grown index to the least of those that
 // failed, as laying them in turn gives the CPU's first.
 
@@ -14,8 +15,10 @@ fn failed(i: u32, code: u32) {
     atomicMin(&atom[T_ERR], ax(i, A_GROWN) * 4u + code);
 }
 
+// Each axis of the depth framed on its laid parent, its pull and the
+// pulls it carries on, and its walk begun (`Layer::bent`).
 @compute @workgroup_size(64)
-fn place_main(@builtin(global_invocation_id) id: vec3<u32>) {
+fn frame_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = listed(id);
     if i == NONE {
         return;
@@ -39,18 +42,40 @@ fn place_main(@builtin(global_invocation_id) id: vec3<u32>) {
     set_ax3(i, A_BASE, fr.base);
     set_ax3(i, A_HEADING, fr.heading);
     set_ax3(i, A_SIDE, fr.side);
-    var wk = Walk(fr.heading, fr.side, fr.base, 0.0, (1.0 + fr.heading.z) * 0.5, fr.curve, tropism_of(i));
-    if fr.base.z <= form[1] {
+    keep_walk(i, Walk(fr.heading, fr.side, fr.base, 0.0, (1.0 + fr.heading.z) * 0.5, fr.curve, tropism_of(i)));
+    let below = fr.base.z <= form[1];
+    set_py(i, Y_FAIL, u32(below));
+    if below {
         failed(i, 2u);
-    } else {
-        let reach = pyf(i, Y_REACH);
-        for (var j = 0u; j < nphyt(i); j++) {
-            let r = prow(i, j);
-            step(&wk, i, r, phf(r, PH_SCALE), bent, reach, trunk);
-            if (status & (FAULT_BEYOND | FAULT_BELOW)) != 0u {
-                failed(i, select(2u, 3u, (status & FAULT_BEYOND) != 0u));
-                break;
-            }
+    }
+    if status != 0u {
+        atomicOr(&atom[T_PLACE], status);
+    }
+}
+
+// Each axis of the depth walked on by its phytomers `cfg.walk_at` to
+// `cfg.walk_at + cfg.walk_n` (`Layer::step`), its walk carried in its
+// columns from the dispatch before: a dispatch's work bounded however
+// long the axis. An axis past its end, or stopped, takes none.
+@compute @workgroup_size(64)
+fn walk_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let i = listed(id);
+    if i == NONE || cfg.walk_at >= nphyt(i) || py(i, Y_FAIL) != 0u {
+        return;
+    }
+    status = 0u;
+    var wk = walk_of(i);
+    let bent = pyf(i, Y_BEND);
+    let reach = pyf(i, Y_REACH);
+    let trunk = py(i, Y_TRUNK) != 0u;
+    let end = min(cfg.walk_at + cfg.walk_n, nphyt(i));
+    for (var j = cfg.walk_at; j < end; j++) {
+        let r = prow(i, j);
+        step(&wk, i, r, phf(r, PH_SCALE), bent, reach, trunk);
+        if (status & (FAULT_BEYOND | FAULT_BELOW)) != 0u {
+            failed(i, select(2u, 3u, (status & FAULT_BEYOND) != 0u));
+            set_py(i, Y_FAIL, 1u);
+            break;
         }
     }
     keep_walk(i, wk);

@@ -245,6 +245,7 @@ fn keep_main(@builtin(global_invocation_id) id: vec3<u32>) {
     set_waf(W_ABOVE, i, above);
     if kept {
         atomicAdd(&atom[T_KDCOUNT + cfg.depth], 1u);
+        atomicMax(&atom[T_KDLONG + cfg.depth], ax(i, A_PHYTS));
         atomicAdd(&atom[T_KEPT], 1u);
         atomicAdd(&atom[T_KEPT_PHYTS], ax(i, A_PHYTS));
         atomicAdd(&atom[T_KEPT_UNITS], ax(i, A_UNITS));

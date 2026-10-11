@@ -92,7 +92,8 @@ pub(super) const T_LEAF: usize = 8;
 pub(super) const T_DCOUNT: u32 = 64;
 pub(super) const T_DFILL: u32 = T_DCOUNT + DMAX + 64;
 pub(super) const T_KDCOUNT: u32 = T_DFILL + DMAX;
-pub(super) const T_KCOUNT: u32 = T_KDCOUNT + DMAX;
+pub(super) const T_KDLONG: u32 = T_KDCOUNT + DMAX;
+pub(super) const T_KCOUNT: u32 = T_KDLONG + DMAX;
 /// The node table's axis columns and phytomer columns.
 pub(super) const NA_COLS: u32 = 41;
 pub(super) const NP_COLS: u32 = 22;
@@ -107,13 +108,14 @@ pub(super) const T_SCALED: usize = 7;
 pub(super) const T_PLACE: usize = 5;
 
 /// The place module's entries.
-pub(super) const PLACE_ENTRIES: [&str; 6] = ["scale_main", "attach_main", "thick_main", "place_main", "lever_main", "sized_main"];
+pub(super) const PLACE_ENTRIES: [&str; 7] = ["scale_main", "attach_main", "thick_main", "frame_main", "lever_main", "sized_main", "walk_main"];
 pub(super) const SCALE: usize = 0;
 pub(super) const ATTACH: usize = 1;
 pub(super) const THICK_E: usize = 2;
-pub(super) const PLACE_E: usize = 3;
+pub(super) const FRAME_E: usize = 3;
 pub(super) const LEVER: usize = 4;
 pub(super) const SIZED: usize = 5;
+pub(super) const WALK_E: usize = 6;
 
 /// The settle's modules, built under one arithmetic: the shed and order
 /// over the grown tree, and the place over the node table.

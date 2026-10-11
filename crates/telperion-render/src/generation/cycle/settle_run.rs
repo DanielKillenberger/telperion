@@ -35,7 +35,10 @@ pub(super) fn flags(pa: &[u32]) -> u32 {
 }
 
 /// The phytomers a leaf-sum dispatch takes: one lane sums them in turn.
-const LEAF_RANGE: u32 = 1 << 15;
+const LEAF_RANGE: u32 = 1 << 14;
+/// The axes a walking pass's dispatch takes (`Rec::ranged`): a count,
+/// never a timing.
+const RANGE: u32 = 1 << 17;
 /// The depth's jumps: depths below 2^12.
 const JUMPS: u32 = 12;
 
@@ -50,6 +53,8 @@ pub(super) struct Settled {
     /// The kept depths' first final indices, and the error a settle met
     /// (`s_error`'s code and grown axis; none: 0).
     pub kept_starts: Vec<u32>,
+    /// Each kept depth's longest axis, in phytomers.
+    pub kept_long: Vec<u32>,
     pub error: [u32; 2],
     /// The growth's bytes freed before the settle, and the settle's own
     /// at its largest.
@@ -97,6 +102,18 @@ impl Rec<'_> {
         self.pass.run(e, &bind, entry, groups);
         self.held.push(buf);
         self.stamped.push(phase);
+        Ok(())
+    }
+
+    /// `entry` over `items` invocations in ranges of `RANGE`, each
+    /// dispatch's first item its `base`: the passes whose invocations walk
+    /// an axis's units and phytomers, cut so no dispatch runs long.
+    fn ranged(&mut self, e: &mut wgpu::CommandEncoder, at: (usize, &'static str), words: &[(usize, u32)], items: u32) -> Result<()> {
+        for base in (0..items.max(1)).step_by(RANGE as usize) {
+            let mut all = words.to_vec();
+            all.push((w::BASE, base));
+            self.run(e, at, &all, RANGE.min(items - base).max(1))?;
+        }
         Ok(())
     }
 
@@ -160,7 +177,7 @@ pub(super) fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Build, &Ta
     gpu.queue.write_buffer(&r.work, 4 * u64::from(d::K_AT), bytemuck::cast_slice(pa));
     let depths = shape(&mut r, &layout)?;
     let deepest = depths.len() - 1;
-    let (tally, kept) = sweeps(&mut r, &layout, (&depths, flags))?;
+    let (tally, kept, kept_long) = sweeps(&mut r, &layout, (&depths, flags))?;
     let table = Table::new(tally[d::T_KEPT], tally[d::T_KEPT_UNITS], tally[d::T_KEPT_PHYTS]);
     let collapsed = table.phyts == 0;
     let mut kept_starts = vec![0u32];
@@ -172,7 +189,7 @@ pub(super) fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Build, &Ta
     }
     let pw = zeroed(gpu, "settle place", 4)?;
     let error = if collapsed { [1, u32::MAX] } else { [0, u32::MAX] };
-    let mut s = Settled { layout, table, work: r.work, atom: r.atom, nt: r.nt, pw, kept_starts, error, freed, flags, stamped: r.stamped };
+    let mut s = Settled { layout, table, work: r.work, atom: r.atom, nt: r.nt, pw, kept_starts, kept_long, error, freed, flags, stamped: r.stamped };
     if collapsed || to == SettleTo::Shed {
         return Ok(s);
     }
@@ -228,15 +245,15 @@ fn refuse(fault: u32) -> Result<()> {
 
 /// The second submission: the lists filled, the mark, the assignment,
 /// the grown tree's sweeps; the tallies and the kept per depth back.
-fn sweeps(r: &mut Rec, l: &Layout, (depths, flags): (&[(u32, u32)], u32)) -> Result<(Vec<u32>, Vec<u32>)> {
+fn sweeps(r: &mut Rec, l: &Layout, (depths, flags): (&[(u32, u32)], u32)) -> Result<(Vec<u32>, Vec<u32>, Vec<u32>)> {
     let mut e = r.gpu.encoder(&Default::default());
     let (n, h) = (l.n, r.b.held);
     let g = "settle mark and assign";
-    r.run(&mut e, (d::FILL, g), &[(w::FLIP, JUMPS % 2)], n)?;
+    r.ranged(&mut e, (d::FILL, g), &[(w::FLIP, JUMPS % 2)], n)?;
     r.run(&mut e, (d::SORT, g), &[], n)?;
     r.run(&mut e, (d::LIVING, g), &[], h.next)?;
     r.run(&mut e, (d::WOKEN, g), &[], h.woken)?;
-    r.run(&mut e, (d::ASSIGN_E, g), &[], n)?;
+    r.ranged(&mut e, (d::ASSIGN_E, g), &[], n)?;
     r.run(&mut e, (d::VIGOUR, g), &[], n)?;
     let at = |k: usize, (base, count): (u32, u32)| [(w::BASE, base), (w::COUNT, count), (w::DEPTH, k as u32)];
     for (k, &dc) in depths.iter().enumerate() {
@@ -258,7 +275,8 @@ fn sweeps(r: &mut Rec, l: &Layout, (depths, flags): (&[(u32, u32)], u32)) -> Res
     let tally = read_words(r.gpu, &r.atom, 0, 64)?;
     refuse(tally[d::T_FAULT])?;
     let kept = read_words(r.gpu, &r.atom, u64::from(d::T_KDCOUNT), depths.len() as u64)?;
-    Ok((tally, kept))
+    let long = read_words(r.gpu, &r.atom, u64::from(d::T_KDLONG), depths.len() as u64)?;
+    Ok((tally, kept, long))
 }
 
 /// The third submission: the lineage order a depth at a time, then the
@@ -285,7 +303,7 @@ fn order(r: &mut Rec, l: &Layout, t: &Table, starts: &[u32]) -> Result<()> {
     r.run(&mut e, (d::SIZES, c), &[], t.kept + 1)?;
     r.scan(&mut e, Data::Work, l.f(d::WF_PSTART, 0), t.kept + 1, c)?;
     r.scan(&mut e, Data::Work, l.f(d::WF_USTART, 0), t.kept + 1, c)?;
-    r.run(&mut e, (d::COMPACT_E, c), &[], t.kept)?;
+    r.ranged(&mut e, (d::COMPACT_E, c), &[], t.kept)?;
     r.gpu.submit([e.finish()]);
     Ok(())
 }

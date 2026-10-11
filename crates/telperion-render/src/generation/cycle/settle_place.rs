@@ -18,7 +18,7 @@ struct Rec<'a> {
     gpu: &'a Gpu,
     pass: &'a super::super::io::Pass,
     form: &'a Owned,
-    cfg: [u32; 16],
+    cfg: [u32; 20],
     held: Vec<Owned>,
 }
 
@@ -37,13 +37,13 @@ impl Rec<'_> {
 
 /// The settled tree scaled and thickened (S1 and S2): the place's
 /// uniform words for the lay.
-pub(super) fn thicken(gpu: &Gpu, k: &Kernels, b: &Build, t: &Tables, s: &mut Settled) -> Result<[u32; 16]> {
+pub(super) fn thicken(gpu: &Gpu, k: &Kernels, b: &Build, t: &Tables, s: &mut Settled) -> Result<[u32; 20]> {
     let (tb, l) = (s.table, s.layout);
     let at_q = d::Y_COLS * tb.sk;
     s.pw = super::settle_run::zeroed(gpu, "settle place", u64::from(at_q) + u64::from(d::Q_COLS * tb.skp))?;
     let words = [
         widest(gpu).0, 0, 0, t.age, tb.sk, tb.skp, tb.at_np, tb.at_nu, l.sa, l.at_a, l.at_f, at_q, s.flags, 0,
-        tb.kept, 0,
+        tb.kept, 0, 0, 0, 0, 0,
     ];
     let mut r = Rec { gpu, pass: &k.place, form: &b.layout.form, cfg: words, held: Vec::new() };
     let depths = depths(s);
@@ -81,14 +81,12 @@ fn faults(gpu: &Gpu, s: &Settled) -> Result<()> {
 /// levers; then its first error, or a collapse where no phytomer has
 /// size (`s.error`). Laid only once, its levers gathered, where `to` is
 /// `Placed`.
-pub(super) fn lay(gpu: &Gpu, k: &Kernels, b: &Build, (cfg, sags, to): ([u32; 16], bool, SettleTo), s: &mut Settled) -> Result<()> {
+pub(super) fn lay(gpu: &Gpu, k: &Kernels, b: &Build, (cfg, sags, to): ([u32; 20], bool, SettleTo), s: &mut Settled) -> Result<()> {
     let mut r = Rec { gpu, pass: &k.place, form: &b.layout.form, cfg, held: Vec::new() };
     let depths = depths(s);
     gpu.queue.write_buffer(&s.atom, 4 * d::T_ERR as u64, bytemuck::bytes_of(&u32::MAX));
     let mut e = gpu.encoder(&Default::default());
-    for &at in &depths {
-        r.run(&mut e, s, (d::PLACE_E, "settle place"), at)?;
-    }
+    walk(&mut r, &mut e, s, "settle place")?;
     gpu.submit([e.finish()]);
     faults(gpu, s)?;
     let placed = to == SettleTo::Placed;
@@ -104,15 +102,35 @@ pub(super) fn lay(gpu: &Gpu, k: &Kernels, b: &Build, (cfg, sags, to): ([u32; 16]
         return Ok(());
     }
     r.cfg[15] = 1;
-    for &at in &depths {
-        r.run(&mut e, s, (d::PLACE_E, "settle sag place"), at)?;
-    }
+    walk(&mut r, &mut e, s, "settle sag place")?;
     gpu.submit([e.finish()]);
     faults(gpu, s)?;
     if first_error(gpu, s)? {
         return Ok(());
     }
     sized(gpu, &mut r, s)
+}
+
+/// The phytomers an axis's walk takes a dispatch: a count from the busy
+/// builds' longest dispatches, never a timing.
+const WALK: u32 = 32;
+
+/// The tree laid a depth at a time: each depth framed, then walked
+/// `WALK` phytomers a dispatch as far as its longest axis reaches.
+fn walk(r: &mut Rec, e: &mut wgpu::CommandEncoder, s: &mut Settled, phase: &'static str) -> Result<()> {
+    let (starts, long) = (s.kept_starts.clone(), s.kept_long.clone());
+    for (k, w) in starts.windows(2).enumerate() {
+        let at = (w[0], w[1] - w[0]);
+        if at.1 == 0 {
+            continue;
+        }
+        r.run(e, s, (d::FRAME_E, phase), at)?;
+        for c in 0..long[k].div_ceil(WALK) {
+            (r.cfg[16], r.cfg[17]) = (c * WALK, WALK);
+            r.run(e, s, (d::WALK_E, phase), at)?;
+        }
+    }
+    Ok(())
 }
 
 /// The lay's first error into `s.error`, if it met one.

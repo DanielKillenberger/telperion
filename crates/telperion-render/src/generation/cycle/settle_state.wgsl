@@ -29,6 +29,12 @@ struct Cfg {
     zero: u32,
     kept: u32,
     sagging: u32,
+    // The walk's dispatch: its first phytomer on each axis and how many
+    // it takes (`walk_main`).
+    walk_at: u32,
+    walk_n: u32,
+    pad0: u32,
+    pad1: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -102,6 +108,8 @@ const Y_RADIUS: u32 = 3u;
 const Y_REACH: u32 = 4u;
 const Y_BEND: u32 = 5u;
 const Y_TRUNK: u32 = 6u;
+// Whether the axis's lay stopped (its frame below the ground, or a step).
+const Y_FAIL: u32 = 7u;
 const Y_LAYER: u32 = 8u;
 const Y_FAR: u32 = 56u;
 const Y_LOAD: u32 = 59u;

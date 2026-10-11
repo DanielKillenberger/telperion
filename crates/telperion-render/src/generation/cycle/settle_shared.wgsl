@@ -106,7 +106,10 @@ const T_LEAF: u32 = 8u;
 const T_DCOUNT: u32 = 64u;
 const T_DFILL: u32 = T_DCOUNT + DMAX + 64u;
 const T_KDCOUNT: u32 = T_DFILL + DMAX;
-const T_KCOUNT: u32 = T_KDCOUNT + DMAX;
+// Each kept depth's longest axis's phytomers, which bounds the lay's
+// dispatches a depth (`settle_place.rs`).
+const T_KDLONG: u32 = T_KDCOUNT + DMAX;
+const T_KCOUNT: u32 = T_KDLONG + DMAX;
 // Faults: an axis's units or phytomers not as counted, a phytomer no
 // unit assigned, a depth past `DMAX`, two kept siblings of one key.
 const FAULT_LIST: u32 = 1u;
