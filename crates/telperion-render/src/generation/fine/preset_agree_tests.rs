@@ -18,29 +18,18 @@ use telperion_space::{grow_roots, root_axes, Plan};
 /// 1.8e-5 RMS (laurelin), radii 8.5e-7, crowns 2.6e-6; bound at about
 /// twice. Relative radius gaps reach 3.9e-2, all on roots under a
 /// micrometre thick, so a radius is held in metres.
-const BOUND: Bound = Bound {
+pub(super) const BOUND: Bound = Bound {
     most: 1.75e-3,
     rms: 3.5e-5,
     radius: 2e-6,
     crown: 1.5e-5,
 };
 
-/// The silver birch's device wood stood apart before fn-254: at 40 and
-/// seed 42 contract A measured the same 0.219 m tip and 1.0e-2 m RMS as f32
-/// does, so the gap is not the floats'. Held to what was measured until
-/// its own spec closes it.
-const BIRCH: Bound = Bound {
-    most: 0.25,
-    rms: 1.2e-2,
-    radius: 1e-6,
-    crown: 1e-3,
-};
-
-struct Bound {
-    most: f64,
-    rms: f64,
-    radius: f64,
-    crown: f64,
+pub(super) struct Bound {
+    pub most: f64,
+    pub rms: f64,
+    pub radius: f64,
+    pub crown: f64,
 }
 
 /// The presets the CPU grows whole, by name, and why (R4a).
@@ -85,7 +74,7 @@ fn every_gpu_preset_grows_on_the_device_as_on_the_cpu() {
         );
         assert_eq!(a.statuses, 0, "{id}: a chain's status");
         assert!(a.phytomers > 0, "{id}: nothing on the device");
-        let b = if id == "silver-birch" { &BIRCH } else { &BOUND };
+        let b = BOUND;
         assert!(a.most <= b.most && a.rms() <= b.rms, "{id}: tips {a:?}");
         assert!(a.radius_m <= b.radius, "{id}: radii {:.2e} m", a.radius_m);
         assert!(a.crown_apart() <= b.crown, "{id}: crown {:?}", a.crown);
