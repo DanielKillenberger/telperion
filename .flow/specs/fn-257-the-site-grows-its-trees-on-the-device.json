@@ -7,7 +7,8 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-255-one-growth-law-reads-light-for-every"
+    "fn-255-one-growth-law-reads-light-for-every",
+    "fn-256-the-whole-grower-runs-on-the-gpu"
   ],
   "id": "fn-257-the-site-grows-its-trees-on-the-device",
   "impl_review_rounds": {},
@@ -237,5 +238,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-11T11:01:31.784475Z"
+  "updated_at": "2026-10-11T11:01:41.446372Z"
 }
