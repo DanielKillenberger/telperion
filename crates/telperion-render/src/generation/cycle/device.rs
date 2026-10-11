@@ -23,7 +23,7 @@ pub(super) const SEED: usize = 8;
 /// The operations after a unit, an entry each, in a round's order.
 pub(super) const AFTER: [usize; 6] = [9, 10, 25, 11, 12, 13];
 
-const ENTRIES: [&str; 27] = [
+pub(super) const ENTRIES: [&str; 27] = [
     "init_main",
     "woke_main",
     "decide_main",
