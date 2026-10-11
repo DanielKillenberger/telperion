@@ -52,6 +52,8 @@ mod lay_math_tests;
 #[cfg(test)]
 mod light_tests;
 #[cfg(test)]
+mod settle_math_tests;
+#[cfg(test)]
 mod settle_tests;
 #[cfg(test)]
 mod soft64_tests;
@@ -78,6 +80,7 @@ const LAY_WALK: &str = include_str!("cycle/lay_walk.wgsl");
 const LAY_DRAW: &str = include_str!("cycle/lay_draw.wgsl");
 const LAY_STAND: &str = include_str!("cycle/lay_stand.wgsl");
 const LAY_FRAME: &str = include_str!("cycle/lay_frame.wgsl");
+const LAY_PENCIL: &str = include_str!("cycle/lay_pencil.wgsl");
 const HIER_COLS: &str = include_str!("cycle/hier_cols.wgsl");
 const HIER_BUILD: &str = include_str!("cycle/hier_build.wgsl");
 const HIER_BLOCKS: &str = include_str!("cycle/hier_blocks.wgsl");
@@ -140,10 +143,10 @@ pub(super) fn source(arith: Arith) -> String {
 
 /// The rough layout's WGSL (DESIGN.md section 2.3): the contract, then
 /// the layout's columns and entries, its f32 vectors and angles, the
-/// walk, the draw, the stand and the frame.
+/// walk, the draw, the stand, the frame and the pencil.
 pub(super) fn layout_source(arith: Arith) -> String {
     format!(
-        "{}\n{}\n{LAYOUT}\n{LAY_STATE}\n{Q}\n{SINCOS}\n{LAY_WALK}\n{LAY_DRAW}\n{LAY_STAND}\n{LAY_FRAME}",
+        "{}\n{}\n{LAYOUT}\n{LAY_STATE}\n{Q}\n{SINCOS}\n{LAY_WALK}\n{LAY_DRAW}\n{LAY_STAND}\n{LAY_FRAME}\n{LAY_PENCIL}",
         super::fine::contract_with(arith.marks()),
         arith.root()
     )

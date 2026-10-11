@@ -9,7 +9,8 @@ fn exact_kept(x: f32) -> f32 {
     return bitcast<f32>(bitcast<u32>(x) ^ exact_zero());
 }
 
-// IEEE division of normal values, to nearest, ties to even.
+// IEEE division of normal values, to nearest, ties to even, its
+// quotient's underflow to the subnormals as IEEE takes it.
 fn exact_div(a: f32, b: f32) -> f32 {
     if a == 0.0 {
         return a / b;
@@ -34,6 +35,9 @@ fn exact_div(a: f32, b: f32) -> f32 {
         }
         r <<= 1u;
     }
+    if e <= 0 {
+        return bitcast<f32>(sign | below_normal(q, 2 - e, r != 0u));
+    }
     let guard = q & 1u;
     q >>= 1u;
     if guard == 1u && (r != 0u || (q & 1u) == 1u) {
@@ -44,4 +48,22 @@ fn exact_div(a: f32, b: f32) -> f32 {
         e += 1;
     }
     return bitcast<f32>(sign | (u32(e) << 23u) | (q & 0x7fffffu));
+}
+
+// A quotient's 25 bits `q` below the least normal: its subnormal bits,
+// `q` shifted right `shift` places to nearest, ties to even, `rest`
+// whether anything below `q` remained (a rounding to the least normal
+// carries into its exponent bit).
+fn below_normal(q: u32, shift: i32, rest: bool) -> u32 {
+    if shift >= 26 {
+        return 0u;
+    }
+    let s = u32(shift);
+    let half = 1u << (s - 1u);
+    let dropped = q & ((1u << s) - 1u);
+    var m = q >> s;
+    if (dropped & half) != 0u && ((dropped & (half - 1u)) != 0u || rest || (m & 1u) == 1u) {
+        m += 1u;
+    }
+    return m;
 }

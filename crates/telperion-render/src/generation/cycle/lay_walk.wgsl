@@ -1,10 +1,20 @@
 // fn-256 task 2: the walk along an axis (`geometry::Layer::step`), in the
-// CPU's f32 operations, without sag, as the rough layout takes it. Part
-// of the layout's shader.
+// CPU's f32 operations. The rough layout takes it without sag and with
+// its wood of no girth; the settle's place lays the wood's radius and,
+// where a load is given, its sag (`laid_radius`, `sag_of`, each module's
+// own). Part of the layout's shader and of the settle's place.
 
 const CONTACT: f32 = 4.0;
 const LANDING: f32 = 6.0;
 const REACH: f32 = 4096.0;
+
+// A phytomer's sag in the walk (`sagged::sag_angle`): whether it turns,
+// its pivot and its amount.
+struct Sag {
+    on: bool,
+    pivot: vec3<f32>,
+    angle: f32,
+}
 
 // Where a walk stands (`Layer`); its pulls carried on stay in its
 // pencil's columns.
@@ -148,6 +158,15 @@ fn step(wk: ptr<function, Walk>, i: u32, r: u32, scale: f32, bent: f32, total: f
         running = qturned_by(running, t2);
         across = qturned_by(across, t2);
     }
+    // Sag: the beam's curvature turns the axis down about the torque's
+    // axis, where a load is given.
+    let sag = sag_of(i, r, len, mat3x3<f32>(running, across, tip), trunk);
+    if sag.on {
+        let t3 = qturn(sag.pivot, sag.angle);
+        running = qturned_by(running, t3);
+        across = qturned_by(across, t3);
+        curve = qturned_by(curve, t3);
+    }
     // Its own pull, and those it carries on, each fading over its reach.
     var lift = 0.0;
     var up = 0.0;
@@ -173,7 +192,7 @@ fn step(wk: ptr<function, Walk>, i: u32, r: u32, scale: f32, bent: f32, total: f
         direction = ub.xyz;
     }
     if !trunk && direction.z < 0.0 {
-        let ease = support(tip.z, 0.0, len);
+        let ease = support(tip.z, laid_radius(r), len);
         if ease < 1.0 {
             direction = qunit_or(vec3<f32>(direction.x, direction.y, direction.z * ease), direction);
         }

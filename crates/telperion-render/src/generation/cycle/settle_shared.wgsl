@@ -80,8 +80,10 @@ const K_EXPONENT: u32 = 10u;
 const K_INV_E: u32 = 11u;
 const K_SECONDARY: u32 = 12u;
 const K_DOMINANCE: u32 = 13u;
+const K_SAGLOG: u32 = 14u;
 const KF_SHEDS: u32 = 1u;
 const KF_RETAINS: u32 = 2u;
+const KF_SAGS: u32 = 8u;
 const KF_DOMINANCE: u32 = 16u;
 
 // `atom`'s words: the tallies, each depth's axes counted (then their
@@ -96,6 +98,10 @@ const T_KEPT_PHYTS: u32 = 3u;
 const T_KEPT_UNITS: u32 = 4u;
 // The place's faults (`settle_state.wgsl`'s `FAULT_`).
 const T_PLACE: u32 = 5u;
+// The lay's first error (its grown index times four and its code) and
+// whether any phytomer has size.
+const T_ERR: u32 = 6u;
+const T_SCALED: u32 = 7u;
 const T_LEAF: u32 = 8u;
 const T_DCOUNT: u32 = 64u;
 const T_DFILL: u32 = T_DCOUNT + DMAX + 64u;

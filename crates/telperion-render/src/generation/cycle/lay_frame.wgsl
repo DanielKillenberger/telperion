@@ -1,6 +1,7 @@
-// fn-256 task 2: a new axis framed from its parent alone and its pencil
-// begun (`grow::draw::pencil`, `geometry::frame`), in the CPU's f32
-// operations. Part of the layout's shader.
+// fn-256 task 2: an axis framed from its laid parent alone
+// (`geometry::framed`) and how far its base is pulled towards the
+// vertical (`geometry::bend`), in the CPU's f32 operations. Part of the
+// layout's shader and of the settle's place.
 
 // `side` turned about `heading` by the amount `turn`.
 fn spun(heading: vec3<f32>, side: vec3<f32>, turn: f32) -> vec3<f32> {
@@ -68,50 +69,44 @@ fn end_of(p: u32) -> vec3<f32> {
     return ph3(prow(p, n - 1u), PH_TIP);
 }
 
-// The pulls axis `i`, carried on at blend `b`, takes from its parent
-// `p`'s walk (`Layer::handed`), into its pencil.
-fn hand_lifts(i: u32, p: u32, b: f32) {
-    let made = i32(ax(i, A_BIRTH)) * i32(TICKS) + i32(ax(i, A_SLEEP));
-    let born = i32(ax(p, A_BIRTH)) * i32(TICKS) + i32(ax(p, A_SLEEP));
-    let bent = bend_of(p, years_of(max(made - born, 0)));
-    let keep = 1.0 - b;
-    var n = 0u;
-    if keep > 0.0 {
-        let run = pnf(p, P_RUN);
-        for (var k = 0u; k <= pn(p, P_LIFTS_N); k++) {
-            var l = vec4<f32>(bent, pnf(p, P_PULL), run, 0.0);
-            if k > 0u {
-                l = lift_at(p, k - 1u);
-            }
-            l.x = l.x * keep;
-            l.w = l.w + run;
-            if l.x > 0.0 && l.w < l.z {
-                if n == LIFTS {
-                    status |= FAULT_LIFTS;
-                    break;
-                }
-                for (var c = 0u; c < 4u; c++) {
-                    set_pnf(i, P_LIFTS + 4u * n + c, l[c]);
-                }
-                n += 1u;
-            }
-        }
+// How far axis `a`, `years` old, is pulled towards the vertical at its
+// base (`geometry::bend`).
+fn bend_of(a: u32, years: f32) -> f32 {
+    let pa = ax(a, A_PA);
+    let x = fm(pa, F_ERECTION) * years;
+    let grown = fails(apart(x * QLOG2E));
+    let kind = kind_of(a);
+    var straightening = 0.0;
+    var erected = grown;
+    if kind == CONTINUED || kind == RELAYED {
+        let b = select(0.0, axf(a, A_BLEND), kind == RELAYED);
+        straightening = m(fm(pa, F_STRAIGHTENING), b);
+        erected = m(b, grown);
+    } else if kind == LATERAL {
+        straightening = fm(pa, F_STRAIGHTENING);
     }
-    set_pn(i, P_LIFTS_N, n);
+    return 1.0 - m(1.0 - straightening, 1.0 - erected);
 }
 
-// Axis `i` framed on its parent and its pencil begun.
-fn frame(i: u32) {
+// An axis's frame on its laid parent: its base, heading and side, and
+// the curvature it carries on, square to its heading.
+struct Framed {
+    base: vec3<f32>,
+    heading: vec3<f32>,
+    side: vec3<f32>,
+    curve: vec3<f32>,
+}
+
+// Axis `i` framed on its laid parent alone (`geometry::framed`): the
+// seed at the ground; a lateral at its node, turned about its parent by
+// its azimuth and inserted; an axis carried on between its parent's line
+// at its tip and its own stand, by its blend.
+fn framed(i: u32) -> Framed {
     let kind = kind_of(i);
-    let made = axf(i, A_B0) * axf(i, A_B1);
     var base = vec3<f32>(0.0);
     var heading = UP;
     var side = vec3<f32>(1.0, 0.0, 0.0);
     var curve = vec3<f32>(0.0);
-    var inherited = 1.0;
-    var vigour = made;
-    var trunk = true;
-    var share = 1.0;
     if kind != SEED {
         let p = ax(i, A_PARENT);
         let ppa = ax(p, A_PA);
@@ -138,14 +133,8 @@ fn frame(i: u32) {
                 }
                 base = (below + tip) * 0.5;
             }
-            inherited = phf(r, PH_SCALE);
-            trunk = false;
-            share = dominance_of(i);
         } else {
             curve = pn3(p, P_CURVE);
-            inherited = pnf(p, P_BASE_SCALE);
-            vigour = pnf(p, P_GOING) * made;
-            trunk = pn(p, P_TRUNK) != 0u;
             if b != 0.0 {
                 let at = stand(p, ax(i, A_NODE));
                 along = at.along;
@@ -177,23 +166,38 @@ fn frame(i: u32) {
                 side = qunit_or(sd - mv(heading, qdot(sd, heading)), across);
                 base = stand_at(p, attach(i, p, b));
             }
-            hand_lifts(i, p, b);
         }
     }
-    set_ax3(i, A_BASE, base);
-    set_ax3(i, A_HEADING, heading);
-    set_ax3(i, A_SIDE, side);
-    let bent_curve = curve - mv(heading, qdot(curve, heading));
-    let wk = Walk(heading, side, base, 0.0, (1.0 + heading.z) * 0.5, bent_curve, tropism_of(i));
-    keep_walk(i, wk);
-    set_pnf(i, P_BASE_SCALE, apart(inherited * vigour) * share);
-    set_pnf(i, P_GOING, 1.0);
-    set_pnf(i, P_RANKED, 0.0);
-    set_pn(i, P_UNITS, 0u);
-    set_pn(i, P_LAID, 0u);
-    set_pn(i, P_TRUNK, u32(trunk));
-    set_pnf(i, P_WOOD, 0.0);
-    for (var k = 0u; k < 4u; k++) {
-        set_pnf(i, P_FRESH + k, 1.0);
+    return Framed(base, heading, side, curve - mv(heading, qdot(curve, heading)));
+}
+
+// The pulls axis `i`, carried on at blend `b`, takes from its parent
+// `p`'s walk (`Layer::handed`): `own`, the parent's own pull's bend and
+// the length it fades over, then those the parent carries, each as far
+// as `i` is still the parent's continuation, into `i`'s pencil.
+fn hand_lifts(i: u32, p: u32, b: f32, own: vec2<f32>) {
+    let keep = 1.0 - b;
+    var n = 0u;
+    if keep > 0.0 {
+        let run = pnf(p, P_RUN);
+        for (var k = 0u; k <= pn(p, P_LIFTS_N); k++) {
+            var l = vec4<f32>(own.x, pnf(p, P_PULL), own.y, 0.0);
+            if k > 0u {
+                l = lift_at(p, k - 1u);
+            }
+            l.x = l.x * keep;
+            l.w = l.w + run;
+            if l.x > 0.0 && l.w < l.z {
+                if n == LIFTS {
+                    status |= FAULT_LIFTS;
+                    break;
+                }
+                for (var c = 0u; c < 4u; c++) {
+                    set_pnf(i, P_LIFTS + 4u * n + c, l[c]);
+                }
+                n += 1u;
+            }
+        }
     }
+    set_pn(i, P_LIFTS_N, n);
 }

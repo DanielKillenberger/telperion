@@ -125,3 +125,15 @@
 - **Hindered:** the owner's Chrome probe priced a dispatch at about 0.4 ms. The executor's 28,016 dispatches for Telperion become about 11 s in Chrome, and bounded subtrees cannot fit the budget's 36 dispatches a cycle (DESIGN.md 7a). Tint also refuses NaN constants and barriers under non-uniform loops, which naga accepts, and no Tint runs outside a browser here.
 - **Cost:** the executor's dispatch shape was tuned against the wrong unit (several hours of agent work on 12 µs dispatches). Every kernel's barrier loops now need review.
 - **Would remove it:** the Chrome dispatch probe (indirect against direct, one pass against many) before any executor design; a Tint validator runnable outside the browser in the shader check.
+
+## 2026-10-11, task 2 (settle): the device flushes f32 subnormals
+- **Doing:** holding the sag's lay exact on the young spruce and the ordinary.
+- **Hindered:** a few phytomers at fine tips (radius about 3e-6 m) parted by ulps. Levers there are about 1e-20, whose squares are f32 subnormals: the device flushes every subnormal to zero as operand and result (an ignored probe, `the_device_keeps_subnormals`, prints 0 against the CPU's 1.2e-40), the CPU keeps them. Found by capturing the first lay and its levers (exact), then a turn probe over 262k random inputs (which also found `exact_div` writing garbage for a subnormal quotient). Exact mode now takes the sag's dot products, scalings and roots in integers with gradual underflow (`settle_sub.wgsl`); `exact_div` rounds into the subnormals.
+- **Cost:** about 45 minutes, nine GPU runs.
+- **Would remove it:** naming flush-to-zero beside fusion and reordering in the exact switch's doc (UNITS.md, LAYOUT.md); the host's ruling on the f32 contract would settle it for plain builds.
+
+## 2026-10-11, task 2 (settle): the exact place module's cold compile
+- **Doing:** the first exact run of the place module (stand, walk, frame, sag, software f64 and the gradual-underflow ops).
+- **Hindered:** its cold compile took about 270 s on the NVIDIA driver; the exact module's change to `exact.wgsl` also recompiled the units module (95 s).
+- **Cost:** about 6 minutes of GPU lock.
+- **Would remove it:** one call site per heavy function in the place module (`step` and `sag_of` are called once each, but the integer helpers `sub_mul`/`sub_add` are inlined at many sites); not attempted before the stop.

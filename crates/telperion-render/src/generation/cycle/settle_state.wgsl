@@ -23,12 +23,12 @@ struct Cfg {
     at_a: u32,
     at_f: u32,
     at_q: u32,
-    // The species' flags, the zero the driver cannot see through, and
-    // the kept axes.
+    // The species' flags, the zero the driver cannot see through, the
+    // kept axes, and whether the lay takes the levers (the sag place).
     flags: u32,
     zero: u32,
     kept: u32,
-    pad0: u32,
+    sagging: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -103,8 +103,13 @@ const Y_REACH: u32 = 4u;
 const Y_BEND: u32 = 5u;
 const Y_TRUNK: u32 = 6u;
 const Y_LAYER: u32 = 8u;
-// `pw`'s phytomers' scratch: each one's section from what joins it.
+const Y_FAR: u32 = 56u;
+const Y_LOAD: u32 = 59u;
+// `pw`'s phytomers' columns: each one's section from what joins it, the
+// load its node bears, and its lever (moment, then chord).
 const Q_AT: u32 = 0u;
+const Q_LOAD: u32 = 1u;
+const Q_LEVER: u32 = 5u;
 // A PA's form row, after the two globals (`layout.wgsl`).
 const FORM: u32 = 19u;
 const F_INTERNODE: u32 = 0u;
@@ -229,6 +234,14 @@ fn set_pq(r: u32, v: f32) {
     pw[cfg.at_q + r] = bitcast<u32>(v);
 }
 
+fn pq_at(r: u32, c: u32) -> f32 {
+    return bitcast<f32>(pw[cfg.at_q + c * cfg.skp + r]);
+}
+
+fn set_pq_at(r: u32, c: u32, v: f32) {
+    pw[cfg.at_q + c * cfg.skp + r] = bitcast<u32>(v);
+}
+
 fn pn(i: u32, c: u32) -> u32 {
     return py(i, Y_LAYER + c);
 }
@@ -285,6 +298,10 @@ fn wf(c: u32, f: u32) -> u32 {
     return work[cfg.at_f + c * cfg.sa + f];
 }
 
+fn kpa(pa: u32, k: u32) -> u32 {
+    return work[K_AT + 16u * pa + k];
+}
+
 fn kf(pa: u32, k: u32) -> f32 {
-    return bitcast<f32>(work[K_AT + 16u * pa + k]);
+    return bitcast<f32>(kpa(pa, k));
 }

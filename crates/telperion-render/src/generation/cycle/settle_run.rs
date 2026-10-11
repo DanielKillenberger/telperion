@@ -47,10 +47,10 @@ pub(super) struct Settled {
     pub atom: Owned,
     pub nt: Owned,
     pub pw: Owned,
-    /// The kept depths' first final indices, and whether the tree
-    /// collapsed.
+    /// The kept depths' first final indices, and the error a settle met
+    /// (`s_error`'s code and grown axis; none: 0).
     pub kept_starts: Vec<u32>,
-    pub collapsed: bool,
+    pub error: [u32; 2],
     pub flags: u32,
     pub stamped: Vec<&'static str>,
 }
@@ -159,9 +159,15 @@ pub(super) fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Build, &Ta
         order(&mut r, &layout, &table, &kept_starts)?;
     }
     let pw = zeroed(gpu, "settle place", 4)?;
-    let mut s = Settled { layout, table, work: r.work, atom: r.atom, nt: r.nt, pw, kept_starts, collapsed, flags, stamped: r.stamped };
-    if !collapsed && to != SettleTo::Shed {
-        super::settle_place::thicken(gpu, k, b, t, &mut s)?;
+    let error = if collapsed { [1, u32::MAX] } else { [0, u32::MAX] };
+    let mut s = Settled { layout, table, work: r.work, atom: r.atom, nt: r.nt, pw, kept_starts, error, flags, stamped: r.stamped };
+    if collapsed || to == SettleTo::Shed {
+        return Ok(s);
+    }
+    let cfg = super::settle_place::thicken(gpu, k, b, t, &mut s)?;
+    if matches!(to, SettleTo::Laid | SettleTo::Placed) {
+        let sags = pa.chunks(16).any(|r| r[7] & 8 != 0);
+        super::settle_place::lay(gpu, k, b, (cfg, sags, to), &mut s)?;
     }
     Ok(s)
 }

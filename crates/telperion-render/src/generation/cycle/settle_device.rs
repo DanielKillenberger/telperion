@@ -15,6 +15,12 @@ const ORDER: &str = include_str!("settle_order.wgsl");
 const COMPACT: &str = include_str!("settle_compact.wgsl");
 const STATE: &str = include_str!("settle_state.wgsl");
 const THICK: &str = include_str!("settle_thick.wgsl");
+const LIBM: &str = include_str!("settle_libm.wgsl");
+const SAG: &str = include_str!("settle_sag.wgsl");
+const BEND: &str = include_str!("settle_bend.wgsl");
+const SUB: &str = include_str!("settle_sub.wgsl");
+const PLAIN_SUB: &str = "fn sub_mul(a: f32, b: f32) -> f32 {\n    return m(a, b);\n}\nfn sub_add(a: f32, b: f32) -> f32 {\n    return a + b;\n}\nfn sub_sqrt(x: f32) -> f32 {\n    return qsqrt(x);\n}\n";
+const LAY: &str = include_str!("settle_place.wgsl");
 const REAL: &str = include_str!("real.wgsl");
 
 /// The entries, by their place in `ENTRIES`.
@@ -92,14 +98,22 @@ pub(super) const NA_COLS: u32 = 41;
 pub(super) const NP_COLS: u32 = 22;
 /// The place's columns per kept axis (`settle_state.wgsl`'s `Y_`), and
 /// its fault word in `atom`.
-pub(super) const Y_COLS: u32 = 56;
+pub(super) const Y_COLS: u32 = 63;
+/// The place's columns per kept phytomer (`settle_state.wgsl`'s `Q_`).
+pub(super) const Q_COLS: u32 = 11;
+/// The lay's first error and whether any phytomer has size.
+pub(super) const T_ERR: usize = 6;
+pub(super) const T_SCALED: usize = 7;
 pub(super) const T_PLACE: usize = 5;
 
 /// The place module's entries.
-pub(super) const PLACE_ENTRIES: [&str; 3] = ["scale_main", "attach_main", "thick_main"];
+pub(super) const PLACE_ENTRIES: [&str; 6] = ["scale_main", "attach_main", "thick_main", "place_main", "lever_main", "sized_main"];
 pub(super) const SCALE: usize = 0;
 pub(super) const ATTACH: usize = 1;
 pub(super) const THICK_E: usize = 2;
+pub(super) const PLACE_E: usize = 3;
+pub(super) const LEVER: usize = 4;
+pub(super) const SIZED: usize = 5;
 
 /// The settle's modules, built under one arithmetic: the shed and order
 /// over the grown tree, and the place over the node table.
@@ -119,31 +133,55 @@ impl Kernels {
     }
 }
 
-/// The place's WGSL: the contract and the marked root, the reals, the
-/// settle's words, the node table under the layout's names, the layout's
-/// vectors, angles and stand, then the place's passes.
+/// The place's WGSL: the contract and the marked root, the reals and
+/// the software f64, the settle's words, the node table under the
+/// layout's names, the layout's vectors, angles, walk, stand and frame,
+/// then the place's passes.
 pub(super) fn place_source(arith: Arith) -> String {
     format!(
-        "{}\n{}\n{REAL}\n{SHARED}\n{STATE}\n{}\n{}\n{}\n{THICK}",
+        "{}\n{}\n{REAL}\n{}\n{SHARED}\n{STATE}\n{}\n{}\n{}\n{}\n{}\n{THICK}\n{LIBM}\n{}\n{BEND}\n{SAG}\n{LAY}",
         super::super::fine::contract_with(arith.marks()),
         arith.root(),
+        soft64(),
         super::Q,
         super::SINCOS,
-        super::LAY_STAND
+        super::LAY_WALK,
+        super::LAY_STAND,
+        super::LAY_FRAME,
+        sub(arith)
     )
+}
+
+/// Products, sums and roots with gradual underflow where built exact,
+/// the plain operations otherwise (`settle_sub.wgsl`).
+pub(super) fn sub(arith: Arith) -> &'static str {
+    match arith {
+        Arith::Plain => PLAIN_SUB,
+        Arith::Exact => SUB,
+    }
+}
+
+/// Sag's turn and frames (`settle_bend.wgsl`), which read no buffer.
+pub(super) fn sag_math() -> &'static str {
+    BEND
+}
+
+/// The software f64 without its word product, the contract's own.
+pub(super) fn soft64() -> String {
+    const SOFT64: &str = include_str!("soft64.wgsl");
+    let start = SOFT64.find("fn mul32(").expect("soft64's word product");
+    let end = start + SOFT64[start..].find("\n}\n").expect("its end") + 3;
+    format!("{}{}", &SOFT64[..start], &SOFT64[end..])
 }
 
 /// The settle's WGSL: the contract, the reals, the software f64 (its
 /// own word product left for the contract's), then the settle's columns
 /// and passes.
 pub(super) fn source(arith: Arith) -> String {
-    const SOFT64: &str = include_str!("soft64.wgsl");
-    let start = SOFT64.find("fn mul32(").expect("soft64's word product");
-    let end = start + SOFT64[start..].find("\n}\n").expect("its end") + 3;
-    let soft = format!("{}{}", &SOFT64[..start], &SOFT64[end..]);
     format!(
-        "{}\n{REAL}\n{soft}\n{SHARED}\n{COLS}\n{TREE}\n{ASSIGN}\n{SWEEP}\n{ORDER}\n{COMPACT}",
-        super::super::fine::contract_with(arith.marks())
+        "{}\n{REAL}\n{}\n{SHARED}\n{COLS}\n{TREE}\n{ASSIGN}\n{SWEEP}\n{ORDER}\n{COMPACT}",
+        super::super::fine::contract_with(arith.marks()),
+        soft64()
     )
 }
 

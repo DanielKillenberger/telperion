@@ -75,8 +75,19 @@ fn young_trees_scale_and_thicken_on_the_device_as_on_the_cpu() {
     young_trees_settle_exactly(SettleTo::Thick);
 }
 
+#[test]
+#[ignore = "a probe"]
+fn young_trees_are_placed_on_the_device_as_on_the_cpu() {
+    young_trees_settle_exactly(SettleTo::Placed);
+}
+
+#[test]
+fn young_trees_are_laid_on_the_device_as_on_the_cpu() {
+    young_trees_settle_exactly(SettleTo::Laid);
+}
+
 /// How far the plain report settles.
-const PLAIN: SettleTo = SettleTo::Thick;
+const PLAIN: SettleTo = SettleTo::Laid;
 
 /// Built plain, the same trees by lineage: reported, not bounded.
 #[test]
@@ -117,7 +128,7 @@ fn a_tree_without_phytomers_collapses_on_the_device_as_on_the_cpu() {
     let capture = telperion_space::grow_capture_settled_at(&g.species, g.request, SettleTo::Shed).expect("the CPU's tree");
     let cpu = cpu_settled(&Cap(&capture), SettleTo::Shed);
     let (_, s, dev, beside) = settled(&gpu, (&kit, &k), &g, SettleTo::Shed);
-    assert!(s.collapsed, "the device's tree collapsed");
+    assert_eq!(s.error[0], 1, "the device's tree collapsed");
     let a = agreement((&dev, &beside), (&cpu.0, &cpu.1));
     println!("{}", a.report());
     assert!(a.exact(), "the device's collapse is the CPU's");

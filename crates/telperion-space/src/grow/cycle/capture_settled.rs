@@ -14,6 +14,7 @@ use crate::error::{Error, Result};
 use crate::fine::lineage_permutation;
 use crate::species::Species;
 use crate::structure::{Axis, Origin, Vec3};
+use crate::transcendental::Transcendental;
 
 const NONE: u32 = u32::MAX;
 
@@ -24,6 +25,9 @@ pub enum SettleTo {
     Shed,
     /// Scaled and thickened (`Options::settle`).
     Thick,
+    /// Laid once, unbent, each phytomer's lever gathered on it
+    /// (`s_levers`): what the sag's lay takes.
+    Placed,
     /// Laid and sagged: the tree `grow_cycle` returns.
     Laid,
 }
@@ -54,8 +58,18 @@ pub fn grow_capture_settled_at(species: &Species, request: Request, to: SettleTo
     };
     let index = settling.index.clone();
     let girth = settling.girth.clone();
+    let mut levers = None;
     let structure = match to {
         SettleTo::Shed => settling.structure,
+        SettleTo::Placed => {
+            let options = Options { settle: true, ..Options::default() };
+            let mut s = settling.settle_lay(options, true, &mut |_| {})?.structure;
+            if let Err(e) = crate::geometry::place(&mut s, species, None, 1) {
+                return Ok(failed(c, error_of(&e, &index)));
+            }
+            levers = Some(crate::sag::levers(&s, species, 1));
+            s
+        }
         SettleTo::Thick => {
             let options = Options { settle: true, ..Options::default() };
             settling.settle_lay(options, true, &mut |_| {})?.structure
@@ -85,6 +99,12 @@ pub fn grow_capture_settled_at(species: &Species, request: Request, to: SettleTo
     let ordered: Vec<&Axis> = order.iter().map(|&i| &structure.axes[i]).collect();
     axes(&mut c, &ordered, &at);
     phytomers(&mut c, &ordered);
+    if let Some(l) = levers {
+        let words: Vec<u32> = (order.iter())
+            .flat_map(|&i| l[i].iter().flat_map(|v| v.moment.into_iter().chain(v.chord)).map(f32::to_bits))
+            .collect();
+        c.u32s("s_levers", &words);
+    }
     Ok(c)
 }
 
@@ -203,7 +223,7 @@ fn ticks(t: f64) -> u32 {
 /// χ, its relay's place among its last unit's nodes, and its flags (sheds
 /// 1, retains 2, leaf girth 4, sags 8, dominance 16); then each PA's
 /// pipe, ripening, exponent, its reciprocal, secondary share and
-/// dominance, eight words a PA.
+/// dominance, its sag's log2, eight words a PA.
 pub fn grow_capture_settle_tables(species: &Species) -> Capture {
     let mut c = Capture { arrays: Vec::new() };
     let mut rows = Vec::new();
@@ -225,8 +245,16 @@ pub fn grow_capture_settle_tables(species: &Species) -> Capture {
         let f = &s.form;
         let form = [f.pipe as f32, f.ripening as f32, f.exponent as f32, (1.0 / f.exponent) as f32];
         rows.extend(form.map(f32::to_bits));
-        rows.extend([f.secondary as f32, f.dominance as f32, 0.0, 0.0].map(f32::to_bits));
+        let sag = if f.sag > 0.0 { f.sag.log2_fixed() as f32 } else { 0.0 };
+        rows.extend([f.secondary as f32, f.dominance as f32, sag, 0.0].map(f32::to_bits));
     }
     c.u32s("settle_pa", &rows);
     c
+}
+
+/// Sag's turn (`sag::turn`) of a phytomer `radius` thick and `length`
+/// long under `lever`, its moment capped at `cap`: the device's sag held
+/// to the CPU's input by input.
+pub fn settle_sag_turn(lever: [f32; 3], cap: f32, sag: f64, (radius, length): (f64, f64)) -> f32 {
+    crate::sag::turn(lever, cap, sag, radius, length)
 }

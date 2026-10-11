@@ -10,18 +10,6 @@ fn listed(id: vec3<u32>) -> u32 {
     return select(NONE, cfg.base + k, k < cfg.count);
 }
 
-// A lateral's share of its vigour among its siblings (`dominance`).
-fn dominance_at(i: u32) -> f32 {
-    let d = fm(ax(i, A_PA), F_DOMINANCE);
-    if d <= 0.0 {
-        return 1.0;
-    }
-    let draw_bits = shr64(draw(child(lineage_of(i), KEY_DOMINANCE)), 29u).x;
-    let u = f32(draw_bits) * (1.0 / 16777216.0);
-    let held = m(apart(apart(u * u) * u), u);
-    return 1.0 - m(d, 1.0 - held);
-}
-
 // Each axis's base scale from its parent's, its phytomers scaled by it
 // and then by their own size.
 @compute @workgroup_size(64)
@@ -36,7 +24,7 @@ fn scale_main(@builtin(global_invocation_id) id: vec3<u32>) {
     var share = 1.0;
     if kind == LATERAL {
         inherited = apart(phf(prow(p, ax(i, A_NODE)), PH_GROWN) * pyf(p, Y_BASE));
-        share = dominance_at(i);
+        share = dominance_of(i);
     } else if kind != SEED {
         inherited = pyf(p, Y_BASE);
     }
@@ -98,6 +86,13 @@ fn lit(light: f32, chi: f32) -> f32 {
         return 0.0;
     }
     return exp2c(m(chi, log2c(light)));
+}
+
+// Phytomer `r`'s own pipe on axis PA `pa`, by `leaf` (`girth::own`).
+fn own_pipe(pa: u32, r: u32, leaf: f32) -> f32 {
+    let years = f32(max(cfg.age, ph(r, PH_CYCLE)) - ph(r, PH_CYCLE) + 1u);
+    let ripe = ripened(years, kf(pa, K_RIPENING));
+    return apart(apart(apart(kf(pa, K_PIPE) * phf(r, PH_SCALE)) * ripe) * leaf);
 }
 
 fn section_of(r: f32, e: f32) -> f32 {
@@ -210,9 +205,7 @@ fn thick_main(@builtin(global_invocation_id) id: vec3<u32>) {
             leaf = apart(lit(single(ph64(r, PH_LIGHT)), chi) * mean);
         }
         let scale = phf(r, PH_SCALE);
-        let years = f32(max(cfg.age, ph(r, PH_CYCLE)) - ph(r, PH_CYCLE) + 1u);
-        let own = apart(apart(apart(kf(pa, K_PIPE) * scale) * ripened(years, kf(pa, K_RIPENING))) * leaf);
-        section = section + (section_of(own, e) + pq(r));
+        section = section + (section_of(own_pipe(pa, r, leaf), e) + pq(r));
         let established = apart(apart(kf(pa, K_PIPE) * scale) * ripe);
         set_ph(r, PH_RADIUS, weighed(pa, section, established));
         for (var h = 0u; h < held; h++) {

@@ -2,25 +2,6 @@
 // unit's phytomers sized as the final lay will size them, then walked,
 // its pencil carried on. Part of the layout's shader.
 
-// How far axis `a`, `years` old, is pulled towards the vertical at its
-// base (`geometry::bend`).
-fn bend_of(a: u32, years: f32) -> f32 {
-    let pa = ax(a, A_PA);
-    let x = fm(pa, F_ERECTION) * years;
-    let grown = fails(apart(x * QLOG2E));
-    let kind = kind_of(a);
-    var straightening = 0.0;
-    var erected = grown;
-    if kind == CONTINUED || kind == RELAYED {
-        let b = select(0.0, axf(a, A_BLEND), kind == RELAYED);
-        straightening = m(fm(pa, F_STRAIGHTENING), b);
-        erected = m(b, grown);
-    } else if kind == LATERAL {
-        straightening = fm(pa, F_STRAIGHTENING);
-    }
-    return 1.0 - m(1.0 - straightening, 1.0 - erected);
-}
-
 // The axis's age in ticks at the cycle, less the share it slept.
 fn age_ticks(a: u32) -> i32 {
     let cycles = max(i32(cfg.cycle) - i32(ax(a, A_BIRTH)), 0);

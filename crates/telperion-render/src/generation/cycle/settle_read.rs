@@ -22,6 +22,9 @@ pub(super) struct Beside {
     pub error: Vec<u32>,
     /// Each relay's join (`Axis::joined`), from the thickening on.
     pub joined: Vec<u64>,
+    /// Each phytomer's lever on the tree laid once (`Placed`): its
+    /// moment and chord.
+    pub levers: Vec<u32>,
 }
 
 /// The axes' columns a step compares: name, the node table's column
@@ -65,12 +68,21 @@ fn two(x: u64) -> [u32; 2] {
     [x as u32, (x >> 32) as u32]
 }
 
+/// A column as the CPU holds it: an f32 the CPU holds as an f64 widened,
+/// a phase or a place kept as the f32 it is.
 fn field(name: &str, kind: Kind, words: Vec<u32>) -> Field {
+    let single = name.starts_with("phase") || PLACES.contains(&name);
     match kind {
-        Kind::F32 if !name.starts_with("phase") => Field { name: name.into(), kind: Kind::F64, words: widened(&words) },
+        Kind::F32 if !single => Field { name: name.into(), kind: Kind::F64, words: widened(&words) },
         _ => Field { name: name.into(), kind, words },
     }
 }
+
+/// An axis's frame's and a phytomer's place's nine f32s, by name.
+const PLACES: [&str; 18] = [
+    "base x", "base y", "base z", "heading x", "heading y", "heading z", "side x", "side y", "side z",
+    "tip x", "tip y", "tip z", "ph heading x", "ph heading y", "ph heading z", "ph side x", "ph side y", "ph side z",
+];
 
 /// Each row's axis, from each axis's count of rows.
 fn owners(counts: &[u32]) -> Vec<u32> {
@@ -80,8 +92,8 @@ fn owners(counts: &[u32]) -> Vec<u32> {
 impl Settled {
     /// The device's settled tree as far as `to` and what lies beside it.
     pub(super) fn snapshot(&self, gpu: &Gpu, state: &State, to: SettleTo) -> Result<(Snapshot, Beside)> {
-        let mut beside = Beside { error: vec![u32::from(self.collapsed), u32::MAX], ..Beside::default() };
-        if self.collapsed {
+        let mut beside = Beside { error: self.error.to_vec(), ..Beside::default() };
+        if self.error[0] != 0 {
             return Ok((Snapshot::default(), beside));
         }
         let (t, l) = (&self.table, &self.layout);
@@ -117,6 +129,20 @@ impl Settled {
             let at = (t.at_np + 11 * t.skp) as usize;
             s.phyts.fields.push(field("radius", Kind::F32, nt[at..at + p].to_vec()));
             beside.joined = joins(&(33..38).map(|c| col(c, Kind::U32)).collect::<Vec<_>>());
+        }
+        if to == SettleTo::Placed {
+            let q = (u64::from(d::Y_COLS * t.sk), u64::from(t.skp));
+            let cols = read_words(gpu, &self.pw, q.0 + 5 * q.1, 6 * q.1)?;
+            beside.levers = (0..p).flat_map(|r| (0..6).map(move |c| (r, c))).map(|(r, c)| cols[c * t.skp as usize + r]).collect();
+        }
+        if matches!(to, SettleTo::Laid | SettleTo::Placed) {
+            for (k, name) in PLACES[..9].iter().enumerate() {
+                s.axes.fields.push(field(name, Kind::F32, col(24 + k as u32, Kind::F32)));
+            }
+            for (k, name) in PLACES[9..].iter().enumerate() {
+                let at = (t.at_np + (12 + k as u32) * t.skp) as usize;
+                s.phyts.fields.push(field(name, Kind::F32, nt[at..at + p].to_vec()));
+            }
         }
         beside.index = read_words(gpu, &self.work, l.a(d::W_FINAL, 0), u64::from(l.n))?;
         let mean = read_words(gpu, &self.atom, d::T_LEAF as u64 + 2, 1)?[0];
@@ -191,6 +217,18 @@ pub(super) fn cpu_settled(c: &Cap, to: SettleTo) -> (Snapshot, Beside) {
         s.phyts.fields.push(Field { name: "radius".into(), kind: Kind::F64, words: words("ph_radius", Kind::F64) });
         beside.joined = c.u64s("s_joined");
     }
+    if to == SettleTo::Placed {
+        beside.levers = c.u32s("s_levers");
+    }
+    if matches!(to, SettleTo::Laid | SettleTo::Placed) {
+        let (frames, places) = (c.u32s("s_frame"), c.u32s("s_ph_frame"));
+        for (k, name) in PLACES[..9].iter().enumerate() {
+            s.axes.fields.push(Field { name: (*name).into(), kind: Kind::F32, words: frames.iter().skip(k).step_by(9).copied().collect() });
+        }
+        for (k, name) in PLACES[9..].iter().enumerate() {
+            s.phyts.fields.push(Field { name: (*name).into(), kind: Kind::F32, words: places.iter().skip(k).step_by(9).copied().collect() });
+        }
+    }
     beside.index = c.u32s("s_index");
     beside.leaf_mean = c.u64s("s_leaf_mean");
     beside.disused = c.u64s("s_disused");
@@ -204,4 +242,5 @@ pub(super) fn beside_agree(a: &mut super::compare::Agreement, dev: &Beside, cpu:
     a.eq("leaf mean", &dev.leaf_mean, &cpu.leaf_mean);
     a.eq("disused", &dev.disused, &cpu.disused);
     a.eq("joined", &dev.joined, &cpu.joined);
+    a.eq("levers", &dev.levers, &cpu.levers);
 }

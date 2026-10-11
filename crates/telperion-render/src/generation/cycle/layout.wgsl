@@ -165,6 +165,16 @@ fn years_of(ticks: i32) -> f32 {
     return select(mag, -mag, ticks < 0);
 }
 
+// The rough layout's wood has no girth and takes no sag
+// (`lay_walk.wgsl`'s hooks).
+fn laid_radius(r: u32) -> f32 {
+    return 0.0;
+}
+
+fn sag_of(i: u32, r: u32, len: f32, at: mat3x3<f32>, trunk: bool) -> Sag {
+    return Sag(false, vec3<f32>(0.0), 0.0);
+}
+
 fn invocation(id: vec3<u32>) -> u32 {
     return cfg.base + id.x + id.y * cfg.row;
 }
