@@ -53,10 +53,11 @@ fn exp_main(@builtin(global_invocation_id) id: vec3<u32>) {
     load_constants();
     R[R_XN] = xs[i].xy;
     R[R_SHARE] = R[R_ONE];
-    for (var pc = EXP_START; pc < EXP_END; pc++) {
-        exec(SWEEP[pc]);
+    R[R_SUM] = vec2<u32>(0u);
+    for (var pc = 0u; pc < SHADE_LEN; pc++) {
+        exec(SHADE[pc]);
     }
-    out[i] = R[R_L];
+    out[i] = R[R_SUM];
 }
 ";
 

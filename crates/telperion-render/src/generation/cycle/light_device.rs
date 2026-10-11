@@ -7,22 +7,28 @@ use super::columns::Cap;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
-const ENTRIES: [&str; 7] = [
+const ENTRIES: [&str; 9] = [
     "span_main",
     "grid_main",
     "deposit_main",
     "densities_main",
+    "weights_main",
+    "path_main",
     "sweep_main",
     "combine_main",
     "read_main",
 ];
+/// The depth recurrence's entry, dispatched once a range of layers.
+const SWEEP: usize = 6;
 /// Each pass's phase, in `ENTRIES`' order.
-const PHASES: [&str; 7] = [
+const PHASES: [&str; 9] = [
     "box",
     "grid",
     "deposit",
     "densities",
-    "sweep",
+    "weights",
+    "paths",
+    "depths",
     "combine",
     "read",
 ];
@@ -61,6 +67,8 @@ pub(super) struct Lit {
     pub lit: bool,
     /// The nodes the buffers hold.
     pub capacity: u32,
+    /// The lattice's size the sweep's dispatches are counted for.
+    pub size: [u32; 3],
 }
 
 impl Lit {
@@ -89,6 +97,7 @@ impl Lit {
             dirs,
             lit: k > 0.0,
             capacity,
+            size: std::array::from_fn(|a| cap.u32s("cpu_grid_size")[a]),
         }
     }
 
@@ -125,7 +134,9 @@ pub(super) struct Run {
     pub reads: Owned,
     start: Owned,
     bind: wgpu::BindGroup,
-    groups: [u32; 7],
+    /// The sweep's dispatches, each its range of layers.
+    sweeps: Vec<wgpu::BindGroup>,
+    groups: [u32; 9],
     tips: usize,
     capacity: usize,
     /// Bytes resident (inputs, box, quanta, densities, lattice and reads)
@@ -154,13 +165,19 @@ impl Run {
         cfg.extend(&lit.dirs);
         cfg.resize(8 + 8 * DIRECTIONS, 0);
         let uniform = wgpu::BufferUsages::UNIFORM;
-        let cfg = io::buffer(
-            gpu,
-            "light cfg",
-            4 * cfg.len() as u64,
-            uniform,
-            bytemuck::cast_slice(&cfg),
-        )?;
+        let chunks = super::light_program::sweep_dispatches(lit.size);
+        let mut cfgs = Vec::new();
+        for chunk in 0..chunks {
+            cfg[6] = chunk;
+            let words = bytemuck::cast_slice(&cfg);
+            cfgs.push(io::buffer(
+                gpu,
+                "light cfg",
+                4 * cfg.len() as u64,
+                uniform,
+                words,
+            )?);
+        }
         let points = [&lit.leaves[..], &lit.tips[..]].concat();
         let points = storage(
             gpu,
@@ -180,24 +197,30 @@ impl Run {
         let grid = storage(gpu, "light grid", 32, &[])?;
         let quanta = storage(gpu, "light quanta", 4 * cap, &[])?;
         let field = storage(gpu, "light field", 8 * cap, &[])?;
-        let scratch = storage(gpu, "light scratch", 24 * u64::from(dirs) * cap, &[])?;
+        let scratch = storage(gpu, "light scratch", 48 * u64::from(dirs) * cap, &[])?;
         let reads = storage(gpu, "light reads", 4 * u64::from(tips), &[])?;
-        let all = [
-            &*cfg, &points, &state, &grid, &quanta, &field, &scratch, &reads,
-        ];
-        let bind = k.pass.bind(gpu, &all);
+        let bind_at = |cfg: &Owned| {
+            let all = [
+                &**cfg, &points, &state, &grid, &quanta, &field, &scratch, &reads,
+            ];
+            k.pass.bind(gpu, &all)
+        };
+        let sweeps: Vec<_> = cfgs.iter().map(bind_at).collect();
+        let bind = bind_at(&cfgs[0]);
         let over = |n: u32| n.div_ceil(64).max(1);
         let groups = [
             over(leaves + tips),
             1,
             over(leaves),
             over(lit.capacity),
+            over(dirs * lit.capacity),
+            over(dirs * lit.capacity),
             dirs.max(1),
             over(lit.capacity),
             over(tips),
         ];
         let size = |b: &[&Owned]| b.iter().map(|b| b.size()).sum::<u64>();
-        let resident = size(&[&cfg, &points, &state, &grid, &quanta, &field, &reads]);
+        let resident = size(&[&cfgs[0], &points, &state, &grid, &quanta, &field, &reads]);
         let scratch_bytes = scratch.size();
         Ok(Self {
             state,
@@ -207,12 +230,13 @@ impl Run {
             reads,
             start,
             bind,
+            sweeps,
             groups,
             tips: tips as usize,
             capacity: cap as usize,
             resident,
             scratch: scratch_bytes,
-            _held: vec![cfg, points, scratch],
+            _held: cfgs.into_iter().chain([points, scratch]).collect(),
         })
     }
 
@@ -221,10 +245,19 @@ impl Run {
     pub(super) fn record(&self, k: &Kernels, e: &mut wgpu::CommandEncoder) -> Vec<&'static str> {
         e.copy_buffer_to_buffer(&self.start, 0, &self.state, 0, 32);
         e.clear_buffer(&self.quanta, 0, None);
+        let mut phases = Vec::new();
         for (entry, groups) in self.groups.iter().enumerate() {
-            k.pass.run(e, &self.bind, entry, *groups);
+            let binds = if entry == SWEEP {
+                &self.sweeps[..]
+            } else {
+                std::slice::from_ref(&self.bind)
+            };
+            for bind in binds {
+                k.pass.run(e, bind, entry, *groups);
+                phases.push(PHASES[entry]);
+            }
         }
-        PHASES.to_vec()
+        phases
     }
 
     pub(super) fn read(&self, gpu: &Gpu) -> Result<Out> {

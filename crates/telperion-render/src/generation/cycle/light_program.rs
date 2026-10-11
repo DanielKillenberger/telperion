@@ -1,8 +1,11 @@
-//! The light's f64 steps as short programs (`light_vm.wgsl`): the
-//! sweep's node and the corner weights each a list of operations on a
-//! file of f64 registers, run by one loop, so every software operation
-//! has one call site an entry and the driver inlines each once (fn-235,
-//! UNITS.md). The integer steps between them (floors, neighbours,
+//! The light's f64 steps as short programs (`light_vm.wgsl`), each a
+//! list of operations on a file of f64 registers run by one loop, so
+//! every software operation has one call site an entry and the driver
+//! inlines each once (fn-235, UNITS.md). The sweep is four programs:
+//! a direction's bilinear weights at each column, each node's path term
+//! from the densities, the depth recurrence down the layers (the one
+//! sequential part, 8 operations a node), and the light, `exp` and the
+//! directions' sum. The integer steps between them (floors, loads,
 //! `exp`'s cases, stores) are hooks. Each list is the CPU's own order:
 //! `light.rs::swept` and `bilinear`, libm 0.2.16's `exp`, and
 //! `field.rs::corners` in f32, each f32 operation taken exactly in f64
@@ -25,7 +28,7 @@ const NAMES: &[&str] = &[
     // A direction's reals, and a node's.
     "OX", "OY", "EP", "SHARE", "I", "J", "RHO", "X", "Y", "FX", "FY", "TX", "TY", "UX", "UY", "W0",
     "W1", "W2", "W3", "D0", "D1", "D2", "D3", "V0", "V1", "V2", "V3", "T", "DS", "RS", "A", "DEP",
-    // `exp`.
+    "SUM", // `exp`.
     "XN", "HALFS", "KT", "KF", "M", "HI", "LO", "XR", "XX", "Q", "CC", "XC", "DC", "Z", "YY",
     "TINY", "E", "S1", "S2", "S3", "L",
 ];
@@ -35,12 +38,15 @@ const CORNER_NAMES: &[&str] = &[
     "WC0", "WC1", "WC2", "WC3", "WC4", "WC5", "WC6", "WC7",
 ];
 const HOOKS: &[&str] = &[
-    "H_NEIGHBOURS",
-    "H_DEPTH",
+    "H_COLUMN",
+    "H_STORE_W",
+    "H_LOAD_PATH",
+    "H_STORE_A",
+    "H_LOAD_DEPTH",
+    "H_STORE_DEP",
     "H_SIGN",
     "H_K",
     "H_SCALE",
-    "H_LIGHT",
     "H_FLOOR",
 ];
 /// Where the corner weights' registers begin.
@@ -64,42 +70,63 @@ fn op(code: u32, d: &str, a: &str, b: &str) -> u32 {
     code | reg(d) << 8 | reg(a) << 16 | reg(b) << 24
 }
 
-/// `swept`'s node of layer k, then `exp` from `H_SIGN` on.
-fn sweep() -> Vec<u32> {
-    let mut p = vec![
+/// `swept`'s bilinear weights at a column of a direction's layers, the
+/// same at every layer: (dx, dy) in (0,0), (0,1), (1,0), (1,1).
+fn weights() -> Vec<u32> {
+    vec![
         op(ADD, "X", "I", "OX"),
         op(ADD, "Y", "J", "OY"),
-        hook("H_NEIGHBOURS"),
+        hook("H_COLUMN"),
         op(SUB, "TX", "X", "FX"),
         op(SUB, "TY", "Y", "FY"),
         op(SUB, "UX", "ONE", "TX"),
         op(SUB, "UY", "ONE", "TY"),
-        // `bilinear`'s weights, (dx, dy) in (0,0), (0,1), (1,0), (1,1).
         op(MUL, "W0", "UX", "UY"),
         op(MUL, "W1", "UX", "TY"),
         op(MUL, "W2", "TX", "UY"),
         op(MUL, "W3", "TX", "TY"),
-    ];
-    for (sum, v) in [
-        ("DS", ["D0", "D1", "D2", "D3"]),
-        ("RS", ["V0", "V1", "V2", "V3"]),
-    ] {
-        p.push(op(MUL, sum, "W0", v[0]));
-        for (w, v) in ["W1", "W2", "W3"].iter().zip(&v[1..]) {
-            p.extend([op(MUL, "T", w, v), op(ADD, sum, sum, "T")]);
-        }
+        hook("H_STORE_W"),
+    ]
+}
+
+/// `bilinear`'s sum of the four `v`s into `sum`, in its order.
+fn bilinear(sum: &str, v: [&str; 4]) -> Vec<u32> {
+    let mut p = vec![op(MUL, sum, "W0", v[0])];
+    for (w, v) in ["W1", "W2", "W3"].iter().zip(&v[1..]) {
+        p.extend([op(MUL, "T", w, v), op(ADD, sum, sum, "T")]);
     }
-    // d0 + extinction path (rho + rho0) / 2, the extinction's path taken
-    // on the host as the CPU takes it.
+    p
+}
+
+/// A node's path term, `extinction path (rho + rho0) / 2`, the
+/// extinction's path taken on the host as the CPU takes it: it reads no
+/// depth, so every node takes it at once.
+fn path() -> Vec<u32> {
+    let mut p = vec![hook("H_LOAD_PATH")];
+    p.extend(bilinear("RS", ["V0", "V1", "V2", "V3"]));
     p.extend([
         op(ADD, "A", "RHO", "RS"),
         op(MUL, "A", "EP", "A"),
         op(MUL, "A", "A", "HALF"),
-        op(ADD, "DEP", "DS", "A"),
-        hook("H_DEPTH"),
+        hook("H_STORE_A"),
     ]);
-    p.extend(exp());
-    p.push(hook("H_LIGHT"));
+    p
+}
+
+/// A node's depth, `d0 + path term`, `d0` read bilinearly in the layer
+/// above's depths: the recurrence.
+fn depth() -> Vec<u32> {
+    let mut p = vec![hook("H_LOAD_DEPTH")];
+    p.extend(bilinear("DS", ["D0", "D1", "D2", "D3"]));
+    p.extend([op(ADD, "DEP", "DS", "A"), hook("H_STORE_DEP")]);
+    p
+}
+
+/// A direction's light at a node, `share exp(XN)`, added to the sum
+/// over the directions, `SUM`, in their order.
+fn shade() -> Vec<u32> {
+    let mut p = exp();
+    p.push(op(ADD, "SUM", "SUM", "L"));
     p
 }
 
@@ -188,9 +215,25 @@ pub(super) const CONSTANTS: [u64; 11] = [
     0x3e66_3769_72be_a4d0,
 ];
 
+/// The depth recurrence's work bound: the nodes one thread takes in one
+/// dispatch, a direction's layers split so none takes more (fn-256's
+/// 2 ms bound).
+pub(super) const SWEEP_WORK: u32 = 64;
+/// The recurrence's workgroup, one a direction.
+pub(super) const SWEEP_WG: u32 = 256;
+
+/// The dispatches the sweep of a lattice of `size` takes: whole layers
+/// each, as many as `SWEEP_WORK` allows, at least one.
+pub(super) fn sweep_dispatches(size: [u32; 3]) -> u32 {
+    let per = (SWEEP_WORK / (size[0] * size[1]).div_ceil(SWEEP_WG)).max(1);
+    size[2].div_ceil(per).max(1)
+}
+
 /// The programs, registers, hooks and constants as WGSL.
 pub(super) fn wgsl() -> String {
     let mut s = String::new();
+    let _ = writeln!(s, "const SWEEP_WORK: u32 = {SWEEP_WORK}u;");
+    let _ = writeln!(s, "const SWEEP_WG: u32 = {SWEEP_WG}u;");
     let mut list = |name: &str, p: &[u32]| {
         let words: Vec<String> = p.iter().map(|w| format!("{w:#010x}u")).collect();
         let _ = writeln!(s, "const {name}_LEN: u32 = {}u;", p.len());
@@ -202,16 +245,11 @@ pub(super) fn wgsl() -> String {
             words.join(", ")
         );
     };
-    let (sweep, corners) = (sweep(), corners());
-    let exp = exp();
-    list("SWEEP", &sweep);
-    list("CORNERS", &corners);
-    let _ = writeln!(
-        s,
-        "const EXP_START: u32 = {}u;",
-        sweep.len() - 1 - exp.len()
-    );
-    let _ = writeln!(s, "const EXP_END: u32 = {}u;", sweep.len() - 1);
+    list("WEIGHTS", &weights());
+    list("PATH", &path());
+    list("DEPTH", &depth());
+    list("SHADE", &shade());
+    list("CORNERS", &corners());
     let _ = writeln!(
         s,
         "const REGISTERS: u32 = {}u;",

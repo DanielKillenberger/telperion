@@ -7,10 +7,12 @@
 // - `deposit_main`: each leaf's area times each corner's f32 weight as
 //   integer quanta of 2^-20 m², a u32 a node, overflow refused by name;
 // - `densities_main`: 8 q 2^-20, to f32 once;
-// - `sweep_main`: one workgroup a sky direction, its layers top down with
-//   a barrier between, each node `swept`'s recurrence and libm's `exp` in
-//   software f64 (`light_vm.wgsl`);
-// - `combine_main`: the directions summed in order, clamped, to f32 once;
+// - `weights_main`, `path_main`, `sweep_main`: `swept` in software f64
+//   (`light_vm.wgsl`), its parts that read no depth over every node at
+//   once, its depth recurrence one workgroup a sky direction, a range of
+//   layers a dispatch (`light_sweep.wgsl`);
+// - `combine_main`: each direction's light, libm's `exp`, summed in order,
+//   clamped, to f32 once;
 // - `read_main`: each tip's eight corners in f32, as the CPU sums them.
 // Errors set bits in `state[6]`; a refused box stops every later entry.
 
@@ -21,7 +23,8 @@ struct Cfg {
     capacity: u32,
     lit: u32,
     row: u32,
-    pad0: u32,
+    // The depth recurrence's range of layers.
+    chunk: u32,
     pad1: u32,
     // Per direction: x/z, y/z, extinction CELL/z and its share, as f64s,
     // two to a row.
@@ -50,7 +53,6 @@ const E_CAPACITY: u32 = 4u;
 const E_AREA: u32 = 8u;
 const E_DEPOSIT: u32 = 16u;
 const E_OUTSIDE: u32 = 32u;
-const SWEEP_WG: u32 = 256u;
 const ONE64: vec2<u32> = vec2<u32>(0u, 0x3ff00000u);
 
 fn fail(bit: u32) {

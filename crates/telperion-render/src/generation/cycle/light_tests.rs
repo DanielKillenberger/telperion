@@ -175,19 +175,47 @@ fn median(mut v: Vec<f64>) -> f64 {
     v[v.len() / 2]
 }
 
-/// Nine runs of the light, each pass stamped: each phase's median ms in
-/// order, then the first stamp to the last.
-fn timed(gpu: &Gpu, k: &Kernels, run: &Run) -> Vec<(&'static str, f64)> {
-    let mut each: Vec<(&'static str, Vec<f64>)> = Vec::new();
-    // Untimed runs first, a second of them, so the device runs at its
-    // working clocks.
+/// A phase's median over the runs: its ms in all, its dispatches, and
+/// its longest dispatch's ms.
+struct Phase {
+    name: &'static str,
+    total: f64,
+    dispatches: usize,
+    longest: f64,
+}
+
+/// One run's passes by phase, in order: each phase's sum and longest
+/// pass, then the first stamp to the last.
+fn by_phase(
+    phases: &[&'static str],
+    stamps: &[(String, f64, f64)],
+) -> Vec<(&'static str, f64, usize, f64)> {
+    let mut row: Vec<(&'static str, f64, usize, f64)> = Vec::new();
+    for (p, s) in phases.iter().zip(stamps) {
+        let ms = (s.2 - s.1) * 1e-6;
+        match row.iter_mut().find(|r| r.0 == *p) {
+            Some(r) => (r.1, r.2, r.3) = (r.1 + ms, r.2 + 1, r.3.max(ms)),
+            None => row.push((p, ms, 1, ms)),
+        }
+    }
+    let all = (stamps[stamps.len() - 1].2 - stamps[0].1) * 1e-6;
+    row.push(("first to last", all, phases.len(), all));
+    row
+}
+
+/// Nine runs of the light, each pass stamped, after a second of untimed
+/// runs so the device runs at its working clocks: each phase's medians.
+fn timed(gpu: &Gpu, k: &Kernels, run: &Run) -> Vec<Phase> {
     let warm = std::time::Instant::now();
     while warm.elapsed().as_secs_f64() < 1.0 {
         let mut e = gpu.encoder(&Default::default());
         run.record(k, &mut e);
         gpu.submit([e.finish()]);
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("a run");
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .expect("a run");
     }
+    let mut rows = Vec::new();
     for _ in 0..9 {
         assert!(super::super::profile::start(gpu), "timestamps");
         let mut e = gpu.encoder(&Default::default());
@@ -195,23 +223,16 @@ fn timed(gpu: &Gpu, k: &Kernels, run: &Run) -> Vec<(&'static str, f64)> {
         gpu.submit([e.finish()]);
         let stamps = super::super::profile::finish(gpu);
         assert_eq!(stamps.len(), phases.len(), "a stamp a pass");
-        let mut row: Vec<(&'static str, f64)> = phases
-            .iter()
-            .zip(&stamps)
-            .map(|(p, s)| (*p, (s.2 - s.1) * 1e-6))
-            .collect();
-        row.push((
-            "first to last",
-            (stamps[stamps.len() - 1].2 - stamps[0].1) * 1e-6,
-        ));
-        for (phase, ms) in row {
-            match each.iter_mut().find(|p| p.0 == phase) {
-                Some(p) => p.1.push(ms),
-                None => each.push((phase, vec![ms])),
-            }
-        }
+        rows.push(by_phase(&phases, &stamps));
     }
-    each.into_iter().map(|(p, v)| (p, median(v))).collect()
+    (0..rows[0].len())
+        .map(|i| Phase {
+            name: rows[0][i].0,
+            total: median(rows.iter().map(|r| r[i].1).collect()),
+            dispatches: rows[0][i].2,
+            longest: median(rows.iter().map(|r| r[i].3).collect()),
+        })
+        .collect()
 }
 
 #[test]
@@ -247,20 +268,24 @@ fn busy_lights_agree_and_are_timed() {
                 differ.push(label.clone());
             }
             let times = timed(&gpu, &k, &run);
-            let longest = times
+            let passes = &times[..times.len() - 1];
+            let longest = passes
                 .iter()
-                .filter(|t| t.0 != "first to last")
-                .max_by(|a, b| a.1.total_cmp(&b.1))
+                .max_by(|a, b| a.longest.total_cmp(&b.longest))
                 .expect("a pass");
             println!(
-                "{label}: 7 dispatches, longest {} {:.3} ms; {:.2} MB resident, {:.2} MB scratch",
-                longest.0,
-                longest.1,
+                "{label}: {} dispatches, longest {} {:.3} ms; {:.2} MB resident, {:.2} MB scratch",
+                times[times.len() - 1].dispatches,
+                longest.name,
+                longest.longest,
                 run.resident as f64 / 1e6,
                 run.scratch as f64 / 1e6
             );
-            for (phase, ms) in times {
-                println!("{label}: {phase:>14} {ms:8.3} ms");
+            for p in times {
+                println!(
+                    "{label}: {:>14} {:8.3} ms in {} dispatches, the longest {:.3} ms",
+                    p.name, p.total, p.dispatches, p.longest
+                );
             }
         }
     }
