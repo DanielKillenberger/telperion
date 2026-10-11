@@ -86,7 +86,7 @@ pub(super) fn b_at(n: u32) -> u32 {
 
 /// The living apexes a range of the units' dispatches takes
 /// (`Ranges::units`), its jobs at once.
-pub(super) const RANGE: u32 = 16384;
+pub(super) const RANGE: u32 = 65536;
 
 /// Where `counts` holds what, for the state's `caps` and units of `zones`
 /// zones at most: the jobs' state, the jobs a range takes (a range of
