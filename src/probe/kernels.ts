@@ -6,6 +6,7 @@
 import wide from "../../crates/telperion-render/src/generation/fine/wide.wgsl?raw";
 import lineage from "../../crates/telperion-render/src/generation/fine/lineage.wgsl?raw";
 import contract from "../../crates/telperion-render/src/generation/fine/contract.wgsl?raw";
+import arith from "../../crates/telperion-render/src/generation/fine/arith.wgsl?raw";
 import common from "../../crates/telperion-render/examples/gpucycle/common.wgsl?raw";
 import sum from "../../crates/telperion-render/examples/gpucycle/sum.wgsl?raw";
 import shed from "../../crates/telperion-render/examples/gpucycle/shed.wgsl?raw";
@@ -25,7 +26,7 @@ export interface Kit {
   readonly buffers: number;
 }
 
-const shader = (body: string): string => [wide, lineage, contract, common, body].join("\n");
+const shader = (body: string): string => [wide, lineage, contract, arith, common, body].join("\n");
 
 export const CYCLE: readonly Kit[] = [
   { name: "sum", source: shader(sum), entries: ["walk", "unpack", "block"], buffers: 15 },

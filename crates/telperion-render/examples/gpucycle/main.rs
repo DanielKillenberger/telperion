@@ -86,10 +86,11 @@ fn capture(name: &str, age: u32, seed: u64, out: &str) {
 
 fn shader(body: &str) -> String {
     format!(
-        "{}\n{}\n{}\n{}\n{}",
+        "{}\n{}\n{}\n{}\n{}\n{}",
         include_str!("../../src/generation/fine/wide.wgsl"),
         include_str!("../../src/generation/fine/lineage.wgsl"),
         include_str!("../../src/generation/fine/contract.wgsl"),
+        include_str!("../../src/generation/fine/arith.wgsl"),
         include_str!("common.wgsl"),
         body
     )
@@ -292,4 +293,30 @@ fn timing(
         .map(|(l, (s, k))| format!("{l} {:.3} ms/{k}", 1e3 * s))
         .collect();
     println!("  phases: {}", line.join("; "));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::shader;
+
+    /// Each cycle module as the spike composes it parses and validates
+    /// (the browser probe, `src/probe/kernels.ts`, joins the same files in
+    /// the same order).
+    #[test]
+    fn the_spikes_modules_validate() {
+        let bodies = [
+            ("sum", include_str!("sum.wgsl")),
+            ("shed", include_str!("shed.wgsl")),
+            ("flat", include_str!("flat.wgsl")),
+            ("split", include_str!("split.wgsl")),
+            ("light", include_str!("light.wgsl")),
+            ("fate", include_str!("fate.wgsl")),
+        ];
+        for (name, body) in bodies {
+            let module = naga::front::wgsl::parse_str(&shader(body)).unwrap_or_else(|e| panic!("{name}: {e}"));
+            naga::valid::Validator::new(naga::valid::ValidationFlags::all(), naga::valid::Capabilities::all())
+                .validate(&module)
+                .unwrap_or_else(|e| panic!("{name}: {e:?}"));
+        }
+    }
 }
