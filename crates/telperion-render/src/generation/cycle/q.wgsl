@@ -5,8 +5,8 @@
 // written `m`, a quotient `qdiv`, a root `qsqrt`, and a sum or product
 // the driver was seen to reorder or simplify `apart`: the sites where the
 // driver may fuse, reorder or round otherwise than the CPU (LAYOUT.md).
-// Each is the plain operation here; LAYOUT.md's experiment holds them to
-// the CPU's.
+// Each is the plain operation, or held to the CPU's where the kernels are
+// built exact (`Arith`).
 
 const UP = vec3<f32>(0.0, 0.0, 1.0);
 // The f32 turn, pi, and log2 e, by their bits.
@@ -20,19 +20,19 @@ fn neg0() -> f32 {
 }
 
 fn m(a: f32, b: f32) -> f32 {
-    return a * b;
+    return exact_kept(a * b);
 }
 
 fn apart(x: f32) -> f32 {
-    return x;
+    return exact_kept(x);
 }
 
 fn qdiv(a: f32, b: f32) -> f32 {
-    return a / b;
+    return exact_div(a, b);
 }
 
 fn qsqrt(x: f32) -> f32 {
-    return sqrt(x);
+    return exact_sqrt(x);
 }
 
 fn mv(v: vec3<f32>, s: f32) -> vec3<f32> {

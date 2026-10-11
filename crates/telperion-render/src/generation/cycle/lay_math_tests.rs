@@ -45,10 +45,16 @@ fn inputs(n: usize) -> Vec<f32> {
 
 /// The device's sine, cosine and arctangent of each pair, against libm's:
 /// the rows of each that differ, the first few printed.
-fn differing(gpu: &Gpu) -> [usize; 3] {
+fn differing(gpu: &Gpu, arith: super::Arith) -> [usize; 3] {
     let n = 1 << 20;
     let xs = inputs(n);
-    let shader = format!("{}\n{}\n{}\n{MATH}", super::super::fine::contract(), super::Q, super::SINCOS);
+    let shader = format!(
+        "{}\n{}\n{}\n{}\n{MATH}\nfn exact_zero() -> u32 {{\n    return n.z;\n}}\n",
+        super::super::fine::contract_with(arith.marks()),
+        arith.root(),
+        super::Q,
+        super::SINCOS
+    );
     let pass = io::Pass::new(gpu, shader, &[true, false], &["math_main"]);
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
     let input = io::buffer(gpu, "math in", 8 * n as u64, usage, bytemuck::cast_slice(&xs)).unwrap();
@@ -90,16 +96,18 @@ fn the_layouts_sine_and_cosine_are_libms() {
     let Some(gpu) = super::super::test_gpu() else {
         return;
     };
-    let [sin, cos, _] = differing(&gpu);
+    let [sin, cos, _] = differing(&gpu, super::Arith::Plain);
     assert_eq!((sin, cos), (0, 0), "the layout's sine and cosine are libm's");
 }
 
+/// Built exact (`Arith::Exact`): built plain, the driver's division and
+/// reordering move it (LAYOUT.md).
 #[test]
-#[ignore = "red on the driver's division, contraction and reordering until the host rules (LAYOUT.md)"]
 fn the_layouts_arctangent_is_libms() {
     let _held = super::super::whole_tree();
     let Some(gpu) = super::super::test_gpu() else {
         return;
     };
-    assert_eq!(differing(&gpu)[2], 0, "the layout's arctangent is libm's");
+    let atan2 = differing(&gpu, super::Arith::Exact)[2];
+    assert_eq!(atan2, 0, "the layout's arctangent is libm's");
 }

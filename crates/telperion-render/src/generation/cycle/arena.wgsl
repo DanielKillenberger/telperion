@@ -211,6 +211,10 @@ fn kept_apart(x: f32) -> f32 {
     return bitcast<f32>(bitcast<u32>(x) ^ cfg.zero);
 }
 
+fn exact_zero() -> u32 {
+    return cfg.zero;
+}
+
 // PA `pa`'s row (`ChainTables::cycle`'s `PaRow` with the capture's
 // tables): word `k`.
 fn prow(pa: u32, k: u32) -> vec2<u32> {

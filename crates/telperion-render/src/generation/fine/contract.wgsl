@@ -61,10 +61,14 @@ fn log2c(x_in: f32) -> f32 {
         m *= 0.5;
         e += 1;
     }
-    let s = (m - 1.0) / (m + 1.0);
+    let s = exact_div(m - 1.0, m + 1.0);
     let z = s * s;
-    let ln = s * (2.0 + z * (2.0 / 3.0 + z * (0.4 + z * (2.0 / 7.0 + z * (2.0 / 9.0)))));
-    return f32(e) + ln * 1.442695;
+    let k4 = 2.0 / 7.0 + exact_kept(z * (2.0 / 9.0));
+    let k3 = 0.4 + exact_kept(z * k4);
+    let k2 = 2.0 / 3.0 + exact_kept(z * k3);
+    let k1 = 2.0 + exact_kept(z * k2);
+    let ln = s * k1;
+    return f32(e) + exact_kept(ln * 1.442695);
 }
 
 fn exp2c(x: f32) -> f32 {
@@ -73,13 +77,18 @@ fn exp2c(x: f32) -> f32 {
     }
     let n = floor(min(x, 127.0) + 0.5);
     let f = min(x, 127.0) - n;
-    let p = 1.0 + f * (0.6931472 + f * (0.2402265 + f * (0.05550411 + f * (0.009618129
-        + f * (0.0013333558 + f * (0.0001540353 + f * 0.000015252734))))));
+    let k6 = 0.0001540353 + exact_kept(f * 0.000015252734);
+    let k5 = 0.0013333558 + exact_kept(f * k6);
+    let k4 = 0.009618129 + exact_kept(f * k5);
+    let k3 = 0.05550411 + exact_kept(f * k4);
+    let k2 = 0.2402265 + exact_kept(f * k3);
+    let k1 = 0.6931472 + exact_kept(f * k2);
+    let p = 1.0 + exact_kept(f * k1);
     return p * bitcast<f32>(u32(i32(n) + 127) << 23u);
 }
 
 fn lnc(x: f32) -> f32 {
-    return log2c(x) * 0.6931472;
+    return exact_kept(log2c(x) * 0.6931472);
 }
 
 fn expc(x: f32) -> f32 {
@@ -189,7 +198,11 @@ fn fails(l: f32) -> f32 {
     }
     if l < 0.125 {
         let y = l * 0.6931472;
-        return y * (1.0 - y * (0.5 - y * (1.0 / 6.0 - y * (1.0 / 24.0 - y * (1.0 / 120.0)))));
+        let k4 = 1.0 / 24.0 - exact_kept(y * (1.0 / 120.0));
+        let k3 = 1.0 / 6.0 - exact_kept(y * k4);
+        let k2 = 0.5 - exact_kept(y * k3);
+        let k1 = 1.0 - exact_kept(y * k2);
+        return y * k1;
     }
     return 1.0 - exp2c(-l);
 }
@@ -210,7 +223,7 @@ fn presence(lead: f32, window: f32) -> f32 {
     if lead <= 0.0 {
         return 0.0;
     }
-    return min(lead / window, 1.0);
+    return min(exact_div(lead, window), 1.0);
 }
 
 fn logit(p: f32) -> f32 {
@@ -232,7 +245,7 @@ fn logit53(d: vec2<u32>) -> f32 {
     if !lt64(d, ONE53) {
         return INF;
     }
-    return lnc(to_f32(d) / to_f32(sub64(ONE53, d)));
+    return lnc(exact_div(to_f32(d), to_f32(sub64(ONE53, d))));
 }
 
 // `-log2` of a draw's uniform.
@@ -254,7 +267,7 @@ fn neg_ln1m(x: f32) -> f32 {
     if x < 0.125 {
         var sum = 0.0;
         for (var k = 9; k >= 1; k--) {
-            sum = sum * x + 1.0 / f32(k);
+            sum = exact_kept(sum * x) + exact_div(1.0, f32(k));
         }
         return sum * x;
     }
@@ -327,7 +340,7 @@ fn lead(low: vec2<u32>, high: vec2<u32>, d: vec2<u32>) -> f32 {
 // The cycles lived, `-log2(d / 2^53) / l`, where under one.
 fn lived_part(l: f32, d: vec2<u32>) -> f32 {
     let u = draw_log2(d);
-    return select(-1.0, u / l, u < l);
+    return select(-1.0, exact_div(u, l), u < l);
 }
 
 // D5's lived time (fn-199 R1), in ticks rounded up, at most `share`.

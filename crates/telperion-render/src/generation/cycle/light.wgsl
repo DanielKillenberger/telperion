@@ -25,7 +25,8 @@ struct Cfg {
     row: u32,
     // The depth recurrence's range of layers.
     chunk: u32,
-    pad1: u32,
+    // A word the driver cannot see is zero (`exact.wgsl`).
+    zero: u32,
     // Per direction: x/z, y/z, extinction CELL/z and its share, as f64s,
     // two to a row.
     dir: array<vec4<u32>, 18>,
@@ -54,6 +55,10 @@ const E_AREA: u32 = 8u;
 const E_DEPOSIT: u32 = 16u;
 const E_OUTSIDE: u32 = 32u;
 const ONE64: vec2<u32> = vec2<u32>(0u, 0x3ff00000u);
+
+fn exact_zero() -> u32 {
+    return C.zero;
+}
 
 fn fail(bit: u32) {
     atomicOr(&state[6], i32(bit));

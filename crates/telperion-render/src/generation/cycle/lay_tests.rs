@@ -62,19 +62,21 @@ fn replay(gpu: &Gpu, k: &Kernels, name: &str, c: &Capture) -> (Run, Laying, Agre
     (run, l, agreement)
 }
 
-fn device() -> Option<(Gpu, Kernels)> {
+fn device(arith: super::Arith) -> Option<(Gpu, Kernels)> {
     let gpu = super::super::test_gpu()?;
     let started = std::time::Instant::now();
-    let k = Kernels::new(&gpu);
+    let k = Kernels::new(&gpu, arith);
     println!("layout kernels compiled in {:.1} s", started.elapsed().as_secs_f64());
     Some((gpu, k))
 }
 
+/// Built exact (`Arith::Exact`): built plain, the driver's division,
+/// square root, contraction and reordering move the geometry's floats
+/// (LAYOUT.md).
 #[test]
-#[ignore = "red on the driver's division, contraction and reordering until the host rules (LAYOUT.md)"]
 fn young_layouts_agree_with_the_cpu() {
     let _held = super::super::whole_tree();
-    let Some((gpu, k)) = device() else {
+    let Some((gpu, k)) = device(super::Arith::Exact) else {
         return;
     };
     let mut differ = Vec::new();
@@ -135,7 +137,7 @@ fn timed(gpu: &Gpu, k: &Kernels, run: &Run) -> (Vec<(&'static str, f64)>, usize)
 #[ignore = "a measurement; red on the driver's division, contraction and reordering until the host rules (LAYOUT.md)"]
 fn busy_layouts_agree_and_are_timed() {
     let _held = super::super::whole_tree();
-    let Some((gpu, k)) = device() else {
+    let Some((gpu, k)) = device(super::Arith::Plain) else {
         return;
     };
     let mut differ = Vec::new();

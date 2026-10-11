@@ -11,17 +11,29 @@ const WIDE: &str = include_str!("fine/wide.wgsl");
 const KEYS: &str = include_str!("fine/lineage.wgsl");
 const CONTRACT: &str = include_str!("fine/contract.wgsl");
 const ZONES: &str = include_str!("fine/zones.wgsl");
+const ARITH: &str = include_str!("fine/arith.wgsl");
 
 /// The contract's WGSL: its wide words, its lineage keys, then its
 /// arithmetic.
 pub(super) fn contract() -> String {
-    format!("{WIDE}\n{KEYS}\n{CONTRACT}")
+    contract_with(ARITH)
+}
+
+/// The contract with its marked arithmetic `arith`: the plain operations
+/// (`fine/arith.wgsl`), or the device cycle's choice (`cycle::Arith`).
+pub(super) fn contract_with(arith: &str) -> String {
+    format!("{WIDE}\n{KEYS}\n{CONTRACT}\n{arith}")
 }
 
 /// The contract and a growth unit's zones, for a shader that binds the
 /// unit tables as `table` and `words`.
 pub(super) fn zones() -> String {
-    format!("{}\n{ZONES}", contract())
+    zones_with(ARITH)
+}
+
+/// `zones` with the contract's marked arithmetic `arith`.
+pub(super) fn zones_with(arith: &str) -> String {
+    format!("{}\n{ZONES}", contract_with(arith))
 }
 
 /// The device's kernels and tools for a generator's trees.

@@ -7,7 +7,7 @@
 // growing buds in subtree order, 1,024 a block, the blocks in order.
 // A product an add takes is written `hm`, a quotient `hdiv`: the sites
 // where the driver may fuse or round otherwise than the CPU (UNITS.md),
-// each the plain operation here.
+// each plain or held to the CPU's as the kernels are built (`Arith`).
 
 struct Cfg {
     n: u32,
@@ -19,7 +19,8 @@ struct Cfg {
     level: u32,
     row: u32,
     wx: u32,
-    pad0: u32,
+    // A word the driver cannot see is zero (`exact.wgsl`).
+    zero: u32,
     pad1: u32,
     pad2: u32,
 }
@@ -92,11 +93,15 @@ const Y_GROWING: u32 = 64u;
 const HLOG2E: f32 = 0x1.715476p+0f;
 
 fn hm(a: f32, b: f32) -> f32 {
-    return a * b;
+    return exact_kept(a * b);
 }
 
 fn hdiv(a: f32, b: f32) -> f32 {
-    return a / b;
+    return exact_div(a, b);
+}
+
+fn exact_zero() -> u32 {
+    return cfg.zero;
 }
 
 fn at(col: u32, i: u32) -> u32 {

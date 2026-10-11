@@ -229,7 +229,7 @@ fn read_main(@builtin(global_invocation_id) id: vec3<u32>) {
         if at != NONE {
             l = field[C.capacity + at];
         }
-        sum = sum + f64_to_f32(R[R_WC0 + c]) * l;
+        sum = sum + exact_kept(f64_to_f32(R[R_WC0 + c]) * l);
     }
     if sum < 0.0 {
         sum = 0.0;

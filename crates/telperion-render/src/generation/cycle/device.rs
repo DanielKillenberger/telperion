@@ -38,12 +38,12 @@ pub(super) struct Kernels {
 }
 
 impl Kernels {
-    pub(super) fn new(gpu: &Gpu) -> Self {
+    pub(super) fn new(gpu: &Gpu, arith: super::Arith) -> Self {
         let mut reads = vec![true; 3];
         reads.extend([false; 5]);
         let entries = ["cycle_main", "flag", "gather"];
         Self {
-            cycle: io::Pass::new(gpu, super::source(), &reads, &entries),
+            cycle: io::Pass::new(gpu, super::source(arith), &reads, &entries),
             scan: io::Pass::new(
                 gpu,
                 SCAN.into(),

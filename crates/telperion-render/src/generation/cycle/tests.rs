@@ -82,20 +82,22 @@ fn replay(
     (run, m, cols, agreement)
 }
 
-fn device() -> Option<(Gpu, Kernels)> {
+fn device(arith: super::Arith) -> Option<(Gpu, Kernels)> {
     let gpu = super::super::test_gpu()?;
     let started = std::time::Instant::now();
-    let k = Kernels::new(&gpu);
+    let k = Kernels::new(&gpu, arith);
     gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("compiled");
     println!("compile: {:.2} s", started.elapsed().as_secs_f64());
     Some((gpu, k))
 }
 
+/// Built exact (`Arith::Exact`): built plain, the driver's division and
+/// contraction in `contract.wgsl` move floats in their last places
+/// (UNITS.md).
 #[test]
-#[ignore = "red on contract.wgsl's division and contraction until the host rules (UNITS.md)"]
 fn young_cycles_agree_with_the_cpu() {
     let _held = super::super::whole_tree();
-    let Some((gpu, k)) = device() else {
+    let Some((gpu, k)) = device(super::Arith::Exact) else {
         return;
     };
     let mut differ = Vec::new();
@@ -160,7 +162,7 @@ fn timed(gpu: &Gpu, k: &Kernels, run: &Run) -> Vec<(&'static str, f64)> {
 #[ignore = "a measurement"]
 fn busy_cycles_agree_and_are_timed() {
     let _held = super::super::whole_tree();
-    let Some((gpu, k)) = device() else {
+    let Some((gpu, k)) = device(super::Arith::Plain) else {
         return;
     };
     let mut differ = Vec::new();

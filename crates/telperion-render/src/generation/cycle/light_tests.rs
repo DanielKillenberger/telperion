@@ -110,10 +110,10 @@ fn replay(
     (run, agreement)
 }
 
-fn device() -> Option<(Gpu, Kernels)> {
+fn device(arith: super::Arith) -> Option<(Gpu, Kernels)> {
     let gpu = super::super::test_gpu()?;
     let started = std::time::Instant::now();
-    let k = Kernels::new(&gpu);
+    let k = Kernels::new(&gpu, arith);
     gpu.device
         .poll(wgpu::PollType::wait_indefinitely())
         .expect("compiled");
@@ -134,8 +134,8 @@ const YOUNG: [(Preset, &str, u32, u32); 4] = [
 ];
 
 /// Every young capture's agreement on `names`; the captures that differ.
-fn young_differ(names: &[&str]) -> Vec<String> {
-    let Some((gpu, k)) = device() else {
+fn young_differ(arith: super::Arith, names: &[&str]) -> Vec<String> {
+    let Some((gpu, k)) = device(arith) else {
         return Vec::new();
     };
     let mut differ = Vec::new();
@@ -152,18 +152,19 @@ fn young_differ(names: &[&str]) -> Vec<String> {
 #[test]
 fn young_lattices_agree_with_the_cpu() {
     let _held = super::super::whole_tree();
-    let differ = young_differ(&LATTICE);
+    let differ = young_differ(super::Arith::Plain, &LATTICE);
     assert!(
         differ.is_empty(),
         "the device's lattice is not the CPU's: {differ:?}"
     );
 }
 
+/// Built exact (`Arith::Exact`): built plain, the driver fuses the read's
+/// product into its sum (`light_sweep.wgsl` `read_main`, LIGHT.md).
 #[test]
-#[ignore = "red on the driver's fusion of the read's product into its sum (light_sweep.wgsl read_main) until the host rules (LIGHT.md)"]
 fn young_reads_agree_with_the_cpu() {
     let _held = super::super::whole_tree();
-    let differ = young_differ(&["reads"]);
+    let differ = young_differ(super::Arith::Exact, &["reads"]);
     assert!(
         differ.is_empty(),
         "the device's reads are not the CPU's: {differ:?}"
@@ -239,7 +240,7 @@ fn timed(gpu: &Gpu, k: &Kernels, run: &Run) -> Vec<Phase> {
 #[ignore = "a measurement; its reads red on the driver's fusion until the host rules (LIGHT.md)"]
 fn busy_lights_agree_and_are_timed() {
     let _held = super::super::whole_tree();
-    let Some((gpu, k)) = device() else {
+    let Some((gpu, k)) = device(super::Arith::Plain) else {
         return;
     };
     let mut differ = Vec::new();

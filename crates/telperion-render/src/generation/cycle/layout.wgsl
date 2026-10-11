@@ -134,6 +134,10 @@ const TALLY: u32 = 16u;
 
 var<private> status: u32;
 
+fn exact_zero() -> u32 {
+    return cfg.zero;
+}
+
 fn ax(i: u32, c: u32) -> u32 {
     return axes[c * cfg.axes + i];
 }
