@@ -198,6 +198,17 @@ The cost is O(axes) copying a cycle: 1.5M u32, a few tens of microseconds.
 - It is a stable scan. Kept phytomers keep their relative order, and the unit records' `first_phyt` and the axes' `node_phyt` are remapped.
 - Because it is stable and deterministic, it changes no node slot in the settled table.
 
+**As decided for the build (2026-10-11, the settle worker's five questions):**
+1. **Inside the recorded cycle plan.** Retirement's passes run at each cycle's start, before the balance, sized by the axes bound the host already holds. No sync point is added.
+2. **Evaluated by levels, not per subtree.**
+   - Presences are assigned once per laid axis, when it first closes or is a candidate.
+   - Living is carried up the hierarchy's block levels, given the retired roots' living.
+   - Each candidate is then judged: closed or pending, beside an open axis, still open, its wait passed.
+   - This equals fn-255's per-subtree evaluation (`copied` with stubs) because living folds by `max` and is final once a subtree closes. A test holds every verdict (root, cycle, kept or retired, living) to the CPU's.
+3. **Only a retired root's living is stored.** A kept subtree's living is recomputed by the levels.
+4. **Compaction happens at a move only,** when the build already rewrites its arenas. It remaps `first_phyt`, `node_phyt`, the layout's phytomer rows and the deposit's ranges.
+5. **Records sit in a separate buffer:** five f32 words per phytomer of a retired subtree, plus the vigour, appended in scan order. They exist only where a PA keeps shed pipes or leaf girth. The settle reads the retired roots' living, drops the axes inside, and reads the records in its attachments pass.
+
 ## 7. What step 2 measures before the executor is built
 
 The spike did not replay units and layout, which are the CPU's largest phases (Telperion: Units 2.38 s, Sketch 2.05 s). Task 2 therefore first builds steps 3 and 7 alone, the units in count and emit modes and the layout's round 0 and generations. It replays them on captured busy cycles: Telperion at 82, seed 42, and the beech at 40, seed 42.
