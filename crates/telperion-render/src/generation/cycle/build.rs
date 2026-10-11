@@ -9,8 +9,8 @@
 //! bound. Retirement is not run: it leaves the tree as it was (DESIGN.md
 //! section 6).
 use super::build_light::{Light, Lit};
-use super::build_plan::{record, Bounds};
-use super::census::{self as c, Flag};
+use super::build_plan::{record, Phases};
+use super::census as c;
 use super::columns::{packed, Cap};
 use super::hier_build::{Hierarchy, CAP};
 use super::hier_device::Sums;
@@ -146,13 +146,6 @@ pub(super) struct Build {
     pub census: Vec<u32>,
 }
 
-/// How a build ended: grown, or stopped by a count past a capacity or a
-/// bound, named by its flags and the census.
-pub(super) enum Ended {
-    Grown,
-    Passed(Vec<(Flag, u32)>, Vec<u32>),
-}
-
 impl Build {
     /// The buffers for a tree of `caps`, the rows of every cycle uploaded.
     pub(super) fn new(gpu: &Gpu, t: &Tables, (c, caps): (&Capture, Caps), (lit, nodes): (Lit, u32)) -> Result<Self> {
@@ -183,45 +176,31 @@ impl Build {
         Ok(build)
     }
 
-    /// The seed, then cycles 1 to `upto` of the tree's age, recorded
-    /// without a round trip; the census read a cycle late stops a build
-    /// that passed a capacity or a bound.
-    pub(super) fn run(&mut self, gpu: &Gpu, kit: &Kit, t: &Tables, (bounds, upto): (Bounds, u32)) -> Result<Ended> {
-        let (plan, phases) = self.plan(gpu, kit, t, bounds)?;
+    /// The seed recorded, the census set as `Grower::seeded` leaves it.
+    pub(super) fn seeded(&self, gpu: &Gpu, kit: &Kit, (plan, phases): (&Plan, &Phases)) {
         let mut census = vec![0u32; c::WORDS];
         (census[c::AXES], census[c::NEXT]) = (1, 1);
         gpu.queue.write_buffer(&plan.census, 0, bytemuck::cast_slice(&census));
         let mut e = gpu.encoder(&Default::default());
-        record(kit, &plan, &mut e, &phases.seed);
+        record(kit, plan, &mut e, &phases.seed);
         gpu.submit([e.finish()]);
-        let mut late = Late::new(gpu)?;
-        for cycle in 1..=upto {
-            gpu.queue.write_buffer(&plan.census, 4 * c::CYCLE as u64, bytemuck::bytes_of(&cycle));
-            gpu.queue.write_buffer(&self.sums.rows, 0, bytemuck::cast_slice(&t.rows_at(cycle)));
-            let mut e = gpu.encoder(&Default::default());
-            for steps in phases.cycle(cycle, t.age) {
-                record(kit, &plan, &mut e, steps);
-            }
-            late.copy(&mut e, &plan, cycle);
-            gpu.submit([e.finish()]);
-            late.send(gpu, cycle);
-            if cycle > 1 {
-                let read = late.take(gpu, cycle - 1)?;
-                if !c::raised(&read).is_empty() {
-                    return Ok(Ended::Passed(c::raised(&read), read));
-                }
-            }
+    }
+
+    /// Cycle `cycle` recorded and submitted, its census sent back late.
+    pub(super) fn submit(&self, gpu: &Gpu, (kit, t): (&Kit, &Tables), (plan, phases): (&Plan, &Phases), (late, cycle): (&mut Late, u32)) {
+        gpu.queue.write_buffer(&plan.census, 4 * c::CYCLE as u64, bytemuck::bytes_of(&cycle));
+        gpu.queue.write_buffer(&self.sums.rows, 0, bytemuck::cast_slice(&t.rows_at(cycle)));
+        let mut e = gpu.encoder(&Default::default());
+        for steps in phases.cycle(cycle, t.age) {
+            record(kit, plan, &mut e, steps);
         }
-        let read = late.take(gpu, upto)?;
-        self.counted(&read);
-        match c::raised(&read).is_empty() {
-            true => Ok(Ended::Grown),
-            false => Ok(Ended::Passed(c::raised(&read), read)),
-        }
+        late.copy(&mut e, plan, cycle);
+        gpu.submit([e.finish()]);
+        late.send(gpu, cycle);
     }
 
     /// The state's counts from the census.
-    fn counted(&mut self, read: &[u32]) {
+    pub(super) fn counted(&mut self, read: &[u32]) {
         self.held = Held {
             axes: read[c::AXES],
             units: read[c::UNITS],
@@ -236,13 +215,13 @@ impl Build {
 
 /// The census read back a cycle late: a copy into one of two mappable
 /// buffers at each cycle's end, mapped once its cycle is submitted.
-struct Late {
+pub(super) struct Late {
     staging: [Owned; 2],
     pending: [Option<(wgpu::SubmissionIndex, futures_channel::oneshot::Receiver<std::result::Result<(), wgpu::BufferAsyncError>>)>; 2],
 }
 
 impl Late {
-    fn new(gpu: &Gpu) -> Result<Self> {
+    pub(super) fn new(gpu: &Gpu) -> Result<Self> {
         let usage = wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST;
         let bytes = 4 * c::WORDS as u64;
         let one = || super::super::io::buffer(gpu, "census read", bytes, usage, &[]);
@@ -264,7 +243,7 @@ impl Late {
         self.pending[at] = Some((index, receive));
     }
 
-    fn take(&mut self, gpu: &Gpu, cycle: u32) -> Result<Vec<u32>> {
+    pub(super) fn take(&mut self, gpu: &Gpu, cycle: u32) -> Result<Vec<u32>> {
         let at = cycle as usize % 2;
         let (index, receive) = self.pending[at].take().expect("a cycle's census sent");
         let wait = wgpu::PollType::Wait { submission_index: Some(index), timeout: None };

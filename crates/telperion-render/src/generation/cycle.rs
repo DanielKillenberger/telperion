@@ -5,6 +5,7 @@
 mod build;
 mod build_grow;
 mod build_light;
+mod build_move;
 mod build_plan;
 mod census;
 mod columns;
