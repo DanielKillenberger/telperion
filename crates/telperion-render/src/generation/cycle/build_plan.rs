@@ -48,7 +48,7 @@ impl Default for Bounds {
             hier: HierBounds { gens: 4, passes: 4, levels: 8 },
             lay: LayBounds { generations: 4, sweeps: 2, deposits: 1, draws: 1, lights: 1 },
             units: 1,
-            ranges: Ranges { units: 16384, draw: 65536, deposit: 262_144, nodes: 65536, paths: 524_288 },
+            ranges: Ranges { units: 8192, draw: 32768, deposit: 262_144, nodes: 65536, paths: 524_288 },
         }
     }
 }

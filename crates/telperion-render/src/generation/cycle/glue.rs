@@ -15,7 +15,8 @@ pub(super) const POINTS: usize = 6;
 pub(super) const LIT: usize = 7;
 pub(super) const RELIVE: usize = 8;
 pub(super) const FRESH: usize = 9;
-const ENTRIES: [&str; 10] = [
+pub(super) const CLEAR: usize = 10;
+const ENTRIES: [&str; 11] = [
     "tree_main",
     "scatter_main",
     "inputs_main",
@@ -26,6 +27,7 @@ const ENTRIES: [&str; 10] = [
     "lit_main",
     "relive_main",
     "fresh_main",
+    "clear_main",
 ];
 
 /// The glue's WGSL: the software f64, then its entries.

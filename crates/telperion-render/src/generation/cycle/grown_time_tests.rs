@@ -115,3 +115,19 @@ fn whole_builds_are_timed() {
         measured(&gpu, &exact, *case, Arith::Exact);
     }
 }
+
+/// Each module's compile on its own: run with the driver's disk cache
+/// off (`__GL_SHADER_DISK_CACHE=0`) for the cold figure.
+#[test]
+#[ignore = "a measurement"]
+fn the_kernels_compile() {
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else {
+        return;
+    };
+    for arith in [Arith::Plain, Arith::Exact] {
+        let started = Instant::now();
+        drop(compiled(&gpu, arith));
+        println!("compile {arith:?} in all: {:.2} s", started.elapsed().as_secs_f64());
+    }
+}

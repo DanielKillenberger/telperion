@@ -7,7 +7,7 @@
 use super::build::{Build, Kit, Tables};
 use super::census::{self as c, Flag};
 use super::glue;
-use super::hier_build::{CAP, R_LVL_START, X_FAULT, X_GENS, X_LEVELS, X_UNPLACED};
+use super::hier_build::{R_LVL_START, X_FAULT, X_GENS, X_LEVELS, X_UNPLACED};
 use super::hier_device::{self as hd, BUD_BLOCK, CLEARED, FROM_TREE, V_FLAG};
 use super::hier_plan as hp;
 use super::plan::{Builder, PassId, Size, Step, MAXX};
@@ -30,9 +30,11 @@ impl Build {
         b.bind(&kit.hier.build, slot, &rest)
     }
 
-    fn clear_column(&self, b: &mut Builder, col: u64) {
-        let s = u64::from(self.state.caps.axes);
-        b.step(Step::Clear { buffer: (*self.hier.counts).clone(), at: 4 * col * s, bytes: Some(4 * s) });
+    /// The first `rows` rows of the counts' column `col`, none.
+    fn clear_rows(&self, b: &mut Builder, kit: &Kit, col: u64, rows: E) {
+        let s = self.state.caps.axes;
+        let w = glue::Words { first: col as u32 * s, live_stride: self.sums.live_stride, ..glue::Words::default() };
+        self.glue_step(b, kit, (glue::CLEAR, &self.hier.counts, &self.spare), w, &[(0, rows)]);
     }
 
     /// The hierarchy's step over lists `parity` (its next the other).
@@ -43,7 +45,7 @@ impl Build {
         let (old, n) = (E::At(c::BUILT), E::At(c::LAID0));
         let new = n.clone().sub(old.clone());
         let s = self.state.caps.axes;
-        let words = |round: u32| [0, 0, CAP, round, s, MAXX * 64, 0, 0];
+        let words = |round: u32| [0, 0, h.cap, round, s, MAXX * 64, 0, 0];
         let head = b.slot(&words(0));
         b.set(head, 0, old.clone());
         b.set(head, 1, n.clone());
@@ -52,7 +54,7 @@ impl Build {
         let w = glue::Words { live_stride: self.sums.live_stride, ..glue::Words::default() };
         self.glue_step(b, kit, (glue::TREE, &self.tree, &self.spare), w, &[(0, n.clone()), (3, n.clone())]);
         for col in [hp::C_KIDS, hp::C_KID_FILL] {
-            self.clear_column(b, col);
+            self.clear_rows(b, kit, col, n.clone());
         }
         b.step(Step::Clear { buffer: (*h.tally).clone(), at: 4 * X_GENS, bytes: Some(4) });
         let build = |k| (PassId::HierBuild, k);
@@ -63,13 +65,17 @@ impl Build {
         b.flag(Flag::HierGens, E::At(c::GENS).gt(E::C(bound.gens)));
         let blocks = E::At(c::BLOCKS0).add(new.clone());
         let levels = E::At(c::LEVELS0).add(E::At(c::GENS));
+        // A round past the step's generations places nothing: its
+        // dispatches are empty.
         let mut rounds = Vec::new();
         for r in 0..bound.gens {
             let slot = b.slot(&words(r));
             for (w, e) in [(0, old.clone()), (1, n.clone()), (6, blocks.clone()), (7, levels.clone())] {
                 b.set(slot, w, e);
             }
-            rounds.push(self.hier_bind(b, kit, slot, parity));
+            let active = E::At(c::GENS).gt(E::C(r));
+            let over = b.groups(active.clone().sel(new.clone().div(E::C(64)), E::C(0)));
+            rounds.push((self.hier_bind(b, kit, slot, parity), over, active));
         }
         let groups = |b: &mut Builder, e: E| b.groups(e.div(E::C(64)));
         let (g_new, g_n, g_old, g_blocks) = (groups(b, new.clone()), groups(b, n.clone()), groups(b, old), groups(b, blocks.clone()));
@@ -79,29 +85,30 @@ impl Build {
             levelled(b, &kit.hier.scan, (&h.counts, at, s), &h.sums, (&h.tally, to), rows);
         };
         scan(b, hp::C_KIDS, n.clone(), hp::X_KIDS);
-        let base = rounds[0].clone();
+        let base = rounds[0].0.clone();
         b.dispatch(build(hp::KID_PLACE), base.clone(), g_new);
         b.dispatch(build(hp::KID_MERGE), base.clone(), g_n);
-        for (r, bind) in rounds.iter().enumerate() {
+        for (r, (bind, over, active)) in rounds.iter().enumerate() {
+            let (rows, fresh) = (active.clone().sel(blocks.clone(), E::C(0)), active.clone().sel(new.clone(), E::C(0)));
             for _ in 0..bound.passes {
                 for col in [hp::C_JOIN, hp::C_JOIN_FILL] {
-                    self.clear_column(b, col);
+                    self.clear_rows(b, kit, col, rows.clone());
                 }
                 b.step(Step::Clear { buffer: (*h.tally).clone(), at: 4 * X_UNPLACED, bytes: Some(4) });
-                b.dispatch(build(hp::TARGET), bind.clone(), g_new);
-                scan(b, hp::C_JOIN, blocks.clone(), hp::X_JOIN);
-                b.dispatch(build(hp::JOIN_PLACE), bind.clone(), g_new);
-                b.dispatch(build(hp::DECIDE), bind.clone(), g_new);
-                scan(b, hp::C_OPEN, new.clone(), hp::X_OPEN);
-                b.dispatch(build(hp::ASSIGN), bind.clone(), g_new);
-                b.dispatch(build(hp::FOLLOW), bind.clone(), g_new);
+                b.dispatch(build(hp::TARGET), bind.clone(), *over);
+                scan(b, hp::C_JOIN, rows.clone(), hp::X_JOIN);
+                b.dispatch(build(hp::JOIN_PLACE), bind.clone(), *over);
+                b.dispatch(build(hp::DECIDE), bind.clone(), *over);
+                scan(b, hp::C_OPEN, fresh.clone(), hp::X_OPEN);
+                b.dispatch(build(hp::ASSIGN), bind.clone(), *over);
+                b.dispatch(build(hp::FOLLOW), bind.clone(), *over);
                 b.dispatch(build(hp::ROUND_END), bind.clone(), Size::Direct(1));
             }
             b.tally(&h.tally, 4 * X_UNPLACED, c::UNPLACED + r, 4);
         }
-        for col in [hp::C_MEMBERS, hp::C_MEMBER_FILL, hp::C_LEVEL] {
-            self.clear_column(b, col);
-        }
+        self.clear_rows(b, kit, hp::C_MEMBERS, blocks.clone());
+        self.clear_rows(b, kit, hp::C_MEMBER_FILL, blocks.clone());
+        self.clear_rows(b, kit, hp::C_LEVEL, levels.clone());
         b.dispatch(build(hp::MEMBER_COUNT), base.clone(), g_new);
         scan(b, hp::C_MEMBERS, blocks, hp::X_MEMBERS);
         scan(b, hp::C_LEVEL, levels, hp::X_LEVEL);
