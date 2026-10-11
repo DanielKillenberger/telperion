@@ -132,7 +132,7 @@ fn timed(gpu: &Gpu, k: &Kernels, run: &Run) -> (Vec<(&'static str, f64)>, usize)
 }
 
 #[test]
-#[ignore = "a measurement"]
+#[ignore = "a measurement; red on the driver's division, contraction and reordering until the host rules (LAYOUT.md)"]
 fn busy_layouts_agree_and_are_timed() {
     let _held = super::super::whole_tree();
     let Some((gpu, k)) = device() else {

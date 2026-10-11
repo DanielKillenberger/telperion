@@ -47,3 +47,9 @@
 - **Hindered:** `from` and `target` are reserved words in WGSL, and naga refuses `bitcast` in a module `const`; each was found by one full test build of `telperion-render` (about 1 minute each, three rounds).
 - **Cost:** about 4 minutes.
 - **Would remove it:** a naga check runnable on one shader source without building the crate's test binary.
+
+## 2026-10-11, task 2: tracing the layout's last differences
+- **Doing:** attributing the young layouts' remaining float differences under the exact experiment.
+- **Hindered:** the comparison names columns, not the operation that rounded. Each of the last three causes needed a hand-written readback of the device's intermediates: dominance's `held` fused across a variable, `(tip + d len) - tip` simplified to `d len`, and the contract's `exp2c`. Each took a 1 to 2 minute rebuild and GPU run.
+- **Cost:** about 15 minutes, five runs.
+- **Would remove it:** UNITS.md's test switch (a kernel recording its intermediates beside its outputs), which applies to the layout as well.
