@@ -175,7 +175,7 @@ fn unit_columns(c: &Cap) -> (Vec<Vec<u32>>, Vec<u32>, Vec<u32>) {
     let axis = c.u32s("in_unit_axis");
     let n_axes = c.u32s("in_pa").len();
     let (mut heads, mut tails) = (vec![NONE; n_axes], vec![NONE; n_axes]);
-    let mut cols = vec![Vec::with_capacity(axis.len()); UNITS];
+    let mut cols: Vec<Vec<u32>> = (0..UNITS).map(|_| Vec::with_capacity(axis.len())).collect();
     let (lo, hi) = split(&c.u64s("in_unit_shade"));
     let (survive, persist) = (c.f32s("in_unit_survive"), c.f32s("in_unit_persist"));
     let (share, size) = (c.u32s("in_unit_share"), c.u32s("in_unit_size"));

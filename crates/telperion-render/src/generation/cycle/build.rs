@@ -238,8 +238,11 @@ impl Build {
 /// buffers at each cycle's end, mapped once its cycle is submitted.
 pub(super) struct Late {
     staging: [Owned; 2],
-    pending: [Option<(wgpu::SubmissionIndex, futures_channel::oneshot::Receiver<std::result::Result<(), wgpu::BufferAsyncError>>)>; 2],
+    pending: [Option<(wgpu::SubmissionIndex, Mapped)>; 2],
 }
+
+/// A mapping's result, once the device has delivered it.
+type Mapped = futures_channel::oneshot::Receiver<std::result::Result<(), wgpu::BufferAsyncError>>;
 
 impl Late {
     pub(super) fn new(gpu: &Gpu) -> Result<Self> {
@@ -280,8 +283,6 @@ impl Late {
 }
 
 /// A mapping's result, which the poll has delivered.
-fn futures_executor_block(
-    r: futures_channel::oneshot::Receiver<std::result::Result<(), wgpu::BufferAsyncError>>,
-) -> std::result::Result<(), String> {
+fn futures_executor_block(r: Mapped) -> std::result::Result<(), String> {
     pollster::block_on(r).map_err(|e| e.to_string())?.map_err(|e| e.to_string())
 }

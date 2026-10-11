@@ -9,7 +9,7 @@ use std::collections::HashMap;
 /// Every word of every column, exactly.
 pub(super) fn exact(dev: &Snapshot, cpu: &Snapshot) -> Agreement {
     let mut a = Agreement::default();
-    a.eq("grown", &[dev.grown], &[cpu.grown]);
+    a.eq("phytomers grown", &[dev.grown], &[cpu.grown]);
     for (d, c) in tables(dev).into_iter().zip(tables(cpu)) {
         for (fd, fc) in d.fields.iter().zip(&c.fields) {
             a.eq(&fd.name, &fd.words, &fc.words);

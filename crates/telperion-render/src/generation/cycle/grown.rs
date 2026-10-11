@@ -336,3 +336,11 @@ pub(super) fn cpu_snapshot(c: &Cap) -> Snapshot {
     out.pencils.axis = (0..laid as u32).collect();
     out
 }
+
+/// The names of `s`'s integer columns: where a float that parted
+/// reaches a decision.
+pub(super) fn integer_fields(s: &Snapshot) -> Vec<String> {
+    let tables = [&s.axes, &s.units, &s.phyts, &s.sleepers, &s.woken, &s.live, &s.pencils];
+    let ints = |t: &&Table| t.fields.iter().filter(|f| matches!(f.kind, Kind::U32 | Kind::U64)).map(|f| f.name.clone()).collect::<Vec<_>>();
+    tables.iter().flat_map(ints).collect()
+}

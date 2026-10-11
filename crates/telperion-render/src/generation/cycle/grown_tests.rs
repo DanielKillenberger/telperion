@@ -99,18 +99,25 @@ fn young_trees_built_plain_are_reported() {
     for (preset, name, age) in YOUNG {
         let g = grown(preset, age, 42);
         let last = telperion_space::grow_capture_grown(&g.species, g.request).expect("the CPU's tree");
-        let mut first = None;
+        let (mut first, mut whole) = (None, None);
         for c in 1..=age {
             let at = telperion_space::grow_capture_grown_at(&g.species, g.request, c).expect("the CPU's tree");
-            let a = exact(&built(&gpu, &kit, &g, c).1, &cpu_snapshot(&Cap(&at)));
-            if let Some(f) = a.fields.iter().find(|f| f.2 > 0) {
-                first = Some(format!("cycle {c}, {} ({} of {} rows; {})", f.0, f.2, f.1, f.3));
+            let (dev, cpu) = (built(&gpu, &kit, &g, c).1, cpu_snapshot(&Cap(&at)));
+            let a = exact(&dev, &cpu);
+            let named = |f: &(String, usize, usize, String)| format!("cycle {c}, {} ({} of {} rows; {})", f.0, f.2, f.1, f.3);
+            if first.is_none() {
+                first = a.fields.iter().find(|f| f.2 > 0).map(named);
+            }
+            let ints = super::grown::integer_fields(&dev);
+            if let Some(f) = a.fields.iter().find(|f| f.2 > 0 && (f.0 == "phytomers grown" || ints.contains(&f.0))) {
+                whole = Some(named(f));
                 break;
             }
         }
         let dev = built(&gpu, &kit, &g, age).1;
         let cpu = cpu_snapshot(&Cap(&last));
         println!("{name} {age}: first parts at {}", first.as_deref().unwrap_or("none"));
+        println!("{name} {age}: an integer first parts at {}", whole.as_deref().unwrap_or("none"));
         println!("{}", by_lineage(&dev, &cpu).report());
     }
 }

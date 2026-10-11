@@ -65,7 +65,7 @@ impl E {
             E::Add(a, b) => { let (a, b) = bin(a, b); a.wrapping_add(b) }
             E::Sub(a, b) => { let (a, b) = bin(a, b); a.saturating_sub(b) }
             E::Mul(a, b) => { let (a, b) = bin(a, b); a.wrapping_mul(b) }
-            E::Div(a, b) => { let (a, b) = bin(a, b); if b == 0 { 0 } else { (a + b - 1) / b } }
+            E::Div(a, b) => { let (a, b) = bin(a, b); a.checked_div(b).map_or(0, |_| a.div_ceil(b)) }
             E::Min(a, b) => { let (a, b) = bin(a, b); a.min(b) }
             E::Max(a, b) => { let (a, b) = bin(a, b); a.max(b) }
             E::Gt(a, b) => { let (a, b) = bin(a, b); u32::from(a > b) }

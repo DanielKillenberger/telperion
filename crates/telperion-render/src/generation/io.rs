@@ -357,7 +357,7 @@ pub(super) async fn read_leaves_chunked(
                 .slice(..length)
                 .get_mapped_range()
                 .map_err(|e| error(e.to_string()))?;
-            leaves.extend(view.chunks_exact(12).map(|b| {
+            leaves.extend(view.as_chunks::<12>().0.iter().map(|b| {
                 [
                     u32::from_ne_bytes(b[0..4].try_into().unwrap()),
                     u32::from_ne_bytes(b[4..8].try_into().unwrap()),
