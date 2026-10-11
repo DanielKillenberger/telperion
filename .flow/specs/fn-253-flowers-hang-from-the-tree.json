@@ -626,7 +626,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-253-flowers-hang-from-the-tree.md",
-  "status": "open",
+  "status": "done",
   "title": "Flowers hang from the tree",
   "tracker": {
     "baseHashFlow": null,
@@ -639,5 +639,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-11T14:27:00.576449Z"
+  "updated_at": "2026-10-11T14:28:55.119137Z"
 }

@@ -25,6 +25,8 @@ The owner's goal (2026-10-08/09): "replace the old generator with the new one th
 
 - **R12 (friction, obvious fix; fn-261 FRICTION.md):** a render test that takes `generation::whole_tree()` and then calls into `roots::kernels` deadlocks on the same non-reentrant test mutex (`_one`) and holds the GPU lock for its timeout (10 minutes lost in fn-261); before the release PR, the guard is taken in one place, so a test cannot take it twice, or a second take fails at once with a message naming the guard.
 
+- **R13 (friction, obvious fix; fn-253 FRICTION.md):** a still sheet an owner verdict rests on is kept beside the spec's evidence outside the ignored `raw/` (a compressed JPEG), so a later spec can compare against the approved look without rebuilding it in another worktree; `docs/evidence-retention.md` says so before the release PR.
+
 ## Boundaries
 
 Map only. Post-release: fn-232, fn-233.
