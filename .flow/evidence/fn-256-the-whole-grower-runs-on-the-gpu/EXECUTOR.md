@@ -228,3 +228,52 @@ What the numbers show:
 - **No move after the last cycle:** a move there had left the settle a stale phytomer count (70e6f557c).
 
 **Declined:** plain mode's integer `sleep` ticks, floored from device-rounded floats, differing from the CPU's (261 axes on the oak at 40). This is the f32 contract the host has not ruled on (STEP2.md call 1). Exact mode equals the CPU in every word, and plain mode is COUNCIL.md's tolerance standard.
+
+## After the host's rulings of 2026-10-12 (plain arithmetic, native transcendentals, blocked leaf mean, units as small kernels)
+
+Commit 2e3094688 and the commits before it. Raw output: `raw/native-floats-40s.txt`, `raw/native-floats-80s.txt`, `raw/executor-native-1.txt`, `raw/native-math-seq-1.txt`, `raw/native-math-modules-1.txt`.
+
+### Agreement with the CPU's laid tree, by lineage (ruling 9.1)
+
+Plain, default age, seed 42. "Identity integers" are kind, parent, node, whorl, lineage, PA, birth, apex end, the unit and phytomer counts, and each phytomer's cycle and key.
+
+| Preset | Axes | Phytomers | Unmatched (device / CPU) | Identity integers that differ | `sleep` differs (float-derived) | Tips, max / p99 | Radius, relative p99 |
+|---|--:|--:|--:|---|--:|--:|--:|
+| european-beech 40 | 37,751 | 332,405 | 0 / 0 | none | 0 | 0.08 / 0.03 mm | 1.6e-5 |
+| oregon-white-oak 40 | 52,248 | 354,122 | 0 / 0 | none | 294 | 0.40 / 0.05 mm | 3.2e-4 |
+| norway-spruce 40 | 309,600 | 1,212,283 | 0 / 0 | none | 0 | 0.11 / 0.05 mm | 2.6e-6 |
+| date-palm 40 | 1 | 480 | 0 / 0 | none | 0 | 0.005 / 0.005 mm | 0 |
+| silver-birch 40 | 67,739 | 518,131 | 0 / 0 | none | 0 | 0.81 / 0.11 mm | 1.3e-5 |
+| ordinary 40 | 25,521 | 163,214 | 0 / 0 | none | 1 | 0.08 / 0.05 mm | 1.5e-5 |
+| laurelin 80 | 350,255 | 3,534,309 | 0 / 0 | none | 0 | 1.77 / 0.31 mm | 2.6e-5 |
+| telperion 82 | 373,607 | 3,773,761 | 0 / 0 | none | 0 | 1.70 / 0.32 mm | 2.5e-5 |
+
+### Cold compile (ruling 9.3): native, driver cache off, 1.67 s
+
+| Measure | Cold |
+|---|--:|
+| Modules one after another, each module's entries made side by side | **1.67 s** |
+| Every module at once | **0.98 s** |
+| Units (27 entries) / layout / settle / light / hierarchy | 0.39 / 0.48 / 0.35 / 0.18 / 0.11 s |
+| Every entry strictly one after another (neither path builds this way) | 6.0 s |
+
+### Per phase (ruling 9.6), at the build's own sizes, stamped GPU ms
+
+| Phase | Telperion 82 | european-beech 40 |
+|---|--:|--:|
+| Units and wake | 270.7 (34,742 dispatches) | 46.7 (12,438) |
+| Balance and allotment | 318.7 (19,471) | 59.6 (5,841) |
+| Retirement | 224.9 (3,027) | 24.7 (893) |
+| Layout | 92.4 (2,782) | 6.6 (887) |
+| Light | 72.2 (1,131) | 8.0 (470) |
+| Sizing | 67.0 (1,463) | 28.4 (707) |
+| **Build** | **1,046.1 (62,700; 765 a cycle)** | **174.1 (21,278; 532 a cycle)** |
+| **Settle** | **62.4 (2,498)**, place 22.1 | **10.9 (766)** |
+| Longest dispatch | 0.795 ms (layout `frame_main`) | 0.390 ms |
+
+- **Grown from the least sizes,** with retirement letting go at moves:
+  - Telperion 82: 2.16 s unstamped wall (5 restarts, 61 moves), peak 3.2 GB growing and 3.9 GB settling.
+  - The beech at 40: 0.47 s.
+- **The oak at 80, seed 1:** 1.33 s, its longest dispatch 0.857 ms.
+- **Every dispatch** of every build is under 1 ms.
+- **Dispatches against the Chrome target** (DESIGN.md 7a, about 340 a cycle): they are over it, at 765 a cycle on Telperion, about 0.44 s at 7 µs. This goes to task 4's budget with the units' round gating (ruling 9.6).
