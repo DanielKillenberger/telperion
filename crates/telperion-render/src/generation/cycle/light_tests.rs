@@ -1,0 +1,271 @@
+//! The device's light held to the CPU's `read_light`: young trees in
+//! seconds, every word of the box, quanta, densities and lattice exact,
+//! the f32 reads compared apart; and the busy cycles, measured.
+use super::columns::Cap;
+use super::light_device::{Kernels, Lit, Out, Run};
+use crate::Gpu;
+use telperion_core::presets::Preset;
+use telperion_space::{Capture, Request};
+
+/// `preset` grown to `age` at `seed` through the one cycle and its `at`th
+/// cycle's light captured; light as the preset sets it.
+fn captured(preset: Preset, age: u32, seed: u64, at: u32) -> Capture {
+    let family = preset.parameters();
+    let species = family.space.species.expect("an engine species");
+    let request = Request {
+        age,
+        seed,
+        budget: 20_000_000,
+        light: family.space.light,
+    };
+    telperion_space::grow_capture_light_at(&species, request, at).expect("a capture")
+}
+
+/// The words of each output that differ from the CPU's, by name: how
+/// many of how many, the first, and for reals the largest difference.
+struct Agreement(Vec<(&'static str, usize, usize, Option<usize>, f32)>);
+
+impl Agreement {
+    fn of(cap: &Cap, out: &Out) -> Self {
+        let words = |n: &str| cap.u32s(n);
+        let pairs: [(&'static str, Vec<u32>, Vec<u32>); 6] = [
+            ("errors", vec![0], vec![out.errors]),
+            (
+                "box",
+                [words("cpu_grid_low"), words("cpu_grid_size")].concat(),
+                [out.low, out.size].concat(),
+            ),
+            ("quanta", words("cpu_quanta"), out.quanta.clone()),
+            ("densities", words("cpu_density"), out.density.clone()),
+            ("lattice", words("cpu_lattice"), out.lattice.clone()),
+            ("reads", words("cpu_reads"), out.reads.clone()),
+        ];
+        Self(
+            pairs
+                .into_iter()
+                .map(|(name, cpu, dev)| {
+                    let first = (0..cpu.len().max(dev.len())).find(|&i| cpu.get(i) != dev.get(i));
+                    let n = (0..cpu.len().max(dev.len()))
+                        .filter(|&i| cpu.get(i) != dev.get(i))
+                        .count();
+                    let real = |w: Option<&u32>| w.map_or(f32::NAN, |w| f32::from_bits(*w));
+                    let most = (0..cpu.len().max(dev.len()))
+                        .map(|i| (real(cpu.get(i)) - real(dev.get(i))).abs())
+                        .fold(0.0, f32::max);
+                    (name, n, cpu.len(), first, most)
+                })
+                .collect(),
+        )
+    }
+
+    /// Whether every word of the named outputs agrees.
+    fn exact(&self, names: &[&str]) -> bool {
+        self.0
+            .iter()
+            .filter(|r| names.contains(&r.0))
+            .all(|r| r.1 == 0)
+    }
+
+    fn report(&self) -> String {
+        let rows: Vec<String> = (self.0.iter())
+            .map(|(name, n, of, first, most)| match first {
+                None => format!("  {name}: exact ({of} words)"),
+                Some(i) => format!("  {name}: {n} of {of} words differ, the first at {i}; as f32s, the largest by {most:e}"),
+            })
+            .collect();
+        rows.join("\n")
+    }
+}
+
+const LATTICE: [&str; 5] = ["errors", "box", "quanta", "densities", "lattice"];
+
+fn capacity(cap: &Cap) -> u32 {
+    cap.u32s("cpu_grid_size").iter().product()
+}
+
+/// The captured light on the device, compared with the CPU's, the
+/// comparison printed; swept under `extinction` where one is given.
+fn replay(
+    gpu: &Gpu,
+    k: &Kernels,
+    name: &str,
+    c: &Capture,
+    extinction: Option<f64>,
+) -> (Run, Agreement) {
+    let cap = Cap(c);
+    let lit = Lit::new(&cap, capacity(&cap), extinction);
+    let run = Run::new(gpu, k, &lit).expect("buffers");
+    let mut e = gpu.encoder(&Default::default());
+    run.record(k, &mut e);
+    gpu.submit([e.finish()]);
+    let out = run.read(gpu).expect("a readback");
+    let agreement = Agreement::of(&cap, &out);
+    let [leaves, tips, dirs] = lit.counts();
+    let size = cap.u32s("cpu_grid_size");
+    println!(
+        "{name}: cycle {}, {leaves} leaves, {tips} tips, {dirs} directions, lit {}, lattice {size:?} = {} nodes, {} holding leaf area; refused: {:?}",
+        cap.u32s("light_cycle")[0], lit.lit, capacity(&cap), out.quanta.iter().filter(|&&q| q > 0).count(), out.refusals()
+    );
+    println!("{}", agreement.report());
+    (run, agreement)
+}
+
+fn device() -> Option<(Gpu, Kernels)> {
+    let gpu = super::super::test_gpu()?;
+    let started = std::time::Instant::now();
+    let k = Kernels::new(&gpu);
+    gpu.device
+        .poll(wgpu::PollType::wait_indefinitely())
+        .expect("compiled");
+    println!(
+        "light kernels compiled in {:.2} s",
+        started.elapsed().as_secs_f64()
+    );
+    Some((gpu, k))
+}
+
+/// The young trees: two lit sites (the oak's extinction 0.5, the
+/// ordinary's 1/6) and Telperion's unlit one, its lattice all ones.
+const YOUNG: [(Preset, &str, u32, u32); 4] = [
+    (Preset::OregonWhiteOak, "oregon-white-oak", 16, 12),
+    (Preset::OregonWhiteOak, "oregon-white-oak", 8, 5),
+    (Preset::Ordinary, "ordinary", 16, 12),
+    (Preset::Telperion, "telperion", 14, 10),
+];
+
+/// Every young capture's agreement on `names`; the captures that differ.
+fn young_differ(names: &[&str]) -> Vec<String> {
+    let Some((gpu, k)) = device() else {
+        return Vec::new();
+    };
+    let mut differ = Vec::new();
+    for (preset, name, age, at) in YOUNG {
+        let name = format!("{name} {age} at {at}");
+        let (_, agreement) = replay(&gpu, &k, &name, &captured(preset, age, 42, at), None);
+        if !agreement.exact(names) {
+            differ.push(name);
+        }
+    }
+    differ
+}
+
+#[test]
+fn young_lattices_agree_with_the_cpu() {
+    let _held = super::super::whole_tree();
+    let differ = young_differ(&LATTICE);
+    assert!(
+        differ.is_empty(),
+        "the device's lattice is not the CPU's: {differ:?}"
+    );
+}
+
+#[test]
+#[ignore = "red on the driver's fusion of the read's product into its sum (light_sweep.wgsl read_main) until the host rules (LIGHT.md)"]
+fn young_reads_agree_with_the_cpu() {
+    let _held = super::super::whole_tree();
+    let differ = young_differ(&["reads"]);
+    assert!(
+        differ.is_empty(),
+        "the device's reads are not the CPU's: {differ:?}"
+    );
+}
+
+fn median(mut v: Vec<f64>) -> f64 {
+    v.sort_by(f64::total_cmp);
+    v[v.len() / 2]
+}
+
+/// Nine runs of the light, each pass stamped: each phase's median ms in
+/// order, then the first stamp to the last.
+fn timed(gpu: &Gpu, k: &Kernels, run: &Run) -> Vec<(&'static str, f64)> {
+    let mut each: Vec<(&'static str, Vec<f64>)> = Vec::new();
+    // Untimed runs first, a second of them, so the device runs at its
+    // working clocks.
+    let warm = std::time::Instant::now();
+    while warm.elapsed().as_secs_f64() < 1.0 {
+        let mut e = gpu.encoder(&Default::default());
+        run.record(k, &mut e);
+        gpu.submit([e.finish()]);
+        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("a run");
+    }
+    for _ in 0..9 {
+        assert!(super::super::profile::start(gpu), "timestamps");
+        let mut e = gpu.encoder(&Default::default());
+        let phases = run.record(k, &mut e);
+        gpu.submit([e.finish()]);
+        let stamps = super::super::profile::finish(gpu);
+        assert_eq!(stamps.len(), phases.len(), "a stamp a pass");
+        let mut row: Vec<(&'static str, f64)> = phases
+            .iter()
+            .zip(&stamps)
+            .map(|(p, s)| (*p, (s.2 - s.1) * 1e-6))
+            .collect();
+        row.push((
+            "first to last",
+            (stamps[stamps.len() - 1].2 - stamps[0].1) * 1e-6,
+        ));
+        for (phase, ms) in row {
+            match each.iter_mut().find(|p| p.0 == phase) {
+                Some(p) => p.1.push(ms),
+                None => each.push((phase, vec![ms])),
+            }
+        }
+    }
+    each.into_iter().map(|(p, v)| (p, median(v))).collect()
+}
+
+#[test]
+#[ignore = "a measurement; its reads red on the driver's fusion until the host rules (LIGHT.md)"]
+fn busy_lights_agree_and_are_timed() {
+    let _held = super::super::whole_tree();
+    let Some((gpu, k)) = device() else {
+        return;
+    };
+    let mut differ = Vec::new();
+    for (preset, name, age, seed) in [
+        (Preset::OregonWhiteOak, "oregon-white-oak", 80, 1),
+        (Preset::Telperion, "telperion", 82, 42),
+    ] {
+        let started = std::time::Instant::now();
+        let capture = captured(preset, age, seed, age - 1);
+        println!(
+            "{name} {age}: captured in {:.1} s",
+            started.elapsed().as_secs_f64()
+        );
+        let unlit = Cap(&capture).u64s("light_extinction")[0] == 0;
+        let mut runs = vec![(format!("{name} {age} at {}", age - 1), None)];
+        if unlit {
+            // Swept as if lit, for what a lit site would pay; not compared.
+            runs.push((
+                format!("{name} {age} at {}, swept at extinction 0.5", age - 1),
+                Some(0.5),
+            ));
+        }
+        for (label, extinction) in runs {
+            let (run, agreement) = replay(&gpu, &k, &label, &capture, extinction);
+            if extinction.is_none() && !agreement.exact(&[&LATTICE[..], &["reads"]].concat()) {
+                differ.push(label.clone());
+            }
+            let times = timed(&gpu, &k, &run);
+            let longest = times
+                .iter()
+                .filter(|t| t.0 != "first to last")
+                .max_by(|a, b| a.1.total_cmp(&b.1))
+                .expect("a pass");
+            println!(
+                "{label}: 7 dispatches, longest {} {:.3} ms; {:.2} MB resident, {:.2} MB scratch",
+                longest.0,
+                longest.1,
+                run.resident as f64 / 1e6,
+                run.scratch as f64 / 1e6
+            );
+            for (phase, ms) in times {
+                println!("{label}: {phase:>14} {ms:8.3} ms");
+            }
+        }
+    }
+    assert!(
+        differ.is_empty(),
+        "the device's light is not the CPU's: {differ:?}"
+    );
+}

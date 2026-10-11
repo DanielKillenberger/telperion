@@ -47,5 +47,6 @@ pub(crate) fn all() -> Vec<(&'static str, String)> {
     out.push(("cycle layout", super::cycle::layout_source()));
     out.push(("cycle hierarchy build", super::cycle::hier_build_source()));
     out.push(("cycle hierarchy sums", super::cycle::hier_cycle_source()));
+    out.push(("cycle light", super::cycle::light_source()));
     out
 }

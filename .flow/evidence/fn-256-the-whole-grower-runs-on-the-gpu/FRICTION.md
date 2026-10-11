@@ -60,6 +60,12 @@
 - **Cost:** about 5 minutes and two 38 s GPU runs.
 - **Would remove it:** a larger driver cache on this machine (local setup, not a repository change).
 
+## 2026-10-11, task 2 (light): the shared module did not build mid-edit
+- **Doing:** the light worker's first build of `telperion-render`'s tests.
+- **Hindered:** the hierarchy worker had registered `hier_*` modules in `generation/cycle.rs` before their files existed, so the crate did not compile and the light's own work could not build until they landed.
+- **Cost:** a wait of some minutes and one wasted build (about 1 minute).
+- **Would remove it:** two workers in one crate registering a module only together with its file, or each in its own worktree.
+
 ## 2026-10-11, task 2 (hierarchy): naming the float causes
 - **Doing:** confirming which sites make the hierarchy's incoming, bud, memory and size differ from the CPU's.
 - **Hindered:** no switch builds the contract and the hierarchy with correctly rounded division and products kept apart, so the experiment patched the shared `fine/contract.wgsl` in place (UNITS.md's and LAYOUT.md's patches) and restored it, all inside one hold of the GPU lock so the light worker's build could not see it. `patch` left a `.orig` beside it, and the dcg hook refused the `awk` that cut the layout patch's contract hunks.

@@ -12,6 +12,8 @@ mod hier_device;
 mod lay_columns;
 mod lay_compare;
 mod lay_device;
+mod light_device;
+mod light_program;
 #[cfg(test)]
 mod hier_math_tests;
 #[cfg(test)]
@@ -20,6 +22,10 @@ mod hier_tests;
 mod lay_math_tests;
 #[cfg(test)]
 mod lay_tests;
+#[cfg(test)]
+mod light_tests;
+#[cfg(test)]
+mod soft64_tests;
 #[cfg(test)]
 mod tests;
 
@@ -45,6 +51,10 @@ const HIER_REAL: &str = include_str!("cycle/hier_real.wgsl");
 const HIER_CYCLE: &str = include_str!("cycle/hier_cycle.wgsl");
 const HIER_SWEEP: &str = include_str!("cycle/hier_sweep.wgsl");
 const HIER_SPLIT: &str = include_str!("cycle/hier_split.wgsl");
+const SOFT64: &str = include_str!("cycle/soft64.wgsl");
+const LIGHT_VM: &str = include_str!("cycle/light_vm.wgsl");
+const LIGHT: &str = include_str!("cycle/light.wgsl");
+const LIGHT_SWEEP: &str = include_str!("cycle/light_sweep.wgsl");
 
 /// The units' and the wake's WGSL: the contract and the zones
 /// (`fine::zones`), then the cycle's state, its reals, an invocation's
@@ -64,6 +74,13 @@ pub(super) fn layout_source() -> String {
         "{}\n{LAYOUT}\n{Q}\n{SINCOS}\n{LAY_WALK}\n{LAY_DRAW}\n{LAY_STAND}\n{LAY_FRAME}",
         super::fine::contract()
     )
+}
+
+/// The light's WGSL (DESIGN.md section 2, step 8): the software f64,
+/// the programs and their registers, the loop that runs them, then the
+/// light's bindings and entries.
+pub(super) fn light_source() -> String {
+    format!("{SOFT64}\n{}\n{LIGHT_VM}\n{LIGHT}\n{LIGHT_SWEEP}", light_program::wgsl())
 }
 
 /// The hierarchy's build (DESIGN.md sections 3 and 4): its columns, the
