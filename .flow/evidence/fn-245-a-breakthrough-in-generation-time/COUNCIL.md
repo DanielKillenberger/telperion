@@ -25,3 +25,13 @@ Convened by the host at the owner's request ("Review the plan you have and decis
 3. **Chrome dispatch-overhead probe**, then a busy-cycle replay of the oak at 80 (native and cold Chrome) covering both hierarchy schedules and the sweep candidates: compile, encoding, longest dispatch, scratch. Stop the full port if dependency overhead alone exhausts the build budget, correctness fails, or a dispatch causes device loss.
 4. **Aggregate-versus-expanded subtree** (a feedback-sensitive oak subtree: light, normalisation, shedding over cycles at tightening cells), then the stepped oak at a 0.32 m cut in single-thread Wasm as a timing probe. Stop: fidelity needs nearly full expansion → the site cannot use this engine at 36³; the owner decides under R0.
 5. **Complete small-tree integration**, then every preset and the exact fn-251 frame: canonical repeatability, CPU/GPU agreement, measured memory, completed-build latency, viewed fidelity.
+
+## Decided by the spike (host, 2026-10-11; fn-256 SPIKE.md)
+
+Early test 3 passed its stop condition: dependency overhead is at most about 14% of F4's warm build budget (Telperion 48-163 ms with bounded subtrees against 1.2 s), every integer output matched exactly, no device loss, longest dispatch 1.8 ms, cold compile of all cycle kernels about 0.35 s. On the measurement:
+
+- **Hierarchy schedule: bounded subtrees.** They reproduce the CPU's f32 sums bit for bit at block caps 256-4,096, are faster on the GPU (4.5/5.8 ms against 5.9/6.3 ms a busy cycle), use about 12 B of scratch per axis against 56, and keep every dispatch under 0.5 ms (watchdog margin). Ancestor walks would need integer balance and allocation sums, which this plan does not quantise. The CPU cycle keeps its records in the same subtree order (fn-255), so both executors share one layout.
+- **Reduction order is one contract:** every float sum (balance, allocation, PA normalisation) is taken in the canonical block order on both executors; the device's normaliser is that f32 sum, not an integer one.
+- **Viability:** both executors read the same f32 table value; the CPU's f64 path goes.
+- **Agreement standard:** integers exact; floats by lineage within tolerances measured from real runs (fn-254 R4 check 4), with no bit-forcing guards on fused multiply-adds or division.
+- **Not yet replayed:** growth units and incremental layout on the device (Telperion's two largest CPU phases), and keeping blocks and ordered child lists current on the device as the tree grows; both are fn-256's first measurements after fn-255 lands.
