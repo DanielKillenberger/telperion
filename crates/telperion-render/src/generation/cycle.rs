@@ -52,6 +52,8 @@ mod lay_math_tests;
 #[cfg(test)]
 mod light_tests;
 #[cfg(test)]
+mod settle_det_tests;
+#[cfg(test)]
 mod settle_math_tests;
 #[cfg(test)]
 mod settle_tests;
