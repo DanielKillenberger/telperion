@@ -176,7 +176,10 @@ impl Grower<'_> {
         let (mut kind, mut parent, mut node, mut whorl) = (vec![], vec![], vec![], vec![]);
         for a in &self.axes {
             let (k, p, j, w) = origin(a.origin);
-            (kind.push(k), parent.push(p), node.push(j), whorl.push(w));
+            kind.push(k);
+            parent.push(p);
+            node.push(j);
+            whorl.push(w);
         }
         let ax = |g: &dyn Fn(usize) -> u32| -> Vec<u32> { (0..n).map(g).collect() };
         let ax64 = |g: &dyn Fn(usize) -> u64| -> Vec<u64> { (0..n).map(g).collect() };
