@@ -146,6 +146,8 @@ mod blossom_measure;
 mod blossom_parity;
 #[cfg(test)]
 mod blossom_trees;
+#[cfg(test)]
+mod birch_tests;
 #[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
 mod budget;
 mod chains;

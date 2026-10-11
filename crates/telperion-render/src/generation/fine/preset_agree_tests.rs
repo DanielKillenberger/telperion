@@ -18,7 +18,7 @@ use telperion_space::{grow_roots, root_axes, Plan};
 /// 1.8e-5 RMS (laurelin), radii 8.5e-7, crowns 2.6e-6; bound at about
 /// twice. Relative radius gaps reach 3.9e-2, all on roots under a
 /// micrometre thick, so a radius is held in metres.
-const BOUND: Bound = Bound {
+pub(super) const BOUND: Bound = Bound {
     most: 1.75e-3,
     rms: 3.5e-5,
     radius: 2e-6,
@@ -36,11 +36,11 @@ const BIRCH: Bound = Bound {
     crown: 1e-3,
 };
 
-struct Bound {
-    most: f64,
-    rms: f64,
-    radius: f64,
-    crown: f64,
+pub(super) struct Bound {
+    pub most: f64,
+    pub rms: f64,
+    pub radius: f64,
+    pub crown: f64,
 }
 
 /// The presets the CPU grows whole, by name, and why (R4a).
