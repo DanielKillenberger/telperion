@@ -10,23 +10,32 @@ pub(super) const WOKE: usize = 1;
 pub(super) const DECIDE: usize = 2;
 pub(super) const ZONES: usize = 3;
 pub(super) const NODES: usize = 4;
-pub(super) const AFTER: usize = 5;
-pub(super) const CLOSE: usize = 6;
-pub(super) const FLAG: usize = 7;
-pub(super) const GATHER: usize = 8;
-pub(super) const SEED: usize = 9;
+/// The zones' records written: phytomers and laterals, sleeping buds.
+pub(super) const WRITTEN: [usize; 2] = [14, 15];
+pub(super) const CLOSE: usize = 5;
+pub(super) const FLAG: usize = 6;
+pub(super) const GATHER: usize = 7;
+pub(super) const SEED: usize = 8;
+/// The operations after a unit, an entry each, in a round's order.
+pub(super) const AFTER: [usize; 5] = [9, 10, 11, 12, 13];
 
-const ENTRIES: [&str; 10] = [
+const ENTRIES: [&str; 16] = [
     "init_main",
     "woke_main",
     "decide_main",
     "zone_main",
     "nodes_main",
-    "after_main",
     "close_main",
     "flag",
     "gather",
     "seed_main",
+    "grown_main",
+    "move_main",
+    "stop_main",
+    "relay_main",
+    "ended_main",
+    "laterals_main",
+    "sleepers_main",
 ];
 
 /// The tally's places (`arena.wgsl`'s `T_` words).

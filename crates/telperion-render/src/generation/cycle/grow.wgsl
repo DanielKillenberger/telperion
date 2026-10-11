@@ -108,13 +108,13 @@ fn zone_laid(z: u32, zat: u32, unit_key: vec2<u32>, cycle: u32, share: u32, cut:
     set_zw(z, Z_FAULT, select(0u, 4u, lay.n > MOST));
 }
 
-// The laterals and sleeping buds of zone `z`'s nodes (`grow_unit`'s
-// inner loops), counted, or, where `write`, appended in the nodes' order
-// along the unit from the places the zones before it left.
-fn zone_nodes(z: u32, zat: u32, s: u32, cycle: u32, write: bool) {
+// Zone `z`'s nodes along the unit (`grow_unit`'s inner loops): `what`
+// counts their laterals and sleeping buds (0), or writes their phytomers
+// and laterals (1) or their sleeping buds (2), in the nodes' order along
+// the unit from the places the zones before it left.
+fn zone_nodes(z: u32, zat: u32, s: u32, cycle: u32, what: u32) {
     let axis = fr(s, 0u);
-    let unit_key = jw64(J_UKEY);
-    let zk = zone_key(unit_key, zat);
+    let zk = zone_key(jw64(J_UKEY), zat);
     let d = draw(zk);
     let window = fw(table[zat + 7u] + cycle);
     let n = zw(z, Z_N);
@@ -124,7 +124,7 @@ fn zone_nodes(z: u32, zat: u32, s: u32, cycle: u32, write: bool) {
         drawn[j] = j;
     }
     var node = fr(s, A_PHYTS);
-    if write {
+    if what != 0u {
         sorted(zk, n, &drawn);
         for (var k = 0u; k < z; k++) {
             n_phyts += zw(k, Z_N);
@@ -134,55 +134,64 @@ fn zone_nodes(z: u32, zat: u32, s: u32, cycle: u32, write: bool) {
             node += zw(k, Z_N);
         }
     }
-    let rec = jw(J_REC);
     var laterals = 0u;
     var asleep = 0u;
     for (var m = 0u; m < n; m++) {
         let j = drawn[m];
         let node_key = child(zk, w(j, 0u));
-        if write {
-            var p = node_presence(zat, d, j, window);
-            if zw(z, Z_CUT) != 0u && j + 1u == n {
-                p = bitcast<f32>(zw(z, Z_LAST));
+        if what != 2u {
+            if what == 1u {
+                var p = node_presence(zat, d, j, window);
+                if zw(z, Z_CUT) != 0u && j + 1u == n {
+                    p = bitcast<f32>(zw(z, Z_LAST));
+                }
+                push_phyt(axis, node_key, cycle, p);
             }
-            push_phyt(axis, node_key, cycle, p);
+            laterals += node_laterals(zat, node_key, vec2<u32>(axis, node), cycle, whorl, what == 1u);
         }
-        for (var slot = 0u; slot < table[zat + 4u]; slot++) {
-            let place = child(node_key, w(slot, 0u));
-            if !stands(zat, slot, place) {
-                continue;
-            }
-            let drew = bud(zat, place);
-            if drew == 0xffu || lived_pa(drew) == NONE {
-                continue;
-            }
-            laterals += 1u;
-            if write {
-                let lpa = lived_pa(drew);
-                let window_l = window_none(lpa, cycle + 1u, 0u);
-                let lead_p = drawn_presence(table[zat + 5u], drew, place, window_l);
-                let made = exact_kept(lead_p * place_presence(zat, slot, place, window_l));
-                let made2 = array<vec2<u32>, 2>(real64(made), real64(reach(drew, 0u)));
-                sprout(place, lpa, cycle, LATERAL | (slot << 8u), vec2<u32>(axis, node), whorl, made2);
-            }
-        }
-        if words[table[zat + 11u] + cycle].x != 0u {
-            asleep += sleep(zat, node_key, s, node, rec, cycle, whorl, write);
+        if what != 1u && words[table[zat + 11u] + cycle].x != 0u {
+            asleep += sleep(zat, node_key, s, node, cycle, whorl, what == 2u);
         }
         node += 1u;
     }
-    if write {
+    if what == 1u {
         flush_next();
-    } else {
+    } else if what == 0u {
         set_zw(z, Z_LAT, laterals);
         set_zw(z, Z_SLEEP, asleep);
     }
 }
 
+// The laterals the places of the node keyed `node_key`, on `at` (its
+// axis and node), sprout: counted, or, where `write`, sprouted.
+fn node_laterals(zat: u32, node_key: vec2<u32>, at: vec2<u32>, cycle: u32, whorl: vec2<u32>, write: bool) -> u32 {
+    var laterals = 0u;
+    for (var slot = 0u; slot < table[zat + 4u]; slot++) {
+        let place = child(node_key, w(slot, 0u));
+        if !stands(zat, slot, place) {
+            continue;
+        }
+        let drew = bud(zat, place);
+        if drew == 0xffu || lived_pa(drew) == NONE {
+            continue;
+        }
+        laterals += 1u;
+        if write {
+            let lpa = lived_pa(drew);
+            let window_l = window_none(lpa, cycle + 1u, 0u);
+            let lead_p = drawn_presence(table[zat + 5u], drew, place, window_l);
+            let made = exact_kept(lead_p * place_presence(zat, slot, place, window_l));
+            let made2 = array<vec2<u32>, 2>(real64(made), real64(reach(drew, 0u)));
+            sprout(place, lpa, cycle, LATERAL | (slot << 8u), at, whorl, made2);
+        }
+    }
+    return laterals;
+}
+
 // The sleeping buds of the node keyed `node_key` that wake within the
 // tree's age (`Shoot::sleep`, `dormant::draw`): counted, or, where
 // `write`, appended.
-fn sleep(zat: u32, node_key: vec2<u32>, s: u32, node: u32, rec: u32, cycle: u32, whorl: vec2<u32>, write: bool) -> u32 {
+fn sleep(zat: u32, node_key: vec2<u32>, s: u32, node: u32, cycle: u32, whorl: vec2<u32>, write: bool) -> u32 {
     let waking = table[zat + 10u];
     if waking == NONE {
         return 0u;
@@ -225,7 +234,7 @@ fn sleep(zat: u32, node_key: vec2<u32>, s: u32, node: u32, rec: u32, cycle: u32,
             whorl.y,
             key.x,
             key.y,
-            rec,
+            jw(J_REC),
         ));
     }
     return asleep;

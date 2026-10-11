@@ -154,54 +154,121 @@ fn zone_main(@builtin(global_invocation_id) id: vec3<u32>) {
     zone_laid(z.x, z.y, jw64(J_UKEY), cfg.cycle, jw(J_GROW), jw(J_CUT));
 }
 
-// Each zone's nodes and their buds, counted, or written where
-// `cfg.write`.
+// Each zone's nodes' laterals and sleeping buds counted.
 @compute @workgroup_size(64)
 fn nodes_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    nodes(id, 0u);
+}
+
+// Each zone's phytomers and laterals written.
+@compute @workgroup_size(64)
+fn laterals_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    nodes(id, 1u);
+}
+
+// Each zone's sleeping buds written.
+@compute @workgroup_size(64)
+fn sleepers_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    nodes(id, 2u);
+}
+
+fn nodes(id: vec3<u32>, what: u32) {
     let z = zone_of(id);
     if z.x == NONE {
         return;
     }
     take_job(job);
     pending = false;
-    zone_nodes(z.x, z.y, jw(J_FRAME), cfg.cycle, cfg.write != 0u);
+    zone_nodes(z.x, z.y, jw(J_FRAME), cfg.cycle, what);
 }
 
-// Each job's operations after its unit, its zones' records taken in, up
-// to its next unit or its end; a waking bud then wakes on its next axis.
-@compute @workgroup_size(64)
-fn after_main(@builtin(global_invocation_id) id: vec3<u32>) {
+// A job whose operation is `kind`, taken up: its operation, none for
+// another job or past the range.
+fn job_at_op(id: vec3<u32>, kind: u32) -> bool {
     let k = job_of(id);
     if k == NONE {
-        return;
+        return false;
     }
     job = k;
-    let kind = jw(J_OP);
-    if kind != OP_GROWN && kind != OP_STOP {
-        return;
+    if jw(J_OP) != kind {
+        return false;
     }
     take_job(k);
-    if kind == OP_GROWN {
-        let s = jw(J_FRAME);
-        for (var z = 0u; z < table[2u * fr(s, A_PA) + 1u]; z++) {
-            n_phyts += zw(z, Z_N);
-            n_axes += zw(z, Z_LAT);
-            n_next += zw(z, Z_LAT);
-            n_sleep += zw(z, Z_SLEEP);
-            fault |= zw(z, Z_FAULT);
-            set_fr(s, A_PHYTS, fr(s, A_PHYTS) + zw(z, Z_N));
-        }
+    if fault != 0u && kind != OP_NONE {
+        keep_step(op(OP_NONE, Apex(jw(J_AXIS), jw(J_SPENT))));
+        return false;
     }
-    var o = run_ops(op_of(), cfg.cycle);
-    if o.kind != OP_ADVANCE {
-        // What one job made is never read by the next.
-        store_all();
-        n_frames = 0u;
-        let more = cfg.wake != 0u && jw(J_WOKE) < jw(J_CARRIED_N) && fault == 0u;
-        o.kind = select(OP_DONE, OP_WOKE, more);
-    }
+    return true;
+}
+
+fn keep_step(o: Op) {
     keep_op(o);
     keep_job();
+}
+
+// Each grown unit's zones' records taken in, and what follows it: its
+// failure's relay, its abortion or its move (DESIGN.md section 10's
+// `after`, an operation an entry, each round in the CPU's order).
+@compute @workgroup_size(64)
+fn grown_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    if !job_at_op(id, OP_GROWN) {
+        return;
+    }
+    let s = jw(J_FRAME);
+    for (var z = 0u; z < table[2u * fr(s, A_PA) + 1u]; z++) {
+        n_phyts += zw(z, Z_N);
+        n_axes += zw(z, Z_LAT);
+        n_next += zw(z, Z_LAT);
+        n_sleep += zw(z, Z_SLEEP);
+        fault |= zw(z, Z_FAULT);
+        set_fr(s, A_PHYTS, fr(s, A_PHYTS) + zw(z, Z_N));
+    }
+    keep_step(grown_on(op_of(), cfg.cycle));
+}
+
+// Each move to a next age (`Shoot::move_on`).
+@compute @workgroup_size(64)
+fn move_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    if job_at_op(id, OP_MOVE) {
+        keep_step(move_on(op_of(), cfg.cycle));
+    }
+}
+
+// Each stop (`Shoot::stop`).
+@compute @workgroup_size(64)
+fn stop_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    if job_at_op(id, OP_STOP) {
+        keep_step(stop(op_of(), cfg.cycle));
+    }
+}
+
+// Each relay made (`Shoot::relay_bud`).
+@compute @workgroup_size(64)
+fn relay_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    if job_at_op(id, OP_RELAY) {
+        keep_step(relay(op_of(), cfg.cycle));
+    }
+}
+
+// Each job with nothing left to do now: the relay a move left once its
+// continuation's growth is done, or its growth's end, after which a
+// waking bud wakes on its next axis.
+@compute @workgroup_size(64)
+fn ended_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    if !job_at_op(id, OP_NONE) {
+        return;
+    }
+    if fault == 0u && jw(J_DEPTH) > 0u {
+        keep_step(relay_after(pop_after(), cfg.cycle));
+        return;
+    }
+    // What one job made is never read by the next.
+    store_all();
+    n_frames = 0u;
+    var o = op_of();
+    let more = cfg.wake != 0u && jw(J_WOKE) < jw(J_CARRIED_N) && fault == 0u;
+    o.kind = select(OP_DONE, OP_WOKE, more);
+    keep_step(o);
 }
 
 // Each job closed: its last living apex written, its counts kept where

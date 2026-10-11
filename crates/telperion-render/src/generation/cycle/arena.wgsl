@@ -44,13 +44,11 @@ struct Cfg {
     seed_lo: u32,
     seed_hi: u32,
     // The jobs' state in `counts` and its jobs at most, the zones' and a
-    // unit's zones at most (`job.wgsl`, `grow.wgsl`), and whether the
-    // zones' nodes are written or counted.
+    // unit's zones at most (`job.wgsl`, `grow.wgsl`).
     job_at: u32,
     job_cap: u32,
     zone_at: u32,
     zones: u32,
-    write: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;

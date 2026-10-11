@@ -96,7 +96,7 @@ impl Build {
 
     /// The seed's axis and apex (`Grower::seeded`).
     fn plan_seed(&self, b: &mut Builder, kit: &Kit, t: &Tables) {
-        let mut words = self.units_static(t, (0, 1, 0, 0));
+        let mut words = self.units_static(t, (0, 1, 0));
         words[0] = 1;
         let slot = b.slot(&words);
         let s = &self.state;

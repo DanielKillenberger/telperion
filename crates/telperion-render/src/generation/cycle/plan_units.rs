@@ -6,7 +6,7 @@
 //! census and the new axes' and phytomers' columns set (`glue.wgsl`).
 use super::build::{Build, Kit, Tables};
 use super::census::{self as c, Flag};
-use super::device::{self, AFTER, CLOSE, DECIDE, FLAG, GATHER, INIT, NODES, RANGE, T_LIST, T_ROUNDS, T_UNITS, T_UNITS_B, T_WAKE, T_WAKE_B, WOKE, ZONES};
+use super::device::{self, AFTER, CLOSE, DECIDE, FLAG, GATHER, INIT, NODES, RANGE, T_LIST, T_ROUNDS, T_UNITS, T_UNITS_B, T_WAKE, T_WAKE_B, WOKE, WRITTEN, ZONES};
 use super::glue;
 use super::plan::{Builder, PassId, Step, MAXX};
 use super::plan_scan::{levelled, levels_needed, sums_words, Shape};
@@ -24,20 +24,20 @@ fn made(k: usize) -> E {
 impl Build {
     /// The units' uniform as the host knows it: the counts the device
     /// writes are none here (`units_dynamic`).
-    pub(super) fn units_static(&self, t: &Tables, (emit, wake, base, write): (u32, u32, u32, u32)) -> Vec<u32> {
+    pub(super) fn units_static(&self, t: &Tables, (emit, wake, base): (u32, u32, u32)) -> Vec<u32> {
         let s = self.state.caps;
         let at = device::counts(s, t.zones);
         vec![
             0, MAXX * 64, 0, t.age, emit, wake, t.lights, 0, s.axes, s.units, s.phyts, s.sleepers, s.next, s.woken,
             s.sleepers, 0, self.b_at(), s.sleep_at(), s.next_at(), s.woken_at(), s.list_at(), 0, 0, 0, 0, 0, t.rows,
-            t.whorls, 0, base, t.seed as u32, (t.seed >> 32) as u32, at.job_at, at.jobs, at.zone_at, t.zones.max(1), write,
+            t.whorls, 0, base, t.seed as u32, (t.seed >> 32) as u32, at.job_at, at.jobs, at.zone_at, t.zones.max(1),
         ]
     }
 
     /// A units slot's words the device writes: its count `n`, the cycle,
     /// the laid axes, the counts before the cycle and the living read.
-    fn units_slot(&self, b: &mut Builder, t: &Tables, n: E, (emit, wake, base, write): (u32, u32, u32, u32)) -> u32 {
-        let slot = b.slot(&self.units_static(t, (emit, wake, base, write)));
+    fn units_slot(&self, b: &mut Builder, t: &Tables, n: E, (emit, wake, base): (u32, u32, u32)) -> u32 {
+        let slot = b.slot(&self.units_static(t, (emit, wake, base)));
         let words = [
             (0, n),
             (2, E::At(c::CYCLE)),
@@ -91,10 +91,8 @@ impl Build {
         };
         // A pass of a range's jobs: begun, `rounds` rounds of phases, closed.
         let pass = |b: &mut Builder, (n, emit, wake, base): (&E, u32, u32, u32), left: &E| {
-            let [counted, written] = [0, 1].map(|write| {
-                let slot = self.units_slot(b, t, n.clone(), (emit, wake, base, write));
-                self.units_bind(b, kit, t, slot)
-            });
+            let slot = self.units_slot(b, t, n.clone(), (emit, wake, base));
+            let counted = self.units_bind(b, kit, t, slot);
             let (jobs, items) = (b.groups(left.clone().div(E::C(64))), b.groups(left.clone().mul(E::C(zones)).div(E::C(64))));
             let unit = |k| (PassId::Units, k);
             b.dispatch(unit(INIT), counted.clone(), jobs);
@@ -106,9 +104,13 @@ impl Build {
                 b.dispatch(unit(ZONES), counted.clone(), items);
                 b.dispatch(unit(NODES), counted.clone(), items);
                 if emit != 0 {
-                    b.dispatch(unit(NODES), written.clone(), items);
+                    for written in WRITTEN {
+                        b.dispatch(unit(written), counted.clone(), items);
+                    }
                 }
-                b.dispatch(unit(AFTER), counted.clone(), jobs);
+                for after in AFTER {
+                    b.dispatch(unit(after), counted.clone(), jobs);
+                }
             }
             b.dispatch(unit(CLOSE), counted, jobs);
         };
@@ -125,7 +127,7 @@ impl Build {
                 scan(b, (b_at, 4, T_UNITS_B), (&live, Scan::Units));
             }
         }
-        let flags = self.units_slot(b, t, sleepers.clone(), (0, 1, 0, 0));
+        let flags = self.units_slot(b, t, sleepers.clone(), (0, 1, 0));
         let flags = self.units_bind(b, kit, t, flags);
         let over = b.groups(sleepers.clone().div(E::C(64)));
         b.dispatch((PassId::Units, FLAG), flags.clone(), over);
