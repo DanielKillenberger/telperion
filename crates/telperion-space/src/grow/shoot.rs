@@ -37,6 +37,9 @@ pub(crate) struct Rules<'a> {
     /// The buds the structure above a cut hands to the expansion (fn-209
     /// F1, `realized.rs`): made where they stand, never grown here.
     pub hands: Option<Arc<super::realized::Hands>>,
+    /// The one cycle's survival (fn-255, fn-256's spike contract): each
+    /// PA's viability read as the f32 its table holds, shaded in f32.
+    pub one: bool,
 }
 
 /// What the rough layout gives a growing apex (`sketch.rs`): its light,

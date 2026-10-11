@@ -3,7 +3,7 @@
 //! branch fades towards its shedding (`shed.rs`), its retained share grows
 //! in by what its fade has taken, so its bearer meets the same section on
 //! both sides of the branch's removal.
-use super::{mean_of, own, radius, section, terms, Disused, Girth};
+use super::{mean_of, own_at, radius, section, terms, Disused, Girth};
 use crate::cores::{map, PIECE};
 use crate::geometry::dominance;
 use crate::shed::{Given, Shed};
@@ -30,26 +30,75 @@ pub(crate) struct Grown {
     leaf_mean: Option<f64>,
 }
 
+/// A phytomer as the girth pass reads it, every value as the f32 it is
+/// taken at: what a subtree retired as it grew keeps of each (fn-255).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) struct Grew {
+    pub cycle: u32,
+    pub scale: f32,
+    pub size: f32,
+    pub light: f32,
+}
+
+impl Grew {
+    pub fn of(p: &Phytomer) -> Self {
+        Self {
+            cycle: p.cycle,
+            scale: p.scale as f32,
+            size: p.size as f32,
+            light: p.light as f32,
+        }
+    }
+}
+
+/// A retired axis's vigour and phytomers, where it was retired.
+pub(crate) type Records<'r> = &'r (dyn Fn(usize) -> Option<(f64, &'r [Grew])> + Sync + 'r);
+
+/// None retired.
+pub(crate) const NONE: Records<'static> = &|_| None;
+
+/// Axis `i`'s vigour and its phytomers as grown, its record's where it
+/// was retired.
+fn grown_axis(axes: &[Axis], records: Records<'_>, i: usize) -> (f64, Vec<Grew>) {
+    match records(i) {
+        Some((vigour, grew)) => (vigour, grew.to_vec()),
+        None => (axes[i].vigour, axes[i].phytomers.iter().map(Grew::of).collect()),
+    }
+}
+
+/// A phytomer's scale at node `node` of axis `i`, its record's where it
+/// was retired.
+fn node_scale(axes: &[Axis], records: Records, i: usize, node: usize) -> f32 {
+    match records(i) {
+        Some((_, grew)) => grew[node].scale,
+        None => axes[i].phytomers[node].scale as f32,
+    }
+}
+
 /// Each axis's scale at its base, as `geometry::scale` will give it
 /// (parents first, in its order of products); axis 0's is `top` where
 /// given (a fine root's bearer's stub: its bearer's base).
 pub(crate) fn bases(axes: &[Axis], species: &Species, top: Option<f32>) -> Vec<f32> {
+    bases_past(axes, species, top, NONE)
+}
+
+/// `bases`, each retired axis read from its record.
+fn bases_past(axes: &[Axis], species: &Species, top: Option<f32>, records: Records) -> Vec<f32> {
     let mut base = vec![1.0f32; axes.len()];
     for (i, a) in axes.iter().enumerate() {
         let inherited = match a.origin {
             Origin::Seed => 1.0,
-            Origin::Lateral { parent, node, .. } => {
-                axes[parent].phytomers[node].scale as f32 * base[parent]
-            }
+            Origin::Lateral { parent, node, .. } => node_scale(axes, records, parent, node) * base[parent],
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => base[parent],
         };
+        let vigour = records(i).map_or(a.vigour, |r| r.0);
         let share = match a.origin {
             Origin::Lateral { .. } => dominance(species.states[a.pa].form.dominance, a.lineage),
             _ => 1.0,
         };
         base[i] = match (i, top) {
             (0, Some(top)) => top,
-            _ => inherited * a.vigour as f32 * share as f32,
+            _ => inherited * vigour as f32 * share as f32,
         };
     }
     base
@@ -57,8 +106,8 @@ pub(crate) fn bases(axes: &[Axis], species: &Species, top: Option<f32>) -> Vec<f
 
 /// A phytomer's scale as `geometry::scale` will give it: its scale by its
 /// axis's base, then by its unit's size.
-fn sized(p: &Phytomer, base: f32) -> f64 {
-    f64::from(p.scale as f32 * base * p.size as f32)
+fn sized(p: &Grew, base: f32) -> f64 {
+    f64::from(p.scale * base * p.size)
 }
 
 /// Where a subtree as grown stands in the tree: axis 0's base (none:
@@ -86,16 +135,26 @@ pub(crate) fn leaf_partials(
     (age, threads): (u32, usize),
     from: Stand,
 ) -> [f32; 2] {
-    let base = bases(axes, species, from.top);
-    let scale = |i: usize, p: &Phytomer| sized(p, base[i]);
+    leaf_partials_past(axes, species, (age, threads), from, NONE)
+}
+
+/// `leaf_partials`, each retired axis read from its record.
+fn leaf_partials_past(
+    axes: &[Axis],
+    species: &Species,
+    (age, threads): (u32, usize),
+    from: Stand,
+    records: Records,
+) -> [f32; 2] {
+    let base = bases_past(axes, species, from.top, records);
     let pieces: Vec<usize> = (0..axes.len().div_ceil(PIECE)).collect();
     let terms = map(pieces, 1, threads, &|_, k| {
         let mut out = Vec::new();
         for i in (k * PIECE).max(from.first)..((k + 1) * PIECE).min(axes.len()) {
             let state = &species.states[axes[i].pa];
-            for p in &axes[i].phytomers {
-                let pipe = own(&state.form, p, age, scale(i, p), 1.0);
-                out.push(terms(pipe, p.light, state.leaf_girth));
+            for p in &grown_axis(axes, records, i).1 {
+                let pipe = own_at(&state.form, p.cycle, age, sized(p, base[i]), 1.0);
+                out.push(terms(pipe, f64::from(p.light), state.leaf_girth));
             }
         }
         out
@@ -117,18 +176,23 @@ pub(crate) fn grown_mean([total, weighted]: [f32; 2]) -> f64 {
 /// will size it, with the leaf term's mean taken over all of it, on up to
 /// `threads` cores.
 pub(crate) fn attachments(axes: &[Axis], species: &Species, age: u32, threads: usize) -> Grown {
-    let leaf_mean = species
-        .states
-        .iter()
-        .any(|s| s.leaf_girth > 0.0)
-        .then(|| grown_mean(leaf_partials(axes, species, (age, threads), Stand::WHOLE)));
-    attachments_given(
-        axes,
-        species,
-        (age, threads),
-        (Stand::WHOLE, leaf_mean),
-        &|_| None,
-    )
+    attachments_past(axes, species, (age, threads), NONE)
+}
+
+/// `attachments`, each axis retired as the tree grew (fn-255) read from
+/// its record.
+pub(crate) fn attachments_past(
+    axes: &[Axis],
+    species: &Species,
+    (age, threads): (u32, usize),
+    records: Records,
+) -> Grown {
+    let leaf_mean = species.states.iter().any(|s| s.leaf_girth > 0.0).then(|| {
+        let sums = leaf_partials_past(axes, species, (age, threads), Stand::WHOLE, records);
+        grown_mean(sums)
+    });
+    let at = (Stand::WHOLE, leaf_mean);
+    attachments_with(axes, species, (age, threads), at, (&|_| None, records))
 }
 
 /// `attachments` under a mean taken elsewhere, each axis `given` names
@@ -141,8 +205,17 @@ pub(crate) fn attachments_given(
     (from, leaf_mean): (Stand, Option<f64>),
     given: Given<f64>,
 ) -> Grown {
-    let base = bases(axes, species, from.top);
-    let scale = |i: usize, p: &Phytomer| sized(p, base[i]);
+    attachments_with(axes, species, (age, threads), (from, leaf_mean), (given, NONE))
+}
+
+fn attachments_with(
+    axes: &[Axis],
+    species: &Species,
+    (age, threads): (u32, usize),
+    (from, leaf_mean): (Stand, Option<f64>),
+    (given, records): (Given<f64>, Records),
+) -> Grown {
+    let base = bases_past(axes, species, from.top, records);
     let parents: Vec<Option<usize>> = axes.iter().map(|a| a.origin.parent()).collect();
     let tree = Tree::new(&parents);
     let mut none = vec![(); axes.len()];
@@ -158,8 +231,9 @@ pub(crate) fn attachments_given(
             let axis = &axes[i];
             let state = &species.states[axis.pa];
             let e = state.form.exponent;
+            let grew = grown_axis(axes, records, i).1;
             at_node.clear();
-            at_node.resize(axis.phytomers.len(), 0.0);
+            at_node.resize(grew.len(), 0.0);
             let mut at_tip = 0.0f32;
             for &c in tree.children(i) {
                 let section = section(radii[c], e);
@@ -171,10 +245,10 @@ pub(crate) fn attachments_given(
                 }
             }
             let mut section = at_tip;
-            for (k, p) in axis.phytomers.iter().enumerate().rev() {
-                let leaf = super::leaf(p.light, state.leaf_girth, leaf_mean);
-                section +=
-                    super::section(own(&state.form, p, age, scale(i, p), leaf), e) + at_node[k];
+            for (k, p) in grew.iter().enumerate().rev() {
+                let leaf = super::leaf(f64::from(p.light), state.leaf_girth, leaf_mean);
+                let pipe = own_at(&state.form, p.cycle, age, sized(p, base[i]), leaf);
+                section += super::section(pipe, e) + at_node[k];
             }
             radius(section, e)
         },

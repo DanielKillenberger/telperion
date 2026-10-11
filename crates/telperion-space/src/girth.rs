@@ -18,8 +18,8 @@ use crate::species::{Form, Species};
 use crate::structure::{Axis, Join, Origin, Phytomer, Structure};
 use crate::upward::Tree;
 pub(crate) use disused::{
-    above, attachments, attachments_given, bases, disused, disused_below, grown_mean,
-    leaf_partials, Stand,
+    above, attachments, attachments_given, attachments_past, bases, disused, disused_below,
+    grown_mean, leaf_partials, Grew, Stand,
 };
 
 /// A branch's pipe that stays in its bearer as it is shed: the bearer's
@@ -35,7 +35,12 @@ pub(crate) struct Disused {
 
 /// A phytomer's own pipe: its PA's, by its scale, ripened, by `leaf`.
 pub(crate) fn own(form: &Form, phytomer: &Phytomer, age: u32, scale: f64, leaf: f64) -> f64 {
-    let years = (age.saturating_sub(phytomer.cycle) + 1) as f32;
+    own_at(form, phytomer.cycle, age, scale, leaf)
+}
+
+/// `own` of a phytomer grown in `cycle`.
+pub(crate) fn own_at(form: &Form, cycle: u32, age: u32, scale: f64, leaf: f64) -> f64 {
+    let years = (age.saturating_sub(cycle) + 1) as f32;
     let ripe = ripened(years, form.ripening as f32);
     f64::from(form.pipe as f32 * scale as f32 * ripe * leaf as f32)
 }

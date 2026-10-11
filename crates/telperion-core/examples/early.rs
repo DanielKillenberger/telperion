@@ -49,7 +49,7 @@ fn preset(name: &str) -> (Species, Light, f64) {
 fn three(species: &Species, r: Request, which: &str) {
     let started = Instant::now();
     if which == "cycle" {
-        match grow_census(species, r, Deposit::F32, false) {
+        match grow_census(species, r, Deposit::Quantised, false) {
             Ok(c) => {
                 tree("cycle", &c.structure, c.grown, c.seconds);
                 census(&c.census.expect("a census"));
@@ -111,8 +111,8 @@ fn census(c: &Census) {
         busy.cycle, busy.active, busy.axes, busy.phytomers, last.active, last.axes, last.phytomers
     );
     println!(
-        "  grown hierarchy: {} axes; ancestors p50/p99/max {:?} (busiest cycle's apexes {:?}); attachments {:?}",
-        c.axes, c.depth_all, c.depth_busy, c.attachments
+        "  retired {} subtrees; grown hierarchy: {} axes; ancestors p50/p99/max {:?} (busiest cycle's apexes {:?}); attachments {:?}",
+        c.retired, c.axes, c.depth_all, c.depth_busy, c.attachments
     );
     let read = c.cycles.iter().filter(|c| c.nodes > 0);
     if let Some(big) = read.clone().max_by_key(|c| c.nodes) {

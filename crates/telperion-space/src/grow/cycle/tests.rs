@@ -1,5 +1,4 @@
-//! fn-255 R1's checks on the one cycle (DESIGN.md section 1), and the
-//! quantised deposit's (COUNCIL.md's early test 2).
+//! fn-255's checks on the one cycle (DESIGN.md section 1, CYCLE-COST.md).
 use super::*;
 use crate::light::Light;
 
@@ -15,28 +14,26 @@ fn request(age: u32, seed: u64, extinction: f64) -> Request {
     }
 }
 
-/// A species that reads no light grows through the one cycle, every
-/// phase run, to today's tree: each zero is a neutral term.
-#[test]
-fn a_species_that_reads_no_light_grows_todays_tree() {
-    for species in [crate::beech(), crate::spruce()] {
-        let r = request(20, 1, 0.0);
-        let today = crate::grow::whole(&species, r).unwrap();
-        let cycled = grow_cycle(&species, r, Deposit::F32).unwrap();
-        assert!(cycled.structure == today, "the one cycle's tree is today's");
-    }
+/// The one cycle with every axis open and none retired: the reference
+/// its working set and its retirement are held to.
+fn reference(species: &Species, r: Request) -> Structure {
+    run(species, r, Deposit::Quantised, None, Working::reference()).unwrap().structure
 }
 
-/// The oak through the one cycle is today's build, to the tolerance the
-/// stepped executor holds against the whole tree.
+/// The working set's frozen subtrees and the subtrees retired as the tree
+/// grows leave every sum, and so the tree, the reference's to the bit,
+/// where many are retired: the oak (which reads light and keeps leaf
+/// girth, its retired phytomers kept as records), the spruce and the
+/// beech.
 #[test]
-fn the_lit_oak_through_the_cycle_is_todays_build() {
-    let species = crate::oak();
-    let r = request(24, 7, 0.5);
-    let today = crate::grow::grow(&species, r).unwrap();
-    let cycled = grow_cycle(&species, r, Deposit::F32).unwrap();
-    let agree = crate::agree::agreement(&today, &cycled.structure);
-    assert!(agree.within(&crate::agree::PATHS), "{agree:?}");
+fn the_working_set_and_retirement_leave_the_tree_as_it_was() {
+    for (species, k) in [(crate::oak(), 0.5), (crate::spruce(), 0.0), (crate::beech(), 0.0)] {
+        let r = request(40, 7, k);
+        let cycled = grow_census(&species, r, Deposit::Quantised, false).unwrap();
+        let retired = cycled.census.expect("a census").retired;
+        assert!(retired > 100, "{retired} retired");
+        assert!(cycled.structure == reference(&species, r), "{retired} retired");
+    }
 }
 
 /// At zero and arbitrarily near zero the same code runs: the tree at no
@@ -83,17 +80,30 @@ fn the_quantised_deposit_is_order_free_and_refuses_overflow() {
     assert!(format!("{refused}").starts_with("light.deposit"), "{refused}");
 }
 
-/// The working set's balance and allotment are the whole tree's to the
-/// bit: the oak, whose every PA sheds by its balance and sizes by its
-/// light, grows the whole-tree engine's tree through the one cycle.
+/// The f32 survival the device reads: the table's viability, shaded in
+/// f32; whole without shade or in full light.
 #[test]
-fn the_working_set_grows_the_whole_trees_tree() {
-    let species = crate::oak();
-    for (age, seed) in [(24, 1), (24, 7), (30, 42)] {
-        let r = request(age, seed, 0.5);
-        let whole = crate::grow::whole(&species, r).unwrap();
-        let cycled = grow_cycle(&species, r, Deposit::F32).unwrap();
-        assert!(cycled.structure == whole, "age {age}, seed {seed}");
-    }
+fn survival_reads_the_tables_f32() {
+    use crate::contract::decide::shaded;
+    assert_eq!(shaded(0.995, 1.0, 1.0), 0.995);
+    assert_eq!(shaded(0.995, 0.0, 0.3), 0.995);
+    let p = shaded(0.995, 1.0, 0.5);
+    assert!(p < 0.995 && (f64::from(p) - 0.995f64.powf(2.0)).abs() < 1e-6, "{p}");
 }
 
+/// How far the one cycle's tree lies from today's whole-tree engine, by
+/// lineage, under the spike's contracts (f32 viability, the one reduction
+/// order, the integer deposit): printed for the evidence, not bounded.
+#[test]
+#[ignore]
+fn agreement_with_todays_tree() {
+    for (name, species, k) in [("oak", crate::oak(), 0.5), ("beech", crate::beech(), 0.0), ("spruce", crate::spruce(), 0.0)] {
+        for (age, seed) in [(24, 7), (40, 1)] {
+            let r = request(age, seed, k);
+            let today = crate::grow::whole(&species, r).unwrap();
+            let cycled = grow_cycle(&species, r, Deposit::Quantised).unwrap();
+            let a = crate::agree::agreement(&today, &cycled.structure);
+            eprintln!("AGREE {name} {age} {seed}: {a:?}");
+        }
+    }
+}

@@ -26,6 +26,8 @@ pub struct Census {
     pub axes: usize,
     /// Whether the other deposit is read beside the one growth uses.
     pub beside: bool,
+    /// The subtrees retired as the tree grew.
+    pub retired: usize,
     depth: Vec<u32>,
     lattice: Option<Cycle>,
 }

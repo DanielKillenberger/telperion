@@ -11,6 +11,7 @@
 //! tests decide the next step: `grow` never builds one.
 mod census;
 mod passes;
+mod retire;
 mod working;
 
 pub use census::{Census, Cycle};
@@ -47,20 +48,29 @@ pub struct Cycled {
 /// Grows `species` through the one cycle, its leaves deposited by
 /// `deposit`.
 pub fn grow_cycle(species: &Species, request: Request, deposit: Deposit) -> Result<Cycled> {
-    run(species, request, deposit, None)
+    run(species, request, deposit, None, Working::default())
 }
 
 /// `grow_cycle`, with its census taken (COUNCIL.md's early tests 1 and 2):
 /// each cycle's records, lattice and phase seconds, and, with `beside`,
 /// the other deposit read beside the one growth uses.
 pub fn grow_census(species: &Species, request: Request, deposit: Deposit, beside: bool) -> Result<Cycled> {
-    run(species, request, deposit, Some(beside))
+    run(species, request, deposit, Some(beside), Working::default())
 }
 
-fn run(species: &Species, request: Request, deposit: Deposit, census: Option<bool>) -> Result<Cycled> {
+/// The one cycle, its working set as `working` begins it (the tests'
+/// references: every axis open, or none retired).
+fn run(
+    species: &Species,
+    request: Request,
+    deposit: Deposit,
+    census: Option<bool>,
+    working: Working,
+) -> Result<Cycled> {
     let started = crate::clock::seconds();
     let (mut g, keeps) = start(species, request, true, Options::default())?;
-    (g.one, g.deposit) = (true, deposit);
+    (g.one, g.deposit, g.rules.one) = (true, deposit, true);
+    g.working = Some(Box::new(working));
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));
     // Every lateral is grown: while it lives its leaves shade.
     g.rules.lasting = vec![None; species.states.len()].into();
@@ -74,6 +84,7 @@ fn run(species: &Species, request: Request, deposit: Deposit, census: Option<boo
         g.count(cycle);
     }
     let (grown, light_seconds) = (g.rules.grown, g.light_seconds);
+    let retired = g.working.as_ref().map_or(0, |w| w.retirement().roots());
     let mut taken = g.census.take().map(|c| *c);
     if let Some(c) = taken.as_mut() {
         c.ended(&g.axes);
@@ -84,6 +95,7 @@ fn run(species: &Species, request: Request, deposit: Deposit, census: Option<boo
     })?;
     if let Some(c) = taken.as_mut() {
         c.phases = phases;
+        c.retired = retired;
     }
     Ok(Cycled {
         structure: lineage_order(settled.structure),

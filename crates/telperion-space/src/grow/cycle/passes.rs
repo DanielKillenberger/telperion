@@ -13,9 +13,10 @@ impl Grower<'_> {
     pub(in crate::grow) fn open(&mut self, cycle: u32) {
         let n = self.sketch.as_ref().expect("sketching").pencils.len();
         let mut w = self.working.take().unwrap_or_default();
+        let laid = w.links.len();
         w.extend(&self.axes, n);
         let sleeping = (self.asleep.iter().skip(cycle as usize)).flat_map(|a| a.iter().map(|s| s.parent));
-        w.open_from(self.live.iter().map(|a| a.axis).chain(sleeping));
+        w.open_from(self.live.iter().map(|a| a.axis).chain(sleeping), laid);
         self.working = Some(w);
     }
 
@@ -106,7 +107,7 @@ impl Grower<'_> {
         w.split(&lit, &lambda);
         let got: Vec<f64> = w.list.iter().map(|&i| f64::from(w.bud[i])).collect();
         let groups: Vec<usize> = w.list.iter().map(|&i| w.pa[i]).collect();
-        let sized = sizes(&got, &presence, &psi, &groups);
+        let sized = sizes(&got, &presence, &psi, &groups, &w.order());
         for apex in self.live.iter().filter(|a| a.axis < n) {
             sketch.pencils[apex.axis].size = sized[w.at[apex.axis] as usize];
         }

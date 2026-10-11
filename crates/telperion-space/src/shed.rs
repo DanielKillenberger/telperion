@@ -80,16 +80,31 @@ pub(crate) struct Living {
 /// subtree's living, by index (none: the axis's own).
 pub(crate) type Given<'g, T> = &'g (dyn Fn(usize) -> Option<T> + Sync);
 
+/// Which axes a pass leaves out, by index.
+pub(crate) type Gone<'g> = &'g (dyn Fn(usize) -> bool + Sync);
+
 /// `shed`, each axis `given` names standing for a subtree grown elsewhere
 /// whose living it gives; and the living of axis `report`'s subtree.
 pub(crate) fn shed_given(
-    mut axes: Vec<Axis>,
+    axes: Vec<Axis>,
     species: &Species,
     age: u32,
     given: Given<Living>,
     report: Option<usize>,
 ) -> (Shed, Living) {
-    let (fade, reported) = fades(&axes, species, age, given, report);
+    shed_past(axes, species, age, (given, &|_| false), report)
+}
+
+/// `shed_given`, every axis `gone` names left out of the fades: one inside
+/// a subtree retired as it grew, whose root `given` stands for (fn-255).
+pub(crate) fn shed_past(
+    mut axes: Vec<Axis>,
+    species: &Species,
+    age: u32,
+    (given, gone): (Given<Living>, Gone),
+    report: Option<usize>,
+) -> (Shed, Living) {
+    let (fade, reported) = fades(&axes, species, age, (given, gone), report);
     let mut index = vec![usize::MAX; axes.len()];
     let mut kept = Vec::with_capacity(axes.len());
     for (i, mut axis) in axes.drain(..).enumerate() {
@@ -132,7 +147,7 @@ fn fades(
     axes: &[Axis],
     species: &Species,
     age: u32,
-    given: Given<Living>,
+    (given, gone): (Given<Living>, Gone),
     report: Option<usize>,
 ) -> (Vec<f64>, Living) {
     let delay = |a: &Axis| match a.origin {
@@ -182,7 +197,7 @@ fn fades(
         }
     }
     for (i, link) in axes.iter().enumerate().rev() {
-        let Some(parent) = link.origin.parent() else {
+        let Some(parent) = link.origin.parent().filter(|_| !gone(i)) else {
             continue;
         };
         let mut weight = q(link.vigour);
@@ -218,9 +233,22 @@ fn fades(
         .iter()
         .zip(lived.iter().zip(&alive))
         .map(|(axis, (&lived, &apex))| match delay(axis) {
-            Some(d) => real(fade(q(d + 1.0), axis.birth, (lived, apex), age)),
+            Some(d) => faded(d, axis.birth, Living { lived, alive: apex }, age),
             None => 1.0,
         })
         .collect();
     (faded, reported)
+}
+
+/// The fade of a lateral or relay of shedding delay `d`, born in `birth`,
+/// whose subtree lived as `living`, at the tree's `age`: shed at none.
+pub(crate) fn faded(d: f64, birth: u32, living: Living, age: u32) -> f64 {
+    real(fade(q(d + 1.0), birth, (living.lived, living.alive), age))
+}
+
+/// The living of the subtree `axes` stands for, axis 0 its root, each
+/// axis `given` names standing for a subtree whose living it gives: what
+/// the whole tree's fades read of it (fn-255's retirement).
+pub(crate) fn subtree_living(axes: &[Axis], species: &Species, age: u32, given: Given<Living>) -> Living {
+    fades(axes, species, age, (given, &|_| false), Some(0)).1
 }

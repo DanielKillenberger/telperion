@@ -290,6 +290,7 @@ fn start<'a>(
         grown: 0,
         alone: false,
         hands: None,
+        one: false,
     };
     let grower = Grower::seeded(rules, (threads, options.share), sketch, request.seed)?;
     Ok((grower, keeps))
@@ -464,6 +465,7 @@ impl Grower<'_> {
     fn step(&mut self, cycle: u32, report: &mut dyn FnMut(Stage)) -> Result<()> {
         if self.one {
             self.open(cycle);
+            self.retire();
             self.balance_one(cycle);
             report(Stage::Pass(Pass::Balance));
             self.allot_one();

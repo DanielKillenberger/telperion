@@ -2,12 +2,22 @@
 //! balance and the allotment visit only the open axes: those on the way
 //! from the root to a living apex or a sleeping bud. A closed subtree lays
 //! no more wood, so its upkeep is frozen once, as the sum the whole tree's
-//! pass takes: own, then each child's subtotal, the last child first. Its
-//! light and lit presence are none. Every sum is therefore the whole
-//! tree's to the bit. The links and each axis's children are kept across
-//! cycles, by index and by node, and the lists each pass fills are kept
-//! for the next.
-use crate::allocation::{size_sums, sized, Link, TIP};
+//! pass takes; its light and lit presence are none.
+//!
+//! **The one reduction order** (COUNCIL.md, "Decided by the spike"; the
+//! device takes the same): a subtree's sum is its own value, then each
+//! child's subtotal in the order they stand on it (by node, then index, a
+//! continuation or relay at the tip last); the normaliser's per-PA sums
+//! run over the growing buds in that subtree order (preorder), cut into
+//! blocks of `BLOCK` buds, each block summed in order and the blocks then
+//! added in order (`order`, `passes.rs`). Every sum is therefore the same whether
+//! a closed subtree is frozen or summed again, and whatever retires. The
+//! links and each axis's children are kept across cycles, and the lists
+//! each pass fills are kept for the next.
+use crate::allocation::{drawn, sized, Link, TIP};
+
+/// The growing buds a block of the normaliser's sums holds.
+pub(super) const BLOCK: usize = 1024;
 use crate::structure::{Axis, Origin};
 
 /// What the passes keep across cycles.
@@ -15,9 +25,8 @@ use crate::structure::{Axis, Origin};
 pub(in crate::grow) struct Working {
     pub(super) links: Vec<Link>,
     pub(super) pa: Vec<usize>,
-    /// Each axis's children by index, and by node then index (the tip's
-    /// last): the order the balance sums and the order the split reads.
-    by_index: Vec<Vec<u32>>,
+    /// Each axis's children by node then index (the tip's last): the
+    /// order every subtree sum and the split take them in.
     by_node: Vec<Vec<u32>>,
     /// A closed subtree's upkeep, once taken (NaN until then).
     frozen: Vec<f32>,
@@ -25,6 +34,7 @@ pub(in crate::grow) struct Working {
     /// each one's place among them.
     pub(super) open: Vec<bool>,
     pub(super) list: Vec<usize>,
+    pub(super) closed: Vec<usize>,
     pub(super) at: Vec<u32>,
     /// The passes' lists, by axis.
     pub(super) light: Vec<f32>,
@@ -35,9 +45,31 @@ pub(in crate::grow) struct Working {
     pub(super) bud: Vec<f32>,
     rest: Vec<f32>,
     kids: Vec<u32>,
+    /// Which subtrees have been retired (`retire.rs`).
+    pub(super) retire: super::retire::Retirement,
+    /// The tests' references: every laid axis open, none frozen; none
+    /// retired.
+    pub(super) all_open: bool,
+    pub(super) keep_all: bool,
 }
 
 impl Working {
+    /// The tests' reference: every laid axis open and none retired.
+    #[cfg(test)]
+    pub(super) fn reference() -> Self {
+        Self { all_open: true, keep_all: true, ..Self::default() }
+    }
+
+    /// Axis `i`'s children, in the order they stand on it.
+    pub(super) fn children(&self, i: usize) -> &[u32] {
+        &self.by_node[i]
+    }
+
+    /// Which subtrees have been retired.
+    pub(in crate::grow) fn retirement(&self) -> &super::retire::Retirement {
+        &self.retire
+    }
+
     /// The laid axes `axes[..n]` taken in: the new ones' links and PAs,
     /// each set among its bearer's children.
     pub(super) fn extend(&mut self, axes: &[Axis], n: usize) {
@@ -51,7 +83,6 @@ impl Working {
                 },
             };
             if let Some(p) = link.parent {
-                self.by_index[p].push(i as u32);
                 let links = &self.links;
                 let kids = &mut self.by_node[p];
                 let at = kids.partition_point(|&c| links[c as usize].node <= link.node);
@@ -59,7 +90,6 @@ impl Working {
             }
             self.links.push(link);
             self.pa.push(axes[i].pa);
-            self.by_index.push(Vec::new());
             self.by_node.push(Vec::new());
             self.frozen.push(f32::NAN);
             self.open.push(false);
@@ -73,12 +103,17 @@ impl Working {
         }
     }
 
-    /// This cycle's open axes: every one on the way to `from`.
-    pub(super) fn open_from(&mut self, from: impl Iterator<Item = usize>) {
-        for &i in &self.list {
+    /// This cycle's open axes: every one on the way to `from`; and in
+    /// `closed`, those that closed since the last cycle or were laid closed.
+    pub(super) fn open_from(&mut self, from: impl Iterator<Item = usize>, laid: usize) {
+        let was = std::mem::take(&mut self.list);
+        for &i in &was {
             self.open[i] = false;
         }
-        self.list.clear();
+        if self.all_open {
+            self.list.extend(0..self.links.len());
+            self.list.iter().for_each(|&i| self.open[i] = true);
+        }
         for mut i in from.filter(|&i| i < self.links.len()) {
             while !self.open[i] {
                 self.open[i] = true;
@@ -96,17 +131,21 @@ impl Working {
         for (k, &i) in self.list.iter().enumerate() {
             self.at[i] = k as u32;
         }
+        self.closed.clear();
+        let fresh = laid..self.open.len();
+        let open = &self.open;
+        self.closed.extend(was.into_iter().chain(fresh).filter(|&i| !open[i]));
     }
 
     /// Each open axis's subtree's light, upkeep and living, its own given
-    /// by `own`, its children's summed the last first: a closed child's
-    /// frozen upkeep, no light and nothing living.
+    /// by `own`, then its children's in order: a closed child's frozen
+    /// upkeep, no light and nothing living.
     pub(super) fn totals(&mut self, own: &dyn Fn(usize) -> (f32, f32, bool), upkeep: &dyn Fn(usize) -> f32) {
         for k in (0..self.list.len()).rev() {
             let i = self.list[k];
             let (mut light, mut cost, mut living) = own(i);
-            for j in (0..self.by_index[i].len()).rev() {
-                let c = self.by_index[i][j] as usize;
+            for j in 0..self.by_node[i].len() {
+                let c = self.by_node[i][j] as usize;
                 if self.open[c] {
                     light += self.light[c];
                     cost += self.cost[c];
@@ -126,8 +165,8 @@ impl Working {
             return self.frozen[c];
         }
         let mut cost = upkeep(c);
-        for j in (0..self.by_index[c].len()).rev() {
-            let g = self.by_index[c][j] as usize;
+        for j in 0..self.by_node[c].len() {
+            let g = self.by_node[c][j] as usize;
             cost += self.closed(g, upkeep);
         }
         self.frozen[c] = cost;
@@ -142,8 +181,8 @@ impl Working {
         for k in (0..self.list.len()).rev() {
             let i = self.list[k];
             let mut sub = own[k];
-            for j in (0..self.by_index[i].len()).rev() {
-                let c = self.by_index[i][j] as usize;
+            for j in 0..self.by_node[i].len() {
+                let c = self.by_node[i][j] as usize;
                 if self.open[c] {
                     sub += self.sub[c];
                 }
@@ -202,10 +241,45 @@ impl Working {
     }
 }
 
+impl Working {
+    /// The open axes' places in the subtree order: preorder from the
+    /// root, each axis's open children in the order they stand on it.
+    pub(super) fn order(&self) -> Vec<u32> {
+        let mut order = Vec::with_capacity(self.list.len());
+        let mut stack = match self.list.first() {
+            Some(&root) => vec![root as u32],
+            None => Vec::new(),
+        };
+        while let Some(i) = stack.pop() {
+            order.push(self.at[i as usize]);
+            let kids = self.by_node[i as usize].iter().rev();
+            stack.extend(kids.filter(|&&c| self.open[c as usize]));
+        }
+        order
+    }
+}
+
 /// Each open axis's size from its bud's vigour, presence and ψ against its
-/// PA's sums, over the open axes in order (a closed one adds nothing).
-pub(super) fn sizes(vigour: &[f64], presence: &[f64], psi: &[f64], pa: &[usize]) -> Vec<f64> {
+/// PA's sums, `[Σp, Σp(v/p)^ψ]`, taken in the one reduction order: the
+/// growing buds (presence above none) in `order`, a block of `BLOCK` at a
+/// time, so the blocks are the same whatever else is open.
+pub(super) fn sizes(vigour: &[f64], presence: &[f64], psi: &[f64], pa: &[usize], order: &[u32]) -> Vec<f64> {
     let groups = pa.iter().copied().max().map_or(0, |g| g + 1);
-    let sums = size_sums(vigour, presence, psi, pa, groups);
+    let order: Vec<u32> = order.iter().copied().filter(|&k| presence[k as usize] > 0.0).collect();
+    let mut sums = vec![[0.0f32; 2]; groups];
+    let mut part = vec![[0.0f32; 2]; groups];
+    for block in order.chunks(BLOCK) {
+        part.iter_mut().for_each(|s| *s = [0.0; 2]);
+        for &k in block {
+            let k = k as usize;
+            let p = presence[k] as f32;
+            let [total, weighted] = &mut part[pa[k]];
+            *total += p;
+            *weighted += drawn(vigour[k] as f32, p, psi[k] as f32) * p;
+        }
+        for (s, b) in sums.iter_mut().zip(&part) {
+            (s[0], s[1]) = (s[0] + b[0], s[1] + b[1]);
+        }
+    }
     sized(vigour, presence, psi, pa, &sums)
 }

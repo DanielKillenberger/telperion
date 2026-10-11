@@ -108,6 +108,7 @@ pub(crate) fn rules<'a>(species: &'a Species, age: u32, budget: u32) -> Result<R
         grown: 0,
         alone: true,
         hands: None,
+        one: false,
     })
 }
 
