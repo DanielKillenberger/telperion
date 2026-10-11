@@ -68,59 +68,45 @@ The CPU's `grow_cycle` retires subtrees as it grows: 28 to 588 for the young tre
 
 ## Timing (`settles_are_timed`, one stamped settle after a cold build, seed 42 unless named)
 
-**Pending.** These figures were taken before the bounded walk and the cut passes (`raw/settle-time-1.txt`). The rerun waits on device memory: when I checked, the owner's game held 8,289 of 10,240 MiB, and a busy build needs at least 6 GiB free. The longest dispatches below are the ones the bounded walk addresses; the rerun reports each pass's longest after it.
-
-GPU time is the sum of the settle's stamped dispatches. Wall is the host's time for the settle, its readbacks included.
+Rerun after the bounded walk (WALK = 32 phytomers a dispatch) and the ranged fill, assign and compact, with 1.7 of 10.2 GiB of device memory in use (`raw/settle-time-3.txt`; the earlier figures are in `raw/settle-time-1.txt`). GPU time is the sum of the settle's stamped dispatches. Wall is the host's time for the settle, its readbacks included.
 
 | Build | Kept axes | Kept phytomers | Depths | Dispatches | Stamped | Wall | Longest |
 |---|--:|--:|--:|--:|--:|--:|---|
-| european-beech 40 | 37,751 | 332,405 | 26 | 306 | 68.6 ms | 0.08 s | 5.2 ms place |
-| oregon-white-oak 40 | 52,248 | 354,122 | 13 | 243 | 167.8 ms | 0.18 s | 14.3 ms sag place |
-| norway-spruce 40 | 309,600 | 1,212,283 | 8 | 150 | 132.5 ms | 0.15 s | 19.5 ms sag place |
-| date-palm 40 | 1 | 480 | 1 | 39 | 12.3 ms | 0.01 s | 11.2 ms place |
-| silver-birch 40 | 67,739 | 518,131 | 13 | 207 | 182.0 ms | 0.19 s | 18.2 ms sag place |
-| ordinary 40 | 25,521 | 163,214 | 17 | 259 | 208.4 ms | 0.22 s | 20.0 ms sag place |
-| laurelin 80 | 350,255 | 3,534,309 | 62 | 682 | 278.9 ms | 0.33 s | 9.0 ms place |
-| telperion 82 | 373,607 | 3,773,761 | 64 | 704 | 302.7 ms | 0.37 s | 10.6 ms place |
-| oregon-white-oak 80 seed 1 | 277,300 | 1,878,063 | 27 | 690 | 802.8 ms | 0.85 s | 22.7 ms sag place |
-| **Exact** telperion 82 | 373,607 | 3,773,761 | 64 | 704 | 1,622.8 ms | 1.69 s | 67.0 ms place |
-| **Exact** oak 80 seed 1 | 277,329 | 1,878,375 | 27 | 690 | 3,373.9 ms | 3.42 s | 216.7 ms sag place |
+| european-beech 40 | 37,751 | 332,405 | 26 | 375 | 69.3 ms | 0.08 s | 1.9 ms walk |
+| oregon-white-oak 40 | 52,248 | 354,122 | 13 | 352 | 171.8 ms | 0.18 s | 3.7 ms sag walk |
+| norway-spruce 40 | 309,600 | 1,212,283 | 8 | 206 | 115.1 ms | 0.13 s | 15.8 ms order place |
+| date-palm 40 | 1 | 480 | 1 | 54 | 12.3 ms | 0.01 s | 0.8 ms walk |
+| silver-birch 40 | 67,739 | 518,131 | 13 | 293 | 189.5 ms | 0.20 s | 6.4 ms sag walk |
+| ordinary 40 | 25,521 | 163,214 | 17 | 367 | 216.2 ms | 0.23 s | 4.5 ms sag walk |
+| laurelin 80 | 350,255 | 3,534,309 | 62 | 913 | 292.5 ms | 0.36 s | 4.4 ms walk |
+| telperion 82 | 373,607 | 3,773,761 | 64 | 946 | 312.0 ms | 0.39 s | 4.4 ms walk |
+| oregon-white-oak 80 seed 1 | 277,300 | 1,878,063 | 27 | 1,219 | 836.3 ms | 0.91 s | 7.5 ms sag walk |
+| **Exact** telperion 82 | 373,607 | 3,773,761 | 64 | 946 | 1,489.3 ms | 1.56 s | 13.5 ms walk |
+| **Exact** oak 80 seed 1 | 277,329 | 1,878,375 | 27 | 1,219 | 2,950.4 ms | 3.02 s | 32.9 ms sag walk |
 
-**Telperion 82, plain, by pass** (ms, dispatches):
+By pass, plain (ms in dispatches):
 
-| Pass | ms | Dispatches |
+| Pass | Telperion 82 | Oak 80 seed 1 |
 |---|--:|--:|
-| shape | 1.7 | 32 |
-| mark and assign | 8.0 | 6 |
-| grown sweeps | 4.4 | 192 |
-| order | 15.0 | 268 |
-| compact | 9.5 | 12 |
-| scale | 2.4 | 64 |
-| thicken | 6.3 | 65 |
-| place | 255.3 | 65 |
+| shape | 1.9 in 32 | 1.7 in 32 |
+| mark and assign | 8.2 in 28 | 4.2 in 28 |
+| sweeps | 4.4 in 192 | 14.0 in 81 |
+| leaf mean | | 423.8 in 614 |
+| order | 14.7 in 268 | 13.3 in 115 |
+| compact | 9.2 in 14 | 4.6 in 14 |
+| scale | 2.6 in 64 | 1.1 in 27 |
+| thicken | 6.7 in 65 | 4.2 in 28 |
+| place | 264.3 in 283 | 121.9 in 127 |
+| levers | | 3.4 in 27 |
+| sag place | | 244.3 in 126 |
 
-**The oak 80 seed 1, plain, by pass** (ms, dispatches):
+The bounded walk cut the longest dispatch (Telperion 10.6 to 4.4 ms, the oak 22.7 to 7.5 ms plain; 67 to 13.5 ms and 217 to 33 ms exact) and left the totals about where they were.
 
-| Pass | ms | Dispatches |
-|---|--:|--:|
-| leaf mean | 401.3 | 307 |
-| sweeps | 10.6 | 81 |
-| order | 12.8 | 115 |
-| place | 124.9 | 28 |
-| levers | 3.4 | 27 |
-| sag place | 234.7 | 27 |
-
-The leaf mean is reported apart, as asked:
-- it is the CPU's sequential f32 sum of 10M grown phytomers, one lane at a time;
-- 32,768 phytomers a dispatch, each about 1.3 ms;
-- this is SETTLE-PLAN risk 1, and a blocked order is the host's call.
-
-**Dispatches past 1 ms** (`raw/settle-time-1.txt` lists each):
-- **Place and sag place, one per depth, on every preset.** Each is one invocation per axis, walking its phytomers in turn, so the depth with the longest axes bounds it (risk 3). Plain, they run up to 10.6 ms on Telperion and 22.7 ms on the oak at 80. Exact, up to 67 ms and 217 ms.
-- **The oak's leaf mean:** about 1.3 ms each.
-- **One each, about 1 to 1.5 ms on the 18M-phytomer builds:** `fill_main`, `assign_main` and `compact_main`.
-
-**Every other pass stays under 1 ms.**
+**Still past 2 ms (open; the bound is the brief's, not met):**
+- **The walk, on every busy build.** 32 phytomers of a long axis are still up to 4.4 ms on Telperion, 7.5 ms on the oak's sag, 13.5 and 33 ms exact. A smaller WALK trades these for more dispatches; I have not tuned it.
+- **The spruce's order `place_main`: 15.8, 7.2 and 6.5 ms.** One invocation places each parent's kept children, so a parent with thousands of children (the spruce's trunk) runs alone. It needs ranging by child, as fill and assign were; not done.
+- **`compact_main` on the 18M-phytomer builds:** up to 4.4 ms. `up_main` on the oak at 80 (seven or eight past 1 ms).
+- **The oak's leaf mean:** about 0.7 ms each now, 614 dispatches, still 424 ms in all (risk 1, the host's call).
 
 ## Memory
 

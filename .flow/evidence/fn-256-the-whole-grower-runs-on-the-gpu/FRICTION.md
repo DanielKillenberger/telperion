@@ -161,3 +161,10 @@
 - **Would remove it:**
   - Make the halt a property the kernels hold (every count-reading kernel exits on a halted word), with a test that raises a flag mid-cycle on the smallest tree, before any run of a sizing change.
   - Give each worker its own target dir, so one worker's half-built change never reaches another's run.
+
+## 2026-10-11: retirement compaction, the measurement ran out of device memory (worker)
+
+- **Doing:** measuring Telperion 82 grown with and without compaction in one test.
+- **Slowed it:** the second build ran out of memory in `Build::new`, at 1.7 GiB of 10 GiB in use. Dropped builds are not freed until the device is polled, so two 3.4 GB builds plus a settle overlapped. The busy settle timing test had the same shape.
+- **Cost:** two runs, about 5 minutes and a backtrace.
+- **Would remove it:** a helper that drops a build and polls the device, used between builds by every measurement test; or a ledger that frees on submission completion rather than only on poll.

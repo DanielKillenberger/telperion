@@ -68,6 +68,8 @@ fn measured(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (preset, name, age, seed): (P
     for (ms, what) in long.iter().take_while(|l| l.0 > 1.0) {
         println!("{label}: past 1 ms: {ms:.3} ms {what}");
     }
+    drop((s, b));
+    gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("let go");
 }
 
 #[test]
@@ -119,4 +121,47 @@ fn the_settle_compiles() {
     timed("Exact place place_main, products and sums without gradual underflow", &|| {
         super::super::io::Pass::new(&gpu, plain_sub.clone(), &place, &["place_main"])
     });
+}
+
+/// Retirement on a busy build: Telperion 82 grown plain without and with
+/// its retired subtrees let go at each move, the arena's rows and tables,
+/// the records, the retirement's stamped time and dispatches and its
+/// longest, the moves and the build's wall time; then its settle.
+#[test]
+#[ignore = "a measurement"]
+fn retirement_is_measured() {
+    let _held = super::super::whole_tree();
+    let Some((gpu, kit)) = device(Arith::Plain) else {
+        return;
+    };
+    let k = Kernels::new(&gpu, Arith::Plain);
+    let g = grown(Preset::Telperion, 82, 42);
+    let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
+    for compact in [false, true] {
+        let mut sizes = Sizes::least();
+        sizes.compact = compact;
+        let (b, sized, _) = grow(&gpu, &kit, &t, &g.tables, (sizes, 82)).expect("a build");
+        drop(b);
+        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("let go");
+        assert!(super::super::profile::start(&gpu), "timestamps");
+        let started = Instant::now();
+        let (b, last, grew) = grow(&gpu, &kit, &t, &g.tables, (sized, 82)).expect("a build");
+        let wall = started.elapsed().as_secs_f64();
+        let stamps = super::super::profile::finish(&gpu);
+        let (mut ms, mut n, mut longest) = (0.0, 0, 0.0f64);
+        for (phase, (_, a, z)) in grew.stamped.iter().zip(&stamps) {
+            if *phase == "retirement" {
+                let d = (z - a) * 1e-6;
+                (ms, n, longest) = (ms + d, n + 1, longest.max(d));
+            }
+        }
+        let (resident, scratch) = b.bytes(&t);
+        println!(
+            "telperion 82 compact {compact}: arena rows {} of tables {}, records {}; resident {:.0} MB, scratch {:.0} MB; retirement {ms:.1} ms in {n} dispatches, longest {longest:.3} ms; {} moves; build wall {wall:.2} s",
+            b.held.phyts, last.caps.phyts, b.retire.rec_n, resident as f64 / 1e6, scratch as f64 / 1e6, grew.moves
+        );
+        let s = settle(&gpu, (&kit, &k), (&b, &t), (&constants(&g), SettleTo::Laid)).expect("a settle");
+        drop(b);
+        println!("telperion 82 compact {compact}: settled, {} kept axes, {} kept phytomers, error {:?}", s.table.kept, s.table.phyts, s.error);
+    }
 }
