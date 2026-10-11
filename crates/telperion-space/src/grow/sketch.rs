@@ -100,10 +100,18 @@ impl Grower<'_> {
             tips.push(*at);
         }
         self.check_leaves(cycle, &tips);
-        let field = Field::on(&sketch.light, &self.leaves, &tips, self.threads);
+        let mut read = if self.one {
+            self.sketch = Some(sketch);
+            let read = self.read_light(&tips);
+            sketch = self.sketch.take().expect("sketching");
+            read
+        } else {
+            let field = Field::on(&sketch.light, &self.leaves, &tips, self.threads);
+            let mut read = vec![0.0; tips.len()];
+            crate::cores::fill(&mut read, 1 << 10, self.threads, &|k| field.at(tips[k]));
+            read
+        };
         report(Stage::Pass(Pass::ShadeField));
-        let mut read = vec![0.0; tips.len()];
-        crate::cores::fill(&mut read, 1 << 10, self.threads, &|k| field.at(tips[k]));
         let n = self.live.len();
         if let Some(oracle) = self.oracle.as_mut() {
             oracle.reread(&self.axes, &self.live, &tips, &mut read[..n]);
@@ -234,10 +242,11 @@ impl Grower<'_> {
         }
     }
 
-    /// Whether the allotment runs this cycle: where any PA's size reads
-    /// shade and a rough layout is grown.
+    /// Whether the allotment runs this cycle: where a rough layout is grown
+    /// and any PA's size reads shade, or always in the one cycle.
     pub(super) fn allots(&self) -> bool {
-        self.sketch.is_some() && self.species.states.iter().any(|s| s.shade_size != 0.0)
+        self.sketch.is_some()
+            && (self.one || self.species.states.iter().any(|s| s.shade_size != 0.0))
     }
 
     /// What the allotment reads of each laid axis (PHASES.md, phase (ii)).

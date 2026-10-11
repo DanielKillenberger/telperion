@@ -26,10 +26,11 @@ pub(super) struct Totals {
 }
 
 impl Grower<'_> {
-    /// Whether the balance runs this cycle: where any PA's hazard is set
-    /// and a rough layout is grown.
+    /// Whether the balance runs this cycle: where a rough layout is grown
+    /// and any PA's hazard is set, or always in the one cycle.
     pub(super) fn balances(&self) -> bool {
-        self.sketch.is_some() && self.species.states.iter().any(|s| s.balance_hazard != 0.0)
+        self.sketch.is_some()
+            && (self.one || self.species.states.iter().any(|s| s.balance_hazard != 0.0))
     }
 
     /// Updates every living lateral subtree's balance, sheds by it, and

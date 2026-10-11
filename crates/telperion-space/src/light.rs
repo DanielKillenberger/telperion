@@ -244,6 +244,7 @@ fn bilinear(layer: &[f64], nx: usize, ny: usize, x: f64, y: f64) -> f64 {
 }
 
 pub(crate) mod field;
+pub(crate) mod volumes;
 pub(crate) use field::Field;
 
 #[cfg(test)]

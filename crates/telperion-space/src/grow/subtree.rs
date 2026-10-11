@@ -205,6 +205,11 @@ impl<'a> Grower<'a> {
             oracle: None,
             couple: None,
             fine: None,
+            one: false,
+            model: super::cycle::Model::Lattice,
+            owners: Vec::new(),
+            light_seconds: 0.0,
+            probe: None,
         }
     }
 

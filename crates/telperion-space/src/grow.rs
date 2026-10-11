@@ -10,6 +10,7 @@ mod advance;
 pub(crate) mod alone;
 mod balance;
 pub(crate) mod couple;
+pub(crate) mod cycle;
 mod draw;
 pub(crate) mod oracle;
 mod parallel;
@@ -369,6 +370,14 @@ struct Grower<'a> {
     handed: Vec<(usize, alone::Pending)>,
     /// The lists a cycle's share fills, kept for the next.
     spare: shoot::Spare,
+    /// fn-255's one cycle: every phase run for every species (`cycle.rs`),
+    /// the light read by `model`, the axis that laid each of the cycle's
+    /// leaves, the seconds the light took, and the candidates read beside.
+    one: bool,
+    model: cycle::Model,
+    owners: Vec<usize>,
+    light_seconds: f64,
+    probe: Option<Box<cycle::Probe>>,
 }
 
 /// Whether the realized settle (`fine::settle`) takes `species` apart from
@@ -440,6 +449,11 @@ impl<'a> Grower<'a> {
             oracle: None,
             couple: None,
             fine: None,
+            one: false,
+            model: cycle::Model::Lattice,
+            owners: Vec::new(),
+            light_seconds: 0.0,
+            probe: None,
         })
     }
 }
