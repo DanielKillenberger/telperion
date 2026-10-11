@@ -138,3 +138,63 @@ In the exact build, the gradual-underflow integer operations cost most:
   - calling sag's `settled` and the lever's `unit_w` from one site each;
   - carrying the lever and its chord in one loop.
 - What remains inlines the `sub_mul` and `sub_add` products, sums and roots in `frame_carry` and in `sag_of`'s scaling.
+
+## The leaf mean in the one blocked order (DESIGN.md 9.4, 2026-10-12)
+
+Commits da4f212c6 (CPU) and 1cd66d307 (device).
+
+**The order.** The terms keep the order they had: the order the axes and their phytomers stand (DESIGN.md section 2's "axis and phytomer order"). What changed is how they are summed. The old way was one sequential f32 sum. The new way:
+- blocks of 1,024 terms;
+- each block summed in order from zero;
+- the blocks then added in order.
+
+The CPU's `girth::Blocked` does this for `leaf_partials` (the tree as grown) and for `leaf_terms` (the tree alone). The device does it too:
+- `leaf_main`: one workgroup per block, 512 blocks a dispatch, one lane adding each block in order;
+- `leaf_sum_main`: one workgroup that fetches the blocks' sums 256 at a time and adds them in order.
+
+The order is pinned by two tests, `the_leaf_mean_sums_in_blocks_of_1024_in_order` and `the_trees_leaf_mean_is_its_terms_blocked_in_order`:
+- the blocked sums equal an independent fold of the same blocks;
+- a sequential sum loses 2,047 ones behind 1e8, while the blocks keep the second block's 1,024.
+
+The coarse oak's pinned hash moved, with every stand kept. telperion-space and telperion-core tests pass.
+
+### How far the CPU's trees moved (`crates/telperion-core/tests/leaf_order.rs`)
+
+Each tree is grown by `grow_cycle`, before and after, and matched by lineage (`raw/leaf-before-*.bin`).
+
+| Tree | Axes, phytomers | Height | Crown | Radius, relative max / p99 | Tips, absolute max / p99 |
+|---|---|---|---|---|---|
+| oak 40, seed 42 | 52,248, 354,122, all matched | 9.9400 to 9.9398 m | 9.8944 m, unchanged | 4.3e-4 / 4.2e-4 | 0.65 mm / 0.43 mm |
+| ordinary 40, seed 42 | 25,521, 163,214, all matched | 12.2726 m, unchanged | 9.5087 m, unchanged | 2.2e-5 / 2.1e-5 | 0.05 mm / 0.03 mm |
+| oak 80, seed 1 | 277,329, 1,878,375, all matched | 16.3076 to 16.3036 m | 18.7950 to 18.8218 m | 6.3e-3 / 6.3e-3 | 11.4 cm / 2.7 cm |
+
+Neither tree changes topology, and scale does not move at all. Every radius moves by nearly the same factor, because the mean moved: by 4.2e-4 on the oak at 40 and by 0.63% on the oak at 80. The tips follow through the sag.
+
+At 80 the sequential sum ran over about 10M grown phytomers in f32, and it had drifted that far. The blocked sum is the more accurate of the two.
+
+### Stills
+
+The headless still (`examples/headless`, `--view bare`, 1024×1024, seed 42) of the oak and the ordinary at their default ages, before and after: `raw/still-before-*.png` and `raw/still-after-*.png`.
+- **Viewed:** the oak's pair. I see no visible change: the same limbs, the same girths, the same shadow.
+- **Measured:** ImageMagick's absolute-error count gives 6 pixels of 1,048,576 differing on the oak and 4 on the ordinary.
+
+### Device against CPU after the change (plain, by lineage, `raw/leaf-floats-*.txt`)
+
+| Tree | Leaf mean, device / CPU | Unmatched | Tips, absolute max / p99 | Scale and radius, relative p99 |
+|---|---|---|---|---|
+| oak 40, seed 42 | 1.7709728 / 1.7709714 (8.1e-7) | none | 0.16 mm / 0.03 mm | 1.9e-4 / 2.1e-4 |
+| ordinary 40, seed 42 | 1.0018657 / 1.0018656 (1.2e-7) | none | 0.08 mm / 0.05 mm | 1.5e-5 / 1.5e-5 |
+| oak 80, seed 1 | 2.1769824 / 2.1770117 (1.3e-5) | 4 device axes, 34 CPU axes | 2.9 cm / 0.9 mm | 5.1e-3 / 6.6e-3 |
+
+- **The default ages are where they were before the change** (EXECUTOR.md: tips 0.16 to 0.22 mm, scale and radius p99 1.8e-4 and 2.0e-4 on the oak). The only integer field that differs is `sleep`: on 249 axes of the oak at 40 and 2 of the ordinary.
+- **The oak at 80, seed 1, grows 30 fewer axes in plain mode than on the CPU.** That predates the leaf mean: EXECUTOR.md has 277,300 against 277,329. Its mean differs by 1.3e-5 because of those axes. Its `parent` column differs wherever the unmatched axes shift the indices.
+
+### Device time (`settles_are_timed`, plain, `raw/leaf-time-before.txt` and `raw/leaf-time-after-2.txt`)
+
+| Tree | Leaf mean before | After | Settle stamped, before / after |
+|---|---|---|---|
+| oak 40, seed 42 | 51.9 ms in 75 dispatches, longest 1.16 ms | 0.30 ms in 4 | 172.7 / 124.3 ms |
+| ordinary 40, seed 42 | 16.5 ms in 24, longest 1.11 ms | 0.08 ms in 2 | 217.9 / 205.7 ms |
+| oak 80, seed 1 | 441.0 ms in 614, 35 past 1 ms | 2.4 ms in 21, none past 1 ms | 859.4 / 417.6 ms |
+
+The oak at 80's settle wall goes from 0.98 to 0.52 s.
