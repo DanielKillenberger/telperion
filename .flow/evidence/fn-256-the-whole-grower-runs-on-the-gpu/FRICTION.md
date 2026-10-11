@@ -107,3 +107,15 @@
 - **Hindered:** `from` and then `target` refused as reserved words, each found by one rebuild of the render crate's tests and the shader check (the layout's entry above met the same two).
 - **Cost:** about 2 minutes, two builds.
 - **Would remove it:** the shader check listing every reserved word it meets in one run, or a lint over the cycle's WGSL for WGSL's reserved words before the crate builds.
+
+## 2026-10-11, task 2 (performance pass): a GPU hang behind a short limit
+- **Doing:** recording each cycle only as far as its counts' limits.
+- **Hindered:** Telperion's build hung with the GPU idle (NVRM Xid 109, context switch timeout), three times, each a 5- or 25-minute timeout. Axes a short layout-generation limit left unframed made a later kernel loop. Neither a stack trace (ptrace not permitted) nor the log showed it; tracing each cycle's limits and flags to stderr did.
+- **Cost:** about 45 minutes.
+- **Would remove it:** the halt now in `vm.wgsl` (a raised flag empties every later dispatch). A shorter `timeout` on GPU measurement runs would also have cut each wait.
+
+## 2026-10-11, task 2 (performance pass): another worker in the same worktree
+- **Doing:** committing the performance pass.
+- **Hindered:** the settle's worker edits `generation/cycle.rs` and its own files in this worktree at the same time, and builds into the same target. My hunk of `cycle.rs` had to be staged by a constructed patch (`git apply --cached`), and a build mid-edit could have broken on their files.
+- **Cost:** about 5 minutes.
+- **Would remove it:** one worktree for each worker, or a shared file's registrations made by one of them.

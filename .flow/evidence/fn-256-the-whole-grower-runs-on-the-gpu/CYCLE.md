@@ -114,3 +114,69 @@ Built exact, the longest are:
 | **all** | **42.67 s** | **75.31 s** |
 
 Warm, from the driver's cache: 0.02 s or less a module.
+
+## Performance pass (2026-10-11, after the host's review)
+
+What changed:
+- **Each cycle records only what its counts need** (`gate.rs`). The host sets the cycle's limits from the census it read a cycle late, each count two cycles on at its rate plus a slack:
+  - the units', draw's, deposit's and lattice's ranges;
+  - the hierarchy step's rounds, placing passes and block levels;
+  - the layout's generations, the sweep's layer ranges, and each scan's levels.
+
+  It records only the dispatches the limits allow and writes the limits into the census.
+  - A count past a limit raises its flag. Guards are raised in a point before the dispatches they guard.
+  - A raised flag halts every dispatch a later point sizes, so no kernel reads what an overrun left. The first version without the halt hung the GPU (Xid 109) on axes a short layout-generation limit left unframed.
+  - The build then begins again with that limit's slack doubled. Telperion and Laurelin begin again twice from the least sizes (cycles 51 and 52); a build at its found sizes never does.
+- **Shared compute passes:** unprofiled, consecutive dispatches share one compute pass.
+- **The units' own product guards** (`kept_apart`, seven sites in `grow.wgsl` and `advance.wgsl`) are now the switch's `exact_kept`: plain builds them plain.
+  - Young plain agreement is unchanged in every reported field: first integer to part, unmatched axes, and each float's differing rows and worst relative difference (`raw/perf-gate-3.txt`).
+  - Exact still equals the CPU in every word on all eight young presets, and determinism holds.
+
+Plain, seed 42 unless named. Wall before was with every dispatch stamped; after, the median of three unstamped runs (`raw/time-6.txt`).
+
+| Build | Dispatches before → after | Stamped ms before → after | Wall before (stamped) → after (unstamped) |
+|---|--:|--:|--:|
+| european-beech 40 | 20,666 → 9,085 | 252.6 → 179.9 | 0.40 → 0.185 s |
+| oregon-white-oak 40 | 23,827 → 11,141 | 330.6 → 247.9 | 0.49 → 0.249 s |
+| norway-spruce 40 | 24,122 → 12,487 | 441.3 → 363.5 | 0.62 → 0.393 s |
+| date-palm 40 | 16,294 → 5,538 | 129.9 → 67.0 | 0.24 → 0.071 s |
+| silver-birch 40 | 23,907 → 10,661 | 328.7 → 242.3 | 0.49 → 0.252 s |
+| ordinary 40 | 26,592 → 13,570 | 398.1 → 314.8 | 0.58 → 0.313 s |
+| laurelin 80 | 57,822 → 26,916 | 1,178.1 → 971.0 | 1.62 → 1.049 s |
+| telperion 82 | 59,936 → 28,016 | 1,255.7 → 1,042.3 | 1.75 → 1.134 s |
+| oregon-white-oak 80 seed 1 | 53,939 → 26,376 | 1,170.0 → 985.9 | 1.56 → 1.045 s |
+| **Exact** oregon-white-oak 40 | 23,827 → 11,141 | 466.1 → 385.4 | 0.62 → 0.387 s |
+| **Exact** telperion 82 | 59,936 → 28,016 | 1,682.1 → 1,484.7 | 2.19 → 1.576 s |
+| **Exact** oregon-white-oak 80 seed 1 | 53,939 → 26,376 | 1,780.4 → 1,607.7 | 2.17 → 1.665 s |
+
+**Telperion 82, plain, after:**
+
+| Phase | Before | After |
+|---|--:|--:|
+| Units and wake | 445.4 ms, 5,740 dispatches | 424.6 ms, 2,972 |
+| Balance and allotment | 569.7 ms, 46,737 dispatches | 394.5 ms, 19,642 |
+| Layout | 161.8 ms | 135.9 ms |
+| Light | 63.2 ms | 57.0 ms |
+| Sizing | 14.9 ms | 29.6 ms |
+
+**Where the unstamped 1.134 s goes:**
+- 0.881 s waiting for the census: the GPU's own time, about 1.0 s with the dispatches' gaps.
+- 0.118 s recording, overlapped with the GPU except where a cycle is short.
+- About 0.13 s setting up: buffers, the plan's bind groups, the seed.
+
+Stamping itself added about 0.25 s (1.38 s stamped wall).
+
+**What remains, Telperion 82:**
+- **The balance and allotment** are mostly real work. The four level sweeps take 265 ms in 5,248 dispatches. They do not share a dispatch:
+  - each level waits for the deeper ones (bottom-up) or the shallower (top-down);
+  - the walk and the sub are separated by the shed, the living's compaction scan and the presences, which read the whole tree;
+  - only the root-level hand-overs (totals into walk, sub into split) could share, two of about 70 dispatches a cycle, not done.
+
+  The placing passes are 9 a cycle, and the scans 7,246 dispatches of under 10 µs each.
+- **The units:** 352 ms of `cycle_main`, the count and emit run twice by design (DESIGN.md section 2.1), and 69 ms of `fine/scan.wgsl`'s one-thread spines and serial blocks.
+
+**Plainly: growth alone, no settle, is still over 1.0 s wall on Telperion.** It is 1.13 s unstamped, about 1.0 s of it GPU time. Units and wake is 425 ms and the balance and allotment 394 ms of the 1,042 ms stamped. The oak 80 and Laurelin 80 are at 1.05 s.
+
+**Longest dispatch:**
+- Plain: 1.59 ms, the ordinary's units `cycle_main` (one range's slowest apex; under 2 ms). Every other preset is under about 1.13 ms.
+- Exact: 2.01 ms, the oak 80's normaliser `partials_main`: one workgroup sums the contract's block of 1,024 buds serially.
