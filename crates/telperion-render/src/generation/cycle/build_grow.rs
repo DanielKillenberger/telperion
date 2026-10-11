@@ -57,6 +57,9 @@ impl Sizes {
 pub(super) struct Grew {
     pub again: u32,
     pub moves: u32,
+    /// The cycle after which each move of the last begin was made, and
+    /// the records held after it.
+    pub moved_at: Vec<(u32, u32)>,
     pub stamped: Vec<&'static str>,
     /// Why it began again: each time's flags and the cycle read.
     pub why: Vec<(u32, Vec<Flag>)>,
@@ -264,6 +267,7 @@ pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut size
         let mut b = Build::new(gpu, t, (tables, sizes.caps, sizes.block_cap), sizes.lit())?;
         let mut run = b.plan(gpu, kit, t, sizes.bounds)?;
         grew.stamped = b.seeded(gpu, kit, (&run.0, &run.1));
+        grew.moved_at.clear();
         let (mut late, mut prev, mut last) = (Late::new(gpu)?, None::<Vec<u32>>, None::<Vec<u32>>);
         let mut pending = std::collections::VecDeque::new();
         grew.over = Over::default();
@@ -305,7 +309,11 @@ pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut size
                 continue 'begin;
             }
             let clock = std::time::Instant::now();
-            if let Some(next) = ahead(sizes, &read, last.as_deref()) {
+            // A move makes room for the next cycle; after the last there
+            // is none, and a compaction then would leave the build holding
+            // the last census's rows.
+            let next = (cycle < upto).then(|| ahead(sizes, &read, last.as_deref())).flatten();
+            if let Some(next) = next {
                 b = b.moved(gpu, (t, tables), (sizes, next))?;
                 let plan = b.plan(gpu, kit, t, next.bounds)?;
                 let mut e = gpu.encoder(&Default::default());
@@ -316,6 +324,7 @@ pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut size
                 if b.stashed.is_some() {
                     b.compact(gpu, kit, &run.0.census)?;
                 }
+                grew.moved_at.push((cycle, b.retire.rec_n));
             }
             grew.moving += clock.elapsed().as_secs_f64();
             prev = last.replace(read);

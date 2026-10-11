@@ -140,3 +140,48 @@ fn the_node_table_with_retirement_is_the_same_on_every_context() {
     }
     assert!(differ.is_empty(), "the node table differs: {differ:?}");
 }
+
+/// A move on the last cycle would compact after that cycle's census was
+/// read, and the build would hold the rows before it. The oak at 10 and
+/// the ordinary at 8, grown from 384-row phytomer tables, each moved after
+/// its last cycle and recorded rows there: neither moves after its last
+/// cycle, each holds the rows its unit records reach, and each settles
+/// exact as the CPU's laid tree in every word.
+#[test]
+fn a_build_holds_its_compacted_rows_after_its_last_cycle() {
+    let _held = super::super::whole_tree();
+    let Some((gpu, kit)) = device(Arith::Exact) else {
+        return;
+    };
+    let k = Kernels::new(&gpu, Arith::Exact);
+    let mut differ = Vec::new();
+    for (preset, name, age) in [(Preset::OregonWhiteOak, "oregon-white-oak", 10), (Preset::Ordinary, "ordinary", 8)] {
+        let g = grown(preset, age, 42);
+        let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
+        let mut sizes = Sizes::least();
+        (sizes.compact, sizes.caps.phyts) = (true, 384);
+        let (b, _, grew) = grow(&gpu, &kit, &t, &g.tables, (sizes, age)).expect("a build");
+        assert!(grew.moved_at.iter().all(|m| m.0 < age), "{name} {age}: moved after its last cycle: {:?}", grew.moved_at);
+        let caps = b.state.caps;
+        let units = read_words(&gpu, &b.state.units, 0, super::state::UNITS * u64::from(caps.units)).expect("a readback");
+        let at = |c: u64, u: usize| units[c as usize * caps.units as usize + u];
+        let reached = (0..b.held.units as usize)
+            .filter(|&u| at(super::state::U_FIRST, u) & 0x8000_0000 == 0)
+            .map(|u| at(super::state::U_FIRST, u) + at(super::state::U_COUNT, u))
+            .max()
+            .unwrap_or(0);
+        println!("{name} {age}: the units reach {reached} arena rows, the build holds {}; {} records", b.held.phyts, b.retire.rec_n);
+        assert_eq!(b.held.phyts, reached, "{name} {age}: the build holds the rows the compaction kept");
+        let s = settle(&gpu, (&kit, &k), (&b, &t), (&constants(&g), SettleTo::Laid)).expect("a settle");
+        let dev = s.snapshot(&gpu, &b.state, SettleTo::Laid).expect("a readback");
+        let capture = telperion_space::grow_capture_settled_at(&g.species, g.request, SettleTo::Laid).expect("the CPU's tree");
+        let cpu = cpu_settled(&Cap(&capture), SettleTo::Laid);
+        let mut a = exact(&dev.0, &cpu.0);
+        beside_agree(&mut a, &dev.1, &cpu.1);
+        if !a.exact() {
+            println!("{}", a.report());
+            differ.push(name);
+        }
+    }
+    assert!(differ.is_empty(), "the settled trees are not the CPU's: {differ:?}");
+}
