@@ -106,6 +106,15 @@ fn census(c: &Census) {
         "  records: busiest cycle {} holds {} active apexes against {} axes and {} phytomers of history; at the end {} active, {} axes, {} phytomers",
         busy.cycle, busy.active, busy.axes, busy.phytomers, last.active, last.axes, last.phytomers
     );
+    // fn-256: what a busy cycle's device time scales to over the run.
+    let sum = |f: &dyn Fn(&telperion_space::Cycle) -> usize| c.cycles.iter().map(f).sum::<usize>();
+    let n = c.cycles.len();
+    let at = |k: usize| &c.cycles[n - k];
+    println!(
+        "  over the run: active {}, leaves laid {}, axes held {}; cycle {}: active {}, axes {}; cycle {}: leaves {}",
+        sum(&|c| c.active), sum(&|c| c.leaves), sum(&|c| c.axes),
+        at(1).cycle, at(1).active, at(1).axes, at(2).cycle, at(2).leaves
+    );
     println!(
         "  retired {} subtrees; grown hierarchy: {} axes; ancestors p50/p99/max {:?} (busiest cycle's apexes {:?}); attachments {:?}",
         c.retired, c.axes, c.depth_all, c.depth_busy, c.attachments
