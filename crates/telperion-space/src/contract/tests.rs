@@ -102,4 +102,11 @@ fn near_certain_chances_keep_their_distance() {
     assert!(kept(dead, context, ONE * 3 / 4), "half shed: over three quarters is kept");
     let wait = wake_ticks(0, 5e8, 45_035_996).unwrap() as f64 / cycle as f64;
     assert!((wait - 2.5).abs() < 0.01, "{wait} years");
+    // The other end: a draw a place under one waits its finite 36.74 nats.
+    let wait = wake_ticks(0, 1.0, ONE - 1).unwrap() as f64 / cycle as f64;
+    assert!((wait - 36.7368).abs() < 0.01, "{wait} years");
+    // Unconditioned, a near-certain death keeps its chance of living.
+    let dead = neg_log2_of(1.0 - 1e-8);
+    assert!(kept(dead, None, ONE - 45_035_996), "a draw past the death's chance keeps");
+    assert!(!kept(dead, None, ONE - 135_107_988), "one under it sheds");
 }

@@ -392,7 +392,10 @@ fn above(d: vec2<u32>, own: f32) -> f32 {
 
 // D11: the waking ticks, or all ones where it never wakes.
 fn wake_ticks(delay: vec2<u32>, per: f32, d: vec2<u32>) -> vec2<u32> {
-    let nats = neg_ln1m(to_f32(d) * pow2(-53));
+    var nats = neg_ln1m(to_f32(d) * pow2(-53));
+    if lt64(vec2<u32>(0u, 0x100000u), d) {
+        nats = -lnc(to_f32(sub64(ONE53, d)) * pow2(-53));
+    }
     let wait = nats * per * pow2(20);
     if !(wait < pow2(62)) {
         return vec2<u32>(0xffffffffu);

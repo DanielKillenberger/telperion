@@ -219,8 +219,14 @@ pub(crate) fn wake(zone: &Zone, d: Draw) -> f64 {
 /// D11 on the executors' values: `delay` ticks, `per` years a nat; the
 /// waking time in ticks, the wait floored to a tick, none past any age.
 pub fn wake_ticks(delay: u64, per: f32, d: u64) -> Option<u64> {
-    // -ln(1 - u), a small uniform kept whole (fn-254 review).
-    let nats = neg_ln1m(d as f32 * (1.0 / ONE as f32));
+    // -ln(1 - u): a small uniform kept whole by the series, a large one
+    // from its integer complement, which its f32 would round to one
+    // (fn-254 review).
+    let nats = if d > ONE / 2 {
+        -ln((ONE - d) as f32 * (1.0 / ONE as f32))
+    } else {
+        neg_ln1m(d as f32 * (1.0 / ONE as f32))
+    };
     let wait = nats * per * CYCLE as f32;
     (wait < 4_611_686_018_427_387_904.0).then(|| delay + wait as u64)
 }
@@ -234,18 +240,27 @@ pub fn wake_ticks(delay: u64, per: f32, d: u64) -> Option<u64> {
 /// no difference of near-equal chances rounds it away (fn-254 review);
 /// none where nothing could die.
 pub fn kept(dead: f32, context: Option<f32>, d: u64) -> bool {
-    let all_die = match context {
-        None => prob(dead),
+    // The chance all die and its complement, the chance one lives:
+    // `2^-dead`, `1 - 2^-dead`; conditioned, each over `1 - 2^-(dead + r)`.
+    let (all_die, lives) = match context {
+        None => (prob(dead), fails(dead)),
         Some(r) => {
             let rest = fails(and(dead, r));
             if rest <= 0.0 {
-                0.0
+                (0.0, 1.0)
             } else {
-                (prob(dead) * fails(r) / rest).min(1.0)
+                (prob(dead) * fails(r) / rest, fails(dead) / rest)
             }
         }
     };
-    d >= threshold(all_die)
+    // The threshold from whichever is the smaller, so a near-certain death
+    // keeps its small chance of living (fn-254 review).
+    let t = if all_die <= 0.5 {
+        threshold(all_die)
+    } else {
+        ONE - floor53(lives.min(1.0))
+    };
+    d >= t
 }
 
 /// `-log2` of a chance, for a sum: `INF` for none.

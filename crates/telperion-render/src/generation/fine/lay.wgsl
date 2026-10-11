@@ -161,7 +161,9 @@ fn sag_turn(lever: vec3<f32>, cap: f32, sag: f32, radius: f32, len: f32) -> f32 
     let c = sag / (r2 * r2);
     // By its sine and cosine, as `sag::turn` takes it: a small lean near
     // upright keeps its size.
-    let start = atan2(length(lever.xy), -lever.z);
+    // Below the f32 nearest pi, which lies above it, so tan(start / 2)
+    // never turns negative and the wood never turns past hanging.
+    let start = min(atan2(length(lever.xy), -lever.z), 3.1415925);
     let low = asin(min(cap / reach, 1.0));
     let high = PI - low;
     var fall = start;

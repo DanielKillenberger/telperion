@@ -49,10 +49,13 @@ pub(crate) fn unit_w(v: W3) -> (W3, f32) {
 
 /// `2 atan(tan(fall / 2) e^-k)` for `fall` in [0, 1/2] turn and `x = k
 /// log2 e`, taken without a tangent: `2 atan2(sin(fall / 2) e^-k, cos(fall
-/// / 2))`. An upright lever (`fall` a half turn) stays a half turn;
+/// / 2))`. An upright lever (`fall` a half turn) stays a half turn: the
+/// half angle's cosine is never below none, though f32's cosine of a
+/// quarter turn is (fn-254 review: the wood once turned past hanging);
 /// `atan2(0, 0)` is none.
 fn settle(fall: f32, x: f32) -> f32 {
     let (c, s) = sincos(fall * 0.5);
+    let c = c.max(0.0);
     let y = s * exp2(-x);
     if y == 0.0 && c <= 0.0 {
         return 0.0;

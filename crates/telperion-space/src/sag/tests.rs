@@ -29,6 +29,17 @@ fn old(lever: Vec3, cap: f64, sag: f64, radius: f64, length: f64) -> f64 {
     }
     start - settle(fall, left)
 }
+/// A lever a hair off upright under a strong load never turns past
+/// hanging, backwards (fn-254 review: once nearly minus pi).
+#[test]
+fn a_near_upright_lever_never_turns_backwards() {
+    let l = Vec3::new(1e-8, 0.0, 1.0);
+    let lw = Load::of(0.0, l).moment;
+    let cap = unit_w(torque(Load::of(0.0, Vec3::new(0.1, 0.0, 0.0)).moment)).1;
+    let got = turn(lw, cap, 3e-7, 0.01, 1.0);
+    assert!((0.0..=0.5).contains(&got), "{got} turns");
+}
+
 /// Random levers, caps, stiffnesses and lengths: the turn in f32 is the
 /// f64 form's to within 1e-4 rad.
 #[test]
