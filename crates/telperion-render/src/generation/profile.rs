@@ -18,6 +18,11 @@ thread_local! {
     static ON: RefCell<Option<Profile>> = const { RefCell::new(None) };
 }
 
+/// Whether a profile is on, every pass stamped.
+pub(crate) fn on() -> bool {
+    ON.with_borrow(|p| p.is_some())
+}
+
 /// Starts recording every pass on this thread; false where the device
 /// has no timestamps.
 pub(crate) fn start(gpu: &Gpu) -> bool {

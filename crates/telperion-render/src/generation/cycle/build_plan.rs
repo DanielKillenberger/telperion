@@ -7,7 +7,9 @@ use super::build::{Build, Kit, Tables};
 use super::census as c;
 use super::device::SEED;
 use super::glue;
-use super::plan::{Builder, PassId, Plan, Size, Step, MAXX};
+use super::gate::{rec, Limits, Scan};
+use super::plan_scan::levels_needed;
+use super::plan::{Builder, Gated, PassId, Plan, Size, Step, MAXX};
 use super::plan_hier::HierBounds;
 use super::plan_lay::LayBounds;
 use super::plan_scan::Fine;
@@ -56,11 +58,11 @@ impl Default for Bounds {
 /// A cycle's recorded phases: the seed; the start; the hierarchy's step
 /// and sums by the parity of its lists; the units; the layout and light.
 pub(super) struct Phases {
-    pub seed: Vec<Step>,
-    pub start: Vec<Step>,
-    pub hier: [Vec<Step>; 2],
-    pub units: Vec<Step>,
-    pub sketch: Vec<Step>,
+    pub seed: Vec<Gated>,
+    pub start: Vec<Gated>,
+    pub hier: [Vec<Gated>; 2],
+    pub units: Vec<Gated>,
+    pub sketch: Vec<Gated>,
     _held: Vec<Fine>,
 }
 
@@ -71,7 +73,7 @@ impl Build {
         let s = self.state.caps;
         let words = [
             w.n, MAXX * 64, w.cycle, w.laid, s.axes, s.units, s.phyts, 0, w.live_stride, s.next_at(), s.next, w.first, w.leaves,
-            u32::from(w.from_in), w.live, 0,
+            u32::from(w.from_in), w.live, w.also,
         ];
         let slot = b.slot(&words);
         let mut n = E::C(w.n);
@@ -120,9 +122,19 @@ impl Build {
         for (to, from) in snap {
             b.count(to, E::At(from));
         }
+        // Words only a recorded round or pass writes, none until it does.
+        for w in (0..c::ROUNDS).map(|r| c::UNPLACED + r).chain((0..c::ROUNDS * c::PASSES).map(|k| c::PASS_LEFT + k)) {
+            b.count(w, E::C(0));
+        }
         b.point();
         let w = glue::Words { live_stride: self.sums.live_stride, ..glue::Words::default() };
         self.glue_step(b, kit, (glue::RELIVE, &self.spare, &self.flags), w, &[(0, E::At(c::LIVE0))]);
+        // The scans' levels the living and the laid axes need, guarded
+        // before any point sizes them.
+        let (live, laid) = (E::At(c::LIVE0), E::At(c::LAID0));
+        let most = |cap: u32| super::gate::levels_of(cap) as usize;
+        b.flag(c::Flag::LiveScan, levels_needed(&live, most(self.sums.live_stride)).gt(E::At(rec::scan(Scan::Live))));
+        b.flag(c::Flag::GrewScan, levels_needed(&laid, most(self.state.caps.axes)).gt(E::At(rec::scan(Scan::Grew))));
     }
 
     /// The whole cycle recorded under `bounds`.
@@ -132,7 +144,7 @@ impl Build {
         let seed = b.take();
         self.plan_start(&mut b, kit);
         let start = b.take();
-        let mut hier: [Vec<Step>; 2] = Default::default();
+        let mut hier: [Vec<Gated>; 2] = Default::default();
         b.phase = "balance and allotment";
         for (parity, phase) in hier.iter_mut().enumerate() {
             self.plan_step(&mut b, kit, bounds.hier, parity);
@@ -154,8 +166,8 @@ impl Build {
 
 impl Phases {
     /// Cycle `cycle` of a tree of `age`, as recorded.
-    pub(super) fn cycle(&self, cycle: u32, age: u32) -> Vec<&[Step]> {
-        let mut out: Vec<&[Step]> = vec![&self.start];
+    pub(super) fn cycle(&self, cycle: u32, age: u32) -> Vec<&[Gated]> {
+        let mut out: Vec<&[Gated]> = vec![&self.start];
         if cycle > 1 {
             out.push(&self.hier[(cycle as usize) % 2]);
         }
@@ -167,8 +179,40 @@ impl Phases {
     }
 }
 
-/// `steps` recorded into `e`, each dispatch's phase onto `phases`.
-pub(super) fn record(kit: &Kit, plan: &Plan, e: &mut wgpu::CommandEncoder, steps: &[Step], phases: &mut Vec<&'static str>) {
+/// `steps` the cycle's `limits` allow recorded into `e`, each dispatch's
+/// phase onto `phases`. Unprofiled, consecutive dispatches share a
+/// compute pass.
+pub(super) fn record(kit: &Kit, (plan, limits): (&Plan, &Limits), e: &mut wgpu::CommandEncoder, steps: &[Gated], phases: &mut Vec<&'static str>) {
+    let allowed: Vec<&Step> = steps.iter().filter(|g| g.gate.iter().all(|c| limits.allows(c))).map(|g| &g.step).collect();
+    if super::super::profile::on() {
+        return stamped(kit, plan, e, &allowed, phases);
+    }
+    let mut k = 0;
+    while k < allowed.len() {
+        let run = allowed[k..].iter().take_while(|s| matches!(s, Step::Dispatch { .. })).count();
+        if run == 0 {
+            stamped(kit, plan, e, &allowed[k..k + 1], phases);
+            k += 1;
+            continue;
+        }
+        let mut pass = e.begin_compute_pass(&wgpu::ComputePassDescriptor { label: Some("cycle"), timestamp_writes: None });
+        for step in &allowed[k..k + run] {
+            if let Step::Dispatch { pass: id, entry, bind, size, phase } = step {
+                let groups = match size {
+                    Size::Direct(n) => Ok(*n),
+                    Size::Indirect(at) => Err((&*plan.args as &wgpu::Buffer, *at)),
+                };
+                kit.pass(*id).encode(&mut pass, (bind, *entry), groups);
+                phases.push(phase);
+            }
+        }
+        drop(pass);
+        k += run;
+    }
+}
+
+/// `steps` recorded each in its own stamped pass.
+fn stamped(kit: &Kit, plan: &Plan, e: &mut wgpu::CommandEncoder, steps: &[&Step], phases: &mut Vec<&'static str>) {
     for step in steps {
         match step {
             Step::Dispatch { pass, entry, bind, size, phase } => {

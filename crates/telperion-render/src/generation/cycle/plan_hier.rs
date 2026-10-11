@@ -5,13 +5,14 @@
 //! by block level (up to the levels' bound), and their words into the
 //! pencils. A count past a bound raises its flag.
 use super::build::{Build, Kit, Tables};
-use super::census::{self as c, Flag};
+use super::census::{self as c, Flag, PASSES, PASS_LEFT};
+use super::gate::{rec, Cond, Scan};
 use super::glue;
 use super::hier_build::{R_LVL_START, X_FAULT, X_GENS, X_LEVELS, X_UNPLACED};
 use super::hier_device::{self as hd, BUD_BLOCK, CLEARED, FROM_TREE, V_FLAG};
 use super::hier_plan as hp;
 use super::plan::{Builder, PassId, Size, Step, MAXX};
-use super::plan_scan::levelled;
+use super::plan_scan::{levelled, levels_needed};
 use super::vm::E;
 
 /// How far the hierarchy's loops are recorded: generations a step
@@ -30,10 +31,11 @@ impl Build {
         b.bind(&kit.hier.build, slot, &rest)
     }
 
-    /// The first `rows` rows of the counts' column `col`, none.
-    fn clear_rows(&self, b: &mut Builder, kit: &Kit, col: u64, rows: E) {
+    /// The first `rows` rows of the counts' columns `cols`, none.
+    fn clear_rows(&self, b: &mut Builder, kit: &Kit, cols: (u64, Option<u64>), rows: E) {
         let s = self.state.caps.axes;
-        let w = glue::Words { first: col as u32 * s, live_stride: self.sums.live_stride, ..glue::Words::default() };
+        let also = cols.1.map_or(0, |c| c as u32 * s);
+        let w = glue::Words { first: cols.0 as u32 * s, also, live_stride: self.sums.live_stride, ..glue::Words::default() };
         self.glue_step(b, kit, (glue::CLEAR, &self.hier.counts, &self.spare), w, &[(0, rows)]);
     }
 
@@ -53,18 +55,24 @@ impl Build {
         let over_new = b.groups(new.clone().div(E::C(64)));
         let w = glue::Words { live_stride: self.sums.live_stride, ..glue::Words::default() };
         self.glue_step(b, kit, (glue::TREE, &self.tree, &self.spare), w, &[(0, n.clone()), (3, n.clone())]);
-        for col in [hp::C_KIDS, hp::C_KID_FILL] {
-            self.clear_rows(b, kit, col, n.clone());
-        }
+        self.clear_rows(b, kit, (hp::C_KIDS, Some(hp::C_KID_FILL)), n.clone());
         b.step(Step::Clear { buffer: (*h.tally).clone(), at: 4 * X_GENS, bytes: Some(4) });
         let build = |k| (PassId::HierBuild, k);
         b.dispatch(build(hp::BEGIN), head_bind.clone(), Size::Direct(1));
         b.dispatch(build(hp::DEPTH), head_bind, over_new);
         b.tally(&h.tally, 4 * X_GENS, c::GENS, 4);
+        // The step's guards in a point of their own: a flag raised halts
+        // the dispatches sized at the next.
         b.point();
-        b.flag(Flag::HierGens, E::At(c::GENS).gt(E::C(bound.gens)));
+        b.flag(Flag::HierGens, E::At(c::GENS).gt(E::At(rec::ROUNDS)));
         let blocks = E::At(c::BLOCKS0).add(new.clone());
         let levels = E::At(c::LEVELS0).add(E::At(c::GENS));
+        let most = super::gate::levels_of(s) as usize;
+        let past = [(Scan::Kids, &n), (Scan::Blocks, &blocks), (Scan::Open, &new), (Scan::Levels, &levels)]
+            .into_iter()
+            .fold(E::C(0), |a, (k, rows)| a.max(levels_needed(rows, most).gt(E::At(rec::scan(k)))));
+        b.flag(Flag::HierScans, past);
+        b.point();
         // A round past the step's generations places nothing: its
         // dispatches are empty.
         let mut rounds = Vec::new();
@@ -78,40 +86,49 @@ impl Build {
             rounds.push((self.hier_bind(b, kit, slot, parity), over, active));
         }
         let groups = |b: &mut Builder, e: E| b.groups(e.div(E::C(64)));
-        let (g_new, g_n, g_old, g_blocks) = (groups(b, new.clone()), groups(b, n.clone()), groups(b, old), groups(b, blocks.clone()));
-        let g_levels = b.groups(levels.clone());
-        let scan = |b: &mut Builder, col: u64, rows: E, to: u64| {
+        let (g_new, g_n) = (groups(b, new.clone()), groups(b, n.clone()));
+        let _ = old;
+        let scan = |b: &mut Builder, (col, kind): (u64, Scan), rows: E, to: u64| {
             let at = col * u64::from(s);
-            levelled(b, &kit.hier.scan, (&h.counts, at, s), &h.sums, (&h.tally, to), rows);
+            levelled(b, (&kit.hier.scan, kind), (&h.counts, at, s), &h.sums, (&h.tally, to), rows);
         };
-        scan(b, hp::C_KIDS, n.clone(), hp::X_KIDS);
+        scan(b, (hp::C_KIDS, Scan::Kids), n.clone(), hp::X_KIDS);
         let base = rounds[0].0.clone();
         b.dispatch(build(hp::KID_PLACE), base.clone(), g_new);
         b.dispatch(build(hp::KID_MERGE), base.clone(), g_n);
+        assert!(rounds.len() <= c::ROUNDS && bound.passes as usize <= PASSES, "the passes the census holds");
         for (r, (bind, over, active)) in rounds.iter().enumerate() {
             let (rows, fresh) = (active.clone().sel(blocks.clone(), E::C(0)), active.clone().sel(new.clone(), E::C(0)));
-            for _ in 0..bound.passes {
-                for col in [hp::C_JOIN, hp::C_JOIN_FILL] {
-                    self.clear_rows(b, kit, col, rows.clone());
-                }
+            b.enter(Cond::Round(r as u32));
+            for p in 0..bound.passes {
+                b.enter(Cond::Pass(p));
+                self.clear_rows(b, kit, (hp::C_JOIN, Some(hp::C_JOIN_FILL)), rows.clone());
                 b.step(Step::Clear { buffer: (*h.tally).clone(), at: 4 * X_UNPLACED, bytes: Some(4) });
                 b.dispatch(build(hp::TARGET), bind.clone(), *over);
-                scan(b, hp::C_JOIN, rows.clone(), hp::X_JOIN);
+                scan(b, (hp::C_JOIN, Scan::Blocks), rows.clone(), hp::X_JOIN);
                 b.dispatch(build(hp::JOIN_PLACE), bind.clone(), *over);
                 b.dispatch(build(hp::DECIDE), bind.clone(), *over);
-                scan(b, hp::C_OPEN, fresh.clone(), hp::X_OPEN);
+                scan(b, (hp::C_OPEN, Scan::Open), fresh.clone(), hp::X_OPEN);
                 b.dispatch(build(hp::ASSIGN), bind.clone(), *over);
                 b.dispatch(build(hp::FOLLOW), bind.clone(), *over);
                 b.dispatch(build(hp::ROUND_END), bind.clone(), Size::Direct(1));
+                b.tally(&h.tally, 4 * X_UNPLACED, PASS_LEFT + PASSES * r + p as usize, 4);
+                b.leave();
             }
             b.tally(&h.tally, 4 * X_UNPLACED, c::UNPLACED + r, 4);
+            b.leave();
         }
-        self.clear_rows(b, kit, hp::C_MEMBERS, blocks.clone());
-        self.clear_rows(b, kit, hp::C_MEMBER_FILL, blocks.clone());
-        self.clear_rows(b, kit, hp::C_LEVEL, levels.clone());
+        b.point();
+        let unplaced = (0..bound.gens as usize).fold(E::C(0), |a, r| a.max(E::At(c::UNPLACED + r)));
+        b.flag(Flag::HierPasses, unplaced);
+        b.point();
+        let (g_new, g_old, g_blocks) = (groups(b, new.clone()), groups(b, E::At(c::BUILT)), groups(b, blocks.clone()));
+        let g_levels = b.groups(levels.clone());
+        self.clear_rows(b, kit, (hp::C_MEMBERS, Some(hp::C_MEMBER_FILL)), blocks.clone());
+        self.clear_rows(b, kit, (hp::C_LEVEL, None), levels.clone());
         b.dispatch(build(hp::MEMBER_COUNT), base.clone(), g_new);
-        scan(b, hp::C_MEMBERS, blocks, hp::X_MEMBERS);
-        scan(b, hp::C_LEVEL, levels, hp::X_LEVEL);
+        scan(b, (hp::C_MEMBERS, Scan::Blocks), blocks, hp::X_MEMBERS);
+        scan(b, (hp::C_LEVEL, Scan::Levels), levels, hp::X_LEVEL);
         for (entry, size) in [(hp::MEMBER_PLACE, g_new), (hp::MEMBER_RANK, g_new), (hp::MEMBER_OLD, g_old), (hp::MEMBER_NEW, g_new), (hp::MEMBER_START, g_blocks), (hp::LEVEL_MERGE, g_levels)] {
             b.dispatch(build(entry), base.clone(), size);
         }
@@ -121,9 +138,7 @@ impl Build {
         b.tally(&h.tally, 4 * X_LEVELS as u64, c::LEVELS, 4);
         b.tally(&h.tally, 4 * X_FAULT as u64, c::HIER_FAULT, 4);
         b.point();
-        let unplaced = (0..bound.gens as usize).fold(E::C(0), |a, r| a.max(E::At(c::UNPLACED + r)));
-        b.flag(Flag::HierPasses, unplaced);
-        b.flag(Flag::HierLevels, E::At(c::LEVELS).gt(E::C(bound.levels)));
+        b.flag(Flag::HierLevels, E::At(c::LEVELS).gt(E::At(rec::LEVELS)));
         b.flag(Flag::HierFault, E::At(c::HIER_FAULT));
         b.count(c::BUILT, E::At(c::LAID0));
     }
@@ -157,29 +172,30 @@ impl Build {
             }
             let width = E::At(c::LVL + l as usize + 1).sub(E::At(c::LVL + l as usize));
             let size = b.groups(E::At(c::LEVELS).gt(E::C(l)).sel(width, E::C(0)));
-            levels.push((self.sums_bind(b, kit, slot, parity), size));
+            levels.push((self.sums_bind(b, kit, slot, parity), size, Cond::Level(l)));
         }
+
         let apexes = b.groups(live.clone().div(E::C(64)));
         let partials = b.groups(live.clone().div(E::C(BUD_BLOCK)).max(E::C(1)));
         let (base, sums) = (levels[0].0.clone(), |k| (PassId::HierSums, k));
         b.dispatch(sums(hd::MARK), base.clone(), apexes);
-        for (bind, size) in levels.iter().rev() {
-            b.dispatch(sums(hd::TOTALS), bind.clone(), *size);
-        }
-        for (bind, size) in &levels {
-            b.dispatch(sums(hd::WALK), bind.clone(), *size);
-        }
+        let sweep = |b: &mut Builder, entry: usize, up: bool| {
+            let order: Vec<_> = if up { levels.iter().rev().collect() } else { levels.iter().collect() };
+            for (bind, size, cond) in order {
+                b.enter(*cond);
+                b.dispatch(sums(entry), bind.clone(), *size);
+                b.leave();
+            }
+        };
+        sweep(b, hd::TOTALS, true);
+        sweep(b, hd::WALK, false);
         b.dispatch(sums(hd::SHED), base.clone(), apexes);
         let cap = m.live_stride;
-        levelled(b, &kit.hier.scan, (&m.live, V_FLAG * u64::from(cap), cap), &m.scan_sums, (&m.tally, 0), live);
+        levelled(b, (&kit.hier.scan, Scan::Live), (&m.live, V_FLAG * u64::from(cap), cap), &m.scan_sums, (&m.tally, 0), live);
         b.dispatch(sums(hd::COMPACT), base.clone(), apexes);
         b.dispatch(sums(hd::PRESENCE), base.clone(), apexes);
-        for (bind, size) in levels.iter().rev() {
-            b.dispatch(sums(hd::SUB), bind.clone(), *size);
-        }
-        for (bind, size) in &levels {
-            b.dispatch(sums(hd::SPLIT), bind.clone(), *size);
-        }
+        sweep(b, hd::SUB, true);
+        sweep(b, hd::SPLIT, false);
         b.dispatch(sums(hd::PARTIALS), base.clone(), partials);
         b.dispatch(sums(hd::COMBINE), base.clone(), Size::Direct(1));
         b.dispatch(sums(hd::SIZES), base, apexes);

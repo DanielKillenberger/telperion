@@ -11,6 +11,7 @@ mod census;
 mod columns;
 mod compare;
 mod device;
+mod gate;
 mod glue;
 mod grown;
 mod grown_compare;

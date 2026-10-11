@@ -7,8 +7,11 @@
 struct Cfg {
     first: u32,
     n: u32,
-    pad0: u32,
-    pad1: u32,
+    // The flags (`census.rs`): once one is raised, every dispatch a
+    // later point sizes is empty, so no kernel reads what a count past
+    // its capacity or bound left, and the host begins the build again.
+    flags_at: u32,
+    flags_n: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -20,6 +23,14 @@ struct Cfg {
 const STACK: u32 = 16u;
 // The longest program.
 const STEPS: u32 = 256u;
+
+fn halted() -> bool {
+    var any = 0u;
+    for (var f = 0u; f < cfg.flags_n; f++) {
+        any |= census[cfg.flags_at + f];
+    }
+    return any != 0u;
+}
 
 @compute @workgroup_size(64)
 fn vm_main(@builtin(global_invocation_id) id: vec3<u32>) {
@@ -59,7 +70,7 @@ fn vm_main(@builtin(global_invocation_id) id: vec3<u32>) {
             } else if op == 21u {
                 cfgs[k] = v;
             } else {
-                args[k] = v;
+                args[k] = select(v, 0u, halted());
             }
             continue;
         }

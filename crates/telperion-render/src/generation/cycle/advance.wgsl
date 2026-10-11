@@ -99,7 +99,7 @@ fn persists(key: vec2<u32>, pa: u32, cycle: u32, aborts: vec2<u32>) -> Persists 
     }
     let faded = presence(lead(aborts, ONE53, d), window_none(pa, cycle + 1u, 2u));
     let r = relayed(prow(pa, R_RELAY), key, window_none(pa, cycle + 1u, 0u));
-    return Persists(true, r + kept_apart((1.0 - r) * faded));
+    return Persists(true, r + exact_kept((1.0 - r) * faded));
 }
 
 // What a unit a lifespan's fraction cuts lays (`schedule::Unit::laid`):
@@ -233,16 +233,16 @@ fn advance(apex_in: Apex, cycle: u32) -> Op {
         }
         after = persists(decide, pa, cycle, aborts);
         failed = Failed(lived, lived_below, r, lead(survives, ONE53, d));
-        survive = kept_apart(r * kept32(apex.axis));
+        survive = exact_kept(r * kept32(apex.axis));
         share = lived;
         size = lived;
     } else {
         survive = presence(lead(vec2<u32>(0u), survives, d), window_none(pa, cycle, 1u));
         if relays {
             let r = relayed(t_failed, decide, window_whole(pa, cycle, u32(st.used)));
-            survive = r + kept_apart((1.0 - r) * survive);
+            survive = r + exact_kept((1.0 - r) * survive);
         }
-        survive = kept_apart(survive * kept32(apex.axis));
+        survive = exact_kept(survive * kept32(apex.axis));
     }
     let rec = push_unit(s, survive, share, size, shade_of(apex.axis));
     if dies {

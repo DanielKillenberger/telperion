@@ -39,7 +39,7 @@ fn laid(zat: u32, zk: vec2<u32>, n: u32, window: f32, share: u32, span: u32) -> 
             let t = threshold(left / p);
             if lt64(dl, t) {
                 let lead_p = presence(lead(vec2<u32>(0u), t, dl), window);
-                return Laid(j + 1u, true, kept_apart(p * lead_p));
+                return Laid(j + 1u, true, exact_kept(p * lead_p));
             }
         }
         return Laid(j, false, 0.0);
@@ -118,7 +118,7 @@ fn grow_unit(s: u32, pa: u32, unit_key: vec2<u32>, cycle: u32, share: u32, cut: 
                 let lpa = lived_pa(drew);
                 let window_l = window_none(lpa, cycle + 1u, 0u);
                 let lead_p = drawn_presence(table[zat + 5u], drew, place, window_l);
-                let made = kept_apart(lead_p * place_presence(zat, slot, place, window_l));
+                let made = exact_kept(lead_p * place_presence(zat, slot, place, window_l));
                 let made2 = array<vec2<u32>, 2>(real64(made), real64(reach(drew, 0u)));
                 sprout(place, lpa, cycle, LATERAL | (slot << 8u), vec2<u32>(axis, node), whorl, made2);
             }
@@ -155,7 +155,7 @@ fn sleep(zat: u32, node_key: vec2<u32>, s: u32, node: u32, rec: u32, cycle: u32,
         }
         let whole = shr64(years, 20u).x;
         let window = fw(table[zat + 13u] + cycle * n + pa);
-        let own = kept_apart(drawn_presence(start, pa, key, window) * place_presence(zat, slot, place, window));
+        let own = exact_kept(drawn_presence(start, pa, key, window) * place_presence(zat, slot, place, window));
         push_sleeper(array<u32, 14>(
             cycle + 1u + whole,
             fr(s, 0u),

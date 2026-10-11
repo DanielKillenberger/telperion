@@ -37,7 +37,8 @@ struct Cfg {
     leaves: u32,
     from_in: u32,
     live: u32,
-    pad0: u32,
+    // A second column `clear_main` clears, from this word (none: 0).
+    also: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -324,7 +325,8 @@ fn fresh_main(@builtin(global_invocation_id) id: vec3<u32>) {
     laid[PH_SIZE * cfg.phyts + r] = bitcast<u32>(1.0);
 }
 
-// The first `n` words of `aux` from `first`, none.
+// The first `n` words of `aux` from `first`, and from `also` where set,
+// none.
 @compute @workgroup_size(64)
 fn clear_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let k = index(id);
@@ -332,4 +334,7 @@ fn clear_main(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     aux[cfg.first + k] = 0u;
+    if cfg.also != 0u {
+        aux[cfg.also + k] = 0u;
+    }
 }

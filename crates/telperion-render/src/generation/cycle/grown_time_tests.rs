@@ -92,6 +92,51 @@ fn measured(gpu: &Gpu, kit: &Kit, (preset, name, age, seed): (Preset, &str, u32,
     for (phase, ms, n) in phases {
         println!("{label}: {phase:>24} {ms:9.2} ms in {n} dispatches");
     }
+    drop(b);
+    let mut walls = Vec::new();
+    for _ in 0..3 {
+        let started = Instant::now();
+        let (_, _, g) = grow(gpu, kit, &t, &g.tables, (sizes, age)).expect("a build");
+        walls.push((started.elapsed().as_secs_f64(), g.recording, g.waiting, g.moving));
+    }
+    walls.sort_by(|a, b| a.0.total_cmp(&b.0));
+    let (w, r, q, m) = walls[1];
+    println!("{label}: unstamped wall {w:.3} s (median of 3): recording {r:.3} s, waiting for the census {q:.3} s, moving {m:.3} s");
+    if std::env::var("CYCLE_KERNELS").is_ok() {
+        kernels(&label, &grew.stamped, &stamps);
+    }
+}
+
+/// Each kernel's stamped time, dispatches, and those under 10 µs, by
+/// phase, the costliest first (`CYCLE_KERNELS` set).
+fn kernels(label: &str, phases: &[&str], stamps: &[(String, f64, f64)]) {
+    let mut by: Vec<(String, f64, usize, usize)> = Vec::new();
+    for (phase, (kernel, a, z)) in phases.iter().zip(stamps) {
+        let (name, ms) = (format!("{phase} {kernel}"), (z - a) * 1e-6);
+        let tiny = usize::from(ms < 0.01);
+        match by.iter_mut().find(|k| k.0 == name) {
+            Some(k) => (k.1, k.2, k.3) = (k.1 + ms, k.2 + 1, k.3 + tiny),
+            None => by.push((name, ms, 1, tiny)),
+        }
+    }
+    by.sort_by(|a, b| b.1.total_cmp(&a.1));
+    for (name, ms, n, tiny) in by.iter().take(30) {
+        println!("{label}: kernel {name:>40} {ms:9.2} ms in {n} dispatches, {tiny} under 10 µs");
+    }
+}
+
+/// Telperion alone, plain then exact (`CYCLE_EXACT` set), for the
+/// performance pass.
+#[test]
+#[ignore = "a measurement"]
+fn telperion_is_timed() {
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else {
+        return;
+    };
+    let arith = if std::env::var("CYCLE_EXACT").is_ok() { Arith::Exact } else { Arith::Plain };
+    let kit = compiled(&gpu, arith);
+    measured(&gpu, &kit, (Preset::Telperion, "telperion", 82, 42), arith);
 }
 
 #[test]

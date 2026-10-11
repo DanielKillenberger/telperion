@@ -10,6 +10,7 @@
 //! section 6).
 use super::build_light::{Light, Lit};
 use super::build_plan::{record, Phases};
+use super::gate::{Limits, REC};
 use super::census as c;
 use super::columns::{packed, Cap};
 use super::hier_build::Hierarchy;
@@ -181,19 +182,22 @@ impl Build {
         gpu.queue.write_buffer(&plan.census, 0, bytemuck::cast_slice(&census));
         let mut e = gpu.encoder(&Default::default());
         let mut stamped = Vec::new();
-        record(kit, plan, &mut e, &phases.seed, &mut stamped);
+        let all = Limits::full(&super::build_plan::Bounds::default());
+        record(kit, (plan, &all), &mut e, &phases.seed, &mut stamped);
         gpu.submit([e.finish()]);
         stamped
     }
 
-    /// Cycle `cycle` recorded and submitted, its census sent back late.
-    pub(super) fn submit(&self, gpu: &Gpu, (kit, t): (&Kit, &Tables), (plan, phases): (&Plan, &Phases), (late, cycle): (&mut Late, u32)) -> Vec<&'static str> {
+    /// Cycle `cycle` recorded as far as `limits` allow and submitted, its
+    /// census sent back late.
+    pub(super) fn submit(&self, gpu: &Gpu, (kit, t): (&Kit, &Tables), (plan, phases, limits): (&Plan, &Phases, &Limits), (late, cycle): (&mut Late, u32)) -> Vec<&'static str> {
         gpu.queue.write_buffer(&plan.census, 4 * c::CYCLE as u64, bytemuck::bytes_of(&cycle));
+        gpu.queue.write_buffer(&plan.census, 4 * REC as u64, bytemuck::cast_slice(&limits.words()));
         gpu.queue.write_buffer(&self.sums.rows, 0, bytemuck::cast_slice(&t.rows_at(cycle)));
         let mut e = gpu.encoder(&Default::default());
         let mut stamped = Vec::new();
         for steps in phases.cycle(cycle, t.age) {
-            record(kit, plan, &mut e, steps, &mut stamped);
+            record(kit, (plan, limits), &mut e, steps, &mut stamped);
         }
         late.copy(&mut e, plan, cycle);
         gpu.submit([e.finish()]);
@@ -272,7 +276,7 @@ impl Late {
         let (index, receive) = self.pending[at].take().expect("a cycle's census sent");
         let wait = wgpu::PollType::Wait { submission_index: Some(index), timeout: None };
         gpu.device.poll(wait).map_err(|e| super::super::io::error(e.to_string()))?;
-        futures_executor_block(receive).map_err(|e| super::super::io::error(e.to_string()))?;
+        mapped(gpu, receive)?;
         let words = {
             let view = self.staging[at].slice(..).get_mapped_range().map_err(|e| super::super::io::error(e.to_string()))?;
             bytemuck::cast_slice(&view).to_vec()
@@ -282,7 +286,17 @@ impl Late {
     }
 }
 
-/// A mapping's result, which the poll has delivered.
-fn futures_executor_block(r: Mapped) -> std::result::Result<(), String> {
-    pollster::block_on(r).map_err(|e| e.to_string())?.map_err(|e| e.to_string())
+/// A mapping's result: delivered by the poll that waited for its cycle,
+/// or by the next that waits for every submission.
+fn mapped(gpu: &Gpu, mut r: Mapped) -> Result<()> {
+    let error = |e: String| super::super::io::error(e);
+    // cap: the second poll waits for every submission, whose mapping it delivers.
+    for _ in 0..2 {
+        match r.try_recv() {
+            Ok(Some(done)) => return done.map_err(|e| error(e.to_string())),
+            Ok(None) => gpu.device.poll(wgpu::PollType::wait_indefinitely()).map_err(|e| error(e.to_string())).map(drop)?,
+            Err(e) => return Err(error(e.to_string())),
+        }
+    }
+    Err(error("a census mapping the device never delivered".into()))
 }

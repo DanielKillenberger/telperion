@@ -10,6 +10,7 @@ use super::device::{CYCLE, FLAG, GATHER, T_LIST, T_UNITS, T_UNITS_B, T_WAKE, T_W
 use super::glue;
 use super::plan::{Builder, PassId, MAXX};
 use super::plan_scan::{fine, Fine};
+use super::gate::{rec, Cond};
 use super::vm::E;
 use crate::Result;
 
@@ -61,11 +62,12 @@ impl Build {
     pub(super) fn plan_units(&self, b: &mut Builder, kit: &Kit, t: &Tables, (ranges, range): (u32, u32)) -> Result<Vec<Fine>> {
         b.point();
         let live = E::At(c::LIVE);
+        b.flag(Flag::UnitRanges, live.clone().gt(E::At(rec::UNITS).mul(E::C(range))));
+        b.point();
         let laid = E::At(c::LAID0);
         let w = glue::Words { n: 0, live_stride: self.sums.live_stride, ..glue::Words::default() };
         let inputs = [(0, live.clone().max(laid.clone())), (3, laid.clone()), (13, laid.gt(E::C(0)).sel(E::C(0), E::C(1))), (14, live.clone())];
         self.glue_step(b, kit, (glue::INPUTS, &self.inputs, &self.spare), w, &inputs);
-        b.flag(Flag::UnitRanges, live.clone().gt(E::C(ranges * range)));
         let mut binds = Vec::new();
         for emit in 0..2 {
             for r in 0..ranges {
@@ -84,8 +86,10 @@ impl Build {
         }
         let unit = |k| (PassId::Units, k);
         let (count, emitted) = binds.split_at(ranges as usize);
-        for (bind, size) in count {
+        for (r, (bind, size)) in count.iter().enumerate() {
+            b.enter(Cond::Units(r as u32));
             b.dispatch(unit(CYCLE), bind.clone(), *size);
+            b.leave();
         }
         let lists = &self.state.lists;
         let (n_live, n_sleep) = (self.state.caps.next, self.state.caps.sleepers);
@@ -95,8 +99,10 @@ impl Build {
             fine(b, scan, a, (live.clone(), n_live, 4, 4), (lists, T_UNITS as u64))?,
             fine(b, scan, b_at, (live.clone(), n_live, 4, 4), (lists, T_UNITS_B as u64))?,
         ];
-        for (bind, size) in emitted {
+        for (r, (bind, size)) in emitted.iter().enumerate() {
+            b.enter(Cond::Units(r as u32));
             b.dispatch(unit(CYCLE), bind.clone(), *size);
+            b.leave();
         }
         b.dispatch(unit(FLAG), wake[0].0.clone(), wake[0].1);
         held.push(fine(b, scan, a, (sleepers.clone(), n_sleep, 4, 1), (lists, T_LIST as u64))?);

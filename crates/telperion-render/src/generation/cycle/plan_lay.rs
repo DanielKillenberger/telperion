@@ -12,6 +12,7 @@ use super::lay_device::{self as ld, DEEP, T_DEEP, T_FAULT};
 use super::light_program::{SWEEP_WG, SWEEP_WORK};
 use super::plan::{Builder, PassId, Size, Step, MAXX};
 use super::plan_scan::{fine, levelled, Fine};
+use super::gate::{rec, Cond, Scan};
 use super::vm::E;
 use crate::Result;
 
@@ -55,7 +56,7 @@ impl Build {
         let w = glue::Words { live_stride: self.sums.live_stride, ..glue::Words::default() };
         let mark = [(0, live0.clone()), (14, live0), (3, laid0.clone())];
         self.glue_step(b, kit, (glue::GREW_MARK, &self.flags, &self.spare), w, &mark);
-        levelled(b, &kit.hier.scan, (&self.flags, u64::from(s), s), &self.scan_sums, (&self.scan_tally, 0), laid0.clone());
+        levelled(b, (&kit.hier.scan, Scan::Grew), (&self.flags, u64::from(s), s), &self.scan_sums, (&self.scan_tally, 0), laid0.clone());
         let gather = [(0, laid0.clone()), (3, laid0)];
         self.glue_step(b, kit, (glue::GREW_GATHER, &self.flags, &self.layout.lists), w, &gather);
         b.tally(&self.scan_tally, 0, c::GREW, 4);
@@ -68,7 +69,9 @@ impl Build {
             let left = grew.clone().sub(E::C(r * range)).min(E::C(range));
             let size = b.groups(left.div(E::C(64)));
             let bind = self.lay_bind(b, kit, slot);
+            b.enter(Cond::Draw(r));
             b.dispatch(lay(ld::DRAW), bind, size);
+            b.leave();
         }
         let over_new = b.groups(new.clone().div(E::C(64)));
         let slot = self.lay_slot(b, (new.clone(), 0, 0, 0));
@@ -79,20 +82,23 @@ impl Build {
         for g in 0..bound.generations {
             let slot = self.lay_slot(b, (new.clone(), 1, g, 0));
             let bind = self.lay_bind(b, kit, slot);
+            b.enter(Cond::LayGen(g));
             b.dispatch(lay(ld::FLAG), bind.clone(), over_new);
             let lists = &self.layout.lists;
             held.push(fine(b, (&kit.layout.scan, PassId::LayScan), (&self.layout.counts, 0), (new.clone(), s, 1, 1), (lists, 0))?);
             for entry in [ld::GATHER, ld::FRAME, ld::DRAW] {
                 b.dispatch(lay(entry), bind.clone(), over_new);
             }
+            b.leave();
         }
         b.tally(&self.layout.lists, 4 * T_DEEP, c::LAY_DEEP, 4 * u64::from(DEEP));
         b.tally(&self.layout.lists, 4 * T_FAULT, c::LAY_FAULT, 4);
         b.point();
-        let deeper = (bound.generations as usize..DEEP as usize).fold(E::C(0), |a, g| a.max(E::At(c::LAY_DEEP + g)));
+        // A generation the cycle's limit did not record, reached.
+        let deeper = (0..DEEP).fold(E::C(0), |a, g| a.max(E::C(g + 1).gt(E::At(rec::LAYGENS)).sel(E::At(c::LAY_DEEP + g as usize), E::C(0))));
         b.flag(Flag::LayGenerations, deeper);
         b.flag(Flag::LayFault, E::At(c::LAY_FAULT));
-        b.flag(Flag::DrawRanges, E::At(c::GREW).gt(E::C(bound.draws * range)));
+        b.flag(Flag::DrawRanges, E::At(c::GREW).gt(E::At(rec::DRAWS).mul(E::C(range))));
         Ok(held)
     }
 
@@ -122,7 +128,9 @@ impl Build {
             let bind = slot(b, (0, r * range));
             let left = leaves.clone().sub(E::C(r * range)).min(E::C(range));
             let size = b.groups(left.div(E::C(64)));
+            b.enter(Cond::Deposit(r));
             b.dispatch(light(2), bind, size);
+            b.leave();
         }
         b.tally(&l.grid, 0, c::GRID, 32);
         b.point();
@@ -135,14 +143,16 @@ impl Build {
             lattice.push((entry, count, range));
         }
         // One flag program a point a word: the programs run at once.
-        let past = lattice.iter().fold(E::C(0), |a, (_, n, r)| a.max(n.clone().gt(E::C(bound.lights * r))));
+        let past = lattice.iter().fold(E::C(0), |a, (_, n, r)| a.max(n.clone().gt(E::At(rec::LIGHTS).mul(E::C(*r)))));
         b.flag(Flag::LightRanges, past);
         let ranged = |b: &mut Builder, (entry, count, range): (usize, E, u32)| {
             for r in 0..bound.lights {
                 let bind = slot(b, (0, r * range));
                 let left = count.clone().sub(E::C(r * range)).min(E::C(range));
                 let size = b.groups(left.div(E::C(64)));
+                b.enter(Cond::Light(r));
                 b.dispatch(light(entry), bind, size);
+                b.leave();
             }
         };
         for job in lattice {
@@ -150,7 +160,9 @@ impl Build {
         }
         for k in 0..bound.sweeps {
             let bind = slot(b, (k, 0));
+            b.enter(Cond::Sweep(k));
             b.dispatch(light(6), bind, Size::Direct(dirs.max(1)));
+            b.leave();
         }
         ranged(b, (7, nodes, ranges.nodes));
         let read = b.groups(tips.clone().div(E::C(64)));
@@ -161,10 +173,10 @@ impl Build {
         b.flag(Flag::LightErrors, E::At(c::LIGHT_ERRORS));
         let points = leaves.clone().add(E::At(c::NEXT));
         b.flag(Flag::Points, points.gt(E::C(l.points_cap)).max(E::At(c::NEXT).gt(E::C(l.tips_cap))));
-        b.flag(Flag::DepositRanges, leaves.gt(E::C(bound.deposits * range)));
+        b.flag(Flag::DepositRanges, leaves.gt(E::At(rec::DEPOSITS).mul(E::C(range))));
         let layer = E::At(c::GRID + 3).mul(E::At(c::GRID + 4));
         let per = E::C(SWEEP_WORK).floor(layer.div(E::C(SWEEP_WG))).max(E::C(1));
-        b.flag(Flag::Sweeps, E::At(c::GRID + 5).div(per).gt(E::C(bound.sweeps)));
+        b.flag(Flag::Sweeps, E::At(c::GRID + 5).div(per).gt(E::At(rec::SWEEPS)));
         b.count(c::LAID, E::At(c::AXES));
     }
 }

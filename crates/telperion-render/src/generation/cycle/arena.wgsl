@@ -211,13 +211,9 @@ fn pen64(i: u32, k: u32) -> vec2<u32> {
     return vec2<u32>(inputs[at], inputs[at + cfg.pencils]);
 }
 
-// A product's rounding kept apart from the sum it feeds: the driver
-// fuses a multiply into an add by the code's shape, which the CPU never
-// does (SPIKE.md), and cannot see through a word it does not know.
-fn kept_apart(x: f32) -> f32 {
-    return bitcast<f32>(bitcast<u32>(x) ^ cfg.zero);
-}
-
+// The word the driver cannot see is zero (`exact.wgsl`): the units' own
+// products a sum takes are marked `exact_kept`, plain or held to the
+// CPU's order as the kernels are built.
 fn exact_zero() -> u32 {
     return cfg.zero;
 }

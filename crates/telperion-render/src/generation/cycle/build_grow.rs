@@ -8,7 +8,8 @@
 use super::build::{Build, Kit, Late, Tables};
 use super::build_light::{refusals, Lit};
 use super::build_plan::Bounds;
-use super::census::{self as c, Flag};
+use super::census::{self as c, Flag, PASSES, PASS_LEFT};
+use super::gate::{levels_of, rec, Limits};
 use super::lay_device::DEEP;
 use super::light_program::{SWEEP_WG, SWEEP_WORK};
 use super::state::Caps;
@@ -26,13 +27,16 @@ pub(super) struct Sizes {
     pub bounds: Bounds,
     /// The most axes a hierarchy block holds: speed only (HIERARCHY.md).
     pub block_cap: u32,
+    /// How far past its projection each of the cycle's limits reaches
+    /// (`Slack`): doubled for a limit each time a count passes it.
+    pub slack: [u32; SLACKS],
 }
 
 impl Sizes {
     /// The smallest a build starts from.
     pub(super) fn least() -> Self {
         let caps = Caps { axes: 4096, units: 4096, phyts: 16384, sleepers: 4096, next: 4096, woken: 1024 };
-        Self { caps, points: 16384, tips: 4096, nodes: 4096, bounds: Bounds::default(), block_cap: super::hier_build::CAP }
+        Self { caps, points: 16384, tips: 4096, nodes: 4096, bounds: Bounds::default(), block_cap: super::hier_build::CAP, slack: [1; SLACKS] }
     }
 
     pub(super) fn lit(&self) -> (Lit, u32) {
@@ -49,6 +53,11 @@ pub(super) struct Grew {
     pub stamped: Vec<&'static str>,
     /// Why it began again: each time's flags and the cycle read.
     pub why: Vec<(u32, Vec<Flag>)>,
+    /// Host seconds recording and submitting cycles, waiting for the
+    /// census, and moving.
+    pub recording: f64,
+    pub waiting: f64,
+    pub moving: f64,
 }
 
 fn twice(have: u32, count: u32) -> u32 {
@@ -60,13 +69,50 @@ fn fault(flag: Flag) -> bool {
     matches!(flag, Flag::Budget | Flag::UnitFaults | Flag::HierFault | Flag::LayFault | Flag::Collapsed)
 }
 
+/// The limits' slacks, by what each limits.
+const SLACKS: usize = 9;
+const S_LIVE: usize = 0;
+const S_DEPOSITS: usize = 1;
+const S_LIGHTS: usize = 2;
+const S_SWEEPS: usize = 3;
+const S_ROUNDS: usize = 4;
+const S_PASSES: usize = 5;
+const S_LEVELS: usize = 6;
+const S_LAYGENS: usize = 7;
+const S_SCANS: usize = 8;
+
+/// The slack a flag names where its count passed the cycle's limit below
+/// the plan's bound (a wider slack answers it); none where it passed the
+/// bound.
+fn short(flag: Flag, census: &[u32], b: &Bounds) -> Option<usize> {
+    let at = |w: usize, bound: u32, k: usize| (census[w] < bound).then_some(k);
+    match flag {
+        Flag::UnitRanges => at(rec::UNITS, b.units, S_LIVE),
+        Flag::DrawRanges => at(rec::DRAWS, b.lay.draws, S_LIVE),
+        Flag::DepositRanges => at(rec::DEPOSITS, b.lay.deposits, S_DEPOSITS),
+        Flag::LightRanges => at(rec::LIGHTS, b.lay.lights, S_LIGHTS),
+        Flag::Sweeps => at(rec::SWEEPS, b.lay.sweeps, S_SWEEPS),
+        Flag::HierGens => at(rec::ROUNDS, b.hier.gens, S_ROUNDS),
+        Flag::HierPasses => at(rec::ROUNDS + 1, b.hier.passes, S_PASSES),
+        Flag::HierLevels => at(rec::LEVELS, b.hier.levels, S_LEVELS),
+        Flag::LayGenerations => at(rec::LAYGENS, b.lay.generations, S_LAYGENS),
+        Flag::HierScans | Flag::LiveScan | Flag::GrewScan => Some(S_SCANS),
+        _ => None,
+    }
+}
+
 /// `s` raised for every flag in `flags`, from `census`; refused where a
 /// flag names a fault or the budget and no size passed (a size passed
-/// can fault what reads past it).
+/// can fault what reads past it). A count past only the cycle's limit
+/// widens that limit's slack.
 fn raised(mut s: Sizes, flags: &[(Flag, u32)], census: &[u32]) -> Result<Sizes> {
     let refused = |what: String| super::super::io::error(what);
     let sized = flags.iter().any(|f| !fault(f.0) && !(f.0 == Flag::LightErrors && f.1 != 4));
-    for &(flag, value) in flags.iter().filter(|f| !(sized && fault(f.0))) {
+    let bounds = s.bounds;
+    for k in flags.iter().filter_map(|f| short(f.0, census, &bounds)) {
+        s.slack[k] *= 2;
+    }
+    for &(flag, value) in flags.iter().filter(|f| !(sized && fault(f.0)) && short(f.0, census, &bounds).is_none()) {
         let (caps, b) = (&mut s.caps, &mut s.bounds);
         match flag {
             Flag::Axes => caps.axes = twice(caps.axes, census[c::AXES]).next_multiple_of(64),
@@ -143,6 +189,58 @@ fn ahead(s: Sizes, read: &[u32], prev: Option<&[u32]>) -> Option<Sizes> {
     (n != s).then_some(n)
 }
 
+/// The passes a round took in the census's cycle at most: the first, and
+/// each after a pass that left an axis unplaced.
+fn passes(read: &[u32]) -> u32 {
+    (0..read[c::GENS].min(c::ROUNDS as u32) as usize)
+        .map(|r| 1 + (0..PASSES).filter(|p| read[PASS_LEFT + PASSES * r + p] > 0).count() as u32)
+        .max()
+        .unwrap_or(1)
+}
+
+/// The cycle's limits from the census read a cycle late (`read`), and
+/// the one before (`prev`): each count two cycles on at the rate it grew,
+/// past it by its slack; the plan's bounds where nothing has been read.
+fn limits(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> Limits {
+    let b = &s.bounds;
+    let Some(read) = read else {
+        return Limits::full(b);
+    };
+    let m = |k: usize| s.slack[k];
+    let ahead = |(w, k): (usize, usize), x: u32| -> u32 {
+        let r = prev.map_or(2.0, |p| (f64::from(read[w]) / f64::from(p[w].max(1))).clamp(1.0, 4.0));
+        (f64::from(x) * r * r * f64::from(m(k))).ceil() as u32
+    };
+    let born = read[c::AXES] - read[c::AXES0];
+    let live = read[c::NEXT] * m(S_LIVE) + 2 * ahead((c::AXES, S_LIVE), born);
+    let lit = ahead((c::PHYTS, S_DEPOSITS), leaves(read));
+    let nodes = 2 * m(S_LIGHTS) * read[c::GRID + 6];
+    let r = b.ranges;
+    let deepest = (0..DEEP as usize).filter(|&g| read[c::LAY_DEEP + g] != 0).count() as u32;
+    let axes = ahead((c::AXES, S_SCANS), read[c::AXES]);
+    let scans = [
+        levels_of(axes),
+        levels_of(ahead((c::AXES, S_SCANS), read[c::BLOCKS0] + born)),
+        levels_of(ahead((c::AXES, S_SCANS), born)),
+        levels_of(read[c::LEVELS] + read[c::GENS] + 8 * m(S_SCANS)),
+        levels_of(read[c::NEXT] * m(S_SCANS) + 2 * ahead((c::AXES, S_SCANS), born)),
+        levels_of(axes),
+    ];
+    Limits {
+        units: live.div_ceil(r.units),
+        draws: live.div_ceil(r.draw),
+        deposits: lit.div_ceil(r.deposit),
+        lights: (9 * nodes).div_ceil(r.paths).max(nodes.div_ceil(r.nodes)),
+        sweeps: sweeps(read) + m(S_SWEEPS),
+        rounds: read[c::GENS] + m(S_ROUNDS),
+        passes: passes(read) + m(S_PASSES),
+        levels: read[c::LEVELS] + 1 + m(S_LEVELS),
+        laygens: deepest + m(S_LAYGENS),
+        scans,
+    }
+    .within(b)
+}
+
 /// `upto` cycles grown from `sizes`: the build, its sizes and how it grew.
 pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut sizes, upto): (Sizes, u32)) -> Result<(Build, Sizes, Grew)> {
     let mut grew = Grew::default();
@@ -151,20 +249,34 @@ pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut size
         let mut b = Build::new(gpu, t, (tables, sizes.caps, sizes.block_cap), sizes.lit())?;
         let mut run = b.plan(gpu, kit, t, sizes.bounds)?;
         grew.stamped = b.seeded(gpu, kit, (&run.0, &run.1));
-        let (mut late, mut prev) = (Late::new(gpu)?, None::<Vec<u32>>);
+        let (mut late, mut prev, mut last) = (Late::new(gpu)?, None::<Vec<u32>>, None::<Vec<u32>>);
         for cycle in 1..=upto {
-            let stamped = b.submit(gpu, (kit, t), (&run.0, &run.1), (&mut late, cycle));
+            let limits = limits(&sizes, last.as_deref(), prev.as_deref());
+            if std::env::var("CYCLE_TRACE").is_ok() {
+                eprintln!("TRACE begin {again} cycle {cycle} slack {:?} {limits:?}", sizes.slack);
+            }
+            let clock = std::time::Instant::now();
+            let stamped = b.submit(gpu, (kit, t), (&run.0, &run.1, &limits), (&mut late, cycle));
+            grew.recording += clock.elapsed().as_secs_f64();
             grew.stamped.extend(stamped);
             if cycle == 1 {
                 continue;
             }
+            let clock = std::time::Instant::now();
             let read = late.take(gpu, cycle - 1)?;
+            grew.waiting += clock.elapsed().as_secs_f64();
             if !c::raised(&read).is_empty() {
                 grew.why.push((cycle - 1, c::raised(&read).iter().map(|f| f.0).collect()));
+                if std::env::var("CYCLE_TRACE").is_ok() {
+                    eprintln!("TRACE raised {:?} rec {:?} gens {} levels {} passes left {:?}", c::raised(&read), &read[c::REC..c::REC + 15], read[c::GENS], read[c::LEVELS], &read[PASS_LEFT..PASS_LEFT + 24]);
+                }
                 sizes = raised(sizes, &c::raised(&read), &read)?;
+                // The cycle in flight read back before its buffers go.
+                late.take(gpu, cycle)?;
                 continue 'begin;
             }
-            if let Some(next) = ahead(sizes, &read, prev.as_deref()) {
+            let clock = std::time::Instant::now();
+            if let Some(next) = ahead(sizes, &read, last.as_deref()) {
                 b = b.moved(gpu, (t, tables), (sizes, next))?;
                 let plan = b.plan(gpu, kit, t, next.bounds)?;
                 let mut e = gpu.encoder(&Default::default());
@@ -173,7 +285,8 @@ pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut size
                 (run, sizes) = (plan, next);
                 grew.moves += 1;
             }
-            prev = Some(read);
+            grew.moving += clock.elapsed().as_secs_f64();
+            prev = last.replace(read);
         }
         let read = late.take(gpu, upto)?;
         if !c::raised(&read).is_empty() {

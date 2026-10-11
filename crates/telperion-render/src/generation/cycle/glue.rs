@@ -59,4 +59,5 @@ pub(super) struct Words {
     pub leaves: u32,
     pub from_in: bool,
     pub live: u32,
+    pub also: u32,
 }

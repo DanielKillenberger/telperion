@@ -4,6 +4,7 @@
 //! the most rows the buffer holds, a level past the count's own top
 //! dispatched empty.
 use super::super::io;
+use super::gate::{Cond, Scan};
 use super::plan::{Builder, PassId, Size, Step, MAXX, SLOT_BYTES};
 use super::vm::E;
 use crate::buffer::Owned;
@@ -58,11 +59,18 @@ fn levels(rows: u32) -> Vec<u32> {
     out
 }
 
+/// The levels `rows` takes, as the device counts them: the first, and
+/// each above it while the one below passes a span (`gate::levels_of`).
+pub(super) fn levels_needed(rows: &E, most: usize) -> E {
+    (1..most.max(1)).fold(E::C(1), |a, l| a.add(rows.clone().div(E::C(SPAN.pow(l as u32 - 1))).gt(E::C(SPAN))))
+}
+
 /// `hier_scan.wgsl` over `rows` words (at most `cap`) of `data` from word
-/// `at`, its levels in `sums`, its total to `tally`'s word `to`.
+/// `at`, its levels in `sums`, its total to `tally`'s word `to`; level `l`
+/// recorded where the cycle's limit for scans of `kind` allows it.
 pub(super) fn levelled(
     b: &mut Builder,
-    pass: &io::Pass,
+    (pass, kind): (&io::Pass, Scan),
     (data, at, cap): (&Owned, u64, u32),
     sums: &Owned,
     (tally, to): (&Owned, u64),
@@ -92,11 +100,15 @@ pub(super) fn levelled(
         let rest = [whole(sums), Slice(tally, 4 * to, Some(256))];
         binds.push((slice_bind(b, pass, slot, (data, 4 * at, data_bytes), &rest), up, down));
     }
-    for (bind, up, _) in &binds {
+    for (l, (bind, up, _)) in binds.iter().enumerate() {
+        b.enter(Cond::Scan(kind, l as u32));
         b.dispatch((PassId::HierScan, 0), bind.clone(), *up);
+        b.leave();
     }
-    for (bind, _, down) in binds.iter().rev() {
+    for (l, (bind, _, down)) in binds.iter().enumerate().rev() {
+        b.enter(Cond::Scan(kind, l as u32));
         b.dispatch((PassId::HierScan, 1), bind.clone(), *down);
+        b.leave();
     }
 }
 

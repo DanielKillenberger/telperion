@@ -41,6 +41,12 @@ pub(super) enum Size {
     Indirect(u64),
 }
 
+/// A step, and the conditions under which a cycle records it.
+pub(super) struct Gated {
+    pub gate: Vec<super::gate::Cond>,
+    pub step: Step,
+}
+
 pub(super) enum Step {
     /// A dispatch, and the phase its time is counted in.
     Dispatch { pass: PassId, entry: usize, bind: wgpu::BindGroup, size: Size, phase: &'static str },
@@ -79,7 +85,9 @@ pub(super) struct Builder<'g> {
     image: Vec<u32>,
     progs: Vec<Vec<u32>>,
     entries: u32,
-    steps: Vec<Step>,
+    steps: Vec<Gated>,
+    /// The conditions the steps recorded next are under.
+    gates: Vec<super::gate::Cond>,
     /// The phase the dispatches recorded next are counted in.
     pub phase: &'static str,
 }
@@ -97,7 +105,7 @@ impl<'g> Builder<'g> {
             code: storage(gpu, "plan code", 4, none, &[])?,
             points: Vec::new(),
         };
-        Ok(Self { gpu, plan, image: Vec::new(), progs: Vec::new(), entries: 0, steps: Vec::new(), phase: "start" })
+        Ok(Self { gpu, plan, image: Vec::new(), progs: Vec::new(), entries: 0, steps: Vec::new(), gates: Vec::new(), phase: "start" })
     }
 
     /// A new point: the programs and slots that follow run and fill there.
@@ -109,7 +117,7 @@ impl<'g> Builder<'g> {
         }
         let at = self.plan.points.len();
         self.plan.points.push(Point { first: self.progs.len() as u32, n: 0, slots: (slot, slot), bind: None, _cfg: None });
-        self.steps.push(Step::Point(at));
+        self.steps.push(Gated { gate: Vec::new(), step: Step::Point(at) });
     }
 
     /// A slot holding `words`, its other words none.
@@ -162,22 +170,31 @@ impl<'g> Builder<'g> {
         self.gpu.device.create_bind_group(&wgpu::BindGroupDescriptor { label: Some("plan"), layout: &pass.layout, entries: &entries })
     }
 
-    pub(super) fn step(&mut self, s: Step) {
-        self.steps.push(s);
+    pub(super) fn step(&mut self, step: Step) {
+        self.steps.push(Gated { gate: self.gates.clone(), step });
+    }
+
+    /// The steps recorded until `leave` under `cond` as well.
+    pub(super) fn enter(&mut self, cond: super::gate::Cond) {
+        self.gates.push(cond);
+    }
+
+    pub(super) fn leave(&mut self) {
+        self.gates.pop();
     }
 
     pub(super) fn dispatch(&mut self, (pass, entry): (PassId, usize), bind: wgpu::BindGroup, size: Size) {
-        self.steps.push(Step::Dispatch { pass, entry, bind, size, phase: self.phase });
+        self.step(Step::Dispatch { pass, entry, bind, size, phase: self.phase });
     }
 
     /// `bytes` of `from` at `at` into the census at word `w`.
     pub(super) fn tally(&mut self, from: &wgpu::Buffer, at: u64, w: usize, bytes: u64) {
         let to = (*self.plan.census).clone();
-        self.steps.push(Step::Copy { from: from.clone(), at, to, to_at: 4 * w as u64, bytes });
+        self.step(Step::Copy { from: from.clone(), at, to, to_at: 4 * w as u64, bytes });
     }
 
     /// The steps recorded since the last take.
-    pub(super) fn take(&mut self) -> Vec<Step> {
+    pub(super) fn take(&mut self) -> Vec<Gated> {
         std::mem::take(&mut self.steps)
     }
 
@@ -197,7 +214,7 @@ impl<'g> Builder<'g> {
         gpu.queue.write_buffer(&self.plan.cfgs, 0, bytemuck::cast_slice(&self.image));
         gpu.queue.write_buffer(&self.plan.uniforms, 0, bytemuck::cast_slice(&self.image));
         for p in &mut self.plan.points {
-            let words = [p.first, p.n, 0, 0];
+            let words = [p.first, p.n, census::FLAGS as u32, census::FLAG_NAMES.len() as u32];
             let cfg = io::buffer(gpu, "plan point", 16, wgpu::BufferUsages::UNIFORM, bytemuck::cast_slice(&words))?;
             let all = [&*cfg, &self.plan.code, &self.plan.census, &self.plan.cfgs, &self.plan.args];
             p.bind = Some(vm.pass.bind(gpu, &all));

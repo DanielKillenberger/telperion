@@ -52,7 +52,15 @@ pub(super) const LAY_DEEP: usize = 176;
 /// A flag a word: set where a count passed its capacity or bound, or a
 /// phase faulted.
 pub(super) const FLAGS: usize = 192;
-pub(super) const WORDS: usize = 256;
+/// The cycle's limits (`gate.rs`), which the host writes as it does the
+/// cycle.
+pub(super) const REC: usize = 224;
+/// The hierarchy's axes left unplaced after each pass, a round's
+/// `PASSES` words after another's.
+pub(super) const PASS_LEFT: usize = 256;
+pub(super) const PASSES: usize = 8;
+pub(super) const ROUNDS: usize = 16;
+pub(super) const WORDS: usize = 512;
 
 /// The flags, by what each names.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -79,9 +87,12 @@ pub(super) enum Flag {
     Points,
     LightErrors,
     Collapsed,
+    HierScans,
+    LiveScan,
+    GrewScan,
 }
 
-pub(super) const FLAG_NAMES: [Flag; 22] = [
+pub(super) const FLAG_NAMES: [Flag; 25] = [
     Flag::Axes,
     Flag::Units,
     Flag::Phyts,
@@ -104,6 +115,9 @@ pub(super) const FLAG_NAMES: [Flag; 22] = [
     Flag::Points,
     Flag::LightErrors,
     Flag::Collapsed,
+    Flag::HierScans,
+    Flag::LiveScan,
+    Flag::GrewScan,
 ];
 
 impl Flag {

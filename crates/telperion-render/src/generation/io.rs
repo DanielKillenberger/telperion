@@ -187,6 +187,19 @@ impl Pass {
         pass.dispatch_workgroups_indirect(args, offset);
     }
 
+    /// `entry` dispatched inside `pass`, a compute pass it shares with
+    /// the dispatches beside it (unstamped): `groups` workgroups, or
+    /// those `args` holds at its offset.
+    #[cfg(test)]
+    pub fn encode(&self, pass: &mut wgpu::ComputePass<'_>, (bind, entry): (&wgpu::BindGroup, usize), groups: std::result::Result<u32, (&wgpu::Buffer, u64)>) {
+        pass.set_pipeline(self.pipelines[entry].get());
+        pass.set_bind_group(0, bind, &[]);
+        match groups {
+            Ok(n) => pass.dispatch_workgroups(n.min(self.maximum), n.div_ceil(self.maximum), 1),
+            Err((args, at)) => pass.dispatch_workgroups_indirect(args, at),
+        }
+    }
+
     /// A stamped compute pass with `entry`'s pipeline and `bind` set.
     fn begin<'e>(
         &self,
