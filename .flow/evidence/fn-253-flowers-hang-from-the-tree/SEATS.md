@@ -460,3 +460,8 @@ Follow-ups (host): measure whether Telperion's leaves were dropped or only hidde
 **The leaves, recorded for the owner's "leaves seem to be missing?".** They were hidden, not dropped. Telperion at 82, seed 42 keeps 980,082 leaves and 209,747 tip clusters on the base and on the head alike. With his flowers off the two builds draw the same frames. Every tip that bears an inflorescence keeps its leaf cluster. At a share of 1 the florets covered about twice the frame they did before fn-253, standing at the crown's surface, and the leaves showing fell by 39 % (whole view) and 40 % (mid view); see "Follow-up 1" above.
 
 **For fn-259.** Telperion's mid view at seed 42 runs under 60 fps even at 0.3: 49.2 fps (whole 115.1, close 54.5; `raw/share/frames-0.3.log`, 1080p, best of 3).
+
+## The owner's verdict (2026-10-11, judging page `GJV93Q6kLQhAgJ4UVWmYVp`)
+
+- Telperion at share 0.3: "30% is good".
+- Flowers hang from wood on both trees: "yes".
