@@ -14,12 +14,17 @@ The coarse-record route failed on measurement: `couple::Aggregate` reaches accep
 
 ## Requirements
 
-- **R1 (one tree, one pipeline):** the site's field is computed from the tree fn-256's device executor grows at full resolution, through the one pipeline, then voxelised at the field's cell (on the device or after one readback, measured); the same seed gives the harness's tree. No stand-ins, no closed-form tables and no expected-count cut on the site path; `couple::Aggregate`, the stands, `Rows` construction for them and the predictor are deleted where no other consumer remains (named per deletion).
-- **R1a (query contract):** the existing query API is kept (`src/field/index.ts`), with the field's resolution stated in world units; the `cut` argument is removed and its migration noted; point and region queries as fn-257's earlier R1a.
+- **R1 (one tree, one pipeline):** the site's field is computed from the tree fn-256's device executor grows at full resolution, through the one pipeline, then read back once as the geometric records today's field query reads; the same seed gives the harness's tree. No stand-ins, no closed-form tables and no expected-count cut on the site path; `couple::Aggregate`, the stands, `Rows` construction for them and the predictor are deleted where no other consumer remains (named per deletion).
+- **R1a (query contract, unchanged):** the field answers queries exactly as today (`crates/telperion-core/src/pipeline/field.rs`: arbitrary cubes evaluated against the tree's geometric records, the limb with the largest accumulated contribution owning a region); only the tree it reads now comes from the device, read back once as those records. No new grid, grid origin or aggregation semantics. The `cut` argument is removed from TypeScript and Wasm with a migration note; nothing replaces it.
 - **R1b (no device):** a browser or worker without WebGPU, or whose device is lost, gets a named error from the field call, never a CPU fallback; what the site shows then is the site's decision (killenberger repo), reported to the owner.
 - **R2 (fidelity):** the device-grown field against the CPU reference cycle's at the same seed: wood occupancy, maximum radius, foliage density and limb ownership per cell at 24³, 36³ and 48³, within tolerances measured from real runs; viewed stills of the voxel grove beside the harness's tree and beside 0.1.4's.
 - **R3 (speed, the owner's bar):** cold end-to-end per tree at or under 0.1.4's for every shipped species, the ordinary included, measured in Chrome on the owner's machine: adapter and device creation, pipeline compilation, growth, voxelisation, readback and query. First visit (empty shader cache) and repeat visit reported apart; a grove of several trees reported per tree after the first. Any species over 0.1.4 is named with its gap for the owner.
+- **R3a (tests migrate, not vanish):** the Node field tests (`src/field/field.test.ts`; Vitest runs without WebGPU) assert the named no-device error and the input contract, and their `cut` assertions are removed; positive coverage moves to native Rust tests in the render crate that grow every shipped preset on the device and compare its field answers against the CPU reference cycle's at the same seed within R2's tolerances, including a forced device loss rejected by name.
 - **R4 (proved):** gate and npm test green; Astra's agreement; the owner's verdict on the grove.
+
+## Tasks
+
+Tasks 1 and 2 are the closed spikes (early tests 4 and 5, SPIKE.md, TEST5.md, TABLES.md): prior evidence for this re-scope, not its implementation. The implementation tasks are planned after fn-256's executor lands, each with its touched paths.
 
 ## Early test (before R1 is built)
 
