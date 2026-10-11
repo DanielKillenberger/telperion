@@ -155,11 +155,20 @@ Plain build, retirement on, laid tree at each preset's default age, seed 42. It 
 | Birch | 24 → 0 |
 | Ordinary | 12 → 2 |
 | Palm | 0 → 0 |
-| Spruce | not rerun |
-| Laurelin | not rerun |
-| Telperion | not rerun |
+| Spruce | 177 → 0 |
+| Laurelin | 2 → 0 |
+| Telperion | 2 → 0 |
 
-The spruce, Laurelin and Telperion could not be rerun: the GPU ran out of memory with a game holding 6.2 GiB.
+Every preset matches by lineage, with nothing unmatched. The spruce, Laurelin and Telperion were rerun once the GPU had 8 GiB free.
+
+**The cost, Telperion 82 plain** (`telperion_is_timed`; before is `519957c91`, after `e3d7246bf`, each from its own build directory):
+
+| | Before | After |
+|---|--:|--:|
+| Units and wake | 360.6 ms | 362.0 ms |
+| Unstamped wall | 1.313 s | 1.309 s |
+
+Both builds take 2,372 dispatches, and the longest dispatch is unchanged. The cost is within run-to-run noise.
 
 **Where the oak's differences come from.** All 249 are relays (kind 3) of PA 9, off by 1 or 2 ticks. They are not held sites. Swapping single modules to exact while the rest stay plain gives:
 
