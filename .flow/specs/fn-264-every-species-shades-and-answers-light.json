@@ -1,13 +1,136 @@
 {
   "branch_name": "fn-264-every-species-shades-and-answers-light",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-11T09:11:10.767518Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-255-one-growth-law-reads-light-for-every"
   ],
   "id": "fn-264-every-species-shades-and-answers-light",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-11T09:13:58.303919Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "4c4128f2fe6674e376718666bae6ba20fb73e1e05025eb3d559763514484f868",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d20cb190bebe488c1d0feedaf5d6b656",
+            "classification": "introduced",
+            "findingId": "finding-d20cb190bebe488c1d0feedaf5d6b656",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-caf277773626f73c1aa7f1e822a9c0db",
+            "classification": "introduced",
+            "findingId": "finding-caf277773626f73c1aa7f1e822a9c0db",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "45304868601a89e07cfbb784efb825d023f4c258",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 530908,
+      "output_sha256": "aaf2d0dcd4fd1293d88530c8bd8b6aceca41ae3d1fe793ce3a635e7dedee0b50",
+      "reservation_id": "b0c2516a4eb54fe99560c33d508dc667",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-11T09:13:23.601151Z",
+      "tool_calls": 21,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b9819e7da6c5ff9fbe8dc51c15de64fff7da86cd3724ff6dbbab4c2dc3ab0c65",
+      "backend": "codex",
+      "base_sha": "e12a9a28a8cde4b0dc4237969aef7350aac1632f",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d20cb190bebe488c1d0feedaf5d6b656",
+            "classification": "introduced",
+            "findingId": "finding-d20cb190bebe488c1d0feedaf5d6b656",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-caf277773626f73c1aa7f1e822a9c0db",
+            "classification": "introduced",
+            "findingId": "finding-caf277773626f73c1aa7f1e822a9c0db",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "45304868601a89e07cfbb784efb825d023f4c258",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 727,
+      "output_sha256": "5f98c6602e3fb7348f150753ddc075e877b10319133fd3b821b46c3e1de444ae",
+      "reservation_id": "65f2db4db9324d209b24e0b0a06aedbf",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-11T09:13:58.301676Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-264-every-species-shades-and-answers-light.md",
   "status": "open",
   "title": "Every species shades and answers light by its sources",
@@ -22,5 +145,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-11T09:11:11.207769Z"
+  "updated_at": "2026-10-11T09:13:58.304426Z"
 }
