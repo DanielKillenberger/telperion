@@ -42,10 +42,10 @@ fn aged(pa_in: u32, slept_in: u32) -> Aged {
         if pa == NONE {
             break;
         }
-        if slept < life(pa) {
+        if lt64(w(slept, 0u), life(pa)) {
             return Aged(pa, slept, steps);
         }
-        slept -= life(pa);
+        slept -= life(pa).x;
         pa = successor_pa(pa);
     }
     return Aged(NONE, 0u, 0u);
@@ -124,7 +124,8 @@ fn slept_axis(key: vec2<u32>, root: vec2<u32>, pa: u32, cycle: u32, origin: u32,
     set_fr64(s, A_HORIZON, horizon_of(pa, origin & 0xffu, at.x));
     set_fr64(s, A_WHORL, whorl);
     set_fr64(s, A_BLEND, ONE64);
-    set_fr(s, A_SPENT, life(pa));
+    // A stage slept through: its lifespan is under the time slept.
+    set_fr(s, A_SPENT, life(pa).x);
     set_fr64(s, A_B0, made[0]);
     set_fr64(s, A_B1, made[1]);
     set_fr(s, A_END, cycle + 1u);

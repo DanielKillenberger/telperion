@@ -34,7 +34,12 @@ pub(super) struct Grown {
 pub(super) fn grown(preset: Preset, age: u32, seed: u64) -> Grown {
     let family = preset.parameters();
     let species = family.space.species.expect("an engine species");
-    let request = Request { age, seed, budget: 20_000_000, light: family.space.light };
+    grown_from(species, family.space.light, (age, seed))
+}
+
+/// `species`'s build of `age` from `seed`, lit as `light`.
+pub(super) fn grown_from(species: telperion_space::Species, light: telperion_space::Light, (age, seed): (u32, u64)) -> Grown {
+    let request = Request { age, seed, budget: 20_000_000, light };
     Grown {
         tables: telperion_space::grow_capture_tables(&species, request).expect("tables"),
         chain: ChainTables::cycle(&species, age).expect("chain tables"),

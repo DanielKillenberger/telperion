@@ -222,3 +222,15 @@ Plain, before (`a48f8ea9e`, indirect) and after (direct), one stamped run and th
 - **Sizing:** it doubled because a point now runs in one workgroup, its flags before a barrier and the rest after.
 
 **In Chrome terms.** At about 7 µs a direct dispatch (DESIGN.md 7a), Telperion's 26,983 dispatches are about 0.19 s of dispatch overhead, against 12 s had they stayed indirect. The beech's 8,559 are about 0.06 s. Both are inside the 0.2 s and 0.1 s targets.
+
+## The device's age limit (2026-10-11, review finding P1)
+
+A PA's lifespan is held in 64-bit ticks. The validator allows a million cycles, which is 2^40 ticks at 2^20 a cycle. A unit's share is decided against the lifespan's two words (`advance.wgsl`'s `step`, `wake.wgsl`). `grown_life_tests` holds a stem of 2,048, 4,096 and 1,000,000 cycles to the CPU in every word, exact, at ages 1 and 3.
+
+Accumulated time is still held in 32-bit ticks, and signed where an age's share is cut:
+- what an apex spent in its age;
+- an axis's aged and grown time;
+- the time a bud slept;
+- the cycle × tick products in the layout and the settle.
+
+So 2,048 cycles is the device's age limit. `build_grow::MOST_CYCLES` refuses a request aged 2,048 cycles or more with a named error before any dispatch, and a test reads that error. Widening the accumulated time is open, a question for the host (task 3).

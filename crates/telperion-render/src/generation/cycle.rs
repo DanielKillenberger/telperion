@@ -43,6 +43,8 @@ mod vm;
 #[cfg(test)]
 mod grown_det_tests;
 #[cfg(test)]
+mod grown_life_tests;
+#[cfg(test)]
 mod grown_tests;
 #[cfg(test)]
 mod grown_time_tests;

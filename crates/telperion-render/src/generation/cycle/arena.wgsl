@@ -249,8 +249,9 @@ const R_REACHES: u32 = 16u;
 const R_WOODS: u32 = 17u;
 const R_WINDOWS: u32 = 18u;
 
-fn life(pa: u32) -> u32 {
-    return prow(pa, R_LIFE).x;
+// A PA's lifespan in ticks, both words: a million cycles pass 32 bits.
+fn life(pa: u32) -> vec2<u32> {
+    return prow(pa, R_LIFE);
 }
 
 fn lived_pa(pa: u32) -> u32 {

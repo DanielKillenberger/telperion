@@ -17,6 +17,10 @@ use super::state::Caps;
 use crate::{Gpu, Result};
 use telperion_space::Capture;
 
+/// The cycles a build grows short of: its time spent and grown is held in
+/// 32-bit ticks, 2^20 a cycle, signed where an age's share is cut.
+pub(super) const MOST_CYCLES: u32 = 2048;
+
 /// What a build is sized for: the state's tables, the light's points,
 /// tips and lattice nodes, and the loops' bounds.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -261,6 +265,10 @@ fn limits(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> Limits {
 
 /// `upto` cycles grown from `sizes`: the build, its sizes and how it grew.
 pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut sizes, upto): (Sizes, u32)) -> Result<(Build, Sizes, Grew)> {
+    let cycles = upto.max(t.age);
+    if cycles >= MOST_CYCLES {
+        return Err(super::super::io::error(format!("a tree of {cycles} cycles: the device holds its time to {MOST_CYCLES} cycles")));
+    }
     let mut grew = Grew::default();
     'begin: for again in 0..64 {
         grew.again = again;
