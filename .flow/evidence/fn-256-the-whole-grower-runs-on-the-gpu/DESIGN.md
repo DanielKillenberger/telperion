@@ -351,3 +351,14 @@ So the apex run is split into phase kernels over flat work lists. It is not a pe
 - **Dispatches:** a cycle adds about 6 kernels and 3 scans a round, twice (count and emit). With about 3 rounds that is about 60 dispatches a cycle, about 5,000 for Telperion, about 35 ms at Chrome's 7 µs.
 - **Work:** the per-node phases spread work that one thread per apex ran serially. That should cut the units' 360 ms, but it is measured, not assumed.
 
+**Amended (2026-10-12, the growth worker's reading of `Shoot::move_on`, stop.rs:63-83).** The CPU appends depth-first within an apex. `carry_on` grows the continuation's whole cycle, including its own stops, relays and carried-on buds, before the apex makes its ended-age relay (host decision 11). The failed-unit path chains the same way. So the position key is (apex place, **step**, zone, node rank, slot), not (apex place, round, …), where step counts the apex's operations in execution order.
+
+- **Per-apex state in buffers:**
+  - the current operation;
+  - the After stack (depth at most 8, as `relay_after` has it today);
+  - the time spent;
+  - the frame, as axis columns.
+- **Each round:** `decide`, `zones`, `order` and `node` run only for apexes whose current operation is an advance. `after` loops through the operations that are not an advance (stop, relay, move, `relay_after`, the hand-over of `carry_on`) until the apex's next advance or its end. So a round is about one advance per apex, and the number of rounds is the longest chain of advances in the cycle, bounded and flagged.
+- **`after`'s body** holds no zones, so it stays small. It keeps the 0.2 s compile bound, or it is cut further.
+- **Placing:** one scan, apex-major and then by step.
+
