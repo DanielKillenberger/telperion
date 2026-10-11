@@ -112,12 +112,13 @@ fn a_parents_plane_turns_its_laterals_plane() {
     let (turned_lineage, turned_heading, turned_side) = side_of(std::f64::consts::FRAC_PI_2);
     assert_eq!(lineage, turned_lineage);
     assert!(
-        // Contract A lays in Q32: angles hold to Q32's last places.
-        (heading - turned_heading).length() < 1e-8,
+        // The layout is f32 (fn-254): angles hold to a few of its last
+        // places.
+        (heading - turned_heading).length() < 1e-6,
         "the heading holds"
     );
     assert!(
-        side.dot(turned_side).abs() < 1e-8,
+        side.dot(turned_side).abs() < 1e-6,
         "the side turns a quarter"
     );
 }
@@ -137,10 +138,10 @@ fn a_lateral_leaves_from_its_parents_direction_at_its_node() {
         };
         let along = tree.axes[parent].phytomers[node].heading;
         let angle = along.dot(axis.heading).clamp(-1.0, 1.0).acos();
-        // Contract A: frames are Q32, and the angle read back by `acos`
-        // carries their last places (1.02e-8 measured at the F2b merge).
+        // Frames are f32 (fn-254), and the angle read back by `acos`
+        // carries their last places (5.9e-8 measured).
         assert!(
-            (angle - species.states[2].insertion).abs() < 2e-8,
+            (angle - species.states[2].insertion).abs() < 1e-6,
             "{angle}"
         );
         checked += 1;
@@ -170,7 +171,7 @@ fn girth_is_the_sum_of_the_sections_carried() {
             + below[i];
         match (axis.origin, axis.joined()) {
             (Origin::Relay { parent, .. }, Some(join)) => {
-                let t = join.t as f64 / 2f64.powi(32);
+                let t = f64::from(join.t);
                 carried[parent][join.node] += t * base;
                 match join.node.checked_sub(1) {
                     Some(k) => carried[parent][k] += (1.0 - t) * base,
@@ -200,10 +201,10 @@ fn girth_is_the_sum_of_the_sections_carried() {
                 .map_or(tip[i], |q| q.radius * q.radius);
             let own = (pipe * p.scale).powi(2);
             let want = above + own + carried[i][k];
-            // Contract A: sections are W and radii Q32, so the sum holds
-            // to Q32's resolution of a radius (2.3e-10 m).
+            // Sections and radii are f32, a section a power taken in f32
+            // logs (fn-254): the sum holds to a few parts in a million.
             assert!(
-                (p.radius * p.radius - want).abs() < 1e-6 * want + 1e-12,
+                (p.radius * p.radius - want).abs() < 1e-5 * want + 1e-12,
                 "axis {i} node {k}"
             );
         }
@@ -477,19 +478,19 @@ fn a_stem_without_secondary_growth_is_a_column() {
     assert!(column.len() > 20, "{} phytomers", column.len());
     for (k, p) in column.iter().enumerate() {
         let established = form.pipe * p.scale;
-        // Contract A: the established pipe is one floor of its product.
-        assert!((p.radius - established).abs() < 1e-9, "{k}: {}", p.radius);
+        // The established pipe is its product in f32 (fn-254).
+        assert!((p.radius - established).abs() < 1e-6 * established, "{k}: {}", p.radius);
     }
     let (base, apex) = (column[0].radius, column[column.len() - 1].radius);
-    assert!((base / apex - 1.0).abs() < 1e-9, "{base} against {apex}");
+    assert!((base / apex - 1.0).abs() < 1e-6, "{base} against {apex}");
     let mut section = 0.0;
     for (k, p) in stem(1.0).iter().enumerate().rev() {
         section += (form.pipe * p.scale).powf(form.exponent);
         let expected = section.powf(1.0 / form.exponent);
-        // Contract A: a radius is Q32 (2.3e-10 m), the power of a W
-        // section taken in Q32 logs (1e-7 relative).
+        // A radius is the power of an f32 section taken in f32 logs
+        // (fn-254): a few parts in a million.
         assert!(
-            (p.radius - expected).abs() < 1e-7 * expected + 1e-9,
+            (p.radius - expected).abs() < 1e-5 * expected,
             "{k}: {} against {expected}",
             p.radius
         );

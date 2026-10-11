@@ -18,8 +18,6 @@ use super::Executor;
 use crate::allocation::drawn;
 use crate::closed_form::boundary::Rows;
 use crate::couple::{Aggregate, Inputs};
-use crate::fixed::feedback::total::Total;
-use crate::fixed::{q32, ONE32};
 use crate::grow::Apex;
 use crate::presence::Draws;
 use crate::structure::{Axis, Vec3};
@@ -71,7 +69,7 @@ impl Stood {
 impl Executor<'_> {
     /// Phase (i), up: each living root's light, upkeep and whether it
     /// lives, at its placeholder.
-    pub(super) fn stand_totals(&self) -> Vec<(usize, i64, i64, bool)> {
+    pub(super) fn stand_totals(&self) -> Vec<(usize, f32, f32, bool)> {
         let Some(stands) = self.stands.as_ref() else {
             return Vec::new();
         };
@@ -79,11 +77,11 @@ impl Executor<'_> {
         let total = |r: &Stood| {
             let living = r.agg.living();
             let upkeep = species.states[r.axis.pa].upkeep;
-            let light = q32(r.scale * living * r.light);
+            let light = (r.scale * living * r.light) as f32;
             (
                 r.at,
                 light,
-                q32(upkeep * r.scale * r.agg.wood),
+                (upkeep * r.scale * r.agg.wood) as f32,
                 living > 0.0,
             )
         };
@@ -117,7 +115,7 @@ impl Executor<'_> {
     /// Phases (ii) down and (iii) up: each living root's vigour per
     /// presence from what its placeholder was given (`got`), and its
     /// per-PA partials added into `total` (presence, presence × (v/p)^ψ).
-    pub(super) fn stand_sums(&mut self, got: &[f64], total: &mut [Total]) {
+    pub(super) fn stand_sums(&mut self, got: &[f64], total: &mut [f32]) {
         let species = self.coarse.species;
         let Some(stands) = self.stands.as_mut() else {
             return;
@@ -136,10 +134,10 @@ impl Executor<'_> {
             by_pa.iter_mut().for_each(|x| *x = 0.0);
             r.agg.living_by_pa(r.scale * r.kept, &mut by_pa);
             for (g, &pg) in by_pa.iter().enumerate().filter(|(_, &pg)| pg > 0.0) {
-                let p = q32(pg);
-                let d = drawn(q32(r.ratio), ONE32, q32(species.states[g].shade_size));
-                total[2 * g].add(i128::from(p) << 32);
-                total[2 * g + 1].add(i128::from(d) * i128::from(p));
+                let p = pg as f32;
+                let d = drawn(r.ratio as f32, 1.0, species.states[g].shade_size as f32);
+                total[2 * g] += p;
+                total[2 * g + 1] += d * p;
             }
         }
     }
@@ -147,7 +145,7 @@ impl Executor<'_> {
     /// Phase (iv)'s growth: each living root's aggregate grows its unit
     /// of `cycle`, sized against each PA's merged sums (`factors`); one
     /// that dies out dies in `cycle`.
-    pub(super) fn stand_advance(&mut self, cycle: u32, factors: &[[i128; 2]]) {
+    pub(super) fn stand_advance(&mut self, cycle: u32, factors: &[[f32; 2]]) {
         let (species, threads) = (self.coarse.species, self.coarse.threads);
         let laterals = self.coarse.rules.laterals.clone();
         let Some(stands) = self.stands.as_mut() else {
@@ -155,7 +153,7 @@ impl Executor<'_> {
         };
         // Each PA's mean (v/p)^ψ; whole where nothing is allotted.
         let mean = |g: usize| match factors.get(g) {
-            Some(&[t, w]) if t > 0 && w > 0 => w as f64 / t as f64,
+            Some(&[t, w]) if t > 0.0 && w > 0.0 => f64::from(w / t),
             _ => 1.0,
         };
         let means: Vec<f64> = (0..species.states.len()).map(mean).collect();

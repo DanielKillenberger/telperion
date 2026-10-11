@@ -282,11 +282,19 @@ mod tests {
         };
         let runs = [256.0, 1024.0].map(|cut| Run { cut, grouping });
         let probed = grow_partitioned(&species, request, &expected, &runs).unwrap();
-        assert_eq!(
-            crate::fine::digest(&probed.structure),
-            crate::fine::digest(&today)
+        // By lineage (fn-254): the regrouped sums part it from today's
+        // tree at f32's last places.
+        let agree = crate::agree::agreement(&today, &probed.structure);
+        assert!(agree.within(&crate::agree::PATHS), "{agree:?}");
+        // Each run's grouping parts from the tree's own at f32's last
+        // places (fn-254: the light sum at cycle 3 on this tree), and the
+        // oracle names the tree-wide sum it parts in.
+        let sums = crate::grow::partition::PHASES;
+        assert!(
+            probed.first.iter().all(|f| f.is_some_and(|(_, p)| sums.contains(&p))),
+            "{:?}",
+            probed.first
         );
-        assert_eq!(probed.first, vec![None, None]);
         assert_eq!(probed.phases.len(), 25);
     }
 }

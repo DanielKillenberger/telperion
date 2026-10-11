@@ -1,7 +1,7 @@
 //! A species' growth units as the device reads them (fn-209 F1, task 2):
 //! `telperion_space::Units`' zones packed into the table and words every
 //! fine-root shader binds (`zones.wgsl`).
-use telperion_space::{fixed, Units};
+use telperion_space::Units;
 
 pub(super) const NONE: u32 = u32::MAX;
 /// A zone's words in the table (`zones.wgsl`).
@@ -20,40 +20,27 @@ pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
     assert_eq!(at as usize, table.len() + ZW as usize * zones);
     for zone in units.zones.iter().flatten() {
         let law = words.len() as u32;
-        for (t, b) in zone.thresholds.iter().zip(&zone.bounds) {
-            words.extend([*t, *b]);
-        }
-        // Each node's bound's side of its lead (`zones.wgsl`, `node_lead`),
-        // by the contract on the CPU (task 8).
         assert_eq!(zone.bounds.len(), zone.thresholds.len(), "a bound a node");
-        words.extend(zone.bounds.iter().map(|&b| match (b, zone.poisson) {
-            (0, _) => 0,
-            (b, true) => fixed::logit(b) as u64,
-            (b, false) => fixed::log2(b) as u64,
-        }));
+        for (t, b) in zone.thresholds.iter().zip(&zone.bounds) {
+            words.extend([*t, f(*b)]);
+        }
         let laterals = words.len() as u32;
         words.extend(zone.laterals.iter().map(|t| t.unwrap_or(u64::MAX)));
         let windows = words.len() as u32;
-        words.extend(zone.windows.iter().map(|&w| w as u64));
+        words.extend(zone.windows.iter().map(|&w| f(w)));
         let dormant = words.len() as u32;
         words.extend(zone.dormant.iter().map(|t| t.unwrap_or(u64::MAX)));
         let wake = zone.wake.map_or(NONE, |(delay, per)| {
-            words.extend([delay, per as u64]);
+            words.extend([delay, f(per)]);
             words.len() as u32 - 2
         });
         let sleeps = words.len() as u32;
         words.extend(zone.sleeps.iter().map(|&s| u64::from(s)));
         let placed = words.len() as u32;
         words.extend(&zone.placed);
-        // Each fractional place's threshold's side of its lead
-        // (`zones.wgsl`, `place_q`), by the contract on the CPU (fn-241).
-        words.extend(zone.placed.iter().map(|&t| match t < 1 << 53 {
-            true => fixed::logit(t << 9) as u64,
-            false => 0,
-        }));
         let windows_asleep = words.len() as u32;
         for cycle in &zone.sleep_windows {
-            words.extend(cycle.iter().map(|&w| w as u64));
+            words.extend(cycle.iter().map(|&w| f(w)));
         }
         table.extend([
             zone.zone as u32,
@@ -73,4 +60,9 @@ pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
         ]);
     }
     (table, words)
+}
+
+/// An f32 as the word that holds it, in its low half (`zones.wgsl`, `fw`).
+pub(super) fn f(x: f32) -> u64 {
+    u64::from(x.to_bits())
 }

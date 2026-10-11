@@ -132,12 +132,9 @@ pub fn bud_light(structure: &Structure, species: &Species, light: &Light) -> Vec
     tips.iter().map(|&(i, at)| (i, field.at(at))).collect()
 }
 
-/// A leaf's area, `scale size leaf_area`, one rounding to Q32 (contract
-/// A, 2.6), as its exact real.
+/// A leaf's area, `scale size leaf_area`, in f32 (CONTRACT-A.md 2.6).
 pub(crate) fn leaf_area(scale: f64, size: f64, area: f64) -> f64 {
-    use crate::fixed::{feedback::wide::prod_shr, q32, ONE32};
-    let f = [q32(scale), q32(size), q32(area), 1];
-    prod_shr(f, 64).expect("a leaf's area inside Q32") as f64 / ONE32 as f64
+    f64::from(scale as f32 * size as f32 * area as f32)
 }
 
 /// All the light from overhead.
@@ -170,25 +167,20 @@ fn standard(e: f64) -> f64 {
     (s * s / 2.0 + 2.0 * s.powi(3) / 3.0) / (7.0 / 6.0)
 }
 
-/// Each direction's optical depth carried down a lattice of W densities
-/// (`n / 2^64` square metres a cubic metre, each converted once to the
-/// nearest f64) a layer at a time, the directions on up to `threads`
-/// cores; a node's light is the sum of theirs in the directions' order.
-/// The one sweep of CONTRACT-A.md 2.6, run on the CPU.
-pub(crate) fn swept_w(
+/// Each direction's optical depth carried down a lattice of densities
+/// (square metres a cubic metre) a layer at a time, the directions on up
+/// to `threads` cores; a node's light is the sum of theirs in the
+/// directions' order. The one sweep of CONTRACT-A.md 2.6, run on the CPU.
+pub(crate) fn swept_all(
     extinction: f64,
     directions: &[(Vec3, f64)],
     size: [usize; 3],
-    density: &[u128],
+    density: &[f64],
     threads: usize,
 ) -> Vec<f64> {
-    let density: Vec<f64> = density
-        .iter()
-        .map(|&d| d as f64 / 18_446_744_073_709_551_616.0)
-        .collect();
     let lit: Vec<(Vec3, f64)> = directions.iter().copied().filter(|d| d.1 > 0.0).collect();
     let each = crate::cores::map(lit, 1, threads, &|_, (toward, share)| {
-        swept(&density, size, extinction, toward, share)
+        swept(density, size, extinction, toward, share)
     });
     let mut light = vec![0.0; density.len()];
     crate::cores::fill(&mut light, 1 << 14, threads, &|k| {

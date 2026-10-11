@@ -66,10 +66,12 @@ fn the_spread_moves_no_node_and_keeps_the_mean_length() {
             }
         }
         // Without spread each internode is its PA's length times its scale,
-        // to Q32's last place on the shortest (contract A).
+        // read back from its ends: f32 positions (fn-254) hold the shortest
+        // internode far from the base to a few parts in ten thousand
+        // (measured mean 1 - 2.1e-7, sd 2.1e-5).
         let (mean, sd) = moments(&factors(&species, &plain));
         assert!(
-            (mean - 1.0).abs() < 1e-6 && sd < 1e-6,
+            (mean - 1.0).abs() < 1e-5 && sd < 1e-4,
             "{name}: {mean} {sd}"
         );
         // With it the lengths keep their mean and spread as the uniform
@@ -83,13 +85,20 @@ fn the_spread_moves_no_node_and_keeps_the_mean_length() {
         assert!(laid.len() > 5_000, "{name}: {}", laid.len());
         assert!((mean - 1.0).abs() < 0.01, "{name}: mean {mean}");
         assert!((sd - 0.6 / 3f64.sqrt()).abs() < 0.01, "{name}: sd {sd}");
-        let (low, high) = laid
+        // Read back from f32 ends (fn-254), a length is its laid one to a
+        // few units in the last place of the tree's reach: so far each
+        // factor may stand past the spread's bounds.
+        let reach = varied
+            .axes
             .iter()
-            .fold((f64::MAX, 0.0f64), |(l, h), &(v, _)| (l.min(v), h.max(v)));
-        assert!(
-            low >= 0.4 - 1e-6 && high <= 1.6 + 1e-6,
-            "{name}: {low} {high}"
-        );
+            .flat_map(|a| &a.phytomers)
+            .fold(0.0f64, |r, p| r.max(p.tip.length()));
+        let ulps = 4.0 * f64::from(f32::EPSILON) * reach;
+        let outside = laid
+            .iter()
+            .filter(|&&(v, e)| v < 0.4 - ulps / e || v > 1.6 + ulps / e)
+            .count();
+        assert_eq!(outside, 0, "{name}: factors past the spread");
     }
 }
 

@@ -177,20 +177,7 @@ fn storage(
 /// Dispatch boundaries make classification, prefixing and scattering visible
 /// to one another without a device-wide spin barrier.
 pub fn pipelines(gpu: &Gpu, bind: &wgpu::BindGroupLayout) -> [wgpu::ComputePipeline; 3] {
-    let shader = gpu
-        .device
-        .create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("select"),
-            source: wgpu::ShaderSource::Wgsl(
-                format!(
-                    "{}\n{}\n{}",
-                    include_str!("../shaders/leaf.wgsl"),
-                    include_str!("../shaders/unit.wgsl"),
-                    include_str!("../shaders/select.wgsl")
-                )
-                .into(),
-            ),
-        });
+    let shader = crate::shaders::module(gpu, "select", crate::shaders::select());
     let layout = gpu
         .device
         .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {

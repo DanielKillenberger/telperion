@@ -26,7 +26,10 @@
     "fn-251-a-walk-never-grows-a-tree-larger-than",
     "fn-253-flowers-hang-from-the-tree",
     "fn-259-the-release-meets-the-bar-on-every",
-    "fn-256-the-whole-grower-runs-on-the-gpu"
+    "fn-256-the-whole-grower-runs-on-the-gpu",
+    "fn-261-the-same-binary-draws-the-same-leaves",
+    "fn-263-the-birch-grows-the-same-wood-on-the",
+    "fn-264-every-species-shades-and-answers-light"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -46,5 +49,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T20:48:46.318581Z"
+  "updated_at": "2026-10-11T09:11:11.645108Z"
 }

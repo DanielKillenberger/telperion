@@ -18,7 +18,7 @@ use crate::{
     Error, Result,
 };
 use std::f64::consts::{PI, TAU};
-use telperion_space::fixed::{child, draw};
+use telperion_space::contract::{child, draw};
 
 // The draws a bloom keys under its node's lineage, and a floret under
 // `FLORET` and its index, are the lineage-key registry's.

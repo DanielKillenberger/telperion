@@ -1,7 +1,7 @@
 //! A chain's shedding from its own axes and its borne buds' committed
 //! extinction curves alone (fn-209 probe P2, `alone.rs`).
 use crate::closed_form::boundary::Rows;
-use crate::fixed::decide;
+use crate::contract::decide;
 use crate::grow::alone::Chain;
 use crate::grow::Rules;
 use crate::lineage::{Key, SHED};
@@ -32,14 +32,15 @@ pub(super) fn set_parent(origin: &mut Origin, at: &[usize]) {
 /// by the bearer, and the chain's own chance π becomes π / (1 - (1 - π)
 /// context), the chance it lived given that its bearer was kept. The
 /// second value is each borne bud's context, by its place in `chain.buds`.
-/// Chances of death are summed as `-log2`, Q32, and the decision taken
-/// on the contract's fixed point (FINE-CONTRACT.md D15).
+/// Chances of death are summed as `-log2`, in the order the buds stand,
+/// and the decision taken on the contract's threshold (FINE-CONTRACT.md
+/// D15).
 pub(super) fn shed(
     chain: &Chain,
     rows: &Rows,
     rules: &Rules,
-    context: Option<i64>,
-) -> (Vec<bool>, Vec<Option<i64>>) {
+    context: Option<f32>,
+) -> (Vec<bool>, Vec<Option<f32>>) {
     let (species, age) = (rules.species, i64::from(rules.age));
     let n = chain.axes.len();
     let parent = |i: usize| {
@@ -71,7 +72,7 @@ pub(super) fn shed(
     }
     // The chance every bud borne in each own axis's subtree had died by
     // that axis's threshold.
-    let mut dead = vec![0i64; n];
+    let mut dead = vec![0.0f32; n];
     for b in &chain.buds {
         let mut j = Some(b.bearer()).filter(|&j| j >= chain.root);
         while let Some(at) = j {
@@ -115,7 +116,7 @@ pub(super) fn shed(
                         .enumerate()
                         .filter(|&(o, c)| o != k && bears(chain, c.bearer(), at))
                         .map(|(_, c)| decide::neg_log(rows.dead_by(c.axis.pa, c.axis.birth, t)))
-                        .fold(0, decide::and);
+                        .fold(0.0, decide::and);
                     return Some(others);
                 }
                 j = parent(at);

@@ -31,8 +31,8 @@ fn florets(@builtin(global_invocation_id) id: vec3<u32>) {
     if n > 0u && cfg.flower.c.x > 0.0 {
         n += 1u;
     }
-    atomicStore(&owners[i * OW + 1u], n);
-    atomicStore(&owners[i * OW + 2u], u32(n > 0u));
+    atomicStore(&owners[i * OW], n);
+    atomicStore(&owners[i * OW + 1u], u32(n > 0u));
 }
 
 // Each bloom that keeps a floret as placement reads it (`place.wgsl`'s
@@ -46,13 +46,13 @@ fn blooms(@builtin(global_invocation_id) id: vec3<u32>) {
     if i >= cfg.n {
         return;
     }
-    let first = atomicLoad(&owners[i * OW + 1u]);
-    let record = atomicLoad(&owners[i * OW + 2u]);
+    let first = atomicLoad(&owners[i * OW]);
+    let record = atomicLoad(&owners[i * OW + 1u]);
     var end = atomicLoad(&counts[4u]);
     var next = atomicLoad(&counts[5u]);
     if i + 1u < cfg.n {
-        end = atomicLoad(&owners[(i + 1u) * OW + 1u]);
-        next = atomicLoad(&owners[(i + 1u) * OW + 2u]);
+        end = atomicLoad(&owners[(i + 1u) * OW]);
+        next = atomicLoad(&owners[(i + 1u) * OW + 1u]);
     }
     if next == record {
         return;

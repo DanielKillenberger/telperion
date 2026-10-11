@@ -8,7 +8,7 @@ use super::shoot::{Rules, Shoot};
 use super::{bud, parallel, Apex, Grower};
 use crate::dormant::{self, Sleeper, Woken};
 use crate::error::{refuse, Error, Result};
-use crate::fixed::presence::{q, real, times, ONE};
+use crate::contract::presence::{q, real, times, ONE};
 use crate::lineage::Key;
 use crate::presence::{assign, Draws, Windows};
 use crate::shed::lasting;

@@ -18,10 +18,11 @@ use telperion_render::{hero_pose, render, Renderer, Still, View, GROUND_REACH, S
 /// florets left the figure to which of them thinning kept. At 40 the same
 /// three boxes read 30.1, 27.6 and 28.4%, a spread of 2.5 points; the bound
 /// is the first, measured with the shipped box, plus 10 points (host,
-/// 2026-10-10). A card per inflorescence was tried and measured 87 to 131%
+/// 2026-10-10). Re-taken at the merge of F4 (fn-254's f32 growth among
+/// it): 27.5, 27.8 and 28.8%, so 37.5%. A card per inflorescence was tried and measured 87 to 131%
 /// (fn-253 SEATS.md), so the floret's card stays, and the owner's eye
 /// against the 4x reference is the gate this number stands behind.
-const BLOSSOM_BOUND: f64 = 0.40;
+const BLOSSOM_BOUND: f64 = 0.375;
 
 /// A delivered sRGB value as linear light, the space a box average is
 /// taken in.

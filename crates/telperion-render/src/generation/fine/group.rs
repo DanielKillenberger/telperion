@@ -32,9 +32,9 @@ pub(super) struct Group {
     /// Each root's attachment as the stubs take it, and its node.
     pub attached: Vec<RootGeometry>,
     pub nodes: Vec<usize>,
-    /// Each root's first axis's vigour (Q32), by its place: its seed's
-    /// as `grow` hands it (task 9).
-    pub made: Vec<u64>,
+    /// Each root's first axis's vigour, by its place: its seed's as
+    /// `grow` hands it (task 9).
+    pub made: Vec<f32>,
     /// The group's roots in the order the device took them (by their
     /// place in the group), and each one's living, by its place.
     order: Vec<usize>,
@@ -51,7 +51,7 @@ pub(super) fn unlaid(scale: f64) -> BearerFrame {
         rank: 0.0,
         scale,
         size: 1.0,
-        phase: 0,
+        phase: 0.0,
     }
 }
 
@@ -74,18 +74,18 @@ impl Group {
             .living(gpu, (&waves.grown, &waves.chains), (&fades, t.chain.age))?;
         let read = report(gpu, &living[0], roots.len(), cost).await?;
         cost.fade += fading.elapsed_ms();
-        let mut lived = vec![(0, 0); roots.len()];
+        let mut lived = vec![(0.0, 0.0); roots.len()];
         for (wi, &r) in order.iter().enumerate() {
             lived[r] = read[wi];
         }
         // The laid buffers and the records, sized now: nothing more is
         // read back to size them.
         let n = roots.len() as u32;
-        let mut laid = vec![Wave::taken(&k.pool, gpu, (n, n))?];
+        let mut laid = vec![Wave::new(gpu, (n, n))?];
         let mut at = Vec::with_capacity(waves.chains.len());
         let mut floats = ROOT * n;
         for (w, &chains) in waves.chains.iter().enumerate() {
-            laid.push(Wave::taken(&k.pool, gpu, (waves.own[w], waves.phyts[w]))?);
+            laid.push(Wave::new(gpu, (waves.own[w], waves.phyts[w]))?);
             at.push(floats);
             floats += CR * chains;
         }
@@ -107,7 +107,7 @@ impl Group {
             at,
             attached,
             nodes,
-            made: vec![0; roots.len()],
+            made: vec![0.0; roots.len()],
             order,
             lived,
         })
@@ -202,12 +202,5 @@ impl Group {
             out[r].copy_from_slice(&floats[wi * cr..][..cr]);
         }
         out
-    }
-
-    /// Its pooled buffers, for the next build (`pool.rs`).
-    pub(super) fn buffers(self) -> impl Iterator<Item = Owned> {
-        let runs = self.waves.grown.into_iter().flat_map(|g| g.runs);
-        let packed = runs.flat_map(|r| [r.axes, r.phyts, r.scratch]);
-        packed.chain(self.laid.into_iter().map(|w| w.buffer))
     }
 }

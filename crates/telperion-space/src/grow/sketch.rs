@@ -12,7 +12,7 @@
 use super::couple::Split;
 use super::subtree::tally;
 use super::{Grower, Pass, Stage};
-use crate::allocation::{sizes, vigours_from, w_of, Link, TIP};
+use crate::allocation::{sizes, vigours_from, Link, TIP};
 use crate::cores::fill;
 use crate::geometry::Layer;
 use crate::light::{Field, Light};
@@ -202,12 +202,12 @@ impl Grower<'_> {
                 let means = reads.means.get(cycle as usize);
                 let mean = |g: usize| means.map_or(1.0, |m| m[g]);
                 read_sizes(&got, (&presence, &psi, &rows.pa), &|g| {
-                    Some([1.0, mean(g)].map(w_of))
+                    Some([1.0, mean(g) as f32])
                 })
             }
             (Some(_), None) => {
                 let sums = self.fine_means(cycle, &got, (&presence, &psi, &rows.pa));
-                let factor = |g: usize| (sums[g][1] > 0).then_some(sums[g]);
+                let factor = |g: usize| (sums[g][1] > 0.0).then_some(sums[g]);
                 read_sizes(&got, (&presence, &psi, &rows.pa), &factor)
             }
         };
@@ -288,16 +288,14 @@ impl Grower<'_> {
 fn read_sizes(
     got: &[f64],
     (presence, psi, pa): (&[f64], &[f64], &[usize]),
-    factor: &dyn Fn(usize) -> Option<[i128; 2]>,
+    factor: &dyn Fn(usize) -> Option<[f32; 2]>,
 ) -> Vec<f64> {
     use crate::allocation::size_of;
-    use crate::fixed::{q32, ONE32};
     (0..got.len())
         .map(|i| match (presence[i] > 0.0, factor(pa[i])) {
             (true, Some(sums)) => {
-                let q = |x: &[f64]| q32(x[i]);
-                let size = size_of(q(got), q(presence), q(psi), sums);
-                size as f64 / ONE32 as f64
+                let q = |x: &[f64]| x[i] as f32;
+                f64::from(size_of(q(got), q(presence), q(psi), sums))
             }
             _ => 1.0,
         })

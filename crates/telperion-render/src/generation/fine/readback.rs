@@ -12,7 +12,7 @@ use telperion_space::{ChainAxis, ChainBud, Presences};
 
 pub(super) struct Read {
     pub roots: Vec<Vec<ChainAxis>>,
-    /// Each kept axis's Q32 presences (`assign.wgsl`), as `roots`.
+    /// Each kept axis's presences (`assign.wgsl`), as `roots`.
     pub presences: Vec<Vec<Presences>>,
     pub laid: Vec<Vec<(usize, u32)>>,
     pub statuses: u32,
@@ -68,7 +68,7 @@ pub(super) fn read(gpu: &Gpu, grown: &[Grown], roots: usize) -> Read {
         node: 0,
         slot: 0,
         root: 0,
-        horizon: 0,
+        horizon: 0.0,
         woke: None,
         context: None,
     };
@@ -139,21 +139,21 @@ pub(super) fn read(gpu: &Gpu, grown: &[Grown], roots: usize) -> Read {
     out
 }
 
-/// Region axis `i`'s Q32 presences, its units' summed.
+/// Region axis `i`'s presences, its units' summed.
 fn presences(axes: &[u32], phyts: &[u32], i: usize) -> Presences {
-    let wide = |f: usize| u64::from(axes[i * AXW + f]) | u64::from(axes[i * AXW + f + 1]) << 32;
+    let field = |f: usize| f32::from_bits(axes[i * AXW + f]);
     let scales = phyts
         .as_chunks::<PW>()
         .0
         .iter()
         .filter(|p| p[3] as usize == i)
-        .map(|p| u64::from(p[9]) | u64::from(p[10]) << 32)
+        .map(|p| f32::from_bits(p[9]))
         .collect();
     Presences {
-        vigour: wide(48),
-        units: vec![wide(54)],
+        vigour: field(48),
+        units: vec![field(54)],
         scales,
-        alive: wide(52),
-        sleep: u64::from(axes[i * AXW + 19]) << 12,
+        alive: field(52),
+        sleep: axes[i * AXW + 19] as f32 / (1 << 20) as f32,
     }
 }

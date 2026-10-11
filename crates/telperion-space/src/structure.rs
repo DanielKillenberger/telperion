@@ -147,11 +147,11 @@ pub struct Axis {
     /// is that much less than its birth gives.
     pub(crate) sleep: f64,
     /// The phase its phyllotaxis starts from outside the structure, an
-    /// amount (Q32 turns, CONTRACT-A.md 2.2): a fine root's bearer's, held
+    /// amount in turns: a fine root's bearer's, held
     /// by its stub (`fine::realized::stub`); none in a whole tree, whose
     /// axes carried on take theirs from the axes they carry on
     /// (`geometry::phase`).
-    pub(crate) phase: i64,
+    pub(crate) phase: f32,
     /// A relay's join on its parent, where its girth set it; none on any
     /// other axis.
     pub(crate) joined: Option<Join>,
@@ -159,14 +159,14 @@ pub struct Axis {
 
 /// Where a relay joins its parent and the parent's girth there (fn-244
 /// host decision 4): the parent's node `node` whose span it stands in,
-/// `t` of the way along it from the node before (or the parent's base),
-/// Q32 (`geometry::attach`); the parent's radius just below the join,
+/// `t` of the way along it from the node before (or the parent's base)
+/// (`geometry::attach`); the parent's radius just below the join,
 /// carrying the relay whole, and just above it, where the stopped
 /// module's head carries its own wood.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Join {
     pub node: usize,
-    pub t: i64,
+    pub t: f32,
     pub below: f64,
     pub above: f64,
 }

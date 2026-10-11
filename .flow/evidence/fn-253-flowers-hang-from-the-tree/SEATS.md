@@ -465,3 +465,28 @@ Follow-ups (host): measure whether Telperion's leaves were dropped or only hidde
 
 - Telperion at share 0.3: "30% is good".
 - Flowers hang from wood on both trees: "yes".
+
+## Merge of F4 (`549af25c`: fn-254, fn-258, fn-260, fn-261, fn-263) into the branch (worker, 2026-10-11)
+
+**The six conflicts, each side's intent kept.**
+- **`pipeline/space.rs`:** fn-253's `bloom_tests` beside F4's `ceiling_tests`.
+- **`blooms.wgsl`:** fn-261's run layout (the floret count at `owners[i * OW]`, the bloom mark at `+ 1`) with fn-253's rachis counted after a bloom's florets.
+  - fn-261 moved no node word: `NW` is still 33, the radius word 3, the share word 29.
+- **`foliage.rs` and `select/bind.rs`:** F4's sources from fn-260's `crate::shaders`.
+  - `shaders::foliage()` now composes `unit.wgsl` and `stalk.wgsl`, and `shaders::select()` composes `unit.wgsl`, as the device builds them.
+  - fn-260's `shader_tests.rs` therefore validates them, and finds both files in a checked source.
+- **`tests/material_shaders.rs`:** deleted, as fn-260 deleted it. fn-253's addition there (the organ's composition) is covered by `shader_tests.rs` through `shaders::foliage()`.
+- **`tests/thinning.rs`:** fn-253's enlarged fixture (the beech at 40) and its measured-plus-10 bound, re-taken on the merge (below).
+- **Also fixed:** `examples/bloom_seats.rs` imports the draw from `telperion_space::contract`, where F4 moved it.
+
+**Pins re-taken.**
+- **The card test.** Over the three packing boxes it reads +27.5, +27.8 and +28.8 % (1.3 points); before the merge, +30.1, +27.6 and +28.4 %. The bound is 27.5 plus 10: **37.5 %**.
+- **Catalogue identity:** unmoved.
+- **`presets.generated.ts`:** regenerated, unchanged.
+
+**The gate on the merge.**
+- `telperion-core`, `-space`, `-field`, `-wasm` and `-jev`: green (`raw/merge-gate-packages.log`).
+- `telperion-render`, under the GPU lock: green, the cold-compile test among it (`raw/merge-gate-render.log`). Readings:
+  - the parity test, CPU 0.01969 against device 0.01955;
+  - the attachment test: hero, 1,484 florets checked, at most 0.45 px off, none stranded; far, 304 to 309 units kept and 1,763 to 1,768 dropped whole.
+- `npm test`: 14 files and 155 tests.

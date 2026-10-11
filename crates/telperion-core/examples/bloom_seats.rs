@@ -15,7 +15,7 @@ use telperion_core::{
     tree::Tree,
 };
 use telperion_space::{
-    fixed::{child, draw},
+    contract::{child, draw},
     lineage_keys::BLOOM,
 };
 

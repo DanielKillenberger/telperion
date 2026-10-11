@@ -1,13 +1,13 @@
 // A growth unit's nodes on the GPU (fn-209 F1, task 2): `grow_unit`'s
 // draws for each unit a fine root grows, from `telperion_space::Units`'
 // tables. `count` sizes each unit's nodes; `emit` writes them in their
-// order along the unit, each with its key, its presence (Q32, D18) and
+// order along the unit, each with its key, its presence (D18) and
 // the PA each bud place drew (D3), 0xff for a bare place.
 //
 // `table` holds each PA's (first zone, zones) and then each zone's eight
 // words: zone, poisson, nodes, law at, places, laterals at, PAs, windows
 // at; `words` holds the laws (threshold, bound per node), the laterals'
-// thresholds (all ones for none) and the windows (Q32 per cycle).
+// thresholds (all ones for none) and the windows (per cycle).
 
 @group(0) @binding(0) var<uniform> cfg: vec4<u32>;
 @group(0) @binding(1) var<storage, read> units: array<vec4<u32>>;
@@ -63,14 +63,13 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
         let zk = zone_key(key, at);
         let d = draw(zk);
         let n = zone_count(at, d);
-        let side = zone_side(at, d, n);
         var drawn: array<u32, MOST>;
         sorted(zk, n, &drawn);
-        let window = words[table[at + 7u] + u.w];
+        let window = fw(table[at + 7u] + u.w);
         for (var m = 0u; m < n; m++) {
             let j = drawn[m];
             let node = child(zk, w(j, 0u));
-            let lead = node_lead(at, d, side, j);
+            let lead = node_lead(at, d, j);
             var packed = vec2<u32>(0xffffffffu);
             for (var s = 0u; s < table[at + 4u]; s++) {
                 let pa = bud(at, child(node, w(s, 0u)));
@@ -79,7 +78,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
                 packed[word] = (packed[word] & ~(0xffu << shift)) | (pa << shift);
             }
             nodes[3u * out] = node;
-            nodes[3u * out + 1u] = presence(lead, window);
+            nodes[3u * out + 1u] = vec2<u32>(bitcast<u32>(presence(lead, window)), 0u);
             nodes[3u * out + 2u] = packed;
             out += 1u;
         }

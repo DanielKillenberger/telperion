@@ -15,7 +15,7 @@ use super::spare::{grown, Spare};
 use super::{each, Plan};
 use crate::closed_form::boundary::Rows;
 use crate::error::Result;
-use crate::fixed::presence::{real, times};
+use crate::contract::presence::{real, times};
 use crate::geometry::ground_zone;
 use crate::grow::Rules;
 use crate::sag::any;

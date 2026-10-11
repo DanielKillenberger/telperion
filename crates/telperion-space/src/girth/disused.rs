@@ -5,8 +5,6 @@
 //! both sides of the branch's removal.
 use super::{mean_of, own, radius, section, terms, Disused, Girth};
 use crate::cores::{map, PIECE};
-use crate::fixed::feedback::total::Total;
-use crate::fixed::{mul, q32, ONE32};
 use crate::geometry::dominance;
 use crate::shed::{Given, Shed};
 use crate::species::Species;
@@ -32,21 +30,16 @@ pub(crate) struct Grown {
     leaf_mean: Option<f64>,
 }
 
-/// A Q32 as its exact real.
-fn real(q: i64) -> f64 {
-    q as f64 / ONE32 as f64
-}
-
 /// Each axis's scale at its base, as `geometry::scale` will give it
-/// (Q32, one floor a product, parents first); axis 0's is `top` where
+/// (parents first, in its order of products); axis 0's is `top` where
 /// given (a fine root's bearer's stub: its bearer's base).
-pub(crate) fn bases(axes: &[Axis], species: &Species, top: Option<i64>) -> Vec<i64> {
-    let mut base = vec![ONE32; axes.len()];
+pub(crate) fn bases(axes: &[Axis], species: &Species, top: Option<f32>) -> Vec<f32> {
+    let mut base = vec![1.0f32; axes.len()];
     for (i, a) in axes.iter().enumerate() {
         let inherited = match a.origin {
-            Origin::Seed => ONE32,
+            Origin::Seed => 1.0,
             Origin::Lateral { parent, node, .. } => {
-                mul(q32(axes[parent].phytomers[node].scale), base[parent])
+                axes[parent].phytomers[node].scale as f32 * base[parent]
             }
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => base[parent],
         };
@@ -56,10 +49,16 @@ pub(crate) fn bases(axes: &[Axis], species: &Species, top: Option<i64>) -> Vec<i
         };
         base[i] = match (i, top) {
             (0, Some(top)) => top,
-            _ => mul(mul(inherited, q32(a.vigour)), q32(share)),
+            _ => inherited * a.vigour as f32 * share as f32,
         };
     }
     base
+}
+
+/// A phytomer's scale as `geometry::scale` will give it: its scale by its
+/// axis's base, then by its unit's size.
+fn sized(p: &Phytomer, base: f32) -> f64 {
+    f64::from(p.scale as f32 * base * p.size as f32)
 }
 
 /// Where a subtree as grown stands in the tree: axis 0's base (none:
@@ -67,7 +66,7 @@ pub(crate) fn bases(axes: &[Axis], species: &Species, top: Option<i64>) -> Vec<i
 /// partials count (1 for a fine root, past its bearer's stub).
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Stand {
-    pub top: Option<i64>,
+    pub top: Option<f32>,
     pub first: usize,
 }
 
@@ -79,16 +78,16 @@ impl Stand {
 }
 
 /// The leaf term's two sums over `axes` as grown, from `from.first` on:
-/// each phytomer's pipe and its pipe by its light term (`terms`), exact
-/// and order-free (contract A, 2.3), on up to `threads` cores.
+/// each phytomer's pipe and its pipe by its light term (`terms`), taken
+/// on up to `threads` cores and summed in the order the phytomers stand.
 pub(crate) fn leaf_partials(
     axes: &[Axis],
     species: &Species,
     (age, threads): (u32, usize),
     from: Stand,
-) -> [Total; 2] {
+) -> [f32; 2] {
     let base = bases(axes, species, from.top);
-    let scale = |i: usize, p: &Phytomer| real(mul(mul(q32(p.scale), base[i]), q32(p.size)));
+    let scale = |i: usize, p: &Phytomer| sized(p, base[i]);
     let pieces: Vec<usize> = (0..axes.len().div_ceil(PIECE)).collect();
     let terms = map(pieces, 1, threads, &|_, k| {
         let mut out = Vec::new();
@@ -101,16 +100,16 @@ pub(crate) fn leaf_partials(
         }
         out
     });
-    let (mut total, mut weighted) = (Total::default(), Total::default());
+    let (mut total, mut weighted) = (0.0, 0.0);
     for (pipe, term) in terms.into_iter().flatten() {
-        total.add(pipe);
-        weighted.add(term);
+        total += pipe;
+        weighted += term;
     }
     [total, weighted]
 }
 
 /// The leaf term's mean from its merged sums, whole where none is.
-pub(crate) fn grown_mean([total, weighted]: [Total; 2]) -> f64 {
+pub(crate) fn grown_mean([total, weighted]: [f32; 2]) -> f64 {
     mean_of(total, weighted).unwrap_or(1.0)
 }
 
@@ -143,7 +142,7 @@ pub(crate) fn attachments_given(
     given: Given<f64>,
 ) -> Grown {
     let base = bases(axes, species, from.top);
-    let scale = |i: usize, p: &Phytomer| real(mul(mul(q32(p.scale), base[i]), q32(p.size)));
+    let scale = |i: usize, p: &Phytomer| sized(p, base[i]);
     let parents: Vec<Option<usize>> = axes.iter().map(|a| a.origin.parent()).collect();
     let tree = Tree::new(&parents);
     let mut none = vec![(); axes.len()];
@@ -152,7 +151,7 @@ pub(crate) fn attachments_given(
     let radii = tree.upward(
         &mut none,
         threads,
-        &|i, (), radii: &[f64], at_node: &mut Vec<i128>| {
+        &|i, (), radii: &[f64], at_node: &mut Vec<f32>| {
             if let Some(r) = given(i) {
                 return r;
             }
@@ -160,8 +159,8 @@ pub(crate) fn attachments_given(
             let state = &species.states[axis.pa];
             let e = state.form.exponent;
             at_node.clear();
-            at_node.resize(axis.phytomers.len(), 0);
-            let mut at_tip = 0i128;
+            at_node.resize(axis.phytomers.len(), 0.0);
+            let mut at_tip = 0.0f32;
             for &c in tree.children(i) {
                 let section = section(radii[c], e);
                 match axes[c].origin {
@@ -206,17 +205,17 @@ pub(crate) fn disused(grown: &Grown, shed: &Shed, species: &Species) -> Girth {
 }
 
 /// `disused`, in a fine root's tree where `stub` is given: axis 0 is its
-/// bearer's stub, the root standing at `stub` of its bearers' fades
-/// (Q32), and the root's own pipe is its bearer's to keep, so none is
-/// kept at the stub.
+/// bearer's stub, the root standing at `stub` of its bearers' fades, and
+/// the root's own pipe is its bearer's to keep, so none is kept at the
+/// stub.
 pub(crate) fn disused_below(
     grown: &Grown,
     shed: &Shed,
     species: &Species,
-    stub: Option<i64>,
+    stub: Option<f32>,
 ) -> Girth {
     let parents: Vec<Option<usize>> = grown.links.iter().map(|l| l.parent).collect();
-    let above = above(&parents, &shed.fade, stub.unwrap_or(ONE32));
+    let above = above(&parents, &shed.fade, stub.unwrap_or(1.0));
     let mut disused = Vec::new();
     for (i, link) in grown.links.iter().enumerate() {
         let share = species.states[link.pa].retained;
@@ -227,16 +226,16 @@ pub(crate) fn disused_below(
             continue;
         }
         let taken = if shed.index[i] == usize::MAX {
-            ONE32
+            1.0
         } else {
-            ONE32 - q32(shed.fade[i])
+            1.0 - shed.fade[i] as f32
         };
-        if taken > 0 {
+        if taken > 0.0 {
             disused.push(Disused {
                 axis: shed.index[parent],
                 node: link.node,
-                radius: real(mul(q32(link.radius), above[i])),
-                share: real(mul(q32(share), taken)),
+                radius: f64::from(link.radius as f32 * above[i]),
+                share: f64::from(share as f32 * taken),
             });
         }
     }
@@ -249,16 +248,16 @@ pub(crate) fn disused_below(
     }
 }
 
-/// Each axis's share left by its bearers' fades (Q32), parents first,
-/// axis 0's being `top`.
-pub(crate) fn above(parents: &[Option<usize>], fade: &[f64], top: i64) -> Vec<i64> {
-    let mut above = vec![ONE32; parents.len()];
+/// Each axis's share left by its bearers' fades, parents first, axis 0's
+/// being `top`.
+pub(crate) fn above(parents: &[Option<usize>], fade: &[f64], top: f32) -> Vec<f32> {
+    let mut above = vec![1.0f32; parents.len()];
     if let Some(a) = above.first_mut() {
         *a = top;
     }
     for i in 0..parents.len() {
         if let Some(p) = parents[i] {
-            above[i] = mul(above[p], q32(fade[p]));
+            above[i] = above[p] * fade[p] as f32;
         }
     }
     above

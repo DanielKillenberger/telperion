@@ -11,74 +11,58 @@
 //! shrinks as the branch droops and a heavy branch hangs and stops (fn-203,
 //! the first-order large-deflection correction). Growth never reads it
 //! back.
-use crate::fixed::feedback::vector::length;
-use crate::fixed::feedback::wide::{mul_shr, I256};
-use crate::fixed::q32;
-use crate::geometry::q::{add, q3, sub};
-use crate::geometry::support_q;
+use crate::geometry::q::{add, length, q3, scaled, sub};
+use crate::geometry::support;
 use crate::species::Species;
 use crate::structure::{Origin, Structure, Vec3};
 use crate::upward::Tree;
 
-/// A W vector: three W components.
-pub(crate) type W3 = [i128; 3];
+/// A lever or a first moment: three f32 components.
+pub(crate) type W3 = [f32; 3];
 
-/// 2^64, W's one, as f64.
-const W_ONE: f64 = 18_446_744_073_709_551_616.0;
-
-/// Load carried, in W (contract A, 2.5): its mass and its first moment
-/// (mass times position).
+/// Load carried (in f32 since fn-254): its mass and its first moment (mass
+/// times position).
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub(crate) struct Load {
-    pub mass: i128,
+    pub mass: f32,
     pub moment: W3,
 }
 
 impl Load {
-    /// A load given in reals (a GPU executor's, a borne bud's), each
-    /// component the nearest W.
+    /// A load given in reals (a GPU executor's, a borne bud's).
     pub(crate) fn of(mass: f64, moment: Vec3) -> Self {
-        let w = |x: f64| (x * W_ONE).round_ties_even() as i128;
         Self {
-            mass: w(mass),
-            moment: [w(moment.x), w(moment.y), w(moment.z)],
+            mass: mass as f32,
+            moment: q3(moment),
         }
     }
 
-    /// Its mass and moment as the nearest reals.
+    /// Its mass and moment as reals.
     pub(crate) fn real(self) -> (f64, Vec3) {
-        let r = |x: i128| x as f64 / W_ONE;
         let m = self.moment;
-        (r(self.mass), Vec3::new(r(m[0]), r(m[1]), r(m[2])))
+        (f64::from(self.mass), crate::geometry::q::v3(m))
     }
 
     fn add(&mut self, other: Load) {
-        let sum = |a: i128, b: i128| a.checked_add(b).expect("a load inside W");
-        self.mass = sum(self.mass, other.mass);
-        self.moment = std::array::from_fn(|k| sum(self.moment[k], other.moment[k]));
+        self.mass += other.mass;
+        self.moment = add(self.moment, other.moment);
     }
 
-    /// `b` of it, each component floored (`b` Q32).
-    fn share(self, b: i64) -> Load {
-        let f = |x: i128| mul_shr(x, i128::from(b), 32).expect("a load inside W");
+    /// `b` of it.
+    fn share(self, b: f32) -> Load {
         Load {
-            mass: f(self.mass),
-            moment: self.moment.map(f),
+            mass: self.mass * b,
+            moment: scaled(self.moment, b),
         }
     }
 
-    /// What is left of it once `part` is taken, exact.
+    /// What is left of it once `part` is taken.
     fn less(self, part: Load) -> Load {
         Load {
             mass: self.mass - part.mass,
-            moment: std::array::from_fn(|k| self.moment[k] - part.moment[k]),
+            moment: sub(self.moment, part.moment),
         }
     }
-}
-
-/// `p m` of a Q32 point and a W mass, W, floored: a first moment.
-fn at(p: [i64; 3], m: i128) -> W3 {
-    p.map(|c| mul_shr(i128::from(c), m, 32).expect("a moment inside W"))
 }
 
 /// Whether any PA sags: none, and the tree is laid once, as before sag.
@@ -90,13 +74,13 @@ pub(crate) fn any(species: &Species) -> bool {
 #[derive(Debug, Clone, Copy, Default)]
 pub(crate) struct Lever {
     /// The mass it carries times the offset of that mass's centre from
-    /// the end, W. Turned as the phytomer has turned, crossed with
-    /// gravity, it is the torque.
+    /// the end. Turned as the phytomer has turned, crossed with gravity,
+    /// it is the torque.
     pub moment: W3,
     /// From the phytomer's base to the tip of its axis and the axes that
-    /// carry it on, Q32: turned likewise, where the wood beyond would meet
-    /// the ground.
-    pub chord: [i64; 3],
+    /// carry it on: turned likewise, where the wood beyond would meet the
+    /// ground.
+    pub chord: [f32; 3],
 }
 
 /// Each phytomer's lever about its far end on the unbent tree.
@@ -181,7 +165,7 @@ pub(crate) fn gather(
     // Each axis's far tip: its own, or that of the axis that carries it
     // on. Continuations follow their parents, so a backward pass meets
     // each before its parent.
-    let mut far: Vec<[i64; 3]> = members
+    let mut far: Vec<[f32; 3]> = members
         .iter()
         .map(|&i| q3(axes[i].phytomers.last().map_or(axes[i].base, |p| p.tip)))
         .collect();
@@ -255,34 +239,28 @@ pub(crate) fn gather(
                 });
                 let tip = q3(p.tip);
                 let length = length(sub(tip, base));
-                let leaves = q32(crate::girth::own(&state.form, p, age, p.scale, 1.0));
-                let r = q32(p.radius);
-                // length (r^2 + leaves^2): the squares exact, one floor to W.
-                let square =
-                    i128::from(r) * i128::from(r) + i128::from(leaves) * i128::from(leaves);
-                let mass = I256::mul(square, i128::from(length))
-                    .floor_shift(32)
-                    .narrow()
-                    .expect("a mass inside W");
-                let middle = add(base, tip).map(|c| c >> 1);
+                let leaves = crate::girth::own(&state.form, p, age, p.scale, 1.0) as f32;
+                let r = p.radius as f32;
+                // length (r^2 + leaves^2).
+                let mass = (r * r + leaves * leaves) * length;
+                let middle = scaled(add(base, tip), 0.5);
                 // The moment at the phytomer's far end: what its node bears
                 // and all beyond it, about that end. An unloaded tip bends
                 // by nothing and keeps its tropism.
                 load.add(at_node[k]);
                 // S - W e: the lever of the load about the end.
-                let pull = at(tip, load.mass);
                 levers[k] = Lever {
-                    moment: std::array::from_fn(|c| load.moment[c] - pull[c]),
+                    moment: sub(load.moment, scaled(tip, load.mass)),
                     chord: sub(far[j], base),
                 };
                 load.add(Load {
                     mass,
-                    moment: at(middle, mass),
+                    moment: scaled(middle, mass),
                 });
                 // Wood resting on the ground is carried by it: it adds no
                 // lever to the wood before it (host, 2026-10-05).
                 if !trunk[i] {
-                    load = load.share(support_q(base[2].min(tip[2]), r, length));
+                    load = load.share(support(base[2].min(tip[2]), r, length));
                 }
             }
             load.add(at_base);
@@ -293,7 +271,7 @@ pub(crate) fn gather(
 }
 
 mod turn;
-pub(crate) use turn::{held, log2_q, torque, turn};
+pub(crate) use turn::{held, log2_q, torque, turn, unit_w};
 
 #[cfg(test)]
 mod tests;

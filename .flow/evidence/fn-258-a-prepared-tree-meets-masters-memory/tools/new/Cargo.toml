@@ -1,0 +1,27 @@
+[package]
+name = "parity"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "parity"
+path = "../src/main.rs"
+
+[features]
+default = ["f4"]
+f4 = []
+
+[dependencies]
+telperion-core = { path = "/home/daniel/Projects/telperion/.worktrees/memory/crates/telperion-core" }
+telperion-render = { path = "/home/daniel/Projects/telperion/.worktrees/memory/crates/telperion-render" }
+wgpu = "30"
+pollster = "1"
+
+[workspace]
+
+[patch.crates-io]
+wgpu = { path = "/home/daniel/Projects/telperion/.worktrees/memory/vendor/wgpu-30.0.1-async" }
+
+[profile.release]
+lto = false
+codegen-units = 16

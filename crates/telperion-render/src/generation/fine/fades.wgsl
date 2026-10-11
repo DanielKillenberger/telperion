@@ -5,7 +5,7 @@
 // scan gave it, so the maxima need no atomics; `down` then keeps, from
 // the first wave to the deepest, each axis whose bearer is kept and
 // whose fade is more than none. Every sum and product is the CPU's, in
-// integers, so the shedding is the CPU's to the bit.
+// f32, in the CPU's order (`contract::presence`, fn-254).
 
 struct Cfg {
     n: u32,
@@ -19,8 +19,8 @@ struct Cfg {
 @group(0) @binding(2) var<storage, read> places: array<u32>;
 @group(0) @binding(3) var<storage, read_write> axes: array<u32>;
 @group(0) @binding(4) var<storage, read> phyts: array<u32>;
-// `up`: each PA's fade delay (Q32) and whether it sheds; `down`: the
-// wave's buds' roots and bearers.
+// `up`: each PA's fade delay (f32, two words) and whether it sheds;
+// `down`: the wave's buds' roots and bearers.
 @group(0) @binding(5) var<storage, read> info: array<u32>;
 // `up`: the next wave's chains' living; `down`: the wave before's kept
 // own axes (the first wave's: each root's).
@@ -57,17 +57,12 @@ fn rd(i: u32, f: u32) -> u32 {
     return axes[base + i * AXW + f];
 }
 
-fn rq(i: u32, f: u32) -> vec2<u32> {
-    return vec2<u32>(rd(i, f), rd(i, f + 1u));
+fn rq(i: u32, f: u32) -> f32 {
+    return bitcast<f32>(rd(i, f));
 }
 
-fn wq(i: u32, f: u32, v: vec2<u32>) {
-    axes[base + i * AXW + f] = v.x;
-    axes[base + i * AXW + f + 1u] = v.y;
-}
-
-fn max64(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
-    return select(a, b, lt64(a, b));
+fn wq(i: u32, f: u32, v: f32) {
+    axes[base + i * AXW + f] = bitcast<u32>(v);
 }
 
 fn kind_of(i: u32) -> u32 {
@@ -102,11 +97,11 @@ fn up(@builtin(global_invocation_id) id: vec3<u32>) {
     var k = places[wi * CW + 2u];
     for (var i = 1u; i < na; i++) {
         if own(i) {
-            wq(i, LIVED, add64(shl64(w(rd(i, SLEEP), 0u), 12u), rq(i, QGROWN)));
+            wq(i, LIVED, to_f32(w(rd(i, SLEEP), 0u)) * pow2(-20) + rq(i, QGROWN));
             wq(i, SALIVE, rq(i, QALIVE));
         } else {
-            wq(i, LIVED, vec2<u32>(prior[4u * k], prior[4u * k + 1u]));
-            wq(i, SALIVE, vec2<u32>(prior[4u * k + 2u], prior[4u * k + 3u]));
+            wq(i, LIVED, bitcast<f32>(prior[2u * k]));
+            wq(i, SALIVE, bitcast<f32>(prior[2u * k + 1u]));
             k += 1u;
         }
     }
@@ -115,27 +110,22 @@ fn up(@builtin(global_invocation_id) id: vec3<u32>) {
         let p = rd(i, PARENT);
         var weight = rq(i, QVIG);
         if kind_of(i) == LATERAL {
-            weight = times_q(weight, rq(i, NSCALE));
+            weight *= rq(i, NSCALE);
         }
-        let carried = carry_q(rq(i, BEFORE), weight, rd(i, GAP), rq(i, LIVED));
-        wq(p, LIVED, max64(rq(p, LIVED), carried));
-        wq(p, SALIVE, max64(rq(p, SALIVE), times_q(rq(i, SALIVE), weight)));
+        let carried = carry(rq(i, BEFORE), weight, rd(i, GAP), rq(i, LIVED));
+        wq(p, LIVED, max(rq(p, LIVED), carried));
+        wq(p, SALIVE, max(rq(p, SALIVE), rq(i, SALIVE) * weight));
     }
     for (var i = 1u; i < na; i++) {
-        var fade = one32();
+        var faded = 1.0;
         if own(i) && sheds(i) {
-            let pa = rd(i, PA);
-            let delay = vec2<u32>(info[3u * pa], info[3u * pa + 1u]);
-            fade = fade_q(delay, rd(i, BIRTH), rq(i, LIVED), rq(i, SALIVE), cfg.age);
+            let delay = bitcast<f32>(info[3u * rd(i, PA)]);
+            faded = fade(delay, rd(i, BIRTH), rq(i, LIVED), rq(i, SALIVE), cfg.age);
         }
-        wq(i, FADE, fade);
+        wq(i, FADE, faded);
     }
-    let lived = rq(1u, LIVED);
-    let alive = rq(1u, SALIVE);
-    mine[4u * wi] = lived.x;
-    mine[4u * wi + 1u] = lived.y;
-    mine[4u * wi + 2u] = alive.x;
-    mine[4u * wi + 3u] = alive.y;
+    mine[2u * wi] = bitcast<u32>(rq(1u, LIVED));
+    mine[2u * wi + 1u] = bitcast<u32>(rq(1u, SALIVE));
 }
 
 @compute @workgroup_size(64)
@@ -159,7 +149,7 @@ fn down(@builtin(global_invocation_id) id: vec3<u32>) {
             kept = (rd(rd(i, PARENT), SHED_FLAGS) & KEPT) != 0u;
         }
         // `up` left a fade of one on every axis that does not shed.
-        kept = kept && !is_zero(rq(i, FADE));
+        kept = kept && rq(i, FADE) > 0.0;
         axes[base + i * AXW + SHED_FLAGS] = select(0u, KEPT, kept);
         mine[o] = select(0u, 1u, kept);
         o += 1u;

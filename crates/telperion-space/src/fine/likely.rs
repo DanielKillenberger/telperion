@@ -14,7 +14,7 @@ use super::expansion::{node, RootSeed};
 use super::landing::reaches;
 use super::realized::Stub;
 use crate::closed_form::boundary::Rows;
-use crate::fixed::presence::{real, times};
+use crate::contract::presence::{real, times};
 use crate::geometry::ground_zone;
 use crate::species::Species;
 use crate::structure::{Axis, Origin, Structure};

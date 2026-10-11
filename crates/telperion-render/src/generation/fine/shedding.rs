@@ -22,14 +22,14 @@ pub(super) struct Fades {
     pass: io::Pass,
 }
 
-/// Each PA's fade delay (Q32) and whether it sheds, as `up` reads them.
+/// Each PA's fade delay (f32, two words) and whether it sheds, as `up`
+/// reads them.
 pub(super) fn table(gpu: &Gpu, chain: &ChainTables) -> Result<Owned> {
     let words: Vec<u32> = chain
         .pas
         .iter()
         .flat_map(|r| {
-            let d = r.fade_delay;
-            [d as u32, (d >> 32) as u32, u32::from(r.delay.is_some())]
+            [r.fade_delay.to_bits(), 0, u32::from(r.delay.is_some())]
         })
         .collect();
     let usage = wgpu::BufferUsages::STORAGE;
@@ -84,7 +84,7 @@ impl Fades {
         Ok(())
     }
 
-    /// Each wave's chains' living (4 words a chain), carried up from the
+    /// Each wave's chains' living (2 words a chain), carried up from the
     /// deepest wave; the first wave's is one record per root.
     pub(super) fn living(
         &self,
@@ -94,7 +94,7 @@ impl Fades {
     ) -> Result<Vec<Owned>> {
         let mut out: Vec<Owned> = chains
             .iter()
-            .map(|&n| buffer(gpu, "wave living", u64::from(n) * 4))
+            .map(|&n| buffer(gpu, "wave living", u64::from(n) * 2))
             .collect::<Result<_>>()?;
         let none = buffer(gpu, "no living", 4)?;
         let mut encoder = gpu.encoder(&Default::default());
@@ -135,22 +135,15 @@ impl Fades {
 }
 
 /// The first wave's living read back: one record per root, by its place
-/// in the order the roots were taken (lived, Q32.32; alive, Q32).
+/// in the order the roots were taken (lived, in cycles; alive).
 pub(super) async fn report(
     gpu: &Gpu,
     living: &wgpu::Buffer,
     n: usize,
     cost: &mut Cost,
-) -> crate::Result<Vec<(u64, u64)>> {
+) -> crate::Result<Vec<(f32, f32)>> {
     cost.trips += 1;
-    let bytes = io::read_async(gpu, living, (n.max(1) * 16) as u64).await?;
-    let words: &[u32] = bytemuck::cast_slice(&bytes);
-    Ok(words
-        .chunks_exact(4)
-        .take(n)
-        .map(|w| {
-            let wide = |lo: u32, hi: u32| u64::from(lo) | u64::from(hi) << 32;
-            (wide(w[0], w[1]), wide(w[2], w[3]))
-        })
-        .collect())
+    let bytes = io::read_async(gpu, living, (n.max(1) * 8) as u64).await?;
+    let words: &[f32] = bytemuck::cast_slice(&bytes);
+    Ok(words.chunks_exact(2).take(n).map(|w| (w[0], w[1])).collect())
 }

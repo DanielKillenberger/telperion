@@ -159,7 +159,11 @@ fn sag_turn(lever: vec3<f32>, cap: f32, sag: f32, radius: f32, len: f32) -> f32 
     }
     let r2 = radius * radius;
     let c = sag / (r2 * r2);
-    let start = acos(clamp(-lever.z / reach, -1.0, 1.0));
+    // By its sine and cosine, as `sag::turn` takes it: a small lean near
+    // upright keeps its size.
+    // Below the f32 nearest pi, which lies above it, so tan(start / 2)
+    // never turns negative and the wood never turns past hanging.
+    let start = min(atan2(length(lever.xy), -lever.z), 3.1415925);
     let low = asin(min(cap / reach, 1.0));
     let high = PI - low;
     var fall = start;
@@ -251,9 +255,10 @@ fn key_unit(key: vec2<u32>) -> f32 {
     return real_of(draw(key));
 }
 
-// A 53-bit draw as a real in [0, 1).
+// A 53-bit draw's uniform as the CPU's geometry reads it
+// (`lineage::unit`): its top 24 bits, exact in [0, 1).
 fn real_of(d: vec2<u32>) -> f32 {
-    return (f32(d.y) * 4294967296.0 + f32(d.x)) * (1.0 / 9007199254740992.0);
+    return f32(shr64(d, 29u).x) * (1.0 / 16777216.0);
 }
 
 // The factor the internode of the node keyed `key` is laid at

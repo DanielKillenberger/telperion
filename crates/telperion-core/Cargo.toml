@@ -36,5 +36,7 @@ path = "../../tests/migration/foundation.rs"
 serde_json = { version = "1", features = ["float_roundtrip"] }
 bincode = "=1.3.3"
 trybuild = "1"
+# The repeatability check builds a tree on one core and on four (fn-254).
+rayon = "1"
 # Examples and tests read the wire the binding publishes, never a second copy.
 telperion-core = { path = ".", features = ["json"] }

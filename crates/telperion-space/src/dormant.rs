@@ -9,8 +9,8 @@
 //! release law that moves its waking moves its growth by degree.
 //! It wakes only while the axis that bears it lives, through that axis's
 //! continuations and relays, and its size carries every draw on the way.
-use crate::fixed::decide::node_window;
-use crate::fixed::presence::{q, real, times, ONE};
+use crate::contract::decide::node_window;
+use crate::contract::presence::{q, real, times, ONE};
 use crate::lineage::{self, Key, DORMANT};
 use crate::presence::Draws;
 use crate::schedule::Carried;
@@ -30,7 +30,7 @@ pub(crate) fn wakes_in(zone: &Zone, s: u32) -> f64 {
 }
 
 impl Sleeper {
-    /// The presences, Q32 (host decision 8), of the draws that made the
+    /// The presences (host decision 8) of the draws that made the
     /// bud as it wakes, `carried` there and reaching its stage by `reach`:
     /// its own draw's, by its place's share, and its bearer's carrying.
     pub fn made(&self, carried: f64, reach: f64) -> [f64; 2] {
@@ -48,10 +48,10 @@ pub(crate) struct Sleeper {
     pub slot: u8,
     pub whorl: f64,
     pub pa: usize,
-    /// Its lineage, and its own draw's and its place's presence, Q32, over
+    /// Its lineage, and its own draw's and its place's presence, over
     /// the window of the expected wood it decides.
     pub key: u64,
-    pub own: u64,
+    pub own: f32,
     /// The share of its first cycle it still slept, and the whole years
     /// before it, which it aged through.
     pub sleep: f64,
@@ -73,7 +73,7 @@ pub(crate) fn draw(
     let pa = lineage::bud(&zone.dormant, key.draw())?;
     // By the inverse of the release law's distribution, on the tick grid
     // (FINE-CONTRACT.md D11).
-    let years = crate::fixed::decide::wake(zone, key.child(DORMANT).draw());
+    let years = crate::contract::decide::wake(zone, key.child(DORMANT).draw());
     if years >= f64::from(age - cycle) {
         return None;
     }
@@ -114,7 +114,7 @@ pub(crate) fn carried(
     let presence = q(draws[axis].units[sleeper.unit].persist);
     let mut open = vec![(presence, axis, sleeper.unit + 1)];
     let mut out = Vec::new();
-    // Each presence Q32, its products floored in turn (host decision 8).
+    // Each presence an f32, its products taken in turn (host decision 8).
     while let Some((mut presence, axis, from)) = open.pop() {
         for u in &draws[axis].units[from..] {
             presence = times(times(presence, q(u.survive)), q(u.persist));
@@ -324,8 +324,8 @@ impl Woken {
     /// its bearer then carries on through the next cycle (`p`), and the
     /// part of its waking cycle it grew otherwise, share + (1 - share) p,
     /// so a bud that woke just before its bearer's end is small (host,
-    /// 2026-10-04). A Q32 presence, its sums and products floored in
-    /// turn (host decision 8).
+    /// 2026-10-04). An f32 presence, its sums and products taken in turn
+    /// (host decision 8).
     pub fn kept(&self, axes: &[Axis], draws: &[Draws], successor: &[Vec<usize>], age: u32) -> f64 {
         let bearer = &draws[self.bearer];
         let share = q(self.share);
@@ -333,10 +333,10 @@ impl Woken {
         // the cycle it lived past the waking (times on the tick grid).
         if let (Some(used), Some(end)) = (bearer.outlived, axes[self.bearer].apex_end) {
             if end == self.cycle && successor[self.bearer].is_empty() {
-                return real((q(used) + share).saturating_sub(ONE));
+                return real((q(used) + share - ONE).max(0.0));
             }
         }
-        let rest = |p: u64| real(share + times(ONE - share, p));
+        let rest = |p: f32| real(share + times(ONE - share, p));
         // In the tree's last cycle, as far as its bearer lives on past the
         // tree's age (`Grower::living`), so a bearer whose age ends just
         // after it keeps the bud as one ending just before it does (Codex
@@ -347,7 +347,7 @@ impl Woken {
         let on = |next: &[usize]| {
             next.iter()
                 .map(|&n| times(q(draws[n].birth[0]), q(draws[n].birth[1])))
-                .sum::<u64>()
+                .sum::<f32>()
         };
         let p = match bearer.units.get(self.next) {
             // It died before its next unit: as far as a relay took over.

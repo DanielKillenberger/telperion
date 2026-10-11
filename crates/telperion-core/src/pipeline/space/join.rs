@@ -7,8 +7,8 @@ use super::up;
 use crate::math::Vec3;
 use telperion_space::{Axis, Join, Origin, Structure};
 
-/// A join's share at the far end of its span, Q32: the parent's node.
-pub(super) const ONE: i64 = 1 << 32;
+/// A join's share at the far end of its span: the parent's node.
+pub(super) const ONE: f32 = 1.0;
 
 /// Each axis's relays and their joins, by the parent's node and then
 /// along the span, so the drawing meets them in order.
@@ -24,7 +24,7 @@ pub(super) fn by_parent(structure: &Structure) -> Vec<Vec<(usize, Join)>> {
         }
     }
     for list in &mut joins {
-        list.sort_by_key(|&(_, j)| (j.node, j.t));
+        list.sort_by(|(_, a), (_, b)| (a.node, a.t).partial_cmp(&(b.node, b.t)).expect("a share"));
     }
     joins
 }
@@ -59,7 +59,7 @@ impl Draw {
 /// the way along it, at the radius with the relay whole, and `t` of the
 /// span's grown wood.
 pub(super) fn draw(parent: &Axis, (i, relay): (usize, &Axis), join: Join, piece: f64) -> Draw {
-    let t = join.t as f64 / ONE as f64;
+    let t = f64::from(join.t);
     let end = up(parent.phytomers[join.node].tip);
     let start = up(match join.node {
         0 => parent.base,

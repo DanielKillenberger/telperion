@@ -38,10 +38,7 @@ fn one(toward: Vec3) -> Vec<(Vec3, f64)> {
 }
 
 fn field(leaves: &[(Vec3, f64)], reads: &[Vec3], directions: &[(Vec3, f64)]) -> Field {
-    let mut f = Field::spanning(
-        leaves.iter().map(|l| l.0).chain(reads.iter().copied()),
-        CELL,
-    );
+    let mut f = Field::spanning(leaves.iter().map(|l| l.0).chain(reads.iter().copied()));
     f.deposit_all(leaves);
     // The directions on four cores: each node sums them in their order.
     f.sweep(K, directions, 4);
@@ -72,10 +69,10 @@ fn a_leaf_slab_transmits_exp_of_minus_k_l_along_every_direction() {
             let lai = density * (top - at.z);
             let expected = (-K * lai / toward.z).exp_fixed();
             let got = f.at(at);
-            // Contract A: areas enter as Q32 and light is read in Q32, so
-            // the law holds to a few units of Q32's last place.
+            // Areas enter and light is read in f32 (fn-254), so the law
+            // holds to a few units of f32's last place.
             assert!(
-                (got - expected).abs() < 1e-8,
+                (got - expected).abs() < 1e-6,
                 "toward {toward:?}, depth {}: {got} against {expected}",
                 top - at.z
             );
@@ -252,4 +249,31 @@ fn a_leaf_or_a_read_moving_across_a_cell_changes_the_light_by_degree() {
         worst < 50.0 * step,
         "a 1 mm step moved the light by {worst}"
     );
+}
+
+/// A fully shaded sample stays at nothing: the corners' f32 weights may
+/// sum a place over one, and the light is never read below nothing or
+/// above one (fn-254 review, its three points and a sweep of the cell).
+#[test]
+fn a_shaded_sample_is_never_below_nothing() {
+    let corners: Vec<(Vec3, f64)> = (0..8)
+        .map(|c| {
+            let at = |a: usize| if (c >> a) & 1 == 1 { 0.5 } else { 0.0 };
+            (Vec3::new(at(0), at(1), at(2)), 1e3)
+        })
+        .collect();
+    let f = field(&corners, &[], &one(Vec3::new(0.0, 0.0, 1.0)));
+    let given = [
+        Vec3::new(0.4396865964, 0.02739467844, 0.1894081980),
+        Vec3::new(0.01489860937, 0.10931898654, 0.25267764926),
+        Vec3::new(0.2360713630914688, 0.050350602716207504, 0.21708591282367706),
+    ];
+    let swept = (0..4096).map(|k| {
+        let u = |s: u32| f64::from((k * s) % 997) / 997.0 * 0.5;
+        Vec3::new(u(13), u(31), u(71))
+    });
+    for at in given.into_iter().chain(swept) {
+        let light = f.at(at);
+        assert!((0.0..=1.0).contains(&light), "{at:?}: {light:e}");
+    }
 }

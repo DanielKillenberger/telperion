@@ -220,19 +220,23 @@ fn a_light_branch_bends_as_the_small_deflection_beam_does() {
         plain
             .iter()
             .zip(&bent)
-            .map(|(u, v)| u.dot(*v).clamp(-1.0, 1.0).acos())
+            // The angle by its sine and cosine: `acos` near one cannot
+            // resolve a bend under a milliradian between f32 directions.
+            .map(|(u, v)| u.cross(*v).length().atan2(u.dot(*v)))
             .collect()
     };
     let (one, two) = (bends(1e-6), bends(2e-6));
     // Every tenth internode's bend under fn-200's small-deflection sag
     // (commit 0706c79c, run on this certain tree for fn-206), the
-    // reference: the corrected bend stays within one percent of it.
+    // reference: the corrected bend stays within one percent of it, and
+    // within the f32 directions' own noise of a bend, 1.5e-5 rad measured
+    // on the first internode's (fn-254).
     let reference = [
         0.000807, 0.008268, 0.014627, 0.019900, 0.024110, 0.027292, 0.029568,
     ];
     for (k, (&ours, small)) in one.iter().step_by(10).zip(reference).enumerate() {
         assert!(
-            (ours - small).abs() <= 0.01 * small + 1e-6,
+            (ours - small).abs() <= 0.01 * small + 2e-5,
             "internode {}: {ours} rad against the small-deflection {small}",
             10 * k
         );

@@ -13,23 +13,15 @@
 use super::sketch::Rows;
 use super::Grower;
 use crate::allocation::TIP;
-use crate::fixed::feedback::shed::{walk, Bud, Lateral, Walked};
-use crate::fixed::feedback::wide::prod_shr;
-use crate::fixed::{mul, presence, q32, ONE32};
+use crate::contract::shed::{walk, Bud, Lateral, Walked};
 use crate::lineage::{Key, SHED};
 
-/// A Q32 as its exact real.
-fn real32(q: i64) -> f64 {
-    q as f64 / ONE32 as f64
-}
-
-/// Each laid axis's subtree's collected light, its wood's upkeep (Q32)
-/// and whether anything in it lives, summed child to parent: what a fine
-/// root reports its bearer (PHASES.md, phase (i)). Contract A (2.7): each
-/// term one rounding, the sums exact.
+/// Each laid axis's subtree's collected light, its wood's upkeep and
+/// whether anything in it lives, summed child to parent, the last child
+/// first: what a fine root reports its bearer (PHASES.md, phase (i)).
 pub(super) struct Totals {
-    pub light: Vec<i64>,
-    pub cost: Vec<i64>,
+    pub light: Vec<f32>,
+    pub cost: Vec<f32>,
     pub living: Vec<bool>,
 }
 
@@ -62,19 +54,18 @@ impl Grower<'_> {
 
     /// Each subtree's totals, `given` (axis, light, upkeep, living) taking
     /// the place of what axis holds before they are summed.
-    pub(super) fn totals(&self, rows: &Rows, given: &[(usize, i64, i64, bool)]) -> Totals {
+    pub(super) fn totals(&self, rows: &Rows, given: &[(usize, f32, f32, bool)]) -> Totals {
         let (species, pa) = (self.species, &rows.pa);
         let sketch = self.sketch.as_ref().expect("sketching");
         let n = sketch.pencils.len();
-        let (mut light, mut cost, mut living) = (vec![0i64; n], vec![0i64; n], vec![false; n]);
+        let (mut light, mut cost, mut living) = (vec![0.0f32; n], vec![0.0f32; n], vec![false; n]);
         let pencils = &sketch.pencils;
         crate::cores::fill(&mut cost, 1 << 15, self.threads, &|i| {
-            mul(q32(species.states[pa[i]].upkeep), q32(pencils[i].wood))
+            species.states[pa[i]].upkeep as f32 * pencils[i].wood as f32
         });
         for apex in self.live.iter().filter(|a| a.axis < n) {
             let p = &sketch.pencils[apex.axis];
-            let q = [p.base_scale, p.running, p.light, 1.0].map(q32);
-            light[apex.axis] = prod_shr([q[0], q[1], q[2], 1], 64).expect("a presence's light");
+            light[apex.axis] = p.base_scale as f32 * p.running as f32 * p.light as f32;
             living[apex.axis] = true;
         }
         for &(i, q, c, alive) in given {
@@ -82,12 +73,8 @@ impl Grower<'_> {
         }
         for i in (1..n).rev() {
             if let Some(parent) = rows.links[i].parent {
-                light[parent] = light[parent]
-                    .checked_add(light[i])
-                    .expect("a subtree's light");
-                cost[parent] = cost[parent]
-                    .checked_add(cost[i])
-                    .expect("a subtree's upkeep");
+                light[parent] += light[i];
+                cost[parent] += cost[i];
                 living[parent] |= living[i];
             }
         }
@@ -110,12 +97,12 @@ impl Grower<'_> {
         root: Option<(bool, f64)>,
     ) -> (Vec<bool>, Vec<f64>) {
         let laterals = self.laterals(cycle, rows, totals);
-        let root = root.map(|(shed, kept)| (shed, presence::q(kept)));
-        let walked = walk(&laterals, root).expect("a balance's light and upkeep");
+        let root = root.map(|(shed, kept)| (shed, kept as f32));
+        let walked = walk(&laterals, root);
         self.shed_walked(cycle, &walked)
     }
 
-    /// What D16's walk reads of each laid axis (contract A, 2.7): its
+    /// What D16's walk reads of each laid axis (CONTRACT-A.md 2.7): its
     /// bearer, whether it is a living lateral, and its balance's inputs.
     pub(super) fn laterals(
         &self,
@@ -145,18 +132,18 @@ impl Grower<'_> {
                 .child(SHED)
                 .child(u64::from(cycle))
                 .draw();
-            // D16 on contract A (CONTRACT-A.md 2.7): the window is the
-            // existing conversion at the cycle, stake one.
-            let window = self.rules.windows.window_q((pa[i], cycle, None), 1.0);
+            // D16 (CONTRACT-A.md 2.7): the window is the presences' at
+            // the cycle, stake one.
+            let window = self.rules.windows.window((pa[i], cycle, None), 1.0);
             let bud = Bud {
                 q: light[i],
                 c: cost[i],
-                memory: q32(sketch.pencils[i].memory),
-                hazard: q32(state.balance_hazard),
-                tolerance: q32(state.tolerance),
+                memory: sketch.pencils[i].memory as f32,
+                hazard: state.balance_hazard as f32,
+                tolerance: state.tolerance as f32,
                 draw: d.0,
                 window,
-                keep: 0,
+                keep: 0.0,
             };
             Lateral {
                 parent,
@@ -174,11 +161,11 @@ impl Grower<'_> {
         let n = sketch.pencils.len();
         for (pencil, w) in sketch.pencils.iter_mut().zip(walked) {
             if let Some(memory) = w.memory {
-                pencil.memory = real32(memory);
+                pencil.memory = f64::from(memory);
             }
         }
         let shed: Vec<bool> = walked.iter().map(|w| w.shed).collect();
-        let kept: Vec<f64> = walked.iter().map(|w| presence::real(w.kept)).collect();
+        let kept: Vec<f64> = walked.iter().map(|w| f64::from(w.kept)).collect();
         let live = std::mem::take(&mut self.live);
         for apex in live {
             if apex.axis < n && shed[apex.axis] {

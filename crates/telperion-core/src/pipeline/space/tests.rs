@@ -78,9 +78,10 @@ fn grown_wood_is_the_internodes_as_laid_at_a_spread() {
             .map(|m| internode * axis.phytomers[m].scale)
             .sum();
         let grown = tree.grown[i];
-        // The lay's lengths are Q32: a last place apart for each phytomer.
+        // The lay is f32 (fn-254): its lengths a few of its places apart
+        // for each phytomer (2.3e-7 m measured).
         assert!(
-            (grown - arc).abs() <= 1e-9 * (k - j) as f64,
+            (grown - arc).abs() <= 5e-7 * (k - j) as f64,
             "node {i}: grown {grown} against laid {arc}"
         );
         checked += 1;

@@ -2,7 +2,7 @@
 //! shed, sized, thickened and laid.
 use super::{Grower, Grown, Options, Pass, Record, Request, Stage};
 use crate::error::{Error, Result};
-use crate::fixed::presence::{q, real, times};
+use crate::contract::presence::{q, real, times};
 use crate::geometry::{place, scale};
 use crate::girth::{attachments, disused, thicken, Girth};
 use crate::presence::assign;

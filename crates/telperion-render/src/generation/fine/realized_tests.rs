@@ -71,6 +71,18 @@ fn canon(axes: &[ChainAxis]) -> (Vec<ChainAxis>, Vec<usize>) {
 }
 
 /// `of` in `order`, each axis's units summed, as the GPU's are read.
+/// The largest difference between two axes' presences, their shapes
+/// equal.
+fn apart(g: &Presences, c: &Presences) -> f32 {
+    assert_eq!((g.units.len(), g.scales.len()), (c.units.len(), c.scales.len()));
+    let pairs = [(g.vigour, c.vigour), (g.alive, c.alive), (g.sleep, c.sleep)];
+    let lists = g.units.iter().zip(&c.units).chain(g.scales.iter().zip(&c.scales));
+    pairs
+        .into_iter()
+        .chain(lists.map(|(a, b)| (*a, *b)))
+        .fold(0.0, |m, (a, b)| m.max((a - b).abs()))
+}
+
 fn summed(of: &[Presences], order: &[usize]) -> Vec<Presences> {
     order
         .iter()
@@ -104,9 +116,17 @@ fn trips(cost: &Cost) {
 }
 
 /// Steps 1 to 3: every root's axes as grown, before shedding, by lineage,
-/// and their presences, Q32, to the bit; each root's living as reported
-/// up; and its axes kept by its own subtree's shedding.
-fn grown_as_on_the_cpu(gpu: &Gpu, k: &Kernels, name: &str, species: &Species, at: (u32, u64)) {
+/// exactly; their presences and each root's living as reported up within
+/// `PRESENCES`; and its axes kept by its own subtree's shedding. The
+/// largest presence difference seen.
+pub(super) fn grown_as_on_the_cpu(
+    gpu: &Gpu,
+    k: &Kernels,
+    name: &str,
+    species: &Species,
+    at: (u32, u64),
+) -> f32 {
+    let mut most = 0.0f32;
     let chain = Arc::new(ChainTables::new(species, at.0).expect("tables"));
     let (cases, tables, roots) = setup(gpu, species, at, &chain);
     let forward: Vec<usize> = (0..cases.len()).collect();
@@ -133,7 +153,9 @@ fn grown_as_on_the_cpu(gpu: &Gpu, k: &Kernels, name: &str, species: &Species, at
             assert_eq!(gpu, cpu, "{name} {at:?} root {r}");
             let (gpu, cpu) = (summed(&got.presences[r], &by), summed(&c.presences, &want));
             for (j, (g, c)) in gpu.iter().zip(&cpu).enumerate() {
-                assert_eq!(g, c, "{name} {at:?} root {r} axis {j}: presences");
+                let d = apart(g, c);
+                most = most.max(d);
+                assert!(d <= PRESENCES, "{name} {at:?} root {r} axis {j}: {g:?} {c:?}");
             }
         }
         let living = k
@@ -143,10 +165,10 @@ fn grown_as_on_the_cpu(gpu: &Gpu, k: &Kernels, name: &str, species: &Species, at
         let report =
             pollster::block_on(shedding::report(gpu, &living[0], cases.len(), &mut cost)).unwrap();
         for (wi, &r) in order.iter().enumerate() {
-            assert_eq!(
-                report[wi], cases[r].living,
-                "{name} {at:?} root {r}: living"
-            );
+            let (g, c) = (report[wi], cases[r].living);
+            let d = (g.0 - c.0).abs().max((g.1 - c.1).abs());
+            most = most.max(d);
+            assert!(d <= PRESENCES, "{name} {at:?} root {r}: living {g:?} {c:?}");
         }
         k.fades.shed(gpu, (&waves.grown, &waves.own), &all).unwrap();
         let shed = readback::read(gpu, &waves.grown, cases.len());
@@ -159,8 +181,24 @@ fn grown_as_on_the_cpu(gpu: &Gpu, k: &Kernels, name: &str, species: &Species, at
         }
         axes = got.roots.iter().map(Vec::len).sum::<usize>();
     }
-    println!("{name} {at:?}: {} roots, {axes} axes grown", cases.len());
+    println!(
+        "{name} {at:?}: {} roots, {axes} axes grown, presences {most:.2e} apart",
+        cases.len()
+    );
+    most
 }
+
+/// How far the device's presences and livings may stand from the CPU's
+/// (fn-254 R4 check 4): f32 on both, summed in their own orders. Measured
+/// at 25, seeds 1 and 7: at most 1.5e-4 (the spruce's living, its cycles
+/// lived near 20), 3.8e-5 on the oak, 2.5e-5 on the beech; bound at twice.
+const PRESENCES: f32 = 3e-4;
+
+/// How far a root's base radius on the device may stand from the CPU's,
+/// relative (fn-254): measured at 30, 3.4e-7 on the beech and 8.8e-5 on
+/// the spruce, whose heaviest roots sum the most sections; bound at about
+/// twice.
+const RADII: f64 = 2e-4;
 
 #[test]
 fn every_root_grows_whole_on_the_gpu_as_on_the_cpu() {
@@ -204,6 +242,8 @@ pub(super) struct Apart {
     pub most: f64,
     pub squares: f64,
     pub radius: f64,
+    /// The most a radius stands apart (m).
+    pub radius_m: f64,
     pub digest: u64,
     pub statuses: u32,
     pub cost: Cost,
@@ -217,6 +257,37 @@ pub(super) struct Apart {
     pub landed_most: f64,
     /// The groups the roots grew in (task 9).
     pub groups: usize,
+    /// The device-grown wood's crown, its height and spread from the
+    /// trunk's foot, on the CPU and on the device (fn-254 check 4).
+    pub crown: [(f64, f64); 2],
+    /// The shallowest axis whose own wood stands apart past `FIRST` while
+    /// its base does not (fn-263 R1): its root, depth, lineage, PA, the
+    /// phytomer, its key and how far it stands (m).
+    pub first: Option<First>,
+}
+
+/// An axis where the executors first part (fn-263 R1).
+#[derive(Debug, Default, Clone, Copy)]
+pub(super) struct First {
+    pub root: usize,
+    pub depth: usize,
+    pub lineage: u64,
+    pub pa: usize,
+    pub phytomer: usize,
+    pub key: u64,
+    pub apart: f64,
+}
+
+/// How far a phytomer must stand apart to name its axis where the
+/// executors part: the other GPU presets' tip bound (`preset_agree_tests`).
+const FIRST: f64 = 1.75e-3;
+
+impl Apart {
+    /// How far the device's crown stands from the CPU's (m).
+    pub(super) fn crown_apart(&self) -> f64 {
+        let [(h, s), (g, t)] = self.crown;
+        (h - g).abs().max((s - t).abs())
+    }
 }
 
 impl Apart {
@@ -291,7 +362,11 @@ pub(super) fn settled_against(
         let cpu: Vec<ChainAxis> = axes.iter().map(|a| a.0.clone()).collect();
         let ((gpu_axes, by), (cpu_axes, want_by)) = (canon(&got.roots[r]), canon(&cpu));
         assert_eq!(gpu_axes, cpu_axes, "root {r}: kept axes");
-        for (&g, &c) in by.iter().zip(&want_by) {
+        let mut depth = vec![0; cpu_axes.len()];
+        for (j, a) in cpu_axes.iter().enumerate() {
+            depth[j] = a.parent.map_or(0, |p| depth[p] + 1);
+        }
+        for (j, (&g, &c)) in by.iter().zip(&want_by).enumerate() {
             let (w, i) = got.laid[r][g];
             let wave = &floats[w];
             let phyts = laid[w].0 as usize * AL;
@@ -309,13 +384,31 @@ pub(super) fn settled_against(
                     p[2] as f64 - want.z,
                 ];
                 let e = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
+                let at = [p[0] as f64 + origin.x, p[1] as f64 + origin.y, p[2] as f64 + origin.z];
+                for (c, (x, y, z)) in [(tip.x, tip.y, tip.z), (at[0], at[1], at[2])].iter().enumerate() {
+                    let crown = &mut apart.crown[c];
+                    *crown = (crown.0.max(*z), crown.1.max(x.hypot(*y)));
+                }
                 assert!(e.is_finite(), "root {r}: {p:?}");
                 if e > apart.most {
                     apart.worst = (r, w, n, want.length(), radius);
                 }
+                let shallower = apart.first.is_none_or(|f| depth[j] < f.depth);
+                if e > FIRST && shallower {
+                    apart.first = Some(First {
+                        root: r,
+                        depth: depth[j],
+                        lineage: cpu_axes[j].lineage,
+                        pa: cpu_axes[j].pa,
+                        phytomer: n,
+                        key: cpu_axes[j].phytomers[n].1,
+                        apart: e,
+                    });
+                }
                 apart.most = apart.most.max(e);
                 apart.squares += e * e;
                 apart.phytomers += 1;
+                apart.radius_m = apart.radius_m.max((f64::from(p[18]) - radius).abs());
                 let dr = (f64::from(p[18]) - radius).abs() / radius.max(1e-9);
                 apart.radius = apart.radius.max(dr);
             }
@@ -435,13 +528,11 @@ fn varied_forms_settle_on_the_gpu_as_on_the_cpu() {
     }
 }
 
-/// Phase 2 under contract A (host, 2026-10-08): the device's girth is the
-/// CPU's fixed point, op for op, so a root's base radius is the CPU build's
-/// to the bit wherever the f32 scale pass hands it the same scales; at 30
-/// that is nearly every root (149 of 150 beech roots, 9,579 of 9,764
-/// spruce roots; the float girth left the heaviest about 1.5e-6 apart).
+/// Phase 2 in f32 (fn-254): the device's girth is the CPU's pipe model in
+/// f32, so a root's base radius stands within `RADII` of the CPU build's,
+/// the roots matched by lineage.
 #[test]
-fn the_device_s_base_radii_are_the_cpu_s_to_the_bit() {
+fn the_device_s_base_radii_are_the_cpu_s_by_lineage() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
     };
@@ -469,13 +560,12 @@ fn the_device_s_base_radii_are_the_cpu_s_to_the_bit() {
             .collect();
         device.sort_by_key(|b| b.0);
         assert_eq!(device.len(), cpu.bases.len(), "{name}: the live roots");
-        let equal = (device.iter().zip(&cpu.bases))
-            .filter(|(a, b)| a.0 == b.0 && a.1.to_bits() == b.1.to_bits())
-            .count();
-        assert!(
-            equal * 10 >= device.len() * 9,
-            "{name}: {equal} of {} base radii the CPU's to the bit",
-            device.len()
-        );
+        let mut most = 0.0f64;
+        for (a, b) in device.iter().zip(&cpu.bases) {
+            assert_eq!(a.0, b.0, "{name}: the roots by lineage");
+            most = most.max((a.1 - b.1).abs() / b.1.max(1e-12));
+        }
+        println!("{name}: base radii {most:.2e} apart");
+        assert!(most <= RADII, "{name}: base radii {most:.2e} apart");
     }
 }

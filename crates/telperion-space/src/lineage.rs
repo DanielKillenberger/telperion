@@ -3,7 +3,7 @@
 //! stream, so adding a branch anywhere moves no other draw. Each draw's lead
 //! past the bound it was tested against, in log-odds, is what `presence.rs`
 //! grows its element in by.
-use crate::fixed::{self, decide, mul, q32, ONE32};
+use crate::contract::{self, decide, presence};
 use crate::species::NodeLaw;
 use crate::transcendental::Transcendental;
 
@@ -87,21 +87,25 @@ impl Draw {
     }
 }
 
-/// A draw's unit as a signed Q32, `2u − 1`: `d >> 21` is `u` in Q32,
-/// exact (CONTRACT-A.md 2.3, keyed draws).
-fn signed(d: Draw) -> i64 {
-    ((d.0 >> 21) as i64) * 2 - ONE32
+/// A draw's uniform in f32: its top 24 bits, `(d >> 29) / 2^24`, exact
+/// in [0, 1) on both executors (fn-254).
+pub(crate) fn unit(d: Draw) -> f32 {
+    (d.0 >> 29) as f32 * (1.0 / 16_777_216.0)
 }
 
-/// The factor, Q32, the internode of the node keyed `key` is scaled by at
+/// A draw's uniform as a signed one, `2u − 1`, exact.
+pub(crate) fn signed(d: Draw) -> f32 {
+    unit(d) * 2.0 - 1.0
+}
+
+/// The factor the internode of the node keyed `key` is scaled by at
 /// `spread` (`Form::internode_spread`): 1 + spread (2u − 1), u the node's
 /// internode draw, so its mean is one; exactly one without spread.
-/// Contract A: the spread converted once, one floor.
-pub(crate) fn internode(key: u64, spread: f64) -> i64 {
+pub(crate) fn internode(key: u64, spread: f64) -> f32 {
     if spread <= 0.0 {
-        return ONE32;
+        return 1.0;
     }
-    ONE32 + mul(q32(spread), signed(Key(key).child(INTERNODE).draw()))
+    1.0 + spread as f32 * signed(Key(key).child(INTERNODE).draw())
 }
 
 /// The key of the node a relay joins its parent at (`keys::JOIN`), under
@@ -116,22 +120,21 @@ pub fn join_key(first: u64) -> u64 {
 /// (the conversion's `SHORTEST` and the stations' count, fn-212), so the
 /// wood is the length its internodes were laid at.
 pub fn internode_factor(key: u64, spread: f64) -> f64 {
-    internode(key, spread) as f64 / ONE32 as f64
+    f64::from(internode(key, spread))
 }
 
-/// The insertion angle, an amount (Q32 turns), of the axis whose lineage is
+/// The insertion angle, an amount in turns, of the axis whose lineage is
 /// `lineage`, its PA's `angle` (radians) at `spread` (radians,
 /// `Form::insertion_spread`): angle + spread (2u − 1), u the axis's
 /// insertion draw, so its mean is the angle; exactly the angle without
-/// spread. Contract A (2.4): each angle converted once, the offset an
-/// amount by one floor, as the roll's.
-pub(crate) fn insertion(lineage: u64, angle: f64, spread: f64) -> i64 {
+/// spread. Each angle converted once, as the roll's.
+pub(crate) fn insertion(lineage: u64, angle: f64, spread: f64) -> f32 {
     let angle = crate::geometry::amount(angle);
     if spread <= 0.0 {
         return angle;
     }
     let u = signed(Key(lineage).child(INSERTION).draw());
-    angle + mul(crate::geometry::amount(spread), u)
+    angle + crate::geometry::amount(spread) * u
 }
 
 /// The cosine of `insertion`'s angle in expectation over its draw, and its
@@ -149,15 +152,14 @@ pub(crate) fn turn(angle: f64, spread: f64) -> [f64; 2] {
     [cos * sinc(spread), square]
 }
 
-/// The factor, Q32, the tropism of the axis whose lineage is `lineage` is
-/// scaled by at `spread` (`Form::tropism_spread`): 1 + spread (2u − 1), u
-/// the axis's tropism draw, so its mean is one; exactly one without
-/// spread. Contract A: the spread converted once, one floor.
-pub(crate) fn tropism(lineage: u64, spread: f64) -> i64 {
+/// The factor the tropism of the axis whose lineage is `lineage` is scaled
+/// by at `spread` (`Form::tropism_spread`): 1 + spread (2u − 1), u the
+/// axis's tropism draw, so its mean is one; exactly one without spread.
+pub(crate) fn tropism(lineage: u64, spread: f64) -> f32 {
     if spread <= 0.0 {
-        return ONE32;
+        return 1.0;
     }
-    ONE32 + mul(q32(spread), signed(Key(lineage).child(TROPISM).draw()))
+    1.0 + spread as f32 * signed(Key(lineage).child(TROPISM).draw())
 }
 
 /// Whether the bud place keyed `place` stands at `share` (`Zone::share`):
@@ -167,43 +169,42 @@ pub(crate) fn placed(place: Key, share: f64) -> bool {
     share >= 1.0 || place.child(PLACED).draw().under(share)
 }
 
-/// The presence, Q32, over `window` of the draw that made the bud place
+/// The presence over `window` of the draw that made the bud place
 /// keyed `place` stand at `share`: its lead under the share's threshold,
 /// as `bud_presence` settles a bud's, so a place grows in from nothing as
 /// the fraction passes its draw (fn-231); a whole place's is whole.
-pub(crate) fn place_presence(place: Key, share: f64, window: i64) -> u64 {
+pub(crate) fn place_presence(place: Key, share: f64, window: f32) -> f32 {
     if share >= 1.0 {
-        return fixed::presence::ONE;
+        return presence::ONE;
     }
     let d = place.child(PLACED).draw();
-    fixed::presence::of_under(threshold(share), d.0, window)
+    presence::of_under(threshold(share), d.0, window)
 }
 
 /// The nodes of a zone a unit a lifespan's fraction cut lays (fn-231,
 /// host 2026-10-08): `share / of` of its present nodes, the sum of their
-/// `presences` (Q32), so a node the law only starts to make adds a
+/// `presences`, so a node the law only starts to make adds a
 /// vanishing share. In index order, each node whose presence the quota
 /// still holds is laid whole, at its presence; the next, where its `LAID`
 /// draw, under the zone's key `zone`, falls under the share of it left,
 /// at its presence times that draw's lead over `window`, so it grows in
-/// from nothing; the rest are not laid. In integers, so the device takes
-/// the same nodes.
-pub(crate) fn laid(presences: &mut Vec<u64>, cut: crate::schedule::Cut, zone: Key, window: i64) {
-    let (share, of) = (fixed::ticks(cut.share) as u128, fixed::ticks(cut.of) as u128);
-    let quota = share * presences.iter().map(|&p| p as u128).sum::<u128>();
-    let mut held = 0u128;
+/// from nothing; the rest are not laid. The presences are summed in index
+/// order and the share is a ratio of ticks, as the device takes them.
+pub(crate) fn laid(presences: &mut Vec<f32>, cut: crate::schedule::Cut, zone: Key, window: f32) {
+    let share = contract::ticks(cut.share) as f32 / contract::ticks(cut.of) as f32;
+    let quota = share * presences.iter().sum::<f32>();
+    let mut held = 0.0;
     for (j, &p) in presences.iter().enumerate() {
-        let p = p as u128;
-        if (held + p) * of <= quota {
+        if held + p <= quota {
             held += p;
             continue;
         }
-        let left = quota - held * of;
-        let last = (left > 0).then(|| {
+        let left = quota - held;
+        let last = (left > 0.0).then(|| {
             let d = zone.child(j as u64).child(LAID).draw();
-            let t = (left << 53).div_ceil(p * of) as u64;
-            let lead = fixed::presence::of_under(t, d.0, window);
-            (d.0 < t).then(|| fixed::presence::times(p as u64, lead))
+            let t = contract::threshold(left / p);
+            let lead = presence::of_under(t, d.0, window);
+            (d.0 < t).then(|| presence::times(p, lead))
         });
         presences.truncate(j);
         presences.extend(last.flatten());
@@ -226,15 +227,13 @@ pub(crate) fn bud(lateral: &[f64], d: Draw) -> Option<usize> {
     None
 }
 
-/// The presence, Q32, over `window` of the draw `d` that made a bud of
+/// The presence over `window` of the draw `d` that made a bud of
 /// `pa` under `lateral`: its lead past the nearer bound of the PA's run of
-/// draws, in log-odds Q32 on the bounds' thresholds (host decision 8),
-/// over the window. The lesser of the two bounds' presences (a presence
-/// rises with its lead), each settled as `fixed::presence::of_under`
-/// settles one. Taken only for a bud that is made: the logs it may take
-/// are most of growth's arithmetic on one core.
-pub(crate) fn bud_presence(lateral: &[f64], pa: usize, d: Draw, window: i64) -> u64 {
-    use fixed::presence::{of_over, of_under, ONE};
+/// draws, in log-odds on the bounds' thresholds (host decision 8), over
+/// the window. The lesser of the two bounds' presences (a presence rises
+/// with its lead). Taken only for a bud that is made.
+pub(crate) fn bud_presence(lateral: &[f64], pa: usize, d: Draw, window: f32) -> f32 {
+    use presence::{of_over, of_under, ONE};
     let (low, high) = bounds(lateral, pa);
     let over = if low <= 0.0 {
         ONE
@@ -251,27 +250,26 @@ fn bounds(lateral: &[f64], pa: usize) -> (f64, f64) {
 }
 
 /// A zone's node count under `law` for the draw `d`, by the inverse of the
-/// law's distribution, and each node's lead into `leads`, in Q32 log-odds
-/// (`fixed.rs`; D18 reads the presences they give): a node of the
+/// law's distribution, and each node's lead into `leads`, in log-odds
+/// (`contract.rs`; D18 reads the presences they give): a node of the
 /// Poisson law is made as the mean passes its draw (FINE-CONTRACT.md D2).
 /// A uniform node's lead is the log of the draw's ratio to its bound,
 /// unbounded as the bound nears 0, where the node becomes a sure one, and
 /// gentle as it nears 1.
 #[cfg(test)]
-pub(crate) fn nodes(law: NodeLaw, d: Draw, cap: u32, leads: &mut Vec<i64>) {
+pub(crate) fn nodes(law: NodeLaw, d: Draw, cap: u32, leads: &mut Vec<f32>) {
     leads.clear();
     walk(law, d, cap, |past| {
         leads.push(match past {
-            Past::Uniform(bound) => decide::past(d, bound),
-            Past::Poisson(bound) => decide::above(d, bound),
+            Past::Uniform(bound) => decide::past(d.0, contract::ln_of(bound)),
+            Past::Poisson(bound) => decide::above(d.0, contract::logit_of(bound)),
         })
     });
 }
 
-/// `nodes`, each node's presence over `window` (Q32, `decide::node_window`) in
-/// place of its lead: the same nodes, their presences settled without
-/// their logs where bounds of them settle them.
-pub(crate) fn node_presences(law: NodeLaw, d: Draw, cap: u32, window: i64, out: &mut Vec<u64>) {
+/// `nodes`, each node's presence over `window` (`decide::node_window`) in
+/// place of its lead: the same nodes.
+pub(crate) fn node_presences(law: NodeLaw, d: Draw, cap: u32, window: f32, out: &mut Vec<f32>) {
     out.clear();
     walk(law, d, cap, |past| {
         out.push(match past {
