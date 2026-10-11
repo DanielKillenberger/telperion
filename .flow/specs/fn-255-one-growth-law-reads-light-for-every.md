@@ -13,6 +13,10 @@ fn-245's second stage. The owner (2026-10-09): "i'm still not comfortable with o
 - **R3b (consumers in between):** after this spec every build (full CPU, the renderer's resident build, the coarse field call) runs through the one CPU cycle; the independent-chain GPU path retires with `reads_light()` and its guard, so no coupled tree reaches a grower that cannot carry its feedback, and every species grows on the CPU until fn-256. fn-255 and fn-256 merge into F4 together, so F4 never ships the interim. The stepped executor's exported types (`fine.rs:150`, `fine/coarse.rs:101`, the renderer's feedback imports) migrate to the cycle's, each consumer checked before deletion.
 - **R4 (proved):** every preset's stills (whole/mid/close) viewed beside the current branch; the oak's light response held (its shade-shedding and balance traits visible); species-to-species walks crossing zero light without a jump; build time per preset; the lattice and stepped executor removed only after R3's approval and the accumulated-growth comparison; Astra's agreement; gate and npm test green; the owner's verdict.
 
+## Council plan (host, 2026-10-11)
+
+The owner asked for a council of Fable and Astra on the attack plan; both signed `.flow/evidence/fn-245-a-breakthrough-in-generation-time/COUNCIL.md`, which governs this spec where it differs from the requirements above. For this spec: R3's light-volume candidate is refused on R3.md and the lattice is the light model for every species; R3a is dropped; R3b is the CPU executor as the one cycle with explicit foliage lifetime, phase order, canonical identity, persistent adjacency and reusable scratch, records by resolution, the deletions COUNCIL.md lists, no shed-certain shortcut; light rows sourced for every species. Early tests 1 and 2 of COUNCIL.md come first.
+
 ## Boundaries
 
 The CPU executor and the light model. Moving it to the GPU is the next spec. Release item for fn-237.

@@ -368,13 +368,8 @@ fn the_real_path_matches_the_cpu_path() {
 /// fn-254 R4 check 4, leaf area: every shipped GPU preset at 30 on the
 /// real path, its leaves against the CPU path's by key and station: as
 /// many, and none apart in place, direction or scale past the screen.
-/// Measured: every leaf of all five matched, none apart in scale; the
-/// birch's 42,548 apart in place and 5,673 in direction ride its wood's
-/// gap.
-/// The birch's leaves apart in place and in direction, of 60,084, with
-/// its wood's gap: measured 42,548 and 5,673, bound at about a tenth more.
-const BIRCH_LEAVES: (u64, u64) = (47_000, 6_300);
-
+/// The birch's leaves stood apart with its wood until fn-263 turned the
+/// CPU's sag over the internode as laid.
 #[test]
 fn every_gpu_preset_seats_its_leaves_as_the_cpu_path_does() {
     let Some(gpu) = crate::generation::test_gpu() else {
@@ -391,16 +386,8 @@ fn every_gpu_preset_seats_its_leaves_as_the_cpu_path_does() {
         assert_eq!(l.leaves.0 as u64, l.leaves.1, "{id}: as many leaves");
         assert_eq!((l.compared, l.left), (l.leaves.1, (0, 0, 0)), "{id}: every leaf compared");
         assert_eq!(l.flags, 0, "{id}: placement flags");
-        // No leaf's scale apart: the leaf area agrees leaf by leaf. The
-        // birch's places and directions stand apart with its wood, whose
-        // gap predates the floats (`preset_agree_tests::BIRCH`): held to
-        // what was measured, so a regression still shows.
-        let most = if id == "silver-birch" { BIRCH_LEAVES } else { (0, 0) };
-        assert!(
-            l.over.0 <= most.0 && l.over.1 <= most.1 && l.over.2 == 0,
-            "{id}: leaves apart {:?}",
-            l.over
-        );
+        // No leaf apart: the leaf area agrees leaf by leaf.
+        assert_eq!(l.over, (0, 0, 0), "{id}: leaves apart");
     }
 }
 

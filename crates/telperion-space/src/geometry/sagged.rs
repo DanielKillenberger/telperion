@@ -9,17 +9,17 @@ use crate::sag::{held, log2_q, torque, turn, unit_w, Lever};
 use crate::species::PaState;
 use crate::structure::Phytomer;
 
-/// The sag of a loaded phytomer (`sag.rs`): its pivot and amount, or
+/// The sag of a loaded phytomer `length` metres long as it is laid, its
+/// node's own internode draw taken (`sag.rs`): its pivot and amount, or
 /// none (CONTRACT-A.md 2.5); its room is an amount, unwrapped.
 pub(super) fn sag_angle(
     load: &Lever,
-    phytomer: &Phytomer,
+    (phytomer, length): (&Phytomer, f32),
     state: &PaState,
     (running, across, tip): (Q3, Q3, Q3),
     trunk: bool,
 ) -> Option<(Q3, f32)> {
     let form = state.form;
-    let length = state.internode as f32 * phytomer.scale as f32;
     let radius = phytomer.radius as f32;
     // The lever was taken on the tree before it bent. The load beyond is
     // turned rigidly by the rotation that takes the phytomer's frame then

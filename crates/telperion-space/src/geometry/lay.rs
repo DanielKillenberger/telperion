@@ -246,8 +246,9 @@ impl Layer {
         // Sag: the beam's curvature, its moment over its stiffness, turns
         // the axis down about the torque's axis (`sag_angle`).
         if let (Some(load), true) = (load, form.sag > 0.0 && phytomer.radius > 0.0) {
+            let at = (running, across, tip);
             if let Some((pivot, angle)) =
-                super::sagged::sag_angle(load, phytomer, state, (running, across, tip), trunk)
+                super::sagged::sag_angle(load, (phytomer, length), state, at, trunk)
             {
                 let t = q::turn(pivot, angle);
                 running = turned_by(running, &t);

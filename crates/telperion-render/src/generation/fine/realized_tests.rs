@@ -119,7 +119,7 @@ fn trips(cost: &Cost) {
 /// exactly; their presences and each root's living as reported up within
 /// `PRESENCES`; and its axes kept by its own subtree's shedding. The
 /// largest presence difference seen.
-fn grown_as_on_the_cpu(
+pub(super) fn grown_as_on_the_cpu(
     gpu: &Gpu,
     k: &Kernels,
     name: &str,
@@ -260,7 +260,27 @@ pub(super) struct Apart {
     /// The device-grown wood's crown, its height and spread from the
     /// trunk's foot, on the CPU and on the device (fn-254 check 4).
     pub crown: [(f64, f64); 2],
+    /// The shallowest axis whose own wood stands apart past `FIRST` while
+    /// its base does not (fn-263 R1): its root, depth, lineage, PA, the
+    /// phytomer, its key and how far it stands (m).
+    pub first: Option<First>,
 }
+
+/// An axis where the executors first part (fn-263 R1).
+#[derive(Debug, Default, Clone, Copy)]
+pub(super) struct First {
+    pub root: usize,
+    pub depth: usize,
+    pub lineage: u64,
+    pub pa: usize,
+    pub phytomer: usize,
+    pub key: u64,
+    pub apart: f64,
+}
+
+/// How far a phytomer must stand apart to name its axis where the
+/// executors part: the other GPU presets' tip bound (`preset_agree_tests`).
+const FIRST: f64 = 1.75e-3;
 
 impl Apart {
     /// How far the device's crown stands from the CPU's (m).
@@ -342,7 +362,11 @@ pub(super) fn settled_against(
         let cpu: Vec<ChainAxis> = axes.iter().map(|a| a.0.clone()).collect();
         let ((gpu_axes, by), (cpu_axes, want_by)) = (canon(&got.roots[r]), canon(&cpu));
         assert_eq!(gpu_axes, cpu_axes, "root {r}: kept axes");
-        for (&g, &c) in by.iter().zip(&want_by) {
+        let mut depth = vec![0; cpu_axes.len()];
+        for (j, a) in cpu_axes.iter().enumerate() {
+            depth[j] = a.parent.map_or(0, |p| depth[p] + 1);
+        }
+        for (j, (&g, &c)) in by.iter().zip(&want_by).enumerate() {
             let (w, i) = got.laid[r][g];
             let wave = &floats[w];
             let phyts = laid[w].0 as usize * AL;
@@ -368,6 +392,18 @@ pub(super) fn settled_against(
                 assert!(e.is_finite(), "root {r}: {p:?}");
                 if e > apart.most {
                     apart.worst = (r, w, n, want.length(), radius);
+                }
+                let shallower = apart.first.is_none_or(|f| depth[j] < f.depth);
+                if e > FIRST && shallower {
+                    apart.first = Some(First {
+                        root: r,
+                        depth: depth[j],
+                        lineage: cpu_axes[j].lineage,
+                        pa: cpu_axes[j].pa,
+                        phytomer: n,
+                        key: cpu_axes[j].phytomers[n].1,
+                        apart: e,
+                    });
                 }
                 apart.most = apart.most.max(e);
                 apart.squares += e * e;
