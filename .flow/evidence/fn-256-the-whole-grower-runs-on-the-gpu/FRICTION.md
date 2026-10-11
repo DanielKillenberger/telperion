@@ -35,3 +35,15 @@
 - **Hindered:** the agreement report gives outputs only. Each hypothesis needed a hand-written diagnostic or a swapped contract, then a 40 to 80 s GPU run under the lock. The f32 trace took about 8 runs; the live-list race, a stale write left by `carry_on`'s pop, took 5.
 - **Cost:** about 20 minutes of GPU lock and the edits around them.
 - **Would remove it:** a test switch that has the cycle kernel record each phytomer's draw, bound, window and lead, and each invocation's own appends beside its counts, for the host to recompute on the CPU. The count-against-emit check is cheap enough to keep permanently.
+
+## 2026-10-11, task 2: the layout's sine on the device
+- **Doing:** porting libm's `sincosf`, which evaluates in f64, as pairs of f32s (two-sum, two-product by `fma`).
+- **Hindered:** the NVIDIA driver reorders f32 add and subtract chains as well as fusing products: the error-free transforms collapsed, and a 1M-input check found 18 to 28 % of results off by one to three ulps. `atan2f`'s `(z - PI_LO) - PI` is reordered the same way (113k of 124k differing results). Rewritten in integers of 2^-61, which no driver can reorder: 0 of 1M differ.
+- **Cost:** about 15 minutes and three GPU runs.
+- **Would remove it:** knowing up front that the device reorders sums, not only fuses products (UNITS.md named fusion only). Now in LAYOUT.md.
+
+## 2026-10-11, task 2: WGSL names and constants
+- **Doing:** first validation of the layout's shader.
+- **Hindered:** `from` and `target` are reserved words in WGSL, and naga refuses `bitcast` in a module `const`; each was found by one full test build of `telperion-render` (about 1 minute each, three rounds).
+- **Cost:** about 4 minutes.
+- **Would remove it:** a naga check runnable on one shader source without building the crate's test binary.

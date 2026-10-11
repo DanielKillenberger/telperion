@@ -86,7 +86,7 @@ pub(super) struct Agreement {
 }
 
 impl Agreement {
-    fn eq<T: PartialEq + std::fmt::Debug>(&mut self, name: &str, dev: &[T], cpu: &[T]) {
+    pub(super) fn eq<T: PartialEq + std::fmt::Debug>(&mut self, name: &str, dev: &[T], cpu: &[T]) {
         let differ = dev.iter().zip(cpu).filter(|(a, b)| a != b).count();
         let length = dev.len() != cpu.len();
         let rows: Vec<String> = (dev.iter().zip(cpu).enumerate())
