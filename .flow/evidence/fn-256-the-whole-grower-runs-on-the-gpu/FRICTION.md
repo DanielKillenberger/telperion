@@ -137,3 +137,9 @@
 - **Hindered:** its cold compile took about 270 s on the NVIDIA driver; the exact module's change to `exact.wgsl` also recompiled the units module (95 s).
 - **Cost:** about 6 minutes of GPU lock.
 - **Would remove it:** one call site per heavy function in the place module (`step` and `sag_of` are called once each, but the integer helpers `sub_mul`/`sub_add` are inlined at many sites); not attempted before the stop.
+
+## 2026-10-11, task 2: the dispatch cost, resolved
+- **Doing:** reacting to the first Chrome reading (0.4 ms a dispatch).
+- **Hindered:** the second probe put the whole cost on Dawn's validation of indirect arguments. Indirect dispatches take 429-432 µs, direct ones 5.3-6.7 µs. The executor sized every dispatch indirectly, so it must be converted to direct dispatches with bounds the host knows (DESIGN.md 7a).
+- **Cost:** one conversion pass of the growth loop's sizing, and about an hour of the host's and workers' attention on a stop that did not hold.
+- **Would remove it:** the probe's style split (indirect against direct) in its first run.
