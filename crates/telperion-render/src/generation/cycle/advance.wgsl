@@ -21,10 +21,14 @@ fn step(spent: u32, gone: u32, relay: bool, life_ticks: vec2<u32>, i: u32) -> St
         g = 0;
     }
     let room = i32(TICKS) - g;
-    // An age of 2^30 ticks or more is left past any cycle's room: the
-    // time before a unit holds under 2^31 (`build_grow::MOST_CYCLES`).
-    let far = life_ticks.y != 0u || life_ticks.x >= 0x40000000u;
-    let left = select(i32(life_ticks.x) - before, 0x40000000, far);
+    // The time left in the age, both words, before it meets the room: a
+    // lifespan passes 32 bits, the time before a unit holds under 2^31
+    // (`build_grow::MOST_CYCLES`), and 2^30 ticks left is past any room.
+    var left = i32(life_ticks.x) - before;
+    if !lt64(life_ticks, w(u32(before), 0u)) {
+        let rest = sub64(life_ticks, w(u32(before), 0u));
+        left = select(i32(rest.x), 0x40000000, rest.y != 0u || rest.x >= 0x40000000u);
+    }
     var share = min(room, left);
     if i == 1u && relay {
         share = room;

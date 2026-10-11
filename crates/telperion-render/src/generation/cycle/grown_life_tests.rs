@@ -38,6 +38,35 @@ fn long_lived_stems_grow_on_the_device_as_on_the_cpu() {
     assert!(differ.is_empty(), "the device's trees are not the CPU's: {differ:?}");
 }
 
+/// A palm's stem that never dies nor moves on, grown to either side of
+/// its lifespan: the age ends where the time left in it does.
+#[test]
+fn a_stem_ends_at_its_lifespan_on_the_device_as_on_the_cpu() {
+    let _held = super::super::whole_tree();
+    let Some((gpu, kit)) = device(Arith::Exact) else {
+        return;
+    };
+    let family = Preset::DatePalm.parameters();
+    let mut differ = Vec::new();
+    for (life, ages) in [(1024, [1023, 1025]), (2047, [2046, 2047])] {
+        for age in ages {
+            let mut species = family.space.species.clone().expect("an engine species");
+            (species.states[0].lifespan, species.states[0].viability, species.states[0].continuation) = (f64::from(life), 1.0, 0.0);
+            let g = grown_from(species, family.space.light, (age, 42));
+            let capture = telperion_space::grow_capture_grown(&g.species, g.request).expect("the CPU's tree");
+            let cpu = cpu_snapshot(&Cap(&capture));
+            let (_, dev) = built(&gpu, &kit, &g, age);
+            let a = exact(&dev, &cpu);
+            println!("stem of {life} cycles, age {age}: {} axes, {} phytomers", cpu.lineage.len(), cpu.grown);
+            if !a.exact() {
+                println!("{}\n{}", a.report(), by_lineage(&dev, &cpu).report());
+                differ.push((life, age));
+            }
+        }
+    }
+    assert!(differ.is_empty(), "the device's trees are not the CPU's: {differ:?}");
+}
+
 #[test]
 fn a_tree_older_than_the_device_holds_is_refused() {
     let _held = super::super::whole_tree();
