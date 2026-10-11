@@ -31,6 +31,8 @@ mod plan_units;
 mod state;
 mod vm;
 #[cfg(test)]
+mod grown_det_tests;
+#[cfg(test)]
 mod grown_tests;
 #[cfg(test)]
 mod hier_grid_tests;

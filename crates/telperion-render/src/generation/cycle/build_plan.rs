@@ -14,11 +14,25 @@ use super::plan_scan::Fine;
 use super::vm::E;
 use crate::{Gpu, Result};
 
-/// How far each loop with a count only the device knows is recorded.
+/// How far each loop with a count only the device knows is recorded,
+/// and the ranges a list's dispatches are cut into.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) struct Bounds {
     pub hier: HierBounds,
     pub lay: LayBounds,
+    pub ranges: Ranges,
+}
+
+/// The most items a dispatch over a list takes (bounded work per
+/// dispatch, DESIGN.md section 5): living apexes a units dispatch, grown
+/// axes a draw, leaves a deposit. Counts, never timings; multiples of
+/// the workgroup. Busiest cycle, Telperion's: about 30,000 apexes, 90,000
+/// axes and 700,000 leaves a millisecond.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) struct Ranges {
+    pub units: u32,
+    pub draw: u32,
+    pub deposit: u32,
 }
 
 impl Default for Bounds {
@@ -26,6 +40,7 @@ impl Default for Bounds {
         Self {
             hier: HierBounds { gens: 4, passes: 4, levels: 8 },
             lay: LayBounds { generations: 4, sweeps: 2, deposits: 1 },
+            ranges: Ranges { units: 16384, draw: 65536, deposit: 262_144 },
         }
     }
 }
@@ -115,10 +130,10 @@ impl Build {
             self.plan_sums(&mut b, kit, t, bounds.hier, 1 - parity);
             *phase = b.take();
         }
-        let mut held = self.plan_units(&mut b, kit, t)?;
+        let mut held = self.plan_units(&mut b, kit, t, bounds.ranges.units)?;
         let units = b.take();
-        held.extend(self.plan_layout(&mut b, kit, bounds.lay)?);
-        self.plan_light(&mut b, kit, bounds.lay);
+        held.extend(self.plan_layout(&mut b, kit, (bounds.lay, bounds.ranges.draw))?);
+        self.plan_light(&mut b, kit, (bounds.lay, bounds.ranges.deposit));
         let sketch = b.take();
         let plan = b.finish(&kit.vm)?;
         Ok((plan, Phases { seed, start, hier, units, sketch, _held: held }))

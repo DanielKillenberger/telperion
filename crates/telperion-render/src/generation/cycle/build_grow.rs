@@ -11,7 +11,6 @@ use super::build_plan::Bounds;
 use super::census::{self as c, Flag};
 use super::lay_device::DEEP;
 use super::light_program::{SWEEP_WG, SWEEP_WORK};
-use super::plan_lay::DEPOSIT;
 use super::state::Caps;
 use crate::{Gpu, Result};
 use telperion_space::Capture;
@@ -25,13 +24,15 @@ pub(super) struct Sizes {
     pub tips: u32,
     pub nodes: u32,
     pub bounds: Bounds,
+    /// The most axes a hierarchy block holds: speed only (HIERARCHY.md).
+    pub block_cap: u32,
 }
 
 impl Sizes {
     /// The smallest a build starts from.
     pub(super) fn least() -> Self {
         let caps = Caps { axes: 4096, units: 4096, phyts: 16384, sleepers: 4096, next: 4096, woken: 1024 };
-        Self { caps, points: 16384, tips: 4096, nodes: 4096, bounds: Bounds::default() }
+        Self { caps, points: 16384, tips: 4096, nodes: 4096, bounds: Bounds::default(), block_cap: super::hier_build::CAP }
     }
 
     fn lit(&self) -> (Lit, u32) {
@@ -67,7 +68,7 @@ fn raised(mut s: Sizes, flags: &[(Flag, u32)], census: &[u32]) -> Result<Sizes> 
             Flag::HierPasses => b.hier.passes *= 2,
             Flag::HierLevels => b.hier.levels = (census[c::LEVELS] + 6).min(63),
             Flag::LayGenerations if b.lay.generations < 15 => b.lay.generations = (2 * b.lay.generations).min(15),
-            Flag::DepositRanges => b.lay.deposits = leaves(census).div_ceil(DEPOSIT) + 1,
+            Flag::DepositRanges => b.lay.deposits = leaves(census).div_ceil(b.ranges.deposit) + 1,
             Flag::Sweeps => b.lay.sweeps *= 2,
             Flag::Points => (s.points, s.tips) = (twice(s.points, leaves(census) + census[c::NEXT]), twice(s.tips, census[c::NEXT])),
             Flag::LightErrors if value == 4 => s.nodes = twice(s.nodes, census[c::GRID + 6]),
@@ -110,7 +111,7 @@ fn ahead(s: Sizes, read: &[u32], prev: Option<&[u32]>) -> Option<Sizes> {
     n.points = fit(n.points, lit + n.tips);
     n.nodes = fit(n.nodes, 2 * read[c::GRID + 6]);
     let b = &mut n.bounds;
-    b.lay.deposits = b.lay.deposits.max(lit.div_ceil(DEPOSIT));
+    b.lay.deposits = b.lay.deposits.max(lit.div_ceil(b.ranges.deposit));
     b.lay.sweeps = b.lay.sweeps.max(sweeps(read) + 2);
     b.hier.levels = b.hier.levels.max((read[c::LEVELS] + 3).min(63));
     b.hier.gens = b.hier.gens.max(read[c::GENS] + 2);
@@ -124,7 +125,7 @@ pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut size
     let mut grew = Grew::default();
     'begin: for again in 0..64 {
         grew.again = again;
-        let mut b = Build::new(gpu, t, (tables, sizes.caps), sizes.lit())?;
+        let mut b = Build::new(gpu, t, (tables, sizes.caps, sizes.block_cap), sizes.lit())?;
         let mut run = b.plan(gpu, kit, t, sizes.bounds)?;
         b.seeded(gpu, kit, (&run.0, &run.1));
         let (mut late, mut prev) = (Late::new(gpu)?, None::<Vec<u32>>);
@@ -139,7 +140,7 @@ pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut size
                 continue 'begin;
             }
             if let Some(next) = ahead(sizes, &read, prev.as_deref()) {
-                let moved = Build::new(gpu, t, (tables, next.caps), next.lit())?;
+                let moved = Build::new(gpu, t, (tables, next.caps, next.block_cap), next.lit())?;
                 let plan = moved.plan(gpu, kit, t, next.bounds)?;
                 let mut e = gpu.encoder(&Default::default());
                 b.move_into(&mut e, &moved, (&run.0.census, &plan.0.census));

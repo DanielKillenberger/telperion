@@ -12,7 +12,7 @@ use super::build_light::{Light, Lit};
 use super::build_plan::{record, Phases};
 use super::census as c;
 use super::columns::{packed, Cap};
-use super::hier_build::{Hierarchy, CAP};
+use super::hier_build::Hierarchy;
 use super::hier_device::Sums;
 use super::hier_scan::zeroed;
 use super::lay_device::Layout;
@@ -148,14 +148,14 @@ pub(super) struct Build {
 
 impl Build {
     /// The buffers for a tree of `caps`, the rows of every cycle uploaded.
-    pub(super) fn new(gpu: &Gpu, t: &Tables, (c, caps): (&Capture, Caps), (lit, nodes): (Lit, u32)) -> Result<Self> {
+    pub(super) fn new(gpu: &Gpu, t: &Tables, (c, caps, block_cap): (&Capture, Caps, u32), (lit, nodes): (Lit, u32)) -> Result<Self> {
         let state = State::new(gpu, caps)?;
         let mut light = Light::new(gpu, &Cap(c))?;
         light.ensure(gpu, lit, nodes)?;
         let s = caps.axes;
         let n = u64::from(caps.next.max(caps.sleepers).max(1));
         let build = Self {
-            hier: Hierarchy::new(gpu, s, CAP)?,
+            hier: Hierarchy::new(gpu, s, block_cap)?,
             sums: Sums::alloc(gpu, s, caps.next, t.pas)?,
             tree: zeroed(gpu, "cycle tree", u64::from(super::hier_columns::TREE as u32 * s))?,
             light,

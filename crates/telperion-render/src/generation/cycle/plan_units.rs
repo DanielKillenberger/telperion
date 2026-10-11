@@ -1,5 +1,5 @@
 //! A recorded cycle's units and wake (DESIGN.md sections 2.1 and 2.2):
-//! the units counted and emitted in ranges of `UNIT_RANGE` living apexes
+//! the units counted and emitted in ranges of living apexes
 //! (bounded work per dispatch), scanned between; the cycle's sleeping
 //! buds compacted, their waking counted, scanned and emitted; then what
 //! they made taken into the census and the new axes' and phytomers'
@@ -12,10 +12,6 @@ use super::plan::{Builder, PassId, MAXX};
 use super::plan_scan::{fine, Fine};
 use super::vm::E;
 use crate::Result;
-
-/// The living apexes a units dispatch takes at most: a count, never a
-/// timing (Telperion's busiest cycle counts about 30,000 a millisecond).
-pub(super) const UNIT_RANGE: u32 = 16384;
 
 /// The units' tally's word `k`, as the census holds it after the cycle.
 fn made(k: usize) -> E {
@@ -62,19 +58,19 @@ impl Build {
     }
 
     /// The cycle's units and wake, recorded.
-    pub(super) fn plan_units(&self, b: &mut Builder, kit: &Kit, t: &Tables) -> Result<Vec<Fine>> {
+    pub(super) fn plan_units(&self, b: &mut Builder, kit: &Kit, t: &Tables, range: u32) -> Result<Vec<Fine>> {
         b.point();
         let live = E::At(c::LIVE);
         let laid = E::At(c::LAID0);
         let w = glue::Words { n: 0, live_stride: self.sums.live_stride, ..glue::Words::default() };
         let inputs = [(0, live.clone().max(laid.clone())), (3, laid.clone()), (13, laid.gt(E::C(0)).sel(E::C(0), E::C(1))), (14, live.clone())];
         self.glue_step(b, kit, (glue::INPUTS, &self.inputs, &self.spare), w, &inputs);
-        let ranges = self.state.caps.next.div_ceil(UNIT_RANGE).max(1);
+        let ranges = self.state.caps.next.div_ceil(range).max(1);
         let mut binds = Vec::new();
         for emit in 0..2 {
             for r in 0..ranges {
-                let slot = self.units_slot(b, t, live.clone(), (emit, 0, r * UNIT_RANGE));
-                let left = live.clone().sub(E::C(r * UNIT_RANGE)).min(E::C(UNIT_RANGE));
+                let slot = self.units_slot(b, t, live.clone(), (emit, 0, r * range));
+                let left = live.clone().sub(E::C(r * range)).min(E::C(range));
                 let size = b.groups(left.div(E::C(64)));
                 binds.push((self.units_bind(b, kit, t, slot), size));
             }

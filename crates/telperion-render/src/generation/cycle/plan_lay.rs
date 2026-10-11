@@ -1,8 +1,8 @@
 //! A recorded cycle's rough layout and light (DESIGN.md sections 2.3 and
 //! 2, step 8): the axes that grew listed by index and drawn in ranges
-//! of `DRAW_RANGE`, the new axes framed and drawn a generation at a time
+//! of grown axes, the new axes framed and drawn a generation at a time
 //! up to the generations' bound; then the cycle's leaves and the living
-//! apexes' tips gathered, the box, the deposit in ranges of `DEPOSIT`,
+//! apexes' tips gathered, the box, the deposit in ranges of leaves,
 //! the sweep's layer ranges up to their bound, the reads into the
 //! pencils. Each bound passed raises its flag.
 use super::build::{Build, Kit};
@@ -14,12 +14,6 @@ use super::plan::{Builder, PassId, Size, Step, MAXX};
 use super::plan_scan::{fine, levelled, Fine};
 use super::vm::E;
 use crate::Result;
-
-/// The grown axes a draw dispatch takes at most, and the leaves a
-/// deposit dispatch takes (`light.wgsl`'s `DEPOSIT`): counts, never
-/// timings.
-pub(super) const DRAW_RANGE: u32 = 65536;
-pub(super) const DEPOSIT: u32 = 262_144;
 
 /// How far the layout's generations and the sweep's layer ranges are
 /// recorded, and the deposit's ranges.
@@ -48,7 +42,7 @@ impl Build {
     }
 
     /// The cycle's layout, recorded.
-    pub(super) fn plan_layout(&self, b: &mut Builder, kit: &Kit, bound: LayBounds) -> Result<Vec<Fine>> {
+    pub(super) fn plan_layout(&self, b: &mut Builder, kit: &Kit, (bound, range): (LayBounds, u32)) -> Result<Vec<Fine>> {
         let s = self.state.caps.axes;
         b.step(Step::Clear { buffer: (*self.flags).clone(), at: 0, bytes: None });
         b.step(Step::Clear { buffer: (*self.layout.lists).clone(), at: 4 * T_DEEP, bytes: Some(4 * u64::from(DEEP)) });
@@ -65,9 +59,9 @@ impl Build {
         let grew = E::At(c::GREW);
         let new = E::At(c::AXES).sub(E::At(c::LAID0));
         let lay = |k| (PassId::Layout, k);
-        for r in 0..s.div_ceil(DRAW_RANGE).max(1) {
-            let slot = self.lay_slot(b, (grew.clone(), 0, 0, r * DRAW_RANGE));
-            let left = grew.clone().sub(E::C(r * DRAW_RANGE)).min(E::C(DRAW_RANGE));
+        for r in 0..s.div_ceil(range).max(1) {
+            let slot = self.lay_slot(b, (grew.clone(), 0, 0, r * range));
+            let left = grew.clone().sub(E::C(r * range)).min(E::C(range));
             let size = b.groups(left.div(E::C(64)));
             let bind = self.lay_bind(b, kit, slot);
             b.dispatch(lay(ld::DRAW), bind, size);
@@ -94,12 +88,12 @@ impl Build {
         let deeper = (bound.generations as usize..DEEP as usize).fold(E::C(0), |a, g| a.max(E::At(c::LAY_DEEP + g)));
         b.flag(Flag::LayGenerations, deeper);
         b.flag(Flag::LayFault, E::At(c::LAY_FAULT));
-        b.flag(Flag::DrawRanges, E::At(c::GREW).gt(E::C(s.div_ceil(DRAW_RANGE).max(1) * DRAW_RANGE)));
+        b.flag(Flag::DrawRanges, E::At(c::GREW).gt(E::C(s.div_ceil(range).max(1) * range)));
         Ok(held)
     }
 
     /// The cycle's light, recorded.
-    pub(super) fn plan_light(&self, b: &mut Builder, kit: &Kit, bound: LayBounds) {
+    pub(super) fn plan_light(&self, b: &mut Builder, kit: &Kit, (bound, range): (LayBounds, u32)) {
         let l = &self.light;
         let leaves = E::At(c::PHYTS).sub(E::At(c::PHYTS0));
         let tips = E::At(c::NEXT);
@@ -120,8 +114,8 @@ impl Build {
         b.dispatch(light(0), main.clone(), span);
         b.dispatch(light(1), main.clone(), Size::Direct(1));
         for r in 0..bound.deposits {
-            let bind = slot(b, r);
-            let left = leaves.clone().sub(E::C(r * DEPOSIT)).min(E::C(DEPOSIT));
+            let bind = slot(b, r * range);
+            let left = leaves.clone().sub(E::C(r * range)).min(E::C(range));
             let size = b.groups(left.div(E::C(64)));
             b.dispatch(light(2), bind, size);
         }
@@ -144,7 +138,7 @@ impl Build {
         b.flag(Flag::LightErrors, E::At(c::LIGHT_ERRORS));
         let points = leaves.clone().add(E::At(c::NEXT));
         b.flag(Flag::Points, points.gt(E::C(l.points_cap)).max(E::At(c::NEXT).gt(E::C(l.tips_cap))));
-        b.flag(Flag::DepositRanges, leaves.gt(E::C(bound.deposits * DEPOSIT)));
+        b.flag(Flag::DepositRanges, leaves.gt(E::C(bound.deposits * range)));
         let layer = E::At(c::GRID + 3).mul(E::At(c::GRID + 4));
         let per = E::C(SWEEP_WORK).floor(layer.div(E::C(SWEEP_WG))).max(E::C(1));
         b.flag(Flag::Sweeps, E::At(c::GRID + 5).div(per).gt(E::C(bound.sweeps)));
