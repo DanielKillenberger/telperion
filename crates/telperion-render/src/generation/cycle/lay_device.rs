@@ -28,7 +28,7 @@ pub(super) struct Kernels {
 }
 
 impl Kernels {
-    pub(super) fn new(gpu: &Gpu, arith: super::Arith) -> Self {
+    pub(super) fn new(gpu: &Gpu) -> Self {
         let mut reads = vec![true; 3];
         reads.extend([false; 5]);
         let entries = [
@@ -40,7 +40,7 @@ impl Kernels {
             "gather_main",
         ];
         Self {
-            layout: io::Pass::new(gpu, super::layout_source(arith), &reads, &entries),
+            layout: io::Pass::new(gpu, super::layout_source(), &reads, &entries),
         }
     }
 }

@@ -10,7 +10,6 @@ use super::grown_tests::{device, grown};
 use super::settle_device::{self as d, Kernels};
 use super::settle_run::settle;
 use super::settle_tests::constants;
-use super::Arith;
 use crate::Gpu;
 use std::time::Instant;
 use telperion_core::presets::Preset;
@@ -28,12 +27,12 @@ const PRESETS: [(Preset, &str); 8] = [
 ];
 
 /// One preset grown, then its settle stamped dispatch by dispatch.
-fn measured(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (preset, name, age, seed): (Preset, &str, u32, u64), arith: Arith) {
+fn measured(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (preset, name, age, seed): (Preset, &str, u32, u64)) {
     let g = grown(preset, age, seed);
     let t = Tables::new(gpu, &g.tables, &g.chain).expect("tables");
     let (b, ..) = grow(gpu, kit, &t, &g.tables, (Sizes::least(), age)).expect("a build");
     let (resident, scratch) = b.bytes(&t);
-    let label = format!("{name} {age} seed {seed} {arith:?}");
+    let label = format!("{name} {age} seed {seed}");
     assert!(super::super::profile::start(gpu), "timestamps");
     let started = Instant::now();
     let s = settle(gpu, (kit, k), (&b, &t), (&constants(&g), SettleTo::Laid)).expect("a settle");
@@ -76,25 +75,20 @@ fn measured(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (preset, name, age, seed): (P
 #[ignore = "a measurement"]
 fn settles_are_timed() {
     let _held = super::super::whole_tree();
-    let Some((gpu, kit)) = device(Arith::Plain) else {
+    let Some((gpu, kit)) = device() else {
         return;
     };
-    let k = Kernels::new(&gpu, Arith::Plain);
+    let k = Kernels::new(&gpu);
     let mut cases: Vec<_> = PRESETS.iter().map(|&(p, n)| (p, n, p.parameters().age as u32, 42)).collect();
     cases.push((Preset::OregonWhiteOak, "oregon-white-oak", 80, 1));
     for case in &cases {
-        measured(&gpu, (&kit, &k), *case, Arith::Plain);
-    }
-    drop((kit, k));
-    let (kit, k) = (Kit::new(&gpu, Arith::Exact), Kernels::new(&gpu, Arith::Exact));
-    for case in cases.iter().filter(|c| matches!(c.0, Preset::Telperion) || c.3 == 1) {
-        measured(&gpu, (&kit, &k), *case, Arith::Exact);
+        measured(&gpu, (&kit, &k), *case);
     }
 }
 
-/// Each settle module's compile, and the exact place module's entry by
-/// entry: run with the driver's disk cache off (`__GL_SHADER_DISK_CACHE=0`)
-/// for the cold figure.
+/// Each settle module's compile, and the place module's entry by entry:
+/// run with the driver's disk cache off (`__GL_SHADER_DISK_CACHE=0`) for
+/// the cold figure.
 #[test]
 #[ignore = "a measurement"]
 fn the_settle_compiles() {
@@ -110,17 +104,11 @@ fn the_settle_compiles() {
         drop(pass);
     };
     let place = [true, true, false, false, false];
-    for arith in [Arith::Plain, Arith::Exact] {
-        let shed = [true, true, true, false, false, false, true, true];
-        timed(&format!("{arith:?} shed and order"), &|| super::super::io::Pass::new(&gpu, d::source(arith), &shed, &d::ENTRIES));
-        for entry in d::PLACE_ENTRIES {
-            timed(&format!("{arith:?} place {entry}"), &|| super::super::io::Pass::new(&gpu, d::place_source(arith), &place, &[entry]));
-        }
+    let shed = [true, true, true, false, false, false, true, true];
+    timed("shed and order", &|| super::super::io::Pass::new(&gpu, d::source(), &shed, &d::ENTRIES));
+    for entry in d::PLACE_ENTRIES {
+        timed(&format!("place {entry}"), &|| super::super::io::Pass::new(&gpu, d::place_source(), &place, &[entry]));
     }
-    let plain_sub = d::place_source(Arith::Exact).replace(d::sub(Arith::Exact), d::sub(Arith::Plain));
-    timed("Exact place walk_main, products and sums without gradual underflow", &|| {
-        super::super::io::Pass::new(&gpu, plain_sub.clone(), &place, &["walk_main"])
-    });
 }
 
 /// Retirement on a busy build: Telperion 82 grown plain without and with
@@ -131,10 +119,10 @@ fn the_settle_compiles() {
 #[ignore = "a measurement"]
 fn retirement_is_measured() {
     let _held = super::super::whole_tree();
-    let Some((gpu, kit)) = device(Arith::Plain) else {
+    let Some((gpu, kit)) = device() else {
         return;
     };
-    let k = Kernels::new(&gpu, Arith::Plain);
+    let k = Kernels::new(&gpu);
     let g = grown(Preset::Telperion, 82, 42);
     let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
     for compact in [false, true] {

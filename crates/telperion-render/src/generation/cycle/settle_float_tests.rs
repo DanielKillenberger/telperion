@@ -11,7 +11,6 @@ use super::grown_tests::{device, grown};
 use super::settle_device::Kernels;
 use super::settle_read::cpu_settled;
 use super::settle_tests::settled;
-use super::Arith;
 use std::collections::HashMap;
 use telperion_core::presets::Preset;
 use telperion_space::SettleTo;
@@ -126,10 +125,10 @@ fn default_ages_laid_plain_by_lineage() {
         println!("SETTLE_PRESET names the preset");
         return;
     };
-    let Some((gpu, kit)) = device(Arith::Plain) else {
+    let Some((gpu, kit)) = device() else {
         return;
     };
-    let k = Kernels::new(&gpu, Arith::Plain);
+    let k = Kernels::new(&gpu);
     for (preset, name) in PRESETS.into_iter().filter(|p| p.1 == only) {
         let age = preset.parameters().age as u32;
         let g = grown(preset, age, 42);

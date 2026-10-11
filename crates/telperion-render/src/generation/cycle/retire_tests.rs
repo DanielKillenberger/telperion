@@ -1,19 +1,18 @@
 //! The device's retirement held to the CPU's (`grow_capture_retired`):
 //! every verdict a young tree's growth takes, its root, cycle, waited,
-//! kept or retired, and living, word for word where built exact.
+//! kept or retired, and living, word for word; the trees settled after
+//! it to the ruled standard (`ruled.rs`).
 use super::build::{Build, Kit, Tables};
 use super::build_grow::{grow, Sizes};
 use super::columns::Cap;
-use super::grown_compare::exact;
 use super::grown_tests::{built, device, grown, Grown, YOUNG};
 use super::settle_device::Kernels;
-use super::settle_read::{beside_agree, cpu_settled};
+use super::settle_read::cpu_settled;
 use super::settle_run::settle;
-use super::settle_tests::constants;
+use super::settle_tests::{constants, held};
 use telperion_space::SettleTo;
 use super::hier_scan::read_words;
 use super::retire_device::{Retire, ENTRY, L_AT};
-use super::Arith;
 use telperion_core::presets::Preset;
 
 /// The log's verdicts, by cycle then root, each its five words.
@@ -26,7 +25,7 @@ fn sorted(words: &[u32]) -> Vec<[u32; 5]> {
 #[test]
 fn young_trees_retire_on_the_device_as_on_the_cpu() {
     let _held = super::super::whole_tree();
-    let Some((gpu, kit)) = device(Arith::Exact) else {
+    let Some((gpu, kit)) = device() else {
         return;
     };
     let mut differ = Vec::new();
@@ -50,9 +49,13 @@ fn young_trees_retire_on_the_device_as_on_the_cpu() {
             "{name} {age}: device {} verdicts ({} waited, {} kept, {} retired), cpu {} ({}, {}, {})",
             dev.len(), count(&dev, 0), count(&dev, 1), count(&dev, 2), cpu.len(), count(&cpu, 0), count(&cpu, 1), count(&cpu, 2)
         );
-        if dev != cpu {
-            let first = dev.iter().zip(&cpu).position(|(a, b)| a != b);
-            println!("{name}: first parting {first:?}: device {:?} cpu {:?}", first.map(|k| dev[k]), first.map(|k| cpu[k]));
+        // Each verdict's root, cycle, verdict and kind exact, its living
+        // (an f32's bits) to the ruled standard.
+        let flat = |v: &[[u32; 5]]| v.iter().flat_map(|e| [u64::from(e[0]), u64::from(e[1]), u64::from(e[2]), f64::from(f32::from_bits(e[3])).to_bits(), u64::from(e[4])]).collect::<Vec<u64>>();
+        let mut a = super::compare::Agreement::default();
+        a.records("verdicts", &flat(&dev), &flat(&cpu), (5, &[3]));
+        if !a.exact() {
+            println!("{name}: {}", a.report());
             differ.push(name);
         }
     }
@@ -71,14 +74,14 @@ fn compacted(gpu: &crate::Gpu, kit: &Kit, g: &Grown, compact: bool) -> (Build, S
 }
 
 /// The young trees settled after growing with their retired subtrees let
-/// go equal the CPU's laid tree in every word, exact.
+/// go hold to the CPU's laid tree to the ruled standard.
 #[test]
 fn young_trees_settle_as_on_the_cpu_with_retired_subtrees_let_go() {
     let _held = super::super::whole_tree();
-    let Some((gpu, kit)) = device(Arith::Exact) else {
+    let Some((gpu, kit)) = device() else {
         return;
     };
-    let k = Kernels::new(&gpu, Arith::Exact);
+    let k = Kernels::new(&gpu);
     let mut differ = Vec::new();
     for (preset, name, age) in YOUNG {
         let g = grown(preset, age, 42);
@@ -91,16 +94,12 @@ fn young_trees_settle_as_on_the_cpu_with_retired_subtrees_let_go() {
         let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
         let s = settle(&gpu, (&kit, &k), (&b, &t), (&constants(&g), SettleTo::Laid)).expect("a settle");
         let dev = s.snapshot(&gpu, &b.state, SettleTo::Laid).expect("a readback");
-        let mut a = exact(&dev.0, &cpu.0);
-        beside_agree(&mut a, &dev.1, &cpu.1);
         println!(
             "{name} {age}: arena rows {} of {} without letting go, {} of {} with; {} records",
             rows, cap, b.held.phyts, sizes.caps.phyts, b.retire.rec_n
         );
-        if !a.exact() {
-            println!("{}", a.report());
-            differ.push(name);
-        }
+        let found = held((&dev.0, &dev.1), (&cpu.0, &cpu.1));
+        differ.extend(found.into_iter().map(|f| format!("{name}: {f}")));
     }
     assert!(differ.is_empty(), "the settled trees with retirement are not the CPU's: {differ:?}");
 }
@@ -114,8 +113,8 @@ fn the_node_table_with_retirement_is_the_same_on_every_context() {
     for (preset, name, age) in YOUNG {
         let g = grown(preset, age, 42);
         let table = |cap: u32| -> Option<Vec<u32>> {
-            let (gpu, kit) = device(Arith::Plain)?;
-            let k = Kernels::new(&gpu, Arith::Plain);
+            let (gpu, kit) = device()?;
+            let k = Kernels::new(&gpu);
             let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
             let mut sizes = Sizes::least();
             (sizes.compact, sizes.caps.phyts, sizes.block_cap) = (true, 512, cap);
@@ -146,14 +145,14 @@ fn the_node_table_with_retirement_is_the_same_on_every_context() {
 /// the ordinary at 8, grown from 384-row phytomer tables, each moved after
 /// its last cycle and recorded rows there: neither moves after its last
 /// cycle, each holds the rows its unit records reach, and each settles
-/// exact as the CPU's laid tree in every word.
+/// as the CPU's laid tree to the ruled standard.
 #[test]
 fn a_build_holds_its_compacted_rows_after_its_last_cycle() {
     let _held = super::super::whole_tree();
-    let Some((gpu, kit)) = device(Arith::Exact) else {
+    let Some((gpu, kit)) = device() else {
         return;
     };
-    let k = Kernels::new(&gpu, Arith::Exact);
+    let k = Kernels::new(&gpu);
     let mut differ = Vec::new();
     for (preset, name, age) in [(Preset::OregonWhiteOak, "oregon-white-oak", 10), (Preset::Ordinary, "ordinary", 8)] {
         let g = grown(preset, age, 42);
@@ -176,12 +175,8 @@ fn a_build_holds_its_compacted_rows_after_its_last_cycle() {
         let dev = s.snapshot(&gpu, &b.state, SettleTo::Laid).expect("a readback");
         let capture = telperion_space::grow_capture_settled_at(&g.species, g.request, SettleTo::Laid).expect("the CPU's tree");
         let cpu = cpu_settled(&Cap(&capture), SettleTo::Laid);
-        let mut a = exact(&dev.0, &cpu.0);
-        beside_agree(&mut a, &dev.1, &cpu.1);
-        if !a.exact() {
-            println!("{}", a.report());
-            differ.push(name);
-        }
+        let found = held((&dev.0, &dev.1), (&cpu.0, &cpu.1));
+        differ.extend(found.into_iter().map(|f| format!("{name}: {f}")));
     }
     assert!(differ.is_empty(), "the settled trees are not the CPU's: {differ:?}");
 }

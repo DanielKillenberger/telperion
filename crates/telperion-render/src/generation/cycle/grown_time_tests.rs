@@ -8,7 +8,7 @@ use super::build::{Kit, Tables};
 use super::build_grow::{grow, Sizes};
 use super::census as c;
 use super::grown_tests::grown;
-use super::{device, glue, hier_build, lay_device, light_device, vm, Arith};
+use super::{device, glue, hier_build, lay_device, light_device, vm};
 use crate::Gpu;
 use std::time::Instant;
 use telperion_core::presets::Preset;
@@ -24,39 +24,39 @@ const PRESETS: [(Preset, &str); 8] = [
     (Preset::Telperion, "telperion"),
 ];
 
-/// Each module's compile under `arith`, the device waited for after each.
-fn compiled(gpu: &Gpu, arith: Arith) -> Kit {
+/// Each module's compile, the device waited for after each.
+fn compiled(gpu: &Gpu) -> Kit {
     let timed = |name: &str, started: Instant| {
         gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("compiled");
-        println!("compile {arith:?} {name}: {:.2} s", started.elapsed().as_secs_f64());
+        println!("compile {name}: {:.2} s", started.elapsed().as_secs_f64());
     };
     let s = Instant::now();
-    let units = device::Kernels::new(gpu, arith);
+    let units = device::Kernels::new(gpu);
     timed("units and wake", s);
     let s = Instant::now();
-    let layout = lay_device::Kernels::new(gpu, arith);
+    let layout = lay_device::Kernels::new(gpu);
     timed("layout", s);
     let s = Instant::now();
-    let hier = hier_build::Kernels::new(gpu, arith);
+    let hier = hier_build::Kernels::new(gpu);
     timed("hierarchy", s);
     let s = Instant::now();
-    let light = light_device::Kernels::new(gpu, arith);
+    let light = light_device::Kernels::new(gpu);
     timed("light", s);
     let s = Instant::now();
     let (glue, vm) = (glue::Kernels::new(gpu), vm::Kernels::new(gpu));
     timed("glue and sizing", s);
     let s = Instant::now();
-    let retire = super::retire_device::Kernels::new(gpu, arith);
+    let retire = super::retire_device::Kernels::new(gpu);
     timed("retirement", s);
     Kit { units, layout, hier, light, glue, vm, retire }
 }
 
 /// One preset's build: sized from the least, then built again at those
 /// sizes with every dispatch stamped.
-fn measured(gpu: &Gpu, kit: &Kit, (preset, name, age, seed): (Preset, &str, u32, u64), arith: Arith) {
+fn measured(gpu: &Gpu, kit: &Kit, (preset, name, age, seed): (Preset, &str, u32, u64)) {
     let g = grown(preset, age, seed);
     let t = Tables::new(gpu, &g.tables, &g.chain).expect("tables");
-    let label = format!("{name} {age} seed {seed} {arith:?}");
+    let label = format!("{name} {age} seed {seed}");
     let started = Instant::now();
     let (b, sizes, grew) = grow(gpu, kit, &t, &g.tables, (Sizes::least(), age)).expect("a build");
     let cold = started.elapsed().as_secs_f64();
@@ -129,8 +129,7 @@ fn kernels(label: &str, phases: &[&str], stamps: &[(String, f64, f64)]) {
     }
 }
 
-/// Telperion alone, plain then exact (`CYCLE_EXACT` set), for the
-/// performance pass.
+/// Telperion alone, for the performance pass.
 #[test]
 #[ignore = "a measurement"]
 fn telperion_is_timed() {
@@ -138,9 +137,8 @@ fn telperion_is_timed() {
     let Some(gpu) = super::super::test_gpu() else {
         return;
     };
-    let arith = if std::env::var("CYCLE_EXACT").is_ok() { Arith::Exact } else { Arith::Plain };
-    let kit = compiled(&gpu, arith);
-    measured(&gpu, &kit, (Preset::Telperion, "telperion", 82, 42), arith);
+    let kit = compiled(&gpu);
+    measured(&gpu, &kit, (Preset::Telperion, "telperion", 82, 42));
 }
 
 /// The three builds DESIGN.md section 7a budgets, plain.
@@ -151,10 +149,10 @@ fn budgeted_builds_are_timed() {
     let Some(gpu) = super::super::test_gpu() else {
         return;
     };
-    let kit = compiled(&gpu, Arith::Plain);
+    let kit = compiled(&gpu);
     let cases = [(Preset::Telperion, "telperion", 82, 42), (Preset::OregonWhiteOak, "oregon-white-oak", 80, 1), (Preset::EuropeanBeech, "european-beech", 40, 42)];
     for case in cases {
-        measured(&gpu, &kit, case, Arith::Plain);
+        measured(&gpu, &kit, case);
     }
 }
 
@@ -167,16 +165,11 @@ fn whole_builds_are_timed() {
     };
     let l = gpu.device.limits();
     println!("limits: buffer {} B, storage binding {} B", l.max_buffer_size, l.max_storage_buffer_binding_size);
-    let plain = compiled(&gpu, Arith::Plain);
+    let kit = compiled(&gpu);
     let mut cases: Vec<_> = PRESETS.iter().map(|&(p, n)| (p, n, p.parameters().age as u32, 42)).collect();
     cases.push((Preset::OregonWhiteOak, "oregon-white-oak", 80, 1));
     for case in &cases {
-        measured(&gpu, &plain, *case, Arith::Plain);
-    }
-    drop(plain);
-    let exact = compiled(&gpu, Arith::Exact);
-    for case in cases.iter().filter(|c| matches!(c.0, Preset::Telperion | Preset::OregonWhiteOak)) {
-        measured(&gpu, &exact, *case, Arith::Exact);
+        measured(&gpu, &kit, *case);
     }
 }
 
@@ -189,9 +182,7 @@ fn the_kernels_compile() {
     let Some(gpu) = super::super::test_gpu() else {
         return;
     };
-    for arith in [Arith::Plain, Arith::Exact] {
-        let started = Instant::now();
-        drop(compiled(&gpu, arith));
-        println!("compile {arith:?} in all: {:.2} s", started.elapsed().as_secs_f64());
-    }
+    let started = Instant::now();
+    drop(compiled(&gpu));
+    println!("compile in all: {:.2} s", started.elapsed().as_secs_f64());
 }

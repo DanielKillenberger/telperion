@@ -175,7 +175,7 @@ fn busy(gpu: &Gpu, k: &Kernels, name: &str, c: &Capture) -> bool {
 #[ignore = "a measurement; red on the driver's division and contraction until the host rules (HIERARCHY.md)"]
 fn busy_hierarchies_agree_and_are_timed() {
     let _held = super::super::whole_tree();
-    let Some((gpu, k, compile)) = device(super::Arith::Plain) else {
+    let Some((gpu, k, compile)) = device() else {
         return;
     };
     let mut differ = Vec::new();
@@ -212,10 +212,10 @@ fn sweeps(times: &Times) -> f64 {
 #[ignore = "a measurement"]
 fn busy_partitions_are_timed() {
     let _held = super::super::whole_tree();
-    let Some((gpu, _, _)) = device(super::Arith::Plain) else {
+    let Some((gpu, _, _)) = device() else {
         return;
     };
-    let widths = [64, 256].map(|w| (w, Kernels::with_width(&gpu, w, super::Arith::Plain)));
+    let widths = [64, 256].map(|w| (w, Kernels::with_width(&gpu, w)));
     let mut differ = Vec::new();
     for (preset, name, age, seed) in BUSY {
         let capture = captured(preset, age, seed, age);

@@ -4,7 +4,6 @@
 //! bearers' kept shares, carries living up the hierarchy's levels and
 //! judges each candidate, its verdicts logged.
 use super::super::io;
-use super::Arith;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
@@ -43,11 +42,11 @@ pub(super) const FLAG: usize = 0;
 pub(super) const SCATTER: usize = 1;
 
 impl Kernels {
-    pub(super) fn new(gpu: &Gpu, arith: Arith) -> Self {
+    pub(super) fn new(gpu: &Gpu) -> Self {
         let reads = [true, true, true, true, true, true, false, false];
         let pack = [true, true, true, true, false, false, false, false];
         Self {
-            pass: io::Pass::new(gpu, source(arith), &reads, &ENTRIES),
+            pass: io::Pass::new(gpu, source(), &reads, &ENTRIES),
             pack: io::Pass::new(gpu, PACK.into(), &pack, &["flag_main", "scatter_main"]),
             units: io::Pass::new(gpu, UNITS.into(), &[true, true, true, false, false], &["units_main"]),
         }
@@ -61,8 +60,8 @@ pub(super) fn compaction_sources() -> [&'static str; 2] {
 
 /// The module's WGSL: the contract, the reals, then retirement's columns,
 /// per-axis passes and sweep.
-pub(super) fn source(arith: Arith) -> String {
-    format!("{}\n{REAL}\n{COLS}\n{AXIS}\n{SWEEP}", super::super::fine::contract_with(arith.marks()))
+pub(super) fn source() -> String {
+    format!("{}\n{REAL}\n{COLS}\n{AXIS}\n{SWEEP}", super::super::fine::contract_with(super::ARITH))
 }
 
 /// Retirement's buffers for `s` laid axes at most and `pas` PAs: its

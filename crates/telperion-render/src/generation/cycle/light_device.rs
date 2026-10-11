@@ -47,11 +47,11 @@ pub(super) struct Kernels {
 }
 
 impl Kernels {
-    pub(super) fn new(gpu: &Gpu, arith: super::Arith) -> Self {
+    pub(super) fn new(gpu: &Gpu) -> Self {
         let mut reads = vec![true; 1];
         reads.extend([false; 6]);
         Self {
-            pass: io::Pass::new(gpu, super::light_source(arith), &reads, &ENTRIES),
+            pass: io::Pass::new(gpu, super::light_source(), &reads, &ENTRIES),
         }
     }
 }

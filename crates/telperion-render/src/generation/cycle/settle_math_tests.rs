@@ -43,15 +43,21 @@ fn inputs(n: usize) -> Vec<f32> {
     xs
 }
 
+/// Whether `dev` is beyond the ruled tolerance of `cpu`'s own magnitude
+/// (`ruled.rs`): these values span every exponent.
+fn far(dev: f32, cpu: f32) -> bool {
+    f64::from((dev - cpu).abs()) > super::ruled::FLOAT_TOLERANCE * f64::from(cpu.abs()) || dev.is_nan() != cpu.is_nan()
+}
+
 /// The device's arcsine and hypotenuse of each pair against libm's: the
-/// rows of each that differ, the first few printed.
-fn differing(gpu: &Gpu, arith: super::Arith) -> [usize; 2] {
+/// rows of each beyond the ruled tolerance, the first few printed.
+fn differing(gpu: &Gpu) -> [usize; 2] {
     let n = 1 << 20;
     let xs = inputs(n);
     let shader = format!(
-        "{}\n{}\n{}\n{}\n{}\n{}\n{MATH}\nfn exact_zero() -> u32 {{\n    return n.z;\n}}\n",
-        super::super::fine::contract_with(arith.marks()),
-        arith.root(),
+        "{}\n{}\n{}\n{}\n{}\n{}\n{MATH}\n",
+        super::super::fine::contract_with(super::ARITH),
+        super::ROOT,
         super::settle_device::soft64(),
         super::Q,
         super::SINCOS,
@@ -76,7 +82,7 @@ fn differing(gpu: &Gpu, arith: super::Arith) -> [usize; 2] {
     for (k, xy) in xs.as_chunks::<2>().0.iter().enumerate() {
         let cpu = [xy[0].asin_fixed(), xy[0].hypot_fixed(xy[1])];
         let dev = &got[2 * k..2 * k + 2];
-        let differ: Vec<bool> = dev.iter().zip(cpu).map(|(d, h)| d.to_bits() != h.to_bits()).collect();
+        let differ: Vec<bool> = dev.iter().zip(cpu).map(|(d, h)| far(*d, h)).collect();
         for (c, d) in count.iter_mut().zip(&differ) {
             *c += usize::from(*d);
         }
@@ -89,14 +95,14 @@ fn differing(gpu: &Gpu, arith: super::Arith) -> [usize; 2] {
     count
 }
 
-/// Built exact (`Arith::Exact`), as the settle's tests build it.
+/// Within the ruled tolerance of libm's (`ruled.rs`).
 #[test]
 fn sags_arcsine_and_hypotenuse_are_libms() {
     let _held = super::super::whole_tree();
     let Some(gpu) = super::super::test_gpu() else {
         return;
     };
-    assert_eq!(differing(&gpu, super::Arith::Exact), [0, 0], "sag's arcsine and hypotenuse are libm's");
+    assert_eq!(differing(&gpu), [0, 0], "sag's arcsine and hypotenuse are within the tolerance of libm's");
 }
 
 const TURN: &str = "
@@ -128,7 +134,6 @@ fn sags_turn_is_the_cpus() {
     let Some(gpu) = super::super::test_gpu() else {
         return;
     };
-    let arith = super::Arith::Exact;
     let n = 1 << 18;
     let mut state = 0x243f_6a88_85a3_08d3u64;
     let mut next = || {
@@ -151,14 +156,13 @@ fn sags_turn_is_the_cpus() {
         cases.push((lever, cap, sag, radius, length));
     }
     let shader = format!(
-        "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{TURN}\nfn exact_zero() -> u32 {{\n    return n.z;\n}}\n",
-        super::super::fine::contract_with(arith.marks()),
-        arith.root(),
+        "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{TURN}\n",
+        super::super::fine::contract_with(super::ARITH),
+        super::ROOT,
         super::settle_device::soft64(),
         super::Q,
         super::SINCOS,
         include_str!("settle_libm.wgsl"),
-        super::settle_device::sub(arith),
         super::settle_device::sag_math()
     );
     let pass = io::Pass::new(&gpu, shader, &[true, false], &["turn_main"]);
@@ -178,7 +182,7 @@ fn sags_turn_is_the_cpus() {
     let mut differ = 0;
     for (k, &(lever, cap, sag, radius, length)) in cases.iter().enumerate() {
         let cpu = telperion_space::settle_sag_turn(lever, cap, sag, (radius, length));
-        if cpu.to_bits() != got[4 * k].to_bits() {
+        if far(got[4 * k], cpu) {
             differ += 1;
             if differ <= 8 {
                 println!("lever {lever:?} cap {cap} sag {sag} r {radius} len {length}: device {:?}, cpu {cpu}", &got[4 * k..4 * k + 4]);
@@ -186,7 +190,7 @@ fn sags_turn_is_the_cpus() {
         }
     }
     println!("of {n}: {differ} turns differ");
-    assert_eq!(differ, 0, "sag's turn is the CPU's");
+    assert_eq!(differ, 0, "sag's turn is within the tolerance of the CPU's");
 }
 
 /// Whether the device keeps f32 subnormals: a product below the least

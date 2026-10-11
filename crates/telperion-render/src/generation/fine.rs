@@ -20,7 +20,7 @@ pub(super) fn contract() -> String {
 }
 
 /// The contract with its marked arithmetic `arith`: the plain operations
-/// (`fine/arith.wgsl`), or the device cycle's choice (`cycle::Arith`).
+/// (`fine/arith.wgsl`) the cycle and the chain both build.
 pub(super) fn contract_with(arith: &str) -> String {
     format!("{WIDE}\n{KEYS}\n{CONTRACT}\n{arith}")
 }

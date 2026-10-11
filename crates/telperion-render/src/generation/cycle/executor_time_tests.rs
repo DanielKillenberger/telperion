@@ -11,7 +11,6 @@ use super::grown_tests::{device, grown};
 use super::settle_device::Kernels;
 use super::settle_run::settle;
 use super::settle_tests::constants;
-use super::Arith;
 use crate::Gpu;
 use std::time::Instant;
 use telperion_core::presets::Preset;
@@ -74,10 +73,10 @@ fn by_kernel(stamps: &[(String, f64, f64)]) -> ((f64, String), f64) {
 /// work included), and its unstamped wall with the settle. Then at the
 /// sizes a build without letting go settles on, so it never begins again
 /// or moves: each phase's stamped time, the build's and the settle's.
-fn measured(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (preset, name, age, seed): (Preset, &str, u32, u64), arith: Arith) {
+fn measured(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (preset, name, age, seed): (Preset, &str, u32, u64)) {
     let g = grown(preset, age, seed);
     let t = Tables::new(gpu, &g.tables, &g.chain).expect("tables");
-    let label = format!("{name} {age} seed {seed} {arith:?}");
+    let label = format!("{name} {age} seed {seed}");
     let pa = constants(&g);
     let mut least = Sizes::least();
     least.compact = true;
@@ -144,14 +143,11 @@ fn the_executor_is_measured() {
     let _held = super::super::whole_tree();
     let mut cases: Vec<_> = PRESETS.iter().map(|&(p, n)| (p, n, p.parameters().age as u32, 42)).collect();
     cases.push((Preset::OregonWhiteOak, "oregon-white-oak", 80, 1));
-    for arith in [Arith::Plain, Arith::Exact] {
-        let Some((gpu, kit)) = device(arith) else {
-            return;
-        };
-        let k = Kernels::new(&gpu, arith);
-        let exact = |c: &&(Preset, &str, u32, u64)| matches!(arith, Arith::Plain) || c.0 == Preset::Telperion || (c.0 == Preset::OregonWhiteOak && c.2 == 80);
-        for case in cases.iter().filter(exact) {
-            measured(&gpu, (&kit, &k), *case, arith);
-        }
+    let Some((gpu, kit)) = device() else {
+        return;
+    };
+    let k = Kernels::new(&gpu);
+    for case in &cases {
+        measured(&gpu, (&kit, &k), *case);
     }
 }

@@ -140,10 +140,6 @@ const L_COUNT: u32 = 0u;
 const L_FAULT: u32 = 1u;
 const L_AT: u32 = 4u;
 
-fn exact_zero() -> u32 {
-    return cfg.zero;
-}
-
 fn m(a: f32, b: f32) -> f32 {
     return exact_kept(a * b);
 }

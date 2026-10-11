@@ -108,6 +108,57 @@ impl Agreement {
         ));
     }
 
+    /// f32 bits held to the ruled standard (`ruled.rs`): a row differs
+    /// where it is further than `tolerance` of the field's largest
+    /// magnitude from the CPU's.
+    pub(super) fn within(&mut self, name: &str, dev: &[u32], cpu: &[u32], tolerance: f64) {
+        let f = |b: &u32| f64::from(f32::from_bits(*b));
+        self.close(name, &dev.iter().map(f).collect::<Vec<_>>(), &cpu.iter().map(f).collect::<Vec<_>>(), tolerance);
+    }
+
+    /// `within` for f64s, each two words, low first.
+    pub(super) fn within64(&mut self, name: &str, dev: &[u32], cpu: &[u32]) {
+        let f = |w: &[u32]| f64::from_bits(u64::from(w[0]) | u64::from(w[1]) << 32);
+        let (d, c): (Vec<f64>, Vec<f64>) = (dev.chunks(2).map(f).collect(), cpu.chunks(2).map(f).collect());
+        self.close(name, &d, &c, super::ruled::FLOAT_TOLERANCE);
+    }
+
+    fn close(&mut self, name: &str, dev: &[f64], cpu: &[f64], tolerance: f64) {
+        let scale = cpu.iter().map(|b| b.abs()).fold(f64::MIN_POSITIVE, f64::max);
+        let far: Vec<u32> = dev.iter().zip(cpu).map(|(a, b)| u32::from((a - b).abs() > tolerance * scale || a.is_nan() != b.is_nan())).collect();
+        self.eq(name, &far, &vec![0; far.len()]);
+        if dev.len() != cpu.len() {
+            self.eq(&format!("{name} rows"), &[dev.len()], &[cpu.len()]);
+        }
+    }
+
+    /// Records `width` words wide, their words at `reals` f64 bits within
+    /// the ruled tolerance of each one's column, the rest exact.
+    pub(super) fn records(&mut self, name: &str, dev: &[u64], cpu: &[u64], (width, reals): (usize, &[usize])) {
+        for k in 0..width {
+            let (d, c): (Vec<u64>, Vec<u64>) = (dev.iter().skip(k).step_by(width).copied().collect(), cpu.iter().skip(k).step_by(width).copied().collect());
+            let field = format!("{name} {k}");
+            if reals.contains(&k) {
+                let f = |v: &[u64]| v.iter().map(|&b| f64::from_bits(b)).collect::<Vec<_>>();
+                self.close(&field, &f(&d), &f(&c), super::ruled::FLOAT_TOLERANCE);
+            } else {
+                self.eq(&field, &d, &c);
+            }
+        }
+    }
+
+    /// Tick counts a float decides, to the ruled standard (`ruled.rs`):
+    /// apart on few rows by few ticks.
+    pub(super) fn ticks(&mut self, name: &str, dev: &[u32], cpu: &[u32]) {
+        let apart: Vec<u32> = dev.iter().zip(cpu).map(|(a, b)| a.abs_diff(*b)).collect();
+        let rows = apart.iter().filter(|&&d| d > 0).count();
+        let ok = super::ruled::ticks_hold(rows, apart.len(), apart.iter().copied().max().unwrap_or(0));
+        self.eq(name, &[u32::from(!ok)], &[0]);
+        if dev.len() != cpu.len() {
+            self.eq(&format!("{name} rows"), &[dev.len()], &[cpu.len()]);
+        }
+    }
+
     pub fn exact(&self) -> bool {
         self.fields.iter().all(|f| f.2 == 0)
     }
@@ -174,34 +225,17 @@ fn axes(a: &mut Agreement, c: &Cap, out: &Readback, n: u32) {
     ] {
         a.eq(name, &col(k), &cpu(name));
     }
-    for (k, name) in [
-        (6, "lineage"),
-        (8, "root"),
-        (10, "horizon"),
-        (12, "whorl"),
-        (14, "blend"),
-    ] {
+    for (k, name) in [(6, "lineage"), (8, "root")] {
         a.eq(name, &pair(k), &cpu64(name));
     }
-    for (k, name) in [(16, "apex_end"), (17, "phyt_n"), (18, "spent")] {
+    for (k, name) in [(10, "horizon"), (12, "whorl"), (14, "blend"), (19, "b0"), (21, "b1")] {
+        a.within64(name, &pair(k), &cpu64(name));
+    }
+    for (k, name) in [(16, "apex_end"), (17, "phyt_n"), (23, "flags"), (26, "ended_relays"), (29, "units_n"), (31, "succ0"), (32, "succ1")] {
         a.eq(name, &col(k), &cpu(name));
     }
-    a.eq("b0", &pair(19), &cpu64("b0"));
-    a.eq("b1", &pair(21), &cpu64("b1"));
-    let scalars = [
-        (23, "flags"),
-        (24, "below"),
-        (25, "outlived"),
-        (26, "ended_relays"),
-        (27, "aged"),
-        (28, "sleep"),
-        (29, "units_n"),
-        (30, "grown_ticks"),
-        (31, "succ0"),
-        (32, "succ1"),
-    ];
-    for (k, name) in scalars {
-        a.eq(name, &col(k), &cpu(name));
+    for (k, name) in [(18, "spent"), (24, "below"), (25, "outlived"), (27, "aged"), (28, "sleep"), (30, "grown_ticks")] {
+        a.ticks(name, &col(k), &cpu(name));
     }
 }
 
@@ -212,15 +246,15 @@ fn units(a: &mut Agreement, c: &Cap, cols: &Columns, out: &Readback, m: Made) {
     let dev = |k: usize| pick(&col(k), &order);
     let cpu = |name: &str| c.u32s(&format!("out_unit_{name}"));
     a.eq("unit axis", &dev(0), &cpu("axis"));
-    a.eq("unit survive", &dev(1), &cpu("survive"));
-    a.eq("unit persist", &dev(2), &cpu("persist"));
-    a.eq("unit share", &dev(3), &cpu("share"));
-    a.eq("unit size", &dev(4), &cpu("size"));
+    a.within("unit survive", &dev(1), &cpu("survive"), super::ruled::FLOAT_TOLERANCE);
+    a.within("unit persist", &dev(2), &cpu("persist"), super::ruled::FLOAT_TOLERANCE);
+    a.ticks("unit share", &dev(3), &cpu("share"));
+    a.ticks("unit size", &dev(4), &cpu("size"));
     let shade: Vec<Vec<u32>> = (5..9).map(dev).collect();
     let shade: Vec<u32> = (0..order.len())
         .flat_map(|j| shade.iter().map(move |s| s[j]))
         .collect();
-    a.eq("unit shade", &shade, &lo_hi(&c.u64s("out_unit_shade")));
+    a.within64("unit shade", &shade, &lo_hi(&c.u64s("out_unit_shade")));
 }
 
 fn phytomers(a: &mut Agreement, c: &Cap, out: &Readback, m: Made) {
@@ -236,7 +270,7 @@ fn phytomers(a: &mut Agreement, c: &Cap, out: &Readback, m: Made) {
     a.eq("phytomer axis", &dev(2), &c.u32s("out_phyt_axis"));
     a.eq("phytomer key", &key, &lo_hi(&c.u64s("out_phyt_key")));
     a.eq("phytomer cycle", &dev(3), &c.u32s("out_phyt_cycle"));
-    a.eq("phytomer node", &dev(4), &c.u32s("out_phyt_node"));
+    a.within("phytomer node", &dev(4), &c.u32s("out_phyt_node"), super::ruled::FLOAT_TOLERANCE);
 }
 
 fn sleepers(a: &mut Agreement, c: &Cap, cols: &Columns, out: &Readback, m: Made) {
@@ -249,23 +283,20 @@ fn sleepers(a: &mut Agreement, c: &Cap, cols: &Columns, out: &Readback, m: Made)
         "wake", "parent", "node", "unit", "slot", "pa", "own", "sleep", "slept",
     ];
     for (k, name) in names.iter().enumerate() {
-        a.eq(
-            &format!("sleeper {name}"),
-            &dev(k),
-            &c.u32s(&format!("out_sleep_{name}")),
-        );
+        let (field, cpu) = (format!("sleeper {name}"), c.u32s(&format!("out_sleep_{name}")));
+        match *name {
+            "own" => a.within(&field, &dev(k), &cpu, super::ruled::FLOAT_TOLERANCE),
+            "sleep" => a.ticks(&field, &dev(k), &cpu),
+            _ => a.eq(&field, &dev(k), &cpu),
+        }
     }
     for (k, name) in [(9, "whorl"), (11, "key")] {
-        let both: Vec<u32> = dev(k)
-            .iter()
-            .zip(&dev(k + 1))
-            .flat_map(|(&l, &h)| [l, h])
-            .collect();
-        a.eq(
-            &format!("sleeper {name}"),
-            &both,
-            &lo_hi(&c.u64s(&format!("out_sleep_{name}"))),
-        );
+        let both: Vec<u32> = dev(k).iter().zip(&dev(k + 1)).flat_map(|(&l, &h)| [l, h]).collect();
+        let (field, cpu) = (format!("sleeper {name}"), lo_hi(&c.u64s(&format!("out_sleep_{name}"))));
+        match name {
+            "whorl" => a.within64(&field, &both, &cpu),
+            _ => a.eq(&field, &both, &cpu),
+        }
     }
 }
 
@@ -276,17 +307,17 @@ fn lists(a: &mut Agreement, c: &Cap, out: &Readback, m: Made) {
     let next = &out.lists[next_at..];
     a.eq("live axis", &next[..n], &c.u32s("out_live_axis"));
     let spent = &next[caps.next as usize..caps.next as usize + n];
-    a.eq("live spent", spent, &c.u32s("out_live_spent"));
+    a.ticks("live spent", spent, &c.u32s("out_live_spent"));
     let woken_at = next_at + 2 * caps.next as usize;
     let woken = &out.lists[woken_at..];
     let w = m.woken.min(caps.woken) as usize;
     let names = ["axis", "bearer", "next", "cycle", "share"];
     for (k, name) in names.iter().enumerate().take(WOKEN) {
         let at = k * caps.woken as usize;
-        a.eq(
-            &format!("woken {name}"),
-            &woken[at..at + w],
-            &c.u32s(&format!("out_woken_{name}")),
-        );
+        let (field, cpu) = (format!("woken {name}"), c.u32s(&format!("out_woken_{name}")));
+        match *name {
+            "share" => a.ticks(&field, &woken[at..at + w], &cpu),
+            _ => a.eq(&field, &woken[at..at + w], &cpu),
+        }
     }
 }

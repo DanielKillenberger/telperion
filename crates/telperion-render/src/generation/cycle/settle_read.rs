@@ -235,12 +235,15 @@ pub(super) fn cpu_settled(c: &Cap, to: SettleTo) -> (Snapshot, Beside) {
     (s, beside)
 }
 
-/// The two sides beside the tables, compared exactly.
+/// The two sides beside the tables, to the ruled standard (`ruled.rs`).
 pub(super) fn beside_agree(a: &mut super::compare::Agreement, dev: &Beside, cpu: &Beside) {
     a.eq("error", &dev.error, &cpu.error);
     a.eq("grown index", &dev.index, &cpu.index);
-    a.eq("leaf mean", &dev.leaf_mean, &cpu.leaf_mean);
-    a.eq("disused", &dev.disused, &cpu.disused);
-    a.eq("joined", &dev.joined, &cpu.joined);
-    a.eq("levers", &dev.levers, &cpu.levers);
+    a.records("leaf mean", &dev.leaf_mean, &cpu.leaf_mean, (2, &[1]));
+    a.records("disused", &dev.disused, &cpu.disused, (4, &[2, 3]));
+    let wide = |v: &[u32]| v.iter().map(|&x| f64::from(f32::from_bits(x)).to_bits()).collect::<Vec<u64>>();
+    // A join's third word is an f32's bits.
+    let joins = |v: &[u64]| v.chunks(5).flat_map(|j| [j[0], j[1], f64::from(f32::from_bits(j[2] as u32)).to_bits(), j[3], j[4]]).collect::<Vec<u64>>();
+    a.records("joined", &joins(&dev.joined), &joins(&cpu.joined), (5, &[2, 3, 4]));
+    a.records("levers", &wide(&dev.levers), &wide(&cpu.levers), (6, &[0, 1, 2, 3, 4, 5]));
 }

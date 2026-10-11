@@ -123,10 +123,6 @@ fn item(id: vec3<u32>) -> u32 {
     return cfg.base + id.x + id.y * cfg.row;
 }
 
-fn exact_zero() -> u32 {
-    return cfg.zero;
-}
-
 fn m(a: f32, b: f32) -> f32 {
     return exact_kept(a * b);
 }

@@ -20,12 +20,12 @@ use super::hier_scan::zeroed;
 use super::lay_device::Layout;
 use super::plan::{PassId, Plan};
 use super::state::{Caps, Held, State};
-use super::{device, glue, hier_build, lay_device, light_device, vm, Arith};
+use super::{device, glue, hier_build, lay_device, light_device, vm};
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 use telperion_space::{Capture, ChainTables};
 
-/// Every kernel the build runs, built once under one arithmetic.
+/// Every kernel the build runs.
 pub(super) struct Kit {
     pub units: device::Kernels,
     pub layout: lay_device::Kernels,
@@ -37,15 +37,15 @@ pub(super) struct Kit {
 }
 
 impl Kit {
-    pub(super) fn new(gpu: &Gpu, arith: Arith) -> Self {
+    pub(super) fn new(gpu: &Gpu) -> Self {
         Self {
-            units: device::Kernels::new(gpu, arith),
-            layout: lay_device::Kernels::new(gpu, arith),
-            hier: hier_build::Kernels::new(gpu, arith),
-            light: light_device::Kernels::new(gpu, arith),
+            units: device::Kernels::new(gpu),
+            layout: lay_device::Kernels::new(gpu),
+            hier: hier_build::Kernels::new(gpu),
+            light: light_device::Kernels::new(gpu),
             glue: glue::Kernels::new(gpu),
             vm: vm::Kernels::new(gpu),
-            retire: super::retire_device::Kernels::new(gpu, arith),
+            retire: super::retire_device::Kernels::new(gpu),
         }
     }
 

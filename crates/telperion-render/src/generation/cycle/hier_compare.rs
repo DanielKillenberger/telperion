@@ -12,6 +12,7 @@ use super::hier_device::{
     SUMS, Sums, V_OUT,
 };
 use super::hier_scan::read_words;
+use super::ruled::FLOAT_TOLERANCE;
 use crate::{Gpu, Result};
 
 /// The hierarchy as the device left it: its current lists and shape.
@@ -124,11 +125,11 @@ pub(super) fn compare(hier: &Hier, cpu: &Cpu, out: &Out) -> (Agreement, Agreemen
         ("incoming at the open axes", S_INCOMING, &cpu.incoming),
         ("bud vigour at the open axes", S_BUD, &cpu.bud),
     ] {
-        reals.eq(name, &at_open(col), &cpu_open(cpu_col));
+        reals.within(name, &at_open(col), &cpu_open(cpu_col), FLOAT_TOLERANCE);
     }
-    reals.eq("memory", out.col(S_MEMORY, n), &cpu.memory);
-    reals.eq("kept", out.col(S_KEPT, n), &cpu.kept);
-    reals.eq("size", out.col(S_SIZE, n), &cpu.size);
+    reals.within("memory", out.col(S_MEMORY, n), &cpu.memory, FLOAT_TOLERANCE);
+    reals.within("kept", out.col(S_KEPT, n), &cpu.kept, FLOAT_TOLERANCE);
+    reals.within("size", out.col(S_SIZE, n), &cpu.size, FLOAT_TOLERANCE);
     (ints, reals)
 }
 

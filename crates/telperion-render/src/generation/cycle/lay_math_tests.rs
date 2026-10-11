@@ -45,13 +45,13 @@ fn inputs(n: usize) -> Vec<f32> {
 
 /// The device's sine, cosine and arctangent of each pair, against libm's:
 /// the rows of each that differ, the first few printed.
-fn differing(gpu: &Gpu, arith: super::Arith) -> [usize; 3] {
+fn differing(gpu: &Gpu) -> [usize; 3] {
     let n = 1 << 20;
     let xs = inputs(n);
     let shader = format!(
-        "{}\n{}\n{}\n{}\n{MATH}\nfn exact_zero() -> u32 {{\n    return n.z;\n}}\n",
-        super::super::fine::contract_with(arith.marks()),
-        arith.root(),
+        "{}\n{}\n{}\n{}\n{MATH}\n",
+        super::super::fine::contract_with(super::ARITH),
+        super::ROOT,
         super::Q,
         super::SINCOS
     );
@@ -75,7 +75,10 @@ fn differing(gpu: &Gpu, arith: super::Arith) -> [usize; 3] {
         let (s, c) = xy[0].sin_cos_fixed();
         let cpu = [s, c, xy[0].atan2_fixed(xy[1])];
         let dev = &got[3 * k..3 * k + 3];
-        let differ: Vec<bool> = dev.iter().zip(cpu).map(|(d, h)| d.to_bits() != h.to_bits()).collect();
+        // The sine and cosine word for word; the arctangent within the
+        // ruled tolerance of a half turn (`ruled.rs`).
+        let far = f64::from((dev[2] - cpu[2]).abs()) > super::ruled::FLOAT_TOLERANCE * std::f64::consts::PI;
+        let differ = [dev[0].to_bits() != cpu[0].to_bits(), dev[1].to_bits() != cpu[1].to_bits(), far];
         for (c, d) in count.iter_mut().zip(&differ) {
             *c += usize::from(*d);
         }
@@ -96,18 +99,18 @@ fn the_layouts_sine_and_cosine_are_libms() {
     let Some(gpu) = super::super::test_gpu() else {
         return;
     };
-    let [sin, cos, _] = differing(&gpu, super::Arith::Plain);
+    let [sin, cos, _] = differing(&gpu);
     assert_eq!((sin, cos), (0, 0), "the layout's sine and cosine are libm's");
 }
 
-/// Built exact (`Arith::Exact`): built plain, the driver's division and
-/// reordering move it (LAYOUT.md).
+/// Within the ruled tolerance: the driver's division and reordering move
+/// it in its last places (LAYOUT.md).
 #[test]
-fn the_layouts_arctangent_is_libms() {
+fn the_layouts_arctangent_is_libms_within_tolerance() {
     let _held = super::super::whole_tree();
     let Some(gpu) = super::super::test_gpu() else {
         return;
     };
-    let atan2 = differing(&gpu, super::Arith::Exact)[2];
-    assert_eq!(atan2, 0, "the layout's arctangent is libm's");
+    let atan2 = differing(&gpu)[2];
+    assert_eq!(atan2, 0, "the layout's arctangent is within the tolerance of libm's");
 }

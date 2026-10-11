@@ -3,7 +3,6 @@
 //! `work` (its sections' columns `settle_cols.wgsl` names) and `atom`,
 //! and writes the node table `nt`.
 use super::super::io;
-use super::Arith;
 use crate::Gpu;
 
 const SHARED: &str = include_str!("settle_shared.wgsl");
@@ -18,8 +17,6 @@ const THICK: &str = include_str!("settle_thick.wgsl");
 const LIBM: &str = include_str!("settle_libm.wgsl");
 const SAG: &str = include_str!("settle_sag.wgsl");
 const BEND: &str = include_str!("settle_bend.wgsl");
-const SUB: &str = include_str!("settle_sub.wgsl");
-const PLAIN_SUB: &str = "fn sub_mul(a: f32, b: f32) -> f32 {\n    return m(a, b);\n}\nfn sub_add(a: f32, b: f32) -> f32 {\n    return a + b;\n}\nfn sub_sqrt(x: f32) -> f32 {\n    return qsqrt(x);\n}\n";
 const LAY: &str = include_str!("settle_place.wgsl");
 const REAL: &str = include_str!("real.wgsl");
 
@@ -119,11 +116,9 @@ pub(super) const LEVER: usize = 4;
 pub(super) const SIZED: usize = 5;
 pub(super) const WALK_E: usize = 6;
 
-/// The axis-phytomer steps a plain walk dispatch takes, and how many
-/// times dearer an exact step is: counts from the busy builds' longest
-/// dispatches, never a timing.
+/// The axis-phytomer steps a walk dispatch takes: a count from the busy
+/// builds' longest dispatches, never a timing.
 const PLAIN_STEPS: u32 = 1 << 17;
-const EXACT_COST: u32 = 4;
 /// The most phytomers one axis walks a plain dispatch: a sagging axis's
 /// step is long enough alone that a depth of few axes is bound by it.
 const PLAIN_WALK: u32 = 4;
@@ -140,20 +135,14 @@ pub(super) struct Kernels {
 }
 
 impl Kernels {
-    pub(super) fn new(gpu: &Gpu, arith: Arith) -> Self {
+    pub(super) fn new(gpu: &Gpu) -> Self {
         let reads = [true, true, true, false, false, false, true, true];
         let place = [true, true, false, false, false];
         Self {
-            pass: io::Pass::new(gpu, source(arith), &reads, &ENTRIES),
-            place: io::Pass::new(gpu, place_source(arith), &place, &PLACE_ENTRIES),
-            steps: match arith {
-                Arith::Plain => PLAIN_STEPS,
-                Arith::Exact => PLAIN_STEPS / EXACT_COST,
-            },
-            walk: match arith {
-                Arith::Plain => PLAIN_WALK,
-                Arith::Exact => 1,
-            },
+            pass: io::Pass::new(gpu, source(), &reads, &ENTRIES),
+            place: io::Pass::new(gpu, place_source(), &place, &PLACE_ENTRIES),
+            steps: PLAIN_STEPS,
+            walk: PLAIN_WALK,
         }
     }
 }
@@ -162,28 +151,18 @@ impl Kernels {
 /// the software f64, the settle's words, the node table under the
 /// layout's names, the layout's vectors, angles, walk, stand and frame,
 /// then the place's passes.
-pub(super) fn place_source(arith: Arith) -> String {
+pub(super) fn place_source() -> String {
     format!(
-        "{}\n{}\n{REAL}\n{}\n{SHARED}\n{STATE}\n{}\n{}\n{}\n{}\n{}\n{THICK}\n{LIBM}\n{}\n{BEND}\n{SAG}\n{LAY}",
-        super::super::fine::contract_with(arith.marks()),
-        arith.root(),
+        "{}\n{}\n{REAL}\n{}\n{SHARED}\n{STATE}\n{}\n{}\n{}\n{}\n{}\n{THICK}\n{LIBM}\n{BEND}\n{SAG}\n{LAY}",
+        super::super::fine::contract_with(super::ARITH),
+        super::ROOT,
         soft64(),
         super::Q,
         super::SINCOS,
         super::LAY_WALK,
         super::LAY_STAND,
-        super::LAY_FRAME,
-        sub(arith)
+        super::LAY_FRAME
     )
-}
-
-/// Products, sums and roots with gradual underflow where built exact,
-/// the plain operations otherwise (`settle_sub.wgsl`).
-pub(super) fn sub(arith: Arith) -> &'static str {
-    match arith {
-        Arith::Plain => PLAIN_SUB,
-        Arith::Exact => SUB,
-    }
 }
 
 /// Sag's turn and frames (`settle_bend.wgsl`), which read no buffer.
@@ -202,10 +181,10 @@ pub(super) fn soft64() -> String {
 /// The settle's WGSL: the contract, the reals, the software f64 (its
 /// own word product left for the contract's), then the settle's columns
 /// and passes.
-pub(super) fn source(arith: Arith) -> String {
+pub(super) fn source() -> String {
     format!(
         "{}\n{REAL}\n{}\n{SHARED}\n{COLS}\n{TREE}\n{ASSIGN}\n{SWEEP}\n{ORDER}\n{COMPACT}",
-        super::super::fine::contract_with(arith.marks()),
+        super::super::fine::contract_with(super::ARITH),
         soft64()
     )
 }

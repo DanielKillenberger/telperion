@@ -1,9 +1,8 @@
-// fn-256 task 2: arithmetic held to the CPU's order: the marks of
-// `Arith::Exact` (`exact.wgsl`), and in both arithmetics the contract's
-// operations whose results become integers (`held.rs`, DESIGN.md section
-// 8). A product kept apart
-// from the sum it feeds by its bits XORed with a uniform zero the driver
-// cannot see through (`exact_zero`, each module's own), and a quotient
+// fn-256 task 2: the contract's operations whose results become integers
+// (`held.rs`, DESIGN.md section 8), held to the CPU's order in the plain
+// build. A product kept apart from the sum it feeds by its bits XORed
+// with a uniform zero the driver cannot see through (`exact_zero`, the
+// units' own), and a quotient
 // rounded to nearest, ties to even, in integers: the driver fuses
 // multiplies into adds and does not round WGSL's division correctly
 // (UNITS.md, LAYOUT.md, HIERARCHY.md, LIGHT.md).

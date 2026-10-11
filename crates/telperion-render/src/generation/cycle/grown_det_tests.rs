@@ -8,12 +8,11 @@ use super::build_plan::Ranges;
 use super::grown::Snapshot;
 use super::grown_compare::exact;
 use super::grown_tests::{device, grown, Grown};
-use super::Arith;
 use telperion_core::presets::Preset;
 
 /// `g`'s tree on a fresh context from `sizes`.
 fn fresh(g: &Grown, sizes: Sizes) -> Option<Snapshot> {
-    let (gpu, kit) = device(Arith::Plain)?;
+    let (gpu, kit) = device()?;
     let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
     let age = g.request.age;
     let (b, ..) = grow(&gpu, &kit, &t, &g.tables, (sizes, age)).expect("a build");

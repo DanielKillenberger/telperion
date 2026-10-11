@@ -10,14 +10,13 @@ use super::hier_scan::read_words;
 use super::settle_device::Kernels;
 use super::settle_run::settle;
 use super::settle_tests::constants;
-use super::Arith;
 use telperion_core::presets::Preset;
 use telperion_space::SettleTo;
 
 /// `g`'s node table, laid, on a fresh context from `sizes`.
 fn fresh(g: &Grown, sizes: Sizes) -> Option<Vec<u32>> {
-    let (gpu, kit) = device(Arith::Plain)?;
-    let k = Kernels::new(&gpu, Arith::Plain);
+    let (gpu, kit) = device()?;
+    let k = Kernels::new(&gpu);
     let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
     let (b, ..) = grow(&gpu, &kit, &t, &g.tables, (sizes, g.request.age)).expect("a build");
     let s = settle(&gpu, (&kit, &k), (&b, &t), (&constants(g), SettleTo::Laid)).expect("a settle");

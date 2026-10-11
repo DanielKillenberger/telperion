@@ -154,10 +154,6 @@ const TALLY: u32 = 32u;
 
 var<private> status: u32;
 
-fn exact_zero() -> u32 {
-    return cfg.zero;
-}
-
 // A whole count of ticks, signed, as the f32 of its cycles (`years as
 // f32`): rounded once, as Rust rounds the f64 it is exact in.
 fn years_of(ticks: i32) -> f32 {

@@ -1,17 +1,16 @@
 //! The device's settle held to the CPU's (`grow_capture_settled_at`):
 //! young trees of every shipped preset grown on the device from the seed
-//! and settled there, exact in every word where the kernels are built
-//! exact, and reported by lineage where they are built plain.
+//! and settled there, to the ruled standard (`ruled.rs`, DESIGN.md
+//! section 9).
 use super::build::{Build, Kit, Tables};
 use super::columns::Cap;
 use super::compare::Agreement;
 use super::grown::Snapshot;
-use super::grown_compare::{by_lineage, exact};
+use super::grown_compare::by_lineage;
 use super::grown_tests::{built, device, grown, Grown, YOUNG};
 use super::settle_device::Kernels;
 use super::settle_read::{beside_agree, cpu_settled, Beside};
 use super::settle_run::{settle, Settled};
-use super::Arith;
 use crate::Gpu;
 use telperion_space::SettleTo;
 
@@ -30,82 +29,62 @@ pub(super) fn settled(gpu: &Gpu, (kit, k): (&Kit, &Kernels), g: &Grown, to: Sett
 }
 
 /// The young trees of every preset settled as far as `to` on the device,
-/// built exact, held to the CPU's in every word.
-fn young_trees_settle_exactly(to: SettleTo) {
+/// held to the CPU's to the ruled standard.
+fn young_trees_settle_as_the_cpu(to: SettleTo) {
     let _held = super::super::whole_tree();
-    let Some((gpu, kit)) = device(Arith::Exact) else {
+    let Some((gpu, kit)) = device() else {
         return;
     };
-    let k = Kernels::new(&gpu, Arith::Exact);
-    let mut differ = Vec::new();
+    let k = Kernels::new(&gpu);
+    let mut apart = Vec::new();
     for (preset, name, age) in YOUNG {
         let g = grown(preset, age, 42);
         let capture = telperion_space::grow_capture_settled_at(&g.species, g.request, to).expect("the CPU's tree");
         let cpu = cpu_settled(&Cap(&capture), to);
         let (_, s, dev, beside) = settled(&gpu, (&kit, &k), &g, to);
-        let a = agreement((&dev, &beside), (&cpu.0, &cpu.1));
+        let found = held((&dev, &beside), (&cpu.0, &cpu.1));
         let (t, depths) = (&s.table, s.kept_starts.len() - 1);
         let joins = beside.joined.chunks(5).filter(|j| j[0] == 1).count();
         println!(
-            "{name} {age} to {to:?}: {} kept axes in {depths} depths, {} units, {} phytomers, {joins} joins; flags {}; {} dispatches\n{}",
-            t.kept, t.units, t.phyts, s.flags, s.stamped.len(), a.report()
+            "{name} {age} to {to:?}: {} kept axes in {depths} depths, {} units, {} phytomers, {joins} joins; flags {}; {} dispatches",
+            t.kept, t.units, t.phyts, s.flags, s.stamped.len()
         );
-        if !a.exact() {
-            println!("{}", by_lineage(&dev, &cpu.0).report());
-            differ.push(name);
-        }
+        apart.extend(found.into_iter().map(|f| format!("{name}: {f}")));
     }
-    assert!(differ.is_empty(), "the device's settled trees are not the CPU's: {differ:?}");
+    assert!(apart.is_empty(), "the device's settled trees are apart from the CPU's: {apart:#?}");
 }
 
-/// The device's settle against the CPU's at `to`.
-fn agreement(dev: (&Snapshot, &Beside), cpu: (&Snapshot, &Beside)) -> Agreement {
-    let mut a = exact(dev.0, cpu.0);
+/// What breaks the ruled standard between the device's settle and the
+/// CPU's: the tables by lineage, and the sides beside them.
+pub(super) fn held(dev: (&Snapshot, &Beside), cpu: (&Snapshot, &Beside)) -> Vec<String> {
+    let by = by_lineage(dev.0, cpu.0);
+    println!("{}", by.report());
+    let mut found = super::ruled::findings(&by);
+    let mut a = Agreement::default();
     beside_agree(&mut a, dev.1, cpu.1);
-    a
+    found.extend(a.fields.iter().filter(|f| f.2 > 0).map(|f| format!("{}: {}", f.0, f.3)));
+    found
 }
 
 #[test]
 fn young_trees_shed_and_order_on_the_device_as_on_the_cpu() {
-    young_trees_settle_exactly(SettleTo::Shed);
+    young_trees_settle_as_the_cpu(SettleTo::Shed);
 }
 
 #[test]
 fn young_trees_scale_and_thicken_on_the_device_as_on_the_cpu() {
-    young_trees_settle_exactly(SettleTo::Thick);
+    young_trees_settle_as_the_cpu(SettleTo::Thick);
 }
 
 #[test]
 #[ignore = "a probe"]
 fn young_trees_are_placed_on_the_device_as_on_the_cpu() {
-    young_trees_settle_exactly(SettleTo::Placed);
+    young_trees_settle_as_the_cpu(SettleTo::Placed);
 }
 
 #[test]
 fn young_trees_are_laid_on_the_device_as_on_the_cpu() {
-    young_trees_settle_exactly(SettleTo::Laid);
-}
-
-/// How far the plain report settles.
-const PLAIN: SettleTo = SettleTo::Laid;
-
-/// Built plain, the same trees by lineage: reported, not bounded.
-#[test]
-fn young_trees_settled_plain_are_reported() {
-    let _held = super::super::whole_tree();
-    let Some((gpu, kit)) = device(Arith::Plain) else {
-        return;
-    };
-    let k = Kernels::new(&gpu, Arith::Plain);
-    for (preset, name, age) in YOUNG {
-        let g = grown(preset, age, 42);
-        let capture = telperion_space::grow_capture_settled_at(&g.species, g.request, PLAIN).expect("the CPU's tree");
-        let cpu = cpu_settled(&Cap(&capture), PLAIN);
-        let (_, _, dev, beside) = settled(&gpu, (&kit, &k), &g, PLAIN);
-        let a = agreement((&dev, &beside), (&cpu.0, &cpu.1));
-        let parted: Vec<&str> = a.fields.iter().filter(|f| f.2 > 0).map(|f| f.0.as_str()).collect();
-        println!("{name} {age}: fields that part {parted:?}\n{}", by_lineage(&dev, &cpu.0).report());
-    }
+    young_trees_settle_as_the_cpu(SettleTo::Laid);
 }
 
 /// A tree that grows no phytomer settles to the CPU's `Collapsed`: the
@@ -113,10 +92,10 @@ fn young_trees_settled_plain_are_reported() {
 #[test]
 fn a_tree_without_phytomers_collapses_on_the_device_as_on_the_cpu() {
     let _held = super::super::whole_tree();
-    let Some((gpu, kit)) = device(Arith::Exact) else {
+    let Some((gpu, kit)) = device() else {
         return;
     };
-    let k = Kernels::new(&gpu, Arith::Exact);
+    let k = Kernels::new(&gpu);
     let mut g = grown(telperion_core::presets::Preset::DatePalm, 3, 42);
     for state in &mut g.species.states {
         for zone in &mut state.zones {
@@ -129,7 +108,6 @@ fn a_tree_without_phytomers_collapses_on_the_device_as_on_the_cpu() {
     let cpu = cpu_settled(&Cap(&capture), SettleTo::Shed);
     let (_, s, dev, beside) = settled(&gpu, (&kit, &k), &g, SettleTo::Shed);
     assert_eq!(s.error[0], 1, "the device's tree collapsed");
-    let a = agreement((&dev, &beside), (&cpu.0, &cpu.1));
-    println!("{}", a.report());
-    assert!(a.exact(), "the device's collapse is the CPU's");
+    let found = held((&dev, &beside), (&cpu.0, &cpu.1));
+    assert!(found.is_empty(), "the device's collapse is the CPU's: {found:?}");
 }

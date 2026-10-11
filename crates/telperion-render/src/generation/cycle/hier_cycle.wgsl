@@ -104,10 +104,6 @@ fn hdiv(a: f32, b: f32) -> f32 {
     return exact_div(a, b);
 }
 
-fn exact_zero() -> u32 {
-    return cfg.zero;
-}
-
 fn at(col: u32, i: u32) -> u32 {
     return col * cfg.stride + i;
 }

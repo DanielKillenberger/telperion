@@ -19,23 +19,23 @@ struct UnitW {
     l: f32,
 }
 
-// The dot product and scaling with gradual underflow (`settle_sub.wgsl`,
-// the plain operations where built plain): a lever at a fine tip squares
-// below the least normal.
+// The dot product, scaling and sum a lever takes, plain: a lever at a
+// fine tip squares below the least normal, and both executors flush it
+// alike within the tolerance (DESIGN.md section 9, item 2).
 fn sub_dot(a: vec3<f32>, b: vec3<f32>) -> f32 {
-    return sub_add(sub_add(sub_mul(a.x, b.x), sub_mul(a.y, b.y)), sub_mul(a.z, b.z));
+    return m(a.x, b.x) + m(a.y, b.y) + m(a.z, b.z);
 }
 
 fn sub_scaled(v: vec3<f32>, s: f32) -> vec3<f32> {
-    return vec3<f32>(sub_mul(v.x, s), sub_mul(v.y, s), sub_mul(v.z, s));
+    return vec3<f32>(m(v.x, s), m(v.y, s), m(v.z, s));
 }
 
 fn sub_sum(a: vec3<f32>, b: vec3<f32>) -> vec3<f32> {
-    return vec3<f32>(sub_add(a.x, b.x), sub_add(a.y, b.y), sub_add(a.z, b.z));
+    return a + b;
 }
 
 fn unit_w(v: vec3<f32>) -> UnitW {
-    let l = sub_sqrt(sub_dot(v, v));
+    let l = qsqrt(sub_dot(v, v));
     if !(l > 0.0) {
         return UnitW(vec3<f32>(0.0), -INF);
     }

@@ -81,7 +81,7 @@ struct Replay {
     reals: Agreement,
 }
 
-fn replay(gpu: &Gpu, (k, arith): (&Kernels, super::Arith), name: &str, c: &Capture) -> Replay {
+fn replay(gpu: &Gpu, k: &Kernels, name: &str, c: &Capture) -> Replay {
     let cap = Cap(c);
     let (hier, cpu) = (Hier::new(&cap), Cpu::new(&cap));
     let tree = tree(gpu, &hier);
@@ -126,7 +126,7 @@ fn replay(gpu: &Gpu, (k, arith): (&Kernels, super::Arith), name: &str, c: &Captu
     } else {
         64
     };
-    let wide = Kernels::with_width(gpu, width, arith);
+    let wide = Kernels::with_width(gpu, width);
     let at = format!("sums at width {width}");
     structure.eq(
         &at,
@@ -154,10 +154,10 @@ fn replay(gpu: &Gpu, (k, arith): (&Kernels, super::Arith), name: &str, c: &Captu
     }
 }
 
-pub(super) fn device(arith: super::Arith) -> Option<(Gpu, Kernels, f64)> {
+pub(super) fn device() -> Option<(Gpu, Kernels, f64)> {
     let gpu = super::super::test_gpu()?;
     let started = std::time::Instant::now();
-    let k = Kernels::new(&gpu, arith);
+    let k = Kernels::new(&gpu);
     gpu.device
         .poll(wgpu::PollType::wait_indefinitely())
         .expect("compiled");
@@ -179,15 +179,15 @@ const YOUNG: [(Preset, &str, u32, u32); 7] = [
     (Preset::SilverBirch, "silver-birch", 16, 12),
 ];
 
-fn young(arith: super::Arith, check: &dyn Fn(&Replay) -> bool) -> Vec<String> {
+fn young(check: &dyn Fn(&Replay) -> bool) -> Vec<String> {
     let _held = super::super::whole_tree();
-    let Some((gpu, k, _)) = device(arith) else {
+    let Some((gpu, k, _)) = device() else {
         return Vec::new();
     };
     let mut differ = Vec::new();
     for (preset, name, age, at) in YOUNG {
         let name = format!("{name} {age} at {at}");
-        if !check(&replay(&gpu, (&k, arith), &name, &captured(preset, age, 42, at))) {
+        if !check(&replay(&gpu, &k, &name, &captured(preset, age, 42, at))) {
             differ.push(name);
         }
     }
@@ -196,19 +196,19 @@ fn young(arith: super::Arith, check: &dyn Fn(&Replay) -> bool) -> Vec<String> {
 
 #[test]
 fn young_hierarchies_and_their_integers_agree_with_the_cpu() {
-    let differ = young(super::Arith::Plain, &|r| r.structure.exact() && r.ints.exact());
+    let differ = young(&|r| r.structure.exact() && r.ints.exact());
     assert!(
         differ.is_empty(),
         "the device's hierarchy is not the CPU's: {differ:?}"
     );
 }
 
-/// Built exact (`Arith::Exact`): built plain, the driver's division and
-/// contraction (`hm`, `hdiv`, `fine/contract.wgsl`) move incoming, bud,
-/// memory and size (HIERARCHY.md).
+/// The sums' reals within the ruled tolerance (`ruled.rs`): the driver's
+/// division and contraction move incoming, bud, memory and size in their
+/// last places (HIERARCHY.md).
 #[test]
-fn young_sums_agree_with_the_cpu_in_every_word() {
-    let differ = young(super::Arith::Exact, &|r| r.structure.exact() && r.ints.exact() && r.reals.exact());
+fn young_sums_agree_with_the_cpu_within_tolerance() {
+    let differ = young(&|r| r.structure.exact() && r.ints.exact() && r.reals.exact());
     assert!(
         differ.is_empty(),
         "the device's sums are not the CPU's: {differ:?}"

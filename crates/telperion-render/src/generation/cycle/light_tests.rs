@@ -66,6 +66,12 @@ impl Agreement {
             .all(|r| r.1 == 0)
     }
 
+    /// Whether the named real output, a light of at most one, is within
+    /// the ruled tolerance of the CPU's (`ruled.rs`).
+    fn within(&self, name: &str) -> bool {
+        self.0.iter().filter(|r| r.0 == name).all(|r| f64::from(r.4) <= super::ruled::FLOAT_TOLERANCE)
+    }
+
     fn report(&self) -> String {
         let rows: Vec<String> = (self.0.iter())
             .map(|(name, n, of, first, most)| match first {
@@ -110,10 +116,10 @@ fn replay(
     (run, agreement)
 }
 
-fn device(arith: super::Arith) -> Option<(Gpu, Kernels)> {
+fn device() -> Option<(Gpu, Kernels)> {
     let gpu = super::super::test_gpu()?;
     let started = std::time::Instant::now();
-    let k = Kernels::new(&gpu, arith);
+    let k = Kernels::new(&gpu);
     gpu.device
         .poll(wgpu::PollType::wait_indefinitely())
         .expect("compiled");
@@ -133,16 +139,16 @@ const YOUNG: [(Preset, &str, u32, u32); 4] = [
     (Preset::Telperion, "telperion", 14, 10),
 ];
 
-/// Every young capture's agreement on `names`; the captures that differ.
-fn young_differ(arith: super::Arith, names: &[&str]) -> Vec<String> {
-    let Some((gpu, k)) = device(arith) else {
+/// Every young capture's agreement by `holds`; the captures that differ.
+fn young_differ(holds: &dyn Fn(&Agreement) -> bool) -> Vec<String> {
+    let Some((gpu, k)) = device() else {
         return Vec::new();
     };
     let mut differ = Vec::new();
     for (preset, name, age, at) in YOUNG {
         let name = format!("{name} {age} at {at}");
         let (_, agreement) = replay(&gpu, &k, &name, &captured(preset, age, 42, at), None);
-        if !agreement.exact(names) {
+        if !holds(&agreement) {
             differ.push(name);
         }
     }
@@ -152,19 +158,19 @@ fn young_differ(arith: super::Arith, names: &[&str]) -> Vec<String> {
 #[test]
 fn young_lattices_agree_with_the_cpu() {
     let _held = super::super::whole_tree();
-    let differ = young_differ(super::Arith::Plain, &LATTICE);
+    let differ = young_differ(&|a| a.exact(&LATTICE));
     assert!(
         differ.is_empty(),
         "the device's lattice is not the CPU's: {differ:?}"
     );
 }
 
-/// Built exact (`Arith::Exact`): built plain, the driver fuses the read's
+/// The reads within the ruled tolerance: the driver fuses the read's
 /// product into its sum (`light_sweep.wgsl` `read_main`, LIGHT.md).
 #[test]
 fn young_reads_agree_with_the_cpu() {
     let _held = super::super::whole_tree();
-    let differ = young_differ(super::Arith::Exact, &["reads"]);
+    let differ = young_differ(&|a| a.within("reads"));
     assert!(
         differ.is_empty(),
         "the device's reads are not the CPU's: {differ:?}"
@@ -237,10 +243,10 @@ fn timed(gpu: &Gpu, k: &Kernels, run: &Run) -> Vec<Phase> {
 }
 
 #[test]
-#[ignore = "a measurement; its reads red on the driver's fusion until the host rules (LIGHT.md)"]
+#[ignore = "a measurement"]
 fn busy_lights_agree_and_are_timed() {
     let _held = super::super::whole_tree();
-    let Some((gpu, k)) = device(super::Arith::Plain) else {
+    let Some((gpu, k)) = device() else {
         return;
     };
     let mut differ = Vec::new();
@@ -265,7 +271,7 @@ fn busy_lights_agree_and_are_timed() {
         }
         for (label, extinction) in runs {
             let (run, agreement) = replay(&gpu, &k, &label, &capture, extinction);
-            if extinction.is_none() && !agreement.exact(&[&LATTICE[..], &["reads"]].concat()) {
+            if extinction.is_none() && !(agreement.exact(&LATTICE) && agreement.within("reads")) {
                 differ.push(label.clone());
             }
             let times = timed(&gpu, &k, &run);

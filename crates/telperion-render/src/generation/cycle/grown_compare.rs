@@ -22,14 +22,18 @@ fn tables(s: &Snapshot) -> [&Table; 7] {
     [&s.axes, &s.units, &s.phyts, &s.sleepers, &s.woken, &s.live, &s.pencils]
 }
 
-/// A field compared by lineage: the rows compared, those that differ,
-/// and a float's largest relative difference.
+/// A field compared by lineage: its kind, the rows compared, those that
+/// differ, the largest relative and absolute difference, and the largest
+/// magnitude of the CPU's values.
 #[derive(Debug, Clone, Default)]
 pub(super) struct Matched {
     pub name: String,
+    pub kind: Option<Kind>,
     pub rows: usize,
     pub differ: usize,
     pub worst: f64,
+    pub apart: f64,
+    pub scale: f64,
 }
 
 /// The two trees by lineage: the axes either holds that the other does
@@ -54,10 +58,19 @@ impl ByLineage {
     }
 }
 
+/// A field's word as a number.
+fn value(kind: Kind, a: &[u32]) -> f64 {
+    match kind {
+        Kind::F32 => f64::from(f32::from_bits(a[0])),
+        Kind::F64 => f64::from_bits(u64::from(a[0]) | u64::from(a[1]) << 32),
+        Kind::U32 => f64::from(a[0]),
+        Kind::U64 => (u64::from(a[0]) | u64::from(a[1]) << 32) as f64,
+    }
+}
+
 fn relative(kind: Kind, a: &[u32], b: &[u32]) -> f64 {
     let (x, y) = match kind {
-        Kind::F32 => (f64::from(f32::from_bits(a[0])), f64::from(f32::from_bits(b[0]))),
-        Kind::F64 => (f64::from_bits(u64::from(a[0]) | u64::from(a[1]) << 32), f64::from_bits(u64::from(b[0]) | u64::from(b[1]) << 32)),
+        Kind::F32 | Kind::F64 => (value(kind, a), value(kind, b)),
         _ => return if a == b { 0.0 } else { 1.0 },
     };
     if x == y {
@@ -80,13 +93,15 @@ fn rows_by_axis(t: &Table) -> HashMap<u32, (usize, usize)> {
 fn fields(d: &Table, c: &Table, pairs: &[(usize, usize)], out: &mut Vec<Matched>) {
     for (fd, fc) in d.fields.iter().zip(&c.fields) {
         let w = fd.kind.words();
-        let mut m = Matched { name: fd.name.clone(), ..Matched::default() };
+        let mut m = Matched { name: fd.name.clone(), kind: Some(fd.kind), ..Matched::default() };
         for &(i, j) in pairs {
             let (a, b) = (&fd.words[w * i..w * i + w], &fc.words[w * j..w * j + w]);
             m.rows += 1;
+            m.scale = m.scale.max(value(fd.kind, b).abs());
             if a != b {
                 m.differ += 1;
                 m.worst = m.worst.max(relative(fd.kind, a, b));
+                m.apart = m.apart.max((value(fd.kind, a) - value(fd.kind, b)).abs());
             }
         }
         out.push(m);
@@ -131,7 +146,7 @@ pub(super) fn by_lineage(dev: &Snapshot, cpu: &Snapshot) -> ByLineage {
         }
         fields(d, c, &rows, &mut out.fields);
         let name = d.fields.first().map_or("rows", |f| f.name.as_str());
-        out.fields.push(Matched { name: format!("{name}: rows unmatched"), rows: rows.len(), differ: short, worst: 0.0 });
+        out.fields.push(Matched { name: format!("{name}: rows unmatched"), rows: rows.len(), differ: short, ..Matched::default() });
     }
     out
 }

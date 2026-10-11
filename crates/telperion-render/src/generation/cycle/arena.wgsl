@@ -211,9 +211,8 @@ fn pen64(i: u32, k: u32) -> vec2<u32> {
     return vec2<u32>(inputs[at], inputs[at + cfg.pencils]);
 }
 
-// The word the driver cannot see is zero (`exact.wgsl`): the units' own
-// products a sum takes are marked `exact_kept`, plain or held to the
-// CPU's order as the kernels are built.
+// The word the driver cannot see is zero (`held.wgsl`): the products a
+// floor site's sum takes are held apart by it.
 fn exact_zero() -> u32 {
     return cfg.zero;
 }

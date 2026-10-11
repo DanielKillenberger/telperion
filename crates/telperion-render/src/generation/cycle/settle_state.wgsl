@@ -150,10 +150,6 @@ const FAULT_NARROW: u32 = 64u;
 
 var<private> status: u32;
 
-fn exact_zero() -> u32 {
-    return cfg.zero;
-}
-
 fn forget() {
 }
 

@@ -61,18 +61,18 @@ pub(super) struct Kernels {
 }
 
 impl Kernels {
-    pub(super) fn new(gpu: &Gpu, arith: super::Arith) -> Self {
-        Self::with_width(gpu, WIDTH, arith)
+    pub(super) fn new(gpu: &Gpu) -> Self {
+        Self::with_width(gpu, WIDTH)
     }
 
     /// The kernels, the sweeps' workgroups `width` lanes wide.
-    pub(super) fn with_width(gpu: &Gpu, width: u32, arith: super::Arith) -> Self {
+    pub(super) fn with_width(gpu: &Gpu, width: u32) -> Self {
         let build = [true, false, false, true, false, false, false];
         let sums = [true, true, true, true, false, false, false, false];
         let entries = &super::hier_device::ENTRIES;
         Self {
             build: io::Pass::new(gpu, super::hier_build_source(), &build, &ENTRIES),
-            sums: io::Pass::new(gpu, super::hier_cycle_source_at(width, arith), &sums, entries),
+            sums: io::Pass::new(gpu, super::hier_cycle_source_at(width), &sums, entries),
             scan: io::Pass::new(
                 gpu,
                 super::hier_scan_source(),
