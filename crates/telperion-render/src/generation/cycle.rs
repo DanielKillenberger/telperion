@@ -5,9 +5,17 @@
 mod columns;
 mod compare;
 mod device;
+mod hier_build;
+mod hier_columns;
+mod hier_compare;
+mod hier_device;
 mod lay_columns;
 mod lay_compare;
 mod lay_device;
+#[cfg(test)]
+mod hier_math_tests;
+#[cfg(test)]
+mod hier_tests;
 #[cfg(test)]
 mod lay_math_tests;
 #[cfg(test)]
@@ -30,6 +38,13 @@ const LAY_WALK: &str = include_str!("cycle/lay_walk.wgsl");
 const LAY_DRAW: &str = include_str!("cycle/lay_draw.wgsl");
 const LAY_STAND: &str = include_str!("cycle/lay_stand.wgsl");
 const LAY_FRAME: &str = include_str!("cycle/lay_frame.wgsl");
+const HIER_COLS: &str = include_str!("cycle/hier_cols.wgsl");
+const HIER_BUILD: &str = include_str!("cycle/hier_build.wgsl");
+const HIER_BLOCKS: &str = include_str!("cycle/hier_blocks.wgsl");
+const HIER_REAL: &str = include_str!("cycle/hier_real.wgsl");
+const HIER_CYCLE: &str = include_str!("cycle/hier_cycle.wgsl");
+const HIER_SWEEP: &str = include_str!("cycle/hier_sweep.wgsl");
+const HIER_SPLIT: &str = include_str!("cycle/hier_split.wgsl");
 
 /// The units' and the wake's WGSL: the contract and the zones
 /// (`fine::zones`), then the cycle's state, its reals, an invocation's
@@ -47,6 +62,22 @@ pub(super) fn source() -> String {
 pub(super) fn layout_source() -> String {
     format!(
         "{}\n{LAYOUT}\n{Q}\n{SINCOS}\n{LAY_WALK}\n{LAY_DRAW}\n{LAY_STAND}\n{LAY_FRAME}",
+        super::fine::contract()
+    )
+}
+
+/// The hierarchy's build (DESIGN.md sections 3 and 4): its columns, the
+/// children's and members' lists, then the blocks.
+pub(super) fn hier_build_source() -> String {
+    format!("{HIER_COLS}\n{HIER_BUILD}\n{HIER_BLOCKS}")
+}
+
+/// The balance and allotment over the hierarchy (DESIGN.md section 2,
+/// steps 1 and 2): the contract and its reals, the f64 products, the
+/// columns, the per-apex entries, then the sweeps by block level.
+pub(super) fn hier_cycle_source() -> String {
+    format!(
+        "{}\n{REAL}\n{HIER_REAL}\n{HIER_COLS}\n{HIER_CYCLE}\n{HIER_SWEEP}\n{HIER_SPLIT}",
         super::fine::contract()
     )
 }

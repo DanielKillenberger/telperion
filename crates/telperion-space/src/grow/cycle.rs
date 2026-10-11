@@ -8,6 +8,7 @@
 //! throughout (R2). `grow` still takes F4's stepped build until fn-256's
 //! executor moves with it (R3B.md).
 mod capture;
+mod capture_hierarchy;
 mod capture_layout;
 mod capture_units;
 mod census;
@@ -16,6 +17,7 @@ mod retire;
 mod working;
 
 pub use capture::{grow_capture, Capture};
+pub use capture_hierarchy::grow_capture_hierarchy_at;
 pub use capture_layout::{grow_capture_layout, grow_capture_layout_at};
 pub use capture_units::{grow_capture_units, grow_capture_units_at};
 pub use census::{Census, Cycle};

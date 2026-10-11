@@ -59,3 +59,21 @@
 - **Hindered:** both took 37 s. The NVIDIA disk cache under `~/.cache/nvidia/GLCache` is full at 1.1 GB, at the driver's default size, so the second run compiled again. Only `__GL_SHADER_DISK_CACHE_SIZE=8000000000` made the warm run 0.02 s. The dcg hook also refused re-running into an existing log file; each run needed a new name.
 - **Cost:** about 5 minutes and two 38 s GPU runs.
 - **Would remove it:** a larger driver cache on this machine (local setup, not a repository change).
+
+## 2026-10-11, task 2 (hierarchy): naming the float causes
+- **Doing:** confirming which sites make the hierarchy's incoming, bud, memory and size differ from the CPU's.
+- **Hindered:** no switch builds the contract and the hierarchy with correctly rounded division and products kept apart, so the experiment patched the shared `fine/contract.wgsl` in place (UNITS.md's and LAYOUT.md's patches) and restored it, all inside one hold of the GPU lock so the light worker's build could not see it. `patch` left a `.orig` beside it, and the dcg hook refused the `awk` that cut the layout patch's contract hunks.
+- **Cost:** about 6 minutes and three GPU runs.
+- **Would remove it:** the host's ruling on the f32 contract, or a build switch for the exact arithmetic that both the units' and the layout's experiments already wrote.
+
+## 2026-10-11, task 2 (hierarchy): clippy stopped by another crate's lint
+- **Doing:** clippy on the new `hier_*` files.
+- **Hindered:** `cargo clippy -p telperion-render` lints `telperion-space` too, and a deny-level `approx_constant` there (and in the light worker's `light_program.rs`) stops it before the render crate is linted; `--no-deps` reaches it.
+- **Cost:** about 3 minutes, two clippy runs.
+- **Would remove it:** a clean clippy baseline on the branch, or `--no-deps` in the worker brief.
+
+## 2026-10-11, task 2 (hierarchy): registering before the files
+- **Doing:** registering the `hier_*` modules in `generation/cycle.rs`.
+- **Hindered:** I registered them before their files existed, which broke the light worker's build for some minutes (their entry above).
+- **Cost:** their wait and one build.
+- **Would remove it:** registering a module in a shared file only in the same edit that creates it.
