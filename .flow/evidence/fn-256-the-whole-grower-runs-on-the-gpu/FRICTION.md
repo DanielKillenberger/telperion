@@ -23,3 +23,15 @@
 - **Hindered:** the dcg hook refuses `git show <ref>:<path> > <path>` (and so `git checkout <ref> -- <path>`); the conflict had to be resolved by a script editing the markers in place. `flowctl` again not on PATH.
 - **Cost:** about 2 minutes.
 - **Would remove it:** nothing in the repository; local hook policy and setup.
+
+## 2026-10-11, task 2: the units kernel's first device run
+- **Doing:** the first young-tree run of `generation/cycle` (units and wake, count and emit) on the GPU.
+- **Hindered:** the test spent about 340 of its 348 s before its first line of output, which is the driver compiling the module's six entries. Every entry inlines `run`, and inside it `stop`, `sprout` and `grow_unit` are inlined at every call site (fn-235 met the same in the chain grower).
+- **Cost:** about 6 minutes of GPU lock per run.
+- **Would remove it:** one call site per heavy function (a small state machine of operations in `run`) and one entry for count, emit, units and wake, chosen by the uniform. Being done now.
+
+## 2026-10-11, task 2: tracing the device's differences
+- **Doing:** finding why node presences, and in the wake one living apex's slot, differed from the CPU's.
+- **Hindered:** the agreement report gives outputs only. Each hypothesis needed a hand-written diagnostic or a swapped contract, then a 40 to 80 s GPU run under the lock. The f32 trace took about 8 runs; the live-list race, a stale write left by `carry_on`'s pop, took 5.
+- **Cost:** about 20 minutes of GPU lock and the edits around them.
+- **Would remove it:** a test switch that has the cycle kernel record each phytomer's draw, bound, window and lead, and each invocation's own appends beside its counts, for the host to recompute on the CPU. The count-against-emit check is cheap enough to keep permanently.
