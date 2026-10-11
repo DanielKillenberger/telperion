@@ -97,7 +97,8 @@ impl Rec<'_> {
         }
         let buf = uniform(self.gpu, &cfg)?;
         let st = &self.b.state;
-        let bind = self.pass.bind(self.gpu, &[&buf, &st.axes, &st.units, &st.grown, &self.work, &self.atom, &self.nt]);
+        let r = &self.b.retire;
+        let bind = self.pass.bind(self.gpu, &[&buf, &st.axes, &st.units, &st.grown, &self.work, &self.atom, &self.nt, &r.ret, &r.recs]);
         let groups = if entry == d::LEAF { 1 } else { items.div_ceil(64).max(1) };
         self.pass.run(e, &bind, entry, groups);
         self.held.push(buf);
@@ -149,14 +150,17 @@ enum Data {
 pub(super) fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Build, &Tables), (pa, to): (&[u32], SettleTo)) -> Result<Settled> {
     let freed = b.shed_growth();
     let h = b.held;
-    let layout = Layout::new(h.axes, h.phyts, h.units, h.next.max(h.woken), t.pas);
+    // The grown phytomers: those the arena holds and those let go into
+    // the records.
+    let phyts = h.phyts + b.retire.rec_n;
+    let layout = Layout::new(h.axes, phyts, h.units, h.next.max(h.woken), t.pas);
     let flags = flags(pa);
     let mut cfg = [0u32; 32];
     let caps = b.state.caps;
     let l = &layout;
     let words = [
         h.axes, widest(gpu).0, 0, 0, caps.axes, caps.units, caps.phyts, t.age, l.sa, l.sp, l.su, 0, l.at_a, l.at_p,
-        l.at_u, l.at_f, 0, 0, 0, 0, 0, 0, 0, l.at_l, h.next, h.woken, flags, 0, l.sl, 0, l.kfill(), 0,
+        l.at_u, l.at_f, 0, 0, 0, 0, 0, 0, 0, l.at_l, h.next, h.woken, flags, 0, l.sl, 0, l.kfill(), b.retire.rec_cap.max(1),
     ];
     cfg.copy_from_slice(&words);
     let mut r = Rec {
@@ -168,7 +172,7 @@ pub(super) fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Build, &Ta
         work: zeroed(gpu, "settle work", layout.words)?,
         atom: zeroed(gpu, "settle atom", layout.atom_words())?,
         nt: zeroed(gpu, "settle nodes", 4)?,
-        sums: zeroed(gpu, "settle sums", sums_words(h.phyts.max(h.axes).max(d::DMAX) + 1))?,
+        sums: zeroed(gpu, "settle sums", sums_words(phyts.max(h.axes).max(d::DMAX) + 1))?,
         tally: zeroed(gpu, "settle tally", 64)?,
         held: Vec::new(),
         scans: Vec::new(),

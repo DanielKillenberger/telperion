@@ -71,6 +71,11 @@ fn vigour(c: u32, i: u32) -> f32 {
 
 // Closed axis `i`'s subtree's living and its latest wait.
 fn carried_up(i: u32) {
+    // Inside a retired subtree its root stands for it, and its phytomers
+    // may be let go.
+    if rt(R_FATE, i) == INSIDE {
+        return;
+    }
     if rt(R_FATE, i) == RETIRED {
         set_rt(R_LIVED, i, rt(R_ROOT_LIVED, i));
         set_rt(R_ALIVE, i, rt(R_ROOT_ALIVE, i));
@@ -116,6 +121,28 @@ fn living_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_
             let i = hlists[ls(R_MEMBERS, k)];
             if i < cfg.n && rt(R_OPEN, i) != cfg.cycle {
                 carried_up(i);
+            }
+        }
+        storageBarrier();
+        workgroupBarrier();
+    }
+}
+
+// Every axis below a retired root marked inside it, a root under a later
+// one among them (`retire::let_go`), from the root's level down.
+@compute @workgroup_size(WG)
+fn inside_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
+    let run = block_run(wid, lid);
+    if run.y == run.x {
+        return;
+    }
+    for (var d = run.z; d <= run.w; d++) {
+        let span = span_at(run, d, lid);
+        for (var k = span.x + lid; k < span.y; k += WG) {
+            let i = hlists[ls(R_MEMBERS, k)];
+            let p = select(NONE, ax(i, A_PARENT), i < cfg.n);
+            if p != NONE && rt(R_FATE, p) >= RETIRED {
+                set_rt(R_FATE, i, INSIDE);
             }
         }
         storageBarrier();

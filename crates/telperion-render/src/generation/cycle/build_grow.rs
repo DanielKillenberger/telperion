@@ -34,13 +34,16 @@ pub(super) struct Sizes {
     /// How far past its projection each census word reaches, for the
     /// workgroups a dispatch is given (`given.rs`).
     pub widths: Widths,
+    /// Whether a move into larger phytomer tables compacts out the
+    /// retired subtrees' phytomers (DESIGN.md section 6).
+    pub compact: bool,
 }
 
 impl Sizes {
     /// The smallest a build starts from.
     pub(super) fn least() -> Self {
         let caps = Caps { axes: 4096, units: 4096, phyts: 16384, sleepers: 4096, next: 4096, woken: 1024 };
-        Self { caps, points: 16384, tips: 4096, nodes: 4096, bounds: Bounds::default(), block_cap: super::hier_build::CAP, slack: [1; SLACKS], widths: Widths::default() }
+        Self { caps, points: 16384, tips: 4096, nodes: 4096, bounds: Bounds::default(), block_cap: super::hier_build::CAP, slack: [1; SLACKS], widths: Widths::default(), compact: false }
     }
 
     pub(super) fn lit(&self) -> (Lit, u32) {
@@ -310,6 +313,9 @@ pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut size
                 gpu.submit([e.finish()]);
                 (run, sizes) = (plan, next);
                 grew.moves += 1;
+                if b.stashed.is_some() {
+                    b.compact(gpu, kit, &run.0.census)?;
+                }
             }
             grew.moving += clock.elapsed().as_secs_f64();
             prev = last.replace(read);

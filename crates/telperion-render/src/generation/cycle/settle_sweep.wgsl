@@ -178,7 +178,15 @@ fn fade_grown(i: u32) {
     var alive = waf(W_SALIVE, i);
     let birth = ax(i, A_BIRTH);
     let units_n = ax(i, A_UNITS);
-    let kids = kids_of(i);
+    var kids = kids_of(i);
+    // A retired root stands for its subtree by its living (`shed_past`'s
+    // `given`): what is inside it is gone.
+    if retired_root(i) {
+        let given = root_living(i);
+        lived = given.x;
+        alive = given.y;
+        kids.y = kids.x;
+    }
     for (var k = kids.x; k < kids.y; k++) {
         let c = kid(k);
         var weight = qf(waf(W_VIG, c));

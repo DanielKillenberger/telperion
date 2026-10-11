@@ -31,6 +31,7 @@ mod plan_retire;
 mod plan_lay;
 mod plan_scan;
 mod plan_units;
+mod retire_compact;
 mod retire_device;
 mod settle_device;
 mod settle_place;
@@ -233,5 +234,8 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
     out.push(("cycle settle place, exact", settle_device::place_source(Arith::Exact)));
     out.push(("cycle retirement", retire_device::source(Arith::Plain)));
     out.push(("cycle retirement, exact", retire_device::source(Arith::Exact)));
+    let [pack, units] = retire_device::compaction_sources();
+    out.push(("cycle compaction", pack.to_string()));
+    out.push(("cycle compaction units", units.to_string()));
     out
 }

@@ -2,7 +2,8 @@
 //! build), at its start before the balance, over the hierarchy its step
 //! just left: the open axes marked, the closed flagged and assigned, the
 //! woken buds sized, the living carried up the block levels from the
-//! deepest (up to the levels' bound) and each candidate judged. Each
+//! deepest (up to the levels' bound), each candidate judged, and every
+//! axis below a retired root marked inside it from the root's level down. Each
 //! dispatch is sized from the axes, the living and the buds the cycle
 //! began with, a count only the device knows, as the balance's are.
 use super::build::{Build, Kit, Tables};
@@ -50,13 +51,18 @@ impl Build {
             let size = b.groups(E::At(c::LEVELS).gt(E::C(l)).sel(width, E::C(0)));
             levels.push((bind, size, Cond::Level(l)));
         }
-        for (bind, size, cond) in levels.into_iter().rev() {
-            b.enter(cond);
-            b.dispatch(ret(rd::LIVING), bind, size);
+        for (bind, size, cond) in levels.iter().rev() {
+            b.enter(*cond);
+            b.dispatch(ret(rd::LIVING), bind.clone(), *size);
             b.leave();
         }
         let laid = per(b, E::At(c::LAID0));
         b.dispatch(ret(rd::VERDICT), base.clone(), laid);
+        for (bind, size, cond) in levels {
+            b.enter(cond);
+            b.dispatch(ret(rd::INSIDE), bind, size);
+            b.leave();
+        }
         b.dispatch(ret(rd::END), base, Size::Direct(1));
     }
 }

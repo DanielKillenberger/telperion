@@ -103,7 +103,7 @@ const R_LVL_BLOCKS: u32 = 5u;
 const H_DEPTH: u32 = 0u;
 
 // `ret`'s columns: the last cycle an axis was open, its fate (open 0,
-// kept 1, retired 2), whether it waits on a woken bud, whether it closed
+// kept 1, retired 2, inside a retired subtree 3), whether it waits on a woken bud, whether it closed
 // this cycle, whether its presences are assigned, its own living time
 // and its end's presence, its subtree's lived and alive, the cycle its
 // woken bud's wait passes (none: 0) and its subtree's latest, a woken
@@ -129,6 +129,7 @@ const R_COLS: u32 = 14u;
 const HD_PREV_LAID: u32 = 0u;
 const KEPT: u32 = 1u;
 const RETIRED: u32 = 2u;
+const INSIDE: u32 = 3u;
 const K_DELAY: u32 = 3u;
 const K_FLAGS: u32 = 7u;
 const KF_SHEDS: u32 = 1u;

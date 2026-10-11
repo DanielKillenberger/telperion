@@ -126,7 +126,7 @@ pub(super) struct Kernels {
 
 impl Kernels {
     pub(super) fn new(gpu: &Gpu, arith: Arith) -> Self {
-        let reads = [true, true, true, false, false, false];
+        let reads = [true, true, true, false, false, false, true, true];
         let place = [true, true, false, false, false];
         Self {
             pass: io::Pass::new(gpu, source(arith), &reads, &ENTRIES),
