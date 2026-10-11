@@ -349,7 +349,7 @@ impl Grower<'_> {
 }
 
 /// A pencil's words: its walk, its pulls inline, then its scalars.
-fn pencil_row(p: &Pencil, fresh: bool) -> Vec<u32> {
+pub(super) fn pencil_row(p: &Pencil, fresh: bool) -> Vec<u32> {
     let mut row: Vec<u32> = walk(&p.layer);
     row.extend([
         bits(p.base_scale),

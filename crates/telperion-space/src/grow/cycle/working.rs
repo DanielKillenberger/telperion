@@ -55,7 +55,6 @@ pub(in crate::grow) struct Working {
 
 impl Working {
     /// The tests' reference: every laid axis open and none retired.
-    #[cfg(test)]
     pub(super) fn reference() -> Self {
         Self { all_open: true, keep_all: true, ..Self::default() }
     }

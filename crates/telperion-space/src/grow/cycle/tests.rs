@@ -165,3 +165,24 @@ fn a_captured_layout_holds_the_cycle_it_laid() {
         assert!(laid > 0, "{age} at {at} lays");
     }
 }
+
+/// The grown capture holds every phytomer the tree grew, none retired,
+/// each with its layout's words, and a pencil an axis laid (fn-256 task 2).
+#[test]
+fn the_grown_capture_holds_every_phytomer() {
+    for (species, age) in [(crate::beech(), 8), (crate::spruce(), 10), (crate::oak(), 9)] {
+        let c = grow_capture_grown(&species, request(age, 42, 0.5)).unwrap();
+        let u32s = |name: &str| -> Vec<u32> {
+            let b = c.array(name).expect(name).1;
+            b.chunks(4).map(|w| u32::from_le_bytes(w.try_into().unwrap())).collect()
+        };
+        let held: u64 = u32s("g_phyt_n").iter().map(|&n| u64::from(n)).sum();
+        let grown = u64::from_le_bytes(c.array("g_grown").unwrap().1.try_into().unwrap());
+        assert_eq!(held, grown, "every phytomer grown is held");
+        assert_eq!(u32s("g_phyt_axis").len() as u64, held);
+        assert_eq!(u32s("sk_phyts").len() as u64, 13 * held);
+        let axes = u32s("g_pa").len();
+        assert_eq!(u32s("sk_axes").len(), 11 * axes);
+        assert_eq!(u32s("sk_pencils").len() % 59, 0);
+    }
+}

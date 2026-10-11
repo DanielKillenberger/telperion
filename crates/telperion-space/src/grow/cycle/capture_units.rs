@@ -57,7 +57,7 @@ pub fn grow_capture_units_at(species: &Species, request: Request, cycle: u32) ->
 
 /// What the tree held before the cycle grew: each axis's phytomers and
 /// units, each cycle's sleeping buds from the captured one, the woken.
-struct Before {
+pub(super) struct Before {
     phyts: Vec<usize>,
     units: Vec<usize>,
     asleep: Vec<usize>,
@@ -66,6 +66,12 @@ struct Before {
 }
 
 impl Before {
+    /// Nothing before: every axis's units, phytomers and sleeping buds
+    /// (from cycle 0 on) and every woken bud are taken as added.
+    pub(super) fn nothing() -> Self {
+        Self { phyts: Vec::new(), units: Vec::new(), asleep: Vec::new(), woken: 0, cycle: 0 }
+    }
+
     fn of(g: &Grower, cycle: u32) -> Self {
         Self {
             phyts: g.axes.iter().map(|a| a.phytomers.len()).collect(),
@@ -170,7 +176,7 @@ impl Grower<'_> {
 
     /// The state the cycle reads and writes, under `prefix`: every axis's
     /// columns, then what was added past `before`.
-    fn capture_state(&self, c: &mut Capture, prefix: &str, before: &Before) {
+    pub(super) fn capture_state(&self, c: &mut Capture, prefix: &str, before: &Before) {
         let name = |n: &str| format!("{prefix}_{n}");
         let n = self.axes.len();
         let (mut kind, mut parent, mut node, mut whorl) = (vec![], vec![], vec![], vec![]);
