@@ -43,5 +43,6 @@ pub(crate) fn all() -> Vec<(&'static str, String)> {
         ("positions", positions()),
     ];
     out.extend(super::fine::sources());
+    out.push(("cycle units and wake", super::cycle::source()));
     out
 }

@@ -8,7 +8,7 @@ pub(super) const NONE: u32 = u32::MAX;
 const ZW: u32 = 14;
 
 /// The tables as the kernel reads them (`unit.wgsl`).
-pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
+pub(in crate::generation) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
     let mut table = Vec::new();
     let mut words = Vec::new();
     let zones: usize = units.zones.iter().map(Vec::len).sum();
@@ -63,6 +63,6 @@ pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
 }
 
 /// An f32 as the word that holds it, in its low half (`zones.wgsl`, `fw`).
-pub(super) fn f(x: f32) -> u64 {
+pub(in crate::generation) fn f(x: f32) -> u64 {
     u64::from(x.to_bits())
 }

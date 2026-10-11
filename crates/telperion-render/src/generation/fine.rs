@@ -223,6 +223,6 @@ mod sweep_tests;
 mod tests;
 #[cfg(test)]
 mod timing_tests;
-mod units;
+pub(super) mod units;
 #[cfg(test)]
 mod units_tests;

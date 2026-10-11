@@ -3,6 +3,9 @@
 mod clock;
 mod compute;
 use clock::Clock;
+// fn-256 task 2: the one cycle's units and wake on the device, measured.
+#[cfg(test)]
+mod cycle;
 mod data;
 // fn-209 F1 and fn-212: the fine-root executor's GPU side, which settles,
 // draws and places a tree's fine roots on the device (fn-212 task 10),
