@@ -59,8 +59,7 @@ fn count_kids_main(@builtin(global_invocation_id) id: vec3<u32>) {
     }
 }
 
-// Each parent's kept children at their places: the run from the scan,
-// each child by its rank among its kept siblings by key.
+// Each parent's run of kept children from the scan, and their count.
 @compute @workgroup_size(64)
 fn place_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let k = id.x + id.y * cfg.row;
@@ -68,38 +67,70 @@ fn place_main(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     let f = cfg.base + k;
-    let g = wf(WF_GROWN, f);
+    set_wf(WF_KSTART, f, cfg.next + wf(WF_SCAN, k));
+    set_wf(WF_KC, f, wf(WF_SCAN, k + 1u) - wf(WF_SCAN, k));
+}
+
+// The parent, among the depth's `cfg.count`, whose run holds the next
+// depth's child `t`: the last whose scan is at most `t`.
+fn parent_of(t: u32) -> u32 {
+    var lo = 0u;
+    var hi = cfg.count;
+    for (var step = 0u; step < 32u && hi - lo > 1u; step++) {
+        let mid = lo + (hi - lo) / 2u;
+        if wf(WF_SCAN, mid) <= t {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+    return lo;
+}
+
+// The next depth's child `t` (`cfg.flip` of them) at its place: the
+// `j`th kept child of its parent's run, by its rank among its kept
+// siblings by key; each run also kept by grown index, last first.
+@compute @workgroup_size(64)
+fn rank_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let t = id.x + id.y * cfg.row;
+    if t >= cfg.flip {
+        return;
+    }
+    let k = parent_of(t);
+    let g = wf(WF_GROWN, cfg.base + k);
     let first = cfg.next + wf(WF_SCAN, k);
-    set_wf(WF_KSTART, f, first);
-    let n = kept_kids(g);
+    let n = wf(WF_SCAN, k + 1u) - wf(WF_SCAN, k);
+    let j = t - wf(WF_SCAN, k);
     let run = kids_of(g);
-    var a = 0u;
-    // cap: the parent's children, each against each.
-    for (var x = run.x; x < run.y; x++) {
-        let c = kid(x);
-        if !kept(c) {
+    // cap: the parent's children, twice.
+    var c = NONE;
+    var seen = 0u;
+    for (var x = run.x; x < run.y && c == NONE; x++) {
+        let o = kid(x);
+        if kept(o) {
+            if seen == j {
+                c = o;
+            }
+            seen += 1u;
+        }
+    }
+    let key = key_of(c);
+    var rank = 0u;
+    for (var y = run.x; y < run.y; y++) {
+        let o = kid(y);
+        if o == c || !kept(o) {
             continue;
         }
-        let key = key_of(c);
-        var rank = 0u;
-        for (var y = run.x; y < run.y; y++) {
-            let o = kid(y);
-            if o == c || !kept(o) {
-                continue;
-            }
-            let other = key_of(o);
-            if all(other == key) {
-                fault(FAULT_TWINS);
-                rank += u32(o < c);
-            } else {
-                rank += u32(key_lt(other, key));
-            }
+        let other = key_of(o);
+        if all(other == key) {
+            fault(FAULT_TWINS);
+            rank += u32(o < c);
+        } else {
+            rank += u32(key_lt(other, key));
         }
-        let at = first + rank;
-        set_wa(W_FINAL, c, at);
-        set_wf(WF_GROWN, at, c);
-        set_wf(WF_KBI, first + n - 1u - a, at);
-        a += 1u;
     }
-    set_wf(WF_KC, f, n);
+    let at = first + rank;
+    set_wa(W_FINAL, c, at);
+    set_wf(WF_GROWN, at, c);
+    set_wf(WF_KBI, first + n - 1u - j, at);
 }

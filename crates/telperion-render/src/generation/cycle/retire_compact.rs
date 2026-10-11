@@ -4,9 +4,8 @@
 //! recorded and placed by a stable scan; the kept rows move into the new
 //! tables, the recorded rows' grown columns into the records (where a PA
 //! keeps them), each unit record's first phytomer is remapped, and the
-//! census's phytomers become the kept rows'. A compaction waits for the
-//! device: where rows are recorded, for the records' size; at its end,
-//! before its old tables and scratch are let go.
+//! census's phytomers become the kept rows'. Where rows are recorded the
+//! records' size is read back first: the one wait a compaction adds.
 use super::build::{Build, Kit};
 use super::census as c;
 use super::hier_scan::{read_words, sums_words, uniform, widest, Scan};
@@ -55,10 +54,6 @@ impl Build {
         kit.retire.units.run(&mut e, &bind, 0, caps.units.div_ceil(64).max(1));
         e.copy_buffer_to_buffer(&scan, 4 * u64::from(old), census, 4 * c::PHYTS as u64, 4);
         gpu.submit([e.finish()]);
-        // The old tables, the scans and the uniforms are let go only once
-        // the device is done with them (an owned buffer is destroyed as
-        // it drops).
-        gpu.device.poll(wgpu::PollType::wait_indefinitely()).map_err(|e| super::super::io::error(e.to_string()))?;
         Ok(())
     }
 

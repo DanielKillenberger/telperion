@@ -16,6 +16,7 @@ use telperion_space::SettleTo;
 /// binds.
 struct Rec<'a> {
     gpu: &'a Gpu,
+    steps: (u32, u32),
     pass: &'a super::super::io::Pass,
     form: &'a Owned,
     cfg: [u32; 20],
@@ -45,7 +46,7 @@ pub(super) fn thicken(gpu: &Gpu, k: &Kernels, b: &Build, t: &Tables, s: &mut Set
         widest(gpu).0, 0, 0, t.age, tb.sk, tb.skp, tb.at_np, tb.at_nu, l.sa, l.at_a, l.at_f, at_q, s.flags, 0,
         tb.kept, 0, 0, 0, 0, 0,
     ];
-    let mut r = Rec { gpu, pass: &k.place, form: &b.layout.form, cfg: words, held: Vec::new() };
+    let mut r = Rec { gpu, steps: (k.steps, k.walk), pass: &k.place, form: &b.layout.form, cfg: words, held: Vec::new() };
     let depths = depths(s);
     let mut e = gpu.encoder(&Default::default());
     for &at in &depths {
@@ -82,7 +83,7 @@ fn faults(gpu: &Gpu, s: &Settled) -> Result<()> {
 /// size (`s.error`). Laid only once, its levers gathered, where `to` is
 /// `Placed`.
 pub(super) fn lay(gpu: &Gpu, k: &Kernels, b: &Build, (cfg, sags, to): ([u32; 20], bool, SettleTo), s: &mut Settled) -> Result<()> {
-    let mut r = Rec { gpu, pass: &k.place, form: &b.layout.form, cfg, held: Vec::new() };
+    let mut r = Rec { gpu, steps: (k.steps, k.walk), pass: &k.place, form: &b.layout.form, cfg, held: Vec::new() };
     let depths = depths(s);
     gpu.queue.write_buffer(&s.atom, 4 * d::T_ERR as u64, bytemuck::bytes_of(&u32::MAX));
     let mut e = gpu.encoder(&Default::default());
@@ -111,12 +112,10 @@ pub(super) fn lay(gpu: &Gpu, k: &Kernels, b: &Build, (cfg, sags, to): ([u32; 20]
     sized(gpu, &mut r, s)
 }
 
-/// The phytomers an axis's walk takes a dispatch: a count from the busy
-/// builds' longest dispatches, never a timing.
-const WALK: u32 = 32;
-
-/// The tree laid a depth at a time: each depth framed, then walked
-/// `WALK` phytomers a dispatch as far as its longest axis reaches.
+/// The tree laid a depth at a time: each depth framed, then walked as
+/// far as its longest axis reaches, each dispatch as many phytomers as
+/// keep its axes' steps within `r.steps.0`, from 1 to `r.steps.1`, and
+/// a depth wider than the steps walked a run of its axes at a time.
 fn walk(r: &mut Rec, e: &mut wgpu::CommandEncoder, s: &mut Settled, phase: &'static str) -> Result<()> {
     let (starts, long) = (s.kept_starts.clone(), s.kept_long.clone());
     for (k, w) in starts.windows(2).enumerate() {
@@ -125,9 +124,14 @@ fn walk(r: &mut Rec, e: &mut wgpu::CommandEncoder, s: &mut Settled, phase: &'sta
             continue;
         }
         r.run(e, s, (d::FRAME_E, phase), at)?;
-        for c in 0..long[k].div_ceil(WALK) {
-            (r.cfg[16], r.cfg[17]) = (c * WALK, WALK);
-            r.run(e, s, (d::WALK_E, phase), at)?;
+        let walk = (r.steps.0 / at.1).clamp(1, r.steps.1);
+        let run = r.steps.0 / walk;
+        for off in (0..at.1).step_by(run as usize) {
+            let axes = (at.0 + off, run.min(at.1 - off));
+            for c in 0..long[k].div_ceil(walk) {
+                (r.cfg[16], r.cfg[17]) = (c * walk, walk);
+                r.run(e, s, (d::WALK_E, phase), axes)?;
+            }
         }
     }
     Ok(())

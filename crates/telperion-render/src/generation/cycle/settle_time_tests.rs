@@ -111,15 +111,15 @@ fn the_settle_compiles() {
     };
     let place = [true, true, false, false, false];
     for arith in [Arith::Plain, Arith::Exact] {
-        let shed = [true, true, true, false, false, false];
+        let shed = [true, true, true, false, false, false, true, true];
         timed(&format!("{arith:?} shed and order"), &|| super::super::io::Pass::new(&gpu, d::source(arith), &shed, &d::ENTRIES));
         for entry in d::PLACE_ENTRIES {
             timed(&format!("{arith:?} place {entry}"), &|| super::super::io::Pass::new(&gpu, d::place_source(arith), &place, &[entry]));
         }
     }
     let plain_sub = d::place_source(Arith::Exact).replace(d::sub(Arith::Exact), d::sub(Arith::Plain));
-    timed("Exact place place_main, products and sums without gradual underflow", &|| {
-        super::super::io::Pass::new(&gpu, plain_sub.clone(), &place, &["place_main"])
+    timed("Exact place walk_main, products and sums without gradual underflow", &|| {
+        super::super::io::Pass::new(&gpu, plain_sub.clone(), &place, &["walk_main"])
     });
 }
 

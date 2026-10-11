@@ -39,6 +39,11 @@ const LEAF_RANGE: u32 = 1 << 14;
 /// The axes a walking pass's dispatch takes (`Rec::ranged`): a count,
 /// never a timing.
 const RANGE: u32 = 1 << 17;
+/// The kept axes a compaction dispatch copies: a count, never a timing.
+const COMPACT_RANGE: u32 = 1 << 13;
+/// The grown axes of a depth an upward sweep's dispatch takes, each
+/// walking its phytomers and children: a count, never a timing.
+const UP_RANGE: u32 = 1 << 14;
 /// The depth's jumps: depths below 2^12.
 const JUMPS: u32 = 12;
 
@@ -109,11 +114,11 @@ impl Rec<'_> {
     /// `entry` over `items` invocations in ranges of `RANGE`, each
     /// dispatch's first item its `base`: the passes whose invocations walk
     /// an axis's units and phytomers, cut so no dispatch runs long.
-    fn ranged(&mut self, e: &mut wgpu::CommandEncoder, at: (usize, &'static str), words: &[(usize, u32)], items: u32) -> Result<()> {
-        for base in (0..items.max(1)).step_by(RANGE as usize) {
+    fn ranged(&mut self, e: &mut wgpu::CommandEncoder, at: (usize, &'static str), words: &[(usize, u32)], (items, range): (u32, u32)) -> Result<()> {
+        for base in (0..items.max(1)).step_by(range as usize) {
             let mut all = words.to_vec();
             all.push((w::BASE, base));
-            self.run(e, at, &all, RANGE.min(items - base).max(1))?;
+            self.run(e, at, &all, range.min(items - base).max(1))?;
         }
         Ok(())
     }
@@ -224,7 +229,7 @@ fn shape(r: &mut Rec, l: &Layout) -> Result<Vec<(u32, u32)>> {
     for j in 0..JUMPS {
         r.run(&mut e, (d::DEPTH, g), &[(w::FLIP, j % 2)], n)?;
     }
-    r.run(&mut e, (d::COUNT, g), &[(w::FLIP, JUMPS % 2)], n)?;
+    r.ranged(&mut e, (d::COUNT, g), &[(w::FLIP, JUMPS % 2)], (n, RANGE))?;
     r.scan(&mut e, Data::Work, l.a(d::W_PSTART, 0), n + 1, g)?;
     r.scan(&mut e, Data::Work, l.a(d::W_USTART, 0), n + 1, g)?;
     r.scan(&mut e, Data::Atom, u64::from(d::T_KCOUNT), n + 1, g)?;
@@ -253,11 +258,11 @@ fn sweeps(r: &mut Rec, l: &Layout, (depths, flags): (&[(u32, u32)], u32)) -> Res
     let mut e = r.gpu.encoder(&Default::default());
     let (n, h) = (l.n, r.b.held);
     let g = "settle mark and assign";
-    r.ranged(&mut e, (d::FILL, g), &[(w::FLIP, JUMPS % 2)], n)?;
+    r.ranged(&mut e, (d::FILL, g), &[(w::FLIP, JUMPS % 2)], (n, RANGE))?;
     r.run(&mut e, (d::SORT, g), &[], n)?;
     r.run(&mut e, (d::LIVING, g), &[], h.next)?;
     r.run(&mut e, (d::WOKEN, g), &[], h.woken)?;
-    r.ranged(&mut e, (d::ASSIGN_E, g), &[], n)?;
+    r.ranged(&mut e, (d::ASSIGN_E, g), &[], (n, RANGE))?;
     r.run(&mut e, (d::VIGOUR, g), &[], n)?;
     let at = |k: usize, (base, count): (u32, u32)| [(w::BASE, base), (w::COUNT, count), (w::DEPTH, k as u32)];
     for (k, &dc) in depths.iter().enumerate() {
@@ -269,8 +274,11 @@ fn sweeps(r: &mut Rec, l: &Layout, (depths, flags): (&[(u32, u32)], u32)) -> Res
             r.run(&mut e, (d::LEAF, "settle leaf mean"), &[(w::BASE, base), (w::COUNT, count)], 1)?;
         }
     }
-    for (k, &dc) in depths.iter().enumerate().rev() {
-        r.run(&mut e, (d::UP, "settle sweeps"), &at(k, dc), dc.1)?;
+    for (k, &(base, count)) in depths.iter().enumerate().rev() {
+        for off in (0..count).step_by(UP_RANGE as usize) {
+            let dc = (base + off, UP_RANGE.min(count - off));
+            r.run(&mut e, (d::UP, "settle sweeps"), &at(k, dc), dc.1)?;
+        }
     }
     for (k, &dc) in depths.iter().enumerate() {
         r.run(&mut e, (d::KEEP, "settle sweeps"), &at(k, dc), dc.1)?;
@@ -302,12 +310,14 @@ fn order(r: &mut Rec, l: &Layout, t: &Table, starts: &[u32]) -> Result<()> {
         r.run(&mut e, (d::COUNT_KIDS, g), &words, count)?;
         r.scan(&mut e, Data::Work, l.f(d::WF_SCAN, 0), count + 1, g)?;
         r.run(&mut e, (d::PLACE, g), &words, count)?;
+        let kids = starts[depth + 1] - starts[depth];
+        r.run(&mut e, (d::RANK, g), &[words[0], words[1], words[2], (w::FLIP, kids)], kids)?;
     }
     let c = "settle compact";
     r.run(&mut e, (d::SIZES, c), &[], t.kept + 1)?;
     r.scan(&mut e, Data::Work, l.f(d::WF_PSTART, 0), t.kept + 1, c)?;
     r.scan(&mut e, Data::Work, l.f(d::WF_USTART, 0), t.kept + 1, c)?;
-    r.ranged(&mut e, (d::COMPACT_E, c), &[], t.kept)?;
+    r.ranged(&mut e, (d::COMPACT_E, c), &[], (t.kept, COMPACT_RANGE))?;
     r.gpu.submit([e.finish()]);
     Ok(())
 }

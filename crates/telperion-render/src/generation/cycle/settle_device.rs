@@ -24,7 +24,7 @@ const LAY: &str = include_str!("settle_place.wgsl");
 const REAL: &str = include_str!("real.wgsl");
 
 /// The entries, by their place in `ENTRIES`.
-pub(super) const ENTRIES: [&str; 18] = [
+pub(super) const ENTRIES: [&str; 19] = [
     "seed_main",
     "depth_main",
     "count_main",
@@ -43,6 +43,7 @@ pub(super) const ENTRIES: [&str; 18] = [
     "place_main",
     "sizes_main",
     "compact_main",
+    "rank_main",
 ];
 pub(super) const SEED: usize = 0;
 pub(super) const DEPTH: usize = 1;
@@ -62,6 +63,7 @@ pub(super) const COUNT_KIDS: usize = 14;
 pub(super) const PLACE: usize = 15;
 pub(super) const SIZES: usize = 16;
 pub(super) const COMPACT_E: usize = 17;
+pub(super) const RANK: usize = 18;
 
 /// Work's columns the host reads or scans (`settle_cols.wgsl`).
 pub(super) const W_PSTART: u32 = 0;
@@ -117,11 +119,24 @@ pub(super) const LEVER: usize = 4;
 pub(super) const SIZED: usize = 5;
 pub(super) const WALK_E: usize = 6;
 
+/// The axis-phytomer steps a plain walk dispatch takes, and how many
+/// times dearer an exact step is: counts from the busy builds' longest
+/// dispatches, never a timing.
+const PLAIN_STEPS: u32 = 1 << 17;
+const EXACT_COST: u32 = 4;
+/// The most phytomers one axis walks a plain dispatch: a sagging axis's
+/// step is long enough alone that a depth of few axes is bound by it.
+const PLAIN_WALK: u32 = 4;
+
 /// The settle's modules, built under one arithmetic: the shed and order
 /// over the grown tree, and the place over the node table.
 pub(super) struct Kernels {
     pub pass: io::Pass,
     pub place: io::Pass,
+    /// The axis-phytomer steps a walk dispatch takes, and the most
+    /// phytomers an axis walks in one (`settle_place.rs`).
+    pub steps: u32,
+    pub walk: u32,
 }
 
 impl Kernels {
@@ -131,6 +146,14 @@ impl Kernels {
         Self {
             pass: io::Pass::new(gpu, source(arith), &reads, &ENTRIES),
             place: io::Pass::new(gpu, place_source(arith), &place, &PLACE_ENTRIES),
+            steps: match arith {
+                Arith::Plain => PLAIN_STEPS,
+                Arith::Exact => PLAIN_STEPS / EXACT_COST,
+            },
+            walk: match arith {
+                Arith::Plain => PLAIN_WALK,
+                Arith::Exact => 1,
+            },
         }
     }
 }

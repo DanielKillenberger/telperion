@@ -105,13 +105,13 @@ fn young_trees_settle_as_on_the_cpu_with_retired_subtrees_let_go() {
     assert!(differ.is_empty(), "the settled trees with retirement are not the CPU's: {differ:?}");
 }
 
-/// The laid node table with retired subtrees let go is the same on every
-/// context and block cap.
+/// The laid node table of every young preset, its retired subtrees let
+/// go, is the same on ten contexts and every block cap.
 #[test]
 fn the_node_table_with_retirement_is_the_same_on_every_context() {
     let _held = super::super::whole_tree();
     let mut differ = Vec::new();
-    for (preset, name, age) in [(Preset::OregonWhiteOak, "oregon-white-oak", 9), (Preset::NorwaySpruce, "norway-spruce", 12)] {
+    for (preset, name, age) in YOUNG {
         let g = grown(preset, age, 42);
         let table = |cap: u32| -> Option<Vec<u32>> {
             let (gpu, kit) = device(Arith::Plain)?;
