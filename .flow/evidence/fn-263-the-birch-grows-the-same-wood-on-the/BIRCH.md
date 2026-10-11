@@ -42,3 +42,53 @@ The CPU's lever gather (`sag::gather`) also weighs each phytomer by its laid len
 The birch is the only shipped preset whose internodes vary (`internode_spread` 0.2 to 0.7). Every other preset's factor is one, so on those presets the two lengths are equal and the executors agree. `varied_forms_settle_on_the_gpu_as_on_the_cpu` varies the beech's internodes, but the beech does not sag, so that test never reached this line.
 
 **The wrong executor is the CPU.** Its sag turns a phytomer over a length other than the one it is laid at. The device turns it over its own length. The fix belongs in the shared geometry (`geometry/sagged.rs`), which every CPU path lays through. It is neither the light lattice nor the stepped executor.
+
+## R2: the fix
+
+`sag_angle` now takes the phytomer's length as `Layer::step` lays it, its node's internode draw included. The landing support inside the sag reads the same length. Nothing changed on the device.
+
+The birch's own bound (`preset_agree_tests::BIRCH`) is gone, and so is its leaf exemption (`BIRCH_LEAVES` in `every_gpu_preset_seats_its_leaves_as_the_cpu_path_does`). The birch now meets the bounds the other GPU presets meet, and its leaves are held to none apart, as theirs are.
+
+| Check | Before (F4) | After |
+|---|---|---|
+| R1 test, sag stage, birch 30 / 42: tips most | 0.117 m | 2.37e-4 m |
+| R1 test, sag stage: tips RMS | 9.27e-3 m | 5.11e-6 m |
+| preset agreement, birch 40 / 42: tips most | 0.219 m | 1.26e-4 m |
+| preset agreement: tips RMS | 1.0e-2 m | 3.55e-6 m |
+| preset agreement: crown apart | 6.1e-4 m | 7.2e-7 m |
+| preset agreement: radii | 3.9e-8 m | 3.9e-8 m |
+| leaves at 30 / 42, apart in place / direction / scale (of 60,084) | 42,546 / 5,668 / 0 | 0 / 0 / 0 |
+
+The other presets are unchanged: spruce 3.17e-5 m, beech 3.93e-5 m, Telperion 8.75e-4 m and Laurelin 8.31e-4 m at most.
+
+## R3: stills
+
+The silver birch was rendered at seed 42, 640×480, by `headless` (`--profile ci`) under the GPU lock. It was built twice from this branch, once with the fix reversed and once with it, so the fix is the only change. The views are:
+
+- whole, the hero pose;
+- mid, `{"fill": 2.2, "targetHeight": 0.55}`;
+- close, `{"fill": 7, "targetHeight": 0.65}`.
+
+The sheets (before left, after right) are in the ignored `raw/stills/`.
+
+| View | RMSE |
+|---|---|
+| whole | 3.9% |
+| mid | 10.3% |
+| close | 19.1% |
+
+**Viewed (all three sheets):**
+
+- **Whole:** the same tree. The silhouette, the white trunk, the hanging curtains and the shadow are unchanged.
+- **Mid:** the same limbs and the same curtains. Individual strands hang a little differently, because each strand now sags over its own internode lengths.
+- **Close:** hanging strands clothed in leaves on both sides. The strands sit in new places, which is where the RMSE comes from. Their character, density and fall are the same.
+
+No perceptible regression at any view. The CPU birch changed. Under the generator-evolution rule this is an intended correctness change.
+
+## Gate
+
+The render tests ran under the GPU lock, then each package ran `cargo test --profile ci` in turn: space, field, core, render, wasm, jev. Every package was green.
+
+The core doctests first failed on the `/tmp` quota, which is a local setup problem recorded in FRICTION.md. They passed when re-run with `TMPDIR` on disk.
+
+`npm test` was green: 14 files, 155 tests.
