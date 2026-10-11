@@ -208,8 +208,4 @@ impl Plan {
         let all: u32 = passes.iter().sum();
         2 + s(0) + 2 + all as usize * pass + 8 + s(3) + s(4)
     }
-
-    pub(super) fn n_old(&self) -> u32 {
-        self.n_old
-    }
 }

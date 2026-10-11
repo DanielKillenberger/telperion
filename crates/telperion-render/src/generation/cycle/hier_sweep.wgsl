@@ -78,7 +78,7 @@ fn totals(i: u32) {
     sums[at(S_LIVING, i)] = u32(living);
 }
 
-@compute @workgroup_size(64)
+@compute @workgroup_size(WG)
 fn totals_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
     let run = open_block(wid, lid);
     if run.y == run.x {
@@ -143,7 +143,7 @@ fn walk(i: u32) {
     put(S_KEEP, i, keep);
 }
 
-@compute @workgroup_size(64)
+@compute @workgroup_size(WG)
 fn walk_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
     let run = open_block(wid, lid);
     if run.y == run.x {
@@ -174,7 +174,7 @@ fn sub(i: u32) {
     sums[at(S_BUDS, i)] = buds;
 }
 
-@compute @workgroup_size(64)
+@compute @workgroup_size(WG)
 fn sub_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
     let run = open_block(wid, lid);
     if run.y == run.x {

@@ -91,7 +91,7 @@ fn split(i: u32) {
     }
 }
 
-@compute @workgroup_size(64)
+@compute @workgroup_size(WG)
 fn split_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
     let run = open_block(wid, lid);
     if run.y == run.x {

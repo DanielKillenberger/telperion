@@ -45,6 +45,11 @@ pub(super) const X_GENS: u64 = 2;
 pub(super) const X_FAULT: usize = 5;
 pub(super) const X_UNPLACED: u64 = 6;
 pub(super) const R_LVL_START: u64 = 4;
+/// The partition's defaults: the most axes a block holds, and the lanes
+/// a sweep's workgroup has (HIERARCHY.md's grid). Speed only: no
+/// partition changes a word.
+pub(super) const CAP: u32 = 128;
+pub(super) const WIDTH: u32 = 64;
 /// The most placing passes a generation may take.
 const PASSES: u32 = 64;
 
@@ -57,12 +62,17 @@ pub(super) struct Kernels {
 
 impl Kernels {
     pub(super) fn new(gpu: &Gpu) -> Self {
+        Self::with_width(gpu, WIDTH)
+    }
+
+    /// The kernels, the sweeps' workgroups `width` lanes wide.
+    pub(super) fn with_width(gpu: &Gpu, width: u32) -> Self {
         let build = [true, false, false, true, false, false, false];
         let sums = [true, true, true, true, false, false, false, false];
         let entries = &super::hier_device::ENTRIES;
         Self {
             build: io::Pass::new(gpu, super::hier_build_source(), &build, &ENTRIES),
-            sums: io::Pass::new(gpu, super::hier_cycle_source(), &sums, entries),
+            sums: io::Pass::new(gpu, super::hier_cycle_source_at(width), &sums, entries),
             scan: io::Pass::new(
                 gpu,
                 super::hier_scan_source(),

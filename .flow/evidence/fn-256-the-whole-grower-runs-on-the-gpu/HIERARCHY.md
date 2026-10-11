@@ -43,7 +43,7 @@ The rule was simulated on the host first: sequentially, each cycle's new axes by
 | A block per overflowing child (first rule), device | Telperion 82 | | | 166,539 / 6 | |
 | | Oak 80, seed 1 | | | 161,263 / 7 | |
 
-- **The device under sibling spills, at cap 1,024:** Telperion 2,005 blocks on 20 levels, the oak 1,993 on 17. Both equal the simulation.
+- **The device under sibling spills** equals the simulation at every cap measured (the grid below): at cap 1,024, Telperion has 2,005 blocks on 20 levels and the oak 1,993 on 17. At the default cap 128 (simulation not run at 128), Telperion has 15,772 on 29 and the oak 15,582 on 22.
 - **The young trees at cap 1,024:** oak 30 at 30 has 89 blocks on 6 levels (88 on 7 built at once); the spruce has 39 on 5.
 
 ## Agreement
@@ -93,42 +93,62 @@ Incoming and bud are compared at the open axes. Memory and size are compared at 
 
 ## Timing: the busy cycle, median of 9 (GPU ms in stamped passes)
 
-The run restores the state before the last step by unstamped copies. It then records the last build step and the sums in one submission. This is under sibling spills, at cap 1,024. "Longest" is the median over runs of an entry's longest single dispatch.
+The run restores the state before the last step by unstamped copies. It then records the last build step and the sums in one submission.
+
+### The partition grid
+
+`busy_partitions_are_timed` crosses block caps with sweep widths: the lanes a sweep's workgroup has, each lane taking every width-th member at a depth. Logs: `raw/hier-grid-busy-1.txt` and `-2.txt`; the two runs agree to about 0.15 ms.
+
+- **Words:** every partition left the same words on both trees.
+- **Dispatches:** every dispatch was under 0.6 ms.
+
+| Cap | Width | Telperion 82: blocks / levels | Sweeps ms | **First to last ms** | Oak 80: blocks / levels | Sweeps ms | **First to last ms** |
+|--:|--:|--:|--:|--:|--:|--:|--:|
+| 64 | 64 | 30,932 / 34 | 7.65 | 10.11 | 30,352 / 23 | 5.12 | 7.62 |
+| 64 | 256 | | 9.30 | 11.78 | | 6.65 | 9.14 |
+| **128** | **64** | 15,772 / 29 | 7.78 | **9.96** | 15,582 / 22 | 5.27 | **7.59** |
+| 128 | 256 | | 8.35 | 10.53 | | 5.83 | 8.16 |
+| 256 | 64 | 7,886 / 25 | 8.85 | 10.94 | 7,892 / 19 | 5.88 | 8.16 |
+| 256 | 256 | | 8.72 | 10.82 | | 5.67 | 7.94 |
+| 1,024 | 64 | 2,005 / 20 | 15.05 | 17.10 | 1,993 / 17 | 9.98 | 12.07 |
+| 1,024 | 256 | | 12.40 | 14.45 | | 6.74 | 8.84 |
+
+(Second run's figures.)
+
+- **The default:** cap 128, width 64 (`hier_build.rs`'s `CAP` and `WIDTH`). It is the fastest on both trees; cap 64, width 64 is within 0.15 ms.
+- **Width 256** pays only for the big blocks of cap 1,024.
+- **The young invariance test** holds the sums' words across caps 64, 128, 256, 1,024 and 4,096 and widths 64 and 256.
+
+### The default partition's cycle (`raw/hier-grid-busy-default.txt`)
 
 | | Telperion 82, seed 42 | | oregon-white-oak 80, seed 1 | |
 |---|--:|--:|--:|--:|
 | | **Total** | **Longest** | **Total** | **Longest** |
 | Laid axes / new in the step | 1,463,911 / 67,430 | | 1,473,173 / 58,504 | |
 | Living apexes | 233,233 | | 132,098 | |
-| Generations / placing passes | 2 / 3 | | 3 / 4 | |
-| Blocks / block levels | 2,005 / 20 | | 1,993 / 17 | |
-| Dispatches (the step's / the sums') | 163 (71 / 92) | | 149 (69 / 80) | |
+| Blocks / block levels (cap 128) | 15,772 / 29 | | 15,582 / 22 | |
+| Dispatches (the step's / the sums') | 199 (71 / 128) | | 193 (93 / 100) | |
 | **Build:** children (place, merge) | 0.13 | 0.12 | 0.13 | 0.12 |
-| **Build:** depth and placing passes | 0.16 | 0.04 | 0.19 | 0.05 |
-| **Build:** members (count, place, rank, old, new, starts) | 0.16 | 0.06 | 0.18 | 0.08 |
-| **Build:** levels merge | 0.01 | 0.01 | 0.01 | 0.01 |
-| **Scans,** all (up, down) | 0.20 | 0.02 | 0.18 | 0.02 |
-| **Sums:** totals | 3.95 | 0.27 | 2.79 | 0.26 |
-| **Sums:** walk | 2.04 | 0.15 | 1.17 | 0.09 |
-| **Sums:** sub | 3.39 | 0.23 | 2.38 | 0.23 |
-| **Sums:** split | 6.74 | **0.49** | 4.31 | **0.45** |
-| **Sums:** normaliser (partials, combine) | 0.34 | 0.30 | 0.47 | 0.44 |
-| **Sums:** per apex (mark, shed, compact, presence, sizes) | 0.07 | 0.02 | 0.05 | 0.02 |
-| **First stamp to last** | **18.29** | | **12.88** | |
-| Longest dispatch | `split_main`, 0.50 | | `split_main`, 0.45 | |
+| **Build:** depth and placing passes | 0.11 | 0.02 | 0.16 | 0.02 |
+| **Build:** members and levels | 0.12 | 0.05 | 0.12 | 0.05 |
+| **Scans,** all (up, down) | 0.21 | 0.02 | 0.24 | 0.02 |
+| **Sums:** totals | 2.07 | 0.15 | 1.43 | 0.12 |
+| **Sums:** walk | 1.07 | 0.07 | 0.69 | 0.06 |
+| **Sums:** sub | 1.75 | 0.12 | 1.20 | 0.10 |
+| **Sums:** split | 3.41 | 0.25 | 2.28 | 0.22 |
+| **Sums:** normaliser (partials, combine) | 0.34 | **0.30** | 0.47 | **0.44** |
+| **Sums:** per apex | 0.07 | 0.03 | 0.05 | 0.02 |
+| **First stamp to last** | **10.61** | | **8.06** | |
+| Longest dispatch | `partials_main`, 0.30 | | `partials_main`, 0.44 | |
 | Scratch | 258.4 MB | | 257.1 MB | |
 
-Against the first rule's run (same trees, cap 1,024):
-- **Longest dispatch:** 0.50 / 0.45 ms against 1.80 / 2.78 ms (`member_merge_main`, now gone).
-- **Scans:** 0.20 ms against 3.58 ms.
-- **Members:** 0.16 ms against 1.67 ms.
-- **The four sweeps** take longer: 16.1 / 10.7 ms against 6.1 / 5.8 ms. The cycle is 18.3 ms against 13.0 on Telperion, and 12.9 ms against 13.8 on the oak.
-  - About 2,000 blocks on about 20 levels give each sweep dispatch about 100 workgroups of 64 lanes. Each loops its block's depths (a range up to some tens) with a barrier per depth.
-  - The first rule's 166k small blocks gave many more workgroups and shorter loops.
-  - Whether to change the sweeps (wider workgroups, or a level split by depth range) is not judged here.
-- **Compile:** the three modules in 0.28 s on the first run of the new sources, 0.01 s from the driver's cache. A cold run with the cache off was not repeated for this version (0.31 s before).
+- This single run is about 0.5 ms above the grid's figures for the same partition.
+- **Against the first block rule** (13.0 / 13.8 ms, longest 1.80 / 2.78 ms): the cycle is 2.4 / 5.8 ms shorter and the longest dispatch 6 times shorter.
+- **The cost:** the four sweeps are now 8.3 / 5.6 ms of the cycle. The build and the scans together are under 0.6 ms.
+- **Not tried:** splitting a level's dispatch by depth range. With cap 128 a block spans few depths, and the grid's flat bottom (caps 64 to 256) suggests little left there.
+- **Compile:** the three modules in 0.28 s on the first run of their sources, 0.01 s from the driver's cache.
 
 ## Open, for the host
 
 1. **The f32 contract,** as STEP2.md call 1. Every integer, order and flag agrees here. Incoming, bud, memory and size agree only with the sites held to the CPU's order.
-2. **The sweeps under sibling spills** are now the cycle's cost: 16.1 ms of 18.3 on Telperion. Every dispatch is under 0.5 ms.
+2. **The sweeps** are the cycle's cost at the default partition: 8.3 of 10.6 ms on Telperion, 5.6 of 8.1 on the oak. Every dispatch is under 0.5 ms.

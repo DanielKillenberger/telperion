@@ -17,6 +17,8 @@ mod lay_device;
 mod light_device;
 mod light_program;
 #[cfg(test)]
+mod hier_grid_tests;
+#[cfg(test)]
 mod hier_math_tests;
 #[cfg(test)]
 mod hier_tests;
@@ -102,8 +104,14 @@ pub(super) fn hier_scan_source() -> String {
 /// steps 1 and 2): the contract and its reals, the f64 products, the
 /// columns, the per-apex entries, then the sweeps by block level.
 pub(super) fn hier_cycle_source() -> String {
+    hier_cycle_source_at(hier_build::WIDTH)
+}
+
+/// `hier_cycle_source` with the sweeps' workgroups `width` lanes wide.
+pub(super) fn hier_cycle_source_at(width: u32) -> String {
+    let cols = HIER_COLS.replace("const WG: u32 = 64u;", &format!("const WG: u32 = {width}u;"));
     format!(
-        "{}\n{REAL}\n{HIER_REAL}\n{HIER_COLS}\n{HIER_CYCLE}\n{HIER_SWEEP}\n{HIER_SPLIT}",
+        "{}\n{REAL}\n{HIER_REAL}\n{cols}\n{HIER_CYCLE}\n{HIER_SWEEP}\n{HIER_SPLIT}",
         super::fine::contract()
     )
 }
