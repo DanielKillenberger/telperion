@@ -208,6 +208,51 @@ The spike did not replay units and layout, which are the CPU's largest phases (T
 
 **The stop:** if units and layout extrapolate, beside the spike's 85 to 115 ms of hierarchy and light, past F4's warm budget (Telperion 1.2 s, beech 0.8 s), the task stops and reports NEEDS_HUMAN.
 
+## 7a. The dispatch budget, first-class (added 2026-10-11, after the owner's Chrome probe)
+
+**What the owner's probe measured** (Chrome 154, RTX 3080, Linux; the coordinator's report):
+- **Dispatch cost:** about 440 µs per dispatch: 640 indirect dispatches in one pass, each sized by the one before, took 278 to 286 ms. Native wgpu is 7.6 µs. Until the extended probe separates indirect from direct and one pass from many, a dispatch in Chrome costs about **0.4 ms**.
+- **Cold compile:** about 367 ms for the 14 pipelines that compiled; 14 ms cached.
+- **Tint refuses two patterns naga accepts** (section 7b).
+
+**The budget.** At 0.4 ms a dispatch, F4's warm budget leaves this many dispatches a build before any work is done:
+
+| Build | Warm budget | Dispatches a build at most | Cycles | A cycle at most |
+|---|--:|--:|--:|--:|
+| Telperion 82 | 1.2 s | 3,000 | 82 | 36 |
+| European beech 40 | 0.8 s | 2,000 | 40 | 50 |
+
+**The executor as measured** (CYCLE.md, plain, after the performance pass), its overhead priced at 0.4 ms a dispatch:
+
+| Build | Dispatches a build | A cycle | At 0.4 ms |
+|---|--:|--:|--:|
+| Telperion 82 | 28,016 | 342 | 11.2 s |
+| Laurelin 80 | 26,916 | 336 | 10.8 s |
+| Oak 80, seed 1 | 26,376 | 330 | 10.6 s |
+| European beech 40 | 9,085 | 227 | 3.6 s |
+| Date palm 40 | 5,538 | 138 | 2.2 s |
+
+On Telperion the balance and allotment take 19,642 of those dispatches (240 a cycle), the units and wake 2,972 (36 a cycle). The settle adds about 840 (SETTLE-PLAN.md).
+
+**The bounded-subtree schedule against this budget:**
+- **Its floor:** each of the four level sweeps (totals, walk, sub, split) needs one dispatch per block level.
+- **Telperion's block levels:** 29 at cap 128, 20 at 1,024, 17 at 4,096 (HIERARCHY.md).
+- **So the sweeps alone** need at least 68 dispatches a cycle at the widest blocks, against a ceiling of 36 for everything. That is before units, wake, layout, light and the normaliser.
+- **Under 0.4 ms a dispatch, the schedule is infeasible** for Telperion and for every 80-cycle tree. The coordinator's stop condition applies: NEEDS_HUMAN.
+
+**What would change it (host and owner):**
+- **The extended probe.** If Dawn's indirect-dispatch validation is most of the 440 µs and a direct dispatch in one pass costs tens of microseconds, the budget rises by an order of magnitude and the schedule is back in reach. Indirect dispatches are then replaced by direct ones sized from the one-cycle-late counts, with bounds (section 5).
+- **A schedule whose dispatch count does not grow with block levels:** the spike's ancestor walks (schedule A) take about 22 dispatches a busy cycle for the hierarchy and light. That needs integer balance and allocation sums, which COUNCIL.md refused ("carbon and allocation sums are not quantised"), so it is an owner call. Even then, units, layout and wake need more, so A alone may not fit 36.
+- **Single-workgroup phases:** looping depths inside one workgroup with barriers takes one dispatch per sweep, not per level. That trades parallelism for dispatches: about 1.5M axes over 256 lanes. It was not measured.
+
+## 7b. Tint's rules (added 2026-10-11)
+
+The owner's Chrome refused two spike modules that naga accepts:
+- **NaN and Inf constants:** for example `bitcast<f32>(NAN_BITS)` as a `const`.
+- **Barriers under control flow Tint calls non-uniform:** for example a loop bound read from storage.
+
+So every kernel loads its barrier loops' bounds through `workgroupUniformLoad` or from a uniform, and declares no NaN or Inf constant. CPU validation is naga-only (fn-260), so the cycle module carries a static check of its own for both patterns until a Tint check exists. The check is conservative: a barrier may sit only under conditions built from uniforms, constants, literals and values `workgroupUniformLoad` returned.
+
 ## 8. The CPU's f64, and what stays open
 
 **The rule:** a last-place difference in a value a decision reads can flip that decision. Over a whole build, that makes a different tree by lineage, not a tolerance on one value. So every f64 operation of the cycle that feeds a decision is reproduced on the device bit for bit.

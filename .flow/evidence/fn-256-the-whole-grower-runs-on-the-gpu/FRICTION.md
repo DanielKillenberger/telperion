@@ -119,3 +119,9 @@
 - **Hindered:** the settle's worker edits `generation/cycle.rs` and its own files in this worktree at the same time, and builds into the same target. My hunk of `cycle.rs` had to be staged by a constructed patch (`git apply --cached`), and a build mid-edit could have broken on their files.
 - **Cost:** about 5 minutes.
 - **Would remove it:** one worktree for each worker, or a shared file's registrations made by one of them.
+
+## 2026-10-11, task 2: the dispatch cost was measured native only until the executor existed
+- **Doing:** building the device cycle executor to native timings (7.6 µs a dispatch).
+- **Hindered:** the owner's Chrome probe priced a dispatch at about 0.4 ms. The executor's 28,016 dispatches for Telperion become about 11 s in Chrome, and bounded subtrees cannot fit the budget's 36 dispatches a cycle (DESIGN.md 7a). Tint also refuses NaN constants and barriers under non-uniform loops, which naga accepts, and no Tint runs outside a browser here.
+- **Cost:** the executor's dispatch shape was tuned against the wrong unit (several hours of agent work on 12 µs dispatches). Every kernel's barrier loops now need review.
+- **Would remove it:** the Chrome dispatch probe (indirect against direct, one pass against many) before any executor design; a Tint validator runnable outside the browser in the shader check.
