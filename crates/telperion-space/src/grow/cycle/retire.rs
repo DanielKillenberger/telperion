@@ -10,7 +10,12 @@
 //! of its phytomers is kept as the four f32s the girth pass reads
 //! (`girth::Grew`), with its axis's vigour: none where those rows are zero.
 //! A kept subtree's living is remembered, so an ancestor's evaluation
-//! stops there. Its upkeep stays frozen in its bearer's balance
+//! stops there. A subtree holding a bud that woke waits until that bud's
+//! kept share is final (`Woken::kept`): its bearer's next unit, grown in
+//! the cycle after the waking, and whether the bearer stopped then, which
+//! the balance of the cycle after that may still decide by shedding it
+//! (`apex_end` one cycle back); so from three cycles after the waking,
+//! once that balance has run. Its upkeep stays frozen in its bearer's balance
 //! (`working.rs`), as the balance charges it today. The subtrees closed in
 //! a cycle are evaluated on every core, each alone, and applied in order.
 use super::{Grower, Working};
@@ -48,6 +53,8 @@ pub(in crate::grow) struct Retirement {
     pub grew: Vec<Option<Record>>,
     woken: Vec<u32>,
     seen: usize,
+    /// Closed subtrees waiting on a woken bud's kept share.
+    pending: Vec<usize>,
 }
 
 impl Retirement {
@@ -84,10 +91,14 @@ struct Tree<'t> {
     species: &'t Species,
     age: u32,
     keeps: bool,
+    /// The cycle about to grow: what has grown is final before it.
+    cycle: u32,
 }
 
-/// One closed subtree's verdict: kept, or retired with each record.
+/// One closed subtree's verdict: not yet, kept, or retired with each
+/// record.
 enum Verdict {
+    Wait,
     Kept(Living),
     Retired(Living, Vec<(usize, Record)>),
 }
@@ -96,7 +107,7 @@ impl Grower<'_> {
     /// Every lateral whose subtree has closed since the last cycle,
     /// beside an open axis, evaluated and retired where the settle would
     /// drop it.
-    pub(in crate::grow) fn retire(&mut self) {
+    pub(in crate::grow) fn retire(&mut self, cycle: u32) {
         let mut w = self.working.take().expect("a working set");
         self.take_in(&mut w);
         if w.keep_all {
@@ -105,9 +116,12 @@ impl Grower<'_> {
         }
         // The closed subtrees beside an open axis, met at their roots.
         let beside = |c: usize| w.links[c].parent.is_none_or(|p| w.open[p]);
-        let todo: Vec<usize> = (w.closed.iter().copied())
+        let waiting = std::mem::take(&mut w.retire.pending);
+        let mut todo: Vec<usize> = (w.closed.iter().copied().chain(waiting))
             .filter(|&c| beside(c) && w.retire.fate[c] == Fate::Open)
             .collect();
+        todo.sort_unstable();
+        todo.dedup();
         let tree = Tree {
             axes: &self.axes,
             draws: &self.draws,
@@ -116,11 +130,13 @@ impl Grower<'_> {
             species: self.species,
             age: self.rules.age,
             keeps: crate::grow::keeps(self.species),
+            cycle,
         };
         let wr = &w;
         let verdicts = crate::cores::map(todo.clone(), 16, self.threads, &|_, c| evaluate(&tree, wr, c));
         for (c, verdict) in todo.into_iter().zip(verdicts) {
             match verdict {
+                Verdict::Wait => w.retire.pending.push(c),
                 Verdict::Kept(living) => w.retire.fate[c] = Fate::Kept(living),
                 Verdict::Retired(living, records) => {
                     for (i, record) in records {
@@ -171,6 +187,10 @@ impl Grower<'_> {
 fn evaluate(t: &Tree, w: &Working, c: usize) -> Verdict {
     let stub = |i: usize| i != c && w.retire.fate[i] != Fate::Open;
     let part = subtree(w, c, &stub);
+    let woke = |i: usize| w.retire.woken.get(i).copied().filter(|&k| k != u32::MAX);
+    if part.iter().filter_map(|&i| woke(i)).any(|k| t.woken[k as usize].cycle + 3 > t.cycle) {
+        return Verdict::Wait;
+    }
     let local = copied(t, w, &part, &stub);
     let given = |k: usize| match w.retire.fate[part[k]] {
         Fate::Kept(l) | Fate::Root(l) if part[k] != c => Some(l),

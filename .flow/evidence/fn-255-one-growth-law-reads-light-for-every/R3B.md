@@ -30,6 +30,11 @@ The host's instruction: run R3b's deletions as far as they do not break the rend
 | The closed-form predictors | `expected_kept` (core's ceiling foresight, the render budget), the coarse field | Deleted once no consumer remains (COUNCIL.md); fn-257 |
 | The fine-root marks in the conversion (`convert`'s `fine` and `bases`) | The renderer's resident build (`pipeline::space::part`) | It goes with the device's roots |
 
+## For fn-256's device code, from fn-255's review (round 1)
+
+- **Zero light:** the spike's `fate.wgsl` shades viability as `exp2(log2 v · exp2(−φ log2 l))`, which takes `log2` of zero light. The CPU contract (`decide::shaded`) now gives `v^∞` explicitly: none, or certain where `v` is one. The device must do the same.
+- **Waking and retirement:** a woken bud's kept share is final only three cycles after its waking: its bearer's next unit, then the balance that may shed that bearer one cycle back. Any device retirement must wait as `retire.rs` does.
+
 ## Not changed (owner or host decisions)
 
 - **Shed wood's upkeep is charged as today.** That is the model question in CYCLE-COST.md, which the host will spec.

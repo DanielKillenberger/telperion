@@ -105,3 +105,40 @@ fn agreement_with_todays_tree() {
         }
     }
 }
+
+/// No light at all leaves no survival under any shade hazard, certain
+/// survival certain, and none without a hazard (review round 1).
+#[test]
+fn survival_in_the_dark() {
+    use crate::contract::decide::shaded;
+    assert_eq!(shaded(0.995, 0.001, 0.0), 0.0);
+    assert_eq!(shaded(1.0, 0.5, 0.0), 1.0);
+    assert_eq!(shaded(0.9, 0.0, 0.0), 0.9);
+}
+
+/// Buds that wake and stop in their waking cycle, beside bearers that
+/// grow on: the oak (whose leaf girth keeps retired records) with every
+/// zone's laterals also sleeping and waking, and every lateral age
+/// aborting often, retires them and still grows the reference tree
+/// (review round 1: a woken bud's kept share reads its bearer's next unit).
+#[test]
+fn woken_buds_that_stop_at_once_retire_as_the_reference_has_them() {
+    let mut species = crate::oak();
+    for (pa, state) in species.states.iter_mut().enumerate() {
+        if pa > 0 {
+            state.abortion = state.abortion.max(0.4);
+        }
+        for zone in &mut state.zones {
+            zone.dormant = zone.lateral.iter().map(|&p| (p * 0.5).min(0.5)).collect();
+            zone.rate = 0.6;
+        }
+    }
+    for seed in 1..=4 {
+        let r = request(22, seed, 0.5);
+        let cycled = grow_census(&species, r).unwrap();
+        let retired = cycled.census.expect("a census").retired;
+        assert!(retired > 10, "seed {seed}: {retired} retired");
+        assert!(cycled.structure == reference(&species, r), "seed {seed}: {retired} retired");
+    }
+}
+

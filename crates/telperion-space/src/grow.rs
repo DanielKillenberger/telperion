@@ -463,7 +463,7 @@ impl Grower<'_> {
     fn step(&mut self, cycle: u32, report: &mut dyn FnMut(Stage)) -> Result<()> {
         if self.one {
             self.open(cycle);
-            self.retire();
+            self.retire(cycle);
             self.balance_one(cycle);
             report(Stage::Pass(Pass::Balance));
             self.allot_one();

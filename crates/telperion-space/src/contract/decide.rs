@@ -58,8 +58,12 @@ pub(crate) fn lived_at(l: f32, share: f64, d: Draw) -> u64 {
 /// A unit's survival as the device takes it (fn-256's spike contract,
 /// COUNCIL.md "Decided by the spike"): its PA's viability `v` as the f32
 /// its table holds, raised by shade to `v^(light^-φ)` in f32 by the
-/// contract's `exp2` and `log2`; whole where `φ` is none or the light full.
+/// contract's `exp2` and `log2`; whole where `φ` is none or the light full;
+/// in no light at all, `v^∞`: none, or certain where `v` is.
 pub fn shaded(v: f32, phi: f32, light: f32) -> f32 {
+    if phi > 0.0 && light <= 0.0 {
+        return if v >= 1.0 { v } else { 0.0 };
+    }
     if phi > 0.0 && light < 1.0 {
         crate::contract::exp2(crate::contract::log2(v) * crate::contract::exp2(-phi * crate::contract::log2(light)))
     } else {
