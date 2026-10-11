@@ -87,6 +87,9 @@ const Z_LAST: u32 = 2u;
 const Z_LAT: u32 = 3u;
 const Z_SLEEP: u32 = 4u;
 const Z_FAULT: u32 = 5u;
+// Then each zone's nodes in their order along the unit (`sorted`), `MOST`
+// words a zone.
+const Z_ORDER: u32 = 6u;
 
 fn zw(z: u32, f: u32) -> u32 {
     return counts[cfg.zone_at + f * cfg.job_cap * cfg.zones + job * cfg.zones + z];
@@ -109,9 +112,10 @@ fn zone_laid(z: u32, zat: u32, unit_key: vec2<u32>, cycle: u32, share: u32, cut:
 }
 
 // Zone `z`'s nodes along the unit (`grow_unit`'s inner loops): `what`
-// counts their laterals and sleeping buds (0), or writes their phytomers
-// and laterals (1) or their sleeping buds (2), in the nodes' order along
-// the unit from the places the zones before it left.
+// counts their laterals (0) or their sleeping buds (7), or writes their laterals
+// (1), their sleeping buds (2), their phytomers (3) or their laterals'
+// presences (the PA's draw's, 4, then the place's, 5), in the nodes'
+// order along the unit from the places the zones before it left.
 fn zone_nodes(z: u32, zat: u32, s: u32, cycle: u32, what: u32) {
     let axis = fr(s, 0u);
     let zk = zone_key(jw64(J_UKEY), zat);
@@ -119,13 +123,9 @@ fn zone_nodes(z: u32, zat: u32, s: u32, cycle: u32, what: u32) {
     let window = fw(table[zat + 7u] + cycle);
     let n = zw(z, Z_N);
     let whorl = words[cfg.whorls + (zat - table[0]) / ZW];
-    var drawn: array<u32, MOST>;
-    for (var j = 0u; j < n; j++) {
-        drawn[j] = j;
-    }
     var node = fr(s, A_PHYTS);
-    if what != 0u {
-        sorted(zk, n, &drawn);
+    let counting = what == 0u || what == 7u;
+    if !counting {
         for (var k = 0u; k < z; k++) {
             n_phyts += zw(k, Z_N);
             n_axes += zw(k, Z_LAT);
@@ -137,19 +137,19 @@ fn zone_nodes(z: u32, zat: u32, s: u32, cycle: u32, what: u32) {
     var laterals = 0u;
     var asleep = 0u;
     for (var m = 0u; m < n; m++) {
-        let j = drawn[m];
+        let j = select(ordered(z, m), m, counting);
         let node_key = child(zk, w(j, 0u));
-        if what != 2u {
-            if what == 1u {
-                var p = node_presence(zat, d, j, window);
-                if zw(z, Z_CUT) != 0u && j + 1u == n {
-                    p = bitcast<f32>(zw(z, Z_LAST));
-                }
-                push_phyt(axis, node_key, cycle, p);
+        if what == 3u {
+            var p = node_presence(zat, d, j, window);
+            if zw(z, Z_CUT) != 0u && j + 1u == n {
+                p = bitcast<f32>(zw(z, Z_LAST));
             }
-            laterals += node_laterals(zat, node_key, vec2<u32>(axis, node), cycle, whorl, what == 1u);
+            push_phyt(axis, node_key, cycle, p);
         }
-        if what != 1u && words[table[zat + 11u] + cycle].x != 0u {
+        if what < 2u || what == 4u || what == 5u {
+            laterals += node_laterals(zat, node_key, vec2<u32>(axis, node), cycle, whorl, what);
+        }
+        if (what == 7u || what == 2u) && words[table[zat + 11u] + cycle].x != 0u {
             asleep += sleep(zat, node_key, s, node, cycle, whorl, what == 2u);
         }
         node += 1u;
@@ -158,13 +158,61 @@ fn zone_nodes(z: u32, zat: u32, s: u32, cycle: u32, what: u32) {
         flush_next();
     } else if what == 0u {
         set_zw(z, Z_LAT, laterals);
+    } else if what == 7u {
         set_zw(z, Z_SLEEP, asleep);
     }
 }
 
+// Zone `z`'s sleeping buds, as `sleep` wrote them, their presence taken:
+// their PA's draw's times their place's.
+fn sleepers_placed(z: u32, zat: u32, s: u32, cycle: u32) {
+    var node0 = fr(s, A_PHYTS);
+    for (var k = 0u; k < z; k++) {
+        n_sleep += zw(k, Z_SLEEP);
+        node0 += zw(k, Z_N);
+    }
+    if !emitting {
+        return;
+    }
+    let zk = zone_key(jw64(J_UKEY), zat);
+    let n = table[zat + 9u];
+    for (var q = 0u; q < zw(z, Z_SLEEP); q++) {
+        let row = base_sleep + n_sleep + q;
+        if row >= cfg.sleep_cap {
+            return;
+        }
+        let slot = sleeper(row, S_SLOT);
+        let pa = sleeper(row, S_PA);
+        let place = child(child(zk, w(ordered(z, sleeper(row, S_NODE) - node0), 0u)), w(slot, 0u));
+        let window = fw(table[zat + 13u] + cycle * n + pa);
+        let key = vec2<u32>(sleeper(row, S_KEY), sleeper(row, S_KEY + 1u));
+        let own = exact_kept(drawn_presence(table[zat + 8u], pa, key, window) * place_presence(zat, slot, place, window));
+        set_sleeper(row, S_OWN, bitcast<u32>(own));
+    }
+}
+
+// Zone `z`'s node `m`'th along the unit, as `order_zone` kept it.
+fn ordered(z: u32, m: u32) -> u32 {
+    return counts[cfg.zone_at + Z_ORDER * cfg.job_cap * cfg.zones + (job * cfg.zones + z) * MOST + m];
+}
+
+// Zone `z`'s nodes in their order along the unit (D4), kept.
+fn order_zone(z: u32, zat: u32) {
+    let zk = zone_key(jw64(J_UKEY), zat);
+    let n = zw(z, Z_N);
+    var drawn: array<u32, MOST>;
+    sorted(zk, n, &drawn);
+    let at = cfg.zone_at + Z_ORDER * cfg.job_cap * cfg.zones + (job * cfg.zones + z) * MOST;
+    for (var m = 0u; m < n; m++) {
+        counts[at + m] = drawn[m];
+    }
+}
+
 // The laterals the places of the node keyed `node_key`, on `at` (its
-// axis and node), sprout: counted, or, where `write`, sprouted.
-fn node_laterals(zat: u32, node_key: vec2<u32>, at: vec2<u32>, cycle: u32, whorl: vec2<u32>, write: bool) -> u32 {
+// axis and node), sprout: counted (`what` 0), sprouted (1), or the
+// presence their draws made written to them once sprouted: the PA's
+// draw's held in the low word (4), then times the place's (5).
+fn node_laterals(zat: u32, node_key: vec2<u32>, at: vec2<u32>, cycle: u32, whorl: vec2<u32>, what: u32) -> u32 {
     var laterals = 0u;
     for (var slot = 0u; slot < table[zat + 4u]; slot++) {
         let place = child(node_key, w(slot, 0u));
@@ -176,13 +224,24 @@ fn node_laterals(zat: u32, node_key: vec2<u32>, at: vec2<u32>, cycle: u32, whorl
             continue;
         }
         laterals += 1u;
-        if write {
-            let lpa = lived_pa(drew);
-            let window_l = window_none(lpa, cycle + 1u, 0u);
-            let lead_p = drawn_presence(table[zat + 5u], drew, place, window_l);
-            let made = exact_kept(lead_p * place_presence(zat, slot, place, window_l));
-            let made2 = array<vec2<u32>, 2>(real64(made), real64(reach(drew, 0u)));
+        let lpa = lived_pa(drew);
+        if what == 1u {
+            let made2 = array<vec2<u32>, 2>(vec2<u32>(0u), real64(reach(drew, 0u)));
             sprout(place, lpa, cycle, LATERAL | (slot << 8u), at, whorl, made2);
+        } else {
+            let i = next_index();
+            n_axes += 1u;
+            let window_l = window_none(lpa, cycle + 1u, 0u);
+            if !emitting || i >= cfg.axes_cap {
+                continue;
+            }
+            if what == 4u {
+                set_ax(i, A_B0, bitcast<u32>(drawn_presence(table[zat + 5u], drew, place, window_l)));
+            } else {
+                let made = real64(exact_kept(bitcast<f32>(ax(i, A_B0)) * place_presence(zat, slot, place, window_l)));
+                set_ax(i, A_B0, made.x);
+                set_ax(i, A_B0 + 1u, made.y);
+            }
         }
     }
     return laterals;
@@ -218,8 +277,8 @@ fn sleep(zat: u32, node_key: vec2<u32>, s: u32, node: u32, cycle: u32, whorl: ve
             continue;
         }
         let whole = shr64(years, 20u).x;
-        let window = fw(table[zat + 13u] + cycle * n + pa);
-        let own = exact_kept(drawn_presence(start, pa, key, window) * place_presence(zat, slot, place, window));
+        // Its presence is taken by `sleepers_placed`.
+        let own = 0.0;
         push_sleeper(array<u32, 14>(
             cycle + 1u + whole,
             fr(s, 0u),

@@ -6,7 +6,7 @@
 //! census and the new axes' and phytomers' columns set (`glue.wgsl`).
 use super::build::{Build, Kit, Tables};
 use super::census::{self as c, Flag};
-use super::device::{self, AFTER, CLOSE, DECIDE, FLAG, GATHER, INIT, NODES, RANGE, T_LIST, T_ROUNDS, T_UNITS, T_UNITS_B, T_WAKE, T_WAKE_B, WOKE, WRITTEN, ZONES};
+use super::device::{self, AFTER, CLOSE, DECIDE, FLAG, GATHER, INIT, NODES, RANGE, T_LIST, T_ROUNDS, T_UNITS, T_UNITS_B, T_WAKE, T_WAKE_B, UNIT, WOKE, WRITTEN, ZONES};
 use super::glue;
 use super::plan::{Builder, PassId, Step, MAXX};
 use super::plan_scan::{levelled, levels_needed, sums_words, Shape};
@@ -101,8 +101,13 @@ impl Build {
                     b.dispatch(unit(WOKE), counted.clone(), jobs);
                 }
                 b.dispatch(unit(DECIDE), counted.clone(), jobs);
+                for after in UNIT {
+                    b.dispatch(unit(after), counted.clone(), jobs);
+                }
                 b.dispatch(unit(ZONES), counted.clone(), items);
-                b.dispatch(unit(NODES), counted.clone(), items);
+                for nodes in NODES {
+                    b.dispatch(unit(nodes), counted.clone(), items);
+                }
                 if emit != 0 {
                     for written in WRITTEN {
                         b.dispatch(unit(written), counted.clone(), items);

@@ -178,11 +178,10 @@ fn op_relay(apex: Apex, used: u32, spent: u32, made: array<vec2<u32>, 2>, m: Mad
 }
 
 // One living apex's growth unit in `cycle` (`Shoot::advance`), the
-// failed unit's that its relay takes over (`Shoot::fail`) included, up to
-// its zones (DESIGN.md section 10's `decide`): a stop where the unit
-// fails with no relay, else the unit appended and laid out in the job for
-// the zones and `after` (`OP_GROWN`).
-fn decide(apex: Apex, cycle: u32) -> Op {
+// failed unit's that its relay takes over (`Shoot::fail`) included,
+// decided (DESIGN.md section 10's `decide`): whether it dies, and, laid
+// out in the job, what the unit and the stop it may make read.
+fn decide(apex: Apex, cycle: u32) -> u32 {
     let s = frame_of(apex.axis);
     let pa = fr(s, A_PA);
     let lineage = fr64(s, A_LINEAGE);
@@ -210,70 +209,107 @@ fn decide(apex: Apex, cycle: u32) -> Op {
     let relays = !is_zero(t_failed) && lt64(draw(child(decide, KEY_RELAY)), t_failed);
     let nested = first && (flags & F_REST) != 0u && relays;
     let dies = !lt64(d, survives) && !nested;
-    if dies && !relays {
-        set_fr(s, A_END, cycle);
-        set_fr(s, A_FLAGS, flags | F_FAILED);
-        let spent = u32(i32(apex.spent) + st.share);
-        return op_stop(apex, TICKS, lead(survives, ONE53, d), decide, spent, Made(0.0, FAILED, false, 0u));
-    }
-    var share = ticks_of(st.share);
-    var size = select(share, cut, cut != 0u);
-    var failed = Failed(0u, 0u, 0.0, 0.0);
-    var after = Persists(true, 1.0);
-    var survive = 0.0;
-    if dies {
-        let r = relayed(t_failed, decide, window_whole(pa, cycle, u32(st.used)));
-        let l = neg_log2_held(v);
-        let unit_share = min64(w(share, 0u), w(TICKS, 0u));
-        let lived = lived_ticks_held(l, unit_share, d).x;
-        let lived_below = sub64(shl64(w(lived, 0u), 12u), lived_fine_held(l, unit_share, d)).x;
-        let grown = fr(s, A_AGED) + fr(s, A_GROWN) + lived;
-        let next = step(apex.spent, gone, whole, life(pa), 2u).share;
-        var aborts = vec2<u32>(0u);
-        if !st.ends {
-            aborts = abortion(pa, grown, shl64(w(min(lived, ticks_of(next)), 0u), 12u));
-        }
-        after = persists(decide, pa, cycle, aborts);
-        failed = Failed(lived, lived_below, r, lead(survives, ONE53, d));
-        survive = exact_kept(r * kept32(apex.axis));
-        share = lived;
-        size = lived;
-    } else {
-        survive = presence(lead(vec2<u32>(0u), survives, d), window_none(pa, cycle, 1u));
-        if relays {
-            let r = relayed(t_failed, decide, window_whole(pa, cycle, u32(st.used)));
-            survive = r + exact_kept((1.0 - r) * survive);
-        }
-        survive = exact_kept(survive * kept32(apex.axis));
-    }
-    let rec = push_unit(s, survive, share, size, shade_of(apex.axis));
-    if dies {
-        unit_persist(rec, select(1.0, after.value, after.ok));
-        set_fr(s, A_FLAGS, fr(s, A_FLAGS) | F_FAILED);
-    }
-    set_jw(J_REC, rec);
     set_jw(J_FRAME, s);
     set_jw(J_DIES, u32(dies));
     set_jw(J_ST, bitcast<u32>(st.share));
     set_jw(J_ST + 1u, u32(st.ends));
     set_jw(J_ST + 2u, bitcast<u32>(st.used));
-    set_jw(J_CUT, select(cut, 0u, dies));
-    set_jw(J_GROW, share);
+    set_jw(J_CUT, cut);
     set_jw64(J_UKEY, unit_key);
     set_jw64(J_DECIDE, decide);
     set_jw(J_GONE, gone);
     set_jw(J_WHOLEF, u32(whole));
     set_jw(J_BELOW, below);
-    set_jw(J_FAILED, failed.lived);
-    set_jw(J_FAILED + 1u, failed.below);
-    set_jwf(J_FAILED + 2u, failed.relayed);
-    set_jwf(J_FAILED + 3u, failed.stopped);
+    set_jw(J_IN_SPENT, apex.spent);
+    set_jwf(J_V, v);
+    set_jw64(J_SURVIVES, survives);
+    set_jw64(J_D, d);
+    set_jw(J_RELAYS, u32(relays));
+    set_jw64(J_ENDKEY, child(child(lineage, KEY_END), w(n, 0u)));
+    if dies && !relays {
+        return OP_FAILS;
+    }
+    return select(OP_UNIT, OP_DIES, dies);
+}
+
+// A unit that fails with no relay to take it over: the apex stops.
+fn fails_now(apex: Apex, cycle: u32) -> Op {
+    let s = jw(J_FRAME);
+    set_fr(s, A_END, cycle);
+    set_fr(s, A_FLAGS, fr(s, A_FLAGS) | F_FAILED);
+    let st_share = bitcast<i32>(jw(J_ST));
+    let spent = u32(i32(apex.spent) + st_share);
+    return op_stop(apex, TICKS, lead(jw64(J_SURVIVES), ONE53, jw64(J_D)), jw64(J_DECIDE), spent, Made(0.0, FAILED, false, 0u));
+}
+
+// The unit `decide` laid out, appended with its survival as a presence
+// (it lives), or the share it lived (it dies, and a relay takes it over),
+// each its own entry; then its zones grow.
+fn unit_lives(apex: Apex, cycle: u32) -> Op {
+    let pa = fr(jw(J_FRAME), A_PA);
+    let st_used = bitcast<i32>(jw(J_ST + 2u));
+    var survive = presence(lead(vec2<u32>(0u), jw64(J_SURVIVES), jw64(J_D)), window_none(pa, cycle, 1u));
+    if jw(J_RELAYS) != 0u {
+        let r = relayed(prow(pa, R_RELAY + 2u), jw64(J_DECIDE), window_whole(pa, cycle, u32(st_used)));
+        survive = r + exact_kept((1.0 - r) * survive);
+    }
+    survive = exact_kept(survive * kept32(apex.axis));
+    let share = ticks_of(bitcast<i32>(jw(J_ST)));
+    let cut = jw(J_CUT);
+    append_unit(apex, survive, share, select(share, cut, cut != 0u));
+    set_jw(J_GROW, share);
+    var o = op(OP_GROWN, apex);
+    o.key = jw64(J_ENDKEY);
+    return o;
+}
+
+fn unit_dies(apex: Apex, cycle: u32) -> Op {
+    let s = jw(J_FRAME);
+    let pa = fr(s, A_PA);
+    let st = Step(bitcast<i32>(jw(J_ST)), jw(J_ST + 1u) != 0u, bitcast<i32>(jw(J_ST + 2u)));
+    let decide = jw64(J_DECIDE);
+    let survives = jw64(J_SURVIVES);
+    let d = jw64(J_D);
+    let r = relayed(prow(pa, R_RELAY + 2u), decide, window_whole(pa, cycle, u32(st.used)));
+    let l = neg_log2_held(jwf(J_V));
+    let unit_share = min64(w(ticks_of(st.share), 0u), w(TICKS, 0u));
+    let lived = lived_ticks_held(l, unit_share, d).x;
+    let lived_below = sub64(shl64(w(lived, 0u), 12u), lived_fine_held(l, unit_share, d)).x;
+    let grown = fr(s, A_AGED) + fr(s, A_GROWN) + lived;
+    append_unit(apex, exact_kept(r * kept32(apex.axis)), lived, lived);
+    set_fr(s, A_FLAGS, fr(s, A_FLAGS) | F_FAILED);
+    set_jw(J_CUT, 0u);
+    set_jw(J_GROW, lived);
+    set_jw(J_FAILED, lived);
+    set_jw(J_FAILED + 1u, lived_below);
+    set_jwf(J_FAILED + 2u, r);
+    set_jwf(J_FAILED + 3u, lead(survives, ONE53, d));
+    set_jw(J_AFTER, grown);
+    return op(OP_LIVED, apex);
+}
+
+// A dying unit's abortion over the share it lived and the next unit's,
+// and the persistence its relay keeps.
+fn unit_lived(apex: Apex, cycle: u32) -> Op {
+    let pa = fr(jw(J_FRAME), A_PA);
+    let lived = jw(J_FAILED);
+    var aborts = vec2<u32>(0u);
+    if jw(J_ST + 1u) == 0u {
+        let next = step(apex.spent, jw(J_GONE), jw(J_WHOLEF) != 0u, life(pa), 2u).share;
+        aborts = abortion(pa, jw(J_AFTER), shl64(w(min(lived, ticks_of(next)), 0u), 12u));
+    }
+    let after = persists(jw64(J_DECIDE), pa, cycle, aborts);
+    unit_persist(jw(J_REC), select(1.0, after.value, after.ok));
     set_jw(J_AFTER, u32(after.ok));
     set_jwf(J_AFTER + 1u, after.value);
-    set_jw(J_IN_SPENT, apex.spent);
-    var o = op(OP_GROWN, apex);
-    o.key = child(child(lineage, KEY_END), w(n, 0u));
-    return o;
+    return op(OP_GROWN, apex);
+}
+
+// The unit appended to the job's axis: its record.
+fn append_unit(apex: Apex, survive: f32, share: u32, size: u32) -> u32 {
+    let rec = push_unit(jw(J_FRAME), survive, share, size, shade_of(apex.axis));
+    set_jw(J_REC, rec);
+    return rec;
 }
 
 // The rest of the unit `decide` laid out, once its zones have grown

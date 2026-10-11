@@ -194,16 +194,24 @@ fn move_on(o: Op, cycle: u32) -> Op {
     }
     let m = prow(pa, R_MOVED);
     let woods = vec2<f32>(log_wood_at(next, cycle), log_wood_at(next, cycle + 1u));
-    let made = moved(prow_f(pa, R_GO_LOGIT), d, woods.x, woods.y, w(o.used, 0u), bitcast<f32>(m.x), bitcast<f32>(m.y), 2.0);
+    var on = o;
+    on.kind = OP_MOVED;
+    on.stopped = moved(prow_f(pa, R_GO_LOGIT), d, woods.x, woods.y, w(o.used, 0u), bitcast<f32>(m.x), bitcast<f32>(m.y), 2.0);
+    return on;
+}
+
+// A move the continuation's presence `o.stopped` made: the continuation
+// sprouted and carried on in the cycle, the relay a move may leave kept
+// for when its growth is done (`ended_main`).
+fn moved_on(o: Op, cycle: u32) -> Op {
+    let apex = o.apex;
+    let s = frame_of(apex.axis);
+    let next = successor_pa(fr(s, A_PA));
     add_successor(s, next_index());
-    let carried = array<vec2<u32>, 2>(real64(made), ONE64);
+    let carried = array<vec2<u32>, 2>(real64(o.stopped), ONE64);
     sprout(onto(fr64(s, A_ROOT), next), next, cycle, CONTINUED, vec2<u32>(apex.axis, 0u), vec2<u32>(0u), carried);
     let tail = carry_on(cycle, o.used);
-    let after = After(apex, o.used, made, o.key);
-    if tail.kind == OP_NONE {
-        return relay_after(after, cycle);
-    }
-    push_after(after);
+    push_after(After(apex, o.used, o.stopped, o.key));
     return tail;
 }
 

@@ -9,17 +9,21 @@ pub(super) const INIT: usize = 0;
 pub(super) const WOKE: usize = 1;
 pub(super) const DECIDE: usize = 2;
 pub(super) const ZONES: usize = 3;
-pub(super) const NODES: usize = 4;
-/// The zones' records written: phytomers and laterals, sleeping buds.
-pub(super) const WRITTEN: [usize; 2] = [14, 15];
+pub(super) const NODES: [usize; 2] = [4, 26];
+/// The zones' records written: their nodes ordered, then their
+/// phytomers, laterals, the laterals' presences and sleeping buds.
+pub(super) const WRITTEN: [usize; 7] = [20, 21, 14, 22, 23, 15, 24];
+/// A unit after its decision: its stop where it fails with no relay, or
+/// the unit appended, where it lives or where it dies.
+pub(super) const UNIT: [usize; 4] = [16, 17, 18, 19];
 pub(super) const CLOSE: usize = 5;
 pub(super) const FLAG: usize = 6;
 pub(super) const GATHER: usize = 7;
 pub(super) const SEED: usize = 8;
 /// The operations after a unit, an entry each, in a round's order.
-pub(super) const AFTER: [usize; 5] = [9, 10, 11, 12, 13];
+pub(super) const AFTER: [usize; 6] = [9, 10, 25, 11, 12, 13];
 
-const ENTRIES: [&str; 16] = [
+const ENTRIES: [&str; 27] = [
     "init_main",
     "woke_main",
     "decide_main",
@@ -36,6 +40,17 @@ const ENTRIES: [&str; 16] = [
     "ended_main",
     "laterals_main",
     "sleepers_main",
+    "fails_main",
+    "unit_main",
+    "dies_main",
+    "lived_main",
+    "order_main",
+    "phyts_main",
+    "made_main",
+    "placed_main",
+    "asleep_main",
+    "moved_main",
+    "dormant_main",
 ];
 
 /// The tally's places (`arena.wgsl`'s `T_` words).
@@ -48,8 +63,8 @@ pub(super) const T_ROUNDS: usize = 21;
 
 /// A job's words (`job.wgsl`'s `JW`), and a unit zone's (`grow.wgsl`'s
 /// `Z_` columns).
-pub(super) const JW: u32 = 176 + 6 * 35;
-pub(super) const ZW: u32 = 6;
+pub(super) const JW: u32 = 178 + 6 * 35;
+pub(super) const ZW: u32 = 6 + 64;
 
 pub(super) struct Kernels {
     pub(super) cycle: io::Pass,

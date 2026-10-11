@@ -120,8 +120,43 @@ fn decide_main(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     take_job(k);
-    keep_op(decide(Apex(jw(J_AXIS), jw(J_SPENT)), cfg.cycle));
+    var o = op_of();
+    o.kind = decide(o.apex, cfg.cycle);
+    keep_op(o);
     keep_job();
+}
+
+// Each unit that fails with no relay: its apex stops.
+@compute @workgroup_size(64)
+fn fails_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    if job_at_op(id, OP_FAILS) {
+        keep_step(fails_now(op_of().apex, cfg.cycle));
+    }
+}
+
+// Each unit that lives appended, its zones to grow.
+@compute @workgroup_size(64)
+fn unit_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    if job_at_op(id, OP_UNIT) {
+        keep_step(unit_lives(op_of().apex, cfg.cycle));
+    }
+}
+
+// Each unit that dies and that a relay takes over appended at the share
+// it lived, its zones to grow.
+@compute @workgroup_size(64)
+fn dies_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    if job_at_op(id, OP_DIES) {
+        keep_step(unit_dies(op_of().apex, cfg.cycle));
+    }
+}
+
+// Each dying unit's abortion drawn.
+@compute @workgroup_size(64)
+fn lived_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    if job_at_op(id, OP_LIVED) {
+        keep_step(unit_lived(op_of().apex, cfg.cycle));
+    }
 }
 
 // The zone of a job's unit an invocation takes, its zone's place in the
@@ -154,22 +189,65 @@ fn zone_main(@builtin(global_invocation_id) id: vec3<u32>) {
     zone_laid(z.x, z.y, jw64(J_UKEY), cfg.cycle, jw(J_GROW), jw(J_CUT));
 }
 
-// Each zone's nodes' laterals and sleeping buds counted.
+// Each zone's nodes ordered along the unit.
+@compute @workgroup_size(64)
+fn order_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let z = zone_of(id);
+    if z.x != NONE {
+        order_zone(z.x, z.y);
+    }
+}
+
+// Each zone's nodes' laterals counted, then their sleeping buds.
 @compute @workgroup_size(64)
 fn nodes_main(@builtin(global_invocation_id) id: vec3<u32>) {
     nodes(id, 0u);
 }
 
-// Each zone's phytomers and laterals written.
+@compute @workgroup_size(64)
+fn dormant_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    nodes(id, 7u);
+}
+
+// Each zone's laterals written.
 @compute @workgroup_size(64)
 fn laterals_main(@builtin(global_invocation_id) id: vec3<u32>) {
     nodes(id, 1u);
+}
+
+// Each zone's laterals' presences written: their PA's draw's, then
+// times their place's.
+@compute @workgroup_size(64)
+fn made_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    nodes(id, 4u);
+}
+
+@compute @workgroup_size(64)
+fn placed_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    nodes(id, 5u);
+}
+
+// Each zone's phytomers written.
+@compute @workgroup_size(64)
+fn phyts_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    nodes(id, 3u);
 }
 
 // Each zone's sleeping buds written.
 @compute @workgroup_size(64)
 fn sleepers_main(@builtin(global_invocation_id) id: vec3<u32>) {
     nodes(id, 2u);
+}
+
+// Each zone's sleeping buds' presences taken times their places'.
+@compute @workgroup_size(64)
+fn asleep_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let z = zone_of(id);
+    if z.x == NONE {
+        return;
+    }
+    take_job(job);
+    sleepers_placed(z.x, z.y, jw(J_FRAME), cfg.cycle);
 }
 
 fn nodes(id: vec3<u32>, what: u32) {
@@ -231,6 +309,14 @@ fn grown_main(@builtin(global_invocation_id) id: vec3<u32>) {
 fn move_main(@builtin(global_invocation_id) id: vec3<u32>) {
     if job_at_op(id, OP_MOVE) {
         keep_step(move_on(op_of(), cfg.cycle));
+    }
+}
+
+// Each continuation a move made, sprouted and carried on.
+@compute @workgroup_size(64)
+fn moved_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    if job_at_op(id, OP_MOVED) {
+        keep_step(moved_on(op_of(), cfg.cycle));
     }
 }
 

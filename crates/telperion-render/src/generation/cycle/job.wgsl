@@ -56,14 +56,21 @@ const J_BELOW: u32 = 49u;
 const J_FAILED: u32 = 50u;
 const J_AFTER: u32 = 54u;
 const J_IN_SPENT: u32 = 56u;
+// What the unit's survival decided: its survival, threshold and draw,
+// whether a relay takes a failure over, and the key a move draws by.
+const J_V: u32 = 57u;
+const J_SURVIVES: u32 = 58u;
+const J_D: u32 = 60u;
+const J_RELAYS: u32 = 62u;
+const J_ENDKEY: u32 = 112u;
 // What a move leaves to do (`After`), six words an entry.
 const J_STACK: u32 = 64u;
 const STACK: u32 = 8u;
 // The axes a waking bud's bearer carries it to, two words each.
-const J_CARRIED: u32 = 112u;
+const J_CARRIED: u32 = 114u;
 const CARRIED: u32 = 32u;
 // The frames, `FW` words each: an axis's columns, then its first unit.
-const J_FRAME0: u32 = 176u;
+const J_FRAME0: u32 = 178u;
 const FW: u32 = 35u;
 const FRAMES: u32 = 6u;
 // The frame a lateral is made in, private to its invocation.
@@ -80,6 +87,11 @@ const OP_MOVE: u32 = 4u;
 const OP_GROWN: u32 = 5u;
 const OP_WOKE: u32 = 6u;
 const OP_DONE: u32 = 7u;
+const OP_UNIT: u32 = 8u;
+const OP_FAILS: u32 = 9u;
+const OP_DIES: u32 = 10u;
+const OP_LIVED: u32 = 11u;
+const OP_MOVED: u32 = 12u;
 
 var<private> job: u32;
 
