@@ -43,6 +43,8 @@ mod settle_scratch;
 mod state;
 mod vm;
 #[cfg(test)]
+mod compile_tests;
+#[cfg(test)]
 mod grown_det_tests;
 #[cfg(test)]
 mod grown_life_tests;

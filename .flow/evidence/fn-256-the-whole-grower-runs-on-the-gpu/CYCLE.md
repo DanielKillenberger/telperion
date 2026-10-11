@@ -234,3 +234,50 @@ Accumulated time is still held in 32-bit ticks, and signed where an age's share 
 - the cycle × tick products in the layout and the settle.
 
 So 2,048 cycles is the device's age limit. `build_grow::MOST_CYCLES` refuses a request aged 2,048 cycles or more with a named error before any dispatch, and a test reads that error. Widening the accumulated time is open, a question for the host (task 3).
+
+## Cold compile after exact mode was deleted (2026-10-12, DESIGN.md section 9 item 3)
+
+This is native on the RTX 3080 with `__GL_SHADER_DISK_CACHE=0`, each module made with its pipelines through device completion (`raw/compile-before.txt`):
+
+| Module | Cold, s |
+|---|--:|
+| Units and wake | 43.74 |
+| Layout | 4.50 |
+| Hierarchy (build, sums, scan) | 0.36 |
+| Light | 0.91 |
+| Glue and sizing | 0.11 |
+| Retirement | 0.15 |
+| Settle shed and order | 0.37 |
+| Settle place `walk_main` | 15.12 |
+| Settle place `frame_main` | 2.04 |
+| Settle place, the other five entries | 0.18 |
+| **All** | **about 67.5** |
+
+**Bisection** (fn-235's method, `compile_tests.rs`: one module's WGSL edited by a file of replacements, one entry made cold, one variant a process):
+
+| Units and wake, `cycle_main` | Cold, s |
+|---|--:|
+| As built | 42.7 |
+| `flag`, `gather`, `seed_main`, each alone | 0.01 to 0.03 |
+| No apex run (`run` called nowhere) | 0.24 |
+| `advance` never reached | 2.57 |
+| `stop`, `relay`, `relay_after` or `move_on` never reached, each | 42.1, 43.9, 38.3, 28.7 |
+| `grow_unit` not called | 20.3 |
+| A failed unit's path not reached | 28.1 |
+| The abortion draw (`persists`) not reached | 32.6 |
+| All three of those together | 9.4 |
+| The 64-bit key mix (`mix`) made one cheap expression | 30.3 |
+| The private frames shrunk from 578 words to 68 | 49 to 50 (no gain) |
+
+| Layout entry | Cold, s |
+|---|--:|
+| `frame_main` | 2.84 |
+| `draw_main` | 1.64 |
+| The other four | 0.01 to 0.04 |
+
+**What the driver chokes on** is the volume of code inlined into one entry, as fn-235 found for `grow`. Everything outside the apex run makes in 0.24 s. The cost grows faster than the body: the advance alone accounts for about 40 s, and no single part of it is the cause. The unit's zones (`grow_unit`) take about half. The inlined 64-bit key mixes, about 12 s of it, sit behind every `child` and `draw`. A failed unit's path and the abortion draw take about 10 to 15 s each. The private frame array is not the cause.
+
+**So 2 s needs the apex run split, not slimmed.** Even with its three largest parts stubbed out, `cycle_main` takes 9.4 s.
+- **The split:** a resumable apex machine across small kernels. Each operation (survival and decision, the zones and their nodes, the sleepers, a stop, a relay, a move, the wake) becomes its own entry. The machine's state between them (frames, the operation and its stack, the append counts) moves to buffers, and it runs in rounds until no apex has an operation left. The count and emit passes run the same way.
+- **The other modules:** the settle's `walk_main` (15 s) and `frame_main` (2 s), and the layout's `frame_main` and `draw_main` (4.5 s together), need the same treatment.
+- **Open:** that is a design call beyond DESIGN.md, so it is for the host before it is built. It also adds dispatches a cycle, against the dispatch budget.
