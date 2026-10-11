@@ -102,7 +102,7 @@ const V_SPENT: u32 = 1u;
 const V_OUT_AXIS: u32 = 4u;
 const V_OUT_SPENT: u32 = 5u;
 // The layout's tally, before its list of the axes that grew.
-const LAY_TALLY: u32 = 16u;
+const LAY_TALLY: u32 = 32u;
 
 fn index(id: vec3<u32>) -> u32 {
     return id.x + id.y * cfg.row;

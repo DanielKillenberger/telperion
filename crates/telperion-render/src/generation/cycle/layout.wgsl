@@ -138,11 +138,15 @@ const FAULT_LIFTS: u32 = 8u;
 const FAULT_LINE: u32 = 16u;
 const FAULT_UNITS: u32 = 32u;
 const FAULT_NARROW: u32 = 64u;
-// The tally's words at the head of `lists`: the generation listed, and
-// every fault any axis met this cycle.
+// The tally's words at the head of `lists`: the generation listed, every
+// fault any axis met this cycle, and a mark for each generation the
+// cycle's new axes reach (the last for any deeper), which bounds the
+// generations the host records (DESIGN.md section 5).
 const T_LISTED: u32 = 0u;
 const T_FAULT: u32 = 8u;
-const TALLY: u32 = 16u;
+const T_DEEP: u32 = 16u;
+const DEEP: u32 = 16u;
+const TALLY: u32 = 32u;
 
 var<private> status: u32;
 
@@ -245,6 +249,7 @@ fn generation_main(@builtin(global_invocation_id) id: vec3<u32>) {
         a = ax(a, A_PARENT);
     }
     lists[generations_at() + k] = g;
+    lists[T_DEEP + min(g, DEEP - 1u)] = 1u;
 }
 
 // The new axes of the generation listed flagged, for the scan.

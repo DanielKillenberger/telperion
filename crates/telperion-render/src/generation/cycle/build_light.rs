@@ -4,13 +4,9 @@
 //! f64, the combine and the reads (`light.wgsl`, `light_sweep.wgsl`).
 use super::super::io;
 use super::columns::Cap;
-use super::light_device::{Kernels, DIRECTIONS, REFUSALS, SWEEP};
+use super::light_device::{DIRECTIONS, REFUSALS};
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
-
-/// The entries in `light.wgsl`'s order: box, grid, then the rest.
-const SPAN: usize = 0;
-const GRID: usize = 1;
 
 fn storage(gpu: &Gpu, label: &'static str, words: u64, init: &[u32]) -> Result<Owned> {
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
@@ -21,17 +17,17 @@ fn storage(gpu: &Gpu, label: &'static str, words: u64, init: &[u32]) -> Result<O
 pub(super) struct Light {
     pub points: Owned,
     pub reads: Owned,
-    state: Owned,
-    grid: Owned,
-    quanta: Owned,
-    field: Owned,
-    scratch: Owned,
-    start: Owned,
+    pub state: Owned,
+    pub grid: Owned,
+    pub quanta: Owned,
+    pub field: Owned,
+    pub scratch: Owned,
+    pub start: Owned,
     /// Each lit direction's words (`light.wgsl`'s `Cfg::dir`), whether
     /// the site is lit, and the directions.
     dirs: Vec<u32>,
     lit: bool,
-    n_dirs: u32,
+    pub n_dirs: u32,
     /// The points, tips and lattice nodes the buffers hold.
     pub points_cap: u32,
     pub tips_cap: u32,
@@ -110,56 +106,19 @@ impl Light {
         (b.iter().map(|b| b.size()).sum(), self.scratch.size())
     }
 
-    fn bind(&self, gpu: &Gpu, k: &Kernels, lit: Lit, chunk: u32) -> Result<wgpu::BindGroup> {
-        let most = gpu.device.limits().max_compute_workgroups_per_dimension;
-        let mut cfg = vec![lit.leaves, lit.tips, self.n_dirs, self.nodes_cap, u32::from(self.lit), most * 64, chunk, 0];
+    /// A dispatch's uniform as the host knows it (`light.wgsl`'s `Cfg`):
+    /// the leaves and tips none (the device writes them), its range or
+    /// sweep chunk, and the directions.
+    pub(super) fn words(&self, chunk: u32) -> Vec<u32> {
+        let mut cfg = vec![0, 0, self.n_dirs, self.nodes_cap, u32::from(self.lit), super::plan::MAXX * 64, chunk, 0];
         cfg.extend(&self.dirs);
         cfg.resize(8 + 8 * DIRECTIONS, 0);
-        let usage = wgpu::BufferUsages::UNIFORM;
-        let c = io::buffer(gpu, "light cfg", 4 * cfg.len() as u64, usage, bytemuck::cast_slice(&cfg))?;
-        let all = [&*c, &self.points, &self.state, &self.grid, &self.quanta, &self.field, &self.scratch, &self.reads];
-        Ok(k.pass.bind(gpu, &all))
+        cfg
     }
 
-    /// The box over the leaves and tips, and its grid; reset first.
-    pub(super) fn record_box(&self, gpu: &Gpu, k: &Kernels, e: &mut wgpu::CommandEncoder, lit: Lit) -> Result<()> {
-        e.copy_buffer_to_buffer(&self.start, 0, &self.state, 0, 32);
-        e.clear_buffer(&self.quanta, 0, None);
-        let bind = self.bind(gpu, k, lit, 0)?;
-        k.pass.run(e, &bind, SPAN, (lit.leaves + lit.tips).div_ceil(64).max(1));
-        k.pass.run(e, &bind, GRID, 1);
-        Ok(())
-    }
-
-    /// The grid as the box left it: low node, size, nodes, whether it
-    /// stands; and the errors.
-    pub(super) fn grid(&self, gpu: &Gpu) -> Result<([u32; 8], u32)> {
-        let grid = io::read(gpu, &self.grid, 32)?;
-        let state = io::read(gpu, &self.state, 32)?;
-        let g: &[u32] = bytemuck::cast_slice(&grid);
-        let s: &[u32] = bytemuck::cast_slice(&state);
-        Ok((std::array::from_fn(|k| g[k]), s[6]))
-    }
-
-    /// The deposit, densities, sweep, combine and reads over a lattice of
-    /// `size`.
-    pub(super) fn record_rest(&self, gpu: &Gpu, k: &Kernels, e: &mut wgpu::CommandEncoder, lit: Lit, size: [u32; 3]) -> Result<()> {
-        let over = |n: u32| n.div_ceil(64).max(1);
-        let (cap, dirs) = (self.nodes_cap, self.n_dirs);
-        let groups = [over(lit.leaves), over(cap), over(dirs * cap), over(dirs * cap), dirs.max(1), over(cap), over(lit.tips)];
-        let bind = self.bind(gpu, k, lit, 0)?;
-        for (j, &g) in groups.iter().enumerate() {
-            let entry = j + 2;
-            if entry != SWEEP {
-                k.pass.run(e, &bind, entry, g);
-                continue;
-            }
-            for chunk in 0..super::light_program::sweep_dispatches(size) {
-                let b = self.bind(gpu, k, lit, chunk)?;
-                k.pass.run(e, &b, SWEEP, g);
-            }
-        }
-        Ok(())
+    /// The buffers a dispatch binds after its uniform.
+    pub(super) fn buffers(&self) -> [&wgpu::Buffer; 7] {
+        [&self.points, &self.state, &self.grid, &self.quanta, &self.field, &self.scratch, &self.reads]
     }
 }
 

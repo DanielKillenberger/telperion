@@ -1,9 +1,7 @@
 //! What moves between the phases over the one resident state
 //! (`glue.wgsl`): the kernels, and one dispatch recorded with its words.
 use super::super::io;
-use super::state::State;
-use crate::buffer::Owned;
-use crate::{Gpu, Result};
+use crate::Gpu;
 
 const GLUE: &str = include_str!("glue.wgsl");
 
@@ -36,7 +34,7 @@ pub(super) fn source() -> String {
 }
 
 pub(super) struct Kernels {
-    pass: io::Pass,
+    pub(super) pass: io::Pass,
 }
 
 impl Kernels {
@@ -59,61 +57,4 @@ pub(super) struct Words {
     pub leaves: u32,
     pub from_in: bool,
     pub live: u32,
-}
-
-/// The invocations a dispatch row holds for `n` invocations, and its
-/// workgroups.
-pub(super) fn row(gpu: &Gpu, n: u32) -> (u32, u32) {
-    let groups = n.div_ceil(64).max(1);
-    let most = gpu.device.limits().max_compute_workgroups_per_dimension;
-    (groups, groups.min(most) * 64)
-}
-
-/// One glue dispatch over `w.n` invocations (`w.laid` for the entries
-/// over the laid axes), `aux` and `aux2` bound beside the state.
-#[allow(clippy::too_many_arguments)]
-pub(super) fn run(
-    gpu: &Gpu,
-    k: &Kernels,
-    e: &mut wgpu::CommandEncoder,
-    (state, live): (&State, &Owned),
-    (aux, aux2): (&Owned, &Owned),
-    entry: usize,
-    w: Words,
-) -> Result<()> {
-    let c = state.caps;
-    let (groups, row) = row(gpu, w.n);
-    let words = [
-        w.n,
-        row,
-        w.cycle,
-        w.laid,
-        c.axes,
-        c.units,
-        c.phyts,
-        c.phyt_at(),
-        w.live_stride,
-        c.next_at(),
-        c.next,
-        w.first,
-        w.leaves,
-        u32::from(w.from_in),
-        w.live,
-        0,
-    ];
-    let usage = wgpu::BufferUsages::UNIFORM;
-    let cfg = io::buffer(gpu, "glue cfg", 64, usage, bytemuck::cast_slice(&words))?;
-    let all = [
-        &*cfg,
-        &state.axes,
-        &state.pencils,
-        &state.arena,
-        &state.lists,
-        live,
-        aux,
-        aux2,
-    ];
-    let bind = k.pass.bind(gpu, &all);
-    k.pass.run(e, &bind, entry, groups);
-    Ok(())
 }

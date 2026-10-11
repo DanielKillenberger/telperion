@@ -48,6 +48,9 @@ struct Cfg {
 @group(0) @binding(7) var<storage, read_write> reads: array<f32>;
 
 const NONE: u32 = 0xffffffffu;
+// The leaves a deposit dispatch takes at most: bounded work per dispatch
+// (Telperion's busiest cycle deposits about 700,000 a millisecond).
+const DEPOSIT: u32 = 262144u;
 const E_REACH: u32 = 1u;
 const E_NODES: u32 = 2u;
 const E_CAPACITY: u32 = 4u;
@@ -183,7 +186,8 @@ fn quanta_of(area: u32, w: u32) -> vec2<u32> {
 
 @compute @workgroup_size(64)
 fn deposit_main(@builtin(global_invocation_id) id: vec3<u32>) {
-    let k = invocation(id);
+    // A dispatch deposits a range of `DEPOSIT` leaves, the `chunk`th.
+    let k = C.chunk * DEPOSIT + invocation(id);
     if k >= C.leaves || !standing() {
         return;
     }

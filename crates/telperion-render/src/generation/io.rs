@@ -167,6 +167,34 @@ impl Pass {
         groups: u32,
     ) {
         #[cfg(test)]
+        crate::trace::dispatch(&self.entries[entry], groups);
+        let mut pass = self.begin(encoder, bind, entry);
+        pass.dispatch_workgroups(groups.min(self.maximum), groups.div_ceil(self.maximum), 1);
+    }
+
+    /// `run` with its workgroups (x, y, z) read from `args` at `offset`:
+    /// a dispatch the device sized (fn-256 DESIGN.md section 5).
+    #[cfg(test)]
+    pub fn run_indirect(
+        &self,
+        encoder: &mut wgpu::CommandEncoder,
+        bind: &wgpu::BindGroup,
+        entry: usize,
+        (args, offset): (&wgpu::Buffer, u64),
+    ) {
+        crate::trace::dispatch(&self.entries[entry], u32::MAX);
+        let mut pass = self.begin(encoder, bind, entry);
+        pass.dispatch_workgroups_indirect(args, offset);
+    }
+
+    /// A stamped compute pass with `entry`'s pipeline and `bind` set.
+    fn begin<'e>(
+        &self,
+        encoder: &'e mut wgpu::CommandEncoder,
+        bind: &wgpu::BindGroup,
+        entry: usize,
+    ) -> wgpu::ComputePass<'e> {
+        #[cfg(test)]
         let stamp = super::profile::slot(&self.entries[entry]);
         #[cfg(not(test))]
         let stamp: Option<(wgpu::QuerySet, u32)> = None;
@@ -180,11 +208,9 @@ impl Pass {
                     end_of_pass_write_index: Some(at + 1),
                 }),
         });
-        #[cfg(test)]
-        crate::trace::dispatch(&self.entries[entry], groups);
         pass.set_pipeline(self.pipelines[entry].get());
         pass.set_bind_group(0, bind, &[]);
-        pass.dispatch_workgroups(groups.min(self.maximum), groups.div_ceil(self.maximum), 1);
+        pass
     }
 }
 

@@ -3,9 +3,10 @@
 //! placed by an exclusive scan in the CPU's order, held exactly to the
 //! CPU's cycle and timed per kernel.
 mod build;
-mod build_cycle;
+mod build_grow;
 mod build_light;
-mod build_units;
+mod build_plan;
+mod census;
 mod columns;
 mod compare;
 mod device;
@@ -21,7 +22,13 @@ mod hier_scan;
 mod lay_device;
 mod light_device;
 mod light_program;
+mod plan;
+mod plan_hier;
+mod plan_lay;
+mod plan_scan;
+mod plan_units;
 mod state;
+mod vm;
 #[cfg(test)]
 mod grown_tests;
 #[cfg(test)]
@@ -38,6 +45,8 @@ mod light_tests;
 mod soft64_tests;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod vm_tests;
 
 const ARENA: &str = include_str!("cycle/arena.wgsl");
 const REAL: &str = include_str!("cycle/real.wgsl");
@@ -171,6 +180,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
         ("cycle hierarchy build", hier_build_source()),
         ("cycle hierarchy scan", hier_scan_source()),
         ("cycle glue", glue::source()),
+        ("cycle vm", vm::source()),
     ];
     for (arith, names) in [
         (Arith::Plain, ["cycle units and wake", "cycle layout", "cycle hierarchy sums", "cycle light"]),

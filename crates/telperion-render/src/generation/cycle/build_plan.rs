@@ -1,0 +1,156 @@
+//! The build's cycle recorded once (`plan.rs`): the seed, then a cycle's
+//! phases in fn-255's order, each sized on the device. The host replays
+//! them every cycle, choosing only by what it knows: the cycle, whether
+//! any axis is laid yet (from the second cycle), the hierarchy's lists'
+//! parity, and whether the cycle is the tree's age (no layout or light).
+use super::build::{Build, Kit, Tables};
+use super::census as c;
+use super::device::SEED;
+use super::glue;
+use super::plan::{Builder, PassId, Plan, Size, Step, MAXX};
+use super::plan_hier::HierBounds;
+use super::plan_lay::LayBounds;
+use super::plan_scan::Fine;
+use super::vm::E;
+use crate::{Gpu, Result};
+
+/// How far each loop with a count only the device knows is recorded.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) struct Bounds {
+    pub hier: HierBounds,
+    pub lay: LayBounds,
+}
+
+impl Default for Bounds {
+    fn default() -> Self {
+        Self {
+            hier: HierBounds { gens: 4, passes: 4, levels: 8 },
+            lay: LayBounds { generations: 4, sweeps: 2, deposits: 1 },
+        }
+    }
+}
+
+/// A cycle's recorded phases: the seed; the start; the hierarchy's step
+/// and sums by the parity of its lists; the units; the layout and light.
+pub(super) struct Phases {
+    pub seed: Vec<Step>,
+    pub start: Vec<Step>,
+    pub hier: [Vec<Step>; 2],
+    pub units: Vec<Step>,
+    pub sketch: Vec<Step>,
+    _held: Vec<Fine>,
+}
+
+impl Build {
+    /// A glue dispatch recorded: its static words from `w`, the device's
+    /// from `dynamic` (word 0 its invocations).
+    pub(super) fn glue_step(&self, b: &mut Builder, kit: &Kit, (entry, aux, aux2): (usize, &wgpu::Buffer, &wgpu::Buffer), w: glue::Words, dynamic: &[(usize, E)]) {
+        let s = self.state.caps;
+        let words = [
+            w.n, MAXX * 64, w.cycle, w.laid, s.axes, s.units, s.phyts, s.phyt_at(), w.live_stride, s.next_at(), s.next, w.first, w.leaves,
+            u32::from(w.from_in), w.live, 0,
+        ];
+        let slot = b.slot(&words);
+        let mut n = E::C(w.n);
+        for (k, e) in dynamic {
+            if *k == 0 {
+                n = e.clone();
+            }
+            b.set(slot, *k, e.clone());
+        }
+        let size = match dynamic.is_empty() {
+            true => Size::Direct(w.n.div_ceil(64).max(1)),
+            false => b.groups(n.div(E::C(64))),
+        };
+        let st = &self.state;
+        let bind = b.bind(&kit.glue.pass, slot, &[&st.axes, &st.pencils, &st.arena, &st.lists, &self.sums.live, aux, aux2]);
+        b.dispatch((PassId::Glue, entry), bind, size);
+    }
+
+    /// The seed's axis and apex (`Grower::seeded`).
+    fn plan_seed(&self, b: &mut Builder, kit: &Kit, t: &Tables) {
+        let mut words = self.units_static(t, (0, 1, 0));
+        words[0] = 1;
+        let slot = b.slot(&words);
+        let s = &self.state;
+        let rest = [&*t.table, &t.words, &self.inputs, &s.axes, &s.arena, &s.lists, &self.counts_a, &self.counts_b];
+        let bind = b.bind(&kit.units.cycle, slot, &rest);
+        b.dispatch((PassId::Units, SEED), bind, Size::Direct(1));
+        let w = glue::Words { n: 1, live_stride: self.sums.live_stride, ..glue::Words::default() };
+        self.glue_step(b, kit, (glue::BORN, &self.spare, &self.flags), w, &[]);
+        b.tally(&s.lists, 4 * 20, c::Flag::Collapsed.word(), 4);
+    }
+
+    /// The cycle's start: its counts kept, the living taken in.
+    fn plan_start(&self, b: &mut Builder, kit: &Kit) {
+        b.point();
+        let snap = [
+            (c::AXES0, c::AXES),
+            (c::UNITS0, c::UNITS),
+            (c::PHYTS0, c::PHYTS),
+            (c::SLEEPERS0, c::SLEEPERS),
+            (c::WOKEN0, c::WOKEN),
+            (c::LIVE0, c::NEXT),
+            (c::LIVE, c::NEXT),
+            (c::LAID0, c::LAID),
+        ];
+        for (to, from) in snap {
+            b.count(to, E::At(from));
+        }
+        b.point();
+        let w = glue::Words { live_stride: self.sums.live_stride, ..glue::Words::default() };
+        self.glue_step(b, kit, (glue::RELIVE, &self.spare, &self.flags), w, &[(0, E::At(c::LIVE0))]);
+    }
+
+    /// The whole cycle recorded under `bounds`.
+    pub(super) fn plan(&self, gpu: &Gpu, kit: &Kit, t: &Tables, bounds: Bounds) -> Result<(Plan, Phases)> {
+        let mut b = Builder::new(gpu)?;
+        self.plan_seed(&mut b, kit, t);
+        let seed = b.take();
+        self.plan_start(&mut b, kit);
+        let start = b.take();
+        let mut hier: [Vec<Step>; 2] = Default::default();
+        for (parity, phase) in hier.iter_mut().enumerate() {
+            self.plan_step(&mut b, kit, bounds.hier, parity);
+            self.plan_sums(&mut b, kit, t, bounds.hier, 1 - parity);
+            *phase = b.take();
+        }
+        let mut held = self.plan_units(&mut b, kit, t)?;
+        let units = b.take();
+        held.extend(self.plan_layout(&mut b, kit, bounds.lay)?);
+        self.plan_light(&mut b, kit, bounds.lay);
+        let sketch = b.take();
+        let plan = b.finish(&kit.vm)?;
+        Ok((plan, Phases { seed, start, hier, units, sketch, _held: held }))
+    }
+}
+
+impl Phases {
+    /// Cycle `cycle` of a tree of `age`, as recorded.
+    pub(super) fn cycle(&self, cycle: u32, age: u32) -> Vec<&[Step]> {
+        let mut out: Vec<&[Step]> = vec![&self.start];
+        if cycle > 1 {
+            out.push(&self.hier[(cycle as usize) % 2]);
+        }
+        out.push(&self.units);
+        if cycle < age {
+            out.push(&self.sketch);
+        }
+        out
+    }
+}
+
+/// `steps` recorded into `e`.
+pub(super) fn record(kit: &Kit, plan: &Plan, e: &mut wgpu::CommandEncoder, steps: &[Step]) {
+    for step in steps {
+        match step {
+            Step::Dispatch { pass, entry, bind, size } => match size {
+                Size::Direct(n) => kit.pass(*pass).run(e, bind, *entry, *n),
+                Size::Indirect(at) => kit.pass(*pass).run_indirect(e, bind, *entry, (&plan.args, *at)),
+            },
+            Step::Copy { from, at, to, to_at, bytes } => e.copy_buffer_to_buffer(from, *at, to, *to_at, *bytes),
+            Step::Clear { buffer, at, bytes } => e.clear_buffer(buffer, *at, *bytes),
+            Step::Point(k) => plan.run_point(&kit.vm, e, *k),
+        }
+    }
+}

@@ -25,17 +25,17 @@ pub(super) const ENTRIES: [&str; 11] = [
     "sub_main",
     "split_main",
 ];
-const MARK: usize = 0;
-const SHED: usize = 1;
-const COMPACT: usize = 2;
-const PRESENCE: usize = 3;
-const PARTIALS: usize = 4;
-const COMBINE: usize = 5;
-const SIZES: usize = 6;
-const TOTALS: usize = 7;
-const WALK: usize = 8;
-const SUB: usize = 9;
-const SPLIT: usize = 10;
+pub(super) const MARK: usize = 0;
+pub(super) const SHED: usize = 1;
+pub(super) const COMPACT: usize = 2;
+pub(super) const PRESENCE: usize = 3;
+pub(super) const PARTIALS: usize = 4;
+pub(super) const COMBINE: usize = 5;
+pub(super) const SIZES: usize = 6;
+pub(super) const TOTALS: usize = 7;
+pub(super) const WALK: usize = 8;
+pub(super) const SUB: usize = 9;
+pub(super) const SPLIT: usize = 10;
 
 /// The sums' columns (`hier_cycle.wgsl`'s `S_` words), and those the
 /// cycle starts from the tree's (memory, kept, size) or from none.
@@ -50,16 +50,16 @@ pub(super) const S_SUB: u64 = 12;
 pub(super) const S_INCOMING: u64 = 14;
 pub(super) const S_BUD: u64 = 15;
 pub(super) const S_GONE: u64 = 18;
-const FROM_TREE: [(u64, u64); 3] = [(12, S_MEMORY), (11, S_KEPT), (13, S_SIZE)];
-const CLEARED: [u64; 7] = [0, 9, 10, 11, 14, 15, 18];
+pub(super) const FROM_TREE: [(u64, u64); 3] = [(12, S_MEMORY), (11, S_KEPT), (13, S_SIZE)];
+pub(super) const CLEARED: [u64; 7] = [0, 9, 10, 11, 14, 15, 18];
 /// The living's columns, and where the living after start.
 pub(super) const LIVE: u64 = 7;
-const V_FLAG: u64 = 3;
+pub(super) const V_FLAG: u64 = 3;
 pub(super) const V_OUT: u64 = 4;
 /// The normaliser's words before the order, and the tally's.
 const N_ORDER: u64 = 128;
 const TALLY: u64 = 128;
-const BUD_BLOCK: u32 = 1024;
+pub(super) const BUD_BLOCK: u32 = 1024;
 
 /// The balance and allotment's buffers on the device, and the plan of
 /// one cycle's dispatches over them.
@@ -69,7 +69,7 @@ pub(super) struct Sums {
     pub norm: Owned,
     pub tally: Owned,
     pub rows: Owned,
-    scan_sums: Owned,
+    pub scan_sums: Owned,
     pub live_stride: u32,
     stride: u32,
     live_n: u32,
