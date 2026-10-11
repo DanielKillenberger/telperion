@@ -182,3 +182,43 @@ Stamping itself added about 0.25 s (1.38 s stamped wall).
 - Exact: 2.01 ms, the oak 80's normaliser `partials_main`: one workgroup sums the contract's block of 1,024 buds serially.
 
 **The cycle's scans moved onto `hier_scan.wgsl` (2026-10-11).** The units', wake's and layout generations' scans now run on the levelled scan, extended to scan the first `fields` words of records `stride` words apart. Each scan is gated by its own levels limit and flag. `fine/scan.wgsl` remains for the fine pipeline and the task-1 single-cycle units harness (`device.rs`). On Telperion 82, plain: the unstamped wall went from 1.130 s to 1.052 s (median of 3), units and wake from 425.7 ms to 363.7 ms, and layout from 136.4 ms to 119.0 ms. The final counts are unchanged (`raw/scan-before.txt`, `raw/scan-after.txt`). The exact young presets and determinism tests stay green.
+
+## Direct dispatches only (2026-10-11, DESIGN.md section 7a)
+
+The growth loop has no indirect dispatch (`b5aff4bbe`). Each dispatch whose size only the device knows is given the most its expression reaches over the host's bounds of the census words (`given.rs`). Its invocations exit past the true count. A sizing program flags a dispatch given too few (`Flag::Given`), and the build begins again with the words that dispatch reads widened.
+
+**A defect in `b5aff4bbe`, not yet fixed in the worktree.** `given.rs` takes each block level's first block (`c::LVL..c::GRID`) as a count that never falls. On Telperion it does fall, so a level's width is short every few cycles and its words widen without end. The result was 62 begins again, sizing in 53 s, and then a dispatch of 65535 × 65537 workgroups, which wgpu refused. The fix is one line: drop `(c::LVL..c::GRID).contains(&w)` from `grows`. The "after" figures below are `b5aff4bbe` with that line dropped, measured from a separate copy. The worktree was held for the settle worker's retirement edits.
+
+Plain, before (`a48f8ea9e`, indirect) and after (direct), one stamped run and the median of three unstamped runs at the sizes a first run found (`raw/direct-before-4.txt`, `raw/direct-after-3.txt`). The owner's desktop was idle for both.
+
+| Build | Dispatches a build (a cycle), before → after | Stamped ms, before → after | Unstamped wall, before → after | Sized from the least, before → after |
+|---|--:|--:|--:|--:|
+| Telperion 82 | 28,293 (345) → 26,983 (329) | 1,028.8 → 1,004.5 | 1.115 s → 1.135 s | 1.71 s (2 begun again) → 1.77 s (3) |
+| Oak 80, seed 1 | 26,701 (334) → 25,454 (318) | 971.9 → 946.6 | 1.018 s → 1.036 s | 1.01 s (0) → 1.05 s (1) |
+| European beech 40 | 9,078 (227) → 8,559 (214) | 175.7 → 157.4 | 0.179 s → 0.172 s | 0.18 s (0) → 0.19 s (1) |
+
+**Over-dispatch** (workgroups launched against those the true counts needed, tallied from each cycle's census as it is read):
+
+| Build | Given | Needed | Ratio |
+|---|--:|--:|--:|
+| Telperion 82 | 34.8 M | 7.84 M | 4.4× |
+| Oak 80 | 30.0 M | 7.48 M | 4.0× |
+| Beech 40 | 0.74 M | 0.19 M | 3.9× |
+
+**Its cost is under the noise of the phase totals.** The empty workgroups sit inside each dispatch's stamp, so no stamp separates them. The stamped totals fell by 24 ms on Telperion, 25 ms on the oak and 18 ms on the beech, and Telperion's wall rose by 20 ms.
+
+**Per phase on Telperion:**
+
+| Phase | Before | After |
+|---|--:|--:|
+| Sizing | 36.5 ms | 68.2 ms |
+| Units and wake | 382.0 ms | 373.6 ms |
+| Layout | 125.5 ms | 148.5 ms |
+| Light | 61.3 ms | 78.4 ms |
+| Balance and allotment | 422.6 ms | 335.5 ms |
+
+- **Layout and light:** they carry most of the over-dispatch, because the light's lattice products and the layout's new-axis counts are bounded loosely.
+- **Balance and allotment:** they gained from dispatches given none, which are skipped.
+- **Sizing:** it doubled because a point now runs in one workgroup, its flags before a barrier and the rest after.
+
+**In Chrome terms.** At about 7 µs a direct dispatch (DESIGN.md 7a), Telperion's 26,983 dispatches are about 0.19 s of dispatch overhead, against 12 s had they stayed indirect. The beech's 8,559 are about 0.06 s. Both are inside the 0.2 s and 0.1 s targets.
