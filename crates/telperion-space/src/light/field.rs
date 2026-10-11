@@ -144,6 +144,16 @@ impl Field {
         reads: &[Vec3],
         threads: usize,
     ) -> Result<Self> {
+        Self::quantised_with(light, leaves, reads, threads).map(|q| q.0)
+    }
+
+    /// `quantised`, with each node's quanta (fn-256's busy-cycle capture).
+    pub(crate) fn quantised_with(
+        light: &super::Light,
+        leaves: &[(Vec3, f64)],
+        reads: &[Vec3],
+        threads: usize,
+    ) -> Result<(Self, Vec<u32>)> {
         let mut field = Self::spanning(leaves.iter().map(|l| l.0).chain(reads.iter().copied()));
         let mut quanta = vec![0u32; field.grid.nodes()];
         for &(at, area) in leaves {
@@ -163,7 +173,12 @@ impl Field {
             *d = (8.0 * f64::from(q) * QUANTUM) as f32;
         }
         field.sweep(light.extinction, &light.directions(), threads);
-        Ok(field)
+        Ok((field, quanta))
+    }
+
+    /// Its box, densities and light (fn-256's busy-cycle capture).
+    pub(crate) fn parts(&self) -> (Grid, &[f32], &[f32]) {
+        (self.grid, &self.density, &self.light)
     }
 
     /// The nodes it holds.

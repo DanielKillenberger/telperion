@@ -9,8 +9,10 @@
 //!
 //! An experiment behind its own entry point until the council's early
 //! tests decide the next step: `grow` never builds one.
+mod capture;
 mod census;
 
+pub use capture::{grow_capture, Capture};
 pub use census::{Census, Cycle};
 
 use super::sketch::Sketch;
