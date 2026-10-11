@@ -180,3 +180,5 @@ Stamping itself added about 0.25 s (1.38 s stamped wall).
 **Longest dispatch:**
 - Plain: 1.59 ms, the ordinary's units `cycle_main` (one range's slowest apex; under 2 ms). Every other preset is under about 1.13 ms.
 - Exact: 2.01 ms, the oak 80's normaliser `partials_main`: one workgroup sums the contract's block of 1,024 buds serially.
+
+**The cycle's scans moved onto `hier_scan.wgsl` (2026-10-11).** The units', wake's and layout generations' scans now run on the levelled scan, extended to scan the first `fields` words of records `stride` words apart. Each scan is gated by its own levels limit and flag. `fine/scan.wgsl` remains for the fine pipeline and the task-1 single-cycle units harness (`device.rs`). On Telperion 82, plain: the unstamped wall went from 1.130 s to 1.052 s (median of 3), units and wake from 425.7 ms to 363.7 ms, and layout from 136.4 ms to 119.0 ms. The final counts are unchanged (`raw/scan-before.txt`, `raw/scan-after.txt`). The exact young presets and determinism tests stay green.

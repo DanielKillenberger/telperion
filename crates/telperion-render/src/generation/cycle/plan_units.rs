@@ -9,8 +9,10 @@ use super::census::{self as c, Flag};
 use super::device::{CYCLE, FLAG, GATHER, T_LIST, T_UNITS, T_UNITS_B, T_WAKE, T_WAKE_B};
 use super::glue;
 use super::plan::{Builder, PassId, MAXX};
-use super::plan_scan::{fine, Fine};
-use super::gate::{rec, Cond};
+use super::plan_scan::{levelled, levels_needed, sums_words, Shape};
+use super::gate::{levels_of, rec, Cond, Scan};
+use super::hier_scan::zeroed;
+use crate::buffer::Owned;
 use super::vm::E;
 use crate::Result;
 
@@ -59,10 +61,15 @@ impl Build {
     }
 
     /// The cycle's units and wake, recorded.
-    pub(super) fn plan_units(&self, b: &mut Builder, kit: &Kit, t: &Tables, (ranges, range): (u32, u32)) -> Result<Vec<Fine>> {
+    pub(super) fn plan_units(&self, b: &mut Builder, kit: &Kit, t: &Tables, (ranges, range): (u32, u32)) -> Result<Vec<Owned>> {
+        let (n_live, n_sleep) = (self.state.caps.next, self.state.caps.sleepers);
         b.point();
         let live = E::At(c::LIVE);
+        let sleepers = E::At(c::SLEEPERS0);
         b.flag(Flag::UnitRanges, live.clone().gt(E::At(rec::UNITS).mul(E::C(range))));
+        let most = |n: u32| levels_of(n) as usize;
+        b.flag(Flag::UnitScan, levels_needed(&live, most(n_live)).gt(E::At(rec::scan(Scan::Units))));
+        b.flag(Flag::SleepScan, levels_needed(&sleepers, most(n_sleep)).gt(E::At(rec::scan(Scan::Sleep))));
         b.point();
         let laid = E::At(c::LAID0);
         let w = glue::Words { n: 0, live_stride: self.sums.live_stride, ..glue::Words::default() };
@@ -77,7 +84,6 @@ impl Build {
                 binds.push((self.units_bind(b, kit, t, slot), size));
             }
         }
-        let sleepers = E::At(c::SLEEPERS0);
         let mut wake = Vec::new();
         for emit in 0..2 {
             let slot = self.units_slot(b, t, sleepers.clone(), (emit, 1, 0));
@@ -91,29 +97,34 @@ impl Build {
             b.dispatch(unit(CYCLE), bind.clone(), *size);
             b.leave();
         }
+        let words = sums_words(n_live, 4).max(sums_words(n_sleep, 4));
+        let sums = zeroed(b.gpu, "units scan sums", words)?;
         let lists = &self.state.lists;
-        let (n_live, n_sleep) = (self.state.caps.next, self.state.caps.sleepers);
-        let scan = (&kit.units.scan, PassId::UnitScan);
-        let (a, b_at) = ((&self.counts, 0), (&self.counts, self.b_at()));
-        let mut held = vec![
-            fine(b, scan, a, (live.clone(), n_live, 4, 4), (lists, T_UNITS as u64))?,
-            fine(b, scan, b_at, (live.clone(), n_live, 4, 4), (lists, T_UNITS_B as u64))?,
-        ];
+        let (a, b_at) = (0, u64::from(self.b_at()));
+        // The first `fields` of 4-word counts from word `at`, `n` of
+        // them at most, totalled to the lists' word `to`.
+        let scan = |b: &mut Builder, (at, fields, to): (u64, u32, usize), (rows, kind): (&E, Scan)| {
+            let n = if kind == Scan::Units { n_live } else { n_sleep };
+            let shape = Shape { stride: 4, fields };
+            levelled(b, (&kit.hier.scan, kind), (&self.counts, at, n, shape), &sums, (lists, to as u64), rows.clone());
+        };
+        scan(b, (a, 4, T_UNITS), (&live, Scan::Units));
+        scan(b, (b_at, 4, T_UNITS_B), (&live, Scan::Units));
         for (r, (bind, size)) in emitted.iter().enumerate() {
             b.enter(Cond::Units(r as u32));
             b.dispatch(unit(CYCLE), bind.clone(), *size);
             b.leave();
         }
         b.dispatch(unit(FLAG), wake[0].0.clone(), wake[0].1);
-        held.push(fine(b, scan, a, (sleepers.clone(), n_sleep, 4, 1), (lists, T_LIST as u64))?);
+        scan(b, (a, 1, T_LIST), (&sleepers, Scan::Sleep));
         b.dispatch(unit(GATHER), wake[0].0.clone(), wake[0].1);
         b.dispatch(unit(CYCLE), wake[0].0.clone(), wake[0].1);
-        held.push(fine(b, scan, a, (sleepers.clone(), n_sleep, 4, 4), (lists, T_WAKE as u64))?);
-        held.push(fine(b, scan, b_at, (sleepers, n_sleep, 4, 4), (lists, T_WAKE_B as u64))?);
+        scan(b, (a, 4, T_WAKE), (&sleepers, Scan::Sleep));
+        scan(b, (b_at, 4, T_WAKE_B), (&sleepers, Scan::Sleep));
         b.dispatch(unit(CYCLE), wake[1].0.clone(), wake[1].1);
         b.tally(lists, 0, c::MADE, 4 * 24);
         self.plan_made(b, kit, t);
-        Ok(held)
+        Ok(vec![sums])
     }
 
     /// What the units made taken into the census, its capacities and

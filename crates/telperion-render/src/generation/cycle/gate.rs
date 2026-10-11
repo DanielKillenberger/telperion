@@ -13,16 +13,20 @@ use super::census as c;
 pub(super) enum Scan {
     /// The hierarchy step's children (the laid axes), its blocks' joiners
     /// and members (blocks and new axes), its openers (new axes), its
-    /// levels; the sums' living flags; the layout's grown axes.
+    /// levels; the sums' living flags; the layout's grown axes; the units'
+    /// living apexes and sleeping buds; the layout's new axes.
     Kids,
     Blocks,
     Open,
     Levels,
     Live,
     Grew,
+    Units,
+    Sleep,
+    Lay,
 }
 
-pub(super) const SCANS: usize = 6;
+pub(super) const SCANS: usize = 9;
 
 /// A condition on a recorded step: its range, round, pass, level,
 /// generation or scan level against the cycle's limit.

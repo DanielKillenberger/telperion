@@ -1,54 +1,13 @@
 //! The scans of a recorded cycle (`plan.rs`), each over a count only the
-//! device knows: `fine/scan.wgsl`'s three dispatches, its totals copied
-//! where its readers look; and `hier_scan.wgsl`'s levels, recorded for
-//! the most rows the buffer holds, a level past the count's own top
-//! dispatched empty.
+//! device knows: `hier_scan.wgsl`'s levels, recorded for the most rows
+//! the buffer holds, a level past the count's own top dispatched empty.
 use super::super::io;
 use super::gate::{Cond, Scan};
-use super::plan::{Builder, PassId, Size, Step, MAXX, SLOT_BYTES};
-use super::vm::E;
+use super::plan::{Builder, PassId, MAXX, SLOT_BYTES};
 use crate::buffer::Owned;
-use crate::Result;
+use super::vm::E;
 
 const SPAN: u32 = 256;
-
-fn zeroed(b: &Builder, label: &'static str, words: u64) -> Result<Owned> {
-    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-    io::buffer(b.gpu, label, words.max(4) * 4, usage, &[])
-}
-
-/// A fine scan's buffers, kept as long as the plan.
-pub(super) struct Fine {
-    _sums: Owned,
-    _totals: Owned,
-}
-
-/// `fine/scan.wgsl` over `n` records `stride` words apart (at most `cap`
-/// of them), their first `fields`, its totals copied to `to` at word
-/// `w`; `pass` its module, `id` its plan name.
-#[allow(clippy::too_many_arguments)]
-pub(super) fn fine(
-    b: &mut Builder,
-    (pass, id): (&io::Pass, PassId),
-    (data, at): (&Owned, u32),
-    (n, cap, stride, fields): (E, u32, u32, u32),
-    (to, w): (&wgpu::Buffer, u64),
-) -> Result<Fine> {
-    let sums = zeroed(b, "plan scan sums", 4 * u64::from(cap.div_ceil(SPAN).max(1)))?;
-    let totals = zeroed(b, "plan scan totals", 4)?;
-    let slot = b.slot(&[0, stride, fields, 0, MAXX * 64, 0, 0, 0]);
-    b.set(slot, 0, n.clone());
-    b.set(slot, 3, n.clone().div(E::C(SPAN)));
-    let blocks = b.groups(n.clone().div(E::C(SPAN)).div(E::C(64)));
-    let spread = b.groups(n.div(E::C(64)));
-    let data_bytes = data.size() - 4 * u64::from(at);
-    for (entry, size) in [(0, blocks), (1, Size::Direct(1)), (2, spread)] {
-        let bound = slice_bind(b, pass, slot, (data, 4 * u64::from(at), data_bytes), &[whole(&sums), whole(&totals)]);
-        b.dispatch((id, entry), bound, size);
-    }
-    b.step(Step::Copy { from: (*totals).clone(), at: 0, to: to.clone(), to_at: 4 * w, bytes: 16 });
-    Ok(Fine { _sums: sums, _totals: totals })
-}
 
 /// The level sizes a column of `rows` holds at most, from the first.
 fn levels(rows: u32) -> Vec<u32> {
@@ -65,22 +24,41 @@ pub(super) fn levels_needed(rows: &E, most: usize) -> E {
     (1..most.max(1)).fold(E::C(1), |a, l| a.add(rows.clone().div(E::C(SPAN.pow(l as u32 - 1))).gt(E::C(SPAN))))
 }
 
-/// `hier_scan.wgsl` over `rows` words (at most `cap`) of `data` from word
-/// `at`, its levels in `sums`, its total to `tally`'s word `to`; level `l`
-/// recorded where the cycle's limit for scans of `kind` allows it.
+/// The words a scan's levels take in its sums: `fields` of each level
+/// above the first of a column of `rows`.
+pub(super) fn sums_words(rows: u32, fields: u32) -> u64 {
+    levels(rows)[1..].iter().map(|&n| u64::from(n * fields)).sum::<u64>() + 4
+}
+
+/// The shape of a scan's first level: its records `stride` words apart,
+/// their first `fields` scanned.
+#[derive(Clone, Copy)]
+pub(super) struct Shape {
+    pub stride: u32,
+    pub fields: u32,
+}
+
+/// One word a record.
+pub(super) const COLUMN: Shape = Shape { stride: 1, fields: 1 };
+
+/// `hier_scan.wgsl` over `rows` records (at most `cap`) of `data` from
+/// word `at`, its levels in `sums`, its totals to `tally` from word `to`;
+/// level `l` recorded where the cycle's limit for scans of `kind` allows.
 pub(super) fn levelled(
     b: &mut Builder,
     (pass, kind): (&io::Pass, Scan),
-    (data, at, cap): (&Owned, u64, u32),
+    (data, at, cap, shape): (&Owned, u64, u32, Shape),
     sums: &Owned,
-    (tally, to): (&Owned, u64),
+    (tally, to): (&wgpu::Buffer, u64),
     rows: E,
 ) {
     let most = levels(cap);
     let mut starts = vec![0u32; most.len() + 1];
     for l in 2..=most.len() {
-        starts[l] = starts[l - 1] + most[l - 1];
+        starts[l] = starts[l - 1] + shape.fields * most[l - 1];
     }
+    // The tally bound from a 64-word boundary, its first total past it.
+    let (base, out) = (to / 64 * 64, (to % 64) as u32);
     let span = |l: usize| E::C(SPAN.pow(l as u32));
     // Level `l` is the count's own while the level below is past a span.
     let exists = |l: usize| match l {
@@ -91,13 +69,14 @@ pub(super) fn levelled(
     let top = |l: usize| exists(l).sel(E::C(1).sub(size(l).gt(E::C(SPAN))), E::C(0));
     let mut binds = Vec::new();
     for l in 0..most.len() {
-        let slot = b.slot(&[0, starts[l], starts[l + 1], u32::from(l == 0), 0, MAXX, 0, 0]);
+        let words = [0, starts[l], starts[l + 1], u32::from(l == 0), 0, MAXX, shape.stride, shape.fields, out, 0, 0, 0];
+        let slot = b.slot(&words);
         b.set(slot, 0, size(l));
         b.set(slot, 4, top(l));
         let up = b.groups(exists(l).sel(size(l).div(E::C(SPAN)).max(E::C(1)), E::C(0)));
         let down = b.groups(top(l).sel(E::C(0), size(l).div(E::C(64))));
-        let data_bytes = 4 * u64::from(cap.max(1));
-        let rest = [whole(sums), Slice(tally, 4 * to, Some(256))];
+        let data_bytes = (4 * u64::from(cap.max(1)) * u64::from(shape.stride)).min(data.size() - 4 * at);
+        let rest = [whole(sums), Slice(tally, 4 * base, Some(256))];
         binds.push((slice_bind(b, pass, slot, (data, 4 * at, data_bytes), &rest), up, down));
     }
     for (l, (bind, up, _)) in binds.iter().enumerate() {

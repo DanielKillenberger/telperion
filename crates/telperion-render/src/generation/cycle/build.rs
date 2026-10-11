@@ -49,9 +49,7 @@ impl Kit {
     pub(super) fn pass(&self, id: PassId) -> &super::super::io::Pass {
         match id {
             PassId::Units => &self.units.cycle,
-            PassId::UnitScan => &self.units.scan,
             PassId::Layout => &self.layout.layout,
-            PassId::LayScan => &self.layout.scan,
             PassId::HierBuild => &self.hier.build,
             PassId::HierSums => &self.hier.sums,
             PassId::HierScan => &self.hier.scan,

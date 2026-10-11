@@ -12,7 +12,7 @@ use super::hier_build::{R_LVL_START, X_FAULT, X_GENS, X_LEVELS, X_UNPLACED};
 use super::hier_device::{self as hd, BUD_BLOCK, CLEARED, FROM_TREE, V_FLAG};
 use super::hier_plan as hp;
 use super::plan::{Builder, PassId, Size, Step, MAXX};
-use super::plan_scan::{levelled, levels_needed};
+use super::plan_scan::{levelled, levels_needed, COLUMN};
 use super::vm::E;
 
 /// How far the hierarchy's loops are recorded: generations a step
@@ -90,7 +90,7 @@ impl Build {
         let _ = old;
         let scan = |b: &mut Builder, (col, kind): (u64, Scan), rows: E, to: u64| {
             let at = col * u64::from(s);
-            levelled(b, (&kit.hier.scan, kind), (&h.counts, at, s), &h.sums, (&h.tally, to), rows);
+            levelled(b, (&kit.hier.scan, kind), (&h.counts, at, s, COLUMN), &h.sums, (&h.tally, to), rows);
         };
         scan(b, (hp::C_KIDS, Scan::Kids), n.clone(), hp::X_KIDS);
         let base = rounds[0].0.clone();
@@ -191,7 +191,7 @@ impl Build {
         sweep(b, hd::WALK, false);
         b.dispatch(sums(hd::SHED), base.clone(), apexes);
         let cap = m.live_stride;
-        levelled(b, (&kit.hier.scan, Scan::Live), (&m.live, V_FLAG * u64::from(cap), cap), &m.scan_sums, (&m.tally, 0), live);
+        levelled(b, (&kit.hier.scan, Scan::Live), (&m.live, V_FLAG * u64::from(cap), cap, COLUMN), &m.scan_sums, (&m.tally, 0), live);
         b.dispatch(sums(hd::COMPACT), base.clone(), apexes);
         b.dispatch(sums(hd::PRESENCE), base.clone(), apexes);
         sweep(b, hd::SUB, true);

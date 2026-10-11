@@ -101,6 +101,10 @@ impl Scan {
                 u32::from(l == 0),
                 u32::from(l == top),
                 widest(gpu).1,
+                1,
+                1,
+                0,
+                0,
                 0,
                 0,
             ];

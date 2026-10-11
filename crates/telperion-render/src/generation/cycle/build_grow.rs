@@ -96,7 +96,7 @@ fn short(flag: Flag, census: &[u32], b: &Bounds) -> Option<usize> {
         Flag::HierPasses => at(rec::ROUNDS + 1, b.hier.passes, S_PASSES),
         Flag::HierLevels => at(rec::LEVELS, b.hier.levels, S_LEVELS),
         Flag::LayGenerations => at(rec::LAYGENS, b.lay.generations, S_LAYGENS),
-        Flag::HierScans | Flag::LiveScan | Flag::GrewScan => Some(S_SCANS),
+        Flag::HierScans | Flag::LiveScan | Flag::GrewScan | Flag::UnitScan | Flag::SleepScan | Flag::LayScan => Some(S_SCANS),
         _ => None,
     }
 }
@@ -218,13 +218,17 @@ fn limits(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> Limits {
     let r = b.ranges;
     let deepest = (0..DEEP as usize).filter(|&g| read[c::LAY_DEEP + g] != 0).count() as u32;
     let axes = ahead((c::AXES, S_SCANS), read[c::AXES]);
+    let living = levels_of(read[c::NEXT] * m(S_SCANS) + 2 * ahead((c::AXES, S_SCANS), born));
     let scans = [
         levels_of(axes),
         levels_of(ahead((c::AXES, S_SCANS), read[c::BLOCKS0] + born)),
         levels_of(ahead((c::AXES, S_SCANS), born)),
         levels_of(read[c::LEVELS] + read[c::GENS] + 8 * m(S_SCANS)),
-        levels_of(read[c::NEXT] * m(S_SCANS) + 2 * ahead((c::AXES, S_SCANS), born)),
+        living,
         levels_of(axes),
+        living,
+        levels_of(ahead((c::SLEEPERS, S_SCANS), read[c::SLEEPERS])),
+        levels_of(ahead((c::AXES, S_SCANS), born)),
     ];
     Limits {
         units: live.div_ceil(r.units),

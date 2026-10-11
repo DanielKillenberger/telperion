@@ -12,7 +12,6 @@ use super::plan_scan::levels_needed;
 use super::plan::{Builder, Gated, PassId, Plan, Size, Step, MAXX};
 use super::plan_hier::HierBounds;
 use super::plan_lay::LayBounds;
-use super::plan_scan::Fine;
 use super::vm::E;
 use crate::{Gpu, Result};
 
@@ -63,7 +62,7 @@ pub(super) struct Phases {
     pub hier: [Vec<Gated>; 2],
     pub units: Vec<Gated>,
     pub sketch: Vec<Gated>,
-    _held: Vec<Fine>,
+    _held: Vec<crate::buffer::Owned>,
 }
 
 impl Build {

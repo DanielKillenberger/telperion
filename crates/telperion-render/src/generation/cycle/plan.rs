@@ -24,9 +24,7 @@ pub(super) const MAXX: u32 = 65535;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum PassId {
     Units,
-    UnitScan,
     Layout,
-    LayScan,
     HierBuild,
     HierSums,
     HierScan,

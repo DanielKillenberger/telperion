@@ -90,9 +90,12 @@ pub(super) enum Flag {
     HierScans,
     LiveScan,
     GrewScan,
+    UnitScan,
+    SleepScan,
+    LayScan,
 }
 
-pub(super) const FLAG_NAMES: [Flag; 25] = [
+pub(super) const FLAG_NAMES: [Flag; 28] = [
     Flag::Axes,
     Flag::Units,
     Flag::Phyts,
@@ -118,6 +121,9 @@ pub(super) const FLAG_NAMES: [Flag; 25] = [
     Flag::HierScans,
     Flag::LiveScan,
     Flag::GrewScan,
+    Flag::UnitScan,
+    Flag::SleepScan,
+    Flag::LayScan,
 ];
 
 impl Flag {

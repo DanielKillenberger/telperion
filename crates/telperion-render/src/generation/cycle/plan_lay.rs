@@ -11,8 +11,10 @@ use super::glue;
 use super::lay_device::{self as ld, DEEP, T_DEEP, T_FAULT};
 use super::light_program::{SWEEP_WG, SWEEP_WORK};
 use super::plan::{Builder, PassId, Size, Step, MAXX};
-use super::plan_scan::{fine, levelled, Fine};
-use super::gate::{rec, Cond, Scan};
+use super::plan_scan::{levelled, levels_needed, sums_words, COLUMN};
+use super::gate::{levels_of, rec, Cond, Scan};
+use super::hier_scan::zeroed;
+use crate::buffer::Owned;
 use super::vm::E;
 use crate::Result;
 
@@ -47,7 +49,7 @@ impl Build {
     }
 
     /// The cycle's layout, recorded.
-    pub(super) fn plan_layout(&self, b: &mut Builder, kit: &Kit, (bound, range): (LayBounds, u32)) -> Result<Vec<Fine>> {
+    pub(super) fn plan_layout(&self, b: &mut Builder, kit: &Kit, (bound, range): (LayBounds, u32)) -> Result<Vec<Owned>> {
         let s = self.state.caps.axes;
         b.step(Step::Clear { buffer: (*self.flags).clone(), at: 0, bytes: None });
         b.step(Step::Clear { buffer: (*self.layout.lists).clone(), at: 4 * T_DEEP, bytes: Some(4 * u64::from(DEEP)) });
@@ -56,7 +58,7 @@ impl Build {
         let w = glue::Words { live_stride: self.sums.live_stride, ..glue::Words::default() };
         let mark = [(0, live0.clone()), (14, live0), (3, laid0.clone())];
         self.glue_step(b, kit, (glue::GREW_MARK, &self.flags, &self.spare), w, &mark);
-        levelled(b, (&kit.hier.scan, Scan::Grew), (&self.flags, u64::from(s), s), &self.scan_sums, (&self.scan_tally, 0), laid0.clone());
+        levelled(b, (&kit.hier.scan, Scan::Grew), (&self.flags, u64::from(s), s, COLUMN), &self.scan_sums, (&self.scan_tally, 0), laid0.clone());
         let gather = [(0, laid0.clone()), (3, laid0)];
         self.glue_step(b, kit, (glue::GREW_GATHER, &self.flags, &self.layout.lists), w, &gather);
         b.tally(&self.scan_tally, 0, c::GREW, 4);
@@ -73,19 +75,20 @@ impl Build {
             b.dispatch(lay(ld::DRAW), bind, size);
             b.leave();
         }
+        b.flag(Flag::LayScan, levels_needed(&new, levels_of(s) as usize).gt(E::At(rec::scan(Scan::Lay))));
+        let sums = zeroed(b.gpu, "layout scan sums", sums_words(s, 1))?;
         let over_new = b.groups(new.clone().div(E::C(64)));
         let slot = self.lay_slot(b, (new.clone(), 0, 0, 0));
         let bind = self.lay_bind(b, kit, slot);
         b.dispatch(lay(ld::RELAY), bind.clone(), over_new);
         b.dispatch(lay(ld::GENERATION), bind, over_new);
-        let mut held = Vec::new();
         for g in 0..bound.generations {
             let slot = self.lay_slot(b, (new.clone(), 1, g, 0));
             let bind = self.lay_bind(b, kit, slot);
             b.enter(Cond::LayGen(g));
             b.dispatch(lay(ld::FLAG), bind.clone(), over_new);
             let lists = &self.layout.lists;
-            held.push(fine(b, (&kit.layout.scan, PassId::LayScan), (&self.layout.counts, 0), (new.clone(), s, 1, 1), (lists, 0))?);
+            levelled(b, (&kit.hier.scan, Scan::Lay), (&self.layout.counts, 0, s, COLUMN), &sums, (lists, 0), new.clone());
             for entry in [ld::GATHER, ld::FRAME, ld::DRAW] {
                 b.dispatch(lay(entry), bind.clone(), over_new);
             }
@@ -99,7 +102,7 @@ impl Build {
         b.flag(Flag::LayGenerations, deeper);
         b.flag(Flag::LayFault, E::At(c::LAY_FAULT));
         b.flag(Flag::DrawRanges, E::At(c::GREW).gt(E::At(rec::DRAWS).mul(E::C(range))));
-        Ok(held)
+        Ok(vec![sums])
     }
 
     /// The cycle's light, recorded.

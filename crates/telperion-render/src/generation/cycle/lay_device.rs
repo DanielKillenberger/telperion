@@ -1,15 +1,13 @@
 //! The cycle's rough layout recorded on the device (DESIGN.md section
 //! 2.3) over the one resident state: the grown axes laid, each relay set
 //! at its node, the new axes' generations found, then per generation its
-//! axes listed by a flag, a scan and a gather, framed and laid. Each
-//! dispatch is its own compute pass (`io::Pass::run`), so a profile
-//! stamps each; a generation's count moves by a copy from the scan's
-//! total into the layout's tally, never to the host.
+//! axes listed by a flag, a scan (`hier_scan.wgsl`) and a gather, framed
+//! and laid. A generation's count is the scan's total, written into the
+//! layout's tally, never read by the host.
 use super::super::io;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
-const SCAN: &str = include_str!("../fine/scan.wgsl");
 
 pub(super) const DRAW: usize = 0;
 pub(super) const FRAME: usize = 1;
@@ -27,7 +25,6 @@ pub(super) const TALLY: u32 = 32;
 
 pub(super) struct Kernels {
     pub(super) layout: io::Pass,
-    pub(super) scan: io::Pass,
 }
 
 impl Kernels {
@@ -44,7 +41,6 @@ impl Kernels {
         ];
         Self {
             layout: io::Pass::new(gpu, super::layout_source(arith), &reads, &entries),
-            scan: io::Pass::new(gpu, SCAN.into(), &[false; 3], &["blocks", "spine", "spread"]),
         }
     }
 }
