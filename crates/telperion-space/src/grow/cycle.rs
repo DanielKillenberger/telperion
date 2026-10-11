@@ -71,6 +71,38 @@ pub fn grow_cycle(species: &Species, request: Request, model: Model, beside: &[C
     })
 }
 
+/// Each cycle's laid axes after its light is read: lineage, the subtree's
+/// light the next balance sums (Q), its remembered balance, and whether
+/// its apex lives. fn-254's amplification measures, re-taken on the one
+/// cycle (DESIGN.md section 4 (c)).
+pub type Traced = Vec<Vec<(u64, f64, f64, bool)>>;
+
+/// `grow_cycle`'s cycles, traced, without the final settle.
+pub fn trace_cycle(species: &Species, request: Request, model: Model) -> Result<Traced> {
+    let (mut g, _) = start(species, request, true, Options::default())?;
+    (g.one, g.model) = (true, model);
+    g.sketch.get_or_insert_with(|| Sketch::new(request.light));
+    g.rules.lasting = vec![None; species.states.len()].into();
+    let (mut advanced, mut out) = (Vec::new(), Vec::new());
+    for cycle in 1..=request.age {
+        g.year(cycle, true, &mut advanced, &mut |_| {})?;
+        let pencils = &g.sketch.as_ref().expect("sketching").pencils;
+        let mut q = vec![0.0; pencils.len()];
+        let mut living = vec![false; pencils.len()];
+        for a in g.live.iter().filter(|a| a.axis < pencils.len()) {
+            let p = &pencils[a.axis];
+            (q[a.axis], living[a.axis]) = (p.base_scale * p.running * p.light, true);
+        }
+        for i in (1..pencils.len()).rev() {
+            if let Some(parent) = g.axes[i].origin.parent() {
+                q[parent] += q[i];
+            }
+        }
+        out.push((0..pencils.len()).map(|i| (g.axes[i].lineage, q[i], pencils[i].memory, living[i])).collect());
+    }
+    Ok(out)
+}
+
 impl Grower<'_> {
     /// The light at each of `tips` from the cycle's leaves, by the
     /// grower's model; with a probe, every candidate read beside the

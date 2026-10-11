@@ -37,8 +37,9 @@ pub struct Measure {
     /// Seconds building and reading.
     pub build: f64,
     pub read: f64,
-    /// Each cycle's buds, mean absolute difference, mean and largest visits.
-    pub cycles: Vec<[f64; 4]>,
+    /// Each cycle's buds, mean absolute difference, mean and largest
+    /// visits, and the nodes the volumes held.
+    pub cycles: Vec<[f64; 5]>,
 }
 
 impl Probe {
@@ -79,7 +80,7 @@ impl Probe {
             crate::cores::fill(&mut read, 1 << 8, threads, &|i| volumes.read(tips[i], &directions, k));
             m.build += built - begun;
             m.read += crate::clock::seconds() - built;
-            let mut cycle = [tips.len() as f64, 0.0, 0.0, 0.0];
+            let mut cycle = [tips.len() as f64, 0.0, 0.0, 0.0, volumes.len() as f64];
             let stride = tips.len().div_ceil(SAMPLE).max(1);
             for (i, (&l, &(v, visited))) in lattice.iter().zip(&read).enumerate() {
                 let d = v - l;

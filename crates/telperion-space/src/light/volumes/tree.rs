@@ -121,6 +121,11 @@ impl Volumes {
         }
     }
 
+    /// The nodes it holds.
+    pub fn len(&self) -> usize {
+        self.nodes.len()
+    }
+
     /// The light at `at` under `directions` (unit vectors and shares) and
     /// `extinction`, and the nodes the read visited.
     pub fn read(&self, at: Vec3, directions: &[(Vec3, f64)], extinction: f64) -> (f64, u32) {
