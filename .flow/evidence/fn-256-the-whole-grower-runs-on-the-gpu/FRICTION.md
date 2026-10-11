@@ -168,3 +168,15 @@
 - **Slowed it:** the second build ran out of memory in `Build::new`, at 1.7 GiB of 10 GiB in use. Dropped builds are not freed until the device is polled, so two 3.4 GB builds plus a settle overlapped. The busy settle timing test had the same shape.
 - **Cost:** two runs, about 5 minutes and a backtrace.
 - **Would remove it:** a helper that drops a build and polls the device, used between builds by every measurement test; or a ledger that frees on submission completion rather than only on poll.
+
+## 2026-10-11: the acceptance measurement and compaction (worker)
+
+- **Doing:** timing every preset with retirement and compaction on, per phase.
+- **Slowed it:**
+  - The existing measurement builds again at the sizes found by a first build, so that each stamp pairs with one phase. A build at its final sizes never moves, so it never compacts. A build from the least sizes restarts and moves, and the stamps from that discarded and moved work have no phase in `Grew::stamped`.
+  - Each preset therefore had to be built two ways. Two runs failed on that assertion before I saw why.
+  - Separately, `the_settle_compiles` had gone stale. It bound six buffers where the settle now binds eight, and it named `place_main`, which the bounded walk removed.
+- **Cost:** about 10 minutes and three runs.
+- **Would remove it:**
+  - give the stamps from restarts and moves a phase ("again", "move", "compaction") in `Grew::stamped`, so that one build from the least sizes can be read per phase;
+  - have the compile test take its binding lists from `Kernels::new`.
