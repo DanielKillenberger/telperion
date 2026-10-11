@@ -182,3 +182,13 @@ What the numbers show:
    - **Records:** the oak at 80 keeps 6.7M record rows, more than its 3.35M arena rows, because its PAs keep leaf girth.
 3. **The oak's leaf mean** is 429 ms plain at 80 (SETTLE-PLAN risk 1, the host's call).
 4. **The retirement phase** is 237 ms of Telperion 82's 1,256 ms build.
+
+## Review round 1 (codex, 2026-10-12)
+
+**Fixed**, each with a test that failed first:
+- **Lifespans past 32 bits of ticks:** widened (49c58268a). The executor refuses requests of 2,048 cycles or more by name; accumulated time stays in 32-bit ticks, so widening it is open for the host.
+- **The probe's and the spike example's composers:** they now include `fine/arith.wgsl` (de6772a75).
+- **Exact `partials_main`:** it sums in runs of 256 buds across dispatches, in the same order (0fbdb34e9). The exact builds' longest dispatch is now `draw_main` at 1.991 ms (oak 80) and 1.994 ms (Telperion 82), under 2 ms by about 9 µs. Plain mode's longest is 1.89 ms.
+- **No move after the last cycle:** a move there had left the settle a stale phytomer count (70e6f557c).
+
+**Declined:** plain mode's integer `sleep` ticks, floored from device-rounded floats, differing from the CPU's (261 axes on the oak at 40). This is the f32 contract the host has not ruled on (STEP2.md call 1). Exact mode equals the CPU in every word, and plain mode is COUNCIL.md's tolerance standard.
