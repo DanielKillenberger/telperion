@@ -288,3 +288,17 @@ The executor holds every such site to the CPU's order in both arithmetics: the f
 **Open, for the host:**
 1. **The settle's leaf mean** is a sequential f32 sum on the CPU. The device takes it in blocks (section 2.4). Matching it to the bit means the CPU takes the same blocked order, which moves the oak and the ordinary by f32 order. It is the same kind of contract as the normaliser's. Until that call, the device takes the CPU's sequential order in one workgroup (one dispatch, at most about 18M adds on Telperion), and its time is reported.
 2. **If the software f64 sweep costs too much,** the alternative is the CPU's sweep in f32 under the one-reduction-order contract. That changes the CPU's lattice, so it is the host's call.
+
+## 9. The host's rulings (2026-10-12)
+
+1. **Arithmetic: plain, with tolerance.** COUNCIL.md's "integers exact" means identity integers: lineage keys, canonical order, slot allocation and births, and the counts the host reads.
+   - Decisions taken from float inputs (a relay's `sleep` and the like) may differ within the lineage tolerances fn-254 R4 check 4 allows.
+   - The floor sites stay held to the CPU's order (section 8), since they cost nothing.
+   - **Exact mode is deleted,** not kept as a second build of the kernels. It cost 34% more GPU time and 96 s of cold compile, for bit equality that is not needed.
+   - EXECUTOR.md records the agreement per preset.
+2. **Subnormals:** no emulation. Both executors use plain arithmetic, inside the tolerance.
+3. **Cold compile is a blocker.** The cycle's total cold compile, native with the driver's disk cache off, comes under 2 s before task 2 closes. The owner accepts about 0.5 s a page, and Chrome's watchdog kills long compiles. The units module (37.7 s) is split into small kernels, and big helpers stop being inlined into every entry. Time per module is reported before and after.
+4. **The settle's leaf mean** becomes the canonical blocked reduction on both executors: blocks of 1,024 in subtree order. Section 8's open item 1 is closed. It may move the oak's and the ordinary's trees by f32 order; the agreement checks and stills are the evidence.
+5. **The 2,048-cycle limit stays a named error.** Every shipped age is far under it, and widening it waits for a consumer.
+6. **The budget** belongs to task 4. After items 3 and 4, the time is reported per phase.
+
