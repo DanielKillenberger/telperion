@@ -277,3 +277,9 @@ Plain, default age, seed 42. "Identity integers" are kind, parent, node, whorl, 
 - **The oak at 80, seed 1:** 1.33 s, its longest dispatch 0.857 ms.
 - **Every dispatch** of every build is under 1 ms.
 - **Dispatches against the Chrome target** (DESIGN.md 7a, about 340 a cycle): they are over it, at 765 a cycle on Telperion, about 0.44 s at 7 µs. This goes to task 4's budget with the units' round gating (ruling 9.6).
+
+## Review round 2 (codex, 2026-10-12)
+
+- **Fixed:** the lifespan boundary. An age now ends where the time left in it does, past 32 bits (519957c91, with a test that reaches the boundary).
+- **Ruled by the host:** plain mode's float-derived `sleep` ticks may differ from the CPU's within the lineage tolerance (DESIGN.md 9.1). The identity integers are exact on every preset at default age (table above).
+- **The review cap** was reset by the coordinator's instruction, since the remaining finding was that ruling.

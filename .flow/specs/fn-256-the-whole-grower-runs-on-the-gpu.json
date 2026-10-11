@@ -10,9 +10,7 @@
     "fn-255-one-growth-law-reads-light-for-every"
   ],
   "id": "fn-256-the-whole-grower-runs-on-the-gpu",
-  "impl_review_rounds": {
-    "fn-256-the-whole-grower-runs-on-the-gpu.2": 2
-  },
+  "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -234,8 +232,9 @@
     }
   ],
   "review_hash_epoch": {
-    "plan": 1,
-    "plan#completion": 0
+    "impl:fn-256-the-whole-grower-runs-on-the-gpu.2": 1,
+    "plan": 2,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -257,5 +256,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-11T21:28:44.797631Z"
+  "updated_at": "2026-10-11T23:54:13.299908Z"
 }
