@@ -13,7 +13,7 @@
   "id": "fn-257-the-site-grows-its-trees-on-the-device",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 0,
+  "plan_review_rounds": 1,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-10-09T20:06:23.784312Z",
   "review_attempts": [
@@ -219,8 +219,19 @@
     "plan": 2,
     "plan#completion": 1
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "plan": 1
+  },
+  "review_reservations": {
+    "3950595a2a6d42c6847e53f178d6f91f": {
+      "artifact_sha256": "29031261e8a2bf3b8a705088ff80f94675b1b64416c2f779fb12837ff8f5ad10",
+      "counter_scope": "plan",
+      "epoch": 2,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "plan"
+    }
+  },
   "review_transport_failures": {
     "plan": 0
   },
@@ -238,5 +249,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-11T11:01:41.446372Z"
+  "updated_at": "2026-10-11T11:01:46.289746Z"
 }
