@@ -101,7 +101,7 @@ pub(crate) fn turn(lever: W3, cap: f32, sag: f64, radius: f64, length: f64) -> f
     // The fall from hanging, in [0, 1/2] turn: by its sine and cosine, so
     // an upright lever is a half turn and never wraps to minus one, and a
     // small lean near upright keeps its size (fn-254 review).
-    let start = atan2(u[0].hypot(u[1]), -u[2]);
+    let start = atan2(u[0].hypot_fixed(u[1]), -u[2]);
     let low = between(0.0, asin(exp2((cap - reach).min(0.0))));
     let high = 0.5 - low;
     // `fall` settled over `s` metres: 2 atan(tan(fall / 2) e^(-c reach s)).
