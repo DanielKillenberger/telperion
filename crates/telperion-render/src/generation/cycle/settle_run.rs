@@ -51,8 +51,19 @@ pub(super) struct Settled {
     /// (`s_error`'s code and grown axis; none: 0).
     pub kept_starts: Vec<u32>,
     pub error: [u32; 2],
+    /// The growth's bytes freed before the settle, and the settle's own
+    /// at its largest.
+    pub freed: u64,
     pub flags: u32,
     pub stamped: Vec<&'static str>,
+}
+
+impl Settled {
+    /// The bytes the settle holds: its work, counts, node table and the
+    /// place's columns.
+    pub(super) fn bytes(&self) -> u64 {
+        [&self.work, &self.atom, &self.nt, &self.pw].iter().map(|b| b.size()).sum()
+    }
 }
 
 /// One settle's recording state.
@@ -119,6 +130,7 @@ enum Data {
 /// The settle of the build `b` grew, as far as `to`, each PA's constants
 /// `pa` (`grow_capture_settle_tables`).
 pub(super) fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Build, &Tables), (pa, to): (&[u32], SettleTo)) -> Result<Settled> {
+    let freed = b.shed_growth();
     let h = b.held;
     let layout = Layout::new(h.axes, h.phyts, h.units, h.next.max(h.woken), t.pas);
     let flags = flags(pa);
@@ -160,7 +172,7 @@ pub(super) fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Build, &Ta
     }
     let pw = zeroed(gpu, "settle place", 4)?;
     let error = if collapsed { [1, u32::MAX] } else { [0, u32::MAX] };
-    let mut s = Settled { layout, table, work: r.work, atom: r.atom, nt: r.nt, pw, kept_starts, error, flags, stamped: r.stamped };
+    let mut s = Settled { layout, table, work: r.work, atom: r.atom, nt: r.nt, pw, kept_starts, error, freed, flags, stamped: r.stamped };
     if collapsed || to == SettleTo::Shed {
         return Ok(s);
     }

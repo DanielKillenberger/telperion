@@ -33,6 +33,7 @@ mod settle_device;
 mod settle_place;
 mod settle_read;
 mod settle_run;
+mod settle_scratch;
 mod state;
 mod vm;
 #[cfg(test)]
@@ -57,6 +58,8 @@ mod settle_det_tests;
 mod settle_math_tests;
 #[cfg(test)]
 mod settle_tests;
+#[cfg(test)]
+mod settle_time_tests;
 #[cfg(test)]
 mod soft64_tests;
 #[cfg(test)]

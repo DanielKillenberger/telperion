@@ -94,10 +94,10 @@ fn settled(fall: f32, s: f32, c: f32, reach: f32) -> f32 {
     return settle_fall(fall, m(k, QLOG2E));
 }
 
-// The beam's turn under `lever`, its moment capped at `cap`
-// (`sag::turn`), `saglog` the PA's sag's log2.
-fn sag_turn(lever: vec3<f32>, cap: f32, saglog: f32, r: f32, left0: f32) -> f32 {
-    let uw = unit_w(lever);
+// The beam's turn under a lever, by its unit and length's log2 `uw`
+// (`unit_w`), its moment capped at `cap` (`sag::turn`), `saglog` the
+// PA's sag's log2.
+fn sag_turn(uw: UnitW, cap: f32, saglog: f32, r: f32, left0: f32) -> f32 {
     let reach = uw.l;
     if reach <= -INF || cap <= -INF || r <= 0.0 || left0 <= 0.0 {
         return 0.0;
@@ -108,19 +108,22 @@ fn sag_turn(lever: vec3<f32>, cap: f32, saglog: f32, r: f32, left0: f32) -> f32 
     let high = 0.5 - low;
     var fall = start;
     var left = left0;
+    // Each way out settles what is left (`settled`) at one call site, so
+    // the driver inlines it once.
+    var whole = false;
     if fall > high {
         let ln = tangent_ratio(fall, high);
         var s = INF;
         if ln < INF {
             s = m(ln, exp2c(-(c + reach)));
         }
-        if s >= left {
-            return start - settled(fall, left, c, reach);
+        whole = s >= left;
+        if !whole {
+            fall = high;
+            left = left - s;
         }
-        fall = high;
-        left = left - s;
     }
-    if fall > low {
+    if !whole && fall > low {
         let rate = c + cap;
         let s = m(m(fall - low, QTAU), exp2c(-rate));
         if s >= left {

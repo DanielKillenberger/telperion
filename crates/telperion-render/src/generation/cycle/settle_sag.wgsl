@@ -17,18 +17,29 @@ fn sag_of(i: u32, r: u32, len: f32, at: mat3x3<f32>, trunk: bool) -> Sag {
     let chord0 = vec3<f32>(pq_at(r, Q_LEVER + 3u), pq_at(r, Q_LEVER + 4u), pq_at(r, Q_LEVER + 5u));
     let laid = sag_frame(ph3(r, PH_HEADING), ph3(r, PH_SIDE));
     let here = sag_frame(at[0], at[1]);
-    var now = moment;
-    var chord = chord0;
+    // The lever and its chord carried at one call site, so the driver
+    // inlines the carry once.
+    var both = array<vec3<f32>, 2>(moment, chord0);
     if laid.ok && here.ok {
-        now = frame_carry(laid, here, moment);
-        chord = frame_carry(laid, here, chord0);
+        for (var k = 0u; k < 2u; k++) {
+            both[k] = frame_carry(laid, here, both[k]);
+        }
     }
+    var now = both[0];
+    let chord = both[1];
     var share = 1.0;
     if !trunk {
         share = held(at[2].z, chord);
     }
     now = sub_scaled(now, share);
-    let pivot = unit_w(torque(now));
+    // The torque now, the torque unturned and the lever now, each a unit
+    // and its length's log2 at one call site.
+    let levers = array<vec3<f32>, 3>(torque(now), torque(moment), now);
+    var units: array<UnitW, 3>;
+    for (var k = 0u; k < 3u; k++) {
+        units[k] = unit_w(levers[k]);
+    }
+    let pivot = units[0];
     if pivot.l <= -INF {
         return none;
     }
@@ -42,8 +53,8 @@ fn sag_of(i: u32, r: u32, len: f32, at: mat3x3<f32>, trunk: bool) -> Sag {
     if room > 0.5 {
         room = m(2.0, 0.75 - room);
     }
-    let cap = unit_w(torque(moment)).l + log2_q(share);
-    var angle = sag_turn(now, cap, kf(pa, K_SAGLOG), radius, len);
+    let cap = units[1].l + log2_q(share);
+    var angle = sag_turn(units[2], cap, kf(pa, K_SAGLOG), radius, len);
     angle = min(angle, max(room - HANG_AMOUNT, 0.0));
     if !trunk {
         angle = m(angle, support(at[2].z, radius, len));

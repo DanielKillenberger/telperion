@@ -111,7 +111,7 @@ fn turn_main(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     let x = 7u * i;
     let lever = vec3<f32>(xs[x], xs[x + 1u], xs[x + 2u]);
-    out[4u * i] = sag_turn(lever, xs[x + 3u], xs[x + 4u], xs[x + 5u], xs[x + 6u]);
+    out[4u * i] = sag_turn(unit_w(lever), xs[x + 3u], xs[x + 4u], xs[x + 5u], xs[x + 6u]);
     let uw = unit_w(lever);
     out[4u * i + 1u] = qatan2(hypotf(uw.u.x, uw.u.y), -uw.u.z);
     out[4u * i + 2u] = qbetween(0.0, qdiv(asinf(clamp(exp2c(min(xs[x + 3u] - uw.l, 0.0)), -1.0, 1.0)), QTAU));
@@ -151,14 +151,15 @@ fn sags_turn_is_the_cpus() {
         cases.push((lever, cap, sag, radius, length));
     }
     let shader = format!(
-        "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{TURN}\nfn exact_zero() -> u32 {{\n    return n.z;\n}}\n",
+        "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{TURN}\nfn exact_zero() -> u32 {{\n    return n.z;\n}}\n",
         super::super::fine::contract_with(arith.marks()),
         arith.root(),
         super::settle_device::soft64(),
         super::Q,
         super::SINCOS,
         include_str!("settle_libm.wgsl"),
-        format!("{}\n{}", super::settle_device::sub(arith), super::settle_device::sag_math())
+        super::settle_device::sub(arith),
+        super::settle_device::sag_math()
     );
     let pass = io::Pass::new(&gpu, shader, &[true, false], &["turn_main"]);
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
