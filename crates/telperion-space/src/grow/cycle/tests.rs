@@ -82,3 +82,18 @@ fn the_quantised_deposit_is_order_free_and_refuses_overflow() {
     let refused = Field::quantised(&light, &heavy, &[], 1).err().expect("refused");
     assert!(format!("{refused}").starts_with("light.deposit"), "{refused}");
 }
+
+/// The working set's balance and allotment are the whole tree's to the
+/// bit: the oak, whose every PA sheds by its balance and sizes by its
+/// light, grows the whole-tree engine's tree through the one cycle.
+#[test]
+fn the_working_set_grows_the_whole_trees_tree() {
+    let species = crate::oak();
+    for (age, seed) in [(24, 1), (24, 7), (30, 42)] {
+        let r = request(age, seed, 0.5);
+        let whole = crate::grow::whole(&species, r).unwrap();
+        let cycled = grow_cycle(&species, r, Deposit::F32).unwrap();
+        assert!(cycled.structure == whole, "age {age}, seed {seed}");
+    }
+}
+

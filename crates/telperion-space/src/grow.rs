@@ -376,6 +376,7 @@ struct Grower<'a> {
     deposit: cycle::Deposit,
     light_seconds: f64,
     census: Option<Box<cycle::Census>>,
+    working: Option<Box<cycle::Working>>,
 }
 
 /// Whether the realized settle (`fine::settle`) takes `species` apart from
@@ -451,6 +452,7 @@ impl<'a> Grower<'a> {
             deposit: cycle::Deposit::F32,
             light_seconds: 0.0,
             census: None,
+            working: None,
         })
     }
 }
@@ -460,6 +462,18 @@ impl Grower<'_> {
     /// share of the tree's vigour, then every living apex's growth unit,
     /// on every core (`parallel.rs`), then the sleeping buds that wake.
     fn step(&mut self, cycle: u32, report: &mut dyn FnMut(Stage)) -> Result<()> {
+        if self.one {
+            self.open(cycle);
+            self.balance_one(cycle);
+            report(Stage::Pass(Pass::Balance));
+            self.allot_one();
+            report(Stage::Pass(Pass::Allot));
+            let live = std::mem::take(&mut self.live);
+            self.grow_live(live, cycle, report)?;
+            self.wake(cycle)?;
+            report(Stage::Pass(Pass::Wake));
+            return Ok(());
+        }
         let rows = self.rows();
         self.balance(cycle, rows.as_ref());
         self.hash_phase(cycle, 0);

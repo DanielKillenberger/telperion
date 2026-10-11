@@ -70,3 +70,76 @@ This was a throwaway probe, not committed. It is the cycle with no rough layout,
 ## Committed with this report
 
 `grow_census` takes `beside`, so phase timings no longer carry the second lattice. No lever was built.
+
+# Host decisions of 2026-10-11, built so far (worker, 2026-10-11)
+
+The host's decisions: no subtree-local executor; records in subtree (DFS) order for locality; a shed subtree retired at its shedding cycle with a summary on its parent; laying shed laterals kept. Levers 1 to 3 are built and exact to the bit. Decisions 1 and 2 stop on two questions below.
+
+## Levers 1 to 3: built (`grow/cycle/working.rs`, `grow/cycle/passes.rs`)
+
+The one cycle's balance and allotment visit only the **open** axes: those on the way from the root to a living apex or a sleeping bud.
+
+- **Kept across cycles:** the links, and each axis's children by index and by node.
+- **No longer rebuilt or sorted:** the per-cycle `rows()` rebuild, and the global child sort in `allocation::split`.
+- **Reused:** the passes' lists.
+- **A closed subtree's upkeep is frozen once.** It is taken as the whole tree's pass takes it: own, then each child's subtotal, the last child first. Every descendant has a larger index, and a closed subtree lays no more wood, so every sum is the whole tree's to the bit. A closed subtree's light and lit presence are none.
+- **Proved by `the_working_set_grows_the_whole_trees_tree`:** the oak, which sheds by its balance and sizes by its light, grows through the one cycle to the whole-tree engine's tree, byte-equal at ages 24 and 30, seeds 1, 7 and 42.
+- **The open set** is 19% of the laid axes at Telperion's end: 248k of 1.33M, against 219k live apexes.
+- **The stepped executor's path is untouched.** It still takes the `rows()` route until R3b deletes it.
+
+### Before and after, per phase
+
+Each side ran twice, interleaved under the same load (load average 3; base binary from `cd947430b`).
+
+| Phase (s) | Telperion before | Telperion after | Spruce before | Spruce after |
+|---|--:|--:|--:|--:|
+| Units | 3.11–3.81 | 3.13–3.28 | 0.35–0.36 | 0.36–0.37 |
+| Sketch | 2.00–2.36 | 2.15–2.21 | 0.51–0.52 | 0.57 |
+| Balance | 1.59–2.01 | 1.26–1.29 | 0.36 | 0.33–0.34 |
+| Allot | 1.06–1.22 | 0.59–0.61 | 0.27–0.28 | 0.12 |
+| ShadeField | 0.81–0.85 | 0.83 | 0.15 | 0.15 |
+| Settle (Shed, Assign, Place, Thicken, …) | 1.3–1.4 | 1.3 | 0.7 | 0.7 |
+| **Total** | **10.92–13.14** | **10.43–10.62** | **2.57–2.60** | **2.50–2.52** |
+| **Peak memory (MB)** | **5,052–5,060** | **5,234–5,237** | **1,307–1,308** | **1,358** |
+
+- **Gains:** Allot halves and Balance falls by a fifth; together they save about 0.8 s on Telperion.
+- **Memory rises** by 50 to 180 MB: the persistent links and child lists, which nothing yet retires.
+- **The whole is still dominated** by Units, Sketch and the settle, which decisions 1 and 2 address.
+
+## Decision 2 (retirement): the question it raises
+
+How big the records are:
+
+| Record | Bytes |
+|---|--:|
+| Phytomer | 136 |
+| Axis | 264 |
+| Draws | 152 |
+| Pencil | 176 |
+
+For Telperion's 18.2M grown phytomers that is about 2.5 GB, plus about 0.9 GB for its 1.5M axes with their draws and pencils. Its kept tree is about 0.5 GB.
+
+### What the settle reads of a shed subtree, from the code
+
+| Reader | What it reads | Exact summary on the parent? |
+|---|---|---|
+| `shed::fades` (every species) | The subtree's lived time and its living presence, from its unit presences, sleep, vigour and its parent's node scale. Folded into the parent by `max`. | **Yes.** Once the subtree closes these are final (`presence::assign_one` is per axis), and `max` is order-free. `shed_given`'s `Given<Living>` already carries them. Its drop at the final age is known when it closes, because the final age is in the request. |
+| The balance's upkeep (every species with a balance hazard) | `upkeep × wood` of every axis it ever grew, for the whole run. `pencil.wood` never falls, so a shed branch keeps charging its bearer. | **Yes**, as the frozen subtotal (lever 3). This is today's behaviour. The host's premise that it "drew upkeep only while alive" does not hold in the code. Changing that would change the oak's and the ordinary tree's trees. |
+| `girth::disused::attachments` and `leaf_partials` (`keeps`: any `retained` or `leafGirth`; the oak and the ordinary tree) | The leaf term's mean over **every grown phytomer**, as an f32 sum in the order axes and phytomers stand. Also each shed child's **radius as grown** under that final mean, `section(pipe × ripe × lit(light)^χ × mean, e)` summed over its subtree. | **No closed summary is exact.** The mean is known only at the end, and the sum's order interleaves shed and kept axes. Exact retirement needs a per-phytomer record of 8 bytes: the leaf-free pipe product as f32, and the light term. That is about 146 MB at Telperion's 18.2M, against 2.5 GB today. A per-subtree, per-exponent moment `Σ (pipe·lit)^e` is exact only in real arithmetic, and would move the oak and the ordinary tree by f32 order. |
+
+**The question:** for the two presets that keep shed pipes or leaf girth (the oak and the ordinary tree), which should retirement keep?
+
+- **(a)** The 8-byte per-phytomer record, which is exact.
+- **(b)** A per-subtree moment summary, which is close but moves those two trees by f32 order, checked with the agreement tests.
+
+Restricting retirement to species without `keeps` would be the engine switch COUNCIL.md forbids. For the other six presets retirement is exact either way.
+
+## Decision 1 (subtree order): not started
+
+There is no profile of where Units' 3.1 s goes. `perf_event_paranoid` is 2 and there is no sudo (FRICTION.md).
+
+**Locality is a hypothesis, not a measurement.** The live apexes are already visited in near index order, because new axes append in live order. The per-unit code is the same as F4's roots, which grow the same units in under 1.2 s.
+
+**Reordering the records into DFS order each cycle breaks byte equality.** It changes the order of the per-PA size sums and of the settle's sums, so those would have to be taken in a canonical rank to stay exact.
+
+**What would let me proceed:** a sampling profile, with `kernel.perf_event_paranoid = 1` on this machine, to show whether Units is bound by memory traffic (each phytomer is 136 bytes, and every axis's vectors grow by push) or by the work itself, before the reorder is built.

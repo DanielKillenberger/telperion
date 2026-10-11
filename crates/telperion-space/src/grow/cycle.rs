@@ -10,8 +10,11 @@
 //! An experiment behind its own entry point until the council's early
 //! tests decide the next step: `grow` never builds one.
 mod census;
+mod passes;
+mod working;
 
 pub use census::{Census, Cycle};
+pub(super) use working::Working;
 
 use super::sketch::Sketch;
 use super::{lineage_order, start, Grower, Options, Request, Stage};

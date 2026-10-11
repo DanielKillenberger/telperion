@@ -163,6 +163,7 @@ pub(super) fn start<'a>(
         deposit: super::cycle::Deposit::F32,
         light_seconds: 0.0,
         census: None,
+        working: None,
     };
     let (from, root) = match bud {
         None => {
