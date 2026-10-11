@@ -138,7 +138,11 @@ Bounded subtrees, as COUNCIL.md decided: a block is a connected set of at most `
   - The seed opens block 0 at level 0.
   - Block membership is an append-only list per block. The assignment is a scan over the cycle's new axes in index order, so it is the same on every run.
 - **Overflow (revised 2026-10-11, after HIERARCHY.md).** A first rule gave each overflowing child a block of its own, which made about 9 axes a block on Telperion (166,539 blocks).
-  - Now the children of one cycle whose parent's block is full share the block that full block overflows into: its *spill*, at the full block's level plus one, filled in index order up to `cap`. When a spill fills, it opens its own spill.
+  - Now each block keeps one *open spill*. A child whose parent's block is full joins the open spill of that block, filled in index order up to `cap`. The spill's level is the full block's level plus one.
+  - When an open spill fills, the full block opens a fresh spill at that same level. The spills of a block are siblings, never a chain.
+  - A spill is an ordinary block: its own members' overflow goes to its own spills.
+  - So levels stay bounded by the tree's depth (each block spans at least one depth).
+  - A first wording that chained each spill to the last made every block its own level (1,430 levels on Telperion; `raw/hier-spill-probe-1.txt`).
   - So a block need not be connected. A block is any set of axes whose children outside it sit in blocks of deeper levels, which the rule keeps.
 - **Why the block shape is free:** each axis computes its own sum from its children's finished sums, in the CSR's order. Any schedule that finishes children first gives the same bits; the spike proved this at caps 256 to 4,096. So the partition is a matter of speed, never of the tree.
 - **Inside a block:** each axis stores its depth, fixed at birth, and each block keeps the least and greatest depth of its members (min and max, which are order-free). A workgroup loops the block's depths deepest first (bottom-up) or shallowest first (top-down), each thread taking the block's members at that depth. A spill's later members may be shallower than its first ones; the loop's range takes them.
