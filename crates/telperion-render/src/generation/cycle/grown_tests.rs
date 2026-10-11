@@ -59,7 +59,7 @@ pub(super) fn device(arith: Arith) -> Option<(Gpu, Kit)> {
 pub(super) fn built(gpu: &Gpu, kit: &Kit, g: &Grown, cycle: u32) -> (Build, Snapshot) {
     let t = Tables::new(gpu, &g.tables, &g.chain).expect("tables");
     let (b, sizes, grew) = grow(gpu, kit, &t, &g.tables, (Sizes::least(), cycle)).unwrap_or_else(|e| panic!("cycle {cycle}: {e}"));
-    println!("grown to {:?} with {:?}, begun again {} times, moved {}", sizes.caps, sizes.bounds, grew.again, grew.moves);
+    println!("grown to {:?} with {:?}, begun again {} times ({:?}), moved {}; workgroups given {} for {} needed", sizes.caps, sizes.bounds, grew.again, grew.why, grew.moves, grew.over.given, grew.over.needed);
     let snap = b.snapshot(gpu, cycle).expect("a readback");
     (b, snap)
 }
@@ -71,7 +71,9 @@ fn young_trees_grow_on_the_device_as_on_the_cpu() {
         return;
     };
     let mut differ = Vec::new();
-    for (preset, name, age) in YOUNG {
+    // `CYCLE_ONLY` names one preset, for a first run of a change.
+    let only = std::env::var("CYCLE_ONLY").ok();
+    for (preset, name, age) in YOUNG.into_iter().filter(|y| only.as_deref().is_none_or(|o| o == y.1)) {
         let g = grown(preset, age, 42);
         let capture = telperion_space::grow_capture_grown(&g.species, g.request).expect("the CPU's tree");
         let cpu = cpu_snapshot(&Cap(&capture));

@@ -89,6 +89,7 @@ fn measured(gpu: &Gpu, kit: &Kit, (preset, name, age, seed): (Preset, &str, u32,
         "{label}: {} dispatches, {total:.1} ms stamped, {span:.1} ms first to last, wall {wall:.2} s; longest {:.3} ms ({}); resident {:.1} MB, scratch {:.1} MB",
         stamps.len(), longest.0, longest.1, resident as f64 / 1e6, scratch as f64 / 1e6
     );
+    println!("{label}: {:.0} dispatches a cycle; workgroups given {} for {} needed", stamps.len() as f64 / f64::from(age), grew.over.given, grew.over.needed);
     for (phase, ms, n) in phases {
         println!("{label}: {phase:>24} {ms:9.2} ms in {n} dispatches");
     }
@@ -137,6 +138,21 @@ fn telperion_is_timed() {
     let arith = if std::env::var("CYCLE_EXACT").is_ok() { Arith::Exact } else { Arith::Plain };
     let kit = compiled(&gpu, arith);
     measured(&gpu, &kit, (Preset::Telperion, "telperion", 82, 42), arith);
+}
+
+/// The three builds DESIGN.md section 7a budgets, plain.
+#[test]
+#[ignore = "a measurement"]
+fn budgeted_builds_are_timed() {
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else {
+        return;
+    };
+    let kit = compiled(&gpu, Arith::Plain);
+    let cases = [(Preset::Telperion, "telperion", 82, 42), (Preset::OregonWhiteOak, "oregon-white-oak", 80, 1), (Preset::EuropeanBeech, "european-beech", 40, 42)];
+    for case in cases {
+        measured(&gpu, &kit, case, Arith::Plain);
+    }
 }
 
 #[test]

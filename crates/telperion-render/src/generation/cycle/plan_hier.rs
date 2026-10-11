@@ -167,7 +167,7 @@ impl Build {
         let mut levels = Vec::new();
         for l in 0..bound.levels {
             let slot = b.slot(&words(l));
-            for (w, e) in [(0, n.clone()), (2, live.clone()), (4, E::At(c::CYCLE))] {
+            for (w, e) in [(0, n.clone()), (2, live.clone()), (4, E::At(c::CYCLE)), (10, E::At(c::LEVELS))] {
                 b.set(slot, w, e);
             }
             let width = E::At(c::LVL + l as usize + 1).sub(E::At(c::LVL + l as usize));

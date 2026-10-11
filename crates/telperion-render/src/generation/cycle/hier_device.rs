@@ -163,7 +163,7 @@ impl Sums {
                 widest(gpu).0,
                 widest(gpu).1,
                 0,
-                0,
+                h.levels,
                 0,
             ];
             let cfg = uniform(gpu, &words)?;

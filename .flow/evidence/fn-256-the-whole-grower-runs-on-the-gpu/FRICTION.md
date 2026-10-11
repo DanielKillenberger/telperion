@@ -143,3 +143,21 @@
 - **Hindered:** the second probe put the whole cost on Dawn's validation of indirect arguments. Indirect dispatches take 429-432 µs, direct ones 5.3-6.7 µs. The executor sized every dispatch indirectly, so it must be converted to direct dispatches with bounds the host knows (DESIGN.md 7a).
 - **Cost:** one conversion pass of the growth loop's sizing, and about an hour of the host's and workers' attention on a stop that did not hold.
 - **Would remove it:** the probe's style split (indirect against direct) in its first run.
+
+## 2026-10-11, executor worker: the baseline for direct dispatches ran out of GPU memory
+
+- **Doing:** measuring Telperion 82, the oak 80 and the beech 40 before converting the growth loop to direct dispatches.
+- **Slowed by:** `wgpu error: Out of Memory` two seconds into Telperion, three times, on a build that ran 15 minutes earlier. About 3.6 GiB of the 10 GiB card is held by desktop processes, 1.1 GiB of it by a GNO embedding worker that started 6 minutes before.
+- **Cost:** three runs, about 5 minutes.
+- **Would remove it:** a GPU memory check (`nvidia-smi`) in the measurement's preamble that reports the free memory and refuses to start below what the build needs, instead of failing mid-build. The owner's machine is shared, so this is a local note, not a spec.
+
+## 2026-10-11, executor worker: direct dispatches hung the GPU three times
+
+- **Doing:** converting the growth loop's indirect dispatches to direct ones.
+- **Hindered:** NVRM Xid 109 at 20:46, 20:56 and 21:23. Under indirect sizing a halted cycle emptied every later dispatch. Under direct sizing, a kernel that reads its count from a buffer (the layout's listed axes, the sums' level sweeps, the light's lattice) ran on what the halted cycle left, and looped.
+  - The second hang was the settle worker's measurement, built from this worktree's shared target with the change half done. I stopped that process by its PID.
+  - The third was my own bisect run without the guards, while the owner had a game open on the same GPU.
+- **Cost:** about 40 minutes, a lost settle measurement, and three driver resets on the owner's desktop.
+- **Would remove it:**
+  - Make the halt a property the kernels hold (every count-reading kernel exits on a halted word), with a test that raises a flag mid-cycle on the smallest tree, before any run of a sizing change.
+  - Give each worker its own target dir, so one worker's half-built change never reaches another's run.

@@ -172,32 +172,13 @@ impl Pass {
         pass.dispatch_workgroups(groups.min(self.maximum), groups.div_ceil(self.maximum), 1);
     }
 
-    /// `run` with its workgroups (x, y, z) read from `args` at `offset`:
-    /// a dispatch the device sized (fn-256 DESIGN.md section 5).
-    #[cfg(test)]
-    pub fn run_indirect(
-        &self,
-        encoder: &mut wgpu::CommandEncoder,
-        bind: &wgpu::BindGroup,
-        entry: usize,
-        (args, offset): (&wgpu::Buffer, u64),
-    ) {
-        crate::trace::dispatch(&self.entries[entry], u32::MAX);
-        let mut pass = self.begin(encoder, bind, entry);
-        pass.dispatch_workgroups_indirect(args, offset);
-    }
-
     /// `entry` dispatched inside `pass`, a compute pass it shares with
-    /// the dispatches beside it (unstamped): `groups` workgroups, or
-    /// those `args` holds at its offset.
+    /// the dispatches beside it (unstamped): `groups` workgroups.
     #[cfg(test)]
-    pub fn encode(&self, pass: &mut wgpu::ComputePass<'_>, (bind, entry): (&wgpu::BindGroup, usize), groups: std::result::Result<u32, (&wgpu::Buffer, u64)>) {
+    pub fn encode(&self, pass: &mut wgpu::ComputePass<'_>, (bind, entry): (&wgpu::BindGroup, usize), groups: u32) {
         pass.set_pipeline(self.pipelines[entry].get());
         pass.set_bind_group(0, bind, &[]);
-        match groups {
-            Ok(n) => pass.dispatch_workgroups(n.min(self.maximum), n.div_ceil(self.maximum), 1),
-            Err((args, at)) => pass.dispatch_workgroups_indirect(args, at),
-        }
+        pass.dispatch_workgroups(groups.min(self.maximum), groups.div_ceil(self.maximum), 1);
     }
 
     /// A stamped compute pass with `entry`'s pipeline and `bind` set.

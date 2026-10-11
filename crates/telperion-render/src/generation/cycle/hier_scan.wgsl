@@ -62,6 +62,11 @@ fn set_word(i: u32, f: u32, v: u32) {
 @compute @workgroup_size(64)
 fn scan_up(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lane: u32) {
     let w = wid.x + wid.y * cfg.wx;
+    // A workgroup past the level's records (a dispatch the host sized
+    // from its bounds); the first always runs, for an empty level's total.
+    if w > 0u && w * SPAN >= cfg.n {
+        return;
+    }
     let base = w * SPAN + 4u * lane;
     let above = (cfg.n + SPAN - 1u) / SPAN;
     for (var f = 0u; f < cfg.fields; f++) {
@@ -99,7 +104,9 @@ fn scan_up(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_inde
 @compute @workgroup_size(64)
 fn scan_down(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = id.x + id.y * cfg.wx * LANES;
-    if i >= cfg.n {
+    // The top has no level above it to add (a dispatch the host sized
+    // from its bounds reaches it).
+    if i >= cfg.n || cfg.top != 0u {
         return;
     }
     let above = (cfg.n + SPAN - 1u) / SPAN;

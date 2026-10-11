@@ -11,6 +11,7 @@
 use super::build_light::{Light, Lit};
 use super::build_plan::{record, Phases};
 use super::gate::{Limits, REC};
+use super::given::{given, Pending, Span};
 use super::census as c;
 use super::columns::{packed, Cap};
 use super::hier_build::Hierarchy;
@@ -174,33 +175,43 @@ impl Build {
     }
 
     /// The seed recorded, the census set as `Grower::seeded` leaves it.
-    pub(super) fn seeded(&self, gpu: &Gpu, kit: &Kit, (plan, phases): (&Plan, &Phases)) -> Vec<&'static str> {
+    /// The census the seed leaves: one axis, living.
+    pub(super) fn seed_census() -> Vec<u32> {
         let mut census = vec![0u32; c::WORDS];
         (census[c::AXES], census[c::NEXT]) = (1, 1);
-        gpu.queue.write_buffer(&plan.census, 0, bytemuck::cast_slice(&census));
+        census
+    }
+
+    pub(super) fn seeded(&self, gpu: &Gpu, kit: &Kit, (plan, phases): (&Plan, &Phases)) -> Vec<&'static str> {
+        gpu.queue.write_buffer(&plan.census, 0, bytemuck::cast_slice(&Self::seed_census()));
         let mut e = gpu.encoder(&Default::default());
         let mut stamped = Vec::new();
         let all = Limits::full(&super::build_plan::Bounds::default());
-        record(kit, (plan, &all), &mut e, &phases.seed, &mut stamped);
+        let given = vec![u32::MAX; plan.sized.len()];
+        record(kit, (plan, &all, &given), &mut e, &phases.seed, &mut stamped);
         gpu.submit([e.finish()]);
         stamped
     }
 
-    /// Cycle `cycle` recorded as far as `limits` allow and submitted, its
-    /// census sent back late.
-    pub(super) fn submit(&self, gpu: &Gpu, (kit, t): (&Kit, &Tables), (plan, phases, limits): (&Plan, &Phases, &Limits), (late, cycle): (&mut Late, u32)) -> Vec<&'static str> {
+    /// Cycle `cycle` recorded as far as `limits` allow, each bounded
+    /// dispatch given the most `span` allows, and submitted, its census
+    /// sent back late; its dispatches' phases, and its bounded ones.
+    pub(super) fn submit(&self, gpu: &Gpu, (kit, t): (&Kit, &Tables), (plan, phases, limits, span): (&Plan, &Phases, &Limits, &Span), (late, cycle): (&mut Late, u32)) -> (Vec<&'static str>, Pending) {
+        let steps = phases.cycle(cycle, t.age);
+        let given = given(plan, span, (&steps, limits));
         gpu.queue.write_buffer(&plan.census, 4 * c::CYCLE as u64, bytemuck::bytes_of(&cycle));
         gpu.queue.write_buffer(&plan.census, 4 * REC as u64, bytemuck::cast_slice(&limits.words()));
+        gpu.queue.write_buffer(&plan.given, 0, bytemuck::cast_slice(&given));
         gpu.queue.write_buffer(&self.sums.rows, 0, bytemuck::cast_slice(&t.rows_at(cycle)));
         let mut e = gpu.encoder(&Default::default());
         let mut stamped = Vec::new();
-        for steps in phases.cycle(cycle, t.age) {
-            record(kit, (plan, limits), &mut e, steps, &mut stamped);
+        for s in &steps {
+            record(kit, (plan, limits, &given), &mut e, s, &mut stamped);
         }
         late.copy(&mut e, plan, cycle);
         gpu.submit([e.finish()]);
         late.send(gpu, cycle);
-        stamped
+        (stamped, Pending::new(plan, &steps, (limits, &given)))
     }
 
     /// The bytes the build holds resident (the state, the hierarchy's

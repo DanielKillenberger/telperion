@@ -115,7 +115,7 @@ fn member_new_main(@builtin(global_invocation_id) id: vec3<u32>) {
 fn member_start_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let b = index(id);
     let blocks = atomicLoad(&tally[X_BLOCKS]);
-    if b >= blocks {
+    if b >= blocks || cfg.n_new == 0u {
         return;
     }
     next[ls(R_MEM_START, b)] = old_members(b).x + new_members(b).x;
@@ -133,6 +133,10 @@ var<workgroup> w_flags: array<u32, WG>;
 @compute @workgroup_size(64)
 fn level_merge_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
     let l = wid.x;
+    // A halted cycle's words are none (`vm.wgsl`): nothing to merge.
+    if cfg.n_new == 0u {
+        return;
+    }
     if lid == 0u {
         let old = atomicLoad(&tally[X_LEVELS_OLD]);
         let os = cur[ls(R_LVL_START, min(l, old))];

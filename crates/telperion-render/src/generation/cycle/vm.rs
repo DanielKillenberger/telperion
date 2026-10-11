@@ -1,6 +1,8 @@
 //! The words the device computes from its counts (`vm.wgsl`): an
 //! expression over the census, compiled to a short program that stores
-//! one word, each program one invocation at its point of the cycle.
+//! one word at its point of the cycle. The host bounds the same
+//! expressions over the bounds it holds for the census's words, to size
+//! each dispatch directly (DESIGN.md section 7a).
 use super::super::io;
 use crate::Gpu;
 
@@ -25,6 +27,8 @@ pub(super) enum E {
     Floor(Box<E>, Box<E>),
     /// The second where the first is not none, else the third.
     Sel(Box<E>, Box<E>, Box<E>),
+    /// The workgroups the host gave dispatch `k` this cycle.
+    Given(u32),
 }
 
 impl E {
@@ -71,6 +75,50 @@ impl E {
             E::Gt(a, b) => { let (a, b) = bin(a, b); u32::from(a > b) }
             E::Floor(a, b) => { let (a, b) = bin(a, b); a.checked_div(b).unwrap_or(0) }
             E::Sel(c, a, b) => if c.eval(census) != 0 { a.eval(census) } else { b.eval(census) },
+            E::Given(_) => u32::MAX,
+        }
+    }
+
+    /// The census words the value reads.
+    pub(super) fn words(&self, out: &mut Vec<usize>) {
+        match self {
+            E::C(_) | E::Given(_) => {}
+            E::At(w) => out.push(*w),
+            E::Add(a, b) | E::Sub(a, b) | E::Mul(a, b) | E::Div(a, b) | E::Min(a, b) | E::Max(a, b) | E::Gt(a, b) | E::Floor(a, b) => {
+                a.words(out);
+                b.words(out);
+            }
+            E::Sel(c, a, b) => [c, a, b].iter().for_each(|e| e.words(out)),
+        }
+    }
+
+    /// The least and the most the value can be, where each census word
+    /// `w` is at least `lo[w]` and at most `hi[w]`.
+    pub(super) fn span(&self, lo: &[u32], hi: &[u32]) -> (u32, u32) {
+        let bin = |a: &E, b: &E| (a.span(lo, hi), b.span(lo, hi));
+        let floor = |a: u32, b: u32| a.checked_div(b).unwrap_or(0);
+        let ceil = |a: u32, b: u32| a.checked_div(b).map_or(0, |_| a.div_ceil(b));
+        match self {
+            E::C(k) => (*k, *k),
+            E::At(w) => (lo[*w], hi[*w]),
+            E::Add(a, b) => { let (a, b) = bin(a, b); (a.0.saturating_add(b.0), a.1.saturating_add(b.1)) }
+            E::Sub(a, b) => { let (a, b) = bin(a, b); (a.0.saturating_sub(b.1), a.1.saturating_sub(b.0)) }
+            E::Mul(a, b) => { let (a, b) = bin(a, b); (a.0.saturating_mul(b.0), a.1.saturating_mul(b.1)) }
+            // None over none: a divisor that can be none bounds nothing.
+            E::Div(a, b) => { let (a, b) = bin(a, b); (ceil(a.0, b.1), if b.0 == 0 { a.1 } else { ceil(a.1, b.0) }) }
+            E::Floor(a, b) => { let (a, b) = bin(a, b); (floor(a.0, b.1), if b.0 == 0 { a.1 } else { floor(a.1, b.0) }) }
+            E::Min(a, b) => { let (a, b) = bin(a, b); (a.0.min(b.0), a.1.min(b.1)) }
+            E::Max(a, b) => { let (a, b) = bin(a, b); (a.0.max(b.0), a.1.max(b.1)) }
+            E::Gt(a, b) => { let (a, b) = bin(a, b); (u32::from(a.0 > b.1), u32::from(a.1 > b.0)) }
+            E::Sel(c, a, b) => {
+                let (c, a, b) = (c.span(lo, hi), a.span(lo, hi), b.span(lo, hi));
+                match c {
+                    (1.., _) => a,
+                    (_, 0) => b,
+                    _ => (a.0.min(b.0), a.1.max(b.1)),
+                }
+            }
+            E::Given(_) => (0, u32::MAX),
         }
     }
 
@@ -98,6 +146,7 @@ impl E {
                 b.emit(out);
                 out.push(11);
             }
+            E::Given(k) => out.push(13 | k << 8),
         }
     }
 }
@@ -107,7 +156,9 @@ impl E {
 pub(super) enum Dst {
     Census(usize),
     Cfg(u32),
-    Args(u32),
+    /// A census word set where the value is not none, else left: a flag
+    /// any number of programs at a point may raise.
+    Raise(usize),
 }
 
 /// `e` compiled to store into `dst`.
@@ -117,9 +168,9 @@ pub(super) fn program(dst: Dst, e: &E) -> Vec<u32> {
     let store = match dst {
         Dst::Census(w) => 20 | (w as u32) << 8,
         Dst::Cfg(w) => 21 | w << 8,
-        Dst::Args(w) => 22 | w << 8,
+        Dst::Raise(w) => 23 | (w as u32) << 8,
     };
-    assert!(match dst { Dst::Cfg(w) | Dst::Args(w) => w < 1 << 24, Dst::Census(w) => w < 1 << 24 }, "a word the program can name");
+    assert!(match dst { Dst::Cfg(w) => w < 1 << 24, Dst::Census(w) | Dst::Raise(w) => w < 1 << 24 }, "a word the program can name");
     out.extend([store, 0]);
     out
 }

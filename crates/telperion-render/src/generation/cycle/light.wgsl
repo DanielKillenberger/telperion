@@ -29,7 +29,8 @@ struct Cfg {
     zero: u32,
     // The first item of this dispatch's range of its list.
     base: u32,
-    pad1: u32,
+    // None where the cycle halted (`vm.wgsl`): nothing stands to light.
+    go: u32,
     pad2: u32,
     pad3: u32,
     // Per direction: x/z, y/z, extinction CELL/z and its share, as f64s,
@@ -126,7 +127,7 @@ fn grid_main() {
 }
 
 fn standing() -> bool {
-    return grid[7] == 1u;
+    return grid[7] == 1u && C.go != 0u;
 }
 
 // A node's index, x fastest; none outside the box.

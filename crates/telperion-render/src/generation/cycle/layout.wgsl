@@ -189,6 +189,10 @@ fn fault_out(i: u32) {
 
 // The axis a `draw` or `frame` invocation takes, or NONE past its list.
 fn listed_axis(k: u32) -> u32 {
+    // A halted cycle's words are none (`vm.wgsl`): it lists nothing.
+    if cfg.cycle == 0u {
+        return NONE;
+    }
     if cfg.listed == 0u {
         return select(NONE, lists[TALLY + k], k < cfg.grown);
     }

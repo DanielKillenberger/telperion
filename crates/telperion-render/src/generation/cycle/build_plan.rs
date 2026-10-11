@@ -178,30 +178,37 @@ impl Phases {
     }
 }
 
-/// `steps` the cycle's `limits` allow recorded into `e`, each dispatch's
-/// phase onto `phases`. Unprofiled, consecutive dispatches share a
-/// compute pass.
-pub(super) fn record(kit: &Kit, (plan, limits): (&Plan, &Limits), e: &mut wgpu::CommandEncoder, steps: &[Gated], phases: &mut Vec<&'static str>) {
-    let allowed: Vec<&Step> = steps.iter().filter(|g| g.gate.iter().all(|c| limits.allows(c))).map(|g| &g.step).collect();
+/// The workgroups `size` takes this cycle, from those `given` each
+/// bounded size.
+fn groups(size: Size, given: &[u32]) -> u32 {
+    match size {
+        Size::Direct(n) => n,
+        Size::Bounded(k) => given[k as usize],
+    }
+}
+
+/// `steps` the cycle's `limits` allow recorded into `e`, each bounded
+/// dispatch with the workgroups `given` it (none skipped), each
+/// dispatch's phase onto `phases`. Unprofiled, consecutive dispatches
+/// share a compute pass.
+pub(super) fn record(kit: &Kit, (plan, limits, given): (&Plan, &Limits, &[u32]), e: &mut wgpu::CommandEncoder, steps: &[Gated], phases: &mut Vec<&'static str>) {
+    let live = |s: &Step| !matches!(s, Step::Dispatch { size, .. } if groups(*size, given) == 0);
+    let allowed: Vec<&Step> = steps.iter().filter(|g| g.gate.iter().all(|c| limits.allows(c))).map(|g| &g.step).filter(|s| live(s)).collect();
     if super::super::profile::on() {
-        return stamped(kit, plan, e, &allowed, phases);
+        return stamped(kit, (plan, given), e, &allowed, phases);
     }
     let mut k = 0;
     while k < allowed.len() {
         let run = allowed[k..].iter().take_while(|s| matches!(s, Step::Dispatch { .. })).count();
         if run == 0 {
-            stamped(kit, plan, e, &allowed[k..k + 1], phases);
+            stamped(kit, (plan, given), e, &allowed[k..k + 1], phases);
             k += 1;
             continue;
         }
         let mut pass = e.begin_compute_pass(&wgpu::ComputePassDescriptor { label: Some("cycle"), timestamp_writes: None });
         for step in &allowed[k..k + run] {
             if let Step::Dispatch { pass: id, entry, bind, size, phase } = step {
-                let groups = match size {
-                    Size::Direct(n) => Ok(*n),
-                    Size::Indirect(at) => Err((&*plan.args as &wgpu::Buffer, *at)),
-                };
-                kit.pass(*id).encode(&mut pass, (bind, *entry), groups);
+                kit.pass(*id).encode(&mut pass, (bind, *entry), groups(*size, given));
                 phases.push(phase);
             }
         }
@@ -211,14 +218,11 @@ pub(super) fn record(kit: &Kit, (plan, limits): (&Plan, &Limits), e: &mut wgpu::
 }
 
 /// `steps` recorded each in its own stamped pass.
-fn stamped(kit: &Kit, plan: &Plan, e: &mut wgpu::CommandEncoder, steps: &[&Step], phases: &mut Vec<&'static str>) {
+fn stamped(kit: &Kit, (plan, given): (&Plan, &[u32]), e: &mut wgpu::CommandEncoder, steps: &[&Step], phases: &mut Vec<&'static str>) {
     for step in steps {
         match step {
             Step::Dispatch { pass, entry, bind, size, phase } => {
-                match size {
-                    Size::Direct(n) => kit.pass(*pass).run(e, bind, *entry, *n),
-                    Size::Indirect(at) => kit.pass(*pass).run_indirect(e, bind, *entry, (&plan.args, *at)),
-                }
+                kit.pass(*pass).run(e, bind, *entry, groups(*size, given));
                 phases.push(phase);
             }
             Step::Copy { from, at, to, to_at, bytes } => e.copy_buffer_to_buffer(from, *at, to, *to_at, *bytes),

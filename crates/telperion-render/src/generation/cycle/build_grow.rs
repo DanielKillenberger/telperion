@@ -10,6 +10,7 @@ use super::build_light::{refusals, Lit};
 use super::build_plan::Bounds;
 use super::census::{self as c, Flag, PASSES, PASS_LEFT};
 use super::gate::{levels_of, rec, Limits};
+use super::given::{Over, Span, Widths};
 use super::lay_device::DEEP;
 use super::light_program::{SWEEP_WG, SWEEP_WORK};
 use super::state::Caps;
@@ -30,13 +31,16 @@ pub(super) struct Sizes {
     /// How far past its projection each of the cycle's limits reaches
     /// (`Slack`): doubled for a limit each time a count passes it.
     pub slack: [u32; SLACKS],
+    /// How far past its projection each census word reaches, for the
+    /// workgroups a dispatch is given (`given.rs`).
+    pub widths: Widths,
 }
 
 impl Sizes {
     /// The smallest a build starts from.
     pub(super) fn least() -> Self {
         let caps = Caps { axes: 4096, units: 4096, phyts: 16384, sleepers: 4096, next: 4096, woken: 1024 };
-        Self { caps, points: 16384, tips: 4096, nodes: 4096, bounds: Bounds::default(), block_cap: super::hier_build::CAP, slack: [1; SLACKS] }
+        Self { caps, points: 16384, tips: 4096, nodes: 4096, bounds: Bounds::default(), block_cap: super::hier_build::CAP, slack: [1; SLACKS], widths: Widths::default() }
     }
 
     pub(super) fn lit(&self) -> (Lit, u32) {
@@ -58,6 +62,8 @@ pub(super) struct Grew {
     pub recording: f64,
     pub waiting: f64,
     pub moving: f64,
+    /// The workgroups its bounded dispatches were given and needed.
+    pub over: Over,
 }
 
 fn twice(have: u32, count: u32) -> u32 {
@@ -132,6 +138,8 @@ fn raised(mut s: Sizes, flags: &[(Flag, u32)], census: &[u32]) -> Result<Sizes> 
             Flag::Sweeps => b.lay.sweeps *= 2,
             Flag::Points => (s.points, s.tips) = (twice(s.points, leaves(census) + census[c::NEXT]), twice(s.tips, census[c::NEXT])),
             Flag::LightErrors if value == 4 => s.nodes = twice(s.nodes, census[c::GRID + 6]),
+            // Widened by the grow loop, which holds the cycle's dispatches.
+            Flag::Given => {}
             Flag::LightErrors => return Err(refused(format!("the light refused: {:?}", refusals(value)))),
             _ => return Err(refused(format!("the build stopped: {flag:?} ({value:#x})"))),
         }
@@ -254,13 +262,22 @@ pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut size
         let mut run = b.plan(gpu, kit, t, sizes.bounds)?;
         grew.stamped = b.seeded(gpu, kit, (&run.0, &run.1));
         let (mut late, mut prev, mut last) = (Late::new(gpu)?, None::<Vec<u32>>, None::<Vec<u32>>);
+        let mut pending = std::collections::VecDeque::new();
+        grew.over = Over::default();
         for cycle in 1..=upto {
             let limits = limits(&sizes, last.as_deref(), prev.as_deref());
+            let seed = Build::seed_census();
+            let (seen, before) = match (&last, &prev) {
+                (Some(l), p) => (l.as_slice(), Some(p.as_deref().unwrap_or(&seed))),
+                (None, _) => (seed.as_slice(), None),
+            };
+            let span = Span::new(seen, before, &sizes.widths, (cycle, &limits));
             if std::env::var("CYCLE_TRACE").is_ok() {
                 eprintln!("TRACE begin {again} cycle {cycle} slack {:?} {limits:?}", sizes.slack);
             }
             let clock = std::time::Instant::now();
-            let stamped = b.submit(gpu, (kit, t), (&run.0, &run.1, &limits), (&mut late, cycle));
+            let (stamped, sent) = b.submit(gpu, (kit, t), (&run.0, &run.1, &limits, &span), (&mut late, cycle));
+            pending.push_back(sent);
             grew.recording += clock.elapsed().as_secs_f64();
             grew.stamped.extend(stamped);
             if cycle == 1 {
@@ -269,7 +286,12 @@ pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut size
             let clock = std::time::Instant::now();
             let read = late.take(gpu, cycle - 1)?;
             grew.waiting += clock.elapsed().as_secs_f64();
+            let sent = pending.pop_front().expect("a cycle sent");
+            sent.tally(&mut grew.over, &read);
             if !c::raised(&read).is_empty() {
+                if read[Flag::Given.word()] != 0 {
+                    sent.widen(&mut sizes.widths, &read);
+                }
                 grew.why.push((cycle - 1, c::raised(&read).iter().map(|f| f.0).collect()));
                 if std::env::var("CYCLE_TRACE").is_ok() {
                     eprintln!("TRACE raised {:?} rec {:?} gens {} levels {} passes left {:?}", c::raised(&read), &read[c::REC..c::REC + 15], read[c::GENS], read[c::LEVELS], &read[PASS_LEFT..PASS_LEFT + 24]);
@@ -293,7 +315,12 @@ pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut size
             prev = last.replace(read);
         }
         let read = late.take(gpu, upto)?;
+        let sent = pending.pop_front().expect("a cycle sent");
+        sent.tally(&mut grew.over, &read);
         if !c::raised(&read).is_empty() {
+            if read[Flag::Given.word()] != 0 {
+                sent.widen(&mut sizes.widths, &read);
+            }
             grew.why.push((upto, c::raised(&read).iter().map(|f| f.0).collect()));
             sizes = raised(sizes, &c::raised(&read), &read)?;
             continue;

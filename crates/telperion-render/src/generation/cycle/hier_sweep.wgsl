@@ -17,7 +17,7 @@ fn open_block(wid: vec3<u32>, lid: u32) -> vec4<u32> {
         let first = lists[ls(R_LVL_START, cfg.level)];
         let k = first + wid.x + wid.y * cfg.wx;
         var run = vec4<u32>(0u);
-        if k < lists[ls(R_LVL_START, cfg.level + 1u)] {
+        if cfg.cycle != 0u && cfg.level < cfg.levels && k < lists[ls(R_LVL_START, cfg.level + 1u)] {
             let b = lists[ls(R_LVL_BLOCKS, k)];
             let ms = lists[ls(R_MEM_START, b)];
             let me = lists[ls(R_MEM_START, b + 1u)];

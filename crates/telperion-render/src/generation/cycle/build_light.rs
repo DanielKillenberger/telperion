@@ -110,7 +110,7 @@ impl Light {
     /// the leaves and tips none (the device writes them), its sweep chunk
     /// and its range's first item, and the directions.
     pub(super) fn words(&self, (chunk, base): (u32, u32)) -> Vec<u32> {
-        let mut cfg = vec![0, 0, self.n_dirs, self.nodes_cap, u32::from(self.lit), super::plan::MAXX * 64, chunk, 0, base, 0, 0, 0];
+        let mut cfg = vec![0, 0, self.n_dirs, self.nodes_cap, u32::from(self.lit), super::plan::MAXX * 64, chunk, 0, base, 1, 0, 0];
         cfg.extend(&self.dirs);
         cfg.resize(12 + 8 * DIRECTIONS, 0);
         cfg

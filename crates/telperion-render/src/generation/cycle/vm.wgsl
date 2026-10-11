@@ -1,28 +1,36 @@
-// fn-256 task 2 (DESIGN.md section 5): every dispatch sized from the
-// device. A point of the cycle runs one invocation per program (`vm.rs`);
-// each program reads the device's counts (`census`), computes one word
-// in integers and stores it: a dispatch's uniform word, its indirect
-// workgroups, or a count. The host knows only the cycle and the bounds.
+// fn-256 task 2 (DESIGN.md sections 5 and 7a): every dispatch's words
+// from the device's counts. A point of the cycle runs one workgroup over
+// its programs (`vm.rs`); each program reads the device's counts
+// (`census`), computes one word in integers and stores it: a dispatch's
+// uniform word, a count, or a flag. The host sizes each dispatch from
+// its bounds; a program per dispatch raises a flag where the true size
+// passes the workgroups given (`given`).
 
 struct Cfg {
     first: u32,
     n: u32,
-    // The flags (`census.rs`): once one is raised, every dispatch a
-    // later point sizes is empty, so no kernel reads what a count past
-    // its capacity or bound left, and the host begins the build again.
+    // The flags (`census.rs`): once one is raised, every uniform word a
+    // point sets is none, so no kernel reads what a count past its
+    // capacity or bound left, and the host begins the build again.
     flags_at: u32,
     flags_n: u32,
+    // The point's programs that flag, run before the rest.
+    early: u32,
+    pad0: u32,
+    pad1: u32,
+    pad2: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
 @group(0) @binding(1) var<storage, read> code: array<u32>;
 @group(0) @binding(2) var<storage, read_write> census: array<u32>;
 @group(0) @binding(3) var<storage, read_write> cfgs: array<u32>;
-@group(0) @binding(4) var<storage, read_write> args: array<u32>;
+@group(0) @binding(4) var<storage, read_write> given: array<u32>;
 
 const STACK: u32 = 16u;
 // The longest program.
 const STEPS: u32 = 256u;
+const LANES: u32 = 64u;
 
 fn halted() -> bool {
     var any = 0u;
@@ -32,12 +40,10 @@ fn halted() -> bool {
     return any != 0u;
 }
 
-@compute @workgroup_size(64)
-fn vm_main(@builtin(global_invocation_id) id: vec3<u32>) {
-    if id.x >= cfg.n {
-        return;
-    }
-    var pc = code[cfg.first + id.x];
+// Program `j` of the point run; a uniform word it sets is none where the
+// point is `stopped`.
+fn run(j: u32, stopped: bool) {
+    var pc = code[cfg.first + j];
     var stack: array<u32, STACK>;
     var top = 0u;
     // cap: `STEPS` operations.
@@ -48,13 +54,15 @@ fn vm_main(@builtin(global_invocation_id) id: vec3<u32>) {
         if op == 0u {
             return;
         }
-        if op == 1u || op == 2u || op == 3u {
+        if op == 1u || op == 2u || op == 3u || op == 13u {
             var v = k;
             if op == 2u {
                 v = code[pc];
                 pc += 1u;
             } else if op == 3u {
                 v = census[k];
+            } else if op == 13u {
+                v = given[k];
             }
             if top < STACK {
                 stack[top] = v;
@@ -68,9 +76,9 @@ fn vm_main(@builtin(global_invocation_id) id: vec3<u32>) {
             if op == 20u {
                 census[k] = v;
             } else if op == 21u {
-                cfgs[k] = v;
-            } else {
-                args[k] = select(v, 0u, halted());
+                cfgs[k] = select(v, 0u, stopped);
+            } else if v != 0u {
+                census[k] = v;
             }
             continue;
         }
@@ -96,5 +104,18 @@ fn vm_main(@builtin(global_invocation_id) id: vec3<u32>) {
             default: { r = 0u; }
         }
         stack[top - 1u] = r;
+    }
+}
+
+// The point's flags first, then, past a barrier, the rest under them.
+@compute @workgroup_size(64)
+fn vm_main(@builtin(local_invocation_index) lane: u32) {
+    for (var j = lane; j < cfg.early; j += LANES) {
+        run(j, false);
+    }
+    storageBarrier();
+    let stopped = halted();
+    for (var j = cfg.early + lane; j < cfg.n; j += LANES) {
+        run(j, stopped);
     }
 }

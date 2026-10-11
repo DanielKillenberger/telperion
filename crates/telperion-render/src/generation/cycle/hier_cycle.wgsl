@@ -21,7 +21,9 @@ struct Cfg {
     wx: u32,
     // A word the driver cannot see is zero (`exact.wgsl`).
     zero: u32,
-    pad1: u32,
+    // The block levels the hierarchy holds: a sweep's level past them
+    // (a dispatch the host sized from its bounds) has no blocks.
+    levels: u32,
     pad2: u32,
 }
 
@@ -205,7 +207,7 @@ fn compact_main(@builtin(global_invocation_id) id: vec3<u32>) {
 @compute @workgroup_size(64)
 fn presence_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let k = index(id);
-    if k >= atomicLoad(&tally[Y_LIVE]) {
+    if cfg.cycle == 0u || k >= atomicLoad(&tally[Y_LIVE]) {
         return;
     }
     let a = live[lv(V_OUT_AXIS, k)];
@@ -240,7 +242,7 @@ fn partials_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocatio
     let beta = wid.x + wid.y * cfg.wx;
     let g = atomicLoad(&tally[Y_GROWING]);
     let s = beta * BUD_BLOCK;
-    if s >= g || pa >= cfg.pas {
+    if s >= g || pa >= cfg.pas || cfg.cycle == 0u {
         return;
     }
     var total = 0.0;
@@ -279,7 +281,7 @@ fn combine_main(@builtin(local_invocation_index) pa: u32) {
 @compute @workgroup_size(64)
 fn sizes_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let k = index(id);
-    if k >= atomicLoad(&tally[Y_LIVE]) {
+    if cfg.cycle == 0u || k >= atomicLoad(&tally[Y_LIVE]) {
         return;
     }
     let a = live[lv(V_OUT_AXIS, k)];

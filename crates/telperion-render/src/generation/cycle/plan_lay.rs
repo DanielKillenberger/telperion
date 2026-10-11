@@ -117,6 +117,7 @@ impl Build {
             let slot = b.slot(&l.words(chunk));
             b.set(slot, 0, leaves.clone());
             b.set(slot, 1, tips.clone());
+            b.set(slot, 9, E::At(c::CYCLE));
             b.bind(&kit.light.pass, slot, &l.buffers())
         };
         let main = slot(b, (0, 0));

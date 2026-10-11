@@ -91,7 +91,7 @@ fn path_main(@builtin(global_invocation_id) id: vec3<u32>) {
 @compute @workgroup_size(SWEEP_WG)
 fn sweep_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
     if lid == 0u {
-        shape = vec4<u32>(grid_size(), grid[7] & C.lit);
+        shape = vec4<u32>(grid_size(), grid[7] & C.lit & u32(C.go != 0u));
     }
     let s = workgroupUniformLoad(&shape);
     if s.w == 0u || wid.x >= C.dirs {
