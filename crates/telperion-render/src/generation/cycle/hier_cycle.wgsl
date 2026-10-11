@@ -24,7 +24,8 @@ struct Cfg {
     // The block levels the hierarchy holds: a sweep's level past them
     // (a dispatch the host sized from its bounds) has no blocks.
     levels: u32,
-    pad2: u32,
+    // The run of a block's buds a `partials_main` dispatch adds.
+    chunk: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -86,6 +87,7 @@ const P_PSI: u32 = 5u;
 const N_SUMS: u32 = 0u;
 const N_ORDER: u32 = 128u;
 const BUD_BLOCK: u32 = 1024u;
+const BUD_CHUNK: u32 = 256u;
 
 // The tally: the living after the balance (the scan's total) and the
 // growing buds.
@@ -236,7 +238,8 @@ fn drawn(v: f32, p: f32, psi: f32) -> f32 {
 }
 
 // One block of 1,024 growing buds in subtree order: each PA's Σp and
-// Σp(v/p)^ψ, a thread a PA, each summed in order.
+// Σp(v/p)^ψ, a thread a PA, each summed in order; a dispatch adds the
+// block's run of 256 `cfg.chunk`, on to what the runs before it left.
 @compute @workgroup_size(64)
 fn partials_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) pa: u32) {
     let beta = wid.x + wid.y * cfg.wx;
@@ -247,7 +250,12 @@ fn partials_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocatio
     }
     var total = 0.0;
     var weighted = 0.0;
-    for (var k = s; k < min(s + BUD_BLOCK, g); k++) {
+    if cfg.chunk > 0u {
+        total = bitcast<f32>(norm[part(2u * (beta * cfg.pas + pa))]);
+        weighted = bitcast<f32>(norm[part(2u * (beta * cfg.pas + pa) + 1u)]);
+    }
+    let first = s + cfg.chunk * BUD_CHUNK;
+    for (var k = first; k < min(first + BUD_CHUNK, min(s + BUD_BLOCK, g)); k++) {
         let i = norm[N_ORDER + k];
         if tree[at(T_PA, i)] != pa {
             continue;
