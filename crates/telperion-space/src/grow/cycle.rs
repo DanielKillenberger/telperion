@@ -5,7 +5,8 @@
 //! of building. Light is the lattice for every species (COUNCIL.md,
 //! 2026-10-11), its leaves deposited as integer quanta (`Field::quantised`,
 //! the host's adoption of early test 2). Allocation is `allocation::sizes`
-//! throughout (R2). `grow` builds every tree through it (R3b).
+//! throughout (R2). `grow` still takes F4's stepped build until fn-256's
+//! executor moves with it (R3B.md).
 mod census;
 mod passes;
 mod retire;
