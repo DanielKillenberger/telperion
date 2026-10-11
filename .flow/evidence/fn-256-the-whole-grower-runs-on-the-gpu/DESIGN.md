@@ -281,6 +281,10 @@ There are few of them:
 
 The f32 operations remain under COUNCIL.md's agreement standard: floats by lineage within measured tolerance, with no guards on fused multiply-adds. A float that differs reaches a decision only through a comparison. Where the agreement test finds such a flip, it is reported with the comparison named.
 
+**Where a float becomes an integer (added 2026-10-12, after the review).** COUNCIL.md asks for integers exact and floats within tolerance, with no guards on fused multiply-adds. The two clauses meet wherever a float is floored or rounded into a stored integer. The measured case is the wake time in ticks: 261 axes differ in plain mode on the oak at 40.
+
+The executor holds every such site to the CPU's order in both arithmetics: the f32 operations whose result is floored or rounded into a stored integer or a decision's integer. That covers the wake ticks, `below`, and the lived ticks. All other floats stay plain under COUNCIL.md's tolerance. That is the narrowest reading that keeps "integers exact".
+
 **Open, for the host:**
 1. **The settle's leaf mean** is a sequential f32 sum on the CPU. The device takes it in blocks (section 2.4). Matching it to the bit means the CPU takes the same blocked order, which moves the oak and the ordinary by f32 order. It is the same kind of contract as the normaliser's. Until that call, the device takes the CPU's sequential order in one workgroup (one dispatch, at most about 18M adds on Telperion), and its time is reported.
 2. **If the software f64 sweep costs too much,** the alternative is the CPU's sweep in f32 under the one-reduction-order contract. That changes the CPU's lattice, so it is the host's call.
