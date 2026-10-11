@@ -127,6 +127,53 @@ Retirement's own longest dispatch is `living_main`, at 0.86 ms on the birch. It 
 
 In the exact `walk_main`, the gradual-underflow products cost 51 s: built with plain products and sums, it compiles in 6.6 s.
 
+## Plain against the CPU's cycle, by lineage, at default ages
+
+Plain build, retirement on, laid tree at each preset's default age, seed 42. It is compared with the CPU's laid tree from `grow_cycle` (fn-255), axes matched by lineage. This is a report, not an assertion (`default_ages_laid_plain_by_lineage`, one preset per process, `raw/floats-<preset>.txt`). The host had 13 GB available and the device 8.5 GiB free before the two oldest.
+
+**Matching: nothing unmatched on any preset.** Every axis, unit and phytomer of every preset matches by lineage:
+
+| Build | Axes | Units | Phytomers |
+|---|--:|--:|--:|
+| european-beech 40 | 37,751 | 79,530 | 332,405 |
+| oregon-white-oak 40 | 52,248 | 83,140 | 354,122 |
+| norway-spruce 40 | 309,600 | 580,011 | 1,212,283 |
+| date-palm 40 | 1 | 40 | 480 |
+| silver-birch 40 | 67,739 | 176,047 | 518,131 |
+| ordinary 40 | 25,521 | 51,618 | 163,214 |
+| laurelin 80 | 350,255 | 839,538 | 3,534,309 |
+| telperion 82 | 373,607 | 896,091 | 3,773,761 |
+
+**Integer fields: all equal on matched axes except `sleep`.** That holds for kind, parent, node, whorl, lineage, PA, birth, apex end, unit and phytomer counts, and each phytomer's cycle and key. `sleep` is a tick count (2^-20 cycle) quantised from a float. It differs on 1 axis on the beech, 261 on the oak at 40, 177 on the spruce, 24 on the birch, 12 on the ordinary, and 2 each on Laurelin and Telperion; the palm has none.
+
+**Float fields.** Below are the absolute differences, max and p99, over matched rows (tips and positions in metres; scale and radius in their own units). The relative differences are in the raw files. For coordinates and unit-vector components near zero the relative figure runs to 1 or 2 and says nothing, so read the absolute column there.
+
+| Field | beech 40 | oak 40 | spruce 40 | palm 40 | birch 40 | ordinary 40 | laurelin 80 | telperion 82 |
+|---|---|---|---|---|---|---|---|---|
+| tip x | 6.3e-5 / 2.4e-5 | 1.6e-4 / 3.3e-5 | 9.3e-5 / 4.9e-5 | 2.5e-6 / 2.5e-6 | 4.7e-4 / 7.7e-5 | 7.5e-5 / 4.9e-5 | 7.8e-4 / 1.9e-4 | 1.4e-3 / 2.1e-4 |
+| tip y | 4.6e-5 / 2.2e-5 | 2.2e-4 / 3.2e-5 | 1.1e-4 / 5.0e-5 | 4.1e-6 / 4.0e-6 | 6.9e-4 / 1.1e-4 | 7.4e-5 / 5.1e-5 | 1.9e-3 / 2.9e-4 | 1.7e-3 / 3.2e-4 |
+| tip z | 2.2e-5 / 8.1e-6 | 1.6e-4 / 2.6e-5 | 7.2e-6 / 1.4e-6 | 1.2e-7 / 1.2e-7 | 9.3e-5 / 2.4e-5 | 1.4e-5 / 5.2e-6 | 3.9e-4 / 7.2e-5 | 4.5e-4 / 7.8e-5 |
+| heading (worst component) | 6.2e-5 / 2.1e-5 | 6.7e-3 / 1.3e-4 | 5.2e-5 / 4.3e-5 | 9.6e-7 / 8.2e-7 | 9.0e-4 / 5.7e-5 | 1.8e-4 / 3.0e-5 | 8.7e-3 / 8.9e-5 | 1.3e-3 / 7.6e-5 |
+| scale | 3.8e-5 / 2.4e-6 | 1.6e-3 / 5.2e-5 | 2.5e-5 / 7.8e-7 | 0 | 2.4e-5 / 1.5e-6 | 1.7e-5 / 3.5e-6 | 9.5e-5 / 4.8e-6 | 5.0e-5 / 4.8e-6 |
+| radius (m) | 2.4e-7 / 1.3e-8 | 2.2e-6 / 1.8e-7 | 9.6e-8 / 1.6e-9 | 0 | 7.0e-8 / 4.7e-9 | 1.7e-6 / 1.7e-8 | 8.5e-7 / 3.0e-8 | 7.9e-7 / 3.0e-8 |
+
+**Relative max / p99** of the fields that are not near zero:
+
+| Field | beech | oak 40 | spruce | birch | ordinary | laurelin | telperion |
+|---|---|---|---|---|---|---|---|
+| scale | 2.3e-3 / 1.6e-5 | 9.9e-2 / 1.8e-4 | 4.0e-3 / 2.4e-6 | 9.3e-3 / 1.4e-5 | 1.9e-2 / 1.5e-5 | 3.8e-1 / 2.6e-5 | 3.8e-2 / 2.5e-5 |
+| radius | 2.3e-3 / 1.6e-5 | 9.9e-2 / 2.0e-4 | 4.0e-3 / 2.6e-6 | 9.3e-3 / 1.3e-5 | 9.5e-4 / 1.5e-5 | 2.5e-1 / 2.6e-5 | 3.7e-2 / 2.5e-5 |
+| tip z | 3.2e-6 / 1.1e-6 | 7.9e-5 / 7.7e-6 | 1.1e-2 / 2.1e-6 | 3.7e-4 / 2.7e-6 | 2.3e-2 / 3.4e-6 | 3.1e-5 / 6.7e-6 | 3.5e-5 / 6.9e-6 |
+| vigour | 4.4e-4 / 2.4e-6 | 4.3e-2 / 2.2e-6 | 3.8e-3 / 0 | 9.3e-3 / 0 | 6.1e-4 / 4.2e-6 | 8.5e-3 / 2.4e-6 | 2.1e-2 / 2.4e-6 |
+| unit presence | 4.8e-4 / 0 | 9.9e-2 / 5.6e-5 | 4.0e-3 / 0 | 5.2e-4 / 0 | 3.6e-4 / 0 | 2.5e-1 / 0 | 1.9e-2 / 0 |
+
+What the numbers show:
+- **The tails are a few axes, not the bulk.** At p99, scale and radius are within 3e-5 relative everywhere but the oak at 40 (2e-4). Tips are within 0.3 mm everywhere.
+- **The worst tip** is 1.9 mm, on Laurelin. The worst heading component is 8.7e-3, also on Laurelin.
+- **The large relative maxima** on scale, radius and presence are where a presence or fade is near zero. One last-place difference there is a large fraction: presence on Laurelin reaches 0.25 relative, but its absolute difference is 1.3e-5.
+- **The oak at 40 is the furthest at p99.** Its light and size also differ (size 2.7e-5 at p99, light 1.1e-5). Only the oak and the ordinary show any light difference at all (the ordinary's is 5.4e-7 at p99); every other preset's light is exact.
+- **Where the differences come from** (an inference, not measured): plain mode flushes subnormals to zero and rounds in its own order. Those last-place differences in growth's presences carry through scale, girth and the lay.
+
 ## Open
 
 1. **Growth kernels still past 1 ms**, and one past 2 ms in exact (above). These are the growth worker's kernels; I did not touch them.
