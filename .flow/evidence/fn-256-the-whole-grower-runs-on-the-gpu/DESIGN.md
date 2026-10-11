@@ -302,3 +302,52 @@ The executor holds every such site to the CPU's order in both arithmetics: the f
 5. **The 2,048-cycle limit stays a named error.** Every shipped age is far under it, and widening it waits for a consumer.
 6. **The budget** belongs to task 4. After items 3 and 4, the time is reported per phase.
 
+## 10. Units as small kernels (2026-10-12, after the host's ruling 9.3 and the bisection in CYCLE.md)
+
+**What the bisection shows.** The units entry compiles cold in 43.7 s. The cost is the volume of code the driver inlines into its one apex-run body, not any single construct. The zones, the 64-bit mixes behind every child and draw, the failure path and the abortion draw each carry 10 to 20 s. With the three largest removed, the entry still takes 9.4 s.
+
+So the apex run is split into phase kernels over flat work lists. It is not a per-apex interpreter resumed across dispatches. Each entry holds one phase's code. No entry holds more than one call site of the 64-bit mix chain where a loop can share it.
+
+**The phases of a round.** A round covers every apex with a unit to grow. Round 0 takes the living apexes, then the woken ones. Each phase is one dispatch, or a scan:
+
+1. **`decide`**, one invocation per apex. It takes:
+   - the unit's share and laid cut (`Carried::unit`, `Unit::laid`);
+   - survival, with its draw and threshold (the held sites);
+   - the failed-unit relay draw and the lived ticks and `below`.
+
+   It writes the outcome (grow, fail and relay, stop) and the unit's record fields.
+2. **`zones`**, one invocation per (apex, zone). It counts the zone's nodes by the node law's walk, cut by the laid count.
+3. **Scan** to a node list of (apex, zone, j).
+4. **`order`**, one invocation per node. It takes the order draw, then its rank among its zone's nodes by `Reverse(draw)` with ties to the lower j. The zone is a contiguous run of the node list, so the rank is a count over it, which is stable.
+5. **`node`**, one invocation per node. It takes:
+   - the phytomer's key and presence;
+   - the places, each lateral's PA and presence;
+   - each sleeper's draws.
+
+   It writes per-node counts of laterals and sleepers.
+6. **`after`**, one invocation per apex. It takes:
+   - abortion and persistence after the unit;
+   - the age's end: move, continuation, ended relay;
+   - the apex's own return to the living list.
+
+   It counts the axes and apexes it adds. An axis whose unit is carried on within the cycle (`carry_on`) enters the next round as an apex.
+7. **Rounds** repeat until no apex carries on. The count is bounded and flagged as section 5 says.
+
+**Order.** Every appended record carries the CPU's position key: (apex's place in the living list, round, zone in `ALONG` order, node rank, slot), with an apex's own after-records last in its round.
+- **Count pass:** it runs all rounds and stores the counts per (apex, round, node).
+- **Placing:** one scan, apex-major and then by round, places every record exactly where `grow_live` and `absorb` would append it.
+- **Emit pass:** it runs the same phases and writes at those offsets.
+- **Why this is sound:** the draws are keyed by lineage, so the two passes agree by construction, as they do today.
+
+**Wake:**
+- `dormant::carried`'s walk is a per-sleeper kernel, `carried`, which counts each bud's wakes. A scan gives the woken list.
+- A woken bud's stage axes come from a small per-wake kernel.
+- Each woken bud's first unit then enters `decide` in its own round 0, after the living apexes, as `wake` runs after the merge.
+
+**The other large entries.** The settle's `walk_main` (15.1 s) and `frame_main` (2.0 s), and the layout's `frame_main` (2.84 s) and `draw_main` (1.64 s), are cut the same way. A walk step's turn, bend, sag and landing become their own entries over a per-phytomer-step list, or the step runs through the light module's instruction-list form, where each software operation has one call site.
+
+**Budgets:**
+- **Compile:** every entry compiles cold in at most about 0.2 s, and the cycle's total under 2 s (ruling 9.3).
+- **Dispatches:** a cycle adds about 6 kernels and 3 scans a round, twice (count and emit). With about 3 rounds that is about 60 dispatches a cycle, about 5,000 for Telperion, about 35 ms at Chrome's 7 µs.
+- **Work:** the per-node phases spread work that one thread per apex ran serially. That should cut the units' 360 ms, but it is measured, not assumed.
+
