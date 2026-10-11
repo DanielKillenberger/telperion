@@ -490,3 +490,7 @@ Follow-ups (host): measure whether Telperion's leaves were dropped or only hidde
   - the parity test, CPU 0.01969 against device 0.01955;
   - the attachment test: hero, 1,484 florets checked, at most 0.45 px off, none stranded; far, 304 to 309 units kept and 1,763 to 1,768 dropped whole.
 - `npm test`: 14 files and 155 tests.
+
+**After the merge (worker, 2026-10-11).**
+- **The codex review**, against F4's tip `549af25c`: **SHIP**. Its one non-blocking P2 is fixed in `406d946a`: `bloom_seats` counted rachis instances as florets and still printed "no connecting geometry"; it now reports Laurelin at 30 as 12,432 florets and 2,072 rachis instances.
+- **The look (viewed: `STALKS-telperion-merged.jpg`, whole and close, seed 42, share 0.3).** Telperion on the merged build is as the owner approved it: white candles standing apart through a green crown at the whole view, and single florets among leaves at the close view. 420,016 florets and anchors, 980,082 leaves.
