@@ -123,7 +123,7 @@ impl Build {
             false => self.light,
         };
         let new = |keep: Owned, grew: bool, label, words: u64| if grew { zeroed(gpu, label, words) } else { Ok(keep) };
-        let counts = 2 * u64::from(device::b_at(n.next.max(n.sleepers)));
+        let counts = device::counts(n, t.zones).words;
         Ok(Build {
             sums: if live { Sums::alloc(gpu, s, n.next, t.pas)? } else { self.sums },
             tree: new(self.tree, axes, "cycle tree", u64::from(hier_columns::TREE as u32 * s))?,

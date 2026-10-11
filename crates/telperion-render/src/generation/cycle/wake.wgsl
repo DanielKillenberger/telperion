@@ -57,13 +57,10 @@ fn present(x: f32) -> f32 {
 
 // Each axis that carries the bearer of sleeping bud `row` on to `cycle`,
 // with the presence that carries it there (`dormant::carried`), in its
-// order.
-const CARRIED: u32 = 32u;
-var<private> carried_n: u32;
-var<private> carried_at: array<vec2<u32>, CARRIED>;
-
+// order, kept in the job (`J_CARRIED`).
 fn carried(row: u32, cycle: u32) {
-    carried_n = 0u;
+    var carried_n = 0u;
+    set_jw(J_CARRIED_N, 0u);
     var open: array<vec3<u32>, CARRIED>;
     let rec = sleeper(row, S_REC);
     open[0] = vec3<u32>(bitcast<u32>(present(bitcast<f32>(unit(rec, U_PERSIST)))), sleeper(row, S_PARENT), unit(rec, U_NEXT));
@@ -87,8 +84,9 @@ fn carried(row: u32, cycle: u32) {
                     fault |= 8u;
                     return;
                 }
-                carried_at[carried_n] = vec2<u32>(bitcast<u32>(p), a);
+                set_jw64(J_CARRIED + 2u * carried_n, vec2<u32>(bitcast<u32>(p), a));
                 carried_n += 1u;
+                set_jw(J_CARRIED_N, carried_n);
             }
             continue;
         }

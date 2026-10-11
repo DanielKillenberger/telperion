@@ -134,6 +134,7 @@ fn raised(mut s: Sizes, flags: &[(Flag, u32)], census: &[u32]) -> Result<Sizes> 
             Flag::Axes => caps.axes = twice(caps.axes, census[c::AXES]).next_multiple_of(64),
             Flag::DrawRanges => b.lay.draws = census[c::GREW].div_ceil(b.ranges.draw) + 1,
             Flag::UnitRanges => b.units = census[c::LIVE].div_ceil(b.ranges.units) + 1,
+            Flag::UnitRounds => b.rounds = (2 * b.rounds).min(64),
             Flag::LightRanges => b.lay.lights *= 2,
             Flag::Units => caps.units = twice(caps.units, census[c::UNITS]),
             Flag::Phyts => caps.phyts = twice(caps.phyts, census[c::PHYTS]),

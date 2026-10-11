@@ -1,10 +1,11 @@
-// The cycle's units and wake on the device (DESIGN.md sections 2.1 and
-// 2.2), one entry for both and both modes, so the driver compiles `run`
-// once: one invocation per living apex in the live order, running
-// `grow_live`'s advance of it, or per sleeping bud of the cycle in its
-// order (`wake.wgsl`). Counted, the appends are scanned in that order
-// into places; emitted, the same body writes each record at its place,
-// so every index is the CPU's and none comes from an atomic.
+// The cycle's units and wake on the device (DESIGN.md sections 2.1, 2.2
+// and 10): a job a living apex in the live order, or a sleeping bud of
+// the cycle in its order (`wake.wgsl`), run in rounds of small phases,
+// each its own entry: the unit decided, its zones laid, their nodes
+// counted or written, then the operations after it up to the next unit.
+// Counted, a job's appends are scanned in job order into places;
+// emitted, the same phases write each record at its place, so every
+// index is the CPU's and none comes from an atomic.
 
 fn index(id: vec3<u32>) -> u32 {
     return cfg.base + id.x + id.y * cfg.row;
@@ -46,46 +47,179 @@ fn bases(i: u32, emit: bool, after: bool) {
     }
 }
 
+// The job of invocation `id`, none past the range's: its place in it.
+fn job_of(id: vec3<u32>) -> u32 {
+    let k = id.x + id.y * cfg.row;
+    if cfg.cycle == 0u || cfg.base + k >= cfg.n {
+        return NONE;
+    }
+    return k;
+}
+
+// Each job begun: a living apex loaded, or a sleeping bud aged and the
+// axes it wakes on found.
 @compute @workgroup_size(64)
-fn cycle_main(@builtin(global_invocation_id) id: vec3<u32>) {
-    let i = index(id);
-    if i >= cfg.n {
+fn init_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let k = job_of(id);
+    if k == NONE {
         return;
     }
-    let emit = cfg.emit != 0u;
-    let waking = cfg.wake != 0u;
-    begin(emit);
-    bases(i, emit, waking);
-    var jobs = 1u;
-    var row = 0u;
-    var g = Aged(NONE, 0u, 0u);
-    if waking {
-        jobs = 0u;
-        if i < lists[T_LIST] {
-            row = lists[cfg.list_at + i];
-            g = aged(sleeper(row, S_PA), (sleeper(row, S_SLEPT) << 20u) + sleeper(row, S_SLEEP));
-        }
+    open_job(k);
+    take_job(k);
+    let i = cfg.base + k;
+    var o = op(OP_DONE, Apex(0u, 0u));
+    if cfg.wake == 0u {
+        o = op(OP_ADVANCE, Apex(inputs[2u * i], inputs[2u * i + 1u]));
+        load(o.apex.axis);
+    } else if i < lists[T_LIST] {
+        let row = lists[cfg.list_at + i];
+        let g = aged(sleeper(row, S_PA), (sleeper(row, S_SLEPT) << 20u) + sleeper(row, S_SLEEP));
+        set_jw(J_ROW, row);
+        set_jw(J_G, g.pa);
+        set_jw(J_G + 1u, g.spent);
+        set_jw(J_G + 2u, g.steps);
         if g.pa != NONE {
             carried(row, cfg.cycle);
-            jobs = carried_n;
+            o.kind = select(OP_DONE, OP_WOKE, jw(J_CARRIED_N) > 0u && fault == 0u);
         }
     }
-    for (var j = 0u; j < jobs && fault == 0u; j++) {
-        var apex: Apex;
-        if waking {
-            apex = woke(row, g, carried_at[j], cfg.cycle);
-        } else {
-            apex = Apex(inputs[2u * i], inputs[2u * i + 1u]);
-            load(apex.axis);
+    keep_op(o);
+    keep_job();
+}
+
+// A sleeping bud woken on its next axis (`Shoot::woke`): its first unit
+// grows in this round.
+@compute @workgroup_size(64)
+fn woke_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let k = job_of(id);
+    if k == NONE {
+        return;
+    }
+    job = k;
+    if jw(J_OP) != OP_WOKE {
+        return;
+    }
+    take_job(k);
+    let j = jw(J_WOKE);
+    let g = Aged(jw(J_G), jw(J_G + 1u), jw(J_G + 2u));
+    let apex = woke(jw(J_ROW), g, jw64(J_CARRIED + 2u * j), cfg.cycle);
+    set_jw(J_WOKE, j + 1u);
+    keep_op(op(OP_ADVANCE, apex));
+    keep_job();
+}
+
+// The unit of each job that grows one this round (`decide`).
+@compute @workgroup_size(64)
+fn decide_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let k = job_of(id);
+    if k == NONE {
+        return;
+    }
+    job = k;
+    if jw(J_OP) != OP_ADVANCE {
+        return;
+    }
+    take_job(k);
+    keep_op(decide(Apex(jw(J_AXIS), jw(J_SPENT)), cfg.cycle));
+    keep_job();
+}
+
+// The zone of a job's unit an invocation takes, its zone's place in the
+// unit table, none where the job grows none or its unit has fewer.
+fn zone_of(id: vec3<u32>) -> vec2<u32> {
+    let at = id.x + id.y * cfg.row;
+    let k = at / cfg.zones;
+    if cfg.cycle == 0u || cfg.base + k >= cfg.n {
+        return vec2<u32>(NONE);
+    }
+    job = k;
+    if jw(J_OP) != OP_GROWN {
+        return vec2<u32>(NONE);
+    }
+    let z = at % cfg.zones;
+    let pa = fr(jw(J_FRAME), A_PA);
+    if z >= table[2u * pa + 1u] {
+        return vec2<u32>(NONE);
+    }
+    return vec2<u32>(z, table[2u * pa] + ZW * z);
+}
+
+// Each zone's nodes laid.
+@compute @workgroup_size(64)
+fn zone_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let z = zone_of(id);
+    if z.x == NONE {
+        return;
+    }
+    zone_laid(z.x, z.y, jw64(J_UKEY), cfg.cycle, jw(J_GROW), jw(J_CUT));
+}
+
+// Each zone's nodes and their buds, counted, or written where
+// `cfg.write`.
+@compute @workgroup_size(64)
+fn nodes_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let z = zone_of(id);
+    if z.x == NONE {
+        return;
+    }
+    take_job(job);
+    pending = false;
+    zone_nodes(z.x, z.y, jw(J_FRAME), cfg.cycle, cfg.write != 0u);
+}
+
+// Each job's operations after its unit, its zones' records taken in, up
+// to its next unit or its end; a waking bud then wakes on its next axis.
+@compute @workgroup_size(64)
+fn after_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let k = job_of(id);
+    if k == NONE {
+        return;
+    }
+    job = k;
+    let kind = jw(J_OP);
+    if kind != OP_GROWN && kind != OP_STOP {
+        return;
+    }
+    take_job(k);
+    if kind == OP_GROWN {
+        let s = jw(J_FRAME);
+        for (var z = 0u; z < table[2u * fr(s, A_PA) + 1u]; z++) {
+            n_phyts += zw(z, Z_N);
+            n_axes += zw(z, Z_LAT);
+            n_next += zw(z, Z_LAT);
+            n_sleep += zw(z, Z_SLEEP);
+            fault |= zw(z, Z_FAULT);
+            set_fr(s, A_PHYTS, fr(s, A_PHYTS) + zw(z, Z_N));
         }
-        run(apex, cfg.cycle);
+    }
+    var o = run_ops(op_of(), cfg.cycle);
+    if o.kind != OP_ADVANCE {
         // What one job made is never read by the next.
         store_all();
         n_frames = 0u;
+        let more = cfg.wake != 0u && jw(J_WOKE) < jw(J_CARRIED_N) && fault == 0u;
+        o.kind = select(OP_DONE, OP_WOKE, more);
+    }
+    keep_op(o);
+    keep_job();
+}
+
+// Each job closed: its last living apex written, its counts kept where
+// counted, and a job with operations left past the cycle's last round
+// marked.
+@compute @workgroup_size(64)
+fn close_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let k = job_of(id);
+    if k == NONE {
+        return;
+    }
+    take_job(k);
+    if jw(J_OP) != OP_DONE {
+        lists[T_ROUNDS] = 1u;
     }
     flush_next();
-    if !emit {
-        put_counts(i);
+    if !emitting {
+        put_counts(cfg.base + k);
     }
 }
 

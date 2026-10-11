@@ -139,12 +139,6 @@ fn shade_of(axis: u32) -> array<vec2<u32>, 2> {
 // and `spent` of its age (why, whole and below in `m`); the relay a stop
 // makes, of presences `made0` and `made1`, which where `then_stop`
 // stops at once on `stopped` and `key`; or a move to its next age.
-const OP_NONE: u32 = 0u;
-const OP_ADVANCE: u32 = 1u;
-const OP_STOP: u32 = 2u;
-const OP_RELAY: u32 = 3u;
-const OP_MOVE: u32 = 4u;
-
 struct Op {
     kind: u32,
     apex: Apex,
@@ -184,10 +178,11 @@ fn op_relay(apex: Apex, used: u32, spent: u32, made: array<vec2<u32>, 2>, m: Mad
 }
 
 // One living apex's growth unit in `cycle` (`Shoot::advance`), the
-// failed unit's that its relay takes over (`Shoot::fail`) included: what
-// runs next.
-fn advance(apex_in: Apex, cycle: u32) -> Op {
-    var apex = apex_in;
+// failed unit's that its relay takes over (`Shoot::fail`) included, up to
+// its zones (DESIGN.md section 10's `decide`): a stop where the unit
+// fails with no relay, else the unit appended and laid out in the job for
+// the zones and `after` (`OP_GROWN`).
+fn decide(apex: Apex, cycle: u32) -> Op {
     let s = frame_of(apex.axis);
     let pa = fr(s, A_PA);
     let lineage = fr64(s, A_LINEAGE);
@@ -256,14 +251,55 @@ fn advance(apex_in: Apex, cycle: u32) -> Op {
         unit_persist(rec, select(1.0, after.value, after.ok));
         set_fr(s, A_FLAGS, fr(s, A_FLAGS) | F_FAILED);
     }
-    grow_unit(s, pa, unit_key, cycle, share, select(cut, 0u, dies), rec);
-    if dies {
+    set_jw(J_REC, rec);
+    set_jw(J_FRAME, s);
+    set_jw(J_DIES, u32(dies));
+    set_jw(J_ST, bitcast<u32>(st.share));
+    set_jw(J_ST + 1u, u32(st.ends));
+    set_jw(J_ST + 2u, bitcast<u32>(st.used));
+    set_jw(J_CUT, select(cut, 0u, dies));
+    set_jw(J_GROW, share);
+    set_jw64(J_UKEY, unit_key);
+    set_jw64(J_DECIDE, decide);
+    set_jw(J_GONE, gone);
+    set_jw(J_WHOLEF, u32(whole));
+    set_jw(J_BELOW, below);
+    set_jw(J_FAILED, failed.lived);
+    set_jw(J_FAILED + 1u, failed.below);
+    set_jwf(J_FAILED + 2u, failed.relayed);
+    set_jwf(J_FAILED + 3u, failed.stopped);
+    set_jw(J_AFTER, u32(after.ok));
+    set_jwf(J_AFTER + 1u, after.value);
+    set_jw(J_IN_SPENT, apex.spent);
+    var o = op(OP_GROWN, apex);
+    o.key = child(child(lineage, KEY_END), w(n, 0u));
+    return o;
+}
+
+// The rest of the unit `decide` laid out, once its zones have grown
+// (`after`'s first operation): its failure's relay, its abortion, or its
+// move to its next age.
+fn grown_on(o_in: Op, cycle: u32) -> Op {
+    var apex = o_in.apex;
+    let s = jw(J_FRAME);
+    let pa = fr(s, A_PA);
+    let rec = jw(J_REC);
+    unit_grown(rec);
+    let gone = jw(J_GONE);
+    let whole = jw(J_WHOLEF) != 0u;
+    let decide = jw64(J_DECIDE);
+    if jw(J_DIES) != 0u {
+        let failed = Failed(jw(J_FAILED), jw(J_FAILED + 1u), jwf(J_FAILED + 2u), jwf(J_FAILED + 3u));
+        let after = Persists(jw(J_AFTER) != 0u, jwf(J_AFTER + 1u));
         return failed_relay(apex, cycle, gone, whole, failed, decide, after);
     }
+    let st = Step(bitcast<i32>(jw(J_ST)), jw(J_ST + 1u) != 0u, bitcast<i32>(jw(J_ST + 2u)));
+    let share = jw(J_GROW);
+    let below = jw(J_BELOW);
     apex.spent = u32(i32(apex.spent) + st.share);
     if !st.ends {
         let grown = fr(s, A_AGED) + fr(s, A_GROWN);
-        let next = ticks_of(step(apex_in.spent, gone, whole, life(pa), 2u).share);
+        let next = ticks_of(step(jw(J_IN_SPENT), gone, whole, life(pa), 2u).share);
         var exposure = shl64(w(next, 0u), 12u);
         let own = add64(shl64(w(share, 0u), 12u), w(below, 0u));
         if !lt64(exposure, own) {
@@ -280,7 +316,7 @@ fn advance(apex_in: Apex, cycle: u32) -> Op {
     }
     set_fr(s, A_END, cycle + 1u);
     var o = op(OP_MOVE, apex);
-    o.key = child(child(lineage, KEY_END), w(n, 0u));
+    o.key = o_in.key;
     o.used = TICKS;
     if st.used < i32(TICKS) {
         o.used = u32(st.used);

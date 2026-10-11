@@ -28,7 +28,7 @@ const TICK_ROWS: f64 = 0.01;
 const TICK_APART: f64 = 4.0;
 
 /// Whether a tick count holds: `rows` of `of` apart, by at most `most`.
-pub(super) fn ticks_hold(rows: usize, of: usize, most: u32) -> bool {
+fn ticks_hold(rows: usize, of: usize, most: u32) -> bool {
     rows as f64 <= TICK_ROWS * of as f64 && f64::from(most) <= TICK_APART
 }
 

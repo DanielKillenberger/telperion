@@ -1,17 +1,15 @@
-// One invocation's work (DESIGN.md section 2.1): the axes it advances or
-// makes, held in private frames, and the records it appends, counted in
-// both modes and written at their scanned places in emit mode alone. A
-// lateral is written as it is made and never read again; every other
-// axis it touches stays in a frame until the invocation ends.
+// A job's work (DESIGN.md sections 2.1 and 10): the axes it advances or
+// makes, held in its frames (`job.wgsl`), and the records it appends,
+// counted in both modes and written at their scanned places in emit mode
+// alone. A lateral is written as it is made, from its invocation's own
+// scratch frame, and never read again; every other axis the job touches
+// stays in a frame until its growth ends.
 
-const FRAMES: u32 = 16u;
-// The frame a lateral is made in, written at once.
-const SCRATCH: u32 = FRAMES;
 // The axis columns past a frame's words: its first unit's record.
 const A_HEAD: u32 = AW;
 const AXES_COLUMNS: u32 = AW + 1u;
 
-var<private> frame: array<u32, 578>;
+var<private> scratch: array<u32, 35>;
 var<private> n_frames: u32;
 // What went wrong, by bit: a frame too many (1), an axis no frame holds
 // (2), a zone of more nodes than a unit sorts (4), more buds woken on
@@ -34,8 +32,8 @@ var<private> base_sleep: u32;
 var<private> base_next: u32;
 var<private> base_woken: u32;
 // The living apex last appended, which `carry_on` may take back, so it
-// is written only once another follows it or the invocation ends: taken
-// back, its slot is past the invocation's count, the next one's first.
+// is written only once another follows it or the job ends: taken back,
+// its slot is past the job's count, the next one's first.
 var<private> last_axis: u32;
 var<private> last_spent: u32;
 var<private> pending: bool;
@@ -45,25 +43,28 @@ struct Apex {
     spent: u32,
 }
 
-fn begin(emit: bool) {
-    emitting = emit;
-    n_frames = 0u;
-    fault = 0u;
-    n_axes = 0u;
-    n_phyts = 0u;
-    n_units = 0u;
-    n_sleep = 0u;
-    n_next = 0u;
-    n_woken = 0u;
-    pending = false;
-}
-
 fn fr(s: u32, f: u32) -> u32 {
-    return frame[s * AW + f];
+    if s == SCRATCH {
+        return scratch[f];
+    }
+    return jw(J_FRAME0 + s * FW + f);
 }
 
 fn set_fr(s: u32, f: u32, v: u32) {
-    frame[s * AW + f] = v;
+    if s == SCRATCH {
+        scratch[f] = v;
+        return;
+    }
+    set_jw(J_FRAME0 + s * FW + f, v);
+}
+
+// A frame's first unit's record.
+fn head(s: u32) -> u32 {
+    return fr(s, AW);
+}
+
+fn set_head(s: u32, r: u32) {
+    set_fr(s, AW, r);
 }
 
 fn fr64(s: u32, f: u32) -> vec2<u32> {
@@ -113,11 +114,9 @@ fn load(i: u32) -> u32 {
     for (var f = 1u; f < AW; f++) {
         set_fr(s, f, ax(i, f));
     }
-    heads[s] = ax(i, A_HEAD);
+    set_head(s, ax(i, A_HEAD));
     return s;
 }
-
-var<private> heads: array<u32, 17>;
 
 // A new frame for axis `i`, every word none but its index.
 fn open_frame(i: u32) -> u32 {
@@ -139,7 +138,7 @@ fn clear(s: u32, i: u32) {
     set_fr(s, A_SUCC0, NONE);
     set_fr(s, A_SUCC1, NONE);
     set_fr(s, A_TAIL, NONE);
-    heads[s] = NONE;
+    set_head(s, NONE);
 }
 
 // Frame `s` written to its axis's columns.
@@ -151,7 +150,7 @@ fn store(s: u32) {
     for (var f = 1u; f < AW; f++) {
         set_ax(i, f, fr(s, f));
     }
-    set_ax(i, A_HEAD, heads[s]);
+    set_ax(i, A_HEAD, head(s));
 }
 
 fn store_all() {
@@ -222,7 +221,7 @@ fn push_unit(s: u32, survive: f32, share: u32, size: u32, shade: array<vec2<u32>
         }
     }
     if tail == NONE {
-        heads[s] = r;
+        set_head(s, r);
     }
     set_fr(s, A_TAIL, r);
     set_fr(s, A_UNITS, fr(s, A_UNITS) + 1u);

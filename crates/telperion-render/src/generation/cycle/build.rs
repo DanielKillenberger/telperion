@@ -74,6 +74,8 @@ pub(super) struct Tables {
     pub rows: u32,
     pub whorls: u32,
     pub pas: u32,
+    /// The zones a unit has at most (`zones.wgsl`).
+    pub zones: u32,
     /// Each PA's settle and retirement constants (`settle_pa`).
     pub settle_pa: Vec<u32>,
     pub table: Owned,
@@ -90,6 +92,7 @@ impl Tables {
             panic!("cycle, age, budget")
         };
         let (table, words, rows, whorls) = packed(&cap, chain, age);
+        let zones = (0..table[0] as usize / 2).map(|p| table[2 * p + 1]).max().unwrap_or(0);
         let mut form = cap.f32s("lay_globals");
         form.extend(cap.f32s("lay_form"));
         let pa = cap.f32s("hier_pa");
@@ -104,6 +107,7 @@ impl Tables {
             rows,
             whorls,
             pas,
+            zones,
             settle_pa: cap.u32s("settle_pa"),
             table: upload("cycle table", bytemuck::cast_slice(&table))?,
             words: upload("cycle words", bytemuck::cast_slice(&words))?,
@@ -176,7 +180,7 @@ impl Build {
             retire: super::retire_device::Retire::new(gpu, s, &t.settle_pa)?,
             stashed: None,
             inputs: zeroed(gpu, "cycle inputs", 2 * u64::from(caps.next) + 6 * u64::from(s))?,
-            counts: zeroed(gpu, "cycle counts", 2 * u64::from(device::b_at(caps.next.max(caps.sleepers))))?,
+            counts: zeroed(gpu, "cycle counts", device::counts(caps, t.zones).words)?,
             flags: zeroed(gpu, "cycle flags", 2 * u64::from(s))?,
             spare: zeroed(gpu, "cycle spare", 4)?,
             scan_tally: zeroed(gpu, "cycle scan tally", 64)?,

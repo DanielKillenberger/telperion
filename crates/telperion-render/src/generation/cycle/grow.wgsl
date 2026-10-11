@@ -77,44 +77,87 @@ fn place_presence(zat: u32, slot: u32, place: vec2<u32>, window: f32) -> f32 {
     return presence(lead(vec2<u32>(0u), t, draw(child(place, KEY_PLACED))), window);
 }
 
-// One growth unit of the axis of frame `s`, of `pa`, keyed `unit_key`,
-// in `cycle`: `share` ticks of its cycle, cut from `cut` ticks where a
-// lifespan's fraction cut it (none: 0); its record `rec`.
-fn grow_unit(s: u32, pa: u32, unit_key: vec2<u32>, cycle: u32, share: u32, cut: u32, rec: u32) {
+// A unit's zone `k` (DESIGN.md section 10), at `zat`, its columns in
+// `counts` from `cfg.zone_at`, `cfg.job_cap * cfg.zones` apart: its nodes
+// laid, whether the last is cut and that one's presence, its laterals and
+// sleeping buds, and a fault.
+const Z_N: u32 = 0u;
+const Z_CUT: u32 = 1u;
+const Z_LAST: u32 = 2u;
+const Z_LAT: u32 = 3u;
+const Z_SLEEP: u32 = 4u;
+const Z_FAULT: u32 = 5u;
+
+fn zw(z: u32, f: u32) -> u32 {
+    return counts[cfg.zone_at + f * cfg.job_cap * cfg.zones + job * cfg.zones + z];
+}
+
+fn set_zw(z: u32, f: u32, v: u32) {
+    counts[cfg.zone_at + f * cfg.job_cap * cfg.zones + job * cfg.zones + z] = v;
+}
+
+// The zone at `zat` of a unit keyed `unit_key` (`zone_key`): its nodes
+// laid (`laid`), kept for the zone's nodes and `after`.
+fn zone_laid(z: u32, zat: u32, unit_key: vec2<u32>, cycle: u32, share: u32, cut: u32) {
+    let zk = zone_key(unit_key, zat);
+    let d = draw(zk);
+    let lay = laid(zat, zk, zone_count(zat, d), fw(table[zat + 7u] + cycle), share, cut);
+    set_zw(z, Z_N, min(lay.n, MOST));
+    set_zw(z, Z_CUT, u32(lay.cut));
+    set_zw(z, Z_LAST, bitcast<u32>(lay.last));
+    set_zw(z, Z_FAULT, select(0u, 4u, lay.n > MOST));
+}
+
+// The laterals and sleeping buds of zone `z`'s nodes (`grow_unit`'s
+// inner loops), counted, or, where `write`, appended in the nodes' order
+// along the unit from the places the zones before it left.
+fn zone_nodes(z: u32, zat: u32, s: u32, cycle: u32, write: bool) {
     let axis = fr(s, 0u);
-    let first = table[2u * pa];
-    for (var k = 0u; k < table[2u * pa + 1u]; k++) {
-        let zat = first + ZW * k;
-        let zk = zone_key(unit_key, zat);
-        let d = draw(zk);
-        let window = fw(table[zat + 7u] + cycle);
-        let lay = laid(zat, zk, zone_count(zat, d), window, share, cut);
-        if lay.n > MOST {
-            fault |= 4u;
-            return;
+    let unit_key = jw64(J_UKEY);
+    let zk = zone_key(unit_key, zat);
+    let d = draw(zk);
+    let window = fw(table[zat + 7u] + cycle);
+    let n = zw(z, Z_N);
+    let whorl = words[cfg.whorls + (zat - table[0]) / ZW];
+    var drawn: array<u32, MOST>;
+    for (var j = 0u; j < n; j++) {
+        drawn[j] = j;
+    }
+    var node = fr(s, A_PHYTS);
+    if write {
+        sorted(zk, n, &drawn);
+        for (var k = 0u; k < z; k++) {
+            n_phyts += zw(k, Z_N);
+            n_axes += zw(k, Z_LAT);
+            n_next += zw(k, Z_LAT);
+            n_sleep += zw(k, Z_SLEEP);
+            node += zw(k, Z_N);
         }
-        var drawn: array<u32, MOST>;
-        sorted(zk, lay.n, &drawn);
-        let whorl = words[cfg.whorls + (zat - table[0]) / ZW];
-        for (var m = 0u; m < lay.n; m++) {
-            let j = drawn[m];
-            let node_key = child(zk, w(j, 0u));
+    }
+    let rec = jw(J_REC);
+    var laterals = 0u;
+    var asleep = 0u;
+    for (var m = 0u; m < n; m++) {
+        let j = drawn[m];
+        let node_key = child(zk, w(j, 0u));
+        if write {
             var p = node_presence(zat, d, j, window);
-            if lay.cut && j + 1u == lay.n {
-                p = lay.last;
+            if zw(z, Z_CUT) != 0u && j + 1u == n {
+                p = bitcast<f32>(zw(z, Z_LAST));
             }
-            let node = fr(s, A_PHYTS);
-            set_fr(s, A_PHYTS, node + 1u);
             push_phyt(axis, node_key, cycle, p);
-            for (var slot = 0u; slot < table[zat + 4u]; slot++) {
-                let place = child(node_key, w(slot, 0u));
-                if !stands(zat, slot, place) {
-                    continue;
-                }
-                let drew = bud(zat, place);
-                if drew == 0xffu || lived_pa(drew) == NONE {
-                    continue;
-                }
+        }
+        for (var slot = 0u; slot < table[zat + 4u]; slot++) {
+            let place = child(node_key, w(slot, 0u));
+            if !stands(zat, slot, place) {
+                continue;
+            }
+            let drew = bud(zat, place);
+            if drew == 0xffu || lived_pa(drew) == NONE {
+                continue;
+            }
+            laterals += 1u;
+            if write {
                 let lpa = lived_pa(drew);
                 let window_l = window_none(lpa, cycle + 1u, 0u);
                 let lead_p = drawn_presence(table[zat + 5u], drew, place, window_l);
@@ -122,23 +165,31 @@ fn grow_unit(s: u32, pa: u32, unit_key: vec2<u32>, cycle: u32, share: u32, cut: 
                 let made2 = array<vec2<u32>, 2>(real64(made), real64(reach(drew, 0u)));
                 sprout(place, lpa, cycle, LATERAL | (slot << 8u), vec2<u32>(axis, node), whorl, made2);
             }
-            if words[table[zat + 11u] + cycle].x != 0u {
-                sleep(zat, node_key, s, node, rec, cycle, whorl);
-            }
         }
+        if words[table[zat + 11u] + cycle].x != 0u {
+            asleep += sleep(zat, node_key, s, node, rec, cycle, whorl, write);
+        }
+        node += 1u;
     }
-    unit_grown(rec);
+    if write {
+        flush_next();
+    } else {
+        set_zw(z, Z_LAT, laterals);
+        set_zw(z, Z_SLEEP, asleep);
+    }
 }
 
 // The sleeping buds of the node keyed `node_key` that wake within the
-// tree's age (`Shoot::sleep`, `dormant::draw`).
-fn sleep(zat: u32, node_key: vec2<u32>, s: u32, node: u32, rec: u32, cycle: u32, whorl: vec2<u32>) {
+// tree's age (`Shoot::sleep`, `dormant::draw`): counted, or, where
+// `write`, appended.
+fn sleep(zat: u32, node_key: vec2<u32>, s: u32, node: u32, rec: u32, cycle: u32, whorl: vec2<u32>, write: bool) -> u32 {
     let waking = table[zat + 10u];
     if waking == NONE {
-        return;
+        return 0u;
     }
     let start = table[zat + 8u];
     let n = table[zat + 9u];
+    var asleep = 0u;
     for (var slot = 0u; slot < table[zat + 4u]; slot++) {
         let place = child(node_key, w(slot, 0u));
         if !stands(zat, slot, place) {
@@ -151,6 +202,10 @@ fn sleep(zat: u32, node_key: vec2<u32>, s: u32, node: u32, rec: u32, cycle: u32,
         }
         let years = wake_ticks_held(words[waking], fw(waking + 1u), draw(child(key, KEY_DORMANT)));
         if !lt64(years, shl64(w(cfg.age - cycle, 0u), 20u)) {
+            continue;
+        }
+        asleep += 1u;
+        if !write {
             continue;
         }
         let whole = shr64(years, 20u).x;
@@ -173,4 +228,5 @@ fn sleep(zat: u32, node_key: vec2<u32>, s: u32, node: u32, rec: u32, cycle: u32,
             rec,
         ));
     }
+    return asleep;
 }

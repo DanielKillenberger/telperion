@@ -156,9 +156,28 @@ struct After {
     key: vec2<u32>,
 }
 
-const STACK: u32 = 16u;
-var<private> stack: array<After, STACK>;
-var<private> depth: u32;
+// The job's stack of `After`s (`job.wgsl`), six words an entry.
+fn push_after(f: After) {
+    let depth = jw(J_DEPTH);
+    if depth >= STACK {
+        fault |= 16u;
+        return;
+    }
+    let at = J_STACK + 6u * depth;
+    set_jw(at, f.apex.axis);
+    set_jw(at + 1u, f.apex.spent);
+    set_jw(at + 2u, f.used);
+    set_jwf(at + 3u, f.made);
+    set_jw64(at + 4u, f.key);
+    set_jw(J_DEPTH, depth + 1u);
+}
+
+fn pop_after() -> After {
+    let depth = jw(J_DEPTH) - 1u;
+    set_jw(J_DEPTH, depth);
+    let at = J_STACK + 6u * depth;
+    return After(Apex(jw(at), jw(at + 1u)), jw(at + 2u), jwf(at + 3u), jw64(at + 4u));
+}
 
 // A move operation (`Shoot::move_on`): the apex has spent its age and
 // moves on by its continuation, or stops.
@@ -184,12 +203,7 @@ fn move_on(o: Op, cycle: u32) -> Op {
     if tail.kind == OP_NONE {
         return relay_after(after, cycle);
     }
-    if depth >= STACK {
-        fault |= 16u;
-        return op(OP_NONE, apex);
-    }
-    stack[depth] = after;
-    depth += 1u;
+    push_after(after);
     return tail;
 }
 
@@ -235,21 +249,21 @@ fn failed_relay(apex_in: Apex, cycle: u32, gone: u32, whole: bool, f: Failed, de
     return o;
 }
 
-// The advances of the living apex `apex` in `cycle`, and every growth
-// they carry on in it, in order: each operation in one place, so the
-// driver compiles each body once.
-fn run(apex: Apex, cycle: u32) {
-    var o = op(OP_ADVANCE, apex);
-    depth = 0u;
-    // cap: every turn grows a unit, stops, relays, moves or ends a move's
-    // tail, and an apex carries on a few ages a cycle at most.
+// What follows a job's unit in `cycle` (DESIGN.md section 10's `after`):
+// its operations in the CPU's order, each stop, relay, move and the relay
+// a move leaves once its continuation's growth is done, up to the next
+// unit to grow (an advance, for the next round) or the job's end (none).
+fn run_ops(o_in: Op, cycle: u32) -> Op {
+    var o = o_in;
+    // cap: every turn stops, relays, moves or ends a move's tail, and an
+    // apex carries on a few ages a cycle at most.
     for (var turns = 0u; turns < 4096u; turns++) {
         if fault != 0u {
-            return;
+            return op(OP_NONE, o.apex);
         }
         switch o.kind {
-            case OP_ADVANCE: {
-                o = advance(o.apex, cycle);
+            case OP_GROWN: {
+                o = grown_on(o, cycle);
             }
             case OP_STOP: {
                 o = stop(o, cycle);
@@ -260,14 +274,17 @@ fn run(apex: Apex, cycle: u32) {
             case OP_MOVE: {
                 o = move_on(o, cycle);
             }
+            case OP_ADVANCE: {
+                return o;
+            }
             default: {
-                if depth == 0u {
-                    return;
+                if jw(J_DEPTH) == 0u {
+                    return o;
                 }
-                depth -= 1u;
-                o = relay_after(stack[depth], cycle);
+                o = relay_after(pop_after(), cycle);
             }
         }
     }
     fault |= 32u;
+    return op(OP_NONE, o.apex);
 }

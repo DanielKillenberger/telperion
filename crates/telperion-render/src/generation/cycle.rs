@@ -79,8 +79,6 @@ mod settle_float_tests;
 #[cfg(test)]
 mod soft64_tests;
 #[cfg(test)]
-mod tests;
-#[cfg(test)]
 mod tint_rules;
 #[cfg(test)]
 mod vm_tests;
@@ -88,6 +86,7 @@ mod vm_tests;
 const ARENA: &str = include_str!("cycle/arena.wgsl");
 const REAL: &str = include_str!("cycle/real.wgsl");
 const FRAME: &str = include_str!("cycle/frame.wgsl");
+const JOB: &str = include_str!("cycle/job.wgsl");
 const ADVANCE: &str = include_str!("cycle/advance.wgsl");
 const STOP: &str = include_str!("cycle/stop.wgsl");
 const GROW: &str = include_str!("cycle/grow.wgsl");
@@ -125,11 +124,11 @@ const ROOT: &str = "fn exact_sqrt(x: f32) -> f32 {\n    return sqrt(x);\n}\n";
 
 /// The units' and the wake's WGSL: the contract and the zones
 /// (`fine::zones`), the held arithmetic and the contract's held copies
-/// (`held.rs`), then the cycle's state, its reals, an invocation's
-/// frames, the advance, the stops, the unit, and the entries.
+/// (`held.rs`), then the cycle's state, its reals, a job's state and
+/// frames, the advance, the stops, the zones, and the entries.
 pub(super) fn source() -> String {
     format!(
-        "{}\n{HELD}\n{}\n{ARENA}\n{REAL}\n{FRAME}\n{ADVANCE}\n{STOP}\n{GROW}\n{UNITS}\n{WAKE}",
+        "{}\n{HELD}\n{}\n{ARENA}\n{REAL}\n{JOB}\n{FRAME}\n{ADVANCE}\n{STOP}\n{GROW}\n{UNITS}\n{WAKE}",
         super::fine::zones_with(ARITH),
         held::source()
     )

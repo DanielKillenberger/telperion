@@ -21,8 +21,10 @@ use crate::{Gpu, Result};
 pub(super) struct Bounds {
     pub hier: HierBounds,
     pub lay: LayBounds,
-    /// The units' dispatches a list takes at most.
+    /// The units' dispatches a list takes at most, and the rounds a
+    /// range's jobs run (DESIGN.md section 10).
     pub units: u32,
+    pub rounds: u32,
     pub ranges: Ranges,
 }
 
@@ -49,6 +51,7 @@ impl Default for Bounds {
             hier: HierBounds { gens: 4, passes: 4, levels: 8 },
             lay: LayBounds { generations: 4, sweeps: 2, deposits: 1, draws: 1, lights: 1 },
             units: 1,
+            rounds: 4,
             ranges: Ranges { units: 16384, draw: 65536, deposit: 262_144, nodes: 65536, paths: 524_288 },
         }
     }
@@ -93,7 +96,7 @@ impl Build {
 
     /// The seed's axis and apex (`Grower::seeded`).
     fn plan_seed(&self, b: &mut Builder, kit: &Kit, t: &Tables) {
-        let mut words = self.units_static(t, (0, 1, 0));
+        let mut words = self.units_static(t, (0, 1, 0, 0));
         words[0] = 1;
         let slot = b.slot(&words);
         let s = &self.state;
@@ -154,7 +157,7 @@ impl Build {
             *phase = b.take();
         }
         b.phase = "units and wake";
-        let mut held = self.plan_units(&mut b, kit, t, (bounds.units, bounds.ranges.units))?;
+        let mut held = self.plan_units(&mut b, kit, t, (bounds.units, bounds.ranges.units, bounds.rounds))?;
         let units = b.take();
         b.phase = "layout";
         held.extend(self.plan_layout(&mut b, kit, (bounds.lay, bounds.ranges.draw))?);

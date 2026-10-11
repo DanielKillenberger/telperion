@@ -43,6 +43,14 @@ struct Cfg {
     // The request's seed (`seed_main`).
     seed_lo: u32,
     seed_hi: u32,
+    // The jobs' state in `counts` and its jobs at most, the zones' and a
+    // unit's zones at most (`job.wgsl`, `grow.wgsl`), and whether the
+    // zones' nodes are written or counted.
+    job_at: u32,
+    job_cap: u32,
+    zone_at: u32,
+    zones: u32,
+    write: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -150,8 +158,10 @@ const T_UNITS_B: u32 = 4u;
 const T_LIST: u32 = 8u;
 const T_WAKE: u32 = 12u;
 const T_WAKE_B: u32 = 16u;
-// Set where the seed's bud grows in no age (`Error::Collapsed`).
+// Set where the seed's bud grows in no age (`Error::Collapsed`), and
+// where a job had operations left after the cycle's last round.
 const T_COLLAPSED: u32 = 20u;
+const T_ROUNDS: u32 = 21u;
 
 fn ax(i: u32, f: u32) -> u32 {
     return axes[f * cfg.axes_cap + i];

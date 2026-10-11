@@ -95,9 +95,11 @@ pub(super) enum Flag {
     LayScan,
     /// A dispatch's true size past the workgroups the host gave it.
     Given,
+    /// A units job with operations left past the cycle's last round.
+    UnitRounds,
 }
 
-pub(super) const FLAG_NAMES: [Flag; 29] = [
+pub(super) const FLAG_NAMES: [Flag; 30] = [
     Flag::Axes,
     Flag::Units,
     Flag::Phyts,
@@ -127,6 +129,7 @@ pub(super) const FLAG_NAMES: [Flag; 29] = [
     Flag::SleepScan,
     Flag::LayScan,
     Flag::Given,
+    Flag::UnitRounds,
 ];
 
 impl Flag {
