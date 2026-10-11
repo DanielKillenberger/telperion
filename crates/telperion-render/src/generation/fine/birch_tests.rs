@@ -72,4 +72,3 @@ fn the_birch_grows_the_same_wood_on_the_device_as_on_the_cpu() {
         );
     }
 }
-
