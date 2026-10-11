@@ -156,7 +156,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-263-the-birch-grows-the-same-wood-on-the.md",
-  "status": "open",
+  "status": "done",
   "title": "The birch grows the same wood on the device as on the CPU",
   "tracker": {
     "baseHashFlow": null,
@@ -169,5 +169,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-11T01:36:06.357090Z"
+  "updated_at": "2026-10-11T01:36:44.505129Z"
 }
