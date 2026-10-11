@@ -30,8 +30,11 @@ pub fn carded(element: &Element) -> Cow<'_, Element> {
     let Some(card) = card(element) else {
         return Cow::Borrowed(element);
     };
+    // A flower's rachis levels stand in front of its florets' (fn-253);
+    // the card goes in front of the florets'.
+    let front = rachis_levels(element);
     if element.levels.len() >= crate::MAX_LEVELS
-        || element.levels.first().is_none_or(|l| l.deviation >= deviation)
+        || element.levels.get(front).is_none_or(|l| l.deviation >= deviation)
     {
         return Cow::Borrowed(element);
     }
@@ -41,15 +44,32 @@ pub fn carded(element: &Element) -> Cow<'_, Element> {
     if !out.coords.is_empty() {
         out.coords.extend([0.0, -1.0, 1.0, -1.0, 1.0, 1.0, 0.0, 1.0]);
     }
-    let quad = [0, 1, 2, 0, 2, 3].map(|i| base + i);
-    out.level_indices = quad.iter().copied().chain(element.level_indices.iter().copied()).collect();
-    out.levels = std::iter::once(Level { indices: 0..6, deviation })
-        .chain(element.levels.iter().map(|l| Level {
-            indices: l.indices.start + 6..l.indices.end + 6,
-            deviation: l.deviation,
-        }))
-        .collect();
+    // The card is a patch of colour, not a floret: under CARD_PIXELS its
+    // pedicel is far below a pixel and is not drawn (fn-253).
+    let at = out.level_indices.len() as u32;
+    out.level_indices.extend([0, 1, 2, 0, 2, 3].map(|i| base + i));
+    let indices = at..out.level_indices.len() as u32;
+    out.levels.insert(front, Level { indices, deviation });
     Cow::Owned(out)
+}
+
+/// How many of `element`'s levels, from the coarsest, are a flower's
+/// rachis's alone (fn-253): none on a leaf.
+pub(crate) fn rachis_levels(element: &Element) -> usize {
+    element.levels.iter().take_while(|l| rachis(element, l)).count()
+}
+
+/// Whether `level` draws stalk triangles alone: a flower's rachis's.
+fn rachis(element: &Element, level: &Level) -> bool {
+    let range = level.indices.start as usize..level.indices.end as usize;
+    let indices = element.level_indices.get(range).unwrap_or_default();
+    !indices.is_empty() && indices.iter().all(|&i| stalk(element, i))
+}
+
+/// Whether vertex `i` is a flower's stalk's, named by a surface coordinate
+/// below zero (`bloom/stalk.rs`).
+fn stalk(element: &Element, i: u32) -> bool {
+    element.coords.get(2 * i as usize).is_some_and(|x| *x < 0.0)
 }
 
 struct Card {
@@ -146,7 +166,8 @@ mod tests {
         assert_eq!(levels.len(), element.levels.len() + 1, "no card level");
         assert!(levels.windows(2).all(|w| w[0].deviation > w[1].deviation));
         assert_eq!(carded.coords.len(), 2 * carded.positions.len());
-        let quad = &carded.level_indices[0..6];
+        let range = levels[0].indices.clone();
+        let quad = &carded.level_indices[range.start as usize..range.start as usize + 6];
         let [a, b, c, d] = [quad[0], quad[1], quad[2], quad[5]].map(|i| carded.positions[i as usize]);
         let card = (b - a).cross(c - a).length() * 0.5 + (c - a).cross(d - a).length() * 0.5;
         let petals: f64 = element
@@ -160,7 +181,9 @@ mod tests {
             })
             .sum();
         assert!((card - petals).abs() <= 1e-9, "{card} against {petals}");
-        assert_eq!(&carded.level_indices[6..], &element.level_indices[..]);
+        let kept = element.level_indices.len();
+        assert_eq!(&carded.level_indices[..kept], &element.level_indices[..]);
+        assert_eq!(&levels[1..], &element.levels[..]);
         // The card faces where the petals mostly do: about +Z, two of the
         // three petals tilted eleven degrees off it.
         let n = (b - a).cross(c - a).normalized();
@@ -193,11 +216,37 @@ mod tests {
                 };
             }
             let carded = carded(&element);
-            let quad = &carded.level_indices[0..6];
+            let range = carded.levels[0].indices.clone();
+            let quad = &carded.level_indices[range.start as usize..range.start as usize + 6];
             let [a, b, c] = [quad[0], quad[1], quad[2]].map(|i| carded.positions[i as usize]);
             let n = (b - a).cross(c - a).normalized();
             let along = [n.x, n.y, n.z][flat].abs();
             assert!(along > 0.999, "petals facing axis {flat}: card faces {n:?}");
         }
+    }
+
+    /// fn-253: the card goes behind a flower's rachis levels, which stay
+    /// in front, and is its quad alone: under CARD_PIXELS the pedicel is
+    /// not drawn.
+    #[test]
+    fn the_card_follows_the_rachis_levels_and_drops_the_pedicel() {
+        let mut e = floret();
+        let p = |x, y, z| Vec3::new(x, y, z) * 1e-6;
+        e.positions.extend([p(1.0, 0.0, 0.0), p(0.0, 1.0, 0.0), p(0.0, 0.0, 1.0)]);
+        e.coords.extend([-1.0, 0.0, -1.0, 1.0, -1.0, 2.0]);
+        e.indices.extend([5, 6, 7]);
+        e.level_indices.extend([5, 6, 7]);
+        e.levels[1].indices.end += 3;
+        e.positions.extend([p(2.0, 0.0, 0.0), p(0.0, 2.0, 0.0), p(0.0, 0.0, 2.0)]);
+        e.coords.extend([-2.0, 0.0, -2.0, 1.0, -2.0, 2.0]);
+        let at = e.level_indices.len() as u32;
+        e.level_indices.extend([8, 9, 10, 8, 10, 9]);
+        e.levels.insert(0, Level { indices: at + 3..at + 6, deviation: 1e29 });
+        e.levels.insert(0, Level { indices: at..at + 3, deviation: 1e30 });
+        let carded = carded(&e);
+        assert_eq!(&carded.levels[..2], &e.levels[..2], "the rachis levels first");
+        let card = carded.levels[2].indices.clone();
+        assert_eq!(card.len(), 6, "the quad alone");
+        assert_eq!(&carded.levels[3..], &e.levels[2..]);
     }
 }

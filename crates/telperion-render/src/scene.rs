@@ -107,6 +107,10 @@ struct Uniforms {
     /// A floret's eye: the colour its petals turn toward at their base and
     /// the share of their length it reaches (fn-217 F1); none on a leaf.
     bloom_eye: [f32; 4], // eye RGB, share of the petal
+    /// A floret's stalks (fn-253): the rachis's length, its droop, the
+    /// stamen's half width the stalks narrow to, and the pedicel's length.
+    /// Zero on every leaf, and the organ's rachis instances are none.
+    stalk: [f32; 4],
 }
 
 /// The room and the light every pipeline draws under. Owns the one uniform
@@ -122,6 +126,8 @@ pub struct Scene {
     /// The supernatural group's leaf mirrors, which arrive with the
     /// material and are none on every natural family.
     reflection: Reflection,
+    /// The flowers' stalks, which arrive with the family (`Uniforms::stalk`).
+    stalk: [f32; 4],
     /// The organ mask (fn-217 M0): in the clay room, the flowers white and
     /// everything else black, unlit. An instrument, off in every picture.
     mask: bool,
@@ -268,6 +274,7 @@ impl Scene {
             row: SceneRow::default(),
             material: MaterialParams::default(),
             reflection: Reflection::NONE,
+            stalk: [0.0; 4],
             mask: false,
             section_roundness: 0.0,
             leaf_radius: 0.0,
@@ -311,6 +318,12 @@ impl Scene {
     pub fn set_material(&mut self, material: MaterialParams) {
         self.material = material;
         self.reflection = Reflection::NONE;
+    }
+
+    /// The flowers' stalks for the subject that is up, set after its
+    /// material (fn-253).
+    pub fn set_stalk(&mut self, stalk: [f32; 4]) {
+        self.stalk = stalk;
     }
 
     /// The supernatural group's leaf mirrors for the subject that is up,

@@ -92,7 +92,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     let wood = wood
         .zip(rings)
         .map(|((faces, _), (rings, _))| rings.into_mesh(faces));
-    let organ = organ(tree, inputs, request)?;
+    let organ = organ(tree, inputs, request, prepared.reference)?;
     let curve = request
         .curve
         .then(|| crate::pipeline::surface::curve(tree, surface.height, &surface.params))
@@ -272,13 +272,24 @@ fn leaves(
 }
 
 /// The flowers (fn-216): where leaves are asked for and the tree's ages
-/// flower, the organ element and its florets; none where nothing flowers.
-fn organ(tree: &Tree, inputs: &Inputs, request: Request) -> Result<Option<crate::mesh::Foliage>> {
+/// flower, the organ element and its florets, packed against the leaves'
+/// box as the device packs its own (`foliage::bloom_box`), or their own
+/// where the tree has no leaf box; none where nothing flowers.
+fn organ(
+    tree: &Tree,
+    inputs: &Inputs,
+    request: Request,
+    leaf: Option<foliage::Reference>,
+) -> Result<Option<crate::mesh::Foliage>> {
     if !request.leaves || tree.blooms.is_empty() {
         return Ok(None);
     }
     let element = foliage::bloom_element(&inputs.bloom)?;
-    let instances = foliage::place_blooms(tree, &inputs.bloom, request.season)?;
+    let p = &inputs.bloom;
+    let instances = match leaf {
+        Some(leaf) => foliage::place_blooms_in(tree, p, request.season, foliage::bloom_box(leaf, p))?,
+        None => foliage::place_blooms(tree, p, request.season)?,
+    };
     Ok(Some(crate::mesh::Foliage { element, instances }))
 }
 

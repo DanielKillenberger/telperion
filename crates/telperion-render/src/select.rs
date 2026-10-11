@@ -105,6 +105,11 @@ pub struct Select {
     sphere: [f32; 4],
     /// The box the submitted crown's positions were quantised against.
     reference: telperion_core::foliage::Reference,
+    /// The organ's rachis and pedicel lengths and the rachis's droop
+    /// (`frame::Uniforms::stalk`); zero on leaves.
+    stalk: [f32; 3],
+    /// How many of the element's levels, coarsest first, are the rachis's.
+    rachis_levels: u32,
 }
 
 impl Select {
@@ -156,8 +161,17 @@ impl Select {
             stride: 0,
             forced: Level::default(),
             sphere: [0.0; 4],
+            stalk: [0.0; 3],
+            rachis_levels: 0,
             reference: telperion_core::foliage::Reference::default(),
         }
+    }
+
+    /// The organ's rachis and pedicel lengths, which size its
+    /// inflorescences, and the rachis's droop, which lays it (fn-253); zero
+    /// on the leaves, where no instance is a rachis.
+    pub(crate) fn set_stalk(&mut self, rachis: f32, pedicel: f32, droop: f32) {
+        self.stalk = [rachis, pedicel, droop];
     }
 
     /// Lets the crown's buffers go, back to the state before any crown.
@@ -250,6 +264,7 @@ impl Select {
         self.reference = reference;
         self.levels = element.levels.iter().map(|l| l.indices.clone()).collect();
         self.sphere = frame::sphere(element);
+        self.rachis_levels = crate::card::rachis_levels(element) as u32;
         let sizes = sizes(
             self.instances as usize,
             self.levels.len(),
@@ -415,6 +430,7 @@ impl Select {
                 Level::Chosen => -1,
                 Level::Forced(level) => level as i32,
             },
+            stalk: [self.stalk[0], self.stalk[1], self.rachis_levels as f32, self.stalk[2]],
         }
     }
 
@@ -455,6 +471,23 @@ impl Select {
     /// The live placement range, for a caller that wants to see what went up.
     pub fn region(&self) -> Option<Region> {
         Some(self.placements.as_ref()?.region())
+    }
+
+    /// Each instance's level as the last dispatch chose it, or `None` for
+    /// one it gave to the unseen bucket: the lists read back (fn-253).
+    #[cfg(test)]
+    pub(crate) fn chosen(&self, gpu: &Gpu) -> Vec<Option<u32>> {
+        let counts = self.counted(gpu).expect("counts read back");
+        let bytes = buffer::read(gpu, self.lists.as_ref().unwrap()).expect("lists read back");
+        let words: Vec<u32> = (bytes.as_chunks::<4>().0.iter()).map(|w| u32::from_ne_bytes(*w)).collect();
+        let mut out = vec![None; self.instances as usize];
+        for (level, &count) in counts.iter().enumerate().take(self.levels.len()) {
+            let start = level * self.stride as usize / size_of::<u32>();
+            for &id in &words[start..start + count as usize] {
+                out[id as usize] = Some(level as u32);
+            }
+        }
+        out
     }
 
     /// What the last frame's pass counted: one entry per level, coarsest

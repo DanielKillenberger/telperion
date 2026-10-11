@@ -174,6 +174,12 @@ impl Foliage {
     /// Uploads the element once with every level's triangles, and the
     /// placements selection reads. The level asked for changes what each
     /// instance draws and nothing about how many there are.
+    /// The rachis and pedicel lengths its inflorescences are sized by, and
+    /// the rachis's droop (fn-253): the organ's, zero on the leaves.
+    pub(crate) fn set_stalk(&mut self, rachis: f32, pedicel: f32, droop: f32) {
+        self.select.set_stalk(rachis, pedicel, droop);
+    }
+
     pub fn submit(&mut self, gpu: &Gpu, foliage: &mesh::Foliage, level: Level) {
         let element = self.drawn(&foliage.element);
         self.select.submit(gpu, foliage, &element, level);

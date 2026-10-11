@@ -134,11 +134,13 @@ fn the_eye_and_the_stamens_act_only_where_set() {
     blossom(&mut f);
     let camera = at_a_bloom(&f, 0.1, 0.0);
     let plain = still(&mut renderer, &f, &camera, 256);
-    // An eye colour with no share, and stamens' size with no count.
+    // An eye colour with no share, and stamens' length with no count. The
+    // stamen's width is not dormant: the flowers' stalks take it (fn-253,
+    // host decision), so a wider stamen draws a wider pedicel.
     let mut dormant = f.clone();
     let m = &mut dormant.material;
     (m.bloom_eye_red, m.bloom_eye_green, m.bloom_eye_blue) = (0.3, 0.0, 0.0);
-    (dormant.bloom.stamen_length, dormant.bloom.stamen_width) = (0.02, 0.002);
+    dormant.bloom.stamen_length = 0.02;
     assert_eq!(
         changed(&plain, &still(&mut renderer, &dormant, &camera, 256)),
         0
@@ -147,6 +149,10 @@ fn the_eye_and_the_stamens_act_only_where_set() {
     eye.material.bloom_eye_share = 0.4;
     let tinted = changed(&plain, &still(&mut renderer, &eye, &camera, 256));
     assert!(tinted > 500, "the eye moved {tinted} values");
+    let mut stalks = f.clone();
+    stalks.bloom.stamen_width = 0.002;
+    let widened = changed(&plain, &still(&mut renderer, &stalks, &camera, 256));
+    assert!(widened > 0, "the pedicel took no width");
     let mut stamens = f.clone();
     stamens.bloom.stamens = 20.0;
     let ringed = changed(&plain, &still(&mut renderer, &stamens, &camera, 256));

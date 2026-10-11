@@ -300,8 +300,8 @@ fn codominance(radius: f64, parent: f64) -> Option<f64> {
 /// limbs deep in the crown. Two trunk-level axes leaving one node, a
 /// codominant fork of the trunk, are both stem. `rows` is each PA's row:
 /// its internode length, which each node's grown wood is measured by, and
-/// its flowering share; a drawn node of an age that flowers (none past its
-/// end) is kept as a bloom. An axis of an age that states a cluster is a
+/// its flowering share; the tip of an axis of an age that flowers, its last
+/// node drawn from its own wood, is kept as a bloom (fn-253). An axis of an age that states a cluster is a
 /// short shoot: each node it draws is marked, and its last drawn node, its
 /// own tip, keeps the cluster; an axis that draws no node bears none.
 fn convert(
@@ -409,6 +409,7 @@ fn converted(
             _ => Vec3::ZERO,
         };
         let mut made = false;
+        let mut own_tip = false;
         // The wood grown since the axis's last node: the internodes merged
         // into a node are carried on to the next one drawn.
         let PaRow {
@@ -523,13 +524,9 @@ fn converted(
                         keep: u32::from(before) << 16 | u32::from(last),
                     });
                 }
-                if share > 0.0 && d.relay.is_none() {
-                    blooms.push(Bloom {
-                        node: parent,
-                        share,
-                        side: up(p.side),
-                    });
-                }
+                // Whether the axis's last node is drawn from its own wood,
+                // where its bloom may stand (fn-253).
+                own_tip = d.relay.is_none();
                 made = true;
                 match d.relay {
                     Some(c) => joined[c] = Some((parent, place)),
@@ -543,6 +540,14 @@ fn converted(
             for &(c, _) in joins[i].iter().filter(|(_, j)| j.node == place && j.t >= join::ONE) {
                 joined[c] = Some((parent, place + 1));
             }
+        }
+        // A flowering age's inflorescence stands at its axis's tip, as its
+        // cluster does (fn-253): where the shoot ends, never along it.
+        if made && own_tip && share > 0.0 {
+            blooms.push(Bloom {
+                node: parent,
+                share,
+            });
         }
         if made && cluster.0 > 0 {
             clusters.push(Cluster {
@@ -604,6 +609,8 @@ fn converted(
     (tree, drawn)
 }
 
+#[cfg(test)]
+mod bloom_tests;
 #[cfg(test)]
 mod ceiling_tests;
 #[cfg(test)]

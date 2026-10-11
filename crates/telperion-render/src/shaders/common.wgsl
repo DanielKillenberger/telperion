@@ -104,6 +104,10 @@ struct Uniforms {
     /// A floret's eye: the colour its petals turn toward at their base, and
     /// the share of their length it reaches. Zero on every leaf.
     bloom_eye: vec4<f32>, // eye RGB, share of the petal
+    /// A floret's stalks (fn-253): the rachis's length, its droop, the
+    /// stamen's half width the stalks narrow to, and the pedicel's length.
+    /// Zero on every leaf; the organ's rachis instances are none there.
+    stalk: vec4<f32>,
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;

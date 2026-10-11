@@ -5511,7 +5511,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         },
         "enabled": true,
         "flowering": {
-          "age14": 0.09
+          "age14": 0.3
         },
         "internode": {
           "age2": 0.182,
@@ -6301,7 +6301,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         },
         "enabled": true,
         "flowering": {
-          "age14": 0.13
+          "age14": 1
         },
         "internode": {
           "age2": 0.182,

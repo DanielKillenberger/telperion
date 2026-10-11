@@ -414,10 +414,11 @@ fn place(i: u32, r: u32, at: vec4<f32>, lb: u32, key: u32, bloom: bool, w: Walk,
     putu(r, 31u, (o.before << 16u) | o.last);
     o.fresh = true;
     o.pending = 0.0;
+    // A bloom stands at its axis's tip alone (`draw`, fn-253).
     if bloom {
         put(r, 26u, out[lb + 24u]);
         put(r, 27u, out[lb + 25u]);
-        put(r, 28u, gtab[4u + GG * ax(i, PA) + 37u]);
+        put(r, 28u, 0.0);
     }
     put(r, 0u, pos.x);
     put(r, 1u, pos.y);
@@ -494,6 +495,9 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
     let share = bitcast<u32>(gtab[block + 41u]);
     let age = bitcast<u32>(gtab[1u]);
     var taken = 0u;
+    // Whether the axis's last node was drawn from its own wood, not a
+    // relay's join: where its bloom stands (`space.rs`'s `convert`).
+    var own = false;
     // The wood grown since the axis's last node: the internodes merged
     // into a node are carried on to the next one drawn.
     let internode = gtab[4u + GG * ax(i, PA)];
@@ -543,12 +547,16 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
             w.pending += piece * t;
             rest -= piece * t;
             let key = node_key(vec2<u32>(s(c, S_JOIN + 4u), s(c, S_JOIN + 5u)), 0u);
+            let held = w.parent;
             w = place(i, join_rec(c), at, lb, key, false, w, along, lateral, flags);
+            own = own && w.parent == held;
         }
         w = mark(w, q);
         w.pending += rest;
         let pos = up(origin + tip(i, k)) * cfg.scale;
+        let held = w.parent;
         w = place(i, r, vec4<f32>(pos, radius * cfg.scale), lb, node_key(lineage, k), true, w, along, lateral, flags);
+        own = own || w.parent != held;
         // Relays joining at this span's node.
         for (var c = 2u; c < na_; c++) {
             if joins(c, i) && s(c, S_JOIN) == k && at_end(join_t(c)) {
@@ -556,7 +564,11 @@ fn draw(i: u32, la: u32, start: u32, lateral: bool, relay: bool, origin: vec3<f3
             }
         }
     }
-    // The axis's own tip keeps its cluster (`space.rs`'s `convert`).
+    // The axis's own tip keeps its bloom, at its age's flowering share
+    // (fn-253), and its cluster (`space.rs`'s `convert`).
+    if w.made && own {
+        put(w.parent, 28u, gtab[4u + GG * ax(i, PA) + 37u]);
+    }
     if w.made && leaves > 0u {
         putu(w.parent, 6u, getu(w.parent, 6u) | TIP | (leaves << LEAVES));
         put(w.parent, 29u, gtab[4u + GG * ax(i, PA) + 39u]);

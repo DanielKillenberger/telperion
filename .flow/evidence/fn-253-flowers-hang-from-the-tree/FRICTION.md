@@ -1,0 +1,19 @@
+# fn-253 friction
+
+## 2026-10-09, task 1 (start)
+
+- **`flowctl` was not on the worker's PATH.** The anchor call failed with "command not found"; I found the plugin's newest `scripts/flowctl` by listing the plugin cache. Cost: 1 minute. What would remove it: the dispatch naming the `flowctl` path, as the worker template's `FLOWCTL` field intends.
+- **The worktree had no `target/`, so the first build is cold.** Two checkouts must not share one, so every example and test waits on a full dependency build first, under a 4-job cap on a machine with 3 GB of free memory. Cost: measured below when the first build lands.
+- **Cost of the cold build:** 27 s for the core example and 82 s for the render tests, smaller than feared.
+
+## 2026-10-10, task 1 (R2 values)
+
+- **The organ-mask coverage cannot pick a flowering share.** With the florets cut tenfold (979,974 to 99,916 on Laurelin), whole-view coverage rose from 0.320 to 0.333. The measure that fn-248 tuned its floret values on does not follow the floret count, so the share was set by the inflorescence count and by viewing stills. Cost: one GPU round of four builds, about 1 minute, plus the image reads. What would remove it: a coverage measure that responds to the florets, for example the mask with the leaves and wood removed, or a fix to whatever saturates this one (unknown; not investigated).
+- **The approved look sits in another worktree's ignored `raw/`.** fn-248's floret sheets, which the owner approved, exist only in `.worktrees/twigs`. A fresh worktree has no "before" image to compare against without rebuilding the base. Cost: 2 minutes to find them. What would remove it: keep the approved sheet (one JPEG) in the committed evidence.
+- **The card level hid every rachis (2026-10-10, R3).** fn-246's render-side card (`card.rs`) puts a petal-only level in front of the core's, so the rachis, which selection puts in the coarsest level, was never drawn, and nor was any far floret's pedicel. The words-level connectivity test passed, because it never sees the renderer's levels. Found only by viewing a full-resolution crop. Cost: two GPU rounds and an Astra round, about 15 minutes and 26k Astra tokens. What would remove it: a render-level check that an organ instance's chosen level draws its stalk triangles, or the card built in the core with the element's other levels.
+- **fn-248's floret coverage measured the picture, not the mask (found 2026-10-10).** `space_two_trees`'s `COVERAGE` drew the organ mask in the whole view, where the mask does nothing, so it read the mean green of the ordinary frame (Laurelin's whole view 0.320 against 0.061 in the clay room). fn-248's floret values ("coverage held within 1 %") and R2 here were measured on it. Fixed in the example (the mask now draws in the clay room). Cost: one share decision taken on a broken measure, and about 10 minutes to find. What would remove it: the mask switching to the clay room itself, or refusing when the view is not clay.
+
+## 2026-10-10, task 1 (gate)
+
+- **Two fixtures written for along-shoot flowering went red with R2, and nothing ran them until the gate.** The card-coverage and executor-parity tests assume flowers along the shoots. R2's tip seating changed their trees, and the gate at the end found it, three commits and a review later. Finding which change caused it took a second worktree and target for the R2 commit. Cost: about 15 minutes. What would remove it: running the render tests that read `Tree::blooms` (a named test group) right after a change to seating, not only at the end.
+- **The shell hook blocks common edit idioms.** It refused a heredoc containing Rust's `<_>` (read as process substitution), a `git show <ref>:<path>` written back to the same path, and an `rm -rf` of a scratch directory. Each needed a rewrite. Cost: about 5 minutes. This is a local setup issue, reported and not specced.

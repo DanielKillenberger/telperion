@@ -1,7 +1,7 @@
 //! The Two Trees' sheets (fn-218 R2, fn-219 R2): the laurelin or telperion
 //! preset through the one pipeline and the headless renderer, with the
 //! supernatural group off (an old beech) and on (the legendary tree), each
-//! at the whole-tree, mid and close views. Writes
+//! at the whole-tree, mid, close and raceme views. Writes
 //! `<tree>-<age>-<seed>-<off|on>-<view>.png` and prints each tree's build
 //! cost and size.
 //!
@@ -50,6 +50,12 @@ fn main() -> Result<(), String> {
         let mut family = preset.parameters();
         (family.age, family.skeleton.seed) = (age, seed);
         family.supernatural.enabled = on;
+        // A trial flowering share for the short shoots, `FLOWERING=<share>`
+        // (fn-253), in place of the preset's.
+        if let Ok(share) = std::env::var("FLOWERING") {
+            let share = share.parse().map_err(|e| format!("FLOWERING: {e}"))?;
+            family.supernatural.flowering.age14 = Some(share);
+        }
         let started = Instant::now();
         let grown = executor::grow(&family).map_err(|e| e.to_string())?;
         let x = grown.expansion().map_err(|e| e.to_string())?;
@@ -74,14 +80,20 @@ fn main() -> Result<(), String> {
         let views = [
             ("whole", hero.clone()),
             ("mid", mid(&mesh.bounds, &hero)),
-            ("close", close(&mesh, &hero)?),
+            ("close", close(&mesh, &hero, 0.7)?),
+            // One inflorescence side on, its stalks in view (fn-253).
+            ("raceme", raceme(&mesh, &hero, &family)?),
         ];
         for (view, camera) in &views {
             renderer
                 .submit_at(&mesh, Level::Chosen)
                 .map_err(|e| e.to_string())?;
             renderer.set_family(&family);
-            renderer.set_view(View::Whole);
+            // `STILL_VIEW=<whole|bare|leaf|clay>`: clay shows the stalks'
+            // shapes without their colours (fn-253).
+            let shown = std::env::var("STILL_VIEW").ok();
+            let shown = shown.as_deref().map_or(Some(View::Whole), View::from_id);
+            renderer.set_view(shown.ok_or("STILL_VIEW is whole, bare, leaf or clay")?);
             renderer.set_scene(SceneRow {
                 sun_azimuth: SUN.0,
                 sun_elevation: SUN.1,
@@ -94,10 +106,15 @@ fn main() -> Result<(), String> {
             // mask, as `tests/organ_coverage.rs` reads it), with `COVERAGE`
             // set (fn-248).
             if on && std::env::var_os("COVERAGE").is_some() {
+                // The mask is drawn in the clay room alone (fn-217 M0); in
+                // any other view it is the picture (fn-253).
+                renderer.set_view(View::Clay);
                 renderer.set_organ_mask(true);
                 let mask = render(&mut renderer, camera, size.0, size.1);
                 renderer.set_organ_mask(false);
                 let mask = mask.map_err(|e| e.to_string())?;
+                let file = format!("{out}/{tree}-{age}-{seed}-{group}-{view}-mask.png");
+                write_png(std::path::Path::new(&file), &mask).map_err(|e| e.to_string())?;
                 println!(
                     "{group} {view}: florets cover {:.4} of the frame",
                     coverage(&mask)
@@ -148,8 +165,8 @@ fn mid(bounds: &Bounds, hero: &Camera) -> Camera {
 
 /// One spray close up: the outermost whole floret half-way up the crown on
 /// the camera's side, or, on a tree that flowers nowhere, the outermost
-/// leaf there, from 0.7 m.
-fn close(mesh: &TreeMesh, hero: &Camera) -> Result<Camera, String> {
+/// leaf there, from `distance` metres.
+fn close(mesh: &TreeMesh, hero: &Camera, distance: f64) -> Result<Camera, String> {
     let t = toward(hero);
     let height = mesh.bounds.max.y - mesh.bounds.min.y;
     let instances = &mesh.organ.as_ref().unwrap_or(&mesh.foliage).instances;
@@ -160,11 +177,42 @@ fn close(mesh: &TreeMesh, hero: &Camera) -> Result<Camera, String> {
         .filter(|p| (0.45..0.8).contains(&(p.y / height)))
         .max_by(|a, b| a.dot(t).total_cmp(&b.dot(t)))
         .ok_or("no whole floret or leaf half-way up the crown")?;
-    let distance = 0.7;
     Ok(Camera {
         position: target + t * distance + Vec3::Y * (0.2 * distance),
         target,
         field_of_view: 38.0,
+        near: 0.005,
+        far: 4.0 * height,
+    })
+}
+
+/// One inflorescence side on (fn-253): the outermost rachis half-way up
+/// the crown on the camera's side, framed from 0.6 m across its middle.
+fn raceme(
+    mesh: &TreeMesh,
+    hero: &Camera,
+    family: &telperion_core::presets::Family,
+) -> Result<Camera, String> {
+    let Some(organ) = mesh.organ.as_ref() else {
+        return close(mesh, hero, 0.7);
+    };
+    let t = toward(hero);
+    let height = mesh.bounds.max.y - mesh.bounds.min.y;
+    let r = &organ.instances.reference;
+    let seat = (organ.instances.leaves.iter())
+        .filter(|l| l[2] & telperion_core::foliage::WITHERED != 0)
+        .map(|l| r.position(*l))
+        .filter(|p| (0.45..0.8).contains(&(p.y / height)))
+        .max_by(|a, b| a.dot(t).total_cmp(&b.dot(t)))
+        .ok_or("no rachis half-way up the crown")?;
+    let bloom = &family.applied().bloom;
+    let target = seat + Vec3::Y * (-0.35 * bloom.droop.signum() * bloom.rachis);
+    let side = Vec3::new(t.z, 0.0, -t.x);
+    let distance = 0.6;
+    Ok(Camera {
+        position: target + (t + side).normalized() * distance,
+        target,
+        field_of_view: 50.0,
         near: 0.005,
         far: 4.0 * height,
     })
