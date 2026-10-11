@@ -208,42 +208,44 @@ The spike did not replay units and layout, which are the CPU's largest phases (T
 
 **The stop:** if units and layout extrapolate, beside the spike's 85 to 115 ms of hierarchy and light, past F4's warm budget (Telperion 1.2 s, beech 0.8 s), the task stops and reports NEEDS_HUMAN.
 
-## 7a. The dispatch budget, first-class (added 2026-10-11, after the owner's Chrome probe)
+## 7a. The dispatch budget, first-class (added 2026-10-11, after the owner's two Chrome probes)
 
-**What the owner's probe measured** (Chrome 154, RTX 3080, Linux; the coordinator's report):
-- **Dispatch cost:** about 440 µs per dispatch: 640 indirect dispatches in one pass, each sized by the one before, took 278 to 286 ms. Native wgpu is 7.6 µs. Until the extended probe separates indirect from direct and one pass from many, a dispatch in Chrome costs about **0.4 ms**.
-- **Cold compile:** about 367 ms for the 14 pipelines that compiled; 14 ms cached.
-- **Tint refuses two patterns naga accepts** (section 7b).
+**The second probe** (Chrome 154, RTX 3080, Linux) priced each style of dispatch, 640 of them in a chain:
 
-**The budget.** At 0.4 ms a dispatch, F4's warm budget leaves this many dispatches a build before any work is done:
+| Dispatch style | Per dispatch |
+|---|--:|
+| Indirect, one pass | 429 µs |
+| Indirect, a pass each | 432 µs |
+| Direct, one pass | 5.3 µs |
+| Direct, a pass each | 6.7 µs |
+| Direct, over 8 command buffers | 5.5 µs |
+| One dispatch looping 640 steps with storage barriers | 3.4 µs |
 
-| Build | Warm budget | Dispatches a build at most | Cycles | A cycle at most |
+The cost is Dawn's validation of indirect arguments, not the dispatch.
+
+**What the first reading would have meant.** The first probe gave about 0.4 ms a dispatch. Priced at that, the executor's indirect builds (CYCLE.md: Telperion 28,016 dispatches, 342 a cycle) were about 11 s against 1.2 s, and bounded subtrees could not fit. Under direct dispatches at about 7 µs, the same counts cost about 0.2 s on Telperion.
+
+**Compile is outside the budget.** The owner accepts device creation and compile as a once-per-page cost, so the per-tree budget is the build after them. Chrome compiled the spike's 24 pipelines cold in 65 to 367 ms.
+
+**The budget per build**, at about 7 µs a direct dispatch:
+
+| Build | Warm budget | Dispatch overhead the executor may spend (target) | Dispatches a build at most | A cycle at most |
 |---|--:|--:|--:|--:|
-| Telperion 82 | 1.2 s | 3,000 | 82 | 36 |
-| European beech 40 | 0.8 s | 2,000 | 40 | 50 |
+| Telperion 82 | 1.2 s | 0.2 s | about 28,000 | about 340 |
+| European beech 40 | 0.8 s | 0.1 s | about 14,000 | about 350 |
 
-**The executor as measured** (CYCLE.md, plain, after the performance pass), its overhead priced at 0.4 ms a dispatch:
+The executor reports its dispatches per cycle and per build beside its time, on every measured build.
 
-| Build | Dispatches a build | A cycle | At 0.4 ms |
-|---|--:|--:|--:|
-| Telperion 82 | 28,016 | 342 | 11.2 s |
-| Laurelin 80 | 26,916 | 336 | 10.8 s |
-| Oak 80, seed 1 | 26,376 | 330 | 10.6 s |
-| European beech 40 | 9,085 | 227 | 3.6 s |
-| Date palm 40 | 5,538 | 138 | 2.2 s |
-
-On Telperion the balance and allotment take 19,642 of those dispatches (240 a cycle), the units and wake 2,972 (36 a cycle). The settle adds about 840 (SETTLE-PLAN.md).
-
-**The bounded-subtree schedule against this budget:**
-- **Its floor:** each of the four level sweeps (totals, walk, sub, split) needs one dispatch per block level.
-- **Telperion's block levels:** 29 at cap 128, 20 at 1,024, 17 at 4,096 (HIERARCHY.md).
-- **So the sweeps alone** need at least 68 dispatches a cycle at the widest blocks, against a ceiling of 36 for everything. That is before units, wake, layout, light and the normaliser.
-- **Under 0.4 ms a dispatch, the schedule is infeasible** for Telperion and for every 80-cycle tree. The coordinator's stop condition applies: NEEDS_HUMAN.
-
-**What would change it (host and owner):**
-- **The extended probe.** If Dawn's indirect-dispatch validation is most of the 440 µs and a direct dispatch in one pass costs tens of microseconds, the budget rises by an order of magnitude and the schedule is back in reach. Indirect dispatches are then replaced by direct ones sized from the one-cycle-late counts, with bounds (section 5).
-- **A schedule whose dispatch count does not grow with block levels:** the spike's ancestor walks (schedule A) take about 22 dispatches a busy cycle for the hierarchy and light. That needs integer balance and allocation sums, which COUNCIL.md refused ("carbon and allocation sums are not quantised"), so it is an owner call. Even then, units, layout and wake need more, so A alone may not fit 36.
-- **Single-workgroup phases:** looping depths inside one workgroup with barriers takes one dispatch per sweep, not per level. That trades parallelism for dispatches: about 1.5M axes over 256 lanes. It was not measured.
+**The host's binding rules (2026-10-11):**
+1. **Direct dispatches only.** No `dispatchWorkgroupsIndirect` anywhere in the cycle, native included, so both paths share one shape.
+   - Each phase is dispatched directly with a workgroup count the host knows: the block count, tracked from its own bookkeeping, or a fixed upper bound from the budget.
+   - Each invocation reads the true count from a buffer and exits past it.
+   - This replaces section 5's indirect arguments. Its bounds stay: the one-cycle-late counts plus a margin, a flag on overrun, and a rebuild with the bound raised.
+2. **At most 16 storage buffers a shader stage, and 8 where it is cheap** (WebGPU's guarantee). Buffers are packed into structs or combined arrays. The spike's `shed` needed 17, which Chrome refused.
+3. **Tint's rules** (section 7b):
+   - No NaN or Inf constants. A sentinel is built at runtime from a uniform.
+   - Barriers only under uniform control flow, with loop bounds read through `workgroupUniformLoad`.
+   - The probe's fixed copies show both: `.worktrees/probe/src/probe/shed.wgsl` and `light.wgsl`.
 
 ## 7b. Tint's rules (added 2026-10-11)
 
