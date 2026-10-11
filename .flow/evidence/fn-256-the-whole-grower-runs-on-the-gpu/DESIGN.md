@@ -175,6 +175,12 @@ The cost is O(axes) copying a cycle: 1.5M u32, a few tens of microseconds.
 - **Never an expectation.** Capacity comes from checked counts and bounded allocation (R3).
 - **Growing the arenas:** after each cycle the host reads back one small record without blocking: the arena counts and the budget and overflow flags. The read is pipelined, so it is a cycle or two stale. When an arena's count passes half its capacity, the host grows it by copying the buffer on the queue, which needs no synchronisation.
 - **Overflow:** each emit pass checks its scanned total against capacity and writes nothing past it. If that ever fires, the build stops and is rebuilt from cycle 1 with the capacities the counts named. The build is deterministic, so the tree is the same.
+- **Dispatch sizes (added 2026-10-11, after LAYOUT.md and LIGHT.md).** Every dispatch is sized from the device. It is indirect, its arguments written by the scan that counts its items.
+  - Some loops have a count only the device knows: the layout's generations, the hierarchy's block levels, the sweep's layer ranges. Each such loop is recorded up to a bound the host holds. Past the items, the indirect arguments are empty, and an empty dispatch costs about 5 µs.
+  - The device flags any loop whose count exceeds its bound. That is an overflow like an arena's: the build is rebuilt from cycle 1 with the bound the flag names.
+  - The bounds start from the last readback's counts plus a margin: generations 8; levels, the last count plus 4; layers, from the box grown by the reach of a cycle.
+  - So no dispatch's size waits on a round trip.
+- **Bounded work per dispatch.** Any dispatch over a list (apexes, axes, blocks, nodes) is cut into ranges by a constant work bound, so no dispatch exceeds about 1 ms on the busy cycles. Acceptance asks under 2 ms, the watchdog's margin. The bound is a count, never a timing.
 - **Device limits:** a device whose limits cannot hold the counted tree returns a named error (R1), never a CPU fallback.
 
 ## 6. Retirement
