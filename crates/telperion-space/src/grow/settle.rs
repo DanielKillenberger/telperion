@@ -7,10 +7,11 @@ use crate::geometry::{place, scale};
 use crate::girth::{attachments, attachments_past, disused, thicken, Girth};
 use crate::presence::assign;
 use crate::sag;
+use crate::species::Species;
 use crate::shed::{shed, shed_past};
 use crate::structure::{Origin, Structure};
 
-impl Grower<'_> {
+impl<'a> Grower<'a> {
     /// Marks every apex living at the tree's age with how much it lives
     /// on, and sizes every bud that woke by what its bearer kept of it.
     pub(super) fn mark(&mut self) {
@@ -35,11 +36,24 @@ impl Grower<'_> {
     /// Settles and, with `lay`, lays the grown tree; `keeps` where any PA
     /// reads the tree as grown (its shed pipes or its leaves' girth).
     pub(super) fn settle(
-        mut self,
+        self,
         (request, options): (Request, Options),
         (lay, keeps): (bool, bool),
         stage: &mut dyn FnMut(Stage),
     ) -> Result<Grown> {
+        let shed = self.settle_shed((request, options), keeps, stage)?;
+        shed.settle_lay(options, lay, stage)
+    }
+
+    /// The settle up to its order (fn-256 task 2's first step): each
+    /// living apex marked, every presence assigned, the tree as grown
+    /// thickened where any PA keeps it, shed, and its disused pipes kept.
+    pub(super) fn settle_shed(
+        mut self,
+        (request, options): (Request, Options),
+        keeps: bool,
+        stage: &mut dyn FnMut(Stage),
+    ) -> Result<Settling<'a>> {
         let (species, threads) = (self.species, self.threads);
         self.mark();
         stage(Stage::Pass(Pass::Mark));
@@ -75,8 +89,7 @@ impl Grower<'_> {
         let records = kept_records(made, &shed.index);
         let girth = grown.map_or_else(Girth::default, |g| disused(&g, &shed, species));
         stage(Stage::Pass(Pass::Disused));
-        let index = shed.index;
-        let mut structure = Structure {
+        let structure = Structure {
             age: request.age,
             pas: species.states.len(),
             axes: shed.axes,
@@ -84,6 +97,37 @@ impl Grower<'_> {
         if structure.phytomer_count() == 0 {
             return Err(Error::Collapsed);
         }
+        Ok(Settling {
+            structure,
+            girth,
+            index: shed.index,
+            records,
+            grown: count,
+            marked,
+            species,
+            threads,
+        })
+    }
+}
+
+/// The tree settled as far as its order (`Grower::settle_shed`): shed,
+/// its presences assigned, before its scale, girth and lay.
+pub(super) struct Settling<'a> {
+    pub structure: Structure,
+    pub girth: Girth,
+    pub index: Vec<usize>,
+    pub records: Vec<Record>,
+    pub grown: u64,
+    pub marked: Vec<u64>,
+    pub species: &'a Species,
+    pub threads: usize,
+}
+
+impl Settling<'_> {
+    /// The rest of the settle: the shed tree scaled, thickened and, with
+    /// `lay`, laid and sagged.
+    pub(super) fn settle_lay(self, options: Options, lay: bool, stage: &mut dyn FnMut(Stage)) -> Result<Grown> {
+        let Self { mut structure, girth, index, records, grown: count, marked, species, threads } = self;
         scale(&mut structure, species, threads);
         stage(Stage::Pass(Pass::Scale));
         // Girth needs no geometry; placing reads it where wood meets the

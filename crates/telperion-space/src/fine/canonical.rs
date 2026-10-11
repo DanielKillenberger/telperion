@@ -166,13 +166,39 @@ pub fn lineage_order(structure: Structure) -> Structure {
 /// none) to the axes' new places.
 pub fn lineage_order_marked(structure: Structure, marks: Vec<bool>) -> (Structure, Vec<bool>) {
     let Structure { age, pas, axes } = structure;
+    let order = lineage_permutation(&axes);
+    let mut at = vec![usize::MAX; order.len()];
+    for (k, &i) in order.iter().enumerate() {
+        at[i] = k;
+    }
+    // Each axis taken once from where it was grown, in its new order.
+    let mut slots: Vec<Option<Axis>> = axes.into_iter().map(Some).collect();
+    let axes = order
+        .iter()
+        .map(|&i| {
+            let mut axis = slots[i].take().expect("each axis once");
+            renumber(&mut axis, &at);
+            axis
+        })
+        .collect();
+    let marks = if marks.is_empty() {
+        marks
+    } else {
+        order.iter().map(|&i| marks[i]).collect()
+    };
+    (Structure { age, pas, axes }, marks)
+}
+
+/// The lineage order of `axes` as the index each new place takes its
+/// axis from (`lineage_order`).
+pub(crate) fn lineage_permutation(axes: &[Axis]) -> Vec<usize> {
     let n = axes.len();
     // One pass over the axes: each one's key, (lineage, identity), and
     // the children each bears, counted into `start`.
     let mut keys: Vec<(u64, u64)> = Vec::with_capacity(n);
     let mut parents = Vec::with_capacity(n);
     let mut start = vec![0usize; n + 1];
-    for axis in &axes {
+    for axis in axes {
         let parent = axis.origin.parent();
         keys.push((axis.lineage, identity(axis, |p| keys[p].1)));
         if let Some(p) = parent {
@@ -208,26 +234,7 @@ pub fn lineage_order_marked(structure: Structure, marks: Vec<bool>) -> (Structur
         order.extend_from_slice(kids);
         k += 1;
     }
-    let mut at = vec![usize::MAX; n];
-    for (k, &i) in order.iter().enumerate() {
-        at[i] = k;
-    }
-    // Each axis taken once from where it was grown, in its new order.
-    let mut slots: Vec<Option<Axis>> = axes.into_iter().map(Some).collect();
-    let axes = order
-        .iter()
-        .map(|&i| {
-            let mut axis = slots[i].take().expect("each axis once");
-            renumber(&mut axis, &at);
-            axis
-        })
-        .collect();
-    let marks = if marks.is_empty() {
-        marks
-    } else {
-        order.iter().map(|&i| marks[i]).collect()
-    };
-    (Structure { age, pas, axes }, marks)
+    order
 }
 
 #[cfg(test)]

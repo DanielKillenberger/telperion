@@ -12,6 +12,7 @@ mod capture_grown;
 mod capture_hierarchy;
 mod capture_layout;
 mod capture_light;
+mod capture_settled;
 mod capture_units;
 mod census;
 mod passes;
@@ -23,6 +24,7 @@ pub use capture_grown::{grow_capture_grown, grow_capture_grown_at, grow_capture_
 pub use capture_hierarchy::grow_capture_hierarchy_at;
 pub use capture_layout::{grow_capture_layout, grow_capture_layout_at};
 pub use capture_light::grow_capture_light_at;
+pub use capture_settled::{grow_capture_settle_tables, grow_capture_settled, grow_capture_settled_at, SettleTo};
 pub use capture_units::{grow_capture_units, grow_capture_units_at};
 pub use census::{Census, Cycle};
 pub(super) use working::Working;

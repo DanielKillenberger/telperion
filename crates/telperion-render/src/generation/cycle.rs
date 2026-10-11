@@ -28,6 +28,9 @@ mod plan_hier;
 mod plan_lay;
 mod plan_scan;
 mod plan_units;
+mod settle_device;
+mod settle_read;
+mod settle_run;
 mod state;
 mod vm;
 #[cfg(test)]
@@ -46,6 +49,8 @@ mod hier_tests;
 mod lay_math_tests;
 #[cfg(test)]
 mod light_tests;
+#[cfg(test)]
+mod settle_tests;
 #[cfg(test)]
 mod soft64_tests;
 #[cfg(test)]
@@ -205,5 +210,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
         out.push((sums, hier_cycle_source(arith)));
         out.push((light, light_source(arith)));
     }
+    out.push(("cycle settle", settle_device::source(Arith::Plain)));
+    out.push(("cycle settle, exact", settle_device::source(Arith::Exact)));
     out
 }

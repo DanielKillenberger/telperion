@@ -74,6 +74,7 @@ pub use grow::cycle::{
     grow_capture, grow_capture_grown, grow_capture_grown_at, grow_capture_hierarchy_at, grow_capture_tables, grow_capture_layout, grow_capture_layout_at, grow_capture_light_at, grow_capture_units,
     grow_capture_units_at, grow_census, grow_cycle, Capture, Census, Cycle, Cycled,
 };
+pub use grow::cycle::{grow_capture_settle_tables, grow_capture_settled, grow_capture_settled_at, SettleTo};
 pub use grow::{apart, grow, grow_marked, sketch, Pass, Request, Stage};
 pub use light::{bud_light, field_reads, Light};
 pub use lineage::{internode_factor, join_key};

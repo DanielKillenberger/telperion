@@ -101,3 +101,9 @@
 - **Hindered:** the determinism test differed at small ranges. The four lattice kinds each wrote the same overrun flag with `max(flag, cond)` in one point, where the programs run at once, so the last writer's 0 hid the overrun. Found by tracing the moves cycle by cycle (four runs).
 - **Cost:** about 25 minutes.
 - **Would remove it:** a check in the plan's builder that no census word is written twice in a point (not added: one case, now folded).
+
+## 2026-10-11, task 2 (settle): WGSL reserved words again
+- **Doing:** the first validation of the settle's shader (`settle_tree.wgsl`, `settle_assign.wgsl`).
+- **Hindered:** `from` and then `target` refused as reserved words, each found by one rebuild of the render crate's tests and the shader check (the layout's entry above met the same two).
+- **Cost:** about 2 minutes, two builds.
+- **Would remove it:** the shader check listing every reserved word it meets in one run, or a lint over the cycle's WGSL for WGSL's reserved words before the crate builds.
