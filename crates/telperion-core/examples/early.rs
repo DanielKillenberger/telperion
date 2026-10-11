@@ -49,7 +49,7 @@ fn preset(name: &str) -> (Species, Light, f64) {
 fn three(species: &Species, r: Request, which: &str) {
     let started = Instant::now();
     if which == "cycle" {
-        match grow_census(species, r, Deposit::F32) {
+        match grow_census(species, r, Deposit::F32, false) {
             Ok(c) => {
                 tree("cycle", &c.structure, c.grown, c.seconds);
                 census(&c.census.expect("a census"));
@@ -102,7 +102,7 @@ fn quantiles(v: &mut [u32]) -> [u32; 3] {
 fn census(c: &Census) {
     let mut phases: Vec<_> = c.phases.iter().collect();
     phases.sort_by(|a, b| b.1.total_cmp(a.1));
-    let line: Vec<String> = phases.iter().take(10).map(|(k, v)| format!("{k} {v:.2}")).collect();
+    let line: Vec<String> = phases.iter().take(40).map(|(k, v)| format!("{k} {v:.2}")).collect();
     println!("  phases (s): {}", line.join(", "));
     let busy = &c.cycles[c.busy as usize - 1];
     let last = c.cycles.last().expect("a cycle");
@@ -126,7 +126,7 @@ fn census(c: &Census) {
 }
 
 fn deposit(species: &Species, r: Request) {
-    let frozen = grow_census(species, r, Deposit::F32).unwrap();
+    let frozen = grow_census(species, r, Deposit::F32, true).unwrap();
     let c = frozen.census.expect("a census");
     let (mut buds, mut sum, mut most, mut differ) = (0usize, 0.0, 0.0f64, 0usize);
     for k in &c.cycles {

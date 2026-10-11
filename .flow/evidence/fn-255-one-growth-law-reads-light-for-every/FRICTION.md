@@ -28,3 +28,9 @@
 - **Hindered:** `grow.rs` also held uncommitted edits of this step (the deposit and census fields), which the checkout discarded; the next test build failed on 16 errors. The results were from binaries built before the revert; re-applied and checked that the rebuilt code reproduces them.
 - **Cost:** about 5 minutes.
 - **Would remove it:** apply throwaway patches only on a committed tree, or reverse them with `git apply -R` of the saved patch.
+
+## 2026-10-11, task 1: no sampling profiler for the cycle's cost
+- **Doing:** finding where the cycle's Units and Sketch time goes against F4-Grow.
+- **Hindered:** `samply` needs `perf_event_paranoid` at 1 or below (it is 2) and there is no sudo, so the cost is read from the grower's stage timers and a throwaway floor probe instead of a profile.
+- **Cost:** about 10 minutes; the per-unit cause stays inferred.
+- **Would remove it:** `kernel.perf_event_paranoid = 1` on the owner's machine (local setup, not a repository change).

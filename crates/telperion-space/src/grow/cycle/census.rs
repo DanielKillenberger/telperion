@@ -24,6 +24,8 @@ pub struct Census {
     /// over the axes that bear any: p50, p99 and most; and the grown axes.
     pub attachments: [u32; 3],
     pub axes: usize,
+    /// Whether the other deposit is read beside the one growth uses.
+    pub beside: bool,
     depth: Vec<u32>,
     lattice: Option<Cycle>,
 }
@@ -48,6 +50,11 @@ pub struct Cycle {
 }
 
 impl Census {
+    /// A census, the other deposit read beside or not.
+    pub(in crate::grow) fn new(beside: bool) -> Self {
+        Self { beside, ..Self::default() }
+    }
+
     /// The cycle's lattice, its leaves, and its light at the buds beside
     /// the other deposit's.
     pub(in crate::grow) fn lattice(&mut self, field: &Field, leaves: usize, read: &[f64], other: &[f64]) {

@@ -44,25 +44,25 @@ pub struct Cycled {
 /// Grows `species` through the one cycle, its leaves deposited by
 /// `deposit`.
 pub fn grow_cycle(species: &Species, request: Request, deposit: Deposit) -> Result<Cycled> {
-    run(species, request, deposit, false)
+    run(species, request, deposit, None)
 }
 
 /// `grow_cycle`, with its census taken (COUNCIL.md's early tests 1 and 2):
-/// each cycle's records, lattice and phase seconds, and the other deposit
-/// read beside the one growth uses.
-pub fn grow_census(species: &Species, request: Request, deposit: Deposit) -> Result<Cycled> {
-    run(species, request, deposit, true)
+/// each cycle's records, lattice and phase seconds, and, with `beside`,
+/// the other deposit read beside the one growth uses.
+pub fn grow_census(species: &Species, request: Request, deposit: Deposit, beside: bool) -> Result<Cycled> {
+    run(species, request, deposit, Some(beside))
 }
 
-fn run(species: &Species, request: Request, deposit: Deposit, census: bool) -> Result<Cycled> {
+fn run(species: &Species, request: Request, deposit: Deposit, census: Option<bool>) -> Result<Cycled> {
     let started = crate::clock::seconds();
     let (mut g, keeps) = start(species, request, true, Options::default())?;
     (g.one, g.deposit) = (true, deposit);
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));
     // Every lateral is grown: while it lives its leaves shade.
     g.rules.lasting = vec![None; species.states.len()].into();
-    if census {
-        g.census = Some(Box::default());
+    if let Some(beside) = census {
+        g.census = Some(Box::new(Census::new(beside)));
     }
     let (mut advanced, mut phases) = (Vec::new(), Phases::new());
     let mut clock = crate::clock::seconds();
@@ -115,8 +115,11 @@ impl Grower<'_> {
                 Deposit::F32 => Deposit::Quantised,
                 Deposit::Quantised => Deposit::F32,
             };
-            let beside = self.field(other, tips)?;
-            census.lattice(&field, self.leaves.len(), &read, &self.sample(&beside, tips));
+            let beside = match census.beside {
+                true => self.sample(&self.field(other, tips)?, tips),
+                false => read.clone(),
+            };
+            census.lattice(&field, self.leaves.len(), &read, &beside);
             self.census = Some(census);
         }
         Ok(read)
