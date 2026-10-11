@@ -279,3 +279,70 @@ fn a_node_growing_in_moves_no_relays_attachment() {
     assert!((grown_in - two).abs() < 1e-9, "{grown_in} against {two}");
     assert!((barely - two).abs() < 1e-5, "{barely} against {two}");
 }
+
+/// `terms` read independently in the one reduction order: each block of
+/// 1,024 folded from zero, the blocks folded from zero.
+fn folded(terms: &[(f32, f32)]) -> [f32; 2] {
+    let fold = |pick: &dyn Fn(&(f32, f32)) -> f32| -> f32 {
+        let blocks = terms.chunks(LEAF_BLOCK).map(|c| c.iter().map(pick).fold(0.0f32, |a, x| a + x));
+        blocks.fold(0.0f32, |a, x| a + x)
+    };
+    [fold(&|t| t.0), fold(&|t| t.1)]
+}
+
+/// The leaf mean's sums are the one reduction order (fn-256 DESIGN.md
+/// 9.4). Where a sequential sum loses the small terms behind a large one,
+/// the blocks keep the block of them that stands alone.
+#[test]
+fn the_leaf_mean_sums_in_blocks_of_1024_in_order() {
+    let terms: Vec<(f32, f32)> = std::iter::once((1e8, 1e8)).chain(std::iter::repeat_n((1.0, 0.5), 2047)).collect();
+    let mut blocked = Blocked::default();
+    let mut sequential = [0.0f32; 2];
+    for &t in &terms {
+        blocked.push(t);
+        (sequential[0], sequential[1]) = (sequential[0] + t.0, sequential[1] + t.1);
+    }
+    let sums = blocked.sums();
+    assert_eq!(sums, folded(&terms));
+    assert_eq!(sums[0], 1e8 + 1024.0, "the second block stands alone");
+    assert_eq!(sequential[0], 1e8, "a sequential sum loses every 1");
+}
+
+/// A tree of 2,600 phytomers takes its leaf mean from its terms in the
+/// order its axes and their phytomers stand, blocked, both from the tree
+/// (`leaf_terms`) and from the tree as grown (`leaf_partials`).
+#[test]
+fn the_trees_leaf_mean_is_its_terms_blocked_in_order() {
+    let species = Species {
+        states: vec![state(1.0)],
+    };
+    let mut t = tree();
+    let phytomers: Vec<Phytomer> = (0..1300)
+        .map(|k| {
+            let mut p = t.axes[1].phytomers[0];
+            (p.scale, p.light) = (0.1 + (k % 97) as f64 * 0.009, 0.05 + (k % 89) as f64 * 0.01);
+            p
+        })
+        .collect();
+    t.axes[0].phytomers = phytomers.iter().rev().copied().collect();
+    t.axes[1].phytomers = phytomers;
+    let state = &species.states[0];
+    let terms: Vec<(f32, f32)> = (t.axes.iter().flat_map(|a| &a.phytomers))
+        .map(|p| super::terms(own(&state.form, p, t.age, p.scale, 1.0), p.light, state.leaf_girth))
+        .collect();
+    let [total, weighted] = folded(&terms);
+    assert_eq!(leaf_terms(&t, &species), mean_of(total, weighted));
+    let sequential = terms.iter().fold([0.0f32; 2], |a, x| [a[0] + x.0, a[1] + x.1]);
+    println!("blocked {:?}, sequential {sequential:?}", [total, weighted]);
+    assert_eq!(leaf_partials(&t.axes, &species, (t.age, 4), Stand::WHOLE), {
+        let bases = bases(&t.axes, &species, None);
+        let grown: Vec<(f32, f32)> = (t.axes.iter().zip(&bases).flat_map(|(a, &b)| a.phytomers.iter().map(move |p| (p, b))))
+            .map(|(p, b)| {
+                let g = Grew::of(p);
+                let pipe = own_at(&state.form, g.cycle, t.age, f64::from(g.scale * b * g.size), 1.0);
+                super::terms(pipe, f64::from(g.light), state.leaf_girth)
+            })
+            .collect();
+        folded(&grown)
+    });
+}

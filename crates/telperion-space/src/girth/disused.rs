@@ -3,7 +3,7 @@
 //! branch fades towards its shedding (`shed.rs`), its retained share grows
 //! in by what its fade has taken, so its bearer meets the same section on
 //! both sides of the branch's removal.
-use super::{mean_of, own_at, radius, section, terms, Disused, Girth};
+use super::{mean_of, own_at, radius, section, terms, Blocked, Disused, Girth};
 use crate::cores::{map, PIECE};
 use crate::geometry::dominance;
 use crate::shed::{Given, Shed};
@@ -128,7 +128,8 @@ impl Stand {
 
 /// The leaf term's two sums over `axes` as grown, from `from.first` on:
 /// each phytomer's pipe and its pipe by its light term (`terms`), taken
-/// on up to `threads` cores and summed in the order the phytomers stand.
+/// on up to `threads` cores and summed in the order the phytomers stand,
+/// in the one reduction order (`Blocked`).
 pub(crate) fn leaf_partials(
     axes: &[Axis],
     species: &Species,
@@ -159,12 +160,11 @@ fn leaf_partials_past(
         }
         out
     });
-    let (mut total, mut weighted) = (0.0, 0.0);
-    for (pipe, term) in terms.into_iter().flatten() {
-        total += pipe;
-        weighted += term;
+    let mut sums = Blocked::default();
+    for t in terms.into_iter().flatten() {
+        sums.push(t);
     }
-    [total, weighted]
+    sums.sums()
 }
 
 /// The leaf term's mean from its merged sums, whole where none is.

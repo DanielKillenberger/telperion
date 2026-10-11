@@ -160,9 +160,11 @@ fn the_coarse_trees_hold_their_bits() {
     // for the review's tip-down allocation and bounded light sample; both
     // re-taken at the merge into F4 for the merge review's near-certain
     // draws (lived time, conditioned shedding, waking), every stand kept.
+    // The oak re-taken for the leaf mean's blocked order (fn-256 DESIGN.md
+    // 9.4), every stand kept; the spruce has no leaf term.
     let pinned = [
         ("spruce", 3588, 0xa243_fc77_9e50_5c22),
-        ("oak", 2638, 0x9d77_9634_1fa1_3196),
+        ("oak", 2638, 0xdcd1_7569_f161_020d),
     ];
     assert_eq!(got, pinned);
 }
