@@ -134,11 +134,14 @@ The passes are the CPU's, in its order: mark, assign, attachments (leaf mean), s
 
 Bounded subtrees, as COUNCIL.md decided: a block is a connected set of at most `cap` axes, summed by one workgroup with a barrier between local depths. Dispatch boundaries are block levels.
 
-- **An axis joins its block at birth and never moves.** It joins its parent's block if that block holds fewer than `cap` axes. Otherwise it opens a new block whose level is the parent block's level plus one.
+- **An axis joins a block at birth and never moves.** It joins its parent's block if that block holds fewer than `cap` axes.
   - The seed opens block 0 at level 0.
   - Block membership is an append-only list per block. The assignment is a scan over the cycle's new axes in index order, so it is the same on every run.
+- **Overflow (revised 2026-10-11, after HIERARCHY.md).** A first rule gave each overflowing child a block of its own, which made about 9 axes a block on Telperion (166,539 blocks).
+  - Now the children of one cycle whose parent's block is full share the block that full block overflows into: its *spill*, at the full block's level plus one, filled in index order up to `cap`. When a spill fills, it opens its own spill.
+  - So a block need not be connected. A block is any set of axes whose children outside it sit in blocks of deeper levels, which the rule keeps.
 - **Why the block shape is free:** each axis computes its own sum from its children's finished sums, in the CSR's order. Any schedule that finishes children first gives the same bits; the spike proved this at caps 256 to 4,096. So the partition is a matter of speed, never of the tree.
-- **Inside a block:** each axis stores its local depth (its depth less the block root's), fixed at birth. A workgroup loops local depths deepest first (bottom-up) or shallowest first (top-down), each thread taking the block's members at that depth.
+- **Inside a block:** each axis stores its depth, fixed at birth, and each block keeps the least and greatest depth of its members (min and max, which are order-free). A workgroup loops the block's depths deepest first (bottom-up) or shallowest first (top-down), each thread taking the block's members at that depth. A spill's later members may be shallower than its first ones; the loop's range takes them.
 - **Levels per cycle:** block levels only grow. Each level is one dispatch over the blocks of that level, listed by a scan when a block is opened.
 
 **The whole tree, not the working set.** The device's balance and allotment run over every axis, not fn-255's open working set. They are bit-identical either way:
