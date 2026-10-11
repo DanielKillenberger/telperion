@@ -95,9 +95,15 @@ pub(crate) fn rules<'a>(species: &'a Species, age: u32, budget: u32) -> Result<R
             "a chain grows alone only where no bud reads light (probe P2)",
         );
     }
+    Ok(drawn(species, age, budget))
+}
+
+/// The rules a tree's units draw by, its light unchecked: the alone
+/// rules' laterals, lasting and windows.
+pub(crate) fn drawn(species: &Species, age: u32, budget: u32) -> Rules<'_> {
     let laterals: Vec<_> = species.states.iter().map(PaState::laterals).collect();
     let lasting = lasting(species, &laterals);
-    Ok(Rules {
+    Rules {
         species,
         laterals: laterals.into(),
         lasting: lasting.into(),
@@ -109,7 +115,7 @@ pub(crate) fn rules<'a>(species: &'a Species, age: u32, budget: u32) -> Result<R
         alone: true,
         hands: None,
         one: false,
-    })
+    }
 }
 
 /// Grows the chain of `bud`, or the seed's (none), alone.

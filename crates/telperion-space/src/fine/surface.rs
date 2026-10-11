@@ -73,6 +73,25 @@ impl ChainTables {
     /// reads light.
     pub fn new(species: &Species, age: u32) -> Result<Self> {
         let rules = rules(species, age, 0)?;
+        Ok(Self::of(species, &rules))
+    }
+
+    /// The tables of `species` grown to `age` through the one cycle
+    /// (fn-255), whose buds may read light and which decides no lasting
+    /// before growth: the device's units and wake (fn-256).
+    pub fn cycle(species: &Species, age: u32) -> Result<Self> {
+        species.validate()?;
+        if age == 0 {
+            return crate::error::refuse("age", "a tree grows at least one cycle");
+        }
+        let mut rules = crate::grow::alone::drawn(species, age, 0);
+        rules.lasting = vec![None; species.states.len()].into();
+        Ok(Self::of(species, &rules))
+    }
+
+    /// The tables of `species` by `rules`' laterals, lasting and windows.
+    fn of(species: &Species, rules: &crate::grow::Rules) -> Self {
+        let age = rules.age;
         let pas = (0..species.states.len())
             .map(|pa| {
                 let s = &species.states[pa];
@@ -125,13 +144,13 @@ impl ChainTables {
                     .collect()
             })
             .collect();
-        Ok(Self {
+        Self {
             pas,
-            units: Units::new(species, age)?,
+            units: Units::of(species, rules),
             log_woods,
             span: SPAN as f32,
             age,
-        })
+        }
     }
 }
 

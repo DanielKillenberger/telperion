@@ -29,14 +29,21 @@ macro_rules! put {
 }
 
 impl Capture {
-    fn u32s(&mut self, name: &str, v: &[u32]) {
+    pub(super) fn u32s(&mut self, name: &str, v: &[u32]) {
         put!(self, name, 1, v);
     }
-    fn u64s(&mut self, name: &str, v: &[u64]) {
+    pub(super) fn u64s(&mut self, name: &str, v: &[u64]) {
         put!(self, name, 2, v);
     }
-    fn f32s(&mut self, name: &str, v: &[f32]) {
+    pub(super) fn f32s(&mut self, name: &str, v: &[f32]) {
         put!(self, name, 3, v);
+    }
+
+    /// The array named `name`: its kind and its bytes.
+    pub fn array(&self, name: &str) -> Option<(u8, &[u8])> {
+        (self.arrays.iter())
+            .find(|a| a.0 == name)
+            .map(|a| (a.1, &a.2[..]))
     }
     fn i32s(&mut self, name: &str, v: &[i32]) {
         put!(self, name, 4, v);
