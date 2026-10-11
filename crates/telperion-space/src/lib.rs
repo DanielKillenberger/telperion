@@ -71,7 +71,7 @@ pub use grow::partition::{
 pub use grow::stepped::{grow_build, grow_stepped, Stepped};
 pub use grow::subtree::Measured;
 pub use grow::cycle::{
-    grow_capture, grow_capture_hierarchy_at, grow_capture_layout, grow_capture_layout_at, grow_capture_units,
+    grow_capture, grow_capture_hierarchy_at, grow_capture_layout, grow_capture_layout_at, grow_capture_light_at, grow_capture_units,
     grow_capture_units_at, grow_census, grow_cycle, Capture, Census, Cycle, Cycled,
 };
 pub use grow::{apart, grow, grow_marked, sketch, Pass, Request, Stage};

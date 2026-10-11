@@ -10,6 +10,7 @@
 mod capture;
 mod capture_hierarchy;
 mod capture_layout;
+mod capture_light;
 mod capture_units;
 mod census;
 mod passes;
@@ -19,6 +20,7 @@ mod working;
 pub use capture::{grow_capture, Capture};
 pub use capture_hierarchy::grow_capture_hierarchy_at;
 pub use capture_layout::{grow_capture_layout, grow_capture_layout_at};
+pub use capture_light::grow_capture_light_at;
 pub use capture_units::{grow_capture_units, grow_capture_units_at};
 pub use census::{Census, Cycle};
 pub(super) use working::Working;
