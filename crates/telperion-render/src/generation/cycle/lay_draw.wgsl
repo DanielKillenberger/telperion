@@ -7,14 +7,14 @@
 fn bend_of(a: u32, years: f32) -> f32 {
     let pa = ax(a, A_PA);
     let x = fm(pa, F_ERECTION) * years;
-    let grown = fails(x * QLOG2E);
+    let grown = fails(apart(x * QLOG2E));
     let kind = kind_of(a);
     var straightening = 0.0;
     var erected = grown;
     if kind == CONTINUED || kind == RELAYED {
         let b = select(0.0, axf(a, A_BLEND), kind == RELAYED);
-        straightening = fm(pa, F_STRAIGHTENING) * b;
-        erected = b * grown;
+        straightening = m(fm(pa, F_STRAIGHTENING), b);
+        erected = m(b, grown);
     } else if kind == LATERAL {
         straightening = fm(pa, F_STRAIGHTENING);
     }
@@ -63,7 +63,7 @@ fn draw_axis(i: u32) {
         for (var j = laid; j < end; j++) {
             let r = prow(i, j);
             let node = phf(r, PH_NODE);
-            let grew = present * node * grown;
+            let grew = apart(present * node) * grown;
             let scale = grew * base_scale;
             set_ph(r, PH_SCALE, scale);
             set_ph(r, PH_GROWN, grew);
@@ -75,7 +75,7 @@ fn draw_axis(i: u32) {
         let total = wk.run + sum;
         for (var j = laid; j < end; j++) {
             let r = prow(i, j);
-            let sized = phf(r, PH_SCALE) * size;
+            let sized = m(phf(r, PH_SCALE), size);
             step(&wk, i, r, sized, bent, total, trunk);
             wood = wood + m(internode, sized);
             set_ph(r, PH_AREA, sized * leaf);

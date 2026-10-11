@@ -2,10 +2,11 @@
 // (`telperion_space::geometry::q`), each operation the CPU's in its order:
 // no built-in dot, cross, length or normalize, whose order WGSL leaves
 // free. An angle is an amount in turns. A product an add takes is
-// written `m`, a quotient `qdiv`, a root `qsqrt`, and a sum the driver
-// was seen to reorder `apart`: the sites where the driver may fuse,
-// reorder or round otherwise than the CPU (LAYOUT.md). Each is the plain
-// operation here.
+// written `m`, a quotient `qdiv`, a root `qsqrt`, and a sum or product
+// the driver was seen to reorder or simplify `apart`: the sites where the
+// driver may fuse, reorder or round otherwise than the CPU (LAYOUT.md).
+// Each is the plain operation here; LAYOUT.md's experiment holds them to
+// the CPU's.
 
 const UP = vec3<f32>(0.0, 0.0, 1.0);
 // The f32 turn, pi, and log2 e, by their bits.
@@ -54,7 +55,7 @@ fn qlength(v: vec3<f32>) -> f32 {
 fn qunit(v: vec3<f32>) -> vec4<f32> {
     let l = qlength(v);
     if l > 0.0 {
-        return vec4<f32>(v * qdiv(1.0, l), 1.0);
+        return vec4<f32>(mv(v, qdiv(1.0, l)), 1.0);
     }
     return vec4<f32>(v, 0.0);
 }

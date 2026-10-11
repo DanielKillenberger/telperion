@@ -19,7 +19,7 @@ fn turned(along: vec3<f32>, side: vec3<f32>, azimuth: f32, angle: f32, plane: f3
         let facing = qdot(toward, upper.xyz);
         let turn = qbetween(0.0, qatan2(qdot(along, qcross(toward, upper.xyz)), facing));
         let sided = min(qdiv(qlength(level), UPRIGHT), 1.0);
-        let epi = epitony * sided * turn * (1.0 + facing) * 0.5;
+        let epi = apart(apart(apart(apart(epitony * sided) * turn) * (1.0 + facing)) * 0.5);
         toward = qrotated(toward, along, epi);
     }
     let cs = qsincos(angle);
@@ -46,7 +46,7 @@ fn dominance_of(i: u32) -> f32 {
         return 1.0;
     }
     let u = uniform24(draw(child(lineage_of(i), KEY_DOMINANCE)));
-    let held = u * u * u * u;
+    let held = m(apart(apart(u * u) * u), u);
     return 1.0 - m(d, 1.0 - held);
 }
 
@@ -186,7 +186,7 @@ fn frame(i: u32) {
     let bent_curve = curve - mv(heading, qdot(curve, heading));
     let wk = Walk(heading, side, base, 0.0, (1.0 + heading.z) * 0.5, bent_curve, tropism_of(i));
     keep_walk(i, wk);
-    set_pnf(i, P_BASE_SCALE, inherited * vigour * share);
+    set_pnf(i, P_BASE_SCALE, apart(inherited * vigour) * share);
     set_pnf(i, P_GOING, 1.0);
     set_pnf(i, P_RANKED, 0.0);
     set_pn(i, P_UNITS, 0u);

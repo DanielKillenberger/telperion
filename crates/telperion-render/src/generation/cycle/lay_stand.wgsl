@@ -95,7 +95,7 @@ fn zone_node(a: u32, first: u32, end: u32, share: f32) -> u32 {
         let k = u32(ceil(share * f32(end - first)));
         return first + clamp(k, 1u, end - first) - 1u;
     }
-    let want = share * total;
+    let want = apart(share * total);
     var before = 0.0;
     for (var j = first; j < end; j++) {
         let scale = phf(prow(a, j), PH_SCALE);
@@ -309,7 +309,7 @@ fn relay_node(p: u32) -> u32 {
     let share = fm(ax(p, A_PA), F_RELAY_NODE);
     let total = summed(p, first, n, PH_NODE);
     if total > 0.0 {
-        let aim = share * total;
+        let aim = apart(share * total);
         var before = 0.0;
         for (var j = first; j < n; j++) {
             let q = phf(prow(p, j), PH_NODE);

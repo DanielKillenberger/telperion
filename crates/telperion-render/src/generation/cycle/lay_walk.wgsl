@@ -98,9 +98,9 @@ fn step(wk: ptr<function, Walk>, i: u32, r: u32, scale: f32, bent: f32, total: f
     if fm(pa, F_INTERNODE_SPREAD) > 0.0 {
         varied = 1.0 + m(fm(pa, F_INTERNODE_SPREAD), signed24(internode_draw(key)));
     }
-    let len = fm(pa, F_INTERNODE) * scale * varied;
-    let tropic = fm(pa, F_TROPISM) * (*wk).turning * len;
-    let bent_to = toward_elevation(running, across, fm(pa, F_ELEVATION), fails(tropic * QLOG2E));
+    let len = apart(fm(pa, F_INTERNODE) * scale) * varied;
+    let tropic = apart(fm(pa, F_TROPISM) * (*wk).turning) * len;
+    let bent_to = toward_elevation(running, across, fm(pa, F_ELEVATION), fails(apart(tropic * QLOG2E)));
     var ok = false;
     let t = qcarry(running, bent_to, &ok);
     if ok {
@@ -125,8 +125,8 @@ fn step(wk: ptr<function, Walk>, i: u32, r: u32, scale: f32, bent: f32, total: f
     var angle = 0.0;
     var turns = false;
     if bend_length > 0.0 {
-        let keep = exp2c(-qdiv(len, bend_length) * QLOG2E);
-        curve = curve * keep;
+        let keep = exp2c(apart(-qdiv(len, bend_length) * QLOG2E));
+        curve = mv(curve, keep);
         if kicked {
             curve = curve + mv(pivot, kick * rest(keep));
         }
@@ -136,7 +136,7 @@ fn step(wk: ptr<function, Walk>, i: u32, r: u32, scale: f32, bent: f32, total: f
         turns = u.w > 0.0;
         turn_about = u.xyz;
     } else if kicked {
-        angle = qturns(wander * len * sgn);
+        angle = qturns(apart(wander * len) * sgn);
         turn_about = pivot;
         turns = true;
         curve = pivot * kick;
@@ -161,7 +161,7 @@ fn step(wk: ptr<function, Walk>, i: u32, r: u32, scale: f32, bent: f32, total: f
         if l.z > 0.0 {
             along = qdiv(l.w + run + m(scale, 0.5), l.z);
         }
-        let here = l.x * max(1.0 - along, 0.0);
+        let here = m(l.x, max(1.0 - along, 0.0));
         lift = lift + here;
         up = up + m(here, l.y);
     }
@@ -178,7 +178,8 @@ fn step(wk: ptr<function, Walk>, i: u32, r: u32, scale: f32, bent: f32, total: f
             direction = qunit_or(vec3<f32>(direction.x, direction.y, direction.z * ease), direction);
         }
     }
-    var next = tip + mv(direction, len);
+    let moved = tip + mv(direction, len);
+    var next = vec3<f32>(apart(moved.x), apart(moved.y), apart(moved.z));
     if any(abs(next) >= vec3<f32>(REACH)) {
         status |= FAULT_BEYOND;
     }
