@@ -35,3 +35,19 @@ Early test 3 passed its stop condition: dependency overhead is at most about 14%
 - **Viability:** both executors read the same f32 table value; the CPU's f64 path goes.
 - **Agreement standard:** integers exact; floats by lineage within tolerances measured from real runs (fn-254 R4 check 4), with no bit-forcing guards on fused multiply-adds or division.
 - **Not yet replayed:** growth units and incremental layout on the device (Telperion's two largest CPU phases), and keeping blocks and ordered child lists current on the device as the tree grows; both are fn-256's first measurements after fn-255 lands.
+
+## Round 3: the site, after early test 4 (2026-10-11)
+
+Early test 4's stop condition fired (fn-257 SPIKE.md). Both members (`council/astra-3.md`, Fable's round 3) agree:
+
+- `couple::Aggregate` fails as a feedback model: fidelity arrives only with nearly full expansion, and from 0.16 m down it costs more than growing everything (13.2-20.4 s against 10.8 s). Giving it internal shedding, a vigour spread and sleeping buds is a small grower per record; no member recommends building it, and any rescue is a separately bounded oracle experiment first (Astra), not plan.
+- Growing everything on the CPU is about ten times the site's budget (oak 3,207 ms cold Wasm), and per-phytomer trimming cannot close it (fn-255 CYCLE-COST.md's floor).
+- The closed-form tables are the price of the stands, not of the engine; deletion follows the stands. While they stay: remove the work no consumer reads, count the rows actually read, and pay them once per (species, age) per page. Storing rows in a preset would be baking a derived value; refused.
+- The site stays on 0.1.4.
+
+Where they differ, the host takes both as ordered next steps:
+
+- **Early test 5 (Fable):** the stop condition fired on lattice deposits, which the site does not draw. Measure what the site draws: oak and birch at 40, seeds 1/1234/5678, cuts 1.0/0.5/0.32 m, the site's voxel field from the stands against the expanded tree's in `voxelize`, viewed stills of the voxel grove beside the expanded tree's and beside 0.1.4's, cold Wasm end to end at each cut. Stop: the owner cannot accept the 0.32 m grove beside the expanded tree's, or the acceptable cut costs more than the owner's "slightly less" against 0.1.4.
+- **Table audit (Astra):** behaviour-preserving removal of table work no site consumer reads (the copied extinction curves, the reach bound the coarse settle disables), the rows actually read counted per seed, demand-driven rows measured against eager on cold oak, birch and ordinary; outputs unchanged. Stop optimising tables when the savings cannot close the budget; cheaper tables are never fidelity acceptance.
+
+To the owner: whether the site may grow on the device (WebGPU), the only route on which it draws the same tree as the harness (fn-256's spike: cycle kernels compile cold in about 0.35 s; units and layout on the device unreplayed); whether the oak's 1.1-1.7× of 0.1.4 is "slightly less"; whether the ordinary ships on the site (its rows alone are 11.5 s).
