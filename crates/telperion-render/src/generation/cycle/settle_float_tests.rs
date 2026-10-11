@@ -4,7 +4,8 @@
 //! holds that the other does not, each float field's largest and 99th
 //! percentile relative and absolute difference over the matched rows, and each integer
 //! field's rows that differ. One preset a run (`SETTLE_PRESET`, its
-//! name), the CPU's tree being several gigabytes at the oldest.
+//! name; `SETTLE_AGE` and `SETTLE_SEED` where not its default age and
+//! 42), the CPU's tree being several gigabytes at the oldest.
 use super::columns::Cap;
 use super::grown::{Kind, Snapshot, Table};
 use super::grown_tests::{device, grown};
@@ -130,13 +131,17 @@ fn default_ages_laid_plain_by_lineage() {
     };
     let k = Kernels::new(&gpu);
     for (preset, name) in PRESETS.into_iter().filter(|p| p.1 == only) {
-        let age = preset.parameters().age as u32;
-        let g = grown(preset, age, 42);
-        let (b, s, dev, _) = settled(&gpu, (&kit, &k), &g, SettleTo::Laid);
+        let given = |k: &str| std::env::var(k).ok().and_then(|v| v.parse().ok());
+        let (age, seed) = (given("SETTLE_AGE").unwrap_or(preset.parameters().age as u32), given("SETTLE_SEED").unwrap_or(42));
+        let g = grown(preset, age, u64::from(seed));
+        let (b, s, dev, beside) = settled(&gpu, (&kit, &k), &g, SettleTo::Laid);
         drop((s, b));
         let capture = telperion_space::grow_capture_settled_at(&g.species, g.request, SettleTo::Laid).expect("the CPU's tree");
         let cpu = cpu_settled(&Cap(&capture), SettleTo::Laid);
         drop(capture);
-        compared(&format!("{name} {age} seed 42"), &dev, &cpu.0);
+        let mean = |v: &[u64]| v.get(1).map(|&m| f64::from_bits(m));
+        let (d, c) = (mean(&beside.leaf_mean), mean(&cpu.1.leaf_mean));
+        println!("{name} {age} seed {seed}: leaf mean device {d:?} cpu {c:?}");
+        compared(&format!("{name} {age} seed {seed}"), &dev, &cpu.0);
     }
 }

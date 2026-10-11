@@ -21,7 +21,7 @@ const LAY: &str = include_str!("settle_place.wgsl");
 const REAL: &str = include_str!("real.wgsl");
 
 /// The entries, by their place in `ENTRIES`.
-pub(super) const ENTRIES: [&str; 19] = [
+pub(super) const ENTRIES: [&str; 20] = [
     "seed_main",
     "depth_main",
     "count_main",
@@ -41,6 +41,7 @@ pub(super) const ENTRIES: [&str; 19] = [
     "sizes_main",
     "compact_main",
     "rank_main",
+    "leaf_sum_main",
 ];
 pub(super) const SEED: usize = 0;
 pub(super) const DEPTH: usize = 1;
@@ -61,6 +62,7 @@ pub(super) const PLACE: usize = 15;
 pub(super) const SIZES: usize = 16;
 pub(super) const COMPACT_E: usize = 17;
 pub(super) const RANK: usize = 18;
+pub(super) const LEAF_SUM: usize = 19;
 
 /// Work's columns the host reads or scans (`settle_cols.wgsl`).
 pub(super) const W_PSTART: u32 = 0;

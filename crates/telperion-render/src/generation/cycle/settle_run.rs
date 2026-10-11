@@ -34,8 +34,11 @@ pub(super) fn flags(pa: &[u32]) -> u32 {
     u32::from(retains || leaves) | u32::from(leaves) << 1 | u32::from(retains) << 2 | u32::from(sheds) << 3
 }
 
-/// The phytomers a leaf-sum dispatch takes: one lane sums them in turn.
-const LEAF_RANGE: u32 = 1 << 14;
+/// The phytomers a block of the leaf mean's reduction holds
+/// (`girth::LEAF_BLOCK`): each block summed in order, then the blocks.
+const LEAF_BLOCK: u32 = 1024;
+/// The blocks a leaf-mean dispatch takes: a count, never a timing.
+const LEAF_BLOCKS: u32 = 512;
 /// The axes a walking pass's dispatch takes (`Rec::ranged`): a count,
 /// never a timing.
 const RANGE: u32 = 1 << 17;
@@ -104,7 +107,11 @@ impl Rec<'_> {
         let st = &self.b.state;
         let r = &self.b.retire;
         let bind = self.pass.bind(self.gpu, &[&buf, &st.axes, &st.units, &st.grown, &self.work, &self.atom, &self.nt, &r.ret, &r.recs]);
-        let groups = if entry == d::LEAF { 1 } else { items.div_ceil(64).max(1) };
+        let groups = match entry {
+            d::LEAF => items,
+            d::LEAF_SUM => 1,
+            _ => items.div_ceil(64).max(1),
+        };
         self.pass.run(e, &bind, entry, groups);
         self.held.push(buf);
         self.stamped.push(phase);
@@ -269,10 +276,13 @@ fn sweeps(r: &mut Rec, l: &Layout, (depths, flags): (&[(u32, u32)], u32)) -> Res
         r.run(&mut e, (d::DOWN, "settle sweeps"), &at(k, dc), dc.1)?;
     }
     if flags & 3 == 3 {
-        for base in (0..l.phyts).step_by(LEAF_RANGE as usize) {
-            let count = LEAF_RANGE.min(l.phyts - base);
-            r.run(&mut e, (d::LEAF, "settle leaf mean"), &[(w::BASE, base), (w::COUNT, count)], 1)?;
+        // A workgroup a block, `LEAF_BLOCKS` blocks a dispatch.
+        let blocks = l.phyts.div_ceil(LEAF_BLOCK);
+        for first in (0..blocks).step_by(LEAF_BLOCKS as usize) {
+            let words = [(w::BASE, l.phyts), (w::COUNT, blocks), (w::FLIP, first)];
+            r.run(&mut e, (d::LEAF, "settle leaf mean"), &words, LEAF_BLOCKS.min(blocks - first))?;
         }
+        r.run(&mut e, (d::LEAF_SUM, "settle leaf mean"), &[(w::COUNT, blocks)], 1)?;
     }
     for (k, &(base, count)) in depths.iter().enumerate().rev() {
         for off in (0..count).step_by(UP_RANGE as usize) {

@@ -276,30 +276,59 @@ fn keep_main(@builtin(global_invocation_id) id: vec3<u32>) {
     }
 }
 
-// The leaf term's two sums over the tree as grown (`leaf_partials`):
-// each phytomer's pipe and its pipe by its light term, in the order the
-// axes and their phytomers stand, summed in turn from the pair the last
-// dispatch left. The lanes take the terms of a tile of 256 at once and
-// one lane adds them; then the mean (`grown_mean`).
-var<workgroup> w_pipe: array<f32, 256>;
-var<workgroup> w_term: array<f32, 256>;
+// The leaf term's two sums over the tree as grown (`leaf_partials`) in
+// the one reduction order (`girth::Blocked`): each phytomer's pipe and
+// its pipe by its light term, in the order the axes and their phytomers
+// stand, in blocks of 1,024. A workgroup a block, from block `cfg.flip`:
+// its lanes take the block's terms, one lane adds them in order from
+// zero, and the block's two sums wait in `WP_AT` (free until the upward
+// sweep) at the block and `cfg.count` (the blocks) past it. Then one lane
+// adds the blocks in order, 256 at a time as the lanes fetch them, and
+// takes the mean (`grown_mean`).
+const LEAF_BLOCK: u32 = 1024u;
+var<workgroup> w_pipe: array<f32, 1024>;
+var<workgroup> w_term: array<f32, 1024>;
 
 @compute @workgroup_size(256)
-fn leaf_main(@builtin(local_invocation_index) lane: u32) {
-    var total = bitcast<f32>(atomicLoad(&atom[T_LEAF]));
-    var weighted = bitcast<f32>(atomicLoad(&atom[T_LEAF + 1u]));
-    for (var t = 0u; t < cfg.count; t += 256u) {
+fn leaf_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lane: u32) {
+    let block = cfg.flip + wid.x;
+    let first = block * LEAF_BLOCK;
+    let held = min(LEAF_BLOCK, cfg.base - min(first, cfg.base));
+    for (var k = lane; k < LEAF_BLOCK; k += 256u) {
         var pipe = 0.0;
         var term = 0.0;
-        if t + lane < cfg.count {
-            let g = cfg.base + t + lane;
+        if k < held {
+            let g = first + k;
             let i = phyt(wp(WP_ROW, g), P_AXIS);
             let pa = ax(i, A_PA);
             pipe = grown_pipe(pa, g, waf(W_BASE, i), 1.0);
             term = apart(pipe * lit(shade_of(wp(WP_UNIT, g), 1u), kpaf(pa, K_CHI)));
         }
-        w_pipe[lane] = pipe;
-        w_term[lane] = term;
+        w_pipe[k] = pipe;
+        w_term[k] = term;
+    }
+    workgroupBarrier();
+    if lane == 0u && held > 0u {
+        var total = 0.0;
+        var weighted = 0.0;
+        for (var k = 0u; k < held; k++) {
+            total = apart(total + w_pipe[k]);
+            weighted = apart(weighted + w_term[k]);
+        }
+        set_wp(WP_AT, block, bitcast<u32>(total));
+        set_wp(WP_AT, cfg.count + block, bitcast<u32>(weighted));
+    }
+}
+
+@compute @workgroup_size(256)
+fn leaf_sum_main(@builtin(local_invocation_index) lane: u32) {
+    var total = 0.0;
+    var weighted = 0.0;
+    for (var t = 0u; t < cfg.count; t += 256u) {
+        if t + lane < cfg.count {
+            w_pipe[lane] = bitcast<f32>(wp(WP_AT, t + lane));
+            w_term[lane] = bitcast<f32>(wp(WP_AT, cfg.count + t + lane));
+        }
         workgroupBarrier();
         if lane == 0u {
             for (var k = 0u; k < min(256u, cfg.count - t); k++) {
@@ -309,13 +338,14 @@ fn leaf_main(@builtin(local_invocation_index) lane: u32) {
         }
         workgroupBarrier();
     }
-    if lane == 0u {
-        atomicStore(&atom[T_LEAF], bitcast<u32>(total));
-        atomicStore(&atom[T_LEAF + 1u], bitcast<u32>(weighted));
-        var mean = 1.0;
-        if weighted > 0.0 {
-            mean = exact_div(total, weighted);
-        }
-        atomicStore(&atom[T_LEAF + 2u], bitcast<u32>(mean));
+    if lane != 0u {
+        return;
     }
+    atomicStore(&atom[T_LEAF], bitcast<u32>(total));
+    atomicStore(&atom[T_LEAF + 1u], bitcast<u32>(weighted));
+    var mean = 1.0;
+    if weighted > 0.0 {
+        mean = exact_div(total, weighted);
+    }
+    atomicStore(&atom[T_LEAF + 2u], bitcast<u32>(mean));
 }
