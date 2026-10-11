@@ -180,3 +180,9 @@
 - **Would remove it:**
   - give the stamps from restarts and moves a phase ("again", "move", "compaction") in `Grew::stamped`, so that one build from the least sizes can be read per phase;
   - have the compile test take its binding lists from `Kernels::new`.
+
+## 2026-10-12, task 2: two editors staging in one index
+- **Doing:** taking over the cold-compile work, with `git rm` of the libm ports staged while a worker was still committing its evidence.
+- **Hindered:** the worker's evidence commit (`37edd6d3d`) swept the staged deletions in with it, so that one commit removes files its sources still reference and does not build. The next commit completes it.
+- **Cost:** one broken intermediate commit; a few minutes to find it.
+- **Would remove it:** one editor per worktree at a time, or `git commit -- <paths>` (commit only the named paths) in the workers' commit recipe.

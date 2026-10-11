@@ -362,3 +362,26 @@ So the apex run is split into phase kernels over flat work lists. It is not a pe
 - **`after`'s body** holds no zones, so it stays small. It keeps the 0.2 s compile bound, or it is cut further.
 - **Placing:** one scan, apex-major and then by step.
 
+## 11. The walks' cold compile, and pipelines made side by side (2026-10-12)
+
+**Native transcendentals in the geometry.** The layout's and the settle's walk and frame entries compiled cold in 1.4 to 14.8 s. Most of that was the libm-exact ports (`sincosf` in 64-bit integers, `atanf`/`atan2f`, `asinf`, `hypotf`), built only for word-exact agreement.
+- Under ruling 9.1, geometry that floors into no integer takes plain arithmetic within the ruled tolerance.
+- So the walk and the sag use WGSL's own `sin`, `cos`, `atan2` and `asin`, and a plain hypotenuse.
+- The ports and their tests are deleted.
+
+**Pipelines made side by side.** A browser already compiles every program at once (`create_compute_pipeline_async`, `programs.rs`). Natively, `io::Pass` now asks for a module's pipelines on parallel threads (`Program::make_many`), so a module's cold compile is its slowest entry's, not their sum.
+
+**Cold, native, driver cache off:**
+
+| Measure | Before | After |
+|---|--:|--:|
+| Modules one after another, entries side by side | 23.6 s (entries in turn) | 1.67 s |
+| Every module at once | 16.7 s | 0.98 s |
+| Units module | 3.0 s | 0.39 s |
+| Layout | 3.9 s | 0.48 s |
+| Settle | 15.2 s | 0.35 s |
+| Light | 0.9 s | 0.18 s |
+| Hierarchy | 0.35 s | 0.11 s |
+
+The strictly sequential sum of every entry, one after another, is 6.0 s. That is not how either path builds.
+

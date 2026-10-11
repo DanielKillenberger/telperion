@@ -103,8 +103,8 @@ fn sag_turn(uw: UnitW, cap: f32, saglog: f32, r: f32, left0: f32) -> f32 {
         return 0.0;
     }
     let c = saglog - m(4.0, log2_q(r));
-    let start = qatan2(hypotf(uw.u.x, uw.u.y), -uw.u.z);
-    let low = qbetween(0.0, qdiv(asinf(clamp(exp2c(min(cap - reach, 0.0)), -1.0, 1.0)), QTAU));
+    let start = qatan2(qsqrt(m(uw.u.x, uw.u.x) + m(uw.u.y, uw.u.y)), -uw.u.z);
+    let low = qbetween(0.0, qdiv(asin(clamp(exp2c(min(cap - reach, 0.0)), -1.0, 1.0)), QTAU));
     let high = 0.5 - low;
     var fall = start;
     var left = left0;

@@ -99,14 +99,16 @@ fn qbetween(was: f32, to: f32) -> f32 {
     return qwrap(to - was);
 }
 
-// The cosine and sine of an amount in turns (`q::sincos`).
+// The cosine and sine of an amount in turns (`q::sincos`), the device's
+// own: geometry floors into no integer, so it takes plain arithmetic
+// within the ruled tolerance (DESIGN.md 9.1, 11).
 fn qsincos(turns: f32) -> vec2<f32> {
-    let sc = sincosf(qwrap(turns) * QTAU);
-    return vec2<f32>(sc.y, sc.x);
+    let x = qwrap(turns) * QTAU;
+    return vec2<f32>(cos(x), sin(x));
 }
 
 fn qatan2(y: f32, x: f32) -> f32 {
-    return qdiv(atan2f(y, x), QTAU);
+    return qdiv(atan2(y, x), QTAU);
 }
 
 fn qturns(radians: f32) -> f32 {
@@ -120,83 +122,4 @@ fn qturn(pivot: vec3<f32>, angle: f32) -> Turn {
 
 fn qrotated(v: vec3<f32>, pivot: vec3<f32>, angle: f32) -> vec3<f32> {
     return qturned_by(v, qturn(pivot, angle));
-}
-
-// libm's `atanf` (FreeBSD's), in its f32 operations.
-fn atanf(x_in: f32) -> f32 {
-    var x = x_in;
-    let bits = bitcast<u32>(x);
-    let negative = (bits >> 31u) != 0u;
-    let ix = bits & 0x7fffffffu;
-    if ix >= 0x4c800000u {
-        let h = bitcast<f32>(0x3fc90fdau);
-        return select(h, -h, negative);
-    }
-    var id = -1;
-    if ix < 0x3ee00000u {
-        if ix < 0x39800000u {
-            return x;
-        }
-    } else {
-        x = abs(x);
-        if ix < 0x3f980000u {
-            if ix < 0x3f300000u {
-                x = qdiv(m(2.0, x) - 1.0, 2.0 + x);
-                id = 0;
-            } else {
-                x = qdiv(x - 1.0, x + 1.0);
-                id = 1;
-            }
-        } else if ix < 0x401c0000u {
-            x = qdiv(x - 1.5, 1.0 + m(1.5, x));
-            id = 2;
-        } else {
-            x = qdiv(-1.0, x);
-            id = 3;
-        }
-    }
-    let z = x * x;
-    let w = z * z;
-    let a0 = bitcast<f32>(0x3eaaaaa9u);
-    let a1 = bitcast<f32>(0xbe4cca98u);
-    let a2 = bitcast<f32>(0x3e11f50du);
-    let a3 = bitcast<f32>(0xbdda1247u);
-    let a4 = bitcast<f32>(0x3d7cac25u);
-    let s1 = m(z, a0 + m(w, a2 + m(w, a4)));
-    let s2 = m(w, a1 + m(w, a3));
-    if id < 0 {
-        return x - m(x, apart(s1 + s2));
-    }
-    let hi = array<f32, 4>(bitcast<f32>(0x3eed6338u), bitcast<f32>(0x3f490fdau), bitcast<f32>(0x3f7b985eu), bitcast<f32>(0x3fc90fdau));
-    let lo = array<f32, 4>(bitcast<f32>(0x31ac3769u), bitcast<f32>(0x33222168u), bitcast<f32>(0x33140fb4u), bitcast<f32>(0x33a22168u));
-    let r = hi[id] - apart(apart(m(x, apart(s1 + s2)) - lo[id]) - x);
-    return select(r, -r, negative);
-}
-
-// libm's `atan2f` over finite values.
-fn atan2f(y: f32, x: f32) -> f32 {
-    let bx = bitcast<u32>(x);
-    let by = bitcast<u32>(y);
-    if bx == 0x3f800000u {
-        return atanf(y);
-    }
-    let mm = ((by >> 31u) & 1u) | ((bx >> 30u) & 2u);
-    let ix = bx & 0x7fffffffu;
-    let iy = by & 0x7fffffffu;
-    if iy == 0u {
-        return select(select(-QPI, QPI, mm == 2u), y, mm < 2u);
-    }
-    if ix == 0u || ix + (26u << 23u) < iy {
-        return select(QPI * 0.5, -QPI * 0.5, (mm & 1u) != 0u);
-    }
-    var z = 0.0;
-    if (mm & 2u) == 0u || iy + (26u << 23u) >= ix {
-        z = atanf(abs(qdiv(y, x)));
-    }
-    switch mm {
-        case 0u: { return z; }
-        case 1u: { return -z; }
-        case 2u: { return QPI - apart(z - QPI_LO); }
-        default: { return apart(z - QPI_LO) - QPI; }
-    }
 }

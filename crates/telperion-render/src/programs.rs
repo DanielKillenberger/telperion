@@ -23,6 +23,26 @@ impl Program {
     pub fn make(gpu: &Gpu, desc: &wgpu::ComputePipelineDescriptor<'_>) -> Self {
         #[cfg(test)]
         MADE.with(|made| made.set(made.get() + 1));
+        Self::asked(gpu, desc)
+    }
+
+    /// The pipelines `descs` state, asked of the device at once: natively
+    /// each made on its own thread, as a browser compiles them side by
+    /// side, so a module's cold compile is its slowest entry's, not their
+    /// sum (fn-256, DESIGN.md 9.3).
+    pub fn make_many(gpu: &Gpu, descs: &[wgpu::ComputePipelineDescriptor<'_>]) -> Vec<Self> {
+        #[cfg(test)]
+        MADE.with(|made| made.set(made.get() + descs.len()));
+        #[cfg(not(target_arch = "wasm32"))]
+        return std::thread::scope(|s| {
+            let asked: Vec<_> = descs.iter().map(|d| s.spawn(move || Self::asked(gpu, d))).collect();
+            asked.into_iter().map(|h| h.join().expect("a pipeline made")).collect()
+        });
+        #[cfg(target_arch = "wasm32")]
+        descs.iter().map(|d| Self::asked(gpu, d)).collect()
+    }
+
+    fn asked(gpu: &Gpu, desc: &wgpu::ComputePipelineDescriptor<'_>) -> Self {
         #[cfg(not(target_arch = "wasm32"))]
         return Self {
             made: gpu.device.create_compute_pipeline(desc),

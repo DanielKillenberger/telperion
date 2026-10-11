@@ -59,15 +59,11 @@ mod hier_math_tests;
 #[cfg(test)]
 mod hier_tests;
 #[cfg(test)]
-mod lay_math_tests;
-#[cfg(test)]
 mod light_tests;
 #[cfg(test)]
 mod retire_tests;
 #[cfg(test)]
 mod settle_det_tests;
-#[cfg(test)]
-mod settle_math_tests;
 #[cfg(test)]
 mod settle_tests;
 #[cfg(test)]
@@ -95,7 +91,6 @@ const WAKE: &str = include_str!("cycle/wake.wgsl");
 const LAYOUT: &str = include_str!("cycle/layout.wgsl");
 const LAY_STATE: &str = include_str!("cycle/lay_state.wgsl");
 const Q: &str = include_str!("cycle/q.wgsl");
-const SINCOS: &str = include_str!("cycle/sincos.wgsl");
 const LAY_WALK: &str = include_str!("cycle/lay_walk.wgsl");
 const LAY_DRAW: &str = include_str!("cycle/lay_draw.wgsl");
 const LAY_STAND: &str = include_str!("cycle/lay_stand.wgsl");
@@ -139,7 +134,7 @@ pub(super) fn source() -> String {
 /// walk, the draw, the stand, the frame and the pencil.
 pub(super) fn layout_source() -> String {
     format!(
-        "{}\n{}\n{LAYOUT}\n{LAY_STATE}\n{Q}\n{SINCOS}\n{LAY_WALK}\n{LAY_DRAW}\n{LAY_STAND}\n{LAY_FRAME}\n{LAY_PENCIL}",
+        "{}\n{}\n{LAYOUT}\n{LAY_STATE}\n{Q}\n{LAY_WALK}\n{LAY_DRAW}\n{LAY_STAND}\n{LAY_FRAME}\n{LAY_PENCIL}",
         super::fine::contract_with(ARITH),
         ROOT
     )

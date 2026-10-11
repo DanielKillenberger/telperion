@@ -14,7 +14,6 @@ const ORDER: &str = include_str!("settle_order.wgsl");
 const COMPACT: &str = include_str!("settle_compact.wgsl");
 const STATE: &str = include_str!("settle_state.wgsl");
 const THICK: &str = include_str!("settle_thick.wgsl");
-const LIBM: &str = include_str!("settle_libm.wgsl");
 const SAG: &str = include_str!("settle_sag.wgsl");
 const BEND: &str = include_str!("settle_bend.wgsl");
 const LAY: &str = include_str!("settle_place.wgsl");
@@ -155,12 +154,11 @@ impl Kernels {
 /// then the place's passes.
 pub(super) fn place_source() -> String {
     format!(
-        "{}\n{}\n{REAL}\n{}\n{SHARED}\n{STATE}\n{}\n{}\n{}\n{}\n{}\n{THICK}\n{LIBM}\n{BEND}\n{SAG}\n{LAY}",
+        "{}\n{}\n{REAL}\n{}\n{SHARED}\n{STATE}\n{}\n{}\n{}\n{}\n{THICK}\n{BEND}\n{SAG}\n{LAY}",
         super::super::fine::contract_with(super::ARITH),
         super::ROOT,
         soft64(),
         super::Q,
-        super::SINCOS,
         super::LAY_WALK,
         super::LAY_STAND,
         super::LAY_FRAME
