@@ -16,11 +16,13 @@ use super::vm::E;
 use std::rc::Rc;
 
 /// The census words that never fall from one cycle to the next: the
-/// state's counts, the axes laid and built, the blocks, the levels and
-/// each level's first block.
+/// state's counts, the axes laid and built, the blocks and the levels.
+/// A level's first block is not one: a block placed in a shallower level
+/// moves every deeper level's first block on, and a step that reorders
+/// the levels moves it back (Telperion 82 seed 42).
 fn grows(w: usize) -> bool {
     let counts = [c::AXES, c::UNITS, c::PHYTS, c::LAID, c::BUILT, c::GROWN, c::AXES0, c::UNITS0, c::PHYTS0, c::LAID0];
-    counts.contains(&w) || [c::BLOCKS0, c::LEVELS0, c::LEVELS].contains(&w) || (c::LVL..c::GRID).contains(&w)
+    counts.contains(&w) || [c::BLOCKS0, c::LEVELS0, c::LEVELS].contains(&w)
 }
 
 /// How far past its projection each census word reaches: a power of two,
@@ -144,5 +146,25 @@ impl Pending {
         for w in words {
             widths.0[w] = (widths.0[w] + 2).min(16);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::build_plan::Bounds;
+    use super::*;
+
+    /// A level's width as the sums' sweeps size it, where its first block
+    /// fell between the census read and the cycle (Telperion 82 seed 42,
+    /// whose level starts fall every few cycles).
+    #[test]
+    fn a_levels_width_is_bounded_where_its_first_block_falls() {
+        let (mut prev, mut read, mut now) = (vec![0; c::WORDS], vec![0; c::WORDS], vec![0; c::WORDS]);
+        (prev[c::LVL], prev[c::LVL + 1]) = (50, 200);
+        (read[c::LVL], read[c::LVL + 1]) = (100, 200);
+        (now[c::LVL], now[c::LVL + 1]) = (10, 250);
+        let width = E::At(c::LVL + 1).sub(E::At(c::LVL));
+        let span = Span::new(&read, Some(&prev), &Widths::default(), (3, &Limits::full(&Bounds::default())));
+        assert!(span.most(&width) >= width.eval(&now), "{} under {}", span.most(&width), width.eval(&now));
     }
 }
