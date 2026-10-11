@@ -6,7 +6,7 @@
 //! sag set to none, whose wood is laid once; the sag from the birch as it
 //! ships.
 use super::preset_agree_tests::BOUND;
-use super::realized_tests::{grown_as_on_the_cpu, request, settled_against, Apart};
+use super::realized_tests::{grown_as_on_the_cpu, request, settled_against, Apart, First};
 use super::roots::kernels;
 use telperion_core::presets::by_identity;
 use telperion_space::{grow_roots, root_axes, Plan, Species};
@@ -25,6 +25,17 @@ fn settled(gpu: &crate::Gpu, k: &super::roots::Kernels, species: &Species) -> Ap
     let cpu = grow_roots(species, request(AT.0, AT.1), plan).unwrap();
     let want = root_axes(&cpu);
     settled_against(gpu, k, (species, AT, plan), &want, (&[], 64))
+}
+
+/// The axis where the executors first part, by lineage and key.
+fn named(first: Option<First>) -> String {
+    let Some(f) = first else {
+        return "none".into();
+    };
+    format!(
+        "root {} depth {}: axis {} (PA {}), phytomer {} keyed {}, {:.2e} m",
+        f.root, f.depth, f.lineage, f.pa, f.phytomer, f.key, f.apart
+    )
 }
 
 fn over(a: &Apart) -> bool {
@@ -50,12 +61,12 @@ fn the_birch_grows_the_same_wood_on_the_device_as_on_the_cpu() {
     for (stage, species) in stages {
         let a = settled(&gpu, &k, species);
         println!(
-            "{stage}: {} phytomers, tips {:.2e} most {:.2e} RMS, radii {:.2e} m, first apart {:?}",
+            "{stage}: {} phytomers, tips {:.2e} most {:.2e} RMS, radii {:.2e} m, first apart {}",
             a.phytomers,
             a.most,
             a.rms(),
             a.radius_m,
-            a.first
+            named(a.first)
         );
         assert_eq!(a.statuses, 0, "{stage}: a chain's status");
         assert!(a.radius_m <= BOUND.radius, "girth: radii {:.2e} m", a.radius_m);
@@ -65,10 +76,10 @@ fn the_birch_grows_the_same_wood_on_the_device_as_on_the_cpu() {
     }
     if let Some((stage, a)) = parted {
         panic!(
-            "the birch parts at {stage}: tips {:.2e} most {:.2e} RMS, first {:?}",
+            "the birch parts at {stage}: tips {:.2e} most {:.2e} RMS, first {}",
             a.most,
             a.rms(),
-            a.first
+            named(a.first)
         );
     }
 }
