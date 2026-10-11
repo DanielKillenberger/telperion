@@ -2,20 +2,28 @@
 //! captured cycle's units and wake replayed on the device, every append
 //! placed by an exclusive scan in the CPU's order, held exactly to the
 //! CPU's cycle and timed per kernel.
+mod build;
+mod build_cycle;
+mod build_light;
+mod build_units;
 mod columns;
 mod compare;
 mod device;
+mod glue;
+mod grown;
+mod grown_compare;
 mod hier_build;
 mod hier_columns;
 mod hier_compare;
 mod hier_device;
 mod hier_plan;
 mod hier_scan;
-mod lay_columns;
-mod lay_compare;
 mod lay_device;
 mod light_device;
 mod light_program;
+mod state;
+#[cfg(test)]
+mod grown_tests;
 #[cfg(test)]
 mod hier_grid_tests;
 #[cfg(test)]
@@ -24,8 +32,6 @@ mod hier_math_tests;
 mod hier_tests;
 #[cfg(test)]
 mod lay_math_tests;
-#[cfg(test)]
-mod lay_tests;
 #[cfg(test)]
 mod light_tests;
 #[cfg(test)]
@@ -42,6 +48,7 @@ const GROW: &str = include_str!("cycle/grow.wgsl");
 const UNITS: &str = include_str!("cycle/units.wgsl");
 const WAKE: &str = include_str!("cycle/wake.wgsl");
 const LAYOUT: &str = include_str!("cycle/layout.wgsl");
+const LAY_STATE: &str = include_str!("cycle/lay_state.wgsl");
 const Q: &str = include_str!("cycle/q.wgsl");
 const SINCOS: &str = include_str!("cycle/sincos.wgsl");
 const LAY_WALK: &str = include_str!("cycle/lay_walk.wgsl");
@@ -113,7 +120,7 @@ pub(super) fn source(arith: Arith) -> String {
 /// walk, the draw, the stand and the frame.
 pub(super) fn layout_source(arith: Arith) -> String {
     format!(
-        "{}\n{}\n{LAYOUT}\n{Q}\n{SINCOS}\n{LAY_WALK}\n{LAY_DRAW}\n{LAY_STAND}\n{LAY_FRAME}",
+        "{}\n{}\n{LAYOUT}\n{LAY_STATE}\n{Q}\n{SINCOS}\n{LAY_WALK}\n{LAY_DRAW}\n{LAY_STAND}\n{LAY_FRAME}",
         super::fine::contract_with(arith.marks()),
         arith.root()
     )
@@ -163,6 +170,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
     let mut out = vec![
         ("cycle hierarchy build", hier_build_source()),
         ("cycle hierarchy scan", hier_scan_source()),
+        ("cycle glue", glue::source()),
     ];
     for (arith, names) in [
         (Arith::Plain, ["cycle units and wake", "cycle layout", "cycle hierarchy sums", "cycle light"]),

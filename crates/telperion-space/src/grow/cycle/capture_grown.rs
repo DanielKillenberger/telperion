@@ -8,10 +8,11 @@
 use super::super::sketch::Sketch;
 use super::super::{start, Options, Request};
 use super::capture::Capture;
-use super::capture_layout::pencil_row;
+use super::capture_layout::{form, ground, pencil_row};
 use super::capture_units::Before;
 use super::Working;
 use crate::error::Result;
+use crate::geometry::cone;
 use crate::species::Species;
 
 /// The grown state: every axis's scalars and draws, each axis's units
@@ -21,19 +22,52 @@ use crate::species::Species;
 /// phytomers grown (`capture_state` under `g_`), and the layout's
 /// columns under `sk_`.
 pub fn grow_capture_grown(species: &Species, request: Request) -> Result<Capture> {
+    grow_capture_grown_at(species, request, request.age)
+}
+
+/// `grow_capture_grown` after `cycle` of a tree of `request.age`: where a
+/// build first parts from the CPU's.
+pub fn grow_capture_grown_at(species: &Species, request: Request, cycle: u32) -> Result<Capture> {
+    if cycle == 0 || cycle > request.age {
+        return crate::error::refuse("cycle", "a captured cycle is one the tree grows");
+    }
     let (mut g, _) = start(species, request, true, Options::default())?;
     (g.one, g.rules.one) = (true, true);
     g.working = Some(Box::new(Working::reference()));
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));
     g.rules.lasting = vec![None; species.states.len()].into();
     let mut advanced = Vec::new();
-    for cycle in 1..=request.age {
-        g.year(cycle, cycle < request.age, &mut advanced, &mut |_| {})?;
+    for c in 1..=cycle {
+        g.year(c, c < request.age, &mut advanced, &mut |_| {})?;
     }
     let mut c = Capture { arrays: Vec::new() };
-    c.u32s("g_counts", &[request.age, g.axes.len() as u32]);
+    c.u32s("g_counts", &[cycle, g.axes.len() as u32]);
     g.capture_state(&mut c, "g", &Before::nothing());
     g.capture_sketch(&mut c);
+    Ok(c)
+}
+
+/// The species' tables and the request as the device's build reads them,
+/// from a grower set up as `run` sets it up, before its first cycle: the
+/// units' (`capture_tables`), the layout's form and globals, each PA's
+/// balance and allotment constants (upkeep, balance hazard, tolerance,
+/// apical control, ψ), and the light's directions and extinction.
+pub fn grow_capture_tables(species: &Species, request: Request) -> Result<Capture> {
+    let (mut g, _) = start(species, request, true, Options::default())?;
+    (g.one, g.rules.one) = (true, true);
+    g.sketch.get_or_insert_with(|| Sketch::new(request.light));
+    let mut c = Capture { arrays: Vec::new() };
+    c.u32s("cycle", &[0, request.age, request.budget]);
+    c.u64s("seed", &[request.seed]);
+    g.capture_tables(&mut c);
+    c.f32s("lay_form", &form(species));
+    c.f32s("lay_globals", &[cone(), ground()]);
+    let pa: Vec<f32> = (species.states.iter())
+        .flat_map(|s| [s.upkeep, s.balance_hazard, s.tolerance, s.apical_control, s.shade_size])
+        .map(|x| x as f32)
+        .collect();
+    c.f32s("hier_pa", &pa);
+    g.capture_light_inputs(&mut c);
     Ok(c)
 }
 

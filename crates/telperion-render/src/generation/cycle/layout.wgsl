@@ -3,14 +3,18 @@
 // (`draw`); then each relay's node is set (`relay`), each new axis's
 // generation found (`generation`), and per generation its axes are listed
 // by a flag, a scan and a gather, framed (`frame`) and laid (`draw`).
-// Every column is one word a row, its rows the table's count apart; an
-// index is the CPU's. The columns are `capture_layout.rs`'s.
+// The state is the cycle's one resident state (`state.rs`): the axes'
+// columns the units write and the layout's beside them, the units'
+// records and the phytomers in one arena, the pencils by axis. An index
+// is the CPU's. An axis's phytomers are found through its units' records
+// (`prow`), each unit's phytomers contiguous.
 
 struct Cfg {
     n: u32,
     row: u32,
     cycle: u32,
     first_new: u32,
+    // The axes', phytomers' and units' columns' strides.
     axes: u32,
     phyts: u32,
     units: u32,
@@ -20,16 +24,21 @@ struct Cfg {
     generation: u32,
     zero: u32,
     grown: u32,
+    // Where the phytomers start in the arena, and the first item of this
+    // dispatch's range of its list.
+    phyt_at: u32,
+    base: u32,
+    pad0: u32,
+    pad1: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
 @group(0) @binding(1) var<storage, read> form: array<f32>;
-@group(0) @binding(2) var<storage, read> units: array<u32>;
+@group(0) @binding(2) var<storage, read_write> arena: array<u32>;
 @group(0) @binding(3) var<storage, read_write> axes: array<u32>;
-@group(0) @binding(4) var<storage, read_write> phyts: array<u32>;
-@group(0) @binding(5) var<storage, read_write> pencils: array<u32>;
-@group(0) @binding(6) var<storage, read_write> lists: array<u32>;
-@group(0) @binding(7) var<storage, read_write> counts: array<u32>;
+@group(0) @binding(4) var<storage, read_write> pencils: array<u32>;
+@group(0) @binding(5) var<storage, read_write> lists: array<u32>;
+@group(0) @binding(6) var<storage, read_write> counts: array<u32>;
 
 const NONE: u32 = 0xffffffffu;
 const TICKS: f32 = 1048576.0;
@@ -38,49 +47,49 @@ const LATERAL: u32 = 1u;
 const CONTINUED: u32 = 2u;
 const RELAYED: u32 = 3u;
 
-// An axis's columns.
-const A_PA: u32 = 0u;
-const A_BIRTH: u32 = 1u;
-const A_ORIGIN: u32 = 2u;
-const A_PARENT: u32 = 3u;
-const A_NODE: u32 = 4u;
-const A_WHORL: u32 = 5u;
+// An axis's columns (`state.rs`): the units' (`arena.wgsl`'s `A_`), then
+// the layout's.
+const A_PA: u32 = 1u;
+const A_BIRTH: u32 = 2u;
+const A_ORIGIN: u32 = 3u;
+const A_PARENT: u32 = 4u;
+const A_NODE: u32 = 5u;
 const A_LINEAGE: u32 = 6u;
-const A_BLEND: u32 = 8u;
-const A_PHASE: u32 = 9u;
-const A_RANK: u32 = 10u;
-const A_BASE: u32 = 11u;
-const A_HEADING: u32 = 14u;
-const A_SIDE: u32 = 17u;
-const A_B0: u32 = 20u;
-const A_B1: u32 = 21u;
-const A_SLEEP: u32 = 22u;
-const A_UNITS_N: u32 = 23u;
-const A_UNIT_FIRST: u32 = 24u;
-const A_UNITS_FROM: u32 = 25u;
-const A_OLD_FIRST: u32 = 26u;
-const A_OLD_N: u32 = 27u;
-const A_NEW_FIRST: u32 = 28u;
-const A_NEW_N: u32 = 29u;
-const A_FAULT: u32 = 30u;
+const A_PHYTS: u32 = 17u;
+const A_SLEEP: u32 = 28u;
+const A_UNITS_N: u32 = 29u;
+const A_TAIL: u32 = 33u;
+const A_WHORL: u32 = 35u;
+const A_BLEND: u32 = 36u;
+const A_B0: u32 = 37u;
+const A_B1: u32 = 38u;
+const A_PHASE: u32 = 39u;
+const A_RANK: u32 = 40u;
+const A_BASE: u32 = 41u;
+const A_HEADING: u32 = 44u;
+const A_SIDE: u32 = 47u;
+const A_FAULT: u32 = 50u;
 // A phytomer's.
 const PH_KEY: u32 = 0u;
-const PH_CYCLE: u32 = 2u;
-const PH_NODE: u32 = 3u;
-const PH_TIP: u32 = 4u;
-const PH_HEADING: u32 = 7u;
-const PH_SIDE: u32 = 10u;
-const PH_SCALE: u32 = 13u;
-const PH_GROWN: u32 = 14u;
-const PH_SIZE: u32 = 15u;
-const PH_RANK: u32 = 16u;
-const PH_AREA: u32 = 17u;
-const PH_LAID: u32 = 18u;
-// A pending unit's.
-const U_SURVIVE: u32 = 0u;
-const U_PERSIST: u32 = 1u;
-const U_SIZE: u32 = 2u;
-const U_SHADE: u32 = 3u;
+const PH_CYCLE: u32 = 3u;
+const PH_NODE: u32 = 4u;
+const PH_TIP: u32 = 5u;
+const PH_HEADING: u32 = 8u;
+const PH_SIDE: u32 = 11u;
+const PH_SCALE: u32 = 14u;
+const PH_GROWN: u32 = 15u;
+const PH_SIZE: u32 = 16u;
+const PH_RANK: u32 = 17u;
+const PH_AREA: u32 = 18u;
+// A unit's (`arena.wgsl`'s `U_`).
+const UN_SURVIVE: u32 = 1u;
+const UN_PERSIST: u32 = 2u;
+const UN_SIZE: u32 = 4u;
+const UN_SHADE: u32 = 5u;
+const UN_PREV: u32 = 9u;
+const UN_NEXT: u32 = 10u;
+const UN_FIRST: u32 = 11u;
+const UN_COUNT: u32 = 12u;
 // A pencil's: its walk, its pulls, then its scalars.
 const P_RUNNING: u32 = 0u;
 const P_ACROSS: u32 = 3u;
@@ -128,120 +137,17 @@ const FAULT_BELOW: u32 = 4u;
 const FAULT_LIFTS: u32 = 8u;
 const FAULT_LINE: u32 = 16u;
 const FAULT_UNITS: u32 = 32u;
-// The tally's words at the head of `lists`: the generation listed.
+const FAULT_NARROW: u32 = 64u;
+// The tally's words at the head of `lists`: the generation listed, and
+// every fault any axis met this cycle.
 const T_LISTED: u32 = 0u;
+const T_FAULT: u32 = 8u;
 const TALLY: u32 = 16u;
 
 var<private> status: u32;
 
 fn exact_zero() -> u32 {
     return cfg.zero;
-}
-
-fn ax(i: u32, c: u32) -> u32 {
-    return axes[c * cfg.axes + i];
-}
-
-fn axf(i: u32, c: u32) -> f32 {
-    return bitcast<f32>(ax(i, c));
-}
-
-fn ax3(i: u32, c: u32) -> vec3<f32> {
-    return vec3<f32>(axf(i, c), axf(i, c + 1u), axf(i, c + 2u));
-}
-
-fn set_ax(i: u32, c: u32, v: u32) {
-    axes[c * cfg.axes + i] = v;
-}
-
-fn set_ax3(i: u32, c: u32, v: vec3<f32>) {
-    for (var k = 0u; k < 3u; k++) {
-        set_ax(i, c + k, bitcast<u32>(v[k]));
-    }
-}
-
-fn kind_of(i: u32) -> u32 {
-    return ax(i, A_ORIGIN) & 0xffu;
-}
-
-fn lineage_of(i: u32) -> vec2<u32> {
-    return vec2<u32>(ax(i, A_LINEAGE), ax(i, A_LINEAGE + 1u));
-}
-
-fn ph(r: u32, c: u32) -> u32 {
-    return phyts[c * cfg.phyts + r];
-}
-
-fn phf(r: u32, c: u32) -> f32 {
-    return bitcast<f32>(ph(r, c));
-}
-
-fn ph3(r: u32, c: u32) -> vec3<f32> {
-    return vec3<f32>(phf(r, c), phf(r, c + 1u), phf(r, c + 2u));
-}
-
-fn set_ph(r: u32, c: u32, v: f32) {
-    phyts[c * cfg.phyts + r] = bitcast<u32>(v);
-}
-
-fn set_ph3(r: u32, c: u32, v: vec3<f32>) {
-    for (var k = 0u; k < 3u; k++) {
-        set_ph(r, c + k, v[k]);
-    }
-}
-
-fn pn(i: u32, c: u32) -> u32 {
-    return pencils[c * cfg.axes + i];
-}
-
-fn pnf(i: u32, c: u32) -> f32 {
-    return bitcast<f32>(pn(i, c));
-}
-
-fn pn3(i: u32, c: u32) -> vec3<f32> {
-    return vec3<f32>(pnf(i, c), pnf(i, c + 1u), pnf(i, c + 2u));
-}
-
-fn set_pn(i: u32, c: u32, v: u32) {
-    pencils[c * cfg.axes + i] = v;
-}
-
-fn set_pnf(i: u32, c: u32, v: f32) {
-    set_pn(i, c, bitcast<u32>(v));
-}
-
-fn set_pn3(i: u32, c: u32, v: vec3<f32>) {
-    for (var k = 0u; k < 3u; k++) {
-        set_pnf(i, c + k, v[k]);
-    }
-}
-
-fn unf(r: u32, c: u32) -> f32 {
-    return bitcast<f32>(units[c * cfg.units + r]);
-}
-
-fn fm(pa: u32, k: u32) -> f32 {
-    return form[2u + pa * FORM + k];
-}
-
-// The phytomers axis `a` holds.
-fn nphyt(a: u32) -> u32 {
-    return ax(a, A_OLD_N) + ax(a, A_NEW_N);
-}
-
-// The arena row of axis `a`'s phytomer `j`: before the cycle, where the
-// capture took it; grown in it, past them.
-fn prow(a: u32, j: u32) -> u32 {
-    let old = ax(a, A_OLD_N);
-    if j < old {
-        let first = ax(a, A_OLD_FIRST);
-        if first == NONE {
-            status |= FAULT_UNREAD;
-            return 0u;
-        }
-        return first + j;
-    }
-    return ax(a, A_NEW_FIRST) + (j - old);
 }
 
 // A whole count of ticks, signed, as the f32 of its cycles (`years as
@@ -252,7 +158,15 @@ fn years_of(ticks: i32) -> f32 {
 }
 
 fn invocation(id: vec3<u32>) -> u32 {
-    return id.x + id.y * cfg.row;
+    return cfg.base + id.x + id.y * cfg.row;
+}
+
+// An axis's faults kept on it and in the cycle's tally.
+fn fault_out(i: u32) {
+    set_ax(i, A_FAULT, ax(i, A_FAULT) | status);
+    if status != 0u {
+        lists[T_FAULT] = lists[T_FAULT] | status;
+    }
 }
 
 // The axis a `draw` or `frame` invocation takes, or NONE past its list.
@@ -282,8 +196,9 @@ fn draw_main(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     status = 0u;
+    forget();
     draw_axis(i);
-    set_ax(i, A_FAULT, ax(i, A_FAULT) | status);
+    fault_out(i);
 }
 
 @compute @workgroup_size(64)
@@ -293,8 +208,9 @@ fn frame_main(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     status = 0u;
+    forget();
     frame(i);
-    set_ax(i, A_FAULT, ax(i, A_FAULT) | status);
+    fault_out(i);
 }
 
 // Each new relay set at its node (`presence::relay_node`).
@@ -306,7 +222,10 @@ fn relay_main(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     let i = cfg.first_new + k;
     if kind_of(i) == RELAYED {
+        status = 0u;
+        forget();
         set_ax(i, A_NODE, relay_node(ax(i, A_PARENT)));
+        fault_out(i);
     }
 }
 

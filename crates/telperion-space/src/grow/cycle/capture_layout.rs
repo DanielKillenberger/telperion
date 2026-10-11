@@ -82,7 +82,7 @@ pub fn grow_capture_layout_at(species: &Species, request: Request, cycle: u32) -
 }
 
 /// Each PA's form as the layout reads it, every angle an amount.
-fn form(species: &Species) -> Vec<f32> {
+pub(super) fn form(species: &Species) -> Vec<f32> {
     let mut out = Vec::new();
     for s in &species.states {
         let fm = &s.form;
@@ -113,7 +113,7 @@ fn form(species: &Species) -> Vec<f32> {
 }
 
 /// The largest f32 below the ground's tolerance, `-1e-9` (`Layer::step`).
-fn ground() -> f32 {
+pub(super) fn ground() -> f32 {
     let t = -1e-9f64;
     let c = t as f32;
     if f64::from(c) < t {

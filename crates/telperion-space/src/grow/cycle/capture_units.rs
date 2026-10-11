@@ -130,7 +130,7 @@ impl Grower<'_> {
     /// shedding delay plus a cycle, the windows of a whole, a failed
     /// unit's and an abortion's stake per cycle, and each zone's buds a
     /// whorl, in the units' order.
-    fn capture_tables(&self, c: &mut Capture) {
+    pub(super) fn capture_tables(&self, c: &mut Capture) {
         let states = &self.species.states;
         let age = self.rules.age;
         let st = |g: &dyn Fn(&crate::species::PaState) -> f64| -> Vec<f32> {

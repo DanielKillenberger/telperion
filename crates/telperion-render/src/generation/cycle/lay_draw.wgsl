@@ -44,16 +44,19 @@ fn draw_axis(i: u32) {
     var laid = pn(i, P_LAID);
     let units_n = ax(i, A_UNITS_N);
     let n = nphyt(i);
-    if unit < ax(i, A_UNITS_FROM) && unit < units_n {
-        status |= FAULT_UNITS;
-        return;
+    var u = NONE;
+    if unit < units_n {
+        u = unit_of(i, unit);
     }
     // cap: the axis's pending units.
     while unit < units_n {
-        let u = ax(i, A_UNIT_FIRST) + (unit - ax(i, A_UNITS_FROM));
-        let grown = unf(u, U_SIZE);
-        let present = running * unf(u, U_SURVIVE);
-        let size = unf(u, U_SHADE);
+        if u == NONE {
+            status |= FAULT_UNITS;
+            return;
+        }
+        let grown = unit_size(u);
+        let present = running * unit_survive(u);
+        let size = unit_shade(u);
         var end = laid;
         // cap: the axis's phytomers.
         while end < n && ph(prow(i, end), PH_CYCLE) - birth - 1u == unit {
@@ -79,11 +82,11 @@ fn draw_axis(i: u32) {
             step(&wk, i, r, sized, bent, total, trunk);
             wood = wood + m(internode, sized);
             set_ph(r, PH_AREA, sized * leaf);
-            phyts[PH_LAID * cfg.phyts + r] = 1u;
         }
         laid = end;
-        running = present * unf(u, U_PERSIST);
+        running = present * unit_persist(u);
         unit += 1u;
+        u = unit_word(u, UN_NEXT);
     }
     keep_walk(i, wk);
     set_pnf(i, P_GOING, running);

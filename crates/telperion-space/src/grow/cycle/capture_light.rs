@@ -52,7 +52,7 @@ impl Grower<'_> {
     /// The leaves (x, y, z, area) and tips (x, y, z) as the lattice
     /// reads them, in f32; each lit direction's `x/z`, `y/z`, its path
     /// `CELL/z` and its share, and the extinction, by their f64 bits.
-    fn capture_light_inputs(&self, c: &mut Capture) {
+    pub(super) fn capture_light_inputs(&self, c: &mut Capture) {
         let light = self.sketch.as_ref().expect("sketching").light;
         let f = |x: f64| x as f32;
         let leaves: Vec<f32> = (self.leaves.iter())

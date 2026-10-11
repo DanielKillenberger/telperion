@@ -10,9 +10,10 @@ use crate::{Gpu, Result};
 
 const SCAN: &str = include_str!("../fine/scan.wgsl");
 
-const CYCLE: usize = 0;
-const FLAG: usize = 1;
-const GATHER: usize = 2;
+pub(super) const CYCLE: usize = 0;
+pub(super) const FLAG: usize = 1;
+pub(super) const GATHER: usize = 2;
+pub(super) const SEED: usize = 3;
 
 /// The tally's places (`arena.wgsl`'s `T_` words).
 pub(super) const T_UNITS: usize = 0;
@@ -33,15 +34,15 @@ pub(super) const PHASES: [(&str, usize); 7] = [
 ];
 
 pub(super) struct Kernels {
-    cycle: io::Pass,
-    scan: io::Pass,
+    pub(super) cycle: io::Pass,
+    pub(super) scan: io::Pass,
 }
 
 impl Kernels {
     pub(super) fn new(gpu: &Gpu, arith: super::Arith) -> Self {
         let mut reads = vec![true; 3];
         reads.extend([false; 5]);
-        let entries = ["cycle_main", "flag", "gather"];
+        let entries = ["cycle_main", "flag", "gather", "seed_main"];
         Self {
             cycle: io::Pass::new(gpu, super::source(arith), &reads, &entries),
             scan: io::Pass::new(
@@ -66,7 +67,7 @@ fn zeroed(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
 }
 
 /// Workgroups over `n` invocations, and the row a dispatch spreads them in.
-fn row(gpu: &Gpu, n: u32) -> (u32, u32) {
+pub(super) fn row(gpu: &Gpu, n: u32) -> (u32, u32) {
     let groups = n.div_ceil(64);
     let most = gpu.device.limits().max_compute_workgroups_per_dimension;
     (groups, groups.min(most).max(1) * 64)
@@ -74,7 +75,7 @@ fn row(gpu: &Gpu, n: u32) -> (u32, u32) {
 
 /// One scan of `n` records' first `fields` words, its totals copied to
 /// the tally's word `to`.
-struct Scan {
+pub(super) struct Scan {
     bind: wgpu::BindGroup,
     totals: Owned,
     blocks: u32,
@@ -148,7 +149,7 @@ impl Run {
             (&counts_a, cols.sleepers, 4, T_WAKE),
             (&counts_b, cols.sleepers, 4, T_WAKE_B),
         ] {
-            scans.push(scan(gpu, k, (data, n, fields), to)?);
+            scans.push(scan(gpu, &k.scan, (data, n, fields), to)?);
         }
         let size = |b: &[&Owned]| b.iter().map(|b| b.size()).sum::<u64>();
         let resident = size(&[&axes, &arena, &lists, &held[0], &held[1], &held[2]]);
@@ -195,22 +196,32 @@ impl Run {
     }
 
     fn scan(&self, k: &Kernels, encoder: &mut wgpu::CommandEncoder, scans: &[Scan]) {
-        for s in scans {
-            k.scan.run(encoder, &s.bind, 0, s.blocks.div_ceil(64));
-            k.scan.run(encoder, &s.bind, 1, 1);
-            k.scan.run(encoder, &s.bind, 2, s.groups);
-        }
-        for s in scans {
-            encoder.copy_buffer_to_buffer(&s.totals, 0, &self.lists, s.to as u64 * 4, 16);
-        }
+        record_scans(&k.scan, encoder, scans, &self.lists);
+    }
+}
+
+/// `scans` recorded in turn, then their totals copied into `lists`.
+pub(super) fn record_scans(pass: &io::Pass, encoder: &mut wgpu::CommandEncoder, scans: &[Scan], lists: &wgpu::Buffer) {
+    for s in scans {
+        pass.run(encoder, &s.bind, 0, s.blocks.div_ceil(64));
+        pass.run(encoder, &s.bind, 1, 1);
+        pass.run(encoder, &s.bind, 2, s.groups);
+    }
+    for s in scans {
+        encoder.copy_buffer_to_buffer(&s.totals, 0, lists, s.to as u64 * 4, 16);
     }
 }
 
 /// A scan's pass over `n` records 4 words apart, its first `fields`.
-fn scan(gpu: &Gpu, k: &Kernels, (data, n, fields): (&Owned, u32, u32), to: usize) -> Result<Scan> {
+pub(super) fn scan(gpu: &Gpu, pass: &io::Pass, (data, n, fields): (&Owned, u32, u32), to: usize) -> Result<Scan> {
+    scan_strided(gpu, pass, (data, n, 4, fields), to)
+}
+
+/// A scan over `n` records `stride` words apart, their first `fields`.
+pub(super) fn scan_strided(gpu: &Gpu, pass: &io::Pass, (data, n, stride, fields): (&Owned, u32, u32, u32), to: usize) -> Result<Scan> {
     let blocks = n.div_ceil(256);
     let (groups, row) = row(gpu, n);
-    let words = [n, 4, fields, blocks, row, 0, 0, 0];
+    let words = [n, stride, fields, blocks, row, 0, 0, 0];
     let cfg = io::buffer(
         gpu,
         "scan cfg",
@@ -220,7 +231,7 @@ fn scan(gpu: &Gpu, k: &Kernels, (data, n, fields): (&Owned, u32, u32), to: usize
     )?;
     let sums = zeroed(gpu, "scan sums", u64::from(blocks.max(1)) * 4)?;
     let totals = zeroed(gpu, "scan totals", 4)?;
-    let bind = k.scan.bind(gpu, &[&cfg, data, &sums, &totals]);
+    let bind = pass.bind(gpu, &[&cfg, data, &sums, &totals]);
     Ok(Scan {
         bind,
         totals,

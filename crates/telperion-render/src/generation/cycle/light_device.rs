@@ -19,7 +19,7 @@ const ENTRIES: [&str; 9] = [
     "read_main",
 ];
 /// The depth recurrence's entry, dispatched once a range of layers.
-const SWEEP: usize = 6;
+pub(super) const SWEEP: usize = 6;
 /// Each pass's phase, in `ENTRIES`' order.
 const PHASES: [&str; 9] = [
     "box",
@@ -33,7 +33,7 @@ const PHASES: [&str; 9] = [
     "read",
 ];
 /// The errors `light.wgsl` sets, by bit, as the CPU names them.
-const REFUSALS: [&str; 6] = [
+pub(super) const REFUSALS: [&str; 6] = [
     "positions inside the contract's domain",
     "a lattice inside the contract's domain",
     "a lattice inside the buffers' capacity",
@@ -43,7 +43,7 @@ const REFUSALS: [&str; 6] = [
 ];
 
 pub(super) struct Kernels {
-    pass: io::Pass,
+    pub(super) pass: io::Pass,
 }
 
 impl Kernels {
@@ -122,7 +122,7 @@ fn storage(gpu: &Gpu, label: &'static str, bytes: u64, words: &[u32]) -> Result<
 }
 
 /// The directions the uniform holds: the sky's nine at most.
-const DIRECTIONS: usize = 9;
+pub(super) const DIRECTIONS: usize = 9;
 
 /// The light's buffers on the device and its passes' bindings.
 pub(super) struct Run {

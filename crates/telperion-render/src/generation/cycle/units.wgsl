@@ -7,7 +7,7 @@
 // so every index is the CPU's and none comes from an atomic.
 
 fn index(id: vec3<u32>) -> u32 {
-    return id.x + id.y * cfg.row;
+    return cfg.base + id.x + id.y * cfg.row;
 }
 
 // The apex's counts, its fault in the second record.
@@ -35,7 +35,7 @@ fn bases(i: u32, emit: bool, after: bool) {
     base_units = cfg.units_before + t.z;
     base_sleep = cfg.sleep_before + t.w;
     base_next = next;
-    base_woken = 0u;
+    base_woken = cfg.woken_before;
     if emit {
         base_axes += counts_a[a];
         base_phyts += counts_a[a + 1u];
@@ -87,4 +87,34 @@ fn cycle_main(@builtin(global_invocation_id) id: vec3<u32>) {
     if !emit {
         put_counts(i);
     }
+}
+
+// The grower before its first cycle (`Grower::seeded`): the seed's bud of
+// the first age it does not pass through, its draws' birth that age's
+// reach, as the living apex the cycle before the first leaves.
+@compute @workgroup_size(1)
+fn seed_main() {
+    let root = mix(add64(vec2<u32>(cfg.seed_lo, cfg.seed_hi), vec2<u32>(0x7f4a7c15u, 0x9e3779b9u)));
+    let pa = lived_pa(0u);
+    if pa == NONE {
+        lists[T_COLLAPSED] = 1u;
+        return;
+    }
+    let lineage = onto(root, pa);
+    let reach0 = real64(reach(0u, 0u));
+    var words = array<vec2<u32>, 7>(lineage, root, vec2<u32>(0u, 0xfff00000u), vec2<u32>(0u), ONE64, reach0, ONE64);
+    var at = array<u32, 7>(A_LINEAGE, A_ROOT, A_HORIZON, A_WHORL, A_BLEND, A_B0, A_B1);
+    for (var f = 1u; f < AXES_COLUMNS; f++) {
+        set_ax(0u, f, 0u);
+    }
+    for (var k = 0u; k < 7u; k++) {
+        set_ax(0u, at[k], words[k].x);
+        set_ax(0u, at[k] + 1u, words[k].y);
+    }
+    set_ax(0u, A_PA, pa);
+    var none = array<u32, 5>(A_PARENT, A_SUCC0, A_SUCC1, A_TAIL, A_HEAD);
+    for (var k = 0u; k < 5u; k++) {
+        set_ax(0u, none[k], NONE);
+    }
+    set_next(0u, 0u, 0u);
 }

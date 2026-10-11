@@ -289,7 +289,7 @@ fn sleeper_columns(c: &Cap, heads: &[u32]) -> Vec<Vec<u32>> {
 /// The unit tables (`zones.wgsl`), then each PA's row (`arena.wgsl`'s
 /// `R_` words) and the zones' buds a whorl: the table, the words, where
 /// the rows' offsets and the whorls start.
-fn packed(c: &Cap, t: &ChainTables, age: u32) -> (Vec<u32>, Vec<u64>, u32, u32) {
+pub(super) fn packed(c: &Cap, t: &ChainTables, age: u32) -> (Vec<u32>, Vec<u64>, u32, u32) {
     let (mut table, mut words) = pack(&t.units);
     let rows = table.len() as u32;
     let (viability, shade) = (c.f32s("pa_viability"), c.f32s("pa_shade_hazard"));

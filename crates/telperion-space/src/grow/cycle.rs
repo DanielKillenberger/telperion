@@ -19,7 +19,7 @@ mod retire;
 mod working;
 
 pub use capture::{grow_capture, Capture};
-pub use capture_grown::grow_capture_grown;
+pub use capture_grown::{grow_capture_grown, grow_capture_grown_at, grow_capture_tables};
 pub use capture_hierarchy::grow_capture_hierarchy_at;
 pub use capture_layout::{grow_capture_layout, grow_capture_layout_at};
 pub use capture_light::grow_capture_light_at;

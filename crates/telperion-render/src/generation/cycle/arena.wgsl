@@ -35,10 +35,13 @@ struct Cfg {
     pen_at: u32,
     rows: u32,
     whorls: u32,
-    pad0: u32,
-    pad1: u32,
-    pad2: u32,
-    pad3: u32,
+    // The woken buds before the cycle, and the first item of this
+    // dispatch's range of its list.
+    woken_before: u32,
+    base: u32,
+    // The request's seed (`seed_main`).
+    seed_lo: u32,
+    seed_hi: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -145,6 +148,8 @@ const T_UNITS_B: u32 = 4u;
 const T_LIST: u32 = 8u;
 const T_WAKE: u32 = 12u;
 const T_WAKE_B: u32 = 16u;
+// Set where the seed's bud grows in no age (`Error::Collapsed`).
+const T_COLLAPSED: u32 = 20u;
 
 fn ax(i: u32, f: u32) -> u32 {
     return axes[f * cfg.axes_cap + i];

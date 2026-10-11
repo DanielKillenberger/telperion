@@ -1,12 +1,13 @@
 //! The cycle's rough layout recorded on the device (DESIGN.md section
-//! 2.3): the grown axes laid, each relay set at its node, the new axes'
-//! generations found, then per generation its axes listed by a flag, a
-//! scan and a gather, framed and laid. Each dispatch is its own compute
-//! pass (`io::Pass::run`), so a profile stamps each; a generation's count
-//! moves by a copy from the scan's total into the tally, never to the
-//! host.
+//! 2.3) over the one resident state: the grown axes laid, each relay set
+//! at its node, the new axes' generations found, then per generation its
+//! axes listed by a flag, a scan and a gather, framed and laid. Each
+//! dispatch is its own compute pass (`io::Pass::run`), so a profile
+//! stamps each; a generation's count moves by a copy from the scan's
+//! total into the layout's tally, never to the host.
 use super::super::io;
-use super::lay_columns::Laid;
+use super::device::{record_scans, row, scan_strided};
+use super::state::State;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
@@ -18,6 +19,10 @@ const RELAY: usize = 2;
 const GENERATION: usize = 3;
 const FLAG: usize = 4;
 const GATHER: usize = 5;
+/// The layout's tally (`layout.wgsl`'s `T_`): the generation listed and
+/// the cycle's faults.
+pub(super) const T_FAULT: u64 = 8;
+const TALLY: u32 = 16;
 
 pub(super) struct Kernels {
     layout: io::Pass,
@@ -26,7 +31,7 @@ pub(super) struct Kernels {
 
 impl Kernels {
     pub(super) fn new(gpu: &Gpu, arith: super::Arith) -> Self {
-        let mut reads = vec![true; 2];
+        let mut reads = vec![true];
         reads.extend([false; 5]);
         let entries = [
             "draw_main",
@@ -43,152 +48,110 @@ impl Kernels {
     }
 }
 
-fn storage(gpu: &Gpu, label: &'static str, words: &[u32]) -> Result<Owned> {
-    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-    io::buffer(gpu, label, (words.len() as u64 * 4).max(16), usage, bytemuck::cast_slice(words))
-}
-
-/// Workgroups over `n` invocations, and the row a dispatch spreads them in.
-fn row(gpu: &Gpu, n: u32) -> (u32, u32) {
-    let groups = n.div_ceil(64).max(1);
-    let most = gpu.device.limits().max_compute_workgroups_per_dimension;
-    (groups, groups.min(most) * 64)
-}
-
-/// A captured layout on the device: its tables, the state it starts from,
-/// kept to start each run again, and the working buffers.
-pub(super) struct Run {
-    pub axes: Owned,
-    pub phyts: Owned,
-    pub pencils: Owned,
+/// The layout's own buffers beside the state: each PA's form, its lists
+/// (the tally, the grown axes, the new axes' generations and a
+/// generation's list) and its flags.
+pub(super) struct Layout {
+    form: Owned,
     pub lists: Owned,
-    start: [Owned; 4],
-    /// The grown axes' draw, the new axes' (relay and generation), then
-    /// each generation's.
-    binds: Vec<(u32, wgpu::BindGroup)>,
-    scan: (wgpu::BindGroup, u32, u32),
-    totals: Owned,
-    generations: usize,
-    /// The bytes the layout holds resident (its state and tables) and its
-    /// scratch (the lists, flags and scan sums), the copies the runs
-    /// restart from aside.
-    pub resident: u64,
-    pub scratch: u64,
-    _held: Vec<Owned>,
+    counts: Owned,
+    cap: u32,
 }
 
-impl Run {
-    pub(super) fn new(gpu: &Gpu, k: &Kernels, laid: &Laid) -> Result<Self> {
-        let start = [
-            storage(gpu, "layout axes start", &laid.in_axes)?,
-            storage(gpu, "layout phytomers start", &laid.in_phyts)?,
-            storage(gpu, "layout pencils start", &laid.in_pencils)?,
-            storage(gpu, "layout lists start", &laid.lists())?,
-        ];
-        let work = |b: &Owned, label| {
-            let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-            io::buffer(gpu, label, b.size(), usage, &[])
-        };
-        let axes = work(&start[0], "layout axes")?;
-        let phyts = work(&start[1], "layout phytomers")?;
-        let pencils = work(&start[2], "layout pencils")?;
-        let lists = work(&start[3], "layout lists")?;
-        let form = storage(gpu, "layout form", bytemuck::cast_slice(&laid.form))?;
-        let units = storage(gpu, "layout units", &laid.in_units)?;
-        let new = laid.new_axes();
-        let counts = storage(gpu, "layout flags", &vec![0; new.max(1) as usize])?;
-        let generations = laid.generations.len();
-        let mut held = Vec::new();
-        let mut binds = Vec::new();
-        let mut jobs = vec![(laid.grown(), 0, 0), (new, 0, 0)];
-        jobs.extend((0..generations as u32).map(|g| (new, 1, g)));
-        for (n, listed, generation) in jobs {
-            let words = config(gpu, laid, (n, listed, generation));
-            let c = io::buffer(gpu, "layout cfg", 64, wgpu::BufferUsages::UNIFORM, bytemuck::cast_slice(&words))?;
-            let all = [&*c, &form, &units, &axes, &phyts, &pencils, &lists, &counts];
-            binds.push((n, k.layout.bind(gpu, &all)));
-            held.push(c);
-        }
-        let blocks = new.div_ceil(256);
-        let scan_cfg = [new, 1, 1, blocks, row(gpu, new).1, 0, 0, 0];
-        let cfg = io::buffer(gpu, "scan cfg", 32, wgpu::BufferUsages::UNIFORM, bytemuck::cast_slice(&scan_cfg))?;
-        let sums = storage(gpu, "scan sums", &vec![0; 4 * blocks.max(1) as usize])?;
-        let totals = storage(gpu, "scan totals", &[0; 4])?;
-        let scan = k.scan.bind(gpu, &[&cfg, &counts, &sums, &totals]);
-        let size = |b: &[&Owned]| b.iter().map(|b| b.size()).sum::<u64>();
-        let resident = size(&[&axes, &phyts, &pencils, &form, &units]);
-        let scratch = size(&[&lists, &counts, &sums, &totals]);
-        held.extend([form, units, counts, cfg, sums]);
+/// What a cycle's layout reads: the cycle, the axes laid before it, the
+/// axes it grew, and the new axes.
+#[derive(Debug, Clone, Copy)]
+pub(super) struct Laying {
+    pub cycle: u32,
+    pub first_new: u32,
+    pub grown: u32,
+    pub new_axes: u32,
+}
+
+fn storage(gpu: &Gpu, label: &'static str, words: u64, init: &[u32]) -> Result<Owned> {
+    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
+    io::buffer(gpu, label, words.max(4) * 4, usage, bytemuck::cast_slice(init))
+}
+
+impl Layout {
+    pub(super) fn new(gpu: &Gpu, form: &[f32], axes: u32) -> Result<Self> {
         Ok(Self {
-            axes,
-            phyts,
-            pencils,
-            lists,
-            start,
-            binds,
-            scan: (scan, blocks, row(gpu, new).0),
-            totals,
-            generations,
-            resident,
-            scratch,
-            _held: held,
+            form: storage(gpu, "layout form", form.len() as u64, bytemuck::cast_slice(form))?,
+            lists: storage(gpu, "layout lists", u64::from(TALLY + 3 * axes), &[])?,
+            counts: storage(gpu, "layout flags", u64::from(axes), &[])?,
+            cap: axes,
         })
     }
 
-    /// The layout recorded into `encoder` from the captured state; each
-    /// pass's phase, in order.
-    pub(super) fn record(&self, gpu: &Gpu, k: &Kernels, e: &mut wgpu::CommandEncoder) -> Vec<&'static str> {
-        let working = [&self.axes, &self.phyts, &self.pencils, &self.lists];
-        for (from, to) in self.start.iter().zip(working) {
-            e.copy_buffer_to_buffer(from, 0, to, 0, from.size());
+    /// The lists and flags grown to `axes` rows.
+    pub(super) fn ensure(&mut self, gpu: &Gpu, axes: u32) -> Result<()> {
+        if axes > self.cap {
+            self.lists = storage(gpu, "layout lists", u64::from(TALLY + 3 * axes), &[])?;
+            self.counts = storage(gpu, "layout flags", u64::from(axes), &[])?;
+            self.cap = axes;
         }
-        let mut phases = Vec::new();
-        let run = |e: &mut wgpu::CommandEncoder, entry: usize, job: usize| {
-            let (n, bind) = &self.binds[job];
-            k.layout.run(e, bind, entry, row(gpu, *n).0);
-        };
-        run(e, DRAW, 0);
-        phases.push("draw grown");
-        if self.generations == 0 {
-            return phases;
+        Ok(())
+    }
+
+    /// The bytes the layout holds beside the state.
+    pub(super) fn bytes(&self) -> u64 {
+        self.form.size() + self.lists.size() + self.counts.size()
+    }
+
+    fn bind(&self, gpu: &Gpu, k: &Kernels, state: &State, words: [u32; 16]) -> Result<wgpu::BindGroup> {
+        let usage = wgpu::BufferUsages::UNIFORM;
+        let c = io::buffer(gpu, "layout cfg", 64, usage, bytemuck::cast_slice(&words))?;
+        let all = [&*c, &self.form, &state.arena, &state.axes, &state.pencils, &self.lists, &self.counts];
+        Ok(k.layout.bind(gpu, &all))
+    }
+
+    /// The grown axes drawn (the glue listed them), each relay set at
+    /// its node and each new axis's generation found.
+    pub(super) fn record_first(&self, gpu: &Gpu, k: &Kernels, e: &mut wgpu::CommandEncoder, state: &State, l: Laying) -> Result<()> {
+        let draw = self.bind(gpu, k, state, config(gpu, state, l, (l.grown, 0, 0)))?;
+        k.layout.run(e, &draw, DRAW, row(gpu, l.grown).0);
+        if l.new_axes == 0 {
+            return Ok(());
         }
-        run(e, RELAY, 1);
-        run(e, GENERATION, 1);
-        phases.extend(["relay", "generation"]);
-        for g in 0..self.generations {
-            run(e, FLAG, 2 + g);
-            let (bind, blocks, groups) = &self.scan;
-            k.scan.run(e, bind, 0, blocks.div_ceil(64).max(1));
-            k.scan.run(e, bind, 1, 1);
-            k.scan.run(e, bind, 2, *groups);
-            e.copy_buffer_to_buffer(&self.totals, 0, &self.lists, 0, 4);
-            run(e, GATHER, 2 + g);
-            run(e, FRAME, 2 + g);
-            run(e, DRAW, 2 + g);
-            phases.extend(["list"; 5]);
-            phases.extend(["frame", "draw new"]);
-        }
-        phases
+        let new = self.bind(gpu, k, state, config(gpu, state, l, (l.new_axes, 0, 0)))?;
+        k.layout.run(e, &new, RELAY, row(gpu, l.new_axes).0);
+        k.layout.run(e, &new, GENERATION, row(gpu, l.new_axes).0);
+        Ok(())
+    }
+
+    /// Generation `g`'s new axes listed by a flag, a scan and a gather,
+    /// framed and drawn.
+    pub(super) fn record_generation(&self, gpu: &Gpu, k: &Kernels, e: &mut wgpu::CommandEncoder, state: &State, (l, g): (Laying, u32)) -> Result<()> {
+        let n = l.new_axes;
+        let bind = self.bind(gpu, k, state, config(gpu, state, l, (n, 1, g)))?;
+        k.layout.run(e, &bind, FLAG, row(gpu, n).0);
+        let s = scan_strided(gpu, &k.scan, (&self.counts, n, 1, 1), 0)?;
+        record_scans(&k.scan, e, std::slice::from_ref(&s), &self.lists);
+        k.layout.run(e, &bind, GATHER, row(gpu, n).0);
+        k.layout.run(e, &bind, FRAME, row(gpu, n).0);
+        k.layout.run(e, &bind, DRAW, row(gpu, n).0);
+        Ok(())
     }
 }
 
-/// The kernels' uniform (`layout.wgsl`'s `Cfg`) over `n` invocations,
+/// The layout's uniform (`layout.wgsl`'s `Cfg`) over `n` invocations,
 /// drawing the grown axes or generation `generation`'s.
-fn config(gpu: &Gpu, laid: &Laid, (n, listed, generation): (u32, u32, u32)) -> [u32; 16] {
+fn config(gpu: &Gpu, state: &State, l: Laying, (n, listed, generation): (u32, u32, u32)) -> [u32; 16] {
+    let c = state.caps;
     [
         n,
         row(gpu, n).1,
-        laid.cycle,
-        laid.first_new,
-        laid.axes,
-        laid.phyts,
-        laid.units,
-        laid.new_axes(),
+        l.cycle,
+        l.first_new,
+        c.axes,
+        c.phyts,
+        c.units,
+        l.new_axes,
         listed,
         generation,
         0,
-        laid.grown(),
-        0,
+        l.grown,
+        c.phyt_at(),
         0,
         0,
         0,
