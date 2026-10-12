@@ -122,7 +122,7 @@ impl Compactor {
             phyts: zeroed_dst(gpu, "compaction phytomers", 2 * u64::from(Self::half(caps.phyts)))?,
             kids: scan("compaction children", lists)?,
             members: scan("compaction members", lists)?,
-            sums: zeroed_dst(gpu, "compaction sums", sums_words(most + 1))?,
+            sums: zeroed_dst(gpu, "compaction sums", sums_words(most + 1, 1))?,
             tally: zeroed_dst(gpu, "compaction tally", 64)?,
             spare: [zeroed_dst(gpu, "compaction spare", 4)?, zeroed_dst(gpu, "compaction spare", 4)?],
         })
@@ -141,10 +141,13 @@ struct Rec<'a> {
     e: crate::encoder::Encoder,
     held: Vec<Owned>,
     row: u32,
+    /// The dispatches recorded.
+    made: usize,
 }
 
 impl Rec<'_> {
     fn run(&mut self, entry: usize, cfg: Cfg, [src, rows, vals, dst]: [&wgpu::Buffer; 4], groups: u32) -> Result<()> {
+        self.made += 1;
         let u = uniform(self.gpu, &cfg.words(self.row))?;
         let pass = &self.kit.retire.compact;
         let bind = pass.bind(self.gpu, &[&u, src, rows, vals, dst]);
@@ -156,6 +159,7 @@ impl Rec<'_> {
     fn scan(&mut self, k: &Compactor, (data, at, rows): (&Owned, u64, u32)) -> Result<()> {
         let s = Scan::new(self.gpu, &self.kit.hier.scan, (data, at, rows + 1), &k.sums, (&k.tally, 0))?;
         s.record(&self.kit.hier.scan, &mut self.e);
+        self.made += s.dispatches();
         Ok(())
     }
 
@@ -199,15 +203,15 @@ impl Build {
     /// plan's, each table's passes over the rows it may hold by then
     /// (`rows`: axes, units, phytomers; one that holds more is flagged):
     /// the hierarchy's current lists are those the next cycle's step reads
-    /// (`Phases::cycle`).
-    pub(super) async fn compact_in_place(&mut self, gpu: &Gpu, kit: &Kit, (census, cycle): (&Owned, u32), rows: [u32; 3]) -> Result<()> {
+    /// (`Phases::cycle`). The dispatches it recorded.
+    pub(super) async fn compact_in_place(&mut self, gpu: &Gpu, kit: &Kit, (census, cycle): (&Owned, u32), rows: [u32; 3]) -> Result<usize> {
         let keeps = self.retire.keeps();
         let k = &self.compactor;
         let (held, rs) = (self.state.caps, self.retire.stride);
         let caps = super::state::Caps { axes: rows[0].min(held.axes), units: rows[1].min(held.units), phyts: rows[2].min(held.phyts), ..held };
         let fate_at = R_FATE * rs;
         let half = Compactor::half(held.phyts);
-        let mut r = Rec { gpu, kit, e: gpu.encoder(&Default::default()), held: Vec::new(), row: widest(gpu).0 };
+        let mut r = Rec { gpu, kit, e: gpu.encoder(&Default::default()), held: Vec::new(), row: widest(gpu).0, made: 0 };
         let (st, ret) = (&self.state, &*self.retire.ret);
         // The phytomers: kept where their axis is not retired, recorded
         // where it is and a PA keeps them.
@@ -227,6 +231,7 @@ impl Build {
         let cfg = uniform(gpu, &units_words)?;
         let bind = kit.retire.units.bind(gpu, &[&cfg, census, ret, &k.phyts, &st.units, &st.axes]);
         kit.retire.units.run(&mut r.e, &bind, 0, held.units.div_ceil(64).max(1));
+        r.made += 1;
         r.held.push(cfg);
         if keeps {
             let rec = &self.retire;
@@ -245,7 +250,7 @@ impl Build {
         }
         r.count(k, (census, c::PHYTS as u32), (&k.phyts, 0, caps.phyts), true)?;
         gpu.submit([r.e.finish()]);
-        Ok(())
+        Ok(r.made)
     }
 
     /// The axes inside retired subtrees, and their units, compacted out:

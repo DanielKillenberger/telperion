@@ -8,28 +8,8 @@
 use super::build_plan::Bounds;
 use super::census as c;
 
-/// The scans whose levels are limited, by the rows they take.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) enum Scan {
-    /// The hierarchy step's children (the laid axes), its blocks' joiners
-    /// and members (blocks and new axes), its openers (new axes), its
-    /// levels; the sums' living flags; the layout's grown axes; the units'
-    /// living apexes and sleeping buds; the layout's new axes.
-    Kids,
-    Blocks,
-    Open,
-    Levels,
-    Live,
-    Grew,
-    Units,
-    Sleep,
-    Lay,
-}
-
-pub(super) const SCANS: usize = 9;
-
-/// A condition on a recorded step: its range, round, pass, level,
-/// generation or scan level against the cycle's limit.
+/// A condition on a recorded step: its range, round, pass, level or
+/// generation against the cycle's limit.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Cond {
     Units(u32),
@@ -43,8 +23,9 @@ pub(super) enum Cond {
     UnitRound(u32, u32),
     Pass(u32),
     Level(u32),
+    /// A sweep's folded top levels, where the cycle folds any.
+    Top,
     LayGen(u32),
-    Scan(Scan, u32),
 }
 
 /// The cycle's limits.
@@ -57,14 +38,13 @@ pub(super) struct Limits {
     pub sweeps: u32,
     pub rounds: u32,
     pub passes: u32,
-    pub levels: u32,
+    /// The block levels a sweep dispatches one by one, `[top, tail)`: the
+    /// levels above `top` and from `tail` are folded (`fold.wgsl`).
+    pub top: u32,
+    pub tail: u32,
     pub laygens: u32,
-    pub scans: [u32; SCANS],
     pub unit_rounds: [u32; 2],
 }
-
-/// The scans' levels a plan holds at most.
-pub(super) const SCAN_LEVELS: u32 = 8;
 
 /// Where the limits stand in the census, in `Limits::words`' order.
 pub(super) const REC: usize = c::REC;
@@ -80,9 +60,9 @@ impl Limits {
             sweeps: b.lay.sweeps,
             rounds: b.hier.gens,
             passes: b.hier.passes,
-            levels: b.hier.levels,
+            top: 0,
+            tail: b.hier.levels,
             laygens: b.lay.generations,
-            scans: [SCAN_LEVELS; SCANS],
             unit_rounds: [b.rounds; 2],
         }
     }
@@ -90,7 +70,6 @@ impl Limits {
     /// The limits no greater than the plan's bounds.
     pub(super) fn within(self, b: &Bounds) -> Self {
         let f = Self::full(b);
-        let s = self.scans;
         Self {
             units: self.units.clamp(1, f.units),
             draws: self.draws.clamp(1, f.draws),
@@ -99,9 +78,9 @@ impl Limits {
             sweeps: self.sweeps.clamp(1, f.sweeps),
             rounds: self.rounds.clamp(1, f.rounds),
             passes: self.passes.clamp(1, f.passes),
-            levels: self.levels.clamp(1, f.levels),
+            tail: self.tail.min(f.tail),
+            top: self.top.min(self.tail.min(f.tail)),
             laygens: self.laygens.clamp(1, f.laygens),
-            scans: std::array::from_fn(|k| s[k].clamp(1, SCAN_LEVELS)),
             unit_rounds: self.unit_rounds.map(|r| r.clamp(1, b.rounds)),
         }
     }
@@ -116,20 +95,16 @@ impl Limits {
             Cond::Round(r) => r < self.rounds,
             Cond::UnitRound(w, r) => r < self.unit_rounds[w as usize],
             Cond::Pass(p) => p < self.passes,
-            Cond::Level(l) => l < self.levels,
+            Cond::Level(l) => self.top <= l && l < self.tail,
+            Cond::Top => self.top > 0,
             Cond::LayGen(g) => g < self.laygens,
-            Cond::Scan(s, l) => l < self.scans[s as usize],
         }
     }
 
     /// The census's words the device's flags read.
-    pub(super) fn words(&self) -> [u32; 11 + SCANS] {
-        let mut out = [0; 11 + SCANS];
-        let head = [self.units, self.draws, self.deposits, self.lights, self.sweeps, self.rounds, self.passes, self.levels, self.laygens];
-        out[..9].copy_from_slice(&head);
-        out[9..9 + SCANS].copy_from_slice(&self.scans);
-        out[9 + SCANS..].copy_from_slice(&self.unit_rounds);
-        out
+    pub(super) fn words(&self) -> [u32; 12] {
+        let [a, b] = self.unit_rounds;
+        [self.units, self.draws, self.deposits, self.lights, self.sweeps, self.rounds, self.passes, self.top, self.tail, self.laygens, a, b]
     }
 }
 
@@ -142,20 +117,7 @@ pub(super) mod rec {
     pub(in super::super) const LIGHTS: usize = REC + 3;
     pub(in super::super) const SWEEPS: usize = REC + 4;
     pub(in super::super) const ROUNDS: usize = REC + 5;
-    pub(in super::super) const LEVELS: usize = REC + 7;
-    pub(in super::super) const LAYGENS: usize = REC + 8;
-    pub(in super::super) fn scan(s: super::Scan) -> usize {
-        REC + 9 + s as usize
-    }
-}
-
-/// The levels `hier_scan.wgsl` takes over `rows` (the first's and each
-/// above it while the one below passes a span).
-pub(super) fn levels_of(rows: u32) -> u32 {
-    let (mut n, mut l) = (rows, 1);
-    while n > 256 {
-        n = n.div_ceil(256);
-        l += 1;
-    }
-    l
+    pub(in super::super) const TOP: usize = REC + 7;
+    pub(in super::super) const TAIL: usize = REC + 8;
+    pub(in super::super) const LAYGENS: usize = REC + 9;
 }

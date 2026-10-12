@@ -274,3 +274,21 @@ Doing: comparing every preset's stills with F4's. Slowed by: the resident handof
 - **Hindered:** the 61,600 nodes came from the CPU census of the preset's raw species; the device grows `executor::growth`'s species, which the supernatural rows scale, so Telperion's lattice reaches 822,000 nodes. The scratch was 432 bytes a node (column records sized a node each), not 29 KB. The first arena measurement used the raw species too and had to be rerun.
 - **Cost:** about 15 minutes and one rerun of every preset.
 - **Would remove it:** one test helper that grows a preset as the build does (`executor::growth`), used by every measurement.
+
+## 2026-10-12, task 6: start
+- **Doing:** the Phase-1 anchor for task 6; the task lives in F4's `.flow`, the code in `gpucycle`.
+- **Hindered:** `flowctl` not on PATH in the dispatched worker's shell, a fourth time (8.1.1 under the plugin cache). `grown_time_tests::telperion_is_timed`, the per-kernel timer, no longer builds Telperion: it sizes from `Sizes::least()` and grows by moves, which task 5's arena replaced, so it is refused out of memory at its first move. The per-entry dispatch count was taken instead from `TELPERION_TRACE`'s submit lines, after making `Pass::encode` log as `Pass::run` does.
+- **Cost:** about 5 minutes and one wasted GPU run.
+- **Would remove it:** `flowctl` on PATH for dispatched workers (local setup); the per-kernel timer sized from the build's own arena (`build_arena`), as `build_time` is.
+
+## 2026-10-12, task 6: the cold compile was already over 2 s
+- **Doing:** the baseline cold compile before fusing the units' kernels (`the_cycle_is_made_cold`, `CYCLE_COMPILE=generator`, driver cache off).
+- **Hindered:** the base measures 2.19 to 2.25 s against task 4's 1.45 s. The long pole is the layout's `frame_main`, 1.28 to 1.37 s cold on its own (1.97 s beside every other pipeline), not the units. Reverting task 5's layout edits (the LIFTS clamp, `nphyt`, `prow`'s step counter) by the bisect tool left it at 1.30 to 1.37 s, so the change since task 4's figure is not in its source.
+- **Cost:** about 10 minutes and six compile runs.
+- **Would remove it:** the cold compile as a gated measurement in CI or in each task's gate, so a regression is seen in the task that made it.
+
+## 2026-10-12, task 6: the tool's output tmpfs filled a third time
+- **Doing:** tracing Telperion's dispatches after folding the hierarchy's narrow levels.
+- **Hindered:** the per-user quota on the 16 GB `/tmp` filled (EDQUOT): this session's scratchpad holds 5.5 GB of earlier tasks' builds and stills (`head-target` alone is 1 GB), other telperion sessions 1.4 GB more. Every Bash call then reports a failure and loses its output, though the command runs; the work went on with every command's output in a fresh file under the worktree's `target/` read back with the file tool, since the command guard refuses to overwrite an existing file.
+- **Cost:** about 10 minutes so far, and two tool calls a command from then on.
+- **Would remove it:** the harness's task output on a disk with room, or the session scratchpad cleared of finished tasks' build directories (local setup, not a repository change).

@@ -7,17 +7,37 @@
 use super::build_grow::{Compact, Sizes};
 use super::build_light::refusals;
 use super::census::{self as c, Flag, PASSES, PASS_LEFT};
-use super::gate::{Limits, SCAN_LEVELS};
+use super::gate::Limits;
 use super::lay_device::DEEP;
 use super::light_program::{SWEEP_WG, SWEEP_WORK};
 use crate::RenderError;
 
 /// The limits that step with the tree, each past its projection two
-/// cycles on: the hierarchy's generations, placing passes and levels, the
+/// cycles on: the hierarchy's generations and placing passes, the
 /// layout's generations and the sweep's layer ranges. None of them ever
 /// passed these on a shipped preset (`arena_tests`, 2026-10-12); one that
-/// does is refused by name.
-const STEP: [u32; 5] = [2, 1, 2, 2, 2];
+/// does is refused by name. The block levels need none: the deepest are
+/// folded, however many (`fold.wgsl`).
+const STEP: [u32; 4] = [2, 1, 2, 2];
+
+/// The sweep's layer ranges the first two cycles record: a lattice of
+/// up to 512 layers where a layer holds 256 nodes or fewer.
+const FIRST_SWEEPS: u32 = 8;
+
+/// The blocks a folded sweep's workgroup takes at once (`fold.wgsl`'s
+/// `FOLD`): a level of no more is folded.
+const FOLD: u32 = 8;
+
+/// The block levels a sweep folds, by their widths in the census read:
+/// from the top while each is narrow, and the deepest up while each is;
+/// the levels between are dispatched one by one.
+fn folds(read: &[u32], most: u32) -> (u32, u32) {
+    let levels = read[c::LEVELS].min(most);
+    let narrow = |l: u32| read[c::LVL + l as usize + 1].saturating_sub(read[c::LVL + l as usize]) <= FOLD;
+    let top = (0..levels).take_while(|&l| narrow(l)).count() as u32;
+    let tail = (top..levels).rev().take_while(|&l| narrow(l)).last().unwrap_or(levels);
+    (top, tail)
+}
 
 /// A count past a table or limit, by name: the build stops there.
 pub(super) fn refusal(cycle: u32, flags: &[(Flag, u32)], budget: u32) -> RenderError {
@@ -123,8 +143,11 @@ fn passes(read: &[u32]) -> u32 {
 pub(super) fn limits(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> Limits {
     let b = &s.bounds;
     let full = Limits::full(b);
+    // The first two cycles, read nothing yet, record every loop at its
+    // bound but the sweep's, whose bound is the arena's lattice (Telperion:
+    // 224 dispatches a cycle) where a seedling's takes one or two.
     let Some(read) = read else {
-        return full;
+        return Limits { sweeps: FIRST_SWEEPS, ..full }.within(b);
     };
     let deepest = (0..DEEP as usize).filter(|&g| read[c::LAY_DEEP + g] != 0).count() as u32;
     // The lists' ranges: the living, the grown axes, the cycle's leaves and
@@ -138,17 +161,18 @@ pub(super) fn limits(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> L
     let lit = ahead(c::PHYTS, read[c::PHYTS].saturating_sub(read[c::PHYTS0]));
     let nodes = 4 * read[c::GRID + 6];
     let r = b.ranges;
+    let (top, tail) = folds(read, b.hier.levels);
     Limits {
         units: live.div_ceil(r.units),
         draws: live.div_ceil(r.draw),
         deposits: lit.div_ceil(r.deposit),
         lights: (9 * nodes).div_ceil(r.paths).max(nodes.div_ceil(r.nodes)),
-        sweeps: sweeps_ahead(read, prev) + STEP[4],
+        sweeps: sweeps_ahead(read, prev) + STEP[3],
         rounds: read[c::GENS] + STEP[0],
         passes: passes(read) + STEP[1],
-        levels: read[c::LEVELS] + 1 + STEP[2],
-        laygens: deepest + STEP[3],
-        scans: [SCAN_LEVELS; super::gate::SCANS],
+        top,
+        tail,
+        laygens: deepest + STEP[2],
         ..full
     }
     .within(b)

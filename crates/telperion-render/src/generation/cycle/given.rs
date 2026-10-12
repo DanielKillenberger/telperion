@@ -116,10 +116,12 @@ impl Span {
     }
 }
 
-/// The bounded sizes the cycle's recorded dispatches take.
-fn recorded<'a>(steps: &'a [&[Gated]], limits: &'a Limits) -> impl Iterator<Item = u32> + 'a {
+/// The bounded sizes the cycle's recorded steps take, each with whether
+/// it sizes a dispatch (its workgroups) or a clear (its rows).
+fn recorded<'a>(steps: &'a [&[Gated]], limits: &'a Limits) -> impl Iterator<Item = (u32, bool)> + 'a {
     steps.iter().flat_map(|s| s.iter()).filter_map(move |g| match g.step {
-        Step::Dispatch { size: Size::Bounded(k), .. } if g.gate.iter().all(|c| limits.allows(c)) => Some(k),
+        Step::Dispatch { size: Size::Bounded(k), .. } if g.gate.iter().all(|c| limits.allows(c)) => Some((k, true)),
+        Step::Zeroed { size: Size::Bounded(k), .. } if g.gate.iter().all(|c| limits.allows(c)) => Some((k, false)),
         _ => None,
     })
 }
@@ -129,7 +131,7 @@ fn recorded<'a>(steps: &'a [&[Gated]], limits: &'a Limits) -> impl Iterator<Item
 /// count (never flagged) where none does.
 pub(super) fn given(plan: &Plan, span: &Span, (steps, limits): (&[&[Gated]], &Limits)) -> Vec<u32> {
     let mut out = vec![u32::MAX; plan.sized.len()];
-    for k in recorded(steps, limits) {
+    for (k, _) in recorded(steps, limits) {
         out[k as usize] = span.most(&plan.sized[k as usize]);
     }
     out
@@ -146,12 +148,12 @@ pub(super) struct Over {
 /// A cycle's recorded bounded dispatches, until its census is read.
 pub(super) struct Pending {
     sized: Rc<Vec<E>>,
-    dispatched: Vec<(u32, u32)>,
+    dispatched: Vec<(u32, u32, bool)>,
 }
 
 impl Pending {
     pub(super) fn new(plan: &Plan, steps: &[&[Gated]], (limits, given): (&Limits, &[u32])) -> Self {
-        let dispatched = recorded(steps, limits).map(|k| (k, given[k as usize])).collect();
+        let dispatched = recorded(steps, limits).map(|(k, d)| (k, given[k as usize], d)).collect();
         Self { sized: plan.sized.clone(), dispatched }
     }
 
@@ -159,14 +161,14 @@ impl Pending {
     /// expression, what it was given and what it needed.
     pub(super) fn short(&self, census: &[u32]) -> Vec<String> {
         (self.dispatched.iter())
-            .filter(|&&(k, given)| self.sized[k as usize].eval(census) > given)
-            .map(|&(k, given)| format!("{:?} given {given} needed {}", self.sized[k as usize], self.sized[k as usize].eval(census)))
+            .filter(|&&(k, given, _)| self.sized[k as usize].eval(census) > given)
+            .map(|&(k, given, _)| format!("{:?} given {given} needed {}", self.sized[k as usize], self.sized[k as usize].eval(census)))
             .collect()
     }
 
-    /// Tallied against the cycle's `census`.
+    /// Its dispatches' workgroups tallied against the cycle's `census`.
     pub(super) fn tally(&self, over: &mut Over, census: &[u32]) {
-        for &(k, given) in &self.dispatched {
+        for &(k, given, _) in self.dispatched.iter().filter(|d| d.2) {
             over.given += u64::from(given);
             over.needed += u64::from(self.sized[k as usize].eval(census).min(given));
         }

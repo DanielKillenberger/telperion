@@ -109,6 +109,13 @@ fn carried_up(i: u32) {
     set_rt(R_WSUB, i, wait);
 }
 
+// A closed axis's living carried up, where it is laid and not open.
+fn living(i: u32) {
+    if i < cfg.n && rt(R_OPEN, i) != cfg.cycle {
+        carried_up(i);
+    }
+}
+
 @compute @workgroup_size(WG)
 fn living_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
     let run = block_run(wid, lid);
@@ -118,10 +125,7 @@ fn living_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_
     for (var h = 0u; h <= run.w - run.z; h++) {
         let span = span_at(run, run.w - h, lid);
         for (var k = span.x + lid; k < span.y; k += WG) {
-            let i = hlists[ls(R_MEMBERS, k)];
-            if i < cfg.n && rt(R_OPEN, i) != cfg.cycle {
-                carried_up(i);
-            }
+            living(hlists[ls(R_MEMBERS, k)]);
         }
         storageBarrier();
         workgroupBarrier();
@@ -130,6 +134,13 @@ fn living_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_
 
 // Every axis below a retired root marked inside it, a root under a later
 // one among them (`retire::let_go`), from the root's level down.
+fn inside(i: u32) {
+    let p = select(NONE, ax(i, A_PARENT), i < cfg.n);
+    if p != NONE && rt(R_FATE, p) >= RETIRED {
+        set_rt(R_FATE, i, INSIDE);
+    }
+}
+
 @compute @workgroup_size(WG)
 fn inside_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
     let run = block_run(wid, lid);
@@ -139,13 +150,50 @@ fn inside_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_
     for (var d = run.z; d <= run.w; d++) {
         let span = span_at(run, d, lid);
         for (var k = span.x + lid; k < span.y; k += WG) {
-            let i = hlists[ls(R_MEMBERS, k)];
-            let p = select(NONE, ax(i, A_PARENT), i < cfg.n);
-            if p != NONE && rt(R_FATE, p) >= RETIRED {
-                set_rt(R_FATE, i, INSIDE);
-            }
+            inside(hlists[ls(R_MEMBERS, k)]);
         }
         storageBarrier();
         workgroupBarrier();
     }
+}
+
+// The folded sweeps' blocks (`fold.wgsl`), as `block_run` and `first_at`
+// take them.
+fn fold_level(l: u32) -> vec2<u32> {
+    return vec2<u32>(hlists[ls(R_LVL_START, l)], hlists[ls(R_LVL_START, l + 1u)]);
+}
+
+fn fold_run(k: u32) -> vec4<u32> {
+    let b = hlists[ls(R_LVL_BLOCKS, k)];
+    let ms = hlists[ls(R_MEM_START, b)];
+    let me = hlists[ls(R_MEM_START, b + 1u)];
+    let least = shape[H_DEPTH * cfg.stride + hlists[ls(R_MEMBERS, ms)]];
+    return within(vec4<u32>(ms, me, least, shape[H_DEPTH * cfg.stride + hlists[ls(R_MEMBERS, me - 1u)]]), cfg.stride);
+}
+
+fn fold_lower(run: vec4<u32>, d: u32) -> u32 {
+    return first_at(run, d);
+}
+
+fn fold_member(k: u32) -> u32 {
+    return hlists[ls(R_MEMBERS, k)];
+}
+
+fn fold_apply(op: u32, i: u32) {
+    if op == 0u {
+        living(i);
+    } else {
+        inside(i);
+    }
+}
+
+// Each sweep's folded levels: the top's few and the deepest.
+@compute @workgroup_size(FOLDED)
+fn living_fold_main(@builtin(local_invocation_index) lid: u32) {
+    folded(0u, true, lid);
+}
+
+@compute @workgroup_size(FOLDED)
+fn inside_fold_main(@builtin(local_invocation_index) lid: u32) {
+    folded(1u, false, lid);
 }

@@ -1,29 +1,27 @@
-// fn-256 task 2: the cycle's exclusive prefix sum, in levels. Each
-// workgroup scans 256 records of a level in place and writes their total
-// to the next level, until one workgroup holds the top, whose total is
-// the scan's; each level then adds the next level's scanned totals back.
-// The first level reads the first `fields` words of records `stride`
-// words apart; each level above holds a field's words after another's.
-// Integer adds in a fixed shape: the same words on every run, as
-// `resident/scan.wgsl` gives, with no one-invocation spine.
+// fn-256 tasks 2 and 6: the cycle's exclusive prefix sum of a column, in
+// at most two dispatches. A column of `SPAN` records or fewer is scanned
+// by one workgroup in `scan_up`, which writes its total. A longer one is
+// cut into blocks of `SPAN`: `scan_up` writes each block's total, then
+// `scan_down` adds up the totals of the blocks before its own and scans
+// its block in place from there; the last block writes the column's
+// total. The records are the first `fields` words of records `stride`
+// words apart, a field at a time. Integer adds: any order gives the same
+// words, so every run writes the same.
 
 struct Cfg {
-    // Records in this level, where it starts (in `sums` past the first),
-    // where the next starts in `sums`, whether this is the first level
-    // (`data`) and whether it is the top; the first level's stride, the
-    // fields scanned, and the tally's word of the first field's total.
+    // Records in the column, where the blocks' totals start in `sums`
+    // (a field's after another's), the dispatch's row of workgroups, the
+    // records' stride, the fields scanned, the tally's word of the first
+    // field's total, and whether the scan runs: none in a halted cycle,
+    // whose recorded words the device left none (`vm.wgsl`).
     n: u32,
-    at: u32,
     next: u32,
-    first: u32,
-    top: u32,
     wx: u32,
     stride: u32,
     fields: u32,
     out: u32,
-    pad0: u32,
+    on: u32,
     pad1: u32,
-    pad2: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -31,8 +29,8 @@ struct Cfg {
 @group(0) @binding(2) var<storage, read_write> sums: array<u32>;
 @group(0) @binding(3) var<storage, read_write> totals: array<u32>;
 
-const SPAN: u32 = 256u;
-const LANES: u32 = 64u;
+const SPAN: u32 = 1024u;
+const LANES: u32 = 256u;
 
 var<workgroup> w_lanes: array<u32, LANES>;
 
@@ -40,77 +38,96 @@ fn word(i: u32, f: u32) -> u32 {
     if i >= cfg.n {
         return 0u;
     }
-    if cfg.first != 0u {
-        return data[i * cfg.stride + f];
-    }
-    return sums[cfg.at + f * cfg.n + i];
+    return data[i * cfg.stride + f];
 }
 
 fn set_word(i: u32, f: u32, v: u32) {
-    if i >= cfg.n {
-        return;
-    }
-    if cfg.first != 0u {
+    if i < cfg.n {
         data[i * cfg.stride + f] = v;
-    } else {
-        sums[cfg.at + f * cfg.n + i] = v;
     }
 }
 
-// One workgroup's 256 records scanned in place, four a lane, a field at
-// a time; each field's total to the next level, or the scan's at the top.
-@compute @workgroup_size(64)
+fn blocks() -> u32 {
+    return (cfg.n + SPAN - 1u) / SPAN;
+}
+
+// The lanes' `own` scanned across the workgroup: each lane's exclusive
+// prefix; the workgroup's total stands in the last lane after it.
+fn lanes_scan(lane: u32, own: u32) -> u32 {
+    workgroupBarrier();
+    w_lanes[lane] = own;
+    workgroupBarrier();
+    for (var d = 1u; d < LANES; d *= 2u) {
+        var add = 0u;
+        if lane >= d {
+            add = w_lanes[lane - d];
+        }
+        workgroupBarrier();
+        w_lanes[lane] += add;
+        workgroupBarrier();
+    }
+    return w_lanes[lane] - own;
+}
+
+// Block `w`'s records of field `f`, four a lane, scanned from `start` and
+// written in place where `write`; the block's total.
+fn block(w: u32, f: u32, lane: u32, start: u32, write: bool) -> u32 {
+    let base = w * SPAN + 4u * lane;
+    let v = array<u32, 4>(word(base, f), word(base + 1u, f), word(base + 2u, f), word(base + 3u, f));
+    var run = start + lanes_scan(lane, v[0] + v[1] + v[2] + v[3]);
+    if write {
+        for (var k = 0u; k < 4u; k++) {
+            set_word(base + k, f, run);
+            run += v[k];
+        }
+    }
+    return w_lanes[LANES - 1u];
+}
+
+// A column of one block scanned whole, its total kept; a longer one's
+// blocks' totals kept for `scan_down`.
+@compute @workgroup_size(256)
 fn scan_up(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lane: u32) {
     let w = wid.x + wid.y * cfg.wx;
-    // A workgroup past the level's records (a dispatch the host sized
-    // from its bounds); the first always runs, for an empty level's total.
-    if w > 0u && w * SPAN >= cfg.n {
+    let n_blocks = blocks();
+    // A workgroup past the column's blocks (a dispatch the host sized from
+    // its bounds); the first always runs, for an empty column's total.
+    if cfg.on == 0u || (w > 0u && w * SPAN >= cfg.n) {
         return;
     }
-    let base = w * SPAN + 4u * lane;
-    let above = (cfg.n + SPAN - 1u) / SPAN;
+    let whole = cfg.n <= SPAN;
     for (var f = 0u; f < cfg.fields; f++) {
-        var v = array<u32, 4>(word(base, f), word(base + 1u, f), word(base + 2u, f), word(base + 3u, f));
-        let own = v[0] + v[1] + v[2] + v[3];
-        workgroupBarrier();
-        w_lanes[lane] = own;
-        workgroupBarrier();
-        for (var d = 1u; d < LANES; d *= 2u) {
-            var add = 0u;
-            if lane >= d {
-                add = w_lanes[lane - d];
-            }
-            workgroupBarrier();
-            w_lanes[lane] += add;
-            workgroupBarrier();
-        }
-        var run = w_lanes[lane] - own;
-        for (var k = 0u; k < 4u; k++) {
-            let x = v[k];
-            set_word(base + k, f, run);
-            run += x;
-        }
-        if lane == LANES - 1u {
-            if cfg.top != 0u {
-                totals[cfg.out + f] = w_lanes[lane];
+        let total = block(w, f, lane, 0u, whole);
+        if lane == 0u {
+            if whole {
+                totals[cfg.out + f] = total;
             } else {
-                sums[cfg.next + f * above + w] = w_lanes[lane];
+                sums[cfg.next + f * n_blocks + w] = total;
             }
         }
     }
 }
 
-// Each record moved on by its workgroup's place in the next level.
-@compute @workgroup_size(64)
-fn scan_down(@builtin(global_invocation_id) id: vec3<u32>) {
-    let i = id.x + id.y * cfg.wx * LANES;
-    // The top has no level above it to add (a dispatch the host sized
-    // from its bounds reaches it).
-    if i >= cfg.n || cfg.top != 0u {
+// Each block of a longer column scanned in place from the blocks'
+// totals before it; the last block's end the column's total.
+@compute @workgroup_size(256)
+fn scan_down(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lane: u32) {
+    let w = wid.x + wid.y * cfg.wx;
+    let n_blocks = blocks();
+    if cfg.on == 0u || cfg.n <= SPAN || w * SPAN >= cfg.n {
         return;
     }
-    let above = (cfg.n + SPAN - 1u) / SPAN;
     for (var f = 0u; f < cfg.fields; f++) {
-        set_word(i, f, word(i, f) + sums[cfg.next + f * above + i / SPAN]);
+        let at = cfg.next + f * n_blocks;
+        var part = 0u;
+        for (var j = lane; j < w; j += LANES) {
+            part += sums[at + j];
+        }
+        _ = lanes_scan(lane, part);
+        let before = w_lanes[LANES - 1u];
+        let total = block(w, f, lane, before, true);
+        if lane == 0u && w + 1u == n_blocks {
+            totals[cfg.out + f] = before + total;
+        }
     }
 }

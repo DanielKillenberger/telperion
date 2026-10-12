@@ -57,6 +57,10 @@ pub(super) enum Step {
     Dispatch { pass: PassId, entry: usize, bind: wgpu::BindGroup, size: Size, phase: &'static str },
     Copy { from: wgpu::Buffer, at: u64, to: wgpu::Buffer, to_at: u64, bytes: u64 },
     Clear { buffer: wgpu::Buffer, at: u64, bytes: Option<u64> },
+    /// The first rows of a column, a count only the device knows: the
+    /// most its bounds allow (`size`, in words), no more than `most`
+    /// bytes. A clear, where a dispatch cleared them, costs no dispatch.
+    Zeroed { buffer: wgpu::Buffer, at: u64, size: Size, most: u64 },
     Point(usize),
 }
 

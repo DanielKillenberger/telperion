@@ -6,51 +6,33 @@ use super::super::io;
 use crate::Gpu;
 
 pub(super) const INIT: usize = 0;
+/// A round's phases (DESIGN.md section 10, re-fused in fn-256 task 6), each
+/// cut where its cold compile stays small: a waking bud woken on its next
+/// axis (the wake's rounds after the first); its unit decided and what
+/// follows the decision, a job each; its zones laid and counted, and,
+/// emitted, written, then their presences placed; what follows each unit.
 pub(super) const WOKE: usize = 1;
 pub(super) const DECIDE: usize = 2;
 pub(super) const ZONES: usize = 3;
-pub(super) const NODES: [usize; 2] = [4, 26];
-/// The zones' records written: their nodes ordered, then their
-/// phytomers, laterals, the laterals' presences and sleeping buds.
-pub(super) const WRITTEN: [usize; 7] = [20, 21, 14, 22, 23, 15, 24];
-/// A unit after its decision: its stop where it fails with no relay, or
-/// the unit appended, where it lives or where it dies.
-pub(super) const UNIT: [usize; 4] = [16, 17, 18, 19];
-pub(super) const CLOSE: usize = 5;
-pub(super) const FLAG: usize = 6;
-pub(super) const GATHER: usize = 7;
-pub(super) const SEED: usize = 8;
-/// The operations after a unit, an entry each, in a round's order.
-pub(super) const AFTER: [usize; 6] = [9, 10, 25, 11, 12, 13];
+pub(super) const WRITTEN: [usize; 2] = [4, 5];
+pub(super) const AFTER: usize = 6;
+pub(super) const CLOSE: usize = 7;
+pub(super) const FLAG: usize = 8;
+pub(super) const GATHER: usize = 9;
+pub(super) const SEED: usize = 10;
 
-pub(super) const ENTRIES: [&str; 27] = [
+pub(super) const ENTRIES: [&str; 11] = [
     "init_main",
     "woke_main",
     "decide_main",
-    "zone_main",
-    "nodes_main",
+    "zones_main",
+    "written_main",
+    "placed_main",
+    "after_main",
     "close_main",
     "flag",
     "gather",
     "seed_main",
-    "grown_main",
-    "move_main",
-    "stop_main",
-    "relay_main",
-    "ended_main",
-    "laterals_main",
-    "sleepers_main",
-    "fails_main",
-    "unit_main",
-    "dies_main",
-    "lived_main",
-    "order_main",
-    "phyts_main",
-    "made_main",
-    "placed_main",
-    "asleep_main",
-    "moved_main",
-    "dormant_main",
 ];
 
 /// The tally's places (`arena.wgsl`'s `T_` words).
@@ -85,8 +67,10 @@ pub(super) fn b_at(n: u32) -> u32 {
 }
 
 /// The living apexes a range of the units' dispatches takes
-/// (`Ranges::units`), its jobs at once.
-pub(super) const RANGE: u32 = 65536;
+/// (`Ranges::units`), its jobs at once: every range a units round
+/// dispatches again (fn-256 task 6: Telperion's 233,000 living took four
+/// at 65,536).
+pub(super) const RANGE: u32 = 262_144;
 
 /// Where `counts` holds what, for the state's `caps` and units of `zones`
 /// zones at most: the jobs' state, the jobs a range takes (a range of
@@ -101,7 +85,8 @@ pub(super) struct Counts {
 
 pub(super) fn counts(caps: super::state::Caps, zones: u32) -> Counts {
     let b_at = b_at(caps.next.max(caps.sleepers));
-    let jobs = RANGE.max(caps.sleepers);
+    // A tree of fewer living than a range holds its jobs alone.
+    let jobs = RANGE.min(caps.next).max(caps.sleepers);
     let job_at = 2 * b_at;
     let zone_at = (u64::from(job_at) + u64::from(JW) * u64::from(jobs)).next_multiple_of(64) as u32;
     let words = u64::from(zone_at) + u64::from(ZW * jobs * zones.max(1));

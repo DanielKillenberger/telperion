@@ -16,7 +16,7 @@ use super::hier_scan::{Scan, sums_words, zeroed};
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
-pub(super) const ENTRIES: [&str; 11] = [
+pub(super) const ENTRIES: [&str; 15] = [
     "mark_main",
     "shed_main",
     "compact_main",
@@ -28,6 +28,10 @@ pub(super) const ENTRIES: [&str; 11] = [
     "walk_main",
     "sub_main",
     "split_main",
+    "totals_fold_main",
+    "walk_fold_main",
+    "sub_fold_main",
+    "split_fold_main",
 ];
 pub(super) const MARK: usize = 0;
 pub(super) const SHED: usize = 1;
@@ -40,6 +44,8 @@ pub(super) const TOTALS: usize = 7;
 pub(super) const WALK: usize = 8;
 pub(super) const SUB: usize = 9;
 pub(super) const SPLIT: usize = 10;
+/// Each sweep's narrow levels folded into one workgroup (`fold.wgsl`).
+pub(super) const FOLDS: [usize; 4] = [11, 12, 13, 14];
 
 /// The sums' columns (`hier_cycle.wgsl`'s `S_` words), and those the
 /// cycle starts from the tree's (memory, kept, size) or from none.
@@ -147,7 +153,7 @@ impl Sums {
             norm: zeroed(gpu, "hierarchy normaliser", N_ORDER + s + 2 * blocks * u64::from(pas))?,
             tally: zeroed(gpu, "hierarchy sums tally", TALLY)?,
             rows,
-            scan_sums: zeroed(gpu, "hierarchy sums scan", sums_words(live))?,
+            scan_sums: zeroed(gpu, "hierarchy sums scan", sums_words(live, 1))?,
             live_stride,
             stride,
             live_n: 0,
@@ -188,6 +194,10 @@ impl Sums {
                 0,
                 h.levels,
                 chunk,
+                0,
+                0,
+                0,
+                0,
             ];
             let cfg = uniform(gpu, &words)?;
             let all = [

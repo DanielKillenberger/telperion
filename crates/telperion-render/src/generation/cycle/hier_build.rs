@@ -15,7 +15,7 @@ use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
 /// The build's entries.
-pub(super) const ENTRIES: [&str; 17] = [
+pub(super) const ENTRIES: [&str; 16] = [
     "begin_main",
     "depth_main",
     "kid_place_main",
@@ -25,7 +25,6 @@ pub(super) const ENTRIES: [&str; 17] = [
     "decide_main",
     "assign_main",
     "follow_main",
-    "round_end_main",
     "member_count_main",
     "member_place_main",
     "member_rank_main",
@@ -125,7 +124,7 @@ impl Hierarchy {
             ],
             bucket: zeroed(gpu, "hierarchy buckets", BUCKETS * s)?,
             tally: zeroed(gpu, "hierarchy tally", TALLY)?,
-            sums: zeroed(gpu, "hierarchy scan sums", sums_words(stride + 64))?,
+            sums: zeroed(gpu, "hierarchy scan sums", sums_words(stride + 64, 1))?,
             parity: 0,
             built: 0,
             blocks: 0,

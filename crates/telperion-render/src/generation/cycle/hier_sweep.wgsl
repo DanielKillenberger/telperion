@@ -198,3 +198,76 @@ fn sub_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_ind
         workgroupBarrier();
     }
 }
+
+// The folded sweeps' blocks (`fold.wgsl`): a level's first block and end,
+// a block's run, its first member at a depth, and a member.
+fn fold_level(l: u32) -> vec2<u32> {
+    return vec2<u32>(lists[ls(R_LVL_START, l)], lists[ls(R_LVL_START, l + 1u)]);
+}
+
+fn fold_run(k: u32) -> vec4<u32> {
+    let b = lists[ls(R_LVL_BLOCKS, k)];
+    let ms = lists[ls(R_MEM_START, b)];
+    let me = lists[ls(R_MEM_START, b + 1u)];
+    let least = shape[at(H_DEPTH, lists[ls(R_MEMBERS, ms)])];
+    return within(vec4<u32>(ms, me, least, shape[at(H_DEPTH, lists[ls(R_MEMBERS, me - 1u)])]), cfg.stride);
+}
+
+fn fold_lower(run: vec4<u32>, d: u32) -> u32 {
+    return lower(run, d);
+}
+
+fn fold_member(k: u32) -> u32 {
+    return lists[ls(R_MEMBERS, k)];
+}
+
+const OP_TOTALS: u32 = 0u;
+const OP_WALK: u32 = 1u;
+const OP_SUB: u32 = 2u;
+const OP_SPLIT: u32 = 3u;
+
+fn fold_apply(op: u32, i: u32) {
+    switch op {
+        case OP_TOTALS: {
+            totals(i);
+        }
+        case OP_WALK: {
+            walk(i);
+        }
+        case OP_SUB: {
+            sub(i);
+        }
+        default: {
+            split(i);
+        }
+    }
+}
+
+// Each sweep's folded levels: the top's few and the deepest.
+@compute @workgroup_size(FOLDED)
+fn totals_fold_main(@builtin(local_invocation_index) lid: u32) {
+    if cfg.cycle != 0u {
+        folded(OP_TOTALS, true, lid);
+    }
+}
+
+@compute @workgroup_size(FOLDED)
+fn walk_fold_main(@builtin(local_invocation_index) lid: u32) {
+    if cfg.cycle != 0u {
+        folded(OP_WALK, false, lid);
+    }
+}
+
+@compute @workgroup_size(FOLDED)
+fn sub_fold_main(@builtin(local_invocation_index) lid: u32) {
+    if cfg.cycle != 0u {
+        folded(OP_SUB, true, lid);
+    }
+}
+
+@compute @workgroup_size(FOLDED)
+fn split_fold_main(@builtin(local_invocation_index) lid: u32) {
+    if cfg.cycle != 0u {
+        folded(OP_SPLIT, false, lid);
+    }
+}

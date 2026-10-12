@@ -75,7 +75,6 @@ pub(super) enum Flag {
     UnitFaults,
     HierGens,
     HierPasses,
-    HierLevels,
     HierFault,
     LayGenerations,
     LayFault,
@@ -87,12 +86,6 @@ pub(super) enum Flag {
     Points,
     LightErrors,
     Collapsed,
-    HierScans,
-    LiveScan,
-    GrewScan,
-    UnitScan,
-    SleepScan,
-    LayScan,
     /// A dispatch's true size past the workgroups the host gave it.
     Given,
     /// A units job with operations left past the cycle's last round.
@@ -102,7 +95,7 @@ pub(super) enum Flag {
     Compaction,
 }
 
-pub(super) const FLAG_NAMES: [Flag; 31] = [
+pub(super) const FLAG_NAMES: [Flag; 24] = [
     Flag::Axes,
     Flag::Units,
     Flag::Phyts,
@@ -113,7 +106,6 @@ pub(super) const FLAG_NAMES: [Flag; 31] = [
     Flag::UnitFaults,
     Flag::HierGens,
     Flag::HierPasses,
-    Flag::HierLevels,
     Flag::HierFault,
     Flag::LayGenerations,
     Flag::LayFault,
@@ -125,12 +117,6 @@ pub(super) const FLAG_NAMES: [Flag; 31] = [
     Flag::Points,
     Flag::LightErrors,
     Flag::Collapsed,
-    Flag::HierScans,
-    Flag::LiveScan,
-    Flag::GrewScan,
-    Flag::UnitScan,
-    Flag::SleepScan,
-    Flag::LayScan,
     Flag::Given,
     Flag::UnitRounds,
     Flag::Compaction,

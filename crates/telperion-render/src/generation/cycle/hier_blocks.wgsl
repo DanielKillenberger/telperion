@@ -189,10 +189,14 @@ fn assign_main(@builtin(global_invocation_id) id: vec3<u32>) {
 }
 
 // Each later member of a fresh spill given its block; the axes still
-// waiting counted.
+// waiting counted; and the pass's openers added to the blocks, which
+// `assign_main` read before them (the pass's end, fn-256 task 6).
 @compute @workgroup_size(64)
 fn follow_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let k = index(id);
+    if k == 0u && cfg.n_new > cfg.n_old {
+        atomicAdd(&tally[X_BLOCKS], atomicLoad(&tally[X_OPEN]));
+    }
     let i = cfg.n_old + k;
     if !waiting(i) {
         return;
@@ -204,10 +208,4 @@ fn follow_main(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     let waiters = scanned(C_JOIN, count(C_TARGET, k) & ~AT_FULL, cfg.block_rows, X_JOIN);
     shape[at(H_BLOCK, i)] = bucket[at(U_GROUPS, waiters.x + (state >> 2u))];
-}
-
-// The pass's openers added to the blocks.
-@compute @workgroup_size(1)
-fn round_end_main() {
-    atomicAdd(&tally[X_BLOCKS], atomicLoad(&tally[X_OPEN]));
 }

@@ -7,8 +7,7 @@ use super::build::{Build, Kit, Tables};
 use super::census as c;
 use super::device::SEED;
 use super::glue;
-use super::gate::{rec, Limits, Scan};
-use super::plan_scan::levels_needed;
+use super::gate::Limits;
 use super::plan::{Builder, Gated, PassId, Plan, Size, Step, MAXX};
 use super::plan_hier::HierBounds;
 use super::plan_lay::LayBounds;
@@ -54,7 +53,7 @@ impl Default for Bounds {
             // Recorded up to eight, each cycle only as far as the rounds
             // the last used and a slack (`Cond::UnitRound`).
             rounds: 8,
-            ranges: Ranges { units: 65536, draw: 65536, deposit: 262_144, nodes: 65536, paths: 524_288 },
+            ranges: Ranges { units: super::device::RANGE, draw: 65536, deposit: 262_144, nodes: 65536, paths: 524_288 },
         }
     }
 }
@@ -77,7 +76,7 @@ impl Build {
         let s = self.state.caps;
         let words = [
             w.n, MAXX * 64, w.cycle, w.laid, s.axes, s.units, s.phyts, 0, w.live_stride, s.next_at(), s.next, w.first, w.leaves,
-            u32::from(w.from_in), w.live, w.also,
+            u32::from(w.from_in), w.live, 0,
         ];
         let slot = b.slot(&words);
         let mut n = E::C(w.n);
@@ -133,12 +132,6 @@ impl Build {
         b.point();
         let w = glue::Words { live_stride: self.sums.live_stride, ..glue::Words::default() };
         self.glue_step(b, kit, (glue::RELIVE, &self.spare, &self.flags), w, &[(0, E::At(c::LIVE0))]);
-        // The scans' levels the living and the laid axes need, guarded
-        // before any point sizes them.
-        let (live, laid) = (E::At(c::LIVE0), E::At(c::LAID0));
-        let most = |cap: u32| super::gate::levels_of(cap) as usize;
-        b.flag(c::Flag::LiveScan, levels_needed(&live, most(self.sums.live_stride)).gt(E::At(rec::scan(Scan::Live))));
-        b.flag(c::Flag::GrewScan, levels_needed(&laid, most(self.state.caps.axes)).gt(E::At(rec::scan(Scan::Grew))));
     }
 
     /// The whole cycle recorded under `bounds`.
@@ -200,7 +193,7 @@ fn groups(size: Size, given: &[u32]) -> u32 {
 /// dispatch's phase onto `phases`. Unprofiled, consecutive dispatches
 /// share a compute pass.
 pub(super) fn record(kit: &Kit, (plan, limits, given): (&Plan, &Limits, &[u32]), e: &mut wgpu::CommandEncoder, steps: &[Gated], phases: &mut Vec<&'static str>) {
-    let live = |s: &Step| !matches!(s, Step::Dispatch { size, .. } if groups(*size, given) == 0);
+    let live = |s: &Step| !matches!(s, Step::Dispatch { size, .. } | Step::Zeroed { size, .. } if groups(*size, given) == 0);
     let allowed: Vec<&Step> = steps.iter().filter(|g| g.gate.iter().all(|c| limits.allows(c))).map(|g| &g.step).filter(|s| live(s)).collect();
     #[cfg(test)]
     if super::super::profile::on() {
@@ -236,6 +229,7 @@ fn stamped(kit: &Kit, (plan, given): (&Plan, &[u32]), e: &mut wgpu::CommandEncod
             }
             Step::Copy { from, at, to, to_at, bytes } => e.copy_buffer_to_buffer(from, *at, to, *to_at, *bytes),
             Step::Clear { buffer, at, bytes } => e.clear_buffer(buffer, *at, *bytes),
+            Step::Zeroed { buffer, at, size, most } => e.clear_buffer(buffer, *at, Some((4 * u64::from(groups(*size, given))).min(*most))),
             Step::Point(k) => {
                 if plan.run_point(&kit.vm, e, *k) {
                     phases.push("sizing");

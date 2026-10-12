@@ -123,7 +123,7 @@ impl Build {
             inputs: new(self.inputs, live, "cycle inputs", 2 * u64::from(n.next) + 6 * u64::from(s))?,
             counts: new(self.counts, o.next != n.next || o.sleepers != n.sleepers, "cycle counts", counts)?,
             flags: new(self.flags, axes, "cycle flags", 2 * u64::from(s))?,
-            scan_sums: new(self.scan_sums, axes, "cycle scan sums", sums_words(s))?,
+            scan_sums: new(self.scan_sums, axes, "cycle scan sums", sums_words(s, 1))?,
             spare: self.spare,
             scan_tally: self.scan_tally,
             state,

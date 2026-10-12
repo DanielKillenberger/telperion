@@ -14,7 +14,7 @@ const REAL: &str = include_str!("real.wgsl");
 const COMPACT: &str = include_str!("compact.wgsl");
 const UNITS: &str = include_str!("retire_units.wgsl");
 
-pub(super) const ENTRIES: [&str; 7] = ["open_main", "close_main", "woken_main", "living_main", "verdict_main", "end_main", "inside_main"];
+pub(super) const ENTRIES: [&str; 9] = ["open_main", "close_main", "woken_main", "living_main", "verdict_main", "end_main", "inside_main", "living_fold_main", "inside_fold_main"];
 pub(super) const OPEN: usize = 0;
 pub(super) const CLOSE: usize = 1;
 pub(super) const WOKEN: usize = 2;
@@ -22,6 +22,8 @@ pub(super) const LIVING: usize = 3;
 pub(super) const VERDICT: usize = 4;
 pub(super) const END: usize = 5;
 pub(super) const INSIDE: usize = 6;
+/// Each sweep's narrow levels folded into one workgroup (`fold.wgsl`).
+pub(super) const FOLDS: [usize; 2] = [7, 8];
 /// `ret`'s columns a laid axis (`retire_cols.wgsl`'s `R_`), and the
 /// header's words before the PA constants.
 pub(super) const R_COLS: u64 = 14;
@@ -59,7 +61,7 @@ pub(super) fn compaction_sources() -> [&'static str; 2] {
 /// The module's WGSL: the contract, the reals, then retirement's columns,
 /// per-axis passes and sweep.
 pub(super) fn source() -> String {
-    format!("{}\n{REAL}\n{COLS}\n{AXIS}\n{SWEEP}", super::contract_with(super::ARITH))
+    format!("{}\n{REAL}\n{COLS}\n{AXIS}\n{SWEEP}\n{}", super::contract_with(super::ARITH), super::FOLD)
 }
 
 /// Retirement's buffers for `s` laid axes at most and `pas` PAs: its

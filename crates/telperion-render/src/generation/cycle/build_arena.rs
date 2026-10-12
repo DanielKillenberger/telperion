@@ -14,12 +14,15 @@ use crate::Result;
 /// woken buds, the cycle's leaves, the lattice's nodes and its columns.
 pub(super) const TABLES: usize = 9;
 
-/// Each table's most rows at a cycle's end against the hint (`TABLES`'
-/// order), over every shipped preset at its default age, seeds 1, 7, 42
-/// and its own, compacted after each cycle (`arena_tests::arena_ratios`,
-/// 2026-10-12): the most of each, where the spruce sets the axes and the
-/// units, the beech the phytomers and leaves, the Two Trees the lattice.
-pub(super) const ARENA: [f64; TABLES] = [0.6501, 1.1469, 1.9038, 0.0115, 0.1540, 0.0064, 0.4938, 0.2766, 0.0187];
+/// Each table's most rows at a cycle's end against its hint (`TABLES`'
+/// order; the axes' against the expected axes, the rest against the
+/// expected kept phytomers), over every shipped preset at its default age,
+/// seeds 1, 7, 42 and its own, compacted after each cycle
+/// (`arena_tests::arena_ratios`, 2026-10-12; the axes' fn-256 task 6):
+/// the most of each, where the beech sets the axes, phytomers and leaves,
+/// the spruce the units, the Two Trees the lattice. The axes run 0.35
+/// (Telperion at seed 1) to 1.38 (the beech at 42) of their hint.
+pub(super) const ARENA: [f64; TABLES] = [1.3792, 1.1469, 1.9038, 0.0115, 0.1540, 0.0064, 0.4938, 0.2766, 0.0187];
 /// The retired rows the records hold at most against the hint, where a
 /// PA keeps them: the ordinary's at seed 42 (the oak's at most 0.88;
 /// `arena_ratios`, 2026-10-12).
@@ -40,15 +43,27 @@ pub(super) fn tables(census: &[u32]) -> [u32; TABLES] {
     [w(c::AXES), w(c::UNITS), w(c::PHYTS), w(c::SLEEPERS), w(c::NEXT), w(c::WOKEN), leaves, w(c::GRID + 6), w(c::GRID + 3) * w(c::GRID + 4)]
 }
 
-/// The closed form's expected kept phytomers of `species` at `age`, its
-/// light's terms let go where it reads light (the form is light-neutral).
-pub(super) fn hint(species: &telperion_space::Species, age: u32) -> Result<f64> {
+/// What the closed form expects of a build: its kept phytomers, and its
+/// axes, which every axis-indexed table is sized from (the oak at 80 held
+/// a fifth of its kept phytomers' axes, the spruce two thirds: one ratio
+/// for both sized the oak past 4 GiB; fn-256 task 6).
+#[derive(Debug, Clone, Copy)]
+pub(super) struct Hint {
+    pub kept: f64,
+    pub axes: f64,
+}
+
+/// The closed form's expectations of `species` at `age`, its light's
+/// terms let go where it reads light (the form is light-neutral).
+pub(super) fn hint(species: &telperion_space::Species, age: u32) -> Result<Hint> {
     let mut unshaded = species.clone();
     for s in &mut unshaded.states {
         (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
     }
-    let kept = telperion_space::expected_kept(&unshaded, age.max(1)).map_err(|e| super::super::io::error(e.to_string()))?;
-    Ok(kept.unwrap_or(0.0))
+    let refused = |e: telperion_space::Error| super::super::io::error(e.to_string());
+    let kept = telperion_space::expected_kept(&unshaded, age.max(1)).map_err(refused)?;
+    let axes = telperion_space::expected_axes(&unshaded, age.max(1)).map_err(refused)?;
+    Ok(Hint { kept: kept.unwrap_or(0.0), axes })
 }
 
 /// The most hierarchy levels a cycle's sums sweep (`hier_build`'s
@@ -67,14 +82,14 @@ impl Sizes {
     /// A build's tables sized once from `hint`, the least a build takes
     /// below that, and its bounds stated from them; refused by name where
     /// a table would pass the rows the device's tables index.
-    pub(super) fn hinted(hint: f64) -> Result<Self> {
-        let most = ARENA.iter().chain([&RECORDS]).fold(0.0, |m: f64, r| m.max(*r));
-        if !(hint * most * MARGIN <= f64::from(MOST_ROWS)) {
-            let what = format!("the tree's expected {hint:.0} kept phytomers size its tables past the {MOST_ROWS} rows the device indexes; grow it younger");
+    pub(super) fn hinted(h: Hint) -> Result<Self> {
+        let most = ARENA[1..].iter().chain([&RECORDS]).fold(0.0, |m: f64, r| m.max(*r));
+        if !(h.kept * most * MARGIN <= f64::from(MOST_ROWS) && h.axes * ARENA[0] * MARGIN <= f64::from(MOST_ROWS)) {
+            let what = format!("the tree's expected {:.0} kept phytomers and {:.0} axes size its tables past the {MOST_ROWS} rows the device indexes; grow it younger", h.kept, h.axes);
             return Err(super::super::io::error(what));
         }
         let least = Sizes::least();
-        let rows = |k: usize, floor: u32| ((hint * ARENA[k] * MARGIN).ceil() as u32).max(floor);
+        let rows = |k: usize, floor: u32| ((if k == 0 { h.axes } else { h.kept } * ARENA[k] * MARGIN).ceil() as u32).max(floor);
         let l = least.caps;
         let caps = Caps {
             axes: rows(0, l.axes).next_multiple_of(64),
@@ -86,7 +101,7 @@ impl Sizes {
         };
         let tips = caps.next.max(least.tips);
         let points = (rows(6, 0) + tips).max(least.points);
-        let records = (hint * RECORDS * MARGIN).ceil() as u32;
+        let records = (h.kept * RECORDS * MARGIN).ceil() as u32;
         let sizes = Sizes { caps, points, tips, nodes: rows(7, least.nodes), columns: rows(8, least.columns), records, compact: Compact::Tight, ..least };
         Ok(Sizes { bounds: sizes.stated(), ..sizes })
     }
@@ -136,9 +151,11 @@ mod tests {
     /// rows the device indexes is refused by name, never wrapped.
     #[test]
     fn a_hint_past_the_tables_is_refused_by_name() {
-        let refused = Sizes::hinted(86.6e9).expect_err("refused");
+        let refused = Sizes::hinted(Hint { kept: 86.6e9, axes: 1e6 }).expect_err("refused");
         assert!(refused.to_string().contains("grow it younger"), "{refused}");
-        let telperion = Sizes::hinted(2_970_013.0).expect("sized");
+        let refused = Sizes::hinted(Hint { kept: 1e6, axes: 1e12 }).expect_err("refused");
+        assert!(refused.to_string().contains("grow it younger"), "{refused}");
+        let telperion = Sizes::hinted(Hint { kept: 2_970_013.0, axes: 1e6 }).expect("sized");
         assert!(telperion.caps.axes % 64 == 0 && telperion.caps.phyts > 2_970_013);
     }
 }

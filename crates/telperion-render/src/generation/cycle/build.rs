@@ -188,7 +188,7 @@ impl Build {
             flags: zeroed(gpu, "cycle flags", 2 * u64::from(s))?,
             spare: zeroed(gpu, "cycle spare", 4)?,
             scan_tally: zeroed(gpu, "cycle scan tally", 64)?,
-            scan_sums: zeroed(gpu, "cycle scan sums", super::hier_scan::sums_words(s))?,
+            scan_sums: zeroed(gpu, "cycle scan sums", super::hier_scan::sums_words(s, 1))?,
             state,
             held: Held::default(),
             laid: 0,

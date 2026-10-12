@@ -219,16 +219,37 @@ fn draw_main(@builtin(global_invocation_id) id: vec3<u32>) {
     fault_out(i);
 }
 
+// Each listed axis framed: the seed and the laterals (`frame_main`), then
+// the axes carried on (`frame_on_main`), each path an entry of its own.
 @compute @workgroup_size(64)
 fn frame_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = listed_axis(invocation(id));
-    if i == NONE {
+    if i == NONE || carried_on(i) {
         return;
     }
     status = 0u;
     forget();
-    frame(i);
+    frame(i, framed_lateral(i));
     fault_out(i);
+}
+
+@compute @workgroup_size(64)
+fn frame_on_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let i = listed_axis(invocation(id));
+    if i == NONE || !carried_on(i) {
+        return;
+    }
+    status = 0u;
+    forget();
+    // Its stand, as `gather_main` kept it in the axis's own frame columns.
+    let at = Point(vec3<f32>(0.0), ax3(i, A_HEADING), ax3(i, A_SIDE), axf(i, A_BASE));
+    frame(i, framed_on(i, at));
+    fault_out(i);
+}
+
+fn carried_on(i: u32) -> bool {
+    let kind = kind_of(i);
+    return kind == CONTINUED || kind == RELAYED;
 }
 
 // Each new relay set at its node (`presence::relay_node`).
@@ -276,12 +297,24 @@ fn flag_main(@builtin(global_invocation_id) id: vec3<u32>) {
     counts[k] = u32(lists[generations_at() + k] == cfg.generation);
 }
 
-// Each flagged axis at its scanned place.
+// Each flagged axis at its scanned place; an axis carried on, where it
+// stands on its parent's line (`stood`), kept in its own frame columns,
+// which `frame_on_main` reads and then writes.
 @compute @workgroup_size(64)
 fn gather_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let k = invocation(id);
     if k >= cfg.new_axes || lists[generations_at() + k] != cfg.generation {
         return;
     }
-    lists[listed_at() + counts[k]] = cfg.first_new + k;
+    let i = cfg.first_new + k;
+    lists[listed_at() + counts[k]] = i;
+    if carried_on(i) {
+        status = 0u;
+        forget();
+        let at = stood(i);
+        set_ax3(i, A_HEADING, at.along);
+        set_ax3(i, A_SIDE, at.side);
+        set_ax(i, A_BASE, bitcast<u32>(at.rank));
+        fault_out(i);
+    }
 }

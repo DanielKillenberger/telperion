@@ -36,8 +36,9 @@ struct Cfg {
     // most entries.
     head: u32,
     log_cap: u32,
-    pad0: u32,
-    pad1: u32,
+    // The block levels a folded sweep loops (`fold.wgsl`).
+    fold_lo: u32,
+    fold_hi: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;

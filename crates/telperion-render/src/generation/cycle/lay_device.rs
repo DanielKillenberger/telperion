@@ -15,6 +15,8 @@ pub(super) const RELAY: usize = 2;
 pub(super) const GENERATION: usize = 3;
 pub(super) const FLAG: usize = 4;
 pub(super) const GATHER: usize = 5;
+/// The axes carried on framed, apart from the laterals (`frame_on_main`).
+pub(super) const FRAME_ON: usize = 6;
 /// The layout's tally (`layout.wgsl`'s `T_`): the generation listed and
 /// the cycle's faults.
 pub(super) const T_FAULT: u64 = 8;
@@ -38,6 +40,7 @@ impl Kernels {
             "generation_main",
             "flag_main",
             "gather_main",
+            "frame_on_main",
         ];
         Self {
             layout: io::Pass::new(gpu, super::layout_source(), &reads, &entries),

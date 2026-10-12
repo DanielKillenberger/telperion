@@ -186,7 +186,7 @@ pub(super) async fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Buil
         work: zeroed(gpu, "settle work", layout.words)?,
         atom: zeroed(gpu, "settle atom", layout.atom_words())?,
         nt: zeroed(gpu, "settle nodes", 4)?,
-        sums: zeroed(gpu, "settle sums", sums_words(phyts.max(h.axes).max(d::DMAX) + 1))?,
+        sums: zeroed(gpu, "settle sums", sums_words(phyts.max(h.axes).max(d::DMAX) + 1, 1))?,
         tally: zeroed(gpu, "settle tally", 64)?,
         held: Vec::new(),
         scans: Vec::new(),

@@ -103,70 +103,85 @@ struct Framed {
 // at its tip and its own stand, by its blend.
 fn framed(i: u32) -> Framed {
     let kind = kind_of(i);
+    if kind == CONTINUED || kind == RELAYED {
+        return framed_on(i, stood(i));
+    }
+    return framed_lateral(i);
+}
+
+// Where an axis carried on stands on its parent's line, where its blend
+// is not none (`stand`); none elsewhere. The layout takes it in a dispatch
+// before the rest of its frame: `stand` is most of the frame's cold
+// compile (fn-256 task 6).
+fn stood(i: u32) -> Point {
+    let p = ax(i, A_PARENT);
+    if blend_of(i) == 0.0 {
+        return Point(vec3<f32>(0.0), vec3<f32>(0.0), vec3<f32>(0.0), 0.0);
+    }
+    trace_line(p);
+    return stand(p, ax(i, A_NODE));
+}
+
+// The seed at the ground, or a lateral at its node: `framed` for all but
+// an axis carried on. Its own entry's in the layout, whose cold compile
+// the two paths together took 1.3 s of (fn-256 task 6).
+fn framed_lateral(i: u32) -> Framed {
+    if kind_of(i) == SEED {
+        return Framed(vec3<f32>(0.0), UP, vec3<f32>(1.0, 0.0, 0.0), vec3<f32>(0.0));
+    }
+    let p = ax(i, A_PARENT);
+    let ppa = ax(p, A_PA);
+    trace_line(p);
+    let node = ax(i, A_NODE);
+    let r = prow(p, node);
+    let along = ph3(r, PH_HEADING);
+    let aside = ph3(r, PH_SIDE);
+    let roll = m(fm(ax(i, A_PA), F_ROLL), signed24(draw(child(lineage_of(i), KEY_ROLL))));
+    let slot = qdiv(f32((ax(i, A_ORIGIN) >> 8u) & 0xffu), axf(i, A_WHORL));
+    let azimuth = line_ph[0] + by_rank(ppa, phf(r, PH_RANK)) + slot + roll;
+    let tip = ph3(r, PH_TIP);
+    var base = tip;
+    if (ax(i, A_ORIGIN) & 0x10000u) != 0u {
+        var below = ax3(p, A_BASE);
+        if node > 0u {
+            below = ph3(prow(p, node - 1u), PH_TIP);
+        }
+        base = (below + tip) * 0.5;
+    }
+    let t = turned(along, aside, azimuth, insertion_of(i), fm(ppa, F_PLANE), 0.0);
+    let heading = t[0];
+    return Framed(base, heading, t[1], vec3<f32>(0.0) - mv(heading, qdot(vec3<f32>(0.0), heading)));
+}
+
+// An axis carried on: between its parent's line at its tip and its own
+// stand `at` (`stood`), by its blend.
+fn framed_on(i: u32, at: Point) -> Framed {
+    let p = ax(i, A_PARENT);
+    let ppa = ax(p, A_PA);
+    trace_line(p);
+    let b = blend_of(i);
+    let curve = pn3(p, P_CURVE);
+    var h = vec3<f32>(0.0);
+    var s = vec3<f32>(0.0);
+    if b != 0.0 {
+        let t = turned(at.along, at.side, at.rank, insertion_of(i), fm(ppa, F_PLANE), fm(ppa, F_EPITONY));
+        h = t[0];
+        s = t[1];
+    }
+    let running = pn3(p, P_RUNNING);
+    let across = pn3(p, P_ACROSS);
+    var heading = vec3<f32>(0.0);
+    var side = vec3<f32>(0.0);
     var base = vec3<f32>(0.0);
-    var heading = UP;
-    var side = vec3<f32>(1.0, 0.0, 0.0);
-    var curve = vec3<f32>(0.0);
-    if kind != SEED {
-        let p = ax(i, A_PARENT);
-        let ppa = ax(p, A_PA);
-        trace_line(p);
-        var along = vec3<f32>(0.0);
-        var aside = vec3<f32>(0.0);
-        var azimuth = 0.0;
-        var epitony = 0.0;
-        let b = blend_of(i);
-        if kind == LATERAL {
-            let node = ax(i, A_NODE);
-            let r = prow(p, node);
-            along = ph3(r, PH_HEADING);
-            aside = ph3(r, PH_SIDE);
-            let roll = m(fm(ax(i, A_PA), F_ROLL), signed24(draw(child(lineage_of(i), KEY_ROLL))));
-            let slot = qdiv(f32((ax(i, A_ORIGIN) >> 8u) & 0xffu), axf(i, A_WHORL));
-            azimuth = line_ph[0] + by_rank(ppa, phf(r, PH_RANK)) + slot + roll;
-            let tip = ph3(r, PH_TIP);
-            base = tip;
-            if (ax(i, A_ORIGIN) & 0x10000u) != 0u {
-                var below = ax3(p, A_BASE);
-                if node > 0u {
-                    below = ph3(prow(p, node - 1u), PH_TIP);
-                }
-                base = (below + tip) * 0.5;
-            }
-        } else {
-            curve = pn3(p, P_CURVE);
-            if b != 0.0 {
-                let at = stand(p, ax(i, A_NODE));
-                along = at.along;
-                aside = at.side;
-                azimuth = at.rank;
-                epitony = fm(ppa, F_EPITONY);
-            }
-        }
-        var h = along;
-        var s = aside;
-        if kind == LATERAL || b != 0.0 {
-            let t = turned(along, aside, azimuth, insertion_of(i), fm(ppa, F_PLANE), epitony);
-            h = t[0];
-            s = t[1];
-        }
-        if kind == LATERAL {
-            heading = h;
-            side = s;
-        } else {
-            let running = pn3(p, P_RUNNING);
-            let across = pn3(p, P_ACROSS);
-            if b == 0.0 {
-                heading = qunit_or(running, running);
-                side = qunit_or(across - mv(heading, qdot(across, heading)), across);
-                base = end_of(p);
-            } else {
-                heading = qunit_or(mv(running, 1.0 - b) + mv(h, b), h);
-                let sd = mv(across, 1.0 - b) + mv(s, b);
-                side = qunit_or(sd - mv(heading, qdot(sd, heading)), across);
-                base = stand_at(p, attach(i, p, b));
-            }
-        }
+    if b == 0.0 {
+        heading = qunit_or(running, running);
+        side = qunit_or(across - mv(heading, qdot(across, heading)), across);
+        base = end_of(p);
+    } else {
+        heading = qunit_or(mv(running, 1.0 - b) + mv(h, b), h);
+        let sd = mv(across, 1.0 - b) + mv(s, b);
+        side = qunit_or(sd - mv(heading, qdot(sd, heading)), across);
+        base = stand_at(p, attach(i, p, b));
     }
     return Framed(base, heading, side, curve - mv(heading, qdot(curve, heading)));
 }

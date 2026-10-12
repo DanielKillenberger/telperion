@@ -7,7 +7,8 @@
 use super::build::{Kit, Tables};
 use super::build_grow::{grow_now as grow, Sizes};
 use super::census as c;
-use super::grown_tests::grown;
+use super::build_arena::hint;
+use super::grown_tests::grown_from;
 use super::{device, glue, hier_build, lay_device, light_device, vm};
 use crate::Gpu;
 use std::time::Instant;
@@ -51,14 +52,16 @@ fn compiled(gpu: &Gpu) -> Kit {
     Kit { units, layout, hier, light, glue, vm, retire }
 }
 
-/// One preset's build: sized from the least, then built again at those
-/// sizes with every dispatch stamped.
+/// One preset's build, grown as a build grows it (`executor::growth`) in
+/// the arena its hint sizes, then again with every dispatch stamped.
 fn measured(gpu: &Gpu, kit: &Kit, (preset, name, age, seed): (Preset, &str, u32, u64)) {
-    let g = grown(preset, age, seed);
+    let growth = telperion_core::pipeline::executor::growth(&preset.parameters()).expect("a growth");
+    let g = grown_from(growth.species, growth.request.light, (age, seed));
     let t = Tables::new(gpu, &g.tables, &g.chain).expect("tables");
     let label = format!("{name} {age} seed {seed}");
+    let hinted = Sizes::hinted(hint(&g.species, age).expect("a hint")).expect("sized");
     let started = Instant::now();
-    let (b, sizes, grew) = grow(gpu, kit, &t, &g.tables, (Sizes::least(), age)).expect("a build");
+    let (b, sizes, grew) = grow(gpu, kit, &t, &g.tables, (hinted, age)).expect("a build");
     let cold = started.elapsed().as_secs_f64();
     let census = b.census.clone();
     drop(b);
@@ -124,12 +127,13 @@ fn kernels(label: &str, phases: &[&str], stamps: &[(String, f64, f64)]) {
         }
     }
     by.sort_by(|a, b| b.1.total_cmp(&a.1));
-    for (name, ms, n, tiny) in by.iter().take(30) {
+    for (name, ms, n, tiny) in &by {
         println!("{label}: kernel {name:>40} {ms:9.2} ms in {n} dispatches, {tiny} under 10 µs");
     }
 }
 
-/// Telperion alone, for the performance pass.
+/// Telperion alone, for the performance pass; `CYCLE_TIMED` names
+/// another tree as `preset:age:seed`.
 #[test]
 #[ignore = "a measurement"]
 fn telperion_is_timed() {
@@ -138,7 +142,12 @@ fn telperion_is_timed() {
         return;
     };
     let kit = compiled(&gpu);
-    measured(&gpu, &kit, (Preset::Telperion, "telperion", 82, 42));
+    let named = std::env::var("CYCLE_TIMED").unwrap_or_else(|_| "telperion:82:42".into());
+    let [id, age, seed] = named.split(':').collect::<Vec<_>>()[..] else {
+        panic!("CYCLE_TIMED is preset:age:seed")
+    };
+    let preset = Preset::from_id(id).expect("a shipped preset");
+    measured(&gpu, &kit, (preset, id, age.parse().expect("an age"), seed.parse().expect("a seed")));
 }
 
 /// The three builds DESIGN.md section 7a budgets, plain.

@@ -17,6 +17,10 @@ use super::state::Caps;
 use crate::{Gpu, Result};
 use telperion_space::Capture;
 
+/// The phase a compaction's dispatches are counted in: a build's, not a
+/// cycle's (`trace`).
+pub(super) const COMPACTION: &str = "compaction";
+
 /// The cycles a build grows short of: its time spent and grown is held in
 /// 32-bit ticks, 2^20 a cycle, signed where an age's share is cut.
 pub(super) const MOST_CYCLES: u32 = 2048;
@@ -55,7 +59,8 @@ impl Sizes {
 
 /// When the arena is compacted in place: never (the tests' reference),
 /// where a phytomer, axis or unit table's rows two cycles on, at the rate
-/// they grew, would pass half its rows, or (the tests') after every cycle.
+/// they grew, would pass `TIGHT` of its rows, or (the tests') after every
+/// cycle.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Compact {
     Off,
@@ -64,6 +69,13 @@ pub(super) enum Compact {
     Every,
 }
 
+/// The share of a table's rows its projection may reach before the arena
+/// is compacted: each compaction costs Telperion about 24 ms; at half,
+/// Telperion compacted 7 times (2,028 ms warm), at 0.7 four (1,973 ms), at
+/// 0.85 three (1,932 ms), each preset with no move (fn-256 task 6). Below
+/// the seven eighths at which a table would double instead (`grown`).
+const TIGHT: f64 = 0.85;
+
 impl Compact {
     /// Whether to compact now, the census read and the one before it.
     fn now(self, caps: &Caps, (read, prev): (&[u32], Option<&[u32]>)) -> bool {
@@ -71,7 +83,7 @@ impl Compact {
             let r = prev.map_or(2.0, |p| (f64::from(read[w]) / f64::from(p[w].max(1))).clamp(1.0, 4.0));
             f64::from(read[w]) * r * r
         };
-        let tight = |w: usize, cap: u32| 2.0 * ahead(w) > f64::from(cap);
+        let tight = |w: usize, cap: u32| ahead(w) > TIGHT * f64::from(cap);
         match self {
             Compact::Off => false,
             Compact::Every => true,
@@ -151,6 +163,11 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
         let span = Span::new(seen, before, (&sizes.ceilings(), fallen), (cycle, &limits));
         if std::env::var("CYCLE_TRACE").is_ok() {
             eprintln!("TRACE cycle {cycle} {limits:?}; light nodes {} points {} tips {}", sizes.nodes, sizes.points, sizes.tips);
+            if let Some(l) = &last {
+                let n = (l[c::LEVELS] as usize).min(63);
+                let widths: Vec<u32> = (0..n).map(|k| l[c::LVL + k + 1] - l[c::LVL + k]).collect();
+                eprintln!("TRACE levels {} blocks by level {widths:?} live {} gens {}", l[c::LEVELS], l[c::NEXT], l[c::GENS]);
+            }
         }
         let clock = super::super::Clock::now();
         let (stamped, sent) = b.submit(gpu, (kit, t), (&run.0, &run.1, &limits, &span), (&mut late, cycle));
@@ -191,7 +208,8 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
                 super::super::io::complete(gpu).await?;
             }
             let clock = super::super::Clock::now();
-            b.compact_in_place(gpu, kit, (&run.0.census, cycle), reach(&read)).await?;
+            let made = b.compact_in_place(gpu, kit, (&run.0.census, cycle), reach(&read)).await?;
+            grew.stamped.extend(std::iter::repeat_n(COMPACTION, made));
             if traced {
                 super::super::io::complete(gpu).await?;
                 eprintln!("TRACE compacted after cycle {cycle} in {:.1} ms", clock.elapsed_ms());
@@ -234,10 +252,11 @@ fn trace(grew: &Grew, sizes: &Sizes, upto: u32) {
             None => by.push((p, 1)),
         }
     }
-    let n = grew.stamped.len();
+    let compacting = grew.stamped.iter().filter(|p| **p == COMPACTION).count();
+    let n = grew.stamped.len() - compacting;
     eprintln!("TRACE phases {by:?}");
     eprintln!(
-        "TRACE grown: moves {}, compactions {}, recording {:.3} s, waiting {:.3} s, moving {:.3} s; dispatches {n} ({:.0} a cycle); workgroups given {} for {} needed; caps {:?}",
+        "TRACE grown: moves {}, compactions {} ({compacting} dispatches), recording {:.3} s, waiting {:.3} s, moving {:.3} s; dispatches {n} ({:.0} a cycle); workgroups given {} for {} needed; caps {:?}",
         grew.moves, grew.compactions, grew.recording, grew.waiting, grew.moving, n as f64 / f64::from(upto), grew.over.given, grew.over.needed, sizes.caps
     );
 }

@@ -2,10 +2,9 @@
 // (`grow::draw::pencil`): the pulls it takes from the axis it carries
 // on, its base scale and its walk. Part of the layout's shader.
 
-// Axis `i` framed on its parent and its pencil begun.
-fn frame(i: u32) {
+// Axis `i` framed on its parent as `fr`, and its pencil begun.
+fn frame(i: u32, fr: Framed) {
     let kind = kind_of(i);
-    let fr = framed(i);
     let made = axf(i, A_B0) * axf(i, A_B1);
     var inherited = 1.0;
     var vigour = made;

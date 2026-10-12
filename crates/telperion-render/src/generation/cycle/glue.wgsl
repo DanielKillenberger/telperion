@@ -10,9 +10,7 @@
 // - `points_main`: the cycle's leaves and the living apexes' tips;
 // - `lit_main`: each living apex's light into its pencil;
 // - `relive_main`: the living apexes a cycle leaves as the next one's;
-// - `fresh_main`: a new phytomer's scale and size whole, as it grows;
-// - `clear_main`: a count's rows the device knows, none (`aux` from
-//   word `first`).
+// - `fresh_main`: a new phytomer's scale and size whole, as it grows.
 // The software f64 (`soft64.wgsl`) widens and narrows reals exactly.
 
 struct Cfg {
@@ -37,8 +35,7 @@ struct Cfg {
     leaves: u32,
     from_in: u32,
     live: u32,
-    // A second column `clear_main` clears, from this word (none: 0).
-    also: u32,
+    pad0: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -332,14 +329,4 @@ fn fresh_main(@builtin(global_invocation_id) id: vec3<u32>) {
 
 // The first `n` words of `aux` from `first`, and from `also` where set,
 // none.
-@compute @workgroup_size(64)
-fn clear_main(@builtin(global_invocation_id) id: vec3<u32>) {
-    let k = index(id);
-    if k >= cfg.n {
-        return;
-    }
-    aux[cfg.first + k] = 0u;
-    if cfg.also != 0u {
-        aux[cfg.also + k] = 0u;
-    }
-}
+

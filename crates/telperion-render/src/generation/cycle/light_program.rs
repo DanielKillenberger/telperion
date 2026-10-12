@@ -217,8 +217,9 @@ pub(super) const CONSTANTS: [u64; 11] = [
 
 /// The depth recurrence's work bound: the nodes one thread takes in one
 /// dispatch, a direction's layers split so none takes more (fn-256's
-/// 2 ms bound).
-pub(super) const SWEEP_WORK: u32 = 64;
+/// 2 ms bound; a lit oak's sweep takes about 4 us a node a thread, so
+/// 256 is about 1 ms, where 64 split Telperion's into a dispatch a layer).
+pub(super) const SWEEP_WORK: u32 = 256;
 /// The recurrence's workgroup, one a direction.
 pub(super) const SWEEP_WG: u32 = 256;
 

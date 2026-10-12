@@ -11,8 +11,9 @@ use super::glue;
 use super::lay_device::{self as ld, DEEP, T_DEEP, T_FAULT};
 use super::light_program::{SWEEP_WG, SWEEP_WORK};
 use super::plan::{Builder, PassId, Size, Step, MAXX};
-use super::plan_scan::{levelled, levels_needed, sums_words, COLUMN};
-use super::gate::{levels_of, rec, Cond, Scan};
+use super::hier_scan::sums_words;
+use super::plan_scan::{scanned, COLUMN};
+use super::gate::{rec, Cond};
 use super::hier_scan::zeroed;
 use crate::buffer::Owned;
 use super::vm::E;
@@ -58,7 +59,7 @@ impl Build {
         let w = glue::Words { live_stride: self.sums.live_stride, ..glue::Words::default() };
         let mark = [(0, live0.clone()), (14, live0), (3, laid0.clone())];
         self.glue_step(b, kit, (glue::GREW_MARK, &self.flags, &self.spare), w, &mark);
-        levelled(b, (&kit.hier.scan, Scan::Grew), (&self.flags, u64::from(s), s, COLUMN), &self.scan_sums, (&self.scan_tally, 0), laid0.clone());
+        scanned(b, &kit.hier.scan, (&self.flags, u64::from(s), s, COLUMN), &self.scan_sums, (&self.scan_tally, 0), laid0.clone());
         let gather = [(0, laid0.clone()), (3, laid0)];
         self.glue_step(b, kit, (glue::GREW_GATHER, &self.flags, &self.layout.lists), w, &gather);
         b.tally(&self.scan_tally, 0, c::GREW, 4);
@@ -75,7 +76,6 @@ impl Build {
             b.dispatch(lay(ld::DRAW), bind, size);
             b.leave();
         }
-        b.flag(Flag::LayScan, levels_needed(&new, levels_of(s) as usize).gt(E::At(rec::scan(Scan::Lay))));
         let sums = zeroed(b.gpu, "layout scan sums", sums_words(s, 1))?;
         let over_new = b.groups(new.clone().div(E::C(64)));
         let slot = self.lay_slot(b, (new.clone(), 0, 0, 0));
@@ -88,8 +88,8 @@ impl Build {
             b.enter(Cond::LayGen(g));
             b.dispatch(lay(ld::FLAG), bind.clone(), over_new);
             let lists = &self.layout.lists;
-            levelled(b, (&kit.hier.scan, Scan::Lay), (&self.layout.counts, 0, s, COLUMN), &sums, (lists, 0), new.clone());
-            for entry in [ld::GATHER, ld::FRAME, ld::DRAW] {
+            scanned(b, &kit.hier.scan, (&self.layout.counts, 0, s, COLUMN), &sums, (lists, 0), new.clone());
+            for entry in [ld::GATHER, ld::FRAME, ld::FRAME_ON, ld::DRAW] {
                 b.dispatch(lay(entry), bind.clone(), over_new);
             }
             b.leave();
@@ -142,10 +142,11 @@ impl Build {
         let nodes = E::At(c::GRID + 6);
         let columns = E::At(c::GRID + 3).mul(E::At(c::GRID + 4)).mul(E::C(dirs));
         let paths = nodes.clone().mul(E::C(dirs));
-        let mut lattice = Vec::new();
-        for (entry, count, range) in [(3, nodes.clone(), ranges.nodes), (4, columns, ranges.paths), (5, paths, ranges.paths)] {
-            lattice.push((entry, count, range));
-        }
+        // The densities, a few operations a node, take the lattice in one
+        // dispatch; the weights and paths, and the combine, in ranges.
+        let all = b.groups(nodes.clone().div(E::C(64)));
+        b.dispatch(light(3), main.clone(), all);
+        let lattice = [(4, columns, ranges.paths), (5, paths, ranges.paths)];
         // One flag program a point a word: the programs run at once.
         let past = lattice.iter().fold(E::C(0), |a, (_, n, r)| a.max(n.clone().gt(E::At(rec::LIGHTS).mul(E::C(*r)))));
         b.flag(Flag::LightRanges, past);

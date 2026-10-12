@@ -19,14 +19,13 @@ pub(super) const JOIN_PLACE: usize = 5;
 pub(super) const DECIDE: usize = 6;
 pub(super) const ASSIGN: usize = 7;
 pub(super) const FOLLOW: usize = 8;
-pub(super) const ROUND_END: usize = 9;
-pub(super) const MEMBER_COUNT: usize = 10;
-pub(super) const MEMBER_PLACE: usize = 11;
-pub(super) const MEMBER_RANK: usize = 12;
-pub(super) const MEMBER_OLD: usize = 13;
-pub(super) const MEMBER_NEW: usize = 14;
-pub(super) const MEMBER_START: usize = 15;
-pub(super) const LEVEL_MERGE: usize = 16;
+pub(super) const MEMBER_COUNT: usize = 9;
+pub(super) const MEMBER_PLACE: usize = 10;
+pub(super) const MEMBER_RANK: usize = 11;
+pub(super) const MEMBER_OLD: usize = 12;
+pub(super) const MEMBER_NEW: usize = 13;
+pub(super) const MEMBER_START: usize = 14;
+pub(super) const LEVEL_MERGE: usize = 15;
 
 pub(super) const C_KIDS: u64 = 0;
 pub(super) const C_KID_FILL: u64 = 1;
@@ -168,7 +167,6 @@ impl Plan {
         self.scans[2].record(&k.scan, e);
         k.build.run(e, b, ASSIGN, groups);
         k.build.run(e, b, FOLLOW, groups);
-        k.build.run(e, b, ROUND_END, 1);
     }
 
     /// The members ranked and merged, the levels merged.
@@ -210,7 +208,7 @@ impl Plan {
     /// The dispatches `record` makes.
     pub(super) fn dispatches(&self, passes: &[u32]) -> usize {
         let s = |k: usize| self.scans[k].dispatches();
-        let pass = 6 + s(1) + s(2);
+        let pass = 5 + s(1) + s(2);
         let all: u32 = passes.iter().sum();
         2 + s(0) + 2 + all as usize * pass + 8 + s(3) + s(4)
     }

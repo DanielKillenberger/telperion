@@ -1,13 +1,14 @@
 //! The hierarchy's buffers and its scan (`hier_scan.wgsl`): an exclusive
-//! prefix sum of a column slice in levels of 256 words, up then down,
-//! its total to a tally's word.
+//! prefix sum of a column slice in one dispatch, or two past a block of
+//! `SPAN` words, its total to a tally's word.
 use super::super::io;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
 const UP: usize = 0;
 const DOWN: usize = 1;
-const SPAN: u32 = 256;
+/// The records a workgroup of `hier_scan.wgsl` scans.
+pub(super) const SPAN: u32 = 1024;
 
 pub(super) fn zeroed(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
@@ -61,25 +62,18 @@ fn slice(binding: u32, buffer: &wgpu::Buffer, offset: u64, size: u64) -> wgpu::B
     }
 }
 
-/// Each level's words, from the column's.
-fn levels(rows: u32) -> Vec<u32> {
-    let mut out = vec![rows];
-    while *out.last().expect("a level") > SPAN {
-        out.push(out.last().expect("a level").div_ceil(SPAN));
-    }
-    out
-}
-
-/// The words the levels above a column of `rows` take in the sums.
-pub(super) fn sums_words(rows: u32) -> u64 {
-    levels(rows)[1..].iter().map(|&n| u64::from(n)).sum::<u64>() + 4
+/// The words a scan of `rows` records of `fields` words keeps in its
+/// sums: each block's total, a field's after another's.
+pub(super) fn sums_words(rows: u32, fields: u32) -> u64 {
+    u64::from(rows.div_ceil(SPAN) * fields) + 4
 }
 
 /// One exclusive scan of `rows` words of a buffer from word `at`, its
-/// total to a tally's word `to`: a bind and a size per level.
+/// total to a tally's word `to`: one dispatch, or two past a block.
 pub(super) struct Scan {
-    levels: Vec<(wgpu::BindGroup, u32)>,
-    _cfgs: Vec<Owned>,
+    bind: wgpu::BindGroup,
+    rows: u32,
+    _cfg: Owned,
 }
 
 impl Scan {
@@ -90,61 +84,30 @@ impl Scan {
         sums: &Owned,
         (tally, to): (&Owned, u64),
     ) -> Result<Self> {
-        let sizes = levels(rows);
-        let top = sizes.len() - 1;
-        let (mut starts, mut next) = (Vec::new(), 0);
-        for &n in &sizes {
-            starts.push(next);
-            next += if starts.len() == 1 { 0 } else { n };
-        }
-        let (mut out, mut cfgs) = (Vec::new(), Vec::new());
-        for (l, &n) in sizes.iter().enumerate() {
-            let above = starts.get(l + 1).copied().unwrap_or(0);
-            let words = [
-                n,
-                starts[l],
-                above,
-                u32::from(l == 0),
-                u32::from(l == top),
-                widest(gpu).1,
-                1,
-                1,
-                0,
-                0,
-                0,
-                0,
-            ];
-            let cfg = uniform(gpu, &words)?;
-            let entries = [
-                slice(0, &cfg, 0, cfg.size()),
-                slice(1, data, at * 4, u64::from(rows.max(1)) * 4),
-                slice(2, sums, 0, sums.size()),
-                slice(3, tally, to * 4, 256),
-            ];
-            let bind = gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("hierarchy scan"),
-                layout: &pass.layout,
-                entries: &entries,
-            });
-            out.push((bind, n));
-            cfgs.push(cfg);
-        }
-        Ok(Self {
-            levels: out,
-            _cfgs: cfgs,
-        })
+        let cfg = uniform(gpu, &[rows, 0, widest(gpu).1, 1, 1, 0, 1, 0])?;
+        let entries = [
+            slice(0, &cfg, 0, cfg.size()),
+            slice(1, data, at * 4, u64::from(rows.max(1)) * 4),
+            slice(2, sums, 0, sums.size()),
+            slice(3, tally, to * 4, 256),
+        ];
+        let bind = gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("hierarchy scan"),
+            layout: &pass.layout,
+            entries: &entries,
+        });
+        Ok(Self { bind, rows, _cfg: cfg })
     }
 
     pub(super) fn record(&self, pass: &io::Pass, e: &mut wgpu::CommandEncoder) {
-        for (bind, n) in &self.levels {
-            pass.run(e, bind, UP, n.div_ceil(SPAN).max(1));
-        }
-        for (bind, n) in self.levels.iter().rev().skip(1) {
-            pass.run(e, bind, DOWN, n.div_ceil(64));
+        let blocks = self.rows.div_ceil(SPAN);
+        pass.run(e, &self.bind, UP, blocks.max(1));
+        if self.rows > SPAN {
+            pass.run(e, &self.bind, DOWN, blocks);
         }
     }
 
     pub(super) fn dispatches(&self) -> usize {
-        2 * self.levels.len() - 1
+        1 + usize::from(self.rows > SPAN)
     }
 }

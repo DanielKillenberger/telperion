@@ -114,7 +114,7 @@ pub(super) async fn plan(gpu: &Gpu, (k, scan): (&Kernels, &io::Pass), s: &Settle
         at = wave;
     }
     let chains = at.first + at.chains;
-    let sums = zeroed(gpu, "chain scan sums", sums_words(kept.max(chains)))?;
+    let sums = zeroed(gpu, "chain scan sums", sums_words(kept.max(chains), 1))?;
     let tally = zeroed(gpu, "chain scan tally", 64)?;
     let column = |c: u32| u64::from(c) * u64::from(stride);
     let mut scans = Vec::new();

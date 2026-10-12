@@ -3,7 +3,8 @@
 //! its default age and seeds 1, 7 and 42, compacted after every cycle: the
 //! ratios `build_size::ARENA` states. `cargo test --profile ci -p
 //! telperion-render arena_ratios -- --ignored --nocapture`, under the GPU
-//! lock; `ARENA_PRESETS` names a comma list.
+//! lock; `ARENA_PRESETS` names a comma list, `ARENA_AGE` an age for them
+//! all (the oak at 80, fn-256 task 6).
 use super::build::Tables;
 use super::build_grow::{grow_now, Compact, Sizes};
 use super::build_arena::{hint, TABLES};
@@ -18,9 +19,11 @@ fn arena_ratios() {
     let Some((gpu, kit)) = device() else {
         return;
     };
-    // Held to the native default and what the card leaves, as a build is.
+    // Held to the native default (`ARENA_BUDGET_MIB` to measure a tree
+    // past it) and what the card leaves, as a build is.
     let free = gpu.free_device_memory().unwrap_or(u64::MAX);
-    let _capped = gpu.ledger.capped((4u64 << 30).min(gpu.ledger.live().saturating_add(free / 100 * 85)));
+    let budget = std::env::var("ARENA_BUDGET_MIB").ok().and_then(|m| m.parse::<u64>().ok()).map_or(4u64 << 30, |m| m << 20);
+    let _capped = gpu.ledger.capped(budget.min(gpu.ledger.live().saturating_add(free / 100 * 85)));
     let only = std::env::var("ARENA_PRESETS").ok();
     let mut most = [0f64; TABLES];
     println!("| Preset | Seed | Hint | {} |", NAMES.join(" | "));
@@ -28,23 +31,30 @@ fn arena_ratios() {
     for id in ids.filter(|id| only.as_ref().is_none_or(|o| o.split(',').any(|x| x == *id))) {
         let preset = Preset::from_id(id).expect("a shipped preset");
         let family = preset.parameters();
-        let age = family.age as u32;
+        let age = aged(family.age as u32);
         // The gate's seeds, and the family's own (`skeleton.seed`).
         for seed in [1, 7, 42, u64::from(family.skeleton.seed)] {
             // The species and light a build grows by (`executor::growth`):
             // the supernatural rows change the Two Trees'.
             let growth = telperion_core::pipeline::executor::growth(&family).expect("a growth");
             let g = grown_from(growth.species, growth.request.light, (age, seed));
-            let h = hint(&g.species, age).expect("a hint").max(1.0);
+            let hinted = hint(&g.species, age).expect("a hint");
+            let h = hinted.kept.max(1.0);
             let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
             let off = std::env::var("ARENA_COMPACT").is_ok_and(|c| c == "off");
-            let hinted = Sizes::hinted(h).expect("sized");
-            let sizes = Sizes { compact: if off { Compact::Off } else { Compact::Every }, ..hinted };
+            // `ARENA_LEAST`: grown from the least tables by moves, for a tree
+            // the hinted arena does not fit (what it holds is the same).
+            let least = std::env::var("ARENA_LEAST").is_ok();
+            let sized = if least { Sizes::least() } else { Sizes::hinted(hinted).expect("sized") };
+            let sizes = Sizes { compact: if off { Compact::Off } else { Compact::Every }, ..sized };
+            println!("{id} {seed}: {hinted:?}, {:?}", sizes.caps);
             let (b, _, grew) = grow_now(&gpu, &kit, &t, &g.tables, (sizes, age)).expect("a build");
             let records = f64::from(b.retire.rec_n) / h;
             drop(b);
             gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
-            let ratios: Vec<f64> = grew.most.iter().map(|&n| f64::from(n) / h).collect();
+            // The axes against the expected axes, the rest the kept phytomers.
+            let of = |k: usize| if k == 0 { hinted.axes.max(1.0) } else { h };
+            let ratios: Vec<f64> = grew.most.iter().enumerate().map(|(k, &n)| f64::from(n) / of(k)).collect();
             for (m, r) in most.iter_mut().zip(&ratios) {
                 *m = m.max(*r);
             }
@@ -58,7 +68,8 @@ fn arena_ratios() {
 
 /// The host's gate (ruling 2): every shipped preset at its default age,
 /// seeds 1, 7 and 42, grown from the tables its hint sizes, makes no move
-/// and never begins again. `ARENA_PRESETS` names a comma list.
+/// and never begins again. `ARENA_PRESETS` names a comma list, and
+/// `ARENA_AGE` an age for them all.
 #[test]
 #[ignore = "device limits: every preset's whole tree, three seeds"]
 fn every_preset_grows_in_its_hinted_arena() {
@@ -72,7 +83,7 @@ fn every_preset_grows_in_its_hinted_arena() {
     let ids = telperion_core::presets::CATALOGUE.iter().map(|c| c.1);
     for id in ids.filter(|id| only.as_ref().is_none_or(|o| o.split(',').any(|x| x == *id))) {
         let family = Preset::from_id(id).expect("a shipped preset").parameters();
-        let age = family.age as u32;
+        let age = aged(family.age as u32);
         let growth = telperion_core::pipeline::executor::growth(&family).expect("a growth");
         for seed in [1, 7, 42] {
             let g = grown_from(growth.species.clone(), growth.request.light, (age, seed));
@@ -98,4 +109,9 @@ fn every_preset_grows_in_its_hinted_arena() {
         }
     }
     assert!(apart.is_empty(), "moved or begun again: {apart:?}");
+}
+
+/// `ARENA_AGE` where it is set, else the preset's own age.
+fn aged(own: u32) -> u32 {
+    std::env::var("ARENA_AGE").ok().and_then(|a| a.parse().ok()).unwrap_or(own)
 }

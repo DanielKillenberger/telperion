@@ -8,9 +8,9 @@
 //! began with, a count only the device knows, as the balance's are.
 use super::build::{Build, Kit, Tables};
 use super::census as c;
-use super::gate::Cond;
+use super::gate::{rec, Cond};
 use super::plan::{Builder, PassId, Size, MAXX};
-use super::plan_hier::HierBounds;
+use super::plan_hier::{swept, HierBounds};
 use super::retire_device as rd;
 use super::vm::E;
 
@@ -51,18 +51,19 @@ impl Build {
             let size = b.groups(E::At(c::LEVELS).gt(E::C(l)).sel(width, E::C(0)));
             levels.push((bind, size, Cond::Level(l)));
         }
-        for (bind, size, cond) in levels.iter().rev() {
-            b.enter(*cond);
-            b.dispatch(ret(rd::LIVING), bind.clone(), *size);
-            b.leave();
-        }
+        // The folded levels' workgroups: the top's, and the deepest's.
+        let folds = [(E::C(0), E::At(rec::TOP)), (E::At(rec::TAIL), E::At(c::LEVELS))].map(|(lo, hi)| {
+            let slot = b.slot(&words(0));
+            for (w, e) in dynamic.iter().cloned().chain([(22, lo), (23, hi)]) {
+                b.set(slot, w, e);
+            }
+            let rest = [&*st.axes, &st.units, &st.grown, &st.lists, &h.lists[parity], &h.shape, &r.ret, &r.verdicts];
+            b.bind(&kit.retire.pass, slot, &rest)
+        });
+        swept(b, (ret(rd::LIVING), ret(rd::FOLDS[0])), (&levels, &folds), true);
         let laid = per(b, E::At(c::LAID0));
         b.dispatch(ret(rd::VERDICT), base.clone(), laid);
-        for (bind, size, cond) in levels {
-            b.enter(cond);
-            b.dispatch(ret(rd::INSIDE), bind, size);
-            b.leave();
-        }
+        swept(b, (ret(rd::INSIDE), ret(rd::FOLDS[1])), (&levels, &folds), false);
         b.dispatch(ret(rd::END), base, Size::Direct(1));
     }
 }

@@ -73,6 +73,27 @@ pub fn expected_grown(species: &Species, age: u32) -> Result<f64> {
     Ok(walk.grown(0, age as usize, Carried::default(), None))
 }
 
+/// The expected axes a tree grown `age` cycles grows, the shed ones
+/// included: the seed's, every lateral's, woken bud's, relay's and
+/// continuation's that lives in an age (fn-256 task 6: the device's axis
+/// tables sized by their own hint).
+pub fn expected_axes(species: &Species, age: u32) -> Result<f64> {
+    species.validate()?;
+    if age == 0 {
+        return refuse("age", "a tree grows at least one cycle");
+    }
+    let laterals: Vec<Vec<Vec<f64>>> = species.states.iter().map(|s| s.laterals()).collect();
+    let windows = Windows::new(species, age);
+    let mut memo = Memo::default();
+    let mut walk = Walk {
+        species,
+        laterals: &laterals,
+        memo: &mut memo,
+        living: Living::new(species, Some(&windows)),
+    };
+    Ok(walk.axes(0, age as usize, Carried::default(), None))
+}
+
 /// The expected kept phytomers of a tree grown `age` cycles: the cut's
 /// predictor read at the seed, without growing the tree. None for a
 /// species whose buds read light: the predictor is light-neutral, and the

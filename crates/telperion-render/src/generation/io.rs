@@ -231,6 +231,8 @@ impl Pass {
     /// `entry` dispatched inside `pass`, a compute pass it shares with
     /// the dispatches beside it (unstamped): `groups` workgroups.
     pub fn encode(&self, pass: &mut wgpu::ComputePass<'_>, (bind, entry): (&wgpu::BindGroup, usize), groups: u32) {
+        #[cfg(test)]
+        crate::trace::dispatch(&self.entries[entry], groups);
         pass.set_pipeline(self.pipelines[entry].get());
         pass.set_bind_group(0, bind, &[]);
         pass.dispatch_workgroups(groups.min(self.maximum), groups.div_ceil(self.maximum), 1);
