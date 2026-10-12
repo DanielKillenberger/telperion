@@ -186,10 +186,11 @@ fn zones_main(@builtin(global_invocation_id) id: vec3<u32>) {
 // Emitted, each zone's records written from the places the zones before
 // it left, in three phases a zone's own writes order: its nodes ordered
 // along the unit, then its phytomers and sleeping buds (`written_main`);
-// its laterals (`sprouted_main`); its laterals' presences (their PA's
-// draw's, then times their place's) and its sleeping buds'
-// (`placed_main`). The laterals are a phase of their own: fused with the
-// phytomers, each dispatch took three times as long (fn-256 task 11).
+// its laterals, and its sleeping buds' presences (`sprouted_main`); its
+// laterals' presences, their PA's draw's, then times their place's
+// (`placed_main`). The phases are cut where each dispatch took least
+// (fn-256 task 11): fused with the phytomers, the laterals took three
+// times as long.
 @compute @workgroup_size(64)
 fn written_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let z = zone_of(id);
@@ -214,6 +215,8 @@ fn sprouted_main(@builtin(global_invocation_id) id: vec3<u32>) {
     take_job(job);
     pending = false;
     zone_nodes(z.x, z.y, jw(J_FRAME), cfg.cycle, 1u);
+    take_job(job);
+    sleepers_placed(z.x, z.y, jw(J_FRAME), cfg.cycle);
 }
 
 @compute @workgroup_size(64)
@@ -228,8 +231,6 @@ fn placed_main(@builtin(global_invocation_id) id: vec3<u32>) {
         pending = false;
         zone_nodes(z.x, z.y, jw(J_FRAME), cfg.cycle, whats[k]);
     }
-    take_job(job);
-    sleepers_placed(z.x, z.y, jw(J_FRAME), cfg.cycle);
 }
 
 // A job whose operation is `kind`, taken up: its operation, none for
