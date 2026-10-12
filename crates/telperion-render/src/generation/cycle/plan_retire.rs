@@ -2,10 +2,17 @@
 //! build), at its start before the balance, over the hierarchy its step
 //! just left: the open axes marked, the closed flagged and assigned, the
 //! woken buds sized, the living carried up the block levels from the
-//! deepest (up to the levels' bound), each candidate judged, and every
-//! axis below a retired root marked inside it from the root's level down. Each
+//! deepest (up to the levels' bound) and each candidate judged. Each
 //! dispatch is sized from the axes, the living and the buds the cycle
 //! began with, a count only the device knows, as the balance's are.
+//!
+//! The sweep marking every axis below a retired root inside it, from the
+//! root's level down, is recorded apart (`Inside`): only a compaction and
+//! the settle read the marks, so the build takes them before each
+//! (fn-256 task 12). Nothing is laid under a retired root, and no axis
+//! inside one is judged again (its bearer is closed, so it stands beside
+//! no open axis), so the marks taken then are the marks a sweep every
+//! cycle leaves.
 use super::build::{Build, Kit, Tables};
 use super::census as c;
 use super::gate::{rec, Cond};
@@ -14,9 +21,26 @@ use super::plan_hier::{swept, HierBounds};
 use super::retire_device as rd;
 use super::vm::E;
 
+/// Retirement's inside sweep over the block levels its cycle's
+/// retirement sized and bound: recorded on its own, replayed before a
+/// compaction and before the settle (`Build::inside`).
+pub(super) struct Inside {
+    levels: Vec<(wgpu::BindGroup, Size, Cond)>,
+    folds: [wgpu::BindGroup; 2],
+}
+
+impl Inside {
+    /// The sweep, from the top level down.
+    pub(super) fn plan(&self, b: &mut Builder) {
+        let ret = |k| (PassId::Retire, k);
+        swept(b, (ret(rd::INSIDE), ret(rd::FOLDS[1])), (&self.levels, &self.folds), false);
+    }
+}
+
 impl Build {
-    /// Retirement over the hierarchy's lists `parity`.
-    pub(super) fn plan_retire(&self, b: &mut Builder, kit: &Kit, t: &Tables, bound: HierBounds, parity: usize) {
+    /// Retirement over the hierarchy's lists `parity`; its inside sweep,
+    /// recorded apart.
+    pub(super) fn plan_retire(&self, b: &mut Builder, kit: &Kit, t: &Tables, bound: HierBounds, parity: usize) -> Inside {
         let (s, h, r) = (self.state.caps, &self.hier, &self.retire);
         b.point();
         let words = |level: u32| {
@@ -70,7 +94,7 @@ impl Build {
         }
         let laid = per(b, E::At(c::LAID0));
         b.dispatch(ret(rd::VERDICT), base.clone(), laid);
-        swept(b, (ret(rd::INSIDE), ret(rd::FOLDS[1])), (&levels, &folds), false);
         b.dispatch(ret(rd::END), base, Size::Direct(1));
+        Inside { levels, folds }
     }
 }

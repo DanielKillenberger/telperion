@@ -223,8 +223,9 @@ impl Build {
 
     /// Cycle `cycle` recorded as far as `limits` allow, each bounded
     /// dispatch given the most `span` allows, and submitted, its census
-    /// sent back late; its dispatches' phases, and its bounded ones.
-    pub(super) fn submit(&self, gpu: &Gpu, (kit, t): (&Kit, &Tables), (plan, phases, limits, span): (&Plan, &Phases, &Limits, &Span), (late, cycle): (&mut Late, u32)) -> (Vec<&'static str>, Pending) {
+    /// sent back late; its dispatches' phases, its bounded ones, and the
+    /// workgroups each was given.
+    pub(super) fn submit(&self, gpu: &Gpu, (kit, t): (&Kit, &Tables), (plan, phases, limits, span): (&Plan, &Phases, &Limits, &Span), (late, cycle): (&mut Late, u32)) -> (Vec<&'static str>, Pending, Vec<u32>) {
         let steps = phases.cycle(cycle, t.age);
         let given = given(plan, span, (&steps, limits));
         gpu.queue.write_buffer(&plan.census, 4 * c::CYCLE as u64, bytemuck::bytes_of(&cycle));
@@ -239,7 +240,24 @@ impl Build {
         late.copy(&mut e, plan, cycle);
         gpu.submit([e.finish()]);
         late.send(gpu, cycle);
-        (stamped, Pending::new(plan, &steps, (limits, &given)))
+        let pending = Pending::new(plan, &steps, (limits, &given));
+        (stamped, pending, given)
+    }
+
+    /// Retirement's inside marks taken over the hierarchy the last cycle
+    /// submitted left, `cycle`, under its `limits` and the workgroups it
+    /// `given` (DESIGN.md section 6): before a compaction, which drops
+    /// the axes they mark, and before the settle, which reads its roots by
+    /// them. Its dispatches' phases; none before any retirement ran.
+    pub(super) fn inside(&self, gpu: &Gpu, kit: &Kit, (plan, phases): (&Plan, &Phases), (cycle, limits, given): (u32, &Limits, &[u32])) -> Vec<&'static str> {
+        let mut stamped = Vec::new();
+        if cycle < 2 {
+            return stamped;
+        }
+        let mut e = gpu.encoder(&Default::default());
+        record(kit, (plan, limits, given), &mut e, &phases.inside[cycle as usize % 2], &mut stamped);
+        gpu.submit([e.finish()]);
+        stamped
     }
 
     #[cfg(test)]

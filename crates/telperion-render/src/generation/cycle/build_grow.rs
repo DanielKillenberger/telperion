@@ -158,6 +158,9 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
     // read after it: a census read before it counts more rows than the
     // cycle begins with.
     let (mut compacted, mut cut) = (None::<u32>, Vec::new());
+    // The last cycle submitted's limits and workgroups given, which
+    // retirement's inside marks are taken under (`Build::inside`).
+    let mut submitted = (limits(&sizes, None, None), Vec::new());
     for cycle in 1..=upto {
         let limits = limits(&sizes, last.as_deref(), prev.as_deref());
         let seed = Build::seed_census();
@@ -176,8 +179,9 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
             }
         }
         let clock = super::super::Clock::now();
-        let (stamped, sent) = b.submit(gpu, (kit, t), (&run.0, &run.1, &limits, &span), (&mut late, cycle));
+        let (stamped, sent, given) = b.submit(gpu, (kit, t), (&run.0, &run.1, &limits, &span), (&mut late, cycle));
         pending.push_back(sent);
+        submitted = (limits, given);
         grew.recording += clock.elapsed_ms() / 1e3;
         grew.stamped.extend(stamped);
         #[cfg(test)]
@@ -200,7 +204,17 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
         // A move makes room for the next cycle; after the last there is
         // none, nor a compaction, whose census the build would not read.
         let fallen = compacted.is_some_and(|k| k + 2 >= cycle).then_some(cut.as_slice());
-        if let Some(next) = (cycle < upto).then(|| grown(sizes, (&read, last.as_deref(), fallen), t.budget)).flatten() {
+        let moving = (cycle < upto).then(|| grown(sizes, (&read, last.as_deref(), fallen), t.budget)).flatten();
+        // A compaction after the cycle read counts nothing the census shows.
+        let after = moving.unwrap_or(sizes);
+        let fresh = compacted.is_none_or(|k| k + 1 < cycle) || after.compact == Compact::Every;
+        let compacting = cycle < upto && fresh && after.compact.now(&after.caps, (&read, last.as_deref()));
+        // The inside marks a compaction drops by, taken before a move
+        // carries them over.
+        if compacting {
+            grew.stamped.extend(b.inside(gpu, kit, (&run.0, &run.1), (cycle, &submitted.0, &submitted.1)));
+        }
+        if let Some(next) = moving {
             b = b.moved(gpu, (t, tables), (sizes, next))?;
             let plan = b.plan(gpu, kit, t, next.bounds)?;
             let mut e = gpu.encoder(&Default::default());
@@ -210,9 +224,7 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
             grew.moves += 1;
             grew.moved_at.push((cycle, b.retire.rec_n));
         }
-        // A compaction after the cycle read counts nothing the census shows.
-        let fresh = compacted.is_none_or(|k| k + 1 < cycle) || sizes.compact == Compact::Every;
-        if cycle < upto && fresh && sizes.compact.now(&sizes.caps, (&read, last.as_deref())) {
+        if compacting {
             let traced = std::env::var("CYCLE_TRACE").is_ok();
             if traced {
                 super::super::io::complete(gpu).await?;
@@ -233,6 +245,8 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
     }
     // The records a compaction grew past their rows moved as a table does.
     grew.moves += b.retire.rec_moves;
+    // The inside marks the settle reads its retired roots by.
+    grew.stamped.extend(b.inside(gpu, kit, (&run.0, &run.1), (upto, &submitted.0, &submitted.1)));
     let read = late.take(gpu, upto).await?;
     #[cfg(test)]
     grew.censuses.push(read.clone());

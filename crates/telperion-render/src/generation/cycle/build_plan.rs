@@ -59,11 +59,14 @@ impl Default for Bounds {
 }
 
 /// A cycle's recorded phases: the seed; the start; the hierarchy's step
-/// and sums by the parity of its lists; the units; the layout and light.
+/// and sums by the parity of its lists, and retirement's inside sweep
+/// over them, replayed apart (`Build::inside`); the units; the layout and
+/// light.
 pub(super) struct Phases {
     pub seed: Vec<Gated>,
     pub start: Vec<Gated>,
     pub hier: [Vec<Gated>; 2],
+    pub inside: [Vec<Gated>; 2],
     pub units: Vec<Gated>,
     pub sketch: Vec<Gated>,
     _held: Vec<crate::buffer::Owned>,
@@ -141,15 +144,19 @@ impl Build {
         let seed = b.take();
         self.plan_start(&mut b, kit);
         let start = b.take();
-        let mut hier: [Vec<Gated>; 2] = Default::default();
+        let (mut hier, mut inside): ([Vec<Gated>; 2], [Vec<Gated>; 2]) = Default::default();
         b.phase = "balance and allotment";
-        for (parity, phase) in hier.iter_mut().enumerate() {
+        for (parity, (phase, marks)) in hier.iter_mut().zip(&mut inside).enumerate() {
             self.plan_step(&mut b, kit, bounds.hier, parity);
             b.phase = "retirement";
-            self.plan_retire(&mut b, kit, t, bounds.hier, 1 - parity);
+            let sweep = self.plan_retire(&mut b, kit, t, bounds.hier, 1 - parity);
             b.phase = "balance and allotment";
             self.plan_sums(&mut b, kit, t, bounds.hier, 1 - parity);
             *phase = b.take();
+            b.phase = "retirement";
+            sweep.plan(&mut b);
+            *marks = b.take();
+            b.phase = "balance and allotment";
         }
         b.phase = "units and wake";
         let mut held = self.plan_units(&mut b, kit, t, (bounds.units, bounds.ranges.units, bounds.rounds))?;
@@ -160,7 +167,7 @@ impl Build {
         self.plan_light(&mut b, kit, (bounds.lay, bounds.ranges));
         let sketch = b.take();
         let plan = b.finish(&kit.vm)?;
-        Ok((plan, Phases { seed, start, hier, units, sketch, _held: held }))
+        Ok((plan, Phases { seed, start, hier, inside, units, sketch, _held: held }))
     }
 }
 
