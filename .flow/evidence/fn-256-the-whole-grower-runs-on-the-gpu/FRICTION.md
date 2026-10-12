@@ -328,3 +328,21 @@ Doing: comparing every preset's stills with F4's. Slowed by: the resident handof
 - **Hindered:** `flowctl` not on PATH in the dispatched worker's shell, an eighth time (8.1.1 under the plugin cache). No script makes the post-task-9 stills and sheets in one call; the reference stills are task 6's (`raw/t6-stills/now`), which tasks 8-10 left byte-identical by their node-table hashes.
 - **Cost:** about 3 minutes.
 - **Would remove it:** `flowctl` on PATH for dispatched workers (local setup); a stills-and-sheet script beside `resident_stills`.
+
+## 2026-10-12, task 12: start
+- **Doing:** the Phase-1 anchor for task 12.
+- **Hindered:** `flowctl` not on PATH in the dispatched worker's shell, a ninth time (8.1.1 under the plugin cache).
+- **Cost:** about 2 minutes.
+- **Would remove it:** `flowctl` on PATH for dispatched workers (local setup, not a repository change).
+
+## 2026-10-12, task 12: a redirect through a shell variable refused
+- **Doing:** the node-table hashes and the arena gate in one call, logs named through a variable for the evidence directory.
+- **Hindered:** the command guard refuses a redirect whose target a shell variable names; the call was split into two with literal paths.
+- **Cost:** about 1 minute.
+- **Would remove it:** nothing in the repository; the dispatch already says to use literal paths in redirects.
+
+## 2026-10-12, task 12: the rounds-used mark first undercounted
+- **Doing:** marking each units round used, as task 4's form did, where a job advances.
+- **Hindered:** a job can begin a round in a state other than advancing (a move, a relay, a stop left by the last round's `after_main`), so the first measurement said the ordinary used 3 rounds where it needs 5. Marking every job that begins a round with work left gave 5, which matches task 5's refusal of four rounds.
+- **Cost:** about 4 minutes and one extra arena run (10 s of GPU).
+- **Would remove it:** nothing; caught by holding the measurement to task 5's known refusal.

@@ -454,3 +454,74 @@ Not opened here; the owner runs it.
 2. **A dormant lattice's deposit.** On Telperion, unlit, `deposit_main` takes 48 ms. Its only reader there is its refusals (a leaf's area, a node's quanta), which task 9 kept by decision.
 3. **Dispatch count.** 382-414 a cycle on the Two Trees; task 6's three design calls still hold the rest. That is about 0.24 s a Telperion build at Chrome's 7 µs.
 4. **What remains against 0.1.4.** The table above, at the ages above.
+
+# fn-256 task 12: three small cuts the re-measure named (worker, 2026-10-12)
+
+The host's rulings on task 11's calls 1 and 2 and task 6's call 2. DESIGN.md section 18 has the design. Measured on the RTX 3080 with 2.0 GB held by desktop processes, 4 threads, one GPU process at a time under the GPU lock. Raw output is in `raw/t12/`, its scripts beside it (`measure.sh` swaps the code by patches on this tree). "Base" is task 11's tip `d8285cb3c`.
+
+## Exact (met)
+
+- **Node tables:** 24 hashes (8 presets × caps 64, 128, 1,024), all the post-task-9 hashes, after cuts 1-2 and again after all three (`raw/t12/nodes/`).
+- **Stills:** every preset's default age and seed, whole, mid and close, one preset a process: all 24 pixel-identical to task 11's (`compare -metric AE`: 0 each).
+- **Arena gate:** every preset at seeds 1, 7 and 42 grows with no move and no refusal under the rounds' new limits (`raw/t12/arena/rounds-sized.log`).
+
+## The units rounds used, measured (sizes the slack)
+
+Every preset at seeds 1, 7 and 42 (`every_preset_grows_in_its_hinted_arena`), the most rounds a cycle used, living apexes and wake, and the most either rose over two cycles:
+
+| Preset | Living used / rise | Wake used / rise |
+|---|---|---|
+| ordinary | 5 / 2 | 3 / 3 |
+| oak | 3 / 1 | 2 / 1 |
+| spruce | 2 / 1 | 2 / 1 |
+| beech | 2-3 / 1 | 0 / 0 |
+| birch | 2-3 / 2 | 1 / 1 |
+| palm | 1 / 0 | 0 / 0 |
+| Telperion, Laurelin | 3 / 1 | 0 / 0 |
+
+So the slack is 2 and 3, and the bound 8. Before, every cycle recorded 5 rounds of each.
+
+## GPU time and dispatches
+
+Stamped GPU ms of a build, seed 42, one run a step (`raw/t12/time/step-*`):
+
+| Step (commit) | Telperion 82 | Oak 40 | Beech 40 |
+|---|--:|--:|--:|
+| Base | 731.8 (33,971) | 160.2 (14,814) | 114.0 (13,200) |
+| A dormant lattice skips its deposit (`55f6d4fe3`) | 686.0 (33,767) | 160.0 (14,814) | 111.2 (13,161) |
+| Units rounds from the rounds used (`9d12b725e`) | 671.3 (30,795) | 158.0 (13,848) | 107.5 (12,004) |
+| Inside marks before compaction and settle (`2656c0ddb`) | 658.5 (29,911) | 156.2 (13,565) | 106.0 (11,798) |
+
+Medians of three alternating runs, each side within 0.4% of its own (`base-*`, `final-*`):
+
+| Phase | Telperion 82 | Oak 40 | Beech 40 |
+|---|---|---|---|
+| Light | 62.2 → 14.9 | 23.4 → 23.3 (lit) | 4.1 → 1.6 |
+| Units and wake | 256.1 → 238.0 | 46.9 → 43.1 | 33.3 → 28.7 |
+| Retirement | 40.2 → 27.1 | 8.4 → 5.8 | 7.7 → 5.2 |
+| Every other phase | within 0.7 ms | within 0.2 ms | within 0.2 ms |
+| **Stamped GPU time** | **733.6 → 656.5 (−10.5%)** | **160.9 → 154.4 (−4.0%)** | **114.5 → 105.0 (−8.3%)** |
+
+Every preset at seeds 1 and 42, grow GPU ms and dispatches a cycle, base → now (`raw/t12/time/presets.txt`):
+
+| Preset | Seed 1: GPU ms | Seed 1: a cycle | Seed 42: GPU ms | Seed 42: a cycle |
+|---|---|---|---|---|
+| ordinary 40 | 156.3 → 153.2 | 395 → 390 | 169.0 → 166.9 | 408 → 408 |
+| oak 40 | 157.7 → 152.2 | 369 → 341 | 161.2 → 154.3 | 370 → 339 |
+| spruce 40 | 238.9 → 224.8 | 398 → 375 | 242.0 → 226.4 | 402 → 378 |
+| beech 40 | 104.3 → 95.6 | 325 → 290 | 114.9 → 104.6 | 330 → 295 |
+| birch 40 | 126.5 → 115.9 | 347 → 309 | 138.8 → 127.4 | 356 → 320 |
+| date palm 40 | 59.0 → 52.8 | 269 → 230 | 59.7 → 52.9 | 269 → 230 |
+| Telperion 82 | 517.0 → 463.2 | 386 → 340 | 734.3 → 653.8 | 414 → 365 |
+| Laurelin 80 | 482.4 → 433.2 | 382 → 337 | 678.3 → 604.9 | 408 → 360 |
+
+- **The deposit** was 46.8 ms of Telperion's light (204 dispatches); the unlit Laurelin, spruce, beech, birch and palm gain the same way. The lit oak and ordinary record it as before.
+- **The rounds** cut Telperion's units from 13,009 dispatches to 10,037 (256.9 → 238.4 ms), and the others' where the living use 3 rounds or fewer. The ordinary, whose living use 5, records up to 7 in its late cycles, so its count holds.
+- **The inside marks:** `inside_main` and its fold on Telperion fall from 974 dispatches and 14.6 ms to 90 and 1.4 ms, the sweeps before its three compactions and the settle.
+- **Longest dispatch:** 1.06 ms (`gather_main`, Telperion seed 42), unchanged.
+
+## The gate and npm test
+
+- The workspace without the renderer (`cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast`): 1,066 passed (`raw/t12/gate-workspace.log`).
+- The renderer under the GPU lock: 273 passed (`raw/t12/gate-render.log`).
+- `npm test`: 15 files, 162 tests (`raw/t12/gate-npm.log`).
