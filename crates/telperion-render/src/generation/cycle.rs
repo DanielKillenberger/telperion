@@ -140,7 +140,6 @@ const HIER_REAL: &str = include_str!("cycle/hier_real.wgsl");
 const HIER_CYCLE: &str = include_str!("cycle/hier_cycle.wgsl");
 const HIER_SWEEP: &str = include_str!("cycle/hier_sweep.wgsl");
 const HIER_SPLIT: &str = include_str!("cycle/hier_split.wgsl");
-const HIER_REUSE: &str = include_str!("cycle/hier_reuse.wgsl");
 /// A sweep's narrow block levels in one workgroup (fn-256 task 6).
 pub(super) const FOLD: &str = include_str!("cycle/fold.wgsl");
 const SOFT64: &str = include_str!("cycle/soft64.wgsl");
@@ -235,7 +234,7 @@ pub(super) fn hier_cycle_source() -> String {
 pub(super) fn hier_cycle_source_at(width: u32) -> String {
     let cols = HIER_COLS.replace("const WG: u32 = 64u;", &format!("const WG: u32 = {width}u;"));
     format!(
-        "{}\n{REAL}\n{HIER_REAL}\n{cols}\n{HIER_CYCLE}\n{HIER_SWEEP}\n{HIER_SPLIT}\n{HIER_REUSE}\n{FOLD}",
+        "{}\n{REAL}\n{HIER_REAL}\n{cols}\n{HIER_CYCLE}\n{HIER_SWEEP}\n{HIER_SPLIT}\n{FOLD}",
         contract_with(ARITH)
     )
 }

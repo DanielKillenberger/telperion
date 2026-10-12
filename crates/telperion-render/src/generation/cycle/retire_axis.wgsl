@@ -107,6 +107,53 @@ fn close_main(@builtin(global_invocation_id) id: vec3<u32>) {
     set_rt(R_SEEN, i, 1u);
 }
 
+// Axis `c`'s vigour as its parent `i`'s subtree weighs it: its making
+// draws' presences, a woken bud's by its bearer's kept share, and an axis
+// carried on by its parent's end (`presence::assign`).
+fn vigour(c: u32, i: u32) -> f32 {
+    var b1 = q64(ax64(c, A_B1));
+    if rt(R_WAKE, c) != 0u {
+        b1 = rtf(R_QB1, c);
+    }
+    let made = m(q64(ax64(c, A_B0)), b1);
+    let kind = kind_of(c);
+    if kind == CONTINUED || kind == RELAYED {
+        return m(rtf(R_END, i), made);
+    }
+    return made;
+}
+
+// Each laid axis whose bearer closed this cycle: its part in the living
+// the bearer carries up (`carried_up`), each as `shed::fades` forms it:
+// its weight, the bearer's living before it was made, and the cycles
+// between. Taken once, in a pass of its own: inside the sweep, the loops
+// over the bearer's units and phytomers cost every block's workgroup
+// as much as the axes it took (DESIGN.md section 16).
+@compute @workgroup_size(64)
+fn terms_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let c = index(id);
+    if c >= cfg.n {
+        return;
+    }
+    let i = ax(c, A_PARENT);
+    if !(i < cfg.n && rt(R_CLOSED, i) != 0u) {
+        return;
+    }
+    var weight = qf(vigour(c, i));
+    if kind_of(c) == LATERAL {
+        weight = m(weight, qf(node_scale(i, ax(c, A_NODE))));
+    }
+    let span = ax(c, A_BIRTH) - min(ax(i, A_BIRTH), ax(c, A_BIRTH));
+    let upto = min(span, ax(i, A_UNITS));
+    var before = 0.0;
+    if upto != 0u {
+        before = tick_q(ax(i, A_SLEEP)) + presences(i, upto).x;
+    }
+    set_rtf(R_WEIGHT, c, weight);
+    set_rtf(R_BEFORE, c, before);
+    set_rtf(R_GAP, c, f32(span - upto));
+}
+
 // The presences of the draws that made `a`'s successors, summed in order
 // from Rust's -0.0.
 fn successors_on(a: u32) -> f32 {

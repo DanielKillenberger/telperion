@@ -1,10 +1,12 @@
-//! fn-256 task 10 (COUNCIL.md round 5, step 10), measured: what changes
-//! in each cycle's inputs to the upward sums and retirement, and what
-//! they take (`census::REUSE`, counted where `Tables::counted`), for
-//! Telperion 82, the oak 40 and the beech 40 at seed 42, grown as a build
-//! grows them. Each cycle's words go to `REUSE_OUT`; `REUSE_PRESETS`
-//! names a comma list. `cargo test --profile ci -p telperion-render
-//! reuse_is_counted -- --ignored --nocapture`, under the GPU lock.
+//! fn-256 task 10 (COUNCIL.md round 5, step 10), measured: what each
+//! cycle's retirement takes against what it holds (`census::REUSE`,
+//! counted where `Tables::counted`), for Telperion 82, the oak 40 and the
+//! beech 40 at seed 42, grown as a build grows them, beside the census's
+//! births, wakings and shedding. Each cycle's words go to `REUSE_OUT` (an
+//! absolute path); `REUSE_PRESETS` names a comma list. `cargo test
+//! --profile ci -p telperion-render reuse_is_counted -- --ignored
+//! --nocapture`, under the GPU lock. The upward sums' count, taken before
+//! that expansion stopped, is DESIGN.md section 16's.
 use super::build::Tables;
 use super::build_arena::hint;
 use super::build_grow::{grow_now, Sizes};
@@ -72,24 +74,7 @@ fn reuse_is_counted() {
 
 /// The count's word `w`, named.
 fn word(w: usize) -> Reused {
-    const ALL: [Reused; c::REUSED] = [
-        Reused::TotalsNew,
-        Reused::TotalsLight,
-        Reused::TotalsWood,
-        Reused::TotalsFrozen,
-        Reused::TotalsTook,
-        Reused::TotalsBlocks,
-        Reused::SubNew,
-        Reused::SubOwn,
-        Reused::SubTook,
-        Reused::SubBlocks,
-        Reused::Lit,
-        Reused::Growing,
-        Reused::GrowingHeld,
-        Reused::Closed,
-        Reused::ClosedNow,
-        Reused::RetireBlocks,
-    ];
+    const ALL: [Reused; c::REUSED] = [Reused::Closed, Reused::ClosedNow, Reused::Blocks];
     assert_eq!(ALL[w] as usize, w, "the words in order");
     ALL[w]
 }

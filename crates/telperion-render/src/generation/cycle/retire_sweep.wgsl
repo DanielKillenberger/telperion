@@ -68,44 +68,18 @@ fn span_at(run: vec4<u32>, d: u32, lid: u32) -> vec2<u32> {
     return workgroupUniformLoad(&w_span);
 }
 
-// Axis `c`'s vigour as its parent `i`'s subtree weighs it: its making
-// draws' presences, a woken bud's by its bearer's kept share, and an axis
-// carried on by its parent's end (`presence::assign`).
-fn vigour(c: u32, i: u32) -> f32 {
-    var b1 = q64(ax64(c, A_B1));
-    if rt(R_WAKE, c) != 0u {
-        b1 = rtf(R_QB1, c);
-    }
-    let made = m(q64(ax64(c, A_B0)), b1);
-    let kind = kind_of(c);
-    if kind == CONTINUED || kind == RELAYED {
-        return m(rtf(R_END, i), made);
-    }
-    return made;
-}
-
 // Closed axis `i`'s subtree's living and its latest wait: never judged
 // before it closes, so neither retired nor inside a retired subtree.
 fn carried_up(i: u32) {
     var lived = rtf(R_LIVED0, i);
     var alive = 0.0;
     var wait = rt(R_WAKE, i);
-    let birth = ax(i, A_BIRTH);
-    let units_n = ax(i, A_UNITS);
     let kids = kids_within(vec2<u32>(hlists[ls(R_KID_START, i)], hlists[ls(R_KID_START, i + 1u)]), cfg.stride);
+    // Each child's part, as `terms_main` took it.
     for (var k = kids.x; k < kids.y; k++) {
         let c = hlists[ls(R_KIDS, k)];
-        var weight = qf(vigour(c, i));
-        if kind_of(c) == LATERAL {
-            weight = m(weight, qf(node_scale(i, ax(c, A_NODE))));
-        }
-        let span = ax(c, A_BIRTH) - min(birth, ax(c, A_BIRTH));
-        let upto = min(span, units_n);
-        var before = 0.0;
-        if upto != 0u {
-            before = tick_q(ax(i, A_SLEEP)) + presences(i, upto).x;
-        }
-        lived = max(lived, before + m(weight, f32(span - upto) + rtf(R_LIVED, c)));
+        let weight = rtf(R_WEIGHT, c);
+        lived = max(lived, rtf(R_BEFORE, c) + m(weight, rtf(R_GAP, c) + rtf(R_LIVED, c)));
         alive = max(alive, m(rtf(R_ALIVE, c), weight));
         wait = max(wait, rt(R_WSUB, c));
     }

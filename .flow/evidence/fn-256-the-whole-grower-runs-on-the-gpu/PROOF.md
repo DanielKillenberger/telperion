@@ -341,3 +341,19 @@ The lattice sleeps where nothing shades: the extinction is zero, or no PA has le
 | Beech 40 | 159.3 | 154.4 (−4.9) | 9.1 | 4.1 | 13,160 → 12,875 |
 
 Every other phase is within 1% of task 7's figure; run-to-run variation is about 5%.
+
+# fn-256 task 10: upward sums and retirement reuse unchanged subtrees (worker, 2026-10-12)
+
+COUNCIL.md round 5, step 10. Design, counts and measurements are in DESIGN.md section 16. Measured on the RTX 3080 with 1.7 to 2.2 GB held by desktop processes, one GPU process at a time under the GPU lock. Raw output is in `raw/t10/`.
+
+- **What changes was counted first** (`reuse_is_counted`). The totals need not retake 55% / 68% / 36% of the axes they visit (Telperion / oak / beech), yet three quarters of the blocks hold one that changed. Retirement carried up 9 axes that closed in earlier cycles for each one that closed in the cycle.
+- **The upward sums' dirty bits: built, measured, stopped.** Net +1.1 / +0.7 / −0.1 ms: marking cost what skipping saved. Deleted.
+- **Retirement: each living carried up once, each child's terms taken once.** Stamped GPU ms, medians of three alternating runs against the base `1c69bf648`:
+
+| Preset | Retirement | Build's stamped GPU time |
+|---|---|---|
+| Telperion 82 | 220.9 → 60.8 | 1,066.6 → 907.0 (−15.0%) |
+| Oak 40 | 37.4 → 11.5 | 222.2 → 196.4 (−11.6%) |
+| Beech 40 | 26.3 → 11.3 | 154.4 → 138.8 (−10.1%) |
+
+- **Node tables, byte-identical (met).** All 8 presets at caps 64, 128 and 1,024 on ten fresh contexts: all 240 hashes equal task 9's (`node_tables_are_hashed` with `NODES_CAPS` and `NODES_CONTEXTS`).

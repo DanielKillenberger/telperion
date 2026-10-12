@@ -46,44 +46,25 @@ pub(super) const LIGHT_ERRORS: usize = 136;
 /// The hierarchy's axes left unplaced after each round's last pass, its
 /// faults, and the layout's faults and deepest generations.
 pub(super) const UNPLACED: usize = 140;
-/// What the cycle's upward sums and retirement reused (fn-256 task 10,
-/// DESIGN.md section 16), counted where a measurement asks
-/// (`Tables::counted`), `REUSED` words (`Reused`).
-pub(super) const REUSE: usize = 156;
-#[cfg_attr(not(test), allow(dead_code))]
-pub(super) const REUSED: usize = 16;
 pub(super) const HIER_FAULT: usize = 172;
 pub(super) const LAY_FAULT: usize = 173;
 pub(super) const LAY_DEEP: usize = 176;
-/// The words of `REUSE`, in order: the totals' axes whose own part they
-/// had not taken (born, or forgotten by a compaction), lit now or when
-/// last taken, whose wood or frozen upkeep changed; the axes they took
-/// (those and their ancestors) and the blocks they entered; the same for
-/// the subtrees' lit presence (not taken, own changed, took, entered);
-/// the lit axes, the growing buds, and those whose own lit presence held;
-/// retirement's closed axes, those closed this cycle (the ones it
-/// carries up) and the blocks it entered.
+/// What the cycle's retirement reused (fn-256 task 10, DESIGN.md section
+/// 16), counted where a measurement asks (`Tables::counted`), `REUSED`
+/// words (`Reused`).
+pub(super) const REUSE: usize = 156;
+#[cfg_attr(not(test), allow(dead_code))]
+pub(super) const REUSED: usize = 3;
+/// The words of `REUSE`, in order: the laid axes closed, those closed
+/// this cycle (the ones retirement carries up), and the blocks its
+/// living's sweep entered.
 #[cfg_attr(not(test), allow(dead_code))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Reused {
-    TotalsNew,
-    TotalsLight,
-    TotalsWood,
-    TotalsFrozen,
-    TotalsTook,
-    TotalsBlocks,
-    SubNew,
-    SubOwn,
-    SubTook,
-    SubBlocks,
-    Lit,
-    Growing,
-    GrowingHeld,
     Closed,
     ClosedNow,
-    RetireBlocks,
+    Blocks,
 }
-
 /// A flag a word: set where a count passed its capacity or bound, or a
 /// phase faulted.
 pub(super) const FLAGS: usize = 192;

@@ -16,7 +16,7 @@ use super::hier_scan::{Scan, sums_words, zeroed};
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
-pub(super) const ENTRIES: [&str; 18] = [
+pub(super) const ENTRIES: [&str; 15] = [
     "mark_main",
     "shed_main",
     "compact_main",
@@ -32,9 +32,6 @@ pub(super) const ENTRIES: [&str; 18] = [
     "walk_fold_main",
     "sub_fold_main",
     "split_fold_main",
-    "totals_mark_main",
-    "sub_mark_main",
-    "reused_main",
 ];
 pub(super) const MARK: usize = 0;
 pub(super) const SHED: usize = 1;
@@ -49,23 +46,10 @@ pub(super) const SUB: usize = 9;
 pub(super) const SPLIT: usize = 10;
 /// Each sweep's narrow levels folded into one workgroup (`fold.wgsl`).
 pub(super) const FOLDS: [usize; 4] = [11, 12, 13, 14];
-/// The axes whose own part of each upward sum changed, marked with their
-/// ancestors, and a measurement's count of them (`hier_reuse.wgsl`).
-pub(super) const TOTALS_MARK: usize = 15;
-pub(super) const SUB_MARK: usize = 16;
-pub(super) const REUSED: usize = 17;
 
 /// The sums' columns (`hier_cycle.wgsl`'s `S_` words), and those the
 /// cycle starts from the tree's (memory, kept, size) or from none.
 pub(super) const SUMS: u64 = 19;
-/// Past the sums, what the upward sums last took of each axis and the
-/// cycle each last marked an axis or a block (`hier_reuse.wgsl`'s
-/// `S_HAD_WOOD` to `S_BLOCK_SUB`), `S_HAD` the column a compaction clears.
-const REUSE: u64 = 7;
-pub(super) const S_HAD: u64 = 21;
-/// The tally's count of what the sums reused, and its words.
-pub(super) const Y_REUSE: u64 = 96;
-pub(super) const REUSE_WORDS: u64 = 13;
 #[cfg(test)]
 pub(super) const S_LIGHT: u64 = 1;
 #[cfg(test)]
@@ -164,7 +148,7 @@ impl Sums {
         let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
         let rows = io::buffer(gpu, "hierarchy rows", 4 * 8 * u64::from(pas.max(1)), usage, &[])?;
         Ok(Self {
-            sums: zeroed(gpu, "hierarchy sums", (SUMS + REUSE) * s)?,
+            sums: zeroed(gpu, "hierarchy sums", SUMS * s)?,
             live: zeroed(gpu, "hierarchy living", LIVE * u64::from(live_stride))?,
             norm: zeroed(gpu, "hierarchy normaliser", N_ORDER + s + 2 * blocks * u64::from(pas))?,
             tally: zeroed(gpu, "hierarchy sums tally", TALLY)?,
@@ -179,13 +163,6 @@ impl Sums {
             flags: None,
             _held: Vec::new(),
         })
-    }
-
-    /// What the upward sums took of each axis let go, as a compaction
-    /// moves the axes: the next cycle takes every axis anew.
-    pub(super) fn forget(&self, e: &mut wgpu::CommandEncoder) {
-        let col = 4 * u64::from(self.stride);
-        e.clear_buffer(&self.sums, S_HAD * col, Some(col));
     }
 
     #[cfg(test)]
@@ -258,8 +235,6 @@ impl Sums {
         let (base, apexes) = (&self.binds[0], self.live_n.div_ceil(64));
         let levels = self.level_sizes.len();
         k.sums.run(e, base, MARK, apexes);
-        let laid = self.stride.div_ceil(64);
-        k.sums.run(e, base, TOTALS_MARK, laid);
         for l in (0..levels).rev() {
             k.sums.run(e, &self.binds[l], TOTALS, self.level_sizes[l]);
         }
@@ -270,7 +245,6 @@ impl Sums {
         self.flags.as_ref().expect("planned").record(&k.scan, e);
         k.sums.run(e, base, COMPACT, apexes);
         k.sums.run(e, base, PRESENCE, apexes);
-        k.sums.run(e, base, SUB_MARK, laid);
         for l in (0..levels).rev() {
             k.sums.run(e, &self.binds[l], SUB, self.level_sizes[l]);
         }
@@ -288,7 +262,7 @@ impl Sums {
 
     /// The dispatches `record` makes.
     pub(super) fn dispatches(&self) -> usize {
-        4 * self.level_sizes.len() + 8 + BUD_CHUNKS as usize + self.flags.as_ref().map_or(0, Scan::dispatches)
+        4 * self.level_sizes.len() + 6 + BUD_CHUNKS as usize + self.flags.as_ref().map_or(0, Scan::dispatches)
     }
 
     #[cfg(test)]

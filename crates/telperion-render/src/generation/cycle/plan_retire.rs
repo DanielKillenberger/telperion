@@ -44,6 +44,7 @@ impl Build {
         b.dispatch(ret(rd::OPEN), base.clone(), sources);
         b.dispatch(ret(rd::CLOSE), base.clone(), laid);
         b.dispatch(ret(rd::WOKEN), base.clone(), woken);
+        b.dispatch(ret(rd::TERMS), base.clone(), laid);
         let mut levels = Vec::new();
         for l in 0..bound.levels {
             let bind = bound_slot(b, l);
@@ -65,7 +66,7 @@ impl Build {
             let (at, bytes) = (4 * rd::L_REUSE, 4 * rd::REUSE_WORDS);
             b.step(Step::Clear { buffer: (*r.verdicts).clone(), at, bytes: Some(bytes) });
             b.dispatch(ret(rd::REUSED), base.clone(), laid);
-            b.tally(&r.verdicts, at, c::REUSE + c::Reused::Closed as usize, bytes);
+            b.tally(&r.verdicts, at, c::REUSE, bytes);
         }
         let laid = per(b, E::At(c::LAID0));
         b.dispatch(ret(rd::VERDICT), base.clone(), laid);

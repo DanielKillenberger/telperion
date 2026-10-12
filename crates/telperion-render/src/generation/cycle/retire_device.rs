@@ -14,7 +14,7 @@ const REAL: &str = include_str!("real.wgsl");
 const COMPACT: &str = include_str!("compact.wgsl");
 const UNITS: &str = include_str!("retire_units.wgsl");
 
-pub(super) const ENTRIES: [&str; 10] = ["open_main", "close_main", "woken_main", "living_main", "verdict_main", "end_main", "inside_main", "living_fold_main", "inside_fold_main", "reused_main"];
+pub(super) const ENTRIES: [&str; 11] = ["open_main", "close_main", "woken_main", "living_main", "verdict_main", "end_main", "inside_main", "living_fold_main", "inside_fold_main", "reused_main", "terms_main"];
 pub(super) const OPEN: usize = 0;
 pub(super) const CLOSE: usize = 1;
 pub(super) const WOKEN: usize = 2;
@@ -26,9 +26,11 @@ pub(super) const INSIDE: usize = 6;
 pub(super) const FOLDS: [usize; 2] = [7, 8];
 /// A measurement's count of what the cycle reused (`Tables::counted`).
 pub(super) const REUSED: usize = 9;
+/// Each child's part in the living its closing bearer carries up.
+pub(super) const TERMS: usize = 10;
 /// `ret`'s columns a laid axis (`retire_cols.wgsl`'s `R_`), past them the
 /// blocks' column, and the header's words before the PA constants.
-pub(super) const R_COLS: u64 = 14;
+pub(super) const R_COLS: u64 = 17;
 const HEAD: u64 = 64;
 /// The log's count of what the cycle reused, its words; the log's words
 /// before its entries, and its entries' words.

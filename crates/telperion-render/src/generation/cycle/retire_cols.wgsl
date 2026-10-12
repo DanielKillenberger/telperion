@@ -110,8 +110,10 @@ const H_BLOCK: u32 = 1u;
 // this cycle, whether its presences are assigned, its own living time
 // and its end's presence, its subtree's lived and alive, the cycle its
 // woken bud's wait passes (none: 0) and its subtree's latest, a woken
-// bud's birth presence by its bearer's kept share, and a retired root's
-// lived and alive.
+// bud's birth presence by its bearer's kept share, a retired root's
+// lived and alive, and (fn-256 task 10) its part in the living its bearer
+// carries up, taken as the bearer closes: its bearer's living before it
+// was made, its weight, and the cycles between.
 const R_OPEN: u32 = 0u;
 const R_FATE: u32 = 1u;
 const R_PEND: u32 = 2u;
@@ -126,11 +128,14 @@ const R_WSUB: u32 = 10u;
 const R_QB1: u32 = 11u;
 const R_ROOT_LIVED: u32 = 12u;
 const R_ROOT_ALIVE: u32 = 13u;
-const R_COLS: u32 = 14u;
+const R_BEFORE: u32 = 14u;
+const R_WEIGHT: u32 = 15u;
+const R_GAP: u32 = 16u;
+const R_COLS: u32 = 17u;
 // Past the columns a laid axis, the cycle a block last held an axis
 // closed in it (fn-256 task 10), by the block's number: a compaction
 // moves no block.
-const R_BLOCKS: u32 = 14u;
+const R_BLOCKS: u32 = 17u;
 // The header from `cfg.head`: the laid axes the last cycle began with;
 // each PA's constants from `cfg.head + 64` (`settle_shared.wgsl`'s `K_`).
 const HD_PREV_LAID: u32 = 0u;
@@ -141,9 +146,9 @@ const K_DELAY: u32 = 3u;
 const K_FLAGS: u32 = 7u;
 const KF_SHEDS: u32 = 1u;
 // The log: its count, a fault where it would pass its most, a
-// measurement's count of what the cycle reused (`census::Reused`'s last
-// three), then each entry's root, cycle, verdict (waited 0, kept 1,
-// retired 2), lived and alive.
+// measurement's count of what the cycle reused (`census::Reused`), then
+// each entry's root, cycle, verdict (waited 0, kept 1, retired 2), lived
+// and alive.
 const L_COUNT: u32 = 0u;
 const L_FAULT: u32 = 1u;
 const L_REUSE: u32 = 2u;

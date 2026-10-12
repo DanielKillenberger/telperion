@@ -659,3 +659,94 @@ A round is 3 dispatches counted and 5 emitted, from 14 and 21. Every fusion was 
 ## 15. The lattice dormant where nothing shades (task 9, COUNCIL.md round 5 step 9)
 
 `Light::dormant` holds where the extinction is zero, or where no PA has leaf area and the directions' shares, summed in order and rounded to f32, are one. Either way every node's light is one. A dormant cycle records the box, the grid, the deposit and the read, but none of the lattice's own dispatches. The read takes a literal 1.0 at each corner (`C.dormant`), the light the combine would have written. Every flag and refusal is recorded as before.
+
+## 16. Upward sums and retirement reuse unchanged subtrees (task 10, COUNCIL.md round 5 step 10)
+
+### 16.1 What changes in a cycle's inputs, counted first
+
+Each laid axis's own part of each upward sum was held against what the sum last took of it, and the device counted what changed (`census::REUSE`, `reuse_is_counted`, commit `de0eb93c9`; raw `raw/t10/reuse`). Seed 42, grown as a build grows them, every count summed over the build's cycles. Shares are of the laid axes the sweeps visit (16.38M, 1.63M and 369k over the build) unless stated.
+
+| Input, per axis a cycle | Telperion 82 | Oak 40 | Beech 40 |
+|---|--:|--:|--:|
+| Births (axes made, census) | 1.53M | 164k | 66.9k |
+| Not taken before: births, and every axis after a compaction moved them | 2.67M (16.3%) | 153k (9.4%) | 88.1k (23.8%) |
+| Light: lit now or when last taken | 4.23M (25.8%) | 343k (21.1%) | 136k (36.8%) |
+| Wood upkeep changed | 3.84M (23.5%) | 275k (16.8%) | 124k (33.6%) |
+| Frozen summary changed outside a compaction | 0 | 0 | 0 |
+| **Totals' axes to take**, the changed and their ancestors | **7.42M (45.3%)** | **523k (32.1%)** | **237k (64.0%)** |
+| Blocks holding one, of the blocks visited | 75.3% | 79.3% | 96.3% |
+| Own lit presence or growth changed | 1.97M (12.0%) | 343k (21.0%) | 60.8k (16.5%) |
+| **Subtrees' lit presence: axes to take** | **5.57M (34.0%)** | **522k (32.0%)** | **178k (48.1%)** |
+| Blocks holding one | 75.2% | 78.7% | 96.3% |
+| Growing buds; their own lit presence held from the last cycle | 4.98M; 45.2% | 368k; 0% | 177k; 42.5% |
+| Woken buds (census) | 0 | 19 | 0 |
+| Apexes shed by the balance (census) | 0 | 683 | 0 |
+| Retirement: closed axes it carries up today, of the laid | 10.77M (65.7%) | 1.23M (75.6%) | 176k (47.6%) |
+| **Retirement: closed this cycle**, of those | **1.20M (11.1%)** | **125k (10.1%)** | **32.1k (18.3%)** |
+| Blocks holding one, of the blocks visited | 49.3% | 54.6% | 68.0% |
+
+- **The upward sums.** The totals need not retake 55%, 68% and 36% of the axes they visit, but the paths from the changed axes to the root cross three quarters of the blocks (nearly all on the beech).
+- **Retirement.** Nine in ten of the axes it carries up each cycle closed in an earlier cycle.
+- **The normaliser's 1,024-bud blocks.** Nothing about them is cached, so nothing needs invalidating. On the lit oak no growing bud's own lit presence holds from one cycle to the next. On Telperion and the beech, 43-45% hold, but the cycle's new buds enter the subtree order between the old ones. That reason is inferred: no count shows how often a block's membership or ranks hold.
+
+### 16.2 The upward sums: built, measured, stopped
+
+**As built** (`de0eb93c9`, `hier_reuse.wgsl`):
+- A flat pass held each axis's own part of the totals against what they last took: its wood's upkeep as an f32 (or its frozen upkeep), and whether it is lit now or was then. A second pass did the same for the subtrees' lit presence: the own lit presence bits and the growth flag.
+- A changed or untaken axis was marked with its ancestors up to the first already marked, each block with it, by the cycle's number.
+- `totals_main` and `sub_main`, and their folds, entered only marked blocks and took only marked axes. Each took its own value, then every child's cached or recomputed value in order; nothing was subtracted or added back.
+- The walk and the split took every axis.
+- A compaction cleared what the sums had taken.
+- The cycle suite passed (contexts, caps, compaction every cycle against none).
+
+**Measured** (stamped GPU ms, the two sums' kernels with their folds, then the two marking passes; one run each against the base's):
+
+| | Totals | Subtrees' lit presence | Marking | Net |
+|---|---|---|--:|--:|
+| Telperion | 56.3 → 53.6 | 43.4 → 44.3 | +2.9 | **+1.1** |
+| Oak | 10.6 → 10.5 | 8.1 → 8.2 | +0.6 | **+0.7** |
+| Beech | 10.6 → 10.6 | 8.5 → 8.0 | +0.5 | **−0.1** |
+
+**Stopped**, as the council's rule asks: invalidation and scheduling ate the saving.
+- A sweep's cost is its blocks' depth loops, and three quarters of the blocks still hold a marked axis.
+- Narrowing each marked block's depth range by a serial scan was tried; it cost more than it saved.
+- The marks, the cached columns and the skips are deleted. The census keeps retirement's count only.
+
+### 16.3 Retirement: each living carried up once
+
+**Carried up once.** An axis's living and wait are carried up only in the cycle it closes (`R_CLOSED`).
+- **Why that is exact:**
+  - Nothing in a closed subtree grows, wakes or sleeps again.
+  - A candidate stands beside an open axis, so no axis below a closed one is judged again.
+  - What it carried up at its close is therefore what every later cycle would carry up.
+  - The one word that changed later, a retired root's wait set to none, is now set by its verdict.
+  - The retired and inside branches of `carried_up` could no longer be reached and are gone.
+- **The sweep's blocks.** It enters only the blocks holding an axis closed this cycle. `close_main` stamps those blocks by cycle number in a column past the axes' own, which no compaction moves; a compaction renumbers no block.
+
+**Each child's terms taken once.** The first build of the above saved only 15% (Telperion's living sweep 190.0 → 161.7 ms) while carrying up 11% of the axes. Its dispatches kept their 150-400 µs. `inside_main`, the same sweep shape, takes 20-30 µs a dispatch. Inferred cause: the unit and phytomer loops inlined in `carried_up` (`node_scale`, `presences`) held every block's workgroup to their registers. So each child's part in its bearer's living is now taken once, by `terms_main`, a flat pass after the woken buds are sized, for each axis whose bearer closed this cycle:
+- its weight;
+- the bearer's living before it was made;
+- the cycles between.
+
+`carried_up` folds these three in the children's order, with `shed::fades`' own expressions. They are three more `ret` columns per axis, moved by a compaction with the rest.
+
+### 16.4 Exact
+
+- **Node tables:** all 8 presets at their default age and seed, at caps 64, 128 and 1,024, on ten fresh contexts. All 240 hashes equal the post-task-9 hashes (`node_tables_are_hashed`; `raw/t10/t10-nodes-10.log`).
+- **The cycle suite (42 tests):**
+  - every verdict and living equals the CPU's;
+  - node tables are the same on ten contexts and at three caps;
+  - compaction every cycle matches compaction never.
+
+### 16.5 Saving per phase
+
+The base `1c69bf648` and this task's tip were run alternately, three runs each, every dispatch stamped (`the_roofline_is_measured`, `raw/t10/time`). Medians in ms; each side's three runs lie within 0.5% of each other.
+
+| Phase | Telperion 82 | Oak 40 | Beech 40 |
+|---|---|---|---|
+| Retirement | 220.9 → **60.8** (−160.2) | 37.4 → **11.5** (−25.9) | 26.3 → **11.3** (−15.0) |
+| of which: the living's sweep with its folds | 190.8 → 27.1 | 32.1 → 5.4 | 20.8 → 5.1 |
+| of which: `terms_main` (new) | +3.0 | +0.6 | +0.6 |
+| Balance and allotment | 291.3 → 291.5 | 72.4 → 72.4 | 62.8 → 62.4 |
+| Every other phase | within 0.3 ms | within 0.2 ms | within 0.2 ms |
+| **Stamped GPU time** | **1,066.6 → 907.0 (−15.0%)** | **222.2 → 196.4 (−11.6%)** | **154.4 → 138.8 (−10.1%)** |
