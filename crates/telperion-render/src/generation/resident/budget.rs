@@ -25,6 +25,7 @@ const GIB: u64 = 1 << 30;
 /// card other processes fill refuses a build by name rather than hanging
 /// (NVRM Xid 109, five times in task 4). Conservative: the reference card
 /// holds 10 GiB, a desktop 2 to 3 of it.
+#[cfg(not(target_arch = "wasm32"))]
 pub(crate) const NATIVE: u64 = 4 * GIB;
 
 /// The share of the device memory other processes leave a native build may
