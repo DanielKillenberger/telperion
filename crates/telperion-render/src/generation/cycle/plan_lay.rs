@@ -9,7 +9,7 @@ use super::build::{Build, Kit};
 use super::census::{self as c, Flag};
 use super::glue;
 use super::lay_device::{self as ld, DEEP, T_DEEP, T_FAULT};
-use super::light_program::{SWEEP_WG, SWEEP_WORK};
+use super::build_light::LAYERS;
 use super::plan::{Builder, PassId, Size, Step, MAXX};
 use super::hier_scan::sums_words;
 use super::plan_scan::{scanned, COLUMN};
@@ -26,10 +26,8 @@ pub(super) struct LayBounds {
     pub generations: u32,
     pub sweeps: u32,
     pub deposits: u32,
-    /// The draw's dispatches over the grown axes, and the light's over
-    /// its lattice, at most.
+    /// The draw's dispatches over the grown axes, at most.
     pub draws: u32,
-    pub lights: u32,
 }
 
 impl Build {
@@ -144,19 +142,12 @@ impl Build {
         }
         b.tally(&l.grid, 0, c::GRID, 32);
         b.point();
-        let dirs = l.n_dirs;
         let nodes = E::At(c::GRID + 6);
-        let columns = E::At(c::GRID + 3).mul(E::At(c::GRID + 4)).mul(E::C(dirs));
-        let paths = nodes.clone().mul(E::C(dirs));
-        let lattice = [(4, columns, ranges.paths), (5, paths, ranges.paths)];
-        // One flag program a point a word: the programs run at once.
-        let past = lattice.iter().fold(E::C(0), |a, (_, n, r)| a.max(n.clone().gt(E::At(rec::LIGHTS).mul(E::C(*r)))));
-        b.flag(Flag::LightRanges, past);
         if !l.dormant {
-            self.plan_lattice(b, (&slot, &main), lattice, (bound, ranges, nodes));
+            self.plan_lattice(b, (&slot, &main), (bound, nodes));
         }
         let read = b.groups(tips.clone().div(E::C(64)));
-        b.dispatch(light(8), main, read);
+        b.dispatch(light(5), main, read);
         self.glue_step(b, kit, (glue::LIT, &l.reads, &self.spare), w, &[(0, tips)]);
         b.tally(&l.state, 24, c::LIGHT_ERRORS, 4);
         b.point();
@@ -166,42 +157,25 @@ impl Build {
         if !l.dormant {
             b.flag(Flag::DepositRanges, leaves.gt(E::At(rec::DEPOSITS).mul(E::C(range))));
         }
-        let layer = E::At(c::GRID + 3).mul(E::At(c::GRID + 4));
-        let per = E::C(SWEEP_WORK).floor(layer.div(E::C(SWEEP_WG))).max(E::C(1));
-        b.flag(Flag::Sweeps, E::At(c::GRID + 5).div(per).gt(E::At(rec::SWEEPS)));
+        b.flag(Flag::Sweeps, E::At(c::GRID + 5).div(E::C(LAYERS)).gt(E::At(rec::SWEEPS)));
         b.count(c::LAID, E::At(c::AXES));
     }
 
-    /// The lattice's dispatches: the densities, the weights and paths in
-    /// ranges, the sweep's layer ranges, then the combine in ranges.
-    fn plan_lattice<S>(&self, b: &mut Builder, (slot, main): (&S, &wgpu::BindGroup), lattice: [(usize, E, u32); 2], (bound, ranges, nodes): (LayBounds, super::build_plan::Ranges, E))
+    /// The lattice's dispatches: the densities, then the sweep, a range
+    /// of layers a dispatch, each over its tiles of every direction.
+    fn plan_lattice<S>(&self, b: &mut Builder, (slot, main): (&S, &wgpu::BindGroup), (bound, nodes): (LayBounds, E))
     where
         S: Fn(&mut Builder, (u32, u32)) -> wgpu::BindGroup,
     {
         let light = |k| (PassId::Light, k);
-        // The densities, a few operations a node, take the lattice in one
-        // dispatch; the weights and paths, and the combine, in ranges.
-        let all = b.groups(nodes.clone().div(E::C(64)));
+        let all = b.groups(nodes.div(E::C(64)));
         b.dispatch(light(3), main.clone(), all);
-        let ranged = |b: &mut Builder, (entry, count, range): (usize, E, u32)| {
-            for r in 0..bound.lights {
-                let bind = slot(b, (0, r * range));
-                let left = count.clone().sub(E::C(r * range)).min(E::C(range));
-                let size = b.groups(left.div(E::C(64)));
-                b.enter(Cond::Light(r));
-                b.dispatch(light(entry), bind, size);
-                b.leave();
-            }
-        };
-        for job in lattice {
-            ranged(b, job);
-        }
+        let tiles = b.groups(self.light.sweep_tiles((E::At(c::GRID + 3), E::At(c::GRID + 4))));
         for k in 0..bound.sweeps {
             let bind = slot(b, (k, 0));
             b.enter(Cond::Sweep(k));
-            b.dispatch(light(6), bind, Size::Direct(self.light.n_dirs.max(1)));
+            b.dispatch(light(4), bind, tiles);
             b.leave();
         }
-        ranged(b, (7, nodes, ranges.nodes));
     }
 }

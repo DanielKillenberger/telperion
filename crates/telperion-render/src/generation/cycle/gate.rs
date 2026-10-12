@@ -15,7 +15,6 @@ pub(super) enum Cond {
     Units(u32),
     Draw(u32),
     Deposit(u32),
-    Light(u32),
     Sweep(u32),
     Round(u32),
     /// A units round of the living apexes (0) or the wake (1), DESIGN.md
@@ -34,7 +33,6 @@ pub(super) struct Limits {
     pub units: u32,
     pub draws: u32,
     pub deposits: u32,
-    pub lights: u32,
     pub sweeps: u32,
     pub rounds: u32,
     pub passes: u32,
@@ -56,7 +54,6 @@ impl Limits {
             units: b.units,
             draws: b.lay.draws,
             deposits: b.lay.deposits,
-            lights: b.lay.lights,
             sweeps: b.lay.sweeps,
             rounds: b.hier.gens,
             passes: b.hier.passes,
@@ -74,7 +71,6 @@ impl Limits {
             units: self.units.clamp(1, f.units),
             draws: self.draws.clamp(1, f.draws),
             deposits: self.deposits.clamp(1, f.deposits),
-            lights: self.lights.clamp(1, f.lights),
             sweeps: self.sweeps.clamp(1, f.sweeps),
             rounds: self.rounds.clamp(1, f.rounds),
             passes: self.passes.clamp(1, f.passes),
@@ -90,7 +86,6 @@ impl Limits {
             Cond::Units(r) => r < self.units,
             Cond::Draw(r) => r < self.draws,
             Cond::Deposit(r) => r < self.deposits,
-            Cond::Light(r) => r < self.lights,
             Cond::Sweep(k) => k < self.sweeps,
             Cond::Round(r) => r < self.rounds,
             Cond::UnitRound(w, r) => r < self.unit_rounds[w as usize],
@@ -102,9 +97,9 @@ impl Limits {
     }
 
     /// The census's words the device's flags read.
-    pub(super) fn words(&self) -> [u32; 12] {
+    pub(super) fn words(&self) -> [u32; 11] {
         let [a, b] = self.unit_rounds;
-        [self.units, self.draws, self.deposits, self.lights, self.sweeps, self.rounds, self.passes, self.top, self.tail, self.laygens, a, b]
+        [self.units, self.draws, self.deposits, self.sweeps, self.rounds, self.passes, self.top, self.tail, self.laygens, a, b]
     }
 }
 
@@ -114,10 +109,9 @@ pub(super) mod rec {
     pub(in super::super) const UNITS: usize = REC;
     pub(in super::super) const DRAWS: usize = REC + 1;
     pub(in super::super) const DEPOSITS: usize = REC + 2;
-    pub(in super::super) const LIGHTS: usize = REC + 3;
-    pub(in super::super) const SWEEPS: usize = REC + 4;
-    pub(in super::super) const ROUNDS: usize = REC + 5;
-    pub(in super::super) const TOP: usize = REC + 7;
-    pub(in super::super) const TAIL: usize = REC + 8;
-    pub(in super::super) const LAYGENS: usize = REC + 9;
+    pub(in super::super) const SWEEPS: usize = REC + 3;
+    pub(in super::super) const ROUNDS: usize = REC + 4;
+    pub(in super::super) const TOP: usize = REC + 6;
+    pub(in super::super) const TAIL: usize = REC + 7;
+    pub(in super::super) const LAYGENS: usize = REC + 8;
 }

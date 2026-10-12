@@ -31,29 +31,24 @@ pub(super) struct Bounds {
 /// dispatch, DESIGN.md section 5): living apexes a units dispatch, grown
 /// axes a draw, leaves a deposit. Counts, never timings; multiples of
 /// the workgroup. Busiest cycle, Telperion's: about 30,000 apexes, 90,000
-/// axes and 700,000 leaves a millisecond; the oak's lattice about 120,000
-/// nodes combined and 750,000 directions' nodes pathed a millisecond.
+/// axes and 700,000 leaves a millisecond.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) struct Ranges {
     pub units: u32,
     pub draw: u32,
     pub deposit: u32,
-    /// Lattice nodes a densities or combine dispatch takes, and
-    /// directions' columns or nodes a weights or paths dispatch takes.
-    pub nodes: u32,
-    pub paths: u32,
 }
 
 impl Default for Bounds {
     fn default() -> Self {
         Self {
             hier: HierBounds { gens: 4, passes: 4, levels: 8 },
-            lay: LayBounds { generations: 4, sweeps: 2, deposits: 1, draws: 1, lights: 1 },
+            lay: LayBounds { generations: 4, sweeps: 2, deposits: 1, draws: 1 },
             units: 1,
             // Recorded up to eight, each cycle only as far as the rounds
             // the last used and a slack (`Cond::UnitRound`).
             rounds: 8,
-            ranges: Ranges { units: super::device::RANGE, draw: 65536, deposit: 262_144, nodes: 65536, paths: 524_288 },
+            ranges: Ranges { units: super::device::RANGE, draw: 65536, deposit: 262_144 },
         }
     }
 }

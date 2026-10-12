@@ -14,7 +14,7 @@ impl Build {
         let dead: [&Owned; 25] = [
             &h.shape, &h.counts, &h.lists[0], &h.lists[1], &h.bucket, &h.tally, &h.sums, &m.sums, &m.live,
             &m.norm, &m.tally, &m.rows, &m.scan_sums, &self.tree, &l.points, &l.reads, &l.state, &l.grid,
-            &l.quanta, &l.field, &l.scratch, &l.start, &self.layout.lists, &self.layout.counts, &self.inputs,
+            &l.quanta, &l.field, &l.depths, &l.start, &self.layout.lists, &self.layout.counts, &self.inputs,
         ];
         let rest = [&self.counts, &self.flags, &self.spare, &self.scan_tally, &self.scan_sums];
         let mut freed = 0;

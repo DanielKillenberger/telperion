@@ -1,6 +1,7 @@
 //! The device's light held to the CPU's `read_light`: young trees in
-//! seconds, every word of the box, quanta, densities and lattice exact,
-//! the f32 reads compared apart; and the busy cycles, measured.
+//! seconds, every word of the box, quanta and densities exact, each node's
+//! light and each read within the ruled tolerance (the sweep runs in f32,
+//! the CPU's in f64); and the busy cycles, measured.
 use super::columns::Cap;
 use super::light_device::{Kernels, Lit, Out, Run};
 use crate::Gpu;
@@ -48,7 +49,7 @@ impl Agreement {
                     let n = (0..cpu.len().max(dev.len()))
                         .filter(|&i| cpu.get(i) != dev.get(i))
                         .count();
-                    let real = |w: Option<&u32>| w.map_or(f32::NAN, |w| f32::from_bits(*w));
+                    let real = |w: Option<&u32>| w.map_or(f32::INFINITY, |w| f32::from_bits(*w));
                     let most = (0..cpu.len().max(dev.len()))
                         .map(|i| (real(cpu.get(i)) - real(dev.get(i))).abs())
                         .fold(0.0, f32::max);
@@ -83,7 +84,14 @@ impl Agreement {
     }
 }
 
-const LATTICE: [&str; 5] = ["errors", "box", "quanta", "densities", "lattice"];
+/// The outputs the device takes as the CPU does, word for word.
+const EXACT: [&str; 4] = ["errors", "box", "quanta", "densities"];
+
+/// Whether the device's light agrees: its inputs exact, each node's
+/// light and each read within the ruled tolerance.
+fn agrees(a: &Agreement) -> bool {
+    a.exact(&EXACT) && a.within("lattice") && a.within("reads")
+}
 
 fn capacity(cap: &Cap) -> u32 {
     cap.u32s("cpu_grid_size").iter().product()
@@ -104,13 +112,13 @@ fn replay(
     let mut e = gpu.encoder(&Default::default());
     run.record(k, &mut e);
     gpu.submit([e.finish()]);
-    let out = run.read(gpu).expect("a readback");
+    let out = run.read(gpu, &lit).expect("a readback");
     let agreement = Agreement::of(&cap, &out);
     let [leaves, tips, dirs] = lit.counts();
     let size = cap.u32s("cpu_grid_size");
     println!(
-        "{name}: cycle {}, {leaves} leaves, {tips} tips, {dirs} directions, lit {}, lattice {size:?} = {} nodes, {} holding leaf area; refused: {:?}",
-        cap.u32s("light_cycle")[0], lit.lit, capacity(&cap), out.quanta.iter().filter(|&&q| q > 0).count(), out.refusals()
+        "{name}: cycle {}, {leaves} leaves, {tips} tips, {dirs} directions, lit {}, lattice {size:?} = {} nodes, {} holding leaf area, {} of {} layers swept; refused: {:?}",
+        cap.u32s("light_cycle")[0], lit.lit, capacity(&cap), out.quanta.iter().filter(|&&q| q > 0).count(), out.swept, size[2], out.refusals()
     );
     println!("{}", agreement.report());
     (run, agreement)
@@ -156,25 +164,10 @@ fn young_differ(holds: &dyn Fn(&Agreement) -> bool) -> Vec<String> {
 }
 
 #[test]
-fn young_lattices_agree_with_the_cpu() {
+fn young_lights_agree_with_the_cpu() {
     let _held = super::super::whole_tree();
-    let differ = young_differ(&|a| a.exact(&LATTICE));
-    assert!(
-        differ.is_empty(),
-        "the device's lattice is not the CPU's: {differ:?}"
-    );
-}
-
-/// The reads within the ruled tolerance: the driver fuses the read's
-/// product into its sum (`light_sweep.wgsl` `read_main`, LIGHT.md).
-#[test]
-fn young_reads_agree_with_the_cpu() {
-    let _held = super::super::whole_tree();
-    let differ = young_differ(&|a| a.within("reads"));
-    assert!(
-        differ.is_empty(),
-        "the device's reads are not the CPU's: {differ:?}"
-    );
+    let differ = young_differ(&agrees);
+    assert!(differ.is_empty(), "the device's light is not the CPU's: {differ:?}");
 }
 
 /// The refusals only the deposit raises: a leaf's area, a node's quanta
@@ -188,7 +181,7 @@ fn reads(gpu: &Gpu, k: &Kernels, lit: &Lit) -> (Vec<u32>, u32) {
     let mut e = gpu.encoder(&Default::default());
     run.record(k, &mut e);
     gpu.submit([e.finish()]);
-    let out = run.read(gpu).expect("a readback");
+    let out = run.read(gpu, lit).expect("a readback");
     (out.reads, out.errors)
 }
 
@@ -317,7 +310,7 @@ fn busy_lights_agree_and_are_timed() {
         }
         for (label, extinction) in runs {
             let (run, agreement) = replay(&gpu, &k, &label, &capture, extinction);
-            if extinction.is_none() && !(agreement.exact(&LATTICE) && agreement.within("reads")) {
+            if extinction.is_none() && !agrees(&agreement) {
                 differ.push(label.clone());
             }
             let times = timed(&gpu, &k, &run);

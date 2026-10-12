@@ -35,7 +35,6 @@ mod hier_plan;
 mod hier_scan;
 mod lay_device;
 mod light_device;
-mod light_program;
 mod plan;
 mod plan_hier;
 mod plan_retire;
@@ -145,7 +144,6 @@ const HIER_SPLIT: &str = include_str!("cycle/hier_split.wgsl");
 /// A sweep's narrow block levels in one workgroup (fn-256 task 6).
 pub(super) const FOLD: &str = include_str!("cycle/fold.wgsl");
 const SOFT64: &str = include_str!("cycle/soft64.wgsl");
-const LIGHT_VM: &str = include_str!("cycle/light_vm.wgsl");
 const LIGHT: &str = include_str!("cycle/light.wgsl");
 const LIGHT_SWEEP: &str = include_str!("cycle/light_sweep.wgsl");
 
@@ -202,15 +200,11 @@ pub(super) fn layout_source() -> String {
     )
 }
 
-/// The light's WGSL (DESIGN.md section 2, step 8): the software f64,
-/// the programs and their registers, the loop that runs them, then the
-/// light's bindings and entries.
+/// The light's WGSL (DESIGN.md sections 2, step 8, and 19): the 64-bit
+/// words its quanta take, the sweep's constants, then its bindings and
+/// entries.
 pub(super) fn light_source() -> String {
-    format!(
-        "{SOFT64}\n{}\n{LIGHT_VM}\n{LIGHT}\n{LIGHT_SWEEP}\n{}",
-        light_program::wgsl(),
-        ARITH
-    )
+    format!("{U64}\n{}\n{LIGHT}\n{LIGHT_SWEEP}", build_light::wgsl())
 }
 
 /// The hierarchy's build (DESIGN.md sections 3 and 4): its columns, the

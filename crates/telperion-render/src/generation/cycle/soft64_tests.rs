@@ -1,10 +1,9 @@
-//! The software f64 (`soft64.wgsl`) and the light's `exp` program held to
-//! Rust's f64 and to libm's `exp`, on the device, word for word: over a
-//! million inputs an operation, drawn to reach every path (any exponent,
-//! subnormals, zeros of both signs, cancellation, rounding ties, overflow).
+//! The software f64 (`soft64.wgsl`, the settle's) held to Rust's f64 on
+//! the device, word for word: over a million inputs an operation, drawn to
+//! reach every path (any exponent, subnormals, zeros of both signs,
+//! cancellation, rounding ties, overflow).
 use super::super::io;
 use crate::Gpu;
-use telperion_space::Transcendental;
 
 const PROBE: &str = "
 struct Probe {
@@ -16,10 +15,6 @@ struct Probe {
 @group(0) @binding(0) var<uniform> P: Probe;
 @group(0) @binding(1) var<storage, read> xs: array<vec4<u32>>;
 @group(0) @binding(2) var<storage, read_write> out: array<vec2<u32>>;
-
-fn hook(code: u32) {
-    exp_hook(code);
-}
 
 @compute @workgroup_size(64)
 fn arith_main(@builtin(global_invocation_id) id: vec3<u32>) {
@@ -42,22 +37,6 @@ fn arith_main(@builtin(global_invocation_id) id: vec3<u32>) {
         default: { r = f64_from_i32(i32(a.x)); }
     }
     out[i] = r;
-}
-
-@compute @workgroup_size(64)
-fn exp_main(@builtin(global_invocation_id) id: vec3<u32>) {
-    let i = id.x + id.y * P.row;
-    if i >= P.n {
-        return;
-    }
-    load_constants();
-    R[R_XN] = xs[i].xy;
-    R[R_SHARE] = R[R_ONE];
-    R[R_SUM] = vec2<u32>(0u);
-    for (var pc = 0u; pc < SHADE_LEN; pc++) {
-        exec(SHADE[pc]);
-    }
-    out[i] = R[R_SUM];
 }
 ";
 
@@ -120,12 +99,7 @@ fn words(x: f64) -> [u32; 2] {
 
 /// Each input row's words on the device under `entry` and `op`.
 fn run(gpu: &Gpu, entry: &str, op: u32, rows: &[[u32; 4]]) -> Vec<u64> {
-    let shader = format!(
-        "{}\n{}\n{}\n{PROBE}",
-        super::SOFT64,
-        super::light_program::wgsl(),
-        super::LIGHT_VM
-    );
+    let shader = format!("{}\n{PROBE}", super::SOFT64);
     let pass = io::Pass::new(gpu, shader, &[true, false], &[entry]);
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
     let n = rows.len();
@@ -342,53 +316,4 @@ fn the_software_conversions_and_floor_are_rusts() {
         wrong.is_empty(),
         "the software conversions are not Rust's: {wrong:?}"
     );
-}
-
-#[test]
-fn the_light_programs_exp_is_libms() {
-    let _held = super::super::whole_tree();
-    let Some(gpu) = super::super::test_gpu() else {
-        return;
-    };
-    let mut d = Draw(0xe4_9f12);
-    let edges: [f64; 8] = [
-        0.0,
-        -0.0,
-        -745.133_219_101_941_1,
-        -708.396_418_532_264_1,
-        -0.346_573_590_279_972_7,
-        -1.039_720_770_839_917_9,
-        709.782_712_893_384,
-        -7.45e2,
-    ];
-    let xs: Vec<f64> = (0..N)
-        .map(|k| {
-            let u = (d.next() >> 11) as f64 / (1u64 << 53) as f64;
-            match k % 5 {
-                0 => -750.0 * u,
-                1 => -2.0 * u,
-                2 => -(2f64).powi(-((d.next() % 70) as i32)) * u,
-                3 => 1420.0 * u - 710.0,
-                _ => {
-                    let edge = edges[k / 5 % edges.len()];
-                    let x =
-                        f64::from_bits(edge.to_bits().wrapping_add(d.next() % 9).wrapping_sub(4));
-                    if x.is_finite() {
-                        x
-                    } else {
-                        edge
-                    }
-                }
-            }
-        })
-        .collect();
-    let inputs: Vec<(f64, f64)> = xs.iter().map(|&x| (x, 0.0)).collect();
-    let want: Vec<u64> = xs.iter().map(|x| x.exp_fixed().to_bits()).collect();
-    let n = differ(
-        "exp",
-        &inputs,
-        &run(&gpu, "exp_main", 0, &rows(&inputs)),
-        &want,
-    );
-    assert_eq!(n, 0, "the light's exp is libm's");
 }

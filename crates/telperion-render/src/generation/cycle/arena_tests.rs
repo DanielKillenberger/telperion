@@ -12,7 +12,7 @@ use super::grown_tests::{device, grown_from};
 use super::plan_units::rounds_used;
 use telperion_core::presets::Preset;
 
-const NAMES: [&str; TABLES] = ["axes", "units", "phytomers", "sleepers", "living", "woken", "leaves", "nodes", "columns"];
+const NAMES: [&str; TABLES] = ["axes", "units", "phytomers", "sleepers", "living", "woken", "leaves", "nodes"];
 
 #[test]
 #[ignore = "a measurement"]

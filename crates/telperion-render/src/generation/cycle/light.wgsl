@@ -1,22 +1,19 @@
-// The cycle's light on the device (DESIGN.md section 2, step 8), the
-// CPU's `Field::quantised` and `Field::at` word for word:
+// The cycle's light on the device (DESIGN.md sections 2, step 8, and 19),
+// the CPU's `Field::quantised` and `Field::at` in f32:
 // - `span_main`: the box over the leaves then the tips, each coordinate's
-//   node the floor of twice it, by order-free atomics;
+//   node the floor of twice it, by order-free atomics; and the highest
+//   node a leaf with area reaches, above which nothing shades;
 // - `grid_main`: the box's size, refused past the contract's nodes or the
-//   buffers' capacity;
+//   buffers' capacity, and the layers the sweep takes;
 // - `deposit_main`: each leaf's area times each corner's f32 weight as
 //   integer quanta of 2^-20 m², a u32 a node, overflow refused by name;
 // - `densities_main`: 8 q 2^-20, to f32 once;
-// - `weights_main`, `path_main`, `sweep_main`: `swept` in software f64
-//   (`light_vm.wgsl`), its parts that read no depth over every node at
-//   once, its depth recurrence one workgroup a sky direction, a range of
-//   layers a dispatch (`light_sweep.wgsl`);
-// - `combine_main`: each direction's light, libm's `exp`, summed in order,
-//   clamped, to f32 once;
-// - `read_main`: each tip's eight corners in f32, as the CPU sums them;
-//   on a dormant lattice each corner's light is one, as the combine
-//   would have written it.
-// Errors set bits in `state[6]`; a refused box stops every later entry.
+// - `sweep_main` and `read_main` (`light_sweep.wgsl`): each direction's
+//   optical depths down the occupied layers, then each tip's eight
+//   corners, each corner's light summed over the directions as it is read.
+// The box, corners, quanta and densities are the CPU's word for word: each
+// f32 operation is the CPU's, and none is a product added. Errors set bits
+// in `state[6]`; a refused box stops every later entry.
 
 struct Cfg {
     leaves: u32,
@@ -25,37 +22,41 @@ struct Cfg {
     capacity: u32,
     lit: u32,
     row: u32,
-    // The depth recurrence's range of layers.
+    // The sweep's range of layers.
     chunk: u32,
-    // A word the driver cannot see is zero (`exact.wgsl`).
-    zero: u32,
+    // The most whole cells a direction's ray moves across a layer, on
+    // either axis: the tiles' reach.
+    reach: u32,
     // The first item of this dispatch's range of its list.
     base: u32,
     // None where the cycle halted (`vm.wgsl`): nothing stands to light.
     go: u32,
-    // The columns (a layer's nodes) the column records hold.
-    columns: u32,
+    // The light where no leaf shades: the shares summed and held to one,
+    // rounded once, as the CPU takes it.
+    open: f32,
     // Whether the lattice sleeps (`build_light.rs`): nothing shades, its
     // dispatches are not recorded, and every node's light is one.
     dormant: u32,
-    // Per direction: x/z, y/z, extinction CELL/z and its share, as f64s,
-    // two to a row.
+    // Per direction, two rows: its whole cells' offset across a layer (x,
+    // y, as i32s) and its bilinear weights in `bilinear`'s order; then the
+    // extinction times its path, and its share; as f32 words.
     dir: array<vec4<u32>, 18>,
 }
 
 @group(0) @binding(0) var<uniform> C: Cfg;
 // The leaves (x, y, z, area), then the tips (x, y, z).
 @group(0) @binding(1) var<storage, read> points: array<vec4<f32>>;
-// Low node (3), high node (3), errors.
+// Low node (3), high node (3), errors, the highest node a leaf with area
+// reaches.
 @group(0) @binding(2) var<storage, read_write> state: array<atomic<i32>>;
-// Low node (3), size (3), nodes, whether the box stands.
+// Low node (3), size (3), nodes, whether the box stands, the layers the
+// sweep takes (from the bottom).
 @group(0) @binding(3) var<storage, read_write> grid: array<u32>;
 @group(0) @binding(4) var<storage, read_write> quanta: array<atomic<u32>>;
-// The densities, then from `C.capacity` the lattice.
+// The densities.
 @group(0) @binding(5) var<storage, read_write> field: array<f32>;
-// Each direction's share of the light at every node, then from
-// `C.dirs C.capacity` two layers' depths a direction, alternating.
-@group(0) @binding(6) var<storage, read_write> scratch: array<vec2<u32>>;
+// Each direction's optical depth at every node the sweep takes.
+@group(0) @binding(6) var<storage, read_write> depths: array<f32>;
 @group(0) @binding(7) var<storage, read_write> reads: array<f32>;
 
 const NONE: u32 = 0xffffffffu;
@@ -65,22 +66,18 @@ const E_CAPACITY: u32 = 4u;
 const E_AREA: u32 = 8u;
 const E_DEPOSIT: u32 = 16u;
 const E_OUTSIDE: u32 = 32u;
-const ONE64: vec2<u32> = vec2<u32>(0u, 0x3ff00000u);
 
 fn fail(bit: u32) {
     atomicOr(&state[6], i32(bit));
 }
 
-// Twice an f64 that is an f32 widened: exact.
-fn twice(x: vec2<u32>) -> vec2<u32> {
-    if is_zero64(x) {
-        return x;
-    }
-    return vec2<u32>(x.x, x.y + (1u << 20u));
-}
-
 fn invocation(id: vec3<u32>) -> u32 {
     return C.base + id.x + id.y * C.row;
+}
+
+// A coordinate's node: the floor of twice it, as the CPU's `node`.
+fn node_of(x: f32) -> f32 {
+    return floor(x / 0.5);
 }
 
 @compute @workgroup_size(64)
@@ -89,15 +86,18 @@ fn span_main(@builtin(global_invocation_id) id: vec3<u32>) {
     if k >= C.leaves + C.tips {
         return;
     }
-    let p = points[k].xyz;
+    let p = points[k];
     for (var a = 0u; a < 3u; a++) {
         if (bitcast<u32>(p[a]) & 0x7fffffffu) >= 0x45800000u {
             fail(E_REACH);
             continue;
         }
-        let n = f64_to_i32(f64_floor(twice(f64_from_f32(p[a]))));
+        let n = i32(node_of(p[a]));
         atomicMin(&state[a], n);
         atomicMax(&state[a + 3u], n + 1);
+        if a == 2u && k < C.leaves && (bitcast<u32>(p.w) & 0x7fffffffu) != 0u {
+            atomicMax(&state[7], n + 1);
+        }
     }
 }
 
@@ -115,7 +115,7 @@ fn grid_main() {
     if nodes.y != 0u || nodes.x > (1u << 28u) {
         fail(E_NODES);
         ok = false;
-    } else if nodes.x > C.capacity || size.x * size.y > C.columns {
+    } else if nodes.x > C.capacity {
         fail(E_CAPACITY);
         ok = false;
     }
@@ -125,6 +125,10 @@ fn grid_main() {
     }
     grid[6] = nodes.x;
     grid[7] = select(0u, 1u, ok);
+    // The layers up to the highest a leaf with area reaches; above it
+    // every depth is nothing.
+    let top = atomicLoad(&state[7]);
+    grid[8] = select(0u, min(u32(top - low.z) + 1u, size.z), top >= low.z);
 }
 
 fn standing() -> bool {
@@ -141,17 +145,29 @@ fn index(n: vec3<i32>) -> u32 {
     return u32((k.z * size.y + k.y) * size.x + k.x);
 }
 
-// The node below each coordinate of the point the corners are about.
+// The node below each coordinate of the point the corners are about, and
+// the eight corners' weights, corner `c` upper on axis `a` where bit `a`
+// of `c` is set: the CPU's `corners`, each weight 1 times the axes'
+// fractions or their complements in axis order.
 var<private> corner_node: vec3<i32>;
+var<private> corner_w: array<f32, 8>;
 
-// The eight corners' f32 weights about `p` into WC0..WC7 (`corners`).
 fn corners_of(p: vec3<f32>) {
-    load_constants();
+    var f: vec3<f32>;
+    var g: vec3<f32>;
     for (var a = 0u; a < 3u; a++) {
-        R[R_S_0 + a] = twice(f64_from_f32(p[a]));
+        let s = p[a] / 0.5;
+        let n = floor(s);
+        corner_node[a] = i32(n);
+        f[a] = s - n;
+        g[a] = 1.0 - f[a];
     }
-    for (var pc = 0u; pc < CORNERS_LEN; pc++) {
-        exec(CORNERS[pc]);
+    for (var c = 0u; c < 8u; c++) {
+        var w = 1.0;
+        for (var a = 0u; a < 3u; a++) {
+            w = w * select(g[a], f[a], ((c >> a) & 1u) == 1u);
+        }
+        corner_w[c] = w;
     }
 }
 
@@ -177,14 +193,15 @@ fn quanta_of(area: u32, w: u32) -> vec2<u32> {
     let prod = mul32(ma, mw);
     let sh = ea + ew - 26;
     if sh >= 0 {
-        if i32(64u - u64_clz(prod)) + sh > 32 {
+        let bits = select(32u - countLeadingZeros(prod.x), 64u - countLeadingZeros(prod.y), prod.y != 0u);
+        if i32(bits) + sh > 32 {
             return vec2<u32>(0u, 1u);
         }
-        return u64_shl(prod, u32(sh));
+        return shl64(prod, u32(sh));
     }
     let k = u32(-sh);
-    let half = u64_shr(prod, k - 1u).x & 1u;
-    let q = u64_add(u64_shr(prod, k), vec2<u32>(half, 0u));
+    let half = shr64(prod, k - 1u).x & 1u;
+    let q = add64(shr64(prod, k), vec2<u32>(half, 0u));
     return vec2<u32>(q.x, select(0u, 1u, q.y != 0u));
 }
 
@@ -196,14 +213,14 @@ fn deposit_main(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     let leaf = points[k];
     let area = bitcast<u32>(leaf.w);
-    if (area & 0x7fffffffu) > 0x7f800000u || (area > SIGN) {
+    if (area & 0x7fffffffu) > 0x7f800000u || (area > 0x80000000u) {
         fail(E_AREA);
         return;
     }
     corners_of(leaf.xyz);
     for (var c = 0u; c < 8u; c++) {
         let at = corner_index(c);
-        let q = quanta_of(area, bitcast<u32>(f64_to_f32(R[R_WC0 + c])));
+        let q = quanta_of(area, bitcast<u32>(corner_w[c]));
         if at == NONE {
             fail(E_OUTSIDE);
             continue;
@@ -221,16 +238,26 @@ fn deposit_main(@builtin(global_invocation_id) id: vec3<u32>) {
     }
 }
 
+// A u32 to f32 to nearest, ties to even, by its kept bits: WGSL leaves
+// the conversion's rounding to the driver.
+fn rounded(q: u32) -> f32 {
+    let drop = 8u - min(countLeadingZeros(q), 8u);
+    if drop == 0u {
+        return f32(q);
+    }
+    let kept = q >> drop;
+    let rest = q & ((1u << drop) - 1u);
+    let half = 1u << (drop - 1u);
+    let up = rest > half || (rest == half && (kept & 1u) == 1u);
+    return f32(kept + select(0u, 1u, up)) * f32(1u << drop);
+}
+
 @compute @workgroup_size(64)
 fn densities_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = invocation(id);
     if !standing() || i >= grid[6] {
         return;
     }
-    let q = atomicLoad(&quanta[i]);
-    var x = f64_from_u32(q);
-    if q != 0u {
-        x.y -= 17u << 20u;
-    }
-    field[i] = f64_to_f32(x);
+    // 8 q 2^-20, a power of two times q rounded once.
+    field[i] = rounded(atomicLoad(&quanta[i])) * (1.0 / 131072.0);
 }

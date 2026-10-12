@@ -173,7 +173,7 @@ pub(super) struct Build {
 
 impl Build {
     /// The buffers for a tree of `caps`, the rows of every cycle uploaded.
-    pub(super) fn new(gpu: &Gpu, t: &Tables, (c, caps, block_cap, records): (&Capture, Caps, u32, u32), (lit, nodes): (Lit, (u32, u32))) -> Result<Self> {
+    pub(super) fn new(gpu: &Gpu, t: &Tables, (c, caps, block_cap, records): (&Capture, Caps, u32, u32), (lit, nodes): (Lit, u32)) -> Result<Self> {
         let state = State::new(gpu, caps)?;
         let mut light = Light::new(gpu, &Cap(c))?;
         light.ensure(gpu, lit, nodes)?;

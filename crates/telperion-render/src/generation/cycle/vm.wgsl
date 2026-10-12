@@ -100,7 +100,6 @@ fn run(j: u32, stopped: bool) {
             case 8u: { r = min(a, b); }
             case 9u: { r = max(a, b); }
             case 10u: { r = u32(a > b); }
-            case 12u: { r = select(0u, a / b, b != 0u); }
             default: { r = 0u; }
         }
         stack[top - 1u] = r;

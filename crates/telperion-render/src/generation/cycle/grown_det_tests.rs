@@ -36,8 +36,8 @@ fn the_grown_state_is_the_same_on_every_context_and_partition() {
             runs.push((format!("block cap {cap}"), Sizes { block_cap: cap, ..Sizes::least() }));
         }
         let small = [
-            Ranges { units: 64, draw: 128, deposit: 192, nodes: 64, paths: 640 },
-            Ranges { units: 1024, draw: 4096, deposit: 8192, nodes: 2048, paths: 16384 },
+            Ranges { units: 64, draw: 128, deposit: 192 },
+            Ranges { units: 1024, draw: 4096, deposit: 8192 },
         ];
         for ranges in small {
             let mut s = Sizes::least();

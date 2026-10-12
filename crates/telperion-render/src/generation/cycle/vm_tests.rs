@@ -16,8 +16,6 @@ fn expressions() -> Vec<E> {
         a.clone().mul(E::C(3)),
         a.clone().div(E::C(64)),
         a.clone().div(z.clone()),
-        a.clone().floor(E::C(7)),
-        a.clone().floor(z.clone()),
         a.clone().min(b.clone()).max(E::C(5)),
         a.clone().gt(b.clone()).sel(E::C(1 << 30), E::C(17)),
         b.clone().gt(a.clone()).sel(a.clone().div(E::C(256)), b.clone().mul(E::C(2))),
@@ -68,7 +66,6 @@ fn sizes() -> Vec<E> {
         a.clone().sub(E::C(1000)).min(E::C(500)).div(E::C(64)),
         a.clone().sub(b.clone()).div(E::C(64)),
         c.clone().gt(E::C(3)).sel(a.clone().sub(b.clone()), E::C(0)),
-        a.clone().div(b.clone()).floor(c.clone().max(E::C(1))),
         a.mul(c).add(b).max(E::C(7)),
     ]
 }

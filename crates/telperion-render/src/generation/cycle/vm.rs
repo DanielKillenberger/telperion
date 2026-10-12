@@ -23,8 +23,6 @@ pub(super) enum E {
     Max(Box<E>, Box<E>),
     /// 1 where the first is the greater, else 0.
     Gt(Box<E>, Box<E>),
-    /// Rounded down; none over none.
-    Floor(Box<E>, Box<E>),
     /// The second where the first is not none, else the third.
     Sel(Box<E>, Box<E>, Box<E>),
     /// The workgroups the host gave dispatch `k` this cycle.
@@ -53,9 +51,6 @@ impl E {
     pub(super) fn gt(self, b: E) -> E {
         E::Gt(Box::new(self), Box::new(b))
     }
-    pub(super) fn floor(self, b: E) -> E {
-        E::Floor(Box::new(self), Box::new(b))
-    }
     pub(super) fn sel(self, then: E, or: E) -> E {
         E::Sel(Box::new(self), Box::new(then), Box::new(or))
     }
@@ -73,7 +68,6 @@ impl E {
             E::Min(a, b) => { let (a, b) = bin(a, b); a.min(b) }
             E::Max(a, b) => { let (a, b) = bin(a, b); a.max(b) }
             E::Gt(a, b) => { let (a, b) = bin(a, b); u32::from(a > b) }
-            E::Floor(a, b) => { let (a, b) = bin(a, b); a.checked_div(b).unwrap_or(0) }
             E::Sel(c, a, b) => if c.eval(census) != 0 { a.eval(census) } else { b.eval(census) },
             E::Given(_) => u32::MAX,
         }
@@ -83,7 +77,6 @@ impl E {
     /// `w` is at least `lo[w]` and at most `hi[w]`.
     pub(super) fn span(&self, lo: &[u32], hi: &[u32]) -> (u32, u32) {
         let bin = |a: &E, b: &E| (a.span(lo, hi), b.span(lo, hi));
-        let floor = |a: u32, b: u32| a.checked_div(b).unwrap_or(0);
         let ceil = |a: u32, b: u32| a.checked_div(b).map_or(0, |_| a.div_ceil(b));
         match self {
             E::C(k) => (*k, *k),
@@ -93,7 +86,6 @@ impl E {
             E::Mul(a, b) => { let (a, b) = bin(a, b); (a.0.saturating_mul(b.0), a.1.saturating_mul(b.1)) }
             // None over none: a divisor that can be none bounds nothing.
             E::Div(a, b) => { let (a, b) = bin(a, b); (ceil(a.0, b.1), if b.0 == 0 { a.1 } else { ceil(a.1, b.0) }) }
-            E::Floor(a, b) => { let (a, b) = bin(a, b); (floor(a.0, b.1), if b.0 == 0 { a.1 } else { floor(a.1, b.0) }) }
             E::Min(a, b) => { let (a, b) = bin(a, b); (a.0.min(b.0), a.1.min(b.1)) }
             E::Max(a, b) => { let (a, b) = bin(a, b); (a.0.max(b.0), a.1.max(b.1)) }
             E::Gt(a, b) => { let (a, b) = bin(a, b); (u32::from(a.0 > b.1), u32::from(a.1 > b.0)) }
@@ -126,7 +118,6 @@ impl E {
             E::Min(a, b) => op(out, a, b, 8),
             E::Max(a, b) => op(out, a, b, 9),
             E::Gt(a, b) => op(out, a, b, 10),
-            E::Floor(a, b) => op(out, a, b, 12),
             E::Sel(c, a, b) => {
                 c.emit(out);
                 a.emit(out);

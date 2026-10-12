@@ -10,7 +10,6 @@ use super::census::{self as c, Flag, PASSES, PASS_LEFT};
 use super::gate::Limits;
 use super::lay_device::DEEP;
 use super::plan_units::rounds_used;
-use super::light_program::{SWEEP_WG, SWEEP_WORK};
 use crate::RenderError;
 
 /// The limits that step with the tree, each past its projection two
@@ -30,7 +29,7 @@ const STEP: [u32; 4] = [2, 1, 2, 2];
 const ROUND_SLACK: [u32; 2] = [2, 3];
 
 /// The sweep's layer ranges the first two cycles record: a lattice of
-/// up to 512 layers where a layer holds 256 nodes or fewer.
+/// up to 128 layers.
 const FIRST_SWEEPS: u32 = 8;
 
 /// The blocks a folded sweep's workgroup takes at once (`fold.wgsl`'s
@@ -63,8 +62,7 @@ pub(super) fn refusal(cycle: u32, flags: &[(Flag, u32)], budget: u32) -> RenderE
 
 /// The layer ranges a sweep over a grid of `size` cells takes.
 fn sweeps_of(size: [u32; 3]) -> u32 {
-    let per = (SWEEP_WORK / (size[0] * size[1]).div_ceil(SWEEP_WG).max(1)).max(1);
-    size[2].div_ceil(per)
+    super::build_light::sweeps_of(size[2])
 }
 
 /// The grid's size in the census's cycle.
@@ -126,7 +124,6 @@ pub(super) fn grown(s: Sizes, (read, prev, cut): (&[u32], Option<&[u32]>, Option
     n.tips = twice(4, n.tips);
     n.points = twice(6, leaves) + n.tips;
     n.nodes = twice(7, n.nodes);
-    n.columns = twice(8, n.columns);
     if n == s {
         return None;
     }
@@ -168,14 +165,12 @@ pub(super) fn limits(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> L
     let born = read[c::AXES].saturating_sub(read[c::AXES0]);
     let live = 2 * read[c::NEXT] + 2 * ahead(c::AXES, born);
     let lit = ahead(c::PHYTS, read[c::PHYTS].saturating_sub(read[c::PHYTS0]));
-    let nodes = 4 * read[c::GRID + 6];
     let r = b.ranges;
     let (top, tail) = folds(read, b.hier.levels);
     Limits {
         units: live.div_ceil(r.units),
         draws: live.div_ceil(r.draw),
         deposits: lit.div_ceil(r.deposit),
-        lights: (9 * nodes).div_ceil(r.paths).max(nodes.div_ceil(r.nodes)),
         sweeps: sweeps_ahead(read, prev) + STEP[3],
         rounds: read[c::GENS] + STEP[0],
         passes: passes(read) + STEP[1],

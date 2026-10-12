@@ -98,7 +98,6 @@ pub(super) enum Flag {
     DrawRanges,
     DepositRanges,
     Sweeps,
-    LightRanges,
     Points,
     LightErrors,
     Collapsed,
@@ -111,7 +110,7 @@ pub(super) enum Flag {
     Compaction,
 }
 
-pub(super) const FLAG_NAMES: [Flag; 24] = [
+pub(super) const FLAG_NAMES: [Flag; 23] = [
     Flag::Axes,
     Flag::Units,
     Flag::Phyts,
@@ -129,7 +128,6 @@ pub(super) const FLAG_NAMES: [Flag; 24] = [
     Flag::DrawRanges,
     Flag::DepositRanges,
     Flag::Sweeps,
-    Flag::LightRanges,
     Flag::Points,
     Flag::LightErrors,
     Flag::Collapsed,

@@ -11,8 +11,8 @@ use super::state::Caps;
 use crate::Result;
 
 /// The tables a build sizes: axes, units, phytomers, sleeping, living and
-/// woken buds, the cycle's leaves, the lattice's nodes and its columns.
-pub(super) const TABLES: usize = 9;
+/// woken buds, the cycle's leaves and the lattice's nodes.
+pub(super) const TABLES: usize = 8;
 
 /// Each table's most rows at a cycle's end against its hint (`TABLES`'
 /// order; the axes' against the expected axes, the rest against the
@@ -22,7 +22,7 @@ pub(super) const TABLES: usize = 9;
 /// the most of each, where the beech sets the axes, phytomers and leaves,
 /// the spruce the units, the Two Trees the lattice. The axes run 0.35
 /// (Telperion at seed 1) to 1.38 (the beech at 42) of their hint.
-pub(super) const ARENA: [f64; TABLES] = [1.3792, 1.1469, 1.9038, 0.0115, 0.1540, 0.0064, 0.4938, 0.2766, 0.0187];
+pub(super) const ARENA: [f64; TABLES] = [1.3792, 1.1469, 1.9038, 0.0115, 0.1540, 0.0064, 0.4938, 0.2766];
 /// The retired rows the records hold at most against the hint, where a
 /// PA keeps them: the ordinary's at seed 42 (the oak's at most 0.88;
 /// `arena_ratios`, 2026-10-12).
@@ -40,7 +40,7 @@ pub(super) const MARGIN: f64 = 1.5;
 pub(super) fn tables(census: &[u32]) -> [u32; TABLES] {
     let w = |k: usize| census[k];
     let leaves = w(c::PHYTS).saturating_sub(w(c::PHYTS0));
-    [w(c::AXES), w(c::UNITS), w(c::PHYTS), w(c::SLEEPERS), w(c::NEXT), w(c::WOKEN), leaves, w(c::GRID + 6), w(c::GRID + 3) * w(c::GRID + 4)]
+    [w(c::AXES), w(c::UNITS), w(c::PHYTS), w(c::SLEEPERS), w(c::NEXT), w(c::WOKEN), leaves, w(c::GRID + 6)]
 }
 
 /// What the closed form expects of a build: its kept phytomers, and its
@@ -103,7 +103,7 @@ impl Sizes {
         let tips = caps.next.max(least.tips);
         let points = (rows(6, 0) + tips).max(least.points);
         let records = (h.kept * RECORDS * MARGIN).ceil() as u32;
-        let sizes = Sizes { caps, points, tips, nodes: rows(7, least.nodes), columns: rows(8, least.columns), records, compact: Compact::Tight, ..least };
+        let sizes = Sizes { caps, points, tips, nodes: rows(7, least.nodes), records, compact: Compact::Tight, ..least };
         Ok(Sizes { bounds: sizes.stated(), ..sizes })
     }
 
@@ -117,7 +117,6 @@ impl Sizes {
         b.units = next.div_ceil(r.units) + 1;
         b.lay.draws = next.div_ceil(r.draw) + 1;
         b.lay.deposits = self.points.div_ceil(r.deposit) + 1;
-        b.lay.lights = (9 * nodes).div_ceil(r.paths).max(nodes.div_ceil(r.nodes)) + 1;
         b.lay.sweeps = 2 * (f64::from(nodes).cbrt().ceil() as u32) + 8;
         b.lay.generations = LAY_GENERATIONS;
         (b.hier.levels, b.hier.gens, b.hier.passes, b.rounds) = (LEVELS, GENS, PASSES, ROUNDS);

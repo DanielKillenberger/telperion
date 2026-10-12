@@ -525,3 +525,46 @@ Every preset at seeds 1 and 42, grow GPU ms and dispatches a cycle, base → now
 - The workspace without the renderer (`cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast`): 1,066 passed (`raw/t12/gate-workspace.log`).
 - The renderer under the GPU lock: 273 passed (`raw/t12/gate-render.log`).
 - `npm test`: 15 files, 162 tests (`raw/t12/gate-npm.log`).
+
+# fn-256 task 13: the light kernels at native speed (worker, 2026-10-13)
+
+DESIGN.md section 19. **Base** is `78cb1605d`: fn-264 merged (every species lit) plus the timing test alone. Both sides built in their own target, measured on the RTX 3080 with about 1.9 GB held by others, one process at a time under the GPU lock and the memory gate. Raw logs are in the session scratchpad (`t13/`).
+
+## The light phase (`the_light_phase_is_timed`, default age, seed 42, stamped GPU ms)
+
+| Preset | Light, base → tip | Light dispatches | Build stamped |
+|---|---|---|---|
+| ordinary 40 | 19.5 → 2.8 | 519 → 421 | 170.1 → 150.7 |
+| oak 40 | 23.5 → 3.4 | 519 → 419 | 155.7 → 134.8 |
+| spruce 40 | 26.4 → 5.6 | 528 → 423 | 245.9 → 222.2 |
+| beech 40 | 17.4 → 2.8 | 519 → 404 | 121.2 → 105.2 |
+| birch 40 | 22.7 → 3.3 | 519 → 432 | 146.7 → 125.0 |
+| date palm 40 | 13.0 → 1.9 | 519 → 400 | 65.4 → 53.1 |
+| **Telperion 82** | **746.7 → 25.6** | 2,412 → 1,090 | 1,378.9 → 655.5 |
+| **Laurelin 80** | **671.7 → 23.5** | 2,242 → 1,056 | 1,259.1 → 604.5 |
+
+Telperion's light now: sweep 10.9 ms (404 dispatches), deposit 5.7 (from 47.4), span 3.3, read 2.6 (the combine fused in), points 2.1. The gate (under 100 ms) is met.
+
+## Warm builds (`build_time`, production path, seed 42, two rounds alternating base and tip)
+
+| Preset | Base ms | Tip ms | Peak MB base → tip |
+|---|---|---|---|
+| ordinary | 463, 464 | 476, 445 | 257 → 251 |
+| oak | 262, 258 | 243, 234 | 1,128 → 1,089 |
+| spruce | 496, 460 | 454, 432 | 2,113 → 2,066 |
+| beech | 207, 192 | 179, 179 | 292 → 284 |
+| birch | 261, 241 | 237, 223 | 719 → 695 |
+| date palm | 88, 83 | 79, 75 | 33 → 32 |
+| **Telperion** | **2,057, 1,987** | **1,261, 1,243** | 3,968 → 3,849 |
+| **Laurelin** | **1,867, 1,812** | **1,147, 1,164** | 3,639 → 3,529 |
+
+## Agreement
+
+- **Captures** (`young_lights_agree_with_the_cpu`, `busy_lights_agree_and_are_timed`): box, quanta and densities exact on all six; each node's light and each read within 2.4e-7 of the CPU's (the ruled tolerance is 5e-3). Oak 80 at 79: 29,376 nodes, 24 of 24 layers swept. Telperion 82 at 81: 59,400 nodes, 27 of 27 layers swept, light 0.39 ms first stamp to last in 7 dispatches.
+- **Whole trees** (`young_trees_grow_on_the_device_as_on_the_cpu`): every preset matched by lineage, nothing unmatched, no finding.
+- **Dormant:** `a_dormant_lattice_reads_as_the_swept_one` holds, 0 reads apart on Telperion and the oak.
+- **Refusals:** the light's six refusals and their names are unchanged; the column records' capacity check went with the records.
+
+## Stills (`resident_stills`, default age and seed, whole, mid and close)
+
+The palm is pixel-identical; the beech and Laurelin differ in at most one pixel; Telperion in 11-81 pixels, the ordinary and birch in under 100, the spruce in 186-1,073, the oak in 3,880-6,527 (one leaf more of 350,269). Sheets of every preset's whole and mid views, base beside tip, and the oak's whole and mid were viewed: not told apart.

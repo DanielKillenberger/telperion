@@ -26,15 +26,13 @@ pub(super) const COMPACTION: &str = "compaction";
 pub(super) const MOST_CYCLES: u32 = 2048;
 
 /// What a build is sized for: the state's tables, the light's points,
-/// tips, lattice nodes and columns, and the loops' bounds.
+/// tips and lattice nodes, and the loops' bounds.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) struct Sizes {
     pub caps: Caps,
     pub points: u32,
     pub tips: u32,
     pub nodes: u32,
-    /// The lattice's columns, a layer's nodes, the sweep's records hold.
-    pub columns: u32,
     /// The retired rows the records hold, where a PA keeps them.
     pub records: u32,
     pub bounds: Bounds,
@@ -48,12 +46,12 @@ impl Sizes {
     /// The smallest a build takes, its bounds stated from its tables.
     pub(super) fn least() -> Self {
         let caps = Caps { axes: 4096, units: 4096, phyts: 16384, sleepers: 4096, next: 4096, woken: 1024 };
-        let s = Self { caps, points: 16384, tips: 4096, nodes: 4096, columns: 1024, records: 0, bounds: Bounds::default(), block_cap: super::hier_build::CAP, compact: Compact::Off };
+        let s = Self { caps, points: 16384, tips: 4096, nodes: 4096, records: 0, bounds: Bounds::default(), block_cap: super::hier_build::CAP, compact: Compact::Off };
         Self { bounds: s.stated(), ..s }
     }
 
-    pub(super) fn lit(&self) -> (Lit, (u32, u32)) {
-        (Lit { leaves: self.points - self.tips.min(self.points), tips: self.tips }, (self.nodes, self.columns))
+    pub(super) fn lit(&self) -> (Lit, u32) {
+        (Lit { leaves: self.points - self.tips.min(self.points), tips: self.tips }, self.nodes)
     }
 }
 
