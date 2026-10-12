@@ -116,3 +116,12 @@ Agreed:
 - Estimates (unmeasured): Fable about 0.4-0.5 s warm for Telperion with an 80 ms dispatch floor; Astra 30-150 ms if the light is replaced, dispatches cut and the full settle avoided. Under 100 ms for a whole hero tree may need fewer coupled years or axes, which is silhouette.
 
 Experiments, in order: E3 the light kernels (device, fn-256 branch); E1 the scale-split oracle on the CPU (oak 80 seed 1, N = 3/5/8, both stand-in forms, kept within 5% and stills not told apart at whole or mid); E2 the scaffold's measured floor (sub-N laterals skipped, Telperion and the lit oak); then E4 the twig layer on the device.
+
+## The scale split, measured (2026-10-13; fieldspike SPLIT.md)
+
+- Exact stand-in (subtrees regrown alone against the exact run's field): oak within +1.2-1.5%, stills not told apart. The split holds when the field is right.
+- Form (a), the closed-form expectation: oak +14-17%, half the sheds, a low limb kept; fails, and slower on the CPU.
+- Form (c), grown at birth against the field held at birth: lit Telperion passes (+0.27%), the oak fails (+2.5% to +4.2%, stills told apart); the field goes stale over a twig's life; a grower per tiny subtree costs twice the coupled cost per phytomer.
+- **Form (d), yearly against the current field: exact.** Sub-N subtrees stay out of the tree-wide sweeps and advance one year each cycle in one flat pass, reading the current lattice and one vigour at their root; the scaffold's sweeps cover scaffold axes only; the normaliser's sub-N partials are summed in their own pass and added to the scaffold's (host ruling). Totals, splits and shedding equal the one cycle's to the bit; oak N = 3 and 8 the same tree, Telperion N = 5 within 5 of 2.6M phytomers. It is a rescheduling, not an approximation.
+- Where the time goes on the CPU: twig growth units and layout (380-507 ns per sub-N phytomer) are the same work either way; what (d) removes is the tree-wide sweep cost of twig axes (a scaffold axis costs 900-2,270 ns a cycle in passes, a sub-N axis 115-347 ns flat). Expected on the device: the level-by-level hierarchy dispatches (the latency-bound part) shrink to the scaffold; twigs become flat parallel passes.
+- Host reading: full fidelity means growing every twig, coupled yearly through the field. The lightning floor is then per-phytomer growth work on the device (Telperion about 36 ns a grown phytomer today, 18M grown), so the levers are (1) the light kernels, (2) form (d) on the device, (3) the growth kernels toward their roofline.
