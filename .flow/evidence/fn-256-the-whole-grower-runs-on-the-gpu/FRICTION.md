@@ -346,3 +346,15 @@ Doing: comparing every preset's stills with F4's. Slowed by: the resident handof
 - **Hindered:** a job can begin a round in a state other than advancing (a move, a relay, a stop left by the last round's `after_main`), so the first measurement said the ordinary used 3 rounds where it needs 5. Marking every job that begins a round with work left gave 5, which matches task 5's refusal of four rounds.
 - **Cost:** about 4 minutes and one extra arena run (10 s of GPU).
 - **Would remove it:** nothing; caught by holding the measurement to task 5's known refusal.
+
+## 2026-10-13, task 13: the roofline harness refuses lit Telperion
+- **Doing:** the light phase before the change, every preset, through `the_roofline_is_measured` with `ROOFLINE_VISITS=0`, as fn-264's MEASURE.md took Telperion's 755 ms.
+- **Hindered:** after fn-264's merge, Telperion 82 seed 42 moves once in the arena the light-neutral hint sizes, and the harness asserts no move ("grown in its arena"). The run stopped at the first case.
+- **Cost:** about 3 minutes and one GPU run of 7 s.
+- **Would remove it:** a hint that reads light, which PROOF.md already names as a design call; until then `the_executor_is_measured` (sizes from a least-sizes build) times the phases.
+
+## 2026-10-13, task 13: the executor's timing harness is stale too
+- **Doing:** the same baseline through `the_executor_is_measured`.
+- **Hindered:** it grows from `Sizes::least()`, and since task 5 no build begins again, so every lit preset is refused at cycle 21 ("passed its sizes: Phyts").
+- **Cost:** about 2 minutes and one GPU run of 2 s.
+- **Would remove it:** a harness that times phases on the build's own sizing; task 13 adds `the_light_phase_is_timed` for the light, and the two stale harnesses are a follow-up.

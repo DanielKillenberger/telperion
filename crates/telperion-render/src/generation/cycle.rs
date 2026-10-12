@@ -86,6 +86,8 @@ mod hier_tests;
 #[cfg(test)]
 mod light_tests;
 #[cfg(test)]
+mod light_time_tests;
+#[cfg(test)]
 mod retire_tests;
 #[cfg(test)]
 mod settle_det_tests;
