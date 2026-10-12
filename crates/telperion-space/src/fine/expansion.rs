@@ -374,17 +374,6 @@ impl Stages {
     }
 }
 
-#[cfg(target_family = "wasm")]
-pub(crate) type Reach = Rows;
-#[cfg(target_family = "wasm")]
-fn reach(species: &Species, age: u32) -> Rows {
-    Rows::new(species, age, 1)
-}
-#[cfg(target_family = "wasm")]
-fn read(rows: Rows) -> Rows {
-    rows
-}
-
 /// The node of its bearer a root stands on.
 pub(crate) fn node(seed: &RootSeed) -> usize {
     match seed.handed.bud.axis.origin {
