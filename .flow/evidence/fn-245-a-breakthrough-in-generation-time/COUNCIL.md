@@ -103,3 +103,16 @@ Both members agree (`council/astra-5.md`, Fable's round 5):
 - Reuse has a dependency: retirement reads the final target age, so an age-40 build is not an age-41 checkpoint.
 
 Plan (fn-256 tasks 8-11): (8) reproduce and fix the two suspected races (`fault_out` non-atomic OR; `node_laterals` writes in the counted pass); (9) lattice dormant at zero, words and refusals unchanged; (10) instrument real input changes, then cached retirement and upward sums with dirty bits, each stopped if invalidation eats its saving; (11) remaining dominant kernels, then every preset re-measured native and in Chrome, the remainder taken to the owner.
+
+## Round 6: lightning fast, most of the fidelity (2026-10-12)
+
+The owner: "I really don't think we should settle for 1sec generation. I want to figure out how to make it lighning fast while keeping most of the fidelity." Both members (`council/astra-6.md`, Fable's round 6) define fidelity as a contract on the delivered tree, not a process: whole-view silhouette, limbs, shed interior and light gradient are history and need the coupled years; mid-view architecture is the last few years under local light; close-view twig and leaf geometry needs no history.
+
+Agreed:
+- **The light kernels first.** The device light code emulates f64 in software and gives each direction one workgroup looping layers; with every species lit (fn-264) Telperion's light is 755 ms of 1,402 stamped, final warm 2.09 s. Native f32, a parallel schedule of the same recurrence, the lattice over the crown's occupied box, the combine fused into the read. Engineering; gate lit Telperion's light under 100 ms.
+- **Scale split is the breakthrough candidate:** the scaffold (axes whose expected life passes N years, N a request resolution, the cycle unchanged at N = 0) grows coupled through the cycle; shorter-lived laterals stand in the cycle for light and sums and are then grown alone, from lineage keys and the species tables, against the per-cycle field recorded at their tips (FIELD.md: within a year a subtree grows alone within +1.9% kept, 7.5 cm median tip). F4's deleted `chain.wgsl` is the measured decoupled grower (4.5M phytomers in about 0.3 s).
+- Where they differ: Fable stands the short-lived buds in the cycle as their closed-form expectation; Astra requires a compact state carrying a vigour and survival spread and internal shedding, since a mean branch repeated fn-257's failure. The oracle decides.
+- Rejected as whole-tree routes: direct synthesis from expectations (no distributions or correlations), runtime twig motifs (visible repetition, bucket pops; refused by STRATEGY's continuous space). Partial evaluation is the split's second half for forests and the site.
+- Estimates (unmeasured): Fable about 0.4-0.5 s warm for Telperion with an 80 ms dispatch floor; Astra 30-150 ms if the light is replaced, dispatches cut and the full settle avoided. Under 100 ms for a whole hero tree may need fewer coupled years or axes, which is silhouette.
+
+Experiments, in order: E3 the light kernels (device, fn-256 branch); E1 the scale-split oracle on the CPU (oak 80 seed 1, N = 3/5/8, both stand-in forms, kept within 5% and stills not told apart at whole or mid); E2 the scaffold's measured floor (sub-N laterals skipped, Telperion and the lit oak); then E4 the twig layer on the device.
