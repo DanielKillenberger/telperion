@@ -296,6 +296,8 @@ pub fn grow_capture_retired(species: &Species, request: Request) -> Result<Captu
         .flat_map(|&(root, cycle, kind, l)| [root as u32, cycle, u32::from(kind), l.lived.to_bits(), l.alive.to_bits()])
         .collect();
     c.u32s("r_log", &words);
+    let keys: Vec<u32> = g.axes.iter().flat_map(|a| [a.lineage as u32, (a.lineage >> 32) as u32]).collect();
+    c.u32s("r_lineage", &keys);
     c.u32s("r_held", &held);
     Ok(c)
 }

@@ -28,7 +28,7 @@ pub(super) const R_COLS: u64 = 14;
 const HEAD: u64 = 64;
 /// The log's words before its entries, and its entries' words.
 pub(super) const L_AT: u64 = 4;
-pub(super) const ENTRY: u64 = 5;
+pub(super) const ENTRY: u64 = 6;
 
 /// The modules, built under one arithmetic: retirement's, and the
 /// compaction's two (the arena's rows, then the unit records).
@@ -72,6 +72,9 @@ pub(super) struct Retire {
     pub verdicts: Owned,
     pub stride: u32,
     pub pa: Vec<u32>,
+    /// The verdicts the log holds at most: none unless a test asks
+    /// (`Tables::log`), as nothing in a build reads it.
+    pub log_cap: u32,
     /// The retired rows' grown columns, where a PA keeps them: the
     /// records, their stride and how many are held.
     pub recs: Owned,
@@ -80,12 +83,14 @@ pub(super) struct Retire {
 }
 
 impl Retire {
-    pub(super) fn new(gpu: &Gpu, s: u32, pa: &[u32]) -> Result<Self> {
+    pub(super) fn new(gpu: &Gpu, s: u32, pa: &[u32], log: bool) -> Result<Self> {
+        let log_cap = if log { 4 * s } else { 0 };
         let r = Self {
             ret: zeroed_dst(gpu, "retire columns", Self::ret_words(s, pa))?,
-            verdicts: zeroed_dst(gpu, "retire verdicts", L_AT + ENTRY * u64::from(Self::log_cap(s)))?,
+            verdicts: zeroed_dst(gpu, "retire verdicts", L_AT + ENTRY * u64::from(log_cap))?,
             stride: s,
             pa: pa.to_vec(),
+            log_cap,
             recs: zeroed_dst(gpu, "retire records", 4)?,
             rec_cap: 0,
             rec_n: 0,
@@ -103,25 +108,20 @@ impl Retire {
         R_COLS * u64::from(self.stride)
     }
 
-    /// The most verdicts the log holds.
-    pub(super) fn log_cap(s: u32) -> u32 {
-        4 * s
-    }
-
     /// The buffers at `s` rows a column, the columns, header and log
     /// copied into `e`.
     pub(super) fn moved(self, gpu: &Gpu, e: &mut wgpu::CommandEncoder, s: u32) -> Result<Retire> {
         if s == self.stride {
             return Ok(self);
         }
-        let mut new = Retire::new(gpu, s, &self.pa)?;
+        let mut new = Retire::new(gpu, s, &self.pa, self.log_cap > 0)?;
         let (a, b) = (4 * u64::from(self.stride), 4 * u64::from(s));
         let head = 4 * self.head();
         for k in 0..R_COLS {
             e.copy_buffer_to_buffer(&self.ret, k * a, &new.ret, k * b, a);
         }
         e.copy_buffer_to_buffer(&self.ret, head, &new.ret, 4 * new.head(), 4 * HEAD);
-        e.copy_buffer_to_buffer(&self.verdicts, 0, &new.verdicts, 0, self.verdicts.size());
+        e.copy_buffer_to_buffer(&self.verdicts, 0, &new.verdicts, 0, self.verdicts.size().min(new.verdicts.size()));
         (new.recs, new.rec_cap, new.rec_n) = (self.recs, self.rec_cap, self.rec_n);
         Ok(new)
     }

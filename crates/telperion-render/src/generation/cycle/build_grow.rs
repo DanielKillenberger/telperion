@@ -27,6 +27,8 @@ pub(super) struct Sizes {
     pub points: u32,
     pub tips: u32,
     pub nodes: u32,
+    /// The lattice's columns, a layer's nodes, the sweep's records hold.
+    pub columns: u32,
     pub bounds: Bounds,
     /// The most axes a hierarchy block holds: speed only (HIERARCHY.md).
     pub block_cap: u32,
@@ -45,11 +47,11 @@ impl Sizes {
     /// The smallest a build starts from.
     pub(super) fn least() -> Self {
         let caps = Caps { axes: 4096, units: 4096, phyts: 16384, sleepers: 4096, next: 4096, woken: 1024 };
-        Self { caps, points: 16384, tips: 4096, nodes: 4096, bounds: Bounds::default(), block_cap: super::hier_build::CAP, slack: SLACK, widths: Widths::default(), compact: false }
+        Self { caps, points: 16384, tips: 4096, nodes: 4096, columns: 1024, bounds: Bounds::default(), block_cap: super::hier_build::CAP, slack: SLACK, widths: Widths::default(), compact: false }
     }
 
-    pub(super) fn lit(&self) -> (Lit, u32) {
-        (Lit { leaves: self.points - self.tips.min(self.points), tips: self.tips }, self.nodes)
+    pub(super) fn lit(&self) -> (Lit, (u32, u32)) {
+        (Lit { leaves: self.points - self.tips.min(self.points), tips: self.tips }, (self.nodes, self.columns))
     }
 }
 
@@ -102,6 +104,7 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
             let span = Span::new(seen, before, &sizes.widths, (cycle, &limits));
             if std::env::var("CYCLE_TRACE").is_ok() {
                 eprintln!("TRACE begin {again} cycle {cycle} slack {:?} {limits:?}", sizes.slack);
+                eprintln!("TRACE light nodes {} points {} tips {}; grid {:?}", sizes.nodes, sizes.points, sizes.tips, last.as_deref().map(|r| &r[c::GRID..c::GRID + 8]));
             }
             let clock = super::super::Clock::now();
             let (stamped, sent) = b.submit(gpu, (kit, t), (&run.0, &run.1, &limits, &span), (&mut late, cycle));

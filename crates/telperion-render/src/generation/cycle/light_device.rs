@@ -176,7 +176,9 @@ impl Run {
             0,
             0,
             1,
-            0,
+            // The column records' columns: the scratch holds a record a
+            // node, so as many as the nodes.
+            lit.capacity,
             0,
         ];
         cfg.extend(&lit.dirs);

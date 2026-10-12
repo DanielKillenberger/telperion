@@ -5,20 +5,22 @@
 use super::build::{Build, Kit, Tables};
 use super::build_grow::{grow_now as grow, Sizes};
 use super::columns::Cap;
-use super::grown_tests::{built, device, grown, Grown, YOUNG};
+use super::grown_tests::{built_with, device, grown, Grown, YOUNG};
 use super::settle_device::Kernels;
 use super::settle_read::cpu_settled;
 use super::settle_run::settle_now as settle;
 use super::settle_tests::{constants, held};
 use telperion_space::SettleTo;
 use super::hier_scan::read_words;
-use super::retire_device::{Retire, ENTRY, L_AT};
+use super::retire_device::{ENTRY, L_AT};
 use telperion_core::presets::Preset;
 
-/// The log's verdicts, by cycle then root, each its five words.
-fn sorted(words: &[u32]) -> Vec<[u32; 5]> {
-    let mut v: Vec<[u32; 5]> = words.chunks(5).map(|w| [w[0], w[1], w[2], w[3], w[4]]).collect();
-    v.sort_by_key(|e| (e[1], e[0]));
+/// The log's verdicts, by cycle then root, each its root's lineage key,
+/// cycle, verdict and living's two words: a root by its lineage, as the
+/// device's slots move as its arena compacts (fn-256 task 5).
+fn sorted(entries: impl Iterator<Item = [u32; 6]>) -> Vec<[u32; 6]> {
+    let mut v: Vec<[u32; 6]> = entries.collect();
+    v.sort_by_key(|e| (e[2], u64::from(e[0]) | u64::from(e[1]) << 32));
     v
 }
 
@@ -33,25 +35,27 @@ fn young_trees_retire_on_the_device_as_on_the_cpu() {
     let waking = [(Preset::NorwaySpruce, "norway-spruce", 18), (Preset::Ordinary, "ordinary", 16)];
     for (preset, name, age) in YOUNG.into_iter().chain(waking) {
         let g = grown(preset, age, 42);
-        let cpu = sorted(&Cap(&telperion_space::grow_capture_retired(&g.species, g.request).expect("the CPU's tree")).u32s("r_log"));
-        let (b, _) = built(&gpu, &kit, &g, age);
+        let capture = telperion_space::grow_capture_retired(&g.species, g.request).expect("the CPU's tree");
+        let (log, keys) = (Cap(&capture).u32s("r_log"), Cap(&capture).u32s("r_lineage"));
+        let cpu = sorted(log.chunks(5).map(|w| [keys[2 * w[0] as usize], keys[2 * w[0] as usize + 1], w[1], w[2], w[3], w[4]]));
+        let (b, _) = built_with(&gpu, &kit, &g, (age, true));
         let r = &b.retire;
         let head = read_words(&gpu, &r.verdicts, 0, L_AT).expect("a readback");
         assert_eq!(head[1], 0, "{name}: the log held every verdict");
-        assert!(head[0] <= Retire::log_cap(r.stride), "{name}: the log's count");
+        assert!(head[0] <= r.log_cap, "{name}: the log's count");
         let words = match head[0] {
             0 => Vec::new(),
             n => read_words(&gpu, &r.verdicts, L_AT, ENTRY * u64::from(n)).expect("a readback"),
         };
-        let dev = sorted(&words);
-        let count = |v: &[[u32; 5]], k: u32| v.iter().filter(|e| e[2] == k).count();
+        let dev = sorted(words.chunks(6).map(|w| [w[0], w[1], w[2], w[3], w[4], w[5]]));
+        let count = |v: &[[u32; 6]], k: u32| v.iter().filter(|e| e[3] == k).count();
         println!(
             "{name} {age}: device {} verdicts ({} waited, {} kept, {} retired), cpu {} ({}, {}, {})",
             dev.len(), count(&dev, 0), count(&dev, 1), count(&dev, 2), cpu.len(), count(&cpu, 0), count(&cpu, 1), count(&cpu, 2)
         );
         // Each verdict's root, cycle, verdict and kind exact, its living
         // (an f32's bits) to the ruled standard.
-        let flat = |v: &[[u32; 5]]| v.iter().flat_map(|e| [u64::from(e[0]), u64::from(e[1]), u64::from(e[2]), f64::from(f32::from_bits(e[3])).to_bits(), u64::from(e[4])]).collect::<Vec<u64>>();
+        let flat = |v: &[[u32; 6]]| v.iter().flat_map(|e| [u64::from(e[0]) | u64::from(e[1]) << 32, u64::from(e[2]), u64::from(e[3]), f64::from(f32::from_bits(e[4])).to_bits(), u64::from(e[5])]).collect::<Vec<u64>>();
         let mut a = super::compare::Agreement::default();
         a.records("verdicts", &flat(&dev), &flat(&cpu), (5, &[3]));
         if !a.exact() {

@@ -173,15 +173,21 @@ fn woken_main(@builtin(global_invocation_id) id: vec3<u32>) {
 }
 
 // The log's next entry, a fault past its most.
+// The log is a test's alone: a build that asks for none keeps none.
 fn logged(i: u32, verdict: u32, lived: f32, alive: f32) {
+    if cfg.log_cap == 0u {
+        return;
+    }
     let k = atomicAdd(&verdicts[L_COUNT], 1u);
     if k >= cfg.log_cap {
         atomicOr(&verdicts[L_FAULT], 1u);
         return;
     }
-    let at = L_AT + 5u * k;
-    let words = array<u32, 5>(i, cfg.cycle, verdict, bitcast<u32>(lived), bitcast<u32>(alive));
-    for (var w = 0u; w < 5u; w++) {
+    // The root by its lineage: its slot moves as the arena compacts.
+    let at = L_AT + 6u * k;
+    let key = ax64(i, A_LINEAGE);
+    let words = array<u32, 6>(key.x, key.y, cfg.cycle, verdict, bitcast<u32>(lived), bitcast<u32>(alive));
+    for (var w = 0u; w < 6u; w++) {
         atomicStore(&verdicts[at + w], words[w]);
     }
 }

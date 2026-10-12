@@ -64,6 +64,7 @@ const A_BIRTH: u32 = 2u;
 const A_ORIGIN: u32 = 3u;
 const A_PARENT: u32 = 4u;
 const A_NODE: u32 = 5u;
+const A_LINEAGE: u32 = 6u;
 const A_END: u32 = 16u;
 const A_PHYTS: u32 = 17u;
 const A_B0: u32 = 19u;

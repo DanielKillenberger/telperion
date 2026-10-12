@@ -83,6 +83,8 @@ pub(super) struct Tables {
     pub zones: u32,
     /// Each PA's settle and retirement constants (`settle_pa`).
     pub settle_pa: Vec<u32>,
+    /// Whether retirement logs its verdicts: a test's, never a build's.
+    pub log: bool,
     pub table: Owned,
     pub words: Owned,
     pub form: Vec<f32>,
@@ -114,6 +116,7 @@ impl Tables {
             pas,
             zones,
             settle_pa: cap.u32s("settle_pa"),
+            log: false,
             table: upload("cycle table", bytemuck::cast_slice(&table))?,
             words: upload("cycle words", bytemuck::cast_slice(&words))?,
             form,
@@ -170,7 +173,7 @@ pub(super) struct Build {
 
 impl Build {
     /// The buffers for a tree of `caps`, the rows of every cycle uploaded.
-    pub(super) fn new(gpu: &Gpu, t: &Tables, (c, caps, block_cap): (&Capture, Caps, u32), (lit, nodes): (Lit, u32)) -> Result<Self> {
+    pub(super) fn new(gpu: &Gpu, t: &Tables, (c, caps, block_cap): (&Capture, Caps, u32), (lit, nodes): (Lit, (u32, u32))) -> Result<Self> {
         let state = State::new(gpu, caps)?;
         let mut light = Light::new(gpu, &Cap(c))?;
         light.ensure(gpu, lit, nodes)?;
@@ -182,7 +185,7 @@ impl Build {
             tree: zeroed(gpu, "cycle tree", u64::from(super::hier_columns::TREE as u32 * s))?,
             light,
             layout: Layout::new(gpu, &t.form, s)?,
-            retire: super::retire_device::Retire::new(gpu, s, &t.settle_pa)?,
+            retire: super::retire_device::Retire::new(gpu, s, &t.settle_pa, t.log)?,
             stashed: None,
             inputs: zeroed(gpu, "cycle inputs", 2 * u64::from(caps.next) + 6 * u64::from(s))?,
             counts: zeroed(gpu, "cycle counts", device::counts(caps, t.zones).words)?,

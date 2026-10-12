@@ -112,7 +112,7 @@ impl Build {
         let retire = self.retire.moved(gpu, &mut e, s)?;
         gpu.submit([e.finish()]);
         let live = axes || o.next != n.next;
-        let lit = (now.points, now.tips, now.nodes) != (next.points, next.tips, next.nodes);
+        let lit = (now.points, now.tips, now.nodes, now.columns) != (next.points, next.tips, next.nodes, next.columns);
         let light = match lit {
             true => {
                 let mut l = Light::new(gpu, &Cap(tables))?;

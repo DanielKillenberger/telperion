@@ -103,7 +103,10 @@ pub(super) fn raised(mut s: Sizes, flags: &[(Flag, u32)], census: &[u32], budget
             Flag::DepositRanges => b.lay.deposits = leaves(census).div_ceil(b.ranges.deposit) + 1,
             Flag::Sweeps => b.lay.sweeps *= 2,
             Flag::Points => (s.points, s.tips) = (twice(s.points, leaves(census) + census[c::NEXT]), twice(s.tips, census[c::NEXT])),
-            Flag::LightErrors if value == 4 => s.nodes = twice(s.nodes, census[c::GRID + 6]),
+            Flag::LightErrors if value == 4 => {
+                s.nodes = twice(s.nodes, census[c::GRID + 6]);
+                s.columns = twice(s.columns, census[c::GRID + 3] * census[c::GRID + 4]);
+            }
             // Widened by the grow loop, which holds the cycle's dispatches.
             Flag::Given => {}
             Flag::LightErrors => return Err(refused(format!("the light refused: {:?}", refusals(value)))),
@@ -176,6 +179,7 @@ pub(super) fn ahead(s: Sizes, read: &[u32], prev: Option<&[u32]>, budget: u32) -
     n.tips = fit(n.tips, ahead(c::NEXT, read[c::NEXT]));
     n.points = fit(n.points, lit + n.tips);
     n.nodes = fit(n.nodes, 2 * read[c::GRID + 6]);
+    n.columns = fit(n.columns, 2 * read[c::GRID + 3] * read[c::GRID + 4]);
     // A bound a count passes is raised by half again, so the plan is
     // recorded anew a few times, not each cycle; a bound costs nothing
     // past the cycle's limit, which the census sets.

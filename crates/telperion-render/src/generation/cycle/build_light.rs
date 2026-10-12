@@ -28,10 +28,12 @@ pub(super) struct Light {
     dirs: Vec<u32>,
     lit: bool,
     pub n_dirs: u32,
-    /// The points, tips and lattice nodes the buffers hold.
+    /// The points, tips, lattice nodes and lattice columns (a layer's
+    /// nodes) the buffers hold.
     pub points_cap: u32,
     pub tips_cap: u32,
     pub nodes_cap: u32,
+    pub columns_cap: u32,
 }
 
 /// A cycle's leaves and tips.
@@ -71,13 +73,15 @@ impl Light {
             points_cap: 0,
             tips_cap: 0,
             nodes_cap: 0,
+            columns_cap: 0,
         };
-        out.ensure(gpu, Lit { leaves: 1024, tips: 1024 }, 4096)?;
+        out.ensure(gpu, Lit { leaves: 1024, tips: 1024 }, (4096, 1024))?;
         Ok(out)
     }
 
-    /// The buffers grown to hold `lit`'s points and `nodes` nodes.
-    pub(super) fn ensure(&mut self, gpu: &Gpu, lit: Lit, nodes: u32) -> Result<()> {
+    /// The buffers grown to hold `lit`'s points, and a lattice of `nodes`
+    /// nodes whose layers hold `columns`.
+    pub(super) fn ensure(&mut self, gpu: &Gpu, lit: Lit, (nodes, columns): (u32, u32)) -> Result<()> {
         let more = |have: u32, want: u32| if want <= have { have } else { want + want / 2 };
         let points = more(self.points_cap, lit.leaves + lit.tips);
         if points != self.points_cap {
@@ -89,13 +93,19 @@ impl Light {
             self.reads = storage(gpu, "light reads", u64::from(tips), &[])?;
             self.tips_cap = tips;
         }
-        let cap = more(self.nodes_cap, nodes);
+        let (cap, cols) = (more(self.nodes_cap, nodes), more(self.columns_cap, columns));
         if cap != self.nodes_cap {
             let c = u64::from(cap);
             self.quanta = storage(gpu, "light quanta", c, &[])?;
             self.field = storage(gpu, "light field", 2 * c, &[])?;
-            self.scratch = storage(gpu, "light scratch", 12 * u64::from(self.n_dirs) * c, &[])?;
-            self.nodes_cap = cap;
+        }
+        if (cap, cols) != (self.nodes_cap, self.columns_cap) {
+            // Each direction's depths, an f64 a node, then each direction's
+            // column records, five f64s a column of a layer (fn-256 task 5:
+            // the records were sized a node each, 432 bytes a node).
+            let words = 2 * u64::from(self.n_dirs) * (u64::from(cap) + 5 * u64::from(cols));
+            self.scratch = storage(gpu, "light scratch", words, &[])?;
+            (self.nodes_cap, self.columns_cap) = (cap, cols);
         }
         Ok(())
     }
@@ -111,7 +121,7 @@ impl Light {
     /// the leaves and tips none (the device writes them), its sweep chunk
     /// and its range's first item, and the directions.
     pub(super) fn words(&self, (chunk, base): (u32, u32)) -> Vec<u32> {
-        let mut cfg = vec![0, 0, self.n_dirs, self.nodes_cap, u32::from(self.lit), super::plan::MAXX * 64, chunk, 0, base, 1, 0, 0];
+        let mut cfg = vec![0, 0, self.n_dirs, self.nodes_cap, u32::from(self.lit), super::plan::MAXX * 64, chunk, 0, base, 1, self.columns_cap, 0];
         cfg.extend(&self.dirs);
         cfg.resize(12 + 8 * DIRECTIONS, 0);
         cfg

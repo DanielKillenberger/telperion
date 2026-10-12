@@ -31,7 +31,8 @@ struct Cfg {
     base: u32,
     // None where the cycle halted (`vm.wgsl`): nothing stands to light.
     go: u32,
-    pad2: u32,
+    // The columns (a layer's nodes) the column records hold.
+    columns: u32,
     pad3: u32,
     // Per direction: x/z, y/z, extinction CELL/z and its share, as f64s,
     // two to a row.
@@ -110,7 +111,7 @@ fn grid_main() {
     if nodes.y != 0u || nodes.x > (1u << 28u) {
         fail(E_NODES);
         ok = false;
-    } else if nodes.x > C.capacity {
+    } else if nodes.x > C.capacity || size.x * size.y > C.columns {
         fail(E_CAPACITY);
         ok = false;
     }

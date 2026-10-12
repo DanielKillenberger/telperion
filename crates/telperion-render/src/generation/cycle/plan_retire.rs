@@ -11,7 +11,7 @@ use super::census as c;
 use super::gate::Cond;
 use super::plan::{Builder, PassId, Size, MAXX};
 use super::plan_hier::HierBounds;
-use super::retire_device::{self as rd, Retire};
+use super::retire_device as rd;
 use super::vm::E;
 
 impl Build {
@@ -22,7 +22,7 @@ impl Build {
         let words = |level: u32| {
             [
                 0, s.axes, 0, level, MAXX * 64, MAXX, 0, 0, 0, 0, 0, t.age, s.axes, s.units, s.phyts, s.sleep_at(), s.sleepers,
-                s.next_at(), s.woken_at(), s.woken, r.head() as u32, Retire::log_cap(s.axes), 0, 0,
+                s.next_at(), s.woken_at(), s.woken, r.head() as u32, r.log_cap, 0, 0,
             ]
         };
         let dynamic = [(0, E::At(c::LAID0)), (2, E::At(c::CYCLE)), (6, E::At(c::LEVELS)), (8, E::At(c::LIVE0)), (9, E::At(c::SLEEPERS0)), (10, E::At(c::WOKEN0))];
