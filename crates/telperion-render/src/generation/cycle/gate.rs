@@ -38,6 +38,9 @@ pub(super) enum Cond {
     Light(u32),
     Sweep(u32),
     Round(u32),
+    /// A units round of the living apexes (0) or the wake (1), DESIGN.md
+    /// section 10.
+    UnitRound(u32, u32),
     Pass(u32),
     Level(u32),
     LayGen(u32),
@@ -57,6 +60,7 @@ pub(super) struct Limits {
     pub levels: u32,
     pub laygens: u32,
     pub scans: [u32; SCANS],
+    pub unit_rounds: [u32; 2],
 }
 
 /// The scans' levels a plan holds at most.
@@ -79,6 +83,7 @@ impl Limits {
             levels: b.hier.levels,
             laygens: b.lay.generations,
             scans: [SCAN_LEVELS; SCANS],
+            unit_rounds: [b.rounds; 2],
         }
     }
 
@@ -97,6 +102,7 @@ impl Limits {
             levels: self.levels.clamp(1, f.levels),
             laygens: self.laygens.clamp(1, f.laygens),
             scans: std::array::from_fn(|k| s[k].clamp(1, SCAN_LEVELS)),
+            unit_rounds: self.unit_rounds.map(|r| r.clamp(1, b.rounds)),
         }
     }
 
@@ -108,6 +114,7 @@ impl Limits {
             Cond::Light(r) => r < self.lights,
             Cond::Sweep(k) => k < self.sweeps,
             Cond::Round(r) => r < self.rounds,
+            Cond::UnitRound(w, r) => r < self.unit_rounds[w as usize],
             Cond::Pass(p) => p < self.passes,
             Cond::Level(l) => l < self.levels,
             Cond::LayGen(g) => g < self.laygens,
@@ -116,11 +123,12 @@ impl Limits {
     }
 
     /// The census's words the device's flags read.
-    pub(super) fn words(&self) -> [u32; 9 + SCANS] {
-        let mut out = [0; 9 + SCANS];
+    pub(super) fn words(&self) -> [u32; 11 + SCANS] {
+        let mut out = [0; 11 + SCANS];
         let head = [self.units, self.draws, self.deposits, self.lights, self.sweeps, self.rounds, self.passes, self.levels, self.laygens];
         out[..9].copy_from_slice(&head);
-        out[9..].copy_from_slice(&self.scans);
+        out[9..9 + SCANS].copy_from_slice(&self.scans);
+        out[9 + SCANS..].copy_from_slice(&self.unit_rounds);
         out
     }
 }
@@ -139,6 +147,8 @@ pub(super) mod rec {
     pub(in super::super) fn scan(s: super::Scan) -> usize {
         REC + 9 + s as usize
     }
+    /// The living apexes' units rounds, then the wake's.
+    pub(in super::super) const UNIT_ROUNDS: usize = REC + 9 + super::SCANS;
 }
 
 /// The levels `hier_scan.wgsl` takes over `rows` (the first's and each

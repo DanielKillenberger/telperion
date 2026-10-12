@@ -18,13 +18,15 @@ fn build_time() {
     let only = std::env::var("BUILD_PRESETS").ok();
     let ids = telperion_core::presets::CATALOGUE.iter().map(|c| c.1);
     let ids = ids.filter(|id| only.as_ref().is_none_or(|o| o.split(',').any(|x| x == *id)));
-    println!("| Preset | Age | Cold ms | Warm ms | Instances |");
-    println!("|---|--:|--:|--:|--:|");
+    println!("| Preset | Age | Cold ms | Warm ms | Instances | Device peak MB |");
+    println!("|---|--:|--:|--:|--:|--:|");
     for id in ids {
         let family = telperion_core::presets::by_identity(id).unwrap();
         let mut ms = Vec::new();
         let mut count = 0;
+        let mut peak = 0;
         for _ in 0..2 {
+            gpu.ledger.take_peak();
             let t = super::Clock::now();
             let prepared = match gen.prepare(&family, Delivery::Resident) {
                 Ok(p) => p,
@@ -35,12 +37,13 @@ fn build_time() {
             };
             ms.push(t.elapsed_ms());
             count = prepared.count();
+            peak = gpu.ledger.take_peak();
             drop(prepared);
             gpu.device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
         }
         if ms.len() < 2 {
             continue;
         }
-        println!("| {id} | {} | {:.0} | {:.0} | {count} |", family.age, ms[0], ms[1]);
+        println!("| {id} | {} | {:.0} | {:.0} | {count} | {:.0} |", family.age, ms[0], ms[1], peak as f64 / 1e6);
     }
 }

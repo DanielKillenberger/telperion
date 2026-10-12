@@ -47,11 +47,16 @@ fn unlaid(error: [u32; 2]) -> crate::RenderError {
 pub(in crate::generation) async fn drawn(gpu: &Gpu, k: &Kernels, growth: &Growth) -> Result<(Dressed, Trunk)> {
     let (species, request) = (&growth.species, growth.request);
     let refused = |what: &str| super::super::io::error(format!("the species' {what}"));
+    let trace = std::env::var("CYCLE_TRACE").is_ok();
+    let clock = super::super::Clock::now();
     let tables = telperion_space::grow_capture_tables(species, request).map_err(|e| refused(&e.to_string()))?;
     let chain = ChainTables::cycle(species, request.age).map_err(|e| refused(&e.to_string()))?;
     let t = Tables::new(gpu, &tables, &chain)?;
+    let at_tables = clock.elapsed_ms();
     let (b, ..) = grow(gpu, &k.build, &t, &tables, (Sizes::least(), request.age)).await?;
+    let at_grown = clock.elapsed_ms();
     let s = settle(gpu, (&k.build, &k.settle), (&b, &t), (&t.settle_pa, SettleTo::Laid)).await?;
+    let at_settled = clock.elapsed_ms();
     drop(b);
     if s.error[0] != 0 {
         return Err(unlaid(s.error));
@@ -61,5 +66,8 @@ pub(in crate::generation) async fn drawn(gpu: &Gpu, k: &Kernels, growth: &Growth
     let at = Rows { rows: &rows, age: request.age, scale: growth.scale as f32 };
     let dressed = dress(gpu, &k.drawn, (&s, &planned), &at)?;
     let measured = trunk(gpu, &k.drawn, &dressed).await?;
+    if trace {
+        eprintln!("TRACE tree: tables {at_tables:.0} ms, grown {at_grown:.0}, settled {at_settled:.0}, drawn {:.0}", clock.elapsed_ms());
+    }
     Ok((dressed, measured))
 }

@@ -214,3 +214,27 @@ Doing: comparing every preset's stills with F4's. Slowed by: the resident handof
 - **Hindered:** `flowctl` again not on PATH in the dispatched worker's shell (found under the plugin cache, 8.1.1).
 - **Cost:** about 1 minute.
 - **Would remove it:** `flowctl` on PATH for dispatched workers (local setup, not a repository change).
+
+## 2026-10-12, task 4: the scratchpad is a quota'd tmpfs
+- **Doing:** extracting F4's tip (`git archive`) to build F4's stills beside this branch's.
+- **Hindered:** the session scratchpad sits on a 16 GB tmpfs that other sessions already fill to 13 GB; the extraction hit the quota (EDQUOT) and the shell lost its output. Moved to the worktree's ignored `target/f4tip`.
+- **Cost:** about 2 minutes.
+- **Would remove it:** a stated place on disk for reference builds of another branch (local setup, not a repository change).
+
+## 2026-10-12, task 4: a GPU hang while trying sizing settings
+- **Doing:** timing Telperion, Laurelin and the spruce with wider limit slacks and tables grown to a quarter over their projection.
+- **Hindered:** Telperion's build stopped after cycle 77 with the GPU idle (NVRM Xid 109, CTX SWITCH TIMEOUT, my own test process); a run before it reported an out-of-memory refusal at the same point. The process was stopped by its PID after about 10 minutes; the outer `timeout` was 25 minutes.
+- **Cost:** about 12 minutes and one driver reset on the owner's desktop.
+- **Would remove it:** a shorter inner `timeout` on every GPU measurement (a build that takes over a minute is already a finding), and the hang's cause found on the small tree first (below).
+
+## 2026-10-12, task 4: timings taken beside another worker's suite
+- **Doing:** timing the beech and Telperion after the sizing changes.
+- **Hindered:** the palm-boots worker's test run (`walks`, 16 cores) ran at the same time; the beech took 2.0 s warm against 0.3 s alone, all of it host recording and moving, and the run hit its timeout. The GPU lock serialises GPU work but not CPU-heavy suites, so a timing run needs the machine quiet as well.
+- **Cost:** one wasted run (about 5 minutes) and a wait.
+- **Would remove it:** one lock both workers take for any timing run and any CPU-heavy suite, not only for GPU work.
+
+## 2026-10-12, task 4: the hang reproduces on Telperion
+- **Doing:** timing Telperion after moving the tables' trigger to "the projection plus a quarter passes the rows" (no other change since its last clean run).
+- **Hindered:** two more NVRM Xid 109 hangs (07:09 and 07:19), each Telperion's cold build stopping at cycle 76 to 77; a third run had reported it as "Out of Memory". Each run waited out its 5-minute inner timeout. Stopped running Telperion until the hang is reproduced small.
+- **Cost:** about 15 minutes and two more driver resets on the owner's desktop.
+- **Would remove it:** a host-side watchdog in the grow loop (no census back within a second of a cycle's submission ends the build with a named error) and the halt test FRICTION asked for on 2026-10-11 (a flag raised mid-cycle on the smallest tree).

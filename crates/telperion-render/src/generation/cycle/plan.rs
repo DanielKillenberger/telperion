@@ -15,7 +15,9 @@ use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
 /// The slots and bounded dispatches a plan holds.
-const SLOTS: u32 = 4096;
+// A units round has a slot a range (its round word): the tests' small
+// ranges, 64 apexes each, take some thousands.
+const SLOTS: u32 = 16384;
 const SIZED: u32 = 8192;
 const SLOT_WORDS: u32 = 128;
 /// A slot's bytes, a multiple of the uniform offset alignment.

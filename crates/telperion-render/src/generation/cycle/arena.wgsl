@@ -49,6 +49,8 @@ struct Cfg {
     job_cap: u32,
     zone_at: u32,
     zones: u32,
+    // The round this dispatch runs (`decide_main` marks it used).
+    round: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -160,6 +162,10 @@ const T_WAKE_B: u32 = 16u;
 // where a job had operations left after the cycle's last round.
 const T_COLLAPSED: u32 = 20u;
 const T_ROUNDS: u32 = 21u;
+// The rounds a job advanced in, a word each, the last for any later:
+// the living apexes' first, then the wake's.
+const T_USED: u32 = 24u;
+const USED_ROUNDS: u32 = 4u;
 
 fn ax(i: u32, f: u32) -> u32 {
     return axes[f * cfg.axes_cap + i];

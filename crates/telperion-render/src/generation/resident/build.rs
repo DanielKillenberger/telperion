@@ -266,6 +266,9 @@ pub(super) async fn build(
         backend: Backend::Gpu,
         metrics: m,
     };
+    if std::env::var("CYCLE_TRACE").is_ok() {
+        eprintln!("TRACE stages {t:?}");
+    }
     Ok(Built { prepared, device })
 }
 

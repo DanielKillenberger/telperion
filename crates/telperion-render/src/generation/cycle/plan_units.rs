@@ -6,7 +6,7 @@
 //! census and the new axes' and phytomers' columns set (`glue.wgsl`).
 use super::build::{Build, Kit, Tables};
 use super::census::{self as c, Flag};
-use super::device::{self, AFTER, CLOSE, DECIDE, FLAG, GATHER, INIT, NODES, RANGE, T_LIST, T_ROUNDS, T_UNITS, T_UNITS_B, T_WAKE, T_WAKE_B, UNIT, WOKE, WRITTEN, ZONES};
+use super::device::{self, AFTER, CLOSE, DECIDE, FLAG, GATHER, INIT, NODES, RANGE, T_LIST, T_ROUNDS, T_UNITS, T_UNITS_B, T_USED, T_WAKE, T_WAKE_B, UNIT, USED_ROUNDS, WOKE, WRITTEN, ZONES};
 use super::glue;
 use super::plan::{Builder, PassId, Step, MAXX};
 use super::plan_scan::{levelled, levels_needed, sums_words, Shape};
@@ -15,6 +15,17 @@ use super::hier_scan::zeroed;
 use crate::buffer::Owned;
 use super::vm::E;
 use crate::Result;
+
+/// The units' uniform's word holding its round (`arena.wgsl`'s `round`).
+const ROUND_WORD: usize = 36;
+
+/// The units rounds the census's cycle used, the living apexes' (`wake`
+/// 0) or the wake's (1): one past the last any job advanced in, or the
+/// most the census tells apart where it was the last.
+pub(super) fn rounds_used(census: &[u32], wake: usize) -> u32 {
+    let used = |r: usize| census[c::MADE + T_USED + USED_ROUNDS * wake + r] != 0;
+    (0..USED_ROUNDS).rev().find(|&r| used(r)).map_or(0, |r| r as u32 + 1)
+}
 
 /// The units' tally's word `k`, as the census holds it after the cycle.
 fn made(k: usize) -> E {
@@ -30,14 +41,16 @@ impl Build {
         vec![
             0, MAXX * 64, 0, t.age, emit, wake, t.lights, 0, s.axes, s.units, s.phyts, s.sleepers, s.next, s.woken,
             s.sleepers, 0, self.b_at(), s.sleep_at(), s.next_at(), s.woken_at(), s.list_at(), 0, 0, 0, 0, 0, t.rows,
-            t.whorls, 0, base, t.seed as u32, (t.seed >> 32) as u32, at.job_at, at.jobs, at.zone_at, t.zones.max(1),
+            t.whorls, 0, base, t.seed as u32, (t.seed >> 32) as u32, at.job_at, at.jobs, at.zone_at, t.zones.max(1), 0,
         ]
     }
 
     /// A units slot's words the device writes: its count `n`, the cycle,
     /// the laid axes, the counts before the cycle and the living read.
-    fn units_slot(&self, b: &mut Builder, t: &Tables, n: E, (emit, wake, base): (u32, u32, u32)) -> u32 {
-        let slot = b.slot(&self.units_static(t, (emit, wake, base)));
+    fn units_slot(&self, b: &mut Builder, t: &Tables, n: E, (emit, wake, base): (u32, u32, u32), round: u32) -> u32 {
+        let mut words = self.units_static(t, (emit, wake, base));
+        words[ROUND_WORD] = round;
+        let slot = b.slot(&words);
         let words = [
             (0, n),
             (2, E::At(c::CYCLE)),
@@ -77,7 +90,8 @@ impl Build {
         let inputs = [(0, live.clone().max(laid.clone())), (3, laid.clone()), (13, laid.gt(E::C(0)).sel(E::C(0), E::C(1))), (14, live.clone())];
         self.glue_step(b, kit, (glue::INPUTS, &self.inputs, &self.spare), w, &inputs);
         let lists = &self.state.lists;
-        b.step(Step::Clear { buffer: (**lists).clone(), at: 4 * T_ROUNDS as u64, bytes: Some(4) });
+        let used = (T_USED + 2 * USED_ROUNDS - T_ROUNDS) as u64;
+        b.step(Step::Clear { buffer: (**lists).clone(), at: 4 * T_ROUNDS as u64, bytes: Some(4 * used) });
         let zones = t.zones.max(1);
         let words = sums_words(n_live, 4).max(sums_words(n_sleep, 4));
         let sums = zeroed(b.gpu, "units scan sums", words)?;
@@ -91,12 +105,17 @@ impl Build {
         };
         // A pass of a range's jobs: begun, `rounds` rounds of phases, closed.
         let pass = |b: &mut Builder, (n, emit, wake, base): (&E, u32, u32, u32), left: &E| {
-            let slot = self.units_slot(b, t, n.clone(), (emit, wake, base));
+            let slot = self.units_slot(b, t, n.clone(), (emit, wake, base), 0);
             let counted = self.units_bind(b, kit, t, slot);
             let (jobs, items) = (b.groups(left.clone().div(E::C(64))), b.groups(left.clone().mul(E::C(zones)).div(E::C(64))));
             let unit = |k| (PassId::Units, k);
             b.dispatch(unit(INIT), counted.clone(), jobs);
-            for _ in 0..rounds {
+            for round in 0..rounds {
+                // A round past the last the cycle before used, and its
+                // slack, is not recorded; a job it leaves is flagged.
+                b.enter(Cond::UnitRound(wake, round));
+                let slot = self.units_slot(b, t, n.clone(), (emit, wake, base), round);
+                let counted = self.units_bind(b, kit, t, slot);
                 if wake != 0 {
                     b.dispatch(unit(WOKE), counted.clone(), jobs);
                 }
@@ -116,6 +135,7 @@ impl Build {
                 for after in AFTER {
                     b.dispatch(unit(after), counted.clone(), jobs);
                 }
+                b.leave();
             }
             b.dispatch(unit(CLOSE), counted, jobs);
         };
@@ -132,7 +152,7 @@ impl Build {
                 scan(b, (b_at, 4, T_UNITS_B), (&live, Scan::Units));
             }
         }
-        let flags = self.units_slot(b, t, sleepers.clone(), (0, 1, 0));
+        let flags = self.units_slot(b, t, sleepers.clone(), (0, 1, 0), 0);
         let flags = self.units_bind(b, kit, t, flags);
         let over = b.groups(sleepers.clone().div(E::C(64)));
         b.dispatch((PassId::Units, FLAG), flags.clone(), over);
@@ -142,7 +162,7 @@ impl Build {
         scan(b, (a, 4, T_WAKE), (&sleepers, Scan::Sleep));
         scan(b, (b_at, 4, T_WAKE_B), (&sleepers, Scan::Sleep));
         pass(b, (&sleepers, 1, 1, 0), &sleepers);
-        b.tally(lists, 0, c::MADE, 4 * 24);
+        b.tally(lists, 0, c::MADE, 4 * (T_USED + 2 * USED_ROUNDS) as u64);
         self.plan_made(b, kit, t);
         Ok(vec![sums])
     }
