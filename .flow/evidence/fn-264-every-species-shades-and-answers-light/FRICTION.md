@@ -34,3 +34,10 @@
 - **Slowed:** the machine sat at 30 of 31 GB used by other processes; Laurelin's base build took 210 s against 9 s an hour earlier, so the run's times and peaks were void (its grown counts, which are deterministic, stand). Waited and reran.
 - **Cost:** about 5 minutes and a rerun.
 - **Would remove it:** a machine-wide memory gate beside the GPU lock (refuse to start a measurement under a stated free-memory floor), so a measuring session neither swaps nor pushes another session into it.
+
+## 2026-10-12, worker: the renderer gate ran into a game holding the card
+
+- **Doing:** the renderer half of the gate after the ψ ruling.
+- **Slowed:** the card went from 2 GB to 8.8 GB used during the run (a game took 6 GB), and 22 renderer tests failed with "Out of Memory", none of them for a code reason. The check before the run saw 2 GB, but nothing rechecks while a 2-minute suite is running.
+- **Cost:** one wasted renderer gate (about 5 minutes), and a wait for the card.
+- **Would remove it:** a renderer test harness that reads the card's free memory before each GPU test and skips with "card busy" (or waits), so contention reads as contention instead of 22 failures.
