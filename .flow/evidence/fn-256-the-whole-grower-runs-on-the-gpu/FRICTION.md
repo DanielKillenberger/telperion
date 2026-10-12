@@ -322,3 +322,9 @@ Doing: comparing every preset's stills with F4's. Slowed by: the resident handof
 - **Hindered:** retirement's `living_main` kept 149 of its 172 ms on Telperion though it carried up 11% of the closed axes it used to; its dispatches took the same 150-400 µs as before. `inside_main`, the same sweep shape over the same blocks, takes 20-30 µs a dispatch. The cost follows the kernel's footprint (the unit and phytomer loops inlined into the sweep), not the axes it takes; a first try at narrowing each block's depths by a serial scan cost more than it saved and was reverted. The roofline's per-dispatch stamps cannot show occupancy, so the cause is inferred, not measured.
 - **Cost:** about 30 minutes and two GPU timing runs.
 - **Would remove it:** a per-kernel register and occupancy report (the driver's compiled-pipeline statistics) beside the roofline's stamps.
+
+## 2026-10-12, task 11: start
+- **Doing:** the Phase-1 anchor for task 11; reading COUNCIL round 5, ROOFLINE, PROOF and DESIGN 15-16.
+- **Hindered:** `flowctl` not on PATH in the dispatched worker's shell, an eighth time (8.1.1 under the plugin cache). No script makes the post-task-9 stills and sheets in one call; the reference stills are task 6's (`raw/t6-stills/now`), which tasks 8-10 left byte-identical by their node-table hashes.
+- **Cost:** about 3 minutes.
+- **Would remove it:** `flowctl` on PATH for dispatched workers (local setup); a stills-and-sheet script beside `resident_stills`.

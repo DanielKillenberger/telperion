@@ -7,7 +7,8 @@
 // `sub`, the top-down `walk` and `split`.
 
 var<workgroup> w_run: vec4<u32>;
-var<workgroup> w_span: vec2<u32>;
+var<workgroup> w_at: array<u32, WG_AT>;
+const WG_AT: u32 = WG + 1u;
 
 // The workgroup's block: its members' first and end, and its least and
 // greatest depth (its first member's and its last's); an empty run where
@@ -44,12 +45,26 @@ fn lower(run: vec4<u32>, d: u32) -> u32 {
     return lo;
 }
 
-// The block's members at depth `d`.
-fn depth_span(run: vec4<u32>, d: u32, lid: u32) -> vec2<u32> {
-    if lid == 0u {
-        w_span = vec2<u32>(lower(run, d), lower(run, d + 1u));
+// Where each of the depths `[d0, d0 + WG]` begins in the block, a lane a
+// depth at once (`w_at`), the block's end past its deepest.
+fn depth_starts(run: vec4<u32>, d0: u32, lid: u32) {
+    for (var j = lid; j <= WG; j += WG) {
+        let d = d0 + j;
+        var first = run.y;
+        if d <= run.z {
+            first = run.x;
+        } else if d <= run.w {
+            first = lower(run, d);
+        }
+        w_at[j] = first;
     }
-    return workgroupUniformLoad(&w_span);
+    workgroupBarrier();
+}
+
+// The block's members at depth `d` of the depths `depth_starts` took
+// from `d0`.
+fn depth_span(d: u32, d0: u32) -> vec2<u32> {
+    return vec2<u32>(w_at[d - d0], w_at[d - d0 + 1u]);
 }
 
 fn children(i: u32) -> vec2<u32> {
@@ -93,13 +108,18 @@ fn totals_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_
     if run.y == run.x {
         return;
     }
-    for (var h = 0u; h <= run.w - run.z; h++) {
-        let span = depth_span(run, run.w - h, lid);
-        for (var k = span.x + lid; k < span.y; k += WG) {
-            totals(lists[ls(R_MEMBERS, k)]);
+    let depths = run.w - run.z + 1u;
+    for (var c = 0u; c < depths; c += WG) {
+        let d0 = run.w + 1u - min(c + WG, depths);
+        depth_starts(run, d0, lid);
+        for (var d = run.w - c; d + 1u > d0; d--) {
+            let span = depth_span(d, d0);
+            for (var k = span.x + lid; k < span.y; k += WG) {
+                totals(lists[ls(R_MEMBERS, k)]);
+            }
+            storageBarrier();
+            workgroupBarrier();
         }
-        storageBarrier();
-        workgroupBarrier();
     }
 }
 
@@ -158,13 +178,18 @@ fn walk_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_in
     if run.y == run.x {
         return;
     }
-    for (var d = run.z; d <= run.w; d++) {
-        let span = depth_span(run, d, lid);
-        for (var k = span.x + lid; k < span.y; k += WG) {
-            walk(lists[ls(R_MEMBERS, k)]);
+    let depths = run.w - run.z + 1u;
+    for (var c = 0u; c < depths; c += WG) {
+        let d0 = run.z + c;
+        depth_starts(run, d0, lid);
+        for (var d = d0; d < d0 + min(WG, depths - c); d++) {
+            let span = depth_span(d, d0);
+            for (var k = span.x + lid; k < span.y; k += WG) {
+                walk(lists[ls(R_MEMBERS, k)]);
+            }
+            storageBarrier();
+            workgroupBarrier();
         }
-        storageBarrier();
-        workgroupBarrier();
     }
 }
 
@@ -189,13 +214,18 @@ fn sub_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_ind
     if run.y == run.x {
         return;
     }
-    for (var h = 0u; h <= run.w - run.z; h++) {
-        let span = depth_span(run, run.w - h, lid);
-        for (var k = span.x + lid; k < span.y; k += WG) {
-            sub(lists[ls(R_MEMBERS, k)]);
+    let depths = run.w - run.z + 1u;
+    for (var c = 0u; c < depths; c += WG) {
+        let d0 = run.w + 1u - min(c + WG, depths);
+        depth_starts(run, d0, lid);
+        for (var d = run.w - c; d + 1u > d0; d--) {
+            let span = depth_span(d, d0);
+            for (var k = span.x + lid; k < span.y; k += WG) {
+                sub(lists[ls(R_MEMBERS, k)]);
+            }
+            storageBarrier();
+            workgroupBarrier();
         }
-        storageBarrier();
-        workgroupBarrier();
     }
 }
 

@@ -97,12 +97,17 @@ fn split_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_i
     if run.y == run.x {
         return;
     }
-    for (var d = run.z; d <= run.w; d++) {
-        let span = depth_span(run, d, lid);
-        for (var k = span.x + lid; k < span.y; k += WG) {
-            split(lists[ls(R_MEMBERS, k)]);
+    let depths = run.w - run.z + 1u;
+    for (var c = 0u; c < depths; c += WG) {
+        let d0 = run.z + c;
+        depth_starts(run, d0, lid);
+        for (var d = d0; d < d0 + min(WG, depths - c); d++) {
+            let span = depth_span(d, d0);
+            for (var k = span.x + lid; k < span.y; k += WG) {
+                split(lists[ls(R_MEMBERS, k)]);
+            }
+            storageBarrier();
+            workgroupBarrier();
         }
-        storageBarrier();
-        workgroupBarrier();
     }
 }

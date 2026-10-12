@@ -20,8 +20,23 @@ const FOLDED: u32 = 256u;
 
 var<workgroup> w_fold_level: vec2<u32>;
 var<workgroup> w_fold_runs: array<vec4<u32>, FOLD>;
-var<workgroup> w_fold_spans: array<vec2<u32>, FOLD>;
+const FOLD_AT: u32 = FOLD * (FOLD_LANES + 1u);
+var<workgroup> w_fold_at: array<u32, FOLD_AT>;
 var<workgroup> w_fold_steps: u32;
+
+// The `i`th of a block's depth bounds in the sweep's order, `FOLD_LANES`
+// of them taken at once by a block's lanes: where depth `run.z + i`
+// begins, or where `up`, where the depth `i` above the deepest ends.
+fn fold_start(run: vec4<u32>, i: u32, up: bool) -> u32 {
+    let depths = run.w - run.z + 1u;
+    if run.y <= run.x || i >= depths {
+        return select(run.y, run.x, up);
+    }
+    if i == 0u {
+        return select(run.x, run.y, up);
+    }
+    return fold_lower(run, select(run.z + i, run.w + 1u - i, up));
+}
 
 // The folded levels, deepest first where `up`, each level's blocks
 // `FOLD` at a time, their depths deepest first where `up`.
@@ -59,17 +74,21 @@ fn folded(op: u32, up: bool, lid: u32) {
             }
             let steps = workgroupUniformLoad(&w_fold_steps);
             let run = w_fold_runs[g];
+            let at = g * (FOLD_LANES + 1u);
             for (var h = 0u; h < steps; h++) {
-                if lane == 0u {
-                    var span = vec2<u32>(0u);
-                    if run.y > run.x && h <= run.w - run.z {
-                        let d = select(run.z + h, run.w - h, up);
-                        span = vec2<u32>(fold_lower(run, d), fold_lower(run, d + 1u));
+                let q = h % FOLD_LANES;
+                if q == 0u {
+                    for (var j = lane; j <= FOLD_LANES; j += FOLD_LANES) {
+                        w_fold_at[at + j] = fold_start(run, h + j, up);
                     }
-                    w_fold_spans[g] = span;
+                    workgroupBarrier();
                 }
-                workgroupBarrier();
-                let span = w_fold_spans[g];
+                var span = vec2<u32>(0u);
+                if run.y > run.x && h <= run.w - run.z {
+                    let a = w_fold_at[at + q];
+                    let b = w_fold_at[at + q + 1u];
+                    span = select(vec2<u32>(a, b), vec2<u32>(b, a), up);
+                }
                 for (var k = span.x + lane; k < span.y; k += FOLD_LANES) {
                     fold_apply(op, fold_member(k));
                 }
