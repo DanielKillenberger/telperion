@@ -17,12 +17,12 @@ The walk interpolates both (`blend.rs:161-162`); COUNCIL.md says environment is 
 |---|---|---|---|
 | `leafArea` | `leaf_area` | the deposit: each phytomer laid this cycle lends scale x size x leaf_area at its tip (`grow/draw.rs:253`); device `capture_layout.rs:109,310`; also `couple.rs:141`, `light.rs:117` (frozen-tree tools) | extinction 0 |
 | `shadeHazard` | `shade_hazard` (phi) | survival: viability^(light^-phi) (`grow/advance.rs:72`, `contract::decide::shaded`); device `capture_units.rs:140` | viability 1, or no leaf shades |
-| `shadeSize` | `shade_size` (psi) | a unit's size by its vigour per presence, PA normalised (`grow/cycle/passes.rs:102`); device `capture_hierarchy.rs:156` | no leaf shades |
-| `apicalControl` | `apical_control` (lambda) | the vigour split at ordered attachments (`passes.rs:105`); device `capture_hierarchy.rs:155` | shade_size 0, or no leaf shades |
+| `shadeSize` | `shade_size` (psi) | a unit's size by its vigour per presence, PA normalised (`grow/cycle/passes.rs:102`); device `capture_hierarchy.rs:156` | 0 (measured, fn-264 R2a: with apical control off 0.5 it moves an unshaded tree too) |
+| `apicalControl` | `apical_control` (lambda) | the vigour split at ordered attachments (`passes.rs:105`); device `capture_hierarchy.rs:155` | shade_size 0 (an unshaded tree's split is still unequal at any value but 0.5) |
 | `upkeep` | `upkeep` | the carbon balance's wood cost (`passes.rs:35`) | balance_hazard 0 |
 | `balanceHazard` | `balance_hazard` | shedding by remembered balance (`passes.rs:61`, `contract/shed.rs:52`) | 0 |
 | `tolerance` | `tolerance` | the balance below which shedding starts (`passes.rs:62`, `contract/shed.rs:52`) | balance_hazard 0 |
-| `leafGirth` | `leaf_girth` (chi) | a pipe by its leaves' light against the tree's mean (`girth.rs:161-277`, `girth/disused.rs:158-249`); device `capture_settled.rs:246-253` | no leaf shades |
+| `leafGirth` | `leaf_girth` (chi) | a pipe by its leaves' light against the tree's mean (`girth.rs:161-277`, `girth/disused.rs:158-249`); device `capture_settled.rs:246-253` | 0 (unshaded, its term at a light of one is not bit-identical to the dormant path; measured, fn-264 R2a) |
 | `retained` | `retained` | a shed branch's pipe kept in its bearer (`girth/disused.rs:295`); reads no light, listed as the response's neighbour | 0 |
 | `viability` | `viability` | the base shade_hazard raises (`advance.rs:72`) | 1 |
 

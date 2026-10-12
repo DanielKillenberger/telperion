@@ -335,10 +335,94 @@
       "task": "fn-264-every-species-shades-and-answers-light.1",
       "timestamp": "2026-10-12T20:44:37.656119Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2250ee411716bd87fc957ed9e638a6fa60d8aaf5e83d1d87ae5a9a7d9e77f983",
+      "backend": "codex",
+      "base_sha": "c1aef3f38da33d7895b99cd9c1b3910fef4e56da",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8f2a5c8ed52a4c545e51c0f5e44c21fc",
+            "classification": "introduced",
+            "findingId": "finding-8f2a5c8ed52a4c545e51c0f5e44c21fc",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5209961fdc8dd96155e7306f69aebe1c",
+            "classification": "introduced",
+            "findingId": "finding-5209961fdc8dd96155e7306f69aebe1c",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f574422bd77f4631e1d95e16d8765c92",
+            "classification": "introduced",
+            "findingId": "finding-f574422bd77f4631e1d95e16d8765c92",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-7f7fe98c294452fa274b695eb58fc0a1",
+            "classification": "introduced",
+            "findingId": "finding-7f7fe98c294452fa274b695eb58fc0a1",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-820401f6c3440aae9f909bea6bf75e64",
+            "classification": "introduced",
+            "findingId": "finding-820401f6c3440aae9f909bea6bf75e64",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-235f5d23885f75fdbf817a4b786340eb",
+            "classification": "introduced",
+            "findingId": "finding-235f5d23885f75fdbf817a4b786340eb",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "08562b51e7c3a4813da47c56248e9187e0c4882f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1014,
+      "output_sha256": "1c2afeed37856272a8aa5a19eae0050522d576698abb6b209d77851bb4241b7a",
+      "reservation_id": "77e98028e78b4119827340dba90752e3",
+      "round_consumed": true,
+      "scope": "impl:fn-264-every-species-shades-and-answers-light.1",
+      "superseded_by": null,
+      "task": "fn-264-every-species-shades-and-answers-light.1",
+      "timestamp": "2026-10-12T22:01:57.365919Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-264-every-species-shades-and-answers-light.1": 2,
+    "impl:fn-264-every-species-shades-and-answers-light.1": 3,
     "plan": 2,
     "plan#completion": 1
   },
@@ -362,5 +446,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-12T20:44:37.658679Z"
+  "updated_at": "2026-10-12T22:01:57.368615Z"
 }
