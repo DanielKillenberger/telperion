@@ -22,7 +22,7 @@ use telperion_core::foliage::Instances;
 use telperion_core::mesh::{Foliage, TreeMesh};
 use telperion_core::pipeline::executor::{self, beyond, Summaries};
 use telperion_core::presets::Family;
-use telperion_core::surface::{Curve, SurfaceMesh};
+use telperion_core::surface::SurfaceMesh;
 use telperion_core::Error;
 
 /// The device's tools, made once.
@@ -224,7 +224,7 @@ pub(super) async fn build(
     .await?;
     // The ring positions served the placements alone.
     drop(positions);
-    let curve = Curve::default();
+    let curve = x.curve_rows()?;
     let handoff = &tools.handoff;
     let handed = stage(gpu, &mut t.handoff, async || {
         handoff.hand(gpu, &curve, &swept).await

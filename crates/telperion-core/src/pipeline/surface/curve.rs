@@ -99,19 +99,25 @@ pub(crate) struct Traced {
     pub(crate) order: Vec<usize>,
 }
 
-pub(crate) fn traced(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Traced> {
-    tree.validate()?;
+/// A curve with no run yet: the section's rows every ring reads, its
+/// lobes, their depth and the twist over the tree's `height`.
+pub(crate) fn rows(height: f64, params: &SurfaceParams) -> Result<Curve> {
     params.validate()?;
     crate::pipeline::surface::height(height)?;
-    let paths = paths(tree)?;
-    let height = height.max(1e-6);
-    let mut out = Curve {
+    Ok(Curve {
         lobes: params.lobes,
         lobe_depth: params.lobe_depth,
         twist_rate: params.twist_rate,
-        height,
+        height: height.max(1e-6),
         ..Curve::default()
-    };
+    })
+}
+
+pub(crate) fn traced(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Traced> {
+    tree.validate()?;
+    let mut out = rows(height, params)?;
+    let height = out.height;
+    let paths = paths(tree)?;
     if paths.runs.is_empty() {
         return Ok(Traced {
             curve: out,

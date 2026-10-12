@@ -343,6 +343,12 @@ impl Expansion {
         let s = &self.inputs.surface;
         surface::curve(&self.tree, s.height, &s.params)
     }
+    /// The curve's rows with no run in it, for an executor that sweeps its
+    /// own runs (fn-256): the lobes, their depth, the twist and the height.
+    pub fn curve_rows(&self) -> Result<Curve> {
+        let s = &self.inputs.surface;
+        surface::curve_rows(s.height, &s.params)
+    }
     /// The wood the CPU builder sweeps.
     pub fn wood(&self) -> Result<SurfaceMesh> {
         let s = &self.inputs.surface;

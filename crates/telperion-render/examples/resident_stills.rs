@@ -1,6 +1,6 @@
 //! The harness's own build of every shipped preset (`Generator::prepare`,
-//! resident delivery; a tree the device cannot draw falls to the CPU
-//! delivery, named), at its default age and seed, at the whole-tree, mid
+//! resident delivery, or the CPU's with `STILLS_CPU=1`; a refused tree is
+//! named and skipped), at its default age and seed, at the whole-tree, mid
 //! and close views: `<preset>-<view>.png` into the out directory, with each
 //! build's milliseconds and leaves printed (fn-256 task 3's stills).
 //!
@@ -52,11 +52,13 @@ fn main() -> Result<(), String> {
         let t = Instant::now();
         // `STILLS_CPU=1` draws the CPU reference route instead.
         let first = if std::env::var_os("STILLS_CPU").is_some() { Delivery::Cpu } else { Delivery::Resident };
+        // A refusal is reported and the preset skipped, never rebuilt on
+        // the CPU (fn-256 R1).
         let prepared = match gen.prepare(&family, first) {
             Ok(p) => p,
             Err(e) => {
-                println!("{id}: resident refused ({e}); the CPU delivery instead");
-                gen.prepare(&family, Delivery::Cpu).map_err(|e| e.to_string())?
+                println!("{id}: refused ({e})");
+                continue;
             }
         };
         let ms = t.elapsed().as_secs_f64() * 1e3;

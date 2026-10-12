@@ -163,6 +163,13 @@ impl CurveGpu {
         }
     }
 
+    /// The section's rows this curve draws by: lobe depth, twist, height,
+    /// and the lobes.
+    #[cfg(test)]
+    pub(crate) fn rows(&self) -> ([f32; 4], u32) {
+        (self.shape, self.lobes)
+    }
+
     /// The packed points and clusters, how many of each, and the demand
     /// (fn-212 task 7's parity probe reads them back).
     #[cfg(test)]

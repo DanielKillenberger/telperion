@@ -272,6 +272,29 @@ fn curve(gpu: &crate::Gpu, f: &Family) -> Runs {
     out
 }
 
+/// Every preset: the device's curve draws by the section's rows the CPU's
+/// does (its lobes, their depth, the twist and the height).
+#[test]
+fn every_preset_draws_its_wood_by_the_cpu_rows() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    for id in presets() {
+        let f = family(&id, age());
+        let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+        let gen = Generator::new(&renderer).unwrap();
+        let kit = gen.kit();
+        let built = pollster::block_on(super::build::build(&gpu, &gen, &kit.kernels, &kit.tools, &f)).unwrap();
+        let theirs = executor::grow(&f).unwrap().expansion().unwrap().curve().unwrap();
+        let want = [theirs.lobe_depth as f32, theirs.twist_rate as f32, theirs.height as f32, 0.0];
+        let (shape, lobes) = built.prepared.wood.as_ref().unwrap().rows();
+        assert_eq!((shape[0], shape[1], lobes), (want[0], want[1], theirs.lobes), "{id}");
+        // The height is the tree's: the device's tree and the CPU's agree
+        // by lineage.
+        assert!((shape[2] - want[2]).abs() <= 1e-3 * want[2], "{id}: {shape:?} {want:?}");
+    }
+}
+
 /// Every preset young: the device sweeps its wood as the CPU does, run
 /// for run, point for point within the lineage tolerance.
 #[test]
