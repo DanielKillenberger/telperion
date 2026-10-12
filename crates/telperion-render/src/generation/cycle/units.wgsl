@@ -184,10 +184,12 @@ fn zones_main(@builtin(global_invocation_id) id: vec3<u32>) {
 }
 
 // Emitted, each zone's records written from the places the zones before
-// it left, in two phases a zone's own writes order: its nodes ordered
-// along the unit, then its phytomers, laterals and sleeping buds
-// (`written_main`); its laterals' presences (their PA's draw's, then
-// times their place's) and its sleeping buds' (`placed_main`).
+// it left, in three phases a zone's own writes order: its nodes ordered
+// along the unit, then its phytomers and sleeping buds (`written_main`);
+// its laterals (`sprouted_main`); its laterals' presences (their PA's
+// draw's, then times their place's) and its sleeping buds'
+// (`placed_main`). The laterals are a phase of their own: fused with the
+// phytomers, each dispatch took three times as long (fn-256 task 11).
 @compute @workgroup_size(64)
 fn written_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let z = zone_of(id);
@@ -195,12 +197,23 @@ fn written_main(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     order_zone(z.x, z.y);
-    let whats = array<u32, 3>(3u, 1u, 2u);
-    for (var k = 0u; k < 3u; k++) {
+    let whats = array<u32, 2>(3u, 2u);
+    for (var k = 0u; k < 2u; k++) {
         take_job(job);
         pending = false;
         zone_nodes(z.x, z.y, jw(J_FRAME), cfg.cycle, whats[k]);
     }
+}
+
+@compute @workgroup_size(64)
+fn sprouted_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let z = zone_of(id);
+    if z.x == NONE {
+        return;
+    }
+    take_job(job);
+    pending = false;
+    zone_nodes(z.x, z.y, jw(J_FRAME), cfg.cycle, 1u);
 }
 
 @compute @workgroup_size(64)

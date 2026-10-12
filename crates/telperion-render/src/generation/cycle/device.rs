@@ -14,14 +14,14 @@ pub(super) const INIT: usize = 0;
 pub(super) const WOKE: usize = 1;
 pub(super) const DECIDE: usize = 2;
 pub(super) const ZONES: usize = 3;
-pub(super) const WRITTEN: [usize; 2] = [4, 5];
+pub(super) const WRITTEN: [usize; 3] = [4, 11, 5];
 pub(super) const AFTER: usize = 6;
 pub(super) const CLOSE: usize = 7;
 pub(super) const FLAG: usize = 8;
 pub(super) const GATHER: usize = 9;
 pub(super) const SEED: usize = 10;
 
-pub(super) const ENTRIES: [&str; 11] = [
+pub(super) const ENTRIES: [&str; 12] = [
     "init_main",
     "woke_main",
     "decide_main",
@@ -33,6 +33,7 @@ pub(super) const ENTRIES: [&str; 11] = [
     "flag",
     "gather",
     "seed_main",
+    "sprouted_main",
 ];
 
 /// The tally's places (`arena.wgsl`'s `T_` words).
