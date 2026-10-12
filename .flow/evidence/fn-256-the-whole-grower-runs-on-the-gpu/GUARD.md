@@ -109,23 +109,23 @@ DESIGN.md section 13 has the design. What each ruling became:
 
 ### Warm build and peak per preset, the arena built
 
-Warm build in ms, the second build in the process; peak is the build's owned bytes in MB, the settle included (`raw/t5-build-time-arena.txt`). F4 and task 4 are PROOF.md's.
+Warm build in ms, the second build in the process; peak is the build's owned bytes in MB, the settle included (`raw/t5-build-time-final.txt`, after the review's fixes). F4 and task 4 are PROOF.md's.
 
 | Preset | F4 | Task 4 | Now | Task 4 peak | Now peak |
 |---|--:|--:|--:|--:|--:|
-| ordinary 40 | 523 | 604 | 514 | 458 | 370 |
-| oak 40 | 1159 | 525 | 380 | 562 | 1416 |
-| spruce 40 | 403 | 613 | 563 | 1911 | 1645 |
-| beech 40 | 210 | 295 | 306 | 470 | 424 |
-| birch 40 | 716 | 782 | 356 | 783 | 894 |
-| palm 40 | 4 | 98 | 132 | 163 | 146 |
-| Telperion 82 | 671 | 1909 | 2010 | 6122 | 3990 |
-| Laurelin 80 | 627 | 1782 | 1897 | 5526 | 3707 |
+| ordinary 40 | 523 | 604 | 522 | 458 | 366 |
+| oak 40 | 1159 | 525 | 405 | 562 | 1467 |
+| spruce 40 | 403 | 613 | 554 | 1911 | 1645 |
+| beech 40 | 210 | 295 | 326 | 470 | 424 |
+| birch 40 | 716 | 782 | 351 | 783 | 894 |
+| palm 40 | 4 | 98 | 136 | 163 | 146 |
+| Telperion 82 | 671 | 1909 | 1958 | 6122 | 3990 |
+| Laurelin 80 | 627 | 1782 | 1869 | 5526 | 3707 |
 
 - **Faster than task 4:** the ordinary, oak, spruce and birch. They no longer begin again or move; the birch had begun again twice late.
-- **Slower:** Telperion by 5%, Laurelin by 6%, the beech by 4%, the palm by 35 ms. On Telperion, 5 to 7 compactions cost 15 to 25 ms each, and all five units rounds are recorded every cycle: about 1,000 dispatches a cycle against task 4's 690.
+- **Slower:** Telperion by 3%, Laurelin by 5%, the beech by 10%, the palm by 38 ms. On Telperion, 5 to 7 compactions cost 15 to 25 ms each, and all five units rounds are recorded every cycle: about 1,000 dispatches a cycle against task 4's 690.
 - **Peaks:** the Two Trees peak at two thirds of task 4's and fit the 4 GiB default. The oak at 40 and the birch hold more than in task 4, because their tables are sized by the ratios the spruce and the beech set.
-- **Against F4,** every preset but the ordinary, the oak and the birch is slower. The Two Trees take three times as long. Reaching F4 is task 6's dispatch work.
+- **Against F4,** every preset but the ordinary (equal), the oak and the birch is slower. The Two Trees take three times as long. Reaching F4 is task 6's dispatch work.
 
 ### Ten builds on a two-thirds-full card, the arena built
 
@@ -135,4 +135,14 @@ Warm build in ms, the second build in the process; peak is the build's owned byt
 
 - **The oak at 80 no longer fits 4 GiB even on a free card.** Its hint (8.0M expected kept) is five times its live set (1.5M), and the spruce's axes ratio sizes its pencils alone at 3.3 GB. In task 4 it built at 3.1 GB. One ratio a table can't fit both; a hint for the axes from the closed form would.
 - **The sweep's bound** is stated from the lattice's nodes, because the species carry no height or spread rows.
-- **Speed:** the Two Trees are 5 to 6% slower than task 4 (above).
+- **Speed:** the Two Trees are 3 to 5% slower than task 4 (above).
+
+### The review
+
+Codex, three reviewers against fn-198's tip, NEEDS_WORK on four findings, all fixed:
+- the ledger dropped a let-go buffer's record when another encoder closed, leaving its charge forever;
+- one build's cap was cleared by another ending;
+- the records grew and copied outside the move count and the reservation;
+- an extreme hint overflowed the sizing.
+
+The re-review returned SHIP. The workspace gate passed 1,331 tests with none failing (`raw/t5-gate-workspace-2.txt`). After the fixes the render library passed 169 (`raw/t5-gate-render.txt`) and `npm test` 162 (`raw/t5-gate-npm.txt`).
