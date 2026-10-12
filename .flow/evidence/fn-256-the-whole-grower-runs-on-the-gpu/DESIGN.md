@@ -443,7 +443,55 @@ The cycle's build becomes async end to end, as fn-212 made the fine path: the ce
 
 ### 12.5 Deleted, each with the consumer checked
 
-Listed in the task's summary once the deletions land, consumer by consumer. The site's coarse route (`grow_coarse`, `stepped::standing`, the stands) stays for fn-257, and with it what it reads of the stepped executor.
+Each item of R3B.md's list, with what was checked for a reader.
+
+| Item | Done | Consumer checked |
+|---|---|---|
+| `executor::apart`, `Part`, `settle`, `Settling` | deleted | `prepare_async` routes by delivery alone; no family is parted, and nothing names a species |
+| `Tree::attachments`, seams, `in_fine_roots`, stubs | deleted | paths, frames, rings, compact, foliage plan, placement, prepared, station: each now reads one tree with no seam; frames seed from `tree.frames` |
+| the fine-root cut and marks (`space` `fine/{cases, geometry, survey, landing, spare, likely}`, the marks in `convert`) | deleted | `pipeline::space::grow` converts `telperion_space::grow` (the cycle) with no marks |
+| the stepped executor's fine side (`grow/stepped/{buds, schedule, settle}`, the fine branches of `feedback` and `phases`) | deleted | the stepped executor now holds only `grow_coarse`'s coarse tree and stands |
+| `alone.rs` and `alone/` (field, shed) | deleted | no reader after the fine side went; `grow/alone.rs` keeps `rules`, `drawn`, `Bud`, `Pending`, read by `run` |
+| `reads_light`'s start gate and the alone refusal | deleted | the cycle reads light for every species |
+| render `generation/fine/` (61 files: stubs, roots, laid, the resident and parity tests) | deleted | the resident build reads the cycle's settled tree (`cycle/tree.rs`) |
+| `chain.wgsl` | deleted | the chains are planned by `cycle/chains.wgsl` |
+| `contract.wgsl`, `wide.wgsl` | moved to `cycle/decide.wgsl` (the contract's decisions) and `cycle/u64.wgsl` (wide integer arithmetic) | read by `cycle.rs`'s `contract()` |
+| `plan/measured.rs` | deleted | its only reader was the cut's seam |
+| `ChainTables::new`, `boundary::curves`, the space examples `alone, coarse, contract, cut, cutlight, digests, field, stepped` | deleted | no reader; `ChainTables::cycle` serves the device |
+| `Predictor::new` | test-only | read by the closed-form tests; the site's coarse tree reads predictors through `Rows` |
+
+Kept, each for its reader, until fn-257 replaces the site's coarse route (`pipeline::space::grow` at `cut > 0`):
+
+- `reads_light`: `closed_form::expected_kept` and `fine/coarse.rs`'s lit route.
+- `Certain`/`lasting`: `grow::run`, the coarse engine and the `whole` test reference; the cycle sets `lasting` to none.
+- the f32 `Field::on` deposit: `grow/sketch.rs` and the stepped executor's coarse feedback.
+- the f64 survival path (`dormant`, `presence`, `couple`, `contract`): the closed form's rows, which the coarse tree's expectations read.
+- `grow_coarse`, `stepped::standing` and the stands: the site path itself.
+
+Production-dead, kept as the reference: `prepare_whole`'s resident branches (CPU-built wood with GPU stations). `prepare_async` sends every resident build to the device, and the route tests hold the device to this path's output. Whether it stays as a test reference or goes is a follow-up.
+
+### 12.5a Agreement and stills
+
+The render gate's resident-against-CPU checks are now lineage checks (`resident/agree_tests.rs`), at age 12 on every preset the device draws: nodes equal in count and lineage, positions within 3e-5 m; station runs equal; every wood run matched point for point, the trunk included (a 1% run tolerance had hidden a missing `trunk_run` until the stills showed it; FRICTION.md).
+
+The stills at each preset's default age, whole, mid and close, F4 against the device (`raw/t3-stills/sheets/`, every sheet viewed; share of pixels differing past 2%):
+
+| Preset | Whole | Mid | Close | Seen |
+|---|--:|--:|--:|---|
+| ordinary | 1.3% | 6.3% | 7.5% | same form; twigs and leaves placed differently |
+| oak | 2.7% | 8.4% | 8.9% | same crown; the close view darker, the cycle's leaves seated elsewhere (the CPU cycle and the device alike, 1.1% apart) |
+| spruce | 0.9% | 4.2% | 6.0% | near identical |
+| beech | 1.0% | 7.0% | 9.1% | same limbs; leaf placement differs |
+| birch | 1.0% | 5.5% | 11.3% | same habit; hanging twigs placed differently |
+| palm | 0 | 0 | 0 | refused resident (12.6); the CPU delivery drawn |
+| Telperion | 3.6% | 13.1% | 13.0% | same crown; flowers and leaves placed differently |
+| Laurelin | 2.7% | 12.2% | 9.9% | same crown; flowers and leaves placed differently |
+
+The differences are the one cycle's (fn-255): the CPU cycle and the device differ by 0.2 to 1.6% on the oak and the beech.
+
+### 12.5b Build time
+
+Warm ms, `build_time_tests.rs` (`raw/t3-build-time-{before,after}.txt`): ordinary 523 to 518, oak 1159 to 515, spruce 403 to 657, beech 210 to 287, birch 716 to 739, palm 4 to refused, Telperion 671 to 5929, Laurelin 627 to 5834. The Two Trees' cost is the device grow's restarts from its least tables, task 2's carried item 1, which task 4 owns.
 
 ### 12.6 Open, for the host
 
