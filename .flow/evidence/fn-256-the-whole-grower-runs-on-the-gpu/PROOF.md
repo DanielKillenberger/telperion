@@ -145,6 +145,8 @@ Checked without a browser: the page's modules resolve to this worktree's `src/br
    - Round 2 (still NOT FIXED then): a `pair` worker also makes shader modules and layouts. `io::pair` now runs its worker under scopes of its own and keeps what they catch for `ready` (`a_shader_refused_on_a_side_by_side_worker_is_reported`).
 3. **The phytomer clamp** let a projection past the budget through. Fixed as above.
 
+**Astra, round 3: AGREE** (`raw/t4-astra/astra-3.log`). Every native worker is scoped, the earlier two fixes stand, and no must-fix remains.
+
 ## Open, for the owner and the host
 
 1. **Warm build, missed for six presets:**
