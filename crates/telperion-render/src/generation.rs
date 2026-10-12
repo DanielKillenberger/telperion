@@ -284,6 +284,8 @@ fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
     }
 }
 #[cfg(test)]
+mod build_time_tests;
+#[cfg(test)]
 mod standalone_tests;
 #[cfg(test)]
 mod tests;

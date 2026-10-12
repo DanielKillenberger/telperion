@@ -385,3 +385,66 @@ So the apex run is split into phase kernels over flat work lists. It is not a pe
 
 The strictly sequential sum of every entry, one after another, is 6.0 s. That is not how either path builds.
 
+
+## 12. The seam: the device's settled tree, whole, to the draw (task 3, 2026-10-12)
+
+The host's decision (B): the tree stays on the device. The whole cycle-grown tree is one resident part; nothing of it is converted on the CPU, and only totals and summaries are read back. CPU builds grow through the CPU cycle and draw through `prepare_whole`, the reference.
+
+### 12.1 What the drawing stages read today
+
+F4's resident build (`fine/resident.rs`) meets the CPU at four places:
+
+| Stage | Reads from the fine roots | Reads from the CPU part |
+|---|---|---|
+| dress (`dress.wgsl`) | each wave's chains: their items, axes (`AXW`), scratch (`SA`) and laid buffer (`AL`, `PL`) | each root's stub: its bearer's drawn node, origin and distance (`stubs.rs`, `Tree::attachments`) |
+| fold (`fold.wgsl`) | the drawn records (`CV`) | the CPU nodes' folds, bins and box, combined |
+| expansion (`Part::expansion`) | the folds, crown front and leaf box | the tree: `clothe`, the envelope's points, `Reference::grown`, `wood_box`, `bearing_bounds` (root radius, `stem_radius`) |
+| sweep, stations, rings, place, handoff, florets | the drawn records, `Swept` | the CPU block's curve, stations, segments, florets |
+
+Every stage after the dress reads only `Dressed` (the drawn records, `CV` a node, `CA` an axis, one buffer a wave, the stubs first) and the expansion's rows. So the seam is the dress and the CPU part.
+
+### 12.2 The adapter: the cycle's dress
+
+**Chains, planned on the device from the node table.** The cycle's node table holds the settled tree in lineage order, depth by depth, with each axis's parent, kind, node, PA, lineage, phytomer start and count, base, join, and each phytomer's key, cycle, scale, radius and laid tip, heading and side (`settle_state.wgsl`'s `A_` and `PH_`).
+- A chain is a lateral's first axis (or the seed) and every axis reached from it through continuations and relays: what `dress.wgsl` draws in one invocation. Its wave is the number of laterals between it and the seed.
+- **Planning** (new kernels in `cycle/`, a depth at a time, then per wave):
+  1. Each axis's chain head and wave, from its parent's (laterals and the seed head their own).
+  2. Each parent's first child and child count (order-free folds; a parent's children are contiguous in the next depth, in lineage order).
+  3. Per wave, the heads in index order (a flag scan); each chain's axes and phytomers counted by its head (order-free).
+  4. One invocation per chain walks its chain breadth first from its head, children in order, skipping laterals. On a BFS-ordered table that visits the chain's axes in increasing index, which is the conversion's order. It writes each axis's place in its chain and its wave-local axis and phytomer offsets.
+  5. One readback: each wave's axes, phytomers and chains, which size its drawn buffer.
+- **The dress** (`cycle/dress.wgsl`): `dress.wgsl`'s conversion rewritten to read the node table's columns in place of the chain's `AXW`, `SA` and `PL` words. It keeps the drawn layout (`CA`, `CV`, joins after the wave's phytomers), so the fold, sweep, stations, rings, place and handoff run unchanged. It is a rewrite of a shader the fine path deletes, not a copy kept beside it.
+  - Positions are the tree's own: no origin and no root-local frame.
+  - Each phytomer's internode spread factor is taken from its key and its PA's spread, as the CPU's `internode_factor`.
+  - Joins read the node table's join columns and the relay's first phytomer's key (`join_key`).
+- **The root.** Wave 0 has one bearer record: the tree's root node, `Node::root()` at the origin. The seed's first node starts a run without parting as a lateral (no codominance, start radius its own), as `convert` draws the seed from node 0.
+- **The stem.** The dress marks stem nodes (`STEM`, flag bit 128): the seed chain's axes of a trunk PA carried from the seed or a stem node, a stopped module's head turned aside unmarked, as `convert` does. Only the seed chain can hold stem.
+- **What goes:** `LANDED`, `FINE` and `SEAM` (every node is the device's, and no run starts at a seam), the stubs (`stubs.rs`), `Stub`, `Part`, `Tree::attachments`, `Tree::seams` and the conversion's fine marks.
+
+### 12.3 The whole-tree summaries the CPU part supplied
+
+| Summary | Was | Now |
+|---|---|---|
+| Height, crown's lowest, widest | `Folds::of` over the CPU nodes, folded with the device's | `fold.wgsl` alone; its `LOW` skips stem nodes, as `Folds::of`'s crown |
+| Bins, crown front | `bins` over both | `fold.wgsl` alone |
+| The leaf box and the reference | `Reference::grown`, `wood_box` of the CPU nodes, with the device's corners | `Reference::spanning` of the device's corners and the root |
+| The root's radius | `tree.nodes[0]` (`convert`: node 1's start radius) | the seed's first drawn node's start radius, read back with the folds |
+| The slender bound's stem radius | `Tree::stem_radius` | a fold: each drawn node's stem children counted, the first fork by the dress's per-chain sequence (the seed chain's order is the conversion's node order), then its stem children's widest radius; none, the root's |
+| Leaf retention recorded | `tree.leafing` non-empty | the PA rows (`convert`'s `leafing_on`) |
+| Leaf bases (`clothe`) | the CPU tree | none: only a rosette clothes, and a rosette has no stations (12.6) |
+
+`executor::Expansion` gets a constructor from the family and these summaries, with no tree. The resident build keeps no CPU block: no CPU curve, stations, segments or florets. The handoff packs the device's curve alone (an empty CPU curve), and the placement places the device's block alone.
+
+### 12.4 The build, natively and in a browser
+
+The cycle's build becomes async end to end, as fn-212 made the fine path: the census's late readback awaits its mapping (natively it polls its submission first, as `io::PendingRead` does), every `read_words` is `io::read_async`, `Instant` is `Clock`, and the trace switch goes. `mod cycle` is no longer test-only and compiles on wasm32. Its tables come from `grow_capture_tables`, the CPU's per-species tables, once per build (no per-cycle CPU work).
+
+`Generator::prepare_async`: resident delivery grows through the device cycle and draws resident; CPU delivery grows through the CPU cycle (`executor::grow`, now `grow_cycle`) and draws through `prepare_whole`. The executor is the delivery's, chosen with the context; no species reaches the choice. A device capacity failure is the build's named error, never a CPU rebuild.
+
+### 12.5 Deleted, each with the consumer checked
+
+Listed in the task's summary once the deletions land, consumer by consumer. The site's coarse route (`grow_coarse`, `stepped::standing`, the stands) stays for fn-257, and with it what it reads of the stepped executor.
+
+### 12.6 Open, for the host
+
+**A family whose leaves stand on no regular twig stations (the date palm's rosette).** The device's stations number regular stations only; F4 drew the palm through `prepare_whole` by `executor::apart`'s capability gap. Under 12.4 every resident build is the device's. The options: (a) the device grows it and its settled tree is read back for the CPU's rosette drawing, chosen by the leaves' capability, never the species (the palm is 480 phytomers); (b) refused by name in the harness until the stations draw rosettes; (c) the device's stations learn rosettes. Until the call, the palm's resident build is refused by name.

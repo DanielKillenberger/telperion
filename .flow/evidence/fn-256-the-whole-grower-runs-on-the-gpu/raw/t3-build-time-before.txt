@@ -1,0 +1,31 @@
+warning: associated function `laterals` is never used
+  --> crates/telperion-space/src/closed_form/boundary.rs:72:12
+   |
+58 | impl Rows {
+   | --------- associated function in this implementation
+...
+72 |     pub fn laterals(species: &Species, age: u32, threads: usize) -> Self {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `telperion-space` (lib) generated 1 warning
+warning: `telperion-space` (lib) generated 1 warning (1 duplicate)
+    Finished `ci` profile [optimized] target(s) in 0.08s
+     Running unittests src/lib.rs (/home/daniel/Projects/telperion/.worktrees/gpucycle-target/ci/deps/telperion_render-fa1184a48800d984)
+
+running 1 test
+test generation::build_time_tests::build_time ... | Preset | Age | Cold ms | Warm ms | Instances |
+|---|--:|--:|--:|--:|
+| ordinary | 40 | 625 | 523 | 13792 |
+| oregon-white-oak | 40 | 1369 | 1159 | 350269 |
+| norway-spruce | 40 | 672 | 403 | 4686048 |
+| european-beech | 40 | 214 | 210 | 94630 |
+| silver-birch | 40 | 738 | 716 | 193986 |
+| date-palm | 40 | 4 | 4 | 6554 |
+| telperion | 82 | 658 | 671 | 980082 |
+| laurelin | 80 | 638 | 627 | 919387 |
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 219 filtered out; finished in 9.73s
+
