@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-12T03:44:31.045797Z",
+  "depends_on": [],
+  "id": "fn-266-the-device-draws-the-palms-leaf-base.1",
+  "priority": null,
+  "spec": "fn-266-the-device-draws-the-palms-leaf-base",
+  "spec_path": ".flow/tasks/fn-266-the-device-draws-the-palms-leaf-base.1.md",
+  "status": "todo",
+  "title": "Palm boots and cells on the device",
+  "updated_at": "2026-10-12T03:44:31.045797Z"
+}

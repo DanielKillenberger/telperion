@@ -7,7 +7,7 @@ fn-256 task 3 moves every resident build onto the device's one cycle (host decis
 ## Requirements
 
 - **R1 (design first, in fn-256's DESIGN.md as 12.8):** a device stage between the dress and the folds that walks each stem and adds two records per boot plus the cell table, by degree (zero boots, no change); the folds and sweep taking the extra records; the sweep's reshape onto each cell with squared frames; the handoff passing the device's cells as a buffer. Direct dispatches, at most 16 storage buffers a stage, Tint's rules (COUNCIL.md).
-- **R2:** the palm builds on the device and draws in the harness; CPU and device agree by lineage on boots (heights, spiral positions, cells) within the lineage tolerance; the refusal by leaf capability is removed.
+- **R2:** the palm builds on the device and draws in the harness; CPU and device agree on boots through a dedicated parity test: boots matched by their stem's lineage key and boot ordinal (the CPU's boots carry no keys of their own today, `leaf_bases.rs::hung`), counts exactly equal, and positions, spiral angles and cell geometry within numeric bounds the design states from measured runs; the test has a missing-boot and a perturbed-cell negative control, each red; the refusal by leaf capability is removed.
 - **R3:** palm stills whole, mid and close beside F4's, viewed, the diamond lattice visible; build time; gate and npm test green; codex review.
 
 ## Boundaries
