@@ -105,3 +105,12 @@ The oak and the palm are pixel-identical to the base (AE 0). The ordinary is as 
 | Tip | 15,995,974 | builds (19.5 s, peak 3,972 MB) | 16,625,765 | 11,264,585 |
 
 The frame's grown count now lies between its ends, inside the oracle's band, and it builds. The birch's rows bring its own end under the budget. Kept counts were not compared.
+
+## The gate on the full R3 (tip `176657cac`)
+
+- **Workspace without the renderer:** 1,065 passed, 8 failed. All eight tested the unlit paths (the closed form, the coarse tree, the shed-certain shortcut, the predictor's Wasm ceiling) on the beech or spruce, which now answer light. Each now grows them as they grew before fn-264 (`tolerance::unlit`), and its claim is unchanged; 91 + 18 + 1 pass.
+- **Renderer under the GPU lock:** 269 passed, 4 failed.
+  - Three resident-budget tests used the spruce and beech for the predicted admission, which only an unlit species has (a lit one is held to the budget as it grows); their families now stand unlit, and 33 of 33 pass.
+  - **`the_smooth_barks_hold_the_resolution_and_redraw_contracts` stays red:** the birch's close-up aliases 3.21/255 mean against the 3.0 bound (p95 12.0 against 12.0), on the birch's changed tree. Not weakened; for the owner beside the birch's sheet.
+- **`npm test`:** 15 files, 162 tests passed.
+- **Consequence to know:** the predictor's early Wasm ceiling (`foreseen`) and the resident budget's predicted peak serve only unlit species, so every leafy preset now takes the held-as-it-grows path, as the oak and ordinary already did.
