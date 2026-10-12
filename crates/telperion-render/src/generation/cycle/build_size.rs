@@ -29,8 +29,8 @@ const STEP: [u32; 4] = [2, 1, 2, 2];
 const ROUND_SLACK: [u32; 2] = [2, 3];
 
 /// The sweep's layer ranges the first two cycles record: a lattice of
-/// up to 128 layers.
-const FIRST_SWEEPS: u32 = 8;
+/// up to 512 layers.
+const FIRST_SWEEPS: u32 = 32;
 
 /// The blocks a folded sweep's workgroup takes at once (`fold.wgsl`'s
 /// `FOLD`): a level of no more is folded.
@@ -229,5 +229,14 @@ mod tests {
         assert!(said.to_string().contains("budget of 20000000 phytomers"), "{said}");
         let said = refusal(9, &[(Flag::Sweeps, 1)], 20_000_000);
         assert!(said.to_string().contains("Sweeps"), "{said}");
+    }
+
+    /// The first two cycles record the sweep's ranges for a lattice of
+    /// 512 layers, as the per-layer sweep's eight did for a narrow one
+    /// (fn-256 task 13): a tall first shoot is not refused.
+    #[test]
+    fn the_first_cycles_sweep_a_tall_lattice() {
+        let first = limits(&Sizes::least(), None, None).sweeps;
+        assert!(sweeps_of([2, 2, 512]) <= first, "{first} ranges");
     }
 }

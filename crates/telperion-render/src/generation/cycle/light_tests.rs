@@ -49,11 +49,7 @@ impl Agreement {
                     let n = (0..cpu.len().max(dev.len()))
                         .filter(|&i| cpu.get(i) != dev.get(i))
                         .count();
-                    let real = |w: Option<&u32>| w.map_or(f32::INFINITY, |w| f32::from_bits(*w));
-                    let most = (0..cpu.len().max(dev.len()))
-                        .map(|i| (real(cpu.get(i)) - real(dev.get(i))).abs())
-                        .fold(0.0, f32::max);
-                    (name, n, cpu.len(), first, most)
+                    (name, n, cpu.len(), first, largest(&cpu, &dev))
                 })
                 .collect(),
         )
@@ -82,6 +78,26 @@ impl Agreement {
             .collect();
         rows.join("\n")
     }
+}
+
+/// The largest difference between two lists of f32 words: infinite
+/// where one is longer or either holds a value that is not finite.
+fn largest(cpu: &[u32], dev: &[u32]) -> f32 {
+    let real = |w: Option<&u32>| w.map_or(f32::INFINITY, |w| f32::from_bits(*w));
+    (0..cpu.len().max(dev.len()))
+        .map(|i| (real(cpu.get(i)) - real(dev.get(i))).abs())
+        .map(|d| if d.is_finite() { d } else { f32::INFINITY })
+        .fold(0.0, f32::max)
+}
+
+#[test]
+fn a_light_that_is_not_finite_is_not_within_tolerance() {
+    let one = [1.0f32.to_bits()];
+    assert_eq!(largest(&one, &one), 0.0);
+    for bad in [f32::NAN, f32::INFINITY] {
+        assert_eq!(largest(&one, &[bad.to_bits()]), f32::INFINITY, "{bad}");
+    }
+    assert_eq!(largest(&one, &[]), f32::INFINITY);
 }
 
 /// The outputs the device takes as the CPU does, word for word.

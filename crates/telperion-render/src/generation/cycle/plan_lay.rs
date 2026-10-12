@@ -141,6 +141,7 @@ impl Build {
             }
         }
         b.tally(&l.grid, 0, c::GRID, 32);
+        b.tally(&l.grid, 32, c::SWEPT, 4);
         b.point();
         let nodes = E::At(c::GRID + 6);
         if !l.dormant {
@@ -154,10 +155,13 @@ impl Build {
         b.flag(Flag::LightErrors, E::At(c::LIGHT_ERRORS));
         let points = leaves.clone().add(E::At(c::NEXT));
         b.flag(Flag::Points, points.gt(E::C(l.points_cap)).max(E::At(c::NEXT).gt(E::C(l.tips_cap))));
+        // The deposit and the sweep, and so their ranges, only where the
+        // lattice is swept: the sweep from the highest node a leaf with
+        // area reaches down.
         if !l.dormant {
             b.flag(Flag::DepositRanges, leaves.gt(E::At(rec::DEPOSITS).mul(E::C(range))));
+            b.flag(Flag::Sweeps, E::At(c::SWEPT).div(E::C(LAYERS)).gt(E::At(rec::SWEEPS)));
         }
-        b.flag(Flag::Sweeps, E::At(c::GRID + 5).div(E::C(LAYERS)).gt(E::At(rec::SWEEPS)));
         b.count(c::LAID, E::At(c::AXES));
     }
 

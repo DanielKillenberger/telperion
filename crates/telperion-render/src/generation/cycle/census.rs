@@ -40,9 +40,11 @@ pub(super) const GREW: usize = 23;
 pub(super) const MADE: usize = 32;
 /// Each block level's first block after the hierarchy's step.
 pub(super) const LVL: usize = 64;
-/// The light's grid (low, size, nodes, standing) and its errors.
+/// The light's grid (low, size, nodes, standing), its errors, and the
+/// layers its sweep takes.
 pub(super) const GRID: usize = 128;
 pub(super) const LIGHT_ERRORS: usize = 136;
+pub(super) const SWEPT: usize = 137;
 /// The hierarchy's axes left unplaced after each round's last pass, its
 /// faults, and the layout's faults and deepest generations.
 pub(super) const UNPLACED: usize = 140;
