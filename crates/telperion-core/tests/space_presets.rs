@@ -156,8 +156,12 @@ fn a_space_row_off_its_place_or_form_is_refused_by_name() {
             "/space/ages/2/zones/4/buds: 4 is not an index below 4",
         ),
         (
-            ("/space/light/extinction", Cell::Number(0.5)),
+            ("/space/light/extinction", Cell::Number(1.0 / 6.0)),
             "/space/light/extinction: the site's light is one setting, no preset's row",
+        ),
+        (
+            ("/space/light/sky", Cell::Number(0.0)),
+            "/space/light/sky: the site's light is one setting, no preset's row",
         ),
     ] {
         assert_eq!(refused(&[life, row]), why);
@@ -166,6 +170,12 @@ fn a_space_row_off_its_place_or_form_is_refused_by_name() {
         refused(&[("/space/ages/3/internode", Cell::Number(0.1))]),
         "/space/ages/3 states an age with no lifespan"
     );
+    // A family written before fn-264 states the site's own light: read.
+    let site = [
+        ("/space/light/extinction", Cell::Number(SITE.extinction)),
+        ("/space/light/sky", Cell::Number(SITE.sky)),
+    ];
+    assert_eq!(space::read(site).unwrap().light, SITE);
     let never = [life, ("/space/ages/2/shedding", Cell::Never)];
     let read = space::read(never).unwrap().species.unwrap();
     assert_eq!(read.states[2].shedding, f64::INFINITY);
@@ -184,4 +194,18 @@ fn leaf_years_read_as_a_number_or_never() {
         // The neutral value is the default, so it writes no row.
         assert_eq!(written.map(|r| r.1), want.is_finite().then_some(cell));
     }
+}
+
+/// A family object written before fn-264 carried its light on the wire:
+/// the oak's, the site's own, reads as the oak; the ordinary's old 1/6 is
+/// refused, never taken for the site's.
+#[test]
+fn an_old_wire_light_reads_only_as_the_sites() {
+    let oak = Preset::OregonWhiteOak.parameters();
+    let mut wire = params::metadata(&oak);
+    wire["space"]["light"] = serde_json::json!({"extinction": 0.5});
+    let read = params::parse(&wire).unwrap();
+    assert_eq!(format!("{read:?}"), format!("{oak:?}"));
+    wire["space"]["light"] = serde_json::json!({"extinction": 1.0 / 6.0});
+    assert!(params::parse(&wire).is_err());
 }

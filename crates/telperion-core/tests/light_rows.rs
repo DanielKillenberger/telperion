@@ -95,6 +95,68 @@ fn leaf_area_alone_changes_no_growth() {
             ..request()
         };
         let (a, b) = (grow(&lit, request()).unwrap(), grow(&bare, before).unwrap());
-        assert_eq!(a, b, "{preset:?}");
+        assert!(a == b, "{preset:?}");
+    }
+}
+
+/// Each response row a preset populates, set to its neutral.
+const RESPONSES: [(&str, fn(&mut telperion_space::PaState)); 5] = [
+    ("shade_hazard", |s| s.shade_hazard = 0.0),
+    ("shade_size", |s| s.shade_size = 0.0),
+    ("apical_control", |s| s.apical_control = 0.5),
+    ("balance_hazard", |s| s.balance_hazard = 0.0),
+    ("leaf_girth", |s| s.leaf_girth = 0.0),
+];
+
+/// The light-only response: with no leaf shading it reads a light of one,
+/// where it is neutral to the bit. The vigour rows (shade size, apical
+/// control) also follow the split apical control makes in an even light,
+/// the balance weighs its wood's upkeep, and the leaf girth's term at a
+/// light of one is not bit-identical to its dormant path (measured), so
+/// those move an unshaded tree too.
+fn light_only(row: &str) -> bool {
+    row == "shade_hazard"
+}
+
+/// The rows a preset's own values leave neutral under the site's light:
+/// the ordinary's upkeep (0.006) keeps every balance above its tolerance
+/// (0), so its balance hazard sheds nothing.
+fn neutral_by_its_values(preset: Preset, row: &str) -> bool {
+    preset == Preset::Ordinary && row == "balance_hazard"
+}
+
+/// R2a on the presets whose response rows are populated (the oak, the
+/// ordinary), at their own age (40, where the oak's balance has shed):
+/// each row moves the tree through its consumer under the site's light,
+/// but where its values make it neutral, which is stated and tested; and
+/// the light-only row moves nothing where no leaf shades.
+#[test]
+fn each_populated_response_moves_the_tree_through_its_consumer() {
+    for preset in [Preset::OregonWhiteOak, Preset::Ordinary] {
+        let full = species(preset);
+        let lit_at = Request {
+            age: preset.parameters().age as u32,
+            ..request()
+        };
+        let unlit = Request {
+            light: telperion_space::Light::NEUTRAL,
+            ..lit_at
+        };
+        let (lit_tree, dark_tree) = (grow(&full, lit_at).unwrap(), grow(&full, unlit).unwrap());
+        for (row, neutral) in RESPONSES {
+            let mut without = full.clone();
+            without.states.iter_mut().for_each(neutral);
+            assert!(without != full, "{preset:?} populates {row}");
+            let moves = grow(&without, lit_at).unwrap() != lit_tree;
+            assert_eq!(
+                moves,
+                !neutral_by_its_values(preset, row),
+                "{preset:?}: {row} under the site's light"
+            );
+            if light_only(row) {
+                let dark = grow(&without, unlit).unwrap();
+                assert!(dark == dark_tree, "{preset:?}: {row} is neutral unshaded");
+            }
+        }
     }
 }

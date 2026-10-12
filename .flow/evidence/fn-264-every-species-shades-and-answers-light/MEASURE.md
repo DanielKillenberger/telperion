@@ -46,3 +46,9 @@ Every preset grows what it grew, in the same time and peak memory within run noi
 - **Workspace without the renderer** (`cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast`, 4 threads): 1,067 passed, 2 failed, 48 ignored. The two are `telperion-jev`'s replay tests, which need the renderer's examples (FRICTION.md); rerun after the renderer, 3 of 3 passed.
 - **Renderer under the GPU lock** (`cargo test --profile ci -p telperion-render --no-fail-fast`): 272 passed, 1 failed. `a_dormant_lattice_reads_as_the_swept_one` took Telperion's site as unlit, which R1a and the beech's leaf area end; its case now takes Telperion's leaves away as it took the oak's, and the light tests pass (3 of 3).
 - **`npm test`** (with its pretest's Wasm and render builds): 15 files, 162 tests passed.
+
+## R2a on the populated rows (after the review)
+
+`each_populated_response_moves_the_tree_through_its_consumer` (oak and ordinary at 40, seed 7): each row set to its neutral moves the tree under the site's light, but the ordinary's balance hazard, which its own values leave neutral (upkeep 0.006 never brings a balance below its tolerance 0; stated and tested). Under no shade, the shade hazard is neutral to the bit. Measured, not claimed: on an unshaded tree the leaf girth's term at a light of one is not bit-identical to its dormant path, and the vigour rows (shade size, apical control) move the tree through apical control's split in an even light. Both are the engine's behaviour, outside this spec.
+
+Old family objects: one that states the site's own light (the oak's `extinction 0.5` before R1a) reads as the same family; any other light (the ordinary's old 1/6) is refused by name (`an_old_wire_light_reads_only_as_the_sites`).

@@ -105,10 +105,18 @@ pub fn read<'a>(rows: impl IntoIterator<Item = (&'a str, Cell)>) -> Result<Space
             .split('/')
             .collect();
         match words[..] {
-            ["light", ..] => {
-                return Err(format!(
-                    "{path}: the site's light is one setting, no preset's row"
-                ));
+            // A family written before fn-264 may state the site's own
+            // light, which says nothing; any other light is refused.
+            ["light", which @ ("extinction" | "sky")] => {
+                let site = match which {
+                    "extinction" => SITE.extinction,
+                    _ => SITE.sky,
+                };
+                if number(path, cell)?.to_bits() != site.to_bits() {
+                    return Err(format!(
+                        "{path}: the site's light is one setting, no preset's row"
+                    ));
+                }
             }
             ["ages", k, ref tail @ ..] => {
                 let k = index(path, k, AGES)?;
