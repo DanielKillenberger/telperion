@@ -127,6 +127,11 @@ fn unit(
     ]
 }
 
+/// Its shade tolerance T (Niinemets and Valladares 2006, Appendix A;
+/// Jev fn264-pick:18dddb15cf3d5bc7-3e6351-0), which sets how it answers
+/// light (`tolerance.rs`, fn-264 R2).
+const SHADE_TOLERANCE: f64 = 2.03;
+
 /// The birch, one growth cycle a year.
 pub fn birch() -> Species {
     let stem = Form {
@@ -383,7 +388,7 @@ pub fn birch() -> Species {
         },
         ..state(6, 0.0, vec![zone(2, 3, &[])])
     };
-    on_chain(vec![
+    let mut ages = vec![
         (TRUNK, trunk),
         (YOUNG, young),
         (LEADER, leader),
@@ -393,5 +398,7 @@ pub fn birch() -> Species {
         (SPRIG, sprig),
         (BRANCH, branch),
         (SHORT, short),
-    ])
+    ];
+    crate::tolerance::respond(&mut ages, SHADE_TOLERANCE);
+    on_chain(ages)
 }

@@ -2475,6 +2475,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "space": {
         "ages": {
           "0": {
+            "balanceHazard": 0.4230769230769229,
             "divergence": 2.4,
             "form": {
               "elevation": 1.5707963267948966,
@@ -2486,9 +2487,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "internode": 0.02,
             "leafArea": 0.0006713,
+            "leafGirth": 1,
             "lifespan": 2,
             "rhythm": 0.3,
+            "shadeHazard": 0.21153846153846145,
+            "shadeSize": 0.23269230769230762,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -2514,6 +2519,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "1": {
+            "balanceHazard": 0.4230769230769229,
             "divergence": 2.4,
             "form": {
               "elevation": 1.5707963267948966,
@@ -2525,9 +2531,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "internode": 0.028,
             "leafArea": 0.00093982,
+            "leafGirth": 1,
             "lifespan": 8,
             "rhythm": 0.7,
+            "shadeHazard": 0.21153846153846145,
+            "shadeSize": 0.23269230769230762,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -2559,6 +2569,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "2": {
+            "balanceHazard": 0.4230769230769229,
             "divergence": 2.4,
             "form": {
               "elevation": 1.5707963267948966,
@@ -2570,8 +2581,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "internode": 0.042,
             "leafArea": 0.0014097299999999999,
+            "leafGirth": 1,
             "lifespan": 35,
+            "shadeHazard": 0.21153846153846145,
+            "shadeSize": 0.23269230769230762,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -2603,6 +2618,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "4": {
+            "balanceHazard": 0.4230769230769229,
             "continuation": 0,
             "divergence": 2.4,
             "form": {
@@ -2615,8 +2631,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "internode": 0.03,
             "leafArea": 0.00100695,
+            "leafGirth": 1,
             "lifespan": 300,
+            "shadeHazard": 0.21153846153846145,
+            "shadeSize": 0.23269230769230762,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -2648,6 +2668,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "8": {
+            "balanceHazard": 0.4230769230769229,
             "form": {
               "dominance": 0.35,
               "elevation": 0.35,
@@ -2662,7 +2683,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 1.5,
             "internode": 0.05,
             "leafArea": 0.00167825,
+            "leafGirth": 1,
             "lifespan": 6,
+            "shadeHazard": 0.21153846153846145,
+            "shadeSize": 0.23269230769230762,
+            "upkeep": 0.35,
             "viability": 0.998,
             "zones": {
               "0": {
@@ -2710,6 +2735,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "9": {
+            "balanceHazard": 0.4230769230769229,
             "continuation": 0,
             "form": {
               "dominance": 0.35,
@@ -2725,8 +2751,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 1.5,
             "internode": 0.034,
             "leafArea": 0.00114121,
+            "leafGirth": 1,
             "lifespan": 300,
+            "shadeHazard": 0.21153846153846145,
+            "shadeSize": 0.23269230769230762,
             "shedding": 3,
+            "upkeep": 0.35,
             "viability": 0.998,
             "zones": {
               "0": {
@@ -2774,6 +2804,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "10": {
+            "balanceHazard": 0.4230769230769229,
             "form": {
               "elevation": -1,
               "pipe": 0.0005,
@@ -2785,8 +2816,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 0.9,
             "internode": 0.016,
             "leafArea": 0.00053704,
+            "leafGirth": 1,
             "lifespan": 10,
+            "shadeHazard": 0.21153846153846145,
+            "shadeSize": 0.23269230769230762,
             "shedding": 1,
+            "upkeep": 0.35,
             "viability": 0.99,
             "zones": {
               "0": {
@@ -2815,6 +2850,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "11": {
+            "balanceHazard": 0.4230769230769229,
             "continuation": 0,
             "divergence": 2.4,
             "form": {
@@ -2828,8 +2864,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 0.9,
             "internode": 0.006,
             "leafArea": 0.00020139,
+            "leafGirth": 1,
             "lifespan": 40,
+            "shadeHazard": 0.21153846153846145,
+            "shadeSize": 0.23269230769230762,
             "shedding": 1,
+            "upkeep": 0.35,
             "viability": 0.99,
             "zones": {
               "0": {
@@ -2851,6 +2891,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "12": {
+            "balanceHazard": 0.4230769230769229,
             "continuation": 0,
             "form": {
               "elevation": -0.5,
@@ -2862,8 +2903,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 1.1,
             "internode": 0.02,
             "leafArea": 0.0006713,
+            "leafGirth": 1,
             "lifespan": 2,
+            "shadeHazard": 0.21153846153846145,
+            "shadeSize": 0.23269230769230762,
             "shedding": 3,
+            "upkeep": 0.35,
             "viability": 0.9,
             "zones": {
               "0": {
@@ -3209,6 +3254,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "ages": {
           "2": {
             "abortion": 0.5,
+            "balanceHazard": 0.33846153846153876,
             "divergence": 2.4,
             "epitony": 0.6,
             "erection": 0.1,
@@ -3223,14 +3269,18 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 0.3,
             "internode": 0.07,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 9,
             "relay": 1,
             "relayAt": 0.15,
             "relayEnded": 1,
             "relayFailed": 1,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "straightening": 1,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -3263,6 +3313,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "4": {
             "abortion": 0.3,
+            "balanceHazard": 0.33846153846153876,
             "epitony": 0.6,
             "form": {
               "elevation": 1.35,
@@ -3275,14 +3326,18 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.7,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 40,
             "relay": 1,
             "relayAt": 0.15,
             "relayEnded": 1,
             "relayFailed": 1,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "straightening": 1,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -3316,6 +3371,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "5": {
+            "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "divergence": 2.4,
             "form": {
@@ -3327,9 +3383,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.2
             },
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 2,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -3363,6 +3423,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "6": {
             "abortion": 0.3,
+            "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "epitony": 0.6,
             "form": {
@@ -3376,13 +3437,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.7,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 70,
             "relay": 1,
             "relayAt": 0.15,
             "relayEnded": 1,
             "relayFailed": 1,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "straightening": 0.6,
+            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -3417,6 +3482,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "7": {
             "abortion": 0.35,
+            "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "epitony": 0.6,
             "form": {
@@ -3430,13 +3496,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.7,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 30,
             "relay": 1,
             "relayAt": 0.15,
             "relayEnded": 1,
             "relayFailed": 1,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "straightening": 0.6,
+            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -3470,6 +3540,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "8": {
+            "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "form": {
               "elevation": 0.6,
@@ -3482,9 +3553,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.7,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 25,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "straightening": 0.25,
+            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -3518,6 +3593,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "9": {
+            "balanceHazard": 0.33846153846153876,
             "form": {
               "elevation": 0.35,
               "pipe": 0.0009,
@@ -3528,9 +3604,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 1,
             "internode": 0.03,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 10,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "shedding": 1,
+            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -3573,6 +3653,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "12": {
+            "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "form": {
               "elevation": 0.15,
@@ -3583,9 +3664,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 1,
             "internode": 0.025,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 5,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "shedding": 1,
+            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -3608,6 +3693,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "14": {
+            "balanceHazard": 0.33846153846153876,
             "clusterLeaves": 4,
             "clusterSpread": 0.6,
             "continuation": 0,
@@ -3617,9 +3703,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 0.9,
             "internode": 0.006,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 4,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "shedding": 1,
+            "upkeep": 0.35,
             "viability": 0.9,
             "zones": {
               "0": {
@@ -3964,6 +4054,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "space": {
         "ages": {
           "2": {
+            "balanceHazard": 2.2846153846153845,
             "divergence": 2.5132741228718345,
             "form": {
               "bendLength": 6,
@@ -3976,8 +4067,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "internode": 0.055,
             "leafArea": 0.0013190625000000001,
+            "leafGirth": 1,
             "lifespan": 5,
+            "shadeHazard": 1.1423076923076922,
+            "shadeSize": 1.2565384615384616,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -4010,6 +4105,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "3": {
+            "balanceHazard": 2.2846153846153845,
             "divergence": 2.5132741228718345,
             "form": {
               "bendLength": 6,
@@ -4021,8 +4117,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.35
             },
             "leafArea": 0.0013190625000000001,
+            "leafGirth": 1,
             "lifespan": 9,
+            "shadeHazard": 1.1423076923076922,
+            "shadeSize": 1.2565384615384616,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -4058,6 +4158,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "4": {
+            "balanceHazard": 2.2846153846153845,
             "divergence": 2.5132741228718345,
             "form": {
               "bendLength": 6,
@@ -4069,8 +4170,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.35
             },
             "leafArea": 0.0013190625000000001,
+            "leafGirth": 1,
             "lifespan": 26,
+            "shadeHazard": 1.1423076923076922,
+            "shadeSize": 1.2565384615384616,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -4108,6 +4213,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "5": {
             "abortion": 0.8,
+            "balanceHazard": 2.2846153846153845,
             "continuation": 0,
             "divergence": 2.5132741228718345,
             "epitony": 0.2,
@@ -4122,12 +4228,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "internode": 0.015,
             "leafArea": 0.0013190625000000001,
+            "leafGirth": 1,
             "lifespan": 100,
             "relay": 1,
             "relayAt": 0.6,
             "relayEnded": 1,
             "relayFailed": 1,
+            "shadeHazard": 1.1423076923076922,
+            "shadeSize": 1.2565384615384616,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -4162,6 +4272,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "6": {
             "abortion": 0.08,
+            "balanceHazard": 2.2846153846153845,
             "divergence": 2.5132741228718345,
             "epitony": 0.4,
             "form": {
@@ -4180,11 +4291,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 0.6,
             "internode": 0.055,
             "leafArea": 0.0013190625000000001,
+            "leafGirth": 1,
             "lifespan": 25,
             "relay": 1,
             "relayEnded": 1,
             "relayFailed": 1,
+            "shadeHazard": 1.1423076923076922,
+            "shadeSize": 1.2565384615384616,
             "shedding": 3,
+            "upkeep": 0.35,
             "viability": 0.998,
             "zones": {
               "0": {
@@ -4221,6 +4336,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "7": {
             "abortion": 0.08,
+            "balanceHazard": 2.2846153846153845,
             "continuation": 0,
             "divergence": 2.5132741228718345,
             "epitony": 0.4,
@@ -4240,11 +4356,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 0.6,
             "internode": 0.03,
             "leafArea": 0.0013190625000000001,
+            "leafGirth": 1,
             "lifespan": 100,
             "relay": 1,
             "relayEnded": 1,
             "relayFailed": 1,
+            "shadeHazard": 1.1423076923076922,
+            "shadeSize": 1.2565384615384616,
             "shedding": 2,
+            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -4283,6 +4403,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "8": {
+            "balanceHazard": 2.2846153846153845,
             "continuation": 0,
             "divergence": 2.5132741228718345,
             "form": {
@@ -4297,8 +4418,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.7,
             "leafArea": 0.0013190625000000001,
+            "leafGirth": 1,
             "lifespan": 14,
+            "shadeHazard": 1.1423076923076922,
+            "shadeSize": 1.2565384615384616,
             "shedding": 2,
+            "upkeep": 0.35,
             "viability": 0.97,
             "zones": {
               "0": {
@@ -4332,6 +4457,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "9": {
+            "balanceHazard": 2.2846153846153845,
             "continuation": 0,
             "divergence": 2.5132741228718345,
             "form": {
@@ -4349,8 +4475,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 0.7,
             "internode": 0.06,
             "leafArea": 0.0013190625000000001,
+            "leafGirth": 1,
             "lifespan": 12,
+            "shadeHazard": 1.1423076923076922,
+            "shadeSize": 1.2565384615384616,
             "shedding": 1,
+            "upkeep": 0.35,
             "viability": 0.92,
             "zones": {
               "0": {
@@ -4374,6 +4504,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "14": {
+            "balanceHazard": 2.2846153846153845,
             "clusterLeaves": 3,
             "clusterSpread": 0.6,
             "continuation": 0,
@@ -4384,8 +4515,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 0.8,
             "internode": 0.003,
             "leafArea": 0.0013190625000000001,
+            "leafGirth": 1,
             "lifespan": 6,
+            "shadeHazard": 1.1423076923076922,
+            "shadeSize": 1.2565384615384616,
             "shedding": 1,
+            "upkeep": 0.35,
             "viability": 0.92,
             "zones": {
               "0": {
@@ -4740,6 +4875,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.05
             },
             "internode": 0.031,
+            "leafArea": 2.81,
             "lifespan": 150,
             "readiness": 0,
             "rhythm": 0,
@@ -5088,6 +5224,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "ages": {
           "2": {
             "abortion": 0.5,
+            "balanceHazard": 0.33846153846153876,
             "divergence": 2.4,
             "epitony": 0.6,
             "erection": 0.1,
@@ -5102,14 +5239,18 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 0.3,
             "internode": 0.07,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 9,
             "relay": 1,
             "relayAt": 0.15,
             "relayEnded": 1,
             "relayFailed": 1,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "straightening": 1,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -5142,6 +5283,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "4": {
             "abortion": 0.3,
+            "balanceHazard": 0.33846153846153876,
             "epitony": 0.6,
             "form": {
               "elevation": 1.35,
@@ -5154,14 +5296,18 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.7,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 40,
             "relay": 1,
             "relayAt": 0.15,
             "relayEnded": 1,
             "relayFailed": 1,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "straightening": 1,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -5195,6 +5341,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "5": {
+            "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "divergence": 2.4,
             "form": {
@@ -5206,9 +5353,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.2
             },
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 2,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -5242,6 +5393,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "6": {
             "abortion": 0.3,
+            "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "epitony": 0.6,
             "form": {
@@ -5255,13 +5407,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.7,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 70,
             "relay": 1,
             "relayAt": 0.15,
             "relayEnded": 1,
             "relayFailed": 1,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "straightening": 0.6,
+            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -5296,6 +5452,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "7": {
             "abortion": 0.35,
+            "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "epitony": 0.6,
             "form": {
@@ -5309,13 +5466,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.7,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 30,
             "relay": 1,
             "relayAt": 0.15,
             "relayEnded": 1,
             "relayFailed": 1,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "straightening": 0.6,
+            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -5349,6 +5510,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "8": {
+            "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "form": {
               "elevation": 0.6,
@@ -5361,9 +5523,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.7,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 25,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "straightening": 0.25,
+            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -5397,6 +5563,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "9": {
+            "balanceHazard": 0.33846153846153876,
             "form": {
               "elevation": 0.35,
               "pipe": 0.0009,
@@ -5407,9 +5574,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 1,
             "internode": 0.03,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 10,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "shedding": 1,
+            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -5452,6 +5623,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "12": {
+            "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "form": {
               "elevation": 0.15,
@@ -5462,9 +5634,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 1,
             "internode": 0.025,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 5,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "shedding": 1,
+            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -5487,6 +5663,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "14": {
+            "balanceHazard": 0.33846153846153876,
             "clusterLeaves": 4,
             "clusterSpread": 0.6,
             "continuation": 0,
@@ -5496,9 +5673,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 0.9,
             "internode": 0.006,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 4,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "shedding": 1,
+            "upkeep": 0.35,
             "viability": 0.9,
             "zones": {
               "0": {
@@ -5887,6 +6068,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "ages": {
           "2": {
             "abortion": 0.5,
+            "balanceHazard": 0.33846153846153876,
             "divergence": 2.4,
             "epitony": 0.6,
             "erection": 0.1,
@@ -5901,14 +6083,18 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 0.3,
             "internode": 0.07,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 9,
             "relay": 1,
             "relayAt": 0.15,
             "relayEnded": 1,
             "relayFailed": 1,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "straightening": 1,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -5941,6 +6127,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "4": {
             "abortion": 0.3,
+            "balanceHazard": 0.33846153846153876,
             "epitony": 0.6,
             "form": {
               "elevation": 1.35,
@@ -5953,14 +6140,18 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.7,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 40,
             "relay": 1,
             "relayAt": 0.15,
             "relayEnded": 1,
             "relayFailed": 1,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "straightening": 1,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -5994,6 +6185,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "5": {
+            "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "divergence": 2.4,
             "form": {
@@ -6005,9 +6197,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.2
             },
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 2,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "trunk": true,
+            "upkeep": 0.35,
             "zones": {
               "0": {
                 "buds": 1,
@@ -6041,6 +6237,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "6": {
             "abortion": 0.3,
+            "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "epitony": 0.6,
             "form": {
@@ -6054,13 +6251,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.7,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 70,
             "relay": 1,
             "relayAt": 0.15,
             "relayEnded": 1,
             "relayFailed": 1,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "straightening": 0.6,
+            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -6095,6 +6296,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "7": {
             "abortion": 0.35,
+            "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "epitony": 0.6,
             "form": {
@@ -6108,13 +6310,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.7,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 30,
             "relay": 1,
             "relayAt": 0.15,
             "relayEnded": 1,
             "relayFailed": 1,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "straightening": 0.6,
+            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -6148,6 +6354,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "8": {
+            "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "form": {
               "elevation": 0.6,
@@ -6160,9 +6367,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             },
             "insertion": 0.7,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 25,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "straightening": 0.25,
+            "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
               "0": {
@@ -6196,6 +6407,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "9": {
+            "balanceHazard": 0.33846153846153876,
             "form": {
               "elevation": 0.35,
               "pipe": 0.0009,
@@ -6206,9 +6418,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 1,
             "internode": 0.03,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 10,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "shedding": 1,
+            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -6251,6 +6467,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "12": {
+            "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "form": {
               "elevation": 0.15,
@@ -6261,9 +6478,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 1,
             "internode": 0.025,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 5,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "shedding": 1,
+            "upkeep": 0.35,
             "viability": 0.95,
             "zones": {
               "0": {
@@ -6286,6 +6507,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             }
           },
           "14": {
+            "balanceHazard": 0.33846153846153876,
             "clusterLeaves": 4,
             "clusterSpread": 0.6,
             "continuation": 0,
@@ -6295,9 +6517,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "insertion": 0.9,
             "internode": 0.006,
             "leafArea": 0.0015723,
+            "leafGirth": 1,
             "leafYears": 1,
             "lifespan": 4,
+            "shadeHazard": 0.16923076923076938,
+            "shadeSize": 0.18615384615384634,
             "shedding": 1,
+            "upkeep": 0.35,
             "viability": 0.9,
             "zones": {
               "0": {

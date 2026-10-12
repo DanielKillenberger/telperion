@@ -121,12 +121,15 @@
 
 # The engine species (fn-198 host decision 1): telperion_space::palm (fn-196).
 # The envelope is derived from the grown tree (host decision 7).
+# Each node is a frond of 2.81 m² (fn-264 R2, derived); its light responses stay neutral:
+# no laterals to shed and no published shade tolerance.
 /space/ages/2/lifespan = 150.0
 /space/ages/2/continuation = 0.0
 /space/ages/2/internode = 0.031
 /space/ages/2/divergence = 2.399963
 /space/ages/2/readiness = 0.0
 /space/ages/2/rhythm = 0.0
+/space/ages/2/leafArea = 2.81
 /space/ages/2/form/tropism = 0.5
 /space/ages/2/form/elevation = 1.5707963267948966
 /space/ages/2/form/wander = 0.05

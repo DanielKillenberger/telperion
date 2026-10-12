@@ -44,3 +44,11 @@ Niinemets and Valladares 2006, Ecol. Monogr. 76: 521, Appendix A, 0 (none) to 5 
    - The oak's shade size differs by age (1.5 at ages 2-4 and 8, 0.5 at 6-7, 1.0 at 9 and 12-14), and the spruce lives in ages 0, 1, 10 and 11 and the beech and birch in age 5, where the oak has no value to scale.
    - The ruling names the hazards and the size, not upkeep (oak 0.35), apical control (0.45), leaf girth (1.0) or tolerance (0). With upkeep at 0 a balance never falls below a tolerance of 0, so the balance hazard the mapping sets would shed nothing.
 5. **The ordinary:** grows at the site's 0.5; an old family carrying 1/6 is refused by name, not reinterpreted (as shipped, `an_old_wire_light_reads_only_as_the_sites`).
+
+## Host answers (2026-10-12, second round)
+
+- **Retained foliage: a stated approximation.** The deposit counts the year's foliage alone. For an evergreen (the spruce keeps about 5.5 years of needles) it lends the lattice that year's share. Counting retained foliage needs a leaf-lifespan row and a girth bound inside growth, and becomes its own spec (host); not this one.
+- **Palm: the whole frond, 2.81 m² a node.** `MAX_LEAF_AREA` is raised to 5 m², the palm frond being the largest shipped leaf, refused past it by name. Basis: a palm phytomer is one frond, and `leaf_area` is per node.
+- **Shade size:** the oak's mean over its populated ages times the mapping factor, at every age the species lives in.
+- **Upkeep 0.35, tolerance 0, leaf girth 1.0:** shared physiology (wood's maintenance cost, the balance threshold, the pipe-to-leaf relation); every species takes the oak's values unscaled, so the balance hazard bites.
+- **Apical control:** architecture, not light; each species keeps its own.

@@ -311,8 +311,14 @@ pub fn spruce() -> Species {
     for (_, s) in &mut ages {
         s.leaf_area = NEEDLE_AREA * s.internode;
     }
+    crate::tolerance::respond(&mut ages, SHADE_TOLERANCE);
     on_chain(ages)
 }
+
+/// Its shade tolerance T (Niinemets and Valladares 2006, Appendix A;
+/// Jev fn264-pick:18dddb33049974a2-3e8332-0), which sets how it answers
+/// light (`tolerance.rs`, fn-264 R2).
+const SHADE_TOLERANCE: f64 = 4.45;
 
 /// Projected needle area a metre of current-year shoot bears, in m²/m:
 /// the mid-point of 18 to 31 needles per cm of shoot (Bellan et al. 2019,

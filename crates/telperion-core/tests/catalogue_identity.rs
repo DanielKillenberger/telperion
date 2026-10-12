@@ -173,7 +173,11 @@
 //! All three were re-pinned again for the spruce's and the birch's leaf
 //! area (host decisions 1 and 2): their nine `leafArea` rows each are the
 //! only rows that moved; the override digest moved with the spruce and the
-//! birch it walks.
+//! birch it walks. All three were re-pinned again for the shade-tolerance
+//! mapping and the palm's frond (host decision 4, 2026-10-12): the beech's,
+//! spruce's and birch's `shadeHazard`, `shadeSize`, `balanceHazard`,
+//! `upkeep` and `leafGirth` rows and the palm's `leafArea` are the only rows
+//! that moved.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -209,7 +213,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        7_545_338_221_387_230_490,
+        7_825_455_732_071_160_050,
         "{}",
         digest(&text)
     );
@@ -241,7 +245,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        14_854_860_542_767_207_523,
+        10_308_509_582_121_782_803,
         "{}",
         digest(&text)
     );
@@ -266,7 +270,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        18_237_812_267_652_301_657,
+        10_410_127_232_307_700_904,
         "{}",
         digest(&text)
     );

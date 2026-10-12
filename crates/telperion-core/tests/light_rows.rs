@@ -35,8 +35,7 @@ fn darkest(species: &Species) -> f64 {
     lights.iter().map(|&(_, l)| l).fold(1.0, f64::min)
 }
 
-/// Every shipped preset by whether its leaves carry area (R2): the palm's
-/// waits on the host (fn-264 SOURCES.md, host decision 3).
+/// Every shipped preset carries leaf area (R2, SOURCES.md).
 const SHADES: [(Preset, bool); 8] = [
     (Preset::OregonWhiteOak, true),
     (Preset::Ordinary, true),
@@ -45,7 +44,7 @@ const SHADES: [(Preset, bool); 8] = [
     (Preset::Telperion, true),
     (Preset::NorwaySpruce, true),
     (Preset::SilverBirch, true),
-    (Preset::DatePalm, false),
+    (Preset::DatePalm, true),
 ];
 
 #[test]
@@ -64,20 +63,13 @@ fn a_presets_foliage_lowers_the_light_its_buds_sample() {
     }
 }
 
-/// A species with no response row grows, under the site's light and with
-/// its leaf area, the tree it grew before either (no extinction, no leaf
-/// area): its leaves shade, and nothing reads the shade.
+/// The palm, whose responses stay neutral by decision (no laterals to
+/// shed, no published tolerance), grows under the site's light and its
+/// fronds the tree it grew before either (no extinction, no leaf area):
+/// its leaves shade, and nothing reads the shade.
 #[test]
 fn leaf_area_alone_changes_no_growth() {
-    let unread = [
-        Preset::EuropeanBeech,
-        Preset::Laurelin,
-        Preset::Telperion,
-        Preset::NorwaySpruce,
-        Preset::SilverBirch,
-        Preset::DatePalm,
-    ];
-    for preset in unread {
+    for preset in [Preset::DatePalm] {
         let lit = species(preset);
         let read = |s: &telperion_space::PaState| {
             s.shade_hazard != 0.0
@@ -99,18 +91,18 @@ fn leaf_area_alone_changes_no_growth() {
     }
 }
 
-/// Each response row a preset populates, set to its neutral.
-const RESPONSES: [(&str, fn(&mut telperion_space::PaState)); 5] = [
+/// Each response row a preset populates, set to its neutral; apical
+/// control is architecture, each species' own (host, 2026-10-12).
+const RESPONSES: [(&str, fn(&mut telperion_space::PaState)); 4] = [
     ("shade_hazard", |s| s.shade_hazard = 0.0),
     ("shade_size", |s| s.shade_size = 0.0),
-    ("apical_control", |s| s.apical_control = 0.5),
     ("balance_hazard", |s| s.balance_hazard = 0.0),
     ("leaf_girth", |s| s.leaf_girth = 0.0),
 ];
 
 /// The light-only response: with no leaf shading it reads a light of one,
-/// where it is neutral to the bit. The vigour rows (shade size, apical
-/// control) also follow the split apical control makes in an even light,
+/// where it is neutral to the bit. The shade size also follows the split
+/// apical control makes in an even light,
 /// the balance weighs its wood's upkeep, and the leaf girth's term at a
 /// light of one is not bit-identical to its dormant path (measured), so
 /// those move an unshaded tree too.
@@ -125,17 +117,25 @@ fn neutral_by_its_values(preset: Preset, row: &str) -> bool {
     preset == Preset::Ordinary && row == "balance_hazard"
 }
 
-/// R2a on the presets whose response rows are populated (the oak, the
-/// ordinary), at their own age (40, where the oak's balance has shed):
+/// R2a on every preset whose response rows are populated, at 40 (where
+/// the oak's balance has shed): the Two Trees carry the beech's species
+/// (`space_presets.rs`), so the beech stands for them;
 /// each row moves the tree through its consumer under the site's light,
 /// but where its values make it neutral, which is stated and tested; and
 /// the light-only row moves nothing where no leaf shades.
 #[test]
 fn each_populated_response_moves_the_tree_through_its_consumer() {
-    for preset in [Preset::OregonWhiteOak, Preset::Ordinary] {
+    let populated = [
+        Preset::OregonWhiteOak,
+        Preset::Ordinary,
+        Preset::EuropeanBeech,
+        Preset::NorwaySpruce,
+        Preset::SilverBirch,
+    ];
+    for preset in populated {
         let full = species(preset);
         let lit_at = Request {
-            age: preset.parameters().age as u32,
+            age: 40,
             ..request()
         };
         let unlit = Request {

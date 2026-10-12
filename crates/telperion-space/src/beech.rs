@@ -88,6 +88,11 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
     }
 }
 
+/// Its shade tolerance T (Niinemets and Valladares 2006, Appendix A;
+/// Jev fn264-pick:18dddb17a32041f1-3e698a-0), which sets how it answers
+/// light (`tolerance.rs`, fn-264 R2).
+const SHADE_TOLERANCE: f64 = 4.56;
+
 /// The beech, one growth cycle a year.
 pub fn beech() -> Species {
     // A1, the young stem: orthotropic, monopodial in this engine, bearing
@@ -324,7 +329,7 @@ pub fn beech() -> Species {
         },
         ..state(4, 0.0, vec![zone(3, 5, &[])])
     };
-    on_chain(vec![
+    let mut ages = vec![
         (TRUNK, trunk),
         (LEADER, leader),
         (FORK, fork),
@@ -334,5 +339,7 @@ pub fn beech() -> Species {
         (BRANCH, branch),
         (SHOOT, shoot),
         (SHORT, short),
-    ])
+    ];
+    crate::tolerance::respond(&mut ages, SHADE_TOLERANCE);
+    on_chain(ages)
 }

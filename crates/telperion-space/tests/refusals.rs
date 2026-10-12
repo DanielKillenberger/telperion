@@ -244,3 +244,19 @@ fn a_tree_of_no_size_is_a_collapsed_tree() {
         Err(Error::Collapsed)
     );
 }
+
+/// fn-264: a node bears up to `MAX_LEAF_AREA` (5 m², above the date palm's
+/// 2.81 m² frond) and no more, refused by name past it.
+#[test]
+fn a_leaf_area_is_drawn_to_its_bound_and_refused_past_it() {
+    let at = |area: f64| {
+        let mut s = species();
+        s.states[0].leaf_area = area;
+        grow(&s, REQUEST)
+    };
+    assert!(at(telperion_space::MAX_LEAF_AREA).is_ok());
+    match at(telperion_space::MAX_LEAF_AREA * (1.0 + 1e-12)) {
+        Err(Error::Refused { input, .. }) => assert_eq!(input, "states[0].leaf_area"),
+        other => panic!("{other:?}"),
+    }
+}
