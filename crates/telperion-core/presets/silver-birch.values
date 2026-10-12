@@ -375,7 +375,6 @@
 /space/ages/2/divergence = 2.5132741228718345
 /space/ages/2/leafArea = 0.0013190625000000001
 /space/ages/2/shadeHazard = 1.1423076923076922
-/space/ages/2/shadeSize = 1.2565384615384616
 /space/ages/2/upkeep = 0.35
 /space/ages/2/balanceHazard = 2.2846153846153845
 /space/ages/2/leafGirth = 1.0
@@ -402,7 +401,6 @@
 /space/ages/3/divergence = 2.5132741228718345
 /space/ages/3/leafArea = 0.0013190625000000001
 /space/ages/3/shadeHazard = 1.1423076923076922
-/space/ages/3/shadeSize = 1.2565384615384616
 /space/ages/3/upkeep = 0.35
 /space/ages/3/balanceHazard = 2.2846153846153845
 /space/ages/3/leafGirth = 1.0
@@ -432,7 +430,6 @@
 /space/ages/4/divergence = 2.5132741228718345
 /space/ages/4/leafArea = 0.0013190625000000001
 /space/ages/4/shadeHazard = 1.1423076923076922
-/space/ages/4/shadeSize = 1.2565384615384616
 /space/ages/4/upkeep = 0.35
 /space/ages/4/balanceHazard = 2.2846153846153845
 /space/ages/4/leafGirth = 1.0
@@ -471,7 +468,6 @@
 /space/ages/5/epitony = 0.2
 /space/ages/5/leafArea = 0.0013190625000000001
 /space/ages/5/shadeHazard = 1.1423076923076922
-/space/ages/5/shadeSize = 1.2565384615384616
 /space/ages/5/upkeep = 0.35
 /space/ages/5/balanceHazard = 2.2846153846153845
 /space/ages/5/leafGirth = 1.0
@@ -508,7 +504,6 @@
 /space/ages/6/epitony = 0.4
 /space/ages/6/leafArea = 0.0013190625000000001
 /space/ages/6/shadeHazard = 1.1423076923076922
-/space/ages/6/shadeSize = 1.2565384615384616
 /space/ages/6/upkeep = 0.35
 /space/ages/6/balanceHazard = 2.2846153846153845
 /space/ages/6/leafGirth = 1.0
@@ -551,7 +546,6 @@
 /space/ages/7/epitony = 0.4
 /space/ages/7/leafArea = 0.0013190625000000001
 /space/ages/7/shadeHazard = 1.1423076923076922
-/space/ages/7/shadeSize = 1.2565384615384616
 /space/ages/7/upkeep = 0.35
 /space/ages/7/balanceHazard = 2.2846153846153845
 /space/ages/7/leafGirth = 1.0
@@ -589,7 +583,6 @@
 /space/ages/8/divergence = 2.5132741228718345
 /space/ages/8/leafArea = 0.0013190625000000001
 /space/ages/8/shadeHazard = 1.1423076923076922
-/space/ages/8/shadeSize = 1.2565384615384616
 /space/ages/8/upkeep = 0.35
 /space/ages/8/balanceHazard = 2.2846153846153845
 /space/ages/8/leafGirth = 1.0
@@ -622,7 +615,6 @@
 /space/ages/9/divergence = 2.5132741228718345
 /space/ages/9/leafArea = 0.0013190625000000001
 /space/ages/9/shadeHazard = 1.1423076923076922
-/space/ages/9/shadeSize = 1.2565384615384616
 /space/ages/9/upkeep = 0.35
 /space/ages/9/balanceHazard = 2.2846153846153845
 /space/ages/9/leafGirth = 1.0
@@ -655,7 +647,6 @@
 /space/ages/14/clusterLeaves = 3.0
 /space/ages/14/clusterSpread = 0.6
 /space/ages/14/shadeHazard = 1.1423076923076922
-/space/ages/14/shadeSize = 1.2565384615384616
 /space/ages/14/upkeep = 0.35
 /space/ages/14/balanceHazard = 2.2846153846153845
 /space/ages/14/leafGirth = 1.0

@@ -52,3 +52,9 @@ Niinemets and Valladares 2006, Ecol. Monogr. 76: 521, Appendix A, 0 (none) to 5 
 - **Shade size:** the oak's mean over its populated ages times the mapping factor, at every age the species lives in.
 - **Upkeep 0.35, tolerance 0, leaf girth 1.0:** shared physiology (wood's maintenance cost, the balance threshold, the pipe-to-leaf relation); every species takes the oak's values unscaled, so the balance hazard bites.
 - **Apical control:** architecture, not light; each species keeps its own.
+
+## Host rulings on the birch (2026-10-12, third round; BIRCH.md)
+
+1. **The size response (ψ) is not mapped from shade tolerance.** At any ψ near the oak's, the oak-anchored mapping turns the birch's long shoots into bare whips, and the tolerance score has no basis for setting ψ. ψ stays what each species had before fn-264: zero, dormant, for every species that had none. A species gets a size response only from a source or an owner verdict. The shade hazard's mapping stays.
+2. **Leaf girth stays 1.0, shared.** Under the pipe model disused pipes persist as heartwood, so a limb keeping girth from leaves it once bore is botanically defensible; it is the smaller cause.
+3. **Wood lying on the ground** predates fn-264, and the owner likes the ground-running feature. fn-252 (ground contact by degree) owns it; the finding is filed there (`fn-252-.../FN264-BIRCH.md`).

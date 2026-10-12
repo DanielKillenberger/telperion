@@ -117,6 +117,13 @@ fn neutral_by_its_values(preset: Preset, row: &str) -> bool {
     preset == Preset::Ordinary && row == "balance_hazard"
 }
 
+/// Whether a preset populates `row`: the size response is no species'
+/// but the oak's and the ordinary's, dormant elsewhere until a source or an
+/// owner verdict sets it (host, 2026-10-12; fn-264 BIRCH.md).
+fn populates(preset: Preset, row: &str) -> bool {
+    row != "shade_size" || matches!(preset, Preset::OregonWhiteOak | Preset::Ordinary)
+}
+
 /// R2a on every preset whose response rows are populated, at 40 (where
 /// the oak's balance has shed): the Two Trees carry the beech's species
 /// (`space_presets.rs`), so the beech stands for them;
@@ -146,7 +153,14 @@ fn each_populated_response_moves_the_tree_through_its_consumer() {
         for (row, neutral) in RESPONSES {
             let mut without = full.clone();
             without.states.iter_mut().for_each(neutral);
-            assert!(without != full, "{preset:?} populates {row}");
+            assert_eq!(
+                without != full,
+                populates(preset, row),
+                "{preset:?} populates {row}"
+            );
+            if !populates(preset, row) {
+                continue;
+            }
             let moves = grow(&without, lit_at).unwrap() != lit_tree;
             assert_eq!(
                 moves,

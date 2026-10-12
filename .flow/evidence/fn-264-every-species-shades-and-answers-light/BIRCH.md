@@ -31,3 +31,9 @@ Both of the host's stop conditions are met in part. Leaf girth gives the lying l
 - **The size response on the birch.** Any ψ near the oak's makes its long shoots run bare. Options: hold the size response to its value at the oak's T or below for intolerant species (cap the factor at 1); or tie ψ to architecture, not tolerance, as apical control is. The stills: ψ 0.55 nearly clean, 1.1 not.
 - **Leaf girth's light.** It reads the light at a phytomer's laying for the life of the wood. Either it reads only wood that still bears leaves (its leaf retention), an engine change of its own; or the birch takes leaf girth 0 until then.
 - **Wood lying on the ground.** A limb sagged onto the ground predates this spec. A ground-contact rule (shed, or no growth below some height outside the stem) would be its own spec.
+
+## Host rulings (2026-10-12)
+
+1. ψ is not mapped from shade tolerance. It stays at each species' own value from before fn-264 (zero, dormant, for the beech, spruce, birch and the Two Trees) until a source or an owner verdict sets it. The shade hazard mapping stays. "Shade size alone 0" (f) is that combination, and it clears both defects.
+2. Leaf girth stays 1.0, shared: disused pipes persist as heartwood.
+3. The lying wood belongs to fn-252; this finding is filed there.
