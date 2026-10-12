@@ -106,3 +106,33 @@ DESIGN.md section 13 has the design. What each ruling became:
    - A count past any limit or table is refused by name (`build_size::refusal`); the restart path, `raised`, the slacks and the widths are deleted.
    - A dispatch's workgroups come from projections that read each table's growth within its own cycle, which compaction does not hide. They are capped at the table's rows and floored at 4,096 items, and the census read after a compaction sets their floors.
    - The units' round markers that fed the deleted round projection are deleted.
+
+### Warm build and peak per preset, the arena built
+
+Warm build in ms, the second build in the process; peak is the build's owned bytes in MB, the settle included (`raw/t5-build-time-arena.txt`). F4 and task 4 are PROOF.md's.
+
+| Preset | F4 | Task 4 | Now | Task 4 peak | Now peak |
+|---|--:|--:|--:|--:|--:|
+| ordinary 40 | 523 | 604 | 514 | 458 | 370 |
+| oak 40 | 1159 | 525 | 380 | 562 | 1416 |
+| spruce 40 | 403 | 613 | 563 | 1911 | 1645 |
+| beech 40 | 210 | 295 | 306 | 470 | 424 |
+| birch 40 | 716 | 782 | 356 | 783 | 894 |
+| palm 40 | 4 | 98 | 132 | 163 | 146 |
+| Telperion 82 | 671 | 1909 | 2010 | 6122 | 3990 |
+| Laurelin 80 | 627 | 1782 | 1897 | 5526 | 3707 |
+
+- **Faster than task 4:** the ordinary, oak, spruce and birch. They no longer begin again or move; the birch had begun again twice late.
+- **Slower:** Telperion by 5%, Laurelin by 6%, the beech by 4%, the palm by 35 ms. On Telperion, 5 to 7 compactions cost 15 to 25 ms each, and all five units rounds are recorded every cycle: about 1,000 dispatches a cycle against task 4's 690.
+- **Peaks:** the Two Trees peak at two thirds of task 4's and fit the 4 GiB default. The oak at 40 and the birch hold more than in task 4, because their tables are sized by the ratios the spruce and the beech set.
+- **Against F4,** every preset but the ordinary, the oak and the birch is slower. The Two Trees take three times as long. Reaching F4 is task 6's dispatch work.
+
+### Ten builds on a two-thirds-full card, the arena built
+
+`full-card.sh`, a ballast of 5,006 MiB beside the desktop's 1,820 (`raw/t5-full-card-arena.txt`). The birch and the ordinary built twice each. Telperion, Laurelin and the oak at 80 were refused by name twice each, at their first tables, before any cycle was submitted. No reset.
+
+### Open, for the host
+
+- **The oak at 80 no longer fits 4 GiB even on a free card.** Its hint (8.0M expected kept) is five times its live set (1.5M), and the spruce's axes ratio sizes its pencils alone at 3.3 GB. In task 4 it built at 3.1 GB. One ratio a table can't fit both; a hint for the axes from the closed form would.
+- **The sweep's bound** is stated from the lattice's nodes, because the species carry no height or spread rows.
+- **Speed:** the Two Trees are 5 to 6% slower than task 4 (above).
