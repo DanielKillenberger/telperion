@@ -27,6 +27,10 @@ pub(super) struct Light {
     /// the site is lit, and the directions.
     dirs: Vec<u32>,
     lit: bool,
+    /// Whether the lattice sleeps: nothing shades (no extinction, or no PA
+    /// with leaf area under a sky whose open light is one), so every node's
+    /// light is one and the lattice's dispatches are not recorded.
+    pub dormant: bool,
     pub n_dirs: u32,
     /// The points, tips, lattice nodes and lattice columns (a layer's
     /// nodes) the buffers hold.
@@ -54,7 +58,8 @@ impl Light {
     pub(super) fn new(gpu: &Gpu, tables: &Cap) -> Result<Self> {
         let k = f64::from_bits(tables.u64s("light_extinction")[0]);
         let mut dirs = Vec::new();
-        for d in tables.u64s("light_directions").as_chunks::<4>().0 {
+        let directions = tables.u64s("light_directions");
+        for d in directions.as_chunks::<4>().0 {
             // `extinction * path`, as `swept` takes it.
             let ep = k * f64::from_bits(d[2]);
             for w in [d[0], d[1], ep.to_bits(), d[3]] {
@@ -75,6 +80,7 @@ impl Light {
             start: storage(gpu, "light state start", 8, &[low, low, low, high, high, high, 0, 0])?,
             dirs,
             lit: k > 0.0,
+            dormant: k <= 0.0 || (leafless(tables) && open(&directions)),
             n_dirs,
             points_cap: 0,
             tips_cap: 0,
@@ -127,7 +133,8 @@ impl Light {
     /// the leaves and tips none (the device writes them), its sweep chunk
     /// and its range's first item, and the directions.
     pub(super) fn words(&self, (chunk, base): (u32, u32)) -> Vec<u32> {
-        let mut cfg = vec![0, 0, self.n_dirs, self.nodes_cap, u32::from(self.lit), super::plan::MAXX * 64, chunk, 0, base, 1, self.columns_cap, 0];
+        let (lit, dormant) = (u32::from(self.lit), u32::from(self.dormant));
+        let mut cfg = vec![0, 0, self.n_dirs, self.nodes_cap, lit, super::plan::MAXX * 64, chunk, 0, base, 1, self.columns_cap, dormant];
         cfg.extend(&self.dirs);
         cfg.resize(12 + 8 * DIRECTIONS, 0);
         cfg
@@ -137,6 +144,24 @@ impl Light {
     pub(super) fn buffers(&self) -> [&wgpu::Buffer; 7] {
         [&self.points, &self.state, &self.grid, &self.quanta, &self.field, &self.scratch, &self.reads]
     }
+}
+
+/// A PA's form row and its leaf area's word (`layout.wgsl`'s `FORM`,
+/// `F_LEAF_AREA`).
+const FORM: usize = 19;
+const F_LEAF_AREA: usize = 18;
+
+/// Whether no PA deposits leaf area: every leaf's area is nothing.
+fn leafless(tables: &Cap) -> bool {
+    tables.f32s("lay_form").chunks(FORM).all(|row| row[F_LEAF_AREA] == 0.0)
+}
+
+/// Whether a node at no depth takes a light of one: the directions'
+/// shares, each times `exp(-0)`, summed in order, held to one and
+/// rounded to f32, as `combine_main` takes them.
+pub(super) fn open(directions: &[u64]) -> bool {
+    let sum = directions.as_chunks::<4>().0.iter().fold(0.0, |s, d| s + f64::from_bits(d[3]));
+    sum.clamp(0.0, 1.0) as f32 == 1.0
 }
 
 /// The refusals in an errors word, by name.

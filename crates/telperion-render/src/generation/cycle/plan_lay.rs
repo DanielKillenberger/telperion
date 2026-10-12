@@ -142,14 +142,41 @@ impl Build {
         let nodes = E::At(c::GRID + 6);
         let columns = E::At(c::GRID + 3).mul(E::At(c::GRID + 4)).mul(E::C(dirs));
         let paths = nodes.clone().mul(E::C(dirs));
-        // The densities, a few operations a node, take the lattice in one
-        // dispatch; the weights and paths, and the combine, in ranges.
-        let all = b.groups(nodes.clone().div(E::C(64)));
-        b.dispatch(light(3), main.clone(), all);
         let lattice = [(4, columns, ranges.paths), (5, paths, ranges.paths)];
         // One flag program a point a word: the programs run at once.
         let past = lattice.iter().fold(E::C(0), |a, (_, n, r)| a.max(n.clone().gt(E::At(rec::LIGHTS).mul(E::C(*r)))));
         b.flag(Flag::LightRanges, past);
+        // A dormant lattice (nothing shades) records none of its own
+        // dispatches; the box, the deposit and their refusals stay.
+        if !l.dormant {
+            self.plan_lattice(b, (&slot, &main), lattice, (bound, ranges, nodes));
+        }
+        let read = b.groups(tips.clone().div(E::C(64)));
+        b.dispatch(light(8), main, read);
+        self.glue_step(b, kit, (glue::LIT, &l.reads, &self.spare), w, &[(0, tips)]);
+        b.tally(&l.state, 24, c::LIGHT_ERRORS, 4);
+        b.point();
+        b.flag(Flag::LightErrors, E::At(c::LIGHT_ERRORS));
+        let points = leaves.clone().add(E::At(c::NEXT));
+        b.flag(Flag::Points, points.gt(E::C(l.points_cap)).max(E::At(c::NEXT).gt(E::C(l.tips_cap))));
+        b.flag(Flag::DepositRanges, leaves.gt(E::At(rec::DEPOSITS).mul(E::C(range))));
+        let layer = E::At(c::GRID + 3).mul(E::At(c::GRID + 4));
+        let per = E::C(SWEEP_WORK).floor(layer.div(E::C(SWEEP_WG))).max(E::C(1));
+        b.flag(Flag::Sweeps, E::At(c::GRID + 5).div(per).gt(E::At(rec::SWEEPS)));
+        b.count(c::LAID, E::At(c::AXES));
+    }
+
+    /// The lattice's dispatches: the densities, the weights and paths in
+    /// ranges, the sweep's layer ranges, then the combine in ranges.
+    fn plan_lattice<S>(&self, b: &mut Builder, (slot, main): (&S, &wgpu::BindGroup), lattice: [(usize, E, u32); 2], (bound, ranges, nodes): (LayBounds, super::build_plan::Ranges, E))
+    where
+        S: Fn(&mut Builder, (u32, u32)) -> wgpu::BindGroup,
+    {
+        let light = |k| (PassId::Light, k);
+        // The densities, a few operations a node, take the lattice in one
+        // dispatch; the weights and paths, and the combine, in ranges.
+        let all = b.groups(nodes.clone().div(E::C(64)));
+        b.dispatch(light(3), main.clone(), all);
         let ranged = |b: &mut Builder, (entry, count, range): (usize, E, u32)| {
             for r in 0..bound.lights {
                 let bind = slot(b, (0, r * range));
@@ -166,22 +193,9 @@ impl Build {
         for k in 0..bound.sweeps {
             let bind = slot(b, (k, 0));
             b.enter(Cond::Sweep(k));
-            b.dispatch(light(6), bind, Size::Direct(dirs.max(1)));
+            b.dispatch(light(6), bind, Size::Direct(self.light.n_dirs.max(1)));
             b.leave();
         }
         ranged(b, (7, nodes, ranges.nodes));
-        let read = b.groups(tips.clone().div(E::C(64)));
-        b.dispatch(light(8), main, read);
-        self.glue_step(b, kit, (glue::LIT, &l.reads, &self.spare), w, &[(0, tips)]);
-        b.tally(&l.state, 24, c::LIGHT_ERRORS, 4);
-        b.point();
-        b.flag(Flag::LightErrors, E::At(c::LIGHT_ERRORS));
-        let points = leaves.clone().add(E::At(c::NEXT));
-        b.flag(Flag::Points, points.gt(E::C(l.points_cap)).max(E::At(c::NEXT).gt(E::C(l.tips_cap))));
-        b.flag(Flag::DepositRanges, leaves.gt(E::At(rec::DEPOSITS).mul(E::C(range))));
-        let layer = E::At(c::GRID + 3).mul(E::At(c::GRID + 4));
-        let per = E::C(SWEEP_WORK).floor(layer.div(E::C(SWEEP_WG))).max(E::C(1));
-        b.flag(Flag::Sweeps, E::At(c::GRID + 5).div(per).gt(E::At(rec::SWEEPS)));
-        b.count(c::LAID, E::At(c::AXES));
     }
 }

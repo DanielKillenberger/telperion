@@ -13,7 +13,9 @@
 //   layers a dispatch (`light_sweep.wgsl`);
 // - `combine_main`: each direction's light, libm's `exp`, summed in order,
 //   clamped, to f32 once;
-// - `read_main`: each tip's eight corners in f32, as the CPU sums them.
+// - `read_main`: each tip's eight corners in f32, as the CPU sums them;
+//   on a dormant lattice each corner's light is one, as the combine
+//   would have written it.
 // Errors set bits in `state[6]`; a refused box stops every later entry.
 
 struct Cfg {
@@ -33,7 +35,9 @@ struct Cfg {
     go: u32,
     // The columns (a layer's nodes) the column records hold.
     columns: u32,
-    pad3: u32,
+    // Whether the lattice sleeps (`build_light.rs`): nothing shades, its
+    // dispatches are not recorded, and every node's light is one.
+    dormant: u32,
     // Per direction: x/z, y/z, extinction CELL/z and its share, as f64s,
     // two to a row.
     dir: array<vec4<u32>, 18>,

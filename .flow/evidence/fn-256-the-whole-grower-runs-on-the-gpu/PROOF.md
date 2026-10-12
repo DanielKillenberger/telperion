@@ -303,3 +303,41 @@ Every preset's default age and seed, whole, mid and close, beside F4's (`raw/t6-
 - Against task 4's renders, every image is pixel-identical, except the ordinary's: 8 to 50 pixels of 691,200 differ.
 - So the differences from F4 are task 4's table to the tenth of a percent (ordinary 1.3/6.2/7.5%, ..., Laurelin 1.7/8.2/6.8%).
 - Nothing moved visibly.
+
+# fn-256 tasks 8 and 9: the two races, and the lattice dormant where nothing shades (worker, 2026-10-12)
+
+COUNCIL.md round 5, steps 8 and 9. Measured on the RTX 3080 with 1.9 GB held by desktop processes, one GPU process at a time under the GPU lock. Raw output is in `raw/t8-*` and `raw/t9/`.
+
+## Task 8: both races reproduced, red then green
+
+Each test drives the real kernel's function through a probe entry added to its module (`race_tests.rs`).
+
+| Race | Test | Red (`564be9296`) | Green (`8f2fe513c`) |
+|---|---|---|---|
+| `fault_out` ORs into the tally with a plain load and store | `every_fault_of_a_dispatch_reaches_the_tally`: seven axes of each workgroup fault at once, each its own bit | the tally kept one bit (`0x1`) in 16 of 16 dispatches | every bit, 16 of 16 |
+| `node_laterals` takes an index and writes in the counted pass | `a_counted_lateral_writes_no_axis`: a beech's zone rows counted as the emitted round's `zones_main` counts them, axes filled with a sentinel | 2 axis words written, 2,189 laterals counted | none written |
+
+- **The fix:** the layout's `lists` is `array<atomic<u32>>`, and `fault_out` uses `atomicOr`. A counted lateral (`what` 0) counts and goes on: it takes no index, reads no window and writes nothing.
+- **What the race cost before:** the lost bits were fault bits only, read as a flag. The words the counted pass wrote were overwritten by `written_main`, so no node table moved (below).
+
+## Task 9: the lattice dormant
+
+The lattice sleeps where nothing shades: the extinction is zero, or no PA has leaf area under a sky whose open light is one (`build_light.rs`, `Light::dormant`).
+- **Not recorded:** the densities, weights, paths, sweeps and combine (`plan_lay.rs`, `plan_lattice`).
+- **Recorded as before:** the box, the grid, the deposit and the read, with every flag and refusal. The deposit stays for its refusals (a leaf's area, a node's quanta).
+- **The read:** `read_main` sums each tip's eight rounded weights against a literal 1.0, the light the combine wrote on an unlit lattice. `a_dormant_lattice_reads_as_the_swept_one` holds every read word, and the refusals, to the swept lattice's: Telperion 14 (unlit, 316 tips) and the lit oak 8 with its leaf area zeroed (266 tips), 0 differ.
+- **Which presets sleep:** every one but the oak and the ordinary, the two lit sites.
+
+## The gate
+
+**Node tables, byte-identical on every preset (met).** Each preset at its default age and seed, grown as a build grows it and laid, hashed (`dormant_tests.rs`, `node_tables_are_hashed`; `raw/t8-nodes-base.txt` before task 8, `raw/t8-nodes-after.txt` after both tasks). All 8 hashes agree, Telperion's 99.2M words and Laurelin's 93.0M included.
+
+**GPU time (met).** Every dispatch stamped, a build warm, seed 42 (`the_roofline_is_measured`, against task 7's run in `raw/t7`):
+
+| Preset | Before ms (m) | After ms (m) | Light before | Light after | Dispatches |
+|---|--:|--:|--:|--:|---|
+| Telperion 82 | 1,313.5 | **1,060.9** (−252.6) | 315.6 | 62.4 | 34,810 → 32,989 |
+| Oak 40 (lit) | 222.0 | **222.9** (+0.4%, noise) | 23.4 | 23.6 | 14,492 → 14,492 |
+| Beech 40 | 159.3 | 154.4 (−4.9) | 9.1 | 4.1 | 13,160 → 12,875 |
+
+Every other phase is within 1% of task 7's figure; run-to-run variation is about 5%.

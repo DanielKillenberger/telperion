@@ -162,7 +162,7 @@ The step is between 3 and 5 years: most laterals grow 3 or 4 years and stop. On 
   - The retirement's `living_main` rescans a bearer's units for each lateral child, so its words may be low by more than 2x. That would still leave it 25x or more from its roof.
 - **Clears and copies** recorded beside the dispatches are not stamped. The GPU's idle time between dispatches is not in these figures.
 
-## Found while reading, not part of this task (inferred, not run)
+## Found while reading, not part of this task (inferred, not run; each fixed by tasks 8 and 9, PROOF.md)
 
 - **`node_laterals`** (`grow.wgsl:504-520`): in the counted pass (`what == 0`), a lateral falls into the emitting branch. It reads `window_none`, and in the emitted `zones_main` it also writes 2 words at indices that ignore the zones before it. `written_main` overwrites them later. The outcome is probably harmless, but zones in one dispatch race on those words.
 - **`fault_out`** (`layout.wgsl:182`) ORs into `lists[T_FAULT]` with a plain load and store. Two axes faulting in one dispatch can lose a bit.

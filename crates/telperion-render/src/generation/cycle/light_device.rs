@@ -38,6 +38,10 @@ const PHASES: [&str; 9] = [
     "combine",
     "read",
 ];
+#[cfg(test)]
+/// The lattice's entries, which a dormant lattice does not record
+/// (`plan_lay.rs`'s `plan_lattice`).
+const LATTICE: std::ops::RangeInclusive<usize> = 3..=7;
 /// The errors `light.wgsl` sets, by bit, as the CPU names them.
 pub(super) const REFUSALS: [&str; 6] = [
     "positions inside the contract's domain",
@@ -72,6 +76,9 @@ pub(super) struct Lit {
     /// share, as f64 words.
     pub dirs: Vec<u32>,
     pub lit: bool,
+    /// Whether the lattice sleeps: its dispatches not recorded, every
+    /// node's light read as one (`build_light.rs`).
+    pub dormant: bool,
     /// The nodes the buffers hold.
     pub capacity: u32,
     /// The lattice's size the sweep's dispatches are counted for.
@@ -105,6 +112,7 @@ impl Lit {
             tips,
             dirs,
             lit: k > 0.0,
+            dormant: false,
             capacity,
             size: std::array::from_fn(|a| cap.u32s("cpu_grid_size")[a]),
         }
@@ -148,6 +156,7 @@ pub(super) struct Run {
     /// The sweep's dispatches, each its range of layers.
     sweeps: Vec<wgpu::BindGroup>,
     groups: [u32; 9],
+    dormant: bool,
     tips: usize,
     capacity: usize,
     /// Bytes resident (inputs, box, quanta, densities, lattice and reads)
@@ -179,7 +188,7 @@ impl Run {
             // The column records' columns: the scratch holds a record a
             // node, so as many as the nodes.
             lit.capacity,
-            0,
+            u32::from(lit.dormant),
         ];
         cfg.extend(&lit.dirs);
         cfg.resize(12 + 8 * DIRECTIONS, 0);
@@ -251,6 +260,7 @@ impl Run {
             bind,
             sweeps,
             groups,
+            dormant: lit.dormant,
             tips: tips as usize,
             capacity: cap as usize,
             resident,
@@ -266,6 +276,9 @@ impl Run {
         e.clear_buffer(&self.quanta, 0, None);
         let mut phases = Vec::new();
         for (entry, groups) in self.groups.iter().enumerate() {
+            if self.dormant && LATTICE.contains(&entry) {
+                continue;
+            }
             let binds = if entry == SWEEP {
                 &self.sweeps[..]
             } else {

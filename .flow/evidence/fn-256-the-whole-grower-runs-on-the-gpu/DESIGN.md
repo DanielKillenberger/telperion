@@ -655,3 +655,7 @@ A round is 3 dispatches counted and 5 emitted, from 14 and 21. Every fusion was 
 **The axes' own hint.** The axis-indexed tables are sized from `telperion_space::expected_axes`, the closed form's grown axes (the walk of `expected_grown`, counting each bud that lives as one axis). Their most held against it runs 0.35 to 1.38 (the beech at seed 42), so `ARENA[0]` is 1.3792.
 
 **Compaction's cadence.** A table is compacted where its projection two cycles on passes 0.85 of its rows (`TIGHT`), not half. Each compaction cost Telperion about 24 ms; see PROOF.md.
+
+## 15. The lattice dormant where nothing shades (task 9, COUNCIL.md round 5 step 9)
+
+`Light::dormant` holds where the extinction is zero, or where no PA has leaf area and the directions' shares, summed in order and rounded to f32, are one. Either way every node's light is one. A dormant cycle records the box, the grid, the deposit and the read, but none of the lattice's own dispatches. The read takes a literal 1.0 at each corner (`C.dormant`), the light the combine would have written. Every flag and refusal is recorded as before.

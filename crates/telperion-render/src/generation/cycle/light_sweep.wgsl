@@ -226,7 +226,7 @@ fn read_main(@builtin(global_invocation_id) id: vec3<u32>) {
     for (var c = 0u; c < 8u; c++) {
         let at = corner_index(c);
         var l = 1.0;
-        if at != NONE {
+        if at != NONE && C.dormant == 0u {
             l = field[C.capacity + at];
         }
         sum = sum + exact_kept(f64_to_f32(R[R_WC0 + c]) * l);
