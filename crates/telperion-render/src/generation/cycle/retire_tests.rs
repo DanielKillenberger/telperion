@@ -3,7 +3,7 @@
 //! kept or retired, and living, word for word; the trees settled after
 //! it to the ruled standard (`ruled.rs`).
 use super::build::{Build, Kit, Tables};
-use super::build_grow::{grow_now as grow, Sizes};
+use super::build_grow::{grow_now as grow, Compact, Sizes};
 use super::columns::Cap;
 use super::grown_tests::{built_with, device, grown, Grown, YOUNG};
 use super::settle_device::Kernels;
@@ -72,7 +72,7 @@ fn young_trees_retire_on_the_device_as_on_the_cpu() {
 fn compacted(gpu: &crate::Gpu, kit: &Kit, g: &Grown, compact: bool) -> (Build, Sizes) {
     let t = Tables::new(gpu, &g.tables, &g.chain).expect("tables");
     let mut sizes = Sizes::least();
-    (sizes.compact, sizes.caps.phyts) = (compact, 512);
+    (sizes.compact, sizes.caps.phyts) = (if compact { Compact::Every } else { Compact::Off }, 512);
     let (b, sizes, _) = grow(gpu, kit, &t, &g.tables, (sizes, g.request.age)).expect("a build");
     (b, sizes)
 }
@@ -121,7 +121,7 @@ fn the_node_table_with_retirement_is_the_same_on_every_context() {
             let k = Kernels::new(&gpu);
             let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
             let mut sizes = Sizes::least();
-            (sizes.compact, sizes.caps.phyts, sizes.block_cap) = (true, 512, cap);
+            (sizes.compact, sizes.caps.phyts, sizes.block_cap) = (Compact::Every, 512, cap);
             let (b, ..) = grow(&gpu, &kit, &t, &g.tables, (sizes, age)).expect("a build");
             let s = settle(&gpu, (&kit, &k), (&b, &t), (&constants(&g), SettleTo::Laid)).expect("a settle");
             let mut words = s.error.to_vec();
@@ -162,7 +162,7 @@ fn a_build_holds_its_compacted_rows_after_its_last_cycle() {
         let g = grown(preset, age, 42);
         let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
         let mut sizes = Sizes::least();
-        (sizes.compact, sizes.caps.phyts) = (true, 384);
+        (sizes.compact, sizes.caps.phyts) = (Compact::Every, 384);
         let (b, _, grew) = grow(&gpu, &kit, &t, &g.tables, (sizes, age)).expect("a build");
         assert!(grew.moved_at.iter().all(|m| m.0 < age), "{name} {age}: moved after its last cycle: {:?}", grew.moved_at);
         let caps = b.state.caps;

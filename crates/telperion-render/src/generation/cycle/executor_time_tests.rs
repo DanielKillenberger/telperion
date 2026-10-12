@@ -79,7 +79,7 @@ fn measured(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (preset, name, age, seed): (P
     let label = format!("{name} {age} seed {seed}");
     let pa = constants(&g);
     let mut least = Sizes::least();
-    least.compact = true;
+    least.compact = super::build_grow::Compact::Tight;
     gpu.ledger.take_peak();
     assert!(super::super::profile::start(gpu), "timestamps");
     let (b, sizes, grew) = grow(gpu, kit, &t, &g.tables, (least, age)).expect("a build");

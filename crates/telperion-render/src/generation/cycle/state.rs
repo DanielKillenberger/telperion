@@ -24,7 +24,7 @@ use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
 /// The columns of each table.
-pub(super) const AXES: u64 = 51;
+pub(super) const AXES: u64 = 52;
 pub(super) const UNITS: u64 = 13;
 pub(super) const GROWN: u64 = 5;
 pub(super) const LAID: u64 = 14;

@@ -52,6 +52,9 @@ pub fn grow_capture_settled_at(species: &Species, request: Request, to: SettleTo
         g.year(c, c < request.age, &mut advanced, &mut |_| {})?;
     }
     let mut c = Capture { arrays: Vec::new() };
+    // Each grown axis's lineage key, beside its final index (`s_index`):
+    // the device's grown axes are known by it, as its arena compacts.
+    let grown: Vec<u64> = g.axes.iter().map(|a| a.lineage).collect();
     let settling = match g.settle_shed((request, Options::default()), keeps, &mut |_| {}) {
         Err(Error::Collapsed) => return Ok(failed(c, [1, NONE])),
         other => other?,
@@ -87,6 +90,7 @@ pub fn grow_capture_settled_at(species: &Species, request: Request, to: SettleTo
     let grown_at: Vec<u32> = index.iter().map(|&i| if i == usize::MAX { NONE } else { at[i] }).collect();
     c.u32s("s_error", &[0, NONE]);
     c.u32s("s_index", &grown_at);
+    c.u64s("s_grown", &grown);
     let mean = girth.leaf_mean.or_else(|| crate::girth::leaf_mean(&structure, species));
     c.u64s("s_leaf_mean", &[u64::from(mean.is_some()), mean.unwrap_or(0.0).to_bits()]);
     let disused: Vec<u64> = (girth.disused.iter())

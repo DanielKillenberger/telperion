@@ -17,6 +17,8 @@ use telperion_space::SettleTo;
 #[derive(Debug, Default, PartialEq)]
 pub(super) struct Beside {
     pub index: Vec<u32>,
+    /// Each grown axis's lineage key, beside its index.
+    pub grown: Vec<u64>,
     pub leaf_mean: Vec<u64>,
     pub disused: Vec<u64>,
     pub error: Vec<u32>,
@@ -145,6 +147,9 @@ impl Settled {
             }
         }
         beside.index = read_words(gpu, &self.work, l.a(d::W_FINAL, 0), u64::from(l.n))?;
+        let cap = u64::from(state.caps.axes);
+        let (lo, hi) = (read_words(gpu, &state.axes, 6 * cap, u64::from(l.n))?, read_words(gpu, &state.axes, 7 * cap, u64::from(l.n))?);
+        beside.grown = lo.iter().zip(&hi).map(|(&l, &h)| u64::from(l) | u64::from(h) << 32).collect();
         let mean = read_words(gpu, &self.atom, d::T_LEAF as u64 + 2, 1)?[0];
         let has = self.flags & 3 == 3;
         let value = if has { f64::from(f32::from_bits(mean)).to_bits() } else { 0 };
@@ -230,6 +235,7 @@ pub(super) fn cpu_settled(c: &Cap, to: SettleTo) -> (Snapshot, Beside) {
         }
     }
     beside.index = c.u32s("s_index");
+    beside.grown = c.u64s("s_grown");
     beside.leaf_mean = c.u64s("s_leaf_mean");
     beside.disused = c.u64s("s_disused");
     (s, beside)
@@ -238,7 +244,13 @@ pub(super) fn cpu_settled(c: &Cap, to: SettleTo) -> (Snapshot, Beside) {
 /// The two sides beside the tables, to the ruled standard (`ruled.rs`).
 pub(super) fn beside_agree(a: &mut super::compare::Agreement, dev: &Beside, cpu: &Beside) {
     a.eq("error", &dev.error, &cpu.error);
-    a.eq("grown index", &dev.index, &cpu.index);
+    // Each grown axis's final index by its lineage (a continuation and
+    // its relays share one, in order): an axis the device's arena let go
+    // is one the CPU sheds (fn-256 task 5).
+    let (d, c) = (by_key(&dev.grown, &dev.index), by_key(&cpu.grown, &cpu.index));
+    let matched: Vec<u32> = c.iter().map(|(k, cpu_run)| u32::from(shed_from(cpu_run, d.get(k).map_or(&[], |r| r)))).collect();
+    a.eq("grown index", &matched, &vec![1; c.len()]);
+    a.eq("grown axes the CPU has", &[d.keys().filter(|k| !c.contains_key(k)).count() as u32], &[0]);
     a.records("leaf mean", &dev.leaf_mean, &cpu.leaf_mean, (2, &[1]));
     a.records("disused", &dev.disused, &cpu.disused, (4, &[2, 3]));
     let wide = |v: &[u32]| v.iter().map(|&x| f64::from(f32::from_bits(x)).to_bits()).collect::<Vec<u64>>();
@@ -246,4 +258,28 @@ pub(super) fn beside_agree(a: &mut super::compare::Agreement, dev: &Beside, cpu:
     let joins = |v: &[u64]| v.chunks(5).flat_map(|j| [j[0], j[1], f64::from(f32::from_bits(j[2] as u32)).to_bits(), j[3], j[4]]).collect::<Vec<u64>>();
     a.records("joined", &joins(&dev.joined), &joins(&cpu.joined), (5, &[2, 3, 4]));
     a.records("levers", &wide(&dev.levers), &wide(&cpu.levers), (6, &[0, 1, 2, 3, 4, 5]));
+}
+
+/// Each lineage's indices, in grown order.
+fn by_key(keys: &[u64], index: &[u32]) -> std::collections::BTreeMap<u64, Vec<u32>> {
+    let mut out = std::collections::BTreeMap::<u64, Vec<u32>>::new();
+    for (k, i) in keys.iter().zip(index) {
+        out.entry(*k).or_default().push(*i);
+    }
+    out
+}
+
+/// Whether `dev` is `cpu` with only shed axes (none) left out, in order.
+fn shed_from(cpu: &[u32], dev: &[u32]) -> bool {
+    let mut d = dev.iter().peekable();
+    for &x in cpu {
+        match d.peek() {
+            Some(&&y) if y == x => {
+                d.next();
+            }
+            _ if x == u32::MAX => {}
+            _ => return false,
+        }
+    }
+    d.next().is_none()
 }

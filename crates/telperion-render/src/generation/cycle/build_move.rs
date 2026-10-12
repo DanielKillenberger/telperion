@@ -4,7 +4,7 @@
 //! every other buffer is kept, and a scratch buffer the cycle writes
 //! before it reads is made anew. No synchronisation: the copies follow
 //! the cycles already submitted.
-use super::build::{Build, Stashed, Tables};
+use super::build::{Build, Tables};
 use super::build_grow::Sizes;
 use super::build_light::Light;
 use super::columns::Cap;
@@ -39,9 +39,7 @@ fn kept(gpu: &Gpu, e: &mut wgpu::CommandEncoder, old: Owned, (grew, label, words
 
 impl State {
     /// The state in tables of `n` rows, copies recorded into `e`.
-    /// Where `stash`, phytomer tables that grew are made anew but left
-    /// empty, the old returned for a compaction to fill them from.
-    fn moved(self, gpu: &Gpu, e: &mut wgpu::CommandEncoder, (n, stash): (super::state::Caps, bool)) -> Result<(State, Option<Stashed>)> {
+    fn moved(self, gpu: &Gpu, e: &mut wgpu::CommandEncoder, n: super::state::Caps) -> Result<State> {
         let o = self.caps;
         let w = u64::from;
         let table = |cols, (a, b): (u32, u32)| move |e: &mut wgpu::CommandEncoder, f: &Owned, t: &Owned| columns(e, (f, t), cols, (w(a), w(b)), (0, 0));
@@ -60,14 +58,8 @@ impl State {
         };
         let fresh = State::words(n);
         let phyts = (o.phyts, n.phyts);
-        let (grown, laid, old) = if stash && o.phyts != n.phyts {
-            let fill = (zeroed(gpu, "cycle state phytomers grown", fresh[3])?, zeroed(gpu, "cycle state phytomers laid", fresh[4])?);
-            (fill.0, fill.1, Some((self.grown, self.laid, o.phyts)))
-        } else {
-            let grown = kept(gpu, e, self.grown, (o.phyts != n.phyts, "cycle state phytomers grown", fresh[3]), &table(GROWN, phyts))?;
-            let laid = kept(gpu, e, self.laid, (o.phyts != n.phyts, "cycle state phytomers laid", fresh[4]), &table(LAID, phyts))?;
-            (grown, laid, None)
-        };
+        let grown = kept(gpu, e, self.grown, (o.phyts != n.phyts, "cycle state phytomers grown", fresh[3]), &table(GROWN, phyts))?;
+        let laid = kept(gpu, e, self.laid, (o.phyts != n.phyts, "cycle state phytomers laid", fresh[4]), &table(LAID, phyts))?;
         let state = State {
             caps: n,
             axes: kept(gpu, e, self.axes, (axes.0 != axes.1, "cycle state axes", fresh[0]), &table(AXES, axes))?,
@@ -77,7 +69,7 @@ impl State {
             laid,
             lists: kept(gpu, e, self.lists, (lists, "cycle state lists", fresh[5]), &copy_lists)?,
         };
-        Ok((state, old))
+        Ok(state)
     }
 }
 
@@ -107,7 +99,7 @@ impl Build {
         let mut e = gpu.encoder(&Default::default());
         let (o, n) = (now.caps, next.caps);
         let (s, axes) = (n.axes, o.axes != n.axes);
-        let (state, stashed) = self.state.moved(gpu, &mut e, (n, next.compact))?;
+        let state = self.state.moved(gpu, &mut e, n)?;
         let hier = self.hier.moved(gpu, &mut e, s)?;
         let retire = self.retire.moved(gpu, &mut e, s)?;
         gpu.submit([e.finish()]);
@@ -137,7 +129,10 @@ impl Build {
             state,
             hier,
             retire,
-            stashed,
+            compactor: match o == n {
+                true => self.compactor,
+                false => super::compact::Compactor::new(gpu, n, s)?,
+            },
             light,
             held: self.held,
             laid: self.laid,

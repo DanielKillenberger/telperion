@@ -38,20 +38,44 @@ pub(super) struct Sizes {
     /// How far past its projection each census word reaches, for the
     /// workgroups a dispatch is given (`given.rs`).
     pub widths: Widths,
-    /// Whether a move into larger phytomer tables compacts out the
-    /// retired subtrees' phytomers (DESIGN.md section 6).
-    pub compact: bool,
+    /// When the arena is compacted in place (`compact.rs`).
+    pub compact: Compact,
 }
 
 impl Sizes {
     /// The smallest a build starts from.
     pub(super) fn least() -> Self {
         let caps = Caps { axes: 4096, units: 4096, phyts: 16384, sleepers: 4096, next: 4096, woken: 1024 };
-        Self { caps, points: 16384, tips: 4096, nodes: 4096, columns: 1024, bounds: Bounds::default(), block_cap: super::hier_build::CAP, slack: SLACK, widths: Widths::default(), compact: false }
+        Self { caps, points: 16384, tips: 4096, nodes: 4096, columns: 1024, bounds: Bounds::default(), block_cap: super::hier_build::CAP, slack: SLACK, widths: Widths::default(), compact: Compact::Off }
     }
 
     pub(super) fn lit(&self) -> (Lit, (u32, u32)) {
         (Lit { leaves: self.points - self.tips.min(self.points), tips: self.tips }, (self.nodes, self.columns))
+    }
+}
+
+/// When the arena is compacted in place: never (the tests' reference),
+/// where a phytomer or axis table's rows two cycles on, at the rate they
+/// grew, would pass half its capacity, or (the tests') after every cycle.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) enum Compact {
+    Off,
+    Tight,
+    Every,
+}
+
+impl Compact {
+    /// Whether to compact now, the census read and the one before it.
+    fn now(self, caps: &super::state::Caps, (read, prev): (&[u32], Option<&[u32]>)) -> bool {
+        let ahead = |w: usize| {
+            let r = prev.map_or(2.0, |p| (f64::from(read[w]) / f64::from(p[w].max(1))).clamp(1.0, 4.0));
+            f64::from(read[w]) * r * r
+        };
+        match self {
+            Compact::Off => false,
+            Compact::Every => true,
+            Compact::Tight => 2.0 * ahead(c::PHYTS) > f64::from(caps.phyts) || 2.0 * ahead(c::AXES) > f64::from(caps.axes),
+        }
     }
 }
 
@@ -61,6 +85,8 @@ impl Sizes {
 pub(super) struct Grew {
     pub again: u32,
     pub moves: u32,
+    /// The in-place compactions it made.
+    pub compactions: u32,
     /// The cycle after which each move of the last begin was made, and
     /// the records held after it.
     pub moved_at: Vec<(u32, u32)>,
@@ -146,10 +172,13 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
                 gpu.submit([e.finish()]);
                 (run, sizes) = (plan, next);
                 grew.moves += 1;
-                if b.stashed.is_some() {
-                    b.compact(gpu, kit, &run.0.census).await?;
-                }
                 grew.moved_at.push((cycle, b.retire.rec_n));
+            }
+            // The arena compacted in place after this cycle where its
+            // tables run tight (`compact.rs`); after the last, none.
+            if cycle < upto && sizes.compact.now(&sizes.caps, (&read, last.as_deref())) {
+                b.compact_in_place(gpu, kit, &run.0.census, cycle).await?;
+                grew.compactions += 1;
             }
             grew.moving += clock.elapsed_ms() / 1e3;
             prev = last.replace(read);

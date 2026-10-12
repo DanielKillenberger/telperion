@@ -67,6 +67,8 @@ const A_B0: u32 = 19u;
 const A_B1: u32 = 21u;
 const A_TAIL: u32 = 33u;
 const A_LAYOUT: u32 = 35u;
+// A retired root's frozen upkeep's complement (`compact.wgsl`).
+const A_FROZEN: u32 = 51u;
 const A_BASE: u32 = 41u;
 const LAYOUT_COLUMNS: u32 = 16u;
 // A unit's links and phytomers; a phytomer's tip and leaf area.
@@ -98,6 +100,7 @@ const T_RUNNING: u32 = 10u;
 const T_KEPT: u32 = 11u;
 const T_MEMORY: u32 = 12u;
 const T_SIZE: u32 = 13u;
+const T_FROZEN: u32 = 14u;
 const S_MEMORY: u32 = 6u;
 const S_KEPT: u32 = 7u;
 const S_SIZE: u32 = 8u;
@@ -159,6 +162,8 @@ fn tree_main(@builtin(global_invocation_id) id: vec3<u32>) {
     aux[T_KEPT * s + i] = pn(i, P_KEPT);
     aux[T_MEMORY * s + i] = pn(i, P_MEMORY);
     aux[T_SIZE * s + i] = pn(i, P_SIZE);
+    // A retired root's frozen upkeep (`compact.rs`), none where unset.
+    aux[T_FROZEN * s + i] = ~ax(i, A_FROZEN);
 }
 
 // The balance's and allotment's words into each laid axis's pencil (the

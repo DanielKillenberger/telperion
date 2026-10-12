@@ -140,9 +140,6 @@ impl Tables {
     }
 }
 
-/// A move's old phytomer tables (grown, laid) and their stride.
-pub(super) type Stashed = (Owned, Owned, u32);
-
 /// The build on the device: the state, the hierarchy's and the light's
 /// buffers, the recorded cycle, and the counts its last cycle left.
 pub(super) struct Build {
@@ -154,9 +151,8 @@ pub(super) struct Build {
     pub layout: Layout,
     /// Retirement's columns and verdicts (DESIGN.md section 6).
     pub retire: super::retire_device::Retire,
-    /// A move's old phytomer tables and their stride, kept for the
-    /// compaction that fills the new ones.
-    pub stashed: Option<Stashed>,
+    /// The in-place compaction's scratch and scans (`compact.rs`).
+    pub compactor: super::compact::Compactor,
     /// The units' inputs and counts, the glue's flags, a spare binding,
     /// and the grown axes' scan's total and sums.
     pub inputs: Owned,
@@ -186,7 +182,7 @@ impl Build {
             light,
             layout: Layout::new(gpu, &t.form, s)?,
             retire: super::retire_device::Retire::new(gpu, s, &t.settle_pa, t.log)?,
-            stashed: None,
+            compactor: super::compact::Compactor::new(gpu, caps, s)?,
             inputs: zeroed(gpu, "cycle inputs", 2 * u64::from(caps.next) + 6 * u64::from(s))?,
             counts: zeroed(gpu, "cycle counts", device::counts(caps, t.zones).words)?,
             flags: zeroed(gpu, "cycle flags", 2 * u64::from(s))?,

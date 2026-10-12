@@ -11,7 +11,7 @@ const COLS: &str = include_str!("retire_cols.wgsl");
 const AXIS: &str = include_str!("retire_axis.wgsl");
 const SWEEP: &str = include_str!("retire_sweep.wgsl");
 const REAL: &str = include_str!("real.wgsl");
-const PACK: &str = include_str!("retire_pack.wgsl");
+const COMPACT: &str = include_str!("compact.wgsl");
 const UNITS: &str = include_str!("retire_units.wgsl");
 
 pub(super) const ENTRIES: [&str; 7] = ["open_main", "close_main", "woken_main", "living_main", "verdict_main", "end_main", "inside_main"];
@@ -31,23 +31,20 @@ pub(super) const L_AT: u64 = 4;
 pub(super) const ENTRY: u64 = 6;
 
 /// The modules, built under one arithmetic: retirement's, and the
-/// compaction's two (the arena's rows, then the unit records).
+/// compaction's two (the arena in place, `compact.rs`; the unit records'
+/// first phytomers).
 pub(super) struct Kernels {
     pub pass: io::Pass,
-    pub pack: io::Pass,
+    pub compact: io::Pass,
     pub units: io::Pass,
 }
-
-pub(super) const FLAG: usize = 0;
-pub(super) const SCATTER: usize = 1;
 
 impl Kernels {
     pub(super) fn new(gpu: &Gpu) -> Self {
         let reads = [true, true, true, true, true, true, false, false];
-        let pack = [true, true, true, true, false, false, false, false];
         Self {
             pass: io::Pass::new(gpu, source(), &reads, &ENTRIES),
-            pack: io::Pass::new(gpu, PACK.into(), &pack, &["flag_main", "scatter_main"]),
+            compact: io::Pass::new(gpu, COMPACT.into(), &[false, false, true, false], &super::compact::ENTRIES),
             units: io::Pass::new(gpu, UNITS.into(), &[true, true, true, false, false], &["units_main"]),
         }
     }
@@ -56,7 +53,7 @@ impl Kernels {
 #[cfg(test)]
 /// The compaction's two modules' WGSL, for the shader checks.
 pub(super) fn compaction_sources() -> [&'static str; 2] {
-    [PACK, UNITS]
+    [COMPACT, UNITS]
 }
 
 /// The module's WGSL: the contract, the reals, then retirement's columns,

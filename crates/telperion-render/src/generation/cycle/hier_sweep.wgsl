@@ -59,6 +59,15 @@ fn children(i: u32) -> vec2<u32> {
 // An axis's light, upkeep and living (`Working::totals`): its own, then
 // each child's in order.
 fn totals(i: u32) {
+    // A retired root whose subtree the arena let go stands for it by its
+    // frozen upkeep, unlit and not living, as `Working::frozen` charges it.
+    let frozen = tree[at(T_FROZEN, i)];
+    if frozen != NONE {
+        put(S_LIGHT, i, 0.0);
+        put(S_COST, i, bitcast<f32>(frozen));
+        sums[at(S_LIVING, i)] = 0u;
+        return;
+    }
     let lit = sums[at(S_LIT, i)] != 0u;
     var light = 0.0;
     if lit {

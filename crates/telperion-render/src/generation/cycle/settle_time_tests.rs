@@ -127,7 +127,7 @@ fn retirement_is_measured() {
     let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
     for compact in [false, true] {
         let mut sizes = Sizes::least();
-        sizes.compact = compact;
+        sizes.compact = if compact { super::build_grow::Compact::Tight } else { super::build_grow::Compact::Off };
         let (b, sized, _) = grow(&gpu, &kit, &t, &g.tables, (sizes, 82)).expect("a build");
         drop(b);
         gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("let go");

@@ -5,7 +5,7 @@
 use super::columns::Cap;
 
 /// The tree's columns (`hier_cols.wgsl`'s `T_` words).
-pub(super) const TREE: usize = 14;
+pub(super) const TREE: usize = 15;
 #[cfg(test)]
 /// A PA's row: six f32s, padded to eight.
 pub(super) const ROW: usize = 8;
@@ -80,6 +80,8 @@ impl Hier {
         for name in ["base_scale", "running", "kept", "memory", "size"] {
             cols.push(c.u32s(&format!("hier_in_{name}")));
         }
+        // No root's upkeep is frozen: the CPU's tree is whole.
+        cols.push(vec![u32::MAX; n as usize]);
         assert_eq!(cols.len(), TREE, "the tree's columns");
         let mut tree = vec![0; TREE * stride as usize];
         for (k, col) in cols.iter().enumerate() {

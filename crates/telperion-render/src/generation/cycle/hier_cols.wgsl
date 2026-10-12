@@ -19,6 +19,8 @@ const T_RUNNING: u32 = 10u;
 const T_KEPT: u32 = 11u;
 const T_MEMORY: u32 = 12u;
 const T_SIZE: u32 = 13u;
+// A retired root's frozen upkeep (`compact.rs`), none where unset.
+const T_FROZEN: u32 = 14u;
 
 // The shape, per axis: its depth, block and generation in its cycle; per
 // block, its open spill (`NONE` until it opens one), its level, and the
