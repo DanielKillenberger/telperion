@@ -73,3 +73,5 @@ Host decisions: the cycle uses direct dispatches only, with host-known workgroup
 - Cold compile of the whole cycle is a budget: under 2 s native with the disk cache off (the units module was 37.7 s), then measured in Chrome by the owner's probe.
 - Every float reduction, the settle's leaf mean included, is the canonical blocked reduction on both executors.
 - The device refuses trees of 2,048 cycles or more by name.
+
+- Storage buffers (host, 2026-10-12, from fn-266): the native test device allows 8 storage buffers a stage (WebGPU's guaranteed minimum), so every stage is designed for 8, not 16.
