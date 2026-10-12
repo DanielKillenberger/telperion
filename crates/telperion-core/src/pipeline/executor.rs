@@ -112,8 +112,7 @@ pub fn resident(family: &Family, s: Summaries) -> Result<Expansion> {
     let twig = plan.twig.clone()?;
     check_shell(&inputs)?;
     // The root's own box, as `Reach::wood_box` takes the root's node.
-    let [scale, beyond, rachis, authored] = plan.reach.clone()?.terms();
-    let out = ((s.root * scale).max(beyond) + rachis).max(0.0).max(authored);
+    let out = plan.reach.clone()?.out(s.root);
     let (a, b) = s.corners;
     let lo = Vec3::new(a.x.min(-out), a.y.min(-out), a.z.min(-out));
     let hi = Vec3::new(b.x.max(out), b.y.max(out), b.z.max(out));

@@ -1,8 +1,9 @@
 //! fn-224: leaving angles and turning rates that vary axis to axis. Each
 //! lateral's insertion angle is its PA's offset by spread (2u − 1), and
 //! each axis's tropism its PA's times 1 + spread (2u − 1), u the axis's
-//! own lineage draw: the tree's topology and scales are the same to the
-//! bit at any spread, each angle is the one its draw keys, and at none
+//! own lineage draw: the tree's topology is the same to the bit at any
+//! spread and its scales by lineage (the f32 cycle's sums part at their
+//! last places where the geometry moves; fn-256), each angle is the one its draw keys, and at none
 //! every tree is the one it was.
 use telperion_space::contract::{insertion_draw, tropism_draw};
 use telperion_space::{beech, grow, oak, Light, Origin, Request, Species, Structure};
@@ -31,7 +32,8 @@ fn unit(bits: u64) -> f64 {
     (bits >> 29) as f64 / (1u64 << 24) as f64
 }
 
-/// The same nodes, keys and scales, to the bit.
+/// The same nodes and keys to the bit, and scales by lineage
+/// (`agree::PATHS`).
 fn same_topology(name: &str, a: &Structure, b: &Structure) {
     assert_eq!(a.counts(), b.counts(), "{name}: counts");
     assert_eq!(a.axes.len(), b.axes.len(), "{name}: axes");
@@ -39,7 +41,8 @@ fn same_topology(name: &str, a: &Structure, b: &Structure) {
         assert_eq!((x.pa, x.lineage), (y.pa, y.lineage), "{name}");
         assert_eq!(x.phytomers.len(), y.phytomers.len(), "{name}");
         for (p, q) in x.phytomers.iter().zip(&y.phytomers) {
-            assert_eq!(p.scale.to_bits(), q.scale.to_bits(), "{name}");
+            let apart = (p.scale - q.scale).abs() / p.scale.abs().max(1e-12);
+            assert!(apart <= telperion_space::agree::PATHS.scale, "{name}: scale {apart}");
             assert_eq!(p.key(), q.key(), "{name}");
         }
     }

@@ -203,3 +203,54 @@ fn every_pass_is_reported() {
     assert!(at(Stage::Pass(Pass::LeafMean)) < at(Stage::Settled));
     assert!(at(Stage::Pass(Pass::SagPlace)) < at(Stage::Laid));
 }
+
+/// fn-197 step 2, moved from `tests/light.rs` when `grow` became the
+/// cycle (fn-256): the oak without sag, erection, straightening or
+/// shedding, its rough layout (`sketch`) against the final lay of the
+/// engine that sketches it (`whole`): every phytomer where the final lay
+/// puts it, but for wood near the ground, which the final lay eases by
+/// its girth.
+#[test]
+fn without_what_later_years_add_the_rough_layout_is_the_final_one() {
+    let mut species = oak();
+    for state in &mut species.states {
+        state.form.sag = 0.0;
+        state.erection = 0.0;
+        state.straightening = 0.0;
+        state.shedding = f64::INFINITY;
+    }
+    let lit = Request {
+        age: 25,
+        seed: 3,
+        budget: 20_000_000,
+        light: Light {
+            extinction: 0.5,
+            sky: 0.5,
+        },
+    };
+    let laid = super::whole(&species, lit).unwrap();
+    let rough = super::sketch(&species, lit).unwrap();
+    let worst = deviation(&laid, &rough, 0.5);
+    // The layout is f32 (fn-254): the two walks part by a last place of a
+    // position (2.4e-7 m at 3 m), which the walk carries on (1.8e-5 m the
+    // most measured).
+    assert!(
+        worst < 1e-4,
+        "a phytomer above 0.5 m stands {worst} m from its final place"
+    );
+}
+
+/// The farthest any phytomer standing above `above` metres in `a` stands
+/// from its place in `b`.
+fn deviation(a: &crate::Structure, b: &crate::Structure, above: f64) -> f64 {
+    assert_eq!(a.axes.len(), b.axes.len());
+    let mut worst = 0.0f64;
+    for (x, y) in a.axes.iter().zip(&b.axes) {
+        for (p, q) in x.phytomers.iter().zip(&y.phytomers) {
+            if p.tip.z > above {
+                worst = worst.max((p.tip - q.tip).length());
+            }
+        }
+    }
+    worst
+}

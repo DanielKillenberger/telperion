@@ -357,7 +357,7 @@ impl Grower<'_> {
 mod tests {
     use super::*;
     use crate::bounded::Expected;
-    use crate::grow::{grow, Request};
+    use crate::grow::{whole, Request};
     use crate::light::Light;
 
     fn request(age: u32) -> Request {
@@ -372,8 +372,8 @@ mod tests {
         }
     }
 
-    /// With no bud below the cut the pass is today's tree, by lineage
-    /// (fn-254: its sums group apart, so not to the bit).
+    /// With no bud below the cut the pass is the whole-tree engine's tree,
+    /// by lineage (fn-254: its sums group apart, so not to the bit).
     #[test]
     fn a_pass_with_no_fine_root_is_todays_tree() {
         let species = crate::oak();
@@ -381,7 +381,7 @@ mod tests {
         let expected = Expected::new(&species, r.age, 0);
         let (tree, m) = grow_coupled(&species, r, &expected, (-1.0, Split::Recorded)).unwrap();
         assert_eq!(m.fine, 0);
-        let today = grow(&species, r).unwrap();
+        let today = whole(&species, r).unwrap();
         let agree = crate::agree::agreement(&today, &tree);
         assert!(agree.within(&crate::agree::PATHS), "{agree:?}");
     }

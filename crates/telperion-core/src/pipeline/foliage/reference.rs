@@ -65,6 +65,11 @@ impl Reach {
         };
         (seated.max(self.beyond) + self.rachis).max(0.0)
     }
+
+    /// How far the box reaches out from a node of wood radius `wood`.
+    pub(crate) fn out(self, wood: f64) -> f64 {
+        self.from_wood(wood).max(self.authored)
+    }
 }
 
 impl Reference {
@@ -104,7 +109,7 @@ impl Reach {
         let kept = tree.nodes.iter().enumerate().filter(|&(i, _)| keep(i));
         kept.fold((first, first), |(lo, hi), (_, n)| {
             let wood = n.radius.max(n.start_radius).max(n.base_radius);
-            let out = self.from_wood(wood).max(self.authored);
+            let out = self.out(wood);
             let (a, b) = (
                 n.position - Vec3::new(out, out, out),
                 n.position + Vec3::new(out, out, out),
