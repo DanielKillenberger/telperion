@@ -20,3 +20,10 @@
 - **Slowed:** fn-251's repro test lives only on its own branch, so the frame was rebuilt as a scratch test (`raw/frame251.rs`) on base and tip. `/usr/bin/time` is absent, so peak memory came from a `getrusage` wrapper (`raw/peak.py`). The shell guard refuses a redirect to a variable path, so the loops were unrolled to literal paths.
 - **Cost:** about 10 minutes.
 - **Would remove it:** fn-251's repro merged as an ignored measurement on master, and one shared measuring script per spec that prints wall time and peak RSS.
+
+## 2026-10-12, worker: the gate's first half fails on examples its second half builds
+
+- **Doing:** the gate in the dispatched order, the workspace without the renderer first.
+- **Slowed:** `telperion-jev`'s two replay tests need `headless`, `species_measure` and `geometry_benchmark` in `target/ci/examples`, which only the renderer's run builds, so the first half reports 2 failures on a clean target; they pass once the renderer has run.
+- **Cost:** about 5 minutes and one rerun.
+- **Would remove it:** the replay tests building their tools (or skipping by name with the reason) when the workspace runs without the renderer, or the gate order put renderer first.

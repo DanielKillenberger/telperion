@@ -40,3 +40,9 @@ Every preset grows what it grew, in the same time and peak memory within run noi
 
 - **It builds now only because the site's light no longer walks** towards the birch's 0, not because the birch has rows; its margin to the budget is 3%.
 - **It does not pass fn-251's oracle.** The oak end at the same light, age and seed grows 16,625,765, and the frame is 17% above it, over the oracle's 10% band. The birch end (80, seed 7) outgrows the 20M budget on both base and tip under the one cycle (fn-251 measured 6.40M on its older executor), so the oracle's band has no birch end to stand on at this age.
+
+## The gate (tip `75de71eea` plus the light test below)
+
+- **Workspace without the renderer** (`cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast`, 4 threads): 1,067 passed, 2 failed, 48 ignored. The two are `telperion-jev`'s replay tests, which need the renderer's examples (FRICTION.md); rerun after the renderer, 3 of 3 passed.
+- **Renderer under the GPU lock** (`cargo test --profile ci -p telperion-render --no-fail-fast`): 272 passed, 1 failed. `a_dormant_lattice_reads_as_the_swept_one` took Telperion's site as unlit, which R1a and the beech's leaf area end; its case now takes Telperion's leaves away as it took the oak's, and the light tests pass (3 of 3).
+- **`npm test`** (with its pretest's Wasm and render builds): 15 files, 162 tests passed.

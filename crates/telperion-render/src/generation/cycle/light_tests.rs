@@ -130,8 +130,8 @@ fn device() -> Option<(Gpu, Kernels)> {
     Some((gpu, k))
 }
 
-/// The young trees: two lit sites (the oak's extinction 0.5, the
-/// ordinary's 1/6) and Telperion's unlit one, its lattice all ones.
+/// The young trees, every one under the site's light (fn-264 R1a): the
+/// oak's, the ordinary's and Telperion's leaves, the beech's on him.
 const YOUNG: [(Preset, &str, u32, u32); 4] = [
     (Preset::OregonWhiteOak, "oregon-white-oak", 16, 12),
     (Preset::OregonWhiteOak, "oregon-white-oak", 8, 5),
@@ -194,8 +194,9 @@ fn reads(gpu: &Gpu, k: &Kernels, lit: &Lit) -> (Vec<u32>, u32) {
 
 /// fn-256 task 9: where nothing shades, the lattice's dispatches are not
 /// recorded and each tip sums its eight rounded weights against a light
-/// of one, word for word the swept lattice's read: on Telperion's unlit
-/// site, and on the lit oak with no leaf area, whose open sky is one.
+/// of one, word for word the swept lattice's read: on Telperion and the
+/// oak with their leaf area taken away, under the site's light, whose open
+/// sky is one (every preset grows lit since fn-264 R1a).
 /// Every refusal but the deposit's is the swept lattice's; the deposit,
 /// which guards only the lattice's input, is not recorded (task 12).
 #[test]
@@ -204,14 +205,12 @@ fn a_dormant_lattice_reads_as_the_swept_one() {
         return;
     };
     let mut differ = Vec::new();
-    for (preset, name, age, at, leafless) in [(Preset::Telperion, "telperion", 14, 10, false), (Preset::OregonWhiteOak, "oregon-white-oak", 8, 5, true)] {
+    for (preset, name, age, at) in [(Preset::Telperion, "telperion", 14, 10), (Preset::OregonWhiteOak, "oregon-white-oak", 8, 5)] {
         let c = captured(preset, age, 42, at);
         let cap = Cap(&c);
         let mut lit = Lit::new(&cap, capacity(&cap), None);
-        if leafless {
-            assert!(lit.lit && super::build_light::open(&cap.u64s("light_directions")), "{name}: a lit site under an open sky of one");
-            lit.leaves.iter_mut().skip(3).step_by(4).for_each(|area| *area = 0.0);
-        }
+        assert!(lit.lit && super::build_light::open(&cap.u64s("light_directions")), "{name}: a lit site under an open sky of one");
+        lit.leaves.iter_mut().skip(3).step_by(4).for_each(|area| *area = 0.0);
         let swept = reads(&gpu, &k, &lit);
         lit.dormant = true;
         let dormant = reads(&gpu, &k, &lit);
