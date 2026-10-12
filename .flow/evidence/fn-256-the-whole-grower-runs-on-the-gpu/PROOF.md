@@ -568,3 +568,10 @@ Telperion's light now: sweep 10.9 ms (404 dispatches), deposit 5.7 (from 47.4), 
 ## Stills (`resident_stills`, default age and seed, whole, mid and close)
 
 The palm is pixel-identical; the beech and Laurelin differ in at most one pixel; Telperion in 11-81 pixels, the ordinary and birch in under 100, the spruce in 186-1,073, the oak in 3,880-6,527 (one leaf more of 350,269). Sheets of every preset's whole and mid views, base beside tip, and the oak's whole and mid were viewed: not told apart.
+
+## Review and the gate (task 13)
+
+- **Codex, three reviewers:** SHIP. Two P2 findings were fixed (`77e3880d0`): the sweep's refusal counted the box's height where no sweep runs, so a tall first lattice past the first cycles' 8 ranges was refused where the old sweep took it in one; it now counts the swept layers (census `SWEPT`), only where the lattice is swept, and the first two cycles record 32 ranges, 512 layers (`the_first_cycles_sweep_a_tall_lattice`). The agreement's largest difference ignored a NaN; it is now infinite for any light that is not finite (`a_light_that_is_not_finite_is_not_within_tolerance`). After the fix Telperion's light is 26.0 ms in 1,138 dispatches.
+- **Workspace without the renderer** (`cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast`, 4 threads): 1,073 passed, 0 failed, 48 ignored.
+- **Renderer under the GPU lock** (`cargo test --profile ci -p telperion-render --no-fail-fast`): 273 passed, 0 failed, 39 ignored.
+- **`npm test`:** 15 files, 162 tests passed (on the default target; FRICTION.md).

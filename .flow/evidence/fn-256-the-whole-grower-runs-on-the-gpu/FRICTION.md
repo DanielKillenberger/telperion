@@ -358,3 +358,9 @@ Doing: comparing every preset's stills with F4's. Slowed by: the resident handof
 - **Hindered:** it grows from `Sizes::least()`, and since task 5 no build begins again, so every lit preset is refused at cycle 21 ("passed its sizes: Phyts").
 - **Cost:** about 2 minutes and one GPU run of 2 s.
 - **Would remove it:** a harness that times phases on the build's own sizing; task 13 adds `the_light_phase_is_timed` for the light, and the two stale harnesses are a follow-up.
+
+## 2026-10-13, task 13: npm test reads the Wasm from the default target
+- **Doing:** the gate's `npm test` with `CARGO_TARGET_DIR` set to the task's own target, as the dispatch asks (a separate target dir).
+- **Hindered:** `scripts/build-wasm.mjs` builds with cargo (into `CARGO_TARGET_DIR`) but reads `target/wasm32-unknown-unknown/release/telperion_wasm.wasm` by a fixed path, so it compared a stale binary and refused `presets.generated.ts` as not what the presets render.
+- **Cost:** about 6 minutes and one full npm run.
+- **Would remove it:** the script reading the Wasm from `CARGO_TARGET_DIR` when set.
