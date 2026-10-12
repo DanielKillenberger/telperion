@@ -119,10 +119,10 @@ fn census(c: &Census) {
 /// Each cycle's live phytomers (not retired) against those grown by its
 /// end, then the largest live set and the largest share past cycle 10.
 fn live(c: &Census) {
-    println!("  cycle grown live share");
+    println!("  cycle grown live share axes");
     for k in &c.cycles {
         let share = k.phytomers as f64 / k.grown.max(1) as f64;
-        println!("  {} {} {} {share:.3}", k.cycle, k.grown, k.phytomers);
+        println!("  {} {} {} {share:.3} {}", k.cycle, k.grown, k.phytomers, k.axes);
     }
     let peak = c.cycles.iter().max_by_key(|k| k.phytomers).expect("a cycle");
     let share = |k: &telperion_space::Cycle| k.phytomers as f64 / k.grown.max(1) as f64;

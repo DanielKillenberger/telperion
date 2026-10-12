@@ -256,3 +256,9 @@ Doing: comparing every preset's stills with F4's. Slowed by: the resident handof
 - **Hindered:** the threshold applies to every heap, and the driver grants the small host-visible device heap (the 256 MB BAR) a budget of 75 MB that the process already passed; two small tests in parallel then panicked on a 16-byte staging buffer ("wgpu error: Out of Memory", uncaptured, from `write_buffer`). wgpu-hal logs the heap's numbers only through `log`, which the tests have no logger for.
 - **Cost:** about 25 minutes, four GPU runs, a temporary logger.
 - **Would remove it:** the budget read directly (`Gpu::free_device_memory`, VK_EXT_memory_budget through `as_hal`, the device-local heap only), which is what the guard now does; a note in `docs/` that wgpu's instance thresholds are not usable on this card.
+
+## 2026-10-12, task 5: the arena's sizing is not in the plan
+- **Doing:** step 4, a fixed arena sized once from the live-set bound, after the census.
+- **Hindered:** the plan names the phytomer rows the live set bounds; the census puts them at 19% of the peak, behind the axis-indexed tables (63% of the oak's at 80, no live set, never compacted) and Telperion's light scratch (1.8 GB). "Zero table moves" then needs every table sized once from a bound COUNCIL does not state, a design call (AGENTS.md), so the arena is not built (GUARD.md, "Open").
+- **Cost:** none past the census; the guard, census and live set are committed.
+- **Would remove it:** the census taken before the plan is written, so the plan sizes what the peak is made of.

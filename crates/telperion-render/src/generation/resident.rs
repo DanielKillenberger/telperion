@@ -145,6 +145,8 @@ mod boots;
 mod boots_tests;
 mod build;
 #[cfg(test)]
+mod full_card_tests;
+#[cfg(test)]
 mod hang_tests;
 #[cfg(test)]
 mod repeat_tests;
