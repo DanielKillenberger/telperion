@@ -116,7 +116,7 @@ fn words(gpu: &crate::Gpu, b: &wgpu::Buffer, n: usize) -> Vec<u32> {
 fn device(gpu: &crate::Gpu, k: &Kernels, hanger: &Hanger, f: &Family) -> Vec<Base> {
     let growth = executor::growth(f).unwrap();
     let rows = executor::bases(f).unwrap().expect("a family that hangs bases");
-    let (mut dressed, _) = pollster::block_on(tree::drawn(gpu, k, &growth)).unwrap();
+    let (mut dressed, _) = pollster::block_on(tree::drawn(gpu, k, &growth, None)).unwrap();
     let hung = pollster::block_on(hanger.hang(gpu, &mut dressed, Some(&rows))).unwrap();
     let seed = &dressed.waves[1];
     let all = words(gpu, &seed.buffer, seed.axes as usize * CA_WORDS + seed.phyts as usize * CV);

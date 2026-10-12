@@ -64,8 +64,16 @@ pub(super) fn admit(
         return Ok(Admitted::Beside);
     };
     let expected = telperion_space::expected_kept(species, family.age as u32);
+    // No expectation (a species that reads light has none): the build is
+    // held to the budget as it grows, by the bytes it holds, and makes
+    // room first wherever a tree is drawn, so it never grows beside one it
+    // cannot be shown to fit with (fn-256 task 4 review).
     let Ok(Some(kept)) = expected else {
-        return Ok(Admitted::Beside);
+        return match (held.saturating_sub(drawn) < budget, drawn > 0) {
+            (false, _) => Err(full().into()),
+            (true, true) => Ok(Admitted::MakeRoom),
+            (true, false) => Ok(Admitted::Beside),
+        };
     };
     let peak = peak(kept);
     if held.saturating_add(peak) <= budget {
@@ -79,6 +87,13 @@ pub(super) fn admit(
          a page may hold even with the drawn tree let go; grow it younger",
     )
     .into())
+}
+
+/// The refusal where the page already holds its whole budget.
+fn full() -> telperion_core::Error {
+    telperion_core::Error::ResourceLimit(
+        "the browser's device budget: the page already holds the 6 GiB it may, with the drawn tree let go",
+    )
 }
 
 /// Whether `family` built now fits `budget` beside the `held` bytes, the
@@ -125,5 +140,21 @@ mod tests {
         assert!((peak(4_653_767.0) as f64 / GIB as f64 - 5.35).abs() < 0.01);
         let refused = check(&spruce(80.0), held(1_757), BROWSER).unwrap_err();
         assert!(refused.to_string().contains("device budget"), "{refused}");
+    }
+
+    /// fn-256 task 4 review: a species with no expectation (the ordinary
+    /// reads light) never grows beside a drawn tree, and is refused where
+    /// the page holds its whole budget even with that tree let go; its
+    /// build is held to the budget as it grows (`route_tests`).
+    #[test]
+    fn a_tree_with_no_expectation_makes_room_first() {
+        let ordinary = telperion_core::presets::by_identity("ordinary").unwrap();
+        let species = ordinary.space.species.as_ref().unwrap();
+        assert!(telperion_space::expected_kept(species, 40).unwrap().is_none());
+        let admitted = |held: u64, drawn: u64| admit(&ordinary, held << 20, drawn << 20, BROWSER);
+        assert_eq!(admitted(0, 0).unwrap(), Admitted::Beside);
+        assert_eq!(admitted(1_757, 1_700).unwrap(), Admitted::MakeRoom);
+        let full = admitted(6 << 10, 0).unwrap_err().to_string();
+        assert!(full.contains("device budget"), "{full}");
     }
 }

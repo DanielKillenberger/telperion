@@ -48,19 +48,22 @@ fn unlaid(error: [u32; 2]) -> crate::RenderError {
 
 /// The family's tree (`growth`) grown, settled and drawn on the device:
 /// its drawn records and its trunk's measures.
-pub(in crate::generation) async fn drawn(gpu: &Gpu, k: &Kernels, growth: &Growth) -> Result<(Dressed, Trunk)> {
+/// Past `budget` device bytes, if any, the build is refused by name.
+pub(in crate::generation) async fn drawn(gpu: &Gpu, k: &Kernels, growth: &Growth, budget: Option<u64>) -> Result<(Dressed, Trunk)> {
     let (species, request) = (&growth.species, growth.request);
     let refused = |what: &str| super::super::io::error(format!("the species' {what}"));
     let trace = std::env::var("CYCLE_TRACE").is_ok();
     let clock = super::super::Clock::now();
     let tables = telperion_space::grow_capture_tables(species, request).map_err(|e| refused(&e.to_string()))?;
     let chain = ChainTables::cycle(species, request.age).map_err(|e| refused(&e.to_string()))?;
-    let t = Tables::new(gpu, &tables, &chain)?;
+    let mut t = Tables::new(gpu, &tables, &chain)?;
+    t.device_budget = budget;
     let at_tables = clock.elapsed_ms();
     let (b, ..) = grow(gpu, &k.build, &t, &tables, (Sizes::least(), request.age)).await?;
     let at_grown = clock.elapsed_ms();
     let s = settle(gpu, (&k.build, &k.settle), (&b, &t), (&t.settle_pa, SettleTo::Laid)).await?;
     let at_settled = clock.elapsed_ms();
+    t.within_budget(gpu)?;
     drop(b);
     if s.error[0] != 0 {
         return Err(unlaid(s.error));

@@ -84,6 +84,7 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
     'begin: for again in 0..64 {
         grew.again = again;
         let mut b = Build::new(gpu, t, (tables, sizes.caps, sizes.block_cap), sizes.lit())?;
+        t.within_budget(gpu)?;
         let mut run = b.plan(gpu, kit, t, sizes.bounds)?;
         grew.stamped = b.seeded(gpu, kit, (&run.0, &run.1));
         grew.moved_at.clear();
@@ -135,6 +136,7 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
             let next = (cycle < upto).then(|| ahead(sizes, &read, last.as_deref(), t.budget)).flatten();
             if let Some(next) = next {
                 b = b.moved(gpu, (t, tables), (sizes, next))?;
+                t.within_budget(gpu)?;
                 let plan = b.plan(gpu, kit, t, next.bounds)?;
                 let mut e = gpu.encoder(&Default::default());
                 e.copy_buffer_to_buffer(&run.0.census, 0, &plan.0.census, 0, run.0.census.size());

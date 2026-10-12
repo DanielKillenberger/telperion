@@ -132,6 +132,24 @@ fn a_build_over_the_budget_is_refused_and_the_drawn_tree_kept() {
     assert_eq!(after.stats.instances, before.stats.instances);
 }
 
+/// fn-256 task 4 review: a species with no expectation (the ordinary
+/// reads light) is held to the page's budget as it grows, by the device
+/// bytes its build holds, and refused by name past it.
+#[test]
+fn a_build_with_no_expectation_is_held_to_the_budget_as_it_grows() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    gen.budget.set(Some(gpu.ledger.live() + (64 << 20)));
+    let error = gen
+        .prepare(&family("ordinary", 40), Delivery::Resident)
+        .err()
+        .expect("the build is refused");
+    assert!(error.to_string().contains("the tree's build holds"), "{error}");
+}
+
 /// fn-235 R3: a device lost under a drawn tree is named by the next frame
 /// and the next build, and the same parameters build again, once, on a
 /// fresh adapter and device, as the page's "retry build" asks.

@@ -47,6 +47,19 @@ impl super::Generator {
         super::io::programs_ready(&self.gpu, scopes).await
     }
 
+    /// The device bytes a build may hold: the browser's budget, a test's
+    /// stated one, none natively.
+    fn device_budget(&self) -> Option<u64> {
+        #[cfg(test)]
+        if let Some(stated) = self.budget.get() {
+            return Some(stated);
+        }
+        #[cfg(target_arch = "wasm32")]
+        return Some(budget::BROWSER);
+        #[cfg(not(target_arch = "wasm32"))]
+        None
+    }
+
     /// The device's kernels and tools, made on first use.
     fn kit(&self) -> &Kit {
         self.resident.get_or_init(|| Kit::new(&self.gpu))

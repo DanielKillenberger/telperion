@@ -110,6 +110,7 @@ pub(super) async fn build(
     tools: &Tools,
     family: &Family,
 ) -> Result<Built> {
+    let budget = gen.device_budget();
     let growth = executor::growth(family)?;
     if !executor::stations(family) {
         return Err(refused("leaves the device places on neither twig stations nor a rosette"));
@@ -117,7 +118,7 @@ pub(super) async fn build(
     let bases = executor::bases(family)?;
     let flowers = growth.species.states.iter().any(|s| s.flowering > 0.0);
     let mut t = Timed::default();
-    let (mut dressed, trunk) = stage(gpu, &mut t.settle, async || tree::drawn(gpu, k, &growth).await).await?;
+    let (mut dressed, trunk) = stage(gpu, &mut t.settle, async || tree::drawn(gpu, k, &growth, budget).await).await?;
     let hung = stage(gpu, &mut t.bases, async || {
         tools.hanger.hang(gpu, &mut dressed, bases.as_ref()).await
     })
