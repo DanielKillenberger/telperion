@@ -170,6 +170,10 @@
 //! object, each digest was the last pin to the bit. The family and walk
 //! digests were re-pinned again for the beech's leaf area (R2), which the
 //! Two Trees carry: its nine `leafArea` rows are the only rows that moved.
+//! All three were re-pinned again for the spruce's and the birch's leaf
+//! area (host decisions 1 and 2): their nine `leafArea` rows each are the
+//! only rows that moved; the override digest moved with the spruce and the
+//! birch it walks.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -205,7 +209,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        4_184_651_136_546_985_906,
+        7_545_338_221_387_230_490,
         "{}",
         digest(&text)
     );
@@ -237,7 +241,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        9_364_681_169_171_405_013,
+        14_854_860_542_767_207_523,
         "{}",
         digest(&text)
     );
@@ -262,7 +266,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        9_247_671_544_701_238_716,
+        18_237_812_267_652_301_657,
         "{}",
         digest(&text)
     );

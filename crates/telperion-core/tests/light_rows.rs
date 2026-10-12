@@ -35,16 +35,16 @@ fn darkest(species: &Species) -> f64 {
     lights.iter().map(|&(_, l)| l).fold(1.0, f64::min)
 }
 
-/// Every shipped preset by whether its leaves carry area (R2): the
-/// spruce, the birch and the palm wait on the host (fn-264 NEEDS_HUMAN).
+/// Every shipped preset by whether its leaves carry area (R2): the palm's
+/// waits on the host (fn-264 SOURCES.md, host decision 3).
 const SHADES: [(Preset, bool); 8] = [
     (Preset::OregonWhiteOak, true),
     (Preset::Ordinary, true),
     (Preset::EuropeanBeech, true),
     (Preset::Laurelin, true),
     (Preset::Telperion, true),
-    (Preset::NorwaySpruce, false),
-    (Preset::SilverBirch, false),
+    (Preset::NorwaySpruce, true),
+    (Preset::SilverBirch, true),
     (Preset::DatePalm, false),
 ];
 

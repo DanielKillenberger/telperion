@@ -295,7 +295,7 @@ pub fn spruce() -> Species {
         },
         ..state(2, 0.0, vec![zone(2, 2, 1, &[])])
     };
-    on_chain(vec![
+    let mut ages = vec![
         (SEEDLING, seedling),
         (SAPLING, sapling),
         (TRUNK, trunk),
@@ -305,5 +305,20 @@ pub fn spruce() -> Species {
         (BRANCHLET, branchlet),
         (SPUR, spur),
         (SHOOT, shoot),
-    ])
+    ];
+    // Every node bears its year's needles along its internode (fn-264 R2,
+    // host decision 2, derived).
+    for (_, s) in &mut ages {
+        s.leaf_area = NEEDLE_AREA * s.internode;
+    }
+    on_chain(ages)
 }
+
+/// Projected needle area a metre of current-year shoot bears, in m²/m:
+/// the mid-point of 18 to 31 needles per cm of shoot (Bellan et al. 2019,
+/// Austrian J. For. Sci., a closed stand of about 36 years, the whole crown
+/// profile) times 13.7 mm², the mean projected area of a sun needle of
+/// 20-year-old trees (Gebauer et al. 2019, iForest 12: 27, Table 2, control).
+/// Only the year a node is laid deposits (`light.rs`), so this lends the
+/// lattice that year's needles alone (fn-264 SOURCES.md).
+const NEEDLE_AREA: f64 = (18.0 + 31.0) / 2.0 * 100.0 * 13.7e-6;

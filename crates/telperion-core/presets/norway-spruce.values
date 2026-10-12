@@ -137,10 +137,13 @@
 
 # The engine species (fn-198 host decision 1): telperion_space::spruce (fn-194).
 # The envelope is derived from the grown tree (host decision 7).
+# Each node lends the light's lattice its year's needles: 0.033565 m² a metre
+# of shoot times its internode (fn-264 R2, host decision 2, derived).
 /space/ages/0/lifespan = 2.0
 /space/ages/0/internode = 0.02
 /space/ages/0/divergence = 2.4
 /space/ages/0/rhythm = 0.3
+/space/ages/0/leafArea = 0.0006713
 /space/ages/0/form/tropism = 2.0
 /space/ages/0/form/elevation = 1.5707963267948966
 /space/ages/0/form/wander = 0.1
@@ -160,6 +163,7 @@
 /space/ages/1/internode = 0.028
 /space/ages/1/divergence = 2.4
 /space/ages/1/rhythm = 0.7
+/space/ages/1/leafArea = 0.00093982
 /space/ages/1/form/tropism = 2.0
 /space/ages/1/form/elevation = 1.5707963267948966
 /space/ages/1/form/wander = 0.1
@@ -180,6 +184,7 @@
 /space/ages/2/lifespan = 35.0
 /space/ages/2/internode = 0.042
 /space/ages/2/divergence = 2.4
+/space/ages/2/leafArea = 0.0014097299999999999
 /space/ages/2/form/tropism = 2.0
 /space/ages/2/form/elevation = 1.5707963267948966
 /space/ages/2/form/wander = 0.1
@@ -201,6 +206,7 @@
 /space/ages/4/continuation = 0.0
 /space/ages/4/internode = 0.03
 /space/ages/4/divergence = 2.4
+/space/ages/4/leafArea = 0.00100695
 /space/ages/4/form/tropism = 2.0
 /space/ages/4/form/elevation = 1.5707963267948966
 /space/ages/4/form/wander = 0.1
@@ -222,6 +228,7 @@
 /space/ages/8/viability = 0.998
 /space/ages/8/internode = 0.05
 /space/ages/8/insertion = 1.5
+/space/ages/8/leafArea = 0.00167825
 /space/ages/8/form/tropism = 0.4
 /space/ages/8/form/elevation = 0.35
 /space/ages/8/form/wander = 1.0
@@ -257,6 +264,7 @@
 /space/ages/9/shedding = 3.0
 /space/ages/9/internode = 0.034
 /space/ages/9/insertion = 1.5
+/space/ages/9/leafArea = 0.00114121
 /space/ages/9/form/tropism = 1.4
 /space/ages/9/form/elevation = 1.0
 /space/ages/9/form/wander = 1.0
@@ -291,6 +299,7 @@
 /space/ages/10/shedding = 1.0
 /space/ages/10/internode = 0.016
 /space/ages/10/insertion = 0.9
+/space/ages/10/leafArea = 0.00053704
 /space/ages/10/form/tropism = 2.0
 /space/ages/10/form/elevation = -1.0
 /space/ages/10/form/wander = 0.6
@@ -313,6 +322,7 @@
 /space/ages/11/internode = 0.006
 /space/ages/11/insertion = 0.9
 /space/ages/11/divergence = 2.4
+/space/ages/11/leafArea = 0.00020139
 /space/ages/11/form/tropism = 3.0
 /space/ages/11/form/elevation = -1.35
 /space/ages/11/form/wander = 0.6
@@ -331,6 +341,7 @@
 /space/ages/12/shedding = 3.0
 /space/ages/12/internode = 0.02
 /space/ages/12/insertion = 1.1
+/space/ages/12/leafArea = 0.0006713
 /space/ages/12/form/tropism = 1.0
 /space/ages/12/form/elevation = -0.5
 /space/ages/12/form/wander = 1.0
