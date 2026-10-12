@@ -73,3 +73,21 @@ Host decisions: the cycle uses direct dispatches only, with host-known workgroup
 - Cold compile of the whole cycle is a budget: under 2 s native with the disk cache off (the units module was 37.7 s), then measured in Chrome by the owner's probe.
 - Every float reduction, the settle's leaf mean included, is the canonical blocked reduction on both executors.
 - The device refuses trees of 2,048 cycles or more by name.
+
+- Storage buffers (host, 2026-10-12, from fn-266): the native test device allows 8 storage buffers a stage (WebGPU's guaranteed minimum), so every stage is designed for 8, not 16.
+
+## Round 4: the device cycle against F4 (2026-10-12)
+
+Both members (`council/astra-4.md`, Fable's round 4) agree:
+- The design fails "at or under F4's warm build" today (Telperion 1,909 ms vs 671) and parity on the Two Trees is not reachable by memory and scheduling alone: the cycle grows 18.2M phytomers where F4 grew 4.5M and couples every bud each cycle. Estimate after the fixes below: Telperion about 1.0-1.3 s (unmeasured). Beech and spruce share the cause; birch and ordinary near parity; the oak 2.2x faster.
+- Memory is sizing policy, not the tree: retirement runs on the device but rows are let go only at a table move, and each move holds old and new tables at once, which sets the 6.1 GB peak.
+- The four hierarchy sweeps are inherent; keep bounded subtrees and the ruled order (no DFS prefix sums: they change the arithmetic and cancel badly).
+- A native device budget is required; refusal before any submission.
+
+Ordered steps, host-adopted:
+1. **Guard:** a native device budget (configured, conservative default), every allocation reserved before creation including replacement overlap, charges held until GPU completion, every kernel that reads a count clamps it to capacity, a dropped build polled free before the next allocates; tests that a build past budget submits nothing and that ten builds on a card with 2 GB held end in refusals, never a reset.
+2. **Labelled peak census** at the peak, then the **live set per cycle** (rows not retired) on Telperion 82 and the oak at 80.
+3. **A fixed arena sized once from the measured live-set bound, compacted in place on a cadence** (one column of scratch), refused by name before cycle 1 past it; moves and restarts deleted. Gate: zero moves, peak at the bound, no reset in ten runs on a two-thirds-full card.
+4. **Dispatches:** re-fuse the units kernels to a handful per round (cold compile stays under 2 s); collapse the hierarchy's narrow upper levels into one barrier-looped workgroup (fringe and skeleton), words identical across caps; explain light's 46 a cycle. Gate: at most 340 a cycle.
+5. Re-measure every preset against F4 and put the remaining ratio to the owner under R0, with the dead-term question (Fable): the Two Trees' shed laterals shade nothing while they carry no leaf area, so skipping them changes no bit today, but fn-264 gives them leaf area, so it would lapse.
+6. The owner's Chrome probe, cold and warm, on the result.

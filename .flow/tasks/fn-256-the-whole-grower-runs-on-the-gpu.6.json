@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-12T07:32:34.195703Z",
+  "depends_on": [
+    "fn-256-the-whole-grower-runs-on-the-gpu.5"
+  ],
+  "id": "fn-256-the-whole-grower-runs-on-the-gpu.6",
+  "priority": null,
+  "spec": "fn-256-the-whole-grower-runs-on-the-gpu",
+  "spec_path": ".flow/tasks/fn-256-the-whole-grower-runs-on-the-gpu.6.md",
+  "status": "todo",
+  "title": "Fewer dispatches per cycle",
+  "updated_at": "2026-10-12T07:32:34.195703Z"
+}
