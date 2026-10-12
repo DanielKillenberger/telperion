@@ -54,6 +54,9 @@ fn differing(a: &Snapshot, b: &Snapshot) -> Vec<&'static str> {
 /// set (`REPEATS=10`, under the GPU lock, for the evidence).
 #[test]
 fn every_device_preset_builds_the_same_leaves_each_time() {
+    // The Two Trees peak at about 6 GB of the device, so no other whole
+    // tree builds beside them (fn-256 task 4: out of memory in the gate).
+    let _held = super::super::whole_tree();
     let repeats: usize = std::env::var("REPEATS").map_or(2, |r| r.parse().unwrap());
     for &(_, id, _, _) in telperion_core::presets::CATALOGUE {
         let family = telperion_core::presets::by_identity(id).unwrap();

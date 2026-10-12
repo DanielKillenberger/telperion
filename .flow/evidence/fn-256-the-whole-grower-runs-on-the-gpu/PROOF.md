@@ -147,6 +147,11 @@ Checked without a browser: the page's modules resolve to this worktree's `src/br
 
 **Astra, round 3: AGREE** (`raw/t4-astra/astra-3.log`). Every native worker is scoped, the earlier two fixes stand, and no must-fix remains.
 
+## The gate and npm test
+
+- **The workspace gate** (`cargo test --profile ci --workspace --no-fail-fast`, `raw/t4-gate-workspace.txt`) was green but for one test. The repeat test ran out of device memory on Telperion while other whole-tree tests ran beside it. The Two Trees' peak equals the base's (Telperion 6,114 MB on the base against 6,122; Laurelin 5,619 against 5,526), so the sizing did not raise it. The repeat test now holds `whole_tree()`, as the other whole-tree tests do, and the render library is green (161 passed, `raw/t4-gate-render.txt`).
+- **`npm test`:** 15 files, 162 tests, green (`raw/t4-gate-npm.txt`).
+
 ## Open, for the owner and the host
 
 1. **Warm build, missed for six presets:**
