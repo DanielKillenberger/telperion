@@ -79,7 +79,15 @@ impl Ledger {
             }
         });
         drop(waiting);
-        done.iter().for_each(wgpu::Buffer::destroy);
+        done.iter().for_each(|b| self.destroy(b));
+    }
+
+    /// `buffer` destroyed and its bytes no longer held: a buffer let go
+    /// stays charged until then, so a cap (`room`) counts a move's old
+    /// tables beside its new while the copy encoder is open.
+    fn destroy(&self, buffer: &wgpu::Buffer) {
+        buffer.destroy();
+        self.live.fetch_sub(buffer.size(), std::sync::atomic::Ordering::Relaxed);
     }
 
     /// Destroys `buffer` now, or once every encoder open now has closed:
@@ -88,7 +96,7 @@ impl Ledger {
         let mut waiting = self.waiting();
         if waiting.open.is_empty() {
             drop(waiting);
-            buffer.destroy();
+            self.destroy(buffer);
         } else {
             let on = waiting.open.clone();
             waiting.let_go.push((buffer.clone(), on));
@@ -167,8 +175,6 @@ impl std::ops::Deref for Owned {
 
 impl Drop for Owned {
     fn drop(&mut self) {
-        let size = self.buffer.size();
-        (self.ledger.live).fetch_sub(size, std::sync::atomic::Ordering::Relaxed);
         self.ledger.let_go(&self.buffer);
     }
 }
