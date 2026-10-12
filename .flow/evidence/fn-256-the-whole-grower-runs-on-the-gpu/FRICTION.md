@@ -200,3 +200,7 @@
 - **Hindered:** on the RTX 3080 (Vulkan), the invocation's own reads of the queue returned the zeros the buffer held before its stores. The spruce at 12 then drew no trunk, and its build placed no leaves. The plain `read_write` storage loads and stores to the same address in one invocation were not ordered. The queue now lives in atomics (`atomicStore`, `atomicLoad`) and the spruce agrees with the CPU in every node.
 - **Cost:** about 40 minutes and six GPU runs, three of them dumps of the plan.
 - **Would remove it:** a stated rule for the generation shaders, with a test: no kernel reads back a plain storage word it wrote in the same invocation; such a word is atomic or private. The dress (`cycle/dress.wgsl`) and the fine dress before it read back records they wrote and have agreed, so the hazard is not universal: what decides it is not known.
+
+## 2026-10-12, task 3: the sweep agreement test hid the trunk
+
+Doing: viewing every preset's stills beside F4's. Slowed by: the device drew a wider, uncapped flare at every trunk's foot, which only the stills showed. `every_preset_sweeps_its_wood_as_the_cpu_does` allowed 1% of runs unmatched, and the trunk is one run, so the device's missing `trunk_run` (buried foot, no socket swell) passed it on every preset. Cost: about 20 minutes and two extra still renders (a CPU-route render to localise it). Would have removed it: a tolerance that names the runs it may skip; the test now requires every trunk run matched point for point.

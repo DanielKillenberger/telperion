@@ -203,6 +203,8 @@ struct Runs {
     matched: usize,
     unmatched: usize,
     count: usize,
+    /// The CPU's trunk runs the device drew point for point, of all.
+    trunks: (usize, usize),
     centre: f64,
     radius: f64,
 }
@@ -238,7 +240,8 @@ fn curve(gpu: &crate::Gpu, f: &Family) -> Runs {
     for (j, r) in theirs.runs.iter().enumerate().filter(|(_, r)| r.count > 1) {
         by.entry(cell(theirs.points[r.first as usize + 1].centre, s)).or_default().push(j);
     }
-    let mut out = Runs { runs: (runs.len(), theirs.runs.len()), ..Runs::default() };
+    let trunks = theirs.runs.iter().filter(|r| r.trunk).count();
+    let mut out = Runs { runs: (runs.len(), theirs.runs.len()), trunks: (0, trunks), ..Runs::default() };
     let mut used = vec![false; theirs.runs.len()];
     for &(first, count) in runs.iter().filter(|r| r.1 > 1) {
         let at = point(first + 1).centre;
@@ -259,6 +262,7 @@ fn curve(gpu: &crate::Gpu, f: &Family) -> Runs {
             continue;
         }
         out.matched += 1;
+        out.trunks.0 += usize::from(theirs.runs[j].trunk);
         for (i, c) in want.iter().enumerate() {
             let m = point(first + i as u32);
             out.centre = out.centre.max(m.centre.distance(c.centre));
@@ -279,6 +283,8 @@ fn every_preset_sweeps_its_wood_as_the_cpu_does() {
         let r = curve(&gpu, &family(&id, age()));
         println!("{id} {}: {r:?}", age());
         assert!(r.unmatched + r.count <= r.matched / 100, "{id}: {r:?}");
+        // The tolerance above never covers a trunk: one run, all the flare.
+        assert_eq!(r.trunks.0, r.trunks.1, "{id}: {r:?}");
         assert!(r.centre < 1e-3 && r.radius < 1e-3, "{id}: {r:?}");
     }
 }

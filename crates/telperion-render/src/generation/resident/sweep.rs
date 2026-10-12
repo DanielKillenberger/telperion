@@ -66,7 +66,7 @@ pub(super) fn rows(p: &SurfaceParams, height: f64) -> [[f32; 4]; 3] {
             p.flare_falloff,
             height,
         ],
-        [twist, depth, lobe, 0.0],
+        [twist, depth, lobe, p.flare_depth * height],
     ]
     .map(|r| r.map(|v| v as f32))
 }

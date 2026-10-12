@@ -22,7 +22,7 @@ struct Cfg {
     // The surface's rows: lobe depth, cos(π / segments), fork swell,
     // fork socket; socket containment, flare radius, flare falloff,
     // height; the lobes' twist (radians a metre) and depth, the lobe
-    // factor of a cluster's reach.
+    // factor of a cluster's reach, and how deep a trunk's foot is buried.
     rows: array<vec4<f32>, 3>,
 }
 
@@ -254,13 +254,25 @@ fn starts(@builtin(global_invocation_id) id: vec3<u32>) {
     }
 }
 
-// The sweep's samples along one run, in turn (`samples.rs`, `branch_run`).
+// The sweep's samples along one run, in turn (`samples.rs`): a run off
+// the root is a trunk's (`trunk_run`), its foot buried and its first
+// sample the root's own; any other sinks into its bearer's socket
+// (`branch_run`).
 struct Walk {
     attach: u32,
     at: u32,
     k: u32,
     fork: u32,
     pr: f32,
+    trunk: bool,
+}
+
+// The root's id, which every trunk run stands on.
+const ROOT: u32 = 0u;
+
+// The samples a trunk's foot adds: the buried ring, where it has one.
+fn foot(w: Walk) -> u32 {
+    return select(0u, 1u, w.trunk && cfg.rows[2].w > 0.0);
 }
 
 fn flare(y: f32) -> f32 {
@@ -270,7 +282,7 @@ fn flare(y: f32) -> f32 {
 
 fn begin(first: u32) -> Walk {
     let attach = parent(first);
-    return Walk(attach, first, 0u, NONE, radius(attach));
+    return Walk(attach, first, 0u, NONE, radius(attach), attach == ROOT);
 }
 
 struct Sample {
@@ -283,6 +295,17 @@ struct Sample {
 fn sample(w: ptr<function, Walk>) -> Sample {
     let r = cfg.rows;
     let swell = r[0].z;
+    if (*w).trunk && (*w).k <= foot(*w) {
+        let a = (*w).attach;
+        let p = pos(a);
+        let s = radius(a) * flare(p.y);
+        if (*w).k < foot(*w) {
+            (*w).k += 1u;
+            return Sample(p - vec3<f32>(0.0, r[2].w, 0.0), s, 0.0);
+        }
+        (*w).k += 1u;
+        return Sample(p, s, along(a));
+    }
     if (*w).k == 0u {
         (*w).k = 1u;
         let a = (*w).attach;
@@ -311,8 +334,12 @@ fn sample(w: ptr<function, Walk>) -> Sample {
     if atomicLoad(&links[i * LW + 4u]) != 0u {
         (*w).fork = i;
     }
-    // A bearer's node stands at its own root's distance 0.
-    let swelling = 1.0 + (swell - 1.0) * exp(-(local(i) - local((*w).attach)) / max((*w).pr, 1e-9));
+    // A bearer's node stands at its own root's distance 0; a trunk has no
+    // socket to swell from.
+    var swelling = 1.0 + (swell - 1.0) * exp(-(local(i) - local((*w).attach)) / max((*w).pr, 1e-9));
+    if (*w).trunk {
+        swelling = 1.0;
+    }
     (*w).at = leader(i);
     (*w).k += 1u;
     return Sample(pos(i), girth * swelling * flare(pos(i).y), along(i));
@@ -328,8 +355,8 @@ fn walk(@builtin(global_invocation_id) id: vec3<u32>) {
     var w = begin(first);
     var widest = 0.0;
     var count = 0u;
-    // cap: one sample a node, and the root's.
-    let cap = arrayLength(&nodes) / NW + 1u;
+    // cap: one sample a node, the root's and a buried foot.
+    let cap = arrayLength(&nodes) / NW + 2u;
     loop {
         if count >= cap {
             break;
@@ -552,9 +579,10 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
             }
         }
     }
-    // Each node's ring in its run, which its contacts read.
+    // Each node's ring in its run, which its contacts read: past a
+    // trunk's buried foot (`rings.rs`, `record`).
     var node = first;
-    for (var i = 1u; i < count && node != NONE; i++) {
+    for (var i = 1u + foot(begin(first)); i < count && node != NONE; i++) {
         nodes[node * NW + 21u] = bitcast<f32>(at);
         nodes[node * NW + 22u] = bitcast<f32>(i);
         nodes[node * NW + 23u] = bitcast<f32>(s);
