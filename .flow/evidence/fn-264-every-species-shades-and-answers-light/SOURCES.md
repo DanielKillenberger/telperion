@@ -23,10 +23,12 @@ Niinemets and Valladares 2006, Ecol. Monogr. 76: 521, Appendix A, 0 (none) to 5 
 | *Picea abies* | 4.45 ± 0.5 | `fn264-pick:18dddb33049974a2-3e8332-0`, 1.00 |
 | *Quercus robur* (the oak's engine species) | 2.45 ± 0.28 | `fn264-pick:18dddb17ba557bcd-3e6a8f-0`, 1.00 |
 | *Quercus garryana* (the oak preset's name) | 2.4 ± 0.3 | read in the same table, not judged |
-| *Betula pendula* | 2.03 ± 0.09 | read in the same table; see the birch below |
+| *Betula pendula* | 2.03 ± 0.09 | `fn264-pick:18dddb15cf3d5bc7-3e6351-0`, 1.00 (1.85 beside it is drought) |
 | *Phoenix dactylifera* | no score; "very bright" (FAO Ecocrop), "requires full sun" (UF/IFAS FR314) | none: the extractor offers numbers only |
 
 ## Not shipped: waiting on the host
+
+- **Birch leaf area.** No fetchable source states a measured mean area of one *B. pendula* leaf in its authors' text. The design that would (Hagemeier and Leuschner 2019, Forests 10: 265, stands of 45 and 67 years) gives leaf size only in its Figure 1; a scraper's table of 10.0 / 8.8 / 7.2 / 6.3 cm² by crown height is reconstructed from that figure, not the authors' numbers. Akinyemi et al. 2024 (Trees) likewise in a figure, 5-year-old trees. Paywalled and likely to hold it: Kull and Niinemets 1993 (Tree Physiol. 12: 311), Niinemets 1994 (For. Ecol. Manage. 70), Atkinson 1992 (J. Ecol. 80). The short shoot's "two or three leaves" is sourced (Kull et al., Ann. Bot., PMC4242242), so one leaf a node holds as for the beech once an area is.
 
 - **Spruce leaf area.** No source gives needle area per length of current-year shoot. Candidates: 18 to 31 needles per cm of shoot (Bellan et al. 2019, Austrian J. For. Sci., a closed 36-year stand, the whole crown profile; `fn264-pick:18dddb318255f8d1-3e7e9f-0`), and a projected needle area of 13.7 mm² sun, 8.2 mm² shade (Gebauer et al. 2019, iForest 12: 27, 20-year-old trees, control plots; `fn264-pick:18dddb319ab80e89-3e7fab-0`, `...31b39f0079-3e8129-0`). A value needs a point inside a range and a product of two stands. Needles live 5.5 years to half a cohort (Muukkonen and Lehtonen 2004; `fn264-pick:18dddb331ff24320-3e8459-0`), but the deposit counts only the nodes laid this year, so a current-year value lends the lattice about a fifth of the crown's needles.
 - **Palm leaf area.** The one measured frond area is 2.81 ± 0.64 m² (Abdel-Sattar et al. 2024, Folia Hortic., 15-year-old male palms, drip-irrigated, 8 m apart; `fn264-pick:18dddb39ffe7316b-3e89b7-0`, 0.76), computed as length x width x 0.8, an outline rather than leaflet area. A second-hand "about one square meter" per leaf (Montazar et al. 2020, Water 12: 2253, citing a USDA bulletin). The engine refuses more than 1 m² a node (`MAX_LEAF_AREA`), so 2.81 cannot be drawn without an engine change.
