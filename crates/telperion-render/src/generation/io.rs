@@ -42,19 +42,31 @@ pub(super) fn buffer(
 
 /// `a` and `b` made side by side: natively `b` on a thread of its own, so
 /// a set of modules compiles cold in its slowest's time, not their sum
-/// (fn-256 task 4: 3.3 s in turn, under 2 s side by side); in a browser
-/// in turn, where every pipeline compiles async already.
+/// (fn-256 task 4: 3.3 s in turn, 1.45 s side by side); in a browser in
+/// turn, where every pipeline compiles async already. Error scopes are a
+/// thread's own, so `b` runs under scopes of its own, and what they catch
+/// is kept for `programs::ready` to report, as a refused program is.
 #[cfg(not(target_arch = "wasm32"))]
-pub(crate) fn pair<A: Send, B: Send>(a: impl FnOnce() -> A + Send, b: impl FnOnce() -> B + Send) -> (A, B) {
+pub(crate) fn pair<A: Send, B: Send>(gpu: &Gpu, a: impl FnOnce() -> A + Send, b: impl FnOnce() -> B + Send) -> (A, B) {
+    let scoped = || {
+        let [validation, memory] = scope(gpu);
+        let made = b();
+        let memory = pollster::block_on(memory.pop());
+        if let Some(error) = memory.or(pollster::block_on(validation.pop())) {
+            let mut refused = gpu.refused.lock().expect("the refusals");
+            refused.push(("a module made beside another".into(), error.to_string()));
+        }
+        made
+    };
     std::thread::scope(|s| {
-        let b = s.spawn(b);
+        let b = s.spawn(scoped);
         let a = a();
         (a, b.join().expect("a module made beside another"))
     })
 }
 
 #[cfg(target_arch = "wasm32")]
-pub(crate) fn pair<A, B>(a: impl FnOnce() -> A, b: impl FnOnce() -> B) -> (A, B) {
+pub(crate) fn pair<A, B>(_: &Gpu, a: impl FnOnce() -> A, b: impl FnOnce() -> B) -> (A, B) {
     (a(), b())
 }
 

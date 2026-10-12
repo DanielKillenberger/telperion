@@ -77,7 +77,7 @@ Every program a page's builds dispatch, made as a page makes them (`the_cycle_is
 | | Seconds |
 |---|--:|
 | Before: modules one after another, each module's entries side by side | 3.33 |
-| **Now: modules side by side (`io::pair`)** | **1.45** |
+| **Now: modules side by side (`io::pair`)** | **1.45 (1.54 with every worker scoped)** |
 | Task 2's cycle modules alone, side by side / in turn | 0.94 / 1.67 |
 | By part, in turn: build kernels | 1.29 |
 | By part, in turn: settle | 0.34 |
@@ -142,6 +142,7 @@ Checked without a browser: the page's modules resolve to this worktree's `src/br
    - Natively, each pipeline is now made under scopes of its own on the thread that makes it.
    - A refusal is kept by name on the `Gpu`, and native `programs::ready` reports the first, as the browser path does.
    - Test: `a_program_refused_on_a_worker_is_reported_by_name`.
+   - Round 2 (still NOT FIXED then): a `pair` worker also makes shader modules and layouts. `io::pair` now runs its worker under scopes of its own and keeps what they catch for `ready` (`a_shader_refused_on_a_side_by_side_worker_is_reported`).
 3. **The phytomer clamp** let a projection past the budget through. Fixed as above.
 
 ## Open, for the owner and the host

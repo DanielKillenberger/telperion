@@ -27,7 +27,7 @@ impl Kernels {
     pub(in crate::generation) fn new(gpu: &Gpu) -> Self {
         use super::super::io::pair;
         let (build, (settle, (chains, drawn))) =
-            pair(|| Kit::new(gpu), || pair(|| Settle::new(gpu), || pair(|| chains::Kernels::new(gpu), || drawn::Kernels::new(gpu))));
+            pair(gpu, || Kit::new(gpu), || pair(gpu, || Settle::new(gpu), || pair(gpu, || chains::Kernels::new(gpu), || drawn::Kernels::new(gpu))));
         Self { build, settle, chains, drawn }
     }
 }

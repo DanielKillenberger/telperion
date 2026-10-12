@@ -20,7 +20,7 @@ pub(crate) use budget::BROWSER;
 impl Kit {
     /// The kernels and the tools made side by side (`io::pair`).
     fn new(gpu: &crate::Gpu) -> Self {
-        let (kernels, tools) = super::io::pair(|| super::cycle::tree::Kernels::new(gpu), || build::Tools::new(gpu));
+        let (kernels, tools) = super::io::pair(gpu, || super::cycle::tree::Kernels::new(gpu), || build::Tools::new(gpu));
         Self { kernels, tools }
     }
 }
@@ -43,7 +43,7 @@ impl super::Generator {
         let scopes = super::io::scope(&self.gpu);
         let gpu = &self.gpu;
         // The wood's passes made beside the kit.
-        self.resident.get_or_init(|| super::io::pair(|| Kit::new(gpu), || drop(crate::curve::passes(gpu))).0);
+        self.resident.get_or_init(|| super::io::pair(gpu, || Kit::new(gpu), || drop(crate::curve::passes(gpu))).0);
         super::io::programs_ready(&self.gpu, scopes).await
     }
 

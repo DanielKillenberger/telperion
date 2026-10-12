@@ -42,8 +42,9 @@ impl Tools {
     pub(super) fn new(gpu: &Gpu) -> Self {
         use super::super::io::pair;
         let ((hanger, dresser), ((sweeper, stationer), (ringer, handoff))) = pair(
-            || pair(|| Hanger::new(gpu), || Dresser::new(gpu)),
-            || pair(|| pair(|| Sweeper::new(gpu), || Stationer::new(gpu)), || pair(|| Ringer::new(gpu), || Handoff::new(gpu))),
+            gpu,
+            || pair(gpu, || Hanger::new(gpu), || Dresser::new(gpu)),
+            || pair(gpu, || pair(gpu, || Sweeper::new(gpu), || Stationer::new(gpu)), || pair(gpu, || Ringer::new(gpu), || Handoff::new(gpu))),
         );
         Self { hanger, dresser, sweeper, stationer, ringer, handoff }
     }

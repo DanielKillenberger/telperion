@@ -41,11 +41,13 @@ impl Kit {
     pub(super) fn new(gpu: &Gpu) -> Self {
         use super::super::io::pair;
         let ((units, layout), ((hier, light), (glue, (vm, retire)))) = pair(
-            || pair(|| device::Kernels::new(gpu), || lay_device::Kernels::new(gpu)),
+            gpu,
+            || pair(gpu, || device::Kernels::new(gpu), || lay_device::Kernels::new(gpu)),
             || {
                 pair(
-                    || pair(|| hier_build::Kernels::new(gpu), || light_device::Kernels::new(gpu)),
-                    || pair(|| glue::Kernels::new(gpu), || pair(|| vm::Kernels::new(gpu), || super::retire_device::Kernels::new(gpu))),
+                    gpu,
+                    || pair(gpu, || hier_build::Kernels::new(gpu), || light_device::Kernels::new(gpu)),
+                    || pair(gpu, || glue::Kernels::new(gpu), || pair(gpu, || vm::Kernels::new(gpu), || super::retire_device::Kernels::new(gpu))),
                 )
             },
         );
