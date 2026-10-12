@@ -80,11 +80,13 @@ fn counts_at_40_and_80() {
 }
 
 /// The whole tree's expected kept phytomers (fn-198 host decision 15) is
-/// the closed form's seed row to the bit; a species whose buds read light
-/// has none, and the palm, which sheds by no draw, keeps exactly it.
+/// the closed form's seed row to the bit, on the beech and the spruce as
+/// they grew unlit; a species whose buds read light has none, and the palm,
+/// which sheds by no draw, keeps exactly it.
 #[test]
 fn the_trees_count_is_the_seed_row() {
-    for species in [beech(), spruce(), palm()] {
+    let unlit = crate::tolerance::unlit;
+    for species in [unlit(beech()), unlit(spruce()), palm()] {
         for age in [1, 9, 30] {
             let rows = Rows::new(&species, age, 1);
             let kept = crate::expected_kept(&species, age).unwrap().unwrap();

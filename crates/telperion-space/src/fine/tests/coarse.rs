@@ -1,10 +1,13 @@
 //! The coarse tree (fn-214): the structure above the cut grown as the
-//! whole tree grows it, each fine root standing as its expectations.
+//! whole tree grows it, each fine root standing as its expectations. The
+//! spruce stands unlit, as it grew before fn-264: a lit species with
+//! standing roots is refused by name.
 use super::request;
 use crate::fine::grow_coarse;
 use crate::grow::whole;
 use crate::grow::Request;
 use crate::structure::Structure;
+use crate::tolerance::unlit;
 
 fn kept(s: &Structure) -> usize {
     s.axes.iter().map(|a| a.phytomers.len()).sum()
@@ -15,7 +18,7 @@ fn kept(s: &Structure) -> usize {
 /// and no stand.
 #[test]
 fn at_cut_zero_the_coarse_tree_is_the_tree() {
-    let species = crate::spruce();
+    let species = unlit(crate::spruce());
     let coarse = grow_coarse(&species, request(12, 3), 0.0).expect("grows");
     let fine = whole(&species, request(12, 3)).expect("grows");
     assert!(coarse.stands.is_empty());
@@ -44,7 +47,7 @@ fn at_cut_zero_the_coarse_tree_is_the_tree() {
 /// wood gives it.
 #[test]
 fn below_the_cut_each_root_stands_for_its_expectation() {
-    let species = crate::spruce();
+    let species = unlit(crate::spruce());
     let coarse = grow_coarse(&species, request(20, 3), 1024.0).expect("grows");
     let fine = whole(&species, request(20, 3)).expect("grows");
     assert!(kept(&coarse.structure) < kept(&fine));
@@ -102,7 +105,7 @@ fn a_lit_species_stands_its_roots_in_the_stepped_executor() {
 /// is refused a coarse tree by name.
 #[test]
 fn a_kept_tree_no_light_reads_is_refused() {
-    let mut species = crate::spruce();
+    let mut species = unlit(crate::spruce());
     species.states.iter_mut().for_each(|s| s.retained = 0.5);
     let refused = grow_coarse(&species, request(5, 1), 1024.0);
     assert!(
@@ -131,7 +134,7 @@ fn the_coarse_trees_hold_their_bits() {
         ..request(24, 1)
     };
     let trees = [
-        ("spruce", crate::spruce(), request(20, 3), 1024.0),
+        ("spruce", unlit(crate::spruce()), request(20, 3), 1024.0),
         ("oak", crate::oak(), lit, 256.0),
     ];
     for (name, species, r, cut) in trees {

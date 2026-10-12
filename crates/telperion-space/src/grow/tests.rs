@@ -1,5 +1,6 @@
 //! The speed levers leave every tree as it was (fn-210).
 use super::{run, Certain, Grown, Options};
+use crate::tolerance::unlit;
 use crate::{beech, oak, palm, spruce, Light, Request, Species};
 use std::collections::HashSet;
 
@@ -31,17 +32,19 @@ const LIT: Light = Light {
 /// that sheds early is the last growth some kept bearer had: its fade then
 /// reads the twig, and the twig may not be left ungrown.
 fn long_kept_bearers() -> Species {
-    let mut species = beech();
+    let mut species = unlit(beech());
     for state in &mut species.states[9..13] {
         state.shedding = 6.0;
     }
     species
 }
 
+/// The shed-certain shortcut serves only a species that reads no light, so
+/// the beech and the spruce stand as they grew unlit, before fn-264.
 fn species() -> [(&'static str, Species); 4] {
     [
-        ("beech", beech()),
-        ("spruce", spruce()),
+        ("beech", unlit(beech())),
+        ("spruce", unlit(spruce())),
         ("palm", palm()),
         ("beech with long-kept bearers", long_kept_bearers()),
     ]

@@ -50,6 +50,17 @@ pub(crate) fn respond(ages: &mut [(usize, PaState)], t: f64) {
     }
 }
 
+/// `species` with no response to light, as every species but the oak grew
+/// before fn-264: the premise of the tests of the paths a lit species never
+/// takes (the closed form, the coarse tree, the shed-certain shortcut).
+#[cfg(test)]
+pub(crate) fn unlit(mut species: crate::Species) -> crate::Species {
+    for s in &mut species.states {
+        (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+    }
+    species
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
