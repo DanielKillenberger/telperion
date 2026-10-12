@@ -5,7 +5,7 @@
 // The first level reads the first `fields` words of records `stride`
 // words apart; each level above holds a field's words after another's.
 // Integer adds in a fixed shape: the same words on every run, as
-// `fine/scan.wgsl` gives, with no one-invocation spine.
+// `resident/scan.wgsl` gives, with no one-invocation spine.
 
 struct Cfg {
     // Records in this level, where it starts (in `sums` past the first),

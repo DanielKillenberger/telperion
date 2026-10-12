@@ -1,4 +1,4 @@
-// The fine roots' compact rings on the device (fn-212 task 6): each point
+// The tree's compact rings on the device (fn-212 task 6): each point
 // of the curve `sweep.wgsl` swept as the ring words `compact::read`
 // writes, its vertex and cap offsets in the fine block, so the positions
 // pass's `emit` lays the vertices a seated leaf's contact reads

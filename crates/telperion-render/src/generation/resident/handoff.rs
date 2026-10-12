@@ -1,7 +1,7 @@
-//! The fine roots' curve handed to the renderer (fn-212 task 7, host
-//! decision 2): the device packs the fine block into the renderer's own
-//! curve form, after the CPU block's points and clusters (D5's order), so
-//! the renderer reads one block and learns nothing new. Read back: the
+//! The tree's curve handed to the renderer (fn-212 task 7, host decision
+//! 2): the device packs its block into the renderer's own curve form,
+//! after any CPU block's points and clusters (none since fn-256), so the
+//! renderer reads one block and learns nothing new. Read back: the
 //! fine block's stretches, bounds and 256 partial sums of its sags, which
 //! the curve's demand and the tree's bounds fold in.
 use super::super::{compute, io};

@@ -2,7 +2,7 @@
 //! a stored integer or a decision's (DESIGN.md section 8, "Where a float
 //! becomes an integer"): the wake's ticks, the time a failed unit lived
 //! and its part of a tick, the survival and abortion thresholds and the
-//! shade they read. Each is copied from `fine/contract.wgsl` itself as
+//! shade they read. Each is copied from `decide.wgsl` itself as
 //! `<name>_held`, with every marked operation it reaches held to the
 //! CPU's order (`held.wgsl`) in both arithmetics; every other float stays
 //! plain.

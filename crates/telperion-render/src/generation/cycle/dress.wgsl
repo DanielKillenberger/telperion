@@ -93,13 +93,13 @@ const R_TRUNK: u32 = 7u;
 const FINEST: f32 = 2e-4;
 const SHORTEST: f32 = 1000.0;
 const FORK_FROM: f32 = 0.4;
-// A drawn axis (`fine/dress.rs`'s `CA`): how many of its phytomers the
+// A drawn axis (`resident/fold.rs`'s `CA`): how many of its phytomers the
 // conversion took, the node it ends on, whether it took them all, its
 // flags, its origin (none: the tree's own frame), its bearer's distance
 // along the wood (none), its depth, and its lineage, which order its
 // nodes as the conversion numbers them (`lineage_order`).
 const CA: u32 = 12u;
-// A drawn phytomer (`fine/dress.rs`'s `CV`): its node's position (y up),
+// A drawn phytomer (`resident/fold.rs`'s `CV`): its node's position (y up),
 // radius, start radius and base radius, its flags, the node it is drawn
 // as, its node's run, its laid axis, its node's parent's position,
 // codominance, id, distance along the wood from the root, its parent's

@@ -1,4 +1,4 @@
-// The fine roots' curve handed to the renderer (fn-212 task 7, host
+// The device's curve handed to the renderer (fn-212 task 7, host
 // decision 2): `sweep.wgsl`'s points and clusters packed into the
 // renderer's own curve form, after the CPU block's (D5's order).
 // `points` packs each point as `CurvePoint::pack` does (8 words: the

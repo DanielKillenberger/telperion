@@ -1,4 +1,4 @@
-//! The fine roots' leaf stations on the device (fn-212 task 6;
+//! The tree's leaf stations on the device (fn-212 task 6;
 //! CONTRACT.md's probe, step 6): their bearing runs, station counts and
 //! the station segments placement reads, `prepare_compact_stations`'s
 //! layout (`data.rs`), from the nodes and curve `sweep.wgsl` left. Only

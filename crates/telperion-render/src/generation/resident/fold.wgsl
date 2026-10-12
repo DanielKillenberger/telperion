@@ -1,12 +1,11 @@
-// The whole-tree folds over the fine roots' drawn nodes on the device
-// (fn-212 task 4), which the pipeline combines with its own
+// The whole-tree folds over the drawn nodes on the device (fn-212 task 4,
+// fn-256 task 3), which the pipeline reads its rows by
 // (`pipeline::executor::Folds`): the highest node, the lowest of the crown
 // and the widest (`extent`, then `widest`); the shoulder's bins and the
 // leaf box (`crown`); and the crown's nodes no other may pass, sifted
 // against the bins of the whole tree (`sift`), a bounded summary the
 // pipeline reads the shoulder off. One invocation per drawn record; a
-// fold is an atomic on the float's ordered bits. A root laid on the CPU
-// is folded there.
+// fold is an atomic on the float's ordered bits.
 
 struct Cfg {
     n: u32,
@@ -27,7 +26,6 @@ struct Cfg {
 
 const CV: u32 = 32u;
 const MADE: u32 = 2u;
-const LANDED: u32 = 4u;
 const STEM: u32 = 128u;
 const BINS: u32 = 1024u;
 // `sums`: the height, the crown's lowest, the widest reach; the widest
@@ -59,7 +57,7 @@ fn ord(f: f32) -> u32 {
 fn node(i: u32) -> vec4<f32> {
     let b = cfg.records + i * CV;
     let flags = bitcast<u32>(drawn[b + 6u]);
-    if (flags & MADE) == 0u || (flags & LANDED) != 0u {
+    if (flags & MADE) == 0u {
         return vec4<f32>(0.0, 0.0, 0.0, -1.0);
     }
     return vec4<f32>(drawn[b], drawn[b + 1u], drawn[b + 2u], 1.0);

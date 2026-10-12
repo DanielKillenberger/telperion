@@ -1,27 +1,10 @@
-//! Fine orders grown in the expansion stage (fn-209 F1; DESIGN-FINE.md,
-//! accepted with Astra's changes, ASTRA-REVIEW-FINE.md), under realized
-//! mechanics (task 6; fn-211's DESIGN-INTERLEAVE.md, "After Astra's
-//! review", host decision 3).
-//!
-//! The CPU grows the structure above a cut by the engine's own grower; a
-//! bud below the cut is made where it stands and handed on, its stand-in
-//! keeping its place among its bearer's children. The cut is chosen
-//! before growth, by the closed form's expected kept phytomers of the bud
-//! (`closed_form::predictor`, light-neutral), so which buds are fine never
-//! depends on what they grow into. The expansion grows every fine root
-//! whole from its bud alone (`realized.rs`), and the two settle together
-//! in four phases: each root reports its realized totals up (its
-//! subtree's living, its base radius, its load), the structure above the
-//! cut settles on them exactly as the whole tree does, and hands each
-//! root its bearer's scale and laid frames down.
-//!
-//! The cut decides where the work runs, never what is computed (Astra's
-//! change 2): every pass is the whole tree's own, and every sum a root's
-//! subtree enters is taken in the whole tree's order, so the tree is
-//! today's whole-tree engine's to the bit, at every cut, in every order
-//! of its items and in any chunking of them (`tests/realized.rs`).
-//! Where no bud reads light only; a species that reads light follows
-//! fn-211's stepped executor.
+//! What fn-209 F1's fine orders left behind them (fn-256 deleted the
+//! fine roots grown below a cut): the canonical lineage order every tree
+//! is returned in (`canonical.rs`); the device's unit tables
+//! (`tables.rs`, `surface.rs`); and the site's coarse tree (`coarse.rs`),
+//! the structure above a cut grown whole and settled through realized
+//! mechanics' four phases (`expansion.rs`, `lay.rs`, `exchange.rs`) on its
+//! fine roots' expectations, never grown, which fn-257 replaces.
 mod canonical;
 mod coarse;
 mod exchange;

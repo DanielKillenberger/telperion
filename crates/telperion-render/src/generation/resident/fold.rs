@@ -43,7 +43,7 @@ pub(in crate::generation) struct Drawn {
     pub axes: u32,
     pub phyts: u32,
     pub base: u32,
-    pub stubs: bool,
+    pub root: bool,
 }
 
 /// The root and the drawn waves, the ids they take, and the folds' sums.
@@ -114,7 +114,7 @@ impl Dressed {
         bound: (&wgpu::Buffer, &wgpu::Buffer),
     ) -> Result<()> {
         let mut encoder = gpu.encoder(&Default::default());
-        for w in self.waves.iter().filter(|w| !w.stubs && w.phyts > 0) {
+        for w in self.waves.iter().filter(|w| !w.root && w.phyts > 0) {
             let (buffer, axes, phyts) = (&w.buffer, &w.axes, &w.phyts);
             let groups = phyts.div_ceil(64);
             let most = gpu.device.limits().max_compute_workgroups_per_dimension;

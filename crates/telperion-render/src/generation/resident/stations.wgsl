@@ -1,4 +1,4 @@
-// The fine roots' leaf stations on the device (fn-212 task 6): the bearing
+// The tree's leaf stations on the device (fn-212 task 6): the bearing
 // runs of `plan::bearing_runs` over the nodes `dress.wgsl` drew (`kids`,
 // `bear`, `starts`), each run's stations as `plan::runs` counts them
 // (`measure`, then `bases` numbers them), and its station segments as
@@ -8,8 +8,8 @@
 // curve swept each node in. A segment's leaves draw by its run's first
 // node's key, but the renderer varies each leaf by its place in the leaf
 // buffer, so the runs are numbered by a key, never by the order the
-// device runs its threads (fn-261): a root's runs together, the roots in
-// their stubs' order, a root's runs in their first nodes'. A short shoot's
+// device runs its threads (fn-261): the runs in their first nodes'
+// order. A short shoot's
 // tip is a run of its own (fn-223): one segment of its cluster's leaves,
 // drawing on the tip's cluster stream, and its wood bears no station.
 // Each fine node's florets are counted beside its runs and scanned with
@@ -56,9 +56,7 @@ const NONE: u32 = 0xffffffffu;
 const NW: u32 = 33u;
 const TW: u32 = 4u;
 const MADE: u32 = 2u;
-const LANDED: u32 = 4u;
 const FINE: u32 = 8u;
-const SEAM: u32 = 16u;
 // A short shoot's node and its tip, its leaves from `LEAVES` up
 // (`dress.wgsl`).
 const CLUSTERED: u32 = 32u;
@@ -111,10 +109,10 @@ fn metres(micrometres: u32) -> f32 {
     return f32(micrometres) * 1e-6;
 }
 
-// A node the device draws stations on: a fine root's, not laid on the CPU.
+// A node the device draws stations on: one the dress drew, not the root.
 fn fine(i: u32) -> bool {
     let f = word(i, 9u);
-    return (f & MADE) != 0u && (f & FINE) != 0u && (f & LANDED) == 0u;
+    return (f & MADE) != 0u && (f & FINE) != 0u;
 }
 
 fn bears(i: u32) -> bool {
@@ -163,12 +161,8 @@ fn bear(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     atomicStore(&st[i * SW + 3u], 1u);
-    // A fine root's first node never counts among its bearer's bearing
-    // children (host decision, 2026-10-07).
-    if (word(i, 9u) & SEAM) == 0u {
-        atomicAdd(&st[parent(i) * SW + 1u], 1u);
-        atomicStore(&st[parent(i) * SW + 2u], i);
-    }
+    atomicAdd(&st[parent(i) * SW + 1u], 1u);
+    atomicStore(&st[parent(i) * SW + 2u], i);
 }
 
 // Whether a bearing run carries on from `p` into its bearing child `c`.
@@ -193,8 +187,8 @@ fn starts_run(i: u32) -> bool {
     return (bears(i) && !continues(parent(i), i)) || tip(i);
 }
 
-// The stub a fine node's root is drawn from: up its parents to the first
-// node that is not a fine root's.
+// The node a drawn node's tree is drawn from: up its parents to the
+// first the dress did not draw, the root.
 fn stub(i: u32) -> u32 {
     var at = i;
     // cap: the nodes; no path up is longer.

@@ -1,4 +1,4 @@
-//! The fine roots' compact rings on the device (fn-212 task 6): the ring
+//! The tree's compact rings on the device (fn-212 task 6): the ring
 //! words `compact::read` writes, from the curve `sweep.wgsl` swept, so the
 //! positions pass lays the vertices a seated leaf's contact reads.
 use super::super::io;

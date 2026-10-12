@@ -56,7 +56,7 @@ pub(in crate::generation) struct Trunk {
 }
 
 /// The root's record, the only one of the wave before the seed: at the
-/// origin, taken, made and its own (`fine/dress.rs`'s stubs).
+/// origin, taken, made and its own.
 fn root() -> Vec<f32> {
     let mut out = vec![0.0f32; CA_WORDS + CV];
     let r = &mut out[CA_WORDS..];
@@ -90,7 +90,7 @@ pub(super) fn dress(gpu: &Gpu, k: &Kernels, (s, chains): (&Settled, &Chains), r:
         axes: 1,
         phyts: 1,
         base: 0,
-        stubs: true,
+        root: true,
     }];
     let t = &s.table;
     let mut prev = Wave { axes: 1, ..Wave::default() };
@@ -125,7 +125,7 @@ pub(super) fn dress(gpu: &Gpu, k: &Kernels, (s, chains): (&Settled, &Chains), r:
         let bind = k.dress.bind(gpu, &[&cfg, &s.nt, &chains.plan, before, &buffer, &rows]);
         k.dress.run(&mut e, &bind, 0, wave.chains.div_ceil(64).max(1));
         held.push(cfg);
-        waves.push(Drawn { buffer, axes: wave.axes, phyts: wave.phyts + wave.axes, base: ids, stubs: false });
+        waves.push(Drawn { buffer, axes: wave.axes, phyts: wave.phyts + wave.axes, base: ids, root: false });
         ids += wave.phyts + wave.axes;
         prev = *wave;
     }
@@ -142,7 +142,7 @@ pub(super) async fn trunk(gpu: &Gpu, k: &Kernels, dressed: &Dressed) -> Result<T
     let mut e = gpu.encoder(&Default::default());
     let mut held = Vec::new();
     for entry in [COUNT, NEAREST, FORK, WIDEST] {
-        for w in dressed.waves.iter().filter(|w| !w.stubs && w.phyts > 0) {
+        for w in dressed.waves.iter().filter(|w| !w.root && w.phyts > 0) {
             let cfg = uniform(gpu, &[w.phyts, widest(gpu).0, w.axes * CA_WORDS as u32, 0])?;
             let bind = k.stems.bind(gpu, &[&cfg, &w.buffer, &parts, &sums]);
             k.stems.run(&mut e, &bind, entry, w.phyts.div_ceil(64));

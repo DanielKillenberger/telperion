@@ -1,10 +1,8 @@
-//! fn-229: the florets of a tree built resident, as fn-212's handoff
-//! takes its leaves (host decisions D4, D5). Both blocks are packed against
-//! one box, the tree's combined leaf box padded by the farthest a floret
-//! stands from its node. The CPU block's florets go first in one organ
-//! buffer. The device places its own after them, in the submission that
-//! places its leaves, from the blooms its stations counted and recorded.
-//! One mass grid covers both blocks.
+//! fn-229: the florets of a tree built resident, as the handoff takes its
+//! leaves. They are packed against the tree's leaf box padded by the
+//! farthest a floret stands from its node, and the device places them in
+//! the submission that places its leaves, from the blooms its stations
+//! counted and recorded, after any of the CPU's (none since fn-256).
 use super::super::compute::{self, Placement};
 use super::super::{data, io, Generator, Metrics, Resident};
 use super::handoff::union;

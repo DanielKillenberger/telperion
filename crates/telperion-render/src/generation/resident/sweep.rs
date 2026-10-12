@@ -1,8 +1,6 @@
-//! The fine roots' wood as curves on the device (fn-212 task 5;
-//! CONTRACT.md's probe, step 3): F3's points, runs, clusters, their bounds,
-//! radius extrema and error ladders over the nodes `dress.wgsl` drew, the
-//! runs widest first on the fine roots' side (D5), each fine root's wood
-//! starting a run of its own at its seam (D4). Only totals are read back:
+//! The tree's wood as curves on the device (fn-212 task 5; fn-256 task
+//! 3): F3's points, runs, clusters, their bounds, radius extrema and error
+//! ladders over the nodes the cycle's dress drew, the runs widest first. Only totals are read back:
 //! the runs, then the points and clusters, to size what follows.
 use super::super::io;
 use super::fold::{Dressed, CA_WORDS};
@@ -169,7 +167,7 @@ impl Sweeper {
         let mut e = gpu.encoder(&Default::default());
         for w in &dressed.waves {
             let records = w.axes * CA_WORDS as u32;
-            let cfg = [0, 0, 0, 0, records, w.base, u32::from(w.stubs), 0];
+            let cfg = [0, 0, 0, 0, records, w.base, u32::from(w.root), 0];
             self.run(
                 (gpu, &mut e),
                 &b,

@@ -3,7 +3,7 @@
 //! value would draw the same number. Keys named after the reserved top
 //! of the range (`u64::MAX - n`) are unique across every parent, so a new
 //! one takes the next free `n` here and nowhere else. The GPU's mirror is
-//! `telperion-render`'s `fine/lineage.wgsl`, checked against `ALL`.
+//! `telperion-render`'s `cycle/keys.wgsl`, checked against `ALL`.
 
 /// What a key is drawn under.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

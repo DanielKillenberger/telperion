@@ -1,9 +1,9 @@
 // The contract's probe: each case's eight 64-bit arguments in, two
-// 64-bit results out, by the functions `cfg.y` selects (`fine/tests.rs`).
+// 64-bit results out, by the functions `cfg.y` selects (`contract_tests.rs`).
 // An f32 argument or result sits in its word's low half.
 
-// The selectors, mirroring `fine/selectors.rs`'s `ALL`, which is the
-// source; `fine/mirror_tests.rs` checks the copy.
+// The selectors, mirroring `selectors.rs`'s `ALL`, which is the
+// source; `mirror_tests.rs` checks the copy.
 const P_CHILD_DRAW: u32 = 0u;
 const P_INTERNODE: u32 = 1u;
 const P_ANGLES: u32 = 2u;

@@ -1,11 +1,10 @@
-// The fine roots' wood as curves on the device (fn-212 task 5): F3's
-// curve (`pipeline/surface/curve.rs`) over the nodes `dress.wgsl` drew.
-// `gather` lays every drawn node (and every root's bearer's, at its
-// stub) out by id; `lead`, `ties` and `starts` find each node's leader
-// and every run's first node as `paths.rs` does, a fine root's wood never
-// carrying its bearer's run on (D4); `walk` sizes each run and finds its
-// widest ring; the runs are sorted widest first (`bitonic`, D5's fine
-// side); `block`, `blocks` and `place` give each its points and clusters;
+// The tree's wood as curves on the device (fn-212 task 5, fn-256 task
+// 3): F3's curve (`pipeline/surface/curve.rs`) over the nodes the cycle's
+// dress drew. `gather` lays every drawn node (and the root's) out by id;
+// `lead`, `ties` and `starts` find each node's leader and every run's
+// first node as `paths.rs` does, the seed's run starting at the root's
+// seam; `walk` sizes each run and finds its widest ring; the runs are
+// sorted widest first (`bitonic`, as `rings.rs` ranks them); `block`, `blocks` and `place` give each its points and clusters;
 // `emit` samples, frames and clusters each run (`samples.rs`,
 // `frames.rs`, `curve.rs`).
 
@@ -15,10 +14,10 @@ struct Cfg {
     j: u32,
     k: u32,
     // `gather`: where the records start, their first id, and whether they
-    // are a group's stubs.
+    // are the root's.
     records: u32,
     base: u32,
-    stubs: u32,
+    root: u32,
     _a: u32,
     // The surface's rows: lobe depth, cos(π / segments), fork swell,
     // fork socket; socket containment, flare radius, flare falloff,
@@ -41,7 +40,6 @@ const NONE: u32 = 0xffffffffu;
 const CA: u32 = 12u;
 const CV: u32 = 32u;
 const MADE: u32 = 2u;
-const LANDED: u32 = 4u;
 const FINE: u32 = 8u;
 const SEAM: u32 = 16u;
 // A node: position, radius, start radius, codominance, distance from its
@@ -107,10 +105,10 @@ fn along(i: u32) -> f32 {
     return nodes[i * NW + 7u] + nodes[i * NW + 6u];
 }
 
-// A node the device draws a run of: a fine root's, not laid on the CPU.
+// A node the device draws a run of: one the dress drew, not the root.
 fn drawn_here(i: u32) -> bool {
     let f = flags(i);
-    return (f & MADE) != 0u && (f & FINE) != 0u && (f & LANDED) == 0u;
+    return (f & MADE) != 0u && (f & FINE) != 0u;
 }
 
 @compute @workgroup_size(64)
@@ -151,16 +149,16 @@ fn gather(@builtin(global_invocation_id) id: vec3<u32>) {
     for (var c = 0u; c < 6u; c++) {
         nodes[i * NW + 27u + c] = drawn[b + 26u + c];
     }
-    if cfg.stubs != 0u {
-        // A bearer's node: never a fine root's, and at its bearer.
+    if cfg.root != 0u {
+        // The root's node: no run of its own, and at the tree's root.
         nodes[i * NW + 6u] = 0.0;
         mine = mine & ~FINE;
     }
     nodes[i * NW + 9u] = bitcast<f32>(mine);
 }
 
-// A child that may carry its parent's run on: a fine root's node off
-// another, never a seam.
+// A child that may carry its parent's run on: a drawn node, never the
+// seed's first, off the root.
 fn follows(i: u32) -> bool {
     return drawn_here(i) && (flags(i) & SEAM) == 0u;
 }

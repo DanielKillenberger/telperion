@@ -72,8 +72,8 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
 }
 
 /// The whole-tree engine, every axis grown in one grower: test-only, the
-/// reference the stepped executor's and the partition's probes hold
-/// their trees to.
+/// reference the coarse tree's and the partition's probes hold their
+/// trees to.
 #[cfg(test)]
 pub(crate) fn whole(species: &Species, request: Request) -> Result<Structure> {
     run(species, request, &mut |_| {}, true, Options::default()).map(|g| lineage_order(g.structure))

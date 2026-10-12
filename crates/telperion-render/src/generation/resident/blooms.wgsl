@@ -1,5 +1,5 @@
-// The fine roots' blooms on the device (fn-229), in the stations' pass:
-// each fine node's florets counted beside its runs and scanned with them
+// The tree's blooms on the device (fn-229), in the stations' pass:
+// each drawn node's florets counted beside its runs and scanned with them
 // (`florets`), then each bloom that keeps one written as the record the
 // placement reads (`blooms`). It reads `stations.wgsl`'s bindings and
 // `bloom.wgsl`'s florets.
@@ -18,7 +18,7 @@ fn grown_bloom(i: u32) -> f32 {
     return bloom_grown(share, key(i));
 }
 
-// Each fine node's florets, and whether it keeps a bloom (fn-229).
+// Each drawn node's florets, and whether it keeps a bloom (fn-229).
 @compute @workgroup_size(64)
 fn florets(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = index(id);

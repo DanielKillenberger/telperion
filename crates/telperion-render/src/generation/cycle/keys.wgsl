@@ -1,6 +1,6 @@
 // Every lineage key, mirroring `telperion_space::lineage_keys` (its
 // `ALL`), which is the source: a key is added there and copied here, and
-// `fine/mirror_tests.rs` checks the copy. Each is the u64 as (low, high).
+// `cycle/mirror_tests.rs` checks the copy. Each is the u64 as (low, high).
 
 const KEY_VIABILITY = vec2<u32>(0x00000000u, 0x00000000u);
 const KEY_ABORTION = vec2<u32>(0x00000001u, 0x00000000u);
