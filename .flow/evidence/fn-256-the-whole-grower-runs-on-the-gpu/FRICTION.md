@@ -304,3 +304,9 @@ Doing: comparing every preset's stills with F4's. Slowed by: the resident handof
 - **Hindered:** `flowctl` not on PATH in the dispatched worker's shell, a sixth time (8.1.1 under the plugin cache). The command guard refused a log redirect into a directory created in the same command; the directory had to be made in a call of its own. A fresh target dir (`target/t8`) rebuilds the workspace at 4 threads.
 - **Cost:** about 3 minutes, and the rebuild's minutes beside the reading.
 - **Would remove it:** `flowctl` on PATH for dispatched workers (local setup, not a repository change).
+
+## 2026-10-12, task 9: the node tables' base hashes
+- **Doing:** recording every preset's node-table hash on the code before task 8, to hold the after-hashes to.
+- **Hindered:** no test hashed a device build's node table per preset, so one was written (`node_tables_are_hashed`). The command guard refused `git checkout --` to set the fix aside; the fix was committed, then reverse-applied by `git apply -R` for the base run and applied again. The test's first 4 GiB cap refused the Two Trees' settle and readback (4,116 and 4,140 MiB), a second run each.
+- **Cost:** about 8 minutes and two GPU reruns.
+- **Would remove it:** `node_tables_are_hashed` kept as the standing equivalence measurement (now in the tree), and recorded base hashes beside each task's base commit.
