@@ -137,6 +137,16 @@ mod tests {
     fn spruce(age: f64) -> Family {
         let mut family = telperion_core::presets::by_identity("norway-spruce").unwrap();
         family.age = age;
+        unlit(family)
+    }
+
+    /// `family` as it grew unlit, before fn-264: the predicted admission
+    /// serves only a species that reads no light; a lit one is held to the
+    /// budget as it grows (tested below).
+    fn unlit(mut family: Family) -> Family {
+        for s in &mut family.space.species.as_mut().unwrap().states {
+            (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+        }
         family
     }
 
@@ -160,7 +170,7 @@ mod tests {
         for age in [40.0, 80.0] {
             let mut beech = telperion_core::presets::by_identity("european-beech").unwrap();
             beech.age = age;
-            assert!(check(&beech, 0, BROWSER).is_ok(), "a beech at {age}");
+            assert!(check(&unlit(beech), 0, BROWSER).is_ok(), "a beech at {age}");
         }
         assert!(!fits(80.0, 1_757), "80 with a 12 drawn");
         assert!(!fits(40.0, 4_540), "40 with an 80 drawn");
