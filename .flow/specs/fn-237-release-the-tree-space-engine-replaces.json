@@ -29,7 +29,8 @@
     "fn-256-the-whole-grower-runs-on-the-gpu",
     "fn-261-the-same-binary-draws-the-same-leaves",
     "fn-263-the-birch-grows-the-same-wood-on-the",
-    "fn-264-every-species-shades-and-answers-light"
+    "fn-264-every-species-shades-and-answers-light",
+    "fn-266-the-device-draws-the-palms-leaf-base"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -49,5 +50,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-11T18:25:15.733970Z"
+  "updated_at": "2026-10-12T03:41:27.925218Z"
 }
