@@ -193,3 +193,10 @@
 - **Hindered:** the task routes the harness through the device cycle, but nothing says how the cycle's settled node table reaches the drawing stages. Today the presets `apart` admits (spruce, beech) are drawn on the device from their fine roots (dress, sweep, stations, rings, handoff), and the CPU converts only the structure above the cut. The rest are drawn by `prepare_whole` on the CPU. Deleting the fine roots leaves two routes with very different costs, and choosing between them is a design call (AGENTS.md, "Dispatch and escalation").
 - **Cost:** about 25 minutes of reading; nothing built.
 - **Would remove it:** the route named in the task, together with whether the browser's `WASM_KEPT` refusal may come back for the large trees.
+
+## 2026-10-12, task 3: a store read back by the same invocation came back stale (worker)
+
+- **Doing:** planning the settled tree's chains on the device. One invocation per chain walks it breadth first, appending each axis to a queue in the plan buffer and reading the queue back as it goes.
+- **Hindered:** on the RTX 3080 (Vulkan), the invocation's own reads of the queue returned the zeros the buffer held before its stores. The spruce at 12 then drew no trunk, and its build placed no leaves. The plain `read_write` storage loads and stores to the same address in one invocation were not ordered. The queue now lives in atomics (`atomicStore`, `atomicLoad`) and the spruce agrees with the CPU in every node.
+- **Cost:** about 40 minutes and six GPU runs, three of them dumps of the plan.
+- **Would remove it:** a stated rule for the generation shaders, with a test: no kernel reads back a plain storage word it wrote in the same invocation; such a word is atomic or private. The dress (`cycle/dress.wgsl`) and the fine dress before it read back records they wrote and have agreed, so the hazard is not universal: what decides it is not known.
