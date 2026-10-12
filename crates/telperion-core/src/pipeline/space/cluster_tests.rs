@@ -23,10 +23,7 @@ fn a_short_shoots_cluster_stands_at_its_own_tip() {
         light: family.space.light,
     };
     let structure = telperion_space::grow(&species, request).unwrap();
-    let tree = convert(
-        &structure,
-        (&[], &[]),
-        (&family.space.trunk, &pa_rows(&species)),
+    let tree = convert(&structure, (&family.space.trunk, &pa_rows(&species)),
     );
     // Each node by the phytomer that made it.
     let node: HashMap<u64, usize> = (1..tree.nodes.len())
@@ -73,10 +70,7 @@ fn a_tree_of_no_cluster_carries_none() {
         light: family.space.light,
     };
     let structure = telperion_space::grow(&species, request).unwrap();
-    let tree = convert(
-        &structure,
-        (&[], &[]),
-        (&family.space.trunk, &pa_rows(&species)),
+    let tree = convert(&structure, (&family.space.trunk, &pa_rows(&species)),
     );
     assert!(tree.clusters.is_empty() && tree.clustered.is_empty());
 }

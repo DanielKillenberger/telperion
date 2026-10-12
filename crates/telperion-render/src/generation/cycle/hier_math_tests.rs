@@ -66,7 +66,7 @@ fn differing(gpu: &Gpu) -> [usize; 2] {
         .collect();
     let shader = format!(
         "{}\n{}\n{}\n{MUL}",
-        super::super::fine::contract(),
+        super::contract(),
         super::REAL,
         super::HIER_REAL
     );

@@ -34,12 +34,17 @@ pub(super) const WOKEN: u64 = 5;
 /// The units' tally at the head of `lists`.
 pub(super) const TALLY: u64 = 64;
 
+#[cfg(test)]
 /// The axes' columns the build reads by name.
 pub(super) const A_HEAD: u64 = 34;
+#[cfg(test)]
 pub(super) const A_LAYOUT: u64 = 35;
+#[cfg(test)]
 /// A unit record's links and phytomers.
 pub(super) const U_NEXT: u64 = 10;
+#[cfg(test)]
 pub(super) const U_FIRST: u64 = 11;
+#[cfg(test)]
 pub(super) const U_COUNT: u64 = 12;
 
 /// How many rows each table holds: axes (and pencils), units,
@@ -126,6 +131,7 @@ impl State {
         [AXES * a, PENCILS * a, UNITS * u64::from(caps.units), GROWN * p, LAID * p, caps.list_words()]
     }
 
+    #[cfg(test)]
     /// The bytes the state holds.
     pub(super) fn bytes(&self) -> u64 {
         [&self.axes, &self.units, &self.grown, &self.laid, &self.pencils, &self.lists]

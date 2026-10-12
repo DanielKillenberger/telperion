@@ -3,7 +3,7 @@
 //! over the ranges list dispatches are cut into. Built plain, the
 //! default.
 use super::build::Tables;
-use super::build_grow::{grow, Sizes};
+use super::build_grow::{grow_now as grow, Sizes};
 use super::build_plan::Ranges;
 use super::grown::Snapshot;
 use super::grown_compare::exact;

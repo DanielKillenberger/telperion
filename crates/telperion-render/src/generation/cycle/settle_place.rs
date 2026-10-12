@@ -5,7 +5,7 @@
 //! sags, the levers from the deepest and the lay again under them; then
 //! whether any phytomer has size. Each dispatch is its own stamped pass.
 use super::build::{Build, Tables};
-use super::hier_scan::{read_words, uniform, widest};
+use super::hier_scan::{uniform, widest, words as read};
 use super::settle_device::{self as d, Kernels};
 use super::settle_run::Settled;
 use crate::buffer::Owned;
@@ -38,7 +38,7 @@ impl Rec<'_> {
 
 /// The settled tree scaled and thickened (S1 and S2): the place's
 /// uniform words for the lay.
-pub(super) fn thicken(gpu: &Gpu, k: &Kernels, b: &Build, t: &Tables, s: &mut Settled) -> Result<[u32; 20]> {
+pub(super) async fn thicken(gpu: &Gpu, k: &Kernels, b: &Build, t: &Tables, s: &mut Settled) -> Result<[u32; 20]> {
     let (tb, l) = (s.table, s.layout);
     let at_q = d::Y_COLS * tb.sk;
     s.pw = super::settle_run::zeroed(gpu, "settle place", u64::from(at_q) + u64::from(d::Q_COLS * tb.skp))?;
@@ -57,7 +57,7 @@ pub(super) fn thicken(gpu: &Gpu, k: &Kernels, b: &Build, t: &Tables, s: &mut Set
         r.run(&mut e, s, (d::THICK_E, "settle thicken"), at)?;
     }
     gpu.submit([e.finish()]);
-    faults(gpu, s)?;
+    faults(gpu, s).await?;
     Ok(r.cfg)
 }
 
@@ -70,8 +70,8 @@ fn depths(s: &Settled) -> Vec<(u32, u32)> {
 }
 
 /// A fault the place met, by its bits (`settle_state.wgsl`'s `FAULT_`).
-fn faults(gpu: &Gpu, s: &Settled) -> Result<()> {
-    let fault = read_words(gpu, &s.atom, d::T_PLACE as u64, 1)?[0];
+async fn faults(gpu: &Gpu, s: &Settled) -> Result<()> {
+    let fault = read(gpu, &s.atom, d::T_PLACE as u64, 1).await?[0];
     if fault != 0 {
         return Err(super::super::io::error(format!("the settle's place: faults {fault:#x}")));
     }
@@ -82,17 +82,17 @@ fn faults(gpu: &Gpu, s: &Settled) -> Result<()> {
 /// levers; then its first error, or a collapse where no phytomer has
 /// size (`s.error`). Laid only once, its levers gathered, where `to` is
 /// `Placed`.
-pub(super) fn lay(gpu: &Gpu, k: &Kernels, b: &Build, (cfg, sags, to): ([u32; 20], bool, SettleTo), s: &mut Settled) -> Result<()> {
+pub(super) async fn lay(gpu: &Gpu, k: &Kernels, b: &Build, (cfg, sags, to): ([u32; 20], bool, SettleTo), s: &mut Settled) -> Result<()> {
     let mut r = Rec { gpu, steps: (k.steps, k.walk), pass: &k.place, form: &b.layout.form, cfg, held: Vec::new() };
     let depths = depths(s);
     gpu.queue.write_buffer(&s.atom, 4 * d::T_ERR as u64, bytemuck::bytes_of(&u32::MAX));
     let mut e = gpu.encoder(&Default::default());
     walk(&mut r, &mut e, s, "settle place")?;
     gpu.submit([e.finish()]);
-    faults(gpu, s)?;
+    faults(gpu, s).await?;
     let placed = to == SettleTo::Placed;
-    if first_error(gpu, s)? || !(sags || placed) {
-        return sized(gpu, &mut r, s);
+    if first_error(gpu, s).await? || !(sags || placed) {
+        return sized(gpu, &mut r, s).await;
     }
     let mut e = gpu.encoder(&Default::default());
     for &at in depths.iter().rev() {
@@ -105,11 +105,11 @@ pub(super) fn lay(gpu: &Gpu, k: &Kernels, b: &Build, (cfg, sags, to): ([u32; 20]
     r.cfg[15] = 1;
     walk(&mut r, &mut e, s, "settle sag place")?;
     gpu.submit([e.finish()]);
-    faults(gpu, s)?;
-    if first_error(gpu, s)? {
+    faults(gpu, s).await?;
+    if first_error(gpu, s).await? {
         return Ok(());
     }
-    sized(gpu, &mut r, s)
+    sized(gpu, &mut r, s).await
 }
 
 /// The tree laid a depth at a time: each depth framed, then walked as
@@ -138,8 +138,8 @@ fn walk(r: &mut Rec, e: &mut wgpu::CommandEncoder, s: &mut Settled, phase: &'sta
 }
 
 /// The lay's first error into `s.error`, if it met one.
-fn first_error(gpu: &Gpu, s: &mut Settled) -> Result<bool> {
-    let at = read_words(gpu, &s.atom, d::T_ERR as u64, 1)?[0];
+async fn first_error(gpu: &Gpu, s: &mut Settled) -> Result<bool> {
+    let at = read(gpu, &s.atom, d::T_ERR as u64, 1).await?[0];
     if at != u32::MAX {
         s.error = [at & 3, at >> 2];
     }
@@ -147,14 +147,14 @@ fn first_error(gpu: &Gpu, s: &mut Settled) -> Result<bool> {
 }
 
 /// Whether any phytomer has size: a collapse where none has.
-fn sized(gpu: &Gpu, r: &mut Rec, s: &mut Settled) -> Result<()> {
+async fn sized(gpu: &Gpu, r: &mut Rec<'_>, s: &mut Settled) -> Result<()> {
     if s.error[0] != 0 {
         return Ok(());
     }
     let mut e = gpu.encoder(&Default::default());
     r.run(&mut e, s, (d::SIZED, "settle place"), (0, s.table.phyts))?;
     gpu.submit([e.finish()]);
-    if read_words(gpu, &s.atom, d::T_SCALED as u64, 1)?[0] == 0 {
+    if read(gpu, &s.atom, d::T_SCALED as u64, 1).await?[0] == 0 {
         s.error = [1, u32::MAX];
     }
     Ok(())

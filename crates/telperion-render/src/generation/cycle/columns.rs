@@ -1,6 +1,6 @@
 //! A capture's arrays by name, and the unit tables and each PA's row as
 //! the units module reads them (`zones.wgsl`, `arena.wgsl`).
-use super::super::fine::units::{f, pack};
+use super::units::{f, pack};
 use telperion_space::{Capture, ChainTables};
 
 pub(super) const NONE: u32 = u32::MAX;

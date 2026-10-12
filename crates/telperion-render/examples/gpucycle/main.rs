@@ -87,10 +87,10 @@ fn capture(name: &str, age: u32, seed: u64, out: &str) {
 fn shader(body: &str) -> String {
     format!(
         "{}\n{}\n{}\n{}\n{}\n{}",
-        include_str!("../../src/generation/fine/wide.wgsl"),
-        include_str!("../../src/generation/fine/lineage.wgsl"),
-        include_str!("../../src/generation/fine/contract.wgsl"),
-        include_str!("../../src/generation/fine/arith.wgsl"),
+        include_str!("../../src/generation/cycle/u64.wgsl"),
+        include_str!("../../src/generation/cycle/keys.wgsl"),
+        include_str!("../../src/generation/cycle/decide.wgsl"),
+        include_str!("../../src/generation/cycle/arith.wgsl"),
         include_str!("common.wgsl"),
         body
     )

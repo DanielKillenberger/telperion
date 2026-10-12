@@ -68,6 +68,7 @@ impl Layout {
         })
     }
 
+    #[cfg(test)]
     /// The bytes the layout holds beside the state.
     pub(super) fn bytes(&self) -> u64 {
         self.form.size() + self.lists.size() + self.counts.size()

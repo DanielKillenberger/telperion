@@ -200,6 +200,7 @@ fn groups(size: Size, given: &[u32]) -> u32 {
 pub(super) fn record(kit: &Kit, (plan, limits, given): (&Plan, &Limits, &[u32]), e: &mut wgpu::CommandEncoder, steps: &[Gated], phases: &mut Vec<&'static str>) {
     let live = |s: &Step| !matches!(s, Step::Dispatch { size, .. } if groups(*size, given) == 0);
     let allowed: Vec<&Step> = steps.iter().filter(|g| g.gate.iter().all(|c| limits.allows(c))).map(|g| &g.step).filter(|s| live(s)).collect();
+    #[cfg(test)]
     if super::super::profile::on() {
         return stamped(kit, (plan, given), e, &allowed, phases);
     }

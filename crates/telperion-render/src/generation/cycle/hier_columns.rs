@@ -1,10 +1,12 @@
 //! A captured hierarchy cycle (`grow_capture_hierarchy_at`) as the
 //! device's columns (`hier_cols.wgsl`), and the CPU's outputs it is held
 //! to. Every column is one word a row, `stride` rows apart.
+#[cfg(test)]
 use super::columns::Cap;
 
 /// The tree's columns (`hier_cols.wgsl`'s `T_` words).
 pub(super) const TREE: usize = 14;
+#[cfg(test)]
 /// A PA's row: six f32s, padded to eight.
 pub(super) const ROW: usize = 8;
 
@@ -14,6 +16,7 @@ pub(super) fn stride(n: u32) -> u32 {
     n.max(1).next_multiple_of(64)
 }
 
+#[cfg(test)]
 /// The cycle's inputs.
 pub(super) struct Hier {
     pub cycle: u32,
@@ -28,6 +31,7 @@ pub(super) struct Hier {
     pub live_spent: Vec<u64>,
 }
 
+#[cfg(test)]
 /// What the CPU's passes left.
 pub(super) struct Cpu {
     pub kid_start: Vec<u32>,
@@ -48,6 +52,7 @@ pub(super) struct Cpu {
     pub live_spent: Vec<u64>,
 }
 
+#[cfg(test)]
 fn split(v: &[u64]) -> (Vec<u32>, Vec<u32>) {
     (
         v.iter().map(|&x| x as u32).collect(),
@@ -55,7 +60,9 @@ fn split(v: &[u64]) -> (Vec<u32>, Vec<u32>) {
     )
 }
 
+#[cfg(test)]
 impl Hier {
+    #[cfg(test)]
     pub(super) fn new(c: &Cap) -> Self {
         let [cycle, _age, n, _axes] = c.u32s("hier_counts")[..] else {
             panic!("cycle, age, laid axes, axes")
@@ -104,7 +111,9 @@ impl Hier {
     }
 }
 
+#[cfg(test)]
 impl Cpu {
+    #[cfg(test)]
     pub(super) fn new(c: &Cap) -> Self {
         let (before, after) = (c.u32s("hier_in_apex_end"), c.u32s("hier_out_apex_end"));
         let gone = before

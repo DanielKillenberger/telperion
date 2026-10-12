@@ -94,6 +94,13 @@ pub(crate) fn with_contacts<'a>(
     })
 }
 
+/// Each of a section's `segments`' angle, cosine and sine, as the ring
+/// words read them.
+pub(crate) fn angular_words(segments: u32, params: &SurfaceParams) -> Result<Vec<[f32; 4]>> {
+    let samples = angular::samples(segments as usize, params)?;
+    Ok(samples.iter().map(|a| [a.angle as f32, a.cos as f32, a.sin as f32, 0.0]).collect())
+}
+
 /// Each curve point as a ring's words, run by run in the curve's order,
 /// with the vertex and cap offsets the GPU emits them at.
 fn read(
@@ -129,11 +136,7 @@ fn read(
         depth: params.lobe_depth as f32,
         shaped: !curve.sections.is_empty(),
     };
-    out.angular.extend(
-        angular::samples(segments as usize, params)?
-            .iter()
-            .map(|a| [a.angle as f32, a.cos as f32, a.sin as f32, 0.0]),
-    );
+    out.angular.extend(angular_words(segments, params)?);
     let mut base = 0;
     let mut first_index = 0;
     for (run, &path_id) in curve.runs.iter().zip(&traced.order) {

@@ -53,6 +53,7 @@ impl Kernels {
     }
 }
 
+#[cfg(test)]
 /// The compaction's two modules' WGSL, for the shader checks.
 pub(super) fn compaction_sources() -> [&'static str; 2] {
     [PACK, UNITS]
@@ -61,7 +62,7 @@ pub(super) fn compaction_sources() -> [&'static str; 2] {
 /// The module's WGSL: the contract, the reals, then retirement's columns,
 /// per-axis passes and sweep.
 pub(super) fn source() -> String {
-    format!("{}\n{REAL}\n{COLS}\n{AXIS}\n{SWEEP}", super::super::fine::contract_with(super::ARITH))
+    format!("{}\n{REAL}\n{COLS}\n{AXIS}\n{SWEEP}", super::contract_with(super::ARITH))
 }
 
 /// Retirement's buffers for `s` laid axes at most and `pas` PAs: its
@@ -125,6 +126,7 @@ impl Retire {
         Ok(new)
     }
 
+    #[cfg(test)]
     pub(super) fn bytes(&self) -> u64 {
         self.ret.size() + self.verdicts.size() + self.recs.size()
     }

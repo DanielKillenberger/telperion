@@ -18,8 +18,8 @@ fn every_shipped_preset_keeps_under_the_wasm_ceiling() {
         let input = GrowInput::of(&family);
         let (species, request) = asked(&input).unwrap();
         let foreseen = foreseen(species, request.age, Some(WASM_KEPT));
-        let grown = telperion_space::grow_marked(species, request).map_err(engine);
-        let (structure, _, _) = grown.unwrap_or_else(|e| panic!("{id}: {e}"));
+        let grown = telperion_space::grow(species, request).map_err(engine);
+        let structure = grown.unwrap_or_else(|e| panic!("{id}: {e}"));
         let kept: usize = structure.axes.iter().map(|a| a.phytomers.len()).sum();
         let margin = WASM_KEPT as f64 - kept as f64;
         println!(

@@ -66,10 +66,15 @@ pub(super) const LEAF_SUM: usize = 19;
 /// Work's columns the host reads or scans (`settle_cols.wgsl`).
 pub(super) const W_PSTART: u32 = 0;
 pub(super) const W_USTART: u32 = 1;
+#[cfg(test)]
 pub(super) const W_DR: u32 = 20;
+#[cfg(test)]
 pub(super) const W_DS: u32 = 21;
+#[cfg(test)]
 pub(super) const W_DON: u32 = 22;
+#[cfg(test)]
 pub(super) const W_FINAL: u32 = 25;
+#[cfg(test)]
 pub(super) const W_NODE: u32 = 26;
 pub(super) const W_COLS: u32 = 28;
 pub(super) const WP_COLS: u32 = 4;
@@ -88,6 +93,7 @@ pub(super) const T_DEEPEST: usize = 1;
 pub(super) const T_KEPT: usize = 2;
 pub(super) const T_KEPT_PHYTS: usize = 3;
 pub(super) const T_KEPT_UNITS: usize = 4;
+#[cfg(test)]
 pub(super) const T_LEAF: usize = 8;
 pub(super) const T_DCOUNT: u32 = 64;
 pub(super) const T_DFILL: u32 = T_DCOUNT + DMAX + 64;
@@ -155,7 +161,7 @@ impl Kernels {
 pub(super) fn place_source() -> String {
     format!(
         "{}\n{}\n{REAL}\n{}\n{SHARED}\n{STATE}\n{}\n{}\n{}\n{}\n{THICK}\n{BEND}\n{SAG}\n{LAY}",
-        super::super::fine::contract_with(super::ARITH),
+        super::contract_with(super::ARITH),
         super::ROOT,
         soft64(),
         super::Q,
@@ -179,7 +185,7 @@ pub(super) fn soft64() -> String {
 pub(super) fn source() -> String {
     format!(
         "{}\n{REAL}\n{}\n{SHARED}\n{COLS}\n{TREE}\n{ASSIGN}\n{SWEEP}\n{ORDER}\n{COMPACT}",
-        super::super::fine::contract_with(super::ARITH),
+        super::contract_with(super::ARITH),
         soft64()
     )
 }
@@ -258,6 +264,7 @@ impl Layout {
 /// The node table's layout for `kept` axes, `units` units and `phyts`
 /// phytomers: the axes' columns, then the units', then the phytomers'.
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(not(test), allow(dead_code))]
 pub(super) struct Table {
     pub kept: u32,
     pub units: u32,

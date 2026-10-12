@@ -297,15 +297,7 @@ pub(super) fn rank(at: Swept, scratch: &mut Scratch) -> Result<Vec<(usize, f64)>
         let radius = scratch.samples.iter().map(|s| s.r).fold(0.0, f64::max);
         ordered.push((path_id, radius));
     }
-    // Each side keeps its own order, the structure above the cut first and
-    // the fine roots after it, widest first within each (fn-212 D5): no
-    // sort reaches across the seam.
-    let fine = &at.paths.fine;
-    let side = |path_id: usize| {
-        let first = at.paths.nodes[at.paths.runs[path_id].start + 1];
-        fine.get(first).copied().unwrap_or(false)
-    };
-    ordered.sort_by(|a, b| side(a.0).cmp(&side(b.0)).then(b.1.total_cmp(&a.1)));
+    ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
     Ok(ordered)
 }
 

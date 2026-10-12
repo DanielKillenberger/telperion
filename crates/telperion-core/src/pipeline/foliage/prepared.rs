@@ -179,7 +179,6 @@ fn prepare_inner<C>(
         None
     };
     let runs = plan::runs(tree, envelope, p, Some(twig))?.unwrap_or_default();
-    let fine = tree.in_fine_roots();
     let (mut points, mut chord, mut along) = (Vec::new(), Vec::new(), Vec::new());
     for run in &runs {
         // The leaves this run's tiles before the next one keep.
@@ -206,7 +205,7 @@ fn prepare_inner<C>(
         for (segment, (tangent, normal, binormal)) in station::station_frame_iter(
             &points,
             &chord,
-            tree.seed_side(&fine, run.nodes[0], run.nodes[1]),
+            tree.seed_side(run.nodes[0]),
         )
         .enumerate()
         {

@@ -1,9 +1,13 @@
 //! One build step's uniforms, binds and scans, and its dispatches in
 //! order: the head (depths), the children, a placing pass of a
 //! generation, the members and levels.
+#[cfg(test)]
 use super::hier_build::{Hierarchy, Kernels, X_GENS, X_UNPLACED};
+#[cfg(test)]
 use super::hier_scan::{Scan, uniform, widest};
+#[cfg(test)]
 use crate::buffer::Owned;
+#[cfg(test)]
 use crate::{Gpu, Result};
 
 pub(super) const BEGIN: usize = 0;
@@ -40,6 +44,7 @@ pub(super) const X_LEVEL: u64 = 320;
 
 /// One step from the hierarchy as it stands to `n_new` axes, of `gens`
 /// generations.
+#[cfg(test)]
 pub(super) struct Plan {
     n_old: u32,
     new: u32,
@@ -53,6 +58,7 @@ pub(super) struct Plan {
     _cfgs: Vec<Owned>,
 }
 
+#[cfg(test)]
 impl Plan {
     pub(super) fn new(
         gpu: &Gpu,

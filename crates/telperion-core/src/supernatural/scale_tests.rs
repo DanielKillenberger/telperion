@@ -40,7 +40,6 @@ fn enlarged(tree: &Tree, natural: &Tree, s: f64) {
     let grown: Vec<f64> = natural.grown.iter().map(|g| g * s).collect();
     assert_eq!(tree.grown, grown);
     assert_eq!((&tree.frames, &tree.keys), (&natural.frames, &natural.keys));
-    assert_eq!(tree.seams, natural.seams);
 }
 
 #[test]

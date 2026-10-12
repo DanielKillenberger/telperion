@@ -6,10 +6,10 @@
 //! dispatches, the dispatches a build and a cycle, the longest with its
 //! kernel, the unstamped wall, and the device memory at its peak.
 use super::build::{Kit, Tables};
-use super::build_grow::{grow, Sizes};
+use super::build_grow::{grow_now as grow, Sizes};
 use super::grown_tests::{device, grown};
 use super::settle_device::Kernels;
-use super::settle_run::settle;
+use super::settle_run::settle_now as settle;
 use super::settle_tests::constants;
 use crate::Gpu;
 use std::time::Instant;

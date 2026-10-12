@@ -3,12 +3,12 @@
 //! kept or retired, and living, word for word; the trees settled after
 //! it to the ruled standard (`ruled.rs`).
 use super::build::{Build, Kit, Tables};
-use super::build_grow::{grow, Sizes};
+use super::build_grow::{grow_now as grow, Sizes};
 use super::columns::Cap;
 use super::grown_tests::{built, device, grown, Grown, YOUNG};
 use super::settle_device::Kernels;
 use super::settle_read::cpu_settled;
-use super::settle_run::settle;
+use super::settle_run::settle_now as settle;
 use super::settle_tests::{constants, held};
 use telperion_space::SettleTo;
 use super::hier_scan::read_words;

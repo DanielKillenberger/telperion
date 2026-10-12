@@ -8,18 +8,17 @@ impl Generator {
             )
             .into());
         }
-        // Fine roots on the device wherever the realized settle takes the
-        // tree apart (fn-212 task 10, host decision 2); elsewhere the CPU
-        // executor grows it whole, the gap `executor::apart` names.
-        if delivery == Delivery::Resident && executor::apart(family).is_ok() {
-            return self.prepare_fine(family).await;
+        // The executor is the delivery's (fn-256 R1): a resident tree
+        // grows and is drawn on the device whole, a CPU one through the
+        // CPU's cycle, the reference.
+        if delivery == Delivery::Resident {
+            return self.prepare_resident(family).await;
         }
         self.prepare_whole(family, delivery).await
     }
 
-    /// `family` grown whole on the CPU executor (`executor::grow`) and
-    /// prepared from it: every family a CPU delivery asks for, and those
-    /// whose fine roots the device cannot settle.
+    /// `family` grown on the CPU through the one cycle (`executor::grow`)
+    /// and prepared from it: every family a CPU delivery asks for.
     pub(super) async fn prepare_whole(
         &self,
         family: &Family,

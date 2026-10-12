@@ -234,6 +234,7 @@ impl Build {
         (stamped, Pending::new(plan, &steps, (limits, &given)))
     }
 
+    #[cfg(test)]
     /// The bytes the build holds resident (the state, the hierarchy's
     /// lists and shape, the tables) and as scratch (every buffer a cycle
     /// writes before it reads).
@@ -300,12 +301,10 @@ impl Late {
         self.pending[at] = Some((index, receive));
     }
 
-    pub(super) fn take(&mut self, gpu: &Gpu, cycle: u32) -> Result<Vec<u32>> {
+    pub(super) async fn take(&mut self, gpu: &Gpu, cycle: u32) -> Result<Vec<u32>> {
         let at = cycle as usize % 2;
         let (index, receive) = self.pending[at].take().expect("a cycle's census sent");
-        let wait = wgpu::PollType::Wait { submission_index: Some(index), timeout: None };
-        gpu.device.poll(wait).map_err(|e| super::super::io::error(e.to_string()))?;
-        mapped(gpu, receive)?;
+        mapped(gpu, (index, receive)).await?;
         let words = {
             let view = self.staging[at].slice(..).get_mapped_range().map_err(|e| super::super::io::error(e.to_string()))?;
             bytemuck::cast_slice(&view).to_vec()
@@ -315,17 +314,22 @@ impl Late {
     }
 }
 
-/// A mapping's result: delivered by the poll that waited for its cycle,
-/// or by the next that waits for every submission.
-fn mapped(gpu: &Gpu, mut r: Mapped) -> Result<()> {
+/// A mapping's result. Natively it is delivered by the poll that waits
+/// for its cycle, or by the next that waits for every submission; a
+/// browser delivers it on its own.
+async fn mapped(gpu: &Gpu, (index, mut r): (wgpu::SubmissionIndex, Mapped)) -> Result<()> {
     let error = |e: String| super::super::io::error(e);
-    // cap: the second poll waits for every submission, whose mapping it delivers.
-    for _ in 0..2 {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let wait = wgpu::PollType::Wait { submission_index: Some(index), timeout: None };
+        gpu.device.poll(wait).map_err(|e| error(e.to_string()))?;
         match r.try_recv() {
             Ok(Some(done)) => return done.map_err(|e| error(e.to_string())),
             Ok(None) => gpu.device.poll(wgpu::PollType::wait_indefinitely()).map_err(|e| error(e.to_string())).map(drop)?,
             Err(e) => return Err(error(e.to_string())),
         }
     }
-    Err(error("a census mapping the device never delivered".into()))
+    #[cfg(target_arch = "wasm32")]
+    let _ = (gpu, index);
+    r.await.map_err(|e| error(e.to_string()))?.map_err(|e| error(e.to_string()))
 }

@@ -222,6 +222,7 @@ pub(super) const SWEEP_WORK: u32 = 64;
 /// The recurrence's workgroup, one a direction.
 pub(super) const SWEEP_WG: u32 = 256;
 
+#[cfg(test)]
 /// The dispatches the sweep of a lattice of `size` takes: whole layers
 /// each, as many as `SWEEP_WORK` allows, at least one.
 pub(super) fn sweep_dispatches(size: [u32; 3]) -> u32 {

@@ -187,6 +187,7 @@ impl Kernels {
     }
 }
 
+#[cfg(test)]
 /// The WGSL, for the shader checks.
 pub(super) fn source() -> String {
     VM.to_string()

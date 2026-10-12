@@ -3,20 +3,16 @@ use super::Sample;
 use crate::math::Vec3;
 use crate::tree::Tree;
 
-/// A fine root's run's frame seed (fn-212, host decision 2026-10-07): the
-/// frame its bearer's wood was laid in at the socket, its heading and its
-/// side; none for a run of the structure above the cut, which seeds its
-/// own. The side, laid across the run's first tangent, is the run's first
+/// A run's frame seed (fn-212, host decision 2026-10-07; every run since
+/// fn-256): the frame its bearer's wood was laid in at the socket, its
+/// heading and its side; none where the tree has no laid frames, whose
+/// runs seed their own. The side, laid across the run's first tangent, is the run's first
 /// normal, so a run's frame moves with its wood and never jumps between
 /// axes. It turns only where a run leaves along its bearer's side, which
 /// no measured run does (TASK5.md); a rotation from the bearer's heading
 /// would turn where a run leaves backwards, which thousands of the
 /// spruce's do.
 pub(super) fn seed(tree: &Tree, paths: &Paths, run: &Run) -> Option<(Vec3, Vec3)> {
-    let first = paths.nodes[run.start + 1];
-    if !paths.fine.get(first).copied().unwrap_or(false) {
-        return None;
-    }
     let f = tree.frames.get(paths.nodes[run.start])?.map(f64::from);
     Some((Vec3::new(f[0], f[1], f[2]), Vec3::new(f[3], f[4], f[5])))
 }

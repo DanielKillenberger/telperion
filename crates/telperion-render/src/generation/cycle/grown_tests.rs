@@ -2,7 +2,7 @@
 //! (`grow_capture_grown`): young trees of every shipped preset, to the
 //! ruled standard (`ruled.rs`, DESIGN.md section 9).
 use super::build::{Build, Kit, Tables};
-use super::build_grow::{grow, Sizes};
+use super::build_grow::{grow_now as grow, Sizes};
 use super::columns::Cap;
 use super::grown::{cpu_snapshot, Snapshot};
 use super::grown_compare::by_lineage;

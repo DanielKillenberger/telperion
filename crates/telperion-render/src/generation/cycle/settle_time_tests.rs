@@ -5,10 +5,10 @@
 //! every one past a millisecond, the leaf mean's time apart, the growth's
 //! bytes freed and the settle's own; and each module's compile.
 use super::build::{Kit, Tables};
-use super::build_grow::{grow, Sizes};
+use super::build_grow::{grow_now as grow, Sizes};
 use super::grown_tests::{device, grown};
 use super::settle_device::{self as d, Kernels};
-use super::settle_run::settle;
+use super::settle_run::settle_now as settle;
 use super::settle_tests::constants;
 use crate::Gpu;
 use std::time::Instant;

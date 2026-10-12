@@ -100,6 +100,7 @@ impl Light {
         Ok(())
     }
 
+    #[cfg(test)]
     /// The bytes the light holds resident and as scratch.
     pub(super) fn bytes(&self) -> (u64, u64) {
         let b = [&self.points, &self.reads, &self.state, &self.grid, &self.quanta, &self.field];

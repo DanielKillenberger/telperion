@@ -8,7 +8,7 @@
 //! plain.
 use std::collections::BTreeSet;
 
-const CONTRACT: &str = include_str!("../fine/contract.wgsl");
+const CONTRACT: &str = include_str!("decide.wgsl");
 
 /// The functions the units call held.
 const ROOTS: [&str; 7] = ["wake_ticks", "lived_ticks", "lived_fine", "neg_log2", "survival_fine", "abortion_fine", "exp2c"];

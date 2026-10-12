@@ -32,15 +32,21 @@ pub(super) fn widest(gpu: &Gpu) -> (u32, u32) {
     (most * 64, most)
 }
 
-/// `n` words of `b` from word `at`, through a copy.
-pub(super) fn read_words(gpu: &Gpu, b: &wgpu::Buffer, at: u64, n: u64) -> Result<Vec<u32>> {
+/// `n` words of `b` from word `at`, through a copy, awaited.
+pub(super) async fn words(gpu: &Gpu, b: &wgpu::Buffer, at: u64, n: u64) -> Result<Vec<u32>> {
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
     let to = io::buffer(gpu, "hierarchy read", n.max(1) * 4, usage, &[])?;
     let mut e = gpu.encoder(&Default::default());
     e.copy_buffer_to_buffer(b, at * 4, &to, 0, n * 4);
     gpu.submit([e.finish()]);
-    let raw = io::read(gpu, &to, n * 4)?;
+    let raw = io::read_async(gpu, &to, n * 4).await?;
     Ok(bytemuck::cast_slice(&raw).to_vec())
+}
+
+/// `words`, blocked on: the tests' readbacks.
+#[cfg(test)]
+pub(super) fn read_words(gpu: &Gpu, b: &wgpu::Buffer, at: u64, n: u64) -> Result<Vec<u32>> {
+    pollster::block_on(words(gpu, b, at, n))
 }
 
 /// A bind of `size` bytes of `buffer` from `offset`.

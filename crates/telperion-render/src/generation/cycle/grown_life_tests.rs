@@ -3,7 +3,7 @@
 //! a request older than the device's accumulated time holds is refused
 //! before any dispatch.
 use super::build::Tables;
-use super::build_grow::{grow, Sizes};
+use super::build_grow::{grow_now as grow, Sizes};
 use super::grown_tests::{device, grown, grown_from, held_to_cpu};
 use telperion_core::presets::Preset;
 

@@ -4,11 +4,11 @@
 //! `grow_cycle`, retiring subtrees as it grows, returns the reference
 //! tree the settle is held to (SETTLE-PLAN.md risk 5).
 use super::build::Tables;
-use super::build_grow::{grow, Sizes};
+use super::build_grow::{grow_now as grow, Sizes};
 use super::grown_tests::{device, grown, Grown, YOUNG};
 use super::hier_scan::read_words;
 use super::settle_device::Kernels;
-use super::settle_run::settle;
+use super::settle_run::settle_now as settle;
 use super::settle_tests::constants;
 use telperion_core::presets::Preset;
 use telperion_space::SettleTo;

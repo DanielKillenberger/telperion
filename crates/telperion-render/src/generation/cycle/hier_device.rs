@@ -6,9 +6,13 @@
 //! and the sizes. Each dispatch is its own stamped pass; the living
 //! after the balance reach their kernels through the scan's total.
 use super::super::io;
+#[cfg(test)]
 use super::hier_build::{Hierarchy, Kernels};
+#[cfg(test)]
 use super::hier_columns::Hier;
-use super::hier_scan::{Scan, sums_words, uniform, widest, zeroed};
+#[cfg(test)]
+use super::hier_scan::{uniform, widest};
+use super::hier_scan::{Scan, sums_words, zeroed};
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
@@ -40,21 +44,29 @@ pub(super) const SPLIT: usize = 10;
 /// The sums' columns (`hier_cycle.wgsl`'s `S_` words), and those the
 /// cycle starts from the tree's (memory, kept, size) or from none.
 pub(super) const SUMS: u64 = 19;
+#[cfg(test)]
 pub(super) const S_LIGHT: u64 = 1;
+#[cfg(test)]
 pub(super) const S_COST: u64 = 2;
+#[cfg(test)]
 pub(super) const S_LIVING: u64 = 3;
 pub(super) const S_MEMORY: u64 = 6;
 pub(super) const S_KEPT: u64 = 7;
 pub(super) const S_SIZE: u64 = 8;
+#[cfg(test)]
 pub(super) const S_SUB: u64 = 12;
+#[cfg(test)]
 pub(super) const S_INCOMING: u64 = 14;
+#[cfg(test)]
 pub(super) const S_BUD: u64 = 15;
+#[cfg(test)]
 pub(super) const S_GONE: u64 = 18;
 pub(super) const FROM_TREE: [(u64, u64); 3] = [(12, S_MEMORY), (11, S_KEPT), (13, S_SIZE)];
 pub(super) const CLEARED: [u64; 7] = [0, 9, 10, 11, 14, 15, 18];
 /// The living's columns, and where the living after start.
 pub(super) const LIVE: u64 = 7;
 pub(super) const V_FLAG: u64 = 3;
+#[cfg(test)]
 pub(super) const V_OUT: u64 = 4;
 /// The normaliser's words before the order, and the tally's.
 const N_ORDER: u64 = 128;
@@ -65,6 +77,7 @@ pub(super) const BUD_CHUNKS: u32 = 4;
 
 /// The balance and allotment's buffers on the device, and the plan of
 /// one cycle's dispatches over them.
+#[cfg_attr(not(test), allow(dead_code))]
 pub(super) struct Sums {
     pub sums: Owned,
     pub live: Owned,
@@ -84,6 +97,7 @@ pub(super) struct Sums {
     _held: Vec<Owned>,
 }
 
+#[cfg(test)]
 /// What one cycle's plan reads: the laid axes, the cycle, the PAs and
 /// the living apexes.
 #[derive(Debug, Clone, Copy)]
@@ -95,6 +109,7 @@ pub(super) struct Counts {
 }
 
 impl Sums {
+    #[cfg(test)]
     /// A captured cycle's sums: its living and PA rows uploaded, planned.
     pub(super) fn new(
         gpu: &Gpu,
@@ -144,6 +159,8 @@ impl Sums {
         })
     }
 
+    #[cfg(test)]
+
     /// One cycle's dispatches planned over the hierarchy as `h` holds it.
     pub(super) fn plan(&mut self, gpu: &Gpu, k: &Kernels, h: &Hierarchy, tree: &Owned, c: Counts) -> Result<()> {
         let live_stride = self.live_stride;
@@ -188,6 +205,7 @@ impl Sums {
 
     /// The cycle's columns set as it starts them: memory, kept and size
     /// from the tree, the marks and the allotment's none, the tally none.
+    #[cfg(test)]
     fn reset(&self, tree: &Owned, e: &mut wgpu::CommandEncoder) {
         let col = 4 * u64::from(self.stride);
         for (from, to) in FROM_TREE {
@@ -198,6 +216,8 @@ impl Sums {
         }
         e.clear_buffer(&self.tally, 0, None);
     }
+
+    #[cfg(test)]
 
     /// The balance and the allotment recorded into `e`.
     pub(super) fn record(&self, k: &Kernels, tree: &Owned, e: &mut wgpu::CommandEncoder) {
@@ -228,10 +248,14 @@ impl Sums {
         k.sums.run(e, base, SIZES, apexes);
     }
 
+    #[cfg(test)]
+
     /// The dispatches `record` makes.
     pub(super) fn dispatches(&self) -> usize {
         4 * self.level_sizes.len() + 6 + BUD_CHUNKS as usize + self.flags.as_ref().map_or(0, Scan::dispatches)
     }
+
+    #[cfg(test)]
 
     /// The bytes the sums hold beyond the tree: their columns, the living,
     /// the normaliser and the tally.

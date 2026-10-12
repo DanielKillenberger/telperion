@@ -5,7 +5,7 @@
 //! dispatches, the longest with its kernel, the bytes resident and as
 //! scratch, and each module's compile.
 use super::build::{Kit, Tables};
-use super::build_grow::{grow, Sizes};
+use super::build_grow::{grow_now as grow, Sizes};
 use super::census as c;
 use super::grown_tests::grown;
 use super::{device, glue, hier_build, lay_device, light_device, vm};

@@ -446,17 +446,9 @@ pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
         return Vec::new();
     }
     let bearing = bearing_of(tree, p);
-    let children = bearing_children(tree, &bearing, false);
-    // A fine root's first node always starts a run of its own, even where
-    // it carries its bearer's branch on: a run never crosses the seam, as
-    // its bearing children never count it (fn-212 D4, host decision 3).
-    let mut seam = vec![false; tree.nodes.len()];
-    for &s in &tree.seams {
-        seam[s as usize] = true;
-    }
+    let children = bearing_children(tree, &bearing);
     let continues = |parent: usize, child: usize| {
-        !seam[child]
-            && bearing(parent)
+        bearing(parent)
             && tree.nodes[parent].branch == tree.nodes[child].branch
             && children[parent].0 == 1
     };
@@ -499,22 +491,11 @@ fn bearing_of(tree: &Tree, p: CanopyParams) -> impl Fn(usize) -> bool + '_ {
     }
 }
 
-/// Each node's bearing children, counted, and the last of them. A fine
-/// root's first node never counts among its bearer's, so a run's
-/// dependencies cross the seam one way only (fn-212, host decision
-/// 2026-10-07); `seams` counts them as before, for the measurement.
-fn bearing_children(
-    tree: &Tree,
-    bearing: &dyn Fn(usize) -> bool,
-    seams: bool,
-) -> Vec<(usize, usize)> {
-    let mut seam = vec![false; tree.nodes.len()];
-    for &s in tree.seams.iter().filter(|_| !seams) {
-        seam[s as usize] = true;
-    }
+/// Each node's bearing children, counted, and the last of them.
+fn bearing_children(tree: &Tree, bearing: &dyn Fn(usize) -> bool) -> Vec<(usize, usize)> {
     let mut children = vec![(0usize, 0usize); tree.nodes.len()];
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
-        if let (true, false, Some(parent)) = (bearing(i), seam[i], n.parent) {
+        if let (true, Some(parent)) = (bearing(i), n.parent) {
             children[parent as usize].0 += 1;
             children[parent as usize].1 = i;
         }
@@ -522,7 +503,5 @@ fn bearing_children(
     children
 }
 
-#[cfg(test)]
-mod measured;
 #[cfg(test)]
 mod tests;

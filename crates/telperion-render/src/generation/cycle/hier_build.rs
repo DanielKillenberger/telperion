@@ -6,8 +6,11 @@
 //! (DESIGN.md section 5's small reads), and its blocks per level at its
 //! end, so its dispatches and the sweeps' are sized.
 use super::super::io;
+#[cfg(test)]
 use super::hier_plan::Plan;
-use super::hier_scan::{read_words, sums_words, zeroed};
+#[cfg(test)]
+use super::hier_scan::read_words;
+use super::hier_scan::{sums_words, zeroed};
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
@@ -39,6 +42,7 @@ pub(super) const COUNTS: u64 = 12;
 pub(super) const LISTS: u64 = 6;
 const BUCKETS: u64 = 5;
 const TALLY: u64 = 384;
+#[cfg(test)]
 pub(super) const X_BLOCKS: usize = 0;
 pub(super) const X_LEVELS: usize = 1;
 pub(super) const X_GENS: u64 = 2;
@@ -50,6 +54,7 @@ pub(super) const R_LVL_START: u64 = 4;
 /// partition changes a word.
 pub(super) const CAP: u32 = 128;
 pub(super) const WIDTH: u32 = 64;
+#[cfg(test)]
 /// The most placing passes a generation may take.
 const PASSES: u32 = 64;
 
@@ -85,6 +90,7 @@ impl Kernels {
 
 /// The hierarchy as built so far: its state on the device and what the
 /// host knows of it.
+#[cfg_attr(not(test), allow(dead_code))]
 pub(super) struct Hierarchy {
     pub stride: u32,
     pub cap: u32,
@@ -132,6 +138,7 @@ impl Hierarchy {
     /// The step taking in the axes up to `n_new`: its depth pass and its
     /// generations read, its children, each generation placed pass by
     /// pass until none waits, its members and levels, its blocks read.
+    #[cfg(test)]
     pub(super) fn grow(&mut self, gpu: &Gpu, k: &Kernels, tree: &Owned, n_new: u32) -> Result<()> {
         if n_new <= self.built {
             return Ok(());
@@ -169,6 +176,7 @@ impl Hierarchy {
     }
 
     /// After a step: the lists swapped, its blocks and levels read.
+    #[cfg(test)]
     pub(super) fn ended(&mut self, gpu: &Gpu, n_new: u32) -> Result<()> {
         self.parity = 1 - self.parity;
         self.built = n_new;
@@ -182,6 +190,7 @@ impl Hierarchy {
         Ok(())
     }
 
+    #[cfg(test)]
     /// The bytes of the build's scratch: counts, buckets, a second list,
     /// the scan's sums and the tally.
     pub(super) fn scratch(&self) -> u64 {

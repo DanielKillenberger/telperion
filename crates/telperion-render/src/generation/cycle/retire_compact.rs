@@ -8,7 +8,7 @@
 //! records' size is read back first: the one wait a compaction adds.
 use super::build::{Build, Kit};
 use super::census as c;
-use super::hier_scan::{read_words, sums_words, uniform, widest, Scan};
+use super::hier_scan::{sums_words, uniform, widest, words as read, Scan};
 use super::retire_device::{self as rd, zeroed_dst};
 use super::state::GROWN;
 use crate::{Gpu, Result};
@@ -16,7 +16,7 @@ use crate::{Gpu, Result};
 impl Build {
     /// The stashed old tables compacted into the state's, `census` the
     /// plan's.
-    pub(super) fn compact(&mut self, gpu: &Gpu, kit: &Kit, census: &wgpu::Buffer) -> Result<()> {
+    pub(super) async fn compact(&mut self, gpu: &Gpu, kit: &Kit, census: &wgpu::Buffer) -> Result<()> {
         let (grown, laid, old) = self.stashed.take().expect("a move's old tables");
         let caps = self.state.caps;
         let keeps = self.retire.keeps();
@@ -40,7 +40,7 @@ impl Build {
         }
         gpu.submit([e.finish()]);
         if keeps {
-            let dropped = read_words(gpu, &scan, u64::from(ss + old), 1)?[0];
+            let dropped = read(gpu, &scan, u64::from(ss + old), 1).await?[0];
             self.grow_records(gpu, base + dropped)?;
         }
         let mut e = gpu.encoder(&Default::default());

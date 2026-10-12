@@ -3,9 +3,13 @@
 //! the read, each dispatch its own compute pass (`io::Pass::run`), so a
 //! profile stamps each. A refused box or deposit is read back by name.
 use super::super::io;
+#[cfg(test)]
 use super::columns::Cap;
+#[cfg(test)]
 use crate::buffer::Owned;
-use crate::{Gpu, Result};
+#[cfg(test)]
+use crate::Result;
+use crate::Gpu;
 
 const ENTRIES: [&str; 9] = [
     "span_main",
@@ -18,8 +22,10 @@ const ENTRIES: [&str; 9] = [
     "combine_main",
     "read_main",
 ];
+#[cfg(test)]
 /// The depth recurrence's entry, dispatched once a range of layers.
 pub(super) const SWEEP: usize = 6;
+#[cfg(test)]
 /// Each pass's phase, in `ENTRIES`' order.
 const PHASES: [&str; 9] = [
     "box",
@@ -56,6 +62,7 @@ impl Kernels {
     }
 }
 
+#[cfg(test)]
 /// A captured light's inputs as the device reads them.
 pub(super) struct Lit {
     /// x, y, z and area a leaf; x, y, z and nothing a tip.
@@ -71,7 +78,9 @@ pub(super) struct Lit {
     pub size: [u32; 3],
 }
 
+#[cfg(test)]
 impl Lit {
+    #[cfg(test)]
     /// The capture's light, its lattice's buffers `capacity` nodes; with
     /// `extinction`, swept under it whatever the site's.
     pub(super) fn new(cap: &Cap, capacity: u32, extinction: Option<f64>) -> Self {
@@ -110,6 +119,7 @@ impl Lit {
     }
 }
 
+#[cfg(test)]
 fn storage(gpu: &Gpu, label: &'static str, bytes: u64, words: &[u32]) -> Result<Owned> {
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
     io::buffer(
@@ -124,6 +134,7 @@ fn storage(gpu: &Gpu, label: &'static str, bytes: u64, words: &[u32]) -> Result<
 /// The directions the uniform holds: the sky's nine at most.
 pub(super) const DIRECTIONS: usize = 9;
 
+#[cfg(test)]
 /// The light's buffers on the device and its passes' bindings.
 pub(super) struct Run {
     pub state: Owned,
@@ -146,7 +157,9 @@ pub(super) struct Run {
     _held: Vec<Owned>,
 }
 
+#[cfg(test)]
 impl Run {
+    #[cfg(test)]
     pub(super) fn new(gpu: &Gpu, k: &Kernels, lit: &Lit) -> Result<Self> {
         let [leaves, tips, dirs] = lit.counts();
         assert!(dirs as usize <= DIRECTIONS, "the sky's directions");
@@ -264,6 +277,7 @@ impl Run {
         phases
     }
 
+    #[cfg(test)]
     pub(super) fn read(&self, gpu: &Gpu) -> Result<Out> {
         let words = |b: &Owned| -> Result<Vec<u32>> {
             Ok(bytemuck::cast_slice(&io::read(gpu, b, b.size())?).to_vec())
@@ -287,6 +301,7 @@ impl Run {
     }
 }
 
+#[cfg(test)]
 /// The light as the device left it, every value by its word.
 pub(super) struct Out {
     pub errors: u32,
@@ -298,7 +313,9 @@ pub(super) struct Out {
     pub reads: Vec<u32>,
 }
 
+#[cfg(test)]
 impl Out {
+    #[cfg(test)]
     /// The refusals the device made, by name.
     pub(super) fn refusals(&self) -> Vec<&'static str> {
         (0..REFUSALS.len())

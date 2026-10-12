@@ -169,7 +169,6 @@ impl Pass {
 
     /// `entry` dispatched inside `pass`, a compute pass it shares with
     /// the dispatches beside it (unstamped): `groups` workgroups.
-    #[cfg(test)]
     pub fn encode(&self, pass: &mut wgpu::ComputePass<'_>, (bind, entry): (&wgpu::BindGroup, usize), groups: u32) {
         pass.set_pipeline(self.pipelines[entry].get());
         pass.set_bind_group(0, bind, &[]);

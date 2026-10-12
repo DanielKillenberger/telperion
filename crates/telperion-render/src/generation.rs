@@ -3,17 +3,16 @@
 mod clock;
 mod compute;
 use clock::Clock;
-// fn-256 task 2: the one cycle's units and wake on the device, measured.
-#[cfg(test)]
+// fn-256: the one cycle on the device, which grows, settles and draws
+// the whole tree, every readback awaited, natively and in a browser.
 mod cycle;
 mod data;
-// fn-209 F1 and fn-212: the fine-root executor's GPU side, which settles,
-// draws and places a tree's fine roots on the device (fn-212 task 10),
-// every readback awaited, natively and in a browser (host decision 1).
-mod fine;
-pub use fine::Admitted;
+// The resident build's stages after the cycle's: the folds, sweep,
+// stations, rings, placement and handoff (fn-212, fn-256 task 3).
+mod resident;
+pub use resident::Admitted;
 #[cfg(target_arch = "wasm32")]
-pub(crate) use fine::BROWSER;
+pub(crate) use resident::BROWSER;
 mod io;
 mod positions;
 mod preparation;
@@ -153,9 +152,8 @@ pub struct Generator {
     place: io::Pass,
     mass: io::Pass,
     positions: Option<io::Pass>,
-    /// The fine-root executor's kernels, made on the first tree that
-    /// settles its fine roots on the device.
-    fine: std::cell::OnceCell<fine::Kit>,
+    /// The device's kernels, made on the first tree built resident.
+    resident: std::cell::OnceCell<resident::Kit>,
     /// A test's device error, raised inside the next device build.
     #[cfg(test)]
     fail_next: std::cell::Cell<bool>,
@@ -218,7 +216,7 @@ impl Generator {
             place,
             mass,
             positions,
-            fine: std::cell::OnceCell::new(),
+            resident: std::cell::OnceCell::new(),
             #[cfg(test)]
             fail_next: Default::default(),
             #[cfg(test)]

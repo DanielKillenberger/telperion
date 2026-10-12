@@ -10,8 +10,8 @@ pub fn chain(gpu: &Gpu, reps: usize) {
     let count = 80 * 8;
     let source = format!(
         "{}\n{}\n{}\n{}",
-        include_str!("../../src/generation/fine/wide.wgsl"),
-        include_str!("../../src/generation/fine/lineage.wgsl"),
+        include_str!("../../src/generation/cycle/u64.wgsl"),
+        include_str!("../../src/generation/cycle/keys.wgsl"),
         include_str!("common.wgsl"),
         include_str!("chain.wgsl")
     );

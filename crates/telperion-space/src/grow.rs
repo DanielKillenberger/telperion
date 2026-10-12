@@ -64,40 +64,11 @@ struct Apex {
     spent: f64,
 }
 
-/// Grows, sheds and places the tree, in its canonical lineage order, by
-/// the stepped executor (fn-211 task 12): every fine root at the cut
-/// N = 1,024 its own grower, run to its next synchronisation point and
-/// settled per root.
+/// Grows, sheds and places the tree through the one cycle (fn-255), in
+/// its canonical lineage order: the CPU's executor, the reference the
+/// device's is held to by lineage (fn-256).
 pub fn grow(species: &Species, request: Request) -> Result<Structure> {
-    grow_marked(species, request).map(|(structure, ..)| structure)
-}
-
-/// `grow`, with each axis marked where it was grown in a fine root (fn-212
-/// D4, D5): its wood starts its own run at the seam and keeps its side's
-/// run order. A species another executor cannot hold apart (`apart`)
-/// marks none. Also each fine root's base radius as phase 2 handed it
-/// up, by its first axis's lineage.
-#[allow(clippy::type_complexity)]
-pub fn grow_marked(
-    species: &Species,
-    request: Request,
-) -> Result<(Structure, Vec<bool>, Vec<(u64, f64)>)> {
-    let fine = crate::fine::grow_roots(species, request, crate::fine::Plan::default())?;
-    if apart(species).is_err() {
-        let structure = lineage_order(fine.structure);
-        let marks = vec![false; structure.axes.len()];
-        return Ok((structure, marks, Vec::new()));
-    }
-    // A fine root's first axis stands in its stand-in's place; the rest of
-    // its axes are appended past `above`.
-    let mut marks: Vec<bool> = (0..fine.structure.axes.len())
-        .map(|i| i >= fine.above)
-        .collect();
-    for i in fine.roots.iter().filter_map(|r| r.at) {
-        marks[i] = true;
-    }
-    let (structure, marks) = crate::fine::lineage_order_marked(fine.structure, marks);
-    Ok((structure, marks, fine.bases))
+    Ok(cycle::grow_cycle(species, request)?.structure)
 }
 
 /// The whole-tree engine, every axis grown in one grower: test-only, the

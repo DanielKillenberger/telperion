@@ -6,7 +6,7 @@
 //! compaction into the node table. Each dispatch is its own stamped
 //! pass (`io::Pass::run`).
 use super::build::{Build, Kit, Tables};
-use super::hier_scan::{read_words, sums_words, uniform, widest, Scan};
+use super::hier_scan::{sums_words, uniform, widest, words as read, Scan};
 use super::settle_device::{self as d, Kernels, Layout, Table};
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
@@ -51,6 +51,7 @@ const UP_RANGE: u32 = 1 << 14;
 const JUMPS: u32 = 12;
 
 /// The settle's buffers, and what each submission read back.
+#[cfg_attr(not(test), allow(dead_code))]
 pub(super) struct Settled {
     pub layout: Layout,
     pub table: Table,
@@ -72,6 +73,7 @@ pub(super) struct Settled {
 }
 
 impl Settled {
+    #[cfg(test)]
     /// The bytes the settle holds: its work, counts, node table and the
     /// place's columns.
     pub(super) fn bytes(&self) -> u64 {
@@ -159,7 +161,7 @@ enum Data {
 
 /// The settle of the build `b` grew, as far as `to`, each PA's constants
 /// `pa` (`grow_capture_settle_tables`).
-pub(super) fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Build, &Tables), (pa, to): (&[u32], SettleTo)) -> Result<Settled> {
+pub(super) async fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Build, &Tables), (pa, to): (&[u32], SettleTo)) -> Result<Settled> {
     let freed = b.shed_growth();
     let h = b.held;
     // The grown phytomers: those the arena holds and those let go into
@@ -191,9 +193,9 @@ pub(super) fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Build, &Ta
         stamped: Vec::new(),
     };
     gpu.queue.write_buffer(&r.work, 4 * u64::from(d::K_AT), bytemuck::cast_slice(pa));
-    let depths = shape(&mut r, &layout)?;
+    let depths = shape(&mut r, &layout).await?;
     let deepest = depths.len() - 1;
-    let (tally, kept, kept_long) = sweeps(&mut r, &layout, (&depths, flags))?;
+    let (tally, kept, kept_long) = sweeps(&mut r, &layout, (&depths, flags)).await?;
     let table = Table::new(tally[d::T_KEPT], tally[d::T_KEPT_UNITS], tally[d::T_KEPT_PHYTS]);
     let collapsed = table.phyts == 0;
     let mut kept_starts = vec![0u32];
@@ -209,17 +211,17 @@ pub(super) fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Build, &Ta
     if collapsed || to == SettleTo::Shed {
         return Ok(s);
     }
-    let cfg = super::settle_place::thicken(gpu, k, b, t, &mut s)?;
+    let cfg = super::settle_place::thicken(gpu, k, b, t, &mut s).await?;
     if matches!(to, SettleTo::Laid | SettleTo::Placed) {
         let sags = pa.chunks(16).any(|r| r[7] & 8 != 0);
-        super::settle_place::lay(gpu, k, b, (cfg, sags, to), &mut s)?;
+        super::settle_place::lay(gpu, k, b, (cfg, sags, to), &mut s).await?;
     }
     Ok(s)
 }
 
 /// The first submission: the lists and the shape, each axis's depth,
 /// and the scans; each depth's first and count in its list back.
-fn shape(r: &mut Rec, l: &Layout) -> Result<Vec<(u32, u32)>> {
+async fn shape(r: &mut Rec<'_>, l: &Layout) -> Result<Vec<(u32, u32)>> {
     let mut e = r.gpu.encoder(&Default::default());
     let (caps, h) = (r.b.state.caps, r.b.held);
     let lists = &r.b.state.lists;
@@ -242,7 +244,7 @@ fn shape(r: &mut Rec, l: &Layout) -> Result<Vec<(u32, u32)>> {
     r.scan(&mut e, Data::Atom, u64::from(d::T_KCOUNT), n + 1, g)?;
     r.scan(&mut e, Data::Atom, u64::from(d::T_DCOUNT), d::DMAX + 1, g)?;
     r.gpu.submit([e.finish()]);
-    let read = read_words(r.gpu, &r.atom, 0, u64::from(d::T_DCOUNT + d::DMAX + 1))?;
+    let read = read(r.gpu, &r.atom, 0, u64::from(d::T_DCOUNT + d::DMAX + 1)).await?;
     refuse(read[d::T_FAULT])?;
     let deepest = read[d::T_DEEPEST] as usize;
     let start = |k: usize| read[d::T_DCOUNT as usize + k];
@@ -261,7 +263,7 @@ fn refuse(fault: u32) -> Result<()> {
 
 /// The second submission: the lists filled, the mark, the assignment,
 /// the grown tree's sweeps; the tallies and the kept per depth back.
-fn sweeps(r: &mut Rec, l: &Layout, (depths, flags): (&[(u32, u32)], u32)) -> Result<(Vec<u32>, Vec<u32>, Vec<u32>)> {
+async fn sweeps(r: &mut Rec<'_>, l: &Layout, (depths, flags): (&[(u32, u32)], u32)) -> Result<(Vec<u32>, Vec<u32>, Vec<u32>)> {
     let mut e = r.gpu.encoder(&Default::default());
     let (n, h) = (l.n, r.b.held);
     let g = "settle mark and assign";
@@ -294,10 +296,10 @@ fn sweeps(r: &mut Rec, l: &Layout, (depths, flags): (&[(u32, u32)], u32)) -> Res
         r.run(&mut e, (d::KEEP, "settle sweeps"), &at(k, dc), dc.1)?;
     }
     r.gpu.submit([e.finish()]);
-    let tally = read_words(r.gpu, &r.atom, 0, 64)?;
+    let tally = read(r.gpu, &r.atom, 0, 64).await?;
     refuse(tally[d::T_FAULT])?;
-    let kept = read_words(r.gpu, &r.atom, u64::from(d::T_KDCOUNT), depths.len() as u64)?;
-    let long = read_words(r.gpu, &r.atom, u64::from(d::T_KDLONG), depths.len() as u64)?;
+    let kept = read(r.gpu, &r.atom, u64::from(d::T_KDCOUNT), depths.len() as u64).await?;
+    let long = read(r.gpu, &r.atom, u64::from(d::T_KDLONG), depths.len() as u64).await?;
     Ok((tally, kept, long))
 }
 
@@ -330,4 +332,10 @@ fn order(r: &mut Rec, l: &Layout, t: &Table, starts: &[u32]) -> Result<()> {
     r.ranged(&mut e, (d::COMPACT_E, c), &[], (t.kept, COMPACT_RANGE))?;
     r.gpu.submit([e.finish()]);
     Ok(())
+}
+
+/// `settle`, blocked on: the tests' settles.
+#[cfg(test)]
+pub(super) fn settle_now(gpu: &Gpu, kits: (&Kit, &Kernels), at: (&Build, &Tables), to: (&[u32], SettleTo)) -> Result<Settled> {
+    pollster::block_on(settle(gpu, kits, at, to))
 }

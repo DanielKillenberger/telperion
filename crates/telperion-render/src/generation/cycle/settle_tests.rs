@@ -10,7 +10,7 @@ use super::grown_compare::by_lineage;
 use super::grown_tests::{built, device, grown, Grown, YOUNG};
 use super::settle_device::Kernels;
 use super::settle_read::{beside_agree, cpu_settled, Beside};
-use super::settle_run::{settle, Settled};
+use super::settle_run::{settle_now as settle, Settled};
 use crate::Gpu;
 use telperion_space::SettleTo;
 

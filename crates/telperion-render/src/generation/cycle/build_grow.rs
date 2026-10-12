@@ -265,7 +265,7 @@ fn limits(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> Limits {
 }
 
 /// `upto` cycles grown from `sizes`: the build, its sizes and how it grew.
-pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut sizes, upto): (Sizes, u32)) -> Result<(Build, Sizes, Grew)> {
+pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut sizes, upto): (Sizes, u32)) -> Result<(Build, Sizes, Grew)> {
     let cycles = upto.max(t.age);
     if cycles >= MOST_CYCLES {
         return Err(super::super::io::error(format!("a tree of {cycles} cycles: the device holds its time to {MOST_CYCLES} cycles")));
@@ -291,17 +291,17 @@ pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut size
             if std::env::var("CYCLE_TRACE").is_ok() {
                 eprintln!("TRACE begin {again} cycle {cycle} slack {:?} {limits:?}", sizes.slack);
             }
-            let clock = std::time::Instant::now();
+            let clock = super::super::Clock::now();
             let (stamped, sent) = b.submit(gpu, (kit, t), (&run.0, &run.1, &limits, &span), (&mut late, cycle));
             pending.push_back(sent);
-            grew.recording += clock.elapsed().as_secs_f64();
+            grew.recording += clock.elapsed_ms() / 1e3;
             grew.stamped.extend(stamped);
             if cycle == 1 {
                 continue;
             }
-            let clock = std::time::Instant::now();
-            let read = late.take(gpu, cycle - 1)?;
-            grew.waiting += clock.elapsed().as_secs_f64();
+            let clock = super::super::Clock::now();
+            let read = late.take(gpu, cycle - 1).await?;
+            grew.waiting += clock.elapsed_ms() / 1e3;
             let sent = pending.pop_front().expect("a cycle sent");
             sent.tally(&mut grew.over, &read);
             if !c::raised(&read).is_empty() {
@@ -314,10 +314,10 @@ pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut size
                 }
                 sizes = raised(sizes, &c::raised(&read), &read)?;
                 // The cycle in flight read back before its buffers go.
-                late.take(gpu, cycle)?;
+                late.take(gpu, cycle).await?;
                 continue 'begin;
             }
-            let clock = std::time::Instant::now();
+            let clock = super::super::Clock::now();
             // A move makes room for the next cycle; after the last there
             // is none, and a compaction then would leave the build holding
             // the last census's rows.
@@ -331,14 +331,14 @@ pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut size
                 (run, sizes) = (plan, next);
                 grew.moves += 1;
                 if b.stashed.is_some() {
-                    b.compact(gpu, kit, &run.0.census)?;
+                    b.compact(gpu, kit, &run.0.census).await?;
                 }
                 grew.moved_at.push((cycle, b.retire.rec_n));
             }
-            grew.moving += clock.elapsed().as_secs_f64();
+            grew.moving += clock.elapsed_ms() / 1e3;
             prev = last.replace(read);
         }
-        let read = late.take(gpu, upto)?;
+        let read = late.take(gpu, upto).await?;
         let sent = pending.pop_front().expect("a cycle sent");
         sent.tally(&mut grew.over, &read);
         if !c::raised(&read).is_empty() {
@@ -353,4 +353,10 @@ pub(super) fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mut size
         return Ok((b, sizes, grew));
     }
     Err(super::super::io::error("a build that never fitted".into()))
+}
+
+/// `grow`, blocked on: the tests' builds.
+#[cfg(test)]
+pub(super) fn grow_now(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, at: (Sizes, u32)) -> Result<(Build, Sizes, Grew)> {
+    pollster::block_on(grow(gpu, kit, t, tables, at))
 }

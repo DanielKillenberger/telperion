@@ -166,7 +166,6 @@ pub(crate) fn place_on(
     reserve_all(&mut out, leaves_on(tree, envelope, p, twig, &runs)?, p)?;
     // Which wood bears each leaf, kept only where limb systems clump.
     let mut owners = (p.limb_clumping > 0.).then(Vec::new);
-    let fine = tree.in_fine_roots();
     for nodes in runs {
         // Each run draws from its own stream, keyed by its first node, so a
         // leaf's draws never depend on the order the runs are walked in
@@ -180,7 +179,6 @@ pub(crate) fn place_on(
                 params: p,
                 twig,
                 contacts,
-                fine: &fine,
             },
             &mut rng,
             &mut out,
