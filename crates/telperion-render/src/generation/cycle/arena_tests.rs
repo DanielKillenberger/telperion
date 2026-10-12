@@ -38,8 +38,10 @@ fn arena_ratios() {
             let h = hint(&g.species, age).expect("a hint").max(1.0);
             let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
             let off = std::env::var("ARENA_COMPACT").is_ok_and(|c| c == "off");
-            let sizes = Sizes { compact: if off { Compact::Off } else { Compact::Every }, ..Sizes::least() };
+            let hinted = Sizes::hinted(h).expect("sized");
+            let sizes = Sizes { compact: if off { Compact::Off } else { Compact::Every }, ..hinted };
             let (b, _, grew) = grow_now(&gpu, &kit, &t, &g.tables, (sizes, age)).expect("a build");
+            let records = f64::from(b.retire.rec_n) / h;
             drop(b);
             gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
             let ratios: Vec<f64> = grew.most.iter().map(|&n| f64::from(n) / h).collect();
@@ -47,7 +49,7 @@ fn arena_ratios() {
                 *m = m.max(*r);
             }
             let cells: Vec<String> = ratios.iter().map(|r| format!("{r:.4}")).collect();
-            println!("| {id} | {seed} | {h:.0} | {} |", cells.join(" | "));
+            println!("| {id} | {seed} | {h:.0} | {} | records {records:.4} |", cells.join(" | "));
         }
     }
     let cells: Vec<String> = most.iter().map(|r| format!("{r:.4}")).collect();
@@ -74,7 +76,7 @@ fn every_preset_grows_in_its_hinted_arena() {
         let growth = telperion_core::pipeline::executor::growth(&family).expect("a growth");
         for seed in [1, 7, 42] {
             let g = grown_from(growth.species.clone(), growth.request.light, (age, seed));
-            let sizes = Sizes::hinted(hint(&g.species, age).expect("a hint"));
+            let sizes = Sizes::hinted(hint(&g.species, age).expect("a hint")).expect("sized");
             let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
             gpu.ledger.take_peak();
             let clock = std::time::Instant::now();

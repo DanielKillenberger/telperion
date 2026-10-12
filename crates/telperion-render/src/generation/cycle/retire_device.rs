@@ -77,20 +77,27 @@ pub(super) struct Retire {
     pub recs: Owned,
     pub rec_cap: u32,
     pub rec_n: u32,
+    /// The times the records grew past their rows: moves.
+    pub rec_moves: u32,
 }
 
 impl Retire {
-    pub(super) fn new(gpu: &Gpu, s: u32, pa: &[u32], log: bool) -> Result<Self> {
+    /// Retirement for `s` laid axes, its records sized for `records` rows
+    /// where a PA keeps them (none else).
+    pub(super) fn new(gpu: &Gpu, (s, records): (u32, u32), pa: &[u32], log: bool) -> Result<Self> {
         let log_cap = if log { 4 * s } else { 0 };
+        let keeps = Self::keeping(pa);
+        let rec_cap = if keeps { records } else { 0 };
         let r = Self {
             ret: zeroed_dst(gpu, "retire columns", Self::ret_words(s, pa))?,
             verdicts: zeroed_dst(gpu, "retire verdicts", L_AT + ENTRY * u64::from(log_cap))?,
             stride: s,
             pa: pa.to_vec(),
             log_cap,
-            recs: zeroed_dst(gpu, "retire records", 4)?,
-            rec_cap: 0,
+            recs: zeroed_dst(gpu, "retire records", super::state::GROWN * u64::from(rec_cap))?,
+            rec_cap,
             rec_n: 0,
+            rec_moves: 0,
         };
         gpu.queue.write_buffer(&r.ret, 4 * (r.head() + HEAD), bytemuck::cast_slice(pa));
         Ok(r)
@@ -111,7 +118,7 @@ impl Retire {
         if s == self.stride {
             return Ok(self);
         }
-        let mut new = Retire::new(gpu, s, &self.pa, self.log_cap > 0)?;
+        let mut new = Retire::new(gpu, (s, 0), &self.pa, self.log_cap > 0)?;
         let (a, b) = (4 * u64::from(self.stride), 4 * u64::from(s));
         let head = 4 * self.head();
         for k in 0..R_COLS {
@@ -119,7 +126,7 @@ impl Retire {
         }
         e.copy_buffer_to_buffer(&self.ret, head, &new.ret, 4 * new.head(), 4 * HEAD);
         e.copy_buffer_to_buffer(&self.verdicts, 0, &new.verdicts, 0, self.verdicts.size().min(new.verdicts.size()));
-        (new.recs, new.rec_cap, new.rec_n) = (self.recs, self.rec_cap, self.rec_n);
+        (new.recs, new.rec_cap, new.rec_n, new.rec_moves) = (self.recs, self.rec_cap, self.rec_n, self.rec_moves);
         Ok(new)
     }
 
@@ -130,7 +137,11 @@ impl Retire {
 
     /// Whether any PA keeps the retired rows (shed pipes or leaf girth).
     pub(super) fn keeps(&self) -> bool {
-        self.pa.chunks(16).any(|r| r[7] & 6 != 0)
+        Self::keeping(&self.pa)
+    }
+
+    fn keeping(pa: &[u32]) -> bool {
+        pa.chunks(16).any(|r| r[7] & 6 != 0)
     }
 }
 

@@ -34,8 +34,10 @@ pub(crate) struct Owned {
 pub(crate) struct Ledger {
     waiting: std::sync::Mutex<Waiting>,
     counts: std::sync::Arc<Counts>,
-    /// The bytes a build may hold while it runs (`capped`), none at zero.
-    cap: std::sync::atomic::AtomicU64,
+    /// The caps of the builds running now, each its id and bytes
+    /// (`capped`): the least holds every buffer made (fn-256 task 5
+    /// review: two builds on one device each keep theirs).
+    caps: std::sync::Mutex<(u64, Vec<(u64, u64)>)>,
     /// The queue whose completion frees a destroyed buffer's bytes; none
     /// releases them at the destroy (a ledger with no device).
     queue: Option<wgpu::Queue>,
@@ -102,12 +104,13 @@ impl Counts {
     fn label(&self, _: &'static str, _: i64, _: bool) {}
 }
 
-/// A build's cap on the ledger, lifted when it is dropped.
-pub(crate) struct Capped(std::sync::Arc<Ledger>);
+/// A build's cap on the ledger, lifted when it is dropped; any other
+/// build's stays.
+pub(crate) struct Capped(std::sync::Arc<Ledger>, u64);
 
 impl Drop for Capped {
     fn drop(&mut self) {
-        self.0.cap.store(0, std::sync::atomic::Ordering::Relaxed);
+        self.0.caps().1.retain(|c| c.0 != self.1);
     }
 }
 
@@ -144,9 +147,11 @@ impl Ledger {
         let mut done = Vec::new();
         let mut waiting = self.waiting();
         waiting.open.retain(|&o| o != id);
+        // A buffer some open encoder may still bind stays; one none does
+        // is destroyed, its record let go.
         waiting.let_go.retain_mut(|(buffer, label, on)| {
             on.retain(|&o| o != id);
-            on.is_empty() && {
+            !on.is_empty() || {
                 done.push((buffer.clone(), *label));
                 false
             }
@@ -188,8 +193,16 @@ impl Ledger {
     /// The ledger capped at `bytes` until the guard is dropped: a buffer
     /// that would pass it is refused before it is made (`reserve`).
     pub(crate) fn capped(self: &std::sync::Arc<Self>, bytes: u64) -> Capped {
-        self.cap.store(bytes.max(1), std::sync::atomic::Ordering::Relaxed);
-        Capped(self.clone())
+        let mut caps = self.caps();
+        let id = caps.0;
+        caps.0 += 1;
+        caps.1.push((id, bytes.max(1)));
+        drop(caps);
+        Capped(self.clone(), id)
+    }
+
+    fn caps(&self) -> std::sync::MutexGuard<'_, (u64, Vec<(u64, u64)>)> {
+        self.caps.lock().unwrap_or_else(|e| e.into_inner())
     }
 
     /// `bytes` for `label` charged before the buffer is made, refused
@@ -197,7 +210,7 @@ impl Ledger {
     /// cap. Taken in one step, so two makers never both fit in the room
     /// one of them had.
     pub(crate) fn reserve(&self, bytes: u64, label: &'static str) -> std::result::Result<(), (u64, u64)> {
-        let cap = self.cap.load(std::sync::atomic::Ordering::Relaxed);
+        let cap = self.caps().1.iter().map(|c| c.1).min().unwrap_or(0);
         self.counts.charge(bytes, label, cap)
     }
 

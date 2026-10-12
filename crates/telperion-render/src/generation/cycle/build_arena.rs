@@ -20,6 +20,15 @@ pub(super) const TABLES: usize = 9;
 /// 2026-10-12): the most of each, where the spruce sets the axes and the
 /// units, the beech the phytomers and leaves, the Two Trees the lattice.
 pub(super) const ARENA: [f64; TABLES] = [0.6501, 1.1469, 1.9038, 0.0115, 0.1540, 0.0064, 0.4938, 0.2766, 0.0187];
+/// The retired rows the records hold at most against the hint, where a
+/// PA keeps them: the ordinary's at seed 42 (the oak's at most 0.88;
+/// `arena_ratios`, 2026-10-12).
+pub(super) const RECORDS: f64 = 1.7450;
+
+/// The most rows a table holds: its words index it in 32 bits, its
+/// widest table (the pencils) 59 words a row.
+const MOST_ROWS: u32 = 1 << 26;
+
 /// How far past the measured most a table is sized: room for a
 /// compaction made only when a table runs tight (`Compact::Tight`).
 pub(super) const MARGIN: f64 = 1.5;
@@ -56,8 +65,14 @@ const ROUNDS: u32 = 5;
 
 impl Sizes {
     /// A build's tables sized once from `hint`, the least a build takes
-    /// below that, and its bounds stated from them.
-    pub(super) fn hinted(hint: f64) -> Self {
+    /// below that, and its bounds stated from them; refused by name where
+    /// a table would pass the rows the device's tables index.
+    pub(super) fn hinted(hint: f64) -> Result<Self> {
+        let most = ARENA.iter().chain([&RECORDS]).fold(0.0, |m: f64, r| m.max(*r));
+        if !(hint * most * MARGIN <= f64::from(MOST_ROWS)) {
+            let what = format!("the tree's expected {hint:.0} kept phytomers size its tables past the {MOST_ROWS} rows the device indexes; grow it younger");
+            return Err(super::super::io::error(what));
+        }
         let least = Sizes::least();
         let rows = |k: usize, floor: u32| ((hint * ARENA[k] * MARGIN).ceil() as u32).max(floor);
         let l = least.caps;
@@ -71,8 +86,9 @@ impl Sizes {
         };
         let tips = caps.next.max(least.tips);
         let points = (rows(6, 0) + tips).max(least.points);
-        let sizes = Sizes { caps, points, tips, nodes: rows(7, least.nodes), columns: rows(8, least.columns), compact: Compact::Tight, ..least };
-        Sizes { bounds: sizes.stated(), ..sizes }
+        let records = (hint * RECORDS * MARGIN).ceil() as u32;
+        let sizes = Sizes { caps, points, tips, nodes: rows(7, least.nodes), columns: rows(8, least.columns), records, compact: Compact::Tight, ..least };
+        Ok(Sizes { bounds: sizes.stated(), ..sizes })
     }
 
     /// The plan's bounds from the tables: each list's ranges at the most
@@ -109,5 +125,20 @@ impl Sizes {
             words.iter().for_each(|&w| out[w] = cap);
         }
         out
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The integration review's oak at 500: a hint whose tables pass the
+    /// rows the device indexes is refused by name, never wrapped.
+    #[test]
+    fn a_hint_past_the_tables_is_refused_by_name() {
+        let refused = Sizes::hinted(86.6e9).expect_err("refused");
+        assert!(refused.to_string().contains("grow it younger"), "{refused}");
+        let telperion = Sizes::hinted(2_970_013.0).expect("sized");
+        assert!(telperion.caps.axes % 64 == 0 && telperion.caps.phyts > 2_970_013);
     }
 }

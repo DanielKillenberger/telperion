@@ -31,6 +31,8 @@ pub(super) struct Sizes {
     pub nodes: u32,
     /// The lattice's columns, a layer's nodes, the sweep's records hold.
     pub columns: u32,
+    /// The retired rows the records hold, where a PA keeps them.
+    pub records: u32,
     pub bounds: Bounds,
     /// The most axes a hierarchy block holds: speed only (HIERARCHY.md).
     pub block_cap: u32,
@@ -42,7 +44,7 @@ impl Sizes {
     /// The smallest a build takes, its bounds stated from its tables.
     pub(super) fn least() -> Self {
         let caps = Caps { axes: 4096, units: 4096, phyts: 16384, sleepers: 4096, next: 4096, woken: 1024 };
-        let s = Self { caps, points: 16384, tips: 4096, nodes: 4096, columns: 1024, bounds: Bounds::default(), block_cap: super::hier_build::CAP, compact: Compact::Off };
+        let s = Self { caps, points: 16384, tips: 4096, nodes: 4096, columns: 1024, records: 0, bounds: Bounds::default(), block_cap: super::hier_build::CAP, compact: Compact::Off };
         Self { bounds: s.stated(), ..s }
     }
 
@@ -129,7 +131,7 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
     let mut grew = Grew::default();
     // A build let go before this one freed first (`Ledger::destroy`).
     super::super::io::complete(gpu).await?;
-    let mut b = Build::new(gpu, t, (tables, sizes.caps, sizes.block_cap), sizes.lit())?;
+    let mut b = Build::new(gpu, t, (tables, sizes.caps, sizes.block_cap, sizes.records), sizes.lit())?;
     let mut run = b.plan(gpu, kit, t, sizes.bounds)?;
     grew.stamped = b.seeded(gpu, kit, (&run.0, &run.1));
     let (mut late, mut prev, mut last) = (Late::new(gpu)?, None::<Vec<u32>>, None::<Vec<u32>>);
@@ -201,6 +203,8 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
         grew.moving += clock.elapsed_ms() / 1e3;
         prev = last.replace(read);
     }
+    // The records a compaction grew past their rows moved as a table does.
+    grew.moves += b.retire.rec_moves;
     let read = late.take(gpu, upto).await?;
     let sent = pending.pop_front().expect("a cycle sent");
     grew.read((&read, upto), &sent, t.budget)?;

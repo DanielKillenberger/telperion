@@ -15,6 +15,7 @@ impl Build {
             return Ok(());
         }
         let cap = rows.next_multiple_of(64).max(r.rec_cap * 2);
+        r.rec_moves += 1;
         let new = zeroed_dst(gpu, "retire records", GROWN * u64::from(cap))?;
         if r.rec_n > 0 {
             let mut e = gpu.encoder(&Default::default());
