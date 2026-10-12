@@ -103,14 +103,6 @@ pub(super) fn florets(
         size: rows[2],
     }
 }
-impl Config {
-    /// These rows with the leaves written from leaf `first` on: a block
-    /// placed into a leaf buffer after another's (fn-212 task 7).
-    pub(super) fn at(mut self, first: u32) -> Self {
-        self.random[3] = first;
-        self
-    }
-}
 pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
     p.segments
         .iter()

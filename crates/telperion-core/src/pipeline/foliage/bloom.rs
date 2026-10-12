@@ -198,17 +198,6 @@ pub(crate) fn place(tree: &Tree, p: &BloomParams, season: Option<f64>) -> Result
     Ok(packed(&matrices, reference(&matrices, p)))
 }
 
-/// The same florets packed against `box`, which holds every one: the box
-/// an executor drawing its own roots' florets shares (fn-229).
-pub(crate) fn place_in(
-    tree: &Tree,
-    p: &BloomParams,
-    season: Option<f64>,
-    within: Reference,
-) -> Result<Instances> {
-    Ok(packed(&matrices(tree, p, season)?, within))
-}
-
 /// The farthest a floret stands from its node: along the axis, then its
 /// stalk.
 pub(crate) fn reach(p: &BloomParams) -> f64 {

@@ -2,28 +2,27 @@
 //! leaves. They are packed against the tree's leaf box padded by the
 //! farthest a floret stands from its node, and the device places them in
 //! the submission that places its leaves, from the blooms its stations
-//! counted and recorded, after any of the CPU's (none since fn-256).
+//! counted and recorded.
 use super::super::compute::{self, Placement};
 use super::super::{data, io, Generator, Metrics, Resident};
 use super::handoff::union;
 use super::stations::Stationed;
 use crate::buffer::{Held, Owned};
 use crate::Result;
-use telperion_core::foliage::{Instances, Reference};
+use telperion_core::foliage::{Element, Instances, Reference};
 use telperion_core::math::Vec3;
 use telperion_core::mesh::Foliage;
 use telperion_core::pipeline::executor::Expansion;
-use telperion_core::surface::Bounds;
 
-/// The organ of a flowering tree: the CPU block's florets packed against
-/// the shared box, and the rows the device draws its own by.
+/// The organ of a flowering tree: its element, the box its florets are
+/// packed against, and the rows the device draws them by.
 pub(super) struct Organ {
-    cpu: Foliage,
+    element: Element,
+    within: Reference,
     rows: [[f32; 4]; 3],
 }
 
-/// The organ buffer with both blocks written into it (the device's still
-/// placing), and the device block's placement summary.
+/// The organ buffer the device places into, and its placement summary.
 pub(super) struct Placed {
     buffer: Owned,
     count: u32,
@@ -31,22 +30,22 @@ pub(super) struct Placed {
 }
 
 impl Organ {
-    /// The organ of `x`'s part, packed against the whole tree's leaf box
-    /// padded by a floret's reach.
+    /// The organ of `x`, packed against the tree's leaf box padded by a
+    /// floret's reach.
     pub(super) fn of(x: &Expansion) -> Result<Self> {
         let (bloom, now, reach) = x.bloom();
         let leaf = x.reference();
         let pad = Vec3::new(reach, reach, reach);
         let within = Reference::spanning(leaf.min - pad, leaf.min + leaf.extent + pad);
         Ok(Self {
-            cpu: x.organ_in(within)?,
+            element: x.organ_element()?,
+            within,
             rows: data::flower(&bloom, now),
         })
     }
 
-    /// Both blocks into one organ buffer: the CPU's written, the device's
-    /// `stationed` florets recorded into `encoder` after them. None where
-    /// the tree keeps no floret.
+    /// The device's `stationed` florets recorded into `encoder`, into an
+    /// organ buffer of their own. None where the tree keeps no floret.
     pub(super) fn place(
         &self,
         gen: &Generator,
@@ -54,31 +53,20 @@ impl Organ {
         stationed: &Stationed,
     ) -> Result<Option<Placed>> {
         let gpu = &gen.gpu;
-        let cpu = self.cpu.instances.len() as u32;
-        let count = cpu
-            .checked_add(stationed.florets)
-            .ok_or(telperion_core::Error::ResourceLimit("floret budget"))?;
+        let count = stationed.florets;
         if count == 0 {
             return Ok(None);
         }
         let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-        let words = bytemuck::cast_slice(&self.cpu.instances.leaves);
-        let buffer = io::buffer(
-            gpu,
-            "generated florets",
-            u64::from(count) * 12,
-            usage,
-            words,
-        )?;
+        let buffer = io::buffer(gpu, "generated florets", u64::from(count) * 12, usage, &[])?;
         let mut summary = None;
         if let Some(records) = &stationed.records {
             let counts = (stationed.florets, stationed.blooms);
-            let config = data::florets(self.rows, counts, &self.cpu.element, self.reference());
+            let config = data::florets(self.rows, counts, &self.element, self.within);
             // No ring is read: the bindings take the records again.
             let records = (&**records, &**records);
             let at = (stationed.florets, &*buffer);
-            let config = config.at(cpu);
-            let e = &self.cpu.element;
+            let e = &self.element;
             let placed = gen.record_place(encoder, Placement::Florets, config, records, e, at)?;
             summary = Some(placed.0);
         }
@@ -89,17 +77,12 @@ impl Organ {
         }))
     }
 
-    /// The box both blocks are packed against.
-    pub(super) fn reference(&self) -> Reference {
-        self.cpu.instances.reference
-    }
-
     /// The organ the mesh carries: its element and box, its florets on
     /// the device.
     pub(super) fn foliage(&self) -> Foliage {
         Foliage {
-            element: self.cpu.element.clone(),
-            instances: Instances::new(self.reference()),
+            element: self.element.clone(),
+            instances: Instances::new(self.within),
         }
     }
 
@@ -110,7 +93,7 @@ impl Organ {
 
     /// The placed organ, from its device block's `summary` (read with the
     /// leaves' in one readback): its bounds, the florets' origins and every
-    /// vertex, and one mass grid over both blocks, recorded into `encoder`.
+    /// vertex, and its mass grid, recorded into `encoder`.
     pub(super) fn resident(
         &self,
         gen: &Generator,
@@ -118,8 +101,7 @@ impl Organ {
         (placed, summary): (Placed, Option<&[u32]>),
         m: &mut Metrics,
     ) -> Result<Resident> {
-        let mut crown = crate::submit::crown_of(&self.cpu);
-        let mut full = (self.cpu.instances.bounds(&self.cpu.element)?).map(Bounds::from);
+        let (mut crown, mut full) = (None, None);
         if let Some(s) = summary {
             if s[1] != 0 {
                 let refused = telperion_core::Error::InvalidInput("GPU floret transform/reference");
@@ -129,7 +111,7 @@ impl Organ {
             full = union(full, Some(compute::bounds(s, 8)));
         }
         let (buffer, count) = (placed.buffer, placed.count);
-        let at = (&*buffer, count, crown, self.reference());
+        let at = (&*buffer, count, crown, self.within);
         let masses = gen.record_mass(encoder, at, 0, m)?;
         Ok(Resident {
             leaves: Held::resident(buffer, u64::from(count) * 12, "generated florets"),

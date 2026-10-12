@@ -360,15 +360,10 @@ impl Expansion {
         let instances = foliage::place_blooms(&self.tree, bloom, None)?;
         Ok(Some(mesh::Foliage { element, instances }))
     }
-    /// This tree's flowers packed against `within`, a box holding every
-    /// floret of the whole tree, which an executor drawing its own roots'
-    /// florets packs its own against too (fn-229): the organ element,
-    /// whether or not this part bears a bloom.
-    pub fn organ_in(&self, within: Reference) -> Result<mesh::Foliage> {
-        let bloom = &self.inputs.bloom;
-        let element = foliage::bloom_element(bloom)?;
-        let instances = foliage::place_blooms_in(&self.tree, bloom, None, within)?;
-        Ok(mesh::Foliage { element, instances })
+    /// The organ element an executor drawing its own florets places
+    /// (fn-229, fn-256).
+    pub fn organ_element(&self) -> Result<Element> {
+        foliage::bloom_element(&self.inputs.bloom)
     }
     /// The flowers' rows, the time of year a request draws them at, and
     /// the farthest a floret stands from its node (fn-229).

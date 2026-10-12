@@ -3,10 +3,10 @@
  * the contract prelude followed by one kernel file, joined exactly as
  * `examples/gpucycle/main.rs` (`shader`) and `chain.rs` join them. The
  * files are imported as raw text from the spike, never copied. */
-import wide from "../../crates/telperion-render/src/generation/fine/wide.wgsl?raw";
-import lineage from "../../crates/telperion-render/src/generation/fine/lineage.wgsl?raw";
-import contract from "../../crates/telperion-render/src/generation/fine/contract.wgsl?raw";
-import arith from "../../crates/telperion-render/src/generation/fine/arith.wgsl?raw";
+import wide from "../../crates/telperion-render/src/generation/cycle/u64.wgsl?raw";
+import lineage from "../../crates/telperion-render/src/generation/cycle/keys.wgsl?raw";
+import contract from "../../crates/telperion-render/src/generation/cycle/decide.wgsl?raw";
+import arith from "../../crates/telperion-render/src/generation/cycle/arith.wgsl?raw";
 import common from "../../crates/telperion-render/examples/gpucycle/common.wgsl?raw";
 import sum from "../../crates/telperion-render/examples/gpucycle/sum.wgsl?raw";
 import shed from "../../crates/telperion-render/examples/gpucycle/shed.wgsl?raw";

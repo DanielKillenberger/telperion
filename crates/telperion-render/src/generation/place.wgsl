@@ -58,8 +58,7 @@ fn written(index:u32, words:vec3<u32>, live:bool, lane:u32) {
             full_min=min(full_min,p);full_max=max(full_max,p);
         }
         crown_min=matrix[3].xyz;crown_max=crown_min;
-        let at=index+config.random.w;
-        leaves[at*3u]=words.x;leaves[at*3u+1u]=words.y;leaves[at*3u+2u]=words.z;
+        leaves[index*3u]=words.x;leaves[index*3u+1u]=words.y;leaves[index*3u+2u]=words.z;
     }
     for(var j=0u;j<3u;j++) {
         bounds[lane*12u+j]=crown_min[j];bounds[lane*12u+3u+j]=crown_max[j];
