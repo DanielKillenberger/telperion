@@ -154,7 +154,7 @@
 # engine grows the tree to it.
 /age = 40.0
 
-# The engine species (fn-198 host decision 1): telperion_space::oak (fn-195), grown under the site light of BASELINE.md (extinction 0.5, sky 0.5).
+# The engine species (fn-198 host decision 1): telperion_space::oak (fn-195); it grows under the site light every preset shares (`presets::space::SITE`, fn-264 R1a).
 # The envelope is derived from the grown tree (host decision 7).
 /space/ages/2/lifespan = 12.0
 /space/ages/2/internode = 0.045
@@ -474,4 +474,3 @@
 /space/ages/2/trunk = true
 /space/ages/3/trunk = true
 /space/ages/4/trunk = true
-/space/light/extinction = 0.5

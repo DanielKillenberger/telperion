@@ -162,6 +162,12 @@
 //! before): with those two rows at their old values, all four digests were
 //! the last pins to the bit. They were re-pinned again for Telperion's
 //! share of 0.3 (host), the one row that moved.
+//! fn-264 re-pinned the family, walk and override digests for the one site
+//! light (R1a): every preset grows under `space::SITE` and no preset states
+//! a light row. With each family's old light restored (the oak 0.5, the
+//! ordinary 1/6, every other preset none), the walk's light interpolated
+//! between its ends' as before, and the oak's wire carrying its old light
+//! object, each digest was the last pin to the bit.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -197,7 +203,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        6_431_025_471_672_625_648,
+        14_671_003_600_042_826_214,
         "{}",
         digest(&text)
     );
@@ -229,7 +235,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        17_957_343_875_375_134_232,
+        16_508_871_370_481_925_046,
         "{}",
         digest(&text)
     );
@@ -254,7 +260,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        7_411_754_593_062_895_005,
+        9_247_671_544_701_238_716,
         "{}",
         digest(&text)
     );

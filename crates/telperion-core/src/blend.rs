@@ -142,9 +142,10 @@ fn mixed(a: &Family, b: &Family, t: f64) -> Result<Family> {
 }
 
 /// The engine species between two families' (fn-206's walk on the shared
-/// reference axis), the stem ages of either end, and the light between
-/// theirs. A walk from a family with no species to one with one is refused
-/// by name: there is no species to start from.
+/// reference axis), the stem ages of either end, and the site's light both
+/// grow under, which a walk does not interpolate (fn-264 R1a). A walk from
+/// a family with no species to one with one is refused by name: there is
+/// no species to start from; so is one between two sites' light.
 fn space(a: &Space, b: &Space, t: f64) -> Result<Space> {
     let species = match (&a.species, &b.species) {
         (Some(x), Some(y)) => Some(
@@ -157,14 +158,13 @@ fn space(a: &Space, b: &Space, t: f64) -> Result<Space> {
     let mut trunk: Vec<usize> = a.trunk.iter().chain(&b.trunk).copied().collect();
     trunk.sort_unstable();
     trunk.dedup();
-    let light = telperion_space::Light {
-        extinction: linear(a.light.extinction, b.light.extinction, t),
-        sky: linear(a.light.sky, b.light.sky, t),
-    };
+    if a.light != b.light {
+        return Err(Error::InvalidInput("a walk between two sites' light"));
+    }
     Ok(Space {
         species,
         trunk,
-        light,
+        light: a.light,
     })
 }
 

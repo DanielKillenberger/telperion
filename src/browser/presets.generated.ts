@@ -1278,9 +1278,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               }
             }
           }
-        },
-        "light": {
-          "extinction": 0.16666666666666669
         }
       },
       "supernatural": {
@@ -2145,9 +2142,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               }
             }
           }
-        },
-        "light": {
-          "extinction": 0.5
         }
       },
       "supernatural": {

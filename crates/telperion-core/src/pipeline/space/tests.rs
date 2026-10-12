@@ -269,3 +269,17 @@ fn a_node_keeps_its_identity_across_ages() {
         .count();
     assert!(kept * 2 > last.len(), "{kept} of {} kept", last.len());
 }
+
+/// Every shipped preset grows under the one site light (fn-264 R1a): the
+/// request both executors grow by carries `SITE`, whose extinction is not
+/// zero, so every preset's leaves shade.
+#[test]
+fn every_shipped_preset_grows_under_the_site_light() {
+    use crate::presets::{by_identity, space::SITE, CATALOGUE};
+    assert!(SITE.extinction > 0.0);
+    for &(_, id, ..) in CATALOGUE {
+        let family = by_identity(id).unwrap();
+        let (_, request) = asked(&GrowInput::of(&family)).unwrap();
+        assert_eq!(request.light, SITE, "{id}");
+    }
+}

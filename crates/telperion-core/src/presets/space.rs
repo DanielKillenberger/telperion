@@ -1,7 +1,8 @@
 //! A preset's engine species as indexed rows (fn-198 host decision 1): the
-//! tree-space engine's settings at their place on its reference axis, the
-//! ages that are stem, and the site's light, each one row of the preset's
-//! own value file under `/space`. The engine judges what it grows
+//! tree-space engine's settings at their place on its reference axis and
+//! the ages that are stem, each one row of the preset's own value file
+//! under `/space`. Every preset grows under the one site light (`SITE`),
+//! which is no preset's row (fn-264 R1a). The engine judges what it grows
 //! (`Species::validate`); these rows are judged for their place and form.
 //!
 //! - `/space/ages/<k>/<setting>`, `/space/ages/<k>/form/<setting>`: a
@@ -12,7 +13,6 @@
 //!   a zone is declared by its `buds` row.
 //! - `/space/ages/<k>/trunk = true`: an axis of age `k` carried on from the
 //!   trunk is stem.
-//! - `/space/light/extinction`, `/space/light/sky`: the site's light.
 //!
 //! A row states a setting of an age the species lives in (a lifespan above
 //! 0) that differs from an age passed through (`telperion_space::passed`);
@@ -55,16 +55,37 @@ impl Cell {
     }
 }
 
-/// A preset's engine species, the ages that are stem, and its site's light.
-/// A preset with no `/space` setting row has no species, and the pipeline
-/// refuses it by name.
-#[derive(Debug, Clone, PartialEq, Default)]
+/// The site's light every preset grows under (fn-264 R1a, host 2026-10-11):
+/// environment, not species. Beer-Lambert's k for an individual crown,
+/// leaf area density times the path through it, is 0.5 for leaves at every
+/// angle: "k equals 0.5 if leaf-angle distribution is assumed to be
+/// spherical (Ross, 1981)" (Bréda 2003, J. Exp. Bot. 54: 2403, on
+/// individual tree crowns). The sky is the standard overcast one.
+pub const SITE: Light = Light {
+    extinction: 0.5,
+    sky: 0.5,
+};
+
+/// A preset's engine species, the ages that are stem, and the site's light
+/// it grows under (`SITE`). A preset with no `/space` setting row has no
+/// species, and the pipeline refuses it by name.
+#[derive(Debug, Clone, PartialEq)]
 pub struct Space {
     pub species: Option<Species>,
     /// The trunk-level ages, ascending: only an axis of one of them, carried
     /// on from the trunk, is stem.
     pub trunk: Vec<usize>,
     pub light: Light,
+}
+
+impl Default for Space {
+    fn default() -> Self {
+        Self {
+            species: None,
+            trunk: Vec::new(),
+            light: SITE,
+        }
+    }
 }
 
 /// Whether `path` is a row of this group.
@@ -84,12 +105,10 @@ pub fn read<'a>(rows: impl IntoIterator<Item = (&'a str, Cell)>) -> Result<Space
             .split('/')
             .collect();
         match words[..] {
-            ["light", which @ ("extinction" | "sky")] => {
-                let v = number(path, cell)?;
-                match which {
-                    "extinction" => space.light.extinction = v,
-                    _ => space.light.sky = v,
-                }
+            ["light", ..] => {
+                return Err(format!(
+                    "{path}: the site's light is one setting, no preset's row"
+                ));
             }
             ["ages", k, ref tail @ ..] => {
                 let k = index(path, k, AGES)?;
@@ -202,13 +221,8 @@ pub fn rows(space: &Space) -> Result<Vec<(String, Cell)>, String> {
     for k in &space.trunk {
         out.push((format!("{PREFIX}ages/{k}/trunk"), Cell::Switch(true)));
     }
-    let neutral = Light::NEUTRAL;
-    if space.light.extinction.to_bits() != neutral.extinction.to_bits() {
-        let path = format!("{PREFIX}light/extinction");
-        out.push((path, Cell::Number(space.light.extinction)));
-    }
-    if space.light.sky.to_bits() != neutral.sky.to_bits() {
-        out.push((format!("{PREFIX}light/sky"), Cell::Number(space.light.sky)));
+    if space.light != SITE {
+        return Err("a preset grows under the site's light, which no row states".into());
     }
     Ok(out)
 }
