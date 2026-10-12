@@ -12,6 +12,7 @@
   ],
   "id": "fn-256-the-whole-grower-runs-on-the-gpu",
   "impl_review_rounds": {
+    "fn-256-the-whole-grower-runs-on-the-gpu.10": 0,
     "fn-256-the-whole-grower-runs-on-the-gpu.4": 0,
     "fn-256-the-whole-grower-runs-on-the-gpu.5": 0,
     "fn-256-the-whole-grower-runs-on-the-gpu.6": 1,
@@ -986,9 +987,98 @@
       "task": "fn-256-the-whole-grower-runs-on-the-gpu.9",
       "timestamp": "2026-10-12T14:47:58.159737Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "bec01596f7cbf8329a9055aaf0924b0c145254e0706775181fe4fb9e9126897d",
+      "backend": "codex",
+      "base_sha": "1c69bf64853d4cfe4e146fe6350d7ddc209dfd70",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-39e0b33c038bca18311e3279187420e9",
+            "classification": "introduced",
+            "findingId": "finding-39e0b33c038bca18311e3279187420e9",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f7b74b3c2e3760f611cdb6a6d7a570ec42465e92",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1149,
+      "output_sha256": "9c382bcba496b3c350bc8f82ad524c04b2a01ac09be87e2880f176ae35b5f765",
+      "reservation_id": "ca85b1a1e23c4b089847c1a9c2d66a8e",
+      "round_consumed": true,
+      "scope": "impl:fn-256-the-whole-grower-runs-on-the-gpu.10",
+      "superseded_by": null,
+      "task": "fn-256-the-whole-grower-runs-on-the-gpu.10",
+      "timestamp": "2026-10-12T15:29:06.896505Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b63eac066fe86b237c72bb70bd0549b08b403c8ecc38d10a4b63a358889ce85a",
+      "backend": "codex",
+      "base_sha": "1c69bf64853d4cfe4e146fe6350d7ddc209dfd70",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-39e0b33c038bca18311e3279187420e9",
+            "classification": "introduced",
+            "findingId": "finding-39e0b33c038bca18311e3279187420e9",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "53ab77e5fc4891411b6b4a32d1b2111f48c76db2",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1045,
+      "output_sha256": "fbaa5b87a64bd4d246f085d3d121c6b74cd6caeaa59fd2ab8acfd8c3f32c1d8f",
+      "reservation_id": "e50630aca2f549a99bd9af630c2cdd9b",
+      "round_consumed": true,
+      "scope": "impl:fn-256-the-whole-grower-runs-on-the-gpu.10",
+      "superseded_by": null,
+      "task": "fn-256-the-whole-grower-runs-on-the-gpu.10",
+      "timestamp": "2026-10-12T15:48:12.106213Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-256-the-whole-grower-runs-on-the-gpu.10": 1,
     "impl:fn-256-the-whole-grower-runs-on-the-gpu.2": 3,
     "impl:fn-256-the-whole-grower-runs-on-the-gpu.3": 3,
     "impl:fn-256-the-whole-grower-runs-on-the-gpu.4": 2,
@@ -1000,6 +1090,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-256-the-whole-grower-runs-on-the-gpu.10": 0,
     "impl:fn-256-the-whole-grower-runs-on-the-gpu.2": 0,
     "impl:fn-256-the-whole-grower-runs-on-the-gpu.3": 0,
     "impl:fn-256-the-whole-grower-runs-on-the-gpu.4": 0,
@@ -1022,5 +1113,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-12T14:47:58.162202Z"
+  "updated_at": "2026-10-12T15:48:12.108760Z"
 }
