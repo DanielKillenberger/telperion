@@ -123,7 +123,7 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
                     eprintln!("TRACE begun again after cycle {}", cycle - 1);
                     eprintln!("TRACE raised {:?} rec {:?} gens {} levels {} passes left {:?}", c::raised(&read), &read[c::REC..c::REC + 15], read[c::GENS], read[c::LEVELS], &read[PASS_LEFT..PASS_LEFT + 24]);
                 }
-                sizes = raised(sizes, &c::raised(&read), &read)?;
+                sizes = raised(sizes, &c::raised(&read), &read, t.budget)?;
                 // The cycle in flight read back before its buffers go.
                 late.take(gpu, cycle).await?;
                 continue 'begin;
@@ -157,7 +157,7 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
                 sent.widen(&mut sizes.widths, &read);
             }
             grew.why.push((upto, c::raised(&read).iter().map(|f| f.0).collect()));
-            sizes = raised(sizes, &c::raised(&read), &read)?;
+            sizes = raised(sizes, &c::raised(&read), &read, t.budget)?;
             continue;
         }
         b.counted(&read);

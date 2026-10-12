@@ -293,6 +293,8 @@ mod lobed_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod readback_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
+mod program_tests;
+#[cfg(all(test, not(target_arch = "wasm32")))]
 mod release_tests;
 
 /// Match the integration tests: unavailable hardware is explicit, while a

@@ -56,10 +56,23 @@ impl Program {
     }
 
     fn asked(gpu: &Gpu, desc: &wgpu::ComputePipelineDescriptor<'_>) -> Self {
+        // Natively a pipeline may be made on any thread (`make_many`), and
+        // error scopes are a thread's own, so each is made under scopes of
+        // its own and a refusal kept by name for `ready`.
         #[cfg(not(target_arch = "wasm32"))]
-        return Self {
-            made: gpu.device.create_compute_pipeline(desc),
-        };
+        {
+            let validation = gpu.device.push_error_scope(wgpu::ErrorFilter::Validation);
+            let memory = gpu.device.push_error_scope(wgpu::ErrorFilter::OutOfMemory);
+            let made = gpu.device.create_compute_pipeline(desc);
+            let memory = pollster::block_on(memory.pop());
+            let caught = memory.or(pollster::block_on(validation.pop()));
+            if let Some(error) = caught {
+                let name = desc.label.unwrap_or("unnamed").to_string();
+                let mut refused = gpu.refused.lock().expect("the refusals");
+                refused.push((name, error.to_string()));
+            }
+            Self { made }
+        }
         #[cfg(target_arch = "wasm32")]
         {
             let made = std::rc::Rc::<std::cell::OnceCell<_>>::default();
@@ -117,7 +130,15 @@ pub(crate) async fn ready(gpu: &Gpu) -> Result<()> {
         settle(pending, || gpu.lost()).await?;
     }
     #[cfg(not(target_arch = "wasm32"))]
-    let _ = gpu;
+    {
+        let refused = std::mem::take(&mut *gpu.refused.lock().expect("the refusals"));
+        if let Some(lost) = gpu.lost() {
+            return Err(lost);
+        }
+        if let Some((program, reason)) = refused.into_iter().next() {
+            return Err(RenderError::ProgramRefused { program, reason });
+        }
+    }
     Ok(())
 }
 

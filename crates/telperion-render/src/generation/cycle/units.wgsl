@@ -29,8 +29,8 @@ fn put_counts(i: u32) {
 // count lays them past the tree's, where no index it reads stands.
 fn bases(i: u32, emit: bool, after: bool) {
     let a = 4u * i;
-    let t = select(vec4<u32>(0u), vec4<u32>(lists[T_UNITS], lists[T_UNITS + 1u], lists[T_UNITS + 2u], lists[T_UNITS + 3u]), after);
-    let next = select(0u, lists[T_UNITS_B], after);
+    let t = select(vec4<u32>(0u), vec4<u32>(ls(T_UNITS), ls(T_UNITS + 1u), ls(T_UNITS + 2u), ls(T_UNITS + 3u)), after);
+    let next = select(0u, ls(T_UNITS_B), after);
     base_axes = cfg.axes_before + t.x;
     base_phyts = cfg.phyts_before + t.y;
     base_units = cfg.units_before + t.z;
@@ -71,8 +71,8 @@ fn init_main(@builtin(global_invocation_id) id: vec3<u32>) {
     if cfg.wake == 0u {
         o = op(OP_ADVANCE, Apex(inputs[2u * i], inputs[2u * i + 1u]));
         load(o.apex.axis);
-    } else if i < lists[T_LIST] {
-        let row = lists[cfg.list_at + i];
+    } else if i < ls(T_LIST) {
+        let row = ls(cfg.list_at + i);
         let g = aged(sleeper(row, S_PA), (sleeper(row, S_SLEPT) << 20u) + sleeper(row, S_SLEEP));
         set_jw(J_ROW, row);
         set_jw(J_G, g.pa);
@@ -119,8 +119,8 @@ fn decide_main(@builtin(global_invocation_id) id: vec3<u32>) {
     if jw(J_OP) != OP_ADVANCE {
         return;
     }
-    // Every job that advances writes the same word: the round was used.
-    lists[T_USED + USED_ROUNDS * min(cfg.wake, 1u) + min(cfg.round, USED_ROUNDS - 1u)] = 1u;
+    // Every job that advances marks the round used.
+    put_ls(T_USED + USED_ROUNDS * min(cfg.wake, 1u) + min(cfg.round, USED_ROUNDS - 1u), 1u);
     take_job(k);
     var o = op_of();
     o.kind = decide(o.apex, cfg.cycle);
@@ -370,7 +370,7 @@ fn close_main(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     take_job(k);
     if jw(J_OP) != OP_DONE {
-        lists[T_ROUNDS] = 1u;
+        put_ls(T_ROUNDS, 1u);
     }
     flush_next();
     if !emitting {
@@ -386,7 +386,7 @@ fn seed_main() {
     let root = mix(add64(vec2<u32>(cfg.seed_lo, cfg.seed_hi), vec2<u32>(0x7f4a7c15u, 0x9e3779b9u)));
     let pa = lived_pa(0u);
     if pa == NONE {
-        lists[T_COLLAPSED] = 1u;
+        put_ls(T_COLLAPSED, 1u);
         return;
     }
     let lineage = onto(root, pa);

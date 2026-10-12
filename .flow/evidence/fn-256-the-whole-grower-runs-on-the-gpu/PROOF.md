@@ -39,7 +39,7 @@ Every remaining restart is at cycle 4 to 18, where a restart costs a few small c
 3. **Slack and plan bounds.** The slacks start at two for the hierarchy's generations and the layout's and units' rounds. Plan bounds rise by half again, so the plan is re-recorded a few times rather than every cycle.
 4. **Table growth.**
    - The small tables (sleeping, living and woken buds) double when they grow.
-   - The large tables keep a quarter over their projection, and phytomers are clamped to the engine budget.
+   - The large tables keep a quarter over their projection. No phytomer table grows past the engine's budget, and a build past it is refused by name (`no_phytomer_table_grows_past_the_budget`, `a_build_past_the_budget_is_refused_by_name`, after Astra's round 1).
    - Wider steps (half again under 2^20 rows, then under 2^17) put the Two Trees out of device memory in the repeat test. So the moves stay: 58 on Telperion, about 0.6 s of host time.
 
 **Per phase, Telperion 82** (`CYCLE_TRACE=1`):
@@ -134,6 +134,15 @@ To run it:
 3. Open `http://localhost:5190/probe.html?tree=telperion`, or any preset id.
 
 Checked without a browser: the page's modules resolve to this worktree's `src/browser` and its Wasm, and the probe typechecks against both the stub and this branch's module. Not opened here; the owner runs it.
+
+## Astra, round 1 (DISAGREE), fixed
+
+1. **The round markers** were plain stores shared by many jobs, a WGSL data race even at one value. The units module's `lists` is now `array<atomic<u32>>` behind `ls` and `put_ls`, which also covers task 2's `T_ROUNDS` and `T_COLLAPSED` markers. The determinism, agreement and repeat tests pass, and the timings are unchanged (beech 287 ms, Telperion 1,926, Laurelin 1,785).
+2. **Error scopes are a thread's own.**
+   - Natively, each pipeline is now made under scopes of its own on the thread that makes it.
+   - A refusal is kept by name on the `Gpu`, and native `programs::ready` reports the first, as the browser path does.
+   - Test: `a_program_refused_on_a_worker_is_reported_by_name`.
+3. **The phytomer clamp** let a projection past the budget through. Fixed as above.
 
 ## Open, for the owner and the host
 

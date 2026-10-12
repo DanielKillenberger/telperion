@@ -23,7 +23,7 @@ fn gather(@builtin(global_invocation_id) id: vec3<u32>) {
     if i >= cfg.n || sleeper(i, S_WAKE) != cfg.cycle {
         return;
     }
-    lists[cfg.list_at + counts[4u * i]] = i;
+    put_ls(cfg.list_at + counts[4u * i], i);
 }
 
 // The stage a bud of `pa` that slept `slept` ticks wakes in, its time

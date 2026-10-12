@@ -130,6 +130,11 @@ pub struct Gpu {
     /// The programs the browser is compiling, until `programs::ready`.
     #[cfg(target_arch = "wasm32")]
     pub(crate) programs: std::rc::Rc<crate::programs::Pending>,
+    /// Natively, the programs the device refused, by name, each caught by
+    /// the error scopes of the thread that made it (scopes are a
+    /// thread's own), until `programs::ready` reports the first.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) refused: Arc<Mutex<Vec<(String, String)>>>,
 }
 
 impl Gpu {
@@ -270,6 +275,8 @@ impl Gpu {
             curve: Arc::default(),
             #[cfg(target_arch = "wasm32")]
             programs: Default::default(),
+            #[cfg(not(target_arch = "wasm32"))]
+            refused: Arc::default(),
         })
     }
 

@@ -71,8 +71,13 @@ fn short(flag: Flag, census: &[u32], b: &Bounds) -> Option<usize> {
 /// flag names a fault or the budget and no size passed (a size passed
 /// can fault what reads past it). A count past only the cycle's limit
 /// widens that limit's slack.
-pub(super) fn raised(mut s: Sizes, flags: &[(Flag, u32)], census: &[u32]) -> Result<Sizes> {
+pub(super) fn raised(mut s: Sizes, flags: &[(Flag, u32)], census: &[u32], budget: u32) -> Result<Sizes> {
     let refused = |what: String| super::super::io::error(what);
+    // Past the engine's budget the build is refused by name, whatever
+    // else the cycle passed: no table grows past it.
+    if flags.iter().any(|f| f.0 == Flag::Budget) {
+        return Err(refused(format!("the tree grows past the engine's budget of {budget} phytomers")));
+    }
     let sized = flags.iter().any(|f| !fault(f.0) && !(f.0 == Flag::LightErrors && f.1 != 4));
     let bounds = s.bounds;
     for k in flags.iter().filter_map(|f| short(f.0, census, &bounds)) {
@@ -87,7 +92,7 @@ pub(super) fn raised(mut s: Sizes, flags: &[(Flag, u32)], census: &[u32]) -> Res
             Flag::UnitRounds => b.rounds = (2 * b.rounds).min(64),
             Flag::LightRanges => b.lay.lights *= 2,
             Flag::Units => caps.units = twice(caps.units, census[c::UNITS]),
-            Flag::Phyts => caps.phyts = twice(caps.phyts, census[c::PHYTS]),
+            Flag::Phyts => caps.phyts = twice(caps.phyts, census[c::PHYTS]).min(budget),
             Flag::Sleepers => caps.sleepers = twice(caps.sleepers, census[c::SLEEPERS]),
             Flag::Next => caps.next = twice(caps.next, census[c::NEXT]).next_multiple_of(64),
             Flag::Woken => caps.woken = twice(caps.woken, census[c::WOKEN]),
@@ -156,9 +161,10 @@ pub(super) fn ahead(s: Sizes, read: &[u32], prev: Option<&[u32]>, budget: u32) -
     let caps = &mut n.caps;
     caps.axes = fit(caps.axes, ahead(c::AXES, read[c::AXES])).next_multiple_of(64);
     caps.units = fit(caps.units, ahead(c::UNITS, read[c::UNITS]));
-    // No build grows phytomers past its budget (`Flag::Budget`).
+    // No build grows phytomers past its budget (`Flag::Budget`), so no
+    // table holds more.
     let need = ahead(c::PHYTS, read[c::PHYTS]);
-    caps.phyts = fit(caps.phyts, need).min(budget.max(need)).max(caps.phyts);
+    caps.phyts = fit(caps.phyts, need).min(budget).max(caps.phyts);
     caps.sleepers = small(caps.sleepers, ahead(c::SLEEPERS, read[c::SLEEPERS]));
     // The living after a cycle are at most those before and the cycle's
     // new axes, which grow as the axes do.
@@ -244,4 +250,37 @@ pub(super) fn limits(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> L
         unit_rounds: [0, 1].map(|w| super::plan_units::rounds_used(read, w) + m(S_UNIT_ROUNDS)),
     }
     .within(b)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A census whose phytomers grew from `before` to `now`.
+    fn census(before: u32, now: u32) -> (Vec<u32>, Vec<u32>) {
+        let (mut prev, mut read) = (vec![0; c::WORDS], vec![0; c::WORDS]);
+        (prev[c::PHYTS], read[c::PHYTS]) = (before, now);
+        (prev, read)
+    }
+
+    /// Astra's finding: a projection past the engine's budget sizes no
+    /// phytomer table past it.
+    #[test]
+    fn no_phytomer_table_grows_past_the_budget() {
+        let budget = 20_000_000;
+        let (prev, read) = census(10_000_000, 19_000_000);
+        let next = ahead(Sizes::least(), &read, Some(&prev), budget).expect("a move");
+        assert_eq!(next.caps.phyts, budget);
+        let flags = [(Flag::Phyts, 1)];
+        let raised = raised(Sizes::least(), &flags, &read, budget).expect("a size");
+        assert_eq!(raised.caps.phyts, budget);
+    }
+
+    #[test]
+    fn a_build_past_the_budget_is_refused_by_name() {
+        let (_, read) = census(0, 20_000_001);
+        let flags = [(Flag::Budget, 1), (Flag::Phyts, 1)];
+        let said = raised(Sizes::least(), &flags, &read, 20_000_000).expect_err("refused");
+        assert!(said.to_string().contains("budget of 20000000 phytomers"), "{said}");
+    }
 }

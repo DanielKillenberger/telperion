@@ -60,7 +60,9 @@ struct Cfg {
 @group(0) @binding(4) var<storage, read_write> axes: array<u32>;
 @group(0) @binding(5) var<storage, read_write> units: array<u32>;
 @group(0) @binding(6) var<storage, read_write> phyts: array<u32>;
-@group(0) @binding(7) var<storage, read_write> lists: array<u32>;
+// Atomic words: several jobs mark one tally word (a round used, a job
+// left past the last round), which plain stores would race on.
+@group(0) @binding(7) var<storage, read_write> lists: array<atomic<u32>>;
 // Each invocation's two count records, the second from `cfg.b_at`.
 @group(0) @binding(8) var<storage, read_write> counts: array<u32>;
 
@@ -167,6 +169,14 @@ const T_ROUNDS: u32 = 21u;
 const T_USED: u32 = 24u;
 const USED_ROUNDS: u32 = 4u;
 
+fn ls(i: u32) -> u32 {
+    return atomicLoad(&lists[i]);
+}
+
+fn put_ls(i: u32, v: u32) {
+    atomicStore(&lists[i], v);
+}
+
 fn ax(i: u32, f: u32) -> u32 {
     return axes[f * cfg.axes_cap + i];
 }
@@ -188,20 +198,20 @@ fn set_phyt(p: u32, f: u32, v: u32) {
 }
 
 fn sleeper(s: u32, f: u32) -> u32 {
-    return lists[cfg.sleep_at + f * cfg.sleep_cap + s];
+    return ls(cfg.sleep_at + f * cfg.sleep_cap + s);
 }
 
 fn set_sleeper(s: u32, f: u32, v: u32) {
-    lists[cfg.sleep_at + f * cfg.sleep_cap + s] = v;
+    put_ls(cfg.sleep_at + f * cfg.sleep_cap + s, v);
 }
 
 fn set_next(k: u32, axis: u32, spent: u32) {
-    lists[cfg.next_at + k] = axis;
-    lists[cfg.next_at + cfg.next_cap + k] = spent;
+    put_ls(cfg.next_at + k, axis);
+    put_ls(cfg.next_at + cfg.next_cap + k, spent);
 }
 
 fn set_woken(k: u32, f: u32, v: u32) {
-    lists[cfg.woken_at + f * cfg.woken_cap + k] = v;
+    put_ls(cfg.woken_at + f * cfg.woken_cap + k, v);
 }
 
 // Axis `i`'s light as the f32 survival reads (`light as f32`), its
