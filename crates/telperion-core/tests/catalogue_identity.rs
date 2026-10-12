@@ -167,7 +167,9 @@
 //! a light row. With each family's old light restored (the oak 0.5, the
 //! ordinary 1/6, every other preset none), the walk's light interpolated
 //! between its ends' as before, and the oak's wire carrying its old light
-//! object, each digest was the last pin to the bit.
+//! object, each digest was the last pin to the bit. The family and walk
+//! digests were re-pinned again for the beech's leaf area (R2), which the
+//! Two Trees carry: its nine `leafArea` rows are the only rows that moved.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -203,7 +205,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        14_671_003_600_042_826_214,
+        4_184_651_136_546_985_906,
         "{}",
         digest(&text)
     );
@@ -235,7 +237,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        16_508_871_370_481_925_046,
+        9_364_681_169_171_405_013,
         "{}",
         digest(&text)
     );

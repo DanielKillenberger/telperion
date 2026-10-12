@@ -272,6 +272,8 @@
 # area index to 5.2 at 40 and 7.3 at 80, in the range measured in beech
 # forests (Glatthorn et al. 2017, For. Ecol. Manage.: 7.1 in primeval
 # and 7.4 in production stands on average; fn-248 TWIGS.md).
+# Each node lends the light's lattice one sunlit leaf of 15.723 cm²
+# (Hladká and Čaňová 2005; fn-264 R2).
 /space/ages/2/lifespan = 9.0
 /space/ages/2/internode = 0.07
 /space/ages/2/insertion = 0.3
@@ -284,6 +286,7 @@
 /space/ages/2/epitony = 0.6
 /space/ages/2/erection = 0.1
 /space/ages/2/straightening = 1.0
+/space/ages/2/leafArea = 0.0015723
 /space/ages/2/leafYears = 1.0
 /space/ages/2/form/tropism = 0.6
 /space/ages/2/form/elevation = 1.4
@@ -311,6 +314,7 @@
 /space/ages/4/relayAt = 0.15
 /space/ages/4/epitony = 0.6
 /space/ages/4/straightening = 1.0
+/space/ages/4/leafArea = 0.0015723
 /space/ages/4/leafYears = 1.0
 /space/ages/4/form/tropism = 0.6
 /space/ages/4/form/elevation = 1.35
@@ -335,6 +339,7 @@
 /space/ages/5/lifespan = 2.0
 /space/ages/5/continuation = 0.0
 /space/ages/5/divergence = 2.4
+/space/ages/5/leafArea = 0.0015723
 /space/ages/5/leafYears = 1.0
 /space/ages/5/form/tropism = 0.3
 /space/ages/5/form/elevation = 1.5707963267948966
@@ -365,6 +370,7 @@
 /space/ages/6/relayAt = 0.15
 /space/ages/6/epitony = 0.6
 /space/ages/6/straightening = 0.6
+/space/ages/6/leafArea = 0.0015723
 /space/ages/6/leafYears = 1.0
 /space/ages/6/form/tropism = 0.6
 /space/ages/6/form/elevation = 0.3
@@ -396,6 +402,7 @@
 /space/ages/7/relayAt = 0.15
 /space/ages/7/epitony = 0.6
 /space/ages/7/straightening = 0.6
+/space/ages/7/leafArea = 0.0015723
 /space/ages/7/leafYears = 1.0
 /space/ages/7/form/tropism = 0.6
 /space/ages/7/form/elevation = 0.2
@@ -421,6 +428,7 @@
 /space/ages/8/viability = 0.995
 /space/ages/8/insertion = 0.7
 /space/ages/8/straightening = 0.25
+/space/ages/8/leafArea = 0.0015723
 /space/ages/8/leafYears = 1.0
 /space/ages/8/form/tropism = 0.25
 /space/ages/8/form/elevation = 0.6
@@ -446,6 +454,7 @@
 /space/ages/9/shedding = 1.0
 /space/ages/9/internode = 0.03
 /space/ages/9/insertion = 1.0
+/space/ages/9/leafArea = 0.0015723
 /space/ages/9/leafYears = 1.0
 /space/ages/9/form/tropism = 0.8
 /space/ages/9/form/elevation = 0.35
@@ -473,6 +482,7 @@
 /space/ages/12/shedding = 1.0
 /space/ages/12/internode = 0.025
 /space/ages/12/insertion = 1.0
+/space/ages/12/leafArea = 0.0015723
 /space/ages/12/leafYears = 1.0
 /space/ages/12/form/tropism = 1.0
 /space/ages/12/form/elevation = 0.15
@@ -491,6 +501,7 @@
 /space/ages/14/shedding = 1.0
 /space/ages/14/internode = 0.006
 /space/ages/14/insertion = 0.9
+/space/ages/14/leafArea = 0.0015723
 /space/ages/14/clusterLeaves = 4.0
 /space/ages/14/clusterSpread = 0.6
 /space/ages/14/leafYears = 1.0

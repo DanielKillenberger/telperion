@@ -63,7 +63,12 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
-        leaf_area: 0.0,
+        // One leaf a node, as below, of 15.723 cm², the mean of 25 sunlit
+        // leaves of an 80-year-old, 35 m beech in a mixed stand at Poľana
+        // in 1998 (Hladká and Čaňová 2005, J. For. Sci. 51(4), Table 2;
+        // its shaded leaves 21.648 cm²); an open-grown crown is sunlit
+        // (fn-264 R2, Jev fn264-pick:18dddb1675e2f05d-3e652d-0).
+        leaf_area: 0.0015723,
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
