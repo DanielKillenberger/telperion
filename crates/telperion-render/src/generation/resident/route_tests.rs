@@ -1,8 +1,9 @@
 //! fn-256 task 3: `Generator::prepare` grows and draws a resident tree on
 //! the device whole, and a CPU delivery through the CPU's cycle, the
-//! reference. A family whose leaves stand on no regular twig stations is
-//! refused by name on the device. One generator builds every tree in
-//! turn, a large one before small ones, as a page's dials do.
+//! reference. A family that hangs retained leaf bases is refused by name
+//! on the device until they are drawn there (DESIGN.md 12.7). One
+//! generator builds every tree in turn, a large one before small ones, as
+//! a page's dials do.
 use super::super::{Delivery, Generator};
 use crate::Renderer;
 
@@ -13,7 +14,8 @@ fn family(id: &str, age: u32) -> telperion_core::presets::Family {
 }
 
 /// Every shipped preset young: drawn on the device, its leaves the CPU
-/// reference's, each tree drawn in turn; the date palm refused by name.
+/// reference's, each tree drawn in turn. A family that hangs leaf bases
+/// is refused by name, and drawn with its bases set aside.
 #[test]
 fn prepare_grows_every_preset_on_the_device_and_draws_it() {
     let Some(gpu) = crate::generation::test_gpu() else {
@@ -22,13 +24,13 @@ fn prepare_grows_every_preset_on_the_device_and_draws_it() {
     let mut renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     for &(_, id, _, _) in telperion_core::presets::CATALOGUE {
-        let family = family(id, 12);
-        let prepared = gen.prepare(&family, Delivery::Resident);
-        if id == "date-palm" {
-            let refused = prepared.err().expect("refused").to_string();
-            assert!(refused.contains("no regular twig stations"), "{refused}");
-            continue;
+        let mut family = family(id, 12);
+        if telperion_core::pipeline::executor::hangs_bases(&family) {
+            let refused = gen.prepare(&family, Delivery::Resident).err().expect("refused");
+            assert!(refused.to_string().contains("retained leaf bases"), "{refused}");
+            family.canopy.leaf_bases = 0;
         }
+        let prepared = gen.prepare(&family, Delivery::Resident);
         let prepared = prepared.unwrap_or_else(|e| panic!("{id}: {e}"));
         assert!(prepared.wood.is_some(), "{id}: not the device path");
         let whole = pollster::block_on(gen.prepare_whole(&family, Delivery::Resident)).unwrap();

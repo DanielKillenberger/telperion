@@ -90,12 +90,19 @@ pub fn reach_terms(family: &Family, height: f64) -> Result<[f64; 4]> {
     Ok(Inputs::of(family, envelope).plan.reach?.terms())
 }
 
-/// Whether `family`'s leaves stand on regular twig stations, which an
-/// executor drawing the tree itself numbers (fn-212 task 10): the date
-/// palm's fronds stand on none.
+/// Whether an executor drawing the tree itself places `family`'s leaves:
+/// on its twig stations, or in a rosette at each stem apex (fn-212 task
+/// 10, fn-256), with a twig layer and no limb clumping.
 pub fn stations(family: &Family) -> bool {
     let inputs = Inputs::of(family, Envelope::default());
-    prepared::supports_stations(inputs.leaves.canopy, inputs.plan.twig.ok())
+    foliage::plan::supports(inputs.leaves.canopy, inputs.plan.twig.ok())
+}
+
+/// Whether `family` hangs retained leaf bases on its stems, wood with
+/// cells of its own that the device does not draw yet (fn-256 DESIGN.md
+/// 12.7, their own spec).
+pub fn hangs_bases(family: &Family) -> bool {
+    super::branching::hangs_leaf_bases(&family.canopy)
 }
 
 /// Stage 3's descriptors for a tree another executor holds whole and

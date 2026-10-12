@@ -71,6 +71,8 @@ fn station(index:u32) -> vec3<u32> {
     while lo+1u<hi { let mid=lo+(hi-lo)/2u; if segments[mid].range.x<=index { lo=mid; } else { hi=mid; } }
     let seg=segments[lo];
     var k=seg.range.z+index-seg.range.x;
+    // A rosette's frond: its stations are its leaflets (fn-256).
+    if seg.distance.y < -1.5 { return leaflet(seg,k); }
     // A segment some of whose stations shed their leaves (fn-248): the
     // leaf's station is the kept one its place among them names.
     if bitcast<u32>(seg.normal.w)!=0xffffffffu {
@@ -102,19 +104,59 @@ fn station(index:u32) -> vec3<u32> {
     axis.y+=config.lean.w;
     if dot(axis,axis)<=1e-12 { axis=radial; }
     axis=normalize(axis);
+    return packed(point,axis,tangent,normal,seg.range.w,k,1.0);
+}
+// Leaflet `j` of a frond's segment (`rosette.rs`'s `fan`,
+// `leaflet::leaflets`): on the rachis that leaves the frond's point on
+// its heading, bent by its arch toward the frame's lift, at the leaflet
+// pitch to alternate sides, the last closed by the terminal share and a
+// spine at its own pitch and share; a lone placement on the frond's
+// heading itself. A skirt frond's leaflets wither.
+fn leaflet(seg:Segment, j:u32) -> vec3<u32> {
+    let count=seg.range.y; let heading=seg.tangent.xyz; let length=seg.a.w;
+    var point=seg.a.xyz; var axis=heading; var tangent=seg.b.xyz; var normal=seg.normal.xyz;
+    var share=seg.b.w;
+    if count>1u {
+        var lift=vec3<f32>(0.0,1.0,0.0)-heading*heading.y;
+        if dot(lift,lift)>1e-12 { lift=normalize(lift); } else { lift=square_to(heading); }
+        let arch=seg.binormal.x;
+        let t=f32(j+1u)/f32(count);
+        point=seg.a.xyz+heading*(length*t)+lift*(arch*length*t*t);
+        let run=normalize(heading+lift*(2.0*arch*t));
+        var closing=1.0; if j+1u==count { closing=1.0-seg.binormal.z; }
+        let hand=select(-1.0,1.0,j%2u==0u);
+        var pitch=seg.binormal.y;
+        if j<u32(seg.distance.z) && seg.tangent.w>0.0 { pitch=seg.binormal.w; share*=seg.tangent.w; }
+        axis=rotate(run,lift,hand*pitch*closing);
+        tangent=run; normal=cross(heading,lift);
+    }
+    var words=packed(point,axis,tangent,normal,seg.range.w,j,share);
+    if seg.distance.x>0.5 { words.z|=LEAF_WITHERED; }
+    return words;
+}
+// A unit vector square to `v` (`Vec3::perpendicular`).
+fn square_to(v:vec3<f32>) -> vec3<f32> {
+    let a=abs(v); var reference=vec3<f32>(0.0,0.0,1.0);
+    if a.x<=a.y && a.x<=a.z { reference=vec3<f32>(1.0,0.0,0.0); } else if a.y<=a.z { reference=vec3<f32>(0.0,1.0,0.0); }
+    return normalize(cross(reference,v));
+}
+// A leaf at `point` along `axis`, framed by `tangent` and `normal`, its
+// draws on `key` from its ordinal `k`, its size times `share`, as the
+// leaf words placement writes.
+fn packed(point:vec3<f32>, axis_in:vec3<f32>, tangent:vec3<f32>, normal:vec3<f32>, key:u32, k:u32, share:f32) -> vec3<u32> {
+    var axis=axis_in;
     var face=vec3<f32>(0.0,1.0,0.0)-axis*axis.y;
     if dot(face,face)<=1e-12 { face=tangent-axis*dot(tangent,axis); }
     if dot(face,face)<=1e-12 { face=normal-axis*dot(normal,axis); }
     face=normalize(face); var side=normalize(cross(axis,face));
     var draw=k*select(1u,4u,config.shape.w>0.0);
-    let key=seg.range.w;
     if config.shape.w>0.0 {
         let z=random(key,draw)*2.0-1.0; let phi=random(key,draw+1u)*6.283185307179586;
         let ring=sqrt(max(1.0-z*z,0.0)); let jitter=vec3<f32>(ring*cos(phi),z,ring*sin(phi));
         let angle=config.shape.w*random(key,draw+2u);
         axis=rotate(axis,jitter,angle);face=rotate(face,jitter,angle);side=rotate(side,jitter,angle); draw+=3u;
     }
-    let scale=config.size.x*(1.0+config.size.y*(random(key,draw)*2.0-1.0));
+    let scale=config.size.x*(1.0+config.size.y*(random(key,draw)*2.0-1.0))*share;
     if !finite(point) || !finite(axis) || !finite(face) || !finite(side) || !(scale>=0.0 && scale<=65504.0) {
         atomicOr(&summary[1],2u);
     }

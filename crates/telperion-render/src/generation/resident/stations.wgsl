@@ -14,7 +14,10 @@
 // drawing on the tip's cluster stream, and its wood bears no station.
 // Each fine node's florets are counted beside its runs and scanned with
 // them, and each bloom that keeps one is written as a record placement
-// reads (fn-229, `blooms`).
+// reads (fn-229, `blooms`). Where the canopy stands a rosette, no wood
+// bears and no tip clusters: each stem apex is a run of its own, a
+// segment a frond, its stations the frond's leaflets (`rosette.rs`;
+// fn-256, DESIGN.md 12.7.1).
 
 struct Cfg {
     n: u32,
@@ -37,6 +40,11 @@ struct Cfg {
     _c: u32,
     // The blooms' rows (`bloom.wgsl`).
     flower: Flower,
+    // The rosette's rows (`stations.rs`'s `rosette_rows`): fronds, skirt
+    // fronds, divergence, depth; pitch, its spread, the skirt's pitch and
+    // length; leaflets, rachis length, arch, leaflet pitch; terminal share,
+    // spines, their share and pitch.
+    rosette: array<vec4<f32>, 4>,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -61,6 +69,10 @@ const FINE: u32 = 8u;
 // (`dress.wgsl`).
 const CLUSTERED: u32 = 32u;
 const TIP: u32 = 64u;
+// A stem node (`dress.wgsl`), and the mark `kids` leaves on a stem's
+// parent above its children's count.
+const STEM: u32 = 128u;
+const STEM_KID: u32 = 0x80000000u;
 const LEAVES: u32 = 8u;
 // A node's station words: its children, its bearing children that are not
 // seams and the last of them, and whether it bears.
@@ -115,6 +127,19 @@ fn fine(i: u32) -> bool {
     return (f & MADE) != 0u && (f & FINE) != 0u;
 }
 
+// The fronds of each rosette, living and dead; none where the canopy
+// stands no rosette.
+fn fronds() -> u32 {
+    return u32(cfg.rosette[0].x) + u32(cfg.rosette[0].y);
+}
+
+// A stem's apex, which a rosette crowns (`Tree::stem_apices`): a drawn
+// stem node no stem continues.
+fn apex(i: u32) -> bool {
+    let stem = (word(i, 9u) & STEM) != 0u;
+    return fronds() > 0u && fine(i) && stem && (atomicLoad(&st[i * SW]) & STEM_KID) == 0u;
+}
+
 fn bears(i: u32) -> bool {
     return fine(i) && atomicLoad(&st[i * SW + 3u]) != 0u;
 }
@@ -122,7 +147,7 @@ fn bears(i: u32) -> bool {
 // A short shoot's tip the device seats a cluster at.
 // None where the canopy bears no leaves, though the tree may flower.
 fn tip(i: u32) -> bool {
-    return cfg.leaves != 0u && fine(i) && (word(i, 9u) & TIP) != 0u;
+    return cfg.leaves != 0u && fronds() == 0u && fine(i) && (word(i, 9u) & TIP) != 0u;
 }
 
 // The 32-bit finaliser (`tree::mix32`).
@@ -140,12 +165,17 @@ fn kids(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     atomicAdd(&st[parent(i) * SW], 1u);
+    if (word(i, 9u) & STEM) != 0u {
+        atomicOr(&st[parent(i) * SW], STEM_KID);
+    }
 }
 
 @compute @workgroup_size(64)
 fn bear(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = index(id);
-    if i >= cfg.n || !fine(i) || cfg.leaves == 0u {
+    // A stem that bears a frond crown bears nothing along its length
+    // (`plan::bearing_runs`).
+    if i >= cfg.n || !fine(i) || cfg.leaves == 0u || fronds() > 0u {
         return;
     }
     let radius = nodes[i * NW + 3u];
@@ -154,7 +184,7 @@ fn bear(@builtin(global_invocation_id) id: vec3<u32>) {
     if (word(i, 9u) & CLUSTERED) != 0u {
         return;
     }
-    let twig = radius < cfg.structural && atomicLoad(&st[i * SW]) == 0u;
+    let twig = radius < cfg.structural && (atomicLoad(&st[i * SW]) & ~STEM_KID) == 0u;
     // In whole micrometres, as the CPU executor compares them (task 10).
     let slender = cfg.slender > 0u && micrometres(max(start, radius)) <= cfg.slender;
     if !(twig || slender) {
@@ -184,7 +214,7 @@ fn next(at: u32) -> u32 {
 
 // Whether node `i` starts a bearing run, or is a tip's.
 fn starts_run(i: u32) -> bool {
-    return (bears(i) && !continues(parent(i), i)) || tip(i);
+    return (bears(i) && !continues(parent(i), i)) || tip(i) || apex(i);
 }
 
 // The node a drawn node's tree is drawn from: up its parents to the
@@ -315,6 +345,13 @@ fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
     if tip(first) {
         runs[r * RW + 1u] = word(first, 9u) >> LEAVES;
         runs[r * RW + 2u] = 1u;
+        runs[r * RW + 3u] = 2u;
+        return;
+    }
+    // A rosette: a segment a frond, a station a leaflet.
+    if apex(first) {
+        runs[r * RW + 1u] = fronds() * u32(cfg.rosette[2].x);
+        runs[r * RW + 2u] = fronds();
         runs[r * RW + 3u] = 2u;
         return;
     }
@@ -514,6 +551,69 @@ fn contact(node: u32) -> vec4<u32> {
     return vec4<u32>(base + (i - 1u) * cfg.segments, base + i * cfg.segments, base, base + (count - 1u) * cfg.segments);
 }
 
+// The fronds of the rosette crowning `apex`, a segment each from `g`
+// on, its leaflets from station `station0` on: `rosette::fronds`' spiral.
+// A frond's segment, for `pack.wgsl`: where it leaves the axis and its
+// rachis length; the radial it leans out along and its size share; its
+// heading and its spines' share; the apex's axis (every leaflet kept);
+// the rachis's arch, the leaflet pitch, the terminal share and the
+// spines' pitch; whether it withers, the frond's kind (-2), its spines;
+// its first leaflet, leaflets and key.
+fn rosette(apex: u32, station0: u32, g: u32) {
+    let at = pos(apex);
+    let along = at - pos(parent(apex));
+    var axis = vec3<f32>(0.0, 1.0, 0.0);
+    if dot(along, along) > 1e-18 {
+        axis = normalize(along);
+    }
+    // `rosette::frame`.
+    var normal = vec3<f32>(0.0, 1.0, 0.0) - axis * axis.y;
+    if dot(normal, normal) > 1e-12 {
+        normal = normalize(normal);
+    } else {
+        normal = perpendicular(axis);
+    }
+    let binormal = cross(axis, normal);
+    let r = cfg.rosette;
+    let living = u32(r[0].x);
+    let oldest = f32(max(living, 1u) - 1u);
+    let steps = max(oldest, 1.0);
+    let leaflets = u32(r[2].x);
+    let stream = mix32(word(apex, 25u) ^ KEY_ROSETTE.x);
+    for (var k = 0u; k < fronds(); k++) {
+        let turn = f32(k) * r[0].z;
+        let radial = normal * cos(turn) + binormal * sin(turn);
+        var pitch = r[1].z;
+        var depth = r[0].w * (f32(k) / steps);
+        var share = r[1].w;
+        if k < living {
+            var age = 0.0;
+            if oldest > 0.0 {
+                age = f32(k) / oldest;
+            }
+            pitch = r[1].x + r[1].y * age;
+            depth = r[0].w * age;
+            share = 1.0;
+        }
+        let heading = normalize(axis * cos(pitch) + radial * sin(pitch));
+        let s = (g + k) * GW;
+        put4(s, vec4<f32>(at - axis * depth, r[2].y * share));
+        put4(s + 4u, vec4<f32>(radial, share));
+        put4(s + 8u, vec4<f32>(heading, r[3].z));
+        put4(s + 12u, vec4<f32>(axis, 0.0));
+        put4(s + 16u, vec4<f32>(r[2].z, r[2].w, r[3].x, r[3].w));
+        put4(s + 20u, vec4<f32>(f32(k >= living), -2.0, r[3].y, 0.0));
+        segs[s + 15u] = NONE;
+        segs[s + 24u] = station0 + k * leaflets;
+        segs[s + 25u] = leaflets;
+        segs[s + 26u] = 0u;
+        segs[s + 27u] = mix32(stream + (k + 1u) * 0x9e3779b9u);
+        for (var c = 0u; c < 4u; c++) {
+            segs[s + 28u + c] = 0u;
+        }
+    }
+}
+
 @compute @workgroup_size(64)
 fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
     let r = index(id);
@@ -525,6 +625,10 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
     let n = runs[r * RW + 3u];
     let station0 = runs[r * RW + 4u];
     var g = runs[r * RW + 5u];
+    if apex(first) {
+        rosette(first, station0, g);
+        return;
+    }
     if tip(first) {
         // `prepared::prepare_inner`'s cluster segment.
         let at = g * GW;

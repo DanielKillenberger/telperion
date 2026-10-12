@@ -56,10 +56,13 @@ fn differing(a: &Snapshot, b: &Snapshot) -> Vec<&'static str> {
 fn every_device_preset_builds_the_same_leaves_each_time() {
     let repeats: usize = std::env::var("REPEATS").map_or(2, |r| r.parse().unwrap());
     for &(_, id, _, _) in telperion_core::presets::CATALOGUE {
-        let family = telperion_core::presets::by_identity(id).unwrap();
+        let mut family = telperion_core::presets::by_identity(id).unwrap();
         if !telperion_core::pipeline::executor::stations(&family) {
             continue;
         }
+        // Retained leaf bases set aside until the device draws them
+        // (DESIGN.md 12.7).
+        family.canopy.leaf_bases = 0;
         let Some(first) = snapshot(&family) else {
             return;
         };

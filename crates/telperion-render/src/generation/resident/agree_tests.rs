@@ -19,21 +19,20 @@ use telperion_core::surface::{CurvePoint, CLUSTER_WORDS, POINT_WORDS};
 /// The age the gate holds every preset the device draws at: young.
 const AGE: u32 = 12;
 
+/// The preset at `age`, its retained leaf bases set aside: wood the
+/// device does not draw until their own spec lands (DESIGN.md 12.7).
 fn family(id: &str, age: u32) -> Family {
     let mut family = telperion_core::presets::by_identity(id).unwrap();
     family.age = f64::from(age);
+    family.canopy.leaf_bases = 0;
     family
 }
 
-/// The presets the device draws (the date palm's fronds stand on no
-/// regular station), or `AGREE_PRESETS`'s.
+/// Every shipped preset, or `AGREE_PRESETS`'s.
 fn presets() -> Vec<String> {
     match std::env::var("AGREE_PRESETS") {
         Ok(ids) => ids.split(',').map(String::from).collect(),
-        Err(_) => (telperion_core::presets::CATALOGUE.iter())
-            .map(|c| c.1.to_string())
-            .filter(|id| id != "date-palm")
-            .collect(),
+        Err(_) => (telperion_core::presets::CATALOGUE.iter()).map(|c| c.1.to_string()).collect(),
     }
 }
 
@@ -168,7 +167,11 @@ fn stations(gpu: &crate::Gpu, f: &Family) -> (u64, u64, usize) {
     }
     let x = executor::grow(f).unwrap().expansion().unwrap();
     let (_, shared) = x.curve_with_contacts().unwrap();
-    let theirs = x.compact_stations(&shared).unwrap().unwrap();
+    // A rosette's leaves stand on no station of the CPU's: none to count
+    // against (`every_rosette_is_placed_as_the_cpu_places_it`).
+    let Some(theirs) = x.compact_stations(&shared).unwrap() else {
+        return (0, 0, 0);
+    };
     let mut cpu: HashMap<u32, u64> = HashMap::new();
     for s in &theirs.segments {
         *cpu.entry(s.key).or_default() += u64::from(s.count);
@@ -191,6 +194,53 @@ fn every_preset_stations_its_runs_as_the_cpu_does() {
         assert!(differ * 100 <= cpu as usize, "{id}: {differ} runs differ");
     }
 }
+
+/// Every preset whose canopy stands a rosette: the device places every
+/// leaflet where the CPU does, in the CPU's order (apex, frond, leaflet),
+/// within the lineage tolerance, and withers the same ones. The draws
+/// are each executor's own, as a station's are.
+#[test]
+fn every_rosette_is_placed_as_the_cpu_places_it() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    for id in presets() {
+        let f = family(&id, age());
+        if f.canopy.rosette_fronds == 0 {
+            continue;
+        }
+        let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+        let gen = Generator::new(&renderer).unwrap();
+        let kit = gen.kit();
+        let built = pollster::block_on(super::build::build(&gpu, &gen, &kit.kernels, &kit.tools, &f)).unwrap();
+        let resident = built.prepared.resident.as_ref().unwrap();
+        let leaves = pollster::block_on(io::read_leaves_async(&gpu, resident.leaves.buffer(), resident.count)).unwrap();
+        let mine = built.prepared.mesh.foliage.instances.reference;
+        let theirs = executor::grow(&f).unwrap().expansion().unwrap().mesh().unwrap().foliage.instances;
+        assert_eq!(leaves.len(), theirs.leaves.len(), "{id}: leaves");
+        let height = theirs.reference.extent.y.max(1e-9);
+        let (mut apart, mut withered) = (0.0f64, 0usize);
+        for (a, b) in leaves.iter().zip(&theirs.leaves) {
+            apart = apart.max(mine.position(*a).distance(theirs.reference.position(*b)) / height);
+            withered += usize::from(telperion_core::foliage::withered(*a) != telperion_core::foliage::withered(*b));
+        }
+        // The sizes are drawn on each executor's stream: alike in the mean.
+        let mean = |s: &mut dyn Iterator<Item = f64>| s.sum::<f64>() / leaves.len() as f64;
+        let size = mean(&mut leaves.iter().map(|l| mine.scale(*l)));
+        let theirs_size = mean(&mut theirs.leaves.iter().map(|l| theirs.reference.scale(*l)));
+        let sized = (size / theirs_size - 1.0).abs();
+        println!("{id} {}: {} leaves, apart {apart:e} of the height, withering differs on {withered}, mean size apart {sized:e}", age(), leaves.len());
+        assert_eq!(withered, 0, "{id}: withered");
+        assert!(apart <= ROSETTE_APART, "{id}: {apart}");
+        assert!(sized <= 0.02, "{id}: mean size {size} against {theirs_size}");
+    }
+}
+
+/// The farthest a device leaflet may stand from the CPU's, a share of the
+/// tree's height: each box quantises a position to 1/65,535 of its extent
+/// (1.5e-5 of the height each), and the trees agree by lineage. Measured
+/// 3.2e-5 at 12 and 4.1e-5 at 40 on the date palm; about twice that.
+const ROSETTE_APART: f64 = 1e-4;
 
 /// The device's curve against the CPU's, run by run (matched at their
 /// first point within a millimetre): runs matched, unmatched, with their

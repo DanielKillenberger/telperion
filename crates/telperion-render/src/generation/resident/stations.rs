@@ -8,6 +8,7 @@ use super::sort::Sorter;
 use super::sweep::Swept;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
+use telperion_core::foliage::CanopyParams;
 use telperion_core::pipeline::executor::Expansion;
 
 const STATIONS: &str = include_str!("stations.wgsl");
@@ -66,6 +67,9 @@ pub(super) struct Rows {
     pub flower: Option<[[f32; 4]; 3]>,
     /// Whether some wood sheds its leaves by age (fn-248).
     pub retains: bool,
+    /// The rosette's rows (`rosette_rows`; fn-256): zero fronds where the
+    /// canopy stands none.
+    pub rosette: [[f32; 4]; 4],
 }
 
 pub(super) struct Stationed {
@@ -149,6 +153,7 @@ impl Stationer {
         ];
         let flower = rows.flower.unwrap_or_default();
         words.extend(flower.as_flattened().iter().map(|v| v.to_bits()));
+        words.extend(rows.rosette.as_flattened().iter().map(|v| v.to_bits()));
         let usage = wgpu::BufferUsages::UNIFORM;
         let bytes = bytemuck::cast_slice(&words);
         let cfg = io::buffer(gpu, "stations cfg", bytes.len() as u64, usage, bytes)?;
@@ -348,5 +353,28 @@ pub(super) fn station_rows(x: &Expansion, segments: u32, flower: Option<[[f32; 4
         leaves: canopy.size != 0.0,
         flower,
         retains: x.retains(),
+        rosette: rosette_rows(&canopy),
     }
+}
+
+/// The rosette's rows as `stations.wgsl` and `pack.wgsl` read them
+/// (`rosette.rs`, `leaflet.rs`): its fronds and skirt, divergence and
+/// depth; the living pitch and its spread, the skirt's pitch and length;
+/// the leaflets a frond, its rachis length and arch, the leaflet pitch;
+/// the terminal share, and the spines' count, share and pitch. Every row
+/// zero where the canopy stands no rosette or bears no leaves.
+fn rosette_rows(p: &CanopyParams) -> [[f32; 4]; 4] {
+    if p.rosette_fronds == 0 || p.size == 0.0 {
+        return [[0.0; 4]; 4];
+    }
+    let skirt = if p.skirt_length > 0.0 { p.skirt_fronds } else { 0 };
+    let leaflets = if p.leaflet_count > 1 && p.rachis_length > 0.0 { p.leaflet_count } else { 1 };
+    let radians = f64::to_radians;
+    [
+        [f64::from(p.rosette_fronds), f64::from(skirt), radians(p.rosette_divergence), p.rosette_depth],
+        [radians(p.rosette_pitch), radians(p.rosette_pitch_spread), radians(p.skirt_pitch), p.skirt_length],
+        [f64::from(leaflets), p.rachis_length, p.rachis_arch, radians(p.leaflet_pitch)],
+        [p.terminal_leaflet, f64::from(p.acanthophylls), p.acanthophyll_length, radians(p.acanthophyll_pitch)],
+    ]
+    .map(|r| r.map(|v| v as f32))
 }

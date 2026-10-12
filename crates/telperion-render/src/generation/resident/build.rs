@@ -105,7 +105,10 @@ pub(super) async fn build(
 ) -> Result<Built> {
     let growth = executor::growth(family)?;
     if !executor::stations(family) {
-        return Err(refused("leaves that stand on no regular twig stations"));
+        return Err(refused("leaves the device places on neither twig stations nor a rosette"));
+    }
+    if executor::hangs_bases(family) {
+        return Err(refused("retained leaf bases, wood the device does not draw yet"));
     }
     let flowers = growth.species.states.iter().any(|s| s.flowering > 0.0);
     let mut t = Timed::default();
