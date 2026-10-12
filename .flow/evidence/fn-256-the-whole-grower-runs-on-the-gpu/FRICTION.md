@@ -186,3 +186,10 @@
 - **Hindered:** the worker's evidence commit (`37edd6d3d`) swept the staged deletions in with it, so that one commit removes files its sources still reference and does not build. The next commit completes it.
 - **Cost:** one broken intermediate commit; a few minutes to find it.
 - **Would remove it:** one editor per worktree at a time, or `git commit -- <paths>` (commit only the named paths) in the workers' commit recipe.
+
+## 2026-10-12, task 3: no stated route from the device's tree to the draw (worker)
+
+- **Doing:** reading task 3's anchor, COUNCIL.md, R3B.md, DESIGN.md and EXECUTOR.md, then the production routing (`preparation.rs`, `fine.rs`, `fine/resident.rs`, core `pipeline/space.rs` and `pipeline/executor.rs`), before any edit.
+- **Hindered:** the task routes the harness through the device cycle, but nothing says how the cycle's settled node table reaches the drawing stages. Today the presets `apart` admits (spruce, beech) are drawn on the device from their fine roots (dress, sweep, stations, rings, handoff), and the CPU converts only the structure above the cut. The rest are drawn by `prepare_whole` on the CPU. Deleting the fine roots leaves two routes with very different costs, and choosing between them is a design call (AGENTS.md, "Dispatch and escalation").
+- **Cost:** about 25 minutes of reading; nothing built.
+- **Would remove it:** the route named in the task, together with whether the browser's `WASM_KEPT` refusal may come back for the large trees.
