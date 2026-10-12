@@ -43,6 +43,7 @@ mod shed;
 mod species;
 mod spruce;
 mod structure;
+mod tolerance;
 mod transcendental;
 mod upward;
 
@@ -77,7 +78,7 @@ pub use palm::palm;
 pub use presence::{FLOOR, RATE, SPAN};
 pub use species::scale::{settings, zone_settings};
 pub use species::{
-    Form, NodeLaw, PaState, Species, Zone, BARE, MAX_BUDS, MEDIAL, SPARE, TOP, ZONES,
+    Form, NodeLaw, PaState, Species, Zone, BARE, MAX_BUDS, MAX_LEAF_AREA, MEDIAL, SPARE, TOP, ZONES,
 };
 pub use spruce::spruce;
 pub use structure::{Axis, CountTable, Join, Origin, Phytomer, Structure, Vec3};

@@ -15,6 +15,14 @@ use crate::chain::{self, on_chain};
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use std::f64::consts::{FRAC_PI_2, PI};
 
+/// One leaf a node, in m² (fn-264 R2, host decision 1, derived): the
+/// mid-points of the blade's 3-7.5 x 1.5-6 cm, "triangular-ovate or
+/// rhombic-ovate" (Flora of China 4, *Betula pendula*), times 0.67, the
+/// area over length x width of an ovate leaf in the strict sense
+/// (Schrader et al. 2021, Ann. Bot. 128: 395, Table 1). A short shoot's
+/// "two or three leaves" stand one to a node (KU03).
+const LEAF_AREA: f64 = (3.0 + 7.5) / 2.0 * (1.5 + 6.0) / 2.0 * 0.67 * 1e-4;
+
 /// The birch's ages on the shared reference axis (`chain.rs`), youngest
 /// first: the young stem, the stem in the crown, its old top of small
 /// forks, the limbs and their boughs, the young stem's passing branches,
@@ -77,7 +85,7 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
-        leaf_area: 0.0,
+        leaf_area: LEAF_AREA,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
@@ -118,6 +126,11 @@ fn unit(
         zone(top.0 .0, top.0 .1, top.1),
     ]
 }
+
+/// Its shade tolerance T (Niinemets and Valladares 2006, Appendix A;
+/// Jev fn264-pick:18dddb15cf3d5bc7-3e6351-0), which sets how it answers
+/// light (`tolerance.rs`, fn-264 R2).
+const SHADE_TOLERANCE: f64 = 2.03;
 
 /// The birch, one growth cycle a year.
 pub fn birch() -> Species {
@@ -375,7 +388,7 @@ pub fn birch() -> Species {
         },
         ..state(6, 0.0, vec![zone(2, 3, &[])])
     };
-    on_chain(vec![
+    let mut ages = vec![
         (TRUNK, trunk),
         (YOUNG, young),
         (LEADER, leader),
@@ -385,5 +398,7 @@ pub fn birch() -> Species {
         (SPRIG, sprig),
         (BRANCH, branch),
         (SHORT, short),
-    ])
+    ];
+    crate::tolerance::respond(&mut ages, SHADE_TOLERANCE);
+    on_chain(ages)
 }

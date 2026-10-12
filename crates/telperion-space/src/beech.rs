@@ -63,7 +63,12 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
-        leaf_area: 0.0,
+        // One leaf a node, as below, of 15.723 cm², the mean of 25 sunlit
+        // leaves of an 80-year-old, 35 m beech in a mixed stand at Poľana
+        // in 1998 (Hladká and Čaňová 2005, J. For. Sci. 51(4), Table 2;
+        // its shaded leaves 21.648 cm²); an open-grown crown is sunlit
+        // (fn-264 R2, Jev fn264-pick:18dddb1675e2f05d-3e652d-0).
+        leaf_area: 0.0015723,
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
@@ -82,6 +87,11 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         form: Form::default(),
     }
 }
+
+/// Its shade tolerance T (Niinemets and Valladares 2006, Appendix A;
+/// Jev fn264-pick:18dddb17a32041f1-3e698a-0), which sets how it answers
+/// light (`tolerance.rs`, fn-264 R2).
+const SHADE_TOLERANCE: f64 = 4.56;
 
 /// The beech, one growth cycle a year.
 pub fn beech() -> Species {
@@ -319,7 +329,7 @@ pub fn beech() -> Species {
         },
         ..state(4, 0.0, vec![zone(3, 5, &[])])
     };
-    on_chain(vec![
+    let mut ages = vec![
         (TRUNK, trunk),
         (LEADER, leader),
         (FORK, fork),
@@ -329,5 +339,7 @@ pub fn beech() -> Species {
         (BRANCH, branch),
         (SHOOT, shoot),
         (SHORT, short),
-    ])
+    ];
+    crate::tolerance::respond(&mut ages, SHADE_TOLERANCE);
+    on_chain(ages)
 }

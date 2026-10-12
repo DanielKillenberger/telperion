@@ -167,7 +167,12 @@ fn a_tree_over_the_wasm_ceiling_is_refused_by_name() {
 #[test]
 fn a_tree_expected_over_the_ceiling_is_refused_before_it_grows() {
     let family = Preset::EuropeanBeech.parameters();
-    let species = family.space.species.unwrap();
+    let mut species = family.space.species.unwrap();
+    // The beech as it grew unlit, before fn-264: the predictor foresees
+    // only a species that reads no light.
+    for s in &mut species.states {
+        (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+    }
     let expected = telperion_space::expected_kept(&species, 15)
         .unwrap()
         .unwrap();
@@ -268,4 +273,18 @@ fn a_node_keeps_its_identity_across_ages() {
         .filter(|id| last.contains(id))
         .count();
     assert!(kept * 2 > last.len(), "{kept} of {} kept", last.len());
+}
+
+/// Every shipped preset grows under the one site light (fn-264 R1a): the
+/// request both executors grow by carries `SITE`, whose extinction is not
+/// zero, so every preset's leaves shade.
+#[test]
+fn every_shipped_preset_grows_under_the_site_light() {
+    use crate::presets::{by_identity, space::SITE, CATALOGUE};
+    assert!(SITE.extinction > 0.0);
+    for &(_, id, ..) in CATALOGUE {
+        let family = by_identity(id).unwrap();
+        let (_, request) = asked(&GrowInput::of(&family)).unwrap();
+        assert_eq!(request.light, SITE, "{id}");
+    }
 }
