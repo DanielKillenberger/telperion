@@ -300,37 +300,3 @@ fn add_shifted(table: &mut CountTable, sub: &CountTable, born: usize, weight: f6
 
 #[cfg(test)]
 mod tests;
-
-/// fn-209 probe P2: the expected leaf area a lateral of each PA made `m`
-/// cycles before the tree's age grows in the tree's last cycle, per unit
-/// base scale, by `[pa][m]`: its phytomers of that cycle (counted whole)
-/// times each one's PA's leaf area. `windows` is the species whose
-/// windows the tree grows under: `species` itself, or the species it is
-/// taken at a constant light from (`alone/field.rs`, `at_light`).
-pub(crate) fn last_leaves(species: &Species, windows: &Species, age: u32) -> Vec<Vec<f64>> {
-    let laterals: Vec<Vec<Vec<f64>>> = species.states.iter().map(|s| s.laterals()).collect();
-    let windows = Windows::new(windows, age);
-    let mut memo = Memo::default();
-    let mut walk = Walk {
-        species,
-        laterals: &laterals,
-        memo: &mut memo,
-        living: Living::new(species, Some(&windows)),
-    };
-    let n = species.states.len();
-    (0..n)
-        .map(|pa| {
-            (0..=age as usize)
-                .map(|m| {
-                    if m == 0 {
-                        return 0.0;
-                    }
-                    let t = walk.counts(pa, m, Carried::default(), None);
-                    (0..n)
-                        .map(|q| t.get(q, m) * species.states[q].leaf_area)
-                        .sum()
-                })
-                .collect()
-        })
-        .collect()
-}

@@ -202,12 +202,9 @@ fn dump_rows() {
     }
 }
 
-/// Every field of every row and curve, to the bit.
+/// Every field of every row, to the bit.
 fn whole(rows: &Rows) -> String {
-    format!(
-        "{:?} {:?} {:?} {}",
-        rows.rows, rows.curves, rows.seed, rows.age
-    )
+    format!("{:?} {:?} {}", rows.rows, rows.seed, rows.age)
 }
 
 /// fn-249 R1: a shelf reads a species' rows once per age and mode, the

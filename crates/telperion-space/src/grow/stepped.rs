@@ -1,379 +1,98 @@
-//! The stepped executor (fn-211.4, host decision 2 on probe (a),
-//! DESIGN-INTERLEAVE.md; its plan in PHASES.md): the engine's own grower
-//! scoped to each fine root, stepped through every cycle's phases beside
-//! a coarse grower that holds the structure above the cut, with only
-//! per-root totals and the light lattice crossing between them.
+//! The stepped executor's coarse run (fn-211.4, fn-214 task 2): the
+//! engine's own grower holding the structure above a cut, stepped
+//! through every cycle's phases with each fine root standing as its
+//! aggregate (`stands.rs`), never grown, with only per-root totals and
+//! the light lattice crossing between them. The site's coarse field is
+//! its one reader (`fine::grow_coarse`); fn-257 replaces it. The fine
+//! roots once grown each by a grower of its own went with fn-256.
 //!
 //! A fine root is a lateral whose bearer stands above the cut and whose
 //! expected kept phytomers (the closed form's `count`) are at most the
-//! cut. The coarse grower grows it in the cycle it is made, then hands it
-//! and what it bore that cycle to an item of its own (`handover.rs`),
-//! keeping a placeholder at its index so its bearer's children keep their
-//! order. Item axis 0 is a stub for the bearer, axis 1 the root. Each
-//! cycle:
+//! cut. Each cycle:
 //!
-//! 1. **(i) balance**: each item sums its subtree's light, upkeep and
-//!    living status; the coarse grower takes them at the placeholder,
-//!    decides the root's shedding there and hands down its shed flag,
-//!    kept share and memory, and the item decides inside the root.
-//! 2. **(ii) demand**: each item sums its subtree's lit presence; the
-//!    coarse grower splits its vigour with it at the placeholder and hands
-//!    down the root's incoming vigour, which the item splits inside.
-//! 3. **(iii) normalisers**: every grower's per-PA partials merge in the
-//!    items' order, whatever order they ran in, and every grower sizes its
-//!    buds by them.
-//! 4. **(iv)** each grower grows, wakes and lays its own; new roots are
-//!    handed over; every grower's leaves are deposited into one lattice
-//!    where its rough layout put them, and each reads its own buds.
-//!
-//! The tree is then assembled and settled as today's engine settles it.
-//! An experiment behind its own entry point: `grow` never builds one.
-mod buds;
+//! 1. **(i) balance**: each stand's totals at its placeholder; the coarse
+//!    grower decides the root's shedding there.
+//! 2. **(ii) demand**: each stand's lit presence; the coarse grower splits
+//!    its vigour with it at the placeholder.
+//! 3. **(iii) normalisers**: the coarse grower's per-PA sums with the
+//!    stands', and the buds sized by them.
+//! 4. **(iv)** the coarse grower grows, wakes and lays; new roots stand;
+//!    its leaves and the stands' are deposited into one lattice, and each
+//!    reads its own.
 mod feedback;
 mod handover;
 mod phases;
-mod schedule;
-mod settle;
 mod standing;
 mod stands;
 
-use super::partition::Digest;
-use super::{start, Certain, Grower, Options, Request};
-use crate::bounded::Expected;
-use crate::closed_form::predictor::Predictor;
+use super::Grower;
+use super::Request;
 use crate::error::{Error, Result};
-use crate::fine::{Fine, Plan};
-use crate::species::Species;
-use crate::structure::Structure;
-use schedule::Ran;
 pub(crate) use standing::stand;
 pub(crate) use stands::Stood;
 use std::sync::Arc;
-
-/// A tree grown by the stepped executor: its state hashed after each
-/// phase of each cycle (`partition::Digest`), and its fine roots.
-pub struct Stepped {
-    pub structure: Structure,
-    pub phases: Vec<[u64; 4]>,
-    /// Fine roots handed over, and the phytomers grown by their growers
-    /// and by the coarse one.
-    pub roots: usize,
-    pub fine_grown: u64,
-    pub coarse_grown: u64,
-    /// Seconds each cycle took, and the assembly and settle.
-    pub years: Vec<f64>,
-    pub settle: f64,
-}
-
-/// Grows `species` with every fine root at `cut` its own grower, their
-/// partials merged and their leaves deposited in the items' order.
-pub fn grow_stepped(species: &Species, request: Request, expected: &Expected, cut: f64) -> Result<Stepped> {
-    let at = (Some(counts(expected)), cut);
-    run(species, request, at, Keep::Digests)
-}
-
-/// The build's executor (fn-211 task 12, host decision (b)): every root
-/// at the cut its own grower, the cut read from the predictor's counts
-/// (fn-209 host decision 9), the items visited forward.
-pub(crate) fn build(species: &Species, request: Request, plan: Plan) -> Result<Fine> {
-    let at = (None, plan.cut);
-    Ok(run_with(species, request, at, plan, (Keep::Tree, Certain::Skip))?.1)
-}
-
-/// COUNCIL.md's early test 1: the build, its laterals certain to be shed
-/// skipped as today (`grow == false`) or grown, with its cycles' and
-/// settle's seconds and the phytomers each side of the cut grew.
-pub fn grow_build(species: &Species, request: Request, grow: bool) -> Result<Stepped> {
-    let certain = if grow { Certain::Grow } else { Certain::Skip };
-    let plan = Plan::default();
-    let (mut stepped, fine) = run_with(species, request, (None, plan.cut), plan, (Keep::Tree, certain))?;
-    stepped.structure = crate::fine::lineage_order(fine.structure);
-    Ok(stepped)
-}
-
-/// What a run keeps beside its tree: nothing (the build), or each phase's
-/// digest.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) enum Keep {
-    Tree,
-    Digests,
-}
 
 /// The closed form's expected kept phytomers of a bud of a PA born in a
 /// cycle: what the cut reads.
 pub(super) type Counts = Arc<dyn Fn(usize, u32) -> f64 + Send + Sync>;
 
-fn counts(expected: &Expected) -> Counts {
-    let rows = expected.rows();
-    Arc::new(move |pa, birth| rows.lateral(pa, birth).count)
-}
-
-fn run(
-    species: &Species,
-    request: Request,
-    at: (Option<Counts>, f64),
-    keep: Keep,
-) -> Result<Stepped> {
-    let (mut stepped, fine) = run_with(species, request, at, Plan::default(), (keep, Certain::Skip))?;
-    stepped.structure = fine.structure;
-    Ok(stepped)
-}
-
-/// A run, its tree also reported root by root (`Fine`), the roots that
-/// go over as buds spread by `plan`.
-fn run_with(
-    species: &Species,
-    request: Request,
-    (counts, cut): (Option<Counts>, f64),
-    plan: Plan,
-    (keep, certain): (Keep, Certain),
-) -> Result<(Stepped, Fine)> {
-    let options = Options {
-        certain,
-        ..Options::default()
-    };
-    let (mut coarse, _) = start(species, request, true, options)?;
-    if plan.threads > 0 {
-        coarse.threads = plan.threads;
-    }
-    // The cut reads the predictor's counts where none are given.
-    let counts = counts.unwrap_or_else(|| {
-        let predictor = Predictor::new(species, &coarse.rules.windows, request.age);
-        // A PA no zone draws makes no bud: none is ever fine.
-        Arc::new(move |pa, birth| predictor.count(pa, birth).unwrap_or(f64::INFINITY))
-    });
-    let mut x = Executor::new(coarse, (counts, cut), request, keep);
-    x.plan = plan;
-    x.hand_buds();
-    let mut years = Vec::with_capacity(request.age as usize);
-    for cycle in 1..=request.age {
-        let started = crate::clock::seconds();
-        x.cycle(cycle)?;
-        years.push(crate::clock::seconds() - started);
-    }
-    let started = crate::clock::seconds();
-    x.grow_buds()?;
-    if keep != Keep::Tree {
-        x.grown();
-    }
-    let roots = x.items.len() + x.finished.len();
-    let fine_grown = (x.items.iter().map(|i| i.g.rules.grown))
-        .chain(x.finished.iter().map(|f| f.root.work.grown))
-        .sum();
-    let coarse_grown = x.coarse.rules.grown;
-    let phases = std::mem::take(&mut x.phases);
-    let fine = x.settle()?;
-    let stepped = Stepped {
-        // The tree is the report's (`run` moves it here).
-        structure: Structure {
-            age: request.age,
-            pas: species.states.len(),
-            axes: Vec::new(),
-        },
-        phases,
-        roots,
-        fine_grown,
-        coarse_grown,
-        years,
-        settle: crate::clock::seconds() - started,
-    };
-    Ok((stepped, fine))
-}
-
-/// A fine root's grower and its placeholder's index in the coarse one.
-pub(super) struct Item<'a> {
-    pub at: usize,
-    pub g: Grower<'a>,
-    /// The next cycle it steps (`u32::MAX` once nothing in it lives or
-    /// sleeps on), and the cycle it died, if it has (task 12).
-    pub next: u32,
-    pub died: Option<u32>,
-}
-
 pub(super) struct Executor<'a> {
     pub coarse: Grower<'a>,
-    pub items: Vec<Item<'a>>,
     pub counts: Counts,
     pub cut: f64,
     pub request: Request,
-    pub phases: Vec<[u64; 4]>,
-    pub keep: Keep,
-    /// Each cycle's growth digest from the coarse grower, the dead items'
-    /// part added at each cycle, and each cycle's from the items' runs.
-    pub coarse_grown: Vec<Option<Digest>>,
-    pub burials: Vec<Digest>,
-    pub grown_parts: Vec<Digest>,
-    /// The items due at each cycle, those that died in this one, and the
-    /// phytomers the items have grown.
-    pub due: Vec<Vec<usize>>,
-    pub died: Vec<usize>,
-    pub items_grown: u64,
-    /// The roots handed over as buds, grown and finished at the end, and
-    /// whether the structure above was marked for them.
-    pub finished: Vec<buds::Finished>,
-    pub marked: bool,
-    /// How the roots are spread over the cores: their order, chunking
-    /// and cores.
-    pub plan: Plan,
     /// Where the roots stand as their aggregates, never grown (fn-214).
-    pub stands: Option<stands::Stands>,
+    pub stands: stands::Stands,
 }
 
 impl<'a> Executor<'a> {
     /// An executor about to grow `coarse`'s first cycle, its roots at
-    /// `cut` by `rows`.
-    pub(super) fn new(
-        coarse: Grower<'a>,
-        (counts, cut): (Counts, f64),
-        request: Request,
-        keep: Keep,
-    ) -> Self {
-        Self {
-            coarse,
-            items: Vec::new(),
-            counts,
-            cut,
-            request,
-            phases: Vec::new(),
-            keep,
-            coarse_grown: Vec::new(),
-            burials: Vec::new(),
-            grown_parts: Vec::new(),
-            due: vec![Vec::new(); request.age as usize + 2],
-            died: Vec::new(),
-            items_grown: 0,
-            finished: Vec::new(),
-            marked: false,
-            plan: Plan::default(),
-            stands: None,
-        }
+    /// `cut` by `counts`, standing on `stands`.
+    pub(super) fn new(coarse: Grower<'a>, (counts, cut): (Counts, f64), request: Request, stands: stands::Stands) -> Self {
+        Self { coarse, counts, cut, request, stands }
     }
 
     fn cycle(&mut self, cycle: u32) -> Result<()> {
         let first_new = self.coarse.axes.len();
-        let living = |g: &Grower| -> Vec<usize> { g.live.iter().map(|a| a.axis).collect() };
-        let advanced = living(&self.coarse);
+        let advanced: Vec<usize> = self.coarse.live.iter().map(|a| a.axis).collect();
         self.balance(cycle);
-        self.mark(cycle, 0);
         let factors = self.allot();
         self.stand_advance(cycle, &factors);
-        self.mark(cycle, 1);
-        // Phase (iv): each grower grows, wakes and lays its own (the
-        // count the growth digest takes is the same once laid).
+        // Phase (iv): the coarse grower grows, wakes and lays its own.
         let sketching = self.coarse.sketch.is_some() && cycle < self.request.age;
-        let step = |g: &mut Grower, c: u32, advanced: &[usize]| -> Result<()> {
-            let live = std::mem::take(&mut g.live);
-            g.grow_live(live, c, &mut |_| {})?;
-            g.wake(c)?;
-            if sketching {
-                g.sketch(c, advanced)?;
-            }
-            Ok(())
-        };
-        step(&mut self.coarse, cycle, &advanced)?;
-        // Each item due runs to its next synchronisation point; until it
-        // is reached, nothing reads it, so it runs there, with every other
-        // item due by then, all at once.
-        let (reach, keep) = (self.reach(cycle), self.keep);
-        let mut ks = std::mem::take(&mut self.due[cycle as usize]);
-        if reach > cycle {
-            self.due[cycle as usize + 1].append(&mut ks);
+        let g = &mut self.coarse;
+        let live = std::mem::take(&mut g.live);
+        g.grow_live(live, cycle, &mut |_| {})?;
+        g.wake(cycle)?;
+        if sketching {
+            g.sketch(cycle, &advanced)?;
         }
-        // Only the items due are handed out, each piece to the same pool
-        // thread while the items due stay the same (`cores::pinned`).
-        ks.sort_unstable();
-        let mut want = ks.iter().copied().peekable();
-        let due: Vec<(usize, &mut Item)> = (self.items.iter_mut().enumerate())
-            .filter(|(k, _)| want.next_if_eq(k).is_some())
-            .collect();
-        let threads = self.coarse.threads;
-        let ran = crate::cores::pinned(due, ITEMS, threads, &|_, (k, item)| -> Result<Ran> {
-            let before = item.g.rules.grown;
-            let mut ran = Ran {
-                item: k,
-                from: item.next,
-                ..Ran::default()
-            };
-            for c in item.next..=reach {
-                let advanced = living(&item.g);
-                step(&mut item.g, c, &advanced)?;
-                if keep != Keep::Tree {
-                    let mut part = item.g.digest(2);
-                    part.counts[0] -= 2;
-                    ran.parts.push(part);
-                }
-                item.next = c + 1;
-                if item.g.idle(c + 1) {
-                    (item.next, item.died, ran.died) = (u32::MAX, Some(c), Some(c));
-                    break;
-                }
-            }
-            (ran.next, ran.grown) = (item.next, item.g.rules.grown - before);
-            Ok(ran)
-        });
-        for r in ran {
-            let r = r?;
-            self.items_grown += r.grown;
-            match r.died {
-                Some(_) => self.died.push(r.item),
-                None => self.due[r.next as usize].push(r.item),
-            }
-            self.record(r);
-        }
-        let grown = self.coarse.rules.grown + self.items_grown;
-        if grown > u64::from(self.request.budget) {
+        if self.coarse.rules.grown > u64::from(self.request.budget) {
             return Err(Error::Budget {
                 limit: self.request.budget,
             });
         }
-        self.mark(cycle, 2);
-        let buds = self.coarse.rules.hands.is_some();
-        if (sketching || self.coarse.sketch.is_none()) && !buds {
-            match self.stands.is_some() {
-                true => self.stand_over(first_new),
-                false => self.hand_over(first_new, cycle + 1),
-            }
+        if sketching || self.coarse.sketch.is_none() {
+            self.stand_over(first_new);
         }
         if sketching {
             self.shade(cycle);
-            self.mark(cycle, 3);
-        }
-        // An item that died this cycle shades no more.
-        for k in std::mem::take(&mut self.died) {
-            self.items[k].g.leaves.clear();
         }
         Ok(())
     }
 
-    /// `work` on every item on every core, in the items' order: each
-    /// item touches only itself.
-    fn each<T: Send, R: Send>(
-        &mut self,
-        with: Vec<T>,
-        work: &(dyn Fn(&mut Item<'a>, T) -> R + Sync),
-    ) -> Vec<R> {
-        let threads = self.coarse.threads;
-        let items: Vec<_> = self.items.iter_mut().zip(with).collect();
-        crate::cores::pinned(items, ITEMS, threads, &|_, (item, t)| work(item, t))
-    }
-
-    fn grower(&self, k: usize) -> &Grower<'a> {
-        match k {
-            usize::MAX => &self.coarse,
-            k => &self.items[k].g,
+    /// The last cycle a root made in `cycle` runs to before anything
+    /// crosses between it and the structure above: its light and layout
+    /// at a cycle's end, and the balance or allotment reading its wood at
+    /// a cycle's start.
+    pub(super) fn reach(&self, cycle: u32) -> u32 {
+        let c = &self.coarse;
+        let before = c.balances() || c.allots();
+        let after = |k: u32| c.sketch.is_some() && k < self.request.age;
+        let mut last = cycle;
+        while last < self.request.age && !after(last) && !before {
+            last += 1;
         }
-    }
-
-    fn grower_mut(&mut self, k: usize) -> &mut Grower<'a> {
-        match k {
-            usize::MAX => &mut self.coarse,
-            k => &mut self.items[k].g,
-        }
+        last
     }
 }
-
-/// The items in a piece of the work spread over the cores.
-pub(super) const ITEMS: usize = 64;
-
-#[cfg(test)]
-mod tests;

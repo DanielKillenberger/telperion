@@ -37,12 +37,6 @@ impl Load {
         }
     }
 
-    /// Its mass and moment as reals.
-    pub(crate) fn real(self) -> (f64, Vec3) {
-        let m = self.moment;
-        (f64::from(self.mass), crate::geometry::q::v3(m))
-    }
-
     fn add(&mut self, other: Load) {
         self.mass += other.mass;
         self.moment = add(self.moment, other.moment);

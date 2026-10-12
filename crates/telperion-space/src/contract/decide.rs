@@ -288,11 +288,6 @@ pub fn kept(dead: f32, context: Option<f32>, d: u64) -> bool {
     d >= t
 }
 
-/// `-log2` of a chance, for a sum: `INF` for none.
-pub(crate) fn neg_log(p: f64) -> f32 {
-    neg_log2_of(p)
-}
-
 /// The sum of two `-log2` chances: their product's.
 pub fn and(a: f32, b: f32) -> f32 {
     if a >= INF || b >= INF {

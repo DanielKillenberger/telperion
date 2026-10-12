@@ -42,7 +42,7 @@ pub fn grow_capture_settled(species: &Species, request: Request) -> Result<Captu
 /// laid, is captured as its error (`s_error`: 1 collapsed, 2 below the
 /// ground, 3 beyond the contract's reach; then its grown axis).
 pub fn grow_capture_settled_at(species: &Species, request: Request, to: SettleTo) -> Result<Capture> {
-    let (mut g, keeps) = start(species, request, true, Options::default())?;
+    let (mut g, keeps) = start(species, request, Options::default())?;
     (g.one, g.rules.one) = (true, true);
     g.working = Some(Box::new(Working::reference()));
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));
@@ -280,7 +280,7 @@ pub fn grow_cycle_is_the_reference(species: &Species, request: Request) -> Resul
 /// 2, its living's lived and alive bits), and the phytomers each cycle
 /// ends holding (`r_held`): what the device's retirement is held to.
 pub fn grow_capture_retired(species: &Species, request: Request) -> Result<Capture> {
-    let (mut g, _) = start(species, request, true, Options::default())?;
+    let (mut g, _) = start(species, request, Options::default())?;
     (g.one, g.rules.one) = (true, true);
     g.working = Some(Box::default());
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));

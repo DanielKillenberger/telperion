@@ -269,31 +269,3 @@ fn a_node_keeps_its_identity_across_ages() {
         .count();
     assert!(kept * 2 > last.len(), "{kept} of {} kept", last.len());
 }
-
-/// A node's identity does not depend on where the fine cut falls (fn-220
-/// R2): the tree as `grow` returns it and as the stepped build grows it
-/// at any cut converts to the same identities.
-#[test]
-fn a_node_keeps_its_identity_across_cuts() {
-    let family = Preset::EuropeanBeech.parameters();
-    let species = family.space.species.unwrap();
-    let request = Request {
-        age: 15,
-        seed: 7,
-        budget: BUDGET,
-        light: family.space.light,
-    };
-    let (trunk, rows) = (&family.space.trunk, pa_rows(&species));
-    let whole = telperion_space::grow(&species, request).unwrap();
-    let reference = identities(&convert(&whole, (trunk, &rows)));
-    for cut in [0.0, 16.0, 1024.0] {
-        let plan = telperion_space::Plan {
-            cut,
-            ..Default::default()
-        };
-        let fine = telperion_space::grow_roots(&species, request, plan).unwrap();
-        let ordered = telperion_space::lineage_order(fine.structure);
-        let tree = convert(&ordered, (trunk, &rows));
-        assert_eq!(identities(&tree), reference, "cut {cut}");
-    }
-}

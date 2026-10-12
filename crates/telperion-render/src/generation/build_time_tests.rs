@@ -26,11 +26,20 @@ fn build_time() {
         let mut count = 0;
         for _ in 0..2 {
             let t = super::Clock::now();
-            let prepared = gen.prepare(&family, Delivery::Resident).unwrap();
+            let prepared = match gen.prepare(&family, Delivery::Resident) {
+                Ok(p) => p,
+                Err(e) => {
+                    println!("| {id} | {} | refused: {e} | | |", family.age);
+                    break;
+                }
+            };
             ms.push(t.elapsed_ms());
             count = prepared.count();
             drop(prepared);
             gpu.device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
+        }
+        if ms.len() < 2 {
+            continue;
         }
         println!("| {id} | {} | {:.0} | {:.0} | {count} |", family.age, ms[0], ms[1]);
     }

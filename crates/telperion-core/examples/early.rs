@@ -1,16 +1,13 @@
 //! fn-255, COUNCIL.md's early tests 1 and 2 (2026-10-11).
 //!
-//! - `three <preset> <age|default> <seed> <skip|grow|cycle>`: one of the
-//!   three builds, one a process so each has its own peak memory: F4's
-//!   build with laterals certain to be shed skipped (today) or grown, and
-//!   the one cycle with its census.
+//! - `three <preset> <age|default> <seed> cycle`: the one cycle with its
+//!   census, one a process so it has its own peak memory. F4's builds
+//!   beside it went with fn-256.
 //!
 //!   cargo run --profile ci -p telperion-core --example early -- three norway-spruce default 42 cycle
 use std::time::Instant;
 use telperion_core::presets::Preset;
-use telperion_space::{
-    grow_build, grow_census, Census, Light, Request, Species, Structure,
-};
+use telperion_space::{grow_census, Census, Light, Request, Species, Structure};
 
 const PRESETS: [(Preset, &str); 8] = [
     (Preset::EuropeanBeech, "european-beech"),
@@ -44,28 +41,13 @@ fn preset(name: &str) -> (Species, Light, f64) {
 
 fn three(species: &Species, r: Request, which: &str) {
     let started = Instant::now();
-    if which == "cycle" {
-        match grow_census(species, r) {
-            Ok(c) => {
-                tree("cycle", &c.structure, c.grown, c.seconds);
-                census(&c.census.expect("a census"));
-            }
-            Err(e) => println!("  cycle: {e} after {:.1} s", started.elapsed().as_secs_f64()),
+    assert_eq!(which, "cycle", "F4's builds went with fn-256");
+    match grow_census(species, r) {
+        Ok(c) => {
+            tree("cycle", &c.structure, c.grown, c.seconds);
+            census(&c.census.expect("a census"));
         }
-        return;
-    }
-    match grow_build(species, r, which == "grow") {
-        Ok(s) => {
-            let grown = s.coarse_grown + s.fine_grown;
-            tree(which, &s.structure, grown, started.elapsed().as_secs_f64());
-            let cycles: f64 = s.years.iter().sum();
-            let busiest = s.years.iter().cloned().fold(0.0, f64::max);
-            println!(
-                "  phases: structure above the cut, its cycles {cycles:.2} s (slowest {busiest:.3} s); roots grown alone and the tree settled {:.2} s; roots {}, grown above the cut {} and in roots {}",
-                s.settle, s.roots, s.coarse_grown, s.fine_grown
-            );
-        }
-        Err(e) => println!("  {which}: {e} after {:.1} s", started.elapsed().as_secs_f64()),
+        Err(e) => println!("  cycle: {e} after {:.1} s", started.elapsed().as_secs_f64()),
     }
 }
 

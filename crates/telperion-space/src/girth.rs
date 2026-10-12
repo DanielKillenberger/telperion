@@ -18,7 +18,7 @@ use crate::species::{Form, Species};
 use crate::structure::{Axis, Join, Origin, Phytomer, Structure};
 use crate::upward::Tree;
 pub(crate) use disused::{
-    above, attachments, attachments_given, attachments_past, bases, disused, disused_below,
+    above, attachments, attachments_given, attachments_past, bases, disused,
     grown_mean, leaf_partials, Grew, Stand,
 };
 

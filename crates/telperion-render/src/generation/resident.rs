@@ -110,6 +110,14 @@ mod budget;
 #[cfg(test)]
 mod agree_tests;
 mod build;
+#[cfg(test)]
+mod hang_tests;
+#[cfg(test)]
+mod repeat_tests;
+#[cfg(test)]
+mod room_tests;
+#[cfg(test)]
+mod route_tests;
 pub(super) mod fold;
 mod florets;
 mod handoff;

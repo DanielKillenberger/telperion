@@ -3,7 +3,7 @@
 //! standing as its aggregate (`stands.rs`), then handed to the coarse
 //! field's settle as grown, marked and assigned.
 use super::stands::{Stands, Stood};
-use super::{Counts, Executor, Keep};
+use super::{Counts, Executor};
 use crate::closed_form::boundary::Rows;
 use crate::error::{refuse, Result};
 use crate::fine::Made;
@@ -34,22 +34,22 @@ pub(crate) fn stand(
     rows: Arc<Rows>,
     cut: f64,
 ) -> Result<Standing<'_>> {
-    let (coarse, _) = start(species, request, true, Options::default())?;
+    let (coarse, _) = start(species, request, Options::default())?;
     let counts: Counts = {
         let rows = rows.clone();
         Arc::new(move |pa, birth| rows.lateral(pa, birth).count)
     };
-    let mut x = Executor::new(coarse, (counts, cut), request, Keep::Tree);
+    let stands = Stands {
+        rows,
+        roots: Vec::new(),
+    };
+    let mut x = Executor::new(coarse, (counts, cut), request, stands);
     if x.reach(1) >= request.age {
         return refuse(
             "cut",
             "a standing root needs a structure above the cut that reads it each cycle",
         );
     }
-    x.stands = Some(Stands {
-        rows,
-        roots: Vec::new(),
-    });
     for cycle in 1..=request.age {
         x.cycle(cycle)?;
     }
@@ -67,7 +67,7 @@ impl<'s> Executor<'s> {
             ..
         } = self;
         coarse.mark();
-        let mut roots = stands.expect("standing").roots;
+        let mut roots = stands.roots;
         // A root that woke keeps what its bearer kept of it.
         let mut held = vec![None; coarse.axes.len()];
         for (k, r) in roots.iter().enumerate() {

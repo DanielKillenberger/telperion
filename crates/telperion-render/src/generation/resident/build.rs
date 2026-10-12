@@ -20,7 +20,7 @@ use crate::buffer::{Held, Owned};
 use crate::{Gpu, Result};
 use telperion_core::foliage::Instances;
 use telperion_core::mesh::{Foliage, TreeMesh};
-use telperion_core::pipeline::executor::{self, beyond, Expansion, Summaries};
+use telperion_core::pipeline::executor::{self, beyond, Summaries};
 use telperion_core::presets::Family;
 use telperion_core::surface::{Curve, SurfaceMesh};
 use telperion_core::Error;
@@ -69,14 +69,10 @@ impl Timed {
     }
 }
 
-/// A build: the prepared tree, its timings, and what a test reads beside
-/// the buffers the submit takes (the expansion's rows, the stations).
+/// A build: the prepared tree, and the stations a test reads beside the
+/// buffers the submit takes.
 pub(super) struct Built {
     pub prepared: Prepared,
-    #[cfg_attr(not(test), allow(dead_code))]
-    pub timed: Timed,
-    #[cfg_attr(not(test), allow(dead_code))]
-    pub expansion: Expansion,
     #[cfg_attr(not(test), allow(dead_code))]
     pub device: Stationed,
 }
@@ -267,12 +263,7 @@ pub(super) async fn build(
         backend: Backend::Gpu,
         metrics: m,
     };
-    Ok(Built {
-        prepared,
-        timed: t,
-        expansion: x,
-        device,
-    })
+    Ok(Built { prepared, device })
 }
 
 /// The 16-word placement `summaries`, copied into one buffer in `encoder`

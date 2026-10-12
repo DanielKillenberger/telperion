@@ -69,8 +69,6 @@ pub(super) struct Rows {
 }
 
 pub(super) struct Stationed {
-    #[cfg_attr(not(test), allow(dead_code))]
-    pub runs: u32,
     pub stations: u32,
     pub segments: u32,
     pub buffer: Owned,
@@ -194,7 +192,6 @@ impl Stationer {
     ) -> Result<(Stationed, Owned)> {
         if !rows.leaves && rows.flower.is_none() {
             let stationed = Stationed {
-                runs: 0,
                 stations: 0,
                 segments: 0,
                 buffer: storage(gpu, "station segments", 0)?,
@@ -319,7 +316,6 @@ impl Stationer {
         gpu.submit([e.finish()]);
         io::complete(gpu).await?;
         let stationed = Stationed {
-            runs: n,
             stations,
             segments,
             buffer,

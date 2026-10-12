@@ -201,7 +201,7 @@ fn run_beside(
     beside: Beside,
 ) -> Result<(Grown, Besides)> {
     let started = crate::clock::seconds();
-    let (mut grower, keeps) = start(species, request, lay, options)?;
+    let (mut grower, keeps) = start(species, request, options)?;
     grower.oracle = beside.oracle.map(Box::new);
     grower.couple = beside.couple.map(Box::new);
     stage(Stage::Pass(Pass::Windows));
@@ -227,7 +227,6 @@ fn run_beside(
 fn start<'a>(
     species: &'a Species,
     request: Request,
-    lay: bool,
     options: Options,
 ) -> Result<(Grower<'a>, bool)> {
     species.validate()?;
@@ -236,11 +235,9 @@ fn start<'a>(
         return refuse("age", "a tree grows at least one cycle");
     }
     let laterals: Vec<_> = species.states.iter().map(PaState::laterals).collect();
-    // The rough layout is grown only where light shades and a bud
-    // reads it, or where `sketch` asks for it: without a reader the
-    // tree is the same to the bit (fn-197's `tests/light.rs`).
-    let read = species.reads_light() || !lay || options.unread_light;
-    let sketch = (request.light.shades() && read).then(|| Sketch::new(request.light));
+    // The rough layout is grown wherever light shades: every bud reads
+    // it (fn-255).
+    let sketch = request.light.shades().then(|| Sketch::new(request.light));
     // What shedding will drop is grown only where something reads it
     // while it lives: the light, or the girth of what bore it.
     let keeps = keeps(species);
@@ -348,23 +345,6 @@ struct Grower<'a> {
     light_seconds: f64,
     census: Option<Box<cycle::Census>>,
     working: Option<Box<cycle::Working>>,
-}
-
-/// Whether the realized settle (`fine::settle`) takes `species` apart from
-/// its fine roots on another executor, and why not where it does not: its
-/// roots grow alone, which no bud that reads light does (`alone::rules`),
-/// and the device's roots carry no as-grown exchange (fn-211 task 12), so
-/// such a species is built by the stepped executor on the CPU. A recorded
-/// gap, read by the executor that would hold the roots (fn-212 task 10),
-/// never a fallback.
-pub fn apart(species: &Species) -> std::result::Result<(), &'static str> {
-    if species.reads_light() {
-        Err("its buds read light, which its roots grown alone do not carry (fn-211)")
-    } else if keeps(species) {
-        Err("its shed pipes and leaf girth read the tree as grown (fn-211 task 12)")
-    } else {
-        Ok(())
-    }
 }
 
 /// Whether any PA reads the tree as grown: its shed pipes or its leaves'

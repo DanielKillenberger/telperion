@@ -338,8 +338,4 @@ pub(crate) fn above(parents: &[Option<usize>], fade: &[f64], top: f32) -> Vec<f3
 }
 
 impl Grown {
-    /// Axis `i`'s base radius as grown.
-    pub fn radius(&self, i: usize) -> f64 {
-        self.links[i].radius
-    }
 }

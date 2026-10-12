@@ -14,8 +14,6 @@ pub(super) const FOLD: &str = include_str!("fold.wgsl");
 const CA: u32 = 12;
 pub(in crate::generation) const CV: usize = 32;
 pub(in crate::generation) const CA_WORDS: usize = CA as usize;
-#[cfg(test)]
-const MADE: u32 = 2;
 /// `fold.wgsl`'s sums: the folds, the widest node, the box, the kept
 /// count, the widest node's id, then the bins.
 const SUMS: usize = 16 + BINS;
@@ -211,31 +209,3 @@ impl Dressed {
     }
 }
 
-#[cfg(test)]
-impl Dressed {
-    /// One drawn wave of `nodes` (y up), each made and its own id.
-    pub(super) fn of_nodes(gpu: &Gpu, nodes: &[[f32; 3]]) -> Result<Self> {
-        let mut records = vec![0.0f32; nodes.len() * CV];
-        for (k, (r, p)) in records.chunks_mut(CV).zip(nodes).enumerate() {
-            r[..3].copy_from_slice(p);
-            r[6] = f32::from_bits(MADE);
-            r[14] = f32::from_bits(k as u32);
-        }
-        let data = bytemuck::cast_slice(&records);
-        let buffer = storage(gpu, "drawn", records.len(), data)?;
-        let phyts = nodes.len() as u32;
-        let waves = vec![Drawn {
-            buffer,
-            axes: 0,
-            phyts,
-            base: 0,
-            stubs: false,
-        }];
-        let sums = storage(gpu, "fold sums", SUMS, bytemuck::cast_slice(&empty_sums()))?;
-        Ok(Self {
-            waves,
-            ids: phyts,
-            sums,
-        })
-    }
-}

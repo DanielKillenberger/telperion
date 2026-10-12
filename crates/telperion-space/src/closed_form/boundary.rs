@@ -41,17 +41,13 @@ pub(crate) struct Row {
     pub along: f64,
 }
 
-/// One core's rows, by PA and age, each with its extinction curve.
-type Read = Vec<((usize, usize), (Row, Vec<f64>))>;
+/// One core's rows, by PA and age.
+type Read = Vec<((usize, usize), Row)>;
 
 /// Every row a bud of the species can need at one age.
 pub(crate) struct Rows {
     age: usize,
     rows: Vec<Row>,
-    /// Each row's extinction curve: the chance its subtree's last living
-    /// cycle is at most its birth plus t, for t = 0 to its age (fn-209
-    /// probe P2: what a bearer's shedding reads of the buds it bears).
-    curves: Vec<Vec<f64>>,
     seed: Row,
 }
 
@@ -103,15 +99,12 @@ impl Rows {
             }
         });
         let mut rows = vec![Row::default(); species.states.len() * (m_max + 1)];
-        let mut curves = vec![Vec::new(); rows.len()];
-        for ((pa, m), (row, curve)) in done.into_iter().flat_map(|d| d.into_inner().unwrap()) {
+        for ((pa, m), row) in done.into_iter().flat_map(|d| d.into_inner().unwrap()) {
             rows[pa * (m_max + 1) + m] = row;
-            curves[pa * (m_max + 1) + m] = curve;
         }
         Self {
             age: m_max,
             rows,
-            curves,
             seed: seed.into_inner().unwrap(),
         }
     }
@@ -130,19 +123,6 @@ impl Rows {
     #[cfg(test)]
     pub(crate) fn row_at(&self, pa: usize, m: usize) -> Option<&Row> {
         self.rows.get(pa * (self.age + 1) + m).filter(|r| r.e > 0.0)
-    }
-
-    /// The chance that a lateral of `pa` made in cycle `birth` has no
-    /// living apex past cycle `t`: its extinction curve, 0 before its
-    /// birth.
-    pub fn dead_by(&self, pa: usize, birth: u32, t: i64) -> f64 {
-        let m = self.age.saturating_sub(birth as usize);
-        let curve = &self.curves[pa * (self.age + 1) + m];
-        let at = t - i64::from(birth);
-        if at < 0 {
-            return 0.0;
-        }
-        curve[(at as usize).min(curve.len() - 1)]
     }
 
     /// The cut's predictor read off the rows: each count is the row's,
@@ -240,15 +220,12 @@ pub(super) fn borne(species: &Species) -> Vec<bool> {
 }
 
 /// A lateral of `pa` made `m` cycles before the tree's age.
-fn read(kept: &mut Kept, species: &Species, pa: usize, m: usize) -> (Row, Vec<f64>) {
+fn read(kept: &mut Kept, species: &Species, pa: usize, m: usize) -> Row {
     let delay = species.states[pa].shedding;
     let grown = kept.of(pa, m, Carried::default(), None);
     let faded = kept.shed((pa, m, Carried::default(), None), delay);
     let reach = kept.reach_bound(pa, m, Carried::default(), None);
-    (
-        row(&faded, &grown, m, reach),
-        grown.a[..=m.min(grown.a.len() - 1)].to_vec(),
-    )
+    row(&faded, &grown, m, reach)
 }
 
 fn row(faded: &Table, grown: &Table, m: usize, reach: f64) -> Row {

@@ -1,26 +1,51 @@
-//! fn-256 task 3: the resident build, the device's whole tree, against
-//! the CPU's reference (the CPU's cycle, drawn through `prepare_whole`),
-//! by what each draws.
+//! fn-256 task 3, the render gate's agreement: the device's whole tree
+//! against the CPU's reference (the CPU's cycle, converted and drawn
+//! through `prepare_whole`), by lineage. Each node the device's dress
+//! drew is matched to the CPU conversion's by its phytomer's key (a
+//! relay's join by its node key), and each run's stations by its first
+//! node's key. Integers exact; floats within the lineage tolerance
+//! (fn-256 DESIGN.md 9.1). `AGREE_PRESETS` and `AGREE_AGE` widen them.
 use super::super::cycle::tree::{self, Kernels};
-use super::super::{io, Delivery, Generator};
+use super::super::{io, Generator};
 use super::fold::{CA_WORDS, CV};
+use super::stations::GW;
 use crate::Renderer;
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
+use telperion_core::math::Vec3;
 use telperion_core::pipeline::executor;
+use telperion_core::presets::Family;
+use telperion_core::surface::{CurvePoint, CLUSTER_WORDS, POINT_WORDS};
 
-fn family(id: &str, age: u32) -> telperion_core::presets::Family {
+/// The age the gate holds every preset the device draws at: young.
+const AGE: u32 = 12;
+
+fn family(id: &str, age: u32) -> Family {
     let mut family = telperion_core::presets::by_identity(id).unwrap();
     family.age = f64::from(age);
     family
 }
 
-/// A drawn node as the device's dress left it: its position, radii,
-/// codominance, flags and key, and its parent's key.
+/// The presets the device draws (the date palm's fronds stand on no
+/// regular station), or `AGREE_PRESETS`'s.
+fn presets() -> Vec<String> {
+    match std::env::var("AGREE_PRESETS") {
+        Ok(ids) => ids.split(',').map(String::from).collect(),
+        Err(_) => (telperion_core::presets::CATALOGUE.iter())
+            .map(|c| c.1.to_string())
+            .filter(|id| id != "date-palm")
+            .collect(),
+    }
+}
+
+fn age() -> u32 {
+    std::env::var("AGREE_AGE").ok().and_then(|a| a.parse().ok()).unwrap_or(AGE)
+}
+
+/// A node as the device's dress drew it.
 #[derive(Debug, Clone, Copy)]
 struct Node {
     position: [f32; 3],
     radii: [f32; 3],
-    codom: f32,
     stem: bool,
     key: u32,
     /// Its phytomer's key, or none for a relay's join.
@@ -28,213 +53,232 @@ struct Node {
     parent: Option<u32>,
 }
 
-/// Every node the device drew, by its id.
-fn device_nodes(gpu: &crate::Gpu, k: &Kernels, f: &telperion_core::presets::Family) -> Vec<(u32, Node)> {
+/// Every node the device drew for `f`.
+fn device_nodes(gpu: &crate::Gpu, k: &Kernels, f: &Family) -> Vec<Node> {
     let growth = executor::growth(f).unwrap();
-    let (dressed, trunk) = pollster::block_on(tree::drawn(gpu, k, &growth)).unwrap();
-    println!("device trunk {trunk:?}");
-    let mut raw: Vec<(u32, Vec<f32>)> = Vec::new();
+    let (dressed, _) = pollster::block_on(tree::drawn(gpu, k, &growth)).unwrap();
+    let mut waves: Vec<Vec<Vec<u32>>> = Vec::new();
     for w in &dressed.waves {
         let words = w.axes as usize * CA_WORDS + w.phyts as usize * CV;
         let bytes = io::read(gpu, &w.buffer, (words.max(4) * 4) as u64).unwrap();
-        raw.push((w.axes, bytemuck::cast_slice(&bytes).to_vec()));
+        let all: &[u32] = bytemuck::cast_slice(&bytes);
+        let records = all[w.axes as usize * CA_WORDS..].chunks(CV).map(<[u32]>::to_vec);
+        waves.push(records.collect());
     }
-    // Each id's key, then the nodes.
-    let mut keys = HashMap::new();
+    let keys: HashMap<u32, u32> = (waves.iter().flatten())
+        .filter(|r| r[6] & 2 != 0)
+        .map(|r| (r[14], r[24]))
+        .collect();
     let mut out = Vec::new();
-    for (axes, words) in &raw {
-        let records = &words[*axes as usize * CA_WORDS..];
-        for r in records.chunks(CV) {
-            let u = |k: usize| r[k].to_bits();
-            if u(6) & 2 != 0 {
-                keys.insert(u(14), u(24));
-            }
-        }
-    }
-    for (w, (axes, words)) in raw.iter().enumerate() {
-        let records = &words[*axes as usize * CA_WORDS..];
-        for (i, r) in records.chunks(CV).enumerate() {
-            let u = |k: usize| r[k].to_bits();
-            if w == 0 || u(6) & 2 == 0 || u(7) != i as u32 {
+    for wave in waves.iter().skip(1) {
+        for (i, r) in wave.iter().enumerate() {
+            if r[6] & 2 == 0 || r[7] != i as u32 {
                 continue;
             }
-            let node = Node {
-                position: [r[0], r[1], r[2]],
-                radii: [r[3], r[4], r[5]],
-                codom: r[13],
-                stem: u(6) & 128 != 0,
-                key: u(24),
-                identity: (u(26) | u(27) != 0).then(|| u64::from(u(26)) | u64::from(u(27)) << 32),
-                parent: keys.get(&u(16)).copied(),
-            };
-            out.push((u(14), node));
+            let f = |k: usize| f32::from_bits(r[k]);
+            out.push(Node {
+                position: [f(0), f(1), f(2)],
+                radii: [f(3), f(4), f(5)],
+                stem: r[6] & 128 != 0,
+                key: r[24],
+                identity: (r[26] | r[27] != 0).then(|| u64::from(r[26]) | u64::from(r[27]) << 32),
+                parent: keys.get(&r[16]).copied(),
+            });
         }
     }
     out
 }
 
+/// How the device's nodes stood against the CPU conversion's: the most
+/// apart a position (m) and a radius (m) stood.
+#[derive(Debug, Default)]
+struct Drawn {
+    device: usize,
+    cpu: usize,
+    matched: usize,
+    position: f64,
+    radius: f64,
+    stems: usize,
+    parents: usize,
+}
+
+fn drawn(gpu: &crate::Gpu, k: &Kernels, f: &Family) -> Drawn {
+    let dev = device_nodes(gpu, k, f);
+    let x = executor::grow(f).unwrap().expansion().unwrap();
+    let tree = x.tree();
+    let (mut by_key, mut by_identity) = (HashMap::new(), HashMap::new());
+    for i in 1..tree.nodes.len() {
+        by_key.insert(tree.key(i), i);
+        by_identity.insert(tree.nodes[i].identity.birth_order(), i);
+    }
+    let mut out = Drawn { device: dev.len(), cpu: tree.nodes.len() - 1, ..Drawn::default() };
+    for d in &dev {
+        let found = match d.identity {
+            Some(k) => by_identity.get(&k),
+            None => by_key.get(&d.key),
+        };
+        let Some(&i) = found else { continue };
+        out.matched += 1;
+        let n = &tree.nodes[i];
+        let p = [n.position.x, n.position.y, n.position.z];
+        let dp = (0..3).map(|c| (f64::from(d.position[c]) - p[c]).abs()).fold(0.0, f64::max);
+        let r = [n.radius, n.start_radius, n.base_radius];
+        let dr = (0..3).map(|c| (f64::from(d.radii[c]) - r[c]).abs()).fold(0.0, f64::max);
+        (out.position, out.radius) = (out.position.max(dp), out.radius.max(dr));
+        out.stems += usize::from(d.stem != n.stem);
+        let parent = n.parent.filter(|&q| q != 0).map(|q| tree.key(q as usize));
+        out.parents += usize::from(n.parent != Some(0) && parent != d.parent);
+    }
+    out
+}
+
+/// Every preset young: each node the device drew is the CPU conversion's,
+/// by lineage, within the lineage tolerance.
 #[test]
-#[ignore = "a probe"]
-fn drawn_probe() {
+fn every_preset_is_drawn_as_the_cpu_converts_it() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
     };
     let k = Kernels::new(&gpu);
-    let ids = std::env::var("AGREE_PRESETS").unwrap_or("european-beech".into());
-    let age: u32 = std::env::var("AGREE_AGE").ok().and_then(|a| a.parse().ok()).unwrap_or(12);
-    for id in ids.split(',') {
-        let f = family(id, age);
-        let dev = device_nodes(&gpu, &k, &f);
-        let cpu = executor::grow(&f).unwrap().expansion().unwrap();
-        let tree = cpu.tree();
-        println!("cpu root {} bearing {:?}", tree.nodes[0].radius, cpu.bearing_bounds());
-        let mut by_key: HashMap<u32, usize> = HashMap::new();
-        let mut by_identity: HashMap<u64, usize> = HashMap::new();
-        for i in 1..tree.nodes.len() {
-            by_key.insert(tree.key(i), i);
-            by_identity.insert(tree.nodes[i].identity.birth_order(), i);
-        }
-        let (mut matched, mut worst, mut stems, mut parents) = (0, [0.0f64; 4], 0, 0);
-        let mut first_bad = None;
-        for (_, d) in &dev {
-            let found = match d.identity {
-                Some(k) => by_identity.get(&k),
-                None => by_key.get(&d.key),
-            };
-            let Some(&i) = found else { continue };
-            matched += 1;
-            let n = &tree.nodes[i];
-            let p = [n.position.x, n.position.y, n.position.z];
-            let dp = (0..3).map(|c| (f64::from(d.position[c]) - p[c]).abs()).fold(0.0, f64::max);
-            let dr = (f64::from(d.radii[0]) - n.radius).abs();
-            let ds = (f64::from(d.radii[1]) - n.start_radius).abs();
-            let db = (f64::from(d.radii[2]) - n.base_radius).abs();
-            for (k, v) in [dp, dr, ds, db].into_iter().enumerate() {
-                worst[k] = worst[k].max(v);
-            }
-            if dp > 1e-4 || d.stem != n.stem || (f64::from(d.radii[2]) - n.base_radius).abs() > 1e-4 {
-                if first_bad.is_none() {
-                    first_bad = Some((i, d.position, p));
-                }
-                let q = n.parent.unwrap() as usize;
-                println!(
-                    "  bad {i}: dp {dp:.2e} stem {} / {} base {:.4} / {:.4} run start {} parent {q} kids {} codom {:?} / {} identity {:#x}",
-                    d.stem, n.stem, d.radii[2], n.base_radius, n.branch as usize == i,
-                    tree.nodes.iter().filter(|m| m.parent == Some(q as u32)).count(),
-                    n.codominant, d.codom, n.identity.birth_order()
-                );
-            }
-            stems += usize::from(d.stem != n.stem);
-            let cp = n.parent.map(|q| tree.key(q as usize));
-            parents += usize::from(cp != d.parent && n.parent != Some(0));
-        }
-        let seen: std::collections::HashSet<u32> = dev.iter().map(|(_, d)| d.key).collect();
-        let missing: Vec<usize> = (1..tree.nodes.len()).filter(|&i| !seen.contains(&tree.key(i))).collect();
-        for &i in missing.iter().take(12) {
-            let n = &tree.nodes[i];
-            let p = n.parent.unwrap() as usize;
-            println!(
-                "  missing {i}: y {:.3} r {:.2e} stem {} run start {} codom {:?} parent {p} (seen {}, r {:.2e}, stem {}) kids of parent {}",
-                n.position.y,
-                n.radius,
-                n.stem,
-                n.branch as usize == i,
-                n.codominant,
-                seen.contains(&tree.key(p)) || p == 0,
-                tree.nodes[p].radius,
-                tree.nodes[p].stem,
-                tree.nodes.iter().filter(|m| m.parent == Some(p as u32)).count()
-            );
-        }
-        println!(
-            "{id} {age}: device {} nodes, cpu {}, matched {matched}; worst position {:.2e} radius {:.2e} start {:.2e} base {:.2e}; stems differ {stems}, parents differ {parents}; first bad {first_bad:?}",
-            dev.len(),
-            tree.nodes.len() - 1,
-            worst[0],
-            worst[1],
-            worst[2],
-            worst[3]
-        );
+    for id in presets() {
+        let d = drawn(&gpu, &k, &family(&id, age()));
+        println!("{id} {}: {d:?}", age());
+        assert_eq!(d.device, d.cpu, "{id}: nodes");
+        // A relay's join keyed by its node's 32-bit key may meet another's.
+        assert!(d.matched * 1000 >= d.device * 999, "{id}: matched {d:?}");
+        assert!(d.position < 1e-3 && d.radius < 1e-5, "{id}: {d:?}");
+        assert_eq!(d.stems, 0, "{id}: stems");
+        assert!(d.parents * 1000 <= d.device, "{id}: parents {d:?}");
     }
 }
 
-#[test]
-#[ignore = "a probe"]
-fn probe() {
-    let Some(gpu) = crate::generation::test_gpu() else {
-        return;
-    };
-    let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
-    let gen = Generator::new(&renderer).unwrap();
-    let ids = std::env::var("AGREE_PRESETS").unwrap_or("european-beech".into());
-    let age: u32 = std::env::var("AGREE_AGE").ok().and_then(|a| a.parse().ok()).unwrap_or(12);
-    for id in ids.split(',') {
-        let f = family(id, age);
-        let device = gen.prepare(&f, Delivery::Resident).unwrap();
-        let cpu = pollster::block_on(gen.prepare_whole(&f, Delivery::Resident)).unwrap();
-        println!(
-            "{id} {age}: leaves {} / {}, bounds {:?} / {:?}",
-            device.count(),
-            cpu.count(),
-            device.mesh.bounds,
-            cpu.mesh.bounds
-        );
-    }
-}
-
-#[test]
-#[ignore = "a probe"]
-fn stations_probe() {
-    let Some(gpu) = crate::generation::test_gpu() else {
-        return;
-    };
+/// The stations the device and the CPU place, and the runs (by the key
+/// of each run's first node) whose stations differ in number.
+fn stations(gpu: &crate::Gpu, f: &Family) -> (u64, u64, usize) {
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
-    let ids = std::env::var("AGREE_PRESETS").unwrap_or("european-beech".into());
-    let age: u32 = std::env::var("AGREE_AGE").ok().and_then(|a| a.parse().ok()).unwrap_or(12);
-    for id in ids.split(',') {
-        let f = family(id, age);
-        let kit = gen.kit();
-        let built = pollster::block_on(super::build::build(&gpu, &gen, &kit.kernels, &kit.tools, &f)).unwrap();
-        let d = &built.device;
-        let words = d.segments as usize * super::stations::GW;
-        let raw = io::read(&gpu, &d.buffer, (words.max(4) * 4) as u64).unwrap();
-        let mine: &[u32] = bytemuck::cast_slice(&raw);
-        let mut dev: HashMap<u32, u64> = HashMap::new();
-        for g in mine.chunks(super::stations::GW) {
-            *dev.entry(g[27]).or_default() += u64::from(g[25]);
+    let kit = gen.kit();
+    let built = pollster::block_on(super::build::build(gpu, &gen, &kit.kernels, &kit.tools, f)).unwrap();
+    let d = &built.device;
+    let words = d.segments as usize * GW;
+    let raw = io::read(gpu, &d.buffer, (words.max(4) * 4) as u64).unwrap();
+    let mut dev: HashMap<u32, u64> = HashMap::new();
+    for g in bytemuck::cast_slice::<u8, u32>(&raw).chunks(GW) {
+        *dev.entry(g[27]).or_default() += u64::from(g[25]);
+    }
+    let x = executor::grow(f).unwrap().expansion().unwrap();
+    let (_, shared) = x.curve_with_contacts().unwrap();
+    let theirs = x.compact_stations(&shared).unwrap().unwrap();
+    let mut cpu: HashMap<u32, u64> = HashMap::new();
+    for s in &theirs.segments {
+        *cpu.entry(s.key).or_default() += u64::from(s.count);
+    }
+    let keys: BTreeSet<u32> = dev.keys().chain(cpu.keys()).copied().collect();
+    let differ = keys.iter().filter(|k| dev.get(k) != cpu.get(k)).count();
+    (dev.values().sum(), cpu.values().sum(), differ)
+}
+
+/// Every preset young: the device stations its runs as the CPU does.
+#[test]
+fn every_preset_stations_its_runs_as_the_cpu_does() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    for id in presets() {
+        let (dev, cpu, differ) = stations(&gpu, &family(&id, age()));
+        println!("{id} {}: stations {dev} / {cpu}, runs differing {differ}", age());
+        assert_eq!(dev, cpu, "{id}: stations");
+        assert!(differ * 100 <= cpu as usize, "{id}: {differ} runs differ");
+    }
+}
+
+/// The device's curve against the CPU's, run by run (matched at their
+/// first point within a millimetre): runs matched, unmatched, with their
+/// points differing in number, and the most apart a matched point stood
+/// (m) and its radius (relative). Read through its `Debug` print.
+#[allow(dead_code)]
+#[derive(Debug, Default)]
+struct Runs {
+    runs: (usize, usize),
+    matched: usize,
+    unmatched: usize,
+    count: usize,
+    centre: f64,
+    radius: f64,
+}
+
+/// A millimetre's cell at the scale `s` the tree is drawn at.
+fn cell(v: Vec3, s: f64) -> (i64, i64, i64) {
+    let c = |x: f64| (x / (1e-3 * s)).floor() as i64;
+    (c(v.x), c(v.y), c(v.z))
+}
+
+fn curve(gpu: &crate::Gpu, f: &Family) -> Runs {
+    let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    let kit = gen.kit();
+    let built = pollster::block_on(super::build::build(gpu, &gen, &kit.kernels, &kit.tools, f)).unwrap();
+    let s = executor::growth(f).unwrap().scale;
+    let wood = built.prepared.wood.as_ref().unwrap();
+    let (points, clusters, p, k, _) = wood.blocks();
+    let read = |b: &wgpu::Buffer, n: u64| -> Vec<u32> {
+        bytemuck::cast_slice(&io::read(gpu, b, (n.max(1) * 4).next_multiple_of(4)).unwrap()).to_vec()
+    };
+    let points = read(points, p * POINT_WORDS as u64);
+    let clusters = read(clusters, u64::from(k) * CLUSTER_WORDS as u64);
+    let point = |i: u32| CurvePoint::unpack(points[i as usize * POINT_WORDS..][..POINT_WORDS].try_into().unwrap());
+    let mut runs: Vec<(u32, u32)> = Vec::new();
+    for c in clusters.chunks(CLUSTER_WORDS) {
+        if runs.last() != Some(&(c[2], c[3])) {
+            runs.push((c[2], c[3]));
         }
-        let x = executor::grow(&f).unwrap().expansion().unwrap();
-        let (_, shared) = x.curve_with_contacts().unwrap();
-        let theirs = x.compact_stations(&shared).unwrap().unwrap();
-        let mut cpu: HashMap<u32, u64> = HashMap::new();
-        for s in &theirs.segments {
-            *cpu.entry(s.key).or_default() += u64::from(s.count);
+    }
+    let theirs = executor::grow(f).unwrap().expansion().unwrap().curve().unwrap();
+    let mut by: HashMap<(i64, i64, i64), Vec<usize>> = HashMap::new();
+    for (j, r) in theirs.runs.iter().enumerate().filter(|(_, r)| r.count > 1) {
+        by.entry(cell(theirs.points[r.first as usize + 1].centre, s)).or_default().push(j);
+    }
+    let mut out = Runs { runs: (runs.len(), theirs.runs.len()), ..Runs::default() };
+    let mut used = vec![false; theirs.runs.len()];
+    for &(first, count) in runs.iter().filter(|r| r.1 > 1) {
+        let at = point(first + 1).centre;
+        let (x, y, z) = cell(at, s);
+        let near = (-1..=1).flat_map(|a| (-1..=1).flat_map(move |b| (-1..=1).map(move |c| (x + a, y + b, z + c))));
+        let off = |j: usize| theirs.points[theirs.runs[j].first as usize + 1].centre.distance(at);
+        let found = (near.flat_map(|c| by.get(&c).into_iter().flatten().copied()))
+            .filter(|&j| !used[j] && off(j) <= 1e-3 * s)
+            .min_by(|&a, &b| off(a).total_cmp(&off(b)));
+        let Some(j) = found else {
+            out.unmatched += 1;
+            continue;
+        };
+        used[j] = true;
+        let want = theirs.run_points(&theirs.runs[j]);
+        if want.len() != count as usize {
+            out.count += 1;
+            continue;
         }
-        let keys: std::collections::BTreeSet<u32> = dev.keys().chain(cpu.keys()).copied().collect();
-        let differ: Vec<(u32, u64, u64)> = keys
-            .into_iter()
-            .map(|k| (k, dev.get(&k).copied().unwrap_or(0), cpu.get(&k).copied().unwrap_or(0)))
-            .filter(|(_, a, b)| a != b)
-            .collect();
-        let total = |m: &HashMap<u32, u64>| m.values().sum::<u64>();
-        println!("{id} {age}: stations {} / {}, keys differing {}: {:?}", total(&dev), total(&cpu), differ.len(), &differ[..differ.len().min(12)]);
-        let tree = x.tree();
-        for &(k, _, _) in differ.iter().take(3) {
-            for g in mine.chunks(super::stations::GW).filter(|g| g[27] == k) {
-                let fl = |w: u32| f32::from_bits(w);
-                println!("  dev seg key {k:#x}: count {} station0 {} tile {} a ({:.4},{:.4},{:.4}) r {:.2e} b ({:.4},{:.4},{:.4}) r {:.2e} along {:.4} wood {:.4}", g[25], g[24], g[26], fl(g[0]), fl(g[1]), fl(g[2]), fl(g[3]), fl(g[4]), fl(g[5]), fl(g[6]), fl(g[7]), fl(g[20]), fl(g[21]));
-            }
-            for s in theirs.segments.iter().filter(|s| s.key == k) {
-                println!("  cpu seg key {k:#x}: count {} first {} run_station {} a {:?} b {:?} radii {:?} along {:.4} span {:.4}", s.count, s.first, s.run_station, s.endpoints[0], s.endpoints[1], s.radii, s.along, s.span);
-            }
+        out.matched += 1;
+        for (i, c) in want.iter().enumerate() {
+            let m = point(first + i as u32);
+            out.centre = out.centre.max(m.centre.distance(c.centre));
+            out.radius = out.radius.max((m.radius - c.radius).abs() / c.radius.max(1e-9));
         }
-        for &(k, a, b) in differ.iter().take(4) {
-            let nodes: Vec<usize> = (0..tree.nodes.len()).filter(|&i| tree.key(i) == k).collect();
-            for i in nodes {
-                let n = &tree.nodes[i];
-                println!("  key {k:#x} ({a} / {b}): node {i} r {:.2e} start {:.2e} kind {:?} stem {} parent r {:.2e}", n.radius, n.start_radius, n.kind, n.stem, tree.nodes[n.parent.unwrap_or(0) as usize].radius);
-            }
-        }
+    }
+    out
+}
+
+/// Every preset young: the device sweeps its wood as the CPU does, run
+/// for run, point for point within the lineage tolerance.
+#[test]
+fn every_preset_sweeps_its_wood_as_the_cpu_does() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    for id in presets() {
+        let r = curve(&gpu, &family(&id, age()));
+        println!("{id} {}: {r:?}", age());
+        assert!(r.unmatched + r.count <= r.matched / 100, "{id}: {r:?}");
+        assert!(r.centre < 1e-3 && r.radius < 1e-3, "{id}: {r:?}");
     }
 }

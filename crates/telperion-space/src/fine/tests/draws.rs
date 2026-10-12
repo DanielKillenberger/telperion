@@ -1,13 +1,7 @@
 //! Threshold-adjacent draws (FINE-CONTRACT.md D1 to D4): a draw exactly at
 //! a probability's bound, and one bit either side, decide as the contract
-//! says, in the lineage's decisions and in a fine root's first growth
-//! unit.
-use super::{request, same_at_cuts};
-use crate::beech;
-use crate::bounded::Expected;
-use crate::grow::alone;
-use crate::grow::realized::{above, Hands};
-use crate::lineage::{bud, nodes, threshold, Draw, Key, ONE, VIABILITY};
+//! says, in the lineage's decisions.
+use crate::lineage::{bud, nodes, threshold, Draw, ONE};
 use crate::species::NodeLaw;
 use crate::transcendental::Transcendental;
 
@@ -59,40 +53,4 @@ fn a_node_count_at_its_law_s_bound_counts_the_node() {
     assert_eq!(leads.len(), 0);
     nodes(law, Draw(first), 8, &mut leads);
     assert_eq!(leads.len(), 1);
-}
-
-/// A fine root's first growth unit, its PA's viability set exactly at its
-/// survival draw, fails; one bit above, it grows. Either way the tree is
-/// the same at every cut.
-#[test]
-fn a_fine_root_s_first_unit_at_its_viability_draw() {
-    let species = beech();
-    let request = request(20, 1);
-    let expected = Expected::new(&species, 20, 0);
-    let rows = expected.rows();
-    let rules = alone::rules(&species, request.age, request.budget).expect("rules");
-    let hands = Hands::new(species.states.len(), 20, |pa, birth| {
-        rows.lateral(pa, birth).count <= 1024.0
-    });
-    let (grown, handed) = above(&rules, hands, request.seed, 1).expect("grows");
-    // A root borne by a younger PA, whose own PA no ancestor holds, so
-    // setting it moves nothing above it.
-    let root = handed
-        .iter()
-        .map(|h| &h.bud)
-        .find(|b| !b.woken() && b.axis.pa > grown.axes[b.bearer()].pa + 1)
-        .expect("a root of its own PA");
-    let (pa, birth) = (root.axis.pa, root.axis.birth);
-    let unit = Key(root.axis.lineage).child(u64::from(birth + 1));
-    let d = unit.child(VIABILITY).draw().0;
-    for (bits, grows) in [(d, false), (d + 1, true)] {
-        let mut at_draw = species.clone();
-        at_draw.states[pa].viability = real(bits);
-        let rules = alone::rules(&at_draw, request.age, request.budget).expect("rules");
-        let chain = alone::grow(&rules, request.seed, Some(root)).expect("grows");
-        let first = &chain.axes[chain.root];
-        let grew = first.phytomers.iter().any(|p| p.cycle == birth + 1);
-        assert_eq!(grew, grows, "viability at {bits} against the draw {d}");
-        same_at_cuts(&at_draw, request, &[0.0, 256.0, f64::INFINITY]);
-    }
 }

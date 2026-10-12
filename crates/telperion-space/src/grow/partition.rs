@@ -289,14 +289,6 @@ pub(crate) struct Digest {
 }
 
 impl Digest {
-    /// Two growers' parts together.
-    pub fn and(self, other: Self) -> Self {
-        let c = |k: usize| self.counts[k] + other.counts[k];
-        Self {
-            sum: self.sum.wrapping_add(other.sum),
-            counts: [c(0), c(1), c(2)],
-        }
-    }
 
     /// Phase `k`'s hash: the counts' for growth, the sum's otherwise.
     pub fn finish(self, k: usize) -> u64 {

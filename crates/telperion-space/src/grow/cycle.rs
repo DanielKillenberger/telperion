@@ -67,7 +67,7 @@ fn run(
     working: Working,
 ) -> Result<Cycled> {
     let started = crate::clock::seconds();
-    let (mut g, keeps) = start(species, request, true, Options::default())?;
+    let (mut g, keeps) = start(species, request, Options::default())?;
     (g.one, g.rules.one) = (true, true);
     g.working = Some(Box::new(working));
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));

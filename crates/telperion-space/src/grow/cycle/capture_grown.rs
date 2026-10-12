@@ -31,7 +31,7 @@ pub fn grow_capture_grown_at(species: &Species, request: Request, cycle: u32) ->
     if cycle == 0 || cycle > request.age {
         return crate::error::refuse("cycle", "a captured cycle is one the tree grows");
     }
-    let (mut g, _) = start(species, request, true, Options::default())?;
+    let (mut g, _) = start(species, request, Options::default())?;
     (g.one, g.rules.one) = (true, true);
     g.working = Some(Box::new(Working::reference()));
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));
@@ -54,7 +54,7 @@ pub fn grow_capture_grown_at(species: &Species, request: Request, cycle: u32) ->
 /// apical control, ψ), the light's directions and extinction, and the
 /// settle's and retirement's per-PA constants (`settle_pa`).
 pub fn grow_capture_tables(species: &Species, request: Request) -> Result<Capture> {
-    let (mut g, _) = start(species, request, true, Options::default())?;
+    let (mut g, _) = start(species, request, Options::default())?;
     (g.one, g.rules.one) = (true, true);
     g.sketch.get_or_insert_with(|| Sketch::new(request.light));
     let mut c = Capture { arrays: Vec::new() };
