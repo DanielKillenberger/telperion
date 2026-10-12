@@ -67,6 +67,11 @@ fn depth_span(d: u32, d0: u32) -> vec2<u32> {
     return vec2<u32>(w_at[d - d0], w_at[d - d0 + 1u]);
 }
 
+// Child slots `k` to `k + 3`'s axes.
+fn kids4(k: u32) -> vec4<u32> {
+    return vec4<u32>(kid(k), kid(k + 1u), kid(k + 2u), kid(k + 3u));
+}
+
 fn children(i: u32) -> vec2<u32> {
     return kids_within(vec2<u32>(lists[ls(R_KID_START, i)], lists[ls(R_KID_START, i + 1u)]), cfg.stride);
 }
@@ -91,7 +96,24 @@ fn totals(i: u32) {
     var cost = row(tree[at(T_PA, i)], P_UPKEEP) * single(wide(T_WOOD, i));
     var living = lit;
     let kids = children(i);
-    for (var k = kids.x; k < kids.y; k++) {
+    var k = kids.x;
+    // Four children's words loaded before any is added, in order.
+    for (; k + 4u <= kids.y; k += 4u) {
+        let c = kids4(k);
+        let l = vec4<f32>(sf(S_LIGHT, c.x), sf(S_LIGHT, c.y), sf(S_LIGHT, c.z), sf(S_LIGHT, c.w));
+        let q = vec4<f32>(sf(S_COST, c.x), sf(S_COST, c.y), sf(S_COST, c.z), sf(S_COST, c.w));
+        let v = sums[at(S_LIVING, c.x)] | sums[at(S_LIVING, c.y)] | sums[at(S_LIVING, c.z)] | sums[at(S_LIVING, c.w)];
+        light = light + l.x;
+        light = light + l.y;
+        light = light + l.z;
+        light = light + l.w;
+        cost = cost + q.x;
+        cost = cost + q.y;
+        cost = cost + q.z;
+        cost = cost + q.w;
+        living = living || v != 0u;
+    }
+    for (; k < kids.y; k++) {
         let c = kid(k);
         light = light + sf(S_LIGHT, c);
         cost = cost + sf(S_COST, c);
@@ -199,7 +221,17 @@ fn sub(i: u32) {
     var lit = sf(S_OWN, i);
     var buds = sums[at(S_GROWING, i)];
     let kids = children(i);
-    for (var k = kids.x; k < kids.y; k++) {
+    var k = kids.x;
+    for (; k + 4u <= kids.y; k += 4u) {
+        let c = kids4(k);
+        let l = vec4<f32>(sf(S_SUB, c.x), sf(S_SUB, c.y), sf(S_SUB, c.z), sf(S_SUB, c.w));
+        lit = lit + l.x;
+        lit = lit + l.y;
+        lit = lit + l.z;
+        lit = lit + l.w;
+        buds += sums[at(S_BUDS, c.x)] + sums[at(S_BUDS, c.y)] + sums[at(S_BUDS, c.z)] + sums[at(S_BUDS, c.w)];
+    }
+    for (; k < kids.y; k++) {
         let c = kid(k);
         lit = lit + sf(S_SUB, c);
         buds += sums[at(S_BUDS, c)];

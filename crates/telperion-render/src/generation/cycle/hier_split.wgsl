@@ -19,12 +19,34 @@ fn share(i: u32, v_in: f32, kids: vec2<u32>) {
     let own = sf(S_OWN, i);
     let l = row(tree[at(T_PA, i)], P_APICAL);
     var r = own;
-    for (var k = kids.y; k > kids.x; k--) {
-        let s = sf(S_SUB, kid(k - 1u));
+    var q = kids.y;
+    // Four children's words loaded before any is added, in order.
+    for (; q >= kids.x + 4u; q -= 4u) {
+        let c = kids4(q - 4u);
+        let s = vec4<f32>(sf(S_SUB, c.x), sf(S_SUB, c.y), sf(S_SUB, c.z), sf(S_SUB, c.w));
+        if s.w > 0.0 {
+            r = r + s.w;
+        }
+        put(S_REST, q - 1u, r);
+        if s.z > 0.0 {
+            r = r + s.z;
+        }
+        put(S_REST, q - 2u, r);
+        if s.y > 0.0 {
+            r = r + s.y;
+        }
+        put(S_REST, q - 3u, r);
+        if s.x > 0.0 {
+            r = r + s.x;
+        }
+        put(S_REST, q - 4u, r);
+    }
+    for (; q > kids.x; q--) {
+        let s = sf(S_SUB, kid(q - 1u));
         if s > 0.0 {
             r = r + s;
         }
-        put(S_REST, k - 1u, r);
+        put(S_REST, q - 1u, r);
     }
     var v = v_in;
     var c = kids.x;
@@ -81,9 +103,19 @@ fn split(i: u32) {
     }
     let kids = children(i);
     var next = place + grows;
-    for (var k = kids.x; k < kids.y; k++) {
-        sums[at(S_RANK, kid(k))] = next;
-        next += sums[at(S_BUDS, kid(k))];
+    var q = kids.x;
+    for (; q + 4u <= kids.y; q += 4u) {
+        let c = kids4(q);
+        let b = vec4<u32>(sums[at(S_BUDS, c.x)], sums[at(S_BUDS, c.y)], sums[at(S_BUDS, c.z)], sums[at(S_BUDS, c.w)]);
+        sums[at(S_RANK, c.x)] = next;
+        sums[at(S_RANK, c.y)] = next + b.x;
+        sums[at(S_RANK, c.z)] = next + b.x + b.y;
+        sums[at(S_RANK, c.w)] = next + b.x + b.y + b.z;
+        next += b.x + b.y + b.z + b.w;
+    }
+    for (; q < kids.y; q++) {
+        sums[at(S_RANK, kid(q))] = next;
+        next += sums[at(S_BUDS, kid(q))];
     }
     let v = sf(S_INCOMING, i);
     if v > 0.0 && sf(S_SUB, i) > 0.0 {

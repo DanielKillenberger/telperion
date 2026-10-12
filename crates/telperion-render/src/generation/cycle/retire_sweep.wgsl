@@ -91,8 +91,24 @@ fn carried_up(i: u32) {
     var alive = 0.0;
     var wait = rt(R_WAKE, i);
     let kids = kids_within(vec2<u32>(hlists[ls(R_KID_START, i)], hlists[ls(R_KID_START, i + 1u)]), cfg.stride);
-    // Each child's part, as `terms_main` took it.
-    for (var k = kids.x; k < kids.y; k++) {
+    // Each child's part, as `terms_main` took it: four children's words
+    // loaded before any is folded, in order.
+    var k = kids.x;
+    for (; k + 4u <= kids.y; k += 4u) {
+        let c = vec4<u32>(hlists[ls(R_KIDS, k)], hlists[ls(R_KIDS, k + 1u)], hlists[ls(R_KIDS, k + 2u)], hlists[ls(R_KIDS, k + 3u)]);
+        let weight = vec4<f32>(rtf(R_WEIGHT, c.x), rtf(R_WEIGHT, c.y), rtf(R_WEIGHT, c.z), rtf(R_WEIGHT, c.w));
+        let before = vec4<f32>(rtf(R_BEFORE, c.x), rtf(R_BEFORE, c.y), rtf(R_BEFORE, c.z), rtf(R_BEFORE, c.w));
+        let gap = vec4<f32>(rtf(R_GAP, c.x), rtf(R_GAP, c.y), rtf(R_GAP, c.z), rtf(R_GAP, c.w));
+        let sub = vec4<f32>(rtf(R_LIVED, c.x), rtf(R_LIVED, c.y), rtf(R_LIVED, c.z), rtf(R_LIVED, c.w));
+        let live = vec4<f32>(rtf(R_ALIVE, c.x), rtf(R_ALIVE, c.y), rtf(R_ALIVE, c.z), rtf(R_ALIVE, c.w));
+        let waits = vec4<u32>(rt(R_WSUB, c.x), rt(R_WSUB, c.y), rt(R_WSUB, c.z), rt(R_WSUB, c.w));
+        for (var j = 0u; j < 4u; j++) {
+            lived = max(lived, before[j] + m(weight[j], gap[j] + sub[j]));
+            alive = max(alive, m(live[j], weight[j]));
+            wait = max(wait, waits[j]);
+        }
+    }
+    for (; k < kids.y; k++) {
         let c = hlists[ls(R_KIDS, k)];
         let weight = rtf(R_WEIGHT, c);
         lived = max(lived, rtf(R_BEFORE, c) + m(weight, rtf(R_GAP, c) + rtf(R_LIVED, c)));
