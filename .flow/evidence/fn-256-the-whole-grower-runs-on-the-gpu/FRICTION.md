@@ -204,3 +204,7 @@
 ## 2026-10-12, task 3: the sweep agreement test hid the trunk
 
 Doing: viewing every preset's stills beside F4's. Slowed by: the device drew a wider, uncapped flare at every trunk's foot, which only the stills showed. `every_preset_sweeps_its_wood_as_the_cpu_does` allowed 1% of runs unmatched, and the trunk is one run, so the device's missing `trunk_run` (buried foot, no socket swell) passed it on every preset. Cost: about 20 minutes and two extra still renders (a CPU-route render to localise it). Would have removed it: a tolerance that names the runs it may skip; the test now requires every trunk run matched point for point.
+
+## 2026-10-12, task 3: the stills were taken on a curve without its rows
+
+Doing: comparing every preset's stills with F4's. Slowed by: the resident handoff passed a default curve, so the device drew every tree without its lobes, twist or height, and the first stills table credited those differences to the cycle. No test read the curve's rows; the codex review found it. Cost: one full re-render of the stills and a rewritten table, about 15 minutes. Would have removed it: an agreement test over everything the handoff passes the renderer, not just the points; `every_preset_draws_its_wood_by_the_cpu_rows` now holds the rows.
