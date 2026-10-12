@@ -238,3 +238,9 @@ Doing: comparing every preset's stills with F4's. Slowed by: the resident handof
 - **Hindered:** two more NVRM Xid 109 hangs (07:09 and 07:19), each Telperion's cold build stopping at cycle 76 to 77; a third run had reported it as "Out of Memory". Each run waited out its 5-minute inner timeout. Stopped running Telperion until the hang is reproduced small.
 - **Cost:** about 15 minutes and two more driver resets on the owner's desktop.
 - **Would remove it:** a host-side watchdog in the grow loop (no census back within a second of a cycle's submission ends the build with a named error) and the halt test FRICTION asked for on 2026-10-11 (a flag raised mid-cycle on the smallest tree).
+
+## 2026-10-12, task 4: a hang in the stills, at Telperion after six builds
+- **Doing:** rendering every preset's stills in one process (`resident_stills`), after the sizing work.
+- **Hindered:** NVRM Xid 109 at 07:48 on Telperion's build, the seventh in the process, with 8.3 GB of the 10 GB card in use; stopped by its PID after 20 minutes (the example's own `timeout` was 20 minutes). The Two Trees' device peak is about 6 GB; with 2 GB held by the desktop the card is full, and the build hangs rather than being refused. The browser's budget check cannot catch it: `budget::admit` reads `expected_kept`, which is none for every species that reads light, so every build is admitted.
+- **Cost:** about 20 minutes and a driver reset.
+- **Would remove it:** a device-memory guard in the build (refuse by name when the ledger's live bytes plus the next move pass a stated bound), and the browser budget from a bound that is not none; both are the host's call. For the stills, one preset a process.
