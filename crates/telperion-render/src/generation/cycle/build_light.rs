@@ -29,7 +29,8 @@ pub(super) struct Light {
     lit: bool,
     /// Whether the lattice sleeps: nothing shades (no extinction, or no PA
     /// with leaf area under a sky whose open light is one), so every node's
-    /// light is one and the lattice's dispatches are not recorded.
+    /// light is one and neither the deposit nor the lattice's dispatches
+    /// are recorded.
     pub dormant: bool,
     pub n_dirs: u32,
     /// The points, tips, lattice nodes and lattice columns (a layer's
@@ -106,13 +107,11 @@ impl Light {
             self.tips_cap = tips;
         }
         let (cap, cols) = (more(self.nodes_cap, nodes), more(self.columns_cap, columns));
-        if cap != self.nodes_cap {
-            self.quanta = storage(gpu, "light quanta", u64::from(cap), &[])?;
-        }
-        // A dormant lattice's own dispatches are never recorded, so its
-        // field and scratch, which only they read, stay at their least
-        // (fn-256 task 11).
+        // A dormant lattice's deposit and own dispatches are never
+        // recorded, so its quanta, field and scratch, which only they
+        // touch, stay at their least (fn-256 tasks 11 and 12).
         if !self.dormant && cap != self.nodes_cap {
+            self.quanta = storage(gpu, "light quanta", u64::from(cap), &[])?;
             self.field = storage(gpu, "light field", 2 * u64::from(cap), &[])?;
         }
         if !self.dormant && (cap, cols) != (self.nodes_cap, self.columns_cap) {

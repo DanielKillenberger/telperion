@@ -124,17 +124,23 @@ impl Build {
         let light = |k| (PassId::Light, k);
         let span = b.groups(leaves.clone().add(tips.clone()).div(E::C(64)));
         b.step(Step::Copy { from: (*l.start).clone(), at: 0, to: (*l.state).clone(), to_at: 0, bytes: 32 });
-        b.step(Step::Clear { buffer: (*l.quanta).clone(), at: 0, bytes: None });
         b.dispatch(light(0), main.clone(), span);
         b.dispatch(light(1), main.clone(), Size::Direct(1));
+        // The deposit, and its refusals of a leaf's area and a node's
+        // quanta, guard only the lattice's input: a dormant lattice
+        // (nothing shades) reads none, so records neither (fn-256 task
+        // 12), nor any of the lattice's own dispatches.
         let range = ranges.deposit;
-        for r in 0..bound.deposits {
-            let bind = slot(b, (0, r * range));
-            let left = leaves.clone().sub(E::C(r * range)).min(E::C(range));
-            let size = b.groups(left.div(E::C(64)));
-            b.enter(Cond::Deposit(r));
-            b.dispatch(light(2), bind, size);
-            b.leave();
+        if !l.dormant {
+            b.step(Step::Clear { buffer: (*l.quanta).clone(), at: 0, bytes: None });
+            for r in 0..bound.deposits {
+                let bind = slot(b, (0, r * range));
+                let left = leaves.clone().sub(E::C(r * range)).min(E::C(range));
+                let size = b.groups(left.div(E::C(64)));
+                b.enter(Cond::Deposit(r));
+                b.dispatch(light(2), bind, size);
+                b.leave();
+            }
         }
         b.tally(&l.grid, 0, c::GRID, 32);
         b.point();
@@ -146,8 +152,6 @@ impl Build {
         // One flag program a point a word: the programs run at once.
         let past = lattice.iter().fold(E::C(0), |a, (_, n, r)| a.max(n.clone().gt(E::At(rec::LIGHTS).mul(E::C(*r)))));
         b.flag(Flag::LightRanges, past);
-        // A dormant lattice (nothing shades) records none of its own
-        // dispatches; the box, the deposit and their refusals stay.
         if !l.dormant {
             self.plan_lattice(b, (&slot, &main), lattice, (bound, ranges, nodes));
         }
@@ -159,7 +163,9 @@ impl Build {
         b.flag(Flag::LightErrors, E::At(c::LIGHT_ERRORS));
         let points = leaves.clone().add(E::At(c::NEXT));
         b.flag(Flag::Points, points.gt(E::C(l.points_cap)).max(E::At(c::NEXT).gt(E::C(l.tips_cap))));
-        b.flag(Flag::DepositRanges, leaves.gt(E::At(rec::DEPOSITS).mul(E::C(range))));
+        if !l.dormant {
+            b.flag(Flag::DepositRanges, leaves.gt(E::At(rec::DEPOSITS).mul(E::C(range))));
+        }
         let layer = E::At(c::GRID + 3).mul(E::At(c::GRID + 4));
         let per = E::C(SWEEP_WORK).floor(layer.div(E::C(SWEEP_WG))).max(E::C(1));
         b.flag(Flag::Sweeps, E::At(c::GRID + 5).div(per).gt(E::At(rec::SWEEPS)));

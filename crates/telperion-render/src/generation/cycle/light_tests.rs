@@ -177,6 +177,11 @@ fn young_reads_agree_with_the_cpu() {
     );
 }
 
+/// The refusals only the deposit raises: a leaf's area, a node's quanta
+/// and a leaf outside its box (`light.wgsl`'s `E_AREA`, `E_DEPOSIT`,
+/// `E_OUTSIDE`).
+const DEPOSIT: u32 = 8 | 16 | 32;
+
 /// `lit` on the device, swept or dormant: its reads and refusals.
 fn reads(gpu: &Gpu, k: &Kernels, lit: &Lit) -> (Vec<u32>, u32) {
     let run = Run::new(gpu, k, lit).expect("buffers");
@@ -191,6 +196,8 @@ fn reads(gpu: &Gpu, k: &Kernels, lit: &Lit) -> (Vec<u32>, u32) {
 /// recorded and each tip sums its eight rounded weights against a light
 /// of one, word for word the swept lattice's read: on Telperion's unlit
 /// site, and on the lit oak with no leaf area, whose open sky is one.
+/// Every refusal but the deposit's is the swept lattice's; the deposit,
+/// which guards only the lattice's input, is not recorded (task 12).
 #[test]
 fn a_dormant_lattice_reads_as_the_swept_one() {
     let Some((gpu, k)) = device() else {
@@ -210,7 +217,7 @@ fn a_dormant_lattice_reads_as_the_swept_one() {
         let dormant = reads(&gpu, &k, &lit);
         let n = swept.0.iter().zip(&dormant.0).filter(|(a, b)| a != b).count();
         println!("{name} {age} at {at}: {} tips, {n} reads differ, refusals {:x} and {:x}", swept.0.len(), swept.1, dormant.1);
-        if n > 0 || swept.0.len() != dormant.0.len() || swept.1 != dormant.1 {
+        if n > 0 || swept.0.len() != dormant.0.len() || swept.1 & !DEPOSIT != dormant.1 {
             differ.push(name);
         }
     }

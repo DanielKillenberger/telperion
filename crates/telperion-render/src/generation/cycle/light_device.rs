@@ -39,9 +39,9 @@ const PHASES: [&str; 9] = [
     "read",
 ];
 #[cfg(test)]
-/// The lattice's entries, which a dormant lattice does not record
-/// (`plan_lay.rs`'s `plan_lattice`).
-const LATTICE: std::ops::RangeInclusive<usize> = 3..=7;
+/// The deposit and the lattice's entries, which a dormant lattice does
+/// not record (`plan_lay.rs`'s `plan_light`).
+const LATTICE: std::ops::RangeInclusive<usize> = 2..=7;
 /// The errors `light.wgsl` sets, by bit, as the CPU names them.
 pub(super) const REFUSALS: [&str; 6] = [
     "positions inside the contract's domain",
