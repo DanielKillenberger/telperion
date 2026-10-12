@@ -96,7 +96,7 @@ fn close_main(@builtin(global_invocation_id) id: vec3<u32>) {
     // Its block is entered by the living's sweep (fn-256 task 10).
     let b = shape[H_BLOCK * cfg.stride + i];
     if closed && b < cfg.stride {
-        set_rt(R_BLOCKS, b, cfg.cycle);
+        atomicStore(&verdicts[block_stamp(b)], cfg.cycle);
     }
     if open == cfg.cycle || rt(R_SEEN, i) != 0u {
         return;
@@ -312,7 +312,7 @@ fn reused_main(@builtin(global_invocation_id) id: vec3<u32>, @builtin(local_invo
     workgroupBarrier();
     let i = index(id);
     if i < cfg.n {
-        var held = array<bool, 3>(rt(R_OPEN, i) != cfg.cycle, rt(R_CLOSED, i) != 0u, rt(R_BLOCKS, i) == cfg.cycle);
+        var held = array<bool, 3>(rt(R_OPEN, i) != cfg.cycle, rt(R_CLOSED, i) != 0u, i < cfg.stride && atomicLoad(&verdicts[block_stamp(i)]) == cfg.cycle);
         for (var k = 0u; k < 3u; k++) {
             if held[k] {
                 atomicAdd(&w_reused[k], 1u);

@@ -721,7 +721,7 @@ Each laid axis's own part of each upward sum was held against what the sum last 
   - What it carried up at its close is therefore what every later cycle would carry up.
   - The one word that changed later, a retired root's wait set to none, is now set by its verdict.
   - The retired and inside branches of `carried_up` could no longer be reached and are gone.
-- **The sweep's blocks.** It enters only the blocks holding an axis closed this cycle. `close_main` stamps those blocks by cycle number in a column past the axes' own, which no compaction moves; a compaction renumbers no block.
+- **The sweep's blocks.** It enters only the blocks holding an axis closed this cycle. `close_main` stamps those blocks by cycle number, atomically (every axis closing in a block stamps it), in the words past the verdicts' log, which no compaction moves; a compaction renumbers no block.
 
 **Each child's terms taken once.** The first build of the above saved only 15% (Telperion's living sweep 190.0 → 161.7 ms) while carrying up 11% of the axes. Its dispatches kept their 150-400 µs. `inside_main`, the same sweep shape, takes 20-30 µs a dispatch. Inferred cause: the unit and phytomer loops inlined in `carried_up` (`node_scale`, `presences`) held every block's workgroup to their registers. So each child's part in its bearer's living is now taken once, by `terms_main`, a flat pass after the woken buds are sized, for each axis whose bearer closed this cycle:
 - its weight;
@@ -732,7 +732,7 @@ Each laid axis's own part of each upward sum was held against what the sum last 
 
 ### 16.4 Exact
 
-- **Node tables:** all 8 presets at their default age and seed, at caps 64, 128 and 1,024, on ten fresh contexts. All 240 hashes equal the post-task-9 hashes (`node_tables_are_hashed`; `raw/t10/t10-nodes-10.log`).
+- **Node tables:** all 8 presets at their default age and seed, at caps 64, 128 and 1,024, on ten fresh contexts. All 240 hashes equal the post-task-9 hashes (`node_tables_are_hashed`; `raw/t10/t10-nodes-10b.log`, after the review's fix).
 - **The cycle suite (42 tests):**
   - every verdict and living equals the CPU's;
   - node tables are the same on ten contexts and at three caps;

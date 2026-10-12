@@ -28,12 +28,13 @@ pub(super) const FOLDS: [usize; 2] = [7, 8];
 pub(super) const REUSED: usize = 9;
 /// Each child's part in the living its closing bearer carries up.
 pub(super) const TERMS: usize = 10;
-/// `ret`'s columns a laid axis (`retire_cols.wgsl`'s `R_`), past them the
-/// blocks' column, and the header's words before the PA constants.
+/// `ret`'s columns a laid axis (`retire_cols.wgsl`'s `R_`), and the
+/// header's words before the PA constants.
 pub(super) const R_COLS: u64 = 17;
 const HEAD: u64 = 64;
 /// The log's count of what the cycle reused, its words; the log's words
-/// before its entries, and its entries' words.
+/// before its entries, and its entries' words. The blocks' stamps follow
+/// the entries.
 pub(super) const L_REUSE: u64 = 2;
 pub(super) const REUSE_WORDS: u64 = 3;
 pub(super) const L_AT: u64 = 8;
@@ -99,7 +100,7 @@ impl Retire {
         let rec_cap = if keeps { records } else { 0 };
         let r = Self {
             ret: zeroed_dst(gpu, "retire columns", Self::ret_words(s, pa))?,
-            verdicts: zeroed_dst(gpu, "retire verdicts", L_AT + ENTRY * u64::from(log_cap))?,
+            verdicts: zeroed_dst(gpu, "retire verdicts", L_AT + ENTRY * u64::from(log_cap) + u64::from(s))?,
             stride: s,
             pa: pa.to_vec(),
             log_cap,
@@ -113,12 +114,12 @@ impl Retire {
     }
 
     fn ret_words(s: u32, pa: &[u32]) -> u64 {
-        (R_COLS + 1) * u64::from(s) + HEAD + pa.len() as u64
+        R_COLS * u64::from(s) + HEAD + pa.len() as u64
     }
 
-    /// Where the header stands in `ret`: past the blocks' column.
+    /// Where the header stands in `ret`.
     pub(super) fn head(&self) -> u64 {
-        (R_COLS + 1) * u64::from(self.stride)
+        R_COLS * u64::from(self.stride)
     }
 
     /// The buffers at `s` rows a column, the columns, header and log

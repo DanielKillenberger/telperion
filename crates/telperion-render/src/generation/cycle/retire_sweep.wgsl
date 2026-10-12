@@ -37,7 +37,7 @@ fn block_run(wid: vec3<u32>, lid: u32, closing: bool) -> vec4<u32> {
 // Block `b`'s run, empty where `closing` and it holds no axis closed this
 // cycle.
 fn members_of(b: u32, closing: bool) -> vec4<u32> {
-    if closing && !(b < cfg.stride && rt(R_BLOCKS, b) == cfg.cycle) {
+    if closing && !(b < cfg.stride && atomicLoad(&verdicts[block_stamp(b)]) == cfg.cycle) {
         return vec4<u32>(0u);
     }
     let ms = hlists[ls(R_MEM_START, b)];

@@ -132,10 +132,6 @@ const R_BEFORE: u32 = 14u;
 const R_WEIGHT: u32 = 15u;
 const R_GAP: u32 = 16u;
 const R_COLS: u32 = 17u;
-// Past the columns a laid axis, the cycle a block last held an axis
-// closed in it (fn-256 task 10), by the block's number: a compaction
-// moves no block.
-const R_BLOCKS: u32 = 17u;
 // The header from `cfg.head`: the laid axes the last cycle began with;
 // each PA's constants from `cfg.head + 64` (`settle_shared.wgsl`'s `K_`).
 const HD_PREV_LAID: u32 = 0u;
@@ -148,11 +144,18 @@ const KF_SHEDS: u32 = 1u;
 // The log: its count, a fault where it would pass its most, a
 // measurement's count of what the cycle reused (`census::Reused`), then
 // each entry's root, cycle, verdict (waited 0, kept 1, retired 2), lived
-// and alive.
+// and alive; past the entries, the cycle each block last held an axis
+// closed in it (fn-256 task 10), by the block's number, stamped by every
+// axis closing in it at once, so atomically. A compaction moves no block.
 const L_COUNT: u32 = 0u;
 const L_FAULT: u32 = 1u;
 const L_REUSE: u32 = 2u;
 const L_AT: u32 = 8u;
+
+// Block `b`'s stamp in `verdicts`.
+fn block_stamp(b: u32) -> u32 {
+    return L_AT + 6u * cfg.log_cap + b;
+}
 
 fn m(a: f32, b: f32) -> f32 {
     return exact_kept(a * b);
