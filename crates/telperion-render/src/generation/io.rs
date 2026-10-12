@@ -100,8 +100,6 @@ impl Pass {
                 bind_group_layouts: &[Some(&layout)],
                 immediate_size: 0,
             });
-        #[cfg(test)]
-        let started = std::time::Instant::now();
         let descs: Vec<_> = (entries.iter())
             .map(|&entry| wgpu::ComputePipelineDescriptor {
                 label: Some(entry),
@@ -112,9 +110,12 @@ impl Pass {
                 cache: None,
             })
             .collect();
-        let pipelines = Program::make_many(gpu, &descs);
+        let made = Program::make_many(gpu, &descs);
         #[cfg(test)]
-        crate::trace::compiled(&format!("entries of {}", entries[0]), started.elapsed());
+        for (entry, (_, took)) in entries.iter().zip(&made) {
+            crate::trace::compiled(entry, *took);
+        }
+        let pipelines = made.into_iter().map(|(p, _)| p).collect();
         Self {
             layout,
             pipelines,

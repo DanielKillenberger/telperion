@@ -165,11 +165,6 @@ pub(super) fn place_source() -> String {
     )
 }
 
-/// Sag's turn and frames (`settle_bend.wgsl`), which read no buffer.
-pub(super) fn sag_math() -> &'static str {
-    BEND
-}
-
 /// The software f64 without its word product, the contract's own.
 pub(super) fn soft64() -> String {
     const SOFT64: &str = include_str!("soft64.wgsl");
