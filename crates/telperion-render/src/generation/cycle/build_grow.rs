@@ -113,6 +113,12 @@ pub(super) struct Grew {
     pub moving: f64,
     /// The workgroups its bounded dispatches were given and needed.
     pub over: Over,
+    /// The tests' trace (fn-256 task 7): the dispatches recorded by each
+    /// cycle's end, and each cycle's census as read.
+    #[cfg(test)]
+    pub ends: Vec<usize>,
+    #[cfg(test)]
+    pub censuses: Vec<Vec<u32>>,
 }
 
 impl Grew {
@@ -174,12 +180,16 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
         pending.push_back(sent);
         grew.recording += clock.elapsed_ms() / 1e3;
         grew.stamped.extend(stamped);
+        #[cfg(test)]
+        grew.ends.push(grew.stamped.len());
         if cycle == 1 {
             continue;
         }
         let clock = super::super::Clock::now();
         let read = late.take(gpu, cycle - 1).await?;
         grew.waiting += clock.elapsed_ms() / 1e3;
+        #[cfg(test)]
+        grew.censuses.push(read.clone());
         let sent = pending.pop_front().expect("a cycle sent");
         if let Err(stopped) = grew.read((&read, cycle - 1), &sent, t.budget) {
             // The cycle in flight read back before its buffers go.
@@ -224,6 +234,8 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
     // The records a compaction grew past their rows moved as a table does.
     grew.moves += b.retire.rec_moves;
     let read = late.take(gpu, upto).await?;
+    #[cfg(test)]
+    grew.censuses.push(read.clone());
     let sent = pending.pop_front().expect("a cycle sent");
     grew.read((&read, upto), &sent, t.budget)?;
     b.counted(&read);

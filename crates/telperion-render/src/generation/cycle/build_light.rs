@@ -44,6 +44,12 @@ pub(super) struct Lit {
 }
 
 impl Light {
+    /// Whether the site is lit (fn-256 task 7's roofline).
+    #[cfg(test)]
+    pub(super) fn lit(&self) -> bool {
+        self.lit
+    }
+
     /// The light of the site the tables name (`grow_capture_tables`).
     pub(super) fn new(gpu: &Gpu, tables: &Cap) -> Result<Self> {
         let k = f64::from_bits(tables.u64s("light_extinction")[0]);

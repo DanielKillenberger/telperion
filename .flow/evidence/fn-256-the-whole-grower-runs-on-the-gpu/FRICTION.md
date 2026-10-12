@@ -292,3 +292,9 @@ Doing: comparing every preset's stills with F4's. Slowed by: the resident handof
 - **Hindered:** the per-user quota on the 16 GB `/tmp` filled (EDQUOT): this session's scratchpad holds 5.5 GB of earlier tasks' builds and stills (`head-target` alone is 1 GB), other telperion sessions 1.4 GB more. Every Bash call then reports a failure and loses its output, though the command runs; the work went on with every command's output in a fresh file under the worktree's `target/` read back with the file tool, since the command guard refuses to overwrite an existing file.
 - **Cost:** about 10 minutes so far, and two tool calls a command from then on.
 - **Would remove it:** the harness's task output on a disk with room, or the session scratchpad cleared of finished tasks' build directories (local setup, not a repository change).
+
+## 2026-10-12, task 7: start, and no per-cycle trace to read
+- **Doing:** the roofline's Phase-1 anchor and the first GPU run.
+- **Hindered:** `flowctl` not on PATH in the dispatched worker's shell, a fifth time; the task lives in F4's `.flow`, the code here. The build records each dispatch's phase but not its cycle, nor each cycle's census, so a per-cycle attribution needed test-only fields on `Grew` (`ends`, `censuses`) before any measurement. The command guard refuses a `>` redirect onto an existing log, so a rerun writes a new file name.
+- **Cost:** about 5 minutes and one rerun.
+- **Would remove it:** `flowctl` on PATH for dispatched workers (local setup); the per-cycle trace kept in `Grew` under `cfg(test)` from now on.

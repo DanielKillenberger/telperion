@@ -96,6 +96,10 @@ mod settle_time_tests;
 #[cfg(test)]
 mod executor_time_tests;
 #[cfg(test)]
+mod roofline_life;
+#[cfg(test)]
+mod roofline_tests;
+#[cfg(test)]
 mod settle_float_tests;
 #[cfg(test)]
 mod soft64_tests;
