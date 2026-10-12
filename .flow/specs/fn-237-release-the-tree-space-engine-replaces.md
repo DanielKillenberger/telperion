@@ -29,6 +29,8 @@ The owner's goal (2026-10-08/09): "replace the old generator with the new one th
 
 - **R14 (found on the way, fn-257's probe):** fn-260's device-free shader check validates with naga only; Chrome's Tint rejected three things naga accepted (a NaN constant from `bitcast`, a barrier under a non-uniform loop bound, 17 storage buffers in one stage against Chrome's 16). Before the release PR, every shipped WGSL module is also checked against Tint's rules (Tint itself, or checks for these classes with a red fixture each), and against 16 storage buffers per stage.
 
+- **R15 (friction, obvious fix; fn-256 task 13 FRICTION.md):** `scripts/build-wasm.mjs` ignores `CARGO_TARGET_DIR` and reads a stale Wasm from the default target, so `npm test` in a worktree with its own target dir can test old code; before the release PR it honours `CARGO_TARGET_DIR` (or fails by name when the Wasm it reads is older than the sources).
+
 ## Boundaries
 
 Map only. Post-release: fn-232, fn-233.
