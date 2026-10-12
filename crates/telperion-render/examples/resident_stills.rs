@@ -46,12 +46,7 @@ fn main() -> Result<(), String> {
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let gen = Generator::new(&renderer).map_err(|e| e.to_string())?;
     for id in CATALOGUE.iter().map(|c| c.1).filter(|id| only.as_ref().is_none_or(|o| o.contains(id))) {
-        let mut family = by_identity(id).map_err(|e| e.to_string())?;
-        // `STILLS_NO_BASES=1` sets retained leaf bases aside, which the
-        // device does not draw yet (fn-256 DESIGN.md 12.7).
-        if std::env::var_os("STILLS_NO_BASES").is_some() {
-            family.canopy.leaf_bases = 0;
-        }
+        let family = by_identity(id).map_err(|e| e.to_string())?;
         // The drawn tree let go first, as a page short of room does.
         renderer.release_tree();
         let t = Instant::now();

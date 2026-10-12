@@ -108,6 +108,15 @@ fn filled(gpu: &Gpu, label: &str, data: &[u8]) -> Owned {
     b
 }
 
+/// `curve`'s sections packed on the device, one of none where it has none.
+pub(crate) fn sections(gpu: &Gpu, curve: &Curve) -> Owned {
+    let mut sections: Vec<[f32; SECTION_FLOATS]> = curve.packed_sections();
+    if sections.is_empty() {
+        sections.push([0.0; SECTION_FLOATS]);
+    }
+    filled(gpu, "curve sections", bytemuck::cast_slice(&sections))
+}
+
 impl CurveGpu {
     /// Uploads `curve` and builds its passes; each view's budget is made at
     /// its first frame, from its pixels.
@@ -118,25 +127,22 @@ impl CurveGpu {
             filled(gpu, "curve points", bytemuck::cast_slice(&points)),
             filled(gpu, "curve clusters", bytemuck::cast_slice(&clusters)),
         );
+        let blocks = (blocks.0, blocks.1, sections(gpu, curve));
         let counts = (points.len() as u64, clusters.len() as u32);
         Self::on_device(gpu, curve, blocks, counts, curve.demand())
     }
 
-    /// A curve already on the device in its packed form (`points` and
-    /// `clusters` words, `counts` of each) with the rows, sections and
-    /// demand `rows`' and `demand` give: the fine roots' block packed after
-    /// the CPU's (fn-212 task 7, host decision 2).
+    /// A curve already on the device in its packed form (`points`,
+    /// `clusters` and `sections` words, `counts` of the first two) with
+    /// the rows and demand `rows`' and `demand` give: the device's block
+    /// packed after the CPU's (fn-212 task 7, host decision 2).
     pub(crate) fn on_device(
         gpu: &Gpu,
         rows: &Curve,
-        (points, clusters): (Owned, Owned),
+        (points, clusters, sections): (Owned, Owned, Owned),
         (point_count, count): (u64, u32),
         demand: Demand,
     ) -> Self {
-        let mut sections: Vec<[f32; SECTION_FLOATS]> = rows.packed_sections();
-        if sections.is_empty() {
-            sections.push([0.0; SECTION_FLOATS]);
-        }
         // A slice of whole points, on a 256-byte boundary.
         let per_slice = (BINDING / 256) * 256 / 4;
         let words = point_count * POINT_WORDS as u64;
@@ -145,7 +151,7 @@ impl CurveGpu {
             point_slice: per_slice.min(words),
             point_bytes: words * 4,
             clusters,
-            sections: filled(gpu, "curve sections", bytemuck::cast_slice(&sections)),
+            sections,
             count,
             demand,
             shape: [

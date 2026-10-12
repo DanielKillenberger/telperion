@@ -94,6 +94,7 @@ impl super::Generator {
 #[cfg(test)]
 pub(super) fn sources() -> Vec<(&'static str, String)> {
     vec![
+        ("resident bases", boots::source()),
         ("resident fold", fold::FOLD.to_string()),
         ("resident sweep", sweep::source()),
         ("resident sort", sort::SORT.to_string()),
@@ -109,6 +110,9 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
 mod budget;
 #[cfg(test)]
 mod agree_tests;
+mod boots;
+#[cfg(test)]
+mod boots_tests;
 mod build;
 #[cfg(test)]
 mod hang_tests;

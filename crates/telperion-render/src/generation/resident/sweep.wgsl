@@ -6,7 +6,9 @@
 // seam; `walk` sizes each run and finds its widest ring; the runs are
 // sorted widest first (`bitonic`, as `rings.rs` ranks them); `block`, `blocks` and `place` give each its points and clusters;
 // `emit` samples, frames and clusters each run (`samples.rs`,
-// `frames.rs`, `curve.rs`).
+// `frames.rs`, `curve.rs`). A retained leaf base's run that packs into
+// its stem's lattice is swept on its cell's rings, its frames squared to
+// the cell (`section.rs`; fn-266, DESIGN.md 12.8).
 
 struct Cfg {
     n: u32,
@@ -27,6 +29,8 @@ struct Cfg {
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
+// In `gather`, a drawn wave's records; in every later pass, the retained
+// leaf bases' cells (`boots.wgsl`) in the curve's section layout.
 @group(0) @binding(1) var<storage, read> drawn: array<f32>;
 @group(0) @binding(2) var<storage, read_write> nodes: array<f32>;
 @group(0) @binding(3) var<storage, read_write> links: array<atomic<u32>>;
@@ -42,6 +46,10 @@ const CV: u32 = 32u;
 const MADE: u32 = 2u;
 const FINE: u32 = 8u;
 const SEAM: u32 = 16u;
+// The record a base's run opens at where it is drawn as its cell
+// (`boots.wgsl`), the cell's index in its word 29.
+const CELL: u32 = 0x20000000u;
+const SECTION: u32 = 28u;
 // A node: position, radius, start radius, codominance, distance from its
 // root's bearer, its bearer's distance from the root, parent, flags, the
 // widest ring of the run it starts, and its axis's depth in its root and
@@ -64,7 +72,7 @@ const LW: u32 = 12u;
 // its widest ring.
 const TW: u32 = 4u;
 const PW: u32 = 11u;
-const KW: u32 = 15u;
+const KW: u32 = 16u;
 const CLUSTER: u32 = 32u;
 const LEVELS: u32 = 6u;
 
@@ -345,6 +353,33 @@ fn sample(w: ptr<function, Walk>) -> Sample {
     return Sample(pos(i), girth * swelling * flare(pos(i).y), along(i));
 }
 
+// The cell run `first` is drawn as, or none for a round run.
+fn shape(first: u32) -> u32 {
+    if (flags(first) & CELL) == 0u {
+        return NONE;
+    }
+    return word(first, 30u);
+}
+
+fn cell3(c: u32, at: u32) -> vec3<f32> {
+    let b = c * SECTION + at;
+    return vec3<f32>(drawn[b], drawn[b + 1u], drawn[b + 2u]);
+}
+
+// Cell `c`'s ring for sample `k` of `samples` (`Section::ring`): reach,
+// rise and scale.
+fn ring(c: u32, k: u32, samples: u32) -> vec3<f32> {
+    return cell3(c, 17u + 3u * (k + 3u - clamp(samples, 2u, 3u)));
+}
+
+// How far a ring's vertices stand from its centre (`Section::extent`).
+fn extent(c: u32, r: vec3<f32>) -> f32 {
+    let b = c * SECTION + 12u;
+    let a = vec2<f32>(drawn[b] * r.x, drawn[b + 1u]);
+    let d = vec2<f32>(drawn[b + 2u] * r.x, drawn[b + 3u]);
+    return sqrt(dot(a, a) + dot(d, d)) * r.z;
+}
+
 @compute @workgroup_size(64)
 fn walk(@builtin(global_invocation_id) id: vec3<u32>) {
     let k = index(id);
@@ -366,6 +401,13 @@ fn walk(@builtin(global_invocation_id) id: vec3<u32>) {
         count += 1u;
         if w.at == NONE {
             break;
+        }
+    }
+    let cell = shape(first);
+    if cell != NONE {
+        widest = 0.0;
+        for (var k = 0u; k < count; k++) {
+            widest = max(widest, extent(cell, ring(cell, k, count)));
         }
     }
     nodes[first * NW + 11u] = widest;
@@ -539,6 +581,11 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
     let first = keys[s].y;
     let at = table[s * TW];
     let count = table[s * TW + 2u];
+    let cell = shape(first);
+    if cell != NONE {
+        shaped(s, first, at, count, cell);
+        return;
+    }
     var w = begin(first);
     var cur = sample(&w);
     var next = sample(&w);
@@ -579,8 +626,13 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
             }
         }
     }
-    // Each node's ring in its run, which its contacts read: past a
-    // trunk's buried foot (`rings.rs`, `record`).
+    contacts(s, first, at, count);
+    clusters_of(s, at, count, 0u);
+}
+
+// Each node's ring in its run, which its contacts read: past a trunk's
+// buried foot (`rings.rs`, `record`).
+fn contacts(s: u32, first: u32, at: u32, count: u32) {
     var node = first;
     for (var i = 1u + foot(begin(first)); i < count && node != NONE; i++) {
         nodes[node * NW + 21u] = bitcast<f32>(at);
@@ -588,10 +640,30 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
         nodes[node * NW + 23u] = bitcast<f32>(s);
         node = leader(node);
     }
-    clusters_of(s, at, count);
 }
 
-fn clusters_of(s: u32, at: u32, count: u32) {
+// A run drawn as cell `cell` (`section::reshape`, `section::square`):
+// each ring centred on the radial at its reach and rise, its radius the
+// ring's extent, its distance along the run's own, and every frame
+// across the stem and along it.
+fn shaped(s: u32, first: u32, at: u32, count: u32, cell: u32) {
+    var w = begin(first);
+    let origin = cell3(cell, 0u);
+    let axis = cell3(cell, 3u);
+    let radial = cell3(cell, 6u);
+    let across = cell3(cell, 9u);
+    for (var i = 0u; i < count; i++) {
+        let r = ring(cell, i, count);
+        let d = sample(&w).d;
+        put(at + i, Sample(origin + axis * r.y + radial * r.x, extent(cell, r), d), across, axis);
+    }
+    contacts(s, first, at, count);
+    clusters_of(s, at, count, 4u | (cell << 8u));
+}
+
+// Run `s`'s clusters, each with the run's shape flags (`packed_clusters`'
+// 4 and the cell's index from bit 8; 0 for a round run).
+fn clusters_of(s: u32, at: u32, count: u32, form: u32) {
     let r = cfg.rows;
     let twist = r[2].x;
     let depth = r[2].y;
@@ -627,6 +699,7 @@ fn clusters_of(s: u32, at: u32, count: u32) {
         clusters[b + 7u] = largest;
         clusters[b + 8u] = smallest;
         ladder(b + 9u, at + start, end - start, twist, depth);
+        clusters[b + 15u] = bitcast<f32>(form);
         c += 1u;
         if end + 1u >= count {
             break;
