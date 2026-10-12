@@ -298,3 +298,9 @@ Doing: comparing every preset's stills with F4's. Slowed by: the resident handof
 - **Hindered:** `flowctl` not on PATH in the dispatched worker's shell, a fifth time; the task lives in F4's `.flow`, the code here. The build records each dispatch's phase but not its cycle, nor each cycle's census, so a per-cycle attribution needed test-only fields on `Grew` (`ends`, `censuses`) before any measurement. The command guard refuses a `>` redirect onto an existing log, so a rerun writes a new file name.
 - **Cost:** about 5 minutes and one rerun.
 - **Would remove it:** `flowctl` on PATH for dispatched workers (local setup); the per-cycle trace kept in `Grew` under `cfg(test)` from now on.
+
+## 2026-10-12, tasks 8 and 9: start
+- **Doing:** the Phase-1 anchor for tasks 8 and 9; the tasks live in F4's `.flow`, the code here, so F4's branch was merged first to bring the task files over.
+- **Hindered:** `flowctl` not on PATH in the dispatched worker's shell, a sixth time (8.1.1 under the plugin cache). The command guard refused a log redirect into a directory created in the same command; the directory had to be made in a call of its own. A fresh target dir (`target/t8`) rebuilds the workspace at 4 threads.
+- **Cost:** about 3 minutes, and the rebuild's minutes beside the reading.
+- **Would remove it:** `flowctl` on PATH for dispatched workers (local setup, not a repository change).
