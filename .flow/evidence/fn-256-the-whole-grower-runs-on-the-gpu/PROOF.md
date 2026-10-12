@@ -188,3 +188,118 @@ After the fixes:
    - A device-memory guard, and a budget bound that is not none, are the host's call (FRICTION.md).
 3. **Dispatches:** 690 a cycle on Telperion against about 340, for the reason above.
 4. **Chrome:** the cold compile and the warm build in Chrome wait on the owner's probe.
+# fn-256 task 6: fewer dispatches a cycle (worker, 2026-10-12)
+
+COUNCIL.md round 4, step 4, and step 5's re-measure. DESIGN.md section 14 has the design. Raw output is in `raw/t6-*`. Measured on the RTX 3080 with 1.6 GB held by desktop processes, one GPU process at a time under the GPU lock. "Base" is task 5's tip (`19e112eb1`), built and timed in this session beside this branch.
+
+## The gate: at most 340 dispatches a cycle on Telperion — missed
+
+Telperion 82, seed 42, a build's dispatches by phase (`CYCLE_TRACE`), a cycle's average in brackets:
+
+| Phase | Base | Now |
+|---|--:|--:|
+| Units and wake | 43,631 (532) | 11,874 (145) |
+| Balance and allotment | 22,032 (269) | 13,373 (163) |
+| Light | 4,479 (55) | 2,430 (30) |
+| Layout | 3,292 (40) | 2,621 (32) |
+| Retirement | 3,251 (40) | 2,353 (29) |
+| Sizing | 1,463 (18) | 1,463 (18) |
+| Start | 84 (1) | 84 (1) |
+| **A build** | **78,232 (954)** | **34,198 (417)** |
+| Compaction, a build's | 1,428 (7 compactions) | 612 (3) |
+
+At Chrome's 7 µs a direct dispatch, the build's dispatch overhead falls from about 0.56 s to 0.24 s, against DESIGN.md 7a's 0.2 s. Laurelin is 934 to 410 a cycle.
+
+**What holds the rest, measured:**
+- **Units, 145.** Five rounds every cycle (task 5: four refused the ordinary at cycle 18), each 3 dispatches counted and 5 emitted, a pass each range of 65,536 living, and the wake's two passes; scans 10. The range stays at 65,536: at 262,144 the passes halved, but Telperion's `written_main` took 5.9 ms a dispatch, past the 2 ms bound.
+- **Balance and allotment, 163.** The placing passes are about 85: 9.5 round-passes recorded a cycle at 9 dispatches each. Their slack is needed: over every preset at seeds 1, 7 and 42 the generations rose by 2 over two cycles and the passes by 1 (`raw/t6-gate-arena.txt`), each at its `STEP`. The sums' four sweeps are about 70: the wide levels a dispatch each, the narrow ones folded.
+- **Light, 30, and layout, 32,** are below.
+
+**Design calls, for the host (NEEDS_HUMAN):**
+1. Record cycle c after cycle c-1's census rather than c-2's. Every projection's slack shrinks to one cycle's growth (the placing passes, the layout's generations, the units' ranges). It costs the overlap of recording with the device, about 90 ms of recording on Telperion, and a readback each cycle.
+2. Units rounds from the rounds the last census used plus a slack, refused by name past it (task 4's form, without its restart).
+3. A placing rule of one pass a generation (DESIGN.md section 3 restated). The partition is speed only; the words are unchanged.
+
+## Light's dispatches a cycle, explained
+
+Telperion at cycle 80, before: points 1, span 1, grid 1, deposits 6, densities 19, weights 1, paths 22, sweeps 65, combine 20, read 1, lit 1.
+
+- **Cut:**
+  - The densities take the whole lattice in one dispatch. They cost 0.13 ms over the oak's whole build.
+  - The first two cycles read no census and recorded the bound's 224 sweep dispatches each. They now record 8.
+  - The sweep's work bound goes from 64 to 256 nodes a thread a dispatch. At 64 the sweep took a dispatch a layer on Telperion's lattice: 1,654 of 1,660 were under 10 µs. At 256 a lit oak's sweep dispatch is about 1 ms.
+- **Kept, at their bound a dispatch:** the paths (0.36 ms a dispatch on Telperion), the combine and the deposits.
+
+Telperion's light is unlit (fn-264 owns its leaf area), yet `path_main` costs 220 ms of its 1,334 ms of stamped GPU time. That is outside this task.
+
+## The layout, the scans and the folds
+
+- **The layout** records a generation's flag, scan, gather, frame, carried-on frame and draw. The carried-on frame is new: it keeps the cold compile under the bound (below).
+- **The scan** is at most 2 dispatches, from up to 5.
+- **The sums' and retirement's narrow levels** are folded into one workgroup at each end of a sweep. Telperion's late cycles fold the top 3 levels and the deepest 3 to 8.
+
+## Cold compile, native, driver cache off (`CYCLE_COMPILE=generator`)
+
+| | Seconds |
+|---|--:|
+| Base (`raw/t6-cold-base.txt`), two runs | 2.19, 2.25 |
+| Now, three runs (`raw/t6-cold-{1,2,3}.txt`) | 2.00, 2.04, 1.99 |
+
+The base was over 2 s before this task. Its pole was the layout's `frame_main`: 1.28 s alone and 1.97 s beside every other pipeline. Each fused units entry is under 0.9 s alone (DESIGN.md 14). The frame's carried-on path (`stand`) moved into the gather, at 0.19 s alone. `every_pipeline_within_2_5_s_cold` passes.
+
+## Compaction's cadence, measured
+
+Warm build in ms, and compactions, by the projected share of a table that compacts it. Every preset grew with no move (`raw/t6-cadence-*.txt`).
+
+| Threshold | Telperion | Laurelin | Spruce | Ordinary |
+|--:|--:|--:|--:|--:|
+| 0.5 (task 5) | 2,028 (7) | 1,895 (7) | 556 (3) | 543 (3) |
+| 0.7 | 1,973 (4) | 1,825 (4) | 529 (1) | 559 (1) |
+| **0.85** | **1,932 (3)** | **1,790 (3)** | 531 (1) | 529 (1) |
+
+A compaction costs Telperion about 24 ms. The threshold is now 0.85, below the seven eighths at which a table would double. The gate passes: every preset at seeds 1, 7 and 42 makes no move, and the fullest table is the beech's phytomers at 0.85.
+
+## The axes' own hint, and the oak at 80 — gate missed
+
+- **The hint.** The axis tables are sized from `telperion_space::expected_axes` (test `the_expected_axes_count_the_buds_that_live`). Against it, the axes' most runs 0.35 (Telperion, seed 1) to 1.38 (the beech, seed 42; `raw/t6-ratios.txt`). Telperion's axis tables fall from 2.90M to 2.27M rows.
+- **The oak at 80 still does not fit 4 GiB.** It is refused by name before cycle 1: its phytomers grown would take 4,424 MiB (`raw/t6-gate-oak80.txt`).
+  - Grown from the least tables, by moves (`raw/t6-ratios-oak80.txt`, seed 1), it held at most:
+    - axes 1.53M, 0.41 of its expected 3.77M;
+    - phytomers 1.94M, 0.24 of its expected kept 8.04M;
+    - records 8.12M, 1.01 of kept.
+  - The shipped presets' most ratios size it at 5.65M axes and 22.96M phytomers.
+  - The cause is the light. The closed form is light-neutral, and the lit oak keeps a quarter of what the form expects; the beech keeps 1.9 times.
+  - One ratio a table cannot fit both. A hint that reads light, or a factor per species, is a design call (NEEDS_HUMAN).
+
+## Warm build and peak per preset
+
+Warm build in ms, the second build in the process (`build_time`); peak is the build's owned bytes in MB. F4, task 4 and task 5 are this file's earlier tables. Base and now were timed in this session (`raw/t6-build-time-final.txt`).
+
+| Preset | F4 | Task 4 | Task 5 | Base | **Now** | Base peak | **Now peak** | Dispatches a cycle, base / now |
+|---|--:|--:|--:|--:|--:|--:|--:|--:|
+| ordinary 40 | 523 | 604 | 522 | 513 | **541** | 366 | **255** | 811 / 399 |
+| oak 40 | 1159 | 525 | 405 | 385 | **336** | 1467 | **1120** | 755 / 362 |
+| spruce 40 | 403 | 613 | 554 | 594 | **531** | 1645 | **2028** | 873 / 394 |
+| beech 40 | 210 | 295 | 326 | 328 | **254** | 424 | **281** | 708 / 324 |
+| birch 40 | 716 | 782 | 351 | 361 | **313** | 894 | **684** | 742 / 355 |
+| palm 40 | 4 | 98 | 136 | 134 | **93** | 146 | **33** | 607 / 268 |
+| Telperion 82 | 671 | 1909 | 1958 | 2034 | **2009** | 3990 | **3466** | 954 / 417 |
+| Laurelin 80 | 627 | 1782 | 1869 | 1905 | **1881** | 3707 | **3176** | 934 / 410 |
+
+- **Faster than the base:** the oak, spruce, beech, birch and palm, by 10 to 30%.
+- **No faster:** Telperion and Laurelin are 1 to 2% faster, the ordinary 5% slower (noise).
+- **Why the Two Trees did not speed up:** their build is GPU-bound. On Telperion:
+  - the device's stamped time is 1,334 ms of a 1,709 ms span;
+  - the light's paths take 220 ms, retirement's `living_main` 173 ms, and the units' `written_main` 137 ms;
+  - the dispatches cut were mostly empty, and natively cost little;
+  - the gain from them is Chrome's.
+- **Against F4:** the Two Trees take three times F4's time.
+- **Peaks** fall for every preset but the spruce. The spruce's axis tables now follow the beech's ratio.
+- **The longest dispatch** is 1.98 ms (`written_main`, Telperion), under the 2 ms bound.
+
+## Stills
+
+Every preset's default age and seed, whole, mid and close, beside F4's (`raw/t6-stills/sheets`, every sheet viewed).
+- Against task 4's renders, every image is pixel-identical, except the ordinary's: 8 to 50 pixels of 691,200 differ.
+- So the differences from F4 are task 4's table to the tenth of a percent (ordinary 1.3/6.2/7.5%, ..., Laurelin 1.7/8.2/6.8%).
+- Nothing moved visibly.

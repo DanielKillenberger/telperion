@@ -68,9 +68,10 @@ pub(super) fn b_at(n: u32) -> u32 {
 
 /// The living apexes a range of the units' dispatches takes
 /// (`Ranges::units`), its jobs at once: every range a units round
-/// dispatches again (fn-256 task 6: Telperion's 233,000 living took four
-/// at 65,536).
-pub(super) const RANGE: u32 = 262_144;
+/// dispatches again, and the work a dispatch takes (fn-256 task 6: at
+/// 262,144 Telperion's `written_main` took 5.9 ms, past the 2 ms bound;
+/// at 65,536, 1.7 ms).
+pub(super) const RANGE: u32 = 65_536;
 
 /// Where `counts` holds what, for the state's `caps` and units of `zones`
 /// zones at most: the jobs' state, the jobs a range takes (a range of

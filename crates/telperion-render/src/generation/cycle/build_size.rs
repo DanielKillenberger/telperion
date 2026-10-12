@@ -126,7 +126,7 @@ pub(super) fn grown(s: Sizes, (read, prev, cut): (&[u32], Option<&[u32]>, Option
 
 /// The passes a round took in the census's cycle at most: the first, and
 /// each after a pass that left an axis unplaced.
-fn passes(read: &[u32]) -> u32 {
+pub(super) fn passes(read: &[u32]) -> u32 {
     (0..read[c::GENS].min(c::ROUNDS as u32) as usize)
         .map(|r| 1 + (0..PASSES).filter(|p| read[PASS_LEFT + PASSES * r + p] > 0).count() as u32)
         .max()

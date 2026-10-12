@@ -618,3 +618,40 @@ The resident suite agrees on every preset with the palm whole. The sweep test ma
 5. A table holding more rows than the pass covered raises `Flag::Compaction`.
 
 **Sizing** (`build_arena.rs`): each table is sized once from the closed form's expected kept phytomers, a hint and never a bound. The light's terms are let go for a species that reads light. Each table takes its measured most against the hint over every preset at seeds 1, 7, 42 and its own, past a 1.5 margin. The plan's bounds are stated from the tables. A table the hint undersized doubles once before it overflows, counted as a move: on the rows its last compaction kept for a compacted table, else on its projection. A count past any table or limit is refused by name, and no build begins again.
+
+## 14. Fewer dispatches a cycle (task 6, COUNCIL.md round 4 step 4)
+
+**The units' round, re-fused.** Section 10 cut the apex run into 27 entries for the cold compile. A job's steps in a round read only its own job, and a zone's only its own zone and the zones before it. So consecutive steps of one domain fuse, each step in the order its entry ran:
+
+| Entry | Domain | Steps | Cold, alone |
+|---|---|---|--:|
+| `init_main` | job | the job begun; a waking bud woken on its first axis | 0.26 s |
+| `woke_main` | job | a waking bud woken on its next axis (the wake's rounds after the first) | 0.19 s |
+| `decide_main` | job | the unit decided, then its stop, unit, death or abortion | 0.79 s |
+| `zones_main` | zone | the zone's nodes laid, its laterals and sleeping buds counted | 0.88 s |
+| `written_main` | zone, emitted | its nodes ordered; its phytomers, laterals, sleeping buds | 0.87 s |
+| `placed_main` | zone, emitted | its laterals' and sleeping buds' presences | 0.78 s |
+| `after_main` | job | the unit's records taken in, then move, moved, stop, relay, ended | 0.80 s |
+
+A round is 3 dispatches counted and 5 emitted, from 14 and 21. Every fusion was timed alone before it was kept: the round in one entry took 5.2 s, the zones and their order 1.2 s, so those stayed apart. A step called with constant `what`s through one call site in a loop compiles once.
+
+**The scan in two dispatches** (`hier_scan.wgsl`). A column of 1,024 records or fewer is scanned whole by one workgroup. A longer one writes each block's total; the second dispatch's workgroups each add the totals before their own block and scan it in place. Integer adds: any order gives the same words. A scan was up to 5 dispatches; the scans' level limits, census words and flags are deleted.
+
+**The narrow levels folded** (`fold.wgsl`). Each sweep over the block levels (the sums' four, retirement's two) dispatches its wide levels one by one. The levels at the top and the deepest, each of at most 8 blocks in the census read, are looped by one workgroup of 256 lanes: 8 groups of 32, a block each, its members by depth as a block's own workgroup takes them. Each axis still takes its own value and then its children in order, so every word is the per-level dispatch's: the cap-invariance tests (`the_grown_state_is_the_same_on_every_context_and_partition`, `the_node_table_is_the_same_on_every_context_and_block_cap`) pass at caps 64 to 4,096. The deepest fold loops however many levels the device holds, so the levels' slack and `Flag::HierLevels` are deleted.
+
+**Smaller cuts.**
+- The placing pass's end (`round_end_main`) is folded into `follow_main`.
+- The placing columns are cleared by clear commands sized on the device (`Step::Zeroed`), not a glue dispatch.
+- The densities take the lattice in one dispatch.
+- The first two cycles, which read no census, record the sweep's 8 layer ranges, not its bound's 224.
+- The sweep's work bound is 256 nodes a thread a dispatch (about 1 ms on a lit oak, under the 2 ms bound).
+
+**The layout's frame, cut by path** for the cold compile: `frame_main` frames the seed and laterals; `gather_main` takes each carried-on axis's stand (`stood`) into its own frame columns; `frame_on_main` finishes it. The stand inside the frame took 1.1 s of its cold compile; in the gather, 0.19 s.
+
+**Kept as it was, measured:**
+- **The units' range** stays 65,536 living apexes. At 262,144 Telperion's `written_main` took 5.9 ms a dispatch, past the 2 ms bound.
+- **The placing slack** (`STEP`) stays. Over every preset at seeds 1, 7 and 42, the hierarchy's generations rose by 2 over two cycles, and the passes and layout generations by 1 and 2: each at its slack.
+
+**The axes' own hint.** The axis-indexed tables are sized from `telperion_space::expected_axes`, the closed form's grown axes (the walk of `expected_grown`, counting each bud that lives as one axis). Their most held against it runs 0.35 to 1.38 (the beech at seed 42), so `ARENA[0]` is 1.3792.
+
+**Compaction's cadence.** A table is compacted where its projection two cycles on passes 0.85 of its rows (`TIGHT`), not half. Each compaction cost Telperion about 24 ms; see PROOF.md.

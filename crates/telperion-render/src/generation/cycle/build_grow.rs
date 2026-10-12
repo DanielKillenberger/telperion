@@ -166,7 +166,7 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
             if let Some(l) = &last {
                 let n = (l[c::LEVELS] as usize).min(63);
                 let widths: Vec<u32> = (0..n).map(|k| l[c::LVL + k + 1] - l[c::LVL + k]).collect();
-                eprintln!("TRACE levels {} blocks by level {widths:?} live {} gens {}", l[c::LEVELS], l[c::NEXT], l[c::GENS]);
+                eprintln!("TRACE levels {} blocks by level {widths:?} live {} gens {} passes {} laygens {}", l[c::LEVELS], l[c::NEXT], l[c::GENS], super::build_size::passes(l), (0..super::lay_device::DEEP as usize).filter(|&g| l[c::LAY_DEEP + g] != 0).count());
             }
         }
         let clock = super::super::Clock::now();
