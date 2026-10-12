@@ -179,6 +179,7 @@ impl Build {
         });
 
         let apexes = b.groups(live.clone().div(E::C(64)));
+        let laid = b.groups(n.clone().div(E::C(64)));
         let partials = b.groups(live.clone().div(E::C(BUD_BLOCK)).max(E::C(1)));
         // A block's partial sums in runs, each a bounded dispatch.
         let mut runs = Vec::new();
@@ -193,6 +194,7 @@ impl Build {
         }
         let (base, sums) = (levels[0].0.clone(), |k| (PassId::HierSums, k));
         b.dispatch(sums(hd::MARK), base.clone(), apexes);
+        b.dispatch(sums(hd::TOTALS_MARK), base.clone(), laid);
         let sweep = |b: &mut Builder, (entry, fold): (usize, usize), up: bool| swept(b, (sums(entry), sums(fold)), (&levels, &folds), up);
         sweep(b, (hd::TOTALS, hd::FOLDS[0]), true);
         sweep(b, (hd::WALK, hd::FOLDS[1]), false);
@@ -201,12 +203,17 @@ impl Build {
         scanned(b, &kit.hier.scan, (&m.live, V_FLAG * u64::from(cap), cap, COLUMN), &m.scan_sums, (&m.tally, 0), live);
         b.dispatch(sums(hd::COMPACT), base.clone(), apexes);
         b.dispatch(sums(hd::PRESENCE), base.clone(), apexes);
+        b.dispatch(sums(hd::SUB_MARK), base.clone(), laid);
         sweep(b, (hd::SUB, hd::FOLDS[2]), true);
         sweep(b, (hd::SPLIT, hd::FOLDS[3]), false);
         for run in runs {
             b.dispatch(sums(hd::PARTIALS), run, partials);
         }
         b.dispatch(sums(hd::COMBINE), base.clone(), Size::Direct(1));
+        if t.counted {
+            b.dispatch(sums(hd::REUSED), base.clone(), laid);
+            b.tally(&m.tally, 4 * hd::Y_REUSE, c::REUSE, 4 * hd::REUSE_WORDS);
+        }
         b.dispatch(sums(hd::SIZES), base, apexes);
         b.tally(&m.tally, 0, c::LIVE, 4);
         b.point();

@@ -14,7 +14,7 @@ const REAL: &str = include_str!("real.wgsl");
 const COMPACT: &str = include_str!("compact.wgsl");
 const UNITS: &str = include_str!("retire_units.wgsl");
 
-pub(super) const ENTRIES: [&str; 9] = ["open_main", "close_main", "woken_main", "living_main", "verdict_main", "end_main", "inside_main", "living_fold_main", "inside_fold_main"];
+pub(super) const ENTRIES: [&str; 10] = ["open_main", "close_main", "woken_main", "living_main", "verdict_main", "end_main", "inside_main", "living_fold_main", "inside_fold_main", "reused_main"];
 pub(super) const OPEN: usize = 0;
 pub(super) const CLOSE: usize = 1;
 pub(super) const WOKEN: usize = 2;
@@ -24,12 +24,17 @@ pub(super) const END: usize = 5;
 pub(super) const INSIDE: usize = 6;
 /// Each sweep's narrow levels folded into one workgroup (`fold.wgsl`).
 pub(super) const FOLDS: [usize; 2] = [7, 8];
-/// `ret`'s columns a laid axis (`retire_cols.wgsl`'s `R_`), and the
-/// header's words before the PA constants.
+/// A measurement's count of what the cycle reused (`Tables::counted`).
+pub(super) const REUSED: usize = 9;
+/// `ret`'s columns a laid axis (`retire_cols.wgsl`'s `R_`), past them the
+/// blocks' column, and the header's words before the PA constants.
 pub(super) const R_COLS: u64 = 14;
 const HEAD: u64 = 64;
-/// The log's words before its entries, and its entries' words.
-pub(super) const L_AT: u64 = 4;
+/// The log's count of what the cycle reused, its words; the log's words
+/// before its entries, and its entries' words.
+pub(super) const L_REUSE: u64 = 2;
+pub(super) const REUSE_WORDS: u64 = 3;
+pub(super) const L_AT: u64 = 8;
 pub(super) const ENTRY: u64 = 6;
 
 /// The modules, built under one arithmetic: retirement's, and the
@@ -106,12 +111,12 @@ impl Retire {
     }
 
     fn ret_words(s: u32, pa: &[u32]) -> u64 {
-        R_COLS * u64::from(s) + HEAD + pa.len() as u64
+        (R_COLS + 1) * u64::from(s) + HEAD + pa.len() as u64
     }
 
-    /// Where the header stands in `ret`.
+    /// Where the header stands in `ret`: past the blocks' column.
     pub(super) fn head(&self) -> u64 {
-        R_COLS * u64::from(self.stride)
+        (R_COLS + 1) * u64::from(self.stride)
     }
 
     /// The buffers at `s` rows a column, the columns, header and log

@@ -2,33 +2,48 @@
 // levels, a workgroup a block of `cfg.level`, its members by depth from
 // the deepest, a barrier between depths (`hier_sweep.wgsl`'s shape). Each
 // closed axis's subtree's living is its own, or the most its children
-// carry up (`shed::fades`); a retired root stands for its subtree by the
-// living it was retired with. Living folds by `max`, so it is fn-255's
+// carry up (`shed::fades`). Living folds by `max`, so it is fn-255's
 // per-subtree evaluation (`retire::copied`, `subtree_living`) at every
 // closed axis. Beside it, the latest cycle a woken bud in the subtree
 // waits until.
+//
+// fn-256 task 10: an axis's living is carried up once, in the cycle it
+// closes. Nothing in a closed subtree grows, wakes or is judged again (a
+// candidate stands beside an open axis), so what it carried up then is
+// what it would carry up in every later cycle; a retired root's wait is
+// let go by its verdict (`verdict_main`). The sweep enters only the
+// blocks holding an axis closed this cycle (`close_main`).
 
 var<workgroup> w_run: vec4<u32>;
 var<workgroup> w_span: vec2<u32>;
 
 // The workgroup's block: its members' first and end, and its least and
-// greatest depth; an empty run past the level's blocks.
-fn block_run(wid: vec3<u32>, lid: u32) -> vec4<u32> {
+// greatest depth; an empty run past the level's blocks, or where `closing`
+// asks for a block holding an axis closed this cycle and it holds none.
+fn block_run(wid: vec3<u32>, lid: u32, closing: bool) -> vec4<u32> {
     if lid == 0u {
         var run = vec4<u32>(0u);
         if cfg.level < cfg.levels {
             let k = hlists[ls(R_LVL_START, cfg.level)] + wid.x + wid.y * cfg.wx;
             if k < hlists[ls(R_LVL_START, cfg.level + 1u)] {
-                let b = hlists[ls(R_LVL_BLOCKS, k)];
-                let ms = hlists[ls(R_MEM_START, b)];
-                let me = hlists[ls(R_MEM_START, b + 1u)];
-                let least = shape[H_DEPTH * cfg.stride + hlists[ls(R_MEMBERS, ms)]];
-                run = vec4<u32>(ms, me, least, shape[H_DEPTH * cfg.stride + hlists[ls(R_MEMBERS, me - 1u)]]);
+                run = members_of(hlists[ls(R_LVL_BLOCKS, k)], closing);
             }
         }
         w_run = within(run, cfg.stride);
     }
     return workgroupUniformLoad(&w_run);
+}
+
+// Block `b`'s run, empty where `closing` and it holds no axis closed this
+// cycle.
+fn members_of(b: u32, closing: bool) -> vec4<u32> {
+    if closing && !(b < cfg.stride && rt(R_BLOCKS, b) == cfg.cycle) {
+        return vec4<u32>(0u);
+    }
+    let ms = hlists[ls(R_MEM_START, b)];
+    let me = hlists[ls(R_MEM_START, b + 1u)];
+    let least = shape[H_DEPTH * cfg.stride + hlists[ls(R_MEMBERS, ms)]];
+    return vec4<u32>(ms, me, least, shape[H_DEPTH * cfg.stride + hlists[ls(R_MEMBERS, me - 1u)]]);
 }
 
 // The first of the block's members at depth `d` or below.
@@ -69,19 +84,9 @@ fn vigour(c: u32, i: u32) -> f32 {
     return made;
 }
 
-// Closed axis `i`'s subtree's living and its latest wait.
+// Closed axis `i`'s subtree's living and its latest wait: never judged
+// before it closes, so neither retired nor inside a retired subtree.
 fn carried_up(i: u32) {
-    // Inside a retired subtree its root stands for it, and its phytomers
-    // may be let go.
-    if rt(R_FATE, i) == INSIDE {
-        return;
-    }
-    if rt(R_FATE, i) == RETIRED {
-        set_rt(R_LIVED, i, rt(R_ROOT_LIVED, i));
-        set_rt(R_ALIVE, i, rt(R_ROOT_ALIVE, i));
-        set_rt(R_WSUB, i, 0u);
-        return;
-    }
     var lived = rtf(R_LIVED0, i);
     var alive = 0.0;
     var wait = rt(R_WAKE, i);
@@ -109,16 +114,16 @@ fn carried_up(i: u32) {
     set_rt(R_WSUB, i, wait);
 }
 
-// A closed axis's living carried up, where it is laid and not open.
+// An axis's living carried up, where it is laid and closed this cycle.
 fn living(i: u32) {
-    if i < cfg.n && rt(R_OPEN, i) != cfg.cycle {
+    if i < cfg.n && rt(R_CLOSED, i) != 0u {
         carried_up(i);
     }
 }
 
 @compute @workgroup_size(WG)
 fn living_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
-    let run = block_run(wid, lid);
+    let run = block_run(wid, lid, true);
     if run.y == run.x {
         return;
     }
@@ -143,7 +148,7 @@ fn inside(i: u32) {
 
 @compute @workgroup_size(WG)
 fn inside_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
-    let run = block_run(wid, lid);
+    let run = block_run(wid, lid, false);
     if run.y == run.x {
         return;
     }
@@ -163,12 +168,8 @@ fn fold_level(l: u32) -> vec2<u32> {
     return vec2<u32>(hlists[ls(R_LVL_START, l)], hlists[ls(R_LVL_START, l + 1u)]);
 }
 
-fn fold_run(k: u32) -> vec4<u32> {
-    let b = hlists[ls(R_LVL_BLOCKS, k)];
-    let ms = hlists[ls(R_MEM_START, b)];
-    let me = hlists[ls(R_MEM_START, b + 1u)];
-    let least = shape[H_DEPTH * cfg.stride + hlists[ls(R_MEMBERS, ms)]];
-    return within(vec4<u32>(ms, me, least, shape[H_DEPTH * cfg.stride + hlists[ls(R_MEMBERS, me - 1u)]]), cfg.stride);
+fn fold_run(op: u32, k: u32) -> vec4<u32> {
+    return within(members_of(hlists[ls(R_LVL_BLOCKS, k)], op == 0u), cfg.stride);
 }
 
 fn fold_lower(run: vec4<u32>, d: u32) -> u32 {

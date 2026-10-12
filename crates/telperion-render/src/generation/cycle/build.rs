@@ -85,6 +85,9 @@ pub(super) struct Tables {
     pub settle_pa: Vec<u32>,
     /// Whether retirement logs its verdicts: a test's, never a build's.
     pub log: bool,
+    /// Whether the cycle counts what its upward sums and retirement
+    /// reuse (`census::REUSE`): a measurement's, never a build's.
+    pub counted: bool,
     pub table: Owned,
     pub words: Owned,
     pub form: Vec<f32>,
@@ -117,6 +120,7 @@ impl Tables {
             zones,
             settle_pa: cap.u32s("settle_pa"),
             log: false,
+            counted: false,
             table: upload("cycle table", bytemuck::cast_slice(&table))?,
             words: upload("cycle words", bytemuck::cast_slice(&words))?,
             form,

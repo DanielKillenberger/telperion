@@ -68,6 +68,11 @@ fn the_roofline_is_measured() {
         }
         write(&out, &format!("{id}-census.csv"), &csv);
         println!("{id} {age}: {} dispatches, compacted after {compacted:?}, records kept {keeps}, lit {lit}, directions {dirs}", stamps.len());
+        // The CPU reference's visits, unless `ROOFLINE_VISITS=0` asks for
+        // the stamps and censuses alone.
+        if std::env::var("ROOFLINE_VISITS").is_ok_and(|v| v == "0") {
+            continue;
+        }
         let held = |let_go| lives(&g.species, g.request, &compacted, let_go);
         let l = held(!keeps);
         write(&out, &format!("{id}-visits.csv"), &visits(&l));

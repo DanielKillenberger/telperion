@@ -264,9 +264,11 @@ impl Build {
         // A list's entries name the axes: no more than they are.
         let rows = (s + 64).min(caps.axes + 64);
         let axes = |col| Cfg::column(caps.axes, held.axes, (0, col));
-        // Each retired root's upkeep, from the sums the cycle left.
+        // Each retired root's upkeep, from the sums the cycle left; then
+        // what the upward sums took forgotten, as their rows move.
         let freeze = Cfg { fate_at, row_at: S_COST * s, ..axes(A_FROZEN) };
         r.run(FREEZE, freeze, [&st.axes, &self.sums.sums, ret, &k.spare[0]], caps.axes.div_ceil(64))?;
+        self.sums.forget(&mut r.e);
         // The flags: an axis kept unless inside a retired subtree, a unit
         // where its axis is.
         let inside = Cfg { fate_at, val_n: self.retire.stride, below: INSIDE, ..Cfg::default() };

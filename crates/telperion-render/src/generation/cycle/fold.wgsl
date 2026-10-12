@@ -8,7 +8,8 @@
 // fn-255's order, so the words are those of a dispatch a level.
 //
 // The module that includes this gives the level's blocks
-// (`fold_level`), a block's run (`fold_run`), its members at a depth
+// (`fold_level`), a block's run for the sweep (`fold_run`, empty where
+// the sweep enters it not), its members at a depth
 // (`fold_lower`), a member (`fold_member`), the sweep's work at an axis
 // (`fold_apply`), and the levels `[cfg.fold_lo, cfg.fold_hi)` folded,
 // none past `cfg.levels`.
@@ -41,7 +42,7 @@ fn folded(op: u32, up: bool, lid: u32) {
                 let k = lv.x + bt * FOLD + g;
                 var run = vec4<u32>(0u);
                 if k < lv.y {
-                    run = fold_run(k);
+                    run = fold_run(op, k);
                 }
                 w_fold_runs[g] = run;
             }

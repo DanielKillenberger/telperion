@@ -9,7 +9,7 @@
 use super::build::{Build, Kit, Tables};
 use super::census as c;
 use super::gate::{rec, Cond};
-use super::plan::{Builder, PassId, Size, MAXX};
+use super::plan::{Builder, PassId, Size, Step, MAXX};
 use super::plan_hier::{swept, HierBounds};
 use super::retire_device as rd;
 use super::vm::E;
@@ -61,6 +61,12 @@ impl Build {
             b.bind(&kit.retire.pass, slot, &rest)
         });
         swept(b, (ret(rd::LIVING), ret(rd::FOLDS[0])), (&levels, &folds), true);
+        if t.counted {
+            let (at, bytes) = (4 * rd::L_REUSE, 4 * rd::REUSE_WORDS);
+            b.step(Step::Clear { buffer: (*r.verdicts).clone(), at, bytes: Some(bytes) });
+            b.dispatch(ret(rd::REUSED), base.clone(), laid);
+            b.tally(&r.verdicts, at, c::REUSE + c::Reused::Closed as usize, bytes);
+        }
         let laid = per(b, E::At(c::LAID0));
         b.dispatch(ret(rd::VERDICT), base.clone(), laid);
         swept(b, (ret(rd::INSIDE), ret(rd::FOLDS[1])), (&levels, &folds), false);

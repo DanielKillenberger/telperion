@@ -91,7 +91,13 @@ fn close_main(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     let open = rt(R_OPEN, i);
     let fresh = i >= ret[cfg.head + HD_PREV_LAID];
-    set_rt(R_CLOSED, i, u32(open != cfg.cycle && (open + 1u == cfg.cycle || fresh)));
+    let closed = open != cfg.cycle && (open + 1u == cfg.cycle || fresh);
+    set_rt(R_CLOSED, i, u32(closed));
+    // Its block is entered by the living's sweep (fn-256 task 10).
+    let b = shape[H_BLOCK * cfg.stride + i];
+    if closed && b < cfg.stride {
+        set_rt(R_BLOCKS, b, cfg.cycle);
+    }
     if open == cfg.cycle || rt(R_SEEN, i) != 0u {
         return;
     }
@@ -223,9 +229,12 @@ fn verdict_main(@builtin(global_invocation_id) id: vec3<u32>) {
         faded = clamp(bitcast<f32>(kpa(pa, K_DELAY)) - idle, min(alive, 1.0), 1.0);
     }
     if faded <= 0.0 {
+        // It stands for its subtree by the living it carried up, and
+        // waits on nothing more: its bearer reads no wait from it.
         set_rt(R_FATE, i, RETIRED);
         set_rtf(R_ROOT_LIVED, i, lived);
         set_rtf(R_ROOT_ALIVE, i, alive);
+        set_rt(R_WSUB, i, 0u);
         logged(i, RETIRED, lived, alive);
     } else {
         set_rt(R_FATE, i, KEPT);
@@ -240,5 +249,31 @@ fn end_main() {
     // cycle's, as no cycle lays fewer axes than the one before.
     if cfg.n != 0u {
         ret[cfg.head + HD_PREV_LAID] = cfg.n;
+    }
+}
+
+var<workgroup> w_reused: array<atomic<u32>, 3>;
+
+// A measurement's count (`Tables::counted`): the laid axes closed, those
+// closed this cycle, and the blocks the living's sweep enters (a block's
+// number is under the laid axes).
+@compute @workgroup_size(64)
+fn reused_main(@builtin(global_invocation_id) id: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
+    if lid < 3u {
+        atomicStore(&w_reused[lid], 0u);
+    }
+    workgroupBarrier();
+    let i = index(id);
+    if i < cfg.n {
+        var held = array<bool, 3>(rt(R_OPEN, i) != cfg.cycle, rt(R_CLOSED, i) != 0u, rt(R_BLOCKS, i) == cfg.cycle);
+        for (var k = 0u; k < 3u; k++) {
+            if held[k] {
+                atomicAdd(&w_reused[k], 1u);
+            }
+        }
+    }
+    workgroupBarrier();
+    if lid < 3u {
+        atomicAdd(&verdicts[L_REUSE + lid], atomicLoad(&w_reused[lid]));
     }
 }

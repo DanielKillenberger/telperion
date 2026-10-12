@@ -11,22 +11,31 @@ var<workgroup> w_span: vec2<u32>;
 
 // The workgroup's block: its members' first and end, and its least and
 // greatest depth (its first member's and its last's); an empty run where
-// there is none.
-fn open_block(wid: vec3<u32>, lid: u32) -> vec4<u32> {
+// there is none, or where an upward sum marked none of its axes in
+// column `take` (`hier_reuse.wgsl`; `NONE`, every block).
+fn open_block(wid: vec3<u32>, lid: u32, take: u32) -> vec4<u32> {
     if lid == 0u {
         let first = lists[ls(R_LVL_START, cfg.level)];
         let k = first + wid.x + wid.y * cfg.wx;
         var run = vec4<u32>(0u);
         if cfg.cycle != 0u && cfg.level < cfg.levels && k < lists[ls(R_LVL_START, cfg.level + 1u)] {
-            let b = lists[ls(R_LVL_BLOCKS, k)];
-            let ms = lists[ls(R_MEM_START, b)];
-            let me = lists[ls(R_MEM_START, b + 1u)];
-            let least = shape[at(H_DEPTH, lists[ls(R_MEMBERS, ms)])];
-            run = vec4<u32>(ms, me, least, shape[at(H_DEPTH, lists[ls(R_MEMBERS, me - 1u)])]);
+            run = block_run(lists[ls(R_LVL_BLOCKS, k)], take);
         }
         w_run = within(run, cfg.stride);
     }
     return workgroupUniformLoad(&w_run);
+}
+
+// Block `b`'s run, empty where `take` names a column that marked none of
+// its axes.
+fn block_run(b: u32, take: u32) -> vec4<u32> {
+    if take != NONE && !(b < cfg.stride && taken(take, b)) {
+        return vec4<u32>(0u);
+    }
+    let ms = lists[ls(R_MEM_START, b)];
+    let me = lists[ls(R_MEM_START, b + 1u)];
+    let least = shape[at(H_DEPTH, lists[ls(R_MEMBERS, ms)])];
+    return vec4<u32>(ms, me, least, shape[at(H_DEPTH, lists[ls(R_MEMBERS, me - 1u)])]);
 }
 
 // The first of the block's members at depth `d` or below.
@@ -87,16 +96,23 @@ fn totals(i: u32) {
     sums[at(S_LIVING, i)] = u32(living);
 }
 
+// The totals at an axis they marked (`hier_reuse.wgsl`).
+fn totals_taken(i: u32) {
+    if taken(S_TAKE_TOTALS, i) {
+        totals(i);
+    }
+}
+
 @compute @workgroup_size(WG)
 fn totals_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
-    let run = open_block(wid, lid);
+    let run = open_block(wid, lid, S_BLOCK_TOTALS);
     if run.y == run.x {
         return;
     }
     for (var h = 0u; h <= run.w - run.z; h++) {
         let span = depth_span(run, run.w - h, lid);
         for (var k = span.x + lid; k < span.y; k += WG) {
-            totals(lists[ls(R_MEMBERS, k)]);
+            totals_taken(lists[ls(R_MEMBERS, k)]);
         }
         storageBarrier();
         workgroupBarrier();
@@ -154,7 +170,7 @@ fn walk(i: u32) {
 
 @compute @workgroup_size(WG)
 fn walk_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
-    let run = open_block(wid, lid);
+    let run = open_block(wid, lid, NONE);
     if run.y == run.x {
         return;
     }
@@ -183,16 +199,23 @@ fn sub(i: u32) {
     sums[at(S_BUDS, i)] = buds;
 }
 
+// The subtrees' sum at an axis it marked (`hier_reuse.wgsl`).
+fn sub_taken(i: u32) {
+    if taken(S_TAKE_SUB, i) {
+        sub(i);
+    }
+}
+
 @compute @workgroup_size(WG)
 fn sub_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
-    let run = open_block(wid, lid);
+    let run = open_block(wid, lid, S_BLOCK_SUB);
     if run.y == run.x {
         return;
     }
     for (var h = 0u; h <= run.w - run.z; h++) {
         let span = depth_span(run, run.w - h, lid);
         for (var k = span.x + lid; k < span.y; k += WG) {
-            sub(lists[ls(R_MEMBERS, k)]);
+            sub_taken(lists[ls(R_MEMBERS, k)]);
         }
         storageBarrier();
         workgroupBarrier();
@@ -205,12 +228,14 @@ fn fold_level(l: u32) -> vec2<u32> {
     return vec2<u32>(lists[ls(R_LVL_START, l)], lists[ls(R_LVL_START, l + 1u)]);
 }
 
-fn fold_run(k: u32) -> vec4<u32> {
-    let b = lists[ls(R_LVL_BLOCKS, k)];
-    let ms = lists[ls(R_MEM_START, b)];
-    let me = lists[ls(R_MEM_START, b + 1u)];
-    let least = shape[at(H_DEPTH, lists[ls(R_MEMBERS, ms)])];
-    return within(vec4<u32>(ms, me, least, shape[at(H_DEPTH, lists[ls(R_MEMBERS, me - 1u)])]), cfg.stride);
+fn fold_run(op: u32, k: u32) -> vec4<u32> {
+    var take = NONE;
+    if op == OP_TOTALS {
+        take = S_BLOCK_TOTALS;
+    } else if op == OP_SUB {
+        take = S_BLOCK_SUB;
+    }
+    return within(block_run(lists[ls(R_LVL_BLOCKS, k)], take), cfg.stride);
 }
 
 fn fold_lower(run: vec4<u32>, d: u32) -> u32 {
@@ -229,13 +254,13 @@ const OP_SPLIT: u32 = 3u;
 fn fold_apply(op: u32, i: u32) {
     switch op {
         case OP_TOTALS: {
-            totals(i);
+            totals_taken(i);
         }
         case OP_WALK: {
             walk(i);
         }
         case OP_SUB: {
-            sub(i);
+            sub_taken(i);
         }
         default: {
             split(i);

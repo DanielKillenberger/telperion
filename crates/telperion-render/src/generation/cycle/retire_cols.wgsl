@@ -103,6 +103,7 @@ const R_MEMBERS: u32 = 3u;
 const R_LVL_START: u32 = 4u;
 const R_LVL_BLOCKS: u32 = 5u;
 const H_DEPTH: u32 = 0u;
+const H_BLOCK: u32 = 1u;
 
 // `ret`'s columns: the last cycle an axis was open, its fate (open 0,
 // kept 1, retired 2, inside a retired subtree 3), whether it waits on a woken bud, whether it closed
@@ -126,6 +127,10 @@ const R_QB1: u32 = 11u;
 const R_ROOT_LIVED: u32 = 12u;
 const R_ROOT_ALIVE: u32 = 13u;
 const R_COLS: u32 = 14u;
+// Past the columns a laid axis, the cycle a block last held an axis
+// closed in it (fn-256 task 10), by the block's number: a compaction
+// moves no block.
+const R_BLOCKS: u32 = 14u;
 // The header from `cfg.head`: the laid axes the last cycle began with;
 // each PA's constants from `cfg.head + 64` (`settle_shared.wgsl`'s `K_`).
 const HD_PREV_LAID: u32 = 0u;
@@ -135,12 +140,14 @@ const INSIDE: u32 = 3u;
 const K_DELAY: u32 = 3u;
 const K_FLAGS: u32 = 7u;
 const KF_SHEDS: u32 = 1u;
-// The log: its count, a fault where it would pass its most, then each
-// entry's root, cycle, verdict (waited 0, kept 1, retired 2), lived and
-// alive.
+// The log: its count, a fault where it would pass its most, a
+// measurement's count of what the cycle reused (`census::Reused`'s last
+// three), then each entry's root, cycle, verdict (waited 0, kept 1,
+// retired 2), lived and alive.
 const L_COUNT: u32 = 0u;
 const L_FAULT: u32 = 1u;
-const L_AT: u32 = 4u;
+const L_REUSE: u32 = 2u;
+const L_AT: u32 = 8u;
 
 fn m(a: f32, b: f32) -> f32 {
     return exact_kept(a * b);

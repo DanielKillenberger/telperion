@@ -310,3 +310,15 @@ Doing: comparing every preset's stills with F4's. Slowed by: the resident handof
 - **Hindered:** no test hashed a device build's node table per preset, so one was written (`node_tables_are_hashed`). The command guard refused `git checkout --` to set the fix aside; the fix was committed, then reverse-applied by `git apply -R` for the base run and applied again. The test's first 4 GiB cap refused the Two Trees' settle and readback (4,116 and 4,140 MiB), a second run each.
 - **Cost:** about 8 minutes and two GPU reruns.
 - **Would remove it:** `node_tables_are_hashed` kept as the standing equivalence measurement (now in the tree), and recorded base hashes beside each task's base commit.
+
+## 2026-10-12, task 10: start
+- **Doing:** the Phase-1 anchor and a baseline roofline run for task 10.
+- **Hindered:** `flowctl` not on PATH in the dispatched worker's shell, a seventh time (8.1.1 under the plugin cache). `the_roofline_is_measured` writes a relative `ROOFLINE_OUT` under the crate directory (the test's cwd), and its CPU reference (`lives`) is needed by no timing comparison; the command guard refused `rm -r` of the stray directory, so it was moved to the scratchpad.
+- **Cost:** about 5 minutes.
+- **Would remove it:** `flowctl` on PATH for dispatched workers (local setup); `ROOFLINE_VISITS=0` (added) to take the stamps alone, and an absolute `ROOFLINE_OUT` in the test's doc line.
+
+## 2026-10-12, task 10: the per-axis work was not the sweeps' cost
+- **Doing:** measuring the two expansions (dirty bits on the upward sums, retirement's living carried up once).
+- **Hindered:** retirement's `living_main` kept 149 of its 172 ms on Telperion though it carried up 11% of the closed axes it used to; its dispatches took the same 150-400 µs as before. `inside_main`, the same sweep shape over the same blocks, takes 20-30 µs a dispatch. The cost follows the kernel's footprint (the unit and phytomer loops inlined into the sweep), not the axes it takes; a first try at narrowing each block's depths by a serial scan cost more than it saved and was reverted. The roofline's per-dispatch stamps cannot show occupancy, so the cause is inferred, not measured.
+- **Cost:** about 30 minutes and two GPU timing runs.
+- **Would remove it:** a per-kernel register and occupancy report (the driver's compiled-pipeline statistics) beside the roofline's stamps.
