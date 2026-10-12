@@ -53,7 +53,7 @@ Every preset grows what it grew, in the same time and peak memory within run noi
 
 Old family objects: one that states the site's own light (the oak's `extinction 0.5` before R1a) reads as the same family; any other light (the ordinary's old 1/6) is refused by name (`an_old_wire_light_reads_only_as_the_sites`).
 
-# The full R3: every species with its rows (worker, 2026-10-12)
+# R3 with the size response mapped (superseded below) (worker, 2026-10-12)
 
 **Tip** is `00956e4c7`: the site light, every species' leaf area, and the shade-tolerance mapping (host decisions 1-5). **Base** is `c1aef3f38`, as above. Every heavy run waited for at least 8 GB available and no other telperion binary running (`raw/memgate.sh`, the coordinator's rule), one tree at a time; GPU runs under the lock, with 2.0 GB held by others. Raw output, scripts and sheets are in `raw/r3b/` (ignored).
 
@@ -114,3 +114,47 @@ The frame's grown count now lies between its ends, inside the oracle's band, and
   - **`the_smooth_barks_hold_the_resolution_and_redraw_contracts` stays red:** the birch's close-up aliases 3.21/255 mean against the 3.0 bound (p95 12.0 against 12.0), on the birch's changed tree. Not weakened; for the owner beside the birch's sheet.
 - **`npm test`:** 15 files, 162 tests passed.
 - **Consequence to know:** the predictor's early Wasm ceiling (`foreseen`) and the resident budget's predicted peak serve only unlit species, so every leafy preset now takes the held-as-it-grows path, as the oak and ordinary already did.
+
+# The final R3: the size response dormant (worker, 2026-10-12)
+
+**Tip** is `c116854f3`: the host's ruling that ψ is not mapped from tolerance, so the beech, spruce, birch and Two Trees keep ψ dormant while the shade and balance hazards, upkeep and leaf girth stay mapped (BIRCH.md). **Base** is `c1aef3f38`. Every heavy run waited behind the memory gate, one tree at a time, and GPU runs ran under the lock. Raw output and sheets are in `raw/r3c/` (ignored). This section supersedes the two R3 sections above for the owner.
+
+## Trees (CPU reference, default age, seed 42)
+
+| Preset | Grown | Kept phytomers | Seconds | Peak MB |
+|---|---|---|---|---|
+| ordinary | 389,743 → 389,443 | 163,214 → 163,121 | 0.47 → 0.55 | 112 → 112 |
+| oak | 1,213,968 both | 354,122 both | 1.36 → 1.33 | 273 → 270 |
+| spruce | 2,872,640 → 2,749,947 (−4%) | 1,212,283 → 1,104,620 (−9%) | 4.08 → 3.96 | 1,028 → 1,087 |
+| beech | 657,516 → 627,388 (−5%) | 332,405 → 311,182 (−6%) | 0.35 → 0.37 | 149 → 151 |
+| birch | 1,161,350 → 891,867 (−23%) | 518,131 → 347,856 (−33%) | 0.83 → 0.68 | 248 → 217 |
+| date palm | 480 both | 480 both | 0.00 | 11 |
+| Laurelin 80 | 16,564,124 → 13,488,591 (−19%) | 3,534,309 → 2,380,297 (−33%) | 10.30 → 8.87 | 2,101 → 2,021 |
+| Telperion 82 | 18,239,310 → 14,786,033 (−19%) | 3,773,761 → 2,505,972 (−34%) | 10.39 → 9.90 | 2,247 → 2,196 |
+
+## Device (`build_time`, warm build ms, mean of two alternating rounds; device peak and drawn leaves at seed 42)
+
+| Preset | Seed 42 | Seed 1 | Peak MB | Leaves |
+|---|---|---|---|---|
+| ordinary | 458 → 468 (+2%) | 441 → 444 (+1%) | 257 → 257 | 13,792 → 13,783 |
+| oak | 257 → 257 (0%) | 252 → 254 (+1%) | 1,128 → 1,128 | 350,269 both |
+| spruce | 436 → 458 (+5%) | 446 → 448 (0%) | 1,975 → 2,113 | 4,686,554 → 4,084,402 |
+| beech | 174 → 194 (+11%) | 157 → 172 (+10%) | 269 → 292 | 94,633 → 76,245 |
+| birch | 220 → 242 (+10%) | 202 → 221 (+9%) | 650 → 719 | 194,530 → 138,451 |
+| date palm | 75 → 84 (+13%) | 74 → 84 (+13%) | 31 → 33 | 6,554 both |
+| **Laurelin 80** | **1,108 → 1,808 (+63%)** | **821 → 1,335 (+63%)** | 3,022 → 3,639 | 919,388 → 874,404 |
+| **Telperion 82** | **1,201 → 1,980 (+65%)** | **881 → 1,463 (+66%)** | 3,301 → 3,968 | 980,108 → 931,783 |
+
+The price is unchanged by the ruling: the device's light phase, about 0.7 s and 0.6 GB on each of the Two Trees.
+
+## Stills (`resident_stills`, whole, mid and close; sheets `raw/r3c/stills/<preset>-sheet.png`, base left, tip right), viewed
+
+- **Oak, palm:** pixel-identical to the base. **Ordinary:** as viewed above.
+- **Birch:** the ground limb is back to the base's thin dark line, and the white whips are gone. The crown is sparser in the mid view, with more of its inner branches showing bare than the base's. At seed 1 the same species (BIRCH.md's variant f) laid its lying limb at 0.0155 m against 0.0132 m before fn-264, viewed clean.
+- **Beech:** the same crown, a little sparser inside. **Spruce:** the same cone, a little more open, a few lower branches reaching further.
+- **Laurelin, Telperion:** the same crowns, slightly more open inside.
+
+## The smooth-bark contract and fn-251's frame
+
+- `the_smooth_barks_hold_the_resolution_and_redraw_contracts` passes: the birch's close-up 1.81/255 mean, p95 6.0 (bounds 3.0 and 12.0; it was 3.21 with ψ mapped).
+- fn-251's frame (oak → birch, t 0.0750, 80, seed 7) grows 15,989,657 and builds (18.4 s, peak 4,056 MB), between its ends: the oak 16,625,765 and the birch 10,628,614.
