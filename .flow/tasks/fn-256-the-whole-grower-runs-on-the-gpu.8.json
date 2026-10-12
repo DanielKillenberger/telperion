@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-12T14:01:21.424078Z",
+  "depends_on": [],
+  "id": "fn-256-the-whole-grower-runs-on-the-gpu.8",
+  "priority": null,
+  "spec": "fn-256-the-whole-grower-runs-on-the-gpu",
+  "spec_path": ".flow/tasks/fn-256-the-whole-grower-runs-on-the-gpu.8.md",
+  "status": "todo",
+  "title": "Two suspected races, reproduced and fixed",
+  "updated_at": "2026-10-12T14:01:21.424078Z"
+}

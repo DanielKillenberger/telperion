@@ -91,3 +91,15 @@ Ordered steps, host-adopted:
 4. **Dispatches:** re-fuse the units kernels to a handful per round (cold compile stays under 2 s); collapse the hierarchy's narrow upper levels into one barrier-looped workgroup (fringe and skeleton), words identical across caps; explain light's 46 a cycle. Gate: at most 340 a cycle.
 5. Re-measure every preset against F4 and put the remaining ratio to the owner under R0, with the dead-term question (Fable): the Two Trees' shed laterals shade nothing while they carry no leaf area, so skipping them changes no bit today, but fn-264 gives them leaf area, so it would lapse.
 6. The owner's Chrome probe, cold and warm, on the result.
+
+## Round 5: the breakthrough against the roofline (2026-10-12)
+
+ROOFLINE.md (fn-256 task 7): every phase but compaction runs 6-270x above its roofline time; unlit Telperion spends 255 ms (19%) on lattice kernels that exit at once; 71% / 82% / 59% of balance, allotment and retirement visits (Telperion / oak / beech) are on subtrees where nothing grew; laterals living under 5 years carry 62-76% of grown phytomers.
+
+Both members agree (`council/astra-5.md`, Fable's round 5):
+- Ranked: dormancy at zero (exact), incremental upward sums (exact), kernel shape (exact), reuse (exact; the game's and the retune's lever, not the release bar's), the short-lived statistical record (a model change; not built without the owner authorising a bounded fidelity experiment).
+- Incremental propagation keeps the ruled order: a dirty axis recomputes from its own value then every child's cached or recomputed value in canonical order; never subtract-and-add a float. Downward passes (walk with its keyed draw, split by incoming vigour and rank) are not skipped on an unchanged upward sum. PA normalisation's 1,024-bud blocks are invalidated by changed membership or rank.
+- Estimate after the engineering levers: Telperion about 1.2-1.5 s warm (only the lattice's 255 ms is directly isolated). F4's 671 ms is the interim executor; 0.1.4's Telperion built in 623 / 85 ms (seeds 1 / 42) as a different, far sparser tree.
+- Reuse has a dependency: retirement reads the final target age, so an age-40 build is not an age-41 checkpoint.
+
+Plan (fn-256 tasks 8-11): (8) reproduce and fix the two suspected races (`fault_out` non-atomic OR; `node_laterals` writes in the counted pass); (9) lattice dormant at zero, words and refusals unchanged; (10) instrument real input changes, then cached retirement and upward sums with dirty bits, each stopped if invalidation eats its saving; (11) remaining dominant kernels, then every preset re-measured native and in Chrome, the remainder taken to the owner.
