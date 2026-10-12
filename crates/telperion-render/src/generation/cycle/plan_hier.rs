@@ -180,17 +180,6 @@ impl Build {
 
         let apexes = b.groups(live.clone().div(E::C(64)));
         let partials = b.groups(live.clone().div(E::C(BUD_BLOCK)).max(E::C(1)));
-        // A block's partial sums in runs, each a bounded dispatch.
-        let mut runs = Vec::new();
-        for chunk in 0..hd::BUD_CHUNKS {
-            let mut run = words(0);
-            run[11] = chunk;
-            let slot = b.slot(&run);
-            for (w, e) in counted.clone() {
-                b.set(slot, w, e);
-            }
-            runs.push(self.sums_bind(b, kit, slot, parity));
-        }
         let (base, sums) = (levels[0].0.clone(), |k| (PassId::HierSums, k));
         b.dispatch(sums(hd::MARK), base.clone(), apexes);
         let sweep = |b: &mut Builder, (entry, fold): (usize, usize), up: bool| swept(b, (sums(entry), sums(fold)), (&levels, &folds), up);
@@ -203,9 +192,7 @@ impl Build {
         b.dispatch(sums(hd::PRESENCE), base.clone(), apexes);
         sweep(b, (hd::SUB, hd::FOLDS[2]), true);
         sweep(b, (hd::SPLIT, hd::FOLDS[3]), false);
-        for run in runs {
-            b.dispatch(sums(hd::PARTIALS), run, partials);
-        }
+        b.dispatch(sums(hd::PARTIALS), base.clone(), partials);
         b.dispatch(sums(hd::COMBINE), base.clone(), Size::Direct(1));
         b.dispatch(sums(hd::SIZES), base, apexes);
         b.tally(&m.tally, 0, c::LIVE, 4);

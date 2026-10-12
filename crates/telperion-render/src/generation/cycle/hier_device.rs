@@ -78,8 +78,6 @@ pub(super) const V_OUT: u64 = 4;
 const N_ORDER: u64 = 128;
 const TALLY: u64 = 128;
 pub(super) const BUD_BLOCK: u32 = 1024;
-/// The dispatches a block's partial sums take, 256 buds each.
-pub(super) const BUD_CHUNKS: u32 = 4;
 
 /// The balance and allotment's buffers on the device, and the plan of
 /// one cycle's dispatches over them.
@@ -94,10 +92,8 @@ pub(super) struct Sums {
     pub live_stride: u32,
     stride: u32,
     live_n: u32,
-    /// The bind of each level, the first serving the per-apex passes,
-    /// and of each run of a block's partial sums.
+    /// The bind of each level, the first serving the per-apex passes.
     binds: Vec<wgpu::BindGroup>,
-    chunks: Vec<wgpu::BindGroup>,
     level_sizes: Vec<u32>,
     flags: Option<Scan>,
     _held: Vec<Owned>,
@@ -158,7 +154,6 @@ impl Sums {
             stride,
             live_n: 0,
             binds: Vec::new(),
-            chunks: Vec::new(),
             level_sizes: Vec::new(),
             flags: None,
             _held: Vec::new(),
@@ -179,8 +174,7 @@ impl Sums {
         )?);
         let cur = &h.lists[h.parity];
         let (mut binds, mut held) = (Vec::new(), Vec::new());
-        let chunked = (1..BUD_CHUNKS).map(|c| (0, c));
-        for (level, chunk) in (0..h.levels.max(1)).map(|l| (l, 0)).chain(chunked) {
+        for level in 0..h.levels.max(1) {
             let words = [
                 c.n,
                 self.stride,
@@ -193,7 +187,7 @@ impl Sums {
                 widest(gpu).1,
                 0,
                 h.levels,
-                chunk,
+                0,
                 0,
                 0,
                 0,
@@ -206,8 +200,6 @@ impl Sums {
             binds.push(k.sums.bind(gpu, &all));
             held.push(cfg);
         }
-        let levels = binds.len() + 1 - BUD_CHUNKS as usize;
-        self.chunks = std::iter::once(binds[0].clone()).chain(binds.drain(levels..)).collect();
         (self.binds, self._held, self.live_n) = (binds, held, c.live);
         self.level_sizes = h.level_sizes.clone();
         Ok(())
@@ -251,9 +243,7 @@ impl Sums {
         for l in 0..levels {
             k.sums.run(e, &self.binds[l], SPLIT, self.level_sizes[l]);
         }
-        for chunk in &self.chunks {
-            k.sums.run(e, chunk, PARTIALS, self.live_n.div_ceil(BUD_BLOCK).max(1));
-        }
+        k.sums.run(e, base, PARTIALS, self.live_n.div_ceil(BUD_BLOCK).max(1));
         k.sums.run(e, base, COMBINE, 1);
         k.sums.run(e, base, SIZES, apexes);
     }
@@ -262,7 +252,7 @@ impl Sums {
 
     /// The dispatches `record` makes.
     pub(super) fn dispatches(&self) -> usize {
-        4 * self.level_sizes.len() + 6 + BUD_CHUNKS as usize + self.flags.as_ref().map_or(0, Scan::dispatches)
+        4 * self.level_sizes.len() + 7 + self.flags.as_ref().map_or(0, Scan::dispatches)
     }
 
     #[cfg(test)]

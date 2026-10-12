@@ -24,8 +24,7 @@ struct Cfg {
     // The block levels the hierarchy holds: a sweep's level past them
     // (a dispatch the host sized from its bounds) has no blocks.
     levels: u32,
-    // The run of a block's buds a `partials_main` dispatch adds.
-    chunk: u32,
+    pad2: u32,
     // The block levels a folded sweep loops (`fold.wgsl`).
     fold_lo: u32,
     fold_hi: u32,
@@ -92,7 +91,6 @@ const P_PSI: u32 = 5u;
 const N_SUMS: u32 = 0u;
 const N_ORDER: u32 = 128u;
 const BUD_BLOCK: u32 = 1024u;
-const BUD_CHUNK: u32 = 256u;
 
 // The tally: the living after the balance (the scan's total) and the
 // growing buds.
@@ -239,32 +237,51 @@ fn drawn(v: f32, p: f32, psi: f32) -> f32 {
 }
 
 // One block of 1,024 growing buds in subtree order: each PA's Σp and
-// Σp(v/p)^ψ, a thread a PA, each summed in order; a dispatch adds the
-// block's run of 256 `cfg.chunk`, on to what the runs before it left.
+// Σp(v/p)^ψ, a thread a PA, each summed in order. The block's buds are
+// read and drawn by every lane at once first (`w_bud_`), so each PA's
+// thread adds from the workgroup's memory (fn-256 task 11).
+var<workgroup> w_bud_pa: array<u32, BUD_BLOCK>;
+var<workgroup> w_bud_p: array<f32, BUD_BLOCK>;
+var<workgroup> w_bud_d: array<f32, BUD_BLOCK>;
+
 @compute @workgroup_size(64)
-fn partials_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) pa: u32) {
+fn partials_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) lid: u32) {
     let beta = wid.x + wid.y * cfg.wx;
     // The growing buds, no more than the axes' rows (fn-256 task 5).
     let g = min(atomicLoad(&tally[Y_GROWING]), cfg.stride);
     let s = beta * BUD_BLOCK;
-    if s >= g || pa >= cfg.pas || cfg.cycle == 0u {
+    let taken = s < g && cfg.cycle != 0u;
+    let n = select(0u, min(BUD_BLOCK, g - min(s, g)), taken);
+    for (var j = lid; j < BUD_BLOCK; j += 64u) {
+        var pa = NONE;
+        var p = 0.0;
+        var d = 0.0;
+        if j < n {
+            let i = norm[N_ORDER + s + j];
+            pa = tree[at(T_PA, i)];
+            if pa < cfg.pas {
+                p = sf(S_PRESENCE, i);
+                d = drawn(sf(S_BUD, i), p, row(pa, P_PSI));
+            }
+        }
+        w_bud_pa[j] = pa;
+        w_bud_p[j] = p;
+        w_bud_d[j] = d;
+    }
+    workgroupBarrier();
+    let pa = lid;
+    if !taken || pa >= cfg.pas {
         return;
     }
     var total = 0.0;
     var weighted = 0.0;
-    if cfg.chunk > 0u {
-        total = bitcast<f32>(norm[part(2u * (beta * cfg.pas + pa))]);
-        weighted = bitcast<f32>(norm[part(2u * (beta * cfg.pas + pa) + 1u)]);
-    }
-    let first = s + cfg.chunk * BUD_CHUNK;
-    for (var k = first; k < min(first + BUD_CHUNK, min(s + BUD_BLOCK, g)); k++) {
-        let i = norm[N_ORDER + k];
-        if tree[at(T_PA, i)] != pa {
+    for (var j = 0u; j < n; j++) {
+        if w_bud_pa[j] != pa {
             continue;
         }
-        let p = sf(S_PRESENCE, i);
+        let p = w_bud_p[j];
         total = total + p;
-        weighted = weighted + hm(drawn(sf(S_BUD, i), p, row(pa, P_PSI)), p);
+        weighted = weighted + hm(w_bud_d[j], p);
     }
     norm[part(2u * (beta * cfg.pas + pa))] = bitcast<u32>(total);
     norm[part(2u * (beta * cfg.pas + pa) + 1u)] = bitcast<u32>(weighted);
