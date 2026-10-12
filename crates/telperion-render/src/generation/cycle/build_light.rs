@@ -107,18 +107,22 @@ impl Light {
         }
         let (cap, cols) = (more(self.nodes_cap, nodes), more(self.columns_cap, columns));
         if cap != self.nodes_cap {
-            let c = u64::from(cap);
-            self.quanta = storage(gpu, "light quanta", c, &[])?;
-            self.field = storage(gpu, "light field", 2 * c, &[])?;
+            self.quanta = storage(gpu, "light quanta", u64::from(cap), &[])?;
         }
-        if (cap, cols) != (self.nodes_cap, self.columns_cap) {
+        // A dormant lattice's own dispatches are never recorded, so its
+        // field and scratch, which only they read, stay at their least
+        // (fn-256 task 11).
+        if !self.dormant && cap != self.nodes_cap {
+            self.field = storage(gpu, "light field", 2 * u64::from(cap), &[])?;
+        }
+        if !self.dormant && (cap, cols) != (self.nodes_cap, self.columns_cap) {
             // Each direction's depths, an f64 a node, then each direction's
             // column records, five f64s a column of a layer (fn-256 task 5:
             // the records were sized a node each, 432 bytes a node).
             let words = 2 * u64::from(self.n_dirs) * (u64::from(cap) + 5 * u64::from(cols));
             self.scratch = storage(gpu, "light scratch", words, &[])?;
-            (self.nodes_cap, self.columns_cap) = (cap, cols);
         }
+        (self.nodes_cap, self.columns_cap) = (cap, cols);
         Ok(())
     }
 
