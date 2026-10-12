@@ -750,3 +750,14 @@ The base `1c69bf648` and this task's tip were run alternately, three runs each, 
 | Balance and allotment | 291.3 → 291.5 | 72.4 → 72.4 | 62.8 → 62.4 |
 | Every other phase | within 0.3 ms | within 0.2 ms | within 0.2 ms |
 | **Stamped GPU time** | **1,066.6 → 907.0 (−15.0%)** | **222.2 → 196.4 (−11.6%)** | **154.4 → 138.8 (−10.1%)** |
+
+## 17. The dominant kernels (task 11, COUNCIL.md round 5 step 11)
+
+Every change below keeps each word: each schedules the same arithmetic in the same order. PROOF.md has the measurements.
+
+- **A block's depth bounds, taken at once** (`hier_sweep.wgsl`, `retire_sweep.wgsl`, `fold.wgsl`). A block's sweep found each depth's members by two binary searches on its first lane, serial, before every depth. Now the block's lanes each take one depth's start at once, 64 depths at a time (`depth_starts`), and a folded block's 32 lanes take 32 (`fold_start`). The depths are walked in the same order, with the same barriers.
+- **A bearer's children, four loaded at once** (`totals`, `sub`, the split's ranks and rests, retirement's `carried_up`). Each child's words were loaded and waited on before the next child's. Now four children's words load first, then each is added in the canonical order. No float is reassociated: the adds are written one by one, and a skipped non-positive light is skipped as before.
+- **The units' emitted zone phases, cut where each is cheapest** (`units.wgsl`). The zone's order, phytomers and sleeping buds stay in `written_main`. The laterals and the sleeping buds' presences go to `sprouted_main`, and the laterals' presences to `placed_main`. A zone writes only its own records at places the scan left, so the phases may be cut anywhere between them. The cut costs one dispatch a round emitted. Section 14's fused entry held every zone to the registers of all its paths; this is inferred from its 1.66 ms dispatches, as no driver report was available.
+- **The normaliser's block in the workgroup's memory** (`partials_main`). Every lane reads and draws (v/p)^ψ for the block's 1,024 buds at once; then each PA's thread adds its own in order from the workgroup's memory. `hm` stays at the add, so the product is rounded as before. A block takes one dispatch; the 256-bud runs and the partial sums they carried are deleted.
+- **The settle's dispatches in shared passes** (`settle_run.rs`, `settle_place.rs`, `io::Pass::run_all`). The dispatches recorded between two scans or submissions share one compute pass, as the cycle's do. Each is its own stamped pass while a profile is on.
+- **A dormant lattice's field and scratch stay at their least** (`build_light.rs`). Only the lattice's own dispatches read them, and section 15 records none of those on a dormant lattice.

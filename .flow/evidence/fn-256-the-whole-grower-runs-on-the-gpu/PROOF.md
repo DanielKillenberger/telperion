@@ -357,3 +357,100 @@ COUNCIL.md round 5, step 10. Design, counts and measurements are in DESIGN.md se
 | Beech 40 | 26.3 → 11.3 | 154.4 → 138.8 (−10.1%) |
 
 - **Node tables, byte-identical (met).** All 8 presets at caps 64, 128 and 1,024 on ten fresh contexts: all 240 hashes equal task 9's (`node_tables_are_hashed` with `NODES_CAPS` and `NODES_CONTEXTS`).
+
+# fn-256 task 11: the dominant kernels, then the re-measure (worker, 2026-10-12)
+
+COUNCIL.md round 5, step 11. DESIGN.md section 17 has the design. Measured on the RTX 3080 with 2.0 GB held by desktop processes, 4 threads, one GPU process at a time under the GPU lock. Raw output is in `raw/t11/`, its scripts beside it. "Tip" is task 10's tip `b69a3f86d`, its production code built and run alternately with this task's.
+
+## Part 1: the dominant kernels
+
+Each step was kept only where it gained past the run-to-run spread (0.5%); each kept step held all 24 node-table hashes (8 presets × caps 64, 128, 1,024) to the post-task-9 hashes. Stamped GPU ms of a build, seed 42, one run a step (`raw/t11/steps`):
+
+| Step (commit) | Telperion 82 | Oak 40 | Beech 40 |
+|---|--:|--:|--:|
+| Tip | 906.4 | 196.3 | 138.9 |
+| A block's depth bounds taken by its lanes at once, not two serial binary searches a depth (`d56174069`) | 843.0 | 186.5 | 127.0 |
+| A bearer's children's words loaded four at a time, added in order (`3f3295f39`) | 809.7 | 180.2 | 121.5 |
+| A zone's laterals sprouted in an entry of their own (`2724e07f5`) | 759.7 | 173.4 | 118.8 |
+| The normaliser's buds read and drawn by every lane at once, one dispatch a block (`269268752`) | 750.0 | 164.1 | 115.0 |
+| A zone's sleeping buds' presences taken with its laterals (`1b17faa93`) | 733.7 | 161.0 | 113.0 |
+
+**Medians of three alternating runs** (`raw/t11/time`, `base-*` and `final-*`), every side within 1% of its own:
+
+| Phase | Telperion 82 | Oak 40 | Beech 40 |
+|---|---|---|---|
+| Units and wake | 318.1 → 258.0 | 57.2 → 47.3 | 37.1 → 33.4 |
+| Balance and allotment | 289.8 → 205.4 | 72.1 → 50.9 | 62.2 → 45.8 |
+| Retirement | 60.5 → 40.1 | 11.4 → 8.4 | 11.3 → 7.7 |
+| Light, layout, sizing, compaction | within 0.5 ms | within 0.2 ms | within 0.1 ms |
+| **Stamped GPU time** | **902.3 → 738.1 (−18.2%)** | **195.7 → 161.3 (−17.6%)** | **138.0 → 114.3 (−17.2%)** |
+
+The kernels the council named, Telperion's, medians:
+- **Units:** `written_main` 136.0 ms fused; 47.2 split from `sprouted_main` 44.1. The fused entry's dispatch took up to 1.66 ms; the longest now is 0.58 ms. Register pressure is the inferred cause: no driver reports a pipeline's registers here (FRICTION.md).
+- **Balance:** `split_main` 76.1 → 58.2, `totals_main` 40.3 → 26.2, `sub_main` 32.5 → 18.6, `partials_main` 17.9 → 4.8, the four folds 59.6 → 41.6.
+- **`inside_main`:** 17.7 → 9.9, its fold 7.8 → 4.6: 25.5 → 14.5 ms with the depth bounds alone.
+- **The settle:** its 2,367 dispatches each opened a compute pass. Those between two scans now share one. Its wall on Telperion fell 165 → 101 ms, the oak's 32 → 27 and the beech's 25 → 17 (one run each, `settle_now`); its stamped GPU time, 54 / 16 / 11 ms, did not change.
+- **Memory:** a dormant lattice keeps its field and scratch at their least. Device peaks: Telperion 3,503 → 3,309 MB, Laurelin 3,209 → 3,029, spruce 2,053 → 1,977, birch 689 → 652, beech 282 → 269, palm 33 → 31. The lit oak and ordinary are unchanged.
+
+**Stopped, each beyond the noise the wrong way or level:**
+- Inside stamps: entering only the blocks under an axis retired or marked inside this cycle. `inside_main` rose 9.9 → 12.8 ms: the dispatch still launches every block's workgroup, and the stamps cost more than the skipped work. Reverted.
+- The sleeping-bud count in an entry of its own: the zones' 50 ms fell to 33, but it added 2,270 dispatches on Telperion and 800 on the oak and beech, and the beech lost 1 ms. Stopped; in Chrome the dispatches alone would cost more than it saves.
+- The sleeping buds' presences in `written_main`: placed fell 18 ms and written rose 16. Replaced by the step above that moves them to `sprouted_main`.
+
+**Constraints:**
+- **Cold compile,** native, driver cache off, every program a page makes (`CYCLE_COMPILE=generator`): 1.77 s median of five (1.70-1.83), against 1.90 at the tip (1.88-1.93, three runs). The split entries compile faster than the fused one did.
+- **Longest dispatch:** 1.24 ms (`gather_main`, Telperion seed 1), every preset at seeds 1 and 42.
+- **Words:** 72 hashes on three fresh contexts at the end, all the post-task-9 hashes (`raw/t11/nodes/nodes-final-3ctx.log`).
+- **Dispatches a cycle** rise by 7 to 11: one more entry a units round emitted, three fewer for the normaliser.
+
+## Part 2: every preset, re-measured
+
+Warm build is the second build in the process, family to draw-ready (`build_time`, `BUILD_SEED`), median of three alternating with the tip. Grow GPU and settle are stamped (`the_roofline_is_measured`, `ROOFLINE_CASES`). Peak is the build's owned device bytes. Cells read seed 1 ; seed 42.
+
+| Preset | Age here / 0.1.4 | Warm build ms | Tip ms | F4 ms (seed 42) | 0.1.4 build to first frame ms | Now / 0.1.4 | Grow GPU ms, tip → now | Settle GPU ms | Dispatches a cycle | Device peak MB, tip → now |
+|---|---|---|---|--:|---|---|---|---|---|---|
+| ordinary | 40 / 100 | 441 ; 458 | 512 ; 522 | 523 | 56 ; 61 | 7.9 ; 7.5 | 191 → 156 ; 205 → 169 | 19 ; 20 | 395 ; 408 | 257 → 257 |
+| oak | 40 / 100 | 260 ; 261 | 303 ; 305 | 1,159 | 154 ; 176 | 1.7 ; 1.5 | 194 → 159 ; 195 → 161 | 16 ; 16 | 369 ; 370 | 1,128 → 1,128 |
+| spruce | 40 / 100 | 460 ; 451 | 509 ; 492 | 403 | 165 ; 162 | 2.8 ; 2.8 | 278 → 241 ; 277 → 244 | 18 ; 19 | 398 ; 402 | 2,053 → 1,977 |
+| beech | 40 / 120 | 163 ; 190 | 190 ; 230 | 210 | 3,546 ; 3,311 | 0.05 ; 0.06 | 126 → 106 ; 139 → 115 | 8 ; 11 | 325 ; 330 | 282 → 269 |
+| birch | 40 / 70 | 209 ; 230 | 251 ; 274 | 716 | 256 ; 345 | 0.82 ; 0.67 | 154 → 127 ; 168 → 138 | 15 ; 18 | 347 ; 356 | 689 → 652 |
+| date palm | 40 / 100 | 77 ; 77 | 87 ; 87 | 4 | 5.9 ; 5.8 | 13 ; 13 | 67 → 59 ; 67 → 59 | 2 ; 2 | 269 ; 269 | 33 → 31 |
+| Telperion | 82 / 100 | 928 ; 1,276 | 1,097 ; 1,531 | 671 | 623 ; 85 | 1.5 ; 15 | 648 → 523 ; 905 → 738 | 41 ; 54 | 386 ; 414 | 3,503 → 3,309 |
+| Laurelin | 80 / 100 | 864 ; 1,177 | 1,052 ; 1,382 | 627 | 204 ; 554 | 4.2 ; 2.1 | 607 → 486 ; 835 → 682 | 38 ; 51 | 382 ; 408 | 3,209 → 3,029 |
+
+Cold compile: 1.77 s native (above); Chrome's is the owner's probe's.
+
+**Against F4** (task 4's table, seed 42): the oak 4.4× faster, the birch 3.1×, the beech 1.1× and the ordinary 1.1×. Slower: the spruce 1.12×, Telperion 1.9×, Laurelin 1.9×, the palm 77 ms against 4.
+
+**Against 0.1.4** (SCORECARD.md's old column, master `ebd2e37b`, the harness's own build to first frame, best of 3 at 8 threads):
+- **The ages differ.** 0.1.4 draws the beech at 120, the birch at 70 and every other preset at 100; this branch draws 40, Laurelin 80 and Telperion 82.
+- **The measures differ.** 0.1.4's figure takes in the submit and one drawn frame. Its own draw-ready time is 1-470 ms less (the beech's 3,080 / 2,973, the oak's 135 / 158).
+- **At or under 0.1.4:** the beech (0.05-0.06×) and the birch (0.67-0.82×).
+- **Over it:**
+  - the oak at 1.5-1.7×;
+  - the spruce at 2.8×;
+  - Telperion at 1.5× (seed 1) and 15× (seed 42, where 0.1.4 drew a far sparser tree in 85 ms);
+  - Laurelin at 2.1-4.2×;
+  - the ordinary at 7.5-7.9×;
+  - the palm at 13× (77 ms against 6).
+
+  Each is a tree 0.1.4 drew older, so the same age would widen the gaps. No equal-age run was made.
+
+**Stills.** Every preset's default age and seed, whole, mid and close, beside the post-task-9 stills (`raw/t6-stills/now`, which tasks 8-10 left byte-identical): all 24 images are pixel-identical (`compare -metric AE`: 0 each). Both sheets viewed (`raw/t11/stills/sheets`).
+
+## The owner's Chrome probe
+
+The probe page is unchanged: it serves this worktree's `src/browser` and its Wasm, so it runs whatever this worktree last built. The package's Wasm is built at `0ebea5c06`, and the probe typechecks against this branch's module and against its stub.
+
+1. In this worktree, after any further change: `cd /home/daniel/Projects/telperion/.worktrees/gpucycle && npm run wasm:build && npm run render:build`.
+2. Serve the probe: `cd /home/daniel/Projects/telperion/.worktrees/probe && TELPERION_CYCLE=/home/daniel/Projects/telperion/.worktrees/gpucycle npx vite --port 5190`.
+3. Open `http://localhost:5190/probe.html?tree=<preset>`, one fresh page a preset: `ordinary`, `oregon-white-oak`, `norway-spruce`, `european-beech`, `silver-birch`, `date-palm`, `telperion`, `laurelin`.
+
+Not opened here; the owner runs it.
+
+## Open, for the host and the owner (NEEDS_HUMAN, design calls)
+
+1. **The inside marks only where they are read.** The inside sweep (14.5 ms and about 25 dispatches a cycle on Telperion) marks axes that only a compaction and the settle read. Run once before each compaction and before the settle, it gives the same marks, since nothing is laid under a retired root. This changes when retirement's marks are taken (DESIGN.md section 6), so it is the host's call.
+2. **A dormant lattice's deposit.** On Telperion, unlit, `deposit_main` takes 48 ms. Its only reader there is its refusals (a leaf's area, a node's quanta), which task 9 kept by decision.
+3. **Dispatch count.** 382-414 a cycle on the Two Trees; task 6's three design calls still hold the rest. That is about 0.24 s a Telperion build at Chrome's 7 µs.
+4. **What remains against 0.1.4.** The table above, at the ages above.
