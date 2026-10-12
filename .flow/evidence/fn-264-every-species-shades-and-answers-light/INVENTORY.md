@@ -39,6 +39,7 @@ The walk interpolates both (`blend.rs:161-162`); COUNCIL.md says environment is 
 | oregon-white-oak | 0.00181 | 1.0 | 1.5 (PA 2-4, 8), 0.5 (6-7), 1.0 (9, 12-14) | 0.45 | 0.35 | 2.0 | 0 | 1.0 | 0 |
 | ordinary (centroid) | 0.000167 | 0.333 | 0.5 | 0.483 | 0.00605 | 0.0486 | 0 | 0.333 | 0.167 |
 
+- **Viability** (the base shade hazard raises; 1 where unstated): spruce PA 8 0.998, 9 0.998, 10 0.99, 11 0.99, 12 0.9; birch 6 0.998, 7 0.995, 8 0.97, 9 0.92, 14 0.92; beech and the Two Trees 6-8 0.995, 9 0.95, 12 0.95, 14 0.9; palm 1 throughout; oak 7 0.999, 8 0.95, 9 0.98, 12 0.93, 13 0.98, 14 0.9; ordinary 6 0.998, 7 0.997, 8 0.981, 9 0.976, 10 0.973, 11 0.957, 12 0.927, 13 0.933, 14 0.9.
 - The oak's rows are on PAs 2, 3, 4, 6, 7, 8, 9, 12, 13, 14; its viability is 1 on PAs 2-4 and 6, so shade_hazard is dormant there. The ordinary's are on all 15 PAs.
 - **Provenance of the oak's rows** (`telperion_space::oak`, `oak.rs:83-105`): `leaf_area` 18.1 cm² a node is sourced (one leaf a node, Go Botany; the mean area of 616 *Q. robur* leaves, Visakorpi et al. 2020, Table 1). phi, psi, lambda, upkeep, balance_hazard and chi are the oak's own values from fn-195 round 5 (host decision 29), not literature. The preset is named Oregon white oak (*Q. garryana*) but carries the *Q. robur* engine species.
 - **The oak's 0.5 extinction** was "cited from memory" (fn-197 STEP3.md: spherical leaf-angle distribution, Ross 1981, Campbell & Norman 1998) and never checked against a source; R1a checks it.
