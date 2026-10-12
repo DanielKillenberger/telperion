@@ -34,6 +34,8 @@ fn place(@builtin(local_invocation_index) lane:u32, @builtin(workgroup_id) group
 // The device's florets (fn-229), in the same submission as its leaves:
 // `segments` holds one record a bloom (`stations.wgsl`'s `blooms`), and
 // each floret is drawn as `bloom.wgsl` draws it and packed as a leaf is.
+// A bloom's florets are followed by its rachis where the rachis is drawn
+// (fn-253), so one inflorescence's instances stand in a run.
 @compute @workgroup_size(256)
 fn bloom(@builtin(local_invocation_index) lane:u32, @builtin(workgroup_id) group:vec3<u32>, @builtin(num_workgroups) grid:vec3<u32>) {
     let group_index=group.x+group.y*grid.x;
@@ -93,6 +95,7 @@ fn floret_words(index:u32) -> vec3<u32> {
     let f=Flower(config.shape,config.lean,config.size);
     let key=r.range.zw;
     let ordinal=index-r.range.x;
+    if f.c.x>0.0 && ordinal+1u==r.range.y { return rachis_words(lo); }
     var i=0u; var seen=0u; var size=0.0;
     // cap: the bloom's florets; past them the record is wrong, named.
     let cap=u32(ceil(f.a.x));
@@ -102,7 +105,7 @@ fn floret_words(index:u32) -> vec3<u32> {
         if floret_kept(size) { if seen==ordinal { break; } seen++; }
         i++;
     }
-    let fl=floret(f,r.a.xyz,r.b.xyz,r.tangent.xyz,key,i);
+    let fl=floret(f,r.a.xyz,r.b.xyz,key,i);
     let side=cross(fl.stalk,fl.face);
     if !finite(fl.point) || !finite(fl.stalk) || !finite(fl.face) || !(size>=0.0 && size<=65504.0) {
         atomicOr(&summary[1],2u);
@@ -111,4 +114,20 @@ fn floret_words(index:u32) -> vec3<u32> {
     let norm=clamp((fl.point-config.box_min.xyz)/max(config.box_extent.xyz,vec3<f32>(1e-30)),vec3<f32>(0.0),vec3<f32>(1.0));
     let codes=vec3<u32>(floor(norm*65535.0+vec3<f32>(0.5)));
     return vec3<u32>(rotation_word(side,fl.stalk,fl.face),codes.x|(codes.y<<16u),codes.z|(pack2x16float(vec2<f32>(0.0,size))&0xffff0000u));
+}
+// Bloom `j`'s rachis, after its florets (`bloom.rs`'s `inflorescence`): at
+// its tip, along the shoot, its scale the tip's radius, the scale's sign
+// bit marking it.
+fn rachis_words(j:u32) -> vec3<u32> {
+    let r=segments[j];
+    let heading=bloom_or(r.a.xyz-r.b.xyz,vec3<f32>(0.0,1.0,0.0));
+    let face=bloom_perpendicular(heading);
+    let side=cross(heading,face);
+    let radius=r.b.w;
+    if !finite(r.a.xyz) || !(radius>=0.0 && radius<=65504.0) { atomicOr(&summary[1],2u); }
+    if any(r.a.xyz<config.box_min.xyz) || any(r.a.xyz>config.box_min.xyz+config.box_extent.xyz) { atomicOr(&summary[1],4u); }
+    let norm=clamp((r.a.xyz-config.box_min.xyz)/max(config.box_extent.xyz,vec3<f32>(1e-30)),vec3<f32>(0.0),vec3<f32>(1.0));
+    let codes=vec3<u32>(floor(norm*65535.0+vec3<f32>(0.5)));
+    let scale=(pack2x16float(vec2<f32>(0.0,radius))&0xffff0000u)|0x80000000u;
+    return vec3<u32>(rotation_word(side,heading,face),codes.x|(codes.y<<16u),codes.z|scale);
 }

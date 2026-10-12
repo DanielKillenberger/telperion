@@ -92,6 +92,10 @@ fn a_walk_across_the_petal_count_moves_no_floret() {
     let five = mesh::build(&blossoming(0.4, 5.0)).unwrap().organ.unwrap();
     let more = mesh::build(&blossoming(0.4, 5.25)).unwrap().organ.unwrap();
     assert_eq!(five.instances, more.instances);
-    let n = five.element.positions.len() / 5;
-    assert_eq!(more.element.positions.len(), 6 * n);
+    // One petal's vertices, from five petals against one: the element's
+    // stalks (fn-253) are in both.
+    let one = mesh::build(&blossoming(0.4, 1.0)).unwrap().organ.unwrap();
+    let (five, one) = (five.element.positions.len(), one.element.positions.len());
+    let petal = (five - one) / 4;
+    assert_eq!(more.element.positions.len(), one + 5 * petal);
 }

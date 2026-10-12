@@ -7,7 +7,8 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-255-one-growth-law-reads-light-for-every"
+    "fn-255-one-growth-law-reads-light-for-every",
+    "fn-266-the-device-draws-the-palms-leaf-base"
   ],
   "id": "fn-256-the-whole-grower-runs-on-the-gpu",
   "impl_review_rounds": {

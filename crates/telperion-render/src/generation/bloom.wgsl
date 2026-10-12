@@ -127,11 +127,10 @@ struct Floret {
     face: vec3<f32>,
 }
 
-// Floret `i` of the bloom on the node at `node`, its parent at `held`,
-// its bud facing `bud` (`inflorescence`, `Axis`).
-fn floret(f: Flower, node: vec3<f32>, held: vec3<f32>, bud: vec3<f32>, key: vec2<u32>, i: u32) -> Floret {
+// Floret `i` of the bloom on the shoot tip at `node`, its parent at
+// `held` (`inflorescence`, `Axis`): the axis continues the shoot (fn-253).
+fn floret(f: Flower, node: vec3<f32>, held: vec3<f32>, key: vec2<u32>, i: u32) -> Floret {
     let heading = bloom_or(node - held, vec3<f32>(0.0, 1.0, 0.0));
-    let side = bloom_or(bud - heading * dot(heading, bud), bloom_perpendicular(heading));
     // The axis, laid in segments as it turns (`Axis::laid`).
     var toward = vec3<f32>(0.0, 1.0, 0.0);
     if f.b.z >= 0.0 {
@@ -145,7 +144,7 @@ fn floret(f: Flower, node: vec3<f32>, held: vec3<f32>, bud: vec3<f32>, key: vec2
         let along = (f32(k) + 0.5) / f32(BLOOM_SEGMENTS);
         let rest = 1.0 - along;
         let turned = abs(f.b.z) * (1.0 - rest * rest * rest);
-        tangents[k] = bloom_or(bloom_lerp(side, toward, turned), toward);
+        tangents[k] = bloom_or(bloom_lerp(heading, toward, turned), toward);
         points[k + 1u] = points[k] + tangents[k] * step;
     }
     // Its place along the axis and the axis's tangent there (`Axis::at`).

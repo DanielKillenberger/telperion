@@ -554,7 +554,7 @@
 
 # Clusters of yellow flame, each floret shaped like a glowing horn: hanging
 # racemes of narrow-opened florets whose petals curl out into a mouth
-# (fn-217 DESIGN.md 9), on seven in ten of the outermost short shoots, so
+# (fn-217 DESIGN.md 9), at the tips of the short shoots, so
 # the crown stays green at the whole-tree view with gold through it. Amber
 # throats deepen the gold toward flame. Settled on stills (fn-218 SHEET.md).
 # Florets three times their old size (fn-248, owner): in proportion to
@@ -563,7 +563,10 @@
 # mask: whole 0.320 and mid 0.150, within 1 % of the smaller florets').
 # At the mid view they do not yet read as single flowers (fn-248
 # TWIGS.md).
-/supernatural/flowering/age14 = 0.13
+# Each inflorescence stands at its short shoot's tip (fn-253), at most
+# one a shoot, so every tip flowers: that seats as many inflorescences
+# as the share along the shoots did, or as near as the tips allow.
+/supernatural/flowering/age14 = 1.0
 /supernatural/bloom/florets = 6.0
 /supernatural/bloom/rachis = 0.72
 /supernatural/bloom/droop = 1.0

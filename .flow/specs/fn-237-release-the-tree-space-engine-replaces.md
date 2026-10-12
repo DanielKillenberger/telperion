@@ -25,6 +25,10 @@ The owner's goal (2026-10-08/09): "replace the old generator with the new one th
 
 - **R12 (friction, obvious fix; fn-261 FRICTION.md):** a render test that takes `generation::whole_tree()` and then calls into `roots::kernels` deadlocks on the same non-reentrant test mutex (`_one`) and holds the GPU lock for its timeout (10 minutes lost in fn-261); before the release PR, the guard is taken in one place, so a test cannot take it twice, or a second take fails at once with a message naming the guard.
 
+- **R13 (friction, obvious fix; fn-253 FRICTION.md):** a still sheet an owner verdict rests on is kept beside the spec's evidence outside the ignored `raw/` (a compressed JPEG), so a later spec can compare against the approved look without rebuilding it in another worktree; `docs/evidence-retention.md` says so before the release PR.
+
+- **R14 (found on the way, fn-257's probe):** fn-260's device-free shader check validates with naga only; Chrome's Tint rejected three things naga accepted (a NaN constant from `bitcast`, a barrier under a non-uniform loop bound, 17 storage buffers in one stage against Chrome's 16). Before the release PR, every shipped WGSL module is also checked against Tint's rules (Tint itself, or checks for these classes with a red fixture each), and against 16 storage buffers per stage.
+
 ## Boundaries
 
 Map only. Post-release: fn-232, fn-233.

@@ -85,8 +85,9 @@ pub(super) fn flower(p: &BloomParams, now: f64) -> [[f32; 4]; 3] {
     ]
     .map(|row| row.map(|v| v as f32))
 }
-/// The florets' rows: `count` florets of `records` blooms, the organ
-/// element `e`, packed against `r` (fn-229).
+/// The florets' rows: `count` instances of `records` blooms, each bloom's
+/// florets then its rachis (fn-253), the organ element `e`, packed against
+/// `r` (fn-229).
 pub(super) fn florets(
     rows: [[f32; 4]; 3],
     (count, records): (u32, u32),

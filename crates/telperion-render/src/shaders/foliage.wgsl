@@ -27,6 +27,8 @@ struct Varying {
     @location(4) @interpolate(flat) mass: f32,
     // One where the placement is a withered leaf, drawn in the dead colour.
     @location(5) @interpolate(flat) withered: f32,
+    // One on a flower's stalk, drawn in the shoot's colour (fn-253).
+    @location(6) @interpolate(flat) stalk: f32,
 };
 
 /// The depth in its own mass of the cell a placement stands in. A grid of no
@@ -56,21 +58,59 @@ fn vertex(
     // A leaf selection kept from a thinned share is drawn enlarged by the
     // inverse root of that share, so the share covers what all of it would
     // (fn-246): its size on screen from the frame's pixels a metre (eye.w)
-    // and the element's bounding radius (leaf_box_min.w).
-    let depth = max((u.view_projection * placement[3]).w, 1e-4);
-    let across = 2.0 * u.leaf_box_min.w * leaf_scale(words) * u.eye.w / depth;
-    let world = placement * vec4<f32>(position / sqrt(max(leaf_kept(across), 1e-4)), 1.0);
+    // and the element's bounding radius (leaf_box_min.w). An organ's
+    // inflorescence is thinned and enlarged as one, about its seat (fn-253).
+    let organ = u.stalk.x > 0.0;
+    var centre = placement[3].xyz;
+    var reach = u.leaf_box_min.w * leaf_scale(words);
+    if (organ) {
+        centre = unit_seat(unit_rachis(id), u.leaf_box_min.xyz, u.leaf_box_extent.xyz);
+        reach = u.stalk.x + u.stalk.w + u.leaf_box_min.w;
+    }
+    let depth = max((u.view_projection * vec4<f32>(centre, 1.0)).w, 1e-4);
+    let kept = sqrt(max(leaf_kept(2.0 * reach * u.eye.w / depth), 1e-4));
+    var world = placement * vec4<f32>(position / select(kept, 1.0, organ), 1.0);
+    var facing = (placement * vec4<f32>(normal, 0.0)).xyz;
+    // A flower's stalks (fn-253) run between ends no transform of the
+    // floret moves, at widths in metres: laid from the instance, never
+    // scaled with it. An organ's rachis instance draws its rachis alone,
+    // a floret its petals, stamens and pedicel; the rest of the element
+    // folds to a point outside the frame.
+    let rachis = u.stalk.x > 0.0 && leaf_withered(words);
+    let kind = coord.x;
+    let stalk = kind < -0.5;
+    let code = u32(max(coord.y, 0.0) + 0.5);
+    let ring = code / STALK_SIDES;
+    let side = code % STALK_SIDES;
+    let frame = leaf_rotation(words.x);
+    let folded = rachis != (kind < -1.5);
+    if (stalk && kind < -1.5) {
+        let s = rachis_vertex(placement[3].xyz, frame[1], leaf_scale(words), ring, side, kind < -2.5);
+        world = vec4<f32>(s.at, 1.0);
+        facing = s.normal;
+    } else if (stalk) {
+        let s = pedicel_vertex(placement[3].xyz, frame, ring, side);
+        world = vec4<f32>(s.at, 1.0);
+        facing = s.normal;
+    }
+    if (organ) {
+        world = vec4<f32>(centre + (world.xyz - centre) / kept, 1.0);
+    }
     let offsets = vary(id);
     var out: Varying;
     out.clip = u.view_projection * world;
-    out.normal = (placement * vec4<f32>(normal, 0.0)).xyz;
+    if (folded) {
+        out.clip = vec4<f32>(2.0, 2.0, 2.0, 1.0);
+    }
+    out.normal = facing;
     out.world = world.xyz;
+    out.stalk = select(0.0, 1.0, stalk);
     // Restore the side before interpolation, then fold in the fragment.
     // Shared coarse triangles can cross the midrib without erasing it.
     out.coord = vec2<f32>(coord.x, coord.y * sign(position.x));
     out.leaf = vec3<f32>(offsets, depth_in_crown(placement[3].xyz));
     out.mass = 0.0;
-    out.withered = select(0.0, 1.0, leaf_withered(words));
+    out.withered = select(0.0, 1.0, leaf_withered(words) && !rachis);
     if (u.crown_shade.y > 0.0) {
         out.mass = mass_depth(placement[3].xyz);
     }
@@ -297,6 +337,11 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     if (back > 0.0) {
         radiance += u.leaf_reflection.rgb * sky_given * occluded_ambient(mirror, in.leaf.z)
             * interior * overhead * own;
+    }
+    // A flower's stalk is the shoot's young wood (fn-253): its colour under
+    // the light the face reads, with nothing passed through or mirrored.
+    if (in.stalk > 0.5) {
+        radiance = u.shoot.rgb * (shaded + direct);
     }
     return vec4<f32>(tone(radiance), 1.0);
 }

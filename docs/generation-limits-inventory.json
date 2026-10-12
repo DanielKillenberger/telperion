@@ -1596,6 +1596,12 @@
     "reason": "A floret past its own stretch of the window is gone: the season, not a limit."
   },
   {
+    "path": "crates/telperion-core/src/pipeline/foliage/bloom/stalk.rs",
+    "site": "for r in 0 . . rings . len ( ) as u32 - 1 {",
+    "classification": "algorithm",
+    "reason": "The quads between a stalk's consecutive rings, one per segment of the element's fixed nine-ring rachis or two-ring pedicel; it limits no generated population."
+  },
+  {
     "path": "crates/telperion-core/src/blend.rs",
     "site": "if points . iter ( ) . any ( | ( _ , w ) | bad ( w ) ) | | ! ( total > 0 . 0 & & total . is_finite ( ) ) {",
     "classification": "algorithm",

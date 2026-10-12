@@ -370,7 +370,8 @@ impl Expansion {
         }
         let bloom = &self.inputs.bloom;
         let element = foliage::bloom_element(bloom)?;
-        let instances = foliage::place_blooms(&self.tree, bloom, None)?;
+        let within = foliage::bloom_box(self.reference, bloom);
+        let instances = foliage::place_blooms_in(&self.tree, bloom, None, within)?;
         Ok(Some(mesh::Foliage { element, instances }))
     }
     /// The organ element an executor drawing its own florets places

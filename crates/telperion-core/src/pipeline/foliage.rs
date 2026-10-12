@@ -25,8 +25,10 @@ mod station;
 use crate::envelope::{distance_to_profile, Envelope};
 use crate::{math::Vec3, Error, Result};
 #[cfg(feature = "geometry")]
+pub use bloom::packing_box as bloom_box;
+#[cfg(feature = "geometry")]
 pub(crate) use bloom::{
-    element as bloom_element, now as bloom_now, place as place_blooms,
+    element as bloom_element, now as bloom_now, place as place_blooms, place_in as place_blooms_in,
     reach as bloom_reach,
 };
 pub use bloom_params::BloomParams;

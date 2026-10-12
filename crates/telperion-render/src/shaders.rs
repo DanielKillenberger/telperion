@@ -8,6 +8,9 @@ const PRELUDE: &str = include_str!("shaders/common.wgsl");
 const TRANSMISSION: &str = include_str!("shaders/transmission.wgsl");
 const CANOPY: &str = include_str!("shaders/canopy.wgsl");
 const LEAF: &str = include_str!("shaders/leaf.wgsl");
+/// An organ's inflorescence as one unit and its rachis's axis (fn-253),
+/// which selection and the organ's draw both read.
+const UNIT: &str = include_str!("shaders/unit.wgsl");
 
 /// The switch the wood stages are built on, as the shader states it.
 const SMOOTH_ON: &str = "const SMOOTH_BARK: bool = true;";
@@ -34,9 +37,11 @@ pub(crate) fn sky() -> String {
     lit(include_str!("shaders/sky.wgsl"))
 }
 
-/// The crown's stage decodes a placement, so the decoder stands in front.
+/// The crown's stage decodes a placement, so the decoder stands in front,
+/// then the organ's unit and its stalks (fn-253).
 pub(crate) fn foliage() -> String {
-    lit(&format!("{LEAF}\n{}", include_str!("shaders/foliage.wgsl")))
+    let stalk = include_str!("shaders/stalk.wgsl");
+    lit(&format!("{LEAF}\n{UNIT}\n{stalk}\n{}", include_str!("shaders/foliage.wgsl")))
 }
 
 /// The wood's stages, with smooth bark's terms or without them.
@@ -64,7 +69,7 @@ pub(crate) fn shadow() -> String {
 }
 
 pub(crate) fn select() -> String {
-    format!("{LEAF}\n{}", include_str!("shaders/select.wgsl"))
+    format!("{LEAF}\n{UNIT}\n{}", include_str!("shaders/select.wgsl"))
 }
 
 pub(crate) fn curve() -> String {

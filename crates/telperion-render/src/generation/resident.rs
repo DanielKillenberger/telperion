@@ -118,6 +118,8 @@ mod repeat_tests;
 mod room_tests;
 #[cfg(test)]
 mod route_tests;
+#[cfg(test)]
+mod stalk_tests;
 pub(super) mod fold;
 mod florets;
 mod handoff;

@@ -57,3 +57,19 @@ To the owner: whether the site may grow on the device (WebGPU), the only route o
 Early test 5 (fn-257 TEST5.md): what the site draws from the stands costs 1.7-3.4× 0.1.4 for the oak at a 0.32 m cut and 2.2-3.8× for the birch at every cut; the expanded CPU tree 2.3-3.7 s. The table audit (TABLES.md): demand-driven rows would bring the birch's rows near budget and the ordinary under 0.1.4, but cannot close the oak's.
 
 The owner: "Yes, WebGPU on the site"; the oak "Must match 0.1.4"; the ordinary "Yes, it must ship". So the coarse-record route is closed and fn-257 is re-scoped: the site grows the full tree on the device through fn-256's executor, voxelised at its cell; stands, tables and predictor go where no other consumer remains; a browser without WebGPU gets a named error, never a CPU fallback. Its first measurement is a probe page the owner opens (device creation and cold compile against 0.1.4's 273 ms).
+
+## The probe in Chrome (owner's machine, 2026-10-11)
+
+Chrome 154, RTX 3080, Linux (fn-257 probe, runs 1 and 2):
+- Device creation 134-181 ms; cold compile of the spike's 24 pipelines 65-367 ms, cached 14-16 ms. The owner accepts these as a once-per-page cost (fn-257 R3-0).
+- Per dispatch over 640: indirect 429-432 µs (one pass or a pass each); direct 5.3-6.7 µs; 8 command buffers 5.5 µs; one looping dispatch 3.4 µs per step. The cost is Dawn's indirect-argument validation.
+- Chrome rejected what naga accepted: a NaN constant from `bitcast`, a barrier under a loop bound Tint calls non-uniform, and 17 storage buffers in one stage against 16.
+
+Host decisions: the cycle uses direct dispatches only, with host-known workgroup counts and in-shader guards; at most 16 storage buffers a stage (8 where cheap); Tint's constant and uniformity rules are design rules.
+
+## fn-256 task 2 rulings (host, 2026-10-12)
+
+- "Integers exact" means identity integers (lineage keys, canonical order, slot allocation, births, host-read counts). Decisions computed from floats may differ between executors within the lineage agreement tolerances (fn-254 R4 check 4); the device runs plain f32 arithmetic, with no exact mode (it cost 34% GPU time and a 96 s cold compile) and no subnormal emulation.
+- Cold compile of the whole cycle is a budget: under 2 s native with the disk cache off (the units module was 37.7 s), then measured in Chrome by the owner's probe.
+- Every float reduction, the settle's leaf mean included, is the canonical blocked reduction on both executors.
+- The device refuses trees of 2,048 cycles or more by name.

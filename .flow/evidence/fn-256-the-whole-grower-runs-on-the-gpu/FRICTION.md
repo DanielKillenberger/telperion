@@ -208,3 +208,9 @@ Doing: viewing every preset's stills beside F4's. Slowed by: the device drew a w
 ## 2026-10-12, task 3: the stills were taken on a curve without its rows
 
 Doing: comparing every preset's stills with F4's. Slowed by: the resident handoff passed a default curve, so the device drew every tree without its lobes, twist or height, and the first stills table credited those differences to the cycle. No test read the curve's rows; the codex review found it. Cost: one full re-render of the stills and a rewritten table, about 15 minutes. Would have removed it: an agreement test over everything the handoff passes the renderer, not just the points; `every_preset_draws_its_wood_by_the_cpu_rows` now holds the rows.
+
+## 2026-10-12, task 4: start
+- **Doing:** the Phase-1 anchor for task 4 in `gpucycle`.
+- **Hindered:** `flowctl` again not on PATH in the dispatched worker's shell (found under the plugin cache, 8.1.1).
+- **Cost:** about 1 minute.
+- **Would remove it:** `flowctl` on PATH for dispatched workers (local setup, not a repository change).
