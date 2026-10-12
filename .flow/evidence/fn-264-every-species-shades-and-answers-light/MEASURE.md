@@ -1,6 +1,6 @@
-# fn-264 R3 so far: what R1a and the beech's leaf area cost (worker, 2026-10-12)
+# fn-264 R3 (worker, 2026-10-12)
 
-What has shipped: the one site light (k 0.5) for every preset, and the beech's leaf area, which the Two Trees carry. The spruce's, birch's and palm's leaf area and every species' response rows wait on the host (SOURCES.md), so this is the price of the lattice switched on, not yet of the species answering it.
+The full R3 is the last section. The first sections measured an intermediate tip. What had shipped then: the one site light (k 0.5) for every preset, and the beech's leaf area, which the Two Trees carry. The spruce's, birch's and palm's leaf area and every species' response rows wait on the host (SOURCES.md), so this is the price of the lattice switched on, not yet of the species answering it.
 
 **Base** is `c1aef3f38` (fn-256 task 12's tip), extracted by `git archive` and built in its own target. **Tip** is `c64cc0927` (R1a and the beech; later commits are evidence only). Both were built and measured in this session on the RTX 3080, with 2.0 GB held by desktop processes, 4 threads, one heavy process at a time, and GPU work under the lock. Raw output and scripts are in `raw/` (ignored).
 
@@ -52,3 +52,56 @@ Every preset grows what it grew, in the same time and peak memory within run noi
 `each_populated_response_moves_the_tree_through_its_consumer` (oak and ordinary at 40, seed 7): each row set to its neutral moves the tree under the site's light, but the ordinary's balance hazard, which its own values leave neutral (upkeep 0.006 never brings a balance below its tolerance 0; stated and tested). Under no shade, the shade hazard is neutral to the bit. Measured, not claimed: on an unshaded tree the leaf girth's term at a light of one is not bit-identical to its dormant path, and the vigour rows (shade size, apical control) move the tree through apical control's split in an even light. Both are the engine's behaviour, outside this spec.
 
 Old family objects: one that states the site's own light (the oak's `extinction 0.5` before R1a) reads as the same family; any other light (the ordinary's old 1/6) is refused by name (`an_old_wire_light_reads_only_as_the_sites`).
+
+# The full R3: every species with its rows (worker, 2026-10-12)
+
+**Tip** is `00956e4c7`: the site light, every species' leaf area, and the shade-tolerance mapping (host decisions 1-5). **Base** is `c1aef3f38`, as above. Every heavy run waited for at least 8 GB available and no other telperion binary running (`raw/memgate.sh`, the coordinator's rule), one tree at a time; GPU runs under the lock, with 2.0 GB held by others. Raw output, scripts and sheets are in `raw/r3b/` (ignored).
+
+## Trees (CPU reference, default age, seed 42)
+
+| Preset | Grown | Kept phytomers | Seconds | Peak MB |
+|---|---|---|---|---|
+| ordinary | 389,743 → 389,443 | 163,214 → 163,121 | 0.41 → 0.38 | 114 → 113 |
+| oak | 1,213,968 both | 354,122 both | 0.92 → 1.12 | 271 → 269 |
+| spruce | 2,872,640 → 2,754,077 (−4%) | 1,212,283 → 1,111,274 (−8%) | 3.13 → 3.51 | 1,038 → 1,078 |
+| beech | 657,516 → 628,131 (−4%) | 332,405 → 312,133 (−6%) | 0.34 → 0.37 | 153 → 153 |
+| birch | 1,161,350 → 898,887 (−23%) | 518,131 → 353,722 (−32%) | 0.81 → 0.73 | 249 → 219 |
+| date palm | 480 both | 480 both | 0.00 | 11 |
+| Laurelin 80 | 16,564,124 → 13,859,318 (−16%) | 3,534,309 → 2,592,009 (−27%) | 10.53 → 10.01 | 2,062 → 2,103 |
+| Telperion 82 | 18,239,310 → 15,035,875 (−18%) | 3,773,761 → 2,616,721 (−31%) | 10.91 → 10.61 | 2,232 → 2,213 |
+
+Each leafy species now keeps fewer phytomers. The intolerant birch keeps the fewest, and the Two Trees' grown count falls 16-18%, further from the 20M budget.
+
+## Device (`build_time`, warm build ms, mean of two alternating rounds; device peak and drawn leaves at seed 42)
+
+| Preset | Seed 42 | Seed 1 | Peak MB | Leaves |
+|---|---|---|---|---|
+| ordinary | 478 → 490 (+3%) | 454 → 458 (+1%) | 257 → 257 | 13,792 → 13,783 |
+| oak | 267 → 270 (+1%) | 266 → 260 (−2%) | 1,128 → 1,128 | 350,269 both |
+| spruce | 470 → 480 (+2%) | 466 → 460 (−1%) | 1,975 → 2,113 | 4,686,554 → 4,027,939 |
+| beech | 190 → 208 (+10%) | 163 → 177 (+9%) | 269 → 292 | 94,633 → 74,431 |
+| birch | 236 → 260 (+10%) | 212 → 234 (+10%) | 650 → 719 | 194,530 → 132,789 |
+| date palm | 77 → 91 (+18%) | 80 → 86 (+8%) | 31 → 33 | 6,554 both |
+| **Laurelin 80** | **1,182 → 1,904 (+61%)** | **858 → 1,372 (+60%)** | 3,022 → 3,639 | 919,388 → 877,325 |
+| **Telperion 82** | **1,256 → 2,089 (+66%)** | **921 → 1,498 (+63%)** | 3,301 → 3,968 | 980,108 → 933,363 |
+
+- **The price is the device's light phase.** The beech's leaf area alone took Telperion's light from 15 to 755 ms of 655 → 1,402 ms stamped (above); the smaller trees the responses grow do not pay it back on the device. On the CPU reference every preset costs what it did.
+- **Device peak** rises 667 MB on Telperion (to 3,968 MB), 617 MB on Laurelin and 138 MB on the spruce.
+
+## Stills (`resident_stills`, whole, mid and close, each preset's default age and seed)
+
+The oak and the palm are pixel-identical to the base (AE 0). The ordinary is as viewed above. The sheets of the beech, spruce, birch, Laurelin and Telperion (`raw/r3b/stills/<preset>-sheet.png`, base left, tip right) were viewed:
+
+- **Beech:** the same crown, a little sparser inside and below; no perceptible regression.
+- **Spruce:** the same cone, a little more open; a few lower branches reach further.
+- **Birch, a defect for the owner to judge:** in the whole view a thick white limb now lies along the ground right of the trunk, where the base had a thin dark shoot, and mid and close show more long bare whips through the crown. The likely cause is a low hanging limb thickened by its leaves' light (leaf girth 1.0). Not diagnosed.
+- **Laurelin and Telperion:** the same crowns, slightly sparser and more open inside.
+
+## fn-251's frame (oak → birch, t = 0.07504803866484144, age 80, seed 7)
+
+| | Frame grown | `mesh::build` | Oak end | Birch end |
+|---|---|---|---|---|
+| Base | refused at the 20M budget | refused | 17.2M at k 0.46 (fn-251) | refused at the 20M budget |
+| Tip | 15,995,974 | builds (19.5 s, peak 3,972 MB) | 16,625,765 | 11,264,585 |
+
+The frame's grown count now lies between its ends, inside the oracle's band, and it builds. The birch's rows bring its own end under the budget. Kept counts were not compared.

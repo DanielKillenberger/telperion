@@ -27,3 +27,10 @@
 - **Slowed:** `telperion-jev`'s two replay tests need `headless`, `species_measure` and `geometry_benchmark` in `target/ci/examples`, which only the renderer's run builds, so the first half reports 2 failures on a clean target; they pass once the renderer has run.
 - **Cost:** about 5 minutes and one rerun.
 - **Would remove it:** the replay tests building their tools (or skipping by name with the reason) when the workspace runs without the renderer, or the gate order put renderer first.
+
+## 2026-10-12, worker: R3's CPU timings taken under another session's memory
+
+- **Doing:** the full R3 CPU reference after the shade-tolerance mapping.
+- **Slowed:** the machine sat at 30 of 31 GB used by other processes; Laurelin's base build took 210 s against 9 s an hour earlier, so the run's times and peaks were void (its grown counts, which are deterministic, stand). Waited and reran.
+- **Cost:** about 5 minutes and a rerun.
+- **Would remove it:** a machine-wide memory gate beside the GPU lock (refuse to start a measurement under a stated free-memory floor), so a measuring session neither swaps nor pushes another session into it.
