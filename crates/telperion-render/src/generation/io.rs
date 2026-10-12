@@ -25,6 +25,14 @@ pub(super) fn buffer(
             limit,
         });
     }
+    if let Err((after, cap)) = gpu.ledger.room(size) {
+        let mib = |b: u64| b >> 20;
+        return Err(error(format!(
+            "the browser's device budget: the build's {label} would hold {} MiB, past the {} MiB a page may hold; grow it younger",
+            mib(after),
+            mib(cap)
+        )));
+    }
     let buffer = Owned::create(
         gpu,
         &wgpu::BufferDescriptor {

@@ -133,8 +133,9 @@ fn a_build_over_the_budget_is_refused_and_the_drawn_tree_kept() {
 }
 
 /// fn-256 task 4 review: a species with no expectation (the ordinary
-/// reads light) is held to the page's budget as it grows, by the device
-/// bytes its build holds, and refused by name past it.
+/// reads light) is held to the page's budget as it grows: a buffer that
+/// would pass it, beside every byte held, is refused by name before it is
+/// made.
 #[test]
 fn a_build_with_no_expectation_is_held_to_the_budget_as_it_grows() {
     let Some(gpu) = crate::generation::test_gpu() else {
@@ -147,7 +148,7 @@ fn a_build_with_no_expectation_is_held_to_the_budget_as_it_grows() {
         .prepare(&family("ordinary", 40), Delivery::Resident)
         .err()
         .expect("the build is refused");
-    assert!(error.to_string().contains("the tree's build holds"), "{error}");
+    assert!(error.to_string().contains("would hold"), "{error}");
 }
 
 /// fn-235 R3: a device lost under a drawn tree is named by the next frame

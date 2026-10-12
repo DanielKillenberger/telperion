@@ -88,10 +88,6 @@ pub(super) struct Tables {
     pub form: Vec<f32>,
     pa: Vec<f32>,
     windows: Vec<f32>,
-    /// The device bytes the page may hold (`resident/budget.rs`), none
-    /// natively: past it the build is refused by name as it grows, from
-    /// the bytes it holds, not from an expectation (fn-256 task 4 review).
-    pub device_budget: Option<u64>,
 }
 
 impl Tables {
@@ -123,26 +119,7 @@ impl Tables {
             form,
             pa,
             windows: cap.f32s("pa_windows"),
-            device_budget: None,
         })
-    }
-
-    /// The build refused by name where the device bytes the page holds
-    /// passed its budget.
-    pub(super) fn within_budget(&self, gpu: &Gpu) -> Result<()> {
-        let (Some(budget), held) = (self.device_budget, gpu.ledger.live()) else {
-            return Ok(());
-        };
-        if held <= budget {
-            return Ok(());
-        }
-        let mib = |b: u64| b >> 20;
-        let said = format!(
-            "the browser's device budget: the tree's build holds {} MiB, past the {} MiB a page may hold; grow it younger",
-            mib(held),
-            mib(budget)
-        );
-        Err(super::super::io::error(said))
     }
 
     /// Each PA's row the balance reads in `cycle` (`hier_cycle.wgsl`'s

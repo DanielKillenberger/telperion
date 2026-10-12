@@ -62,7 +62,7 @@ struct Node {
 /// Every node the device drew for `f`.
 fn device_nodes(gpu: &crate::Gpu, k: &Kernels, f: &Family) -> Vec<Node> {
     let growth = executor::growth(f).unwrap();
-    let (dressed, _) = pollster::block_on(tree::drawn(gpu, k, &growth, None)).unwrap();
+    let (dressed, _) = pollster::block_on(tree::drawn(gpu, k, &growth)).unwrap();
     let mut waves: Vec<Vec<Vec<u32>>> = Vec::new();
     for w in &dressed.waves {
         let words = w.axes as usize * CA_WORDS + w.phyts as usize * CV;

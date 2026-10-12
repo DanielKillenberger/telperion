@@ -30,6 +30,17 @@ pub(crate) struct Ledger {
     waiting: std::sync::Mutex<Waiting>,
     live: std::sync::atomic::AtomicU64,
     peak: std::sync::atomic::AtomicU64,
+    /// The bytes a build may hold while it runs (`capped`), none at zero.
+    cap: std::sync::atomic::AtomicU64,
+}
+
+/// A build's cap on the ledger, lifted when it is dropped.
+pub(crate) struct Capped(std::sync::Arc<Ledger>);
+
+impl Drop for Capped {
+    fn drop(&mut self) {
+        self.0.cap.store(0, std::sync::atomic::Ordering::Relaxed);
+    }
 }
 
 /// The encoders open now, and each buffer let go with those it waits on.
@@ -84,8 +95,24 @@ impl Ledger {
         }
     }
 
+    /// The ledger capped at `bytes` until the guard is dropped: a buffer
+    /// that would pass it is refused before it is made (`room`).
+    pub(crate) fn capped(self: &std::sync::Arc<Self>, bytes: u64) -> Capped {
+        self.cap.store(bytes.max(1), std::sync::atomic::Ordering::Relaxed);
+        Capped(self.clone())
+    }
+
+    /// Whether `bytes` more fit under the cap, where one is set.
+    pub(crate) fn room(&self, bytes: u64) -> std::result::Result<(), (u64, u64)> {
+        let cap = self.cap.load(std::sync::atomic::Ordering::Relaxed);
+        let after = self.live().saturating_add(bytes);
+        match cap == 0 || after <= cap {
+            true => Ok(()),
+            false => Err((after, cap)),
+        }
+    }
+
     /// The bytes the device's owned buffers hold now.
-    #[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
     pub(crate) fn live(&self) -> u64 {
         self.live.load(std::sync::atomic::Ordering::Relaxed)
     }

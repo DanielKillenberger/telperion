@@ -110,7 +110,9 @@ pub(super) async fn build(
     tools: &Tools,
     family: &Family,
 ) -> Result<Built> {
-    let budget = gen.device_budget();
+    // Every buffer the build makes is held to the page's budget before it
+    // is made, a move's new tables beside its old (`Ledger::capped`).
+    let _capped = gen.device_budget().map(|b| gpu.ledger.capped(b));
     let growth = executor::growth(family)?;
     if !executor::stations(family) {
         return Err(refused("leaves the device places on neither twig stations nor a rosette"));
@@ -118,7 +120,7 @@ pub(super) async fn build(
     let bases = executor::bases(family)?;
     let flowers = growth.species.states.iter().any(|s| s.flowering > 0.0);
     let mut t = Timed::default();
-    let (mut dressed, trunk) = stage(gpu, &mut t.settle, async || tree::drawn(gpu, k, &growth, budget).await).await?;
+    let (mut dressed, trunk) = stage(gpu, &mut t.settle, async || tree::drawn(gpu, k, &growth).await).await?;
     let hung = stage(gpu, &mut t.bases, async || {
         tools.hanger.hang(gpu, &mut dressed, bases.as_ref()).await
     })
