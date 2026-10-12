@@ -66,13 +66,13 @@ fn young_trees_retire_on_the_device_as_on_the_cpu() {
     assert!(differ.is_empty(), "the device's verdicts are not the CPU's: {differ:?}");
 }
 
-/// `g` grown on the device with its retired subtrees' phytomers let go at
-/// each move into larger phytomer tables, from tables small enough that
-/// the young trees move several times; and its tables and rows held.
+/// `g` grown on the device from the least tables, its arena compacted in
+/// place after every cycle where `compact` (`compact.rs`); and its tables
+/// and rows held.
 fn compacted(gpu: &crate::Gpu, kit: &Kit, g: &Grown, compact: bool) -> (Build, Sizes) {
     let t = Tables::new(gpu, &g.tables, &g.chain).expect("tables");
     let mut sizes = Sizes::least();
-    (sizes.compact, sizes.caps.phyts) = (if compact { Compact::Every } else { Compact::Off }, 512);
+    sizes.compact = if compact { Compact::Every } else { Compact::Off };
     let (b, sizes, _) = grow(gpu, kit, &t, &g.tables, (sizes, g.request.age)).expect("a build");
     (b, sizes)
 }
@@ -121,7 +121,7 @@ fn the_node_table_with_retirement_is_the_same_on_every_context() {
             let k = Kernels::new(&gpu);
             let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
             let mut sizes = Sizes::least();
-            (sizes.compact, sizes.caps.phyts, sizes.block_cap) = (Compact::Every, 512, cap);
+            (sizes.compact, sizes.block_cap) = (Compact::Every, cap);
             let (b, ..) = grow(&gpu, &kit, &t, &g.tables, (sizes, age)).expect("a build");
             let s = settle(&gpu, (&kit, &k), (&b, &t), (&constants(&g), SettleTo::Laid)).expect("a settle");
             let mut words = s.error.to_vec();
@@ -144,12 +144,11 @@ fn the_node_table_with_retirement_is_the_same_on_every_context() {
     assert!(differ.is_empty(), "the node table differs: {differ:?}");
 }
 
-/// A move on the last cycle would compact after that cycle's census was
-/// read, and the build would hold the rows before it. The oak at 10 and
-/// the ordinary at 8, grown from 384-row phytomer tables, each moved after
-/// its last cycle and recorded rows there: neither moves after its last
-/// cycle, each holds the rows its unit records reach, and each settles
-/// as the CPU's laid tree to the ruled standard.
+/// A compaction after the last cycle would leave the build holding the
+/// last census's rows. The oak at 10 and the ordinary at 8, which record
+/// retired rows, compacted after every cycle but the last: each holds the
+/// rows its unit records reach, and each settles as the CPU's laid tree
+/// to the ruled standard.
 #[test]
 fn a_build_holds_its_compacted_rows_after_its_last_cycle() {
     let _held = super::super::whole_tree();
@@ -162,7 +161,7 @@ fn a_build_holds_its_compacted_rows_after_its_last_cycle() {
         let g = grown(preset, age, 42);
         let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
         let mut sizes = Sizes::least();
-        (sizes.compact, sizes.caps.phyts) = (Compact::Every, 384);
+        sizes.compact = Compact::Every;
         let (b, _, grew) = grow(&gpu, &kit, &t, &g.tables, (sizes, age)).expect("a build");
         assert!(grew.moved_at.iter().all(|m| m.0 < age), "{name} {age}: moved after its last cycle: {:?}", grew.moved_at);
         let caps = b.state.caps;

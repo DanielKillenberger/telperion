@@ -63,8 +63,8 @@ fn measured(gpu: &Gpu, kit: &Kit, (preset, name, age, seed): (Preset, &str, u32,
     let census = b.census.clone();
     drop(b);
     println!(
-        "{label}: sized in {cold:.2} s, begun again {} ({:?}), moved {}; {} axes, {} phytomers, {} units, {} living; {:?}",
-        grew.again, grew.why, grew.moves, census[c::AXES], census[c::GROWN], census[c::UNITS], census[c::NEXT], sizes
+        "{label}: sized in {cold:.2} s, moved {}; {} axes, {} phytomers, {} units, {} living; {:?}",
+        grew.moves, census[c::AXES], census[c::GROWN], census[c::UNITS], census[c::NEXT], sizes
     );
     assert!(super::super::profile::start(gpu), "timestamps");
     let started = Instant::now();
@@ -72,7 +72,7 @@ fn measured(gpu: &Gpu, kit: &Kit, (preset, name, age, seed): (Preset, &str, u32,
     let wall = started.elapsed().as_secs_f64();
     let stamps = super::super::profile::finish(gpu);
     assert_eq!(stamps.len(), grew.stamped.len(), "a phase a stamp");
-    assert_eq!((grew.again, grew.moves), (0, 0), "built at its sizes");
+    assert_eq!(grew.moves, 0, "built at its sizes");
     let mut phases: Vec<(&str, f64, usize)> = Vec::new();
     let mut longest = (0.0, String::new());
     for (phase, (kernel, a, z)) in grew.stamped.iter().zip(&stamps) {

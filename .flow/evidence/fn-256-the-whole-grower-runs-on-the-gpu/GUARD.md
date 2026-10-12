@@ -1,6 +1,6 @@
-# fn-256 task 5: the device guard, the census, and the arena's open calls (worker, 2026-10-12)
+# fn-256 task 5: the device guard, the census, and the arena (worker, 2026-10-12)
 
-COUNCIL.md round 4, steps 1 to 3 of task 5. The guard is built and tested, and the census and the live set are measured. The live set's stop condition did not fire. The arena (step 4) is not built: the census shows its sizing needs calls COUNCIL did not make (below, "Open"). Raw output is in `raw/` (`t5-*`). Measured on the RTX 3080 (10 GiB), with 1.8 to 3.0 GiB held by desktop processes, one GPU process at a time under the GPU lock.
+COUNCIL.md round 4, steps 1 to 3 of task 5. The guard is built and tested, and the census and the live set are measured; the live set's stop condition did not fire. The census showed the arena's sizing needed calls COUNCIL did not make ("Open", kept as asked), and the host ruled on them the same day: the arena as built is the last section. Raw output is in `raw/` (`t5-*`). Measured on the RTX 3080 (10 GiB), with 1.8 to 3.0 GiB held by desktop processes, one GPU process at a time under the GPU lock.
 
 ## The guard (step 1)
 
@@ -91,3 +91,18 @@ The plan sizes one arena once from the live-set bound. The census shows the phyt
 5. **Restarts.** Most of task 4's remaining restarts come from the cycle's limits (units rounds, the sweep's layers), not from tables. Whether "moves and restarts deleted" covers those is open.
 
 At their final counts with no moves, Telperion's tables would hold about 1.3 GB by axis, 0.3 GB of phytomers, 0.2 GB of units and 0.2 GB of job counts, plus the light's scratch (0.9 to 1.8 GB). That is 2.9 to 3.8 GB, an estimate from the counts above that no build has measured.
+
+## The host's rulings (2026-10-12), as built
+
+DESIGN.md section 13 has the design. What each ruling became:
+
+1. **Axes compact too** (`compact.rs`). Between cycles, the arena compacts in place, a column at a time through one column of scratch. Phytomers of retired subtrees go. Where no PA keeps records, so do the axes inside retired subtrees and their units, each root carrying its frozen upkeep. Every index into them is remapped first. Tests compare by lineage key, and DESIGN.md section 0's index rule is marked retired. With compaction after every cycle, all eight young presets settle as the CPU's laid tree, and their node tables agree over ten contexts and three block caps.
+2. **The arena per build from the hint** (`build_arena.rs`). The hint is the closed form's expected kept count, its light terms let go for a species that reads light, computed in under 0.1 s. Each table is sized from its measured most against the hint, over every preset at seeds 1, 7, 42 and its own (`arena_ratios`), past a margin of 1.5. The ratios spread widely: phytomers run 0.37 (oak) to 1.90 (beech 42), axes 0.13 to 0.65 (spruce). So one ratio a table over-sizes some trees: Telperion's axis tables are sized about four times what it uses. **The gate** (`every_preset_grows_in_its_hinted_arena`, `raw/t5-gate.txt`): all eight presets at seeds 1, 7 and 42 grow with 0 moves and are never refused. At most, a table is 0.73 full (the birch's phytomers at seed 7).
+3. **The light's scratch.** The 61,600 nodes came from the CPU census of the preset's raw species. The device grows `executor::growth`'s species, which the supernatural rows scale, and Telperion's lattice reaches 822,000 nodes. The scratch held ten words of column records a direction for every node, 432 bytes a node, where the records are needed a column of a layer. It now holds two words a direction a node and the records a column (`columns`, checked against capacity in `grid_main`). Telperion's census went from 1,802 MB to 179 MB. The retirement verdict log (204 MB, read only by a test) is now kept only where a test asks.
+4. **The native default stays 4 GiB.** The Two Trees fit once the build lets go of its cycle-only buffers before the settle (`Build::settling`, about 1.3 GB on Telperion): Telperion peaks at 3,990 MB and Laurelin at 3,707 MB.
+5. **No restarts.**
+   - Units rounds are stated at 5 and recorded every cycle; 4 refused the ordinary at cycle 18.
+   - Every list's ranges, the hierarchy's levels, generations and passes, the layout's generations and the sweep's layer ranges are bounded from the tables (`Sizes::stated`). Ranges, levels, generations and the sweep stay projections past their counts. The sweep's bound comes from the lattice's nodes stood as a cube twice over, a stated bound the species' rows do not give: no height or spread row exists in the species.
+   - A count past any limit or table is refused by name (`build_size::refusal`); the restart path, `raised`, the slacks and the widths are deleted.
+   - A dispatch's workgroups come from projections that read each table's growth within its own cycle, which compaction does not hide. They are capped at the table's rows and floored at 4,096 items, and the census read after a compaction sets their floors.
+   - The units' round markers that fed the deleted round projection are deleted.

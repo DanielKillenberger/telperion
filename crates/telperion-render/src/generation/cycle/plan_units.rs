@@ -6,7 +6,7 @@
 //! census and the new axes' and phytomers' columns set (`glue.wgsl`).
 use super::build::{Build, Kit, Tables};
 use super::census::{self as c, Flag};
-use super::device::{self, AFTER, CLOSE, DECIDE, FLAG, GATHER, INIT, NODES, RANGE, T_LIST, T_ROUNDS, T_UNITS, T_UNITS_B, T_USED, T_WAKE, T_WAKE_B, UNIT, USED_ROUNDS, WOKE, WRITTEN, ZONES};
+use super::device::{self, AFTER, CLOSE, DECIDE, FLAG, GATHER, INIT, NODES, RANGE, T_LIST, T_ROUNDS, T_UNITS, T_UNITS_B, T_WAKE, T_WAKE_B, UNIT, WOKE, WRITTEN, ZONES};
 use super::glue;
 use super::plan::{Builder, PassId, Step, MAXX};
 use super::plan_scan::{levelled, levels_needed, sums_words, Shape};
@@ -18,14 +18,6 @@ use crate::Result;
 
 /// The units' uniform's word holding its round (`arena.wgsl`'s `round`).
 const ROUND_WORD: usize = 36;
-
-/// The units rounds the census's cycle used, the living apexes' (`wake`
-/// 0) or the wake's (1): one past the last any job advanced in, or the
-/// most the census tells apart where it was the last.
-pub(super) fn rounds_used(census: &[u32], wake: usize) -> u32 {
-    let used = |r: usize| census[c::MADE + T_USED + USED_ROUNDS * wake + r] != 0;
-    (0..USED_ROUNDS).rev().find(|&r| used(r)).map_or(0, |r| r as u32 + 1)
-}
 
 /// The units' tally's word `k`, as the census holds it after the cycle.
 fn made(k: usize) -> E {
@@ -90,8 +82,7 @@ impl Build {
         let inputs = [(0, live.clone().max(laid.clone())), (3, laid.clone()), (13, laid.gt(E::C(0)).sel(E::C(0), E::C(1))), (14, live.clone())];
         self.glue_step(b, kit, (glue::INPUTS, &self.inputs, &self.spare), w, &inputs);
         let lists = &self.state.lists;
-        let used = (T_USED + 2 * USED_ROUNDS - T_ROUNDS) as u64;
-        b.step(Step::Clear { buffer: (**lists).clone(), at: 4 * T_ROUNDS as u64, bytes: Some(4 * used) });
+        b.step(Step::Clear { buffer: (**lists).clone(), at: 4 * T_ROUNDS as u64, bytes: Some(4) });
         let zones = t.zones.max(1);
         let words = sums_words(n_live, 4).max(sums_words(n_sleep, 4));
         let sums = zeroed(b.gpu, "units scan sums", words)?;
@@ -162,7 +153,7 @@ impl Build {
         scan(b, (a, 4, T_WAKE), (&sleepers, Scan::Sleep));
         scan(b, (b_at, 4, T_WAKE_B), (&sleepers, Scan::Sleep));
         pass(b, (&sleepers, 1, 1, 0), &sleepers);
-        b.tally(lists, 0, c::MADE, 4 * (T_USED + 2 * USED_ROUNDS) as u64);
+        b.tally(lists, 0, c::MADE, 4 * (T_ROUNDS + 1) as u64);
         self.plan_made(b, kit, t);
         Ok(vec![sums])
     }

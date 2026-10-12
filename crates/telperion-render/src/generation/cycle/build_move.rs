@@ -141,3 +141,26 @@ impl Build {
         })
     }
 }
+
+impl Build {
+    /// The build as the settle reads it (`settle_run.rs`: its state,
+    /// retirement, counts and the layout's form): every buffer only a
+    /// cycle reads let go and the device waited on, so the settle's own
+    /// are made in the room they held (fn-256 task 5: the Two Trees' settle
+    /// passed the 4 GiB budget beside them).
+    pub(super) async fn settling(mut self, gpu: &Gpu, (t, tables): (&Tables, &Capture)) -> Result<Build> {
+        let least = super::build_grow::Sizes::least();
+        let s = 64;
+        self.hier = Hierarchy::new(gpu, s, self.hier.cap)?;
+        self.sums = Sums::alloc(gpu, s, s, t.pas)?;
+        self.light = Light::new(gpu, &Cap(tables))?;
+        self.compactor = super::compact::Compactor::new(gpu, least.caps, s)?;
+        for (b, label) in [(&mut self.tree, "cycle tree"), (&mut self.inputs, "cycle inputs"), (&mut self.counts, "cycle counts"), (&mut self.flags, "cycle flags"), (&mut self.scan_sums, "cycle scan sums")] {
+            *b = zeroed(gpu, label, 4)?;
+        }
+        self.layout.lists = zeroed(gpu, "layout lists", 4)?;
+        self.layout.counts = zeroed(gpu, "layout flags", 4)?;
+        super::super::io::complete(gpu).await?;
+        Ok(self)
+    }
+}

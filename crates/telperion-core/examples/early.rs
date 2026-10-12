@@ -33,6 +33,7 @@ fn main() {
     match args[0].as_str() {
         "three" => three(&species, r, &args[4]),
         "live" => live(&grow_census(&species, r).expect("grown").census.expect("a census")),
+        "hint" => hint(&species, r.age),
         _ => panic!("three or live"),
     }
 }
@@ -131,4 +132,17 @@ fn live(c: &Census) {
         "  live set: largest {} in cycle {} ({:.3} of {} grown); largest share past cycle 10 {most:.3}; retired {} subtrees",
         peak.phytomers, peak.cycle, share(peak), peak.grown, c.retired
     );
+}
+
+/// The closed form's expected kept phytomers, the light's terms let go
+/// where the species reads light, and its seconds (fn-256 task 5's
+/// sizing hint).
+fn hint(species: &Species, age: u32) {
+    let t = Instant::now();
+    let mut unshaded = species.clone();
+    for s in &mut unshaded.states {
+        (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+    }
+    let kept = telperion_space::expected_kept(&unshaded, age).expect("a closed form");
+    println!("  hint: {:.0} expected kept, unshaded, in {:.3} s", kept.unwrap_or(f64::NAN), t.elapsed().as_secs_f64());
 }

@@ -69,7 +69,7 @@ pub(super) fn built_with(gpu: &Gpu, kit: &Kit, g: &Grown, (cycle, log): (u32, bo
     let mut t = Tables::new(gpu, &g.tables, &g.chain).expect("tables");
     t.log = log;
     let (b, sizes, grew) = grow(gpu, kit, &t, &g.tables, (Sizes::least(), cycle)).unwrap_or_else(|e| panic!("cycle {cycle}: {e}"));
-    println!("grown to {:?} with {:?}, begun again {} times ({:?}), moved {}; workgroups given {} for {} needed", sizes.caps, sizes.bounds, grew.again, grew.why, grew.moves, grew.over.given, grew.over.needed);
+    println!("grown to {:?} with {:?}, moved {}; workgroups given {} for {} needed", sizes.caps, sizes.bounds, grew.moves, grew.over.given, grew.over.needed);
     let snap = b.snapshot(gpu, cycle).expect("a readback");
     (b, snap)
 }

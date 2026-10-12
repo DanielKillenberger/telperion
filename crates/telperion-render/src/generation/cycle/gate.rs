@@ -147,8 +147,6 @@ pub(super) mod rec {
     pub(in super::super) fn scan(s: super::Scan) -> usize {
         REC + 9 + s as usize
     }
-    /// The living apexes' units rounds, then the wake's.
-    pub(in super::super) const UNIT_ROUNDS: usize = REC + 9 + super::SCANS;
 }
 
 /// The levels `hier_scan.wgsl` takes over `rows` (the first's and each

@@ -30,7 +30,9 @@ struct Cfg {
     below: u32,
     by: u32,
     row: u32,
-    pad0: u32,
+    // A count's flag word, where its table held more rows than the pass
+    // covered (the census's `Flag::Compaction`); none at zero.
+    flag: u32,
     pad1: u32,
     pad2: u32,
 }
@@ -117,10 +119,15 @@ fn move_main(@builtin(global_invocation_id) id: vec3<u32>) {
 }
 
 // One word holding a count of the rows (the census's, a header's): the
-// rows before it that were kept.
+// rows before it that were kept; flagged where it held more than the
+// pass covered, which left them where they stood.
 @compute @workgroup_size(1)
 fn count_main() {
-    src[cfg.at] = rows[cfg.row_at + min(src[cfg.at], cfg.n)];
+    let count = src[cfg.at];
+    if cfg.flag != 0u && count > cfg.n {
+        src[cfg.flag] = 1u;
+    }
+    src[cfg.at] = rows[cfg.row_at + min(count, cfg.n)];
 }
 
 // Each retired root's subtree's upkeep frozen into its row (as its bits'

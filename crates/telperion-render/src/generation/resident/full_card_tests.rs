@@ -7,6 +7,26 @@
 use super::super::{Delivery, Generator};
 use crate::Renderer;
 
+/// The host's ruling of 2026-10-12: a build's tables are sized and made
+/// before its first cycle, so a build past its budget is refused by name
+/// before anything is submitted to the device.
+#[test]
+fn a_build_past_the_budget_submits_nothing() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    pollster::block_on(gen.prepare_programs()).unwrap();
+    let mut family = telperion_core::presets::by_identity("european-beech").unwrap();
+    family.age = 40.0;
+    gen.budget.set(Some(gpu.ledger.live() + (64 << 20)));
+    let before = gpu.ledger.submits();
+    let refused = gen.prepare(&family, Delivery::Resident).err().expect("refused");
+    assert!(refused.to_string().contains("device budget"), "{refused}");
+    assert_eq!(gpu.ledger.submits(), before, "a refused build submitted work");
+}
+
 #[test]
 #[ignore = "device limits: a ballast for the full-card runs"]
 fn ballast() {

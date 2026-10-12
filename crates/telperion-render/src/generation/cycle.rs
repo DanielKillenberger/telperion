@@ -5,6 +5,7 @@
 //! draws from. The decision contract every cycle shader begins with is
 //! here: `telperion_space::contract` by the same f32 operations.
 mod build;
+mod build_arena;
 mod build_grow;
 mod build_light;
 mod build_move;
@@ -66,6 +67,8 @@ mod mirror_tests;
 mod selectors;
 #[cfg(test)]
 mod grown_det_tests;
+#[cfg(test)]
+mod arena_tests;
 #[cfg(test)]
 mod grown_life_tests;
 #[cfg(test)]

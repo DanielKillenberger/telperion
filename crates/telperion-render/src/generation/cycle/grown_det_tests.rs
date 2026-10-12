@@ -42,7 +42,7 @@ fn the_grown_state_is_the_same_on_every_context_and_partition() {
         for ranges in small {
             let mut s = Sizes::least();
             s.bounds.ranges = ranges;
-            runs.push((format!("{ranges:?}"), s));
+            runs.push((format!("{ranges:?}"), Sizes { bounds: s.stated(), ..s }));
         }
         for (label, sizes) in runs {
             let again = fresh(&g, sizes).expect("a device");

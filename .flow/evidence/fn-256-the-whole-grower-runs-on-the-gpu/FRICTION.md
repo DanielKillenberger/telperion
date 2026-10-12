@@ -262,3 +262,15 @@ Doing: comparing every preset's stills with F4's. Slowed by: the resident handof
 - **Hindered:** the plan names the phytomer rows the live set bounds; the census puts them at 19% of the peak, behind the axis-indexed tables (63% of the oak's at 80, no live set, never compacted) and Telperion's light scratch (1.8 GB). "Zero table moves" then needs every table sized once from a bound COUNCIL does not state, a design call (AGENTS.md), so the arena is not built (GUARD.md, "Open").
 - **Cost:** none past the census; the guard, census and live set are committed.
 - **Would remove it:** the census taken before the plan is written, so the plan sizes what the peak is made of.
+
+## 2026-10-12, task 5: the tool's output tmpfs filled twice
+- **Doing:** the arena's gate and per-preset timings after the host's rulings.
+- **Hindered:** the 16 GB `/tmp` the harness writes every command's output to hit the user's quota (EDQUOT) twice, filled by other sessions; every Bash call then failed, a trivial `true` included, and a timing run's printed table was lost (its log in the worktree survived and was read with the file tool).
+- **Cost:** about 10 minutes of waiting and one rerun.
+- **Would remove it:** the harness's task output on a disk with room, or a quota per session (local setup, not a repository change).
+
+## 2026-10-12, task 5: the host's premise of a 61,600-node lattice
+- **Doing:** finding what in the light's scratch is sized per axis or phytomer (ruling 3).
+- **Hindered:** the 61,600 nodes came from the CPU census of the preset's raw species; the device grows `executor::growth`'s species, which the supernatural rows scale, so Telperion's lattice reaches 822,000 nodes. The scratch was 432 bytes a node (column records sized a node each), not 29 KB. The first arena measurement used the raw species too and had to be rerun.
+- **Cost:** about 15 minutes and one rerun of every preset.
+- **Would remove it:** one test helper that grows a preset as the build does (`executor::growth`), used by every measurement.

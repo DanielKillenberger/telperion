@@ -97,9 +97,12 @@ pub(super) enum Flag {
     Given,
     /// A units job with operations left past the cycle's last round.
     UnitRounds,
+    /// A table holding more rows than the compaction after the cycle
+    /// covered (`compact.rs`).
+    Compaction,
 }
 
-pub(super) const FLAG_NAMES: [Flag; 30] = [
+pub(super) const FLAG_NAMES: [Flag; 31] = [
     Flag::Axes,
     Flag::Units,
     Flag::Phyts,
@@ -130,6 +133,7 @@ pub(super) const FLAG_NAMES: [Flag; 30] = [
     Flag::LayScan,
     Flag::Given,
     Flag::UnitRounds,
+    Flag::Compaction,
 ];
 
 impl Flag {

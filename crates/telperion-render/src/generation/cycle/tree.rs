@@ -57,7 +57,9 @@ pub(in crate::generation) async fn drawn(gpu: &Gpu, k: &Kernels, growth: &Growth
     let chain = ChainTables::cycle(species, request.age).map_err(|e| refused(&e.to_string()))?;
     let t = Tables::new(gpu, &tables, &chain)?;
     let at_tables = clock.elapsed_ms();
-    let (b, ..) = grow(gpu, &k.build, &t, &tables, (Sizes::least(), request.age)).await?;
+    let hint = super::build_arena::hint(species, request.age)?;
+    let (b, ..) = grow(gpu, &k.build, &t, &tables, (Sizes::hinted(hint), request.age)).await?;
+    let b = b.settling(gpu, (&t, &tables)).await?;
     let at_grown = clock.elapsed_ms();
     let s = settle(gpu, (&k.build, &k.settle), (&b, &t), (&t.settle_pa, SettleTo::Laid)).await?;
     let at_settled = clock.elapsed_ms();

@@ -79,19 +79,6 @@ impl E {
         }
     }
 
-    /// The census words the value reads.
-    pub(super) fn words(&self, out: &mut Vec<usize>) {
-        match self {
-            E::C(_) | E::Given(_) => {}
-            E::At(w) => out.push(*w),
-            E::Add(a, b) | E::Sub(a, b) | E::Mul(a, b) | E::Div(a, b) | E::Min(a, b) | E::Max(a, b) | E::Gt(a, b) | E::Floor(a, b) => {
-                a.words(out);
-                b.words(out);
-            }
-            E::Sel(c, a, b) => [c, a, b].iter().for_each(|e| e.words(out)),
-        }
-    }
-
     /// The least and the most the value can be, where each census word
     /// `w` is at least `lo[w]` and at most `hi[w]`.
     pub(super) fn span(&self, lo: &[u32], hi: &[u32]) -> (u32, u32) {

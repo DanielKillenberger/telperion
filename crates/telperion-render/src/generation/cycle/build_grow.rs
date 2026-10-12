@@ -1,16 +1,18 @@
-//! A build grown to its end (DESIGN.md section 5). The host reads the
-//! census a cycle late: where a count, at the rate it grew, would pass
-//! its table's capacity or its loop's bound within the next two cycles,
-//! the build moves into larger tables on the queue (`build_move.rs`) and
-//! its cycle is recorded again; where a count passed one already, the
-//! build begins again from the seed with that size raised, which leaves
-//! the same tree. Never an expectation: every size is a count's.
+//! A build grown to its end (DESIGN.md section 5, the host's rulings of
+//! 2026-10-12). Its tables are sized once from its hint
+//! (`build_arena.rs`); the host reads the census a cycle late, compacts
+//! the arena in place where it runs tight (`compact.rs`), and doubles a
+//! table its hint undersized before the next two cycles could pass it
+//! (`build_size::grown`, a move on the queue, `build_move.rs`). A count
+//! past any table or limit stops the build by name: no build begins
+//! again.
 use super::build::{Build, Kit, Late, Tables};
+use super::build_arena::TABLES;
 use super::build_light::Lit;
 use super::build_plan::Bounds;
-use super::build_size::{ahead, limits, raised, SLACK, SLACKS};
-use super::census::{self as c, Flag, PASS_LEFT};
-use super::given::{Over, Span, Widths};
+use super::build_size::{grown, limits, refusal};
+use super::census as c;
+use super::given::{Over, Span};
 use super::state::Caps;
 use crate::{Gpu, Result};
 use telperion_space::Capture;
@@ -20,7 +22,7 @@ use telperion_space::Capture;
 pub(super) const MOST_CYCLES: u32 = 2048;
 
 /// What a build is sized for: the state's tables, the light's points,
-/// tips and lattice nodes, and the loops' bounds.
+/// tips, lattice nodes and columns, and the loops' bounds.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) struct Sizes {
     pub caps: Caps,
@@ -32,21 +34,16 @@ pub(super) struct Sizes {
     pub bounds: Bounds,
     /// The most axes a hierarchy block holds: speed only (HIERARCHY.md).
     pub block_cap: u32,
-    /// How far past its projection each of the cycle's limits reaches
-    /// (`Slack`): doubled for a limit each time a count passes it.
-    pub slack: [u32; SLACKS],
-    /// How far past its projection each census word reaches, for the
-    /// workgroups a dispatch is given (`given.rs`).
-    pub widths: Widths,
     /// When the arena is compacted in place (`compact.rs`).
     pub compact: Compact,
 }
 
 impl Sizes {
-    /// The smallest a build starts from.
+    /// The smallest a build takes, its bounds stated from its tables.
     pub(super) fn least() -> Self {
         let caps = Caps { axes: 4096, units: 4096, phyts: 16384, sleepers: 4096, next: 4096, woken: 1024 };
-        Self { caps, points: 16384, tips: 4096, nodes: 4096, columns: 1024, bounds: Bounds::default(), block_cap: super::hier_build::CAP, slack: SLACK, widths: Widths::default(), compact: Compact::Off }
+        let s = Self { caps, points: 16384, tips: 4096, nodes: 4096, columns: 1024, bounds: Bounds::default(), block_cap: super::hier_build::CAP, compact: Compact::Off };
+        Self { bounds: s.stated(), ..s }
     }
 
     pub(super) fn lit(&self) -> (Lit, (u32, u32)) {
@@ -55,51 +52,72 @@ impl Sizes {
 }
 
 /// When the arena is compacted in place: never (the tests' reference),
-/// where a phytomer or axis table's rows two cycles on, at the rate they
-/// grew, would pass half its capacity, or (the tests') after every cycle.
+/// where a phytomer, axis or unit table's rows two cycles on, at the rate
+/// they grew, would pass half its rows, or (the tests') after every cycle.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Compact {
     Off,
     Tight,
+    #[cfg_attr(not(test), allow(dead_code))]
     Every,
 }
 
 impl Compact {
     /// Whether to compact now, the census read and the one before it.
-    fn now(self, caps: &super::state::Caps, (read, prev): (&[u32], Option<&[u32]>)) -> bool {
+    fn now(self, caps: &Caps, (read, prev): (&[u32], Option<&[u32]>)) -> bool {
         let ahead = |w: usize| {
             let r = prev.map_or(2.0, |p| (f64::from(read[w]) / f64::from(p[w].max(1))).clamp(1.0, 4.0));
             f64::from(read[w]) * r * r
         };
+        let tight = |w: usize, cap: u32| 2.0 * ahead(w) > f64::from(cap);
         match self {
             Compact::Off => false,
             Compact::Every => true,
-            Compact::Tight => 2.0 * ahead(c::PHYTS) > f64::from(caps.phyts) || 2.0 * ahead(c::AXES) > f64::from(caps.axes),
+            Compact::Tight => tight(c::PHYTS, caps.phyts) || tight(c::AXES, caps.axes) || tight(c::UNITS, caps.units),
         }
     }
 }
 
-/// How a build grew: begun again, moved into larger tables, and the
-/// phase of each dispatch it recorded, in order.
+/// How a build grew: its moves and compactions, the most each table held,
+/// and the phase of each dispatch it recorded, in order.
 #[derive(Debug, Clone, Default)]
 pub(super) struct Grew {
-    pub again: u32,
     pub moves: u32,
     /// The in-place compactions it made.
     pub compactions: u32,
-    /// The cycle after which each move of the last begin was made, and
-    /// the records held after it.
+    /// The most each table held at a cycle's end, before any compaction
+    /// after it (`build_arena::tables`).
+    pub most: [u32; TABLES],
+    /// The cycle after which each move was made, and the records held
+    /// after it.
     pub moved_at: Vec<(u32, u32)>,
     pub stamped: Vec<&'static str>,
-    /// Why it began again: each time's flags and the cycle read.
-    pub why: Vec<(u32, Vec<Flag>)>,
     /// Host seconds recording and submitting cycles, waiting for the
-    /// census, and moving.
+    /// census, and moving and compacting.
     pub recording: f64,
     pub waiting: f64,
     pub moving: f64,
     /// The workgroups its bounded dispatches were given and needed.
     pub over: Over,
+}
+
+impl Grew {
+    /// A census read: the most each table held, and the cycle's
+    /// dispatches tallied; a count past a table or limit refused by name.
+    fn read(&mut self, (read, cycle): (&[u32], u32), sent: &super::given::Pending, budget: u32) -> Result<()> {
+        sent.tally(&mut self.over, read);
+        let held = super::build_arena::tables(read);
+        self.most = std::array::from_fn(|k| self.most[k].max(held[k]));
+        let raised = c::raised(read);
+        if raised.is_empty() {
+            return Ok(());
+        }
+        if std::env::var("CYCLE_TRACE").is_ok() {
+            eprintln!("TRACE raised after cycle {cycle}: {raised:?} rec {:?} gens {} levels {}", &read[c::REC..c::REC + 15], read[c::GENS], read[c::LEVELS]);
+            sent.short(read).iter().for_each(|s| eprintln!("TRACE short {s}"));
+        }
+        Err(refusal(cycle, &raised, budget))
+    }
 }
 
 /// `upto` cycles grown from `sizes`: the build, its sizes and how it grew.
@@ -109,101 +127,100 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
         return Err(super::super::io::error(format!("a tree of {cycles} cycles: the device holds its time to {MOST_CYCLES} cycles")));
     }
     let mut grew = Grew::default();
-    'begin: for again in 0..64 {
-        grew.again = again;
-        // The build begun before this one freed first (`Ledger::destroy`).
-        super::super::io::complete(gpu).await?;
-        let mut b = Build::new(gpu, t, (tables, sizes.caps, sizes.block_cap), sizes.lit())?;
-        let mut run = b.plan(gpu, kit, t, sizes.bounds)?;
-        grew.stamped = b.seeded(gpu, kit, (&run.0, &run.1));
-        grew.moved_at.clear();
-        let (mut late, mut prev, mut last) = (Late::new(gpu)?, None::<Vec<u32>>, None::<Vec<u32>>);
-        let mut pending = std::collections::VecDeque::new();
-        grew.over = Over::default();
-        for cycle in 1..=upto {
-            let limits = limits(&sizes, last.as_deref(), prev.as_deref());
-            let seed = Build::seed_census();
-            let (seen, before) = match (&last, &prev) {
-                (Some(l), p) => (l.as_slice(), Some(p.as_deref().unwrap_or(&seed))),
-                (None, _) => (seed.as_slice(), None),
-            };
-            let span = Span::new(seen, before, &sizes.widths, (cycle, &limits));
-            if std::env::var("CYCLE_TRACE").is_ok() {
-                eprintln!("TRACE begin {again} cycle {cycle} slack {:?} {limits:?}", sizes.slack);
-                eprintln!("TRACE light nodes {} points {} tips {}; grid {:?}", sizes.nodes, sizes.points, sizes.tips, last.as_deref().map(|r| &r[c::GRID..c::GRID + 8]));
-            }
-            let clock = super::super::Clock::now();
-            let (stamped, sent) = b.submit(gpu, (kit, t), (&run.0, &run.1, &limits, &span), (&mut late, cycle));
-            pending.push_back(sent);
-            grew.recording += clock.elapsed_ms() / 1e3;
-            grew.stamped.extend(stamped);
-            if cycle == 1 {
-                continue;
-            }
-            let clock = super::super::Clock::now();
-            let read = late.take(gpu, cycle - 1).await?;
-            grew.waiting += clock.elapsed_ms() / 1e3;
-            let sent = pending.pop_front().expect("a cycle sent");
-            sent.tally(&mut grew.over, &read);
-            if !c::raised(&read).is_empty() {
-                if read[Flag::Given.word()] != 0 {
-                    sent.widen(&mut sizes.widths, &read);
-                }
-                grew.why.push((cycle - 1, c::raised(&read).iter().map(|f| f.0).collect()));
-                if std::env::var("CYCLE_TRACE").is_ok() {
-                    eprintln!("TRACE begun again after cycle {}", cycle - 1);
-                    eprintln!("TRACE raised {:?} rec {:?} gens {} levels {} passes left {:?}", c::raised(&read), &read[c::REC..c::REC + 15], read[c::GENS], read[c::LEVELS], &read[PASS_LEFT..PASS_LEFT + 24]);
-                }
-                sizes = raised(sizes, &c::raised(&read), &read, t.budget)?;
-                // The cycle in flight read back before its buffers go.
-                late.take(gpu, cycle).await?;
-                continue 'begin;
-            }
-            let clock = super::super::Clock::now();
-            // A move makes room for the next cycle; after the last there
-            // is none, and a compaction then would leave the build holding
-            // the last census's rows.
-            let next = (cycle < upto).then(|| ahead(sizes, &read, last.as_deref(), t.budget)).flatten();
-            if let Some(next) = next {
-                b = b.moved(gpu, (t, tables), (sizes, next))?;
-                let plan = b.plan(gpu, kit, t, next.bounds)?;
-                let mut e = gpu.encoder(&Default::default());
-                e.copy_buffer_to_buffer(&run.0.census, 0, &plan.0.census, 0, run.0.census.size());
-                gpu.submit([e.finish()]);
-                (run, sizes) = (plan, next);
-                grew.moves += 1;
-                grew.moved_at.push((cycle, b.retire.rec_n));
-            }
-            // The arena compacted in place after this cycle where its
-            // tables run tight (`compact.rs`); after the last, none.
-            if cycle < upto && sizes.compact.now(&sizes.caps, (&read, last.as_deref())) {
-                b.compact_in_place(gpu, kit, &run.0.census, cycle).await?;
-                grew.compactions += 1;
-            }
-            grew.moving += clock.elapsed_ms() / 1e3;
-            prev = last.replace(read);
+    // A build let go before this one freed first (`Ledger::destroy`).
+    super::super::io::complete(gpu).await?;
+    let mut b = Build::new(gpu, t, (tables, sizes.caps, sizes.block_cap), sizes.lit())?;
+    let mut run = b.plan(gpu, kit, t, sizes.bounds)?;
+    grew.stamped = b.seeded(gpu, kit, (&run.0, &run.1));
+    let (mut late, mut prev, mut last) = (Late::new(gpu)?, None::<Vec<u32>>, None::<Vec<u32>>);
+    let mut pending = std::collections::VecDeque::new();
+    // The last cycle after which the arena was compacted, and the census
+    // read after it: a census read before it counts more rows than the
+    // cycle begins with.
+    let (mut compacted, mut cut) = (None::<u32>, Vec::new());
+    for cycle in 1..=upto {
+        let limits = limits(&sizes, last.as_deref(), prev.as_deref());
+        let seed = Build::seed_census();
+        let (seen, before) = match (&last, &prev) {
+            (Some(l), p) => (l.as_slice(), Some(p.as_deref().unwrap_or(&seed))),
+            (None, _) => (seed.as_slice(), None),
+        };
+        let fallen = compacted.is_some_and(|k| k + 2 >= cycle).then_some(cut.as_slice());
+        let span = Span::new(seen, before, (&sizes.ceilings(), fallen), (cycle, &limits));
+        if std::env::var("CYCLE_TRACE").is_ok() {
+            eprintln!("TRACE cycle {cycle} {limits:?}; light nodes {} points {} tips {}", sizes.nodes, sizes.points, sizes.tips);
         }
-        let read = late.take(gpu, upto).await?;
-        let sent = pending.pop_front().expect("a cycle sent");
-        sent.tally(&mut grew.over, &read);
-        if !c::raised(&read).is_empty() {
-            if read[Flag::Given.word()] != 0 {
-                sent.widen(&mut sizes.widths, &read);
-            }
-            grew.why.push((upto, c::raised(&read).iter().map(|f| f.0).collect()));
-            sizes = raised(sizes, &c::raised(&read), &read, t.budget)?;
+        let clock = super::super::Clock::now();
+        let (stamped, sent) = b.submit(gpu, (kit, t), (&run.0, &run.1, &limits, &span), (&mut late, cycle));
+        pending.push_back(sent);
+        grew.recording += clock.elapsed_ms() / 1e3;
+        grew.stamped.extend(stamped);
+        if cycle == 1 {
             continue;
         }
-        b.counted(&read);
-        if std::env::var("CYCLE_TRACE").is_ok() {
-            trace(&grew, &sizes, upto);
+        let clock = super::super::Clock::now();
+        let read = late.take(gpu, cycle - 1).await?;
+        grew.waiting += clock.elapsed_ms() / 1e3;
+        let sent = pending.pop_front().expect("a cycle sent");
+        if let Err(stopped) = grew.read((&read, cycle - 1), &sent, t.budget) {
+            // The cycle in flight read back before its buffers go.
+            late.take(gpu, cycle).await?;
+            return Err(stopped);
         }
-        return Ok((b, sizes, grew));
+        let clock = super::super::Clock::now();
+        // A move makes room for the next cycle; after the last there is
+        // none, nor a compaction, whose census the build would not read.
+        let fallen = compacted.is_some_and(|k| k + 2 >= cycle).then_some(cut.as_slice());
+        if let Some(next) = (cycle < upto).then(|| grown(sizes, (&read, last.as_deref(), fallen), t.budget)).flatten() {
+            b = b.moved(gpu, (t, tables), (sizes, next))?;
+            let plan = b.plan(gpu, kit, t, next.bounds)?;
+            let mut e = gpu.encoder(&Default::default());
+            e.copy_buffer_to_buffer(&run.0.census, 0, &plan.0.census, 0, run.0.census.size());
+            gpu.submit([e.finish()]);
+            (run, sizes) = (plan, next);
+            grew.moves += 1;
+            grew.moved_at.push((cycle, b.retire.rec_n));
+        }
+        // A compaction after the cycle read counts nothing the census shows.
+        let fresh = compacted.is_none_or(|k| k + 1 < cycle) || sizes.compact == Compact::Every;
+        if cycle < upto && fresh && sizes.compact.now(&sizes.caps, (&read, last.as_deref())) {
+            let traced = std::env::var("CYCLE_TRACE").is_ok();
+            if traced {
+                super::super::io::complete(gpu).await?;
+            }
+            let clock = super::super::Clock::now();
+            b.compact_in_place(gpu, kit, (&run.0.census, cycle), reach(&read)).await?;
+            if traced {
+                super::super::io::complete(gpu).await?;
+                eprintln!("TRACE compacted after cycle {cycle} in {:.1} ms", clock.elapsed_ms());
+            }
+            (grew.compactions, compacted) = (grew.compactions + 1, Some(cycle));
+            let words = super::super::io::read_async(gpu, &run.0.census, 4 * c::WORDS as u64).await?;
+            cut = bytemuck::cast_slice(&words).to_vec();
+        }
+        grew.moving += clock.elapsed_ms() / 1e3;
+        prev = last.replace(read);
     }
-    Err(super::super::io::error("a build that never fitted".into()))
+    let read = late.take(gpu, upto).await?;
+    let sent = pending.pop_front().expect("a cycle sent");
+    grew.read((&read, upto), &sent, t.budget)?;
+    b.counted(&read);
+    if std::env::var("CYCLE_TRACE").is_ok() {
+        trace(&grew, &sizes, upto);
+    }
+    Ok((b, sizes, grew))
 }
 
-/// How a build grew, to stderr: its restarts and moves, the host's
+/// The rows the axes, units and phytomers may hold at the end of the
+/// cycle after `read`'s: its counts and four of its cycle's growth past
+/// them, and 4,096 rows. A table that holds more is flagged by the
+/// compaction (`Flag::Compaction`) and the build refused by name.
+fn reach(read: &[u32]) -> [u32; 3] {
+    let at = |(start, end): (usize, usize)| read[end].saturating_add(4 * read[end].saturating_sub(read[start])).saturating_add(4096);
+    [at((c::AXES0, c::AXES)), at((c::UNITS0, c::UNITS)), at((c::PHYTS0, c::PHYTS))]
+}
+
+/// How a build grew, to stderr: its moves and compactions, the host's
 /// seconds, and its dispatches by phase and a cycle.
 fn trace(grew: &Grew, sizes: &Sizes, upto: u32) {
     let mut by: Vec<(&str, usize)> = Vec::new();
@@ -216,8 +233,8 @@ fn trace(grew: &Grew, sizes: &Sizes, upto: u32) {
     let n = grew.stamped.len();
     eprintln!("TRACE phases {by:?}");
     eprintln!(
-        "TRACE grown: again {}, moves {}, recording {:.3} s, waiting {:.3} s, moving {:.3} s; dispatches {n} ({:.0} a cycle); caps {:?}",
-        grew.again, grew.moves, grew.recording, grew.waiting, grew.moving, n as f64 / f64::from(upto), sizes.caps
+        "TRACE grown: moves {}, compactions {}, recording {:.3} s, waiting {:.3} s, moving {:.3} s; dispatches {n} ({:.0} a cycle); workgroups given {} for {} needed; caps {:?}",
+        grew.moves, grew.compactions, grew.recording, grew.waiting, grew.moving, n as f64 / f64::from(upto), grew.over.given, grew.over.needed, sizes.caps
     );
 }
 

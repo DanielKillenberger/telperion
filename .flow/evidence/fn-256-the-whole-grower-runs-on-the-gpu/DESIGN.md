@@ -12,7 +12,7 @@ The node table must be byte-identical over fresh contexts and block sizes (R2, R
 - **The CPU's order** is the order `Grower` appends in:
   - Units go in live order. Each apex's records follow in its emission order (`grow_live`, `absorb`, which is equivalent to one sequential pass).
   - Wake goes in `asleep[cycle]` order, after the merge.
-  - New axes are numbered after the cycle's existing ones, as on the CPU, so an axis index on the device equals the CPU's axis index. Agreement can then be checked by index as well as by lineage.
+  - New axes are numbered after the cycle's existing ones, in the CPU's order. **Retired (host, 2026-10-12, section 13):** an axis index on the device no longer equals the CPU's once the arena compacts; an axis is known by its lineage key, and agreement is checked by lineage.
 
 ## 1. Buffers
 
@@ -598,3 +598,23 @@ The resident suite agrees on every preset with the palm whole. The sweep test ma
 **Stills** (fn-266's `raw/stills/sheets/`, F4 against the device, viewed): the trunk carries F4's diamond lattice of boots on the same spiral, the foot included (`date-palm-trunk.png`). The crown is F4's in form. Pixels differing past 2%: whole 2.5%, mid 12.8%, close 14.0%. That matches 12.7.1's figures with the bases set aside on both sides (2.5%, 13 to 14%), so the difference is the leaflets' own draws, not the trunk.
 
 **Build time** (`build_time`, the palm at 40, warm): 98, 101 and 98 ms with its bases, against 99 and 96 ms with them set aside. The stage's cost is within noise.
+
+## 13. The arena compacted in place, and sized once (task 5, the host's rulings of 2026-10-12)
+
+**Identity is the lineage key, never a slot.** COUNCIL.md's "integers exact" covers lineage keys, canonical order and births, not physical slots. The rule in section 0 that an axis keeps its CPU index is retired:
+- axes compact on the same cadence as phytomers, by a stable scan, so a compacted slot order is still the canonical order;
+- every test and consumer that compared by CPU index compares by lineage key: the retirement log (`r_lineage`) and the grown index (`s_grown`), whose runs a continuation and its relays share in order.
+
+**Compaction** (`compact.rs`, `compact.wgsl`) runs between two cycles, a column at a time through one column of scratch:
+1. Phytomers of retired subtrees are flagged; where a PA keeps shed pipes or leaf girth they are recorded first.
+2. Where no PA keeps records, the axes inside retired subtrees and their units are flagged too. A kept record is read by the settle through its axis's row, so those axes stay.
+3. Each retired root freezes its subtree's upkeep (`A_FROZEN`, read as the tree's `T_FROZEN`), and the sums charge it as `Working::frozen` does.
+4. Every column holding an index is remapped, then each column's kept rows are moved and the counts set:
+   - the axes' bearers, successors and unit links;
+   - the units' axis and links;
+   - the phytomers' axis;
+   - the sleeping, living and woken buds' axes;
+   - the hierarchy's children and members and their starts.
+5. A table holding more rows than the pass covered raises `Flag::Compaction`.
+
+**Sizing** (`build_arena.rs`): each table is sized once from the closed form's expected kept phytomers, a hint and never a bound. The light's terms are let go for a species that reads light. Each table takes its measured most against the hint over every preset at seeds 1, 7, 42 and its own, past a 1.5 margin. The plan's bounds are stated from the tables. A table the hint undersized doubles once before it overflows, counted as a move: on the rows its last compaction kept for a compacted table, else on its projection. A count past any table or limit is refused by name, and no build begins again.

@@ -119,8 +119,6 @@ fn decide_main(@builtin(global_invocation_id) id: vec3<u32>) {
     if jw(J_OP) != OP_ADVANCE {
         return;
     }
-    // Every job that advances marks the round used.
-    put_ls(T_USED + USED_ROUNDS * min(cfg.wake, 1u) + min(cfg.round, USED_ROUNDS - 1u), 1u);
     take_job(k);
     var o = op_of();
     o.kind = decide(o.apex, cfg.cycle);
