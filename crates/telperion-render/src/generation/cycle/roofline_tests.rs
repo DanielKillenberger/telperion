@@ -4,9 +4,9 @@
 //! build grows them: every dispatch's stamped time by cycle, phase and
 //! kernel, each cycle's census, the settle's every pass stamped, and
 //! what each cycle visits (`roofline_life`). Files go to `ROOFLINE_OUT`;
-//! `ROOFLINE_PRESETS` names a comma list. `cargo test --profile ci -p
-//! telperion-render the_roofline_is_measured -- --ignored --nocapture`,
-//! under the GPU lock.
+//! `ROOFLINE_PRESETS` names a comma list, `ROOFLINE_CASES` other cases
+//! (`id:age:seed,...`). `cargo test --profile ci -p telperion-render
+//! the_roofline_is_measured -- --ignored --nocapture`, under the GPU lock.
 use super::build::Tables;
 use super::build_arena::hint;
 use super::build_grow::{grow_now as grow, Sizes, COMPACTION};
@@ -34,7 +34,8 @@ fn the_roofline_is_measured() {
     peaks(&gpu, &out);
     let settling = Kernels::new(&gpu);
     let only = std::env::var("ROOFLINE_PRESETS").ok();
-    for (id, age, seed) in CASES.into_iter().filter(|c| only.as_ref().is_none_or(|o| o.split(',').any(|x| x == c.0))) {
+    let cases = std::env::var("ROOFLINE_CASES").ok().map_or(CASES.to_vec(), |v| v.split(',').map(case).collect());
+    for (id, age, seed) in cases.into_iter().filter(|c| only.as_ref().is_none_or(|o| o.split(',').any(|x| x == c.0))) {
         let growth = telperion_core::pipeline::executor::growth(&Preset::from_id(id).expect("a preset").parameters()).expect("a growth");
         let g = grown_from(growth.species, growth.request.light, (age, seed));
         let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
@@ -90,6 +91,14 @@ fn the_roofline_is_measured() {
         let l = held(!keeps);
         write(&out, &format!("{id}-visits.csv"), &visits(&l));
     }
+}
+
+/// A case named `id:age:seed`, its id a shipped preset's.
+fn case(named: &str) -> (&'static str, u32, u64) {
+    let mut part = named.split(':');
+    let id = part.next().and_then(|id| telperion_core::presets::CATALOGUE.iter().map(|c| c.1).find(|c| *c == id)).expect("a shipped preset");
+    let mut number = || part.next().and_then(|n| n.parse::<u64>().ok()).expect("an age and a seed");
+    (id, number() as u32, number())
 }
 
 /// Each cycle's visits as columns, `_3`, `_5` and `_10` on the short-lived.

@@ -2,7 +2,7 @@
 //! to draw-ready, timed warm (its second build in the process) at its
 //! default age and seed: the same call before and after the one cycle
 //! took the harness. `BUILD_PRESETS` names a comma list to time alone,
-//! `BUILD_AGE` an age for them all; each build's peak owned bytes are
+//! `BUILD_AGE` an age and `BUILD_SEED` a seed for them all; each build's peak owned bytes are
 //! printed by label (fn-256 task 5's census).
 //! `cargo test --profile ci -p telperion-render build_time -- --ignored
 //! --nocapture`.
@@ -26,6 +26,9 @@ fn build_time() {
         let mut family = telperion_core::presets::by_identity(id).unwrap();
         if let Some(age) = std::env::var("BUILD_AGE").ok().and_then(|a| a.parse().ok()) {
             family.age = age;
+        }
+        if let Some(seed) = std::env::var("BUILD_SEED").ok().and_then(|a| a.parse().ok()) {
+            family.skeleton.seed = seed;
         }
         let mut ms = Vec::new();
         let mut count = 0;
