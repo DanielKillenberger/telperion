@@ -474,20 +474,20 @@ Production-dead, kept as the reference: `prepare_whole`'s resident branches (CPU
 
 The render gate's resident-against-CPU checks are now lineage checks (`resident/agree_tests.rs`), at age 12 on every preset the device draws: nodes equal in count and lineage, positions within 3e-5 m; station runs equal; every wood run matched point for point, the trunk included (a 1% run tolerance had hidden a missing `trunk_run` until the stills showed it; FRICTION.md).
 
-The stills at each preset's default age, whole, mid and close, F4 against the device (`raw/t3-stills/sheets/`, every sheet viewed; share of pixels differing past 2%):
+The stills at each preset's default age, whole, mid and close, F4 against the device after the review's fixes (`raw/t3-stills/sheets/`, every sheet viewed; share of pixels differing past 2%):
 
 | Preset | Whole | Mid | Close | Seen |
 |---|--:|--:|--:|---|
-| ordinary | 1.3% | 6.3% | 7.5% | same form; twigs and leaves placed differently |
-| oak | 2.7% | 8.4% | 8.9% | same crown; the close view darker, the cycle's leaves seated elsewhere (the CPU cycle and the device alike, 1.1% apart) |
-| spruce | 0.9% | 4.2% | 6.0% | near identical |
-| beech | 1.0% | 7.0% | 9.1% | same limbs; leaf placement differs |
+| ordinary | 1.3% | 6.2% | 7.5% | same form; twigs and leaves placed differently |
+| oak | 2.3% | 7.3% | 8.8% | same crown; the close view darker, the cycle's leaves seated elsewhere (the CPU cycle and the device alike, 1.1% apart) |
+| spruce | 0.5% | 2.8% | 4.1% | near identical |
+| beech | 0.2% | 0.6% | 0.5% | identical to the eye |
 | birch | 1.0% | 5.5% | 11.3% | same habit; hanging twigs placed differently |
-| palm | 0 | 0 | 0 | refused resident (12.6); the CPU delivery drawn |
-| Telperion | 3.6% | 13.1% | 13.0% | same crown; flowers and leaves placed differently |
-| Laurelin | 2.7% | 12.2% | 9.9% | same crown; flowers and leaves placed differently |
+| palm | refused | | | refused resident (12.6) |
+| Telperion | 1.0% | 1.4% | 1.4% | identical to the eye |
+| Laurelin | 1.6% | 7.4% | 5.0% | same crown; flowers and leaves placed differently |
 
-The differences are the one cycle's (fn-255): the CPU cycle and the device differ by 0.2 to 1.6% on the oak and the beech.
+Two device defects showed in the first stills and are fixed: the trunk's foot (above) and the curve's section rows, which the handoff had taken as defaults (no lobes, twist or height; the codex review's finding, now held by `every_preset_draws_its_wood_by_the_cpu_rows`). What remains is the one cycle's (fn-255): the CPU cycle and the device differ by 0.2 to 1.6% on the oak and the beech.
 
 ### 12.5b Build time
 
