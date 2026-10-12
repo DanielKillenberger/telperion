@@ -238,6 +238,26 @@ impl Pass {
         pass.dispatch_workgroups(groups.min(self.maximum), groups.div_ceil(self.maximum), 1);
     }
 
+    /// Each of `dispatches` (a bind group, an entry, its workgroups) in
+    /// order, in one compute pass; each in a stamped pass of its own while
+    /// a profile is on.
+    pub fn run_all(&self, encoder: &mut wgpu::CommandEncoder, dispatches: &[(wgpu::BindGroup, usize, u32)]) {
+        #[cfg(test)]
+        if super::profile::on() {
+            for (bind, entry, groups) in dispatches {
+                self.run(encoder, bind, *entry, *groups);
+            }
+            return;
+        }
+        if dispatches.is_empty() {
+            return;
+        }
+        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor { label: Some("experimental generation"), timestamp_writes: None });
+        for (bind, entry, groups) in dispatches {
+            self.encode(&mut pass, (bind, *entry), *groups);
+        }
+    }
+
     /// A stamped compute pass with `entry`'s pipeline and `bind` set.
     fn begin<'e>(
         &self,

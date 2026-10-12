@@ -3,7 +3,8 @@
 //! seed, each relay's attachment, the thickening and reaches a depth at
 //! a time from the deepest; then the lay from the seed, and where any PA
 //! sags, the levers from the deepest and the lay again under them; then
-//! whether any phytomer has size. Each dispatch is its own stamped pass.
+//! whether any phytomer has size. A submission's dispatches share a compute
+//! pass, each its own stamped pass while a profile is on.
 use super::build::{Build, Tables};
 use super::hier_scan::{uniform, widest, words as read};
 use super::settle_device::{self as d, Kernels};
@@ -21,18 +22,27 @@ struct Rec<'a> {
     form: &'a Owned,
     cfg: [u32; 20],
     held: Vec<Owned>,
+    /// The dispatches recorded since the last submission.
+    pending: Vec<(wgpu::BindGroup, usize, u32)>,
 }
 
 impl Rec<'_> {
-    fn run(&mut self, e: &mut wgpu::CommandEncoder, s: &mut Settled, (entry, phase): (usize, &'static str), (base, count): (u32, u32)) -> Result<()> {
+    fn run(&mut self, s: &mut Settled, (entry, phase): (usize, &'static str), (base, count): (u32, u32)) -> Result<()> {
         let mut cfg = self.cfg;
         (cfg[1], cfg[2]) = (base, count);
         let buf = uniform(self.gpu, &cfg)?;
         let bind = self.pass.bind(self.gpu, &[&buf, self.form, &s.work, &s.atom, &s.nt, &s.pw]);
-        self.pass.run(e, &bind, entry, count.div_ceil(64).max(1));
+        self.pending.push((bind, entry, count.div_ceil(64).max(1)));
         self.held.push(buf);
         s.stamped.push(phase);
         Ok(())
+    }
+
+    /// The dispatches recorded since the last, submitted.
+    fn submit(&mut self) {
+        let mut e = self.gpu.encoder(&Default::default());
+        self.pass.run_all(&mut e, &std::mem::take(&mut self.pending));
+        self.gpu.submit([e.finish()]);
     }
 }
 
@@ -46,17 +56,16 @@ pub(super) async fn thicken(gpu: &Gpu, k: &Kernels, b: &Build, t: &Tables, s: &m
         widest(gpu).0, 0, 0, t.age, tb.sk, tb.skp, tb.at_np, tb.at_nu, l.sa, l.at_a, l.at_f, at_q, s.flags, 0,
         tb.kept, 0, 0, 0, 0, 0,
     ];
-    let mut r = Rec { gpu, steps: (k.steps, k.walk), pass: &k.place, form: &b.layout.form, cfg: words, held: Vec::new() };
+    let mut r = Rec { gpu, steps: (k.steps, k.walk), pass: &k.place, form: &b.layout.form, cfg: words, held: Vec::new(), pending: Vec::new() };
     let depths = depths(s);
-    let mut e = gpu.encoder(&Default::default());
     for &at in &depths {
-        r.run(&mut e, s, (d::SCALE, "settle scale"), at)?;
+        r.run(s, (d::SCALE, "settle scale"), at)?;
     }
-    r.run(&mut e, s, (d::ATTACH, "settle thicken"), (0, tb.kept))?;
+    r.run(s, (d::ATTACH, "settle thicken"), (0, tb.kept))?;
     for &at in depths.iter().rev() {
-        r.run(&mut e, s, (d::THICK_E, "settle thicken"), at)?;
+        r.run(s, (d::THICK_E, "settle thicken"), at)?;
     }
-    gpu.submit([e.finish()]);
+    r.submit();
     faults(gpu, s).await?;
     Ok(r.cfg)
 }
@@ -83,28 +92,26 @@ async fn faults(gpu: &Gpu, s: &Settled) -> Result<()> {
 /// size (`s.error`). Laid only once, its levers gathered, where `to` is
 /// `Placed`.
 pub(super) async fn lay(gpu: &Gpu, k: &Kernels, b: &Build, (cfg, sags, to): ([u32; 20], bool, SettleTo), s: &mut Settled) -> Result<()> {
-    let mut r = Rec { gpu, steps: (k.steps, k.walk), pass: &k.place, form: &b.layout.form, cfg, held: Vec::new() };
+    let mut r = Rec { gpu, steps: (k.steps, k.walk), pass: &k.place, form: &b.layout.form, cfg, held: Vec::new(), pending: Vec::new() };
     let depths = depths(s);
     gpu.queue.write_buffer(&s.atom, 4 * d::T_ERR as u64, bytemuck::bytes_of(&u32::MAX));
-    let mut e = gpu.encoder(&Default::default());
-    walk(&mut r, &mut e, s, "settle place")?;
-    gpu.submit([e.finish()]);
+    walk(&mut r, s, "settle place")?;
+    r.submit();
     faults(gpu, s).await?;
     let placed = to == SettleTo::Placed;
     if first_error(gpu, s).await? || !(sags || placed) {
         return sized(gpu, &mut r, s).await;
     }
-    let mut e = gpu.encoder(&Default::default());
     for &at in depths.iter().rev() {
-        r.run(&mut e, s, (d::LEVER, "settle levers"), at)?;
+        r.run(s, (d::LEVER, "settle levers"), at)?;
     }
     if placed {
-        gpu.submit([e.finish()]);
+        r.submit();
         return Ok(());
     }
     r.cfg[15] = 1;
-    walk(&mut r, &mut e, s, "settle sag place")?;
-    gpu.submit([e.finish()]);
+    walk(&mut r, s, "settle sag place")?;
+    r.submit();
     faults(gpu, s).await?;
     if first_error(gpu, s).await? {
         return Ok(());
@@ -116,21 +123,21 @@ pub(super) async fn lay(gpu: &Gpu, k: &Kernels, b: &Build, (cfg, sags, to): ([u3
 /// far as its longest axis reaches, each dispatch as many phytomers as
 /// keep its axes' steps within `r.steps.0`, from 1 to `r.steps.1`, and
 /// a depth wider than the steps walked a run of its axes at a time.
-fn walk(r: &mut Rec, e: &mut wgpu::CommandEncoder, s: &mut Settled, phase: &'static str) -> Result<()> {
+fn walk(r: &mut Rec, s: &mut Settled, phase: &'static str) -> Result<()> {
     let (starts, long) = (s.kept_starts.clone(), s.kept_long.clone());
     for (k, w) in starts.windows(2).enumerate() {
         let at = (w[0], w[1] - w[0]);
         if at.1 == 0 {
             continue;
         }
-        r.run(e, s, (d::FRAME_E, phase), at)?;
+        r.run(s, (d::FRAME_E, phase), at)?;
         let walk = (r.steps.0 / at.1).clamp(1, r.steps.1);
         let run = r.steps.0 / walk;
         for off in (0..at.1).step_by(run as usize) {
             let axes = (at.0 + off, run.min(at.1 - off));
             for c in 0..long[k].div_ceil(walk) {
                 (r.cfg[16], r.cfg[17]) = (c * walk, walk);
-                r.run(e, s, (d::WALK_E, phase), axes)?;
+                r.run(s, (d::WALK_E, phase), axes)?;
             }
         }
     }
@@ -151,9 +158,8 @@ async fn sized(gpu: &Gpu, r: &mut Rec<'_>, s: &mut Settled) -> Result<()> {
     if s.error[0] != 0 {
         return Ok(());
     }
-    let mut e = gpu.encoder(&Default::default());
-    r.run(&mut e, s, (d::SIZED, "settle place"), (0, s.table.phyts))?;
-    gpu.submit([e.finish()]);
+    r.run(s, (d::SIZED, "settle place"), (0, s.table.phyts))?;
+    r.submit();
     if read(gpu, &s.atom, d::T_SCALED as u64, 1).await?[0] == 0 {
         s.error = [1, u32::MAX];
     }

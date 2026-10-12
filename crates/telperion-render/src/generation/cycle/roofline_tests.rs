@@ -2,19 +2,23 @@
 //! practical peaks (a copy kernel's bandwidth, an FMA kernel's rate), and
 //! for Telperion 82, the oak 40 and the beech 40 at seed 42, grown as a
 //! build grows them: every dispatch's stamped time by cycle, phase and
-//! kernel, each cycle's census, and what each cycle visits
-//! (`roofline_life`). Files go to `ROOFLINE_OUT`; `ROOFLINE_PRESETS`
-//! names a comma list. `cargo test --profile ci -p telperion-render
-//! the_roofline_is_measured -- --ignored --nocapture`, under the GPU lock.
+//! kernel, each cycle's census, the settle's every pass stamped, and
+//! what each cycle visits (`roofline_life`). Files go to `ROOFLINE_OUT`;
+//! `ROOFLINE_PRESETS` names a comma list. `cargo test --profile ci -p
+//! telperion-render the_roofline_is_measured -- --ignored --nocapture`,
+//! under the GPU lock.
 use super::build::Tables;
 use super::build_arena::hint;
 use super::build_grow::{grow_now as grow, Sizes, COMPACTION};
 use super::grown_tests::{device, grown_from};
 use super::roofline_life::{lives, Lives};
+use super::settle_device::Kernels;
+use super::settle_run::settle_now;
 use crate::Gpu;
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 use telperion_core::presets::Preset;
+use telperion_space::SettleTo;
 
 const CASES: [(&str, u32, u64); 3] = [("telperion", 82, 42), ("oregon-white-oak", 40, 42), ("european-beech", 40, 42)];
 
@@ -28,6 +32,7 @@ fn the_roofline_is_measured() {
         return;
     };
     peaks(&gpu, &out);
+    let settling = Kernels::new(&gpu);
     let only = std::env::var("ROOFLINE_PRESETS").ok();
     for (id, age, seed) in CASES.into_iter().filter(|c| only.as_ref().is_none_or(|o| o.split(',').any(|x| x == c.0))) {
         let growth = telperion_core::pipeline::executor::growth(&Preset::from_id(id).expect("a preset").parameters()).expect("a growth");
@@ -44,7 +49,15 @@ fn the_roofline_is_measured() {
         assert_eq!(grew.moves, 0, "grown in its arena");
         let keeps = b.retire.rec_n > 0;
         let (lit, dirs) = (b.light.lit(), b.light.n_dirs);
-        drop(b);
+        // The settle the build runs on what it grew, every pass stamped.
+        assert!(super::super::profile::start(&gpu), "timestamps");
+        let settled = settle_now(&gpu, (&kit, &settling), (&b, &t), (&super::settle_tests::constants(&g), SettleTo::Laid)).expect("a settle");
+        let mut csv = String::from("pass,ns\n");
+        for (pass, a, z) in super::super::profile::finish(&gpu) {
+            writeln!(csv, "{pass},{:.0}", z - a).unwrap();
+        }
+        write(&out, &format!("{id}-settle.csv"), &csv);
+        drop((settled, b));
         gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
         // Each dispatch's cycle: the cycle whose recording it fell in, a
         // compaction counted with the cycle before it.

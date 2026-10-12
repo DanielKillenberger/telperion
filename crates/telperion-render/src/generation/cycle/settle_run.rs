@@ -3,8 +3,9 @@
 //! sized by what the one before read back: the grown tree's shape and
 //! depths; the mark, the assignment and the grown tree's sweeps a depth
 //! at a time; then the lineage order a depth at a time and the
-//! compaction into the node table. Each dispatch is its own stamped
-//! pass (`io::Pass::run`).
+//! compaction into the node table. The dispatches between two scans share
+//! a compute pass, each its own stamped pass while a profile is on
+//! (`io::Pass::run_all`).
 use super::build::{Build, Kit, Tables};
 use super::hier_scan::{sums_words, uniform, widest, words as read, Scan};
 use super::settle_device::{self as d, Kernels, Layout, Table};
@@ -96,11 +97,13 @@ struct Rec<'a> {
     held: Vec<Owned>,
     scans: Vec<Scan>,
     stamped: Vec<&'static str>,
+    /// The dispatches recorded since the last flush.
+    pending: Vec<(wgpu::BindGroup, usize, u32)>,
 }
 
 impl Rec<'_> {
     /// `entry` over `items` invocations, the uniform's `words` set.
-    fn run(&mut self, e: &mut wgpu::CommandEncoder, (entry, phase): (usize, &'static str), words: &[(usize, u32)], items: u32) -> Result<()> {
+    fn run(&mut self, (entry, phase): (usize, &'static str), words: &[(usize, u32)], items: u32) -> Result<()> {
         let mut cfg = self.cfg;
         for &(k, v) in words {
             cfg[k] = v;
@@ -114,7 +117,7 @@ impl Rec<'_> {
             d::LEAF_SUM => 1,
             _ => items.div_ceil(64).max(1),
         };
-        self.pass.run(e, &bind, entry, groups);
+        self.pending.push((bind, entry, groups));
         self.held.push(buf);
         self.stamped.push(phase);
         Ok(())
@@ -123,17 +126,18 @@ impl Rec<'_> {
     /// `entry` over `items` invocations in ranges of `RANGE`, each
     /// dispatch's first item its `base`: the passes whose invocations walk
     /// an axis's units and phytomers, cut so no dispatch runs long.
-    fn ranged(&mut self, e: &mut wgpu::CommandEncoder, at: (usize, &'static str), words: &[(usize, u32)], (items, range): (u32, u32)) -> Result<()> {
+    fn ranged(&mut self, at: (usize, &'static str), words: &[(usize, u32)], (items, range): (u32, u32)) -> Result<()> {
         for base in (0..items.max(1)).step_by(range as usize) {
             let mut all = words.to_vec();
             all.push((w::BASE, base));
-            self.run(e, at, &all, range.min(items - base).max(1))?;
+            self.run(at, &all, range.min(items - base).max(1))?;
         }
         Ok(())
     }
 
     /// An exclusive scan of `rows` words of `data` from word `at`.
     fn scan(&mut self, e: &mut wgpu::CommandEncoder, data: Data, at: u64, rows: u32, phase: &'static str) -> Result<()> {
+        self.flush(e);
         let buffer = match data {
             Data::Work => &self.work,
             Data::Atom => &self.atom,
@@ -145,6 +149,17 @@ impl Rec<'_> {
         Ok(())
     }
 
+    /// The dispatches recorded since the last flush, into `e` in one
+    /// compute pass.
+    fn flush(&mut self, e: &mut wgpu::CommandEncoder) {
+        self.pass.run_all(e, &std::mem::take(&mut self.pending));
+    }
+
+    /// `e` submitted, the dispatches recorded into it flushed.
+    fn submit(&mut self, mut e: crate::encoder::Encoder) {
+        self.flush(&mut e);
+        self.gpu.submit([e.finish()]);
+    }
 }
 
 /// A buffer of `words` the settle writes, copies into and reads back.
@@ -191,6 +206,7 @@ pub(super) async fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Buil
         held: Vec::new(),
         scans: Vec::new(),
         stamped: Vec::new(),
+        pending: Vec::new(),
     };
     gpu.queue.write_buffer(&r.work, 4 * u64::from(d::K_AT), bytemuck::cast_slice(pa));
     let depths = shape(&mut r, &layout).await?;
@@ -234,16 +250,16 @@ async fn shape(r: &mut Rec<'_>, l: &Layout) -> Result<Vec<(u32, u32)>> {
     }
     let n = l.n;
     let g = "settle shape";
-    r.run(&mut e, (d::SEED, g), &[], n + 1)?;
+    r.run((d::SEED, g), &[], n + 1)?;
     for j in 0..JUMPS {
-        r.run(&mut e, (d::DEPTH, g), &[(w::FLIP, j % 2)], n)?;
+        r.run((d::DEPTH, g), &[(w::FLIP, j % 2)], n)?;
     }
-    r.ranged(&mut e, (d::COUNT, g), &[(w::FLIP, JUMPS % 2)], (n, RANGE))?;
+    r.ranged((d::COUNT, g), &[(w::FLIP, JUMPS % 2)], (n, RANGE))?;
     r.scan(&mut e, Data::Work, l.a(d::W_PSTART, 0), n + 1, g)?;
     r.scan(&mut e, Data::Work, l.a(d::W_USTART, 0), n + 1, g)?;
     r.scan(&mut e, Data::Atom, u64::from(d::T_KCOUNT), n + 1, g)?;
     r.scan(&mut e, Data::Atom, u64::from(d::T_DCOUNT), d::DMAX + 1, g)?;
-    r.gpu.submit([e.finish()]);
+    r.submit(e);
     let read = read(r.gpu, &r.atom, 0, u64::from(d::T_DCOUNT + d::DMAX + 1)).await?;
     refuse(read[d::T_FAULT])?;
     let deepest = read[d::T_DEEPEST] as usize;
@@ -264,38 +280,38 @@ fn refuse(fault: u32) -> Result<()> {
 /// The second submission: the lists filled, the mark, the assignment,
 /// the grown tree's sweeps; the tallies and the kept per depth back.
 async fn sweeps(r: &mut Rec<'_>, l: &Layout, (depths, flags): (&[(u32, u32)], u32)) -> Result<(Vec<u32>, Vec<u32>, Vec<u32>)> {
-    let mut e = r.gpu.encoder(&Default::default());
+    let e = r.gpu.encoder(&Default::default());
     let (n, h) = (l.n, r.b.held);
     let g = "settle mark and assign";
-    r.ranged(&mut e, (d::FILL, g), &[(w::FLIP, JUMPS % 2)], (n, RANGE))?;
-    r.run(&mut e, (d::SORT, g), &[], n)?;
-    r.run(&mut e, (d::LIVING, g), &[], h.next)?;
-    r.run(&mut e, (d::WOKEN, g), &[], h.woken)?;
-    r.ranged(&mut e, (d::ASSIGN_E, g), &[], (n, RANGE))?;
-    r.run(&mut e, (d::VIGOUR, g), &[], n)?;
+    r.ranged((d::FILL, g), &[(w::FLIP, JUMPS % 2)], (n, RANGE))?;
+    r.run((d::SORT, g), &[], n)?;
+    r.run((d::LIVING, g), &[], h.next)?;
+    r.run((d::WOKEN, g), &[], h.woken)?;
+    r.ranged((d::ASSIGN_E, g), &[], (n, RANGE))?;
+    r.run((d::VIGOUR, g), &[], n)?;
     let at = |k: usize, (base, count): (u32, u32)| [(w::BASE, base), (w::COUNT, count), (w::DEPTH, k as u32)];
     for (k, &dc) in depths.iter().enumerate() {
-        r.run(&mut e, (d::DOWN, "settle sweeps"), &at(k, dc), dc.1)?;
+        r.run((d::DOWN, "settle sweeps"), &at(k, dc), dc.1)?;
     }
     if flags & 3 == 3 {
         // A workgroup a block, `LEAF_BLOCKS` blocks a dispatch.
         let blocks = l.phyts.div_ceil(LEAF_BLOCK);
         for first in (0..blocks).step_by(LEAF_BLOCKS as usize) {
             let words = [(w::BASE, l.phyts), (w::COUNT, blocks), (w::FLIP, first)];
-            r.run(&mut e, (d::LEAF, "settle leaf mean"), &words, LEAF_BLOCKS.min(blocks - first))?;
+            r.run((d::LEAF, "settle leaf mean"), &words, LEAF_BLOCKS.min(blocks - first))?;
         }
-        r.run(&mut e, (d::LEAF_SUM, "settle leaf mean"), &[(w::COUNT, blocks)], 1)?;
+        r.run((d::LEAF_SUM, "settle leaf mean"), &[(w::COUNT, blocks)], 1)?;
     }
     for (k, &(base, count)) in depths.iter().enumerate().rev() {
         for off in (0..count).step_by(UP_RANGE as usize) {
             let dc = (base + off, UP_RANGE.min(count - off));
-            r.run(&mut e, (d::UP, "settle sweeps"), &at(k, dc), dc.1)?;
+            r.run((d::UP, "settle sweeps"), &at(k, dc), dc.1)?;
         }
     }
     for (k, &dc) in depths.iter().enumerate() {
-        r.run(&mut e, (d::KEEP, "settle sweeps"), &at(k, dc), dc.1)?;
+        r.run((d::KEEP, "settle sweeps"), &at(k, dc), dc.1)?;
     }
-    r.gpu.submit([e.finish()]);
+    r.submit(e);
     let tally = read(r.gpu, &r.atom, 0, 64).await?;
     refuse(tally[d::T_FAULT])?;
     let kept = read(r.gpu, &r.atom, u64::from(d::T_KDCOUNT), depths.len() as u64).await?;
@@ -312,25 +328,25 @@ fn order(r: &mut Rec, l: &Layout, t: &Table, starts: &[u32]) -> Result<()> {
     }
     let mut e = r.gpu.encoder(&Default::default());
     let g = "settle order";
-    r.run(&mut e, (d::ROOT, g), &[], 1)?;
+    r.run((d::ROOT, g), &[], 1)?;
     for depth in 1..starts.len() - 1 {
         let (base, count) = (starts[depth - 1], starts[depth] - starts[depth - 1]);
         if count == 0 || starts[depth + 1] == starts[depth] {
             break;
         }
         let words = [(w::BASE, base), (w::COUNT, count), (w::NEXT, starts[depth])];
-        r.run(&mut e, (d::COUNT_KIDS, g), &words, count)?;
+        r.run((d::COUNT_KIDS, g), &words, count)?;
         r.scan(&mut e, Data::Work, l.f(d::WF_SCAN, 0), count + 1, g)?;
-        r.run(&mut e, (d::PLACE, g), &words, count)?;
+        r.run((d::PLACE, g), &words, count)?;
         let kids = starts[depth + 1] - starts[depth];
-        r.run(&mut e, (d::RANK, g), &[words[0], words[1], words[2], (w::FLIP, kids)], kids)?;
+        r.run((d::RANK, g), &[words[0], words[1], words[2], (w::FLIP, kids)], kids)?;
     }
     let c = "settle compact";
-    r.run(&mut e, (d::SIZES, c), &[], t.kept + 1)?;
+    r.run((d::SIZES, c), &[], t.kept + 1)?;
     r.scan(&mut e, Data::Work, l.f(d::WF_PSTART, 0), t.kept + 1, c)?;
     r.scan(&mut e, Data::Work, l.f(d::WF_USTART, 0), t.kept + 1, c)?;
-    r.ranged(&mut e, (d::COMPACT_E, c), &[], (t.kept, COMPACT_RANGE))?;
-    r.gpu.submit([e.finish()]);
+    r.ranged((d::COMPACT_E, c), &[], (t.kept, COMPACT_RANGE))?;
+    r.submit(e);
     Ok(())
 }
 
