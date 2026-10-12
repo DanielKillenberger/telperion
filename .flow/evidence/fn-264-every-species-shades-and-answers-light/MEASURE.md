@@ -158,3 +158,11 @@ The price is unchanged by the ruling: the device's light phase, about 0.7 s and 
 
 - `the_smooth_barks_hold_the_resolution_and_redraw_contracts` passes: the birch's close-up 1.81/255 mean, p95 6.0 (bounds 3.0 and 12.0; it was 3.21 with ψ mapped).
 - fn-251's frame (oak → birch, t 0.0750, 80, seed 7) grows 15,989,657 and builds (18.4 s, peak 4,056 MB), between its ends: the oak 16,625,765 and the birch 10,628,614.
+
+## The gate on the final R3 (tip `8fba993ae`)
+
+- **Workspace without the renderer:** 1,073 passed, 0 failed.
+- **`npm test`:** 15 files, 162 tests passed.
+- **The smooth-bark contract**, rerun alone under the lock: passes (the birch 1.81 against 3.0).
+- **Renderer: pending.** The run at 23:5x ended in 22 "Out of Memory" failures, all of them device allocation (a game took 6 GB of the card during the run; FRICTION.md). From 00:01 to 00:31 the card stayed at 8.2-8.7 of 10.2 GB, above the half-card rule, and the rerun was not started. To run: `render_gate.sh` in `raw/` (waits for the card, then `cargo test --profile ci -p telperion-render --no-fail-fast` under the lock).
+- **Codex:** SHIP from all three reviewers on the fresh round. One P2, that the inventory called shade size, apical control and leaf girth dormant on an unshaded tree, was corrected.
