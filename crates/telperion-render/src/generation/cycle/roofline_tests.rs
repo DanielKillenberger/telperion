@@ -5,7 +5,7 @@
 //! kernel, each cycle's census, the settle's every pass stamped, and
 //! what each cycle visits (`roofline_life`). Files go to `ROOFLINE_OUT`;
 //! `ROOFLINE_PRESETS` names a comma list, `ROOFLINE_CASES` other cases
-//! (`id:age:seed,...`). `cargo test --profile ci -p telperion-render
+//! (`id:age:seed,...`), each written to its own `id-age-seed` directory. `cargo test --profile ci -p telperion-render
 //! the_roofline_is_measured -- --ignored --nocapture`, under the GPU lock.
 use super::build::Tables;
 use super::build_arena::hint;
@@ -34,8 +34,14 @@ fn the_roofline_is_measured() {
     peaks(&gpu, &out);
     let settling = Kernels::new(&gpu);
     let only = std::env::var("ROOFLINE_PRESETS").ok();
-    let cases = std::env::var("ROOFLINE_CASES").ok().map_or(CASES.to_vec(), |v| v.split(',').map(case).collect());
+    let named = std::env::var("ROOFLINE_CASES").ok();
+    let cases = named.as_ref().map_or(CASES.to_vec(), |v| v.split(',').map(case).collect());
+    let root = out.clone();
     for (id, age, seed) in cases.into_iter().filter(|c| only.as_ref().is_none_or(|o| o.split(',').any(|x| x == c.0))) {
+        // A named case's files in a directory of its own: one preset's
+        // seeds would otherwise write over each other.
+        let out = if named.is_some() { root.join(format!("{id}-{age}-{seed}")) } else { root.clone() };
+        std::fs::create_dir_all(&out).expect("the case's directory");
         let growth = telperion_core::pipeline::executor::growth(&Preset::from_id(id).expect("a preset").parameters()).expect("a growth");
         let g = grown_from(growth.species, growth.request.light, (age, seed));
         let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
