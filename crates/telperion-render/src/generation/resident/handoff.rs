@@ -47,8 +47,15 @@ impl Handoff {
     }
 
     /// `cpu`'s block and `swept`'s on the device as one curve, the fine
-    /// block's after the CPU's.
-    pub(super) async fn hand(&self, gpu: &Gpu, cpu: &Curve, swept: &Swept) -> Result<Handed> {
+    /// block's after the CPU's, drawn by the retained leaf bases' `cells`
+    /// where they pack (fn-266), else by `cpu`'s sections.
+    pub(super) async fn hand(
+        &self,
+        gpu: &Gpu,
+        cpu: &Curve,
+        swept: &Swept,
+        cells: Option<Owned>,
+    ) -> Result<Handed> {
         let (p0, k0) = (cpu.points.len() as u64, cpu.clusters.len() as u64);
         let (p, k) = (p0 + u64::from(swept.points), k0 + u64::from(swept.clusters));
         // Bytes on 256-byte boundaries, as the curve's own buffers are: its
@@ -122,7 +129,12 @@ impl Handoff {
             .iter()
             .map(|&w| f64::from(f32::from_bits(w)))
             .sum::<f64>();
-        let curve = CurveGpu::on_device(gpu, cpu, (points, clusters), (p, k as u32), demand);
+        let sections = match cells {
+            Some(cells) => cells,
+            None => crate::curve::sections(gpu, cpu),
+        };
+        let blocks = (points, clusters, sections);
+        let curve = CurveGpu::on_device(gpu, cpu, blocks, (p, k as u32), demand);
         Ok(Handed { curve, fine })
     }
 

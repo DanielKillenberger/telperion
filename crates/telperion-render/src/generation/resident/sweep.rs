@@ -14,7 +14,7 @@ const LW: u64 = 12;
 /// A run's place in the table, a point's and a cluster's words.
 pub(super) const TW: usize = 4;
 pub(super) const PW: usize = 11;
-pub(super) const KW: usize = 15;
+pub(super) const KW: usize = 16;
 const GATHER: usize = 0;
 const LEAD: usize = 1;
 const TIES: usize = 2;
@@ -89,7 +89,7 @@ fn storage(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
 }
 
 /// The buffers every pass binds.
-struct Bound {
+struct Bound<'a> {
     nodes: Owned,
     links: Owned,
     counts: Owned,
@@ -97,7 +97,9 @@ struct Bound {
     table: Owned,
     points: Owned,
     clusters: Owned,
-    none: Owned,
+    /// What every pass after `gather` binds in its records' place: the
+    /// bases' cells, or one unread word.
+    cells: &'a wgpu::Buffer,
 }
 
 impl Sweeper {
@@ -105,7 +107,7 @@ impl Sweeper {
     fn run(
         &self,
         (gpu, encoder): (&Gpu, &mut wgpu::CommandEncoder),
-        b: &Bound,
+        b: &Bound<'_>,
         (entry, n, groups): (usize, u32, Option<u32>),
         cfg: [u32; 8],
         rows: [[f32; 4]; 3],
@@ -121,7 +123,7 @@ impl Sweeper {
         let cfg = io::buffer(gpu, "sweep cfg", 80, usage, bytemuck::cast_slice(&words))?;
         let all = [
             &cfg,
-            drawn.unwrap_or(&b.none),
+            drawn.unwrap_or(b.cells),
             &b.nodes,
             &b.links,
             &b.counts,
@@ -136,7 +138,7 @@ impl Sweeper {
     }
 
     /// The passes recorded so far submitted, then the counts read back.
-    async fn counts(gpu: &Gpu, encoder: &mut crate::Encoder, b: &Bound) -> Result<[u32; 4]> {
+    async fn counts(gpu: &Gpu, encoder: &mut crate::Encoder, b: &Bound<'_>) -> Result<[u32; 4]> {
         let done = std::mem::replace(encoder, gpu.encoder(&Default::default()));
         gpu.submit([done.finish()]);
         let raw = io::read_async(gpu, &b.counts, 16).await?;
@@ -145,14 +147,16 @@ impl Sweeper {
     }
 
     /// Sweeps the curve of the nodes `dressed` drew, under the surface's
-    /// `rows`.
+    /// `rows`, its retained leaf bases on their `cells` where they pack.
     pub(super) async fn sweep(
         &self,
         gpu: &Gpu,
         dressed: &Dressed,
         rows: [[f32; 4]; 3],
+        cells: Option<&Owned>,
     ) -> Result<Swept> {
         let ids = u64::from(dressed.ids);
+        let no_cells = storage(gpu, "sweep no cells", 4)?;
         let mut b = Bound {
             nodes: storage(gpu, "sweep nodes", ids * NW)?,
             links: storage(gpu, "sweep links", ids * LW)?,
@@ -161,7 +165,7 @@ impl Sweeper {
             table: storage(gpu, "sweep table", 4)?,
             points: storage(gpu, "sweep points", 4)?,
             clusters: storage(gpu, "sweep clusters", 4)?,
-            none: storage(gpu, "sweep none", 4)?,
+            cells: cells.map_or(&*no_cells, |c| &**c),
         };
         let z = [0u32; 8];
         let mut e = gpu.encoder(&Default::default());
@@ -241,7 +245,7 @@ impl Sweeper {
         self.run((gpu, &mut e), &b, (EMIT, runs, None), z, rows, None)?;
         gpu.submit([e.finish()]);
         io::complete(gpu).await?;
-        for done in [&b.links, &b.counts, &b.keys, &b.none] {
+        for done in [&b.links, &b.counts, &b.keys] {
             done.destroy();
         }
         Ok(Swept {

@@ -19,11 +19,18 @@ use telperion_core::surface::{CurvePoint, CLUSTER_WORDS, POINT_WORDS};
 /// The age the gate holds every preset the device draws at: young.
 const AGE: u32 = 12;
 
-/// The preset at `age`, its retained leaf bases set aside: wood the
-/// device does not draw until their own spec lands (DESIGN.md 12.7).
+/// The preset at `age`.
 fn family(id: &str, age: u32) -> Family {
     let mut family = telperion_core::presets::by_identity(id).unwrap();
     family.age = f64::from(age);
+    family
+}
+
+/// The preset at `age`, its retained leaf bases set aside: the dress
+/// draws the tree before they are hung (`boots_tests` holds them,
+/// DESIGN.md 12.8).
+fn bare(id: &str, age: u32) -> Family {
+    let mut family = family(id, age);
     family.canopy.leaf_bases = 0;
     family
 }
@@ -140,7 +147,7 @@ fn every_preset_is_drawn_as_the_cpu_converts_it() {
     };
     let k = Kernels::new(&gpu);
     for id in presets() {
-        let d = drawn(&gpu, &k, &family(&id, age()));
+        let d = drawn(&gpu, &k, &bare(&id, age()));
         println!("{id} {}: {d:?}", age());
         assert_eq!(d.device, d.cpu, "{id}: nodes");
         // A relay's join keyed by its node's 32-bit key may meet another's.

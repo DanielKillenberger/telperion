@@ -72,6 +72,9 @@ const TIP: u32 = 64u;
 // A stem node (`dress.wgsl`), and the mark `kids` leaves on a stem's
 // parent above its children's count.
 const STEM: u32 = 128u;
+// A retained leaf base (`boots.wgsl`): wood hung after the plan's kinds,
+// which bears nothing and is no node's child here (fn-266).
+const BOOT: u32 = 0x40000000u;
 const STEM_KID: u32 = 0x80000000u;
 const LEAVES: u32 = 8u;
 // A node's station words: its children, its bearing children that are not
@@ -121,10 +124,11 @@ fn metres(micrometres: u32) -> f32 {
     return f32(micrometres) * 1e-6;
 }
 
-// A node the device draws stations on: one the dress drew, not the root.
+// A node the device draws stations on: one the dress drew, not the root
+// and no retained leaf base.
 fn fine(i: u32) -> bool {
     let f = word(i, 9u);
-    return (f & MADE) != 0u && (f & FINE) != 0u;
+    return (f & MADE) != 0u && (f & FINE) != 0u && (f & BOOT) == 0u;
 }
 
 // The fronds of each rosette, living and dead; none where the canopy

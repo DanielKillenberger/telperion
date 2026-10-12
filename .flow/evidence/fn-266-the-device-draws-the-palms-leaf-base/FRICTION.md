@@ -1,0 +1,7 @@
+# fn-266 friction
+
+## 2026-10-12, worker, task 1
+
+- **flowctl not on the worker's PATH.** The dispatch names `flowctl`, and AGENTS.md says Claude Code puts it on PATH; this shell had none. Resolved by hand from the plugin cache (8.1.1). Cost: about 2 minutes. What would remove it: the dispatch naming the flowctl path, as the worker template's `FLOWCTL` field allows.
+- **The storage-buffer limit the device enforces is 8, not COUNCIL.md's 16.** The sweep gained a ninth storage binding for the cells, which naga and the shader check passed, and the test device refused it at the bind group layout ("limit is 8"). COUNCIL.md states "at most 16 storage buffers a stage, and 8 where it is cheap"; the device `Gpu::request` opens is WebGPU's default 8. Cost: one rebuild and GPU run, about 3 minutes. What would remove it: COUNCIL.md and DESIGN.md 7a stating the limit the native test device actually holds (8), or a static check of each module's storage bindings beside the Tint check.
+- **The drawn flags word has no documented free bits.** BOOT at 256 collided with a tip's leaf count, which `dress.wgsl` stores from bit 8 up. Silver birch's stations fell from 7,033 to 859 in `every_preset_stations_its_runs_as_the_cpu_does`. Cost: one resident suite run (75 s) and about 5 minutes. What would remove it: the flag layout written once beside `CV` in `fold.rs`, with the leaf count's width (at most 8 leaves, bits 8 to 11).

@@ -2,14 +2,16 @@
 //! device. The one cycle grows and settles it, the dress draws it as the
 //! pipeline's nodes (`cycle/tree.rs`), and the device folds them into
 //! the whole tree's summaries, from which the pipeline reads its rows
-//! (`executor::resident`); then it sweeps, stations, rings and places
-//! them, and packs its curve in the renderer's own form. A flowering
+//! (`executor::resident`); a family that hangs retained leaf bases
+//! hangs them between the dress and the folds (fn-266, `boots.rs`); then
+//! it sweeps, stations, rings and places them, and packs its curve in the renderer's own form. A flowering
 //! tree's florets are placed the same way (fn-229, `florets.rs`). Only
 //! totals and summaries are read back. The submit takes these buffers as
 //! they are.
 use super::super::compute::{self, Placement};
 use super::super::cycle::tree::{self, Kernels};
 use super::super::{data, io, Backend, Clock, Generator, Metrics, Prepared, Resident};
+use super::boots::Hanger;
 use super::fold::Dresser;
 use super::florets::Organ;
 use super::handoff::{union, Handoff};
@@ -27,6 +29,7 @@ use telperion_core::Error;
 
 /// The device's tools, made once.
 pub(super) struct Tools {
+    pub hanger: Hanger,
     pub dresser: Dresser,
     pub sweeper: Sweeper,
     pub stationer: Stationer,
@@ -37,6 +40,7 @@ pub(super) struct Tools {
 impl Tools {
     pub(super) fn new(gpu: &Gpu) -> Self {
         Self {
+            hanger: Hanger::new(gpu),
             dresser: Dresser::new(gpu),
             sweeper: Sweeper::new(gpu),
             stationer: Stationer::new(gpu),
@@ -47,12 +51,14 @@ impl Tools {
 }
 
 /// Each stage's milliseconds, each waited on: the tree grown, settled
-/// and drawn (outside the 3x boundary), the device's folds and the
+/// and drawn (outside the 3x boundary), its retained leaf bases, the
+/// device's folds and the
 /// pipeline's rows from them, its sweep, stations, rings and ring
 /// positions, the placement and the mass grid, and the curve's handoff.
 #[derive(Debug, Default, Clone, Copy)]
 pub(super) struct Timed {
     pub settle: f64,
+    pub bases: f64,
     pub folds: f64,
     pub sweep: f64,
     pub stations: f64,
@@ -65,7 +71,7 @@ impl Timed {
     /// From the drawn tree to draw-ready: every stage but the growth.
     pub(super) fn inside(&self) -> f64 {
         let t = self;
-        t.folds + t.sweep + t.stations + t.rings + t.place + t.handoff
+        t.bases + t.folds + t.sweep + t.stations + t.rings + t.place + t.handoff
     }
 }
 
@@ -93,8 +99,9 @@ fn refused(what: &'static str) -> crate::RenderError {
 
 /// `family` built resident on the device, whole (fn-256 task 3,
 /// DESIGN.md 12): grown through the one cycle, settled, drawn as the
-/// pipeline's nodes, folded, swept, stationed, ringed and placed. The
-/// pipeline reads only the summaries back. Every readback is awaited,
+/// pipeline's nodes, its leaf bases hung (DESIGN.md 12.8), folded,
+/// swept, stationed, ringed and placed. The pipeline reads only the
+/// summaries back. Every readback is awaited,
 /// so the same build runs natively, blocked on, and in a browser.
 pub(super) async fn build(
     gpu: &Gpu,
@@ -107,12 +114,14 @@ pub(super) async fn build(
     if !executor::stations(family) {
         return Err(refused("leaves the device places on neither twig stations nor a rosette"));
     }
-    if executor::hangs_bases(family) {
-        return Err(refused("retained leaf bases, wood the device does not draw yet"));
-    }
+    let bases = executor::bases(family)?;
     let flowers = growth.species.states.iter().any(|s| s.flowering > 0.0);
     let mut t = Timed::default();
-    let (dressed, trunk) = stage(gpu, &mut t.settle, async || tree::drawn(gpu, k, &growth).await).await?;
+    let (mut dressed, trunk) = stage(gpu, &mut t.settle, async || tree::drawn(gpu, k, &growth).await).await?;
+    let hung = stage(gpu, &mut t.bases, async || {
+        tools.hanger.hang(gpu, &mut dressed, bases.as_ref()).await
+    })
+    .await?;
     let d = &tools.dresser;
     let x = stage(gpu, &mut t.folds, async || {
         let folds = dressed.extent(gpu, d).await?;
@@ -136,7 +145,7 @@ pub(super) async fn build(
     let sweeper = &tools.sweeper;
     let rows = rows(surface, height);
     let swept = stage(gpu, &mut t.sweep, async || {
-        sweeper.sweep(gpu, &dressed, rows).await
+        sweeper.sweep(gpu, &dressed, rows, hung.cells.as_ref()).await
     })
     .await?;
     let ids = dressed.ids;
@@ -230,7 +239,7 @@ pub(super) async fn build(
     let curve = x.curve_rows()?;
     let handoff = &tools.handoff;
     let handed = stage(gpu, &mut t.handoff, async || {
-        handoff.hand(gpu, &curve, &swept).await
+        handoff.hand(gpu, &curve, &swept, hung.cells).await
     })
     .await?;
     for b in [&swept.point_buffer, &swept.cluster_buffer, &swept.table] {

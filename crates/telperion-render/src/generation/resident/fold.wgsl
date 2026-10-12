@@ -5,7 +5,9 @@
 // leaf box (`crown`); and the crown's nodes no other may pass, sifted
 // against the bins of the whole tree (`sift`), a bounded summary the
 // pipeline reads the shoulder off. One invocation per drawn record; a
-// fold is an atomic on the float's ordered bits.
+// fold is an atomic on the float's ordered bits. A retained leaf base
+// enters the leaf box alone: the CPU reads the envelope before it clothes
+// the stems and the box after (fn-266, DESIGN.md 12.8).
 
 struct Cfg {
     n: u32,
@@ -27,6 +29,7 @@ struct Cfg {
 const CV: u32 = 32u;
 const MADE: u32 = 2u;
 const STEM: u32 = 128u;
+const BOOT: u32 = 0x40000000u;
 const BINS: u32 = 1024u;
 // `sums`: the height, the crown's lowest, the widest reach; the widest
 // node's position; the box's corners; the nodes kept; the widest node's
@@ -63,6 +66,14 @@ fn node(i: u32) -> vec4<f32> {
     return vec4<f32>(drawn[b], drawn[b + 1u], drawn[b + 2u], 1.0);
 }
 
+// Record `i`'s node where it folds into the envelope: none for a base.
+fn grown(i: u32) -> vec4<f32> {
+    if (bitcast<u32>(drawn[cfg.records + i * CV + 6u]) & BOOT) != 0u {
+        return vec4<f32>(0.0, 0.0, 0.0, -1.0);
+    }
+    return node(i);
+}
+
 fn index(id: vec3<u32>) -> u32 {
     return id.x + id.y * cfg.row;
 }
@@ -73,7 +84,7 @@ fn extent(@builtin(global_invocation_id) id: vec3<u32>) {
     if i >= cfg.n {
         return;
     }
-    let n = node(i);
+    let n = grown(i);
     if n.w < 0.0 {
         return;
     }
@@ -91,7 +102,7 @@ fn widest(@builtin(global_invocation_id) id: vec3<u32>) {
     if i >= cfg.n {
         return;
     }
-    let n = node(i);
+    let n = grown(i);
     if n.w < 0.0 || ord(length(n.xz)) != atomicLoad(&sums[REACH]) {
         return;
     }
@@ -106,7 +117,7 @@ fn publish(@builtin(global_invocation_id) id: vec3<u32>) {
     if i >= cfg.n {
         return;
     }
-    let n = node(i);
+    let n = grown(i);
     if n.w < 0.0 || id_of(i) != atomicLoad(&sums[WINNER]) {
         return;
     }
@@ -162,7 +173,7 @@ fn crowns(@builtin(global_invocation_id) id: vec3<u32>) {
         atomicMin(&sums[LO + c], ord(n[c] - out));
         atomicMax(&sums[HI + c], ord(n[c] + out));
     }
-    let pq = crown(n);
+    let pq = crown(grown(i));
     if pq.x >= 0.0 && cfg.shape.z > 0.0 && cfg.shape.y > cfg.shape.x {
         atomicMax(&sums[BIN0 + bin(pq.x)], ord(pq.y));
     }
@@ -174,7 +185,7 @@ fn sift(@builtin(global_invocation_id) id: vec3<u32>) {
     if i >= cfg.n {
         return;
     }
-    let n = node(i);
+    let n = grown(i);
     let pq = crown(n);
     if pq.x < 0.0 || !(cfg.shape.z > 0.0 && cfg.shape.y > cfg.shape.x) {
         return;

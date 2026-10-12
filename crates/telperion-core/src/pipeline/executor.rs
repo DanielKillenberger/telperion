@@ -98,11 +98,15 @@ pub fn stations(family: &Family) -> bool {
     foliage::plan::supports(inputs.leaves.canopy, inputs.plan.twig.ok())
 }
 
-/// Whether `family` hangs retained leaf bases on its stems, wood with
-/// cells of its own that the device does not draw yet (fn-256 DESIGN.md
-/// 12.7, their own spec).
-pub fn hangs_bases(family: &Family) -> bool {
-    super::branching::hangs_leaf_bases(&family.canopy)
+/// The canopy rows `family` hangs retained leaf bases on its stems by,
+/// checked as `clothe_leaf_bases` checks them; none where it hangs none
+/// (fn-266, DESIGN.md 12.8 of fn-256).
+pub fn bases(family: &Family) -> Result<Option<CanopyParams>> {
+    if !super::branching::hangs_leaf_bases(&family.canopy) {
+        return Ok(None);
+    }
+    foliage::validate_canopy(&family.canopy)?;
+    Ok(Some(family.canopy))
 }
 
 /// Stage 3's descriptors for a tree another executor holds whole and

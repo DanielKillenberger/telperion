@@ -36,7 +36,7 @@ struct Cfg {
 
 // Words of a fine point, cluster and run (`sweep.rs`).
 const PW: u32 = 11u;
-const KW: u32 = 15u;
+const KW: u32 = 16u;
 const TW: u32 = 4u;
 const BITS: u32 = 24u;
 const MASK: u32 = 0xffffffu;
@@ -136,7 +136,9 @@ fn pack_clusters(@builtin(global_invocation_id) id: vec3<u32>) {
     let count = bitcast<u32>(fine_clusters[f + 2u]);
     let run_first = table[run * TW];
     let run_count = table[run * TW + 2u];
-    let flags = u32(first == run_first) | (u32(first + count == run_first + run_count) << 1u);
+    // A shaped run's flags and cell ride in its clusters (`sweep.wgsl`).
+    let shape = bitcast<u32>(fine_clusters[f + 15u]);
+    let flags = u32(first == run_first) | (u32(first + count == run_first + run_count) << 1u) | shape;
     let o = (cfg.clusters + c) * 16u;
     clusters[o] = cfg.points + first;
     clusters[o + 1u] = count;
