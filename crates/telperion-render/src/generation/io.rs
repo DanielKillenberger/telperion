@@ -40,6 +40,24 @@ pub(super) fn buffer(
     Ok(buffer)
 }
 
+/// `a` and `b` made side by side: natively `b` on a thread of its own, so
+/// a set of modules compiles cold in its slowest's time, not their sum
+/// (fn-256 task 4: 3.3 s in turn, under 2 s side by side); in a browser
+/// in turn, where every pipeline compiles async already.
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) fn pair<A: Send, B: Send>(a: impl FnOnce() -> A + Send, b: impl FnOnce() -> B + Send) -> (A, B) {
+    std::thread::scope(|s| {
+        let b = s.spawn(b);
+        let a = a();
+        (a, b.join().expect("a module made beside another"))
+    })
+}
+
+#[cfg(target_arch = "wasm32")]
+pub(crate) fn pair<A, B>(a: impl FnOnce() -> A, b: impl FnOnce() -> B) -> (A, B) {
+    (a(), b())
+}
+
 pub(super) struct Pass {
     pub layout: wgpu::BindGroupLayout,
     /// In a browser, compiling until `programs::ready` (fn-243).

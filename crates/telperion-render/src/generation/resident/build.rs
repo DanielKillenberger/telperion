@@ -38,15 +38,14 @@ pub(super) struct Tools {
 }
 
 impl Tools {
+    /// Every tool made side by side (`io::pair`).
     pub(super) fn new(gpu: &Gpu) -> Self {
-        Self {
-            hanger: Hanger::new(gpu),
-            dresser: Dresser::new(gpu),
-            sweeper: Sweeper::new(gpu),
-            stationer: Stationer::new(gpu),
-            ringer: Ringer::new(gpu),
-            handoff: Handoff::new(gpu),
-        }
+        use super::super::io::pair;
+        let ((hanger, dresser), ((sweeper, stationer), (ringer, handoff))) = pair(
+            || pair(|| Hanger::new(gpu), || Dresser::new(gpu)),
+            || pair(|| pair(|| Sweeper::new(gpu), || Stationer::new(gpu)), || pair(|| Ringer::new(gpu), || Handoff::new(gpu))),
+        );
+        Self { hanger, dresser, sweeper, stationer, ringer, handoff }
     }
 }
 

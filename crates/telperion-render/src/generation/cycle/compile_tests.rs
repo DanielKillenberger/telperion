@@ -53,8 +53,10 @@ fn a_module_is_made_cold() {
 
 /// The cycle's every module made cold (DESIGN.md section 9 item 3), one
 /// way a process (`CYCLE_COMPILE`): one module after another (`seq`),
-/// every module at once on its own thread (`modules`), or the units'
-/// entries each at once on its own thread (`units`).
+/// every module at once on its own thread (`modules`), the units'
+/// entries each at once on its own thread (`units`), or every program a
+/// page's builds dispatch, made as a page makes them (`generator`:
+/// `Generator::new`, then `prepare_programs`; fn-256 task 4).
 #[test]
 #[ignore = "a measurement"]
 fn the_cycle_is_made_cold() {
@@ -79,6 +81,31 @@ fn the_cycle_is_made_cold() {
         ("scan", &|| drop(io::Pass::new(&gpu, super::hier_scan_source(), &[false; 3], &["scan_up", "scan_down"]))),
     ];
     let started = Instant::now();
+    if way == "parts" {
+        let parts: [(&str, &dyn Fn()); 6] = [
+            ("build", &|| drop(super::build::Kit::new(&gpu))),
+            ("settle", &|| drop(super::settle_device::Kernels::new(&gpu))),
+            ("chains", &|| drop(super::chains::Kernels::new(&gpu))),
+            ("drawn", &|| drop(super::drawn::Kernels::new(&gpu))),
+            ("curve", &|| drop(crate::curve::passes(&gpu).len())),
+            ("tree in all", &|| drop(super::tree::Kernels::new(&gpu))),
+        ];
+        for (name, make) in parts {
+            let at = Instant::now();
+            make();
+            println!("MADE {name}: {:.2} s", done(at));
+        }
+        return;
+    }
+    if way == "generator" {
+        let renderer = crate::Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+        let at = Instant::now();
+        let gen = super::super::Generator::new(&renderer).expect("a generator");
+        println!("MADE the generator's own passes: {:.2} s", done(at));
+        pollster::block_on(gen.prepare_programs()).expect("programs");
+        println!("MADE generator in all: {:.2} s", done(at));
+        return;
+    }
     match way.as_str() {
         "seq" => {
             for (name, make) in makers {

@@ -37,16 +37,19 @@ pub(super) struct Kit {
 }
 
 impl Kit {
+    /// Every module made side by side (`io::pair`).
     pub(super) fn new(gpu: &Gpu) -> Self {
-        Self {
-            units: device::Kernels::new(gpu),
-            layout: lay_device::Kernels::new(gpu),
-            hier: hier_build::Kernels::new(gpu),
-            light: light_device::Kernels::new(gpu),
-            glue: glue::Kernels::new(gpu),
-            vm: vm::Kernels::new(gpu),
-            retire: super::retire_device::Kernels::new(gpu),
-        }
+        use super::super::io::pair;
+        let ((units, layout), ((hier, light), (glue, (vm, retire)))) = pair(
+            || pair(|| device::Kernels::new(gpu), || lay_device::Kernels::new(gpu)),
+            || {
+                pair(
+                    || pair(|| hier_build::Kernels::new(gpu), || light_device::Kernels::new(gpu)),
+                    || pair(|| glue::Kernels::new(gpu), || pair(|| vm::Kernels::new(gpu), || super::retire_device::Kernels::new(gpu))),
+                )
+            },
+        );
+        Self { units, layout, hier, light, glue, vm, retire }
     }
 
     pub(super) fn pass(&self, id: PassId) -> &super::super::io::Pass {

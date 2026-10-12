@@ -17,6 +17,14 @@ pub use budget::Admitted;
 #[cfg(target_arch = "wasm32")]
 pub(crate) use budget::BROWSER;
 
+impl Kit {
+    /// The kernels and the tools made side by side (`io::pair`).
+    fn new(gpu: &crate::Gpu) -> Self {
+        let (kernels, tools) = super::io::pair(|| super::cycle::tree::Kernels::new(gpu), || build::Tools::new(gpu));
+        Self { kernels, tools }
+    }
+}
+
 impl super::Generator {
     /// Whether `family` fits the page's budget beside the tree `renderer`
     /// draws now, only once it is let go, or not at all (by name).
@@ -33,17 +41,15 @@ impl super::Generator {
     /// compiles in the background and no build compiles again (fn-243 R3).
     pub async fn prepare_programs(&self) -> Result<()> {
         let scopes = super::io::scope(&self.gpu);
-        self.kit();
-        crate::curve::passes(&self.gpu);
+        let gpu = &self.gpu;
+        // The wood's passes made beside the kit.
+        self.resident.get_or_init(|| super::io::pair(|| Kit::new(gpu), || drop(crate::curve::passes(gpu))).0);
         super::io::programs_ready(&self.gpu, scopes).await
     }
 
     /// The device's kernels and tools, made on first use.
     fn kit(&self) -> &Kit {
-        self.resident.get_or_init(|| Kit {
-            kernels: super::cycle::tree::Kernels::new(&self.gpu),
-            tools: build::Tools::new(&self.gpu),
-        })
+        self.resident.get_or_init(|| Kit::new(&self.gpu))
     }
 
     /// `family` prepared resident, grown, drawn and placed on the device

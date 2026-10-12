@@ -23,8 +23,12 @@ pub(in crate::generation) struct Kernels {
 }
 
 impl Kernels {
+    /// Every module made side by side (`io::pair`).
     pub(in crate::generation) fn new(gpu: &Gpu) -> Self {
-        Self { build: Kit::new(gpu), settle: Settle::new(gpu), chains: chains::Kernels::new(gpu), drawn: drawn::Kernels::new(gpu) }
+        use super::super::io::pair;
+        let (build, (settle, (chains, drawn))) =
+            pair(|| Kit::new(gpu), || pair(|| Settle::new(gpu), || pair(|| chains::Kernels::new(gpu), || drawn::Kernels::new(gpu))));
+        Self { build, settle, chains, drawn }
     }
 }
 
