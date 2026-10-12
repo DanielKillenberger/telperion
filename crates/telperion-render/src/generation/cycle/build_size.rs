@@ -9,6 +9,7 @@ use super::build_light::refusals;
 use super::census::{self as c, Flag, PASSES, PASS_LEFT};
 use super::gate::Limits;
 use super::lay_device::DEEP;
+use super::plan_units::rounds_used;
 use super::light_program::{SWEEP_WG, SWEEP_WORK};
 use crate::RenderError;
 
@@ -19,6 +20,14 @@ use crate::RenderError;
 /// does is refused by name. The block levels need none: the deepest are
 /// folded, however many (`fold.wgsl`).
 const STEP: [u32; 4] = [2, 1, 2, 2];
+
+/// The units rounds a cycle records past those the census read used,
+/// the living apexes' and the wake's: the most either rose over the two
+/// cycles a limit looks ahead, every shipped preset at its default age
+/// and seeds 1, 7 and 42 (the ordinary and the birch 2, the ordinary's
+/// wake 3; `arena_tests`, fn-256 task 12). A job left past them is
+/// flagged (`Flag::UnitRounds`) and the build refused by name.
+const ROUND_SLACK: [u32; 2] = [2, 3];
 
 /// The sweep's layer ranges the first two cycles record: a lattice of
 /// up to 512 layers where a layer holds 256 nodes or fewer.
@@ -133,13 +142,13 @@ pub(super) fn passes(read: &[u32]) -> u32 {
         .unwrap_or(1)
 }
 
-/// The cycle's limits: every scan's levels and units round at the bounds
-/// the build's tables state, every cycle; each list's ranges past its
-/// count two cycles on, twice over, and the hierarchy's generations,
-/// passes and levels, the layout's generations and the sweep's layer
-/// ranges past their counts by their `STEP`, from the census read a cycle
-/// late (`read`, `prev` the one before); each no further than its bound,
-/// the bounds where nothing has been read.
+/// The cycle's limits: each list's ranges past its count two cycles on,
+/// twice over; the hierarchy's generations, passes and levels, the
+/// layout's generations and the sweep's layer ranges past their counts by
+/// their `STEP`; and the units rounds past those used by their
+/// `ROUND_SLACK`; from the census read a cycle late (`read`, `prev` the
+/// one before); each no further than its bound, the bounds where nothing
+/// has been read.
 pub(super) fn limits(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> Limits {
     let b = &s.bounds;
     let full = Limits::full(b);
@@ -173,13 +182,14 @@ pub(super) fn limits(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> L
         top,
         tail,
         laygens: deepest + STEP[2],
-        ..full
+        unit_rounds: std::array::from_fn(|w| rounds_used(read, w) + ROUND_SLACK[w]),
     }
     .within(b)
 }
 
 #[cfg(test)]
 mod tests {
+    use super::super::device::T_USED;
     use super::*;
 
     /// A census whose phytomers grew from `before` to `now`.
@@ -199,6 +209,22 @@ mod tests {
         s.caps.phyts = 16_000_000;
         let next = grown(s, (&read, Some(&prev), None), budget).expect("a move");
         assert_eq!(next.caps.phyts, budget);
+    }
+
+    /// fn-256 task 12: a cycle records the units rounds the census read
+    /// used and their slack, the living apexes' and the wake's apart, no
+    /// further than the plan's bound; a job past them is refused by name.
+    #[test]
+    fn units_rounds_follow_the_rounds_used() {
+        let s = Sizes::least();
+        let mut read = vec![0; c::WORDS];
+        (read[c::MADE + T_USED], read[c::MADE + T_USED + 1]) = (3, 0);
+        assert_eq!(limits(&s, Some(&read), None).unit_rounds, [3 + ROUND_SLACK[0], ROUND_SLACK[1]]);
+        read[c::MADE + T_USED] = 64;
+        assert_eq!(limits(&s, Some(&read), None).unit_rounds[0], s.bounds.rounds);
+        assert_eq!(limits(&s, None, None).unit_rounds, [s.bounds.rounds; 2]);
+        let said = refusal(9, &[(Flag::UnitRounds, 1)], 20_000_000);
+        assert!(said.to_string().contains("UnitRounds"), "{said}");
     }
 
     /// A count past a table or limit stops the build by name.

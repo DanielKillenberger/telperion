@@ -36,7 +36,7 @@ pub(super) const BLOCKS0: usize = 20;
 pub(super) const LEVELS0: usize = 21;
 pub(super) const LEVELS: usize = 22;
 pub(super) const GREW: usize = 23;
-/// The units' tally as the cycle left it (`arena.wgsl`'s `T_`), 20 words.
+/// The units' tally as the cycle left it (`arena.wgsl`'s `T_`), 24 words.
 pub(super) const MADE: usize = 32;
 /// Each block level's first block after the hierarchy's step.
 pub(super) const LVL: usize = 64;

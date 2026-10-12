@@ -164,6 +164,9 @@ const T_WAKE_B: u32 = 16u;
 // where a job had operations left after the cycle's last round.
 const T_COLLAPSED: u32 = 20u;
 const T_ROUNDS: u32 = 21u;
+// The rounds the cycle used: one past the last any job began with work
+// left, the living apexes' then the wake's.
+const T_USED: u32 = 22u;
 
 fn ls(i: u32) -> u32 {
     return atomicLoad(&lists[i]);

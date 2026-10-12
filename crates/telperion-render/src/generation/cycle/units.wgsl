@@ -127,6 +127,10 @@ fn decide_main(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     job = k;
+    // A job with work left as its round begins uses the round.
+    if jw(J_OP) != OP_DONE {
+        atomicMax(&lists[T_USED + min(cfg.wake, 1u)], cfg.round + 1u);
+    }
     if jw(J_OP) == OP_ADVANCE {
         take_job(k);
         var o = op_of();

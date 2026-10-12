@@ -9,6 +9,7 @@ use super::build::Tables;
 use super::build_grow::{grow_now, Compact, Sizes};
 use super::build_arena::{hint, TABLES};
 use super::grown_tests::{device, grown_from};
+use super::plan_units::rounds_used;
 use telperion_core::presets::Preset;
 
 const NAMES: [&str; TABLES] = ["axes", "units", "phytomers", "sleepers", "living", "woken", "leaves", "nodes", "columns"];
@@ -92,7 +93,7 @@ fn every_preset_grows_in_its_hinted_arena() {
             gpu.ledger.take_peak();
             let clock = std::time::Instant::now();
             let (b, grown, grew) = grow_now(&gpu, &kit, &t, &g.tables, (sizes, age)).unwrap_or_else(|e| panic!("{id} {seed}: {e}"));
-            println!("{id} {seed}: bounds {:?}", grown.bounds);
+            println!("{id} {seed}: bounds {:?}; {}", grown.bounds, rounds(&grew.censuses));
             let secs = clock.elapsed().as_secs_f64();
             drop(b);
             gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
@@ -109,6 +110,17 @@ fn every_preset_grows_in_its_hinted_arena() {
         }
     }
     assert!(apart.is_empty(), "moved or begun again: {apart:?}");
+}
+
+/// The units rounds a build's cycles used, the living apexes' and the
+/// wake's: the most, and the most any rose over the two cycles a limit
+/// looks ahead (`build_size::limits`).
+fn rounds(censuses: &[Vec<u32>]) -> String {
+    let used = |w: usize| censuses.iter().map(|c| rounds_used(c, w)).collect::<Vec<_>>();
+    let [live, wake] = [used(0), used(1)];
+    let rise = |u: &[u32]| u.windows(3).map(|w| w[2].saturating_sub(w[0])).max().unwrap_or(0);
+    let most = |u: &[u32]| u.iter().copied().max().unwrap_or(0);
+    format!("units rounds used at most {} and {}, rising {} and {} over two cycles", most(&live), most(&wake), rise(&live), rise(&wake))
 }
 
 /// `ARENA_AGE` where it is set, else the preset's own age.

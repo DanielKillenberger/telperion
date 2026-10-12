@@ -70,13 +70,14 @@ pub(super) fn hint(species: &telperion_space::Species, age: u32) -> Result<Hint>
 /// bound), a step's generations and a round's placing passes, the
 /// layout's generations, and the units' rounds a cycle runs: stated, past
 /// any a shipped preset reached (levels 41, generations 6, placing passes
-/// 4, the layout's 6; `arena_tests`, 2026-10-12). Every cycle records all
-/// five units rounds: four refused the ordinary at cycle 18.
+/// 4, the layout's 6; `arena_tests`, 2026-10-12; units rounds 5, the
+/// ordinary's, fn-256 task 12). A cycle records the units rounds the
+/// census read used and a slack (`build_size::limits`), up to these.
 const LEVELS: u32 = 63;
 const GENS: u32 = 8;
 const PASSES: u32 = 6;
 const LAY_GENERATIONS: u32 = 15;
-const ROUNDS: u32 = 5;
+const ROUNDS: u32 = 8;
 
 impl Sizes {
     /// A build's tables sized once from `hint`, the least a build takes

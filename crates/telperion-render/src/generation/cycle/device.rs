@@ -43,6 +43,8 @@ pub(super) const T_LIST: usize = 8;
 pub(super) const T_WAKE: usize = 12;
 pub(super) const T_WAKE_B: usize = 16;
 pub(super) const T_ROUNDS: usize = 21;
+/// The rounds the cycle's units used, the living apexes' then the wake's.
+pub(super) const T_USED: usize = 22;
 
 /// A job's words (`job.wgsl`'s `JW`), and a unit zone's (`grow.wgsl`'s
 /// `Z_` columns).
