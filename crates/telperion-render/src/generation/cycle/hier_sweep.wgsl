@@ -24,7 +24,7 @@ fn open_block(wid: vec3<u32>, lid: u32) -> vec4<u32> {
             let least = shape[at(H_DEPTH, lists[ls(R_MEMBERS, ms)])];
             run = vec4<u32>(ms, me, least, shape[at(H_DEPTH, lists[ls(R_MEMBERS, me - 1u)])]);
         }
-        w_run = run;
+        w_run = within(run, cfg.stride);
     }
     return workgroupUniformLoad(&w_run);
 }
@@ -53,7 +53,7 @@ fn depth_span(run: vec4<u32>, d: u32, lid: u32) -> vec2<u32> {
 }
 
 fn children(i: u32) -> vec2<u32> {
-    return vec2<u32>(lists[ls(R_KID_START, i)], lists[ls(R_KID_START, i + 1u)]);
+    return kids_within(vec2<u32>(lists[ls(R_KID_START, i)], lists[ls(R_KID_START, i + 1u)]), cfg.stride);
 }
 
 // An axis's light, upkeep and living (`Working::totals`): its own, then

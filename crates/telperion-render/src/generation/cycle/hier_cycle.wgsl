@@ -239,7 +239,8 @@ fn drawn(v: f32, p: f32, psi: f32) -> f32 {
 @compute @workgroup_size(64)
 fn partials_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) pa: u32) {
     let beta = wid.x + wid.y * cfg.wx;
-    let g = atomicLoad(&tally[Y_GROWING]);
+    // The growing buds, no more than the axes' rows (fn-256 task 5).
+    let g = min(atomicLoad(&tally[Y_GROWING]), cfg.stride);
     let s = beta * BUD_BLOCK;
     if s >= g || pa >= cfg.pas || cfg.cycle == 0u {
         return;
@@ -270,7 +271,7 @@ fn combine_main(@builtin(local_invocation_index) pa: u32) {
     if pa >= cfg.pas {
         return;
     }
-    let blocks = (atomicLoad(&tally[Y_GROWING]) + BUD_BLOCK - 1u) / BUD_BLOCK;
+    let blocks = (min(atomicLoad(&tally[Y_GROWING]), cfg.stride) + BUD_BLOCK - 1u) / BUD_BLOCK;
     var total = 0.0;
     var weighted = 0.0;
     for (var b = 0u; b < blocks; b++) {

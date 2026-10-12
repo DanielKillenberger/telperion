@@ -91,13 +91,14 @@ fn count(col: u32, i: u32) -> u32 {
 
 // A scanned count's start and length: its row's start, to the next's,
 // or to the scan's total past the last of `rows`.
+// None where a halted cycle left it past the bucket's rows (fn-256 task 5).
 fn scanned(col: u32, i: u32, rows: u32, total: u32) -> vec2<u32> {
     let s = count(col, i);
     var e = atomicLoad(&tally[total]);
     if i + 1u < rows {
         e = count(col, i + 1u);
     }
-    return vec2<u32>(s, e - s);
+    return select(vec2<u32>(0u), vec2<u32>(s, e - s), s <= e && e <= cfg.stride);
 }
 
 fn key(by: u32, x: u32) -> u32 {
@@ -185,5 +186,5 @@ fn kid_merge_main(@builtin(global_invocation_id) id: vec3<u32>) {
         next[ls(R_KID_START, cfg.n_new)] = total;
     }
     sort_run(U_KIDS, fresh.x, fresh.y, BY_NODE);
-    merge_run(R_KIDS, vec2<u32>(os, oe), U_KIDS, fresh, out, BY_NODE);
+    merge_run(R_KIDS, kids_within(vec2<u32>(os, oe), cfg.stride), U_KIDS, fresh, out, BY_NODE);
 }

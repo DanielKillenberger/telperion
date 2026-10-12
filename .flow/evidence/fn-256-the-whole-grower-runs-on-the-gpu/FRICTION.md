@@ -244,3 +244,15 @@ Doing: comparing every preset's stills with F4's. Slowed by: the resident handof
 - **Hindered:** NVRM Xid 109 at 07:48 on Telperion's build, the seventh in the process, with 8.3 GB of the 10 GB card in use; stopped by its PID after 20 minutes (the example's own `timeout` was 20 minutes). The Two Trees' device peak is about 6 GB; with 2 GB held by the desktop the card is full, and the build hangs rather than being refused. The browser's budget check cannot catch it: `budget::admit` reads `expected_kept`, which is none for every species that reads light, so every build is admitted.
 - **Cost:** about 20 minutes and a driver reset.
 - **Would remove it:** a device-memory guard in the build (refuse by name when the ledger's live bytes plus the next move pass a stated bound), and the browser budget from a bound that is not none; both are the host's call. For the stills, one preset a process.
+
+## 2026-10-12, task 5: start
+- **Doing:** the Phase-1 anchor for task 5 in `gpucycle`, after merging F4's two new commits (COUNCIL round 4, the task files).
+- **Hindered:** `flowctl` not on PATH in the dispatched worker's shell, a third time (found under the plugin cache, 8.1.1); a fresh target dir (`target/t5`, as the dispatch asks) rebuilds the workspace from nothing at 4 threads.
+- **Cost:** about 2 minutes for `flowctl`; the rebuild's minutes run beside the reading.
+- **Would remove it:** `flowctl` on PATH for dispatched workers (local setup, not a repository change).
+
+## 2026-10-12, task 5: wgpu's heap threshold refused a 16-byte uniform
+- **Doing:** guarding native builds against a card other processes fill, first through wgpu's own `memory_budget_thresholds.for_resource_creation` on the instance.
+- **Hindered:** the threshold applies to every heap, and the driver grants the small host-visible device heap (the 256 MB BAR) a budget of 75 MB that the process already passed; two small tests in parallel then panicked on a 16-byte staging buffer ("wgpu error: Out of Memory", uncaptured, from `write_buffer`). wgpu-hal logs the heap's numbers only through `log`, which the tests have no logger for.
+- **Cost:** about 25 minutes, four GPU runs, a temporary logger.
+- **Would remove it:** the budget read directly (`Gpu::free_device_memory`, VK_EXT_memory_budget through `as_hal`, the device-local heap only), which is what the guard now does; a note in `docs/` that wgpu's instance thresholds are not usable on this card.

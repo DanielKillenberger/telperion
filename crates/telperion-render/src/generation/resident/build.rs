@@ -110,9 +110,9 @@ pub(super) async fn build(
     tools: &Tools,
     family: &Family,
 ) -> Result<Built> {
-    // Every buffer the build makes is held to the page's budget before it
-    // is made, a move's new tables beside its old (`Ledger::capped`).
-    let _capped = gen.device_budget().map(|b| gpu.ledger.capped(b));
+    // Every buffer the build makes is held to the budget before it is
+    // made, a move's new tables beside its old (`Ledger::capped`).
+    let _capped = gpu.ledger.capped(gen.device_budget());
     let growth = executor::growth(family)?;
     if !executor::stations(family) {
         return Err(refused("leaves the device places on neither twig stations nor a rosette"));

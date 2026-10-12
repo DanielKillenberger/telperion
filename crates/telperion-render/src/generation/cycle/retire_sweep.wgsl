@@ -26,7 +26,7 @@ fn block_run(wid: vec3<u32>, lid: u32) -> vec4<u32> {
                 run = vec4<u32>(ms, me, least, shape[H_DEPTH * cfg.stride + hlists[ls(R_MEMBERS, me - 1u)]]);
             }
         }
-        w_run = run;
+        w_run = within(run, cfg.stride);
     }
     return workgroupUniformLoad(&w_run);
 }
@@ -87,7 +87,7 @@ fn carried_up(i: u32) {
     var wait = rt(R_WAKE, i);
     let birth = ax(i, A_BIRTH);
     let units_n = ax(i, A_UNITS);
-    let kids = vec2<u32>(hlists[ls(R_KID_START, i)], hlists[ls(R_KID_START, i + 1u)]);
+    let kids = kids_within(vec2<u32>(hlists[ls(R_KID_START, i)], hlists[ls(R_KID_START, i + 1u)]), cfg.stride);
     for (var k = kids.x; k < kids.y; k++) {
         let c = hlists[ls(R_KIDS, k)];
         var weight = qf(vigour(c, i));

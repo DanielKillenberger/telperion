@@ -1419,6 +1419,7 @@ dependencies = [
 name = "telperion-render"
 version = "0.1.0"
 dependencies = [
+ "ash",
  "bytemuck",
  "futures-channel",
  "js-sys",

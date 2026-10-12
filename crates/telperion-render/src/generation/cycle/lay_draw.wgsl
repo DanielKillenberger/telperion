@@ -23,7 +23,7 @@ fn draw_axis(i: u32) {
     var wood = pnf(i, P_WOOD);
     var unit = pn(i, P_UNITS);
     var laid = pn(i, P_LAID);
-    let units_n = ax(i, A_UNITS_N);
+    let units_n = unit_count(i);
     let n = nphyt(i);
     var u = NONE;
     if unit < units_n {

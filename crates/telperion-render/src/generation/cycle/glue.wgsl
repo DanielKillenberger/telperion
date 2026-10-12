@@ -252,11 +252,11 @@ fn grew_gather_main(@builtin(global_invocation_id) id: vec3<u32>) {
 // Axis `a`'s tip (`Grower::tip`): its last phytomer's, or its base.
 fn tip_of(a: u32) -> vec3<f32> {
     var r = ax(a, A_TAIL);
-    // cap: the axis's units.
-    while r != NONE && units[U_COUNT * cfg.units + r] == 0u {
+    // The axis's units back, no more than their rows (fn-256 task 5).
+    for (var steps = 0u; steps < cfg.units && r < cfg.units && units[U_COUNT * cfg.units + r] == 0u; steps++) {
         r = units[U_PREV * cfg.units + r];
     }
-    if r == NONE {
+    if r >= cfg.units || units[U_COUNT * cfg.units + r] == 0u {
         let b = A_BASE;
         return vec3<f32>(bitcast<f32>(ax(a, b)), bitcast<f32>(ax(a, b + 1u)), bitcast<f32>(ax(a, b + 2u)));
     }

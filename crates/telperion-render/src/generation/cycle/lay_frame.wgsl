@@ -180,7 +180,7 @@ fn hand_lifts(i: u32, p: u32, b: f32, own: vec2<f32>) {
     var n = 0u;
     if keep > 0.0 {
         let run = pnf(p, P_RUN);
-        for (var k = 0u; k <= pn(p, P_LIFTS_N); k++) {
+        for (var k = 0u; k <= min(pn(p, P_LIFTS_N), LIFTS); k++) {
             var l = vec4<f32>(own.x, pnf(p, P_PULL), own.y, 0.0);
             if k > 0u {
                 l = lift_at(p, k - 1u);

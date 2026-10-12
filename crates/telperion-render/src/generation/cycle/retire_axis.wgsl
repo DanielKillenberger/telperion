@@ -27,8 +27,9 @@ fn source(k: u32) -> u32 {
 @compute @workgroup_size(64)
 fn open_main(@builtin(global_invocation_id) id: vec3<u32>) {
     var a = source(index(id));
-    // cap: the tree's depth, each axis marked once.
-    while a != NONE && rt(R_OPEN, a) != cfg.cycle {
+    // The tree's depth, each axis marked once; no walk passes the laid
+    // axes, whatever a halted cycle left (fn-256 task 5).
+    for (var steps = 0u; steps < cfg.n && a < cfg.n && rt(R_OPEN, a) != cfg.cycle; steps++) {
         set_rt(R_OPEN, a, cfg.cycle);
         a = ax(a, A_PARENT);
     }
@@ -40,8 +41,8 @@ fn presences(i: u32, upto: u32) -> vec2<f32> {
     var running = 1.0;
     var sum = 0.0;
     var r = ax(i, A_HEAD);
-    // cap: the axis's units.
-    for (var k = 0u; k < upto && r != NONE; k++) {
+    // The axis's units, no more than the units' rows.
+    for (var k = 0u; k < min(upto, cfg.units_cap) && r < cfg.units_cap; k++) {
         running = m(running, qf(bitcast<f32>(unit(r, U_SURVIVE))));
         sum = sum + m(running, tick_q(unit(r, U_SHARE)));
         running = m(running, qf(bitcast<f32>(unit(r, U_PERSIST))));
@@ -57,14 +58,14 @@ fn node_scale(i: u32, node: u32) -> f32 {
     var running = 1.0;
     var r = ax(i, A_HEAD);
     var j = 0u;
-    // cap: the axis's units.
-    for (var k = 0u; r != NONE; k++) {
+    // The axis's units, no more than the units' rows.
+    for (var k = 0u; k < cfg.units_cap && r < cfg.units_cap; k++) {
         running = m(running, qf(bitcast<f32>(unit(r, U_SURVIVE))));
         let laid = tick_q(unit(r, U_SIZE));
         // The unit's phytomers, in order; phytomer `node` is one of them
         // where its cycle matches.
         let first = unit(r, U_FIRST);
-        for (var t = 0u; t < unit(r, U_COUNT); t++) {
+        for (var t = 0u; t < min(unit(r, U_COUNT), cfg.phyts_cap); t++) {
             let row = first + t;
             if i32(phyt(row, P_CYCLE)) - i32(birth) - 1 == i32(k) {
                 if j == node {
@@ -134,8 +135,8 @@ fn woken_kept(k: u32) -> f32 {
         var u = NONE;
         if next < ax(bearer, A_UNITS) {
             u = ax(bearer, A_HEAD);
-            // cap: the bearer's units.
-            for (var s = 0u; s < next; s++) {
+            // The bearer's units, no more than the units' rows.
+            for (var s = 0u; s < min(next, cfg.units_cap); s++) {
                 u = unit(u, U_NEXT);
             }
         }
@@ -229,5 +230,9 @@ fn verdict_main(@builtin(global_invocation_id) id: vec3<u32>) {
 // The laid axes this cycle began with, for the next's closing.
 @compute @workgroup_size(1)
 fn end_main() {
-    ret[cfg.head + HD_PREV_LAID] = cfg.n;
+    // A halted cycle's words are none (`vm.wgsl`): it leaves the last
+    // cycle's, as no cycle lays fewer axes than the one before.
+    if cfg.n != 0u {
+        ret[cfg.head + HD_PREV_LAID] = cfg.n;
+    }
 }

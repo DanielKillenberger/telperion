@@ -25,27 +25,50 @@ pub(super) fn buffer(
             limit,
         });
     }
-    if let Err((after, cap)) = gpu.ledger.room(size) {
+    if let Err((after, cap)) = gpu.ledger.reserve(size, label) {
         let mib = |b: u64| b >> 20;
         return Err(error(format!(
-            "the browser's device budget: the build's {label} would hold {} MiB, past the {} MiB a page may hold; grow it younger",
+            "the device budget: the build's {label} would hold {} MiB, past the {} MiB it may hold; grow it younger",
             mib(after),
             mib(cap)
         )));
     }
-    let buffer = Owned::create(
-        gpu,
-        &wgpu::BufferDescriptor {
-            label: Some(label),
-            size,
-            usage: usage | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        },
-    );
+    let descriptor = wgpu::BufferDescriptor {
+        label: Some(label),
+        size,
+        usage: usage | wgpu::BufferUsages::COPY_DST,
+        mapped_at_creation: false,
+    };
+    let buffer = match made(gpu, &descriptor) {
+        Ok(buffer) => Owned::reserved(gpu, buffer, label),
+        Err(refused) => {
+            gpu.ledger.unreserve(size, label);
+            return Err(error(format!("the device refused the build's {label} of {} MiB: {refused}", size >> 20)));
+        }
+    };
     if !initial.is_empty() {
         gpu.queue.write_buffer(&buffer, 0, initial);
     }
     Ok(buffer)
+}
+
+/// A buffer made natively under scopes of its own, so a device that
+/// cannot hold it (the heap past its share, `device::HEAP_SHARE`) refuses
+/// it here, before any pass binds it; a browser reports it at the build's
+/// scopes.
+fn made(gpu: &Gpu, descriptor: &wgpu::BufferDescriptor<'_>) -> std::result::Result<wgpu::Buffer, String> {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let [validation, memory] = scope(gpu);
+        let buffer = gpu.device.create_buffer(descriptor);
+        let memory = pollster::block_on(memory.pop());
+        match memory.or(pollster::block_on(validation.pop())) {
+            Some(refused) => Err(refused.to_string()),
+            None => Ok(buffer),
+        }
+    }
+    #[cfg(target_arch = "wasm32")]
+    Ok(gpu.device.create_buffer(descriptor))
 }
 
 /// `a` and `b` made side by side: natively `b` on a thread of its own, so

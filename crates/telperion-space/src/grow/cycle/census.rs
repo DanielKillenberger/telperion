@@ -36,6 +36,9 @@ pub struct Cycle {
     pub active: usize,
     pub axes: usize,
     pub phytomers: usize,
+    /// The phytomers grown by the cycle's end, the retired ones included:
+    /// `phytomers` against it is the live set's share (fn-256 task 5).
+    pub grown: u64,
     pub leaves: usize,
     pub size: [u32; 3],
     pub nodes: usize,
@@ -55,10 +58,10 @@ impl Census {
     }
 
     /// The records at the end of `cycle`.
-    pub(in crate::grow) fn cycle(&mut self, cycle: u32, axes: &[Axis], live: &[Apex]) {
+    pub(in crate::grow) fn cycle(&mut self, (cycle, grown): (u32, u64), axes: &[Axis], live: &[Apex]) {
         self.extend(axes);
         let mut c = self.lattice.take().unwrap_or_default();
-        c.cycle = cycle;
+        (c.cycle, c.grown) = (cycle, grown);
         (c.active, c.axes) = (live.len(), axes.len());
         c.phytomers = axes.iter().map(|a| a.phytomers.len()).sum();
         let busiest = self.cycles.iter().map(|c| c.active).max().unwrap_or(0);

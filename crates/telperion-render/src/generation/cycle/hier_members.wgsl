@@ -43,7 +43,7 @@ fn old_members(b: u32) -> vec2<u32> {
     if b >= old {
         return vec2<u32>(os, os);
     }
-    return vec2<u32>(os, cur[ls(R_MEM_START, b + 1u)]);
+    return kids_within(vec2<u32>(os, cur[ls(R_MEM_START, b + 1u)]), cfg.stride);
 }
 
 // Each new axis sorted among its block's new members by its rank.
@@ -145,8 +145,12 @@ fn level_merge_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invoca
             oe = cur[ls(R_LVL_START, l + 1u)];
         }
         let out = os + scanned(C_LEVEL, l, cfg.level_rows, X_LEVEL).x;
-        w_level = vec4<u32>(os, oe, out, atomicLoad(&tally[X_LEVELS]));
-        w_blocks = vec2<u32>(atomicLoad(&tally[X_BLOCKS_OLD]), atomicLoad(&tally[X_BLOCKS]));
+        // Each count within the lists' rows, none where a halted cycle
+        // left it past them (fn-256 task 5).
+        let old_run = kids_within(vec2<u32>(os, oe), cfg.stride);
+        w_level = vec4<u32>(old_run, out, min(atomicLoad(&tally[X_LEVELS]), cfg.stride));
+        let blocks = min(atomicLoad(&tally[X_BLOCKS]), cfg.stride);
+        w_blocks = vec2<u32>(min(atomicLoad(&tally[X_BLOCKS_OLD]), blocks), blocks);
     }
     let run = workgroupUniformLoad(&w_level);
     let span = workgroupUniformLoad(&w_blocks);

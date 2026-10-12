@@ -20,6 +20,32 @@ use telperion_core::presets::Family;
 pub(crate) const BROWSER: u64 = GIB * (10 - 3 - 1);
 const GIB: u64 = 1 << 30;
 
+/// The native budget's default, in bytes of owned buffers (fn-256 task 5,
+/// COUNCIL round 4 step 1): every build is held to it as it grows, so a
+/// card other processes fill refuses a build by name rather than hanging
+/// (NVRM Xid 109, five times in task 4). Conservative: the reference card
+/// holds 10 GiB, a desktop 2 to 3 of it.
+pub(crate) const NATIVE: u64 = 4 * GIB;
+
+/// The share of the device memory other processes leave a native build may
+/// take: the rest is the driver's and the pipelines', which the ledger
+/// does not count.
+#[cfg(not(target_arch = "wasm32"))]
+const FREE_SHARE: f64 = 0.85;
+
+/// The native budget, with `held` bytes charged now: the stated one
+/// (`TELPERION_DEVICE_BUDGET_MIB`, else `NATIVE`), and no more than the
+/// held bytes and the share of what other processes leave of the card
+/// (`Gpu::free_device_memory`), so a card they fill refuses a build by
+/// name before it is made.
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) fn native(gpu: &crate::Gpu, held: u64) -> u64 {
+    let stated = std::env::var("TELPERION_DEVICE_BUDGET_MIB").ok();
+    let stated = stated.and_then(|m| m.trim().parse::<u64>().ok()).map_or(NATIVE, |m| m << 20);
+    let free = gpu.free_device_memory().map_or(u64::MAX, |f| held + (f as f64 * FREE_SHARE) as u64);
+    stated.min(free)
+}
+
 /// A build's peak owned bytes, from a fresh generator and renderer, by
 /// the predictor's expected kept phytomers: the spruce's, the costliest
 /// measured (`route_tests::budget_probe`; the beech lies under it).

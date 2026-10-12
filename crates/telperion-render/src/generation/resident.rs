@@ -47,17 +47,17 @@ impl super::Generator {
         super::io::programs_ready(&self.gpu, scopes).await
     }
 
-    /// The device bytes a build may hold: the browser's budget, a test's
-    /// stated one, none natively.
-    fn device_budget(&self) -> Option<u64> {
+    /// The device bytes a build may hold: a test's stated budget, else
+    /// the browser's, or natively the configured one (`budget::native`).
+    fn device_budget(&self) -> u64 {
         #[cfg(test)]
         if let Some(stated) = self.budget.get() {
-            return Some(stated);
+            return stated;
         }
         #[cfg(target_arch = "wasm32")]
-        return Some(budget::BROWSER);
+        return budget::BROWSER;
         #[cfg(not(target_arch = "wasm32"))]
-        None
+        budget::native(&self.gpu, self.gpu.ledger.live())
     }
 
     /// The device's kernels and tools, made on first use.
@@ -69,6 +69,11 @@ impl super::Generator {
     /// whole (fn-256 task 3), nothing read back per node.
     pub(super) async fn prepare_resident(&self, family: &Family) -> Result<Prepared> {
         let gpu = &self.gpu;
+        // What was let go before this build (a tree, a still's buffers) is
+        // charged until the device is done with it: waited for, so the
+        // budget counts what is held, not what is on its way out (fn-256
+        // task 5, `Ledger::destroy`).
+        super::io::complete(gpu).await?;
         // A browser build over its device budget is refused before it starts.
         #[cfg(target_arch = "wasm32")]
         budget::check(family, self.gpu.ledger.live(), budget::BROWSER)?;
@@ -102,9 +107,14 @@ impl super::Generator {
             drop(refused);
         }
         let built = build::build(gpu, self, &kit.kernels, &kit.tools, family).await;
+        // The build's scratch, let go as it returned, is charged until the
+        // device is done with it: waited for, so what the device holds
+        // after a build is the tree it hands over (`Ledger::destroy`).
+        let freed = super::io::complete(gpu).await;
         // A device error is the cause of any readback it failed, so it is
         // the one reported.
         super::io::errors(gpu, scopes).await?;
+        freed?;
         Ok(built?.prepared)
     }
 }
@@ -124,7 +134,8 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
     ]
 }
 
-// The browser's budget is checked in a browser alone; natively it is tested.
+// The browser's expected peak is checked in a browser alone; natively it
+// is tested, and the native budget caps every build.
 #[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
 mod budget;
 #[cfg(test)]

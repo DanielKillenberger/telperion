@@ -170,7 +170,7 @@ fn step(wk: ptr<function, Walk>, i: u32, r: u32, scale: f32, bent: f32, total: f
     // Its own pull, and those it carries on, each fading over its reach.
     var lift = 0.0;
     var up = 0.0;
-    let n = pn(i, P_LIFTS_N);
+    let n = min(pn(i, P_LIFTS_N), LIFTS);
     for (var k = 0u; k <= n; k++) {
         var l = vec4<f32>(bent, (*wk).pull, total, 0.0);
         if k > 0u {

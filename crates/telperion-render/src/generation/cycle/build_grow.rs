@@ -83,6 +83,8 @@ pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (mu
     let mut grew = Grew::default();
     'begin: for again in 0..64 {
         grew.again = again;
+        // The build begun before this one freed first (`Ledger::destroy`).
+        super::super::io::complete(gpu).await?;
         let mut b = Build::new(gpu, t, (tables, sizes.caps, sizes.block_cap), sizes.lit())?;
         let mut run = b.plan(gpu, kit, t, sizes.bounds)?;
         grew.stamped = b.seeded(gpu, kit, (&run.0, &run.1));

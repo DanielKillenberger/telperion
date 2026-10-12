@@ -134,7 +134,7 @@ impl Grower<'_> {
     /// The census's records at the end of `cycle`.
     fn count(&mut self, cycle: u32) {
         if let Some(mut c) = self.census.take() {
-            c.cycle(cycle, &self.axes, &self.live);
+            c.cycle((cycle, self.rules.grown), &self.axes, &self.live);
             self.census = Some(c);
         }
     }

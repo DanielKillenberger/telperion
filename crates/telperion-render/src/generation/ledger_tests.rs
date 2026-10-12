@@ -1,6 +1,8 @@
 //! fn-256 task 4 review: a build's cap on the device ledger counts a
 //! buffer let go until it is destroyed, so a move's new tables are held
-//! to the cap beside its old while the copy encoder is open.
+//! to the cap beside its old while the copy encoder is open; and (task 5)
+//! until the device has done the work submitted before its destroy, so a
+//! dropped build's tables count beside the next's until it is polled free.
 use super::io;
 
 #[test]
@@ -17,5 +19,8 @@ fn a_buffer_let_go_counts_against_the_cap_until_it_is_destroyed() {
     let refused = io::buffer(&gpu, "new table", 2 * mib, usage, &[]).expect_err("the old one still counts");
     assert!(refused.to_string().contains("device budget"), "{refused}");
     drop(encoder);
-    io::buffer(&gpu, "new table", 2 * mib, usage, &[]).expect("the old one destroyed");
+    let held = io::buffer(&gpu, "new table", 2 * mib, usage, &[]).expect_err("destroyed, not yet freed");
+    assert!(held.to_string().contains("device budget"), "{held}");
+    pollster::block_on(io::complete(&gpu)).expect("the device's work done");
+    io::buffer(&gpu, "new table", 2 * mib, usage, &[]).expect("the old one freed");
 }

@@ -52,9 +52,13 @@ fn a_tree_that_fits_only_alone_lets_the_drawn_tree_go_first() {
     let budget = held - tree / 2 + peak(&next);
     assert!(tree > 0 && held + peak(&next) > budget, "{tree} of {held}");
     let drawn = still(&mut renderer).stats.instances;
+    // The still's buffers, let go, are charged until the device is done.
+    pollster::block_on(crate::generation::io::complete(&gen.gpu)).unwrap();
     let admitted = Generator::admit(&next, &renderer, budget).unwrap();
     assert_eq!(admitted, Admitted::MakeRoom);
     renderer.release_tree();
+    // A buffer let go is charged until the device is done with it.
+    pollster::block_on(crate::generation::io::complete(&gen.gpu)).unwrap();
     assert!(
         gen.gpu.ledger.live() <= held - tree,
         "the tree's buffers let go"
@@ -118,6 +122,8 @@ fn a_build_keeps_nothing_on_the_device_once_it_is_done() {
     let prepared = gen.prepare(&family("norway-spruce", 12), Delivery::Resident);
     renderer.submit_prepared(prepared.unwrap()).unwrap();
     renderer.release_tree();
+    // A buffer let go is charged until the device is done with it.
+    pollster::block_on(crate::generation::io::complete(&gen.gpu)).unwrap();
     let after = gen.gpu.ledger.live();
     assert!(
         after <= before,

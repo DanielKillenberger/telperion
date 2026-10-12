@@ -5,6 +5,9 @@
 //!   beside it went with fn-256.
 //!
 //!   cargo run --profile ci -p telperion-core --example early -- three norway-spruce default 42 cycle
+//!
+//! - `live <preset> <age|default> <seed>`: fn-256 task 5's live set, each
+//!   cycle's phytomers not retired against those grown by then.
 use std::time::Instant;
 use telperion_core::presets::Preset;
 use telperion_space::{grow_census, Census, Light, Request, Species, Structure};
@@ -29,7 +32,8 @@ fn main() {
     println!("{} age {age} seed {seed}", args[1]);
     match args[0].as_str() {
         "three" => three(&species, r, &args[4]),
-        _ => panic!("three"),
+        "live" => live(&grow_census(&species, r).expect("grown").census.expect("a census")),
+        _ => panic!("three or live"),
     }
 }
 
@@ -110,4 +114,21 @@ fn census(c: &Census) {
             100.0 * occupied as f64 / n as f64
         );
     }
+}
+
+/// Each cycle's live phytomers (not retired) against those grown by its
+/// end, then the largest live set and the largest share past cycle 10.
+fn live(c: &Census) {
+    println!("  cycle grown live share");
+    for k in &c.cycles {
+        let share = k.phytomers as f64 / k.grown.max(1) as f64;
+        println!("  {} {} {} {share:.3}", k.cycle, k.grown, k.phytomers);
+    }
+    let peak = c.cycles.iter().max_by_key(|k| k.phytomers).expect("a cycle");
+    let share = |k: &telperion_space::Cycle| k.phytomers as f64 / k.grown.max(1) as f64;
+    let most = c.cycles.iter().filter(|k| k.cycle > 10).map(share).fold(0.0, f64::max);
+    println!(
+        "  live set: largest {} in cycle {} ({:.3} of {} grown); largest share past cycle 10 {most:.3}; retired {} subtrees",
+        peak.phytomers, peak.cycle, share(peak), peak.grown, c.retired
+    );
 }

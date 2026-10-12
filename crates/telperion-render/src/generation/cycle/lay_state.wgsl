@@ -130,7 +130,7 @@ fn narrow(v: vec2<u32>) -> f32 {
 // The record of axis `a`'s unit `k`: walked back from its last.
 fn unit_of(a: u32, k: u32) -> u32 {
     var r = ax(a, A_TAIL);
-    var j = ax(a, A_UNITS_N);
+    var j = unit_count(a);
     // cap: the axis's units.
     while j > k + 1u && r != NONE {
         r = unit_word(r, UN_PREV);
@@ -139,9 +139,14 @@ fn unit_of(a: u32, k: u32) -> u32 {
     return r;
 }
 
-// The phytomers axis `a` holds.
+// The phytomers axis `a` holds, and its units: none past their tables'
+// rows, whatever a halted cycle left (fn-256 task 5).
 fn nphyt(a: u32) -> u32 {
-    return ax(a, A_PHYTS);
+    return min(ax(a, A_PHYTS), cfg.phyts);
+}
+
+fn unit_count(a: u32) -> u32 {
+    return min(ax(a, A_UNITS_N), cfg.units);
 }
 
 // The unit the last `prow` stood in: its axis, record, and the node of
@@ -165,10 +170,12 @@ fn prow(a: u32, j: u32) -> u32 {
             return 0u;
         }
         cur_axis = a;
-        cur_ord = ax(a, A_PHYTS) - unit_word(cur_unit, UN_COUNT);
+        cur_ord = nphyt(a) - unit_word(cur_unit, UN_COUNT);
     }
-    // cap: the axis's units, back.
-    while j < cur_ord {
+    var steps = 0u;
+    // cap: the axis's units, back, no more than the units' rows.
+    while j < cur_ord && steps < cfg.units {
+        steps += 1u;
         cur_unit = unit_word(cur_unit, UN_PREV);
         if cur_unit == NONE {
             status |= FAULT_UNREAD;
@@ -177,8 +184,9 @@ fn prow(a: u32, j: u32) -> u32 {
         }
         cur_ord -= unit_word(cur_unit, UN_COUNT);
     }
-    // cap: the axis's units, on.
-    while j >= cur_ord + unit_word(cur_unit, UN_COUNT) {
+    // cap: the axis's units, on, no more than the units' rows.
+    while j >= cur_ord + unit_word(cur_unit, UN_COUNT) && steps < cfg.units {
+        steps += 1u;
         cur_ord += unit_word(cur_unit, UN_COUNT);
         cur_unit = unit_word(cur_unit, UN_NEXT);
         if cur_unit == NONE {
@@ -186,6 +194,11 @@ fn prow(a: u32, j: u32) -> u32 {
             forget();
             return 0u;
         }
+    }
+    if steps == cfg.units {
+        status |= FAULT_UNREAD;
+        forget();
+        return 0u;
     }
     return unit_word(cur_unit, UN_FIRST) + (j - cur_ord);
 }

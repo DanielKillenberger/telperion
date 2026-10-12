@@ -39,3 +39,17 @@ const R_MEM_START: u32 = 2u;
 const R_MEMBERS: u32 = 3u;
 const R_LVL_START: u32 = 4u;
 const R_LVL_BLOCKS: u32 = 5u;
+
+// A block's run (its members' first and end, its least and greatest
+// depth) within a hierarchy of `stride` rows, none where a halted cycle
+// left it past them: no sweep loops on what it left (fn-256 task 5).
+fn within(run: vec4<u32>, stride: u32) -> vec4<u32> {
+    let ok = run.x < run.y && run.y <= stride && run.z <= run.w && run.w - run.z < stride;
+    return select(vec4<u32>(0u), run, ok);
+}
+
+// An axis's children's range within the lists' rows, none past them.
+fn kids_within(kids: vec2<u32>, stride: u32) -> vec2<u32> {
+    let ok = kids.x <= kids.y && kids.y <= stride + 64u;
+    return select(vec2<u32>(0u), kids, ok);
+}
