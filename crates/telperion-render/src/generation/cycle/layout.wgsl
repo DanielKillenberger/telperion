@@ -39,7 +39,8 @@ struct Cfg {
 @group(0) @binding(4) var<storage, read_write> laid: array<u32>;
 @group(0) @binding(5) var<storage, read_write> axes: array<u32>;
 @group(0) @binding(6) var<storage, read_write> pencils: array<u32>;
-@group(0) @binding(7) var<storage, read_write> lists: array<u32>;
+// Atomic: a dispatch's axes OR their faults into one tally word.
+@group(0) @binding(7) var<storage, read_write> lists: array<atomic<u32>>;
 @group(0) @binding(8) var<storage, read_write> counts: array<u32>;
 
 const NONE: u32 = 0xffffffffu;
@@ -179,7 +180,7 @@ fn invocation(id: vec3<u32>) -> u32 {
 fn fault_out(i: u32) {
     set_ax(i, A_FAULT, ax(i, A_FAULT) | status);
     if status != 0u {
-        lists[T_FAULT] = lists[T_FAULT] | status;
+        atomicOr(&lists[T_FAULT], status);
     }
 }
 
@@ -190,12 +191,12 @@ fn listed_axis(k: u32) -> u32 {
         return NONE;
     }
     if cfg.listed == 0u {
-        return select(NONE, lists[TALLY + k], k < cfg.grown);
+        return select(NONE, atomicLoad(&lists[TALLY + k]), k < cfg.grown);
     }
-    if k >= lists[T_LISTED] {
+    if k >= atomicLoad(&lists[T_LISTED]) {
         return NONE;
     }
-    return lists[listed_at() + k];
+    return atomicLoad(&lists[listed_at() + k]);
 }
 
 // Where the new axes' generations stand in `lists`, and the list of one.
@@ -283,8 +284,8 @@ fn generation_main(@builtin(global_invocation_id) id: vec3<u32>) {
         g += 1u;
         a = ax(a, A_PARENT);
     }
-    lists[generations_at() + k] = g;
-    lists[T_DEEP + min(g, DEEP - 1u)] = 1u;
+    atomicStore(&lists[generations_at() + k], g);
+    atomicStore(&lists[T_DEEP + min(g, DEEP - 1u)], 1u);
 }
 
 // The new axes of the generation listed flagged, for the scan.
@@ -294,7 +295,7 @@ fn flag_main(@builtin(global_invocation_id) id: vec3<u32>) {
     if k >= cfg.new_axes {
         return;
     }
-    counts[k] = u32(lists[generations_at() + k] == cfg.generation);
+    counts[k] = u32(atomicLoad(&lists[generations_at() + k]) == cfg.generation);
 }
 
 // Each flagged axis at its scanned place; an axis carried on, where it
@@ -303,11 +304,11 @@ fn flag_main(@builtin(global_invocation_id) id: vec3<u32>) {
 @compute @workgroup_size(64)
 fn gather_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let k = invocation(id);
-    if k >= cfg.new_axes || lists[generations_at() + k] != cfg.generation {
+    if k >= cfg.new_axes || atomicLoad(&lists[generations_at() + k]) != cfg.generation {
         return;
     }
     let i = cfg.first_new + k;
-    lists[listed_at() + counts[k]] = i;
+    atomicStore(&lists[listed_at() + counts[k]], i);
     if carried_on(i) {
         status = 0u;
         forget();

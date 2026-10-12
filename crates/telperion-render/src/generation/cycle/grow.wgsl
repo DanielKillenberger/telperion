@@ -224,6 +224,10 @@ fn node_laterals(zat: u32, node_key: vec2<u32>, at: vec2<u32>, cycle: u32, whorl
             continue;
         }
         laterals += 1u;
+        // Counted, in either round: no index taken, nothing written.
+        if what == 0u {
+            continue;
+        }
         let lpa = lived_pa(drew);
         if what == 1u {
             let made2 = array<vec2<u32>, 2>(vec2<u32>(0u), real64(reach(drew, 0u)));
