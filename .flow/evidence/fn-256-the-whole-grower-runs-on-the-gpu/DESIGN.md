@@ -543,7 +543,7 @@ Measured (`every_rosette_is_placed_as_the_cpu_places_it`, the palm with its base
 6. **`hang`**, one invocation a boot: `hung()`'s two nodes and, where the bases pack, `section()`'s cell. Two records a boot are written in the drawn layout (`CV`), so the folds, the sweep and the stations read them with no new reader.
    - The first record stands at `from`. Its radius, start and base radius are `thick`, its parent is the bearing stem record's id, its run and branch are its own, its codominance is 0.
    - The second stands at the tip (a packed base's outer ring's centre, else `from + heading · reach`). Its radius is `thick · wear`, start and base `thick`, its parent the first.
-   - Both carry TAKEN, MADE, FINE and a new flag, BOOT (256), and no STEM, CLUSTERED or TIP. Their distance along the wood is the bearer's plus each chord. Their key, grown wood, phytomer key, flowering share and retention are zero. The first record's word 29 holds its cell's index, or none for a round peg.
+   - Both carry TAKEN, MADE, FINE and a new flag, BOOT (bit 30, above a tip's leaf count, which the dress keeps from bit 8 and is at most 8 leaves), and no STEM, CLUSTERED or TIP. Their distance along the wood is the bearer's plus each chord. Their key, grown wood, phytomer key, flowering share and retention are zero. The first record's word 29 holds its cell's index, or none for a round peg.
    - The boots' wave has one axis record: depth 63 and lineage all ones, so a boot loses every tie for its bearer's run, as a node appended after every other does on the CPU.
 
 **By degree.** At `leaf_bases` 0 or `leaf_base_length` 0 (`hangs`), no pass runs, no wave is added and the build is as it was. At `leaf_base_width` 0 the boots are round pegs: records only, no cells, no shaped run. The rows are read through one executor call that validates the canopy as `clothe_leaf_bases` does (`validate_canopy`) and returns them. It replaces `hangs_bases` and the refusal in `build.rs`.
@@ -555,7 +555,7 @@ Measured (`every_rosette_is_placed_as_the_cpu_places_it`, the palm with its base
 - **`emit`** writes a shaped run's points from its cell: each sample's centre is `origin + axis · rise + radial · reach` for ring `k + 3 - clamp(count, 2, 3)`, its radius the ring's extent, and its distance along its own. Every frame is squared, the normal `across` and the binormal `axis` (`section::square`).
 - The cluster record gains a sixteenth word (`KW` 16): its run's shape flags, `4 | cell << 8` for a shaped run, else 0.
 
-A shaped run's first record is the boot's first node. The CPU keys a section by the run's last node, and a boot's run ends at its second node, which nothing continues, so the two name the same run. The sweep binds the cells (a ninth storage buffer, under 16).
+A shaped run's first record is the boot's first node. The CPU keys a section by the run's last node, and a boot's run ends at its second node, which nothing continues, so the two name the same run. The sweep binds the cells in the place of the drawn records for every pass after `gather`, which alone reads records there.
 
 **The stations.** `fine()` leaves BOOT records out. A boot then bears no station, counts as no child in `kids` and keeps no floret, as the CPU's boots, which are wood appended after the plan's kinds, bear nothing. Where fronds stand nothing bears anyway; this holds a canopy without fronds that hangs bases to the CPU. The rings stage is unchanged: a seated leaf reads only its own run's rings, and no leaf stands on a boot.
 
@@ -571,3 +571,30 @@ A shaped run's first record is the boot's first node. The CPU keys a section by 
 - **Negative controls, each red:** the device's table with one boot removed fails on count; the device's table with one cell's corner moved by 1e-2 fails on cell geometry. The comparison is one function returning its first failure, so each control asserts that function's failure and names it.
 
 **What this leaves.** `agree_tests`' node comparison reads the dress's waves, before the boots, so it keeps setting the bases aside. Its sweep, station and rosette checks take the palm whole once the boots draw. `repeat_tests` and `route_tests` take the palm whole. The refusal goes.
+
+#### 12.8.1 As built (fn-266 task 1)
+
+Three things changed from the design above, each found by a run:
+- **The storage limit the device holds is 8, not 16.** A ninth binding on the sweep passed naga and the shader check, and the test device refused it ("limit is 8"; `Gpu::request` opens WebGPU's default). So the cells ride in the drawn records' binding, which only `gather` reads. Every stage stays at 8 or under: the bases' stage binds 6.
+- **The flags.** BOOT at 256 collided with a tip's leaf count, and the silver birch's stations fell from 7,033 to 859. BOOT is bit 30 and CELL bit 29. CELL marks the record a packed base's run opens at, and its word 29 holds the cell's index.
+- **A base standing on its bearer.** The oldest base, at a stem's foot, is laid at the polyline's last node, so its first node stands on its bearer. `paths.rs` merges a node within 1e-9 of its parent into the parent's stand, so the CPU sweeps that base in two samples (bark and outer end, `Section::ring`'s two-sample case), not three. The device merges it too: its first record is taken and not made, its second is borne on the bearer, and the run opens at the second. In f32 the stand is a few ulps of the depth walked down the stem, so the bound is `1e-9 + 1e-6 · run`. At 40 the device's foot base stood 9.6e-7 m off its bearer; the nearest real base stood 1.8e-4 m off.
+
+**Measured** (`every_leaf_base_is_hung_as_the_cpu_hangs_it`, the date palm at 12 and at 40; raw output in fn-266's `raw/`):
+
+| Measure | At 12 | At 40 | Bound |
+|---|--:|--:|--:|
+| Bases, CPU and device (exact) | 256 | 256 | |
+| Shaped runs, CPU and device (exact; one of two samples) | 256 | 256 | |
+| Positions: nodes, radii, cell origin, rings' reach and rise (m) | 4.5e-5 | 8.8e-5 | 2e-4 |
+| Swept points of the shaped runs, centre and radius (m) | 5.1e-5 | 9.0e-5 | 2e-4 |
+| Unit vectors: the spiral's radial, the cell's axis and across | 1.3e-4 | 2.2e-4 | 5e-4 |
+| Corners (radians round, metres along) | 3.9e-7 | 2.5e-7 | 1e-6 |
+| Shares: rings' scale, flatness | 6e-8 | 6e-8 | 2e-7 |
+
+Each bound is about twice the worst run. The directions grow with the stem's height, which fits plain f32 sines of spiral angles up to about 800 radians. The error is held under COUNCIL.md's tolerance, not guarded. The controls: with one base removed, the comparison is refused on count; with one cell's corner moved by 1e-2, it is refused on the cell corner.
+
+The resident suite agrees on every preset with the palm whole. The sweep test matches 257 of 257 palm runs (the trunk and 256 bases), centres within 5.1e-5 m. The palm builds the same leaves twice, and the route test draws it.
+
+**Stills** (fn-266's `raw/stills/sheets/`, F4 against the device, viewed): the trunk carries F4's diamond lattice of boots on the same spiral, the foot included (`date-palm-trunk.png`). The crown is F4's in form. Pixels differing past 2%: whole 2.5%, mid 12.8%, close 14.0%. That matches 12.7.1's figures with the bases set aside on both sides (2.5%, 13 to 14%), so the difference is the leaflets' own draws, not the trunk.
+
+**Build time** (`build_time`, the palm at 40, warm): 98, 101 and 98 ms with its bases, against 99 and 96 ms with them set aside. The stage's cost is within noise.
