@@ -152,6 +152,21 @@ Checked without a browser: the page's modules resolve to this worktree's `src/br
 - **The workspace gate** (`cargo test --profile ci --workspace --no-fail-fast`, `raw/t4-gate-workspace.txt`) was green but for one test. The repeat test ran out of device memory on Telperion while other whole-tree tests ran beside it. The Two Trees' peak equals the base's (Telperion 6,114 MB on the base against 6,122; Laurelin 5,619 against 5,526), so the sizing did not raise it. The repeat test now holds `whole_tree()`, as the other whole-tree tests do, and the render library is green (161 passed, `raw/t4-gate-render.txt`).
 - **`npm test`:** 15 files, 162 tests, green (`raw/t4-gate-npm.txt`).
 
+## impl-review (codex, against F4's tip `9e4f2c276`)
+
+1. **Round 1, three reviewers** (one failed on the model's capacity): NEEDS_WORK. Two reviewers found one P1. A species that reads light has no expected peak, and the browser's admission took that as "fits beside the drawn tree", while its build now runs on the device.
+   - **Admission:** with no expectation, a build makes room first wherever a tree is drawn, and is refused where the page already holds its budget (`a_tree_with_no_expectation_makes_room_first`).
+   - **The build:** it is held to the budget as it grows. The ledger takes a build's cap, and `io::buffer` refuses by name any buffer that would pass it beside every byte held (`a_build_with_no_expectation_is_held_to_the_budget_as_it_grows`).
+2. **Round 2:** a first version checked after each move and missed the move's peak. That check was replaced by the one before allocation.
+3. **Round 3** (after a round-cap reset, per the owner's standing rule): a buffer let go while the copy encoder was open left the ledger at once. It now stays charged until it is destroyed (`a_buffer_let_go_counts_against_the_cap_until_it_is_destroyed`).
+4. **Round 4: SHIP.**
+
+After the fixes:
+- the render library: 164 passed (`raw/t4-gate-render-final.txt`);
+- `npm test`: 162 (`raw/t4-gate-npm-final.txt`).
+
+**The device-memory guard** in Open item 2 is now built for the browser: a build there is refused by name before it passes the page's 6 GiB. Natively no budget is stated, so a native build is still bounded only by the card.
+
 ## Open, for the owner and the host
 
 1. **Warm build, missed for six presets:**
