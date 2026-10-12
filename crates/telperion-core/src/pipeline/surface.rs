@@ -40,7 +40,7 @@ pub use build::extent;
 #[cfg(feature = "geometry")]
 use build::*;
 #[cfg(feature = "geometry")]
-pub(crate) use build::{faces, Faces};
+pub(crate) use build::{faces, segments, Faces};
 #[cfg(feature = "geometry")]
 pub(crate) use curve::{curve, traced};
 #[cfg(feature = "geometry")]

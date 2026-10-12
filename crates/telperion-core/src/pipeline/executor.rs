@@ -254,7 +254,7 @@ impl Expansion {
     /// angle, cosine and sine (`CompactSurface`'s).
     pub fn section(&self) -> Result<Section> {
         let p = &self.inputs.surface.params;
-        let segments = p.radial_segments.max(p.lobes * 4);
+        let segments = surface::segments(p) as u32;
         Ok(Section {
             segments,
             lobes: p.lobes,
