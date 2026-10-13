@@ -13,14 +13,16 @@ R1 (a) to (d), R2a and R2a', on fn-255's CPU cycle, before any API or device wor
 |---|---|
 | (a) Every read of the final age | Listed below. Every read is fixed by a horizon given at `begin`, except retirement's, which (c) replaces. |
 | (b) The tree at a year is the horizon's prefix | **Holds.** On 6 presets at seed 42, every year's tree of one run, retired at the age grown, is the tree of a run that retires nothing, 40 of 40 years, and on Telperion 82 of 82. |
-| (b) No pop in a walk | **Holds for the horizon; open for shedding (host).** In years without shedding no old organ moves at all; the year boundary still drops shed branches whole, as today's trees of each age do. Below. |
+| (b) No pop in a walk | **Does not hold at shedding (host).** The horizon itself adds none: in years without shedding no old organ moves at all. But each year boundary drops shed branches drawn at a quarter or more whole, as today's trees of each age do. Below. |
 | (c) Retirement at the age grown keeps today's tree | **Holds**, 24 of 24 (8 presets, seeds 1, 7, 42). |
 | (c) The live set | **Peak:** +11.6% to +18.1%, under 25%. **Per cycle:** up to +90.9% (spruce, cycle 24), over 25% on every preset but the palm. Which one the stop reads is the host's call. |
 | (d) 0→H is 0→a→H | **Holds** on 8 presets at seed 42, a = 10, 40, H−1, with two settles and a zero-year advance at a; in the gate also around the first waking, apex end, retirement and change of age. |
 | No snapshot mutation | **Holds:** the grower's digest is the same after every settle, at every split and every year of the walks. |
-| R2a, R2a' | **Hold** with the stand-in presentation. |
+| R2a: fractional settles leave the state; the whole year is today's tree | **Hold.** |
+| R2a: just past a year joins the previous year's tree | **Does not hold for old organs (host).** New organs start from nothing; but the tree drawn just past 40 is year 41's in its old organs, and 94,909 of the oak's year-40 organs have moved or gone there (shedding and fades step a whole year). |
+| R2a' | **Holds** with the stand-in presentation. |
 
-No same-executor mismatch and no snapshot mutation. The live-set stop holds on its peak reading and fires on a per-cycle reading.
+No same-executor mismatch and no snapshot mutation. **Two things go to the host:** the live-set stop holds on its peak reading and fires on a per-cycle reading; and the year boundary pops where the year sheds, in the walk (b) and in the join (R2a). The preset runner now ends with exit 2 on a live-set reading over 25% and fails on any mismatch, mutation or prefix break (review round 1).
 
 ## (a) Every read of the final age, against code
 
@@ -61,20 +63,20 @@ So the growth law reads H through the windows (the council's finding), and the s
 
 Today's retirement is not continuable: a year's settle reads a subtree let go while it still fades, and either draws a different tree or panics (`geometry.rs:65`, a lateral on a bearer whose phytomers were let go).
 
-**Pops.** How far each year moves the phytomers of the year before, each known by its axis's lineage and place (`movement`): the most an old one's scale moved, how many moved by over a quarter, and how many over a quarter went. Against today's trees of each age (one request per age), on the 40-year presets:
+**Pops.** How far each year moves the phytomers of the year before, each known by its axis's identity (`identities`; a relay shares its bearer's lineage) and its place on the axis (`movement`): the most an old one's scale moved, how many moved by over a quarter, and how many over a quarter went. Against today's trees of each age (one request per age), on the 40-year presets:
 
 | Preset | Horizon: most / moved > ¼ / gone > ¼ (of them shed whole) | Today's ages: most / moved > ¼ / gone > ¼ |
 |---|---|---|
-| european-beech | 0.998 / 2,405 / 214,601 (197,093) | 0.986 / 2,896 / 224,286 |
-| silver-birch | 1.000 / 9,325 / 501,397 | 1.000 / 12,320 / 503,034 |
-| ordinary | 1.017 / 143,249 / 110,874 | 1.017 / 139,031 / 107,724 |
-| oregon-white-oak | 1.833 / 42,559 / 783,041 | 1.720 / 44,754 / 781,437 |
-| norway-spruce | 0.972 / 8,947 / 1,578,540 | 0.971 / 8,951 / 1,564,765 |
+| european-beech | 0.998 / 2,205 / 197,093 (197,093) | 0.986 / 2,636 / 204,567 |
+| silver-birch | 1.000 / 8,194 / 501,397 (501,397) | 1.000 / 11,131 / 503,034 |
+| ordinary | 1.017 / 140,203 / 110,874 (110,874) | 1.017 / 136,016 / 107,989 |
+| oregon-white-oak | 1.833 / 13,498 / 783,225 (783,225) | 1.720 / 15,579 / 784,079 |
+| norway-spruce | 0.972 / 8,947 / 1,578,540 (1,578,540) | 0.971 / 8,951 / 1,564,765 |
 
-Telperion's walk (82 years, horizon only): most 1.000, 143,656 moved over a quarter, 11,371,626 gone over a quarter, 10,883,811 of them shed whole.
+Telperion's walk (82 years, horizon only): most 1.000, 140,222 moved over a quarter, 10,883,811 gone over a quarter, every one shed whole.
 
-- **The horizon adds no pop.** In the beech's years 2 to 11, before any shedding, no old phytomer's scale moves at all under the horizon (most 0.000); today's ages move them by up to 0.45 a year as the windows move with the age.
-- **The year boundary still pops where shedding steps.** A fade falls by a whole cycle at a time, so a branch drawn at a quarter or more is gone the next year, its whole axis with it (92% of the beech's gone phytomers). That is today's law, the same in both walks, and it is what R5's presentation within the year meets at every year boundary: a tree drawn just past a year is next year's tree with its new organs at nothing, and its shed branches already gone. **For the host:** whether "no pop" covers shedding's whole-year steps, and if so whether R5 fades shedding within the year as well.
+- **The horizon adds no pop of its own.** In the beech's years 2 to 11, old phytomers move by over a quarter in one year only (year 8, three of them) and otherwise not at all (most 0.000 in eight of the ten years); today's ages move them every year by up to 0.71 as the windows move with the age.
+- **The year boundary still pops where shedding steps.** A fade falls by a whole cycle at a time, so a branch drawn at a quarter or more is gone the next year, its whole axis with it (every gone phytomer under the horizon, on every preset). That is today's law, the same in both walks, and it is what R5's presentation within the year meets at every year boundary: a tree drawn just past a year is next year's tree with its new organs at nothing, and its shed branches already gone. **For the host:** whether "no pop" covers shedding's whole-year steps, and if so whether R5 fades shedding within the year as well.
 
 ## (c) Retirement at the age grown
 
@@ -114,7 +116,7 @@ The gate (`a_tree_paused_and_grown_on_is_the_tree_grown_at_once`) also splits th
 - 40 → 40.25 → 40.5 → 41 commits cycle 41 once, at 40.25; the later requests commit nothing.
 - No settle at 40.25, 40.5 or 41 moves the grower's digest.
 - The settle at 41 is the tree `grow_cycle` grows to 41, to the bit.
-- Just past 40 (40 + 1e-9), this year's phytomers stand at 1e-9 of their whole size or less: new organs start from nothing. The old organs are year 41's, so they differ from year 40's by the year's moves above, its shedding included.
+- Just past 40 (40 + 1e-9), this year's phytomers stand at 1e-9 of their whole size or less: new organs start from nothing. The old organs are year 41's (asserted), so they differ from year 40's by the year's moves above: 94,909 of the oak's year-40 organs moved or went (`JOIN`, `raw/t1-r2a.log`). The stand-in scales only `scale`; new shoots keep their whole-year tips and radii, which task 4's curves replace.
 
 ## Cost
 
@@ -122,6 +124,6 @@ The gate (`a_tree_paused_and_grown_on_is_the_tree_grown_at_once`) also splits th
 |---|--:|--:|
 | `kept` Telperion (today's then at the age, seed 42) | 28.4 | 3.78 GB |
 | `split` Telperion (three splits) | 96.3 | 4.15 GB |
-| `walk` norway-spruce (three walks of 40 settles, 40 of today's ages) | 259.5 | 2.35 GB |
-| `walk` Telperion (three walks of 82 settles) | 419.0 | 7.66 GB (the run retiring nothing) |
+| `walk` norway-spruce (three walks of 40 settles, 40 of today's ages) | 246.0 | 2.35 GB |
+| `walk` Telperion (three walks of 82 settles) | 404.0 | 7.64 GB (the run retiring nothing) |
 | Gate tests (`grow::cycle::paused`, five, one thread) | 60 | |

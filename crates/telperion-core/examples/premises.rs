@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::time::Instant;
 use telperion_core::presets::Preset;
-use telperion_space::{grow_census, grow_cycle, tree_digest, Census, Light, Paused, Request, Retiring, Species, Structure};
+use telperion_space::{grow_census, grow_cycle, identities, tree_digest, Census, Light, Paused, Request, Retiring, Species, Structure};
 
 const PRESETS: [(Preset, &str); 8] = [
     (Preset::EuropeanBeech, "european-beech"),
@@ -74,6 +74,13 @@ fn kept(species: &Species, r: Request) {
     );
     println!("  LIVE today {held_today:?}");
     println!("  LIVE atage {held_age:?}");
+    assert!(tree_digest(&tree) == digest, "STOP: the kept tree is not today's");
+    // The stop's two readings (PREMISES.md): the peak, and each cycle.
+    let peak_rise = peak(&held_age) as f64 / peak(&held_today) as f64;
+    if peak_rise > 1.25 || worst > 1.25 {
+        println!("  STOP live set: peak {peak_rise:.4}, cycle {at} {worst:.4}, over 1.25");
+        std::process::exit(2);
+    }
 }
 
 /// Each cycle's phytomers held.
@@ -97,6 +104,7 @@ fn split(species: &Species, r: Request) {
         p.grow_to(r.age).expect("grown on");
         let on = tree_digest(&p.settle().expect("settled"));
         println!("  SPLIT {a}: settles repeat {}, grower moved {moved}, grown on is today's {}", first == again, on == today);
+        assert!(first == again && !moved && on == today, "STOP: split at {a}");
     }
 }
 
@@ -125,6 +133,7 @@ fn walk(species: &Species, r: Request) {
     let never = walk_digests(species, r, Retiring::Never);
     let same = never.iter().zip(&digests).filter(|(a, b)| a == b).count();
     println!("  WALK at-age against none retired: {same} of {} years the same", r.age);
+    assert_eq!(same, r.age as usize, "STOP: a year's tree is not the horizon's prefix");
     let horizon = walk_digests(species, r, Retiring::AtHorizon);
     let first = horizon.iter().zip(&digests).position(|(a, b)| a != b).map(|k| k + 1);
     let failed = horizon.iter().filter(|d| **d == 0).count();
@@ -159,25 +168,23 @@ fn walk_digests(species: &Species, r: Request, retiring: Retiring) -> Vec<u64> {
 /// How far a year moves the phytomers the year before held, each known
 /// by its axis's lineage and place: the most an old one's scale moved,
 /// how many moved by over a quarter, how many of over a quarter went, and
-/// of those how many went with their whole axis (shed); and the lineages
-/// two axes share.
+/// of those how many went with their whole axis (shed). An axis is known
+/// by its identity (`identities`): a relay shares its bearer's lineage.
 #[derive(Debug, Clone, Copy, Default)]
 struct Moved {
     most: f64,
     jumped: usize,
     gone: usize,
     shed: usize,
-    shared: usize,
 }
 
 fn movement(prev: &Structure, now: &Structure) -> Moved {
     let mut m = Moved::default();
-    let mut at: HashMap<u64, &[telperion_space::Phytomer]> = HashMap::new();
-    for a in &now.axes {
-        m.shared += usize::from(at.insert(a.lineage, &a.phytomers).is_some());
-    }
-    for a in &prev.axes {
-        let now = at.get(&a.lineage);
+    let at: HashMap<u64, &[telperion_space::Phytomer]> =
+        identities(now).into_iter().zip(now.axes.iter().map(|a| &a.phytomers[..])).collect();
+    assert_eq!(at.len(), now.axes.len(), "an identity a tree's axes share");
+    for (a, id) in prev.axes.iter().zip(identities(prev)) {
+        let now = at.get(&id);
         for (k, q) in a.phytomers.iter().enumerate() {
             match now.and_then(|p| p.get(k)) {
                 Some(p) => {
@@ -201,8 +208,7 @@ fn print_moves(label: &str, moved: &[Moved]) {
     let jumped: usize = moved.iter().map(|m| m.jumped).sum();
     let gone: usize = moved.iter().map(|m| m.gone).sum();
     let shed: usize = moved.iter().map(|m| m.shed).sum();
-    let shared: usize = moved.iter().map(|m| m.shared).sum();
-    println!("  MOVES {label}: most {most:.4}, over a quarter {jumped}, gone over a quarter {gone} ({shed} shed), lineages shared {shared}");
+    println!("  MOVES {label}: most {most:.4}, over a quarter {jumped}, gone over a quarter {gone} ({shed} shed)");
     let years: Vec<String> = moved.iter().enumerate().map(|(k, m)| format!("{}:{:.3}/{}/{}", k + 2, m.most, m.jumped, m.gone)).collect();
     println!("  MOVES {label} by year {}", years.join(" "));
 }

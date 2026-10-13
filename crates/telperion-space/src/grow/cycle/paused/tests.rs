@@ -6,6 +6,7 @@ use super::super::{grow_census, grow_cycle};
 use crate::error::Error;
 use crate::light::Light;
 use crate::structure::Origin;
+use std::collections::HashMap;
 
 fn request(age: u32, seed: u64, extinction: f64) -> Request {
     let light = Light { extinction, sky: 0.5 };
@@ -208,4 +209,33 @@ fn a_tree_drawn_within_its_year_unfolds_from_the_last() {
     let just = u.settle(40.0 + 1e-9);
     let new = just.axes.iter().flat_map(|a| &a.phytomers).filter(|p| p.cycle == 41);
     assert!(new.clone().all(|p| p.scale <= 1e-8 * largest), "this year's start from nothing");
+    // The join with year 40's tree: its organs drawn just past 40 are
+    // year 41's, so they join it only where the year sheds or fades
+    // nothing. The stand-in leaves that step whole (PREMISES.md, R2a).
+    let mut forty = Paused::begin(&species, r, Retiring::AtAge, false).unwrap();
+    forty.grow_to(40).unwrap();
+    let forty = forty.settle().unwrap();
+    let whole = u.settle(41.0);
+    let (joined, step) = (organs(&just), organs(&whole));
+    let old = |m: &HashMap<(u64, usize), f64>| m.iter().filter(|(_, s)| **s > 1e-8 * largest).count();
+    let mut moved = 0;
+    for (key, s) in organs(&forty) {
+        let (at, next) = (joined.get(&key), step.get(&key));
+        assert_eq!(at, next, "just past 40 an organ of 40 is drawn as at 41");
+        moved += usize::from(at != Some(&s));
+    }
+    assert!(old(&joined) > 0);
+    eprintln!("JOIN oak 40 -> 40+: {moved} of year 40's organs moved or went");
+}
+
+/// Every phytomer's scale, by its axis's identity and its place on it.
+fn organs(tree: &Structure) -> HashMap<(u64, usize), f64> {
+    let ids = crate::fine::identities(tree);
+    let mut m = HashMap::new();
+    for (a, id) in tree.axes.iter().zip(ids) {
+        for (k, p) in a.phytomers.iter().enumerate() {
+            m.insert((id, k), p.scale);
+        }
+    }
+    m
 }
