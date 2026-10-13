@@ -17,10 +17,19 @@ fn forced() -> Sizes {
     Sizes { compact: Compact::Every, ..Sizes::least() }
 }
 
-/// A digest of a settled tree's node table, to the word, and its fault.
+/// The node table's column of each axis's grown index (`settle_compact.wgsl`'s
+/// `NA_GROWN`): its slot in the arena, which a compaction renumbers.
+const NA_GROWN: usize = 23;
+
+/// A digest of a settled tree's node table, to the word but for each
+/// axis's grown index, which the arena's compactions renumber (an axis is
+/// known by its lineage, DESIGN.md section 13), and its fault.
 pub(in crate::generation::cycle) fn digest(gpu: &Gpu, s: &Settled) -> u64 {
     let mut words = s.error.to_vec();
-    words.extend(read_words(gpu, &s.nt, 0, s.table.words).expect("a readback"));
+    let mut table = read_words(gpu, &s.nt, 0, s.table.words).expect("a readback");
+    let (sk, kept) = (s.table.sk as usize, s.table.kept as usize);
+    table[NA_GROWN * sk..NA_GROWN * sk + kept].fill(0);
+    words.extend(table);
     let mut h = std::collections::hash_map::DefaultHasher::new();
     words.hash(&mut h);
     h.finish()
@@ -74,7 +83,7 @@ fn a_tree_grown_on_on_the_device_is_the_tree_grown_at_once() {
             block(s.settle(&gpu, &k, f64::from(h) - 0.5)).expect("drawn within the year");
             let on = digest(&gpu, &block(s.settled(&gpu, &k)).expect("settled"));
             let grew = &s.growing.as_ref().expect("a build").grew;
-            println!("{name} paused at {a}: moves {} after cycles {:?}, compactions {}", grew.moves, grew.moved_at.iter().map(|m| m.0).collect::<Vec<_>>(), grew.compactions);
+            println!("{name} paused at {a}: moves {} after cycles {:?}, compactions {}", grew.moves, grew.moved_at, grew.compactions);
             paused.push((a, first == again, on));
         }
         println!("{name} {h}: once {once:x}, through the state {at_once:x}, paused {paused:x?}");

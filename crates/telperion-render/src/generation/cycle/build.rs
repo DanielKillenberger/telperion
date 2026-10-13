@@ -176,7 +176,7 @@ pub(super) struct Build {
 
 impl Build {
     /// The buffers for a tree of `caps`, the rows of every cycle uploaded.
-    pub(super) fn new(gpu: &Gpu, t: &Tables, (c, caps, block_cap, records): (&Capture, Caps, u32, u32), (lit, nodes): (Lit, u32)) -> Result<Self> {
+    pub(super) fn new(gpu: &Gpu, t: &Tables, (c, caps, block_cap): (&Capture, Caps, u32), (lit, nodes): (Lit, u32)) -> Result<Self> {
         let state = State::new(gpu, caps)?;
         let mut light = Light::new(gpu, &Cap(c))?;
         light.ensure(gpu, lit, nodes)?;
@@ -188,7 +188,7 @@ impl Build {
             tree: zeroed(gpu, "cycle tree", u64::from(super::hier_columns::TREE as u32 * s))?,
             light,
             layout: Layout::new(gpu, &t.form, s)?,
-            retire: super::retire_device::Retire::new(gpu, (s, records), &t.settle_pa, t.log)?,
+            retire: super::retire_device::Retire::new(gpu, s, &t.settle_pa, t.log)?,
             compactor: super::compact::Compactor::new(gpu, caps, s)?,
             inputs: zeroed(gpu, "cycle inputs", 2 * u64::from(caps.next) + 6 * u64::from(s))?,
             counts: zeroed(gpu, "cycle counts", device::counts(caps, t.zones).words)?,

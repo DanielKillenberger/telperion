@@ -111,7 +111,7 @@ impl Rec<'_> {
         let buf = uniform(self.gpu, &cfg)?;
         let st = &self.b.state;
         let r = &self.b.retire;
-        let bind = self.pass.bind(self.gpu, &[&buf, &st.axes, &st.units, &st.grown, &self.work, &self.atom, &self.nt, &r.ret, &r.recs]);
+        let bind = self.pass.bind(self.gpu, &[&buf, &st.axes, &st.units, &st.grown, &self.work, &self.atom, &self.nt, &r.ret]);
         let groups = match entry {
             d::LEAF => items,
             d::LEAF_SUM => 1,
@@ -179,9 +179,9 @@ enum Data {
 pub(super) async fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Build, &Tables), (pa, to): (&[u32], SettleTo)) -> Result<Settled> {
     let freed = b.shed_growth();
     let h = b.held;
-    // The grown phytomers: those the arena holds and those let go into
-    // the records.
-    let phyts = h.phyts + b.retire.rec_n;
+    // The grown phytomers the arena holds, and a place for each retired
+    // root's frozen terms (fn-270 R4): no more than the axes.
+    let phyts = h.phyts + h.axes;
     let layout = Layout::new(h.axes, phyts, h.units, h.next.max(h.woken), t.pas);
     let flags = flags(pa);
     let mut cfg = [0u32; 32];
@@ -189,7 +189,7 @@ pub(super) async fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Buil
     let l = &layout;
     let words = [
         h.axes, widest(gpu).0, 0, 0, caps.axes, caps.units, caps.phyts, b.age(), l.sa, l.sp, l.su, 0, l.at_a, l.at_p,
-        l.at_u, l.at_f, 0, 0, 0, 0, 0, 0, 0, l.at_l, h.next, h.woken, flags, 0, l.sl, 0, l.kfill(), b.retire.rec_cap.max(1),
+        l.at_u, l.at_f, 0, 0, 0, 0, 0, 0, 0, l.at_l, h.next, h.woken, flags, 0, l.sl, 0, l.kfill(), 0,
     ];
     cfg.copy_from_slice(&words);
     let mut r = Rec {

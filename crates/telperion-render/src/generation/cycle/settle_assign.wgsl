@@ -102,7 +102,7 @@ fn prow(a: u32, j: u32) -> u32 {
 // `decide::relay_node_f`): the node whose span holds `share` of the
 // unit's node presences, by count where it has none.
 fn relay_node(p: u32) -> u32 {
-    let n = ax(p, A_PHYTS);
+    let n = phyts_of(p);
     if n == 0u {
         return 0u;
     }
@@ -153,7 +153,7 @@ fn assign_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let birth = ax(i, A_BIRTH);
     let us = wa(W_USTART, i);
     let ps = wa(W_PSTART, i);
-    let n = ax(i, A_PHYTS);
+    let n = phyts_of(i);
     var running = 1.0;
     var sum = 0.0;
     var j = 0u;

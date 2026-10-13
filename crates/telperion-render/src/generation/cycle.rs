@@ -46,7 +46,6 @@ mod plan_lay;
 mod plan_scan;
 mod plan_units;
 mod compact;
-mod retire_compact;
 mod retire_device;
 #[cfg(test)]
 mod ruled;

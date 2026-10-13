@@ -55,7 +55,6 @@ fn arena_ratios() {
             let sizes = Sizes { compact: if off { Compact::Off } else { Compact::Every }, ..sized };
             println!("{id} {seed}: {hinted:?}, {:?}", sizes.caps);
             let (b, _, grew) = grow_now(&gpu, &kit, &t, &g.tables, (sizes, age)).expect("a build");
-            let records = f64::from(b.retire.rec_n) / h;
             drop(b);
             gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
             // The axes against the expected axes, the rest the kept phytomers.
@@ -65,7 +64,7 @@ fn arena_ratios() {
                 *m = m.max(*r);
             }
             let cells: Vec<String> = ratios.iter().map(|r| format!("{r:.4}")).collect();
-            println!("| {id} | {seed} | {h:.0} | {} | records {records:.4} |", cells.join(" | "));
+            println!("| {id} | {seed} | {h:.0} | {}|", cells.join(" | "));
         }
     }
     let cells: Vec<String> = most.iter().map(|r| format!("{r:.4}")).collect();
@@ -99,7 +98,7 @@ fn every_preset_grows_from_its_hint_as_in_its_final_tables() {
             let g = grown_from(growth.species.clone(), growth.request.light, (age, seed));
             let sizes = Sizes::hinted(hint(&g.species, age).expect("a hint")).expect("sized");
             let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
-            let mut drawn = |sizes: Sizes| {
+            let drawn = |sizes: Sizes| {
                 gpu.ledger.take_peak();
                 let clock = std::time::Instant::now();
                 let (b, grown, grew) = grow_now(&gpu, &k.build, &t, &g.tables, (sizes, age)).unwrap_or_else(|e| panic!("{id} {seed}: {e}"));
@@ -113,7 +112,7 @@ fn every_preset_grows_from_its_hint_as_in_its_final_tables() {
                 (d, grown)
             };
             let (hinted, grown) = drawn(sizes);
-            let (fixed, _) = drawn(Sizes { caps: grown.caps, points: grown.points, tips: grown.tips, nodes: grown.nodes, records: grown.records, bounds: grown.bounds, ..sizes });
+            let (fixed, _) = drawn(Sizes { caps: grown.caps, points: grown.points, tips: grown.tips, nodes: grown.nodes, bounds: grown.bounds, ..sizes });
             if hinted != fixed {
                 apart.push(format!("{id} {seed}"));
             }
@@ -169,3 +168,4 @@ fn rounds(censuses: &[Vec<u32>]) -> String {
 fn aged(own: u32) -> u32 {
     std::env::var("ARENA_AGE").ok().and_then(|a| a.parse().ok()).unwrap_or(own)
 }
+

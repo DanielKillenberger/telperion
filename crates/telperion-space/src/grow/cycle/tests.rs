@@ -20,11 +20,16 @@ fn reference(species: &Species, r: Request) -> Structure {
     run(species, r, false, Working::reference()).unwrap().structure
 }
 
+/// The most a phytomer's radius moves when retirement freezes the girth
+/// of what closed (fn-270 R4, the host's ruling: a frozen subtree's wood
+/// stops ripening): measured at most 2.8e-6 on these trees, 5.4e-5 on
+/// the shipped presets (Telperion).
+const SHIFT: f64 = 1e-4;
+
 /// The working set's frozen subtrees and the subtrees retired as the tree
-/// grows leave every sum, and so the tree, the reference's to the bit,
-/// where many are retired: the oak (which reads light and keeps leaf
-/// girth, its retired phytomers kept as records), the spruce and the
-/// beech.
+/// grows leave every sum, and so the tree, the reference's to the bit but
+/// for the girth retirement freezes, where many are retired: the oak
+/// (which reads light and keeps leaf girth), the spruce and the beech.
 #[test]
 fn the_working_set_and_retirement_leave_the_tree_as_it_was() {
     for (species, k) in [(crate::oak(), 0.5), (crate::spruce(), 0.0), (crate::beech(), 0.0)] {
@@ -32,7 +37,9 @@ fn the_working_set_and_retirement_leave_the_tree_as_it_was() {
         let cycled = grow_census(&species, r).unwrap();
         let retired = cycled.census.expect("a census").retired;
         assert!(retired > 100, "{retired} retired");
-        assert!(cycled.structure == reference(&species, r), "{retired} retired");
+        let apart = super::girth_apart(&cycled.structure, &reference(&species, r));
+        println!("{retired} retired, girth apart {apart:?}");
+        assert!(apart.is_some_and(|(_, most)| most <= SHIFT), "{retired} retired, girth apart {apart:?}");
     }
 }
 
@@ -119,8 +126,9 @@ fn survival_in_the_dark() {
 /// Buds that wake and stop in their waking cycle, beside bearers that
 /// grow on: the oak (whose leaf girth keeps retired records) with every
 /// zone's laterals also sleeping and waking, and every lateral age
-/// aborting often, retires them and still grows the reference tree
-/// (review round 1: a woken bud's kept share reads its bearer's next unit).
+/// aborting often, retires them and still grows the reference tree but
+/// for the girth retirement freezes (review round 1: a woken bud's kept
+/// share reads its bearer's next unit).
 #[test]
 fn woken_buds_that_stop_at_once_retire_as_the_reference_has_them() {
     let mut species = crate::oak();
@@ -138,7 +146,9 @@ fn woken_buds_that_stop_at_once_retire_as_the_reference_has_them() {
         let cycled = grow_census(&species, r).unwrap();
         let retired = cycled.census.expect("a census").retired;
         assert!(retired > 10, "seed {seed}: {retired} retired");
-        assert!(cycled.structure == reference(&species, r), "seed {seed}: {retired} retired");
+        let apart = super::girth_apart(&cycled.structure, &reference(&species, r));
+        println!("seed {seed}: {retired} retired, girth apart {apart:?}");
+        assert!(apart.is_some_and(|(_, most)| most <= SHIFT), "seed {seed}: {retired} retired, girth apart {apart:?}");
     }
 }
 

@@ -20,7 +20,8 @@ fn seed_main(@builtin(global_invocation_id) id: vec3<u32>) {
         set_wa(W_USTART, i, 0u);
         return;
     }
-    set_wa(W_PSTART, i, ax(i, A_PHYTS));
+    // A retired root's one place: its frozen terms in the leaf mean's order.
+    set_wa(W_PSTART, i, phyts_of(i) + u32(retired_root(i)));
     set_wa(W_USTART, i, ax(i, A_UNITS));
     let p = ax(i, A_PARENT);
     set_wa(W_DEPTH, i, select(1u, 0u, p == NONE));
@@ -93,6 +94,11 @@ fn fill_main(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     let ps = wa(W_PSTART, i);
     let us = wa(W_USTART, i);
+    let n_p = phyts_of(i);
+    if retired_root(i) {
+        set_wp(WP_ROW, ps, NONE);
+        set_wp(WP_UNIT, ps, i);
+    }
     var r = ax(i, A_HEAD);
     var k = 0u;
     var j = 0u;
@@ -101,14 +107,14 @@ fn fill_main(@builtin(global_invocation_id) id: vec3<u32>) {
         set_wu(WU_ROW, us + k, r);
         let first = unit(r, U_FIRST);
         let n = unit(r, U_COUNT);
-        for (var t = 0u; t < n && j < ax(i, A_PHYTS); t++) {
+        for (var t = 0u; t < n && j < n_p; t++) {
             set_wp(WP_ROW, ps + j, first + t);
             j += 1u;
         }
         k += 1u;
         r = unit(r, U_NEXT);
     }
-    if r != NONE || k != ax(i, A_UNITS) || j != ax(i, A_PHYTS) {
+    if r != NONE || k != ax(i, A_UNITS) || j != n_p {
         fault(FAULT_LIST);
     }
 }

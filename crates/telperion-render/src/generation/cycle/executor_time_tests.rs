@@ -86,13 +86,13 @@ fn measured(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (preset, name, age, seed): (P
     let stamps = super::super::profile::finish(gpu);
     let grown_peak = gpu.ledger.take_peak();
     let (resident, scratch) = b.bytes(&t);
-    let (rows, records) = (b.held.phyts, b.retire.rec_n);
+    let rows = b.held.phyts;
     let s = settle(gpu, (kit, k), (&b, &t), (&pa, SettleTo::Laid)).expect("a settle");
     let_go(gpu);
     let settle_peak = gpu.ledger.take_peak();
     let ((ms, kernel), sum) = by_kernel(&stamps);
     println!(
-        "{label}: letting go, moved {}; {} dispatches, {sum:.1} ms stamped, longest {ms:.3} ms ({kernel}); arena {rows} rows of {}, {records} records; resident {:.0} MB, scratch {:.0} MB; peak growing {:.0} MB, settling {:.0} MB (the settle's own {:.0} MB); laid {} axes, {} phytomers, error {:?}",
+        "{label}: letting go, moved {}; {} dispatches, {sum:.1} ms stamped, longest {ms:.3} ms ({kernel}); arena {rows} rows of {}; resident {:.0} MB, scratch {:.0} MB; peak growing {:.0} MB, settling {:.0} MB (the settle's own {:.0} MB); laid {} axes, {} phytomers, error {:?}",
         grew.moves, stamps.len(), sizes.caps.phyts, resident as f64 / 1e6, scratch as f64 / 1e6,
         grown_peak as f64 / 1e6, settle_peak as f64 / 1e6, s.bytes() as f64 / 1e6, s.table.kept, s.table.phyts, s.error
     );

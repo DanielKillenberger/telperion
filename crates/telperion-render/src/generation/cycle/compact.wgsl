@@ -47,7 +47,6 @@ const NONE: u32 = 0xffffffffu;
 const ID: u32 = 0u;
 const BY_INDEX: u32 = 0u;
 const BY_VALUE: u32 = 1u;
-const BY_RECORDED: u32 = 3u;
 const RETIRED: u32 = 2u;
 
 fn index(id: vec3<u32>) -> u32 {
@@ -59,8 +58,7 @@ fn word(r: u32) -> u32 {
 }
 
 // Each row's flag: kept where its fate (by its index or by the index its
-// column holds) is below `below`, recorded where it is not, or kept where
-// that column holds an index.
+// column holds) is below `below`, or kept where that column holds an index.
 // The scan's last word none, for its total.
 @compute @workgroup_size(64)
 fn flag_main(@builtin(global_invocation_id) id: vec3<u32>) {
@@ -76,8 +74,6 @@ fn flag_main(@builtin(global_invocation_id) id: vec3<u32>) {
         }
         if cfg.by == BY_INDEX || cfg.by == BY_VALUE {
             keep = v < cfg.val_n && vals[cfg.fate_at + v] < cfg.below;
-        } else if cfg.by == BY_RECORDED {
-            keep = v < cfg.val_n && vals[cfg.fate_at + v] >= cfg.below;
         } else {
             keep = v != NONE;
         }

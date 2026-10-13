@@ -49,8 +49,7 @@ struct Cfg {
     sl: u32,
     kept: u32,
     kfill: u32,
-    // The retired rows' records' stride (`retire_device.rs`).
-    rec_cap: u32,
+    pad: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -60,16 +59,13 @@ struct Cfg {
 @group(0) @binding(4) var<storage, read_write> work: array<u32>;
 @group(0) @binding(5) var<storage, read_write> atom: array<atomic<u32>>;
 @group(0) @binding(6) var<storage, read_write> nt: array<u32>;
-// Retirement's columns (`retire_cols.wgsl`'s `R_`, `axes_cap` rows apart)
-// and the retired rows' grown columns, a row the arena let go reached by
-// its unit's first phytomer's high bit (`retire_units.wgsl`).
+// Retirement's columns (`retire_cols.wgsl`'s `R_`, `axes_cap` rows apart).
 @group(0) @binding(7) var<storage, read> ret: array<u32>;
-@group(0) @binding(8) var<storage, read> recs: array<u32>;
 
 const NONE: u32 = 0xffffffffu;
-const RECORDED: u32 = 0x80000000u;
 const RT_FATE: u32 = 1u;
 const RT_ROOT_LIVED: u32 = 8u;
+const RT_FROZEN: u32 = 10u;
 const ONE64 = vec2<u32>(0u, 0x3ff00000u);
 const TICKS: u32 = 0x100000u;
 const SEED: u32 = 0u;
@@ -148,10 +144,22 @@ fn unit(r: u32, c: u32) -> u32 {
 }
 
 fn phyt(r: u32, c: u32) -> u32 {
-    if (r & RECORDED) != 0u {
-        return recs[c * cfg.rec_cap + (r ^ RECORDED)];
-    }
     return grown[c * cfg.phyts_cap + r];
+}
+
+// Axis `i`'s phytomers: none where a retired subtree let them go, its
+// root standing for them by its frozen girth (fn-270 R4).
+fn phyts_of(i: u32) -> u32 {
+    if ret[RT_FATE * cfg.axes_cap + i] >= 2u {
+        return 0u;
+    }
+    return ax(i, A_PHYTS);
+}
+
+// A retired root's girth frozen as it closed: its base radius and its two
+// leaf-mean sums, at its own base (`retire_cols.wgsl`'s `R_FROZEN_`).
+fn frozen(i: u32, k: u32) -> f32 {
+    return bitcast<f32>(ret[(RT_FROZEN + k) * cfg.axes_cap + i]);
 }
 
 // A retired subtree's root's fate and the living it stands for its

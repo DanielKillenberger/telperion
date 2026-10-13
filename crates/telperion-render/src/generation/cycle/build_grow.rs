@@ -36,8 +36,6 @@ pub(super) struct Sizes {
     pub points: u32,
     pub tips: u32,
     pub nodes: u32,
-    /// The retired rows the records hold, where a PA keeps them.
-    pub records: u32,
     pub bounds: Bounds,
     /// The most axes a hierarchy block holds: speed only (HIERARCHY.md).
     pub block_cap: u32,
@@ -49,7 +47,7 @@ impl Sizes {
     /// The smallest a build takes, its bounds stated from its tables.
     pub(super) fn least() -> Self {
         let caps = Caps { axes: 4096, units: 4096, phyts: 16384, sleepers: 4096, next: 4096, woken: 1024 };
-        let s = Self { caps, points: 16384, tips: 4096, nodes: 4096, records: 0, bounds: Bounds::default(), block_cap: super::hier_build::CAP, compact: Compact::Off };
+        let s = Self { caps, points: 16384, tips: 4096, nodes: 4096, bounds: Bounds::default(), block_cap: super::hier_build::CAP, compact: Compact::Off };
         Self { bounds: s.stated(), ..s }
     }
 
@@ -105,9 +103,8 @@ pub(super) struct Grew {
     /// The most each table held at a cycle's end, before any compaction
     /// after it (`build_arena::tables`).
     pub most: [u32; TABLES],
-    /// The cycle after which each move was made, and the records held
-    /// after it.
-    pub moved_at: Vec<(u32, u32)>,
+    /// The cycle after which each move was made.
+    pub moved_at: Vec<u32>,
     pub stamped: Vec<&'static str>,
     /// Host seconds recording and submitting cycles, waiting for the
     /// census, moving and compacting, and making a paused build's scratch
@@ -190,7 +187,7 @@ impl Growing {
         let mut grew = Grew::default();
         // A build let go before this one freed first (`Ledger::destroy`).
         super::super::io::complete(gpu).await?;
-        let b = Build::new(gpu, t, (tables, sizes.caps, sizes.block_cap, sizes.records), sizes.lit())?;
+        let b = Build::new(gpu, t, (tables, sizes.caps, sizes.block_cap), sizes.lit())?;
         let run = b.plan(gpu, kit, t, sizes.bounds)?;
         grew.stamped = b.seeded(gpu, kit, (&run.0, &run.1));
         let submitted = (limits(&sizes, None, None), Vec::new());
@@ -324,7 +321,7 @@ impl Growing {
             gpu.submit([e.finish()]);
             (run, self.sizes) = (plan, next);
             self.grew.moves += 1;
-            self.grew.moved_at.push((cycle, self.b.retire.rec_n));
+            self.grew.moved_at.push(cycle);
         }
         self.run = Some(run);
         self.grew.moving += clock.elapsed_ms() / 1e3;
@@ -346,9 +343,6 @@ impl Growing {
             self.tail = Some(read);
             return Ok(());
         }
-        // The records a compaction grew past their rows moved as a table
-        // does.
-        self.grew.moves += self.b.retire.rec_moves;
         self.b.counted(&read);
         if std::env::var("CYCLE_TRACE").is_ok() {
             trace(&self.grew, &self.sizes, upto);

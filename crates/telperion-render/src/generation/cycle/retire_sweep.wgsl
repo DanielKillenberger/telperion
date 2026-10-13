@@ -117,7 +117,27 @@ fn carried_up(i: u32) {
     }
     set_rtf(R_LIVED, i, lived);
     set_rtf(R_ALIVE, i, alive);
-    set_rt(R_WSUB, i, wait);
+    set_rt(R_WSUB, i, wait);    frozen_girth(i, kids);
+}
+
+// Closed axis `i`'s girth frozen (fn-270 R4, `retire::frozen_at`): its
+// own, then each child's by its base against `i`'s, in order.
+fn frozen_girth(i: u32, kids: vec2<u32>) {
+    let pa = ax(i, A_PA);
+    let e = kpaf(pa, K_EXPONENT);
+    var section = rcf(C_OWN_SECTION, i);
+    var s1 = rcf(C_OWN_S1, i);
+    var s2 = rcf(C_OWN_S2, i);
+    for (var k = kids.x; k < kids.y; k++) {
+        let c = hlists[ls(R_KIDS, k)];
+        let ratio = rcf(C_RATIO, c);
+        section = exact_kept(section + section_of(exact_kept(ratio * rtf(R_FROZEN_R, c)), e));
+        s1 = exact_kept(s1 + exact_kept(ratio * rtf(R_FROZEN_S1, c)));
+        s2 = exact_kept(s2 + exact_kept(ratio * rtf(R_FROZEN_S2, c)));
+    }
+    set_rtf(R_FROZEN_R, i, radius_of(section, kpaf(pa, K_INV_E)));
+    set_rtf(R_FROZEN_S1, i, s1);
+    set_rtf(R_FROZEN_S2, i, s2);
 }
 
 // An axis's living carried up, where it is laid and closed this cycle.

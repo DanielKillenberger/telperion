@@ -32,10 +32,10 @@ pub(super) const TERMS: usize = 10;
 pub(super) const FADING: usize = 11;
 /// `ret`'s columns a laid axis (`retire_cols.wgsl`'s `R_`), and the
 /// header's words before the PA constants.
-pub(super) const R_COLS: u64 = 10;
+pub(super) const R_COLS: u64 = 13;
 /// The cycle's own columns a laid axis (`retire_cols.wgsl`'s `C_`), in
 /// `verdicts` past the blocks' stamps: let go between calls (fn-270 R4).
-pub(super) const C_COLS: u64 = 6;
+pub(super) const C_COLS: u64 = 10;
 const HEAD: u64 = 64;
 /// The log's count of what the cycle reused, its words; the log's words
 /// before its entries, and its entries' words. The blocks' stamps follow
@@ -87,32 +87,18 @@ pub(super) struct Retire {
     /// The verdicts the log holds at most: none unless a test asks
     /// (`Tables::log`), as nothing in a build reads it.
     pub log_cap: u32,
-    /// The retired rows' grown columns, where a PA keeps them: the
-    /// records, their stride and how many are held.
-    pub recs: Owned,
-    pub rec_cap: u32,
-    pub rec_n: u32,
-    /// The times the records grew past their rows: moves.
-    pub rec_moves: u32,
 }
 
 impl Retire {
-    /// Retirement for `s` laid axes, its records sized for `records` rows
-    /// where a PA keeps them (none else).
-    pub(super) fn new(gpu: &Gpu, (s, records): (u32, u32), pa: &[u32], log: bool) -> Result<Self> {
+    /// Retirement for `s` laid axes.
+    pub(super) fn new(gpu: &Gpu, s: u32, pa: &[u32], log: bool) -> Result<Self> {
         let log_cap = if log { 4 * s } else { 0 };
-        let keeps = Self::keeping(pa);
-        let rec_cap = if keeps { records } else { 0 };
         let r = Self {
             ret: zeroed_dst(gpu, "retire columns", Self::ret_words(s, pa))?,
             verdicts: zeroed_dst(gpu, "retire verdicts", Self::verdict_words(log_cap, s))?,
             stride: s,
             pa: pa.to_vec(),
             log_cap,
-            recs: zeroed_dst(gpu, "retire records", super::state::GROWN * u64::from(rec_cap))?,
-            rec_cap,
-            rec_n: 0,
-            rec_moves: 0,
         };
         gpu.queue.write_buffer(&r.ret, 4 * (r.head() + HEAD), bytemuck::cast_slice(pa));
         Ok(r)
@@ -139,7 +125,7 @@ impl Retire {
         if s == self.stride {
             return Ok(self);
         }
-        let mut new = Retire::new(gpu, (s, 0), &self.pa, self.log_cap > 0)?;
+        let new = Retire::new(gpu, s, &self.pa, self.log_cap > 0)?;
         let (a, b) = (4 * u64::from(self.stride), 4 * u64::from(s));
         let head = 4 * self.head();
         for k in 0..R_COLS {
@@ -147,22 +133,12 @@ impl Retire {
         }
         e.copy_buffer_to_buffer(&self.ret, head, &new.ret, 4 * new.head(), 4 * HEAD);
         e.copy_buffer_to_buffer(&self.verdicts, 0, &new.verdicts, 0, self.verdicts.size().min(new.verdicts.size()));
-        (new.recs, new.rec_cap, new.rec_n, new.rec_moves) = (self.recs, self.rec_cap, self.rec_n, self.rec_moves);
         Ok(new)
     }
 
     #[cfg(test)]
     pub(super) fn bytes(&self) -> u64 {
-        self.ret.size() + self.verdicts.size() + self.recs.size()
-    }
-
-    /// Whether any PA keeps the retired rows (shed pipes or leaf girth).
-    pub(super) fn keeps(&self) -> bool {
-        Self::keeping(&self.pa)
-    }
-
-    fn keeping(pa: &[u32]) -> bool {
-        pa.chunks(16).any(|r| r[7] & 6 != 0)
+        self.ret.size() + self.verdicts.size()
     }
 }
 

@@ -3,12 +3,11 @@
 //! retired subtree let go leave every table, a column at a time through
 //! one column of scratch (`compact.wgsl`).
 //!
-//! - **Phytomers** of a retired subtree go, recorded first where a PA
-//!   keeps shed pipes or leaf girth (DESIGN.md section 6).
-//! - **Axes** inside a retired subtree go, with their units, where no PA
-//!   keeps records (the settle reads a kept record through its axis's
-//!   row). The root stays and carries its subtree's upkeep, frozen
-//!   (`freeze_main`), as the CPU's balance charges it.
+//! - **Phytomers** of a retired subtree go (DESIGN.md section 6).
+//! - **Axes** inside a retired subtree go, with their units. The root
+//!   stays and carries its subtree's upkeep, frozen (`freeze_main`), as
+//!   the CPU's balance charges it, and its girth frozen as it closed
+//!   (fn-270 R4).
 //! - Every column that holds an axis's, a unit's or a phytomer's index is
 //!   remapped first: the axes' bearers, successors and units, the units'
 //!   axis and links, the phytomers' axis, the sleeping, living and woken
@@ -18,7 +17,7 @@
 //! an axis is known by its lineage key, never its slot (DESIGN.md 13).
 use super::build::{Build, Kit};
 use super::census as c;
-use super::hier_scan::{sums_words, uniform, widest, words as read, Scan};
+use super::hier_scan::{sums_words, uniform, widest, Scan};
 use super::retire_device::zeroed_dst;
 use super::state::{AXES, GROWN, LAID, PENCILS, UNITS};
 use crate::buffer::Owned;
@@ -37,7 +36,6 @@ const FREEZE: usize = 4;
 const BY_INDEX: u32 = 0;
 const BY_VALUE: u32 = 1;
 const BY_SET: u32 = 2;
-const BY_RECORDED: u32 = 3;
 const ID: u32 = 0;
 const POS: u32 = 1;
 
@@ -119,7 +117,7 @@ impl Compactor {
             scratch: zeroed_dst(gpu, "compaction column", u64::from(most))?,
             axes: scan("compaction axes", caps.axes)?,
             units: scan("compaction units", caps.units)?,
-            phyts: zeroed_dst(gpu, "compaction phytomers", 2 * u64::from(Self::half(caps.phyts)))?,
+            phyts: scan("compaction phytomers", caps.phyts)?,
             kids: scan("compaction children", lists)?,
             members: scan("compaction members", lists)?,
             sums: zeroed_dst(gpu, "compaction sums", sums_words(most + 1, 1))?,
@@ -128,10 +126,6 @@ impl Compactor {
         })
     }
 
-    /// The phytomers' recorded scan's first word: past the kept scan.
-    fn half(phyts: u32) -> u32 {
-        (phyts + 1).next_multiple_of(64)
-    }
 }
 
 /// A compaction's commands, recorded into one encoder as it goes.
@@ -205,43 +199,22 @@ impl Build {
     /// the hierarchy's current lists are those the next cycle's step reads
     /// (`Phases::cycle`). The dispatches it recorded.
     pub(super) async fn compact_in_place(&mut self, gpu: &Gpu, kit: &Kit, (census, cycle): (&Owned, u32), rows: [u32; 3]) -> Result<usize> {
-        let keeps = self.retire.keeps();
         let k = &self.compactor;
         let (held, rs) = (self.state.caps, self.retire.stride);
         let caps = super::state::Caps { axes: rows[0].min(held.axes), units: rows[1].min(held.units), phyts: rows[2].min(held.phyts), ..held };
         let fate_at = R_FATE * rs;
-        let half = Compactor::half(held.phyts);
         let mut r = Rec { gpu, kit, e: gpu.encoder(&Default::default()), held: Vec::new(), row: widest(gpu).0, made: 0 };
         let (st, ret) = (&self.state, &*self.retire.ret);
-        // The phytomers: kept where their axis is not retired, recorded
-        // where it is and a PA keeps them.
+        // The phytomers: kept where their axis is not retired.
         let by_axis = Cfg { fate_at, val_n: rs, below: RETIRED, ..Cfg::column(caps.phyts, held.phyts, (0, P_AXIS)) };
         r.flag(k, Cfg { by: BY_VALUE, ..by_axis }, (&st.grown, ret), (&k.phyts, 0))?;
-        if keeps {
-            r.flag(k, Cfg { by: BY_RECORDED, ..by_axis }, (&st.grown, ret), (&k.phyts, half))?;
-        }
-        gpu.submit([std::mem::replace(&mut r.e, gpu.encoder(&Default::default())).finish()]);
-        let base = self.retire.rec_n;
-        if keeps {
-            let recorded = read(gpu, &k.phyts, u64::from(half + caps.phyts), 1).await?[0];
-            self.grow_records(gpu, base + recorded)?;
-        }
-        let (k, st, ret) = (&self.compactor, &self.state, &*self.retire.ret);
-        let units_words = [held.units, held.axes, rs, half, base, u32::from(keeps), c::UNITS as u32, r.row];
+        let units_words = [held.units, held.axes, rs, c::UNITS as u32, r.row, 0, 0, 0];
         let cfg = uniform(gpu, &units_words)?;
         let bind = kit.retire.units.bind(gpu, &[&cfg, census, ret, &k.phyts, &st.units, &st.axes]);
         kit.retire.units.run(&mut r.e, &bind, 0, held.units.div_ceil(64).max(1));
         r.made += 1;
         r.held.push(cfg);
-        if keeps {
-            let rec = &self.retire;
-            for col in 0..GROWN as u32 {
-                let cfg = Cfg { dst_at: col * rec.rec_cap + base, ..Cfg::column(caps.phyts, held.phyts, (0, col)) };
-                r.run(MOVE, Cfg { row_at: half, ..cfg }, [&st.grown, &k.phyts, &k.spare[0], &rec.recs], caps.phyts.div_ceil(64))?;
-            }
-        } else {
-            self.compact_axes(&mut r, (census, cycle), caps)?;
-        }
+        self.compact_axes(&mut r, (census, cycle), caps)?;
         let (k, st) = (&self.compactor, &self.state);
         for (table, cols) in [(&st.grown, GROWN), (&st.laid, LAID)] {
             for col in 0..cols as u32 {

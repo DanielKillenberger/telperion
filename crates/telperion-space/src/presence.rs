@@ -310,6 +310,14 @@ pub(crate) fn relay_node(p: &Axis, draws: &Draws, share: f64) -> usize {
     crate::contract::decide::relay_node(&presences, first, n, share)
 }
 
+/// Axis `axis` assigned alone from its draws, as `assign` assigns it:
+/// its phytomers' scales, sizes and lights, and its end's presence.
+pub(crate) fn assigned(axis: &Axis, draws: &Draws) -> (Axis, f64) {
+    let mut a = axis.clone();
+    let end = assign_one(&mut a, draws, None);
+    (a, end)
+}
+
 /// Assigns one axis's presences from its draws: its end's presence.
 /// Every presence a fade reads is an f32, each product taken in turn (host
 /// decision 8); the ranks stay real, which geometry alone reads.

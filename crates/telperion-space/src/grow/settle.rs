@@ -72,7 +72,7 @@ impl<'a> Grower<'a> {
         let grown = keeps.then(|| match self.working.as_ref() {
             Some(w) => {
                 let r = w.retirement();
-                attachments_past(&self.axes, species, (request.age, threads), &|i| r.record(i))
+                attachments_past(&self.axes, species, (request.age, threads), &|i| r.frozen_root(i))
             }
             None => attachments(&self.axes, species, request.age, threads),
         });

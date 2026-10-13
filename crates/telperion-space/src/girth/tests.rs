@@ -338,7 +338,7 @@ fn the_trees_leaf_mean_is_its_terms_blocked_in_order() {
         let bases = bases(&t.axes, &species, None);
         let grown: Vec<(f32, f32)> = (t.axes.iter().zip(&bases).flat_map(|(a, &b)| a.phytomers.iter().map(move |p| (p, b))))
             .map(|(p, b)| {
-                let g = Grew::of(p);
+                let g = super::disused::Grew::of(p);
                 let pipe = own_at(&state.form, g.cycle, t.age, f64::from(g.scale * b * g.size), 1.0);
                 super::terms(pipe, f64::from(g.light), state.leaf_girth)
             })

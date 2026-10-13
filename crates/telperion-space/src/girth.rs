@@ -19,7 +19,7 @@ use crate::structure::{Axis, Join, Origin, Phytomer, Structure};
 use crate::upward::Tree;
 pub(crate) use disused::{
     above, attachments, attachments_given, attachments_past, bases, disused,
-    grown_mean, leaf_partials, Grew, Stand,
+    grown_mean, leaf_partials, Frozen, Stand,
 };
 
 /// A branch's pipe that stays in its bearer as it is shed: the bearer's

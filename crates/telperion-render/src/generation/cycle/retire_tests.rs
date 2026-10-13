@@ -99,8 +99,8 @@ fn young_trees_settle_as_on_the_cpu_with_retired_subtrees_let_go() {
         let s = settle(&gpu, (&kit, &k), (&b, &t), (&constants(&g), SettleTo::Laid)).expect("a settle");
         let dev = s.snapshot(&gpu, &b.state, SettleTo::Laid).expect("a readback");
         println!(
-            "{name} {age}: arena rows {} of {} without letting go, {} of {} with; {} records",
-            rows, cap, b.held.phyts, sizes.caps.phyts, b.retire.rec_n
+            "{name} {age}: arena rows {} of {} without letting go, {} of {} with",
+            rows, cap, b.held.phyts, sizes.caps.phyts
         );
         let found = held((&dev.0, &dev.1), (&cpu.0, &cpu.1));
         differ.extend(found.into_iter().map(|f| format!("{name}: {f}")));
@@ -163,7 +163,7 @@ fn a_build_holds_its_compacted_rows_after_its_last_cycle() {
         let mut sizes = Sizes::least();
         sizes.compact = Compact::Every;
         let (b, _, grew) = grow(&gpu, &kit, &t, &g.tables, (sizes, age)).expect("a build");
-        assert!(grew.moved_at.iter().all(|m| m.0 < age), "{name} {age}: moved after its last cycle: {:?}", grew.moved_at);
+        assert!(grew.moved_at.iter().all(|&m| m < age), "{name} {age}: moved after its last cycle: {:?}", grew.moved_at);
         let caps = b.state.caps;
         let units = read_words(&gpu, &b.state.units, 0, super::state::UNITS * u64::from(caps.units)).expect("a readback");
         let at = |c: u64, u: usize| units[c as usize * caps.units as usize + u];
@@ -172,7 +172,7 @@ fn a_build_holds_its_compacted_rows_after_its_last_cycle() {
             .map(|u| at(super::state::U_FIRST, u) + at(super::state::U_COUNT, u))
             .max()
             .unwrap_or(0);
-        println!("{name} {age}: the units reach {reached} arena rows, the build holds {}; {} records", b.held.phyts, b.retire.rec_n);
+        println!("{name} {age}: the units reach {reached} arena rows, the build holds {}", b.held.phyts);
         assert_eq!(b.held.phyts, reached, "{name} {age}: the build holds the rows the compaction kept");
         let s = settle(&gpu, (&kit, &k), (&b, &t), (&constants(&g), SettleTo::Laid)).expect("a settle");
         let dev = s.snapshot(&gpu, &b.state, SettleTo::Laid).expect("a readback");

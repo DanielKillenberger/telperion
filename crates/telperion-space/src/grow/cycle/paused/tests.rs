@@ -80,13 +80,16 @@ fn the_tree_at_a_year_is_the_horizons_prefix() {
         let at = |retiring: Retiring, y: u32| {
             let mut p = Paused::begin(&species, r, retiring, false).unwrap();
             p.grow_to(y).unwrap();
-            tree_digest(&p.settle().unwrap())
+            p.settle().unwrap()
         };
         for y in [12, h - 1] {
-            assert_eq!(at(Retiring::AtAge, y), at(Retiring::Never, y), "year {y}");
+            // Retired at the age grown, the girth of what closed is frozen
+            // (fn-270 R4); the tree is the one retiring nothing but for it.
+            let apart = crate::grow::cycle::girth_apart(&at(Retiring::AtAge, y), &at(Retiring::Never, y));
+            assert!(apart.is_some_and(|(_, most)| most <= 1e-4), "year {y}: girth apart {apart:?}");
         }
         let today = tree_digest(&grow_cycle(&species, r).unwrap().structure);
-        assert_eq!(today, at(Retiring::Never, h), "the tree at the horizon");
+        assert_eq!(today, tree_digest(&at(Retiring::AtAge, h)), "the tree at the horizon");
     }
 }
 

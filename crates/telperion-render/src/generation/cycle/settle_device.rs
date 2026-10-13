@@ -143,7 +143,7 @@ pub(super) struct Kernels {
 
 impl Kernels {
     pub(super) fn new(gpu: &Gpu) -> Self {
-        let reads = [true, true, true, false, false, false, true, true];
+        let reads = [true, true, true, false, false, false, true];
         let place = [true, true, false, false, false];
         Self {
             pass: io::Pass::new(gpu, source(), &reads, &ENTRIES),

@@ -51,47 +51,49 @@ impl Grew {
     }
 }
 
-/// A retired axis's vigour and phytomers, where it was retired.
-pub(crate) type Records<'r> = &'r (dyn Fn(usize) -> Option<(f64, &'r [Grew])> + Sync + 'r);
+/// A subtree's girth frozen as it closed (fn-270 R4): its base radius
+/// and its two leaf-mean sums (`terms`), each at its own base and lit but
+/// not by the tree's mean.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub(crate) struct Frozen {
+    pub radius: f32,
+    pub sums: [f32; 2],
+}
+
+/// A retired root's frozen girth, which stands for its subtree's.
+pub(crate) type Records<'r> = &'r (dyn Fn(usize) -> Option<Frozen> + Sync + 'r);
 
 /// None retired.
 pub(crate) const NONE: Records<'static> = &|_| None;
 
-/// Axis `i`'s vigour and its phytomers as grown, its record's where it
-/// was retired.
-fn grown_axis(axes: &[Axis], records: Records<'_>, i: usize) -> (f64, Vec<Grew>) {
-    match records(i) {
-        Some((vigour, grew)) => (vigour, grew.to_vec()),
-        None => (axes[i].vigour, axes[i].phytomers.iter().map(Grew::of).collect()),
-    }
+/// Axis `i`'s phytomers as grown.
+fn grown_axis(axes: &[Axis], i: usize) -> Vec<Grew> {
+    axes[i].phytomers.iter().map(Grew::of).collect()
 }
 
-/// A phytomer's scale at node `node` of axis `i`, its record's where it
-/// was retired.
-fn node_scale(axes: &[Axis], records: Records, i: usize, node: usize) -> f32 {
-    match records(i) {
-        Some((_, grew)) => grew[node].scale,
-        None => axes[i].phytomers[node].scale as f32,
-    }
+/// A phytomer's scale at node `node` of axis `i`: none where a retired
+/// subtree let it go.
+fn node_scale(axes: &[Axis], i: usize, node: usize) -> f32 {
+    axes[i].phytomers.get(node).map_or(0.0, |p| p.scale as f32)
 }
 
 /// Each axis's scale at its base, as `geometry::scale` will give it
 /// (parents first, in its order of products); axis 0's is `top` where
 /// given (a fine root's bearer's stub: its bearer's base).
 pub(crate) fn bases(axes: &[Axis], species: &Species, top: Option<f32>) -> Vec<f32> {
-    bases_past(axes, species, top, NONE)
+    bases_past(axes, species, top)
 }
 
-/// `bases`, each retired axis read from its record.
-fn bases_past(axes: &[Axis], species: &Species, top: Option<f32>, records: Records) -> Vec<f32> {
+/// `bases`, each axis a retired subtree let go at none.
+fn bases_past(axes: &[Axis], species: &Species, top: Option<f32>) -> Vec<f32> {
     let mut base = vec![1.0f32; axes.len()];
     for (i, a) in axes.iter().enumerate() {
         let inherited = match a.origin {
             Origin::Seed => 1.0,
-            Origin::Lateral { parent, node, .. } => node_scale(axes, records, parent, node) * base[parent],
+            Origin::Lateral { parent, node, .. } => node_scale(axes, parent, node) * base[parent],
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => base[parent],
         };
-        let vigour = records(i).map_or(a.vigour, |r| r.0);
+        let vigour = a.vigour;
         let share = match a.origin {
             Origin::Lateral { .. } => dominance(species.states[a.pa].form.dominance, a.lineage),
             _ => 1.0,
@@ -139,7 +141,8 @@ pub(crate) fn leaf_partials(
     leaf_partials_past(axes, species, (age, threads), from, NONE)
 }
 
-/// `leaf_partials`, each retired axis read from its record.
+/// `leaf_partials`, each retired root's frozen sums by its base standing
+/// for its subtree's terms where it stands.
 fn leaf_partials_past(
     axes: &[Axis],
     species: &Species,
@@ -147,13 +150,17 @@ fn leaf_partials_past(
     from: Stand,
     records: Records,
 ) -> [f32; 2] {
-    let base = bases_past(axes, species, from.top, records);
+    let base = bases_past(axes, species, from.top);
     let pieces: Vec<usize> = (0..axes.len().div_ceil(PIECE)).collect();
     let terms = map(pieces, 1, threads, &|_, k| {
         let mut out = Vec::new();
         for i in (k * PIECE).max(from.first)..((k + 1) * PIECE).min(axes.len()) {
+            if let Some(f) = records(i) {
+                out.push((f.sums[0] * base[i], f.sums[1] * base[i]));
+                continue;
+            }
             let state = &species.states[axes[i].pa];
-            for p in &grown_axis(axes, records, i).1 {
+            for p in &grown_axis(axes, i) {
                 let pipe = own_at(&state.form, p.cycle, age, sized(p, base[i]), 1.0);
                 out.push(terms(pipe, f64::from(p.light), state.leaf_girth));
             }
@@ -179,8 +186,8 @@ pub(crate) fn attachments(axes: &[Axis], species: &Species, age: u32, threads: u
     attachments_past(axes, species, (age, threads), NONE)
 }
 
-/// `attachments`, each axis retired as the tree grew (fn-255) read from
-/// its record.
+/// `attachments`, each subtree retired as the tree grew (fn-255) standing
+/// by its root's frozen girth (fn-270 R4).
 pub(crate) fn attachments_past(
     axes: &[Axis],
     species: &Species,
@@ -215,7 +222,8 @@ fn attachments_with(
     (from, leaf_mean): (Stand, Option<f64>),
     (given, records): (Given<f64>, Records),
 ) -> Grown {
-    let base = bases_past(axes, species, from.top, records);
+    let base = bases_past(axes, species, from.top);
+    let mean = leaf_mean.map_or(1.0, |m| m as f32);
     let parents: Vec<Option<usize>> = axes.iter().map(|a| a.origin.parent()).collect();
     let tree = Tree::new(&parents);
     let mut none = vec![(); axes.len()];
@@ -228,10 +236,13 @@ fn attachments_with(
             if let Some(r) = given(i) {
                 return r;
             }
+            if let Some(f) = records(i) {
+                return f64::from(f.radius * base[i] * mean);
+            }
             let axis = &axes[i];
             let state = &species.states[axis.pa];
             let e = state.form.exponent;
-            let grew = grown_axis(axes, records, i).1;
+            let grew = grown_axis(axes, i);
             at_node.clear();
             at_node.resize(grew.len(), 0.0);
             let mut at_tip = 0.0f32;

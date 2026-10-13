@@ -96,3 +96,47 @@ The retired rows' records have two readers on both executors (`girth/disused.rs`
 Per preset (every PA): `retained` is 0.17 on the ordinary and 0 on every other preset; `leaf_girth` is 0.33 on the ordinary, 1.0 on the oak, spruce, beech, birch and the Two Trees, 0 on the palm. So on six of the seven presets that keep records, a retired subtree's radius is read by nothing (no disused pipe), and the records exist only for the leaf mean. Freezing the radius at retirement (the ruling) removes the records' radius reader on the ordinary only; the mean still reads every retired phytomer.
 
 Measured on the CPU (a throwaway patch, `telperion_space::grow` at each preset's age and seed): the leaf mean taken without the retired phytomers moves every radius of a tree by one factor: the oak +5.6%, the birch +6.4%, the beech +3.8%, Telperion -3.6% (trunk base 1.767 to 1.703), the spruce -0.4%, the palm 0. The ordinary's run also dropped its disused pipes, so its figure (median 0, p99 13.8%, trunk -7%) overstates what freezing its radii would change.
+
+## Lever 3: a closed subtree's girth frozen as it closes; the records and the inside axes gone
+
+The host's rulings (d4519b88f, 1616c7204): option (B), each retired subtree's radius and its two leaf-mean sums frozen, the settle adding them where the root stands in the reduction order, on the CPU reference and on the device alike; frozen at the subtree's close ("dead wood doesn't ripen once nothing in it lives"), carried up in the living sweep the device already runs.
+
+- **The rule** (`retire.rs::frozen_at`, the CPU's reference; `retire_axis.wgsl::own_girth`, `retire_sweep.wgsl::frozen_girth`). As an axis closes, at the age grown: each phytomer's pipe at the axis's own base (its scale by its unit's size), ripened to that age, lit by light^χ but not by the tree's mean; their sum, their lit sum and the sum of their lit pipes' sections, in order. Then each child's frozen girth by its base against the axis's (a lateral's node scale, vigour and dominance share; a carried axis's vigour), in the children's order: sections, sums. The radius is the sections' radius. A retired root's frozen girth stands for its subtree: in the leaf mean as one term (its sums by its base) where it stands in axis order, and as its base radius by its base and the tree's mean.
+- **What went.** The retired rows' records (`retire records`, `grow_records`, the records' scan, `RECORDS`), the settle's records binding, and the guard that kept the axes inside retired subtrees: they compact on every preset. `ret` holds 13 columns (the frozen radius and sums added), the cycle's own buffer 10 (the own sums and the base ratio added).
+- **The CPU and the device.** The young presets' retirement verdicts and settled trees hold to the CPU's as before (`raw/t3-l3-focused.log`, 12 tests: the verdicts word for word, the laid trees to the ruled standard).
+- **Compaction renumbers an axis's grown index.** With the inside axes now compacting on the spruce and the beech, the node table differed between compaction schedules only in its `NA_GROWN` column, each axis's slot in the arena: spruce 40 at seed 1 grown from its hint, in its final tables, compacted every cycle and never, one tree once that column is left out (four schedules, one digest). The tests' digest now leaves it out (DESIGN.md section 13: an axis is known by its lineage). Every preset's 0->H equals 0->a->H at a = H/2 and H-1, and the gate's moved and unmoved builds are one tree on all 24 (`raw/t3-l3-arena-gate.log`).
+- **Ratios recalibrated** (`raw/t3-l3-ratios.log`): the axes 1.43 of their hint at most (was 1.65), the units 1.02 (was 1.46), the phytomers 2.25 (the beech at 42; was 1.79).
+
+### The girth shift against today's tree (the CPU reference, `node_buffer` at 95bc4b7f8 against now, `raw/t3-l3-cpu-shift.log`)
+
+| Preset | Nodes | Median relative shift | Most | Trunk base (m) |
+|---|--:|--:|--:|---|
+| date-palm | 993 | 0 | 0 | 0.297000, unchanged |
+| european-beech | 249,111 | 4.6e-6 | 1.2e-5 | 0.253494 -> 0.253495 |
+| ordinary | 152,173 | 3.5e-7 | 1.4e-6 | 0.145112, unchanged |
+| silver-birch | 302,660 | 2.0e-6 | 7.2e-6 | 0.138982, unchanged |
+| oregon-white-oak | 284,355 | 6.3e-7 | 3.4e-6 | 0.294153, unchanged |
+| norway-spruce | 1,005,582 -> 1,005,581 | (one node fewer) | | |
+| laurelin | 3,139,945 -> 3,139,949 | (four nodes more) | | |
+| telperion | 3,363,723 | 8.6e-6 | 5.4e-5 (a 0.0296 m limb) | 1.766938 -> 1.766953 |
+
+The spruce and Laurelin differ by one and four fine nodes, a twig on either side of the skeleton's fine cut. The stills (`raw/{oak,beech,telperion}-today-left-frozen-right.png`, whole above, middle below, today left): no visible change; 1 to 7 pixels of 691,200 differ on the oak and the beech, 83 and 109 on Telperion.
+
+### Census after lever 3 (decimal MB)
+
+| Preset (target) | Product build | Grown and laid | Paused at H-1 | Grown on from H-1 beside the drawn | Drawn at H beside the drawn | Hash | Warm ms (base) |
+|---|--:|--:|--:|--:|--:|---|--:|
+| date-palm (32) | 32 | 32 | 5 | 32 | 5 | f22d2412f12fe872 | 74 (73) |
+| european-beech (250) | 282 | 282 | 107 | 306 | 234 | 5bf0ca47168fe174 | 201 (181) |
+| ordinary (250) | 169 | 169 | 74 | 193 | 151 | d0e75decaf420b9 | 457 (479) |
+| silver-birch (450) | 520 | 520 | 250 | 569 | 421 | fa423edb42519a16 | 220 (223) |
+| oregon-white-oak (650) | 782 | 782 | 438 | 834 | 633 | ef8a535a5d6a4ebd | 233 (244) |
+| norway-spruce (1,200) | 1522 | 1522 | 937 | 1686 | 1611 | f8aad0283da4b221 | 449 (472) |
+| laurelin (2,000) | 2281 | 2281 | 1461 | 2735 | 2836 | 3de23359a4524498 | 1156 (1171) |
+| telperion (2,000) | 2484 | 2484 | 1602 | 2968 | 3072 | ee97618751d508ba | 1248 (1244) |
+
+The standalone peak falls 41% on Telperion (4,209 to 2,484) and 41% on Laurelin (3,853 to 2,281); the continuation peak is 3,072 MB on Telperion and 2,836 on Laurelin, under 4 GiB. Against the targets: the palm and the ordinary meet theirs; the beech misses by 32 MB, the birch by 70, the oak by 132, the spruce by 322, the Two Trees by 284 and 484 (a target the host released, R4). What holds Telperion now: the state's tables at its start sizes (pencils 483 at their hint, axes 426), its phytomers (laid 426, grown 152, sized by the beech's 2.25), the cycle's job counts and the hierarchy's sums; the settle's scratch (about 1,050 MB) is the later spec's.
+
+### The oak at 80, recalibrated
+
+Its own ratios at 80 after lever 3 (`raw/t3-l3-oak80-ratios.log`, grown from the least tables): axes 0.12 to 0.37 of its hint, units 0.09 to 0.20, phytomers 0.25 to 0.59, where the margin starts it at 1.43, 1.02 and 2.25: its first tables alone want 4.2 GB, and it is refused by name before its first cycle. Measured (`raw/t3-x3-*`): at a start margin of 0.5 it builds at 3,715 MB (inside the 4 GiB default), at 0.3 at 2,299 MB; but at 0.5 Telperion takes 1,368 ms (+10%), the spruce 507 ms (past 0.5 s) and the ordinary 496 ms, at 0.3 the ordinary 548 ms. The margin stays 1.0: the oak at 80 is reported missed, its floor 2,299 MB at a margin of 0.3, at the cost of R0a's times.

@@ -18,17 +18,14 @@ pub(super) const TABLES: usize = 8;
 /// Each table's most rows at a cycle's end against its hint (`TABLES`'
 /// order; the axes' against the expected axes, the rest against the
 /// expected kept phytomers), over every shipped preset at its default age,
-/// seeds 1, 7, 42 and its own, compacted after each cycle
-/// (`arena_tests::arena_ratios`, fn-256 task 15, every preset lit): the
-/// most of each, where the beech at 42 sets the axes, phytomers, living
-/// buds and leaves, Telperion at 42 the units, the ordinary the sleeping
-/// buds, the spruce the woken, Laurelin the lattice. The axes run 0.57
-/// (the oak at seed 1) to 1.65 (the beech at 42) of their hint.
-pub(super) const ARENA: [f64; TABLES] = [1.6545, 1.4648, 1.7942, 0.0115, 0.1397, 0.0064, 0.4604, 0.2743];
-/// The retired rows the records hold at most against the hint, where a
-/// PA keeps them: Telperion's at seed 42 (Laurelin's at most 4.51, the
-/// ordinary's 1.74; `arena_ratios`, fn-256 task 15).
-pub(super) const RECORDS: f64 = 4.6268;
+/// seeds 1, 7, 42 and its own, compacted after each cycle, the axes inside
+/// retired subtrees let go on every preset (`arena_tests::arena_ratios`,
+/// fn-270 task 3, `raw/t3-l3-ratios.log`): the most of each, where the
+/// beech at 42 sets the axes, phytomers, living buds and leaves, the
+/// spruce at 42 the units and the woken, the ordinary the sleeping buds,
+/// Laurelin the lattice. The axes run 0.39 (the oak and Telperion at seed
+/// 1) to 1.43 (the beech at 42) of their hint.
+pub(super) const ARENA: [f64; TABLES] = [1.4303, 1.0235, 2.2452, 0.0115, 0.1397, 0.0064, 0.4604, 0.2743];
 
 /// The most rows a table holds: its words index it in 32 bits, its
 /// widest table (the pencils) 59 words a row.
@@ -102,7 +99,7 @@ impl Sizes {
     /// below that, and its bounds stated from them; refused by name where
     /// a table would pass the rows the device's tables index.
     pub(super) fn hinted(h: Hint) -> Result<Self> {
-        let most = ARENA[1..].iter().chain([&RECORDS]).fold(0.0, |m: f64, r| m.max(*r));
+        let most = ARENA[1..].iter().fold(0.0, |m: f64, r| m.max(*r));
         if !(h.kept * most * MARGIN <= f64::from(MOST_ROWS) && h.axes * ARENA[0] * MARGIN <= f64::from(MOST_ROWS)) {
             let what = format!("the tree's expected {:.0} kept phytomers and {:.0} axes size its tables past the {MOST_ROWS} rows the device indexes; grow it younger", h.kept, h.axes);
             return Err(super::super::io::error(what));
@@ -120,8 +117,7 @@ impl Sizes {
         };
         let tips = caps.next.max(least.tips);
         let points = (rows(6, 0) + tips).max(least.points);
-        let records = (h.kept * RECORDS * MARGIN).ceil() as u32;
-        let sizes = Sizes { caps, points, tips, nodes: rows(7, least.nodes), records, compact: Compact::Tight, ..least };
+        let sizes = Sizes { caps, points, tips, nodes: rows(7, least.nodes), compact: Compact::Tight, ..least };
         Ok(Sizes { bounds: sizes.stated(), ..sizes })
     }
 

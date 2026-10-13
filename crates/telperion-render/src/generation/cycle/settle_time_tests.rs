@@ -145,8 +145,8 @@ fn retirement_is_measured() {
         }
         let (resident, scratch) = b.bytes(&t);
         println!(
-            "telperion 82 compact {compact}: arena rows {} of tables {}, records {}; resident {:.0} MB, scratch {:.0} MB; retirement {ms:.1} ms in {n} dispatches, longest {longest:.3} ms; {} moves; build wall {wall:.2} s",
-            b.held.phyts, last.caps.phyts, b.retire.rec_n, resident as f64 / 1e6, scratch as f64 / 1e6, grew.moves
+            "telperion 82 compact {compact}: arena rows {} of tables {}; resident {:.0} MB, scratch {:.0} MB; retirement {ms:.1} ms in {n} dispatches, longest {longest:.3} ms; {} moves; build wall {wall:.2} s",
+            b.held.phyts, last.caps.phyts, resident as f64 / 1e6, scratch as f64 / 1e6, grew.moves
         );
         let s = settle(&gpu, (&kit, &k), (&b, &t), (&constants(&g), SettleTo::Laid)).expect("a settle");
         drop(b);

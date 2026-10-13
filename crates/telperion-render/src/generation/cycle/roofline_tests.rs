@@ -54,7 +54,6 @@ fn the_roofline_is_measured() {
         let stamps = super::super::profile::finish(&gpu);
         assert_eq!(stamps.len(), grew.stamped.len(), "a phase a stamp");
         assert_eq!(grew.moves, 0, "grown in its arena");
-        let keeps = b.retire.rec_n > 0;
         let (lit, dirs) = (b.light.lit(), b.light.n_dirs);
         // The settle the build runs on what it grew, every pass stamped.
         assert!(super::super::profile::start(&gpu), "timestamps");
@@ -87,14 +86,14 @@ fn the_roofline_is_measured() {
             read[..256].iter().for_each(|w| write!(csv, ",{w}").unwrap());
         }
         write(&out, &format!("{id}-census.csv"), &csv);
-        println!("{id} {age}: {} dispatches, compacted after {compacted:?}, records kept {keeps}, lit {lit}, directions {dirs}", stamps.len());
+        println!("{id} {age}: {} dispatches, compacted after {compacted:?}, lit {lit}, directions {dirs}", stamps.len());
         // The CPU reference's visits, unless `ROOFLINE_VISITS=0` asks for
         // the stamps and censuses alone.
         if std::env::var("ROOFLINE_VISITS").is_ok_and(|v| v == "0") {
             continue;
         }
         let held = |let_go| lives(&g.species, g.request, &compacted, let_go);
-        let l = held(!keeps);
+        let l = held(true);
         write(&out, &format!("{id}-visits.csv"), &visits(&l));
     }
 }

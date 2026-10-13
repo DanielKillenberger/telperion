@@ -27,3 +27,10 @@
 - **Hindered:** the build's counts live in the plan's census buffer, which the cycle's recording owns; letting the recording go dropped the seed's census, and every settle after a pause collapsed (fault 1) until the census was read back at the pause. Found by a probe of every young year, about 10 minutes.
 - **Cost:** about 10 minutes and two GPU test runs.
 - **Would have removed it:** the census held by the build rather than by its recorded plan (R4 lever 1 may separate it with the rest of the persistent state).
+
+## 2026-10-13, task 3 (worker): a moved build's digest differed only in an axis's slot
+
+- **Doing:** lever 3, the gate that a build grown by moves is the build grown in its final tables.
+- **Hindered:** with the inside axes compacting on every preset, the spruce and the beech differed between compaction schedules; four schedules and a census diff showed growth identical, and the node table's `NA_GROWN` column (each axis's arena slot) the only difference. The tests' digest hashed it.
+- **Cost:** about 20 minutes and four GPU runs.
+- **Would have removed it:** a digest that skips index columns from the start (now `growth::tests::digest`), or the node table not carrying the arena slot.

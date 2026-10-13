@@ -135,9 +135,19 @@ fn grown_pipe(pa: u32, g: u32, base: f32, leaf: f32) -> f32 {
 // Axis `i`'s base radius as grown: its own pipes and those its children
 // carry into its nodes and tip, the last child first.
 fn radius_grown(i: u32) {
+    // A retired root stands for its subtree by the girth frozen as it
+    // closed, at its base and by the tree's mean (fn-270 R4).
+    if retired_root(i) {
+        var mean = 1.0;
+        if (cfg.flags & LEAVES) != 0u {
+            mean = bitcast<f32>(atomicLoad(&atom[T_LEAF + 2u]));
+        }
+        set_waf(W_RADIUS, i, apart(apart(frozen(i, 0u) * waf(W_BASE, i)) * mean));
+        return;
+    }
     let pa = ax(i, A_PA);
     let e = kpaf(pa, K_EXPONENT);
-    let n = ax(i, A_PHYTS);
+    let n = phyts_of(i);
     let ps = wa(W_PSTART, i);
     for (var k = 0u; k < n; k++) {
         set_wp(WP_AT, ps + k, 0u);
@@ -299,10 +309,18 @@ fn leaf_main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_in
         var term = 0.0;
         if k < held {
             let g = first + k;
-            let i = phyt(wp(WP_ROW, g), P_AXIS);
-            let pa = ax(i, A_PA);
-            pipe = grown_pipe(pa, g, waf(W_BASE, i), 1.0);
-            term = apart(pipe * lit(shade_of(wp(WP_UNIT, g), 1u), kpaf(pa, K_CHI)));
+            let row = wp(WP_ROW, g);
+            if row == NONE {
+                // A retired root's frozen sums, at its base.
+                let i = wp(WP_UNIT, g);
+                pipe = apart(frozen(i, 1u) * waf(W_BASE, i));
+                term = apart(frozen(i, 2u) * waf(W_BASE, i));
+            } else {
+                let i = phyt(row, P_AXIS);
+                let pa = ax(i, A_PA);
+                pipe = grown_pipe(pa, g, waf(W_BASE, i), 1.0);
+                term = apart(pipe * lit(shade_of(wp(WP_UNIT, g), 1u), kpaf(pa, K_CHI)));
+            }
         }
         w_pipe[k] = pipe;
         w_term[k] = term;

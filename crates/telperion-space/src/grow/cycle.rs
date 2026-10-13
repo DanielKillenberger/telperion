@@ -111,3 +111,24 @@ impl Grower<'_> {
 
 #[cfg(test)]
 mod tests;
+
+/// The girth two trees of one shape stand apart by (fn-270 R4: retirement
+/// freezes a closed subtree's girth, so the tree retiring nothing is the
+/// same tree to the bit but for its radii): every phytomer's radius's
+/// relative shift, its median and its most; none where the shapes differ.
+#[cfg(test)]
+pub(crate) fn girth_apart(a: &Structure, b: &Structure) -> Option<(f64, f64)> {
+    let same = |x: &crate::structure::Axis, y: &crate::structure::Axis| {
+        x.lineage == y.lineage && x.phytomers.len() == y.phytomers.len() && x.phytomers.iter().zip(&y.phytomers).all(|(p, q)| p.cycle == q.cycle && p.scale == q.scale)
+    };
+    if a.axes.len() != b.axes.len() || !a.axes.iter().zip(&b.axes).all(|(x, y)| same(x, y)) {
+        return None;
+    }
+    let mut shift: Vec<f64> = (a.axes.iter().zip(&b.axes))
+        .flat_map(|(x, y)| x.phytomers.iter().zip(&y.phytomers))
+        .map(|(p, q)| if p.radius == q.radius { 0.0 } else { ((p.radius - q.radius) / q.radius.abs().max(1e-12)).abs() })
+        .collect();
+    shift.sort_by(f64::total_cmp);
+    let most = shift.last().copied().unwrap_or(0.0);
+    Some((shift.get(shift.len() / 2).copied().unwrap_or(0.0), most))
+}

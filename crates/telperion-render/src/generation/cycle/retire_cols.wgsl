@@ -82,6 +82,7 @@ const U_SURVIVE: u32 = 1u;
 const U_PERSIST: u32 = 2u;
 const U_SHARE: u32 = 3u;
 const U_SIZE: u32 = 4u;
+const U_SHADE: u32 = 5u;
 const U_NEXT: u32 = 10u;
 const U_FIRST: u32 = 11u;
 const U_COUNT: u32 = 12u;
@@ -109,8 +110,10 @@ const H_BLOCK: u32 = 1u;
 // open, its fate (open 0, kept 1, retired 2, inside a retired subtree 3),
 // whether it waits on a woken bud, its subtree's lived and alive, the
 // cycle its woken bud's wait passes (none: 0) and its subtree's latest, a
-// woken bud's birth presence by its bearer's kept share, and a retired
-// root's lived and alive.
+// woken bud's birth presence by its bearer's kept share, a retired
+// root's lived and alive, and (fn-270 R4) the girth frozen as the axis
+// closed: its base radius and its two leaf-mean sums at its own base, lit
+// but not by the tree's mean (`girth::Frozen`).
 const R_OPEN: u32 = 0u;
 const R_FATE: u32 = 1u;
 const R_PEND: u32 = 2u;
@@ -121,19 +124,28 @@ const R_WSUB: u32 = 6u;
 const R_QB1: u32 = 7u;
 const R_ROOT_LIVED: u32 = 8u;
 const R_ROOT_ALIVE: u32 = 9u;
-const R_COLS: u32 = 10u;
+const R_FROZEN_R: u32 = 10u;
+const R_FROZEN_S1: u32 = 11u;
+const R_FROZEN_S2: u32 = 12u;
+const R_COLS: u32 = 13u;
 // The cycle's own columns (fn-270 R4), written before they are read in
 // the cycle and let go between calls, in `verdicts` past the stamps:
 // whether an axis closed this cycle, its own living time and its end's
 // presence, assigned as it closes, and (fn-256 task 10) its part in the
 // living its bearer carries up, taken as the bearer closes: its bearer's
-// living before it was made, its weight, and the cycles between.
+// living before it was made, its weight, and the cycles between; and
+// (fn-270 R4) the girth of its own phytomers as it closes, its section
+// and its two leaf-mean sums, and its base against its bearer's.
 const C_CLOSED: u32 = 0u;
 const C_LIVED0: u32 = 1u;
 const C_END: u32 = 2u;
 const C_BEFORE: u32 = 3u;
 const C_WEIGHT: u32 = 4u;
 const C_GAP: u32 = 5u;
+const C_OWN_SECTION: u32 = 6u;
+const C_OWN_S1: u32 = 7u;
+const C_OWN_S2: u32 = 8u;
+const C_RATIO: u32 = 9u;
 // The header from `cfg.head`: the laid axes the last cycle began with;
 // each PA's constants from `cfg.head + 64` (`settle_shared.wgsl`'s `K_`).
 const HD_PREV_LAID: u32 = 0u;
@@ -141,8 +153,15 @@ const KEPT: u32 = 1u;
 const RETIRED: u32 = 2u;
 const INSIDE: u32 = 3u;
 const K_DELAY: u32 = 3u;
+const K_CHI: u32 = 5u;
 const K_FLAGS: u32 = 7u;
+const K_PIPE: u32 = 8u;
+const K_RIPENING: u32 = 9u;
+const K_EXPONENT: u32 = 10u;
+const K_INV_E: u32 = 11u;
+const K_DOMINANCE: u32 = 13u;
 const KF_SHEDS: u32 = 1u;
+const KF_DOMINANCE: u32 = 16u;
 // The log: its count, a fault where it would pass its most, a
 // measurement's count of what the cycle reused (`census::Reused`), then
 // each entry's root, cycle, verdict (waited 0, kept 1, retired 2), lived
@@ -220,6 +239,10 @@ fn set_rcf(c: u32, i: u32, v: f32) {
     set_rc(c, i, bitcast<u32>(v));
 }
 
+fn kpaf(pa: u32, k: u32) -> f32 {
+    return bitcast<f32>(kpa(pa, k));
+}
+
 fn kpa(pa: u32, k: u32) -> u32 {
     return ret[cfg.head + 64u + 16u * pa + k];
 }
@@ -248,4 +271,58 @@ fn within(run: vec4<u32>, stride: u32) -> vec4<u32> {
 fn kids_within(kids: vec2<u32>, stride: u32) -> vec2<u32> {
     let ok = kids.x <= kids.y && kids.y <= stride + 64u;
     return select(vec2<u32>(0u), kids, ok);
+}
+
+// The girth's arithmetic, as the settle takes it (`settle_sweep.wgsl`):
+// a phytomer's own pipe grown in `cycle` at the age grown, its light term,
+// and a radius's section and back.
+fn own_pipe(pa: u32, cycle: u32, scale: f32, leaf: f32) -> f32 {
+    let years = f32(max(cfg.age, cycle) - cycle + 1u);
+    var ripe = 1.0;
+    let ripening = kpaf(pa, K_RIPENING);
+    if ripening > 0.0 {
+        ripe = min(exact_div(years, ripening), 1.0);
+    }
+    return exact_kept(exact_kept(exact_kept(kpaf(pa, K_PIPE) * scale) * ripe) * leaf);
+}
+
+fn lit(light: f32, chi: f32) -> f32 {
+    if chi == 0.0 {
+        return 1.0;
+    }
+    if light <= 0.0 {
+        return 0.0;
+    }
+    return exp2c(m(chi, log2c(light)));
+}
+
+fn section_of(r: f32, e: f32) -> f32 {
+    if r <= 0.0 {
+        return 0.0;
+    }
+    return exp2c(m(e, log2c(r)));
+}
+
+fn radius_of(s: f32, inv: f32) -> f32 {
+    if s <= 0.0 {
+        return 0.0;
+    }
+    return exp2c(m(inv, log2c(s)));
+}
+
+// A unit's shade, size (0) or light (1), as the f32 the girth takes it at.
+fn shade_of(r: u32, k: u32) -> f32 {
+    return single(vec2<u32>(unit(r, U_SHADE + 2u * k), unit(r, U_SHADE + 2u * k + 1u)));
+}
+
+// A lateral's share of its vigour among its siblings (`dominance`).
+fn dominance(i: u32) -> f32 {
+    let pa = ax(i, A_PA);
+    if (kpa(pa, K_FLAGS) & KF_DOMINANCE) == 0u {
+        return 1.0;
+    }
+    let d = shr64(draw(child(ax64(i, A_LINEAGE), KEY_DOMINANCE)), 29u).x;
+    let u = f32(d) * (1.0 / 16777216.0);
+    let held = m(exact_kept(exact_kept(u * u) * u), u);
+    return 1.0 - m(kpaf(pa, K_DOMINANCE), 1.0 - held);
 }

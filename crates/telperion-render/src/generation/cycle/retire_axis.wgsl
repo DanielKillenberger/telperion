@@ -104,6 +104,42 @@ fn close_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let p = presences(i, ax(i, A_UNITS));
     set_rcf(C_LIVED0, i, tick_q(ax(i, A_SLEEP)) + p.x);
     set_rcf(C_END, i, p.y);
+    own_girth(i);
+}
+
+// Axis `i`'s own phytomers' girth as it closes (fn-270 R4, `retire::
+// frozen_at`): each one's pipe at the axis's own base, ripened to the age
+// grown, lit; their sum, their lit sum, and the sum of their sections, in
+// order. Its scales as `node_scale` assigns them.
+fn own_girth(i: u32) {
+    let pa = ax(i, A_PA);
+    let chi = kpaf(pa, K_CHI);
+    let e = kpaf(pa, K_EXPONENT);
+    let birth = ax(i, A_BIRTH);
+    var running = 1.0;
+    var r = ax(i, A_HEAD);
+    var sums = vec3<f32>(0.0, 0.0, 0.0);
+    // The axis's units, no more than the units' rows.
+    for (var k = 0u; k < cfg.units_cap && r < cfg.units_cap; k++) {
+        running = m(running, qf(bitcast<f32>(unit(r, U_SURVIVE))));
+        let laid = tick_q(unit(r, U_SIZE));
+        let first = unit(r, U_FIRST);
+        for (var t = 0u; t < min(unit(r, U_COUNT), cfg.phyts_cap); t++) {
+            let row = first + t;
+            let cycle = phyt(row, P_CYCLE);
+            if i32(cycle) - i32(birth) - 1 == i32(k) {
+                let scale = m(m(running, qf(bitcast<f32>(phyt(row, P_NODE)))), laid);
+                let pipe = own_pipe(pa, cycle, exact_kept(exact_kept(scale * 1.0) * shade_of(r, 0u)), 1.0);
+                let term = exact_kept(pipe * lit(shade_of(r, 1u), chi));
+                sums = vec3<f32>(exact_kept(sums.x + pipe), exact_kept(sums.y + term), exact_kept(sums.z + section_of(term, e)));
+            }
+        }
+        running = m(running, qf(bitcast<f32>(unit(r, U_PERSIST))));
+        r = unit(r, U_NEXT);
+    }
+    set_rcf(C_OWN_S1, i, sums.x);
+    set_rcf(C_OWN_S2, i, sums.y);
+    set_rcf(C_OWN_SECTION, i, sums.z);
 }
 
 // Axis `c`'s vigour as its parent `i`'s subtree weighs it: its making
@@ -151,6 +187,12 @@ fn terms_main(@builtin(global_invocation_id) id: vec3<u32>) {
     set_rcf(C_WEIGHT, c, weight);
     set_rcf(C_BEFORE, c, before);
     set_rcf(C_GAP, c, f32(span - upto));
+    // Its base against its bearer's (`girth::bases`, `retire::ratio`).
+    var ratio = exact_kept(exact_kept(1.0 * vigour(c, i)) * 1.0);
+    if kind_of(c) == LATERAL {
+        ratio = exact_kept(exact_kept(exact_kept(node_scale(i, ax(c, A_NODE)) * 1.0) * vigour(c, i)) * dominance(c));
+    }
+    set_rcf(C_RATIO, c, ratio);
 }
 
 // The presences of the draws that made `a`'s successors, summed in order
