@@ -116,7 +116,6 @@ mod tests;
 /// freezes a closed subtree's girth, so the tree retiring nothing is the
 /// same tree to the bit but for its radii): every phytomer's radius's
 /// relative shift, its median and its most; none where the shapes differ.
-#[cfg(test)]
 pub(crate) fn girth_apart(a: &Structure, b: &Structure) -> Option<(f64, f64)> {
     let same = |x: &crate::structure::Axis, y: &crate::structure::Axis| {
         x.lineage == y.lineage && x.phytomers.len() == y.phytomers.len() && x.phytomers.iter().zip(&y.phytomers).all(|(p, q)| p.cycle == q.cycle && p.scale == q.scale)

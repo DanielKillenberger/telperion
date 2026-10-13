@@ -268,15 +268,17 @@ pub fn settle_sag_turn(lever: [f32; 3], cap: f32, sag: f64, (radius, length): (f
     crate::sag::turn(lever, cap, sag, radius, length)
 }
 
-/// Whether `grow_cycle`, its working set retiring subtrees as it grows,
-/// returns the tree the reference grower (every axis open, none retired)
-/// settles: the tree the device's settle is held to (SETTLE-PLAN.md risk
-/// 5); and the subtrees retired.
-pub fn grow_cycle_is_the_reference(species: &Species, request: Request) -> Result<(bool, usize)> {
+/// How far `grow_cycle`, its working set retiring subtrees as it grows,
+/// stands from the tree the reference grower (every axis open, none
+/// retired) settles: the tree the device's settle is held to (SETTLE-PLAN.md
+/// risk 5) but for the girth retirement freezes as a subtree closes
+/// (fn-270 R4): its radii's median and most relative shift, none where
+/// the shapes differ; and the subtrees retired.
+pub fn grow_cycle_is_the_reference(species: &Species, request: Request) -> Result<(Option<(f64, f64)>, usize)> {
     let cycled = super::run(species, request, true, Working::default())?;
     let retired = cycled.census.map_or(0, |c| c.retired);
     let reference = super::run(species, request, false, Working::reference())?;
-    Ok((cycled.structure == reference.structure, retired))
+    Ok((super::girth_apart(&cycled.structure, &reference.structure), retired))
 }
 
 /// Every retirement verdict `grow_cycle` takes, in its order

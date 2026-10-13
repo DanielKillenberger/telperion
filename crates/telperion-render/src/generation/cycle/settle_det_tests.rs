@@ -55,9 +55,11 @@ fn young_trees_grown_with_retirement_are_the_reference_the_settle_is_held_to() {
     let mut differ = Vec::new();
     for (preset, name, age) in YOUNG {
         let g = grown(preset, age, 42);
-        let (same, retired) = telperion_space::grow_cycle_is_the_reference(&g.species, g.request).expect("a tree");
-        println!("{name} {age}: {retired} retired, the reference's tree {same}");
-        if !same {
+        let (apart, retired) = telperion_space::grow_cycle_is_the_reference(&g.species, g.request).expect("a tree");
+        println!("{name} {age}: {retired} retired, girth apart from the reference's tree {apart:?}");
+        // The reference's tree but for the girth frozen as a subtree closes
+        // (fn-270 R4): at most 5.4e-5 on the shipped presets.
+        if !apart.is_some_and(|(_, most)| most <= 1e-4) {
             differ.push(name);
         }
     }

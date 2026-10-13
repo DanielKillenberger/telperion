@@ -140,3 +140,11 @@ The standalone peak falls 41% on Telperion (4,209 to 2,484) and 41% on Laurelin 
 ### The oak at 80, recalibrated
 
 Its own ratios at 80 after lever 3 (`raw/t3-l3-oak80-ratios.log`, grown from the least tables): axes 0.12 to 0.37 of its hint, units 0.09 to 0.20, phytomers 0.25 to 0.59, where the margin starts it at 1.43, 1.02 and 2.25: its first tables alone want 4.2 GB, and it is refused by name before its first cycle. Measured (`raw/t3-x3-*`): at a start margin of 0.5 it builds at 3,715 MB (inside the 4 GiB default), at 0.3 at 2,299 MB; but at 0.5 Telperion takes 1,368 ms (+10%), the spruce 507 ms (past 0.5 s) and the ordinary 496 ms, at 0.3 the ordinary 548 ms. The margin stays 1.0: the oak at 80 is reported missed, its floor 2,299 MB at a margin of 0.3, at the cost of R0a's times.
+
+### The Wasm core (the CPU grower) after lever 3 (`raw/t3-l3-wasm.log`)
+
+Telperion 2,813 MB (was 3,114), Laurelin 2,712 (was 2,984), spruce 1,250, oak 334, birch 271, beech 177, ordinary 131, palm 2: the records the CPU no longer keeps. No CPU lever was added (host ruling).
+
+## Gate
+
+`cargo test --profile ci --workspace --no-fail-fast` once (`raw/t3-gate.log`): 1,356 passed, 1 failed, 89 ignored over 139 binaries. The failure, `young_trees_grown_with_retirement_are_the_reference_the_settle_is_held_to`, asserted the retiring grower's tree is the reference's to the bit, which the frozen girth now moves by design; it is held to a girth bound (1e-4, the young presets' most 1.4e-6) and passes (`raw/t3-gate-fix.log`). `npm test`: 162 of 162 (`raw/t3-npm.log`), the unsigned Wasm addresses of task 2 included.
