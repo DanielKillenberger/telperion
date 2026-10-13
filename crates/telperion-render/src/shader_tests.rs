@@ -107,6 +107,68 @@ fn a_faulty_fixture_fails_the_check() {
     }
 }
 
+/// The storage buffers a stage binds past the device's per-stage limit,
+/// the one `Gpu::request` asks for (WebGPU's default 8, within Chrome's
+/// 16; fn-237 R14, fn-266 FRICTION.md). A generation pass binds every
+/// buffer its module declares in one layout (`io::Pass`), so `whole`
+/// counts the module; a drawing pipeline's layout holds what its entry
+/// uses.
+fn storage_over_limit(name: &str, source: &str, whole: bool) -> Option<String> {
+    let module = naga::front::wgsl::parse_str(source).ok()?;
+    let flags = naga::valid::ValidationFlags::all();
+    let info = naga::valid::Validator::new(flags, capabilities())
+        .validate(&module)
+        .ok()?;
+    let storage: Vec<_> = (module.global_variables.iter())
+        .filter(|(_, g)| matches!(g.space, naga::AddressSpace::Storage { .. }))
+        .map(|(h, _)| h)
+        .collect();
+    let limit = wgpu::Limits::default().max_storage_buffers_per_shader_stage as usize;
+    let mut counts = vec![("module".to_string(), storage.len())];
+    if !whole {
+        counts = (module.entry_points.iter().enumerate())
+            .map(|(i, e)| {
+                let used = info.get_entry_point(i);
+                (
+                    e.name.clone(),
+                    storage.iter().filter(|&&h| !used[h].is_empty()).count(),
+                )
+            })
+            .collect();
+    }
+    let over: Vec<String> = (counts.into_iter())
+        .filter(|(_, n)| *n > limit)
+        .map(|(at, n)| format!("{name} {at}: {n} storage buffers, the limit is {limit}"))
+        .collect();
+    (!over.is_empty()).then(|| over.join("\n"))
+}
+
+#[test]
+fn every_shader_holds_the_storage_buffer_limit() {
+    let drawing = crate::shaders::all().into_iter().map(|s| (s, false));
+    let generation = crate::generation::sources::all()
+        .into_iter()
+        .map(|s| (s, true));
+    let over: Vec<String> = (drawing.chain(generation))
+        .filter_map(|((name, source), whole)| storage_over_limit(name, &source, whole))
+        .collect();
+    assert!(over.is_empty(), "{}", over.join("\n"));
+    let limit = wgpu::Limits::default().max_storage_buffers_per_shader_stage as usize;
+    let module = |n: usize| {
+        let globals: String = (0..n)
+            .map(|i| {
+                format!("@group(0) @binding({i}) var<storage, read_write> b{i}: array<u32>;\n")
+            })
+            .collect();
+        let uses: String = (0..n).map(|i| format!("b{i}[0] = 1u;")).collect();
+        format!("{globals}@compute @workgroup_size(1) fn main() {{ {uses} }}")
+    };
+    for whole in [true, false] {
+        assert!(storage_over_limit("at the limit", &module(limit), whole).is_none());
+        assert!(storage_over_limit("past it", &module(limit + 1), whole).is_some());
+    }
+}
+
 /// Every shipped source written to `SHADERS=<dir>`, one file a source,
 /// for a browser's compiler to check (fn-212 task 10: Tint refuses some
 /// WGSL naga accepts). `cargo test --profile ci -p telperion-render

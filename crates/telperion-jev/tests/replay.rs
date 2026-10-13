@@ -33,7 +33,10 @@ fn tools() -> PathBuf {
     let dir = profile.join("examples");
     let name = profile.file_name().unwrap().to_str().unwrap();
     for (package, examples) in [
-        ("telperion-core", &["species_measure", "geometry_benchmark"][..]),
+        (
+            "telperion-core",
+            &["species_measure", "geometry_benchmark"][..],
+        ),
         ("telperion-render", &["headless"][..]),
     ] {
         if examples.iter().all(|e| dir.join(e).exists()) {
