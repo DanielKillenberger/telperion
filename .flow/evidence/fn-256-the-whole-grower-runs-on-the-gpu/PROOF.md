@@ -624,3 +624,4 @@ DESIGN.md section 19 has the bound. Two tests were red on the base and are green
 - **Workspace without the renderer** (`cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast`, 4 threads): 1,073 passed, 0 failed, 48 ignored.
 - **Renderer under the GPU lock** (`cargo test --profile ci -p telperion-render --no-fail-fast`): 274 passed, 0 failed, 39 ignored.
 - **`npm test`** (default target): 15 files, 162 tests passed.
+- **Codex, three reviewers** (correctness, contracts, integration) against `cce1538c0`: SHIP, no findings.
