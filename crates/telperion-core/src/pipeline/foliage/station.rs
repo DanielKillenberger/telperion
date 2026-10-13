@@ -40,12 +40,12 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
     }
     let frames = station_frames(&points, &chord, tree.seed_side(nodes[0]));
     let leaflets = super::rosette::leaflets(&p);
-    // Which stations keep their leaves (fn-248), and at what share; one
-    // that does not still takes its draws, into a sink, so every other
-    // leaf keeps its own.
-    let kept: Vec<Option<f64>> = (stations.iter().enumerate())
+    // Which stations keep their leaves (fn-248), now or a year before;
+    // one that does not still takes its draws, into a sink, so every
+    // other leaf keeps its own.
+    let kept: Vec<Option<bool>> = (stations.iter().enumerate())
         .map(|(k, &d)| match twig {
-            None => Some(1.0),
+            None => Some(true),
             Some(_) => kept(tree, (nodes, &along), d, k as u32),
         })
         .collect();
@@ -101,8 +101,10 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
         }
         let into = if kept[k].is_some() { &mut *out } else { &mut sink };
         // A leaf still expanding, or falling, is drawn at its share
-        // (fn-270 R5, R5a).
-        let size = p.size * tree.unfolding(nodes[segment + 1]) * kept[k].unwrap_or(1.0);
+        // (fn-270 R5, R5c).
+        let unfolded = tree.unfolding(nodes[segment + 1]);
+        let (share, _colour) = unfolded.leaf(kept[k].unwrap_or(true), tree.key(nodes[1]), k as u32);
+        let size = p.size * share;
         super::rosette::fan(
             point,
             axis(point, radial, tangent, p),

@@ -86,6 +86,83 @@ fn mix3(a: Vec3, b: Vec3, f: f64) -> Vec3 {
     Vec3::new(mix(a.x, b.x, f), mix(a.y, b.y, f), mix(a.z, b.z, f))
 }
 
+/// A PA's year on the presentation's clock (fn-270 R5c), which runs from
+/// one whole age, at full leaf, to the next: its leaves past their
+/// lifespan colour and fall in autumn, and at budburst the year's shoots
+/// and every leaf of the year grow from nothing, to full leaf `YEAR`
+/// days on.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Season {
+    /// Days from the whole age to budburst, to the start of colouring,
+    /// and the days of colouring, of falling, of a shoot's elongation and
+    /// of a leaf's expansion.
+    pub budburst: f64,
+    pub senescence: f64,
+    pub colouring: f64,
+    pub fall: f64,
+    pub elongation: f64,
+    pub expansion: f64,
+    /// The years a leaf lives.
+    pub life: f64,
+}
+
+impl Season {
+    /// `state`'s year: a whole age stands at full leaf, its budburst plus
+    /// its shoot's elongation and its leaf's expansion, which places the
+    /// calendar's days on the clock.
+    pub fn of(state: &crate::species::PaState) -> Self {
+        let grow = state.elongation + state.expansion;
+        let senescence = (state.senescence - state.budburst - grow).rem_euclid(YEAR);
+        Self {
+            budburst: YEAR - grow,
+            senescence,
+            colouring: state.colouring,
+            fall: state.leaf_fall,
+            elongation: state.elongation,
+            expansion: state.expansion,
+            life: state.leaf_life,
+        }
+    }
+
+    /// Whether a falling leaf is gone before the next budburst.
+    pub fn fits(&self) -> bool {
+        self.life.is_infinite() || self.senescence + self.colouring + self.fall <= self.budburst
+    }
+
+    /// Days since budburst `tau` days into the year: what a shoot and its
+    /// leaves grow by.
+    pub fn grown(&self, tau: f64) -> f64 {
+        tau - self.budburst
+    }
+
+    /// The share of its size a falling leaf stands at: whole until it has
+    /// coloured, then falling to nothing.
+    pub fn falling(&self, tau: f64) -> f64 {
+        1.0 - run(tau - self.senescence - self.colouring, self.fall)
+    }
+
+    /// How far a falling leaf has coloured.
+    pub fn colour(&self, tau: f64) -> f64 {
+        run(tau - self.senescence, self.colouring)
+    }
+
+    /// The share of its size a leaf growing again from its bud stands at.
+    pub fn regrow(&self, tau: f64) -> f64 {
+        run(self.grown(tau), self.expansion)
+    }
+
+    /// The share of the leaves on wood `age` years old at the year's
+    /// start that pass their lifespan this year: the wood's age once its
+    /// leaves have fallen (its full leaf a whole age after budburst, its
+    /// fall this year's) against the lifespan, by degree over a year, so
+    /// a lifespan under a year drops every leaf and a longer one its
+    /// oldest cohort; none where leaves live on.
+    pub fn passing(&self, age: f64) -> f64 {
+        let fallen = age + (YEAR - self.budburst + self.senescence + self.colouring + self.fall) / YEAR;
+        (fallen + 1.0 - self.life).clamp(0.0, 1.0)
+    }
+}
+
 /// A tree drawn within its year.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Presented {
@@ -96,13 +173,16 @@ pub struct Presented {
     /// How far into its last year the tree is drawn, in [0, 1]: what the
     /// leaves the wood's age keeps move by.
     pub fraction: f64,
+    /// The first of the axes gone this year, which follow the ones grown.
+    pub gone: usize,
 }
 
 impl Presented {
     /// A tree drawn at its whole year.
     pub fn whole(structure: Structure) -> Self {
         let leaves = vec![Vec::new(); structure.axes.len()];
-        Self { structure, leaves, fraction: 1.0 }
+        let gone = structure.axes.len();
+        Self { structure, leaves, fraction: 1.0, gone }
     }
 }
 
@@ -119,6 +199,7 @@ pub fn present(now: Structure, before: &Structure, species: &Species, (f, finest
     let was = index(before);
     let grown: Vec<Vec<Vec3>> = now.axes.iter().map(|a| a.phytomers.iter().map(|p| p.tip).collect()).collect();
     let bases = now.axes.iter().map(|a| a.base).collect();
+    let gone = now.axes.len();
     let mut p = Presenting { before, bases, grown, structure: now, leaves: Vec::new(), f, finest };
     for i in 0..p.structure.axes.len() {
         let old = was.get(&ids[i]).map(|&j| &before.axes[j]);
@@ -126,7 +207,7 @@ pub fn present(now: Structure, before: &Structure, species: &Species, (f, finest
         p.leaves.push(leaves);
     }
     p.fade();
-    Presented { structure: p.structure, leaves: p.leaves, fraction: f }
+    Presented { structure: p.structure, leaves: p.leaves, fraction: f, gone }
 }
 
 /// The tree as it is drawn, axis by axis, parents first.
@@ -206,7 +287,7 @@ impl Presenting<'_> {
         };
         let wood = |p: &Phytomer| p.scale * internode_factor(p.key, state.form.internode_spread);
         let total: f64 = a.phytomers[olds..].iter().map(wood).sum();
-        let tau = f * YEAR;
+        let tau = Season::of(state).grown(f * YEAR);
         let reach = run(tau, state.elongation) * total;
         let mut leaves = vec![1.0f32; olds];
         let mut along = 0.0;

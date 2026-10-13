@@ -87,7 +87,7 @@ pub fn settle(state: &GrowthState, at: f64) -> Result<Tree> {
     let drawn = state.paused.settle_at(at).map_err(engine)?;
     fits(&drawn.structure, KEPT)?;
     let p = state.params;
-    let unfolding = Unfolding { leaves: &drawn.leaves, fraction: drawn.fraction };
+    let unfolding = Unfolding { leaves: &drawn.leaves, fraction: drawn.fraction, gone: drawn.gone };
     let (mut tree, _) = unfolded(&drawn.structure, (&p.trunk, &p.rows), unfolding);
     scaled(&mut tree, p.scale);
     Ok(tree)

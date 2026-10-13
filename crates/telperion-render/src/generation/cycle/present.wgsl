@@ -79,8 +79,9 @@ struct Cfg {
 // (`counts`) while the presented table is laid out.
 @group(0) @binding(5) var<storage, read_write> hash: array<atomic<u32>>;
 @group(0) @binding(6) var<storage, read_write> leaf: array<f32>;
-// Each PA's elongation and expansion in days, its internode's spread and
-// its short shoots' cluster leaves.
+// Each PA's elongation and expansion in days, its internode's spread, its
+// short shoots' cluster leaves and the days from the whole age to its
+// budburst (`unfold::Season`), which its shoots grow from.
 @group(0) @binding(7) var<storage, read> unfold: array<f32>;
 
 const NONE: u32 = 0xffffffffu;
@@ -248,7 +249,7 @@ fn run(t: f32, days: f32) -> f32 {
 }
 
 fn row(pa: u32, r: u32) -> f32 {
-    return unfold[pa * 4u + r];
+    return unfold[pa * 5u + r];
 }
 
 // The radius of presented axis `p`'s phytomer `node`, where a relay of it
@@ -548,7 +549,9 @@ fn present_now(a: u32) {
         let p = first + k;
         total += f(np_now(NP_SCALE, p)) * internode_factor(spread, vec2<u32>(np_now(NP_KEY, p), np_now(NP_KEY + 1u, p)));
     }
-    let reach = run(cfg.tau, elongation) * total;
+    // Days since budburst: the shoot grows from it (fn-270 R5c).
+    let tau = cfg.tau - row(pa, 4u);
+    let reach = run(tau, elongation) * total;
     var origin = base;
     var drawn = na_out3(NA_BASE, to);
     if olds > 0u {
@@ -560,7 +563,7 @@ fn present_now(a: u32) {
         let p = first + k;
         let scale = f(np_now(NP_SCALE, p));
         let piece = scale * internode_factor(spread, vec2<u32>(np_now(NP_KEY, p), np_now(NP_KEY + 1u, p)));
-        var r = select(0.0, 1.0, reach >= along && cfg.tau > 0.0);
+        var r = select(0.0, 1.0, reach >= along && tau > 0.0);
         if piece > 0.0 {
             r = clamp((reach - along) / piece, 0.0, 1.0);
         }
@@ -575,7 +578,7 @@ fn present_now(a: u32) {
         }
         // A short shoot's cluster stays as it was where the shoot stood a
         // year before, at whichever tip it stands now.
-        leaf[p] = select(run(cfg.tau - elongation * reached(share), expansion), 1.0, row(pa, 3u) > 0.0 && olds > 0u);
+        leaf[p] = select(run(tau - elongation * reached(share), expansion), 1.0, row(pa, 3u) > 0.0 && olds > 0u);
         origin = tip;
         drawn = placed;
     }
@@ -619,7 +622,8 @@ fn present_gone(g: u32) {
         let thinned = mixed(r, 0.0, cfg.f);
         set_np(NP_RADIUS, p, b(thinned));
         set3(NP_TIP, p, prev3(NP_TIP, q) + moved);
-        leaf[p] = select(mixed(1.0, 0.0, cfg.f), clamp((thinned - cfg.finest) / (r - cfg.finest), 0.0, 1.0), r > cfg.finest);
+        // A gone leaf's share, marked 2 past it for the dress.
+        leaf[p] = 2.0 + select(mixed(1.0, 0.0, cfg.f), clamp((thinned - cfg.finest) / (r - cfg.finest), 0.0, 1.0), r > cfg.finest);
     }
     // A gone relay's join fades into its bearer's own wood.
     join_from(to, cfg.f, true);

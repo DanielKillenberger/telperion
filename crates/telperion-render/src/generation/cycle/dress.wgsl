@@ -86,7 +86,7 @@ const CH_HEAD: u32 = 7u;
 const CH_AX: u32 = 8u;
 const CH_N: u32 = 10u;
 // A PA's row.
-const ROW: u32 = 8u;
+const ROW: u32 = 14u;
 const R_INTERNODE: u32 = 0u;
 const R_SPREAD: u32 = 1u;
 const R_FLOWERING: u32 = 2u;
@@ -95,6 +95,15 @@ const R_FAN: u32 = 4u;
 const R_SHEDS: u32 = 5u;
 const R_SHARE: u32 = 6u;
 const R_TRUNK: u32 = 7u;
+// Its year on the presentation's clock (`unfold::Season`, fn-270 R5c):
+// days from the whole age to budburst and to colouring, the days of
+// colouring, of falling and of a leaf's expansion, and a leaf's years.
+const R_BUDBURST: u32 = 8u;
+const R_SENESCENCE: u32 = 9u;
+const R_COLOURING: u32 = 10u;
+const R_FALL: u32 = 11u;
+const R_EXPANSION: u32 = 12u;
+const R_LIFE: u32 = 13u;
 // `space.rs`'s constants.
 const FINEST: f32 = 2e-4;
 const SHORTEST: f32 = 1000.0;
@@ -115,7 +124,7 @@ const CA: u32 = 12u;
 // flowering share, at a short shoot's tip its cluster's spread, and its
 // leaf retention: the metres of its grown wood before the boundary, at
 // the scale, and the retentions before and from it.
-const CV: u32 = 35u;
+const CV: u32 = 38u;
 const TAKEN: u32 = 1u;
 const MADE: u32 = 2u;
 // Every node the dress draws is the device's; one drawn from the root is
@@ -430,18 +439,72 @@ fn kept(sheds: u32, share: u32, cycle: u32) -> vec2<u32> {
     return vec2<u32>(now, retention(sheds, share, cfg.age - 1u - cycle));
 }
 
-// The share a leaf its wood no longer keeps is drawn at (`Leafing::fade`).
-fn falling() -> f32 {
-    return select(1.0, 1.0 - cfg.fraction, cfg.fraction < 1.0);
-}
-
-// The share of its whole size phytomer `p`'s leaf is drawn at.
-fn leaf_share(p: u32) -> f32 {
-    if cfg.unfolding == 0u {
+// The logistic course over a span (`unfold::course`), and how far one
+// `days` long has run `t` days after it began (`unfold::run`).
+fn course(x: f32) -> f32 {
+    if x <= 0.0 {
+        return 0.0;
+    }
+    if x >= 1.0 {
         return 1.0;
     }
-    return leaf[p];
+    let lo = 1.0 / (1.0 + exp(5.0));
+    let hi = 1.0 / (1.0 + exp(-5.0));
+    return (1.0 / (1.0 + exp(-10.0 * (x - 0.5))) - lo) / (hi - lo);
 }
+
+fn run(t: f32, days: f32) -> f32 {
+    if days > 0.0 {
+        return course(t / days);
+    }
+    return select(0.0, 1.0, t > 0.0);
+}
+
+// Phytomer `p`'s leaves within the year on axis `a` (`space/unfolding.rs`,
+// `tree::Unfolded`): this year's share, a falling leaf's share, how far
+// it has coloured, a regrowing one's share, and the share of its wood's
+// stations past their lifespan. A gone subtree's leaves (`present.wgsl`
+// marks them 2 past their share) fall with its wood and grow none again.
+fn seasoned(r: u32, a: u32, p: u32) {
+    if cfg.unfolding == 0u {
+        put(r, 32u, 1.0);
+        put(r, 34u, 1.0);
+        put(r, 35u, 0.0);
+        put(r, 36u, 0.0);
+        putu(r, 37u, 0u);
+        return;
+    }
+    let tau = cfg.fraction * 365.0;
+    let marked = leaf[p];
+    let gone = marked >= 2.0;
+    let grow = select(marked, marked - 2.0, gone);
+    let budburst = row(a, R_BUDBURST);
+    var fall = 1.0 - run(tau - row(a, R_SENESCENCE) - row(a, R_COLOURING), row(a, R_FALL));
+    var regrow = run(tau - budburst, row(a, R_EXPANSION));
+    if gone {
+        fall = min(fall, grow);
+        regrow = 0.0;
+    }
+    var colour = 0.0;
+    if tau < budburst {
+        colour = run(tau - row(a, R_SENESCENCE), row(a, R_COLOURING));
+    }
+    // The wood's age once its leaves have fallen against their lifespan
+    // (`unfold::Season::passing`), none on this year's wood.
+    var life = 0u;
+    let cycle = np(NP_CYCLE, p);
+    if cycle < cfg.age {
+        let span = 365.0 - budburst + row(a, R_SENESCENCE) + row(a, R_COLOURING) + row(a, R_FALL);
+        let fallen = f32(cfg.age - 1u - cycle) + span / 365.0;
+        life = u32(floor(clamp(fallen + 1.0 - row(a, R_LIFE), 0.0, 1.0) * 65535.0 + 0.5));
+    }
+    put(r, 32u, grow);
+    put(r, 34u, fall);
+    put(r, 35u, colour);
+    put(r, 36u, regrow);
+    putu(r, 37u, life);
+}
+
 
 // What drawing an axis carries from one node to the next.
 struct Walk {
@@ -535,8 +598,7 @@ fn place(a: u32, r: u32, at: vec4<f32>, p: u32, key: u32, bloom: bool, w: Walk, 
     put(r, 30u, o.older * cfg.scale);
     putu(r, 31u, (o.before << 16u) | o.last);
     putu(r, 33u, (o.was_before << 16u) | o.was_last);
-    put(r, 34u, falling());
-    put(r, 32u, leaf_share(p));
+    seasoned(r, a, p);
     o.fresh = true;
     o.pending = 0.0;
     // A bloom stands at its axis's tip alone (`draw_axis`, fn-253).

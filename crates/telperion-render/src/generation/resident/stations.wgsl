@@ -61,7 +61,7 @@ struct Cfg {
 const OW: u32 = 2u;
 
 const NONE: u32 = 0xffffffffu;
-const NW: u32 = 36u;
+const NW: u32 = 39u;
 const TW: u32 = 4u;
 const MADE: u32 = 2u;
 const FINE: u32 = 8u;
@@ -84,7 +84,7 @@ const SW: u32 = 4u;
 // station and first segment.
 const RW: u32 = 6u;
 // A segment, as `data.rs` packs it for `pack.wgsl`.
-const GW: u32 = 36u;
+const GW: u32 = 40u;
 const TILE: u32 = 256u;
 const PI: f32 = 3.141592653589793;
 
@@ -617,23 +617,35 @@ fn rosette(apex: u32, station0: u32, g: u32) {
             segs[s + 28u + c] = 0u;
         }
         // A frond is drawn whole (fn-270 R5).
-        unfolded(s, 1.0, NONE);
+        unfolded(s, NONE, NONE, 0u);
     }
 }
 
 // A segment's leaves' share of their whole size (fn-270 R5).
-// A segment's leaves' share of their whole size (fn-270 R5), and on node
-// `b`'s wood the retentions now and the share a leaf kept only a year
-// before is drawn at (R5a); whole and kept where `b` is none.
-fn unfolded(at: u32, share: f32, b: u32) {
+// A segment's leaves within the year (`place.wgsl`'s `Segment`, fn-270
+// R5, R5c), as node `n` holds them: this year's share, the retentions now
+// on node `b`'s wood (kept where `b` is none), a falling leaf's share, a
+// regrowing one's; how far a falling one has coloured, the share passing
+// its lifespan and the stream its draws take, keyed `key` (`data.rs`'s
+// `lived`). Whole where `n` is none.
+fn unfolded(at: u32, n: u32, b: u32, key: u32) {
     var now = 0xffffffffu;
-    var fade = 1.0;
     if b != NONE {
         now = word(b, 32u);
-        fade = nodes[b * NW + 35u];
     }
-    put4(at + 32u, vec4<f32>(share, bitcast<f32>(now), fade, 0.0));
+    if n == NONE {
+        put4(at + 32u, vec4<f32>(1.0, bitcast<f32>(now), 1.0, 0.0));
+        put4(at + 36u, vec4<f32>(0.0));
+        return;
+    }
+    let u = n * NW;
+    put4(at + 32u, vec4<f32>(nodes[u + 33u], bitcast<f32>(now), nodes[u + 35u], nodes[u + 37u]));
+    let stream = mix32(key ^ LIFE ^ KEY_RETAIN.x);
+    put4(at + 36u, vec4<f32>(nodes[u + 36u], nodes[u + 38u], bitcast<f32>(stream), 0.0));
 }
+
+// What the lifespan's draws salt a run's stream with (`tree::LIFE`).
+const LIFE: u32 = 0x1eaf11feu;
 
 @compute @workgroup_size(64)
 fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
@@ -675,7 +687,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
         }
         // Every leaf of a cluster stays.
         segs[at + 15u] = 0xffffffffu;
-        unfolded(at, nodes[first * NW + 33u], NONE);
+        unfolded(at, first, NONE, mix32(word(first, 25u) ^ KEY_CLUSTER.x));
         return;
     }
     // The run's stations before any sheds its leaf: its wood walked.
@@ -771,7 +783,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
             segs[at + 11u] = boundary(b, along);
             segs[at + 15u] = keep;
             segs[at + 19u] = stream;
-            unfolded(at, nodes[b * NW + 33u], select(NONE, b, cfg.retains != 0u));
+            unfolded(at, b, select(NONE, b, cfg.retains != 0u), key);
             seen += leaves;
             g += 1u;
             tile += tiles;

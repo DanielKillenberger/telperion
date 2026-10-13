@@ -20,8 +20,9 @@ struct Apart {
     radius: f64,
     leaf: f64,
     unfolding: usize,
-    /// Nodes whose retentions or falling share differ from the CPU's.
+    /// Nodes whose retentions, or whose season, differ from the CPU's.
     retention: usize,
+    season: usize,
 }
 
 fn apart(dev: &[Node], tree: &telperion_core::tree::Tree) -> Apart {
@@ -44,12 +45,15 @@ fn apart(dev: &[Node], tree: &telperion_core::tree::Tree) -> Apart {
         out.matched += 1;
         out.position = out.position.max(most(d.position, p));
         out.radius = out.radius.max(most(d.radii, r));
-        out.leaf = out.leaf.max((f64::from(d.leaf) - tree.unfolding(i)).abs());
+        let u = tree.unfolding(i);
+        out.leaf = out.leaf.max((f64::from(d.leaf) - f64::from(u.grow)).abs());
         out.unfolding += usize::from(d.leaf < 1.0);
         let l = tree.leafing(i);
-        let (keep, was, fade) = d.retention;
-        let apart = (keep, was) != (l.keep, l.was) || (fade - l.fade).abs() > 1e-6;
-        out.retention += usize::from(!tree.leafing.is_empty() && apart);
+        out.retention += usize::from(!tree.leafing.is_empty() && d.retention != (l.keep, l.was));
+        let (fall, colour, regrow, life) = d.season;
+        let shares = [(fall, u.fall), (colour, u.colour), (regrow, u.regrow)];
+        let apart = shares.iter().any(|(a, b)| (a - b).abs() > 1e-4) || life.abs_diff(u32::from(u.life)) > 1;
+        out.season += usize::from(!tree.unfolding.is_empty() && apart);
     }
     out
 }
@@ -71,7 +75,7 @@ fn a_tree_drawn_within_its_year_on_the_device_is_the_cpus() {
         growth::grow_to(&mut cpu, f64::from(h)).expect("grown");
         let mut dev = GrowthState::sized_now(&gpu, &k, &g, (seed, h));
         block(dev.grow_to(&gpu, &k, f64::from(h))).expect("grown");
-        for f in [0.02, 0.1, 0.6] {
+        for f in [0.02, 0.1, 0.35, 0.6, 0.95] {
             let at = f64::from(h) - 1.0 + f;
             let (dressed, _) = block(dev.settle(&gpu, &k, at)).expect("drawn");
             let a = apart(&drawn_nodes(&gpu, &dressed), &growth::settle(&cpu, at).expect("drawn"));
@@ -79,7 +83,7 @@ fn a_tree_drawn_within_its_year_on_the_device_is_the_cpus() {
             assert_eq!(a.device, a.cpu, "{name} at {f}: nodes");
             assert!(a.matched * 1000 >= a.device * 999, "{name} at {f}: {a:?}");
             assert!(a.position < 1e-3 && a.radius < 1e-5 && a.leaf < 1e-3, "{name} at {f}: {a:?}");
-            assert_eq!(a.retention, 0, "{name} at {f}: retentions");
+            assert_eq!((a.retention, a.season), (0, 0), "{name} at {f}: retentions and season");
         }
     }
 }

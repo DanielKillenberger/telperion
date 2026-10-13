@@ -37,7 +37,10 @@ impl Kernels {
 pub(super) fn rows(rows: &[ConvertRow]) -> Vec<f32> {
     let bits = f32::from_bits;
     let row = |r: &ConvertRow| {
-        [r.internode as f32, r.spread as f32, r.flowering as f32, r.leaves as f32, r.fan as f32, bits(r.sheds), bits(u32::from(r.share)), bits(u32::from(r.trunk))]
+        let s = &r.season;
+        let season = [s.budburst, s.senescence, s.colouring, s.fall, s.expansion, s.life].map(|v| v as f32);
+        let convert = [r.internode as f32, r.spread as f32, r.flowering as f32, r.leaves as f32, r.fan as f32, bits(r.sheds), bits(u32::from(r.share)), bits(u32::from(r.trunk))];
+        convert.into_iter().chain(season)
     };
     rows.iter().flat_map(row).collect()
 }

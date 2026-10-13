@@ -107,11 +107,19 @@ fn station(index:u32) -> vec3<u32> {
     axis.y+=config.lean.w;
     if dot(axis,axis)<=1e-12 { axis=radial; }
     axis=normalize(axis);
-    // A leaf kept a year before and not now falls by the year (fn-270 R5a).
-    var share=seg.unfolded.x;
+    return packed(point,axis,tangent,normal,seg.range.w,k,leaf_share(seg,k));
+}
+// The share of its whole size station `k`'s leaf is drawn at within the
+// year (`tree::Unfolded::leaf`, fn-270 R5, R5c): one past its lifespan,
+// or one its wood keeps no longer, falls, and where kept grows again from
+// its bud; any other stands at its wood's share.
+fn leaf_share(seg:Segment, k:u32) -> f32 {
     let now=bitcast<u32>(seg.unfolded.y);
-    if now!=0xffffffffu && !kept_by(seg,now,k) { share*=seg.unfolded.z; }
-    return packed(point,axis,tangent,normal,seg.range.w,k,share);
+    let kept=now==0xffffffffu || kept_by(seg,now,k);
+    let life=bitcast<u32>(seg.season.y);
+    let passing=life!=0u && (life==0xffffu || (mix32(bitcast<u32>(seg.season.z)+(k+1u)*0x9e3779b9u)>>16u)<life);
+    if kept && !passing { return seg.unfolded.x; }
+    return seg.unfolded.z+select(0.0,seg.unfolded.w,kept);
 }
 // Leaflet `j` of a frond's segment (`rosette.rs`'s `fan`,
 // `leaflet::leaflets`): on the rachis that leaves the frond's point on

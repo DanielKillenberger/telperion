@@ -377,12 +377,25 @@
 # DOY 125 to 235. Leaves "measured nine times each over a period of 24
 # days" from bud burst to their whole size (Robson and Aphalo 2012,
 # Physiol. Plant., doi:10.1111/j.1399-3054.2011.01546.x).
+# fn-270 R5c: birch is deciduous (Dox et al. 2020, Tree Physiol. 40:
+# 1001, "deciduous tree species ... particularly in silver birch").
+# "50% of the buds broke out on DOY101" (Marchand et al., as cited by
+# Castells-Montero and Gutierrez-Merino 2023, Trees 37: 1593); "The first
+# yellow leaves appeared on October 3 (DOY277) and all leaves turned
+# yellow by October 8 (DOY282)" (ibid.): 5 days. Leaf fall, found for no
+# birch, is a stand-in by the centroid rule, the beech's 45 days; its
+# lifespan 101 to 327, 0.61 years, derived and rounded down.
 /space/ages/2/lifespan = 5.0
 /space/ages/2/internode = 0.055
 /space/ages/2/divergence = 2.5132741228718345
 /space/ages/2/leafArea = 0.0013190625000000001
 /space/ages/2/elongation = 110.0
 /space/ages/2/expansion = 24.0
+/space/ages/2/leafLife = 0.61
+/space/ages/2/budburst = 101.0
+/space/ages/2/senescence = 277.0
+/space/ages/2/colouring = 5.0
+/space/ages/2/leafFall = 45.0
 /space/ages/2/shadeHazard = 1.1423076923076922
 /space/ages/2/upkeep = 0.35
 /space/ages/2/balanceHazard = 2.2846153846153845
@@ -411,6 +424,11 @@
 /space/ages/3/leafArea = 0.0013190625000000001
 /space/ages/3/elongation = 110.0
 /space/ages/3/expansion = 24.0
+/space/ages/3/leafLife = 0.61
+/space/ages/3/budburst = 101.0
+/space/ages/3/senescence = 277.0
+/space/ages/3/colouring = 5.0
+/space/ages/3/leafFall = 45.0
 /space/ages/3/shadeHazard = 1.1423076923076922
 /space/ages/3/upkeep = 0.35
 /space/ages/3/balanceHazard = 2.2846153846153845
@@ -442,6 +460,11 @@
 /space/ages/4/leafArea = 0.0013190625000000001
 /space/ages/4/elongation = 110.0
 /space/ages/4/expansion = 24.0
+/space/ages/4/leafLife = 0.61
+/space/ages/4/budburst = 101.0
+/space/ages/4/senescence = 277.0
+/space/ages/4/colouring = 5.0
+/space/ages/4/leafFall = 45.0
 /space/ages/4/shadeHazard = 1.1423076923076922
 /space/ages/4/upkeep = 0.35
 /space/ages/4/balanceHazard = 2.2846153846153845
@@ -482,6 +505,11 @@
 /space/ages/5/leafArea = 0.0013190625000000001
 /space/ages/5/elongation = 110.0
 /space/ages/5/expansion = 24.0
+/space/ages/5/leafLife = 0.61
+/space/ages/5/budburst = 101.0
+/space/ages/5/senescence = 277.0
+/space/ages/5/colouring = 5.0
+/space/ages/5/leafFall = 45.0
 /space/ages/5/shadeHazard = 1.1423076923076922
 /space/ages/5/upkeep = 0.35
 /space/ages/5/balanceHazard = 2.2846153846153845
@@ -520,6 +548,11 @@
 /space/ages/6/leafArea = 0.0013190625000000001
 /space/ages/6/elongation = 110.0
 /space/ages/6/expansion = 24.0
+/space/ages/6/leafLife = 0.61
+/space/ages/6/budburst = 101.0
+/space/ages/6/senescence = 277.0
+/space/ages/6/colouring = 5.0
+/space/ages/6/leafFall = 45.0
 /space/ages/6/shadeHazard = 1.1423076923076922
 /space/ages/6/upkeep = 0.35
 /space/ages/6/balanceHazard = 2.2846153846153845
@@ -564,6 +597,11 @@
 /space/ages/7/leafArea = 0.0013190625000000001
 /space/ages/7/elongation = 110.0
 /space/ages/7/expansion = 24.0
+/space/ages/7/leafLife = 0.61
+/space/ages/7/budburst = 101.0
+/space/ages/7/senescence = 277.0
+/space/ages/7/colouring = 5.0
+/space/ages/7/leafFall = 45.0
 /space/ages/7/shadeHazard = 1.1423076923076922
 /space/ages/7/upkeep = 0.35
 /space/ages/7/balanceHazard = 2.2846153846153845
@@ -603,6 +641,11 @@
 /space/ages/8/leafArea = 0.0013190625000000001
 /space/ages/8/elongation = 110.0
 /space/ages/8/expansion = 24.0
+/space/ages/8/leafLife = 0.61
+/space/ages/8/budburst = 101.0
+/space/ages/8/senescence = 277.0
+/space/ages/8/colouring = 5.0
+/space/ages/8/leafFall = 45.0
 /space/ages/8/shadeHazard = 1.1423076923076922
 /space/ages/8/upkeep = 0.35
 /space/ages/8/balanceHazard = 2.2846153846153845
@@ -637,6 +680,11 @@
 /space/ages/9/leafArea = 0.0013190625000000001
 /space/ages/9/elongation = 110.0
 /space/ages/9/expansion = 24.0
+/space/ages/9/leafLife = 0.61
+/space/ages/9/budburst = 101.0
+/space/ages/9/senescence = 277.0
+/space/ages/9/colouring = 5.0
+/space/ages/9/leafFall = 45.0
 /space/ages/9/shadeHazard = 1.1423076923076922
 /space/ages/9/upkeep = 0.35
 /space/ages/9/balanceHazard = 2.2846153846153845
@@ -671,6 +719,11 @@
 /space/ages/14/clusterSpread = 0.6
 /space/ages/14/elongation = 110.0
 /space/ages/14/expansion = 24.0
+/space/ages/14/leafLife = 0.61
+/space/ages/14/budburst = 101.0
+/space/ages/14/senescence = 277.0
+/space/ages/14/colouring = 5.0
+/space/ages/14/leafFall = 45.0
 /space/ages/14/shadeHazard = 1.1423076923076922
 /space/ages/14/upkeep = 0.35
 /space/ages/14/balanceHazard = 2.2846153846153845

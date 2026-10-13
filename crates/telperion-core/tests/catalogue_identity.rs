@@ -185,6 +185,12 @@
 //! sourced rows of both: with those rows left out of the value files and
 //! `elongation: 0.0, expansion: 0.0, ` stripped from the text, all four
 //! digests were the last pins to the bit.
+//! fn-270 R5c re-pinned the same three for each age's new neutral leaf
+//! lifespan and season (`leaf_life: inf, budburst: 0.0, senescence: 0.0,
+//! colouring: 0.0, leaf_fall: 0.0, `), every preset's sourced rows of
+//! them and the palm's elongation and frond expansion (R5b): with those
+//! rows as they were and the fields stripped, all four were the last
+//! pins to the bit.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -220,7 +226,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        2_348_171_050_825_951_856,
+        6_870_557_101_620_701_984,
         "{}",
         digest(&text)
     );
@@ -264,7 +270,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        4_697_208_267_822_678_750,
+        12_833_529_794_047_578_730,
         "{}",
         digest(&text)
     );
@@ -289,7 +295,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        13_311_969_775_620_891_943,
+        3_398_381_730_884_683_192,
         "{}",
         digest(&text)
     );

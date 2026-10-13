@@ -27,8 +27,9 @@ pub(super) struct Segment {
     distance: [f32; 4],
     range: [u32; 4],
     edge: [u32; 4],
-    /// Its leaves' share of their whole size (fn-270 R5), then spare.
+    /// Its leaves within the year (fn-270 R5, R5c; `place.wgsl`).
     unfolded: [f32; 4],
+    season: [f32; 4],
 }
 pub(super) fn vector(p: Vec3, w: f64) -> [f32; 4] {
     [p.x as f32, p.y as f32, p.z as f32, w as f32]
@@ -110,7 +111,8 @@ pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
     p.segments
         .iter()
         .map(|s| {
-            let retention = s.retention.unwrap_or((0, u32::MAX, u32::MAX, 1.0));
+            let retention = s.retention.unwrap_or((0, u32::MAX, u32::MAX));
+            let u = s.unfolding;
             Segment {
                 a: vector(s.endpoints[0], s.radii[0]),
                 b: vector(s.endpoints[1], s.radii[1]),
@@ -137,7 +139,8 @@ pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
                 // Its leaves' share of their whole size (fn-270 R5), the
                 // retentions now and the share a leaf kept only a year
                 // before is drawn at (R5a).
-                unfolded: [s.unfolding as f32, f32::from_bits(retention.2), retention.3, 0.0],
+                unfolded: [u.grow, f32::from_bits(retention.2), u.fall, u.regrow],
+                season: [u.colour, f32::from_bits(u32::from(u.life)), f32::from_bits(lived(s.key)), 0.0],
             }
         })
         .collect()
@@ -146,6 +149,12 @@ pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
 /// A direction with a word in its fourth lane, its bits as they are.
 fn worded(v: Vec3, word: u32) -> [f32; 4] {
     [v.x as f32, v.y as f32, v.z as f32, f32::from_bits(word)]
+}
+
+/// The stream a run's lifespan draws take (`tree::Unfolded::leaf`): its
+/// key salted apart from its retention's.
+fn lived(key: u32) -> u32 {
+    retain(key ^ telperion_core::tree::LIFE)
 }
 
 /// The stream a run's retention draws take (`tree::keeps`): its first

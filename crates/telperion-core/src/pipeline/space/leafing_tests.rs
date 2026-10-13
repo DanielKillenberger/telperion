@@ -3,7 +3,7 @@
 //! records none.
 use super::*;
 use crate::presets::Preset;
-use crate::tree::{kept_share, retention, KEEP};
+use crate::tree::{kept_share, retention, Unfolded, KEEP};
 use std::collections::HashMap;
 
 fn grown(leaf_years: f64) -> (Structure, Tree, telperion_space::Species) {
@@ -80,34 +80,51 @@ fn each_node_keeps_the_retention_of_the_wood_it_draws() {
     println!("shares {shares:?}, {mixed} nodes of mixed wood");
 }
 
-/// fn-270 R5a: drawn within its year, a node keeps the leaves its wood
-/// kept a year before, those it keeps no longer drawn at the share left
-/// of the year (`Leafing::share`), so last year's leaves fall through the
-/// year, not at its turn; at the whole year it is the tree grown.
+/// fn-270 R5a and R5c: drawn within its year, a node keeps the
+/// retentions its wood has now and had a year before, and its leaves'
+/// season: on last year's wood, under a lifespan of half a year, every
+/// leaf passes, falling to nothing over the fall and growing again from
+/// budburst; this year's wood passes none.
 #[test]
-fn within_its_year_the_leaves_the_wood_no_longer_keeps_fall_by_degree() {
-    let (structure, whole, species) = grown(1.5);
+fn within_its_year_old_wood_drops_its_leaves_and_grows_them_again() {
+    let (structure, whole, mut species) = grown(1.5);
+    for s in &mut species.states {
+        (s.leaf_life, s.budburst, s.senescence, s.colouring, s.leaf_fall) = (0.5, 115.0, 264.0, 16.0, 45.0);
+    }
     let rows = pa_rows(&species);
-    let quarter = unfolded(&structure, (&[][..], &rows), Unfolding { leaves: &[], fraction: 0.25 }).0;
-    let r = retention(1.5);
+    let season = rows[2].season;
     let age = structure.age;
+    let r = retention(1.5);
     let node: HashMap<u64, usize> =
         (1..whole.nodes.len()).map(|i| (whole.nodes[i].identity.birth_order(), i)).collect();
-    let mut seen = [0usize; 3];
-    for axis in &structure.axes {
-        for p in &axis.phytomers {
-            let Some(&i) = node.get(&p.key()) else { continue };
-            let now = kept_share(r, age - p.cycle);
-            let was = if p.cycle < age { kept_share(r, age - 1 - p.cycle) } else { now };
-            let l = quarter.leafing[i];
-            assert_eq!((l.keep as u16, l.was as u16, l.fade), (now, was, 0.75), "node {i}");
-            assert_eq!((whole.leafing[i].was, whole.leafing[i].fade), (whole.leafing[i].keep, 1.0), "node {i} whole");
-            seen[(age - p.cycle).min(2) as usize] += 1;
+    for f in [0.25, 0.6, 0.95] {
+        let at = unfolded(&structure, (&[][..], &rows), Unfolding { leaves: &[], fraction: f, gone: usize::MAX }).0;
+        let tau = f * telperion_space::unfold::YEAR;
+        let mut seen = [0usize; 2];
+        for axis in &structure.axes {
+            for p in &axis.phytomers {
+                let Some(&i) = node.get(&p.key()) else { continue };
+                let now = kept_share(r, age - p.cycle);
+                let was = if p.cycle < age { kept_share(r, age - 1 - p.cycle) } else { now };
+                let (l, u) = (at.leafing[i], at.unfolding[i]);
+                assert_eq!((l.keep as u16, l.was as u16), (now, was), "node {i}");
+                let old = p.cycle < age;
+                assert_eq!(u.life, if old { u16::MAX } else { 0 }, "node {i}");
+                assert_eq!((u.fall, u.regrow), (season.falling(tau) as f32, season.regrow(tau) as f32));
+                seen[usize::from(old)] += 1;
+            }
         }
+        assert!(seen.iter().all(|&n| n > 100), "{seen:?}");
     }
-    assert!(seen.iter().all(|&n| n > 100), "{seen:?}");
-    // A station kept a year before and not now is drawn at the share left.
-    let l = Leafing { older: 0.0, keep: 0, was: u32::from(KEEP), fade: 0.75 };
-    assert_eq!(l.share((0.0, 0.0), 7, 3), Some(0.75));
-    assert_eq!(Leafing { was: 0, ..l }.share((0.0, 0.0), 7, 3), None);
+    assert!(whole.unfolding.is_empty(), "the whole year records none");
+    // A station that passes falls and, kept, grows again; one that does
+    // not stands at this year's share; one kept no longer only falls.
+    let u = Unfolded { grow: 0.5, fall: 0.25, colour: 0.75, regrow: 0.125, life: u16::MAX };
+    assert_eq!(u.leaf(true, 7, 3), (0.375, 0.75));
+    assert_eq!(u.leaf(false, 7, 3), (0.25, 0.75));
+    assert_eq!(Unfolded { life: 0, ..u }.leaf(true, 7, 3), (0.5, 0.0));
+    assert_eq!(Unfolded { life: 0, ..u }.leaf(false, 7, 3), (0.25, 0.75));
+    let l = Leafing { older: 0.0, keep: 0, was: u32::from(KEEP) };
+    assert_eq!(l.kept((0.0, 0.0), 7, 3), Some(false));
+    assert_eq!(Leafing { was: 0, ..l }.kept((0.0, 0.0), 7, 3), None);
 }

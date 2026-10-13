@@ -57,11 +57,13 @@ pub(in crate::generation) struct Node {
     /// Its phytomer's key, or none for a relay's join.
     pub identity: Option<u64>,
     pub parent: Option<u32>,
-    /// Its leaves' share of their whole size (fn-270 R5), and its wood's
-    /// retentions now and a year before and the share a leaf kept only
-    /// then is drawn at (R5a).
+    /// Its leaves within the year (fn-270 R5, R5a, R5c): this year's
+    /// share, its wood's retentions now and a year before, a falling
+    /// leaf's share and colour, a regrowing one's share and the share
+    /// passing its lifespan.
     pub leaf: f32,
-    pub retention: (u32, u32, f32),
+    pub retention: (u32, u32),
+    pub season: (f32, f32, f32, u32),
 }
 
 /// Every node the device drew for `f`.
@@ -100,7 +102,8 @@ pub(in crate::generation) fn drawn_nodes(gpu: &crate::Gpu, dressed: &super::fold
                 identity: (r[26] | r[27] != 0).then(|| u64::from(r[26]) | u64::from(r[27]) << 32),
                 parent: keys.get(&r[16]).copied(),
                 leaf: f(32),
-                retention: (r[31], r[33], f(34)),
+                retention: (r[31], r[33]),
+                season: (f(34), f(35), f(36), r[37]),
             });
         }
     }

@@ -9,8 +9,8 @@ use telperion_core::pipeline::executor;
 use telperion_core::Family;
 
 /// Each placed leaf's scale on one segment of 64 stations, its retention
-/// `(was, now, fade)` where it has one.
-fn scales(generator: &Generator, retention: Option<(u32, u32, f32)>) -> Vec<f64> {
+/// `(was, now)` where it has one and a falling leaf's share `fall`.
+fn scales(generator: &Generator, retention: Option<(u32, u32)>, fall: f32) -> Vec<f64> {
     let tree = fixture(0.0);
     let f = Family::default();
     let twig = TwigPlacement { internode_length: 0.07, stations_per_internode: 3 };
@@ -19,7 +19,8 @@ fn scales(generator: &Generator, retention: Option<(u32, u32, f32)>) -> Vec<f64>
     p.count = 64;
     let segment = &mut p.segments[0];
     (segment.count, segment.first) = (64, 0);
-    segment.retention = retention.map(|(was, now, fade)| (0, was, now, fade));
+    segment.retention = retention.map(|(was, now)| (0, was, now));
+    segment.unfolding = telperion_core::tree::Unfolded { fall, ..telperion_core::tree::Unfolded::WHOLE };
     let reference = Reference::spanning(Vec3::new(-2.0, -1.0, -2.0), Vec3::new(2.0, 3.0, 2.0));
     let element = executor::element(f.element).unwrap();
     let out = generator.compute(p, &leaves(&tree, &f), twig, &element, reference, &mut Default::default()).unwrap();
@@ -35,11 +36,11 @@ fn a_leaf_its_wood_keeps_no_longer_falls_by_the_year_on_the_device() {
     };
     let renderer = crate::Renderer::new(gpu, crate::STILL_FORMAT);
     let generator = Generator::new(&renderer).unwrap();
-    let whole = scales(&generator, None);
+    let whole = scales(&generator, None, 1.0);
     assert!(whole.len() == 64 && whole.iter().all(|&w| w > 0.0));
     let all = u32::MAX;
-    for (retention, share) in [((all, 0, 0.5), 0.5), ((all, all, 0.5), 1.0)] {
-        let drawn = scales(&generator, Some(retention));
+    for (retention, share) in [((all, 0), 0.5), ((all, all), 1.0)] {
+        let drawn = scales(&generator, Some(retention), 0.5);
         assert_eq!(drawn.len(), whole.len());
         for (d, w) in drawn.iter().zip(&whole) {
             assert!((d - w * share).abs() <= 2e-3 * w, "{retention:?}: {d} against {w}");

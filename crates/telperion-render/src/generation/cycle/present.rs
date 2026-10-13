@@ -150,7 +150,7 @@ fn ranges(starts: &[u32], depths: usize) -> Vec<(u32, u32)> {
 
 /// `now`, settled, drawn `fraction` into its year from `before`, last
 /// year's drawing (none before the first year), each PA's `unfold` row
-/// (elongation, expansion, internode spread, cluster leaves).
+/// (elongation, expansion, internode spread, cluster leaves, budburst).
 pub(super) async fn present(gpu: &Gpu, (k, scan): (&Kernels, &io::Pass), (now, before): (View<'_>, Option<View<'_>>), unfold: &[f32], fraction: f32) -> Result<Presented> {
     let (t, prev) = (now.table, before.unwrap_or(now));
     let pkept = if before.is_some() { prev.table.kept } else { 0 };

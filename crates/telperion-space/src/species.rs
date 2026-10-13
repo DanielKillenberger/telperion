@@ -174,6 +174,24 @@ pub struct PaState {
     /// unfolding to its whole size, along the same course (fn-270 R5).
     /// Read as `elongation` is. Neutral 0, at once.
     pub expansion: f64,
+    /// The years a leaf of this PA lives (fn-270 R5c): a leaf older than
+    /// this at autumn colours and falls, by degree (a fraction falls that
+    /// share of its cohort), and where its wood still bears one it grows
+    /// again from its bud at budburst. Apart from `leaf_years`, how long
+    /// wood bears leaves, so whole ages are unchanged. Read as
+    /// `elongation` is. Neutral infinite: no leaf falls.
+    pub leaf_life: f64,
+    /// The day of the calendar year its buds burst: with `elongation` and
+    /// `expansion` it places a whole age, which stands at full leaf, on the
+    /// calendar, and so `senescence` on the presentation's year (R5c).
+    /// Dormant while no leaf falls.
+    pub budburst: f64,
+    /// The day of the calendar year its falling leaves start to colour,
+    /// the days they take to colour, and then the days they take to fall
+    /// (R5c). Dormant while no leaf falls.
+    pub senescence: f64,
+    pub colouring: f64,
+    pub leaf_fall: f64,
     /// How shade raises an apex's yearly death hazard: its survival is
     /// its viability to the power light^-shade_hazard, so ln survival =
     /// ln viability times light^-φ (host, 2026-10-05). Neutral 0; dormant

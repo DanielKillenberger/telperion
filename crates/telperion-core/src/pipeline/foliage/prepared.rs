@@ -21,10 +21,9 @@ pub struct StationSegment {
     /// Where some of its stations shed their leaves (fn-248): the boundary
     /// along the run in whole micrometres, the retentions before and from
     /// it a year before, which a placement walks its stations by to find
-    /// each leaf's ordinal, and now, and the share a leaf kept only a year
-    /// before is drawn at (`tree::Leafing`, fn-270 R5a). `None` where every
-    /// station keeps one whole.
-    pub retention: Option<(u32, u32, u32, f32)>,
+    /// each leaf's ordinal, and now (`tree::Leafing`, fn-270 R5a). `None`
+    /// where every station keeps one.
+    pub retention: Option<(u32, u32, u32)>,
     /// Sine/cosine of the first internode turn, evaluated before f32 narrowing.
     pub phase: [f64; 2],
     pub endpoints: [Vec3; 2],
@@ -41,9 +40,9 @@ pub struct StationSegment {
     /// the tip `endpoints` names, fanned about the heading `frame[0]`,
     /// drawing on the tip's cluster stream (`key`).
     pub cluster: Option<f64>,
-    /// Its leaves' share of their whole size where the tree is drawn
-    /// within its year (fn-270 R5, `Tree::unfolding`): its distal node's.
-    pub unfolding: f64,
+    /// Its leaves where the tree is drawn within its year (fn-270 R5, R5c,
+    /// `Tree::unfolding`): its distal node's.
+    pub unfolding: crate::tree::Unfolded,
 }
 
 /// No per-leaf positions or transforms are constructed by this preparation.
@@ -237,7 +236,7 @@ fn prepare_inner<C>(
             let leafing = tree.leafing(nodes[segment + 1]);
             let retention = (leafing != Leafing::ALL).then(|| {
                 let boundary = run.along[segment] + plan::micrometres(leafing.older);
-                (boundary as u32, leafing.was, leafing.keep, leafing.fade)
+                (boundary as u32, leafing.was, leafing.keep)
             });
             let mut tile_first = first;
             while tile_first < last {

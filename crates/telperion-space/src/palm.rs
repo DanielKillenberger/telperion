@@ -72,8 +72,13 @@ pub fn palm() -> Species {
         leaf_years: f64::INFINITY,
         // fn-270 R5: the days its shoot elongates and its leaf expands
         // within the year, sourced in its preset's value file.
-        elongation: 365.0,
-        expansion: 0.0,
+        elongation: 226.0,
+        expansion: 139.0,
+        leaf_life: f64::INFINITY,
+        budburst: 0.0,
+        senescence: 0.0,
+        colouring: 0.0,
+        leaf_fall: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,

@@ -24,11 +24,9 @@ pub struct Leafing {
     pub keep: u32,
     /// Drawn within its year (fn-270 R5a): the retentions a year before,
     /// at the same boundary, which hold the stations drawn (a retention
-    /// only falls with age, so every station kept now was kept then), and
-    /// the share a leaf kept then and not now is drawn at, falling to
-    /// nothing across the year. `keep` and 1 at the whole year.
+    /// only falls with age, so every station kept now was kept then);
+    /// `keep` at the whole year.
     pub was: u32,
-    pub fade: f32,
 }
 
 impl Leafing {
@@ -37,7 +35,6 @@ impl Leafing {
         older: 0.0,
         keep: u32::MAX,
         was: u32::MAX,
-        fade: 1.0,
     };
     /// The retention of wood `offset` along the node, in the units the
     /// boundary `older` is counted in by the caller.
@@ -50,18 +47,51 @@ impl Leafing {
         half(self.was, offset >= older)
     }
 
-    /// The share station `ordinal` of the run keyed `key`, on wood
-    /// `offset` along the node, draws its leaf at: whole where it keeps
-    /// it now, `fade` where it kept it only a year before; none where it
-    /// keeps none.
-    pub fn share(self, (offset, older): (f64, f64), key: u32, ordinal: u32) -> Option<f64> {
+    /// Whether station `ordinal` of the run keyed `key`, on wood `offset`
+    /// along the node, keeps its leaf now; none where it kept none a year
+    /// before either.
+    pub fn kept(self, (offset, older): (f64, f64), key: u32, ordinal: u32) -> Option<bool> {
         if !keeps(self.was_at(offset, older), key, ordinal) {
             return None;
         }
-        Some(match keeps(self.at(offset, older), key, ordinal) {
-            true => 1.0,
-            false => f64::from(self.fade),
-        })
+        Some(keeps(self.at(offset, older), key, ordinal))
+    }
+}
+
+/// A node's leaves drawn within its year (fn-270 R5, R5c): the share of
+/// its whole size a leaf of this year's wood stands at, a falling leaf's
+/// share and how far it has coloured, the share a leaf growing again
+/// from its bud stands at, and the share of its stations whose leaves
+/// pass their lifespan this year (16 bits, as a retention).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Unfolded {
+    pub grow: f32,
+    pub fall: f32,
+    pub colour: f32,
+    pub regrow: f32,
+    pub life: u16,
+}
+
+/// What the lifespan's draws salt a run's stream with, so a station's
+/// passing never follows its retention's draw.
+pub const LIFE: u32 = 0x1eaf_11fe;
+
+impl Unfolded {
+    /// A node drawn at the whole year: every leaf whole, none falling.
+    pub const WHOLE: Self = Self { grow: 1.0, fall: 1.0, colour: 0.0, regrow: 0.0, life: 0 };
+
+    /// The share of its whole size, and how far it has coloured, station
+    /// `ordinal` of a run keyed `key` draws its leaf at, its wood keeping
+    /// it now or not: a leaf past its lifespan, or one its wood keeps no
+    /// longer, colours and falls, and where its wood keeps one grows again
+    /// from its bud; every other leaf stands at `grow`.
+    pub fn leaf(self, kept: bool, key: u32, ordinal: u32) -> (f64, f64) {
+        let passing = self.life != 0 && keeps(self.life, key ^ LIFE, ordinal);
+        if kept && !passing {
+            return (f64::from(self.grow), 0.0);
+        }
+        let regrow = if kept { self.regrow } else { 0.0 };
+        (f64::from(self.fall + regrow), f64::from(self.colour))
     }
 }
 

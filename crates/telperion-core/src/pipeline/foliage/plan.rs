@@ -65,27 +65,27 @@ pub(crate) fn walk(
     *along.last().unwrap()
 }
 
-/// The share the station at `distance` along a run under a twig layer,
-/// in whole micrometres of grown wood (`walk`), its `ordinal`th, draws
-/// its leaf at by its wood's retention (fn-248, `Leafing::share`), none
-/// where it keeps none: the segment it stands on is the last that
-/// starts at or before it, as placement seats it, and the run's first
-/// node keys the draw. Every station keeps its leaf whole on a tree that
-/// records no retention.
+/// Whether the station at `distance` along a run under a twig layer, in
+/// whole micrometres of grown wood (`walk`), its `ordinal`th, keeps its
+/// leaf now by its wood's retention (fn-248, `Leafing::kept`), none
+/// where it kept none a year before either: the segment it stands on is
+/// the last that starts at or before it, as placement seats it, and the
+/// run's first node keys the draw. Every station keeps its leaf on a
+/// tree that records no retention.
 pub(crate) fn kept(
     tree: &Tree,
     (nodes, along): (&[usize], &[f64]),
     distance: f64,
     ordinal: u32,
-) -> Option<f64> {
+) -> Option<bool> {
     if tree.leafing.is_empty() {
-        return Some(1.0);
+        return Some(true);
     }
     // The first segment starts at 0, at or before every station.
     let segment = along[..along.len() - 1].partition_point(|&a| a <= distance) - 1;
     let leafing = tree.leafing(nodes[segment + 1]);
     let at = (distance - along[segment], micrometres(leafing.older));
-    leafing.share(at, tree.key(nodes[1]), ordinal)
+    leafing.kept(at, tree.key(nodes[1]), ordinal)
 }
 
 /// One unbranched run of leaf-bearing wood under a twig layer: its nodes,

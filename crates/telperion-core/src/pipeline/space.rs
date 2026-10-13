@@ -98,6 +98,8 @@ pub struct ConvertRow {
     pub sheds: u32,
     pub share: u16,
     pub trunk: bool,
+    /// Its year on the presentation's clock (fn-270 R5c).
+    pub season: telperion_space::unfold::Season,
 }
 
 /// What another executor grows and draws the family's tree by: the
@@ -117,6 +119,7 @@ pub(super) fn growth(
         sheds: r.retention.0,
         share: r.retention.1,
         trunk: input.space.trunk.contains(&pa),
+        season: r.season,
     });
     let rows = rows.collect();
     Ok((species.clone(), request, input.supernatural.scale(), rows))
@@ -183,6 +186,8 @@ pub(super) struct PaRow {
     flowering: f64,
     cluster: (u32, f64),
     retention: (u32, u16),
+    /// Its year on the presentation's clock (fn-270 R5c).
+    season: telperion_space::unfold::Season,
 }
 
 /// Each PA's row (`PaRow`).
@@ -195,6 +200,7 @@ fn pa_rows(species: &telperion_space::Species) -> Vec<PaRow> {
             // Whole, 0 to 8, by the species' own check.
             cluster: (s.cluster_leaves as u32, s.cluster_spread),
             retention: crate::tree::retention(s.leaf_years),
+            season: telperion_space::unfold::Season::of(s),
         })
         .collect()
 }
@@ -320,44 +326,6 @@ fn converted(structure: &Structure, rows: (&[usize], &[PaRow])) -> (Tree, Vec<Ve
     unfolded(structure, rows, Unfolding::WHOLE)
 }
 
-/// A tree drawn within its year (fn-270 R5): each axis's leaves' shares by
-/// phytomer (empty where all are whole), and how far into the year it is
-/// drawn, which the leaves the wood's age keeps move by.
-#[derive(Debug, Clone, Copy)]
-pub(super) struct Unfolding<'a> {
-    pub leaves: &'a [Vec<f32>],
-    pub fraction: f64,
-}
-
-impl Unfolding<'_> {
-    const WHOLE: Self = Self { leaves: &[], fraction: 1.0 };
-
-    /// The share of its whole size the leaf of axis `axis`'s phytomer
-    /// `place` is drawn at.
-    fn leaf(&self, axis: usize, place: usize) -> f32 {
-        self.leaves.get(axis).and_then(|l| l.get(place)).copied().unwrap_or(1.0)
-    }
-
-    /// The leaves wood of `cycle` keeps in a tree of `age` years under
-    /// `retention`, and kept a year before: the same at the whole year
-    /// and on this year's wood.
-    fn kept(&self, retention: (u32, u16), age: u32, cycle: u32) -> (u16, u16) {
-        let now = kept_share(retention, age.saturating_sub(cycle));
-        if self.fraction >= 1.0 || cycle >= age {
-            return (now, now);
-        }
-        (now, kept_share(retention, age - 1 - cycle))
-    }
-
-    /// The share a leaf its wood no longer keeps is drawn at.
-    fn fade(&self) -> f32 {
-        match self.fraction < 1.0 {
-            true => (1.0 - self.fraction) as f32,
-            false => 1.0,
-        }
-    }
-}
-
 /// `converted`, its leaves drawn by `unfolding`.
 fn unfolded(
     structure: &Structure,
@@ -375,10 +343,10 @@ fn unfolded(
     let leafing_on = rows.iter().any(|r| r.retention.0 != u32::MAX);
     let mut leafing = vec![Leafing::ALL; usize::from(leafing_on)];
     let mut frames = vec![[0.0f32; 6]];
-    // Each node's leaves' share of their whole size, kept only where some
-    // leaf is drawn short of it (fn-270 R5).
-    let unfolding_on = unfolding.leaves.iter().any(|l| !l.is_empty());
-    let mut unfolded = vec![1.0f32; usize::from(unfolding_on)];
+    // Each node's leaves within the year, kept only where it is drawn
+    // within it (fn-270 R5, R5c).
+    let unfolding_on = unfolding.within();
+    let mut unfolded = vec![crate::tree::Unfolded::WHOLE; usize::from(unfolding_on)];
     let mut keys = vec![0u32];
     let mut lengths = vec![0.0];
     // The node each axis ends on, for what continues it.
@@ -535,7 +503,7 @@ fn unfolded(
                 keys.push(d.key);
                 lengths.push(std::mem::take(&mut pending));
                 if unfolding_on {
-                    unfolded.push(unfolding.leaf(i, place));
+                    unfolded.push(unfolding.node((i, place), &rows[axis.pa], (structure.age, p.cycle)));
                 }
                 if leafing_on {
                     let (older, before, last) = wood.take().unwrap();
@@ -544,7 +512,6 @@ fn unfolded(
                         older,
                         keep: u32::from(before) << 16 | u32::from(last),
                         was: u32::from(was_before) << 16 | u32::from(was_last),
-                        fade: unfolding.fade(),
                     });
                 }
                 // Whether the axis's last node is drawn from its own wood,
@@ -632,6 +599,8 @@ pub mod growth;
 #[cfg(test)]
 mod leafing_tests;
 mod join;
+mod unfolding;
+use unfolding::Unfolding;
 #[cfg(test)]
 mod relay_tests;
 #[cfg(test)]

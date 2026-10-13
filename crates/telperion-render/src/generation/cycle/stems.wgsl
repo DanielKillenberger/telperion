@@ -20,7 +20,7 @@ struct Cfg {
 @group(0) @binding(3) var<storage, read_write> sums: array<atomic<u32>>;
 
 const NONE: u32 = 0xffffffffu;
-const CV: u32 = 35u;
+const CV: u32 = 38u;
 const MADE: u32 = 2u;
 const STEM: u32 = 128u;
 // `sums`: the root's radius, the first fork's distance and id, and the

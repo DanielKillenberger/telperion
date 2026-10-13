@@ -166,12 +166,24 @@
 # 10 to April 22 (Dougherty et al. 1979, Plant Physiol. 64: 930), the
 # low end of the "2 to 6 weeks" of fixed growth (Kozlowski and Pallardy
 # 1997, Growth Control in Woody Plants).
+# fn-270 R5c: "Oregon white oak is a deciduous tree" (FEIS, Quercus
+# garryana). Stand-ins, none for the species: budburst from Q. robur,
+# "Leafing of oak ... Meanobs (date) 8 May" (Rotzer et al. 2004, Int. J.
+# Biometeorol. 48: 109), day 128; colouring and fall from no oak, so the
+# centroid rule (examples/centroid.rs) over the corners that state them,
+# the beech's alone: 264, 16 and 45 days; its lifespan from budburst to
+# the fall's end, 128 to 325, 0.53 years, derived and rounded down.
 /space/ages/2/lifespan = 12.0
 /space/ages/2/internode = 0.045
 /space/ages/2/divergence = 2.513
 /space/ages/2/leafArea = 0.00181
 /space/ages/2/elongation = 14.0
 /space/ages/2/expansion = 35.0
+/space/ages/2/leafLife = 0.53
+/space/ages/2/budburst = 128.0
+/space/ages/2/senescence = 264.0
+/space/ages/2/colouring = 16.0
+/space/ages/2/leafFall = 45.0
 /space/ages/2/shadeHazard = 1.0
 /space/ages/2/shadeSize = 1.5
 /space/ages/2/apicalControl = 0.45
@@ -200,6 +212,11 @@
 /space/ages/3/leafArea = 0.00181
 /space/ages/3/elongation = 14.0
 /space/ages/3/expansion = 35.0
+/space/ages/3/leafLife = 0.53
+/space/ages/3/budburst = 128.0
+/space/ages/3/senescence = 264.0
+/space/ages/3/colouring = 16.0
+/space/ages/3/leafFall = 45.0
 /space/ages/3/shadeHazard = 1.0
 /space/ages/3/shadeSize = 1.5
 /space/ages/3/apicalControl = 0.45
@@ -228,6 +245,11 @@
 /space/ages/4/leafArea = 0.00181
 /space/ages/4/elongation = 14.0
 /space/ages/4/expansion = 35.0
+/space/ages/4/leafLife = 0.53
+/space/ages/4/budburst = 128.0
+/space/ages/4/senescence = 264.0
+/space/ages/4/colouring = 16.0
+/space/ages/4/leafFall = 45.0
 /space/ages/4/shadeHazard = 1.0
 /space/ages/4/shadeSize = 1.5
 /space/ages/4/apicalControl = 0.45
@@ -268,6 +290,11 @@
 /space/ages/6/leafArea = 0.00181
 /space/ages/6/elongation = 14.0
 /space/ages/6/expansion = 35.0
+/space/ages/6/leafLife = 0.53
+/space/ages/6/budburst = 128.0
+/space/ages/6/senescence = 264.0
+/space/ages/6/colouring = 16.0
+/space/ages/6/leafFall = 45.0
 /space/ages/6/shadeHazard = 1.0
 /space/ages/6/shadeSize = 0.5
 /space/ages/6/apicalControl = 0.45
@@ -320,6 +347,11 @@
 /space/ages/7/leafArea = 0.00181
 /space/ages/7/elongation = 14.0
 /space/ages/7/expansion = 35.0
+/space/ages/7/leafLife = 0.53
+/space/ages/7/budburst = 128.0
+/space/ages/7/senescence = 264.0
+/space/ages/7/colouring = 16.0
+/space/ages/7/leafFall = 45.0
 /space/ages/7/shadeHazard = 1.0
 /space/ages/7/shadeSize = 0.5
 /space/ages/7/apicalControl = 0.45
@@ -356,6 +388,11 @@
 /space/ages/8/leafArea = 0.00181
 /space/ages/8/elongation = 14.0
 /space/ages/8/expansion = 35.0
+/space/ages/8/leafLife = 0.53
+/space/ages/8/budburst = 128.0
+/space/ages/8/senescence = 264.0
+/space/ages/8/colouring = 16.0
+/space/ages/8/leafFall = 45.0
 /space/ages/8/shadeHazard = 1.0
 /space/ages/8/shadeSize = 1.5
 /space/ages/8/apicalControl = 0.45
@@ -393,6 +430,11 @@
 /space/ages/9/leafArea = 0.00181
 /space/ages/9/elongation = 14.0
 /space/ages/9/expansion = 35.0
+/space/ages/9/leafLife = 0.53
+/space/ages/9/budburst = 128.0
+/space/ages/9/senescence = 264.0
+/space/ages/9/colouring = 16.0
+/space/ages/9/leafFall = 45.0
 /space/ages/9/shadeHazard = 1.0
 /space/ages/9/shadeSize = 1.0
 /space/ages/9/apicalControl = 0.45
@@ -427,6 +469,11 @@
 /space/ages/12/leafArea = 0.00181
 /space/ages/12/elongation = 14.0
 /space/ages/12/expansion = 35.0
+/space/ages/12/leafLife = 0.53
+/space/ages/12/budburst = 128.0
+/space/ages/12/senescence = 264.0
+/space/ages/12/colouring = 16.0
+/space/ages/12/leafFall = 45.0
 /space/ages/12/shadeHazard = 1.0
 /space/ages/12/shadeSize = 1.0
 /space/ages/12/apicalControl = 0.45
@@ -459,6 +506,11 @@
 /space/ages/13/leafArea = 0.00181
 /space/ages/13/elongation = 14.0
 /space/ages/13/expansion = 35.0
+/space/ages/13/leafLife = 0.53
+/space/ages/13/budburst = 128.0
+/space/ages/13/senescence = 264.0
+/space/ages/13/colouring = 16.0
+/space/ages/13/leafFall = 45.0
 /space/ages/13/shadeHazard = 1.0
 /space/ages/13/shadeSize = 1.0
 /space/ages/13/apicalControl = 0.45
@@ -491,6 +543,11 @@
 /space/ages/14/leafArea = 0.00181
 /space/ages/14/elongation = 14.0
 /space/ages/14/expansion = 35.0
+/space/ages/14/leafLife = 0.53
+/space/ages/14/budburst = 128.0
+/space/ages/14/senescence = 264.0
+/space/ages/14/colouring = 16.0
+/space/ages/14/leafFall = 45.0
 /space/ages/14/shadeHazard = 1.0
 /space/ages/14/shadeSize = 1.0
 /space/ages/14/apicalControl = 0.45

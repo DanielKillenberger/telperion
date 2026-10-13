@@ -8,6 +8,8 @@
 # fn-270 R5: a shoot's elongation and a leaf's expansion are the corners'
 # point at equal weights, as examples/centroid.rs takes every row: the
 # beech's, the oak's and the spruce's days on their log scale.
+# fn-270 R5c: a leaf's lifespan and season are the corners' point at
+# equal weights, as examples/centroid.rs takes every row.
 /space/ages/0/lifespan = 0.4422495703074083
 /space/ages/0/internode = 0.0399334633667196
 /space/ages/0/insertion = 0.1
@@ -24,6 +26,11 @@
 /space/ages/0/leafArea = 0.00016730748660601915
 /space/ages/0/elongation = 19.08298850246509
 /space/ages/0/expansion = 25.888428479342984
+/space/ages/0/leafLife = 1.0962155256974704
+/space/ages/0/budburst = 125.0
+/space/ages/0/senescence = 264.0
+/space/ages/0/colouring = 16.0
+/space/ages/0/leafFall = 45.0
 /space/ages/0/shadeHazard = 0.33333333333333337
 /space/ages/0/shadeSize = 0.5
 /space/ages/0/apicalControl = 0.48333333333333334
@@ -63,6 +70,11 @@
 /space/ages/1/leafArea = 0.00016730748660601915
 /space/ages/1/elongation = 19.08298850246509
 /space/ages/1/expansion = 25.888428479342984
+/space/ages/1/leafLife = 1.0962155256974704
+/space/ages/1/budburst = 125.0
+/space/ages/1/senescence = 264.0
+/space/ages/1/colouring = 16.0
+/space/ages/1/leafFall = 45.0
 /space/ages/1/shadeHazard = 0.33333333333333337
 /space/ages/1/shadeSize = 0.5
 /space/ages/1/apicalControl = 0.48333333333333334
@@ -103,6 +115,11 @@
 /space/ages/2/leafArea = 0.00016730748660601915
 /space/ages/2/elongation = 19.08298850246509
 /space/ages/2/expansion = 25.888428479342984
+/space/ages/2/leafLife = 1.0962155256974704
+/space/ages/2/budburst = 125.0
+/space/ages/2/senescence = 264.0
+/space/ages/2/colouring = 16.0
+/space/ages/2/leafFall = 45.0
 /space/ages/2/shadeHazard = 0.33333333333333337
 /space/ages/2/shadeSize = 0.5
 /space/ages/2/apicalControl = 0.48333333333333334
@@ -145,6 +162,11 @@
 /space/ages/3/leafArea = 0.00016730748660601915
 /space/ages/3/elongation = 19.08298850246509
 /space/ages/3/expansion = 25.888428479342984
+/space/ages/3/leafLife = 1.0962155256974704
+/space/ages/3/budburst = 125.0
+/space/ages/3/senescence = 264.0
+/space/ages/3/colouring = 16.0
+/space/ages/3/leafFall = 45.0
 /space/ages/3/shadeHazard = 0.33333333333333337
 /space/ages/3/shadeSize = 0.5
 /space/ages/3/apicalControl = 0.48333333333333334
@@ -184,6 +206,11 @@
 /space/ages/4/leafArea = 0.00016730748660601915
 /space/ages/4/elongation = 19.08298850246509
 /space/ages/4/expansion = 25.888428479342984
+/space/ages/4/leafLife = 1.0962155256974704
+/space/ages/4/budburst = 125.0
+/space/ages/4/senescence = 264.0
+/space/ages/4/colouring = 16.0
+/space/ages/4/leafFall = 45.0
 /space/ages/4/shadeHazard = 0.33333333333333337
 /space/ages/4/shadeSize = 0.5
 /space/ages/4/apicalControl = 0.48333333333333334
@@ -223,6 +250,11 @@
 /space/ages/5/leafArea = 0.00016730748660601915
 /space/ages/5/elongation = 19.08298850246509
 /space/ages/5/expansion = 25.888428479342984
+/space/ages/5/leafLife = 1.0962155256974704
+/space/ages/5/budburst = 125.0
+/space/ages/5/senescence = 264.0
+/space/ages/5/colouring = 16.0
+/space/ages/5/leafFall = 45.0
 /space/ages/5/shadeHazard = 0.33333333333333337
 /space/ages/5/shadeSize = 0.5
 /space/ages/5/apicalControl = 0.48333333333333334
@@ -267,6 +299,11 @@
 /space/ages/6/leafArea = 0.00016730748660601915
 /space/ages/6/elongation = 19.08298850246509
 /space/ages/6/expansion = 25.888428479342984
+/space/ages/6/leafLife = 1.0962155256974704
+/space/ages/6/budburst = 125.0
+/space/ages/6/senescence = 264.0
+/space/ages/6/colouring = 16.0
+/space/ages/6/leafFall = 45.0
 /space/ages/6/shadeHazard = 0.33333333333333337
 /space/ages/6/shadeSize = 0.5
 /space/ages/6/apicalControl = 0.48333333333333334
@@ -324,6 +361,11 @@
 /space/ages/7/leafArea = 0.00016730748660601915
 /space/ages/7/elongation = 19.08298850246509
 /space/ages/7/expansion = 25.888428479342984
+/space/ages/7/leafLife = 1.0962155256974704
+/space/ages/7/budburst = 125.0
+/space/ages/7/senescence = 264.0
+/space/ages/7/colouring = 16.0
+/space/ages/7/leafFall = 45.0
 /space/ages/7/shadeHazard = 0.33333333333333337
 /space/ages/7/shadeSize = 0.5
 /space/ages/7/apicalControl = 0.48333333333333334
@@ -372,6 +414,11 @@
 /space/ages/8/leafArea = 0.00016730748660601915
 /space/ages/8/elongation = 19.08298850246509
 /space/ages/8/expansion = 25.888428479342984
+/space/ages/8/leafLife = 1.0962155256974704
+/space/ages/8/budburst = 125.0
+/space/ages/8/senescence = 264.0
+/space/ages/8/colouring = 16.0
+/space/ages/8/leafFall = 45.0
 /space/ages/8/shadeHazard = 0.33333333333333337
 /space/ages/8/shadeSize = 0.5
 /space/ages/8/apicalControl = 0.48333333333333334
@@ -427,6 +474,11 @@
 /space/ages/9/leafArea = 0.00016730748660601915
 /space/ages/9/elongation = 19.08298850246509
 /space/ages/9/expansion = 25.888428479342984
+/space/ages/9/leafLife = 1.0962155256974704
+/space/ages/9/budburst = 125.0
+/space/ages/9/senescence = 264.0
+/space/ages/9/colouring = 16.0
+/space/ages/9/leafFall = 45.0
 /space/ages/9/shadeHazard = 0.33333333333333337
 /space/ages/9/shadeSize = 0.5
 /space/ages/9/apicalControl = 0.48333333333333334
@@ -484,6 +536,11 @@
 /space/ages/10/leafArea = 0.00016730748660601915
 /space/ages/10/elongation = 19.08298850246509
 /space/ages/10/expansion = 25.888428479342984
+/space/ages/10/leafLife = 1.0962155256974704
+/space/ages/10/budburst = 125.0
+/space/ages/10/senescence = 264.0
+/space/ages/10/colouring = 16.0
+/space/ages/10/leafFall = 45.0
 /space/ages/10/shadeHazard = 0.33333333333333337
 /space/ages/10/shadeSize = 0.5
 /space/ages/10/apicalControl = 0.48333333333333334
@@ -521,6 +578,11 @@
 /space/ages/11/leafArea = 0.00016730748660601915
 /space/ages/11/elongation = 19.08298850246509
 /space/ages/11/expansion = 25.888428479342984
+/space/ages/11/leafLife = 1.0962155256974704
+/space/ages/11/budburst = 125.0
+/space/ages/11/senescence = 264.0
+/space/ages/11/colouring = 16.0
+/space/ages/11/leafFall = 45.0
 /space/ages/11/shadeHazard = 0.33333333333333337
 /space/ages/11/shadeSize = 0.5
 /space/ages/11/apicalControl = 0.48333333333333334
@@ -555,6 +617,11 @@
 /space/ages/12/leafArea = 0.00016730748660601915
 /space/ages/12/elongation = 19.08298850246509
 /space/ages/12/expansion = 25.888428479342984
+/space/ages/12/leafLife = 1.0962155256974704
+/space/ages/12/budburst = 125.0
+/space/ages/12/senescence = 264.0
+/space/ages/12/colouring = 16.0
+/space/ages/12/leafFall = 45.0
 /space/ages/12/shadeHazard = 0.33333333333333337
 /space/ages/12/shadeSize = 0.5
 /space/ages/12/apicalControl = 0.48333333333333334
@@ -589,6 +656,11 @@
 /space/ages/13/leafArea = 0.00016730748660601915
 /space/ages/13/elongation = 19.08298850246509
 /space/ages/13/expansion = 25.888428479342984
+/space/ages/13/leafLife = 1.0962155256974704
+/space/ages/13/budburst = 125.0
+/space/ages/13/senescence = 264.0
+/space/ages/13/colouring = 16.0
+/space/ages/13/leafFall = 45.0
 /space/ages/13/shadeHazard = 0.33333333333333337
 /space/ages/13/shadeSize = 0.5
 /space/ages/13/apicalControl = 0.48333333333333334
@@ -623,6 +695,11 @@
 /space/ages/14/leafArea = 0.00016730748660601915
 /space/ages/14/elongation = 19.08298850246509
 /space/ages/14/expansion = 25.888428479342984
+/space/ages/14/leafLife = 1.0962155256974704
+/space/ages/14/budburst = 125.0
+/space/ages/14/senescence = 264.0
+/space/ages/14/colouring = 16.0
+/space/ages/14/leafFall = 45.0
 /space/ages/14/shadeHazard = 0.33333333333333337
 /space/ages/14/shadeSize = 0.5
 /space/ages/14/apicalControl = 0.48333333333333334
