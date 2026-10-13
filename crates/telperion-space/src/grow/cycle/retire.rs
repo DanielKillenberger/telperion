@@ -4,7 +4,7 @@
 //! vigour, its nodes' scales, its woken buds' kept shares. It is then
 //! evaluated once by the settle's own code, `presence::assign_living` on a
 //! copy of it and `shed::subtree_living` with it as root, and where its
-//! fade at the tree's age is none the settle would drop it: its phytomers
+//! fade at the age grown is none the settle would drop it: its phytomers
 //! and draws are let go, and its living stands for it in its bearer's fade
 //! (`shed::shed_past`). Where any row keeps shed pipes or leaf girth, each
 //! of its phytomers is kept as the four f32s the girth pass reads
@@ -18,10 +18,10 @@
 //! once that balance has run. Its upkeep stays frozen in its bearer's balance
 //! (`working.rs`), as the balance charges it today. The subtrees closed in
 //! a cycle are evaluated on every core, each alone, and applied in order.
-//! Without the final age (fn-270 R3, `Working::continuable`), the fade is
-//! read at the age grown so far: a kept lateral that sheds waits among the
-//! fading, its living final, and is evaluated again once its fade there
-//! reaches none.
+//! The fade is read at the age grown so far, never at the tree's final age
+//! (fn-270 R3), so a tree grows on from any age: a kept lateral that sheds
+//! waits among the fading, its living final, and is evaluated again once
+//! its fade there reaches none.
 use super::{Grower, Working};
 use crate::contract::presence::{q, real, times};
 use crate::dormant::Woken;
@@ -59,8 +59,8 @@ pub(in crate::grow) struct Retirement {
     seen: usize,
     /// Closed subtrees waiting on a woken bud's kept share.
     pending: Vec<usize>,
-    /// Without the final age (`Working::continuable`): kept laterals that
-    /// shed, waiting for their fade to reach none at the age grown.
+    /// Kept laterals that shed, waiting for their fade to reach none at
+    /// the age grown.
     fading: Vec<usize>,
     /// Every verdict in the order taken: the subtree's root, the cycle,
     /// waited (0), kept (1) or retired (2), and its living (none where it
@@ -100,8 +100,7 @@ struct Tree<'t> {
     woken: &'t [Woken],
     successor: &'t [Vec<usize>],
     species: &'t Species,
-    /// The age a fade is read at: the tree's, or without the final age
-    /// the age grown so far.
+    /// The age a fade is read at: the age grown so far.
     age: u32,
     keeps: bool,
     /// The cycle about to grow: what has grown is final before it.
@@ -133,7 +132,8 @@ impl Grower<'_> {
         let mut todo: Vec<usize> = (w.closed.iter().copied().chain(waiting))
             .filter(|&c| beside(c) && w.retire.fate[c] == Fate::Open)
             .collect();
-        let age = if w.continuable { cycle - 1 } else { self.rules.age };
+        // The age grown so far: what has grown is final before `cycle`.
+        let age = cycle - 1;
         todo.extend(self.faded_out(&mut w, age));
         todo.sort_unstable();
         todo.dedup();
@@ -164,7 +164,7 @@ impl Grower<'_> {
                 Verdict::Wait => w.retire.pending.push(c),
                 Verdict::Kept(living) => {
                     w.retire.fate[c] = Fate::Kept(living);
-                    if w.continuable && sheds(&self.axes[c], self.species) {
+                    if sheds(&self.axes[c], self.species) {
                         w.retire.fading.push(c);
                     }
                 }
@@ -231,7 +231,7 @@ impl Grower<'_> {
     }
 }
 
-/// One closed subtree's living, and whether its fade at the tree's age is
+/// One closed subtree's living, and whether its fade at the age grown is
 /// none; where it is and rows keep it, every axis's record not yet kept.
 fn evaluate(t: &Tree, w: &Working, c: usize) -> Verdict {
     let stub = |i: usize| i != c && w.retire.fate[i] != Fate::Open;

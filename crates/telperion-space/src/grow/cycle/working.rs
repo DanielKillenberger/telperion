@@ -51,22 +51,12 @@ pub(in crate::grow) struct Working {
     /// retired.
     pub(super) all_open: bool,
     pub(super) keep_all: bool,
-    /// fn-270's retirement without the final age (spec R3): a subtree is
-    /// retired once its fade at the age grown so far is none, and a
-    /// fading one waits (`retire.rs`). A test hook until task 2 makes it
-    /// the rule.
-    pub(super) continuable: bool,
 }
 
 impl Working {
     /// The tests' reference: every laid axis open and none retired.
     pub(super) fn reference() -> Self {
         Self { all_open: true, keep_all: true, ..Self::default() }
-    }
-
-    /// fn-270's retirement without the final age.
-    pub(super) fn continuable() -> Self {
-        Self { continuable: true, ..Self::default() }
     }
 
     /// What the settle reads of the working set: its retirement.

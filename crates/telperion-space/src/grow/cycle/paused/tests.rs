@@ -1,8 +1,8 @@
-//! fn-270 task 1's premises on the CPU cycle (spec R1, R2a, R2a'), on the
-//! engine's own species at small ages; every preset at its default age is
-//! `telperion-core`'s `premises` test.
+//! fn-270's premises and contract on the CPU cycle (spec R1, R2, R2a,
+//! R2a', R2b, R3), on the engine's own species at small ages; every preset
+//! at its default age is `telperion-core`'s `premises` example.
 use super::*;
-use super::super::{grow_census, grow_cycle};
+use super::super::grow_cycle;
 use crate::error::Error;
 use crate::light::Light;
 use crate::structure::Origin;
@@ -68,13 +68,35 @@ fn a_tree_paused_and_grown_on_is_the_tree_grown_at_once() {
     }
 }
 
-/// R1 (b): under the horizon, the tree at a year of a run that goes on
-/// is the tree of a run stopped there, and retired at the age grown, it
-/// is the tree with nothing retired at every year. (Retired at the
-/// horizon, as today, a year's settle reads subtrees let go while they
-/// still fade: PREMISES.md.)
+/// R1 (b) and R3: under the horizon, the tree at a year of a run that
+/// goes on is the tree of a run stopped there, and retired at the age
+/// grown, it is the tree with nothing retired, at the years around the
+/// end. The walk over every year is `every_year_is_the_horizons_prefix`.
 #[test]
 fn the_tree_at_a_year_is_the_horizons_prefix() {
+    let h = 24;
+    for (species, k) in species() {
+        let r = request(h, 7, k);
+        let at = |retiring: Retiring, y: u32| {
+            let mut p = Paused::begin(&species, r, retiring, false).unwrap();
+            p.grow_to(y).unwrap();
+            tree_digest(&p.settle().unwrap())
+        };
+        for y in [12, h - 1] {
+            assert_eq!(at(Retiring::AtAge, y), at(Retiring::Never, y), "year {y}");
+        }
+        let today = tree_digest(&grow_cycle(&species, r).unwrap().structure);
+        assert_eq!(today, at(Retiring::Never, h), "the tree at the horizon");
+    }
+}
+
+/// R1 (b), every year: one run settled at each year is the run that
+/// retires nothing, year by year (60 s on one thread; out of the gate).
+///
+///   cargo test --profile ci -p telperion-space every_year_is_the_horizons_prefix -- --ignored
+#[test]
+#[ignore = "slow: every year's settle of three species, run by name"]
+fn every_year_is_the_horizons_prefix() {
     let h = 24;
     for (species, k) in species() {
         let r = request(h, 7, k);
@@ -87,145 +109,120 @@ fn the_tree_at_a_year_is_the_horizons_prefix() {
                 })
                 .collect()
         };
-        let at_age = walk(Retiring::AtAge);
-        assert_eq!(at_age, walk(Retiring::Never));
-        for y in [5, 12, h - 1] {
-            let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap();
-            p.grow_to(y).unwrap();
-            assert_eq!(tree_digest(&p.settle().unwrap()), at_age[y as usize - 1], "year {y}");
-        }
+        assert_eq!(walk(Retiring::AtAge), walk(Retiring::Never));
     }
 }
 
-/// R1 (c) at a small age: retired at the age grown, the kept tree is
-/// today's, and the live set's peak no more than 25% above today's (every
-/// preset at seeds 1, 7 and 42 is `premises kept`).
+/// R2b: a non-finite, negative, backward or past-horizon age, and a draw
+/// outside the last year grown, are refused by name, and the grower is
+/// left as it was.
 #[test]
-fn retirement_at_the_age_grown_keeps_todays_tree() {
-    for (species, k) in species() {
-        for seed in [7] {
-            let r = request(30, seed, k);
-            let today = grow_census(&species, r).unwrap();
-            let mut p = Paused::begin(&species, r, Retiring::AtAge, true).unwrap();
-            p.grow_to(r.age).unwrap();
-            let held = |c: &Census| c.cycles.iter().map(|c| c.phytomers).max().unwrap();
-            let rise = held(p.census().unwrap()) as f64 / held(today.census.as_ref().unwrap()) as f64;
-            assert!(rise <= 1.25, "seed {seed}: the live set rose {rise}");
-            assert!(p.finish(0.0).unwrap().structure == today.structure, "seed {seed}");
-        }
-    }
-}
-
-/// Past the horizon and backward, a request is refused by name, and the
-/// grower is left as it was.
-#[test]
-fn past_the_horizon_and_backward_are_refused() {
+fn a_request_the_grower_cannot_meet_is_refused() {
     let species = crate::beech();
     let mut p = Paused::begin(&species, request(12, 3, 0.0), Retiring::AtAge, false).unwrap();
     p.grow_to(8).unwrap();
     let before = p.digest();
-    for (age, name) in [(13, "age.horizon"), (7, "age.backward")] {
-        match p.grow_to(age) {
-            Err(Error::Refused { input, .. }) => assert_eq!(input, name),
-            other => panic!("{age}: {other:?}"),
-        }
+    let refused = |r: Result<()>| match r {
+        Err(Error::Refused { input, .. }) => input,
+        other => panic!("{other:?}"),
+    };
+    assert_eq!(refused(p.grow_to(13)), "age.horizon");
+    assert_eq!(refused(p.grow_to(7)), "age.backward");
+    let ages = [(f64::NAN, "age"), (f64::INFINITY, "age"), (-0.5, "age"), (12.01, "age.horizon"), (7.0, "age.backward")];
+    for (age, name) in ages {
+        assert_eq!(refused(admitted(8, 12, age).map(drop)), name, "{age}");
+    }
+    for at in [7.0, 8.01, f64::NAN] {
+        assert_eq!(refused(p.settle_at(at).map(drop)), "at", "{at}");
     }
     assert_eq!(p.digest(), before);
+    assert_eq!(admitted(8, 12, 7.25).unwrap(), 8);
+    assert_eq!(admitted(8, 12, 8.0).unwrap(), 8);
+    assert_eq!(admitted(8, 12, 8.25).unwrap(), 9);
 }
 
-/// R2a and R2a' with a stand-in presentation: this year's phytomers drawn
-/// at the fraction of the year, every other one whole. The real curves
-/// are task 4's.
-struct Unfolding<'a>(Paused<'a>);
-
-impl Unfolding<'_> {
-    /// Commits the cycles up to `a`'s ceiling; a request within the last
-    /// year grown is already met, and one a year or more back refused.
-    fn grow_to(&mut self, a: f64) -> Result<()> {
-        let committed = f64::from(self.0.committed());
-        if !a.is_finite() {
-            return refuse("age", "an age is finite");
+/// R2b: a cycle that fails (here the phytomer budget) spends the grower;
+/// every later growth and draw is refused by name, and a tree drawn before
+/// stays whole.
+#[test]
+fn a_growth_that_failed_is_spent() {
+    let species = crate::beech();
+    let r = Request { budget: 2_000, ..request(24, 3, 0.0) };
+    let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap();
+    let mut last = None;
+    let failed = (1..=r.age).find_map(|y| match p.grow_to(y) {
+        Ok(()) => {
+            last = Some(p.settle().unwrap());
+            None
         }
-        if a <= committed - 1.0 {
-            return refuse("age.backward", "a tree grows only forward");
-        }
-        if a <= committed {
-            return Ok(());
-        }
-        self.0.grow_to(a.ceil() as u32)
-    }
-
-    /// The tree grown, drawn at `at` within its last year.
-    fn settle(&self, at: f64) -> Structure {
-        let committed = self.0.committed();
-        let fraction = at - f64::from(committed - 1);
-        assert!(fraction > 0.0 && fraction <= 1.0, "{at} within the year to {committed}");
-        let mut tree = self.0.settle().unwrap();
-        if fraction < 1.0 {
-            for p in tree.axes.iter_mut().flat_map(|a| &mut a.phytomers) {
-                if p.cycle == committed {
-                    p.scale *= fraction;
-                }
-            }
-        }
-        tree
-    }
+        Err(e) => Some(e),
+    });
+    assert_eq!(failed, Some(Error::Budget { limit: 2_000 }));
+    let drawn = last.expect("a tree drawn before the failure");
+    assert!(!drawn.axes.is_empty());
+    let spent = |r: Result<()>| matches!(r, Err(Error::Refused { input, .. }) if input == "state.failed");
+    assert!(spent(p.grow_to(r.age)));
+    assert!(spent(p.settle().map(drop)));
+    assert!(spent(p.settle_at(f64::from(p.committed())).map(drop)));
 }
 
-/// R2a': 40, 40.25, 40.5, 41 commits cycle 41 once, at 40.25, and the
-/// tree at 41 is the one grown to 41 in one call. R2a: each fractional
+/// R2a and R2a': 40, 40.25, 40.5, 41 commits cycle 41 once, at 40.25, and
+/// the tree at 41 is the one grown to 41 in one call. Each fractional
 /// settle leaves the grower as it was, the whole year draws today's tree,
-/// and just past 40 this year's phytomers start from nothing.
+/// and just past 40 this year's phytomers start from nothing (the
+/// stand-in presentation, `presented`; the curves are task 4's).
 #[test]
 fn a_tree_drawn_within_its_year_unfolds_from_the_last() {
     let species = crate::oak();
     let r = request(41, 7, 0.5);
-    let mut u = Unfolding(Paused::begin(&species, r, Retiring::AtAge, false).unwrap());
-    u.grow_to(40.0).unwrap();
-    assert_eq!(u.0.committed(), 40);
+    let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap();
+    let grow = |p: &mut Paused, a: f64| {
+        let to = admitted(p.committed(), p.horizon(), a)?;
+        p.grow_to(to)
+    };
+    grow(&mut p, 40.0).unwrap();
+    assert_eq!(p.committed(), 40);
     let mut committed = Vec::new();
+    let whole = p.settle_at(41.0).err();
+    assert!(whole.is_some(), "41 is not within the year grown to 40");
     for at in [40.25, 40.5, 41.0] {
-        u.grow_to(at).unwrap();
-        committed.push(u.0.committed());
-        let before = u.0.digest();
-        let drawn = u.settle(at);
-        assert_eq!(u.0.digest(), before, "a settle at {at} moves the grower");
+        grow(&mut p, at).unwrap();
+        committed.push(p.committed());
+        let before = p.digest();
+        let drawn = p.settle_at(at).unwrap();
+        assert_eq!(p.digest(), before, "a settle at {at} moves the grower");
         let new = drawn.axes.iter().flat_map(|a| &a.phytomers).filter(|p| p.cycle == 41);
         assert!(new.clone().count() > 0);
-        let whole = u.0.settle().unwrap();
+        let whole = p.settle().unwrap();
         let whole = whole.axes.iter().flat_map(|a| &a.phytomers).filter(|p| p.cycle == 41);
         for (p, w) in new.zip(whole) {
             assert_eq!(p.scale, w.scale * (at - 40.0));
         }
     }
     assert_eq!(committed, [41, 41, 41]);
-    match u.grow_to(40.0) {
+    match grow(&mut p, 40.0) {
         Err(Error::Refused { input, .. }) => assert_eq!(input, "age.backward"),
         other => panic!("{other:?}"),
     }
     let today = grow_cycle(&species, r).unwrap().structure;
-    assert_eq!(tree_digest(&u.settle(41.0)), tree_digest(&today));
+    assert_eq!(tree_digest(&p.settle_at(41.0).unwrap()), tree_digest(&today));
     let largest = (today.axes.iter().flat_map(|a| &a.phytomers)).map(|p| p.scale).fold(0.0, f64::max);
-    let just = u.settle(40.0 + 1e-9);
+    let just = p.settle_at(40.0 + 1e-9).unwrap();
     let new = just.axes.iter().flat_map(|a| &a.phytomers).filter(|p| p.cycle == 41);
     assert!(new.clone().all(|p| p.scale <= 1e-8 * largest), "this year's start from nothing");
     // The join with year 40's tree: its organs drawn just past 40 are
     // year 41's, so they join it only where the year sheds or fades
-    // nothing. The stand-in leaves that step whole (PREMISES.md, R2a).
+    // nothing. R5a's blend is task 4's (PREMISES.md, R2a).
     let mut forty = Paused::begin(&species, r, Retiring::AtAge, false).unwrap();
     forty.grow_to(40).unwrap();
     let forty = forty.settle().unwrap();
-    let whole = u.settle(41.0);
+    let whole = p.settle_at(41.0).unwrap();
     let (joined, step) = (organs(&just), organs(&whole));
     let old = |m: &HashMap<(u64, usize), f64>| m.iter().filter(|(_, s)| **s > 1e-8 * largest).count();
-    let mut moved = 0;
-    for (key, s) in organs(&forty) {
-        let (at, next) = (joined.get(&key), step.get(&key));
-        assert_eq!(at, next, "just past 40 an organ of 40 is drawn as at 41");
-        moved += usize::from(at != Some(&s));
+    for (key, _) in organs(&forty) {
+        assert_eq!(joined.get(&key), step.get(&key), "just past 40 an organ of 40 is drawn as at 41");
     }
     assert!(old(&joined) > 0);
-    eprintln!("JOIN oak 40 -> 40+: {moved} of year 40's organs moved or went");
 }
 
 /// Every phytomer's scale, by its axis's identity and its place on it.

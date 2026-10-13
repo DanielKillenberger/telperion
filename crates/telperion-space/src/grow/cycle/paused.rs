@@ -1,8 +1,10 @@
-//! The one cycle paused between years (fn-270 task 1): the grower begun
-//! for a horizon, grown on to any age within it, and settled at the age
-//! grown from a copy of what the settle reads, the grower left as it was.
-//! `grow_cycle` is this loop run to the horizon in one call. The fail-early
-//! tests' hook: the API is task 2's.
+//! The one cycle paused between years (fn-270): the grower begun for a
+//! horizon, grown on to any age within it, and settled at the age grown
+//! from a copy of what the settle reads, the grower left as it was.
+//! `grow_cycle` is this loop run to the horizon in one call. A request
+//! the grower cannot meet is refused by name before anything moves; a
+//! failure while it grows leaves it spent, and every later call is
+//! refused by name (spec R2b).
 use super::super::sketch::Sketch;
 use super::super::{start, Grower, Options, Request, Stage};
 use super::{tick, Census, Cycled, Phases, Working};
@@ -15,9 +17,8 @@ use std::hash::Hasher;
 /// How a paused grower retires its shed subtrees.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Retiring {
-    /// Today's: by the fade at the horizon.
-    AtHorizon,
-    /// fn-270 R3: by the fade at the age grown, a fading subtree waiting.
+    /// The rule (fn-270 R3): by the fade at the age grown, a fading
+    /// subtree waiting.
     AtAge,
     /// None retired, every axis open: the tests' reference.
     Never,
@@ -32,6 +33,52 @@ pub struct Paused<'a> {
     advanced: Vec<usize>,
     phases: Phases,
     clock: f64,
+    /// Whether a cycle failed while it grew: the grower is spent.
+    failed: bool,
+}
+
+/// The whole cycle a request for `age` commits a grower at `committed`
+/// under `horizon` to (fn-270 R2a', R2b): its ceiling; `committed` where
+/// the request falls within the last year grown. A non-finite or negative
+/// age, one a year or more back, and one past the horizon are refused by
+/// name.
+pub fn admitted(committed: u32, horizon: u32, age: f64) -> Result<u32> {
+    if !age.is_finite() || age < 0.0 {
+        return refuse("age", "an age is finite and not negative");
+    }
+    if age > f64::from(horizon) {
+        return refuse("age.horizon", "a tree grows no further than its horizon");
+    }
+    if age <= f64::from(committed) - 1.0 {
+        return refuse("age.backward", "a tree grows only forward");
+    }
+    Ok(committed.max(age.ceil() as u32))
+}
+
+/// A tree grown to `committed` drawn at `at` within its last year (fn-270
+/// R2a): this year's phytomers at the fraction of the year, every other
+/// one whole; at `committed` the tree as grown. A stand-in for the curves
+/// of R5, which task 4 builds. An `at` outside the last year grown is
+/// refused by name.
+pub fn presented(tree: &mut Structure, committed: u32, at: f64) -> Result<()> {
+    let fraction = within(committed, at)?;
+    if fraction < 1.0 {
+        for p in tree.axes.iter_mut().flat_map(|a| &mut a.phytomers) {
+            if p.cycle == committed {
+                p.scale *= fraction;
+            }
+        }
+    }
+    Ok(())
+}
+
+/// How far into the last year grown, `committed`, `at` stands: in (0, 1].
+fn within(committed: u32, at: f64) -> Result<f64> {
+    let fraction = at - (f64::from(committed) - 1.0);
+    if !(fraction > 0.0 && fraction <= 1.0) {
+        return refuse("at", "a tree is drawn within the last year grown");
+    }
+    Ok(fraction)
 }
 
 impl<'a> Paused<'a> {
@@ -39,8 +86,7 @@ impl<'a> Paused<'a> {
     /// `horizon.age` cycles, with a census where `census`.
     pub fn begin(species: &'a Species, horizon: Request, retiring: Retiring, census: bool) -> Result<Self> {
         let working = match retiring {
-            Retiring::AtHorizon => Working::default(),
-            Retiring::AtAge => Working::continuable(),
+            Retiring::AtAge => Working::default(),
             Retiring::Never => Working::reference(),
         };
         Self::with(species, horizon, census, working)
@@ -58,12 +104,25 @@ impl<'a> Paused<'a> {
         }
         let clock = crate::clock::seconds();
         let (advanced, phases) = (Vec::new(), Phases::new());
-        Ok(Self { g, keeps, request, committed: 0, advanced, phases, clock })
+        Ok(Self { g, keeps, request, committed: 0, advanced, phases, clock, failed: false })
     }
 
     /// The cycles grown.
     pub fn committed(&self) -> u32 {
         self.committed
+    }
+
+    /// The most cycles it grows.
+    pub fn horizon(&self) -> u32 {
+        self.request.age
+    }
+
+    /// Refused by name where a failure left the grower spent.
+    fn usable(&self) -> Result<()> {
+        match self.failed {
+            true => refuse("state.failed", "a growth that failed cannot go on or be drawn"),
+            false => Ok(()),
+        }
     }
 
     /// The census so far, where one is taken.
@@ -73,8 +132,9 @@ impl<'a> Paused<'a> {
 
     /// Every cycle up to `age` grown; none where it has grown them.
     /// Past the horizon it is refused by name, as is an age before the one
-    /// grown.
+    /// grown, and a spent grower; a cycle that fails spends it.
     pub fn grow_to(&mut self, age: u32) -> Result<()> {
+        self.usable()?;
         if age > self.request.age {
             return refuse("age.horizon", "a tree grows no further than its horizon");
         }
@@ -85,7 +145,11 @@ impl<'a> Paused<'a> {
         for cycle in self.committed + 1..=age {
             // The last cycle's layout and light are read by no bud.
             let sketching = cycle < self.request.age;
-            self.g.year(cycle, sketching, &mut self.advanced, &mut |s| tick(phases, clock, s))?;
+            let grown = self.g.year(cycle, sketching, &mut self.advanced, &mut |s| tick(phases, clock, s));
+            if let Err(e) = grown {
+                self.failed = true;
+                return Err(e);
+            }
             self.g.count(cycle);
             self.committed = cycle;
         }
@@ -93,13 +157,23 @@ impl<'a> Paused<'a> {
     }
 
     /// The tree at the age grown, settled and laid from a copy: the grower
-    /// is left as it was.
+    /// is left as it was. A spent grower is refused by name.
     pub fn settle(&self) -> Result<Structure> {
+        self.usable()?;
         let at = self.committed;
         let request = Request { age: at, ..self.request };
         let copy = self.g.settled_copy(at);
         let grown = copy.settle((request, Options::default()), (true, self.keeps), &mut |_| {})?;
         Ok(lineage_order(grown.structure))
+    }
+
+    /// The tree at the age grown drawn at `at` within its last year
+    /// (`presented`), `at` checked before anything is settled.
+    pub fn settle_at(&self, at: f64) -> Result<Structure> {
+        within(self.committed, at)?;
+        let mut tree = self.settle()?;
+        presented(&mut tree, self.committed, at)?;
+        Ok(tree)
     }
 
     /// The tree at the horizon, settled as `grow_cycle` settles it, with

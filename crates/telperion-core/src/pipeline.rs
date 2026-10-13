@@ -256,6 +256,8 @@ mod footprint;
 #[cfg_attr(not(test), allow(dead_code))]
 mod radius;
 mod space;
+/// Growth that continues from any age (fn-270 R2).
+pub use space::growth;
 mod surface;
 #[cfg_attr(not(test), allow(dead_code))]
 mod twigs;

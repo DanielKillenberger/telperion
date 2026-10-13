@@ -4,13 +4,14 @@
 //!
 //!   cargo run --profile ci -p telperion-core --example premises -- <step> <preset> <seed>
 //!
-//! - `kept`: R1 (c), retired at the age grown against today's retirement:
-//!   the kept tree to the bit, and the live set per cycle.
+//! - `kept`: R1 (c), the API's growth against one call: the kept tree to
+//!   the bit, and the live set per cycle. (Task 1 held it against the
+//!   retirement at the horizon, which task 2 removed: PREMISES.md.)
 //! - `split`: R1 (d), paused at 10, 40 and the year before the horizon,
 //!   settled twice and advanced by no year there, then grown on.
 //! - `walk`: R1 (b), the tree settled at every year of one run, against the
-//!   run retiring nothing and today's retirement; and how far each
-//!   year's tree moves from the last, against today's trees of each age.
+//!   run retiring nothing; and how far each year's tree moves from the
+//!   last, against today's trees of each age.
 use std::collections::HashMap;
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::time::Instant;
@@ -134,10 +135,6 @@ fn walk(species: &Species, r: Request) {
     let same = never.iter().zip(&digests).filter(|(a, b)| a == b).count();
     println!("  WALK at-age against none retired: {same} of {} years the same", r.age);
     assert_eq!(same, r.age as usize, "STOP: a year's tree is not the horizon's prefix");
-    let horizon = walk_digests(species, r, Retiring::AtHorizon);
-    let first = horizon.iter().zip(&digests).position(|(a, b)| a != b).map(|k| k + 1);
-    let failed = horizon.iter().filter(|d| **d == 0).count();
-    println!("  WALK today's retirement: first year apart {first:?}, settles that failed {failed}");
     print_moves("horizon", &moved);
     if small {
         let mut moved = Vec::new();

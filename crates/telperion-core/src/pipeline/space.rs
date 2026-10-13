@@ -562,6 +562,7 @@ mod ceiling_tests;
 mod cluster_tests;
 #[cfg(test)]
 mod coarse_tests;
+pub mod growth;
 #[cfg(test)]
 mod leafing_tests;
 mod join;
