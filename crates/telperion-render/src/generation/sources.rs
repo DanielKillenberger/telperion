@@ -7,7 +7,7 @@ const LEAF: &str = include_str!("../shaders/leaf.wgsl");
 pub(super) fn place() -> String {
     format!(
         "{LEAF}\n{}\n{}\n{}\n{}\n{}\n{}",
-        super::fine::contract(),
+        super::cycle::contract(),
         bloom(),
         include_str!("order.wgsl"),
         include_str!("place.wgsl"),
@@ -17,7 +17,7 @@ pub(super) fn place() -> String {
 }
 
 /// The florets as `bloom.rs` draws them (fn-229): the placement places
-/// them and the fine stations count them by the same source.
+/// them and the resident stations count them by the same source.
 pub(super) fn bloom() -> &'static str {
     include_str!("bloom.wgsl")
 }
@@ -34,7 +34,7 @@ pub(super) fn positions() -> String {
     )
 }
 
-/// Every pass's source by name, the fine-root executor's included.
+/// Every pass's source by name, the resident build's and the cycle's included.
 #[cfg(test)]
 pub(crate) fn all() -> Vec<(&'static str, String)> {
     let mut out = vec![
@@ -42,6 +42,7 @@ pub(crate) fn all() -> Vec<(&'static str, String)> {
         ("mass", mass()),
         ("positions", positions()),
     ];
-    out.extend(super::fine::sources());
+    out.extend(super::resident::sources());
+    out.extend(super::cycle::sources());
     out
 }

@@ -20,7 +20,7 @@ fn grown(leaf_years: f64) -> (Structure, Tree, telperion_space::Species) {
     };
     let structure = telperion_space::grow(&species, request).unwrap();
     let rows = pa_rows(&species);
-    let tree = convert(&structure, (&[], &[]), (&family.space.trunk, &rows));
+    let tree = convert(&structure, (&family.space.trunk, &rows));
     (structure, tree, species)
 }
 

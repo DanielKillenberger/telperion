@@ -165,6 +165,20 @@ impl Layer {
         f64::from(self.run)
     }
 
+    /// The walk as the device holds it (fn-256): running, across, tip,
+    /// run, pull, curve and turning, then each pull it carries on as its
+    /// bend, pull, total and offset.
+    pub(crate) fn words(&self) -> Vec<f32> {
+        let mut out: Vec<f32> = [self.running, self.across, self.tip].concat();
+        out.extend([self.run, self.pull]);
+        out.extend(self.curve);
+        out.push(self.turning);
+        for l in &self.inherited {
+            out.extend([l.bend, l.pull, l.total, l.offset]);
+        }
+        out
+    }
+
     /// Lays the next phytomer. A running direction bends towards the PA's
     /// elevation and wanders by the node's keyed turn, both in proportion
     /// to the internode's length; the phytomer's direction is that running
@@ -356,12 +370,6 @@ pub(crate) fn lay(
     Ok(layer)
 }
 
-/// The height below which wood `radius` thick and `length` long feels
-/// the ground: its landing zone.
-pub(crate) fn ground_zone(radius: f64, length: f64) -> f64 {
-    CONTACT * radius + LANDING * length
-}
-
 /// How far wood at height `z`, `radius` thick and `length` long, stands
 /// free of the ground: one above its landing zone (a few radii and
 /// `LANDING` internodes), easing with the square root of its height to
@@ -376,7 +384,7 @@ pub(crate) fn support(z: f32, radius: f32, length: f32) -> f32 {
 
 /// The cone about straight down as the sine its lean is held to: a
 /// per-request constant a second executor is handed.
-fn cone() -> f32 {
+pub(crate) fn cone() -> f32 {
     DOWNWARD.sin_fixed() as f32
 }
 

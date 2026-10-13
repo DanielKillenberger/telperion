@@ -55,13 +55,16 @@ fn the_spread_moves_no_node_and_keeps_the_mean_length() {
         let plain = grow(&species, request(20, 1)).expect("grows");
         let varied_species = spread(&species, 0.6);
         let varied = grow(&varied_species, request(20, 1)).expect("grows");
-        // The same nodes, the same scales, to the bit.
+        // The same nodes to the bit, the same scales by lineage (the f32
+        // cycle's sums part at their last places where the geometry
+        // moves; fn-256).
         assert_eq!(plain.counts(), varied.counts(), "{name}: counts");
         assert_eq!(plain.axes.len(), varied.axes.len(), "{name}: axes");
         for (a, b) in plain.axes.iter().zip(&varied.axes) {
             assert_eq!(a.phytomers.len(), b.phytomers.len(), "{name}");
             for (p, q) in a.phytomers.iter().zip(&b.phytomers) {
-                assert_eq!(p.scale.to_bits(), q.scale.to_bits(), "{name}");
+                let apart = (p.scale - q.scale).abs() / p.scale.abs().max(1e-12);
+                assert!(apart <= telperion_space::agree::PATHS.scale, "{name}: scale {apart}");
                 assert_eq!(p.key(), q.key(), "{name}");
             }
         }

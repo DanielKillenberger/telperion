@@ -58,8 +58,14 @@ pub fn palm() -> Species {
         erection: 0.0,
         readiness: 0.0,
         rhythm: 0.0,
-        // Light and the carbon balance (fn-197), neutral.
-        leaf_area: 0.0,
+        // One frond a node of 2.81 m², the mean of four fully grown leaves
+        // on each of nine 15-year-old palms, drip-irrigated 8 m apart
+        // near Riyadh (Abdel-Sattar et al. 2024, Folia Hortic., Table 2;
+        // length x width x 0.8, derived; fn-264 R2, host 2026-10-12; Jev
+        // fn264-pick:18dddb39ffe7316b-3e89b7-0). Its responses stay
+        // neutral: it has no laterals to shed and no published shade
+        // tolerance, and its one axis makes them dormant.
+        leaf_area: 2.81,
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,

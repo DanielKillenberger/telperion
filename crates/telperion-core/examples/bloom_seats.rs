@@ -44,7 +44,7 @@ fn laid(family: &Family) -> Result<Laid, String> {
         budget: 20_000_000,
         light: applied.space.light,
     };
-    let (s, _, _) = telperion_space::grow_marked(species, request).map_err(|e| e.to_string())?;
+    let s = telperion_space::grow(species, request).map_err(|e| e.to_string())?;
     let axis = (s.axes.iter().enumerate())
         .flat_map(|(a, x)| x.phytomers.iter().map(move |p| (p.key(), (a, x.pa, p.cycle))))
         .collect();

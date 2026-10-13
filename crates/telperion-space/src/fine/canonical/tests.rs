@@ -1,5 +1,5 @@
 //! The lineage order's one identity check (fn-198 task 6, host decision 13).
-use super::{distinct, identities, lineage_order};
+use super::{distinct, identities};
 use crate::fine::tests::request;
 use crate::grow::grow;
 use crate::structure::{Origin, Structure};

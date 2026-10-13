@@ -57,7 +57,7 @@ fn ages(family: &Family, tree: &Tree) -> Result<Vec<u32>, String> {
         budget: 20_000_000,
         light: applied.space.light,
     };
-    let (s, _, _) = telperion_space::grow_marked(species, request).map_err(|e| e.to_string())?;
+    let s = telperion_space::grow(species, request).map_err(|e| e.to_string())?;
     let cycle: HashMap<u64, u32> = (s.axes.iter())
         .flat_map(|a| a.phytomers.iter().map(|p| (p.key(), p.cycle)))
         .collect();

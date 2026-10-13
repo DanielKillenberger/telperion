@@ -273,7 +273,7 @@ mod tests {
             },
         };
         let expected = Expected::new(&species, request.age, 0);
-        let today = crate::grow::grow(&species, request).unwrap();
+        let today = crate::grow::whole(&species, request).unwrap();
         let grouping = Grouping {
             order: Order::Reverse,
             chunk: 7,
@@ -282,8 +282,8 @@ mod tests {
         };
         let runs = [256.0, 1024.0].map(|cut| Run { cut, grouping });
         let probed = grow_partitioned(&species, request, &expected, &runs).unwrap();
-        // By lineage (fn-254): the regrouped sums part it from today's
-        // tree at f32's last places.
+        // By lineage (fn-254): the regrouped sums part it from the whole
+        // engine's tree at f32's last places.
         let agree = crate::agree::agreement(&today, &probed.structure);
         assert!(agree.within(&crate::agree::PATHS), "{agree:?}");
         // Each run's grouping parts from the tree's own at f32's last

@@ -7,7 +7,7 @@
 //! light, an apex's growth reads only its own axis, so the two together
 //! are the whole tree grown in one, draw for draw, and the order of the
 //! axes each holds is the whole tree's restricted to it.
-use super::alone::{start, woken_bud, Bud};
+use super::alone::{woken_bud, Bud};
 use super::{Grower, Rules};
 use crate::dormant::Woken;
 use crate::error::Result;
@@ -50,20 +50,6 @@ pub(crate) struct Assigned {
 pub(crate) struct Handed {
     pub at: usize,
     pub bud: Bud,
-}
-
-/// Grows the structure above the cut `hands` draws, from the seed, on
-/// `threads` cores: its axes, a stand-in at each bud handed on, and the
-/// buds handed on, by their stand-ins' order.
-pub(crate) fn above(
-    rules: &Rules,
-    hands: Hands,
-    seed: u64,
-    threads: usize,
-) -> Result<(Assigned, Vec<Handed>)> {
-    let mut made = Vec::new();
-    let (grown, woken) = streamed(rules, hands, seed, threads, &mut |m| made.extend(m))?;
-    Ok((grown, settled(made, woken)))
 }
 
 /// `above`, each cycle's buds handed to `sow` as the cycle makes them, by
@@ -123,22 +109,6 @@ fn whole(h: &Handed) -> String {
     format!("{} {bud:?} {wake:?}", h.at)
 }
 
-/// The buds handed on as made (`streamed`), by their stand-ins' order,
-/// each woken one as its bearer kept it (`woken`, in the same order).
-pub(crate) fn settled(made: Vec<Handed>, woken: Vec<Handed>) -> Vec<Handed> {
-    let mut woken = woken.into_iter();
-    made.into_iter()
-        .map(|h| match h.bud.wake {
-            None => h,
-            Some(_) => {
-                let kept = woken.next().expect("each woken bud kept");
-                assert_eq!(kept.at, h.at, "the woken buds in order");
-                kept
-            }
-        })
-        .collect()
-}
-
 /// Two lists, each ordered by `at`, as one.
 pub(crate) fn merged<T>(a: Vec<T>, b: Vec<T>, at: impl Fn(&T) -> usize) -> Vec<T> {
     let mut out = Vec::with_capacity(a.len() + b.len());
@@ -152,33 +122,7 @@ pub(crate) fn merged<T>(a: Vec<T>, b: Vec<T>, at: impl Fn(&T) -> usize) -> Vec<T
     out
 }
 
-/// Grows `bud`'s whole subtree from the bud alone: its bearer's stub
-/// (axis 0, whose place the root's origin names), then its axes.
-pub(crate) fn root(rules: &Rules, bud: &Bud) -> Result<Assigned> {
-    let rules = Rules {
-        alone: false,
-        hands: None,
-        ..rules.clone()
-    };
-    let (mut g, from, _) = start(rules, 0, Some(bud))?;
-    for cycle in from..=g.rules.age {
-        if g.idle(cycle) {
-            break;
-        }
-        g.step(cycle, &mut |_| {})?;
-    }
-    g.mark();
-    Ok(g.assigned())
-}
-
 impl Grower<'_> {
-    /// Every bud handed on, by its stand-in's index: the laterals made
-    /// and not grown, and the sleeping buds that woke, each keeping what
-    /// its bearer kept of it.
-    pub(crate) fn handed(&self) -> Vec<Handed> {
-        merged(self.handing(0), self.woken(0, true), |h| h.at)
-    }
-
     /// The laterals handed on from axis `from` on, by their stand-ins'
     /// index: made and not grown.
     fn handing(&self, from: usize) -> Vec<Handed> {
@@ -196,8 +140,6 @@ impl Grower<'_> {
                         birth: self.draws[i].birth,
                         ..Draws::default()
                     },
-                    root: self.roots[i],
-                    horizon: self.horizon[i],
                     wake: None,
                 },
             })
@@ -223,10 +165,9 @@ impl Grower<'_> {
                     true => woken.kept(&self.axes, &self.draws, &self.successor, age),
                     false => 1.0,
                 };
-                let horizon = self.horizon[p.sleeper.parent];
                 Handed {
                     at,
-                    bud: woken_bud(&self.rules, horizon, p, keeps),
+                    bud: woken_bud(&self.rules, p, keeps),
                 }
             })
             .collect();

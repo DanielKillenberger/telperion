@@ -14,7 +14,7 @@
 use super::GrowInput;
 use crate::math::Vec3;
 use crate::tree::{
-    kept_share, Attachment, Bloom, BudFate, Cluster, Leafing, Node, NodeIdentity, NodeKind,
+    kept_share, Bloom, BudFate, Cluster, Leafing, Node, NodeIdentity, NodeKind,
     ShootState, Tree,
 };
 use crate::{Error, Result};
@@ -66,7 +66,7 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
         let cut = f64::from(input.cut);
         let coarse = telperion_space::grow_coarse(species, request, cut).map_err(engine)?;
         fits(&coarse.structure, KEPT)?;
-        let (mut tree, drawn) = converted(&coarse.structure, (&[], &[]), rows);
+        let (mut tree, drawn) = converted(&coarse.structure, rows);
         tree.stands = stands::convert(&coarse, &drawn);
         scaled(&mut tree, input.supernatural.scale());
         return Ok(tree);
@@ -76,44 +76,50 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     // first and siblings by lineage, whichever path built it (FINE-CONTRACT
     // decision C; fn-198 host decision 17): the conversion's node numbering
     // and a relay's girth never depend on how the tree was assembled.
-    let (structure, fine, bases) =
-        telperion_space::grow_marked(species, request).map_err(engine)?;
+    let structure = telperion_space::grow(species, request).map_err(engine)?;
     fits(&structure, KEPT)?;
-    let mut tree = convert(&structure, (&fine, &bases), rows);
+    let mut tree = convert(&structure, rows);
     scaled(&mut tree, input.supernatural.scale());
     Ok(tree)
 }
 
-/// The family's species settled with its fine roots grown and laid by
-/// `roots` (fn-212 task 7, host decision 1), and what its conversion
-/// reads: the trunk's PAs, each PA's row and the scale the tree is drawn
-/// at. Never on the browser's ceiling: the executor holding the roots is
-/// what lifts it.
-pub(super) async fn settled(
-    input: GrowInput<'_>,
-    roots: &mut dyn telperion_space::Roots,
-) -> Result<(telperion_space::Settled, Vec<usize>, Vec<PaRow>, f64)> {
-    let (species, request) = asked(&input)?;
-    let plan = telperion_space::Plan::default();
-    let settling = telperion_space::settle(species, request, plan, roots);
-    let (settled, _) = settling.await.map_err(engine)?;
-    let scale = input.supernatural.scale();
-    Ok((settled, input.space.trunk.clone(), pa_rows(species), scale))
+/// A PA's row as the conversion reads it, for an executor that draws
+/// the engine's tree itself (fn-256 task 3): its internode and its
+/// spread, its flowering share, the leaves at each of its axes' tips and
+/// their fan, its leaf retention's first shedding age and that age's
+/// share, and whether it carries the trunk on.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ConvertRow {
+    pub internode: f64,
+    pub spread: f64,
+    pub flowering: f64,
+    pub leaves: u32,
+    pub fan: f64,
+    pub sheds: u32,
+    pub share: u16,
+    pub trunk: bool,
 }
 
-/// `settled`'s structure above the cut and its roots laid on the CPU
-/// converted by the one conversion, each other root's attachment recorded
-/// and none of its wood drawn; each root's first axis's lineage (none:
-/// shed), and the roots laid on the CPU; the tree drawn at `scale`.
-pub(super) fn part(
-    settled: telperion_space::Settled,
-    (trunk, rows): (&[usize], &[PaRow]),
-    scale: f64,
-) -> (Tree, Vec<Option<u64>>, Vec<usize>) {
-    let part = telperion_space::partial(settled);
-    let mut tree = convert(&part.structure, (&part.fine, &part.bases), (trunk, rows));
-    scaled(&mut tree, scale);
-    (tree, part.lineages, part.grounded)
+/// What another executor grows and draws the family's tree by: the
+/// engine's species, the request, the scale it is drawn at, and each
+/// PA's conversion row.
+pub(super) fn growth(
+    input: GrowInput,
+) -> Result<(telperion_space::Species, Request, f64, Vec<ConvertRow>)> {
+    let (species, request) = asked(&input)?;
+    let rows = pa_rows(species);
+    let rows = rows.iter().enumerate().map(|(pa, r)| ConvertRow {
+        internode: r.internode,
+        spread: r.spread,
+        flowering: r.flowering,
+        leaves: r.cluster.0,
+        fan: r.cluster.1,
+        sheds: r.retention.0,
+        share: r.retention.1,
+        trunk: input.space.trunk.contains(&pa),
+    });
+    let rows = rows.collect();
+    Ok((species.clone(), request, input.supernatural.scale(), rows))
 }
 
 /// The converted tree drawn at `scale` times its natural size (fn-217
@@ -304,24 +310,13 @@ fn codominance(radius: f64, parent: f64) -> Option<f64> {
 /// node drawn from its own wood, is kept as a bloom (fn-253). An axis of an age that states a cluster is a
 /// short shoot: each node it draws is marked, and its last drawn node, its
 /// own tip, keeps the cluster; an axis that draws no node bears none.
-fn convert(
-    structure: &Structure,
-    marks: (&[bool], &[(u64, f64)]),
-    rows: (&[usize], &[PaRow]),
-) -> Tree {
-    converted(structure, marks, rows).0
+fn convert(structure: &Structure, rows: (&[usize], &[PaRow])) -> Tree {
+    converted(structure, rows).0
 }
 
 /// `convert`'s tree and each axis's drawn nodes, base first: where a coarse
 /// tree's stands are borne (fn-214).
-fn converted(
-    structure: &Structure,
-    (fine, bases): (&[bool], &[(u64, f64)]),
-    (trunk, rows): (&[usize], &[PaRow]),
-) -> (Tree, Vec<Vec<u32>>) {
-    // Each fine root's node drawn from wood above the cut.
-    let mut seams = Vec::new();
-    let mut attachments = Vec::new();
+fn converted(structure: &Structure, (trunk, rows): (&[usize], &[PaRow])) -> (Tree, Vec<Vec<u32>>) {
     let mut nodes = vec![Node::root()];
     let mut blooms = Vec::new();
     let mut clusters = Vec::new();
@@ -332,13 +327,9 @@ fn converted(
     // its leaves (fn-248).
     let leafing_on = rows.iter().any(|r| r.retention.0 != u32::MAX);
     let mut leafing = vec![Leafing::ALL; usize::from(leafing_on)];
-    // Whether each node is a fine root's.
-    let mut in_root = vec![false];
     let mut frames = vec![[0.0f32; 6]];
     let mut keys = vec![0u32];
     let mut lengths = vec![0.0];
-    // Each fine root's axis's root, by its place in `attachments`.
-    let mut of_root: Vec<Option<usize>> = vec![None; structure.axes.len()];
     // The node each axis ends on, for what continues it.
     let mut ends: Vec<Option<u32>> = vec![None; structure.axes.len()];
     // Each axis's drawn nodes, base first.
@@ -348,30 +339,9 @@ fn converted(
     let joins = join::by_parent(structure);
     let mut joined: Vec<Option<(u32, usize)>> = vec![None; structure.axes.len()];
     for (i, axis) in structure.axes.iter().enumerate() {
-        let root =
-            fine.get(i).copied().unwrap_or(false) && !axis.origin.parent().is_some_and(|p| fine[p]);
-        if let Some(p) = axis.origin.parent() {
-            of_root[i] = of_root[p];
-        }
         let start = match axis.origin {
             Origin::Seed => Some((0, false, true)),
-            Origin::Lateral { parent, node, .. } => {
-                let start = drawn[parent].get(node);
-                if let (true, Some(&n)) = (root, start) {
-                    of_root[i] = Some(attachments.len());
-                    // Its bearer's fork, from its base radius as phase 2
-                    // handed it up (host option 3).
-                    let base = bases.binary_search_by_key(&axis.lineage, |b| b.0);
-                    let base = base.map_or(0.0, |k| bases[k].1);
-                    attachments.push(Attachment {
-                        lineage: axis.lineage,
-                        node: n,
-                        seams: Vec::new(),
-                        fork: codominance(base, nodes[n as usize].radius).is_some(),
-                    });
-                }
-                start.map(|&n| (n, true, false))
-            }
+            Origin::Lateral { parent, node, .. } => drawn[parent].get(node).map(|&n| (n, true, false)),
             // A relay takes its parent's run on from its join, the node drawn
             // where it joins (`telperion_space::Join`, fn-244), and the
             // stopped module's head beyond turns aside as a lateral of its
@@ -500,19 +470,7 @@ fn converted(
                 if lateral && first {
                     node.codominant = codominance(d.radius, inherited);
                 }
-                let held = parent as usize;
                 parent = nodes.len() as u32;
-                // Every fine root's node drawn from wood above the cut starts
-                // a run of its own (D4): its first axis's first node, and a
-                // lateral its merged first phytomers hang from its bearer.
-                let grown = fine.get(i).copied().unwrap_or(false);
-                if grown && !in_root[held] {
-                    seams.push(parent);
-                    if let Some(a) = of_root[i] {
-                        attachments[a].seams.push(parent);
-                    }
-                }
-                in_root.push(grown);
                 let (h, s) = (up(p.heading), up(p.side));
                 frames.push([h.x, h.y, h.z, s.x, s.y, s.z].map(|v| v as f32));
                 keys.push(d.key);
@@ -565,19 +523,9 @@ fn converted(
     let root = nodes.get(1).map_or(0.0, |n| n.start_radius);
     nodes[0].radius = root;
     nodes[0].start_radius = root;
-    // A bearer counts each fine root it bears as one child, whatever the
-    // root draws at its seam (host option 3): its kind never reads wood
-    // another executor draws.
     let mut children = vec![0u32; nodes.len()];
-    let mut seam = vec![false; nodes.len()];
-    for &s in &seams {
-        seam[s as usize] = true;
-    }
-    for (i, n) in nodes.iter().enumerate().skip(1) {
-        children[n.parent.unwrap() as usize] += u32::from(!seam[i]);
-    }
-    for a in &attachments {
-        children[a.node as usize] += 1;
+    for n in nodes.iter().skip(1) {
+        children[n.parent.unwrap() as usize] += 1;
     }
     for i in 0..nodes.len() {
         let run = nodes[i].branch as usize;
@@ -591,12 +539,9 @@ fn converted(
         };
     }
     let crossover = nodes.len();
-    seams.sort_unstable();
     let tree = Tree {
         nodes,
         crossover,
-        seams,
-        attachments,
         frames,
         keys,
         grown: lengths,

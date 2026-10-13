@@ -21,8 +21,6 @@ pub(super) struct Run<'a> {
     pub twig: Option<TwigPlacement>,
     /// The wood's contact surface, built whenever surface contact is positive.
     pub contacts: Option<&'a AttachmentSurface<'a>>,
-    /// Whether each node is a fine root's (`Tree::in_fine_roots`).
-    pub fine: &'a [bool],
 }
 
 pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result<()> {
@@ -33,7 +31,6 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
         params: p,
         twig,
         contacts,
-        fine,
     } = *run;
     let (mut points, mut chord, mut along) = (Vec::new(), Vec::new(), Vec::new());
     let length = walk(tree, nodes, twig, &mut points, (&mut chord, &mut along));
@@ -41,7 +38,7 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
     if stations.is_empty() {
         return Ok(());
     }
-    let frames = station_frames(&points, &chord, tree.seed_side(fine, nodes[0], nodes[1]));
+    let frames = station_frames(&points, &chord, tree.seed_side(nodes[0]));
     let leaflets = super::rosette::leaflets(&p);
     // Which stations keep their leaves (fn-248); one that does not still
     // takes its draws, into a sink, so every other leaf keeps its own.

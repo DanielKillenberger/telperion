@@ -130,6 +130,11 @@ pub struct Gpu {
     /// The programs the browser is compiling, until `programs::ready`.
     #[cfg(target_arch = "wasm32")]
     pub(crate) programs: std::rc::Rc<crate::programs::Pending>,
+    /// Natively, the programs the device refused, by name, each caught by
+    /// the error scopes of the thread that made it (scopes are a
+    /// thread's own), until `programs::ready` reports the first.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) refused: Arc<Mutex<Vec<(String, String)>>>,
 }
 
 impl Gpu {
@@ -176,9 +181,39 @@ impl Gpu {
         #[cfg(test)]
         crate::trace::submit();
         self.queue.submit(commands);
+        self.ledger.submitted();
         #[cfg(test)]
         crate::trace::ran(&self.device);
         drop(open);
+    }
+
+    /// The device-local bytes the driver grants this process and it does
+    /// not hold (VK_EXT_memory_budget): what other processes leave of the
+    /// card, falling as they fill it. None off Vulkan, or where the driver
+    /// does not say (fn-256 task 5).
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn free_device_memory(&self) -> Option<u64> {
+        use ash::vk;
+        // SAFETY: the raw instance and physical device are only read while
+        // `self.device`, which owns them, is alive.
+        unsafe {
+            let hal = self.device.as_hal::<wgpu::hal::api::Vulkan>()?;
+            if !hal.enabled_device_extensions().contains(&ash::ext::memory_budget::NAME) {
+                return None;
+            }
+            let mut budget = vk::PhysicalDeviceMemoryBudgetPropertiesEXT::default();
+            let heaps = {
+                let mut props = vk::PhysicalDeviceMemoryProperties2::default().push_next(&mut budget);
+                let instance = hal.shared_instance().raw_instance();
+                instance.get_physical_device_memory_properties2(hal.raw_physical_device(), &mut props);
+                props.memory_properties
+            };
+            let local = |h: &&vk::MemoryHeap| h.flags.contains(vk::MemoryHeapFlags::DEVICE_LOCAL);
+            (heaps.memory_heaps.iter().take(heaps.memory_heap_count as usize).enumerate())
+                .filter(|(_, h)| local(h))
+                .map(|(i, _)| budget.heap_budget[i].saturating_sub(budget.heap_usage[i]))
+                .max()
+        }
     }
 
     /// Asks the platform for a hardware device, with the adapter's own maximum
@@ -258,6 +293,7 @@ impl Gpu {
             }
         });
 
+        let ledger = Arc::new(crate::buffer::Ledger::of(&queue));
         Ok(Self {
             device,
             queue,
@@ -266,10 +302,12 @@ impl Gpu {
             source: adapter,
             instance,
             lost,
-            ledger: Arc::default(),
+            ledger,
             curve: Arc::default(),
             #[cfg(target_arch = "wasm32")]
             programs: Default::default(),
+            #[cfg(not(target_arch = "wasm32"))]
+            refused: Arc::default(),
         })
     }
 

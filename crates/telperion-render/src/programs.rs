@@ -23,10 +23,56 @@ impl Program {
     pub fn make(gpu: &Gpu, desc: &wgpu::ComputePipelineDescriptor<'_>) -> Self {
         #[cfg(test)]
         MADE.with(|made| made.set(made.get() + 1));
+        Self::asked(gpu, desc)
+    }
+
+    /// The pipelines `descs` state, asked of the device at once: natively
+    /// each made on its own thread, as a browser compiles them side by
+    /// side, so a module's cold compile is its slowest entry's, not their
+    /// sum (fn-256, DESIGN.md 9.3). Each comes with what asking for it took
+    /// natively; a browser compiles in the background, and has no clock
+    /// `std::time` reads, so there asking takes nothing measured.
+    pub fn make_many(
+        gpu: &Gpu,
+        descs: &[wgpu::ComputePipelineDescriptor<'_>],
+    ) -> Vec<(Self, std::time::Duration)> {
+        #[cfg(test)]
+        MADE.with(|made| made.set(made.get() + descs.len()));
         #[cfg(not(target_arch = "wasm32"))]
-        return Self {
-            made: gpu.device.create_compute_pipeline(desc),
-        };
+        return std::thread::scope(|s| {
+            let timed = |d: &wgpu::ComputePipelineDescriptor<'_>| {
+                let started = std::time::Instant::now();
+                let made = Self::asked(gpu, d);
+                (made, started.elapsed())
+            };
+            let asked: Vec<_> = descs.iter().map(|d| s.spawn(move || timed(d))).collect();
+            asked.into_iter().map(|h| h.join().expect("a pipeline made")).collect()
+        });
+        #[cfg(target_arch = "wasm32")]
+        descs
+            .iter()
+            .map(|d| (Self::asked(gpu, d), std::time::Duration::ZERO))
+            .collect()
+    }
+
+    fn asked(gpu: &Gpu, desc: &wgpu::ComputePipelineDescriptor<'_>) -> Self {
+        // Natively a pipeline may be made on any thread (`make_many`), and
+        // error scopes are a thread's own, so each is made under scopes of
+        // its own and a refusal kept by name for `ready`.
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let validation = gpu.device.push_error_scope(wgpu::ErrorFilter::Validation);
+            let memory = gpu.device.push_error_scope(wgpu::ErrorFilter::OutOfMemory);
+            let made = gpu.device.create_compute_pipeline(desc);
+            let memory = pollster::block_on(memory.pop());
+            let caught = memory.or(pollster::block_on(validation.pop()));
+            if let Some(error) = caught {
+                let name = desc.label.unwrap_or("unnamed").to_string();
+                let mut refused = gpu.refused.lock().expect("the refusals");
+                refused.push((name, error.to_string()));
+            }
+            Self { made }
+        }
         #[cfg(target_arch = "wasm32")]
         {
             let made = std::rc::Rc::<std::cell::OnceCell<_>>::default();
@@ -84,7 +130,15 @@ pub(crate) async fn ready(gpu: &Gpu) -> Result<()> {
         settle(pending, || gpu.lost()).await?;
     }
     #[cfg(not(target_arch = "wasm32"))]
-    let _ = gpu;
+    {
+        let refused = std::mem::take(&mut *gpu.refused.lock().expect("the refusals"));
+        if let Some(lost) = gpu.lost() {
+            return Err(lost);
+        }
+        if let Some((program, reason)) = refused.into_iter().next() {
+            return Err(RenderError::ProgramRefused { program, reason });
+        }
+    }
     Ok(())
 }
 

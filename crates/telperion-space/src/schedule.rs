@@ -146,7 +146,7 @@ pub(crate) const LIVED_FLOOR: f64 = 1.0 / 256.0;
 /// The lived shares of a unit of `share` that failed under survival
 /// `viability` a cycle, at `LIVED` points: its time `t` given failure
 /// runs as `(1 - v^t) / (1 - v^share)`, inverted at each part's middle,
-/// on the tick grid. The grower's `contract::decide::lived`, in expectation.
+/// on the tick grid. The grower's `contract::decide::lived_at`, in expectation.
 pub(crate) fn lived(viability: f64, share: f64) -> [f64; LIVED] {
     std::array::from_fn(|j| {
         if viability >= 1.0 || share <= 0.0 {

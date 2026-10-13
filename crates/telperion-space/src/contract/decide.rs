@@ -51,8 +51,33 @@ pub fn draw_log2(d: u64) -> f32 {
 /// apex lived whose unit of `share` failed on draw `d` under survival `p` a
 /// cycle, in ticks: `v^t = u` gives `t = log2 u / log2 p`, at most the
 /// unit's share, so a draw at the survival's bound lives it whole.
-pub(crate) fn lived(p: f64, share: f64, d: Draw) -> u64 {
-    lived_ticks(neg_log2_of(p), ticks(share.min(1.0)), d.0)
+pub(crate) fn lived_at(l: f32, share: f64, d: Draw) -> u64 {
+    lived_ticks(l, ticks(share.min(1.0)), d.0)
+}
+
+/// A unit's survival as the device takes it (fn-256's spike contract,
+/// COUNCIL.md "Decided by the spike"): its PA's viability `v` as the f32
+/// its table holds, raised by shade to `v^(light^-φ)` in f32 by the
+/// contract's `exp2` and `log2`; whole where `φ` is none or the light full;
+/// in no light at all, `v^∞`: none, or certain where `v` is.
+pub fn shaded(v: f32, phi: f32, light: f32) -> f32 {
+    if phi > 0.0 && light <= 0.0 {
+        return if v >= 1.0 { v } else { 0.0 };
+    }
+    if phi > 0.0 && light < 1.0 {
+        crate::contract::exp2(crate::contract::log2(v) * crate::contract::exp2(-phi * crate::contract::log2(light)))
+    } else {
+        v
+    }
+}
+
+/// D5 of an f32 survival `p`, as the device decides it: a whole cycle's
+/// threshold of `p` itself, a part's from its `-log2`.
+pub(crate) fn survival32(p: f32, share: f64, rest: u64) -> u64 {
+    if share >= 1.0 {
+        return crate::contract::threshold(p);
+    }
+    survival_fine(crate::contract::neg_log2(p), (ticks(share) << 12) + rest)
 }
 
 /// The cycles lived, `-log2(d / 2^53) / l`, where under a whole cycle:
@@ -99,8 +124,8 @@ pub fn lived_fine(l: f32, share: u64, d: u64) -> u64 {
 
 /// The rest below a tick of a failed unit's relay's first unit: what
 /// `lived_ticks` rounds `lived_fine` up by, in 2^-32 of a cycle.
-pub(crate) fn lived_rest(p: f64, share: f64, d: Draw) -> u64 {
-    let (l, share) = (neg_log2_of(p), ticks(share.min(1.0)));
+pub(crate) fn lived_rest_at(l: f32, share: f64, d: Draw) -> u64 {
+    let share = ticks(share.min(1.0));
     (lived_ticks(l, share, d.0) << 12) - lived_fine(l, share, d.0)
 }
 
@@ -261,11 +286,6 @@ pub fn kept(dead: f32, context: Option<f32>, d: u64) -> bool {
         ONE - floor53(lives.min(1.0))
     };
     d >= t
-}
-
-/// `-log2` of a chance, for a sum: `INF` for none.
-pub(crate) fn neg_log(p: f64) -> f32 {
-    neg_log2_of(p)
 }
 
 /// The sum of two `-log2` chances: their product's.

@@ -21,6 +21,10 @@ futures-channel = "0.3"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 pollster = "1"
+# The driver's device-memory budget (VK_EXT_memory_budget), read through
+# wgpu's own Vulkan device: what other processes leave of the card bounds
+# a native build (fn-256 task 5). The version wgpu-hal uses.
+ash = "0.38"
 png = "0.18"
 
 # The browser target parses the panel's parameter JSON in Rust, so the schema

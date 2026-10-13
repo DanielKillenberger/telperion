@@ -86,12 +86,9 @@ pub fn grow_coarse(species: &Species, request: Request, cut: f64) -> Result<Coar
     let rules = rules(species, request.age, request.budget)?;
     let predictor = rows.predictor();
     let mut expected = Expected::new(species, &rows, request.age);
-    let plan = Plan {
-        cut,
-        ..Plan::default()
-    };
+    let plan = Plan { cut, threads: 0 };
     let context = (request, &predictor, &rules);
-    let (settled, _) = now(settle_with(species, context, plan, &mut expected, false))?;
+    let (settled, _) = now(settle_with(species, context, plan, &mut expected))?;
     Ok(coarse(species, settled, &expected))
 }
 
@@ -102,11 +99,7 @@ fn lit(species: &Species, request: Request, rows: Arc<Rows>, cut: f64) -> Result
     let expected = Expected::new(species, &rows, request.age);
     let mut expected = expected.stood(&standing.roots);
     let threads = crate::cores::available();
-    let plan = Plan {
-        cut,
-        threads,
-        ..Plan::default()
-    };
+    let plan = Plan { cut, threads };
     let above = Above {
         grown: standing.grown,
         seats: standing.seats,
@@ -117,7 +110,6 @@ fn lit(species: &Species, request: Request, rows: Arc<Rows>, cut: f64) -> Result
         above,
         (expected.lived(), 0),
         &mut expected,
-        None,
         (Clock::default(), Stages::default()),
     ))?;
     Ok(coarse(species, settled, &expected))

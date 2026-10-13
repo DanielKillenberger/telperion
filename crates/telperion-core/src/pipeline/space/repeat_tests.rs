@@ -14,7 +14,7 @@ fn grown(family: &crate::Family) -> telperion_space::Structure {
         budget: BUDGET,
         light: family.space.light,
     };
-    telperion_space::grow_marked(&species, request).unwrap().0
+    telperion_space::grow(&species, request).unwrap()
 }
 
 fn on(threads: usize, family: &crate::Family) -> telperion_space::Structure {

@@ -82,7 +82,7 @@ impl Grower<'_> {
     /// living apex's tip; in the coupling pass, every fine root's stand-in
     /// leaves cast too and each root reads its light at its centroid; in a
     /// fine subtree, every bud reads its root's record.
-    pub(super) fn shade(&mut self, cycle: u32, report: &mut dyn FnMut(Stage)) {
+    pub(super) fn shade(&mut self, cycle: u32, report: &mut dyn FnMut(Stage)) -> crate::error::Result<()> {
         let mut sketch = self.sketch.take().expect("sketching");
         if let Some(reads) = self.fine.as_ref() {
             let light = reads.records.light(cycle + 1);
@@ -90,7 +90,7 @@ impl Grower<'_> {
                 sketch.pencils[apex.axis].light = light;
             }
             self.sketch = Some(sketch);
-            return;
+            return Ok(());
         }
         let mut tips: Vec<Vec3> = self.live.iter().map(|a| self.tip(a.axis)).collect();
         let fine = self.fine_leaves(cycle);
@@ -100,10 +100,18 @@ impl Grower<'_> {
             tips.push(*at);
         }
         self.check_leaves(cycle, &tips);
-        let field = Field::on(&sketch.light, &self.leaves, &tips, self.threads);
+        let mut read = if self.one {
+            self.sketch = Some(sketch);
+            let read = self.read_light(&tips)?;
+            sketch = self.sketch.take().expect("sketching");
+            read
+        } else {
+            let field = Field::on(&sketch.light, &self.leaves, &tips, self.threads);
+            let mut read = vec![0.0; tips.len()];
+            crate::cores::fill(&mut read, 1 << 10, self.threads, &|k| field.at(tips[k]));
+            read
+        };
         report(Stage::Pass(Pass::ShadeField));
-        let mut read = vec![0.0; tips.len()];
-        crate::cores::fill(&mut read, 1 << 10, self.threads, &|k| field.at(tips[k]));
         let n = self.live.len();
         if let Some(oracle) = self.oracle.as_mut() {
             oracle.reread(&self.axes, &self.live, &tips, &mut read[..n]);
@@ -126,6 +134,7 @@ impl Grower<'_> {
         self.leaves.truncate(own);
         self.hash_phase(cycle, 3);
         report(Stage::Pass(Pass::ShadeRead));
+        Ok(())
     }
 
     /// Each laid axis's link and PA, gathered on every core, so the
@@ -234,10 +243,11 @@ impl Grower<'_> {
         }
     }
 
-    /// Whether the allotment runs this cycle: where any PA's size reads
-    /// shade and a rough layout is grown.
+    /// Whether the allotment runs this cycle: where a rough layout is grown
+    /// and any PA's size reads shade, or always in the one cycle.
     pub(super) fn allots(&self) -> bool {
-        self.sketch.is_some() && self.species.states.iter().any(|s| s.shade_size != 0.0)
+        self.sketch.is_some()
+            && (self.one || self.species.states.iter().any(|s| s.shade_size != 0.0))
     }
 
     /// What the allotment reads of each laid axis (PHASES.md, phase (ii)).

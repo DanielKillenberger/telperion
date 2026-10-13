@@ -97,27 +97,19 @@ mod tests {
     use crate::pipeline::executor;
 
     /// The folds, the shoulder's bins and the leaf box of a grown tree's
-    /// nodes split in two (its fine roots' seams' subtrees and the rest,
-    /// and every other node) combine to the whole tree's, to the bit.
+    /// nodes split in two (every other node and the rest) combine to the
+    /// whole tree's, to the bit.
     #[test]
     fn parts_of_a_tree_combine_to_the_whole() {
         let mut family = crate::presets::by_identity("european-beech").unwrap();
         family.age = 30.0;
         let expansion = executor::grow(&family).unwrap().expansion().unwrap();
         let tree = expansion.tree();
-        assert!(!tree.seams.is_empty() && !tree.attachments.is_empty());
-        let mut fine = vec![false; tree.nodes.len()];
-        for &s in &tree.seams {
-            fine[s as usize] = true;
-        }
-        for (i, n) in tree.nodes.iter().enumerate().skip(1) {
-            fine[i] |= fine[n.parent.unwrap() as usize];
-        }
         let odd: Vec<bool> = (0..tree.nodes.len()).map(|i| i % 2 == 1).collect();
         let whole_box = expansion.wood_box(|_| true).unwrap();
         let spanned = crate::foliage::Reference::spanning(whole_box.0, whole_box.1);
         assert_eq!(spanned, expansion.reference());
-        for side in [&fine, &odd] {
+        for side in [&odd] {
             let (a, b) = (
                 Folds::of(&tree.nodes, |i| !side[i]),
                 Folds::of(&tree.nodes, |i| side[i]),

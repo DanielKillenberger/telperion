@@ -492,7 +492,12 @@ fn a_branch_of_ages_within_one_cycle_is_shed_on_time() {
 #[test]
 fn a_fractional_shedding_delay_keeps_by_its_fade() {
     let kept = |more: f64| {
+        // The beech as it grew unlit, before fn-264: a lit species has
+        // no closed form.
         let mut beech = telperion_space::beech();
+        for s in &mut beech.states {
+            (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
+        }
         for s in beech.states.iter_mut().filter(|s| s.shedding.is_finite()) {
             s.shedding += more;
         }

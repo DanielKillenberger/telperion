@@ -3,7 +3,7 @@
 //! value would draw the same number. Keys named after the reserved top
 //! of the range (`u64::MAX - n`) are unique across every parent, so a new
 //! one takes the next free `n` here and nowhere else. The GPU's mirror is
-//! `telperion-render`'s `fine/lineage.wgsl`, checked against `ALL`.
+//! `telperion-render`'s `cycle/keys.wgsl`, checked against `ALL`.
 
 /// What a key is drawn under.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -89,6 +89,11 @@ pub const CLUSTER: u64 = 0x0c10_0000;
 /// by their ordinal along the run. Clear of the node's places, blooms
 /// and cluster.
 pub const RETAIN: u64 = 0x0c10_0001;
+/// A rosette's fronds on the device, under its apex's key: each frond
+/// keyed by its place on the spiral, its leaflets drawing by their index
+/// in it (fn-256). Clear of the node's places, blooms, cluster and
+/// retention.
+pub const ROSETTE: u64 = 0x0c10_0002;
 /// A coarse tree's stand-in answering foliage in a cell of the field,
 /// under the fine root's lineage, then the cell (fn-214).
 pub const STAND: u64 = u64::MAX - 16;
@@ -100,7 +105,7 @@ pub const CONTINUATION: u64 = u64::MAX;
 
 /// Every key: its name, value and what it is drawn under. `ZONE` and
 /// `PLACE` stand for their spans.
-pub const ALL: [(&str, u64, Under); 29] = [
+pub const ALL: [(&str, u64, Under); 30] = [
     ("VIABILITY", VIABILITY, Under::Unit),
     ("ABORTION", ABORTION, Under::Unit),
     ("MOVE", MOVE, Under::Unit),
@@ -127,6 +132,7 @@ pub const ALL: [(&str, u64, Under); 29] = [
     ("FLORET_OPENING", FLORET_OPENING, Under::Floret),
     ("CLUSTER", CLUSTER, Under::Node),
     ("RETAIN", RETAIN, Under::Node),
+    ("ROSETTE", ROSETTE, Under::Node),
     ("STAND", STAND, Under::Lineage),
     ("JOIN", JOIN, Under::Node),
     ("CONTINUATION", CONTINUATION, Under::Lineage),

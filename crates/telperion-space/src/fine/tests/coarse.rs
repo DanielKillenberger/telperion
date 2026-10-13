@@ -1,9 +1,13 @@
-//! The coarse tree (fn-214): the structure above the cut grown as
-//! `grow_roots` grows it, each fine root standing as its expectations.
+//! The coarse tree (fn-214): the structure above the cut grown as the
+//! whole tree grows it, each fine root standing as its expectations. The
+//! spruce stands unlit, as it grew before fn-264: a lit species with
+//! standing roots is refused by name.
 use super::request;
-use crate::fine::{grow_coarse, grow_roots, Plan};
+use crate::fine::grow_coarse;
+use crate::grow::whole;
 use crate::grow::Request;
 use crate::structure::Structure;
+use crate::tolerance::unlit;
 
 fn kept(s: &Structure) -> usize {
     s.axes.iter().map(|a| a.phytomers.len()).sum()
@@ -14,13 +18,9 @@ fn kept(s: &Structure) -> usize {
 /// and no stand.
 #[test]
 fn at_cut_zero_the_coarse_tree_is_the_tree() {
-    let species = crate::spruce();
+    let species = unlit(crate::spruce());
     let coarse = grow_coarse(&species, request(12, 3), 0.0).expect("grows");
-    let plan = Plan {
-        cut: 0.0,
-        ..Plan::default()
-    };
-    let fine = grow_roots(&species, request(12, 3), plan).expect("grows");
+    let fine = whole(&species, request(12, 3)).expect("grows");
     assert!(coarse.stands.is_empty());
     let wood = |s: &Structure| {
         let mut w: Vec<[u64; 4]> = s
@@ -39,27 +39,19 @@ fn at_cut_zero_the_coarse_tree_is_the_tree() {
         w.sort_unstable();
         w
     };
-    assert_eq!(wood(&coarse.structure), wood(&fine.structure));
+    assert_eq!(wood(&coarse.structure), wood(&fine));
 }
 
-/// Above the cut the coarse tree grows what `grow_roots` grows; below it
-/// each root stands for its predictor's expected kept phytomers, and the
-/// trunk carries their expected sections near what their realized wood
-/// gives it.
+/// Below the cut each root stands for its expected kept phytomers, and
+/// the trunk carries their expected sections near what the whole tree's
+/// wood gives it.
 #[test]
 fn below_the_cut_each_root_stands_for_its_expectation() {
-    let species = crate::spruce();
+    let species = unlit(crate::spruce());
     let coarse = grow_coarse(&species, request(20, 3), 1024.0).expect("grows");
-    let fine = grow_roots(&species, request(20, 3), Plan::default()).expect("grows");
-    let realized: usize = fine.roots.iter().map(|r| r.kept).sum();
-    assert_eq!(kept(&coarse.structure), kept(&fine.structure) - realized);
-    let expected: f64 = coarse.stands.iter().map(|s| s.phytomers).sum();
-    let predicted: f64 = fine.roots.iter().map(|r| r.predicted).sum();
+    let fine = whole(&species, request(20, 3)).expect("grows");
+    assert!(kept(&coarse.structure) < kept(&fine));
     assert!(!coarse.stands.is_empty());
-    assert!(
-        (expected / predicted - 1.0).abs() < 1e-9,
-        "{expected} {predicted}"
-    );
     for s in &coarse.stands {
         assert!(
             s.radius >= 0.0 && s.centre >= 0.0 && s.phytomers > 0.0,
@@ -71,7 +63,7 @@ fn below_the_cut_each_root_stands_for_its_expectation() {
         );
     }
     let base = |s: &Structure| s.axes[0].phytomers[0].radius;
-    let ratio = base(&coarse.structure) / base(&fine.structure);
+    let ratio = base(&coarse.structure) / base(&fine);
     assert!(
         (ratio - 1.0).abs() < 0.1,
         "base radius coarse / grown {ratio}"
@@ -79,7 +71,7 @@ fn below_the_cut_each_root_stands_for_its_expectation() {
 }
 
 /// A species whose buds read light stands its roots in the stepped
-/// executor (task 2): the structure above the cut keeps the stepped tree's
+/// executor (task 2): the structure above the cut keeps the whole tree's
 /// height, and each live root stands for its expectation.
 #[test]
 fn a_lit_species_stands_its_roots_in_the_stepped_executor() {
@@ -92,11 +84,7 @@ fn a_lit_species_stands_its_roots_in_the_stepped_executor() {
         ..request(24, 1)
     };
     let coarse = grow_coarse(&species, r, 256.0).expect("grows");
-    let plan = Plan {
-        cut: 256.0,
-        ..Plan::default()
-    };
-    let fine = grow_roots(&species, r, plan).expect("grows");
+    let fine = whole(&species, r).expect("grows");
     assert!(!coarse.stands.is_empty());
     assert!(coarse
         .stands
@@ -106,10 +94,10 @@ fn a_lit_species_stands_its_roots_in_the_stepped_executor() {
         let tips = s.axes.iter().flat_map(|a| &a.phytomers);
         tips.map(|p| p.tip.z).fold(0.0, f64::max)
     };
-    let ratio = height(&coarse.structure) / height(&fine.structure);
+    let ratio = height(&coarse.structure) / height(&fine);
     assert!(
         (ratio - 1.0).abs() < 0.05,
-        "height coarse / stepped {ratio}"
+        "height coarse / whole {ratio}"
     );
 }
 
@@ -117,7 +105,7 @@ fn a_lit_species_stands_its_roots_in_the_stepped_executor() {
 /// is refused a coarse tree by name.
 #[test]
 fn a_kept_tree_no_light_reads_is_refused() {
-    let mut species = crate::spruce();
+    let mut species = unlit(crate::spruce());
     species.states.iter_mut().for_each(|s| s.retained = 0.5);
     let refused = grow_coarse(&species, request(5, 1), 1024.0);
     assert!(
@@ -146,7 +134,7 @@ fn the_coarse_trees_hold_their_bits() {
         ..request(24, 1)
     };
     let trees = [
-        ("spruce", crate::spruce(), request(20, 3), 1024.0),
+        ("spruce", unlit(crate::spruce()), request(20, 3), 1024.0),
         ("oak", crate::oak(), lit, 256.0),
     ];
     for (name, species, r, cut) in trees {
@@ -160,9 +148,11 @@ fn the_coarse_trees_hold_their_bits() {
     // for the review's tip-down allocation and bounded light sample; both
     // re-taken at the merge into F4 for the merge review's near-certain
     // draws (lived time, conditioned shedding, waking), every stand kept.
+    // The oak re-taken for the leaf mean's blocked order (fn-256 DESIGN.md
+    // 9.4), every stand kept; the spruce has no leaf term.
     let pinned = [
         ("spruce", 3588, 0xa243_fc77_9e50_5c22),
-        ("oak", 2638, 0x9d77_9634_1fa1_3196),
+        ("oak", 2638, 0xdcd1_7569_f161_020d),
     ];
     assert_eq!(got, pinned);
 }

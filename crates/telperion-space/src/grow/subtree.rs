@@ -161,7 +161,7 @@ fn grow_one(
         g.step(cycle, quiet)?;
         if cycle < age {
             g.sketch(cycle, &advanced)?;
-            g.shade(cycle, quiet);
+            g.shade(cycle, quiet)?;
         }
     }
     Ok(Grown {
@@ -205,6 +205,10 @@ impl<'a> Grower<'a> {
             oracle: None,
             couple: None,
             fine: None,
+            one: false,
+            light_seconds: 0.0,
+            census: None,
+            working: None,
         }
     }
 

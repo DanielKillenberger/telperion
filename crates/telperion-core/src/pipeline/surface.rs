@@ -40,9 +40,9 @@ pub use build::extent;
 #[cfg(feature = "geometry")]
 use build::*;
 #[cfg(feature = "geometry")]
-pub(crate) use build::{faces, Faces};
+pub(crate) use build::{faces, segments, Faces};
 #[cfg(feature = "geometry")]
-pub(crate) use curve::{curve, traced};
+pub(crate) use curve::{curve, rows as curve_rows, traced};
 #[cfg(feature = "geometry")]
 pub use curve::{
     Curve, CurveCluster, CurvePoint, CurveRun, Demand, PackedPoint, Tessellation, CLUSTER_WORDS, SECTION_FLOATS, Viewer, Budget, RIBBON, SCALES, CLUSTER, LEVELS,

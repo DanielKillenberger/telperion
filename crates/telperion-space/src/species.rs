@@ -50,8 +50,10 @@ const MAX_LIFESPAN: f64 = 1_000_000.0;
 const MAX_DELAY: f64 = 1_000.0;
 /// The longest a wander's bend is remembered, in metres.
 const MAX_BEND_LENGTH: f64 = 1_000.0;
-/// The largest leaf area one node bears, in square metres.
-const MAX_LEAF_AREA: f64 = 1.0;
+/// The largest leaf area one node bears, in square metres: the date
+/// palm's frond, 2.81 m² a node, is the largest shipped leaf (fn-264, host
+/// 2026-10-12).
+pub const MAX_LEAF_AREA: f64 = 5.0;
 /// The steepest response of a hazard or a size to shade.
 const MAX_SHADE: f64 = 10.0;
 /// The most leaves one short shoot's cluster carries (fn-223).

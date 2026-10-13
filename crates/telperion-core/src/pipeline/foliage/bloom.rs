@@ -215,8 +215,8 @@ pub(crate) fn place(tree: &Tree, p: &BloomParams, season: Option<f64>) -> Result
     Ok(packed(&matrices, reference(&matrices, p)))
 }
 
-/// The same florets packed against `box`, which holds every one: the box
-/// an executor drawing its own roots' florets shares (fn-229).
+/// The same florets packed against `within`, which holds every one: the
+/// box both executors share (`packing_box`, fn-253).
 pub(crate) fn place_in(
     tree: &Tree,
     p: &BloomParams,

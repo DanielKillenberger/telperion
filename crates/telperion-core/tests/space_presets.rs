@@ -1,57 +1,40 @@
 //! The engine species as preset values (fn-198 host decision 1): every
-//! preset carries the engine's own species, stem ages and site light as
-//! `/space` rows, read back to the bit through the value file and the wire.
+//! preset carries the engine's own species and stem ages as `/space` rows,
+//! read back to the bit through the value file and the wire, and grows
+//! under the one site light no row states (fn-264 R1a).
 use telperion_core::{
     blend, params,
     presets::{
-        space::{self, Cell},
+        space::{self, Cell, SITE},
         values, Preset,
     },
 };
 use telperion_space::{
-    beech, birch, expected_kept, oak, palm, settings, spruce, zone_settings, Light, Species,
+    beech, birch, expected_kept, oak, palm, settings, spruce, zone_settings, Species,
 };
 
 /// The species each engine preset states, as the tree-space examples grew it
-/// (`crates/telperion-render/examples/space_*.rs`, BASELINE.md's oak light).
-fn engine() -> [(Preset, Species, Vec<usize>, Light); 7] {
-    let oak_light = Light {
-        extinction: 0.5,
-        sky: 0.5,
-    };
+/// (`crates/telperion-render/examples/space_*.rs`); every one grows under the
+/// site's light (fn-264 R1a).
+fn engine() -> [(Preset, Species, Vec<usize>); 7] {
     [
-        (
-            Preset::EuropeanBeech,
-            beech(),
-            vec![2, 4, 5],
-            Light::NEUTRAL,
-        ),
-        (
-            Preset::NorwaySpruce,
-            spruce(),
-            vec![0, 1, 2, 4],
-            Light::NEUTRAL,
-        ),
-        (Preset::OregonWhiteOak, oak(), vec![2, 3, 4], oak_light),
-        (Preset::DatePalm, palm(), vec![2], Light::NEUTRAL),
-        (
-            Preset::SilverBirch,
-            birch(),
-            vec![2, 3, 4, 5],
-            Light::NEUTRAL,
-        ),
+        (Preset::EuropeanBeech, beech(), vec![2, 4, 5]),
+        (Preset::NorwaySpruce, spruce(), vec![0, 1, 2, 4]),
+        (Preset::OregonWhiteOak, oak(), vec![2, 3, 4]),
+        (Preset::DatePalm, palm(), vec![2]),
+        (Preset::SilverBirch, birch(), vec![2, 3, 4, 5]),
         // The Two Trees' natural base is the beech (fn-218, fn-219).
-        (Preset::Laurelin, beech(), vec![2, 4, 5], Light::NEUTRAL),
-        (Preset::Telperion, beech(), vec![2, 4, 5], Light::NEUTRAL),
+        (Preset::Laurelin, beech(), vec![2, 4, 5]),
+        (Preset::Telperion, beech(), vec![2, 4, 5]),
     ]
 }
 
 #[test]
 fn every_engine_preset_carries_the_engines_species() {
-    for (preset, species, trunk, light) in engine() {
+    for (preset, species, trunk) in engine() {
         let space = preset.parameters().space;
         assert_eq!(space.species.as_ref(), Some(&species), "{preset:?}");
-        assert_eq!((space.trunk, space.light), (trunk, light), "{preset:?}");
+        assert_eq!((space.trunk, space.light), (trunk, SITE), "{preset:?}");
     }
 }
 
@@ -172,6 +155,14 @@ fn a_space_row_off_its_place_or_form_is_refused_by_name() {
             ("/space/ages/2/zones/4/buds", Cell::Number(1.0)),
             "/space/ages/2/zones/4/buds: 4 is not an index below 4",
         ),
+        (
+            ("/space/light/extinction", Cell::Number(1.0 / 6.0)),
+            "/space/light/extinction: the site's light is one setting, no preset's row",
+        ),
+        (
+            ("/space/light/sky", Cell::Number(0.0)),
+            "/space/light/sky: the site's light is one setting, no preset's row",
+        ),
     ] {
         assert_eq!(refused(&[life, row]), why);
     }
@@ -179,6 +170,12 @@ fn a_space_row_off_its_place_or_form_is_refused_by_name() {
         refused(&[("/space/ages/3/internode", Cell::Number(0.1))]),
         "/space/ages/3 states an age with no lifespan"
     );
+    // A family written before fn-264 states the site's own light: read.
+    let site = [
+        ("/space/light/extinction", Cell::Number(SITE.extinction)),
+        ("/space/light/sky", Cell::Number(SITE.sky)),
+    ];
+    assert_eq!(space::read(site).unwrap().light, SITE);
     let never = [life, ("/space/ages/2/shedding", Cell::Never)];
     let read = space::read(never).unwrap().species.unwrap();
     assert_eq!(read.states[2].shedding, f64::INFINITY);
@@ -197,4 +194,18 @@ fn leaf_years_read_as_a_number_or_never() {
         // The neutral value is the default, so it writes no row.
         assert_eq!(written.map(|r| r.1), want.is_finite().then_some(cell));
     }
+}
+
+/// A family object written before fn-264 carried its light on the wire:
+/// the oak's, the site's own, reads as the oak; the ordinary's old 1/6 is
+/// refused, never taken for the site's.
+#[test]
+fn an_old_wire_light_reads_only_as_the_sites() {
+    let oak = Preset::OregonWhiteOak.parameters();
+    let mut wire = params::metadata(&oak);
+    wire["space"]["light"] = serde_json::json!({"extinction": 0.5});
+    let read = params::parse(&wire).unwrap();
+    assert_eq!(format!("{read:?}"), format!("{oak:?}"));
+    wire["space"]["light"] = serde_json::json!({"extinction": 1.0 / 6.0});
+    assert!(params::parse(&wire).is_err());
 }

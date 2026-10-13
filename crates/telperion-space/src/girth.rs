@@ -18,8 +18,8 @@ use crate::species::{Form, Species};
 use crate::structure::{Axis, Join, Origin, Phytomer, Structure};
 use crate::upward::Tree;
 pub(crate) use disused::{
-    above, attachments, attachments_given, bases, disused, disused_below, grown_mean,
-    leaf_partials, Stand,
+    above, attachments, attachments_given, attachments_past, bases, disused,
+    grown_mean, leaf_partials, Grew, Stand,
 };
 
 /// A branch's pipe that stays in its bearer as it is shed: the bearer's
@@ -35,7 +35,12 @@ pub(crate) struct Disused {
 
 /// A phytomer's own pipe: its PA's, by its scale, ripened, by `leaf`.
 pub(crate) fn own(form: &Form, phytomer: &Phytomer, age: u32, scale: f64, leaf: f64) -> f64 {
-    let years = (age.saturating_sub(phytomer.cycle) + 1) as f32;
+    own_at(form, phytomer.cycle, age, scale, leaf)
+}
+
+/// `own` of a phytomer grown in `cycle`.
+pub(crate) fn own_at(form: &Form, cycle: u32, age: u32, scale: f64, leaf: f64) -> f64 {
+    let years = (age.saturating_sub(cycle) + 1) as f32;
     let ripe = ripened(years, form.ripening as f32);
     f64::from(form.pipe as f32 * scale as f32 * ripe * leaf as f32)
 }
@@ -102,6 +107,46 @@ pub(crate) fn mean_of(total: f32, weighted: f32) -> Option<f64> {
     (weighted > 0.0).then(|| f64::from(total / weighted))
 }
 
+/// The terms a block of the leaf mean's reduction holds.
+pub(crate) const LEAF_BLOCK: usize = 1024;
+
+/// The leaf mean's two sums in the one reduction order both executors
+/// take (fn-256 DESIGN.md sections 2 and 9.4): the terms in the order the
+/// axes and their phytomers stand, in blocks of `LEAF_BLOCK`, each block
+/// summed in order from zero, the blocks then added in order.
+#[derive(Debug, Clone, Copy, Default)]
+pub(crate) struct Blocked {
+    sums: [f32; 2],
+    block: [f32; 2],
+    held: usize,
+}
+
+impl Blocked {
+    /// The next term in the order.
+    pub fn push(&mut self, (pipe, term): (f32, f32)) {
+        self.block[0] += pipe;
+        self.block[1] += term;
+        self.held += 1;
+        if self.held == LEAF_BLOCK {
+            self.close();
+        }
+    }
+
+    fn close(&mut self) {
+        self.sums[0] += self.block[0];
+        self.sums[1] += self.block[1];
+        (self.block, self.held) = ([0.0; 2], 0);
+    }
+
+    /// The two sums, the last block added where it holds any term.
+    pub fn sums(mut self) -> [f32; 2] {
+        if self.held > 0 {
+            self.close();
+        }
+        self.sums
+    }
+}
+
 /// A pipe's two terms for the mean: the pipe, and the pipe by its light
 /// term.
 pub(crate) fn terms(pipe: f64, light: f64, chi: f64) -> (f32, f32) {
@@ -116,17 +161,15 @@ pub(super) fn leaf_terms(structure: &Structure, species: &Species) -> Option<f64
     if species.states.iter().all(|s| s.leaf_girth == 0.0) {
         return None;
     }
-    // Summed in the order the axes and their phytomers stand.
-    let (mut total, mut weighted) = (0.0, 0.0);
+    let mut sums = Blocked::default();
     for axis in &structure.axes {
         let state = &species.states[axis.pa];
         for p in &axis.phytomers {
             let pipe = own(&state.form, p, structure.age, p.scale, 1.0);
-            let (a, b) = terms(pipe, p.light, state.leaf_girth);
-            total += a;
-            weighted += b;
+            sums.push(terms(pipe, p.light, state.leaf_girth));
         }
     }
+    let [total, weighted] = sums.sums();
     mean_of(total, weighted)
 }
 

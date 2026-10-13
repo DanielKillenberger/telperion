@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>telperion — device probe</title>
+    <!-- fn-257's early test; the page's source is src/probe/. -->
+    <style>
+      :root { color-scheme: light dark; font: 14px/1.4 system-ui, sans-serif; }
+      body { margin: 0 auto; max-width: 960px; padding: 16px; }
+      table { border-collapse: collapse; width: 100%; }
+      td { border-bottom: 1px solid #8884; padding: 4px 8px; vertical-align: top; overflow-wrap: anywhere; }
+      td:last-child { font-variant-numeric: tabular-nums; text-align: right; }
+      pre { max-height: 50vh; overflow: auto; padding: 8px; border: 1px solid #8886; }
+    </style>
+  </head>
+  <body>
+    <h1>Device probe (fn-257 early test)</h1>
+    <p id="status">Starting...</p>
+    <table><tbody id="rows"></tbody></table>
+    <p><button id="copy" type="button">Copy JSON</button></p>
+    <pre id="json"></pre>
+    <script type="module" src="/src/probe/main.ts"></script>
+  </body>
+</html>

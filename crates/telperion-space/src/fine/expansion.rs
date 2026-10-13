@@ -5,13 +5,9 @@
 //! settled here exactly as the whole tree settles it; each phase hands
 //! the roots one record each down and takes one record each up (Astra
 //! change 3: a record per root, never per node).
-use super::landing::Landing;
 use super::lay::lay;
-use super::spare::Spare;
 use super::step::Step;
-use super::surface::input;
 use super::{Clock, Plan};
-use crate::closed_form::boundary::Rows;
 use crate::closed_form::predictor::Predictor;
 use crate::error::{refuse, Error, Result};
 use crate::contract::presence::{q, times};
@@ -37,7 +33,6 @@ pub type Loaded = (f64, Vec3);
 /// vigour as made and its node's buds a whorl, and the presences of the
 /// draws that made its first axis, as its own grower takes them.
 pub struct RootSeed {
-    pub bud: super::ChainBud,
     pub made: (f64, f64),
     pub birth: [f32; 2],
     pub(crate) handed: Handed,
@@ -110,53 +105,11 @@ pub trait Roots {
 
 /// The structure above the cut, settled: the tree (its fine roots' first
 /// axes standing where their stand-ins stood, unexpanded), each root's
-/// stand-in's index (none: shed), the live roots and their bearers, the
-/// seconds each phase took, and the roots laid on the CPU.
+/// stand-in's index (none: shed), and the live roots.
 pub struct Settled {
     pub structure: Structure,
     pub at: Vec<Option<usize>>,
     pub live: Vec<usize>,
-    pub bearers: Vec<usize>,
-    pub phases: Vec<f64>,
-    /// Each stage of the settling, the executor's phases among them, and
-    /// its milliseconds, in turn (task 8).
-    pub stages: Vec<(&'static str, f64)>,
-    /// The roots laid on the CPU because they can reach the ground (host
-    /// decision 3), by root; and those roots, by their place among the
-    /// live.
-    pub grounded: Vec<usize>,
-    pub(crate) landed: Vec<(usize, super::realized::Root)>,
-    /// Each live root's base radius as phase 2 handed it up, by its place
-    /// among the live: what its seam's codominance is read from (fn-212
-    /// task 7, host option 3).
-    pub radii: Vec<f64>,
-    /// The live roots grown ahead on the spare cores for the landing
-    /// (task 9, `spare.rs`).
-    pub ahead: usize,
-}
-
-/// Grows `species` above `plan`'s cut and settles it with its fine
-/// roots, grown by `roots`, every root that can reach the ground laid on
-/// the CPU reference executor; and the roots' seeds. The cut reads the
-/// predictor's counts (host decision 9); the ground bound's reach is read
-/// from the closed form's rows, on a core of its own while the executor
-/// grows the roots (task 8).
-pub async fn settle(
-    species: &Species,
-    request: Request,
-    plan: Plan,
-    roots: &mut dyn Roots,
-) -> Result<(Settled, Vec<RootSeed>)> {
-    let mut stages = Stages::default();
-    let rules = crate::grow::alone::rules(species, request.age, request.budget)?;
-    stages.mark("rules");
-    let predictor = Predictor::new(species, &rules.windows, request.age);
-    stages.mark("predictor");
-    let (mut settled, seeds) =
-        settle_with(species, (request, &predictor, &rules), plan, roots, true).await?;
-    stages.out.append(&mut settled.stages);
-    settled.stages = stages.out;
-    Ok((settled, seeds))
 }
 
 pub(crate) async fn settle_with(
@@ -164,7 +117,6 @@ pub(crate) async fn settle_with(
     (request, predictor, rules): (Request, &Predictor, &Rules<'_>),
     plan: Plan,
     roots: &mut dyn Roots,
-    land: bool,
 ) -> Result<(Settled, Vec<RootSeed>)> {
     request.light.validate()?;
     let threads = match plan.threads {
@@ -177,24 +129,18 @@ pub(crate) async fn settle_with(
         // A PA no zone draws makes no bud to hand on.
         predictor.count(pa, birth).is_some_and(|c| c <= plan.cut)
     });
-    let reach = land.then(|| reach(species, request.age));
     let (grown, seeds, sowing) = sow(species, (rules, hands, request.seed, threads), roots)?;
     stages.add(sowing);
     let mut clock = Clock::default();
     let (living, grew) = clock.timed(roots.grow(&seeds)).await?;
     stages.mark("phase 1 (executor)");
     let seats = seeds.iter().map(|s| (s.handed.at, node(s))).collect();
-    let ground = reach.map(|reach| Ground {
-        seeds: &seeds[..],
-        reach,
-    });
     let settled = settle_grown(
         species,
         (request, rules, plan, threads),
         Above { grown, seats },
         (living, grew),
         roots,
-        ground,
         (clock, stages),
     )
     .await?;
@@ -208,30 +154,18 @@ pub(crate) struct Above {
     pub seats: Vec<(usize, usize)>,
 }
 
-/// Where the roots that can reach the ground are laid on the CPU: their
-/// seeds and the reach's rows; none where the CPU lays every root.
-pub(crate) struct Ground<'s> {
-    pub seeds: &'s [RootSeed],
-    pub reach: Reach,
-}
-
 /// The structure above the cut settled with its roots, grown by `roots`
 /// (phase 1's living and phytomers given), through phases 2 to 4 and,
 /// where any PA keeps its tree as grown, the exchange before them.
 pub(crate) async fn settle_grown(
     species: &Species,
-    (request, rules, plan, threads): (Request, &Rules<'_>, Plan, usize),
+    (request, _rules, _plan, threads): (Request, &Rules<'_>, Plan, usize),
     Above { grown, seats }: Above,
     (living, grew): (Vec<Lived>, u64),
     roots: &mut dyn Roots,
-    ground: Option<Ground<'_>>,
     (mut clock, mut stages): (Clock, Stages),
 ) -> Result<Settled> {
     let pas = species.states.len();
-    let (seeds, reach) = match ground {
-        Some(g) => (g.seeds, Some(g.reach)),
-        None => (&[][..], None),
-    };
     if grown.grown + grew > u64::from(request.budget) {
         return Err(Error::Budget {
             limit: request.budget,
@@ -299,63 +233,17 @@ pub(crate) async fn settle_grown(
         .zip(&drawn)
         .map(|(&b, &d)| (base[b], d))
         .collect();
-    // The roots likeliest to reach the ground grown ahead on the spare
-    // cores while the rest settles (task 9, `spare.rs`).
-    let rows = reach.map(read);
-    stages.mark("the reach's rows");
-    // No spare cores in a browser: the landing grows its own there.
-    let native = cfg!(not(target_family = "wasm"));
-    let spare = (rows.as_ref()).and_then(|_| native.then(|| Spare::new(live.len())));
-    let at_roots = (&seeds[..], &live[..], &bearers[..]);
-    let mut landing = Landing::new(species, (rules, rows.as_ref()), (plan, threads));
-    landing.spare = spare.as_ref();
-    let laying = lay(
+    lay(
         (species, &mut tree, roots, &girth),
-        (at_roots, &scales, &by_axis),
-        (&mut landing, &mut clock, &mut stages),
-        (threads, rows.as_ref()),
-    );
-    // Natively the driver waits on the executor while the spare cores
-    // grow ahead; in a browser it awaits it (host decision 1).
-    #[cfg(not(target_family = "wasm"))]
-    let live_seeds: Vec<&RootSeed> = match spare {
-        Some(_) => live.iter().map(|&k| &seeds[k]).collect(),
-        None => Vec::new(),
-    };
-    #[cfg(not(target_family = "wasm"))]
-    let laid = std::thread::scope(|scope| {
-        let live_seeds = &live_seeds;
-        if let Some(spare) = &spare {
-            for _ in 0..helpers(threads) {
-                scope.spawn(|| spare.work((species, rules, live_seeds, &scales)));
-            }
-        }
-        let laid = super::step::wait(laying);
-        spare.as_ref().inspect(|s| s.stop());
-        laid
-    });
-    #[cfg(target_family = "wasm")]
-    let laid = laying.await;
-    let laid = laid.map(|radii| (landing.roots, radii, spare.as_ref().map_or(0, Spare::grown)));
-    // What was grown ahead and not landed is freed off the build's path.
-    if cfg!(target_family = "wasm") {
-        drop(spare);
-    } else {
-        std::thread::spawn(move || drop(spare));
-    }
-    let (landed, radii, ahead) = laid?;
-    let grounded = landed.iter().map(|(j, _)| live[*j]).collect();
+        ((&live[..], &bearers[..]), &scales, &by_axis),
+        (&mut clock, &mut stages),
+        threads,
+    )
+    .await?;
     let settled = Settled {
         structure: tree,
         at,
         live,
-        bearers,
-        phases: clock.phases,
-        stages: stages.out,
-        grounded,
-        landed,
-        radii,
-        ahead,
     };
     Ok(settled)
 }
@@ -442,9 +330,8 @@ struct Sowing<'s> {
 impl Sowing<'_> {
     /// `buds` made into seeds and offered with every one not yet taken.
     fn take(&mut self, buds: Vec<Handed>, roots: &mut dyn Roots) {
-        let (species, seed) = (self.species, self.seed);
+        let (_species, _seed) = (self.species, self.seed);
         self.made.extend(buds.into_iter().map(|h| RootSeed {
-            bud: input(species, seed, Some(&h.bud)),
             made: (h.bud.axis.vigour, whorl(&h.bud)),
             birth: birth(&h.bud),
             handed: h,
@@ -485,39 +372,6 @@ impl Stages {
         self.out.push((stage, (now - self.last) * 1e3));
         self.last = now;
     }
-}
-
-/// The cores that grow the ground bound's roots ahead (`spare.rs`) while
-/// the executor runs: all but the driver's.
-#[cfg(not(target_family = "wasm"))]
-fn helpers(threads: usize) -> usize {
-    threads.saturating_sub(1).max(1)
-}
-
-/// The closed form's rows of `species` at `age`, for the ground bound's
-/// reach, read on a core of their own: one core reads them faster than
-/// many, each with its own tables (REALIZED.md, decision 9's timing). A
-/// browser makes no thread, so it reads them in turn.
-#[cfg(not(target_family = "wasm"))]
-pub(crate) type Reach = std::thread::JoinHandle<Rows>;
-#[cfg(target_family = "wasm")]
-pub(crate) type Reach = Rows;
-#[cfg(not(target_family = "wasm"))]
-fn reach(species: &Species, age: u32) -> Reach {
-    let species = species.clone();
-    std::thread::spawn(move || Rows::new(&species, age, 1))
-}
-#[cfg(not(target_family = "wasm"))]
-fn read(reach: std::thread::JoinHandle<Rows>) -> Rows {
-    reach.join().expect("the reach's rows")
-}
-#[cfg(target_family = "wasm")]
-fn reach(species: &Species, age: u32) -> Rows {
-    Rows::new(species, age, 1)
-}
-#[cfg(target_family = "wasm")]
-fn read(rows: Rows) -> Rows {
-    rows
 }
 
 /// The node of its bearer a root stands on.

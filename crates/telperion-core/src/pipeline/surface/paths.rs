@@ -8,17 +8,13 @@ pub(super) struct Run {
 pub(super) struct Paths {
     pub nodes: Vec<usize>,
     pub runs: Vec<Run>,
-    /// Every node above the root a codominant sibling leaves, a fine root's
-    /// by its attachment: the run through it carries on into the widest wood
-    /// that is not one, the fork's primary.
+    /// Every node above the root a codominant sibling leaves: the run
+    /// through it carries on into the widest wood that is not one, the
+    /// fork's primary.
     pub forks: Vec<bool>,
-    /// Whether each node is a fine root's wood: a seam, or borne by one
-    /// (fn-212 D4, D5).
-    pub fine: Vec<bool>,
 }
 /// The tree's runs: each carries on into the widest child that is not a
-/// codominant sibling, never into a fine root's first node, which starts a
-/// run of its own and meets its bearer at a socket (fn-212 D4).
+/// codominant sibling.
 pub(super) fn paths(tree: &Tree) -> Result<Paths> {
     let nodes = &tree.nodes;
     let n = nodes.len();
@@ -29,7 +25,6 @@ pub(super) fn paths(tree: &Tree) -> Result<Paths> {
         )?,
         runs: reserved(n)?,
         forks: filled(n, false)?,
-        fine: filled(if tree.seams.is_empty() { 0 } else { n }, false)?,
     };
     if n < 2 {
         return Ok(result);
@@ -40,16 +35,6 @@ pub(super) fn paths(tree: &Tree) -> Result<Paths> {
     let mut next = filled(n, usize::MAX)?;
     let mut leaders = filled(n, usize::MAX)?;
     let mut widest = filled(n, usize::MAX)?;
-    let mut seam = filled(n, false)?;
-    for &i in &tree.seams {
-        seam[i as usize] = true;
-    }
-    if !result.fine.is_empty() {
-        for i in 1..n {
-            let p = nodes[i].parent.unwrap() as usize;
-            result.fine[i] = seam[i] || result.fine[p];
-        }
-    }
     for i in 1..n {
         let at = stands[nodes[i].parent.unwrap() as usize];
         if nodes[i].position.distance(nodes[at].position) > 1e-9 {
@@ -61,14 +46,10 @@ pub(super) fn paths(tree: &Tree) -> Result<Paths> {
             }
             last[at] = i;
             let wider = |k: usize| k == usize::MAX || nodes[i].start_radius > nodes[k].start_radius;
-            if seam[i] {
-                // A fine root's first node only ever starts a run.
-            } else if wider(widest[at]) {
+            if wider(widest[at]) {
                 widest[at] = i;
             }
-            // A seam's fork is its attachment's (below), never its node's.
-            if seam[i] {
-            } else if nodes[i].codominant.is_some() {
+            if nodes[i].codominant.is_some() {
                 result.forks[at] = at != 0;
             } else if wider(leaders[at]) {
                 leaders[at] = i;
@@ -76,12 +57,6 @@ pub(super) fn paths(tree: &Tree) -> Result<Paths> {
         } else {
             stands[i] = at;
         }
-    }
-    // A fine root forks its bearer as its base radius reads, whichever
-    // executor draws it (fn-212 task 7, host option 3).
-    for a in tree.attachments.iter().filter(|a| a.fork) {
-        let at = stands[a.node as usize];
-        result.forks[at] |= at != 0;
     }
     // A node every child of which is a codominant sibling carries on into
     // the widest, as everywhere else.

@@ -70,9 +70,7 @@ impl Executor<'_> {
     /// Phase (i), up: each living root's light, upkeep and whether it
     /// lives, at its placeholder.
     pub(super) fn stand_totals(&self) -> Vec<(usize, f32, f32, bool)> {
-        let Some(stands) = self.stands.as_ref() else {
-            return Vec::new();
-        };
+        let stands = &self.stands;
         let species = self.coarse.species;
         let total = |r: &Stood| {
             let living = r.agg.living();
@@ -90,9 +88,7 @@ impl Executor<'_> {
 
     /// Phase (i), down: each living root shed, or its kept share.
     pub(super) fn stand_kept(&mut self, cycle: u32, shed: &[bool], kept: &[f64]) {
-        let Some(stands) = self.stands.as_mut() else {
-            return;
-        };
+        let stands = &mut self.stands;
         for r in stands.living_mut() {
             match shed[r.at] {
                 true => r.died = Some(cycle),
@@ -103,9 +99,7 @@ impl Executor<'_> {
 
     /// Phase (ii), up: each living root's lit presence at its placeholder.
     pub(super) fn stand_lit(&self) -> Vec<(usize, f64)> {
-        let Some(stands) = self.stands.as_ref() else {
-            return Vec::new();
-        };
+        let stands = &self.stands;
         stands
             .living()
             .map(|r| (r.at, r.presence() * r.light))
@@ -117,9 +111,7 @@ impl Executor<'_> {
     /// per-PA partials added into `total` (presence, presence × (v/p)^ψ).
     pub(super) fn stand_sums(&mut self, got: &[f64], total: &mut [f32]) {
         let species = self.coarse.species;
-        let Some(stands) = self.stands.as_mut() else {
-            return;
-        };
+        let stands = &mut self.stands;
         let mut by_pa = vec![0.0; species.states.len()];
         for r in stands.living_mut() {
             let presence = r.presence();
@@ -148,9 +140,7 @@ impl Executor<'_> {
     pub(super) fn stand_advance(&mut self, cycle: u32, factors: &[[f32; 2]]) {
         let (species, threads) = (self.coarse.species, self.coarse.threads);
         let laterals = self.coarse.rules.laterals.clone();
-        let Some(stands) = self.stands.as_mut() else {
-            return;
-        };
+        let stands = &mut self.stands;
         // Each PA's mean (v/p)^ψ; whole where nothing is allotted.
         let mean = |g: usize| match factors.get(g) {
             Some(&[t, w]) if t > 0.0 && w > 0.0 => f64::from(w / t),
@@ -183,9 +173,7 @@ impl Executor<'_> {
     /// spread over its row's extent then, about its expected centroid,
     /// and the centroid it reads its light at, in the roots' order.
     pub(super) fn stand_leaves(&self, cycle: u32) -> (Vec<(Vec3, f64)>, Vec<Vec3>) {
-        let Some(stands) = self.stands.as_ref() else {
-            return (Vec::new(), Vec::new());
-        };
+        let stands = &self.stands;
         let age = self.coarse.rules.age;
         let (mut leaves, mut reads) = (Vec::new(), Vec::new());
         for r in stands.living() {
@@ -215,16 +203,13 @@ impl Executor<'_> {
     /// Phase (iv)'s light, down: each living root's read, in the roots'
     /// order.
     pub(super) fn stand_read(&mut self, read: &[f64]) {
-        if let Some(stands) = self.stands.as_mut() {
-            for (r, &light) in stands.living_mut().zip(read) {
-                r.light = light;
-            }
+        for (r, &light) in self.stands.living_mut().zip(read) {
+            r.light = light;
         }
     }
 
     /// Hands every fine root the coarse grower made since axis
-    /// `first_new` to a stand: its placeholder kept as `hand_over` keeps
-    /// it, its aggregate begun from its bud; every axis, apex and sleeping
+    /// `first_new` to a stand: its placeholder kept, its aggregate begun from its bud; every axis, apex and sleeping
     /// bud on it is the aggregate's, never grown.
     pub(super) fn stand_over(&mut self, first_new: usize) {
         let to = self.destinations(first_new);
@@ -295,7 +280,7 @@ impl Executor<'_> {
             woken.axis = at(woken.axis);
             woken.bearer = at(woken.bearer);
         }
-        let stands = self.stands.as_mut().expect("standing");
+        let stands = &mut self.stands;
         stands.roots.extend(stood);
     }
 }

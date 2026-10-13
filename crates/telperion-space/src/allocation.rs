@@ -129,13 +129,6 @@ fn subtotals_f(links: &[Link], own: &[f32]) -> Vec<f32> {
     sub
 }
 
-/// Each axis's subtree's light, child to parent: what a fine root reports
-/// its bearer (PHASES.md, phase (ii)).
-pub(crate) fn subtotals(links: &[Link], own: &[f64]) -> Vec<f64> {
-    let own: Vec<f32> = own.iter().map(|&x| x as f32).collect();
-    subtotals_f(links, &own).into_iter().map(f64::from).collect()
-}
-
 /// Each bud's size from its vigour per presence against the mean of the
 /// buds of its own order (host decisions 14 and 23): (r / r̄_g)^ψ, r =
 /// vigour / presence, r̄_g the presence-weighted mean over the buds of its
