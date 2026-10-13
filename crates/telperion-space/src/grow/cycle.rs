@@ -16,6 +16,7 @@ mod capture_settled;
 mod capture_units;
 mod census;
 mod passes;
+mod paused;
 mod retire;
 mod working;
 
@@ -27,10 +28,10 @@ pub use capture_light::grow_capture_light_at;
 pub use capture_settled::{grow_capture_settle_tables, grow_capture_settled, grow_capture_retired, grow_capture_settled_at, grow_cycle_is_the_reference, settle_sag_turn, SettleTo};
 pub use capture_units::{grow_capture_units, grow_capture_units_at};
 pub use census::{Census, Cycle};
+pub use paused::{tree_digest, Paused, Retiring};
 pub(super) use working::Working;
 
-use super::sketch::Sketch;
-use super::{lineage_order, start, Grower, Options, Request, Stage};
+use super::{Grower, Request, Stage};
 use crate::error::Result;
 use crate::light::Field;
 use crate::species::Species;
@@ -59,7 +60,8 @@ pub fn grow_census(species: &Species, request: Request) -> Result<Cycled> {
 }
 
 /// The one cycle, its working set as `working` begins it (the tests'
-/// references: every axis open, or none retired).
+/// references: every axis open, or none retired), grown to its age in one
+/// call.
 fn run(
     species: &Species,
     request: Request,
@@ -67,42 +69,9 @@ fn run(
     working: Working,
 ) -> Result<Cycled> {
     let started = crate::clock::seconds();
-    let (mut g, keeps) = start(species, request, Options::default())?;
-    (g.one, g.rules.one) = (true, true);
-    g.working = Some(Box::new(working));
-    g.sketch.get_or_insert_with(|| Sketch::new(request.light));
-    // Every lateral is grown: while it lives its leaves shade.
-    g.rules.lasting = vec![None; species.states.len()].into();
-    if census {
-        g.census = Some(Box::default());
-    }
-    let (mut advanced, mut phases) = (Vec::new(), Phases::new());
-    let mut clock = crate::clock::seconds();
-    for cycle in 1..=request.age {
-        g.year(cycle, cycle < request.age, &mut advanced, &mut |s| tick(&mut phases, &mut clock, s))?;
-        g.count(cycle);
-    }
-    let (grown, light_seconds) = (g.rules.grown, g.light_seconds);
-    let retired = g.working.as_ref().map_or(0, |w| w.retirement().roots());
-    let mut taken = g.census.take().map(|c| *c);
-    if let Some(c) = taken.as_mut() {
-        c.ended(&g.axes);
-    }
-    clock = crate::clock::seconds();
-    let settled = g.settle((request, Options::default()), (true, keeps), &mut |s| {
-        tick(&mut phases, &mut clock, s)
-    })?;
-    if let Some(c) = taken.as_mut() {
-        c.phases = phases;
-        c.retired = retired;
-    }
-    Ok(Cycled {
-        structure: lineage_order(settled.structure),
-        grown,
-        seconds: crate::clock::seconds() - started,
-        light_seconds,
-        census: taken,
-    })
+    let mut paused = Paused::with(species, request, census, working)?;
+    paused.grow_to(request.age)?;
+    paused.finish(started)
 }
 
 /// Seconds by the stage that ended them.

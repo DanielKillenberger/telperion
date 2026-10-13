@@ -18,6 +18,10 @@
 //! once that balance has run. Its upkeep stays frozen in its bearer's balance
 //! (`working.rs`), as the balance charges it today. The subtrees closed in
 //! a cycle are evaluated on every core, each alone, and applied in order.
+//! Without the final age (fn-270 R3, `Working::continuable`), the fade is
+//! read at the age grown so far: a kept lateral that sheds waits among the
+//! fading, its living final, and is evaluated again once its fade there
+//! reaches none.
 use super::{Grower, Working};
 use crate::contract::presence::{q, real, times};
 use crate::dormant::Woken;
@@ -47,7 +51,7 @@ type Record = (f64, Box<[Grew]>);
 
 /// Each axis's fate and, retired where rows keep it, its record; the
 /// woken bud each axis is, where it is one.
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub(in crate::grow) struct Retirement {
     pub fate: Vec<Fate>,
     pub grew: Vec<Option<Record>>,
@@ -55,6 +59,9 @@ pub(in crate::grow) struct Retirement {
     seen: usize,
     /// Closed subtrees waiting on a woken bud's kept share.
     pending: Vec<usize>,
+    /// Without the final age (`Working::continuable`): kept laterals that
+    /// shed, waiting for their fade to reach none at the age grown.
+    fading: Vec<usize>,
     /// Every verdict in the order taken: the subtree's root, the cycle,
     /// waited (0), kept (1) or retired (2), and its living (none where it
     /// waited), for the device's retirement to be held to (fn-256).
@@ -93,6 +100,8 @@ struct Tree<'t> {
     woken: &'t [Woken],
     successor: &'t [Vec<usize>],
     species: &'t Species,
+    /// The age a fade is read at: the tree's, or without the final age
+    /// the age grown so far.
     age: u32,
     keeps: bool,
     /// The cycle about to grow: what has grown is final before it.
@@ -124,6 +133,8 @@ impl Grower<'_> {
         let mut todo: Vec<usize> = (w.closed.iter().copied().chain(waiting))
             .filter(|&c| beside(c) && w.retire.fate[c] == Fate::Open)
             .collect();
+        let age = if w.continuable { cycle - 1 } else { self.rules.age };
+        todo.extend(self.faded_out(&mut w, age));
         todo.sort_unstable();
         todo.dedup();
         let tree = Tree {
@@ -132,13 +143,17 @@ impl Grower<'_> {
             woken: &self.woken,
             successor: &self.successor,
             species: self.species,
-            age: self.rules.age,
+            age,
             keeps: crate::grow::keeps(self.species),
             cycle,
         };
         let wr = &w;
         let verdicts = crate::cores::map(todo.clone(), 16, self.threads, &|_, c| evaluate(&tree, wr, c));
         for (c, verdict) in todo.into_iter().zip(verdicts) {
+            // Let go already with a fading ancestor that faded out with it.
+            if w.retire.fate[c] == Fate::Inside {
+                continue;
+            }
             let logged = match &verdict {
                 Verdict::Wait => (0, Living::default()),
                 Verdict::Kept(l) => (1, *l),
@@ -147,7 +162,12 @@ impl Grower<'_> {
             w.retire.log.push((c, cycle, logged.0, logged.1));
             match verdict {
                 Verdict::Wait => w.retire.pending.push(c),
-                Verdict::Kept(living) => w.retire.fate[c] = Fate::Kept(living),
+                Verdict::Kept(living) => {
+                    w.retire.fate[c] = Fate::Kept(living);
+                    if w.continuable && sheds(&self.axes[c], self.species) {
+                        w.retire.fading.push(c);
+                    }
+                }
                 Verdict::Retired(living, records) => {
                     for (i, record) in records {
                         w.retire.grew[i] = Some(record);
@@ -157,6 +177,25 @@ impl Grower<'_> {
             }
         }
         self.working = Some(w);
+    }
+
+    /// The fading subtrees whose fade at `age` has reached none, taken
+    /// out of the fading; those let go with an ancestor dropped.
+    fn faded_out(&self, w: &mut Working, age: u32) -> Vec<usize> {
+        let mut out = Vec::new();
+        let fading = std::mem::take(&mut w.retire.fading);
+        for c in fading {
+            let Fate::Kept(living) = w.retire.fate[c] else {
+                continue;
+            };
+            let axis = &self.axes[c];
+            let delay = self.species.states[axis.pa].shedding;
+            match faded(delay, axis.birth, living, age) <= 0.0 {
+                true => out.push(c),
+                false => w.retire.fading.push(c),
+            }
+        }
+        out
     }
 
     /// The new axes and woken buds taken in.
@@ -209,8 +248,7 @@ fn evaluate(t: &Tree, w: &Working, c: usize) -> Verdict {
     let living = subtree_living(&local, t.species, t.age, &given);
     let axis = &t.axes[c];
     let delay = t.species.states[axis.pa].shedding;
-    let lateral = matches!(axis.origin, Origin::Lateral { .. });
-    if !(lateral && delay.is_finite() && faded(delay, axis.birth, living, t.age) <= 0.0) {
+    if !(sheds(axis, t.species) && faded(delay, axis.birth, living, t.age) <= 0.0) {
         return Verdict::Kept(living);
     }
     if !t.keeps {
@@ -225,6 +263,12 @@ fn evaluate(t: &Tree, w: &Working, c: usize) -> Verdict {
         .map(|(&i, a)| (i, (a.vigour, a.phytomers.iter().map(Grew::of).collect())))
         .collect();
     Verdict::Retired(living, records)
+}
+
+/// Whether `axis` is a lateral that sheds.
+fn sheds(axis: &Axis, species: &Species) -> bool {
+    let lateral = matches!(axis.origin, Origin::Lateral { .. });
+    lateral && species.states[axis.pa].shedding.is_finite()
 }
 
 /// The axes `part` (in order, its first the root) copied and assigned as
