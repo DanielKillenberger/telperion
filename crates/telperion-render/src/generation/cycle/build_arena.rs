@@ -18,15 +18,16 @@ pub(super) const TABLES: usize = 8;
 /// order; the axes' against the expected axes, the rest against the
 /// expected kept phytomers), over every shipped preset at its default age,
 /// seeds 1, 7, 42 and its own, compacted after each cycle
-/// (`arena_tests::arena_ratios`, 2026-10-12; the axes' fn-256 task 6):
-/// the most of each, where the beech sets the axes, phytomers and leaves,
-/// the spruce the units, the Two Trees the lattice. The axes run 0.35
-/// (Telperion at seed 1) to 1.38 (the beech at 42) of their hint.
-pub(super) const ARENA: [f64; TABLES] = [1.3792, 1.1469, 1.9038, 0.0115, 0.1540, 0.0064, 0.4938, 0.2766];
+/// (`arena_tests::arena_ratios`, fn-256 task 15, every preset lit): the
+/// most of each, where the beech at 42 sets the axes, phytomers, living
+/// buds and leaves, Telperion at 42 the units, the ordinary the sleeping
+/// buds, the spruce the woken, Laurelin the lattice. The axes run 0.57
+/// (the oak at seed 1) to 1.65 (the beech at 42) of their hint.
+pub(super) const ARENA: [f64; TABLES] = [1.6545, 1.4648, 1.7942, 0.0115, 0.1397, 0.0064, 0.4604, 0.2743];
 /// The retired rows the records hold at most against the hint, where a
-/// PA keeps them: the ordinary's at seed 42 (the oak's at most 0.88;
-/// `arena_ratios`, 2026-10-12).
-pub(super) const RECORDS: f64 = 1.7450;
+/// PA keeps them: Telperion's at seed 42 (Laurelin's at most 4.51, the
+/// ordinary's 1.74; `arena_ratios`, fn-256 task 15).
+pub(super) const RECORDS: f64 = 4.6268;
 
 /// The most rows a table holds: its words index it in 32 bits, its
 /// widest table (the pencils) 59 words a row.
