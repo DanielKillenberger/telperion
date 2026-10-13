@@ -339,15 +339,22 @@ impl Unfolding<'_> {
     }
 
     /// The leaves wood of `cycle` keeps in a tree of `age` years under
-    /// `retention`: within the year, a share of the way from what it kept
-    /// a year before.
-    fn kept(&self, retention: (u32, u16), age: u32, cycle: u32) -> u16 {
+    /// `retention`, and kept a year before: the same at the whole year
+    /// and on this year's wood.
+    fn kept(&self, retention: (u32, u16), age: u32, cycle: u32) -> (u16, u16) {
         let now = kept_share(retention, age.saturating_sub(cycle));
         if self.fraction >= 1.0 || cycle >= age {
-            return now;
+            return (now, now);
         }
-        let was = f64::from(kept_share(retention, age - 1 - cycle));
-        (was + (f64::from(now) - was) * self.fraction).round() as u16
+        (now, kept_share(retention, age - 1 - cycle))
+    }
+
+    /// The share a leaf its wood no longer keeps is drawn at.
+    fn fade(&self) -> f32 {
+        match self.fraction < 1.0 {
+            true => (1.0 - self.fraction) as f32,
+            false => 1.0,
+        }
     }
 }
 
@@ -437,6 +444,9 @@ fn unfolded(
         // The retentions of the wood merged into the next node: where the
         // last change falls, the retention before it and the latest.
         let mut wood: Option<(f64, u16, u16)> = None;
+        // The same pieces' retentions a year before, before the boundary
+        // and the latest.
+        let mut was: Option<(u16, u16)> = None;
         for (place, p) in axis
             .phytomers
             .iter()
@@ -447,7 +457,7 @@ fn unfolded(
             // factor (fn-222).
             // The wood's retention, every piece of it the phytomer's own
             // (fn-248).
-            let q = unfolding.kept(retention, structure.age, p.cycle);
+            let (q, qw) = unfolding.kept(retention, structure.age, p.cycle);
             let piece = internode * p.scale * telperion_space::internode_factor(p.key(), spread);
             let here = joins[i].iter().filter(|(_, j)| j.node == place);
             for &(c, _) in here.clone().filter(|(_, j)| j.t <= 0.0) {
@@ -474,6 +484,11 @@ fn unfolded(
                 let inside =
                     along != Vec3::ZERO && (d.tip - from).length() < nodes[parent as usize].radius;
                 let behind = !made && ((d.tip - from).dot(along) < 0.0 || inside);
+                was = Some(match (wood, was) {
+                    (Some((_, _, last)), Some((_, latest))) if q != last => (latest, qw),
+                    (Some(_), Some((before, _))) => (before, qw),
+                    _ => (qw, qw),
+                });
                 wood = Some(match wood {
                     Some((_, _, last)) if q != last => (pending, last, q),
                     Some(held) => held,
@@ -524,9 +539,12 @@ fn unfolded(
                 }
                 if leafing_on {
                     let (older, before, last) = wood.take().unwrap();
+                    let (was_before, was_last) = was.take().unwrap();
                     leafing.push(Leafing {
                         older,
                         keep: u32::from(before) << 16 | u32::from(last),
+                        was: u32::from(was_before) << 16 | u32::from(was_last),
+                        fade: unfolding.fade(),
                     });
                 }
                 // Whether the axis's last node is drawn from its own wood,

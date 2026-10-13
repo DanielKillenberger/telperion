@@ -57,8 +57,11 @@ fn fanned(heading:vec3<f32>, n:u32, spread:f32, j:u32) -> vec3<f32> {
 // (`tree::keeps`): the retention of its wood, before the segment's
 // boundary or from it, against its draw on the segment's stream.
 fn retained(seg:Segment, k:u32) -> bool {
+    return kept_by(seg,bitcast<u32>(seg.normal.w),k);
+}
+// Whether station `k` keeps its leaf under the retention word `keep`.
+fn kept_by(seg:Segment, keep:u32, k:u32) -> bool {
     let unit=bitcast<u32>(config.size.z);
-    let keep=bitcast<u32>(seg.normal.w);
     var q=keep>>16u;
     if (k/config.random.y)*unit>=bitcast<u32>(seg.tangent.w) { q=keep&0xffffu; }
     if q==0xffffu { return true; }
@@ -104,7 +107,10 @@ fn station(index:u32) -> vec3<u32> {
     axis.y+=config.lean.w;
     if dot(axis,axis)<=1e-12 { axis=radial; }
     axis=normalize(axis);
-    return packed(point,axis,tangent,normal,seg.range.w,k,seg.unfolded.x);
+    // A leaf kept a year before and not now falls by the year (fn-270 R5a).
+    var share=seg.unfolded.x;
+    if bitcast<u32>(seg.normal.w)!=0xffffffffu && !kept_by(seg,bitcast<u32>(seg.unfolded.y),k) { share*=seg.unfolded.z; }
+    return packed(point,axis,tangent,normal,seg.range.w,k,share);
 }
 // Leaflet `j` of a frond's segment (`rosette.rs`'s `fan`,
 // `leaflet::leaflets`): on the rachis that leaves the frond's point on

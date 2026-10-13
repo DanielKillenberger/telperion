@@ -65,8 +65,13 @@ mod w {
     pub const TAU: usize = 33;
     pub const WHICH: usize = 35;
     pub const DEPTH: usize = 36;
+    pub const FINEST: usize = 37;
     pub const WORDS: usize = 38;
 }
+
+/// The thinnest wood the drawing draws (`dress.wgsl`'s and `space.rs`'s
+/// `FINEST`), which a gone subtree's leaves fade with.
+const FINEST: f32 = 2e-4;
 
 /// A buffer the presentation writes, copies into and reads back.
 fn storage(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
@@ -145,7 +150,7 @@ fn ranges(starts: &[u32], depths: usize) -> Vec<(u32, u32)> {
 
 /// `now`, settled, drawn `fraction` into its year from `before`, last
 /// year's drawing (none before the first year), each PA's `unfold` row
-/// (elongation, expansion, internode spread).
+/// (elongation, expansion, internode spread, cluster leaves).
 pub(super) async fn present(gpu: &Gpu, (k, scan): (&Kernels, &io::Pass), (now, before): (View<'_>, Option<View<'_>>), unfold: &[f32], fraction: f32) -> Result<Presented> {
     let (t, prev) = (now.table, before.unwrap_or(now));
     let pkept = if before.is_some() { prev.table.kept } else { 0 };
@@ -170,6 +175,7 @@ pub(super) async fn present(gpu: &Gpu, (k, scan): (&Kernels, &io::Pass), (now, b
     }
     let tau = fraction * telperion_space::unfold::YEAR as f32;
     (cfg[w::TAU], cfg[w::TAU + 1]) = (tau.to_bits(), fraction.to_bits());
+    cfg[w::FINEST] = FINEST.to_bits();
     let small = zeroed(gpu, "present unbound", 4)?;
     let small2 = zeroed(gpu, "present unbound leaf", 4)?;
     // The keys, the matches, the gone counts and their scans.

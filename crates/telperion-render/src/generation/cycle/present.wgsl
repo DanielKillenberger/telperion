@@ -65,7 +65,9 @@ struct Cfg {
     // year's; and the depth.
     which: u32,
     depth: u32,
-    pad0: u32,
+    // The thinnest wood the drawing draws: a gone subtree's leaves reach
+    // nothing as its fading wood reaches it.
+    finest: f32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -77,12 +79,14 @@ struct Cfg {
 // (`counts`) while the presented table is laid out.
 @group(0) @binding(5) var<storage, read_write> hash: array<atomic<u32>>;
 @group(0) @binding(6) var<storage, read_write> leaf: array<f32>;
-// Each PA's elongation and expansion in days and its internode's spread.
+// Each PA's elongation and expansion in days, its internode's spread and
+// its short shoots' cluster leaves.
 @group(0) @binding(7) var<storage, read> unfold: array<f32>;
 
 const NONE: u32 = 0xffffffffu;
 const SEED: u32 = 0u;
 const CONTINUED: u32 = 2u;
+const RELAYED: u32 = 3u;
 const NA_COLS: u32 = 41u;
 const NP_COLS: u32 = 22u;
 const NA_KIND: u32 = 0u;
@@ -244,7 +248,27 @@ fn run(t: f32, days: f32) -> f32 {
 }
 
 fn row(pa: u32, r: u32) -> f32 {
-    return unfold[pa * 3u + r];
+    return unfold[pa * 4u + r];
+}
+
+// The radius of presented axis `p`'s phytomer `node`, where a relay of it
+// joins: its own wood, which a relay born or gone this year joins from or
+// fades into.
+fn join_radius(p: u32, node: u32) -> f32 {
+    return f(np_out(NP_RADIUS, na_out(NA_PSTART, p) + node));
+}
+
+// Presented relay `to`'s join radii a share `t` of the way from its
+// bearer's own wood (`toward`), or back to it (`away`).
+fn join_from(to: u32, t: f32, away: bool) {
+    if na_out(NA_JOINED, to) == 0u || (na_out(NA_KIND, to) & 0xffu) != RELAYED {
+        return;
+    }
+    let r = join_radius(na_out(NA_PARENT, to), na_out(NA_JOINED + 1u, to));
+    for (var c = NA_JOINED + 3u; c < NA_JOINED + 5u; c++) {
+        let j = f(na_out(c, to));
+        set_na(c, to, b(select(mixed(r, j, t), mixed(j, r, t), away)));
+    }
 }
 
 // An axis's key in this year's table or last year's (`which`).
@@ -511,6 +535,8 @@ fn present_now(a: u32) {
         }
     } else {
         set_na3(NA_BASE, to, base + moved);
+        // A relay born this year joins from its bearer's own wood.
+        join_from(to, t, false);
     }
     // This year's shoot, measured by the wood each phytomer grows.
     let pa = na_now(NA_PA, a);
@@ -547,7 +573,9 @@ fn present_now(a: u32) {
         if total > 0.0 {
             share = along / total;
         }
-        leaf[p] = run(cfg.tau - elongation * reached(share), expansion);
+        // A short shoot's cluster stays as it was where the shoot stood a
+        // year before, at whichever tip it stands now.
+        leaf[p] = select(run(cfg.tau - elongation * reached(share), expansion), 1.0, row(pa, 3u) > 0.0 && olds > 0u);
         origin = tip;
         drawn = placed;
     }
@@ -585,11 +613,16 @@ fn present_gone(g: u32) {
         for (var c = 0u; c < NP_COLS; c++) {
             set_np(c, p, np_prev(c, q));
         }
-        set_np(NP_SCALE, p, b(mixed(f(np_prev(NP_SCALE, q)), 0.0, cfg.f)));
-        set_np(NP_RADIUS, p, b(mixed(f(np_prev(NP_RADIUS, q)), 0.0, cfg.f)));
+        // Its wood thins to nothing, its leaves reaching nothing as its
+        // wood reaches the thinnest drawn.
+        let r = f(np_prev(NP_RADIUS, q));
+        let thinned = mixed(r, 0.0, cfg.f);
+        set_np(NP_RADIUS, p, b(thinned));
         set3(NP_TIP, p, prev3(NP_TIP, q) + moved);
-        leaf[p] = 1.0;
+        leaf[p] = select(mixed(1.0, 0.0, cfg.f), clamp((thinned - cfg.finest) / (r - cfg.finest), 0.0, 1.0), r > cfg.finest);
     }
+    // A gone relay's join fades into its bearer's own wood.
+    join_from(to, cfg.f, true);
 }
 
 // How far the place a gone axis stood on has moved: presented axis `p`,

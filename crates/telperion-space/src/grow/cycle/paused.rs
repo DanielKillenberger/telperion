@@ -37,8 +37,9 @@ pub struct Paused<'a> {
     /// Whether a cycle failed while it grew: the grower is spent.
     failed: bool,
     /// Whether it keeps the tree drawn a year before the age grown, which
-    /// a draw within the year moves from (fn-270 R5a), and that tree.
-    presenting: bool,
+    /// a draw within the year moves from (fn-270 R5a): the thinnest wood
+    /// the drawing draws, where it does; and that tree.
+    presenting: Option<f64>,
     previous: Option<Structure>,
 }
 
@@ -97,14 +98,15 @@ impl<'a> Paused<'a> {
         }
         let clock = crate::clock::seconds();
         let (advanced, phases) = (Vec::new(), Phases::new());
-        let (presenting, previous) = (false, None);
+        let (presenting, previous) = (None, None);
         Ok(Self { g, keeps, request, committed: 0, advanced, phases, clock, failed: false, presenting, previous })
     }
 
     /// The grower keeping the tree drawn a year before the age grown, so
-    /// it can be drawn within its last year (`settle_at`).
-    pub fn presenting(mut self) -> Self {
-        self.presenting = true;
+    /// it can be drawn within its last year (`settle_at`) by a drawing
+    /// whose thinnest wood is `finest` metres.
+    pub fn presenting(mut self, finest: f64) -> Self {
+        self.presenting = Some(finest);
         self
     }
 
@@ -155,7 +157,7 @@ impl<'a> Paused<'a> {
     /// `grow_to`, its request admitted: where it keeps the year before,
     /// the tree drawn a year before `age` is settled on the way.
     fn grown_to(&mut self, age: u32) -> Result<()> {
-        if self.presenting && age > self.committed {
+        if self.presenting.is_some() && age > self.committed {
             self.cycles(age - 1)?;
             self.previous = match self.committed {
                 0 => None,
@@ -195,13 +197,16 @@ impl<'a> Paused<'a> {
     pub fn settle_at(&self, at: f64) -> Result<Presented> {
         self.usable()?;
         let f = within_year(self.committed, at)?;
-        if f < 1.0 && !self.presenting {
-            return refuse("at", "a tree is drawn within its year where it keeps the year before");
-        }
+        let Some(finest) = self.presenting.filter(|_| f < 1.0) else {
+            if f < 1.0 {
+                return refuse("at", "a tree is drawn within its year where it keeps the year before");
+            }
+            return Ok(Presented::whole(self.settle()?));
+        };
         let tree = self.settle()?;
         let empty = Structure { age: 0, pas: tree.pas, axes: Vec::new() };
         let before = self.previous.as_ref().unwrap_or(&empty);
-        Ok(present(tree, before, self.g.species, f))
+        Ok(present(tree, before, self.g.species, (f, finest)))
     }
 
     /// The tree at the horizon, settled as `grow_cycle` settles it, with

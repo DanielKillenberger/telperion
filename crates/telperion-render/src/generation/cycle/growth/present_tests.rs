@@ -20,6 +20,8 @@ struct Apart {
     radius: f64,
     leaf: f64,
     unfolding: usize,
+    /// Nodes whose retentions or falling share differ from the CPU's.
+    retention: usize,
 }
 
 fn apart(dev: &[Node], tree: &telperion_core::tree::Tree) -> Apart {
@@ -44,6 +46,10 @@ fn apart(dev: &[Node], tree: &telperion_core::tree::Tree) -> Apart {
         out.radius = out.radius.max(most(d.radii, r));
         out.leaf = out.leaf.max((f64::from(d.leaf) - tree.unfolding(i)).abs());
         out.unfolding += usize::from(d.leaf < 1.0);
+        let l = tree.leafing(i);
+        let (keep, was, fade) = d.retention;
+        let apart = (keep, was) != (l.keep, l.was) || (fade - l.fade).abs() > 1e-6;
+        out.retention += usize::from(!tree.leafing.is_empty() && apart);
     }
     out
 }
@@ -73,6 +79,7 @@ fn a_tree_drawn_within_its_year_on_the_device_is_the_cpus() {
             assert_eq!(a.device, a.cpu, "{name} at {f}: nodes");
             assert!(a.matched * 1000 >= a.device * 999, "{name} at {f}: {a:?}");
             assert!(a.position < 1e-3 && a.radius < 1e-5 && a.leaf < 1e-3, "{name} at {f}: {a:?}");
+            assert_eq!(a.retention, 0, "{name} at {f}: retentions");
         }
     }
 }

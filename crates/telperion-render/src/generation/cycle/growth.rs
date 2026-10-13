@@ -34,8 +34,8 @@ pub(in crate::generation) struct GrowthState {
     tables: Capture,
     t: Tables,
     rows: Vec<f32>,
-    /// Each PA's elongation and expansion in days and its internode's
-    /// spread (`present.wgsl`'s `unfold`).
+    /// Each PA's elongation and expansion in days, its internode's spread
+    /// and its cluster leaves (`present.wgsl`'s `unfold`).
     unfold: Vec<f32>,
     scale: f32,
     /// The tree drawn a year before the age grown: none before the
@@ -105,7 +105,7 @@ impl GrowthState {
         };
         let growing = growing.paused(gpu, (&t, &tables)).await?;
         let (rows, scale) = (rows(&growth.rows), growth.scale as f32);
-        let unfold = species.states.iter().flat_map(|s| [s.elongation, s.expansion, s.form.internode_spread].map(|v| v as f32)).collect();
+        let unfold = species.states.iter().flat_map(|s| [s.elongation, s.expansion, s.form.internode_spread, s.cluster_leaves].map(|v| v as f32)).collect();
         let growing = Some(growing);
         Ok(Self { tables, t, rows, unfold, scale, previous: None, budget, growing, failed: Default::default() })
     }

@@ -1,6 +1,6 @@
 //! One shoot's stations: where each leaf sits along the run, how far it leans
 //! off the wood, and the frame the renderer receives.
-use super::plan::{keeps, micrometres, walk};
+use super::plan::{kept, micrometres, walk};
 use super::{CanopyParams, Instances, TwigPlacement};
 use crate::math::Transcendental;
 use crate::{
@@ -40,16 +40,20 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
     }
     let frames = station_frames(&points, &chord, tree.seed_side(nodes[0]));
     let leaflets = super::rosette::leaflets(&p);
-    // Which stations keep their leaves (fn-248); one that does not still
-    // takes its draws, into a sink, so every other leaf keeps its own.
-    let kept: Vec<bool> = (stations.iter().enumerate())
-        .map(|(k, &d)| twig.is_none() || keeps(tree, (nodes, &along), d, k as u32))
+    // Which stations keep their leaves (fn-248), and at what share; one
+    // that does not still takes its draws, into a sink, so every other
+    // leaf keeps its own.
+    let kept: Vec<Option<f64>> = (stations.iter().enumerate())
+        .map(|(k, &d)| match twig {
+            None => Some(1.0),
+            Some(_) => kept(tree, (nodes, &along), d, k as u32),
+        })
         .collect();
     let mut sink = Instances::new(out.reference);
     reserve(
         out,
         kept.iter()
-            .filter(|&&k| k)
+            .filter(|k| k.is_some())
             .count()
             .checked_mul(leaflets)
             .ok_or(Error::ResourceLimit("foliage count overflow"))?,
@@ -95,9 +99,10 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
                 ))?;
             point = point * (1. - p.surface_contact) + seat * p.surface_contact;
         }
-        let into = if kept[k] { &mut *out } else { &mut sink };
-        // A leaf still expanding is drawn at its share (fn-270 R5).
-        let size = p.size * tree.unfolding(nodes[segment + 1]);
+        let into = if kept[k].is_some() { &mut *out } else { &mut sink };
+        // A leaf still expanding, or falling, is drawn at its share
+        // (fn-270 R5, R5a).
+        let size = p.size * tree.unfolding(nodes[segment + 1]) * kept[k].unwrap_or(1.0);
         super::rosette::fan(
             point,
             axis(point, radial, tangent, p),

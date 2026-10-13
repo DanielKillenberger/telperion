@@ -19,10 +19,12 @@ pub struct StationSegment {
     pub count: u32,
     pub run_station: u32,
     /// Where some of its stations shed their leaves (fn-248): the boundary
-    /// along the run in whole micrometres and the retentions before and
-    /// from it (`tree::Leafing`), which a placement walks its stations by
-    /// to find each leaf's ordinal. `None` where every station keeps one.
-    pub retention: Option<(u32, u32)>,
+    /// along the run in whole micrometres, the retentions before and from
+    /// it a year before, which a placement walks its stations by to find
+    /// each leaf's ordinal, and now, and the share a leaf kept only a year
+    /// before is drawn at (`tree::Leafing`, fn-270 R5a). `None` where every
+    /// station keeps one whole.
+    pub retention: Option<(u32, u32, u32, f32)>,
     /// Sine/cosine of the first internode turn, evaluated before f32 narrowing.
     pub phase: [f64; 2],
     pub endpoints: [Vec3; 2],
@@ -235,7 +237,7 @@ fn prepare_inner<C>(
             let leafing = tree.leafing(nodes[segment + 1]);
             let retention = (leafing != Leafing::ALL).then(|| {
                 let boundary = run.along[segment] + plan::micrometres(leafing.older);
-                (boundary as u32, leafing.keep)
+                (boundary as u32, leafing.was, leafing.keep, leafing.fade)
             });
             let mut tile_first = first;
             while tile_first < last {

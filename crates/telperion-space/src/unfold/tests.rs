@@ -6,6 +6,9 @@ use crate::grow::cycle::{grow_cycle, tree_digest, Paused, Retiring};
 use crate::grow::Request;
 use crate::light::Light;
 
+/// The thinnest wood the pipeline draws (`space.rs`'s `FINEST`).
+const FINEST: f64 = 2e-4;
+
 fn request(age: u32) -> Request {
     Request { age, seed: 7, budget: 20_000_000, light: Light { extinction: 0.5, sky: 0.5 } }
 }
@@ -24,20 +27,27 @@ fn organs(p: &Presented) -> HashMap<(u64, usize), [f64; 6]> {
     m
 }
 
+/// How much of an organ is seen: its leaf, and its wood where it has both
+/// length and girth past the thinnest drawn.
+fn seen(x: &[f64; 6]) -> f64 {
+    x[5].max(x[4].min(x[3] / FINEST))
+}
+
 /// The most any organ of both drawings moves between them, by its
-/// place, girth, scale and leaf; an organ of one only by its scale.
+/// place, girth, scale and leaf; an organ of one only by how much of it
+/// is seen.
 fn most(a: &HashMap<(u64, usize), [f64; 6]>, b: &HashMap<(u64, usize), [f64; 6]>) -> f64 {
     let mut most: f64 = 0.0;
     for (key, x) in a {
         let d = match b.get(key) {
             Some(y) => x.iter().zip(y).map(|(p, q)| (p - q).abs()).fold(0.0, f64::max),
-            None => x[4],
+            None => seen(x),
         };
         most = most.max(d);
     }
     for (key, y) in b {
         if !a.contains_key(key) {
-            most = most.max(y[4]);
+            most = most.max(seen(y));
         }
     }
     most
@@ -58,13 +68,13 @@ fn the_course_runs_from_nothing_to_whole_and_back() {
 fn a_tree_drawn_within_its_year_joins_both_years_with_no_pop() {
     let species = crate::oak();
     let r = request(24);
-    let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap().presenting();
+    let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap().presenting(FINEST);
     p.grow_to(24).unwrap();
     let before = p.digest();
     let now = p.settle().unwrap();
     let last = p.previous().expect("the year before").clone();
     assert_eq!(last.age, 23);
-    let draw = |f: f64| present(now.clone(), &last, &species, f);
+    let draw = |f: f64| present(now.clone(), &last, &species, (f, FINEST));
 
     // At the fraction's start the old organs are year 23's to the bit,
     // the new ones none, and nothing gone has faded.

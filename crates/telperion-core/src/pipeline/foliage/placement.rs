@@ -2,7 +2,7 @@
 use super::{
     canopy::validate,
     clumping, cluster,
-    plan::{bearing_runs, keeps, micrometres, walk},
+    plan::{bearing_runs, kept, micrometres, walk},
     rosette,
     station::{place_run, reserve_all, station_count, Run},
     CanopyParams, Instances, Reference, TwigPlacement,
@@ -114,7 +114,7 @@ fn leaves_on(
             Some(t) if !tree.leafing.is_empty() => {
                 let (unit, per) = (micrometres(t.internode_length), t.stations_per_internode);
                 (0..count as u32)
-                    .filter(|&k| keeps(tree, (nodes, &along), f64::from(k / per) * unit, k))
+                    .filter(|&k| kept(tree, (nodes, &along), f64::from(k / per) * unit, k).is_some())
                     .count()
             }
             _ => count,

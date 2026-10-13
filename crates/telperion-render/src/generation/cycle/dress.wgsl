@@ -115,7 +115,7 @@ const CA: u32 = 12u;
 // flowering share, at a short shoot's tip its cluster's spread, and its
 // leaf retention: the metres of its grown wood before the boundary, at
 // the scale, and the retentions before and from it.
-const CV: u32 = 33u;
+const CV: u32 = 35u;
 const TAKEN: u32 = 1u;
 const MADE: u32 = 2u;
 // Every node the dress draws is the device's; one drawn from the root is
@@ -420,16 +420,19 @@ fn retention(sheds: u32, share: u32, age: u32) -> u32 {
     return 0u;
 }
 
-// The retention of wood of `cycle` (`space.rs`'s `Unfolding::kept`):
-// within the year, a share of the way from what it kept a year before,
-// rounded half up as the CPU rounds it.
-fn kept(sheds: u32, share: u32, cycle: u32) -> u32 {
+// The retention of wood of `cycle` now and a year before (`space.rs`'s
+// `Unfolding::kept`): the same at the whole year and on this year's wood.
+fn kept(sheds: u32, share: u32, cycle: u32) -> vec2<u32> {
     let now = retention(sheds, share, cfg.age - cycle);
     if cfg.fraction >= 1.0 || cycle >= cfg.age {
-        return now;
+        return vec2<u32>(now);
     }
-    let was = f32(retention(sheds, share, cfg.age - 1u - cycle));
-    return u32(floor(was + (f32(now) - was) * cfg.fraction + 0.5));
+    return vec2<u32>(now, retention(sheds, share, cfg.age - 1u - cycle));
+}
+
+// The share a leaf its wood no longer keeps is drawn at (`Leafing::fade`).
+fn falling() -> f32 {
+    return select(1.0, 1.0 - cfg.fraction, cfg.fraction < 1.0);
 }
 
 // The share of its whole size phytomer `p`'s leaf is drawn at.
@@ -453,21 +456,30 @@ struct Walk {
     older: f32,
     before: u32,
     last: u32,
+    // The same pieces' retentions a year before (fn-270 R5a): before the
+    // change and the latest.
+    was_before: u32,
+    was_last: u32,
 }
 
-// The walk with wood of retention `q` about to join its pending wood.
-fn mark(w: Walk, q: u32) -> Walk {
+// The walk with wood of retention `k` (now, a year before) about to join
+// its pending wood.
+fn mark(w: Walk, k: vec2<u32>) -> Walk {
     var o = w;
+    let q = k.x;
     if o.fresh {
         o.older = 0.0;
         o.before = q;
         o.last = q;
+        o.was_before = k.y;
         o.fresh = false;
     } else if q != o.last {
         o.older = o.pending;
         o.before = o.last;
         o.last = q;
+        o.was_before = o.was_last;
     }
+    o.was_last = k.y;
     return o;
 }
 
@@ -522,6 +534,8 @@ fn place(a: u32, r: u32, at: vec4<f32>, p: u32, key: u32, bloom: bool, w: Walk, 
     put(r, 25u, o.pending * cfg.scale);
     put(r, 30u, o.older * cfg.scale);
     putu(r, 31u, (o.before << 16u) | o.last);
+    putu(r, 33u, (o.was_before << 16u) | o.was_last);
+    put(r, 34u, falling());
     put(r, 32u, leaf_share(p));
     o.fresh = true;
     o.pending = 0.0;
@@ -599,7 +613,7 @@ fn draw_axis(a: u32, start: u32, how: How) {
         let span = p.pos - p.up;
         along = span * (1.0 / max(length(span), 1e-12));
     }
-    var w = Walk(start, false, NONE, 0.0, true, 0.0, 0u, 0u);
+    var w = Walk(start, false, NONE, 0.0, true, 0.0, 0u, 0u, 0u, 0u);
     let sheds = rowu(a, R_SHEDS);
     let share = rowu(a, R_SHARE);
     var taken = 0u;

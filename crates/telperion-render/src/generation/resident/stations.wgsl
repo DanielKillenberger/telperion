@@ -61,7 +61,7 @@ struct Cfg {
 const OW: u32 = 2u;
 
 const NONE: u32 = 0xffffffffu;
-const NW: u32 = 34u;
+const NW: u32 = 36u;
 const TW: u32 = 4u;
 const MADE: u32 = 2u;
 const FINE: u32 = 8u;
@@ -303,9 +303,10 @@ fn boundary(b: u32, along: u32) -> u32 {
 }
 
 // Whether station `k` on node `b`'s wood, which starts `along` its run,
-// keeps its leaf (`plan::keeps`).
+// keeps its leaf (`plan::kept`): by its retention a year before, which
+// holds every station it keeps now (fn-270 R5a).
 fn keeps(b: u32, along: u32, k: u32, stream: u32) -> bool {
-    let keep = word(b, 32u);
+    let keep = word(b, 34u);
     var q = keep >> 16u;
     if (k / cfg.spi) * unit() >= boundary(b, along) {
         q = keep & 0xffffu;
@@ -616,13 +617,22 @@ fn rosette(apex: u32, station0: u32, g: u32) {
             segs[s + 28u + c] = 0u;
         }
         // A frond is drawn whole (fn-270 R5).
-        unfolded(s, 1.0);
+        unfolded(s, 1.0, NONE);
     }
 }
 
 // A segment's leaves' share of their whole size (fn-270 R5).
-fn unfolded(at: u32, share: f32) {
-    put4(at + 32u, vec4<f32>(share, 0.0, 0.0, 0.0));
+// A segment's leaves' share of their whole size (fn-270 R5), and on node
+// `b`'s wood the retentions now and the share a leaf kept only a year
+// before is drawn at (R5a); whole and kept where `b` is none.
+fn unfolded(at: u32, share: f32, b: u32) {
+    var now = 0xffffffffu;
+    var fade = 1.0;
+    if b != NONE {
+        now = word(b, 32u);
+        fade = nodes[b * NW + 35u];
+    }
+    put4(at + 32u, vec4<f32>(share, bitcast<f32>(now), fade, 0.0));
 }
 
 @compute @workgroup_size(64)
@@ -665,7 +675,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
         }
         // Every leaf of a cluster stays.
         segs[at + 15u] = 0xffffffffu;
-        unfolded(at, nodes[first * NW + 33u]);
+        unfolded(at, nodes[first * NW + 33u], NONE);
         return;
     }
     // The run's stations before any sheds its leaf: its wood walked.
@@ -730,7 +740,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
         let edge = contact(b);
         var keep = 0xffffffffu;
         if cfg.retains != 0u {
-            keep = word(b, 32u);
+            keep = word(b, 34u);
         }
         var tile = span.x;
         // cap: tile moves on by at least one each step, to span.y.
@@ -761,7 +771,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
             segs[at + 11u] = boundary(b, along);
             segs[at + 15u] = keep;
             segs[at + 19u] = stream;
-            unfolded(at, nodes[b * NW + 33u]);
+            unfolded(at, nodes[b * NW + 33u], select(NONE, b, cfg.retains != 0u));
             seen += leaves;
             g += 1u;
             tile += tiles;

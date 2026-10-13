@@ -71,6 +71,8 @@ fn root() -> Vec<f32> {
     // The root keeps every leaf, whole: it bears no station.
     r[31] = f32::from_bits(u32::MAX);
     r[32] = 1.0;
+    r[33] = f32::from_bits(u32::MAX);
+    r[34] = 1.0;
     out
 }
 

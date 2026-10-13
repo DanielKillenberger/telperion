@@ -110,14 +110,14 @@ pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
     p.segments
         .iter()
         .map(|s| {
-            let retention = s.retention.unwrap_or((0, u32::MAX));
+            let retention = s.retention.unwrap_or((0, u32::MAX, u32::MAX, 1.0));
             Segment {
                 a: vector(s.endpoints[0], s.radii[0]),
                 b: vector(s.endpoints[1], s.radii[1]),
                 // Where some of its stations shed their leaves (fn-248): the
                 // boundary in whole micrometres, the retentions before and from
-                // it, and the stream their draws take; every station keeps its
-                // leaf where the retentions are all ones.
+                // it a year before (fn-270 R5a), and the stream their draws
+                // take; every station keeps its leaf where they are all ones.
                 tangent: worded(s.frame[0], retention.0),
                 normal: worded(s.frame[1], retention.1),
                 binormal: worded(s.frame[2], retain(s.key)),
@@ -134,7 +134,10 @@ pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
                 },
                 range: [s.first, s.count, s.run_station, s.key],
                 edge: s.contact.unwrap_or([0; 4]),
-                unfolded: [s.unfolding as f32, 0.0, 0.0, 0.0],
+                // Its leaves' share of their whole size (fn-270 R5), the
+                // retentions now and the share a leaf kept only a year
+                // before is drawn at (R5a).
+                unfolded: [s.unfolding as f32, f32::from_bits(retention.2), retention.3, 0.0],
             }
         })
         .collect()

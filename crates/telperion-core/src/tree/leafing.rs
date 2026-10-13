@@ -22,6 +22,13 @@ pub struct Leafing {
     pub older: f64,
     /// The retentions before and from the boundary, high and low half.
     pub keep: u32,
+    /// Drawn within its year (fn-270 R5a): the retentions a year before,
+    /// at the same boundary, which hold the stations drawn (a retention
+    /// only falls with age, so every station kept now was kept then), and
+    /// the share a leaf kept then and not now is drawn at, falling to
+    /// nothing across the year. `keep` and 1 at the whole year.
+    pub was: u32,
+    pub fade: f32,
 }
 
 impl Leafing {
@@ -29,15 +36,40 @@ impl Leafing {
     pub const ALL: Self = Self {
         older: 0.0,
         keep: u32::MAX,
+        was: u32::MAX,
+        fade: 1.0,
     };
     /// The retention of wood `offset` along the node, in the units the
     /// boundary `older` is counted in by the caller.
     pub fn at(self, offset: f64, older: f64) -> u16 {
-        if offset >= older {
-            self.keep as u16
-        } else {
-            (self.keep >> 16) as u16
+        half(self.keep, offset >= older)
+    }
+
+    /// The retention a year before of wood `offset` along the node.
+    pub fn was_at(self, offset: f64, older: f64) -> u16 {
+        half(self.was, offset >= older)
+    }
+
+    /// The share station `ordinal` of the run keyed `key`, on wood
+    /// `offset` along the node, draws its leaf at: whole where it keeps
+    /// it now, `fade` where it kept it only a year before; none where it
+    /// keeps none.
+    pub fn share(self, (offset, older): (f64, f64), key: u32, ordinal: u32) -> Option<f64> {
+        if !keeps(self.was_at(offset, older), key, ordinal) {
+            return None;
         }
+        Some(match keeps(self.at(offset, older), key, ordinal) {
+            true => 1.0,
+            false => f64::from(self.fade),
+        })
+    }
+}
+
+/// A retention word's half: the low one from the boundary, else the high.
+fn half(word: u32, from: bool) -> u16 {
+    match from {
+        true => word as u16,
+        false => (word >> 16) as u16,
     }
 }
 

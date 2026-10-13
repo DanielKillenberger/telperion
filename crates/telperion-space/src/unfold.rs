@@ -109,7 +109,9 @@ impl Presented {
 /// `now`, the tree grown to its age, drawn `f` into its last year, from
 /// `before`, its drawing a year earlier (empty before the first year), by
 /// `species`' courses (module doc).
-pub fn present(now: Structure, before: &Structure, species: &Species, f: f64) -> Presented {
+/// `finest` is the thinnest wood the drawing draws: a gone subtree's
+/// leaves reach nothing as its fading wood reaches it.
+pub fn present(now: Structure, before: &Structure, species: &Species, (f, finest): (f64, f64)) -> Presented {
     if f >= 1.0 {
         return Presented::whole(now);
     }
@@ -117,7 +119,7 @@ pub fn present(now: Structure, before: &Structure, species: &Species, f: f64) ->
     let was = index(before);
     let grown: Vec<Vec<Vec3>> = now.axes.iter().map(|a| a.phytomers.iter().map(|p| p.tip).collect()).collect();
     let bases = now.axes.iter().map(|a| a.base).collect();
-    let mut p = Presenting { before, bases, grown, structure: now, leaves: Vec::new(), f };
+    let mut p = Presenting { before, bases, grown, structure: now, leaves: Vec::new(), f, finest };
     for i in 0..p.structure.axes.len() {
         let old = was.get(&ids[i]).map(|&j| &before.axes[j]);
         let leaves = p.axis(i, old, species);
@@ -136,6 +138,7 @@ struct Presenting<'a> {
     structure: Structure,
     leaves: Vec<Vec<f32>>,
     f: f64,
+    finest: f64,
 }
 
 impl Presenting<'_> {
@@ -163,6 +166,7 @@ impl Presenting<'_> {
     fn axis(&mut self, i: usize, old: Option<&Axis>, species: &Species) -> Vec<f32> {
         let f = self.f;
         let moved = self.stand(&self.structure.axes[i]);
+        let bearer = self.bearer_radius(&self.structure.axes[i]);
         let a = &mut self.structure.axes[i];
         let state = &species.states[a.pa];
         let olds = old.map_or(0, |b| b.phytomers.len().min(a.phytomers.len()));
@@ -184,7 +188,13 @@ impl Presenting<'_> {
                     blend(p, q, f);
                 }
             }
-            None => a.base = a.base + moved,
+            None => {
+                a.base = a.base + moved;
+                // A relay born this year joins from its bearer's own wood.
+                if let (Some(j), Some(r)) = (a.joined.as_mut(), bearer) {
+                    (j.below, j.above) = (mix(r, j.below, f), mix(r, j.above, f));
+                }
+            }
         }
         // This year's shoot, its phytomers past the ones drawn a year
         // before, measured by the wood each grows (its scale and its
@@ -211,7 +221,10 @@ impl Presenting<'_> {
             (p.tip, p.scale) = (drawn + span * r, p.scale * r);
             along += piece;
             let unfolds = state.elongation * reached(if total > 0.0 { along / total } else { 0.0 });
-            leaves.push(run(tau - unfolds, state.expansion) as f32);
+            // A short shoot's cluster stays as it was where the shoot
+            // stood a year before, at whichever tip it stands now.
+            let cluster = state.cluster_leaves > 0.0 && olds > 0;
+            leaves.push(if cluster { 1.0 } else { run(tau - unfolds, state.expansion) as f32 });
             (from, drawn) = (grown[k], p.tip);
         }
         if leaves.iter().all(|&l| l == 1.0) {
@@ -224,9 +237,16 @@ impl Presenting<'_> {
     /// faded by the fraction, carried with what it stood on. An axis that
     /// stays holds every phytomer it held (`unfold::tests`).
     fn fade(&mut self) {
-        let (before, f) = (self.before, self.f);
-        let fade = |p: &mut Phytomer, shift: Vec3| {
-            (p.tip, p.radius, p.scale) = (p.tip + shift, mix(p.radius, 0.0, f), mix(p.scale, 0.0, f));
+        let (before, f, finest) = (self.before, self.f, self.finest);
+        // Its wood thins to nothing and its leaves with it, each reaching
+        // nothing as its wood reaches the thinnest drawn.
+        let fade = |p: &mut Phytomer, shift: Vec3| -> f32 {
+            let r = p.radius;
+            (p.tip, p.radius) = (p.tip + shift, mix(r, 0.0, f));
+            match r > finest {
+                true => ((p.radius - finest) / (r - finest)).clamp(0.0, 1.0) as f32,
+                false => mix(1.0, 0.0, f) as f32,
+            }
         };
         let (ids, now) = (identities(before), index(&self.structure));
         // Each axis of the year before: where it is drawn now, and how far
@@ -253,11 +273,25 @@ impl Presenting<'_> {
                 axis.origin = reparented(b.origin, i);
             }
             axis.base = axis.base + shift;
-            axis.phytomers.iter_mut().for_each(|p| fade(p, shift));
+            let leaves = axis.phytomers.iter_mut().map(|p| fade(p, shift)).collect();
+            // A gone relay's join fades into its bearer's own wood.
+            let bearer = self.bearer_radius(&axis);
+            if let (Some(j), Some(r)) = (axis.joined.as_mut(), bearer) {
+                (j.below, j.above) = (mix(j.below, r, f), mix(j.above, r, f));
+            }
             at.push((self.structure.axes.len(), shift));
             self.structure.axes.push(axis);
-            self.leaves.push(Vec::new());
+            self.leaves.push(leaves);
         }
+    }
+
+    /// The radius of the phytomer a relay `a` joins on its bearer, as
+    /// drawn; none for any other axis.
+    fn bearer_radius(&self, a: &Axis) -> Option<f64> {
+        let (Origin::Relay { parent, .. }, Some(j)) = (a.origin, a.joined) else {
+            return None;
+        };
+        self.structure.axes[parent].phytomers.get(j.node).map(|p| p.radius)
     }
 
     /// How far the place a gone axis of `origin` stood on its bearer,

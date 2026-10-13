@@ -7,6 +7,9 @@ use crate::error::Error;
 use crate::light::Light;
 use crate::structure::Origin;
 
+/// The thinnest wood the pipeline draws (`space.rs`'s `FINEST`).
+const FINEST: f64 = 2e-4;
+
 fn request(age: u32, seed: u64, extinction: f64) -> Request {
     let light = Light { extinction, sky: 0.5 };
     Request { age, seed, budget: 20_000_000, light }
@@ -180,7 +183,7 @@ fn a_growth_that_failed_is_spent() {
 fn a_tree_drawn_within_its_year_unfolds_from_the_last() {
     let species = crate::oak();
     let r = request(41, 7, 0.5);
-    let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap().presenting();
+    let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap().presenting(FINEST);
     let grow = |p: &mut Paused, a: f64| {
         let to = admitted(p.committed(), p.horizon(), a)?;
         p.grow_to(to)

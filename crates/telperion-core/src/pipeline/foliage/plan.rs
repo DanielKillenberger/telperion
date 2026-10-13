@@ -65,26 +65,27 @@ pub(crate) fn walk(
     *along.last().unwrap()
 }
 
-/// Whether the station at `distance` along a run under a twig layer, in
-/// whole micrometres of grown wood (`walk`), its
-/// `ordinal`th, keeps its leaf by its wood's retention (fn-248): the
-/// segment it stands on is the last that starts at or before it, as
-/// placement seats it, and the run's first node keys the draw. Every
-/// station keeps its leaf on a tree that records no retention.
-pub(crate) fn keeps(
+/// The share the station at `distance` along a run under a twig layer,
+/// in whole micrometres of grown wood (`walk`), its `ordinal`th, draws
+/// its leaf at by its wood's retention (fn-248, `Leafing::share`), none
+/// where it keeps none: the segment it stands on is the last that
+/// starts at or before it, as placement seats it, and the run's first
+/// node keys the draw. Every station keeps its leaf whole on a tree that
+/// records no retention.
+pub(crate) fn kept(
     tree: &Tree,
     (nodes, along): (&[usize], &[f64]),
     distance: f64,
     ordinal: u32,
-) -> bool {
+) -> Option<f64> {
     if tree.leafing.is_empty() {
-        return true;
+        return Some(1.0);
     }
     // The first segment starts at 0, at or before every station.
     let segment = along[..along.len() - 1].partition_point(|&a| a <= distance) - 1;
     let leafing = tree.leafing(nodes[segment + 1]);
-    let q = leafing.at(distance - along[segment], micrometres(leafing.older));
-    crate::tree::keeps(q, tree.key(nodes[1]), ordinal)
+    let at = (distance - along[segment], micrometres(leafing.older));
+    leafing.share(at, tree.key(nodes[1]), ordinal)
 }
 
 /// One unbranched run of leaf-bearing wood under a twig layer: its nodes,
@@ -131,7 +132,7 @@ impl Run {
         let per = twig.stations_per_internode;
         let wood = (&self.nodes[..], &self.along[..]);
         (first..last)
-            .filter(|&k| keeps(tree, wood, f64::from(k / per) * unit, k))
+            .filter(|&k| kept(tree, wood, f64::from(k / per) * unit, k).is_some())
             .count() as u32
     }
     /// The station range one segment of the run carries.

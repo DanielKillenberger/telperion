@@ -12,7 +12,7 @@ use telperion_core::pipeline::executor::{reach, Folds, BINS};
 pub(super) const FOLD: &str = include_str!("fold.wgsl");
 /// A drawn axis's and phytomer's words (`cycle/dress.wgsl`).
 const CA: u32 = 12;
-pub(in crate::generation) const CV: usize = 33;
+pub(in crate::generation) const CV: usize = 35;
 pub(in crate::generation) const CA_WORDS: usize = CA as usize;
 /// `fold.wgsl`'s sums: the folds, the widest node, the box, the kept
 /// count, the widest node's id, then the bins.

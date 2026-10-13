@@ -80,15 +80,15 @@ fn each_node_keeps_the_retention_of_the_wood_it_draws() {
     println!("shares {shares:?}, {mixed} nodes of mixed wood");
 }
 
-/// fn-270 R5a: drawn within its year, a node's wood keeps the leaves it
-/// kept a year before moved a share of the way to what it keeps now, so
-/// last year's leaves fall through the year, not at its turn.
+/// fn-270 R5a: drawn within its year, a node keeps the leaves its wood
+/// kept a year before, those it keeps no longer drawn at the share left
+/// of the year (`Leafing::share`), so last year's leaves fall through the
+/// year, not at its turn; at the whole year it is the tree grown.
 #[test]
-fn within_its_year_the_wood_keeps_a_share_of_the_way_to_this_years_leaves() {
+fn within_its_year_the_leaves_the_wood_no_longer_keeps_fall_by_degree() {
     let (structure, whole, species) = grown(1.5);
     let rows = pa_rows(&species);
-    let at = |fraction| unfolded(&structure, (&[][..], &rows), Unfolding { leaves: &[], fraction }).0;
-    let (start, quarter) = (at(0.0), at(0.25));
+    let quarter = unfolded(&structure, (&[][..], &rows), Unfolding { leaves: &[], fraction: 0.25 }).0;
     let r = retention(1.5);
     let age = structure.age;
     let node: HashMap<u64, usize> =
@@ -99,12 +99,15 @@ fn within_its_year_the_wood_keeps_a_share_of_the_way_to_this_years_leaves() {
             let Some(&i) = node.get(&p.key()) else { continue };
             let now = kept_share(r, age - p.cycle);
             let was = if p.cycle < age { kept_share(r, age - 1 - p.cycle) } else { now };
-            let mixed = (f64::from(was) + (f64::from(now) - f64::from(was)) * 0.25).round() as u16;
-            assert_eq!(start.leafing[i].keep as u16, was, "node {i} at the year's turn");
-            assert_eq!(quarter.leafing[i].keep as u16, mixed, "node {i} a quarter in");
-            assert_eq!(whole.leafing[i].keep as u16, now, "node {i} whole");
+            let l = quarter.leafing[i];
+            assert_eq!((l.keep as u16, l.was as u16, l.fade), (now, was, 0.75), "node {i}");
+            assert_eq!((whole.leafing[i].was, whole.leafing[i].fade), (whole.leafing[i].keep, 1.0), "node {i} whole");
             seen[(age - p.cycle).min(2) as usize] += 1;
         }
     }
     assert!(seen.iter().all(|&n| n > 100), "{seen:?}");
+    // A station kept a year before and not now is drawn at the share left.
+    let l = Leafing { older: 0.0, keep: 0, was: u32::from(KEEP), fade: 0.75 };
+    assert_eq!(l.share((0.0, 0.0), 7, 3), Some(0.75));
+    assert_eq!(Leafing { was: 0, ..l }.share((0.0, 0.0), 7, 3), None);
 }
