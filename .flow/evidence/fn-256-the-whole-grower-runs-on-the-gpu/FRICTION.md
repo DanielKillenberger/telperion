@@ -364,3 +364,21 @@ Doing: comparing every preset's stills with F4's. Slowed by: the resident handof
 - **Hindered:** `scripts/build-wasm.mjs` builds with cargo (into `CARGO_TARGET_DIR`) but reads `target/wasm32-unknown-unknown/release/telperion_wasm.wasm` by a fixed path, so it compared a stale binary and refused `presets.generated.ts` as not what the presets render.
 - **Cost:** about 6 minutes and one full npm run.
 - **Would remove it:** the script reading the Wasm from `CARGO_TARGET_DIR` when set.
+
+## 2026-10-13, task 15: the task file was missing at dispatch
+- **Doing:** the re-anchor (`flowctl anchor` and `cat`) for task 15.
+- **Hindered:** the conductor's first creation of the task had failed, so `anchor` refused the missing JSON until the conductor committed it (`cce1538c0`).
+- **Cost:** about 2 minutes.
+- **Would remove it:** the conductor checking that `flowctl show <task>` succeeds before it dispatches.
+
+## 2026-10-13, task 15: codex's finding lived in another worktree
+- **Doing:** reading codex's finding at `build_size.rs:65` that the task names.
+- **Hindered:** the task gives only the line. The review ran in the `formd` worktree, so its text sat in that worktree's untracked `.flow/review-fanout/`, and finding it took a grep across every worktree.
+- **Cost:** about 4 minutes.
+- **Would remove it:** a follow-up task quoting the finding's problem statement (two lines) in its description.
+
+## 2026-10-13, task 15: a straight pole took five device runs to find
+- **Doing:** the tall, narrow tree test: the ordinary with its laterals bare and long internodes.
+- **Hindered:** the lattice leaned eight nodes wide. The trunk has an insertion angle and tropism, which the 50 m internodes magnified, and wander dropped it below the ground (`LayFault`). The device run gives no grid on a refusal, so the first readings were capacity and `Given` refusals with no shape to read.
+- **Cost:** about 10 minutes and six GPU runs of under a second each.
+- **Would remove it:** nothing in the repository; the shape came from printing the census once the pole was short enough to build.

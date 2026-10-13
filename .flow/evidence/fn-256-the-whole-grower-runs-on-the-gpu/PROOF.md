@@ -575,3 +575,52 @@ The palm is pixel-identical; the beech and Laurelin differ in at most one pixel;
 - **Workspace without the renderer** (`cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast`, 4 threads): 1,073 passed, 0 failed, 48 ignored.
 - **Renderer under the GPU lock** (`cargo test --profile ci -p telperion-render --no-fail-fast`): 273 passed, 0 failed, 39 ignored.
 - **`npm test`:** 15 files, 162 tests passed (on the default target; FRICTION.md).
+
+# fn-256 task 15: the arena's ratios on the lit presets, and tall, narrow lattices (worker, 2026-10-13)
+
+Measured on the RTX 3080 with about 1.7 GB held by others, one process at a time under the GPU lock and the memory gate. Raw logs are `raw/t15-*`.
+
+## The ratios (`arena_ratios`, every preset at seeds 1, 7, 42 and its own)
+
+Since fn-264 lit every species, the Two Trees moved once a build. The records were the cause: they hold 4.63 of the hint on Telperion at 42 (Laurelin 4.51), where `RECORDS` stated 1.745 and the margin of 1.5 covered 2.62.
+
+| Table | Was | Now | Set by |
+|---|--:|--:|---|
+| axes | 1.3792 | 1.6545 | the beech 42 |
+| units | 1.1469 | 1.4648 | Telperion 42 |
+| phytomers | 1.9038 | 1.7942 | the beech 42 |
+| sleeping | 0.0115 | 0.0115 | the ordinary 42 |
+| living | 0.1540 | 0.1397 | the beech 42 |
+| woken | 0.0064 | 0.0064 | the spruce 42 |
+| leaves | 0.4938 | 0.4604 | the beech 42 |
+| nodes | 0.2766 | 0.2743 | Laurelin 42 |
+| records | 1.7450 | 4.6268 | Telperion 42 |
+
+**The gate** (`every_preset_grows_in_its_hinted_arena`): all 24 builds grow with 0 moves. At most a table is 0.85 full (the beech's phytomers at 42).
+
+## Warm build and peak (`build_time`, production path, seed 42)
+
+| Preset | Warm ms | Peak MB (task 13 tip) |
+|---|--:|--:|
+| ordinary | 457 | 274 (251) |
+| oak | 247 | 1,272 (1,089) |
+| spruce | 468 | 2,445 (2,066) |
+| beech | 177 | 304 (284) |
+| birch | 224 | 800 (695) |
+| date palm | 72 | 32 (32) |
+| Telperion | 1,235 | 4,209 (3,849) |
+| Laurelin | 1,157 | 3,853 (3,529) |
+
+Telperion builds in the time task 13 took (1,243 to 1,261 ms, with its one move). Its peak is now 85 MB under the 4 GiB native default (4,295 MB). The records alone are 412 MB.
+
+## Tall, narrow lattices (codex's P2 at `build_size.rs:65`)
+
+DESIGN.md section 19 has the bound. Two tests were red on the base and are green:
+- `a_tall_narrow_lattice_is_swept`: codex's lattice, 2 x 2 x 1,000. The base recorded 32 ranges in the first cycles and 40 after them; it takes 63.
+- `a_tall_narrow_tree_builds`: a pole on the device. It is the ordinary with bare buds, no insertion, wander or tropism, and growth units of 450 m. Its hint sizes 4,096 nodes, and it stands 2 nodes wide and 902 layers tall. On the base it was refused at cycle 1 (`Sweeps`); now it builds.
+
+## The gate (task 15)
+
+- **Workspace without the renderer** (`cargo test --profile ci --workspace --exclude telperion-render --no-fail-fast`, 4 threads): 1,073 passed, 0 failed, 48 ignored.
+- **Renderer under the GPU lock** (`cargo test --profile ci -p telperion-render --no-fail-fast`): 274 passed, 0 failed, 39 ignored.
+- **`npm test`** (default target): 15 files, 162 tests passed.
