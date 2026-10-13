@@ -287,6 +287,8 @@ mod build_time_tests;
 mod standalone_tests;
 #[cfg(test)]
 mod tests;
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod unfold_tests;
 
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod lobed_tests;

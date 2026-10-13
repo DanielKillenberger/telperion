@@ -109,7 +109,8 @@ fn station(index:u32) -> vec3<u32> {
     axis=normalize(axis);
     // A leaf kept a year before and not now falls by the year (fn-270 R5a).
     var share=seg.unfolded.x;
-    if bitcast<u32>(seg.normal.w)!=0xffffffffu && !kept_by(seg,bitcast<u32>(seg.unfolded.y),k) { share*=seg.unfolded.z; }
+    let now=bitcast<u32>(seg.unfolded.y);
+    if now!=0xffffffffu && !kept_by(seg,now,k) { share*=seg.unfolded.z; }
     return packed(point,axis,tangent,normal,seg.range.w,k,share);
 }
 // Leaflet `j` of a frond's segment (`rosette.rs`'s `fan`,

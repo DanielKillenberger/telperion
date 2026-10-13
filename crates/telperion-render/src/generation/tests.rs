@@ -9,7 +9,7 @@ use telperion_core::{
 
 /// A hand-built tree prepared through the interface, the family's twig rows
 /// set to `twig`.
-fn expansion(tree: &Tree, f: &Family, twig: TwigPlacement) -> Expansion {
+pub(super) fn expansion(tree: &Tree, f: &Family, twig: TwigPlacement) -> Expansion {
     let mut f = f.clone();
     f.skeleton.twigs.twig.internode_length = twig.internode_length;
     f.skeleton.twigs.twig.stations_per_internode = twig.stations_per_internode;
@@ -18,11 +18,11 @@ fn expansion(tree: &Tree, f: &Family, twig: TwigPlacement) -> Expansion {
 
 /// The rows the GPU packs: the expansion's own for this tree and family,
 /// under the envelope the tree grew to (fn-198 host decision 7).
-fn leaves(tree: &Tree, f: &Family) -> LeafInput {
+pub(super) fn leaves(tree: &Tree, f: &Family) -> LeafInput {
     executor::expand(tree.clone(), f).unwrap().leaves()
 }
 
-fn fixture(angle: f64) -> Tree {
+pub(super) fn fixture(angle: f64) -> Tree {
     let mut root = Node::root();
     root.radius = 0.03;
     root.start_radius = 0.03;
