@@ -131,3 +131,15 @@ Experiments, in order: E3 the light kernels (device, fn-256 branch); E1 the scal
 fn-256 task 14 (branch fn-256-form-d, unmerged, kept as evidence): the split is exact on the CPU and within tolerance on the device, but slower there (Telperion 655 -> 803 ms GPU, spruce 222 -> 268, oak 135 -> 147): the device's sweep cost is the serial chain of dependent steps down the tree's depth, which the scaffold keeps (levels 29 -> 23, serial depth steps 252 -> 371), and each twig's flat pass is serial within the twig. Not shipped; the production build stays N = 0.
 
 The owner (2026-10-13) lifts the shared summing-order rule: the device may sum floats in any fixed order of its own; repeatability within an executor stays exact (no order-free float atomics); agreement with the CPU stays by lineage within measured tolerances. Next: parallel tree contraction (rake and compress) for the hierarchy sums, about log2(axes) dependent steps instead of the depth path, no subtraction of large partials; to the council first.
+
+## Round 7: log-depth hierarchy sums (2026-10-13)
+
+Both members (`council/astra-7.md`, Fable's round 7) agree:
+- The two upward sums (totals, sub) are associative and can take any fixed reduction tree; every axis's subtree result must be recovered, frozen roots kept.
+- The two downward passes reduce to parent-path prefixes: shedding composes segments as (kills = A.kills OR B.kills; multiplier = A.multiplier x (A.kills ? 1 : B.multiplier)) with candidate memory committed only when no strict ancestor killed; the split is a product of local coefficients (positive-light suffix sums, lateral group sums, continuation fractions) with ranks as integer prefix offsets. Depth 63 needs about six doubling rounds.
+- No subtraction of large partials (Euler-tour prefix ruled out for f32; fine for integers).
+- Fixed arithmetic graph from topology alone (canonical children, lineage ranks), ping-pong columns, one writer, direct dispatches, no atomics; schedule construction and compaction remapping are charged in the measured cost.
+- Accuracy: captured-cycle comparison against today's device and an f64 reference (errors, hazard margins, draw-versus-threshold changes, shed flags; the shedding oak included), then whole feedback builds against device and CPU by lineage with zero unmatched axes, fresh contexts and caps, stills.
+- Expected: the four sweeps are about 180-220 ms of Telperion's 655 ms GPU (to be re-attributed); Astra estimates 80-130 ms after, Fable 1-1.5 ms a cycle (150-200 ms saved). Warm Telperion about 1.0-1.1 s. Not a sub-100 ms build on its own.
+
+Candidates for the upward sums, raced on one capture: heavy-path decomposition (Fable: long spines, shallow laterals; light depth bounded by 21, likely 6-10), rake-and-compress, and a preorder interval range-sum tree (Astra). Experiment: the captured busy Telperion cycle plus the shedding oak, tiny correctness cases first; totals by each candidate against today's sweep, schedule construction charged. Stop: under 2x net beyond run spread, or any agreement failure.
