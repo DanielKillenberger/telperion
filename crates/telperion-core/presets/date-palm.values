@@ -74,6 +74,11 @@
 /canopy/skirtFronds = 16
 /canopy/skirtPitch = 165.0
 /canopy/skirtLength = 0.85
+# fn-270 R5b: "An adult date palm has approximately 100 to 125 green
+# leaves with an annual formation of 10 to 26 new leaves" (Zaid and de
+# Wet 2002, FAO Plant Production and Protection Paper 156, ch. I): 18 a
+# year, the range's midpoint, which the source does not state.
+/canopy/rosetteYear = 18.0
 
 # The skirt hangs against the trunk, the deepest place inside the
 # crown's envelope, where the default shell cull drops most of it.

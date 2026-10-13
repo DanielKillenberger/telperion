@@ -720,3 +720,9 @@
 /material/bloomEyeGreen = 0.2
 /material/bloomEyeBlue = 0.01
 /material/bloomEyeShare = 0.5
+# fn-270 R5c (the beech's): a falling leaf turns "copper", #b66325 in the
+# xkcd colour survey's named colours, as linear reflectance; named, not
+# measured.
+/material/leafDeadRed = 0.468
+/material/leafDeadGreen = 0.1246
+/material/leafDeadBlue = 0.0185

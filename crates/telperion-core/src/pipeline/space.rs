@@ -14,7 +14,7 @@
 use super::GrowInput;
 use crate::math::Vec3;
 use crate::tree::{
-    kept_share, Bloom, BudFate, Cluster, Leafing, Node, NodeIdentity, NodeKind,
+    Bloom, BudFate, Cluster, Leafing, Node, NodeIdentity, NodeKind,
     ShootState, Tree,
 };
 use crate::{Error, Result};
@@ -582,6 +582,7 @@ fn unfolded(
         clustered,
         leafing,
         unfolding: unfolded,
+        year: unfolding.year(structure, rows),
         ..Tree::default()
     };
     (tree, drawn)

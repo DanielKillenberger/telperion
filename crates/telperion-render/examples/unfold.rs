@@ -44,6 +44,7 @@ fn main() -> Result<(), String> {
         let mesh = growth::mesh(&state, at(f), &family).map_err(|e| e.to_string())?;
         renderer.submit_at(&mesh, Level::Chosen).map_err(|e| e.to_string())?;
         renderer.set_family(&family);
+        renderer.set_colouring(growth::colouring(&state, at(f)).map_err(|e| e.to_string())?);
         renderer.set_view(View::Whole);
         renderer.set_scene(SceneRow { sun_azimuth: SUN.0, sun_elevation: SUN.1, ..SceneRow::default() });
         let still = render(&mut renderer, &camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;

@@ -191,7 +191,7 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     // withered leaf has aged to one colour on either face.
     var face = select(u.leaf_back.rgb, u.leaf_front.rgb, front);
     if (in.withered > 0.5) {
-        face = u.leaf_dead.rgb;
+        face = select(mix(face, u.leaf_dead.rgb, u.leaf_dead.w), u.leaf_dead.rgb, u.leaf_dead.w >= 1.0);
     }
     let scale = u.leaf_colour_detail.x;
     let pixel = fwidth(in.coord);

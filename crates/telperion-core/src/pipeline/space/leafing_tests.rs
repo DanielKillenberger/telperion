@@ -83,7 +83,7 @@ fn each_node_keeps_the_retention_of_the_wood_it_draws() {
 /// fn-270 R5a and R5c: drawn within its year, a node keeps the
 /// retentions its wood has now and had a year before, and its leaves'
 /// season: on last year's wood, under a lifespan of half a year, every
-/// leaf passes, falling to nothing over the fall and growing again from
+/// leaf passes, each falling whole on its own day over the fall and growing again from
 /// budburst; this year's wood passes none.
 #[test]
 fn within_its_year_old_wood_drops_its_leaves_and_grows_them_again() {
@@ -110,20 +110,30 @@ fn within_its_year_old_wood_drops_its_leaves_and_grows_them_again() {
                 assert_eq!((l.keep as u16, l.was as u16), (now, was), "node {i}");
                 let old = p.cycle < age;
                 assert_eq!(u.life, if old { u16::MAX } else { 0 }, "node {i}");
-                assert_eq!((u.fall, u.regrow), (season.falling(tau) as f32, season.regrow(tau) as f32));
+                assert_eq!((u.fall, u.regrow), (season.fallen(tau) as f32, season.regrow(tau) as f32));
                 seen[usize::from(old)] += 1;
             }
         }
         assert!(seen.iter().all(|&n| n > 100), "{seen:?}");
     }
     assert!(whole.unfolding.is_empty(), "the whole year records none");
-    // A station that passes falls and, kept, grows again; one that does
-    // not stands at this year's share; one kept no longer only falls.
-    let u = Unfolded { grow: 0.5, fall: 0.25, colour: 0.75, regrow: 0.125, life: u16::MAX };
-    assert_eq!(u.leaf(true, 7, 3), (0.375, 0.75));
-    assert_eq!(u.leaf(false, 7, 3), (0.25, 0.75));
+    // A station that passes stays whole until its abscission day and is
+    // gone from then, kept growing again; one that does not stands at
+    // this year's share; one kept no longer only falls.
+    let u = Unfolded { grow: 0.5, fall: 0.0, colour: 0.75, regrow: 0.125, life: u16::MAX };
+    assert_eq!(u.leaf(true, 7, 3), (1.125, 0.75));
+    assert_eq!(u.leaf(false, 7, 3), (1.0, 0.75));
+    assert_eq!(Unfolded { fall: 1.0, ..u }.leaf(true, 7, 3), (0.125, 0.75));
+    assert_eq!(Unfolded { fall: 1.0, ..u }.leaf(false, 7, 3), (0.0, 0.75));
     assert_eq!(Unfolded { life: 0, ..u }.leaf(true, 7, 3), (0.5, 0.0));
-    assert_eq!(Unfolded { life: 0, ..u }.leaf(false, 7, 3), (0.25, 0.75));
+    assert_eq!(Unfolded { life: 0, ..u }.leaf(false, 7, 3), (1.0, 0.75));
+    // Part way through the fall that share of the leaves is gone, each
+    // whole until it goes.
+    let falling = Unfolded { fall: 0.25, ..u };
+    let shares: Vec<f64> = (0..400).map(|k| falling.leaf(false, 7, k).0).collect();
+    assert!(shares.iter().all(|&s| s == 0.0 || s == 1.0));
+    let gone = shares.iter().filter(|&&s| s == 0.0).count();
+    assert!((70..=130).contains(&gone), "{gone} of 400 gone at a quarter of the fall");
     let l = Leafing { older: 0.0, keep: 0, was: u32::from(KEEP) };
     assert_eq!(l.kept((0.0, 0.0), 7, 3), Some(false));
     assert_eq!(Leafing { was: 0, ..l }.kept((0.0, 0.0), 7, 3), None);

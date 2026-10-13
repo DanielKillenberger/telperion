@@ -15,7 +15,7 @@ pub use bloom::Bloom;
 pub use cluster::{cluster_key, Cluster};
 pub use identity::NodeIdentity;
 pub(crate) use identity::NodeKey;
-pub use leafing::{keeps, kept_share, retention, Leafing, Unfolded, KEEP, LIFE};
+pub use leafing::{keeps, kept_share, retention, Leafing, Unfolded, FALL, KEEP, LIFE};
 pub use section::{Section, SectionRing};
 pub use shoot::{BudFate, ShootState};
 pub use stand::{stand_key, Stand};
@@ -180,10 +180,27 @@ pub struct Tree {
     /// on a tree drawn whole, and never stored, as `leafing` is.
     #[cfg_attr(feature = "json", serde(skip))]
     pub unfolding: Vec<Unfolded>,
+    /// The year the engine grew the tree to and draws it in (fn-270 R5b),
+    /// which ages a rosette's fronds; none on a tree no engine grew. Never
+    /// stored, as `leafing` is.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub year: Option<Year>,
     /// The fine roots a coarse tree holds as their expected occupancy, never
     /// grown (fn-214): empty on every tree grown whole. Never stored.
     #[cfg_attr(feature = "json", serde(skip))]
     pub stands: Vec<Stand>,
+}
+
+/// The year a tree is drawn in (fn-270 R5b): its age in years, whole or a
+/// fraction into its last, and its stem's days from the whole age to
+/// budburst and of a shoot's elongation and a leaf's expansion
+/// (`telperion_space::unfold::Season`).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Year {
+    pub age: f64,
+    pub budburst: f64,
+    pub elongation: f64,
+    pub expansion: f64,
 }
 
 /// A 32-bit finaliser: the one the leaves' draws already use.

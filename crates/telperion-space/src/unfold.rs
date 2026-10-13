@@ -2,9 +2,12 @@
 //! `committed` whole years and drawn a fraction `f` into the last.
 //!
 //! - Every organ present in both years moves from its drawing in the year
-//!   before to its drawing in this one by the fraction: its place, frame,
-//!   girth and scale, the sag in its place. An organ is known by its
-//!   axis's identity (`fine::identities`) and its place on the axis.
+//!   before to its drawing in this one: its place, frame, girth and
+//!   scale, the sag in its place. It holds last year's drawing until
+//!   budburst, moves along its PA's elongation course with the shoots and
+//!   holds this year's from there, so summer, autumn and winter stand
+//!   still but for the leaves. An organ is known by its axis's identity
+//!   (`fine::identities`) and its place on the axis.
 //! - A subtree gone this year fades from its drawing to nothing across the
 //!   fraction, its girth and scale by `1 - f`, carried with the wood it
 //!   stood on.
@@ -65,7 +68,7 @@ fn ends() -> (f64, f64) {
 
 /// How far a course `days` long has run `t` days after it began: whole at
 /// once where it takes no days.
-fn run(t: f64, days: f64) -> f64 {
+pub fn run(t: f64, days: f64) -> f64 {
     match days > 0.0 {
         true => course(t / days),
         false => f64::from(u8::from(t > 0.0)),
@@ -135,10 +138,11 @@ impl Season {
         tau - self.budburst
     }
 
-    /// The share of its size a falling leaf stands at: whole until it has
-    /// coloured, then falling to nothing.
-    pub fn falling(&self, tau: f64) -> f64 {
-        1.0 - run(tau - self.senescence - self.colouring, self.fall)
+    /// The share of its falling leaves gone `tau` days into the year: none
+    /// until they have coloured, then all over the fall, each leaf on its
+    /// own abscission day (`tree::Unfolded::leaf`).
+    pub fn fallen(&self, tau: f64) -> f64 {
+        run(tau - self.senescence - self.colouring, self.fall)
     }
 
     /// How far a falling leaf has coloured.
@@ -160,6 +164,21 @@ impl Season {
     pub fn passing(&self, age: f64) -> f64 {
         let fallen = age + (YEAR - self.budburst + self.senescence + self.colouring + self.fall) / YEAR;
         (fallen + 1.0 - self.life).clamp(0.0, 1.0)
+    }
+}
+
+/// How far a tree of `species` drawn `f` into its year has coloured its
+/// falling leaves (fn-270 R5c), which the renderer turns every withered
+/// leaf by: the furthest of its PAs whose leaves fall, before budburst;
+/// whole where none falls, as the dead fronds a rosette keeps are, and at
+/// the whole year.
+pub fn colouring(species: &Species, f: f64) -> f64 {
+    let tau = f * YEAR;
+    let falling = species.states.iter().map(Season::of).filter(|s| s.life.is_finite());
+    let coloured = falling.map(|s| if tau < s.budburst { s.colour(tau) } else { 0.0 });
+    match f < 1.0 {
+        true => coloured.fold(None, |m: Option<f64>, c| Some(m.map_or(c, |m| m.max(c)))).unwrap_or(1.0),
+        false => 1.0,
     }
 }
 
@@ -200,7 +219,8 @@ pub fn present(now: Structure, before: &Structure, species: &Species, (f, finest
     let grown: Vec<Vec<Vec3>> = now.axes.iter().map(|a| a.phytomers.iter().map(|p| p.tip).collect()).collect();
     let bases = now.axes.iter().map(|a| a.base).collect();
     let gone = now.axes.len();
-    let mut p = Presenting { before, bases, grown, structure: now, leaves: Vec::new(), f, finest };
+    let moving = Vec::with_capacity(gone);
+    let mut p = Presenting { before, bases, grown, structure: now, leaves: Vec::new(), moving, f, finest };
     for i in 0..p.structure.axes.len() {
         let old = was.get(&ids[i]).map(|&j| &before.axes[j]);
         let leaves = p.axis(i, old, species);
@@ -218,6 +238,9 @@ struct Presenting<'a> {
     grown: Vec<Vec<Vec3>>,
     structure: Structure,
     leaves: Vec<Vec<f32>>,
+    /// How far each axis drawn so far has moved from its drawing a year
+    /// before (`Presenting::moving`).
+    moving: Vec<f64>,
     f: f64,
     finest: f64,
 }
@@ -243,9 +266,20 @@ impl Presenting<'_> {
         }
     }
 
+    /// How far an axis of `state` has moved from its drawing a year
+    /// before to this year's: not at all until budburst, then along its
+    /// shoot's elongation, and held from there, so the year's movement
+    /// all comes with the shoots (fn-270 R5c).
+    fn moving(&self, state: &crate::species::PaState) -> f64 {
+        run(Season::of(state).grown(self.f * YEAR), state.elongation)
+    }
+
     /// Axis `i` drawn, `old` its drawing a year before: its leaves' shares.
     fn axis(&mut self, i: usize, old: Option<&Axis>, species: &Species) -> Vec<f32> {
-        let f = self.f;
+        let f = self.moving(&species.states[self.structure.axes[i].pa]);
+        // Its base moves with the wood it stands on.
+        let carried = self.structure.axes[i].origin.parent().map_or(f, |p| self.moving[p]);
+        self.moving.push(f);
         let moved = self.stand(&self.structure.axes[i]);
         let bearer = self.bearer_radius(&self.structure.axes[i]);
         let a = &mut self.structure.axes[i];
@@ -253,7 +287,7 @@ impl Presenting<'_> {
         let olds = old.map_or(0, |b| b.phytomers.len().min(a.phytomers.len()));
         match old {
             Some(b) => {
-                a.base = mix3(b.base, a.base, f);
+                a.base = mix3(b.base, a.base, carried);
                 a.heading = mix3(b.heading, a.heading, f);
                 a.side = mix3(b.side, a.side, f);
                 a.vigour = mix(b.vigour, a.vigour, f);
@@ -287,7 +321,7 @@ impl Presenting<'_> {
         };
         let wood = |p: &Phytomer| p.scale * internode_factor(p.key, state.form.internode_spread);
         let total: f64 = a.phytomers[olds..].iter().map(wood).sum();
-        let tau = Season::of(state).grown(f * YEAR);
+        let tau = Season::of(state).grown(self.f * YEAR);
         let reach = run(tau, state.elongation) * total;
         let mut leaves = vec![1.0f32; olds];
         let mut along = 0.0;

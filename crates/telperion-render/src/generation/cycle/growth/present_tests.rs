@@ -75,7 +75,7 @@ fn a_tree_drawn_within_its_year_on_the_device_is_the_cpus() {
         growth::grow_to(&mut cpu, f64::from(h)).expect("grown");
         let mut dev = GrowthState::sized_now(&gpu, &k, &g, (seed, h));
         block(dev.grow_to(&gpu, &k, f64::from(h))).expect("grown");
-        for f in [0.02, 0.1, 0.35, 0.6, 0.95] {
+        for f in [0.02, 0.35, 0.6, 0.88, 0.95] {
             let at = f64::from(h) - 1.0 + f;
             let (dressed, _) = block(dev.settle(&gpu, &k, at)).expect("drawn");
             let a = apart(&drawn_nodes(&gpu, &dressed), &growth::settle(&cpu, at).expect("drawn"));

@@ -25,6 +25,13 @@ impl Unfolding<'_> {
         self.fraction < 1.0
     }
 
+    /// The year `structure` is drawn in, by its seed's PA (fn-270 R5b).
+    pub(super) fn year(&self, structure: &telperion_space::Structure, rows: &[PaRow]) -> Option<crate::tree::Year> {
+        let s = rows.get(structure.axes.first()?.pa)?.season;
+        let age = f64::from(structure.age) - 1.0 + self.fraction.min(1.0);
+        Some(crate::tree::Year { age, budburst: s.budburst, elongation: s.elongation, expansion: s.expansion })
+    }
+
     /// The leaves wood of `cycle` keeps in a tree of `age` years under
     /// `retention`, and kept a year before: the same at the whole year
     /// and on this year's wood.
@@ -40,8 +47,9 @@ impl Unfolding<'_> {
     /// PA `row`, grown in `cycle` of a tree `age` years old: this year's
     /// wood grows its leaves by the presentation's share and passes none;
     /// older wood's leaves pass their lifespan by degree, colour and fall,
-    /// and grow again at budburst; a gone subtree's fall with its wood and
-    /// grow none again.
+    /// and grow again at budburst; a gone subtree's all pass and fall,
+    /// over the season's fall or as its wood thins, whichever is ahead,
+    /// and grow none again.
     pub(super) fn node(&self, (axis, place): (usize, usize), row: &PaRow, (age, cycle): (u32, u32)) -> Unfolded {
         let s = &row.season;
         let tau = self.fraction * YEAR;
@@ -51,13 +59,13 @@ impl Unfolding<'_> {
             false => 0.0,
         };
         let gone = axis >= self.gone;
-        let fall = s.falling(tau) as f32;
+        let fall = s.fallen(tau) as f32;
         Unfolded {
             grow,
-            fall: if gone { fall.min(grow) } else { fall },
+            fall: if gone { fall.max(1.0 - grow) } else { fall },
             colour: if tau < s.budburst { s.colour(tau) as f32 } else { 0.0 },
             regrow: if gone { 0.0 } else { s.regrow(tau) as f32 },
-            life: (passing * f64::from(u16::MAX)).round() as u16,
+            life: if gone { u16::MAX } else { (passing * f64::from(u16::MAX)).round() as u16 },
         }
     }
 }

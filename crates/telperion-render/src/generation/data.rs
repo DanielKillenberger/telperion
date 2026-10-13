@@ -140,7 +140,12 @@ pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
                 // retentions now and the share a leaf kept only a year
                 // before is drawn at (R5a).
                 unfolded: [u.grow, f32::from_bits(retention.2), u.fall, u.regrow],
-                season: [u.colour, f32::from_bits(u32::from(u.life)), f32::from_bits(lived(s.key)), 0.0],
+                season: [
+                    u.colour,
+                    f32::from_bits(u32::from(u.life)),
+                    f32::from_bits(lived(s.key)),
+                    f32::from_bits(abscised(s.key)),
+                ],
             }
         })
         .collect()
@@ -155,6 +160,11 @@ fn worded(v: Vec3, word: u32) -> [f32; 4] {
 /// key salted apart from its retention's.
 fn lived(key: u32) -> u32 {
     retain(key ^ telperion_core::tree::LIFE)
+}
+
+/// The stream a run's abscission draws take (`tree::Unfolded::leaf`).
+fn abscised(key: u32) -> u32 {
+    retain(key ^ telperion_core::tree::FALL)
 }
 
 /// The stream a run's retention draws take (`tree::keeps`): its first

@@ -86,7 +86,7 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         expansion: 35.0,
         // fn-270 R5c: its leaves' lifespan and season, sourced in its
         // preset's value file.
-        leaf_life: 6.8,
+        leaf_life: f64::INFINITY,
         budburst: 132.0,
         senescence: 264.0,
         colouring: 16.0,

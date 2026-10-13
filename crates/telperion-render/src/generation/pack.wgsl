@@ -107,19 +107,32 @@ fn station(index:u32) -> vec3<u32> {
     axis.y+=config.lean.w;
     if dot(axis,axis)<=1e-12 { axis=radial; }
     axis=normalize(axis);
-    return packed(point,axis,tangent,normal,seg.range.w,k,leaf_share(seg,k));
+    var words=packed(point,axis,tangent,normal,seg.range.w,k,leaf_share(seg,k));
+    // A colouring leaf is drawn as one withering (fn-270 R5c).
+    if falls(seg,k) && seg.season.x>0.0 { words.z|=LEAF_WITHERED; }
+    return words;
 }
-// The share of its whole size station `k`'s leaf is drawn at within the
-// year (`tree::Unfolded::leaf`, fn-270 R5, R5c): one past its lifespan,
-// or one its wood keeps no longer, falls, and where kept grows again from
-// its bud; any other stands at its wood's share.
-fn leaf_share(seg:Segment, k:u32) -> f32 {
+// Whether station `k`'s leaf falls this year: past its lifespan, or one
+// its wood keeps no longer.
+fn falls(seg:Segment, k:u32) -> bool {
     let now=bitcast<u32>(seg.unfolded.y);
     let kept=now==0xffffffffu || kept_by(seg,now,k);
     let life=bitcast<u32>(seg.season.y);
     let passing=life!=0u && (life==0xffffu || (mix32(bitcast<u32>(seg.season.z)+(k+1u)*0x9e3779b9u)>>16u)<life);
-    if kept && !passing { return seg.unfolded.x; }
-    return seg.unfolded.z+select(0.0,seg.unfolded.w,kept);
+    return !kept || passing;
+}
+// The share of its whole size station `k`'s leaf is drawn at within the
+// year (`tree::Unfolded::leaf`, fn-270 R5, R5c): one past its lifespan,
+// or one its wood keeps no longer, stays whole until its own abscission
+// day and is gone from then, and where kept grows again from its bud;
+// any other stands at its wood's share.
+fn leaf_share(seg:Segment, k:u32) -> f32 {
+    let now=bitcast<u32>(seg.unfolded.y);
+    let kept=now==0xffffffffu || kept_by(seg,now,k);
+    if !falls(seg,k) { return seg.unfolded.x; }
+    let gone=u32(floor(seg.unfolded.z*65535.0+0.5));
+    let fallen=gone!=0u && (gone==0xffffu || (mix32(bitcast<u32>(seg.season.w)+(k+1u)*0x9e3779b9u)>>16u)<gone);
+    return select(1.0,0.0,fallen)+select(0.0,seg.unfolded.w,kept);
 }
 // Leaflet `j` of a frond's segment (`rosette.rs`'s `fan`,
 // `leaflet::leaflets`): on the rachis that leaves the frond's point on

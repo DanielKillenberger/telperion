@@ -345,6 +345,12 @@
 /material/barkGrainStrength = 0.15
 /material/bladeGrainScale = 90.0
 /material/bladeGrainStrength = 0.3
+# fn-270 R5c: leaves "turn yellow in autumn" (RHS, Betula pendula):
+# "yellow", #ffff14 in the xkcd colour survey, as linear reflectance;
+# named, not measured.
+/material/leafDeadRed = 1.0
+/material/leafDeadGreen = 1.0
+/material/leafDeadBlue = 0.0070
 
 # Left at the default family:
 # The shell depth. Sky through the crown: a curtain three and a half metres long fills the

@@ -93,6 +93,15 @@ pub fn settle(state: &GrowthState, at: f64) -> Result<Tree> {
     Ok(tree)
 }
 
+/// How far the tree drawn at `at` has coloured its falling leaves, which
+/// the renderer turns its withered leaves by (fn-270 R5c,
+/// `telperion_space::unfold::colouring`); `at` is checked as `settle`
+/// checks it.
+pub fn colouring(state: &GrowthState, at: f64) -> Result<f64> {
+    let f = telperion_space::within_year(state.committed(), at).map_err(engine)?;
+    Ok(telperion_space::unfold::colouring(&state.params.species, f))
+}
+
 /// The tree drawn at `at` dressed in wood and leaves, as `mesh::build`
 /// dresses the tree it grows; `family` is the one `Params` was read from.
 #[cfg(feature = "geometry")]

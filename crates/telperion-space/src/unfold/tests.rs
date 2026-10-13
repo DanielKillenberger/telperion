@@ -119,3 +119,28 @@ fn a_tree_drawn_within_its_year_joins_both_years_with_no_pop() {
     let drawn = p.settle_at(23.5).unwrap();
     assert_eq!(drawn, draw(0.5));
 }
+
+/// R5c: an organ of both years holds last year's drawing until budburst
+/// and this year's once its shoot has elongated; summer, autumn and
+/// winter stand still but for what falls and fades.
+#[test]
+fn old_organs_move_only_while_the_shoots_grow() {
+    let species = crate::oak();
+    let mut p = Paused::begin(&species, request(12), Retiring::AtAge, false).unwrap().presenting(FINEST);
+    p.grow_to(12).unwrap();
+    let now = p.settle().unwrap();
+    let last = p.previous().expect("the year before").clone();
+    let today = organs(&Presented::whole(now.clone()));
+    let both: Vec<_> = organs(&Presented::whole(last.clone())).into_keys().filter(|k| today.contains_key(k)).collect();
+    let draw = |f: f64| organs(&present(now.clone(), &last, &species, (f, FINEST)));
+    let held = |a: &HashMap<(u64, usize), [f64; 6]>, b: &HashMap<(u64, usize), [f64; 6]>| {
+        let still = both.iter().filter(|k| a.contains_key(k) && b.contains_key(k));
+        still.filter(|k| a[k][..5] != b[k][..5]).count()
+    };
+    let seasons = species.states.iter().map(Season::of);
+    let burst = seasons.clone().map(|s| s.budburst).fold(YEAR, f64::min) / YEAR;
+    let grown = seasons.map(|s| s.budburst + s.elongation).fold(0.0, f64::max) / YEAR;
+    assert_eq!(held(&draw(0.0), &draw(burst * 0.99)), 0, "the crown moved before budburst");
+    assert_eq!(held(&draw(grown + 1e-3), &draw(1.0 - 1e-6)), 0, "the crown moved after the shoots");
+    assert!(held(&draw(0.0), &draw(1.0 - 1e-6)) > 0, "the crown never moved at all");
+}

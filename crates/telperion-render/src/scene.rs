@@ -97,7 +97,7 @@ struct Uniforms {
     reflectance: [f32; 4], // bark and cuticle reflectance at normal incidence, reserved, reserved
     grain: [f32; 4], // bark grain cell size in metres and strength, blade grain cells per blade and strength
     plate_profile: [f32; 4], // edge shape, reserved, reserved, reserved
-    leaf_dead: [f32; 4], // a withered leaf's RGB, reserved
+    leaf_dead: [f32; 4], // a withered leaf's RGB, how far it has turned
     mature: [f32; 4], // old bark RGB, the furrow strength it takes
     mature_radius: [f32; 4], // the radius old bark starts at, the span it turns over, reserved, reserved
     /// The supernatural group's mirror on a leaf's underside: its tint, and
@@ -128,6 +128,11 @@ pub struct Scene {
     reflection: Reflection,
     /// The flowers' stalks, which arrive with the family (`Uniforms::stalk`).
     stalk: [f32; 4],
+    /// How far a withered leaf has turned to the colour a leaf turns as it
+    /// dies (fn-270 R5c): whole for the dead fronds a rosette keeps, and
+    /// a tree's autumn as it colours, which a tree drawn within its year
+    /// states (`Renderer::set_colouring`).
+    colouring: f64,
     /// The organ mask (fn-217 M0): in the clay room, the flowers white and
     /// everything else black, unlit. An instrument, off in every picture.
     mask: bool,
@@ -275,6 +280,7 @@ impl Scene {
             material: MaterialParams::default(),
             reflection: Reflection::NONE,
             stalk: [0.0; 4],
+            colouring: 1.0,
             mask: false,
             section_roundness: 0.0,
             leaf_radius: 0.0,
@@ -345,6 +351,11 @@ impl Scene {
     }
 
     /// The ellipsoid a leaf's depth into the crown is measured against.
+    /// How far a withered leaf has turned (`colouring`).
+    pub fn set_colouring(&mut self, colouring: f64) {
+        self.colouring = colouring;
+    }
+
     pub fn set_crown(&mut self, crown: Option<Bounds>) {
         self.crown = crown;
     }

@@ -79,14 +79,14 @@ fn the_oaks_year_runs_from_full_leaf_to_full_leaf_by_degree() {
     let at = |f: f64| settle(&s, 9.0 + f).unwrap();
     let state = |t: &Tree| t.unfolding.iter().map(|u| (u.fall, u.colour, u.regrow)).fold((2.0f32, 0.0f32, 2.0f32), |m, u| (m.0.min(u.0), m.1.max(u.1), m.2.min(u.2)));
     let (start, end) = (at(1e-6), at(1.0 - 1e-6));
-    assert!(start.unfolding.iter().all(|u| u.fall > 0.999 && u.colour == 0.0), "full leaf at the start: {:?}", state(&start));
+    assert!(start.unfolding.iter().all(|u| u.fall < 1e-3 && u.colour == 0.0), "full leaf at the start: {:?}", state(&start));
     // Every leaf whole, but a gone subtree's, faded with its wood.
     let whole = |u: &crate::tree::Unfolded| u.grow < 1e-3 || u.grow > 0.999 && (u.life == 0 || u.regrow > 0.999);
     assert!(end.unfolding.iter().all(whole), "full leaf at the end");
     let winter = at(0.6);
     // Bare in winter: every old leaf fallen, none grown again, none of
     // this year's grown yet (the root bears none).
-    let bare = |u: &crate::tree::Unfolded| if u.life > 0 { u.fall == 0.0 && u.regrow == 0.0 } else { u.grow == 0.0 };
+    let bare = |u: &crate::tree::Unfolded| if u.life > 0 { u.fall == 1.0 && u.regrow == 0.0 } else { u.grow == 0.0 };
     assert!(winter.unfolding.iter().skip(1).all(bare), "bare in winter");
     let drawn = mesh(&s, 9.6, &family).unwrap().foliage.instances;
     assert!(drawn.leaves.iter().all(|l| drawn.reference.scale(*l) == 0.0), "no leaf drawn in winter");

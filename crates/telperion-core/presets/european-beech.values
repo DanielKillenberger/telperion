@@ -247,6 +247,13 @@
 /material/barkGrainStrength = 0.3
 /material/bladeGrainScale = 90.0
 /material/bladeGrainStrength = 0.3
+# fn-270 R5c: a falling leaf turns "rich golden copper to russet-brown in
+# autumn" (RHS, Fagus sylvatica): "copper", #b66325 in the xkcd colour
+# survey's named colours (Munroe 2010), as linear reflectance; named, not
+# measured.
+/material/leafDeadRed = 0.468
+/material/leafDeadGreen = 0.1246
+/material/leafDeadBlue = 0.0185
 
 # Left at the default family:
 # The default dead colour: this table keeps no skirt to show it on.

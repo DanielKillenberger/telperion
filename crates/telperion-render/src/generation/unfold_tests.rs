@@ -1,6 +1,7 @@
-//! fn-270 R5a at placement: a leaf its wood kept a year before and keeps
-//! no longer is drawn at the share left of the year, and one it keeps now
-//! whole, whatever it kept a year before.
+//! fn-270 R5a and R5c at placement: a leaf its wood kept a year before
+//! and keeps no longer stays whole until its own abscission day, the
+//! CPU's draw, and is gone from then; one its wood keeps now is whole,
+//! whatever it kept a year before.
 use super::tests::{expansion, fixture, leaves};
 use super::*;
 use telperion_core::foliage::{Reference, TwigPlacement};
@@ -9,8 +10,9 @@ use telperion_core::pipeline::executor;
 use telperion_core::Family;
 
 /// Each placed leaf's scale on one segment of 64 stations, its retention
-/// `(was, now)` where it has one and a falling leaf's share `fall`.
-fn scales(generator: &Generator, retention: Option<(u32, u32)>, fall: f32) -> Vec<f64> {
+/// `(was, now)` where it has one and the share `fall` of falling leaves
+/// gone, with the abscission each station's leaf draws on the CPU.
+fn scales(generator: &Generator, retention: Option<(u32, u32)>, fall: f32) -> (Vec<f64>, Vec<f64>) {
     let tree = fixture(0.0);
     let f = Family::default();
     let twig = TwigPlacement { internode_length: 0.07, stations_per_internode: 3 };
@@ -21,12 +23,14 @@ fn scales(generator: &Generator, retention: Option<(u32, u32)>, fall: f32) -> Ve
     (segment.count, segment.first) = (64, 0);
     segment.retention = retention.map(|(was, now)| (0, was, now));
     segment.unfolding = telperion_core::tree::Unfolded { fall, ..telperion_core::tree::Unfolded::WHOLE };
+    let (unfolded, key, kept) = (segment.unfolding, segment.key, retention.is_none_or(|(_, now)| now != 0));
+    let cpu = (0..64).map(|k| unfolded.leaf(kept, key, segment.run_station + k).0).collect();
     let reference = Reference::spanning(Vec3::new(-2.0, -1.0, -2.0), Vec3::new(2.0, 3.0, 2.0));
     let element = executor::element(f.element).unwrap();
     let out = generator.compute(p, &leaves(&tree, &f), twig, &element, reference, &mut Default::default()).unwrap();
     let bytes = io::read(&generator.gpu, out.leaves.buffer(), u64::from(out.count) * 12).unwrap();
     let words: &[u32] = bytemuck::cast_slice(&bytes);
-    words.chunks_exact(3).map(|l| reference.scale([l[0], l[1], l[2]])).collect()
+    (words.chunks_exact(3).map(|l| reference.scale([l[0], l[1], l[2]])).collect(), cpu)
 }
 
 #[test]
@@ -36,14 +40,19 @@ fn a_leaf_its_wood_keeps_no_longer_falls_by_the_year_on_the_device() {
     };
     let renderer = crate::Renderer::new(gpu, crate::STILL_FORMAT);
     let generator = Generator::new(&renderer).unwrap();
-    let whole = scales(&generator, None, 1.0);
+    let (whole, _) = scales(&generator, None, 0.0);
     assert!(whole.len() == 64 && whole.iter().all(|&w| w > 0.0));
     let all = u32::MAX;
-    for (retention, share) in [((all, 0), 0.5), ((all, all), 1.0)] {
-        let drawn = scales(&generator, Some(retention), 0.5);
+    for retention in [(all, 0), (all, all)] {
+        let (drawn, cpu) = scales(&generator, Some(retention), 0.5);
         assert_eq!(drawn.len(), whole.len());
-        for (d, w) in drawn.iter().zip(&whole) {
-            assert!((d - w * share).abs() <= 2e-3 * w, "{retention:?}: {d} against {w}");
+        for ((d, w), share) in drawn.iter().zip(&whole).zip(&cpu) {
+            assert!((d - w * share).abs() <= 2e-3 * w, "{retention:?}: {d} against {w} at {share}");
+        }
+        let gone = cpu.iter().filter(|&&c| c == 0.0).count();
+        match retention.1 {
+            0 => assert!((16..=48).contains(&gone), "{gone} of 64 fallen at half the fall"),
+            _ => assert_eq!(gone, 0),
         }
     }
 }

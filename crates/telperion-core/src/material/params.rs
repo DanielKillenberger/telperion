@@ -172,33 +172,34 @@ crate::catalogue::rows! {
             dial: bounded("material_leaf_back_blue", "the blue in the colour of a leaf's \
                 underside", [0.025, 0.05]).span([0.03, 0.19]),
         },
-        /// The colour a dead frond has aged to, a linear reflectance per channel
-        /// on the leaf faces' scale, both faces alike, shown only on
-        /// the fronds a rosette keeps below its living crown. Raising a channel
-        /// pushes the skirt toward it.
+        /// The colour a leaf turns as it dies, a linear reflectance per channel
+        /// on the leaf faces' scale, both faces alike: the dead fronds a
+        /// rosette keeps below its living crown, and a leaf colouring in
+        /// autumn before it falls (fn-270 R5c), which a tree drawn within its
+        /// year moves toward. Raising a channel pushes either toward it.
         pub leaf_dead_red: f64 = "leafDeadRed" "reflectance" Bounds::closed(0.0, 1.0) => [Draw] {
             wire: 155,
             check: input(Site::Material, 87, "leaf dead red"),
-            applies: "no dead frond (`canopy.skirtFronds` zero)",
-            dial: bounded("material_leaf_dead_red", "the red in the colour a dead frond has aged \
-                to", [0.05, 0.1]),
+            applies: "no dead frond (`canopy.skirtFronds` zero) and no leaf that falls",
+            dial: bounded("material_leaf_dead_red", "the red in the colour a leaf turns as it \
+                dies", [0.05, 0.1]),
         },
         /// The green channel of `leaf_dead_red`.
         pub leaf_dead_green: f64 = "leafDeadGreen" "reflectance"
             Bounds::closed(0.0, 1.0) => [Draw] {
             wire: 156,
             check: input(Site::Material, 88, "leaf dead green"),
-            applies: "no dead frond (`canopy.skirtFronds` zero)",
-            dial: bounded("material_leaf_dead_green", "the green in the colour a dead frond has \
-                aged to", [0.05, 0.1]),
+            applies: "no dead frond (`canopy.skirtFronds` zero) and no leaf that falls",
+            dial: bounded("material_leaf_dead_green", "the green in the colour a leaf turns as \
+                it dies", [0.05, 0.1]),
         },
         /// The blue channel of `leaf_dead_red`.
         pub leaf_dead_blue: f64 = "leafDeadBlue" "reflectance" Bounds::closed(0.0, 1.0) => [Draw] {
             wire: 157,
             check: input(Site::Material, 89, "leaf dead blue"),
-            applies: "no dead frond (`canopy.skirtFronds` zero)",
-            dial: bounded("material_leaf_dead_blue", "the blue in the colour a dead frond has \
-                aged to", [0.05, 0.1]),
+            applies: "no dead frond (`canopy.skirtFronds` zero) and no leaf that falls",
+            dial: bounded("material_leaf_dead_blue", "the blue in the colour a leaf turns as it \
+                dies", [0.05, 0.1]),
         },
         /// The colour of a petal's upper face, a linear albedo per channel, the
         /// same quantity as the leaf faces' and not a display (sRGB) value

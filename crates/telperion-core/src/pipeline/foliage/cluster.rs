@@ -92,15 +92,20 @@ pub(super) fn clothe(
         let at = tree.nodes[tip].position;
         let heading = heading(tree, tip);
         let mut rng = Rng::new(leaf_stream(seed, cluster_key(tree.key(tip))));
-        // Leaves still expanding, or falling, are drawn at their share
-        // (fn-270 R5, R5c), each passing its lifespan by its draw on the
-        // cluster's stream.
+        // Leaves still expanding are drawn at their share, falling ones
+        // whole until each one's abscission day (fn-270 R5, R5c), each
+        // passing its lifespan by its draw on the cluster's stream.
         let (unfolded, key) = (tree.unfolding(tip), cluster_key(tree.key(tip)));
         for j in 0..c.leaves {
             let radial = radial(heading, c.leaves, c.spread, j);
             let axis = station::axis(at, radial, heading, p);
-            let size = p.size * unfolded.leaf(true, key, j).0;
-            rosette::fan(at, axis, heading, radial, CanopyParams { size, ..p }, &mut rng, out)?;
+            let (share, colour) = unfolded.leaf(true, key, j);
+            let from = out.leaves.len();
+            rosette::fan(at, axis, heading, radial, CanopyParams { size: p.size * share, ..p }, &mut rng, out)?;
+            // A colouring leaf is drawn as one withering (fn-270 R5c).
+            if colour > 0.0 {
+                out.wither(from);
+            }
         }
         if let Some(owners) = owners.as_mut() {
             owners.resize(out.leaves.len(), c.node);

@@ -89,9 +89,10 @@ struct Uniforms {
     /// strength, the leaf's cells per leaf length and its strength.
     grain: vec4<f32>,
     plate_profile: vec4<f32>, // edge shape, reserved, reserved, reserved
-    /// The colour a withered leaf has aged to, both faces alike: the dead
-    /// fronds a rosette keeps below its living crown.
-    leaf_dead: vec4<f32>, // RGB, reserved
+    /// The colour a withered leaf turns to, both faces alike, and how far
+    /// it has turned: the dead fronds a rosette keeps below its living
+    /// crown, wholly, and a falling leaf in autumn (fn-270 R5c).
+    leaf_dead: vec4<f32>, // RGB, how far
     /// Old bark: its colour and the furrow strength it takes, and the radius
     /// radius it starts at with the span it turns over; zero leaves none old.
     mature: vec4<f32>, // RGB, furrow strength

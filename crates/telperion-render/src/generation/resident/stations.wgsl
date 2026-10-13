@@ -621,31 +621,34 @@ fn rosette(apex: u32, station0: u32, g: u32) {
     }
 }
 
-// A segment's leaves' share of their whole size (fn-270 R5).
 // A segment's leaves within the year (`place.wgsl`'s `Segment`, fn-270
 // R5, R5c), as node `n` holds them: this year's share, the retentions now
-// on node `b`'s wood (kept where `b` is none), a falling leaf's share, a
-// regrowing one's; how far a falling one has coloured, the share passing
-// its lifespan and the stream its draws take, keyed `key` (`data.rs`'s
-// `lived`). Whole where `n` is none.
+// on node `b`'s wood (kept where `b` is none), the share of falling leaves
+// gone, a regrowing one's share; how far a falling one has coloured, the
+// share passing its lifespan and the streams its lifespan's and its
+// abscission's draws take, keyed `key` (`data.rs`'s `lived`, `abscised`).
+// Whole where `n` is none.
 fn unfolded(at: u32, n: u32, b: u32, key: u32) {
     var now = 0xffffffffu;
     if b != NONE {
         now = word(b, 32u);
     }
     if n == NONE {
-        put4(at + 32u, vec4<f32>(1.0, bitcast<f32>(now), 1.0, 0.0));
+        put4(at + 32u, vec4<f32>(1.0, bitcast<f32>(now), 0.0, 0.0));
         put4(at + 36u, vec4<f32>(0.0));
         return;
     }
     let u = n * NW;
     put4(at + 32u, vec4<f32>(nodes[u + 33u], bitcast<f32>(now), nodes[u + 35u], nodes[u + 37u]));
     let stream = mix32(key ^ LIFE ^ KEY_RETAIN.x);
-    put4(at + 36u, vec4<f32>(nodes[u + 36u], nodes[u + 38u], bitcast<f32>(stream), 0.0));
+    let fall = mix32(key ^ FALL ^ KEY_RETAIN.x);
+    put4(at + 36u, vec4<f32>(nodes[u + 36u], nodes[u + 38u], bitcast<f32>(stream), bitcast<f32>(fall)));
 }
 
-// What the lifespan's draws salt a run's stream with (`tree::LIFE`).
+// What the lifespan's and the abscission's draws salt a run's stream
+// with (`tree::LIFE`, `tree::FALL`).
 const LIFE: u32 = 0x1eaf11feu;
+const FALL: u32 = 0x0fa11e17u;
 
 @compute @workgroup_size(64)
 fn emit(@builtin(global_invocation_id) id: vec3<u32>) {

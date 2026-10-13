@@ -252,6 +252,13 @@ fn row(pa: u32, r: u32) -> f32 {
     return unfold[pa * 5u + r];
 }
 
+// How far an axis of PA `pa` has moved from last year's drawing to this
+// year's: not at all until budburst, then along its shoot's elongation,
+// held from there (fn-270 R5c; `unfold::Presenting::moving`).
+fn moving(pa: u32) -> f32 {
+    return run(cfg.tau - row(pa, 4u), row(pa, 0u));
+}
+
 // The radius of presented axis `p`'s phytomer `node`, where a relay of it
 // joins: its own wood, which a relay born or gone this year joins from or
 // fades into.
@@ -498,13 +505,16 @@ fn stands_at(kind: u32, node: u32) -> u32 {
 // This year's axis `a` of the depth drawn: moved from last year's, its
 // shoot unfolded and its leaves' shares written.
 fn present_now(a: u32) {
-    let t = cfg.f;
+    let t = moving(na_now(NA_PA, a));
     let to = work[cfg.w_pos_now + a];
     let kind = na_now(NA_KIND, a) & 0xffu;
     var moved = vec3<f32>(0.0);
+    // Its base moves with the wood it stands on.
+    var carried = t;
     if kind != SEED {
         let q = na_now(NA_PARENT, a);
         moved = shift_now(work[cfg.w_pos_now + q], q, stands_at(kind, na_now(NA_NODE, a)));
+        carried = moving(na_now(NA_PA, q));
     }
     let found = work[cfg.w_old + a];
     let old = found - 1u;
@@ -514,7 +524,7 @@ fn present_now(a: u32) {
     var olds = 0u;
     if found != 0u {
         olds = min(n, na_prev(NA_PHYTS, old));
-        set_na3(NA_BASE, to, mixed3(na_prev3(NA_BASE, old), base, t));
+        set_na3(NA_BASE, to, mixed3(na_prev3(NA_BASE, old), base, carried));
         set_na3(NA_HEADING, to, mixed3(na_prev3(NA_HEADING, old), na_now3(NA_HEADING, a), t));
         set_na3(NA_SIDE, to, mixed3(na_prev3(NA_SIDE, old), na_now3(NA_SIDE, a), t));
         let joined = na_now(NA_JOINED, a) != 0u && na_prev(NA_JOINED, old) != 0u;

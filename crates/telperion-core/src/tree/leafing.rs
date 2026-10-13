@@ -59,10 +59,11 @@ impl Leafing {
 }
 
 /// A node's leaves drawn within its year (fn-270 R5, R5c): the share of
-/// its whole size a leaf of this year's wood stands at, a falling leaf's
-/// share and how far it has coloured, the share a leaf growing again
-/// from its bud stands at, and the share of its stations whose leaves
-/// pass their lifespan this year (16 bits, as a retention).
+/// its whole size a leaf of this year's wood stands at, the share of its
+/// falling leaves already gone and how far they have coloured, the share
+/// a leaf growing again from its bud stands at, and the share of its
+/// stations whose leaves pass their lifespan this year (16 bits, as a
+/// retention).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Unfolded {
     pub grow: f32,
@@ -73,25 +74,30 @@ pub struct Unfolded {
 }
 
 /// What the lifespan's draws salt a run's stream with, so a station's
-/// passing never follows its retention's draw.
+/// passing never follows its retention's draw; and its abscission's.
 pub const LIFE: u32 = 0x1eaf_11fe;
+pub const FALL: u32 = 0x0fa1_1e17;
 
 impl Unfolded {
     /// A node drawn at the whole year: every leaf whole, none falling.
-    pub const WHOLE: Self = Self { grow: 1.0, fall: 1.0, colour: 0.0, regrow: 0.0, life: 0 };
+    pub const WHOLE: Self = Self { grow: 1.0, fall: 0.0, colour: 0.0, regrow: 0.0, life: 0 };
 
     /// The share of its whole size, and how far it has coloured, station
     /// `ordinal` of a run keyed `key` draws its leaf at, its wood keeping
-    /// it now or not: a leaf past its lifespan, or one its wood keeps no
-    /// longer, colours and falls, and where its wood keeps one grows again
-    /// from its bud; every other leaf stands at `grow`.
+    /// it now or not. A leaf past its lifespan, or one its wood keeps no
+    /// longer, stays whole and colours until its own abscission day, a
+    /// draw within the fall (`fall` the share of them gone), and is gone
+    /// from then; where its wood keeps one it grows again from its bud.
+    /// Every other leaf stands at `grow`.
     pub fn leaf(self, kept: bool, key: u32, ordinal: u32) -> (f64, f64) {
         let passing = self.life != 0 && keeps(self.life, key ^ LIFE, ordinal);
         if kept && !passing {
             return (f64::from(self.grow), 0.0);
         }
+        let gone = (self.fall * f32::from(u16::MAX)).round() as u16;
+        let here = !(gone != 0 && keeps(gone, key ^ FALL, ordinal));
         let regrow = if kept { self.regrow } else { 0.0 };
-        (f64::from(self.fall + regrow), f64::from(self.colour))
+        (f64::from(f32::from(u8::from(here)) + regrow), f64::from(self.colour))
     }
 }
 

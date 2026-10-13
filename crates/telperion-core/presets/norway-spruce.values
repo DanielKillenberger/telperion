@@ -145,12 +145,15 @@
 # duration of 35 days of shoot and needle lengthening was estimated for
 # both larch and spruce" (Rossi, Rathgeber and Deslauriers 2009, Ann.
 # For. Sci. 66: 206).
-# fn-270 R5c: "all of the Norway spruce populations had between 6.4 and
-# 7.2 needle age cohorts" (Reich et al. 1996, Tree Physiol. 16: 643): a
-# needle lives 6.8 years, the midpoint; "May shoot of spruce ... Meanobs
-# (date) 12 May" (Rotzer et al. 2004): day 132. The colouring and fall of
-# old needles, found for no spruce, are stand-ins by the centroid rule,
-# the beech's 264, 16 and 45 days.
+# fn-270 R5c: a needle's lifespan is left at its leafYears, never, for
+# this release (host, 2026-10-14), a stand-in: no needle drops and grows
+# again on old wood, and only the new flush unfolds; "all of the Norway
+# spruce populations had between 6.4 and 7.2 needle age cohorts" (Reich
+# et al. 1996, Tree Physiol. 16: 643) waits for bare inner wood, a later
+# spec. "May shoot of spruce ... Meanobs (date) 12 May" (Rotzer et al.
+# 2004, Int. J. Biometeorol. 48: 109): day 132. Colouring and fall are
+# stand-ins by the centroid rule, the beech's 264, 16 and 45 days,
+# dormant while no needle falls.
 /space/ages/0/lifespan = 2.0
 /space/ages/0/internode = 0.02
 /space/ages/0/divergence = 2.4
@@ -158,7 +161,6 @@
 /space/ages/0/leafArea = 0.0006713
 /space/ages/0/elongation = 35.0
 /space/ages/0/expansion = 35.0
-/space/ages/0/leafLife = 6.8
 /space/ages/0/budburst = 132.0
 /space/ages/0/senescence = 264.0
 /space/ages/0/colouring = 16.0
@@ -189,7 +191,6 @@
 /space/ages/1/leafArea = 0.00093982
 /space/ages/1/elongation = 35.0
 /space/ages/1/expansion = 35.0
-/space/ages/1/leafLife = 6.8
 /space/ages/1/budburst = 132.0
 /space/ages/1/senescence = 264.0
 /space/ages/1/colouring = 16.0
@@ -221,7 +222,6 @@
 /space/ages/2/leafArea = 0.0014097299999999999
 /space/ages/2/elongation = 35.0
 /space/ages/2/expansion = 35.0
-/space/ages/2/leafLife = 6.8
 /space/ages/2/budburst = 132.0
 /space/ages/2/senescence = 264.0
 /space/ages/2/colouring = 16.0
@@ -254,7 +254,6 @@
 /space/ages/4/leafArea = 0.00100695
 /space/ages/4/elongation = 35.0
 /space/ages/4/expansion = 35.0
-/space/ages/4/leafLife = 6.8
 /space/ages/4/budburst = 132.0
 /space/ages/4/senescence = 264.0
 /space/ages/4/colouring = 16.0
@@ -287,7 +286,6 @@
 /space/ages/8/leafArea = 0.00167825
 /space/ages/8/elongation = 35.0
 /space/ages/8/expansion = 35.0
-/space/ages/8/leafLife = 6.8
 /space/ages/8/budburst = 132.0
 /space/ages/8/senescence = 264.0
 /space/ages/8/colouring = 16.0
@@ -334,7 +332,6 @@
 /space/ages/9/leafArea = 0.00114121
 /space/ages/9/elongation = 35.0
 /space/ages/9/expansion = 35.0
-/space/ages/9/leafLife = 6.8
 /space/ages/9/budburst = 132.0
 /space/ages/9/senescence = 264.0
 /space/ages/9/colouring = 16.0
@@ -380,7 +377,6 @@
 /space/ages/10/leafArea = 0.00053704
 /space/ages/10/elongation = 35.0
 /space/ages/10/expansion = 35.0
-/space/ages/10/leafLife = 6.8
 /space/ages/10/budburst = 132.0
 /space/ages/10/senescence = 264.0
 /space/ages/10/colouring = 16.0
@@ -414,7 +410,6 @@
 /space/ages/11/leafArea = 0.00020139
 /space/ages/11/elongation = 35.0
 /space/ages/11/expansion = 35.0
-/space/ages/11/leafLife = 6.8
 /space/ages/11/budburst = 132.0
 /space/ages/11/senescence = 264.0
 /space/ages/11/colouring = 16.0
@@ -444,7 +439,6 @@
 /space/ages/12/leafArea = 0.0006713
 /space/ages/12/elongation = 35.0
 /space/ages/12/expansion = 35.0
-/space/ages/12/leafLife = 6.8
 /space/ages/12/budburst = 132.0
 /space/ages/12/senescence = 264.0
 /space/ages/12/colouring = 16.0

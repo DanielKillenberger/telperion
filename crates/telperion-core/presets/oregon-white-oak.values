@@ -139,6 +139,13 @@
 /material/orientationBlue = -0.1535
 /material/directionalOcclusion = 1.0
 /material/depthStrength = 0.5375
+# fn-270 R5c: "autumn color is saddle brown, occasionally tinted gold or
+# dull red" (Breen, Landscape Plants, Oregon State University): the xkcd
+# survey has no "saddle brown", so its closest "brown", #653700, as linear
+# reflectance; named, not measured.
+/material/leafDeadRed = 0.130
+/material/leafDeadGreen = 0.0382
+/material/leafDeadBlue = 0.0
 
 # Left at the default family:
 # Neutral: a card lit alone, until this table states its canopy.

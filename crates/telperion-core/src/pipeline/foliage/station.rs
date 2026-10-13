@@ -100,11 +100,12 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
             point = point * (1. - p.surface_contact) + seat * p.surface_contact;
         }
         let into = if kept[k].is_some() { &mut *out } else { &mut sink };
-        // A leaf still expanding, or falling, is drawn at its share
-        // (fn-270 R5, R5c).
+        // A leaf still expanding is drawn at its share, a falling one
+        // whole until its abscission day (fn-270 R5, R5c).
         let unfolded = tree.unfolding(nodes[segment + 1]);
-        let (share, _colour) = unfolded.leaf(kept[k].unwrap_or(true), tree.key(nodes[1]), k as u32);
+        let (share, colour) = unfolded.leaf(kept[k].unwrap_or(true), tree.key(nodes[1]), k as u32);
         let size = p.size * share;
+        let from = into.leaves.len();
         super::rosette::fan(
             point,
             axis(point, radial, tangent, p),
@@ -114,6 +115,10 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
             rng,
             into,
         )?;
+        // A colouring leaf is drawn as one withering (fn-270 R5c).
+        if colour > 0.0 {
+            into.wither(from);
+        }
         sink.leaves.clear();
     }
     Ok(())

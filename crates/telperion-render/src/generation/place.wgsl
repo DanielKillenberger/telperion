@@ -11,9 +11,10 @@ struct Segment {
     a:vec4<f32>, b:vec4<f32>, tangent:vec4<f32>, normal:vec4<f32>, binormal:vec4<f32>,
     distance:vec4<f32>, range:vec4<u32>, edge:vec4<u32>,
     // Its leaves within the year (fn-270 R5, R5c): this year's share, the
-    // retentions now, a falling leaf's share and a regrowing one's; then
-    // how far a falling one has coloured, the share passing its lifespan
-    // (16 bits, as a retention) and the stream its draws take, and spare.
+    // retentions now, the share of falling leaves gone and a regrowing
+    // one's share; then how far a falling one has coloured, the share
+    // passing its lifespan (16 bits, as a retention) and the streams its
+    // lifespan's and its abscission's draws take.
     unfolded:vec4<f32>,
     season:vec4<f32>,
 }

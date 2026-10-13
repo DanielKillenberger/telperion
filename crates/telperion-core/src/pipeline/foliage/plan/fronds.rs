@@ -38,8 +38,8 @@ pub(super) fn describe(
     }
     let apices = rosette::rosettes(tree);
     let per = rosette::leaflets(&p);
-    let fronds = (p.rosette_fronds + rosette::skirt(&p)) as usize;
-    let total = apices.len() * fronds * per;
+    let crown = rosette::Crown::of(tree, &p);
+    let total = apices.len() * rosette::slots(&p, crown) * per;
     if total > p.max_instances || total > u32::MAX as usize {
         return Err(Error::ResourceLimit("foliage instance budget"));
     }
@@ -48,10 +48,10 @@ pub(super) fn describe(
     let shape = Shape::of(element);
     for apex in &apices {
         let system = system[apex.apex];
-        let birth = tree.nodes[apex.apex].identity.birth_order();
-        for frond in rosette::fronds(apex, &p) {
+        let stem = rosette::stem_key(tree, apex);
+        for frond in rosette::fronds(apex, &p, crown) {
             let c = frond.canopy;
-            let mut rng = rosette::stream(seed, birth, &frond);
+            let mut rng = rosette::stream(seed, stem, &frond);
             if per == 1 {
                 // One blade at the station, turned as `fan` turns it.
                 let blade = Leaflet {

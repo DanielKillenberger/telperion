@@ -78,7 +78,8 @@ pub(super) fn deepest(p: &CanopyParams) -> f64 {
     if kept == 0 {
         return p.rosette_depth;
     }
-    p.rosette_depth * (f64::from(p.rosette_fronds + kept - 1) / spacing(p))
+    // The skirt's last frond fades a place further down (fn-270 R5b).
+    p.rosette_depth * (f64::from(p.rosette_fronds + kept) / spacing(p))
 }
 
 /// The steps of the living crown's spacing its depth is cut into: one short
@@ -132,20 +133,77 @@ pub(super) fn count(tree: &Tree, p: &CanopyParams) -> Result<usize> {
         return Ok(0);
     }
     let budget = || Error::ResourceLimit("foliage instance budget");
-    (p.rosette_fronds as usize + skirt(p) as usize)
+    slots(p, Crown::of(tree, p))
         .checked_mul(leaflets(p))
         .and_then(|per| rosettes(tree).len().checked_mul(per))
         .filter(|total| *total <= p.max_instances)
         .ok_or_else(budget)
 }
 
+/// The fronds a rosette draws: its living and dead ones, and within the
+/// year one more while the oldest leaves the skirt as a new one emerges
+/// (fn-270 R5b, `fronds`).
+pub(super) fn slots(p: &CanopyParams, crown: Crown) -> usize {
+    p.rosette_fronds as usize + skirt(p) as usize + usize::from(crown.made().fract() > 0.0)
+}
+
+/// How many fronds a crown has made by the year `year` it is drawn in, `y`
+/// a year (fn-270 R5b): its whole years', and this year's as they emerge,
+/// evenly over its stem's elongation from budburst; and the share of its
+/// whole size frond `serial` stands at, a frond of this year's expanding
+/// from its emergence. A tree no engine grew makes none.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Crown {
+    year: Option<crate::tree::Year>,
+    per_year: f64,
+}
+
+impl Crown {
+    pub(crate) fn of(tree: &Tree, p: &CanopyParams) -> Self {
+        Self { year: tree.year, per_year: p.rosette_year }
+    }
+
+    /// The years grown before the last, and how far into it.
+    fn clock(&self) -> Option<(f64, f64)> {
+        let y = self.year?;
+        let whole = y.age.ceil().max(1.0) - 1.0;
+        Some((whole, (y.age - whole) * telperion_space::unfold::YEAR))
+    }
+
+    /// Fronds made: whole years' and this year's emerged.
+    pub(crate) fn made(&self) -> f64 {
+        let (Some((whole, tau)), Some(y)) = (self.clock(), self.year) else {
+            return 0.0;
+        };
+        let emerged = match y.elongation > 0.0 {
+            true => ((tau - y.budburst) / y.elongation).clamp(0.0, 1.0),
+            false => f64::from(u8::from(tau > y.budburst)),
+        };
+        self.per_year * (whole + emerged)
+    }
+
+    /// The share of its whole size frond `serial` stands at.
+    pub(crate) fn unfolded(&self, serial: f64) -> f64 {
+        let (Some((whole, tau)), Some(y)) = (self.clock(), self.year) else {
+            return 1.0;
+        };
+        let new = serial + 1.0 - self.per_year * whole;
+        if new <= 0.0 || self.per_year <= 0.0 {
+            return 1.0;
+        }
+        let emerges = y.budburst + y.elongation * (new / self.per_year).min(1.0);
+        telperion_space::unfold::run(tau - emerges, y.expansion)
+    }
+}
+
 /// One frond on a rosette's spiral: where it leaves the axis, the way its
 /// rachis heads, the radial it leans out along, the canopy it is drawn at (a
-/// dead frond at its share of a living one) and its place `k` on the spiral,
+/// dead frond at its share of a living one, an emerging one at its share of
+/// its whole size) and its serial among the fronds its crown has made,
 /// which keys its draws.
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Frond {
-    pub(super) k: u32,
+    pub(super) serial: i64,
     pub(super) at: Vec3,
     pub(super) heading: Vec3,
     pub(super) radial: Vec3,
@@ -153,48 +211,52 @@ pub(super) struct Frond {
     pub(super) dead: bool,
 }
 
-/// Every frond of one rosette, living then dead, in spiral order. The living
-/// crown opens from a spike to a skirt: the youngest frond stands at the
-/// pitch the row states and the oldest that much further out again. The
-/// skirt continues the same spiral and spacing past the oldest living frond,
-/// each dead frond hung at the skirt's pitch and drawn at its share of a
-/// living frond's length. The placement and the leaf plan both read this.
-pub(super) fn fronds(rosette: &Rosette, p: &CanopyParams) -> impl Iterator<Item = Frond> {
+/// Every frond of one rosette, newest first (`slots`), each at its place
+/// on the spiral: the fronds made so far (`crown`), the newest at the apex
+/// and each older one a place further down, by degree as the next
+/// emerges. The living crown opens from a spike to a skirt: the youngest
+/// frond stands at the pitch the row states and the oldest that much
+/// further out again. The skirt continues the same spiral and spacing past
+/// the oldest living frond, each dead frond hung at the skirt's pitch and
+/// drawn at its share of a living frond's length; a frond turns from the
+/// one to the other over its last place in the living crown, and fades
+/// over the skirt's last. Its turn on the spiral is its serial's, so a
+/// frond holds still as the crown grows above it. The placement and the
+/// leaf plan both read this.
+pub(super) fn fronds(rosette: &Rosette, p: &CanopyParams, crown: Crown) -> impl Iterator<Item = Frond> {
     let (fronds, steps) = (p.rosette_fronds, spacing(p));
     let oldest = f64::from(fronds.saturating_sub(1));
-    let dead = CanopyParams {
-        size: p.size * p.skirt_length,
-        rachis_length: p.rachis_length * p.skirt_length,
-        ..*p
-    };
+    let total = f64::from(fronds + skirt(p));
+    let made = crown.made();
+    let newest = made.ceil() as i64 - 1;
     let (normal, binormal) = frame(rosette.axis);
     let (rosette, p) = (*rosette, *p);
-    (0..fronds + skirt(&p)).map(move |k| {
-        let (sin, cos) = (f64::from(k) * p.rosette_divergence.to_radians()).sin_cos_fixed();
+    (0..slots(&p, crown) as i64).map(move |i| {
+        let serial = newest - i;
+        let k = (made - 1.0 - serial as f64).max(0.0);
+        let (sin, cos) = (serial as f64 * p.rosette_divergence.to_radians()).sin_cos_fixed();
         let radial = normal * cos + binormal * sin;
-        let living = k < fronds;
-        let (pitch, depth) = if living {
-            let age = if oldest > 0. {
-                f64::from(k) / oldest
-            } else {
-                0.
-            };
-            let pitch = (p.rosette_pitch + p.rosette_pitch_spread * age).to_radians();
-            (pitch, p.rosette_depth * age)
-        } else {
-            (
-                p.skirt_pitch.to_radians(),
-                p.rosette_depth * (f64::from(k) / steps),
-            )
+        let living = |k: f64| {
+            let age = if oldest > 0. { k.min(oldest) / oldest } else { 0. };
+            ((p.rosette_pitch + p.rosette_pitch_spread * age).to_radians(), p.rosette_depth * age, 1.0)
         };
+        let dead = |k: f64| (p.skirt_pitch.to_radians(), p.rosette_depth * (k / steps), p.skirt_length);
+        // How far it has turned from living to dead over its last living
+        // place, and how far it has left the skirt.
+        let turned = if skirt(&p) > 0 { (k - oldest).clamp(0.0, 1.0) } else { 0.0 };
+        let (a, b) = (living(k), dead(k.max(f64::from(fronds))));
+        let mix = |x: f64, y: f64| x + (y - x) * turned;
+        let (pitch, depth, length) = (mix(a.0, b.0), mix(a.1, b.1), mix(a.2, b.2));
+        let share = crown.unfolded(serial as f64) * (total - k).clamp(0.0, 1.0);
+        let canopy = CanopyParams { size: p.size * length * share, rachis_length: p.rachis_length * length * share, ..p };
         let (lean, upright) = pitch.sin_cos_fixed();
         Frond {
-            k,
+            serial,
             at: rosette.at - rosette.axis * depth,
             heading: (rosette.axis * upright + radial * lean).normalized(),
             radial,
-            canopy: if living { p } else { dead },
-            dead: !living,
+            canopy,
+            dead: turned >= 0.5,
         }
     })
 }
@@ -213,15 +275,13 @@ pub(super) fn clothe(
         return Ok(());
     }
     let per = leaflets(p);
+    let crown = Crown::of(tree, p);
     for rosette in rosettes(tree) {
-        reserve(out, (p.rosette_fronds + skirt(p)) as usize * per, *p)?;
-        let birth = tree.nodes[rosette.apex].identity.birth_order();
-        let mut withered = None;
-        for frond in fronds(&rosette, p) {
-            if frond.dead && withered.is_none() {
-                withered = Some(out.leaves.len());
-            }
-            let mut rng = stream(seed, birth, &frond);
+        reserve(out, slots(p, crown) * per, *p)?;
+        let stem = stem_key(tree, &rosette);
+        for frond in fronds(&rosette, p, crown) {
+            let from = out.leaves.len();
+            let mut rng = stream(seed, stem, &frond);
             let (at, heading, radial) = (frond.at, frond.heading, frond.radial);
             fan(
                 at,
@@ -232,9 +292,9 @@ pub(super) fn clothe(
                 &mut rng,
                 out,
             )?;
-        }
-        if let Some(from) = withered {
-            out.wither(from);
+            if frond.dead {
+                out.wither(from);
+            }
         }
         if let Some(owners) = owners.as_mut() {
             owners.resize(out.leaves.len(), rosette.apex as u32);
@@ -290,13 +350,19 @@ pub fn frame(axis: Vec3) -> (Vec3, Vec3) {
     (normal, axis.cross(normal))
 }
 
-/// The stream one frond draws from: its leaflets' scatter and size, in order.
-pub(super) fn stream(seed: u32, birth: u64, frond: &Frond) -> Rng {
-    Rng::new(key(seed, birth, frond.k))
+/// What keys a rosette's fronds: its stem's first node's identity, which
+/// stays as the stem grows (fn-270 R5b).
+pub(super) fn stem_key(tree: &Tree, rosette: &Rosette) -> u64 {
+    tree.nodes[tree.nodes[rosette.apex].branch as usize].identity.birth_order()
 }
 
-/// SplitMix64's finaliser over the seed, the apex's birth order and the
-/// frond's place on the spiral: the frond's own stream.
+/// The stream one frond draws from: its leaflets' scatter and size, in order.
+pub(super) fn stream(seed: u32, stem: u64, frond: &Frond) -> Rng {
+    Rng::new(key(seed, stem, frond.serial as u32))
+}
+
+/// SplitMix64's finaliser over the seed, the stem's key and the frond's
+/// serial: the frond's own stream.
 fn key(seed: u32, birth: u64, frond: u32) -> u32 {
     let mut z = (u64::from(seed ^ 0x1d0f_3a57) << 32 | u64::from(frond))
         ^ birth.wrapping_mul(0x9e37_79b9_7f4a_7c15);

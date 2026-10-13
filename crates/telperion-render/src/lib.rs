@@ -337,6 +337,14 @@ impl Renderer {
     /// supernatural group applied: its material, the group's overrides laid
     /// over it while the group is on and the bark's lengths at its scale,
     /// and the group's leaf mirrors.
+    /// How far a withered leaf of the tree up has turned to the colour a
+    /// leaf turns as it dies (fn-270 R5c): 1, the default, draws the dead
+    /// fronds a rosette keeps; a tree drawn within its year states its
+    /// autumn's (`pipeline::growth::colouring`).
+    pub fn set_colouring(&mut self, colouring: f64) {
+        self.scene.set_colouring(colouring);
+    }
+
     pub fn set_family(&mut self, family: &telperion_core::Family) {
         self.set_material(family.drawn_material());
         self.scene.set_reflection(family.supernatural.reflection());

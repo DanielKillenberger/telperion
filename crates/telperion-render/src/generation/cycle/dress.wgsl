@@ -468,7 +468,7 @@ fn run(t: f32, days: f32) -> f32 {
 fn seasoned(r: u32, a: u32, p: u32) {
     if cfg.unfolding == 0u {
         put(r, 32u, 1.0);
-        put(r, 34u, 1.0);
+        put(r, 34u, 0.0);
         put(r, 35u, 0.0);
         put(r, 36u, 0.0);
         putu(r, 37u, 0u);
@@ -479,10 +479,11 @@ fn seasoned(r: u32, a: u32, p: u32) {
     let gone = marked >= 2.0;
     let grow = select(marked, marked - 2.0, gone);
     let budburst = row(a, R_BUDBURST);
-    var fall = 1.0 - run(tau - row(a, R_SENESCENCE) - row(a, R_COLOURING), row(a, R_FALL));
+    // The share of the falling leaves gone, each on its own day.
+    var fall = run(tau - row(a, R_SENESCENCE) - row(a, R_COLOURING), row(a, R_FALL));
     var regrow = run(tau - budburst, row(a, R_EXPANSION));
     if gone {
-        fall = min(fall, grow);
+        fall = max(fall, 1.0 - grow);
         regrow = 0.0;
     }
     var colour = 0.0;
@@ -497,6 +498,10 @@ fn seasoned(r: u32, a: u32, p: u32) {
         let span = 365.0 - budburst + row(a, R_SENESCENCE) + row(a, R_COLOURING) + row(a, R_FALL);
         let fallen = f32(cfg.age - 1u - cycle) + span / 365.0;
         life = u32(floor(clamp(fallen + 1.0 - row(a, R_LIFE), 0.0, 1.0) * 65535.0 + 0.5));
+    }
+    // A gone subtree's leaves all fall.
+    if gone {
+        life = 0xffffu;
     }
     put(r, 32u, grow);
     put(r, 34u, fall);
