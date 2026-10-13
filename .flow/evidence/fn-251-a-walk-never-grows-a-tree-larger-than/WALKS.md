@@ -81,3 +81,118 @@ The frame at t = 0.07504803866484144 (oak to birch, 80, seed 7) grows 20,021,484
 - The ordinary preset's rows were written by `blend::centroid` with the factor (`examples/centroid.rs`); deleting the factor changes what that example writes, not the shipped values file.
 
 Not decided here (host): whether the floor and the row set of the natural scale are the design, whether the light walks with the rows or the ends are compared at their own light, and whether the factor stays. The sweep R3 asks (15 pairs, 2 ages, 3 seeds, fine t) costs hours of CPU a variant at this measurement's 4 grows a frame (FRICTION.md).
+
+# Re-measured on F4 after fn-255 (2026-10-14)
+
+Measured on af2d4ba8a, `--profile ci`, 6 threads, with `examples/walk_size.rs` ported to the one cycle (`grow_cycle`, whose `grown` counts every phytomer grown, the shed ones included). The oracle is as the spec writes it: the ends grown at the frame's seed, light and age; each realized count between the smaller and larger end, widened by 10 %. Every preset now reads the one site light (`presets/space.rs`, extinction 0.5), so the frame's light is the ends' light on every walk. Frames are R1b's 45 plus the release film's pairs (fn-272 R1a) at seed 7: beech → birch → spruce → oak → palm at 40, palm → Laurelin as seedlings (ages 1 and 3), Laurelin → Telperion at 80. Raw lines are in `raw/all.log`, `raw/probe.log`, `raw/probe2.log` (ignored).
+
+## R1: the teaser's frame builds
+
+`the_oak_to_birch_frame_the_teaser_refused_builds` passes in 18 s (it failed on the 20M budget on cd4d380d). At t = 0.07504803866484144 the frame keeps 3.26M and grows 15.99M phytomers against ends of 3.39M / 16.63M (oak) and 1.78M / 10.63M (birch), within the oracle. The size factor there is 0.996. No frame of the 80 or of the 37 probes failed on the budget; the largest grown count was 18.70M (oak → birch, t = 0.001), 6.5 % under it.
+
+## The frames
+
+Cells are millions of phytomers, `ph` whole phytomers. An arrow marks a realized count outside the oracle's band. `f` is the size factor where below 1. The last column is the light-neutral prediction the size factor solves on.
+
+| walk | age | seed | t | ends kept (M) | ends grown (M) | frame kept / grown (M) | frame predicted kept / grown (M) |
+|---|---|---|---|---|---|---|---|
+| oak → birch | 80 | 7 | 0.01 | 3.39, 1.78 | 16.63, 10.63 | 3.95↑ / 18.18 (f 0.999) | 7.94 / 36.92 |
+| oak → birch | 80 | 7 | 0.0750 | 3.39, 1.78 | 16.63, 10.63 | 3.26 / 15.99 (f 0.996) | 7.28 / 34.76 |
+| oak → birch | 80 | 7 | 0.2 | 3.39, 1.78 | 16.63, 10.63 | 2.99 / 14.45 | 6.02 / 29.75 |
+| oak → birch | 80 | 7 | 0.5 | 3.39, 1.78 | 16.63, 10.63 | 3.09 / 14.97 | 4.09 / 21.18 |
+| oak → birch | 80 | 7 | 0.8 | 3.39, 1.78 | 16.63, 10.63 | 2.51 / 13.24 (f 0.942) | 3.12 / 17.02 |
+| beech → oak | 40 | 1 | 0.25 | 0.13, 0.36 | 0.31, 1.05 | 0.17 / 0.40 | 0.26 / 0.60 |
+| beech → oak | 40 | 1 | 0.5 | 0.13, 0.36 | 0.31, 1.05 | 0.18 / 0.41 | 0.30 / 0.72 |
+| beech → oak | 40 | 1 | 0.75 | 0.13, 0.36 | 0.31, 1.05 | 0.24 / 0.66 | 0.45 / 1.15 |
+| beech → ordinary | 40 | 1 | 0.25 | 0.13, 0.10 | 0.31, 0.24 | 0.12 / 0.27 (f 0.966) | 0.17 / 0.38 |
+| beech → ordinary | 40 | 1 | 0.5 | 0.13, 0.10 | 0.31, 0.24 | 0.13 / 0.28 (f 0.973) | 0.15 / 0.35 |
+| beech → ordinary | 40 | 1 | 0.75 | 0.13, 0.10 | 0.31, 0.24 | 0.10 / 0.22 (f 0.984) | 0.14 / 0.33 |
+| beech → spruce | 40 | 1 | 0.25 | 0.13, 1.08 | 0.31, 2.68 | 0.31 / 0.73 (f 0.988) | 0.27 / 0.64 |
+| beech → spruce | 40 | 1 | 0.5 | 0.13, 1.08 | 0.31, 2.68 | 0.41 / 1.01 (f 0.869) | 0.39 / 1.05 |
+| beech → spruce | 40 | 1 | 0.75 | 0.13, 1.08 | 0.31, 2.68 | 0.79 / 1.71 (f 0.782) | 0.72 / 1.66 |
+| oak → ordinary | 40 | 1 | 0.25 | 0.36, 0.10 | 1.05, 0.24 | 0.26 / 0.67 | 0.37 / 0.91 |
+| oak → ordinary | 40 | 1 | 0.5 | 0.36, 0.10 | 1.05, 0.24 | 0.16 / 0.36 | 0.19 / 0.46 |
+| oak → ordinary | 40 | 1 | 0.75 | 0.36, 0.10 | 1.05, 0.24 | 0.08↓ / 0.21↓ | 0.14 / 0.34 |
+| oak → spruce | 40 | 1 | 0.25 | 0.36, 1.08 | 1.05, 2.68 | 0.37 / 0.81↓ | 0.33 / 0.78 |
+| oak → spruce | 40 | 1 | 0.5 | 0.36, 1.08 | 1.05, 2.68 | 0.36 / 0.97 | 0.36 / 1.05 |
+| oak → spruce | 40 | 1 | 0.75 | 0.36, 1.08 | 1.05, 2.68 | 0.86 / 2.00 | 0.76 / 1.93 |
+| spruce → ordinary | 40 | 1 | 0.25 | 1.08, 0.10 | 2.68, 0.24 | 0.68 / 1.47 (f 0.830) | 0.67 / 1.51 |
+| spruce → ordinary | 40 | 1 | 0.5 | 1.08, 0.10 | 2.68, 0.24 | 0.39 / 0.91 (f 0.839) | 0.37 / 0.94 |
+| spruce → ordinary | 40 | 1 | 0.75 | 1.08, 0.10 | 2.68, 0.24 | 0.20 / 0.47 (f 0.885) | 0.20 / 0.55 |
+| oak → oak | 24 | 7 | 0.25 | 0.13, 0.13 | 0.24, 0.24 | 0.13 / 0.24 | 0.16 / 0.30 |
+| oak → oak | 43 | 7 | 0.5 | 0.60, 0.60 | 1.72, 1.72 | 0.60 / 1.72 | 1.24 / 3.13 |
+| oak → oak | 61 | 7 | 0.75 | 1.79, 1.79 | 6.32, 6.32 | 1.79 / 6.32 | 3.71 / 13.07 |
+| oak → oak | 76 | 7 | 0.95 | 3.09, 3.09 | 13.98, 13.98 | 3.09 / 13.98 | 6.96 / 30.65 |
+| beech → birch | 40 | 7 | 0.05 | 0.22, 0.46 | 0.43, 1.28 | 0.28 / 0.51 (f 0.998) | 0.19 / 0.42 |
+| beech → birch | 40 | 7 | 0.25 | 0.22, 0.46 | 0.43, 1.28 | 0.27 / 0.53 | 0.21 / 0.49 |
+| beech → birch | 40 | 7 | 0.5 | 0.22, 0.46 | 0.43, 1.28 | 0.32 / 0.71 | 0.27 / 0.63 |
+| beech → birch | 40 | 7 | 0.75 | 0.22, 0.46 | 0.43, 1.28 | 0.45 / 1.01 | 0.41 / 0.98 |
+| beech → birch | 40 | 7 | 0.95 | 0.22, 0.46 | 0.43, 1.28 | 0.37 / 0.97 (f 0.997) | 0.53 / 1.27 |
+| birch → spruce | 40 | 7 | 0.05 | 0.46, 1.05 | 1.28, 2.62 | 0.54 / 1.31 (f 0.986) | 0.58 / 1.40 |
+| birch → spruce | 40 | 7 | 0.25 | 0.46, 1.05 | 1.28, 2.62 | 0.52 / 1.37 | 0.52 / 1.38 |
+| birch → spruce | 40 | 7 | 0.5 | 0.46, 1.05 | 1.28, 2.62 | 0.52 / 1.53 | 0.53 / 1.62 |
+| birch → spruce | 40 | 7 | 0.75 | 0.46, 1.05 | 1.28, 2.62 | 0.89 / 1.93 (f 0.877) | 0.96 / 2.25 |
+| birch → spruce | 40 | 7 | 0.95 | 0.46, 1.05 | 1.28, 2.62 | 1.13 / 2.52 (f 0.886) | 1.11 / 2.54 |
+| spruce → oak | 40 | 7 | 0.05 | 1.05, 0.49 | 2.62, 1.34 | 1.17↑ / 2.57 | 1.11 / 2.66 |
+| spruce → oak | 40 | 7 | 0.25 | 1.05, 0.49 | 2.62, 1.34 | 0.74 / 1.75 | 0.76 / 1.93 |
+| spruce → oak | 40 | 7 | 0.5 | 1.05, 0.49 | 2.62, 1.34 | 0.35↓ / 0.91↓ | 0.36 / 1.05 |
+| spruce → oak | 40 | 7 | 0.75 | 1.05, 0.49 | 2.62, 1.34 | 0.26↓ / 0.60↓ | 0.33 / 0.78 |
+| spruce → oak | 40 | 7 | 0.95 | 1.05, 0.49 | 2.62, 1.34 | 0.48 / 1.15↓ | 0.75 / 1.77 |
+| oak → palm | 40 | 7 | 0.05 | 0.49, 480 ph | 1.34, 480 ph | 0.17 / 0.48 | 0.29 / 0.76 |
+| oak → palm | 40 | 7 | 0.25 | 0.49, 480 ph | 1.34, 480 ph | 5862 ph / 0.02 | 3413 ph / 0.02 |
+| oak → palm | 40 | 7 | 0.5 | 0.49, 480 ph | 1.34, 480 ph | 676 ph / 1152 ph | 610 ph / 1139 ph |
+| oak → palm | 40 | 7 | 0.75 | 0.49, 480 ph | 1.34, 480 ph | 440 ph / 440 ph | 455 ph / 471 ph |
+| oak → palm | 40 | 7 | 0.95 | 0.49, 480 ph | 1.34, 480 ph | 474 ph / 474 ph | 473 ph / 473 ph |
+| palm → Laurelin | 1 | 7 | 0.05 | 12 ph, 7 ph | 12 ph, 7 ph | 11 ph / 11 ph | 12 ph / 12 ph |
+| palm → Laurelin | 1 | 7 | 0.25 | 12 ph, 7 ph | 12 ph, 7 ph | 10 ph / 10 ph | 11 ph / 11 ph |
+| palm → Laurelin | 1 | 7 | 0.5 | 12 ph, 7 ph | 12 ph, 7 ph | 9 ph / 9 ph | 10 ph / 10 ph |
+| palm → Laurelin | 1 | 7 | 0.75 | 12 ph, 7 ph | 12 ph, 7 ph | 8 ph / 8 ph | 8 ph / 8 ph |
+| palm → Laurelin | 1 | 7 | 0.95 | 12 ph, 7 ph | 12 ph, 7 ph | 7 ph / 7 ph | 7 ph / 7 ph |
+| palm → Laurelin | 3 | 7 | 0.05 | 36 ph, 80 ph | 36 ph, 80 ph | 35 ph / 35 ph | 35 ph / 35 ph |
+| palm → Laurelin | 3 | 7 | 0.25 | 36 ph, 80 ph | 36 ph, 80 ph | 31 ph↓ / 31 ph↓ | 33 ph / 33 ph |
+| palm → Laurelin | 3 | 7 | 0.5 | 36 ph, 80 ph | 36 ph, 80 ph | 63 ph / 63 ph | 35 ph / 35 ph |
+| palm → Laurelin | 3 | 7 | 0.75 | 36 ph, 80 ph | 36 ph, 80 ph | 56 ph / 56 ph | 45 ph / 45 ph |
+| palm → Laurelin | 3 | 7 | 0.95 | 36 ph, 80 ph | 36 ph, 80 ph | 79 ph / 79 ph | 62 ph / 62 ph |
+| beech → oak | 80 | 1 | 0.25 | 1.70, 1.88 | 8.24, 10.06 | 2.01 / 8.53 (f 0.990) | 3.60 / 14.28 |
+| beech → oak | 80 | 1 | 0.5 | 1.70, 1.88 | 8.24, 10.06 | 1.30↓ / 5.77↓ | 3.61 / 13.95 |
+| beech → oak | 80 | 1 | 0.75 | 1.70, 1.88 | 8.24, 10.06 | 1.61 / 7.70 | 4.15 / 17.80 |
+| beech → ordinary | 80 | 1 | 0.25 | 1.70, 0.77 | 8.24, 2.68 | 1.38 / 5.10 (f 0.926) | 2.22 / 8.43 |
+| beech → ordinary | 80 | 1 | 0.5 | 1.70, 0.77 | 8.24, 2.68 | 1.46 / 5.03 (f 0.907) | 1.79 / 5.97 |
+| beech → ordinary | 80 | 1 | 0.75 | 1.70, 0.77 | 8.24, 2.68 | 0.86 / 2.72 (f 0.930) | 1.45 / 4.57 |
+| beech → spruce | 80 | 1 | 0.25 | 1.70, 3.69 | 8.24, 17.27 | 2.12 / 9.28 (f 0.931) | 3.14 / 11.59 |
+| beech → spruce | 80 | 1 | 0.5 | 1.70, 3.69 | 8.24, 17.27 | 2.66 / 12.56 (f 0.911) | 3.41 / 14.79 |
+| beech → spruce | 80 | 1 | 0.75 | 1.70, 3.69 | 8.24, 17.27 | 3.24 / 15.03 (f 0.838) | 3.82 / 16.69 |
+| oak → ordinary | 80 | 1 | 0.25 | 1.88, 0.77 | 10.06, 2.68 | 1.53 / 6.82 | 3.52 / 14.84 |
+| oak → ordinary | 80 | 1 | 0.5 | 1.88, 0.77 | 10.06, 2.68 | 1.15 / 4.30 | 2.03 / 7.48 |
+| oak → ordinary | 80 | 1 | 0.75 | 1.88, 0.77 | 10.06, 2.68 | 0.70 / 2.42 | 1.50 / 5.08 |
+| oak → spruce | 80 | 1 | 0.25 | 1.88, 3.69 | 10.06, 17.27 | 2.22 / 9.95 | 3.96 / 15.17 |
+| oak → spruce | 80 | 1 | 0.5 | 1.88, 3.69 | 10.06, 17.27 | 1.51↓ / 7.38↓ | 2.37 / 10.68 |
+| oak → spruce | 80 | 1 | 0.75 | 1.88, 3.69 | 10.06, 17.27 | 2.51 / 12.35 | 2.51 / 12.85 |
+| spruce → ordinary | 80 | 1 | 0.25 | 3.69, 0.77 | 17.27, 2.68 | 2.51 / 11.81 (f 0.893) | 2.80 / 12.86 |
+| spruce → ordinary | 80 | 1 | 0.5 | 3.69, 0.77 | 17.27, 2.68 | 1.49 / 7.85 (f 0.917) | 1.77 / 8.77 |
+| spruce → ordinary | 80 | 1 | 0.75 | 3.69, 0.77 | 17.27, 2.68 | 1.06 / 4.74 (f 0.948) | 1.29 / 5.98 |
+| Laurelin → Telperion | 80 | 7 | 0.05 | 2.47, 2.47 | 12.42, 12.42 | 2.47 / 12.42 | 2.75 / 11.60 |
+| Laurelin → Telperion | 80 | 7 | 0.25 | 2.47, 2.47 | 12.42, 12.42 | 2.47 / 12.42 | 2.75 / 11.60 |
+| Laurelin → Telperion | 80 | 7 | 0.5 | 2.47, 2.47 | 12.42, 12.42 | 2.47 / 12.42 | 2.75 / 11.60 |
+| Laurelin → Telperion | 80 | 7 | 0.75 | 2.47, 2.47 | 12.42, 12.42 | 2.47 / 12.42 | 2.75 / 11.60 |
+| Laurelin → Telperion | 80 | 7 | 0.95 | 2.47, 2.47 | 12.42, 12.42 | 2.47 / 12.42 | 2.75 / 11.60 |
+
+## Tally
+
+| frames | met | failed |
+|---|---|---|
+| R1b's 45 (the repro walk, the strips, the age walk) | 40 (30 before fn-255) | 5 |
+| the film's 35 | 30 | 5: spruce → oak at 40 (4), palm → Laurelin at 3 (1) |
+| all 80 | 70 | 10, of which 0 on the budget |
+
+The age walk and Laurelin → Telperion are the same tree at every frame (Laurelin and Telperion grow alike at seed 7).
+
+## Why the 10 fail
+
+Three causes, each checked against measurement.
+
+1. **The walk's own prediction lies below both ends (5 frames: oak ↔ spruce at 40 and 80, t = 0.25 to 0.75 from the oak).** The light-neutral prediction at spruce → oak, 40, t = 0.75 is 0.33M kept against the ends' 1.15M and 0.97M; the realized trees follow it. The size factor is shrink-only by design (`blend/size.rs`), so it stands at 1 and cannot lift a frame the linear rows make smaller than both ends. Seed-independent: seeds 1 and 42 at t = 0.75 also fail (`raw/probe.log`).
+2. **One realization's kept count moves more than the 10 % widening (4 frames: oak → birch at 80, t = 0.01; spruce → oak at 40, t = 0.05; beech → oak at 80, t = 0.5; oak → ordinary at 40, t = 0.75).** Their predictions lie within the ends. The walk is continuous at its ends: at t = 1e-9 the frame is the end's tree exactly (`raw/probe2.log`). But a row change of 1e-6 moves the kept count by 10 % at one seed while the grown count barely moves (beech → birch at 40: kept 0.220M → 0.242M, grown 431,806 → 431,871; spruce → oak: kept 1.05M → 1.21M), and the oak at 80 keeps 3.39M, 1.88M and 1.47M at seeds 7, 1 and 42. Kept is what light leaves standing, so every species now carries the light-driven spread fn-251's first measurement saw on the oak alone; one seed's end is a narrower reference than that spread.
+3. **Whole phytomers at a seedling (1 frame: palm → Laurelin at 3, t = 0.25).** 31 against a floor of 32.4 (ends 36 and 80).
+
+The cause is not light walking away from the ends any more: the frame's light equals the ends' on every walk.

@@ -288,3 +288,19 @@ fn a_first_year_blend_is_a_tree_though_no_factor_reaches_its_size() {
         assert!(laterals.copied().all(|l| l == 0.0), "{p:?} to {q:?}");
     }
 }
+
+/// fn-251 R1: the teaser's walk from the oak to the birch at 80, seed 7,
+/// the frame at t = 0.07504803866484144 that `headless --walk 6 --hold 0`
+/// refused on the engine's phytomer budget (frame 24): it builds.
+#[test]
+fn the_oak_to_birch_frame_the_teaser_refused_builds() {
+    let end = |p: Preset| {
+        let mut family = at(p, 80.0);
+        family.skeleton.seed = 7;
+        family
+    };
+    let (a, b) = (end(Preset::OregonWhiteOak), end(Preset::SilverBirch));
+    let walked = blend::families(&a, &b, 0.07504803866484144).unwrap();
+    let built = telperion_core::mesh::build(&walked);
+    assert!(built.is_ok(), "{:?}", built.err());
+}
