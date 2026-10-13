@@ -196,3 +196,25 @@ Three causes, each checked against measurement.
 3. **Whole phytomers at a seedling (1 frame: palm → Laurelin at 3, t = 0.25).** 31 against a floor of 32.4 (ends 36 and 80).
 
 The cause is not light walking away from the ends any more: the frame's light equals the ends' on every walk.
+
+# The two-sided factor's room, fail-early (2026-10-14, host decision 1)
+
+Before building anything, I measured whether the rows the size factor moves (every zone's lateral probabilities, one factor on all) can lift the five dipping frames to their ends' weighted geometric mean. A zone's laterals are a distribution whose sum is at most 1 (`species/validate.rs`, `table`), so one factor can rise to 1 over the largest zone sum before a zone saturates. Light-neutral predictions, in millions of phytomers (scratch example, not committed; `raw/room.log`):
+
+| frame | target kept / grown | frame now | room | at full room | short of target |
+|---|---|---|---|---|---|
+| oak → spruce, 40, t = 0.25 (= spruce → oak, t = 0.75) | 1.013 / 2.413 | 0.331 / 0.779 | ×1.127 | 0.539 / 1.256 | 47 % / 48 % |
+| spruce → oak, 40, t = 0.5 | 1.057 / 2.522 | 0.362 / 1.046 | ×1.212 | 0.721 / 2.071 | 32 % / 18 % |
+| spruce → oak, 40, t = 0.95 | 0.979 / 2.330 | 0.753 / 1.771 | ×1.067 | 1.014 / 2.358 | reached |
+| oak → spruce, 80, t = 0.5 | 6.117 / 26.503 | 2.373 / 10.677 | ×1.212 | 5.721 / 24.940 | 6 % / 6 % |
+
+On three of the five frames (two distinct species at 40), the laterals cannot carry the frame to its target. Even at full room they stay 18-48 % short.
+
+Grown, not predicted, against the seed-spread oracle (ends over seeds 1, 7 and 42, widened by 10 %), the frame now and the frame at full room:
+
+| frame | seeds meeting now | seeds meeting at full room |
+|---|---|---|
+| oak → spruce 40, t = 0.25 / spruce → oak t = 0.75 | 0 of 3 | 2 of 3 (seed 7 grows 0.890M against a floor of 0.942M) |
+| spruce → oak 40, t = 0.5 | 2 of 3 | 3 of 3 |
+| spruce → oak 40, t = 0.95 | 3 of 3 | 3 of 3 |
+| oak → spruce 80, t = 0.5 | 2 of 3 | 2 of 3 (seed 42 grows 22.0M above a ceiling of 19.7M; a solve stopping at the target would lift less) |
