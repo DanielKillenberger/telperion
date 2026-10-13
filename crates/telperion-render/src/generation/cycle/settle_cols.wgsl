@@ -69,7 +69,7 @@ struct Cfg {
 const NONE: u32 = 0xffffffffu;
 const RECORDED: u32 = 0x80000000u;
 const RT_FATE: u32 = 1u;
-const RT_ROOT_LIVED: u32 = 12u;
+const RT_ROOT_LIVED: u32 = 8u;
 const ONE64 = vec2<u32>(0u, 0x3ff00000u);
 const TICKS: u32 = 0x100000u;
 const SEED: u32 = 0u;

@@ -87,7 +87,7 @@ fn span_at(d: u32, d0: u32) -> vec2<u32> {
 // Closed axis `i`'s subtree's living and its latest wait: never judged
 // before it closes, so neither retired nor inside a retired subtree.
 fn carried_up(i: u32) {
-    var lived = rtf(R_LIVED0, i);
+    var lived = rcf(C_LIVED0, i);
     var alive = 0.0;
     var wait = rt(R_WAKE, i);
     let kids = kids_within(vec2<u32>(hlists[ls(R_KID_START, i)], hlists[ls(R_KID_START, i + 1u)]), cfg.stride);
@@ -96,9 +96,9 @@ fn carried_up(i: u32) {
     var k = kids.x;
     for (; k + 4u <= kids.y; k += 4u) {
         let c = vec4<u32>(hlists[ls(R_KIDS, k)], hlists[ls(R_KIDS, k + 1u)], hlists[ls(R_KIDS, k + 2u)], hlists[ls(R_KIDS, k + 3u)]);
-        let weight = vec4<f32>(rtf(R_WEIGHT, c.x), rtf(R_WEIGHT, c.y), rtf(R_WEIGHT, c.z), rtf(R_WEIGHT, c.w));
-        let before = vec4<f32>(rtf(R_BEFORE, c.x), rtf(R_BEFORE, c.y), rtf(R_BEFORE, c.z), rtf(R_BEFORE, c.w));
-        let gap = vec4<f32>(rtf(R_GAP, c.x), rtf(R_GAP, c.y), rtf(R_GAP, c.z), rtf(R_GAP, c.w));
+        let weight = vec4<f32>(rcf(C_WEIGHT, c.x), rcf(C_WEIGHT, c.y), rcf(C_WEIGHT, c.z), rcf(C_WEIGHT, c.w));
+        let before = vec4<f32>(rcf(C_BEFORE, c.x), rcf(C_BEFORE, c.y), rcf(C_BEFORE, c.z), rcf(C_BEFORE, c.w));
+        let gap = vec4<f32>(rcf(C_GAP, c.x), rcf(C_GAP, c.y), rcf(C_GAP, c.z), rcf(C_GAP, c.w));
         let sub = vec4<f32>(rtf(R_LIVED, c.x), rtf(R_LIVED, c.y), rtf(R_LIVED, c.z), rtf(R_LIVED, c.w));
         let live = vec4<f32>(rtf(R_ALIVE, c.x), rtf(R_ALIVE, c.y), rtf(R_ALIVE, c.z), rtf(R_ALIVE, c.w));
         let waits = vec4<u32>(rt(R_WSUB, c.x), rt(R_WSUB, c.y), rt(R_WSUB, c.z), rt(R_WSUB, c.w));
@@ -110,8 +110,8 @@ fn carried_up(i: u32) {
     }
     for (; k < kids.y; k++) {
         let c = hlists[ls(R_KIDS, k)];
-        let weight = rtf(R_WEIGHT, c);
-        lived = max(lived, rtf(R_BEFORE, c) + m(weight, rtf(R_GAP, c) + rtf(R_LIVED, c)));
+        let weight = rcf(C_WEIGHT, c);
+        lived = max(lived, rcf(C_BEFORE, c) + m(weight, rcf(C_GAP, c) + rtf(R_LIVED, c)));
         alive = max(alive, m(rtf(R_ALIVE, c), weight));
         wait = max(wait, rt(R_WSUB, c));
     }
@@ -122,7 +122,7 @@ fn carried_up(i: u32) {
 
 // An axis's living carried up, where it is laid and closed this cycle.
 fn living(i: u32) {
-    if i < cfg.n && rt(R_CLOSED, i) != 0u {
+    if i < cfg.n && rc(C_CLOSED, i) != 0u {
         carried_up(i);
     }
 }

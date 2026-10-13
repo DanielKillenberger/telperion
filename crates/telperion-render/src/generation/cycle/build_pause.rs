@@ -17,7 +17,7 @@ use super::hier_build::{BUCKETS, LISTS};
 use super::hier_device::Sums;
 use super::hier_scan::{sums_words, zeroed};
 use super::lay_device::Layout;
-use super::retire_device::{zeroed_dst, ENTRY, L_AT};
+use super::retire_device::{zeroed_dst, Retire};
 use super::{device, hier_columns};
 use crate::{Gpu, Result};
 use telperion_space::Capture;
@@ -45,12 +45,15 @@ impl Growing {
     }
 
     /// The build ready to grow on: its scratch made again at its sizes and
-    /// its cycle recorded again over it, the census as the pause left it.
-    /// The seconds this took are the build's `rebuilt`.
+    /// its cycle recorded again over it, the census as the pause left it,
+    /// in the room a draw's scratch let go held (fn-270 R4: the device
+    /// waited on first, as a pause waits). The seconds this took are the
+    /// build's `rebuilt`.
     pub(super) async fn resumed(mut self, gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture) -> Result<Self> {
         if self.run.is_some() {
             return Ok(self);
         }
+        super::super::io::complete(gpu).await?;
         let clock = super::super::Clock::now();
         self.b = self.b.scratch(gpu, (t, tables), Some(self.sizes))?;
         let run = self.b.plan(gpu, kit, t, self.sizes.bounds)?;
@@ -95,8 +98,8 @@ impl Build {
         self.scan_sums = zeroed(gpu, "cycle scan sums", sums_words(s, 1))?;
         let r = &mut self.retire;
         if r.log_cap == 0 {
-            let stamps = sizes.map_or(0, |_| u64::from(r.stride));
-            r.verdicts = zeroed_dst(gpu, "retire verdicts", L_AT + ENTRY * u64::from(r.log_cap) + stamps)?;
+            let s = sizes.map_or(0, |_| r.stride);
+            r.verdicts = zeroed_dst(gpu, "retire verdicts", Retire::verdict_words(0, s))?;
         }
         Ok(self)
     }

@@ -105,33 +105,35 @@ const R_LVL_BLOCKS: u32 = 5u;
 const H_DEPTH: u32 = 0u;
 const H_BLOCK: u32 = 1u;
 
-// `ret`'s columns: the last cycle an axis was open, its fate (open 0,
-// kept 1, retired 2, inside a retired subtree 3), whether it waits on a woken bud, whether it closed
-// this cycle, whether its presences are assigned, its own living time
-// and its end's presence, its subtree's lived and alive, the cycle its
-// woken bud's wait passes (none: 0) and its subtree's latest, a woken
-// bud's birth presence by its bearer's kept share, a retired root's
-// lived and alive, and (fn-256 task 10) its part in the living its bearer
-// carries up, taken as the bearer closes: its bearer's living before it
-// was made, its weight, and the cycles between.
+// `ret`'s columns, what the next cycle reads: the last cycle an axis was
+// open, its fate (open 0, kept 1, retired 2, inside a retired subtree 3),
+// whether it waits on a woken bud, its subtree's lived and alive, the
+// cycle its woken bud's wait passes (none: 0) and its subtree's latest, a
+// woken bud's birth presence by its bearer's kept share, and a retired
+// root's lived and alive.
 const R_OPEN: u32 = 0u;
 const R_FATE: u32 = 1u;
 const R_PEND: u32 = 2u;
-const R_CLOSED: u32 = 3u;
-const R_SEEN: u32 = 4u;
-const R_LIVED0: u32 = 5u;
-const R_END: u32 = 6u;
-const R_LIVED: u32 = 7u;
-const R_ALIVE: u32 = 8u;
-const R_WAKE: u32 = 9u;
-const R_WSUB: u32 = 10u;
-const R_QB1: u32 = 11u;
-const R_ROOT_LIVED: u32 = 12u;
-const R_ROOT_ALIVE: u32 = 13u;
-const R_BEFORE: u32 = 14u;
-const R_WEIGHT: u32 = 15u;
-const R_GAP: u32 = 16u;
-const R_COLS: u32 = 17u;
+const R_LIVED: u32 = 3u;
+const R_ALIVE: u32 = 4u;
+const R_WAKE: u32 = 5u;
+const R_WSUB: u32 = 6u;
+const R_QB1: u32 = 7u;
+const R_ROOT_LIVED: u32 = 8u;
+const R_ROOT_ALIVE: u32 = 9u;
+const R_COLS: u32 = 10u;
+// The cycle's own columns (fn-270 R4), written before they are read in
+// the cycle and let go between calls, in `verdicts` past the stamps:
+// whether an axis closed this cycle, its own living time and its end's
+// presence, assigned as it closes, and (fn-256 task 10) its part in the
+// living its bearer carries up, taken as the bearer closes: its bearer's
+// living before it was made, its weight, and the cycles between.
+const C_CLOSED: u32 = 0u;
+const C_LIVED0: u32 = 1u;
+const C_END: u32 = 2u;
+const C_BEFORE: u32 = 3u;
+const C_WEIGHT: u32 = 4u;
+const C_GAP: u32 = 5u;
 // The header from `cfg.head`: the laid axes the last cycle began with;
 // each PA's constants from `cfg.head + 64` (`settle_shared.wgsl`'s `K_`).
 const HD_PREV_LAID: u32 = 0u;
@@ -199,6 +201,23 @@ fn set_rt(c: u32, i: u32, v: u32) {
 
 fn set_rtf(c: u32, i: u32, v: f32) {
     set_rt(c, i, bitcast<u32>(v));
+}
+
+// The cycle's column `c` of axis `i`, past the blocks' stamps.
+fn rc(c: u32, i: u32) -> u32 {
+    return atomicLoad(&verdicts[block_stamp(cfg.stride) + c * cfg.stride + i]);
+}
+
+fn rcf(c: u32, i: u32) -> f32 {
+    return bitcast<f32>(rc(c, i));
+}
+
+fn set_rc(c: u32, i: u32, v: u32) {
+    atomicStore(&verdicts[block_stamp(cfg.stride) + c * cfg.stride + i], v);
+}
+
+fn set_rcf(c: u32, i: u32, v: f32) {
+    set_rc(c, i, bitcast<u32>(v));
 }
 
 fn kpa(pa: u32, k: u32) -> u32 {

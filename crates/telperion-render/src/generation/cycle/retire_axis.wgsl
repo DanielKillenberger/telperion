@@ -92,19 +92,18 @@ fn close_main(@builtin(global_invocation_id) id: vec3<u32>) {
     let open = rt(R_OPEN, i);
     let fresh = i >= ret[cfg.head + HD_PREV_LAID];
     let closed = open != cfg.cycle && (open + 1u == cfg.cycle || fresh);
-    set_rt(R_CLOSED, i, u32(closed));
+    set_rc(C_CLOSED, i, u32(closed));
     // Its block is entered by the living's sweep (fn-256 task 10).
     let b = shape[H_BLOCK * cfg.stride + i];
     if closed && b < cfg.stride {
         atomicStore(&verdicts[block_stamp(b)], cfg.cycle);
     }
-    if open == cfg.cycle || rt(R_SEEN, i) != 0u {
+    if !closed {
         return;
     }
     let p = presences(i, ax(i, A_UNITS));
-    set_rtf(R_LIVED0, i, tick_q(ax(i, A_SLEEP)) + p.x);
-    set_rtf(R_END, i, p.y);
-    set_rt(R_SEEN, i, 1u);
+    set_rcf(C_LIVED0, i, tick_q(ax(i, A_SLEEP)) + p.x);
+    set_rcf(C_END, i, p.y);
 }
 
 // Axis `c`'s vigour as its parent `i`'s subtree weighs it: its making
@@ -118,7 +117,7 @@ fn vigour(c: u32, i: u32) -> f32 {
     let made = m(q64(ax64(c, A_B0)), b1);
     let kind = kind_of(c);
     if kind == CONTINUED || kind == RELAYED {
-        return m(rtf(R_END, i), made);
+        return m(rcf(C_END, i), made);
     }
     return made;
 }
@@ -136,7 +135,7 @@ fn terms_main(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     let i = ax(c, A_PARENT);
-    if !(i < cfg.n && rt(R_CLOSED, i) != 0u) {
+    if !(i < cfg.n && rc(C_CLOSED, i) != 0u) {
         return;
     }
     var weight = qf(vigour(c, i));
@@ -149,9 +148,9 @@ fn terms_main(@builtin(global_invocation_id) id: vec3<u32>) {
     if upto != 0u {
         before = tick_q(ax(i, A_SLEEP)) + presences(i, upto).x;
     }
-    set_rtf(R_WEIGHT, c, weight);
-    set_rtf(R_BEFORE, c, before);
-    set_rtf(R_GAP, c, f32(span - upto));
+    set_rcf(C_WEIGHT, c, weight);
+    set_rcf(C_BEFORE, c, before);
+    set_rcf(C_GAP, c, f32(span - upto));
 }
 
 // The presences of the draws that made `a`'s successors, summed in order
@@ -279,7 +278,7 @@ fn verdict_main(@builtin(global_invocation_id) id: vec3<u32>) {
     set_rt(R_PEND, i, 0u);
     let p = ax(i, A_PARENT);
     let beside = p == NONE || rt(R_OPEN, p) == cfg.cycle;
-    if !(rt(R_CLOSED, i) != 0u || waited) || !beside || rt(R_FATE, i) != 0u {
+    if !(rc(C_CLOSED, i) != 0u || waited) || !beside || rt(R_FATE, i) != 0u {
         return;
     }
     if rt(R_WSUB, i) > cfg.cycle {
@@ -359,7 +358,7 @@ fn reused_main(@builtin(global_invocation_id) id: vec3<u32>, @builtin(local_invo
     workgroupBarrier();
     let i = index(id);
     if i < cfg.n {
-        var held = array<bool, 3>(rt(R_OPEN, i) != cfg.cycle, rt(R_CLOSED, i) != 0u, i < cfg.stride && atomicLoad(&verdicts[block_stamp(i)]) == cfg.cycle);
+        var held = array<bool, 3>(rt(R_OPEN, i) != cfg.cycle, rc(C_CLOSED, i) != 0u, i < cfg.stride && atomicLoad(&verdicts[block_stamp(i)]) == cfg.cycle);
         for (var k = 0u; k < 3u; k++) {
             if held[k] {
                 atomicAdd(&w_reused[k], 1u);

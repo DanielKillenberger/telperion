@@ -32,7 +32,10 @@ pub(super) const TERMS: usize = 10;
 pub(super) const FADING: usize = 11;
 /// `ret`'s columns a laid axis (`retire_cols.wgsl`'s `R_`), and the
 /// header's words before the PA constants.
-pub(super) const R_COLS: u64 = 17;
+pub(super) const R_COLS: u64 = 10;
+/// The cycle's own columns a laid axis (`retire_cols.wgsl`'s `C_`), in
+/// `verdicts` past the blocks' stamps: let go between calls (fn-270 R4).
+pub(super) const C_COLS: u64 = 6;
 const HEAD: u64 = 64;
 /// The log's count of what the cycle reused, its words; the log's words
 /// before its entries, and its entries' words. The blocks' stamps follow
@@ -102,7 +105,7 @@ impl Retire {
         let rec_cap = if keeps { records } else { 0 };
         let r = Self {
             ret: zeroed_dst(gpu, "retire columns", Self::ret_words(s, pa))?,
-            verdicts: zeroed_dst(gpu, "retire verdicts", L_AT + ENTRY * u64::from(log_cap) + u64::from(s))?,
+            verdicts: zeroed_dst(gpu, "retire verdicts", Self::verdict_words(log_cap, s))?,
             stride: s,
             pa: pa.to_vec(),
             log_cap,
@@ -113,6 +116,12 @@ impl Retire {
         };
         gpu.queue.write_buffer(&r.ret, 4 * (r.head() + HEAD), bytemuck::cast_slice(pa));
         Ok(r)
+    }
+
+    /// The log's words for `log_cap` entries, then the stamps and the
+    /// cycle's columns of a cycle over `s` laid axes (none while paused).
+    pub(super) fn verdict_words(log_cap: u32, s: u32) -> u64 {
+        L_AT + ENTRY * u64::from(log_cap) + (1 + C_COLS) * u64::from(s)
     }
 
     fn ret_words(s: u32, pa: &[u32]) -> u64 {
