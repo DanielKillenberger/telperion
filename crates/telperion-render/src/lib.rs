@@ -36,6 +36,8 @@ mod trace;
 mod view;
 #[cfg(target_arch = "wasm32")]
 mod web;
+#[cfg(test)]
+mod whole_tree;
 mod wood;
 
 pub use buffer::Region;
