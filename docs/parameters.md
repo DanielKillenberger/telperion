@@ -1398,6 +1398,16 @@ A dead frond's length as a share of a living one's, rachis and leaflets alike. A
 - dormant: `skirtFronds` zero, or `rosetteFronds` zero
 - blend: linear; dial: `skirt_length` (a dead frond's length as a share of a living one's; at zero no dead frond is drawn), window its bounds (validated bound), steps 0.05 and 0.15
 
+### `/canopy/rosetteYear`
+
+Fronds a rosette makes a year (fn-270 R5b): its crown's fronds are aged by their place on the spiral, this year's emerging over its stem's elongation and unfolding by its expansion, the oldest passing into the skirt and out of it as new ones emerge above. At zero the crown stands as it is all year.
+
+- real, fronds a year, [0, 128], default 0
+- read by plan, expand; removed growth path: as the direct build
+- checked: Rosette site, rank 23, as invalid input `rosette year`
+- dormant: `rosetteFronds` zero
+- blend: linear; dial: `rosette_year` (fronds a rosette makes a year; at zero the crown stands as it is all year), window its bounds (validated bound), steps 10 and 26
+
 ### `/canopy/maxInstances`
 
 Hard total budget. Exceeding it returns an error, never partial foliage.
@@ -1743,13 +1753,13 @@ The blue channel of `leaf_back_red`.
 
 ### `/material/leafDeadRed`
 
-The colour a dead frond has aged to, a linear reflectance per channel on the leaf faces' scale, both faces alike, shown only on the fronds a rosette keeps below its living crown. Raising a channel pushes the skirt toward it.
+The colour a leaf turns as it dies, a linear reflectance per channel on the leaf faces' scale, both faces alike: the dead fronds a rosette keeps below its living crown, and a leaf colouring in autumn before it falls (fn-270 R5c), which a tree drawn within its year moves toward. Raising a channel pushes either toward it.
 
 - real, reflectance, [0, 1], default 0.3
 - read by draw; removed growth path: as the direct build
 - checked: Material site, rank 87, as invalid input `leaf dead red`
-- dormant: no dead frond (`canopy.skirtFronds` zero)
-- blend: linear; dial: `material_leaf_dead_red` (the red in the colour a dead frond has aged to), window its bounds (validated bound), steps 0.05 and 0.1
+- dormant: no dead frond (`canopy.skirtFronds` zero) and no leaf that falls
+- blend: linear; dial: `material_leaf_dead_red` (the red in the colour a leaf turns as it dies), window its bounds (validated bound), steps 0.05 and 0.1
 
 ### `/material/leafDeadGreen`
 
@@ -1758,8 +1768,8 @@ The green channel of `leaf_dead_red`.
 - real, reflectance, [0, 1], default 0.25
 - read by draw; removed growth path: as the direct build
 - checked: Material site, rank 88, as invalid input `leaf dead green`
-- dormant: no dead frond (`canopy.skirtFronds` zero)
-- blend: linear; dial: `material_leaf_dead_green` (the green in the colour a dead frond has aged to), window its bounds (validated bound), steps 0.05 and 0.1
+- dormant: no dead frond (`canopy.skirtFronds` zero) and no leaf that falls
+- blend: linear; dial: `material_leaf_dead_green` (the green in the colour a leaf turns as it dies), window its bounds (validated bound), steps 0.05 and 0.1
 
 ### `/material/leafDeadBlue`
 
@@ -1768,8 +1778,8 @@ The blue channel of `leaf_dead_red`.
 - real, reflectance, [0, 1], default 0.18
 - read by draw; removed growth path: as the direct build
 - checked: Material site, rank 89, as invalid input `leaf dead blue`
-- dormant: no dead frond (`canopy.skirtFronds` zero)
-- blend: linear; dial: `material_leaf_dead_blue` (the blue in the colour a dead frond has aged to), window its bounds (validated bound), steps 0.05 and 0.1
+- dormant: no dead frond (`canopy.skirtFronds` zero) and no leaf that falls
+- blend: linear; dial: `material_leaf_dead_blue` (the blue in the colour a leaf turns as it dies), window its bounds (validated bound), steps 0.05 and 0.1
 
 ### `/material/bloomFrontRed`
 

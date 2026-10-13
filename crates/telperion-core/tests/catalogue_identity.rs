@@ -191,6 +191,14 @@
 //! them and the palm's elongation and frond expansion (R5b): with those
 //! rows as they were and the fields stripped, all four were the last
 //! pins to the bit.
+//! fn-270 R5b and R5c re-pinned all four for the canopy's new neutral
+//! `rosetteYear` row, the palm's 18 fronds a year, each named autumn
+//! colour in the material's leaf-dead rows and the spruce's needle
+//! lifespan left at never: with the value files as the last pins read
+//! them and `rosette_year: 0.0` and `"rosetteYear":0.0` stripped from the
+//! text, the family, walk and override digests were each the last pins
+//! to the bit; the refusal digest pairs rows by index, so the new row
+//! re-paired it.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -226,7 +234,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        6_870_557_101_620_701_984,
+        7_724_544_217_873_900_830,
         "{}",
         digest(&text)
     );
@@ -270,7 +278,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        12_833_529_794_047_578_730,
+        13_646_640_947_156_371_040,
         "{}",
         digest(&text)
     );
@@ -295,7 +303,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        3_398_381_730_884_683_192,
+        11_861_194_845_384_424_855,
         "{}",
         digest(&text)
     );
@@ -358,7 +366,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        3_707_872_672_972_690_781,
+        5_046_856_106_460_659_370,
         "{}",
         digest(&text)
     );
