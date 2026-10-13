@@ -36,6 +36,6 @@ Device, per preset at its age (ledger, MiB; the drawn tree here is the dress onl
 
 "Made again" is host seconds over a run's two resumes (allocation and recording the cycle); the zero-fill runs on the queue inside the next cycle. Growing on beside a drawn tree peaks up to 25% over one call (Telperion 5,603 against 4,485 MiB), past the 4 GiB native default on Laurelin and Telperion: input to R4 (task 3). Tables are sized once from the horizon's hint, so a pause at H/2 holds the full tables.
 
-## Open for the host
+## Host ruling (2026-10-13, spec R2, 3be8a7cf8)
 
-The hierarchy's shape, counts and current lists (Telperion 249 MiB) stay resident between calls, as do retirement's per-cycle columns inside `ret`; R2 asks the hierarchy partitions and verdict columns dropped and rebuilt. See the worker's NEEDS_HUMAN.
+Option (a): the hierarchy's shape, counts and current lists are state and stay resident between calls (Telperion 249 MiB); no from-scratch rebuild. The split of `ret`'s per-cycle columns and the continuation peak over 4 GiB go to task 3 (R4). Owned parameters for the Wasm entry are task 5's, with no `unsafe`.

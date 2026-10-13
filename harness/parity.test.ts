@@ -30,11 +30,11 @@ async function wasmBuild(id: string): Promise<[number, Buffer]> {
   const core = instance.exports as Core;
   const request = new TextEncoder().encode(JSON.stringify({ family: id, outputs: { structure: true } }));
   expect(core.request_alloc(request.length)).toBe(0);
-  new Uint8Array(core.memory.buffer, core.request_ptr(), request.length).set(request);
+  new Uint8Array(core.memory.buffer, core.request_ptr() >>> 0, request.length).set(request);
   const status = core.build();
   if (status !== 0) return [status, Buffer.alloc(0)];
   return [0, Buffer.concat([6, 7].map(slot => Buffer.from(new Uint8Array(
-    core.memory.buffer, core.buffer_ptr(slot), core.buffer_len(slot) * (slot === 6 ? 8 : 4)))))];
+    core.memory.buffer, core.buffer_ptr(slot) >>> 0, core.buffer_len(slot) * (slot === 6 ? 8 : 4)))))];
 }
 
 // The engine's transcendentals are the pinned libm the core reads (fn-11;
