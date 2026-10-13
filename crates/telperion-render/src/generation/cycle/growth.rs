@@ -32,8 +32,11 @@ pub(in crate::generation) struct GrowthState {
     scale: f32,
     /// The bytes the device may hold while it grows and draws.
     budget: u64,
-    /// The build, paused; none once a failure spent it.
+    /// The build, paused; none once a failure while it grew spent it.
     growing: Option<Growing>,
+    /// Whether a draw failed (a fault, the budget, the device lost): the
+    /// state is spent, as a failed growth spends it.
+    failed: std::cell::Cell<bool>,
 }
 
 /// The engine's refusal as the device's, by its name.
@@ -66,18 +69,29 @@ impl GrowthState {
         let growing = Growing::begin(gpu, &k.build, &t, &tables, sizes).await?;
         let growing = growing.paused(gpu, (&t, &tables)).await?;
         let (rows, scale) = (rows(&growth.rows), growth.scale as f32);
-        Ok(Self { tables, t, rows, scale, budget, growing: Some(growing) })
+        Ok(Self { tables, t, rows, scale, budget, growing: Some(growing), failed: Default::default() })
     }
 
-    /// The whole years grown.
+    /// The whole years grown; none once spent.
     pub(in crate::generation) fn committed(&self) -> Option<u32> {
-        self.growing.as_ref().map(|g| g.committed)
+        self.usable().ok().map(|g| g.committed)
+    }
+
+    /// The paused build; refused by name once a failure spent it.
+    fn usable(&self) -> Result<&Growing> {
+        self.growing.as_ref().filter(|_| !self.failed.get()).ok_or_else(spent)
+    }
+
+    /// `result`, its failure spending the state.
+    fn latched<T>(&self, result: Result<T>) -> Result<T> {
+        self.failed.set(self.failed.get() || result.is_err());
+        result
     }
 
     /// The tree grown to `age` years: every whole cycle to its ceiling,
     /// none where `age` falls within the last year grown, then paused.
     pub(in crate::generation) async fn grow_to(&mut self, gpu: &Gpu, k: &Kernels, age: f64) -> Result<()> {
-        let committed = self.growing.as_ref().ok_or_else(spent)?.committed;
+        let committed = self.usable()?.committed;
         let to = admitted(committed, self.t.age, age).map_err(named)?;
         if to == committed {
             return Ok(());
@@ -93,7 +107,7 @@ impl GrowthState {
     /// The tree at the age grown, settled and laid from the paused build,
     /// which it leaves as it was.
     pub(super) async fn settled(&self, gpu: &Gpu, k: &Kernels) -> Result<Settled> {
-        let g = self.growing.as_ref().ok_or_else(spent)?;
+        let g = self.usable()?;
         let _capped = gpu.ledger.capped(self.budget);
         let s = settle(gpu, (&k.build, &k.settle), (&g.b, &self.t), (&self.t.settle_pa, SettleTo::Laid)).await?;
         if s.error[0] != 0 {
@@ -103,17 +117,22 @@ impl GrowthState {
     }
 
     /// The tree drawn at `at`, within the last year grown: its drawn
-    /// records and its trunk's measures, a snapshot of its own.
+    /// records and its trunk's measures, a snapshot of its own. An `at`
+    /// it cannot draw is refused by name; a draw that fails spends the
+    /// state, and every snapshot drawn before stays whole.
     pub(in crate::generation) async fn settle(&self, gpu: &Gpu, k: &Kernels, at: f64) -> Result<(Dressed, Trunk)> {
-        let committed = self.growing.as_ref().ok_or_else(spent)?.committed;
+        let committed = self.usable()?.committed;
         let fraction = within_year(committed, at).map_err(named)? as f32;
-        let s = self.settled(gpu, k).await?;
-        let _capped = gpu.ledger.capped(self.budget);
-        let planned = chains::plan(gpu, (&k.chains, &k.build.hier.scan), &s).await?;
-        let at = Rows { rows: &self.rows, age: committed, scale: self.scale, fraction };
-        let dressed = dress(gpu, &k.drawn, (&s, &planned), &at)?;
-        let measured = trunk(gpu, &k.drawn, &dressed).await?;
-        Ok((dressed, measured))
+        let drawn = async {
+            let s = self.settled(gpu, k).await?;
+            let _capped = gpu.ledger.capped(self.budget);
+            let planned = chains::plan(gpu, (&k.chains, &k.build.hier.scan), &s).await?;
+            let at = Rows { rows: &self.rows, age: committed, scale: self.scale, fraction };
+            let dressed = dress(gpu, &k.drawn, (&s, &planned), &at)?;
+            let measured = trunk(gpu, &k.drawn, &dressed).await?;
+            Ok((dressed, measured))
+        };
+        self.latched(drawn.await)
     }
 }
 

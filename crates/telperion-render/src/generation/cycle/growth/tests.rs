@@ -55,6 +55,9 @@ fn a_tree_grown_on_on_the_device_is_the_tree_grown_at_once() {
         };
         let seed = g.request.seed;
         let mut whole = GrowthState::sized_now(&gpu, &k, &growth, (seed, h));
+        // Nothing grown yet: refused by name, the state left to grow on.
+        let unborn = block(whole.settle(&gpu, &k, 0.0)).err().expect("no tree before a year");
+        assert!(unborn.to_string().contains("at: "), "{unborn}");
         block(whole.grow_to(&gpu, &k, f64::from(h))).expect("grown");
         let at_once = digest(&gpu, &block(whole.settled(&gpu, &k)).expect("settled"));
         drop(whole);
@@ -150,6 +153,16 @@ fn a_lit_tree_grows_on_beside_the_tree_drawn() {
     let refused = block(s.grow_to(&gpu, &k, 7.0)).expect_err("no room beside the tree drawn");
     assert!(refused.to_string().contains("the device budget"), "{refused}");
     assert_eq!(s.committed(), None);
+    assert_eq!(read_words(&gpu, &drawn.waves[1].buffer, 0, 64).expect("the tree drawn"), before);
+    // A draw with no room beside the tree drawn spends the state too.
+    let mut s = block(GrowthState::begin(&gpu, &k, &growth, (7, 12), budget)).expect("begun");
+    block(s.grow_to(&gpu, &k, 6.0)).expect("grown");
+    s.budget = gpu.ledger.live() + 1;
+    let refused = block(s.settle(&gpu, &k, 6.0)).err().expect("no room to draw");
+    assert!(refused.to_string().contains("the device budget"), "{refused}");
+    let spent = |e: crate::RenderError| assert!(e.to_string().contains("state.failed"), "{e}");
+    spent(block(s.grow_to(&gpu, &k, 6.0)).expect_err("spent"));
+    spent(block(s.settle(&gpu, &k, 6.0)).err().expect("spent"));
     assert_eq!(read_words(&gpu, &drawn.waves[1].buffer, 0, 64).expect("the tree drawn"), before);
 }
 

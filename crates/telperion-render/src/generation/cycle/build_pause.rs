@@ -36,6 +36,8 @@ impl Growing {
         };
         let words = super::super::io::read_async(gpu, &run.0.census, 4 * c::WORDS as u64).await?;
         self.b.counted(bytemuck::cast_slice(&words));
+        // A paused build grows on: a settle keeps what its next cycle reads.
+        self.b.goes_on = true;
         drop(run);
         self.b = self.b.scratch(gpu, (t, tables), None)?;
         super::super::io::complete(gpu).await?;

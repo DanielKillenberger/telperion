@@ -135,6 +135,8 @@ fn a_request_the_grower_cannot_meet_is_refused() {
     for at in [7.0, 8.01, f64::NAN] {
         assert_eq!(refused(p.settle_at(at).map(drop)), "at", "{at}");
     }
+    let unborn = Paused::begin(&species, request(12, 3, 0.0), Retiring::AtAge, false).unwrap();
+    assert_eq!(refused(unborn.settle_at(0.0).map(drop)), "at", "nothing grown yet");
     assert_eq!(p.digest(), before);
     assert_eq!(admitted(8, 12, 7.25).unwrap(), 8);
     assert_eq!(admitted(8, 12, 8.0).unwrap(), 8);
@@ -164,6 +166,7 @@ fn a_growth_that_failed_is_spent() {
     assert!(spent(p.grow_to(r.age)));
     assert!(spent(p.settle().map(drop)));
     assert!(spent(p.settle_at(f64::from(p.committed())).map(drop)));
+    assert!(spent(p.settle_at(f64::NAN).map(drop)), "spent before the age is judged");
 }
 
 /// R2a and R2a': 40, 40.25, 40.5, 41 commits cycle 41 once, at 40.25, and

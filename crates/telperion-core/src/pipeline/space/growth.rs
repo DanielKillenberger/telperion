@@ -75,6 +75,7 @@ pub fn begin(params: &Params, seed: u32, horizon: f64) -> Result<GrowthState<'_>
 /// before anything moves; a failure while it grows spends the state.
 pub fn grow_to(state: &mut GrowthState, age: f64) -> Result<()> {
     let p = &mut state.paused;
+    p.usable().map_err(engine)?;
     let to = admitted(p.committed(), p.horizon(), age).map_err(engine)?;
     p.grow_to(to).map_err(engine)
 }

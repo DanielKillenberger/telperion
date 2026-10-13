@@ -73,8 +73,12 @@ pub fn presented(tree: &mut Structure, committed: u32, at: f64) -> Result<()> {
 }
 
 /// How far into the last year grown, `committed`, `at` stands: in (0, 1];
-/// an `at` outside that year refused by name.
+/// an `at` outside that year, or before any year is grown, refused by
+/// name.
 pub fn within_year(committed: u32, at: f64) -> Result<f64> {
+    if committed == 0 {
+        return refuse("at", "a tree is drawn once it has grown a year");
+    }
     let fraction = at - (f64::from(committed) - 1.0);
     if !(fraction > 0.0 && fraction <= 1.0) {
         return refuse("at", "a tree is drawn within the last year grown");
@@ -119,7 +123,7 @@ impl<'a> Paused<'a> {
     }
 
     /// Refused by name where a failure left the grower spent.
-    fn usable(&self) -> Result<()> {
+    pub fn usable(&self) -> Result<()> {
         match self.failed {
             true => refuse("state.failed", "a growth that failed cannot go on or be drawn"),
             false => Ok(()),
@@ -171,6 +175,7 @@ impl<'a> Paused<'a> {
     /// The tree at the age grown drawn at `at` within its last year
     /// (`presented`), `at` checked before anything is settled.
     pub fn settle_at(&self, at: f64) -> Result<Structure> {
+        self.usable()?;
         within_year(self.committed, at)?;
         let mut tree = self.settle()?;
         presented(&mut tree, self.committed, at)?;
