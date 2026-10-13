@@ -111,7 +111,7 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
             axis(point, radial, tangent, p),
             tangent,
             normal,
-            CanopyParams { size, ..p },
+            (CanopyParams { size, ..p }, super::rosette::leaflets(&p)),
             rng,
             into,
         )?;

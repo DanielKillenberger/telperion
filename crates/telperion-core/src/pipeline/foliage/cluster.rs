@@ -101,7 +101,7 @@ pub(super) fn clothe(
             let axis = station::axis(at, radial, heading, p);
             let (share, colour) = unfolded.leaf(true, key, j);
             let from = out.leaves.len();
-            rosette::fan(at, axis, heading, radial, CanopyParams { size: p.size * share, ..p }, &mut rng, out)?;
+            rosette::fan(at, axis, heading, radial, (CanopyParams { size: p.size * share, ..p }, rosette::leaflets(&p)), &mut rng, out)?;
             // A colouring leaf is drawn as one withering (fn-270 R5c).
             if colour > 0.0 {
                 out.wither(from);

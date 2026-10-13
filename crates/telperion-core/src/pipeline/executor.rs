@@ -54,6 +54,16 @@ pub struct Growth {
     pub rows: Vec<ConvertRow>,
 }
 
+impl Growth {
+    /// The year the tree is drawn in, `fraction` into its last, by its
+    /// seed's PA, the first (`Tree::year`; fn-270 R5b).
+    pub fn year(&self, fraction: f64) -> Option<crate::tree::Year> {
+        let s = telperion_space::unfold::Season::of(self.species.states.first()?);
+        let age = f64::from(self.request.age) - 1.0 + fraction.min(1.0);
+        Some(crate::tree::Year { age, budburst: s.budburst, elongation: s.elongation, expansion: s.expansion })
+    }
+}
+
 /// The family read for another executor (`Growth`). A family with no
 /// engine species is refused by name.
 pub fn growth(family: &Family) -> Result<Growth> {

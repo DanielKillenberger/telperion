@@ -219,8 +219,10 @@ fn every_preset_stations_its_runs_as_the_cpu_does() {
 
 /// Every preset whose canopy stands a rosette: the device places every
 /// leaflet where the CPU does, in the CPU's order (apex, frond, leaflet),
-/// within the lineage tolerance, and withers the same ones. The draws
-/// are each executor's own, as a station's are.
+/// within the lineage tolerance, and withers the same ones, at the whole
+/// age and with its crown drawn within its year (fn-270 R5b: a frond
+/// emerging, expanding, leaving the living crown and fading off the
+/// skirt). The draws are each executor's own, as a station's are.
 #[test]
 fn every_rosette_is_placed_as_the_cpu_places_it() {
     let Some(gpu) = crate::generation::test_gpu() else {
@@ -231,31 +233,39 @@ fn every_rosette_is_placed_as_the_cpu_places_it() {
         if f.canopy.rosette_fronds == 0 {
             continue;
         }
-        let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
-        let gen = Generator::new(&renderer).unwrap();
-        let kit = gen.kit();
-        let built = pollster::block_on(super::build::build(&gpu, &gen, &kit.kernels, &kit.tools, &f)).unwrap();
-        let resident = built.prepared.resident.as_ref().unwrap();
-        let leaves = pollster::block_on(io::read_leaves_async(&gpu, resident.leaves.buffer(), resident.count)).unwrap();
-        let mine = built.prepared.mesh.foliage.instances.reference;
-        let theirs = executor::grow(&f).unwrap().expansion().unwrap().mesh().unwrap().foliage.instances;
-        assert_eq!(leaves.len(), theirs.leaves.len(), "{id}: leaves");
-        let height = theirs.reference.extent.y.max(1e-9);
-        let (mut apart, mut withered) = (0.0f64, 0usize);
-        for (a, b) in leaves.iter().zip(&theirs.leaves) {
-            apart = apart.max(mine.position(*a).distance(theirs.reference.position(*b)) / height);
-            withered += usize::from(telperion_core::foliage::withered(*a) != telperion_core::foliage::withered(*b));
+        for fraction in [1.0, 0.3, 0.8] {
+            crown_agrees(&gpu, &id, &f, fraction);
         }
-        // The sizes are drawn on each executor's stream: alike in the mean.
-        let mean = |s: &mut dyn Iterator<Item = f64>| s.sum::<f64>() / leaves.len() as f64;
-        let size = mean(&mut leaves.iter().map(|l| mine.scale(*l)));
-        let theirs_size = mean(&mut theirs.leaves.iter().map(|l| theirs.reference.scale(*l)));
-        let sized = (size / theirs_size - 1.0).abs();
-        println!("{id} {}: {} leaves, apart {apart:e} of the height, withering differs on {withered}, mean size apart {sized:e}", age(), leaves.len());
-        assert_eq!(withered, 0, "{id}: withered");
-        assert!(apart <= ROSETTE_APART, "{id}: {apart}");
-        assert!(sized <= 0.02, "{id}: mean size {size} against {theirs_size}");
     }
+}
+
+fn crown_agrees(gpu: &crate::Gpu, id: &str, f: &Family, fraction: f64) {
+    let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    let kit = gen.kit();
+    let built = pollster::block_on(super::build::crowned(gpu, (&gen, &kit.kernels, &kit.tools), f, fraction)).unwrap();
+    let resident = built.prepared.resident.as_ref().unwrap();
+    let leaves = pollster::block_on(io::read_leaves_async(gpu, resident.leaves.buffer(), resident.count)).unwrap();
+    let mine = built.prepared.mesh.foliage.instances.reference;
+    let mut tree = executor::grow(f).unwrap().expansion().unwrap().tree().clone();
+    tree.year = executor::growth(f).unwrap().year(fraction);
+    let theirs = executor::expand(tree, f).unwrap().mesh().unwrap().foliage.instances;
+    assert_eq!(leaves.len(), theirs.leaves.len(), "{id} at {fraction}: leaves");
+    let height = theirs.reference.extent.y.max(1e-9);
+    let (mut apart, mut withered) = (0.0f64, 0usize);
+    for (a, b) in leaves.iter().zip(&theirs.leaves) {
+        apart = apart.max(mine.position(*a).distance(theirs.reference.position(*b)) / height);
+        withered += usize::from(telperion_core::foliage::withered(*a) != telperion_core::foliage::withered(*b));
+    }
+    // The sizes are drawn on each executor's stream: alike in the mean.
+    let mean = |s: &mut dyn Iterator<Item = f64>| s.sum::<f64>() / leaves.len() as f64;
+    let size = mean(&mut leaves.iter().map(|l| mine.scale(*l)));
+    let theirs_size = mean(&mut theirs.leaves.iter().map(|l| theirs.reference.scale(*l)));
+    let sized = (size / theirs_size - 1.0).abs();
+    println!("{id} {} at {fraction}: {} leaves, apart {apart:e} of the height, withering differs on {withered}, mean size apart {sized:e}", age(), leaves.len());
+    assert_eq!(withered, 0, "{id} at {fraction}: withered");
+    assert!(apart <= ROSETTE_APART, "{id} at {fraction}: {apart}");
+    assert!(sized <= 0.02, "{id} at {fraction}: mean size {size} against {theirs_size}");
 }
 
 /// The farthest a device leaflet may stand from the CPU's, a share of the

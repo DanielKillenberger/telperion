@@ -110,6 +110,18 @@ pub(super) async fn build(
     tools: &Tools,
     family: &Family,
 ) -> Result<Built> {
+    crowned(gpu, (gen, k, tools), family, 1.0).await
+}
+
+/// `build`, its frond crowns drawn `fraction` into the last year (fn-270
+/// R5b): the whole year's for a build, part of it where a test draws
+/// the crown within its year on the whole tree's wood.
+pub(super) async fn crowned(
+    gpu: &Gpu,
+    (gen, k, tools): (&Generator, &Kernels, &Tools),
+    family: &Family,
+    fraction: f64,
+) -> Result<Built> {
     // Every buffer the build makes is held to the budget before it is
     // made, a move's new tables beside its old (`Ledger::capped`).
     let _capped = gpu.ledger.capped(gen.device_budget());
@@ -159,7 +171,7 @@ pub(super) async fn build(
         true => Some(Organ::of(&x)?),
         false => None,
     };
-    let station = station_rows(&x, segments, organ.as_ref().map(Organ::rows));
+    let station = station_rows(&x, segments, organ.as_ref().map(Organ::rows), growth.year(fraction));
     let stationer = &tools.stationer;
     let device = stage(gpu, &mut t.stations, async || {
         stationer.stations(gpu, &swept, ids, station).await

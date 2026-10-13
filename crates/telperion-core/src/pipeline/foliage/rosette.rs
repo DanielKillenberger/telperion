@@ -153,14 +153,35 @@ pub(super) fn slots(p: &CanopyParams, crown: Crown) -> usize {
 /// whole size frond `serial` stands at, a frond of this year's expanding
 /// from its emergence. A tree no engine grew makes none.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Crown {
+pub struct Crown {
     year: Option<crate::tree::Year>,
     per_year: f64,
 }
 
 impl Crown {
     pub(crate) fn of(tree: &Tree, p: &CanopyParams) -> Self {
-        Self { year: tree.year, per_year: p.rosette_year }
+        Self::new(tree.year, p)
+    }
+
+    /// The crown of a tree drawn in `year` (`executor::year`), for an
+    /// executor that holds no tree.
+    pub fn new(year: Option<crate::tree::Year>, p: &CanopyParams) -> Self {
+        Self { year, per_year: p.rosette_year }
+    }
+
+    /// The rows the device draws the crown by (`stations.wgsl`'s
+    /// `rosette`): the fronds made, a year's, the whole years before the
+    /// last (negative where no engine grew the tree) and the days into
+    /// it; its stem's budburst, elongation and expansion, and the fronds
+    /// it draws past its living and dead ones (`slots`).
+    pub fn rows(&self) -> [[f64; 4]; 2] {
+        let extra = f64::from(u8::from(self.made().fract() > 0.0));
+        match (self.clock(), self.year) {
+            (Some((whole, tau)), Some(y)) => {
+                [[self.made(), self.per_year, whole, tau], [y.budburst, y.elongation, y.expansion, extra]]
+            }
+            _ => [[0.0, self.per_year, -1.0, 0.0], [0.0; 4]],
+        }
     }
 
     /// The years grown before the last, and how far into it.
@@ -171,7 +192,7 @@ impl Crown {
     }
 
     /// Fronds made: whole years' and this year's emerged.
-    pub(crate) fn made(&self) -> f64 {
+    pub fn made(&self) -> f64 {
         let (Some((whole, tau)), Some(y)) = (self.clock(), self.year) else {
             return 0.0;
         };
@@ -183,7 +204,7 @@ impl Crown {
     }
 
     /// The share of its whole size frond `serial` stands at.
-    pub(crate) fn unfolded(&self, serial: f64) -> f64 {
+    pub fn unfolded(&self, serial: f64) -> f64 {
         let (Some((whole, tau)), Some(y)) = (self.clock(), self.year) else {
             return 1.0;
         };
@@ -288,7 +309,7 @@ pub(super) fn clothe(
                 heading,
                 radial,
                 rosette.axis,
-                frond.canopy,
+                (frond.canopy, per),
                 &mut rng,
                 out,
             )?;
@@ -305,18 +326,19 @@ pub(super) fn clothe(
 
 #[cfg(feature = "geometry")]
 /// The matrices one placement stands for: one where the grouping is off, else
-/// `leaflet_count` leaflets along the rachis that leaves `point` on `heading`
-/// (`leaflet::leaflets`), each turned in the frond's plane.
+/// `count` leaflets along the rachis that leaves `point` on `heading`
+/// (`leaflet::leaflets`), each turned in the frond's plane. The count is
+/// the family's (`leaflets`), so a frond drawn at no size still stands its
+/// leaflets (fn-270 R5b).
 pub(super) fn fan(
     point: Vec3,
     heading: Vec3,
     tangent: Vec3,
     normal: Vec3,
-    p: CanopyParams,
+    (p, count): (CanopyParams, usize),
     rng: &mut Rng,
     out: &mut Instances,
 ) -> Result<()> {
-    let count = leaflets(&p);
     if count == 1 {
         out.push(&matrix(point, heading, tangent, normal, p, rng)?);
         return Ok(());

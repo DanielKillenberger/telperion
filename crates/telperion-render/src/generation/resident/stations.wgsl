@@ -37,14 +37,19 @@ struct Cfg {
     // Whether some wood sheds its leaves by age (fn-248): every station
     // keeps its leaf where none does.
     retains: u32,
-    _c: u32,
+    // The rosette's divergence, a fixed-point share of a turn
+    // (`stations.rs`'s `rosette_turn`).
+    turn: u32,
     // The blooms' rows (`bloom.wgsl`).
     flower: Flower,
     // The rosette's rows (`stations.rs`'s `rosette_rows`): fronds, skirt
     // fronds, divergence, depth; pitch, its spread, the skirt's pitch and
     // length; leaflets, rachis length, arch, leaflet pitch; terminal share,
-    // spines, their share and pitch.
-    rosette: array<vec4<f32>, 4>,
+    // spines, their share and pitch; the crown's year (`Crown::rows`):
+    // fronds made, a year's, whole years before the last (negative where
+    // no engine grew it), days into the last; budburst, elongation,
+    // expansion, and the fronds it draws past its living and dead.
+    rosette: array<vec4<f32>, 6>,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -131,10 +136,67 @@ fn fine(i: u32) -> bool {
     return (f & MADE) != 0u && (f & FINE) != 0u && (f & BOOT) == 0u;
 }
 
-// The fronds of each rosette, living and dead; none where the canopy
-// stands no rosette.
+// The fronds of each rosette, living and dead, and within the year the
+// one leaving as a new one emerges (`rosette::slots`); none where the
+// canopy stands no rosette.
 fn fronds() -> u32 {
-    return u32(cfg.rosette[0].x) + u32(cfg.rosette[0].y);
+    return u32(cfg.rosette[0].x) + u32(cfg.rosette[0].y) + u32(cfg.rosette[5].w);
+}
+
+// The logistic course over a span (`unfold::course`, `unfold::run`).
+fn course(x: f32) -> f32 {
+    if x <= 0.0 {
+        return 0.0;
+    }
+    if x >= 1.0 {
+        return 1.0;
+    }
+    let lo = 1.0 / (1.0 + exp(5.0));
+    let hi = 1.0 / (1.0 + exp(-5.0));
+    return (1.0 / (1.0 + exp(-10.0 * (x - 0.5))) - lo) / (hi - lo);
+}
+
+fn run(t: f32, days: f32) -> f32 {
+    if days > 0.0 {
+        return course(t / days);
+    }
+    return select(0.0, 1.0, t > 0.0);
+}
+
+// The share of its whole size frond `serial` stands at, one of this
+// year's expanding from its emergence (`Crown::unfolded`).
+fn unfolded_frond(serial: i32) -> f32 {
+    let y = cfg.rosette[4];
+    let s = cfg.rosette[5];
+    let fresh = f32(serial) + 1.0 - y.y * y.z;
+    if y.z < 0.0 || fresh <= 0.0 || y.y <= 0.0 {
+        return 1.0;
+    }
+    let emerges = s.x + s.y * min(fresh / y.y, 1.0);
+    return run(y.w - emerges, s.z);
+}
+
+// `a` a share `t` of the way to `b` (`rosette::fronds`' mix).
+fn toward(a: f32, b: f32, t: f32) -> f32 {
+    return a + (b - a) * t;
+}
+
+// The first node of the stem an apex ends: what keys its fronds, which
+// stays as the stem grows (`rosette::stem_key`).
+fn stem_first(apex: u32) -> u32 {
+    var first = apex;
+    // cap: the nodes; no stem is longer.
+    let cap = arrayLength(&nodes) / NW;
+    for (var n = 0u; n < cap; n++) {
+        let p = parent(first);
+        // The root bears every stem: never stepped onto.
+        let root = parent(p) == NONE || parent(p) == p;
+        if p == NONE || p == first || root || (word(p, 9u) & STEM) == 0u {
+            break;
+        }
+        first = p;
+    }
+    return first;
 }
 
 // A stem's apex, which a rosette crowns (`Tree::stem_apices`): a drawn
@@ -583,36 +645,45 @@ fn rosette(apex: u32, station0: u32, g: u32) {
     let living = u32(r[0].x);
     let oldest = f32(max(living, 1u) - 1u);
     let steps = max(oldest, 1.0);
+    let total = r[0].x + r[0].y;
     let leaflets = u32(r[2].x);
-    let stream = mix32(word(apex, 25u) ^ KEY_ROSETTE.x);
-    for (var k = 0u; k < fronds(); k++) {
-        let turn = f32(k) * r[0].z;
+    let made = r[4].x;
+    let newest = i32(ceil(made)) - 1;
+    let stream = mix32(word(stem_first(apex), 25u) ^ KEY_ROSETTE.x);
+    // Each frond at its place on the spiral, newest first, by its serial
+    // among the fronds made (`rosette::fronds`).
+    for (var i = 0u; i < fronds(); i++) {
+        let serial = newest - i32(i);
+        let k = max(made - 1.0 - f32(serial), 0.0);
+        let turn = f32(u32(serial) * cfg.turn) * (6.283185307179586 / 4294967296.0);
         let radial = normal * cos(turn) + binormal * sin(turn);
-        var pitch = r[1].z;
-        var depth = r[0].w * (f32(k) / steps);
-        var share = r[1].w;
-        if k < living {
-            var age = 0.0;
-            if oldest > 0.0 {
-                age = f32(k) / oldest;
-            }
-            pitch = r[1].x + r[1].y * age;
-            depth = r[0].w * age;
-            share = 1.0;
+        var age = 0.0;
+        if oldest > 0.0 {
+            age = min(k, oldest) / oldest;
         }
+        // From living to dead over its last living place, and faded over
+        // the skirt's last.
+        var turned = 0.0;
+        if r[0].y > 0.0 {
+            turned = clamp(k - oldest, 0.0, 1.0);
+        }
+        let pitch = toward(r[1].x + r[1].y * age, r[1].z, turned);
+        let depth = toward(r[0].w * age, r[0].w * (max(k, r[0].x) / steps), turned);
+        let length = toward(1.0, r[1].w, turned);
+        let share = length * unfolded_frond(serial) * clamp(total - k, 0.0, 1.0);
         let heading = normalize(axis * cos(pitch) + radial * sin(pitch));
-        let s = (g + k) * GW;
+        let s = (g + i) * GW;
         put4(s, vec4<f32>(at - axis * depth, r[2].y * share));
         put4(s + 4u, vec4<f32>(radial, share));
         put4(s + 8u, vec4<f32>(heading, r[3].z));
         put4(s + 12u, vec4<f32>(axis, 0.0));
         put4(s + 16u, vec4<f32>(r[2].z, r[2].w, r[3].x, r[3].w));
-        put4(s + 20u, vec4<f32>(f32(k >= living), -2.0, r[3].y, 0.0));
+        put4(s + 20u, vec4<f32>(f32(turned >= 0.5), -2.0, r[3].y, 0.0));
         segs[s + 15u] = NONE;
-        segs[s + 24u] = station0 + k * leaflets;
+        segs[s + 24u] = station0 + i * leaflets;
         segs[s + 25u] = leaflets;
         segs[s + 26u] = 0u;
-        segs[s + 27u] = mix32(stream + (k + 1u) * 0x9e3779b9u);
+        segs[s + 27u] = mix32(stream + (u32(serial) + 1u) * 0x9e3779b9u);
         for (var c = 0u; c < 4u; c++) {
             segs[s + 28u + c] = 0u;
         }
