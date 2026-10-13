@@ -14,3 +14,7 @@
 - **Hindered:** `rustfmt` on a file that declares modules (`generation.rs`, `lib.rs`) follows the `mod` lines and formatted 93 other render files, `generation/` included, which the dispatch put off-limits. The dcg hook refuses `git checkout --` and `git restore`, so each file was written back from `git show HEAD:<path>` through a script and the two edits reapplied.
 - **Cost:** about 5 minutes and one near-miss on the other worker's tree.
 - **Would remove it:** R7's one formatting commit; until then `rustfmt --config skip_children=true` (nightly only) or formatting leaf files only.
+- **Doing:** the end checks, `npm test` (declared 10 GB after an OOM kill at 6 GB) and then the gate at 20 GB.
+- **Hindered:** no heavy job was running, but the desk had 12 to 13 GB available against a 6 GB reserve, so room sat at 6 to 7 GB from 19:52 to 20:23 and neither check could be admitted. The gate's 20 GB needs 26 GB available, which the desk has not had all evening. The wrapper also admits one job at a time, so a 5 GB job queued behind the 10 GB one until that one was stopped.
+- **Cost:** about 35 minutes of waiting on `npm test`; the gate was never started.
+- **Would remove it:** the host running the gate and `npm test` once memory frees up, or the owner freeing memory on the desk. Admission skipping past a job that does not fit to one that does would also help. Local setup, reported only.
