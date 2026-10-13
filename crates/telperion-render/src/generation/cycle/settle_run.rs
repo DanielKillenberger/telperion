@@ -188,7 +188,7 @@ pub(super) async fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Buil
     let caps = b.state.caps;
     let l = &layout;
     let words = [
-        h.axes, widest(gpu).0, 0, 0, caps.axes, caps.units, caps.phyts, t.age, l.sa, l.sp, l.su, 0, l.at_a, l.at_p,
+        h.axes, widest(gpu).0, 0, 0, caps.axes, caps.units, caps.phyts, b.age(), l.sa, l.sp, l.su, 0, l.at_a, l.at_p,
         l.at_u, l.at_f, 0, 0, 0, 0, 0, 0, 0, l.at_l, h.next, h.woken, flags, 0, l.sl, 0, l.kfill(), b.retire.rec_cap.max(1),
     ];
     cfg.copy_from_slice(&words);
@@ -227,7 +227,7 @@ pub(super) async fn settle(gpu: &Gpu, (kit, k): (&Kit, &Kernels), (b, t): (&Buil
     if collapsed || to == SettleTo::Shed {
         return Ok(s);
     }
-    let cfg = super::settle_place::thicken(gpu, k, b, t, &mut s).await?;
+    let cfg = super::settle_place::thicken(gpu, k, b, &mut s).await?;
     if matches!(to, SettleTo::Laid | SettleTo::Placed) {
         let sags = pa.chunks(16).any(|r| r[7] & 8 != 0);
         super::settle_place::lay(gpu, k, b, (cfg, sags, to), &mut s).await?;

@@ -5,7 +5,7 @@
 //! sags, the levers from the deepest and the lay again under them; then
 //! whether any phytomer has size. A submission's dispatches share a compute
 //! pass, each its own stamped pass while a profile is on.
-use super::build::{Build, Tables};
+use super::build::Build;
 use super::hier_scan::{uniform, widest, words as read};
 use super::settle_device::{self as d, Kernels};
 use super::settle_run::Settled;
@@ -48,12 +48,12 @@ impl Rec<'_> {
 
 /// The settled tree scaled and thickened (S1 and S2): the place's
 /// uniform words for the lay.
-pub(super) async fn thicken(gpu: &Gpu, k: &Kernels, b: &Build, t: &Tables, s: &mut Settled) -> Result<[u32; 20]> {
+pub(super) async fn thicken(gpu: &Gpu, k: &Kernels, b: &Build, s: &mut Settled) -> Result<[u32; 20]> {
     let (tb, l) = (s.table, s.layout);
     let at_q = d::Y_COLS * tb.sk;
     s.pw = super::settle_run::zeroed(gpu, "settle place", u64::from(at_q) + u64::from(d::Q_COLS * tb.skp))?;
     let words = [
-        widest(gpu).0, 0, 0, t.age, tb.sk, tb.skp, tb.at_np, tb.at_nu, l.sa, l.at_a, l.at_f, at_q, s.flags, 0,
+        widest(gpu).0, 0, 0, b.age(), tb.sk, tb.skp, tb.at_np, tb.at_nu, l.sa, l.at_a, l.at_f, at_q, s.flags, 0,
         tb.kept, 0, 0, 0, 0, 0,
     ];
     let mut r = Rec { gpu, steps: (k.steps, k.walk), pass: &k.place, form: &b.layout.form, cfg: words, held: Vec::new(), pending: Vec::new() };

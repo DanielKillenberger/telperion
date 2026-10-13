@@ -16,10 +16,10 @@ use telperion_space::{ChainTables, SettleTo};
 
 /// Every kernel the tree is grown and drawn by.
 pub(in crate::generation) struct Kernels {
-    build: Kit,
-    settle: Settle,
-    chains: chains::Kernels,
-    drawn: drawn::Kernels,
+    pub(super) build: Kit,
+    pub(super) settle: Settle,
+    pub(super) chains: chains::Kernels,
+    pub(super) drawn: drawn::Kernels,
 }
 
 impl Kernels {
@@ -33,7 +33,7 @@ impl Kernels {
 }
 
 /// Each PA's row as `dress.wgsl` reads it.
-fn rows(rows: &[ConvertRow]) -> Vec<f32> {
+pub(super) fn rows(rows: &[ConvertRow]) -> Vec<f32> {
     let bits = f32::from_bits;
     let row = |r: &ConvertRow| {
         [r.internode as f32, r.spread as f32, r.flowering as f32, r.leaves as f32, r.fan as f32, bits(r.sheds), bits(u32::from(r.share)), bits(u32::from(r.trunk))]
@@ -42,7 +42,7 @@ fn rows(rows: &[ConvertRow]) -> Vec<f32> {
 }
 
 /// The refusal of a tree its settle could not lay, by the settle's words.
-fn unlaid(error: [u32; 2]) -> crate::RenderError {
+pub(super) fn unlaid(error: [u32; 2]) -> crate::RenderError {
     super::super::io::error(format!("the settled tree could not be laid (fault {}, axis {})", error[0], error[1]))
 }
 
@@ -69,7 +69,7 @@ pub(in crate::generation) async fn drawn(gpu: &Gpu, k: &Kernels, growth: &Growth
     }
     let planned = chains::plan(gpu, (&k.chains, &k.build.hier.scan), &s).await?;
     let rows = rows(&growth.rows);
-    let at = Rows { rows: &rows, age: request.age, scale: growth.scale as f32 };
+    let at = Rows { rows: &rows, age: request.age, scale: growth.scale as f32, fraction: 1.0 };
     let dressed = dress(gpu, &k.drawn, (&s, &planned), &at)?;
     let measured = trunk(gpu, &k.drawn, &dressed).await?;
     if trace {

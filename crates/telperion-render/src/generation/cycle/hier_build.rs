@@ -39,7 +39,7 @@ pub(super) const ENTRIES: [&str; 16] = [
 pub(super) const SHAPE: u64 = 6;
 pub(super) const COUNTS: u64 = 12;
 pub(super) const LISTS: u64 = 6;
-const BUCKETS: u64 = 5;
+pub(super) const BUCKETS: u64 = 5;
 const TALLY: u64 = 384;
 #[cfg(test)]
 pub(super) const X_BLOCKS: usize = 0;

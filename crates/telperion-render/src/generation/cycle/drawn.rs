@@ -40,11 +40,13 @@ impl Kernels {
 }
 
 /// What the dress reads besides the tree: each PA's row (`dress.wgsl`'s
-/// `rows`), the tree's age and the scale it is drawn at.
+/// `rows`), the tree's age, the scale it is drawn at, and how far into
+/// its last year it is drawn (fn-270 R2a: 1, the year whole).
 pub(super) struct Rows<'a> {
     pub rows: &'a [f32],
     pub age: u32,
     pub scale: f32,
+    pub fraction: f32,
 }
 
 /// The trunk's measures: the root's radius and the stem radius a canopy
@@ -118,7 +120,7 @@ pub(super) fn dress(gpu: &Gpu, k: &Kernels, (s, chains): (&Settled, &Chains), r:
             t.at_np,
             chains.stride,
             u32::from(w == 0),
-            0,
+            r.fraction.to_bits(),
         ];
         let cfg = uniform(gpu, &cfg)?;
         let before = &waves.last().expect("a wave").buffer;

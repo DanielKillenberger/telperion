@@ -39,7 +39,10 @@ struct Cfg {
     stride: u32,
     // Whether the chains are the seed's: drawn from the root.
     seed: u32,
-    pad0: u32,
+    // How far into its last year the tree is drawn (fn-270 R2a): this
+    // year's phytomers at that share of their scale, a stand-in for R5's
+    // curves; 1, the year whole.
+    fraction: f32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -607,7 +610,11 @@ fn draw_axis(a: u32, start: u32, how: How) {
         taken += 1u;
         // Each internode as laid: its scale and its spread's factor.
         let key = vec2<u32>(np(NP_KEY, p), np(NP_KEY + 1u, p));
-        let piece = internode * npf(NP_SCALE, p) * internode_factor(spread, key);
+        var scale = npf(NP_SCALE, p);
+        if cfg.fraction < 1.0 && np(NP_CYCLE, p) == cfg.age {
+            scale = scale * cfg.fraction;
+        }
+        let piece = internode * scale * internode_factor(spread, key);
         // Every piece of the span is this phytomer's wood (fn-248).
         let q = retention(sheds, share, cfg.age - np(NP_CYCLE, p));
         var base = vec3<f32>(naf(NA_BASE, a), naf(NA_BASE + 1u, a), naf(NA_BASE + 2u, a));

@@ -9,6 +9,7 @@ mod build_arena;
 mod build_grow;
 mod build_light;
 mod build_move;
+mod build_pause;
 mod build_plan;
 mod build_size;
 mod census;
@@ -22,6 +23,9 @@ mod gate;
 mod held;
 mod given;
 mod glue;
+// Its consumers take it in fn-270 task 5; until then its tests alone.
+#[cfg_attr(not(test), allow(dead_code))]
+mod growth;
 #[cfg(test)]
 mod grown;
 #[cfg(test)]

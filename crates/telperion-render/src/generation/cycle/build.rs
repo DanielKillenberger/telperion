@@ -169,6 +169,9 @@ pub(super) struct Build {
     pub laid: u32,
     pub grown: u64,
     pub census: Vec<u32>,
+    /// Whether the build grows on after its settle (fn-270 R2): the
+    /// settle then keeps the hierarchy the next cycle reads.
+    pub goes_on: bool,
 }
 
 impl Build {
@@ -198,6 +201,7 @@ impl Build {
             laid: 0,
             grown: 0,
             census: Vec::new(),
+            goes_on: false,
         };
         Ok(build)
     }
@@ -278,6 +282,12 @@ impl Build {
     /// Where the units' second count records start in `counts`.
     pub(super) fn b_at(&self) -> u32 {
         device::b_at(self.state.caps.next.max(self.state.caps.sleepers))
+    }
+
+    /// The cycles grown, as the census last read counts them: the age the
+    /// settle draws the tree at (fn-270 R2), never the horizon.
+    pub(super) fn age(&self) -> u32 {
+        self.census[c::CYCLE]
     }
 
     /// The state's counts from the census.

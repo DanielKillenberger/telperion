@@ -61,7 +61,7 @@ pub fn admitted(committed: u32, horizon: u32, age: f64) -> Result<u32> {
 /// of R5, which task 4 builds. An `at` outside the last year grown is
 /// refused by name.
 pub fn presented(tree: &mut Structure, committed: u32, at: f64) -> Result<()> {
-    let fraction = within(committed, at)?;
+    let fraction = within_year(committed, at)?;
     if fraction < 1.0 {
         for p in tree.axes.iter_mut().flat_map(|a| &mut a.phytomers) {
             if p.cycle == committed {
@@ -72,8 +72,9 @@ pub fn presented(tree: &mut Structure, committed: u32, at: f64) -> Result<()> {
     Ok(())
 }
 
-/// How far into the last year grown, `committed`, `at` stands: in (0, 1].
-fn within(committed: u32, at: f64) -> Result<f64> {
+/// How far into the last year grown, `committed`, `at` stands: in (0, 1];
+/// an `at` outside that year refused by name.
+pub fn within_year(committed: u32, at: f64) -> Result<f64> {
     let fraction = at - (f64::from(committed) - 1.0);
     if !(fraction > 0.0 && fraction <= 1.0) {
         return refuse("at", "a tree is drawn within the last year grown");
@@ -170,7 +171,7 @@ impl<'a> Paused<'a> {
     /// The tree at the age grown drawn at `at` within its last year
     /// (`presented`), `at` checked before anything is settled.
     pub fn settle_at(&self, at: f64) -> Result<Structure> {
-        within(self.committed, at)?;
+        within_year(self.committed, at)?;
         let mut tree = self.settle()?;
         presented(&mut tree, self.committed, at)?;
         Ok(tree)

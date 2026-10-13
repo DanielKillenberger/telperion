@@ -138,6 +138,7 @@ impl Build {
             laid: self.laid,
             grown: self.grown,
             census: self.census,
+            goes_on: self.goes_on,
         })
     }
 }
