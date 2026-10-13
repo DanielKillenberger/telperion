@@ -79,6 +79,14 @@ const PASSES: u32 = 6;
 const LAY_GENERATIONS: u32 = 15;
 const ROUNDS: u32 = 8;
 
+/// The sweep's layer ranges a plan holds at least: a lattice of 1,024
+/// layers, 512 m, however narrow. A standing box is two nodes wide at
+/// least on each axis (`span_main` takes a point's node and the next), so
+/// the least arena's 4,096 nodes stand 1,024 layers at most. The cube a
+/// small arena's nodes stood as refused a tall, narrow lattice its table
+/// held (fn-256 task 15).
+const SWEEPS: u32 = 1024 / super::build_light::LAYERS;
+
 impl Sizes {
     /// A build's tables sized once from `hint`, the least a build takes
     /// below that, and its bounds stated from them; refused by name where
@@ -109,7 +117,8 @@ impl Sizes {
 
     /// The plan's bounds from the tables: each list's ranges at the most
     /// its table holds, the sweep's layer ranges at the most a lattice of
-    /// its nodes takes stood as a cube twice over, the rest stated.
+    /// its nodes takes stood as a cube twice over or `SWEEPS`, the rest
+    /// stated.
     pub(super) fn stated(&self) -> Bounds {
         let mut b = Bounds { ranges: self.bounds.ranges, ..Bounds::default() };
         let r = b.ranges;
@@ -117,7 +126,7 @@ impl Sizes {
         b.units = next.div_ceil(r.units) + 1;
         b.lay.draws = next.div_ceil(r.draw) + 1;
         b.lay.deposits = self.points.div_ceil(r.deposit) + 1;
-        b.lay.sweeps = 2 * (f64::from(nodes).cbrt().ceil() as u32) + 8;
+        b.lay.sweeps = (2 * (f64::from(nodes).cbrt().ceil() as u32) + 8).max(SWEEPS);
         b.lay.generations = LAY_GENERATIONS;
         (b.hier.levels, b.hier.gens, b.hier.passes, b.rounds) = (LEVELS, GENS, PASSES, ROUNDS);
         b

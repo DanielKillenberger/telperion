@@ -28,10 +28,6 @@ const STEP: [u32; 4] = [2, 1, 2, 2];
 /// flagged (`Flag::UnitRounds`) and the build refused by name.
 const ROUND_SLACK: [u32; 2] = [2, 3];
 
-/// The sweep's layer ranges the first two cycles record: a lattice of
-/// up to 512 layers.
-const FIRST_SWEEPS: u32 = 32;
-
 /// The blocks a folded sweep's workgroup takes at once (`fold.wgsl`'s
 /// `FOLD`): a level of no more is folded.
 const FOLD: u32 = 8;
@@ -150,10 +146,9 @@ pub(super) fn limits(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> L
     let b = &s.bounds;
     let full = Limits::full(b);
     // The first two cycles, read nothing yet, record every loop at its
-    // bound but the sweep's, whose bound is the arena's lattice (Telperion:
-    // 224 dispatches a cycle) where a seedling's takes one or two.
+    // bound.
     let Some(read) = read else {
-        return Limits { sweeps: FIRST_SWEEPS, ..full }.within(b);
+        return full;
     };
     let deepest = (0..DEEP as usize).filter(|&g| read[c::LAY_DEEP + g] != 0).count() as u32;
     // The lists' ranges: the living, the grown axes, the cycle's leaves and
@@ -231,12 +226,23 @@ mod tests {
         assert!(said.to_string().contains("Sweeps"), "{said}");
     }
 
-    /// The first two cycles record the sweep's ranges for a lattice of
-    /// 512 layers, as the per-layer sweep's eight did for a narrow one
-    /// (fn-256 task 13): a tall first shoot is not refused.
+    /// Codex's lattice (fn-256 task 15): 2 x 2 x 1,000 nodes fits the
+    /// least arena's 4,096 and takes 63 ranges of 16 layers. The first
+    /// cycles and a cycle that read it record them, on the least arena
+    /// and on a large one.
     #[test]
-    fn the_first_cycles_sweep_a_tall_lattice() {
-        let first = limits(&Sizes::least(), None, None).sweeps;
-        assert!(sweeps_of([2, 2, 512]) <= first, "{first} ranges");
+    fn a_tall_narrow_lattice_is_swept() {
+        let tall = [2, 2, 1000];
+        let mut read = vec![0; c::WORDS];
+        read[c::GRID + 3..c::GRID + 6].copy_from_slice(&tall);
+        let mut large = Sizes::least();
+        large.nodes = 1 << 22;
+        large.bounds = large.stated();
+        for s in [Sizes::least(), large] {
+            for (now, prev) in [(None, None), (Some(&read[..]), Some(&read[..]))] {
+                let sweeps = limits(&s, now, prev).sweeps;
+                assert!(sweeps_of(tall) <= sweeps, "{} nodes: {sweeps} ranges", s.nodes);
+            }
+        }
     }
 }

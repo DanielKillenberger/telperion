@@ -10,7 +10,9 @@ use super::build_grow::{grow_now, Compact, Sizes};
 use super::build_arena::{hint, TABLES};
 use super::grown_tests::{device, grown_from};
 use super::plan_units::rounds_used;
+use super::census as c;
 use telperion_core::presets::Preset;
+use telperion_space::NodeLaw;
 
 const NAMES: [&str; TABLES] = ["axes", "units", "phytomers", "sleepers", "living", "woken", "leaves", "nodes"];
 
@@ -110,6 +112,38 @@ fn every_preset_grows_in_its_hinted_arena() {
         }
     }
     assert!(apart.is_empty(), "moved or begun again: {apart:?}");
+}
+
+/// fn-256 task 15: a pole, one straight stem of 450 m growth units with
+/// no laterals, stands a lattice of about 900 layers two nodes wide. Its
+/// hint sizes the least arena's 4,096 nodes, which the cube they stood as
+/// swept 640 layers of; it builds.
+#[test]
+fn a_tall_narrow_tree_builds() {
+    let Some((gpu, kit)) = device() else {
+        return;
+    };
+    let family = Preset::from_id("ordinary").expect("a shipped preset").parameters();
+    let growth = telperion_core::pipeline::executor::growth(&family).expect("a growth");
+    let mut species = growth.species;
+    for s in &mut species.states {
+        (s.viability, s.abortion, s.insertion) = (1.0, 0.0, 0.0);
+        (s.form.wander, s.form.tropism) = (0.0, 0.0);
+        for z in &mut s.zones {
+            z.nodes = NodeLaw::Uniform { min: 20.0, max: 20.0 };
+            z.lateral.iter_mut().chain(&mut z.dormant).for_each(|p| *p = 0.0);
+        }
+        s.internode = 450.0 / 20.0 / s.zones.len() as f64;
+    }
+    let age = 3;
+    let g = grown_from(species, growth.request.light, (age, 1));
+    let sizes = Sizes::hinted(hint(&g.species, age).expect("a hint")).expect("sized");
+    let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
+    let (_, _, grew) = grow_now(&gpu, &kit, &t, &g.tables, (sizes, age)).unwrap_or_else(|e| panic!("the pole: {e}"));
+    let most = |w: usize| grew.censuses.iter().map(|c| c[w]).max().unwrap_or(0);
+    let (wide, swept) = (most(c::GRID + 3).max(most(c::GRID + 4)), most(c::SWEPT));
+    println!("the pole: {} nodes, {wide} wide, {swept} layers swept", sizes.nodes);
+    assert!(sizes.nodes == 4096 && wide == 2 && swept > 640, "{} nodes, {wide} wide, {swept} layers", sizes.nodes);
 }
 
 /// The units rounds a build's cycles used, the living apexes' and the
