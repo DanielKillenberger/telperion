@@ -323,14 +323,20 @@ fn every_wire_parameter_a_preset_moves_is_walked() {
             if !pairs().any(|pair| pair == (*a, *b)) {
                 continue;
             }
-            let steps: Vec<_> = [0.25, 0.5, 0.75]
-                .iter()
-                .map(|t| {
-                    flat(&params::metadata(
-                        &blend::families(&family(a), &family(b), *t).unwrap(),
-                    ))
-                })
-                .collect();
+            // The three points at once (fn-271): each a size solve.
+            let steps: Vec<_> = std::thread::scope(|scope| {
+                let points: Vec<_> = [0.25, 0.5, 0.75]
+                    .map(|t| {
+                        scope.spawn(move || {
+                            flat(&params::metadata(
+                                &blend::families(&family(a), &family(b), t).unwrap(),
+                            ))
+                        })
+                    })
+                    .into_iter()
+                    .collect();
+                points.into_iter().map(|p| p.join().unwrap()).collect()
+            });
             for (path, value) in from {
                 // A space row an engine species leaves at an age passed
                 // through is not on the other's wire.
@@ -361,33 +367,45 @@ fn every_wire_parameter_a_preset_moves_is_walked() {
 #[test]
 fn every_pair_of_presets_grows_a_tree_at_every_step() {
     for (a, b) in pairs() {
-        for step in 0..STEPS {
-            let mut family = walk(a, b, step);
-            // Small: the scaffold's node cap, and a young engine tree.
-            family.skeleton.growth.max_nodes = Some(SWEEP_NODES);
-            family.age = family.age.min(12.0);
-            let at = at(step);
-            if family.space.species.is_none() {
-                let refused = mesh::build(&family).err();
-                let none = telperion_core::Error::InvalidInput("no engine species");
-                assert_eq!(refused, Some(none), "{a}->{b} at {at}");
-                continue;
+        // The steps at once (fn-271): each is a small tree of its own.
+        std::thread::scope(|scope| {
+            let steps: Vec<_> = (0..STEPS)
+                .map(|step| scope.spawn(move || grows(a, b, step)))
+                .collect();
+            for step in steps {
+                step.join().unwrap_or_else(|p| std::panic::resume_unwind(p));
             }
-            let mesh = mesh::build(&family).unwrap_or_else(|e| panic!("{a}->{b} at {at}: {e}"));
-            assert!(
-                mesh.wood.positions.iter().all(|v| v.is_finite())
-                    && mesh.bounds.min.is_finite()
-                    && mesh.bounds.max.is_finite(),
-                "{a}->{b} at {at}: a position is not finite"
-            );
-            // A node cap this low truncates the tree before its twigs, and a
-            // step that keeps no leaf under it still keeps its wood.
-            assert!(
-                mesh.wood_vertices() > 0,
-                "{a}->{b} at {at}: nothing was built"
-            );
-        }
+        });
     }
+}
+
+/// The walk from `a` to `b` at `step` grows a tree, or is refused by name
+/// where it has no engine species.
+fn grows(a: &str, b: &str, step: usize) {
+    let mut family = walk(a, b, step);
+    // Small: the scaffold's node cap, and a young engine tree.
+    family.skeleton.growth.max_nodes = Some(SWEEP_NODES);
+    family.age = family.age.min(12.0);
+    let at = at(step);
+    if family.space.species.is_none() {
+        let refused = mesh::build(&family).err();
+        let none = telperion_core::Error::InvalidInput("no engine species");
+        assert_eq!(refused, Some(none), "{a}->{b} at {at}");
+        return;
+    }
+    let mesh = mesh::build(&family).unwrap_or_else(|e| panic!("{a}->{b} at {at}: {e}"));
+    assert!(
+        mesh.wood.positions.iter().all(|v| v.is_finite())
+            && mesh.bounds.min.is_finite()
+            && mesh.bounds.max.is_finite(),
+        "{a}->{b} at {at}: a position is not finite"
+    );
+    // A node cap this low truncates the tree before its twigs, and a
+    // step that keeps no leaf under it still keeps its wood.
+    assert!(
+        mesh.wood_vertices() > 0,
+        "{a}->{b} at {at}: nothing was built"
+    );
 }
 
 #[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]

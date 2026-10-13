@@ -1,6 +1,6 @@
 //! The walk tests' verdict: each walk's steepest step against the stated
 //! bound, and its steepest steps split finer, which a jump survives.
-use super::{refine, walk, Setting, Step};
+use super::{refine, spread, steps, Setting, Step, STEPS};
 
 /// The stated multiple: no step moves the total length, height, spread,
 /// any branch's base or tip, or the wood made or unmade, by more than this
@@ -76,15 +76,40 @@ pub fn named(all: Vec<Setting>) -> Vec<Setting> {
 /// Every walk's steps at every seed, by setting.
 pub type Walks = Vec<Vec<(u64, Vec<Step>)>>;
 
-/// Every walk's steps at every seed, the walks in parallel.
+/// The pieces a walk is cut into, each starting from its own first tree.
+const PIECES: u32 = 8;
+
+/// Every walk's steps at every seed, every piece of every walk in
+/// parallel.
 pub fn walks(all: &[Setting]) -> Walks {
-    std::thread::scope(|scope| {
-        let handles: Vec<_> = all
-            .iter()
-            .map(|s| scope.spawn(move || SEEDS.iter().map(|&seed| (seed, walk(s, seed))).collect()))
-            .collect();
-        handles.into_iter().map(|h| h.join().unwrap()).collect()
+    let per = SEEDS.len() * PIECES as usize;
+    let mut pieces = spread(all.len() * per, |k| {
+        let (setting, seed, piece) = (
+            &all[k / per],
+            SEEDS[k % per / PIECES as usize],
+            k as u32 % PIECES,
+        );
+        steps(
+            setting,
+            seed,
+            piece * STEPS / PIECES,
+            (piece + 1) * STEPS / PIECES,
+        )
     })
+    .into_iter();
+    all.iter()
+        .map(|_| {
+            SEEDS
+                .iter()
+                .map(|&seed| {
+                    (
+                        seed,
+                        pieces.by_ref().take(PIECES as usize).flatten().collect(),
+                    )
+                })
+                .collect()
+        })
+        .collect()
 }
 
 /// Each walk's steepest step against the bound, and its three steepest
@@ -96,8 +121,32 @@ pub fn by_degree(all: Vec<Setting>) -> Vec<String> {
 
 /// `by_degree` on walks already made.
 pub fn judge(all: &[Setting], walked: &Walks) -> Vec<String> {
+    // The steps refined: each walk's three steepest, split finer, every
+    // walk's at once.
+    let mut chosen: Vec<(usize, u64, &Step)> = Vec::new();
+    for (i, seeds) in walked.iter().enumerate() {
+        let mut steps: Vec<(u64, &Step)> = seeds
+            .iter()
+            .flat_map(|(seed, steps)| steps.iter().map(move |s| (*seed, s)))
+            .collect();
+        steps.sort_by(|a, b| b.1.slope.total_cmp(&a.1.slope));
+        // Split to a 4096th of a step: a draw near 0 or 1 grows its element
+        // in over as little as a 2000th of one, where its log-odds lead
+        // runs fastest (fn-206, bisected): a slope there, not a jump.
+        let steepest = steps.into_iter().take(3).filter(|(_, s)| s.slope > 0.0);
+        chosen.extend(steepest.map(|(seed, step)| (i, seed, step)));
+    }
+    // Under f32 (fn-254) a refinement stops at the setting's own
+    // resolution, and a change no more than four times the noise floor
+    // there is the arithmetic's, not the model's.
+    let refined = spread(chosen.len(), |k| {
+        let (i, seed, step) = chosen[k];
+        let refined = refine(&all[i], seed, step.from, step.to, REFINE, 8);
+        let (jumps, floor) = refined.jumps(&all[i], seed, 20.0);
+        (refined.changes, jumps, floor)
+    });
     let mut failed = Vec::new();
-    for (setting, seeds) in all.iter().zip(walked) {
+    for (i, (setting, seeds)) in all.iter().zip(walked).enumerate() {
         let (seed, worst) = seeds
             .iter()
             .flat_map(|(seed, steps)| steps.iter().map(move |s| (*seed, s)))
@@ -118,28 +167,15 @@ pub fn judge(all: &[Setting], walked: &Walks) -> Vec<String> {
         // not shrink under refinement, while a steep crossing does, but
         // three levels left fn-197's sky walk short of its 20-fold shrink
         // at a crossing that went on shrinking to 2e-5.
-        let mut steps: Vec<(u64, &Step)> = seeds
-            .iter()
-            .flat_map(|(seed, steps)| steps.iter().map(move |s| (*seed, s)))
-            .collect();
-        steps.sort_by(|a, b| b.1.slope.total_cmp(&a.1.slope));
-        // Split to a 4096th of a step: a draw near 0 or 1 grows its element
-        // in over as little as a 2000th of one, where its log-odds lead
-        // runs fastest (fn-206, bisected): a slope there, not a jump.
-        for (seed, step) in steps.iter().take(3).filter(|(_, s)| s.slope > 0.0) {
-            // Under f32 (fn-254) a refinement stops at the setting's own
-            // resolution, and a change no more than four times the noise
-            // floor there is the arithmetic's, not the model's.
-            let refined = refine(setting, *seed, step.from, step.to, REFINE, 8);
-            let (jumps, floor) = refined.jumps(setting, *seed, 20.0);
-            let changes = &refined.changes;
+        let own = chosen.iter().zip(&refined).filter(|((j, ..), _)| *j == i);
+        for ((_, seed, step), (changes, jumps, floor)) in own {
             if let Some(floor) = floor {
                 println!(
                     "{} seed {seed} at {:.4}: noise floor {floor:.3e} over {} f32 places, changes {changes:?}",
                     setting.name, step.to, super::measure::ULPS
                 );
             }
-            if jumps {
+            if *jumps {
                 failed.push(format!(
                     "{} seed {seed} at {:.4}: a jump ({changes:?}, floor {floor:?})",
                     setting.name, step.to

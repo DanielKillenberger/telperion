@@ -10,8 +10,8 @@ use walk::degree::{
     TICK_RESOLUTION,
 };
 use walk::{
-    crossing, in_leaf, light_settings, made, refine, release_settings, setting, settings, Setting,
-    STEPS,
+    crossing, in_leaf, light_settings, made, refine, release_settings, setting, settings, spread,
+    Setting, STEPS,
 };
 
 /// Every setting with its walks, made once: two tests read the same walks,
@@ -99,7 +99,9 @@ fn only_the_named_lifespan_walks_take_the_tick_bound() {
     for (walk, _) in TICK_RESOLUTION {
         assert!(names.iter().any(|n| n == walk), "{walk} is walked");
     }
-    let wider = names.iter().filter(|n| vanishing(n) != walk::degree::VANISHING);
+    let wider = names
+        .iter()
+        .filter(|n| vanishing(n) != walk::degree::VANISHING);
     assert_eq!(wider.count(), TICK_RESOLUTION.len());
 }
 
@@ -141,30 +143,34 @@ fn every_setting_in_leaf_changes_the_tree_by_degree() {
 #[test]
 fn branches_are_made_and_unmade_at_vanishing_size() {
     let (all, walked) = every_walk();
-    let mut crossed = 0;
+    // Each walk's step that made the most wood, bisected to its crossing,
+    // every crossing at once.
+    let mut made_at = Vec::new();
     for (setting, seeds) in all.iter().zip(walked) {
         for (seed, steps) in seeds {
             let Some(step) = steps.iter().max_by(|a, b| a.made.total_cmp(&b.made)) else {
                 continue;
             };
-            if step.made == 0.0 {
-                continue;
+            if step.made > 0.0 {
+                made_at.push((setting, *seed, step));
             }
-            let (a, b) = (
-                setting.shape(step.from, *seed),
-                setting.shape(step.to, *seed),
-            );
-            let (_, lineage) = made(&a, &b);
-            let wood = crossing(setting, *seed, step.from, step.to, lineage.unwrap(), 48);
-            assert!(
-                wood < vanishing(&setting.name),
-                "{} seed {seed} at {:.4}: {wood} of the tree",
-                setting.name,
-                step.to
-            );
-            crossed += 1;
         }
     }
+    let woods = spread(made_at.len(), |k| {
+        let (setting, seed, step) = made_at[k];
+        let (a, b) = (setting.shape(step.from, seed), setting.shape(step.to, seed));
+        let (_, lineage) = made(&a, &b);
+        crossing(setting, seed, step.from, step.to, lineage.unwrap(), 48)
+    });
+    for (&(setting, seed, step), wood) in made_at.iter().zip(woods) {
+        assert!(
+            wood < vanishing(&setting.name),
+            "{} seed {seed} at {:.4}: {wood} of the tree",
+            setting.name,
+            step.to
+        );
+    }
+    let crossed = made_at.len();
     let filtered = std::env::var_os("WALK").is_some();
     assert!(
         filtered || crossed > 60,
@@ -187,7 +193,11 @@ fn the_jump_check_sees_a_switch() {
     // not hide it (fn-254 review).
     let deep = refine(&switch, 1, 0.5 - 1.0 / f64::from(STEPS), 0.5, REFINE, 8);
     let (jumps, floor) = deep.jumps(&switch, 1, 20.0);
-    assert!(jumps, "a switch stands above the noise floor: {:?}, {floor:?}", deep.changes);
+    assert!(
+        jumps,
+        "a switch stands above the noise floor: {:?}, {floor:?}",
+        deep.changes
+    );
 }
 
 /// A stem that all but stopped grows on as itself and as the relay it
@@ -196,22 +206,22 @@ fn the_jump_check_sees_a_switch() {
 /// near its bound fades nothing its relay carries on.
 #[test]
 fn a_stop_near_its_bound_fades_nothing_its_relay_carries() {
-    for seed in 1..=4 {
-        let lengths: Vec<f64> = (0..=200)
-            .map(|k| {
-                let mut species = walk::species();
-                let stem = &mut species.states[0];
-                stem.abortion = 0.1 + 0.3 * f64::from(k) / 200.0;
-                stem.relay = 0.5;
-                let tree = walk::tree(&species, seed).unwrap();
-                tree.axes
-                    .iter()
-                    .filter(|a| a.pa == 0)
-                    .flat_map(|a| &a.phytomers)
-                    .map(|p| p.scale)
-                    .sum()
-            })
-            .collect();
+    // Every seed's every tree at once.
+    let all = spread(4 * 201, |n| {
+        let (seed, k) = (n as u64 / 201 + 1, n as u32 % 201);
+        let mut species = walk::species();
+        let stem = &mut species.states[0];
+        stem.abortion = 0.1 + 0.3 * f64::from(k) / 200.0;
+        stem.relay = 0.5;
+        let tree = walk::tree(&species, seed).unwrap();
+        tree.axes
+            .iter()
+            .filter(|a| a.pa == 0)
+            .flat_map(|a| &a.phytomers)
+            .map(|p| p.scale)
+            .sum::<f64>()
+    });
+    for (seed, lengths) in (1..=4).zip(all.chunks(201)) {
         for i in 1..lengths.len() - 1 {
             let rim = |side: &[f64]| side.iter().copied().fold(0.0, f64::max);
             let rim = rim(&lengths[..i]).min(rim(&lengths[i + 1..]));

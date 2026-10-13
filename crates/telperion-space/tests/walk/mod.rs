@@ -12,6 +12,49 @@ use telperion_space::{grow, Form, Light, NodeLaw, PaState, Request, Species, Str
 pub const STEPS: u32 = 200;
 pub const AGE: u32 = 12;
 
+/// `work(k)` for every `k` below `count` on every core, in `k`'s order.
+/// The walks' trees are independent, so a test's longest chain is one
+/// piece of work, never one setting's whole walk (fn-271). Each worker
+/// grows its trees on one core: the engine's tree is the same on any
+/// number (`cores.rs`), and a walk tree too small to share out spent
+/// more of the machine waiting on its helpers than growing. A piece's
+/// panic is the test's.
+pub fn spread<T: Send>(count: usize, work: impl Fn(usize) -> T + Sync) -> Vec<T> {
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let cores = std::thread::available_parallelism().map_or(1, |n| n.get());
+    let mut out: Vec<Option<T>> = (0..count).map(|_| None).collect();
+    std::thread::scope(|scope| {
+        let workers: Vec<_> = (0..cores.min(count))
+            .map(|_| {
+                scope.spawn(|| {
+                    let one = rayon::ThreadPoolBuilder::new().num_threads(1).build().unwrap();
+                    one.install(|| {
+                        let mut done = Vec::new();
+                        loop {
+                            let k = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                            if k >= count {
+                                break done;
+                            }
+                            done.push((k, work(k)));
+                        }
+                    })
+                })
+            })
+            .collect();
+        for worker in workers {
+            let done = worker
+                .join()
+                .unwrap_or_else(|p| std::panic::resume_unwind(p));
+            for (k, value) in done {
+                out[k] = Some(value);
+            }
+        }
+    });
+    out.into_iter()
+        .map(|v| v.expect("every piece ran"))
+        .collect()
+}
+
 fn zone(nodes: NodeLaw, buds: u8, lateral: [f64; 3]) -> Zone {
     Zone {
         nodes,

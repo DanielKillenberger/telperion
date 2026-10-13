@@ -238,12 +238,24 @@ fn every_walk_is_the_walk_it_was() {
     let mut text = String::new();
     let mut ends: Vec<Family> = PRESETS.iter().map(|p| p.parameters()).collect();
     ends.extend(overridden());
-    for (i, a) in ends.iter().enumerate() {
-        for b in &ends[i + 1..] {
-            for t in [0.0, 0.13, 0.5, 0.731, 1.0] {
-                text.push_str(&format!("{:?}\n", blend::families(a, b, t)));
-            }
-        }
+    // Every pair's walk at once (fn-271), its lines in the pairs' order.
+    let lines: Vec<String> = std::thread::scope(|scope| {
+        let pairs: Vec<_> = ends
+            .iter()
+            .enumerate()
+            .flat_map(|(i, a)| ends[i + 1..].iter().map(move |b| (a, b)))
+            .map(|(a, b)| {
+                scope.spawn(move || {
+                    [0.0, 0.13, 0.5, 0.731, 1.0]
+                        .map(|t| format!("{:?}\n", blend::families(a, b, t)))
+                        .concat()
+                })
+            })
+            .collect();
+        pairs.into_iter().map(|pair| pair.join().unwrap()).collect()
+    });
+    for line in lines {
+        text.push_str(&line);
     }
     assert_eq!(
         digest(&text),

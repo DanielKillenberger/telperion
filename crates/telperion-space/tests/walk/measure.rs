@@ -149,8 +149,13 @@ pub struct Step {
 
 /// Every step of the walk of `setting` at `seed`.
 pub fn walk(setting: &Setting, seed: u64) -> Vec<Step> {
-    let mut previous = setting.shape(setting.step(0), seed);
-    (1..=super::STEPS)
+    steps(setting, seed, 0, super::STEPS)
+}
+
+/// The walk's steps from step `first` to step `last` of `STEPS`.
+pub fn steps(setting: &Setting, seed: u64, first: u32, last: u32) -> Vec<Step> {
+    let mut previous = setting.shape(setting.step(first), seed);
+    (first + 1..=last)
         .map(|i| {
             let (from, to) = (setting.step(i - 1), setting.step(i));
             let next = setting.shape(to, seed);
