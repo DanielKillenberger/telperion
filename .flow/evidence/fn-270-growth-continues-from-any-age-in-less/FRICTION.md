@@ -34,3 +34,24 @@
 - **Hindered:** with the inside axes compacting on every preset, the spruce and the beech differed between compaction schedules; four schedules and a census diff showed growth identical, and the node table's `NA_GROWN` column (each axis's arena slot) the only difference. The tests' digest hashed it.
 - **Cost:** about 20 minutes and four GPU runs.
 - **Would have removed it:** a digest that skips index columns from the start (now `growth::tests::digest`), or the node table not carrying the arena slot.
+
+## 2026-10-13, task 4 (worker): a CPU probe waits for room behind another worker
+
+- **Doing:** a CPU probe (six presets grown to 30 through the presenting grower) declared at 6 GB through `telperion-heavy`.
+- **Hindered:** the desk had 5 to 6 GB of room after the 6 GB reserve while the housekeeping worker ran; the probe waited over 11 minutes for admission, and the four oak stills before it waited a minute at 8 GB until re-declared at 4.
+- **Cost:** about 12 minutes of wall time so far, no tokens.
+- **Would have removed it:** a measured memory figure per kind of run (a CPU probe of young presets needs well under 2 GB) so the declaration is not a guess, or a wrapper flag that reports the run's own peak to calibrate the next declaration.
+
+## 2026-10-13, task 4 (worker): re-pinning the catalogue digests by hand
+
+- **Doing:** re-pinning `catalogue_identity`'s three digests after adding two neutral engine settings and every preset's rows of them.
+- **Hindered:** proving the move is only the new rows needs the value files without them and the neutral fields stripped from the Debug text; there is no helper, so it took a hand edit of the test and the presets, a run, and a restore (a guarded `git checkout` was refused, so the restore went through copies).
+- **Cost:** about 10 minutes and three test runs.
+- **Would have removed it:** a test helper that digests the text with named fields stripped, so a re-pin states its own proof in one run.
+
+## 2026-10-13, task 4 (worker): a queue behind a 10 GB admission
+
+- **Doing:** the first device test of the presentation, declared at 6 GB and 2 GB of the card.
+- **Hindered:** another worker's `npm test` holds the admission lock waiting for 10 GB while 7 GB is free after the reserve, and a 5 GB run waits behind it; every later declaration, however small, waits behind both, since admission is first come first served under one lock.
+- **Cost:** open; the queue was 12 minutes old when this run joined it.
+- **Would have removed it:** admission that lets a smaller job past one waiting for more room than there is (a lock held only while counting, not while waiting).

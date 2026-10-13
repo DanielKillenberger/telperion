@@ -10,6 +10,8 @@ struct Config {
 struct Segment {
     a:vec4<f32>, b:vec4<f32>, tangent:vec4<f32>, normal:vec4<f32>, binormal:vec4<f32>,
     distance:vec4<f32>, range:vec4<u32>, edge:vec4<u32>,
+    // Its leaves' share of their whole size (fn-270 R5), then spare.
+    unfolded:vec4<f32>,
 }
 @group(0) @binding(0) var<uniform> config:Config;
 @group(0) @binding(1) var<storage,read> segments:array<Segment>;

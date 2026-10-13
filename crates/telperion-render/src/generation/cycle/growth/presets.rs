@@ -8,7 +8,8 @@
 //! state paused half way and the year before its age, the tree drawn at
 //! the pause held while it grows on: the node tables word for word, the
 //! seconds a paused build takes to make its scratch and cycle again, and
-//! each way's device peak, by label (`CENSUS` lines, MB: fn-270 R4).
+//! each way's device peak, by label (`CENSUS` lines, MB: fn-270 R4), the
+//! tree drawn within its last year beside the drawn one among them.
 use super::super::build_arena::hint;
 use super::super::build_grow::{grow_now, Sizes};
 use super::super::settle_run::settle_now;
@@ -65,7 +66,12 @@ fn presets_grow_on_on_the_device() {
         let (redrawn, by) = gpu.ledger.take_peak_census();
         census(&id, &format!("drawn at {h} beside the drawn"), redrawn, &by);
         drop(next);
-        let then = grown.max(redrawn);
+        // Drawn within its last year (R5a) beside the tree drawn.
+        let within = pollster::block_on(s.settle(&gpu, &k, f64::from(h) - 0.5)).expect("drawn within the year");
+        let (unfolding, by) = gpu.ledger.take_peak_census();
+        census(&id, &format!("drawn at {} beside the drawn", f64::from(h) - 0.5), unfolding, &by);
+        drop(within);
+        let then = grown.max(redrawn).max(unfolding);
         let on = digest(&gpu, &pollster::block_on(s.settled(&gpu, &k)).expect("settled"));
         let g = s.growing.as_ref().expect("a build");
         let hier = &g.b.hier;

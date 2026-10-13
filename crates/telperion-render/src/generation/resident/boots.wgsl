@@ -50,7 +50,7 @@ struct Cfg {
 
 const NONE: u32 = 0xffffffffu;
 const CA: u32 = 12u;
-const CV: u32 = 32u;
+const CV: u32 = 33u;
 const TAKEN: u32 = 1u;
 const MADE: u32 = 2u;
 const FINE: u32 = 8u;

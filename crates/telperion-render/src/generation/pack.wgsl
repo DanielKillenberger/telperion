@@ -104,7 +104,7 @@ fn station(index:u32) -> vec3<u32> {
     axis.y+=config.lean.w;
     if dot(axis,axis)<=1e-12 { axis=radial; }
     axis=normalize(axis);
-    return packed(point,axis,tangent,normal,seg.range.w,k,1.0);
+    return packed(point,axis,tangent,normal,seg.range.w,k,seg.unfolded.x);
 }
 // Leaflet `j` of a frond's segment (`rosette.rs`'s `fan`,
 // `leaflet::leaflets`): on the rachis that leaves the frond's point on

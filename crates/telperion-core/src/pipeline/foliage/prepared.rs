@@ -39,6 +39,9 @@ pub struct StationSegment {
     /// the tip `endpoints` names, fanned about the heading `frame[0]`,
     /// drawing on the tip's cluster stream (`key`).
     pub cluster: Option<f64>,
+    /// Its leaves' share of their whole size where the tree is drawn
+    /// within its year (fn-270 R5, `Tree::unfolding`): its distal node's.
+    pub unfolding: f64,
 }
 
 /// No per-leaf positions or transforms are constructed by this preparation.
@@ -263,6 +266,7 @@ fn prepare_inner<C>(
                     contact,
                     key: tree.key(run.nodes[1]),
                     cluster: None,
+                    unfolding: tree.unfolding(nodes[segment + 1]),
                 });
                 tile_first += tile_count;
             }
@@ -289,6 +293,7 @@ fn prepare_inner<C>(
             contact: None,
             key: crate::tree::cluster_key(tree.key(tip)),
             cluster: Some(c.spread),
+            unfolding: tree.unfolding(tip),
         });
         total_count += c.leaves;
     }

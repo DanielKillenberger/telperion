@@ -221,8 +221,8 @@ impl Presenting<'_> {
     }
 
     /// Every axis drawn a year before that is gone, after the ones grown:
-    /// faded by the fraction, carried with what it stood on. Phytomers an
-    /// axis drew a year before beyond those it holds now fade on its tip.
+    /// faded by the fraction, carried with what it stood on. An axis that
+    /// stays holds every phytomer it held (`unfold::tests`).
     fn fade(&mut self) {
         let (before, f) = (self.before, self.f);
         let fade = |p: &mut Phytomer, shift: Vec3| {
@@ -234,23 +234,6 @@ impl Presenting<'_> {
         let mut at: Vec<(usize, Vec3)> = Vec::with_capacity(before.axes.len());
         for (j, b) in before.axes.iter().enumerate() {
             if let Some(&i) = now.get(&ids[j]) {
-                let a = &mut self.structure.axes[i];
-                let held = a.phytomers.len();
-                if b.phytomers.len() > held {
-                    let shift = match held {
-                        0 => Vec3::default(),
-                        k => a.phytomers[k - 1].tip - b.phytomers[k - 1].tip,
-                    };
-                    for q in &b.phytomers[held..] {
-                        let mut q = *q;
-                        fade(&mut q, shift);
-                        a.phytomers.push(q);
-                    }
-                    let leaves = &mut self.leaves[i];
-                    if !leaves.is_empty() {
-                        leaves.resize(a.phytomers.len(), 1.0);
-                    }
-                }
                 at.push((i, Vec3::default()));
                 continue;
             }

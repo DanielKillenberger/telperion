@@ -49,20 +49,27 @@ fn age() -> u32 {
 
 /// A node as the device's dress drew it.
 #[derive(Debug, Clone, Copy)]
-struct Node {
-    position: [f32; 3],
-    radii: [f32; 3],
-    stem: bool,
-    key: u32,
+pub(in crate::generation) struct Node {
+    pub position: [f32; 3],
+    pub radii: [f32; 3],
+    pub stem: bool,
+    pub key: u32,
     /// Its phytomer's key, or none for a relay's join.
-    identity: Option<u64>,
-    parent: Option<u32>,
+    pub identity: Option<u64>,
+    pub parent: Option<u32>,
+    /// Its leaves' share of their whole size (fn-270 R5).
+    pub leaf: f32,
 }
 
 /// Every node the device drew for `f`.
 fn device_nodes(gpu: &crate::Gpu, k: &Kernels, f: &Family) -> Vec<Node> {
     let growth = executor::growth(f).unwrap();
     let (dressed, _) = pollster::block_on(tree::drawn(gpu, k, &growth)).unwrap();
+    drawn_nodes(gpu, &dressed)
+}
+
+/// Every node of `dressed`.
+pub(in crate::generation) fn drawn_nodes(gpu: &crate::Gpu, dressed: &super::fold::Dressed) -> Vec<Node> {
     let mut waves: Vec<Vec<Vec<u32>>> = Vec::new();
     for w in &dressed.waves {
         let words = w.axes as usize * CA_WORDS + w.phyts as usize * CV;
@@ -89,6 +96,7 @@ fn device_nodes(gpu: &crate::Gpu, k: &Kernels, f: &Family) -> Vec<Node> {
                 key: r[24],
                 identity: (r[26] | r[27] != 0).then(|| u64::from(r[26]) | u64::from(r[27]) << 32),
                 parent: keys.get(&r[16]).copied(),
+                leaf: f(32),
             });
         }
     }

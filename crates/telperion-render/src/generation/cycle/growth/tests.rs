@@ -35,7 +35,7 @@ pub(in crate::generation::cycle) fn digest(gpu: &Gpu, s: &Settled) -> u64 {
     h.finish()
 }
 
-fn block<T>(f: impl std::future::Future<Output = T>) -> T {
+pub(super) fn block<T>(f: impl std::future::Future<Output = T>) -> T {
     pollster::block_on(f)
 }
 
@@ -178,7 +178,7 @@ fn a_lit_tree_grows_on_beside_the_tree_drawn() {
 impl GrowthState {
     /// `sized` from the least tables, compacted every cycle, blocked on,
     /// under 4 GiB.
-    fn sized_now(gpu: &Gpu, k: &Kernels, growth: &Growth, at: (u64, u32)) -> Self {
-        block(Self::sized(gpu, k, growth, at, (forced(), 4 << 30))).expect("begun")
+    pub(super) fn sized_now(gpu: &Gpu, k: &Kernels, growth: &Growth, at: (u64, u32)) -> Self {
+        block(Self::sized(gpu, k, growth, at, (Start::Sizes(forced()), 4 << 30))).expect("begun")
     }
 }

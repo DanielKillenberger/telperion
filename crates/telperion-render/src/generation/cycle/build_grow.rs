@@ -7,7 +7,7 @@
 //! past any table or limit stops the build by name: no build begins
 //! again.
 use super::build::{Build, Kit, Late, Tables};
-use super::build_arena::TABLES;
+use super::build_arena::{Hint, TABLES};
 use super::build_light::Lit;
 use super::build_plan::{Bounds, Phases};
 use super::build_size::{grown, limits, refusal};
@@ -142,9 +142,19 @@ impl Grew {
     }
 }
 
-/// `upto` cycles grown from `sizes`: the build, its sizes and how it grew.
+/// `upto` cycles grown from `sizes`: the build, its sizes and how it
+/// grew; the tests'.
+#[cfg(test)]
 pub(super) async fn grow(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (sizes, upto): (Sizes, u32)) -> Result<(Build, Sizes, Grew)> {
     let g = Growing::begin(gpu, kit, t, tables, sizes).await?;
+    let g = g.grow_to(gpu, (kit, t, tables), (upto, true)).await?;
+    Ok((g.b, g.sizes, g.grew))
+}
+
+/// `grow` from the tables `hint` starts a build with under the budget
+/// (`Sizes::margins`).
+pub(super) async fn grow_hinted(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, (hint, upto): (Hint, u32)) -> Result<(Build, Sizes, Grew)> {
+    let g = Growing::within(gpu, kit, t, tables, hint).await?;
     let g = g.grow_to(gpu, (kit, t, tables), (upto, true)).await?;
     Ok((g.b, g.sizes, g.grew))
 }
@@ -179,6 +189,20 @@ pub(super) struct Growing {
 }
 
 impl Growing {
+    /// The build seeded from the largest tables `hint` gives that the
+    /// device budget holds (`Sizes::margins`); refused by name where not
+    /// even the least do.
+    pub(super) async fn within(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, hint: Hint) -> Result<Self> {
+        let mut refused = None;
+        for sizes in Sizes::margins(hint) {
+            match Self::begin(gpu, kit, t, tables, sizes?).await {
+                Err(e) if super::super::io::over_budget(&e) => refused = Some(e),
+                begun => return begun,
+            }
+        }
+        Err(refused.expect("a margin tried"))
+    }
+
     /// The build seeded from `sizes`.
     pub(super) async fn begin(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, sizes: Sizes) -> Result<Self> {
         if t.age >= MOST_CYCLES {

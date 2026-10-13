@@ -27,6 +27,8 @@ pub(super) struct Segment {
     distance: [f32; 4],
     range: [u32; 4],
     edge: [u32; 4],
+    /// Its leaves' share of their whole size (fn-270 R5), then spare.
+    unfolded: [f32; 4],
 }
 pub(super) fn vector(p: Vec3, w: f64) -> [f32; 4] {
     [p.x as f32, p.y as f32, p.z as f32, w as f32]
@@ -132,6 +134,7 @@ pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
                 },
                 range: [s.first, s.count, s.run_station, s.key],
                 edge: s.contact.unwrap_or([0; 4]),
+                unfolded: [s.unfolding as f32, 0.0, 0.0, 0.0],
             }
         })
         .collect()

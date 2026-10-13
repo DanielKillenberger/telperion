@@ -45,6 +45,7 @@ mod plan_retire;
 mod plan_lay;
 mod plan_scan;
 mod plan_units;
+mod present;
 mod compact;
 mod retire_device;
 #[cfg(test)]
@@ -245,6 +246,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
         ("cycle contract probe", contract_tests::source()),
         ("cycle chains", include_str!("cycle/chains.wgsl").to_string()),
         ("cycle dress", format!("{}\n{}", contract(), include_str!("cycle/dress.wgsl"))),
+        ("cycle present", format!("{}\n{}", contract(), include_str!("cycle/present.wgsl"))),
         ("cycle stems", include_str!("cycle/stems.wgsl").to_string()),
         ("cycle hierarchy build", hier_build_source()),
         ("cycle hierarchy scan", hier_scan_source()),

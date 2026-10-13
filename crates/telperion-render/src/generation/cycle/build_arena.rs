@@ -97,15 +97,21 @@ const SWEEPS: u32 = 1024 / super::build_light::LAYERS;
 impl Sizes {
     /// A build's tables sized once from `hint`, the least a build takes
     /// below that, and its bounds stated from them; refused by name where
-    /// a table would pass the rows the device's tables index.
+    /// a table would pass the rows the device's tables index: the tests'.
+    #[cfg(test)]
     pub(super) fn hinted(h: Hint) -> Result<Self> {
+        Self::at_margin(h, MARGIN)
+    }
+
+    /// `hinted` at `margin` past each table's measured most.
+    fn at_margin(h: Hint, margin: f64) -> Result<Self> {
         let most = ARENA[1..].iter().fold(0.0, |m: f64, r| m.max(*r));
-        if !(h.kept * most * MARGIN <= f64::from(MOST_ROWS) && h.axes * ARENA[0] * MARGIN <= f64::from(MOST_ROWS)) {
+        if !(h.kept * most * margin <= f64::from(MOST_ROWS) && h.axes * ARENA[0] * margin <= f64::from(MOST_ROWS)) {
             let what = format!("the tree's expected {:.0} kept phytomers and {:.0} axes size its tables past the {MOST_ROWS} rows the device indexes; grow it younger", h.kept, h.axes);
             return Err(super::super::io::error(what));
         }
         let least = Sizes::least();
-        let rows = |k: usize, floor: u32| ((if k == 0 { h.axes } else { h.kept } * ARENA[k] * MARGIN).ceil() as u32).max(floor);
+        let rows = |k: usize, floor: u32| ((if k == 0 { h.axes } else { h.kept } * ARENA[k] * margin).ceil() as u32).max(floor);
         let l = least.caps;
         let caps = Caps {
             axes: rows(0, l.axes).next_multiple_of(64),
@@ -119,6 +125,23 @@ impl Sizes {
         let points = (rows(6, 0) + tips).max(least.points);
         let sizes = Sizes { caps, points, tips, nodes: rows(7, least.nodes), compact: Compact::Tight, ..least };
         Ok(Sizes { bounds: sizes.stated(), ..sizes })
+    }
+
+    /// The tables a build starts from, from `hint`, capped to what the
+    /// device budget leaves (fn-270 R4, host after task 3): at `MARGIN`
+    /// where they fit, and only where the budget refuses them, at half the
+    /// margin as often as it refuses, down to the least tables; growth by
+    /// observed counts does the rest (`build_size::grown`).
+    pub(super) fn margins(h: Hint) -> impl Iterator<Item = Result<Self>> {
+        let least = Sizes::least().caps;
+        let mut margin = Some(MARGIN);
+        std::iter::from_fn(move || {
+            let at = margin?;
+            let sizes = Self::at_margin(h, at);
+            let floor = sizes.as_ref().map_or(true, |s| s.caps == least || at < 1e-6);
+            margin = (!floor).then_some(at / 2.0);
+            Some(sizes)
+        })
     }
 
     /// The plan's bounds from the tables: each list's ranges at the most

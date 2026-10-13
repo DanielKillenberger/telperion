@@ -5,11 +5,11 @@
 //! trunk's measures. Only counts and summaries come back.
 use super::super::resident::fold::Dressed;
 use super::build::{Kit, Tables};
-use super::build_grow::{grow, Sizes};
+use super::build_grow::grow_hinted;
 use super::drawn::{dress, trunk, Rows, Trunk};
 use super::settle_device::Kernels as Settle;
 use super::settle_run::settle;
-use super::{chains, drawn};
+use super::{chains, drawn, present};
 use crate::{Gpu, Result};
 use telperion_core::pipeline::executor::{ConvertRow, Growth};
 use telperion_space::{ChainTables, SettleTo};
@@ -20,15 +20,16 @@ pub(in crate::generation) struct Kernels {
     pub(super) settle: Settle,
     pub(super) chains: chains::Kernels,
     pub(super) drawn: drawn::Kernels,
+    pub(super) present: present::Kernels,
 }
 
 impl Kernels {
     /// Every module made side by side (`io::pair`).
     pub(in crate::generation) fn new(gpu: &Gpu) -> Self {
         use super::super::io::pair;
-        let (build, (settle, (chains, drawn))) =
-            pair(gpu, || Kit::new(gpu), || pair(gpu, || Settle::new(gpu), || pair(gpu, || chains::Kernels::new(gpu), || drawn::Kernels::new(gpu))));
-        Self { build, settle, chains, drawn }
+        let drawing = || pair(gpu, || chains::Kernels::new(gpu), || pair(gpu, || drawn::Kernels::new(gpu), || present::Kernels::new(gpu)));
+        let (build, (settle, (chains, (drawn, present)))) = pair(gpu, || Kit::new(gpu), || pair(gpu, || Settle::new(gpu), drawing));
+        Self { build, settle, chains, drawn, present }
     }
 }
 
@@ -58,7 +59,7 @@ pub(in crate::generation) async fn drawn(gpu: &Gpu, k: &Kernels, growth: &Growth
     let t = Tables::new(gpu, &tables, &chain)?;
     let at_tables = clock.elapsed_ms();
     let hint = super::build_arena::hint(species, request.age)?;
-    let (b, ..) = grow(gpu, &k.build, &t, &tables, (Sizes::hinted(hint)?, request.age)).await?;
+    let (b, ..) = grow_hinted(gpu, &k.build, &t, &tables, (hint, request.age)).await?;
     let b = b.settling(gpu, (&t, &tables)).await?;
     let at_grown = clock.elapsed_ms();
     let s = settle(gpu, (&k.build, &k.settle), (&b, &t), (&t.settle_pa, SettleTo::Laid)).await?;
@@ -67,10 +68,10 @@ pub(in crate::generation) async fn drawn(gpu: &Gpu, k: &Kernels, growth: &Growth
     if s.error[0] != 0 {
         return Err(unlaid(s.error));
     }
-    let planned = chains::plan(gpu, (&k.chains, &k.build.hier.scan), &s).await?;
+    let planned = chains::plan(gpu, (&k.chains, &k.build.hier.scan), s.view()).await?;
     let rows = rows(&growth.rows);
-    let at = Rows { rows: &rows, age: request.age, scale: growth.scale as f32, fraction: 1.0 };
-    let dressed = dress(gpu, &k.drawn, (&s, &planned), &at)?;
+    let at = Rows { rows: &rows, age: request.age, scale: growth.scale as f32, fraction: 1.0, leaf: None };
+    let dressed = dress(gpu, &k.drawn, (s.view(), &planned), &at)?;
     let measured = trunk(gpu, &k.drawn, &dressed).await?;
     if trace {
         eprintln!("TRACE tree: tables {at_tables:.0} ms, grown {at_grown:.0}, settled {at_settled:.0}, drawn {:.0}", clock.elapsed_ms());

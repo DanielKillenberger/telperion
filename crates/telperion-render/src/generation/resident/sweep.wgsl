@@ -42,7 +42,7 @@ struct Cfg {
 
 const NONE: u32 = 0xffffffffu;
 const CA: u32 = 12u;
-const CV: u32 = 32u;
+const CV: u32 = 33u;
 const MADE: u32 = 2u;
 const FINE: u32 = 8u;
 const SEAM: u32 = 16u;
@@ -61,7 +61,7 @@ const SECTION: u32 = 28u;
 // age's flowering share, which its blooms are drawn by (fn-229); a
 // short shoot's tip's spread (fn-223); and its leaf retention (fn-248):
 // the metres of its wood before the boundary and the retentions.
-const NW: u32 = 33u;
+const NW: u32 = 34u;
 // A node's links: the widest start radius of its children that are not
 // codominant and of all, the first child of each so wide, whether a
 // codominant child leaves it, the points of the run it starts; then, for
@@ -157,6 +157,8 @@ fn gather(@builtin(global_invocation_id) id: vec3<u32>) {
     for (var c = 0u; c < 6u; c++) {
         nodes[i * NW + 27u + c] = drawn[b + 26u + c];
     }
+    // Its leaves' share of their whole size (fn-270 R5).
+    nodes[i * NW + 33u] = drawn[b + 32u];
     if cfg.root != 0u {
         // The root's node: no run of its own, and at the tree's root.
         nodes[i * NW + 6u] = 0.0;

@@ -39,10 +39,11 @@ struct Cfg {
     stride: u32,
     // Whether the chains are the seed's: drawn from the root.
     seed: u32,
-    // How far into its last year the tree is drawn (fn-270 R2a): this
-    // year's phytomers at that share of their scale, a stand-in for R5's
-    // curves; 1, the year whole.
+    // How far into its last year the tree is drawn (fn-270 R5a), which
+    // the leaves the wood's age keeps move by: 1, the year whole; and
+    // whether `leaf` holds each phytomer's leaf share (`present.wgsl`).
     fraction: f32,
+    unfolding: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -54,6 +55,8 @@ struct Cfg {
 // share, the leaves at its tips and their fan, its leaf retention's first
 // shedding age and share, and whether it carries the trunk.
 @group(0) @binding(5) var<storage, read> rows: array<f32>;
+// Each phytomer's leaf's share of its whole size, where `unfolding`.
+@group(0) @binding(6) var<storage, read> leaf: array<f32>;
 
 const NONE: u32 = 0xffffffffu;
 const LATERAL: u32 = 1u;
@@ -112,7 +115,7 @@ const CA: u32 = 12u;
 // flowering share, at a short shoot's tip its cluster's spread, and its
 // leaf retention: the metres of its grown wood before the boundary, at
 // the scale, and the retentions before and from it.
-const CV: u32 = 32u;
+const CV: u32 = 33u;
 const TAKEN: u32 = 1u;
 const MADE: u32 = 2u;
 // Every node the dress draws is the device's; one drawn from the root is
@@ -329,17 +332,6 @@ fn codominance(radius: f32, parent: f32) -> f32 {
     return clamp((radius / parent - FORK_FROM) / (0.7 - FORK_FROM), 0.0, 1.0);
 }
 
-// The factor the internode of the node keyed `key` was laid at
-// (`lineage::internode`, fn-222): 1 + spread (2u - 1), u its draw's top
-// 24 bits.
-fn internode_factor(spread: f32, key: vec2<u32>) -> f32 {
-    if spread <= 0.0 {
-        return 1.0;
-    }
-    let u = f32(shr64(internode_draw(key), 29u).x) * (1.0 / 16777216.0);
-    return 1.0 + spread * (2.0 * u - 1.0);
-}
-
 // Whether `r` is a node of this wave, which the conversion may still
 // change.
 fn mine(r: u32) -> bool {
@@ -428,6 +420,26 @@ fn retention(sheds: u32, share: u32, age: u32) -> u32 {
     return 0u;
 }
 
+// The retention of wood of `cycle` (`space.rs`'s `Unfolding::kept`):
+// within the year, a share of the way from what it kept a year before,
+// rounded half up as the CPU rounds it.
+fn kept(sheds: u32, share: u32, cycle: u32) -> u32 {
+    let now = retention(sheds, share, cfg.age - cycle);
+    if cfg.fraction >= 1.0 || cycle >= cfg.age {
+        return now;
+    }
+    let was = f32(retention(sheds, share, cfg.age - 1u - cycle));
+    return u32(floor(was + (f32(now) - was) * cfg.fraction + 0.5));
+}
+
+// The share of its whole size phytomer `p`'s leaf is drawn at.
+fn leaf_share(p: u32) -> f32 {
+    if cfg.unfolding == 0u {
+        return 1.0;
+    }
+    return leaf[p];
+}
+
 // What drawing an axis carries from one node to the next.
 struct Walk {
     parent: u32,
@@ -510,6 +522,7 @@ fn place(a: u32, r: u32, at: vec4<f32>, p: u32, key: u32, bloom: bool, w: Walk, 
     put(r, 25u, o.pending * cfg.scale);
     put(r, 30u, o.older * cfg.scale);
     putu(r, 31u, (o.before << 16u) | o.last);
+    put(r, 32u, leaf_share(p));
     o.fresh = true;
     o.pending = 0.0;
     // A bloom stands at its axis's tip alone (`draw_axis`, fn-253).
@@ -610,13 +623,9 @@ fn draw_axis(a: u32, start: u32, how: How) {
         taken += 1u;
         // Each internode as laid: its scale and its spread's factor.
         let key = vec2<u32>(np(NP_KEY, p), np(NP_KEY + 1u, p));
-        var scale = npf(NP_SCALE, p);
-        if cfg.fraction < 1.0 && np(NP_CYCLE, p) == cfg.age {
-            scale = scale * cfg.fraction;
-        }
-        let piece = internode * scale * internode_factor(spread, key);
+        let piece = internode * npf(NP_SCALE, p) * internode_factor(spread, key);
         // Every piece of the span is this phytomer's wood (fn-248).
-        let q = retention(sheds, share, cfg.age - np(NP_CYCLE, p));
+        let q = kept(sheds, share, np(NP_CYCLE, p));
         var base = vec3<f32>(naf(NA_BASE, a), naf(NA_BASE + 1u, a), naf(NA_BASE + 2u, a));
         if k > 0u {
             base = tip(a, k - 1u);

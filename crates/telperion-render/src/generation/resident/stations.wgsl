@@ -61,7 +61,7 @@ struct Cfg {
 const OW: u32 = 2u;
 
 const NONE: u32 = 0xffffffffu;
-const NW: u32 = 33u;
+const NW: u32 = 34u;
 const TW: u32 = 4u;
 const MADE: u32 = 2u;
 const FINE: u32 = 8u;
@@ -84,7 +84,7 @@ const SW: u32 = 4u;
 // station and first segment.
 const RW: u32 = 6u;
 // A segment, as `data.rs` packs it for `pack.wgsl`.
-const GW: u32 = 32u;
+const GW: u32 = 36u;
 const TILE: u32 = 256u;
 const PI: f32 = 3.141592653589793;
 
@@ -615,7 +615,14 @@ fn rosette(apex: u32, station0: u32, g: u32) {
         for (var c = 0u; c < 4u; c++) {
             segs[s + 28u + c] = 0u;
         }
+        // A frond is drawn whole (fn-270 R5).
+        unfolded(s, 1.0);
     }
+}
+
+// A segment's leaves' share of their whole size (fn-270 R5).
+fn unfolded(at: u32, share: f32) {
+    put4(at + 32u, vec4<f32>(share, 0.0, 0.0, 0.0));
 }
 
 @compute @workgroup_size(64)
@@ -658,6 +665,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
         }
         // Every leaf of a cluster stays.
         segs[at + 15u] = 0xffffffffu;
+        unfolded(at, nodes[first * NW + 33u]);
         return;
     }
     // The run's stations before any sheds its leaf: its wood walked.
@@ -753,6 +761,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
             segs[at + 11u] = boundary(b, along);
             segs[at + 15u] = keep;
             segs[at + 19u] = stream;
+            unfolded(at, nodes[b * NW + 33u]);
             seen += leaves;
             g += 1u;
             tile += tiles;

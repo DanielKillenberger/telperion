@@ -73,7 +73,20 @@ pub(super) struct Settled {
     pub stamped: Vec<&'static str>,
 }
 
+/// A laid node table as the chains and the dress read it: its words, its
+/// layout and each depth's first axis (one past the last at the end).
+#[derive(Clone, Copy)]
+pub(super) struct View<'a> {
+    pub nt: &'a Owned,
+    pub table: &'a Table,
+    pub starts: &'a [u32],
+}
+
 impl Settled {
+    pub(super) fn view(&self) -> View<'_> {
+        View { nt: &self.nt, table: &self.table, starts: &self.kept_starts }
+    }
+
     #[cfg(test)]
     /// The bytes the settle holds: its work, counts, node table and the
     /// place's columns.

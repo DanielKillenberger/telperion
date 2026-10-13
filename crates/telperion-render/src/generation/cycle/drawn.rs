@@ -7,7 +7,7 @@ use super::super::resident::fold::{Drawn, Dressed, CA_WORDS, CV};
 use super::super::io;
 use super::chains::{Chains, Wave};
 use super::hier_scan::{uniform, widest, words, zeroed};
-use super::settle_run::Settled;
+use super::settle_run::View;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
@@ -33,20 +33,22 @@ impl Kernels {
         let source = format!("{}\n{DRESS}", super::contract_with(super::ARITH));
         let entries = ["count", "nearest", "fork", "widest", "root"];
         Self {
-            dress: io::Pass::new(gpu, source, &[true, true, true, false, true], &["dress"]),
+            dress: io::Pass::new(gpu, source, &[true, true, true, false, true, true], &["dress"]),
             stems: io::Pass::new(gpu, STEMS.to_string(), &[false, false, false], &entries),
         }
     }
 }
 
 /// What the dress reads besides the tree: each PA's row (`dress.wgsl`'s
-/// `rows`), the tree's age, the scale it is drawn at, and how far into
-/// its last year it is drawn (fn-270 R2a: 1, the year whole).
+/// `rows`), the tree's age, the scale it is drawn at, how far into its
+/// last year it is drawn (fn-270 R5a: 1, the year whole) and, drawn
+/// within it, each phytomer's leaf share (`present.rs`).
 pub(super) struct Rows<'a> {
     pub rows: &'a [f32],
     pub age: u32,
     pub scale: f32,
     pub fraction: f32,
+    pub leaf: Option<&'a Owned>,
 }
 
 /// The trunk's measures: the root's radius and the stem radius a canopy
@@ -66,8 +68,9 @@ fn root() -> Vec<f32> {
     r[7] = f32::from_bits(PREV);
     r[16] = f32::from_bits(u32::MAX);
     r[23] = f32::from_bits(PREV);
-    // The root keeps every leaf: it bears no station.
+    // The root keeps every leaf, whole: it bears no station.
     r[31] = f32::from_bits(u32::MAX);
+    r[32] = 1.0;
     out
 }
 
@@ -84,8 +87,10 @@ fn records(w: &Wave) -> u64 {
 
 /// Every wave of `chains` drawn from the settled tree `s`, each from the
 /// one before, the first from the root.
-pub(super) fn dress(gpu: &Gpu, k: &Kernels, (s, chains): (&Settled, &Chains), r: &Rows) -> Result<Dressed> {
+pub(super) fn dress(gpu: &Gpu, k: &Kernels, (s, chains): (View, &Chains), r: &Rows) -> Result<Dressed> {
     let rows = storage(gpu, "dress rows", r.rows.len() as u64, bytemuck::cast_slice(r.rows))?;
+    let whole = storage(gpu, "dress whole leaves", 1, &[])?;
+    let leaf = r.leaf.unwrap_or(&whole);
     let root = root();
     let mut waves = vec![Drawn {
         buffer: storage(gpu, "drawn root", root.len() as u64, bytemuck::cast_slice(&root))?,
@@ -94,7 +99,7 @@ pub(super) fn dress(gpu: &Gpu, k: &Kernels, (s, chains): (&Settled, &Chains), r:
         base: 0,
         root: true,
     }];
-    let t = &s.table;
+    let t = s.table;
     let mut prev = Wave { axes: 1, ..Wave::default() };
     let (mut ids, mut held) = (1, Vec::new());
     let mut e = gpu.encoder(&Default::default());
@@ -121,10 +126,11 @@ pub(super) fn dress(gpu: &Gpu, k: &Kernels, (s, chains): (&Settled, &Chains), r:
             chains.stride,
             u32::from(w == 0),
             r.fraction.to_bits(),
+            u32::from(r.leaf.is_some()),
         ];
         let cfg = uniform(gpu, &cfg)?;
         let before = &waves.last().expect("a wave").buffer;
-        let bind = k.dress.bind(gpu, &[&cfg, &s.nt, &chains.plan, before, &buffer, &rows]);
+        let bind = k.dress.bind(gpu, &[&cfg, s.nt, &chains.plan, before, &buffer, &rows, leaf]);
         k.dress.run(&mut e, &bind, 0, wave.chains.div_ceil(64).max(1));
         held.push(cfg);
         waves.push(Drawn { buffer, axes: wave.axes, phyts: wave.phyts + wave.axes, base: ids, root: false });

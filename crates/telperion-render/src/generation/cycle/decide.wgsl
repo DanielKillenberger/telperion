@@ -32,6 +32,17 @@ fn internode_draw(key: vec2<u32>) -> vec2<u32> {
     return draw(child(key, KEY_INTERNODE));
 }
 
+// The factor the internode of the node keyed `key` was laid at
+// (`lineage::internode`, fn-222): 1 + spread (2u - 1), u its draw's top
+// 24 bits.
+fn internode_factor(spread: f32, key: vec2<u32>) -> f32 {
+    if spread <= 0.0 {
+        return 1.0;
+    }
+    let u = f32(shr64(internode_draw(key), 29u).x) * (1.0 / 16777216.0);
+    return 1.0 + spread * (2.0 * u - 1.0);
+}
+
 // The insertion draw of the axis whose lineage is `key`
 // (`contract::insertion_draw`, fn-224).
 fn insertion_draw(key: vec2<u32>) -> vec2<u32> {

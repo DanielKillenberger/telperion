@@ -81,6 +81,9 @@ fn a_tree_drawn_within_its_year_joins_both_years_with_no_pop() {
         }
     }
     assert!(new > 0 && organs(&start).len() > year.len());
+    // An axis that stays holds every phytomer it held.
+    let held = organs(&Presented::whole(now.clone()));
+    assert!(year.keys().all(|key| held.contains_key(key) || !held.contains_key(&(key.0, 0))));
 
     // At its end it is today's tree, which `settle_at` draws, the grower
     // left as it was.

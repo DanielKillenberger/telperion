@@ -139,7 +139,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
 #[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
 mod budget;
 #[cfg(test)]
-mod agree_tests;
+pub(super) mod agree_tests;
 mod boots;
 #[cfg(test)]
 mod boots_tests;

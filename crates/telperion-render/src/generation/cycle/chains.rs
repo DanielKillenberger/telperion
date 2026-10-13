@@ -6,7 +6,7 @@
 //! placed by scans, and each chain's axes listed in the table's order.
 use super::super::io;
 use super::hier_scan::{sums_words, uniform, widest, words, zeroed, Scan};
-use super::settle_run::Settled;
+use super::settle_run::View;
 use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
@@ -86,16 +86,16 @@ const COUNT: usize = 2;
 const WAVE: usize = 6;
 const FIRST: usize = 7;
 
-/// The chains of the settled tree `s`, planned with `scan`.
-pub(super) async fn plan(gpu: &Gpu, (k, scan): (&Kernels, &io::Pass), s: &Settled) -> Result<Chains> {
+/// The chains of the laid tree `s`, planned with `scan`.
+pub(super) async fn plan(gpu: &Gpu, (k, scan): (&Kernels, &io::Pass), s: View<'_>) -> Result<Chains> {
     let kept = s.table.kept;
     let stride = (kept + 1).next_multiple_of(64);
     let plan = zeroed(gpu, "chain plan", u64::from(COLS) * u64::from(stride))?;
     let atom = zeroed(gpu, "chain counts", COLUMNS + 4 * u64::from(stride))?;
     let cfg = [widest(gpu).0, 0, 0, kept, s.table.sk, stride, 0, 0];
-    let mut r = Rec { gpu, k, nt: &s.nt, plan: &plan, atom: &atom, cfg, held: Vec::new() };
+    let mut r = Rec { gpu, k, nt: s.nt, plan: &plan, atom: &atom, cfg, held: Vec::new() };
     let mut e = gpu.encoder(&Default::default());
-    for w in s.kept_starts.windows(2).filter(|w| w[1] > w[0]) {
+    for w in s.starts.windows(2).filter(|w| w[1] > w[0]) {
         r.run(&mut e, HEADS, &[(BASE, w[0]), (COUNT, w[1] - w[0])], w[1] - w[0])?;
     }
     r.run(&mut e, COUNTS, &[], kept)?;

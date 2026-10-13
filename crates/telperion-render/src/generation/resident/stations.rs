@@ -17,7 +17,7 @@ const BLOOM_KERNELS: &str = include_str!("blooms.wgsl");
 const SW: u64 = 4;
 pub(super) const RW: u64 = 6;
 /// A segment's words (`data.rs`'s `Segment`).
-pub(super) const GW: usize = 32;
+pub(super) const GW: usize = 36;
 const KIDS: usize = 0;
 const BEAR: usize = 1;
 const STARTS: usize = 2;
