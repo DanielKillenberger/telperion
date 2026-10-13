@@ -259,6 +259,15 @@ impl Ledger {
         drop(l);
         (self.take_peak(), at)
     }
+
+    /// The bytes each label holds now, the largest first.
+    #[cfg(test)]
+    pub(crate) fn census_now(&self) -> Vec<(&'static str, u64)> {
+        let l = self.counts.labels.lock().unwrap_or_else(|e| e.into_inner());
+        let mut now: Vec<_> = l.now.iter().map(|(k, v)| (*k, *v)).filter(|e| e.1 > 0).collect();
+        now.sort_by_key(|e| std::cmp::Reverse(e.1));
+        now
+    }
 }
 
 impl Owned {
