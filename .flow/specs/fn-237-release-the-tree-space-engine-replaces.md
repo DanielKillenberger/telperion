@@ -35,3 +35,10 @@ The owner's goal (2026-10-08/09): "replace the old generator with the new one th
 ## Boundaries
 
 Map only. Post-release: fn-232, fn-233.
+
+## Housekeeping decisions (host, 2026-10-13, branch fn-237-housekeeping)
+
+- R10, R12, R13, R15 done; R14's storage half done (8 storage buffers per stage, red and green fixtures).
+- R5 superseded by fn-241 R2 (one field test per preset), closed once a full `npm test` confirms every preset under its timeout. R6 superseded by `691620d04` (2.5 s per pipeline; the first tree's total reported only).
+- R9 and R14's Tint half wait for fn-270's merge (both live in `generation/`): R9's load-dependent compile timing is replaced by a load-free guard then; the Tint checker extends to every shipped module, and its two findings (barriers in `select`, whose bound is a constant, and `positions`) are checked against Tint itself before either is fixed or exempted.
+- Species audit: SPECIES-AUDIT.md; what is left is mostly the owner's verdicts and re-sheets on the current engine, gathered into the release's stills session.
