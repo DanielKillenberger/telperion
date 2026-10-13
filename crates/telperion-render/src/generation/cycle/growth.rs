@@ -184,11 +184,20 @@ impl GrowthState {
             let s = self.settled(gpu, k).await?;
             let _capped = gpu.ledger.capped(self.budget);
             let scan = &k.build.hier.scan;
+            let mut settled = Some(s);
             let presented = match fraction < 1.0 {
-                true => Some(present(gpu, (&k.present, scan), (s.view(), self.previous.as_ref().map(Previous::view)), &self.unfold, fraction).await?),
+                true => {
+                    let s = settled.take().expect("a settled tree");
+                    let p = present(gpu, (&k.present, scan), (s.view(), self.previous.as_ref().map(Previous::view)), &self.unfold, fraction).await?;
+                    // This year's settled tree let go, and freed, before the
+                    // presented one is drawn: never both beside the drawn.
+                    drop(s);
+                    super::super::io::complete(gpu).await?;
+                    Some(p)
+                }
                 false => None,
             };
-            let view = presented.as_ref().map_or(s.view(), |p| p.view());
+            let view = presented.as_ref().map_or_else(|| settled.as_ref().expect("a settled tree").view(), |p| p.view());
             let planned = chains::plan(gpu, (&k.chains, scan), view).await?;
             let leaf = presented.as_ref().map(|p| &p.leaf);
             let at = Rows { rows: &self.rows, age: committed, scale: self.scale, fraction, leaf };
