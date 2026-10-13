@@ -42,7 +42,10 @@ fn tools() -> PathBuf {
         if examples.iter().all(|e| dir.join(e).exists()) {
             continue;
         }
+        // The profile's parent is the target directory, the triple's own
+        // under a configured target: the build is for the host, there.
         let mut cargo = Command::new(env!("CARGO"));
+        cargo.env_remove("CARGO_BUILD_TARGET");
         cargo.current_dir(repo()).arg("build").arg("--target-dir");
         cargo.arg(profile.parent().unwrap());
         cargo.args(["--profile", if name == "debug" { "dev" } else { name }]);
