@@ -55,3 +55,10 @@
 - **Hindered:** another worker's `npm test` holds the admission lock waiting for 10 GB while 7 GB is free after the reserve, and a 5 GB run waits behind it; every later declaration, however small, waits behind both, since admission is first come first served under one lock.
 - **Cost:** open; the queue was 12 minutes old when this run joined it.
 - **Would have removed it:** admission that lets a smaller job past one waiting for more room than there is (a lock held only while counting, not while waiting).
+
+## 2026-10-13, task 4 (worker): the gate cannot be admitted on this desk
+
+- **Doing:** the end gate at the declared 12 GB with 4 GB of the card.
+- **Hindered:** the desk holds 13 GB available, 7 after the 6 GB reserve, for over 40 minutes; the gate waits for 12 and no other heavy job is running. Focused device runs at 4 to 6 GB went through meanwhile.
+- **Cost:** 40 minutes and counting of an idle gate.
+- **Would have removed it:** a gate declaration measured against the gate's own peak at 12 test threads, or a reserve that scales with the desk's resident load; until then the gate needs the desktop's memory freed by hand.

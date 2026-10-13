@@ -9,8 +9,11 @@ R5 and R5a, CPU then device, and R4's oak at 80. Raw output is in `raw/t4/` (ign
 - **Shoots.** This year's phytomers of an axis (those it did not hold a year before; a woken bud's whole shoot) extend from its base by the course over its PA's `elongation` days, measured by the wood each grows (scale times its internode's spread), each internode filling in turn.
 - **Leaves.** A node's leaf expands over its PA's `expansion` days from the moment the shoot reaches it.
 - **Old organs.** Every phytomer of both years moves by `f` from last year's drawing (tip, frame, girth, scale), keyed by axis identity and place. The leaves the wood's age keeps move by `f` from last year's share.
-- **Gone subtrees.** Drawn as last year, carried with the wood they stood on, girth and scale faded by `f`.
-- The whole year (`f = 1`) is the tree as grown. The palm's rosette fronds are drawn whole: a rosette has no per-frond age (open).
+- **Gone subtrees.** Drawn as last year, carried with the wood they stood on; the wood thins by `f` to nothing and each leaf reaches nothing as its wood reaches the thinnest drawn (2e-4 m), so no leaf drops at size (review round 1).
+- **Falling leaves.** A station its wood kept a year before and keeps no longer is drawn at `1 - f` of its size; which stations are drawn follows last year's retention, which holds every station kept now (`Leafing::was`, `fade`).
+- **Short shoots.** A short shoot that stood a year before keeps its cluster whole at whichever tip it stands; a new one's cluster expands.
+- **Relay joins.** A relay born this year joins from its bearer's own wood by `f`; a gone one fades back into it.
+- The whole year (`f = 1`) is the tree as grown. The palm's rosette fronds are drawn whole: a rosette has no per-frond age, so the crown neither expands nor stays put as its stem apex moves (open item for the host; the reviewer keeps it as a P1).
 
 ## Curves and sources (each value checked against the quoted text)
 
