@@ -42,3 +42,25 @@ The Wasm core (the CPU grower, `raw/t3-base-wasm.log`): Telperion 3,114 MB, Laur
 | telperion | 4198 | 4198 | 2951 | 4699 | 4732 | 1e4f17ab77dd41f0 |
 
 Kept: the continuation peak falls 19.5% on Telperion (5,876 to 4,732) and 19.6% on Laurelin; the standalone peak 0.3%, as the six columns are still made for each cycle. Every hash is the baseline's, and the focused tests hold (`raw/t3-l1-focused.log`: retirement's verdicts and the young presets' laid trees against the CPU's, the splits, the halted cycle, twelve tests). The compactor's 155 MB could share the cycle's scratch (it runs between cycles), a ceiling of 3.7% of Telperion's standalone peak; not built.
+
+## Stopped before lever 2: the ceilings of levers 2 and 3, measured
+
+Levers 2 and 3 each need a design call the spec does not make (below). To make the calls answerable, their ceilings were measured with throwaway patches, none committed (`raw/t3-o2-*`, `raw/t3-o3-*`, `raw/t3-x3-ratios.log`, `raw/t3-oak80-ratios.log`).
+
+- **Lever 2's ceiling** ("o2"): each preset's tables sized by its own most against its hint over seeds 1, 7, 42 (`arena_ratios`, `raw/t3-base-ratios.log`) instead of the most over every preset, the margin kept at 1.5: the best any parameter-derived estimate calibrated on the presets can do. No preset moved; every hash is the baseline's.
+- **Levers 2 and 3 together** ("o3"): as o2, with the axes inside retired subtrees compacted out where a PA keeps records too, and the axes' and units' ratios measured that way (`raw/t3-x3-ratios.log`). The tree this draws is wrong (every hash but the palm's changes): the settle reads those axes (below). It measures the memory only, the archive's own cost left out.
+
+| Preset (target) | Lever 1 | Lever 2's ceiling | Levers 2 and 3's ceiling | Continuation: lever 1 / 2 / 2 and 3 |
+|---|--:|--:|--:|--:|
+| date-palm (32) | 32 | 32 | 32 | 32 / 32 / 32 |
+| european-beech (250) | 304 | 283 | 269 | 345 / 324 / 311 |
+| ordinary (250) | 274 | 194 | 161 | 297 / 218 / 185 |
+| silver-birch (450) | 798 | 540 | 476 | 847 / 589 / 525 |
+| oregon-white-oak (650) | 1270 | 610 | 513 | 1322 / 662 / 566 |
+| norway-spruce (1,200) | 2438 | 1537 | 1402 | 2622 / 1721 / 1586 |
+| laurelin (2,000) | 3843 | 3358 | 2537 | 4346 / 4021 / 3148 |
+| telperion (2,000) | 4198 | 3657 | 2745 | 4732 / 4375 / 3400 |
+
+The oak at 80, sized by its own ratios (seed 1 at 80, widened by the seed spread measured at 40; seeds 7 and 42 at 80 could not be measured from the least tables under 6.5 GiB), builds at 4,226 MB, inside the 4 GiB default (4,295 MB); 1,486,513 instances.
+
+At levers 2 and 3's ceiling Telperion's peak moves from growth into the settle (2,745 MB: settle work 427, phytomers laid 426, records 376, settle nodes 374, pencils 259, settle place 246, axes 228): the retired rows' records (12.5M rows at seed 42, 4.2 of its kept phytomers) and the settle's scratch sized by arena rows plus records are its next floor. No lever R4 names reaches the Two Trees' 2,000 MB; the continuation peaks come under 4 GiB (4,295 MB) only with lever 3.
