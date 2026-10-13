@@ -75,56 +75,69 @@ fn sweeps_ahead(read: &[u32], prev: Option<&[u32]>) -> u32 {
     sweeps_of(std::array::from_fn(|k| now[k] + (3 * now[k].saturating_sub(before[k])).max(2)))
 }
 
-/// The sizes after doubling each table the next two cycles could pass,
-/// from `read` and the cycle before it (`prev`); none where `s` holds
-/// them: where its rows two cycles on at the rate they grew pass it, or,
-/// for a table the arena compacts, where the rows its compaction since
-/// the census kept (`cut`) would pass seven eighths of it. No phytomer
-/// table grows past the engine's `budget`.
-pub(super) fn grown(s: Sizes, (read, prev, cut): (&[u32], Option<&[u32]>, Option<&[u32]>), budget: u32) -> Option<Sizes> {
+/// The sizes after growing each table the next two cycles could pass,
+/// from the census `read`; none where `s` holds them. A table's rows two
+/// cycles on grow as the census's own cycle did (its end against its
+/// start; the leaves and the lattice against the census before, `prev`), from the rows the census counts or, for a table the arena
+/// compacts, those the last compaction kept where it came after the
+/// census (`cut`, with the cycles it stands before the next one's end);
+/// past `ROOM` of it, the table grows by `GROWTH` until they fit (fn-270 R4:
+/// tables grow by observed counts). No phytomer table grows past the
+/// engine's `budget`.
+pub(super) fn grown(s: Sizes, (read, prev, cut): (&[u32], Option<&[u32]>, Option<(&[u32], i32)>), budget: u32) -> Option<Sizes> {
     let held = super::build_arena::tables(read);
-    let kept = cut.map(super::build_arena::tables);
+    let kept = cut.map(|(c, _)| super::build_arena::tables(c));
     let before = prev.map(super::build_arena::tables);
-    // A table's growth by its own cycle (its start against its end, which
-    // compaction does not hide), else against the census before.
-    let starts = [c::AXES0, c::UNITS0, c::PHYTS0, c::SLEEPERS0];
+    // The cycles from the rows counted to the end of the next cycle
+    // recorded: two from the census, one from a compaction just made.
+    let ahead = cut.map_or(2, |c| c.1);
+    let starts = [c::AXES0, c::UNITS0, c::PHYTS0, c::SLEEPERS0, c::LIVE0, c::WOKEN0];
     let compacted = s.compact != Compact::Off;
-    let near = |k: usize, cap: u32| {
-        // A table the arena compacts by the rows its last compaction kept;
-        // none until one has (its compaction comes first).
-        let now = match (compacted && k <= 2, kept) {
-            (false, _) => f64::from(held[k]),
-            (true, Some(kept)) => f64::from(kept[k]),
-            (true, None) => return false,
-        };
+    let need = |k: usize| {
         let end = f64::from(held[k]);
-        let start = match k {
-            0..=3 => f64::from(read[starts[k]]),
-            5 => f64::from(read[c::WOKEN0]),
-            _ => before.map_or(end / 2.0, |b| f64::from(b[k])),
+        let (now, cycles) = match (compacted && k <= 2, kept) {
+            (true, Some(kept)) => (f64::from(kept[k]), ahead),
+            _ => (end, 2),
         };
-        let r = (end / start.max(1.0)).clamp(1.0, 4.0);
-        let room = if compacted && k <= 2 { 7.0 / 8.0 } else { 1.0 };
-        now * r * r > room * f64::from(cap)
+        let r = match k {
+            0..=5 => (end / f64::from(read[starts[k]]).max(1.0)).clamp(1.0, 4.0),
+            _ => (end / before.map_or(end / 2.0, |b| f64::from(b[k])).max(1.0)).clamp(1.0, 4.0),
+        };
+        now * r.powi(cycles) / ROOM
     };
-    let twice = |k: usize, cap: u32| if near(k, cap) { cap.saturating_mul(2) } else { cap };
+    let fit = |k: usize, cap: u32| {
+        let want = need(k);
+        let mut c = cap;
+        while f64::from(c) < want && c < u32::MAX / 2 {
+            c = ((f64::from(c) * GROWTH).ceil() as u32).max(c + 1);
+        }
+        c
+    };
     let mut n = s;
     let caps = &mut n.caps;
-    caps.axes = twice(0, caps.axes).next_multiple_of(64);
-    caps.units = twice(1, caps.units);
-    caps.phyts = twice(2, caps.phyts).min(budget).max(s.caps.phyts);
-    caps.sleepers = twice(3, caps.sleepers);
-    caps.next = twice(4, caps.next).next_multiple_of(64);
-    caps.woken = twice(5, caps.woken);
+    caps.axes = fit(0, caps.axes).next_multiple_of(64);
+    caps.units = fit(1, caps.units);
+    caps.phyts = fit(2, caps.phyts).min(budget).max(s.caps.phyts);
+    caps.sleepers = fit(3, caps.sleepers);
+    caps.next = fit(4, caps.next).next_multiple_of(64);
+    caps.woken = fit(5, caps.woken);
     let leaves = n.points - n.tips;
-    n.tips = twice(4, n.tips);
-    n.points = twice(6, leaves) + n.tips;
-    n.nodes = twice(7, n.nodes);
+    n.tips = fit(4, n.tips);
+    n.points = fit(6, leaves) + n.tips;
+    n.nodes = fit(7, n.nodes);
     if n == s {
         return None;
     }
     Some(Sizes { bounds: n.stated(), ..n })
 }
+
+/// The share of a table its rows two cycles on may reach before it grows:
+/// a cycle's counts within it pass those at its end.
+const ROOM: f64 = 7.0 / 8.0;
+
+/// How much a table grows at a move: geometric, so a table grown from a
+/// small hint moves a handful of times.
+pub(super) const GROWTH: f64 = 1.5;
 
 /// The passes a round took in the census's cycle at most: the first, and
 /// each after a pass that left an axis unplaced.

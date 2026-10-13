@@ -78,17 +78,19 @@ pub(super) enum Compact {
 const TIGHT: f64 = 0.85;
 
 impl Compact {
-    /// Whether to compact now, the census read and the one before it.
-    fn now(self, caps: &Caps, (read, prev): (&[u32], Option<&[u32]>)) -> bool {
-        let ahead = |w: usize| {
-            let r = prev.map_or(2.0, |p| (f64::from(read[w]) / f64::from(p[w].max(1))).clamp(1.0, 4.0));
-            f64::from(read[w]) * r * r
+    /// Whether to compact now, by the census read: a table's rows two
+    /// cycles on, each growing as the census's own cycle did (its end
+    /// against its start, which no compaction between cycles hides).
+    fn now(self, caps: &Caps, read: &[u32]) -> bool {
+        let ahead = |(start, end): (usize, usize)| {
+            let r = (f64::from(read[end]) / f64::from(read[start].max(1))).clamp(1.0, 4.0);
+            f64::from(read[end]) * r * r
         };
-        let tight = |w: usize, cap: u32| ahead(w) > TIGHT * f64::from(cap);
+        let tight = |w: (usize, usize), cap: u32| ahead(w) > TIGHT * f64::from(cap);
         match self {
             Compact::Off => false,
             Compact::Every => true,
-            Compact::Tight => tight(c::PHYTS, caps.phyts) || tight(c::AXES, caps.axes) || tight(c::UNITS, caps.units),
+            Compact::Tight => tight((c::PHYTS0, c::PHYTS), caps.phyts) || tight((c::AXES0, c::AXES), caps.axes) || tight((c::UNITS0, c::UNITS), caps.units),
         }
     }
 }
@@ -277,36 +279,19 @@ impl Growing {
         Ok(read)
     }
 
-    /// The arena moved and compacted after `cycle`, by the census `read`
+    /// The arena compacted and moved after `cycle`, by the census `read`
     /// of the one before: neither at `end`, after which no census is read.
+    /// A compaction comes first, so a table grows only by the rows it
+    /// keeps (fn-270 R4: the tables grow by observed counts).
     async fn ready(mut self, gpu: &Gpu, (kit, t, tables): (&Kit, &Tables, &Capture), (cycle, end): (u32, u32), read: &[u32]) -> Result<Self> {
         let clock = super::super::Clock::now();
         let sizes = self.sizes;
-        // A move makes room for the next cycle.
-        let fallen = self.compacted.is_some_and(|k| k + 2 >= cycle).then_some(self.cut.as_slice());
-        let moving = (cycle < end).then(|| grown(sizes, (read, self.last.as_deref(), fallen), t.budget)).flatten();
-        // A compaction after the cycle read counts nothing the census shows.
-        let after = moving.unwrap_or(sizes);
-        let fresh = self.compacted.is_none_or(|k| k + 1 < cycle) || after.compact == Compact::Every;
-        let compacting = cycle < end && fresh && after.compact.now(&after.caps, (read, self.last.as_deref()));
-        let run = self.run.take().expect("a recorded cycle");
-        // The inside marks a compaction drops by, taken before a move
-        // carries them over.
+        let fresh = self.compacted.is_none_or(|k| k + 1 < cycle) || sizes.compact == Compact::Every;
+        let compacting = cycle < end && fresh && sizes.compact.now(&sizes.caps, read);
+        let mut run = self.run.take().expect("a recorded cycle");
         if compacting {
+            // The inside marks a compaction drops by.
             self.grew.stamped.extend(self.b.inside(gpu, kit, (&run.0, &run.1), (cycle, &self.submitted.0, &self.submitted.1)));
-        }
-        let mut run = run;
-        if let Some(next) = moving {
-            self.b = self.b.moved(gpu, (t, tables), (sizes, next))?;
-            let plan = self.b.plan(gpu, kit, t, next.bounds)?;
-            let mut e = gpu.encoder(&Default::default());
-            e.copy_buffer_to_buffer(&run.0.census, 0, &plan.0.census, 0, run.0.census.size());
-            gpu.submit([e.finish()]);
-            (run, self.sizes) = (plan, next);
-            self.grew.moves += 1;
-            self.grew.moved_at.push((cycle, self.b.retire.rec_n));
-        }
-        if compacting {
             let traced = std::env::var("CYCLE_TRACE").is_ok();
             if traced {
                 super::super::io::complete(gpu).await?;
@@ -321,6 +306,25 @@ impl Growing {
             (self.grew.compactions, self.compacted) = (self.grew.compactions + 1, Some(cycle));
             let words = super::super::io::read_async(gpu, &run.0.census, 4 * c::WORDS as u64).await?;
             self.cut = bytemuck::cast_slice(&words).to_vec();
+        }
+        // The rows a compaction kept stand for the census read before it.
+        // A compaction after this cycle counts its end, one before the
+        // next's; one after the cycle before stands for the census read.
+        let fallen = match self.compacted {
+            Some(k) if k == cycle => Some((self.cut.as_slice(), 1)),
+            Some(k) if k + 1 == cycle => Some((self.cut.as_slice(), 2)),
+            _ => None,
+        };
+        // A move makes room for the next two cycles.
+        if let Some(next) = (cycle < end).then(|| grown(sizes, (read, self.last.as_deref(), fallen), t.budget)).flatten() {
+            self.b = self.b.moved(gpu, (t, tables), (sizes, next)).await?;
+            let plan = self.b.plan(gpu, kit, t, next.bounds)?;
+            let mut e = gpu.encoder(&Default::default());
+            e.copy_buffer_to_buffer(&run.0.census, 0, &plan.0.census, 0, run.0.census.size());
+            gpu.submit([e.finish()]);
+            (run, self.sizes) = (plan, next);
+            self.grew.moves += 1;
+            self.grew.moved_at.push((cycle, self.b.retire.rec_n));
         }
         self.run = Some(run);
         self.grew.moving += clock.elapsed_ms() / 1e3;

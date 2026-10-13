@@ -1,9 +1,10 @@
-//! A build's tables sized once (the host's rulings of 2026-10-12, fn-256
+//! A build's tables sized (the host's rulings of 2026-10-12, fn-256
 //! task 5): from the closed form's expected kept phytomers, a hint and
-//! never a bound, each table past its measured most against the hint by
+//! never a bound, each table from its measured most against the hint by
 //! a stated margin; and the plan's bounds stated from those tables, so a
 //! build records its cycle once and never begins again. A table its hint
-//! undersized doubles once (`build_size::grown`, counted as a move).
+//! undersized grows by observed counts (`build_size::grown`, each growth
+//! a move).
 use super::build_grow::{Compact, Sizes};
 use super::build_plan::Bounds;
 use super::census as c;
@@ -33,15 +34,23 @@ pub(super) const RECORDS: f64 = 4.6268;
 /// widest table (the pencils) 59 words a row.
 const MOST_ROWS: u32 = 1 << 26;
 
-/// How far past the measured most a table is sized: room for a
-/// compaction made only when a table runs tight (`Compact::Tight`).
-pub(super) const MARGIN: f64 = 1.5;
+/// How far past the measured most a table starts (fn-270 R4, the host's
+/// ruling: tables start from the hint and grow by observed counts,
+/// `build_size::grown`). Measured on every preset at margins 0.5 to 1.5
+/// and growth 1.5 and 2 (`MEMORY.md`): at 1.0 the Two Trees peak least
+/// and stay within a twentieth of their warm build time; at 1.5 no
+/// preset moves and every table is a third larger than it needs.
+pub(super) const MARGIN: f64 = 1.0;
 
-/// What each table holds at the census's cycle's end.
+/// What each table holds at the census's cycle's end (the living, at most
+/// within it).
 pub(super) fn tables(census: &[u32]) -> [u32; TABLES] {
     let w = |k: usize| census[k];
     let leaves = w(c::PHYTS).saturating_sub(w(c::PHYTS0));
-    [w(c::AXES), w(c::UNITS), w(c::PHYTS), w(c::SLEEPERS), w(c::NEXT), w(c::WOKEN), leaves, w(c::GRID + 6)]
+    // The living table holds the most of the living the cycle left, after
+    // its balance, and the axes that grew.
+    let living = w(c::NEXT).max(w(c::LIVE)).max(w(c::GREW));
+    [w(c::AXES), w(c::UNITS), w(c::PHYTS), w(c::SLEEPERS), living, w(c::WOKEN), leaves, w(c::GRID + 6)]
 }
 
 /// What the closed form expects of a build: its kept phytomers, and its

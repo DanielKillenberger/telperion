@@ -8,7 +8,10 @@
 use super::build::Tables;
 use super::build_grow::{grow_now, Compact, Sizes};
 use super::build_arena::{hint, TABLES};
+use super::growth::tests::digest;
 use super::grown_tests::{device, grown_from};
+use super::settle_run::settle_now;
+use telperion_space::SettleTo;
 use super::plan_units::rounds_used;
 use super::census as c;
 use telperion_core::presets::Preset;
@@ -69,16 +72,20 @@ fn arena_ratios() {
     println!("| most | | | {} |", cells.join(" | "));
 }
 
-/// The host's gate (ruling 2): every shipped preset at its default age,
-/// seeds 1, 7 and 42, grown from the tables its hint sizes, makes no move
-/// and never begins again. `ARENA_PRESETS` names a comma list, and
+/// The host's gate (ruling 2 of 2026-10-12, as fn-270 R4 rules it):
+/// every shipped preset at its default age, seeds 1, 7 and 42, grown from
+/// the tables its hint sizes, its tables grown by observed counts, is
+/// the tree grown in its final tables from the first cycle, word for
+/// word, and never begins again. `ARENA_PRESETS` names a comma list, and
 /// `ARENA_AGE` an age for them all.
 #[test]
 #[ignore = "device limits: every preset's whole tree, three seeds"]
-fn every_preset_grows_in_its_hinted_arena() {
-    let Some((gpu, kit)) = device() else {
+fn every_preset_grows_from_its_hint_as_in_its_final_tables() {
+    let _held = super::super::whole_tree();
+    let Some(gpu) = super::super::test_gpu() else {
         return;
     };
+    let k = super::tree::Kernels::new(&gpu);
     let free = gpu.free_device_memory().unwrap_or(u64::MAX);
     let _capped = gpu.ledger.capped((4u64 << 30).min(gpu.ledger.live().saturating_add(free / 100 * 85)));
     let only = std::env::var("ARENA_PRESETS").ok();
@@ -92,26 +99,27 @@ fn every_preset_grows_in_its_hinted_arena() {
             let g = grown_from(growth.species.clone(), growth.request.light, (age, seed));
             let sizes = Sizes::hinted(hint(&g.species, age).expect("a hint")).expect("sized");
             let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
-            gpu.ledger.take_peak();
-            let clock = std::time::Instant::now();
-            let (b, grown, grew) = grow_now(&gpu, &kit, &t, &g.tables, (sizes, age)).unwrap_or_else(|e| panic!("{id} {seed}: {e}"));
-            println!("{id} {seed}: bounds {:?}; {}", grown.bounds, rounds(&grew.censuses));
-            let secs = clock.elapsed().as_secs_f64();
-            drop(b);
-            gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
-            let caps = sizes.caps;
-            let held = [caps.axes, caps.units, caps.phyts, caps.sleepers, caps.next, caps.woken];
-            let fill: Vec<String> = grew.most[..6].iter().zip(held).map(|(&m, c)| format!("{:.2}", f64::from(m) / f64::from(c))).collect();
-            println!(
-                "{id} {seed}: {:.2} s, {} moves, {} compactions, peak {} MB, most of each table {}",
-                secs, grew.moves, grew.compactions, gpu.ledger.take_peak() >> 20, fill.join(" ")
-            );
-            if grew.moves > 0 {
+            let mut drawn = |sizes: Sizes| {
+                gpu.ledger.take_peak();
+                let clock = std::time::Instant::now();
+                let (b, grown, grew) = grow_now(&gpu, &k.build, &t, &g.tables, (sizes, age)).unwrap_or_else(|e| panic!("{id} {seed}: {e}"));
+                let secs = clock.elapsed().as_secs_f64();
+                let b = pollster::block_on(b.settling(&gpu, (&t, &g.tables))).expect("settling");
+                let s = settle_now(&gpu, (&k.build, &k.settle), (&b, &t), (&t.settle_pa, SettleTo::Laid)).expect("a settle");
+                let d = digest(&gpu, &s);
+                drop((s, b));
+                gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
+                println!("{id} {seed}: {secs:.2} s, {} moves, {} compactions, peak {} MB; {}", grew.moves, grew.compactions, gpu.ledger.take_peak() >> 20, rounds(&grew.censuses));
+                (d, grown)
+            };
+            let (hinted, grown) = drawn(sizes);
+            let (fixed, _) = drawn(Sizes { caps: grown.caps, points: grown.points, tips: grown.tips, nodes: grown.nodes, records: grown.records, bounds: grown.bounds, ..sizes });
+            if hinted != fixed {
                 apart.push(format!("{id} {seed}"));
             }
         }
     }
-    assert!(apart.is_empty(), "moved or begun again: {apart:?}");
+    assert!(apart.is_empty(), "grown by moves, the tree differs: {apart:?}");
 }
 
 /// fn-256 task 15: a pole, one straight stem of 450 m growth units with

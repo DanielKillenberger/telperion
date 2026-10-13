@@ -18,7 +18,7 @@ fn forced() -> Sizes {
 }
 
 /// A digest of a settled tree's node table, to the word, and its fault.
-pub(super) fn digest(gpu: &Gpu, s: &Settled) -> u64 {
+pub(in crate::generation::cycle) fn digest(gpu: &Gpu, s: &Settled) -> u64 {
     let mut words = s.error.to_vec();
     words.extend(read_words(gpu, &s.nt, 0, s.table.words).expect("a readback"));
     let mut h = std::collections::hash_map::DefaultHasher::new();

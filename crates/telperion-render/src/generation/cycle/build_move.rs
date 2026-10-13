@@ -2,8 +2,7 @@
 //! only the tables whose rows grew are new, the state's and the
 //! hierarchy's columns copied column by column to their new strides;
 //! every other buffer is kept, and a scratch buffer the cycle writes
-//! before it reads is made anew. No synchronisation: the copies follow
-//! the cycles already submitted.
+//! before it reads is made anew once the old is freed.
 use super::build::{Build, Tables};
 use super::build_grow::Sizes;
 use super::build_light::Light;
@@ -27,19 +26,21 @@ fn columns(e: &mut wgpu::CommandEncoder, (from, into): (&Owned, &Owned), columns
 }
 
 /// `old` kept where its rows did not grow, else a new buffer of `words`
-/// with `copy` recorded from it.
-fn kept(gpu: &Gpu, e: &mut wgpu::CommandEncoder, old: Owned, (grew, label, words): (bool, &'static str, u64), copy: &dyn Fn(&mut wgpu::CommandEncoder, &Owned, &Owned)) -> Result<Owned> {
+/// with `copy` submitted from it.
+fn kept(gpu: &Gpu, old: Owned, (grew, label, words): (bool, &'static str, u64), copy: &dyn Fn(&mut wgpu::CommandEncoder, &Owned, &Owned)) -> Result<Owned> {
     if !grew {
         return Ok(old);
     }
     let new = zeroed(gpu, label, words)?;
-    copy(e, &old, &new);
+    let mut e = gpu.encoder(&Default::default());
+    copy(&mut e, &old, &new);
+    gpu.submit([e.finish()]);
     Ok(new)
 }
 
 impl State {
-    /// The state in tables of `n` rows, copies recorded into `e`.
-    fn moved(self, gpu: &Gpu, e: &mut wgpu::CommandEncoder, n: super::state::Caps) -> Result<State> {
+    /// The state in tables of `n` rows, a table at a time.
+    async fn moved(self, gpu: &Gpu, n: super::state::Caps) -> Result<State> {
         let o = self.caps;
         let w = u64::from;
         let table = |cols, (a, b): (u32, u32)| move |e: &mut wgpu::CommandEncoder, f: &Owned, t: &Owned| columns(e, (f, t), cols, (w(a), w(b)), (0, 0));
@@ -58,18 +59,19 @@ impl State {
         };
         let fresh = State::words(n);
         let phyts = (o.phyts, n.phyts);
-        let grown = kept(gpu, e, self.grown, (o.phyts != n.phyts, "cycle state phytomers grown", fresh[3]), &table(GROWN, phyts))?;
-        let laid = kept(gpu, e, self.laid, (o.phyts != n.phyts, "cycle state phytomers laid", fresh[4]), &table(LAID, phyts))?;
-        let state = State {
-            caps: n,
-            axes: kept(gpu, e, self.axes, (axes.0 != axes.1, "cycle state axes", fresh[0]), &table(AXES, axes))?,
-            pencils: kept(gpu, e, self.pencils, (axes.0 != axes.1, "cycle state pencils", fresh[1]), &table(PENCILS, axes))?,
-            units: kept(gpu, e, self.units, (o.units != n.units, "cycle state units", fresh[2]), &table(UNITS, (o.units, n.units)))?,
-            grown,
-            laid,
-            lists: kept(gpu, e, self.lists, (lists, "cycle state lists", fresh[5]), &copy_lists)?,
-        };
-        Ok(state)
+        // A table group at a time, the device waited on after each so its
+        // old tables are freed before the next group's are made: a move
+        // holds one group twice at most (fn-270 R4).
+        let grown = kept(gpu, self.grown, (o.phyts != n.phyts, "cycle state phytomers grown", fresh[3]), &table(GROWN, phyts))?;
+        let laid = kept(gpu, self.laid, (o.phyts != n.phyts, "cycle state phytomers laid", fresh[4]), &table(LAID, phyts))?;
+        super::super::io::complete(gpu).await?;
+        let axes_t = kept(gpu, self.axes, (axes.0 != axes.1, "cycle state axes", fresh[0]), &table(AXES, axes))?;
+        let pencils = kept(gpu, self.pencils, (axes.0 != axes.1, "cycle state pencils", fresh[1]), &table(PENCILS, axes))?;
+        super::super::io::complete(gpu).await?;
+        let units = kept(gpu, self.units, (o.units != n.units, "cycle state units", fresh[2]), &table(UNITS, (o.units, n.units)))?;
+        let lists = kept(gpu, self.lists, (lists, "cycle state lists", fresh[5]), &copy_lists)?;
+        super::super::io::complete(gpu).await?;
+        Ok(State { caps: n, grown, laid, axes: axes_t, pencils, units, lists })
     }
 }
 
@@ -92,28 +94,49 @@ impl Hierarchy {
 }
 
 impl Build {
-    /// This build sized `next` (it was `now`): its state and hierarchy
-    /// moved where their rows grew, its scratch made anew where its size
-    /// did, every other buffer kept.
-    pub(super) fn moved(self, gpu: &Gpu, (t, tables): (&Tables, &Capture), (now, next): (Sizes, Sizes)) -> Result<Build> {
-        let mut e = gpu.encoder(&Default::default());
+    /// This build sized `next` (it was `now`): its scratch whose size
+    /// grows let go first and the device waited on, its state, hierarchy
+    /// and retirement moved where their rows grew and the device waited on
+    /// again, then that scratch made anew; every other buffer kept. A move
+    /// holds no more than the old tables beside the new (fn-270 R4: the
+    /// tables grow by observed counts, so moves are the rule).
+    pub(super) async fn moved(mut self, gpu: &Gpu, (t, tables): (&Tables, &Capture), (now, next): (Sizes, Sizes)) -> Result<Build> {
         let (o, n) = (now.caps, next.caps);
         let (s, axes) = (n.axes, o.axes != n.axes);
-        let state = self.state.moved(gpu, &mut e, n)?;
-        let hier = self.hier.moved(gpu, &mut e, s)?;
-        let retire = self.retire.moved(gpu, &mut e, s)?;
-        gpu.submit([e.finish()]);
         let live = axes || o.next != n.next;
         let lit = (now.points, now.tips, now.nodes) != (next.points, next.tips, next.nodes);
-        let light = match lit {
-            true => {
-                let mut l = Light::new(gpu, &Cap(tables))?;
-                let (want, nodes) = next.lit();
-                l.ensure(gpu, want, nodes)?;
-                l
-            }
-            false => self.light,
-        };
+        let counted = o.next != n.next || o.sleepers != n.sleepers;
+        let least = 64;
+        if axes {
+            self.tree = zeroed(gpu, "cycle tree", 4)?;
+            self.layout = Layout::new(gpu, &t.form, least)?;
+            self.flags = zeroed(gpu, "cycle flags", 4)?;
+            self.scan_sums = zeroed(gpu, "cycle scan sums", 4)?;
+        }
+        if live {
+            self.sums = Sums::alloc(gpu, least, least, t.pas)?;
+            self.inputs = zeroed(gpu, "cycle inputs", 4)?;
+        }
+        if counted {
+            self.counts = zeroed(gpu, "cycle counts", 4)?;
+        }
+        if lit {
+            self.light = Light::new(gpu, &Cap(tables))?;
+        }
+        if o != n {
+            self.compactor = super::compact::Compactor::new(gpu, Sizes::least().caps, least)?;
+        }
+        super::super::io::complete(gpu).await?;
+        self.state = self.state.moved(gpu, n).await?;
+        let mut e = gpu.encoder(&Default::default());
+        self.hier = self.hier.moved(gpu, &mut e, s)?;
+        self.retire = self.retire.moved(gpu, &mut e, s)?;
+        gpu.submit([e.finish()]);
+        super::super::io::complete(gpu).await?;
+        if lit {
+            let (want, nodes) = next.lit();
+            self.light.ensure(gpu, want, nodes)?;
+        }
         let new = |keep: Owned, grew: bool, label, words: u64| if grew { zeroed(gpu, label, words) } else { Ok(keep) };
         let counts = device::counts(n, t.zones).words;
         Ok(Build {
@@ -121,24 +144,14 @@ impl Build {
             tree: new(self.tree, axes, "cycle tree", u64::from(hier_columns::TREE as u32 * s))?,
             layout: if axes { Layout::new(gpu, &t.form, s)? } else { self.layout },
             inputs: new(self.inputs, live, "cycle inputs", 2 * u64::from(n.next) + 6 * u64::from(s))?,
-            counts: new(self.counts, o.next != n.next || o.sleepers != n.sleepers, "cycle counts", counts)?,
+            counts: new(self.counts, counted, "cycle counts", counts)?,
             flags: new(self.flags, axes, "cycle flags", 2 * u64::from(s))?,
             scan_sums: new(self.scan_sums, axes, "cycle scan sums", sums_words(s, 1))?,
-            spare: self.spare,
-            scan_tally: self.scan_tally,
-            state,
-            hier,
-            retire,
             compactor: match o == n {
                 true => self.compactor,
                 false => super::compact::Compactor::new(gpu, n, s)?,
             },
-            light,
-            held: self.held,
-            laid: self.laid,
-            grown: self.grown,
-            census: self.census,
-            goes_on: self.goes_on,
+            ..self
         })
     }
 }

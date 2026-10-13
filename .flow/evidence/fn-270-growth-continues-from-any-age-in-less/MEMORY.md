@@ -64,3 +64,27 @@ Levers 2 and 3 each need a design call the spec does not make (below). To make t
 The oak at 80, sized by its own ratios (seed 1 at 80, widened by the seed spread measured at 40; seeds 7 and 42 at 80 could not be measured from the least tables under 6.5 GiB), builds at 4,226 MB, inside the 4 GiB default (4,295 MB); 1,486,513 instances.
 
 At levers 2 and 3's ceiling Telperion's peak moves from growth into the settle (2,745 MB: settle work 427, phytomers laid 426, records 376, settle nodes 374, pencils 259, settle place 246, axes 228): the retired rows' records (12.5M rows at seed 42, 4.2 of its kept phytomers) and the settle's scratch sized by arena rows plus records are its next floor. No lever R4 names reaches the Two Trees' 2,000 MB; the continuation peaks come under 4 GiB (4,295 MB) only with lever 3.
+
+## Host rulings (46865341f) and lever 2, merged into lever 4: tables grow by observed counts
+
+The host ruled lever 2 into lever 4 (spec R4): a build's tables start from the closed form's hint at a lower margin and grow by the counts they hold. As built:
+
+- **Growth by observed counts** (`build_size::grown`). Each table's rows two cycles on are its count times its own cycle's growth (its end against its start, which compaction between cycles does not hide). For a table the arena compacts, the count is what the last compaction kept, one cycle on when the compaction came after this cycle. A table past seven eighths of its rows grows by 1.5 (`GROWTH`) until the rows fit. The living table counts the most it held within the cycle (the living after the balance, and the axes that grew), as the ordinary at a margin of 0.5 overflowed it inside a cycle. The records grow by the same 1.5.
+- **Compaction first, then the move** (`Growing::ready`). Before, a move was decided before the compaction and with stale counts, and a compacted table could move only within two cycles of a compaction. At low margins that let the beech's phytomers and the ordinary's living overflow mid-build (refused by name).
+- **A move holds one group of tables twice at most** (`build_move.rs`). The scratch it will make anew is let go, and the device waited on, before any table moves. The tables move in three groups (phytomers, axes, units and lists), then the hierarchy and retirement together, the device waited on after each.
+- **Start margin 1.0** (`build_arena::MARGIN`, was 1.5). Measured (warm ms and peak MB, every preset; `raw/t3-x2*`): margins 0.3 to 1.5 at growth 1.5 and 2. At 1.0 and 1.5 the Two Trees peak least (Telperion 3,360 MB, Laurelin 3,094). Lower margins trade time for memory: at 0.75 Telperion took 1,339 ms; at 0.5, 1,432 ms; at 0.3, 1,457 ms. Growth 2 overshoots (Telperion 3,676 at 1.0).
+
+| Preset | Product build | Grown and laid | Paused at H-1 | Grown on from H-1 beside the drawn | Drawn at H beside the drawn | Hash | Warm ms (base) |
+|---|--:|--:|--:|--:|--:|---|--:|
+| date-palm | 32 | 32 | 5 | 32 | 5 | f22d2412f12fe872 | 73 (73) |
+| european-beech | 333 | 333 | 144 | 349 | 274 | 6f35c7809c6f62d6 | 201 (181) |
+| ordinary | 215 | 215 | 100 | 222 | 182 | 936105bc23a6ec6e | 461 (479) |
+| silver-birch | 590 | 590 | 312 | 639 | 482 | a1dbcff52c415bbb | 218 (223) |
+| oregon-white-oak | 905 | 905 | 547 | 957 | 738 | fd7d5eb0a8392ae6 | 229 (244) |
+| norway-spruce | 1700 | 1700 | 1086 | 1867 | 1788 | becc195a1ee62c89 | 436 (472) |
+| laurelin | 3094 | 3094 | 2088 | 3637 | 3741 | 8193cab2694c8679 | 1190 (1171) |
+| telperion | 3360 | 3339 | 2283 | 3950 | 4064 | 1e4f17ab77dd41f0 | 1290 (1244) |
+
+Kept: the standalone peak falls 20% on Telperion (4,198 to 3,360), 19.5% on Laurelin, 29% on the oak, 26% on the birch, 30% on the spruce, 22% on the ordinary; the beech rises 10% (304 to 333): at seed 42 it needs 2.25 of its hint in phytomers, past the margin, and moves late. The continuation peaks are under 4 GiB (Telperion 4,064 MB, 3,876 MiB). Every hash is the baseline's. The gate `every_preset_grows_from_its_hint_as_in_its_final_tables` (renamed from `..._in_its_hinted_arena`, which asserted no move) grows every preset at seeds 1, 7, 42 from its hint and again in its final tables from the first cycle: one node table, word for word, on all 24 (`raw/t3-l2-arena-gate*.log`; up to 3 moves and 8 compactions). Against fn-237 R0a: every tree but the Two Trees under 0.5 s; Telperion 1,290 ms (+46 ms, 3.7%, against about 1.25 s) and Laurelin 1,190 ms; the beech +20 ms. The time goes to the extra compactions and moves (Telperion at seed 42: 2 moves and 8 compactions where it made 4 compactions).
+
+The oak at 80 is still refused, now on the budget (4,269 MiB of phytomers laid at its first move): its hint starts its axis tables at 1.65 of its expected axes, where it needs about 0.4. Lever 3 recalibrates the ratios.
