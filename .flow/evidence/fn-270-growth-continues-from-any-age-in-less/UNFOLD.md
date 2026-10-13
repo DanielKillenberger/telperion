@@ -1,19 +1,20 @@
 # fn-270 task 4: leaves and shoots unfold within the year (worker, 2026-10-13)
 
-R5 and R5a, CPU then device, and R4's oak at 80. Raw output is in `raw/t4/` (ignored).
+R5, R5a, R5b and R5c, CPU then device, and R4's oak at 80. Raw output is in `raw/t4/` (ignored).
 
 ## The rule (`telperion_space::unfold`, `present.wgsl`)
 
-- **Time.** A year runs 365 days from bud burst; a draw at fraction `f` is `365 f` days in.
+- **Time.** A draw at fraction `f` of its last year is `365 f` days past the whole age. Each PA's year (R5c, host 2026-10-14): the whole age stands at full leaf, which is budburst plus the shoot's elongation plus the leaf's expansion; from there autumn (leaves past their lifespan colour, then fall), winter bare, budburst, full leaf at the next whole age.
 - **Curves.** A logistic course over a span, 0 at its start and 1 at its end exactly (4% at a fifth, 96% at four fifths). Pallardy 2008 (*Physiology of Woody Plants*, ch. 3): "seasonal and lifetime growth of shoots ... generally conform to such a [sigmoid] pattern".
-- **Shoots.** This year's phytomers of an axis (those it did not hold a year before; a woken bud's whole shoot) extend from its base by the course over its PA's `elongation` days, measured by the wood each grows (scale times its internode's spread), each internode filling in turn.
-- **Leaves.** A node's leaf expands over its PA's `expansion` days from the moment the shoot reaches it.
-- **Old organs.** Every phytomer of both years moves by `f` from last year's drawing (tip, frame, girth, scale), keyed by axis identity and place. The leaves the wood's age keeps move by `f` from last year's share.
-- **Gone subtrees.** Drawn as last year, carried with the wood they stood on; the wood thins by `f` to nothing and each leaf reaches nothing as its wood reaches the thinnest drawn (2e-4 m), so no leaf drops at size (review round 1).
-- **Falling leaves.** A station its wood kept a year before and keeps no longer is drawn at `1 - f` of its size; which stations are drawn follows last year's retention, which holds every station kept now (`Leafing::was`, `fade`).
-- **Short shoots.** A short shoot that stood a year before keeps its cluster whole at whichever tip it stands; a new one's cluster expands.
-- **Relay joins.** A relay born this year joins from its bearer's own wood by `f`; a gone one fades back into it.
-- The whole year (`f = 1`) is the tree as grown. The palm's rosette fronds are drawn whole: a rosette has no per-frond age, so the crown neither expands nor stays put as its stem apex moves (open item for the host; the reviewer keeps it as a P1).
+- **Shoots.** This year's phytomers of an axis (those it did not hold a year before; a woken bud's whole shoot) extend from its base from budburst by the course over its PA's `elongation` days, measured by the wood each grows (scale times its internode's spread), each internode filling in turn.
+- **Leaves.** A node's leaf expands over its PA's `expansion` days from the moment the shoot reaches it. A leaf of older wood past its lifespan (`leafLife`, a draw by its lineage) colours toward the species' named autumn colour (`leafDead*`, through the withered bit and one per-tree colouring uniform), stays whole on the tree, and is gone on its own abscission day, a draw by its lineage within the fall window, so the crown thins leaf by leaf (owner, 2026-10-14). Where its wood keeps a leaf it grows again by the expansion course from budburst. Only that expansion ever scales a leaf.
+- **Old organs.** Every phytomer of both years holds last year's drawing (tip, frame, girth, scale, sag) until budburst, moves along its PA's elongation course to this year's, and holds there (owner, 2026-10-14: no creep through summer, autumn and winter). An axis's base moves with its bearer's course. Keyed by axis identity and place.
+- **Gone subtrees.** Drawn as last year, carried with the wood they stood on; the wood thins by `f` to nothing; its leaves all pass, each whole until its abscission day, which comes no later than its wood reaches the thinnest drawn (2e-4 m).
+- **Leaves the wood keeps no longer.** Fall as a passing leaf does; which stations stand follows last year's retention, which holds every station kept now (`Leafing::was`).
+- **Short shoots.** A short shoot that stood a year before keeps its cluster at whichever tip it stands; a new one's cluster expands.
+- **Relay joins.** A relay born this year joins from its bearer's own wood along its course; a gone one fades back into it by `f`.
+- **Palm fronds (R5b, owner option a).** Each frond is keyed by its serial in the spiral (`rosetteYear`, 18 a year, the midpoint of FAO's 10 to 26), its turn `serial x divergence` and its draws by the stem's first node, so a frond holds still as the crown grows above it. This year's fronds emerge evenly over the stem's elongation and expand over 139 days; each older one moves a place down by degree, turns from living to dead over its last living place and fades over the skirt's last. A rosette with no `rosetteYear` is dormant.
+- The whole year (`f = 1`) is the tree as grown.
 
 ## Curves and sources (each value checked against the quoted text)
 
@@ -23,8 +24,21 @@ R5 and R5a, CPU then device, and R4's oak at 80. Raw output is in `raw/t4/` (ign
 | oregon-white-oak | 14 | 35 | Q. alba stands in (none for Q. garryana): Dougherty et al. 1979, Plant Physiol. 64: 930, leaves ">90% some 4 to 5 weeks following bud burst", shoots "underway or completed" 12 days after growth began |
 | silver-birch | 110 | 24 | Campos et al. 2023, ISPRS Archives XLVIII-1/W2: 1715, height growth DOY 125 to late August; Robson and Aphalo 2012, a leaf measured over 24 days |
 | norway-spruce | 35 | 35 | Rossi et al. 2009, Ann. For. Sci. 66: 206: "35 days of shoot and needle lengthening" |
-| date-palm | 365 | 0 | Zaid and de Wet 2002, FAO 156 ch. I: one terminal bud, "an annual formation of 10 to 26 new leaves" |
+| date-palm | 226 | 139 | Derived, low confidence: frond elongation "24 mm/day" to "36 mm/day" (Zhen et al. 2015) over a 4 m frond (Zaid and de Wet 2002, FAO 156 ch. I) gives 111 to 167 days, 139 the midpoint; the stem takes the 226 days left. 18 fronds a year, the midpoint of "10 to 26 new leaves" (ibid.) |
 | ordinary | 19.08 | 25.89 | The corners' point (`blend::centroid`, as `examples/centroid.rs`) |
+
+## The seasonal year's rows (R5c; sources quoted beside each row in the value files)
+
+| Preset | Leaf life (y) | Budburst (DOY) | Senescence (DOY) | Colouring (d) | Fall (d) | Autumn colour (named, not measured) |
+|---|--:|--:|--:|--:|--:|---|
+| european-beech, Laurelin, Telperion | 0.54 | 115 | 264 | 16 | 45 | copper (RHS) |
+| oregon-white-oak | 0.53 | 128 (Q. robur stand-in) | 264 | 16 | 45 (beech by the centroid rule) | brown |
+| silver-birch | 0.61 | 101 | 277 | 5 | 45 | yellow |
+| norway-spruce | never (leafYears, host 2026-10-14) | 132 | 264 | 16 | 45 (stand-ins, dormant) | - |
+| ordinary | 1.30 | 125 | 264 | 16 | 45 | the corners' point |
+| date-palm | never | - | - | - | - | its skirt's dead colour |
+
+Lifespans are rounded down to the second place so no leaf of the lifespan's year stands into winter.
 
 ## Fail-early premise (CPU)
 
@@ -51,3 +65,12 @@ Warm build times, A/B against the task's base on the same machine (ms, base / ta
 ## The oak at 80 (R4)
 
 A build starts at the hint's margin and halves it only where the device budget refuses the tables (`Sizes::margins`). The oak at 80 now builds under the 4 GiB default: 1,486,513 instances, warm 1,038 ms, ledger peak 4,209 MB (the refused first attempt's reservations; under the cap by construction). No shipped preset at its age is refused at the first margin, so none takes the new path.
+
+## R5b, R5c and the owner's two rulings of 2026-10-14 (worker)
+
+- **Leaves fall whole.** `tree::Unfolded::leaf`: a passing leaf, or one its wood keeps no longer, stands at full size and colours until its abscission day, a draw on its run's stream salted by `FALL` against the share of the fall gone; then it is gone. Device `pack.wgsl`'s `leaf_share` draws the same (`unfold_tests`: every one of 64 stations the CPU's share at half the fall, with retention kept and not; `leafing_tests`: shares are 0 or 1, a quarter of 400 gone at a quarter of the fall).
+- **No creep.** `unfold::Presenting::moving` and `present.wgsl`'s `moving`: old organs at last year's drawing to budburst, along elongation, then held. `unfold::tests::old_organs_move_only_while_the_shoots_grow` (oak at 12): no organ of both years moves between 0 and budburst or between the end of the latest elongation and 1 − 1e-6; the no-pop ladder holds. Device agreement at 0.02, 0.35, 0.6, 0.88 (mid-elongation) and 0.95, all eight young presets: positions within 1.4e-5 m, radii 5e-8, leaf shares 4e-6, seasons equal.
+- **Palm fronds on the device.** `stations.wgsl`'s `rosette` draws `rosette::fronds` from `Crown::rows` (`Growth::year`) and a fixed-point divergence; `every_rosette_is_placed_as_the_cpu_places_it` holds at the whole age and at 0.3 and 0.8 (apart 3.1e-5 of the height, withering identical). A frond at no size now keeps the family's leaflet count on the CPU, as the plan and the device count it.
+- **Catalogue.** All four digests re-pinned; family, walk and override verified by stripping `rosetteYear` and reading the last pins' value files.
+- **Stills** (oak at 40 seed 7, palm at 12 seed 1, crown camera): `raw/t4/r5bc/oregon-white-oak-40-7-{0.001,0.3,0.6,0.9}-crown.png`, `raw/t4/r5bc/date-palm-12-1-{0.001,0.3,0.6,1}-crown.png`. The oak at 0.3 is in full-size brown leaves a week into its fall, at 0.6 bare, at 0.9 leafing out; the palm at 0.3 has this year's fronds part emerged and small above last year's crown.
+- **Cost a frame (CPU draw, `growth::mesh`, oak at 40):** the whole year 768 ms; within it 786 ms at 0.3, 927 ms at 0.88, 989 ms at 0.95 (more wood and leaves stand as this year's shoots join last year's gone ones).

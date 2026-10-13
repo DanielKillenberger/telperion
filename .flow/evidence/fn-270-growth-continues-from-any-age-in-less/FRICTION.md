@@ -69,3 +69,10 @@
 - **Hindered:** at 7 GB the run was admitted at once and the OOM killer stopped it after 102 s in `telperion_core`'s unit tests (`telperion_core-087d64dd089b3a77`, 7.26 GB resident); the retry at 9 GB waited 51 minutes with 5 to 8 GB of room and was never admitted, so it was stopped.
 - **Cost:** about 53 minutes, no result for either gate or `npm test`.
 - **Would have removed it:** a cap on `telperion_core`'s own test memory (its unit tests alone pass 7 GB at 8 threads), or a reserve smaller than 6 GB while the desk is idle.
+
+## 2026-10-14, task 4 (worker): stills waiting on admission
+
+- **Doing:** eight seasonal stills (oak at 40, palm at 12) for the owner after R5b, R5c and the leaf-fall ruling.
+- **Hindered:** the 8 GB still run waited for admission behind another session's 6 GB walk job; a cargo example of a few seconds sat queued.
+- **Cost:** 15 minutes and counting of wall time; no tokens beyond the polls.
+- **Would have removed it:** an admission class for short GPU stills whose declared peak is small (the example's measured peak is under 2 GB), or a queue that shows its holder and estimated wait.

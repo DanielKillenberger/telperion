@@ -31,7 +31,9 @@ fn main() -> Result<(), String> {
     let mut state = growth::begin(&params, seed, f64::from(age)).map_err(|e| e.to_string())?;
     growth::grow_to(&mut state, f64::from(age)).map_err(|e| e.to_string())?;
     let at = |f: f64| f64::from(age) - 1.0 + f;
+    let started = std::time::Instant::now();
     let whole = growth::mesh(&state, at(1.0), &family).map_err(|e| e.to_string())?;
+    println!("the whole year drawn in {} ms", started.elapsed().as_millis());
     let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
     let hero = hero_pose(whole.bounds, aspect, GROUND_REACH);
     let camera = match crown {
@@ -41,7 +43,9 @@ fn main() -> Result<(), String> {
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     for f in fractions {
+        let started = std::time::Instant::now();
         let mesh = growth::mesh(&state, at(f), &family).map_err(|e| e.to_string())?;
+        let drawn = started.elapsed().as_millis();
         renderer.submit_at(&mesh, Level::Chosen).map_err(|e| e.to_string())?;
         renderer.set_family(&family);
         renderer.set_colouring(growth::colouring(&state, at(f)).map_err(|e| e.to_string())?);
@@ -51,7 +55,7 @@ fn main() -> Result<(), String> {
         let shot = if crown { "crown" } else { "whole" };
         let file = format!("{out}/{preset}-{age}-{seed}-{f}-{shot}.png");
         write_png(std::path::Path::new(&file), &still).map_err(|e| e.to_string())?;
-        println!("{file}: {} leaves, {} wood vertices", mesh.foliage_instances(), mesh.wood_vertices());
+        println!("{file}: drawn in {drawn} ms, {} leaves, {} wood vertices", mesh.foliage_instances(), mesh.wood_vertices());
     }
     Ok(())
 }
