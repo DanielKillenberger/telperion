@@ -156,10 +156,22 @@
 
 # The engine species (fn-198 host decision 1): telperion_space::oak (fn-195); it grows under the site light every preset shares (`presets::space::SITE`, fn-264 R1a).
 # The envelope is derived from the grown tree (host decision 7).
+# fn-270 R5: within the year a shoot elongates over 14 days from bud
+# burst and a leaf expands over 35 from its node's unfolding. No source
+# states either for Q. garryana, whose "leaves develop quickly once
+# growth starts" (Stein, Silvics of North America, Oregon white oak);
+# white oak stands in: "leaf maturation was complete or nearly complete
+# (>90%) some 4 to 5 weeks following bud burst", and shoot elongation
+# "either underway or completed" twelve days after growth began, April
+# 10 to April 22 (Dougherty et al. 1979, Plant Physiol. 64: 930), the
+# low end of the "2 to 6 weeks" of fixed growth (Kozlowski and Pallardy
+# 1997, Growth Control in Woody Plants).
 /space/ages/2/lifespan = 12.0
 /space/ages/2/internode = 0.045
 /space/ages/2/divergence = 2.513
 /space/ages/2/leafArea = 0.00181
+/space/ages/2/elongation = 14.0
+/space/ages/2/expansion = 35.0
 /space/ages/2/shadeHazard = 1.0
 /space/ages/2/shadeSize = 1.5
 /space/ages/2/apicalControl = 0.45
@@ -186,6 +198,8 @@
 /space/ages/3/internode = 0.045
 /space/ages/3/divergence = 2.513
 /space/ages/3/leafArea = 0.00181
+/space/ages/3/elongation = 14.0
+/space/ages/3/expansion = 35.0
 /space/ages/3/shadeHazard = 1.0
 /space/ages/3/shadeSize = 1.5
 /space/ages/3/apicalControl = 0.45
@@ -212,6 +226,8 @@
 /space/ages/4/internode = 0.05
 /space/ages/4/divergence = 2.513
 /space/ages/4/leafArea = 0.00181
+/space/ages/4/elongation = 14.0
+/space/ages/4/expansion = 35.0
 /space/ages/4/shadeHazard = 1.0
 /space/ages/4/shadeSize = 1.5
 /space/ages/4/apicalControl = 0.45
@@ -250,6 +266,8 @@
 /space/ages/6/epitony = 0.2
 /space/ages/6/straightening = 0.15
 /space/ages/6/leafArea = 0.00181
+/space/ages/6/elongation = 14.0
+/space/ages/6/expansion = 35.0
 /space/ages/6/shadeHazard = 1.0
 /space/ages/6/shadeSize = 0.5
 /space/ages/6/apicalControl = 0.45
@@ -300,6 +318,8 @@
 /space/ages/7/relayFailed = 1.0
 /space/ages/7/epitony = 0.2
 /space/ages/7/leafArea = 0.00181
+/space/ages/7/elongation = 14.0
+/space/ages/7/expansion = 35.0
 /space/ages/7/shadeHazard = 1.0
 /space/ages/7/shadeSize = 0.5
 /space/ages/7/apicalControl = 0.45
@@ -334,6 +354,8 @@
 /space/ages/8/insertion = 0.7
 /space/ages/8/divergence = 2.513
 /space/ages/8/leafArea = 0.00181
+/space/ages/8/elongation = 14.0
+/space/ages/8/expansion = 35.0
 /space/ages/8/shadeHazard = 1.0
 /space/ages/8/shadeSize = 1.5
 /space/ages/8/apicalControl = 0.45
@@ -369,6 +391,8 @@
 /space/ages/9/relayFailed = 1.0
 /space/ages/9/epitony = 0.2
 /space/ages/9/leafArea = 0.00181
+/space/ages/9/elongation = 14.0
+/space/ages/9/expansion = 35.0
 /space/ages/9/shadeHazard = 1.0
 /space/ages/9/shadeSize = 1.0
 /space/ages/9/apicalControl = 0.45
@@ -401,6 +425,8 @@
 /space/ages/12/insertion = 0.8
 /space/ages/12/divergence = 2.513
 /space/ages/12/leafArea = 0.00181
+/space/ages/12/elongation = 14.0
+/space/ages/12/expansion = 35.0
 /space/ages/12/shadeHazard = 1.0
 /space/ages/12/shadeSize = 1.0
 /space/ages/12/apicalControl = 0.45
@@ -431,6 +457,8 @@
 /space/ages/13/insertion = 0.8
 /space/ages/13/divergence = 2.513
 /space/ages/13/leafArea = 0.00181
+/space/ages/13/elongation = 14.0
+/space/ages/13/expansion = 35.0
 /space/ages/13/shadeHazard = 1.0
 /space/ages/13/shadeSize = 1.0
 /space/ages/13/apicalControl = 0.45
@@ -461,6 +489,8 @@
 /space/ages/14/insertion = 0.9
 /space/ages/14/divergence = 2.513
 /space/ages/14/leafArea = 0.00181
+/space/ages/14/elongation = 14.0
+/space/ages/14/expansion = 35.0
 /space/ages/14/shadeHazard = 1.0
 /space/ages/14/shadeSize = 1.0
 /space/ages/14/apicalControl = 0.45

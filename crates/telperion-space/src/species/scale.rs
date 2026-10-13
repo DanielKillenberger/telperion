@@ -72,6 +72,9 @@ pub const SCALES: &[(&str, Scale)] = &[
     ("cluster_spread", Linear),
     // fn-248: a span of years that may be infinite, by the share it keeps.
     ("leaf_years", Kept),
+    // fn-270 R5: spans of days, magnitudes.
+    ("elongation", Log { floor: 1.0 }),
+    ("expansion", Log { floor: 1.0 }),
     ("shade_hazard", Linear),
     ("shade_size", Linear),
     ("apical_control", Linear),
@@ -170,6 +173,8 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         cluster_leaves,
         cluster_spread,
         leaf_years,
+        elongation,
+        expansion,
         shade_hazard,
         shade_size,
         apical_control,
@@ -221,6 +226,8 @@ pub fn settings(state: &mut PaState) -> Vec<(&'static str, &mut f64)> {
         ("cluster_leaves", cluster_leaves),
         ("cluster_spread", cluster_spread),
         ("leaf_years", leaf_years),
+        ("elongation", elongation),
+        ("expansion", expansion),
         ("shade_hazard", shade_hazard),
         ("shade_size", shade_size),
         ("apical_control", apical_control),

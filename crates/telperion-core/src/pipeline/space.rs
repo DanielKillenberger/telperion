@@ -316,7 +316,47 @@ fn convert(structure: &Structure, rows: (&[usize], &[PaRow])) -> Tree {
 
 /// `convert`'s tree and each axis's drawn nodes, base first: where a coarse
 /// tree's stands are borne (fn-214).
-fn converted(structure: &Structure, (trunk, rows): (&[usize], &[PaRow])) -> (Tree, Vec<Vec<u32>>) {
+fn converted(structure: &Structure, rows: (&[usize], &[PaRow])) -> (Tree, Vec<Vec<u32>>) {
+    unfolded(structure, rows, Unfolding::WHOLE)
+}
+
+/// A tree drawn within its year (fn-270 R5): each axis's leaves' shares by
+/// phytomer (empty where all are whole), and how far into the year it is
+/// drawn, which the leaves the wood's age keeps move by.
+#[derive(Debug, Clone, Copy)]
+pub(super) struct Unfolding<'a> {
+    pub leaves: &'a [Vec<f32>],
+    pub fraction: f64,
+}
+
+impl Unfolding<'_> {
+    const WHOLE: Self = Self { leaves: &[], fraction: 1.0 };
+
+    /// The share of its whole size the leaf of axis `axis`'s phytomer
+    /// `place` is drawn at.
+    fn leaf(&self, axis: usize, place: usize) -> f32 {
+        self.leaves.get(axis).and_then(|l| l.get(place)).copied().unwrap_or(1.0)
+    }
+
+    /// The leaves wood of `cycle` keeps in a tree of `age` years under
+    /// `retention`: within the year, a share of the way from what it kept
+    /// a year before.
+    fn kept(&self, retention: (u32, u16), age: u32, cycle: u32) -> u16 {
+        let now = kept_share(retention, age.saturating_sub(cycle));
+        if self.fraction >= 1.0 || cycle >= age {
+            return now;
+        }
+        let was = f64::from(kept_share(retention, age - 1 - cycle));
+        (was + (f64::from(now) - was) * self.fraction).round() as u16
+    }
+}
+
+/// `converted`, its leaves drawn by `unfolding`.
+fn unfolded(
+    structure: &Structure,
+    (trunk, rows): (&[usize], &[PaRow]),
+    unfolding: Unfolding,
+) -> (Tree, Vec<Vec<u32>>) {
     let mut nodes = vec![Node::root()];
     let mut blooms = Vec::new();
     let mut clusters = Vec::new();
@@ -328,6 +368,10 @@ fn converted(structure: &Structure, (trunk, rows): (&[usize], &[PaRow])) -> (Tre
     let leafing_on = rows.iter().any(|r| r.retention.0 != u32::MAX);
     let mut leafing = vec![Leafing::ALL; usize::from(leafing_on)];
     let mut frames = vec![[0.0f32; 6]];
+    // Each node's leaves' share of their whole size, kept only where some
+    // leaf is drawn short of it (fn-270 R5).
+    let unfolding_on = unfolding.leaves.iter().any(|l| !l.is_empty());
+    let mut unfolded = vec![1.0f32; usize::from(unfolding_on)];
     let mut keys = vec![0u32];
     let mut lengths = vec![0.0];
     // The node each axis ends on, for what continues it.
@@ -403,7 +447,7 @@ fn converted(structure: &Structure, (trunk, rows): (&[usize], &[PaRow])) -> (Tre
             // factor (fn-222).
             // The wood's retention, every piece of it the phytomer's own
             // (fn-248).
-            let q = kept_share(retention, structure.age.saturating_sub(p.cycle));
+            let q = unfolding.kept(retention, structure.age, p.cycle);
             let piece = internode * p.scale * telperion_space::internode_factor(p.key(), spread);
             let here = joins[i].iter().filter(|(_, j)| j.node == place);
             for &(c, _) in here.clone().filter(|(_, j)| j.t <= 0.0) {
@@ -475,6 +519,9 @@ fn converted(structure: &Structure, (trunk, rows): (&[usize], &[PaRow])) -> (Tre
                 frames.push([h.x, h.y, h.z, s.x, s.y, s.z].map(|v| v as f32));
                 keys.push(d.key);
                 lengths.push(std::mem::take(&mut pending));
+                if unfolding_on {
+                    unfolded.push(unfolding.leaf(i, place));
+                }
                 if leafing_on {
                     let (older, before, last) = wood.take().unwrap();
                     leafing.push(Leafing {
@@ -549,6 +596,7 @@ fn converted(structure: &Structure, (trunk, rows): (&[usize], &[PaRow])) -> (Tre
         clusters,
         clustered,
         leafing,
+        unfolding: unfolded,
         ..Tree::default()
     };
     (tree, drawn)

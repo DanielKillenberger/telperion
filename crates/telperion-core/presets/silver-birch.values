@@ -370,10 +370,19 @@
 # Each node lends the light's lattice one leaf of 13.19 cm², derived from
 # Flora of China's blade and an ovate shape factor (fn-264 R2, host decision 1).
 # It answers light by its shade tolerance, T 2.03 (`tolerance.rs`; fn-264 R2, host decision 4).
+# fn-270 R5: within the year a shoot elongates over 110 days from bud
+# burst and a leaf expands over 24 from its node's unfolding. Height
+# growth "occurs between earlier May and late August ... begins on May
+# 4th (doy 125)" (Campos et al. 2023, ISPRS Archives XLVIII-1/W2: 1715):
+# DOY 125 to 235. Leaves "measured nine times each over a period of 24
+# days" from bud burst to their whole size (Robson and Aphalo 2012,
+# Physiol. Plant., doi:10.1111/j.1399-3054.2011.01546.x).
 /space/ages/2/lifespan = 5.0
 /space/ages/2/internode = 0.055
 /space/ages/2/divergence = 2.5132741228718345
 /space/ages/2/leafArea = 0.0013190625000000001
+/space/ages/2/elongation = 110.0
+/space/ages/2/expansion = 24.0
 /space/ages/2/shadeHazard = 1.1423076923076922
 /space/ages/2/upkeep = 0.35
 /space/ages/2/balanceHazard = 2.2846153846153845
@@ -400,6 +409,8 @@
 /space/ages/3/lifespan = 9.0
 /space/ages/3/divergence = 2.5132741228718345
 /space/ages/3/leafArea = 0.0013190625000000001
+/space/ages/3/elongation = 110.0
+/space/ages/3/expansion = 24.0
 /space/ages/3/shadeHazard = 1.1423076923076922
 /space/ages/3/upkeep = 0.35
 /space/ages/3/balanceHazard = 2.2846153846153845
@@ -429,6 +440,8 @@
 /space/ages/4/lifespan = 26.0
 /space/ages/4/divergence = 2.5132741228718345
 /space/ages/4/leafArea = 0.0013190625000000001
+/space/ages/4/elongation = 110.0
+/space/ages/4/expansion = 24.0
 /space/ages/4/shadeHazard = 1.1423076923076922
 /space/ages/4/upkeep = 0.35
 /space/ages/4/balanceHazard = 2.2846153846153845
@@ -467,6 +480,8 @@
 /space/ages/5/relayAt = 0.6
 /space/ages/5/epitony = 0.2
 /space/ages/5/leafArea = 0.0013190625000000001
+/space/ages/5/elongation = 110.0
+/space/ages/5/expansion = 24.0
 /space/ages/5/shadeHazard = 1.1423076923076922
 /space/ages/5/upkeep = 0.35
 /space/ages/5/balanceHazard = 2.2846153846153845
@@ -503,6 +518,8 @@
 /space/ages/6/relayFailed = 1.0
 /space/ages/6/epitony = 0.4
 /space/ages/6/leafArea = 0.0013190625000000001
+/space/ages/6/elongation = 110.0
+/space/ages/6/expansion = 24.0
 /space/ages/6/shadeHazard = 1.1423076923076922
 /space/ages/6/upkeep = 0.35
 /space/ages/6/balanceHazard = 2.2846153846153845
@@ -545,6 +562,8 @@
 /space/ages/7/relayFailed = 1.0
 /space/ages/7/epitony = 0.4
 /space/ages/7/leafArea = 0.0013190625000000001
+/space/ages/7/elongation = 110.0
+/space/ages/7/expansion = 24.0
 /space/ages/7/shadeHazard = 1.1423076923076922
 /space/ages/7/upkeep = 0.35
 /space/ages/7/balanceHazard = 2.2846153846153845
@@ -582,6 +601,8 @@
 /space/ages/8/insertion = 0.7
 /space/ages/8/divergence = 2.5132741228718345
 /space/ages/8/leafArea = 0.0013190625000000001
+/space/ages/8/elongation = 110.0
+/space/ages/8/expansion = 24.0
 /space/ages/8/shadeHazard = 1.1423076923076922
 /space/ages/8/upkeep = 0.35
 /space/ages/8/balanceHazard = 2.2846153846153845
@@ -614,6 +635,8 @@
 /space/ages/9/insertion = 0.7
 /space/ages/9/divergence = 2.5132741228718345
 /space/ages/9/leafArea = 0.0013190625000000001
+/space/ages/9/elongation = 110.0
+/space/ages/9/expansion = 24.0
 /space/ages/9/shadeHazard = 1.1423076923076922
 /space/ages/9/upkeep = 0.35
 /space/ages/9/balanceHazard = 2.2846153846153845
@@ -646,6 +669,8 @@
 /space/ages/14/leafArea = 0.0013190625000000001
 /space/ages/14/clusterLeaves = 3.0
 /space/ages/14/clusterSpread = 0.6
+/space/ages/14/elongation = 110.0
+/space/ages/14/expansion = 24.0
 /space/ages/14/shadeHazard = 1.1423076923076922
 /space/ages/14/upkeep = 0.35
 /space/ages/14/balanceHazard = 2.2846153846153845

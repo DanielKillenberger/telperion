@@ -123,6 +123,10 @@
 # The envelope is derived from the grown tree (host decision 7).
 # Each node is a frond of 2.81 m² (fn-264 R2, derived); its light responses stay neutral:
 # no laterals to shed and no published shade tolerance.
+# fn-270 R5: the stem grows on through the whole year from its one
+# terminal bud, "an annual formation of 10 to 26 new leaves" (Zaid and
+# de Wet 2002, FAO Plant Production and Protection Paper 156, ch. I):
+# 365 days. Its fronds are the rosette's, drawn whole: no expansion.
 /space/ages/2/lifespan = 150.0
 /space/ages/2/continuation = 0.0
 /space/ages/2/internode = 0.031
@@ -130,6 +134,7 @@
 /space/ages/2/readiness = 0.0
 /space/ages/2/rhythm = 0.0
 /space/ages/2/leafArea = 2.81
+/space/ages/2/elongation = 365.0
 /space/ages/2/form/tropism = 0.5
 /space/ages/2/form/elevation = 1.5707963267948966
 /space/ages/2/form/wander = 0.05

@@ -35,6 +35,8 @@ fn state(lifespan: u32, viability: f64, nodes: NodeLaw, lateral: &[f64]) -> PaSt
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
         leaf_years: f64::INFINITY,
+        elongation: 0.0,
+        expansion: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,

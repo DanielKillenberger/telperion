@@ -80,6 +80,10 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
         leaf_years: f64::INFINITY,
+        // fn-270 R5: the days its shoot elongates and its leaf expands
+        // within the year, sourced in its preset's value file.
+        elongation: 35.0,
+        expansion: 35.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,

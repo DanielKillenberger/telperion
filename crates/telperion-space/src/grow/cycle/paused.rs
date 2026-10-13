@@ -12,6 +12,7 @@ use crate::error::{refuse, Result};
 use crate::fine::lineage_order;
 use crate::species::Species;
 use crate::structure::Structure;
+use crate::unfold::{present, Presented};
 use std::hash::Hasher;
 
 /// How a paused grower retires its shed subtrees.
@@ -35,6 +36,10 @@ pub struct Paused<'a> {
     clock: f64,
     /// Whether a cycle failed while it grew: the grower is spent.
     failed: bool,
+    /// Whether it keeps the tree drawn a year before the age grown, which
+    /// a draw within the year moves from (fn-270 R5a), and that tree.
+    presenting: bool,
+    previous: Option<Structure>,
 }
 
 /// The whole cycle a request for `age` commits a grower at `committed`
@@ -53,23 +58,6 @@ pub fn admitted(committed: u32, horizon: u32, age: f64) -> Result<u32> {
         return refuse("age.backward", "a tree grows only forward");
     }
     Ok(committed.max(age.ceil() as u32))
-}
-
-/// A tree grown to `committed` drawn at `at` within its last year (fn-270
-/// R2a): this year's phytomers at the fraction of the year, every other
-/// one whole; at `committed` the tree as grown. A stand-in for the curves
-/// of R5, which task 4 builds. An `at` outside the last year grown is
-/// refused by name.
-pub fn presented(tree: &mut Structure, committed: u32, at: f64) -> Result<()> {
-    let fraction = within_year(committed, at)?;
-    if fraction < 1.0 {
-        for p in tree.axes.iter_mut().flat_map(|a| &mut a.phytomers) {
-            if p.cycle == committed {
-                p.scale *= fraction;
-            }
-        }
-    }
-    Ok(())
 }
 
 /// How far into the last year grown, `committed`, `at` stands: in (0, 1];
@@ -109,7 +97,20 @@ impl<'a> Paused<'a> {
         }
         let clock = crate::clock::seconds();
         let (advanced, phases) = (Vec::new(), Phases::new());
-        Ok(Self { g, keeps, request, committed: 0, advanced, phases, clock, failed: false })
+        let (presenting, previous) = (false, None);
+        Ok(Self { g, keeps, request, committed: 0, advanced, phases, clock, failed: false, presenting, previous })
+    }
+
+    /// The grower keeping the tree drawn a year before the age grown, so
+    /// it can be drawn within its last year (`settle_at`).
+    pub fn presenting(mut self) -> Self {
+        self.presenting = true;
+        self
+    }
+
+    /// The tree drawn a year before the age grown, where it keeps one.
+    pub fn previous(&self) -> Option<&Structure> {
+        self.previous.as_ref()
     }
 
     /// The cycles grown.
@@ -146,15 +147,31 @@ impl<'a> Paused<'a> {
         if age < self.committed {
             return refuse("age.backward", "a tree grows only forward");
         }
+        let grown = self.grown_to(age);
+        self.failed = grown.is_err();
+        grown
+    }
+
+    /// `grow_to`, its request admitted: where it keeps the year before,
+    /// the tree drawn a year before `age` is settled on the way.
+    fn grown_to(&mut self, age: u32) -> Result<()> {
+        if self.presenting && age > self.committed {
+            self.cycles(age - 1)?;
+            self.previous = match self.committed {
+                0 => None,
+                _ => Some(self.settle()?),
+            };
+        }
+        self.cycles(age)
+    }
+
+    /// Every cycle up to `age` grown.
+    fn cycles(&mut self, age: u32) -> Result<()> {
         let (phases, clock) = (&mut self.phases, &mut self.clock);
         for cycle in self.committed + 1..=age {
             // The last cycle's layout and light are read by no bud.
             let sketching = cycle < self.request.age;
-            let grown = self.g.year(cycle, sketching, &mut self.advanced, &mut |s| tick(phases, clock, s));
-            if let Err(e) = grown {
-                self.failed = true;
-                return Err(e);
-            }
+            self.g.year(cycle, sketching, &mut self.advanced, &mut |s| tick(phases, clock, s))?;
             self.g.count(cycle);
             self.committed = cycle;
         }
@@ -173,13 +190,18 @@ impl<'a> Paused<'a> {
     }
 
     /// The tree at the age grown drawn at `at` within its last year
-    /// (`presented`), `at` checked before anything is settled.
-    pub fn settle_at(&self, at: f64) -> Result<Structure> {
+    /// (`unfold::present`), `at` checked before anything is settled. Within
+    /// the year only a grower that keeps the year before draws it.
+    pub fn settle_at(&self, at: f64) -> Result<Presented> {
         self.usable()?;
-        within_year(self.committed, at)?;
-        let mut tree = self.settle()?;
-        presented(&mut tree, self.committed, at)?;
-        Ok(tree)
+        let f = within_year(self.committed, at)?;
+        if f < 1.0 && !self.presenting {
+            return refuse("at", "a tree is drawn within its year where it keeps the year before");
+        }
+        let tree = self.settle()?;
+        let empty = Structure { age: 0, pas: tree.pas, axes: Vec::new() };
+        let before = self.previous.as_ref().unwrap_or(&empty);
+        Ok(present(tree, before, self.g.species, f))
     }
 
     /// The tree at the horizon, settled as `grow_cycle` settles it, with

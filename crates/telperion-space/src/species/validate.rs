@@ -102,6 +102,20 @@ impl PaState {
                 "a leaf's years lie in 0 to never",
             );
         }
+        // A shoot and the leaf at its last node are whole within the year
+        // (fn-270 R5), so a whole year draws them whole.
+        let days = [("elongation", self.elongation), ("expansion", self.expansion)];
+        for (name, value) in days {
+            if !(0.0..=crate::unfold::YEAR).contains(&value) {
+                return refuse(format!("{at}.{name}"), "a span of days lies in 0 to 365");
+            }
+        }
+        if self.elongation + self.expansion > crate::unfold::YEAR {
+            return refuse(
+                format!("{at}.expansion"),
+                "a shoot and its last leaf unfold within the year",
+            );
+        }
         if !(-1.0..=1.0).contains(&self.tolerance) {
             return refuse(format!("{at}.tolerance"), "a balance lies in -1 to 1");
         }

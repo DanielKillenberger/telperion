@@ -180,6 +180,11 @@
 //! that moved. All three were re-pinned again when the size response left
 //! the mapping (host, 2026-10-12): the beech's, spruce's and birch's
 //! `shadeSize` rows, gone, are the only rows that moved.
+//! fn-270 re-pinned the family, walk and override digests for each engine
+//! age's new neutral `elongation` and `expansion` (R5) and every preset's
+//! sourced rows of both: with those rows left out of the value files and
+//! `elongation: 0.0, expansion: 0.0, ` stripped from the text, all four
+//! digests were the last pins to the bit.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -215,7 +220,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        13_682_768_822_571_337_090,
+        2_348_171_050_825_951_856,
         "{}",
         digest(&text)
     );
@@ -259,7 +264,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        3_199_864_046_939_543_685,
+        4_697_208_267_822_678_750,
         "{}",
         digest(&text)
     );
@@ -284,7 +289,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        11_562_232_381_336_786_656,
+        13_311_969_775_620_891_943,
         "{}",
         digest(&text)
     );

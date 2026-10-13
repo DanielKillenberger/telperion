@@ -75,6 +75,10 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         // Deciduous: every leaf stands on the current year's wood, its
         // older wood bearing through its short shoots' clusters (fn-248).
         leaf_years: 1.0,
+        // fn-270 R5: the days its shoot elongates and its leaf expands
+        // within the year, sourced in its preset's value file.
+        elongation: 14.0,
+        expansion: 14.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,

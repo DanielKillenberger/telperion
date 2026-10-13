@@ -79,3 +79,32 @@ fn each_node_keeps_the_retention_of_the_wood_it_draws() {
     assert_eq!(retention(1.5), (1, 32768));
     println!("shares {shares:?}, {mixed} nodes of mixed wood");
 }
+
+/// fn-270 R5a: drawn within its year, a node's wood keeps the leaves it
+/// kept a year before moved a share of the way to what it keeps now, so
+/// last year's leaves fall through the year, not at its turn.
+#[test]
+fn within_its_year_the_wood_keeps_a_share_of_the_way_to_this_years_leaves() {
+    let (structure, whole, species) = grown(1.5);
+    let rows = pa_rows(&species);
+    let at = |fraction| unfolded(&structure, (&[][..], &rows), Unfolding { leaves: &[], fraction }).0;
+    let (start, quarter) = (at(0.0), at(0.25));
+    let r = retention(1.5);
+    let age = structure.age;
+    let node: HashMap<u64, usize> =
+        (1..whole.nodes.len()).map(|i| (whole.nodes[i].identity.birth_order(), i)).collect();
+    let mut seen = [0usize; 3];
+    for axis in &structure.axes {
+        for p in &axis.phytomers {
+            let Some(&i) = node.get(&p.key()) else { continue };
+            let now = kept_share(r, age - p.cycle);
+            let was = if p.cycle < age { kept_share(r, age - 1 - p.cycle) } else { now };
+            let mixed = (f64::from(was) + (f64::from(now) - f64::from(was)) * 0.25).round() as u16;
+            assert_eq!(start.leafing[i].keep as u16, was, "node {i} at the year's turn");
+            assert_eq!(quarter.leafing[i].keep as u16, mixed, "node {i} a quarter in");
+            assert_eq!(whole.leafing[i].keep as u16, now, "node {i} whole");
+            seen[(age - p.cycle).min(2) as usize] += 1;
+        }
+    }
+    assert!(seen.iter().all(|&n| n > 100), "{seen:?}");
+}

@@ -304,8 +304,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "apicalControl": 0.48333333333333334,
             "balanceHazard": 0.048577660026506514,
             "divergence": 2.437666666666667,
+            "elongation": 19.08298850246509,
             "epitony": 0.2,
             "erection": 0.012239800905693142,
+            "expansion": 25.888428479342984,
             "form": {
               "elevation": 1.5138642178632644,
               "exponent": 2.533333333333333,
@@ -362,8 +364,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "apicalControl": 0.48333333333333334,
             "balanceHazard": 0.048577660026506514,
             "divergence": 2.437666666666667,
+            "elongation": 19.08298850246509,
             "epitony": 0.2,
             "erection": 0.012239800905693142,
+            "expansion": 25.888428479342984,
             "form": {
               "elevation": 1.5138642178632644,
               "exponent": 2.533333333333333,
@@ -426,8 +430,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "apicalControl": 0.48333333333333334,
             "balanceHazard": 0.048577660026506514,
             "divergence": 2.437666666666667,
+            "elongation": 19.08298850246509,
             "epitony": 0.2,
             "erection": 0.012239800905693142,
+            "expansion": 25.888428479342984,
             "form": {
               "elevation": 1.5138642178632644,
               "exponent": 2.533333333333333,
@@ -491,8 +497,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "apicalControl": 0.48333333333333334,
             "balanceHazard": 0.048577660026506514,
             "divergence": 2.437666666666667,
+            "elongation": 19.08298850246509,
             "epitony": 0.2,
             "erection": 0.012239800905693142,
+            "expansion": 25.888428479342984,
             "form": {
               "elevation": 1.5138642178632644,
               "exponent": 2.533333333333333,
@@ -555,7 +563,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 0.048577660026506514,
             "continuation": 0.6666666666666667,
             "divergence": 2.6848642178632645,
+            "elongation": 19.08298850246509,
             "epitony": 0.2,
+            "expansion": 25.888428479342984,
             "form": {
               "bendLength": 0.2141380652391394,
               "elevation": 1.4971975511965978,
@@ -623,6 +633,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 0.048577660026506514,
             "continuation": 0.6666666666666666,
             "divergence": 2.437666666666667,
+            "elongation": 19.08298850246509,
+            "expansion": 25.888428479342984,
             "form": {
               "bendLength": 0.2141380652391394,
               "elevation": 1.5707963267948966,
@@ -681,7 +693,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 0.048577660026506514,
             "continuation": 0.3333333333333333,
             "divergence": 2.6848642178632645,
+            "elongation": 19.08298850246509,
             "epitony": 0.2666666666666667,
+            "expansion": 25.888428479342984,
             "form": {
               "bendLength": 0.2141380652391394,
               "elevation": 0.9735987755982989,
@@ -766,7 +780,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 0.048577660026506514,
             "continuation": 0.3333333333333333,
             "divergence": 2.932061769059862,
+            "elongation": 19.08298850246509,
             "epitony": 0.2666666666666667,
+            "expansion": 25.888428479342984,
             "form": {
               "bendLength": 0.15198420997897463,
               "dominance": 0.11666666666666665,
@@ -841,6 +857,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 0.048577660026506514,
             "continuation": 0.6666666666666666,
             "divergence": 2.932061769059862,
+            "elongation": 19.08298850246509,
+            "expansion": 25.888428479342984,
             "form": {
               "dominance": 0.11666666666666665,
               "elevation": 0.5499999999999999,
@@ -922,7 +940,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 0.048577660026506514,
             "continuation": 0.6666666666666667,
             "divergence": 2.932061769059862,
+            "elongation": 19.08298850246509,
             "epitony": 0.06666666666666668,
+            "expansion": 25.888428479342984,
             "form": {
               "dominance": 0.11666666666666665,
               "elevation": 0.5166666666666666,
@@ -1010,7 +1030,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "apicalControl": 0.48333333333333334,
             "balanceHazard": 0.048577660026506514,
             "divergence": 2.932061769059862,
+            "elongation": 19.08298850246509,
             "epitony": 0.06666666666666668,
+            "expansion": 25.888428479342984,
             "form": {
               "elevation": -0.1499999999999999,
               "pipe": 0.0007402701249205786,
@@ -1075,6 +1097,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 0.048577660026506514,
             "continuation": 0.6666666666666667,
             "divergence": 2.6848642178632645,
+            "elongation": 19.08298850246509,
+            "expansion": 25.888428479342984,
             "form": {
               "elevation": -0.3333333333333333,
               "pipe": 0.0007402701249205786,
@@ -1129,6 +1153,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 0.048577660026506514,
             "continuation": 0,
             "divergence": 2.932061769059862,
+            "elongation": 19.08298850246509,
+            "expansion": 25.888428479342984,
             "form": {
               "elevation": -0.05000000000000002,
               "pipe": 0.0006876252863505538,
@@ -1185,6 +1211,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 0.048577660026506514,
             "continuation": 0.6666666666666666,
             "divergence": 2.932061769059862,
+            "elongation": 19.08298850246509,
+            "expansion": 25.888428479342984,
             "form": {
               "elevation": -0.05000000000000002,
               "pipe": 0.0006610734999884338,
@@ -1241,6 +1269,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 0.048577660026506514,
             "continuation": 0.3333333333333333,
             "divergence": 2.932061769059862,
+            "elongation": 19.08298850246509,
+            "expansion": 25.888428479342984,
             "form": {
               "elevation": -0.16666666666666666,
               "pipe": 0.0007129508526476628,
@@ -1614,6 +1644,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "apicalControl": 0.45,
             "balanceHazard": 2,
             "divergence": 2.513,
+            "elongation": 14,
+            "expansion": 35,
             "form": {
               "elevation": 1.5707963267948966,
               "exponent": 2.6,
@@ -1663,6 +1695,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "apicalControl": 0.45,
             "balanceHazard": 2,
             "divergence": 2.513,
+            "elongation": 14,
+            "expansion": 35,
             "form": {
               "elevation": 1.5707963267948966,
               "exponent": 2.6,
@@ -1712,6 +1746,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "apicalControl": 0.45,
             "balanceHazard": 2,
             "divergence": 2.513,
+            "elongation": 14,
+            "expansion": 35,
             "form": {
               "bendLength": 3,
               "elevation": 1.5707963267948966,
@@ -1766,7 +1802,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 2,
             "continuation": 0,
             "divergence": 2.513,
+            "elongation": 14,
             "epitony": 0.2,
+            "expansion": 35,
             "form": {
               "bendLength": 3,
               "elevation": 1.05,
@@ -1844,7 +1882,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 2,
             "continuation": 0,
             "divergence": 2.513,
+            "elongation": 14,
             "epitony": 0.2,
+            "expansion": 35,
             "form": {
               "bendLength": 1.5,
               "elevation": 0.9,
@@ -1904,6 +1944,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "apicalControl": 0.45,
             "balanceHazard": 2,
             "divergence": 2.513,
+            "elongation": 14,
+            "expansion": 35,
             "form": {
               "elevation": 0.7,
               "pipe": 0.0012,
@@ -1957,7 +1999,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "apicalControl": 0.45,
             "balanceHazard": 2,
             "divergence": 2.513,
+            "elongation": 14,
             "epitony": 0.2,
+            "expansion": 35,
             "form": {
               "elevation": 0.2,
               "pipe": 0.0009,
@@ -2015,6 +2059,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 2,
             "continuation": 0,
             "divergence": 2.513,
+            "elongation": 14,
+            "expansion": 35,
             "form": {
               "elevation": 0.2,
               "pipe": 0.0009,
@@ -2067,6 +2113,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 2,
             "continuation": 0,
             "divergence": 2.513,
+            "elongation": 14,
+            "expansion": 35,
             "form": {
               "elevation": 0.2,
               "pipe": 0.0008,
@@ -2119,6 +2167,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 2,
             "continuation": 0,
             "divergence": 2.513,
+            "elongation": 14,
+            "expansion": 35,
             "form": {
               "pipe": 0.0006
             },
@@ -2477,6 +2527,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "0": {
             "balanceHazard": 0.4230769230769229,
             "divergence": 2.4,
+            "elongation": 35,
+            "expansion": 35,
             "form": {
               "elevation": 1.5707963267948966,
               "exponent": 2.4,
@@ -2520,6 +2572,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "1": {
             "balanceHazard": 0.4230769230769229,
             "divergence": 2.4,
+            "elongation": 35,
+            "expansion": 35,
             "form": {
               "elevation": 1.5707963267948966,
               "exponent": 2.4,
@@ -2569,6 +2623,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "2": {
             "balanceHazard": 0.4230769230769229,
             "divergence": 2.4,
+            "elongation": 35,
+            "expansion": 35,
             "form": {
               "elevation": 1.5707963267948966,
               "exponent": 2.4,
@@ -2618,6 +2674,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 0.4230769230769229,
             "continuation": 0,
             "divergence": 2.4,
+            "elongation": 35,
+            "expansion": 35,
             "form": {
               "elevation": 1.5707963267948966,
               "exponent": 2.4,
@@ -2665,6 +2723,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "8": {
             "balanceHazard": 0.4230769230769229,
+            "elongation": 35,
+            "expansion": 35,
             "form": {
               "dominance": 0.35,
               "elevation": 0.35,
@@ -2732,6 +2792,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "9": {
             "balanceHazard": 0.4230769230769229,
             "continuation": 0,
+            "elongation": 35,
+            "expansion": 35,
             "form": {
               "dominance": 0.35,
               "elevation": 1,
@@ -2799,6 +2861,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "10": {
             "balanceHazard": 0.4230769230769229,
+            "elongation": 35,
+            "expansion": 35,
             "form": {
               "elevation": -1,
               "pipe": 0.0005,
@@ -2846,6 +2910,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 0.4230769230769229,
             "continuation": 0,
             "divergence": 2.4,
+            "elongation": 35,
+            "expansion": 35,
             "form": {
               "elevation": -1.35,
               "pipe": 0.0005,
@@ -2885,6 +2951,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "12": {
             "balanceHazard": 0.4230769230769229,
             "continuation": 0,
+            "elongation": 35,
+            "expansion": 35,
             "form": {
               "elevation": -0.5,
               "pipe": 0.0004,
@@ -3247,8 +3315,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "abortion": 0.5,
             "balanceHazard": 0.33846153846153876,
             "divergence": 2.4,
+            "elongation": 14,
             "epitony": 0.6,
             "erection": 0.1,
+            "expansion": 14,
             "form": {
               "elevation": 1.4,
               "exponent": 2.6,
@@ -3304,7 +3374,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "4": {
             "abortion": 0.3,
             "balanceHazard": 0.33846153846153876,
+            "elongation": 14,
             "epitony": 0.6,
+            "expansion": 14,
             "form": {
               "elevation": 1.35,
               "exponent": 2.6,
@@ -3363,6 +3435,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "divergence": 2.4,
+            "elongation": 14,
+            "expansion": 14,
             "form": {
               "elevation": 1.5707963267948966,
               "exponent": 2.6,
@@ -3413,7 +3487,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "abortion": 0.3,
             "balanceHazard": 0.33846153846153876,
             "continuation": 0,
+            "elongation": 14,
             "epitony": 0.6,
+            "expansion": 14,
             "form": {
               "elevation": 0.3,
               "exponent": 2.6,
@@ -3471,7 +3547,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "abortion": 0.35,
             "balanceHazard": 0.33846153846153876,
             "continuation": 0,
+            "elongation": 14,
             "epitony": 0.6,
+            "expansion": 14,
             "form": {
               "elevation": 0.2,
               "exponent": 2.6,
@@ -3528,6 +3606,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "8": {
             "balanceHazard": 0.33846153846153876,
             "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
             "form": {
               "elevation": 0.6,
               "exponent": 2.6,
@@ -3579,6 +3659,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "9": {
             "balanceHazard": 0.33846153846153876,
+            "elongation": 14,
+            "expansion": 14,
             "form": {
               "elevation": 0.35,
               "pipe": 0.0009,
@@ -3639,6 +3721,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "12": {
             "balanceHazard": 0.33846153846153876,
             "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
             "form": {
               "elevation": 0.15,
               "pipe": 0.0009,
@@ -3680,6 +3764,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "clusterLeaves": 4,
             "clusterSpread": 0.6,
             "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
             "form": {
               "pipe": 0.00095
             },
@@ -4038,6 +4124,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "2": {
             "balanceHazard": 2.2846153846153845,
             "divergence": 2.5132741228718345,
+            "elongation": 110,
+            "expansion": 24,
             "form": {
               "bendLength": 6,
               "elevation": 1.5707963267948966,
@@ -4088,6 +4176,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "3": {
             "balanceHazard": 2.2846153846153845,
             "divergence": 2.5132741228718345,
+            "elongation": 110,
+            "expansion": 24,
             "form": {
               "bendLength": 6,
               "elevation": 1.5707963267948966,
@@ -4140,6 +4230,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "4": {
             "balanceHazard": 2.2846153846153845,
             "divergence": 2.5132741228718345,
+            "elongation": 110,
+            "expansion": 24,
             "form": {
               "bendLength": 6,
               "elevation": 1.5707963267948966,
@@ -4195,7 +4287,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 2.2846153846153845,
             "continuation": 0,
             "divergence": 2.5132741228718345,
+            "elongation": 110,
             "epitony": 0.2,
+            "expansion": 24,
             "form": {
               "bendLength": 6,
               "elevation": 1,
@@ -4252,7 +4346,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "abortion": 0.08,
             "balanceHazard": 2.2846153846153845,
             "divergence": 2.5132741228718345,
+            "elongation": 110,
             "epitony": 0.4,
+            "expansion": 24,
             "form": {
               "bendLength": 3,
               "dominance": 0.2,
@@ -4316,7 +4412,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 2.2846153846153845,
             "continuation": 0,
             "divergence": 2.5132741228718345,
+            "elongation": 110,
             "epitony": 0.4,
+            "expansion": 24,
             "form": {
               "bendLength": 3,
               "dominance": 0.2,
@@ -4382,6 +4480,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 2.2846153846153845,
             "continuation": 0,
             "divergence": 2.5132741228718345,
+            "elongation": 110,
+            "expansion": 24,
             "form": {
               "elevation": 0.8,
               "exponent": 2.2,
@@ -4435,6 +4535,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 2.2846153846153845,
             "continuation": 0,
             "divergence": 2.5132741228718345,
+            "elongation": 110,
+            "expansion": 24,
             "form": {
               "bendLength": 1,
               "elevation": -1.5707963267948966,
@@ -4483,6 +4585,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "clusterSpread": 0.6,
             "continuation": 0,
             "divergence": 2.5132741228718345,
+            "elongation": 110,
+            "expansion": 24,
             "form": {
               "pipe": 0.0005
             },
@@ -4840,6 +4944,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "2": {
             "continuation": 0,
             "divergence": 2.399963,
+            "elongation": 365,
             "form": {
               "elevation": 1.5707963267948966,
               "pipe": 0.297,
@@ -5199,8 +5304,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "abortion": 0.5,
             "balanceHazard": 0.33846153846153876,
             "divergence": 2.4,
+            "elongation": 14,
             "epitony": 0.6,
             "erection": 0.1,
+            "expansion": 14,
             "form": {
               "elevation": 1.4,
               "exponent": 2.6,
@@ -5256,7 +5363,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "4": {
             "abortion": 0.3,
             "balanceHazard": 0.33846153846153876,
+            "elongation": 14,
             "epitony": 0.6,
+            "expansion": 14,
             "form": {
               "elevation": 1.35,
               "exponent": 2.6,
@@ -5315,6 +5424,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "divergence": 2.4,
+            "elongation": 14,
+            "expansion": 14,
             "form": {
               "elevation": 1.5707963267948966,
               "exponent": 2.6,
@@ -5365,7 +5476,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "abortion": 0.3,
             "balanceHazard": 0.33846153846153876,
             "continuation": 0,
+            "elongation": 14,
             "epitony": 0.6,
+            "expansion": 14,
             "form": {
               "elevation": 0.3,
               "exponent": 2.6,
@@ -5423,7 +5536,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "abortion": 0.35,
             "balanceHazard": 0.33846153846153876,
             "continuation": 0,
+            "elongation": 14,
             "epitony": 0.6,
+            "expansion": 14,
             "form": {
               "elevation": 0.2,
               "exponent": 2.6,
@@ -5480,6 +5595,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "8": {
             "balanceHazard": 0.33846153846153876,
             "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
             "form": {
               "elevation": 0.6,
               "exponent": 2.6,
@@ -5531,6 +5648,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "9": {
             "balanceHazard": 0.33846153846153876,
+            "elongation": 14,
+            "expansion": 14,
             "form": {
               "elevation": 0.35,
               "pipe": 0.0009,
@@ -5591,6 +5710,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "12": {
             "balanceHazard": 0.33846153846153876,
             "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
             "form": {
               "elevation": 0.15,
               "pipe": 0.0009,
@@ -5632,6 +5753,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "clusterLeaves": 4,
             "clusterSpread": 0.6,
             "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
             "form": {
               "pipe": 0.00095
             },
@@ -6034,8 +6157,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "abortion": 0.5,
             "balanceHazard": 0.33846153846153876,
             "divergence": 2.4,
+            "elongation": 14,
             "epitony": 0.6,
             "erection": 0.1,
+            "expansion": 14,
             "form": {
               "elevation": 1.4,
               "exponent": 2.6,
@@ -6091,7 +6216,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "4": {
             "abortion": 0.3,
             "balanceHazard": 0.33846153846153876,
+            "elongation": 14,
             "epitony": 0.6,
+            "expansion": 14,
             "form": {
               "elevation": 1.35,
               "exponent": 2.6,
@@ -6150,6 +6277,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "balanceHazard": 0.33846153846153876,
             "continuation": 0,
             "divergence": 2.4,
+            "elongation": 14,
+            "expansion": 14,
             "form": {
               "elevation": 1.5707963267948966,
               "exponent": 2.6,
@@ -6200,7 +6329,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "abortion": 0.3,
             "balanceHazard": 0.33846153846153876,
             "continuation": 0,
+            "elongation": 14,
             "epitony": 0.6,
+            "expansion": 14,
             "form": {
               "elevation": 0.3,
               "exponent": 2.6,
@@ -6258,7 +6389,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "abortion": 0.35,
             "balanceHazard": 0.33846153846153876,
             "continuation": 0,
+            "elongation": 14,
             "epitony": 0.6,
+            "expansion": 14,
             "form": {
               "elevation": 0.2,
               "exponent": 2.6,
@@ -6315,6 +6448,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "8": {
             "balanceHazard": 0.33846153846153876,
             "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
             "form": {
               "elevation": 0.6,
               "exponent": 2.6,
@@ -6366,6 +6501,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           },
           "9": {
             "balanceHazard": 0.33846153846153876,
+            "elongation": 14,
+            "expansion": 14,
             "form": {
               "elevation": 0.35,
               "pipe": 0.0009,
@@ -6426,6 +6563,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "12": {
             "balanceHazard": 0.33846153846153876,
             "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
             "form": {
               "elevation": 0.15,
               "pipe": 0.0009,
@@ -6467,6 +6606,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "clusterLeaves": 4,
             "clusterSpread": 0.6,
             "continuation": 0,
+            "elongation": 14,
+            "expansion": 14,
             "form": {
               "pipe": 0.00095
             },

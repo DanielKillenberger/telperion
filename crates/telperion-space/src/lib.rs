@@ -45,6 +45,7 @@ mod spruce;
 mod structure;
 mod tolerance;
 mod transcendental;
+pub mod unfold;
 mod upward;
 
 pub use beech::beech;
@@ -67,7 +68,7 @@ pub use grow::subtree::Measured;
 pub use grow::cycle::{
     grow_capture, grow_capture_grown, grow_capture_grown_at, grow_capture_hierarchy_at, grow_capture_tables, grow_capture_layout, grow_capture_layout_at, grow_capture_light_at, grow_capture_units,
     grow_capture_units_at, grow_census, grow_cycle, tree_digest, Capture, Census, Cycle, Cycled, Paused,
-    Retiring, admitted, presented, within_year,
+    Retiring, admitted, within_year,
 };
 pub use grow::cycle::{grow_capture_settle_tables, grow_capture_settled, grow_capture_retired, grow_capture_settled_at, grow_cycle_is_the_reference, settle_sag_turn, SettleTo};
 pub use grow::{grow, sketch, Pass, Request, Stage};

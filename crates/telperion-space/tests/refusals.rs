@@ -36,6 +36,8 @@ fn species() -> Species {
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
         leaf_years: f64::INFINITY,
+        elongation: 0.0,
+        expansion: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
@@ -62,7 +64,7 @@ const REQUEST: Request = Request {
 #[test]
 fn every_input_the_engine_cannot_draw_is_refused_by_name() {
     type Edit = fn(&mut Species);
-    let cases: [(Edit, &str); 44] = [
+    let cases: [(Edit, &str); 47] = [
         (|s| s.states.clear(), "states"),
         (|s| s.states[0].continuation = 1.5, "states[0].continuation"),
         (
@@ -73,6 +75,9 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
         (|s| s.states[0].shedding = -1.0, "states[0].shedding"),
         // fn-248: a leaf's years lie in 0 to never.
         (|s| s.states[0].leaf_years = -0.5, "states[0].leaf_years"),
+        (|s| s.states[0].elongation = 366.0, "states[0].elongation"),
+        (|s| s.states[0].expansion = f64::NAN, "states[0].expansion"),
+        (|s| { s.states[0].elongation = 300.0; s.states[0].expansion = 66.0 }, "states[0].expansion"),
         (
             |s| s.states[1].leaf_years = f64::NAN,
             "states[1].leaf_years",

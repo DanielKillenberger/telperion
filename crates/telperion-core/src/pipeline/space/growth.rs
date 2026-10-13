@@ -3,9 +3,10 @@
 //! year, through the one cycle and the one conversion `grow` takes. The
 //! state holds the engine's grower between calls (`telperion_space::Paused`);
 //! a draw is a snapshot of its own and never moves the state. Ages are
-//! years: growth commits whole cycles, and a draw within the year is the
-//! stand-in presentation until R5's curves (`telperion_space::presented`).
-use super::{convert, engine, fits, foreseen, pa_rows, scaled, PaRow, BUDGET, KEPT};
+//! years: growth commits whole cycles, and a draw within the year unfolds
+//! this year's shoots and leaves and moves the rest from the year before
+//! (`telperion_space::unfold`, R5 and R5a).
+use super::{engine, fits, foreseen, pa_rows, scaled, unfolded, PaRow, Unfolding, BUDGET, KEPT};
 use crate::presets::Family;
 use crate::tree::Tree;
 use crate::{Error, Result};
@@ -65,7 +66,7 @@ pub fn begin(params: &Params, seed: u32, horizon: f64) -> Result<GrowthState<'_>
     let age = horizon as u32;
     foreseen(&params.species, age, KEPT)?;
     let request = Request { age, seed: u64::from(seed), budget: BUDGET, light: params.light };
-    let paused = Paused::begin(&params.species, request, Retiring::AtAge, false).map_err(engine)?;
+    let paused = Paused::begin(&params.species, request, Retiring::AtAge, false).map_err(engine)?.presenting();
     Ok(GrowthState { params, paused })
 }
 
@@ -83,12 +84,24 @@ pub fn grow_to(state: &mut GrowthState, age: f64) -> Result<()> {
 /// The tree drawn at `at`, within the last year grown, as the pipeline's
 /// tree: a snapshot of its own, the state left as it was.
 pub fn settle(state: &GrowthState, at: f64) -> Result<Tree> {
-    let structure = state.paused.settle_at(at).map_err(engine)?;
-    fits(&structure, KEPT)?;
+    let drawn = state.paused.settle_at(at).map_err(engine)?;
+    fits(&drawn.structure, KEPT)?;
     let p = state.params;
-    let mut tree = convert(&structure, (&p.trunk, &p.rows));
+    let unfolding = Unfolding { leaves: &drawn.leaves, fraction: drawn.fraction };
+    let (mut tree, _) = unfolded(&drawn.structure, (&p.trunk, &p.rows), unfolding);
     scaled(&mut tree, p.scale);
     Ok(tree)
+}
+
+/// The tree drawn at `at` dressed in wood and leaves, as `mesh::build`
+/// dresses the tree it grows; `family` is the one `Params` was read from.
+#[cfg(feature = "geometry")]
+pub fn mesh(state: &GrowthState, at: f64, family: &Family) -> Result<crate::mesh::TreeMesh> {
+    let mut tree = settle(state, at)?;
+    let inputs = super::super::Inputs::of(family, super::super::grown_envelope(&tree));
+    super::super::clothe(&mut tree, &inputs)?;
+    let outputs = super::super::outputs(&tree, &inputs, super::super::Request::mesh())?;
+    crate::mesh::assembled(outputs)
 }
 
 #[cfg(test)]

@@ -164,6 +164,16 @@ pub struct PaState {
     /// Neutral infinite, every age bears; a short shoot's cluster bears
     /// while its shoot lives.
     pub leaf_years: f64,
+    /// The days a growth unit of this PA takes to elongate from bud burst,
+    /// its shoot extending from its base along the logistic course
+    /// (`unfold::course`) and its nodes unfolding as it reaches them
+    /// (fn-270 R5). The engine grows nothing of it; the presentation
+    /// within the year reads it. Neutral 0, at once.
+    pub elongation: f64,
+    /// The days a leaf of this PA takes to expand from its node's
+    /// unfolding to its whole size, along the same course (fn-270 R5).
+    /// Read as `elongation` is. Neutral 0, at once.
+    pub expansion: f64,
     /// How shade raises an apex's yearly death hazard: its survival is
     /// its viability to the power light^-shade_hazard, so ln survival =
     /// ln viability times light^-φ (host, 2026-10-05). Neutral 0; dormant

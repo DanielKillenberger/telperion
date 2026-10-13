@@ -6,7 +6,6 @@ use super::super::grow_cycle;
 use crate::error::Error;
 use crate::light::Light;
 use crate::structure::Origin;
-use std::collections::HashMap;
 
 fn request(age: u32, seed: u64, extinction: f64) -> Request {
     let light = Light { extinction, sky: 0.5 };
@@ -174,14 +173,14 @@ fn a_growth_that_failed_is_spent() {
 
 /// R2a and R2a': 40, 40.25, 40.5, 41 commits cycle 41 once, at 40.25, and
 /// the tree at 41 is the one grown to 41 in one call. Each fractional
-/// settle leaves the grower as it was, the whole year draws today's tree,
-/// and just past 40 this year's phytomers start from nothing (the
-/// stand-in presentation, `presented`; the curves are task 4's).
+/// settle leaves the grower as it was and the whole year draws today's
+/// tree; a grower that keeps no year before refuses a draw within the
+/// year. How the year unfolds is `unfold`'s.
 #[test]
 fn a_tree_drawn_within_its_year_unfolds_from_the_last() {
     let species = crate::oak();
     let r = request(41, 7, 0.5);
-    let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap();
+    let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap().presenting();
     let grow = |p: &mut Paused, a: f64| {
         let to = admitted(p.committed(), p.horizon(), a)?;
         p.grow_to(to)
@@ -197,13 +196,8 @@ fn a_tree_drawn_within_its_year_unfolds_from_the_last() {
         let before = p.digest();
         let drawn = p.settle_at(at).unwrap();
         assert_eq!(p.digest(), before, "a settle at {at} moves the grower");
-        let new = drawn.axes.iter().flat_map(|a| &a.phytomers).filter(|p| p.cycle == 41);
-        assert!(new.clone().count() > 0);
-        let whole = p.settle().unwrap();
-        let whole = whole.axes.iter().flat_map(|a| &a.phytomers).filter(|p| p.cycle == 41);
-        for (p, w) in new.zip(whole) {
-            assert_eq!(p.scale, w.scale * (at - 40.0));
-        }
+        assert_eq!(drawn.fraction, at - 40.0);
+        assert_eq!(p.previous().map(|t| t.age), Some(40));
     }
     assert_eq!(committed, [41, 41, 41]);
     match grow(&mut p, 40.0) {
@@ -211,34 +205,11 @@ fn a_tree_drawn_within_its_year_unfolds_from_the_last() {
         other => panic!("{other:?}"),
     }
     let today = grow_cycle(&species, r).unwrap().structure;
-    assert_eq!(tree_digest(&p.settle_at(41.0).unwrap()), tree_digest(&today));
-    let largest = (today.axes.iter().flat_map(|a| &a.phytomers)).map(|p| p.scale).fold(0.0, f64::max);
-    let just = p.settle_at(40.0 + 1e-9).unwrap();
-    let new = just.axes.iter().flat_map(|a| &a.phytomers).filter(|p| p.cycle == 41);
-    assert!(new.clone().all(|p| p.scale <= 1e-8 * largest), "this year's start from nothing");
-    // The join with year 40's tree: its organs drawn just past 40 are
-    // year 41's, so they join it only where the year sheds or fades
-    // nothing. R5a's blend is task 4's (PREMISES.md, R2a).
-    let mut forty = Paused::begin(&species, r, Retiring::AtAge, false).unwrap();
-    forty.grow_to(40).unwrap();
-    let forty = forty.settle().unwrap();
-    let whole = p.settle_at(41.0).unwrap();
-    let (joined, step) = (organs(&just), organs(&whole));
-    let old = |m: &HashMap<(u64, usize), f64>| m.iter().filter(|(_, s)| **s > 1e-8 * largest).count();
-    for (key, _) in organs(&forty) {
-        assert_eq!(joined.get(&key), step.get(&key), "just past 40 an organ of 40 is drawn as at 41");
+    assert_eq!(tree_digest(&p.settle_at(41.0).unwrap().structure), tree_digest(&today));
+    let mut plain = Paused::begin(&species, request(3, 7, 0.5), Retiring::AtAge, false).unwrap();
+    plain.grow_to(3).unwrap();
+    match plain.settle_at(2.5) {
+        Err(Error::Refused { input, .. }) => assert_eq!(input, "at"),
+        other => panic!("{other:?}"),
     }
-    assert!(old(&joined) > 0);
-}
-
-/// Every phytomer's scale, by its axis's identity and its place on it.
-fn organs(tree: &Structure) -> HashMap<(u64, usize), f64> {
-    let ids = crate::fine::identities(tree);
-    let mut m = HashMap::new();
-    for (a, id) in tree.axes.iter().zip(ids) {
-        for (k, p) in a.phytomers.iter().enumerate() {
-            m.insert((id, k), p.scale);
-        }
-    }
-    m
 }

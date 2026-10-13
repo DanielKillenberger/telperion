@@ -96,12 +96,14 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
             point = point * (1. - p.surface_contact) + seat * p.surface_contact;
         }
         let into = if kept[k] { &mut *out } else { &mut sink };
+        // A leaf still expanding is drawn at its share (fn-270 R5).
+        let size = p.size * tree.unfolding(nodes[segment + 1]);
         super::rosette::fan(
             point,
             axis(point, radial, tangent, p),
             tangent,
             normal,
-            p,
+            CanopyParams { size, ..p },
             rng,
             into,
         )?;

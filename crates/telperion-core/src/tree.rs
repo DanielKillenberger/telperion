@@ -176,6 +176,11 @@ pub struct Tree {
     /// `clusters` is.
     #[cfg_attr(feature = "json", serde(skip))]
     pub leafing: Vec<Leafing>,
+    /// Each node's leaves' share of their whole size, where the tree is
+    /// drawn within its year and some leaf still expands (fn-270 R5).
+    /// Empty on a tree drawn whole, and never stored, as `leafing` is.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub unfolding: Vec<f32>,
     /// The fine roots a coarse tree holds as their expected occupancy, never
     /// grown (fn-214): empty on every tree grown whole. Never stored.
     #[cfg_attr(feature = "json", serde(skip))]
@@ -212,6 +217,11 @@ impl Tree {
     /// tree records none.
     pub fn leafing(&self, i: usize) -> Leafing {
         self.leafing.get(i).copied().unwrap_or(Leafing::ALL)
+    }
+    /// The share of their whole size node `i`'s leaves are drawn at
+    /// (`unfolding`): whole where the tree records none.
+    pub fn unfolding(&self, i: usize) -> f64 {
+        self.unfolding.get(i).map_or(1.0, |&s| f64::from(s))
     }
     /// Node `i`'s key (`keys`), or its index where no engine grew it.
     pub fn key(&self, i: usize) -> u32 {

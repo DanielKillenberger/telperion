@@ -89,6 +89,10 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
         leaf_years: f64::INFINITY,
+        // fn-270 R5: the days its shoot elongates and its leaf expands
+        // within the year, sourced in its preset's value file.
+        elongation: 14.0,
+        expansion: 35.0,
         // Light as the oak's own values (fn-195 round 5, on fn-197's
         // engine; host decision 29): shade raises its shoots' death hazard
         // and shares its growth by light within each order (Borchert-Honda,
