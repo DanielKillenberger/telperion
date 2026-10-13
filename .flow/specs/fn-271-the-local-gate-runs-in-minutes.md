@@ -14,3 +14,10 @@ The owner (2026-10-13), watching fn-270 task 3's gate: "you sure? are tests this
 ## Boundaries
 
 Test-only: no generator, renderer or preset change. Release housekeeping (fn-237).
+
+## Decisions (host, 2026-10-13, after task 1, GATE.md)
+
+- R2: the walks stay at full size. The vanishing-size walk passes a full-size-branch defect at 100 or 50 steps, so 200 steps is its premise; fewer seeds would need its crossing count lowered, which weakens what it asserts. Named in GATE.md under the spec's own clause ("a premise that only holds at full size stays at full size and is named").
+- R3: the per-entry full-preset builds stay separate, each proving its own entry.
+- R4: nextest locally runs the desk out of memory (whole-preset tests hold several GB each); the gate stays `cargo test`, declared at 20 GB under `telperion-heavy`. Reported to the owner.
+- Result: 25:25 -> 18:48, every test kept. Sharing the walks' trees across the two big walk tests under nextest, and a smaller core-lib peak, are later work if the gate's time bites again.
