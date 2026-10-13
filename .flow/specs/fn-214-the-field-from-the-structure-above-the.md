@@ -14,3 +14,7 @@ killenberger.com builds its grove from `telperion/field`'s `growField`, then vox
 ## Boundaries
 
 Depends on fn-198 and fn-209. The birch waits on fn-213. Does not change the full field or any drawn tree.
+
+## Closed (host, 2026-10-13)
+
+Superseded by fn-257 (the site grows its trees on the device; owner, 2026-10-11): the site no longer grows a coarse field on the CPU, so the structure-above-the-cut field and its module size are replaced by fn-257 R1-R3 and fn-237 R8.

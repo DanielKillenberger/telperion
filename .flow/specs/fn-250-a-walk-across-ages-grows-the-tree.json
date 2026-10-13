@@ -67,7 +67,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-250-a-walk-across-ages-grows-the-tree.md",
-  "status": "open",
+  "status": "done",
   "title": "A walk across ages grows the tree",
   "tracker": {
     "baseHashFlow": null,
@@ -80,5 +80,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T17:18:23.455008Z"
+  "updated_at": "2026-10-13T08:08:03.443011Z"
 }

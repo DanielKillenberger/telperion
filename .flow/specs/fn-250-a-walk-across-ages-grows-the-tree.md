@@ -13,3 +13,7 @@ Found by the teaser session (2026-10-09) on F4's `headless --walk`: a walk betwe
 ## Boundaries
 
 The blend's size target only. Release map item (the harness's walks).
+
+## Closed (host, 2026-10-13)
+
+Not reproduced: fn-251 R1b measured the age walk (oak 5 -> 80) equal to the oak grown at each frame's age in every variant, factor 1. Nothing to fix.

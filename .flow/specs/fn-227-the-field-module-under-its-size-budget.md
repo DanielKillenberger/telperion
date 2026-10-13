@@ -14,3 +14,6 @@ After fn-211 and fn-212 merged into F4, `telperion-field.wasm`, the binary kille
 ## Boundaries
 
 Packaging and build only; no engine behaviour changes. Runs after fn-226 (light, which may delete the per-cycle machinery) and fn-214 (the coarse field) land, since both move this code. Depends on fn-198 (F4).
+## Closed (host, 2026-10-13)
+
+Superseded by fn-257 (the site grows its trees on the device; owner, 2026-10-11): the site no longer grows a coarse field on the CPU, so the structure-above-the-cut field and its module size are replaced by fn-257 R1-R3 and fn-237 R8.
