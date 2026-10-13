@@ -1,11 +1,148 @@
 {
   "branch_name": "fn-271-the-local-gate-runs-in-minutes",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-13T13:37:59.321271Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-271-the-local-gate-runs-in-minutes",
+  "impl_review_rounds": {
+    "fn-271-the-local-gate-runs-in-minutes.1": 2
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "97c3c299e5667b9107452a36440f0c57b63d8508f28d4b32653c6388fa2dd919",
+      "backend": "codex",
+      "base_sha": "5c2fe9820e7adf3c5acdbf8b77c675d2feef5c76",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-424f6a18f0bd375f61dbe5d44b8b8cf3",
+            "classification": "introduced",
+            "findingId": "finding-424f6a18f0bd375f61dbe5d44b8b8cf3",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4950fc807218516c0fe7a95d12f67f7f",
+            "classification": "introduced",
+            "findingId": "finding-4950fc807218516c0fe7a95d12f67f7f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d3766e68512f9e80a70b373572cf9a27e8dbf7fd",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1633,
+      "output_sha256": "0f9299a5f41dc4a2b3c215ea7c10948e45e8e12c03cd7c2c736835f48e01a7e8",
+      "reservation_id": "ee94854c5afb4bcc9f8fb0e2a2676bc5",
+      "round_consumed": true,
+      "scope": "impl:fn-271-the-local-gate-runs-in-minutes.1",
+      "superseded_by": null,
+      "task": "fn-271-the-local-gate-runs-in-minutes.1",
+      "timestamp": "2026-10-13T15:54:37.195277Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "c33662d6ba04c47ab3ddb81769096a5f5314adbbdc4d5da5fc5f9328330323bd",
+      "backend": "codex",
+      "base_sha": "5c2fe9820e7adf3c5acdbf8b77c675d2feef5c76",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-424f6a18f0bd375f61dbe5d44b8b8cf3",
+            "classification": "introduced",
+            "findingId": "finding-424f6a18f0bd375f61dbe5d44b8b8cf3",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-4950fc807218516c0fe7a95d12f67f7f",
+            "classification": "introduced",
+            "findingId": "finding-4950fc807218516c0fe7a95d12f67f7f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-d04134138bcf2f7ba85f2d6a28a88149",
+            "classification": "introduced",
+            "findingId": "finding-d04134138bcf2f7ba85f2d6a28a88149",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-170465e3db0866cf14feeacd570c3ce2",
+            "classification": "introduced",
+            "findingId": "finding-170465e3db0866cf14feeacd570c3ce2",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c15255d42a2c6662f3cc6a3e9dfb384363500387",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1977,
+      "output_sha256": "d61db740c1adb8c1ffcfaa158e2aefb8e05c317e3fd63ce15ad9385fe5fdf82e",
+      "reservation_id": "bc386f92b0ac47bea5ab4b3599797b38",
+      "round_consumed": true,
+      "scope": "impl:fn-271-the-local-gate-runs-in-minutes.1",
+      "superseded_by": null,
+      "task": "fn-271-the-local-gate-runs-in-minutes.1",
+      "timestamp": "2026-10-13T16:24:25.259727Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-271-the-local-gate-runs-in-minutes.1": 0
+  },
   "spec_path": ".flow/specs/fn-271-the-local-gate-runs-in-minutes.md",
   "status": "open",
   "title": "The local gate runs in minutes",
@@ -20,5 +157,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-13T13:37:59.330623Z"
+  "updated_at": "2026-10-13T16:24:25.262894Z"
 }
