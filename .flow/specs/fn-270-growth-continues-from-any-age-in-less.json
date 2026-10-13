@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-270-growth-continues-from-any-age-in-less",
+  "created_at": "2026-10-13T08:21:35.051586Z",
+  "depends_on_epics": [],
+  "id": "fn-270-growth-continues-from-any-age-in-less",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-270-growth-continues-from-any-age-in-less.md",
+  "status": "open",
+  "title": "Growth continues from any age, in less memory, with leaves that unfold",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-13T08:21:35.058262Z"
+}
