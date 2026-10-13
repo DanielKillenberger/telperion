@@ -11,19 +11,16 @@ max-threads = 1
 filter = 'package(telperion-render)'
 test-group = 'gpu'
 
-# Whole-preset builds hold several GB each: two at a time.
+# Whole-preset builds hold several GB each: one at a time.
 [test-groups.whole]
-max-threads = 2
+max-threads = 1
 
 [[profile.default.overrides]]
 filter = 'test(/every_preset|every_shipped|packed_leaf::|ceiling_tests|repeat_tests|relay_tests|every_row_past|field_plan|codominance::a_little|clusters_bound|contacts_read|placement_round_trips|every_presets_/) & !package(telperion-render)'
 test-group = 'whole'
 
 # The walks spread over every core and share nothing across processes:
-# one at a time.
-[test-groups.walks]
-max-threads = 1
-
+# they take the whole-preset tests' turn.
 [[profile.default.overrides]]
 filter = 'binary(walks)'
-test-group = 'walks'
+test-group = 'whole'

@@ -1,6 +1,6 @@
 # The local gate, measured and shortened (fn-271 task 1)
 
-All runs are on the owner's desk (32 threads, 31 GB, RTX 3080). Each gate ran once, under the GPU lock, as `cargo test --profile ci --workspace --no-fail-fast`. Per-test times come from libtest's `--report-time`, switched on through a cargo runner (`CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER`) so that cargo's fingerprints, and so the build, stayed unchanged. The desk was shared with another project's test runs throughout, at load 7 to 47, so every wall time here carries that noise. Raw logs are in `raw/` (ignored).
+All runs are on the owner's desk (32 threads, 31 GB, RTX 3080). Each gate ran once, under the GPU lock, as `cargo test --profile ci --workspace --no-fail-fast`. Per-test times come from libtest's `--report-time`, switched on through a cargo runner (`CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER`) so that cargo's fingerprints, and so the build, stayed unchanged. The desk was shared with another project's test runs throughout, at load 7 to 47 (154 for a moment), and from about 18:00 with another Telperion worker, so every wall time here carries that noise. Raw logs are in `raw/` (ignored).
 
 ## Result
 
@@ -123,11 +123,14 @@ Not measured to completion, and the desk's memory is why. Nextest 0.9.148 (a bin
 | 8 | same | 85 s | 431 | 2 GB | the sweep, catalogue, artifact and repeat tests |
 | 4 | same | 103 s | 316 | 2 GB | packed_leaf, artifacts, repeat, mesh |
 | 16 | plus groups: whole-preset tests 2 at a time, walks 1 at a time (`nextest-local.toml`) | 379 s | 1,248 | 0 GB | walks `every_setting`, repeat, mesh |
+| 4 | groups: whole-preset tests and the walks share one turn (`nextest-local.toml` as committed) | 396 s | 1,275 | 1 GB | `suite::mesh` beside render `conformance` |
 
 What this shows (measured):
 
 - **Four whole-preset core tests at once use about 13 GB.** Under `cargo test` the core lib binary runs them together and peaks at 17 to 18 GB (`raw/core-lib-*.rc`) on a desk with 13 to 15 GB available, so today's gate already reaches into swap there.
 - **Under nextest the walks cost twice.** `every_setting_changes_the_tree_by_degree` and `branches_are_made_and_unmade_at_vanishing_size` share their walks through a `OnceLock`, and nextest runs each test in its own process, so each makes all the walks itself.
 - **At width 16 with groups, 1,248 tests finished in 377 s.** The 109 left were mostly the walks (about 300 s each, one at a time) and the render crate's GPU tests (one at a time). Inferred: that configuration would take about 15 minutes, close to `cargo test`'s 18:48, and it ran the desk out of memory.
+
+A sixth run was queued under the owner's new `telperion-heavy 9 --gpu 4` wrapper at width 2 (memory capped, no swap). With 13 GB available and its 6 GB desktop reserve, the wrapper never admitted it in 20 minutes, while another worker's job was also waiting, and it was cancelled. The same arithmetic applies to today's gate. The core lib binary alone peaks at 17 to 18 GB under `cargo test`, which is more than the wrapper admits on this desk, so `telperion-heavy` would kill the gate at any cap that fits (inferred from the measured peaks; not run).
 
 For the owner: nextest is not a drop-in local gate on this desk. It would first need the whole-preset tests held to one or two at a time and the two big walks merged or kept in one process. Until then, `cargo test --profile ci --workspace --no-fail-fast` remains the gate AGENTS.md names, now at 18:48 instead of 25:25.
