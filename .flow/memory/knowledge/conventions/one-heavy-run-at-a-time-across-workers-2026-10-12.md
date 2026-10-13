@@ -6,7 +6,7 @@ category: conventions
 tags: [memory, owner, workers]
 applies_when: dispatching workers that build trees or run gates
 decision_status: accepted
-last_updated: "2026-10-12"
+last_updated: "2026-10-13"
 related_to: [knowledge/conventions/reset-review-round-caps-without-asking-2026-10-09]
 ---
 
@@ -23,3 +23,13 @@ The owner (2026-10-12), with the desktop lagging: "are you hogging my drive or s
 **Why:** the owner works on this desktop; a parallel heavy run makes it unusable.
 
 **How to apply:** every worker brief says: before a heavy run, check free memory; start only with at least 8 GB available and no other telperion example or test binary running; one tree at a time across all workers. A checked gate script exists on branch fn-245-field-spike as `scripts/heavy-gate.sh` (it matches each process's executable, so it never waits on itself); carry it to F4 with the next merge. The host runs at most one heavy worker phase at a time.
+
+## Update 2026-10-13
+
+Owner (2026-10-12, refined 2026-10-13: "doesn't completely block the machine but if there is capacity you can run multiple things").
+
+Every heavy run (a workspace gate, an example over a few GB, a GPU build) goes through `telperion-heavy <mem-GB> [--gpu <vram-GB>] [--threads N] -- <command>` (machine-local, `~/.local/bin`). It admits the job only when available RAM minus a 6 GB desktop reserve minus what running heavy jobs may still claim covers the declared memory, and with `--gpu` when free VRAM covers the job and other processes hold under half the card (the owner games). The job runs in a user scope capped at its declared memory with no swap (over the cap it is killed, it never thrashes the desk), low CPU and IO weight, nice 10, 12 threads by default. Several heavy jobs may run at once when they fit.
+
+**Why:** two parallel unbounded CPU builds swapped the desktop into lag on 2026-10-12; one-at-a-time then idled the machine.
+
+**How to apply:** every worker brief names the wrapper and a declared memory per heavy command (the gate about 12 GB; Telperion examples about 8 GB); a job killed at its cap is re-run with a larger declaration, never unwrapped.
