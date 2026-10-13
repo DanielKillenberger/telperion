@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-256-the-whole-grower-runs-on-the-gpu",
   "spec_path": ".flow/tasks/fn-256-the-whole-grower-runs-on-the-gpu.16.md",
-  "status": "todo",
+  "status": "done",
   "title": "Experiment: log-depth hierarchy sums on a captured cycle",
   "updated_at": "2026-10-13T07:28:31.451805Z"
 }

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-256-the-whole-grower-runs-on-the-gpu",
   "spec_path": ".flow/tasks/fn-256-the-whole-grower-runs-on-the-gpu.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Proof: speed, memory, stills, Chrome",
   "updated_at": "2026-10-12T00:28:10.406560Z"
 }

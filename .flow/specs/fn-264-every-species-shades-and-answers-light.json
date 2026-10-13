@@ -433,7 +433,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-264-every-species-shades-and-answers-light.md",
-  "status": "open",
+  "status": "done",
   "title": "Every species shades and answers light by its sources",
   "tracker": {
     "baseHashFlow": null,
@@ -446,5 +446,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-12T22:01:57.368615Z"
+  "updated_at": "2026-10-13T08:11:18.754136Z"
 }

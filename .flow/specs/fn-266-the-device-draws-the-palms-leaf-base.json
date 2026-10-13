@@ -154,7 +154,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-266-the-device-draws-the-palms-leaf-base.md",
-  "status": "open",
+  "status": "done",
   "title": "The device draws the palm's leaf-base lattice",
   "tracker": {
     "baseHashFlow": null,
@@ -167,5 +167,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-12T05:33:46.064546Z"
+  "updated_at": "2026-10-13T08:11:19.211275Z"
 }

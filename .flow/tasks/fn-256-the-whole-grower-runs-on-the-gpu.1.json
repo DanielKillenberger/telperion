@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-256-the-whole-grower-runs-on-the-gpu",
   "spec_path": ".flow/tasks/fn-256-the-whole-grower-runs-on-the-gpu.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Spike: busy-cycle replay on the device (COUNCIL early test 3, native)",
   "updated_at": "2026-10-11T09:10:13.466490Z"
 }

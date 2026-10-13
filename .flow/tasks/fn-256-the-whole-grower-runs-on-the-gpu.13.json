@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-256-the-whole-grower-runs-on-the-gpu",
   "spec_path": ".flow/tasks/fn-256-the-whole-grower-runs-on-the-gpu.13.md",
-  "status": "todo",
+  "status": "done",
   "title": "The light kernels at native speed",
   "updated_at": "2026-10-12T22:06:45.085599Z"
 }

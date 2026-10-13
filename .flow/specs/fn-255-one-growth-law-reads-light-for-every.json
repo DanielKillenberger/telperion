@@ -257,7 +257,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-255-one-growth-law-reads-light-for-every.md",
-  "status": "open",
+  "status": "done",
   "title": "One growth law reads light for every species",
   "tracker": {
     "baseHashFlow": null,
@@ -270,5 +270,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-11T11:44:07.319511Z"
+  "updated_at": "2026-10-13T08:11:17.791188Z"
 }

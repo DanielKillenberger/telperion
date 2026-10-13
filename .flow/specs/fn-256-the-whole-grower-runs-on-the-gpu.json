@@ -1278,7 +1278,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-256-the-whole-grower-runs-on-the-gpu.md",
-  "status": "open",
+  "status": "done",
   "title": "The whole grower runs on the GPU",
   "tracker": {
     "baseHashFlow": null,
@@ -1291,5 +1291,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-13T08:10:19.061306Z"
+  "updated_at": "2026-10-13T08:11:18.252054Z"
 }
