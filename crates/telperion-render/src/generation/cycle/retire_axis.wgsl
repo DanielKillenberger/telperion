@@ -245,9 +245,29 @@ fn logged(i: u32, verdict: u32, lived: f32, alive: f32) {
     }
 }
 
+// Axis `i`'s fade at the age grown (D17, `shed::faded`), its subtree's
+// living `lived` and `alive`: whole where it is no lateral that sheds.
+fn faded_at(i: u32, lived: f32, alive: f32) -> f32 {
+    let pa = ax(i, A_PA);
+    if kind_of(i) != LATERAL || (kpa(pa, K_FLAGS) & KF_SHEDS) == 0u {
+        return 1.0;
+    }
+    return fade(bitcast<f32>(kpa(pa, K_DELAY)), ax(i, A_BIRTH), lived, alive, cfg.age);
+}
+
+// Axis `i` retired: it stands for its subtree by the living it carried
+// up, and waits on nothing more, its bearer reading no wait from it.
+fn retired(i: u32, lived: f32, alive: f32) {
+    set_rt(R_FATE, i, RETIRED);
+    set_rtf(R_ROOT_LIVED, i, lived);
+    set_rtf(R_ROOT_ALIVE, i, alive);
+    set_rt(R_WSUB, i, 0u);
+    logged(i, RETIRED, lived, alive);
+}
+
 // Each candidate judged: closed this cycle or waiting, beside an open
 // axis, not judged: waiting while a bud in it woke under three cycles
-// ago, else retired where it is a lateral whose fade at the tree's age
+// ago, else retired where it is a lateral whose fade at the age grown
 // is none (`shed::faded`), else kept.
 @compute @workgroup_size(64)
 fn verdict_main(@builtin(global_invocation_id) id: vec3<u32>) {
@@ -269,24 +289,51 @@ fn verdict_main(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     let lived = rtf(R_LIVED, i);
     let alive = rtf(R_ALIVE, i);
-    let pa = ax(i, A_PA);
-    var faded = 1.0;
-    if kind_of(i) == LATERAL && (kpa(pa, K_FLAGS) & KF_SHEDS) != 0u {
-        let idle = f32(i32(cfg.age) - i32(ax(i, A_BIRTH))) - lived;
-        faded = clamp(bitcast<f32>(kpa(pa, K_DELAY)) - idle, min(alive, 1.0), 1.0);
-    }
-    if faded <= 0.0 {
-        // It stands for its subtree by the living it carried up, and
-        // waits on nothing more: its bearer reads no wait from it.
-        set_rt(R_FATE, i, RETIRED);
-        set_rtf(R_ROOT_LIVED, i, lived);
-        set_rtf(R_ROOT_ALIVE, i, alive);
-        set_rt(R_WSUB, i, 0u);
-        logged(i, RETIRED, lived, alive);
+    if faded_at(i, lived, alive) <= 0.0 {
+        retired(i, lived, alive);
     } else {
         set_rt(R_FATE, i, KEPT);
         logged(i, KEPT, lived, alive);
     }
+}
+
+// Whether a subtree retired before `i`, or retiring with it this cycle,
+// holds it: an ancestor retired or inside one, or kept and faded out at
+// the age grown. Whichever its own invocation has written yet, an
+// ancestor reads the same.
+fn held_inside(i: u32) -> bool {
+    var a = ax(i, A_PARENT);
+    // The tree's depth, no walk past the laid axes.
+    for (var steps = 0u; steps < cfg.n && a < cfg.n; steps++) {
+        let f = rt(R_FATE, a);
+        if f >= RETIRED || (f == KEPT && faded_at(a, rtf(R_LIVED, a), rtf(R_ALIVE, a)) <= 0.0) {
+            return true;
+        }
+        a = ax(a, A_PARENT);
+    }
+    return false;
+}
+
+// Each kept lateral that sheds, its living final, retired once its fade
+// at the age grown reaches none (fn-270 R3, `retire::faded_out`); one a
+// retired subtree holds goes inside it unlogged. After the verdicts, so
+// a subtree retired this cycle holds what fades out below it.
+@compute @workgroup_size(64)
+fn fading_main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let i = index(id);
+    if i >= cfg.n || rt(R_FATE, i) != KEPT {
+        return;
+    }
+    let lived = rtf(R_LIVED, i);
+    let alive = rtf(R_ALIVE, i);
+    if faded_at(i, lived, alive) > 0.0 {
+        return;
+    }
+    if held_inside(i) {
+        set_rt(R_FATE, i, INSIDE);
+        return;
+    }
+    retired(i, lived, alive);
 }
 
 // The laid axes this cycle began with, for the next's closing.

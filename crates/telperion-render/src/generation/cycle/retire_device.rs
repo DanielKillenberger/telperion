@@ -14,7 +14,7 @@ const REAL: &str = include_str!("real.wgsl");
 const COMPACT: &str = include_str!("compact.wgsl");
 const UNITS: &str = include_str!("retire_units.wgsl");
 
-pub(super) const ENTRIES: [&str; 11] = ["open_main", "close_main", "woken_main", "living_main", "verdict_main", "end_main", "inside_main", "living_fold_main", "inside_fold_main", "reused_main", "terms_main"];
+pub(super) const ENTRIES: [&str; 12] = ["open_main", "close_main", "woken_main", "living_main", "verdict_main", "end_main", "inside_main", "living_fold_main", "inside_fold_main", "reused_main", "terms_main", "fading_main"];
 pub(super) const OPEN: usize = 0;
 pub(super) const CLOSE: usize = 1;
 pub(super) const WOKEN: usize = 2;
@@ -28,6 +28,8 @@ pub(super) const FOLDS: [usize; 2] = [7, 8];
 pub(super) const REUSED: usize = 9;
 /// Each child's part in the living its closing bearer carries up.
 pub(super) const TERMS: usize = 10;
+/// Each kept lateral retired once its fade reaches none (fn-270 R3).
+pub(super) const FADING: usize = 11;
 /// `ret`'s columns a laid axis (`retire_cols.wgsl`'s `R_`), and the
 /// header's words before the PA constants.
 pub(super) const R_COLS: u64 = 17;

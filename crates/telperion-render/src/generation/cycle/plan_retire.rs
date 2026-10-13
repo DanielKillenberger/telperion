@@ -45,11 +45,14 @@ impl Build {
         b.point();
         let words = |level: u32| {
             [
-                0, s.axes, 0, level, MAXX * 64, MAXX, 0, 0, 0, 0, 0, t.age, s.axes, s.units, s.phyts, s.sleep_at(), s.sleepers,
+                0, s.axes, 0, level, MAXX * 64, MAXX, 0, 0, 0, 0, 0, 0, s.axes, s.units, s.phyts, s.sleep_at(), s.sleepers,
                 s.next_at(), s.woken_at(), s.woken, r.head() as u32, r.log_cap, 0, 0,
             ]
         };
-        let dynamic = [(0, E::At(c::LAID0)), (2, E::At(c::CYCLE)), (6, E::At(c::LEVELS)), (8, E::At(c::LIVE0)), (9, E::At(c::SLEEPERS0)), (10, E::At(c::WOKEN0))];
+        // A fade is read at the age grown, the cycle before this one
+        // (fn-270 R3), never at the tree's horizon.
+        let grown = E::At(c::CYCLE).sub(E::C(1));
+        let dynamic = [(0, E::At(c::LAID0)), (2, E::At(c::CYCLE)), (6, E::At(c::LEVELS)), (8, E::At(c::LIVE0)), (9, E::At(c::SLEEPERS0)), (10, E::At(c::WOKEN0)), (11, grown)];
         let st = &self.state;
         let bound_slot = |b: &mut Builder, level: u32| {
             let slot = b.slot(&words(level));
@@ -94,6 +97,7 @@ impl Build {
         }
         let laid = per(b, E::At(c::LAID0));
         b.dispatch(ret(rd::VERDICT), base.clone(), laid);
+        b.dispatch(ret(rd::FADING), base.clone(), laid);
         b.dispatch(ret(rd::END), base, Size::Direct(1));
         Inside { levels, folds }
     }
