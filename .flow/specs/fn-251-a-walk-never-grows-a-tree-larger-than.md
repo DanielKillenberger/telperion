@@ -22,3 +22,11 @@ Found by the teaser session (2026-10-09) on F4 d1b1efa9: the oak → birch walk 
 ## Boundaries
 
 The walk's sizing. Release map item.
+
+## Decisions (host, 2026-10-14, re-measured on F4 after fn-255; WALKS.md)
+
+- The defect the spec is named for is gone: the teaser frame builds (`the_oak_to_birch_frame_the_teaser_refused_builds`), no frame of 80 nears the budget, and the age walk and Laurelin -> Telperion pass at every frame.
+- **A dip below both ends (oak <-> spruce, predicted 0.33M against 0.97M and 1.15M) is a defect for the film and for continuity of size:** the size factor becomes two-sided, solving toward the predicted weighted geometric mean of the ends from either side, by degree through the same rows it moves today. Fail-early: measure on the five dipping frames whether the rows it moves have room to reach the target before building it into the walk; if not, return with the shortfall.
+- **The oracle's reference is the ends' spread across seeds**, not one seed's count: a frame's realized counts lie between the smallest and largest of the two ends' counts over seeds 1, 7 and 42 at the frame's light, widened by 10%. One seed's light-driven spread (the oak at 80 keeps 1.47M-3.39M) is natural variation, not a walk defect.
+- **Seedlings:** the oracle allows two whole phytomers of slack below or above, since counts at a few dozen phytomers are whole numbers.
+- The walk example regrows both ends at every frame although their light no longer changes (FRICTION.md): ends are grown once per walk.
