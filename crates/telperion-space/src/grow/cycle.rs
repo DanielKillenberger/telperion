@@ -114,13 +114,23 @@ mod tests;
 
 /// The girth two trees of one shape stand apart by (fn-270 R4: retirement
 /// freezes a closed subtree's girth, so the tree retiring nothing is the
-/// same tree to the bit but for its radii): every phytomer's radius's
-/// relative shift, its median and its most; none where the shapes differ.
+/// same tree to the bit but for its radii and the pose they bend): every
+/// phytomer's radius's relative shift, its median and its most; none where
+/// anything else differs.
 pub(crate) fn girth_apart(a: &Structure, b: &Structure) -> Option<(f64, f64)> {
-    let same = |x: &crate::structure::Axis, y: &crate::structure::Axis| {
-        x.lineage == y.lineage && x.phytomers.len() == y.phytomers.len() && x.phytomers.iter().zip(&y.phytomers).all(|(p, q)| p.cycle == q.cycle && p.scale == q.scale)
+    // Everything but the girth and the pose a girth bends (its sag) the
+    // same to the bit: topology, PAs, vigour, presences, sizes and lights.
+    let bare = |t: &Structure| {
+        let mut t = t.clone();
+        for axis in &mut t.axes {
+            (axis.base, axis.heading, axis.side, axis.joined) = (Default::default(), Default::default(), Default::default(), None);
+            for p in &mut axis.phytomers {
+                (p.radius, p.tip, p.heading, p.side) = (0.0, Default::default(), Default::default(), Default::default());
+            }
+        }
+        t
     };
-    if a.axes.len() != b.axes.len() || !a.axes.iter().zip(&b.axes).all(|(x, y)| same(x, y)) {
+    if bare(a) != bare(b) {
         return None;
     }
     let mut shift: Vec<f64> = (a.axes.iter().zip(&b.axes))
