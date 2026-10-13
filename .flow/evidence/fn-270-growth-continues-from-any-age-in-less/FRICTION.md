@@ -62,3 +62,10 @@
 - **Hindered:** the desk holds 13 GB available, 7 after the 6 GB reserve, for over 40 minutes; the gate waits for 12 and no other heavy job is running. Focused device runs at 4 to 6 GB went through meanwhile.
 - **Cost:** 40 minutes and counting of an idle gate.
 - **Would have removed it:** a gate declaration measured against the gate's own peak at 12 test threads, or a reserve that scales with the desk's resident load; until then the gate needs the desktop's memory freed by hand.
+
+## 2026-10-14, task 4 (worker): the gate at 8 threads, 7 GB then 9 GB
+
+- **Doing:** the end gate at 8 test threads as the host asked.
+- **Hindered:** at 7 GB the run was admitted at once and the OOM killer stopped it after 102 s in `telperion_core`'s unit tests (`telperion_core-087d64dd089b3a77`, 7.26 GB resident); the retry at 9 GB waited 51 minutes with 5 to 8 GB of room and was never admitted, so it was stopped.
+- **Cost:** about 53 minutes, no result for either gate or `npm test`.
+- **Would have removed it:** a cap on `telperion_core`'s own test memory (its unit tests alone pass 7 GB at 8 threads), or a reserve smaller than 6 GB while the desk is idle.
