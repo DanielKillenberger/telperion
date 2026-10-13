@@ -4,7 +4,8 @@
 //! a cycle writes before it reads is let go, as is the recorded cycle,
 //! and both are made again, at the build's sizes, when it grows on: the
 //! light's lattice and points, the units' job counts, the hierarchy's
-//! buckets and sums, the layout's lists, the compactor's scratch, and
+//! buckets, sums and the lists its next step writes (it reads the others,
+//! `plan_hier.rs`), the layout's lists, the compactor's scratch, and
 //! retirement's verdicts where no test logs them. A buffer made again
 //! starts zeroed, as one a move makes anew does (`build_move.rs`).
 use super::build::{Build, Kit, Tables};
@@ -12,7 +13,7 @@ use super::build_grow::{Growing, Sizes};
 use super::build_light::Light;
 use super::census as c;
 use super::columns::Cap;
-use super::hier_build::BUCKETS;
+use super::hier_build::{BUCKETS, LISTS};
 use super::hier_device::Sums;
 use super::hier_scan::{sums_words, zeroed};
 use super::lay_device::Layout;
@@ -74,6 +75,11 @@ impl Build {
             self.light.ensure(gpu, lit, nodes)?;
         }
         self.hier.bucket = zeroed(gpu, "hierarchy buckets", BUCKETS * w)?;
+        // Cycle `c`'s step, of parity `c % 2`, wrote the other lists; the
+        // next writes these.
+        let written = self.age() as usize % 2;
+        let label = ["hierarchy lists a", "hierarchy lists b"][written];
+        self.hier.lists[written] = zeroed(gpu, label, sizes.map_or(4, |_| LISTS * (w + 64)))?;
         self.hier.sums = zeroed(gpu, "hierarchy scan sums", sums_words(s + 64, 1))?;
         self.sums = Sums::alloc(gpu, s, next, t.pas)?;
         self.tree = zeroed(gpu, "cycle tree", u64::from(hier_columns::TREE as u32 * s))?;

@@ -18,7 +18,7 @@ fn forced() -> Sizes {
 }
 
 /// A digest of a settled tree's node table, to the word, and its fault.
-fn digest(gpu: &Gpu, s: &Settled) -> u64 {
+pub(super) fn digest(gpu: &Gpu, s: &Settled) -> u64 {
     let mut words = s.error.to_vec();
     words.extend(read_words(gpu, &s.nt, 0, s.table.words).expect("a readback"));
     let mut h = std::collections::hash_map::DefaultHasher::new();
@@ -70,6 +70,8 @@ fn a_tree_grown_on_on_the_device_is_the_tree_grown_at_once() {
             assert_eq!(s.committed(), Some(h));
             block(s.settle(&gpu, &k, f64::from(h) - 0.5)).expect("drawn within the year");
             let on = digest(&gpu, &block(s.settled(&gpu, &k)).expect("settled"));
+            let grew = &s.growing.as_ref().expect("a build").grew;
+            println!("{name} paused at {a}: moves {} after cycles {:?}, compactions {}", grew.moves, grew.moved_at.iter().map(|m| m.0).collect::<Vec<_>>(), grew.compactions);
             paused.push((a, first == again, on));
         }
         println!("{name} {h}: once {once:x}, through the state {at_once:x}, paused {paused:x?}");
@@ -114,9 +116,47 @@ fn a_request_the_device_cannot_meet_is_refused_by_name() {
     named(block(s.settle(&gpu, &k, 8.0)).map(drop), "state.failed");
 }
 
+/// R2c: the lit oak grows on year by year with its last tree drawn
+/// throughout, held to its budget beside it; under a budget its overlap
+/// cannot fit, the growth is refused by name, the state spent and the
+/// tree drawn kept whole.
+#[test]
+fn a_lit_tree_grows_on_beside_the_tree_drawn() {
+    let _held = super::super::super::whole_tree();
+    let Some(gpu) = super::super::super::test_gpu() else {
+        return;
+    };
+    let k = Kernels::new(&gpu);
+    let family = telperion_core::presets::Preset::OregonWhiteOak.parameters();
+    let growth = executor::growth(&family).expect("a growth");
+    assert!(growth.request.light.extinction > 0.0, "the oak reads light");
+    let budget = 1 << 30;
+    let mut s = block(GrowthState::begin(&gpu, &k, &growth, (7, 12), budget)).expect("begun");
+    let mut drawn = None;
+    gpu.ledger.take_peak();
+    for y in 1..=12 {
+        block(s.grow_to(&gpu, &k, f64::from(y))).expect("grown beside the tree drawn");
+        drawn = Some(block(s.settle(&gpu, &k, f64::from(y))).expect("drawn"));
+    }
+    let peak = gpu.ledger.take_peak();
+    assert!(drawn.is_some());
+    println!("the oak to 12 year by year, its last tree drawn: peak {} MiB of {}", peak >> 20, budget >> 20);
+    assert!(peak <= budget);
+    let mut s = block(GrowthState::begin(&gpu, &k, &growth, (7, 12), budget)).expect("begun");
+    block(s.grow_to(&gpu, &k, 6.0)).expect("grown");
+    let drawn = block(s.settle(&gpu, &k, 6.0)).expect("drawn").0;
+    let before = read_words(&gpu, &drawn.waves[1].buffer, 0, 64).expect("the tree drawn");
+    s.budget = gpu.ledger.live() + (1 << 20);
+    let refused = block(s.grow_to(&gpu, &k, 7.0)).expect_err("no room beside the tree drawn");
+    assert!(refused.to_string().contains("the device budget"), "{refused}");
+    assert_eq!(s.committed(), None);
+    assert_eq!(read_words(&gpu, &drawn.waves[1].buffer, 0, 64).expect("the tree drawn"), before);
+}
+
 impl GrowthState {
-    /// `sized` from the least tables, compacted every cycle, blocked on.
+    /// `sized` from the least tables, compacted every cycle, blocked on,
+    /// under 4 GiB.
     fn sized_now(gpu: &Gpu, k: &Kernels, growth: &Growth, at: (u64, u32)) -> Self {
-        block(Self::sized(gpu, k, growth, at, forced())).expect("begun")
+        block(Self::sized(gpu, k, growth, at, (forced(), 4 << 30))).expect("begun")
     }
 }
