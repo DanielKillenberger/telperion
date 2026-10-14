@@ -28,9 +28,18 @@ R1's numbers (`.flow/evidence/fn-252-a-shoot-that-reaches-the-ground-stops/R1.md
 - **Cause 2 waits:** strands from higher up reaching the ground at 40 and 80 (the ground rule, R2) are measured again after R2a; if the 40-year stills still show strands running along the ground, the worker reports and the host designs R2.
 - Gate: `telperion-heavy 10 --gpu 4 --threads 4`, queued once; not admitted in 30 minutes, skipped and reported. Codex review to SHIP. The task stays in progress for the owner's verdict.
 
+## The open design point resolved (host, 2026-10-14, with `R2-ROUGH.md` as the reason)
+
+One rule, in the step function the rough and the final lay already share (where the resting clamp lives today): a per-age `ground_hazard` row h in [0, 1]. Where a non-trunk axis's step reaches the ground, the wood it would lay along the ground is limited by degree: at h = 0 today's resting and running (fn-200's skirt, bytes unchanged); at h = 1 the axis ends at its contact node (the nodes beyond are ended: not drawn, no leaves placed, and, in the rough lay, their apex dead, so growth's existing abortion takes it); between, the run along the ground keeps a (1 - h) share of today's length. Because both lays call the same function, growth sees and answers the contact it can already see (the young birch: 83-90% of its resting axes at 10 touch in the rough lay), and the final lay ends what reaches the ground only by sag (the old birch, the ordinary tree at 80). Both executors (the CPU lay and `lay_walk.wgsl`), no species branch.
+
+Values, sourced first: the silver birch's, whether its hanging shoots end at the ground (a source on weeping or pendulous birch skirts, checked against its text), or a declared stand-in of 1 if none, stated before code. Spruce 0 (fn-200's skirt). Ordinary 0 unless a source says otherwise. Every other species 0.
+
+Proof: red/green tests (h = 0 byte-identical and fn-200's resting test holds; h = 1 no axis extends along the ground beyond its contact node, on both lays); birch stills at 10, 20, 40, 80 (whole and the low shot), viewed beside a weeping-birch reference where one is to hand; crown base and ground counts re-measured; `space_hash` changes listed per species (only where h > 0); CPU and device agree. The gate on the merged branch is the host's; Codex review to SHIP; the task stays in progress for the owner's verdict.
+
 ## Boundaries
 
 The birch's low branches and the lay's ground rule, and their measurement. A release item (owner, 2026-10-14).
+
 
 
 
