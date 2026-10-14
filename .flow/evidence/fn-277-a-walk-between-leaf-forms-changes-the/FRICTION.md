@@ -34,3 +34,10 @@
 - Slowed by: the first run was killed by the kernel at its 9 GB cap after 11 minutes in telperion-core's lib tests, before any summary printed (its one failure, the sweep's held rows, was found by rerunning it alone). The second waited 20 minutes for room and was cancelled; other workers' gates held the machine. Whether 9 GB at four threads holds on the base was not checked.
 - Cost: about 35 minutes, no gate result.
 - Would remove it: a stated gate size that the base is known to fit in, and nextest, so a killed run can be resumed by test.
+
+## 2026-10-14, task 1, waits for room again
+
+- Doing: the device agreement tests and the film walks under the form oracle.
+- Slowed by: `telperion-heavy` admission waits of 10 to 20 minutes on each of three calls while other workers' gates ran; the scratchpad's share lists were removed by another session's cleanup between calls and had to be rewritten into the evidence directory.
+- Cost: about 45 minutes of wall time.
+- Would remove it: inputs kept in the worktree's own evidence directory from the start.

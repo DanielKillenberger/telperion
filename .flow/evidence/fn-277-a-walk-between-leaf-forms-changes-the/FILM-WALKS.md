@@ -17,3 +17,19 @@ Oak to palm: the leaves now go by degree (stills below). The pairs over 1.2 fall
 ## Stills (oak to palm at 40, seed 7)
 
 `headless --family` (CPU build, native device), t = 0, 0.01, 0.05, 0.2, 0.5, 1; the sheet is `raw/stills/sheet.png` (ignored). Leaves: 523,164; 452,057; 186,525; 14,926; 474; 6,554. Viewed: the oak's crown thins and lifts by degree to 0.05, no frame bare; at 0.2 a single stem carries a thinning crown of small leaves; at 0.5 a tall bare stem carries a sparse crown of small fronds and scattered leaves; at 1 the palm. The sparse middle is the wood's and frond size's walk (fn-273's ground), not a switch.
+
+## The per-bearer oracle on the film's walks (host ruling 5)
+
+The oracle as built (`tests/walk_leaves.rs`, `forms`): each frame's leaves by form, each per its bearer, the wood's per metre of leaf-bearing wood, the short shoots' per tip, the crown's per stem apex; consecutive frames held to 1.2 where both bear the form. Run on fn-272 cut 3's walk frames, seed 7, with the device law of ruling 6 in place (`a_listed_walk_keeps_its_forms`, raw logs `raw/forms-seg*.log`).
+
+| walk | frames | refusals |
+|---|---|---|
+| beech to spruce, 40 | 90 | 0 |
+| spruce to birch, 40 | 90 | 0 |
+| birch to oak, 40 | 90 | 0 |
+| oak to palm, 40 | 120 | 19 |
+| palm to Laurelin, 1 | 30 | 18 |
+
+- **Oak to palm, the crown (10 of 19), t 0.028 to 0.156:** the crown per apex is 3 to 25 leaves: a frond or two of one or two leaflets on each of one or two apices. Each apex draws whole fronds and each frond whole leaflets, so one more frond or leaflet moves the count by a third to two thirds (5 at 0.0280, 3 at 0.0327, 5 at 0.0377; 13 at 0.1205, 18 at 0.1291).
+- **Oak to palm, the wood (9 of 19), t 0.138 to 0.624:** leaves per metre of leaf-bearing wood rises with the leaflets (154 at 0.024, 3,358 at 0.612) and steps where the wood is a few short runs (1,116 at 0.4750, 812 at 0.4875; 3,358 at 0.6117, 18,429 at 0.6238, the last short run before the wood is gone at 0.636). A run shorter than an internode stands a whole internode's stations.
+- **Palm to Laurelin at 1 (18):** the crown per apex falls steadily, 444 at t 0.175 to 2 at 0.987, by 1.2 to 1.4 a frame: the leaflets walk on the log scale from 113 to 1 (a factor of 0.81 over the film's 0.045 between frames) and the fronds from 42 to none. No frame steps against its neighbours; the bound was measured at steps of 0.001, where this walk moves by 1.005 a step.
