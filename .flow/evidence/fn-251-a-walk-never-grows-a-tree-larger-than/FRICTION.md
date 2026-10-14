@@ -11,3 +11,9 @@
 - Slowed by: the example grows both ends again at every frame, three grows a frame, though every preset now reads the one site light (`presets/space.rs`, extinction 0.5), so the ends are the same trees across a walk. At 80 the oak end alone is 15 s a frame. The heavy wrapper's admission waits added about 2 minutes.
 - Cost: about 25 of the run's roughly 35 minutes of CPU went on regrowing ends.
 - Would remove it: grow each end once per walk while the frame's light equals the ends' light, which holds for every shipped walk now.
+
+## 2026-10-14, task 1, the exception test's first green run
+- Doing: running `walk_sizes` (the nine exceptions and the teaser frame) by itself before the gate.
+- Slowed by: the first concurrent run was killed at its 8 GB cap. The teaser test then went through `mesh::build`, and two oak-80 trees at once passed the cap. The rerun then waited more than 10 minutes in `telperion-heavy` admission behind another worker's workspace gate, whose cap is claimed in full.
+- Cost: about 15 minutes so far, almost all of it waiting.
+- Would remove it: the repro now grows through the engine alone, which uses less memory; admission could count a running job's measured peak rather than its whole cap.

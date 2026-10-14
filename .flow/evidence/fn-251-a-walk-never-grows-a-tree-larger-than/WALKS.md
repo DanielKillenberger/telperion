@@ -330,3 +330,21 @@ Grown, not predicted, against the seed-spread oracle (ends over seeds 1, 7 and 4
   - birch → oak at 40, t = 0.5, seed 7 keeps 0.580M against a ceiling of 0.537M (the band tops out at 0.488M). Probing (`raw/probe3.log`): at seed 7 the kept count passes the ceiling from t = 0.5 to 0.6 (0.65M at t = 0.55), and at seed 42 at t = 0.5 (0.56M); seed 1 stays within. The prediction lies between the ends (0.73M against 0.56M and 0.97M); the realized frame keeps a larger share of its prediction than the oak does.
   - palm → Laurelin at 3, t = 0.25, seed 7 keeps 31 against a floor of 32.4 (band 36 to 88). At seeds 1 and 42 the walk at 3 also fails at t = 0.5 and 0.75, low (28 and 30) and high (138 against a ceiling of 97). At age 2 every frame meets the oracle, and at age 1 every frame did.
 - **Other pairs that fail (3 frames):** oak → birch at 80, t = 0.01 keeps 3.95M against a ceiling of 3.72M. Oak → ordinary at 40, t = 0.75 keeps 0.085M and grows 0.210M against floors of 0.089M and 0.213M. Beech → oak at 80, t = 0.5 keeps 1.30M and grows 5.77M against floors of 1.32M and 7.42M.
+
+## Named exceptions (host, 2026-10-14)
+
+The oracle is not widened. Each of the nine failing frames above is a named exception at its measured numbers, and fn-273 takes them all. `tests/walk_sizes.rs` (`the_teaser_frame_fits_and_the_named_exceptions_grow_no_further_out`) grows each one at its seed and light within the engine's 20M budget. It fails if a frame reaches the budget, or if its kept or grown count moves further outside its band than recorded. The band is recorded with each frame. The test also grows the teaser's frame within the budget; that check replaces the red repro left on `walksize` (d4cc14c4). One test grows them all one after another, because two trees of 80 years growing at once passed a 6 GB cap. Run alone it takes 53 s; it went red when one recorded frame was tightened.
+
+| exception | kept, grown | band kept; grown (seeds 1, 7, 42) |
+|---|---|---|
+| oak → birch, 80, seed 7, t = 0.01 | 3,953,260; 18,175,583 | 1,422,181-3,385,291; 8,000,869-16,625,765 |
+| oak → ordinary, 40, seed 1, t = 0.75 | 84,798; 210,186 | 98,544-488,475; 236,384-1,340,416 |
+| oak → spruce, 40, seed 1, t = 0.25 | 370,943; 813,819 | 354,122-1,104,620; 1,047,055-2,749,947 |
+| spruce → oak, 40, seed 7, t = 0.5 | 346,727; 914,686 | as above |
+| spruce → oak, 40, seed 7, t = 0.75 | 263,622; 603,467 | as above |
+| palm → Laurelin, 3, seed 7, t = 0.25 | 31; 31 | 36-88; 36-88 |
+| beech → oak, 80, seed 1, t = 0.5 | 1,304,437; 5,774,230 | 1,471,492-3,385,291; 8,243,029-16,625,765 |
+| oak → spruce, 80, seed 1, t = 0.5 | 1,514,700; 7,375,617 | 1,471,492-3,800,870; 8,499,924-17,915,812 |
+| birch → oak, 40, seed 7, t = 0.5 | 579,740; 1,353,116 | 263,041-488,475; 746,474-1,340,416 |
+
+The release film's seedlings are at age 1, where every palm → Laurelin frame meets the oracle. The film judges its birch → oak step by the owner's eye.
