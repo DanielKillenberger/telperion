@@ -121,6 +121,12 @@ impl GrowthState {
         self.growing.as_ref().filter(|_| !self.failed.get()).ok_or_else(spent)
     }
 
+    /// The state spent by a failure after a call on it succeeded: the
+    /// placement of a tree it drew, or a device error its scopes caught.
+    pub(in crate::generation) fn spend(&self) {
+        self.failed.set(true);
+    }
+
     /// `result`, its failure spending the state.
     fn latched<T>(&self, result: Result<T>) -> Result<T> {
         self.failed.set(self.failed.get() || result.is_err());

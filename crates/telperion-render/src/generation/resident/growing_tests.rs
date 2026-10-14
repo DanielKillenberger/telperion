@@ -47,3 +47,23 @@ fn a_tree_grown_in_year_by_year_is_the_tree_built_at_once() {
         assert_eq!(tree.committed(), Some(age as u32), "a refusal moved nothing");
     }
 }
+
+/// R2b: a draw whose placement fails after the device drew it spends the
+/// tree, and every later call refuses it by name.
+#[test]
+fn a_draw_that_fails_to_place_spends_the_tree() {
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
+    let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).unwrap();
+    let mut family = telperion_core::presets::by_identity("oregon-white-oak").unwrap();
+    (family.age, family.canopy.max_instances) = (6.0, 1);
+    let mut tree = block_on(gen.begin_growth(&family)).unwrap();
+    block_on(gen.grow_to(&mut tree, 6.0)).unwrap();
+    let refused = block_on(gen.settle(&tree, 6.0)).err().expect("over the instance budget");
+    assert!(refused.to_string().contains("instance"), "{refused}");
+    assert_eq!(tree.committed(), None);
+    let again = block_on(gen.grow_to(&mut tree, 6.0)).err().expect("spent").to_string();
+    assert!(again.contains("state.failed"), "{again}");
+}

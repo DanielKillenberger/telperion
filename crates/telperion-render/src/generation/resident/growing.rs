@@ -39,6 +39,16 @@ impl GrowingTree {
     }
 }
 
+/// `result`, a failure after the state's own call succeeded (`done`)
+/// spending it (R2b): a refusal before anything moved leaves it as it
+/// was, and a failure inside the call has spent it already.
+fn spent_after<T>(state: &GrowthState, done: bool, result: Result<T>) -> Result<T> {
+    if done && result.is_err() {
+        state.spend();
+    }
+    result
+}
+
 /// The refusal of a tree another generator began.
 fn foreign() -> crate::RenderError {
     telperion_core::Error::InvalidInput("generation renderer mismatch").into()
@@ -64,8 +74,15 @@ impl Generator {
         if !Arc::ptr_eq(&self.identity, &tree.identity) {
             return Err(foreign());
         }
-        let state = &mut tree.state;
-        self.on_device(async |kit| state.grow_to(&self.gpu, &kit.kernels, age).await).await
+        let (state, mut moved) = (&mut tree.state, false);
+        let grown = self
+            .on_device(async |kit| {
+                state.grow_to(&self.gpu, &kit.kernels, age).await?;
+                moved = true;
+                Ok(())
+            })
+            .await;
+        spent_after(&tree.state, moved, grown)
     }
 
     /// `tree` drawn at `at`, within the last year grown, and prepared for
@@ -75,7 +92,8 @@ impl Generator {
         if !Arc::ptr_eq(&self.identity, &tree.identity) {
             return Err(foreign());
         }
-        let (built, fraction) = self
+        let mut drew = false;
+        let built = self
             .on_device(async |kit| {
                 let gpu = &self.gpu;
                 let _capped = gpu.ledger.capped(self.device_budget());
@@ -83,12 +101,14 @@ impl Generator {
                 // The draw refuses an `at` outside the last year, or a spent
                 // tree, by name before anything is drawn.
                 let drawn = stage(gpu, &mut t.settle, async || tree.state.settle(gpu, &kit.kernels, at).await).await?;
+                drew = true;
                 let fraction = at - (f64::from(tree.committed().unwrap_or(0)) - 1.0);
                 let year = tree.growth.year(fraction).map(|y| Year { age: at, ..y });
                 let built = placed(gpu, (self, &kit.tools), (&tree.family, &tree.growth), (drawn, year), t).await?;
                 Ok((built, fraction))
             })
-            .await?;
+            .await;
+        let (built, fraction) = spent_after(&tree.state, drew, built)?;
         let colouring = telperion_space::unfold::colouring(&tree.growth.species, fraction);
         Ok(Prepared { colouring, ..built.prepared })
     }

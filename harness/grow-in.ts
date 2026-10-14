@@ -33,6 +33,8 @@ export function growInAges(horizon: number): number[] {
 /** The ages "play the year" draws: `DRAWS_A_YEAR` steps through the last
  *  year, the last at the whole age. */
 export function yearAges(horizon: number): number[] {
+  // A seedling has no wood before its first budburst: its year is its whole age.
+  if (horizon === 1) return [1];
   return Array.from({ length: DRAWS_A_YEAR }, (_, k) => horizon - 1 + (k + 1) / DRAWS_A_YEAR);
 }
 
@@ -45,21 +47,22 @@ export interface Pace {
   wait(ms: number): Promise<void>;
 }
 
-/** Grows `growth` on to each age and draws it there in turn, each draw up
- *  for at least `FLOOR_MS` before the next replaces it. Stops between
- *  draws once the run is not current, and resolves to the last tree put
- *  up, or null when it stopped first. */
+/** Grows `growth` on to each age and draws it there in turn, each tree up
+ *  for at least `FLOOR_MS` from its draw before the next replaces it.
+ *  Stops between draws once the run is not current, and resolves to the
+ *  last tree put up, or null when it stopped first. */
 export async function drawEach(growth: Growth, ages: number[], pace: Pace): Promise<Submitted | null> {
   let last: Submitted | null = null;
+  let shown: number | null = null;
   for (const at of ages) {
     if (!pace.current()) return null;
-    const started = pace.now();
     await growth.growTo(at);
+    const left = shown === null ? 0 : FLOOR_MS - (pace.now() - shown);
+    if (left > 0) await pace.wait(left);
     if (!pace.current()) return null;
     last = await growth.draw(at);
+    shown = pace.now();
     pace.drawn(at, last);
-    const left = FLOOR_MS - (pace.now() - started);
-    if (left > 0 && at !== ages[ages.length - 1]) await pace.wait(left);
   }
   return last;
 }

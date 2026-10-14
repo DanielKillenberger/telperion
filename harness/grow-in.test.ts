@@ -1,30 +1,31 @@
 import { expect, it } from "vitest";
 import type { Growth, Submitted } from "../src/browser/render";
-import { DRAWS_A_YEAR, draw, FLOOR_MS, type Held, type Pace } from "./grow-in";
+import { DRAWS_A_YEAR, draw, FLOOR_MS, type Held, type Pace, yearAges } from "./grow-in";
 
 /* fn-270 R6 (host rulings, 2026-10-14): a grow-in draws every whole year
    from 1, each up at least FLOOR_MS; "play the year" draws the last year
    on the tree already grown; a trait build lets the growth go; a newer
    request stops a run between its draws. */
 
-function fakeGrowth(horizon: number, log: string[]): Growth {
+function fakeGrowth(horizon: number, log: string[], grown: (age: number) => void): Growth {
   let committed = 0;
   return {
     committed: () => committed,
     horizon: () => horizon,
-    growTo: async (age) => { log.push(`grow ${age}`); committed = Math.max(committed, Math.ceil(age)); return committed; },
+    growTo: async (age) => { log.push(`grow ${age}`); grown(age); committed = Math.max(committed, Math.ceil(age)); return committed; },
     draw: async (at) => { log.push(`draw ${at}`); return { foliageInstances: at } as unknown as Submitted; },
     dispose: () => { log.push("dispose"); },
   };
 }
 
-function setup(horizon = 3) {
+function setup(horizon = 3, growMs: (age: number) => number = () => 0) {
   const log: string[] = [];
+  let clock = 0;
+  const grown = (age: number) => { clock += growMs(age); };
   const grower = {
     setTreeGpu: async (family: string) => { log.push(`build ${family}`); return {} as Submitted; },
-    beginGrowth: async (family: string) => { log.push(`begin ${family}`); return fakeGrowth(horizon, log); },
+    beginGrowth: async (family: string) => { log.push(`begin ${family}`); return fakeGrowth(horizon, log, grown); },
   };
-  let clock = 0;
   const waits: number[] = [];
   const pace = (current = () => true): Pace => ({
     current,
@@ -61,4 +62,16 @@ it("a run a newer request replaced stops between its draws, and a new grow-in le
   log.length = 0;
   await draw(grower, held, "year", "spruce", pace());
   expect(log.slice(0, 2)).toEqual(["dispose", "begin spruce"]);
+});
+
+it("the floor runs from a tree's draw, however long the year before it took to grow", async () => {
+  const { grower, pace, held, waits } = setup(2, (age) => (age === 1 ? 200 : 10));
+  await draw(grower, held, "grow", "oak", pace());
+  // Year 1 drawn at 200 (then 40 in the panel), year 2 grown by 250: 150 from 200 waits 100.
+  expect(waits).toEqual([FLOOR_MS - 50]);
+});
+
+it("a one-year tree plays its year as its whole age, before which there is no wood", () => {
+  expect(yearAges(1)).toEqual([1]);
+  expect(yearAges(2)).toHaveLength(DRAWS_A_YEAR);
 });
