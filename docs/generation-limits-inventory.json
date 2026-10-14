@@ -1669,6 +1669,12 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "site": ". max ( 0 )",
+    "classification": "algorithm",
+    "reason": "The fronds a grown crown has made are a count, none before its first (fn-270 R5b'); it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
     "site": ". min ( 1 . 0 )",
     "classification": "algorithm",
     "reason": "A frond of this year emerges within the stem's elongation: its serial's share of the year's fronds (fn-270 R5b)."
