@@ -54,3 +54,15 @@ Every preset but the spruce at 80 grows in at its own age and at 80 under 6 GiB.
 ## The device on this desk
 
 On this desk, with other processes holding 2.6 GB of the 10 GiB card, the device itself refused the spruce's draw at years 76 to 78, while the ledger held 5.9 to 6.1 GiB. Natively the page's 6 GiB plus what the ledger does not count does not fit there. Whether the owner's error was the budget's refusal or the device's own is unknown until we have its text.
+
+## Host rulings (2026-10-14) and what they measured
+
+The host ruled C and D, and not B.
+
+**C, kept: a grow-in's draws follow fn-235's rule** (recorded in the spec's R2c). Builds and draws now go through one admission check, `budget::room`. A draw's expected bytes are the last draw's, grown by the ratio of the last draw to the one before, plus a 10% margin (`DRAW_MARGIN`). The draw that went up was at most 0.958 of its expected bytes, on every preset at its age and at 80 (draws of at least 64 MiB, `raw/t6/all-c`). Below that size the extrapolation peaked at 1.09 of the plain estimate (the spruce at year 46), which the margin covers. In the harness, a draw that makes room reports it through `makingRoom`, the hook builds already use. Tests: `a_grow_in_draw_lets_the_drawn_tree_go_only_where_it_fits_alone` (beside, make room, refused with the drawn tree kept, then put up alone), and `grow-in.test.ts` (the hook is told while the tree is let go).
+
+**D, dropped: a finer starting-size ladder.** Each ladder starts at the largest tables that fit beside the tree drawn at once, so a finer step costs memory for the whole run. At ×0.75 the run started at margin 0.75 and held 1.3 GB more from year 10 on (4,168 against 2,869 MB). It was refused at year 50. At ×0.6 it held 411 to 520 MB more all along (3,389 against 2,869 MB at year 10, 4,512 against 4,101 at year 70), which is past the 0.3 GB estimate (`raw/t6/d075-*`, `d06-*`). The halving ladder stays.
+
+**The spruce at 80 under 6,144 MiB, with C (`raw/t6/c2-spruce80.log`).** Draws 1 to 74 fit beside the drawn tree. Draws 75 to 78 fit only alone, so each lets the drawn tree go first and the canvas is blank while it draws. The growth to year 79 is then refused by name, keeping the drawn tree: the axes move's new tables would bring the device to 6,730 MiB. The run's peak is 6,131 MiB, at year 1, where the start-up tables are capped to the budget. With D dropped, the late move remains, so the spruce at 80 stays refused by name at year 79.
+
+**Every other preset** grows in at its age and at 80 with no draw letting the drawn tree go. Their peaks are unchanged from the table above.

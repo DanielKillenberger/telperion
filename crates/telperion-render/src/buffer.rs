@@ -53,6 +53,8 @@ pub(crate) struct Ledger {
 struct Counts {
     live: std::sync::atomic::AtomicU64,
     peak: std::sync::atomic::AtomicU64,
+    /// The most charged since a watch began (`Ledger::watch`).
+    watched: std::sync::atomic::AtomicU64,
     #[cfg(test)]
     labels: std::sync::Mutex<Labels>,
 }
@@ -79,6 +81,7 @@ impl Counts {
             match self.live.compare_exchange_weak(now, after, Relaxed, Relaxed) {
                 Ok(_) => {
                     let peaked = self.peak.fetch_max(after, Relaxed) < after;
+                    self.watched.fetch_max(after, Relaxed);
                     self.label(label, bytes as i64, peaked);
                     return Ok(());
                 }
@@ -225,6 +228,17 @@ impl Ledger {
     #[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
     pub(crate) fn live(&self) -> u64 {
         self.counts.live.load(std::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// Starts a watch of the most charged from now on; one at a time, as
+    /// a tree's draws are made one after another.
+    pub(crate) fn watch(&self) {
+        self.counts.watched.store(self.live(), std::sync::atomic::Ordering::Relaxed);
+    }
+
+    /// The most charged since the watch began.
+    pub(crate) fn watched(&self) -> u64 {
+        self.counts.watched.load(std::sync::atomic::Ordering::Relaxed)
     }
 
     /// A submission made.

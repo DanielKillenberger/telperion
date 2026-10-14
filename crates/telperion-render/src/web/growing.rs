@@ -1,10 +1,12 @@
 //! A tree growing on the page's device (fn-270 R6, R7): the page begins
 //! a family's growth, grows it on to an age and draws it at an age within
 //! its last year, the tree drawn before staying on the canvas while the
-//! next stretch grows. The growth state crosses the binding as a handle
-//! the page holds (`WebGrowth`); the tree itself never leaves the device.
+//! next stretch grows; a draw that fits only alone lets it go first, as a
+//! build does (`Generator::draw_admission`). The growth state crosses the
+//! binding as a handle the page holds (`WebGrowth`); the tree itself never
+//! leaves the device.
 use super::*;
-use crate::generation::{request::Request, GrowingTree};
+use crate::generation::{request::Request, Admitted, Generator, GrowingTree, BROWSER};
 
 /// A family's tree growing on the page's device, held by the page between
 /// calls. One call at a time works on it; a second while the first is
@@ -57,8 +59,31 @@ fn generator(state: &generation::Generation) -> std::result::Result<Rc<crate::ge
     })
 }
 
+/// What drawing the tree in `cell` does under the page's budget beside the
+/// tree on the canvas: beside it, or it let go first; refused by name.
+fn draw_admitted(live: &Rc<RefCell<Option<Live>>>, cell: &RefCell<Option<GrowingTree>>) -> std::result::Result<Admitted, JsError> {
+    let held = cell.try_borrow().map_err(|_| JsError::new("growth.busy: a call is already working on this tree"))?;
+    let tree = held.as_ref().ok_or_else(|| JsError::new("growth.busy: a call is already working on this tree"))?;
+    Generator::draw_admission(tree, &borrow(live)?.renderer, BROWSER).map_err(js_error)
+}
+
 #[wasm_bindgen]
 impl WebRenderer {
+    /// What the next draw of `growth` does under the page's budget, asked
+    /// before it so the page can say so while it draws: `"beside"` the
+    /// tree on the canvas, or `"makeRoom"`, that tree let go first and the
+    /// screen empty until the draw is up. A draw that does not fit even
+    /// alone rejects by name, and the tree on the canvas stays (fn-235's
+    /// rule; host, 2026-10-14).
+    #[wasm_bindgen(js_name = growthAdmission)]
+    pub fn growth_admission(&self, growth: &WebGrowth) -> std::result::Result<String, JsError> {
+        Ok(match draw_admitted(&self.live, &growth.tree)? {
+            Admitted::Beside => "beside",
+            Admitted::MakeRoom => "makeRoom",
+        }
+        .into())
+    }
+
     /// The family's tree before its first year, to grow to at most its
     /// age, as a handle the page holds (`WebGrowth`). Rejects by name for
     /// a family the device cannot grow or whose least tables the page's
@@ -100,14 +125,22 @@ impl WebRenderer {
 
     /// `growth` drawn at `at`, within its last year grown, and put on the
     /// canvas in place of the tree there, returning what went up as
-    /// `setTreeGpu` does. A draw the budget cannot hold beside the tree on
-    /// the canvas rejects by name, and that tree stays.
+    /// `setTreeGpu` does, with whether room was made. Admitted as
+    /// `growthAdmission` says: the tree on the canvas let go first where
+    /// the draw fits only alone; a draw that fits not even alone rejects by
+    /// name, and that tree stays.
     #[wasm_bindgen(js_name = drawGrowth)]
     pub fn draw_growth(&self, growth: &WebGrowth, at: f64) -> js_sys::Promise {
         let (state, cell, live) = (self.generation.clone(), growth.tree.clone(), self.live.clone());
         future_to_promise(async move {
             let request = Request::begin(state.clone()).map_err(JsError::new)?;
             let generator = generator(&state)?;
+            let made_room = draw_admitted(&live, &cell)? == Admitted::MakeRoom;
+            if made_room {
+                let mut canvas = borrow(&live)?;
+                canvas.renderer.release_tree();
+                canvas.redraw.ask();
+            }
             let (prepared, family) = holding(&cell, async |tree| {
                 let prepared = generator.settle(tree, at).await.map_err(js_error)?;
                 Ok((prepared, tree.family().clone()))
@@ -118,7 +151,9 @@ impl WebRenderer {
             let submitted = live.renderer.submit_prepared(prepared).map_err(js_error)?;
             live.renderer.set_family(&family);
             live.redraw.ask();
-            Ok(JsValue::from_str(&submitted_json(&submitted)))
+            let mut value: serde_json::Value = serde_json::from_str(&submitted_json(&submitted)).expect("submitted JSON");
+            value["madeRoom"] = serde_json::json!(made_room);
+            Ok(JsValue::from_str(&value.to_string()))
         })
     }
 }

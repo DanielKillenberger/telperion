@@ -4,13 +4,14 @@
 //! whole years as the harness's "grow in" grows it (`grow_to` the year,
 //! `settle` it, put it up in place of the last), under the page's budget
 //! (`GROW_BUDGET_MIB`, else `BROWSER`). Each step's peak is a labelled
-//! census (`CENSUS` lines, MB). The grow-in grows whole, or is refused by
-//! the budget by name with the tree drawn before still up (R2c). Run by
-//! name:
+//! census (`CENSUS` lines, MB). Each draw is admitted as the page admits
+//! it (`draw_admission`): beside the drawn tree, or that tree let go
+//! first. The grow-in grows whole, or is refused by the budget by name
+//! with the tree drawn before still up. Run by name:
 //!
 //!   GROW_PRESET=norway-spruce GROW_AGE=80 cargo test --profile ci \
 //!     -p telperion-render --lib grows_in_under_the_page_budget -- --ignored --nocapture
-use super::super::{Delivery, Generator};
+use super::super::{Admitted, Delivery, Generator};
 use crate::Renderer;
 use pollster::block_on;
 
@@ -74,7 +75,7 @@ fn grows_in_under_the_page_budget() {
     renderer.submit_prepared(built).unwrap();
     let mut tree = block_on(gen.begin_growth(&family)).expect("begun");
     let (mut most, mut at_most) = (0, (0, "", vec![]));
-    let mut failed = None;
+    let (mut failed, mut room, mut worst) = (None, vec![], 0.0f64);
     for year in 1..=tree.horizon() {
         let up = Generator::tree_buffer_bytes(&renderer);
         let grown = step("grow", year, block_on(gen.grow_to(&mut tree, f64::from(year))));
@@ -82,10 +83,21 @@ fn grows_in_under_the_page_budget() {
         if peak > most {
             (most, at_most) = (peak, (year, "grow", by));
         }
-        let drawn = match grown {
+        let admitted = match grown {
             Some(e) => Err(e),
-            None => block_on(gen.settle(&tree, f64::from(year))).map_err(|e| format!("draw at {year}: {e}")),
+            None => Generator::draw_admission(&tree, &renderer, budget).map_err(|e| format!("draw at {year}: {e}")),
         };
+        let expected = tree.expected_draw();
+        if admitted.as_ref().is_ok_and(|a| *a == Admitted::MakeRoom) {
+            renderer.release_tree();
+            block_on(crate::generation::io::complete(&gpu)).unwrap();
+            room.push(year);
+        }
+        let drawn = admitted.and_then(|_| block_on(gen.settle(&tree, f64::from(year))).map_err(|e| format!("draw at {year}: {e}")));
+        if let (Ok(_), added, true) = (&drawn, tree.last_draw(), expected >= 64 << 20) {
+            worst = worst.max(added as f64 / expected as f64);
+            println!("DRAW {label} {year}: {} MB added, {} MB expected", added / 1_000_000, expected / 1_000_000);
+        }
         let (peak, by) = gpu.ledger.take_peak_census();
         if peak > most {
             (most, at_most) = (peak, (year, "draw", by));
@@ -93,16 +105,22 @@ fn grows_in_under_the_page_budget() {
         match drawn {
             Ok(drawn) => drop(renderer.submit_prepared(drawn).unwrap()),
             Err(e) => {
-                // The tree drawn before stays up, whole (R2c).
-                assert_eq!(Generator::tree_buffer_bytes(&renderer), up, "{e}");
+                // A refusal keeps the tree drawn before up, whole; where it
+                // was let go to make room, the screen stays empty.
+                let kept = if room.last() == Some(&year) { 0 } else { up };
+                assert_eq!(Generator::tree_buffer_bytes(&renderer), kept, "{e}");
                 failed = Some(e);
                 break;
             }
+        }
+        if year % 10 == 0 {
+            println!("YEAR {label} {year}: {} MB held between draws, the peak so far {} MB", gpu.ledger.live() / 1_000_000, most / 1_000_000);
         }
     }
     let (year, phase, by) = at_most;
     census(&label, &format!("grow-in peak ({phase} at {year})"), most, &by);
     println!("GROWN {label} under {} MiB: peak {} MiB, {}", budget >> 20, most >> 20, failed.as_deref().unwrap_or("grown whole"));
+    println!("ROOM {label}: the drawn tree let go before the draws of years {room:?}; a draw's bytes at most {worst:.3} of those expected");
     if let Some(e) = failed {
         assert!(e.contains("the device budget"), "{label}: refused by the budget by name, not the device: {e}");
     }

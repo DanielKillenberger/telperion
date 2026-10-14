@@ -7,6 +7,7 @@
 //! builds; one that fits only once the drawn tree is let go lets it go
 //! first, the screen empty while it builds; one that does not fit even
 //! alone is refused by name, never started, and the drawn tree is kept.
+//! A grow-in's draw is held to the same rule (`room`; host, 2026-10-14).
 use telperion_core::presets::Family;
 
 /// The page's budget, in bytes of owned buffers (`buffer::Ledger`), 6 GiB
@@ -102,7 +103,14 @@ pub(super) fn admit(
             (true, false) => Ok(Admitted::Beside),
         };
     };
-    let peak = peak(kept);
+    room(held, drawn, peak(kept), budget)
+}
+
+/// The budget's one rule for work expected to add `peak` bytes to the
+/// `held` ones, a build or a grow-in's draw (host, 2026-10-14): beside the
+/// `drawn` tree where it fits, the drawn tree let go first where it fits
+/// only alone, else refused by name with the drawn tree kept.
+pub(super) fn room(held: u64, drawn: u64, peak: u64, budget: u64) -> crate::Result<Admitted> {
     if held.saturating_add(peak) <= budget {
         return Ok(Admitted::Beside);
     }
