@@ -211,6 +211,9 @@ mod tests {
         assert!(refused.to_string().contains("grow it younger"), "{refused}");
         let refused = Sizes::hinted(Hint { kept: 1e6, axes: 1e12, units: 1 }).expect_err("refused");
         assert!(refused.to_string().contains("grow it younger"), "{refused}");
+        let past = super::super::device::FRAMES + 1;
+        let refused = Sizes::hinted(Hint { kept: 1e6, axes: 1e4, units: past }).expect_err("refused");
+        assert!(refused.to_string().contains("units job holds"), "{refused}");
         let telperion = Sizes::hinted(Hint { kept: 2_970_013.0, axes: 1e6, units: 1 }).expect("sized");
         assert!(telperion.caps.axes % 64 == 0 && telperion.caps.phyts > 2_970_013);
     }

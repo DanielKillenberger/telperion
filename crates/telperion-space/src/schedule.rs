@@ -256,30 +256,26 @@ impl Unit {
     }
 }
 
-/// The most growth units one job grows in a cycle (fn-276, host
-/// 2026-10-14): a living apex, or a waking bud on one axis that carries
-/// it, from the age it stands in through each later age it enters
-/// within the cycle. An age is entered while those entered before it end
-/// within the cycle, their lifespans summing to one cycle at most on the
-/// tick grid. Each age grows one unit, and one more where the unit can
-/// fail and a relay grows the rest of it (`relay_failed`). Where an age
+/// The most growth units one job grows in a cycle where none of its
+/// units fails (fn-276, host 2026-10-14): a living apex, or a waking bud
+/// on one axis that carries it, from the age it stands in through each
+/// later age it enters within the cycle. An age is entered while those
+/// entered before it end within the cycle, their lifespans summing to one
+/// cycle at most on the tick grid. Each age grows one unit. Where an age
 /// ends within the cycle, the relay its end can leave (`relay_ended`)
-/// grows the rest of the cycle whole, and its own failure's relay: beside
-/// the continuation where that is not certain to move on, or in its
-/// place where the apex stops. A bound, never a count.
+/// grows the rest of the cycle whole: beside the continuation where that
+/// is not certain to move on, or in its place where the apex stops. A
+/// failed unit's relay adds one unit that this leaves out: a floor the
+/// device's limits take beside the counts they observe, never a bound.
 pub fn most_units(species: &Species) -> u32 {
-    let grows = |a: usize| {
-        let s = &species.states[a];
-        1 + u32::from(s.relay_failed > 0.0 && s.viability < 1.0)
-    };
-    let relays = |a: usize| if species.states[a].relay_ended > 0.0 { grows(a) } else { 0 };
+    let relays = |a: usize| u32::from(species.states[a].relay_ended > 0.0);
     // Whether an apex whose age ended may stop rather than move on.
     let stops = |a: usize| species.successor(a).is_none_or(|(_, go)| go < 1.0);
     let ticks = |a: usize| crate::contract::ticks(species.states[a].life());
     let cycle = crate::contract::ticks(1.0);
     let mut most = 1;
     for first in (0..species.states.len()).filter(|&a| species.states[a].lifespan > 0.0) {
-        let (mut at, mut sum, mut passed) = (first, grows(first), 0u64);
+        let (mut at, mut sum, mut passed) = (first, 1, 0u64);
         loop {
             // The age entered last ends within the cycle: the first
             // always may, a later one where its lifespan fits.
@@ -297,7 +293,7 @@ pub fn most_units(species: &Species) -> u32 {
             if go < 1.0 {
                 sum += relays(at);
             }
-            sum += grows(next);
+            sum += 1;
             at = next;
         }
     }

@@ -72,7 +72,7 @@ const CARRIED: u32 = 32u;
 // The frames, `FW` words each: an axis's columns, then its first unit.
 const J_FRAME0: u32 = 178u;
 const FW: u32 = 35u;
-const FRAMES: u32 = 6u;
+const FRAMES: u32 = 11u;
 // The frame a lateral is made in, private to its invocation.
 const SCRATCH: u32 = FRAMES;
 const JW: u32 = J_FRAME0 + FRAMES * FW;

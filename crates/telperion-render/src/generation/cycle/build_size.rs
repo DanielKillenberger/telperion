@@ -238,6 +238,22 @@ mod tests {
         assert!(said.to_string().contains("UnitRounds"), "{said}");
     }
 
+    /// fn-276: a species whose job chains `units` units in a cycle
+    /// records 2 units - 1 rounds and `units` generations at least, past
+    /// what the census read used and its slack.
+    #[test]
+    fn a_species_floor_holds_the_limits_up() {
+        let mut s = Sizes::least();
+        s.units = 4;
+        s.bounds = s.stated();
+        let mut read = vec![0; c::WORDS];
+        read[c::MADE + T_USED] = 1;
+        let l = limits(&s, Some(&read), None);
+        assert_eq!((l.unit_rounds, l.rounds, l.laygens), ([7, 7], 4, 4));
+        read[c::MADE + T_USED] = 6;
+        assert_eq!(limits(&s, Some(&read), None).unit_rounds[0], 6 + ROUND_SLACK[0]);
+    }
+
     /// A count past a table or limit stops the build by name.
     #[test]
     fn a_build_past_the_budget_is_refused_by_name() {

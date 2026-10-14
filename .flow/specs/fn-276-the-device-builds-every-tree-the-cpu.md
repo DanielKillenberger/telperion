@@ -18,13 +18,12 @@ Release item (fn-237): the harness and the site reach these trees. Speed of the 
 
 ## Host rulings (host, 2026-10-14), on R2 (`.flow/evidence/fn-276-the-device-builds-every-tree-the-cpu/CAUSE.md`)
 
-- **Fix 1, the species floor: yes.** The units rounds and the hierarchy's and the layout's generations read the parameters' own bound, a closed form over the age table, alongside the observed projection. A tree's structure then sets its limit by degree, and fn-256 task 12's saving stays. Before it is trusted, check that the closed form is at least the CPU's measured count:
-  - on every preset at every whole age to its horizon and to 80;
-  - on R4's walk frames;
-  - with relays after failed units included.
-
-  A single case under the CPU's count is a stop and a report, not a margin. A species whose floor passes a hard cap is refused by name before submit. Measure its cost against fn-256 task 12's saving.
-- **Fix 2 (limits at their bounds every cycle): no.**
+- **Fix 1, the species floor: (c) with a measured (b)** (host, 2026-10-14, replacing the first wording after `FLOOR.md`). The reason: the floor with its failure term was about twice the CPU's count, cost Telperion 6.4% of its warm build (more than fn-256 task 12 saved), and passed the job's 6 frames on six walk frames the CPU grows with at most 4 units a job.
+  - The floor drops the failure term. It bounds the units a job grows when no unit fails. Each cycle's limit is the larger of the observed projection (as today) and that floor. A failure relay that passes both is still refused by name (UnitRounds).
+  - Measure the Two Trees' warm build cost with it. It is expected to be about today's; report if it costs more than 1%.
+  - `FRAMES` rises to the smallest value that holds every floor in the R4 sweep. Measure its memory at the jobs actually dispatched per preset, charged to the ledger. If it would need more than 16, stop and report.
+  - R4's sweep is the judge. Any refusal other than the budget's is a stop and a report, with the frame. The CPU-count check runs alongside, so the floor's margin is recorded.
+  - The CPU census's counters stay only where a test reads them.
 - **Fix 3, the node table: yes.** One rule with the dispatch span: the box projected side by side. Measure its memory cost per preset, charged to the ledger that the fn-270-grow-budget branch fixed. Merge that branch's `buffer.rs` fix if the ledger is touched, or tell the host.
 - **The walk observation** (a lifespan of 0 mixed by value): noted, and not fn-276's; the host records it for the walk specs.
-- **Then:** R4's sweep, the gate (`telperion-heavy 9 --gpu 4 --threads 4`), npm test if TypeScript changed, codex review to SHIP, `flowctl done`.
+- **Then:** R4's sweep, then the gate once (`telperion-heavy 9 --gpu 4 --threads 4`; if it has not started within 30 minutes, it is skipped and the host runs it on the merged branch), npm test if TypeScript changed, codex review to SHIP, `flowctl done`. The fn-270-grow-budget branch's `buffer.rs` fix is merged only if the ledger is touched, sequenced by the host.
