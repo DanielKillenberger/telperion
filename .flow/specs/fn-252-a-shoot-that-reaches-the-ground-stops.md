@@ -14,6 +14,10 @@ The owner, looking at the birch in the harness (2026-10-09, screenshot `.flow/ev
 
 Sag is computed after growth (`grow/settle.rs:39-41,91-98`; the rough lay carries no sag load, `grow/draw.rs:412`), so a strand that reaches the ground only by sagging never shows that contact to the growth draws (`grow/advance.rs:69-86,182-198`). A ground hazard therefore needs contact to reach growth: either the rough lay carries an estimate of sag, or the hazard acts on the final geometry. The host designs this before the spec is planned. Moved off the release map (host, 2026-10-09): the owner likes the ground-running growth, and whether the silver birch should keep it is first a sourcing question.
 
+## Back on the release map (owner, 2026-10-14)
+
+The owner: "we might also want to fix the birch's branches drooping all the way to the ground"; "that's mainly for younger specimen. Older ones will be too high to reach the ground". R1 therefore also measures the birch at 5, 10, 15, 20 and 30 (seeds 1, 7, 42): the height of its lowest living branch (crown base) against the sources' crown lift for open-grown silver birch (a light-demanding species that sheds its shaded lower branches early), and which strands reach the ground at each age. Two causes are possible and are told apart before any design: lower branches the birch should already have shed (crown lift: the shedding and light rules, or the birch's values) and strands that hang long enough to reach the ground from where they should be (the ground rule above). The host designs the fix from R1's numbers; the open design point stays the host's.
+
 ## Boundaries
 
-The lay's ground rule and its measurement. Not a release item.
+The birch's low branches and the lay's ground rule, and their measurement. A release item (owner, 2026-10-14).
