@@ -107,3 +107,42 @@ A proposal for the host: choose the start margin so that the start tables plus t
 **The gate** (`raw/gate.log`) was run once at b7bf127da, before the stack fix: 1,383 passed, 1 failed, 95 ignored. The one failure, `every_shader_file_is_checked`, compares the WGSL files on disk against the sources compiled in. `job.wgsl` was being edited for the stack fix while the gate ran, so the file on disk no longer matched the binary. Re-run on the current source, it passes.
 
 **What was not re-run.** The whole R4 sweep ran before the stack fix. After it, only R1's repros, the chain test and the mirror tests ran. The stack's layout change has not been through the 2,034-case sweep or a gate of its own. The host runs the gate on the merged branch.
+
+## Task 2: a build's start leaves room for its first move (3fc6acf65, b-fits below)
+
+**The rule.** `Growing::within` takes the largest start margin whose tables the budget holds beside their first move. That move is the largest state group a move holds twice (the phytomers, the axes, or the units and lists), made `GROWTH` times larger (`Sizes::first_move`). It is the same margin ladder, with no species branch.
+
+The room is checked against the cap and charged to nothing (`Ledger::fits`). A first version reserved the room and gave it back, which raised the ledger's peak: Telperion read 2,634 to 3,536 MB and the spruce at 40 read 1,571 to 2,244 (`raw/t2-gpu.log`). With `fits`, the peaks are the base's again: spruce 40 1,571, Telperion 2,634, Laurelin 2,423 (`raw/t2-fits.log`). Both versions make the same comparison against the cap, so they make the same decision.
+
+**Red and green.** `the_spruce_at_62_starts_with_room_to_move` (ignored; it needs 4 GiB free on the card) builds the spruce at 62, seed 1, under the native 4 GiB cap:
+- **Red without the room:** "the build's cycle state units would hold 4,203 MiB, past the 4,096 MiB it may hold" (`raw/t2-spruce62-red.log`).
+- **Green with it:** 9,065,481 instances (`raw/t2-spruce62-green.log`, `raw/t2-fits.log`).
+
+**The spruce at 60 to 80, seeds 1, 7 and 42, at `TELPERION_DEVICE_BUDGET_MIB=6144`** (`raw/t2-spruce-6144.log`). Every build builds, 63 of 63. The sweep now prints each build's cap: 5,838 MiB for the first build, 5,640 to 5,646 MiB after. That is this desk's card, at 85% of what other processes leave, not the stated 6,144. Every spruce to 80 builds within 5.64 GiB, under the browser's 6 GiB.
+
+**The spruce at the native 4 GiB** (`raw/t2-spruce.log`, cap 4,096 MiB on every build):
+
+| Ages | Outcome |
+|---|---|
+| 1 to 68, 70 to 72 | build at every seed (62 now among them) |
+| 69, 73, 74 | build at seeds 1 and 7; seed 42 refused by the budget |
+| 75 to 80 | refused by the budget |
+
+The refusals that remain come at later moves, not the first:
+- 69 seed 42: the pencils' move, 4,590 MiB;
+- 73 and 74 seed 42: the phytomers' move;
+- 75 to 77: the units' move;
+- 78 to 80: the pencils' move.
+
+Those later moves are outside this task's rule. All are budget refusals, named.
+
+**The other cases are unchanged.** The walk frames (108), the ordinary, oak, beech, birch and palm (1,200) and the Two Trees (486): all 1,794 have the same outcome and the same instance count as the sweep before task 2.
+
+**Cost.** GPU-stamped, a96f48ef2 against now, three runs alternated, median, in ms:
+
+| Build | Before | Now |
+|---|--:|--:|
+| Telperion 82 | 693.5 | 693.3 |
+| Norway spruce 40 | 232.6 | 232.5 |
+
+The moves are the same: 3 and 2 (`raw/t2-gpu.log`).
