@@ -50,10 +50,11 @@
 /canopy/upward = 0.0
 /canopy/divergence = 180.0
 /canopy/sizeVariation = 0.2
-# fn-236 round 3: blades at 140 mm, the largest of FNA's 25-120(-140) mm
-# for Q. garryana, turned a little outward and scattered, so each shoot
-# closes more of the crown's surface (turn and scatter estimated).
-/canopy/size = 1.4
+# A typical blade (fn-236 host ruling, 2026-10-14): no source read gives
+# a measured mean length for Q. garryana, so the middle of FNA's
+# "25-120(-140)" mm, 72.5 mm; turned a little outward and scattered
+# (fn-236 round 3; turn and scatter estimated).
+/canopy/size = 0.725
 /canopy/scatter = 30.0
 
 # Pale grey-brown furrowed bark; a dark glossy blade over a
