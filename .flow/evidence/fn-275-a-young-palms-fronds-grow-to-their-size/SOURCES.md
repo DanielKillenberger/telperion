@@ -28,4 +28,8 @@ The palm ships at 40. Its drawn crown is 42 living and 16 dead fronds at 8.4 a y
 ## Reported, not built
 
 - **Juvenile leaves.** "Leaves of seedling date plants are characterised by a slightly developed petiole and a juvenile leaf which develops during the first three years after seed germination ... also called primordia, non-pinnae or entire leaves" (FAO 156 ch. I). Plantlets carry "4 to 5 leaves among which are 0 to 2 pinnae leaves" (ch. V); "Plants at 12–18 months old begin to produce feathered (compound) leaves" (Date Palm Biotechnology, 2011, search snippet only). For a seedling the entire leaf is the dominant read at ages 1 and 3; an offshoot-grown palm (the catalogue's orchard palm) is planted with pinnate leaves.
-- **The stem's rise.** The general law has the stem rise only after establishment; the engine's stem rises from year 1. Not part of R2.
+- **The stem's rise and girth.** The general law has the stem widen with each new leaf and rise only after establishment. In the stills the stem at 1 is a stump at nearly its full girth under eight small fronds, at 3 about a frond base high, and hidden in the crown at 6; whether the engine's rise and girth follow establishment was not measured. Not part of R2.
+
+## Stills and recording (R5, seed 1, `examples/unfold.rs`, the whole year)
+
+`raw/stills/{whole,crown}-{1,3,6,40}/`, viewed: at 1 eight small fronds (0.10 to 0.12 of a mature one by the law) on the stump; at 3 a knee-high rosette under the scale figure's height; at 6 a wide ground rosette of near-mature fronds; at 40 the shipped palm. The crown camera sits a quarter of the height off, so at 1 and 3 it frames single leaflets. The grow-in, `examples/grow_in.rs` on the device a whole year a frame, is `raw/grow-in.mp4` (crossfaded, 6 frames a second); its year-3 frame (`raw/grow-in/date-palm-00002.png`, viewed) matches the CPU still, and its year 40 draws the CPU's 6,554 leaves.
