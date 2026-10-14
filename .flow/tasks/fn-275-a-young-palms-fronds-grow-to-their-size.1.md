@@ -10,9 +10,10 @@ R1 sources first (stop on contradiction); R2-R4 the law on CPU and device; R5 st
 R1-R4 with tests; R5 stills and recording viewed; owner's verdict.
 
 ## Done summary
-TBD
+R1 and R2a: frond size by the crown age at making, stem establishment on CPU and device, internode 0.0339. Merged to the release branch; the merged gate is green after 0ee6c95e2 and 85ad31016.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fe380e3a1, 0ee6c95e2, 85ad31016
+- Tests: cargo test --profile ci --workspace --no-fail-fast
 - PRs:
