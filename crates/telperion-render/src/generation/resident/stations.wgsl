@@ -52,7 +52,8 @@ struct Cfg {
     // fronds made, a frond's years, whole years before the last (negative where
     // no engine grew it), days into the last; budburst, elongation,
     // expansion, and the fronds it draws (`Crown::slots`); the years the
-    // crown takes to make a mature frond and its first frond's share.
+    // crown takes to make a mature frond, its first frond's share, and the
+    // blade's length over a mature leaflet's (none where it groups none).
     rosette: array<vec4<f32>, 7>,
     // The counts of organs (`stations.rs`'s `organ_rows`, fn-277): the
     // cauline share, the fronds, the dead fronds, the leaflets and the
@@ -270,19 +271,46 @@ fn established_frond(serial: i32, fronds: f32) -> f32 {
     return 1.0 - (1.0 - e.y) * (1.0 - course(born / e.x));
 }
 
+// How far frond `serial` was made along the course from one leaflet to
+// the mature count, on a log scale (`Crown::pinnate`, fn-275 R2b): whole
+// with no establishment.
+fn pinnate_frond(serial: i32, fronds: f32) -> f32 {
+    let born = born_frond(serial, fronds);
+    return select(1.0, course(born / cfg.rosette[6].x), born >= 0.0);
+}
+
 // The leaves frond `serial` of the crown keyed `key` carries: the
 // leaflets it was made with, by the same course on a log scale from one
 // to the mature count, drawn as a count between two whole numbers
 // (`Crown::leaflets`, `organs::frond_leaflets`, fn-275 R2b).
 fn frond_leaves(key: u32, serial: i32, fronds: f32) -> u32 {
-    let born = born_frond(serial, fronds);
-    let grown = select(1.0, course(born / cfg.rosette[6].x), born >= 0.0);
-    if grown >= 1.0 || !grouped() {
+    let f = pinnate_frond(serial, fronds);
+    if f >= 1.0 || !grouped() {
         return leaves_at(key, u32(serial));
     }
-    let count = pow(max(cfg.rosette[2].x, 1.0), grown);
+    let count = pow(max(cfg.rosette[2].x, 1.0), f);
     let n = organs(count_word(count), placement_key(key, u32(serial)), ORGAN_LEAFLETS);
     return select(1u, n, n > 1u);
+}
+
+// A young frond as segments of one blade that splits (`Crown::segments`,
+// fn-275 R2b): at `f` its leaflet pitch, its spines' count word and the
+// share of a mature leaflet's length each leaflet is drawn at, from the
+// blade's (the rosette's strap row) on a log scale. The mature rows where
+// it is made mature or groups no leaflets.
+struct Blade {
+    pitch: f32,
+    spines: u32,
+    length: f32,
+}
+
+fn segments(f: f32) -> Blade {
+    let r = cfg.rosette;
+    if f >= 1.0 || r[6].z <= 0.0 {
+        return Blade(r[2].w, organ_word(4u), 1.0);
+    }
+    let n = pow(r[2].x, f);
+    return Blade(r[2].w * f, count_word(r[3].y * n / r[2].x), pow(r[6].z, 1.0 - f));
 }
 
 // `a` a share `t` of the way to `b` (`rosette::fronds`' mix).
@@ -807,16 +835,17 @@ fn rosette(apex: u32, station0: u32, g: u32) {
         let depth = toward(r[0].w * age, r[0].w * (max(k, fronds) / steps), turned);
         let length = toward(1.0, r[1].w, turned);
         let share = length * grown * made_at * clamp(total - k, 0.0, 1.0);
+        let blade = segments(pinnate_frond(serial, fronds));
         let heading = normalize(axis * cos(pitch) + radial * sin(pitch));
         let s = (g + i) * GW;
         put4(s, vec4<f32>(at - axis * depth, r[2].y * share));
-        put4(s + 4u, vec4<f32>(radial, share));
+        put4(s + 4u, vec4<f32>(radial, share * blade.length));
         put4(s + 8u, vec4<f32>(heading, r[3].z));
         put4(s + 12u, vec4<f32>(axis, 0.0));
-        put4(s + 16u, vec4<f32>(r[2].z, r[2].w, r[3].x, r[3].w));
+        put4(s + 16u, vec4<f32>(r[2].z, blade.pitch, r[3].x, r[3].w));
         // Its own leaflets and spines (`organs::placement`, fn-277).
         let leaflets = frond_leaves(c.key, serial, fronds);
-        let spines = organs(organ_word(4u), placement_key(c.key, u32(serial)), ORGAN_SPINES);
+        let spines = organs(blade.spines, placement_key(c.key, u32(serial)), ORGAN_SPINES);
         put4(s + 20u, vec4<f32>(f32(turned >= 0.5), -2.0, f32(spines), 0.0));
         segs[s + 15u] = NONE;
         segs[s + 24u] = first;

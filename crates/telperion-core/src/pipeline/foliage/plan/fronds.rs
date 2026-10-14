@@ -49,7 +49,8 @@ pub(super) fn describe(
         if !rosette::bearing(&at) {
             continue;
         }
-        for frond in rosette::fronds(apex, &at, super::super::Crown::of(tree, &at)) {
+        let crown = super::super::Crown::of(tree, &at);
+        for frond in rosette::fronds(apex, &at, crown, super::super::blade(element)) {
             let key = organs::frond_key(node, frond.serial);
             let per = organs::frond_leaflets(&at, frond.canopy.leaflet_count, key);
             let c = organs::placement(&frond.canopy, key);

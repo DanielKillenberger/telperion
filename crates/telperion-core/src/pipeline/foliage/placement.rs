@@ -22,8 +22,15 @@ pub fn place(
     twig: Option<TwigPlacement>,
     reference: Reference,
 ) -> Result<Instances> {
-    place_on(tree, envelope, seed, p, twig, None, reference)
+    place_on(tree, envelope, seed, p, twig, None, reference, SUITE_BLADE)
 }
+
+#[cfg(test)]
+/// The blade the suite's placement measures a young frond's segments
+/// against: the default leaf's (`ElementParams`), its connector and its
+/// length. A family's own is its element's (`crown::blade`), which the
+/// pipeline passes.
+const SUITE_BLADE: f64 = 0.13;
 
 #[cfg(test)]
 /// Seat the foliage on the actual swept polygon, including fork sockets, as far
@@ -41,7 +48,7 @@ pub fn place_on_surface(
         return place(tree, envelope, seed, p, twig, reference);
     }
     let contacts = AttachmentSurface::new(tree, envelope.height, surface)?;
-    place_on(tree, envelope, seed, p, twig, Some(&contacts), reference)
+    place_on(tree, envelope, seed, p, twig, Some(&contacts), reference, SUITE_BLADE)
 }
 /// Everything both the builder and the count check before a leaf is placed,
 /// and whether this tree and this family bear any at all.
@@ -142,7 +149,9 @@ pub(crate) fn leaf_count(
 }
 
 /// Places on the contact surface given, swept or read from a built wood;
-/// `None` where the family seats no leaf on the wood.
+/// `None` where the family seats no leaf on the wood. `blade` is the leaf
+/// element's reach a young frond's segments are measured against.
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn place_on(
     tree: &Tree,
     envelope: Envelope,
@@ -151,6 +160,7 @@ pub(crate) fn place_on(
     twig: Option<TwigPlacement>,
     contacts: Option<&AttachmentSurface<'_>>,
     reference: Reference,
+    blade: f64,
 ) -> Result<Instances> {
     if !bearing(tree, envelope, p, twig)? {
         return Ok(Instances::new(reference));
@@ -191,7 +201,7 @@ pub(crate) fn place_on(
     cluster::clothe(tree, seed, p, &mut out, owners.as_mut())?;
     // A rosette at every stem apex where the rows state one, on its own
     // wood's stream, so the leaves above keep every byte.
-    rosette::clothe(tree, seed, &p, &mut out, owners.as_mut())?;
+    rosette::clothe(tree, seed, &p, blade, &mut out, owners.as_mut())?;
     if let Some(owners) = owners {
         clumping::thin(tree, &owners, seed, p, &mut out);
     }

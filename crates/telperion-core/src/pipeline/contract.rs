@@ -30,7 +30,7 @@ pub mod foliage {
     #[cfg(test)]
     pub use crate::pipeline::foliage::*;
     pub use crate::pipeline::foliage::{
-        transform_point, withered, AnatomyGeometry, BloomParams, Bounds, CanopyParams, Crown, Element,
+        blade, transform_point, withered, AnatomyGeometry, BloomParams, Bounds, CanopyParams, Crown, Element,
         ElementParams, FoliageUnit, Instances, Leaf, Level, Reference, Rosette, TwigPlacement,
         MAX_FRONDS, MAX_LEAFLETS, WITHERED, WORDS,
     };

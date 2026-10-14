@@ -4,7 +4,7 @@
 
 Each frond's leaflet count is the mature `leafletCount` raised to the establishment's course at the crown's age when the frond emerged: `N ^ course(born / frondEstablishment)`. The clock is R1's (`Crown::born`, shared with `Crown::established`), so the count runs on a log scale from 1 at the first frond to `N` once established, and is kept for the frond's life. The count is fractional and split by fn-277's keyed draw (`organs::frond_leaflets`, `stations.wgsl`'s `frond_leaves` through `count_word` in `organs.wgsl`). A frond made once established carries `leafletCount` exactly (no `powf`), so the palm at 40 draws the same 6,554 leaves. Dormant with no establishment, with no rosette, or with no leaflet grouping.
 
-## Clock against the source
+## Clock against the source (host ruling 3: accepted as a known simplification)
 
 FAO 156 ch. I: entire leaves "during the first three years after seed germination"; the snippet-only "Plants at 12–18 months old begin to produce feathered (compound) leaves" (SOURCES.md). The shared clock is `frondEstablishment` 6.75 y, not 3 y. On the log scale the two agree on the entire years: the fronds of years 1 and 2 carry 1.0 to 1.3 leaflets. They part after that: year 3's fronds carry 1.7 to 3.1, and the mature count arrives at 6.75 y. No second clock or new row was added.
 
@@ -51,3 +51,47 @@ How a frond with few leaflets reads is a design judgment, beyond the hint I was 
 - a drawn rachis.
 
 The full gate was not run. The task stays open until the host rules.
+
+## Host ruling, 2026-10-15: segments of one blade, built
+
+`Crown::segments` on the CPU and `segments` in `stations.wgsl` take `f = ln n / ln N`, the course the count already uses. A young frond's leaflets then sit as follows:
+
+- **Placement.** They stand where a frond's leaflets always stood, at `(k + 1) / n` of the frond's rachis, which is its own length times its R1 share. The spacing is the blade length over `n`.
+- **Length.** Each runs from the blade's length (the rachis over the element's reach, `crown::blade`, about 0.63 m at a size of one) to the mature leaflet's on a log scale: `size × (R / (E·S))^(1 − f)`, where R/(E·S) = 4.73 on the palm.
+- **Pitch.** It runs linearly from 0 (along the rachis) to the mature 55°.
+- **Width.** The leaf instance scales uniformly, so the width follows the length (blade width at f = 0).
+- **Spines.** My choice, which the ruling did not cover: a young frond keeps the mature share of spines, `acanthophylls × n / N`. Without it, the palm's 8 basal spines would turn every segment of a 2-to-8-segment frond into a spine. A lone placement (n = 1) bears none on either executor.
+
+No rows were added. The device carries R/(E·S) in the rosette's spare word (`rosette[6].z`). A mature frond is its rows exactly: the palm at 40 still draws 6,554 leaves, and the still is byte-identical (`cmp`) to the one drawn before the change.
+
+Tests:
+- `a_seedlings_fronds_are_entire_and_become_pinnate` adds two checks: the first frond's strap reaches its blade (within 1 %) at a pitch under 0.1°, and `segments` of a mature frond returns its rows unchanged.
+- In `the_shipped_palm_keeps_its_height_and_narrows_only_its_foot`, the R2 check "young leaflets are smaller in the mean" now measures crown spread instead. A segment is now longer than a mature leaflet by design.
+- The device test compares the drawn leaves' axes: 8.4 to 10.8° apart in the mean under the palm's 18° scatter, and 0° to three decimals with scatter off. Positions agree within 5.4e-5 of the height at 3 and 4.
+
+### Stills (`raw/segments-stills/date-palm-{1,2,3,4,40}-1-1-whole.png`, the whole year)
+
+I viewed four: 1, 2, 3 and 4.
+- **At 1:** about nine entire strap leaves, each as long as its frond's blade (0.7 to 0.8 m). It reads as a seedling.
+- **At 2:** a tuft of straps. Two long single segments float detached to one side, the outer segments of the first fronds that drew n = 2.
+- **At 3:** a wide spray of long, narrow segments. Several stand off alone, metres out.
+- **At 4:** a bushy rosette of broad segments. It reads closest to a young pinnate palm, still with a fringe of long segments far out.
+
+### Where it reads wrong: segments run past the blade
+
+Per frond (seed 1), from the code's formulas. "Reach" means the last segment's base plus its length along the rachis.
+
+| Frond | Emerged | f | n | Blade (m) | Segment (m) | Pitch | Reach (m) | Reach / blade |
+|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| 0 | 0.07 | 0.001 | 1.00 | 0.70 | 0.70 | 0° | 0.70 | 1.00 |
+| 15 | 1.56 | 0.058 | 1.31 | 1.06 | 0.97 | 3° | 0.97 (n = 1) | 0.91 |
+| 16 | 2.01 | 0.112 | 1.70 | 1.41 | 1.18 | 6° | 2.58 (n = 2) | 1.83 |
+| 20 | 2.31 | 0.167 | 2.20 | 1.75 | 1.35 | 9° | 3.08 | 1.76 |
+| 24 | 2.60 | 0.239 | 3.09 | 2.20 | 1.52 | 13° | 3.68 | 1.67 |
+| 25 | 3.06 | 0.383 | 6.13 | 3.12 | 1.72 | 21° | 4.72 | 1.51 |
+| 32 | 3.57 | 0.575 | 15.1 | 4.32 | 1.77 | 32° | 5.83 | 1.35 |
+| mature | | 1 | 113 | 7.00 | 1.48 | 55° | 8.48 | 1.21 |
+
+The ruling's two rules conflict. The leaflets stand at `(k + 1) / n`, so the last always sits at the blade's tip. A few-segment frond's segments are nearly the blade's length. Together these put the outer segment wholly past the blade: from the blade's end to 1.7 to 1.8 blades out at n = 2 to 3. The frond's reach also jumps where its draw goes from one segment to two: from 0.97 m to 2.58 m between fronds 15 and 16. That breaks ruling 1's "no floating leaflets past the blade". Settling it needs a ruling on where a segment's base stands, or on how long it is at small n; I did not choose either.
+
+Not run: the full gate, and the done receipt. The task stays open.

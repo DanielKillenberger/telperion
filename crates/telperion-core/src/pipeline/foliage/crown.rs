@@ -162,10 +162,42 @@ impl Crown {
     /// first frond to the mature count once established, kept for the
     /// frond's life; the mature count with no establishment.
     pub fn leaflets(&self, serial: f64) -> f64 {
-        let grown = self.born(serial).map_or(1.0, |born| unfold::course(born / self.establishment));
-        match grown < 1.0 {
-            true => self.leaflets.max(1.0).powf(grown),
+        let f = self.pinnate(serial);
+        match f < 1.0 {
+            true => self.leaflets.max(1.0).powf(f),
             false => self.leaflets,
+        }
+    }
+
+    /// How far frond `serial` was made along the course from one leaflet
+    /// to the mature count, on a log scale: `ln n / ln N` (fn-275 R2b).
+    /// Whole with no establishment, and on a crown no engine grew.
+    pub fn pinnate(&self, serial: f64) -> f64 {
+        self.born(serial).map_or(1.0, |born| unfold::course(born / self.establishment))
+    }
+
+    /// Frond `serial`'s table `c` (its size and rachis already its share
+    /// of the whole table `p`'s) as segments of one blade that splits
+    /// (fn-275 R2b, host): at `f = pinnate`, its leaflets' count; each
+    /// leaflet's length on a log scale from the blade's, its rachis (a
+    /// leaf element `blade` metres long at a size of one), to the mature
+    /// leaflet's; its pitch from along the rachis to the mature pitch; and
+    /// its spines the mature share of its leaflets. A frond made mature,
+    /// or one that groups no leaflets, is `c` as it is.
+    pub fn segments(&self, c: CanopyParams, p: &CanopyParams, serial: f64, blade: f64) -> CanopyParams {
+        let f = self.pinnate(serial);
+        let grouped = p.leaflet_count > 1. && p.rachis_length > 0. && p.size > 0. && blade > 0.;
+        if f >= 1.0 || !grouped {
+            return c;
+        }
+        let n = self.leaflets(serial);
+        let strap = p.rachis_length / (blade * p.size);
+        CanopyParams {
+            leaflet_count: n,
+            leaflet_pitch: p.leaflet_pitch * f,
+            acanthophylls: p.acanthophylls * n / p.leaflet_count,
+            size: c.size * strap.powf(1.0 - f),
+            ..c
         }
     }
 
@@ -181,6 +213,12 @@ impl Crown {
         let year = made.ceil() - 1.0;
         Some(year + (y.budburst + y.elongation * (made - year)) / unfold::YEAR)
     }
+}
+
+/// The metres a leaf element reaches along its axis at a size of one:
+/// the blade a frond's segments are measured against (`Crown::segments`).
+pub fn blade(element: &super::Element) -> f64 {
+    element.positions.iter().map(|v| v.y).fold(0.0, f64::max)
 }
 
 /// The share of a mature size an organ made at the crown's age `t` years

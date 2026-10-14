@@ -367,7 +367,7 @@ pub(super) fn station_rows(
         wood: canopy.size != 0.0 && canopy.cauline > 0.0,
         flower,
         retains: x.retains(),
-        rosette: rosette_rows(&canopy, year),
+        rosette: rosette_rows(&canopy, year, telperion_core::foliage::blade(x.element())),
         turn: rosette_turn(&canopy),
         organs: organ_rows(&canopy, year),
     }
@@ -408,9 +408,12 @@ fn organ_rows(p: &CanopyParams, year: Option<telperion_core::tree::Year>) -> [u3
 /// depth; the living pitch and its spread, the skirt's pitch and length;
 /// the leaflets a frond, its rachis length and arch, the leaflet pitch;
 /// the terminal share, and the spines' count, share and pitch; the crown
-/// drawn in `year` (`Crown::rows`). Every row zero where the canopy
-/// stands no rosette or bears no leaves.
-fn rosette_rows(p: &CanopyParams, year: Option<telperion_core::tree::Year>) -> [[f32; 4]; 7] {
+/// drawn in `year` (`Crown::rows`), with the blade a young frond's
+/// segments are measured against as a share of a mature leaflet's length
+/// (`Crown::segments`'s strap; the element reaching `blade` metres), none
+/// where it groups no leaflets. Every row zero where the canopy stands no
+/// rosette or bears no leaves.
+fn rosette_rows(p: &CanopyParams, year: Option<telperion_core::tree::Year>, blade: f64) -> [[f32; 4]; 7] {
     if p.rosette_fronds == 0.0 || p.size == 0.0 {
         return [[0.0; 4]; 7];
     }
@@ -426,7 +429,10 @@ fn rosette_rows(p: &CanopyParams, year: Option<telperion_core::tree::Year>) -> [
     ]
     .map(|r| r.map(|v| v as f32));
     let [a, b, c, d] = rows;
-    let [made, clock, establishment] = crown;
+    let [made, clock, mut establishment] = crown;
+    if leaflets > 1.0 && blade > 0.0 {
+        establishment[2] = (p.rachis_length / (blade * p.size)) as f32;
+    }
     [a, b, c, d, made, clock, establishment]
 }
 

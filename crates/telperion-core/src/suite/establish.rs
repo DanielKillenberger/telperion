@@ -56,17 +56,19 @@ fn a_young_palms_stem_waits_at_the_ground() {
     assert_eq!((a.0.nodes, a.1.leaves), (b.0.nodes, b.1.leaves), "a tree with no rosette moved");
 }
 
-/// R2, R3: the fronds a young palm made are small; at its shipped age the
+/// R2, R3: the fronds a young palm made are small, its crown narrow; at its shipped age the
 /// palm stands as tall as before (21.59 m, its pin), its stem whole in
 /// girth above where it was laid while establishing (1.56 m measured).
 #[test]
 fn the_shipped_palm_keeps_its_height_and_narrows_only_its_foot() {
     let young = family("date-palm", 1, 3.0);
-    let mean = |c: &Instances| c.leaves.iter().map(|l| c.reference.scale(*l)).sum::<f64>() / c.leaves.len() as f64;
+    // How far out its leaves stand: their leaflets' length is the blade's
+    // form (R2b), the frond's size its spread.
+    let spread = |c: &Instances| c.leaves.iter().map(|l| c.reference.position(*l)).map(|p| p.x.hypot(p.z)).fold(0.0, f64::max);
     let ((_, small), (_, whole)) = (grown(&young), grown(&without(young.clone())));
     // R2b: its young fronds carry fewer leaflets, so fewer leaves.
     assert!(small.leaves.len() < whole.leaves.len(), "{} against {}", small.leaves.len(), whole.leaves.len());
-    assert!(mean(&small) < 0.6 * mean(&whole), "{} against {}", mean(&small), mean(&whole));
+    assert!(spread(&small) < 0.6 * spread(&whole), "{} against {}", spread(&small), spread(&whole));
     let palm = family("date-palm", 7, 40.0);
     let ((tree, _), (plain, _)) = (grown(&palm), grown(&without(palm.clone())));
     assert_eq!(tree.nodes.len(), plain.nodes.len(), "establishment moved a node's count");
@@ -107,7 +109,7 @@ fn a_thin_first_stem_keeps_the_stem() {
 }
 
 /// R2b: a seedling's first fronds are entire. Each frond carries the
-/// leaflets it was made with, by the establishment's course on a log
+/// leaflets it was made with, segments of one blade that splits (host), by the establishment's course on a log
 /// scale: one at the first frond, the mature count from the end of the
 /// establishment years, by degree between (no frond's log count above the
 /// last one's by more than 0.8, the steepest step measured at 0.73,
@@ -139,6 +141,14 @@ fn a_seedlings_fronds_are_entire_and_become_pinnate() {
     println!("the steepest step: {steepest:.3} in the log count");
     assert!(steepest < 0.8, "a frond's log count stepped {steepest}");
     assert_eq!(c.leaflets(established as f64), mature, "a frond made once established");
+    // Its leaflets are segments of one blade (host): the first frond one
+    // strap along its rachis, the blade's length; a mature frond its rows.
+    let blade = telperion_core::foliage::blade(&executor::element(palm.element).unwrap());
+    let p = palm.canopy;
+    let strap = c.segments(p, &p, 0.0, blade);
+    let reach = strap.size * blade / p.rachis_length;
+    assert!((reach - 1.0).abs() < 0.01 && strap.leaflet_pitch < 0.1, "the strap reaches {reach} at {}", strap.leaflet_pitch);
+    assert_eq!(c.segments(p, &p, established as f64, blade), p, "a mature frond moved");
     let leaves = |age: f64, f: &Family| grown(&family_at(f, age)).1.leaves.len();
     let drawn = |age: f64| {
         let f = family_at(&palm, age);

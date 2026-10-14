@@ -266,16 +266,29 @@ fn crown_agrees(gpu: &crate::Gpu, id: &str, f: &Family, fraction: f64) {
     let size = mean(&mut leaves.iter().map(|l| mine.scale(*l)));
     let theirs_size = mean(&mut theirs.leaves.iter().map(|l| theirs.reference.scale(*l)));
     let sized = (size / theirs_size - 1.0).abs();
-    println!("{id} {} at {fraction}: {} leaves, apart {apart:e} of the height, withering differs on {withered}, mean size apart {sized:e}", f.age, leaves.len());
+    // A leaf's axis on each executor: its own scatter turns it, a frond's
+    // segments (fn-275 R2b) turn it by their pitch.
+    let axis = |r: &telperion_core::foliage::Reference, l| {
+        let m = r.unpack(l);
+        telperion_core::math::Vec3::new(m[4].into(), m[5].into(), m[6].into()).normalized()
+    };
+    let drawn = leaves.iter().zip(&theirs.leaves).filter(|(a, _)| mine.scale(**a) > 0.0);
+    let turns: Vec<f64> = drawn.map(|(a, b)| axis(&mine, *a).dot(axis(&theirs.reference, *b)).clamp(-1.0, 1.0).acos().to_degrees()).collect();
+    let turned = turns.iter().sum::<f64>() / turns.len().max(1) as f64;
+    println!("{id} {} at {fraction}: {} leaves, apart {apart:e} of the height, withering differs on {withered}, mean size apart {sized:e}, turned {turned:.1} degrees", f.age, leaves.len());
     assert_eq!(withered, 0, "{id} at {fraction}: withered");
     assert!(apart <= ROSETTE_APART, "{id} at {fraction}: {apart}");
-    // Four standard errors of two means of uniform draws within the size
-    // variation, over the leaves' effective count, and never under 2 %: a
-    // seedling's few entire fronds (fn-275 R2b) sample it thinly.
+    // The 4 sigma bound: four standard errors of two means of uniform draws
+    // within the size variation, over the leaves' effective count, and
+    // never under 2 %; a seedling's few fronds (fn-275 R2b) sample it
+    // thinly (7 to 10 % measured at 3 and 4, the same sign throughout).
     let scales: Vec<f64> = theirs.leaves.iter().map(|l| theirs.reference.scale(*l)).collect();
     let effective = scales.iter().sum::<f64>().powi(2) / scales.iter().map(|s| s * s).sum::<f64>();
     let bound = (4.0 * f.canopy.size_variation * (2.0 / (3.0 * effective)).sqrt()).max(0.02);
     assert!(sized <= bound, "{id} at {fraction}: mean size {size} against {theirs_size}, bound {bound}");
+    // Each executor scatters its own: drawn leaves turn apart 8.4 to 10.8
+    // degrees in the mean under the palm's 18 (none without scatter).
+    assert!(turned <= 0.8 * f.canopy.scatter + 1.0, "{id} at {fraction}: turned {turned} degrees");
 }
 
 /// The farthest a device leaflet may stand from the CPU's, a share of the

@@ -184,7 +184,7 @@ pub(super) struct Frond {
 /// over the skirt's last. Its turn on the spiral is its serial's, so a
 /// frond holds still as the crown grows above it. The placement and the
 /// leaf plan both read this.
-pub(super) fn fronds(rosette: &Rosette, p: &CanopyParams, crown: Crown) -> impl Iterator<Item = Frond> {
+pub(super) fn fronds(rosette: &Rosette, p: &CanopyParams, crown: Crown, blade: f64) -> impl Iterator<Item = Frond> {
     let (fronds, steps) = (p.rosette_fronds, spacing(p));
     let oldest = (fronds - 1.).max(0.);
     let total = fronds + skirt(p);
@@ -210,12 +210,8 @@ pub(super) fn fronds(rosette: &Rosette, p: &CanopyParams, crown: Crown) -> impl 
         let mix = |x: f64, y: f64| x + (y - x) * turned;
         let (pitch, depth, length) = (mix(a.0, b.0), mix(a.1, b.1), mix(a.2, b.2));
         let share = unfolded * established * (total - k).clamp(0.0, 1.0);
-        let canopy = CanopyParams {
-            size: p.size * length * share,
-            rachis_length: p.rachis_length * length * share,
-            leaflet_count: crown.leaflets(serial as f64),
-            ..p
-        };
+        let canopy = CanopyParams { size: p.size * length * share, rachis_length: p.rachis_length * length * share, ..p };
+        let canopy = crown.segments(canopy, &p, serial as f64, blade);
         let (lean, upright) = pitch.sin_cos_fixed();
         Frond {
             serial,
@@ -235,6 +231,7 @@ pub(super) fn clothe(
     tree: &Tree,
     seed: u32,
     p: &CanopyParams,
+    blade: f64,
     out: &mut Instances,
     mut owners: Option<&mut Vec<u32>>,
 ) -> Result<()> {
@@ -248,7 +245,7 @@ pub(super) fn clothe(
             continue;
         }
         let crown = Crown::of(tree, p);
-        for frond in fronds(&rosette, p, crown) {
+        for frond in fronds(&rosette, p, crown, blade) {
             let from = out.leaves.len();
             let mut rng = stream(seed, stem, &frond);
             let (at, heading, radial) = (frond.at, frond.heading, frond.radial);
