@@ -41,3 +41,10 @@
 - Slowed by: `telperion-heavy` admission waits of 10 to 20 minutes on each of three calls while other workers' gates ran; the scratchpad's share lists were removed by another session's cleanup between calls and had to be rewritten into the evidence directory.
 - Cost: about 45 minutes of wall time.
 - Would remove it: inputs kept in the worktree's own evidence directory from the start.
+
+## 2026-10-14, task 1, the gate and npm unadmitted
+
+- Doing: the final gate (`telperion-heavy 10 --gpu 4 --threads 4`) and `npm test`, and the Laurelin to Telperion walk's draws at 80.
+- Slowed by: none was admitted: the gate queued 30 minutes for 10 GB, npm 30 minutes for 9 GB (its first run at 6 GB was killed at the cap), the Laurelin frames an hour for 9 GB, while other workers held the machine. Each was cancelled as ruled.
+- Cost: about two hours of wall time, no result from any of the three.
+- Would remove it: the host's run on the merged branch, as ruled; a queue that tells a waiting job its place.
