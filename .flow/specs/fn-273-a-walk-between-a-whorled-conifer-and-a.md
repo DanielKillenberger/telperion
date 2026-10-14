@@ -15,3 +15,5 @@ fn-251's re-measure on F4 (2026-10-14, WALKS.md "The two-sided factor's room"): 
 After the release (fn-237). fn-251's sweep names the pair as an exception until this lands.
 
 **Tenth exception (host, 2026-10-14, fn-272's film):** Oregon white oak to date palm at age 40 keeps 421-430 phytomers at t = 0.64-0.72 against the oracle's floor of 432 (up to 2.5 % under), 6 of 120 frames, seed 7. The same class as fn-251's nine (the shrink-only size factor); accepted for the release film and fixed here with the rest.
+
+**Observed (host, 2026-10-14, fn-276's cause write-up):** an age lifespan of 0 means "pass straight through" at the beech; a walk mixes lifespans by value, so near the beech end those ages last 0.0004-0.0014 cycles and an apex grows a tiny unit in each, up to four a cycle. A zero that is a switch rather than a degree; likely behind the film's beech-to-walk join stepping 66,779 to 69,437 leaves. Unchecked as a cause of any size miss; check it here.
