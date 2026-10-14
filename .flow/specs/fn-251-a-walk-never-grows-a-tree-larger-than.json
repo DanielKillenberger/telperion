@@ -213,7 +213,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-251-a-walk-never-grows-a-tree-larger-than.md",
-  "status": "open",
+  "status": "done",
   "title": "A walk never grows a tree larger than its ends",
   "tracker": {
     "baseHashFlow": null,
@@ -226,5 +226,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T01:32:41.022042Z"
+  "updated_at": "2026-10-14T01:33:08.733199Z"
 }
