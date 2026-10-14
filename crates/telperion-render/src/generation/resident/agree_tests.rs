@@ -222,15 +222,16 @@ fn every_preset_stations_its_runs_as_the_cpu_does() {
 /// within the lineage tolerance, and withers the same ones, at the whole
 /// age and with its crown drawn within its year (fn-270 R5b: a frond
 /// emerging, expanding, leaving the living crown and fading off the
-/// skirt), and at 3 while the crown establishes, its fronds made small
-/// (fn-275 R4). The draws are each executor's own, as a station's are.
+/// skirt), and at 3 and 4 while the crown establishes, its fronds made
+/// small and with fewer leaflets (fn-275 R4, R2b). The draws are each
+/// executor's own, as a station's are.
 #[test]
 fn every_rosette_is_placed_as_the_cpu_places_it() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
     };
     for id in presets() {
-        for age in [age(), 3] {
+        for age in [age(), 3, 4] {
             let f = family(&id, age);
             if f.canopy.rosette_fronds == 0.0 {
                 break;
@@ -268,7 +269,13 @@ fn crown_agrees(gpu: &crate::Gpu, id: &str, f: &Family, fraction: f64) {
     println!("{id} {} at {fraction}: {} leaves, apart {apart:e} of the height, withering differs on {withered}, mean size apart {sized:e}", f.age, leaves.len());
     assert_eq!(withered, 0, "{id} at {fraction}: withered");
     assert!(apart <= ROSETTE_APART, "{id} at {fraction}: {apart}");
-    assert!(sized <= 0.02, "{id} at {fraction}: mean size {size} against {theirs_size}");
+    // Four standard errors of two means of uniform draws within the size
+    // variation, over the leaves' effective count, and never under 2 %: a
+    // seedling's few entire fronds (fn-275 R2b) sample it thinly.
+    let scales: Vec<f64> = theirs.leaves.iter().map(|l| theirs.reference.scale(*l)).collect();
+    let effective = scales.iter().sum::<f64>().powi(2) / scales.iter().map(|s| s * s).sum::<f64>();
+    let bound = (4.0 * f.canopy.size_variation * (2.0 / (3.0 * effective)).sqrt()).max(0.02);
+    assert!(sized <= bound, "{id} at {fraction}: mean size {size} against {theirs_size}, bound {bound}");
 }
 
 /// The farthest a device leaflet may stand from the CPU's, a share of the

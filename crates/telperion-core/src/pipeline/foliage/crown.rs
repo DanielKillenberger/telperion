@@ -1,6 +1,7 @@
 //! The fronds a rosette's crown has made by the year it is drawn in, and
 //! the share of its whole size each stands at: emerging this year, or made
-//! small while the crown was establishing (fn-270 R5b, fn-275 R2).
+//! small while the crown was establishing, with the leaflets it was made
+//! with (fn-270 R5b, fn-275 R2, R2b).
 use super::{
     rosette::{skirt, MAX_FRONDS},
     CanopyParams,
@@ -27,6 +28,8 @@ pub struct Crown {
     /// one its first frond is made at (fn-275 R2): none at no years.
     establishment: f64,
     early: f64,
+    /// The leaflets a mature frond carries (fn-275 R2b).
+    leaflets: f64,
 }
 
 impl Crown {
@@ -45,6 +48,7 @@ impl Crown {
             kept,
             establishment: p.frond_establishment,
             early: p.frond_early_share,
+            leaflets: p.leaflet_count,
         }
     }
 
@@ -150,18 +154,32 @@ impl Crown {
     /// kept for the frond's life, so no year turns a frond's size. Whole
     /// with no establishment, and on a crown no engine grew.
     pub fn established(&self, serial: f64) -> f64 {
-        let Some(y) = self.year else {
-            return 1.0;
-        };
-        if self.establishment <= 0.0 || self.life <= 0.0 || self.fronds <= 0.0 {
-            return 1.0;
+        self.born(serial).map_or(1.0, |born| establishment(self.early, self.establishment, born))
+    }
+
+    /// The leaflets frond `serial` was made with (fn-275 R2b): by the
+    /// same course on a log scale, one (an entire leaf) at the crown's
+    /// first frond to the mature count once established, kept for the
+    /// frond's life; the mature count with no establishment.
+    pub fn leaflets(&self, serial: f64) -> f64 {
+        let grown = self.born(serial).map_or(1.0, |born| unfold::course(born / self.establishment));
+        match grown < 1.0 {
+            true => self.leaflets.max(1.0).powf(grown),
+            false => self.leaflets,
         }
-        // Its year's fronds emerge evenly over the stem's elongation from
-        // budburst (`unfolded`).
+    }
+
+    /// The crown's age when frond `serial` emerged, its year's fronds
+    /// evenly over the stem's elongation from budburst (`unfolded`); none
+    /// with no establishment, and on a crown no engine grew.
+    fn born(&self, serial: f64) -> Option<f64> {
+        let y = self.year?;
+        if self.establishment <= 0.0 || self.life <= 0.0 || self.fronds <= 0.0 {
+            return None;
+        }
         let made = self.made_at(serial);
         let year = made.ceil() - 1.0;
-        let born = year + (y.budburst + y.elongation * (made - year)) / unfold::YEAR;
-        establishment(self.early, self.establishment, born)
+        Some(year + (y.budburst + y.elongation * (made - year)) / unfold::YEAR)
     }
 }
 

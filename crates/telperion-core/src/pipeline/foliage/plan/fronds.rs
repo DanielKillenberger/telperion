@@ -51,7 +51,8 @@ pub(super) fn describe(
         }
         for frond in rosette::fronds(apex, &at, super::super::Crown::of(tree, &at)) {
             let key = organs::frond_key(node, frond.serial);
-            let (c, per) = (organs::placement(&frond.canopy, key), organs::leaflets(&organs::placement(&at, key)));
+            let per = organs::frond_leaflets(&at, frond.canopy.leaflet_count, key);
+            let c = organs::placement(&frond.canopy, key);
             total = total.checked_add(per).filter(|t| *t <= p.max_instances && *t <= u32::MAX as usize).ok_or_else(budget)?;
             out.try_reserve(per).map_err(|_| Error::ResourceLimit("foliage plan allocation"))?;
             let mut rng = rosette::stream(seed, stem, &frond);

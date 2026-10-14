@@ -64,7 +64,8 @@ fn the_shipped_palm_keeps_its_height_and_narrows_only_its_foot() {
     let young = family("date-palm", 1, 3.0);
     let mean = |c: &Instances| c.leaves.iter().map(|l| c.reference.scale(*l)).sum::<f64>() / c.leaves.len() as f64;
     let ((_, small), (_, whole)) = (grown(&young), grown(&without(young.clone())));
-    assert_eq!(small.leaves.len(), whole.leaves.len(), "establishment moved a frond's count");
+    // R2b: its young fronds carry fewer leaflets, so fewer leaves.
+    assert!(small.leaves.len() < whole.leaves.len(), "{} against {}", small.leaves.len(), whole.leaves.len());
     assert!(mean(&small) < 0.6 * mean(&whole), "{} against {}", mean(&small), mean(&whole));
     let palm = family("date-palm", 7, 40.0);
     let ((tree, _), (plain, _)) = (grown(&palm), grown(&without(palm.clone())));
@@ -103,4 +104,58 @@ fn a_thin_first_stem_keeps_the_stem() {
     (palm.canopy.frond_early_share, palm.canopy.frond_establishment) = (0.0, 10.0);
     let ((tree, _), (plain, _)) = (grown(&palm), grown(&without(palm.clone())));
     assert_eq!(tree.nodes.len(), plain.nodes.len(), "the stem was cut");
+}
+
+/// R2b: a seedling's first fronds are entire. Each frond carries the
+/// leaflets it was made with, by the establishment's course on a log
+/// scale: one at the first frond, the mature count from the end of the
+/// establishment years, by degree between (no frond's log count above the
+/// last one's by more than 0.8, the steepest step measured at 0.73,
+/// across a year's turn), and kept for the frond's life. The drawn
+/// seedling carries them; without the rows every frond carries the
+/// mature count.
+#[test]
+fn a_seedlings_fronds_are_entire_and_become_pinnate() {
+    use telperion_core::{foliage::Crown, tree::Year};
+    let palm = family("date-palm", 1, 12.0);
+    let (mature, years) = (palm.canopy.leaflet_count, palm.canopy.frond_establishment);
+    let year = |age: f64| Year { age, budburst: 0.0, elongation: 226.0, expansion: 139.0 };
+    let crown = |age: f64| Crown::new(Some(year(age)), &palm.canopy);
+    let c = crown(12.0);
+    let per_year = palm.canopy.rosette_fronds / palm.canopy.frond_life;
+    let first = c.leaflets(0.0);
+    assert!((1.0..1.01).contains(&first), "the first frond carries {first} leaflets");
+    let established = (per_year * years.ceil()).ceil() as i64;
+    let (mut last, mut steepest) = (first, 0.0f64);
+    for s in 1..established + 8 {
+        let n = c.leaflets(s as f64);
+        assert!(n >= last, "frond {s} carries {n}, fewer than the one before at {last}");
+        steepest = steepest.max((n / last).ln());
+        last = n;
+        for age in [6.0, 6.0 + 1e-9, 40.0] {
+            assert_eq!(crown(age).leaflets(s as f64), n, "frond {s} changed its leaflets at {age}");
+        }
+    }
+    println!("the steepest step: {steepest:.3} in the log count");
+    assert!(steepest < 0.8, "a frond's log count stepped {steepest}");
+    assert_eq!(c.leaflets(established as f64), mature, "a frond made once established");
+    let leaves = |age: f64, f: &Family| grown(&family_at(f, age)).1.leaves.len();
+    let drawn = |age: f64| {
+        let f = family_at(&palm, age);
+        Crown::new(executor::growth(&f).unwrap().year(1.0), &f.canopy).slots()
+    };
+    let plain = without(palm.clone());
+    for age in [1.0, 2.0, 3.0, 4.0] {
+        let (young, whole) = (leaves(age, &palm), leaves(age, &plain));
+        let fronds = drawn(age);
+        println!("{age}: {fronds} fronds, {young} leaves, {whole} without the rows");
+        assert_eq!(whole as f64, fronds as f64 * mature, "{age}: a frond without the rows");
+        assert!(young < whole, "{age}: {young} leaves against {whole}");
+    }
+    let one = leaves(1.0, &palm);
+    assert!(one <= drawn(1.0) + 2, "the seedling at 1 bears {one} leaves");
+}
+
+fn family_at(f: &Family, age: f64) -> Family {
+    Family { age, ..f.clone() }
 }

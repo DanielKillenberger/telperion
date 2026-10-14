@@ -243,21 +243,46 @@ fn unfolded_frond(serial: i32, fronds: f32) -> f32 {
     return run(y.w - emerges, s.z);
 }
 
-// The share of a mature frond's size frond `serial` was made at: the
-// crown's age when it emerged, evenly over its year's elongation from
-// budburst, along the course from the early share to whole over the
-// establishment years (`Crown::established`, fn-275 R2).
-fn established_frond(serial: i32, fronds: f32) -> f32 {
+// The crown's age when frond `serial` emerged, evenly over its year's
+// elongation from budburst; negative with no establishment and on a crown
+// no engine grew (`Crown::born`).
+fn born_frond(serial: i32, fronds: f32) -> f32 {
     let e = cfg.rosette[6];
     let y = cfg.rosette[4];
     let s = cfg.rosette[5];
     if e.x <= 0.0 || y.z < 0.0 || y.y <= 0.0 || fronds <= 0.0 {
-        return 1.0;
+        return -1.0;
     }
     let made = (f32(serial) + 1.0) * y.y / fronds;
     let year = ceil(made) - 1.0;
-    let born = year + (s.x + s.y * (made - year)) / 365.0;
+    return year + (s.x + s.y * (made - year)) / 365.0;
+}
+
+// The share of a mature frond's size frond `serial` was made at: the
+// crown's age when it emerged along the course from the early share to
+// whole over the establishment years (`Crown::established`, fn-275 R2).
+fn established_frond(serial: i32, fronds: f32) -> f32 {
+    let born = born_frond(serial, fronds);
+    if born < 0.0 {
+        return 1.0;
+    }
+    let e = cfg.rosette[6];
     return 1.0 - (1.0 - e.y) * (1.0 - course(born / e.x));
+}
+
+// The leaves frond `serial` of the crown keyed `key` carries: the
+// leaflets it was made with, by the same course on a log scale from one
+// to the mature count, drawn as a count between two whole numbers
+// (`Crown::leaflets`, `organs::frond_leaflets`, fn-275 R2b).
+fn frond_leaves(key: u32, serial: i32, fronds: f32) -> u32 {
+    let born = born_frond(serial, fronds);
+    let grown = select(1.0, course(born / cfg.rosette[6].x), born >= 0.0);
+    if grown >= 1.0 || !grouped() {
+        return leaves_at(key, u32(serial));
+    }
+    let count = pow(max(cfg.rosette[2].x, 1.0), grown);
+    let n = organs(count_word(count), placement_key(key, u32(serial)), ORGAN_LEAFLETS);
+    return select(1u, n, n > 1u);
 }
 
 // `a` a share `t` of the way to `b` (`rosette::fronds`' mix).
@@ -519,7 +544,7 @@ fn measure(@builtin(global_invocation_id) id: vec3<u32>) {
         var leaves = 0u;
         // cap: the fronds the crown draws.
         for (var i = 0u; i < c.slots; i++) {
-            leaves += leaves_at(c.key, u32(c.newest - i32(i)));
+            leaves += frond_leaves(c.key, c.newest - i32(i), f32(c.living));
         }
         runs[r * RW + 1u] = leaves;
         runs[r * RW + 2u] = c.slots;
@@ -790,7 +815,7 @@ fn rosette(apex: u32, station0: u32, g: u32) {
         put4(s + 12u, vec4<f32>(axis, 0.0));
         put4(s + 16u, vec4<f32>(r[2].z, r[2].w, r[3].x, r[3].w));
         // Its own leaflets and spines (`organs::placement`, fn-277).
-        let leaflets = leaves_at(c.key, u32(serial));
+        let leaflets = frond_leaves(c.key, serial, fronds);
         let spines = organs(organ_word(4u), placement_key(c.key, u32(serial)), ORGAN_SPINES);
         put4(s + 20u, vec4<f32>(f32(turned >= 0.5), -2.0, f32(spines), 0.0));
         segs[s + 15u] = NONE;

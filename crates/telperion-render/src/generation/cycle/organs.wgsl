@@ -18,6 +18,13 @@ fn organ_mix(v: u32) -> u32 {
     return z ^ (z >> 15u);
 }
 
+// A count's word (`telperion_space::word`): its floor above, its
+// fraction as a share of 2^16 below.
+fn count_word(count: f32) -> u32 {
+    let floor_ = floor(count);
+    return (u32(floor_) << 16u) | u32(floor((count - floor_) * 65536.0));
+}
+
 fn organs(word: u32, key: u32, row: u32) -> u32 {
     let share = word & 0xffffu;
     let stream = organ_mix(key ^ KEY_ORGANS.x);

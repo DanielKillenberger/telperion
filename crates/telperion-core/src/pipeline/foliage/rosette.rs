@@ -40,7 +40,7 @@ use crate::rng::Rng;
 #[cfg(feature = "geometry")]
 use crate::Error;
 #[cfg(feature = "geometry")]
-use super::organs::{apex, frond_key, leaflets, placement};
+use super::organs::{apex, frond_key, frond_leaflets, placement};
 use crate::{
     math::{Transcendental, Vec3},
     tree::Tree,
@@ -145,8 +145,9 @@ pub(super) fn count(tree: &Tree, p: &CanopyParams) -> Result<usize> {
         if !bearing(&p) {
             continue;
         }
-        for serial in Crown::of(tree, &p).serials() {
-            let leaves = leaflets(&placement(&p, frond_key(stem, serial)));
+        let crown = Crown::of(tree, &p);
+        for serial in crown.serials() {
+            let leaves = frond_leaflets(&p, crown.leaflets(serial as f64), frond_key(stem, serial));
             total = total.checked_add(leaves).filter(|t| *t <= p.max_instances).ok_or_else(budget)?;
         }
     }
@@ -156,8 +157,8 @@ pub(super) fn count(tree: &Tree, p: &CanopyParams) -> Result<usize> {
 /// One frond on a rosette's spiral: where it leaves the axis, the way its
 /// rachis heads, the radial it leans out along, the canopy it is drawn at (a
 /// dead frond at its share of a living one, an emerging one at its share of
-/// its whole size, one made while the crown established at the size it was
-/// made at) and its serial among the fronds its crown has made,
+/// its whole size, one made while the crown established at the size and
+/// with the leaflets it was made at) and its serial among the fronds its crown has made,
 /// which keys its draws.
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Frond {
@@ -209,7 +210,12 @@ pub(super) fn fronds(rosette: &Rosette, p: &CanopyParams, crown: Crown) -> impl 
         let mix = |x: f64, y: f64| x + (y - x) * turned;
         let (pitch, depth, length) = (mix(a.0, b.0), mix(a.1, b.1), mix(a.2, b.2));
         let share = unfolded * established * (total - k).clamp(0.0, 1.0);
-        let canopy = CanopyParams { size: p.size * length * share, rachis_length: p.rachis_length * length * share, ..p };
+        let canopy = CanopyParams {
+            size: p.size * length * share,
+            rachis_length: p.rachis_length * length * share,
+            leaflet_count: crown.leaflets(serial as f64),
+            ..p
+        };
         let (lean, upright) = pitch.sin_cos_fixed();
         Frond {
             serial,
@@ -246,10 +252,9 @@ pub(super) fn clothe(
             let from = out.leaves.len();
             let mut rng = stream(seed, stem, &frond);
             let (at, heading, radial) = (frond.at, frond.heading, frond.radial);
-            // Its leaflets are the whole frond's, so one drawn at no size
-            // still stands them (fn-270 R5b).
             let key = frond_key(node, frond.serial);
-            let (c, count) = (placement(&frond.canopy, key), leaflets(&placement(p, key)));
+            let count = frond_leaflets(p, frond.canopy.leaflet_count, key);
+            let c = placement(&frond.canopy, key);
             reserve(out, count, *p)?;
             fan(at, heading, radial, rosette.axis, (c, count), (&mut rng, None), out)?;
             if frond.dead {
