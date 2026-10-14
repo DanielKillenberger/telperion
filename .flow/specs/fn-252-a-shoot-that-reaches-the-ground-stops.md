@@ -46,9 +46,14 @@ Value: the silver birch's `ground_hazard` 1 is a declared stand-in resting on th
 
 Proof: ground counts and crown base re-measured at 5 to 80; birch stills at 10, 20, 40 (whole and low) viewed; what still rests at 40 and 80 by sag reported as numbers for the owner. Tests: h = 0 byte-identical (fn-200's resting test holds); at h = 1 no tip in rough-lay contact survives its next cycle; CPU and device agree. The gate on the merged branch is the host's; Codex review to SHIP; the task stays in progress for the owner.
 
+## Owner's verdict (2026-10-14)
+
+The owner accepted the ground rule for the release ("ok", to: ship R2 as built; `R2-RESULT.md`). The young birch's sag-only ground contact at 20 to 30 and its persisting low passing branches go to a general crown-lift spec after the release (fn-282, minted by the host); no birch-only value change, because a value chosen for its effect rather than a source would break the design rule. The full gate is the host's, on the merged branch.
+
 ## Boundaries
 
 The birch's low branches and the lay's ground rule, and their measurement. A release item (owner, 2026-10-14).
+
 
 
 
