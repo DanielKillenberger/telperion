@@ -13,7 +13,8 @@
 //! `WALK_JSON=<dir>`, each frame's family is written there as its wire
 //! object (`params::metadata`), for `headless --family` to draw. With
 //! `WALK_TS=<file>`, the frames are the shares listed in that file, one
-//! a line, in place of the even steps.
+//! a line, in place of the even steps. `WALK_CAULINE=<share>` overrides
+//! each frame's cauline share.
 use telperion_core::{blend, catalogue, mesh, params, presets::by_identity, Family};
 use telperion_space::{settings, zone_settings};
 
@@ -55,7 +56,11 @@ fn main() {
         Err(_) => (0..=steps).map(|i| t0 + (t1 - t0) * i as f64 / steps.max(1) as f64).collect(),
     };
     for t in ts {
-        let family = blend::families(&a, &b, t).unwrap();
+        let mut family = blend::families(&a, &b, t).unwrap();
+        // `WALK_CAULINE` overrides the cauline share: 0 counts the crown alone.
+        if let Ok(share) = std::env::var("WALK_CAULINE") {
+            family.canopy.cauline = share.parse().unwrap();
+        }
         let tree = mesh::build(&family).unwrap();
         let h = tree.bounds.max.y - tree.bounds.min.y;
         let c = &family.canopy;
