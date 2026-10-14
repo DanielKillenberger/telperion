@@ -27,3 +27,10 @@
 - **What slowed it:** the run was OOM-killed under its 8 GB cap at the Norway spruce at 78, after 23 minutes and 716 of about 1,950 trees. Two spruces near 80 grown at once do not fit in 8 GB. The rest had to be rerun with one worker for the large trees.
 - **Cost:** about 25 minutes of a heavy slot, of which the lost tail was a few minutes.
 - **What would have removed it:** the test sizing its workers by each tree's expected size, or one worker above a stated count of phytomers.
+
+## 2026-10-14, task 1 worker: editing a shader while the gate ran failed the gate
+
+- **What I was doing:** fixing the review's finding in `job.wgsl` while the one gate this task gets was running on the commit before.
+- **What slowed it:** `every_shader_file_is_checked` reads the WGSL files from disk and compares them with the sources compiled into the binary. The edited file no longer matched, so the one gate run carries a false failure, and the stack fix has no gate of its own.
+- **Cost:** the task's only gate shows one red test that is no defect, and the host's merged-branch gate has to carry the proof.
+- **What would have removed it:** running the gate from a frozen copy of the tree, or holding source edits until the gate ends.

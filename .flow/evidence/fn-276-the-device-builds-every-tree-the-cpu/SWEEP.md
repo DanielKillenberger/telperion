@@ -97,3 +97,13 @@ Whether the spruce builds at the full 6 GiB in a browser was not measured here.
 **Not this spec's sizing rule.** The cause is the start margin, which checks only the start tables against the budget, never their first move. The made-phytomers rule is not involved, so nothing is fixed here.
 
 A proposal for the host: choose the start margin so that the start tables plus their next move fit the budget, with the largest group held twice, as `build_move.rs` holds it.
+
+## Review, the stack fix and the gate
+
+**Review.** Codex's first round was NEEDS_WORK on one finding: with `FRAMES` at 11, the job's stack of moves still held 8. A chain of eleven short ages, whose floor is 11, faulted at its ninth move with UnitFaults (0x10).
+
+**The fix (a552e6cc9).** The stack now sits past the frames, with `FRAMES - 1` entries, and the job words are repacked (575 a job). `a_chain_of_short_ages_fills_a_jobs_frames` builds the chain on the device. It was red with the old stack and is green now (`raw/g-stack.log`), beside R1's repros and the mirror tests. The re-review was SHIP.
+
+**The gate** (`raw/gate.log`) was run once at b7bf127da, before the stack fix: 1,383 passed, 1 failed, 95 ignored. The one failure, `every_shader_file_is_checked`, compares the WGSL files on disk against the sources compiled in. `job.wgsl` was being edited for the stack fix while the gate ran, so the file on disk no longer matched the binary. Re-run on the current source, it passes.
+
+**What was not re-run.** The whole R4 sweep ran before the stack fix. After it, only R1's repros, the chain test and the mirror tests ran. The stack's layout change has not been through the 2,034-case sweep or a gate of its own. The host runs the gate on the merged branch.
