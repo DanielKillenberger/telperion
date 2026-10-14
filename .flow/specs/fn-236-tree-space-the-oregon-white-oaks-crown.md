@@ -16,3 +16,5 @@ The owner's verdict on 2026-10-09, looking at the oak's field stills (fn-214 cut
 ## Boundaries
 
 The oak's values only, plus host-minted gap specs it depends on. Depends on fn-198. fn-214 task 3 (the site's coarse default and timing) depends on it.
+
+**Owner verdict (2026-10-14), in the harness at the oak's fork (`owner-2026-10-14-fork.png`):** "oak has multiple problems.. leaves growing way too numerous and on branches and it also has branches clipping in each other". Three defects, each to reproduce and trace before any value moves: (a) leaves along the older limbs (a fringe of leaf sprays lining the wood inside the crown, where an oak bears its leaves on the current year's shoots), (b) too many leaves (342,878 at 40, seed 1, against the sources' leaf count or leaf area), (c) limbs passing through each other at the fork, with a sharp collar ring where the trunk meets its limbs. The same on the release branch before fn-275 (stills compared 2026-10-14), so none is a regression of this week's work. A cause in the generator is its own gap spec, minted by the host.
