@@ -3,7 +3,10 @@
 //! grown tree to `validate_solved`, printing one line a tree and, for a
 //! refusal, the nodes whose radius is not above zero.
 //!
-//!   radii_sweep <preset> <age,age|lo-hi> <seed lo-hi>
+//!   radii_sweep <preset> <age,age|lo-hi> <seed lo-hi> [mesh]
+//!
+//! With `mesh`, each tree that builds is dressed on the CPU too and its
+//! wood triangles, leaves and bounds printed: what a still would show.
 use std::time::Instant;
 use telperion_core::{pipeline::executor, presets::Preset, tree::Tree};
 
@@ -21,8 +24,10 @@ fn list(s: &str) -> Result<Vec<u32>, String> {
 
 fn main() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let [id, ages, seeds] = &args[..] else {
-        return Err("usage: radii_sweep <preset> <ages> <seeds>".into());
+    let (id, ages, seeds, mesh) = match &args[..] {
+        [id, ages, seeds] => (id, ages, seeds, false),
+        [id, ages, seeds, m] if m == "mesh" => (id, ages, seeds, true),
+        _ => return Err("usage: radii_sweep <preset> <ages> <seeds> [mesh]".into()),
     };
     let preset = Preset::from_id(id).ok_or(format!("no preset {id}"))?;
     let native = preset.parameters().age;
@@ -41,7 +46,21 @@ fn main() -> Result<(), String> {
             let ms = started.elapsed().as_millis();
             match verdict {
                 Err(e) => println!("{id} age {age} seed {seed}: REFUSED {e} ({ms} ms)"),
-                Ok(x) => report(id, age, seed, x.tree(), ms),
+                Ok(x) => {
+                    report(id, age, seed, x.tree(), ms);
+                    if mesh {
+                        let m = x.mesh().map_err(|e| e.to_string())?;
+                        let size = m.bounds.max - m.bounds.min;
+                        println!(
+                            "  mesh: {} wood triangles, {} leaves, {:.4} x {:.4} x {:.4} m",
+                            m.wood_triangles(),
+                            m.foliage_instances(),
+                            size.x,
+                            size.y,
+                            size.z
+                        );
+                    }
+                }
             }
         }
     }
