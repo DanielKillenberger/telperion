@@ -32,7 +32,8 @@ struct Cfg {
     unit: u32,
     divergence: f32,
     contact: u32,
-    // Whether the canopy bears leaves: a tree may flower where it does not.
+    // Whether the canopy bears leaves (bit 0): a tree may flower where it
+    // does not; and whether its wood does (`WOOD`, its cauline share).
     leaves: u32,
     // Whether some wood sheds its leaves by age (fn-248): every station
     // keeps its leaf where none does.
@@ -64,6 +65,8 @@ struct Cfg {
 // record; fn-229).
 @group(0) @binding(7) var<storage, read_write> owners: array<atomic<u32>>;
 const OW: u32 = 2u;
+// `cfg.leaves`: the leaf-bearing wood and short shoots bear (fn-277).
+const WOOD: u32 = 2u;
 
 const NONE: u32 = 0xffffffffu;
 const NW: u32 = 39u;
@@ -225,7 +228,7 @@ fn bears(i: u32) -> bool {
 // A short shoot's tip the device seats a cluster at.
 // None where the canopy bears no leaves, though the tree may flower.
 fn tip(i: u32) -> bool {
-    return cfg.leaves != 0u && !bearing() && fine(i) && (word(i, 9u) & TIP) != 0u;
+    return (cfg.leaves & WOOD) != 0u && fine(i) && (word(i, 9u) & TIP) != 0u;
 }
 
 // The 32-bit finaliser (`tree::mix32`).
@@ -251,9 +254,9 @@ fn kids(@builtin(global_invocation_id) id: vec3<u32>) {
 @compute @workgroup_size(64)
 fn bear(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = index(id);
-    // A stem that bears a frond crown bears nothing along its length
-    // (`plan::bearing_runs`).
-    if i >= cfg.n || !fine(i) || cfg.leaves == 0u || bearing() {
+    // Wood none of which is cauline bears nothing along its length
+    // (`plan::bearing_runs`, fn-277).
+    if i >= cfg.n || !fine(i) || (cfg.leaves & WOOD) == 0u {
         return;
     }
     let radius = nodes[i * NW + 3u];

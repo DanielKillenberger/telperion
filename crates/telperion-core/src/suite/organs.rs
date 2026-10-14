@@ -91,3 +91,34 @@ fn only_whole_counts_are_whole() {
     }
     assert!(fractions.iter().all(|f| !executor::whole(f)));
 }
+
+/// The palm's direct build keeps its every frond's leaflets: a frond
+/// emerging at no size still stands its 113 (fn-270 R5b), so the palm at
+/// 1, seed 7, is the 1,017 leaves it was before fn-277 (FILM.md).
+#[test]
+fn an_emerging_frond_keeps_its_leaflets() {
+    let mut palm = Preset::DatePalm.parameters();
+    (palm.age, palm.skeleton.seed) = (1.0, 7);
+    assert_eq!(mesh::build(&palm).unwrap().foliage_instances(), 1_017);
+}
+
+/// An apex that draws no living frond stands no rosette, its skirt with
+/// it; and the reference box holds the deepest skirt either whole count
+/// of living fronds hangs, so no frond is clamped to its floor.
+#[test]
+fn a_fractional_crown_stands_within_its_box() {
+    let mut palm = Preset::DatePalm.parameters();
+    (palm.age, palm.skeleton.seed) = (1.0, 1);
+    palm.canopy.frond_life = 0.0;
+    palm.canopy.skirt_fronds = 2.0;
+    palm.canopy.rosette_fronds = 0.01;
+    assert_eq!(mesh::build(&palm).unwrap().foliage_instances(), 0, "no living frond");
+    (palm.skeleton.seed, palm.canopy.leaf_bases) = (7, 0.0);
+    (palm.canopy.rosette_fronds, palm.canopy.skirt_fronds) = (2.01, 128.0);
+    (palm.canopy.rosette_depth, palm.canopy.leaflet_count, palm.canopy.rachis_length) = (100.0, 1.0, 0.0);
+    let leaves = mesh::build(&palm).unwrap().foliage.instances;
+    assert!(!leaves.leaves.is_empty());
+    let floor = leaves.reference.min.y;
+    let lowest = leaves.leaves.iter().map(|l| leaves.reference.position(*l).y).fold(f64::INFINITY, f64::min);
+    assert!(lowest > floor + 1e-3 * leaves.reference.extent.y, "{lowest} on the floor {floor}");
+}

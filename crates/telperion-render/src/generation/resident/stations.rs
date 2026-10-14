@@ -63,6 +63,10 @@ pub(super) struct Rows {
     /// Whether the canopy bears leaves at all: none of zero size, as the
     /// pipeline prepares none (`prepared.rs`; fn-212 task 11).
     pub leaves: bool,
+    /// Whether its leaf-bearing wood and short shoots bear them: its
+    /// cauline share, all or none on every family the device draws
+    /// (`executor::whole`, fn-277).
+    pub wood: bool,
     /// The blooms' rows where an age flowers (`data::flower`; fn-229).
     pub flower: Option<[[f32; 4]; 3]>,
     /// Whether some wood sheds its leaves by age (fn-248).
@@ -148,7 +152,7 @@ impl Stationer {
             rows.unit,
             rows.divergence.to_bits(),
             u32::from(rows.contact),
-            u32::from(rows.leaves),
+            u32::from(rows.leaves) | u32::from(rows.wood) << 1,
             u32::from(rows.retains),
             rows.turn,
         ];
@@ -358,6 +362,7 @@ pub(super) fn station_rows(
             .rem_euclid(std::f64::consts::TAU) as f32,
         contact: x.seats(),
         leaves: canopy.size != 0.0,
+        wood: canopy.size != 0.0 && canopy.cauline == 1.0,
         flower,
         retains: x.retains(),
         rosette: rosette_rows(&canopy, year),

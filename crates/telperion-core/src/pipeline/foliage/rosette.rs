@@ -79,15 +79,20 @@ pub(super) fn skirt(p: &CanopyParams) -> f64 {
 
 /// Metres below the apex the deepest frond, living or dead, of any apex
 /// leaves the axis: the living crown's own depth unless a skirt continues
-/// its spacing further, each count at the most an apex draws.
+/// its spacing further, over every living count an apex may draw (either
+/// whole beside the row's) and the most dead fronds it keeps.
 pub(super) fn deepest(p: &CanopyParams) -> f64 {
-    let p = CanopyParams { rosette_fronds: p.rosette_fronds.ceil(), skirt_fronds: p.skirt_fronds.ceil(), ..*p };
-    let kept = skirt(&p);
-    if kept == 0. {
-        return p.rosette_depth;
-    }
+    let kept = skirt(p).ceil();
+    let living = [p.rosette_fronds.floor(), p.rosette_fronds.ceil()];
     // The skirt's last frond fades a place further down (fn-270 R5b).
-    p.rosette_depth * ((p.rosette_fronds + kept) / spacing(&p))
+    let depth = |fronds: f64| {
+        let p = CanopyParams { rosette_fronds: fronds, ..*p };
+        p.rosette_depth * ((fronds + kept) / spacing(&p))
+    };
+    match kept == 0. {
+        true => p.rosette_depth,
+        false => living.into_iter().filter(|&f| f > 0.).map(depth).fold(p.rosette_depth, f64::max),
+    }
 }
 
 /// The steps of the living crown's spacing its depth is cut into: one short
@@ -136,6 +141,10 @@ pub(super) fn count(tree: &Tree, p: &CanopyParams) -> Result<usize> {
     for rosette in rosettes(tree) {
         let stem = stem_key(tree, &rosette);
         let p = apex(p, stem);
+        // An apex that draws no living frond stands no rosette.
+        if !bearing(&p) {
+            continue;
+        }
         for serial in Crown::of(tree, &p).serials() {
             let leaves = leaflets(&placement(&p, frond_key(stem, serial)));
             total = total.checked_add(leaves).filter(|t| *t <= p.max_instances).ok_or_else(budget)?;
@@ -346,14 +355,20 @@ pub(super) fn clothe(
     for rosette in rosettes(tree) {
         let stem = stem_key(tree, &rosette);
         let p = &apex(p, stem);
+        if !bearing(p) {
+            continue;
+        }
         let crown = Crown::of(tree, p);
         for frond in fronds(&rosette, p, crown) {
             let from = out.leaves.len();
             let mut rng = stream(seed, stem, &frond);
             let (at, heading, radial) = (frond.at, frond.heading, frond.radial);
-            let c = placement(&frond.canopy, frond_key(stem, frond.serial));
-            reserve(out, leaflets(&c), *p)?;
-            fan(at, heading, radial, rosette.axis, (c, leaflets(&c)), (&mut rng, None), out)?;
+            // Its leaflets are the whole frond's, so one drawn at no size
+            // still stands them (fn-270 R5b).
+            let key = frond_key(stem, frond.serial);
+            let (c, count) = (placement(&frond.canopy, key), leaflets(&placement(p, key)));
+            reserve(out, count, *p)?;
+            fan(at, heading, radial, rosette.axis, (c, count), (&mut rng, None), out)?;
             if frond.dead {
                 out.wither(from);
             }
