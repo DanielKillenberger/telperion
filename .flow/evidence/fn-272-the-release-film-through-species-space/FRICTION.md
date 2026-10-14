@@ -20,3 +20,10 @@
 - **Hindered:** the map point of each walk frame goes through `blend::families`, which runs the size solve the map then discards; about 1.5 minutes before the first frame, for 510 walk frames.
 - **Cost:** 1.5 minutes a run.
 - **Would have removed it:** a public walk of the rows without the size match.
+
+## 2026-10-14, task 1 worker: waiting for room on a shared desk
+
+- **Doing:** the oracle run and the gate.
+- **Hindered:** `telperion-heavy` held each for want of RAM while another worker's gate ran: the oracle 10 minutes, the gate 63 minutes without starting (room 6-7 GB for 9, the desk busy with other projects), so the worker stopped it and returned to the host.
+- **Cost:** about 75 minutes of wall time; the gate is not run.
+- **Would have removed it:** nothing in this task; a queue position or an estimate in the wrapper's waiting line would let a worker plan around it.
