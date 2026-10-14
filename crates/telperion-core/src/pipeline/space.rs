@@ -609,6 +609,8 @@ mod join;
 mod unfolding;
 use unfolding::Unfolding;
 #[cfg(test)]
+mod radii_tests;
+#[cfg(test)]
 mod relay_tests;
 #[cfg(test)]
 mod repeat_tests;
