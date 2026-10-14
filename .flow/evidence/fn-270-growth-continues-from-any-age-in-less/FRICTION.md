@@ -112,3 +112,10 @@
 - **Hindered:** stopped at the cap twice (187 s with a rebuild, 47 s cached) while vitest ran; at 10 GB it passed in 91 s (162 of 162). The 8 GB run had passed at 227 s earlier the same night.
 - **Cost:** about 5 minutes.
 - **Would have removed it:** a measured peak for `npm test` at its thread count, declared once.
+
+## 2026-10-14, task 5 (worker): no native way to time frames while a tree grows
+
+- **Doing:** measuring frame time while growing (R6) without running WebGPU in a browser.
+- **Hindered:** natively every readback blocks, so a growth never yields to a frame loop; the device's growth state and generator hold `Rc` (the cycle's plan) and cannot cross threads, so the measure draws its frames on a second renderer with the preset's whole tree rather than the tree the growth drew. First attempt (growth on a worker thread) did not compile.
+- **Cost:** about 15 minutes and one rewrite of the measure.
+- **Would have removed it:** a native frame-loop harness that polls a growth future between frames (readbacks that yield instead of block natively), so the measure draws exactly what the page draws.
