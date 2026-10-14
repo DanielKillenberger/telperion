@@ -24,16 +24,36 @@ fn fixture(species: &str) -> PathBuf {
         .join(species)
 }
 
-/// The render examples the workspace build made beside this binary.
+/// The render examples beside this binary, in its profile and target
+/// directory. A missing one is built here, so the test passes when jev is
+/// gated alone from a clean target (fn-237 R10); one the workspace build
+/// made is left alone.
 fn tools() -> PathBuf {
-    let bin = Path::new(env!("CARGO_BIN_EXE_species"));
-    let dir = bin.parent().unwrap().join("examples");
-    for tool in ["species_measure", "geometry_benchmark", "headless"] {
-        assert!(
-            dir.join(tool).exists(),
-            "{} is missing: run the workspace gate, which builds the examples",
-            dir.join(tool).display()
-        );
+    let profile = Path::new(env!("CARGO_BIN_EXE_species")).parent().unwrap();
+    let dir = profile.join("examples");
+    let name = profile.file_name().unwrap().to_str().unwrap();
+    for (package, examples) in [
+        (
+            "telperion-core",
+            &["species_measure", "geometry_benchmark"][..],
+        ),
+        ("telperion-render", &["headless"][..]),
+    ] {
+        if examples.iter().all(|e| dir.join(e).exists()) {
+            continue;
+        }
+        // The profile's parent is the target directory, the triple's own
+        // under a configured target: the build is for the host, there.
+        let mut cargo = Command::new(env!("CARGO"));
+        cargo.env_remove("CARGO_BUILD_TARGET");
+        cargo.current_dir(repo()).arg("build").arg("--target-dir");
+        cargo.arg(profile.parent().unwrap());
+        cargo.args(["--profile", if name == "debug" { "dev" } else { name }]);
+        cargo.args(["-p", package]);
+        for example in examples {
+            cargo.args(["--example", example]);
+        }
+        assert!(cargo.status().unwrap().success(), "{cargo:?} failed");
     }
     dir
 }

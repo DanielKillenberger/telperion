@@ -44,7 +44,7 @@ for (const id of ENGINE) {
   test(`native/wasm node buffers byte-identical: ${id}`, async () => {
     const [status, wasm] = await wasmBuild(id);
     expect(status).toBe(0);
-    const native = execFileSync('target/release/examples/node_buffer', [id], { maxBuffer: 512 * 1024 * 1024 });
+    const native = execFileSync(`${process.env.CARGO_TARGET_DIR ?? 'target'}/release/examples/node_buffer`, [id], { maxBuffer: 512 * 1024 * 1024 });
     const digest = (b: Buffer) => createHash('sha256').update(b).digest('hex').slice(0, 16);
     console.info(`${id}: ${wasm.length} bytes, wasm ${digest(wasm)}, native ${digest(native)}`);
     expect(native.length).toBe(wasm.length);

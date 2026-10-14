@@ -1,8 +1,13 @@
 import { execFileSync } from 'node:child_process';
 import { readFile, writeFile, mkdir, copyFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = new URL('../', import.meta.url);
+// Cargo builds into CARGO_TARGET_DIR when set; the binding is read from there,
+// never from a stale default target (fn-256 FRICTION.md).
+const target = pathToFileURL(resolve(fileURLToPath(root), process.env.CARGO_TARGET_DIR ?? 'target') + '/');
 execFileSync('cargo', ['build', '--release', '--target', 'wasm32-unknown-unknown', '-p', 'telperion-wasm'], { cwd: root, stdio: 'inherit', timeout: 600_000 });
-const source = new URL('target/wasm32-unknown-unknown/release/telperion_wasm.wasm', root);
+const source = new URL('wasm32-unknown-unknown/release/telperion_wasm.wasm', target);
 const { instance } = await WebAssembly.instantiate(await readFile(source), { env: { now: () => performance.now() } });
 const e = instance.exports;
 if (e.catalogue()) throw Error('Rust catalogue metadata failed');
@@ -42,7 +47,7 @@ await copyFile(source, new URL('dist/telperion.wasm', root));
 // the point of the slim entry, and test binaries keep their symbols.
 const strip = ['--config', 'profile.release.package.telperion-field.strip=true'];
 execFileSync('cargo', ['build', '--release', '--target', 'wasm32-unknown-unknown', '-p', 'telperion-field', ...strip], { cwd: root, stdio: 'inherit', timeout: 600_000 });
-const slim = new URL('target/wasm32-unknown-unknown/release/telperion_field.wasm', root);
+const slim = new URL('wasm32-unknown-unknown/release/telperion_field.wasm', target);
 await copyFile(slim, new URL('src/field/telperion-field.wasm', root));
 await copyFile(slim, new URL('dist/telperion-field.wasm', root));
 console.log(`Built the full and the slim Wasm; the family metadata was ${process.env.TELPERION_WRITE_REFERENCE ? 'rewritten' : 'current'}.`);

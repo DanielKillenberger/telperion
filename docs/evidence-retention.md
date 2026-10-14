@@ -8,6 +8,7 @@ Commit:
 - Curated numeric summaries and provenance needed to assess a claim.
 - For a branch that changes trees, its `space_hash` lines (`crates/telperion-render/examples/space_hash.rs`) in its RESULT.md, so a later merge can compare against them without rebuilding the branch.
 - Test fixtures that executable tests actually load; these are source inputs, not disposable run output.
+- Each still sheet an owner verdict rests on, as one compressed JPEG beside the spec's evidence (outside `raw/`), so a later spec can compare against the approved look without rebuilding it in another worktree.
 
 Write raw logs, stdout/stderr, per-iteration measurements, screenshots, videos, scratch patches and temporary diagnostic output under `.flow/evidence/<spec>/raw/`. That directory is ignored. Demo recordings belong in the ignored `demo-video/` directory. Generated output should not be force-added simply because a workflow collected it. Promote a necessary fixture or concise summary deliberately and explain its role.
 
