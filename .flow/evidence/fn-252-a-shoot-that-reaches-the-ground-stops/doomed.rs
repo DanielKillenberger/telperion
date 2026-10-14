@@ -95,6 +95,17 @@ fn main() -> Result<(), String> {
             println!("== {id} age {age} seed {seed}: {n} axes, {total} phytomers");
             for (pa, (count, phy, lo, hi, gone, carry, lost)) in rows {
                 let c: Vec<String> = carry.iter().map(|(k, v)| format!("pa{k}:{v}")).collect();
+                // The narrowed R2a: a terminal age dies at its life; an age
+                // that carries on does so by its clock, by its chance.
+                let (go, next) = match species.successor(pa) {
+                    Some((q, p)) => (p, format!("carries on to pa{q} at {p:.2} (its shedding {})", species.states[q].shedding)),
+                    None => (0.0, "terminal".into()),
+                };
+                println!(
+                    "  pa{pa} [{next}]: dies {:.1}% of the tree's phytomers, carries on {:.1}% (outermost past life, both by chance)",
+                    100.0 * (1.0 - go) * lost as f64 / total as f64,
+                    100.0 * go * phy as f64 / total as f64
+                );
                 println!(
                     "  pa{pa}: {count} axes past their life ({gone} past life + shedding: {:.1}% of the tree's phytomers), {phy} phytomers ({:.1}%), based {lo:.2}-{hi:.2} m; they carry {}",
                     100.0 * lost as f64 / total as f64,
