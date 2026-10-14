@@ -190,6 +190,13 @@ fn rowu(a: u32, r: u32) -> u32 {
     return bitcast<u32>(row(a, r));
 }
 
+// The whole leaves axis `a`'s cluster holds: its age's count drawn by its
+// lineage (`telperion_space::cluster`, fn-277); none, it is no short shoot.
+fn cluster_of(a: u32) -> u32 {
+    let key = na(NA_LINEAGE, a) ^ na(NA_LINEAGE + 1u, a);
+    return organs(rowu(a, R_LEAVES), key, ORGAN_CLUSTER);
+}
+
 fn count(a: u32) -> u32 {
     return na(NA_PHYTS, a);
 }
@@ -649,7 +656,7 @@ fn place(a: u32, r: u32, at: vec4<f32>, p: u32, key: u32, bloom: bool, w: Walk, 
         seam = SEAM;
     }
     var clustered = 0u;
-    if u32(row(a, R_LEAVES)) > 0u {
+    if cluster_of(a) > 0u {
         clustered = CLUSTERED;
     }
     putu(r, 6u, TAKEN | MADE | FINE | seam | clustered | select(0u, STEM, how.stem));
@@ -702,7 +709,7 @@ fn draw_axis(a: u32, start: u32, how: How) {
     let internode = row(a, R_INTERNODE);
     let spread = row(a, R_SPREAD);
     // The leaves at the axis's tip and their fan (fn-223).
-    let leaves = u32(row(a, R_LEAVES));
+    let leaves = cluster_of(a);
     let lineage = vec2<u32>(na(NA_LINEAGE, a), na(NA_LINEAGE + 1u, a));
     for (var k = 0u; k < count(a); k++) {
         let r = li(a, k);

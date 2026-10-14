@@ -98,7 +98,7 @@ pub fn leaf_bases(tree: &Tree, p: &CanopyParams) -> Vec<LeafBase> {
     for rosette in foliage::rosettes(tree) {
         // Each stem keeps the whole bases its draw gives it, and continues
         // its own crown's spiral (fn-277).
-        let key = foliage::stem_key(tree, &rosette);
+        let key = foliage::stem_node(tree, &rosette);
         let crown = foliage::apex(p, key);
         let bases = organs(p.leaf_bases, key, organ::BASES);
         if bases == 0 {

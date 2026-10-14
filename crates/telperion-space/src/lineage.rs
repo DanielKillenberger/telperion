@@ -119,31 +119,67 @@ pub fn join_key(first: u64) -> u64 {
 /// Which count of organs a draw is for (fn-277), under `keys::ORGANS`:
 /// two rows of one bearer never draw alike.
 pub mod organ {
-    pub const CAULINE: u64 = 0;
-    pub const FRONDS: u64 = 1;
-    pub const SKIRT: u64 = 2;
-    pub const BASES: u64 = 3;
-    pub const LEAFLETS: u64 = 4;
-    pub const SPINES: u64 = 5;
-    pub const CLUSTER: u64 = 6;
+    pub const CAULINE: u32 = 0;
+    pub const FRONDS: u32 = 1;
+    pub const SKIRT: u32 = 2;
+    pub const BASES: u32 = 3;
+    pub const LEAFLETS: u32 = 4;
+    pub const SPINES: u32 = 5;
+    pub const CLUSTER: u32 = 6;
 }
 
-/// The whole organs the bearer keyed `key` bears of a fractional `count`
-/// on `row` (fn-277): its floor, and one more where the bearer's draw
-/// falls under the fraction, so the expected count is `count` and a
-/// count moves the tree by degree. A whole count draws nothing.
-pub fn organs(count: f64, key: u64, row: u64) -> u32 {
+/// The 32-bit finaliser both executors mix keys with (`tree::mix32`).
+pub fn mix32(z: u32) -> u32 {
+    let z = (z ^ (z >> 16)).wrapping_mul(0x21f0_aaad);
+    let z = (z ^ (z >> 15)).wrapping_mul(0x735a_2d97);
+    z ^ (z >> 15)
+}
+
+/// A count as both executors read it: its floor, and its fraction as a
+/// share of 2^16 (as a retention's share is, fn-248).
+pub fn split(count: f64) -> (u32, u32) {
     let floor = count.floor();
-    let more = count - floor;
-    let drawn = more > 0.0 && Key(key).child(keys::ORGANS).child(row).draw().under(more);
-    floor as u32 + u32::from(drawn)
+    (floor as u32, ((count - floor) * 65536.0).floor() as u32)
+}
+
+/// The two halves of `split` in one word: the floor above, the share
+/// below; what a device table carries.
+pub fn word(count: f64) -> u32 {
+    let (floor, share) = split(count);
+    floor << 16 | share
+}
+
+/// The whole organs the bearer keyed `key` bears of a count `word`s as
+/// `word` (fn-277): its floor, and one more where the bearer's draw on
+/// `row` falls under the share, so the expected count is the count and a
+/// count moves the tree by degree. A whole count draws nothing.
+pub fn drawn(word: u32, key: u32, row: u32) -> u32 {
+    let (floor, share) = (word >> 16, word & 0xffff);
+    let stream = mix32(key ^ keys::ORGANS as u32);
+    let draw = mix32(stream.wrapping_add(row.wrapping_add(1).wrapping_mul(0x9e37_79b9))) >> 16;
+    floor + u32::from(share > 0 && draw < share)
+}
+
+/// `drawn` of a count.
+pub fn organs(count: f64, key: u32, row: u32) -> u32 {
+    drawn(word(count), key, row)
+}
+
+/// The key of the placement `ordinal` of the bearer keyed `bearer`.
+pub fn placement_key(bearer: u32, ordinal: u32) -> u32 {
+    mix32(bearer.wrapping_add(ordinal.wrapping_add(1).wrapping_mul(0x9e37_79b9)))
+}
+
+/// An axis's lineage as the 32-bit key its organs draw under.
+pub fn lineage_key(lineage: u64) -> u32 {
+    lineage as u32 ^ (lineage >> 32) as u32
 }
 
 /// The whole leaves the cluster of the axis whose lineage is `lineage`
 /// holds at its PA's `leaves` (`PaState::cluster_leaves`): none, it is no
 /// short shoot.
 pub fn cluster(leaves: f64, lineage: u64) -> u32 {
-    organs(leaves, lineage, organ::CLUSTER)
+    organs(leaves, lineage_key(lineage), organ::CLUSTER)
 }
 
 /// `internode` as a real factor: what a node's grown wood is counted by
@@ -347,7 +383,7 @@ fn walk(law: NodeLaw, d: Draw, cap: u32, mut node: impl FnMut(Past)) {
 
 #[cfg(test)]
 mod organ_tests {
-    use super::{organ, organs};
+    use super::{mix32, organ, organs};
 
     /// A whole count is its own count at every bearer, and a fraction
     /// gives each bearer the whole either side of it, the share past the
@@ -355,7 +391,7 @@ mod organ_tests {
     #[test]
     fn a_fraction_of_organs_is_split_at_each_bearer() {
         assert!((0..1000).all(|key| organs(3.0, key, organ::LEAFLETS) == 3));
-        let drawn: Vec<u32> = (0..10_000).map(|key| organs(2.3, key, organ::LEAFLETS)).collect();
+        let drawn: Vec<u32> = (0..10_000).map(|key| organs(2.3, mix32(key), organ::LEAFLETS)).collect();
         assert!(drawn.iter().all(|&n| n == 2 || n == 3));
         let mean = drawn.iter().sum::<u32>() as f64 / drawn.len() as f64;
         assert!((mean - 2.3).abs() < 0.02, "{mean}");

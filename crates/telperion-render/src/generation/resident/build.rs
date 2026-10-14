@@ -134,12 +134,8 @@ pub(super) async fn crowned(
 }
 
 /// `family`'s leaves refused where the device places them on neither
-/// twig stations nor a rosette, or would split a count of organs.
+/// twig stations nor a rosette.
 pub(super) fn placeable(family: &Family) -> Result<()> {
-    if !executor::whole(family) {
-        return Err(refused("a count of organs between two whole numbers, or a cauline share \
-            between none and all, which the device does not split (fn-277)"));
-    }
     match executor::stations(family) {
         true => Ok(()),
         false => Err(refused("leaves the device places on neither twig stations nor a rosette")),

@@ -554,6 +554,9 @@ fn present_now(a: u32) {
     let elongation = row(pa, 0u);
     let expansion = row(pa, 1u);
     let spread = row(pa, 2u);
+    // A short shoot by its draw (`telperion_space::cluster`, fn-277).
+    let lineage = na_now(NA_LINEAGE, a) ^ na_now(NA_LINEAGE + 1u, a);
+    let clustered = organs(bitcast<u32>(row(pa, 3u)), lineage, ORGAN_CLUSTER) > 0u;
     var total = 0.0;
     for (var k = olds; k < n; k++) {
         let p = first + k;
@@ -588,7 +591,7 @@ fn present_now(a: u32) {
         }
         // A short shoot's cluster stays as it was where the shoot stood a
         // year before, at whichever tip it stands now.
-        leaf[p] = select(run(tau - elongation * reached(share), expansion), 1.0, row(pa, 3u) > 0.0 && olds > 0u);
+        leaf[p] = select(run(tau - elongation * reached(share), expansion), 1.0, clustered && olds > 0u);
         origin = tip;
         drawn = placed;
     }

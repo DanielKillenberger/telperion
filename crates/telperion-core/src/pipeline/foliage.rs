@@ -52,9 +52,7 @@ pub(crate) use reference::Reach;
 /// placing a leaf: a bad row is refused by the name `place` refuses it by.
 pub(crate) use rosette::validate as validate_canopy;
 pub(crate) use organs::apex;
-#[cfg(feature = "geometry")]
-pub use organs::whole;
-pub(crate) use rosette::stem_key;
+pub(crate) use rosette::stem_node;
 pub use rosette::{frame, rosettes, Crown, Rosette, MAX_FRONDS, MAX_LEAFLETS};
 
 #[derive(Debug, Clone, Copy, PartialEq)]

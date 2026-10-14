@@ -85,8 +85,9 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
 
 /// A PA's row as the conversion reads it, for an executor that draws
 /// the engine's tree itself (fn-256 task 3): its internode and its
-/// spread, its flowering share, the leaves at each of its axes' tips and
-/// their fan, its leaf retention's first shedding age and that age's
+/// spread, its flowering share, the leaves at each of its axes' tips (as
+/// a count's word, `telperion_space::word`, each axis drawing its whole
+/// count by `telperion_space::cluster`) and their fan, its leaf retention's first shedding age and that age's
 /// share, and whether it carries the trunk on.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ConvertRow {
@@ -114,8 +115,8 @@ pub(super) fn growth(
         internode: r.internode,
         spread: r.spread,
         flowering: r.flowering,
-        // Whole on every family the device draws (`executor::whole`).
-        leaves: r.cluster.0 as u32,
+        // As a word: its floor and share (`telperion_space::word`).
+        leaves: telperion_space::word(r.cluster.0),
         fan: r.cluster.1,
         sheds: r.retention.0,
         share: r.retention.1,

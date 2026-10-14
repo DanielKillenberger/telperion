@@ -49,7 +49,7 @@ fn a_short_shoot_bears_its_leaves_at_its_tip_alone() {
     assert_eq!(clusters.len(), tree.clusters.len());
     for (s, c) in clusters.iter().zip(&tree.clusters) {
         let tip = c.node as usize;
-        assert_eq!((s.count, s.cluster), (3, Some(0.6)));
+        assert_eq!((s.count, s.cluster), (3, Some((0.6, 3))));
         assert_eq!(s.endpoints, [tree.nodes[tip].position; 2]);
         assert_eq!(s.key, cluster_key(tree.key(tip)));
     }

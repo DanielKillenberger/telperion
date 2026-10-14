@@ -24,7 +24,7 @@ use crate::{
 /// leafless canopy.
 pub(super) fn of<'a>(tree: &'a Tree, p: &CanopyParams) -> impl Iterator<Item = &'a Cluster> {
     let (cauline, leafless) = (p.cauline, p.size == 0.0);
-    let kept = move |c: &&Cluster| telperion_space::organs(cauline, u64::from(cluster_tip(tree, c)), organ::CAULINE) == 1;
+    let kept = move |c: &&Cluster| telperion_space::organs(cauline, cluster_tip(tree, c), organ::CAULINE) == 1;
     tree.clusters.iter().filter(move |_| !leafless).filter(kept)
 }
 
@@ -35,18 +35,19 @@ fn cluster_tip(tree: &Tree, c: &Cluster) -> u32 {
 
 /// The table leaf `j` of the cluster keyed `key` is drawn by.
 pub(super) fn placement(p: &CanopyParams, key: u32, j: u32) -> CanopyParams {
-    organs::placement(p, organs::placement_key(u64::from(key), u64::from(j)))
+    organs::placed(p, key, j)
 }
 
-/// Leaves the clusters place, each placement its leaflets.
+/// Leaves one cluster places, each of its leaves its leaflets.
+pub(super) fn leaves(tree: &Tree, p: &CanopyParams, c: &Cluster) -> u32 {
+    let key = cluster_tip(tree, c);
+    (0..c.leaves).map(|j| organs::leaflets(&placement(p, key, j)) as u32).sum()
+}
+
+/// Leaves the clusters place.
 pub(super) fn count(tree: &Tree, p: &CanopyParams) -> Result<usize> {
     let overflow = || Error::ResourceLimit("foliage count overflow");
-    of(tree, p).try_fold(0usize, |total, c| {
-        let key = cluster_tip(tree, c);
-        (0..c.leaves).try_fold(total, |total, j| {
-            total.checked_add(organs::leaflets(&placement(p, key, j))).ok_or_else(overflow)
-        })
-    })
+    of(tree, p).try_fold(0usize, |total, c| total.checked_add(leaves(tree, p, c) as usize).ok_or_else(overflow))
 }
 
 /// The tip's laid heading, where the engine laid it, else its chord.

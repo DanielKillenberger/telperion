@@ -139,7 +139,7 @@ pub(super) fn count(tree: &Tree, p: &CanopyParams) -> Result<usize> {
     let budget = || Error::ResourceLimit("foliage instance budget");
     let mut total = 0usize;
     for rosette in rosettes(tree) {
-        let stem = stem_key(tree, &rosette);
+        let stem = stem_node(tree, &rosette);
         let p = apex(p, stem);
         // An apex that draws no living frond stands no rosette.
         if !bearing(&p) {
@@ -353,8 +353,8 @@ pub(super) fn clothe(
         return Ok(());
     }
     for rosette in rosettes(tree) {
-        let stem = stem_key(tree, &rosette);
-        let p = &apex(p, stem);
+        let (stem, node) = (stem_key(tree, &rosette), stem_node(tree, &rosette));
+        let p = &apex(p, node);
         if !bearing(p) {
             continue;
         }
@@ -365,7 +365,7 @@ pub(super) fn clothe(
             let (at, heading, radial) = (frond.at, frond.heading, frond.radial);
             // Its leaflets are the whole frond's, so one drawn at no size
             // still stands them (fn-270 R5b).
-            let key = frond_key(stem, frond.serial);
+            let key = frond_key(node, frond.serial);
             let (c, count) = (placement(&frond.canopy, key), leaflets(&placement(p, key)));
             reserve(out, count, *p)?;
             fan(at, heading, radial, rosette.axis, (c, count), (&mut rng, None), out)?;
@@ -436,6 +436,21 @@ pub fn frame(axis: Vec3) -> (Vec3, Vec3) {
 
 /// What keys a rosette's fronds: its stem's first node's identity, which
 /// stays as the stem grows (fn-270 R5b).
+/// What keys the counts of a rosette's organs (fn-277): the key of its
+/// stem's first node, up its stem from the apex to the node the root or
+/// wood that is no stem bears, as both executors walk it.
+pub(crate) fn stem_node(tree: &Tree, rosette: &Rosette) -> u32 {
+    let mut first = rosette.apex;
+    while let Some(p) = tree.nodes[first].parent.map(|p| p as usize) {
+        let root = tree.nodes[p].parent.is_none();
+        if root || !tree.nodes[p].stem {
+            break;
+        }
+        first = p;
+    }
+    tree.key(first)
+}
+
 pub(crate) fn stem_key(tree: &Tree, rosette: &Rosette) -> u64 {
     tree.nodes[tree.nodes[rosette.apex].branch as usize].identity.birth_order()
 }

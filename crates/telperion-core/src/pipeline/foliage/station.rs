@@ -130,7 +130,7 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
 /// The table station `k` of the run keyed `key` is drawn by: its whole
 /// leaflets and spines (fn-277).
 pub(super) fn placement(p: &CanopyParams, key: u32, k: u32) -> CanopyParams {
-    super::organs::placement(p, super::organs::placement_key(u64::from(key), u64::from(k)))
+    super::organs::placed(p, key, k)
 }
 
 /// The stream the leaflets past the first of station `k` of the run keyed

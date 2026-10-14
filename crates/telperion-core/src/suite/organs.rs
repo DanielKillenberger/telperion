@@ -5,8 +5,7 @@
 use telperion_core::{
     foliage::{self, Reference, TwigPlacement},
     mesh,
-    pipeline::executor,
-    presets::{Family, Preset, CATALOGUE},
+    presets::{Family, Preset},
 };
 
 fn birch() -> Family {
@@ -63,33 +62,6 @@ fn a_crown_stands_beside_the_cauline_wood() {
     f.canopy.cauline = 0.0;
     let crown = placed(&f).placed();
     assert!(crown > 0 && both > 10 * crown, "{crown}, {both}");
-}
-
-/// The device draws whole counts only: every shipped preset is whole, and
-/// a fraction of any count of organs, or a share between none and all, is
-/// not (`executor::whole`).
-#[test]
-fn only_whole_counts_are_whole() {
-    for (_, id, ..) in CATALOGUE {
-        let f = telperion_core::presets::by_identity(id).unwrap();
-        assert!(executor::whole(&f), "{id}");
-    }
-    let birch = birch();
-    let mut fractions: Vec<Family> = Vec::new();
-    for set in [
-        |f: &mut Family| f.canopy.rosette_fronds = 0.5,
-        |f: &mut Family| f.canopy.leaflet_count = 1.5,
-        |f: &mut Family| f.canopy.skirt_fronds = 0.5,
-        |f: &mut Family| f.canopy.leaf_bases = 2.5,
-        |f: &mut Family| f.canopy.acanthophylls = 0.5,
-        |f: &mut Family| f.canopy.cauline = 0.5,
-        |f: &mut Family| f.space.species.as_mut().unwrap().states[14].cluster_leaves = 1.5,
-    ] {
-        let mut f = birch.clone();
-        set(&mut f);
-        fractions.push(f);
-    }
-    assert!(fractions.iter().all(|f| !executor::whole(f)));
 }
 
 /// The palm's direct build keeps its every frond's leaflets: a frond

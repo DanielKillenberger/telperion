@@ -153,6 +153,8 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
 mod budget;
 #[cfg(test)]
 pub(super) mod agree_tests;
+#[cfg(test)]
+mod organ_tests;
 mod boots;
 #[cfg(test)]
 mod boots_tests;

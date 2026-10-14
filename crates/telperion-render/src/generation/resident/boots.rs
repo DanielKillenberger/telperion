@@ -24,7 +24,7 @@ const BW: u64 = 16;
 const UPRIGHT: f64 = 15.0;
 
 pub(super) fn source() -> String {
-    BOOTS.to_string()
+    format!("{}\n{}\n{BOOTS}", super::super::cycle::KEYS, super::super::cycle::ORGANS)
 }
 
 pub(super) struct Hanger {
@@ -71,11 +71,10 @@ fn cfg(gpu: &Gpu, n: u32, seed: &Drawn, out_base: u32, p: &CanopyParams) -> Resu
         seed.axes * CA_WORDS as u32,
         seed.phyts,
         seed.base,
-        // Whole on every family the device draws (`executor::whole`).
-        p.leaf_bases as u32,
+        telperion_space::word(p.leaf_bases),
         out_base,
         u32::from(packed),
-        f(p.rosette_fronds),
+        telperion_space::word(p.rosette_fronds),
         f(p.rosette_divergence.to_radians()),
         f(p.rosette_depth),
         f(pitch.to_radians()),
@@ -100,7 +99,7 @@ impl Hanger {
             return Ok(Hung::default());
         };
         let carried = storage(gpu, "boots carried", u64::from(seed.phyts))?;
-        let stems = storage(gpu, "boots stems", 1 + u64::from(seed.phyts) * AW)?;
+        let stems = storage(gpu, "boots stems", 2 + u64::from(seed.phyts) * AW)?;
         let none = [storage(gpu, "boots none", 4)?, storage(gpu, "boots none", 4)?, storage(gpu, "boots none", 4)?];
         let mut e = gpu.encoder(&Default::default());
         for (entry, n) in [(KIDS, seed.phyts), (APICES, 1)] {
@@ -109,15 +108,14 @@ impl Hanger {
             self.pass.run(&mut e, &bind, entry, n.div_ceil(64).max(1));
         }
         gpu.submit([e.finish()]);
-        let raw = io::read_async(gpu, &stems, 4).await?;
-        let clothed = bytemuck::cast_slice::<u8, u32>(&raw)[0];
+        let raw = io::read_async(gpu, &stems, 8).await?;
+        let [clothed, bases] = [0, 1].map(|w| bytemuck::cast_slice::<u8, u32>(&raw)[w]);
         if clothed == 0 {
             return Ok(Hung::default());
         }
-        let bases = clothed
-            .checked_mul(p.leaf_bases as u32)
-            .filter(|b| u64::from(dressed.ids) + 2 * u64::from(*b) <= u64::from(u32::MAX))
-            .ok_or(telperion_core::Error::ResourceLimit("leaf base nodes"))?;
+        if u64::from(dressed.ids) + 2 * u64::from(bases) > u64::from(u32::MAX) {
+            return Err(telperion_core::Error::ResourceLimit("leaf base nodes").into());
+        }
         let table = storage(gpu, "boots table", u64::from(bases) * BW)?;
         let words = CA_WORDS as u64 + 2 * u64::from(bases) * CV as u64;
         let wave = storage(gpu, "drawn boots", words)?;
