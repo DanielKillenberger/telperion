@@ -90,3 +90,10 @@
 - **Hindered:** at 9 GB the gate was stopped at the cap with 4 threads (83 s) and again with 2 (374 s), both in `telperion_core`'s unit tests. Measured alone, `pipeline::tests::every_shipped_preset_builds_every_artifact_through_the_pipeline` peaks at 5,509 MB (65 s) and `pipeline::space::repeat_tests::every_preset_grows_the_same_tree_again_and_on_any_cores` at 4,880 MB (110 s); side by side they need about 10.4 GB, past any cap the ladder allows. The gate now runs on one thread.
 - **Cost:** about 15 minutes of runs and two admissions; the single-thread gate's wall time on top.
 - **Would have removed it:** a declared memory class for those two tests (a mutex like `whole_tree()` so they never run together), which would let the gate run at 4 threads under 9 GB.
+
+## 2026-10-14, task 4 (worker): two design calls surfaced by the single-thread gate
+
+- **Doing:** the end gate at 9 GB on one thread (2,052 s; 1,125 passed, 11 failed, 82 ignored), then fixing what was mechanical.
+- **Hindered:** two failures need a design call, which this worker does not make: the palm walk's blend refused by the new season check, and a build refused past its budget after it had submitted work (R4's margin halving against the 2026-10-12 ruling). Both go to the host with options.
+- **Cost:** about 35 minutes for the gate run, 40 minutes of fixes and reruns.
+- **Would have removed it:** a gate run on the R5c and R4 changes before they were built on (the end-only gate let both ride for two rounds).
