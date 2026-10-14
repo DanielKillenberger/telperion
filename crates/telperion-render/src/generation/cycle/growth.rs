@@ -39,6 +39,8 @@ pub(in crate::generation) struct GrowthState {
     /// `unfold`).
     unfold: Vec<f32>,
     scale: f32,
+    /// The rows its rosette's stem establishes by (fn-275 R2a).
+    establishing: [f32; 3],
     /// The tree drawn a year before the age grown: none before the
     /// second year.
     previous: Option<Previous>,
@@ -106,9 +108,10 @@ impl GrowthState {
         };
         let growing = growing.paused(gpu, (&t, &tables)).await?;
         let (rows, scale) = (rows(&growth.rows), growth.scale as f32);
+        let establishing = telperion_core::pipeline::executor::Establishing::words(growth.establishing);
         let unfold = species.states.iter().flat_map(|s| [s.elongation, s.expansion, s.form.internode_spread, s.cluster_leaves, telperion_space::unfold::Season::of(s).budburst].map(|v| v as f32)).collect();
         let growing = Some(growing);
-        Ok(Self { tables, t, rows, unfold, scale, previous: None, budget, growing, failed: Default::default() })
+        Ok(Self { tables, t, rows, unfold, scale, establishing, previous: None, budget, growing, failed: Default::default() })
     }
 
     /// The whole years grown; none once spent.
@@ -207,7 +210,7 @@ impl GrowthState {
             let view = presented.as_ref().map_or_else(|| settled.as_ref().expect("a settled tree").view(), |p| p.view());
             let planned = chains::plan(gpu, (&k.chains, scan), view).await?;
             let leaf = presented.as_ref().map(|p| &p.leaf);
-            let at = Rows { rows: &self.rows, age: committed, scale: self.scale, fraction, leaf };
+            let at = Rows { rows: &self.rows, age: committed, scale: self.scale, fraction, leaf, establishing: self.establishing };
             let dressed = dress(gpu, &k.drawn, (view, &planned), &at)?;
             let measured = trunk(gpu, &k.drawn, &dressed).await?;
             Ok((dressed, measured))

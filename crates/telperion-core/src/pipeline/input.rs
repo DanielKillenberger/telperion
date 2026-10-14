@@ -50,6 +50,8 @@ pub(crate) struct GrowInput<'f> {
     pub(crate) seed: u32,
     pub(crate) cut: u32,
     pub(crate) supernatural: Supernatural,
+    /// The crown's rows a rosette's stem establishes by (fn-275 R2a).
+    pub(crate) canopy: crate::pipeline::foliage::CanopyParams,
 }
 
 impl<'f> GrowInput<'f> {
@@ -64,6 +66,7 @@ impl<'f> GrowInput<'f> {
             seed: family.skeleton.seed,
             cut: 0,
             supernatural: family.supernatural,
+            canopy: family.canopy,
         }
     }
 }

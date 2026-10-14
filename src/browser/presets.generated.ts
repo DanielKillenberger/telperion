@@ -5222,7 +5222,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "tropism": 0.5,
               "wander": 0.05
             },
-            "internode": 0.031,
+            "internode": 0.0339,
             "leafArea": 2.81,
             "lifespan": 150,
             "readiness": 0,

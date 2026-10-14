@@ -22,3 +22,10 @@
 - **Cost:** the queue time in `raw/gate.log`; the first gate attempt was also withdrawn for the review's fix after 25 minutes queued without starting.
 - **Would remove it:** the gate's measured peak, so its admission asks what it needs, or a reserve that tracks the desk's resident set rather than a fixed figure.
 - 12:49: the gate was still queued after 70 minutes (room 0 to 7 GB against 9) and was withdrawn unrun; the worker returned to the host with the gate and `npm test` open rather than hold the task on the queue.
+
+## 2026-10-14, worker, R2a's focused runs
+
+- **Doing:** a 1-test probe and the focused suites while building R2a.
+- **Slowed by:** two workspace gates from other worktrees held the memory; a 5 GB probe waited 35 minutes unstarted and was withdrawn; the suites were resubmitted at 3 GB.
+- **Cost:** about 40 minutes queued over two runs.
+- **Would remove it:** a lighter admission class for an incremental single-crate test build (it peaks well under the gate's), or a gate queue that runs one workspace gate at a time.

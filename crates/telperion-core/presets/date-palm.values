@@ -161,7 +161,13 @@
 # own" (ibid.); none falls.
 /space/ages/2/lifespan = 150.0
 /space/ages/2/continuation = 0.0
-/space/ages/2/internode = 0.031
+# fn-275 R2a (host, 2026-10-14): the stem waits on its crown's
+# establishment, losing half of its 6.75 years' rise, so the internode
+# rises from 0.031 m to keep the palm at 40 at today's 21.59 m: the stem's
+# top stood at 14.885 m, laid at 12 nodes a year over 40 years less 3.375
+# waited, 14.885 / (12 x 36.625) = 0.0339 m (code measured, raw/). That is
+# 0.407 m a year, inside "30-45 cm" a year (A1).
+/space/ages/2/internode = 0.0339
 /space/ages/2/divergence = 2.399963
 /space/ages/2/readiness = 0.0
 /space/ages/2/rhythm = 0.0

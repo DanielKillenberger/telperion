@@ -210,6 +210,9 @@
 //! from its text the family digest was the last pin to the bit; the walk
 //! blends the new rows, the override text reads them and the refusal
 //! names them.
+//! fn-275 R2a re-pinned the family, walk and override digests for the
+//! palm's internode, 0.031 to 0.0339 m (host, 2026-10-14), the one row
+//! that moved.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -245,7 +248,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        15_470_645_429_450_206_182,
+        17_501_661_787_957_023_156,
         "{}",
         digest(&text)
     );
@@ -289,7 +292,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        9_265_595_277_040_519_381,
+        13_850_429_412_489_794_867,
         "{}",
         digest(&text)
     );
@@ -314,7 +317,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        10_023_782_808_327_106_741,
+        2_381_100_684_192_572_147,
         "{}",
         digest(&text)
     );

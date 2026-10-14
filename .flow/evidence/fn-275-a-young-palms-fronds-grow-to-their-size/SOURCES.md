@@ -45,3 +45,7 @@ A probe on this build (engine path, seed 7, whole age, `raw/probe.log`; the prob
 Today's stem on the engine path (seed 7, `raw/probe-stem.log`, the probe removed after): its top at 0.372, 0.749, 1.121, 1.494, 1.865, 2.238, 2.611, 2.982 and 3.354 m at ages 1 to 9, a steady 0.373 m a year (A1: "30-45 cm" a year), and its radius 0.297 m at every age (C8; FAO's "average circumference is about 1 to 1.10 m" is a radius of 0.16 to 0.18 m; P7's 0.52 to 1.08 m across is across the retained bases). The palm at 40 stands 21.59 m with its stem top at 14.89 m (A1: "50 - 100 feet", 15 to 30 m; FAO: "could reach 20 metres").
 
 An elongation that waits on the establishment by the course over 6.75 years loses half the establishment's rise, 0.373 x 3.375 = 1.26 m: the palm at 40 would stand about 20.33 m, 5.8 % lower (5.2 % if the wait follows the size share from 0.1). The girth at 40 is unchanged above the establishment; only the stem laid in its first 6.75 years narrows. No row states the palm's height as a target: the rise is the internode row (`/space/ages/2/internode` 0.031 m, from A1's 0.3 to 0.45 m a year over a dozen fronds), which 0.0329 m would restore to 21.59 m at 0.395 m a year, still inside A1's range. Not built: the host's stop condition holds before any code.
+
+### For the species audit (host, 2026-10-14)
+
+The stem's radius, 0.297 m, against FAO's "average circumference is about 1 to 1.10 m" (a radius of 0.16 to 0.18 m) is left as it is in this spec: the catalogue's 0.52 to 1.08 m is measured across the retained frond bases (P7, fn-144).

@@ -155,7 +155,27 @@ impl Crown {
         let made = self.made_at(serial);
         let year = made.ceil() - 1.0;
         let born = year + (y.budburst + y.elongation * (made - year)) / unfold::YEAR;
-        let run = unfold::course(born / self.establishment);
-        1.0 - (1.0 - self.early) * (1.0 - run)
+        establishment(self.early, self.establishment, born)
     }
+}
+
+/// The share of a mature size an organ made at the crown's age `t` years
+/// is made at (fn-275 R2, R2a): the logistic course from `early` to whole
+/// over `years`. Whole with no establishment.
+pub fn establishment(early: f64, years: f64, t: f64) -> f64 {
+    if years <= 0.0 {
+        return 1.0;
+    }
+    1.0 - (1.0 - early) * (1.0 - unfold::course(t / years))
+}
+
+/// The years of its rise a stem laid at the crown's age `t` has waited on
+/// its crown's establishment over `years` (fn-275 R2a): the integral from
+/// 0 to `t` of the course's remainder, `years / 2` once established.
+pub fn waited(years: f64, t: f64) -> f64 {
+    if years <= 0.0 {
+        return 0.0;
+    }
+    let x = (t / years).clamp(0.0, 1.0);
+    years * (x - unfold::integral(x))
 }

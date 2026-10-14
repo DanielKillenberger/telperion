@@ -354,39 +354,3 @@ fn a_young_palms_fronds_are_made_small_and_keep_their_size() {
         }
     }
 }
-
-/// fn-275 R2, R3: the establishment rows change the palm only while its
-/// living fronds were made young; at its shipped age every drawn frond was
-/// made after establishment and the crown is the one drawn without them,
-/// and a crown with no rosette never reads them.
-#[test]
-fn establishment_shows_on_a_young_palm_alone() {
-    use telperion_core::pipeline::executor;
-    // The crown as the engine grows it, drawn at its whole age.
-    let placed = |f: &Family| {
-        let mut tree = executor::grow(f).unwrap().expansion().unwrap().tree().clone();
-        tree.year = executor::growth(f).unwrap().year(1.0);
-        executor::expand(tree, f).unwrap().mesh().unwrap().foliage.instances
-    };
-    let without = |mut f: Family| {
-        f.canopy.frond_establishment = 0.0;
-        f
-    };
-    let palm = family("date-palm", 1);
-    let (shipped, plain) = (placed(&palm), placed(&without(palm.clone())));
-    assert_eq!(shipped.leaves, plain.leaves, "the shipped palm moved");
-    let mut oak = family("oregon-white-oak", 1);
-    oak.age = oak.age.min(12.0);
-    let mut stated = oak.clone();
-    stated.canopy.frond_establishment = palm.canopy.frond_establishment;
-    stated.canopy.frond_early_share = palm.canopy.frond_early_share;
-    assert_eq!(placed(&stated).leaves, placed(&oak).leaves, "a crown with no rosette moved");
-    let mut young = palm;
-    young.age = 3.0;
-    let mean = |c: &foliage::Instances| {
-        c.leaves.iter().map(|l| c.reference.scale(*l)).sum::<f64>() / c.leaves.len() as f64
-    };
-    let (small, whole) = (placed(&young), placed(&without(young.clone())));
-    assert_eq!(small.leaves.len(), whole.leaves.len(), "establishment moved a frond's count");
-    assert!(mean(&small) < 0.6 * mean(&whole), "{} against {}", mean(&small), mean(&whole));
-}

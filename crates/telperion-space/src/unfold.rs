@@ -58,6 +58,15 @@ pub fn reached(y: f64) -> f64 {
     (0.5 + (z / (1.0 - z)).ln_fixed() / STEEP).clamp(0.0, 1.0)
 }
 
+/// `course`'s integral from 0 to `x`, its share run: a half at the end
+/// of the span (fn-275 R2a, a stem's rise waited).
+pub fn integral(x: f64) -> f64 {
+    let x = x.clamp(0.0, 1.0);
+    let (lo, hi) = ends();
+    let soft = |t: f64| (1.0 + (STEEP * (t - 0.5)).exp_fixed()).ln_fixed() / STEEP;
+    (soft(x) - soft(0.0) - lo * x) / (hi - lo)
+}
+
 fn sigmoid(t: f64) -> f64 {
     1.0 / (1.0 + (-t).exp_fixed())
 }
