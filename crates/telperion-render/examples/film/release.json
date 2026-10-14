@@ -24,14 +24,14 @@
     ]
   },
   "segments": [
-    { "grow": "european-beech", "from": 1, "to": 40, "sample": "whole", "seconds": 7 },
+    { "grow": "european-beech", "from": 1, "to": 40, "seconds": 7 },
     { "walk": "european-beech", "to": "norway-spruce", "age": 40, "seconds": 3 },
     { "walk": "norway-spruce", "to": "silver-birch", "age": 40, "seconds": 3 },
     { "walk": "silver-birch", "to": "oregon-white-oak", "age": 40, "seconds": 3 },
     { "walk": "oregon-white-oak", "to": "date-palm", "age": 40, "seconds": 4 },
-    { "grow": "date-palm", "from": 40, "to": 1, "sample": "whole", "seconds": 3 },
+    { "grow": "date-palm", "from": 40, "to": 1, "seconds": 3 },
     { "walk": "date-palm", "to": "laurelin", "age": 1, "seconds": 1 },
-    { "grow": "laurelin", "from": 1, "to": 80, "sample": "whole", "seconds": 7 },
+    { "grow": "laurelin", "from": 1, "to": 80, "seconds": 7 },
     { "walk": "laurelin", "to": "telperion", "age": 80, "seconds": 3, "hold": 1, "line": "Every frame grown live by the engine" }
   ]
 }

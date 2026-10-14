@@ -5,18 +5,9 @@
 //! touches a device.
 use serde_json::Value;
 
-/// How a growth's frames sample the year (fn-270 R5c): at each frame's own
-/// age, the season turning within each year, or at the whole age nearest
-/// it, where the tree stands at full leaf.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Sample {
-    Continuous,
-    Whole,
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Kind {
-    Grow { species: String, from: f64, to: f64, sample: Sample },
+    Grow { species: String, from: f64, to: f64 },
     Walk { from: String, to: String, age: f64 },
 }
 
@@ -162,13 +153,8 @@ impl Path {
 fn segment(v: &Value, at: &str) -> Result<Segment, String> {
     let kind = match (v.get("grow"), v.get("walk")) {
         (Some(_), None) => {
-            let sample = match text(v, at, "sample")?.as_str() {
-                "continuous" => Sample::Continuous,
-                "whole" => Sample::Whole,
-                other => return Err(format!("{at}: \"sample\" is continuous or whole, not {other}")),
-            };
             let (from, to) = (positive(v, at, "from")?, positive(v, at, "to")?);
-            Kind::Grow { species: text(v, at, "grow")?, from, to, sample }
+            Kind::Grow { species: text(v, at, "grow")?, from, to }
         }
         (None, Some(_)) => Kind::Walk { from: text(v, at, "walk")?, to: text(v, at, "to")?, age: positive(v, at, "age")? },
         _ => return Err(format!("{at}: one of \"grow\" or \"walk\"")),

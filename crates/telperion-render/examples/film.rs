@@ -1,8 +1,9 @@
 //! The release film (fn-272 R2): the declared path rendered frame by frame
 //! through the one pipeline and the shipped renderer, a growth grown once
-//! on the device and settled at each frame's age (fn-270), a walk built at
-//! each frame's share as `headless --walk` builds one, the corner map drawn
-//! flat over each still, and the stills assembled into an mp4 by ffmpeg.
+//! on the device and settled at whole ages, crossfaded between (fn-270;
+//! host, 2026-10-14), a walk built at each frame's share as `headless
+//! --walk` builds one, the corner map drawn flat over each still, and the
+//! stills assembled into an mp4 by ffmpeg.
 //! Each segment's cost is printed as it ends; each frame's tree in
 //! `frames.tsv` beside the stills.
 //!
@@ -26,7 +27,7 @@ mod path;
 
 use cost::{Cost, Peaks};
 use overlay::{Canvas, Overlay};
-use path::{ease, Frame, Kind, Path, Sample};
+use path::{ease, Frame, Kind, Path};
 use std::io::Write as _;
 use telperion_core::{
     blend, mesh,
@@ -34,7 +35,7 @@ use telperion_core::{
     surface::Bounds,
     Family,
 };
-use telperion_render::{generation::Generator, render, write_png, Gpu, Level, Renderer, SceneRow, STILL_FORMAT};
+use telperion_render::{generation::Generator, render, write_png, Gpu, Level, Renderer, SceneRow, Still, STILL_FORMAT};
 
 fn main() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -69,7 +70,7 @@ fn main() -> Result<(), String> {
     for (k, segment) in path.segments.iter().enumerate() {
         peaks.reset();
         let cost = match &segment.kind {
-            Kind::Grow { species, from, to, sample } => film.grow(&gen, k, species, (*from, *to), *sample)?,
+            Kind::Grow { species, from, to } => film.grow(&gen, k, species, (*from, *to))?,
             Kind::Walk { from, to, age } => film.walk(k, (from, to), *age)?,
         };
         let (rss, device) = peaks.take();
@@ -101,7 +102,7 @@ fn shown(path: &Path, frames: &[Frame], map: &map::Map) -> Result<Vec<Shown>, St
         held = if f.held { held + 1 } else { 0 };
         let line = segment.line.as_ref().filter(|_| f.held).map(|l| (l.clone(), held as f64 / (0.3 * f64::from(path.fps))));
         let (point, age) = match &segment.kind {
-            Kind::Grow { species, from, to, sample } => (map.dot(species)?, age_at(*from, *to, f.along, *sample)),
+            Kind::Grow { species, from, to } => (map.dot(species)?, age_at(*from, *to, f.along)),
             Kind::Walk { from, to, age } => {
                 let (a, b) = (ends(from, *age, path.seed)?, ends(to, *age, path.seed)?);
                 (map.project(&map::walked(&a, &b, ease(f.along))?)?, *age)
@@ -112,13 +113,14 @@ fn shown(path: &Path, frames: &[Frame], map: &map::Map) -> Result<Vec<Shown>, St
     Ok(out)
 }
 
-/// A growth's age `along` its segment, as the frame samples it.
-fn age_at(from: f64, to: f64, along: f64, sample: Sample) -> f64 {
-    let age = (from + (to - from) * along).max(1.0);
-    match sample {
-        Sample::Continuous => age,
-        Sample::Whole => age.round(),
-    }
+/// A growth's age `along` its segment.
+fn age_at(from: f64, to: f64, along: f64) -> f64 {
+    (from + (to - from) * along).max(1.0)
+}
+
+/// `a` faded into `b` by `share` (0 to 1), pixel by pixel.
+fn crossfade(a: &[u8], b: &[u8], share: f64) -> Vec<u8> {
+    a.iter().zip(b).map(|(&x, &y)| (f64::from(x) + (f64::from(y) - f64::from(x)) * share).round() as u8).collect()
 }
 
 /// A shipped species at `age` and the path's seed.
@@ -159,35 +161,50 @@ impl Film<'_> {
         Ok(())
     }
 
-    /// Frame `i` drawn from its pose, the overlay laid over it and written.
-    fn draw(&mut self, i: usize) -> Result<f64, String> {
-        let started = std::time::Instant::now();
+    /// Frame `i` drawn from its pose with the tree put up now, no overlay.
+    fn still(&mut self, i: usize) -> Result<Vec<u8>, String> {
         let (w, h) = self.path.size;
         let pose = camera::pose(&self.path.camera, i as f64 / f64::from(self.path.fps));
-        let mut still = render(&mut self.renderer, &pose, w, h).map_err(|e| e.to_string())?;
+        Ok(render(&mut self.renderer, &pose, w, h).map_err(|e| e.to_string())?.rgba)
+    }
+
+    /// Frame `i`'s picture with the overlay laid over it, written.
+    fn finish(&self, i: usize, mut rgba: Vec<u8>) -> Result<(), String> {
+        let (w, h) = self.path.size;
         let trail: Vec<[f64; 2]> = self.shown[..=i].iter().map(|s| s.point).collect();
         let now = &self.shown[i];
-        let mut canvas = Canvas { rgba: &mut still.rgba, width: w, height: h };
+        let mut canvas = Canvas { rgba: &mut rgba, width: w, height: h };
         self.overlay.draw(&mut canvas, &trail, now.age, now.line.as_ref().map(|(l, f)| (l.as_str(), *f)));
-        write_png(std::path::Path::new(&format!("{}/frame-{i:05}.png", self.out)), &still).map_err(|e| e.to_string())?;
+        let still = Still { width: w, height: h, rgba, stats: Default::default() };
+        write_png(std::path::Path::new(&format!("{}/frame-{i:05}.png", self.out)), &still).map_err(|e| e.to_string())
+    }
+
+    /// Frame `i` drawn and written.
+    fn draw(&mut self, i: usize) -> Result<f64, String> {
+        let started = std::time::Instant::now();
+        let rgba = self.still(i)?;
+        self.finish(i, rgba)?;
         Ok(started.elapsed().as_secs_f64() * 1e3)
     }
 
-    /// A growth: one tree grown once, settled at each frame's age in rising
-    /// order (a shrink's frames are drawn last to first), each age settled
-    /// once and drawn for every frame that shows it.
-    fn grow(&mut self, gen: &Generator, k: usize, species: &str, (from, to): (f64, f64), sample: Sample) -> Result<Cost, String> {
+    /// A growth: one tree grown once and settled at whole ages only, where
+    /// it stands at full leaf (host, 2026-10-14). A frame between two whole
+    /// ages is both years drawn from its pose and crossfaded by the share
+    /// of the year it stands at; ages rise, so a shrink is drawn last frame
+    /// first.
+    fn grow(&mut self, gen: &Generator, k: usize, species: &str, (from, to): (f64, f64)) -> Result<Cost, String> {
         let family = ends(species, from.max(to), self.path.seed)?;
         let mut cost = Cost::default();
         let started = std::time::Instant::now();
         let mut tree = pollster::block_on(gen.begin_growth(&family)).map_err(|e| e.to_string())?;
         cost.build_ms += started.elapsed().as_secs_f64() * 1e3;
-        let mut order: Vec<(usize, f64)> = self.of(k).into_iter().map(|(i, f)| (i, age_at(from, to, f.along, sample))).collect();
-        order.sort_by(|a, b| a.1.total_cmp(&b.1).then(a.0.cmp(&b.0)));
-        let mut k0 = 0;
-        while k0 < order.len() {
-            let at = order[k0].1;
-            let same: Vec<usize> = order[k0..].iter().take_while(|(_, a)| *a == at).map(|(i, _)| *i).collect();
+        let frames: Vec<(usize, f64)> = self.of(k).into_iter().map(|(i, f)| (i, age_at(from, to, f.along))).collect();
+        let mut years: Vec<f64> = frames.iter().flat_map(|(_, a)| [a.floor(), a.ceil()]).collect();
+        years.sort_by(f64::total_cmp);
+        years.dedup();
+        // The earlier year's picture of a frame that waits for the later.
+        let mut earlier: std::collections::HashMap<usize, Vec<u8>> = std::collections::HashMap::new();
+        for at in years {
             let started = std::time::Instant::now();
             pollster::block_on(gen.grow_to(&mut tree, at)).map_err(|e| format!("{species} to {at}: {e}"))?;
             let settled = pollster::block_on(gen.settle(&tree, at)).map_err(|e| format!("{species} at {at}: {e}"))?;
@@ -196,12 +213,22 @@ impl Film<'_> {
             let shape = (settled.count(), settled.bounds());
             self.renderer.submit_prepared(settled).map_err(|e| e.to_string())?;
             self.renderer.set_family(&family);
-            self.log(shape, at, &same, ms)?;
-            for &i in &same {
-                cost.draw_ms += self.draw(i)?;
+            let showing: Vec<(usize, f64)> = frames.iter().copied().filter(|(_, a)| a.floor() == at || a.ceil() == at).collect();
+            let indices: Vec<usize> = showing.iter().map(|(i, _)| *i).collect();
+            self.log(shape, at, &indices, ms)?;
+            for (i, a) in showing {
+                let started = std::time::Instant::now();
+                let rgba = self.still(i)?;
+                let share = a - a.floor();
+                match (share == 0.0, earlier.remove(&i)) {
+                    (true, _) => self.finish(i, rgba)?,
+                    (false, None) => drop(earlier.insert(i, rgba)),
+                    (false, Some(before)) => self.finish(i, crossfade(&before, &rgba, share))?,
+                }
+                cost.draw_ms += started.elapsed().as_secs_f64() * 1e3;
             }
-            (k0, cost.frames) = (k0 + same.len(), cost.frames + same.len());
         }
+        cost.frames = frames.len();
         Ok(cost)
     }
 
