@@ -31,6 +31,7 @@ vi.mock("./render/telperion_render.js", () => ({
       },
       growTo: async (handle: { grow(age: number): number }, age: number) => handle.grow(age),
       drawGrowth: async (_handle: unknown, at: number) => JSON.stringify({ foliageInstances: at }),
+      growthAdmission: () => "makeRoom",
       resize: () => undefined,
       dispose: () => undefined,
       free: () => undefined,
@@ -119,6 +120,7 @@ it("a growth waits on the programs, then grows and draws through its handle (fn-
   expect(fake.builds).toEqual(["grow oak"]);
   expect(await growth.growTo(2.5)).toBe(3);
   expect(growth.committed()).toBe(3);
+  expect(growth.admission()).toBe("makeRoom");
   expect((await growth.draw(2.5)).foliageInstances).toBe(2.5);
 });
 

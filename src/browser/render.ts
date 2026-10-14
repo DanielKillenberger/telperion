@@ -181,7 +181,13 @@ export interface Growth {
    *  past the horizon, a year or more back, or not finite rejects by name
    *  before anything moves; a failure spends the tree. */
   growTo(age: number): Promise<number | null>;
-  /** Puts the tree drawn at `at`, within its last year, on the canvas. */
+  /** What the next draw does under the page's budget, as a build's
+   *  `admission` says: beside the tree on the canvas, or that tree let go
+   *  first ("makeRoom"). Throws the budget's own words for a draw that
+   *  does not fit even alone; the tree on the canvas stays. */
+  admission(): Admission;
+  /** Puts the tree drawn at `at`, within its last year, on the canvas,
+   *  letting the tree there go first where `admission` says so. */
   draw(at: number): Promise<Submitted>;
   /** Lets the growth state go. */
   dispose(): void;
@@ -281,6 +287,7 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
         committed: () => handle.committed() ?? null,
         horizon: () => handle.horizon() ?? null,
         growTo: async (age) => ((await renderer.growTo(handle, age)) as number | null),
+        admission: () => renderer.growthAdmission(handle) as Admission,
         draw: async (at) => JSON.parse((await renderer.drawGrowth(handle, at)) as string) as Submitted,
         dispose: () => handle.free(),
       };
