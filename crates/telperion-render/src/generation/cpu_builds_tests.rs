@@ -60,3 +60,76 @@ fn the_laurelin_at_20_builds_on_the_device() {
     let refused = refused(&[("laurelin at 20, seed 7".into(), at("laurelin", 20.0, 7))]);
     assert!(refused.is_empty(), "{refused:#?}");
 }
+
+/// The film's walks (fn-272's `release.json`): each adjacent pair at its
+/// age, and the shares R4 builds them at.
+const WALKS: [(&str, &str, f64); 6] = [
+    ("european-beech", "norway-spruce", 40.0),
+    ("norway-spruce", "silver-birch", 40.0),
+    ("silver-birch", "oregon-white-oak", 40.0),
+    ("oregon-white-oak", "date-palm", 40.0),
+    ("date-palm", "laurelin", 1.0),
+    ("laurelin", "telperion", 80.0),
+];
+const T: [f64; 6] = [0.0, 0.01, 0.1, 0.5, 0.9, 1.0];
+
+/// R4's cases: every shipped preset at every whole age to its own and to
+/// 80, and the walk frames, at seeds 1, 7 and 42. `SWEEP_PRESETS` names a
+/// comma list, `SWEEP_AGES` a range ("a-b") and `SWEEP_WALKS` 0 or 1 to
+/// leave the walks out or take them alone.
+fn sweep_cases() -> Vec<(String, Family)> {
+    let only = std::env::var("SWEEP_PRESETS").ok();
+    let range = std::env::var("SWEEP_AGES").ok();
+    let range = range.as_deref().and_then(|r| r.split_once('-')).and_then(|(a, b)| Some((a.parse().ok()?, b.parse().ok()?)));
+    let walks = std::env::var("SWEEP_WALKS").ok();
+    let mut out = Vec::new();
+    if walks.as_deref() != Some("1") {
+        let ids = telperion_core::presets::CATALOGUE.iter().map(|c| c.1);
+        for id in ids.filter(|id| only.as_ref().is_none_or(|o| o.split(',').any(|x| x == *id))) {
+            let last = (by_identity(id).expect("a shipped preset").age.round() as u32).max(80);
+            let (from, to) = range.unwrap_or((1, last));
+            for age in from..=to.min(last) {
+                out.extend([1, 7, 42].map(|seed| (format!("{id} {age} {seed}"), at(id, f64::from(age), seed))));
+            }
+        }
+    }
+    if walks.as_deref() != Some("0") {
+        for (a, b, age) in WALKS {
+            for seed in [1, 7, 42] {
+                let (x, y) = (at(a, age, seed), at(b, age, seed));
+                for t in T {
+                    let family = telperion_core::blend::families(&x, &y, t).expect("a walk frame");
+                    out.push((format!("{a} to {b} at {age} t {t} {seed}"), family));
+                }
+            }
+        }
+    }
+    out
+}
+
+/// fn-276 R4: every case built on the device, none refused but by the
+/// budget, by name.
+#[test]
+#[ignore = "R4's sweep: every preset at every age and the walk frames, on the device"]
+fn every_tree_builds_on_the_device() {
+    let _held = super::whole_tree();
+    let Some(gpu) = super::test_gpu() else {
+        return;
+    };
+    let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).expect("a generator");
+    let mut refused = Vec::new();
+    for (name, family) in sweep_cases() {
+        let clock = super::Clock::now();
+        match gen.prepare(&family, Delivery::Resident) {
+            Ok(p) => println!("{name}: {} instances, {:.0} ms", p.count(), clock.elapsed_ms()),
+            Err(e) if super::io::over_budget(&e) || e.to_string().contains("engine's budget") => println!("{name}: refused by the budget: {e}"),
+            Err(e) => {
+                println!("{name}: REFUSED: {e}");
+                refused.push(format!("{name}: {e}"));
+            }
+        }
+        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
+    }
+    assert!(refused.is_empty(), "{refused:#?}");
+}
