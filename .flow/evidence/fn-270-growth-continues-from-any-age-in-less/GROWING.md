@@ -68,3 +68,10 @@ Every preset up to the spruce holds a 60 Hz frame at p95 while it grows; the Two
 5. Press "grow again" to replay; move a trait dial: the grown tree is built at once, with no grow-in.
 6. While a tree grows, press "gpu timing" and note the vegetation p50/p95: the browser's frame time while growing.
 7. A link grows in too: `?species=oregon-white-oak&age=40&seed=7`.
+
+## Gate, tests and review
+
+- Gate (`telperion-heavy 9 --gpu 4 --threads 4 -- cargo test --profile ci --workspace --no-fail-fast`, at 917af11e1): 1,370 passed, 0 failed, 90 ignored, 23 minutes.
+- The review's fixes (e9b187578) came after the gate: `growing_tests` (2 of 2, a failed placement spending the tree among them) and `harness/grow-in.test.ts` (4 of 4) cover them.
+- `npm test` (`telperion-heavy 10 --threads 4`), after the fixes: 168 of 168.
+- Codex review: NEEDS_WORK on a placement failure leaving the tree usable, the floor timed from before the growth, and a one-year tree's played year; all three fixed; the field-query finding declined under the host's dispatch (fn-257 has no consumer here); re-review SHIP.
