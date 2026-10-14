@@ -20,3 +20,9 @@ fn-236's round 4 (2026-10-14, SHEET-4.md): the Oregon white oak at age 80, seed 
 ## Boundaries
 
 Release item (fn-237). The oak's values are fn-236's.
+
+## Open after fix A (host, 2026-10-15)
+
+- At 80 the device and CPU oak node counts differ by a few nodes in 2.3 million (seed 3: +15; others +19, +35, -69), already before fix A. The age-12 agreement test is too young to see it. Untraced; a release-check item for fn-259, not a refusal.
+- Ordinary at 80, seed 48 keeps 1 node thinner than FINEST. Untraced.
+- Visibility judged from mesh counts, not stills: the most-changed tree at its own age loses 0.024 % of leaves and wood under 0.2 mm radius, bounds unchanged. Accepted by the host as below any supported view.
