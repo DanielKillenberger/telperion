@@ -131,7 +131,7 @@ fn decide_main(@builtin(global_invocation_id) id: vec3<u32>) {
             state = 2u;
         } else if (t & AT_FULL) != 0u {
             let rank = rank_of(i, t & ~AT_FULL);
-            state = select(3u, 2u, rank % cfg.cap == 0u) | (rank / cfg.cap) << 2u;
+            state = select(3u, 2u, rank % cfg.cap == 0u) | ((rank / cfg.cap) << 2u);
         } else {
             let room = cfg.cap - min(count(C_SIZE, t), cfg.cap);
             if scanned(C_JOIN, t, cfg.block_rows, X_JOIN).y <= room || rank_of(i, t) < room {
