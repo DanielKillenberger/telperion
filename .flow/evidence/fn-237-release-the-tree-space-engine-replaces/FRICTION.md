@@ -34,3 +34,11 @@
 - **Cost:** over 20 minutes of waiting for a test that runs in a fraction of a second once built.
 - **Would remove it:** the per-command memory table named above, so an incremental test build declares a few GB and is admitted beside a running job. Local setup, reported only.
   Resubmitted declaring 5 GB, the same run was admitted at once beside the film job and passed: the 8 GB declaration was the guess that cost the 40 minutes.
+- **Doing:** the end gate as dispatched, `telperion-heavy 9 --gpu 4 --threads 4 -- cargo test --profile ci --workspace --no-fail-fast`.
+- **Hindered:** the scope was OOM-killed at its 9 GB cap after 9 minutes, during telperion-core's tests (9 GB peak); no result came out of it.
+- **Cost:** 9 minutes and a second gate run.
+- **Would remove it:** the gate's measured peak written beside `telperion-heavy` (the per-command memory table again); housekeeping declared 20 GB for the same gate.
+- **Doing:** the gate again, `telperion-heavy 10 --gpu 4 --threads 2`, after the OOM kill at 9 GB.
+- **Hindered:** from 09:58 to 10:40 the wrapper never found room ("room -1 to 1 GB for 10"); another worker's film renders (fn-272, `examples/film`, 6 GB peak, about 36 minutes each) were admitted one after another while the gate waited.
+- **Cost:** 42 minutes of waiting; the gate was stopped unrun, and this worker returns NEEDS_HUMAN for it.
+- **Would remove it:** the host running the gate once the film renders finish, or a queue that admits in arrival order. Local setup, reported only.
