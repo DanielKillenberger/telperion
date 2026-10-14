@@ -97,3 +97,11 @@
 - **Hindered:** two failures need a design call, which this worker does not make: the palm walk's blend refused by the new season check, and a build refused past its budget after it had submitted work (R4's margin halving against the 2026-10-12 ruling). Both go to the host with options.
 - **Cost:** about 35 minutes for the gate run, 40 minutes of fixes and reruns.
 - **Would have removed it:** a gate run on the R5c and R4 changes before they were built on (the end-only gate let both ride for two rounds).
+
+## 2026-10-14, task 4 (worker): the 13 GB gate at 2 threads
+
+- **Doing:** the end gate as the host sized it (13 GB, 2 threads), after the rulings.
+- **Hindered:** 26 minutes waiting for admission behind another worker's gate, then stopped at the cap after 15 minutes inside `telperion_core`'s unit tests (307 passed). The three tests running then each peak alone at about 5.8 GB (`suite::mesh::every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers` 5,853 MB, `suite::packed_leaf::no_station_of_any_shipped_species_falls_outside_its_box` 5,764 MB, `the_position_step_is_under_a_quarter_millimetre_for_every_species` 5,773 MB, 62 s each); any two side by side pass 11.5 GB before the rest of the binary.
+- **Cost:** about 45 minutes, then the gate again on one thread.
+- **Would have removed it:** fn-274's cut, or one shared lock over every whole-preset test in `telperion_core` so no two run together.
+- **Then:** the single-thread gate at 13 GB waited 40 minutes with 12 GB of room and was never admitted; one thread needs about 6 GB, so it ran at 12 GB, one thread.

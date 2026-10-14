@@ -1663,12 +1663,6 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
-    "site": ". max ( 0 . 0 )",
-    "classification": "algorithm",
-    "reason": "A frond's place down the spiral counts from the newest, which stands at the apex (fn-270 R5b)."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
     "site": ". max ( 1 . 0 )",
     "classification": "algorithm",
     "reason": "The whole years before the last start at none: a tree in its first year has grown no whole year (fn-270 R5b)."
@@ -1678,12 +1672,6 @@
     "site": ". min ( 1 . 0 )",
     "classification": "algorithm",
     "reason": "A frond of this year emerges within the stem's elongation: its serial's share of the year's fronds (fn-270 R5b)."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
-    "site": "if new < = 0 . 0 | | self . per_year < = 0 . 0 {",
-    "classification": "algorithm",
-    "reason": "A frond made before this year, or a crown that makes none, stands whole (fn-270 R5b)."
   },
   {
     "path": "crates/telperion-core/src/pipeline/space/unfolding.rs",
@@ -1696,5 +1684,23 @@
     "site": ". min ( 1 . 0 )",
     "classification": "algorithm",
     "reason": "A draw within its year is at most the whole year (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "site": "if made > whole + 1 . 0 {",
+    "classification": "algorithm",
+    "reason": "A frond still emerging at the year's end is made the next year: none of it stands yet (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "site": "if self . life < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A crown whose fronds have no life makes none (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "site": "if self . life < = 0 . 0 | | self . fronds < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A crown that makes no frond stands whole (fn-270 R5b)."
   }
 ]
