@@ -28,6 +28,7 @@ fn family(id: &str) -> presets::Family {
 /// box is its grown tree's wood grown by the station reach (fn-183).
 #[test]
 fn no_station_of_any_shipped_species_falls_outside_its_box() {
+    let _turn = crate::one_tree::turn();
     for id in shipped() {
         let f = family(id);
         let x = crate::pipeline::executor::grow(&f).unwrap().expansion().unwrap();
@@ -77,6 +78,7 @@ fn no_station_of_any_shipped_species_falls_outside_its_box() {
 /// nothing and the authored shell no longer bounds the wood (fn-183).
 #[test]
 fn the_position_step_is_under_a_quarter_millimetre_for_every_species() {
+    let _turn = crate::one_tree::turn();
     for id in shipped() {
         let reference = mesh::build(&family(id))
             .unwrap()

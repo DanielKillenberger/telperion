@@ -11,6 +11,7 @@ use std::time::Instant;
 /// margin under the ceiling is printed for each.
 #[test]
 fn every_shipped_preset_keeps_under_the_wasm_ceiling() {
+    let _turn = crate::one_tree::turn();
     let mut over = Vec::new();
     for &(_, id, _, _) in CATALOGUE {
         let started = Instant::now();

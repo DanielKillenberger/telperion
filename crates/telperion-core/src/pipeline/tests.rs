@@ -201,6 +201,7 @@ fn the_leaves_own_rings_fail_after_the_plan() {
 /// binding tests.
 #[test]
 fn every_shipped_preset_builds_every_artifact_through_the_pipeline() {
+    let _turn = crate::one_tree::turn();
     for &(_, id, _, _) in CATALOGUE {
         let family = crate::presets::by_identity(id).unwrap();
         let grown = skeleton(GrowInput::of(&family));

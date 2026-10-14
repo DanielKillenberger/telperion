@@ -28,6 +28,7 @@ const DENTED: [(Preset, u32, u32); 3] = [
 
 #[test]
 fn a_stem_never_thickens_on_its_way_up() {
+    let _turn = crate::one_tree::turn();
     for (preset, age, seed) in DENTED {
         let tree = converted_at(preset, age, seed);
         for (i, n) in tree.nodes.iter().enumerate().skip(2) {
