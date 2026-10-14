@@ -48,3 +48,6 @@ trybuild = "1"
 # capabilities wgpu grants the device (src/shader_tests.rs).
 naga = { version = "30", features = ["wgsl-in"] }
 wgpu-naga-bridge = "30"
+# The release film's overlay letters its map and age (examples/film): a
+# public-domain 8x8 bitmap font, so the overlay draws text with no font file.
+font8x8 = "0.3"

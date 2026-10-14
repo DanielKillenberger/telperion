@@ -78,7 +78,7 @@ pub use lineage::keys as lineage_keys;
 pub use oak::oak;
 pub use palm::palm;
 pub use presence::{FLOOR, RATE, SPAN};
-pub use species::scale::{settings, zone_settings};
+pub use species::scale::{scale, settings, zone_settings, Scale, OUTCOMES};
 pub use species::{
     Form, NodeLaw, PaState, Species, Zone, BARE, MAX_BUDS, MAX_LEAF_AREA, MEDIAL, SPARE, TOP, ZONES,
 };
