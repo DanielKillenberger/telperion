@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-276-the-device-builds-every-tree-the-cpu",
   "impl_review_rounds": {
-    "fn-276-the-device-builds-every-tree-the-cpu.1": 0
+    "fn-276-the-device-builds-every-tree-the-cpu.1": 0,
+    "fn-276-the-device-builds-every-tree-the-cpu.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -103,15 +104,52 @@
       "task": "fn-276-the-device-builds-every-tree-the-cpu.1",
       "timestamp": "2026-10-14T14:41:33.220371Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3159c3541264df89ff4654ba4b9c7d3fb644898af2c78f97c3e8da4b2015ed87",
+      "backend": "codex",
+      "base_sha": "a96f48ef2ce16fc5a948703609efd415b415db05",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "00a4cb78d82b1f94f13032e9052eaa2cd453ee0a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "a576415dc8fb4519b13008db833e4f2c",
+      "round_consumed": true,
+      "scope": "impl:fn-276-the-device-builds-every-tree-the-cpu.2",
+      "superseded_by": null,
+      "task": "fn-276-the-device-builds-every-tree-the-cpu.2",
+      "timestamp": "2026-10-14T15:50:39.379964Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-276-the-device-builds-every-tree-the-cpu.1": 1
+    "impl:fn-276-the-device-builds-every-tree-the-cpu.1": 1,
+    "impl:fn-276-the-device-builds-every-tree-the-cpu.2": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
-    "impl:fn-276-the-device-builds-every-tree-the-cpu.1": 0
+    "impl:fn-276-the-device-builds-every-tree-the-cpu.1": 0,
+    "impl:fn-276-the-device-builds-every-tree-the-cpu.2": 0
   },
   "spec_path": ".flow/specs/fn-276-the-device-builds-every-tree-the-cpu.md",
   "status": "open",
@@ -127,5 +165,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T14:41:33.222619Z"
+  "updated_at": "2026-10-14T15:50:39.382176Z"
 }
