@@ -726,7 +726,6 @@ fn draw_axis(a: u32, start: u32, how: How) {
         if !(radius >= FINEST) {
             break;
         }
-        taken += 1u;
         // Each internode as laid: its scale and its spread's factor.
         let key = vec2<u32>(np(NP_KEY, p), np(NP_KEY + 1u, p));
         let piece = internode * npf(NP_SCALE, p) * internode_factor(spread, key);
@@ -768,17 +767,26 @@ fn draw_axis(a: u32, start: u32, how: How) {
             w = place(a, join_rec(ca), at, p, node_key(joined, 0u), false, w, along, how, l);
             own = own && w.parent == held;
         }
-        w = mark(w, q);
-        w.pending += rest;
-        let pos = up(tip(a, k)) * cfg.scale;
-        let held = w.parent;
-        w = place(a, r, vec4<f32>(pos, radius * cfg.scale), p, node_key(lineage, k), true, w, along, how, l);
-        own = own || w.parent != held;
+        // Wood above an inside join thinner than `FINEST` ends the axis at
+        // the join, as it does anywhere (`space.rs`'s `convert`).
+        let thin = !(radius >= FINEST);
+        if !thin {
+            taken += 1u;
+            w = mark(w, q);
+            w.pending += rest;
+            let pos = up(tip(a, k)) * cfg.scale;
+            let held = w.parent;
+            w = place(a, r, vec4<f32>(pos, radius * cfg.scale), p, node_key(lineage, k), true, w, along, how, l);
+            own = own || w.parent != held;
+        }
         // Relays joining at this span's node.
         for (var c = 1u; c < na_; c++) {
             if joins(c, a) && join_node(ax_of(c)) == k && at_end(join_t(ax_of(c))) {
                 putu(join_rec(ax_of(c)), 7u, w.parent);
             }
+        }
+        if thin {
+            break;
         }
     }
     // The axis's own tip keeps its bloom, at its age's flowering share

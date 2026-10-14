@@ -311,6 +311,4 @@ pub(crate) fn ripe(years: f64, ripening: f64) -> f64 {
 }
 
 #[cfg(test)]
-mod above_tests;
-#[cfg(test)]
 mod tests;

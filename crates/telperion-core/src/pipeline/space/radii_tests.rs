@@ -22,13 +22,13 @@ fn the_oak_at_80_seed_7_solves_every_radius() {
     x.tree().validate_solved().unwrap();
 }
 
-/// R2: every relay join that leaves no wood above it, the stopped module's
-/// head, with the terms its girth was summed from (`girth::thicken_given`
-/// sets `Join::above` to the f32 section at the join less the relay's
-/// share there), and the node the conversion draws from that phytomer.
+/// R4: where the nodes drawn thinner than `FINEST` come from, by what
+/// set their radius below the phytomer's own: a relay's join drawn at its
+/// `Join::below`, a head clamped to a join's `above`, or a head `aside`
+/// scaled down to `FORK_FROM` of its carrier.
 #[test]
-#[ignore = "fn-281 R2 diagnostic; about 5 GB and 30 s"]
-fn the_joins_the_oak_at_80_seed_7_draws_no_wood_above() {
+#[ignore = "fn-281 R4 count; about 5 GB and 30 s"]
+fn where_the_oak_at_80_seed_7_draws_wood_thinner_than_finest() {
     let family = oak(80.0, 7);
     let species = family.space.species.clone().unwrap();
     let request = Request {
@@ -39,77 +39,37 @@ fn the_joins_the_oak_at_80_seed_7_draws_no_wood_above() {
     };
     let structure = telperion_space::grow(&species, request).unwrap();
     let tree = convert(&structure, (&family.space.trunk, &pa_rows(&species)));
-    let by_identity: std::collections::HashMap<_, _> = (tree.nodes.iter().enumerate())
-        .map(|(i, n)| (n.identity, i))
-        .collect();
-    let (mut none, mut thick, mut absorbed, mut drawn) = (0, 0, 0, 0);
-    for (c, relay) in structure.axes.iter().enumerate() {
+    // Each phytomer's radius and the least `above` of the joins inside its
+    // span, by its node identity.
+    let mut grown = std::collections::HashMap::new();
+    for axis in &structure.axes {
+        for p in &axis.phytomers {
+            grown.insert(NodeIdentity::lineage(p.key()), (p.radius, f64::INFINITY));
+        }
+    }
+    for relay in &structure.axes {
         let (Origin::Relay { parent, .. }, Some(j)) = (relay.origin, relay.joined()) else {
             continue;
         };
-        if relay.phytomers.is_empty() || j.above > 0.0 {
-            continue;
+        let inside = j.t > 0.0 && j.t < join::ONE && !relay.phytomers.is_empty();
+        if let (true, Some(p)) = (inside, structure.axes[parent].phytomers.get(j.node)) {
+            let held = grown.get_mut(&NodeIdentity::lineage(p.key())).unwrap();
+            held.1 = held.1.min(j.above);
         }
-        none += 1;
-        let p = &structure.axes[parent];
-        let state = &species.states[p.pa];
-        let k = &p.phytomers[j.node];
-        // Only a phytomer the conversion keeps (`FINEST`) is drawn.
-        if k.radius < FINEST {
-            continue;
+    }
+    let (mut joins, mut clamped, mut scaled, mut other) = (0, 0, 0, 0);
+    for n in tree.nodes.iter().skip(1).filter(|n| n.radius < FINEST) {
+        match grown.get(&n.identity) {
+            None => joins += 1,
+            Some(&(_, above)) if n.radius == above => clamped += 1,
+            Some(&(r, _)) if n.radius < r && n.shoot.bud_fate == BudFate::Lateral => scaled += 1,
+            Some(_) => other += 1,
         }
-        thick += 1;
-        // The phytomer's own pipe before its leaf term, ripened, and the
-        // relay's share at the join, as f32 sections: whether the sum
-        // `section` absorbs the own wood whole.
-        let years = (structure.age.saturating_sub(k.cycle) + 1) as f64;
-        let ripe = if state.form.ripening > 0.0 {
-            (years / state.form.ripening).min(1.0)
-        } else {
-            1.0
-        };
-        let own = state.form.pipe * k.scale * ripe;
-        let e = state.form.exponent;
-        let at = (relay.phytomers[0].radius.powf(e) * f64::from(j.t)) as f32;
-        let own_s = own.powf(e) as f32;
-        let lost = (at + own_s) - at == 0.0;
-        absorbed += usize::from(lost);
-        let node = by_identity
-            .get(&crate::tree::NodeIdentity::lineage(k.key()))
-            .copied();
-        let radius = node.map(|i| tree.nodes[i].radius);
-        drawn += usize::from(radius == Some(0.0));
-        println!(
-            "relay {c} on {parent} (pa {}, leafGirth {}, secondary {}): join node {} of {} \
-             t {} below {:e} above {:e}; phytomer radius {:e} scale {:e} cycle {}; \
-             own section before leaf {own_s:e} against the relay's {at:e}: absorbed in f32 {lost}; \
-             drawn as node {node:?} radius {radius:?}",
-            p.pa,
-            state.leaf_girth,
-            state.form.secondary,
-            j.node,
-            p.phytomers.len(),
-            j.t,
-            j.below,
-            j.above,
-            k.radius,
-            k.scale,
-            k.cycle,
-        );
     }
     println!(
-        "{none} joins leave no wood above; {thick} on a phytomer the conversion keeps, \
-         {absorbed} of them with the own wood absorbed in f32; {drawn} drawn at radius zero"
+        "nodes thinner than FINEST: {} ({joins} joins, {clamped} clamped to a join's above, \
+         {scaled} heads scaled aside, {other} other)",
+        joins + clamped + scaled + other
     );
-    let zero: Vec<usize> = (0..tree.nodes.len())
-        .filter(|&i| tree.nodes[i].radius <= 0.0)
-        .collect();
-    println!("converted nodes at radius zero: {zero:?}");
-    // Wood the conversion draws thinner than it keeps (`FINEST`): only the
-    // own draw above an inside join is clamped below the phytomer's radius.
-    let fine = (tree.nodes.iter())
-        .filter(|n| n.radius > 0.0 && n.radius < FINEST)
-        .count();
-    println!("converted nodes thinner than FINEST, above zero: {fine}");
-    assert_eq!(none, 0);
+    assert_eq!(clamped, 0, "a head drawn thinner than FINEST above a join");
 }
