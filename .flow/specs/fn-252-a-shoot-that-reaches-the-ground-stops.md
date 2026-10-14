@@ -18,6 +18,15 @@ Sag is computed after growth (`grow/settle.rs:39-41,91-98`; the rough lay carrie
 
 The owner: "we might also want to fix the birch's branches drooping all the way to the ground"; "that's mainly for younger specimen. Older ones will be too high to reach the ground". R1 therefore also measures the birch at 5, 10, 15, 20 and 30 (seeds 1, 7, 42): the height of its lowest living branch (crown base) against the sources' crown lift for open-grown silver birch (a light-demanding species that sheds its shaded lower branches early), and which strands reach the ground at each age. Two causes are possible and are told apart before any design: lower branches the birch should already have shed (crown lift: the shedding and light rules, or the birch's values) and strands that hang long enough to reach the ground from where they should be (the ground rule above). The host designs the fix from R1's numbers; the open design point stays the host's.
 
+## Host rulings after R1 (host, 2026-10-14)
+
+R1's numbers (`.flow/evidence/fn-252-a-shoot-that-reaches-the-ground-stops/R1.md`) are the reason. The young birch's wood on the ground hangs from the young stem's passing branches (`SPRIG`, lifespan 14), still alive at 29-39 years at 0.6-0.7 m because a lateral bearing its own age (the strand's fork) makes its bearer's life unbounded (`shed.rs`, `lasting`).
+
+- **R2a (cause 1, first):** an axis whose age states a finite life dies at that life, and its laterals go with it; a lateral bearing its own age no longer makes its bearer's life unbounded. Unbounded life stays only for ages that state none. The passing branch does what its age says (the young stem clears its lower branches): one rule, by degree through the existing shedding draws, on both executors. Before building, every shipped species whose ages this touches (finite life with laterals that today extend it) is listed with what changes for each; if any scaffold or limb system would now die that should not, the worker stops and reports. Then: build; a red/green test (a passing branch carrying a forked strand dies at its age's life); stills of the birch at 10, 20, 40 (whole and the low shot), viewed; crown base and ground counts re-measured at 5 to 80; every species' `space_hash` change listed with its reason; CPU and device agree.
+- **Cause 2 waits:** strands from higher up reaching the ground at 40 and 80 (the ground rule, R2) are measured again after R2a; if the 40-year stills still show strands running along the ground, the worker reports and the host designs R2.
+- Gate: `telperion-heavy 10 --gpu 4 --threads 4`, queued once; not admitted in 30 minutes, skipped and reported. Codex review to SHIP. The task stays in progress for the owner's verdict.
+
 ## Boundaries
 
 The birch's low branches and the lay's ground rule, and their measurement. A release item (owner, 2026-10-14).
+
