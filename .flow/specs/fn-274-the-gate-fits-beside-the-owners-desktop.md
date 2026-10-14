@@ -13,3 +13,7 @@ fn-251 and fn-270 (2026-10-14, FRICTION.md): the workspace gate is killed for me
 ## Boundaries
 
 Test-only. Release housekeeping (fn-237).
+
+## Decision (host, 2026-10-14)
+
+The gate passes at a 9 GiB cap with 4 test threads (peak 8,860 MiB, 1,551 s, every test count unchanged); the 8 GB target is missed by under 1 GiB and accepted. The four ~6 GB whole-mesh tests stay separate: each proves its own entry (fn-271's decision), and merging them would trade coverage for 0.9 GiB. The gate is declared `telperion-heavy 9 --gpu 4 --threads 4`.

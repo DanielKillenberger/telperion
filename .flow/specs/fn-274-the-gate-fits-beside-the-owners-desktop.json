@@ -130,7 +130,7 @@
     "impl:fn-274-the-gate-fits-beside-the-owners-desktop.1": 0
   },
   "spec_path": ".flow/specs/fn-274-the-gate-fits-beside-the-owners-desktop.md",
-  "status": "open",
+  "status": "done",
   "title": "The gate fits beside the owner's desktop",
   "tracker": {
     "baseHashFlow": null,
@@ -143,5 +143,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T02:53:00.054955Z"
+  "updated_at": "2026-10-14T03:24:51.270425Z"
 }
