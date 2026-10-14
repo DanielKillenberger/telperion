@@ -180,13 +180,20 @@ impl GrowthState {
         Ok(s)
     }
 
+    /// The whole years grown and `at`'s fraction of the last: refused by
+    /// name where the state is spent or `at` falls outside that year, as a
+    /// draw is, before anything is drawn or let go.
+    pub(in crate::generation) fn drawable(&self, at: f64) -> Result<(u32, f32)> {
+        let committed = self.usable()?.committed;
+        Ok((committed, within_year(committed, at).map_err(named)? as f32))
+    }
+
     /// The tree drawn at `at`, within the last year grown: its drawn
     /// records and its trunk's measures, a snapshot of its own. An `at`
     /// it cannot draw is refused by name; a draw that fails spends the
     /// state, and every snapshot drawn before stays whole.
     pub(in crate::generation) async fn settle(&self, gpu: &Gpu, k: &Kernels, at: f64) -> Result<(Dressed, Trunk)> {
-        let committed = self.usable()?.committed;
-        let fraction = within_year(committed, at).map_err(named)? as f32;
+        let (committed, fraction) = self.drawable(at)?;
         let drawn = async {
             let s = self.settled(gpu, k).await?;
             let _capped = gpu.ledger.capped(self.budget);

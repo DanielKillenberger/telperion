@@ -39,7 +39,7 @@ async fn holding<T>(
     let mut tree = cell
         .borrow_mut()
         .take()
-        .ok_or_else(|| JsError::new("growth.busy: a call is already working on this tree"))?;
+        .ok_or_else(busy)?;
     let out = work(&mut tree).await;
     *cell.borrow_mut() = Some(tree);
     out
@@ -62,9 +62,14 @@ fn generator(state: &generation::Generation) -> std::result::Result<Rc<crate::ge
 /// What drawing the tree in `cell` does under the page's budget beside the
 /// tree on the canvas: beside it, or it let go first; refused by name.
 fn draw_admitted(live: &Rc<RefCell<Option<Live>>>, cell: &RefCell<Option<GrowingTree>>) -> std::result::Result<Admitted, JsError> {
-    let held = cell.try_borrow().map_err(|_| JsError::new("growth.busy: a call is already working on this tree"))?;
-    let tree = held.as_ref().ok_or_else(|| JsError::new("growth.busy: a call is already working on this tree"))?;
+    let held = cell.try_borrow().map_err(|_| busy())?;
+    let tree = held.as_ref().ok_or_else(busy)?;
     Generator::draw_admission(tree, &borrow(live)?.renderer, BROWSER).map_err(js_error)
+}
+
+/// The refusal of a second call while one works on the tree.
+fn busy() -> JsError {
+    JsError::new("growth.busy: a call is already working on this tree")
 }
 
 #[wasm_bindgen]
@@ -135,6 +140,10 @@ impl WebRenderer {
         future_to_promise(async move {
             let request = Request::begin(state.clone()).map_err(JsError::new)?;
             let generator = generator(&state)?;
+            // A draw refused by name is refused before the canvas is let go.
+            let held = cell.try_borrow().map_err(|_| busy())?;
+            generator.drawable(held.as_ref().ok_or_else(busy)?, at).map_err(js_error)?;
+            drop(held);
             let made_room = draw_admitted(&live, &cell)? == Admitted::MakeRoom;
             if made_room {
                 let mut canvas = borrow(&live)?;

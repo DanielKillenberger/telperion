@@ -121,6 +121,16 @@ impl Generator {
         spent_after(&tree.state, moved, grown)
     }
 
+    /// Whether `tree` can be drawn at `at` here, refused by name as
+    /// `settle` refuses it (another generator's tree, a spent tree, an `at`
+    /// outside its last year), before anything is drawn or let go.
+    pub fn drawable(&self, tree: &GrowingTree, at: f64) -> Result<()> {
+        if !Arc::ptr_eq(&self.identity, &tree.identity) {
+            return Err(foreign());
+        }
+        tree.state.drawable(at).map(|_| ())
+    }
+
     /// `tree` drawn at `at`, within the last year grown, and prepared for
     /// the renderer as a resident tree, with how far its falling leaves
     /// have coloured (`Prepared::colouring`). The tree is left as it was.
@@ -128,12 +138,14 @@ impl Generator {
         if !Arc::ptr_eq(&self.identity, &tree.identity) {
             return Err(foreign());
         }
-        let mut drew = false;
-        let held = self.gpu.ledger.live();
-        self.gpu.ledger.watch();
+        let (mut drew, mut held) = (false, 0);
         let built = self
             .on_device(async |kit| {
                 let gpu = &self.gpu;
+                // Watched once what was let go before is freed: a tree let
+                // go to make room is not the draw's.
+                held = gpu.ledger.live();
+                gpu.ledger.watch();
                 let _capped = gpu.ledger.capped(self.device_budget());
                 let mut t = Timed::default();
                 // The draw refuses an `at` outside the last year, or a spent

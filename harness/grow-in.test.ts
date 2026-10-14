@@ -74,7 +74,7 @@ it("the floor runs from a tree's draw, however long the year before it took to g
 });
 
 it("a draw that fits only alone says so while the drawn tree is let go, as a build does", async () => {
-  const { log, grower, pace, held } = setup(3, () => 0, new Set([2]));
+  const { log, grower, pace, held } = setup(3, () => 0, new Set([3]));
   await draw(grower, held, "grow", "oak", pace());
   expect(log).toEqual([
     "begin oak", "grow 1", "room false", "draw 1", "room false", "grow 2", "room false", "draw 2", "room false",

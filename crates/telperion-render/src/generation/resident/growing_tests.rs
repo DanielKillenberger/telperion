@@ -100,8 +100,17 @@ fn a_grow_in_draw_lets_the_drawn_tree_go_only_where_it_fits_alone() {
     let refused = budget(held - drawn + next - 1).unwrap_err().to_string();
     assert!(refused.contains("even with the drawn tree let go"), "{refused}");
     assert_eq!(Generator::tree_buffer_bytes(&renderer), drawn, "a refusal keeps the drawn tree");
-    // Made room: the drawn tree let go, the draw put up alone.
+    // A draw refused by name is refused before anything is let go.
+    for at in [f64::NAN, 6.5] {
+        assert!(gen.drawable(&tree, at).is_err(), "at {at}");
+    }
+    gen.drawable(&tree, 8.0).unwrap();
+    // Made room: the drawn tree let go, the draw put up alone, and its
+    // bytes measured without the tree let go (as the page lets it go,
+    // with no wait between).
+    let before = tree.last_draw();
     renderer.release_tree();
     let up = renderer.submit_prepared(block_on(gen.settle(&tree, 8.0)).unwrap());
     assert!(up.is_ok() && Generator::tree_buffer_bytes(&renderer) > 0);
+    assert!(tree.last_draw() >= before, "the draw at 8 measured {} after {before} at 7", tree.last_draw());
 }
