@@ -20,3 +20,10 @@
 - Slowed by: the kernel killed the scope at its 8 GB cap after 6 minutes, before the lib tests printed their failures; `cargo nextest` is not installed here, so the run could not be resumed by failing test.
 - Cost: about 7 minutes and one rerun by name.
 - Would remove it: the gate's own size (9 GB) for any partial suite; nextest installed, so a rerun takes only the failures.
+
+## 2026-10-14, task 1, waits for room on the heavy runner
+
+- Doing: the bound measurement, the reference rewrite and the film's walk frames, each under `telperion-heavy` at 4 to 6 GB.
+- Slowed by: other workers' gates held the machine; each call waited 5 to 15 minutes for admission, one background run lost its output when it was moved to the background and its duplicate later rewrote a finished file.
+- Cost: about 40 minutes of wall time, a few thousand tokens of polling.
+- Would remove it: a queue position printed by `telperion-heavy` while it waits, so a caller can tell a long wait from a stuck one.
