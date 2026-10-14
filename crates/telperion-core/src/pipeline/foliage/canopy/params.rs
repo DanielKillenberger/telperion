@@ -472,6 +472,31 @@ crate::catalogue::rows! {
             dial: bounded("frond_life", "the years a living frond lives; at zero the crown stands \
                 as it is all year", [3.0, 7.0]),
         },
+        /// The years a rosette's crown takes to make a mature frond (fn-275
+        /// R2): a frond is made at a share of its size set by the crown's
+        /// age when it was made, along the logistic course from
+        /// `frondEarlyShare` to whole over these years, and keeps it for its
+        /// life. At zero every frond is made whole.
+        #[cfg_attr(feature = "json", serde(default))]
+        pub frond_establishment: f64 = "frondEstablishment" "years"
+            Bounds::closed(0.0, 100.0) => [Plan, Expand] {
+            wire: 365,
+            check: input(Site::Rosette, 24, "frond establishment"),
+            applies: "`frondLife` zero, or `rosetteFronds` zero",
+            dial: bounded("frond_establishment", "the years a crown takes to make a mature \
+                frond; at zero every frond is made whole", [1.0, 3.0]),
+        },
+        /// The share of a mature frond's size a crown's first frond is made
+        /// at, while it establishes (fn-275 R2).
+        #[cfg_attr(feature = "json", serde(default))]
+        pub frond_early_share: f64 = "frondEarlyShare" "share of a mature frond"
+            Bounds::closed(0.0, 1.0) => [Plan, Expand] {
+            wire: 366,
+            check: input(Site::Rosette, 25, "frond early share"),
+            applies: "`frondEstablishment` zero",
+            dial: bounded("frond_early_share", "the share of a mature frond's size a crown's \
+                first frond is made at", [0.05, 0.15]),
+        },
         /// Hard total budget. Exceeding it returns an error, never partial foliage.
         #[cfg_attr(feature = "json", serde(with = "crate::ranges::portable_index"))]
         pub max_instances: usize = "maxInstances" "leaves"
@@ -535,6 +560,8 @@ impl Default for CanopyParams {
             skirt_pitch: crate::ranges::default_skirt_pitch(),
             skirt_length: crate::ranges::default_skirt_length(),
             frond_life: 0.0,
+            frond_establishment: 0.0,
+            frond_early_share: 0.0,
             max_instances: usize::MAX,
         }
     }

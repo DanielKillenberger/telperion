@@ -224,6 +224,8 @@ fn every_new_row_is_refused_by_its_own_name() {
     refuse(|f| f.canopy.skirt_fronds = 129);
     refuse(|f| f.canopy.skirt_pitch = 181.);
     refuse(|f| f.canopy.skirt_length = 1.5);
+    refuse(|f| f.canopy.frond_establishment = 101.);
+    refuse(|f| f.canopy.frond_early_share = 1.5);
 }
 
 /// R3 (fn-110): the first leaflets of a frond are borne as spines. Each one is
@@ -308,4 +310,73 @@ fn last_years_fronds_stay_whole_and_the_year_turns_with_no_pop() {
         let (a, b) = (end.unfolded(s as f64), start.unfolded(s as f64));
         assert!((a - b).abs() < 1e-6, "frond {s}: {a} at the year's end, {b} after it");
     }
+}
+
+/// fn-275 R2, R4: a young palm makes each frond at a share of a mature
+/// one set by the crown's age when it made it, from the early share to
+/// whole over its establishment, and the frond keeps that size: each new
+/// frond is no smaller than the last, and no year turns a frond's size.
+#[test]
+fn a_young_palms_fronds_are_made_small_and_keep_their_size() {
+    use telperion_core::{foliage::Crown, tree::Year};
+    let f = family("date-palm", 1);
+    let (early, years) = (f.canopy.frond_early_share, f.canopy.frond_establishment);
+    assert!(years > 0.0 && early < 1.0, "the palm states its establishment");
+    let year = |age: f64| Year { age, budburst: 0.0, elongation: 226.0, expansion: 139.0 };
+    let crown = |age: f64| Crown::new(Some(year(age)), &f.canopy);
+    let per_year = f64::from(f.canopy.rosette_fronds) / f.canopy.frond_life;
+    let (c, mut last) = (crown(12.0), 0.0);
+    for s in 0..(per_year * 12.0) as i64 {
+        let share = c.established(s as f64);
+        assert!(share >= last, "frond {s} at {share}, smaller than the one before at {last}");
+        last = share;
+    }
+    let first = c.established(0.0);
+    assert!(first >= early && first < early + 0.01, "the first frond at {first}");
+    let mature = (per_year * years).ceil() as i64;
+    assert_eq!(c.established(mature as f64), 1.0, "a frond made after establishment is whole");
+    // The same frond at every age it stands, across each year's turn.
+    for s in 0..mature {
+        let at = |age: f64| crown(age).established(s as f64);
+        let made = at(12.0);
+        for age in [2.0, 2.0 + 1e-9, 3.5, 6.0, 6.0 + 1e-9, 40.0] {
+            assert_eq!(at(age), made, "frond {s} changed size at {age}");
+        }
+    }
+}
+
+/// fn-275 R2, R3: the establishment rows change the palm only while its
+/// living fronds were made young; at its shipped age every drawn frond was
+/// made after establishment and the crown is the one drawn without them,
+/// and a crown with no rosette never reads them.
+#[test]
+fn establishment_shows_on_a_young_palm_alone() {
+    use telperion_core::pipeline::executor;
+    // The crown as the engine grows it, drawn at its whole age.
+    let placed = |f: &Family| {
+        let mut tree = executor::grow(f).unwrap().expansion().unwrap().tree().clone();
+        tree.year = executor::growth(f).unwrap().year(1.0);
+        executor::expand(tree, f).unwrap().mesh().unwrap().foliage.instances
+    };
+    let without = |mut f: Family| {
+        f.canopy.frond_establishment = 0.0;
+        f
+    };
+    let palm = family("date-palm", 1);
+    let (shipped, plain) = (placed(&palm), placed(&without(palm.clone())));
+    assert_eq!(shipped.leaves, plain.leaves, "the shipped palm moved");
+    let mut oak = family("oregon-white-oak", 1);
+    oak.age = oak.age.min(12.0);
+    let mut stated = oak.clone();
+    stated.canopy.frond_establishment = palm.canopy.frond_establishment;
+    stated.canopy.frond_early_share = palm.canopy.frond_early_share;
+    assert_eq!(placed(&stated).leaves, placed(&oak).leaves, "a crown with no rosette moved");
+    let mut young = palm;
+    young.age = 3.0;
+    let mean = |c: &foliage::Instances| {
+        c.leaves.iter().map(|l| c.reference.scale(*l)).sum::<f64>() / c.leaves.len() as f64
+    };
+    let (small, whole) = (placed(&young), placed(&without(young.clone())));
+    assert_eq!(small.leaves.len(), whole.leaves.len(), "establishment moved a frond's count");
+    assert!(mean(&small) < 0.6 * mean(&whole), "{} against {}", mean(&small), mean(&whole));
 }

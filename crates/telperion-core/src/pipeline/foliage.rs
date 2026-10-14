@@ -7,6 +7,7 @@ mod bloom_params;
 mod canopy;
 mod clumping;
 mod cluster;
+mod crown;
 mod element;
 mod leaflet;
 mod levels;
@@ -50,7 +51,8 @@ pub(crate) use reference::Reach;
 /// The canopy's own rails, for a pass that reads the canopy rows without
 /// placing a leaf: a bad row is refused by the name `place` refuses it by.
 pub(crate) use rosette::validate as validate_canopy;
-pub use rosette::{frame, rosettes, Crown, Rosette, MAX_FRONDS, MAX_LEAFLETS};
+pub use crown::Crown;
+pub use rosette::{frame, rosettes, Rosette, MAX_FRONDS, MAX_LEAFLETS};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bounds {

@@ -1408,6 +1408,26 @@ The years a living frond lives (fn-270 R5b): a rosette makes its living crown's 
 - dormant: `rosetteFronds` zero
 - blend: linear; dial: `frond_life` (the years a living frond lives; at zero the crown stands as it is all year), window its bounds (validated bound), steps 3 and 7
 
+### `/canopy/frondEstablishment`
+
+The years a rosette's crown takes to make a mature frond (fn-275 R2): a frond is made at a share of its size set by the crown's age when it was made, along the logistic course from `frondEarlyShare` to whole over these years, and keeps it for its life. At zero every frond is made whole.
+
+- real, years, [0, 100], default 0
+- read by plan, expand; removed growth path: as the direct build
+- checked: Rosette site, rank 24, as invalid input `frond establishment`
+- dormant: `frondLife` zero, or `rosetteFronds` zero
+- blend: linear; dial: `frond_establishment` (the years a crown takes to make a mature frond; at zero every frond is made whole), window its bounds (validated bound), steps 1 and 3
+
+### `/canopy/frondEarlyShare`
+
+The share of a mature frond's size a crown's first frond is made at, while it establishes (fn-275 R2).
+
+- real, share of a mature frond, [0, 1], default 0
+- read by plan, expand; removed growth path: as the direct build
+- checked: Rosette site, rank 25, as invalid input `frond early share`
+- dormant: `frondEstablishment` zero
+- blend: linear; dial: `frond_early_share` (the share of a mature frond's size a crown's first frond is made at), window its bounds (validated bound), steps 0.05 and 0.15
+
 ### `/canopy/maxInstances`
 
 Hard total budget. Exceeding it returns an error, never partial foliage.

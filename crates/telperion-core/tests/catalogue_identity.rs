@@ -205,6 +205,11 @@
 //! the family digest was the last pin to the bit; the override text orders
 //! its keys by name and the walk blends the new row, so both moved, and
 //! the refusal names the new row.
+//! fn-275 R2 re-pinned all four for `frondEstablishment` and
+//! `frondEarlyShare` (the palm's 6.75 years from 0.1): with both rows cut
+//! from its text the family digest was the last pin to the bit; the walk
+//! blends the new rows, the override text reads them and the refusal
+//! names them.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -240,7 +245,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        11_401_346_922_847_411_476,
+        15_470_645_429_450_206_182,
         "{}",
         digest(&text)
     );
@@ -284,7 +289,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        843_457_039_801_554_522,
+        9_265_595_277_040_519_381,
         "{}",
         digest(&text)
     );
@@ -309,7 +314,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        11_673_823_740_692_486_087,
+        10_023_782_808_327_106_741,
         "{}",
         digest(&text)
     );
@@ -372,7 +377,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        16_749_260_548_484_264_031,
+        635_994_656_037_425_314,
         "{}",
         digest(&text)
     );
