@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-273-a-walk-between-a-whorled-conifer-and-a",
+  "created_at": "2026-10-13T23:40:24.497536Z",
+  "depends_on_epics": [],
+  "id": "fn-273-a-walk-between-a-whorled-conifer-and-a",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-273-a-walk-between-a-whorled-conifer-and-a.md",
+  "status": "open",
+  "title": "A walk between a whorled conifer and a broad crown keeps its branching",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-14T00:01:09.989801Z"
+}

@@ -10,7 +10,9 @@
     "fn-255-one-growth-law-reads-light-for-every"
   ],
   "id": "fn-251-a-walk-never-grows-a-tree-larger-than",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-251-a-walk-never-grows-a-tree-larger-than.1": 0
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
@@ -162,15 +164,52 @@
       "task": null,
       "timestamp": "2026-10-09T19:15:28.670174Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "7483d4716650d46012006d0a97bb7d79aeaecb26b8d8f74e0ee218c57bdfcab9",
+      "backend": "codex",
+      "base_sha": "af2d4ba8adf2f8d40c205bce64cdf8b3f3be740b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "98b1e5ce9ee6bddca97e835e697d3633ece253e9",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "ed02454114c84ac48c1480c9af77fab9",
+      "round_consumed": true,
+      "scope": "impl:fn-251-a-walk-never-grows-a-tree-larger-than.1",
+      "superseded_by": null,
+      "task": "fn-251-a-walk-never-grows-a-tree-larger-than.1",
+      "timestamp": "2026-10-14T01:32:41.019865Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-251-a-walk-never-grows-a-tree-larger-than.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-251-a-walk-never-grows-a-tree-larger-than.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-251-a-walk-never-grows-a-tree-larger-than.md",
@@ -187,5 +226,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T20:57:27.214817Z"
+  "updated_at": "2026-10-14T01:32:41.022042Z"
 }
