@@ -138,6 +138,7 @@ impl Grower<'_> {
         };
         c.f32s("pa_viability", &st(&|s| s.viability));
         c.f32s("pa_shade_hazard", &st(&|s| s.shade_hazard));
+        c.f32s("pa_ground_hazard", &st(&|s| s.ground_hazard));
         let sheds: Vec<u32> = states.iter().map(|s| u32::from(s.shedding.is_finite())).collect();
         c.u32s("pa_sheds", &sheds);
         let delay: Vec<u64> = states.iter().map(|s| (s.shedding + 1.0).to_bits()).collect();

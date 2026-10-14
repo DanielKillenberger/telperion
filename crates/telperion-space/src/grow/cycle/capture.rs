@@ -246,13 +246,16 @@ impl Grower<'_> {
             };
             let s = carried.unit(state.life(), 1).share;
             let below = if first { d.below } else { 0 };
-            let l = self
-                .sketch
-                .as_ref()
-                .and_then(|k| k.pencils.get(i))
-                .map_or(1.0, |p| p.light);
-            // The table's f32, shaded as the device shades it (`advance`).
+            let pencil = self.sketch.as_ref().and_then(|k| k.pencils.get(i));
+            let l = pencil.map_or(1.0, |p| p.light);
+            // The table's f32, shaded as the device shades it (`advance`),
+            // and ended by the ground where its tip rests (fn-252 R2).
             let viability = decide::shaded(state.viability as f32, state.shade_hazard as f32, l as f32);
+            let rests = pencil.is_some_and(|p| !p.trunk && p.laid > 0 && p.layer.rests());
+            let viability = match state.ground_hazard > 0.0 && rests {
+                true => viability * (1.0 - state.ground_hazard as f32),
+                false => viability,
+            };
             axis.push(i as u32);
             pas.push(self.axes[i].pa as u32);
             key.push(decide_key.0);

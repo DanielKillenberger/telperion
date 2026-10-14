@@ -236,8 +236,10 @@ fn start<'a>(
     }
     let laterals: Vec<_> = species.states.iter().map(PaState::laterals).collect();
     // The rough layout is grown wherever light shades: every bud reads
-    // it (fn-255).
-    let sketch = request.light.shades().then(|| Sketch::new(request.light));
+    // it (fn-255); and wherever a ground hazard reads its tips (fn-252 R2),
+    // whole light where nothing shades.
+    let grounded = species.states.iter().any(|s| s.ground_hazard > 0.0);
+    let sketch = (request.light.shades() || grounded).then(|| Sketch::new(request.light));
     // What shedding will drop is grown only where something reads it
     // while it lives: the light, or the girth of what bore it.
     let keeps = keeps(species);

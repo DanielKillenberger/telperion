@@ -213,6 +213,14 @@
 //! fn-275 R2a re-pinned the family, walk and override digests for the
 //! palm's internode, 0.031 to 0.0339 m (host, 2026-10-14), the one row
 //! that moved.
+//! fn-252 R2 re-pinned the family, walk and override digests for each
+//! engine age's new neutral `ground_hazard` and the silver birch's nine
+//! `groundHazard` rows of 1: with those rows left out of its value file,
+//! `telperion_space::birch` at 0, and `ground_hazard: 0.0, ` and
+//! `"groundHazard":0.0,` stripped from the text, all four digests were
+//! the last pins to the bit.
+//! The release branch's merge of fn-275 and fn-252 (2026-10-14) re-pinned
+//! the family, walk and override digests for both sets of rows together.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -248,7 +256,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        17_501_661_787_957_023_156,
+        6_286_361_375_570_064_988,
         "{}",
         digest(&text)
     );
@@ -292,7 +300,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        13_850_429_412_489_794_867,
+        7_354_146_457_569_637_914,
         "{}",
         digest(&text)
     );
@@ -317,7 +325,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        2_381_100_684_192_572_147,
+        4_577_891_291_225_145_068,
         "{}",
         digest(&text)
     );

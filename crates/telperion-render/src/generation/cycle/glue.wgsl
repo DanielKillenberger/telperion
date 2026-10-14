@@ -77,7 +77,10 @@ const PH_SCALE: u32 = 9u;
 const PH_SIZE: u32 = 11u;
 const PH_AREA: u32 = 13u;
 // A pencil's scalars the balance and the units read.
+const P_TIP: u32 = 6u;
 const P_BASE_SCALE: u32 = 48u;
+const P_LAID: u32 = 52u;
+const P_TRUNK: u32 = 53u;
 const P_GOING: u32 = 49u;
 const P_WOOD: u32 = 54u;
 const P_LIGHT: u32 = 55u;
@@ -205,6 +208,10 @@ fn inputs_main(@builtin(global_invocation_id) id: vec3<u32>) {
         aux[at + 3u * n + k] = size.y;
         aux[at + 4u * n + k] = wide.x;
         aux[at + 5u * n + k] = wide.y;
+        // Its tip rests on the ground (`Grower::rests`, fn-252 R2): a laid
+        // walk off the stem whose tip stands at the ground.
+        let z = bitcast<f32>(pn(k, P_TIP + 2u));
+        aux[at + 6u * n + k] = u32(pn(k, P_TRUNK) == 0u && pn(k, P_LAID) > 0u && z <= 0.0);
     }
 }
 
