@@ -108,7 +108,7 @@ A proposal for the host: choose the start margin so that the start tables plus t
 
 **What was not re-run.** The whole R4 sweep ran before the stack fix. After it, only R1's repros, the chain test and the mirror tests ran. The stack's layout change has not been through the 2,034-case sweep or a gate of its own. The host runs the gate on the merged branch.
 
-## Task 2: a build's start leaves room for its first move (3fc6acf65, b-fits below)
+## Task 2: a build's start leaves room for its first move (3fc6acf65, 615a153bf)
 
 **The rule.** `Growing::within` takes the largest start margin whose tables the budget holds beside their first move. That move is the largest state group a move holds twice (the phytomers, the axes, or the units and lists), made `GROWTH` times larger (`Sizes::first_move`). It is the same margin ladder, with no species branch.
 
