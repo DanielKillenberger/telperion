@@ -50,3 +50,21 @@ Every preset up to the spruce holds a 60 Hz frame at p95 while it grows; the Two
 
 - **fn-257's field query:** no device consumer exists on this branch (fn-257 has only its two spikes done; the field reads the CPU's tree through `telperion-field`). Whether it takes the state is unknown until fn-257 builds it.
 - **The CPU Wasm entry (`telperion-wasm`):** takes no growth state; the page grows on the device. The CPU state still borrows its parameters (`GrowthState<'p>`); no consumer needs it owned yet.
+
+## The harness (R6; host rulings, 2026-10-14)
+
+`harness/grow-in.ts`, `GrowerDev.tsx`. Opening, a preset, a look, the seed (typed or rerolled), reset and the age grow the tree in from year 1, a whole year a draw, as fast as the device allows and each drawn year up at least 150 ms; the trait dials build the grown tree at once, as before. "grow again" replays the grow-in; "play the year" steps the tree through its last year in 12 draws (budburst, full leaf, autumn, fall, winter) and ends at the whole age, on the growth already held where it is this tree's and grown whole. The canvas keeps the last drawn tree while the next one grows; a newer request abandons a run between its draws and lets its state go (no queue). The panel says "year 23 of 82" while a run draws. A stage still waiting to be framed (opening, a preset, a seed) follows the tree as it grows. There is no `?growth=1` flag: the old growth path and its flag went in fn-181, and growth is now how a tree appears. Tests: `harness/grow-in.test.ts` (years and floor, the year played on the same tree, a trait build letting go, abandonment).
+
+## Open (for the settle lever)
+
+- The Two Trees miss a 60 Hz frame at p95 while growing (19 ms), and single frames wait 100 to 250 ms behind one long submission of the cycle or the settle (host, 2026-10-14: an open item for the settle lever, not a blocker).
+
+## The owner's steps in the harness
+
+1. In the worktree: `npm run dev`, then open the printed address in Chrome.
+2. The beech opens growing in: "year 1 of 40" to "year 40 of 40", last year's tree staying drawn while the next grows.
+3. Choose telperion: it grows in to 82 (about 30 s). Drag the camera while it grows; the frame should stay smooth apart from the stalls above.
+4. Press "play the year": the grown tree goes through budburst, full leaf, autumn colour, leaf fall and winter, and ends in full leaf at 82. Do the same on the oak (brown autumn) and the date palm (new fronds at the crown's centre).
+5. Press "grow again" to replay; move a trait dial: the grown tree is built at once, with no grow-in.
+6. While a tree grows, press "gpu timing" and note the vegetation p50/p95: the browser's frame time while growing.
+7. A link grows in too: `?species=oregon-white-oak&age=40&seed=7`.

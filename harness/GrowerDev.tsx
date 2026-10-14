@@ -31,7 +31,9 @@ import {
   randomSeed,
 } from "./params";
 import { createStage, type Stage } from "./rust-stage";
+import { type Held, type Job, type Kind, release, stageRun } from "./grow-in";
 import { latestBuild } from "./latest-build";
+import { describeTiming } from "./timing";
 import "./grower-dev.css";
 
 /** A build this cheap, in milliseconds, runs on every notch of a dial;
@@ -41,22 +43,15 @@ import "./grower-dev.css";
 const BUILD_LIVE_MS = 80;
 const BUILD_SETTLE_MS = 250;
 
-/** The timing session as the panel says it, and the old sweep's honesty
- *  rule kept word for word: WITHOUT A VALID VERDICT THERE IS NO
- *  MILLISECOND FIGURE IN THIS STRING. An invalid session carries no
- *  number that could be read as a pass, so there is none to print. */
-function describeTiming(report: TimingReport): string {
-  const who = `${report.adapter} (${report.backend})`;
-  if (report.verdict !== "valid" || report.p50_ms === undefined || report.p95_ms === undefined) {
-    return `${report.verdict}: ${report.reason ?? "no reason given"} - no frame time reported, on ${who}`;
-  }
-  return `vegetation p50 ${report.p50_ms.toFixed(3)} ms, p95 ${report.p95_ms.toFixed(3)} ms over ${report.samples} frames on ${who} - valid`;
-}
-
 export function GrowerDev() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<Stage | null>(null);
-  const buildsRef = useRef<ReturnType<typeof latestBuild<GrowerParams, Submitted & { buildMs: number }>> | null>(null);
+  const buildsRef = useRef<ReturnType<typeof latestBuild<Job<GrowerParams>, Submitted & { buildMs: number }>> | null>(null);
+  /* What the next change of the params asks for: opening, a preset, the
+     seed and the age grow the tree in; a trait dial builds it at once. */
+  const intent = useRef<Kind>("grow");
+  /* The year a grow-in or a played year has drawn, while it runs. */
+  const [growing, setGrowing] = useState<string | null>(null);
 
   const [ready, setReady] = useState(false);
   const [buildError, setBuildError] = useState<string | null>(null);
@@ -87,21 +82,13 @@ export function GrowerDev() {
           () => { if (!cancelled) setPreparing(false); },
           (error: unknown) => { if (!cancelled) setBuildError(String(error)); },
         );
-        buildsRef.current = latestBuild(async (params: GrowerParams) => {
-          const family = familyJson(params);
-          /* The budget's one rule (fn-235): a tree that fits only alone
-             lets the drawn one go first, and the page says the screen is
-             empty while it builds; one that does not fit even alone
-             throws here, by name, and the drawn tree stays. */
-          setMakingRoom(stage.admission(family) === "makeRoom");
-          try {
-            const started = performance.now();
-            const submitted = await stage.setTreeGpu(family);
-            return { ...submitted, buildMs: performance.now() - started };
-          } finally {
-            setMakingRoom(false);
-          }
-        });
+        const held: Held = { growth: null, family: null };
+        heldRef.current = held;
+        buildsRef.current = latestBuild(stageRun(stage, held, familyJson, {
+          growing: setGrowing,
+          makingRoom: setMakingRoom,
+          built: (ms) => { lastBuildMs.current = ms; },
+        }));
         setReady(true);
         setBuildError(null);
       },
@@ -111,6 +98,7 @@ export function GrowerDev() {
       cancelled = true;
       buildsRef.current?.dispose();
       buildsRef.current = null;
+      if (heldRef.current !== null) release(heldRef.current);
       stageRef.current?.dispose();
       stageRef.current = null;
       setReady(false);
@@ -138,6 +126,7 @@ export function GrowerDev() {
   const [seedText, setSeedText] = useState(String(params.seed));
   /* A look's tree onto the dials, its seed into the seed box. */
   const applyLook = useCallback((next: GrowerParams) => {
+    intent.current = "grow";
     setParams(next);
     setSeedText(String(next.seed));
     stageRef.current?.frameNext();
@@ -161,26 +150,30 @@ export function GrowerDev() {
      seconds. A ref lets the measured cost steer the next effect
      without triggering another build itself. */
   const lastBuildMs = useRef(0);
+  const heldRef = useRef<Held | null>(null);
   // What the renderer did on the last frame, polled - it changes when
   // the camera moves, which no React state does.
   const [frameStats, setFrameStats] = useState<FrameStats | null>(null);
   const [timing, setTiming] = useState<TimingReport | null>(null);
   const [measuring, setMeasuring] = useState(false);
 
+  /* One request to the stage: the tree built, grown in, or its year
+     played. A newer one abandons it between its draws. */
+  const submit = useCallback((next: GrowerParams, kind: Kind) => buildsRef.current?.submit({ params: next, kind }, (submitted) => {
+    setBuildError(null);
+    setRefused(false);
+    setStats(submitted);
+    stageRef.current?.frameIfWaiting();
+  }, (error) => { setBuildError(String(error)); setRefused(true); }), []);
+
   useEffect(() => {
     if (!ready) return;
-    const stage = stageRef.current;
-    const builds = buildsRef.current;
     let cancelBuild: (() => void) | undefined;
+    const kind = intent.current;
+    intent.current = "build";
     const build = (): void => {
       try {
-        cancelBuild = builds?.submit(params, (submitted) => {
-          setBuildError(null);
-          setRefused(false);
-          setStats(submitted);
-          lastBuildMs.current = submitted.buildMs;
-          stage?.frameIfWaiting();
-        }, (error) => { setBuildError(String(error)); setRefused(true); });
+        cancelBuild = submit(params, kind);
       } catch (error) {
         /* The panel's own words, before any build: nothing was asked of
            the generator, so the tree already on the canvas stays where it
@@ -194,7 +187,7 @@ export function GrowerDev() {
        is the one number that says whether rebuilding per notch would
        hold the slider still. A tree at depth is still built at depth -
        this defers, it does not coarsen. */
-    if (lastBuildMs.current <= BUILD_LIVE_MS) {
+    if (kind !== "build" || lastBuildMs.current <= BUILD_LIVE_MS) {
       build();
       return () => { cancelBuild?.(); };
     }
@@ -207,7 +200,7 @@ export function GrowerDev() {
        it is being dragged, which reads as the room moving rather than
        the tree growing. "Once" belongs to the stage and is latched
        there: this component outlives its own stage. */
-  }, [params, ready]);
+  }, [params, ready, submit]);
 
   useEffect(() => {
     if (!ready) return;
@@ -244,16 +237,18 @@ export function GrowerDev() {
   const commitSeed = useCallback((raw: string) => {
     setSeedText(raw);
     const seed = normalizeSeed(raw);
-    if (seed !== null) { setParams((prev) => ({ ...prev, seed })); stageRef.current?.frameNext(); }
+    if (seed !== null) { intent.current = "grow"; setParams((prev) => ({ ...prev, seed })); stageRef.current?.frameNext(); }
   }, []);
 
   /* The age rebuilds through the same engine path as any dial. */
   const setAge = useCallback((age: number) => {
+    intent.current = "grow";
     setParams((prev) => ({ ...prev, family: { ...prev.family, age } }));
   }, []);
 
   const reroll = useCallback(() => {
     const seed = randomSeed();
+    intent.current = "grow";
     setSeedText(String(seed));
     setParams((prev) => ({ ...prev, seed }));
     stageRef.current?.frameNext();
@@ -264,11 +259,13 @@ export function GrowerDev() {
      authored tree rather than near it, with the whole parameter set
      under their hands to argue with. */
   const loadPreset = useCallback((preset: TreePreset) => {
+    intent.current = "grow";
     setParams((prev) => ({ ...presetToParams(preset), seed: prev.seed }));
     stageRef.current?.frameNext();
   }, []);
 
   const reset = useCallback(() => {
+    intent.current = "grow";
     setSeedText(String(OPENING_PARAMS.seed));
     // A fresh object rather than OPENING_PARAMS itself: reset from an
     // already-default state still has to rebuild and re-frame, and
@@ -337,6 +334,15 @@ export function GrowerDev() {
         </div>
 
         <AgeDial age={params.family.age} onChange={setAge} />
+        <div className="gd-row">
+          <button className="gd-button" type="button" disabled={!ready} onClick={() => submit(params, "grow")}>
+            grow again
+          </button>
+          <button className="gd-button" type="button" disabled={!ready} onClick={() => submit(params, "year")}>
+            play the year
+          </button>
+          {growing !== null && <span role="status" className="gd-value">{growing}</span>}
+        </div>
 
         <div className="gd-row">
           {PRESETS.map((preset) => (

@@ -2,6 +2,7 @@ import {
   type Admission,
   createRenderer,
   type FrameStats,
+  type Growth,
   type Renderer,
   type SceneRow,
   type Submitted,
@@ -38,6 +39,9 @@ export interface Stage {
    *  the generator's or the renderer's own message; the tree already on
    *  the canvas stays where it is. */
   setTreeGpu(family: string): Promise<Submitted>;
+  /** The family's tree before its first year, growing on the device
+   *  (`Renderer.beginGrowth`); the tree on the canvas stays. */
+  beginGrowth(family: string): Promise<Growth>;
   /** What the build does under the page's device budget (`Renderer.admission`). */
   admission(family: string): Admission;
   setView(view: View): void;
@@ -52,6 +56,8 @@ export interface Stage {
   /** Frames it only while this stage is still waiting to be framed - on
    *  its first tree, or on the next one after `frameNext`. */
   frameIfWaiting(): void;
+  /** Whether the stage is still waiting to be framed. */
+  waiting(): boolean;
   /** Asks for the next tree to arrive to be framed, for a caller that
    *  has just requested one and cannot frame it yet. */
   frameNext(): void;
@@ -146,6 +152,7 @@ export async function createStage(
   return {
     programs: renderer.programs,
     setTreeGpu: (family) => renderer.setTreeGpu(family),
+    beginGrowth: (family) => renderer.beginGrowth(family),
     admission: (family) => renderer.admission(family),
     scene: () => renderer.scene(),
     setScene: (row) => { renderer.setScene(row); },
@@ -160,6 +167,7 @@ export async function createStage(
     frameIfWaiting: () => {
       if (waitingToFrame) frame();
     },
+    waiting: () => waitingToFrame,
     frameNext: () => {
       waitingToFrame = true;
     },
