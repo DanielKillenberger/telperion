@@ -29,10 +29,12 @@ fn on(threads: usize, family: &crate::Family) -> telperion_space::Structure {
 /// derived `Debug` reaches every field, crate-private ones too, and prints
 /// each float in the shortest form that reads back to its bits, so two
 /// trees fold alike where they are equal field by field, axis by axis.
+/// Every NaN prints alike, so a NaN fails, as it failed `==`.
 fn print(tree: &telperion_space::Structure) -> u64 {
     struct Fold(DefaultHasher);
     impl std::fmt::Write for Fold {
         fn write_str(&mut self, s: &str) -> std::fmt::Result {
+            assert!(!s.contains("NaN"), "a NaN in the tree");
             self.0.write(s.as_bytes());
             Ok(())
         }
@@ -45,6 +47,7 @@ fn print(tree: &telperion_space::Structure) -> u64 {
 #[test]
 fn every_preset_grows_the_same_tree_again_and_on_any_cores() {
     let _turn = crate::one_tree::turn();
+    the_print_tells_a_bit_and_a_build_order_apart();
     for &(_, id, _, _) in CATALOGUE {
         let family = by_identity(id).unwrap();
         let first = {
@@ -61,8 +64,7 @@ fn every_preset_grows_the_same_tree_again_and_on_any_cores() {
 
 /// The print tells one bit apart, and one tree built in another order:
 /// two axes that bear nothing swapped are the same tree by lineage
-/// (`telperion_space::digest`) and another build.
-#[test]
+/// (`telperion_space::digest`) and another build. A NaN is refused.
 fn the_print_tells_a_bit_and_a_build_order_apart() {
     let tree = on(4, &by_identity("ordinary").unwrap());
     let base = print(&tree);
@@ -79,4 +81,9 @@ fn the_print_tells_a_bit_and_a_build_order_apart() {
     swapped.axes.swap(n - 1, n - 2);
     assert_eq!(telperion_space::digest(&swapped), telperion_space::digest(&tree));
     assert_ne!(print(&swapped), base, "build order");
+
+    let mut nan = tree.clone();
+    nan.axes[0].base.x = f64::NAN;
+    let refused = std::panic::catch_unwind(|| print(&nan));
+    assert!(refused.is_err(), "a NaN");
 }
