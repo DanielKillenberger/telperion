@@ -237,10 +237,11 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .remove(row)
                 .expect("the canopy publishes its lattice rows");
         }
-        // fn-120 adds the skirt as three more canopy rows. The frozen file
-        // predates them, and the count is zero there, which keeps no dead
-        // frond.
-        for row in ["skirtFronds", "skirtPitch", "skirtLength"] {
+        // fn-120 adds the skirt as three more canopy rows, and fn-270 the
+        // fronds a rosette makes a year. The frozen file predates them, and
+        // the counts are zero there, which keep no dead frond and leave the
+        // crown dormant.
+        for row in ["skirtFronds", "skirtPitch", "skirtLength", "rosetteYear"] {
             emitted["canopy"]
                 .as_object_mut()
                 .unwrap()

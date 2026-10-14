@@ -81,7 +81,7 @@ const SWEEP_NODES: usize = 8_000;
 // with the rest of the scaffold; the birch (fn-213) moves the envelope, the
 // clump, the peel, the curtain and the twig length, so the sweep walks
 // those. Every preset is now an engine preset, so every pair is walked.
-const HELD: [&str; 137] = [
+const HELD: [&str; 135] = [
     "/bloom/florets",
     "/bloom/rachis",
     "/bloom/droop",
@@ -127,9 +127,10 @@ const HELD: [&str; 137] = [
     "/canopy/skirtFronds",
     "/canopy/skirtPitch",
     "/canopy/skirtLength",
-    "/material/leafDeadRed",
-    "/material/leafDeadGreen",
-    "/material/leafDeadBlue",
+    // fn-270: the fronds a rosette makes a year, stated by the palm alone,
+    // which the sweep does not walk; the named autumn colours moved off this
+    // list, as the walked presets now differ in them.
+    "/canopy/rosetteYear",
     "/canopy/clumpNeighbours",
     "/surface/socketContainment",
     "/skeleton/habit/reachProbeSteps",

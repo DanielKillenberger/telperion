@@ -465,14 +465,9 @@ fn run(t: f32, days: f32) -> f32 {
 // it has coloured, a regrowing one's share, and the share of its wood's
 // stations past their lifespan. A gone subtree's leaves (`present.wgsl`
 // marks them 2 past their share) fall with its wood and grow none again.
-fn seasoned(r: u32, a: u32, p: u32) {
+fn season_of(a: u32, p: u32) -> Leaves {
     if cfg.unfolding == 0u {
-        put(r, 32u, 1.0);
-        put(r, 34u, 0.0);
-        put(r, 35u, 0.0);
-        put(r, 36u, 0.0);
-        putu(r, 37u, 0u);
-        return;
+        return Leaves(1.0, 0.0, 0.0, 0.0, 0u);
     }
     let tau = cfg.fraction * 365.0;
     let marked = leaf[p];
@@ -503,11 +498,26 @@ fn seasoned(r: u32, a: u32, p: u32) {
     if gone {
         life = 0xffffu;
     }
-    put(r, 32u, grow);
-    put(r, 34u, fall);
-    put(r, 35u, colour);
-    put(r, 36u, regrow);
-    putu(r, 37u, life);
+    return Leaves(grow, fall, colour, regrow, life);
+}
+
+// A phytomer's leaves within the year (`season_of`), worked once a
+// phytomer in `draw_axis` and written to each record it places: the
+// dress's one copy of the work, which keeps its pipeline quick to make.
+struct Leaves {
+    grow: f32,
+    fall: f32,
+    colour: f32,
+    regrow: f32,
+    life: u32,
+}
+
+fn seasoned(r: u32, l: Leaves) {
+    put(r, 32u, l.grow);
+    put(r, 34u, l.fall);
+    put(r, 35u, l.colour);
+    put(r, 36u, l.regrow);
+    putu(r, 37u, l.life);
 }
 
 
@@ -566,7 +576,7 @@ struct How {
 // phytomer `p` and, where `bloom`, its bloom, key and the wood grown into
 // it; merged into the node before where it lies behind it or its wood is
 // too short.
-fn place(a: u32, r: u32, at: vec4<f32>, p: u32, key: u32, bloom: bool, w: Walk, along: vec3<f32>, how: How) -> Walk {
+fn place(a: u32, r: u32, at: vec4<f32>, p: u32, key: u32, bloom: bool, w: Walk, along: vec3<f32>, how: How, l: Leaves) -> Walk {
     var o = w;
     let pos = at.xyz;
     let thick = at.w;
@@ -603,7 +613,7 @@ fn place(a: u32, r: u32, at: vec4<f32>, p: u32, key: u32, bloom: bool, w: Walk, 
     put(r, 30u, o.older * cfg.scale);
     putu(r, 31u, (o.before << 16u) | o.last);
     putu(r, 33u, (o.was_before << 16u) | o.was_last);
-    seasoned(r, a, p);
+    seasoned(r, l);
     o.fresh = true;
     o.pending = 0.0;
     // A bloom stands at its axis's tip alone (`draw_axis`, fn-253).
@@ -697,6 +707,7 @@ fn draw_axis(a: u32, start: u32, how: How) {
     for (var k = 0u; k < count(a); k++) {
         let r = li(a, k);
         let p = ph(a, k);
+        let l = season_of(a, p);
         var radius = npf(NP_RADIUS, p);
         if !(radius >= FINEST) {
             break;
@@ -740,14 +751,14 @@ fn draw_axis(a: u32, start: u32, how: How) {
             let first = na(NA_PSTART, ca);
             let joined = child(vec2<u32>(np(NP_KEY, first), np(NP_KEY + 1u, first)), KEY_JOIN);
             let held = w.parent;
-            w = place(a, join_rec(ca), at, p, node_key(joined, 0u), false, w, along, how);
+            w = place(a, join_rec(ca), at, p, node_key(joined, 0u), false, w, along, how, l);
             own = own && w.parent == held;
         }
         w = mark(w, q);
         w.pending += rest;
         let pos = up(tip(a, k)) * cfg.scale;
         let held = w.parent;
-        w = place(a, r, vec4<f32>(pos, radius * cfg.scale), p, node_key(lineage, k), true, w, along, how);
+        w = place(a, r, vec4<f32>(pos, radius * cfg.scale), p, node_key(lineage, k), true, w, along, how, l);
         own = own || w.parent != held;
         // Relays joining at this span's node.
         for (var c = 1u; c < na_; c++) {

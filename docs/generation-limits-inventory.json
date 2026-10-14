@@ -1636,5 +1636,65 @@
     "site": "while ga > 0 . 0 {",
     "classification": "algorithm",
     "reason": "The blend's size solve (fn-230): a bounded regula-falsi root find on the lateral factor; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/executor.rs",
+    "site": ". min ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A draw within its year is at most the whole year: the fraction is a share of the last year (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "The share of this year's fronds emerged over the stem's elongation is a share of that span (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "How far a frond has turned from living to dead is its progress over its last living place (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "The skirt's last frond fades over its last place: a share of that place (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "site": ". max ( 0 . 0 )",
+    "classification": "algorithm",
+    "reason": "A frond's place down the spiral counts from the newest, which stands at the apex (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "site": ". max ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "The whole years before the last start at none: a tree in its first year has grown no whole year (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "site": ". min ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A frond of this year emerges within the stem's elongation: its serial's share of the year's fronds (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "site": "if new < = 0 . 0 | | self . per_year < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A frond made before this year, or a crown that makes none, stands whole (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/space/unfolding.rs",
+    "site": ". max ( 1 . 0 - grow )",
+    "classification": "algorithm",
+    "reason": "A gone subtree's leaves are gone no later than its wood thins to the finest drawn (fn-270 R5c)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/space/unfolding.rs",
+    "site": ". min ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A draw within its year is at most the whole year (fn-270 R5b)."
   }
 ]

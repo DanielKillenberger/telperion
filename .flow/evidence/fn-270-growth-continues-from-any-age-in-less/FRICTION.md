@@ -76,3 +76,17 @@
 - **Hindered:** the 8 GB still run waited for admission behind another session's 6 GB walk job; a cargo example of a few seconds sat queued.
 - **Cost:** 15 minutes and counting of wall time; no tokens beyond the polls.
 - **Would have removed it:** an admission class for short GPU stills whose declared peak is small (the example's measured peak is under 2 GB), or a queue that shows its holder and estimated wait.
+
+## 2026-10-14, task 4 (worker): the gate at 10 GB, 6 threads
+
+- **Doing:** the end gate as the coordinator sized it overnight (10 GB, 6 test threads).
+- **Hindered:** admitted after 30 s, then stopped at the cap after 175 s inside `telperion_core`'s unit tests (304 tests passed before it), the same binary that passed 7 GB at 8 threads before.
+- **Cost:** about 3 minutes, then the fallback at 9 GB and 4 threads.
+- **Would have removed it:** a measured peak for `telperion_core`'s unit tests per thread count, so a gate is sized once; or splitting its heaviest tests into their own binary.
+
+## 2026-10-14, task 4 (worker): the gate fallbacks at 9 GB
+
+- **Doing:** the gate's fallbacks after the 10 GB run was stopped.
+- **Hindered:** at 9 GB the gate was stopped at the cap with 4 threads (83 s) and again with 2 (374 s), both in `telperion_core`'s unit tests. Measured alone, `pipeline::tests::every_shipped_preset_builds_every_artifact_through_the_pipeline` peaks at 5,509 MB (65 s) and `pipeline::space::repeat_tests::every_preset_grows_the_same_tree_again_and_on_any_cores` at 4,880 MB (110 s); side by side they need about 10.4 GB, past any cap the ladder allows. The gate now runs on one thread.
+- **Cost:** about 15 minutes of runs and two admissions; the single-thread gate's wall time on top.
+- **Would have removed it:** a declared memory class for those two tests (a mutex like `whole_tree()` so they never run together), which would let the gate run at 4 threads under 9 GB.
