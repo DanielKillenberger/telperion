@@ -12,7 +12,7 @@ use super::super::compute::{self, Placement};
 use super::super::cycle::tree::{self, Kernels};
 use super::super::{data, io, Backend, Clock, Generator, Metrics, Prepared, Resident};
 use super::boots::Hanger;
-use super::fold::Dresser;
+use super::fold::{Dressed, Dresser};
 use super::florets::Organ;
 use super::handoff::{union, Handoff};
 use super::rings::Ringer;
@@ -25,6 +25,7 @@ use telperion_core::mesh::{Foliage, TreeMesh};
 use telperion_core::pipeline::executor::{self, beyond, Summaries};
 use telperion_core::presets::Family;
 use telperion_core::surface::SurfaceMesh;
+use telperion_core::tree::Year;
 use telperion_core::Error;
 
 /// The device's tools, made once.
@@ -85,7 +86,7 @@ pub(super) struct Built {
 
 /// `work` awaited and its device work waited for, its milliseconds in
 /// `time`: each stage's own, natively and in a browser alike.
-async fn stage<T>(gpu: &Gpu, time: &mut f64, work: impl AsyncFnOnce() -> Result<T>) -> Result<T> {
+pub(super) async fn stage<T>(gpu: &Gpu, time: &mut f64, work: impl AsyncFnOnce() -> Result<T>) -> Result<T> {
     let t = Clock::now();
     let out = work().await?;
     io::complete(gpu).await?;
@@ -126,13 +127,34 @@ pub(super) async fn crowned(
     // made, a move's new tables beside its old (`Ledger::capped`).
     let _capped = gpu.ledger.capped(gen.device_budget());
     let growth = executor::growth(family)?;
-    if !executor::stations(family) {
-        return Err(refused("leaves the device places on neither twig stations nor a rosette"));
+    placeable(family)?;
+    let mut t = Timed::default();
+    let drawn = stage(gpu, &mut t.settle, async || tree::drawn(gpu, k, &growth).await).await?;
+    placed(gpu, (gen, tools), (family, &growth), (drawn, growth.year(fraction)), t).await
+}
+
+/// `family`'s leaves refused where the device places them on neither
+/// twig stations nor a rosette.
+pub(super) fn placeable(family: &Family) -> Result<()> {
+    match executor::stations(family) {
+        true => Ok(()),
+        false => Err(refused("leaves the device places on neither twig stations nor a rosette")),
     }
+}
+
+/// A tree the cycle drew (`dressed`, its `trunk`) hung, folded, swept,
+/// stationed, ringed and placed as `family`'s, its fronds drawn in
+/// `year`: what every resident tree is prepared by, built at once or
+/// grown on (`growing.rs`). `t` holds the draw's milliseconds.
+pub(super) async fn placed(
+    gpu: &Gpu,
+    (gen, tools): (&Generator, &Tools),
+    (family, growth): (&Family, &executor::Growth),
+    ((mut dressed, trunk), year): ((Dressed, tree::Trunk), Option<Year>),
+    mut t: Timed,
+) -> Result<Built> {
     let bases = executor::bases(family)?;
     let flowers = growth.species.states.iter().any(|s| s.flowering > 0.0);
-    let mut t = Timed::default();
-    let (mut dressed, trunk) = stage(gpu, &mut t.settle, async || tree::drawn(gpu, k, &growth).await).await?;
     let hung = stage(gpu, &mut t.bases, async || {
         tools.hanger.hang(gpu, &mut dressed, bases.as_ref()).await
     })
@@ -171,7 +193,7 @@ pub(super) async fn crowned(
         true => Some(Organ::of(&x)?),
         false => None,
     };
-    let station = station_rows(&x, segments, organ.as_ref().map(Organ::rows), growth.year(fraction));
+    let station = station_rows(&x, segments, organ.as_ref().map(Organ::rows), year);
     let stationer = &tools.stationer;
     let device = stage(gpu, &mut t.stations, async || {
         stationer.stations(gpu, &swept, ids, station).await
@@ -289,6 +311,7 @@ pub(super) async fn crowned(
         wood: Some(handed.curve),
         backend: Backend::Gpu,
         metrics: m,
+        colouring: 1.0,
     };
     if std::env::var("CYCLE_TRACE").is_ok() {
         eprintln!("TRACE stages {t:?}");

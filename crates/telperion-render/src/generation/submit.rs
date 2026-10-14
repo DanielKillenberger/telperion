@@ -8,9 +8,10 @@ impl Renderer {
             return Err(error);
         }
         let count = prepared.count();
+        let colouring = prepared.colouring;
         crate::submit::fits_count(&self.gpu.device.limits(), &prepared.mesh, count)?;
         let Some(resident) = prepared.resident else {
-            return self.submit(&prepared.mesh);
+            return self.submit(&prepared.mesh).inspect(|_| self.set_colouring(colouring));
         };
         let mesh = prepared.mesh;
         self.sun.forget();
@@ -50,6 +51,7 @@ impl Renderer {
             .set_leaf_reference(mesh.foliage.instances.reference);
         self.scene.set_leaf(&mesh.foliage.element);
         self.bounds = Some(mesh.bounds);
+        self.set_colouring(colouring);
         self.level_deviations = mesh
             .foliage
             .element

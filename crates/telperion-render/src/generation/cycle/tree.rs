@@ -6,7 +6,9 @@
 use super::super::resident::fold::Dressed;
 use super::build::{Kit, Tables};
 use super::build_grow::grow_hinted;
-use super::drawn::{dress, trunk, Rows, Trunk};
+use super::drawn::{dress, trunk, Rows};
+pub(in crate::generation) use super::drawn::Trunk;
+pub(in crate::generation) use super::growth::GrowthState;
 use super::settle_device::Kernels as Settle;
 use super::settle_run::settle;
 use super::{chains, drawn, present};

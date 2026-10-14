@@ -161,6 +161,7 @@ impl Generator {
                 wood: None,
                 backend: Backend::CpuFallback,
                 metrics,
+                colouring: 1.0,
             });
         };
         let element = x.element();
@@ -284,6 +285,7 @@ impl Generator {
             wood: None,
             backend: Backend::Gpu,
             metrics,
+            colouring: 1.0,
         })
     }
 }

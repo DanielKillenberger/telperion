@@ -68,12 +68,9 @@ impl super::Generator {
     /// `family` prepared resident, grown, drawn and placed on the device
     /// whole (fn-256 task 3), nothing read back per node.
     pub(super) async fn prepare_resident(&self, family: &Family) -> Result<Prepared> {
-        let gpu = &self.gpu;
-        // What was let go before this build (a tree, a still's buffers) is
-        // charged until the device is done with it: waited for, so the
-        // budget counts what is held, not what is on its way out (fn-256
-        // task 5, `Ledger::destroy`).
-        super::io::complete(gpu).await?;
+        // What was let go before this build is waited for, so the budget
+        // counts what is held (`on_device`).
+        super::io::complete(&self.gpu).await?;
         // A browser build over its device budget is refused before it starts.
         #[cfg(target_arch = "wasm32")]
         budget::check(family, self.gpu.ledger.live(), budget::BROWSER)?;
@@ -81,6 +78,40 @@ impl super::Generator {
         if let Some(stated) = self.budget.get() {
             budget::check(family, self.gpu.ledger.live(), stated)?;
         }
+        let built = self
+            .on_device(async |kit| {
+                #[cfg(test)]
+                if self.fail_next.take() {
+                    // A storage buffer the device may also map: a validation error.
+                    let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::MAP_READ;
+                    let refused = crate::buffer::Owned::create(
+                        &self.gpu,
+                        &wgpu::BufferDescriptor {
+                            label: Some("refused"),
+                            size: 16,
+                            usage,
+                            mapped_at_creation: false,
+                        },
+                    );
+                    drop(refused);
+                }
+                build::build(&self.gpu, self, &kit.kernels, &kit.tools, family).await
+            })
+            .await?;
+        Ok(built.prepared)
+    }
+
+    /// `work` on the device's kit, inside its error scopes: a device
+    /// error is the cause of any readback it failed, so it is the one
+    /// reported, and a program the device refused is reported before any
+    /// work starts.
+    async fn on_device<T>(&self, work: impl AsyncFnOnce(&Kit) -> Result<T>) -> Result<T> {
+        let gpu = &self.gpu;
+        // What was let go before (a tree, a still's buffers) is charged
+        // until the device is done with it: waited for, so the budget
+        // counts what is held, not what is on its way out (fn-256 task 5,
+        // `Ledger::destroy`).
+        super::io::complete(gpu).await?;
         // The kernels are made inside the scopes, so a shader the device
         // refuses is the error reported.
         let scopes = super::io::scope(gpu);
@@ -91,31 +122,13 @@ impl super::Generator {
             let _ = super::io::errors(gpu, scopes).await;
             return Err(gpu.lost().unwrap_or(refused));
         }
-        #[cfg(test)]
-        if self.fail_next.take() {
-            // A storage buffer the device may also map: a validation error.
-            let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::MAP_READ;
-            let refused = crate::buffer::Owned::create(
-                gpu,
-                &wgpu::BufferDescriptor {
-                    label: Some("refused"),
-                    size: 16,
-                    usage,
-                    mapped_at_creation: false,
-                },
-            );
-            drop(refused);
-        }
-        let built = build::build(gpu, self, &kit.kernels, &kit.tools, family).await;
-        // The build's scratch, let go as it returned, is charged until the
-        // device is done with it: waited for, so what the device holds
-        // after a build is the tree it hands over (`Ledger::destroy`).
+        let done = work(kit).await;
+        // The work's scratch, let go as it returned, is charged until the
+        // device is done with it.
         let freed = super::io::complete(gpu).await;
-        // A device error is the cause of any readback it failed, so it is
-        // the one reported.
         super::io::errors(gpu, scopes).await?;
         freed?;
-        Ok(built?.prepared)
+        done
     }
 }
 
@@ -146,6 +159,12 @@ mod boots_tests;
 mod build;
 #[cfg(test)]
 mod full_card_tests;
+mod growing;
+#[cfg(test)]
+mod growing_cost;
+#[cfg(test)]
+mod growing_tests;
+pub use growing::GrowingTree;
 #[cfg(test)]
 mod hang_tests;
 #[cfg(test)]

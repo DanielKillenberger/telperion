@@ -24,6 +24,13 @@ vi.mock("./render/telperion_render.js", () => ({
     create: async () => ({
       preparePrograms: () => { fake.prepared += 1; return fake.programs; },
       setTreeGpu: async (family: string) => { fake.builds.push(family); return "{}"; },
+      beginGrowth: async (family: string) => {
+        fake.builds.push(`grow ${family}`);
+        let committed = 0;
+        return { committed: () => committed, horizon: () => 8, free: () => undefined, grow: (age: number) => (committed = Math.ceil(age)) };
+      },
+      growTo: async (handle: { grow(age: number): number }, age: number) => handle.grow(age),
+      drawGrowth: async (_handle: unknown, at: number) => JSON.stringify({ foliageInstances: at }),
       resize: () => undefined,
       dispose: () => undefined,
       free: () => undefined,
@@ -98,4 +105,27 @@ it("a resize notice that keeps the canvas's pixel size does not reset it (fn-246
   expect(writes).toEqual(["width=4", "height=4"]);
   notice();
   expect(writes).toEqual(["width=4", "height=4"]);
+});
+
+it("a growth waits on the programs, then grows and draws through its handle (fn-270 R7)", async () => {
+  const programs = deferred();
+  fake.programs = programs.promise;
+  const renderer = await createRenderer(canvas);
+  const begun = renderer.beginGrowth("oak");
+  await flush();
+  expect(fake.builds).toEqual([]);
+  programs.resolve();
+  const growth = await begun;
+  expect(fake.builds).toEqual(["grow oak"]);
+  expect(await growth.growTo(2.5)).toBe(3);
+  expect(growth.committed()).toBe(3);
+  expect((await growth.draw(2.5)).foliageInstances).toBe(2.5);
+});
+
+it("a growth on a renderer whose programs failed rejects by name and never begins", async () => {
+  const message = "the GPU device was lost: Unknown: A valid external Instance reference no longer exists.";
+  fake.programs = Promise.reject(new Error(message));
+  const renderer = await createRenderer(canvas);
+  await expect(renderer.beginGrowth("oak")).rejects.toThrow(message);
+  expect(fake.builds).toEqual([]);
 });

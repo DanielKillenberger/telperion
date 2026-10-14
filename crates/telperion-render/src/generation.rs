@@ -10,7 +10,7 @@ mod data;
 // The resident build's stages after the cycle's: the folds, sweep,
 // stations, rings, placement and handoff (fn-212, fn-256 task 3).
 mod resident;
-pub use resident::Admitted;
+pub use resident::{Admitted, GrowingTree};
 #[cfg(target_arch = "wasm32")]
 pub(crate) use resident::BROWSER;
 mod io;
@@ -125,6 +125,9 @@ pub struct Prepared {
     wood: Option<crate::curve::CurveGpu>,
     pub backend: Backend,
     pub metrics: Metrics,
+    /// How far the tree's falling leaves have coloured (fn-270 R5c), which
+    /// the submit draws them by: whole for a tree built at once.
+    pub colouring: f64,
 }
 impl Prepared {
     pub fn count(&self) -> usize {

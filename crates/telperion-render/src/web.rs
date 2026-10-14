@@ -19,6 +19,8 @@ use crate::{
 };
 
 mod generation;
+/// A tree growing on the page's device (fn-270 R6, R7).
+mod growing;
 /// The timing protocol as a page runs it, kept beside this file rather than in
 /// it so neither outgrows the project's line rule.
 mod session;

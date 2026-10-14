@@ -23,8 +23,6 @@ mod gate;
 mod held;
 mod given;
 mod glue;
-// Its consumers take it in fn-270 task 5; until then its tests alone.
-#[cfg_attr(not(test), allow(dead_code))]
 mod growth;
 #[cfg(test)]
 mod grown;

@@ -1,4 +1,4 @@
-import init, { WebRenderer } from "./render/telperion_render.js";
+import init, { WebRenderer, type WebGrowth } from "./render/telperion_render.js";
 
 /* ------------------------------------------------------------------ *
  * THE RENDERER, AS A PAGE HOLDS IT
@@ -167,6 +167,26 @@ function countDevice(step: 1 | -1): void {
 
 let loading: Promise<void> | undefined;
 
+/** A tree growing on the page's device (fn-270 R6, R7): begun for its
+ *  family's age, grown on to any age within it, and drawn at any age in
+ *  its last year. The tree on the canvas stays while the next stretch
+ *  grows. One call at a time: a second while one is out rejects by name. */
+export interface Growth {
+  /** The whole years grown; null once a failure spent the tree, or while
+   *  a call is working on it. */
+  committed(): number | null;
+  /** The most years it grows: the family's age. */
+  horizon(): number | null;
+  /** Grows on to `age` years and resolves to the whole years grown. An age
+   *  past the horizon, a year or more back, or not finite rejects by name
+   *  before anything moves; a failure spends the tree. */
+  growTo(age: number): Promise<number | null>;
+  /** Puts the tree drawn at `at`, within its last year, on the canvas. */
+  draw(at: number): Promise<Submitted>;
+  /** Lets the growth state go. */
+  dispose(): void;
+}
+
 /** One canvas drawn by the Rust renderer, sized to the display and
  *  disposed with the page element it belongs to. */
 export interface Renderer {
@@ -183,6 +203,9 @@ export interface Renderer {
   /** Experimental GPU foliage; unsupported inputs report CpuFallback. Waits
    *  on `programs`, and rejects with its error without building. */
   setTreeGpu(family: string): Promise<GpuSubmitted>;
+  /** The family's tree before its first year, on the device (`Growth`).
+   *  Waits on `programs`, and rejects with its error without beginning. */
+  beginGrowth(family: string): Promise<Growth>;
   setView(view: View): void;
   /** The sun, sky and ground the next frame is drawn under. */
   scene(): SceneRow;
@@ -249,6 +272,18 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
       await programs;
       if (disposed) throw new Error("the renderer is disposed");
       return JSON.parse(await renderer.setTreeGpu(family)) as GpuSubmitted;
+    },
+    beginGrowth: async (family) => {
+      await programs;
+      if (disposed) throw new Error("the renderer is disposed");
+      const handle = (await renderer.beginGrowth(family)) as WebGrowth;
+      return {
+        committed: () => handle.committed() ?? null,
+        horizon: () => handle.horizon() ?? null,
+        growTo: async (age) => ((await renderer.growTo(handle, age)) as number | null),
+        draw: async (at) => JSON.parse((await renderer.drawGrowth(handle, at)) as string) as Submitted,
+        dispose: () => handle.free(),
+      };
     },
     setView: (view) => renderer.setView(view),
     scene: () => JSON.parse(renderer.scene()) as SceneRow,
