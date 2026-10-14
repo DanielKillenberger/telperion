@@ -18,9 +18,6 @@ use crate::transcendental::Transcendental;
 pub enum Scale {
     /// By its value: an angle, a probability, a share or a count.
     Linear,
-    /// By its value, rounded to the nearest whole: a count that only
-    /// whole values state (fn-223's cluster leaves).
-    Whole,
     /// By the log of its value above `floor`: a positive magnitude.
     Log { floor: f64 },
     /// By the share 1 / (1 + value) it keeps: a delay that may be infinite.
@@ -30,7 +27,7 @@ pub enum Scale {
     Outcome,
 }
 
-use Scale::{Kept, Linear, Log, Outcome, Whole};
+use Scale::{Kept, Linear, Log, Outcome};
 
 /// A stop's outcomes, by the settings that give them: the chance it
 /// stops (abortion) or carries on (the others), and the relay's share of
@@ -68,7 +65,7 @@ pub const SCALES: &[(&str, Scale)] = &[
     // fn-216: a share of nodes, by value.
     ("flowering", Linear),
     // fn-223: a whole count of leaves, and an angle, by value.
-    ("cluster_leaves", Whole),
+    ("cluster_leaves", Linear),
     ("cluster_spread", Linear),
     // fn-248: a span of years that may be infinite, by the share it keeps.
     ("leaf_years", Kept),
@@ -132,7 +129,6 @@ impl Scale {
         let lerp = |x: f64, y: f64| x + (y - x) * t;
         match self {
             Linear | Outcome => lerp(a, b),
-            Whole => lerp(a, b).round(),
             // Never below the lesser end, which rounding could leave.
             Log { floor } => {
                 let mixed =
@@ -332,21 +328,18 @@ mod tests {
         assert!(mid < (a + b) / 2.0 / 5.0, "{mid}");
     }
 
-    /// A walk between whole cluster counts stays whole (fn-223): from none
-    /// to three leaves every step is a valid species, its count rising.
+    /// A walk between cluster counts moves by degree (fn-277): from none
+    /// to three leaves every step is a valid species, its count the walk's.
     #[test]
-    fn a_walk_between_cluster_counts_stays_whole() {
+    fn a_walk_between_cluster_counts_moves_by_degree() {
         let mut a = beech();
         a.states[14].cluster_leaves = 0.0;
         let mut b = beech();
         b.states[14].cluster_leaves = 3.0;
-        let mut last = 0.0;
         for k in 0..=20 {
-            let walked = crate::blend(&a, &b, f64::from(k) / 20.0).unwrap();
-            let n = walked.states[14].cluster_leaves;
-            assert!(n.fract() == 0.0 && n >= last, "{n} after {last}");
-            last = n;
+            let t = f64::from(k) / 20.0;
+            let walked = crate::blend(&a, &b, t).unwrap();
+            assert!((walked.states[14].cluster_leaves - 3.0 * t).abs() < 1e-12, "{t}");
         }
-        assert_eq!(last, 3.0);
     }
 }

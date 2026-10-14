@@ -73,7 +73,7 @@ pub use grow::cycle::{
 pub use grow::cycle::{grow_capture_settle_tables, grow_capture_settled, grow_capture_retired, grow_capture_settled_at, grow_cycle_is_the_reference, settle_sag_turn, SettleTo};
 pub use grow::{grow, sketch, Pass, Request, Stage};
 pub use light::{bud_light, field_reads, Light};
-pub use lineage::{internode_factor, join_key};
+pub use lineage::{cluster, internode_factor, join_key, organ, organs};
 pub use lineage::keys as lineage_keys;
 pub use oak::oak;
 pub use palm::palm;

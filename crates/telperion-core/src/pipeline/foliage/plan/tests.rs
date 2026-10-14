@@ -165,10 +165,11 @@ fn a_rosette_is_planned_by_fronds_and_leaflets_multiply_the_counts() {
         .unwrap()
     };
     let crown = CanopyParams {
-        rosette_fronds: 12,
-        skirt_fronds: 4,
+        rosette_fronds: 12.0,
+        cauline: 0.0,
+        skirt_fronds: 4.0,
         skirt_length: 0.5,
-        leaflet_count: 7,
+        leaflet_count: 7.0,
         rachis_length: 0.3,
         rachis_arch: -0.5,
         ..Default::default()
@@ -193,7 +194,7 @@ fn a_rosette_is_planned_by_fronds_and_leaflets_multiply_the_counts() {
     };
     assert!(width(12 * 7..16 * 7) < width(0..12 * 7));
     let single = CanopyParams {
-        leaflet_count: 1,
+        leaflet_count: 1.0,
         ..crown
     };
     let blades = at(single).unwrap();
@@ -217,7 +218,7 @@ fn a_rosette_is_planned_by_fronds_and_leaflets_multiply_the_counts() {
     assert!(refused.is_err());
     let single = at(CanopyParams::default()).unwrap();
     let pinnate = CanopyParams {
-        leaflet_count: 7,
+        leaflet_count: 7.0,
         rachis_length: 0.3,
         rachis_arch: -0.5,
         ..Default::default()
@@ -235,7 +236,7 @@ fn a_rosette_is_planned_by_fronds_and_leaflets_multiply_the_counts() {
     assert!((compound.reach(d) - single.reach(d) - 0.3 * 1.5).abs() < 1e-12);
     // A count without a rachis, or a rachis without a count, is one blade.
     let bare = CanopyParams {
-        leaflet_count: 7,
+        leaflet_count: 7.0,
         ..Default::default()
     };
     assert_eq!(at(bare).unwrap(), single);

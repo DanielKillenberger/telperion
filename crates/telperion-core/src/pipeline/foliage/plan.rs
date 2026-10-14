@@ -5,7 +5,7 @@
 //! definition of leaf-bearing wood, and it compiles with the wood surface
 //! and the placement out.
 mod fronds;
-use super::{canopy, clumping, cluster, rosette, CanopyParams, Element, TwigPlacement};
+use super::{canopy, clumping, cluster, organs, rosette, CanopyParams, Element, TwigPlacement};
 use crate::{
     envelope::Envelope,
     math::Vec3,
@@ -13,13 +13,15 @@ use crate::{
     tree::{NodeKind, Tree},
     Error, Result,
 };
+use telperion_space::organ;
 
 /// Capability check only; `runs` still validates every parameter. Limb
-/// clumping and a canopy without a twig layer have no plan, so
-/// such a family takes the placed path. A rosette is planned frond by frond
-/// (`fronds`), not by runs.
+/// clumping, a canopy without a twig layer and a count of organs between
+/// two whole numbers (`organs::whole`) have no plan, so such a family
+/// takes the placed path. A rosette is planned frond by frond (`fronds`),
+/// not by runs.
 pub fn supports(p: CanopyParams, twig: Option<TwigPlacement>) -> bool {
-    twig.is_some() && p.limb_clumping == 0.0
+    twig.is_some() && p.limb_clumping == 0.0 && organs::whole(&p)
 }
 
 /// A length in whole micrometres, rounded: what a run's grown wood is
@@ -168,7 +170,7 @@ pub fn runs(
     if tree.nodes.len() < 2 || p.size == 0.0 {
         return Ok(Some(runs));
     }
-    let leaflets = rosette::leaflets(&p) as u32;
+    let leaflets = organs::leaflets(&p) as u32;
     let mut total = 0u32;
     let (mut points, mut chord) = (Vec::new(), Vec::new());
     for nodes in bearing_runs(tree, p) {
@@ -285,7 +287,7 @@ impl Plan {
 /// The rachis's own reach, as the reference box grows by it: a length out
 /// from the station and the arch's share of that length again.
 fn rachis(p: CanopyParams) -> f64 {
-    if rosette::leaflets(&p) > 1 {
+    if organs::leaflets(&p) > 1 {
         p.rachis_length * (1.0 + p.rachis_arch.abs())
     } else {
         0.0
@@ -362,12 +364,12 @@ pub fn plan(
         descriptors.push(Descriptor {
             endpoints: [tip.position; 2],
             radii: [tip.radius; 2],
-            count: c.leaves * rosette::leaflets(&p) as u32,
+            count: c.leaves * organs::leaflets(&p) as u32,
             system: system[c.node as usize],
             side: Vec3::ZERO,
             stand: None,
         });
-        total += c.leaves * rosette::leaflets(&p) as u32;
+        total += c.leaves * organs::leaflets(&p) as u32;
     }
     let extent = element
         .positions
@@ -439,11 +441,12 @@ fn stands(
     Ok(total)
 }
 
-/// Every unbranched run of leaf-bearing wood: what the twig layer marked, plus
-/// whatever else is slender enough for shoot_radius to clothe.
+/// Every unbranched run of leaf-bearing wood that keeps its leaves at the
+/// cauline share (`cauline`): what the twig layer marked, plus whatever
+/// else is slender enough for shoot_radius to clothe.
 pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
-    // A stem that bears a frond crown bears nothing along its length.
-    if rosette::bearing(&p) {
+    // A palm bears nothing along its wood.
+    if p.cauline == 0.0 {
         return Vec::new();
     }
     let bearing = bearing_of(tree, p);
@@ -470,9 +473,17 @@ pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
             at = children[at].1;
             run.push(at);
         }
-        runs.push(run);
+        if cauline(tree, p, &run) {
+            runs.push(run);
+        }
     }
     runs
+}
+
+/// Whether the run of leaf-bearing wood `nodes` keeps its leaves: by its
+/// draw at the cauline share, under its first node's key (fn-277).
+pub(super) fn cauline(tree: &Tree, p: CanopyParams, nodes: &[usize]) -> bool {
+    telperion_space::organs(p.cauline, u64::from(tree.key(nodes[1])), organ::CAULINE) == 1
 }
 
 /// Whether a node bears leaves: a twig, or wood within the slender bound,

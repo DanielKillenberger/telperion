@@ -108,6 +108,14 @@ pub fn stations(family: &Family) -> bool {
     foliage::plan::supports(inputs.leaves.canopy, inputs.plan.twig.ok())
 }
 
+/// Whether every count of organs `family` states is whole and its
+/// cauline share all or none, never both with a crown (fn-277): the
+/// counts an executor drawing the tree itself splits no fraction of.
+pub fn whole(family: &Family) -> bool {
+    let clusters = family.space.species.iter().flat_map(|s| &s.states);
+    foliage::whole(&family.canopy) && clusters.into_iter().all(|s| s.cluster_leaves.fract() == 0.0)
+}
+
 /// The canopy rows `family` hangs retained leaf bases on its stems by,
 /// checked as `clothe_leaf_bases` checks them; none where it hangs none
 /// (fn-266, DESIGN.md 12.8 of fn-256).

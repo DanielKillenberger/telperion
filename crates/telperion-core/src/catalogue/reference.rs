@@ -151,6 +151,7 @@ fn blend(b: Blend) -> &'static str {
         Blend::Linear => "linear",
         Blend::Weighted => "linear, clamped to its ends",
         Blend::Degrees => "degrees along the shorter arc",
+        Blend::Log => "linear on the logarithm",
         Blend::Count | Blend::Many => "rounded to the nearest",
         Blend::Down => "rounded down",
         Blend::Up => "rounded up",

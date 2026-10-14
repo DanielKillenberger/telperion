@@ -146,10 +146,13 @@ pub struct PaState {
     /// 1). The engine grows nothing of it; the pipeline's expansion draws
     /// the flowers. Neutral 0, flowerless.
     pub flowering: f64,
-    /// Whole leaves at the tip of each axis of this PA, which then bears
-    /// no leaf along its length: a short shoot's cluster (fn-223). The
-    /// engine grows nothing of it; the pipeline's expansion seats the
-    /// leaves. Neutral 0, leaves along the shoot as before.
+    /// Leaves at the tip of each axis of this PA, which then bears no leaf
+    /// along its length: a short shoot's cluster (fn-223). A fraction is
+    /// split by a keyed draw at each axis, which bears the whole count
+    /// either side of it, a short shoot of none bearing along its length
+    /// (`telperion_space::cluster`, fn-277). The engine grows nothing of it; the
+    /// pipeline's expansion seats the leaves. Neutral 0, leaves along the
+    /// shoot as before.
     pub cluster_leaves: f64,
     /// Radians either side of its tip's level bearing a cluster's leaves
     /// fan across: pi / 2 is a half circle, 0 stacks them. Dormant without

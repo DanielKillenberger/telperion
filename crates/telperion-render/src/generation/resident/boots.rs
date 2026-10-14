@@ -71,10 +71,11 @@ fn cfg(gpu: &Gpu, n: u32, seed: &Drawn, out_base: u32, p: &CanopyParams) -> Resu
         seed.axes * CA_WORDS as u32,
         seed.phyts,
         seed.base,
-        p.leaf_bases,
+        // Whole on every family the device draws (`executor::whole`).
+        p.leaf_bases as u32,
         out_base,
         u32::from(packed),
-        f(f64::from(p.rosette_fronds)),
+        f(p.rosette_fronds),
         f(p.rosette_divergence.to_radians()),
         f(p.rosette_depth),
         f(pitch.to_radians()),
@@ -114,7 +115,7 @@ impl Hanger {
             return Ok(Hung::default());
         }
         let bases = clothed
-            .checked_mul(p.leaf_bases)
+            .checked_mul(p.leaf_bases as u32)
             .filter(|b| u64::from(dressed.ids) + 2 * u64::from(*b) <= u64::from(u32::MAX))
             .ok_or(telperion_core::Error::ResourceLimit("leaf base nodes"))?;
         let table = storage(gpu, "boots table", u64::from(bases) * BW)?;

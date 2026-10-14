@@ -13,6 +13,8 @@ use std::f64::consts::{PI, TAU};
 #[derive(Clone, Copy)]
 pub(super) struct Run<'a> {
     pub tree: &'a Tree,
+    /// The family's seed, which keys a station's own leaflets' stream.
+    pub seed: u32,
     /// Node indices, attachment first, along one unbranched shoot.
     pub nodes: &'a [usize],
     pub envelope: Envelope,
@@ -26,6 +28,7 @@ pub(super) struct Run<'a> {
 pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result<()> {
     let Run {
         tree,
+        seed,
         nodes,
         envelope,
         params: p,
@@ -39,7 +42,7 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
         return Ok(());
     }
     let frames = station_frames(&points, &chord, tree.seed_side(nodes[0]));
-    let leaflets = super::rosette::leaflets(&p);
+    let key = tree.key(nodes[1]);
     // Which stations keep their leaves (fn-248), now or a year before;
     // one that does not still takes its draws, into a sink, so every
     // other leaf keeps its own.
@@ -50,15 +53,11 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
         })
         .collect();
     let mut sink = Instances::new(out.reference);
-    reserve(
-        out,
-        kept.iter()
-            .filter(|k| k.is_some())
-            .count()
-            .checked_mul(leaflets)
-            .ok_or(Error::ResourceLimit("foliage count overflow"))?,
-        p,
-    )?;
+    let leaves = (kept.iter().enumerate())
+        .filter(|(_, k)| k.is_some())
+        .try_fold(0usize, |n, (k, _)| n.checked_add(super::organs::leaflets(&placement(&p, key, k as u32))))
+        .ok_or(Error::ResourceLimit("foliage count overflow"))?;
+    reserve(out, leaves, p)?;
     for (k, distance) in stations.into_iter().enumerate() {
         let mut segment = points.len() - 2;
         while segment > 0 && along[segment] > distance {
@@ -104,15 +103,19 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
         // whole until its abscission day (fn-270 R5, R5c).
         let unfolded = tree.unfolding(nodes[segment + 1]);
         let (share, colour) = unfolded.leaf(kept[k].unwrap_or(true), tree.key(nodes[1]), k as u32);
-        let size = p.size * share;
+        let table = placement(&CanopyParams { size: p.size * share, ..p }, key, k as u32);
+        let count = super::organs::leaflets(&table);
         let from = into.leaves.len();
+        // Leaflets past a station's first draw on its own stream, so its
+        // count moves no other station's leaves (fn-277).
+        let mut more = (count > 1).then(|| Rng::new(leaflet_stream(seed, key, k as u32)));
         super::rosette::fan(
             point,
             axis(point, radial, tangent, p),
             tangent,
             normal,
-            (CanopyParams { size, ..p }, super::rosette::leaflets(&p)),
-            rng,
+            (table, count),
+            (rng, more.as_mut()),
             into,
         )?;
         // A colouring leaf is drawn as one withering (fn-270 R5c).
@@ -122,6 +125,18 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
         sink.leaves.clear();
     }
     Ok(())
+}
+
+/// The table station `k` of the run keyed `key` is drawn by: its whole
+/// leaflets and spines (fn-277).
+pub(super) fn placement(p: &CanopyParams, key: u32, k: u32) -> CanopyParams {
+    super::organs::placement(p, super::organs::placement_key(u64::from(key), u64::from(k)))
+}
+
+/// The stream the leaflets past the first of station `k` of the run keyed
+/// `key` draw on.
+fn leaflet_stream(seed: u32, key: u32, k: u32) -> u32 {
+    crate::tree::leaf_stream(seed, crate::tree::mix32(key ^ k.wrapping_add(1).wrapping_mul(0x9e37_79b9)))
 }
 
 /// Metres between leaves on a run no twig layer marks: the row's share of the

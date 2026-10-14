@@ -31,4 +31,5 @@ const KEY_RETAIN = vec2<u32>(0x0c100001u, 0x00000000u);
 const KEY_ROSETTE = vec2<u32>(0x0c100002u, 0x00000000u);
 const KEY_STAND = vec2<u32>(0xffffffefu, 0xffffffffu);
 const KEY_JOIN = vec2<u32>(0xffffffeeu, 0xffffffffu);
+const KEY_ORGANS = vec2<u32>(0xffffffedu, 0xffffffffu);
 const KEY_CONTINUATION = vec2<u32>(0xffffffffu, 0xffffffffu);

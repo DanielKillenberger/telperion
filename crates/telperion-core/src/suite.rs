@@ -52,6 +52,8 @@ mod limb_clumping;
 mod mesh;
 #[path = "suite/node_budget.rs"]
 mod node_budget;
+#[path = "suite/organs.rs"]
+mod organs;
 #[path = "suite/outline.rs"]
 mod outline;
 #[path = "suite/packed_leaf.rs"]

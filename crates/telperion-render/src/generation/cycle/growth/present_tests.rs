@@ -67,7 +67,7 @@ fn a_tree_drawn_within_its_year_on_the_device_is_the_cpus() {
     let k = Kernels::new(&gpu);
     for (preset, name, h) in YOUNG {
         let mut family = preset.parameters();
-        family.canopy.leaf_bases = 0;
+        family.canopy.leaf_bases = 0.0;
         let g = executor::growth(&family).expect("a growth");
         let seed = g.request.seed;
         let params = growth::Params::of(&family).expect("params");

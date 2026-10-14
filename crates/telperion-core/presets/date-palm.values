@@ -28,8 +28,12 @@
 /surface/flareRadius = 2.0
 
 # The crown (fn-109): a rosette of pinnate fronds at the apex and
-# nothing borne below it.
+# nothing borne below it. fn-277 (host, 2026-10-14): a palm bears its
+# leaves only in its crown at the stem's apex, none along its wood
+# (Zaid and de Wet 2002, FAO Plant Production and Protection Paper 156,
+# ch. I), so none of its wood is cauline.
 /canopy/rosetteFronds = 42
+/canopy/cauline = 0.0
 /canopy/rosettePitch = 12.5
 /canopy/rosettePitchSpread = 105.0
 /canopy/rosetteDepth = 0.35

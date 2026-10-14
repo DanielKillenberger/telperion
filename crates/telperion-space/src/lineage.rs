@@ -116,6 +116,36 @@ pub fn join_key(first: u64) -> u64 {
     Key(first).child(keys::JOIN).0
 }
 
+/// Which count of organs a draw is for (fn-277), under `keys::ORGANS`:
+/// two rows of one bearer never draw alike.
+pub mod organ {
+    pub const CAULINE: u64 = 0;
+    pub const FRONDS: u64 = 1;
+    pub const SKIRT: u64 = 2;
+    pub const BASES: u64 = 3;
+    pub const LEAFLETS: u64 = 4;
+    pub const SPINES: u64 = 5;
+    pub const CLUSTER: u64 = 6;
+}
+
+/// The whole organs the bearer keyed `key` bears of a fractional `count`
+/// on `row` (fn-277): its floor, and one more where the bearer's draw
+/// falls under the fraction, so the expected count is `count` and a
+/// count moves the tree by degree. A whole count draws nothing.
+pub fn organs(count: f64, key: u64, row: u64) -> u32 {
+    let floor = count.floor();
+    let more = count - floor;
+    let drawn = more > 0.0 && Key(key).child(keys::ORGANS).child(row).draw().under(more);
+    floor as u32 + u32::from(drawn)
+}
+
+/// The whole leaves the cluster of the axis whose lineage is `lineage`
+/// holds at its PA's `leaves` (`PaState::cluster_leaves`): none, it is no
+/// short shoot.
+pub fn cluster(leaves: f64, lineage: u64) -> u32 {
+    organs(leaves, lineage, organ::CLUSTER)
+}
+
 /// `internode` as a real factor: what a node's grown wood is counted by
 /// (the conversion's `SHORTEST` and the stations' count, fn-212), so the
 /// wood is the length its internodes were laid at.
@@ -312,5 +342,25 @@ fn walk(law: NodeLaw, d: Draw, cap: u32, mut node: impl FnMut(Past)) {
                 cumulative += mass;
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod organ_tests {
+    use super::{organ, organs};
+
+    /// A whole count is its own count at every bearer, and a fraction
+    /// gives each bearer the whole either side of it, the share past the
+    /// floor bearing one more (fn-277).
+    #[test]
+    fn a_fraction_of_organs_is_split_at_each_bearer() {
+        assert!((0..1000).all(|key| organs(3.0, key, organ::LEAFLETS) == 3));
+        let drawn: Vec<u32> = (0..10_000).map(|key| organs(2.3, key, organ::LEAFLETS)).collect();
+        assert!(drawn.iter().all(|&n| n == 2 || n == 3));
+        let mean = drawn.iter().sum::<u32>() as f64 / drawn.len() as f64;
+        assert!((mean - 2.3).abs() < 0.02, "{mean}");
+        // Two rows of one bearer draw apart.
+        let apart = (0..1000).filter(|&k| organs(0.5, k, organ::FRONDS) != organs(0.5, k, organ::SKIRT));
+        assert!(apart.count() > 300);
     }
 }

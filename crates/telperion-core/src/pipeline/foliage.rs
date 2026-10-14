@@ -10,6 +10,7 @@ mod cluster;
 mod element;
 mod leaflet;
 mod levels;
+mod organs;
 mod outline;
 pub(crate) mod packed;
 #[cfg(feature = "geometry")]
@@ -50,6 +51,10 @@ pub(crate) use reference::Reach;
 /// The canopy's own rails, for a pass that reads the canopy rows without
 /// placing a leaf: a bad row is refused by the name `place` refuses it by.
 pub(crate) use rosette::validate as validate_canopy;
+pub(crate) use organs::apex;
+#[cfg(feature = "geometry")]
+pub use organs::whole;
+pub(crate) use rosette::stem_key;
 pub use rosette::{frame, rosettes, Crown, Rosette, MAX_FRONDS, MAX_LEAFLETS};
 
 #[derive(Debug, Clone, Copy, PartialEq)]

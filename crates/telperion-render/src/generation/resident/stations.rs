@@ -373,18 +373,19 @@ pub(super) fn station_rows(
 /// drawn in `year` (`Crown::rows`). Every row zero where the canopy
 /// stands no rosette or bears no leaves.
 fn rosette_rows(p: &CanopyParams, year: Option<telperion_core::tree::Year>) -> [[f32; 4]; 6] {
-    if p.rosette_fronds == 0 || p.size == 0.0 {
+    if p.rosette_fronds == 0.0 || p.size == 0.0 {
         return [[0.0; 4]; 6];
     }
     let crown = Crown::new(year, p).rows().map(|r| r.map(|v| v as f32));
-    let skirt = if p.skirt_length > 0.0 { p.skirt_fronds } else { 0 };
-    let leaflets = if p.leaflet_count > 1 && p.rachis_length > 0.0 { p.leaflet_count } else { 1 };
+    // Whole on every family the device draws (`executor::whole`).
+    let skirt = if p.skirt_length > 0.0 { p.skirt_fronds } else { 0.0 };
+    let leaflets = if p.leaflet_count > 1.0 && p.rachis_length > 0.0 { p.leaflet_count } else { 1.0 };
     let radians = f64::to_radians;
     let rows = [
-        [f64::from(p.rosette_fronds), f64::from(skirt), radians(p.rosette_divergence), p.rosette_depth],
+        [p.rosette_fronds, skirt, radians(p.rosette_divergence), p.rosette_depth],
         [radians(p.rosette_pitch), radians(p.rosette_pitch_spread), radians(p.skirt_pitch), p.skirt_length],
-        [f64::from(leaflets), p.rachis_length, p.rachis_arch, radians(p.leaflet_pitch)],
-        [p.terminal_leaflet, f64::from(p.acanthophylls), p.acanthophyll_length, radians(p.acanthophyll_pitch)],
+        [leaflets, p.rachis_length, p.rachis_arch, radians(p.leaflet_pitch)],
+        [p.terminal_leaflet, p.acanthophylls, p.acanthophyll_length, radians(p.acanthophyll_pitch)],
     ]
     .map(|r| r.map(|v| v as f32));
     let [a, b, c, d] = rows;

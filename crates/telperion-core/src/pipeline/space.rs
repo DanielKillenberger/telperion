@@ -114,7 +114,8 @@ pub(super) fn growth(
         internode: r.internode,
         spread: r.spread,
         flowering: r.flowering,
-        leaves: r.cluster.0,
+        // Whole on every family the device draws (`executor::whole`).
+        leaves: r.cluster.0 as u32,
         fan: r.cluster.1,
         sheds: r.retention.0,
         share: r.retention.1,
@@ -184,7 +185,7 @@ pub(super) struct PaRow {
     internode: f64,
     spread: f64,
     flowering: f64,
-    cluster: (u32, f64),
+    cluster: (f64, f64),
     retention: (u32, u16),
     /// Its year on the presentation's clock (fn-270 R5c).
     season: telperion_space::unfold::Season,
@@ -197,8 +198,8 @@ fn pa_rows(species: &telperion_space::Species) -> Vec<PaRow> {
             internode: s.internode,
             spread: s.form.internode_spread,
             flowering: s.flowering,
-            // Whole, 0 to 8, by the species' own check.
-            cluster: (s.cluster_leaves as u32, s.cluster_spread),
+            // 0 to 8 by the species' own check, split at each axis.
+            cluster: (s.cluster_leaves, s.cluster_spread),
             retention: crate::tree::retention(s.leaf_years),
             season: telperion_space::unfold::Season::of(s),
         })
@@ -336,7 +337,7 @@ fn unfolded(
     let mut blooms = Vec::new();
     let mut clusters = Vec::new();
     // Each node's mark, kept only where some age states a cluster.
-    let clustering = rows.iter().any(|r| r.cluster.0 > 0);
+    let clustering = rows.iter().any(|r| r.cluster.0 > 0.0);
     let mut clustered = vec![false; usize::from(clustering)];
     // Each node's leaf retention, kept only where some age's wood sheds
     // its leaves (fn-248).
@@ -408,6 +409,9 @@ fn unfolded(
             retention,
             ..
         } = rows[axis.pa];
+        // The whole leaves this axis's cluster holds: none, it is no short
+        // shoot (fn-277).
+        let cluster = (telperion_space::cluster(cluster.0, axis.lineage), cluster.1);
         let mut pending = 0.0;
         // The retentions of the wood merged into the next node: where the
         // last change falls, the retention before it and the latest.

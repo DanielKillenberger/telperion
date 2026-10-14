@@ -9,6 +9,7 @@ use crate::{
     math::Vec3,
     pipeline::foliage::{
         leaflet::{self, Leaflet},
+        organs,
         rosette::{self, frame},
         CanopyParams, Element,
     },
@@ -37,7 +38,7 @@ pub(super) fn describe(
         return Ok(0);
     }
     let apices = rosette::rosettes(tree);
-    let per = rosette::leaflets(&p);
+    let per = organs::leaflets(&p);
     let crown = rosette::Crown::of(tree, &p);
     let total = apices.len() * crown.slots() * per;
     if total > p.max_instances || total > u32::MAX as usize {
