@@ -442,15 +442,17 @@ fn unfolded(
             }
             let inside: Vec<_> = here.filter(|(_, j)| j.t > 0.0 && j.t < join::ONE).collect();
             // A span a relay joins inside is drawn above its join at the
-            // stopped module's own wood (`Join::above`).
+            // stopped module's own wood (`Join::above`); wood there thinner
+            // than `FINEST` ends the axis at the join, as it does anywhere.
             let mut own = join::Draw::of(axis, place, piece);
             for (_, j) in &inside {
                 own.radius = own.radius.min(j.above);
             }
+            let thin = own.radius < FINEST;
             let draws = inside
                 .iter()
                 .map(|&&(c, j)| join::draw(axis, (c, &structure.axes[c]), j, piece))
-                .chain(std::iter::once(own));
+                .chain((!thin).then_some(own));
             let mut rest = piece;
             for d in draws {
                 let piece = if d.relay.is_some() { d.piece } else { rest };
@@ -539,6 +541,9 @@ fn unfolded(
             for &(c, _) in joins[i].iter().filter(|(_, j)| j.node == place && j.t >= join::ONE) {
                 joined[c] = Some((parent, place + 1));
             }
+            if thin {
+                break;
+            }
         }
         // A flowering age's inflorescence stands at its axis's tip, as its
         // cluster does (fn-253): where the shoot ends, never along it.
@@ -613,6 +618,8 @@ pub use establish::Establishing;
 mod join;
 mod unfolding;
 use unfolding::Unfolding;
+#[cfg(test)]
+mod radii_tests;
 #[cfg(test)]
 mod relay_tests;
 #[cfg(test)]

@@ -179,6 +179,8 @@ mod room_tests;
 mod route_tests;
 #[cfg(test)]
 mod stalk_tests;
+#[cfg(test)]
+mod thin_tests;
 pub(super) mod fold;
 mod florets;
 mod handoff;
