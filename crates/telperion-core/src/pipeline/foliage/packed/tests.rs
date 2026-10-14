@@ -214,6 +214,7 @@ fn every_subnormal_half_decodes_to_its_ieee_value() {
 /// what the generator actually produces, which is the integration R2 names.
 #[test]
 fn every_preset_placement_round_trips_inside_r2() {
+    let _turn = crate::one_tree::turn();
     use crate::pipeline::branching;
     use crate::presets::Preset;
 
