@@ -298,6 +298,11 @@ fn last_years_fronds_stay_whole_and_the_year_turns_with_no_pop() {
         assert!((0..before).all(|s| c.unfolded(s as f64) == 1.0), "{age}: an old frond shrank");
         assert!(c.made() - per_year * 11.0 <= per_year, "{age}: more than a year's fronds");
     }
+    // In its first year a crown draws only the fronds it has made.
+    for age in [0.05, 0.1, 0.5, 1.0] {
+        let c = crown(age);
+        assert!(c.slots() as f64 <= c.made().ceil(), "{age}: {} fronds of {} made", c.slots(), c.made());
+    }
     let (end, start) = (crown(11.0), crown(11.0 + 1e-9));
     for s in 0..(end.made().ceil() as i64) {
         let (a, b) = (end.unfolded(s as f64), start.unfolded(s as f64));

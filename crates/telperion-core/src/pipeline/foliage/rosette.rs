@@ -173,26 +173,31 @@ impl Crown {
     /// `rosette`): the fronds made, the years a frond lives, the whole
     /// years before the last (negative where no engine grew the tree) and
     /// the days into it; its stem's budburst, elongation and expansion,
-    /// and the fronds it draws past its living and dead ones (`slots`).
+    /// and the fronds it draws (`slots`).
     pub fn rows(&self) -> [[f64; 4]; 2] {
-        let extra = self.slots() as f64 - self.kept;
+        let slots = self.slots() as f64;
         match (self.clock(), self.year) {
             (Some((whole, tau)), Some(y)) => {
-                [[self.made(), self.life, whole, tau], [y.budburst, y.elongation, y.expansion, extra]]
+                [[self.made(), self.life, whole, tau], [y.budburst, y.elongation, y.expansion, slots]]
             }
-            _ => [[0.0, self.life, -1.0, 0.0], [0.0; 4]],
+            _ => [[0.0, self.life, -1.0, 0.0], [0.0, 0.0, 0.0, slots]],
         }
     }
 
     /// The fronds the crown draws, newest first: every one until those
     /// grown above it fill the living crown and the skirt (`fronds`), the
-    /// last fading over its last place.
+    /// last fading over its last place. A crown its tree grows draws only
+    /// the fronds it has made, none before its first.
     pub fn slots(&self) -> usize {
         let newest = self.made().ceil() as i64 - 1;
+        let born = match self.year.is_some() && self.life > 0.0 {
+            true => (newest + 1).max(0) as usize,
+            false => usize::MAX,
+        };
         let (mut above, mut n) = (0.0, 0);
         // cap: the kept fronds and every one a crown can make in a year
         // past them; each one drawn adds its share.
-        while above < self.kept && n < self.kept as usize + MAX_FRONDS as usize {
+        while above < self.kept && n < born && n < self.kept as usize + MAX_FRONDS as usize {
             above += self.unfolded((newest - n as i64) as f64);
             n += 1;
         }

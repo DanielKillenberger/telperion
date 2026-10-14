@@ -48,8 +48,7 @@ struct Cfg {
     // spines, their share and pitch; the crown's year (`Crown::rows`):
     // fronds made, a frond's years, whole years before the last (negative where
     // no engine grew it), days into the last; budburst, elongation,
-    // expansion, and the fronds it draws past its living and dead
-    // (`Crown::slots`).
+    // expansion, and the fronds it draws (`Crown::slots`).
     rosette: array<vec4<f32>, 6>,
 }
 
@@ -137,11 +136,15 @@ fn fine(i: u32) -> bool {
     return (f & MADE) != 0u && (f & FINE) != 0u && (f & BOOT) == 0u;
 }
 
-// The fronds of each rosette, living and dead, and within the year the
-// one leaving as a new one emerges (`rosette::slots`); none where the
-// canopy stands no rosette.
+// Whether the canopy stands a rosette, and the fronds each draws, living,
+// dead and emerging (`Crown::slots`): none where it stands none, and none
+// yet where its tree has made none.
+fn bearing() -> bool {
+    return cfg.rosette[0].x > 0.0;
+}
+
 fn fronds() -> u32 {
-    return u32(cfg.rosette[0].x) + u32(cfg.rosette[0].y) + u32(cfg.rosette[5].w);
+    return u32(cfg.rosette[5].w);
 }
 
 // The logistic course over a span (`unfold::course`, `unfold::run`).
@@ -212,7 +215,7 @@ fn stem_first(apex: u32) -> u32 {
 // stem node no stem continues.
 fn apex(i: u32) -> bool {
     let stem = (word(i, 9u) & STEM) != 0u;
-    return fronds() > 0u && fine(i) && stem && (atomicLoad(&st[i * SW]) & STEM_KID) == 0u;
+    return bearing() && fine(i) && stem && (atomicLoad(&st[i * SW]) & STEM_KID) == 0u;
 }
 
 fn bears(i: u32) -> bool {
@@ -222,7 +225,7 @@ fn bears(i: u32) -> bool {
 // A short shoot's tip the device seats a cluster at.
 // None where the canopy bears no leaves, though the tree may flower.
 fn tip(i: u32) -> bool {
-    return cfg.leaves != 0u && fronds() == 0u && fine(i) && (word(i, 9u) & TIP) != 0u;
+    return cfg.leaves != 0u && !bearing() && fine(i) && (word(i, 9u) & TIP) != 0u;
 }
 
 // The 32-bit finaliser (`tree::mix32`).
@@ -250,7 +253,7 @@ fn bear(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = index(id);
     // A stem that bears a frond crown bears nothing along its length
     // (`plan::bearing_runs`).
-    if i >= cfg.n || !fine(i) || cfg.leaves == 0u || fronds() > 0u {
+    if i >= cfg.n || !fine(i) || cfg.leaves == 0u || bearing() {
         return;
     }
     let radius = nodes[i * NW + 3u];
