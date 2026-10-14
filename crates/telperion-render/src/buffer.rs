@@ -219,6 +219,18 @@ impl Ledger {
         self.counts.charge(bytes, label, cap)
     }
 
+    /// Whether `bytes` more would fit the cap, charging nothing (a build's
+    /// room for its first move, fn-276 task 2): the bytes they would make,
+    /// and the cap, where they would not.
+    pub(crate) fn fits(&self, bytes: u64) -> std::result::Result<(), (u64, u64)> {
+        let cap = self.caps().1.iter().map(|c| c.1).min().unwrap_or(0);
+        let after = self.counts.live.load(std::sync::atomic::Ordering::Relaxed).saturating_add(bytes);
+        if cap != 0 && after > cap {
+            return Err((after, cap));
+        }
+        Ok(())
+    }
+
     /// A reservation given back: its buffer was never made.
     pub(crate) fn unreserve(&self, bytes: u64, label: &'static str) {
         self.counts.release(bytes, label);

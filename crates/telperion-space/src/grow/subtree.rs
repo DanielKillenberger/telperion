@@ -207,6 +207,7 @@ impl<'a> Grower<'a> {
             fine: None,
             one: false,
             light_seconds: 0.0,
+            jobs: [0; 2],
             census: None,
             working: None,
         }

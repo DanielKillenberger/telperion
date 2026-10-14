@@ -303,6 +303,8 @@ mod program_tests;
 mod ledger_tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod release_tests;
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod cpu_builds_tests;
 
 #[cfg(test)]
 use crate::whole_tree::whole_tree;

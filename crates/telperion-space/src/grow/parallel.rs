@@ -31,6 +31,7 @@ pub(super) struct Share {
     woken: Vec<Woken>,
     marked: Vec<u64>,
     grown: u64,
+    jobs: [u32; 2],
     /// Its lists to fill again: its apexes', emptied, and its own.
     spare: Spare,
 }
@@ -46,6 +47,7 @@ impl Shoot<'_, '_> {
             woken: self.woken,
             marked: self.marked,
             grown: self.grown,
+            jobs: self.jobs,
             spare: Spare {
                 next: Vec::new(),
                 leads: self.leads,
@@ -61,7 +63,9 @@ impl Shoot<'_, '_> {
         let homes: Vec<usize> = apexes.iter().map(|a| a.axis).collect();
         for (k, apex) in apexes.drain(..).enumerate() {
             self.home = (k, apex.axis);
+            self.job = 0;
             self.advance(apex, cycle)?;
+            self.jobs[0] = self.jobs[0].max(self.job);
         }
         let mut share = self.finish(homes);
         share.spare.next = apexes;
@@ -145,6 +149,7 @@ impl Grower<'_> {
         self.woken.extend(share.woken);
         self.marked.extend(share.marked);
         self.rules.grown += share.grown;
+        self.jobs = std::array::from_fn(|w| self.jobs[w].max(share.jobs[w]));
         self.spare = share.spare;
     }
 }

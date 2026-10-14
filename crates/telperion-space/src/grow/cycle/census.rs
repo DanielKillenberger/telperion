@@ -42,6 +42,9 @@ pub struct Cycle {
     pub leaves: usize,
     pub size: [u32; 3],
     pub nodes: usize,
+    /// The most units one living apex's job and one waking bud's grew in
+    /// the cycle (fn-276).
+    pub jobs: [u32; 2],
     pub occupied: usize,
 }
 

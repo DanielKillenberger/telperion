@@ -343,6 +343,9 @@ struct Grower<'a> {
     /// the seconds the light took, and its census.
     one: bool,
     light_seconds: f64,
+    /// The most units one living apex's job and one waking bud's grew in
+    /// the cycle (`Shoot::jobs`), which the census takes.
+    jobs: [u32; 2],
     census: Option<Box<cycle::Census>>,
     working: Option<Box<cycle::Working>>,
 }
@@ -401,6 +404,7 @@ impl<'a> Grower<'a> {
             fine: None,
             one: false,
             light_seconds: 0.0,
+            jobs: [0; 2],
             census: None,
             working: None,
         })

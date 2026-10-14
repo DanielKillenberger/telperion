@@ -15,6 +15,7 @@ impl Shoot<'_, '_> {
     /// then its abortion or its move to its next PA. A unit that ends its
     /// age within the cycle hands the rest of it on (`schedule.rs`).
     pub fn advance(&mut self, mut apex: Apex, cycle: u32) -> Result<()> {
+        self.job += 1;
         let pa = self.axis(apex.axis).pa;
         let state = &self.species().states[pa];
         // A unit's draws are keyed by the cycle it grows in, so a unit that

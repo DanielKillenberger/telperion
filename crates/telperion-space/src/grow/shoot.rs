@@ -102,6 +102,11 @@ pub(super) struct Shoot<'g, 'a> {
     pub marked: Vec<u64>,
     /// The phytomers this share grew.
     pub grown: u64,
+    /// The units the job growing now grew in the cycle, and the most a
+    /// living apex's job and a waking bud's grew (fn-276: what the
+    /// device's units rounds hold, against `schedule::most_units`).
+    pub job: u32,
+    pub jobs: [u32; 2],
     /// One zone's node presences and its nodes (order draw, draw index,
     /// presence, buds), reused.
     pub leads: Vec<f32>,
@@ -146,6 +151,8 @@ impl<'g, 'a> Shoot<'g, 'a> {
             woken: Vec::new(),
             marked: Vec::new(),
             grown: 0,
+            job: 0,
+            jobs: [0; 2],
             leads: Vec::new(),
             node_buds: Vec::new(),
             sleeping: Vec::new(),

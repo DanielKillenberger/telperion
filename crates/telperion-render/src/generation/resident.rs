@@ -150,7 +150,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
 // The browser's expected peak is checked in a browser alone; natively it
 // is tested, and the native budget caps every build.
 #[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
-mod budget;
+pub(super) mod budget;
 #[cfg(test)]
 pub(super) mod agree_tests;
 mod boots;
