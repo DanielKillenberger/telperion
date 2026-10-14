@@ -2,9 +2,9 @@
 use super::{
     canopy::validate,
     clumping, cluster,
-    plan::{bearing_runs, kept, micrometres, walk},
-    rosette,
-    station::{place_run, reserve_all, station_count, Run},
+    plan::{bearing_runs, cauline, kept, micrometres, walk},
+    organs, rosette,
+    station::{self, place_run, reserve_all, station_count, Run},
     CanopyParams, Instances, Reference, TwigPlacement,
 };
 use crate::{
@@ -80,13 +80,13 @@ fn bearing(
 /// twig layer marked, or the terminal shoots slender enough for `shoot_radius`
 /// where there is no twig layer.
 fn runs(tree: &Tree, p: CanopyParams, twig: Option<TwigPlacement>) -> Vec<Vec<usize>> {
-    // A stem that bears a frond crown bears nothing along its length.
-    if rosette::bearing(&p) {
-        return Vec::new();
-    }
     match twig {
         Some(_) => bearing_runs(tree, p),
-        None => shoots(tree, tree.stem_radius(|i| tree.pipe(i)[1]) * p.shoot_radius),
+        None => {
+            let slender = tree.stem_radius(|i| tree.pipe(i)[1]) * p.shoot_radius;
+            let shoots = shoots(tree, slender);
+            shoots.into_iter().filter(|run| cauline(tree, p, run)).collect()
+        }
     }
 }
 
@@ -101,28 +101,26 @@ fn leaves_on(
 ) -> Result<usize> {
     let overflow = || Error::ResourceLimit("foliage count overflow");
     let (mut points, mut chord, mut along) = (Vec::new(), Vec::new(), Vec::new());
-    let leaflets = rosette::leaflets(&p);
-    let mut total = if rosette::bearing(&p) {
-        rosette::count(tree, &p)?
-    } else {
-        cluster::count(tree, &p)?
-    };
+    let mut total = rosette::count(tree, &p)?
+        .checked_add(cluster::count(tree, &p)?)
+        .ok_or_else(overflow)?;
     for nodes in runs {
         let length = walk(tree, nodes, twig, &mut points, (&mut chord, &mut along));
         let count = station_count(length, envelope, p, twig)?;
-        let stations = match twig {
-            Some(t) if !tree.leafing.is_empty() => {
-                let (unit, per) = (micrometres(t.internode_length), t.stations_per_internode);
-                (0..count as u32)
-                    .filter(|&k| kept(tree, (nodes, &along), f64::from(k / per) * unit, k).is_some())
-                    .count()
+        let key = tree.key(nodes[1]);
+        for k in 0..count as u32 {
+            let kept = match twig {
+                Some(t) if !tree.leafing.is_empty() => {
+                    let (unit, per) = (micrometres(t.internode_length), t.stations_per_internode);
+                    kept(tree, (nodes, &along), f64::from(k / per) * unit, k).is_some()
+                }
+                _ => true,
+            };
+            if kept {
+                let leaves = organs::leaflets(&station::placement(&p, key, k));
+                total = total.checked_add(leaves).ok_or_else(overflow)?;
             }
-            _ => count,
-        };
-        total = stations
-            .checked_mul(leaflets)
-            .and_then(|leaves| total.checked_add(leaves))
-            .ok_or_else(overflow)?;
+        }
     }
     Ok(total)
 }
@@ -174,6 +172,7 @@ pub(crate) fn place_on(
         place_run(
             &Run {
                 tree,
+                seed,
                 nodes: &nodes,
                 envelope,
                 params: p,
@@ -192,9 +191,7 @@ pub(crate) fn place_on(
     cluster::clothe(tree, seed, p, &mut out, owners.as_mut())?;
     // A rosette at every stem apex where the rows state one, on its own
     // wood's stream, so the leaves above keep every byte.
-    if rosette::bearing(&p) {
-        rosette::clothe(tree, seed, &p, &mut out, owners.as_mut())?;
-    }
+    rosette::clothe(tree, seed, &p, &mut out, owners.as_mut())?;
     if let Some(owners) = owners {
         clumping::thin(tree, &owners, seed, p, &mut out);
     }

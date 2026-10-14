@@ -375,6 +375,10 @@
 # The envelope is derived from the grown tree (fn-198 host decision 7).
 # Each node lends the light's lattice one leaf of 13.19 cm², derived from
 # Flora of China's blade and an ovate shape factor (fn-264 R2, host decision 1).
+# fn-252 R2: a shoot whose tip the rough layout lays on the ground ends
+# there (groundHazard 1, a declared stand-in on the owner's verdict of
+# 2026-10-14; the one contrary text, on the cultivar 'Youngii', is in
+# fn-252 R2-PLAN.md). The final lay still rests what sags to the ground.
 # It answers light by its shade tolerance, T 2.03 (`tolerance.rs`; fn-264 R2, host decision 4).
 # fn-270 R5: within the year a shoot elongates over 110 days from bud
 # burst and a leaf expands over 24 from its node's unfolding. Height
@@ -403,6 +407,7 @@
 /space/ages/2/colouring = 5.0
 /space/ages/2/leafFall = 45.0
 /space/ages/2/shadeHazard = 1.1423076923076922
+/space/ages/2/groundHazard = 1.0
 /space/ages/2/upkeep = 0.35
 /space/ages/2/balanceHazard = 2.2846153846153845
 /space/ages/2/leafGirth = 1.0
@@ -436,6 +441,7 @@
 /space/ages/3/colouring = 5.0
 /space/ages/3/leafFall = 45.0
 /space/ages/3/shadeHazard = 1.1423076923076922
+/space/ages/3/groundHazard = 1.0
 /space/ages/3/upkeep = 0.35
 /space/ages/3/balanceHazard = 2.2846153846153845
 /space/ages/3/leafGirth = 1.0
@@ -472,6 +478,7 @@
 /space/ages/4/colouring = 5.0
 /space/ages/4/leafFall = 45.0
 /space/ages/4/shadeHazard = 1.1423076923076922
+/space/ages/4/groundHazard = 1.0
 /space/ages/4/upkeep = 0.35
 /space/ages/4/balanceHazard = 2.2846153846153845
 /space/ages/4/leafGirth = 1.0
@@ -517,6 +524,7 @@
 /space/ages/5/colouring = 5.0
 /space/ages/5/leafFall = 45.0
 /space/ages/5/shadeHazard = 1.1423076923076922
+/space/ages/5/groundHazard = 1.0
 /space/ages/5/upkeep = 0.35
 /space/ages/5/balanceHazard = 2.2846153846153845
 /space/ages/5/leafGirth = 1.0
@@ -560,6 +568,7 @@
 /space/ages/6/colouring = 5.0
 /space/ages/6/leafFall = 45.0
 /space/ages/6/shadeHazard = 1.1423076923076922
+/space/ages/6/groundHazard = 1.0
 /space/ages/6/upkeep = 0.35
 /space/ages/6/balanceHazard = 2.2846153846153845
 /space/ages/6/leafGirth = 1.0
@@ -609,6 +618,7 @@
 /space/ages/7/colouring = 5.0
 /space/ages/7/leafFall = 45.0
 /space/ages/7/shadeHazard = 1.1423076923076922
+/space/ages/7/groundHazard = 1.0
 /space/ages/7/upkeep = 0.35
 /space/ages/7/balanceHazard = 2.2846153846153845
 /space/ages/7/leafGirth = 1.0
@@ -653,6 +663,7 @@
 /space/ages/8/colouring = 5.0
 /space/ages/8/leafFall = 45.0
 /space/ages/8/shadeHazard = 1.1423076923076922
+/space/ages/8/groundHazard = 1.0
 /space/ages/8/upkeep = 0.35
 /space/ages/8/balanceHazard = 2.2846153846153845
 /space/ages/8/leafGirth = 1.0
@@ -692,6 +703,7 @@
 /space/ages/9/colouring = 5.0
 /space/ages/9/leafFall = 45.0
 /space/ages/9/shadeHazard = 1.1423076923076922
+/space/ages/9/groundHazard = 1.0
 /space/ages/9/upkeep = 0.35
 /space/ages/9/balanceHazard = 2.2846153846153845
 /space/ages/9/leafGirth = 1.0
@@ -731,6 +743,7 @@
 /space/ages/14/colouring = 5.0
 /space/ages/14/leafFall = 45.0
 /space/ages/14/shadeHazard = 1.1423076923076922
+/space/ages/14/groundHazard = 1.0
 /space/ages/14/upkeep = 0.35
 /space/ages/14/balanceHazard = 2.2846153846153845
 /space/ages/14/leafGirth = 1.0

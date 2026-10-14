@@ -64,6 +64,7 @@ impl PaState {
             }
         }
         let shares = [
+            ("ground_hazard", self.ground_hazard),
             ("flowering", self.flowering),
             ("continuation", self.continuation),
             ("abortion", self.abortion),
@@ -84,10 +85,10 @@ impl PaState {
             }
         }
         let leaves = self.cluster_leaves;
-        if !((0.0..=MAX_CLUSTER_LEAVES).contains(&leaves) && leaves.fract() == 0.0) {
+        if !(0.0..=MAX_CLUSTER_LEAVES).contains(&leaves) {
             return refuse(
                 format!("{at}.cluster_leaves"),
-                "a cluster holds 0 to 8 whole leaves",
+                "a cluster holds 0 to 8 leaves",
             );
         }
         if !(0.0..=FRAC_PI_2).contains(&self.cluster_spread) {

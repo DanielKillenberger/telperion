@@ -122,7 +122,10 @@ fn device(gpu: &crate::Gpu, k: &Kernels, hanger: &Hanger, f: &Family) -> Vec<Bas
     let all = words(gpu, &seed.buffer, seed.axes as usize * CA_WORDS + seed.phyts as usize * CV);
     let record = |r: u32| &all[seed.axes as usize * CA_WORDS + r as usize * CV..][..CV];
     let key_of = |id: u32| record(id - seed.base)[24];
-    let stems = words(gpu, hung.stems.as_ref().unwrap(), 1 + seed.phyts as usize * AW as usize);
+    let stems = words(gpu, hung.stems.as_ref().unwrap(), 2 + seed.phyts as usize * AW as usize);
+    // Each stem's slot: its apex, its first base and its bases (fn-277).
+    let slot = |t: usize, f: usize| stems[2 + t * AW as usize + f] as usize;
+    let stem_of = |b: usize| (0..stems[0] as usize).rfind(|&t| slot(t, 1) <= b).unwrap();
     let boots = dressed.waves.last().unwrap();
     let n = hung.bases as usize;
     let recs = words(gpu, &boots.buffer, CA_WORDS + 2 * n * CV);
@@ -130,8 +133,8 @@ fn device(gpu: &crate::Gpu, k: &Kernels, hanger: &Hanger, f: &Family) -> Vec<Bas
     let f = |w: u32| f64::from(f32::from_bits(w));
     (0..n)
         .map(|b| {
-            let per = rows.leaf_bases as usize;
-            let apex = stems[1 + (b / per) * AW as usize];
+            let t = stem_of(b);
+            let apex = slot(t, 0) as u32;
             let first = &recs[CA_WORDS + 2 * b * CV..][..CV];
             let second = &recs[CA_WORDS + (2 * b + 1) * CV..][..CV];
             let cell = cells.as_ref().map(|c| {
@@ -142,7 +145,7 @@ fn device(gpu: &crate::Gpu, k: &Kernels, hanger: &Hanger, f: &Family) -> Vec<Bas
                 out
             });
             Base {
-                key: (record(apex)[24], (b % per) as u32),
+                key: (record(apex)[24], (b - slot(t, 1)) as u32),
                 bearer: key_of(first[16]),
                 from: [f(first[0]), f(first[1]), f(first[2])],
                 tip: [f(second[0]), f(second[1]), f(second[2])],

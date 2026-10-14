@@ -6,6 +6,11 @@ struct Config {
     shape:vec4<f32>, // internode, divergence radians, contact, scatter radians
     lean:vec4<f32>, // forward, rise, outward, upward
     size:vec4<f32>, // size, variation, internode in whole micrometres (bits), unused
+    // A station's rachis (fn-277): its length, arch, leaflet pitch
+    // (radians) and terminal share; the leaflets and spines a placement
+    // draws as counts' words, the spine's share and pitch (bits).
+    rachis:vec4<f32>,
+    organs:vec4<u32>,
 }
 struct Segment {
     a:vec4<f32>, b:vec4<f32>, tangent:vec4<f32>, normal:vec4<f32>, binormal:vec4<f32>,

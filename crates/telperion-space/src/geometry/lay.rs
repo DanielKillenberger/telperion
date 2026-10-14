@@ -160,6 +160,12 @@ impl Layer {
         v3(self.curve)
     }
 
+    /// Whether the walk's tip stands on the ground: where the resting
+    /// clamp put it, or the run along the ground it began (fn-252 R2).
+    pub fn rests(&self) -> bool {
+        self.tip[2] <= 0.0
+    }
+
     /// The scaled length laid so far.
     pub fn run(&self) -> f64 {
         f64::from(self.run)

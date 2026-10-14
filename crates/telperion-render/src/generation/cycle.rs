@@ -150,8 +150,11 @@ const LIGHT_SWEEP: &str = include_str!("cycle/light_sweep.wgsl");
 /// The decision contract (`decide.wgsl`), after its 64-bit words and
 /// its lineage keys; and a growth unit's zones.
 const U64: &str = include_str!("cycle/u64.wgsl");
-const KEYS: &str = include_str!("cycle/keys.wgsl");
+pub(super) const KEYS: &str = include_str!("cycle/keys.wgsl");
 const DECIDE: &str = include_str!("cycle/decide.wgsl");
+/// Counts of organs between two whole numbers, as `telperion_space::drawn`
+/// draws them (fn-277).
+pub(super) const ORGANS: &str = include_str!("cycle/organs.wgsl");
 const ZONES: &str = include_str!("cycle/zones.wgsl");
 /// The contract's marked arithmetic, plain (DESIGN.md section 9): its
 /// floor sites held to the CPU's order (`held.rs`), every other float
@@ -166,7 +169,7 @@ pub(super) fn contract() -> String {
 
 /// The contract with its marked arithmetic `arith`.
 pub(super) fn contract_with(arith: &str) -> String {
-    format!("{U64}\n{KEYS}\n{DECIDE}\n{arith}")
+    format!("{U64}\n{KEYS}\n{DECIDE}\n{ORGANS}\n{arith}")
 }
 
 /// The contract and a growth unit's zones, for a shader that binds the

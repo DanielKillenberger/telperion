@@ -29,7 +29,7 @@ impl Establishing {
     /// A crown that stands a rosette and states an establishment, on the
     /// species' first trunk PA, which rises; none otherwise (dormant).
     pub(super) fn of(canopy: &CanopyParams, species: &Species, trunk: &[usize]) -> Option<Self> {
-        if canopy.rosette_fronds == 0 || canopy.frond_establishment <= 0.0 {
+        if canopy.rosette_fronds == 0.0 || canopy.frond_establishment <= 0.0 {
             return None;
         }
         let state = species.states.get(*trunk.first()?)?;

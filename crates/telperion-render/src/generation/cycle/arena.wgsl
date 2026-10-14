@@ -220,6 +220,12 @@ fn light32(i: u32) -> f32 {
     return select(1.0, bitcast<f32>(inputs[cfg.pen_at + i]), i < cfg.pencils);
 }
 
+// Whether axis i's tip, as the rough layout laid it, rests on the ground
+// (`Draws::rests`, fn-252 R2): written by `glue.wgsl`'s `inputs_main`.
+fn rests(i: u32) -> bool {
+    return i < cfg.pencils && inputs[cfg.pen_at + 6u * cfg.pencils + i] != 0u;
+}
+
 fn kept32(i: u32) -> f32 {
     return select(1.0, bitcast<f32>(inputs[cfg.pen_at + cfg.pencils + i]), i < cfg.pencils);
 }
@@ -270,6 +276,8 @@ const R_STAKE1: u32 = 15u;
 const R_REACHES: u32 = 16u;
 const R_WOODS: u32 = 17u;
 const R_WINDOWS: u32 = 18u;
+// fn-252 R2: the ground's hazard to a tip that rests on it.
+const R_GROUND: u32 = 19u;
 
 // A PA's lifespan in ticks, both words: a million cycles pass 32 bits.
 fn life(pa: u32) -> vec2<u32> {

@@ -11,6 +11,7 @@ mod crown;
 mod element;
 mod leaflet;
 mod levels;
+mod organs;
 mod outline;
 pub(crate) mod packed;
 #[cfg(feature = "geometry")]
@@ -51,6 +52,8 @@ pub(crate) use reference::Reach;
 /// The canopy's own rails, for a pass that reads the canopy rows without
 /// placing a leaf: a bad row is refused by the name `place` refuses it by.
 pub(crate) use rosette::validate as validate_canopy;
+pub(crate) use organs::apex;
+pub(crate) use rosette::stem_node;
 pub use crown::{establishment, waited, Crown};
 pub use rosette::{frame, rosettes, Rosette, MAX_FRONDS, MAX_LEAFLETS};
 

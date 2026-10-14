@@ -294,6 +294,8 @@ impl Presenting<'_> {
         let bearer = self.bearer_radius(&self.structure.axes[i]);
         let a = &mut self.structure.axes[i];
         let state = &species.states[a.pa];
+        // A short shoot by its draw (fn-277).
+        let clustered = crate::lineage::cluster(state.cluster_leaves, a.lineage) > 0;
         let olds = old.map_or(0, |b| b.phytomers.len().min(a.phytomers.len()));
         match old {
             Some(b) => {
@@ -348,7 +350,7 @@ impl Presenting<'_> {
             let unfolds = state.elongation * reached(if total > 0.0 { along / total } else { 0.0 });
             // A short shoot's cluster stays as it was where the shoot
             // stood a year before, at whichever tip it stands now.
-            let cluster = state.cluster_leaves > 0.0 && olds > 0;
+            let cluster = clustered && olds > 0;
             leaves.push(if cluster { 1.0 } else { run(tau - unfolds, state.expansion) as f32 });
             (from, drawn) = (grown[k], p.tip);
         }

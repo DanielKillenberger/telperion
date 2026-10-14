@@ -14,13 +14,16 @@ struct Cfg {
     records: u32,
     count: u32,
     base: u32,
-    // The bases a stem hangs, the boots' first id, whether they pack.
+    // The bases a stem hangs, as a count's word (`telperion_space::word`,
+    // each stem drawing its whole count, fn-277), the boots' first id,
+    // whether they pack.
     bases: u32,
     out_base: u32,
     packed: u32,
-    // The crown's living fronds, the spiral's divergence (radians) and the
-    // depth below the apex the oldest living frond leaves at.
-    fronds: f32,
+    // The crown's living fronds as a count's word, each apex drawing its
+    // whole count; the spiral's divergence (radians) and the depth below
+    // the apex the oldest living frond leaves at.
+    fronds: u32,
     divergence: f32,
     depth: f32,
     // The bases' pitch (radians, held off the axis where they pack), length,
@@ -39,7 +42,7 @@ struct Cfg {
 @group(0) @binding(0) var<uniform> cfg: Cfg;
 @group(0) @binding(1) var<storage, read> seed: array<f32>;
 @group(0) @binding(2) var<storage, read_write> carried: array<atomic<u32>>;
-// The clothed apices' count, then a slot each (`AW`).
+// The clothed apices' count and their bases', then a slot each (`AW`).
 @group(0) @binding(3) var<storage, read_write> stems: array<u32>;
 // A base each (`BW`): from, axis, radial, heading, girth, its bearer's
 // record, its age and its stem's slot.
@@ -61,7 +64,8 @@ const STEM: u32 = 128u;
 const BOOT: u32 = 0x40000000u;
 const CELL: u32 = 0x20000000u;
 // A stem's slot: its apex's record, its first base, its polyline's
-// length, its bark, the lattice's pitch and its cell.
+// length, its bark, the lattice's pitch and its cell; its bases and its
+// living fronds, each its whole count (fn-277).
 const AW: u32 = 12u;
 const BW: u32 = 16u;
 const SECTION: u32 = 28u;
@@ -137,12 +141,29 @@ fn polyline(r: u32) -> f32 {
     return run;
 }
 
+// The key of the first node of the stem apex `r` ends: its foot, which
+// keys its counts of organs (`rosette::stem_node`).
+fn stem_key(r: u32) -> u32 {
+    var at = r;
+    // cap: the wave's records; no polyline is longer.
+    for (var n = 0u; n < cfg.count; n++) {
+        let d = down(at);
+        if d == NONE {
+            break;
+        }
+        at = d;
+    }
+    return word(at, 24u);
+}
+
 // The clothed apices in record order (`Tree::stem_apices`, `leaf_bases`):
 // a stem node no stem carries on, whose stem is longer than the crown's
-// depth. One invocation.
+// depth, and that draws a base; each its bases and living fronds. One
+// invocation.
 @compute @workgroup_size(1)
 fn apices() {
     var clothed = 0u;
+    var total = 0u;
     for (var r = 0u; r < cfg.count; r++) {
         if !stem(r) || atomicLoad(&carried[r]) != 0u {
             continue;
@@ -151,17 +172,38 @@ fn apices() {
         if run - cfg.depth <= 0.0 {
             continue;
         }
-        let s = 1u + clothed * AW;
+        let key = stem_key(r);
+        let bases = organs(cfg.bases, key, ORGAN_BASES);
+        if bases == 0u {
+            continue;
+        }
+        let s = 2u + clothed * AW;
         stems[s] = r;
-        stems[s + 1u] = clothed * cfg.bases;
+        stems[s + 1u] = total;
         stems[s + 2u] = bitcast<u32>(run);
+        stems[s + 9u] = bases;
+        stems[s + 10u] = organs(cfg.fronds, key, ORGAN_FRONDS);
         clothed += 1u;
+        total += bases;
     }
     stems[0] = clothed;
+    stems[1] = total;
 }
 
 fn slot(s: u32, f: u32) -> u32 {
-    return stems[1u + s * AW + f];
+    return stems[2u + s * AW + f];
+}
+
+// The clothed stem base `b` hangs on.
+fn stem_of(b: u32) -> u32 {
+    var s = 0u;
+    // cap: the clothed stems.
+    for (var t = 0u; t < stems[0]; t++) {
+        if slot(t, 1u) <= b {
+            s = t;
+        }
+    }
+    return s;
 }
 
 fn slotf(s: u32, f: u32) -> f32 {
@@ -281,12 +323,12 @@ fn place(@builtin(global_invocation_id) id: vec3<u32>) {
     if b >= cfg.n {
         return;
     }
-    let s = b / cfg.bases;
-    let k = b % cfg.bases;
+    let s = stem_of(b);
+    let k = b - slot(s, 1u);
     let apex = slot(s, 0u);
     let run = slotf(s, 2u);
     let clothed = run - cfg.depth;
-    let oldest = f32(cfg.bases - 1u);
+    let oldest = f32(slot(s, 9u) - 1u);
     var age = 0.0;
     if oldest > 0.0 {
         age = f32(k) / oldest;
@@ -312,7 +354,7 @@ fn place(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     let normal = carried_normal(crown, a.axis, frame(crown));
     let binormal = cross(a.axis, normal);
-    let turn = (cfg.fronds + f32(k)) * cfg.divergence;
+    let turn = (f32(slot(s, 10u)) + f32(k)) * cfg.divergence;
     let radial = normalize(normal * cos(turn) + binormal * sin(turn));
     let heading = normalize(a.axis * cos(cfg.pitch) + radial * sin(cfg.pitch));
     let t = b * BW;
@@ -374,22 +416,23 @@ fn lattice(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
     let first = slot(s, 1u);
+    let bases = slot(s, 9u);
     var bark = 0.0;
-    for (var k = 0u; k < cfg.bases; k++) {
+    for (var k = 0u; k < bases; k++) {
         bark += table[(first + k) * BW + 12u];
     }
-    bark = bark / f32(cfg.bases);
-    let oldest = max(f32(cfg.bases - 1u), 1.0);
+    bark = bark / f32(bases);
+    let oldest = max(f32(bases - 1u), 1.0);
     var pitch = (slotf(s, 2u) - cfg.depth) / oldest;
-    if cfg.packed != 0u && cfg.bases > 1u {
+    if cfg.packed != 0u && bases > 1u {
         var length = 0.0;
-        for (var k = 0u; k + 1u < cfg.bases; k++) {
+        for (var k = 0u; k + 1u < bases; k++) {
             length += distance(get3((first + k) * BW), get3((first + k + 1u) * BW));
         }
-        pitch = length / f32(cfg.bases - 1u);
+        pitch = length / f32(bases - 1u);
     }
     let c = cell(bark, pitch);
-    let o = 1u + s * AW;
+    let o = 2u + s * AW;
     stems[o + 3u] = bitcast<u32>(bark);
     stems[o + 4u] = bitcast<u32>(pitch);
     for (var w = 0u; w < 4u; w++) {

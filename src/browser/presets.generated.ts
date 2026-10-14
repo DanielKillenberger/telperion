@@ -32,6 +32,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "acanthophyllLength": 0.35,
         "acanthophyllPitch": 80,
         "acanthophylls": 0,
+        "cauline": 1,
         "clump": 5,
         "clumpNeighbours": 12,
         "clumpSpan": 0.3,
@@ -1451,6 +1452,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "acanthophyllLength": 0.35,
         "acanthophyllPitch": 80,
         "acanthophylls": 0,
+        "cauline": 1,
         "clump": 5,
         "clumpNeighbours": 12,
         "clumpSpan": 0.3,
@@ -2388,6 +2390,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "acanthophyllLength": 0.35,
         "acanthophyllPitch": 80,
         "acanthophylls": 0,
+        "cauline": 1,
         "clump": 5,
         "clumpNeighbours": 12,
         "clumpSpan": 0.3,
@@ -3214,6 +3217,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "acanthophyllLength": 0.35,
         "acanthophyllPitch": 80,
         "acanthophylls": 0,
+        "cauline": 1,
         "clump": 5,
         "clumpNeighbours": 12,
         "clumpSpan": 0.3,
@@ -4072,6 +4076,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "acanthophyllLength": 0.35,
         "acanthophyllPitch": 80,
         "acanthophylls": 0,
+        "cauline": 1,
         "clump": 8,
         "clumpNeighbours": 12,
         "clumpSpan": 0.5,
@@ -4358,6 +4363,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "tropism": 0.5,
               "wander": 0.35
             },
+            "groundHazard": 1,
             "internode": 0.055,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
@@ -4415,6 +4421,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "tropism": 0.5,
               "wander": 0.35
             },
+            "groundHazard": 1,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
             "leafGirth": 1,
@@ -4474,6 +4481,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "tropism": 0.5,
               "wander": 0.35
             },
+            "groundHazard": 1,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
             "leafGirth": 1,
@@ -4537,6 +4545,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "tropism": 0.4,
               "wander": 0.5
             },
+            "groundHazard": 1,
             "internode": 0.015,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
@@ -4605,6 +4614,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "tropism": 0.9,
               "wander": 0.6
             },
+            "groundHazard": 1,
             "insertion": 0.6,
             "internode": 0.055,
             "leafArea": 0.0013190625000000001,
@@ -4676,6 +4686,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "tropism": 0.3,
               "wander": 0.6
             },
+            "groundHazard": 1,
             "insertion": 0.6,
             "internode": 0.03,
             "leafArea": 0.0013190625000000001,
@@ -4745,6 +4756,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "tropism": 0.5,
               "wander": 0.4
             },
+            "groundHazard": 1,
             "insertion": 0.7,
             "leafArea": 0.0013190625000000001,
             "leafFall": 45,
@@ -4807,6 +4819,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "tropismSpread": 0.6,
               "wander": 0.4
             },
+            "groundHazard": 1,
             "insertion": 0.7,
             "internode": 0.06,
             "leafArea": 0.0013190625000000001,
@@ -4853,6 +4866,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "form": {
               "pipe": 0.0005
             },
+            "groundHazard": 1,
             "insertion": 0.8,
             "internode": 0.003,
             "leafArea": 0.0013190625000000001,
@@ -4940,6 +4954,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "acanthophyllLength": 0.3,
         "acanthophyllPitch": 75,
         "acanthophylls": 8,
+        "cauline": 0,
         "clump": 5,
         "clumpNeighbours": 12,
         "clumpSpan": 0.3,
@@ -5303,6 +5318,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "acanthophyllLength": 0.35,
         "acanthophyllPitch": 80,
         "acanthophylls": 0,
+        "cauline": 1,
         "clump": 5,
         "clumpNeighbours": 12,
         "clumpSpan": 0.3,
@@ -6204,6 +6220,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "acanthophyllLength": 0.35,
         "acanthophyllPitch": 80,
         "acanthophylls": 0,
+        "cauline": 1,
         "clump": 5,
         "clumpNeighbours": 12,
         "clumpSpan": 0.3,

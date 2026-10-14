@@ -100,12 +100,18 @@ pub const STAND: u64 = u64::MAX - 16;
 /// A relay's join on its parent, the node the drawing inserts where it
 /// stands, under the key of the relay's first phytomer (fn-244).
 pub const JOIN: u64 = u64::MAX - 17;
+/// Whether a bearer of a fractional count of organs bears the one past
+/// its floor, under the bearer's key, then the count's row (fn-277): a
+/// leaf-bearing run or short shoot its cauline share, a stem apex its
+/// fronds, a stem its leaf bases, a placement its leaflets and spines, a
+/// short shoot its cluster.
+pub const ORGANS: u64 = u64::MAX - 18;
 /// An axis carried on into an age, under its chain's lineage.
 pub const CONTINUATION: u64 = u64::MAX;
 
 /// Every key: its name, value and what it is drawn under. `ZONE` and
 /// `PLACE` stand for their spans.
-pub const ALL: [(&str, u64, Under); 30] = [
+pub const ALL: [(&str, u64, Under); 31] = [
     ("VIABILITY", VIABILITY, Under::Unit),
     ("ABORTION", ABORTION, Under::Unit),
     ("MOVE", MOVE, Under::Unit),
@@ -135,6 +141,7 @@ pub const ALL: [(&str, u64, Under); 30] = [
     ("ROSETTE", ROSETTE, Under::Node),
     ("STAND", STAND, Under::Lineage),
     ("JOIN", JOIN, Under::Node),
+    ("ORGANS", ORGANS, Under::Node),
     ("CONTINUATION", CONTINUATION, Under::Lineage),
 ];
 

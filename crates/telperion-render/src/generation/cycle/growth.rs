@@ -109,7 +109,7 @@ impl GrowthState {
         let growing = growing.paused(gpu, (&t, &tables)).await?;
         let (rows, scale) = (rows(&growth.rows), growth.scale as f32);
         let establishing = telperion_core::pipeline::executor::Establishing::words(growth.establishing);
-        let unfold = species.states.iter().flat_map(|s| [s.elongation, s.expansion, s.form.internode_spread, s.cluster_leaves, telperion_space::unfold::Season::of(s).budburst].map(|v| v as f32)).collect();
+        let unfold = species.states.iter().flat_map(unfold_row).collect();
         let growing = Some(growing);
         Ok(Self { tables, t, rows, unfold, scale, establishing, previous: None, budget, growing, failed: Default::default() })
     }
@@ -232,3 +232,12 @@ mod presets;
 mod present_tests;
 #[cfg(test)]
 pub(super) mod tests;
+
+/// A PA's row as `present.wgsl` reads it: its elongation and expansion,
+/// its internode's spread, its cluster's count as a word
+/// (`telperion_space::word`, fn-277) and its budburst's day.
+fn unfold_row(s: &telperion_space::PaState) -> [f32; 5] {
+    let cluster = f32::from_bits(telperion_space::word(s.cluster_leaves));
+    let day = telperion_space::unfold::Season::of(s).budburst;
+    [s.elongation as f32, s.expansion as f32, s.form.internode_spread as f32, cluster, day as f32]
+}

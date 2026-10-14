@@ -107,6 +107,7 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         // limbs thicken. A shed branch leaves none of its pipe (fn-236
         // round 1): at 0.5 the stem stood two to four times Silvics' DBH.
         shade_hazard: 1.0,
+        ground_hazard: 0.0,
         shade_size: 1.5,
         apical_control: 0.45,
         upkeep: 0.35,

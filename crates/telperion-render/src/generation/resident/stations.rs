@@ -63,6 +63,9 @@ pub(super) struct Rows {
     /// Whether the canopy bears leaves at all: none of zero size, as the
     /// pipeline prepares none (`prepared.rs`; fn-212 task 11).
     pub leaves: bool,
+    /// Whether any of its leaf-bearing wood and short shoots bear them:
+    /// its cauline share above none (fn-277).
+    pub wood: bool,
     /// The blooms' rows where an age flowers (`data::flower`; fn-229).
     pub flower: Option<[[f32; 4]; 3]>,
     /// Whether some wood sheds its leaves by age (fn-248).
@@ -71,6 +74,8 @@ pub(super) struct Rows {
     /// fronds where the canopy stands none.
     pub rosette: [[f32; 4]; 7],
     pub turn: u32,
+    /// Its counts of organs (`organ_rows`, fn-277).
+    pub organs: [u32; 12],
 }
 
 pub(super) struct Stationed {
@@ -148,13 +153,14 @@ impl Stationer {
             rows.unit,
             rows.divergence.to_bits(),
             u32::from(rows.contact),
-            u32::from(rows.leaves),
+            u32::from(rows.leaves) | u32::from(rows.wood) << 1,
             u32::from(rows.retains),
             rows.turn,
         ];
         let flower = rows.flower.unwrap_or_default();
         words.extend(flower.as_flattened().iter().map(|v| v.to_bits()));
         words.extend(rows.rosette.as_flattened().iter().map(|v| v.to_bits()));
+        words.extend(rows.organs);
         let usage = wgpu::BufferUsages::UNIFORM;
         let bytes = bytemuck::cast_slice(&words);
         let cfg = io::buffer(gpu, "stations cfg", bytes.len() as u64, usage, bytes)?;
@@ -358,11 +364,43 @@ pub(super) fn station_rows(
             .rem_euclid(std::f64::consts::TAU) as f32,
         contact: x.seats(),
         leaves: canopy.size != 0.0,
+        wood: canopy.size != 0.0 && canopy.cauline > 0.0,
         flower,
         retains: x.retains(),
         rosette: rosette_rows(&canopy, year),
         turn: rosette_turn(&canopy),
+        organs: organ_rows(&canopy, year),
     }
+}
+
+/// The counts of organs `stations.wgsl` draws (fn-277): the cauline
+/// share, the living fronds, the dead fronds (none where they are drawn
+/// at no length), the leaflets and the spines as counts' words
+/// (`telperion_space::word`); the rachis's length; the newest frond's
+/// serial at the lesser and the greater whole living count an apex draws;
+/// and the fronds a crown draws (`Crown::slots`) at each pair of whole
+/// living and dead counts, lesser first.
+fn organ_rows(p: &CanopyParams, year: Option<telperion_core::tree::Year>) -> [u32; 12] {
+    let word = telperion_space::word;
+    let skirt = if p.skirt_length > 0.0 { p.skirt_fronds } else { 0.0 };
+    let crown = |fronds: f64, skirt_fronds: f64| Crown::new(year, &CanopyParams { rosette_fronds: fronds, skirt_fronds, ..*p });
+    let (f, k) = (p.rosette_fronds.floor(), skirt.floor());
+    let newest = |fronds: f64| (crown(fronds, k).made().ceil() as i64 - 1) as i32 as u32;
+    let slots = |fronds: f64, skirt: f64| crown(fronds, skirt).slots() as u32;
+    [
+        word(p.cauline),
+        word(p.rosette_fronds),
+        word(skirt),
+        word(p.leaflet_count),
+        word(p.acanthophylls),
+        (p.rachis_length as f32).to_bits(),
+        newest(f),
+        newest(f + 1.0),
+        slots(f, k),
+        slots(f, k + 1.0),
+        slots(f + 1.0, k),
+        slots(f + 1.0, k + 1.0),
+    ]
 }
 
 /// The rosette's rows as `stations.wgsl` and `pack.wgsl` read them
@@ -373,18 +411,18 @@ pub(super) fn station_rows(
 /// drawn in `year` (`Crown::rows`). Every row zero where the canopy
 /// stands no rosette or bears no leaves.
 fn rosette_rows(p: &CanopyParams, year: Option<telperion_core::tree::Year>) -> [[f32; 4]; 7] {
-    if p.rosette_fronds == 0 || p.size == 0.0 {
+    if p.rosette_fronds == 0.0 || p.size == 0.0 {
         return [[0.0; 4]; 7];
     }
     let crown = Crown::new(year, p).rows().map(|r| r.map(|v| v as f32));
-    let skirt = if p.skirt_length > 0.0 { p.skirt_fronds } else { 0 };
-    let leaflets = if p.leaflet_count > 1 && p.rachis_length > 0.0 { p.leaflet_count } else { 1 };
+    let skirt = if p.skirt_length > 0.0 { p.skirt_fronds } else { 0.0 };
+    let leaflets = if p.leaflet_count > 1.0 && p.rachis_length > 0.0 { p.leaflet_count } else { 1.0 };
     let radians = f64::to_radians;
     let rows = [
-        [f64::from(p.rosette_fronds), f64::from(skirt), radians(p.rosette_divergence), p.rosette_depth],
+        [p.rosette_fronds, skirt, radians(p.rosette_divergence), p.rosette_depth],
         [radians(p.rosette_pitch), radians(p.rosette_pitch_spread), radians(p.skirt_pitch), p.skirt_length],
-        [f64::from(leaflets), p.rachis_length, p.rachis_arch, radians(p.leaflet_pitch)],
-        [p.terminal_leaflet, f64::from(p.acanthophylls), p.acanthophyll_length, radians(p.acanthophyll_pitch)],
+        [leaflets, p.rachis_length, p.rachis_arch, radians(p.leaflet_pitch)],
+        [p.terminal_leaflet, p.acanthophylls, p.acanthophyll_length, radians(p.acanthophyll_pitch)],
     ]
     .map(|r| r.map(|v| v as f32));
     let [a, b, c, d] = rows;

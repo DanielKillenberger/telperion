@@ -1167,13 +1167,22 @@ Nearest neighbours and cell crossings in the clumping approximation.
 
 ### `/canopy/rosetteFronds`
 
-Fronds the rosette bears at the apex of each stem. At zero no rosette stands and the canopy clothes wood as it always did; any rise makes the rosette the tree's only foliage.
+Fronds the rosette bears at the apex of each stem. At zero no rosette stands. A fraction is split by a keyed draw at each apex, which bears the whole count either side of it (fn-277).
 
-- count (u32), fronds, [0, 128], default 0
+- real, fronds, [0, 128], default 0
 - read by grow, plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 18, as invalid input `rosette fronds`
-- note: Above zero the apical twigs are cleared, fronds are planned instead of runs and the rosette is placed instead; the GPU executor falls back.
-- blend: rounded to the nearest; dial: `rosette_fronds` (fronds in the crown at each stem apex; at zero no rosette stands), window its bounds (validated bound), steps 1 and 4
+- note: Above zero the apical twigs are cleared and fronds are planned and placed beside whatever wood `cauline` clothes.
+- blend: linear; dial: `rosette_fronds` (fronds in the crown at each stem apex; at zero no rosette stands), window its bounds (validated bound), steps 1 and 4
+
+### `/canopy/cauline`
+
+The share of leaf-bearing wood that bears its leaves along it, cauline foliage as against a crown's alone: each run of leaf-bearing wood and each short shoot keeps its leaves by a keyed draw at this share. One, every one bears; at zero none does, as a palm bears its leaves only in its crown (fn-277).
+
+- real, share of leaf-bearing wood, [0, 1], default 1
+- read by plan, expand; removed growth path: as the direct build
+- checked: Canopy site, rank 15, as invalid input `cauline share`
+- blend: linear; dial: `cauline` (the share of leaf-bearing wood that bears its leaves along it; at zero only a crown bears leaves), window its bounds (validated bound), steps 0.05 and 0.2
 
 ### `/canopy/rosetteDivergence`
 
@@ -1217,13 +1226,13 @@ Metres below the apex the frond insertions are spread down the axis. At zero eve
 
 ### `/canopy/leafletCount`
 
-Leaflets one placement carries along its rachis. One is the single blade every family drew.
+Leaflets one placement carries along its rachis. One is the single blade every family drew. A fraction is split by a keyed draw at each placement (fn-277).
 
-- count (u32), leaflets, [1, 256], default 1
+- real, leaflets, [1, 256], default 1
 - read by plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 20, as invalid input `leaflet count`
-- note: Leaflets group only above one and with `rachisLength` above zero; the GPU executor draws one blade a station regardless (fn-163).
-- blend: rounded to the nearest; dial: `leaflet_count` (leaflets along one frond's rachis), window its bounds (validated bound), steps 2 and 8
+- note: Leaflets group only above one and with `rachisLength` above zero.
+- blend: linear on the logarithm; dial: `leaflet_count` (leaflets along one frond's rachis), window its bounds (validated bound), steps 2 and 8
 
 ### `/canopy/rachisLength`
 
@@ -1269,12 +1278,12 @@ Whether a single leaflet closes the rachis's end, blended 0 to 1: the last leafl
 
 Bases of shed fronds the stem keeps below its crown, clothing the trunk. At zero the trunk is bare and the bark is what it always was; any rise carries the crown's own spiral down it.
 
-- count (u32), bases, [0, 256], default 0
+- real, bases, [0, 256], default 0
 - read by grow; removed growth path: not read
 - checked: Rosette site, rank 21, as invalid input `leaf bases`
 - dormant: `leafBaseLength` zero
-- note: Does not need a rosette: bases follow the rosette's spiral rows whether fronds stand or not.
-- blend: rounded to the nearest; dial: `leaf_bases` (bases of shed fronds the stem keeps below its crown, clothing the trunk; at zero the trunk is bare), window its bounds (validated bound), steps 4 and 16
+- note: Does not need a rosette: bases follow the rosette's spiral rows whether fronds stand or not. A fraction is split by a keyed draw at each stem (fn-277).
+- blend: linear; dial: `leaf_bases` (bases of shed fronds the stem keeps below its crown, clothing the trunk; at zero the trunk is bare), window its bounds (validated bound), steps 4 and 16
 
 ### `/canopy/leafBaseLength`
 
@@ -1342,11 +1351,12 @@ How flat-sided a lattice base is drawn: 0 the ellipse through its cell's corners
 
 Leaflets at a frond's base borne as spines rather than blades. At zero the frond carries blades all the way down; any rise hardens that many of them.
 
-- count (u32), leaflets, [0, 256], default 0
+- real, leaflets, [0, 256], default 0
 - read by plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 22, as invalid input `acanthophylls`
 - dormant: `acanthophyllLength` zero, or no leaflet grouping (`leafletCount` one or `rachisLength` zero)
-- blend: rounded to the nearest; dial: `acanthophylls` (leaflets at a frond's base borne as spines rather than blades; at zero the frond carries blades), window its bounds (validated bound), steps 1 and 4
+- note: A fraction is split by a keyed draw at each placement (fn-277).
+- blend: linear; dial: `acanthophylls` (leaflets at a frond's base borne as spines rather than blades; at zero the frond carries blades), window its bounds (validated bound), steps 1 and 4
 
 ### `/canopy/acanthophyllLength`
 
@@ -1372,11 +1382,12 @@ The degrees a spine leaves the rachis, in place of the leaflet's own pitch.
 
 Dead fronds a rosette keeps below its living crown, continuing the crown's own spiral down the stem. At zero no frond is kept and the crown ends at its oldest living frond; any rise hangs that many.
 
-- count (u32), fronds, [0, 128], default 0
+- real, fronds, [0, 128], default 0
 - read by plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 19, as invalid input `skirt fronds`
 - dormant: `skirtLength` zero, or `rosetteFronds` zero
-- blend: rounded to the nearest; dial: `skirt_fronds` (dead fronds a rosette keeps below its living crown; at zero none is kept), window its bounds (validated bound), steps 2 and 6
+- note: A fraction is split by a keyed draw at each apex (fn-277).
+- blend: linear; dial: `skirt_fronds` (dead fronds a rosette keeps below its living crown; at zero none is kept), window its bounds (validated bound), steps 2 and 6
 
 ### `/canopy/skirtPitch`
 

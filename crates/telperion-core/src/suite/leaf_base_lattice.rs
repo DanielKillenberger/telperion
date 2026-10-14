@@ -26,7 +26,7 @@ fn palm(bases: u32) -> Family {
     f.skeleton.habit.crookedness = 0.;
     f.skeleton.habit.attractor_weight = 0.;
     f.skeleton.bias = BiasParams::NONE;
-    f.canopy.leaf_bases = bases;
+    f.canopy.leaf_bases = f64::from(bases);
     f.canopy.leaf_base_width = 1.;
     f.canopy.leaf_base_flatness = 1.;
     f.canopy.leaf_base_weathering = 0.;

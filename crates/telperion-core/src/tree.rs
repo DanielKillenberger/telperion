@@ -205,9 +205,7 @@ pub struct Year {
 
 /// A 32-bit finaliser: the one the leaves' draws already use.
 pub fn mix32(z: u32) -> u32 {
-    let z = (z ^ (z >> 16)).wrapping_mul(0x21f0_aaad);
-    let z = (z ^ (z >> 15)).wrapping_mul(0x735a_2d97);
-    z ^ (z >> 15)
+    telperion_space::mix32(z)
 }
 
 /// A node's key: its axis's lineage and its phytomer's place along the

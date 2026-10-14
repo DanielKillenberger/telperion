@@ -31,7 +31,7 @@ fn family(id: &str, age: u32) -> Family {
 /// DESIGN.md 12.8).
 fn bare(id: &str, age: u32) -> Family {
     let mut family = family(id, age);
-    family.canopy.leaf_bases = 0;
+    family.canopy.leaf_bases = 0.0;
     family
 }
 
@@ -232,7 +232,7 @@ fn every_rosette_is_placed_as_the_cpu_places_it() {
     for id in presets() {
         for age in [age(), 3] {
             let f = family(&id, age);
-            if f.canopy.rosette_fronds == 0 {
+            if f.canopy.rosette_fronds == 0.0 {
                 break;
             }
             for fraction in [1.0, 0.3, 0.8] {

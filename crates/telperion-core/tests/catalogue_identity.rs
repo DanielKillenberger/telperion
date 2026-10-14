@@ -213,6 +213,18 @@
 //! fn-275 R2a re-pinned the family, walk and override digests for the
 //! palm's internode, 0.031 to 0.0339 m (host, 2026-10-14), the one row
 //! that moved.
+//! fn-252 R2 re-pinned the family, walk and override digests for each
+//! engine age's new neutral `ground_hazard` and the silver birch's nine
+//! `groundHazard` rows of 1: with those rows left out of its value file,
+//! `telperion_space::birch` at 0, and `ground_hazard: 0.0, ` and
+//! `"groundHazard":0.0,` stripped from the text, all four digests were
+//! the last pins to the bit.
+//! The release branch's merge of fn-275 and fn-252 (2026-10-14) re-pinned
+//! the family, walk and override digests for both sets of rows together.
+//! fn-277's merge onto it (2026-10-14) re-pinned all four: the five counts
+//! of organs are reals (their kind, walk and refusals), `cauline` is a new
+//! row (1, the palm 0), `leafletCount` walks on the logarithm and the
+//! engine's `cluster_leaves` walks by value.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -248,7 +260,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        17_501_661_787_957_023_156,
+        15_600_618_737_748_844_894,
         "{}",
         digest(&text)
     );
@@ -292,7 +304,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        13_850_429_412_489_794_867,
+        10_246_313_571_835_020_974,
         "{}",
         digest(&text)
     );
@@ -317,7 +329,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        2_381_100_684_192_572_147,
+        455_181_196_565_730_622,
         "{}",
         digest(&text)
     );
@@ -380,7 +392,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        635_994_656_037_425_314,
+        7_797_001_527_923_877_644,
         "{}",
         digest(&text)
     );

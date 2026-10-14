@@ -105,7 +105,7 @@ fn a_request_subset_builds_what_the_whole_request_builds() {
 #[test]
 fn a_handed_tree_is_clothed_in_its_leaf_bases() {
     let f = Preset::from_id("date-palm").unwrap().parameters();
-    assert!(f.canopy.leaf_bases > 0 && f.canopy.leaf_base_length > 0.0);
+    assert!(f.canopy.leaf_bases > 0.0 && f.canopy.leaf_base_length > 0.0);
     let built = build(&f, Request::mesh()).unwrap();
     let clothed = &built.skeleton.tree;
     assert_eq!(clothed.stem_apices().len(), 1, "one stem");

@@ -67,8 +67,8 @@ fn no_leaflet_stands_below_the_frond_crown() {
     let (tree, crown) = placed(&f);
     let apices = apices(&tree);
     // The skirt continues the crown's spacing below its oldest living frond.
-    let last = f64::from(f.canopy.rosette_fronds + f.canopy.skirt_fronds - 1);
-    let spacing = f.canopy.rosette_depth / f64::from(f.canopy.rosette_fronds - 1);
+    let last = f.canopy.rosette_fronds + f.canopy.skirt_fronds - 1.0;
+    let spacing = f.canopy.rosette_depth / (f.canopy.rosette_fronds - 1.0);
     let rachis = f.canopy.rachis_length * f.canopy.rachis_arch.hypot(1.0);
     let reach = spacing * last + rachis;
     for i in 0..crown.placed() {
@@ -112,13 +112,14 @@ fn an_apex_that_bears_a_rosette_bears_no_twig() {
     );
 }
 
-/// The rosette absent, the family clothes its wood as it always did - the twig
-/// layer back, the crown borne on it. The palm's own column is too narrow to
-/// bear a twig crown, so the wood is grown in the default envelope.
+/// The rosette absent and the wood cauline, the family clothes its wood as
+/// it always did - the twig layer back, the crown borne on it. The palm's
+/// own column is too narrow to bear a twig crown, so the wood is grown in
+/// the default envelope.
 #[test]
 fn the_rosette_absent_leaves_the_wood_clothed_as_it_was() {
     let mut f = family("date-palm", 1);
-    f.canopy.rosette_fronds = 0;
+    (f.canopy.rosette_fronds, f.canopy.cauline) = (0.0, 1.0);
     f.skeleton.envelope = Family::default().skeleton.envelope;
     let (tree, crown) = placed(&f);
     assert!(
@@ -136,14 +137,16 @@ fn the_rosette_absent_leaves_the_wood_clothed_as_it_was() {
 #[test]
 fn raising_the_rosette_moves_a_crown_the_default_leaves_where_it_was() {
     let f = family("silver-birch", 1);
-    assert_eq!(f.canopy.rosette_fronds, 0);
-    assert_eq!(f.canopy.leaflet_count, 1);
+    assert_eq!(f.canopy.rosette_fronds, 0.0);
+    assert_eq!(f.canopy.leaflet_count, 1.0);
     assert_eq!(f.canopy.rachis_length, 0.);
     let (_, before) = placed(&f);
     let mut with = f.clone();
-    with.canopy.rosette_fronds = 12;
-    with.canopy.leaflet_count = 9;
+    with.canopy.rosette_fronds = 12.0;
+    with.canopy.leaflet_count = 9.0;
     with.canopy.rachis_length = 0.4;
+    // A crown alone: none of the wood cauline (fn-277).
+    with.canopy.cauline = 0.0;
     let (tree, after) = placed(&with);
     assert_ne!(
         before.leaves, after.leaves,
@@ -164,7 +167,7 @@ fn leaflets_expand_a_placement_wherever_the_placement_stands() {
     let f = family("silver-birch", 1);
     let (_, plain) = placed(&f);
     let mut compound = f.clone();
-    compound.canopy.leaflet_count = 5;
+    compound.canopy.leaflet_count = 5.0;
     compound.canopy.rachis_length = 0.12;
     let (_, grouped) = placed(&compound);
     assert_eq!(
@@ -204,24 +207,24 @@ fn every_new_row_is_refused_by_its_own_name() {
         )
         .expect_err("the row is off its rail")
     };
-    refuse(|f| f.canopy.rosette_fronds = 129);
+    refuse(|f| f.canopy.rosette_fronds = 129.0);
     refuse(|f| f.canopy.rosette_pitch = 181.);
     refuse(|f| f.canopy.rosette_pitch_spread = -1.);
     refuse(|f| f.canopy.rosette_depth = 101.);
-    refuse(|f| f.canopy.leaflet_count = 0);
+    refuse(|f| f.canopy.leaflet_count = 0.0);
     refuse(|f| f.canopy.rachis_length = 1001.);
     refuse(|f| f.canopy.leaflet_pitch = 91.);
     refuse(|f| f.canopy.rachis_arch = 1.5);
     refuse(|f| f.canopy.terminal_leaflet = 1.5);
-    refuse(|f| f.canopy.leaf_bases = 257);
+    refuse(|f| f.canopy.leaf_bases = 257.0);
     refuse(|f| f.canopy.leaf_base_length = 11.);
     refuse(|f| f.canopy.leaf_base_radius = 1.5);
     refuse(|f| f.canopy.leaf_base_pitch = 181.);
     refuse(|f| f.canopy.leaf_base_weathering = -0.1);
-    refuse(|f| f.canopy.acanthophylls = 257);
+    refuse(|f| f.canopy.acanthophylls = 257.0);
     refuse(|f| f.canopy.acanthophyll_length = 1.5);
     refuse(|f| f.canopy.acanthophyll_pitch = 91.);
-    refuse(|f| f.canopy.skirt_fronds = 129);
+    refuse(|f| f.canopy.skirt_fronds = 129.0);
     refuse(|f| f.canopy.skirt_pitch = 181.);
     refuse(|f| f.canopy.skirt_length = 1.5);
     refuse(|f| f.canopy.frond_establishment = 101.);
@@ -236,7 +239,7 @@ fn every_new_row_is_refused_by_its_own_name() {
 fn the_first_leaflets_of_a_frond_are_borne_as_spines() {
     let f = family("date-palm", 1);
     let mut blades = f.clone();
-    blades.canopy.acanthophylls = 0;
+    blades.canopy.acanthophylls = 0.0;
     let (_, without) = placed(&blades);
     let (_, with) = placed(&f);
     assert_eq!(with.leaves.len(), without.leaves.len());
@@ -265,11 +268,11 @@ fn the_first_leaflets_of_a_frond_are_borne_as_spines() {
 #[test]
 fn no_spine_is_borne_where_the_rows_state_none() {
     let mut f = family("date-palm", 1);
-    f.canopy.acanthophylls = 0;
+    f.canopy.acanthophylls = 0.0;
     let (_, blades) = placed(&f);
     let mut length = f.clone();
     length.canopy.acanthophyll_length = 0.;
-    length.canopy.acanthophylls = 6;
+    length.canopy.acanthophylls = 6.0;
     let (_, none) = placed(&length);
     assert_eq!(
         blades.leaves, none.leaves,

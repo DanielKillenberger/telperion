@@ -227,6 +227,9 @@ pub enum Blend {
     Weighted,
     /// Degrees along the shorter arc.
     Degrees,
+    /// Linear on the logarithm, for a magnitude whose ends are both
+    /// positive (fn-251 R1b); linear where either is not.
+    Log,
     /// Rounded to the nearest whole number.
     Count,
     /// Rounded down.

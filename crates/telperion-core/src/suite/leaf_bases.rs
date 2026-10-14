@@ -46,7 +46,7 @@ fn apices(tree: &Tree) -> Vec<(Vec3, Vec3)> {
 #[test]
 fn the_palm_hangs_a_retained_base_for_every_row_its_table_states() {
     let f = family("date-palm", 1);
-    assert!(f.canopy.leaf_bases > 0 && f.canopy.leaf_base_length > 0.);
+    assert!(f.canopy.leaf_bases > 0.0 && f.canopy.leaf_base_length > 0.);
     let tree = mesh::grow(&f).expect("the skeleton grows");
     let bases = hung(&tree);
     assert_eq!(
@@ -96,7 +96,7 @@ fn the_bases_carry_the_crowns_own_spiral_down_the_trunk() {
             .atan2(base.radial.dot(normal))
             .to_degrees()
             .rem_euclid(360.);
-        let turn = f64::from(f.canopy.rosette_fronds + k as u32) * f.canopy.rosette_divergence;
+        let turn = (f.canopy.rosette_fronds + k as f64) * f.canopy.rosette_divergence;
         let expected = turn.rem_euclid(360.);
         let apart = (stood - expected).abs();
         assert!(
@@ -187,7 +187,7 @@ fn weathering_wears_the_lowest_bases_back() {
 #[test]
 fn the_bases_absent_leave_the_skeleton_where_it_was() {
     let mut f = family("date-palm", 1);
-    f.canopy.leaf_bases = 0;
+    f.canopy.leaf_bases = 0.0;
     let grown = mesh::grow(&f).expect("the skeleton grows");
     let bare = branching::crowned(&f.skeleton, f.radii, true)
         .expect("the skeleton grows")
@@ -202,7 +202,7 @@ fn the_bases_absent_leave_the_skeleton_where_it_was() {
 #[test]
 fn raising_the_bases_moves_the_palms_own_wood() {
     let mut bare = family("date-palm", 1);
-    bare.canopy.leaf_bases = 0;
+    bare.canopy.leaf_bases = 0.0;
     let without = mesh::build(&bare).expect("the palm builds");
     let with = mesh::build(&family("date-palm", 1)).expect("the palm builds");
     assert_ne!(
@@ -228,7 +228,7 @@ fn raising_the_bases_moves_the_palms_own_wood() {
 fn a_base_never_thickens_the_trunk_it_hangs_on() {
     let f = family("date-palm", 1);
     let mut bare = f.clone();
-    bare.canopy.leaf_bases = 0;
+    bare.canopy.leaf_bases = 0.0;
     let (with, without) = (
         mesh::grow(&f).expect("the skeleton grows"),
         mesh::grow(&bare).expect("the skeleton grows"),

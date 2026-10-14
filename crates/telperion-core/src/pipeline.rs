@@ -191,7 +191,7 @@ pub(crate) fn skeleton(input: GrowInput) -> Result<Skeleton> {
 /// rosette bears no twig under a frond crown.
 #[cfg(test)]
 pub(crate) fn scaffold(family: &Family) -> Result<Tree> {
-    let crowned = family.canopy.rosette_fronds > 0;
+    let crowned = family.canopy.rosette_fronds > 0.0;
     Ok(branching::crowned(&family.skeleton, family.radii, crowned)?.tree)
 }
 

@@ -37,15 +37,21 @@ impl Crown {
     /// The crown of a tree drawn in `year` (`executor::year`), for an
     /// executor that holds no tree.
     pub fn new(year: Option<Year>, p: &CanopyParams) -> Self {
-        let kept = f64::from(p.rosette_fronds + skirt(p));
+        let kept = p.rosette_fronds + skirt(p);
         Self {
             year,
-            fronds: f64::from(p.rosette_fronds),
+            fronds: p.rosette_fronds,
             life: p.frond_life,
             kept,
             establishment: p.frond_establishment,
             early: p.frond_early_share,
         }
+    }
+
+    /// The serials of the fronds it draws, newest first (`slots`).
+    pub(super) fn serials(&self) -> impl Iterator<Item = i64> {
+        let newest = self.made().ceil() as i64 - 1;
+        (0..self.slots() as i64).map(move |i| newest - i)
     }
 
     /// The rows the device draws the crown by (`stations.wgsl`'s

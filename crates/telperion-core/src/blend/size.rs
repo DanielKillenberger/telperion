@@ -181,6 +181,9 @@ fn neutral(species: &Species) -> Species {
         state.shade_size = 0.0;
         state.balance_hazard = 0.0;
         state.leaf_girth = 0.0;
+        // The ground stops a shoot the predictor does not see (fn-252),
+        // which `reads_light` refuses as it refuses light.
+        state.ground_hazard = 0.0;
     }
     neutral
 }

@@ -72,7 +72,7 @@ pub(super) fn leaflets(
 /// leaves the rachis on, where the rows bear it as a spine. None everywhere
 /// else, so a frond that bears none is scaled by nothing at all.
 fn spine(index: usize, p: &CanopyParams) -> Option<(f64, f64)> {
-    let borne = (index as u64) < u64::from(p.acanthophylls) && p.acanthophyll_length > 0.;
+    let borne = (index as f64) < p.acanthophylls && p.acanthophyll_length > 0.;
     borne.then(|| (p.acanthophyll_length, p.acanthophyll_pitch.to_radians()))
 }
 

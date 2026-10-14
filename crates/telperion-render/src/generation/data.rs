@@ -15,6 +15,12 @@ pub(super) struct Config {
     shape: [f32; 4],
     lean: [f32; 4],
     size: [f32; 4],
+    /// The rachis a station's leaflets are strung along (fn-277): its
+    /// length, arch, the leaflet pitch (radians) and the terminal share.
+    rachis: [f32; 4],
+    /// The leaflets and spines a placement draws as counts' words, the
+    /// spine's share and pitch (radians, bits).
+    organs: [u32; 4],
 }
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
@@ -70,6 +76,18 @@ pub(super) fn config(
             f32::from_bits((t.internode_length * 1e6 + 0.5).floor() as u32),
             0.0,
         ],
+        rachis: [
+            c.rachis_length as f32,
+            c.rachis_arch as f32,
+            c.leaflet_pitch.to_radians() as f32,
+            c.terminal_leaflet as f32,
+        ],
+        organs: [
+            telperion_space::word(c.leaflet_count),
+            telperion_space::word(c.acanthophylls),
+            (c.acanthophyll_length as f32).to_bits(),
+            (c.acanthophyll_pitch.to_radians() as f32).to_bits(),
+        ],
     }
 }
 /// A bloom's rows as `bloom.wgsl`'s `Flower` reads them (fn-229), drawn at
@@ -105,6 +123,8 @@ pub(super) fn florets(
         shape: rows[0],
         lean: rows[1],
         size: rows[2],
+        rachis: [0.0; 4],
+        organs: [0x10000, 0, 0, 0],
     }
 }
 pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
@@ -124,9 +144,9 @@ pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
                 normal: worded(s.frame[1], retention.1),
                 binormal: worded(s.frame[2], retain(s.key)),
                 // A cluster (fn-223) is marked by a negative span, its spread
-                // where a run's phase stands.
+                // and its leaves where a run's phase stands.
                 distance: match s.cluster {
-                    Some(spread) => [0.0, -1.0, spread as f32, 0.0],
+                    Some((spread, leaves)) => [0.0, -1.0, spread as f32, leaves as f32],
                     None => [
                         s.along as f32,
                         s.span as f32,
