@@ -17,3 +17,5 @@ The owner (2026-10-14), watching the harness grow the date palm in: "also the da
 ## Boundaries
 
 Release item (fn-237), after fn-270. Juvenile leaf form (entire eophylls before pinnate leaves) is out of scope unless the sources make it the dominant read at the ages shown; then it is reported, not built.
+
+- **R2b (owner, 2026-10-14: "ok", to the palm's seedling leaves as a release item):** a date palm's first leaves are entire ("entire leaves" for "the first three years after seed germination", FAO 156 ch. I). Each frond's leaflet count follows the crown's age when it was made, from one (an entire, strap-like leaf) to the mature count over the sourced juvenile years, by degree through fn-277's fractional counts (a keyed draw), kept for the frond's life; same rows, both executors, dormant without a rosette. After fn-277. The palm at its shipped age byte-equal. Stills at 1, 2, 3, 4 and the whole-year grow-in viewed; the owner's verdict. Leaf form in other species (heteroblasty) is fn-278, after the release.
