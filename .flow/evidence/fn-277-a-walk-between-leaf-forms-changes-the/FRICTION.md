@@ -27,3 +27,10 @@
 - Slowed by: other workers' gates held the machine; each call waited 5 to 15 minutes for admission, one background run lost its output when it was moved to the background and its duplicate later rewrote a finished file.
 - Cost: about 40 minutes of wall time, a few thousand tokens of polling.
 - Would remove it: a queue position printed by `telperion-heavy` while it waits, so a caller can tell a long wait from a stuck one.
+
+## 2026-10-14, task 1, the gate at 9 GB
+
+- Doing: the local gate, `telperion-heavy 9 --gpu 4 --threads 4 -- cargo test --profile ci --workspace --no-fail-fast`.
+- Slowed by: the first run was killed by the kernel at its 9 GB cap after 11 minutes in telperion-core's lib tests, before any summary printed (its one failure, the sweep's held rows, was found by rerunning it alone). The second waited 20 minutes for room and was cancelled; other workers' gates held the machine. Whether 9 GB at four threads holds on the base was not checked.
+- Cost: about 35 minutes, no gate result.
+- Would remove it: a stated gate size that the base is known to fit in, and nextest, so a killed run can be resumed by test.
