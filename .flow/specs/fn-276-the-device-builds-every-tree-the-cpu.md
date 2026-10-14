@@ -15,3 +15,16 @@ fn-272's film (FILM.md, defect 1, 2026-10-14): the device build refuses trees th
 ## Boundaries
 
 Release item (fn-237): the harness and the site reach these trees. Speed of the CPU walk path is not in scope.
+
+## Host rulings (host, 2026-10-14), on R2 (`.flow/evidence/fn-276-the-device-builds-every-tree-the-cpu/CAUSE.md`)
+
+- **Fix 1, the species floor: yes.** The units rounds and the hierarchy's and the layout's generations read the parameters' own bound, a closed form over the age table, alongside the observed projection. A tree's structure then sets its limit by degree, and fn-256 task 12's saving stays. Before it is trusted, check that the closed form is at least the CPU's measured count:
+  - on every preset at every whole age to its horizon and to 80;
+  - on R4's walk frames;
+  - with relays after failed units included.
+
+  A single case under the CPU's count is a stop and a report, not a margin. A species whose floor passes a hard cap is refused by name before submit. Measure its cost against fn-256 task 12's saving.
+- **Fix 2 (limits at their bounds every cycle): no.**
+- **Fix 3, the node table: yes.** One rule with the dispatch span: the box projected side by side. Measure its memory cost per preset, charged to the ledger that the fn-270-grow-budget branch fixed. Merge that branch's `buffer.rs` fix if the ledger is touched, or tell the host.
+- **The walk observation** (a lifespan of 0 mixed by value): noted, and not fn-276's; the host records it for the walk specs.
+- **Then:** R4's sweep, the gate (`telperion-heavy 9 --gpu 4 --threads 4`), npm test if TypeScript changed, codex review to SHIP, `flowctl done`.
