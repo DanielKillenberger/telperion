@@ -24,6 +24,9 @@ NEEDS_HUMAN (a film pair fails). Under the seed-spread oracle 86 of 95 frames me
 
 Blocked:
 BLOCKED: TOOLING_FAILURE. The workspace gate is OOM-killed inside telperion-core's unit tests (src/lib.rs, untouched by this task) at 10 GB/6 threads, 9 GB/4 threads and 9 GB/2 threads; every_preset_grows_the_same_tree_again_and_on_any_cores alone needs more than 9 GB. The task's work is committed (8cf010423); walk_sizes passes alone in 53 s and goes red when a record is tightened. Needs a larger gate cap or one-at-a-time heavy unit tests; then npm test, the codex review and done. FRICTION.md 2026-10-14.
+
+Blocked:
+BLOCKED: TOOLING_FAILURE. The workspace gate was OOM-killed at 13 GB with 4 threads (190 s, 13G peak) in telperion-core's unit tests (src/lib.rs, untouched by this task), with every_preset_grows_the_same_tree_again_and_on_any_cores running. The earlier caps were 10 GB/6, 9 GB/4 and 9 GB/2. The task's work is committed (8cf010423). npm test, the codex review and done wait on a gate that fits.
 ## Evidence
 - Commits:
 - Tests:
