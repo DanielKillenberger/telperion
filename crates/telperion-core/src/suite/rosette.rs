@@ -227,6 +227,8 @@ fn every_new_row_is_refused_by_its_own_name() {
     refuse(|f| f.canopy.skirt_fronds = 129.0);
     refuse(|f| f.canopy.skirt_pitch = 181.);
     refuse(|f| f.canopy.skirt_length = 1.5);
+    refuse(|f| f.canopy.frond_establishment = 101.);
+    refuse(|f| f.canopy.frond_early_share = 1.5);
 }
 
 /// R3 (fn-110): the first leaflets of a frond are borne as spines. Each one is
@@ -310,5 +312,48 @@ fn last_years_fronds_stay_whole_and_the_year_turns_with_no_pop() {
     for s in 0..(end.made().ceil() as i64) {
         let (a, b) = (end.unfolded(s as f64), start.unfolded(s as f64));
         assert!((a - b).abs() < 1e-6, "frond {s}: {a} at the year's end, {b} after it");
+    }
+}
+
+/// fn-275 R2, R4: a young palm makes each frond at a share of a mature
+/// one set by the crown's age when it made it, from the early share to
+/// whole over its establishment, and the frond keeps that size: each new
+/// frond is no smaller than the last, and no year turns a frond's size.
+#[test]
+fn a_young_palms_fronds_are_made_small_and_keep_their_size() {
+    use telperion_core::{foliage::Crown, tree::Year};
+    let f = family("date-palm", 1);
+    let (early, years) = (f.canopy.frond_early_share, f.canopy.frond_establishment);
+    assert!(years > 0.0 && early < 1.0, "the palm states its establishment");
+    let year = |age: f64| Year { age, budburst: 0.0, elongation: 226.0, expansion: 139.0 };
+    let crown = |age: f64| Crown::new(Some(year(age)), &f.canopy);
+    let per_year = f64::from(f.canopy.rosette_fronds) / f.canopy.frond_life;
+    let (c, mut last) = (crown(12.0), 0.0);
+    for s in 0..(per_year * 12.0) as i64 {
+        let share = c.established(s as f64);
+        assert!(share >= last, "frond {s} at {share}, smaller than the one before at {last}");
+        last = share;
+    }
+    let first = c.established(0.0);
+    assert!(first >= early && first < early + 0.01, "the first frond at {first}");
+    // A frond of year 3 is sized by the age it emerges at, the first day
+    // the crown draws it.
+    let serial = (per_year * 2.5) as i64;
+    let emerges = (0..365).map(|d| 2.0 + f64::from(d) / 365.0).find(|&age| {
+        crown(age + 1e-9).unfolded(serial as f64) > 0.0
+    });
+    let born = emerges.expect("the frond emerges in its year");
+    let expected = 1.0 - (1.0 - early) * (1.0 - telperion_space::unfold::course(born / years));
+    let share = c.established(serial as f64);
+    assert!((share - expected).abs() < 2e-3, "frond {serial} at {share}, emerged at {born} for {expected}");
+    let mature = (per_year * years.ceil()).ceil() as i64;
+    assert_eq!(c.established(mature as f64), 1.0, "a frond made after establishment is whole");
+    // The same frond at every age it stands, across each year's turn.
+    for s in 0..mature {
+        let at = |age: f64| crown(age).established(s as f64);
+        let made = at(12.0);
+        for age in [2.0, 2.0 + 1e-9, 3.5, 6.0, 6.0 + 1e-9, 40.0] {
+            assert_eq!(at(age), made, "frond {s} changed size at {age}");
+        }
     }
 }

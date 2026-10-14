@@ -6,7 +6,7 @@
 //! years: growth commits whole cycles, and a draw within the year unfolds
 //! this year's shoots and leaves and moves the rest from the year before
 //! (`telperion_space::unfold`, R5 and R5a).
-use super::{engine, fits, foreseen, pa_rows, scaled, unfolded, PaRow, Unfolding, BUDGET, KEPT};
+use super::{engine, fits, foreseen, pa_rows, scaled, unfolded, Establishing, PaRow, Unfolding, BUDGET, KEPT};
 use crate::presets::Family;
 use crate::tree::Tree;
 use crate::{Error, Result};
@@ -21,6 +21,7 @@ pub struct Params {
     trunk: Vec<usize>,
     rows: Vec<PaRow>,
     scale: f64,
+    establishing: Option<Establishing>,
 }
 
 impl Params {
@@ -33,7 +34,8 @@ impl Params {
         let species = space.species.clone().ok_or(Error::InvalidInput("no engine species"))?;
         let rows = pa_rows(&species);
         let (light, trunk, scale) = (space.light, space.trunk.clone(), input.supernatural.scale());
-        Ok(Self { species, light, trunk, rows, scale })
+        let establishing = Establishing::of(&input.canopy, &species, &trunk);
+        Ok(Self { species, light, trunk, rows, scale, establishing })
     }
 }
 
@@ -88,7 +90,8 @@ pub fn settle(state: &GrowthState, at: f64) -> Result<Tree> {
     fits(&drawn.structure, KEPT)?;
     let p = state.params;
     let unfolding = Unfolding { leaves: &drawn.leaves, fraction: drawn.fraction, gone: drawn.gone };
-    let (mut tree, _) = unfolded(&drawn.structure, (&p.trunk, &p.rows), unfolding);
+    let structure = Establishing::apply(p.establishing, &drawn.structure, &p.trunk);
+    let (mut tree, _) = unfolded(&structure, (&p.trunk, &p.rows), unfolding);
     scaled(&mut tree, p.scale);
     Ok(tree)
 }

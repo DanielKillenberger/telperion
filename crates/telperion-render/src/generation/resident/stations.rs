@@ -72,7 +72,7 @@ pub(super) struct Rows {
     pub retains: bool,
     /// The rosette's rows (`rosette_rows`; fn-256, fn-270 R5b): zero
     /// fronds where the canopy stands none.
-    pub rosette: [[f32; 4]; 6],
+    pub rosette: [[f32; 4]; 7],
     pub turn: u32,
     /// Its counts of organs (`organ_rows`, fn-277).
     pub organs: [u32; 12],
@@ -410,12 +410,11 @@ fn organ_rows(p: &CanopyParams, year: Option<telperion_core::tree::Year>) -> [u3
 /// the terminal share, and the spines' count, share and pitch; the crown
 /// drawn in `year` (`Crown::rows`). Every row zero where the canopy
 /// stands no rosette or bears no leaves.
-fn rosette_rows(p: &CanopyParams, year: Option<telperion_core::tree::Year>) -> [[f32; 4]; 6] {
+fn rosette_rows(p: &CanopyParams, year: Option<telperion_core::tree::Year>) -> [[f32; 4]; 7] {
     if p.rosette_fronds == 0.0 || p.size == 0.0 {
-        return [[0.0; 4]; 6];
+        return [[0.0; 4]; 7];
     }
     let crown = Crown::new(year, p).rows().map(|r| r.map(|v| v as f32));
-    // Whole on every family the device draws (`executor::whole`).
     let skirt = if p.skirt_length > 0.0 { p.skirt_fronds } else { 0.0 };
     let leaflets = if p.leaflet_count > 1.0 && p.rachis_length > 0.0 { p.leaflet_count } else { 1.0 };
     let radians = f64::to_radians;
@@ -427,8 +426,8 @@ fn rosette_rows(p: &CanopyParams, year: Option<telperion_core::tree::Year>) -> [
     ]
     .map(|r| r.map(|v| v as f32));
     let [a, b, c, d] = rows;
-    let [made, clock] = crown;
-    [a, b, c, d, made, clock]
+    let [made, clock, establishment] = crown;
+    [a, b, c, d, made, clock, establishment]
 }
 
 /// The rosette's divergence as a fixed-point share of a turn, which a

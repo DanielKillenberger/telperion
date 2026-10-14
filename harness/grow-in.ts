@@ -3,9 +3,10 @@ import type { Growth, Submitted } from "../src/browser/render";
 /* ------------------------------------------------------------------ *
  * THE TREE GROWS IN (fn-270 R6; host rulings, 2026-10-14)
  *
- * Opening, a preset, the seed and the age grow the tree in from year 1,
- * a whole year a draw; the trait dials build the grown tree at once.
- * "grow again" replays the grow-in; "play the year" steps the grown tree
+ * Every change of the params builds the grown tree at once (owner,
+ * 2026-10-14: growing from year 1 "shouldn't be the default mode when you
+ * open the harness a new species"); "grow in" grows it from year 1,
+ * a whole year a draw; "play the year" steps the grown tree
  * through its last year, budburst to full leaf, autumn, fall and winter,
  * ending at the whole age. The canvas keeps the last drawn tree while the
  * next one grows, and a newer request abandons a run between its draws.
@@ -43,6 +44,9 @@ export interface Pace {
   current(): boolean;
   /** Told each tree as it goes up, with the age it was drawn at. */
   drawn(at: number, submitted: Submitted): void;
+  /** Told while a draw lets the tree on the canvas go first, the screen
+   *  empty until it is up (the budget's one rule, as for a build). */
+  makingRoom(on: boolean): void;
   now(): number;
   wait(ms: number): Promise<void>;
 }
@@ -60,7 +64,9 @@ export async function drawEach(growth: Growth, ages: number[], pace: Pace): Prom
     const left = shown === null ? 0 : FLOOR_MS - (pace.now() - shown);
     if (left > 0) await pace.wait(left);
     if (!pace.current()) return null;
+    pace.makingRoom(growth.admission() === "makeRoom");
     last = await growth.draw(at);
+    pace.makingRoom(false);
     shown = pace.now();
     pace.drawn(at, last);
   }
@@ -146,7 +152,8 @@ export function stageRun<P>(stage: Stage, held: Held, encode: (params: Job<P>["p
     const family = encode(params);
     /* The budget's one rule (fn-235): a tree that fits only alone lets the
        drawn one go first; one that does not fit even alone throws by name,
-       and the drawn tree stays. A growth never lets it go (fn-270 R2c). */
+       and the drawn tree stays. A grow-in's draws keep the same rule (host,
+       2026-10-14), told through the same hook. */
     if (kind === "build") hooks.makingRoom(stage.admission(family) === "makeRoom");
     const follow = stage.waiting();
     try {
@@ -155,6 +162,7 @@ export function stageRun<P>(stage: Stage, held: Held, encode: (params: Job<P>["p
         current,
         now: () => performance.now(),
         wait: (ms) => new Promise((resolve) => { setTimeout(resolve, ms); }),
+        makingRoom: (on) => { if (current()) hooks.makingRoom(on); },
         drawn: (at) => {
           if (!current()) return;
           hooks.growing(ageLabel(at, params.family.age));

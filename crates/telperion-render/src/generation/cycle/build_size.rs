@@ -105,14 +105,7 @@ pub(super) fn grown(s: Sizes, (read, prev, cut): (&[u32], Option<&[u32]>, Option
         };
         now * r.powi(cycles) / ROOM
     };
-    let fit = |k: usize, cap: u32| {
-        let want = need(k);
-        let mut c = cap;
-        while f64::from(c) < want && c < u32::MAX / 2 {
-            c = ((f64::from(c) * GROWTH).ceil() as u32).max(c + 1);
-        }
-        c
-    };
+    let fit = |k: usize, cap: u32| fit_to(need(k), cap);
     let mut n = s;
     let caps = &mut n.caps;
     caps.axes = fit(0, caps.axes).next_multiple_of(64);
@@ -124,11 +117,22 @@ pub(super) fn grown(s: Sizes, (read, prev, cut): (&[u32], Option<&[u32]>, Option
     let leaves = n.points - n.tips;
     n.tips = fit(4, n.tips);
     n.points = fit(6, leaves) + n.tips;
-    n.nodes = fit(7, n.nodes);
+    // The lattice's nodes grow by its box, as its dispatch is given.
+    let lattice = f64::from(super::given::boxed(read, prev)) / ROOM;
+    n.nodes = fit(7, n.nodes).max(fit_to(lattice, n.nodes));
     if n == s {
         return None;
     }
     Some(Sizes { bounds: n.stated(), ..n })
+}
+
+/// A table of `cap` rows grown by `GROWTH` until it holds `want`.
+fn fit_to(want: f64, cap: u32) -> u32 {
+    let mut c = cap;
+    while f64::from(c) < want && c < u32::MAX / 2 {
+        c = ((f64::from(c) * GROWTH).ceil() as u32).max(c + 1);
+    }
+    c
 }
 
 /// The share of a table its rows two cycles on may reach before it grows:
@@ -175,17 +179,21 @@ pub(super) fn limits(s: &Sizes, read: Option<&[u32]>, prev: Option<&[u32]>) -> L
     let lit = ahead(c::PHYTS, read[c::PHYTS].saturating_sub(read[c::PHYTS0]));
     let r = b.ranges;
     let (top, tail) = folds(read, b.hier.levels);
+    // The species' own bound beside the projection (fn-276, host
+    // 2026-10-14): a job's units in a cycle step with its ages, not
+    // with the counts before them.
+    let [floor_rounds, floor_gens] = super::build_arena::floors(s.units);
     Limits {
         units: live.div_ceil(r.units),
         draws: live.div_ceil(r.draw),
         deposits: lit.div_ceil(r.deposit),
         sweeps: sweeps_ahead(read, prev) + STEP[3],
-        rounds: read[c::GENS] + STEP[0],
+        rounds: (read[c::GENS] + STEP[0]).max(floor_gens),
         passes: passes(read) + STEP[1],
         top,
         tail,
-        laygens: deepest + STEP[2],
-        unit_rounds: std::array::from_fn(|w| rounds_used(read, w) + ROUND_SLACK[w]),
+        laygens: (deepest + STEP[2]).max(floor_gens),
+        unit_rounds: std::array::from_fn(|w| (rounds_used(read, w) + ROUND_SLACK[w]).max(floor_rounds)),
     }
     .within(b)
 }
@@ -228,6 +236,22 @@ mod tests {
         assert_eq!(limits(&s, None, None).unit_rounds, [s.bounds.rounds; 2]);
         let said = refusal(9, &[(Flag::UnitRounds, 1)], 20_000_000);
         assert!(said.to_string().contains("UnitRounds"), "{said}");
+    }
+
+    /// fn-276: a species whose job chains `units` units in a cycle
+    /// records 2 units - 1 rounds and `units` generations at least, past
+    /// what the census read used and its slack.
+    #[test]
+    fn a_species_floor_holds_the_limits_up() {
+        let mut s = Sizes::least();
+        s.units = 4;
+        s.bounds = s.stated();
+        let mut read = vec![0; c::WORDS];
+        read[c::MADE + T_USED] = 1;
+        let l = limits(&s, Some(&read), None);
+        assert_eq!((l.unit_rounds, l.rounds, l.laygens), ([7, 7], 4, 4));
+        read[c::MADE + T_USED] = 6;
+        assert_eq!(limits(&s, Some(&read), None).unit_rounds[0], 6 + ROUND_SLACK[0]);
     }
 
     /// A count past a table or limit stops the build by name.

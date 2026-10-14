@@ -7,7 +7,7 @@ pub use super::input::LeafInput;
 // The whole-tree folds an executor holding part of a tree's nodes folds
 // its part of and the pipeline combines (fn-212 task 4).
 pub use super::input::{beyond, bins, crown_point, envelope, reach, Folds, BINS};
-pub use super::space::ConvertRow;
+pub use super::space::{ConvertRow, Establishing};
 use super::{grown_envelope, GrowInput, Inputs, Request};
 use crate::{
     envelope::Envelope,
@@ -52,6 +52,9 @@ pub struct Growth {
     pub request: telperion_space::Request,
     pub scale: f64,
     pub rows: Vec<ConvertRow>,
+    /// The rows its rosette's stem establishes by (fn-275 R2a); none
+    /// where it stands no rosette or states no establishment.
+    pub establishing: Option<Establishing>,
 }
 
 impl Growth {
@@ -67,13 +70,8 @@ impl Growth {
 /// The family read for another executor (`Growth`). A family with no
 /// engine species is refused by name.
 pub fn growth(family: &Family) -> Result<Growth> {
-    let (species, request, scale, rows) = super::space::growth(GrowInput::of(family))?;
-    Ok(Growth {
-        species,
-        request,
-        scale,
-        rows,
-    })
+    let (species, request, scale, rows, establishing) = super::space::growth(GrowInput::of(family))?;
+    Ok(Growth { species, request, scale, rows, establishing })
 }
 
 /// The whole-tree summaries an executor holding the whole tree folds

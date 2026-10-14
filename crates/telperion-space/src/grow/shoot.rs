@@ -102,6 +102,11 @@ pub(super) struct Shoot<'g, 'a> {
     pub marked: Vec<u64>,
     /// The phytomers this share grew.
     pub grown: u64,
+    /// The units the job growing now grew in the cycle, and the most a
+    /// living apex's job and a waking bud's grew (fn-276: what the
+    /// device's units rounds hold, against `schedule::most_units`).
+    pub job: u32,
+    pub jobs: [u32; 2],
     /// One zone's node presences and its nodes (order draw, draw index,
     /// presence, buds), reused.
     pub leads: Vec<f32>,
@@ -146,6 +151,8 @@ impl<'g, 'a> Shoot<'g, 'a> {
             woken: Vec::new(),
             marked: Vec::new(),
             grown: 0,
+            job: 0,
+            jobs: [0; 2],
             leads: Vec::new(),
             node_buds: Vec::new(),
             sleeping: Vec::new(),
@@ -247,6 +254,14 @@ impl<'g, 'a> Shoot<'g, 'a> {
     /// before, or whole where nothing shades.
     pub fn light(&self, i: usize) -> f64 {
         self.reads.pencils.get(i).map_or(1.0, |p| p.light)
+    }
+
+    /// Whether axis `i`'s tip, as the rough layout laid it last cycle,
+    /// rests on the ground (fn-252 R2): a laid walk off the stem whose tip
+    /// stands at the ground, where only the resting clamp, or the run
+    /// along the ground it began, puts it.
+    pub fn rests(&self, i: usize) -> bool {
+        (self.reads.pencils.get(i)).is_some_and(|p| !p.trunk && p.laid > 0 && p.layer.rests())
     }
 
     /// Axis `i`'s growth unit's size this cycle (`allocation.rs`); whole

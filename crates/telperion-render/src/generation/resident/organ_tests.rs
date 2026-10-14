@@ -69,10 +69,12 @@ fn agrees(gpu: &crate::Gpu, name: &str, f: &Family) {
             false => *dev.entry(g[27]).or_default() += u64::from(g[25]),
         }
     }
-    // The CPU's wood: the same tree, its crown set aside.
+    // The CPU's wood: the same grown tree, its crown set aside. Not grown
+    // again: a crown establishes its stem as it grows (fn-275).
+    let grown = executor::grow(f).unwrap().expansion().unwrap();
     let mut wood = f.clone();
     wood.canopy.rosette_fronds = 0.0;
-    let x = executor::grow(&wood).unwrap().expansion().unwrap();
+    let x = executor::expand(grown.tree().clone(), &wood).unwrap();
     let (_, shared) = x.curve_with_contacts().unwrap();
     let mut cpu = HashMap::<u32, u64>::new();
     for s in &x.compact_stations(&shared).unwrap().expect("wood the plan stations").segments {
@@ -85,7 +87,7 @@ fn agrees(gpu: &crate::Gpu, name: &str, f: &Family) {
     let resident = built.prepared.resident.as_ref().unwrap();
     let leaves = pollster::block_on(io::read_leaves_async(gpu, resident.leaves.buffer(), resident.count)).unwrap();
     let mine = built.prepared.mesh.foliage.instances.reference;
-    let theirs = executor::grow(f).unwrap().expansion().unwrap().mesh().unwrap().foliage.instances;
+    let theirs = grown.mesh().unwrap().foliage.instances;
     let height = theirs.reference.extent.y.max(1e-9);
     let tail = |n: usize| n - crown as usize;
     let apart = (leaves[tail(leaves.len())..].iter().zip(&theirs.leaves[tail(theirs.leaves.len())..]))

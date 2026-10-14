@@ -49,7 +49,7 @@ pub(super) fn describe(
         if !rosette::bearing(&at) {
             continue;
         }
-        for frond in rosette::fronds(apex, &at, rosette::Crown::of(tree, &at)) {
+        for frond in rosette::fronds(apex, &at, super::super::Crown::of(tree, &at)) {
             let key = organs::frond_key(node, frond.serial);
             let (c, per) = (organs::placement(&frond.canopy, key), organs::leaflets(&organs::placement(&at, key)));
             total = total.checked_add(per).filter(|t| *t <= p.max_instances && *t <= u32::MAX as usize).ok_or_else(budget)?;

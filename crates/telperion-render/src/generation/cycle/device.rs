@@ -48,7 +48,14 @@ pub(super) const T_USED: usize = 22;
 
 /// A job's words (`job.wgsl`'s `JW`), and a unit zone's (`grow.wgsl`'s
 /// `Z_` columns).
-pub(super) const JW: u32 = 178 + 6 * 35;
+pub(super) const JW: u32 = 130 + FRAMES * 35 + (FRAMES - 1) * 6;
+/// The axes a units job holds at once (`job.wgsl`'s `FRAMES`): the most
+/// units it grows in a cycle where none fails. 11, the most floor
+/// (`telperion_space::most_units`) of every preset at every age to 80 and
+/// the film's walk frames (fn-276, host 2026-10-14: palm to Laurelin at
+/// t = 0.01 chains eleven sliver ages); a species past it is refused by
+/// name before its build.
+pub(super) const FRAMES: u32 = 11;
 pub(super) const ZW: u32 = 6 + 64;
 
 pub(super) struct Kernels {

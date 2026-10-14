@@ -21,6 +21,8 @@ pub(crate) struct Owned {
     buffer: wgpu::Buffer,
     ledger: std::sync::Arc<Ledger>,
     label: &'static str,
+    /// Whether it was let go ahead of its owner (`destroy`).
+    gone: std::sync::atomic::AtomicBool,
 }
 
 /// The device's owned buffers: those let go and not yet destroyed, and the
@@ -51,6 +53,8 @@ pub(crate) struct Ledger {
 struct Counts {
     live: std::sync::atomic::AtomicU64,
     peak: std::sync::atomic::AtomicU64,
+    /// The most charged since a watch began (`Ledger::watch`).
+    watched: std::sync::atomic::AtomicU64,
     #[cfg(test)]
     labels: std::sync::Mutex<Labels>,
 }
@@ -77,6 +81,7 @@ impl Counts {
             match self.live.compare_exchange_weak(now, after, Relaxed, Relaxed) {
                 Ok(_) => {
                     let peaked = self.peak.fetch_max(after, Relaxed) < after;
+                    self.watched.fetch_max(after, Relaxed);
                     self.label(label, bytes as i64, peaked);
                     return Ok(());
                 }
@@ -214,6 +219,18 @@ impl Ledger {
         self.counts.charge(bytes, label, cap)
     }
 
+    /// Whether `bytes` more would fit the cap, charging nothing (a build's
+    /// room for its first move, fn-276 task 2): the bytes they would make,
+    /// and the cap, where they would not.
+    pub(crate) fn fits(&self, bytes: u64) -> std::result::Result<(), (u64, u64)> {
+        let cap = self.caps().1.iter().map(|c| c.1).min().unwrap_or(0);
+        let after = self.counts.live.load(std::sync::atomic::Ordering::Relaxed).saturating_add(bytes);
+        if cap != 0 && after > cap {
+            return Err((after, cap));
+        }
+        Ok(())
+    }
+
     /// A reservation given back: its buffer was never made.
     pub(crate) fn unreserve(&self, bytes: u64, label: &'static str) {
         self.counts.release(bytes, label);
@@ -223,6 +240,17 @@ impl Ledger {
     #[cfg_attr(not(any(test, target_arch = "wasm32")), allow(dead_code))]
     pub(crate) fn live(&self) -> u64 {
         self.counts.live.load(std::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// Starts a watch of the most charged from now on; one at a time, as
+    /// a tree's draws are made one after another.
+    pub(crate) fn watch(&self) {
+        self.counts.watched.store(self.live(), std::sync::atomic::Ordering::Relaxed);
+    }
+
+    /// The most charged since the watch began.
+    pub(crate) fn watched(&self) -> u64 {
+        self.counts.watched.load(std::sync::atomic::Ordering::Relaxed)
     }
 
     /// A submission made.
@@ -276,7 +304,7 @@ impl Owned {
     pub(crate) fn new(gpu: &Gpu, buffer: wgpu::Buffer) -> Self {
         let size = buffer.size();
         gpu.ledger.counts.charge(size, "unbudgeted", 0).expect("no cap");
-        Self { buffer, ledger: gpu.ledger.clone(), label: "unbudgeted" }
+        Self { buffer, ledger: gpu.ledger.clone(), label: "unbudgeted", gone: Default::default() }
     }
 
     pub(crate) fn create(gpu: &Gpu, descriptor: &wgpu::BufferDescriptor<'_>) -> Self {
@@ -285,7 +313,7 @@ impl Owned {
 
     /// `buffer` owned under `label`, its bytes reserved before it was made.
     pub(crate) fn reserved(gpu: &Gpu, buffer: wgpu::Buffer, label: &'static str) -> Self {
-        Self { buffer, ledger: gpu.ledger.clone(), label }
+        Self { buffer, ledger: gpu.ledger.clone(), label, gone: Default::default() }
     }
 }
 
@@ -312,9 +340,22 @@ impl std::ops::Deref for Owned {
     }
 }
 
+impl Owned {
+    /// The buffer let go ahead of its owner, once, as a drop lets it go:
+    /// destroyed once no open encoder may bind it, its bytes charged until
+    /// the device is done with it. It shadows `wgpu::Buffer::destroy`,
+    /// which freed the memory and left the ledger charging it until the
+    /// owner dropped (fn-270 task 6, `grow_in_peak`).
+    pub(crate) fn destroy(&self) {
+        if !self.gone.swap(true, std::sync::atomic::Ordering::Relaxed) {
+            self.ledger.let_go(&self.buffer, self.label);
+        }
+    }
+}
+
 impl Drop for Owned {
     fn drop(&mut self) {
-        self.ledger.let_go(&self.buffer, self.label);
+        self.destroy();
     }
 }
 

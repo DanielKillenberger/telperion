@@ -205,6 +205,26 @@
 //! the family digest was the last pin to the bit; the override text orders
 //! its keys by name and the walk blends the new row, so both moved, and
 //! the refusal names the new row.
+//! fn-275 R2 re-pinned all four for `frondEstablishment` and
+//! `frondEarlyShare` (the palm's 6.75 years from 0.1): with both rows cut
+//! from its text the family digest was the last pin to the bit; the walk
+//! blends the new rows, the override text reads them and the refusal
+//! names them.
+//! fn-275 R2a re-pinned the family, walk and override digests for the
+//! palm's internode, 0.031 to 0.0339 m (host, 2026-10-14), the one row
+//! that moved.
+//! fn-252 R2 re-pinned the family, walk and override digests for each
+//! engine age's new neutral `ground_hazard` and the silver birch's nine
+//! `groundHazard` rows of 1: with those rows left out of its value file,
+//! `telperion_space::birch` at 0, and `ground_hazard: 0.0, ` and
+//! `"groundHazard":0.0,` stripped from the text, all four digests were
+//! the last pins to the bit.
+//! The release branch's merge of fn-275 and fn-252 (2026-10-14) re-pinned
+//! the family, walk and override digests for both sets of rows together.
+//! fn-277's merge onto it (2026-10-14) re-pinned all four: the five counts
+//! of organs are reals (their kind, walk and refusals), `cauline` is a new
+//! row (1, the palm 0), `leafletCount` walks on the logarithm and the
+//! engine's `cluster_leaves` walks by value.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -240,7 +260,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        11_401_346_922_847_411_476,
+        15_600_618_737_748_844_894,
         "{}",
         digest(&text)
     );
@@ -284,7 +304,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        843_457_039_801_554_522,
+        10_246_313_571_835_020_974,
         "{}",
         digest(&text)
     );
@@ -309,7 +329,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        11_673_823_740_692_486_087,
+        455_181_196_565_730_622,
         "{}",
         digest(&text)
     );
@@ -372,7 +392,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        16_749_260_548_484_264_031,
+        7_797_001_527_923_877_644,
         "{}",
         digest(&text)
     );

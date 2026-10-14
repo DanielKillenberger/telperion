@@ -200,6 +200,13 @@ pub struct PaState {
     /// ln viability times light^-φ (host, 2026-10-05). Neutral 0; dormant
     /// where the apex never dies (viability 1) or no leaf shades it.
     pub shade_hazard: f64,
+    /// How the ground ends an apex that reaches it (fn-252 R2): while
+    /// its tip, as the rough layout grown with the tree lays it, rests on
+    /// the ground, its yearly survival is its viability times
+    /// (1 - ground_hazard). Neutral 0, today's resting and running along
+    /// the ground (fn-200); at 1 a shoot that reaches the ground stops
+    /// there. Read through the rough layout, so only where light shades.
+    pub ground_hazard: f64,
     /// How a bud's growth unit follows the vigour the tree's light gives
     /// it (`allocation.rs`; host decisions 11 and 14): its own internodes
     /// and girth scale by its vigour per presence against the mean of the
@@ -459,12 +466,14 @@ impl Species {
         self.lived(pa + 1).map(|(next, reach)| (next, go * reach))
     }
 
-    /// Whether any bud reads the light: its survival, its unit's size,
+    /// Whether any bud reads the light or the rough layout: its survival
+    /// (by its light or the ground its tip reaches), its unit's size,
     /// its subtree's carbon balance or its pipe. Without one the light
     /// changes nothing and the tree grows no rough layout.
     pub(crate) fn reads_light(&self) -> bool {
         self.states.iter().any(|s| {
             s.shade_hazard != 0.0
+                || s.ground_hazard != 0.0
                 || s.shade_size != 0.0
                 || s.balance_hazard != 0.0
                 || s.leaf_girth != 0.0

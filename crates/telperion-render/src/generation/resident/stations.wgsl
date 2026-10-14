@@ -51,8 +51,9 @@ struct Cfg {
     // spines, their share and pitch; the crown's year (`Crown::rows`):
     // fronds made, a frond's years, whole years before the last (negative where
     // no engine grew it), days into the last; budburst, elongation,
-    // expansion, and the fronds it draws (`Crown::slots`).
-    rosette: array<vec4<f32>, 6>,
+    // expansion, and the fronds it draws (`Crown::slots`); the years the
+    // crown takes to make a mature frond and its first frond's share.
+    rosette: array<vec4<f32>, 7>,
     // The counts of organs (`stations.rs`'s `organ_rows`, fn-277): the
     // cauline share, the fronds, the dead fronds, the leaflets and the
     // spines as counts' words; the rachis's length; the newest frond's
@@ -240,6 +241,23 @@ fn unfolded_frond(serial: i32, fronds: f32) -> f32 {
     }
     let emerges = s.x + s.y * min(made - y.z, 1.0);
     return run(y.w - emerges, s.z);
+}
+
+// The share of a mature frond's size frond `serial` was made at: the
+// crown's age when it emerged, evenly over its year's elongation from
+// budburst, along the course from the early share to whole over the
+// establishment years (`Crown::established`, fn-275 R2).
+fn established_frond(serial: i32, fronds: f32) -> f32 {
+    let e = cfg.rosette[6];
+    let y = cfg.rosette[4];
+    let s = cfg.rosette[5];
+    if e.x <= 0.0 || y.z < 0.0 || y.y <= 0.0 || fronds <= 0.0 {
+        return 1.0;
+    }
+    let made = (f32(serial) + 1.0) * y.y / fronds;
+    let year = ceil(made) - 1.0;
+    let born = year + (s.x + s.y * (made - year)) / 365.0;
+    return 1.0 - (1.0 - e.y) * (1.0 - course(born / e.x));
 }
 
 // `a` a share `t` of the way to `b` (`rosette::fronds`' mix).
@@ -745,6 +763,7 @@ fn rosette(apex: u32, station0: u32, g: u32) {
     for (var i = 0u; i < c.slots; i++) {
         let serial = newest - i32(i);
         let grown = unfolded_frond(serial, fronds);
+        let made_at = established_frond(serial, fronds);
         let k = above;
         above += grown;
         let turn = f32(u32(serial) * cfg.turn) * (6.283185307179586 / 4294967296.0);
@@ -762,7 +781,7 @@ fn rosette(apex: u32, station0: u32, g: u32) {
         let pitch = toward(r[1].x + r[1].y * age, r[1].z, turned);
         let depth = toward(r[0].w * age, r[0].w * (max(k, fronds) / steps), turned);
         let length = toward(1.0, r[1].w, turned);
-        let share = length * grown * clamp(total - k, 0.0, 1.0);
+        let share = length * grown * made_at * clamp(total - k, 0.0, 1.0);
         let heading = normalize(axis * cos(pitch) + radial * sin(pitch));
         let s = (g + i) * GW;
         put4(s, vec4<f32>(at - axis * depth, r[2].y * share));

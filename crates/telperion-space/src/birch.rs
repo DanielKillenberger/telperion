@@ -87,6 +87,7 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         rhythm: 1.0,
         leaf_area: LEAF_AREA,
         shade_hazard: 0.0,
+        ground_hazard: GROUND_HAZARD,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,
@@ -137,6 +138,17 @@ fn unit(
         zone(top.0 .0, top.0 .1, top.1),
     ]
 }
+
+/// How the ground ends a shoot whose tip reaches it (fn-252 R2): a
+/// declared stand-in of 1, a hanging shoot stops at the ground, resting
+/// on the owner's verdict (2026-10-14: "we might also want to fix the
+/// birch's branches drooping all the way to the ground"). No source read
+/// says whether a wild silver birch's hanging shoots end there; the one
+/// text found says the opposite of the grafted cultivar 'Youngii' (a
+/// nursery page, no evidence cited: its branches "will eventually root in
+/// the soil or create an untidy mat on the ground if not lifted"), fn-252
+/// R2-PLAN.md.
+const GROUND_HAZARD: f64 = 1.0;
 
 /// Its shade tolerance T (Niinemets and Valladares 2006, Appendix A;
 /// Jev fn264-pick:18dddb15cf3d5bc7-3e6351-0), which sets how it answers

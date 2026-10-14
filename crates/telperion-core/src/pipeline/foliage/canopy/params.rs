@@ -180,7 +180,7 @@ crate::catalogue::rows! {
             wire: 104,
             check: input(Site::Rosette, 18, "rosette fronds"),
             note: "Above zero the apical twigs are cleared and fronds are planned and placed \
-                beside whatever wood `cauline` clothes; the device refuses a fraction.",
+                beside whatever wood `cauline` clothes.",
             dial: bounded("rosette_fronds", "fronds in the crown at each stem apex; at zero no \
                 rosette stands", [1.0, 4.0]),
         },
@@ -192,9 +192,8 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_cauline"))]
         pub cauline: f64 = "cauline" "share of leaf-bearing wood"
             Bounds::closed(0.0, 1.0) => [Plan, Expand] {
-            wire: 365,
+            wire: 367,
             check: input(Site::Canopy, 15, "cauline share"),
-            note: "Strictly between zero and one the device refuses it.",
             dial: bounded("cauline", "the share of leaf-bearing wood that bears its leaves \
                 along it; at zero only a crown bears leaves", [0.05, 0.2]),
         },
@@ -254,8 +253,7 @@ crate::catalogue::rows! {
             Bounds::closed(1.0, crate::pipeline::foliage::MAX_LEAFLETS as f64) => [Plan, Expand] {
             wire: 109,
             check: input(Site::Rosette, 20, "leaflet count"),
-            note: "Leaflets group only above one and with `rachisLength` above zero; the GPU \
-                executor draws one blade a station regardless (fn-163) and refuses a fraction.",
+            note: "Leaflets group only above one and with `rachisLength` above zero.",
             blend: Blend::Log,
             dial: bounded("leaflet_count", "leaflets along one frond's rachis", [2.0, 8.0]),
         },
@@ -311,8 +309,7 @@ crate::catalogue::rows! {
             growth: Growth::Ignored,
             applies: "`leafBaseLength` zero",
             note: "Does not need a rosette: bases follow the rosette's spiral rows whether \
-                fronds stand or not. A fraction is split by a keyed draw at each stem (fn-277); \
-                the device refuses one.",
+                fronds stand or not. A fraction is split by a keyed draw at each stem (fn-277).",
             dial: bounded("leaf_bases", "bases of shed fronds the stem keeps below its crown, \
                 clothing the trunk; at zero the trunk is bare", [4.0, 16.0]),
         },
@@ -409,8 +406,7 @@ crate::catalogue::rows! {
             check: input(Site::Rosette, 22, "acanthophylls"),
             applies: "`acanthophyllLength` zero, or no leaflet grouping (`leafletCount` one or \
                 `rachisLength` zero)",
-            note: "A fraction is split by a keyed draw at each placement (fn-277); the device \
-                refuses one.",
+            note: "A fraction is split by a keyed draw at each placement (fn-277).",
             dial: bounded("acanthophylls", "leaflets at a frond's base borne as spines rather \
                 than blades; at zero the frond carries blades", [1.0, 4.0]),
         },
@@ -447,8 +443,7 @@ crate::catalogue::rows! {
             wire: 124,
             check: input(Site::Rosette, 19, "skirt fronds"),
             applies: "`skirtLength` zero, or `rosetteFronds` zero",
-            note: "A fraction is split by a keyed draw at each apex (fn-277); the device \
-                refuses one.",
+            note: "A fraction is split by a keyed draw at each apex (fn-277).",
             dial: bounded("skirt_fronds", "dead fronds a rosette keeps below its living crown; \
                 at zero none is kept", [2.0, 6.0]),
         },
@@ -487,6 +482,35 @@ crate::catalogue::rows! {
             applies: "`rosetteFronds` zero",
             dial: bounded("frond_life", "the years a living frond lives; at zero the crown stands \
                 as it is all year", [3.0, 7.0]),
+        },
+        /// The years a rosette's crown takes to make a mature frond (fn-275
+        /// R2, R2a): a frond is made at a share of its size set by the
+        /// crown's age when it was made, along the logistic course from
+        /// `frondEarlyShare` to whole over these years, and keeps it for its
+        /// life; the stem the rosette crowns widens by the same course and
+        /// waits at the ground until the crown is established. At zero every
+        /// frond is made whole and the stem rises from its first year.
+        #[cfg_attr(feature = "json", serde(default))]
+        pub frond_establishment: f64 = "frondEstablishment" "years"
+            Bounds::closed(0.0, 100.0) => [Grow, Plan, Expand] {
+            wire: 365,
+            check: input(Site::Rosette, 24, "frond establishment"),
+            applies: "`rosetteFronds` zero",
+            dial: bounded("frond_establishment", "the years a crown takes to make a mature \
+                frond and its stem to widen before it rises; at zero every frond is made whole \
+                and the stem rises from its first year", [1.0, 3.0]),
+        },
+        /// The share of a mature frond's size a crown's first frond is made
+        /// at while it establishes, and of its stem's girth where the stem
+        /// was first laid (fn-275 R2, R2a).
+        #[cfg_attr(feature = "json", serde(default))]
+        pub frond_early_share: f64 = "frondEarlyShare" "share of a mature frond"
+            Bounds::closed(0.0, 1.0) => [Grow, Plan, Expand] {
+            wire: 366,
+            check: input(Site::Rosette, 25, "frond early share"),
+            applies: "`frondEstablishment` zero",
+            dial: bounded("frond_early_share", "the share of a mature frond's size a crown's \
+                first frond is made at, and of its stem's girth where first laid", [0.05, 0.15]),
         },
         /// Hard total budget. Exceeding it returns an error, never partial foliage.
         #[cfg_attr(feature = "json", serde(with = "crate::ranges::portable_index"))]
@@ -552,6 +576,8 @@ impl Default for CanopyParams {
             skirt_pitch: crate::ranges::default_skirt_pitch(),
             skirt_length: crate::ranges::default_skirt_length(),
             frond_life: 0.0,
+            frond_establishment: 0.0,
+            frond_early_share: 0.0,
             max_instances: usize::MAX,
         }
     }

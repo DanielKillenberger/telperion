@@ -75,7 +75,8 @@ pub(in crate::generation) async fn drawn(gpu: &Gpu, k: &Kernels, growth: &Growth
     }
     let planned = chains::plan(gpu, (&k.chains, &k.build.hier.scan), s.view()).await?;
     let rows = rows(&growth.rows);
-    let at = Rows { rows: &rows, age: request.age, scale: growth.scale as f32, fraction: 1.0, leaf: None };
+    let establishing = telperion_core::pipeline::executor::Establishing::words(growth.establishing);
+    let at = Rows { rows: &rows, age: request.age, scale: growth.scale as f32, fraction: 1.0, leaf: None, establishing };
     let dressed = dress(gpu, &k.drawn, (s.view(), &planned), &at)?;
     let measured = trunk(gpu, &k.drawn, &dressed).await?;
     if trace {

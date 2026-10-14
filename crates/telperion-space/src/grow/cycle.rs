@@ -104,6 +104,7 @@ impl Grower<'_> {
     fn count(&mut self, cycle: u32) {
         if let Some(mut c) = self.census.take() {
             c.cycle((cycle, self.rules.grown), &self.axes, &self.live);
+            c.cycles.last_mut().expect("a cycle").jobs = std::mem::take(&mut self.jobs);
             self.census = Some(c);
         }
     }

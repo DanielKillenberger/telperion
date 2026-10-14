@@ -13,6 +13,7 @@
 //! flags a cycle where a dispatch was given too few (`Flag::Given`), and
 //! the build stops there by name (fn-256 task 5: no build begins again).
 use super::census as c;
+use super::device::{T_UNITS, T_WAKE};
 use super::gate::{Limits, REC};
 use super::plan::{Gated, Plan, Size, Step};
 use super::vm::E;
@@ -48,6 +49,20 @@ const WIDTH: u32 = 1;
 
 /// The least a table's count is given: 64 workgroups.
 const FLOOR: u32 = 4096;
+
+/// The lattice's nodes two cycles on from the census `read` and the one
+/// before: they grow as its box's volume, each side grown by three of its
+/// last steps, two cells at least, twice over. The dispatch over them is
+/// given this, and the node table grows to hold it (`build_size::grown`,
+/// fn-276: the Laurelin at 20 stepped all three sides at once).
+pub(super) fn boxed(read: &[u32], prev: Option<&[u32]>) -> u32 {
+    let side = |k: usize| {
+        let now = read[c::GRID + 3 + k];
+        let step = now.saturating_sub(prev.map_or(0, |p| p[c::GRID + 3 + k]));
+        u64::from(now + (3 * step).max(2))
+    };
+    (2 * side(0) * side(1) * side(2)).min(u64::from(u32::MAX)) as u32
+}
 
 /// Each census word's least and most this cycle.
 pub(super) struct Span {
@@ -93,16 +108,16 @@ impl Span {
             };
             lo[w] = if grows(w) { kept.min(read[w]).min(hi[w]) } else { 0 };
         }
-        // The lattice's nodes grow as its box's volume: each side grown by
-        // three of its last steps, two cells at least, twice over.
-        let side = |k: usize| {
-            let now = read[c::GRID + 3 + k];
-            let step = now.saturating_sub(prev.map_or(0, |p| p[c::GRID + 3 + k]));
-            u64::from(now + (3 * step).max(2))
-        };
-        let boxed = (2 * side(0) * side(1) * side(2)).min(u64::from(u32::MAX)) as u32;
         let nodes = c::GRID + 6;
-        hi[nodes] = hi[nodes].max(boxed).min(ceiling[nodes]);
+        hi[nodes] = hi[nodes].max(boxed(read, prev)).min(ceiling[nodes]);
+        // The phytomers a cycle's units and wake make are its phytomer
+        // table's end less its start, each held as the table is (fn-276,
+        // host 2026-10-14): never a projection of their own, which a
+        // burst passed (the beech at 26, seed 1; a walk frame's cycle 5).
+        let made = hi[c::PHYTS].saturating_sub(lo[c::PHYTS0]);
+        for w in [c::MADE + T_UNITS + 1, c::MADE + T_WAKE + 1] {
+            (lo[w], hi[w]) = (0, made);
+        }
         (lo[c::CYCLE], hi[c::CYCLE]) = (cycle, cycle);
         for (k, v) in limits.words().into_iter().enumerate() {
             (lo[REC + k], hi[REC + k]) = (v, v);
@@ -192,5 +207,24 @@ mod tests {
         let width = E::At(c::LVL + 1).sub(E::At(c::LVL));
         let span = Span::new(&read, Some(&prev), (&vec![u32::MAX; c::WORDS], None), (3, &Limits::full(&Bounds::default())));
         assert!(span.most(&width) >= width.eval(&now), "{} under {}", span.most(&width), width.eval(&now));
+    }
+
+    /// fn-276: the beech at 26, seed 1, made more phytomers in a cycle
+    /// than its own last two cycles projected; the dispatch over them is
+    /// given what its phytomer table's span holds, so a burst within the
+    /// table is within it.
+    #[test]
+    fn a_burst_of_made_phytomers_is_within_its_table() {
+        let (mut prev, mut read) = (vec![0; c::WORDS], vec![0; c::WORDS]);
+        let at = |w: usize| c::MADE + w;
+        (prev[c::PHYTS0], prev[c::PHYTS], prev[at(T_UNITS + 1)]) = (100_000, 105_000, 5_000);
+        (read[c::PHYTS0], read[c::PHYTS], read[at(T_UNITS + 1)]) = (105_000, 110_000, 5_000);
+        let mut ceiling = vec![u32::MAX; c::WORDS];
+        (ceiling[c::PHYTS], ceiling[c::PHYTS0]) = (200_000, 200_000);
+        let made = E::At(at(T_UNITS + 1)).add(E::At(at(T_WAKE + 1))).div(E::C(64));
+        let span = Span::new(&read, Some(&prev), (&ceiling, None), (3, &Limits::full(&Bounds::default())));
+        let mut now = read.clone();
+        (now[at(T_UNITS + 1)], now[at(T_WAKE + 1)]) = (8_000, 600);
+        assert!(span.most(&made) >= made.eval(&now), "{} under {}", span.most(&made), made.eval(&now));
     }
 }

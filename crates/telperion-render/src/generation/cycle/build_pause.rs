@@ -90,7 +90,7 @@ impl Build {
         self.tree = zeroed(gpu, "cycle tree", u64::from(hier_columns::TREE as u32 * s))?;
         self.layout = Layout::new(gpu, &t.form, s)?;
         self.compactor = super::compact::Compactor::new(gpu, caps, s)?;
-        self.inputs = zeroed(gpu, "cycle inputs", 2 * u64::from(next) + 6 * w)?;
+        self.inputs = zeroed(gpu, "cycle inputs", 2 * u64::from(next) + 7 * w)?;
         self.counts = zeroed(gpu, "cycle counts", sizes.map_or(4, |_| device::counts(caps, t.zones).words))?;
         self.flags = zeroed(gpu, "cycle flags", 2 * w)?;
         self.spare = zeroed(gpu, "cycle spare", 4)?;

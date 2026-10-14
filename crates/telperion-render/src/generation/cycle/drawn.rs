@@ -12,6 +12,8 @@ use crate::buffer::Owned;
 use crate::{Gpu, Result};
 
 const DRESS: &str = include_str!("dress.wgsl");
+/// The stem's establishment, appended to the dress (fn-275 R2a).
+const ESTABLISH: &str = include_str!("establish.wgsl");
 const STEMS: &str = include_str!("stems.wgsl");
 const COUNT: usize = 0;
 const NEAREST: usize = 1;
@@ -30,7 +32,7 @@ pub(super) struct Kernels {
 
 impl Kernels {
     pub(super) fn new(gpu: &Gpu) -> Self {
-        let source = format!("{}\n{DRESS}", super::contract_with(super::ARITH));
+        let source = format!("{}\n{DRESS}\n{ESTABLISH}", super::contract_with(super::ARITH));
         let entries = ["count", "nearest", "fork", "widest", "root"];
         Self {
             dress: io::Pass::new(gpu, source, &[true, true, true, false, true, true], &["dress"]),
@@ -49,6 +51,8 @@ pub(super) struct Rows<'a> {
     pub scale: f32,
     pub fraction: f32,
     pub leaf: Option<&'a Owned>,
+    /// The rows its rosette's stem establishes by (`Establishing::words`).
+    pub establishing: [f32; 3],
 }
 
 /// The trunk's measures: the root's radius and the stem radius a canopy
@@ -131,6 +135,7 @@ pub(super) fn dress(gpu: &Gpu, k: &Kernels, (s, chains): (View, &Chains), r: &Ro
             r.fraction.to_bits(),
             u32::from(r.leaf.is_some()),
         ];
+        let cfg: Vec<u32> = cfg.into_iter().chain(r.establishing.map(f32::to_bits)).collect();
         let cfg = uniform(gpu, &cfg)?;
         let before = &waves.last().expect("a wave").buffer;
         let bind = k.dress.bind(gpu, &[&cfg, s.nt, &chains.plan, before, &buffer, &rows, leaf]);

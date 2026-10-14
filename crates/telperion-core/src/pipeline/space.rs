@@ -59,6 +59,7 @@ const FORK_AT: f64 = 0.7;
 pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     let (species, request) = asked(&input)?;
     let rows = pa_rows(species);
+    let establishing = Establishing::of(&input.canopy, species, &input.space.trunk);
     let rows = (&input.space.trunk[..], &rows[..]);
     // A coarse tree keeps a structure above its cut, never the tree's
     // expected count: `fits` holds it once grown.
@@ -66,6 +67,7 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
         let cut = f64::from(input.cut);
         let coarse = telperion_space::grow_coarse(species, request, cut).map_err(engine)?;
         fits(&coarse.structure, KEPT)?;
+        let coarse = Establishing::coarse(establishing, coarse, rows.0);
         let (mut tree, drawn) = converted(&coarse.structure, rows);
         tree.stands = stands::convert(&coarse, &drawn);
         scaled(&mut tree, input.supernatural.scale());
@@ -78,6 +80,7 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     // and a relay's girth never depend on how the tree was assembled.
     let structure = telperion_space::grow(species, request).map_err(engine)?;
     fits(&structure, KEPT)?;
+    let structure = Establishing::apply(establishing, &structure, rows.0);
     let mut tree = convert(&structure, rows);
     scaled(&mut tree, input.supernatural.scale());
     Ok(tree)
@@ -104,13 +107,14 @@ pub struct ConvertRow {
 }
 
 /// What another executor grows and draws the family's tree by: the
-/// engine's species, the request, the scale it is drawn at, and each
-/// PA's conversion row.
-pub(super) fn growth(
-    input: GrowInput,
-) -> Result<(telperion_space::Species, Request, f64, Vec<ConvertRow>)> {
+/// engine's species, the request, the scale it is drawn at, each PA's
+/// conversion row, and the rows its stem establishes by.
+pub(super) type Grows = (telperion_space::Species, Request, f64, Vec<ConvertRow>, Option<Establishing>);
+
+pub(super) fn growth(input: GrowInput) -> Result<Grows> {
     let (species, request) = asked(&input)?;
     let rows = pa_rows(species);
+    let establishing = Establishing::of(&input.canopy, species, &input.space.trunk);
     let rows = rows.iter().enumerate().map(|(pa, r)| ConvertRow {
         internode: r.internode,
         spread: r.spread,
@@ -124,7 +128,7 @@ pub(super) fn growth(
         season: r.season,
     });
     let rows = rows.collect();
-    Ok((species.clone(), request, input.supernatural.scale(), rows))
+    Ok((species.clone(), request, input.supernatural.scale(), rows, establishing))
 }
 
 /// The converted tree drawn at `scale` times its natural size (fn-217
@@ -604,6 +608,8 @@ mod coarse_tests;
 pub mod growth;
 #[cfg(test)]
 mod leafing_tests;
+mod establish;
+pub use establish::Establishing;
 mod join;
 mod unfolding;
 use unfolding::Unfolding;

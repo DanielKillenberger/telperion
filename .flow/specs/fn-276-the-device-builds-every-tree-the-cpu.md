@@ -15,3 +15,20 @@ fn-272's film (FILM.md, defect 1, 2026-10-14): the device build refuses trees th
 ## Boundaries
 
 Release item (fn-237): the harness and the site reach these trees. Speed of the CPU walk path is not in scope.
+
+## Host rulings (host, 2026-10-14), on R2 (`.flow/evidence/fn-276-the-device-builds-every-tree-the-cpu/CAUSE.md`)
+
+- **Fix 1, the species floor: (c) with a measured (b)** (host, 2026-10-14, replacing the first wording after `FLOOR.md`). The reason: the floor with its failure term was about twice the CPU's count, cost Telperion 6.4% of its warm build (more than fn-256 task 12 saved), and passed the job's 6 frames on six walk frames the CPU grows with at most 4 units a job.
+  - The floor drops the failure term. It bounds the units a job grows when no unit fails. Each cycle's limit is the larger of the observed projection (as today) and that floor. A failure relay that passes both is still refused by name (UnitRounds).
+  - Measure the Two Trees' warm build cost with it. It is expected to be about today's; report if it costs more than 1%.
+  - `FRAMES` rises to the smallest value that holds every floor in the R4 sweep. Measure its memory at the jobs actually dispatched per preset, charged to the ledger. If it would need more than 16, stop and report.
+  - R4's sweep is the judge. Any refusal other than the budget's is a stop and a report, with the frame. The CPU-count check runs alongside, so the floor's margin is recorded.
+  - The CPU census's counters stay only where a test reads them.
+- **Fix 3, the node table: yes.** One rule with the dispatch span: the box projected side by side. Measure its memory cost per preset, charged to the ledger that the fn-270-grow-budget branch fixed. Merge that branch's `buffer.rs` fix if the ledger is touched, or tell the host.
+- **The walk observation** (a lifespan of 0 mixed by value): noted, and not fn-276's; the host records it for the walk specs.
+- **Then:** R4's sweep, then the gate once (`telperion-heavy 9 --gpu 4 --threads 4`; if it has not started within 30 minutes, it is skipped and the host runs it on the merged branch), npm test if TypeScript changed, codex review to SHIP, `flowctl done`. The fn-270-grow-budget branch's `buffer.rs` fix is merged only if the ledger is touched, sequenced by the host.
+- **The made-phytomers dispatch** (host, 2026-10-14, after `SWEEP.md`): the dispatch over the phytomers a cycle's units and wake made takes its limit from the phytomer table's sized counts, its end less its start. That is the rule the table already lives by; the count gets no projection from its own history.
+  - First, confirm the nine Given refusals are red at the base commit (850eb039a).
+  - Then measure GPU time on Telperion at 82 and the beech at 30, alternated, and re-run the sweep: the nine cases first, then the whole sweep. Any refusal other than the budget's is a stop and a report.
+- **The Norway spruce at 60 to 80, at the browser's budget** (`TELPERION_DEVICE_BUDGET_MIB=6144`, as the harness has): does it build there, and why is 62 refused (its units table) while 63 to 68 build (and 69 on is refused by its pencils)? Report it; fix it here only where the cause is the same sizing rule.
+- **The gate:** `telperion-heavy 10 --gpu 4 --threads 4`, queued once; if it is not admitted in 30 minutes, it is skipped and reported.

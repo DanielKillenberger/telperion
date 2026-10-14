@@ -15,6 +15,7 @@ impl Shoot<'_, '_> {
     /// then its abortion or its move to its next PA. A unit that ends its
     /// age within the cycle hands the rest of it on (`schedule.rs`).
     pub fn advance(&mut self, mut apex: Apex, cycle: u32) -> Result<()> {
+        self.job += 1;
         let pa = self.axis(apex.axis).pa;
         let state = &self.species().states[pa];
         // A unit's draws are keyed by the cycle it grows in, so a unit that
@@ -76,6 +77,13 @@ impl Shoot<'_, '_> {
             false => state.viability,
         };
         let one = self.rules.one;
+        // The ground ends a tip the rough layout rests on it, by degree
+        // (fn-252 R2): one more factor beside light's, (1 - h).
+        let viability = match (state.ground_hazard > 0.0 && self.rests(apex.axis), one) {
+            (false, _) => viability,
+            (true, true) => f64::from(viability as f32 * (1.0 - state.ground_hazard as f32)),
+            (true, false) => viability * (1.0 - state.ground_hazard),
+        };
         // Decided on the contract's threshold (FINE-CONTRACT.md D5); the
         // real survival sizes the unit's presence.
         // A failed unit's relay's first unit holds a part of a tick more

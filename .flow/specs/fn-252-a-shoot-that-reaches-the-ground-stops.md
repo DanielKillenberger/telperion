@@ -14,6 +14,48 @@ The owner, looking at the birch in the harness (2026-10-09, screenshot `.flow/ev
 
 Sag is computed after growth (`grow/settle.rs:39-41,91-98`; the rough lay carries no sag load, `grow/draw.rs:412`), so a strand that reaches the ground only by sagging never shows that contact to the growth draws (`grow/advance.rs:69-86,182-198`). A ground hazard therefore needs contact to reach growth: either the rough lay carries an estimate of sag, or the hazard acts on the final geometry. The host designs this before the spec is planned. Moved off the release map (host, 2026-10-09): the owner likes the ground-running growth, and whether the silver birch should keep it is first a sourcing question.
 
+## Back on the release map (owner, 2026-10-14)
+
+The owner: "we might also want to fix the birch's branches drooping all the way to the ground"; "that's mainly for younger specimen. Older ones will be too high to reach the ground". R1 therefore also measures the birch at 5, 10, 15, 20 and 30 (seeds 1, 7, 42): the height of its lowest living branch (crown base) against the sources' crown lift for open-grown silver birch (a light-demanding species that sheds its shaded lower branches early), and which strands reach the ground at each age. Two causes are possible and are told apart before any design: lower branches the birch should already have shed (crown lift: the shedding and light rules, or the birch's values) and strands that hang long enough to reach the ground from where they should be (the ground rule above). The host designs the fix from R1's numbers; the open design point stays the host's.
+
+## Host rulings after R1 (host, 2026-10-14)
+
+R1's numbers (`.flow/evidence/fn-252-a-shoot-that-reaches-the-ground-stops/R1.md`) are the reason. The young birch's wood on the ground hangs from the young stem's passing branches (`SPRIG`, lifespan 14), still alive at 29-39 years at 0.6-0.7 m because a lateral bearing its own age (the strand's fork) makes its bearer's life unbounded (`shed.rs`, `lasting`).
+
+- **R2a (cause 1, first):** an axis whose age states a finite life dies at that life, and its laterals go with it; a lateral bearing its own age no longer makes its bearer's life unbounded. Unbounded life stays only for ages that state none. The passing branch does what its age says (the young stem clears its lower branches): one rule, by degree through the existing shedding draws, on both executors. Before building, every shipped species whose ages this touches (finite life with laterals that today extend it) is listed with what changes for each; if any scaffold or limb system would now die that should not, the worker stops and reports. Then: build; a red/green test (a passing branch carrying a forked strand dies at its age's life); stills of the birch at 10, 20, 40 (whole and the low shot), viewed; crown base and ground counts re-measured at 5 to 80; every species' `space_hash` change listed with its reason; CPU and device agree.
+- **R2a narrowed (host, 2026-10-14, with `R2A-SCOPE.md` as the reason):** at the end of an axis's age life, an age that carries on into an older age carries on by its clock whether or not its own tip still lives (a branch keeps ageing when its apex dies; a dead tip is no reason to stay young for ever), and does not die; an age that does not carry on (terminal) dies at its life, its laterals with it, and a lateral bearing its own age no longer extends it. Before building, the worker recounts with this reading: per species, what would die (terminal ages past life) and what would carry on instead of staying (ages whose tip died). If the oak, beech or ordinary tree still lose more than a few percent of their phytomers, or the carried-on wood visibly changes their crowns, the worker stops and reports with the numbers per age; otherwise builds as ruled (both executors, the shared function and the two inline shader copies replaced by calls to it, the closed form, pins), with the red/green test, the birch stills and re-measures, and every species' changes listed. The gate on the merged branch is the host's; Codex review to SHIP; the task stays in progress for the owner.
+- **R2a withdrawn (host, 2026-10-14, with both recounts in `R2A-SCOPE.md` as the reason):** a twig or branch living while what it bears lives is right for the oak, beech and ordinary tree; the birch's case goes through the ground rule (R2), which the owner's complaint is about and which touches only trees whose shoots reach the ground. The probe and evidence stay. Before the host designs R2's open point (growth cannot see contact because sag comes after it), the worker measures, for the birch at 10, 20, 40, 80 and the ordinary tree at 40, 80 (seeds 1, 7), how many of the axes the final lay rests on the ground already touch or come within one internode of it in the rough lay growth uses (`grow/draw.rs`), how far above the ground the rough lay holds the rest, and whether the birch strands' pendulous hang is in the rough lay (tropism) or only in the settle (sag). R2 is not built yet.
+- **Cause 2 waits:** strands from higher up reaching the ground at 40 and 80 (the ground rule, R2) are measured again after R2a; if the 40-year stills still show strands running along the ground, the worker reports and the host designs R2.
+- Gate: `telperion-heavy 10 --gpu 4 --threads 4`, queued once; not admitted in 30 minutes, skipped and reported. Codex review to SHIP. The task stays in progress for the owner's verdict.
+
+## The open design point resolved (host, 2026-10-14, with `R2-ROUGH.md` as the reason)
+
+One rule, in the step function the rough and the final lay already share (where the resting clamp lives today): a per-age `ground_hazard` row h in [0, 1]. Where a non-trunk axis's step reaches the ground, the wood it would lay along the ground is limited by degree: at h = 0 today's resting and running (fn-200's skirt, bytes unchanged); at h = 1 the axis ends at its contact node (the nodes beyond are ended: not drawn, no leaves placed, and, in the rough lay, their apex dead, so growth's existing abortion takes it); between, the run along the ground keeps a (1 - h) share of today's length. Because both lays call the same function, growth sees and answers the contact it can already see (the young birch: 83-90% of its resting axes at 10 touch in the rough lay), and the final lay ends what reaches the ground only by sag (the old birch, the ordinary tree at 80). Both executors (the CPU lay and `lay_walk.wgsl`), no species branch.
+
+Values, sourced first: the silver birch's, whether its hanging shoots end at the ground (a source on weeping or pendulous birch skirts, checked against its text), or a declared stand-in of 1 if none, stated before code. Spruce 0 (fn-200's skirt). Ordinary 0 unless a source says otherwise. Every other species 0.
+
+Proof: red/green tests (h = 0 byte-identical and fn-200's resting test holds; h = 1 no axis extends along the ground beyond its contact node, on both lays); birch stills at 10, 20, 40, 80 (whole and the low shot), viewed beside a weeping-birch reference where one is to hand; crown base and ground counts re-measured; `space_hash` changes listed per species (only where h > 0); CPU and device agree. The gate on the merged branch is the host's; Codex review to SHIP; the task stays in progress for the owner's verdict.
+
+## R2 as ruled (host, 2026-10-14; replaces the final-lay part of the design above)
+
+1. No ending in the lay: the final lay keeps today's resting rule unchanged. The owner's complaint is the young birch ("that's mainly for younger specimen. Older ones will be too high to reach the ground"), whose contact growth already sees (`R2-ROUGH.md`: 83-90% at 10); ending wood in the lay would need a girth pass after it or a switch at h = 1, for the old trees' sag-only contact the owner did not ask about.
+2. Growth answers contact: the tip's yearly survival takes one more factor beside light's, (1 - h) while its rough-lay tip rests on the ground, through the existing draws, by degree, on both executors (contact carried from the device's rough lay to its growth step as light is).
+3. Contact: the tip's step is one the resting clamp caught.
+
+Value: the silver birch's `ground_hazard` 1 is a declared stand-in resting on the owner's verdict (2026-10-14: "we might also want to fix the birch's branches drooping all the way to the ground"), with the 'Youngii' nursery text (`R2-PLAN.md`) recorded beside it as the one contrary text (a cultivar, no evidence cited). Every other species 0.
+
+Proof: ground counts and crown base re-measured at 5 to 80; birch stills at 10, 20, 40 (whole and low) viewed; what still rests at 40 and 80 by sag reported as numbers for the owner. Tests: h = 0 byte-identical (fn-200's resting test holds); at h = 1 no tip in rough-lay contact survives its next cycle; CPU and device agree. The gate on the merged branch is the host's; Codex review to SHIP; the task stays in progress for the owner.
+
+## Owner's verdict (2026-10-14)
+
+The owner accepted the ground rule for the release ("ok", to: ship R2 as built; `R2-RESULT.md`). The young birch's sag-only ground contact at 20 to 30 and its persisting low passing branches go to a general crown-lift spec after the release (fn-282, minted by the host); no birch-only value change, because a value chosen for its effect rather than a source would break the design rule. The full gate is the host's, on the merged branch.
+
 ## Boundaries
 
-The lay's ground rule and its measurement. Not a release item.
+The birch's low branches and the lay's ground rule, and their measurement. A release item (owner, 2026-10-14).
+
+
+
+
+
+

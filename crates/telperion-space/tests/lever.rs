@@ -65,6 +65,7 @@ fn grown(height: f64, sag: f64, seed: u64, bough: Bough, twigs: (f64, f64)) -> S
         colouring: 0.0,
         leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,

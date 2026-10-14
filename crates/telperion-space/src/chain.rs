@@ -72,6 +72,7 @@ pub fn passed() -> PaState {
         colouring: 0.0,
         leaf_fall: 0.0,
         shade_hazard: 0.0,
+        ground_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
         upkeep: 0.0,

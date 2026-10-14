@@ -1172,7 +1172,7 @@ Fronds the rosette bears at the apex of each stem. At zero no rosette stands. A 
 - real, fronds, [0, 128], default 0
 - read by grow, plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 18, as invalid input `rosette fronds`
-- note: Above zero the apical twigs are cleared and fronds are planned and placed beside whatever wood `cauline` clothes; the device refuses a fraction.
+- note: Above zero the apical twigs are cleared and fronds are planned and placed beside whatever wood `cauline` clothes.
 - blend: linear; dial: `rosette_fronds` (fronds in the crown at each stem apex; at zero no rosette stands), window its bounds (validated bound), steps 1 and 4
 
 ### `/canopy/cauline`
@@ -1182,7 +1182,6 @@ The share of leaf-bearing wood that bears its leaves along it, cauline foliage a
 - real, share of leaf-bearing wood, [0, 1], default 1
 - read by plan, expand; removed growth path: as the direct build
 - checked: Canopy site, rank 15, as invalid input `cauline share`
-- note: Strictly between zero and one the device refuses it.
 - blend: linear; dial: `cauline` (the share of leaf-bearing wood that bears its leaves along it; at zero only a crown bears leaves), window its bounds (validated bound), steps 0.05 and 0.2
 
 ### `/canopy/rosetteDivergence`
@@ -1232,7 +1231,7 @@ Leaflets one placement carries along its rachis. One is the single blade every f
 - real, leaflets, [1, 256], default 1
 - read by plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 20, as invalid input `leaflet count`
-- note: Leaflets group only above one and with `rachisLength` above zero; the GPU executor draws one blade a station regardless (fn-163) and refuses a fraction.
+- note: Leaflets group only above one and with `rachisLength` above zero.
 - blend: linear on the logarithm; dial: `leaflet_count` (leaflets along one frond's rachis), window its bounds (validated bound), steps 2 and 8
 
 ### `/canopy/rachisLength`
@@ -1283,7 +1282,7 @@ Bases of shed fronds the stem keeps below its crown, clothing the trunk. At zero
 - read by grow; removed growth path: not read
 - checked: Rosette site, rank 21, as invalid input `leaf bases`
 - dormant: `leafBaseLength` zero
-- note: Does not need a rosette: bases follow the rosette's spiral rows whether fronds stand or not. A fraction is split by a keyed draw at each stem (fn-277); the device refuses one.
+- note: Does not need a rosette: bases follow the rosette's spiral rows whether fronds stand or not. A fraction is split by a keyed draw at each stem (fn-277).
 - blend: linear; dial: `leaf_bases` (bases of shed fronds the stem keeps below its crown, clothing the trunk; at zero the trunk is bare), window its bounds (validated bound), steps 4 and 16
 
 ### `/canopy/leafBaseLength`
@@ -1356,7 +1355,7 @@ Leaflets at a frond's base borne as spines rather than blades. At zero the frond
 - read by plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 22, as invalid input `acanthophylls`
 - dormant: `acanthophyllLength` zero, or no leaflet grouping (`leafletCount` one or `rachisLength` zero)
-- note: A fraction is split by a keyed draw at each placement (fn-277); the device refuses one.
+- note: A fraction is split by a keyed draw at each placement (fn-277).
 - blend: linear; dial: `acanthophylls` (leaflets at a frond's base borne as spines rather than blades; at zero the frond carries blades), window its bounds (validated bound), steps 1 and 4
 
 ### `/canopy/acanthophyllLength`
@@ -1387,7 +1386,7 @@ Dead fronds a rosette keeps below its living crown, continuing the crown's own s
 - read by plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 19, as invalid input `skirt fronds`
 - dormant: `skirtLength` zero, or `rosetteFronds` zero
-- note: A fraction is split by a keyed draw at each apex (fn-277); the device refuses one.
+- note: A fraction is split by a keyed draw at each apex (fn-277).
 - blend: linear; dial: `skirt_fronds` (dead fronds a rosette keeps below its living crown; at zero none is kept), window its bounds (validated bound), steps 2 and 6
 
 ### `/canopy/skirtPitch`
@@ -1419,6 +1418,26 @@ The years a living frond lives (fn-270 R5b): a rosette makes its living crown's 
 - checked: Rosette site, rank 23, as invalid input `frond life`
 - dormant: `rosetteFronds` zero
 - blend: linear; dial: `frond_life` (the years a living frond lives; at zero the crown stands as it is all year), window its bounds (validated bound), steps 3 and 7
+
+### `/canopy/frondEstablishment`
+
+The years a rosette's crown takes to make a mature frond (fn-275 R2, R2a): a frond is made at a share of its size set by the crown's age when it was made, along the logistic course from `frondEarlyShare` to whole over these years, and keeps it for its life; the stem the rosette crowns widens by the same course and waits at the ground until the crown is established. At zero every frond is made whole and the stem rises from its first year.
+
+- real, years, [0, 100], default 0
+- read by grow, plan, expand; removed growth path: as the direct build
+- checked: Rosette site, rank 24, as invalid input `frond establishment`
+- dormant: `rosetteFronds` zero
+- blend: linear; dial: `frond_establishment` (the years a crown takes to make a mature frond and its stem to widen before it rises; at zero every frond is made whole and the stem rises from its first year), window its bounds (validated bound), steps 1 and 3
+
+### `/canopy/frondEarlyShare`
+
+The share of a mature frond's size a crown's first frond is made at while it establishes, and of its stem's girth where the stem was first laid (fn-275 R2, R2a).
+
+- real, share of a mature frond, [0, 1], default 0
+- read by grow, plan, expand; removed growth path: as the direct build
+- checked: Rosette site, rank 25, as invalid input `frond early share`
+- dormant: `frondEstablishment` zero
+- blend: linear; dial: `frond_early_share` (the share of a mature frond's size a crown's first frond is made at, and of its stem's girth where first laid), window its bounds (validated bound), steps 0.05 and 0.15
 
 ### `/canopy/maxInstances`
 
