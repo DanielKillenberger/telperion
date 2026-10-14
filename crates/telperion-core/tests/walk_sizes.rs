@@ -111,7 +111,9 @@ const EXCEPTIONS: [Exception; 9] = [
         seed: 7,
         t: 0.5,
         band: [(263_041.0, 488_475.0), (746_474.0, 1_340_416.0)],
-        measured: [579_740.0, 1_353_116.0],
+        // Kept 579,740 to 579,745 with fn-252's birch ground hazard
+        // (9a9a734a4): an owner-approved rule, 8.6e-6 of the count.
+        measured: [579_745.0, 1_353_116.0],
     },
 ];
 
