@@ -6,6 +6,7 @@ fn-251's re-measure on F4 (2026-10-14, WALKS.md "The two-sided factor's room"): 
 
 ## Requirements
 
+- R0 (scope widened by the host, 2026-10-14): every frame fn-251 names as an exception, from either side: the oak <-> spruce dips, birch -> oak at 40 keeping up to 21% over its band, oak -> birch at 80 near its start, oak -> ordinary and beech -> oak low, palm -> Laurelin at age 3.
 - R1: the cause measured and checked against code (which rows, which zones, which stage loses the laterals), on the oak <-> spruce frames and the other pairs fn-251 named.
 - R2: a fix by degree through the one pipeline, no species branch, the frames within fn-251's seed-spread oracle; the walk digest re-pinned with evidence; stills of the walk viewed.
 
