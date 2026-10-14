@@ -1656,25 +1656,25 @@
     "reason": "How far a frond has turned from living to dead is its progress over its last living place (fn-270 R5b)."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
     "site": ". clamp ( 0 . 0 , 1 . 0 )",
     "classification": "algorithm",
     "reason": "The skirt's last frond fades over its last place: a share of that place (fn-270 R5b)."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
     "site": ". max ( 1 . 0 )",
     "classification": "algorithm",
     "reason": "The whole years before the last start at none: a tree in its first year has grown no whole year (fn-270 R5b)."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
     "site": ". max ( 0 )",
     "classification": "algorithm",
     "reason": "The fronds a grown crown has made are a count, none before its first (fn-270 R5b'); it does not limit generated populations."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
     "site": ". min ( 1 . 0 )",
     "classification": "algorithm",
     "reason": "A frond of this year emerges within the stem's elongation: its serial's share of the year's fronds (fn-270 R5b)."
@@ -1692,21 +1692,63 @@
     "reason": "A draw within its year is at most the whole year (fn-270 R5b)."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
     "site": "if made > whole + 1 . 0 {",
     "classification": "algorithm",
     "reason": "A frond still emerging at the year's end is made the next year: none of it stands yet (fn-270 R5b)."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
     "site": "if self . life < = 0 . 0 {",
     "classification": "algorithm",
     "reason": "A crown whose fronds have no life makes none (fn-270 R5b)."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/foliage/rosette.rs",
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
     "site": "if self . life < = 0 . 0 | | self . fronds < = 0 . 0 {",
     "classification": "algorithm",
     "reason": "A crown that makes no frond stands whole (fn-270 R5b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "How far through its establishment a crown is: a share of the establishment years (fn-275 R2a); it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": "if self . establishment < = 0 . 0 | | self . life < = 0 . 0 | | self . fronds < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A crown with no establishment, frond life or fronds has no establishment course: the law is dormant (fn-275 R2)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": "if years < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "An establishment of no years: the frond is whole from the start (fn-275 R2), dormant."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": "if years < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "An establishment of no years: the stem waits no rise (fn-275 R2a), dormant."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/space/establish.rs",
+    "site": ". max ( r . min ( FINEST ) )",
+    "classification": "numeric",
+    "reason": "An establishing stem is never narrowed below the finest wood drawn, or its whole stem would be culled (fn-275 R2a review); a drawing tolerance, not a population limit."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/space/establish.rs",
+    "site": ". min ( FINEST )",
+    "classification": "numeric",
+    "reason": "The finest drawn radius caps the floor above, so wood already finer than it keeps its own radius (fn-275 R2a review)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/space/establish.rs",
+    "site": "if canopy . rosette_fronds = = 0 | | canopy . frond_establishment < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A tree with no rosette or no stated establishment does not establish: the stem's establishment is dormant (fn-275 R2a)."
   }
 ]

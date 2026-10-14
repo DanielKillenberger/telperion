@@ -32,7 +32,9 @@ fn unit(fronds: u32) -> Vec<Zone> {
 /// The palm, one growth cycle a year: a single PA that never moves on.
 pub fn palm() -> Species {
     // A year's height of 0.3 to 0.45 m (A1) over a dozen fronds a year
-    // (estimated): an internode of 0.03 m. Erect (C3), straightened hard
+    // (estimated): an internode of 0.03 m, raised to 0.0339 m because the
+    // stem waits on its crown's establishment (fn-275 R2a): 0.407 m a year,
+    // inside A1's range, keeps the palm at 40 at 21.59 m. Erect (C3), straightened hard
     // towards the vertical, a little wander for the stem's sway, no sag.
     // No secondary growth (C8): the stem keeps the width its apex laid it
     // down at, today's palm's trunk radius, 0.297 m; a mature trunk is
@@ -45,7 +47,7 @@ pub fn palm() -> Species {
         viability: 1.0,
         zones: unit(12),
         shedding: f64::INFINITY,
-        internode: 0.031,
+        internode: 0.0339,
         insertion: 0.0,
         divergence: GOLDEN,
         abortion: 0.0,
