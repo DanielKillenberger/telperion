@@ -3,9 +3,10 @@ import type { Growth, Submitted } from "../src/browser/render";
 /* ------------------------------------------------------------------ *
  * THE TREE GROWS IN (fn-270 R6; host rulings, 2026-10-14)
  *
- * Opening, a preset, the seed and the age grow the tree in from year 1,
- * a whole year a draw; the trait dials build the grown tree at once.
- * "grow again" replays the grow-in; "play the year" steps the grown tree
+ * Every change of the params builds the grown tree at once (owner,
+ * 2026-10-14: growing from year 1 "shouldn't be the default mode when you
+ * open the harness a new species"); "grow in" grows it from year 1,
+ * a whole year a draw; "play the year" steps the grown tree
  * through its last year, budburst to full leaf, autumn, fall and winter,
  * ending at the whole age. The canvas keeps the last drawn tree while the
  * next one grows, and a newer request abandons a run between its draws.
