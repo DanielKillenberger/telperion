@@ -3,10 +3,12 @@
 # seeds 1-50, each its own capped heavy job, run from the worktree root
 # after `cargo build --profile ci -p telperion-core --example radii_sweep`:
 #   .flow/evidence/fn-281-the-oak-at-80-builds-at-every-seed/sweep.sh [shard...]
-# A shard is <preset>:<age|own>:<mem GB>. Lines land in raw/sweep/<preset>-<age>.log;
+# A shard is <preset>:<age|own>:<mem GB>. Lines land in raw/$OUT/<preset>-<age>.log
+# (OUT defaults to sweep), from the binary $BIN (default the example just built);
 # `grep -h REFUSED raw/sweep/*.log` lists the refusals.
 set -o pipefail
-dir=.flow/evidence/fn-281-the-oak-at-80-builds-at-every-seed/raw/sweep
+dir=.flow/evidence/fn-281-the-oak-at-80-builds-at-every-seed/raw/${OUT:-sweep}
+bin=${BIN:-target/ci/examples/radii_sweep}
 mkdir -p "$dir"
 shards=("$@")
 if [ ${#shards[@]} -eq 0 ]; then
@@ -19,7 +21,7 @@ fi
 for s in "${shards[@]}"; do
   IFS=: read -r preset age mem <<<"$s"
   log="$dir/$preset-$age.log"
-  telperion-heavy "$mem" --threads 4 -- target/ci/examples/radii_sweep "$preset" "$age" 1-50 \
+  telperion-heavy "$mem" --threads 4 -- "$bin" "$preset" "$age" 1-50 \
     >>"$log" 2>&1
   rc=$?
   echo "$s rc=$rc $(grep -c ': ok' "$log") ok $(grep -c REFUSED "$log") refused $(grep -h '^peak' "$log" | tail -1)"

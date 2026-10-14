@@ -54,10 +54,31 @@ fn main() -> Result<(), String> {
     Ok(())
 }
 
+/// The tree's nodes as bits, so two builds compare to the byte, and how many
+/// are drawn above zero but thinner than the conversion's `FINEST` (2e-4 m).
+fn digest(tree: &Tree) -> (u64, usize) {
+    use std::hash::{Hash, Hasher};
+    let mut h = std::collections::hash_map::DefaultHasher::new();
+    for n in &tree.nodes {
+        let p = n.position;
+        for v in [p.x, p.y, p.z, n.radius, n.start_radius, n.base_radius] {
+            v.to_bits().hash(&mut h);
+        }
+        (n.parent, n.branch, n.stem, n.identity).hash(&mut h);
+    }
+    let fine = (tree.nodes.iter())
+        .filter(|n| n.radius > 0.0 && n.radius < 2e-4)
+        .count();
+    (h.finish(), fine)
+}
+
 fn report(id: &str, age: u32, seed: u32, tree: &Tree, ms: u128) {
     let n = tree.nodes.len();
+    let (d, fine) = digest(tree);
     match tree.validate_solved() {
-        Ok(()) => println!("{id} age {age} seed {seed}: ok {n} nodes ({ms} ms)"),
+        Ok(()) => println!(
+            "{id} age {age} seed {seed}: ok {n} nodes, digest {d:016x}, {fine} under FINEST ({ms} ms)"
+        ),
         Err(e) => {
             let bad: Vec<usize> = (0..n).filter(|&i| tree.nodes[i].radius <= 0.0).collect();
             println!(
