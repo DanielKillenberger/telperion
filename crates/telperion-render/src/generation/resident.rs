@@ -161,6 +161,8 @@ mod build;
 mod full_card_tests;
 mod growing;
 #[cfg(test)]
+mod grow_in_peak;
+#[cfg(test)]
 mod growing_cost;
 #[cfg(test)]
 mod growing_tests;
