@@ -1398,15 +1398,15 @@ A dead frond's length as a share of a living one's, rachis and leaflets alike. A
 - dormant: `skirtFronds` zero, or `rosetteFronds` zero
 - blend: linear; dial: `skirt_length` (a dead frond's length as a share of a living one's; at zero no dead frond is drawn), window its bounds (validated bound), steps 0.05 and 0.15
 
-### `/canopy/rosetteYear`
+### `/canopy/frondLife`
 
-Fronds a rosette makes a year (fn-270 R5b): its crown's fronds are aged by their place on the spiral, this year's emerging over its stem's elongation and unfolding by its expansion, the oldest passing into the skirt and out of it as new ones emerge above. At zero the crown stands as it is all year.
+The years a living frond lives (fn-270 R5b): a rosette makes its living crown's count over that many years, its fronds aged by their place on the spiral, this year's emerging over its stem's elongation and unfolding by its expansion, the oldest passing into the skirt and out of it as new ones emerge above. At zero the crown makes none and stands as it is all year.
 
-- real, fronds a year, [0, 128], default 0
+- real, years, [0, 100], default 0
 - read by plan, expand; removed growth path: as the direct build
-- checked: Rosette site, rank 23, as invalid input `rosette year`
+- checked: Rosette site, rank 23, as invalid input `frond life`
 - dormant: `rosetteFronds` zero
-- blend: linear; dial: `rosette_year` (fronds a rosette makes a year; at zero the crown stands as it is all year), window its bounds (validated bound), steps 10 and 26
+- blend: linear; dial: `frond_life` (the years a living frond lives; at zero the crown stands as it is all year), window its bounds (validated bound), steps 3 and 7
 
 ### `/canopy/maxInstances`
 

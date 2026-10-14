@@ -457,19 +457,20 @@ crate::catalogue::rows! {
             dial: bounded("skirt_length", "a dead frond's length as a share of a living one's; \
                 at zero no dead frond is drawn", [0.05, 0.15]),
         },
-        /// Fronds a rosette makes a year (fn-270 R5b): its crown's fronds are
-        /// aged by their place on the spiral, this year's emerging over its
-        /// stem's elongation and unfolding by its expansion, the oldest
-        /// passing into the skirt and out of it as new ones emerge above. At
-        /// zero the crown stands as it is all year.
+        /// The years a living frond lives (fn-270 R5b): a rosette makes its
+        /// living crown's count over that many years, its fronds aged by
+        /// their place on the spiral, this year's emerging over its stem's
+        /// elongation and unfolding by its expansion, the oldest passing
+        /// into the skirt and out of it as new ones emerge above. At zero
+        /// the crown makes none and stands as it is all year.
         #[cfg_attr(feature = "json", serde(default))]
-        pub rosette_year: f64 = "rosetteYear" "fronds a year"
-            Bounds::closed(0.0, crate::pipeline::foliage::MAX_FRONDS as f64) => [Plan, Expand] {
+        pub frond_life: f64 = "frondLife" "years"
+            Bounds::closed(0.0, 100.0) => [Plan, Expand] {
             wire: 364,
-            check: input(Site::Rosette, 23, "rosette year"),
+            check: input(Site::Rosette, 23, "frond life"),
             applies: "`rosetteFronds` zero",
-            dial: bounded("rosette_year", "fronds a rosette makes a year; at zero the crown stands \
-                as it is all year", [10.0, 26.0]),
+            dial: bounded("frond_life", "the years a living frond lives; at zero the crown stands \
+                as it is all year", [3.0, 7.0]),
         },
         /// Hard total budget. Exceeding it returns an error, never partial foliage.
         #[cfg_attr(feature = "json", serde(with = "crate::ranges::portable_index"))]
@@ -533,7 +534,7 @@ impl Default for CanopyParams {
             skirt_fronds: 0,
             skirt_pitch: crate::ranges::default_skirt_pitch(),
             skirt_length: crate::ranges::default_skirt_length(),
-            rosette_year: 0.0,
+            frond_life: 0.0,
             max_instances: usize::MAX,
         }
     }

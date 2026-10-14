@@ -199,6 +199,12 @@
 //! text, the family, walk and override digests were each the last pins
 //! to the bit; the refusal digest pairs rows by index, so the new row
 //! re-paired it.
+//! fn-270 R5b re-pinned all four when the host replaced `rosetteYear`
+//! with `frondLife` (the palm's 5 years, its crown made over a frond's
+//! life): with `frond_life` read back as `rosette_year` at the old values,
+//! the family digest was the last pin to the bit; the override text orders
+//! its keys by name and the walk blends the new row, so both moved, and
+//! the refusal names the new row.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -234,7 +240,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        7_724_544_217_873_900_830,
+        11_401_346_922_847_411_476,
         "{}",
         digest(&text)
     );
@@ -278,7 +284,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        13_646_640_947_156_371_040,
+        843_457_039_801_554_522,
         "{}",
         digest(&text)
     );
@@ -303,7 +309,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        11_861_194_845_384_424_855,
+        11_673_823_740_692_486_087,
         "{}",
         digest(&text)
     );
@@ -366,7 +372,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        5_046_856_106_460_659_370,
+        16_749_260_548_484_264_031,
         "{}",
         digest(&text)
     );

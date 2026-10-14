@@ -131,12 +131,6 @@ impl PaState {
                 return refuse(format!("{at}.{name}"), "a day of the year lies in 0 to 365");
             }
         }
-        if !crate::unfold::Season::of(self).fits() {
-            return refuse(
-                format!("{at}.leaf_fall"),
-                "a leaf colours and falls before the next budburst",
-            );
-        }
         if !(-1.0..=1.0).contains(&self.tolerance) {
             return refuse(format!("{at}.tolerance"), "a balance lies in -1 to 1");
         }

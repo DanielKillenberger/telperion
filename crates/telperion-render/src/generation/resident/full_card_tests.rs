@@ -7,24 +7,41 @@
 use super::super::{Delivery, Generator};
 use crate::Renderer;
 
-/// The host's ruling of 2026-10-12: a build's tables are sized and made
-/// before its first cycle, so a build past its budget is refused by name
-/// before anything is submitted to the device.
+/// The host's rulings of 2026-10-12 and fn-270 R5c: a build whose least
+/// tables the budget cannot hold is refused by name before anything is
+/// submitted; one whose least tables fit starts from them and, past the
+/// budget as it grows, is refused by name mid-build, its state spent and
+/// the tree drawn before it untouched.
 #[test]
-fn a_build_past_the_budget_submits_nothing() {
+fn a_build_past_the_budget_is_refused_by_name_and_leaves_the_drawn_tree() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
     };
     let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let gen = Generator::new(&renderer).unwrap();
     pollster::block_on(gen.prepare_programs()).unwrap();
-    let mut family = telperion_core::presets::by_identity("european-beech").unwrap();
-    family.age = 40.0;
+    let family = |id: &str, age: f64| {
+        let mut f = telperion_core::presets::by_identity(id).unwrap();
+        f.age = age;
+        f
+    };
+    let drawn = gen.prepare(&family("silver-birch", 8.0), Delivery::Resident).expect("a small tree draws");
+    let words = gen.read_instances(&drawn).unwrap().leaves;
+    let beech = family("european-beech", 40.0);
+    // Below the least tables: refused before any submit.
+    gen.budget.set(Some(gpu.ledger.live() + (1 << 20)));
+    let before = gpu.ledger.submits();
+    let refused = gen.prepare(&beech, Delivery::Resident).err().expect("refused");
+    assert!(refused.to_string().contains("device budget"), "{refused}");
+    assert_eq!(gpu.ledger.submits(), before, "a build its least tables cannot start submitted work");
+    // The least tables fit, the growth does not: refused by name mid-build.
     gen.budget.set(Some(gpu.ledger.live() + (64 << 20)));
     let before = gpu.ledger.submits();
-    let refused = gen.prepare(&family, Delivery::Resident).err().expect("refused");
+    let refused = gen.prepare(&beech, Delivery::Resident).err().expect("refused");
     assert!(refused.to_string().contains("device budget"), "{refused}");
-    assert_eq!(gpu.ledger.submits(), before, "a refused build submitted work");
+    assert!(gpu.ledger.submits() > before, "the least tables fit, so the build started");
+    gen.budget.set(None);
+    assert_eq!(gen.read_instances(&drawn).unwrap().leaves, words, "the drawn tree moved");
 }
 
 #[test]

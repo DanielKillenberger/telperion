@@ -46,9 +46,10 @@ struct Cfg {
     // fronds, divergence, depth; pitch, its spread, the skirt's pitch and
     // length; leaflets, rachis length, arch, leaflet pitch; terminal share,
     // spines, their share and pitch; the crown's year (`Crown::rows`):
-    // fronds made, a year's, whole years before the last (negative where
+    // fronds made, a frond's years, whole years before the last (negative where
     // no engine grew it), days into the last; budburst, elongation,
-    // expansion, and the fronds it draws past its living and dead.
+    // expansion, and the fronds it draws past its living and dead
+    // (`Crown::slots`).
     rosette: array<vec4<f32>, 6>,
 }
 
@@ -163,16 +164,24 @@ fn run(t: f32, days: f32) -> f32 {
     return select(0.0, 1.0, t > 0.0);
 }
 
-// The share of its whole size frond `serial` stands at, one of this
-// year's expanding from its emergence (`Crown::unfolded`).
+// The share of its whole size frond `serial` stands at: whole once made
+// in a year before this one, one of this year's expanding from its
+// emergence (`Crown::unfolded`).
 fn unfolded_frond(serial: i32) -> f32 {
     let y = cfg.rosette[4];
     let s = cfg.rosette[5];
-    let fresh = f32(serial) + 1.0 - y.y * y.z;
-    if y.z < 0.0 || fresh <= 0.0 || y.y <= 0.0 {
+    let fronds = cfg.rosette[0].x;
+    if y.z < 0.0 || y.y <= 0.0 || fronds <= 0.0 {
         return 1.0;
     }
-    let emerges = s.x + s.y * min(fresh / y.y, 1.0);
+    let made = (f32(serial) + 1.0) * y.y / fronds;
+    if made <= y.z {
+        return 1.0;
+    }
+    if made > y.z + 1.0 {
+        return 0.0;
+    }
+    let emerges = s.x + s.y * min(made - y.z, 1.0);
     return run(y.w - emerges, s.z);
 }
 
@@ -651,10 +660,14 @@ fn rosette(apex: u32, station0: u32, g: u32) {
     let newest = i32(ceil(made)) - 1;
     let stream = mix32(word(stem_first(apex), 25u) ^ KEY_ROSETTE.x);
     // Each frond at its place on the spiral, newest first, by its serial
-    // among the fronds made (`rosette::fronds`).
+    // among the fronds made, a place further down for every frond grown
+    // above it (`rosette::fronds`).
+    var above = 0.0;
     for (var i = 0u; i < fronds(); i++) {
         let serial = newest - i32(i);
-        let k = max(made - 1.0 - f32(serial), 0.0);
+        let grown = unfolded_frond(serial);
+        let k = above;
+        above += grown;
         let turn = f32(u32(serial) * cfg.turn) * (6.283185307179586 / 4294967296.0);
         let radial = normal * cos(turn) + binormal * sin(turn);
         var age = 0.0;
@@ -670,7 +683,7 @@ fn rosette(apex: u32, station0: u32, g: u32) {
         let pitch = toward(r[1].x + r[1].y * age, r[1].z, turned);
         let depth = toward(r[0].w * age, r[0].w * (max(k, r[0].x) / steps), turned);
         let length = toward(1.0, r[1].w, turned);
-        let share = length * unfolded_frond(serial) * clamp(total - k, 0.0, 1.0);
+        let share = length * grown * clamp(total - k, 0.0, 1.0);
         let heading = normalize(axis * cos(pitch) + radial * sin(pitch));
         let s = (g + i) * GW;
         put4(s, vec4<f32>(at - axis * depth, r[2].y * share));

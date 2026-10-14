@@ -74,11 +74,14 @@
 /canopy/skirtFronds = 16
 /canopy/skirtPitch = 165.0
 /canopy/skirtLength = 0.85
-# fn-270 R5b: "An adult date palm has approximately 100 to 125 green
-# leaves with an annual formation of 10 to 26 new leaves" (Zaid and de
-# Wet 2002, FAO Plant Production and Protection Paper 156, ch. I): 18 a
-# year, the range's midpoint, which the source does not state.
-/canopy/rosetteYear = 18.0
+# fn-270 R5b (host, 2026-10-14): leaves of a date palm "have a normal
+# life of 3 to 7 years" (Zaid and de Wet 2002, FAO Plant Production and
+# Protection Paper 156, ch. I): 5, the range's midpoint, which the source
+# does not state. The crown makes its 42 living fronds over that life,
+# 8.4 a year. Cross-check: "approximately 100 to 125 green leaves with an
+# annual formation of 10 to 26 new leaves" (ibid.); this crown, a third of
+# a real one's count, makes 8.4, a sixth under the range's low end.
+/canopy/frondLife = 5.0
 
 # The skirt hangs against the trunk, the deepest place inside the
 # crown's envelope, where the default shell cull drops most of it.

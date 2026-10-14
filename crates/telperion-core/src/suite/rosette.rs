@@ -280,3 +280,27 @@ fn stems(f: &telperion_core::presets::Family) -> usize {
     assert_eq!(f.skeleton.habit.codominance, 0.0, "the table forks");
     1
 }
+
+/// fn-270 R5b (host): the palm makes its living crown's count over a
+/// frond's life. A frond made in a year before stands whole all year, one
+/// of this year's grows from nothing, and across the turn of the year no
+/// frond changes size.
+#[test]
+fn last_years_fronds_stay_whole_and_the_year_turns_with_no_pop() {
+    use telperion_core::{foliage::Crown, tree::Year};
+    let f = family("date-palm", 1);
+    let year = |age: f64| Year { age, budburst: 0.0, elongation: 226.0, expansion: 139.0 };
+    let crown = |age: f64| Crown::new(Some(year(age)), &f.canopy);
+    let per_year = f64::from(f.canopy.rosette_fronds) / f.canopy.frond_life;
+    for age in [11.001, 11.3, 11.6, 11.999] {
+        let c = crown(age);
+        let before = (per_year * 11.0).floor() as i64;
+        assert!((0..before).all(|s| c.unfolded(s as f64) == 1.0), "{age}: an old frond shrank");
+        assert!(c.made() - per_year * 11.0 <= per_year, "{age}: more than a year's fronds");
+    }
+    let (end, start) = (crown(11.0), crown(11.0 + 1e-9));
+    for s in 0..(end.made().ceil() as i64) {
+        let (a, b) = (end.unfolded(s as f64), start.unfolded(s as f64));
+        assert!((a - b).abs() < 1e-6, "frond {s}: {a} at the year's end, {b} after it");
+    }
+}

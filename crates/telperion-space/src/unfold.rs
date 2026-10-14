@@ -112,24 +112,25 @@ pub struct Season {
 impl Season {
     /// `state`'s year: a whole age stands at full leaf, its budburst plus
     /// its shoot's elongation and its leaf's expansion, which places the
-    /// calendar's days on the clock.
+    /// calendar's days on the clock. A colouring and fall that would run
+    /// past the next budburst are compressed, by degree, to end at it
+    /// (host, fn-270 R5c): a walk between calendars that disagree stays a
+    /// tree, every falling leaf gone before the year's leaves grow.
     pub fn of(state: &crate::species::PaState) -> Self {
         let grow = state.elongation + state.expansion;
-        let senescence = (state.senescence - state.budburst - grow).rem_euclid(YEAR);
+        let budburst = YEAR - grow;
+        let senescence = (state.senescence - state.budburst - grow).rem_euclid(YEAR).min(budburst);
+        let (span, room) = (state.colouring + state.leaf_fall, budburst - senescence);
+        let k = if span > room { room / span } else { 1.0 };
         Self {
-            budburst: YEAR - grow,
+            budburst,
             senescence,
-            colouring: state.colouring,
-            fall: state.leaf_fall,
+            colouring: state.colouring * k,
+            fall: state.leaf_fall * k,
             elongation: state.elongation,
             expansion: state.expansion,
             life: state.leaf_life,
         }
-    }
-
-    /// Whether a falling leaf is gone before the next budburst.
-    pub fn fits(&self) -> bool {
-        self.life.is_infinite() || self.senescence + self.colouring + self.fall <= self.budburst
     }
 
     /// Days since budburst `tau` days into the year: what a shoot and its

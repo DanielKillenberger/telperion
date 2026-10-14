@@ -127,10 +127,10 @@ const HELD: [&str; 135] = [
     "/canopy/skirtFronds",
     "/canopy/skirtPitch",
     "/canopy/skirtLength",
-    // fn-270: the fronds a rosette makes a year, stated by the palm alone,
+    // fn-270: the years a frond lives, stated by the palm alone,
     // which the sweep does not walk; the named autumn colours moved off this
     // list, as the walked presets now differ in them.
-    "/canopy/rosetteYear",
+    "/canopy/frondLife",
     "/canopy/clumpNeighbours",
     "/surface/socketContainment",
     "/skeleton/habit/reachProbeSteps",

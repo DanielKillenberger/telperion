@@ -39,7 +39,7 @@ pub(super) fn describe(
     let apices = rosette::rosettes(tree);
     let per = rosette::leaflets(&p);
     let crown = rosette::Crown::of(tree, &p);
-    let total = apices.len() * rosette::slots(&p, crown) * per;
+    let total = apices.len() * crown.slots() * per;
     if total > p.max_instances || total > u32::MAX as usize {
         return Err(Error::ResourceLimit("foliage instance budget"));
     }

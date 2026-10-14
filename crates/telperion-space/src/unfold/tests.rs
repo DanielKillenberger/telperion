@@ -144,3 +144,24 @@ fn old_organs_move_only_while_the_shoots_grow() {
     assert_eq!(held(&draw(grown + 1e-3), &draw(1.0 - 1e-6)), 0, "the crown moved after the shoots");
     assert!(held(&draw(0.0), &draw(1.0 - 1e-6)) > 0, "the crown never moved at all");
 }
+
+/// R5c (host): a colouring and fall that would run past the next budburst
+/// end at it, compressed by degree; one that fits is as stated.
+#[test]
+fn a_fall_past_budburst_is_compressed_to_end_at_it() {
+    let mut state = crate::oak().states[0].clone();
+    (state.budburst, state.senescence, state.colouring, state.leaf_fall) = (128.0, 264.0, 16.0, 45.0);
+    (state.elongation, state.expansion) = (14.0, 35.0);
+    let fits = Season::of(&state);
+    assert_eq!((fits.colouring, fits.fall), (state.colouring, state.leaf_fall));
+    let mut ends = Vec::new();
+    for grow in [150.0, 200.0, 250.0, 300.0] {
+        (state.elongation, state.expansion) = (grow / 2.0, grow / 2.0);
+        let s = Season::of(&state);
+        let end = s.senescence + s.colouring + s.fall;
+        assert!(end <= s.budburst + 1e-9, "{grow}: {end} past {}", s.budburst);
+        assert!((s.colouring * state.leaf_fall - s.fall * state.colouring).abs() < 1e-9, "{grow}: one share of both");
+        ends.push(end);
+    }
+    assert!(ends.windows(2).all(|w| w[1] <= w[0]), "{ends:?}");
+}
