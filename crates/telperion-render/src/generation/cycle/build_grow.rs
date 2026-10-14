@@ -212,10 +212,7 @@ impl Growing {
         for sizes in Sizes::margins(hint) {
             let sizes = sizes?;
             let begun = Self::begin(gpu, kit, t, tables, sizes).await;
-            let room = |g: Self| {
-                let r = super::super::io::reserve(gpu, sizes.first_move(), "first move's room");
-                r.map(|()| gpu.ledger.unreserve(sizes.first_move(), "first move's room")).map(|()| g)
-            };
+            let room = |g: Self| super::super::io::fits(gpu, sizes.first_move(), "first move").map(|()| g);
             match begun.and_then(room) {
                 Err(e) if super::super::io::over_budget(&e) => refused = Some(e),
                 begun => return begun,

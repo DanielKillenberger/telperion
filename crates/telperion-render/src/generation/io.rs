@@ -471,14 +471,22 @@ const OVER_BUDGET: &str = "the device budget: ";
 
 /// `bytes` for `label` charged against the device budget, refused by
 /// name where they would pass it.
-pub(super) fn reserve(gpu: &Gpu, bytes: u64, label: &'static str) -> Result<()> {
-    gpu.ledger.reserve(bytes, label).map_err(|(after, cap)| {
-        error(format!(
-            "{OVER_BUDGET}the build's {label} would hold {} MiB, past the {} MiB it may hold; grow it younger",
-            after >> 20,
-            cap >> 20
-        ))
-    })
+fn reserve(gpu: &Gpu, bytes: u64, label: &'static str) -> Result<()> {
+    gpu.ledger.reserve(bytes, label).map_err(|e| over(label, e))
+}
+
+/// Whether `bytes` more for `label` fit the device budget, charging
+/// nothing; refused by name where they would not.
+pub(super) fn fits(gpu: &Gpu, bytes: u64, label: &'static str) -> Result<()> {
+    gpu.ledger.fits(bytes).map_err(|e| over(label, e))
+}
+
+fn over(label: &str, (after, cap): (u64, u64)) -> RenderError {
+    error(format!(
+        "{OVER_BUDGET}the build's {label} would hold {} MiB, past the {} MiB it may hold; grow it younger",
+        after >> 20,
+        cap >> 20
+    ))
 }
 
 /// Whether `e` is a buffer's refusal past the device budget (`buffer`).
