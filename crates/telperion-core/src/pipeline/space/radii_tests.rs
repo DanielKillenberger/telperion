@@ -1,7 +1,9 @@
 //! fn-281: the Oregon white oak at 80, seed 7, refused with "unsolved
 //! radii" (fn-236 SHEET-4). Both trees take about 4 GB and 25 s, so they
 //! are run by name: `cargo test --profile ci -p telperion-core radii_tests
-//! -- --ignored --nocapture`.
+//! -- --ignored --nocapture`. The sweep over every shipped preset and seed
+//! is `examples/radii_sweep.rs`, run in shards by
+//! `.flow/evidence/fn-281-the-oak-at-80-builds-at-every-seed/sweep.sh`.
 use super::*;
 use crate::pipeline::executor;
 use crate::presets::Preset;
@@ -15,7 +17,7 @@ fn oak(age: f64, seed: u32) -> crate::Family {
 
 /// R1: the shipped path's tree, held to the check every later stage makes.
 #[test]
-#[ignore = "fn-281: red until R3; about 4 GB and 25 s"]
+#[ignore = "fn-281 regression guard; about 4 GB and 25 s"]
 fn the_oak_at_80_seed_7_solves_every_radius() {
     let grown = executor::grow(&oak(80.0, 7)).unwrap();
     let x = grown.expansion().unwrap();
