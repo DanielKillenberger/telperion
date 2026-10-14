@@ -13,3 +13,5 @@ fn-251's re-measure on F4 (2026-10-14, WALKS.md "The two-sided factor's room"): 
 ## Boundaries
 
 After the release (fn-237). fn-251's sweep names the pair as an exception until this lands.
+
+**Tenth exception (host, 2026-10-14, fn-272's film):** Oregon white oak to date palm at age 40 keeps 421-430 phytomers at t = 0.64-0.72 against the oracle's floor of 432 (up to 2.5 % under), 6 of 120 frames, seed 7. The same class as fn-251's nine (the shrink-only size factor); accepted for the release film and fixed here with the rest.
