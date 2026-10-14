@@ -34,8 +34,9 @@ pub fn palm() -> Species {
     // A year's height of 0.3 to 0.45 m (A1) over a dozen fronds a year
     // (estimated): an internode of 0.03 m, raised to 0.0339 m because the
     // stem waits on its crown's establishment (fn-275 R2a): 0.407 m a year,
-    // inside A1's range, keeps the palm at 40 at 21.59 m. Erect (C3), straightened hard
-    // towards the vertical, a little wander for the stem's sway, no sag.
+    // inside A1's range, keeps the palm at 40 at 21.59 m. Erect (C3),
+    // straightened hard towards the vertical, a little wander for the
+    // stem's sway, no sag.
     // No secondary growth (C8): the stem keeps the width its apex laid it
     // down at, today's palm's trunk radius, 0.297 m; a mature trunk is
     // 0.52 to 1.08 m across its retained bases (P7, Table 1).
@@ -125,8 +126,11 @@ mod tests {
             let p = &s.axes[0].phytomers;
             let (base, top) = (p[0].radius, p[p.len() - 1].radius);
             assert!((base - top).abs() < 1e-12, "{base} against {top}");
+            // Inside A1's 0.30 to 0.45 m a year over 50 years: the engine's
+            // stem rises 0.407 m a year (20.3 m), since fn-275 R2a lowers
+            // what it draws by the rise it waited on its crown.
             let height = p[p.len() - 1].tip.z;
-            assert!((17.0..20.0).contains(&height), "{height} m");
+            assert!((15.0..22.5).contains(&height), "{height} m");
         }
     }
 }

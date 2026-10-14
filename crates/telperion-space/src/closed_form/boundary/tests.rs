@@ -19,6 +19,8 @@ use crate::{beech, oak, palm, spruce, Species};
 // fn-248 re-pinned the beech's from age 5 on: its short shoots live four
 // years, not three. Re-taken at fn-254's merge on its floats: those seven
 // alone moved, every other row holding fn-254's f32 pin to the bit.
+// fn-275 R2a re-pinned the palm's: its internode, 0.031 m to 0.0339 m,
+// raises the stem by what its crown's establishment lowers it.
 const PINNED: [(&str, u32, u64); 40] = [
     ("beech", 1, 0x744ad9d4c38baff6),
     ("beech", 2, 0xd9f87b741891c18c),
@@ -50,16 +52,16 @@ const PINNED: [(&str, u32, u64); 40] = [
     ("oak", 34, 0xef82ae25fa389ff5),
     ("oak", 55, 0xd74eb8ab714f54f3),
     ("oak", 80, 0x73ca50b4ed6d3127),
-    ("palm", 1, 0xda237154468f69ae),
-    ("palm", 2, 0xf30b6b627d772f9e),
-    ("palm", 3, 0xa76f80968375a52b),
-    ("palm", 5, 0x61037bbb2251841a),
-    ("palm", 8, 0xaf0699f75d0e1787),
-    ("palm", 13, 0x9dc19dc3331b5f83),
-    ("palm", 21, 0x06a4b228ae4c227f),
-    ("palm", 34, 0x5390f7d1673f40c9),
-    ("palm", 55, 0x1ac5e4768edbdbd6),
-    ("palm", 80, 0x6f5bf58ab70abd20),
+    ("palm", 1, 0x0ce2f02f7186f784),
+    ("palm", 2, 0x5aab3ecd4c102ab4),
+    ("palm", 3, 0x2373698dcb356a49),
+    ("palm", 5, 0x1c8c78a14b8ad458),
+    ("palm", 8, 0x29f142d42c6555a2),
+    ("palm", 13, 0x13939ec283bdf95f),
+    ("palm", 21, 0xaf09a40e56020f89),
+    ("palm", 34, 0xbb9c3490b560c4ab),
+    ("palm", 55, 0x0c0c45ae81a6006b),
+    ("palm", 80, 0x0b6b03e0e9395181),
 ];
 
 /// Each row's fields as their bits, the seed's last.
@@ -149,7 +151,10 @@ fn the_rows_stay_near_the_old_reading() {
     // The beech and the oak relay their failed units, whose law fn-199
     // changed (R1's lived share, C1, rule 2'): their rows are no longer
     // 9f063433's reading summed another way, and are held by their pins.
-    for (name, age) in ["spruce", "palm"].iter().flat_map(|n| [(n, 40), (n, 80)]) {
+    // The palm's internode moved (fn-275 R2a, 0.031 m to 0.0339 m): its
+    // mass and reach scale by the length, its moment by its square, so it
+    // too is held by its pins.
+    for (name, age) in [("spruce", 40), ("spruce", 80)] {
         let new = bits(&Rows::new(&species(name), age, 1));
         let mut d = vec![Vec::new(); TOLERANCE.len()];
         let prefix = format!("{name} {age} ");
