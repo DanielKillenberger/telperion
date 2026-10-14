@@ -75,3 +75,32 @@ fn the_shipped_palm_keeps_its_height_and_narrows_only_its_foot() {
     assert!((top(&tree) - 14.885).abs() < 0.15, "the stem's top at {}", top(&tree));
     assert!(foot < 2.0, "the stem narrowed up to {foot} m");
 }
+
+/// R2a (review): a stem drawn within its year, its shoot part grown, is
+/// lowered by the height each tip has reached: it never dips below the
+/// wood it stands on nor below the ground.
+#[test]
+fn a_stem_drawn_within_its_year_never_dips() {
+    use telperion_core::pipeline::growth;
+    let palm = family("date-palm", 1, 4.0);
+    let params = growth::Params::of(&palm).unwrap();
+    let mut state = growth::begin(&params, 1, 4.0).unwrap();
+    for at in [0.1, 0.3, 0.9, 1.05, 1.3, 2.02, 3.5] {
+        growth::grow_to(&mut state, at).unwrap();
+        let tree = growth::settle(&state, at).unwrap();
+        for n in &tree.nodes {
+            let below = n.parent.map_or(0.0, |p| tree.nodes[p as usize].position.y);
+            assert!(n.position.y >= below - 1e-6, "{at}: a node at {} below its parent at {below}", n.position.y);
+        }
+    }
+}
+
+/// R2a (review): rows that make the first stem thinner than the thinnest
+/// wood drawn keep the whole stem.
+#[test]
+fn a_thin_first_stem_keeps_the_stem() {
+    let mut palm = family("date-palm", 1, 12.0);
+    (palm.canopy.frond_early_share, palm.canopy.frond_establishment) = (0.0, 10.0);
+    let ((tree, _), (plain, _)) = (grown(&palm), grown(&without(palm.clone())));
+    assert_eq!(tree.nodes.len(), plain.nodes.len(), "the stem was cut");
+}

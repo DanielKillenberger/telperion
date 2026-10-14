@@ -1410,23 +1410,23 @@ The years a living frond lives (fn-270 R5b): a rosette makes its living crown's 
 
 ### `/canopy/frondEstablishment`
 
-The years a rosette's crown takes to make a mature frond (fn-275 R2): a frond is made at a share of its size set by the crown's age when it was made, along the logistic course from `frondEarlyShare` to whole over these years, and keeps it for its life. At zero every frond is made whole.
+The years a rosette's crown takes to make a mature frond (fn-275 R2, R2a): a frond is made at a share of its size set by the crown's age when it was made, along the logistic course from `frondEarlyShare` to whole over these years, and keeps it for its life; the stem the rosette crowns widens by the same course and waits at the ground until the crown is established. At zero every frond is made whole and the stem rises from its first year.
 
 - real, years, [0, 100], default 0
-- read by plan, expand; removed growth path: as the direct build
+- read by grow, plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 24, as invalid input `frond establishment`
-- dormant: `frondLife` zero, or `rosetteFronds` zero
-- blend: linear; dial: `frond_establishment` (the years a crown takes to make a mature frond; at zero every frond is made whole), window its bounds (validated bound), steps 1 and 3
+- dormant: `rosetteFronds` zero
+- blend: linear; dial: `frond_establishment` (the years a crown takes to make a mature frond and its stem to widen before it rises; at zero every frond is made whole and the stem rises from its first year), window its bounds (validated bound), steps 1 and 3
 
 ### `/canopy/frondEarlyShare`
 
-The share of a mature frond's size a crown's first frond is made at, while it establishes (fn-275 R2).
+The share of a mature frond's size a crown's first frond is made at while it establishes, and of its stem's girth where the stem was first laid (fn-275 R2, R2a).
 
 - real, share of a mature frond, [0, 1], default 0
-- read by plan, expand; removed growth path: as the direct build
+- read by grow, plan, expand; removed growth path: as the direct build
 - checked: Rosette site, rank 25, as invalid input `frond early share`
 - dormant: `frondEstablishment` zero
-- blend: linear; dial: `frond_early_share` (the share of a mature frond's size a crown's first frond is made at), window its bounds (validated bound), steps 0.05 and 0.15
+- blend: linear; dial: `frond_early_share` (the share of a mature frond's size a crown's first frond is made at, and of its stem's girth where first laid), window its bounds (validated bound), steps 0.05 and 0.15
 
 ### `/canopy/maxInstances`
 

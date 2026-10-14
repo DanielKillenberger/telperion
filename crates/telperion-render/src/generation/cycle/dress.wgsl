@@ -715,7 +715,7 @@ fn draw_axis(a: u32, start: u32, how: How) {
         let r = li(a, k);
         let p = ph(a, k);
         let l = season_of(a, p);
-        var radius = npf(NP_RADIUS, p) * established(a, k);
+        var radius = established(a, k, npf(NP_RADIUS, p));
         if !(radius >= FINEST) {
             break;
         }

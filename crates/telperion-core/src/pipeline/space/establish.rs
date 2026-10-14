@@ -1,19 +1,23 @@
-//! A rosette's stem establishing with its crown (fn-275 R2a, host): a stem
-//! phytomer laid at the crown's age `t` is drawn at the girth of an organ
-//! made then (`foliage::establishment`), and lowered by the rise its stem
-//! waited on the crown (`foliage::waited`, at its trunk PA's rise a year),
-//! so the stem stays at the ground until the crown is established and
-//! then elongates. Each is a function of the age a phytomer was laid at
-//! alone, so the lowering composes along the stem with no sum; every axis
-//! off the stem is carried by its bearing node's lowering and keeps its
-//! own lengths and girth. `cycle/establish.wgsl` is its twin on the device.
+//! A rosette's stem establishing with its crown (fn-275 R2a, host). The
+//! stem's own clock is the height it has laid: a stem phytomer whose tip
+//! was laid `h` metres up reached it at the crown's age `t = h / rise`,
+//! its trunk PA's rise a year. It is drawn at the girth of an organ made
+//! then (`foliage::establishment`), never thinner than the thinnest wood
+//! drawn, and lowered by the rise its stem waited on the crown
+//! (`foliage::waited`), so the stem stays at the ground until the crown is
+//! established and then elongates. Each is a closed form of the laid
+//! height alone, so the lowering composes along the stem with no sum, and
+//! a shoot drawn part grown within its year is lowered by the height it
+//! has reached, never past the wood below it. Every axis off the stem is
+//! carried by its bearing node's lowering and keeps its own lengths and
+//! girth. `cycle/establish.wgsl` is its twin on the device.
+use super::FINEST;
 use crate::pipeline::foliage::{establishment, waited, CanopyParams};
 use std::borrow::Cow;
-use telperion_space::{Origin, Species, Structure};
+use telperion_space::{Coarse, Origin, Species, Structure};
 
 /// The rows a stem establishes by: the crown's establishment years and
-/// early share, and its trunk PA's rise a year, which its year's
-/// phytomers lay evenly.
+/// early share, and its trunk PA's rise a year.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Establishing {
     pub years: f64,
@@ -23,19 +27,15 @@ pub struct Establishing {
 
 impl Establishing {
     /// A crown that stands a rosette and states an establishment, on the
-    /// species' first trunk PA; none otherwise (dormant).
+    /// species' first trunk PA, which rises; none otherwise (dormant).
     pub(super) fn of(canopy: &CanopyParams, species: &Species, trunk: &[usize]) -> Option<Self> {
         if canopy.rosette_fronds == 0 || canopy.frond_establishment <= 0.0 {
             return None;
         }
-        let pa = *trunk.first()?;
-        let state = species.states.get(pa)?;
+        let state = species.states.get(*trunk.first()?)?;
         let nodes: f64 = state.zones.iter().map(|z| z.nodes.mean()).sum();
-        Some(Self {
-            years: canopy.frond_establishment,
-            early: canopy.frond_early_share,
-            rise: state.internode * nodes,
-        })
+        let rise = state.internode * nodes;
+        (rise > 0.0).then_some(Self { years: canopy.frond_establishment, early: canopy.frond_early_share, rise })
     }
 
     /// The device's words (`dress.wgsl`'s `Cfg`): none where dormant.
@@ -43,15 +43,14 @@ impl Establishing {
         this.map_or([0.0; 3], |e| [e.years, e.early, e.rise].map(|v| v as f32))
     }
 
-    /// The crown's age a phytomer of `cycle` was laid at, `j` of the `n`
-    /// its axis laid that cycle: evenly over the year, as its stem rises.
-    fn laid(cycle: u32, j: usize, n: usize) -> f64 {
-        f64::from(cycle) - 1.0 + (j + 1) as f64 / n as f64
+    /// The metres a stem tip laid `h` up is lowered by.
+    fn lowered(&self, h: f64) -> f64 {
+        self.rise * waited(self.years, h / self.rise)
     }
 
-    /// The metres a stem phytomer laid at `t` is lowered by.
-    fn lowered(&self, t: f64) -> f64 {
-        self.rise * waited(self.years, t)
+    /// A stem phytomer's radius `r` at its tip laid `h` up.
+    fn girth(&self, r: f64, h: f64) -> f64 {
+        (r * establishment(self.early, self.years, h / self.rise)).max(r.min(FINEST))
     }
 
     /// `structure` with its stem established; untouched where dormant.
@@ -60,9 +59,29 @@ impl Establishing {
             return Cow::Borrowed(structure);
         };
         let mut out = structure.clone();
+        e.lower(&mut out, trunk);
+        Cow::Owned(out)
+    }
+
+    /// A coarse tree established, each fine root's stand-in carried with
+    /// the axis it stands for.
+    pub(super) fn coarse(this: Option<Self>, mut coarse: Coarse, trunk: &[usize]) -> Coarse {
+        if let Some(e) = this {
+            let carried = e.lower(&mut coarse.structure, trunk);
+            for s in &mut coarse.stands {
+                s.base.z -= carried[s.axis];
+            }
+        }
+        coarse
+    }
+
+    /// Lowers and narrows the stem of `structure` and carries what it
+    /// bears; each axis's base lowering, by index.
+    fn lower(&self, structure: &mut Structure, trunk: &[usize]) -> Vec<f64> {
         // Each axis's phytomers' lowering, parents before what they bear.
-        let mut lowering: Vec<Vec<f64>> = Vec::with_capacity(out.axes.len());
-        for axis in &mut out.axes {
+        let mut lowering: Vec<Vec<f64>> = Vec::with_capacity(structure.axes.len());
+        let mut bases = Vec::with_capacity(structure.axes.len());
+        for axis in &mut structure.axes {
             let bearing = match axis.origin {
                 Origin::Seed => 0.0,
                 Origin::Lateral { parent, node, .. } | Origin::Relay { parent, node } => {
@@ -71,26 +90,25 @@ impl Establishing {
                 Origin::Continuation { parent } => lowering[parent].last().copied().unwrap_or(0.0),
             };
             axis.base.z -= bearing;
+            bases.push(bearing);
             let own = trunk.contains(&axis.pa);
-            let cycles: Vec<u32> = axis.phytomers.iter().map(|p| p.cycle).collect();
-            let mut mine = Vec::with_capacity(cycles.len());
-            for (k, p) in axis.phytomers.iter_mut().enumerate() {
-                let lower = match own {
-                    true => {
-                        let j = cycles[..k].iter().rev().take_while(|&&c| c == p.cycle).count();
-                        let n = j + cycles[k..].iter().take_while(|&&c| c == p.cycle).count();
-                        let t = Self::laid(p.cycle, j, n);
-                        p.radius *= establishment(e.early, e.years, t);
-                        e.lowered(t)
-                    }
-                    false => bearing,
-                };
-                p.tip.z -= lower;
-                mine.push(lower);
-            }
+            let mine = (axis.phytomers.iter_mut())
+                .map(|p| {
+                    let lower = match own {
+                        true => {
+                            let h = p.tip.z;
+                            p.radius = self.girth(p.radius, h);
+                            self.lowered(h)
+                        }
+                        false => bearing,
+                    };
+                    p.tip.z -= lower;
+                    lower
+                })
+                .collect();
             lowering.push(mine);
         }
-        Cow::Owned(out)
+        bases
     }
 }
 

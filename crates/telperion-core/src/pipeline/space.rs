@@ -67,6 +67,7 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
         let cut = f64::from(input.cut);
         let coarse = telperion_space::grow_coarse(species, request, cut).map_err(engine)?;
         fits(&coarse.structure, KEPT)?;
+        let coarse = Establishing::coarse(establishing, coarse, rows.0);
         let (mut tree, drawn) = converted(&coarse.structure, rows);
         tree.stands = stands::convert(&coarse, &drawn);
         scaled(&mut tree, input.supernatural.scale());
