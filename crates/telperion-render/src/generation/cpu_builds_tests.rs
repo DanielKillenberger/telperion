@@ -76,7 +76,8 @@ const T: [f64; 6] = [0.0, 0.01, 0.1, 0.5, 0.9, 1.0];
 /// R4's cases: every shipped preset at every whole age to its own and to
 /// 80, and the walk frames, at seeds 1, 7 and 42. `SWEEP_PRESETS` names a
 /// comma list, `SWEEP_AGES` a range ("a-b") and `SWEEP_WALKS` 0 or 1 to
-/// leave the walks out or take them alone.
+/// leave the walks out or take them alone; `SWEEP_ONLY` keeps the cases
+/// whose name holds it.
 fn sweep_cases() -> Vec<(String, Family)> {
     let only = std::env::var("SWEEP_PRESETS").ok();
     let range = std::env::var("SWEEP_AGES").ok();
@@ -104,6 +105,8 @@ fn sweep_cases() -> Vec<(String, Family)> {
             }
         }
     }
+    let only = std::env::var("SWEEP_ONLY").ok();
+    out.retain(|c| only.as_ref().is_none_or(|o| c.0.contains(o.as_str())));
     out
 }
 
