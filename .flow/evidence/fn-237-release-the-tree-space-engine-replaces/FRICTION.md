@@ -29,3 +29,8 @@
 - **Hindered:** the dcg hook refuses a redirect to a path held in a shell variable (`> $S/cold2.log`), so the command had to be rewritten with every path spelled out.
 - **Cost:** about 2 minutes.
 - **Would remove it:** a scratch-directory allowance in the hook for the session's own scratchpad. Local setup, reported only.
+- **Doing:** a 0.1 s CPU-only test run (`tint_rule`) after the review's two findings, under `telperion-heavy 8`.
+- **Hindered:** the wrapper held it behind another worker's film render (fn-272) with about 10 GB available; the test needs a rebuild of the render test binary, not the GPU, and still waited.
+- **Cost:** over 20 minutes of waiting for a test that runs in a fraction of a second once built.
+- **Would remove it:** the per-command memory table named above, so an incremental test build declares a few GB and is admitted beside a running job. Local setup, reported only.
+  Resubmitted declaring 5 GB, the same run was admitted at once beside the film job and passed: the 8 GB declaration was the guess that cost the 40 minutes.

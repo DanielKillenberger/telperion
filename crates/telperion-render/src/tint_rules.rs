@@ -190,15 +190,20 @@ fn barred(fns: &[Function]) -> HashSet<String> {
 }
 
 /// Functions whose every return is `workgroupUniformLoad`'s, a uniform
-/// global's or a literal's (their parameters taken as non-uniform).
+/// global's or a literal's (their parameters taken as non-uniform), and
+/// is one expression, so no control chooses between returns.
 fn uniform_returning(fns: &[Function], globals: &HashSet<String>) -> HashSet<String> {
     let mut out = HashSet::new();
     for f in fns {
         let returns: Vec<usize> = (0..f.body.len()).filter(|&j| f.body[j] == "return").collect();
+        let expr = |j: usize| {
+            let end = (j..f.body.len()).find(|&e| f.body[e] == ";").unwrap_or(f.body.len());
+            &f.body[j + 1..end]
+        };
         let uniform = !returns.is_empty()
+            && returns.iter().all(|&j| expr(j) == expr(returns[0]))
             && returns.iter().all(|&j| {
-                let end = (j..f.body.len()).find(|&e| f.body[e] == ";").unwrap_or(f.body.len());
-                let e = &f.body[j + 1..end];
+                let e = expr(j);
                 let field = |k: usize| k > 0 && e[k - 1] == ".";
                 e.first().is_some_and(|t| t == "workgroupUniformLoad")
                     || (0..e.len()).filter(|&k| is_ident(&e[k]) && !field(k)).all(|k| globals.contains(&e[k]) || PURE.contains(&e[k].as_str()))
@@ -336,7 +341,7 @@ impl Walk<'_> {
             self.out.push(format!("fn {}: {what} under non-uniform control", self.name));
         }
         match s.first().map(String::as_str) {
-            Some("return") if !control => self.returned = true,
+            Some("return") if !control || self.jumped => self.returned = true,
             Some("break" | "continue") if !control => self.jumped = true,
             _ => {}
         }

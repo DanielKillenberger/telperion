@@ -82,6 +82,14 @@ fn a_return_of_a_uniform_field_is_uniform() {
     assert!(findings(&good).is_empty(), "{:?}", findings(&good));
     let bad = format!("{head}\nfn count() -> u32 {{ return grid[0]; }}\n{entry}");
     assert_eq!(findings(&bad).len(), 1, "{:?}", findings(&bad));
+    // Two uniform fields, chosen by a non-uniform branch: not uniform.
+    let chosen = "struct U { a: u32, b: u32 }
+        @group(0) @binding(0) var<uniform> u: U;
+        fn count(lane: u32) -> u32 { if lane == 0u { return u.a; } return u.b; }
+        @compute @workgroup_size(64) fn main(@builtin(local_invocation_index) lane: u32) {
+            for (var i = 0u; i < count(lane); i++) { workgroupBarrier(); }
+        }";
+    assert_eq!(findings(chosen).len(), 1, "{:?}", findings(chosen));
 }
 
 /// A non-uniform `continue` makes the rest of its loop non-uniform, not
@@ -100,4 +108,11 @@ fn a_jump_ends_with_its_loop() {
             for (var v = 0u; v < 4u; v += 1u) {{ if grid[v] == lane {{ continue; }} workgroupBarrier(); }}
         }}");
     assert_eq!(findings(&bad).len(), 1, "{:?}", findings(&bad));
+    // A return the jump left some lanes to reach ends the function for them.
+    let returned =
+        "@compute @workgroup_size(64) fn main(@builtin(local_invocation_index) lane: u32) {
+            for (var i = 0u; i < 1u; i++) { if lane > 0u { continue; } return; }
+            workgroupBarrier();
+        }";
+    assert_eq!(findings(returned).len(), 1, "{:?}", findings(returned));
 }
