@@ -164,6 +164,37 @@ fn rounds(censuses: &[Vec<u32>]) -> String {
     format!("units rounds used at most {} and {}, rising {} and {} over two cycles", most(&live), most(&wake), rise(&live), rise(&wake))
 }
 
+/// fn-276 (Codex's review): a chain of eleven ages, the first ten a
+/// twentieth of a cycle each, grows eleven units in one job's cycle on the
+/// CPU, the floor and the frames a job holds; each move leaves a stack
+/// entry, ten here, and the device builds it.
+#[test]
+fn a_chain_of_short_ages_fills_a_jobs_frames() {
+    let Some((gpu, kit)) = device() else {
+        return;
+    };
+    let family = Preset::from_id("ordinary").expect("a shipped preset").parameters();
+    let growth = telperion_core::pipeline::executor::growth(&family).expect("a growth");
+    let mut species = growth.species;
+    let n = super::device::FRAMES as usize;
+    let mut age = species.states[0].clone();
+    (age.viability, age.abortion, age.continuation) = (1.0, 0.0, 1.0);
+    (age.relay, age.relay_ended, age.relay_failed) = (0.0, 0.0, 0.0);
+    for z in &mut age.zones {
+        (z.lateral, z.dormant) = (vec![0.0; n], vec![0.0; n]);
+    }
+    species.states = (0..n).map(|k| telperion_space::PaState { lifespan: if k + 1 < n { 0.05 } else { 10.0 }, ..age.clone() }).collect();
+    let cycles = 3;
+    let g = grown_from(species, growth.request.light, (cycles, 1));
+    let counted = telperion_space::grow_census(&g.species, g.request).expect("grown").census.expect("a census");
+    let most = counted.cycles.iter().map(|c| c.jobs[0]).max().unwrap_or(0);
+    let hinted = hint(&g.species, cycles).expect("a hint");
+    assert_eq!((most, hinted.units), (n as u32, n as u32), "the CPU's units a job and the floor");
+    let t = Tables::new(&gpu, &g.tables, &g.chain).expect("tables");
+    let sizes = Sizes::hinted(hinted).expect("sized");
+    grow_now(&gpu, &kit, &t, &g.tables, (sizes, cycles)).unwrap_or_else(|e| panic!("the chain: {e}"));
+}
+
 /// `ARENA_AGE` where it is set, else the preset's own age.
 fn aged(own: u32) -> u32 {
     std::env::var("ARENA_AGE").ok().and_then(|a| a.parse().ok()).unwrap_or(own)

@@ -48,7 +48,7 @@ pub(super) const T_USED: usize = 22;
 
 /// A job's words (`job.wgsl`'s `JW`), and a unit zone's (`grow.wgsl`'s
 /// `Z_` columns).
-pub(super) const JW: u32 = 178 + FRAMES * 35;
+pub(super) const JW: u32 = 130 + FRAMES * 35 + (FRAMES - 1) * 6;
 /// The axes a units job holds at once (`job.wgsl`'s `FRAMES`): the most
 /// units it grows in a cycle where none fails. 11, the most floor
 /// (`telperion_space::most_units`) of every preset at every age to 80 and

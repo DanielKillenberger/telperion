@@ -62,20 +62,21 @@ const J_V: u32 = 57u;
 const J_SURVIVES: u32 = 58u;
 const J_D: u32 = 60u;
 const J_RELAYS: u32 = 62u;
-const J_ENDKEY: u32 = 112u;
-// What a move leaves to do (`After`), six words an entry.
-const J_STACK: u32 = 64u;
-const STACK: u32 = 8u;
+const J_ENDKEY: u32 = 64u;
 // The axes a waking bud's bearer carries it to, two words each.
-const J_CARRIED: u32 = 114u;
+const J_CARRIED: u32 = 66u;
 const CARRIED: u32 = 32u;
 // The frames, `FW` words each: an axis's columns, then its first unit.
-const J_FRAME0: u32 = 178u;
+const J_FRAME0: u32 = 130u;
 const FW: u32 = 35u;
 const FRAMES: u32 = 11u;
 // The frame a lateral is made in, private to its invocation.
 const SCRATCH: u32 = FRAMES;
-const JW: u32 = J_FRAME0 + FRAMES * FW;
+// What a move leaves to do (`After`), six words an entry: one for each
+// move a job's chain makes, each into a frame of its own (fn-276).
+const J_STACK: u32 = J_FRAME0 + FRAMES * FW;
+const STACK: u32 = FRAMES - 1u;
+const JW: u32 = J_STACK + STACK * 6u;
 
 // An operation's kind; a job past its last: done, or a waking bud's next
 // axis to wake on.
