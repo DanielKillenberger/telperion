@@ -6,7 +6,7 @@
 //! then elongates. Each is a function of the age a phytomer was laid at
 //! alone, so the lowering composes along the stem with no sum; every axis
 //! off the stem is carried by its bearing node's lowering and keeps its
-//! own lengths and girth. `dress.wgsl`'s `lowered` is its twin.
+//! own lengths and girth. `cycle/establish.wgsl` is its twin on the device.
 use crate::pipeline::foliage::{establishment, waited, CanopyParams};
 use std::borrow::Cow;
 use telperion_space::{Origin, Species, Structure};
