@@ -33,3 +33,9 @@ The palm ships at 40. Its drawn crown is 42 living and 16 dead fronds at 8.4 a y
 ## Stills and recording (R5, seed 1, `examples/unfold.rs`, the whole year)
 
 `raw/stills/{whole,crown}-{1,3,6,40}/`, viewed: at 1 eight small fronds (0.10 to 0.12 of a mature one by the law) on the stump; at 3 a knee-high rosette under the scale figure's height; at 6 a wide ground rosette of near-mature fronds; at 40 the shipped palm. The crown camera sits a quarter of the height off, so at 1 and 3 it frames single leaflets. The grow-in, `examples/grow_in.rs` on the device a whole year a frame, is `raw/grow-in.mp4` (crossfaded, 6 frames a second); its year-3 frame (`raw/grow-in/date-palm-00002.png`, viewed) matches the CPU still, and its year 40 draws the CPU's 6,554 leaves.
+
+After the review's fix (a frond is sized by the age it emerged at, not its place in the year's count), the stills and the grow-in were drawn again and viewed at 1, 3 and 6 (`raw/stills/`, `raw/grow-in.mp4`; the first drawing is kept beside them as `*-first`). The palm at 40 is byte-identical to the first drawing's still.
+
+## The film's palm at 1 (host's check, fn-272 FILM.md defect 3)
+
+A probe on this build (engine path, seed 7, whole age, `raw/probe.log`; the probe test was removed after): at 1 the palm stands 1.11 m with a crown 1.6 m across; with `frondEstablishment` cut to zero it stands 7.19 m and 15.9 m across, the film's 7.3 m and 16.3 m. The film's tall seedling is the full-length fronds this spec makes small. The stem itself rises from year 1: its top stands at 0.37 m at 1, 1.12 m at 3 and 14.9 m at 40, so it does not wait for establishment as the general law has it (above). The grow-in, begun for 40 and drawn at 1 on the device (`raw/grow-in/date-palm-00000.png`, viewed), stands below the scale figure.
