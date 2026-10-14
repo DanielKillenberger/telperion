@@ -33,3 +33,16 @@ The oracle as built (`tests/walk_leaves.rs`, `forms`): each frame's leaves by fo
 - **Oak to palm, the crown (10 of 19), t 0.028 to 0.156:** the crown per apex is 3 to 25 leaves: a frond or two of one or two leaflets on each of one or two apices. Each apex draws whole fronds and each frond whole leaflets, so one more frond or leaflet moves the count by a third to two thirds (5 at 0.0280, 3 at 0.0327, 5 at 0.0377; 13 at 0.1205, 18 at 0.1291).
 - **Oak to palm, the wood (9 of 19), t 0.138 to 0.624:** leaves per metre of leaf-bearing wood rises with the leaflets (154 at 0.024, 3,358 at 0.612) and steps where the wood is a few short runs (1,116 at 0.4750, 812 at 0.4875; 3,358 at 0.6117, 18,429 at 0.6238, the last short run before the wood is gone at 0.636). A run shorter than an internode stands a whole internode's stations.
 - **Palm to Laurelin at 1 (18):** the crown per apex falls steadily, 444 at t 0.175 to 2 at 0.987, by 1.2 to 1.4 a frame: the leaflets walk on the log scale from 113 to 1 (a factor of 0.81 over the film's 0.045 between frames) and the fronds from 42 to none. No frame steps against its neighbours; the bound was measured at steps of 0.001, where this walk moves by 1.005 a step.
+
+## The oracle as ruled (host ruling 5, rewritten): the law and the draw
+
+The per-bearer count oracle above is superseded. **The law** (`tests/walk_law.rs`, BOUND.md): every film walk at steps of 0.001, seeds 1, 7 and 42, passes at 0.02 of a form's range per step; the steepest step is 0.0128. **The draw** (`tests/walk_leaves.rs`, `a_listed_walk_draws_its_law`, raw logs `raw/draws-seg*.log`), at the film's frames, seed 7:
+
+| walk | frames | refusals | most sigmas off |
+|---|---|---|---|
+| beech to spruce, 40 | 90 | 0 | 2.32 |
+| spruce to birch, 40 | 90 | 0 | 2.76 |
+| birch to oak, 40 | 90 | 0 | 2.37 |
+| oak to palm, 40 | 120 | 0 | 2.86 (the cauline runs), 2.01 (leaflets per station), 1.50 (leaflets per frond) |
+| palm to Laurelin, 1 | 30 | 0 | every form under 30 organs: the seedling's crown is nine fronds |
+| Laurelin to Telperion, 80 | 90 | not run | queued an hour at 9 GB without room and cancelled; the law shows no form moving on it and every count whole |
