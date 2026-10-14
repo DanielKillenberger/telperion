@@ -139,15 +139,23 @@ impl Crown {
     }
 
     /// The share of a mature frond's size frond `serial` was made at
-    /// (fn-275 R2): the crown's age when it made it, along the logistic
+    /// (fn-275 R2): the crown's age when it emerged, along the logistic
     /// course from the early share to 1 over the establishment years, and
     /// kept for the frond's life, so no year turns a frond's size. Whole
     /// with no establishment, and on a crown no engine grew.
     pub fn established(&self, serial: f64) -> f64 {
-        if self.establishment <= 0.0 || self.year.is_none() || self.life <= 0.0 || self.fronds <= 0.0 {
+        let Some(y) = self.year else {
+            return 1.0;
+        };
+        if self.establishment <= 0.0 || self.life <= 0.0 || self.fronds <= 0.0 {
             return 1.0;
         }
-        let run = unfold::course(self.made_at(serial) / self.establishment);
+        // Its year's fronds emerge evenly over the stem's elongation from
+        // budburst (`unfolded`).
+        let made = self.made_at(serial);
+        let year = made.ceil() - 1.0;
+        let born = year + (y.budburst + y.elongation * (made - year)) / unfold::YEAR;
+        let run = unfold::course(born / self.establishment);
         1.0 - (1.0 - self.early) * (1.0 - run)
     }
 }

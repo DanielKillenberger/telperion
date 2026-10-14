@@ -333,7 +333,17 @@ fn a_young_palms_fronds_are_made_small_and_keep_their_size() {
     }
     let first = c.established(0.0);
     assert!(first >= early && first < early + 0.01, "the first frond at {first}");
-    let mature = (per_year * years).ceil() as i64;
+    // A frond of year 3 is sized by the age it emerges at, the first day
+    // the crown draws it.
+    let serial = (per_year * 2.5) as i64;
+    let emerges = (0..365).map(|d| 2.0 + f64::from(d) / 365.0).find(|&age| {
+        crown(age + 1e-9).unfolded(serial as f64) > 0.0
+    });
+    let born = emerges.expect("the frond emerges in its year");
+    let expected = 1.0 - (1.0 - early) * (1.0 - telperion_space::unfold::course(born / years));
+    let share = c.established(serial as f64);
+    assert!((share - expected).abs() < 2e-3, "frond {serial} at {share}, emerged at {born} for {expected}");
+    let mature = (per_year * years.ceil()).ceil() as i64;
     assert_eq!(c.established(mature as f64), 1.0, "a frond made after establishment is whole");
     // The same frond at every age it stands, across each year's turn.
     for s in 0..mature {

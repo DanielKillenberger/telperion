@@ -190,17 +190,21 @@ fn unfolded_frond(serial: i32) -> f32 {
 }
 
 // The share of a mature frond's size frond `serial` was made at: the
-// crown's age when it made it along the course from the early share to
-// whole over the establishment years (`Crown::established`, fn-275 R2).
+// crown's age when it emerged, evenly over its year's elongation from
+// budburst, along the course from the early share to whole over the
+// establishment years (`Crown::established`, fn-275 R2).
 fn established_frond(serial: i32) -> f32 {
     let e = cfg.rosette[6];
     let y = cfg.rosette[4];
+    let s = cfg.rosette[5];
     let fronds = cfg.rosette[0].x;
     if e.x <= 0.0 || y.z < 0.0 || y.y <= 0.0 || fronds <= 0.0 {
         return 1.0;
     }
     let made = (f32(serial) + 1.0) * y.y / fronds;
-    return 1.0 - (1.0 - e.y) * (1.0 - course(made / e.x));
+    let year = ceil(made) - 1.0;
+    let born = year + (s.x + s.y * (made - year)) / 365.0;
+    return 1.0 - (1.0 - e.y) * (1.0 - course(born / e.x));
 }
 
 // `a` a share `t` of the way to `b` (`rosette::fronds`' mix).
