@@ -83,7 +83,7 @@ fn main() -> Result<(), String> {
         );
     }
     drop(film.log.take());
-    assemble(out, path.fps)
+    assemble(out, path.fps, frames.len())
 }
 
 /// What the overlay shows at each frame: the map point, the age and the
@@ -259,11 +259,12 @@ impl Film<'_> {
     }
 }
 
-/// The stills as an H.264 mp4 at the path's rate.
-fn assemble(out: &str, fps: u32) -> Result<(), String> {
+/// The path's `frames` stills as an H.264 mp4 at its rate; stills a longer
+/// cut left in the directory past them are not read.
+fn assemble(out: &str, fps: u32, frames: usize) -> Result<(), String> {
     let status = std::process::Command::new("ffmpeg")
         .args(["-y", "-loglevel", "error", "-framerate", &fps.to_string(), "-i", &format!("{out}/frame-%05d.png")])
-        .args(["-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", &format!("{out}/film.mp4")])
+        .args(["-frames:v", &frames.to_string(), "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", &format!("{out}/film.mp4")])
         .status()
         .map_err(|e| format!("ffmpeg: {e}"))?;
     status.success().then_some(()).ok_or(format!("ffmpeg: {status}"))?;
