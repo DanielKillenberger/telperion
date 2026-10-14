@@ -21,6 +21,9 @@ NEEDS_HUMAN (host decision 1, fail-early). The lateral rows the size factor move
 
 Blocked:
 NEEDS_HUMAN (a film pair fails). Under the seed-spread oracle 86 of 95 frames meet it. Film pairs: birch -> oak at 40 keeps 0.58-0.65M against a ceiling of 0.537M around t = 0.5-0.6 (seeds 7 and 42). Palm -> Laurelin at 3 fails at seeds 1, 7 and 42 (31, 28 and 30 low; 138 high against 97); at age 2 and age 1 every frame meets it. The other failures are oak -> birch 80 t = 0.01, oak -> ordinary 40 t = 0.75, beech -> oak 80 t = 0.5, and the named oak <-> spruce exception. WALKS.md "The seed-spread oracle" (e4088f133).
+
+Blocked:
+BLOCKED: TOOLING_FAILURE. The workspace gate is OOM-killed inside telperion-core's unit tests (src/lib.rs, untouched by this task) at 10 GB/6 threads, 9 GB/4 threads and 9 GB/2 threads; every_preset_grows_the_same_tree_again_and_on_any_cores alone needs more than 9 GB. The task's work is committed (8cf010423); walk_sizes passes alone in 53 s and goes red when a record is tightened. Needs a larger gate cap or one-at-a-time heavy unit tests; then npm test, the codex review and done. FRICTION.md 2026-10-14.
 ## Evidence
 - Commits:
 - Tests:
