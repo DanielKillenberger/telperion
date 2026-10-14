@@ -133,3 +133,10 @@
 - **Hindered:** other processes held 2.6 GB of the 10 GiB card (a `bun` process held 1.15 GB of it), so the device refused allocations from year 76 on while the ledger was still under 6 GiB. Reaching year 80 took a diagnostic mode with no tree drawn, then adding its bytes back by hand. Admission took another 25 minutes, and `pgrep -f` with a pattern matched my own shell and killed it once.
 - **Cost:** about 40 minutes and four extra runs.
 - **Would have removed it:** a ledger-only dry run (a fake device that charges and never allocates) for budget questions, so a census at the page's budget does not need the card free.
+
+## 2026-10-14, task 6 (worker): npm test queued for over an hour at 10 GB
+
+- **Doing:** `npm test` (`telperion-heavy 10 --threads 4`) after the review, as task 4's entry sized it.
+- **Hindered:** it waited for admission from 12:4x to past 14:09 behind other workers' heavy jobs. The gate (9 GB) was queued later and was admitted first, finishing in about 30 minutes.
+- **Cost:** more than an hour of wall time with nothing to do.
+- **Would have removed it:** a measured peak for `npm test` (its wasm builds and vitest), so it is declared at what it needs rather than the 10 GB a past failure suggested.
