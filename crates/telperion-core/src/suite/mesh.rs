@@ -24,6 +24,7 @@ fn contains(b: Bounds, p: Vec3) -> bool {
 
 #[test]
 fn every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers() {
+    let _turn = crate::one_tree::turn();
     for id in IDENTITIES {
         let family = Preset::from_id(id).expect("preset identity").parameters();
         // An engine preset's tree is the engine's, built as production builds

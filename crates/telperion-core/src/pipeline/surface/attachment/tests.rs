@@ -10,6 +10,7 @@ use crate::presets::{by_identity, Preset, CATALOGUE, IN_WORK};
 /// the drawn rings make the wood a plain build does.
 #[test]
 fn contacts_read_from_the_wood_are_the_swept_ones() {
+    let _turn = crate::one_tree::turn();
     for &(_, id, _, _) in CATALOGUE.iter().chain(IN_WORK) {
         let mut family =
             by_identity(id).unwrap_or_else(|_| Preset::from_id(id).unwrap().parameters());

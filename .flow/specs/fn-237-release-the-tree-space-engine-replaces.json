@@ -22,8 +22,9 @@
     "fn-249-the-sites-trees-grow-as-fast-as-014s",
     "fn-251-a-walk-never-grows-a-tree-larger-than",
     "fn-253-flowers-hang-from-the-tree",
-    "fn-259-the-release-meets-the-bar-on-every",
     "fn-256-the-whole-grower-runs-on-the-gpu",
+    "fn-257-the-site-grows-its-trees-on-the-device",
+    "fn-259-the-release-meets-the-bar-on-every",
     "fn-261-the-same-binary-draws-the-same-leaves",
     "fn-263-the-birch-grows-the-same-wood-on-the",
     "fn-264-every-species-shades-and-answers-light",
@@ -31,7 +32,8 @@
     "fn-257-the-site-grows-its-trees-on-the-device",
     "fn-270-growth-continues-from-any-age-in-less",
     "fn-272-the-release-film-through-species-space",
-    "fn-271-the-local-gate-runs-in-minutes"
+    "fn-271-the-local-gate-runs-in-minutes",
+    "fn-274-the-gate-fits-beside-the-owners-desktop"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -51,5 +53,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-13T13:53:05.493973Z"
+  "updated_at": "2026-10-14T01:33:19.365485Z"
 }
