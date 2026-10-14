@@ -222,19 +222,22 @@ fn every_preset_stations_its_runs_as_the_cpu_does() {
 /// within the lineage tolerance, and withers the same ones, at the whole
 /// age and with its crown drawn within its year (fn-270 R5b: a frond
 /// emerging, expanding, leaving the living crown and fading off the
-/// skirt). The draws are each executor's own, as a station's are.
+/// skirt), and at 3 while the crown establishes, its fronds made small
+/// (fn-275 R4). The draws are each executor's own, as a station's are.
 #[test]
 fn every_rosette_is_placed_as_the_cpu_places_it() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
     };
     for id in presets() {
-        let f = family(&id, age());
-        if f.canopy.rosette_fronds == 0 {
-            continue;
-        }
-        for fraction in [1.0, 0.3, 0.8] {
-            crown_agrees(&gpu, &id, &f, fraction);
+        for age in [age(), 3] {
+            let f = family(&id, age);
+            if f.canopy.rosette_fronds == 0 {
+                break;
+            }
+            for fraction in [1.0, 0.3, 0.8] {
+                crown_agrees(&gpu, &id, &f, fraction);
+            }
         }
     }
 }
@@ -262,7 +265,7 @@ fn crown_agrees(gpu: &crate::Gpu, id: &str, f: &Family, fraction: f64) {
     let size = mean(&mut leaves.iter().map(|l| mine.scale(*l)));
     let theirs_size = mean(&mut theirs.leaves.iter().map(|l| theirs.reference.scale(*l)));
     let sized = (size / theirs_size - 1.0).abs();
-    println!("{id} {} at {fraction}: {} leaves, apart {apart:e} of the height, withering differs on {withered}, mean size apart {sized:e}", age(), leaves.len());
+    println!("{id} {} at {fraction}: {} leaves, apart {apart:e} of the height, withering differs on {withered}, mean size apart {sized:e}", f.age, leaves.len());
     assert_eq!(withered, 0, "{id} at {fraction}: withered");
     assert!(apart <= ROSETTE_APART, "{id} at {fraction}: {apart}");
     assert!(sized <= 0.02, "{id} at {fraction}: mean size {size} against {theirs_size}");

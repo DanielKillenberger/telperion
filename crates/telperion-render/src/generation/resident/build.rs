@@ -203,6 +203,9 @@ pub(super) async fn placed(
         .filter(|&n| n as usize <= x.leaves().canopy.max_instances)
         .ok_or(Error::ResourceLimit("foliage instance budget"))?;
     swept.nodes.destroy();
+    // The device frees the nodes, and the ledger their bytes, before the
+    // rings are made beside the stations.
+    io::complete(gpu).await?;
     let positions = match seats {
         true => Some(
             stage(gpu, &mut t.rings, async || {

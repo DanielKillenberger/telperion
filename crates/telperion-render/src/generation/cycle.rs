@@ -241,7 +241,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
     let mut out = vec![
         ("cycle contract probe", contract_tests::source()),
         ("cycle chains", include_str!("cycle/chains.wgsl").to_string()),
-        ("cycle dress", format!("{}\n{}", contract(), include_str!("cycle/dress.wgsl"))),
+        ("cycle dress", format!("{}\n{}\n{}", contract(), include_str!("cycle/dress.wgsl"), include_str!("cycle/establish.wgsl"))),
         ("cycle present", format!("{}\n{}", contract(), include_str!("cycle/present.wgsl"))),
         ("cycle stems", include_str!("cycle/stems.wgsl").to_string()),
         ("cycle hierarchy build", hier_build_source()),

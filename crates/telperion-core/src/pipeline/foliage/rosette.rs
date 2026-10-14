@@ -25,7 +25,7 @@
 //! The rows, their rails and the apices are read with the placement compiled
 //! out, so the leaf plan can tell a frond crown from a clothed one; only the
 //! placing itself needs the `geometry` feature.
-use super::CanopyParams;
+use super::{crown::Crown, CanopyParams};
 #[cfg(feature = "geometry")]
 use super::{
     station::{matrix, reserve},
@@ -140,122 +140,11 @@ pub(super) fn count(tree: &Tree, p: &CanopyParams) -> Result<usize> {
         .ok_or_else(budget)
 }
 
-/// How many fronds a crown has made by the year `year` it is drawn in, its
-/// living count over a frond's life a year (fn-270 R5b, host): its whole
-/// years', and this year's as they emerge,
-/// evenly over its stem's elongation from budburst; and the share of its
-/// whole size frond `serial` stands at, a frond of this year's expanding
-/// from its emergence. A tree no engine grew makes none.
-#[derive(Debug, Clone, Copy)]
-pub struct Crown {
-    year: Option<crate::tree::Year>,
-    /// The living crown's fronds and the years one lives: the crown makes
-    /// its count over that life (host, fn-270 R5b), none at no life.
-    fronds: f64,
-    life: f64,
-    /// The fronds a crown draws, living and dead, before any is emerging.
-    kept: f64,
-}
-
-impl Crown {
-    pub(crate) fn of(tree: &Tree, p: &CanopyParams) -> Self {
-        Self::new(tree.year, p)
-    }
-
-    /// The crown of a tree drawn in `year` (`executor::year`), for an
-    /// executor that holds no tree.
-    pub fn new(year: Option<crate::tree::Year>, p: &CanopyParams) -> Self {
-        let kept = f64::from(p.rosette_fronds + skirt(p));
-        Self { year, fronds: f64::from(p.rosette_fronds), life: p.frond_life, kept }
-    }
-
-    /// The rows the device draws the crown by (`stations.wgsl`'s
-    /// `rosette`): the fronds made, the years a frond lives, the whole
-    /// years before the last (negative where no engine grew the tree) and
-    /// the days into it; its stem's budburst, elongation and expansion,
-    /// and the fronds it draws (`slots`).
-    pub fn rows(&self) -> [[f64; 4]; 2] {
-        let slots = self.slots() as f64;
-        match (self.clock(), self.year) {
-            (Some((whole, tau)), Some(y)) => {
-                [[self.made(), self.life, whole, tau], [y.budburst, y.elongation, y.expansion, slots]]
-            }
-            _ => [[0.0, self.life, -1.0, 0.0], [0.0, 0.0, 0.0, slots]],
-        }
-    }
-
-    /// The fronds the crown draws, newest first: every one until those
-    /// grown above it fill the living crown and the skirt (`fronds`), the
-    /// last fading over its last place. A crown its tree grows draws only
-    /// the fronds it has made, none before its first.
-    pub fn slots(&self) -> usize {
-        let newest = self.made().ceil() as i64 - 1;
-        let born = match self.year.is_some() && self.life > 0.0 {
-            true => (newest + 1).max(0) as usize,
-            false => usize::MAX,
-        };
-        let (mut above, mut n) = (0.0, 0);
-        // cap: the kept fronds and every one a crown can make in a year
-        // past them; each one drawn adds its share.
-        while above < self.kept && n < born && n < self.kept as usize + MAX_FRONDS as usize {
-            above += self.unfolded((newest - n as i64) as f64);
-            n += 1;
-        }
-        n
-    }
-
-    /// The years grown before the last, and how far into it.
-    fn clock(&self) -> Option<(f64, f64)> {
-        let y = self.year?;
-        let whole = y.age.ceil().max(1.0) - 1.0;
-        Some((whole, (y.age - whole) * telperion_space::unfold::YEAR))
-    }
-
-    /// Fronds made: whole years' and this year's emerged, the crown's
-    /// count a frond's life.
-    pub fn made(&self) -> f64 {
-        let (Some((whole, tau)), Some(y)) = (self.clock(), self.year) else {
-            return 0.0;
-        };
-        if self.life <= 0.0 {
-            return 0.0;
-        }
-        let emerged = match y.elongation > 0.0 {
-            true => ((tau - y.budburst) / y.elongation).clamp(0.0, 1.0),
-            false => f64::from(u8::from(tau > y.budburst)),
-        };
-        self.fronds * (whole + emerged) / self.life
-    }
-
-    /// The share of its whole size frond `serial` stands at: whole once
-    /// made in a year before this one, and one this year's from its
-    /// emergence by the expansion course. When a frond is made is a
-    /// ratio of whole numbers (its count over the crown's a life), so
-    /// every executor places it in the same year.
-    pub fn unfolded(&self, serial: f64) -> f64 {
-        let (Some((whole, tau)), Some(y)) = (self.clock(), self.year) else {
-            return 1.0;
-        };
-        if self.life <= 0.0 || self.fronds <= 0.0 {
-            return 1.0;
-        }
-        let made = (serial + 1.0) * self.life / self.fronds;
-        if made <= whole {
-            return 1.0;
-        }
-        // Still emerging at the year's end: made next year.
-        if made > whole + 1.0 {
-            return 0.0;
-        }
-        let emerges = y.budburst + y.elongation * (made - whole).min(1.0);
-        telperion_space::unfold::run(tau - emerges, y.expansion)
-    }
-}
-
 /// One frond on a rosette's spiral: where it leaves the axis, the way its
 /// rachis heads, the radial it leans out along, the canopy it is drawn at (a
 /// dead frond at its share of a living one, an emerging one at its share of
-/// its whole size) and its serial among the fronds its crown has made,
+/// its whole size, one made while the crown established at the size it was
+/// made at) and its serial among the fronds its crown has made,
 /// which keys its draws.
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Frond {
@@ -293,6 +182,7 @@ pub(super) fn fronds(rosette: &Rosette, p: &CanopyParams, crown: Crown) -> impl 
     (0..crown.slots() as i64).map(move |i| {
         let serial = newest - i;
         let unfolded = crown.unfolded(serial as f64);
+        let established = crown.established(serial as f64);
         let k = above;
         above += unfolded;
         let (sin, cos) = (serial as f64 * p.rosette_divergence.to_radians()).sin_cos_fixed();
@@ -308,7 +198,7 @@ pub(super) fn fronds(rosette: &Rosette, p: &CanopyParams, crown: Crown) -> impl 
         let (a, b) = (living(k), dead(k.max(f64::from(fronds))));
         let mix = |x: f64, y: f64| x + (y - x) * turned;
         let (pitch, depth, length) = (mix(a.0, b.0), mix(a.1, b.1), mix(a.2, b.2));
-        let share = unfolded * (total - k).clamp(0.0, 1.0);
+        let share = unfolded * established * (total - k).clamp(0.0, 1.0);
         let canopy = CanopyParams { size: p.size * length * share, rachis_length: p.rachis_length * length * share, ..p };
         let (lean, upright) = pitch.sin_cos_fixed();
         Frond {

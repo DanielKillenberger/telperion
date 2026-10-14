@@ -39,6 +39,8 @@ pub(in crate::generation) struct GrowthState {
     /// `unfold`).
     unfold: Vec<f32>,
     scale: f32,
+    /// The rows its rosette's stem establishes by (fn-275 R2a).
+    establishing: [f32; 3],
     /// The tree drawn a year before the age grown: none before the
     /// second year.
     previous: Option<Previous>,
@@ -106,9 +108,10 @@ impl GrowthState {
         };
         let growing = growing.paused(gpu, (&t, &tables)).await?;
         let (rows, scale) = (rows(&growth.rows), growth.scale as f32);
+        let establishing = telperion_core::pipeline::executor::Establishing::words(growth.establishing);
         let unfold = species.states.iter().flat_map(|s| [s.elongation, s.expansion, s.form.internode_spread, s.cluster_leaves, telperion_space::unfold::Season::of(s).budburst].map(|v| v as f32)).collect();
         let growing = Some(growing);
-        Ok(Self { tables, t, rows, unfold, scale, previous: None, budget, growing, failed: Default::default() })
+        Ok(Self { tables, t, rows, unfold, scale, establishing, previous: None, budget, growing, failed: Default::default() })
     }
 
     /// The whole years grown; none once spent.
@@ -180,13 +183,20 @@ impl GrowthState {
         Ok(s)
     }
 
+    /// The whole years grown and `at`'s fraction of the last: refused by
+    /// name where the state is spent or `at` falls outside that year, as a
+    /// draw is, before anything is drawn or let go.
+    pub(in crate::generation) fn drawable(&self, at: f64) -> Result<(u32, f32)> {
+        let committed = self.usable()?.committed;
+        Ok((committed, within_year(committed, at).map_err(named)? as f32))
+    }
+
     /// The tree drawn at `at`, within the last year grown: its drawn
     /// records and its trunk's measures, a snapshot of its own. An `at`
     /// it cannot draw is refused by name; a draw that fails spends the
     /// state, and every snapshot drawn before stays whole.
     pub(in crate::generation) async fn settle(&self, gpu: &Gpu, k: &Kernels, at: f64) -> Result<(Dressed, Trunk)> {
-        let committed = self.usable()?.committed;
-        let fraction = within_year(committed, at).map_err(named)? as f32;
+        let (committed, fraction) = self.drawable(at)?;
         let drawn = async {
             let s = self.settled(gpu, k).await?;
             let _capped = gpu.ledger.capped(self.budget);
@@ -207,7 +217,7 @@ impl GrowthState {
             let view = presented.as_ref().map_or_else(|| settled.as_ref().expect("a settled tree").view(), |p| p.view());
             let planned = chains::plan(gpu, (&k.chains, scan), view).await?;
             let leaf = presented.as_ref().map(|p| &p.leaf);
-            let at = Rows { rows: &self.rows, age: committed, scale: self.scale, fraction, leaf };
+            let at = Rows { rows: &self.rows, age: committed, scale: self.scale, fraction, leaf, establishing: self.establishing };
             let dressed = dress(gpu, &k.drawn, (view, &planned), &at)?;
             let measured = trunk(gpu, &k.drawn, &dressed).await?;
             Ok((dressed, measured))

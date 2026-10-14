@@ -44,6 +44,12 @@ struct Cfg {
     // whether `leaf` holds each phytomer's leaf share (`present.wgsl`).
     fraction: f32,
     unfolding: u32,
+    // The rows a rosette's stem establishes by (`space/establish.rs`,
+    // fn-275 R2a): the crown's establishment years (none: dormant) and
+    // early share, and its trunk PA's rise a year.
+    est_years: f32,
+    est_early: f32,
+    est_rise: f32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -59,7 +65,9 @@ struct Cfg {
 @group(0) @binding(6) var<storage, read> leaf: array<f32>;
 
 const NONE: u32 = 0xffffffffu;
+const SEED: u32 = 0u;
 const LATERAL: u32 = 1u;
+const CONTINUED: u32 = 2u;
 const RELAYED: u32 = 3u;
 // The node table's columns (`settle_compact.wgsl`, `settle_state.wgsl`).
 const NA_KIND: u32 = 0u;
@@ -356,9 +364,9 @@ fn pda(l: u32, f: u32, v: u32) {
     drawn[l * CA + f] = bitcast<f32>(v);
 }
 
-// Its tip as laid.
+// Its tip as laid, lowered as its stem establishes.
 fn tip(a: u32, k: u32) -> vec3<f32> {
-    return np3(NP_TIP, ph(a, k));
+    return np3(NP_TIP, ph(a, k)) - vec3<f32>(0.0, 0.0, lowering(a, k));
 }
 
 // The engine's z up as the pipeline's y up.
@@ -519,7 +527,6 @@ fn seasoned(r: u32, l: Leaves) {
     put(r, 36u, l.regrow);
     putu(r, 37u, l.life);
 }
-
 
 // What drawing an axis carries from one node to the next.
 struct Walk {
@@ -708,7 +715,7 @@ fn draw_axis(a: u32, start: u32, how: How) {
         let r = li(a, k);
         let p = ph(a, k);
         let l = season_of(a, p);
-        var radius = npf(NP_RADIUS, p);
+        var radius = established(a, k, npf(NP_RADIUS, p));
         if !(radius >= FINEST) {
             break;
         }
@@ -718,7 +725,7 @@ fn draw_axis(a: u32, start: u32, how: How) {
         let piece = internode * npf(NP_SCALE, p) * internode_factor(spread, key);
         // Every piece of the span is this phytomer's wood (fn-248).
         let q = kept(sheds, share, np(NP_CYCLE, p));
-        var base = vec3<f32>(naf(NA_BASE, a), naf(NA_BASE + 1u, a), naf(NA_BASE + 2u, a));
+        var base = vec3<f32>(naf(NA_BASE, a), naf(NA_BASE + 1u, a), naf(NA_BASE + 2u, a) - bearing(a));
         if k > 0u {
             base = tip(a, k - 1u);
         }

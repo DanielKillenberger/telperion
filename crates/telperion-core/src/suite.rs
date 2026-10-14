@@ -62,6 +62,8 @@ mod pendulous;
 mod retention;
 #[path = "suite/rosette.rs"]
 mod rosette;
+#[path = "suite/establish.rs"]
+mod establish;
 #[path = "suite/sag.rs"]
 mod sag;
 #[path = "suite/skirt.rs"]
