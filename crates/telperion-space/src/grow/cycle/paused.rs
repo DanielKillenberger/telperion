@@ -285,6 +285,7 @@ impl<'a> Grower<'a> {
             spare: Default::default(),
             one: self.one,
             light_seconds: self.light_seconds,
+            jobs: [0; 2],
             census: None,
             working: self.working.as_ref().map(|w| Box::new(w.settled_copy())),
         }

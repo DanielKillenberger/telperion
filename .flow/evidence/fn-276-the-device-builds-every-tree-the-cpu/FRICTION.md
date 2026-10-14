@@ -20,3 +20,10 @@
 - **What slowed it:** dcg blocked the command, and the logs had to be written to literal paths.
 - **Cost:** 1 minute.
 - **What would have removed it:** nothing in the repository; this is a local setup matter.
+
+## 2026-10-14, task 1 worker: the CPU check of every preset at every age ran out of memory
+
+- **What I was doing:** fix 1's check that the closed form is at least the CPU's count. It grows every preset at every age from 1 to 80 at three seeds, two at a time.
+- **What slowed it:** the run was OOM-killed under its 8 GB cap at the Norway spruce at 78, after 23 minutes and 716 of about 1,950 trees. Two spruces near 80 grown at once do not fit in 8 GB. The rest had to be rerun with one worker for the large trees.
+- **Cost:** about 25 minutes of a heavy slot, of which the lost tail was a few minutes.
+- **What would have removed it:** the test sizing its workers by each tree's expected size, or one worker above a stated count of phytomers.

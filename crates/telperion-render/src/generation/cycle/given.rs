@@ -49,6 +49,20 @@ const WIDTH: u32 = 1;
 /// The least a table's count is given: 64 workgroups.
 const FLOOR: u32 = 4096;
 
+/// The lattice's nodes two cycles on from the census `read` and the one
+/// before: they grow as its box's volume, each side grown by three of its
+/// last steps, two cells at least, twice over. The dispatch over them is
+/// given this, and the node table grows to hold it (`build_size::grown`,
+/// fn-276: the Laurelin at 20 stepped all three sides at once).
+pub(super) fn boxed(read: &[u32], prev: Option<&[u32]>) -> u32 {
+    let side = |k: usize| {
+        let now = read[c::GRID + 3 + k];
+        let step = now.saturating_sub(prev.map_or(0, |p| p[c::GRID + 3 + k]));
+        u64::from(now + (3 * step).max(2))
+    };
+    (2 * side(0) * side(1) * side(2)).min(u64::from(u32::MAX)) as u32
+}
+
 /// Each census word's least and most this cycle.
 pub(super) struct Span {
     lo: Vec<u32>,
@@ -93,16 +107,8 @@ impl Span {
             };
             lo[w] = if grows(w) { kept.min(read[w]).min(hi[w]) } else { 0 };
         }
-        // The lattice's nodes grow as its box's volume: each side grown by
-        // three of its last steps, two cells at least, twice over.
-        let side = |k: usize| {
-            let now = read[c::GRID + 3 + k];
-            let step = now.saturating_sub(prev.map_or(0, |p| p[c::GRID + 3 + k]));
-            u64::from(now + (3 * step).max(2))
-        };
-        let boxed = (2 * side(0) * side(1) * side(2)).min(u64::from(u32::MAX)) as u32;
         let nodes = c::GRID + 6;
-        hi[nodes] = hi[nodes].max(boxed).min(ceiling[nodes]);
+        hi[nodes] = hi[nodes].max(boxed(read, prev)).min(ceiling[nodes]);
         (lo[c::CYCLE], hi[c::CYCLE]) = (cycle, cycle);
         for (k, v) in limits.words().into_iter().enumerate() {
             (lo[REC + k], hi[REC + k]) = (v, v);

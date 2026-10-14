@@ -41,13 +41,15 @@ pub(super) struct Sizes {
     pub block_cap: u32,
     /// When the arena is compacted in place (`compact.rs`).
     pub compact: Compact,
+    /// The most units one job grows in a cycle (`Hint::units`).
+    pub units: u32,
 }
 
 impl Sizes {
     /// The smallest a build takes, its bounds stated from its tables.
     pub(super) fn least() -> Self {
         let caps = Caps { axes: 4096, units: 4096, phyts: 16384, sleepers: 4096, next: 4096, woken: 1024 };
-        let s = Self { caps, points: 16384, tips: 4096, nodes: 4096, bounds: Bounds::default(), block_cap: super::hier_build::CAP, compact: Compact::Off };
+        let s = Self { caps, points: 16384, tips: 4096, nodes: 4096, bounds: Bounds::default(), block_cap: super::hier_build::CAP, compact: Compact::Off, units: 1 };
         Self { bounds: s.stated(), ..s }
     }
 

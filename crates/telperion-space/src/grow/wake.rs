@@ -46,6 +46,7 @@ impl Grower<'_> {
             // the presence that carries it there.
             let (first, _) = self.rules.species.lived(sleeper.pa).expect("aged");
             let hands = self.rules.hands(first, cycle - 1);
+            shoot.job = 0;
             for (carried, bearer) in
                 dormant::carried(&self.axes, &self.draws, &self.successor, &sleeper, cycle)
             {
@@ -66,6 +67,7 @@ impl Grower<'_> {
                     shoot.woke(&sleeper, aged, carried, (bearer, next), cycle)?;
                 }
             }
+            shoot.jobs[1] = shoot.jobs[1].max(shoot.job);
         }
         let share = shoot.finish(Vec::new());
         self.absorb(share);

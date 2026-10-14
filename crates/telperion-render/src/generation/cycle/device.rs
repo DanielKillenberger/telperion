@@ -48,7 +48,10 @@ pub(super) const T_USED: usize = 22;
 
 /// A job's words (`job.wgsl`'s `JW`), and a unit zone's (`grow.wgsl`'s
 /// `Z_` columns).
-pub(super) const JW: u32 = 178 + 6 * 35;
+pub(super) const JW: u32 = 178 + FRAMES * 35;
+/// The axes a units job holds at once (`job.wgsl`'s `FRAMES`): the most
+/// units it grows in a cycle.
+pub(super) const FRAMES: u32 = 6;
 pub(super) const ZW: u32 = 6 + 64;
 
 pub(super) struct Kernels {
