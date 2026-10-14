@@ -42,3 +42,7 @@
 - **Hindered:** from 09:58 to 10:40 the wrapper never found room ("room -1 to 1 GB for 10"); another worker's film renders (fn-272, `examples/film`, 6 GB peak, about 36 minutes each) were admitted one after another while the gate waited.
 - **Cost:** 42 minutes of waiting; the gate was stopped unrun, and this worker returns NEEDS_HUMAN for it.
 - **Would remove it:** the host running the gate once the film renders finish, or a queue that admits in arrival order. Local setup, reported only.
+- **Doing:** the operator-mix rule's focused tests, `telperion-heavy 5`.
+- **Hindered:** queued 20 minutes behind the next film render with 8 GB available; the same run declared at 4 GB was admitted at once and passed.
+- **Cost:** 20 minutes.
+- **Would remove it:** as above, a measured declaration per command (the render crate's focused lib tests fit in 4 GB). Local setup, reported only.

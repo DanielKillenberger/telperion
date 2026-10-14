@@ -35,8 +35,10 @@ GPU process can take WebGPU away until a reboot (fn-235).
     WGSL compiler in Chrome, one entry at a time as Dawn makes a pipeline.
     Tint refuses WGSL that naga accepts (a NaN constant, a barrier under
     non-uniform control, `|` beside `<<` without parentheses). The binary
-    is Dawn's: `gh release download -R google/dawn -p
-    '*ubuntu-latest-Release.tar.gz'`, then `TINT=<dir>/bin/tint cargo test
-    --profile ci -p telperion-render every_shader_passes_tint --
-    --ignored`. The default suite holds Tint's NaN and uniformity rules
-    with a conservative check of its own (`tint_rules`).
+    is the prebuilt `bin/tint` in Dawn's Linux release tarball, from
+    Dawn's GitHub releases (checked with v20261009.190412): `gh release
+    download -R google/dawn -p '*ubuntu-latest-Release.tar.gz'`, unpack,
+    then `TINT=<dir>/bin/tint cargo test --profile ci -p telperion-render
+    every_shader_passes_tint -- --ignored`. It needs no device. The
+    default suite holds Tint's NaN, uniformity and operator-mixing rules
+    with checks of its own (`tint_rules`, `tint_mix`).

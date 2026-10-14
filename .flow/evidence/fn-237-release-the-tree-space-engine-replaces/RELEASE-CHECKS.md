@@ -13,7 +13,13 @@ Branch `fn-237-release-checks`, from `d2a8bd258`. Measured 2026-10-14 on the RTX
   - `positions` `admit`: a `continue` in a lane-bound loop marked the rest of the function, past the loop, as non-uniform.
   - Both are fixed in `tint_rules.rs`, with a fixture pair for each, every pair checked against Tint first. The check now runs on every shipped module in the default suite (`tint_rule_tests::every_shipped_shader_keeps_tints_rules`).
 - **Codex review** (one reviewer, correctness): SHIP. It found two places where those fixes let a real violation through, both confirmed against Tint: two different uniform fields returned under a non-uniform branch, and a `return` reached after a divergent `continue`. Both are fixed, with a red fixture each.
-- **Not covered by the default suite:** operator-mixing rules like the one above. Tint's grammar check has no token-level twin here; the release probe holds them.
+- **Operator mixes in the default suite** (host, 2026-10-14). `tint_mix` holds the WGSL grammar's refusals ([Operator Precedence and Associativity](https://www.w3.org/TR/WGSL/#operator-precedence-associativity)) on every shipped module, through `tint_rules::findings`:
+  - a bitwise `|`, `&` or `^` beside any other binary operator;
+  - a shift beside another shift or arithmetic within one comparison operand;
+  - chained comparisons;
+  - `&&` beside `||`.
+
+  Each was checked first against Tint on 30 probe expressions, which agreed with the grammar throughout; a shift beside a comparison is allowed. The test has ten fixture pairs, the `begin_main` line first. On every shipped module the rule finds nothing. With the old `begin_main` line restored it finds that one line, in Tint's words ("mixing '|' and '<<' requires parenthesis"). A first run found three false positives, where an exponent literal (`1e-4`) hid the `||` after it; that is fixed, with its own fixture pair.
 
 ## R9: compile time out of the default suite
 
@@ -37,10 +43,10 @@ Branch `fn-237-release-checks`, from `d2a8bd258`. Measured 2026-10-14 on the RTX
   | Layout `frame_main` | 117,267 | 2.4 s |
 
   So the count ranks cost within one shape of code but does not predict it across shapes. The largest shipped entry inlines 43,525 expressions and compiles in 0.76 s. Nothing between 43,525 and 95,761 was measured.
-- **The guard.** `compile_size::tests::every_entry_inlines_under_the_ceiling` holds every shipped entry, drawing entries included, to 50,000 inlined expressions, 15 % over today's largest, with a red and a green fixture. An entry past the ceiling is timed by the release probe before the ceiling moves. The 50,000 is the worker's choice inside the gap the data leave open; the host may move it.
+- **The guard.** `compile_size::tests::every_entry_inlines_under_the_ceiling` holds every shipped entry, drawing entries included, to 50,000 inlined expressions, 15 % over today's largest, with a red and a green fixture. An entry past the ceiling is timed by the release probe before the ceiling moves. The host accepted 50,000 (2026-10-14). It sits in the unmeasured gap between 43,525 and 95,761, and it moves only on evidence: an entry measured cold by the probe.
 
 ## End checks
 
 - **Focused tests**, all green on `159a54064`: `tint_rule_tests` (6), `compile_size` (the guard and the call-site fixture), `shader_tests` (validation, the storage limit, file coverage), and `device_limit_probes_run_only_when_asked`. The release probes passed too: Tint on every entry, and the cold build at 2.05 s.
-- **Gate** (`cargo test --profile ci --workspace --no-fail-fast`): not run to a result. At the dispatched 9 GB it was OOM-killed in telperion-core's tests after 9 minutes. At 10 GB it waited 42 minutes for room behind fn-272's film renders and was stopped (FRICTION.md). It is left to the host.
+- **Gate** (`cargo test --profile ci --workspace --no-fail-fast`): not run to a result. At the dispatched 9 GB it was OOM-killed in telperion-core's tests after 9 minutes. At 10 GB it waited 42 minutes for room behind fn-272's film renders and was stopped (FRICTION.md). The host runs it on the merged branch once the film renders are done.
 - npm test: not run, since no TypeScript was touched.

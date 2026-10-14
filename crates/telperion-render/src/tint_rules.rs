@@ -2,7 +2,8 @@
 //! 2026-10-11; fn-256 DESIGN.md section 7b), held on every shipped module
 //! in the default suite: no NaN or Inf `f32` constant, and every barrier
 //! under uniform control. Tint itself runs as a release check
-//! (`shader_tests::every_shader_passes_tint`). The uniformity
+//! (`shader_tests::every_shader_passes_tint`); WGSL's operator mixes are
+//! held by `tint_mix`. The uniformity
 //! check is conservative: a value is uniform only when built from
 //! literals, constants, overrides, uniform buffers, `workgroup_id`,
 //! `num_workgroups` and what `workgroupUniformLoad` returned; every
@@ -13,6 +14,7 @@ use std::collections::{HashMap, HashSet};
 pub(crate) fn findings(source: &str) -> Vec<String> {
     let toks = tokens(&strip(source));
     let mut out = nan_constants(&toks);
+    out.extend(crate::tint_mix::findings(source));
     let globals = uniform_globals(&toks);
     let fns = functions(&toks);
     let barred = barred(&fns);
@@ -37,7 +39,7 @@ pub(crate) fn findings(source: &str) -> Vec<String> {
 const BARRIERS: [&str; 4] = ["workgroupBarrier", "storageBarrier", "textureBarrier", "workgroupUniformLoad"];
 const PURE: [&str; 12] = ["min", "max", "select", "u32", "i32", "f32", "vec2", "vec3", "vec4", "clamp", "array", "bitcast"];
 
-fn strip(s: &str) -> String {
+pub(crate) fn strip(s: &str) -> String {
     s.lines().map(|l| l.split("//").next().unwrap_or("")).collect::<Vec<_>>().join("\n")
 }
 
