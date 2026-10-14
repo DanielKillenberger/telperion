@@ -7,25 +7,53 @@
 //! so `|`, `&` and `^` take no other binary operator beside them; a shift's
 //! operands are unary, so a shift takes no shift or arithmetic beside it
 //! (a comparison of shifts is allowed); comparisons do not chain; `&&` and
-//! `||` do not mix. Checked against Tint itself, one fixture a mix.
+//! `||` do not mix. Template lists are found as WGSL finds them (section
+//! "Template Lists"), and their arguments are checked as expressions of
+//! their own. Checked against Tint itself, one fixture a mix.
+use std::collections::HashSet;
+
 const OPERATORS: [&str; 21] = [
     "<<=", ">>=", "->", "<<", ">>", "<=", ">=", "==", "!=", "&&", "||", "+=", "-=", "*=", "/=",
     "%=", "&=", "|=", "^=", "++", "--",
 ];
+
+/// Keywords an expression follows: an operator after one is unary.
+const KEYWORDS: [&str; 12] = [
+    "return",
+    "if",
+    "else",
+    "while",
+    "switch",
+    "case",
+    "for",
+    "let",
+    "var",
+    "const",
+    "override",
+    "const_assert",
+];
+
+/// A template list's `<` and `>`, told apart from comparisons.
+const OPEN: &str = "<template";
+const CLOSE: &str = ">template";
 
 /// Each operator mix Tint refuses in `source`, one line each.
 pub(crate) fn findings(source: &str) -> Vec<String> {
     let mut out = Vec::new();
     let mut levels: Vec<Vec<String>> = vec![Vec::new()];
     let mut operand = false;
-    for t in tokens(&crate::tint_rules::strip(source)) {
+    let end = |levels: &mut Vec<Vec<String>>, out: &mut Vec<String>| {
+        out.extend(mixed(&std::mem::take(levels.last_mut().expect("a level"))));
+    };
+    for t in tokens(&uncommented(source)) {
         let t = t.as_str();
+        let assigns = t.ends_with('=') && t.len() > 1 && !matches!(t, "==" | "!=" | "<=" | ">=");
         match t {
-            "(" | "[" => {
+            "(" | "[" | OPEN => {
                 levels.push(Vec::new());
                 operand = false;
             }
-            ")" | "]" => {
+            ")" | "]" | CLOSE => {
                 out.extend(mixed(&levels.pop().unwrap_or_default()));
                 if levels.is_empty() {
                     levels.push(Vec::new());
@@ -33,13 +61,11 @@ pub(crate) fn findings(source: &str) -> Vec<String> {
                 operand = true;
             }
             "," | ";" | "{" | "}" | ":" | "=" | "->" | "@" => {
-                let level = levels.last_mut().expect("a level");
-                out.extend(mixed(&std::mem::take(level)));
+                end(&mut levels, &mut out);
                 operand = false;
             }
-            _ if t.ends_with('=') && t.len() > 1 && !matches!(t, "==" | "!=" | "<=" | ">=") => {
-                let level = levels.last_mut().expect("a level");
-                out.extend(mixed(&std::mem::take(level)));
+            _ if assigns => {
+                end(&mut levels, &mut out);
                 operand = false;
             }
             "++" | "--" => operand = true,
@@ -49,6 +75,7 @@ pub(crate) fn findings(source: &str) -> Vec<String> {
                 }
                 operand = false;
             }
+            _ if KEYWORDS.contains(&t) => operand = false,
             _ => operand = t.starts_with(|c: char| c.is_alphanumeric() || c == '_' || c == '.'),
         }
     }
@@ -85,15 +112,13 @@ fn mixed(ops: &[String]) -> Option<String> {
     // A bitwise operator beside any other; `&&` beside `||`.
     let bitwise =
         |w: &[&str]| w[0] != w[1] && (is(Kind::Bitwise)(&w[0]) || is(Kind::Bitwise)(&w[1]));
-    let mut pairs: Vec<(&str, &str)> = ops
-        .windows(2)
+    let mut pairs: Vec<(&str, &str)> = (ops.windows(2))
         .filter(|w| bitwise(w))
         .map(|w| (w[0], w[1]))
         .collect();
     let logical: Vec<&str> = ops.iter().copied().filter(is(Kind::Logical)).collect();
     pairs.extend(
-        logical
-            .windows(2)
+        (logical.windows(2))
             .filter(|w| w[0] != w[1])
             .map(|w| (w[0], w[1])),
     );
@@ -120,127 +145,151 @@ fn mixed(ops: &[String]) -> Option<String> {
     first.map(|(a, b)| format!("mixing '{a}' and '{b}' requires parenthesis"))
 }
 
-/// The tokens an expression is read from: operators by longest match,
-/// numbers with their exponent's sign, and template lists (`vec3<f32>`,
-/// `var<storage, read>`) dropped, since their `<` and `>` are not
-/// comparisons.
-fn tokens(s: &str) -> Vec<String> {
-    let cs: Vec<char> = s.chars().collect();
-    let mut out: Vec<String> = Vec::new();
-    let mut i = 0;
+/// `source` with every comment blanked: line comments, and block comments,
+/// which nest.
+fn uncommented(source: &str) -> Vec<char> {
+    let cs: Vec<char> = source.chars().collect();
+    let mut out = Vec::with_capacity(cs.len());
+    let (mut i, mut depth, mut line) = (0, 0, false);
     while i < cs.len() {
-        let c = cs[i];
-        if c.is_whitespace() {
+        let pair = (cs[i], cs.get(i + 1).copied().unwrap_or(' '));
+        if line {
+            line = cs[i] != '\n';
+        } else if pair == ('/', '*') {
+            depth += 1;
             i += 1;
-        } else if c.is_ascii_digit() {
-            let start = i;
-            let hex = cs.get(i + 1).is_some_and(|x| *x == 'x' || *x == 'X');
-            while i < cs.len() {
-                let x = cs[i];
-                let sign = (x == '+' || x == '-')
-                    && matches!(cs[i - 1], 'e' | 'E' | 'p' | 'P')
-                    && (!hex || matches!(cs[i - 1], 'p' | 'P'));
-                if !(x.is_alphanumeric() || x == '.' || x == '_' || sign) {
-                    break;
-                }
-                i += 1;
-            }
-            out.push(cs[start..i].iter().collect());
-        } else if c.is_alphabetic() || c == '_' {
-            let start = i;
-            while i < cs.len() && (cs[i].is_alphanumeric() || cs[i] == '_') {
-                i += 1;
-            }
-            let name: String = cs[start..i].iter().collect();
-            let mut j = i;
-            while j < cs.len() && cs[j].is_whitespace() {
-                j += 1;
-            }
-            if templated(&name) && cs.get(j) == Some(&'<') {
-                let mut depth = 0;
-                while j < cs.len() {
-                    depth += match cs[j] {
-                        '<' => 1,
-                        '>' => -1,
-                        _ => 0,
-                    };
-                    j += 1;
-                    if depth == 0 {
-                        break;
-                    }
-                }
-                i = j;
-            }
-            out.push(name);
-        } else {
-            let rest: String = cs[i..(i + 3).min(cs.len())].iter().collect();
-            let op = OPERATORS
-                .iter()
-                .find(|o| rest.starts_with(*o))
-                .map_or(c.to_string(), |o| o.to_string());
-            i += op.chars().count();
-            out.push(op);
+        } else if depth > 0 && pair == ('*', '/') {
+            depth -= 1;
+            i += 1;
+        } else if depth == 0 && pair == ('/', '/') {
+            line = true;
+        } else if depth == 0 {
+            out.push(cs[i]);
+            i += 1;
+            continue;
         }
+        out.push(' ');
+        i += 1;
     }
     out
 }
 
-/// Names that take a template list.
-fn templated(name: &str) -> bool {
-    let mat = name.len() == 6 && name.starts_with("mat") && name.as_bytes()[4] == b'x';
-    mat || name.starts_with("texture_")
-        || matches!(
-            name,
-            "vec2"
-                | "vec3"
-                | "vec4"
-                | "array"
-                | "ptr"
-                | "atomic"
-                | "bitcast"
-                | "var"
-                | "binding_array"
-        )
+/// Where a number starting at `i` ends: its suffix and exponent's sign in.
+fn number_end(cs: &[char], mut i: usize) -> usize {
+    let hex = cs.get(i + 1).is_some_and(|x| *x == 'x' || *x == 'X');
+    let start = i;
+    while i < cs.len() {
+        let x = cs[i];
+        let exponent = if hex { ['p', 'P'] } else { ['e', 'E'] };
+        let sign = (x == '+' || x == '-') && i > start && exponent.contains(&cs[i - 1]);
+        if !(x.is_alphanumeric() || x == '.' || x == '_' || sign) {
+            break;
+        }
+        i += 1;
+    }
+    i
 }
 
-#[cfg(test)]
-mod tests {
-    use super::findings;
-
-    /// Each mix Tint refuses (Dawn's `tint`, v20261009.190412) and its
-    /// parenthesised or allowed twin, which it accepts.
-    #[test]
-    fn each_refused_mix_is_found_and_its_twin_is_not() {
-        for (refused, accepted) in [
-            (
-                // The cycle hierarchy build's state word, which Chrome refused.
-                "g = select(3u, 2u, rank % cfg.cap == 0u) | (rank / cfg.cap) << 2u;",
-                "g = select(3u, 2u, rank % cfg.cap == 0u) | ((rank / cfg.cap) << 2u);",
-            ),
-            ("g = a & b | c;", "g = a | b | c;"),
-            ("g = a + b << c;", "g = (a + b) << c;"),
-            ("g = a << b << c;", "g = a << (b << c);"),
-            ("g = a % b | c;", "g = w[a & 1u] + 1u;"),
-            ("let x = a & b == c;", "let x = (a & b) == c;"),
-            ("let x = a < b == p;", "let x = a << b == c;"),
-            ("let x = p && q || p;", "let x = a < b && c < a;"),
-            ("let x = a < 1e-4 < c;", "let x = s < 1e-4 || r <= 0.0;"),
-            (
-                "g = v.x >> 2u & 1u;",
-                "g = u32(f32(a) * 1e-3 + 2.0) | vec3<u32>(b).x;",
-            ),
-        ] {
-            assert_eq!(
-                findings(refused).len(),
-                1,
-                "{refused}: {:?}",
-                findings(refused)
-            );
-            assert!(
-                findings(accepted).is_empty(),
-                "{accepted}: {:?}",
-                findings(accepted)
-            );
-        }
+fn ident_end(cs: &[char], mut i: usize) -> usize {
+    while i < cs.len() && (cs[i].is_alphanumeric() || cs[i] == '_') {
+        i += 1;
     }
+    i
+}
+
+/// The positions of every template list's `<` and `>`, by WGSL's template
+/// list discovery (https://www.w3.org/TR/WGSL/#template-list-discovery):
+/// an identifier's `<` opens a candidate, a `>` at its nesting depth
+/// closes it, and an assignment, `;`, `{`, `:`, a closing bracket below
+/// it, `&&` or `||` abandons it.
+fn templates(cs: &[char]) -> HashSet<usize> {
+    let mut found = HashSet::new();
+    let mut pending: Vec<(usize, usize)> = Vec::new();
+    let (mut i, mut depth) = (0, 0usize);
+    let next = |i: usize| cs.get(i + 1).copied().unwrap_or(' ');
+    while i < cs.len() {
+        let c = cs[i];
+        if c.is_ascii_digit() {
+            i = number_end(cs, i);
+            continue;
+        }
+        if c.is_alphabetic() || c == '_' {
+            let mut j = ident_end(cs, i);
+            while j < cs.len() && cs[j].is_whitespace() {
+                j += 1;
+            }
+            if cs.get(j) == Some(&'<') {
+                if matches!(next(j), '<' | '=') {
+                    i = j + 2;
+                    continue;
+                }
+                pending.push((j, depth));
+                i = j + 1;
+                continue;
+            }
+            i = j;
+            continue;
+        }
+        let abandon = |pending: &mut Vec<(usize, usize)>, depth: usize| {
+            while pending.last().is_some_and(|&(_, d)| d >= depth) {
+                pending.pop();
+            }
+        };
+        match c {
+            '>' if pending.last().is_some_and(|&(_, d)| d == depth) => {
+                found.insert(pending.pop().expect("a candidate").0);
+                found.insert(i);
+            }
+            '>' | '!' if next(i) == '=' => i += 1,
+            '(' | '[' => depth += 1,
+            ')' | ']' => {
+                abandon(&mut pending, depth);
+                depth = depth.saturating_sub(1);
+            }
+            '=' if next(i) == '=' => i += 1,
+            '=' | ';' | '{' | ':' => {
+                depth = 0;
+                pending.clear();
+            }
+            '&' | '|' if next(i) == c => {
+                abandon(&mut pending, depth);
+                i += 1;
+            }
+            _ => {}
+        }
+        i += 1;
+    }
+    found
+}
+
+/// The tokens an expression is read from: operators by longest match,
+/// numbers whole, and a template list's `<` and `>` as `OPEN` and `CLOSE`.
+fn tokens(cs: &[char]) -> Vec<String> {
+    let marks = templates(cs);
+    let mut out: Vec<String> = Vec::new();
+    let mut i = 0;
+    while i < cs.len() {
+        let c = cs[i];
+        let start = i;
+        if c.is_whitespace() {
+            i += 1;
+            continue;
+        } else if marks.contains(&i) {
+            out.push(if c == '<' { OPEN } else { CLOSE }.to_string());
+            i += 1;
+            continue;
+        } else if c.is_ascii_digit() {
+            i = number_end(cs, i);
+        } else if c.is_alphabetic() || c == '_' {
+            i = ident_end(cs, i);
+        } else {
+            let rest: String = cs[i..(i + 3).min(cs.len())].iter().collect();
+            let op = (OPERATORS.iter())
+                .find(|o| rest.starts_with(*o))
+                .map_or(1, |o| o.len());
+            i += op;
+        }
+        out.push(cs[start..i].iter().collect());
+    }
+    out
 }

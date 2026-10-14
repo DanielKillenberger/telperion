@@ -36,6 +36,8 @@ mod timing;
 #[cfg(test)]
 mod tint_mix;
 #[cfg(test)]
+mod tint_mix_tests;
+#[cfg(test)]
 mod tint_rule_tests;
 #[cfg(test)]
 mod tint_rules;
