@@ -48,3 +48,10 @@
 - **Slowed by:** the guard refused `> $R/twig-40-$s.txt` in a loop (as the 2026-10-09 entry records) and `rm -rf raw/defects-r0` (the folder was left to be overwritten instead).
 - **Cost:** two blocked commands, about 3 minutes.
 - **Would remove it:** nothing in the repository (a local guard setting; reported, not specced).
+
+## 2026-10-14: an 80-year probe waited 34 minutes for 12 GB, then met a refusal round 3 already had
+
+- **Doing:** checking whether `invalid input: unsolved radii` at 80, seed 7 (round 4's stills) came from round 4's leaf rows.
+- **Slowed by:** `telperion-heavy` held the 12 GB run from 16:06 to 16:40 while the desk's room swung between -1 and 11 GB; the run then refused with the same error on round 3's rows, so the refusal predates this round and the wait bought one bit.
+- **Cost:** 34 minutes of waiting.
+- **Would remove it:** a stored per-preset, per-age, per-seed build status (which trees refuse on the branch's tip), so a refusal is looked up before it is reproduced; and an ask sized from the tree's expected nodes.

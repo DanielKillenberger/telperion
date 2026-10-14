@@ -77,6 +77,36 @@ fn ages(family: &Family, tree: &Tree) -> Result<Vec<u32>, String> {
         .collect())
 }
 
+/// (b): the current year's engine nodes on slender wood (radius at most
+/// `limit` m and at least the thinnest drawn, 0.2 mm), their wood's length,
+/// and so the mean spacing of one leaf a node (Go Botany, Quercus alba:
+/// "one leaf per node along the stem").
+fn current_year(family: &Family, limit: f64) -> Result<String, String> {
+    let applied = family.applied();
+    let species = applied.space.species.as_ref().ok_or("no engine species")?;
+    let request = telperion_space::Request {
+        age: family.age as u32,
+        seed: u64::from(family.skeleton.seed),
+        budget: 20_000_000,
+        light: applied.space.light,
+    };
+    let s = telperion_space::grow(species, request).map_err(|e| e.to_string())?;
+    let (mut count, mut length) = (0u64, 0.0);
+    for a in &s.axes {
+        let st = &species.states[a.pa];
+        for p in a.phytomers.iter().take_while(|p| p.radius >= 2e-4) {
+            if p.cycle == s.age && p.radius <= limit {
+                count += 1;
+                length += st.internode * p.scale * telperion_space::internode_factor(p.key(), st.form.internode_spread);
+            }
+        }
+    }
+    Ok(format!(
+        "\"year_nodes\":{count},\"year_wood_m\":{length:.0},\"leaf_a_node_spacing_mm\":{:.2}",
+        1e3 * length / count.max(1) as f64
+    ))
+}
+
 /// (a, b): planned leaves by the age and radius of their wood.
 fn leaves_by_wood(f: &Family) -> Result<String, String> {
     let request = Request { leaves: true, field: Some(None), ..Request::default() };
@@ -428,12 +458,13 @@ fn main() -> Result<(), String> {
             let (area, index) = leaf_area(&mesh, &x);
             let (f_node, fork_json) = fork(tree);
             println!(
-                "{{\"age\":{age},\"seed\":{seed},\"nodes\":{},\"leaves\":{},\"leaf_m2\":{area:.0},\"leaf_over_hull\":{index:.1},\"root_r\":{:.3},{},{},{},{}}}",
+                "{{\"age\":{age},\"seed\":{seed},\"nodes\":{},\"leaves\":{},\"leaf_m2\":{area:.0},\"leaf_over_hull\":{index:.1},\"root_r\":{:.3},{},{},{},{},{}}}",
                 tree.nodes.len(),
                 mesh.foliage_instances(),
                 tree.nodes[0].radius,
                 leaves_by_wood(&f)?,
                 fork_json,
+                current_year(&f, tree.nodes[0].radius * f.canopy.shoot_radius)?,
                 crossings(tree),
                 stem_steps(tree)
             );

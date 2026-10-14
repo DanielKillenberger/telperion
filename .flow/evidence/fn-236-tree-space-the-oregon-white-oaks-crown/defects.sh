@@ -15,6 +15,6 @@ trap 'rm -f "$example"' EXIT
 telperion-heavy 4 --threads 8 -- cargo build -q --profile ci -p telperion-render --example oak_defects \
   2>"$here/raw/defects-$tag/build.log"
 gpu=(); [ -z "$OAK_NO_STILLS" ] && gpu=(--gpu 2)
-telperion-heavy 4 "${gpu[@]}" --threads 4 -- target/ci/examples/oak_defects "$here/raw/defects-$tag" "$ages" "$seeds" "$@" \
+telperion-heavy "${OAK_MEM:-4}" "${gpu[@]}" --threads 4 -- target/ci/examples/oak_defects "$here/raw/defects-$tag" "$ages" "$seeds" "$@" \
   >"$here/raw/defects-$tag.jsonl"
 cat "$here/raw/defects-$tag.jsonl"

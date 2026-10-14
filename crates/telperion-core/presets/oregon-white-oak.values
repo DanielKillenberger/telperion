@@ -151,10 +151,15 @@
 # Neutral: a card lit alone, until this table states its canopy.
 # Plated bark: no lichen, lenticel or peel term of fn-40's.
 
-# The rows the tree-space example restated for a tree that grows its own
-# shoots (fn-193 to fn-196): leaves along the grown shoots, no clusters
-# seated along slender wood.
-/canopy/shootRadius = 0.1
+# Leaves on the current year's shoots alone (fn-236 host ruling,
+# 2026-10-14): every age keeps its leaves one year (`leafYears`), as
+# Q. garryana is "Trees or shrubs, deciduous" (Flora of North America),
+# and only wood as slender as its twigs bears them: "Twigs ... 2-4 mm
+# diam." (FNA), a 2 mm radius, 0.007 of the 40-year root's 0.29 m.
+# One leaf every 8 mm of shoot: one leaf a node ("one leaf per node
+# along the stem", Go Botany, Quercus alba) on the current year's
+# engine nodes, 7.5 to 8.9 mm apart at 40 (seeds 1, 7, 42; DEFECTS.md).
+/canopy/shootRadius = 0.007
 /skeleton/twigs/twig/internodeLength = 0.008
 
 # The age the harness opens the tree at (fn-198 host decision 5); the
@@ -197,6 +202,7 @@
 /space/ages/2/upkeep = 0.35
 /space/ages/2/balanceHazard = 2.0
 /space/ages/2/leafGirth = 1.0
+/space/ages/2/leafYears = 1.0
 /space/ages/2/form/tropism = 0.6
 /space/ages/2/form/elevation = 1.5707963267948966
 /space/ages/2/form/wander = 0.25
@@ -230,6 +236,7 @@
 /space/ages/3/upkeep = 0.35
 /space/ages/3/balanceHazard = 2.0
 /space/ages/3/leafGirth = 1.0
+/space/ages/3/leafYears = 1.0
 /space/ages/3/form/tropism = 0.6
 /space/ages/3/form/elevation = 1.5707963267948966
 /space/ages/3/form/wander = 0.25
@@ -263,6 +270,7 @@
 /space/ages/4/upkeep = 0.35
 /space/ages/4/balanceHazard = 2.0
 /space/ages/4/leafGirth = 1.0
+/space/ages/4/leafYears = 1.0
 /space/ages/4/form/tropism = 0.6
 /space/ages/4/form/elevation = 1.5707963267948966
 /space/ages/4/form/wander = 0.5
@@ -308,6 +316,7 @@
 /space/ages/6/upkeep = 0.35
 /space/ages/6/balanceHazard = 2.0
 /space/ages/6/leafGirth = 1.0
+/space/ages/6/leafYears = 1.0
 /space/ages/6/form/tropism = 0.5
 /space/ages/6/form/elevation = 1.05
 /space/ages/6/form/wander = 0.5
@@ -365,6 +374,7 @@
 /space/ages/7/upkeep = 0.35
 /space/ages/7/balanceHazard = 2.0
 /space/ages/7/leafGirth = 1.0
+/space/ages/7/leafYears = 1.0
 /space/ages/7/form/tropism = 0.48
 /space/ages/7/form/elevation = 0.9
 /space/ages/7/form/wander = 0.35
@@ -406,6 +416,7 @@
 /space/ages/8/upkeep = 0.35
 /space/ages/8/balanceHazard = 2.0
 /space/ages/8/leafGirth = 1.0
+/space/ages/8/leafYears = 1.0
 /space/ages/8/form/tropism = 0.5
 /space/ages/8/form/elevation = 0.7
 /space/ages/8/form/wander = 0.4
@@ -448,6 +459,7 @@
 /space/ages/9/upkeep = 0.35
 /space/ages/9/balanceHazard = 2.0
 /space/ages/9/leafGirth = 1.0
+/space/ages/9/leafYears = 1.0
 /space/ages/9/form/tropism = 0.33
 /space/ages/9/form/elevation = 0.2
 /space/ages/9/form/wander = 0.4
@@ -487,6 +499,7 @@
 /space/ages/12/upkeep = 0.35
 /space/ages/12/balanceHazard = 2.0
 /space/ages/12/leafGirth = 1.0
+/space/ages/12/leafYears = 1.0
 /space/ages/12/form/tropism = 0.8
 /space/ages/12/form/elevation = 0.2
 /space/ages/12/form/wander = 0.4
@@ -524,6 +537,7 @@
 /space/ages/13/upkeep = 0.35
 /space/ages/13/balanceHazard = 2.0
 /space/ages/13/leafGirth = 1.0
+/space/ages/13/leafYears = 1.0
 /space/ages/13/form/tropism = 0.4
 /space/ages/13/form/elevation = 0.2
 /space/ages/13/form/wander = 0.4
@@ -561,6 +575,7 @@
 /space/ages/14/upkeep = 0.35
 /space/ages/14/balanceHazard = 2.0
 /space/ages/14/leafGirth = 1.0
+/space/ages/14/leafYears = 1.0
 /space/ages/14/form/pipe = 0.0006
 /space/ages/14/zones/0/buds = 1.0
 /space/ages/14/zones/0/nodes/min = 3.0
