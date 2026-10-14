@@ -63,11 +63,12 @@ fn a_tip_on_the_ground_dies_at_one_and_runs_on_at_zero() {
     assert_eq!(living, 0, "at 1: {living} of {rest} tips on the ground live on");
 }
 
-/// The hazard reads the rough layout, which is grown only where light
-/// shades: elsewhere it is refused by name, never dormant.
+/// The hazard reads the rough layout, which a ground hazard grows where
+/// no leaf shades too: under neutral light it still ends the tips that
+/// reach the ground, so the young birch grows less wood.
 #[test]
-fn a_ground_hazard_without_shade_is_refused() {
-    let err = grow(&with_hazard(1.0), request(5, Light::NEUTRAL)).unwrap_err();
-    assert!(format!("{err}").contains("ground hazard"), "{err}");
-    grow(&with_hazard(0.0), request(5, Light::NEUTRAL)).unwrap();
+fn a_ground_hazard_acts_without_shade() {
+    let count = |h| grow(&with_hazard(h), request(10, Light::NEUTRAL)).unwrap().phytomer_count();
+    let (runs, stops) = (count(0.0), count(1.0));
+    assert!(stops < runs, "neutral light: {stops} phytomers at 1, {runs} at 0");
 }

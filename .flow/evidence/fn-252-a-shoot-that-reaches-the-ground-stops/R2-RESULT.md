@@ -7,14 +7,14 @@ The rule, as the host ruled it:
 - While an apex's tip, as the rough layout laid it last cycle, rests on the ground, its yearly survival is its viability × (1 - h). Growth's existing draws then decide.
 - **Contact:** a laid walk off the stem whose tip stands at the ground. Only the resting clamp puts it there, or the run along the ground the clamp began.
 - **The final lay is unchanged.**
-- **The rough layout is grown only where light shades.** A tree with h > 0 is therefore refused by name under unshaded light, never left dormant.
+- **A tree with h > 0 grows its rough layout under any light.** Where no leaf shades, every bud reads whole light, so the hazard is never left dormant (Codex review, correctness 1).
 
 Where it lives:
 - **CPU:**
   - `geometry/lay.rs` (`Layer::rests`).
   - `grow/shoot.rs` (`Grower::rests`).
   - `grow/advance.rs` (the factor).
-  - `grow.rs` (the refusal).
+  - `grow.rs` (the rough layout grown wherever a ground hazard reads it).
   - The capture's fate thresholds (`grow/cycle/capture.rs`).
 - **Device:**
   - `glue.wgsl` `inputs_main` writes each laid axis's contact into the units' inputs, a seventh column. The inputs buffers grew from 6 to 7 words an axis.
@@ -34,7 +34,7 @@ Where it lives:
   - `a_tip_on_the_ground_dies_at_one_and_runs_on_at_zero` grows the birch at 10 and 11, seed 1. At h = 0 most tips the rough layout rests on the ground live on. At h = 1 none does.
     - Red with the factor removed: 38 of 45 lived on.
     - Green with it.
-  - `a_ground_hazard_without_shade_is_refused`.
+  - `a_ground_hazard_acts_without_shade`: under neutral light the birch at 10 grows fewer phytomers at h = 1 than at 0.
 - **`cargo test --profile ci -p telperion-space`:** green (`raw/space-tests.log`), fn-200's resting tests in `tests/sag.rs` among them.
 - **h = 0 is byte-identical.** `space_hash_all.rs` grew every shipped preset at 10, 20 and 40 (seeds 1, 7) on the base (60b1201d2, its own worktree and target) and on the branch (`raw/hash-base.log`, `raw/hash-branch.log`).
   - Only the silver birch's hashes moved: all six trees.
