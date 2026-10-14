@@ -28,7 +28,7 @@ fn check(name: &str, source: &str) -> Result<(), String> {
 
 /// Every source the device builds: the drawing passes and the generation
 /// passes, the fine-root executor's included.
-fn shipped() -> Vec<(&'static str, String)> {
+pub(crate) fn shipped() -> Vec<(&'static str, String)> {
     let mut all = crate::shaders::all();
     all.extend(crate::generation::sources::all());
     all
@@ -182,4 +182,66 @@ fn dump_shaders() {
         let file = format!("{k:02}-{}.wgsl", name.replace(' ', "-"));
         std::fs::write(dir.join(file), source).unwrap();
     }
+}
+
+/// Every shipped module through Tint itself, the WGSL compiler in Chrome
+/// (Dawn's `tint`, `--format spirv` an entry, as Dawn makes a pipeline on
+/// Vulkan), for what naga accepts and Chrome refuses (fn-237 R14): a NaN
+/// constant, a barrier under non-uniform control, `|` beside `<<` without
+/// parentheses. A release check, since the binary is fetched, not built
+/// (docs/gpu-tests.md): `TINT=<dawn>/bin/tint cargo test --profile ci -p
+/// telperion-render every_shader_passes_tint -- --ignored`.
+#[test]
+#[ignore = "release check: Tint itself, TINT=<Dawn's tint>"]
+fn every_shader_passes_tint() {
+    let tint = std::env::var("TINT").expect("TINT: Dawn's tint binary (docs/gpu-tests.md)");
+    let dir = std::env::temp_dir().join(format!("telperion-tint-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let refused = |name: &str, source: &str| -> Vec<String> {
+        let file = dir.join(format!("{}.wgsl", name.replace(' ', "-")));
+        std::fs::write(&file, source).unwrap();
+        let module = naga::front::wgsl::parse_str(source).expect("naga parses it");
+        (module.entry_points.iter())
+            .filter_map(|e| {
+                let out = std::process::Command::new(&tint)
+                    .args(["--format", "spirv", "-o", "/dev/null", "--ep", &e.name])
+                    .arg(&file)
+                    .output()
+                    .expect("TINT runs");
+                let said = String::from_utf8_lossy(&out.stderr);
+                (!out.status.success()).then(|| format!("{name} {}: {said}", e.name))
+            })
+            .collect()
+    };
+    let head = "@group(0) @binding(0) var<storage, read_write> grid: array<u32>;\n";
+    for (fault, faulty, sound) in [
+        (
+            "a NaN constant",
+            "fn main() { grid[0] = bitcast<u32>(bitcast<f32>(0x7fc00000u)); }",
+            "fn main() { grid[0] = bitcast<u32>(bitcast<f32>(0x3f800000u)); }",
+        ),
+        (
+            "a barrier under a storage bound",
+            "fn main() { for (var i = 0u; i < grid[1]; i++) { workgroupBarrier(); } }",
+            "fn main() { for (var i = 0u; i < 4u; i++) { workgroupBarrier(); } }",
+        ),
+        (
+            "or beside shift",
+            "fn main() { grid[0] = grid[1] | grid[2] << 2u; }",
+            "fn main() { grid[0] = grid[1] | (grid[2] << 2u); }",
+        ),
+    ] {
+        let entry = "@compute @workgroup_size(64) ";
+        let faulty = refused(fault, &format!("{head}{entry}{faulty}"));
+        assert_eq!(faulty.len(), 1, "{fault}: Tint did not refuse it");
+        assert!(
+            refused(fault, &format!("{head}{entry}{sound}")).is_empty(),
+            "{fault}: the sound twin"
+        );
+    }
+    let failed: Vec<String> = (shipped().iter())
+        .flat_map(|(name, source)| refused(name, source))
+        .collect();
+    std::fs::remove_dir_all(&dir).unwrap();
+    assert!(failed.is_empty(), "Tint refuses:\n{}", failed.join("\n"));
 }

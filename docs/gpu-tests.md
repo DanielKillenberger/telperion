@@ -18,6 +18,25 @@ GPU process can take WebGPU away until a reboot (fn-235).
   (`generation::whole_tree`).
 - **A cold driver cache is part of the picture.** The NVIDIA driver caches
   compiled pipelines on disk; a fresh browser profile does not have them.
-  `every_pipeline_within_2_5_s_but_grow_within_20_s_cold` builds
-  a first tree with the driver's cache off (`__GL_SHADER_DISK_CACHE=0`)
-  and reports its cold total.
+- **Release checks run only when asked, on a quiet machine.** A test whose
+  answer depends on the machine's load or on a fetched tool is marked
+  `#[ignore = "release check: <what it needs>"]`, held to that by the same
+  test as the device-limit probes, and run before a release PR (fn-237 R9,
+  R14):
+  - `every_pipeline_within_2_5_s_cold` builds a first tree with the
+    driver's cache off (`__GL_SHADER_DISK_CACHE=0`), holds every pipeline
+    to 2.5 s and reports the cold total. A compile time measures the
+    machine's load as much as the shader (fn-246 FRICTION.md), so the
+    default suite holds each entry's inlined size to a ceiling instead
+    (`compile_size::tests::every_entry_inlines_under_the_ceiling`), and
+    `compile_size::tests::every_entry_made_cold_alone` measures what that
+    ceiling is read from.
+  - `every_shader_passes_tint` runs every shipped module through Tint, the
+    WGSL compiler in Chrome, one entry at a time as Dawn makes a pipeline.
+    Tint refuses WGSL that naga accepts (a NaN constant, a barrier under
+    non-uniform control, `|` beside `<<` without parentheses). The binary
+    is Dawn's: `gh release download -R google/dawn -p
+    '*ubuntu-latest-Release.tar.gz'`, then `TINT=<dir>/bin/tint cargo test
+    --profile ci -p telperion-render every_shader_passes_tint --
+    --ignored`. The default suite holds Tint's NaN and uniformity rules
+    with a conservative check of its own (`tint_rules`).

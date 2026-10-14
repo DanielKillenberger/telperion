@@ -93,7 +93,13 @@ const COLD_PIPELINE_MS: f64 = 2_500.0;
 /// fn-235 R1: a page's first tree, the beech at 20 on the device, built
 /// in a process of its own on a cold driver cache: no pipeline made past
 /// the watchdog's margin (fn-256 task 2 made every cycle kernel small).
+/// A compile time measures the machine's load as much as the shader
+/// (fn-246 FRICTION.md: 20.6-26.0 s under load against a 20 s bound), so
+/// this runs in the release checks on a quiet machine, and the default
+/// suite holds each entry's inlined size instead (fn-237 R9,
+/// `compile_size`).
 #[test]
+#[ignore = "release check: a cold compile timed, on a quiet machine"]
 fn every_pipeline_within_2_5_s_cold() {
     // The NVIDIA driver's own disk cache, off: a cold page's compile.
     let env = [("TELPERION_TRACE", "1"), ("__GL_SHADER_DISK_CACHE", "0")];
@@ -186,7 +192,9 @@ fn built(tree: &str, env: &[(&str, &str)]) -> Built {
 /// 80 built on it, out-of-memory probes) are marked `#[ignore = "device
 /// limits: ..."]`, so a default run beside an open harness never takes
 /// the driver's address space; they run only when asked (`-- --ignored`).
-/// Every marked test in the crate's source is one libtest leaves out.
+/// So are the release checks a quiet machine or a fetched tool needs,
+/// whose ignore reason begins "release check" (fn-237 R9, R14). Every
+/// marked test in the crate's source is one libtest leaves out.
 #[test]
 fn device_limit_probes_run_only_when_asked() {
     let src = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
@@ -202,9 +210,11 @@ fn device_limit_probes_run_only_when_asked() {
             let module = path.strip_prefix(&src).unwrap().with_extension("");
             let module = module.to_str().unwrap().replace('/', "::");
             let text = std::fs::read_to_string(&path).unwrap();
-            for part in text.split("#[ignore = \"device limits").skip(1) {
-                let name = part.split_once("fn ").unwrap().1.split_once('(').unwrap().0;
-                marked.push(format!("{module}::{name}: test"));
+            for mark in ["#[ignore = \"device limits", "#[ignore = \"release check"] {
+                for part in text.split(mark).skip(1) {
+                    let name = part.split_once("fn ").unwrap().1.split_once('(').unwrap().0;
+                    marked.push(format!("{module}::{name}: test"));
+                }
             }
         }
     }

@@ -18,3 +18,14 @@
 - **Hindered:** no heavy job was running, but the desk had 12 to 13 GB available against a 6 GB reserve, so room sat at 6 to 7 GB from 19:52 to 20:23 and neither check could be admitted. The gate's 20 GB needs 26 GB available, which the desk has not had all evening. The wrapper also admits one job at a time, so a 5 GB job queued behind the 10 GB one until that one was stopped.
 - **Cost:** about 35 minutes of waiting on `npm test`; the gate was never started.
 - **Would remove it:** the host running the gate and `npm test` once memory frees up, or the owner freeing memory on the desk. Admission skipping past a job that does not fit to one that does would also help. Local setup, reported only.
+
+## 2026-10-14, release-checks worker (R9, R14)
+
+- **Doing:** finding whether Tint can run without a browser.
+- **Hindered:** nothing in the repository says where a Tint binary comes from. Dawn's GitHub releases ship one (`Dawn-<hash>-ubuntu-latest-Release.tar.gz`, `bin/tint`, 36 MB tarball), found by listing release assets. `tint` also refuses a multi-entry module unless `--ep` names one entry, which looked at first like 31 of 37 modules failing.
+- **Cost:** about 10 minutes.
+- **Would remove it:** docs/gpu-tests.md naming the release asset and the per-entry invocation (done in this branch).
+- **Doing:** a cold, warm and cold-again measurement of every entry, three runs in one command.
+- **Hindered:** the dcg hook refuses a redirect to a path held in a shell variable (`> $S/cold2.log`), so the command had to be rewritten with every path spelled out.
+- **Cost:** about 2 minutes.
+- **Would remove it:** a scratch-directory allowance in the hook for the session's own scratchpad. Local setup, reported only.

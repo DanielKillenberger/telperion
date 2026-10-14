@@ -23,6 +23,8 @@ mod scene;
 mod select;
 mod shaders;
 #[cfg(test)]
+mod compile_size;
+#[cfg(test)]
 mod shader_tests;
 mod shadow;
 mod shot;
@@ -31,6 +33,10 @@ mod structure;
 mod submit;
 mod sun;
 mod timing;
+#[cfg(test)]
+mod tint_rule_tests;
+#[cfg(test)]
+mod tint_rules;
 #[cfg(test)]
 mod trace;
 mod view;

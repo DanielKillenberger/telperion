@@ -113,8 +113,6 @@ mod settle_float_tests;
 #[cfg(test)]
 mod soft64_tests;
 #[cfg(test)]
-mod tint_rules;
-#[cfg(test)]
 mod vm_tests;
 
 const ARENA: &str = include_str!("cycle/arena.wgsl");

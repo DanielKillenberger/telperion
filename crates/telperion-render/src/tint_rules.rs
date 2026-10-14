@@ -1,7 +1,8 @@
 //! Two of Tint's rules that naga does not hold (the owner's Chrome probe,
-//! 2026-10-11; DESIGN.md section 7b), checked on the cycle module's WGSL
-//! until a Tint check runs in the shader tests: no NaN or Inf `f32`
-//! constant, and every barrier under uniform control. The uniformity
+//! 2026-10-11; fn-256 DESIGN.md section 7b), held on every shipped module
+//! in the default suite: no NaN or Inf `f32` constant, and every barrier
+//! under uniform control. Tint itself runs as a release check
+//! (`shader_tests::every_shader_passes_tint`). The uniformity
 //! check is conservative: a value is uniform only when built from
 //! literals, constants, overrides, uniform buffers, `workgroup_id`,
 //! `num_workgroups` and what `workgroupUniformLoad` returned; every
@@ -9,7 +10,7 @@
 use std::collections::{HashMap, HashSet};
 
 /// What a source breaks, one line a finding.
-pub(super) fn findings(source: &str) -> Vec<String> {
+pub(crate) fn findings(source: &str) -> Vec<String> {
     let toks = tokens(&strip(source));
     let mut out = nan_constants(&toks);
     let globals = uniform_globals(&toks);
@@ -24,7 +25,8 @@ pub(super) fn findings(source: &str) -> Vec<String> {
             returning: &returning,
             barred: &barred,
             out: &mut out,
-            stopped: false,
+            returned: false,
+            jumped: false,
         };
         walk.uniform.extend(f.uniform_params.iter().cloned());
         walk.block(0, f.body.len(), true);
@@ -197,8 +199,9 @@ fn uniform_returning(fns: &[Function], globals: &HashSet<String>) -> HashSet<Str
             && returns.iter().all(|&j| {
                 let end = (j..f.body.len()).find(|&e| f.body[e] == ";").unwrap_or(f.body.len());
                 let e = &f.body[j + 1..end];
+                let field = |k: usize| k > 0 && e[k - 1] == ".";
                 e.first().is_some_and(|t| t == "workgroupUniformLoad")
-                    || e.iter().filter(|t| is_ident(t)).all(|t| globals.contains(t) || PURE.contains(&t.as_str()))
+                    || (0..e.len()).filter(|&k| is_ident(&e[k]) && !field(k)).all(|k| globals.contains(&e[k]) || PURE.contains(&e[k].as_str()))
             });
         if uniform {
             out.insert(f.name.clone());
@@ -214,8 +217,13 @@ struct Walk<'a> {
     returning: &'a HashSet<String>,
     barred: &'a HashSet<String>,
     out: &'a mut Vec<String>,
-    /// A return, break or continue under non-uniform control was passed.
-    stopped: bool,
+    /// A return under non-uniform control was passed: the rest of the
+    /// function is non-uniform.
+    returned: bool,
+    /// A break or continue under non-uniform control was passed in the
+    /// loop being walked: the rest of that loop's body is non-uniform,
+    /// what follows the loop is not (Tint's rule, fn-237 R14).
+    jumped: bool,
 }
 
 impl Walk<'_> {
@@ -264,6 +272,10 @@ impl Walk<'_> {
                 let open = (k..b).find(|&j| self.toks[j] == "{").expect("a block");
                 let c = control && self.uniform(k + 1, open);
                 let close = matching(self.toks, open, "{", "}");
+                if t == "while" {
+                    self.looped(open + 1, close, c);
+                    return close + 1;
+                }
                 self.block(open + 1, close, c);
                 let mut next = close + 1;
                 if self.toks.get(next).is_some_and(|x| x == "else") {
@@ -280,7 +292,11 @@ impl Walk<'_> {
             "loop" | "{" => {
                 let open = (k..b).find(|&j| self.toks[j] == "{").expect("a block");
                 let close = matching(self.toks, open, "{", "}");
-                self.block(open + 1, close, control);
+                if t == "loop" {
+                    self.looped(open + 1, close, control);
+                } else {
+                    self.block(open + 1, close, control);
+                }
                 close + 1
             }
             _ => self.simple(k, b, control),
@@ -300,20 +316,29 @@ impl Walk<'_> {
             }
         }
         let body = matching(self.toks, close + 1, "{", "}");
-        self.block(close + 2, body, c);
+        self.looped(close + 2, body, c);
         body + 1
+    }
+
+    /// A loop's body: a break or continue in it ends with it.
+    fn looped(&mut self, a: usize, b: usize, control: bool) {
+        let outer = self.jumped;
+        self.block(a, b, control);
+        self.jumped = outer;
     }
 
     /// A declaration, assignment, call or jump, up to its `;`.
     fn simple(&mut self, k: usize, b: usize, control: bool) -> usize {
         let end = (k..b).find(|&j| self.toks[j] == ";").unwrap_or(b);
         let s = &self.toks[k..end];
-        if s.iter().any(|t| self.barred.contains(t)) && !(control && !self.stopped) {
+        if s.iter().any(|t| self.barred.contains(t)) && !(control && !self.returned && !self.jumped) {
             let what = s.iter().find(|t| self.barred.contains(*t)).expect("a barrier");
             self.out.push(format!("fn {}: {what} under non-uniform control", self.name));
         }
-        if matches!(s.first().map(String::as_str), Some("return" | "break" | "continue")) && !control {
-            self.stopped = true;
+        match s.first().map(String::as_str) {
+            Some("return") if !control => self.returned = true,
+            Some("break" | "continue") if !control => self.jumped = true,
+            _ => {}
         }
         let decl = matches!(s.first().map(String::as_str), Some("let" | "var"));
         let eq = s.iter().position(|t| t == "=");
@@ -333,69 +358,5 @@ impl Walk<'_> {
             self.uniform.remove(&s[0]);
         }
         end + 1
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::findings;
-
-    #[test]
-    fn a_nan_constant_is_refused_and_a_finite_one_kept() {
-        let nan = "const NAN_BITS: u32 = 0x7fc00000u;\nconst NAN: f32 = bitcast<f32>(NAN_BITS);";
-        assert_eq!(findings(nan).len(), 1);
-        let inf = "const INF: f32 = bitcast<f32>(0x7f800000u);";
-        assert_eq!(findings(inf).len(), 1);
-        // The spike's shed module, refused by Chrome: a constant expression.
-        let shed = "const NAN_BITS: u32 = 0x7fc00000u;\nfn f() { var memory = bitcast<f32>(NAN_BITS); }";
-        assert_eq!(findings(shed).len(), 1);
-        assert!(findings("const ONE: f32 = bitcast<f32>(0x3f800000u);").is_empty());
-    }
-
-    #[test]
-    fn a_barrier_in_a_loop_bound_by_storage_is_refused() {
-        let bad = "@group(0) @binding(1) var<storage, read_write> grid: array<u32>;
-            fn nz() -> u32 { return grid[2]; }
-            @compute @workgroup_size(64)
-            fn sweep(@builtin(local_invocation_index) lid: u32) {
-                let n = nz();
-                for (var step = 0u; step < n; step++) { workgroupBarrier(); }
-            }";
-        assert_eq!(findings(bad).len(), 1, "{:?}", findings(bad));
-        let good = "@group(0) @binding(1) var<storage, read_write> grid: array<u32>;
-            var<workgroup> shape: u32;
-            @compute @workgroup_size(64)
-            fn sweep(@builtin(local_invocation_index) lid: u32) {
-                if lid == 0u { shape = grid[2]; }
-                let n = workgroupUniformLoad(&shape);
-                for (var step = 0u; step < n; step++) { workgroupBarrier(); }
-            }";
-        assert!(findings(good).is_empty(), "{:?}", findings(good));
-    }
-
-    #[test]
-    fn a_barrier_after_a_non_uniform_return_is_refused() {
-        let bad = "@compute @workgroup_size(64)
-            fn f(@builtin(local_invocation_index) lid: u32) {
-                if lid > 3u { return; }
-                workgroupBarrier();
-            }";
-        assert_eq!(findings(bad).len(), 1);
-        let good = "@compute @workgroup_size(64)
-            fn f(@builtin(workgroup_id) wid: vec3<u32>) {
-                if wid.x > 3u { return; }
-                workgroupBarrier();
-            }";
-        assert!(findings(good).is_empty(), "{:?}", findings(good));
-    }
-
-    /// Every composed module of the cycle executor, both arithmetics.
-    #[test]
-    fn the_cycle_modules_shaders_keep_tints_rules() {
-        let mut all = Vec::new();
-        for (name, source) in super::super::sources() {
-            all.extend(findings(&source).into_iter().map(|f| format!("{name}: {f}")));
-        }
-        assert!(all.is_empty(), "Tint would refuse:\n{}", all.join("\n"));
     }
 }
