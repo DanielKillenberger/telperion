@@ -105,3 +105,10 @@
 - **Cost:** about 45 minutes, then the gate again on one thread.
 - **Would have removed it:** fn-274's cut, or one shared lock over every whole-preset test in `telperion_core` so no two run together.
 - **Then:** the single-thread gate at 13 GB waited 40 minutes with 12 GB of room and was never admitted; one thread needs about 6 GB, so it ran at 12 GB, one thread.
+
+## 2026-10-14, task 4 (worker): npm test at 8 GB
+
+- **Doing:** `npm test` at 8 GB, 4 threads, after the gate.
+- **Hindered:** stopped at the cap twice (187 s with a rebuild, 47 s cached) while vitest ran; at 10 GB it passed in 91 s (162 of 162). The 8 GB run had passed at 227 s earlier the same night.
+- **Cost:** about 5 minutes.
+- **Would have removed it:** a measured peak for `npm test` at its thread count, declared once.
