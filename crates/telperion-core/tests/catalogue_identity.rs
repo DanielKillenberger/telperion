@@ -205,6 +205,12 @@
 //! the family digest was the last pin to the bit; the override text orders
 //! its keys by name and the walk blends the new row, so both moved, and
 //! the refusal names the new row.
+//! fn-252 R2 re-pinned the family, walk and override digests for each
+//! engine age's new neutral `ground_hazard` and the silver birch's nine
+//! `groundHazard` rows of 1: with those rows left out of its value file,
+//! `telperion_space::birch` at 0, and `ground_hazard: 0.0, ` and
+//! `"groundHazard":0.0,` stripped from the text, all four digests were
+//! the last pins to the bit.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -240,7 +246,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        11_401_346_922_847_411_476,
+        17_511_731_752_563_308_676,
         "{}",
         digest(&text)
     );
@@ -284,7 +290,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        843_457_039_801_554_522,
+        16_819_972_404_584_218_038,
         "{}",
         digest(&text)
     );
@@ -309,7 +315,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        11_673_823_740_692_486_087,
+        7_791_609_348_555_601_324,
         "{}",
         digest(&text)
     );

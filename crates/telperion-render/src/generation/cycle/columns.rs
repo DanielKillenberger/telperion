@@ -46,6 +46,7 @@ pub(super) fn packed(c: &Cap, t: &ChainTables, age: u32) -> (Vec<u32>, Vec<u64>,
     let (mut table, mut words) = pack(&t.units);
     let rows = table.len() as u32;
     let (viability, shade) = (c.f32s("pa_viability"), c.f32s("pa_shade_hazard"));
+    let ground = c.f32s("pa_ground_hazard");
     let (sheds, delay, windows) = (c.u32s("pa_sheds"), c.u64s("pa_delay"), c.f32s("pa_windows"));
     let span = age as usize + 2;
     let pair = |lo: u32, hi: u32| u64::from(lo) | u64::from(hi) << 32;
@@ -58,7 +59,7 @@ pub(super) fn packed(c: &Cap, t: &ChainTables, age: u32) -> (Vec<u32>, Vec<u64>,
         let (next, go, logit) = r
             .successor
             .map_or((NONE, 0, 0.0), |(n, g, l)| (n as u32, g, l));
-        let at = words.len() as u64 + 19;
+        let at = words.len() as u64 + 20;
         let (reaches, woods) = (at, at + r.reaches.len() as u64);
         let wins = woods + t.log_woods[pa].len() as u64;
         words.extend([
@@ -81,6 +82,7 @@ pub(super) fn packed(c: &Cap, t: &ChainTables, age: u32) -> (Vec<u32>, Vec<u64>,
             reaches,
             woods,
             wins,
+            f(ground[pa]),
         ]);
         words.extend(r.reaches.iter().map(|&x| f(x)));
         words.extend(t.log_woods[pa].iter().map(|&x| f(x)));

@@ -190,7 +190,7 @@ impl Build {
             layout: Layout::new(gpu, &t.form, s)?,
             retire: super::retire_device::Retire::new(gpu, s, &t.settle_pa, t.log)?,
             compactor: super::compact::Compactor::new(gpu, caps, s)?,
-            inputs: zeroed(gpu, "cycle inputs", 2 * u64::from(caps.next) + 6 * u64::from(s))?,
+            inputs: zeroed(gpu, "cycle inputs", 2 * u64::from(caps.next) + 7 * u64::from(s))?,
             counts: zeroed(gpu, "cycle counts", device::counts(caps, t.zones).words)?,
             flags: zeroed(gpu, "cycle flags", 2 * u64::from(s))?,
             spare: zeroed(gpu, "cycle spare", 4)?,

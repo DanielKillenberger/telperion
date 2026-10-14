@@ -143,7 +143,7 @@ impl Build {
             sums: if live { Sums::alloc(gpu, s, n.next, t.pas)? } else { self.sums },
             tree: new(self.tree, axes, "cycle tree", u64::from(hier_columns::TREE as u32 * s))?,
             layout: if axes { Layout::new(gpu, &t.form, s)? } else { self.layout },
-            inputs: new(self.inputs, live, "cycle inputs", 2 * u64::from(n.next) + 6 * u64::from(s))?,
+            inputs: new(self.inputs, live, "cycle inputs", 2 * u64::from(n.next) + 7 * u64::from(s))?,
             counts: new(self.counts, counted, "cycle counts", counts)?,
             flags: new(self.flags, axes, "cycle flags", 2 * u64::from(s))?,
             scan_sums: new(self.scan_sums, axes, "cycle scan sums", sums_words(s, 1))?,

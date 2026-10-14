@@ -234,6 +234,14 @@ fn start<'a>(
     if request.age == 0 {
         return refuse("age", "a tree grows at least one cycle");
     }
+    // A ground hazard reads the rough layout's tips, which is grown only
+    // where light shades (fn-252 R2): refused, never dormant, elsewhere.
+    if !request.light.shades() && species.states.iter().any(|s| s.ground_hazard > 0.0) {
+        return refuse(
+            "light.extinction",
+            "a ground hazard reads the rough layout, grown only where light shades",
+        );
+    }
     let laterals: Vec<_> = species.states.iter().map(PaState::laterals).collect();
     // The rough layout is grown wherever light shades: every bud reads
     // it (fn-255).

@@ -36,9 +36,20 @@ Values, sourced first: the silver birch's, whether its hanging shoots end at the
 
 Proof: red/green tests (h = 0 byte-identical and fn-200's resting test holds; h = 1 no axis extends along the ground beyond its contact node, on both lays); birch stills at 10, 20, 40, 80 (whole and the low shot), viewed beside a weeping-birch reference where one is to hand; crown base and ground counts re-measured; `space_hash` changes listed per species (only where h > 0); CPU and device agree. The gate on the merged branch is the host's; Codex review to SHIP; the task stays in progress for the owner's verdict.
 
+## R2 as ruled (host, 2026-10-14; replaces the final-lay part of the design above)
+
+1. No ending in the lay: the final lay keeps today's resting rule unchanged. The owner's complaint is the young birch ("that's mainly for younger specimen. Older ones will be too high to reach the ground"), whose contact growth already sees (`R2-ROUGH.md`: 83-90% at 10); ending wood in the lay would need a girth pass after it or a switch at h = 1, for the old trees' sag-only contact the owner did not ask about.
+2. Growth answers contact: the tip's yearly survival takes one more factor beside light's, (1 - h) while its rough-lay tip rests on the ground, through the existing draws, by degree, on both executors (contact carried from the device's rough lay to its growth step as light is).
+3. Contact: the tip's step is one the resting clamp caught.
+
+Value: the silver birch's `ground_hazard` 1 is a declared stand-in resting on the owner's verdict (2026-10-14: "we might also want to fix the birch's branches drooping all the way to the ground"), with the 'Youngii' nursery text (`R2-PLAN.md`) recorded beside it as the one contrary text (a cultivar, no evidence cited). Every other species 0.
+
+Proof: ground counts and crown base re-measured at 5 to 80; birch stills at 10, 20, 40 (whole and low) viewed; what still rests at 40 and 80 by sag reported as numbers for the owner. Tests: h = 0 byte-identical (fn-200's resting test holds); at h = 1 no tip in rough-lay contact survives its next cycle; CPU and device agree. The gate on the merged branch is the host's; Codex review to SHIP; the task stays in progress for the owner.
+
 ## Boundaries
 
 The birch's low branches and the lay's ground rule, and their measurement. A release item (owner, 2026-10-14).
+
 
 
 

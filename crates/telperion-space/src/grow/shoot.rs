@@ -249,6 +249,14 @@ impl<'g, 'a> Shoot<'g, 'a> {
         self.reads.pencils.get(i).map_or(1.0, |p| p.light)
     }
 
+    /// Whether axis `i`'s tip, as the rough layout laid it last cycle,
+    /// rests on the ground (fn-252 R2): a laid walk off the stem whose tip
+    /// stands at the ground, where only the resting clamp, or the run
+    /// along the ground it began, puts it.
+    pub fn rests(&self, i: usize) -> bool {
+        (self.reads.pencils.get(i)).is_some_and(|p| !p.trunk && p.laid > 0 && p.layer.rests())
+    }
+
     /// Axis `i`'s growth unit's size this cycle (`allocation.rs`); whole
     /// where nothing shades.
     pub fn size(&self, i: usize) -> f64 {

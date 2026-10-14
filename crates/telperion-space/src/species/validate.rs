@@ -64,6 +64,7 @@ impl PaState {
             }
         }
         let shares = [
+            ("ground_hazard", self.ground_hazard),
             ("flowering", self.flowering),
             ("continuation", self.continuation),
             ("abortion", self.abortion),
