@@ -29,3 +29,10 @@
 - **Slowed by:** two workspace gates from other worktrees held the memory; a 5 GB probe waited 35 minutes unstarted and was withdrawn; the suites were resubmitted at 3 GB.
 - **Cost:** about 40 minutes queued over two runs.
 - **Would remove it:** a lighter admission class for an incremental single-crate test build (it peaks well under the gate's), or a gate queue that runs one workspace gate at a time.
+
+## 2026-10-15, worker, R2b's gate
+
+- **Doing:** the end-of-task workspace gate for R2b.
+- **Slowed by:** the generation-limit inventory guard (`tests/generation_limit_guard.rs`) failed on three new guard sites in `crown.rs`. It was the gate's only failure, and it surfaced only at the end of a 30-minute gate, because no focused run reaches the guard.
+- **Cost:** one gate run's last failure, fixed with three inventory entries and a re-run of the guard target alone (seconds).
+- **Would remove it:** a `cargo test -p telperion-core --test generation_limit_guard` step in the focused-run recipe for any change under `src/pipeline`, or a pre-commit check that runs the guard.

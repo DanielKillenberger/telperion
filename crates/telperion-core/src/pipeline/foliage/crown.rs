@@ -176,29 +176,27 @@ impl Crown {
         self.born(serial).map_or(1.0, |born| unfold::course(born / self.establishment))
     }
 
-    /// Frond `serial`'s table `c` (its size and rachis already its share
-    /// of the whole table `p`'s) as segments of one blade that splits
-    /// (fn-275 R2b, host): at `f = pinnate`, its leaflets' count; each
-    /// leaflet's length on a log scale from the blade's, its rachis (a
-    /// leaf element `blade` metres long at a size of one), to the mature
-    /// leaflet's; its pitch from along the rachis to the mature pitch; and
-    /// its spines the mature share of its leaflets. A frond made mature,
-    /// or one that groups no leaflets, is `c` as it is.
-    pub fn segments(&self, c: CanopyParams, p: &CanopyParams, serial: f64, blade: f64) -> CanopyParams {
+    /// Frond `serial`'s table `c` as segments of one blade that splits
+    /// (fn-275 R2b, host): at `f = pinnate`, its leaflets' count, their
+    /// pitch from along the rachis to the mature pitch, and its spines the
+    /// mature share of its leaflets; and where each segment stands and how
+    /// long it is (`Split`), a leaf element reaching `unit` metres at a
+    /// size of one. A frond made mature, or one that groups no leaflets,
+    /// is `c` as it is, with no split.
+    pub fn segments(&self, c: CanopyParams, p: &CanopyParams, serial: f64, unit: f64) -> (CanopyParams, Option<Split>) {
         let f = self.pinnate(serial);
-        let grouped = p.leaflet_count > 1. && p.rachis_length > 0. && p.size > 0. && blade > 0.;
+        let grouped = p.leaflet_count > 1. && p.rachis_length > 0. && p.size > 0. && unit > 0.;
         if f >= 1.0 || !grouped {
-            return c;
+            return (c, None);
         }
         let n = self.leaflets(serial);
-        let strap = p.rachis_length / (blade * p.size);
-        CanopyParams {
+        let young = CanopyParams {
             leaflet_count: n,
             leaflet_pitch: p.leaflet_pitch * f,
             acanthophylls: p.acanthophylls * n / p.leaflet_count,
-            size: c.size * strap.powf(1.0 - f),
             ..c
-        }
+        };
+        (young, Some(Split { f, unit }))
     }
 
     /// The crown's age when frond `serial` emerged, its year's fronds
@@ -212,6 +210,36 @@ impl Crown {
         let made = self.made_at(serial);
         let year = made.ceil() - 1.0;
         Some(year + (y.budburst + y.elongation * (made - year)) / unfold::YEAR)
+    }
+}
+
+/// A young frond's leaflets as strips of one blade whose plications run
+/// to its apex (fn-275 R2b, host): `f = ln n / ln N`, and the metres a
+/// leaf element reaches at a size of one.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Split {
+    pub f: f64,
+    pub unit: f64,
+}
+
+impl Split {
+    /// Segment `k` of `n` on a blade `blade` metres long whose mature
+    /// leaflet is `leaflet` metres: the share of the blade its base stands
+    /// at, its strip's start moving to its station (`(k + 1) / n`, the
+    /// base for a lone placement) by `f`; and its length as a share of
+    /// the mature leaflet's, from its base to the blade's tip moving to
+    /// the mature leaflet's by `f` on a log scale. At `n` one the entire
+    /// blade. A blade or leaflet of no length scales nothing.
+    pub fn segment(&self, k: usize, n: usize, blade: f64, leaflet: f64) -> (f64, f64) {
+        let strip = k as f64 / n as f64;
+        let station = if n == 1 { 0.0 } else { (k + 1) as f64 / n as f64 };
+        let base = strip + (station - strip) * self.f;
+        if blade <= 0.0 || leaflet <= 0.0 {
+            return (base, 1.0);
+        }
+        // `1 - base` is at least `(1 - f) / n`, above zero below maturity.
+        let length = ((1.0 - base) * blade).ln() * (1.0 - self.f) + leaflet.ln() * self.f;
+        (base, length.exp() / leaflet)
     }
 }
 

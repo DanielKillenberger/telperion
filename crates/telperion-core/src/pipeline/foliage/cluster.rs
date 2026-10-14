@@ -112,7 +112,7 @@ pub(super) fn clothe(
             let from = out.leaves.len();
             let table = placement(&CanopyParams { size: p.size * share, ..p }, key, j);
             station::reserve(out, organs::leaflets(&table), p)?;
-            rosette::fan(at, axis, heading, radial, (table, organs::leaflets(&table)), (&mut rng, None), out)?;
+            rosette::fan(at, axis, heading, radial, (table, organs::leaflets(&table), None), (&mut rng, None), out)?;
             // A colouring leaf is drawn as one withering (fn-270 R5c).
             if colour > 0.0 {
                 out.wither(from);

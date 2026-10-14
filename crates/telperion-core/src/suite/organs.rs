@@ -65,13 +65,15 @@ fn a_crown_stands_beside_the_cauline_wood() {
 }
 
 /// The palm's direct build keeps its every frond's leaflets: a frond
-/// emerging at no size still stands its 113 (fn-270 R5b), so the palm at
-/// 1, seed 7, is the 1,017 leaves it was before fn-277 (FILM.md).
+/// emerging at no size still stands the leaflets it was made with
+/// (fn-270 R5b). The palm at 1, seed 7, was 1,017 leaves before fn-277
+/// (FILM.md), every frond 113 leaflets; its seedling fronds are entire
+/// (fn-275 R2b), so it is 10.
 #[test]
 fn an_emerging_frond_keeps_its_leaflets() {
     let mut palm = Preset::DatePalm.parameters();
     (palm.age, palm.skeleton.seed) = (1.0, 7);
-    assert_eq!(mesh::build(&palm).unwrap().foliage_instances(), 1_017);
+    assert_eq!(mesh::build(&palm).unwrap().foliage_instances(), 10);
 }
 
 /// An apex that draws no living frond stands no rosette, its skirt with

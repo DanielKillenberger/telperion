@@ -281,7 +281,8 @@ fn crown_agrees(gpu: &crate::Gpu, id: &str, f: &Family, fraction: f64) {
     // The 4 sigma bound: four standard errors of two means of uniform draws
     // within the size variation, over the leaves' effective count, and
     // never under 2 %; a seedling's few fronds (fn-275 R2b) sample it
-    // thinly (7 to 10 % measured at 3 and 4, the same sign throughout).
+    // thinly (6 to 11 % measured at 3 and 4; with no size variation and no
+    // scatter the sizes and axes agree exactly, so the gap is the draws).
     let scales: Vec<f64> = theirs.leaves.iter().map(|l| theirs.reference.scale(*l)).collect();
     let effective = scales.iter().sum::<f64>().powi(2) / scales.iter().map(|s| s * s).sum::<f64>();
     let bound = (4.0 * f.canopy.size_variation * (2.0 / (3.0 * effective)).sqrt()).max(0.02);

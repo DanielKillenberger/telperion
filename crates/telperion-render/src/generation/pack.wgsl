@@ -133,7 +133,7 @@ fn station(index:u32) -> vec3<u32> {
         let own=placement_key(seg.range.w,k);
         let spines=organs(config.organs.y,own,ORGAN_SPINES);
         let borne=vec3<f32>(f32(spines),bitcast<f32>(config.organs.z),bitcast<f32>(config.organs.w));
-        let l=on_rachis(point,axis,n,left,config.rachis,borne);
+        let l=on_rachis(point,axis,n,left,f32(left+1u)/f32(n),config.rachis,borne);
         let key=select(own,seg.range.w,left==0u);
         let ordinal=select(left,k,left==0u);
         words=packed(l.point,l.axis,l.tangent,l.normal,key,ordinal,leaf_share(seg,k)*l.share);
@@ -175,10 +175,22 @@ fn leaf_share(seg:Segment, k:u32) -> f32 {
 fn leaflet(seg:Segment, j:u32) -> vec3<u32> {
     let count=seg.range.y; let heading=seg.tangent.xyz;
     var point=seg.a.xyz; var axis=heading; var tangent=seg.b.xyz; var normal=seg.normal.xyz;
-    var share=seg.b.w;
+    // A young frond's strips of one blade (`Split::segment`, fn-275 R2b):
+    // each stands where its strip begins, moving to its station by `f`,
+    // and runs toward the blade's tip, its length moving to the mature
+    // leaflet's on a log scale; the rachis over a mature leaflet in `edge.x`.
+    let f=seg.distance.w;
+    var t=f32(j+1u)/f32(count); var length=1.0;
+    if f<1.0 {
+        let strip=f32(j)/f32(count);
+        var station=t; if count==1u { station=0.0; }
+        t=strip+(station-strip)*f;
+        length=pow((1.0-t)*bitcast<f32>(seg.edge.x),1.0-f);
+    }
+    var share=seg.b.w*length;
     if count>1u {
         let rows=vec4<f32>(seg.a.w,seg.binormal.x,seg.binormal.y,seg.binormal.z);
-        let l=on_rachis(seg.a.xyz,heading,count,j,rows,vec3<f32>(seg.distance.z,seg.tangent.w,seg.binormal.w));
+        let l=on_rachis(seg.a.xyz,heading,count,j,t,rows,vec3<f32>(seg.distance.z,seg.tangent.w,seg.binormal.w));
         point=l.point; axis=l.axis; tangent=l.tangent; normal=l.normal; share*=l.share;
     }
     var words=packed(point,axis,tangent,normal,seg.range.w,j,share);
@@ -187,16 +199,16 @@ fn leaflet(seg:Segment, j:u32) -> vec3<u32> {
 }
 // One leaflet on its rachis before its draws (`leaflet::leaflets`).
 struct Leaflet { point:vec3<f32>, axis:vec3<f32>, tangent:vec3<f32>, normal:vec3<f32>, share:f32 }
-// Leaflet `j` of `count` on the rachis that leaves `point` on `heading`:
+// Leaflet `j` of `count`, `t` of the way along the rachis that leaves
+// `point` on `heading`:
 // `rows` its length, arch, leaflet pitch and terminal share, `borne` the
 // spines it bears, their share and pitch. Bent by its arch toward the
 // frame's lift, at the leaflet pitch to alternate sides, the last closed
 // by the terminal share, a spine at its own pitch and share.
-fn on_rachis(point:vec3<f32>, heading:vec3<f32>, count:u32, j:u32, rows:vec4<f32>, borne:vec3<f32>) -> Leaflet {
+fn on_rachis(point:vec3<f32>, heading:vec3<f32>, count:u32, j:u32, t:f32, rows:vec4<f32>, borne:vec3<f32>) -> Leaflet {
     var lift=vec3<f32>(0.0,1.0,0.0)-heading*heading.y;
     if dot(lift,lift)>1e-12 { lift=normalize(lift); } else { lift=square_to(heading); }
     let length=rows.x; let arch=rows.y;
-    let t=f32(j+1u)/f32(count);
     let at=point+heading*(length*t)+lift*(arch*length*t*t);
     let run=normalize(heading+lift*(2.0*arch*t));
     var closing=1.0; if j+1u==count { closing=1.0-rows.w; }

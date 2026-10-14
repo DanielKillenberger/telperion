@@ -53,7 +53,7 @@ struct Cfg {
     // no engine grew it), days into the last; budburst, elongation,
     // expansion, and the fronds it draws (`Crown::slots`); the years the
     // crown takes to make a mature frond, its first frond's share, and the
-    // blade's length over a mature leaflet's (none where it groups none).
+    // rachis's length over a mature leaflet's (none where it groups none).
     rosette: array<vec4<f32>, 7>,
     // The counts of organs (`stations.rs`'s `organ_rows`, fn-277): the
     // cauline share, the fronds, the dead fronds, the leaflets and the
@@ -293,24 +293,23 @@ fn frond_leaves(key: u32, serial: i32, fronds: f32) -> u32 {
     return select(1u, n, n > 1u);
 }
 
-// A young frond as segments of one blade that splits (`Crown::segments`,
-// fn-275 R2b): at `f` its leaflet pitch, its spines' count word and the
-// share of a mature leaflet's length each leaflet is drawn at, from the
-// blade's (the rosette's strap row) on a log scale. The mature rows where
-// it is made mature or groups no leaflets.
+// A young frond as strips of one blade that splits (`Crown::segments`,
+// fn-275 R2b): at `f` its leaflet pitch and its spines' count word; where
+// each strip stands and how long it is `pack.wgsl`'s `leaflet` reads from
+// `f` and the rosette's strap row. The mature rows where it is made
+// mature or groups no leaflets.
 struct Blade {
     pitch: f32,
     spines: u32,
-    length: f32,
 }
 
 fn segments(f: f32) -> Blade {
     let r = cfg.rosette;
     if f >= 1.0 || r[6].z <= 0.0 {
-        return Blade(r[2].w, organ_word(4u), 1.0);
+        return Blade(r[2].w, organ_word(4u));
     }
     let n = pow(r[2].x, f);
-    return Blade(r[2].w * f, count_word(r[3].y * n / r[2].x), pow(r[6].z, 1.0 - f));
+    return Blade(r[2].w * f, count_word(r[3].y * n / r[2].x));
 }
 
 // `a` a share `t` of the way to `b` (`rosette::fronds`' mix).
@@ -835,18 +834,22 @@ fn rosette(apex: u32, station0: u32, g: u32) {
         let depth = toward(r[0].w * age, r[0].w * (max(k, fronds) / steps), turned);
         let length = toward(1.0, r[1].w, turned);
         let share = length * grown * made_at * clamp(total - k, 0.0, 1.0);
-        let blade = segments(pinnate_frond(serial, fronds));
+        var split = pinnate_frond(serial, fronds);
+        if cfg.rosette[6].z <= 0.0 {
+            split = 1.0;
+        }
+        let blade = segments(split);
         let heading = normalize(axis * cos(pitch) + radial * sin(pitch));
         let s = (g + i) * GW;
         put4(s, vec4<f32>(at - axis * depth, r[2].y * share));
-        put4(s + 4u, vec4<f32>(radial, share * blade.length));
+        put4(s + 4u, vec4<f32>(radial, share));
         put4(s + 8u, vec4<f32>(heading, r[3].z));
         put4(s + 12u, vec4<f32>(axis, 0.0));
         put4(s + 16u, vec4<f32>(r[2].z, blade.pitch, r[3].x, r[3].w));
         // Its own leaflets and spines (`organs::placement`, fn-277).
         let leaflets = frond_leaves(c.key, serial, fronds);
         let spines = organs(blade.spines, placement_key(c.key, u32(serial)), ORGAN_SPINES);
-        put4(s + 20u, vec4<f32>(f32(turned >= 0.5), -2.0, f32(spines), 0.0));
+        put4(s + 20u, vec4<f32>(f32(turned >= 0.5), -2.0, f32(spines), split));
         segs[s + 15u] = NONE;
         segs[s + 24u] = first;
         segs[s + 25u] = leaflets;
@@ -856,6 +859,8 @@ fn rosette(apex: u32, station0: u32, g: u32) {
         for (var c = 0u; c < 4u; c++) {
             segs[s + 28u + c] = 0u;
         }
+        // Its strips' blade over a mature leaflet (`pack.wgsl`'s `leaflet`).
+        segs[s + 28u] = bitcast<u32>(cfg.rosette[6].z);
         // A frond is drawn whole (fn-270 R5).
         unfolded(s, NONE, NONE, 0u);
     }

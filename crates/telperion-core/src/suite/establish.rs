@@ -141,14 +141,33 @@ fn a_seedlings_fronds_are_entire_and_become_pinnate() {
     println!("the steepest step: {steepest:.3} in the log count");
     assert!(steepest < 0.8, "a frond's log count stepped {steepest}");
     assert_eq!(c.leaflets(established as f64), mature, "a frond made once established");
-    // Its leaflets are segments of one blade (host): the first frond one
-    // strap along its rachis, the blade's length; a mature frond its rows.
+    // Its leaflets are strips of one blade (host): the first frond one
+    // strap the blade's length; a mature frond its rows; and every
+    // frond's strips reach about its blade's tip whether its draw gives
+    // it the lesser or the greater whole count: measured 0.81 (a lone
+    // strap at f 0.14) to 1.21 blades (the mature 1.48 m leaflet past a
+    // 7 m rachis), the two counts at most 0.16 apart.
     let blade = telperion_core::foliage::blade(&executor::element(palm.element).unwrap());
     let p = palm.canopy;
-    let strap = c.segments(p, &p, 0.0, blade);
-    let reach = strap.size * blade / p.rachis_length;
+    let (strap, split) = c.segments(p, &p, 0.0, blade);
+    let split = split.expect("a young frond splits");
+    let (base, length) = split.segment(0, 1, p.rachis_length, p.size * blade);
+    let reach = base + length * p.size * blade / p.rachis_length;
     assert!((reach - 1.0).abs() < 0.01 && strap.leaflet_pitch < 0.1, "the strap reaches {reach} at {}", strap.leaflet_pitch);
-    assert_eq!(c.segments(p, &p, established as f64, blade), p, "a mature frond moved");
+    assert_eq!(c.segments(p, &p, established as f64, blade), (p, None), "a mature frond moved");
+    for s in 0..established {
+        let Some(split) = c.segments(p, &p, s as f64, blade).1 else { continue };
+        let n = c.leaflets(s as f64);
+        let reach = |n: usize| {
+            let segment = |k| split.segment(k, n, p.rachis_length, p.size * blade);
+            let tip = |(b, l): (f64, f64)| b + l * p.size * blade / p.rachis_length;
+            (0..n).map(|k| tip(segment(k))).fold(0.0, f64::max)
+        };
+        let (lo, hi) = (reach(n.floor() as usize), reach(n.ceil() as usize));
+        println!("frond {s}: f {:.3}, {n:.2} leaflets, reach {lo:.3} to {hi:.3} blades", split.f);
+        assert!((0.78..1.22).contains(&lo) && (0.78..1.22).contains(&hi), "frond {s} reaches {lo} to {hi}");
+        assert!((hi - lo).abs() < 0.2, "frond {s} reaches {lo} or {hi} by its draw");
+    }
     let leaves = |age: f64, f: &Family| grown(&family_at(f, age)).1.leaves.len();
     let drawn = |age: f64| {
         let f = family_at(&palm, age);

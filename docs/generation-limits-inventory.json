@@ -1734,6 +1734,24 @@
     "reason": "An establishment of no years: the stem waits no rise (fn-275 R2a), dormant."
   },
   {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": ". max ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A frond's leaflets run on a log scale from one to the mature count; a count below one groups none (fn-275 R2b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": "if f > = 1 . 0 | | ! grouped {",
+    "classification": "algorithm",
+    "reason": "A frond made mature, or one that groups no leaflets, keeps its rows: the split is dormant there (fn-275 R2b)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/crown.rs",
+    "site": "if blade < = 0 . 0 | | leaflet < = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "A frond drawn at no size has no blade to split; its strips scale nothing (fn-275 R2b)."
+  },
+  {
     "path": "crates/telperion-core/src/pipeline/space/establish.rs",
     "site": ". max ( r . min ( FINEST ) )",
     "classification": "numeric",

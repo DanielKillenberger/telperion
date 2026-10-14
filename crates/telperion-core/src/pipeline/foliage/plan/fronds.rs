@@ -63,13 +63,13 @@ pub(super) fn describe(
                     at: frond.at,
                     axis: frond.heading,
                     run: frond.radial,
-                    share: None,
+                    share: frond.split.map(|s| rosette::lone(&s, &c)),
                 };
                 out.push(shape.boxed(&blade, apex.axis, &c, &mut rng, system));
                 continue;
             }
             let (_, side) = frame(frond.heading);
-            for leaf in leaflet::leaflets(frond.at, frond.heading, c, per) {
+            for leaf in leaflet::leaflets(frond.at, frond.heading, c, per, frond.split) {
                 out.push(shape.boxed(&leaf, side, &c, &mut rng, system));
             }
         }

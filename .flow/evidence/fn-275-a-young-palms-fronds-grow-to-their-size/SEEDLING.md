@@ -94,4 +94,52 @@ Per frond (seed 1), from the code's formulas. "Reach" means the last segment's b
 
 The ruling's two rules conflict. The leaflets stand at `(k + 1) / n`, so the last always sits at the blade's tip. A few-segment frond's segments are nearly the blade's length. Together these put the outer segment wholly past the blade: from the blade's end to 1.7 to 1.8 blades out at n = 2 to 3. The frond's reach also jumps where its draw goes from one segment to two: from 0.97 m to 2.58 m between fronds 15 and 16. That breaks ruling 1's "no floating leaflets past the blade". Settling it needs a ruling on where a segment's base stands, or on how long it is at small n; I did not choose either.
 
-Not run: the full gate, and the done receipt. The task stays open.
+Superseded by the ruling below.
+
+## Host ruling, 2026-10-15 (second): strips whose tips converge on the blade's tip, built
+
+`Split::segment` on the CPU and `leaflet` in `pack.wgsl` place segment k of n as follows:
+
+- **Base.** It stands at `b_k = mix(k/n, p_k, f)` of the blade, where p_k is the station (`(k+1)/n`, or the base for a lone placement).
+- **Length.** It runs `exp(mix(ln((1 − b_k)·blade), ln(mature leaflet), f))`. The device writes this as the share `((1 − b_k)·R/(E·S))^(1 − f)` of a mature leaflet, with R/(E·S) = 4.73 read from the rosette's spare word through the segment's `edge.x`.
+- **No floor needed.** `1 − b_k ≥ (1 − f)/n` stays above zero below maturity, so no floor was added.
+
+Pitch, width and spines are as built before (spines accepted). A mature frond (f = 1) takes the old code path exactly. The palm at 40 still draws 6,554 leaves, and its still is byte-identical (`cmp`).
+
+With no size variation and no scatter, the device and the CPU agree exactly on sizes and axes at 3 and 4 (mean size apart 0, axes 0.0°). With the draws on, they differ by the draws alone: mean size 6 to 11 %, inside the 4σ bound, and axes 8.3 to 10.8° apart.
+
+`suite::organs::an_emerging_frond_keeps_its_leaflets` pinned the palm at 1, seed 7, at 1,017 leaves, which was every frond's 113. Its seedling fronds are now entire, so it is re-pinned to 10.
+
+### Reach per frond, in blades (seed 1; `a_seedlings_fronds_are_entire_and_become_pinnate`)
+
+Reach is the farthest strip's base plus its length along the rachis, at the lesser and the greater whole count its draw can give.
+
+| Frond | f | n | Reach (lesser) | Reach (greater) |
+|--:|--:|--:|--:|--:|
+| 0 | 0.001 | 1.00 | 0.999 | 1.000 |
+| 8 | 0.024 | 1.12 | 0.963 | 0.990 |
+| 15 | 0.058 | 1.31 | 0.914 | 0.979 |
+| 16 | 0.112 | 1.70 | 0.840 | 0.964 |
+| 18 | 0.137 | 1.91 | 0.808 | 0.960 |
+| 19 | 0.151 | 2.05 | 0.958 | 0.988 |
+| 24 | 0.239 | 3.09 | 0.989 | 1.005 |
+| 25 | 0.383 | 6.13 | 1.033 | 1.035 |
+| 32 | 0.575 | 15.1 | 1.062 | 1.061 |
+| 41 | 0.868 | 60.6 | 1.135 | 1.135 |
+| 57 | 0.998 | 111.8 | 1.207 | 1.207 |
+| mature | 1 | 113 | 1.21 | 1.21 |
+
+The reach stays between 0.81 and 1.21 blades. Where a frond's draw goes from one strip to two, its reach moves by at most 0.16 blades (frond 18: 0.81 against 0.96), against 1.83 blades under the first ruling. The low end is a lone strap at f 0.14, whose length is the blade's blended with a mature leaflet's on the log scale, 4.73^−f of the blade. The test holds the reach to 0.78 to 1.22 and the two counts within 0.2 of each other.
+
+### Stills (`raw/strips-stills/date-palm-{1,2,3,4,40}-1-1-whole.png`, the whole year)
+
+I viewed 2, 3 and 4; age 1's fronds have n ≈ 1 and f under 0.01, as in the still viewed before.
+- **At 2:** a coherent tuft of entire straps. The two-strip fronds show as a bifid leaf: the outer strip starts mid-blade and runs to the blade's tip.
+- **At 3:** a compact rosette of broad strips. A few outer strips of the far fronds stand apart from their frond, which has no rachis drawn.
+- **At 4:** a bushy young palm of narrowing segments along each frond.
+
+Nothing floats past the blade. The one remaining read is a frond's outer strip standing apart from its first, because no rachis is drawn (ruling 3: no rachis geometry).
+
+## Gate
+
+I ran `cargo test --profile ci --workspace --no-fail-fast` once: 1,406 passed, 1 failed, 101 ignored (`raw/seedling-gate.log`). The one failure was `generation_limits_are_classified`: three new guard sites in `crown.rs` were unclassified. I classified them in `docs/generation-limits-inventory.json`, and the guard target alone then passed 2 of 2. Every catalogue pin at the shipped age passed unchanged.

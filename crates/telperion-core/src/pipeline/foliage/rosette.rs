@@ -30,7 +30,10 @@
 //! The rows, their rails and the apices are read with the placement compiled
 //! out, so the leaf plan can tell a frond crown from a clothed one; only the
 //! placing itself needs the `geometry` feature.
-use super::{crown::Crown, CanopyParams};
+use super::{
+    crown::{Crown, Split},
+    CanopyParams,
+};
 #[cfg(feature = "geometry")]
 use super::{
     station::{matrix, reserve},
@@ -167,6 +170,8 @@ pub(super) struct Frond {
     pub(super) heading: Vec3,
     pub(super) radial: Vec3,
     pub(super) canopy: CanopyParams,
+    /// Its leaflets as strips of one blade while it was made young.
+    pub(super) split: Option<Split>,
     pub(super) dead: bool,
 }
 
@@ -211,7 +216,7 @@ pub(super) fn fronds(rosette: &Rosette, p: &CanopyParams, crown: Crown, blade: f
         let (pitch, depth, length) = (mix(a.0, b.0), mix(a.1, b.1), mix(a.2, b.2));
         let share = unfolded * established * (total - k).clamp(0.0, 1.0);
         let canopy = CanopyParams { size: p.size * length * share, rachis_length: p.rachis_length * length * share, ..p };
-        let canopy = crown.segments(canopy, &p, serial as f64, blade);
+        let (canopy, split) = crown.segments(canopy, &p, serial as f64, blade);
         let (lean, upright) = pitch.sin_cos_fixed();
         Frond {
             serial,
@@ -219,6 +224,7 @@ pub(super) fn fronds(rosette: &Rosette, p: &CanopyParams, crown: Crown, blade: f
             heading: (rosette.axis * upright + radial * lean).normalized(),
             radial,
             canopy,
+            split,
             dead: turned >= 0.5,
         }
     })
@@ -253,7 +259,7 @@ pub(super) fn clothe(
             let count = frond_leaflets(p, frond.canopy.leaflet_count, key);
             let c = placement(&frond.canopy, key);
             reserve(out, count, *p)?;
-            fan(at, heading, radial, rosette.axis, (c, count), (&mut rng, None), out)?;
+            fan(at, heading, radial, rosette.axis, (c, count, frond.split), (&mut rng, None), out)?;
             if frond.dead {
                 out.wither(from);
             }
@@ -278,16 +284,17 @@ pub(super) fn fan(
     heading: Vec3,
     tangent: Vec3,
     normal: Vec3,
-    (p, count): (CanopyParams, usize),
+    (p, count, split): (CanopyParams, usize, Option<Split>),
     (rng, mut more): (&mut Rng, Option<&mut Rng>),
     out: &mut Instances,
 ) -> Result<()> {
     if count == 1 {
-        out.push(&matrix(point, heading, tangent, normal, p, rng)?);
+        let length = split.map_or(1.0, |s| lone(&s, &p));
+        out.push(&matrix(point, heading, tangent, normal, CanopyParams { size: p.size * length, ..p }, rng)?);
         return Ok(());
     }
     let (_, side) = frame(heading);
-    for (k, leaflet) in super::leaflet::leaflets(point, heading, p, count).enumerate() {
+    for (k, leaflet) in super::leaflet::leaflets(point, heading, p, count, split).enumerate() {
         let rng = match more.as_deref_mut() {
             Some(more) if k > 0 => more,
             _ => &mut *rng,
@@ -303,6 +310,12 @@ pub(super) fn fan(
         out.push(&placed);
     }
     Ok(())
+}
+
+/// A lone placement's length as a share of a mature leaflet's, where it
+/// is a young frond's entire blade (`Split::segment`).
+pub(super) fn lone(split: &Split, p: &CanopyParams) -> f64 {
+    split.segment(0, 1, p.rachis_length, p.size * split.unit).1
 }
 
 /// Two unit vectors square to `axis` and to each other: the frame a spiral is
