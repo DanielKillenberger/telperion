@@ -25,14 +25,7 @@ pub(super) fn buffer(
             limit,
         });
     }
-    if let Err((after, cap)) = gpu.ledger.reserve(size, label) {
-        let mib = |b: u64| b >> 20;
-        return Err(error(format!(
-            "{OVER_BUDGET}the build's {label} would hold {} MiB, past the {} MiB it may hold; grow it younger",
-            mib(after),
-            mib(cap)
-        )));
-    }
+    reserve(gpu, size, label)?;
     let descriptor = wgpu::BufferDescriptor {
         label: Some(label),
         size,
@@ -475,6 +468,18 @@ pub(super) fn scope(gpu: &Gpu) -> [wgpu::ErrorScopeGuard; 2] {
 }
 /// The refusal of a buffer past the device budget a build is held to.
 const OVER_BUDGET: &str = "the device budget: ";
+
+/// `bytes` for `label` charged against the device budget, refused by
+/// name where they would pass it.
+pub(super) fn reserve(gpu: &Gpu, bytes: u64, label: &'static str) -> Result<()> {
+    gpu.ledger.reserve(bytes, label).map_err(|(after, cap)| {
+        error(format!(
+            "{OVER_BUDGET}the build's {label} would hold {} MiB, past the {} MiB it may hold; grow it younger",
+            after >> 20,
+            cap >> 20
+        ))
+    })
+}
 
 /// Whether `e` is a buffer's refusal past the device budget (`buffer`).
 pub(super) fn over_budget(e: &RenderError) -> bool {

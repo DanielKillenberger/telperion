@@ -53,6 +53,16 @@ impl Sizes {
         Self { bounds: s.stated(), ..s }
     }
 
+    /// The bytes a first move adds beside these tables: the largest group
+    /// it holds twice (`build_move.rs`: the phytomers, the axes, or the
+    /// units and lists) made anew `GROWTH` times larger.
+    pub(super) fn first_move(&self) -> u64 {
+        let w = super::state::State::words(self.caps);
+        let groups = [w[3] + w[4], w[0] + w[1], w[2] + w[5]];
+        let most = groups.into_iter().max().unwrap_or(0);
+        (4.0 * most as f64 * super::build_size::GROWTH).ceil() as u64
+    }
+
     pub(super) fn lit(&self) -> (Lit, u32) {
         (Lit { leaves: self.points - self.tips.min(self.points), tips: self.tips }, self.nodes)
     }
@@ -192,12 +202,21 @@ pub(super) struct Growing {
 
 impl Growing {
     /// The build seeded from the largest tables `hint` gives that the
-    /// device budget holds (`Sizes::margins`); refused by name where not
-    /// even the least do.
+    /// device budget holds beside their first move (`Sizes::margins`,
+    /// `Sizes::first_move`); refused by name where not even the least do.
+    /// A start that held the budget with no room to move its largest group
+    /// was refused mid-build (the spruce at 62, while 63 started smaller
+    /// and built; fn-276 task 2).
     pub(super) async fn within(gpu: &Gpu, kit: &Kit, t: &Tables, tables: &Capture, hint: Hint) -> Result<Self> {
         let mut refused = None;
         for sizes in Sizes::margins(hint) {
-            match Self::begin(gpu, kit, t, tables, sizes?).await {
+            let sizes = sizes?;
+            let begun = Self::begin(gpu, kit, t, tables, sizes).await;
+            let room = |g: Self| {
+                let r = super::super::io::reserve(gpu, sizes.first_move(), "first move's room");
+                r.map(|()| gpu.ledger.unreserve(sizes.first_move(), "first move's room")).map(|()| g)
+            };
+            match begun.and_then(room) {
                 Err(e) if super::super::io::over_budget(&e) => refused = Some(e),
                 begun => return begun,
             }

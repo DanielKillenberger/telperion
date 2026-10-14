@@ -124,15 +124,49 @@ fn every_tree_builds_on_the_device() {
     let mut refused = Vec::new();
     for (name, family) in sweep_cases() {
         let clock = super::Clock::now();
+        // The cap this build is held to: the stated budget, or less where
+        // other processes fill the card.
+        let cap = super::resident::budget::native(&gpu, gpu.ledger.live()) >> 20;
         match gen.prepare(&family, Delivery::Resident) {
-            Ok(p) => println!("{name}: {} instances, {:.0} ms", p.count(), clock.elapsed_ms()),
-            Err(e) if super::io::over_budget(&e) || e.to_string().contains("engine's budget") => println!("{name}: refused by the budget: {e}"),
+            Ok(p) => println!("{name}: {} instances, {:.0} ms, cap {cap} MiB", p.count(), clock.elapsed_ms()),
+            Err(e) if super::io::over_budget(&e) || e.to_string().contains("engine's budget") => println!("{name}: refused by the budget (cap {cap} MiB): {e}"),
             Err(e) => {
-                println!("{name}: REFUSED: {e}");
+                println!("{name}: REFUSED (cap {cap} MiB): {e}");
                 refused.push(format!("{name}: {e}"));
             }
         }
         gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
     }
     assert!(refused.is_empty(), "{refused:#?}");
+}
+
+/// fn-276 task 2: the Norway spruce at 62, seed 1, started at its tables'
+/// full margin, which the native 4 GiB held, and was refused at its first
+/// units move (4,200 MiB); its start now leaves that move room. Under the
+/// native budget, so it needs a card with 4 GiB free for it.
+#[test]
+#[ignore = "the spruce at 62 on the device under the native 4 GiB budget"]
+fn the_spruce_at_62_starts_with_room_to_move() {
+    let refused = refused_on_device(&[("norway-spruce at 62, seed 1".into(), at("norway-spruce", 62.0, 1))]);
+    assert!(refused.is_empty(), "{refused:#?}");
+}
+
+/// Each family built on the device alone; the refusals, by family.
+fn refused_on_device(families: &[(String, Family)]) -> Vec<String> {
+    let _held = super::whole_tree();
+    let Some(gpu) = super::test_gpu() else {
+        return Vec::new();
+    };
+    let renderer = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
+    let gen = Generator::new(&renderer).expect("a generator");
+    let mut out = Vec::new();
+    for (name, family) in families {
+        let cap = super::resident::budget::native(&gpu, gpu.ledger.live()) >> 20;
+        match gen.prepare(family, Delivery::Resident) {
+            Ok(p) => println!("{name}: {} instances, cap {cap} MiB", p.count()),
+            Err(e) => out.push(format!("{name} (cap {cap} MiB): {e}")),
+        }
+        gpu.device.poll(wgpu::PollType::wait_indefinitely()).expect("freed");
+    }
+    out
 }
