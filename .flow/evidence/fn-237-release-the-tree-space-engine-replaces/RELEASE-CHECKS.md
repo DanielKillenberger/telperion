@@ -19,7 +19,15 @@ Branch `fn-237-release-checks`, from `d2a8bd258`. Measured 2026-10-14 on the RTX
   - chained comparisons;
   - `&&` beside `||`.
 
-  Each was checked first against Tint on 30 probe expressions, which agreed with the grammar throughout; a shift beside a comparison is allowed. The test has ten fixture pairs, the `begin_main` line first. On every shipped module the rule finds nothing. With the old `begin_main` line restored it finds that one line, in Tint's words ("mixing '|' and '<<' requires parenthesis"). A first run found three false positives, where an exponent literal (`1e-4`) hid the `||` after it; that is fixed, with its own fixture pair.
+  Each was checked first against Tint on 30 probe expressions, which agreed with the grammar throughout; a shift beside a comparison is allowed. The test has ten fixture pairs, the `begin_main` line first. On every shipped module the rule finds nothing. With the old `begin_main` line restored it finds that one line, in Tint's words ("mixing '|' and '<<' requires parenthesis"). A first run found three false positives, where an exponent literal (`1e-4`) hid the `||` after it; that is fixed, with its own fixture pair. Rule in `2462638ea`.
+
+  Codex review: NEEDS_WORK with four findings, each confirmed against Tint, all fixed in `96f26b4e1`, then SHIP on re-review.
+  - Templates were found by a list of names. A shift inside one swallowed the rest of the module, and `texture_x < a < b` was missed. They are now found by WGSL's own template list discovery, the rule Tint follows (it refuses `select(a < b, b > a, ...)` as "parsed as template list").
+  - Template arguments went unchecked; they are now checked as expressions of their own.
+  - An operator after `return` or `if` was read as binary; it is now unary there.
+  - Block comments were read as code. They are blanked now, nested ones included, as line comments already were.
+
+  Fixtures are in `tint_mix_tests.rs`.
 
 ## R9: compile time out of the default suite
 
