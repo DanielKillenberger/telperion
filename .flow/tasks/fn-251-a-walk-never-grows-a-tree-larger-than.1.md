@@ -10,24 +10,12 @@ TBD
 - [ ] TBD
 
 ## Done summary
-Blocked:
-Waits for fn-255 (one light-reading grower); host decisions in the spec, 2026-10-09. Measurement and red repro on branch walksize (d4cc14c4, 28b0200f).
+The teaser's oak → birch frame at 80 now grows within the engine's 20M budget on F4's one cycle, and the spec's defect is gone. Re-measured with `examples/walk_size.rs`: 86 of 95 frames meet the seed-spread oracle (ends over seeds 1, 7 and 42, widened by 10 % or two phytomers; ends grown once per age and light), and none nears the budget. The nine that miss are named exceptions, held at their measured numbers by `tests/walk_sizes.rs` until fn-273 takes them (host, 2026-10-14). The size factor stays shrink-only; a two-sided factor was measured and not built, because the laterals fall 47 % short on oak ↔ spruce at 40. The film's seedlings at age 1 pass. Evidence: WALKS.md; friction: FRICTION.md (gate OOM below 13 GB / 2 threads in telperion-core's unit tests, and admission waits).
 
-Blocked:
-NEEDS_HUMAN (host design call). Re-measured on F4 after fn-255 (958654d48, WALKS.md "Re-measured on F4"): the repro builds; 70 of 80 frames meet the oracle and none fails on the budget. The 10 that fail have three causes: the linear walk predicts below both ends (oak and spruce, 5 frames, out of reach for a shrink-only factor); one seed's kept count spreads by more than the 10 % widening (4 frames); whole phytomers at a seedling (1 frame). The fix needs a design decision first.
+stage: impl-review - ran (codex, one reviewer, SHIP)
 
-Blocked:
-NEEDS_HUMAN (host decision 1, fail-early). The lateral rows the size factor moves have room for only x1.07 to x1.21 before a zone's laterals sum to 1. At full room, oak <-> spruce at 40 stays 47 % (t = 0.25/0.75) and 32 % (t = 0.5) short of the predicted geometric-mean target, and at 80, t = 0.5, 6 % short. Nothing is built. Evidence: WALKS.md "The two-sided factor's room" (52160a8f2).
-
-Blocked:
-NEEDS_HUMAN (a film pair fails). Under the seed-spread oracle 86 of 95 frames meet it. Film pairs: birch -> oak at 40 keeps 0.58-0.65M against a ceiling of 0.537M around t = 0.5-0.6 (seeds 7 and 42). Palm -> Laurelin at 3 fails at seeds 1, 7 and 42 (31, 28 and 30 low; 138 high against 97); at age 2 and age 1 every frame meets it. The other failures are oak -> birch 80 t = 0.01, oak -> ordinary 40 t = 0.75, beech -> oak 80 t = 0.5, and the named oak <-> spruce exception. WALKS.md "The seed-spread oracle" (e4088f133).
-
-Blocked:
-BLOCKED: TOOLING_FAILURE. The workspace gate is OOM-killed inside telperion-core's unit tests (src/lib.rs, untouched by this task) at 10 GB/6 threads, 9 GB/4 threads and 9 GB/2 threads; every_preset_grows_the_same_tree_again_and_on_any_cores alone needs more than 9 GB. The task's work is committed (8cf010423); walk_sizes passes alone in 53 s and goes red when a record is tightened. Needs a larger gate cap or one-at-a-time heavy unit tests; then npm test, the codex review and done. FRICTION.md 2026-10-14.
-
-Blocked:
-BLOCKED: TOOLING_FAILURE. The workspace gate was OOM-killed at 13 GB with 4 threads (190 s, 13G peak) in telperion-core's unit tests (src/lib.rs, untouched by this task), with every_preset_grows_the_same_tree_again_and_on_any_cores running. The earlier caps were 10 GB/6, 9 GB/4 and 9 GB/2. The task's work is committed (8cf010423). npm test, the codex review and done wait on a gate that fits.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 958654d4890a0983bfe392c5d833a111c990bc3e, 20e856bbbf5af79c4b4a5d378fe5f43439566068, de87eef937d9ab36b575552314ae6846114c3532, 52160a8f25b94c7c9069ba876125629e7820ee3f, f9fc03bba02f9ec1c4de9a4bf0d58c416fc1a9b8, 37398bd2bb12f8fb570144ffa5d083ee56f20f81, e4088f1332db33b54831dca81b7228ef291a2f4d, 3485604088c6ccf9028bbe0b8687037274278511, bd532505921f9891dc19d527b43bd26d1bb52b88, 22a435a0c0417a2ac22c6c820126e13b51a020fd, 8cf010423250c7ef7c84b0a72623ec42f2b0ef78, f2a70e8864f71f378f6345a21234ce0efe22f741, 98b1e5ce9ee6bddca97e835e697d3633ece253e9
+- Tests: telperion-heavy 13 --gpu 4 --threads 2 -- cargo test --profile ci --workspace --no-fail-fast (1348 passed, 0 failed), telperion-heavy 8 -- npm test (162 passed), cargo test --profile ci -p telperion-core --test walk_sizes (red when a record is tightened, green as measured)
 - PRs:
