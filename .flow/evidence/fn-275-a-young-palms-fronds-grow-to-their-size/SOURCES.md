@@ -49,3 +49,20 @@ An elongation that waits on the establishment by the course over 6.75 years lose
 ### For the species audit (host, 2026-10-14)
 
 The stem's radius, 0.297 m, against FAO's "average circumference is about 1 to 1.10 m" (a radius of 0.16 to 0.18 m) is left as it is in this spec: the catalogue's 0.52 to 1.08 m is measured across the retained frond bases (P7, fn-144).
+
+## R2a built (host rulings 1 to 4, 2026-10-14)
+
+Each stem phytomer is laid at the crown's age `t` (its cycle less one plus its place among its axis's phytomers of that cycle, evenly over the year, as the stem rises). It is drawn at `establishment(early, years, t)` of its girth, and lowered by the trunk PA's rise a year (internode x nodes a year) times `waited(years, t)`, the integral of the course's remainder from 0 to `t`. An axis off the stem is lowered by its bearing stem node's amount and keeps its lengths and girth. A first try laid a year's phytomers over the elongation days alone; the stem then rose and dropped back at every year's turn (0.143 m to 0.015 m at age 1 to 2), so the laying is spread over the whole year as the rise is.
+
+Measured, engine path, seed 7 (`raw/probe-r2a-tuned.log`, `raw/r2a-core.log`):
+
+| Age | Stem top (m) | Largest stem radius (m) | Before R2a: stem top (m) |
+|--:|--:|--:|--:|
+| 1 | 0.004 | 0.036 | 0.372 |
+| 3 | 0.116 | 0.127 | 1.121 |
+| 6 | 1.070 | 0.293 | 2.238 |
+| 40 | 14.900 | 0.297 | 14.885 |
+
+The palm at 40 stands 21.610 m (pin 21.590 before, +0.09 %) on the retuned internode, 0.0339 m: the host's 0.0329 came from my arithmetic error in the previous report (it lays 0.395 m a year and stands about 21.17 m); 0.0339 m is 14.885 / (12 x 36.625), 0.407 m a year, inside A1's "30-45 cm". Its stem differs from the unestablished one's girth only below 1.56 m (`the_shipped_palm_keeps_its_height_and_narrows_only_its_foot`), its base at the ground 0.076 m in radius. CPU and device agree on the palm at 12 (nodes within 4.6e-6 m, radii 4e-8), within the year at 8, and its crown at 12 and 3 (5e-5 of the height); the carried laterals are tested on the CPU on the oak with the rows stated (no shipped tree bears a rosette and laterals).
+
+Stills (`raw/stills/`, viewed): at 1 a small rosette on the ground, no stem; at 3 a rosette at the ground below the scale figure's height; at 6 a wide ground rosette, the stem hidden; at 40 the shipped palm. The grow-in (`raw/grow-in.mp4`, device, whole years, crossfaded); its year-6 frame viewed. A young crown's skirt and lowest fronds reach below the ground (the mesh's lowest point -0.39 m at 3, -0.57 m at 6), hidden by the ground plane.
