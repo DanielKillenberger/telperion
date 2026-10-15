@@ -192,3 +192,7 @@ The gap is measured from a segment's base (k > 0) to the nearest point of anothe
 - **At 40:** the shipped palm, byte-identical.
 
 The spine gaps above do not show at these views. The full gate and the task's close are held for the host's word on the spine gap.
+
+### Host ruling, 2026-10-15: the spine gap is accepted
+
+The spine gap stays. It does not show at the supported views, and the mature palm already sits at 1.39. fn-283's drawn rachis closes it; the host adds the spine case to fn-283's spec. The palm at 40's warm build time is unmeasured: no geometry was added, and only the segment bases moved.
