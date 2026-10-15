@@ -88,6 +88,7 @@ Traced with `resident::agree_tests` at `AGREE_AGE=40` on F4 (diagnostics added a
 
 ## 4. Release readiness
 
-- Version: `package.json` 0.1.4. The convention (v0.1.4, `c79bb590e`) bumps it in the release PR and the owner tags.
+- Version: `package.json` 0.2.0 (`05425e58a`): the engine replaces the generator and the field package's results change, so the minor version moves under 0.x. The convention (v0.1.4, `c79bb590e`) bumps it in the release PR and the owner tags.
+- Gate on F4 with R7 (`fn-237-format`, before its merge): 1,413 passed, 0 failed, 101 ignored, at `telperion-heavy 12 --threads 2` (the declared 20 GB never had room). `npm test` on F4 after the merge and the bump: 179 of 179.
 - No CHANGELOG file; release notes live in the tag and PR.
 - `docs/pipeline.md` and `docs/tree-space.md`: current as of 2026-10-12, naming fn-257 as the site's open step.
