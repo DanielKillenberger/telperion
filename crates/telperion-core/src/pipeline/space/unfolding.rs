@@ -20,6 +20,16 @@ pub(in crate::pipeline) struct Unfolding<'a> {
 impl Unfolding<'_> {
     pub(super) const WHOLE: Self = Self { leaves: &[], fraction: 1.0, gone: usize::MAX };
 
+    /// The thinnest wood axis `axis` draws: `FINEST`, and on a subtree gone
+    /// this year the thinnest it drew a year before as it fades, so its
+    /// wood is judged once, on its radius then (fn-286; host, 2026-10-15).
+    pub(super) fn least(&self, axis: usize) -> f64 {
+        match self.within() && axis >= self.gone {
+            true => super::FINEST * telperion_space::unfold::kept(self.fraction),
+            false => super::FINEST,
+        }
+    }
+
     /// Whether the tree is drawn within its year.
     pub(super) fn within(&self) -> bool {
         self.fraction < 1.0

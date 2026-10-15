@@ -405,6 +405,7 @@ fn unfolded(
         };
         let mut made = false;
         let mut own_tip = false;
+        let least = unfolding.least(i);
         // The wood grown since the axis's last node: the internodes merged
         // into a node are carried on to the next one drawn.
         let PaRow {
@@ -428,7 +429,7 @@ fn unfolded(
             .phytomers
             .iter()
             .enumerate()
-            .take_while(|(_, p)| p.radius >= FINEST)
+            .take_while(|(_, p)| p.radius >= least)
         {
             // Each internode as it was laid: its scale and its spread's
             // factor (fn-222).
@@ -448,7 +449,7 @@ fn unfolded(
             for (_, j) in &inside {
                 own.radius = own.radius.min(j.above);
             }
-            let thin = own.radius < FINEST;
+            let thin = own.radius < least;
             let draws = inside
                 .iter()
                 .map(|&&(c, j)| join::draw(axis, (c, &structure.axes[c]), j, piece))

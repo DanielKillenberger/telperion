@@ -68,7 +68,13 @@ These are the CPU build in one process, not the harness's warm device time; with
 - **Symptom:** `unfold::tests::a_tree_drawn_within_its_year_joins_both_years_with_no_pop` (the oak at 24, seed 7) fails its 1e-3 tolerance at f = 1e-6 with take-over on, and passes with it off.
 - **What moves:** one organ, a leaf of an axis *gone* in year 24 (drawn by `Presenting::fade`). Its leaf share at f = 1e-6 is 0.998216 against 1.0 a year before. Nothing reads an unfrozen reach; the take-over only changed which tree grew.
 - **Why:** a gone axis's leaf is `(r(1 - f) - FINEST) / (r - FINEST)` (`unfold.rs`, `fade`), its wood's radius `r` thinning to the thinnest drawn. That phytomer's radius is 0.00020011 m, 1.1e-7 m above `FINEST` (2e-4 m). The leaf's slope in f is `r / (r - FINEST)`, about 1,800, so at f = 1e-6 it has already fallen 0.0018. Measured 1 - 0.998216 = 0.001784; the formula gives 0.00178. Any tree with a gone twig just above `FINEST` pops this way; with take-over off, the oak at 24, seed 7, happened to have none.
-- **Not decided:** the fade law is the fn-270 presentation's, and how a near-`FINEST` leaf should fade is a design choice (for example, the leaf fading at least as slowly as the fraction). Making take-over "read what straightening reads" would not change it. Left for the host.
+- **Host decision (2026-10-15):** a subtree gone in year c fades uniformly: every organ (wood radius, leaves, flowers) is scaled by 1 − f, as fn-270 R5a states. Whether a gone axis's wood is drawn is judged once, on its year-(c − 1) radius against `FINEST`; the shrinking radius is not judged again during the fade. The `(r(1 − f) − FINEST)/(r − FINEST)` law is removed, on the device and the CPU alike, and the test's tolerance is kept.
+- **Done:**
+  - `unfold::kept(f) = 1 − f` scales a gone organ's radius and leaf share (`unfold.rs`; `present.wgsl`'s `kept`).
+  - The conversion judges a gone axis's wood against `FINEST · kept(f)`: `space/unfolding.rs`'s `least` and `dress.wgsl`'s `least_of`. The radius and the threshold are scaled by the same factor, so a radius of `FINEST` or more a year before stays drawn.
+  - `Paused::presenting` and `present` no longer take a thinnest wood.
+  - New test `a_gone_twig_at_the_thinnest_drawn_fades_as_everything_gone`: a gone twig at `FINEST + 1e-7`, at f = 1e-6, keeps leaf share 1 − 1e-6 and radius r(1 − 1e-6).
+  - The no-pop test passes at its 1e-3 tolerance.
 
 ## Memory and workgroups, every preset (`grown_time_tests::whole_builds_are_timed`, device build at its sizes)
 

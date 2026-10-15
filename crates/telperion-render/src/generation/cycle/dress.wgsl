@@ -475,6 +475,17 @@ fn run(t: f32, days: f32) -> f32 {
     return select(0.0, 1.0, t > 0.0);
 }
 
+// The thinnest wood phytomer `p` draws: `FINEST`, and on a subtree gone
+// this year (`present.wgsl` marks its leaves 2 past their share) the
+// thinnest it drew a year before as it fades, so its wood is judged once,
+// on its radius then (`space/unfolding.rs`'s `least`).
+fn least_of(p: u32) -> f32 {
+    if cfg.unfolding != 0u && leaf[p] >= 2.0 {
+        return FINEST * (1.0 - clamp(cfg.fraction, 0.0, 1.0));
+    }
+    return FINEST;
+}
+
 // Phytomer `p`'s leaves within the year on axis `a` (`space/unfolding.rs`,
 // `tree::Unfolded`): this year's share, a falling leaf's share, how far
 // it has coloured, a regrowing one's share, and the share of its wood's
@@ -723,7 +734,8 @@ fn draw_axis(a: u32, start: u32, how: How) {
         let p = ph(a, k);
         let l = season_of(a, p);
         var radius = established(a, k, npf(NP_RADIUS, p));
-        if !(radius >= FINEST) {
+        let least = least_of(p);
+        if !(radius >= least) {
             break;
         }
         // Each internode as laid: its scale and its spread's factor.
@@ -769,7 +781,7 @@ fn draw_axis(a: u32, start: u32, how: How) {
         }
         // Wood above an inside join thinner than `FINEST` ends the axis at
         // the join, as it does anywhere (`space.rs`'s `convert`).
-        let thin = !(radius >= FINEST);
+        let thin = !(radius >= least);
         if !thin {
             taken += 1u;
             w = mark(w, q);

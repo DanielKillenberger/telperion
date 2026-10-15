@@ -68,13 +68,13 @@ fn the_course_runs_from_nothing_to_whole_and_back() {
 fn a_tree_drawn_within_its_year_joins_both_years_with_no_pop() {
     let species = crate::oak();
     let r = request(24);
-    let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap().presenting(FINEST);
+    let mut p = Paused::begin(&species, r, Retiring::AtAge, false).unwrap().presenting();
     p.grow_to(24).unwrap();
     let before = p.digest();
     let now = p.settle().unwrap();
     let last = p.previous().expect("the year before").clone();
     assert_eq!(last.age, 23);
-    let draw = |f: f64| present(now.clone(), &last, &species, (f, FINEST));
+    let draw = |f: f64| present(now.clone(), &last, &species, f);
 
     // At the fraction's start the old organs are year 23's to the bit,
     // the new ones none, and nothing gone has faded.
@@ -120,19 +120,47 @@ fn a_tree_drawn_within_its_year_joins_both_years_with_no_pop() {
     assert_eq!(drawn, draw(0.5));
 }
 
+/// A subtree gone this year fades uniformly (host, 2026-10-15): a gone
+/// twig a hair above the thinnest drawn keeps `1 - f` of its leaf and its
+/// wood at f = 1e-6, as every other gone organ does, where the old law
+/// cut its leaf by its wood's distance to `FINEST`.
+#[test]
+fn a_gone_twig_at_the_thinnest_drawn_fades_as_everything_gone() {
+    let species = crate::oak();
+    let mut p = Paused::begin(&species, request(24), Retiring::AtAge, false).unwrap().presenting();
+    p.grow_to(24).unwrap();
+    let now = p.settle().unwrap();
+    let mut last = p.previous().expect("the year before").clone();
+    let here = index(&now);
+    let ids = identities(&last);
+    let twig = (0..last.axes.len())
+        .find(|&j| !here.contains_key(&ids[j]) && !last.axes[j].phytomers.is_empty())
+        .expect("an axis gone this year");
+    let r = FINEST + 1e-7;
+    last.axes[twig].phytomers[0].radius = r;
+    let f = 1e-6;
+    let drawn = present(now, &last, &species, f);
+    let drawn_ids = identities(&drawn.structure);
+    let at = (drawn.gone..drawn.structure.axes.len())
+        .find(|&i| drawn_ids[i] == ids[twig])
+        .expect("the twig drawn, fading");
+    assert_eq!(drawn.leaves[at][0], (1.0 - f) as f32, "its leaf");
+    assert_eq!(drawn.structure.axes[at].phytomers[0].radius, r * (1.0 - f), "its wood");
+}
+
 /// R5c: an organ of both years holds last year's drawing until budburst
 /// and this year's once its shoot has elongated; summer, autumn and
 /// winter stand still but for what falls and fades.
 #[test]
 fn old_organs_move_only_while_the_shoots_grow() {
     let species = crate::oak();
-    let mut p = Paused::begin(&species, request(12), Retiring::AtAge, false).unwrap().presenting(FINEST);
+    let mut p = Paused::begin(&species, request(12), Retiring::AtAge, false).unwrap().presenting();
     p.grow_to(12).unwrap();
     let now = p.settle().unwrap();
     let last = p.previous().expect("the year before").clone();
     let today = organs(&Presented::whole(now.clone()));
     let both: Vec<_> = organs(&Presented::whole(last.clone())).into_keys().filter(|k| today.contains_key(k)).collect();
-    let draw = |f: f64| organs(&present(now.clone(), &last, &species, (f, FINEST)));
+    let draw = |f: f64| organs(&present(now.clone(), &last, &species, f));
     let held = |a: &HashMap<(u64, usize), [f64; 6]>, b: &HashMap<(u64, usize), [f64; 6]>| {
         let still = both.iter().filter(|k| a.contains_key(k) && b.contains_key(k));
         still.filter(|k| a[k][..5] != b[k][..5]).count()
