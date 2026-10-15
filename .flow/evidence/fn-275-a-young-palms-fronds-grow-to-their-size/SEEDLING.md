@@ -143,3 +143,52 @@ Nothing floats past the blade. The one remaining read is a frond's outer strip s
 ## Gate
 
 I ran `cargo test --profile ci --workspace --no-fail-fast` once: 1,406 passed, 1 failed, 101 ignored (`raw/seedling-gate.log`). The one failure was `generation_limits_are_classified`: three new guard sites in `crown.rs` were unclassified. I classified them in `docs/generation-limits-inventory.json`, and the guard target alone then passed 2 of 2. Every catalogue pin at the shipped age passed unchanged.
+
+## R2c, host ruling (iii), 2026-10-15: the segments crowd toward the frond's base (built; drawn rachis deferred)
+
+The drawn rachis is deferred to a post-release spec. Ruling B, the rachis as wood, would cost about 1,200 lines: on the device the frond code in `stations.wgsl` would have to move into the boots stage. In its place, segment k of n stands at `b_k = f · p_k`, where `p_k` is its station (`(k + 1) / n`, 0 for a lone placement). This replaces `mix(k/n, p_k, f)`. A young frond's rachis is then short against its segments and lengthens as the frond matures. The length, pitch and width rules are unchanged. The rule is in `Split::segment` (`crown.rs`) and in `leaflet` (`pack.wgsl`).
+
+- **The mature palm.** At f = 1 a segment stands at its station exactly. The palm at 40 draws 6,554 leaves, and its still is byte-identical to `strips-stills` (`cmp`).
+- **CPU against device.** `every_rosette_is_placed_as_the_cpu_places_it` passes. The palm at 3 and 4 agrees within 2.1e-5 of the height, with no withering difference (`raw/r2c-agree.log`).
+
+### Gap per frond (seed 1; `a_seedlings_fronds_are_entire_and_become_pinnate`, `raw/r2c-gap.log`)
+
+The gap is measured from a segment's base (k > 0) to the nearest point of another segment's centreline on the same frond, in that segment's widths, before any draw. Each value is the larger over the frond's lesser and greater whole leaflet counts. The columns:
+- **Leaflet, no spine:** a leaflet's gap when the frond's draw gives no spine.
+- **Leaflet, a spine drawn:** a leaflet's gap when the draw gives at least one spine (the R2b share `acanthophylls × n / N`, whole by its draw).
+- **Spine:** the spines' own gaps.
+
+| Frond | f | n | Spines (row) | Leaflet, no spine | Leaflet, a spine drawn | Spine | Reach (blades) |
+|--:|--:|--:|--:|--:|--:|--:|--:|
+| 8 | 0.024 | 1.12 | 0.08 | 0.00 | 0.13 | 0 | 0.96 |
+| 16 | 0.112 | 1.70 | 0.12 | 0.09 | 0.74 | 0 | 0.84-0.87 |
+| 19 | 0.151 | 2.05 | 0.14 | 0.17 | 1.10 | 0 | 0.84 |
+| 23 | 0.219 | 2.81 | 0.20 | 0.42 | **1.88** | 0 | 0.81 |
+| 25 | 0.383 | 6.13 | 0.43 | 0.59 | 1.26 | 0 | 0.79 |
+| 28 | 0.464 | 8.99 | 0.64 | 0.75 | 1.27 | 0 | 0.81 |
+| 31 | 0.547 | 13.3 | 0.94 | 0.74 | 1.02 | 0 | 0.85 |
+| 32 | 0.575 | 15.1 | 1.07 | - | 0.98 | **3.21** | 0.86 |
+| 33 | 0.728 | 31.3 | 2.21 | - | 0.75 | 2.47 | 0.95 |
+| 37 | 0.807 | 45.4 | 3.22 | - | 0.65 | 2.12 | 1.02 |
+| 41 | 0.868 | 60.6 | 4.29 | - | 0.58 | 1.87 | 1.07 |
+| 50 | 0.988 | 107 | 7.55 | - | 0.43 | 1.44 | 1.19 |
+| mature | 1 | 113 | 8 | - | 0.42 | 1.39 | 1.21 |
+
+- **Leaflets with no spine drawn:** every base stays within 0.75 widths of another segment, the widest at f 0.46 to 0.55. The test holds them to 1 width.
+- **Reach:** 0.79 to 1.21 blades.
+- **No jump from one segment to two:** the lesser and greater whole counts differ by at most 0.04 blades in reach (0.16 before).
+
+### Where the gap stays large: next to a basal spine, and the spines themselves
+
+- **Leaflets beside a spine.** Where a young frond (f 0.15 to 0.55) draws a basal spine, the leaflet after it stands 1.0 to 1.88 widths off. The probability of that draw is the spine row's fraction, 0.14 to 0.94. The spine is short and steep, so it gives the next leaflet no centreline nearby.
+- **The spines.** From f 0.57 on, the spines stand 1.9 to 3.2 widths apart. The mature frond's spines stand 1.39 apart, so the shipped palm has the same read, smaller.
+- **Cause.** Both come from R2b's young spine share, which the host accepted, together with the undrawn rachis. They do not come from the base rule. Per the ruling I stopped without tuning. Candidates for the host: leave it, given the mature baseline of 1.39; keep a young frond's spines off until some f; or let the deferred drawn rachis connect them.
+
+### Stills (`raw/base-stills/date-palm-{2,3,4,40}-1-1-whole.png`, the whole year, all four viewed)
+
+- **At 2:** a coherent tuft of entire straps.
+- **At 3:** a compact rosette of strips. No strip stands apart from its frond, unlike `strips-stills` at 3.
+- **At 4:** a bushy young palm. Each frond is a fan of segments from near its base; nothing floats out.
+- **At 40:** the shipped palm, byte-identical.
+
+The spine gaps above do not show at these views. The full gate and the task's close are held for the host's word on the spine gap.

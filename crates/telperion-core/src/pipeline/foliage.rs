@@ -55,6 +55,9 @@ pub(crate) use rosette::validate as validate_canopy;
 pub(crate) use organs::apex;
 pub(crate) use rosette::stem_node;
 pub use crown::{blade, establishment, waited, Crown};
+/// A frond's leaflets before any draw, for the suite's gap check (fn-275 R2c).
+#[cfg(test)]
+pub(crate) use leaflet::leaflets;
 pub use rosette::{frame, rosettes, Rosette, MAX_FRONDS, MAX_LEAFLETS};
 
 #[derive(Debug, Clone, Copy, PartialEq)]

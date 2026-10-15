@@ -12,13 +12,13 @@ use std::f64::consts::{PI, TAU};
 
 /// One leaflet on its rachis, before its draws turn and scale it.
 #[derive(Debug, Clone, Copy)]
-pub(super) struct Leaflet {
-    pub(super) at: Vec3,
-    pub(super) axis: Vec3,
+pub(crate) struct Leaflet {
+    pub(crate) at: Vec3,
+    pub(crate) axis: Vec3,
     /// The rachis's direction where the leaflet leaves it.
     pub(super) run: Vec3,
     /// The share of its size a basal leaflet borne as a spine is drawn at.
-    pub(super) share: Option<f64>,
+    pub(crate) share: Option<f64>,
 }
 
 /// The point `t` of the way along the rachis that leaves `point` on
@@ -36,7 +36,7 @@ pub(super) fn rachis(point: Vec3, heading: Vec3, lift: Vec3, p: &CanopyParams, t
 /// end as `terminal_leaflet` blends its pitch back toward the rachis itself.
 /// A young frond's (`split`) are strips of one blade (`Split::segment`):
 /// each stands where its strip begins and runs toward the blade's tip.
-pub(super) fn leaflets(
+pub(crate) fn leaflets(
     point: Vec3,
     heading: Vec3,
     p: CanopyParams,
