@@ -8,9 +8,9 @@ crate::catalogue::rows! {
     #[derive(Debug, Clone, Copy, PartialEq)]
     #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
     pub struct TwigAnatomy in "/skeleton/twigs/twig" {
-        /// The finished thickness of a twig in metres. Wood at or below half
-        /// of it is drawn as a twig, so raising it thickens the twig layer and
-        /// hands more of the fine wood to it.
+        /// The leaf box's reach where foliage sits on twigs, as the thickness
+        /// of the wood a leaf station is seated on, in metres; the engine
+        /// sizes the grown wood itself (fn-198).
         pub diameter: f64 = "diameter" "m" Bounds::closed(1e-6, 1e6) => [Plan] {
             wire: 41,
             check: value(Site::Twig, 0, "twig diameter"),
@@ -40,6 +40,7 @@ crate::catalogue::rows! {
             Bounds::closed(1e-6, 1e6) => [Plan, Expand] {
             wire: 43,
             check: value(Site::Twig, 2, "twig internodeLength"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             note: "Also the spacing of leaf stations; the canopy check bounds it again at [1e-6, \
                 1e6] (`twig internode`).",
             dial: bounded("twig_internode_length", "metres between the joints on wood thicker \
@@ -52,6 +53,7 @@ crate::catalogue::rows! {
             Bounds::closed(1.0, 32.0) => [Plan, Expand] {
             wire: 44,
             check: value(Site::Twig, 4, "twig stationsPerInternode"),
+            applies: "a crown of fronds (`rosetteFronds` above zero)",
             note: "Conflicting bounds: the canopy check admits 1 to 64 (`twig stations`), and \
                 this check's 1 to 32 answers first. The skeleton never reads it; with \
                 `canopy.divergence` it sets the phyllotaxis.",

@@ -12,8 +12,9 @@ crate::catalogue::rows! {
     #[derive(Debug, Clone, Copy, PartialEq)]
     #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
     pub struct RadiusParams in "/radii" {
-        /// The trunk's radius at the ground as a share of the tree's height,
-        /// so raising it thickens every piece of wood in proportion.
+        /// The leaf box's reach where foliage sits on slender wood, as a
+        /// trunk radius at the ground that is a share of the tree's height;
+        /// the engine sizes the grown wood itself (fn-198).
         pub trunk_radius: f64 = "trunkRadius" "share of height"
             Bounds::closed(4e-6, f64::MAX) => [Plan] {
             wire: 74,

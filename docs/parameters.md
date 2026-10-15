@@ -494,7 +494,7 @@ The ceiling on how hard the wander may pull in any one step, so the other writhe
 
 ### `/skeleton/twigs/twig/diameter`
 
-The finished thickness of a twig in metres. Wood at or below half of it is drawn as a twig, so raising it thickens the twig layer and hands more of the fine wood to it.
+The leaf box's reach where foliage sits on twigs, as the thickness of the wood a leaf station is seated on, in metres; the engine sizes the grown wood itself (fn-198).
 
 - real, m, [0.000001, 1000000], default 0.005
 - read by plan; removed growth path: as the direct build
@@ -520,6 +520,7 @@ Metres between the joints on wood thicker than the bearing diameter, and the spa
 - real, m, [0.000001, 1000000], default 0.02
 - read by plan, expand; removed growth path: as the direct build
 - checked: Twig site, rank 2, as invalid value `twig internodeLength`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - note: Also the spacing of leaf stations; the canopy check bounds it again at [1e-6, 1e6] (`twig internode`).
 - blend: linear; dial: `twig_internode_length` (metres between the joints on wood thicker than the bearing diameter), window its bounds (validated bound), steps 0.015 and 0.03, presets span [0.000001, 0.08875]
 
@@ -530,6 +531,7 @@ How many leaf stations sit at each joint, each turned its own share of a full tu
 - count (u32), stations, [1, 32], default 1
 - read by plan, expand; removed growth path: as the direct build
 - checked: Twig site, rank 4, as invalid value `twig stationsPerInternode`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - note: Conflicting bounds: the canopy check admits 1 to 64 (`twig stations`), and this check's 1 to 32 answers first. The skeleton never reads it; with `canopy.divergence` it sets the phyllotaxis.
 - blend: rounded to the nearest; dial: `twig_stations_per_internode` (leaf stations at each joint, spread around the shoot), window its bounds (validated bound), steps 1 and 2, presets span [1, 4]
 
@@ -828,7 +830,7 @@ The most a growing shoot may turn in one step, in degrees; unset, 35. At 180 or 
 
 ### `/radii/trunkRadius`
 
-The trunk's radius at the ground as a share of the tree's height, so raising it thickens every piece of wood in proportion.
+The leaf box's reach where foliage sits on slender wood, as a trunk radius at the ground that is a share of the tree's height; the engine sizes the grown wood itself (fn-198).
 
 - real, share of height, [0.000004, 179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000], default 0.02
 - read by plan; removed growth path: as the direct build
@@ -986,6 +988,7 @@ How deeply a child branch is set into its parent at a fork. Raising it sinks the
 - real, share, [0, 0.9], default 0.5
 - read by expand; removed growth path: as the direct build
 - checked: Surface site, rank 8, as invalid input `surface parameters`
+- dormant: a stem that never forks
 - blend: linear; dial: `fork_socket` (how deeply a child branch is set into its parent at a fork), window its bounds (validated bound), steps 0.15 and 0.3
 
 ### `/surface/socketContainment`
@@ -1005,6 +1008,7 @@ How much wood thickens at a fork. Raising it leaves a more pronounced collar whe
 - real, multiple of radius, [1, 4], default 1.35
 - read by plan, expand; removed growth path: as the direct build
 - checked: Surface site, rank 9, as invalid input `surface parameters`
+- dormant: a stem that never forks
 - note: Seats leaves and sizes the leaf box where surface contact is on.
 - blend: linear; dial: `fork_swell` (how much wood thickens at a fork), window its bounds (validated bound), steps 0.5 and 1
 
@@ -1017,6 +1021,7 @@ Wood at or below this fraction of the root radius bears foliage of its own, besi
 - real, share of root radius, [0, 1], default 0
 - read by plan, expand; removed growth path: measured against the root node, and capped by `twig.bearingDiameter`
 - checked: Canopy site, rank 0, as invalid input `shoot radius`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - note: Above zero the leaf box uses the trunk radius.
 - blend: linear; dial: `canopy_shoot_radius` (the share of the root radius at or below which wood bears foliage of its own; at zero no wood beyond the twig layer bears foliage of its own, and any rise starts clothing it), window its bounds (validated bound), steps 0.005 and 0.01, presets span [0, 0.0375]
 
@@ -1037,6 +1042,7 @@ The degrees each successive leaf is turned around its shoot. Raising it turns th
 - real, degrees, [-1000000000, 1000000000], default 137.508
 - read by expand; removed growth path: as the direct build
 - checked: Canopy site, rank 2, as invalid input `divergence`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - note: Past a phase-error bound, station preparation leaves the GPU for the CPU.
 - blend: degrees along the shorter arc; dial: `foliage_divergence` (the degrees each successive leaf is turned around its shoot), window its bounds (validated bound), steps 15 and 30, presets span [116.262, 201.246]
 
@@ -1067,6 +1073,7 @@ How far a leaf turns away from the trunk. Raising it points the leaves outward, 
 - real, -, [-1, 1], default 0.6
 - read by expand; removed growth path: as the direct build
 - checked: Canopy site, rank 4, as invalid input `outward`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - note: Rosette fronds ignore it.
 - blend: linear; dial: `leaf_outward` (how far a leaf turns away from the trunk), window its bounds (validated bound), steps 0.25 and 0.5
 
@@ -1077,6 +1084,7 @@ How far a leaf turns toward the sky. Raising it tips the leaves up.
 - real, -, [-1, 1], default 0.35
 - read by expand; removed growth path: as the direct build
 - checked: Canopy site, rank 5, as invalid input `upward`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - note: Rosette fronds ignore it.
 - blend: linear; dial: `leaf_upward` (how far a leaf turns toward the sky), window its bounds (validated bound), steps 0.25 and 0.5
 
@@ -1087,6 +1095,7 @@ Lean along the shoot, as a fraction of the radial off the wood.
 - real, share of the radial, [-1, 1], default 0
 - read by expand; removed growth path: as the direct build
 - checked: Canopy site, rank 6, as invalid input `forward lean`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - blend: linear; dial: `leaf_forward_lean` (how far a leaf leans along its shoot), window its bounds (validated bound), steps 0.25 and 0.5
 
 ### `/canopy/leanRise`
@@ -1096,6 +1105,7 @@ Further lean along the shoot on radials that face upward.
 - real, share of the radial, [-2, 2], default 0
 - read by expand; removed growth path: as the direct build
 - checked: Canopy site, rank 7, as invalid input `lean rise`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - blend: linear; dial: `leaf_lean_rise` (further lean along the shoot for leaves whose radial faces up), window its bounds (validated bound), steps 0.5 and 1
 
 ### `/canopy/surfaceContact`
@@ -1184,6 +1194,7 @@ The share of leaf-bearing wood that bears its leaves along it, cauline foliage a
 - real, share of leaf-bearing wood, [0, 1], default 1
 - read by plan, expand; removed growth path: as the direct build
 - checked: Canopy site, rank 15, as invalid input `cauline share`
+- dormant: a crown of fronds (`rosetteFronds` above zero)
 - blend: linear; dial: `cauline` (the share of leaf-bearing wood that bears its leaves along it; at zero only a crown bears leaves), window its bounds (validated bound), steps 0.05 and 0.2
 
 ### `/canopy/rosetteDivergence`

@@ -187,6 +187,7 @@ crate::catalogue::rows! {
         pub fork_socket: f64 = "forkSocket" "share" Rail::closed(0.0, 0.9) => [Expand] {
             wire: 85,
             check: input(Site::Surface, 8, "surface parameters"),
+            applies: "a stem that never forks",
             dial: bounded("fork_socket", "how deeply a child branch is set into its parent at a \
                 fork", [0.15, 0.3]),
         },
@@ -206,6 +207,7 @@ crate::catalogue::rows! {
             Rail::closed(1.0, 4.0) => [Plan, Expand] {
             wire: 87,
             check: input(Site::Surface, 9, "surface parameters"),
+            applies: "a stem that never forks",
             note: "Seats leaves and sizes the leaf box where surface contact is on.",
             dial: bounded("fork_swell", "how much wood thickens at a fork", [0.5, 1.0]),
         },
