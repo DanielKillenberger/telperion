@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-15T08:24:11.959314Z",
+  "depends_on": [
+    "fn-284-the-harnesss-controls-change-the-tree.1"
+  ],
+  "id": "fn-284-the-harnesss-controls-change-the-tree.2",
+  "priority": null,
+  "spec": "fn-284-the-harnesss-controls-change-the-tree",
+  "spec_path": ".flow/tasks/fn-284-the-harnesss-controls-change-the-tree.2.md",
+  "status": "todo",
+  "title": "The engine's rows reach the browser table and the panel",
+  "updated_at": "2026-10-15T08:24:11.959314Z"
+}
