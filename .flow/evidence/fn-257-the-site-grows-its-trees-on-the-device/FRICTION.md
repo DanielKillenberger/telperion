@@ -1,0 +1,1 @@
+- 2026-10-16 00:14 (fn-257 growth profile): telperion-heavy 12 GB waited 13 min for room (10 GB free) before I noticed; the oak alone ran in 10 GB. Cost ~13 min. Would remove: telperion-heavy printing the free room once and failing fast (or suggesting the largest admissible size) after a minute instead of waiting silently.

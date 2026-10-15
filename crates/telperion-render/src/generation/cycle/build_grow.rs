@@ -162,6 +162,11 @@ pub(super) struct Grew {
     pub ends: Vec<usize>,
     #[cfg(test)]
     pub censuses: Vec<Vec<u32>>,
+    /// fn-257's growth profile: each cycle's host milliseconds recording
+    /// and submitting it, waiting for the census before it, and readying
+    /// the arena after that census (moves and compactions).
+    #[cfg(test)]
+    pub host: Vec<[f64; 3]>,
 }
 
 impl Grew {
@@ -393,17 +398,27 @@ impl Growing {
         grew.stamped.extend(stamped);
         #[cfg(test)]
         grew.ends.push(grew.stamped.len());
+        #[cfg(test)]
+        grew.host.push([clock.elapsed_ms(), 0.0, 0.0]);
         if cycle == 1 {
             return Ok(self);
         }
+        #[cfg(test)]
+        let waited = super::super::Clock::now();
         let read = match self.tail.take() {
             // The census a pause read early, its stop already checked.
             Some(read) => read,
             None => self.read(gpu, (cycle - 1, t.budget)).await?,
         };
+        #[cfg(test)]
+        let (waited, readied) = (waited.elapsed_ms(), super::super::Clock::now());
         let mut g = self
             .ready(gpu, (kit, t, tables), (cycle, end), &read)
             .await?;
+        #[cfg(test)]
+        if let Some(h) = g.grew.host.last_mut() {
+            (h[1], h[2]) = (waited, readied.elapsed_ms());
+        }
         g.prev = g.last.replace(read);
         Ok(g)
     }

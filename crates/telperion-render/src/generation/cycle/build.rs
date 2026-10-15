@@ -490,6 +490,8 @@ impl Late {
 /// browser delivers it on its own.
 async fn mapped(gpu: &Gpu, (index, mut r): (wgpu::SubmissionIndex, Mapped)) -> Result<()> {
     let error = |e: String| super::super::io::error(e);
+    #[cfg(test)]
+    crate::trace::waited("census");
     #[cfg(not(target_arch = "wasm32"))]
     {
         let wait = wgpu::PollType::Wait {
