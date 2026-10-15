@@ -88,7 +88,9 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         flowering: 0.0,
         cluster_leaves: 0.0,
         cluster_spread: 0.0,
-        leaf_years: f64::INFINITY,
+        // Leaves on the current year's wood alone (fn-236 host ruling,
+        // 2026-10-14): Q. garryana is "deciduous" (Flora of North America).
+        leaf_years: 1.0,
         // fn-270 R5: the days its shoot elongates and its leaf expands
         // within the year, sourced in its preset's value file.
         elongation: 14.0,

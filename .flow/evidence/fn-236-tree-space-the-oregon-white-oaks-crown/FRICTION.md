@@ -34,3 +34,24 @@
 - **Slowed by:** the still runner reads the compiled preset, so each probe is a rebuild (about 45 s), and the first one after merging F4 rebuilt the workspace and ran past the 10-minute foreground limit. Restoring the preset between probes needed a scratch copy, because the shell guard refuses `git checkout -- <file>`.
 - **Cost:** about 12 minutes.
 - **Would remove it:** the still runner reading a value file from disk (as `oak_measure.rs` does) behind a flag, so a probe needs no rebuild.
+
+## 2026-10-14: a probe build queued behind other sessions' heavy jobs
+
+- **Doing:** the defect probe's level fork stills (`defects.sh`, defects a to c of the owner's verdict).
+- **Slowed by:** `telperion-heavy` held the probe's build for over ten minutes ("room 4 GB for 6") while two other sessions' heavy jobs claimed the desk's memory; the build asked for 6 GB because the script copied the render round's ask, though an incremental example build needs far less. The foreground call hit the 10-minute limit and moved to the background.
+- **Cost:** about 12 minutes of waiting.
+- **Would remove it:** an ask sized to the job (the probe's build lowered to 4 GB here); a `telperion-heavy --status` that names who holds the room, so a waiting agent can tell a short wait from a long one.
+
+## 2026-10-14: the shell guard refuses a dynamic redirect and `rm -rf` in the evidence's raw folder
+
+- **Doing:** writing probe output into `raw/defects/` and clearing a stale stills folder.
+- **Slowed by:** the guard refused `> $R/twig-40-$s.txt` in a loop (as the 2026-10-09 entry records) and `rm -rf raw/defects-r0` (the folder was left to be overwritten instead).
+- **Cost:** two blocked commands, about 3 minutes.
+- **Would remove it:** nothing in the repository (a local guard setting; reported, not specced).
+
+## 2026-10-14: an 80-year probe waited 34 minutes for 12 GB, then met a refusal round 3 already had
+
+- **Doing:** checking whether `invalid input: unsolved radii` at 80, seed 7 (round 4's stills) came from round 4's leaf rows.
+- **Slowed by:** `telperion-heavy` held the 12 GB run from 16:06 to 16:40 while the desk's room swung between -1 and 11 GB; the run then refused with the same error on round 3's rows, so the refusal predates this round and the wait bought one bit.
+- **Cost:** 34 minutes of waiting.
+- **Would remove it:** a stored per-preset, per-age, per-seed build status (which trees refuse on the branch's tip), so a refusal is looked up before it is reproduced; and an ask sized from the tree's expected nodes.
