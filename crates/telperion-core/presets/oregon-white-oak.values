@@ -361,6 +361,7 @@
 /space/ages/7/relayEnded = 1.0
 /space/ages/7/relayFailed = 1.0
 /space/ages/7/epitony = 0.2
+/space/ages/7/takeover = 0.75
 /space/ages/7/leafArea = 0.00181
 /space/ages/7/elongation = 14.0
 /space/ages/7/expansion = 35.0
@@ -446,6 +447,7 @@
 /space/ages/9/relayEnded = 1.0
 /space/ages/9/relayFailed = 1.0
 /space/ages/9/epitony = 0.2
+/space/ages/9/takeover = 0.75
 /space/ages/9/leafArea = 0.00181
 /space/ages/9/elongation = 14.0
 /space/ages/9/expansion = 35.0

@@ -93,6 +93,8 @@ pub const SETTINGS: &[Setting] = &[
         "Where along the stopped axis's last unit a relay bud stands. Dormant without relays."),
     row("epitony", Linear, SHARE, "share",
         "How far a relay bud turns to the upper side of its parent. Dormant without relays."),
+    row("takeover", Linear, SHARE, "share",
+        "How far a relay's base runs back onto the line of the axis it takes over. Dormant without relays."),
     row("erection", Log { floor: 0.01 }, [0.0, MAX_RATE], "per year",
         "How fast an axis's base straightens further towards the vertical with age."),
     row("readiness", Linear, SHARE, "share",

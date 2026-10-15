@@ -339,6 +339,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "straightening": 0.33333333333333337,
+            "takeover": 0.75,
             "trunk": true,
             "upkeep": 0.006054004063162271,
             "zones": {
@@ -404,6 +405,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "straightening": 0.33333333333333337,
+            "takeover": 0.75,
             "trunk": true,
             "upkeep": 0.006054004063162271,
             "zones": {
@@ -474,6 +476,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "straightening": 0.33333333333333337,
+            "takeover": 0.75,
             "trunk": true,
             "upkeep": 0.006054004063162271,
             "zones": {
@@ -546,6 +549,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "straightening": 0.33333333333333337,
+            "takeover": 0.75,
             "trunk": true,
             "upkeep": 0.006054004063162271,
             "zones": {
@@ -618,6 +622,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "straightening": 0.33333333333333337,
+            "takeover": 0.75,
             "trunk": true,
             "upkeep": 0.006054004063162271,
             "zones": {
@@ -761,6 +766,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeSize": 0.5,
             "shedding": 17,
             "straightening": 0.25,
+            "takeover": 0.75,
             "upkeep": 0.006054004063162271,
             "viability": 0.9983333333333334,
             "zones": {
@@ -853,6 +859,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeSize": 0.5,
             "shedding": 13.999999999999996,
             "straightening": 0.2,
+            "takeover": 0.75,
             "upkeep": 0.006054004063162271,
             "viability": 0.9973333333333333,
             "zones": {
@@ -1019,6 +1026,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "shedding": 2,
+            "takeover": 0.75,
             "upkeep": 0.006054004063162271,
             "viability": 0.976,
             "zones": {
@@ -1112,6 +1120,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 0.33333333333333337,
             "shadeSize": 0.5,
             "shedding": 1.4,
+            "takeover": 0.75,
             "upkeep": 0.006054004063162271,
             "viability": 0.9733333333333333,
             "zones": {
@@ -2020,6 +2029,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1,
             "shadeSize": 0.5,
             "shedding": 4,
+            "takeover": 0.75,
             "upkeep": 0.35,
             "viability": 0.999,
             "zones": {
@@ -2069,7 +2079,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
               "wander": 0.4
             },
             "insertion": 0.7,
-            "internode": 0.07,
+            "internode": 0.031,
             "leafArea": 0.00181,
             "leafFall": 45,
             "leafGirth": 1,
@@ -2145,6 +2155,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "shadeHazard": 1,
             "shadeSize": 1,
             "shedding": 3,
+            "takeover": 0.75,
             "upkeep": 0.35,
             "viability": 0.98,
             "zones": {
@@ -3531,6 +3542,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 1,
+            "takeover": 0.5,
             "trunk": true,
             "upkeep": 0.35,
             "zones": {
@@ -3594,6 +3606,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 1,
+            "takeover": 0.5,
             "trunk": true,
             "upkeep": 0.35,
             "zones": {
@@ -3717,6 +3730,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
+            "takeover": 0.5,
             "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
@@ -3782,6 +3796,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
+            "takeover": 0.5,
             "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
@@ -4568,6 +4583,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "relayFailed": 1,
             "senescence": 277,
             "shadeHazard": 1.1423076923076922,
+            "takeover": 0.5,
             "trunk": true,
             "upkeep": 0.35,
             "zones": {
@@ -4638,6 +4654,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 277,
             "shadeHazard": 1.1423076923076922,
             "shedding": 3,
+            "takeover": 0.5,
             "upkeep": 0.35,
             "viability": 0.998,
             "zones": {
@@ -4710,6 +4727,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 277,
             "shadeHazard": 1.1423076923076922,
             "shedding": 2,
+            "takeover": 0.5,
             "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
@@ -5632,6 +5650,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 1,
+            "takeover": 0.5,
             "trunk": true,
             "upkeep": 0.35,
             "zones": {
@@ -5695,6 +5714,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 1,
+            "takeover": 0.5,
             "trunk": true,
             "upkeep": 0.35,
             "zones": {
@@ -5818,6 +5838,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
+            "takeover": 0.5,
             "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
@@ -5883,6 +5904,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
+            "takeover": 0.5,
             "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
@@ -6534,6 +6556,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 1,
+            "takeover": 0.5,
             "trunk": true,
             "upkeep": 0.35,
             "zones": {
@@ -6597,6 +6620,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 1,
+            "takeover": 0.5,
             "trunk": true,
             "upkeep": 0.35,
             "zones": {
@@ -6720,6 +6744,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
+            "takeover": 0.5,
             "upkeep": 0.35,
             "viability": 0.995,
             "zones": {
@@ -6785,6 +6810,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
             "senescence": 264,
             "shadeHazard": 0.16923076923076938,
             "straightening": 0.6,
+            "takeover": 0.5,
             "upkeep": 0.35,
             "viability": 0.995,
             "zones": {

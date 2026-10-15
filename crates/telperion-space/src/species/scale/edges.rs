@@ -29,6 +29,7 @@ const BEFORE: &[Before] = &[
     ("relay_failed", [0.0, 1.0], false, BOTH),
     ("relay_at", [0.0, 1.0], false, BOTH),
     ("epitony", [0.0, 1.0], false, BOTH),
+    ("takeover", [0.0, 1.0], false, BOTH),
     ("erection", [0.0, 100.0], false, BOTH),
     ("readiness", [0.0, 1.0], false, BOTH),
     ("rhythm", [0.0, 1.0], false, BOTH),

@@ -20,6 +20,7 @@
 /space/ages/0/relayFailed = 0.33333333333333337
 /space/ages/0/relayAt = 0.7166666666666666
 /space/ages/0/epitony = 0.2
+/space/ages/0/takeover = 0.75
 /space/ages/0/erection = 0.012239800905693142
 /space/ages/0/rhythm = 0.7666666666666667
 /space/ages/0/straightening = 0.33333333333333337
@@ -64,6 +65,7 @@
 /space/ages/1/relayFailed = 0.33333333333333337
 /space/ages/1/relayAt = 0.7166666666666666
 /space/ages/1/epitony = 0.2
+/space/ages/1/takeover = 0.75
 /space/ages/1/erection = 0.012239800905693142
 /space/ages/1/rhythm = 0.9
 /space/ages/1/straightening = 0.33333333333333337
@@ -110,6 +112,7 @@
 /space/ages/2/relayFailed = 0.33333333333333337
 /space/ages/2/relayAt = 0.7166666666666666
 /space/ages/2/epitony = 0.2
+/space/ages/2/takeover = 0.75
 /space/ages/2/erection = 0.012239800905693142
 /space/ages/2/straightening = 0.33333333333333337
 /space/ages/2/leafArea = 0.00016730748660601915
@@ -157,6 +160,7 @@
 /space/ages/3/relayFailed = 0.33333333333333337
 /space/ages/3/relayAt = 0.7166666666666666
 /space/ages/3/epitony = 0.2
+/space/ages/3/takeover = 0.75
 /space/ages/3/erection = 0.012239800905693142
 /space/ages/3/straightening = 0.33333333333333337
 /space/ages/3/leafArea = 0.00016730748660601915
@@ -202,6 +206,7 @@
 /space/ages/4/relayFailed = 0.33333333333333337
 /space/ages/4/relayAt = 0.7166666666666666
 /space/ages/4/epitony = 0.2
+/space/ages/4/takeover = 0.75
 /space/ages/4/straightening = 0.33333333333333337
 /space/ages/4/leafArea = 0.00016730748660601915
 /space/ages/4/elongation = 19.08298850246509
@@ -295,6 +300,7 @@
 /space/ages/6/relayFailed = 1.0
 /space/ages/6/relayAt = 0.7166666666666666
 /space/ages/6/epitony = 0.2666666666666667
+/space/ages/6/takeover = 0.75
 /space/ages/6/straightening = 0.25
 /space/ages/6/leafArea = 0.00016730748660601915
 /space/ages/6/elongation = 19.08298850246509
@@ -357,6 +363,7 @@
 /space/ages/7/relayFailed = 0.75
 /space/ages/7/relayAt = 0.7166666666666666
 /space/ages/7/epitony = 0.2666666666666667
+/space/ages/7/takeover = 0.75
 /space/ages/7/straightening = 0.2
 /space/ages/7/leafArea = 0.00016730748660601915
 /space/ages/7/elongation = 19.08298850246509
@@ -471,6 +478,7 @@
 /space/ages/9/relay = 0.33333333333333337
 /space/ages/9/relayFailed = 0.2777777777777778
 /space/ages/9/epitony = 0.06666666666666668
+/space/ages/9/takeover = 0.75
 /space/ages/9/leafArea = 0.00016730748660601915
 /space/ages/9/elongation = 19.08298850246509
 /space/ages/9/expansion = 25.888428479342984
@@ -533,6 +541,7 @@
 /space/ages/10/relayEnded = 0.33333333333333337
 /space/ages/10/relayFailed = 0.25
 /space/ages/10/epitony = 0.06666666666666668
+/space/ages/10/takeover = 0.75
 /space/ages/10/leafArea = 0.00016730748660601915
 /space/ages/10/elongation = 19.08298850246509
 /space/ages/10/expansion = 25.888428479342984

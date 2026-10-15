@@ -105,7 +105,7 @@ pub(super) const NA_COLS: u32 = 41;
 pub(super) const NP_COLS: u32 = 22;
 /// The place's columns per kept axis (`settle_state.wgsl`'s `Y_`), and
 /// its fault word in `atom`.
-pub(super) const Y_COLS: u32 = 63;
+pub(super) const Y_COLS: u32 = 67;
 /// The place's columns per kept phytomer (`settle_state.wgsl`'s `Q_`).
 pub(super) const Q_COLS: u32 = 11;
 /// The lay's first error and whether any phytomer has size.

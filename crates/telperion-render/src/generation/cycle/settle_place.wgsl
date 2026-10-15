@@ -43,6 +43,7 @@ fn frame_main(@builtin(global_invocation_id) id: vec3<u32>) {
     set_ax3(i, A_HEADING, fr.heading);
     set_ax3(i, A_SIDE, fr.side);
     keep_walk(i, Walk(fr.heading, fr.side, fr.base, 0.0, (1.0 + fr.heading.z) * 0.5, fr.curve, tropism_of(i)));
+    take_over(i);
     let below = fr.base.z <= form[1];
     set_py(i, Y_FAIL, u32(below));
     if below {

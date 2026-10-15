@@ -77,6 +77,7 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
@@ -216,6 +217,7 @@ pub fn oak() -> Species {
         relay_ended: 1.0,
         relay_failed: 1.0,
         epitony: 0.2,
+        takeover: 0.0,
         form: Form {
             tropism: 0.5,
             elevation: 1.05,
@@ -266,6 +268,8 @@ pub fn oak() -> Species {
         relay_ended: 1.0,
         relay_failed: 1.0,
         epitony: 0.2,
+        // fn-286 (2026-10-15): a relay runs three quarters back onto the line it takes over, so the owner's zigzag (seed 7) goes; the limb keeps its relays' kinks, its tortuous course (RELAYS.md).
+        takeover: 0.75,
         form: Form {
             tropism: 0.48,
             // Ascending (fn-236 round 1): at 0.5 rad the boughs spread
@@ -344,6 +348,8 @@ pub fn oak() -> Species {
         relay_ended: 1.0,
         relay_failed: 1.0,
         epitony: 0.2,
+        // fn-286 (2026-10-15): a relay runs three quarters back onto the line it takes over, so the owner's zigzag (seed 7) goes; the limb keeps its relays' kinks, its tortuous course (RELAYS.md).
+        takeover: 0.75,
         form: Form {
             tropism: 0.33,
             elevation: 0.2,

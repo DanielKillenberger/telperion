@@ -127,7 +127,9 @@ fn line(
         }
         let Some((c, node)) = next else { break };
         let before = x.phytomers[..upto].last().map(|p| p.heading).unwrap_or(x.heading);
-        let after = s.axes[c].heading;
+        // The turn as drawn: to the carried axis's first phytomer (fn-286:
+        // a take-over bends the drawn wood, not the frame's heading).
+        let after = s.axes[c].phytomers.first().map_or(s.axes[c].heading, |p| p.heading);
         let ang = before.dot(after).clamp(-1.0, 1.0).acos().to_degrees();
         let kind = if node == usize::MAX { "continuation" } else { "relay" };
         joins.push((pts.len() - 1, kind, ang, x.phytomers.len() - upto));

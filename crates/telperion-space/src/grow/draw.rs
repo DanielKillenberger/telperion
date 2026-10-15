@@ -8,7 +8,7 @@ use super::sketch::Pencil;
 use super::Grower;
 use crate::cores::{map, picked, PIECE};
 use crate::error::{Error, Result};
-use crate::geometry::{bend, dominance, frame, Layer};
+use crate::geometry::{bend, dominance, frame, taken, Layer};
 
 use crate::presence::{relay_node, Draws};
 use crate::species::Species;
@@ -322,7 +322,9 @@ fn pencil<'p>(
     let spread = species.states[axis.pa].form.tropism_spread;
     let turning = crate::lineage::tropism(axis.lineage, spread);
     let pencil = Pencil {
-        layer: Layer::bent(framed, curve, turning).inheriting(handed),
+        layer: Layer::bent(framed, curve, turning)
+            .inheriting(handed)
+            .taking_over(taken(axes, species, i, &ends)),
         base_scale: f64::from(inherited * vigour * share as f32),
         running: 1.0,
         rank: 0.0,

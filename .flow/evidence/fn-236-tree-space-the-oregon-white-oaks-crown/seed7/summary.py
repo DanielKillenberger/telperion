@@ -22,8 +22,10 @@ for s, t in sorted(T.items()):
         reach=max([d['tipreach'] for d in low], default=0) / t['crown95'],
         wood=sum(d['len'] for d in low),
         relay40=sum(1 for d in low for j in d['joins'] if j['kind'] == 'relay' and j['turn'] >= 40),
+        relay40all=sum(1 for d in L[s] for j in d['joins'] if j['kind'] == 'relay' and j['turn'] >= 40),
+        kinksall=sum(len(d['kinks']) for d in L[s]),
         kinks=sum(len(d['kinks']) for d in low), c95=t['crown95'], h=t['height'], phyt=t['phytomers']))
-for k in ['limbs', 'long', 'beyond', 'reach', 'wood', 'relay40', 'kinks', 'c95', 'h', 'phyt']:
+for k in ['limbs', 'long', 'beyond', 'reach', 'wood', 'relay40', 'kinks', 'relay40all', 'kinksall', 'c95', 'h', 'phyt']:
     v = [r[k] for r in rows]
     s7 = [r[k] for r in rows if r['seed'] == 7]
     print(f"{k}: median {st.median(v):.2f} p90 {sorted(v)[int(.9 * len(v))]:.2f} "

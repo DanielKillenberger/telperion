@@ -515,6 +515,7 @@
 /space/ages/5/relayFailed = 1.0
 /space/ages/5/relayAt = 0.6
 /space/ages/5/epitony = 0.2
+/space/ages/5/takeover = 0.5
 /space/ages/5/leafArea = 0.0013190625000000001
 /space/ages/5/elongation = 110.0
 /space/ages/5/expansion = 24.0
@@ -559,6 +560,7 @@
 /space/ages/6/relayEnded = 1.0
 /space/ages/6/relayFailed = 1.0
 /space/ages/6/epitony = 0.4
+/space/ages/6/takeover = 0.5
 /space/ages/6/leafArea = 0.0013190625000000001
 /space/ages/6/elongation = 110.0
 /space/ages/6/expansion = 24.0
@@ -609,6 +611,7 @@
 /space/ages/7/relayEnded = 1.0
 /space/ages/7/relayFailed = 1.0
 /space/ages/7/epitony = 0.4
+/space/ages/7/takeover = 0.5
 /space/ages/7/leafArea = 0.0013190625000000001
 /space/ages/7/elongation = 110.0
 /space/ages/7/expansion = 24.0

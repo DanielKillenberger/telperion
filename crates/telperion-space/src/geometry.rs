@@ -234,6 +234,32 @@ fn framed(
     }
 }
 
+/// How far relay `i` runs back onto the line it carries on (fn-286): its
+/// PA's take-over as far as it has left that line (its blend), towards
+/// its parent's running direction where the parent's walk ended (`ends`).
+/// None on any other axis, or a line of no direction.
+pub(crate) fn taken(
+    axes: &[Axis],
+    species: &Species,
+    i: usize,
+    ends: &dyn Fn(usize) -> (Vec3, Vec3),
+) -> Take {
+    let axis = &axes[i];
+    let Origin::Relay { parent, .. } = axis.origin else {
+        return NO_TAKE;
+    };
+    let take = species.states[axis.pa].takeover as f32 * axis.blend as f32;
+    match unit(q3(ends(parent).0)) {
+        Some(line) if take > 0.0 => (line, take),
+        _ => NO_TAKE,
+    }
+}
+
+/// A take-over: the line a relay runs back onto and how far (`taken`).
+pub(crate) type Take = ([f32; 3], f32);
+/// No take-over.
+pub(crate) const NO_TAKE: Take = ([0.0; 3], 0.0);
+
 /// Where relay `i` joins its parent (fn-244 host decision 4): its stand's
 /// place on the parent (`stand::position`) blended towards the parent's
 /// tip by its blend along the parent's scaled length, as a position in the

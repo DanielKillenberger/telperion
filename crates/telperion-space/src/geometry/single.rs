@@ -3,7 +3,7 @@
 //! so a chain is laid whenever it is resolved and the tree is the same in
 //! any order.
 use super::lay::{lay, Layer, Stop, GROUND_TOLERANCE};
-use super::{bend, frame};
+use super::{bend, frame, taken};
 use crate::error::Result;
 use crate::sag::Lever;
 use crate::species::Species;
@@ -22,6 +22,7 @@ pub(crate) fn lay_one(
 ) -> Result<Layer> {
     let ends = |p: usize| layers[p].as_ref().map(Layer::ends).expect("laid");
     let framed = frame(axes, species, i, &ends);
+    let take = taken(axes, species, i, &ends);
     let years = |a: &Axis| f64::from(age.saturating_sub(a.birth)) - a.sleep;
     let axis = &axes[i];
     let curve = match axis.origin {
@@ -47,7 +48,7 @@ pub(crate) fn lay_one(
     if base < -GROUND_TOLERANCE {
         return Err(Stop::Below(-base).error(i, pa, birth, base));
     }
-    let start = (framed, curve, inherited);
+    let start = (framed, curve, inherited, take);
     lay(&mut axes[i], start, state, own, levers, trunk).map_err(|s| s.error(i, pa, birth, base))
 }
 

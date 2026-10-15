@@ -31,6 +31,7 @@ fn frame(i: u32, fr: Framed) {
     set_ax3(i, A_SIDE, fr.side);
     let wk = Walk(fr.heading, fr.side, fr.base, 0.0, (1.0 + fr.heading.z) * 0.5, fr.curve, tropism_of(i));
     keep_walk(i, wk);
+    take_over(i);
     set_pnf(i, P_BASE_SCALE, apart(inherited * vigour) * share);
     set_pnf(i, P_GOING, 1.0);
     set_pnf(i, P_RANKED, 0.0);

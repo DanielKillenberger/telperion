@@ -200,7 +200,7 @@ pub(super) fn sky(k: f64, directions: &[u64]) -> (Vec<u32>, u32) {
 
 /// A PA's form row and its leaf area's word (`layout.wgsl`'s `FORM`,
 /// `F_LEAF_AREA`).
-const FORM: usize = 19;
+const FORM: usize = 20;
 const F_LEAF_AREA: usize = 18;
 
 /// Whether no PA deposits leaf area: every leaf's area is nothing.

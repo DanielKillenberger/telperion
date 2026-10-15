@@ -230,6 +230,11 @@
 //! shoots (`leafYears` 1, `shootRadius` 0.007) at a typical 72.5 mm blade.
 //! The merge changed the oak's value file and nothing else; the refusal
 //! digest did not move.
+//! fn-236 and fn-286 (2026-10-15) re-pinned the same three: the oak's
+//! young-stem laterals grow 0.031 m nodes (a sourced sapling rate), and
+//! `takeover` is a new row (0 by default) the oak, beech, birch, ordinary
+//! tree, Telperion and Laurelin set where their relays stand. The refusal
+//! digest did not move.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -265,7 +270,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        10_945_204_996_623_722_676,
+        1_285_962_000_534_186_616,
         "{}",
         digest(&text)
     );
@@ -309,7 +314,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        17_052_627_544_863_014_307,
+        16_363_652_001_628_328_573,
         "{}",
         digest(&text)
     );
@@ -334,7 +339,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        2_973_709_605_309_610_466,
+        7_278_137_488_332_083_919,
         "{}",
         digest(&text)
     );
