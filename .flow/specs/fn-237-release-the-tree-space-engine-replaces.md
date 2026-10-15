@@ -33,9 +33,24 @@ The owner's goal (2026-10-08/09): "replace the old generator with the new one th
 
 - **R15 (friction, obvious fix; fn-256 task 13 FRICTION.md):** `scripts/build-wasm.mjs` ignores `CARGO_TARGET_DIR` and reads a stale Wasm from the default target, so `npm test` in a worktree with its own target dir can test old code; before the release PR it honours `CARGO_TARGET_DIR` (or fails by name when the Wasm it reads is older than the sources).
 
+## The owner's species verdicts (R3, 2026-10-15, review page `Kfsy2fgr5B2tJ4uiE1qxae`)
+
+| Species | Verdict | The owner's note |
+|---|---|---|
+| Ordinary | approve | |
+| Date palm | approve | |
+| Oregon white oak | needs work | "seed 7 specifically doesn't look like a real tree. Lower branches that grow to long and zigzag weirdly." |
+| European beech | needs work, after the release | "they really aren't full enough.. We need to be able to have big crowns with leader branches and full foliage. But i think we can move that work to after release." |
+| Silver birch | needs work | "We still need to fix the ground branches and here also we need to be able to make larger species with big leading branches. But it's the best species." |
+| Norway spruce | needs work | "Looks really good but still needs fuller curtains and larger species." |
+| Telperion | needs work, accepted for now | "Doesn't look magical enough and flowers look too much like copy pasted. Not natural. But can accept for now" |
+| Laurelin | needs work | "Looks better than telperion but still flowers are too samey all over. and doesn't look magical enough." |
+
+The owner on the four that ask for size: "i think all have a similar problem is that we're not efficient enough with the generator to make large species at full fidelity. We need to have a plan on how to figure this out post release." That plan is fn-285. The birch's ground branches and the oak's long low branches are fn-282's ground. Open with the owner: whether the oak at seed 7, the birch's ground branches and the flowers of Telperion and Laurelin hold the release.
+
 ## Boundaries
 
-Map only. Post-release: fn-232, fn-233.
+Map only. Post-release: fn-232, fn-233, fn-285.
 
 ## Housekeeping decisions (host, 2026-10-13, branch fn-237-housekeeping)
 
