@@ -12,7 +12,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-213-tree-space-the-silver-birch-as-a-point.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space: the silver birch as a point",
   "tracker": {
     "baseHashFlow": null,
@@ -25,5 +25,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-07T20:23:01.655633Z"
+  "updated_at": "2026-10-15T20:15:45.410545Z"
 }

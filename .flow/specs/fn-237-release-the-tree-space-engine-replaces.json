@@ -39,7 +39,8 @@
     "fn-252-a-shoot-that-reaches-the-ground-stops",
     "fn-281-the-oak-at-80-builds-at-every-seed",
     "fn-275-a-young-palms-fronds-grow-to-their-size",
-    "fn-284-the-harnesss-controls-change-the-tree"
+    "fn-284-the-harnesss-controls-change-the-tree",
+    "fn-286-a-relay-runs-back-onto-the-line-it"
   ],
   "id": "fn-237-release-the-tree-space-engine-replaces",
   "next_task": 1,
@@ -59,5 +60,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T15:36:29.354357Z"
+  "updated_at": "2026-10-15T20:15:42.983628Z"
 }

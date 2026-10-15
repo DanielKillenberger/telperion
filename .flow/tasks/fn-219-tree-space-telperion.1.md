@@ -10,9 +10,10 @@ TBD
 - [ ] TBD
 
 ## Done summary
-TBD
+The owner's species verdict (2026-10-15, fn-237 R3 table): 'can accept for now'; flowers and magic after the release. fn-286's take-over 0.5 approved.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
+- Commits: aa0df1860
 - Tests:
 - PRs:

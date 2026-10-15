@@ -12,9 +12,10 @@ R1 and R2: MODEL-BIRCH.md from sources (literature stages per docs/species-onboa
 - A first sheet (seeds 1, 7, 42; ages 40 and 80; bare and in leaf) viewed by the worker and handed to the host with reference photographs.
 
 ## Done summary
-TBD
+The owner's species verdict (2026-10-15, fn-237 R3 table): needs work but accepted for the release, 'it's the best species'; ground branches to fn-282 and larger trees to fn-285 after the release. fn-286's take-over 0.5 approved, 'definitely better'.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
+- Commits: aa0df1860
 - Tests:
 - PRs:

@@ -10,9 +10,10 @@ TBD
 - [ ] TBD
 
 ## Done summary
-TBD
+Round 4 shipped (the owner's choice). Seed 7's long zigzag low limbs fixed by the sourced sapling segment (0.031 m, Hibbs & Yoder 1993) and fn-286's take-over; the owner: 'definitely better'. The closed dome is fn-285's, after the release.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
+- Commits: aa0df1860
 - Tests:
 - PRs:
