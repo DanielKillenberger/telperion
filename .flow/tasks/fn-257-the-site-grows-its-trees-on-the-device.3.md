@@ -12,9 +12,10 @@ TBD
 - One `Species::unlit` replaces the copies that zero the light rows in production code.
 
 ## Done summary
-TBD
+Every shipped preset's device build is sized from the closed form's expectations (one Species::unlit; the birch's ground hazard had left it unsized and moving 23 times), and the units, woken and lattice tables have room so no shipped preset moves mid-growth (spruce at 40 seeds 1,7,42,1234; Telperion and Laurelin at 1,7,42). Birch tree::drawn 383-415 -> 210-237 ms; spruce 414 -> 387-403 ms. SIZED.md. Codex impl review: NEEDS_WORK (spruce still moved) -> fixed -> SHIP.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 959c8859a, af867b817
+- Tests: cargo test --profile ci -p telperion-render --lib every_preset_is_sized_from_its_expectations, growth_profile (CYCLE_TRACE)
 - PRs:
