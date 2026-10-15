@@ -152,14 +152,11 @@ pub fn oak() -> Species {
     };
     // The young stem: erect and monopodial, a yearly shoot of about
     // 0.36 m, its laterals temporary long shoots that die within three
-    // decades and are shed, so the bole clears. Four years (fn-236 round
-    // 5; twelve before): O-WHOLE's trunk stands 0.10 to 0.19 of the
-    // tree's height below its first scaffold limbs, measured from the
-    // photograph, and SILV and OWIC give open-grown oaks "short boles".
+    // decades and are shed, so the bole clears.
     let trunk = PaState {
         internode: 0.045,
         form: stem,
-        ..state(4, 1.0, unit((4, 5), &[(SPRIG, 0.4)], (3, &[(SPRIG, 0.6)])))
+        ..state(12, 1.0, unit((4, 5), &[(SPRIG, 0.4)], (3, &[(SPRIG, 0.6)])))
     };
     // The fork: for two years the top cluster of each yearly shoot grows
     // out as limbs, so four or five limbs leave at two heights (K19's

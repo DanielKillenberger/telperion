@@ -186,9 +186,7 @@
 # centroid rule (examples/centroid.rs) over the corners that state them,
 # the beech's alone: 264, 16 and 45 days; its lifespan from budburst to
 # the fall's end, 128 to 325, 0.53 years, derived and rounded down.
-# fn-236 round 5: the trunk four years, so the first scaffold limbs stand
-# low (O-WHOLE; SILV, OWIC "short boles"); twelve before.
-/space/ages/2/lifespan = 4.0
+/space/ages/2/lifespan = 12.0
 /space/ages/2/internode = 0.045
 /space/ages/2/divergence = 2.513
 /space/ages/2/leafArea = 0.00181
