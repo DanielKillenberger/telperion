@@ -31,6 +31,16 @@ Tasks 1 and 2 are the closed spikes (early tests 4 and 5, SPIKE.md, TEST5.md, TA
 
 A probe page the owner opens in Chrome (workers never run WebGPU in a browser): adapter and device creation, compilation of fn-256's cycle kernels cold and cached, and one empty cycle chain, timed. Stop: device creation plus cold compilation alone exceeds 0.1.4's oak time (273 ms), so a first visit cannot match; the owner decides whether first and repeat visits are judged apart.
 
+## Re-scope after the probes (host and owner, 2026-10-16)
+
+PROBE.md: reading the drawn tree back (13-358 MB) and rebuilding the field on the CPU misses 0.1.4 on every site species. GROWTH-PROFILE.md: device growth is not bound by data movement (at most 28 ms on the spruce); the birch loses 252-266 ms to 23 mid-build buffer resizes with the GPU idle, every tree 60-74 ms to 12-15 thousand dispatches under 20 µs, and the drawn records are 100 % full at 152 B a segment. The owner's decisions: the spruce at about 0.35 s is acceptable; compression ships in this release; the kernels' own speed is after it. So R1 and R1a are replaced by:
+
+- **R1' (the field stays on the device):** `growField` grows on the device and keeps the field's primitives there; `query(cells)` runs on the device for any cells and reads back only the answers; `release()` frees them. The query contract (R1a's cubes, answers and limb ownership) is unchanged; `cut` goes with a migration note.
+- **R5 (sized ahead):** the device's working buffers are sized from the family's parameters before growth (fn-270 R4's parameter-derived estimates, calibrated on the presets, no species branch), so a build never resizes mid-growth; a build that would outgrow its estimate is still caught by name, never silently.
+- **R6 (fewer dispatches):** passes of tiny dispatches fused or batched, the saving measured.
+- **R7 (compact records):** the drawn node records (152 B a segment, 48 B an axis) in a compact layout: positions quantized within the tree's bounds, the start shared with the parent's end, radii and orientation quantized, each field's precision bounded by a test at the drawn tolerance; read by the renderer, the field and every consumer of the records; memory before and after per preset; stills unchanged to the eye.
+- **R3' (speed):** per tree, warm, through the package entry: oak and birch at or under 0.1.4; spruce about 0.35 s or better (owner); the harness's build times not worse.
+
 ## Boundaries
 
 The engine's field query only. The owner (2026-10-15): "that really shouldn't be here but on killenberger.com": the site's page, its measurement in Chrome as a page, what a visitor without WebGPU sees (R1b's "the site's decision") and the grove's verdict belong to the killenberger.com repository; here R3 is measured through the package entry the site calls. Depends on fn-256. Release item (owner, 2026-10-15: "no let's do a proper 0.2.0 release with this shipped"): 0.2.0's `telperion/field` grows on the device; killenberger.com moves to it in its own repository.

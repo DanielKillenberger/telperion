@@ -52,6 +52,12 @@ The owner on the four that ask for size: "i think all have a similar problem is 
 
 "257 defines killenberger.com integration? that really shouldn't be here but on killenberger.com". This repository ships the engine, the harness and the npm package; moving killenberger.com off 0.1.4, its speed in Chrome, what a visitor without WebGPU sees and the grove's verdict are the killenberger.com repository's work, which pins 0.1.4 until it moves. R0a's site bar, R2's "the site's field against 0.1.4" and R3's grove verdict leave this release; fn-257 keeps only the engine's side (the field query grown on the device, its contract and its per-tree cost) and stays a release dependency (owner, 2026-10-15: "no let's do a proper 0.2.0 release with this shipped"): its per-tree bar, 0.1.4's, is measured through the package entry.
 
+## The owner's release decisions (2026-10-16)
+
+- The spruce's per-tree field at about 0.35 s against 0.1.4's 0.24 s: "acceptable". The real kernel work behind it is after the release (fn-285).
+- Compact node records ship in this release (fn-257): "compression should go into this release yes".
+- "fix the rest as proposed": the artifact size ceilings (R8) are raised to the sizes measured after fn-257 lands, with fn-242 to bring them down after the release; Telperion's 1.33 s at seed 42 is accepted as "about 1.25 s"; the oak's device/CPU difference at 40 (one node at `FINEST` by f32/f64 rounding, 185 relabelled keys, nothing drawn differs) is accepted, and the agreement test comparing drawn geometry rather than keys is after the release; the catalogue's unread scaffold pins (R11) are deleted.
+
 ## Boundaries
 
 Map only. Post-release: fn-232, fn-233, fn-285.
