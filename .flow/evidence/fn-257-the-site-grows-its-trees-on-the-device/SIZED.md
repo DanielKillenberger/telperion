@@ -14,3 +14,7 @@
 | oak 40 s1 | 0 → 0 | 227 ms | 250 ms | 838 |
 
 The spruce still moves once after cycle 38 (units and woken tables, which its own ARENA ratios set at margin 1.0) and compacts twice; that is about 50-70 ms, left as measured (the owner accepted the spruce at about 0.35 s).
+
+## After the review (task 3, round 1: R5's "a build never resizes mid-growth")
+
+The tables a projection still outgrew are given room past their measured most (`build_arena::HEADROOM`): the units and woken buds 1.5 (the spruce moved once after cycle 38), the lattice's nodes 3.5 (Telperion moved twice at seed 1 and once more at seed 7; the lattice grows by its box, not by the kept phytomers). Measured warm, RTX 3080 (`raw/r5/`): no move on the spruce at 40, seeds 1, 7, 42 and 1234 (`tree::drawn` 387-403 ms, one compaction), the ordinary, oak, beech, birch and palm at 40 (seed 1; the birch also 7), Telperion at 82, seeds 1, 7, 42, and Laurelin at 80, seeds 1, 7, 42. Growth's peak: the spruce 1,595 MB as before; Telperion at seed 1 2,740 MB (2,672 MB at a lattice room of 2.25, which still moved at seed 7). A build past these tables still moves by observed counts, and a count past a table is refused by name (`build_size::refusal`).
