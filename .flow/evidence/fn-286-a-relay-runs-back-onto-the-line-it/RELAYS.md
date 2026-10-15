@@ -69,3 +69,31 @@ These are the CPU build in one process, not the harness's warm device time; with
 - **What moves:** one organ, a leaf of an axis *gone* in year 24 (drawn by `Presenting::fade`). Its leaf share at f = 1e-6 is 0.998216 against 1.0 a year before. Nothing reads an unfrozen reach; the take-over only changed which tree grew.
 - **Why:** a gone axis's leaf is `(r(1 - f) - FINEST) / (r - FINEST)` (`unfold.rs`, `fade`), its wood's radius `r` thinning to the thinnest drawn. That phytomer's radius is 0.00020011 m, 1.1e-7 m above `FINEST` (2e-4 m). The leaf's slope in f is `r / (r - FINEST)`, about 1,800, so at f = 1e-6 it has already fallen 0.0018. Measured 1 - 0.998216 = 0.001784; the formula gives 0.00178. Any tree with a gone twig just above `FINEST` pops this way; with take-over off, the oak at 24, seed 7, happened to have none.
 - **Not decided:** the fade law is the fn-270 presentation's, and how a near-`FINEST` leaf should fade is a design choice (for example, the leaf fading at least as slowly as the fraction). Making take-over "read what straightening reads" would not change it. Left for the host.
+
+## Memory and workgroups, every preset (`grown_time_tests::whole_builds_are_timed`, device build at its sizes)
+
+Before is F4 at 28f495793; after is this branch (the take-over's four pencil words, the oak's segment, the sizing fix).
+
+| preset | resident MB before → after | scratch MB | workgroups given (needed) before | after |
+|---|---|---|---|---|
+| beech 40 s42 | 112.2 → 113.5 | 157.2 = | 2,001,188 (452,970) | 2,009,673 (453,959) |
+| oak 40 s42 | 463.1 → 469.0 | 325.6 = | 3,854,667 (1,095,182) | 3,786,604 (1,060,018) |
+| spruce 40 s42 | 1,010.4 → 1,027.9 | 486.3 = | 11,926,935 (4,333,776) | 11,998,955 (4,333,776) |
+| palm 40 s42 | 4.6 → 4.6 | 12.4 = | 887,157 (13,338) | 892,185 (13,338) |
+| birch 40 s42 | 203.7 → 207.0 | 200.3 = | 2,653,986 (797,291) | 2,669,446 (797,745) |
+| ordinary 40 s42 | 78.9 → 80.1 | 83.1 = | 2,431,156 (559,281) | 2,438,752 (559,281) |
+| Laurelin 80 s42 | 1,556.3 → 1,579.0 | 760.5 = | 38,197,716 (12,925,502) | 38,381,827 (12,938,195) |
+| Telperion 82 s42 | 1,708.8 → 1,734.0 | 812.5 = | 42,837,386 (14,304,902) | 43,042,227 (14,316,138) |
+| oak 80 s1 | 5,372.8 → 5,459.0 | 1,777.5 = | 37,855,649 (12,949,668) | 38,093,468 (12,960,231) |
+
+- Resident memory rises 1.0-1.7 % on every preset, the palm's too: the pencil table's four new words (59 to 63). The sizing fix moves no memory.
+- Workgroups given rise 0.3-0.6 % where the counts needed are unchanged (spruce, palm, ordinary): that is the sizing fix's whole cost.
+
+## Device and CPU agreement with take-over on, at 40 (`resident::agree_tests`, `AGREE_AGE=40`)
+
+- **Telperion at 40:** all five agreement tests pass.
+- **Oak at 40:** it fails. The disagreement is not the take-over's:
+  - F4's oak at 40 already fails `every_preset_sweeps_its_wood_as_the_cpu_does` (2 runs apart).
+  - With this branch's oak and its take-over set to 0 it fails three tests: nodes equal, 219 parents differing, 7 runs unmatched.
+  - With take-over on it fails the same three: nodes 285,930 against 285,929, 232 parents differing, 1 run apart.
+  - The sourced segment's tree exposes a device/CPU disagreement in the oak beyond the gate's age 12, where every preset agrees. Untraced.
