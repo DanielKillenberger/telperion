@@ -15,3 +15,7 @@ The last fn-245 stage, and the check fn-237 rests on. The owner's bar (fn-237 R0
 ## Boundaries
 
 Qualification only; fixes go to their own specs. Depends on stages 4 and 5. Release item for fn-237.
+
+## Found on the way (host, 2026-10-15, fn-286 RELAYS.md)
+
+- The Oregon white oak's device and CPU trees disagree at age 40: F4's own oak already fails the device/CPU sweep test at 40 (every preset agrees at the gate's age 12); with fn-236's sourced sapling segment, three agreement tests fail with 219 parents differing (232 with fn-286's take-over on, one node apart). Untraced; fn-281 saw a few nodes in 2.3 million at 80. Traced and fixed, or bounded with the owner, before the release PR, and an agreement test added at each preset's shipped age.
