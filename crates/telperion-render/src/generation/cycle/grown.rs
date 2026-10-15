@@ -155,9 +155,9 @@ pub(super) fn pencil_name(k: usize) -> String {
         "running x", "running y", "running z", "across x", "across y", "across z", "tip x", "tip y",
         "tip z", "run", "pull", "curve x", "curve y", "curve z", "turning", "pulls",
     ];
-    const TAIL: [&str; 11] = [
+    const TAIL: [&str; 15] = [
         "base scale", "running", "rank", "units", "laid", "trunk", "wood", "light", "size", "memory",
-        "kept",
+        "kept", "take", "line x", "line y", "line z",
     ];
     match k {
         0..16 => format!("pencil {}", WALK[k]),

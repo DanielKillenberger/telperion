@@ -126,6 +126,12 @@ pub struct PaState {
     /// How far a relay bud turns from its phyllotactic side to the upper
     /// side of its parent (epitony). Neutral 0; dormant without relays.
     pub epitony: f64,
+    /// Troll's take-over (fn-286): how far a relay's course runs back onto
+    /// the line of the axis it carries on, the parent's running direction
+    /// at its tip, at its base, fading over the scaled length its
+    /// straightening fades over; as far as the relay has left that line
+    /// (its blend). Neutral 0; dormant without relays.
+    pub takeover: f64,
     /// Troll's secondary erection: how fast, per cycle of the axis's age,
     /// its base straightens further towards the vertical, on top of its
     /// straightening (and on the seed, which has none). Neutral 0.

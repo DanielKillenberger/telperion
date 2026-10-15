@@ -170,6 +170,7 @@ fn step(wk: ptr<function, Walk>, i: u32, r: u32, scale: f32, bent: f32, total: f
     // Its own pull, and those it carries on, each fading over its reach.
     var lift = 0.0;
     var up = 0.0;
+    var fade = 0.0;
     let n = min(pn(i, P_LIFTS_N), LIFTS);
     for (var k = 0u; k <= n; k++) {
         var l = vec4<f32>(bent, (*wk).pull, total, 0.0);
@@ -180,15 +181,26 @@ fn step(wk: ptr<function, Walk>, i: u32, r: u32, scale: f32, bent: f32, total: f
         if l.z > 0.0 {
             along = qdiv(l.w + run + m(scale, 0.5), l.z);
         }
-        let here = m(l.x, max(1.0 - along, 0.0));
+        let left = max(1.0 - along, 0.0);
+        if k == 0u {
+            fade = left;
+        }
+        let here = m(l.x, left);
         lift = lift + here;
         up = up + m(here, l.y);
     }
     run = run + scale;
-    let blend = mv(running, 1.0 - lift) + vec3<f32>(0.0, 0.0, up);
+    // A relay's take-over runs it back onto its line, fading as its own
+    // pull does, the pulls above sharing what it leaves (fn-286).
+    let over = m(pnf(i, P_TAKE), fade);
+    var blend = mv(running, 1.0 - lift) + vec3<f32>(0.0, 0.0, up);
+    if over > 0.0 {
+        let keep = 1.0 - over;
+        blend = mv(running, m(1.0 - lift, keep)) + vec3<f32>(0.0, 0.0, m(up, keep)) + mv(pn3(i, P_LINE), over);
+    }
     var direction = running;
     let ub = qunit(blend);
-    if ub.w > 0.0 && lift > 0.0 {
+    if ub.w > 0.0 && (lift > 0.0 || over > 0.0) {
         direction = ub.xyz;
     }
     if !trunk && direction.z < 0.0 {

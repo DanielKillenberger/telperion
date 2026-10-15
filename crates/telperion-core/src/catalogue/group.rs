@@ -110,6 +110,7 @@ const SETTINGS: &[(&str, Group)] = &[
     ("relay_failed", Branching),
     ("relay_at", Branching),
     ("epitony", Branching),
+    ("takeover", Branching),
     ("shedding", Branching),
     ("shade_hazard", Branching),
     ("ground_hazard", Branching),

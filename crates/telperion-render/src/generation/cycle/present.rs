@@ -65,13 +65,8 @@ mod w {
     pub const TAU: usize = 33;
     pub const WHICH: usize = 35;
     pub const DEPTH: usize = 36;
-    pub const FINEST: usize = 37;
-    pub const WORDS: usize = 38;
+    pub const WORDS: usize = 37;
 }
-
-/// The thinnest wood the drawing draws (`dress.wgsl`'s and `space.rs`'s
-/// `FINEST`), which a gone subtree's leaves fade with.
-const FINEST: f32 = 2e-4;
 
 /// A buffer the presentation writes, copies into and reads back.
 fn storage(gpu: &Gpu, label: &'static str, words: u64) -> Result<Owned> {
@@ -175,7 +170,6 @@ pub(super) async fn present(gpu: &Gpu, (k, scan): (&Kernels, &io::Pass), (now, b
     }
     let tau = fraction * telperion_space::unfold::YEAR as f32;
     (cfg[w::TAU], cfg[w::TAU + 1]) = (tau.to_bits(), fraction.to_bits());
-    cfg[w::FINEST] = FINEST.to_bits();
     let small = zeroed(gpu, "present unbound", 4)?;
     let small2 = zeroed(gpu, "present unbound leaf", 4)?;
     // The keys, the matches, the gone counts and their scans.

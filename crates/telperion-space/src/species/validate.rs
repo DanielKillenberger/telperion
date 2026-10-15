@@ -79,6 +79,7 @@ impl PaState {
             ("relay_failed", self.relay_failed),
             ("relay_at", self.relay_at),
             ("epitony", self.epitony),
+            ("takeover", self.takeover),
             ("readiness", self.readiness),
             ("rhythm", self.rhythm),
             ("straightening", self.straightening),

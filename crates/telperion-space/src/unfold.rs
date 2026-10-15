@@ -84,6 +84,13 @@ pub fn run(t: f64, days: f64) -> f64 {
     }
 }
 
+/// What a subtree gone this year keeps `f` into the year: every organ's
+/// share, its wood's radius among them, and the thinnest wood it draws
+/// as a share of the thinnest drawn (fn-286; host, 2026-10-15).
+pub fn kept(f: f64) -> f64 {
+    1.0 - f.clamp(0.0, 1.0)
+}
+
 /// `a` moved a share `f` of the way to `b`: `a` at 0 and `b` at 1, to the
 /// bit.
 fn mix(a: f64, b: f64, f: f64) -> f64 {
@@ -218,9 +225,7 @@ impl Presented {
 /// `now`, the tree grown to its age, drawn `f` into its last year, from
 /// `before`, its drawing a year earlier (empty before the first year), by
 /// `species`' courses (module doc).
-/// `finest` is the thinnest wood the drawing draws: a gone subtree's
-/// leaves reach nothing as its fading wood reaches it.
-pub fn present(now: Structure, before: &Structure, species: &Species, (f, finest): (f64, f64)) -> Presented {
+pub fn present(now: Structure, before: &Structure, species: &Species, f: f64) -> Presented {
     if f >= 1.0 {
         return Presented::whole(now);
     }
@@ -230,7 +235,7 @@ pub fn present(now: Structure, before: &Structure, species: &Species, (f, finest
     let bases = now.axes.iter().map(|a| a.base).collect();
     let gone = now.axes.len();
     let moving = Vec::with_capacity(gone);
-    let mut p = Presenting { before, bases, grown, structure: now, leaves: Vec::new(), moving, f, finest };
+    let mut p = Presenting { before, bases, grown, structure: now, leaves: Vec::new(), moving, f };
     for i in 0..p.structure.axes.len() {
         let old = was.get(&ids[i]).map(|&j| &before.axes[j]);
         let leaves = p.axis(i, old, species);
@@ -252,7 +257,6 @@ struct Presenting<'a> {
     /// before (`Presenting::moving`).
     moving: Vec<f64>,
     f: f64,
-    finest: f64,
 }
 
 impl Presenting<'_> {
@@ -364,16 +368,15 @@ impl Presenting<'_> {
     /// faded by the fraction, carried with what it stood on. An axis that
     /// stays holds every phytomer it held (`unfold::tests`).
     fn fade(&mut self) {
-        let (before, f, finest) = (self.before, self.f, self.finest);
-        // Its wood thins to nothing and its leaves with it, each reaching
-        // nothing as its wood reaches the thinnest drawn.
+        let (before, f) = (self.before, self.f);
+        // Every organ fades uniformly to nothing across the fraction, its
+        // wood's radius and its leaves by `1 - f` (fn-270 R5a; host,
+        // 2026-10-15). Whether its wood is drawn was judged on its radius a
+        // year before and is not judged again as it thins (`kept`).
+        let keep = kept(f);
         let fade = |p: &mut Phytomer, shift: Vec3| -> f32 {
-            let r = p.radius;
-            (p.tip, p.radius) = (p.tip + shift, mix(r, 0.0, f));
-            match r > finest {
-                true => ((p.radius - finest) / (r - finest)).clamp(0.0, 1.0) as f32,
-                false => mix(1.0, 0.0, f) as f32,
-            }
+            (p.tip, p.radius) = (p.tip + shift, p.radius * keep);
+            keep as f32
         };
         let (ids, now) = (identities(before), index(&self.structure));
         // Each axis of the year before: where it is drawn now, and how far

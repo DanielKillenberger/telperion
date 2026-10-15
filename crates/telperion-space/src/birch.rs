@@ -82,6 +82,7 @@ fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
@@ -236,6 +237,8 @@ pub fn birch() -> Species {
         relay_failed: 1.0,
         relay_at: 0.6,
         epitony: 0.2,
+        // fn-286 (2026-10-15): a relay runs half back onto the line it takes over (RELAYS.md).
+        takeover: 0.5,
         form: Form {
             tropism: 0.4,
             elevation: 1.0,
@@ -267,6 +270,8 @@ pub fn birch() -> Species {
         relay_ended: 1.0,
         relay_failed: 1.0,
         epitony: 0.4,
+        // fn-286 (2026-10-15): a relay runs half back onto the line it takes over (RELAYS.md).
+        takeover: 0.5,
         form: Form {
             tropism: 0.9,
             elevation: 1.3,
@@ -304,6 +309,8 @@ pub fn birch() -> Species {
         relay_ended: 1.0,
         relay_failed: 1.0,
         epitony: 0.4,
+        // fn-286 (2026-10-15): a relay runs half back onto the line it takes over (RELAYS.md).
+        takeover: 0.5,
         form: Form {
             tropism: 0.3,
             elevation: 0.5,

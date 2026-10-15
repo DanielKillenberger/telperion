@@ -186,6 +186,25 @@ fn framed_on(i: u32, at: Point) -> Framed {
     return Framed(base, heading, side, curve - mv(heading, qdot(curve, heading)));
 }
 
+// How far relay `i` runs back onto its parent `p`'s line, and the line
+// (`geometry::taken`), into `i`'s pencil; none on any other axis.
+fn take_over(i: u32) {
+    var take = 0.0;
+    var line = vec3<f32>(0.0);
+    if kind_of(i) == RELAYED {
+        let t = m(fm(ax(i, A_PA), F_TAKEOVER), blend_of(i));
+        let u = qunit(pn3(ax(i, A_PARENT), P_RUNNING));
+        if u.w > 0.0 && t > 0.0 {
+            take = t;
+            line = u.xyz;
+        }
+    }
+    set_pnf(i, P_TAKE, take);
+    for (var c = 0u; c < 3u; c++) {
+        set_pnf(i, P_LINE + c, line[c]);
+    }
+}
+
 // The pulls axis `i`, carried on at blend `b`, takes from its parent
 // `p`'s walk (`Layer::handed`): `own`, the parent's own pull's bend and
 // the length it fades over, then those the parent carries, each as far

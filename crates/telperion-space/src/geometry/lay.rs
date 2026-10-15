@@ -47,6 +47,11 @@ pub(crate) struct Layer {
     /// The pulls a relay carries on from the axis it replaces, as far as
     /// it is still that axis's continuation (fn-206).
     inherited: Vec<Lift>,
+    /// A relay's take-over (fn-286): the line it runs back onto, a unit
+    /// direction, and how far at its base, fading as its own pull does.
+    /// None on every other axis.
+    line: Q3,
+    take: f32,
 }
 
 /// A pull of an axis's internodes towards the vertical: `bend` at `offset`
@@ -110,7 +115,20 @@ impl Layer {
             curve: sub(curve, scaled(heading, dot(curve, heading))),
             turning,
             inherited: Vec::new(),
+            line: [0.0; 3],
+            take: 0.0,
         }
+    }
+
+    /// The same, running back onto `line` by `take` at its base (`taken`).
+    pub fn taking_over(mut self, (line, take): super::Take) -> Self {
+        (self.line, self.take) = (line, take);
+        self
+    }
+
+    /// Its take-over as the device holds it: how far, then the line.
+    pub(crate) fn take_words(&self) -> [f32; 4] {
+        [self.take, self.line[0], self.line[1], self.line[2]]
     }
 
     /// The same, carrying on the pulls `inherited` from the axis it
@@ -284,21 +302,34 @@ impl Layer {
             total: total as f32,
             offset: 0.0,
         };
-        let (mut lift, mut up) = (0.0f32, 0.0f32);
-        for l in std::iter::once(&own).chain(&self.inherited) {
+        let (mut lift, mut up, mut fade) = (0.0f32, 0.0f32, 0.0f32);
+        for (k, l) in std::iter::once(&own).chain(&self.inherited).enumerate() {
             let along = if l.total > 0.0 {
                 (l.offset + run + scale * 0.5) / l.total
             } else {
                 1.0
             };
-            let here = l.bend * (1.0 - along).max(0.0);
+            let left = (1.0 - along).max(0.0);
+            if k == 0 {
+                fade = left;
+            }
+            let here = l.bend * left;
             lift += here;
             up += here * l.pull;
         }
         run += scale;
-        let blend = add(scaled(running, 1.0 - lift), [0.0, 0.0, up]);
+        // A relay's take-over runs it back onto its line, fading as its
+        // own pull does, the pulls above sharing what it leaves (fn-286).
+        let over = self.take * fade;
+        let blend = if over > 0.0 {
+            let keep = 1.0 - over;
+            let pulled = add(scaled(running, (1.0 - lift) * keep), [0.0, 0.0, up * keep]);
+            add(pulled, scaled(self.line, over))
+        } else {
+            add(scaled(running, 1.0 - lift), [0.0, 0.0, up])
+        };
         let mut direction = match unit(blend) {
-            Some(unit) if lift > 0.0 => unit,
+            Some(unit) if lift > 0.0 || over > 0.0 => unit,
             _ => running,
         };
         // Landing: within a few radii of the ground, and `LANDING`
@@ -361,14 +392,14 @@ fn rest(k: f32) -> f32 {
 /// where the walk ends.
 pub(crate) fn lay(
     axis: &mut Axis,
-    (frame, curve, inherited): ((Vec3, Vec3, Vec3), Vec3, Vec<Lift>),
+    (frame, curve, inherited, take): ((Vec3, Vec3, Vec3), Vec3, Vec<Lift>, super::Take),
     state: &PaState,
     bend: (f64, f64),
     load: Option<&[Lever]>,
     trunk: bool,
 ) -> std::result::Result<Layer, Stop> {
     let turning = tropism(axis.lineage, state.form.tropism_spread);
-    let mut layer = Layer::bent(frame, curve, turning).inheriting(inherited);
+    let mut layer = Layer::bent(frame, curve, turning).inheriting(inherited).taking_over(take);
     for (k, phytomer) in axis.phytomers.iter_mut().enumerate() {
         layer.step(phytomer, state, bend, load.map(|l| &l[k]), trunk)?;
     }

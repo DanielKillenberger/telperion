@@ -4,7 +4,7 @@
 //! laid, the error is the one of the first in index order, as laying them
 //! in turn would give.
 use super::lay::{lay, Layer, Lift, Stop, GROUND_TOLERANCE};
-use super::{bend, frame, reaches};
+use super::{bend, frame, reaches, taken, Take};
 use crate::cores::{map, picked, spread, PIECE};
 use crate::error::{Error, Result};
 use crate::sag::Lever;
@@ -14,7 +14,7 @@ use std::sync::Mutex;
 
 /// What an axis is laid from: its frame, its bearer's wander, the pulls
 /// it carries on, its bend and reach, and whether it is the trunk.
-type Start = ((Vec3, Vec3, Vec3), Vec3, Vec<Lift>, (f64, f64), bool);
+type Start = ((Vec3, Vec3, Vec3), Vec3, Vec<Lift>, Take, (f64, f64), bool);
 
 /// What each laid axis left: where its walk ended, its bend and whether
 /// it is the trunk, and each axis's reach.
@@ -113,7 +113,7 @@ fn place_where(
         // An axis whose base is below the ground ends the lay at it.
         'scan: for (k, (piece, starts)) in pieces.iter().zip(&framed).enumerate() {
             for (j, (&i, start)) in piece.iter().zip(starts).enumerate() {
-                (laid.bends[i], laid.trunk[i]) = ((start.3).0, start.4);
+                (laid.bends[i], laid.trunk[i]) = ((start.4).0, start.5);
                 let base = (start.0).0.z;
                 if base < -GROUND_TOLERANCE {
                     failed = Some((i, below(structure, i, base, -base)));
@@ -147,6 +147,7 @@ fn place_where(
 fn start(structure: &Structure, species: &Species, laid: &Laid, i: usize) -> Start {
     let layer = |p: usize| laid.layers[p].as_ref().expect("laid");
     let framed = frame(&structure.axes, species, i, &|p| layer(p).ends());
+    let take = taken(&structure.axes, species, i, &|p| layer(p).ends());
     let axis = &structure.axes[i];
     // A continuation or relay carries its bearer's wander on.
     let curve = match axis.origin {
@@ -168,7 +169,7 @@ fn start(structure: &Structure, species: &Species, laid: &Laid, i: usize) -> Sta
         Origin::Continuation { parent } | Origin::Relay { parent, .. } => laid.trunk[parent],
         Origin::Lateral { .. } => false,
     };
-    (framed, curve, inherited, (bent, laid.reaches[i]), trunk)
+    (framed, curve, inherited, take, (bent, laid.reaches[i]), trunk)
 }
 
 /// The axes by depth from the seed, each depth in index order.
@@ -238,11 +239,11 @@ fn lay_all(
     spread(work.len(), threads, &|k| {
         let (at, starts, axes, ends) = work[k].lock().unwrap().take().expect("a piece once");
         let jobs = at.into_iter().zip(starts).zip(axes.into_iter().zip(ends));
-        for ((i, (framed, curve, inherited, bend, trunk)), (axis, end)) in jobs {
+        for ((i, (framed, curve, inherited, take, bend, trunk)), (axis, end)) in jobs {
             let state = &species.states[axis.pa];
             let load = levers.map(|t| t[i].as_slice());
             let base = framed.0.z;
-            match lay(axis, (framed, curve, inherited), state, bend, load, trunk) {
+            match lay(axis, (framed, curve, inherited, take), state, bend, load, trunk) {
                 Ok(layer) => *end = Some(layer),
                 Err(stop) => {
                     *done[k].lock().unwrap() = Some((i, (base, stop)));

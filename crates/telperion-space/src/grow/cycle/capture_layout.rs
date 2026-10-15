@@ -20,8 +20,8 @@ const NONE: u32 = u32::MAX;
 const AXIS: usize = 31;
 const PHYT: usize = 19;
 const UNIT: usize = 4;
-const PENCIL: usize = 59;
-const FORM: usize = 19;
+const PENCIL: usize = 63;
+const FORM: usize = 20;
 /// The pulls a pencil holds inline.
 const LIFTS: usize = 8;
 
@@ -107,6 +107,7 @@ pub(super) fn form(species: &Species) -> Vec<f32> {
             fm.dominance as f32,
         ]);
         out.push(s.leaf_area as f32);
+        out.push(s.takeover as f32);
     }
     assert_eq!(out.len(), FORM * species.states.len(), "a form row");
     out
@@ -362,6 +363,7 @@ pub(super) fn pencil_row(p: &Pencil, fresh: bool) -> Vec<u32> {
     ]);
     let constants = [p.light, p.size, p.memory, p.kept];
     row.extend(constants.map(|x| if fresh { bits(x) } else { 0 }));
+    row.extend(p.layer.take_words().map(f32::to_bits));
     row
 }
 

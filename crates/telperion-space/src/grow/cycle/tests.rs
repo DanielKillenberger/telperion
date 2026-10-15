@@ -165,7 +165,7 @@ fn a_captured_layout_holds_the_cycle_it_laid() {
         let n = u32::from_le_bytes(counts[12..16].try_into().unwrap()) as usize;
         let rows = u32::from_le_bytes(counts[16..20].try_into().unwrap()) as usize;
         assert_eq!(words("in_axes"), 31 * n);
-        assert_eq!(words("out_pencils"), 59 * n);
+        assert_eq!(words("out_pencils"), 63 * n);
         assert_eq!(words("out_phyts"), 19 * rows);
         let phyts = c.array("out_phyts").unwrap().1;
         let laid: usize = (0..rows)
@@ -193,6 +193,6 @@ fn the_grown_capture_holds_every_phytomer() {
         assert_eq!(u32s("sk_phyts").len() as u64, 13 * held);
         let axes = u32s("g_pa").len();
         assert_eq!(u32s("sk_axes").len(), 11 * axes);
-        assert_eq!(u32s("sk_pencils").len() % 59, 0);
+        assert_eq!(u32s("sk_pencils").len() % 63, 0);
     }
 }

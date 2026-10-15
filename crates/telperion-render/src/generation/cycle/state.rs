@@ -28,7 +28,7 @@ pub(super) const AXES: u64 = 52;
 pub(super) const UNITS: u64 = 13;
 pub(super) const GROWN: u64 = 5;
 pub(super) const LAID: u64 = 14;
-pub(super) const PENCILS: u64 = 59;
+pub(super) const PENCILS: u64 = 63;
 pub(super) const SLEEPERS: u64 = 14;
 pub(super) const WOKEN: u64 = 5;
 /// The units' tally at the head of `lists`.

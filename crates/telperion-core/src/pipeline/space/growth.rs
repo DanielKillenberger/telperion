@@ -68,7 +68,7 @@ pub fn begin(params: &Params, seed: u32, horizon: f64) -> Result<GrowthState<'_>
     let age = horizon as u32;
     foreseen(&params.species, age, KEPT)?;
     let request = Request { age, seed: u64::from(seed), budget: BUDGET, light: params.light };
-    let paused = Paused::begin(&params.species, request, Retiring::AtAge, false).map_err(engine)?.presenting(super::FINEST);
+    let paused = Paused::begin(&params.species, request, Retiring::AtAge, false).map_err(engine)?.presenting();
     Ok(GrowthState { params, paused })
 }
 

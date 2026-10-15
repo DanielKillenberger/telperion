@@ -35,6 +35,7 @@ fn state(
         relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        takeover: 0.0,
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,

@@ -1,5 +1,5 @@
 //! fn-251: a walk never grows a tree larger than its ends. The teaser's
-//! frame that once passed the engine's budget grows within it, and the nine frames
+//! frame that once passed the engine's budget grows within it, and the eight frames
 //! of the sweep that miss its oracle (`examples/walk_size.rs`; WALKS.md,
 //! "The seed-spread oracle") are named exceptions held at their measured
 //! numbers until fn-273 takes them: none may move further outside its
@@ -38,24 +38,28 @@ struct Exception {
 }
 
 /// Both ends of the oak and spruce at 40 (seeds 1, 7 and 42).
-const OAK_SPRUCE_40: [(f64, f64); 2] = [(354_122.0, 1_104_620.0), (1_047_055.0, 2_749_947.0)];
+const OAK_SPRUCE_40: [(f64, f64); 2] = [(345_882.0, 1_104_620.0), (990_412.0, 2_749_947.0)];
 
-const EXCEPTIONS: [Exception; 9] = [
+// Re-measured with examples/walk_size.rs after fn-236's sourced sapling
+// segment and fn-286's take-over moved the oak, beech, birch, ordinary
+// tree and Laurelin (2026-10-15): the spruce-to-oak frame at 40, seed 7,
+// t 0.5 now meets its oracle and leaves the list.
+const EXCEPTIONS: [Exception; 8] = [
     Exception {
         walk: (Oak, Birch),
         age: 80.0,
         seed: 7,
         t: 0.01,
-        band: [(1_422_181.0, 3_385_291.0), (8_000_869.0, 16_625_765.0)],
-        measured: [3_953_260.0, 18_175_583.0],
+        band: [(1_423_308.0, 3_280_249.0), (7_998_959.0, 16_488_620.0)],
+        measured: [3_944_536.0, 18_138_622.0],
     },
     Exception {
         walk: (Oak, Ordinary),
         age: 40.0,
         seed: 1,
         t: 0.75,
-        band: [(98_544.0, 488_475.0), (236_384.0, 1_340_416.0)],
-        measured: [84_798.0, 210_186.0],
+        band: [(98_544.0, 487_001.0), (236_384.0, 1_278_945.0)],
+        measured: [84_773.0, 210_267.0],
     },
     Exception {
         walk: (Oak, Spruce),
@@ -63,15 +67,7 @@ const EXCEPTIONS: [Exception; 9] = [
         seed: 1,
         t: 0.25,
         band: OAK_SPRUCE_40,
-        measured: [370_943.0, 813_819.0],
-    },
-    Exception {
-        walk: (Spruce, Oak),
-        age: 40.0,
-        seed: 7,
-        t: 0.5,
-        band: OAK_SPRUCE_40,
-        measured: [346_727.0, 914_686.0],
+        measured: [367_335.0, 802_237.0],
     },
     Exception {
         walk: (Spruce, Oak),
@@ -79,7 +75,7 @@ const EXCEPTIONS: [Exception; 9] = [
         seed: 7,
         t: 0.75,
         band: OAK_SPRUCE_40,
-        measured: [263_622.0, 603_467.0],
+        measured: [259_671.0, 592_328.0],
     },
     Exception {
         walk: (Palm, Laurelin),
@@ -94,26 +90,24 @@ const EXCEPTIONS: [Exception; 9] = [
         age: 80.0,
         seed: 1,
         t: 0.5,
-        band: [(1_471_492.0, 3_385_291.0), (8_243_029.0, 16_625_765.0)],
-        measured: [1_304_437.0, 5_774_230.0],
+        band: [(1_472_391.0, 3_280_249.0), (8_331_772.0, 16_488_620.0)],
+        measured: [1_264_339.0, 5_636_117.0],
     },
     Exception {
         walk: (Oak, Spruce),
         age: 80.0,
         seed: 1,
         t: 0.5,
-        band: [(1_471_492.0, 3_800_870.0), (8_499_924.0, 17_915_812.0)],
-        measured: [1_514_700.0, 7_375_617.0],
+        band: [(1_472_391.0, 3_800_870.0), (8_383_222.0, 17_915_812.0)],
+        measured: [1_493_743.0, 7_231_060.0],
     },
     Exception {
         walk: (Birch, Oak),
         age: 40.0,
         seed: 7,
         t: 0.5,
-        band: [(263_041.0, 488_475.0), (746_474.0, 1_340_416.0)],
-        // Kept 579,740 to 579,745 with fn-252's birch ground hazard
-        // (9a9a734a4): an owner-approved rule, 8.6e-6 of the count.
-        measured: [579_745.0, 1_353_116.0],
+        band: [(261_807.0, 487_001.0), (736_817.0, 1_278_945.0)],
+        measured: [579_035.0, 1_344_294.0],
     },
 ];
 
