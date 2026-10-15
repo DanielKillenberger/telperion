@@ -289,12 +289,16 @@ pub fn oak() -> Species {
             ),
         )
     };
-    // The young stem's laterals: long shoots of about 0.35 m a year for
-    // ten years, ascending as Rauh's laterals repeat the trunk, and
-    // branching, then branch systems, so a sapling is a bushy young tree.
+    // The young stem's laterals: long shoots for ten years, ascending as
+    // Rauh's laterals repeat the trunk, and branching, then branch
+    // systems, so a sapling is a bushy young tree. A lateral grows no
+    // faster than its sapling's stem: Hibbs and Yoder (1993, via FEIS)
+    // measured Oregon white oak saplings at 15.7 cm a year, so about 5
+    // nodes of 0.031 m. fn-236 (2026-10-15): at 0.07 m, an unsourced
+    // 0.35 m a year, these shoots outran the crown as long low wands.
     let sprig = PaState {
         insertion: 0.7,
-        internode: 0.07,
+        internode: 0.031,
         viability: 0.95,
         shedding: 3.0,
         form: Form {
