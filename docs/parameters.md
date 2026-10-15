@@ -1164,6 +1164,7 @@ How deep a lateral may be and still start a limb system of its own. Raising it p
 - count (u32), order, [0, ∞], default 2
 - read by plan, expand; removed growth path: as the direct build
 - checked: by a named check or not at all (see note)
+- dormant: `limbClumping` zero, but for the limb tally of a requested leaf field
 - note: No upper bound is checked. The planned field assigns limb systems by it even at `limbClumping` zero.
 - blend: rounded to the nearest; dial: `clump_system_order` (how deep a lateral may be and still start a limb system of its own), window [1, 5] (capped: capped both ways: the generator validates no closed range here (an unchecked whole number); the row stays at the preset span until the generator authors one), steps 1 and 2, presets span [1, 5]
 

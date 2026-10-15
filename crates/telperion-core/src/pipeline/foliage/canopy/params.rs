@@ -156,6 +156,7 @@ crate::catalogue::rows! {
         pub clump_system_order: u32 = "clumpSystemOrder" "order"
             Bounds::at_least(0.0) => [Plan, Expand] {
             wire: 102,
+            applies: "`limbClumping` zero, but for the limb tally of a requested leaf field",
             note: "No upper bound is checked. The planned field assigns limb systems by it even \
                 at `limbClumping` zero.",
             blend: Blend::Count,
