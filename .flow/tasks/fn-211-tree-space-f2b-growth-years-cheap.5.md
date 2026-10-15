@@ -15,8 +15,9 @@ Probe (b) and the oak on the GPU (DESIGN-INTERLEAVE.md, "After Astra's review", 
 - The oak identical by lineage to the stepped CPU executor on the GPU (geometry within 50 µm max, 10 µm RMS) at 40 and 80, seeds 1 and 7. - The canonical light arithmetic specified, mirrored and measured on today's trees. - Round trips counted; oak timing warm and cold against today. - Workspace gate green.
 
 ## Done summary
-Blocked:
-Blocked on an owner-level design decision (host, 2026-10-07; TASK5-GPU.md). The oak's rough layout reaches topology through light (positions, wood, sizes, balance sums, re-lay girth and sag), so CPU/GPU identity by construction needs option A: the whole rough layout and its light feedback in one specified fixed-point arithmetic on both executors (about 5-7 sessions, moves today's oak at rounding level). Option D (f32 with a measured flip rate) is declined: it breaks the CPU reference as the definition of correct (fn-125) and repeats the shape declined for D17. Interim host decision: option C, light-reading roots stay on the exact CPU stepped executor (no GPU speed-up for the oak yet). Astra reviews A against alternatives; the owner decides in the morning. Merge f929dbeb and probe (b) (113-282 ms of synchronisation at oak 80) are done and kept.
+Not implemented: superseded (host, 2026-10-16, Astra's release review); see the spec's 'Closed as superseded'.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

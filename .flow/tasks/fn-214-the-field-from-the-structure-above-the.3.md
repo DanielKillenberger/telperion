@@ -12,8 +12,9 @@ Owner decision (2026-10-08): the field package grows the coarse tree by default,
 - Stills viewed; gate and npm test green.
 
 ## Done summary
-TBD
+Not implemented: superseded (host, 2026-10-16, Astra's release review); see the spec's 'Closed as superseded'.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

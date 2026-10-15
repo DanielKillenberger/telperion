@@ -17,3 +17,7 @@ Packaging and build only; no engine behaviour changes. Runs after fn-226 (light,
 ## Closed (host, 2026-10-13)
 
 Superseded by fn-257 (the site grows its trees on the device; owner, 2026-10-11): the site no longer grows a coarse field on the CPU, so the structure-above-the-cut field and its module size are replaced by fn-257 R1-R3 and fn-237 R8.
+
+## Closed as superseded (host, 2026-10-16)
+
+Astra's release review (2026-10-16, `.flow/evidence/fn-237-release-the-tree-space-engine-replaces/ASTRA-RELEASE-REVIEW.md`): its own "Closed (host, 2026-10-13)" section; fn-257 supersedes the coarse-only export split, and fn-242 is rewritten without it. Its requirements are not implemented and are not to be executed.

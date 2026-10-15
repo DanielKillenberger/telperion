@@ -30,3 +30,7 @@ Depends on fn-206 and fn-210. The fine orders are F1 (fn-209); integration is F4
 Layer 2 as designed is dropped (docs/principles.md, "Question, delete, then optimise"). PROFILE.md shows the only year passes whose cost follows the whole tree are the oak's: the full re-lay (1.0 s at 80, seed 1) and balance and allot (0.8 s). Under fn-209's cut (N = 1,024 kept phytomers) the oak's CPU structure is about 36k nodes, 4 % of the tree, and every one of those passes runs over that structure; and an incremental re-lay cannot be exact (a sagging limb changes its descendants' angle to gravity, and so their sag).
 
 In its place: **the oak under fn-209's cut.** The CPU grows the structure above the cut year by year with today's passes; each fine root carries DESIGN-LIGHT.md's history-dependent aggregate state (Astra change 1) for light, allocation moments, balance and upkeep, and its light history is recorded for fn-209's executor. Measured against today's whole oak: cost per year and per build, kept phytomers per order, per-PA drift under 2 %, bud light per fine root, stills. P4's light error (p50 16-38 %, cause unnamed) was at a cut of 77k-375k fine roots; at 4.4k it is measured again, its cause found first.
+
+## Closed as superseded (host, 2026-10-16)
+
+Astra's release review (2026-10-16, `.flow/evidence/fn-237-release-the-tree-space-engine-replaces/ASTRA-RELEASE-REVIEW.md`): superseded by fn-255/256's complete cycle; its measurements stand and any live performance obligation moves to fn-285. Its requirements are not implemented and are not to be executed.

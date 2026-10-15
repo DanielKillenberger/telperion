@@ -13,3 +13,7 @@ fn-227 (2026-10-09, SIZE.md) measured that packaging alone cannot bring `telperi
 ## Boundaries
 
 Depends on fn-227. Not a release item.
+
+## Re-scope (host, 2026-10-16)
+
+Astra's release review (2026-10-16, `.flow/evidence/fn-237-release-the-tree-space-engine-replaces/ASTRA-RELEASE-REVIEW.md`), "After 0.2.0" 3: this spec's plan profiled a single-thread coarse-field Wasm engine and depended on fn-227, which fn-257 superseded. It is rewritten against the artifacts fn-257 ships: the final package's reachable modules and transfer sizes measured, unreachable dependencies and needless entry coupling removed, and the ceilings fn-237 raised for 0.2.0 brought back down. The 616 KB engine attribution is not a forecast for a device-held field. The three published Wasm entries stay until their consumers and a migration justify a change. The fn-227 dependency is removed.
