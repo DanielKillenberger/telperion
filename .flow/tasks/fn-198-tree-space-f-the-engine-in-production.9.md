@@ -13,9 +13,10 @@ Owner goal (2026-10-08): a PR from this branch to master that is ready to make t
 - The PR opened by make-pr; nothing merged without the owner.
 
 ## Done summary
-TBD
+Release PR #159 opened as a draft (F4 to master, not merged). Gate 1,413 passed, 0 failed; npm 179/179. Release checks in fn-259 RELEASE.md: the harness meets R0a (Telperion 1.33 s at seed 42 against about 1.25 s), the site does not (fn-257 unbuilt), all four artifacts over their ceilings; open items listed on the PR for the owner.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
-- PRs:
+- Commits: 4272cb810, 05425e58a, 14b726932
+- Tests: cargo test --profile ci --workspace --no-fail-fast, npm test
+- PRs: https://github.com/DanielKillenberger/telperion/pull/159
