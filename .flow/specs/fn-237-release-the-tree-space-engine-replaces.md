@@ -46,7 +46,7 @@ The owner's goal (2026-10-08/09): "replace the old generator with the new one th
 | Telperion | needs work, accepted for now | "Doesn't look magical enough and flowers look too much like copy pasted. Not natural. But can accept for now" |
 | Laurelin | needs work | "Looks better than telperion but still flowers are too samey all over. and doesn't look magical enough." |
 
-The owner on the four that ask for size: "i think all have a similar problem is that we're not efficient enough with the generator to make large species at full fidelity. We need to have a plan on how to figure this out post release." That plan is fn-285. The birch's ground branches and the oak's long low branches are fn-282's ground. Open with the owner: whether the oak at seed 7, the birch's ground branches and the flowers of Telperion and Laurelin hold the release.
+The owner on the four that ask for size: "i think all have a similar problem is that we're not efficient enough with the generator to make large species at full fidelity. We need to have a plan on how to figure this out post release." That plan is fn-285. The birch's ground branches and the oak's long low branches are fn-282's ground. The owner (2026-10-15): the flowers of Telperion and Laurelin are accepted for the release; the birch's ground branches are accepted, fn-282 after the release; "Oak seed 7 does look like it needs fixing": a release item.
 
 ## Boundaries
 
