@@ -175,16 +175,16 @@ fn leaf_share(seg:Segment, k:u32) -> f32 {
 fn leaflet(seg:Segment, j:u32) -> vec3<u32> {
     let count=seg.range.y; let heading=seg.tangent.xyz;
     var point=seg.a.xyz; var axis=heading; var tangent=seg.b.xyz; var normal=seg.normal.xyz;
-    // A young frond's strips of one blade (`Split::segment`, fn-275 R2b):
-    // each stands where its strip begins, moving to its station by `f`,
-    // and runs toward the blade's tip, its length moving to the mature
-    // leaflet's on a log scale; the rachis over a mature leaflet in `edge.x`.
+    // A young frond's strips of one blade (`Split::segment`, fn-275 R2b,
+    // R2c): each stands at its station times `f`, its rachis short and
+    // lengthening as it matures, and runs toward the blade's tip, its
+    // length moving to the mature leaflet's on a log scale; the rachis
+    // over a mature leaflet in `edge.x`.
     let f=seg.distance.w;
     var t=f32(j+1u)/f32(count); var length=1.0;
     if f<1.0 {
-        let strip=f32(j)/f32(count);
         var station=t; if count==1u { station=0.0; }
-        t=strip+(station-strip)*f;
+        t=station*f;
         length=pow((1.0-t)*bitcast<f32>(seg.edge.x),1.0-f);
     }
     var share=seg.b.w*length;

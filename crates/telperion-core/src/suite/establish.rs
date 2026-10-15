@@ -3,7 +3,8 @@
 //! ground and widens until the crown is established, then rises. A tree
 //! with no rosette never reads the rows.
 use telperion_core::{
-    foliage::Instances,
+    foliage::{CanopyParams, Crown, Instances},
+    math::Vec3,
     pipeline::executor,
     presets::{Family, Preset},
     tree::Tree,
@@ -118,7 +119,7 @@ fn a_thin_first_stem_keeps_the_stem() {
 /// mature count.
 #[test]
 fn a_seedlings_fronds_are_entire_and_become_pinnate() {
-    use telperion_core::{foliage::Crown, tree::Year};
+    use telperion_core::tree::Year;
     let palm = family("date-palm", 1, 12.0);
     let (mature, years) = (palm.canopy.leaflet_count, palm.canopy.frond_establishment);
     let year = |age: f64| Year { age, budburst: 0.0, elongation: 226.0, expansion: 139.0 };
@@ -144,9 +145,12 @@ fn a_seedlings_fronds_are_entire_and_become_pinnate() {
     // Its leaflets are strips of one blade (host): the first frond one
     // strap the blade's length; a mature frond its rows; and every
     // frond's strips reach about its blade's tip whether its draw gives
-    // it the lesser or the greater whole count: measured 0.81 (a lone
-    // strap at f 0.14) to 1.21 blades (the mature 1.48 m leaflet past a
-    // 7 m rachis), the two counts at most 0.16 apart.
+    // it the lesser or the greater whole count: measured 0.79 (at f 0.38,
+    // its segments crowded toward its base, fn-275 R2c) to 1.21 blades
+    // (the mature 1.48 m leaflet past a 7 m rachis), the two counts at
+    // most 0.04 apart. And no leaflet's base stands off its frond (R2c):
+    // within a width of another segment's centreline, measured 0.75 at
+    // most where the frond draws no spine (0.42 on the mature frond).
     let blade = telperion_core::foliage::blade(&executor::element(palm.element).unwrap());
     let p = palm.canopy;
     let (strap, split) = c.segments(p, &p, 0.0, blade);
@@ -155,6 +159,9 @@ fn a_seedlings_fronds_are_entire_and_become_pinnate() {
     let reach = base + length * p.size * blade / p.rachis_length;
     assert!((reach - 1.0).abs() < 0.01 && strap.leaflet_pitch < 0.1, "the strap reaches {reach} at {}", strap.leaflet_pitch);
     assert_eq!(c.segments(p, &p, established as f64, blade), (p, None), "a mature frond moved");
+    let element = executor::element(palm.element).unwrap();
+    let width = 2.0 * element.positions.iter().map(|v| v.x.abs()).fold(0.0, f64::max);
+    let mut widest = 0.0f64;
     for s in 0..established {
         let Some(split) = c.segments(p, &p, s as f64, blade).1 else { continue };
         let n = c.leaflets(s as f64);
@@ -167,7 +174,23 @@ fn a_seedlings_fronds_are_entire_and_become_pinnate() {
         println!("frond {s}: f {:.3}, {n:.2} leaflets, reach {lo:.3} to {hi:.3} blades", split.f);
         assert!((0.78..1.22).contains(&lo) && (0.78..1.22).contains(&hi), "frond {s} reaches {lo} to {hi}");
         assert!((hi - lo).abs() < 0.2, "frond {s} reaches {lo} or {hi} by its draw");
+        // Each whole count of leaflets and of spines its draws can give.
+        let spines = c.segments(p, &p, s as f64, blade).0.acanthophylls;
+        let mut gaps = [0.0f64; 3];
+        for n in [n.floor(), n.ceil()].map(|n| n as usize) {
+            for whole in [spines.floor(), spines.ceil()] {
+                let [leaflet, spine] = gap(&c, &p, s as f64, (n, whole), (blade, width));
+                let at = usize::from(whole > 0.0);
+                gaps[at] = gaps[at].max(leaflet);
+                gaps[2] = gaps[2].max(spine);
+            }
+        }
+        println!("frond {s}: gap {:.2} widths, {:.2} by a spine, spines {:.2} ({spines:.2} spines)", gaps[0], gaps[1], gaps[2]);
+        widest = widest.max(gaps[0]);
     }
+    let grown_gap = gap(&c, &p, established as f64, (p.leaflet_count as usize, p.acanthophylls), (blade, width));
+    println!("the widest gap: {widest:.2} widths; the mature frond's {:.2}, its spines' {:.2}", grown_gap[0], grown_gap[1]);
+    assert!(widest <= 1.0, "a leaflet's base stands {widest} widths off its frond");
     let leaves = |age: f64, f: &Family| grown(&family_at(f, age)).1.leaves.len();
     let drawn = |age: f64| {
         let f = family_at(&palm, age);
@@ -183,6 +206,36 @@ fn a_seedlings_fronds_are_entire_and_become_pinnate() {
     }
     let one = leaves(1.0, &palm);
     assert!(one <= drawn(1.0) + 2, "the seedling at 1 bears {one} leaves");
+}
+
+/// R2c (host): the widest gaps on frond `serial` drawn with `n` segments,
+/// before any draw, its leaflets' and its spines': each base after the
+/// first, to the nearest point of another segment's centreline, in that
+/// segment's widths. A leaf element reaches `blade` metres and is `width`
+/// metres across at a size of one, its spines a whole count. None where
+/// it draws one segment.
+fn gap(c: &Crown, p: &CanopyParams, serial: f64, (n, spines): (usize, f64), (blade, width): (f64, f64)) -> [f64; 2] {
+    let (young, split) = c.segments(*p, p, serial, blade);
+    let young = CanopyParams { acanthophylls: spines, ..young };
+    let lines: Vec<_> = telperion_core::foliage::leaflets(Vec3::ZERO, Vec3::X, young, n, split)
+        .map(|l| {
+            let scale = young.size * l.share.unwrap_or(1.0);
+            (l.at, l.at + l.axis * (blade * scale), width * scale)
+        })
+        .collect();
+    let near = |q: Vec3, (a, b, _): (Vec3, Vec3, f64)| {
+        let ab = b - a;
+        let t = ((q - a).dot(ab) / ab.length_squared().max(1e-30)).clamp(0.0, 1.0);
+        q.distance(a + ab * t)
+    };
+    let spine = |k: usize| (k as f64) < young.acanthophylls && young.acanthophyll_length > 0.0;
+    let mut widest = [0.0f64; 2];
+    for k in 1..n {
+        let others = (0..n).filter(|&j| j != k).map(|j| near(lines[k].0, lines[j]));
+        let at = usize::from(spine(k));
+        widest[at] = widest[at].max(others.fold(f64::MAX, f64::min) / lines[k].2);
+    }
+    widest
 }
 
 fn family_at(f: &Family, age: f64) -> Family {

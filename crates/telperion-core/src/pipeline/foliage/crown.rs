@@ -225,19 +225,19 @@ pub struct Split {
 impl Split {
     /// Segment `k` of `n` on a blade `blade` metres long whose mature
     /// leaflet is `leaflet` metres: the share of the blade its base stands
-    /// at, its strip's start moving to its station (`(k + 1) / n`, the
-    /// base for a lone placement) by `f`; and its length as a share of
-    /// the mature leaflet's, from its base to the blade's tip moving to
-    /// the mature leaflet's by `f` on a log scale. At `n` one the entire
-    /// blade. A blade or leaflet of no length scales nothing.
+    /// at, its station (`(k + 1) / n`, the base for a lone placement)
+    /// times `f`, so a young frond's rachis is short against its segments
+    /// and lengthens as it matures (fn-275 R2c, host); and its length as a
+    /// share of the mature leaflet's, from its base to the blade's tip
+    /// moving to the mature leaflet's by `f` on a log scale. At `n` one
+    /// the entire blade. A blade or leaflet of no length scales nothing.
     pub fn segment(&self, k: usize, n: usize, blade: f64, leaflet: f64) -> (f64, f64) {
-        let strip = k as f64 / n as f64;
         let station = if n == 1 { 0.0 } else { (k + 1) as f64 / n as f64 };
-        let base = strip + (station - strip) * self.f;
+        let base = station * self.f;
         if blade <= 0.0 || leaflet <= 0.0 {
             return (base, 1.0);
         }
-        // `1 - base` is at least `(1 - f) / n`, above zero below maturity.
+        // `1 - base` is at least `1 - f`, above zero below maturity.
         let length = ((1.0 - base) * blade).ln() * (1.0 - self.f) + leaflet.ln() * self.f;
         (base, length.exp() / leaflet)
     }

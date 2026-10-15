@@ -36,3 +36,11 @@
 - **Slowed by:** the generation-limit inventory guard (`tests/generation_limit_guard.rs`) failed on three new guard sites in `crown.rs`. It was the gate's only failure, and it surfaced only at the end of a 30-minute gate, because no focused run reaches the guard.
 - **Cost:** one gate run's last failure, fixed with three inventory entries and a re-run of the guard target alone (seconds).
 - **Would remove it:** a `cargo test -p telperion-core --test generation_limit_guard` step in the focused-run recipe for any change under `src/pipeline`, or a pre-commit check that runs the guard.
+
+## 2026-10-15, worker, R2c: a frond draws its rachis
+
+- **Doing:** looking for the existing primitive the brief said would carry a drawn rachis (fn-275.3).
+- **Slowed by:** the brief assumed that a path existed. None did: a leaf instance has no free bit and only a uniform scale, and the bloom stalk's machinery works only on the organ draw. That took one escalation. Under the host's ruling B (rachis as wood, like the leaf bases), the device builds its wood (dress, boots, folds, sweep) before its stations pass, and that pass holds the frond clock and frond placement (`stations.wgsl` `rosette`, `crown_of`, `*_frond`). Hanging the rachis as device wood therefore means moving or sharing that code into the boots stage, past the host's 400-line stop. That took a second escalation.
+- **Cost:** two host round trips, and about 30 minutes of reading with no code written.
+- **Would remove it:** a brief that names the stage and executor order a new piece of geometry must fit into. For the device, that is `resident/build.rs`'s order: hang, folds, sweep, stations.
+- 2026-10-15, R2c base rule: a one-test diagnostic of a single library test, admitted at the brief's 10 GB, waited about 20 minutes in `telperion-heavy`'s queue behind another worktree's `diag_rows` run. The room read 2 to 4 GB. Would remove it: a smaller admission class for an incremental single-test run, the same ask as the R2a entry above.
