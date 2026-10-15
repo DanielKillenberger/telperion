@@ -77,10 +77,7 @@ pub(super) struct Hint {
 /// The closed form's expectations of `species` at `age`, its light's
 /// terms let go where it reads light (the form is light-neutral).
 pub(super) fn hint(species: &telperion_space::Species, age: u32) -> Result<Hint> {
-    let mut unshaded = species.clone();
-    for s in &mut unshaded.states {
-        (s.shade_hazard, s.shade_size, s.balance_hazard, s.leaf_girth) = (0.0, 0.0, 0.0, 0.0);
-    }
+    let unshaded = species.unlit();
     let refused = |e: telperion_space::Error| super::super::io::error(e.to_string());
     let kept = telperion_space::expected_kept(&unshaded, age.max(1)).map_err(refused)?;
     let axes = telperion_space::expected_axes(&unshaded, age.max(1)).map_err(refused)?;
@@ -245,6 +242,20 @@ impl Sizes {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// fn-257: every shipped preset's build is sized from its expectations,
+    /// never from the least tables a missing prediction leaves (the
+    /// birch's ground hazard did, and it moved 23 times a build).
+    #[test]
+    fn every_preset_is_sized_from_its_expectations() {
+        for &(_, id, ..) in telperion_core::presets::CATALOGUE {
+            let family = telperion_core::presets::by_identity(id).expect("a preset");
+            let growth = telperion_core::pipeline::executor::growth(&family).expect("a growth");
+            let h = hint(&growth.species, growth.request.age).expect("a hint");
+            Sizes::at_margin(h, MARGIN).expect("sized");
+            assert!(h.kept > 0.0, "{id}: {h:?}");
+        }
+    }
 
     /// The integration review's oak at 500: a hint whose tables pass the
     /// rows the device indexes is refused by name, never wrapped.

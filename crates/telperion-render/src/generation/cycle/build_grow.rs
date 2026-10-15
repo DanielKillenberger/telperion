@@ -301,6 +301,12 @@ impl Growing {
             )));
         }
         let mut grew = Grew::default();
+        if std::env::var("CYCLE_TRACE").is_ok() {
+            eprintln!(
+                "TRACE begun: {:?}; points {}, tips {}, nodes {}",
+                sizes.caps, sizes.points, sizes.tips, sizes.nodes
+            );
+        }
         // A build let go before this one freed first (`Ledger::destroy`).
         super::super::io::complete(gpu).await?;
         let b = Build::new(gpu, t, (tables, sizes.caps, sizes.block_cap), sizes.lit())?;
@@ -502,6 +508,12 @@ impl Growing {
             .then(|| grown(sizes, (read, self.last.as_deref(), fallen), t.budget))
             .flatten()
         {
+            if std::env::var("CYCLE_TRACE").is_ok() {
+                eprintln!(
+                    "TRACE moved after cycle {cycle}: {:?} -> {:?}; points {} -> {}, tips {} -> {}, nodes {} -> {}",
+                    sizes.caps, next.caps, sizes.points, next.points, sizes.tips, next.tips, sizes.nodes, next.nodes
+                );
+            }
             self.b = self.b.moved(gpu, (t, tables), (sizes, next)).await?;
             let plan = self.b.plan(gpu, kit, t, next.bounds)?;
             let mut e = gpu.encoder(&Default::default());
