@@ -57,7 +57,7 @@ export interface Parameter {
   zero: boolean;
   /** Where the row lies dormant; empty where it always acts. */
   applies: string;
-  /** Who reads it: the direct build, only the removed growth path, or no production stage. */
+  /** Who reads it, from the stages the catalogue names: the direct build, only the removed growth path, or no production stage. */
   reach: \"mature\" | \"growth\" | \"deprecated\";
   /** The tuning dial's window and small step, where the row offers one. */
   dial?: { window: [number, number]; step: number };
@@ -118,12 +118,12 @@ fn parameter(out: &mut String, entry: Entry, defaults: &Family) {
         _ => "real",
     };
     let optional = matches!(value, Kind::OptionalReal | Kind::OptionalSize);
-    let reach = if info.deprecated {
-        "deprecated"
+    let reach = if !info.reads.is_empty() {
+        "mature"
     } else if info.growth == Growth::Only {
         "growth"
     } else {
-        "mature"
+        "deprecated"
     };
     let b = info.bounds;
     let _ = write!(

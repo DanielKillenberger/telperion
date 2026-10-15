@@ -40,6 +40,7 @@ crate::catalogue::rows! {
         pub enabled: bool = "enabled" "switch" Bounds::closed(0.0, 1.0)
             => [Grow, Plan, Expand, Draw] {
             wire: 273,
+            applies: "every other `/supernatural` row unset or at its natural value",
             note: "A walk interpolates what each side applies, so a family that switches the \
                 group on ramps up from its natural rows.",
             blend: Blend::Coupled,

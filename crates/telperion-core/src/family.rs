@@ -46,7 +46,7 @@ crate::catalogue::rows! {
         /// cull it set kept every leaf on every engine preset and was removed
         /// (fn-198 R1, fn-212 R2); whether the row goes is the owner's call.
         pub shell_depth: f64 = "shellDepth" "share of the crown's widest radius"
-            Bounds::closed(0.0, 1.0) => [Cull] {
+            Bounds::closed(0.0, 1.0) => [] {
             wire: 236,
             check: input(Site::Shell, 0, "shell depth"),
             growth: Growth::Differs("measured against the envelope at the specimen's age"),

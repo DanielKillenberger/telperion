@@ -41,7 +41,12 @@ describe("the generated metadata", () => {
 describe("shownRows", () => {
   it("draws only the rows the mature build reads", () => {
     const shown = shownRows().map(p => p.path);
-    expect(shown).toContain("/shellDepth");
+    // Read by a stage of the build: the grown tree's trunk, not the scaffold's.
+    expect(shown).toContain("/radii/trunkRadius");
+    // Checked, never read past the check (fn-212 R2); the engine grows no
+    // scaffold habit (fn-198), so neither is a control (fn-284).
+    expect(shown).not.toContain("/shellDepth");
+    expect(shown).not.toContain("/skeleton/habit/lateralOrders");
     // The engine grows the tree to its age (fn-198).
     expect(shown).toContain("/age");
     expect(shown).not.toContain("/canopy/spacing");

@@ -351,8 +351,10 @@ pub struct Info {
     pub meaning: &'static str,
     pub unit: &'static str,
     pub bounds: Bounds,
-    /// Stages that read the row on the direct build; none only for a row the
-    /// growth path alone read or a deprecated one.
+    /// Stages that read the row on the direct build; none for a row no
+    /// stage reads: the scaffold's rows the engine replaced (fn-198), the
+    /// removed growth path's own and the deprecated ones. The browser
+    /// table derives a control's reach from it (fn-284).
     pub reads: &'static [Stage],
     /// The row's rank on the wire before the catalogue (`fields!` order).
     pub wire: u16,
@@ -427,8 +429,8 @@ pub struct Setters<S>(std::marker::PhantomData<S>);
 /// serde attribute as written, and one catalogue row per field that names its
 /// wire key. A row states its key, unit, bounds and the stages that read it;
 /// the rest of `Info` follows in braces where it differs from the default. A
-/// row with no doc comment, and a row that names no stage without being
-/// growth-path-only or deprecated, does not compile.
+/// row with no doc comment, and a growth-path-only or deprecated row that
+/// names a stage, does not compile.
 /// `ROWS` carries what the wire reads, `CHECKS` what the scalar check reads
 /// and `INFO` everything declared.
 macro_rules! rows {
@@ -539,10 +541,10 @@ macro_rules! rows {
                     };
                     assert!(!DECLARED.meaning.is_empty(), concat!($key, " has no meaning"));
                     assert!(
-                        !DECLARED.reads.is_empty()
-                            || DECLARED.deprecated
-                            || matches!(DECLARED.growth, $crate::catalogue::Growth::Only),
-                        concat!($key, " names no stage that reads it")
+                        DECLARED.reads.is_empty()
+                            || !(DECLARED.deprecated
+                                || matches!(DECLARED.growth, $crate::catalogue::Growth::Only)),
+                        concat!($key, " is read by no stage, yet names one")
                     );
                     DECLARED
                 },

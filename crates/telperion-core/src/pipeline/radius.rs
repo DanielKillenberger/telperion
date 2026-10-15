@@ -15,9 +15,10 @@ crate::catalogue::rows! {
         /// The trunk's radius at the ground as a share of the tree's height,
         /// so raising it thickens every piece of wood in proportion.
         pub trunk_radius: f64 = "trunkRadius" "share of height"
-            Bounds::closed(4e-6, f64::MAX) => [Grow, Plan] {
+            Bounds::closed(4e-6, f64::MAX) => [Plan] {
             wire: 74,
             check: value(Site::Radius, 1, "trunkRadius"),
+            applies: "`canopy.shootRadius` zero",
             note: "Also sizes the leaf box where `canopy.shootRadius` is above zero.",
             dial: tuned("trunk_radius", "the trunk's radius at the ground as a share of the \
                 height",
@@ -29,7 +30,7 @@ crate::catalogue::rows! {
         /// How wood divides at a fork. The parent's area is the sum of the
         /// children's radii raised to this power, so raising it leaves the
         /// children thicker for the same parent.
-        pub fork_exponent: f64 = "forkExponent" "-" Bounds::closed(1.0, 8.0) => [Grow] {
+        pub fork_exponent: f64 = "forkExponent" "-" Bounds::closed(1.0, 8.0) => [] {
             wire: 75,
             check: value(Site::Radius, 2, "forkExponent"),
             dial: bounded("fork_exponent", "how wood divides at a fork; higher leaves the \
@@ -37,7 +38,7 @@ crate::catalogue::rows! {
         },
         /// How fast wood thins along its own length. Raising it makes a
         /// branch narrow more sharply from its base to its tip.
-        pub length_taper: f64 = "lengthTaper" "per height" Bounds::closed(0.0, f64::MAX) => [Grow] {
+        pub length_taper: f64 = "lengthTaper" "per height" Bounds::closed(0.0, f64::MAX) => [] {
             wire: 76,
             check: value(Site::Radius, 3, "lengthTaper"),
             dial: tuned("length_taper", "how fast wood thins along its own length",
@@ -49,7 +50,7 @@ crate::catalogue::rows! {
         /// The ceiling on accumulated taper, so no single long branch can
         /// thin away to nothing. Raising it lets long branches taper further.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_max_taper_exponent"))]
-        pub max_taper_exponent: f64 = "maxTaperExponent" "-" Bounds::closed(0.0, 64.0) => [Grow] {
+        pub max_taper_exponent: f64 = "maxTaperExponent" "-" Bounds::closed(0.0, 64.0) => [] {
             wire: 77,
             check: value(Site::Radius, 0, "maxTaperExponent"),
             applies: "`lengthTaper` zero",
@@ -61,7 +62,7 @@ crate::catalogue::rows! {
         /// the lateral's wood thins by its root. At one every fork divides by
         /// the pipe model alone.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_share"))]
-        pub lateral_share: f64 = "lateralShare" "share" Bounds::closed(0.01, 1.0) => [Grow] {
+        pub lateral_share: f64 = "lateralShare" "share" Bounds::closed(0.01, 1.0) => [] {
             wire: 241,
             check: value(Site::Radius, 4, "lateralShare"),
             note: "Below one a lateral leaves thinner than a continuation carrying as many \
@@ -73,7 +74,7 @@ crate::catalogue::rows! {
         /// subtree's, 0 to 1, beside the primary that carries the axis on. At
         /// one the parts divide by the pipe model alone.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_share"))]
-        pub fork_balance: f64 = "forkBalance" "share" Bounds::closed(0.01, 1.0) => [Grow] {
+        pub fork_balance: f64 = "forkBalance" "share" Bounds::closed(0.01, 1.0) => [] {
             wire: 242,
             check: value(Site::Radius, 5, "forkBalance"),
             applies: "`skeleton.habit.codominance` zero",
@@ -87,7 +88,7 @@ crate::catalogue::rows! {
         /// girth it starts with, 0 to 0.9: past it the wood falls to the pipe
         /// model's radius by the axis's tip. At zero wood is the pipe model's.
         #[cfg_attr(feature = "json", serde(default))]
-        pub girth_hold: f64 = "girthHold" "share of reach" Bounds::closed(0.0, 0.9) => [Grow] {
+        pub girth_hold: f64 = "girthHold" "share of reach" Bounds::closed(0.0, 0.9) => [] {
             wire: 243,
             check: value(Site::Radius, 6, "girthHold"),
             growth: Growth::Ignored,
@@ -109,7 +110,7 @@ crate::catalogue::rows! {
         /// share divided by this, so raising it breaks the wood into twigs
         /// over a shorter distance.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_girth_fall"))]
-        pub girth_fall: f64 = "girthFall" "-" Bounds::closed(0.5, 8.0) => [Grow] {
+        pub girth_fall: f64 = "girthFall" "-" Bounds::closed(0.5, 8.0) => [] {
             wire: 244,
             check: value(Site::Radius, 7, "girthFall"),
             growth: Growth::Ignored,

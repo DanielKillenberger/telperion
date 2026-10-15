@@ -113,6 +113,7 @@ crate::catalogue::rows! {
         pub lobe_depth: f64 = "lobeDepth" "share" Bounds::closed(0.0, 1.0) => [Plan] {
             wire: 138,
             check: input(Site::Leaf, 7, "leaf lobe depth"),
+            applies: "`lobeCount` zero",
             dial: bounded("leaf_lobe_depth", "how far each sinus cuts toward the midrib; at zero \
                 the margin is entire whatever the lobe count says, and any rise starts cutting \
                 the sinuses", [0.15, 0.3]),

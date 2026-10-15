@@ -203,6 +203,7 @@ crate::catalogue::rows! {
             Bounds::closed(-1e9, 1e9) => [Grow, Plan, Expand] {
             wire: 105,
             check: input(Site::Rosette, 0, "rosette divergence"),
+            applies: "no rosette and no leaf bases (`rosetteFronds` and `leafBases` zero)",
             note: "Also the leaf bases' spiral, rosette or none.",
             blend: Blend::Degrees,
             dial: tuned("rosette_divergence", "the degrees each successive frond is turned",
@@ -240,6 +241,7 @@ crate::catalogue::rows! {
             Bounds::closed(0.0, 100.0) => [Grow, Plan, Expand] {
             wire: 108,
             check: input(Site::Rosette, 3, "rosette depth"),
+            applies: "no rosette and no leaf bases (`rosetteFronds` and `leafBases` zero)",
             note: "Leaf bases start below it, rosette or none; the deepest frond sets the leaf \
                 box's reach.",
             dial: tuned("rosette_depth", "metres the frond insertions spread down the axis",
@@ -253,6 +255,7 @@ crate::catalogue::rows! {
             Bounds::closed(1.0, crate::pipeline::foliage::MAX_LEAFLETS as f64) => [Plan, Expand] {
             wire: 109,
             check: input(Site::Rosette, 20, "leaflet count"),
+            applies: "`rachisLength` zero",
             note: "Leaflets group only above one and with `rachisLength` above zero.",
             blend: Blend::Log,
             dial: bounded("leaflet_count", "leaflets along one frond's rachis", [2.0, 8.0]),
