@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { PRESETS } from "../src/browser/core";
 import { PARAMETERS, type Parameter } from "../src/browser/parameters.generated";
 
-import { admit, groupOf, labelOf, readRow, shownRows, slider } from "./rows";
+import { admit, readRow, shownRows, slider } from "./rows";
 
 function leaves(value: unknown, at: string, out: Map<string, unknown>): Map<string, unknown> {
   if (typeof value === "object" && value !== null) {
@@ -57,9 +57,10 @@ describe("the control's arithmetic", () => {
   const orders = row("/skeleton/habit/lateralOrders");
   const shell = row("/shellDepth");
 
-  it("groups and labels a row by its pointer", () => {
-    expect([groupOf(orders.path), labelOf(orders.path)]).toEqual(["/skeleton/habit", "lateral orders"]);
-    expect([groupOf(shell.path), labelOf(shell.path)]).toEqual(["/", "shell depth"]);
+  it("groups and labels a row as the catalogue states it", () => {
+    expect([shell.group, shell.label]).toEqual(["advanced", "shell depth"]);
+    expect([row("/canopy/rosetteFronds").group, row("/canopy/rosetteFronds").label]).toEqual(["leaves", "rosette fronds"]);
+    expect(row("/radii/trunkRadius").label).toBe("leaf box: wood radius");
   });
 
   it("slides over the tuning window, widened to the value, at a notch that resolves it", () => {

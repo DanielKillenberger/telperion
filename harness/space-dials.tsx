@@ -11,6 +11,7 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
 import type { SpaceSetting } from "../src/browser/parameters.generated";
+import { Changed } from "./changed";
 import type { GrowerParams } from "./params";
 import { admits, moveAll, places, range, readSetting, writeSetting, type Place } from "./space";
 
@@ -49,14 +50,18 @@ function PerAge({ s, params, setParams }: {
 
 /** An engine setting: a slider over every stated age, and the ages
  *  beneath it. */
-export function SpaceDial({ s, params, setParams }: {
+export function SpaceDial({ s, params, setParams, isChanged, onReset }: {
   s: SpaceSetting;
   params: GrowerParams;
   setParams: Dispatch<SetStateAction<GrowerParams>>;
+  isChanged: boolean;
+  onReset: () => void;
 }) {
   const r = range(s);
   const [by, setBy] = useState(r.neutral);
-  useEffect(() => { setBy(r.neutral); }, [params.preset, r.neutral]);
+  /* A new preset, or a reset of the tree or the group, puts the slider
+     back at no move. */
+  useEffect(() => { if (!isChanged) setBy(r.neutral); }, [params.preset, isChanged, r.neutral]);
   const id = `gd-space-${s.name}`;
   const slide = (raw: number): void => {
     const next = s.scale === "log" ? 2 ** raw : raw;
@@ -65,15 +70,16 @@ export function SpaceDial({ s, params, setParams }: {
     setParams(prev => ({ ...prev, family: moveAll(prev.preset, prev.family, s, next) }));
   };
   const position = s.scale === "log" ? Math.log2(by) : by;
-  return <div className="gd-dial">
+  return <div className={isChanged ? "gd-dial gd-changed" : "gd-dial"}>
     <label className="gd-label" htmlFor={id}>
-      {s.label}<span className="gd-value">{describe(s, by)} {s.unit}</span>
+      {s.label} ({s.unit})<span className="gd-value">{describe(s, by)}</span>
     </label>
     <input id={id} type="range" aria-label={s.label}
       min={s.scale === "log" ? Math.log2(r.min) : r.min}
       max={s.scale === "log" ? Math.log2(r.max) : r.max}
       step={s.scale === "log" ? 0.01 : r.step} value={position}
       onChange={event => slide(Number.parseFloat(event.target.value))} />
+    {isChanged && <Changed label={s.label} onReset={onReset} />}
     <p className="gd-meaning">{s.meaning}</p>
     <PerAge s={s} params={params} setParams={setParams} />
   </div>;

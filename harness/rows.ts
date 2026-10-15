@@ -45,16 +45,6 @@ export function shownRows(): Parameter[] {
   return PARAMETERS.filter(p => p.reach === "mature");
 }
 
-/** The group a row sits in: its pointer's parent, "/" for the family's own. */
-export function groupOf(path: string): string {
-  return path.slice(0, path.lastIndexOf("/")) || "/";
-}
-
-/** A row's label: its key, spaced. */
-export function labelOf(path: string): string {
-  return path.slice(path.lastIndexOf("/") + 1).replace(/[A-Z]/g, c => ` ${c.toLowerCase()}`);
-}
-
 /** The slider over a row: its ends and notch. The ends are the tuning
  *  window where the row offers a dial, its bounds otherwise, widened to take
  *  the value in so a preset is never clamped on arrival. The notch is one
