@@ -1482,12 +1482,6 @@
     "reason": "The engine's phytomer safety bound, refused by name when reached (ResourceLimit); no shipped species reaches it at the harness's ages (the spruce at 80 grows 4.8M, fn-198)."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/space.rs",
-    "site": "const FINEST : f64 = 2e - 4 ;",
-    "classification": "numeric",
-    "reason": "The thinnest wood drawn: a float32 ring stays resolved above it (fn-193); the engine's tree is unchanged, only the conversion's drawing of it."
-  },
-  {
     "path": "crates/telperion-core/src/presets/space.rs",
     "site": "if let Some ( k ) = ( 0 . . AGES ) . find ( | & k | stated [ k ] & & states [ k ] . lifespan < = 0 . 0 ) {",
     "classification": "algorithm",
@@ -1683,7 +1677,7 @@
     "path": "crates/telperion-core/src/pipeline/space/unfolding.rs",
     "site": ". max ( 1 . 0 - grow )",
     "classification": "algorithm",
-    "reason": "A gone subtree's leaves are gone no later than its wood thins to the finest drawn (fn-270 R5c)."
+    "reason": "A gone subtree's leaves are gone no later than it fades, uniformly by the fraction (fn-270 R5a, R5c; host, 2026-10-15)."
   },
   {
     "path": "crates/telperion-core/src/pipeline/space/unfolding.rs",
