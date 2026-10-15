@@ -208,8 +208,9 @@ fn every_pass_is_reported() {
 }
 
 /// fn-197 step 2, moved from `tests/light.rs` when `grow` became the
-/// cycle (fn-256): the oak without sag, erection, straightening or
-/// shedding, its rough layout (`sketch`) against the final lay of the
+/// cycle (fn-256): the oak without sag, erection, straightening, take-over
+/// (fn-286: like straightening, it fades over the reach later years
+/// extend) or shedding, its rough layout (`sketch`) against the final lay of the
 /// engine that sketches it (`whole`): every phytomer where the final lay
 /// puts it, but for wood near the ground, which the final lay eases by
 /// its girth.
@@ -220,6 +221,7 @@ fn without_what_later_years_add_the_rough_layout_is_the_final_one() {
         state.form.sag = 0.0;
         state.erection = 0.0;
         state.straightening = 0.0;
+        state.takeover = 0.0;
         state.shedding = f64::INFINITY;
     }
     let lit = Request {
