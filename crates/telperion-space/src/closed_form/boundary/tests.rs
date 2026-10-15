@@ -21,6 +21,8 @@ use crate::{beech, oak, palm, spruce, Species};
 // alone moved, every other row holding fn-254's f32 pin to the bit.
 // fn-275 R2a re-pinned the palm's: its internode, 0.031 m to 0.0339 m,
 // raises the stem by what its crown's establishment lowers it.
+// fn-236 (2026-10-15) re-pinned the oak's: its young stem's laterals grow
+// 0.031 m nodes, the sapling rate Hibbs and Yoder measured, not 0.07 m.
 const PINNED: [(&str, u32, u64); 40] = [
     ("beech", 1, 0x744ad9d4c38baff6),
     ("beech", 2, 0xd9f87b741891c18c),
@@ -42,16 +44,16 @@ const PINNED: [(&str, u32, u64); 40] = [
     ("spruce", 34, 0x8591291469644b73),
     ("spruce", 55, 0xd8d66197922ef708),
     ("spruce", 80, 0xa453b49bcdabd3a7),
-    ("oak", 1, 0xa73078b8840542f7),
-    ("oak", 2, 0xb53435dfbd91d727),
-    ("oak", 3, 0x0cc12d0166c4a65b),
-    ("oak", 5, 0x2b7e7c14cec3af36),
-    ("oak", 8, 0x0348853d62e67aa2),
-    ("oak", 13, 0xa2a6c7b8ff32b3da),
-    ("oak", 21, 0xaa96e090c85181e0),
-    ("oak", 34, 0xef82ae25fa389ff5),
-    ("oak", 55, 0xd74eb8ab714f54f3),
-    ("oak", 80, 0x73ca50b4ed6d3127),
+    ("oak", 1, 0x85a24b1a6d792878),
+    ("oak", 2, 0xc8a959d1e850b247),
+    ("oak", 3, 0x8f9a1180135f3a6e),
+    ("oak", 5, 0xcd76f1424072db54),
+    ("oak", 8, 0x4acc0e62c26bf48a),
+    ("oak", 13, 0x0e9f262e999e438f),
+    ("oak", 21, 0x5a3f45e2a91bd524),
+    ("oak", 34, 0xe842d2ff6a339d4e),
+    ("oak", 55, 0xc0327a273d354879),
+    ("oak", 80, 0xa647e4d74297988f),
     ("palm", 1, 0x0ce2f02f7186f784),
     ("palm", 2, 0x5aab3ecd4c102ab4),
     ("palm", 3, 0x2373698dcb356a49),

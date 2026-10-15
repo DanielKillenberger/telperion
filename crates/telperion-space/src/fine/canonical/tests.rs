@@ -42,5 +42,5 @@ fn a_grown_tree_holds_each_lineage_once_and_a_twin_is_seen() {
 #[cfg(debug_assertions)]
 #[should_panic(expected = "two axes share a lineage")]
 fn the_lineage_order_asserts_no_two_axes_share_a_lineage() {
-    lineage_order(twinned());
+    super::lineage_order(twinned());
 }
