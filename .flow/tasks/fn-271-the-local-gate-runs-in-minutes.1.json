@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-271-the-local-gate-runs-in-minutes",
   "spec_path": ".flow/tasks/fn-271-the-local-gate-runs-in-minutes.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Measure and shrink the gate's slowest tests",
   "updated_at": "2026-10-13T13:38:09.059072Z"
 }

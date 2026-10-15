@@ -61,7 +61,7 @@
     "impl:fn-281-the-oak-at-80-builds-at-every-seed.2": 0
   },
   "spec_path": ".flow/specs/fn-281-the-oak-at-80-builds-at-every-seed.md",
-  "status": "open",
+  "status": "done",
   "title": "The oak at 80 builds at every seed",
   "tracker": {
     "baseHashFlow": null,
@@ -74,5 +74,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T20:57:18.169266Z"
+  "updated_at": "2026-10-15T20:17:26.710604Z"
 }

@@ -1274,7 +1274,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-270-growth-continues-from-any-age-in-less.md",
-  "status": "open",
+  "status": "done",
   "title": "Growth continues from any age, in less memory, with leaves that unfold",
   "tracker": {
     "baseHashFlow": null,
@@ -1287,5 +1287,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T11:04:43.545472Z"
+  "updated_at": "2026-10-15T20:17:23.690320Z"
 }

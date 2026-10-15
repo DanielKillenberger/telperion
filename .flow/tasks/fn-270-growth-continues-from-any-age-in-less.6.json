@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-270-growth-continues-from-any-age-in-less",
   "spec_path": ".flow/tasks/fn-270-growth-continues-from-any-age-in-less.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "A grow-in past the budget is refused by name, never a crash",
   "updated_at": "2026-10-14T08:43:14.165492Z"
 }

@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-276-the-device-builds-every-tree-the-cpu",
   "spec_path": ".flow/tasks/fn-276-the-device-builds-every-tree-the-cpu.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Repro, cause, fix, sweep",
   "updated_at": "2026-10-14T10:11:45.451417Z"
 }

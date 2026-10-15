@@ -228,7 +228,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-252-a-shoot-that-reaches-the-ground-stops.md",
-  "status": "open",
+  "status": "done",
   "title": "A shoot that reaches the ground stops there",
   "tracker": {
     "baseHashFlow": null,
@@ -241,5 +241,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T16:34:19.988363Z"
+  "updated_at": "2026-10-15T20:17:24.219698Z"
 }

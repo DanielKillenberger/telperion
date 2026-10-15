@@ -152,7 +152,7 @@
     "impl:fn-276-the-device-builds-every-tree-the-cpu.2": 0
   },
   "spec_path": ".flow/specs/fn-276-the-device-builds-every-tree-the-cpu.md",
-  "status": "open",
+  "status": "done",
   "title": "The device builds every tree the CPU builds",
   "tracker": {
     "baseHashFlow": null,
@@ -165,5 +165,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T15:50:39.382176Z"
+  "updated_at": "2026-10-15T20:17:25.731062Z"
 }

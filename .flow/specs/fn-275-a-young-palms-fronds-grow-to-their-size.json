@@ -266,7 +266,7 @@
     "impl:fn-275-a-young-palms-fronds-grow-to-their-size.1": 0
   },
   "spec_path": ".flow/specs/fn-275-a-young-palms-fronds-grow-to-their-size.md",
-  "status": "open",
+  "status": "done",
   "title": "A young palm's fronds grow to their size over its establishment",
   "tracker": {
     "baseHashFlow": null,
@@ -279,5 +279,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T07:55:45.820867Z"
+  "updated_at": "2026-10-15T20:17:25.222305Z"
 }

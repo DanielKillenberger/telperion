@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-281-the-oak-at-80-builds-at-every-seed",
   "spec_path": ".flow/tasks/fn-281-the-oak-at-80-builds-at-every-seed.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Repro, sweep, cause",
   "updated_at": "2026-10-14T15:11:39.981136Z"
 }

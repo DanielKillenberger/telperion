@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-276-the-device-builds-every-tree-the-cpu",
   "spec_path": ".flow/tasks/fn-276-the-device-builds-every-tree-the-cpu.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "A build's start leaves room for its first move",
   "updated_at": "2026-10-14T14:42:28.988102Z"
 }

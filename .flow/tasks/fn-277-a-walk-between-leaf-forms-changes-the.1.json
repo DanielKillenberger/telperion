@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-277-a-walk-between-leaf-forms-changes-the",
   "spec_path": ".flow/tasks/fn-277-a-walk-between-leaf-forms-changes-the.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Repro, cause, fix, sweep",
   "updated_at": "2026-10-14T10:11:46.414010Z"
 }

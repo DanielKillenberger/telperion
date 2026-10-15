@@ -312,7 +312,7 @@
     "impl:fn-277-a-walk-between-leaf-forms-changes-the.1": 0
   },
   "spec_path": ".flow/specs/fn-277-a-walk-between-leaf-forms-changes-the.md",
-  "status": "open",
+  "status": "done",
   "title": "A walk between leaf forms changes the leaves by degree",
   "tracker": {
     "baseHashFlow": null,
@@ -325,5 +325,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T17:03:01.649272Z"
+  "updated_at": "2026-10-15T20:17:26.218819Z"
 }
