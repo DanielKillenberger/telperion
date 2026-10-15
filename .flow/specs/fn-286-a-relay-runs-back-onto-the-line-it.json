@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-286-a-relay-runs-back-onto-the-line-it.md",
-  "status": "open",
+  "status": "done",
   "title": "A relay runs back onto the line it takes over",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T18:23:51.590685Z"
+  "updated_at": "2026-10-15T20:15:58.325533Z"
 }
