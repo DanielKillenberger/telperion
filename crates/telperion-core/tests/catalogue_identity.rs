@@ -225,6 +225,11 @@
 //! of organs are reals (their kind, walk and refusals), `cauline` is a new
 //! row (1, the palm 0), `leafletCount` walks on the logarithm and the
 //! engine's `cluster_leaves` walks by value.
+//! fn-236's round 4 (2026-10-15, the owner's choice) re-pinned the family,
+//! walk and override digests: the oak bears leaves on the current year's
+//! shoots (`leafYears` 1, `shootRadius` 0.007) at a typical 72.5 mm blade.
+//! The merge changed the oak's value file and nothing else; the refusal
+//! digest did not move.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -260,7 +265,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        15_600_618_737_748_844_894,
+        10_945_204_996_623_722_676,
         "{}",
         digest(&text)
     );
@@ -304,7 +309,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        10_246_313_571_835_020_974,
+        17_052_627_544_863_014_307,
         "{}",
         digest(&text)
     );
@@ -329,7 +334,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        455_181_196_565_730_622,
+        2_973_709_605_309_610_466,
         "{}",
         digest(&text)
     );
