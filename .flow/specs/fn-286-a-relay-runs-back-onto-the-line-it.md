@@ -15,3 +15,7 @@ The owner (2026-10-15), on whether the six species with relays (beech, birch, or
 ## Boundaries
 
 Release item (fn-237). The length of the oak's low limbs is fn-236's (a sourced sapling segment); low branches dying under the crown is fn-282, after the release.
+
+## The owner's verdict (2026-10-15)
+
+On the sheets of all six changed species (`sheets/`, today beside new at seeds 1, 7, 42; take-over 0.75 oak and ordinary, 0.5 beech, birch, Telperion, Laurelin; the oak's sapling segment 0.031 m from Hibbs & Yoder 1993): "definitely better". Approved, pending the gate (the device sizing refusal and the within-year presentation test, both being fixed).
