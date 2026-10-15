@@ -26,3 +26,7 @@ Release (owner, 2026-10-15: "we need to add a spec to the release to fix the har
 
 - No change to any tree's values or the engine; the harness and the catalogue's browser table only.
 - Deleting the old skeleton rows from the catalogue is out of scope unless no consumer reads them; if none does, that is its own spec.
+
+## Owner's verdict (R5, 2026-10-15)
+
+In the harness on the release branch (`f2f8a06bd`): "sliders change the tree yes. Yes settings are clear. groups seem ok to." Accepted. Open: Norway spruce, Telperion and Laurelin were never probed (memory); `clumpSystemOrder` carries dormancy text instead of a probe pass.
