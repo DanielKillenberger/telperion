@@ -123,7 +123,7 @@ impl Stationer {
     /// An exclusive scan of the first `fields` words of `n` records
     /// `stride` words apart in `data`, its totals into `totals`
     /// (`scan.wgsl`).
-    fn scan(
+    pub(super) fn scan(
         &self,
         gpu: &Gpu,
         e: &mut wgpu::CommandEncoder,
@@ -310,7 +310,9 @@ impl Stationer {
             )?;
         }
         let [_, stations, segments, ..] = Self::counts(gpu, &mut e, &counts).await?;
-        let buffer = storage(gpu, "station segments", u64::from(segments) * GW as u64)?;
+        // Each segment's words, then the node each stands on (`owns`).
+        let words = u64::from(segments) * (GW as u64 + 1);
+        let buffer = storage(gpu, "station segments", words)?;
         let late: [&wgpu::Buffer; 7] = [
             &swept.nodes,
             &swept.table,

@@ -14,6 +14,7 @@ pub(super) struct Kit {
 }
 
 pub use budget::Admitted;
+pub use field::{Answer, DeviceField};
 #[cfg(target_arch = "wasm32")]
 pub(crate) use budget::BROWSER;
 
@@ -64,6 +65,23 @@ impl super::Generator {
         return budget::BROWSER;
         #[cfg(not(target_arch = "wasm32"))]
         budget::native(&self.gpu, self.gpu.ledger.live())
+    }
+
+    /// `family`'s field grown on the device and kept there (fn-257), its
+    /// limb systems opened by laterals of `limb_order` or less (the
+    /// family's own where none is given).
+    pub async fn grow_field(&self, family: &Family, limb_order: Option<u32>) -> Result<DeviceField> {
+        let gpu = &self.gpu;
+        self.on_device(async |kit| {
+            field::grow(gpu, (self, &kit.kernels, &kit.tools), family, limb_order).await
+        })
+        .await
+    }
+
+    /// `field`'s answers for `cells`, four words a cell: a closed cube's
+    /// centre and half extent (fn-257).
+    pub async fn query_field(&self, field: &DeviceField, cells: &[f32]) -> Result<Vec<Answer>> {
+        field.query(&self.gpu, &self.kit().tools, cells).await
     }
 
     /// The device's kernels and tools, made on first use.
@@ -151,6 +169,9 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
         ("resident rings", rings::source()),
         ("resident handoff", handoff::source()),
     ]
+    .into_iter()
+    .chain(field::sources())
+    .collect()
 }
 
 // The browser's expected peak is checked in a browser alone; natively it
@@ -178,6 +199,9 @@ mod growing_tests;
 mod organ_tests;
 pub use growing::GrowingTree;
 mod florets;
+mod field;
+#[cfg(test)]
+mod field_tests;
 pub(super) mod fold;
 mod handoff;
 #[cfg(test)]

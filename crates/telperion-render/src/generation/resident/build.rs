@@ -36,6 +36,7 @@ pub(super) struct Tools {
     pub stationer: Stationer,
     pub ringer: Ringer,
     pub handoff: Handoff,
+    pub fielder: super::field::Fielder,
 }
 
 impl Tools {
@@ -60,6 +61,7 @@ impl Tools {
             stationer,
             ringer,
             handoff,
+            fielder: super::field::Fielder::new(gpu),
         }
     }
 }
@@ -179,54 +181,22 @@ pub(super) async fn placed(
     gpu: &Gpu,
     (gen, tools): (&Generator, &Tools),
     (family, growth): (&Family, &executor::Growth),
-    ((mut dressed, trunk), year): ((Dressed, tree::Trunk), Option<Year>),
+    (drawn, year): ((Dressed, tree::Trunk), Option<Year>),
     mut t: Timed,
 ) -> Result<Built> {
-    let bases = executor::bases(family)?;
     let flowers = growth.species.states.iter().any(|s| s.flowering > 0.0);
-    let hung = stage(gpu, &mut t.bases, async || {
-        tools.hanger.hang(gpu, &mut dressed, bases.as_ref()).await
-    })
-    .await?;
-    let d = &tools.dresser;
-    let x = stage(gpu, &mut t.folds, async || {
-        let folds = dressed.extent(gpu, d).await?;
-        let shape = folds.shape();
-        let terms = executor::reach_terms(family, shape[1])?;
-        let (bins, corners) = dressed.crowns(gpu, d, shape, terms).await?;
-        let (crown, over) = dressed.sift(gpu, d, shape, &beyond(&bins)).await?;
-        if over {
-            return Err(Error::ResourceLimit("the device's crown front").into());
-        }
-        let (root, stem) = (trunk.root, trunk.stem);
-        Ok(executor::resident(
-            family,
-            Summaries {
-                folds,
-                crown,
-                corners,
-                root,
-                stem,
-            },
-        )?)
-    })
-    .await?;
+    let Readied {
+        x,
+        swept,
+        hung,
+        ids,
+    } = readied(gpu, tools, family, drawn, &mut t).await?;
     let seats = x.seats();
     let mut m = Metrics::default();
     let section = x.section()?;
     let segments = section.segments;
     let surface = &family.surface;
     let height = x.leaves().envelope.height;
-    let sweeper = &tools.sweeper;
-    let rows = rows(surface, height);
-    let swept = stage(gpu, &mut t.sweep, async || {
-        sweeper
-            .sweep(gpu, &dressed, rows, hung.cells.as_ref())
-            .await
-    })
-    .await?;
-    let ids = dressed.ids;
-    drop(dressed);
     // A flowering tree's organ, its rows checked before the stations read
     // them (`bloom_element`'s check).
     let organ = match flowers {
@@ -360,6 +330,68 @@ pub(super) async fn placed(
         eprintln!("TRACE stages {t:?}");
     }
     Ok(Built { prepared, device })
+}
+
+/// A drawn tree (`dressed`, its `trunk`) hung, folded into the
+/// pipeline's expansion and swept as `family`'s: what a resident tree is
+/// placed from and a field is made of (fn-257). `t` holds each stage's
+/// milliseconds.
+pub(super) struct Readied {
+    pub x: executor::Expansion,
+    pub swept: super::sweep::Swept,
+    pub hung: super::boots::Hung,
+    pub ids: u32,
+}
+
+pub(super) async fn readied(
+    gpu: &Gpu,
+    tools: &Tools,
+    family: &Family,
+    (mut dressed, trunk): (Dressed, tree::Trunk),
+    t: &mut Timed,
+) -> Result<Readied> {
+    let bases = executor::bases(family)?;
+    let hung = stage(gpu, &mut t.bases, async || {
+        tools.hanger.hang(gpu, &mut dressed, bases.as_ref()).await
+    })
+    .await?;
+    let d = &tools.dresser;
+    let x = stage(gpu, &mut t.folds, async || {
+        let folds = dressed.extent(gpu, d).await?;
+        let shape = folds.shape();
+        let terms = executor::reach_terms(family, shape[1])?;
+        let (bins, corners) = dressed.crowns(gpu, d, shape, terms).await?;
+        let (crown, over) = dressed.sift(gpu, d, shape, &beyond(&bins)).await?;
+        if over {
+            return Err(Error::ResourceLimit("the device's crown front").into());
+        }
+        let (root, stem) = (trunk.root, trunk.stem);
+        Ok(executor::resident(
+            family,
+            Summaries {
+                folds,
+                crown,
+                corners,
+                root,
+                stem,
+            },
+        )?)
+    })
+    .await?;
+    let rows = rows(&family.surface, x.leaves().envelope.height);
+    let sweeper = &tools.sweeper;
+    let swept = stage(gpu, &mut t.sweep, async || {
+        sweeper
+            .sweep(gpu, &dressed, rows, hung.cells.as_ref())
+            .await
+    })
+    .await?;
+    Ok(Readied {
+        x,
+        swept,
+        hung,
+        ids: dressed.ids,
+    })
 }
 
 /// The 16-word placement `summaries`, copied into one buffer in `encoder`

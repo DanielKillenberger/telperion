@@ -392,11 +392,6 @@ pub fn plan(
         });
         total += cluster::leaves(tree, &p, c);
     }
-    let extent = element
-        .positions
-        .iter()
-        .map(|v| v.length())
-        .fold(0.0, f64::max);
     // The crown's leaflets, each a box carrying its own reach, beside the
     // wood's; the stands bear the wood's leaves alone.
     let wood = (total, descriptors.len());
@@ -414,13 +409,29 @@ pub fn plan(
             rachis: 0.0,
         }));
     }
+    let [seat, rachis, blade] = leaf_reach(surface, p, element);
     Ok(Some(Plan {
         descriptors,
         total,
-        blade: extent * p.size * (1.0 + p.size_variation),
-        seat: seating(surface, p),
-        rachis: rachis(p),
+        blade,
+        seat,
+        rachis,
     }))
+}
+
+/// The terms of a leaf's reach from wood it is planned on (`Plan::reach`):
+/// `[seat, rachis, blade]`, the seat a multiple of the wood's radius.
+pub(crate) fn leaf_reach(surface: &SurfaceParams, p: CanopyParams, element: &Element) -> [f64; 3] {
+    let extent = element
+        .positions
+        .iter()
+        .map(|v| v.length())
+        .fold(0.0, f64::max);
+    [
+        seating(surface, p),
+        rachis(p),
+        extent * p.size * (1.0 + p.size_variation),
+    ]
 }
 
 /// A coarse tree's fine roots (fn-214), each a capsule from its wood's base
